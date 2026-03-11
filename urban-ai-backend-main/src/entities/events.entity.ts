@@ -113,7 +113,7 @@ import {
     ativo: boolean;
   
     @ApiProperty({ description: "Data da última coleta/atualização dos dados", required: false })
-    @Column("datetime", { nullable: true })
+    @Column("timestamp", { nullable: true })
     @Index()
     dataCrawl: Date;
   

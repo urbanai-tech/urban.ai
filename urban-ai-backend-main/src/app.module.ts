@@ -11,7 +11,7 @@ import { EmailModule } from './email/email.module';
 import { ProcessModule } from './process/process.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ScheduleModule } from '@nestjs/schedule';      // ← importe aqui
+import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
@@ -43,14 +43,14 @@ import { NotificationsModule } from './notifications/notifications.module';
     }),
     BullModule.forRoot({
       redis: {
-        host: 'trolley.proxy.rlwy.net',
-        port: 22539,
-        username: 'default',
-        password: 'keSVqRPESvxhtyZXdgnKVZUdyBvYWKfg',
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+        password: process.env.REDIS_PASSWORD || undefined,
+        tls: process.env.REDIS_TLS === 'true' ? {} : undefined,
       },
     }),
     BullModule.registerQueue({
-      name: 'processos', // nome usado no Processor
+      name: 'processos',
     }),
     PropriedadeModule,
     EventoModule,
@@ -62,15 +62,13 @@ import { NotificationsModule } from './notifications/notifications.module';
       isGlobal: true,
     }),
 
-    // 1.1) Registrar o ScheduleModule antes dos seus serviços agendados
-    ScheduleModule.forRoot({
-      // define seu timezone padrão, opcional
-    }),
+    // 1.1) Registrar o ScheduleModule
+    ScheduleModule.forRoot({}),
 
-    // 2) Database connection
+    // 2) Database connection — MySQL
     TypeOrmModule.forRoot({
       type: 'mysql',
-      driver: require('mysql2'),
+      connectorPackage: 'mysql2',
       host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT, 10) || 3306,
       username: process.env.DB_USER || 'root',
@@ -81,7 +79,7 @@ import { NotificationsModule } from './notifications/notifications.module';
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
     }),
 
-    // 3) Seus módulos de domínio
+    // 3) Módulos de domínio
     UserModule,
     ConnectModule,
     AuthModule,
