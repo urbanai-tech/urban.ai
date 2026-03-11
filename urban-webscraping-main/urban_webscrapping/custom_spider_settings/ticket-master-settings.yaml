@@ -1,0 +1,9 @@
+ROBOTSTXT_OBEY: false
+CONCURRENT_REQUESTS: 1
+DOWNLOAD_DELAY: 2.5
+RETRY_TIMES: 3
+
+# For testing purpose set visual output, just uncomment
+FEEDS:
+  outputs/ticket_master_events.csv:
+    format: csv

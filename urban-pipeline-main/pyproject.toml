@@ -1,0 +1,95 @@
+[project]
+name = "urban-pipeline"
+version = "0.2.0"
+description = "Data pipelines for Urban AI project"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.40.31",
+    "dotenv>=0.9.9",
+    "httpx>=0.28.1",
+    "omegaconf>=2.3.0",
+    "pandas>=2.3.2",
+    "prefect>=3.4.12",
+    "pyarrow>=21.0.0",
+    "pydantic>=2.11.7",
+    "pymysql>=1.1.2",
+    "sqlmodel>=0.0.24",
+]
+
+[dependency-groups]
+dev = [
+    "commitizen>=4.8.3",
+    "mypy>=1.17.1",
+    "poethepoet>=0.37.0",
+    "pytest>=8.4.2",
+    "ruff>=0.12.8",
+    # E2E testing dependencies
+    "moto[s3]>=5.0.0",
+    "testcontainers[mysql]>=4.0.0",
+    "pytest-asyncio>=0.24.0",
+]
+
+[tool.poe.tasks]
+commit = { help = "Commit to current branch and bump version.", sequence = [{ cmd = "cz c" }, { cmd = "cz bump" }] }
+push = { help = "Push modifications to remote repo", shell = "git push -u origin $(git branch --show-current) --tags" }
+clean = { help = "Remove cache and temporary files", script = "poethepoet.scripts:rm('.mypy_cache', './**/__pycache__')" }
+lint = { help = "Run linters", sequence = [{ cmd = "ruff check --fix" }, { cmd = "ruff format" }, { cmd = "mypy urban_webscrapping/" }] }
+run-webscraping-pipeline = { help = "", cmd = "uv run src/urban_pipeline/web_scrapping.py" }
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "$version"
+version_scheme = "pep440"
+version_provider = "pep621"
+update_changelog_on_bump = true
+
+[tool.ruff]
+target-version = "py312"
+show-fixes = true
+format.docstring-code-format = true
+lint.select = [
+    "F", # Pyflakes
+    "W", # flake8-warnings  (pycodestyle warnings)
+    "E", # pycodestyle
+    "B", # flake8-bugbear
+    "I", # isort
+    "UP", # pyupgrade
+    "PL", # pylint
+    "C901", # McCabe complexity
+    "T201", # 
+    "D",
+    "RUF015", 
+]
+lint.ignore = [ "E501", "D107" ]
+lint.pydocstyle.convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = [ "E402", "D100", "D104" ]
+"**/{tests,docs,tools}/*" = [ "E402" ]
+
+[tool.mypy]
+strict = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+warn_unreachable = true
+files = ["urban_webscrapping/", "test/"]
+ignore_missing_imports = true
+follow_imports = "silent"
+show_error_codes = true
+pretty = true
+strict_optional = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --import-mode=importlib"
+testpaths = [
+    "tests"
+]
+pythonpath='.'

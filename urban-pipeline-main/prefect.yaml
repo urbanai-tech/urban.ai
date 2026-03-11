@@ -1,0 +1,64 @@
+# Generic metadata about this project
+name: urban-pipeline
+prefect-version: 3.4.12
+
+# build section allows you to manage and build docker images
+build: null
+
+# push section allows you to manage if and how this project is uploaded to remote locations
+push: null
+
+# pull section allows you to provide instructions for cloning this project in remote locations
+pull:
+- prefect.deployments.steps.git_clone:
+    repository: https://github.com/local-hq/urban-pipeline.git
+    branch: main
+    access_token: '{{ prefect.blocks.secret.deployment-urban-webscraping-trigger-all-spiders-flow-repo-token }}'
+
+# the deployments section allows you to provide configuration for deploying flows
+deployments:
+- name: urban_webscraping
+  version: '0.1'
+  tags: ['urban']
+  concurrency_limit: null
+  description: null
+  entrypoint: spiders_pipeline/main.py:trigger_all_spiders
+  parameters: {
+    scrapyd_url: 'https://api.webscraping.myurbanai.com'
+  }
+  work_pool:
+    name: urban_webscraping_workpool
+    work_queue_name: null
+    job_variables:
+      env:
+        SCRAPYD_URL: 'https://api.webscraping.myurbanai.com'
+  schedules:
+  - cron: 0 3 * * *
+    timezone: UTC
+    day_or: true
+    active: true
+
+- name: raw_data_extraction_and_dump
+  version: '0.1'
+  tags: ['urban']
+  concurrency_limit: null
+  description: null
+  entrypoint: raw_data_pipeline/main.py:main
+  parameters: {}
+  work_pool:
+    name: urban_webscraping_workpool
+    work_queue_name: null
+    job_variables:
+      env:
+        DATABASE_URL: '{{ prefect.blocks.secret.mysql-bronze-url }}'
+        AWS_ACCESS_KEY_ID: '{{ prefect.blocks.secret.aws-access-key-id }}'
+        AWS_SECRET_ACCESS_KEY: '{{ prefect.blocks.secret.aws-secret-access-key }}'
+        ASSUME_ROLE_ARN: '{{ prefect.blocks.secret.aws-assume-role-arn }}'
+        ASSUME_ROLE_EXTERNAL_ID: '{{ prefect.blocks.secret.aws-assume-role-external-id }}'
+        AWS_REGION: 'us-east-2'
+        S3_BUCKET_NAME: 'urban-ai-data'
+  schedules:
+  - cron: 0 4 * * *
+    timezone: UTC
+    day_or: true
+    active: true

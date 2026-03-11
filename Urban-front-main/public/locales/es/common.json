@@ -1,0 +1,256 @@
+{
+  "signin_title": "Iniciar sesión en tu cuenta",
+  "email_label": "Dirección de correo electrónico",
+  "email_placeholder": "Digite seu email",
+  "password_label": "Contraseña",
+  "password_placeholder": "Contraseña",
+  "forgot_password": "¿Olvidaste tu contraseña?",
+  "signin_button": "Iniciar sesión",
+  "or": "o",
+  "google_signin": "Iniciar sesión con Google",
+  "not_member": "¿Aún no eres miembro?",
+  "start_trial": "Prueba gratuita de 14 días",
+  "register_properties": "Registrar propiedades",
+  "aiurban_title": "Conecta tu AI-urban",
+  "aiurban_description": "Monitorea eventos cerca de tus alquileres y ajusta dinámicamente los precios para maximizar los ingresos durante los picos de demanda.",
+  "aiurban_instruction": "Para comenzar, conecta tu cuenta de Airbnb y selecciona las propiedades que deseas monitorear para eventos locales.",
+  "airbnb_email_label": "Correo de la cuenta de Airbnb",
+  "airbnb_email_placeholder": "Ingresa tu correo de Airbnb",
+  "properties_to_monitor": "Tus propiedades a monitorear",
+  "select_all_listings": "Seleccionar todos los anuncios",
+  "property_1": "Acogedor apartamento en el centro",
+  "property_2": "Refugio en cabaña junto al lago",
+  "property_3": "Villa en la cima de la colina con piscina infinita",
+  "search_properties": "Buscar propiedades",
+  "login_title": "Crear cuenta",
+  "login_button": "Iniciar sesión",
+  "login_with_google": "Iniciar sesión con Google",
+  "login_email_placeholder": "Ingresa tu correo",
+  "login_username_placeholder": "Ingresa tu nombre de usuario",
+  "login_password_placeholder": "Ingresa tu contraseña",
+  "login_forgot_password": "¿Olvidaste tu contraseña?",
+  "login_not_member": "¿Aún no eres miembro?",
+  "login_register": "Rellena los campos para crear tu cuenta",
+  "login_alredy_has": "¿Ya tienes una cuenta? Inicia sesión",
+
+  "nav": {
+    "home": "Inicio",
+    "listings": "Anuncios",
+    "pricing": "Precios",
+    "bookings": "Reservas",
+    "performance": "Rendimiento",
+    "marketInsights": "Insights del Mercado"
+  },
+  "header": {
+    "logoAlt": "Logotipo Urban",
+    "userName": "Dan Abrahmov",
+    "userAvatarAlt": "Avatar de usuario",
+     "logout": "Cerrar sesión"
+  },
+  "address": {
+    "address_verification_title": "Verificación de dirección",
+    "address_verification_description": "Confirma las direcciones de las propiedades seleccionadas. Completa el código postal y el número de cada dirección.",
+    "address_verification_instruction": "Puedes confirmar todas de una vez o una por una.",
+    "progress_label": "Progreso",
+    "valid_addresses": "{{count}} de {{total}} direcciones válidas",
+    "cep_label": "Código Postal",
+    "number_label": "Número",
+    "cep_invalid": "El código postal debe tener el formato XXXXX-XXX",
+    "number_required": "El número es obligatorio",
+    "address_valid": "Dirección válida",
+    "all_addresses_ready": "¡Todas las direcciones están listas para confirmación!",
+    "confirm_all": "Confirmar todas",
+    "confirm_one_by_one": "Confirmar una por una",
+    "confirming": "Confirmando...",
+    "processing": "Procesando...",
+    "fields_incomplete": "Campos incompletos",
+    "fill_all_fields_correctly": "Por favor, completa todos los campos correctamente.",
+    "success": "¡Éxito!",
+    "addresses_confirmed_success": "¡Direcciones confirmadas con éxito!",
+    "error": "Error",
+    "confirm_addresses_error": "Error al confirmar direcciones. Intenta nuevamente.",
+    "no_valid_address": "Ninguna dirección válida",
+    "fill_at_least_one_address": "Por favor, completa al menos una dirección correctamente.",
+    "processing_done": "¡Procesamiento terminado!",
+    "addresses_processed_success": "¡{{count}} dirección(es) procesadas con éxito!",
+    "processing_error": "Error en el procesamiento",
+    "processing_some_addresses_error": "Error al procesar algunas direcciones.",
+    "loading": "Cargando...",
+    "address": "Dirección {{index}}",
+    "cep_invalid_digits": "El CEP debe tener 8 dígitos",
+    "cep_invalid_title": "CEP inválido",
+    "cep_invalid_description": "Por favor, ingrese un CEP de 8 dígitos",
+    "consulting_cep": "Consultando CEP...",
+    "cep_found_title": "¡CEP encontrado!",
+    "cep_found_description": "{{street}}, {{neighborhood}}",
+    "cep_not_found_title": "Error al consultar CEP",
+    "cep_not_found_description": "CEP no encontrado. Inténtalo de nuevo.",
+    "found_address": "Dirección encontrada",
+    "search_cep": "Buscar CEP",
+    "searching_cep": "Buscando...",
+    "address_complete": "¡Dirección válida y completa!"
+  }
+      ,
+  
+  "price_comparison": {
+    "title": "Comparación de Precios",
+    "property_label": "Propiedad",
+    "event_label": "Evento",
+    "original_price": "Precio Original",
+    "recommended_price": "Precio Recomendado",
+    "percentage_change": "% de Cambio",
+    "back_button": "Volver"
+  },
+
+  "my_properties": {
+    "title": "Mis Propiedades",
+    "add_property": "Agregar Propiedad",
+    "options": "Opciones",
+    "add_manually": "Agregar Propiedad Manualmente",
+    "footer_note": "Sus propiedades se sincronizan automáticamente con Airbnb. Cualquier cambio realizado aquí se reflejará en ambas plataformas."
+  },
+
+"event_log": {
+  "title": "Registro de Eventos",
+  "description": "Una lista de todos los eventos activados por tus usuarios. Puedes filtrar por fecha y tipo de evento.",
+  "search_placeholder": "Buscar eventos",
+  "all_events": "Todos los eventos",
+  "price_adjusted": "Precio ajustado",
+  "ignored": "Ignorado",
+  "pending": "Pendiente",
+  "error": "Error",
+  "days_ago": "días atrás"
+},
+
+"event_alerts": {
+  "title": "Alertas de Eventos",
+  "next_events": "Eventos Próximos",
+  "next_events_description": "Te notificaremos cuando haya un evento cerca de tu propiedad que cumpla con los criterios establecidos a continuación.",
+  "min_attendance": "Participantes Mínimos",
+  "min_attendance_description": "Número mínimo de asistentes esperados en el evento para recibir una alerta.",
+  "alert_radius": "Radio de Alerta",
+  "alert_radius_description": "Distancia en km desde tu propiedad para recibir alertas.",
+  "alert_methods": "Métodos de Alerta",
+  "email": "Correo Electrónico",
+  "push": "Notificación Push",
+  "sms": "SMS",
+  "notification_description": "Notificación sobre eventos",
+  "save_button": "Guardar",
+  "saved": "¡Configuraciones guardadas!"
+},
+
+"event_calendar": {
+  "title": "Tu Calendario",
+  "search_placeholder": "Buscar Anuncios",
+  "select_date": "Seleccionar una fecha",
+  "city": "São Paulo",
+  "year": "2025",
+  "all_events": "Todos los Eventos",
+  "my_events": "Solo Mis Eventos",
+  "event": "Evento",
+  "date": "Fecha",
+  "guests": "Invitados",
+  "guests_label": "invitados",
+  "listing": "Anuncio",
+  "action": "Acción",
+  "view_details": "Ver Detalles",
+  "next_events": "Eventos Próximos",
+  "next_events_description": "Te notificaremos cuando haya un evento cerca de tu propiedad que cumpla con los criterios establecidos a continuación.",
+  "min_attendance": "Participantes Mínimos",
+  "min_attendance_description": "Número mínimo de asistentes esperados en el evento para recibir una alerta.",
+  "alert_radius": "Radio de Alerta",
+  "alert_radius_description": "Distancia en km desde tu propiedad para recibir alertas.",
+  "alert_methods": "Métodos de Alerta",
+  "email": "Correo Electrónico",
+  "push": "Notificación Push",
+  "sms": "SMS",
+  "notification_description": "Notificación sobre eventos",
+  "save_button": "Guardar",
+  "saved": "¡Configuraciones guardadas!"
+},
+
+"casas_proximas": {
+  "eventos_title": "Eventos próximos a",
+  "km": "km"
+},
+
+  "pricing": {
+    "choose_plan_title": "Elige el plan adecuado para ti",
+    "per_month": "mes",
+    "select_plan": "Seleccionar Plan",
+    "badges": {
+      "recommended": "Recomendado",
+      "most_popular": "Más popular"
+    },
+    "plans": {
+      "pro": "Pro",
+      "enterprise": "Enterprise"
+    },
+    "features": {
+      "api_calls_100k": "100 mil llamadas de API/mes",
+      "api_calls_1m": "1 millón de llamadas de API/mes",
+      "image_recognition": "API de reconocimiento de imágenes",
+      "text_translation": "API de traducción de texto",
+      "text_generation": "API de generación de texto",
+      "speech_recognition": "API de reconocimiento de voz"
+    }
+  },
+
+
+  "footer": {
+    "copy": "© {{year}} Mi App. Todos los derechos reservados.",
+    "links": {
+      "about": "Sobre",
+      "contact": "Contacto",
+      "privacy": "Política de Privacidad"
+    },
+
+  
+
+
+  "nav": {
+    "home": "Inicio",
+    "inbox": "Bandeja de Entrada",
+    "listings": "Anuncios",
+    "calendar": "Calendario",
+    "insights": "Insights",
+    "new_listing": "Nuevo anuncio"
+  }
+  },
+
+  "layout": {
+    "dashboard": "Inicio",
+    "event_alerts": "Alertas",
+    "event_log": "Registro",
+    "near_events": "Eventos",
+    "price": "Precio",
+    "properties": "Propiedades",
+    "connect": "Conectar",
+    "toggle_sidebar": "Alternar barra lateral",
+    "open_menu": "Abrir menú",
+    "close_menu": "Cerrar menú",
+    "menu": "Menú"
+  },
+  
+   "eventos": {
+    "titulo": "Eventos",
+    "raio_alerta": "Radio de alerta (km)",
+    "filtro_todos": "Todos",
+    "filtro_urgente": "Urgente",
+    "filtro_passado": "Pasado",
+    "nenhum": "Ningún evento aquí."
+  },
+  "error": {
+    "invalidCredentials": "Correo o contraseña incorrectos."
+  },
+  "pagination": {
+    "anterior": "Anterior",
+    "proximo": "Siguiente"
+  }
+  
+  
+}
+
+
+  
+

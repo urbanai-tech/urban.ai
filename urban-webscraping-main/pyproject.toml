@@ -1,0 +1,118 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "urban_webscrapping"
+version = "0.11.1"
+description = "Webscrapping from events websites fro Urban"
+requires-python = ">=3.12"
+readme = "README.md"
+authors = [
+    { name = "Marcos Gabriel", email = "marcos@luminalab.ai" },
+    { name = "Humphry Torres", email = "humphry@luminalab.ai" }
+]
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "boto3>=1.40.7",
+    "dateparser>=1.2.1",
+    "mysql-connector-python>=9.3.0",
+    "omegaconf>=2.3.0",
+    "pyarrow>=21.0.0",
+    "python-dotenv>=1.1.1",
+    "scrapy>=2.13.1",
+    "scrapy-playwright>=0.0.43",
+    "scrapy-user-agents>=0.1.1",
+    "scrapyd>=1.6.0",
+    "setuptools>=80.9.0",
+]
+
+[dependency-groups]
+dev = [
+    "commitizen>=4.8.3",
+    "ipykernel>=6.29.5",
+    "mypy>=1.17.0",
+    "poethepoet>=0.35.0",
+    "ruff>=0.12.4",
+]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "$version"
+version_scheme = "pep440"
+version_provider = "pep621"
+update_changelog_on_bump = true
+
+[tool.ruff]
+target-version = "py312"
+show-fixes = true
+format.docstring-code-format = true
+lint.select = [
+    "F", # Pyflakes
+    "W", # flake8-warnings  (pycodestyle warnings)
+    "E", # pycodestyle
+    "B", # flake8-bugbear
+    "I", # isort
+    "UP", # pyupgrade
+    "PL", # pylint
+    "C901", # McCabe complexity
+    "T201", # 
+    "D",
+    "RUF015", 
+]
+lint.ignore = [ "E501", "D107" ]
+lint.pydocstyle.convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = [ "E402", "D100", "D104" ]
+"**/{tests,docs,tools}/*" = [ "E402" ]
+
+[tool.mypy]
+strict = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+warn_unreachable = true
+files = ["urban_webscrapping/", "test/"]
+ignore_missing_imports = true
+follow_imports = "silent"
+show_error_codes = true
+pretty = true
+strict_optional = true
+
+[tool.poe.tasks]
+commit = { help = "Commit to current branch and bump version.", sequence = [{ cmd = "cz c" }, { cmd = "cz bump" }] }
+push = { help = "Push modifications to remote repo", shell = "git push -u origin $(git branch --show-current) --tags" }
+clean = { help = "Remove cache and temporary files", script = "poethepoet.scripts:rm('.mypy_cache', './**/__pycache__')" }
+lint = { help = "Run linters", sequence = [{ cmd = "ruff check --fix" }, { cmd = "ruff format" }, { cmd = "mypy urban_webscrapping/" }] }
+run-sympla-pipeline = { help = "Run the web scrapping pipeline on Sympla site", cmd = "scrapy crawl sympla -O data/sympla.json" }
+run-ticket-master-pipeline = { help = "Run the web scrapping pipeline on Ticket Master site", cmd = "scrapy crawl ticket_master -O data/ticket_master.json" }
+run-blue-ticket-pipeline = { help = "Run the web scrapping pipeline on Blue Ticket site", cmd = "scrapy crawl blue_ticket -O data/blue_ticket.json" }
+run-ticket-360-pipeline = { help = "Run the web scrapping pipeline on Ticket 360 site", cmd = "scrapy crawl ticket_360 -O data/ticket_360.json" }
+run-ingresse-pipeline = { help = "Run the web scrapping pipeline on Ingresse site", cmd = "scrapy crawl ingresse -O data/ingresse.json" }
+
+# if [ docker images | awk '{print $1}' | grep -q "^web-scrapper$"] ; then
+#  docker build -t web-scrapper:latest .
+# else
+#  docker run -p 9080:9080 -d --rm web-scrapper:latest
+# fi
+serve-prod-api = { help = "Serve web scrapping API on production mode", sequence = [{ cmd = "docker build -t web-scrapper:latest ." }, { cmd = "docker run -p 9080:9080 -d --env .env --rm web-scrapper:latest" }] }
+serve-dev-api = { help = "Serve web scrapping API on development mode", cmd = "uv run scrapyrt" }
+
+[tool.setuptools.package-data]
+"urban_webscrapping" = ["custom_spider_settings/*.yaml"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["urban_webscrapping*"]
+namespaces = false

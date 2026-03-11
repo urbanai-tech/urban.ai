@@ -1,0 +1,15 @@
+# Enviroment
+.venv
+.mypy_cache
+.git
+.scrapy
+.env
+__pycache__
+.dockerignore
+CHANGELOG.md
+Dockerfile
+
+# App Folders
+logs
+data
+notebooks

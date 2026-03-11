@@ -1,0 +1,67 @@
+# General Gitignore File
+
+# OS specific files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.idea/
+.vscode/
+
+# Compiled binary files
+*.o
+*.exe
+*.class
+*.pyc
+*.pyo
+*.so
+*.dylib
+*.dll
+
+# Logs and cache files
+logs/
+cache/
+temp/
+
+# Temporary files
+tmp/
+
+# Configuration files
+.config/
+.settings/
+.userprefs
+.bashrc
+.bash_profile
+.zshrc
+.zprofile
+
+# IDE-specific files
+.vscode/
+.idea/
+.pyenv/
+.pycache/
+node_modules/
+dist/
+build/
+
+# Build artifacts
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# Virtual environment directory
+.venv/
+
+# Environment files
+.env
+
+# Caches
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

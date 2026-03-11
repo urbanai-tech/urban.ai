@@ -1,0 +1,58 @@
+# Core settings
+ROBOTSTXT_OBEY: false
+CONCURRENT_REQUESTS: 1
+DOWNLOAD_DELAY: 2.5
+RETRY_TIMES: 3
+
+# Playwright integration (replaces default download handlers)
+DOWNLOAD_HANDLERS: 
+  http: "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler"
+  https: "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler"
+TWISTED_REACTOR: "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
+
+# Playwright browser configuration
+PLAYWRIGHT_BROWSER_TYPE: "chromium"  # Changed to chromium to match original Puppeteer
+PLAYWRIGHT_LAUNCH_OPTIONS:
+  headless: true
+  args:
+    - "--disable-http2"  # Critical for HTTP/1.1
+    - "--no-sandbox"
+    - "--disable-setuid-sandbox"
+    - "--disable-dev-shm-usage"
+  timeout: 20000
+
+# Browser context settings
+PLAYWRIGHT_CONTEXTS:
+  eventim_context:
+    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+    viewport: { width: 1920, height: 1080 }
+    locale: "pt-BR"
+    timezone_id: "America/Sao_Paulo"
+    extra_http_headers:
+      Accept: "application/json, text/plain, */*"
+      Accept-Language: "pt-BR,pt;q=0.9"
+      Referer: "https://www.eventim.com.br/"
+      Sec-Fetch-Dest: "empty"
+      Sec-Fetch-Mode: "cors"
+      Sec-Fetch-Site: "same-site"
+      sec-ch-ua: '"Not.A/Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"'
+      sec-ch-ua-mobile: "?0"
+      sec-ch-ua-platform: '"Windows"'
+
+# Performance optimization
+PLAYWRIGHT_PROCESS_REQUEST_HEADERS: null
+PLAYWRIGHT_MAX_CONTEXTS: 1  # Matches CONCURRENT_REQUESTS=1
+PLAYWRIGHT_ABORT_PATTERNS:
+  - "image/*"
+  - "font/*"
+  - "stylesheet"
+
+# Output configuration
+FEEDS:
+  outputs/eventim_events.csv:
+    format: csv
+
+# Security
+AUTOTHROTTLE_ENABLED: true
+HTTPCACHE_ENABLED: false
+COOKIES_ENABLED: true
