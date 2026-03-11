@@ -66,18 +66,30 @@ import { NotificationsModule } from './notifications/notifications.module';
     ScheduleModule.forRoot({}),
 
     // 2) Database connection — MySQL
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      connectorPackage: 'mysql2',
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT, 10) || 3306,
-      username: process.env.DB_USER || 'root',
-      password: process.env.DB_PASSWORD || '',
-      database: process.env.DB_NAME || 'ai_urban',
-      autoLoadEntities: true,
-      synchronize: true,
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-    }),
+    // Suporta DATABASE_URL (Railway) ou variáveis individuais
+    TypeOrmModule.forRoot(
+      process.env.DATABASE_URL
+        ? {
+            type: 'mysql',
+            connectorPackage: 'mysql2',
+            url: process.env.DATABASE_URL,
+            autoLoadEntities: true,
+            synchronize: true,
+            entities: [__dirname + '/**/*.entity{.ts,.js}'],
+          }
+        : {
+            type: 'mysql',
+            connectorPackage: 'mysql2',
+            host: process.env.DB_HOST || 'localhost',
+            port: parseInt(process.env.DB_PORT, 10) || 3306,
+            username: process.env.DB_USER || 'root',
+            password: process.env.DB_PASSWORD || '',
+            database: process.env.DB_NAME || 'ai_urban',
+            autoLoadEntities: true,
+            synchronize: true,
+            entities: [__dirname + '/**/*.entity{.ts,.js}'],
+          },
+    ),
 
     // 3) Módulos de domínio
     UserModule,
