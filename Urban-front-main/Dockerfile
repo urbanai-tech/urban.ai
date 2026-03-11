@@ -4,6 +4,17 @@ WORKDIR /app
 # Etapa builder - instala dependências e builda
 FROM base AS builder
 RUN apk add --no-cache libc6-compat
+
+# Variáveis NEXT_PUBLIC_* precisam estar disponíveis no build
+# Railway injeta automaticamente os ARGs das env vars configuradas
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+ARG NEXT_PUBLIC_CHAINLIT_URL
+
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+ENV NEXT_PUBLIC_CHAINLIT_URL=$NEXT_PUBLIC_CHAINLIT_URL
+
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
