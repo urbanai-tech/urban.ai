@@ -5,8 +5,14 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { json, urlencoded } from 'express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    cors: true,
+  const app = await NestFactory.create(AppModule);
+
+  // CORS — permite o frontend acessar o backend
+  app.enableCors({
+    origin: process.env.FRONT_BASE_URL || '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   });
 
   // ⚠️ Desabilita o body-parser padrão na rota do Stripe Webhook
@@ -34,15 +40,16 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  console.log("🔁 Tentando escutar na porta", 10000);
+  const port = parseInt(process.env.PORT, 10) || 8080;
+  console.log(`🔁 Tentando escutar na porta ${port}`);
 
   const timeout = setTimeout(() => {
     console.error("❌ app.listen travou, possível problema no banco ou outro provider.");
     process.exit(1);
-  }, 5000);
+  }, 15000);
 
-  await app.listen(10000);
+  await app.listen(port);
   clearTimeout(timeout);
-  console.log('✅ App ouvindo porta', 10000);
+  console.log(`✅ App ouvindo porta ${port}`);
 }
 bootstrap();
