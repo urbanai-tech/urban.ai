@@ -1,22 +1,24 @@
 {
-  "name": "urban-ai-backend",
+  "name": "urban-ai-knn",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Urban AI KNN Classifier Service",
   "dependencies": {
     "@turf/turf": "^7.3.4",
     "body-parser": "^2.2.2",
     "cors": "^2.8.6",
+    "dotenv": "^16.4.5",
     "express": "^5.2.1",
     "ml-knn": "^3.0.0",
-    "simple-statistics": "^7.8.8"
-    "joi": "^17.13.0"
+    "simple-statistics": "^7.8.8",
+    "joi": "^17.13.0",
     "kd-tree-javascript": "^1.0.3"
   }
 }
