@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     )
 
     WEBSCRAPPING_API_URL: str = ""
+    SCRAPYD_API_KEY: str = ""
     PREFECT_API_URL: str = ""
 
 

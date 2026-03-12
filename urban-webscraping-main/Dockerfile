@@ -49,6 +49,8 @@ COPY ./scrapyd.conf /etc/scrapyd/
 RUN mkdir -p /src/eggs/urban_webscrapping
 COPY --from=build-stage /workdir/urban_webscrapping.egg /src/eggs/urban_webscrapping/1.egg
 
+COPY ./auth_proxy.py /src/auth_proxy.py
+
 EXPOSE 6800
 
-ENTRYPOINT ["uv", "run", "scrapyd", "--pidfile="]
+ENTRYPOINT ["uv", "run", "python", "/src/auth_proxy.py"]

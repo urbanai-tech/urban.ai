@@ -9,9 +9,10 @@ from .interface.spider_crawl_interface import ISpiderTrigger
 class SpiderTriggers(ISpiderTrigger):
     """Triggers spiders for the web scraping project."""
 
-    def __init__(self, url: str) -> None:
-        """Initializes the spider trigger with scrapyd base url."""
+    def __init__(self, url: str, api_key: str = "") -> None:
+        """Initializes the spider trigger with scrapyd base url and optional API key."""
         self.url = url
+        self.api_key = api_key
 
     @task(name="Crawl Eventim")
     def crawl_eventim(self) -> dict[str, str]:
@@ -54,9 +55,14 @@ class SpiderTriggers(ISpiderTrigger):
         logger.info(f"Triggering spider: {spider_name}")
 
         try:
+            headers = {}
+            if self.api_key:
+                headers["X-API-Key"] = self.api_key
+
             response = httpx.post(
                 f"{self.url}/schedule.json",
                 data={"project": "urban_webscrapping", "spider": spider_name},
+                headers=headers,
             )
             response.raise_for_status()
 
