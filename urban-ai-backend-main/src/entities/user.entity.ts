@@ -43,7 +43,7 @@ export class User {
   distanceKm: number;
 
 
-  @Column({ type: 'boolean', name: 'ativo', nullable: false, default: false })
+  @Column({ type: 'boolean', name: 'ativo', nullable: false, default: true })
   ativo: boolean;
 
 
