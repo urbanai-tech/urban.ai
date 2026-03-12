@@ -24,7 +24,7 @@ class PropertyClassifier {
             p.metroDistance,
             p.amenitiesCount
         ]);
-        
+
         this.labels = properties.map(p => p.category);
         const k = Math.min(3, this.trainingData.length);
         this.knn = new KNN(this.trainingData, this.labels, { k });
