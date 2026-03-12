@@ -9,6 +9,7 @@ from prefect.variables import Variable
 
 from .spiders_triggers.spiders_triggers import SpiderTriggers
 from .utils.check_service import check_scrapyd_service
+from .config.settings import settings
 
 
 @task(name="Check Scrapyd Service", retries=3, retry_delay_seconds=10)
@@ -71,7 +72,7 @@ async def trigger_all_spiders(scrapyd_url: str = None) -> None:
         logger.error("Scrapyd service is not available. Exiting.")
         return
 
-    spiders = SpiderTriggers(url=scrapyd_url)
+    spiders = SpiderTriggers(url=scrapyd_url, api_key=settings.SCRAPYD_API_KEY)
     try:
         logger.info("Starting to trigger all spiders")
 
