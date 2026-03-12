@@ -1,26 +1,24 @@
-
-FROM prefecthq/prefect:3-python3.10
+FROM python:3.12-slim
 
 WORKDIR /app
 
-# The installer requires curl (and certificates) to download the release archive
-RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates build-essential python3-dev libffi-dev
+# Instalar dependências do sistema
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl ca-certificates build-essential python3-dev libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Download the latest installer
+# Instalar uv
 ADD https://astral.sh/uv/install.sh /uv-installer.sh
-
-# Run the installer then remove it
 RUN sh /uv-installer.sh && rm /uv-installer.sh
-
-# Ensure the installed binary is on the `PATH`
 ENV PATH="/root/.local/bin/:$PATH"
 
-COPY spiders_pipeline/ ./spiders_pipeline/
+# Copiar dependências primeiro (cache)
 COPY pyproject.toml uv.lock prefect.toml prefect.yaml ./
-RUN uv sync
+COPY spiders_pipeline/ ./spiders_pipeline/
+COPY raw_data_pipeline/ ./raw_data_pipeline/
+RUN uv sync --no-dev
 
-ARG PREFECT_API_URL="https://prefect.luminalab.ai"
-ENV PREFECT_API_URL="${PREFECT_API_URL}/api"
+# Prefect config via env
+ENV PREFECT_API_URL=""
 
-CMD ["uv", "run", "prefect", "worker", "start","--name", "urban_webscraping_worker", "--pool", "urban_webscraping_workpool", "--type", "process"]
-
+CMD ["uv", "run", "prefect", "worker", "start", "--name", "urban_webscraping_worker", "--pool", "urban_webscraping_workpool", "--type", "process"]
