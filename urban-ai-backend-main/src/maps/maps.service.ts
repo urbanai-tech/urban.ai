@@ -7,7 +7,6 @@ import { Client, TravelMode } from '@googlemaps/google-maps-services-js';
 import { Event } from '../entities/events.entity';
 import { Address } from '../entities/addresses.entity';
 import { AnaliseEnderecoEvento } from '../entities/AnaliseEnderecoEvento.entity';
-import axios from 'axios';
 import { User } from 'src/entities/user.entity';
 import pLimit from 'p-limit';
 import { aproximadamenteOuMenor, calculateDistance, calculateDistanceHere } from 'src/util';
@@ -55,25 +54,25 @@ export class MapsService {
 
     this.logger.debug(`Endereço para geocodificação: "${endereco}"`);
     try {
-      // Chama a HERE Geocoding API
-      const resp = await axios.get('https://geocode.search.hereapi.com/v1/geocode', {
+      // Chama a Google Maps Geocoding API
+      const resp = await this.client.geocode({
         params: {
-          q: `${endereco}, São Paulo, SP, Brasil`,
-          apikey: process.env.HERE_API_KEY,
+          address: `${endereco}, São Paulo, SP, Brasil`,
+          key: this.apiKey,
         },
       });
 
-      const first = resp.data.items[0];
+      const first = resp.data.results[0];
       if (!first) {
         this.logger.warn(`Nenhuma coordenada encontrada para: "${endereco}"`);
         return { ok: false, message: 'Não foi possível obter coordenadas.' };
       }
 
-      ev.latitude = first.position.lat;
-      ev.longitude = first.position.lng;
+      ev.latitude = first.geometry.location.lat;
+      ev.longitude = first.geometry.location.lng;
       await this.eventRepo.save(ev);
-      this.logger.log(`Evento ${eventId} atualizado: lat=${first.position.lat}, lng=${first.position.lng}`);
-      return { ok: true, lat: first.position.lat, lng: first.position.lng };
+      this.logger.log(`Evento ${eventId} atualizado: lat=${first.geometry.location.lat}, lng=${first.geometry.location.lng}`);
+      return { ok: true, lat: first.geometry.location.lat, lng: first.geometry.location.lng };
     } catch (err: any) {
       this.logger.error('Erro na geocodificação:', err.message || err);
       return { ok: false, message: err.message || 'Erro desconhecido' };
@@ -112,14 +111,14 @@ export class MapsService {
       this.logger.log(`(${i + 1}/${events.length}) Geocodificando: "${endereco}"...`);
 
       try {
-        const resp = await axios.get('https://geocode.search.hereapi.com/v1/geocode', {
+        const resp = await this.client.geocode({
           params: {
-            q: endereco,
-            apikey: process.env.HERE_API_KEY,
+            address: endereco,
+            key: this.apiKey,
           },
         });
 
-        const first = resp.data.items[0];
+        const first = resp.data.results[0];
         if (!first) {
           this.logger.warn(`(${i + 1}) Nenhum resultado de geocodificação para "${endereco}".`);
           errorCount++;
@@ -127,8 +126,8 @@ export class MapsService {
           continue;
         }
 
-        ev.latitude = first.position.lat;
-        ev.longitude = first.position.lng;
+        ev.latitude = first.geometry.location.lat;
+        ev.longitude = first.geometry.location.lng;
 
         await this.eventRepo.save(ev);
         this.logger.log(`(${i + 1}) Evento ${ev.id} salvo com sucesso. Coordenadas: [${ev.latitude}, ${ev.longitude}]`);
@@ -185,14 +184,14 @@ export class MapsService {
       this.logger.log(`(${i + 1}/${events.length}) Geocodificando: "${endereco}"...`);
 
       try {
-        const resp = await axios.get('https://geocode.search.hereapi.com/v1/geocode', {
+        const resp = await this.client.geocode({
           params: {
-            q: endereco,
-            apikey: process.env.HERE_API_KEY,
+            address: endereco,
+            key: this.apiKey,
           },
         });
 
-        const first = resp.data.items[0];
+        const first = resp.data.results[0];
         if (!first) {
           this.logger.warn(`(${i + 1}) Nenhum resultado de geocodificação para "${endereco}".`);
           errorCount++;
@@ -200,8 +199,8 @@ export class MapsService {
           continue;
         }
 
-        ev.latitude = first.position.lat;
-        ev.longitude = first.position.lng;
+        ev.latitude = first.geometry.location.lat;
+        ev.longitude = first.geometry.location.lng;
 
         const saved = await this.addressRepo.save(ev);
         this.logger.log(`Saved: ${JSON.stringify(saved)}`);
@@ -261,20 +260,20 @@ export class MapsService {
         continue;
       }
       try {
-        const resp = await axios.get('https://geocode.search.hereapi.com/v1/geocode', {
+        const resp = await this.client.geocode({
           params: {
-            q: `${endereco}, São Paulo, SP, Brasil`,
-            apikey: process.env.HERE_API_KEY,
+            address: `${endereco}, São Paulo, SP, Brasil`,
+            key: this.apiKey,
           },
         });
-        const first = resp.data.items[0];
+        const first = resp.data.results[0];
         if (!first) {
           failed++;
           results.push({ id: ev.id, ok: false, reason: 'Não encontrou coordenada' });
           continue;
         }
-        ev.latitude = first.position.lat;
-        ev.longitude = first.position.lng;
+        ev.latitude = first.geometry.location.lat;
+        ev.longitude = first.geometry.location.lng;
         await this.eventRepo.save(ev);
         updated++;
         results.push({ id: ev.id, ok: true, lat: ev.latitude, lng: ev.longitude });

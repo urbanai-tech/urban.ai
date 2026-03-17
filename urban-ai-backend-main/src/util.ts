@@ -26,29 +26,65 @@ export async function calculateDistanceHere(
   baseDuration: number;
   mode: string;
 }> {
-  const apikey = 'M90_LVeTkY8El5SPUkIQs-p79g0F8vNF3jwXTlI_GFA';
-  const url = `https://router.hereapi.com/v8/routes?transportMode=${transportMode}&origin=${originLat},${originLng}&destination=${destinationLat},${destinationLng}&apikey=${apikey}&return=summary`;
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
 
-  const response = await fetch(url);
+  // Mapeia transport modes do formato antigo (HERE) para o Google Maps
+  const modeMap: Record<string, string> = {
+    car: 'DRIVE',
+    bus: 'TRANSIT',
+    pedestrian: 'WALK',
+    walk: 'WALK',
+    bicycle: 'BICYCLE',
+  };
+  const travelMode = modeMap[transportMode] || 'DRIVE';
+
+  const url = `https://routes.googleapis.com/directions/v2:computeRoutes`;
+
+  const body = {
+    origin: {
+      location: {
+        latLng: { latitude: originLat, longitude: originLng },
+      },
+    },
+    destination: {
+      location: {
+        latLng: { latitude: destinationLat, longitude: destinationLng },
+      },
+    },
+    travelMode,
+    routingPreference: travelMode === 'DRIVE' ? 'TRAFFIC_AWARE' : undefined,
+  };
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters',
+    },
+    body: JSON.stringify(body),
+  });
+
   if (!response.ok) {
-    throw new Error(`Erro ao buscar rota: ${response.statusText}`);
+    throw new Error(`Erro ao buscar rota Google Maps: ${response.statusText}`);
   }
 
   const data = await response.json();
+  const route = data?.routes?.[0];
 
-  const section = data?.routes?.[0]?.sections?.[0];
-  const summary = section?.summary;
-  const mode = section?.transport?.mode;
-
-  if (!summary || !mode) {
-    throw new Error('Resumo da rota não encontrado');
+  if (!route) {
+    throw new Error('Rota não encontrada no Google Maps');
   }
 
+  // duration vem como "123s" (string), convertemos para número de segundos
+  const durationSeconds = parseInt(route.duration?.replace('s', '') || '0', 10);
+  const distanceMeters = route.distanceMeters || 0;
+
   return {
-    duration: summary.duration,         // em segundos (Significado: Tempo total estimado de viagem, em segundos.)
-    length: summary.length,             // em metros (Comprimento total da rota, em metros.)
-    baseDuration: summary.baseDuration, // em segundos
-    mode: mode                          // ex: "car"
+    duration: durationSeconds,
+    length: distanceMeters,
+    baseDuration: durationSeconds,
+    mode: transportMode,
   };
 }
 
