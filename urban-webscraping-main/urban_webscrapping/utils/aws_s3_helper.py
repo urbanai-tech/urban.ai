@@ -14,14 +14,14 @@ ASSUME_ROLE_ARN = os.getenv("ASSUME_ROLE_ARN")
 ASSUME_ROLE_EXTERNAL_ID = os.getenv("ASSUME_ROLE_EXTERNAL_ID")
 
 aws_urban_config = BotoConfig(
-    region_name='us-west-2',
+    region_name='sa-east-1',
     retries={
         "max_attempts" : 5
     }
 )
 
 def _building_s3_client():
-    session = boto3.Session(region_name='us-west-2')
+    session = boto3.Session(region_name='sa-east-1')
     if ASSUME_ROLE_ARN:
         sts = session.client('sts', config=aws_urban_config)
         resp = sts.assume_role(
@@ -38,7 +38,7 @@ def _building_s3_client():
             aws_secret_access_key=creds["SecretAccessKey"],
             aws_session_token=creds["SessionToken"],
             config=aws_urban_config,
-            region_name='us-west-2',
+            region_name='sa-east-1',
         )
         
     return session.client("s3", config=aws_urban_config)

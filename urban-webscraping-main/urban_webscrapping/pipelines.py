@@ -35,7 +35,7 @@ class S3ItemPipelineJson:
         key = f"raw/json/{spider_name}/{today}.json"
 
         response = self.s3.put_object_json(
-            bucket_name="urban-ai-data",
+            bucket_name="urbanai-data-lake",
             object_name=key,
             data=ItemAdapter(item).asdict(),
         )
@@ -56,7 +56,7 @@ class S3ItemPipelineParquet:
         key = f"raw/parquet/{spider_name}/{today}.parquet"
 
         response = self.s3.put_object_parquet(
-            bucket_name="urban-ai-data",
+            bucket_name="urbanai-data-lake",
             object_name=key,
             data=ItemAdapter(item).asdict(),
         )
