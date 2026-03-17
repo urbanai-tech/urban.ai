@@ -10,6 +10,7 @@ import { EventoModule } from './evento/evento.module';
 import { EmailModule } from './email/email.module';
 import { ProcessModule } from './process/process.module';
 import { Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -28,9 +29,12 @@ import { HttpModule } from '@nestjs/axios';
 import { BullModule } from '@nestjs/bull';
 import { PaymentsModule } from './payments/payments.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { SentryModule } from '@sentry/nestjs/setup';
+import { SentryGlobalFilter } from '@sentry/nestjs/setup';
 
 @Module({
   imports: [
+    SentryModule.forRoot(),
     MailerModule,
     CronModule,
     DashboardModule,
@@ -105,6 +109,12 @@ import { NotificationsModule } from './notifications/notifications.module';
   ],
   controllers: [
     ProcessoController, AppController],
-  providers: [AppService],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: SentryGlobalFilter,
+    },
+    AppService,
+  ],
 })
 export class AppModule { }

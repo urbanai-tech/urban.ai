@@ -1,3 +1,6 @@
+// IMPORTANT: instrument.ts MUST be imported first for Sentry to work properly
+import "./instrument";
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as bodyParser from 'body-parser';
