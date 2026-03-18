@@ -43,6 +43,32 @@ export class MailerService {
     return this.mailerSend.email.send(emailParams);
   }
 
+  async sendHtmlEmail(
+    to: { email: string; name?: string },
+    subject: string,
+    html: string,
+  ) {
+    const recipients = [new Recipient(to.email, to.name || '')];
+
+    const emailParams = new EmailParams()
+      .setFrom(this.sentFrom)
+      .setTo(recipients)
+      .setSubject(subject)
+      .setHtml(html);
+
+    try {
+      const response = await this.mailerSend.email.send(emailParams);
+      if (response?.statusCode === 202) {
+        return { enviado: true, status: response.statusCode };
+      }
+      console.error(`Falha ao enviar email HTML para ${to.email}`, response);
+      return { enviado: false, status: response?.statusCode ?? 500 };
+    } catch (error: any) {
+      console.error(`Erro ao enviar email HTML para ${to.email}:`, error.message || error);
+      return { enviado: false, status: 500, message: error.message };
+    }
+  }
+
   async sendTextEmailCron(
   to: { email: string; name?: string },
   subject: string,

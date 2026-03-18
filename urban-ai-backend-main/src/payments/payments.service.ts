@@ -166,77 +166,156 @@ export class PaymentsService {
     try {
       event = this.stripe.webhooks.constructEvent(rawBody, signature, endpointSecret);
     } catch (err) {
+      console.error('⚠️ Falha na verificação de assinatura do webhook:', err.message);
       return { error: err };
     }
 
-    // ⚙️ Tratar eventos específicos
-    //let session = null;
+    console.log(`📬 Webhook recebido: ${event.type}`);
+
     switch (event.type) {
-      case 'checkout.session.completed':
+      case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         if (session.subscription && typeof session.subscription === 'string') {
-          const subscription = await this.stripe.subscriptions.retrieve(session.subscription) as Stripe.Subscription;
-          //console.log("Subscription:", subscription)
-          const subscriptionId = subscription?.id;
-          const customerId = subscription?.customer;
-          const interval = subscription?.items.data[0]?.plan?.interval;
-          const startCycle = new Date(subscription?.billing_cycle_anchor * 1000)
-          const status = subscription.status;
+          try {
+            const subscription = await this.stripe.subscriptions.retrieve(session.subscription) as Stripe.Subscription;
+            const subscriptionId = subscription?.id;
+            const customerId = subscription?.customer;
+            const interval = subscription?.items.data[0]?.plan?.interval;
+            const startCycle = new Date(subscription?.billing_cycle_anchor * 1000);
+            const status = subscription.status;
 
-          const cycleEnd = new Date(startCycle);
-          if (interval === "month") {
-            cycleEnd.setMonth(cycleEnd.getMonth() + 1);
-          } else if (interval === "year") {
-            cycleEnd.setFullYear(cycleEnd.getFullYear() + 1);
+            const cycleEnd = new Date(startCycle);
+            if (interval === 'month') {
+              cycleEnd.setMonth(cycleEnd.getMonth() + 1);
+            } else if (interval === 'year') {
+              cycleEnd.setFullYear(cycleEnd.getFullYear() + 1);
+            }
+
+            const id = typeof customerId === 'string' ? customerId : customerId.id;
+            const payment = await this.paymentRepository.findOne({
+              where: { customerId: id },
+            });
+
+            if (payment) {
+              payment.mode = interval;
+              payment.expireDate = cycleEnd;
+              payment.subscriptionId = subscriptionId;
+              payment.startDate = startCycle;
+
+              if (status === 'trialing') {
+                payment.status = status;
+              }
+
+              await this.paymentRepository.save(payment);
+              console.log(`✅ checkout.session.completed processado para customer ${id}`);
+            } else {
+              console.warn(`⚠️ Payment não encontrado para customer ${id}`);
+            }
+          } catch (err) {
+            console.error('❌ Erro ao processar checkout.session.completed:', err.message);
           }
-
-          const id = typeof customerId === 'string' ? customerId : customerId.id;
-          const payment = await this.paymentRepository.findOne({
-            where: { customerId: id },
-          });
-          payment.mode = interval;
-          //payment.status = status;
-          payment.expireDate = cycleEnd;
-          payment.subscriptionId = subscriptionId;
-          payment.startDate = startCycle;
-
-          if (status === 'trialing') {
-            payment.status = status
-          }
-
-          await this.paymentRepository.save(payment)
-
-
-
-          //console.log("status:", status)
-          //console.log(subscription)
         } else {
-          console.log('Subscription não disponível ou já populada');
+          console.log('ℹ️ Subscription não disponível ou já populada');
         }
-
-        // salvar no banco, enviar e-mail, etc.
         break;
+      }
 
-      case 'payment_intent.succeeded':
+      case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        console.log("PAYMENT_INTENT.SUCCEEDED")
-        if (paymentIntent?.status == 'succeeded') {
-          const customerId = paymentIntent?.customer;
+        console.log('💰 PAYMENT_INTENT.SUCCEEDED');
+        if (paymentIntent?.status === 'succeeded' && paymentIntent?.customer) {
+          try {
+            const customerId = paymentIntent.customer;
+            const id = typeof customerId === 'string' ? customerId : customerId.id;
+            const payment = await this.paymentRepository.findOne({
+              where: { customerId: id },
+            });
+
+            if (payment) {
+              payment.status = 'active';
+              await this.paymentRepository.save(payment);
+              console.log(`✅ Payment ativado para customer ${id}`);
+            } else {
+              console.warn(`⚠️ Payment não encontrado para customer ${id}`);
+            }
+          } catch (err) {
+            console.error('❌ Erro ao processar payment_intent.succeeded:', err.message);
+          }
+        }
+        break;
+      }
+
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object as Stripe.Subscription;
+        try {
+          const customerId = subscription.customer;
           const id = typeof customerId === 'string' ? customerId : customerId.id;
           const payment = await this.paymentRepository.findOne({
             where: { customerId: id },
           });
-          payment.status = "active";
 
-          await this.paymentRepository.save(payment)
+          if (payment) {
+            payment.status = subscription.status === 'active' ? 'active'
+              : subscription.status === 'trialing' ? 'trialing'
+              : subscription.status === 'past_due' ? 'past_due'
+              : payment.status;
 
+            const interval = subscription.items.data[0]?.plan?.interval;
+            if (interval) {
+              payment.mode = interval;
+            }
+
+            await this.paymentRepository.save(payment);
+            console.log(`✅ Subscription atualizada para customer ${id} -> status: ${subscription.status}`);
+          }
+        } catch (err) {
+          console.error('❌ Erro ao processar subscription.updated:', err.message);
         }
-        //console.log(paymentIntent)
-        //console.log(`💰 Pagamento para ${JSON.stringify(paymentIntent)} confirmado: ${paymentIntent.amount}`);
         break;
+      }
+
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as Stripe.Subscription;
+        try {
+          const customerId = subscription.customer;
+          const id = typeof customerId === 'string' ? customerId : customerId.id;
+          const payment = await this.paymentRepository.findOne({
+            where: { customerId: id },
+          });
+
+          if (payment) {
+            payment.status = 'canceled';
+            await this.paymentRepository.save(payment);
+            console.log(`🚫 Subscription cancelada para customer ${id}`);
+          }
+        } catch (err) {
+          console.error('❌ Erro ao processar subscription.deleted:', err.message);
+        }
+        break;
+      }
+
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as Stripe.Invoice;
+        try {
+          const customerId = invoice.customer;
+          const id = typeof customerId === 'string' ? customerId : customerId.id;
+          const payment = await this.paymentRepository.findOne({
+            where: { customerId: id },
+          });
+
+          if (payment) {
+            payment.status = 'past_due';
+            await this.paymentRepository.save(payment);
+            console.log(`⚠️ Pagamento falhou para customer ${id}`);
+          }
+        } catch (err) {
+          console.error('❌ Erro ao processar invoice.payment_failed:', err.message);
+        }
+        break;
+      }
 
       default:
-      //console.log(`📬 Evento não tratado: ${event.type}`);
+        console.log(`📬 Evento não tratado: ${event.type}`);
     }
 
     return { event };
@@ -255,7 +334,7 @@ export class PaymentsService {
       subscriptionId: data?.subscriptionId || null,
       mode: data?.mode || null,
       expireDate: data?.expireDate || null,
-      status: "peding",
+      status: "pending",
     });
 
     return this.paymentRepository.save(payment);
