@@ -21,4 +21,4 @@ RUN uv sync --no-dev
 # Prefect config via env
 ENV PREFECT_API_URL=""
 
-CMD ["uv", "run", "prefect", "worker", "start", "--name", "urban_webscraping_worker", "--pool", "urban_webscraping_workpool", "--type", "process"]
+CMD ["uv", "run", "python", "serve.py"]
