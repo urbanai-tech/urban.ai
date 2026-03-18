@@ -12,7 +12,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.request import Request, urlopen
 from urllib.error import URLError
 
-SCRAPYD_PORT = 6800
+SCRAPYD_PORT = 6801
 PROXY_PORT = int(os.environ.get("PORT", "8080"))
 API_KEY = os.environ.get("SCRAPYD_API_KEY", "")
 
