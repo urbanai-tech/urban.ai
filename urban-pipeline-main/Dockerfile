@@ -16,6 +16,7 @@ ENV PATH="/root/.local/bin/:$PATH"
 COPY pyproject.toml uv.lock prefect.toml prefect.yaml ./
 COPY spiders_pipeline/ ./spiders_pipeline/
 COPY raw_data_pipeline/ ./raw_data_pipeline/
+COPY serve.py ./
 RUN uv sync --no-dev
 
 # Prefect config via env
