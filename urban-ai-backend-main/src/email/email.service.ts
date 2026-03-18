@@ -11,6 +11,7 @@ import { EmailConfirmation } from 'src/entities/EmailConfirmation';
 import { CreateNotificationDto } from 'src/notifications/tdo/create-notification.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { MailerService } from 'src/mailer/mailer.service';
+import { EmailTemplates } from './templates';
 
 @Injectable()
 export class EmailService {
@@ -172,27 +173,16 @@ export class EmailService {
 
             const nome = usuario.username || 'Usuário';
 
-            // 3️⃣ Envia o email via SendGrid
-            const msg = {
-                to: usuario?.email,
-                templateId: process.env.SENDGRID_SEND_CODE_TEMPLATE,
-                dynamic_template_data: {
-                    nome: nome,
-                    email: usuario?.email,
-                    codigo: confirmation.code,
-                    subject: "Urban AI - Confirmação de Email",
-                    app_name: "Urban Ai",
-                    front_url: `${process.env.FRONT_BASE_URL}/confirm-email`
-                },
-                from: process.env.EMAIL_SENDER,
-                subject: 'Confirmação de Email',
-            };
+            const htmlContent = EmailTemplates.getConfirmEmailTemplate(
+                nome, 
+                confirmation.code, 
+                `${process.env.FRONT_BASE_URL}/confirm-email`
+            );
 
-            await this.mailerService.sendTemplateEmail(
+            await this.mailerService.sendHtmlEmail(
                 { email: usuario?.email, name: nome },
-                "Confirmação de Email",
-                process.env.MAILERSEND_SEND_CODE_TEMPLATE,
-                msg.dynamic_template_data,
+                "Confirmação de E-mail",
+                htmlContent
             );
 
             console.log(`Email de confirmação enviado para ${email}`);
@@ -277,27 +267,15 @@ export class EmailService {
             console.log(`👤 Usuário encontrado: ${nome} (${usuario.email})`);
             console.log("✉️  Preparando mensagem de aviso...");
 
-            // 📩 Monta mensagem só com os dados necessários
-            const msg = {
-                to: usuario.email,
-                templateId: process.env.SENDGRID_ANALISE_PROPRIEDADE_INICIADO,
-                dynamic_template_data: {
-                    nome: nome,
-                    app_name: "Urban Ai",
-                    front_url: `${process.env.FRONT_BASE_URL}/dashboard`,
-                    subject: "Urban AI - Análise de propriedades",
-                },
-                subject: "Urban AI - Análise de propriedades",
-                from: process.env.EMAIL_SENDER,
-            };
+            const htmlContent = EmailTemplates.getAnalysisStartedTemplate(
+                nome,
+                `${process.env.FRONT_BASE_URL}/dashboard`
+            );
 
-            console.log(`🚀 Enviando email de aviso para: ${usuario.email} ...`);
-
-            await this.mailerService.sendTemplateEmail(
+            await this.mailerService.sendHtmlEmail(
                 { email: usuario?.email, name: nome },
-                "Forgot password",
-                process.env.MAILERSEND_ANALISE_PROPRIEDADE_INICIADO,
-                msg.dynamic_template_data,
+                "Urban AI - Análise de propriedades",
+                htmlContent
             );
 
             console.log("✅ Email enviado com sucesso!");
@@ -327,27 +305,15 @@ export class EmailService {
             console.log(`👤 Usuário encontrado: ${nome} (${usuario.email})`);
             console.log("✉️  Preparando mensagem de aviso...");
 
-            // 📩 Monta mensagem só com os dados necessários
-            const msg = {
-                to: usuario.email,
-                templateId: process.env.SENDGRID_ANALISE_PROPRIEDADE_FINALIZADO,
-                dynamic_template_data: {
-                    nome: nome,
-                    app_name: "Urban Ai",
-                    front_url: `${process.env.FRONT_BASE_URL}/painel`,
-                    subject: "Urban AI - Análise completed",
-                },
-                subject: "Urban AI - Análise completed",
-                from: process.env.EMAIL_SENDER,
-            };
+            const htmlContent = EmailTemplates.getAnalysisFinishedTemplate(
+                nome,
+                `${process.env.FRONT_BASE_URL}/painel`
+            );
 
-            console.log(`🚀 Enviando email de aviso para: ${usuario.email} ...`);
-
-            await this.mailerService.sendTemplateEmail(
+            await this.mailerService.sendHtmlEmail(
                 { email: usuario?.email, name: nome },
-                "Forgot password",
-                process.env.MAILERSEND_ANALISE_PROPRIEDADE_FINALIZADO,
-                msg.dynamic_template_data,
+                "Urban AI - Análise completed",
+                htmlContent
             );
 
             console.log("✅ Email enviado com sucesso!");
@@ -423,26 +389,15 @@ export class EmailService {
             const nome = usuario.username || 'Usuário';
             const userId = usuario.id;
 
-            const msg = {
-                to: usuario?.email,
-                templateId: process.env.SENDGRID_FORGOT_PASS_TEMPLATE,
-                dynamic_template_data: {
-                    nome: nome,
-                    email: usuario?.email,
-                    userId: userId,
-                    subject: "Forgot password",
-                    app_name: "Urban Ai",
-                    link_reset: `${process.env.RESET_PASS_URL}/${userId}`
-                },
-                from: process.env.EMAIL_SENDER,
-                subject: 'Forgot password',
-            };
+            const htmlContent = EmailTemplates.getForgotPasswordTemplate(
+                nome,
+                `${process.env.RESET_PASS_URL}/${userId}`
+            );
 
-            await this.mailerService.sendTemplateEmail(
+            await this.mailerService.sendHtmlEmail(
                 { email: usuario?.email, name: nome },
-                "Forgot password",
-                process.env.MAILERSEND_FORGOT_PASS_TEMPLATE,
-                msg.dynamic_template_data,
+                "Recuperação de Senha - Urban AI",
+                htmlContent
             );
 
             // await sgMail.send(msg);
@@ -481,31 +436,18 @@ export class EmailService {
             const userId = usuario.id;
 
             if (notificationContent?.sendEmail) {
-                const msg = {
-                    to: usuario?.email,
-                    templateId: process.env.SENDGRID_ENVIO_NOTIFICATION,
-                    dynamic_template_data: {
-                        nome: nome,
-                        email: usuario?.email,
-                        userId: userId,
-                        subject: "Nova Mensagem",
-                        app_name: "Urban Ai",
-                        title: notificationContent?.title,
-                        description: notificationContent?.description,
-                        redirectTo: notificationContent?.redirectTo,
-                        front_url: `${process.env.FRONT_BASE_URL}`,
-                        ano_atual: `2025`
-                    },
-                    from: process.env.EMAIL_SENDER,
-                    subject: 'Forgot password',
-                };
+                const htmlContent = EmailTemplates.getSystemNotificationTemplate(
+                  nome,
+                  notificationContent.title || 'Nova Mensagem',
+                  notificationContent.description || '',
+                  notificationContent.redirectTo || process.env.FRONT_BASE_URL || ''
+                );
 
-              await this.mailerService.sendTemplateEmail(
-                { email: usuario?.email, name: nome },
-                msg.dynamic_template_data.subject,
-                process.env.MAILERSEND_ENVIO_NOTIFICATION,
-                msg.dynamic_template_data,
-            );
+                await this.mailerService.sendHtmlEmail(
+                  { email: usuario.email, name: nome },
+                  notificationContent.title || 'Nova Mensagem',
+                  htmlContent
+                );
 
                 console.log(`Email de notificação enviado para ${userId}`);
             } else {
