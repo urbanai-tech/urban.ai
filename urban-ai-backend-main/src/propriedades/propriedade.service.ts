@@ -23,6 +23,7 @@ import { FirstAvailablePriceResult } from 'src/airbnb/types';
 import dayjs from 'dayjs';
 import { addDays, startOfDay, startOfMonth } from 'date-fns';
 import { CreateNotificationDto } from 'src/notifications/tdo/create-notification.dto';
+import { UrbanAIPricingEngine } from '../knn-engine/pricing-engine';
 
 class PropertyResponseDto {
     bedrooms: number;
@@ -67,7 +68,11 @@ export class PropriedadeService {
         @Inject(forwardRef(() => AirbnbService))
         private readonly airbnbService: AirbnbService,
         private readonly emailService: EmailService,
-    ) { }
+    ) { 
+        this.aiEngine = new UrbanAIPricingEngine();
+    }
+    
+    private aiEngine: UrbanAIPricingEngine;
 
     async findByUserId(
         userId: string,
@@ -760,7 +765,47 @@ export class PropriedadeService {
             console.log("suaOcupacao:", 0 !== undefined ? Number(0) : undefined);
             console.log("fatorLocalizacao:", fatorLocalizacao !== undefined ? Number(fatorLocalizacao) : undefined);
 
-            console.log("💰 Resultado do cálculo de preço:", result);
+            console.log("💰 Resultado do cálculo de preço (Matemático):", result);
+
+            // --- Tentar Predição via IA (KNN) ---
+            let precoFinalSugerido = result.precoSugerido;
+            let percentualFinal = result.diferencaPercentual;
+            let recomendacaoFinal = result.recomendacao;
+            let motivoDaIA = "Cálculo Matemático Padrão (Fallback). Histórico insuficiente para IA intervir.";
+
+            try {
+                // Treinar a IA dinamicamente usando os comparáveis (Comps) da vizinhança!
+                if(alerts.comps && alerts.comps.length > 0) {
+                    const treinamentoLocal = alerts.comps.map(c => ({
+                        id: c.listingID, lat: c.latitude, lng: c.longitude,
+                        metroDistance: 0.8, // Estimativa fixa caso não haja Map API instanciada
+                        amenitiesCount: c.bedrooms || 1,
+                        // Label: Se é muito parecido (score alto), é premium(2), senao standard(1) ou economico(0)
+                        category: c.similarity_score >= 0.8 ? 2 : (c.similarity_score >= 0.5 ? 1 : 0)
+                    }));
+                    this.aiEngine.initialize(treinamentoLocal);
+                    
+                    const minhaPropParaIA = { 
+                        id: property.id, lat: address.latitude, lng: address.longitude, 
+                        metroDistance: 0.5, amenitiesCount: dadosAirbnb?.propertyDetails?.bedrooms ?? 1 
+                    };
+                    const eventoParaIA = { 
+                        name: evento.nome || "Evento", lat: evento.latitude, lng: evento.longitude 
+                    };
+
+                    const prediCaaaoIA = await this.aiEngine.suggestPrice(minhaPropParaIA, eventoParaIA, Number(minhaPropriedadePricePerDay));
+                    
+                    if(prediCaaaoIA && prediCaaaoIA.suggestedPrice) {
+                        precoFinalSugerido = Math.max(prediCaaaoIA.suggestedPrice, result.precoSugerido); // Mantém o melhor dos dois mundos pro cliente (maior lucro)
+                        percentualFinal = prediCaaaoIA.increasePercentage;
+                        recomendacaoFinal = (percentualFinal > 0) ? "Aumento de Receita Sugerido (IA)" : "Manutenção de Fator de Ocupação (IA)";
+                        motivoDaIA = prediCaaaoIA.details.reasoning;
+                        console.log(`🤖 IA KNN Ativada! Predição original KNN: R$${prediCaaaoIA.suggestedPrice} (+${percentualFinal}%). Motivo: ${motivoDaIA}`);
+                    }
+                }
+            } catch (err) {
+                console.error("⚠️ Falha ao predizer preço via IA (Falta de Histórico/Atributos). Acionando Fallback Matemático Integralmente:", err.message);
+            }
 
             // --- Salvar no banco ---
             console.log("💾 Salvando análise de preço...");
@@ -770,10 +815,11 @@ export class PropriedadeService {
                 usuarioProprietario: property?.user ?? null,
                 distanciaSuaPropriedade: distanceFromMyPropertyToEvent,
                 distanciaPropriedadeReferencia: distanceFromMyPropertyReferenceToEvent,
-                precoSugerido: result.precoSugerido,
+                precoSugerido: precoFinalSugerido,
                 seuPrecoAtual: result.seuPrecoAtual,
-                diferencaPercentual: result.diferencaPercentual,
-                recomendacao: result.recomendacao,
+                diferencaPercentual: percentualFinal,
+                recomendacao: recomendacaoFinal,
+                motivo_ia: motivoDaIA,
             });
             console.log("✅ Análise de preço salva com sucesso");
 

@@ -52,6 +52,10 @@ export class AnalisePreco {
   @Column({ type: 'boolean', default: false })
   aceito: boolean;
 
+  // --- IA Reasoning ---
+  @Column({ name: 'motivo_ia', type: 'text', nullable: true })
+  motivo_ia: string;
+
   // --- Auditoria ---
   @CreateDateColumn({ name: 'criado_em' })
   criadoEm: Date;
