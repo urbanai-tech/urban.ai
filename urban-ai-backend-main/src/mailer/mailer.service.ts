@@ -11,7 +11,8 @@ export class MailerService {
       apiKey: process.env.MAILERSEND_API_KEY,
     });
 
-    this.sentFrom = new Sender('noreply@myurbanai.com', 'Urban AI');
+    const senderEmail = process.env.EMAIL_SENDER || 'noreply@notify.myurbanai.com';
+    this.sentFrom = new Sender(senderEmail, 'Urban AI');
   }
 
   async sendTemplateEmail(
