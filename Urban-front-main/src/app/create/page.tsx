@@ -106,13 +106,25 @@ const Register = () => {
         password: hashedPassword,
       });
 
+      // Auto-login com o hash
+      const loginResponse = await api.post("/auth/login", {
+        email,
+        password: hashedPassword
+      });
+      const token = loginResponse.data.accessToken;
+
+      localStorage.setItem("accessToken", token);
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
       if (typeof window !== "undefined") {
         localStorage.setItem("lastRegisterEmail", email);
       }
 
-      toast("Enviamos um e-mail para confirmar sua conta.", { type: "success" });
+      toast("Conta criada! Autenticando e enviando código...", { type: "success" });
 
-      router.push("/");
+      setTimeout(() => {
+        router.push("/confirm-email/" + encodeURIComponent(email));
+      }, 1500);
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.message || "Erro desconhecido.");
     } finally {
