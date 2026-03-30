@@ -43,8 +43,6 @@ const Login = () => {
   const [loading, setIsLoading] = useState(false);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [errorMsg, setErrorMsg] = useState<string>("");
-  const [failure, setIsFailure] = useState<boolean>(false);
 
   useEffect(() => {
     console.log(t("not_member"), ready);
@@ -53,7 +51,6 @@ const Login = () => {
   const handleLogin = async () => {
     try {
       setIsLoading(true);
-      setIsFailure(false);
 
       const hashedPassword = await sha256(password);
 
@@ -93,13 +90,10 @@ const Login = () => {
 
     } catch (err: any) {
       if (err?.response?.status === 401) {
-        setErrorMsg(t("error.invalidCredentials"));
+        toast.error(t("error.invalidCredentials"));
       } else {
-        setErrorMsg(t("error.unknown"));
+        toast.error(t("error.unknown"));
       }
-
-      toast("Não foi possível concluir a autenticação", { type: "error" });
-      setIsFailure(true);
     } finally {
       setIsLoading(false);
     }
@@ -192,15 +186,6 @@ const Login = () => {
                 Não possui conta?
               </Link>
             </HStack>
-
-            {failure && (
-              <Alert status="error">
-                <AlertIcon />
-                <Text fontSize="md" color="gray.600">
-                  {errorMsg}
-                </Text>
-              </Alert>
-            )}
 
             <Button
               borderRadius="2xl"
