@@ -60,8 +60,6 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [failure, setFailure] = useState(false);
 
   const checks = useMemo(
     () => ({
@@ -99,7 +97,6 @@ const Register = () => {
     if (!canSubmit) return;
     try {
       setLoading(true);
-      setFailure(false);
 
       const hashedPassword = await sha256(password);
 
@@ -117,8 +114,7 @@ const Register = () => {
 
       router.push("/");
     } catch (err: any) {
-      setFailure(true);
-      setErrorMsg(err.response?.data?.message || err.message || "Erro desconhecido.");
+      toast.error(err.response?.data?.message || err.message || "Erro desconhecido.");
     } finally {
       setLoading(false);
     }
@@ -314,15 +310,6 @@ const Register = () => {
                 Já tem conta? Entrar
               </Link>
             </HStack>
-
-            {failure && (
-              <Alert status="error">
-                <AlertIcon />
-                <Text fontSize="md" color="gray.600">
-                  {errorMsg}
-                </Text>
-              </Alert>
-            )}
           </VStack>
         </MotionBox>
       </Flex>
