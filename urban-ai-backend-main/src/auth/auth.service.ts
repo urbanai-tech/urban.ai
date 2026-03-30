@@ -8,6 +8,7 @@ import { User } from 'src/entities/user.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { PaymentsService } from 'src/payments/payments.service';
 import { DataSource } from 'typeorm';
+import { ConflictException } from '@nestjs/common';
 
 @Injectable()
 export class AuthService {
@@ -47,12 +48,24 @@ export class AuthService {
   async register(data: { username: string; email: string; password: string }) {
     const isHex = /^[a-f0-9]{64}$/i.test(data.password);
     const pwdHash = isHex ? data.password : this.sha256(data.password);
-    console.log(data.password, pwdHash)
-    const user = this.userRepository.create({ ...data, password: pwdHash });
-    const savedUser = await this.userRepository.save(user);
-    await this.paymentsService.createPayment(savedUser);
+    console.log(data.password, pwdHash);
 
-    return savedUser;
+    // Verifica se e-mail já existe
+    const existingUser = await this.userRepository.findOne({ where: { email: data.email } });
+    if (existingUser) {
+      throw new ConflictException('O e-mail informado já está em uso.');
+    }
+
+    try {
+      const user = this.userRepository.create({ ...data, password: pwdHash });
+      const savedUser = await this.userRepository.save(user);
+      await this.paymentsService.createPayment(savedUser);
+
+      return savedUser;
+    } catch (error) {
+      console.error('Erro ao registrar usuário:', error);
+      throw new InternalServerErrorException('Falha no registro do usuário. Verifique com o suporte.');
+    }
   }
 
   async deleteUser(userId: string): Promise<void> {
