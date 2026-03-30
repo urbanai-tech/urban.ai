@@ -26,20 +26,16 @@ const PasswordResetRequest = () => {
 
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-  const [failure, setFailure] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
   const handleSubmit = async () => {
     if (!email) {
-      setErrorMsg("Por favor, insira seu e-mail.");
-      setFailure(true);
+      toast.error("Por favor, insira seu e-mail.");
       return;
     }
 
     try {
       setLoading(true);
-      setFailure(false);
       setSuccessMsg('');
 
       const res = await forgotPassword(email);
@@ -55,8 +51,7 @@ const PasswordResetRequest = () => {
 
     } catch (error: any) {
       console.error("Erro handleSubmit:", error.response?.data || error.message);
-      setFailure(true);
-      setErrorMsg(error.response?.data?.message || "Erro ao enviar o e-mail de redefinição.");
+      toast.error(error.response?.data?.message || "Erro ao enviar o e-mail de redefinição.");
     } finally {
       setLoading(false);
     }
@@ -65,8 +60,6 @@ const PasswordResetRequest = () => {
   const handleRetry = () => {
     setEmail('');
     setSuccessMsg('');
-    setFailure(false);
-    setErrorMsg('');
   };
 
   return (
@@ -132,12 +125,7 @@ const PasswordResetRequest = () => {
             </>
           )}
 
-          {failure && (
-            <Alert status="error" borderRadius="md">
-              <AlertIcon />
-              {errorMsg}
-            </Alert>
-          )}
+
 
           {successMsg && (
             <>

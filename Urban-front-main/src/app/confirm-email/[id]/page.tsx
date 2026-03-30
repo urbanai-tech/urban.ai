@@ -37,8 +37,6 @@ const EmailConfirmation = () => {
   const [code, setCode] = useState<string>('');
   const [resendDisabled, setResendDisabled] = useState(true);
   const [countdown, setCountdown] = useState(60);
-  const [errorMsg, setErrorMsg] = useState<string>('');
-  const [failure, setFailure] = useState<boolean>(false);
   const [isResending, setIsResending] = useState(false);
   const [isCodeValid, setIsCodeValid] = useState(false);
 
@@ -130,7 +128,6 @@ const EmailConfirmation = () => {
 
     try {
       setLoading(true);
-      setFailure(false);
 
       const result = await confirmarEmail(email, code);
 
@@ -138,13 +135,11 @@ const EmailConfirmation = () => {
         toast("Sua conta foi ativada com sucesso.", { type: "success" });
         await decideRedirect("token_nao_necessario");
       } else {
-        setFailure(true);
-        setErrorMsg(result.data.motivo || 'Erro ao confirmar e-mail.');
+        toast.error(result.data.motivo || 'Erro ao confirmar e-mail.');
       }
 
     } catch (err: any) {
-      setFailure(true);
-      setErrorMsg(err.message || 'Erro ao confirmar e-mail. Tente novamente.');
+      toast.error(err.message || 'Erro ao confirmar e-mail. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -167,8 +162,7 @@ const EmailConfirmation = () => {
 
 
     } catch {
-      setFailure(true);
-      setErrorMsg('Erro ao reenviar código. Tente novamente mais tarde.');
+      toast.error('Erro ao reenviar código. Tente novamente mais tarde.');
     } finally {
       setIsResending(false);
     }
@@ -272,12 +266,7 @@ const EmailConfirmation = () => {
             Confirmar E-mail
           </Button>
 
-          {failure && (
-            <Alert status="error" borderRadius="md" mt={4}>
-              <AlertIcon />
-              <Text fontSize="md">{errorMsg}</Text>
-            </Alert>
-          )}
+
 
           <Box mt={6} textAlign="center" pt={4} borderTopWidth="1px" borderTopColor="gray.100">
             <Text fontSize="sm" color="gray.600">

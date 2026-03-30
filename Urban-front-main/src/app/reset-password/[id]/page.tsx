@@ -40,8 +40,6 @@ const PasswordConfirmation = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [failure, setFailure] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const params = useParams();
@@ -85,7 +83,6 @@ const PasswordConfirmation = () => {
 
     try {
       setLoading(true);
-      setFailure(false);
 
       const hashedPassword = await sha256(password);
       const res = await updatePassword(userId, hashedPassword);
@@ -100,8 +97,7 @@ const PasswordConfirmation = () => {
 
     } catch (error: any) {
       console.error("Erro handleSubmit:", error.response?.data || error.message);
-      setFailure(true);
-      setErrorMsg(error.response?.data?.message || "Erro ao atualizar senha.");
+      showToastCustom(error.response?.data?.message || "Erro ao atualizar senha.", "error");
     } finally {
       setLoading(false);
     }
@@ -219,12 +215,6 @@ const PasswordConfirmation = () => {
               Confirmar Nova Senha
             </Button>
 
-            {failure && (
-              <Alert status="error" borderRadius="md">
-                <AlertIcon />
-                {errorMsg}
-              </Alert>
-            )}
           </VStack>
         ) : (
           // Tela de sucesso
