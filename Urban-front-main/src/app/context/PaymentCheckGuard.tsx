@@ -27,11 +27,16 @@ const PaymentCheckGuard = ({ children }: PaymentCheckGuardProps) => {
           console.log("nao ta caindo")
         }
 
-        const subscription = await fetchSubscription();
+        let subscription = null;
+        try {
+          subscription = await fetchSubscription();
+        } catch {
+          // Usuário sem customer no Stripe ainda — não é erro
+        }
+
         const isSubscriptionActive = subscription?.status === 'active' || subscription?.status === 'trialing';
 
-        console.log('Status da assinatura:', subscription?.status);
-
+        console.log('Status da assinatura:', subscription?.status ?? 'sem assinatura');
 
         if (!isSubscriptionActive && pathname !== '/plans') {
           router.push('/plans');
