@@ -1,0 +1,100 @@
+﻿[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio 97e0d97f-9df6-43c8-b965-d938c0016abc: maxKm=20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para 97e0d97f-9df6-43c8-b965-d938c0016abc[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio 992b7905-6ea9-49e6-8f13-5586ed30bba4: maxKm=20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para 992b7905-6ea9-49e6-8f13-5586ed30bba4[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 5[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio 9eea520e-9025-45f6-be2a-7018352e5f5c: maxKm=5[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para 9eea520e-9025-45f6-be2a-7018352e5f5c[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 1000[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio a3356211-3775-456c-849e-0d88b41002ca: maxKm=1000[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para a3356211-3775-456c-849e-0d88b41002ca[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio a4b991e1-068e-4260-8455-fa2f6a875326: maxKm=20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para a4b991e1-068e-4260-8455-fa2f6a875326[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio a71448c6-ba70-456c-9ca8-ff5771d43f83: maxKm=20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para a71448c6-ba70-456c-9ca8-ff5771d43f83[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio a982ff3b-0023-4cc6-9776-611d5d9ddb47: maxKm=20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para a982ff3b-0023-4cc6-9776-611d5d9ddb47[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 0[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio aa1455b4-4b9d-4e13-bcad-d072e6ad0e9e: maxKm=0[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para aa1455b4-4b9d-4e13-bcad-d072e6ad0e9e[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 30[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio aad0ab36-f8c0-4cd8-a065-6894c9b0b55e: maxKm=30[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para aad0ab36-f8c0-4cd8-a065-6894c9b0b55e[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio ad0a3bd3-74a6-4dc6-a42c-25a78c62b6db: maxKm=20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para ad0a3bd3-74a6-4dc6-a42c-25a78c62b6db[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio b5a858bb-4f2d-4644-a64a-92b848324dec: maxKm=20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para b5a858bb-4f2d-4644-a64a-92b848324dec[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 0[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio ba6d15f9-281e-48b7-80e4-10450b55e521: maxKm=0[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para ba6d15f9-281e-48b7-80e4-10450b55e521[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio bc45ae5f-c13d-43b5-99d4-97cc0ef6e95d: maxKm=20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para bc45ae5f-c13d-43b5-99d4-97cc0ef6e95d[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio bcfc2eac-7e14-45e8-adf9-e2e7473805bf: maxKm=20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para bcfc2eac-7e14-45e8-adf9-e2e7473805bf[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 0[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio bd6e2dfc-da1f-4037-9dc6-cace4eda4b88: maxKm=0[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para bd6e2dfc-da1f-4037-9dc6-cace4eda4b88[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio bdf9c7b6-d96e-4701-b2d0-31af70764a2e: maxKm=20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para bdf9c7b6-d96e-4701-b2d0-31af70764a2e[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio c7df4693-1580-48d3-91a1-a8a70dca410d: maxKm=20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para c7df4693-1580-48d3-91a1-a8a70dca410d[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 5[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio cadae305-e532-4c28-b324-0c590a4ec9d9: maxKm=5[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para cadae305-e532-4c28-b324-0c590a4ec9d9[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio cda43690-bba4-4b3b-8783-3eba870eb4f4: maxKm=20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para cda43690-bba4-4b3b-8783-3eba870eb4f4[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 30[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio d2e67fcb-6064-47df-97f9-cdb185e3991d: maxKm=30[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para d2e67fcb-6064-47df-97f9-cdb185e3991d[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 0[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio d2fa631d-9d5f-4e0a-a8d1-d6340d240c61: maxKm=0[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para d2fa631d-9d5f-4e0a-a8d1-d6340d240c61[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio d7613497-c6c7-43d3-a061-03e286e5c081: maxKm=20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para d7613497-c6c7-43d3-a061-03e286e5c081[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 0[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio db3330db-8a66-48d0-819d-44db35789458: maxKm=0[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para db3330db-8a66-48d0-819d-44db35789458[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 0[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio e2c2f44e-685b-40fa-aaa8-6dada7d76ed1: maxKm=0[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para e2c2f44e-685b-40fa-aaa8-6dada7d76ed1[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 0[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio e86a2a3c-2073-488c-94b1-d955b523020d: maxKm=0[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para e86a2a3c-2073-488c-94b1-d955b523020d[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 0[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio ea8c24ba-eafa-4ed2-98d2-43abcefd6321: maxKm=0[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para ea8c24ba-eafa-4ed2-98d2-43abcefd6321[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 5[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio f20709c0-b7fe-42ea-8020-d64670215121: maxKm=5[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para f20709c0-b7fe-42ea-8020-d64670215121[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 0[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio f9ab43cd-1f95-44dc-a6c1-1f2b79ac50a2: maxKm=0[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para f9ab43cd-1f95-44dc-a6c1-1f2b79ac50a2[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m km do usuario 20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32mÔåÆ Usu├írio faa8322a-3595-4622-94a6-0e7187e032e3: maxKm=20[39m
+[32m[Nest] 1  - [39m03/30/2026, 1:00:00 PM [32m    LOG[39m [38;5;3m[SchedulerService] [39m[32m   Ô£ô Batch conclu├¡do para faa8322a-3595-4622-94a6-0e7187e032e3[39m
+85edbb41575dd08094da20089cafc7552a339e4f56044f9d440022c5ee90e5e6 85edbb41575dd08094da20089cafc7552a339e4f56044f9d440022c5ee90e5e6
+[31m[Nest] 1  - [39m03/30/2026, 7:51:57 PM [31m  ERROR[39m [38;5;3m[ExceptionsHandler] [39m[31mDuplicate entry 'gustavo.macedo@guilds.com.br' for key 'user.IDX_e12875dfb3b1d92d7d7c5377e2'[39m
+QueryFailedError: Duplicate entry 'gustavo.macedo@guilds.com.br' for key 'user.IDX_e12875dfb3b1d92d7d7c5377e2'
+    at /usr/src/app/node_modules/typeorm/driver/mysql/MysqlQueryRunner.js:168:37
+    at Query.onResult (/usr/src/app/node_modules/@opentelemetry/instrumentation-mysql2/build/src/instrumentation.js:169:24)
+    at Query.execute (/usr/src/app/node_modules/mysql2/lib/commands/command.js:36:14)
+    at PoolConnection.handlePacket (/usr/src/app/node_modules/mysql2/lib/base/connection.js:508:34)
+    at PacketParser.onPacket (/usr/src/app/node_modules/mysql2/lib/base/connection.js:93:12)
+    at PacketParser.executeStart (/usr/src/app/node_modules/mysql2/lib/packet_parser.js:75:16)
+    at Socket.<anonymous> (/usr/src/app/node_modules/mysql2/lib/base/connection.js:100:25)
+    at Socket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)

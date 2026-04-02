@@ -30,6 +30,23 @@ export class PropriedadeController {
     }
   }
 
+  @Get('quick-info')
+  @ApiOperation({ summary: 'Busca info rápida de um imóvel individual (título, imagem, hostId)' })
+  @ApiQuery({ name: 'propertyId', type: String, required: true, description: 'ID do listing no Airbnb' })
+  @ApiResponse({ status: 200, description: 'Info do imóvel retornada com sucesso' })
+  @ApiResponse({ status: 400, description: 'Parâmetro propertyId é obrigatório' })
+  async getPropertyQuickInfo(@Query('propertyId') propertyId: string) {
+    if (!propertyId) {
+      throw new HttpException('Property ID is required', HttpStatus.BAD_REQUEST);
+    }
+    try {
+      return await this.propriedadeService.getPropertyQuickInfo(propertyId);
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      throw new HttpException(error.message || 'Error fetching property info', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   @Get('checkout-prices')
   @ApiOperation({ summary: 'Get Airbnb accommodation and service fee in USD' })
   @ApiQuery({ name: 'propertyId', type: String, required: true })

@@ -1,0 +1,8 @@
+﻿
+ Ô£ô Starting...
+ Ô£ô Ready in 199ms
+   Ôû▓ Next.js 15.5.12
+   - Local:        http://localhost:8080
+   - Network:      http://0.0.0.0:8080
+Starting Container
+API Base URL: https://urbanai-production-85fd.up.railway.app

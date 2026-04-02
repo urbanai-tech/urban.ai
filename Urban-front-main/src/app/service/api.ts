@@ -661,6 +661,29 @@ export const getHostId = async (propertyId: string) => {
   }
 };
 
+export type PropertyQuickInfo = {
+  propertyId: string;
+  title: string;
+  pictureUrl: string;
+  hostId: string | null;
+  hostName: string | null;
+  bedrooms: number;
+  guests: number;
+};
+
+/** Busca info rápida de um imóvel individual (título, imagem, hostId) */
+export const getPropertyQuickInfo = async (propertyId: string): Promise<PropertyQuickInfo> => {
+  try {
+    const { data } = await api.get<PropertyQuickInfo>(`/propriedades/quick-info`, {
+      params: { propertyId },
+    });
+    return data;
+  } catch (error) {
+    console.error("Erro ao buscar info rápida do imóvel:", error);
+    throw error;
+  }
+};
+
 export const requestforgotPassword = async (email: string) => {
   try {
     const { data } = await api.post('/email/forgot-password', { email });
