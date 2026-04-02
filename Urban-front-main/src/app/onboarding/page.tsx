@@ -294,14 +294,9 @@ export default function OnboardingWizard() {
   const selectedCount = Object.values(selectedProperties).filter(Boolean).length;
 
   return (
-    <Flex w="100%" minH="100vh" direction="column" bg="gray.50" align="center">
-      {/* Topbar limpo */}
-      <Flex w="100%" justify="center" py={6} borderBottom="1px solid" borderColor="gray.100" bg="white">
-        <Image src="/ul.png" alt="Urban AI Logo" height="auto" width="140px" />
-      </Flex>
-
+    <Flex w="100%" direction="column" align="center" bg="transparent">
       {/* Barra de progresso */}
-      <Container maxW="container.md" mt={6} mb={2}>
+      <Container maxW="container.md" mb={2}>
         <HStack spacing={0} w="100%">
           {Array.from({ length: TOTAL_STEPS }, (_, i) => (
             <Box key={i} flex={1} h="4px" bg={i < step ? "blue.500" : "gray.200"} borderRadius="full"
@@ -333,10 +328,7 @@ export default function OnboardingWizard() {
               <MotionBox key="step1" initial="initial" animate="in" exit="out"
                 variants={pageVariants} transition={{ duration: 0.4 }}>
                 <VStack spacing={6} align="center" textAlign="center">
-                  <Box bg="orange.50" color="orange.500" p={4} rounded="full" mb={6}>
-                    <BsRobot size={48} />
-                  </Box>
-                  <Heading size="xl" color="gray.800" lineHeight="shorter">
+                  <Heading size="xl" color="gray.800" lineHeight="shorter" mt={4}>
                     Bem-vindo ao Urban AI
                   </Heading>
                   <Text fontSize="lg" color="gray.500" maxW="440px" lineHeight="tall">
