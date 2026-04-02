@@ -150,26 +150,43 @@ export class PropriedadeService {
     private static readonly PROPERTY_TYPE_PT: Record<string, string> = {
         'Entire home': 'Casa inteira',
         'Entire rental unit': 'Unidade inteira',
+        'Rental unit': 'Unidade de aluguel',
         'Entire serviced apartment': 'Apartamento com serviços',
         'Serviced apartment': 'Apartamento com serviços',
         'Private room': 'Quarto privado',
         'Shared room': 'Quarto compartilhado',
         'Entire villa': 'Villa inteira',
         'Entire condo': 'Condomínio inteiro',
+        'Condo': 'Condomínio',
         'Entire loft': 'Loft inteiro',
+        'Loft': 'Loft',
         'Entire guest suite': 'Suíte completa',
+        'Guest suite': 'Suíte',
         'Entire place': 'Espaço inteiro',
         'Entire cottage': 'Chalé inteiro',
+        'Cottage': 'Chalé',
         'Entire cabin': 'Cabana inteira',
+        'Cabin': 'Cabana',
         'Entire bungalow': 'Bangalô inteiro',
+        'Bungalow': 'Bangalô',
         'Tiny home': 'Mini casa',
         'Treehouse': 'Casa na árvore',
         'Houseboat': 'Barco-casa',
+        'Home': 'Casa',
         'Room in a hotel': 'Quarto de hotel',
         'Room in a bed and breakfast': 'Quarto em pousada',
         'Room in a boutique hotel': 'Quarto em hotel boutique',
         'Aparthotel': 'Aparthotel',
         'Apartment': 'Apartamento',
+        'Studio': 'Estúdio',
+        'Guesthouse': 'Casa de hóspedes',
+        'Farm stay': 'Estadia na fazenda',
+        'Townhouse': 'Sobrado',
+        'Castle': 'Castelo',
+        'Boat': 'Barco',
+        'Camper/RV': 'Trailer',
+        'Tent': 'Barraca',
+        'Yurt': 'Yurt',
         'Apartamento': 'Apartamento',
         'Casa': 'Casa',
     };
@@ -186,6 +203,19 @@ export class PropriedadeService {
         // Se já é PT ou desconhecido, retorna como está
         return enType;
     }
+
+    // --- Mapa de estados brasileiros (extenso → sigla) ---
+    private static readonly STATE_ABBR: Record<string, string> = {
+        'Acre': 'AC', 'Alagoas': 'AL', 'Amapá': 'AP', 'Amazonas': 'AM',
+        'Bahia': 'BA', 'Ceará': 'CE', 'Distrito Federal': 'DF',
+        'Espírito Santo': 'ES', 'Goiás': 'GO', 'Maranhão': 'MA',
+        'Mato Grosso': 'MT', 'Mato Grosso do Sul': 'MS', 'Minas Gerais': 'MG',
+        'Pará': 'PA', 'Paraíba': 'PB', 'Paraná': 'PR', 'Pernambuco': 'PE',
+        'Piauí': 'PI', 'Rio de Janeiro': 'RJ', 'Rio Grande do Norte': 'RN',
+        'Rio Grande do Sul': 'RS', 'Rondônia': 'RO', 'Roraima': 'RR',
+        'Santa Catarina': 'SC', 'São Paulo': 'SP', 'Sergipe': 'SE',
+        'Tocantins': 'TO',
+    };
 
     // --- Reverse Geocoding via Nominatim (OpenStreetMap) ---
     private async reverseGeocode(lat: number, lng: number): Promise<{
@@ -207,7 +237,8 @@ export class PropriedadeService {
             const street = addr.road || addr.pedestrian || addr.footway || '';
             const neighborhood = addr.suburb || addr.neighbourhood || addr.city_district || '';
             const city = addr.city || addr.town || addr.municipality || addr.village || '';
-            const state = addr.state || '';
+            const stateRaw = addr.state || '';
+            const state = PropriedadeService.STATE_ABBR[stateRaw] || stateRaw;
             const zipCode = addr.postcode || '';
             const fullAddress = data.display_name || '';
 
