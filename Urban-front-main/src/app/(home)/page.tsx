@@ -11,14 +11,16 @@ import {
   FormLabel,
   Heading,
   HStack,
+  IconButton,
   Input,
   InputGroup,
   InputLeftElement,
+  InputRightElement,
   Link,
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { EmailIcon, LockIcon } from "@chakra-ui/icons";
+import { EmailIcon, LockIcon, ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -43,6 +45,7 @@ const Login = () => {
   const [loading, setIsLoading] = useState(false);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     console.log(t("not_member"), ready);
@@ -172,9 +175,20 @@ const Login = () => {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   size="lg"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder={t("password_placeholder")}
                 />
+                <InputRightElement h="full" pr={2}>
+                  <IconButton
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    variant="ghost"
+                    size="sm"
+                    icon={showPassword ? <ViewOffIcon color="gray.500" /> : <ViewIcon color="gray.500" />}
+                    onClick={() => setShowPassword(!showPassword)}
+                    _hover={{ bg: "transparent", color: "blue.500" }}
+                    _active={{ bg: "transparent" }}
+                  />
+                </InputRightElement>
               </InputGroup>
             </FormControl>
 
