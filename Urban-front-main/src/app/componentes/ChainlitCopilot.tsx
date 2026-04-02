@@ -13,7 +13,7 @@ type Props = {
 export default function ChainlitCopilot({ serverUrl }: Props) {
   const { isAuthenticated } = useAuth()
   const pathname = usePathname()
-  const chainlitUrl = serverUrl || process.env.NEXT_PUBLIC_CHAINLIT_URL || ""
+  const chainlitUrl: string = ""
 
   // Don't show on public routes or when not authenticated
   const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(`${route}/`))
