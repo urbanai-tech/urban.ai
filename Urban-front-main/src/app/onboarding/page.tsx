@@ -887,15 +887,15 @@ export default function OnboardingWizard() {
                             onClick={() => setPricingStrategy(key)}
                           >
                             <VStack spacing={2} align="start">
-                              <HStack>
-                                <Text fontSize="xl">{preset.icon}</Text>
-                                <Text fontWeight="bold" color="gray.800" fontSize="sm">
+                              <Flex wrap="wrap" gap={2} alignItems="center">
+                                <Text fontSize="xl" lineHeight="1">{preset.icon}</Text>
+                                <Text fontWeight="bold" color="gray.800" fontSize="sm" lineHeight="1">
                                   {preset.label}
                                 </Text>
                                 {key === 'balanced' && (
-                                  <Badge colorScheme="blue" fontSize="0.6rem" ml={1}>Recomendado</Badge>
+                                  <Badge colorScheme="blue" fontSize="0.6rem">Recomendado</Badge>
                                 )}
-                              </HStack>
+                              </Flex>
                               <Text fontSize="xs" color="gray.500" lineHeight="short">
                                 {preset.desc}
                               </Text>
@@ -936,11 +936,11 @@ export default function OnboardingWizard() {
                         onClick={() => setOperationMode('notifications')}
                       >
                         <VStack spacing={2} align="start">
-                          <HStack>
+                          <Flex wrap="wrap" gap={2} alignItems="center">
                             <Box as={FiBell} color="blue.500" boxSize={5} />
-                            <Text fontWeight="bold" color="gray.800" fontSize="sm">Apenas Notificações</Text>
+                            <Text fontWeight="bold" color="gray.800" fontSize="sm" lineHeight="1">Apenas Notificações</Text>
                             <Badge colorScheme="blue" fontSize="0.6rem">Recomendado</Badge>
-                          </HStack>
+                          </Flex>
                           <Text fontSize="xs" color="gray.500" lineHeight="short">
                             Receba alertas e sugestões de preço. Você decide quando aplicar cada mudança manualmente.
                           </Text>
@@ -959,11 +959,11 @@ export default function OnboardingWizard() {
                         onClick={() => setOperationMode('automatic')}
                       >
                         <VStack spacing={2} align="start">
-                          <HStack>
+                          <Flex wrap="wrap" gap={2} alignItems="center">
                             <Box as={FiZap} color="orange.500" boxSize={5} />
-                            <Text fontWeight="bold" color="gray.800" fontSize="sm">Automático</Text>
+                            <Text fontWeight="bold" color="gray.800" fontSize="sm" lineHeight="1">Automático</Text>
                             <Badge colorScheme="orange" fontSize="0.6rem">Em breve</Badge>
-                          </HStack>
+                          </Flex>
                           <Text fontSize="xs" color="gray.500" lineHeight="short">
                             O motor ajusta os preços automaticamente na sua conta do Airbnb com base nos eventos detectados.
                           </Text>
