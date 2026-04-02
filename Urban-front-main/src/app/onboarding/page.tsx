@@ -47,6 +47,11 @@ interface Property {
   reviewCount?: number;
   propertyType?: string;
   neighborhood?: string;
+  street?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  fullAddress?: string;
   amenitiesCount?: number;
 }
 
@@ -227,6 +232,11 @@ export default function OnboardingWizard() {
           reviewCount: info.reviewCount || 0,
           propertyType: info.propertyType || '',
           neighborhood: info.neighborhood || '',
+          street: info.street || '',
+          city: info.city || '',
+          state: info.state || '',
+          zipCode: info.zipCode || '',
+          fullAddress: info.fullAddress || '',
           amenitiesCount: info.amenitiesCount || 0,
         });
       } catch (error) {
@@ -723,13 +733,8 @@ export default function OnboardingWizard() {
                                     : property.titulo}
                                 </Text>
 
-                                {/* Badges: Localização + Rating */}
+                                {/* Badges: Rating */}
                                 <HStack spacing={2} flexWrap="wrap" mb={1}>
-                                  {property.neighborhood && (
-                                    <Badge colorScheme="teal" fontSize="2xs" borderRadius="full" px={2}>
-                                      📍 {property.neighborhood}
-                                    </Badge>
-                                  )}
                                   {(property.rating !== undefined && property.rating > 0) ? (
                                     <Badge colorScheme="yellow" fontSize="2xs" borderRadius="full" px={2}>
                                       ★ {property.rating.toFixed(2)}
@@ -742,6 +747,17 @@ export default function OnboardingWizard() {
                                     </Badge>
                                   ) : null}
                                 </HStack>
+
+                                {/* Endereço completo */}
+                                {(property.street || property.neighborhood || property.city) && (
+                                  <Text fontSize="2xs" color="gray.500" lineHeight="short" mb={0.5}>
+                                    📍 {[property.street, property.neighborhood].filter(Boolean).join(', ')}
+                                    {property.city && (
+                                      <> — {property.city}{property.state ? `-${property.state}` : ''}</>
+                                    )}
+                                    {property.zipCode && ` (${property.zipCode})`}
+                                  </Text>
+                                )}
 
                                 {/* ID do anúncio */}
                                 <Text fontSize="2xs" color="gray.400" fontFamily="mono">

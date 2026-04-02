@@ -676,6 +676,13 @@ export type PropertyQuickInfo = {
   reviewCount: number;
   propertyType: string;
   neighborhood: string;
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  fullAddress: string;
+  latitude: number | null;
+  longitude: number | null;
   amenitiesCount: number;
 };
 
