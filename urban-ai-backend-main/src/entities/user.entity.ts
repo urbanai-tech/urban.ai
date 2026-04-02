@@ -52,4 +52,13 @@ export class User {
 
   @Column({ nullable: true })
   company?: string;
+
+  @Column({ nullable: true, default: 'moderate' })
+  pricingStrategy?: string; // 'conservative' | 'moderate' | 'aggressive'
+
+  @Column({ nullable: true, default: 'notifications' })
+  operationMode?: string; // 'notifications' | 'automatic'
+
+  @Column({ nullable: true })
+  airbnbHostId?: string;
 }

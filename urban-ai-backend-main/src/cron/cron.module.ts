@@ -13,6 +13,7 @@ import { MailerModule } from 'src/mailer/mailer.module';
 import { EmailService } from 'src/email/email.service';
 import { EmailModule } from 'src/email/email.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { PropriedadeModule } from 'src/propriedades/propriedade.module';
 
 @Module({
     imports: [ScheduleModule.forRoot(), TypeOrmModule.forFeature([
@@ -22,7 +23,7 @@ import { ScheduleModule } from '@nestjs/schedule';
             AnalisePreco,
             User,
             MailerModule
-        ]), AirbnbModule, MailerModule, EmailModule],
+        ]), AirbnbModule, MailerModule, EmailModule, PropriedadeModule],
     controllers: [
         CronController,],
     providers: [

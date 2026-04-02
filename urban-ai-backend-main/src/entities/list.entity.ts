@@ -85,4 +85,29 @@ export class List {
   @ApiProperty({ description: "Número de banheiros", example: 1 })
   @Column({ type: "int", nullable: true })
   banheiros: number;
+
+  // ===== CAMPOS DE ENRIQUECIMENTO (SCRAPING DIRETO) =====
+  @ApiProperty({ description: "Rating do imóvel no Airbnb", example: 4.65 })
+  @Column({ type: "float", nullable: true })
+  rating: number;
+
+  @ApiProperty({ description: "Tipo do imóvel", example: "Apartment" })
+  @Column({ nullable: true })
+  propertyType: string;
+
+  @ApiProperty({ description: "Contagem de amenidades", example: 27 })
+  @Column({ type: "int", nullable: true })
+  amenitiesCount: number;
+
+  @ApiProperty({ description: "Bairro conforme Airbnb", example: "Asa Norte" })
+  @Column({ nullable: true })
+  neighborhood: string;
+
+  @ApiProperty({ description: "Número total de reviews", example: 283 })
+  @Column({ type: "int", nullable: true })
+  reviewCount: number;
+
+  @ApiProperty({ description: "Quando os dados foram scrapeados pela última vez" })
+  @Column({ type: "timestamp", nullable: true })
+  lastScrapedAt: Date;
 }

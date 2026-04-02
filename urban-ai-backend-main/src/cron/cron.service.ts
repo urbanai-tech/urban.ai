@@ -1,5 +1,6 @@
 
-import { Injectable } from '@nestjs/common';
+
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AirbnbService } from 'src/airbnb/airbnb.service';
 import { EmailService } from 'src/email/email.service';
@@ -8,6 +9,7 @@ import { MailerService } from 'src/mailer/mailer.service';
 import { SendEmailDto } from 'src/mailer/tdo/sendEmail.tdo';
 import { CreateNotificationDto } from 'src/notifications/tdo/create-notification.dto';
 import { getDiariaForCron } from 'src/util';
+import { PropriedadeService } from 'src/propriedades/propriedade.service';
 import { Raw, Repository } from 'typeorm';
 
 @Injectable()
@@ -16,7 +18,10 @@ export class CronService {
     private readonly analisePrecoRepository: Repository<AnalisePreco>,
         private readonly airbnbService: AirbnbService,
         private readonly emailService: EmailService,
-        private readonly mailerSender: MailerService) { }
+        private readonly mailerSender: MailerService,
+        private readonly propriedadeService: PropriedadeService,
+    ) { }
+    private readonly logger = new Logger(CronService.name);
     async buscarAnalisesAceitas(): Promise<any> {
         // Pega o dia de hoje sem hora (só AAAA-MM-DD)
         const hoje = new Date();
@@ -163,5 +168,27 @@ export class CronService {
         return { iniciado: true };
     }
 
+    /**
+     * Cron mensal noturno: re-scraping de todos os imóveis ativos.
+     * Deve ser chamado via endpoint ou scheduler às 2h da manhã, 1x/mês.
+     * Espaçado ao longo de 8h para evitar rate limiting.
+     */
+    async refreshPropertyMetadata(): Promise<any> {
+        this.logger.log('🔄 [cron] Iniciando re-scraping mensal de metadados...');
+        try {
+            const result = await this.propriedadeService.refreshAllPropertyMetadata();
+            this.logger.log(`🔄 [cron] Re-scraping concluído: ${result.updated}/${result.total} atualizados, ${result.errors} erros`);
 
+            // Notifica dev team sobre resultado
+            await this.enviarNotificacaoCron(
+                'Re-scraping mensal concluído',
+                `Total: ${result.total} | Atualizados: ${result.updated} | Erros: ${result.errors}`
+            );
+
+            return result;
+        } catch (error) {
+            this.logger.error('❌ [cron] Erro no re-scraping mensal:', error);
+            throw error;
+        }
+    }
 }
