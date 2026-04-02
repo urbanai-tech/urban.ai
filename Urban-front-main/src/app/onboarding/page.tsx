@@ -139,8 +139,8 @@ export default function OnboardingWizard() {
   };
 
   const extractAirbnbUserId = (link: string): string | null => {
-    if (!link || !link.includes('airbnb.com')) return null;
-    const regex = /\/users\/show\/(\d+)/;
+    if (!link || !link.includes('airbnb')) return null;
+    const regex = /\/users\/(?:show|profile)\/(\d+)/;
     const match = link.match(regex);
     return match && match[1] ? match[1] : null;
   };
