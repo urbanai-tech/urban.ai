@@ -149,8 +149,8 @@ export class PropriedadeService {
     // --- Mapa de tradução EN → PT-BR para tipos de imóvel ---
     private static readonly PROPERTY_TYPE_PT: Record<string, string> = {
         'Entire home': 'Casa inteira',
-        'Entire rental unit': 'Unidade inteira',
-        'Rental unit': 'Unidade de aluguel',
+        'Entire rental unit': 'Apartamento inteiro',
+        'Rental unit': 'Apartamento',
         'Entire serviced apartment': 'Apartamento com serviços',
         'Serviced apartment': 'Apartamento com serviços',
         'Private room': 'Quarto privado',
@@ -270,6 +270,7 @@ export class PropriedadeService {
         zipCode: string;
         fullAddress: string;
         amenitiesCount: number;
+        amenities: string[];
         guestCapacity: number;
     }> {
         // Scrape em EN para extração confiável de dados estruturados
@@ -341,9 +342,15 @@ export class PropriedadeService {
             const guestMatch = html.match(/(\d+)\s+(?:guests?|hóspedes?)/i);
             const guestCapacity = guestMatch ? parseInt(guestMatch[1], 10) : 0;
 
-            // --- Amenidades ---
+            // --- Amenidades (lista completa + contagem) ---
             const amenitiesMatch = html.match(/(?:Show all|Mostrar\s+todas?\s+(?:as\s+)?)\s*(\d+)\s+(?:amenities|comodidades)/i);
             const amenitiesCount = amenitiesMatch ? parseInt(amenitiesMatch[1], 10) : 0;
+
+            // Extrai lista individual de amenidades do JSON embutido
+            const amenityMatches = [...html.matchAll(/"available":true,"title":"([^"]+)"/g)];
+            const amenitiesRaw = amenityMatches.map(m => m[1]);
+            // Remove duplicatas mantendo ordem
+            const amenities = [...new Set(amenitiesRaw)];
 
             // --- 📍 Reverse Geocoding: lat/lng → endereço completo ---
             let street = '', neighborhood = '', city = '', state = '', zipCode = '', fullAddress = '';
@@ -386,6 +393,7 @@ export class PropriedadeService {
                 zipCode,
                 fullAddress,
                 amenitiesCount,
+                amenities,
                 guestCapacity,
             };
         } catch (err: any) {
@@ -410,6 +418,7 @@ export class PropriedadeService {
                 zipCode: '',
                 fullAddress: '',
                 amenitiesCount: 0,
+                amenities: [],
                 guestCapacity: 0,
             };
         }
@@ -544,6 +553,7 @@ export class PropriedadeService {
         latitude: number | null;
         longitude: number | null;
         amenitiesCount: number;
+        amenities: string[];
     }> {
         const scraped = await this.scrapeAirbnbListing(propertyId);
 
@@ -570,6 +580,7 @@ export class PropriedadeService {
             latitude: scraped.latitude,
             longitude: scraped.longitude,
             amenitiesCount: scraped.amenitiesCount,
+            amenities: scraped.amenities,
         };
     }
 
