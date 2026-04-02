@@ -36,16 +36,22 @@ export class PaymentsService {
       where: { id: userId },
     });
 
-
     const customers = await this.stripe.customers.list({
       email: user.email,
       limit: 1,
     });
 
+    if (!customers.data || customers.data.length === 0) {
+      return null;
+    }
+
     const payment = await this.paymentRepository.findOne({
       where: { customerId: customers.data[0].id },
     });
 
+    if (!payment || !payment.subscriptionId) {
+      return null;
+    }
 
     const subscriptions = await this.stripe.subscriptions.list({
       customer: customers.data[0].id,
@@ -53,7 +59,7 @@ export class PaymentsService {
     });
 
     const subscription = subscriptions.data.find(sub => sub.id === payment.subscriptionId);
-    return subscription
+    return subscription || null;
   }
 
   async cancelSubscription(userId: string) {
