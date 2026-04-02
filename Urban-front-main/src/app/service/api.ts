@@ -751,7 +751,7 @@ export const requestDeleteAddress = async (addressId: string) => {
 
 export interface PercentualPayload {
   percentualInicial: number;
-  percentualFinal: number;
+  percentualFinal: number | null;
 }
 
 /**
