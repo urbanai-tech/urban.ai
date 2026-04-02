@@ -87,10 +87,10 @@ const EmailConfirmation = () => {
         profile?.onboardingCompleted === true ||
         (typeof profile?.loginCount === "number" && profile.loginCount > 1);
 
-      router.replace(notFirstTime ? "/dashboard" : "/app");
-    } catch (e) {
-      console.error("Erro ao obter perfil:", e);
-      router.replace("/app"); // fallback
+      router.replace(notFirstTime ? "/dashboard" : "/onboarding");
+    } catch (error) {
+      console.error("Erro na verificação/criação:", error);
+      router.replace("/onboarding"); // fallback
     }
 
   };

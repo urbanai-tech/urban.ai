@@ -18,6 +18,8 @@ import {
   createMultipleAddresses, resolveAirbnbUrl,
   createCheckoutSession, updateProfileById, getProfileById
 } from '../service/api';
+import { FiMapPin, FiCheckCircle, FiLoader } from 'react-icons/fi';
+import { BsRobot } from 'react-icons/bs';
 import { ToastContainer, toast } from 'react-toastify';
 import { loadStripe } from '@stripe/stripe-js';
 
@@ -331,8 +333,8 @@ export default function OnboardingWizard() {
               <MotionBox key="step1" initial="initial" animate="in" exit="out"
                 variants={pageVariants} transition={{ duration: 0.4 }}>
                 <VStack spacing={6} align="center" textAlign="center">
-                  <Box p={4} bg="orange.50" borderRadius="full">
-                    <Image src="/urlaranja.png" w="48px" h="48px" alt="Urban AI" />
+                  <Box bg="orange.50" color="orange.500" p={4} rounded="full" mb={6}>
+                    <BsRobot size={48} />
                   </Box>
                   <Heading size="xl" color="gray.800" lineHeight="shorter">
                     Bem-vindo ao Urban AI

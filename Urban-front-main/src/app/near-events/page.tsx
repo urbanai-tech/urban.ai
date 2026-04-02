@@ -54,7 +54,7 @@ export default function CasaEventosProximosPage() {
       setLoading(true);
       const data = await getUserProperties(pagina, limite);
       if ((data.total ?? 0) === 0) {
-        router.push("/app");
+        router.push("/onboarding");
         return;
       }
 
