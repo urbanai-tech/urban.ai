@@ -6,9 +6,10 @@ import {
   FormControl, FormLabel, Switch, Stack, Slider, SliderTrack,
   SliderFilledTrack, SliderThumb, SliderMark,
   Button, Image, Container, Badge, SimpleGrid,
-  List, ListItem, ListIcon, Spinner, Tooltip
+  List, ListItem, ListIcon, Spinner, Tooltip, Tabs, TabList,
+  TabPanels, Tab, TabPanel, Textarea, IconButton
 } from '@chakra-ui/react';
-import { CheckIcon, InfoIcon } from '@chakra-ui/icons';
+import { CheckIcon, InfoIcon, AddIcon, CloseIcon } from '@chakra-ui/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
@@ -16,10 +17,10 @@ import '../../../i18n';
 import {
   getHostId, getUserManagedListings, registerProperties,
   createMultipleAddresses, resolveAirbnbUrl,
-  createCheckoutSession, updateProfileById, getProfileById
+  createCheckoutSession, updateProfileById, getProfileById,
+  getPropertyQuickInfo, requestCreateOrUpdatePercentual
 } from '../service/api';
-import { FiMapPin, FiCheckCircle, FiLoader } from 'react-icons/fi';
-import { BsRobot } from 'react-icons/bs';
+import { FiMapPin, FiCheckCircle, FiLoader, FiUsers, FiHome, FiZap, FiBell } from 'react-icons/fi';
 import { ToastContainer, toast } from 'react-toastify';
 import { loadStripe } from '@stripe/stripe-js';
 
@@ -28,6 +29,9 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 
 const TOTAL_STEPS = 5;
 
+// ═══════════════════════════════════════
+//  TIPOS
+// ═══════════════════════════════════════
 interface Property {
   id: number;
   titulo: string;
@@ -49,6 +53,30 @@ interface SelectedPropertiesState {
   [key: string]: boolean;
 }
 
+type PricingStrategy = 'conservative' | 'balanced' | 'aggressive';
+type OperationMode = 'notifications' | 'automatic';
+
+const PRICING_PRESETS: Record<PricingStrategy, { inicial: number; final: number; label: string; desc: string; color: string; icon: string }> = {
+  conservative: {
+    inicial: -5, final: 10,
+    label: 'Conservadora', desc: 'Prioriza ocupação mantendo preços competitivos. Ideal para quem está começando.',
+    color: 'green', icon: '🛡️'
+  },
+  balanced: {
+    inicial: -10, final: 20,
+    label: 'Moderada', desc: 'Equilíbrio entre ocupação e receita. Recomendado para a maioria dos anfitriões.',
+    color: 'blue', icon: '⚖️'
+  },
+  aggressive: {
+    inicial: -15, final: 35,
+    label: 'Agressiva', desc: 'Maximiza receita em períodos de alta demanda. Para anfitriões experientes.',
+    color: 'orange', icon: '🚀'
+  },
+};
+
+// ═══════════════════════════════════════
+//  COMPONENTE PRINCIPAL
+// ═══════════════════════════════════════
 export default function OnboardingWizard() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -61,23 +89,22 @@ export default function OnboardingWizard() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedProperties, setSelectedProperties] = useState<SelectedPropertiesState>({});
   const [selectAll, setSelectAll] = useState(false);
+  const [importMode, setImportMode] = useState(0); // 0 = individual, 1 = host
+  const [individualLinks, setIndividualLinks] = useState<string[]>(['']);
+  const [individualProperties, setIndividualProperties] = useState<Property[]>([]);
+  const [loadingIndividual, setLoadingIndividual] = useState(false);
 
   // Step 4 — Configurações do motor de IA
   const [distanceKm, setDistanceKm] = useState(30);
+  const [pricingStrategy, setPricingStrategy] = useState<PricingStrategy>('balanced');
+  const [operationMode, setOperationMode] = useState<OperationMode>('notifications');
 
   // =====================================================
-  //  FUNÇÕES DE SCRAPING (Mesma lógica que já funcionava)
+  //  FUNÇÕES AUXILIARES
   // =====================================================
-
-  const extractAirbnbUserId = (link: string): string | null => {
-    if (!link || !link.includes('airbnb.com')) return null;
-    const regex = /\/users\/show\/(\d+)/;
-    const match = link.match(regex);
-    return match && match[1] ? match[1] : null;
-  };
 
   const extractAirbnbPropertyId = (link: string): string | null => {
-    if (!link || !link.includes('airbnb.com')) return null;
+    if (!link || !link.includes('airbnb')) return null;
     const patterns = [
       /\/rooms\/(\d+)/,
       /airbnb\.com\.?\w*\/rooms\/(\d+)/i,
@@ -88,6 +115,13 @@ export default function OnboardingWizard() {
       if (match && match[1]) return match[1];
     }
     return null;
+  };
+
+  const extractAirbnbUserId = (link: string): string | null => {
+    if (!link || !link.includes('airbnb.com')) return null;
+    const regex = /\/users\/show\/(\d+)/;
+    const match = link.match(regex);
+    return match && match[1] ? match[1] : null;
   };
 
   const extractAirbnbListingId = (url: string): string | null => {
@@ -110,6 +144,96 @@ export default function OnboardingWizard() {
     setSelectAll(list.length > 0);
   };
 
+  // =====================================================
+  //  PASSO 2A: Buscar imóvel INDIVIDUAL por link
+  // =====================================================
+  const handleAddIndividualLink = () => {
+    setIndividualLinks(prev => [...prev, '']);
+  };
+
+  const handleRemoveIndividualLink = (index: number) => {
+    setIndividualLinks(prev => prev.filter((_, i) => i !== index));
+    // Remove a propriedade correspondente se ela já foi buscada
+    setIndividualProperties(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleIndividualLinkChange = (index: number, value: string) => {
+    setIndividualLinks(prev => {
+      const copy = [...prev];
+      copy[index] = value;
+      return copy;
+    });
+  };
+
+  const fetchIndividualProperties = async () => {
+    const validLinks = individualLinks.filter(l => l.trim().length > 0);
+    if (validLinks.length === 0) {
+      toast("Insira pelo menos um link de imóvel.", { type: "info" });
+      return;
+    }
+
+    setLoadingIndividual(true);
+    const fetched: Property[] = [];
+
+    for (const link of validLinks) {
+      try {
+        // Tenta resolver URLs redirecionadas (ex: links curtos do Airbnb)
+        let finalUrl = link;
+        try {
+          const resolved = await resolveAirbnbUrl(link);
+          finalUrl = resolved.finalUrl;
+        } catch {
+          // Se falhar resolução, segue com o link original
+        }
+
+        // Extrai listing ID do editor ou rooms
+        const editorId = extractAirbnbListingId(link);
+        if (editorId) {
+          finalUrl = `https://www.airbnb.com/rooms/${editorId}`;
+        }
+
+        const propertyId = extractAirbnbPropertyId(finalUrl);
+        if (!propertyId) {
+          toast(`Link inválido: ${link.substring(0, 50)}...`, { type: "warning" });
+          continue;
+        }
+
+        // Verifica se já está na lista
+        if (fetched.some(p => p.id_do_anuncio === propertyId)) continue;
+
+        const info = await getPropertyQuickInfo(propertyId);
+        fetched.push({
+          id: 0,
+          titulo: info.title,
+          id_do_anuncio: propertyId,
+          ativo: true,
+          pictureUrl: info.pictureUrl,
+        });
+      } catch (error) {
+        console.error(`Erro ao buscar imóvel do link: ${link}`, error);
+        toast(`Não foi possível buscar dados para: ${link.substring(0, 40)}...`, { type: "error" });
+      }
+    }
+
+    if (fetched.length > 0) {
+      setIndividualProperties(fetched);
+      // Combina com as que já existem
+      const allProps = [...properties, ...fetched].filter(
+        (v, i, a) => a.findIndex(t => t.id_do_anuncio === v.id_do_anuncio) === i
+      );
+      setProperties(allProps);
+      initializeSelectedProperties(allProps);
+      setStep(3);
+    } else {
+      toast("Nenhum imóvel válido encontrado. Verifique os links.", { type: "error" });
+    }
+
+    setLoadingIndividual(false);
+  };
+
+  // =====================================================
+  //  PASSO 2B: Buscar TODOS os imóveis do Host
+  // =====================================================
   const fetchUserProperties = async () => {
     if (!airbnbLink) {
       toast("Para continuar, insira um link do Airbnb.", { type: "info" });
@@ -131,8 +255,12 @@ export default function OnboardingWizard() {
 
       let userIdFromGetHostId = null;
       if (propertyIdExtracted) {
-        const data = await getHostId(propertyIdExtracted);
-        userIdFromGetHostId = data?.result.hostId;
+        try {
+          const data = await getHostId(propertyIdExtracted);
+          userIdFromGetHostId = data?.result.hostId;
+        } catch (err) {
+          console.warn('Não foi possível obter hostId via API, tentando extração do link...', err);
+        }
       }
 
       let userId = userIdFromGetHostId || extractAirbnbUserId(urlEditor ? urlEditor : result.finalUrl);
@@ -170,6 +298,9 @@ export default function OnboardingWizard() {
     }
   };
 
+  // =====================================================
+  //  PASSO 3: Seleção & Registro
+  // =====================================================
   const handlePropertyToggle = (id_do_anuncio: string) => {
     setSelectedProperties(prev => {
       const newSelected = { ...prev, [id_do_anuncio]: !prev[id_do_anuncio] };
@@ -233,7 +364,7 @@ export default function OnboardingWizard() {
       await createMultipleAddresses(addressesToRegister);
 
       toast(`${selectedPropertiesList.length} propriedade(s) registrada(s) com sucesso!`, { type: "success" });
-      setStep(4); // Vai para configurações
+      setStep(4);
 
     } catch (error) {
       console.error('Erro ao registrar propriedades:', error);
@@ -251,6 +382,14 @@ export default function OnboardingWizard() {
     try {
       const profile = await getProfileById();
       await updateProfileById(profile.id, { distanceKm });
+
+      // Salvar percentuais baseado na estratégia selecionada
+      const preset = PRICING_PRESETS[pricingStrategy];
+      await requestCreateOrUpdatePercentual({
+        percentualInicial: preset.inicial,
+        percentualFinal: preset.final,
+      });
+
       toast("Configurações salvas! Vamos ativar o seu sistema.", { type: "success" });
       setStep(5);
     } catch (error) {
@@ -354,54 +493,156 @@ export default function OnboardingWizard() {
             )}
 
             {/* ════════════════════════════════════════════════
-                PASSO 2: Inserção do Link do Airbnb
+                PASSO 2: Inserção do Link do Airbnb (TABS)
             ════════════════════════════════════════════════ */}
             {step === 2 && (
               <MotionBox key="step2" initial="initial" animate="in" exit="out"
                 variants={pageVariants} transition={{ duration: 0.4 }}>
-                <VStack spacing={8} align="stretch">
+                <VStack spacing={6} align="stretch">
                   <Box textAlign="center">
                     <Text fontSize="xs" color="gray.400" fontWeight="bold" textTransform="uppercase"
                       letterSpacing="widest" mb={2}>Passo 1 de 3</Text>
-                    <Heading size="lg" mb={3} color="gray.800">Conecte seu Airbnb</Heading>
-                    <Text color="gray.500" maxW="400px" mx="auto">
-                      Cole abaixo a URL pública do seu perfil <strong>OU</strong> de qualquer
-                      anúncio seu. Nós identificamos automaticamente todos os seus imóveis.
+                    <Heading size="lg" mb={3} color="gray.800">Conecte seus Imóveis</Heading>
+                    <Text color="gray.500" maxW="440px" mx="auto">
+                      Importe seus imóveis colando o link de um <strong>anúncio individual</strong> ou
+                      do seu <strong>perfil de anfitrião</strong> para buscar todos de uma vez.
                     </Text>
                   </Box>
 
-                  <FormControl>
-                    <FormLabel fontSize="md" fontWeight="semibold" color="gray.700">
-                      Link do Perfil ou Anúncio
-                    </FormLabel>
-                    <Input
-                      size="lg" type="url"
-                      placeholder="https://www.airbnb.com.br/users/show/123456789"
-                      value={airbnbLink}
-                      onChange={(e) => setAirbnbLink(e.target.value)}
-                      focusBorderColor="blue.500"
-                      bg="gray.50" border="2px solid" borderColor="gray.200"
-                      _hover={{ borderColor: "gray.300" }} h="60px"
-                    />
-                    <Text fontSize="xs" mt={1} color="gray.400">
-                      Aceita links de /users/show/ID ou /rooms/ID
-                    </Text>
-                  </FormControl>
+                  <Tabs
+                    index={importMode}
+                    onChange={(idx) => setImportMode(idx)}
+                    variant="soft-rounded"
+                    colorScheme="blue"
+                    isFitted
+                  >
+                    <TabList bg="gray.50" p={1} borderRadius="xl">
+                      <Tab
+                        borderRadius="lg"
+                        fontWeight="semibold"
+                        fontSize="sm"
+                        _selected={{ bg: 'white', color: 'blue.600', boxShadow: 'sm' }}
+                      >
+                        <HStack spacing={2}>
+                          <FiHome size={16} />
+                          <Text>Imóvel Individual</Text>
+                        </HStack>
+                      </Tab>
+                      <Tab
+                        borderRadius="lg"
+                        fontWeight="semibold"
+                        fontSize="sm"
+                        _selected={{ bg: 'white', color: 'blue.600', boxShadow: 'sm' }}
+                      >
+                        <HStack spacing={2}>
+                          <FiUsers size={16} />
+                          <Text>Importar Tudo (Host)</Text>
+                        </HStack>
+                      </Tab>
+                    </TabList>
 
-                  <Flex gap={4}>
-                    <Button variant="ghost" size="lg" onClick={() => setStep(1)} color="gray.500">
-                      Voltar
-                    </Button>
-                    <Button
-                      bg="#2E3748" color="white" _hover={{ bg: '#252E3E' }}
-                      _active={{ bg: '#1B2330' }} size="lg" flex={1}
-                      isLoading={isLoading}
-                      loadingText="Rastreando imóveis..."
-                      onClick={fetchUserProperties}
-                    >
-                      Buscar propriedades
-                    </Button>
-                  </Flex>
+                    <TabPanels mt={4}>
+                      {/* ── TAB 0: IMÓVEL INDIVIDUAL ── */}
+                      <TabPanel px={0}>
+                        <VStack spacing={4} align="stretch">
+                          <Text fontSize="sm" color="gray.500">
+                            Cole o link de cada imóvel do Airbnb que deseja monitorar.
+                            Você pode adicionar vários de uma vez.
+                          </Text>
+
+                          {individualLinks.map((link, index) => (
+                            <HStack key={index}>
+                              <Input
+                                size="lg" type="url"
+                                placeholder="https://www.airbnb.com.br/rooms/12345678"
+                                value={link}
+                                onChange={(e) => handleIndividualLinkChange(index, e.target.value)}
+                                focusBorderColor="blue.500"
+                                bg="gray.50" border="2px solid" borderColor="gray.200"
+                                _hover={{ borderColor: "gray.300" }} h="52px"
+                              />
+                              {individualLinks.length > 1 && (
+                                <IconButton
+                                  aria-label="Remover link"
+                                  icon={<CloseIcon />}
+                                  size="sm"
+                                  variant="ghost"
+                                  colorScheme="red"
+                                  onClick={() => handleRemoveIndividualLink(index)}
+                                />
+                              )}
+                            </HStack>
+                          ))}
+
+                          <Button
+                            leftIcon={<AddIcon />}
+                            variant="outline"
+                            size="sm"
+                            colorScheme="blue"
+                            onClick={handleAddIndividualLink}
+                            alignSelf="flex-start"
+                          >
+                            Adicionar outro imóvel
+                          </Button>
+
+                          <Flex gap={4} mt={2}>
+                            <Button variant="ghost" size="lg" onClick={() => setStep(1)} color="gray.500">
+                              Voltar
+                            </Button>
+                            <Button
+                              bg="#2E3748" color="white" _hover={{ bg: '#252E3E' }}
+                              _active={{ bg: '#1B2330' }} size="lg" flex={1}
+                              isLoading={loadingIndividual}
+                              loadingText="Buscando imóveis..."
+                              onClick={fetchIndividualProperties}
+                            >
+                              Buscar {individualLinks.filter(l => l.trim()).length === 1 ? 'imóvel' : 'imóveis'}
+                            </Button>
+                          </Flex>
+                        </VStack>
+                      </TabPanel>
+
+                      {/* ── TAB 1: HOST / PERFIL ── */}
+                      <TabPanel px={0}>
+                        <VStack spacing={4} align="stretch">
+                          <Text fontSize="sm" color="gray.500">
+                            Cole a URL do seu perfil de anfitrião ou de qualquer anúncio seu.
+                            Vamos identificar automaticamente todos os seus imóveis.
+                          </Text>
+
+                          <FormControl>
+                            <Input
+                              size="lg" type="url"
+                              placeholder="https://www.airbnb.com.br/users/show/123456789"
+                              value={airbnbLink}
+                              onChange={(e) => setAirbnbLink(e.target.value)}
+                              focusBorderColor="blue.500"
+                              bg="gray.50" border="2px solid" borderColor="gray.200"
+                              _hover={{ borderColor: "gray.300" }} h="52px"
+                            />
+                            <Text fontSize="xs" mt={1} color="gray.400">
+                              Aceita links de /users/show/ID, /rooms/ID ou link da área de editor
+                            </Text>
+                          </FormControl>
+
+                          <Flex gap={4} mt={2}>
+                            <Button variant="ghost" size="lg" onClick={() => setStep(1)} color="gray.500">
+                              Voltar
+                            </Button>
+                            <Button
+                              bg="#2E3748" color="white" _hover={{ bg: '#252E3E' }}
+                              _active={{ bg: '#1B2330' }} size="lg" flex={1}
+                              isLoading={isLoading}
+                              loadingText="Rastreando imóveis..."
+                              onClick={fetchUserProperties}
+                            >
+                              Buscar todas as propriedades
+                            </Button>
+                          </Flex>
+                        </VStack>
+                      </TabPanel>
+                    </TabPanels>
+                  </Tabs>
                 </VStack>
               </MotionBox>
             )}
@@ -480,7 +721,7 @@ export default function OnboardingWizard() {
             )}
 
             {/* ════════════════════════════════════════════════
-                PASSO 4: Configurações do Motor de IA
+                PASSO 4: Configurações do Motor de IA (Expandido)
             ════════════════════════════════════════════════ */}
             {step === 4 && (
               <MotionBox key="step4" initial="initial" animate="in" exit="out"
@@ -491,12 +732,129 @@ export default function OnboardingWizard() {
                       letterSpacing="widest" mb={2}>Passo 3 de 3</Text>
                     <Heading size="lg" mb={3} color="gray.800">Calibrar o Motor de IA</Heading>
                     <Text color="gray.500" maxW="440px" mx="auto">
-                      Estas preferências ajustam como nossa inteligência escaneia eventos e
-                      concorrentes ao redor dos seus imóveis.
+                      Personalize como nossa inteligência analisa eventos, concorrentes e
+                      sugere preços para os seus imóveis.
                     </Text>
                   </Box>
 
-                  {/* Raio de busca de eventos */}
+                  {/* ── Estratégia de Precificação ── */}
+                  <Box>
+                    <Flex align="center" gap={2} mb={4}>
+                      <Text fontWeight="bold" color="gray.800" fontSize="md">
+                        Estratégia de Precificação
+                      </Text>
+                      <Tooltip label="Define o quanto o motor varia os preços em relação à média do mercado."
+                        hasArrow placement="top">
+                        <InfoIcon color="gray.400" boxSize={3.5} />
+                      </Tooltip>
+                    </Flex>
+
+                    <SimpleGrid columns={{ base: 1, md: 3 }} spacing={3}>
+                      {(Object.entries(PRICING_PRESETS) as [PricingStrategy, typeof PRICING_PRESETS[PricingStrategy]][]).map(
+                        ([key, preset]) => (
+                          <Box
+                            key={key}
+                            p={4}
+                            borderRadius="xl"
+                            border="2px solid"
+                            borderColor={pricingStrategy === key ? `${preset.color}.400` : 'gray.200'}
+                            bg={pricingStrategy === key ? `${preset.color}.50` : 'gray.50'}
+                            cursor="pointer"
+                            transition="all 0.2s"
+                            _hover={{
+                              borderColor: `${preset.color}.300`,
+                              transform: 'translateY(-2px)',
+                              boxShadow: 'md'
+                            }}
+                            onClick={() => setPricingStrategy(key)}
+                          >
+                            <VStack spacing={2} align="start">
+                              <HStack>
+                                <Text fontSize="xl">{preset.icon}</Text>
+                                <Text fontWeight="bold" color="gray.800" fontSize="sm">
+                                  {preset.label}
+                                </Text>
+                                {key === 'balanced' && (
+                                  <Badge colorScheme="blue" fontSize="0.6rem" ml={1}>Recomendado</Badge>
+                                )}
+                              </HStack>
+                              <Text fontSize="xs" color="gray.500" lineHeight="short">
+                                {preset.desc}
+                              </Text>
+                              <HStack spacing={1} mt={1}>
+                                <Badge colorScheme={preset.color} variant="subtle" fontSize="0.65rem">
+                                  {preset.inicial > 0 ? '+' : ''}{preset.inicial}% a {preset.final > 0 ? '+' : ''}{preset.final}%
+                                </Badge>
+                              </HStack>
+                            </VStack>
+                          </Box>
+                        )
+                      )}
+                    </SimpleGrid>
+                  </Box>
+
+                  {/* ── Modo de Operação ── */}
+                  <Box>
+                    <Flex align="center" gap={2} mb={4}>
+                      <Text fontWeight="bold" color="gray.800" fontSize="md">
+                        Modo de Operação
+                      </Text>
+                      <Tooltip label="Como você quer que o motor opere: apenas alertando ou alterando preços automaticamente."
+                        hasArrow placement="top">
+                        <InfoIcon color="gray.400" boxSize={3.5} />
+                      </Tooltip>
+                    </Flex>
+
+                    <SimpleGrid columns={{ base: 1, md: 2 }} spacing={3}>
+                      <Box
+                        p={5}
+                        borderRadius="xl"
+                        border="2px solid"
+                        borderColor={operationMode === 'notifications' ? 'blue.400' : 'gray.200'}
+                        bg={operationMode === 'notifications' ? 'blue.50' : 'gray.50'}
+                        cursor="pointer"
+                        transition="all 0.2s"
+                        _hover={{ borderColor: 'blue.300', transform: 'translateY(-1px)', boxShadow: 'sm' }}
+                        onClick={() => setOperationMode('notifications')}
+                      >
+                        <VStack spacing={2} align="start">
+                          <HStack>
+                            <Box as={FiBell} color="blue.500" boxSize={5} />
+                            <Text fontWeight="bold" color="gray.800" fontSize="sm">Apenas Notificações</Text>
+                            <Badge colorScheme="blue" fontSize="0.6rem">Recomendado</Badge>
+                          </HStack>
+                          <Text fontSize="xs" color="gray.500" lineHeight="short">
+                            Receba alertas e sugestões de preço. Você decide quando aplicar cada mudança manualmente.
+                          </Text>
+                        </VStack>
+                      </Box>
+
+                      <Box
+                        p={5}
+                        borderRadius="xl"
+                        border="2px solid"
+                        borderColor={operationMode === 'automatic' ? 'orange.400' : 'gray.200'}
+                        bg={operationMode === 'automatic' ? 'orange.50' : 'gray.50'}
+                        cursor="pointer"
+                        transition="all 0.2s"
+                        _hover={{ borderColor: 'orange.300', transform: 'translateY(-1px)', boxShadow: 'sm' }}
+                        onClick={() => setOperationMode('automatic')}
+                      >
+                        <VStack spacing={2} align="start">
+                          <HStack>
+                            <Box as={FiZap} color="orange.500" boxSize={5} />
+                            <Text fontWeight="bold" color="gray.800" fontSize="sm">Automático</Text>
+                            <Badge colorScheme="orange" fontSize="0.6rem">Em breve</Badge>
+                          </HStack>
+                          <Text fontSize="xs" color="gray.500" lineHeight="short">
+                            O motor ajusta os preços automaticamente na sua conta do Airbnb com base nos eventos detectados.
+                          </Text>
+                        </VStack>
+                      </Box>
+                    </SimpleGrid>
+                  </Box>
+
+                  {/* ── Raio de busca de eventos ── */}
                   <Box bg="gray.50" p={6} borderRadius="xl" border="1px solid" borderColor="gray.200">
                     <Flex justify="space-between" align="center" mb={4}>
                       <Box>

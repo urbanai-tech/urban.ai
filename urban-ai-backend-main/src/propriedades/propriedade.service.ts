@@ -145,6 +145,76 @@ export class PropriedadeService {
         }));
 
     }
+    /**
+     * Retorna informações rápidas de um imóvel individual (título, imagem, hostId).
+     * Usado pelo wizard de onboarding no modo "Adicionar imóvel individual".
+     */
+    async getPropertyQuickInfo(propertyId: string): Promise<{
+        propertyId: string;
+        title: string;
+        pictureUrl: string;
+        hostId: string | null;
+        hostName: string | null;
+        bedrooms: number;
+        guests: number;
+    }> {
+        const apiUrl = 'https://airbnb45.p.rapidapi.com/api/v1/getPropertyDetails';
+        const apiKey = process.env.RAPIDAPI_KEY as string;
+        const apiHost = 'airbnb45.p.rapidapi.com';
+        try {
+            const { data } = await axios.get<any>(apiUrl, {
+                params: { propertyId },
+                headers: {
+                    'x-rapidapi-host': apiHost,
+                    'x-rapidapi-key': apiKey,
+                },
+            });
+            const errorMessage = data?.data?.metadata?.errorData?.errorMessage?.errorMessage;
+            if (errorMessage) {
+                throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
+            }
+
+            const hostId = data?.data?.metadata?.bookingPrefetchData?.hostId ?? null;
+            const hostName = data?.data?.metadata?.bookingPrefetchData?.hostName ?? null;
+            const sharingConfig = data?.data?.metadata?.sharingConfig;
+            const photoTour = data?.data?.section?.photoTour;
+
+            // Título: sharingConfig.title ou fallback
+            const title = sharingConfig?.title
+                ?? data?.data?.section?.titleDefault?.title
+                ?? `Imóvel ${propertyId}`;
+
+            // Foto: primeira do photoTour ou sharingConfig.imageUrl
+            const pictureUrl = photoTour?.mediaItems?.[0]?.baseUrl
+                ?? sharingConfig?.imageUrl
+                ?? '';
+
+            // Quartos e hóspedes
+            const bedrooms = this.extractNumber(sharingConfig?.title, 'bedroom');
+            const guests = this.extractNumber(
+                data?.data?.section?.policiesDefault?.houseRules?.[0]?.title, 'guest'
+            );
+
+            return { propertyId, title, pictureUrl, hostId, hostName, bedrooms, guests };
+        } catch (err: any) {
+            if (err instanceof HttpException) {
+                throw err;
+            }
+            if (axios.isAxiosError(err)) {
+                if (err.response) {
+                    throw new HttpException(
+                        `Failed to fetch property info: [${err.response.status}]`,
+                        err.response.status,
+                    );
+                }
+                if (err.request) {
+                    throw new HttpException(`Failed to fetch property info: no response`, HttpStatus.BAD_GATEWAY);
+                }
+            }
+            throw new HttpException(`Failed to fetch property info: ${err.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     async getPropertyHostId(propertyId: string): Promise<{ hostId: any | null, hostName: any | null }> {
         const apiUrl = 'https://airbnb45.p.rapidapi.com/api/v1/getPropertyDetails';
         const apiKey = process.env.RAPIDAPI_KEY as string;
@@ -162,15 +232,19 @@ export class PropriedadeService {
             if (errorMessage) {
                 throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
             }
-            const hostId = data?.data?.metadata?.bookingPrefetchData?.hostId ?? null;// Assuming result has a hostId
+            const hostId = data?.data?.metadata?.bookingPrefetchData?.hostId ?? null;
             const hostName = data?.data?.metadata?.bookingPrefetchData?.hostName ?? null;
-            if (!data || !data.data.metadata.bookingPrefetchData.hostId || !data.data.metadata.bookingPrefetchData.hostId) {
+            
+            if (!hostId) {
                 throw new NotFoundException(
                     "Não foi possível encontrar o perfil"
                 );
             }
             return { hostId, hostName };
         } catch (err: any) {
+            if (err instanceof HttpException) {
+                throw err;
+            }
             if (axios.isAxiosError(err)) {
                 if (err.response) {
                     throw new HttpException(
