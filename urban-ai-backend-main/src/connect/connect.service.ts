@@ -382,56 +382,50 @@ export class ConnectService {
           if (!userData) {
             throw new NotFoundException(`Usuário com id ${userId} não encontrado`);
           }
-          const existingAddress = await this.addressRepo.findOne({
-            where: {
-              list: { id: addr.list.id },
-              user: { id: userId },
-            },
-            relations: ["list", "user"],
-          });
 
+          // ===== SCRAPING DIRETO (substitui RapidAPI) =====
+          console.log(`🕷️ [onboarding] Scraping room ${list?.id_do_anuncio}...`);
+          const scraped = await this.propriedadeService.scrapeAirbnbListing(list?.id_do_anuncio);
 
-          //chamar o create alert do airb
-          //salvar o id 
-          //chamar função para retornar latlongbylistid
+          // Persistir dados enriquecidos na entity List
+          if (list) {
+            await this.listRepo.update(list.id, {
+              titulo: scraped.title || list.titulo,
+              pictureUrl: scraped.pictureUrl || list.pictureUrl,
+              quartos: scraped.bedrooms,
+              camas: scraped.beds,
+              banheiros: scraped.bathrooms,
+              hospedes: scraped.guestCapacity,
+              rating: scraped.rating,
+              propertyType: scraped.propertyType,
+              amenitiesCount: scraped.amenitiesCount,
+              neighborhood: scraped.neighborhood,
+              reviewCount: scraped.reviewCount,
+              lastScrapedAt: new Date(),
+            });
+            console.log(`✅ [onboarding] Dados enriquecidos salvos para ${list.id_do_anuncio}`);
+          }
 
-          //this.prop
-          const coordenates = await this.propriedadeService.getPropertyCoordinates(list?.id_do_anuncio)
-          const dadosProperty = await this.airbnbService.getFirstAvailablePrice(list?.id_do_anuncio);
-          const alert = await this.propriedadeService.criarAlertaAirbnb({
-            latitude: coordenates?.latitude,
-            longitude: coordenates?.longitude,
-            accommodates: dadosProperty?.propertyDetails?.beds,
-            bathrooms: 1,
-            bedrooms: dadosProperty?.propertyDetails?.bedrooms
-          });
           console.log("id list:", list?.id_do_anuncio)
-          //console.log(alert)
-
-
-
 
           const addressEntity = await this.addressRepo.save({
             cep: addr.cep,
             numero: addr.numero,
             logradouro: addr.logradouro,
-            bairro: addr.bairro,
+            bairro: addr.bairro || scraped.neighborhood,
             cidade: addr.cidade,
             estado: addr.estado,
-            latitude: coordenates?.latitude,
-            longitude: coordenates?.longitude,
-            list: list, // Usa a instância da lista encontrada
+            latitude: scraped.latitude,
+            longitude: scraped.longitude,
+            list: list,
             user: { id: userId } as User,
             ativo: true,
-            idAlertAirb: alert?.id
+            idAlertAirb: 'scraping_direct'
 
           });
 
           addressSaved.push(addressEntity);
-          //this.logger.debug(`Criando novo endereço para lista: ${list.id}`);
 
-
-          // this.emailService.enviarEmailAvisandoQueOsDadosEstaoSendoProcessados(userData?.email)
           const notificationContent: CreateNotificationDto = {
             title: "Análise Iniciada",
             description: "O Sistema está analisando os eventos para sua popriedade " + list?.titulo,

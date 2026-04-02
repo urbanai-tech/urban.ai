@@ -45,4 +45,27 @@ export class CronController {
   async buscarAnalisesAceitasTest() {
     return await this.cronService.buscarAnalisesAceitasTeste();
   }
+
+  // ===== RE-SCRAPING MENSAL =====
+  @Get('refresh-metadata')
+  @ApiOperation({
+    summary: 'Re-scraping mensal de metadados',
+    description: 'Força re-scraping de todos os imóveis ativos. Espaçado ao longo de 8h para evitar rate limiting.',
+  })
+  @ApiResponse({ status: 200, description: 'Re-scraping concluído.' })
+  async refreshMetadata() {
+    return await this.cronService.refreshPropertyMetadata();
+  }
+
+  // Cron: 1º dia de cada mês às 02:00 AM
+  @Cron('0 0 2 1 * *', { timeZone: 'America/Sao_Paulo' })
+  async handleMonthlyMetadataRefresh() {
+    console.log('🔄 [cron] Iniciando re-scraping mensal automático...');
+    try {
+      await this.cronService.refreshPropertyMetadata();
+      console.log('✅ [cron] Re-scraping mensal concluído');
+    } catch (error) {
+      console.error('❌ [cron] Erro no re-scraping mensal:', error);
+    }
+  }
 }

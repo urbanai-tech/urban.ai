@@ -145,9 +145,229 @@ export class PropriedadeService {
         }));
 
     }
+    // ===================================================================
+    // 🕷️ SCRAPING DIRETO DO AIRBNB (substitui RapidAPI airbnb45)
+    // ===================================================================
+
     /**
-     * Retorna informações rápidas de um imóvel individual (título, imagem, hostId).
-     * Usado pelo wizard de onboarding no modo "Adicionar imóvel individual".
+     * Core: Faz um único HTTP GET na página do Airbnb e extrai TODOS os dados
+     * via meta tags OG + JSON embeddado no HTML.
+     * Substitui: getPropertyDetails, getPropertyCoordinates, getPropertyQuickInfo, getPropertyHostId
+     */
+    async scrapeAirbnbListing(roomId: string): Promise<{
+        roomId: string;
+        title: string;
+        pictureUrl: string;
+        latitude: number | null;
+        longitude: number | null;
+        bedrooms: number;
+        beds: number;
+        bathrooms: number;
+        rating: number;
+        reviewCount: number;
+        propertyType: string;
+        neighborhood: string;
+        amenitiesCount: number;
+        guestCapacity: number;
+    }> {
+        const url = `https://www.airbnb.com/rooms/${roomId}`;
+        const headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept': 'text/html,application/xhtml+xml',
+        };
+
+        try {
+            console.log(`🕷️ [scrape] Extraindo dados do Airbnb para room ${roomId}...`);
+            const response = await axios.get(url, { headers, timeout: 20000 });
+            const html: string = response.data;
+
+            // --- Meta Tags OG ---
+            const ogTitle = this.extractMetaContent(html, 'og:title') || `Imóvel ${roomId}`;
+            const pictureUrl = this.decodeHtmlEntities(
+                this.extractMetaContent(html, 'og:image') || ''
+            );
+
+            // --- Coordenadas (JSON embeddado) ---
+            const latMatch = html.match(/"lat"\s*:\s*([-\d.]+)/);
+            const lngMatch = html.match(/"lng"\s*:\s*([-\d.]+)/);
+            const latitude = latMatch ? parseFloat(latMatch[1]) : null;
+            const longitude = lngMatch ? parseFloat(lngMatch[1]) : null;
+
+            // --- Dados do título OG ("Aparthotel in Asa Norte · ★4.65 · 1 bedroom · 1 bed · 1 private bath") ---
+            const bedrooms = this.extractNumber(ogTitle, 'bedroom');
+            const beds = this.extractNumber(ogTitle, 'bed(?!room)');
+            const bathrooms = this.extractNumber(ogTitle, '(?:private\\s+)?bath');
+
+            // Rating e tipo do imóvel
+            const ratingMatch = ogTitle.match(/★([\d.]+)/);
+            const rating = ratingMatch ? parseFloat(ratingMatch[1]) : 0;
+
+            // Tipo: primeiro token antes de " in " (ex: "Aparthotel")
+            const typeMatch = ogTitle.match(/^([\w\s-]+?)\s+in\s+/i);
+            const propertyType = typeMatch ? typeMatch[1].trim() : 'Unknown';
+
+            // Bairro: token depois de " in " antes de " · " (ex: "Asa Norte")
+            const neighborhoodMatch = ogTitle.match(/\bin\s+([^·]+)/i);
+            const neighborhood = neighborhoodMatch ? neighborhoodMatch[1].trim() : '';
+
+            // --- Reviews (do HTML) ---
+            const reviewMatch = html.match(/(\d+)\s+reviews?/i);
+            const reviewCount = reviewMatch ? parseInt(reviewMatch[1], 10) : 0;
+
+            // --- Guest capacity (do HTML — "X guests" na seção de overview) ---
+            const guestMatch = html.match(/(\d+)\s+guests?/i);
+            const guestCapacity = guestMatch ? parseInt(guestMatch[1], 10) : 0;
+
+            // --- Amenidades (contagem de "What this place offers") ---
+            const amenitiesMatch = html.match(/Show all\s+(\d+)\s+amenities/i);
+            const amenitiesCount = amenitiesMatch ? parseInt(amenitiesMatch[1], 10) : 0;
+
+            console.log(`✅ [scrape] Room ${roomId}: "${ogTitle}" | ${latitude},${longitude} | ${bedrooms}q ${beds}c ${bathrooms}b | ★${rating} (${reviewCount} reviews)`);
+
+            return {
+                roomId,
+                title: ogTitle,
+                pictureUrl,
+                latitude,
+                longitude,
+                bedrooms,
+                beds,
+                bathrooms,
+                rating,
+                reviewCount,
+                propertyType,
+                neighborhood,
+                amenitiesCount,
+                guestCapacity,
+            };
+        } catch (err: any) {
+            console.error(`❌ [scrape] Erro ao scrapear room ${roomId}:`, err.message);
+            // Retorna dados mínimos em caso de falha para não bloquear o fluxo
+            return {
+                roomId,
+                title: `Imóvel ${roomId}`,
+                pictureUrl: '',
+                latitude: null,
+                longitude: null,
+                bedrooms: 0,
+                beds: 0,
+                bathrooms: 0,
+                rating: 0,
+                reviewCount: 0,
+                propertyType: 'Unknown',
+                neighborhood: '',
+                amenitiesCount: 0,
+                guestCapacity: 0,
+            };
+        }
+    }
+
+    /**
+     * Scraping em lote com fila e delay de 3s entre requests.
+     * Para onboarding em massa (ex: host importando 50 imóveis).
+     */
+    async scrapeAirbnbListingBatch(roomIds: string[]): Promise<Awaited<ReturnType<typeof this.scrapeAirbnbListing>>[]> {
+        const results: Awaited<ReturnType<typeof this.scrapeAirbnbListing>>[] = [];
+        console.log(`🕷️ [batch] Iniciando scraping de ${roomIds.length} imóveis (delay 3s entre cada)...`);
+
+        for (let i = 0; i < roomIds.length; i++) {
+            const roomId = roomIds[i];
+            console.log(`🕷️ [batch] [${i + 1}/${roomIds.length}] Scraping room ${roomId}...`);
+            const data = await this.scrapeAirbnbListing(roomId);
+            results.push(data);
+
+            // Delay de 3s entre requests (exceto no último)
+            if (i < roomIds.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 3000));
+            }
+        }
+
+        console.log(`✅ [batch] Scraping finalizado: ${results.length} imóveis processados.`);
+        return results;
+    }
+
+    /**
+     * Cron mensal noturno: re-scraping de TODOS os imóveis ativos.
+     * Espaçado ao longo de 8h (~8s por imóvel para 1000+ imóveis).
+     */
+    async refreshAllPropertyMetadata(): Promise<{ total: number; updated: number; errors: number }> {
+        const allProperties = await this.propriedades.find({ where: { ativo: true } });
+        const total = allProperties.length;
+        let updated = 0;
+        let errors = 0;
+
+        // Calcula delay dinâmico: espalhar ao longo de 8h (28800s)
+        const delayMs = total > 0 ? Math.max(3000, Math.floor((8 * 60 * 60 * 1000) / total)) : 3000;
+        console.log(`🔄 [refresh] Re-scraping de ${total} imóveis (delay: ${(delayMs / 1000).toFixed(1)}s entre cada)...`);
+
+        for (let i = 0; i < allProperties.length; i++) {
+            const prop = allProperties[i];
+            try {
+                const scraped = await this.scrapeAirbnbListing(prop.id_do_anuncio);
+                await this.propriedades.update(prop.id, {
+                    titulo: scraped.title,
+                    pictureUrl: scraped.pictureUrl,
+                    quartos: scraped.bedrooms,
+                    camas: scraped.beds,
+                    banheiros: scraped.bathrooms,
+                    hospedes: scraped.guestCapacity,
+                    rating: scraped.rating,
+                    propertyType: scraped.propertyType,
+                    amenitiesCount: scraped.amenitiesCount,
+                    neighborhood: scraped.neighborhood,
+                    reviewCount: scraped.reviewCount,
+                    lastScrapedAt: new Date(),
+                });
+
+                // Atualiza coordenadas no address se disponíveis
+                if (scraped.latitude && scraped.longitude) {
+                    await this.addressRepository.update(
+                        { list: { id: prop.id } },
+                        { latitude: scraped.latitude, longitude: scraped.longitude }
+                    );
+                }
+
+                updated++;
+                console.log(`🔄 [refresh] [${i + 1}/${total}] ✅ ${prop.id_do_anuncio} atualizado`);
+            } catch (err) {
+                errors++;
+                console.error(`🔄 [refresh] [${i + 1}/${total}] ❌ ${prop.id_do_anuncio} falhou:`, err.message);
+            }
+
+            // Delay dinâmico
+            if (i < allProperties.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+            }
+        }
+
+        console.log(`🔄 [refresh] Concluído: ${updated}/${total} atualizados, ${errors} erros`);
+        return { total, updated, errors };
+    }
+
+    /**
+     * Helpers para parsing de HTML
+     */
+    private extractMetaContent(html: string, property: string): string | null {
+        // Tenta ambas as ordens de atributos
+        const regex1 = new RegExp(`property="${property}"\\s+content="([^"]+)"`, 'i');
+        const regex2 = new RegExp(`content="([^"]+)"\\s+property="${property}"`, 'i');
+        const match = html.match(regex1) || html.match(regex2);
+        return match ? match[1] : null;
+    }
+
+    private decodeHtmlEntities(str: string): string {
+        return str.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+    }
+
+    // ===================================================================
+    // 🔌 MÉTODOS PÚBLICOS REFATORADOS (usam scraping ao invés de RapidAPI)
+    // ===================================================================
+
+    /**
+     * Retorna informações rápidas de um imóvel individual.
+     * Usado pelo wizard de onboarding (modo individual).
+     * REFATORADO: usa scraping direto ao invés de airbnb45.
      */
     async getPropertyQuickInfo(propertyId: string): Promise<{
         propertyId: string;
@@ -158,106 +378,26 @@ export class PropriedadeService {
         bedrooms: number;
         guests: number;
     }> {
-        const apiUrl = 'https://airbnb45.p.rapidapi.com/api/v1/getPropertyDetails';
-        const apiKey = process.env.RAPIDAPI_KEY as string;
-        const apiHost = 'airbnb45.p.rapidapi.com';
-        try {
-            const { data } = await axios.get<any>(apiUrl, {
-                params: { propertyId },
-                headers: {
-                    'x-rapidapi-host': apiHost,
-                    'x-rapidapi-key': apiKey,
-                },
-            });
-            const errorMessage = data?.data?.metadata?.errorData?.errorMessage?.errorMessage;
-            if (errorMessage) {
-                throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
-            }
+        const scraped = await this.scrapeAirbnbListing(propertyId);
 
-            const hostId = data?.data?.metadata?.bookingPrefetchData?.hostId ?? null;
-            const hostName = data?.data?.metadata?.bookingPrefetchData?.hostName ?? null;
-            const sharingConfig = data?.data?.metadata?.sharingConfig;
-            const photoTour = data?.data?.section?.photoTour;
-
-            // Título: sharingConfig.title ou fallback
-            const title = sharingConfig?.title
-                ?? data?.data?.section?.titleDefault?.title
-                ?? `Imóvel ${propertyId}`;
-
-            // Foto: primeira do photoTour ou sharingConfig.imageUrl
-            const pictureUrl = photoTour?.mediaItems?.[0]?.baseUrl
-                ?? sharingConfig?.imageUrl
-                ?? '';
-
-            // Quartos e hóspedes
-            const bedrooms = this.extractNumber(sharingConfig?.title, 'bedroom');
-            const guests = this.extractNumber(
-                data?.data?.section?.policiesDefault?.houseRules?.[0]?.title, 'guest'
-            );
-
-            return { propertyId, title, pictureUrl, hostId, hostName, bedrooms, guests };
-        } catch (err: any) {
-            if (err instanceof HttpException) {
-                throw err;
-            }
-            if (axios.isAxiosError(err)) {
-                if (err.response) {
-                    throw new HttpException(
-                        `Failed to fetch property info: [${err.response.status}]`,
-                        err.response.status,
-                    );
-                }
-                if (err.request) {
-                    throw new HttpException(`Failed to fetch property info: no response`, HttpStatus.BAD_GATEWAY);
-                }
-            }
-            throw new HttpException(`Failed to fetch property info: ${err.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return {
+            propertyId,
+            title: scraped.title,
+            pictureUrl: scraped.pictureUrl,
+            hostId: null, // Não extraível via OG tags — precisa de headless browser
+            hostName: null,
+            bedrooms: scraped.bedrooms,
+            guests: scraped.guestCapacity,
+        };
     }
 
+    /**
+     * REFATORADO: Host ID não é extraível via scraping SSR.
+     * Retorna null para hostId — o fluxo individual não depende dele.
+     */
     async getPropertyHostId(propertyId: string): Promise<{ hostId: any | null, hostName: any | null }> {
-        const apiUrl = 'https://airbnb45.p.rapidapi.com/api/v1/getPropertyDetails';
-        const apiKey = process.env.RAPIDAPI_KEY as string;
-        const apiHost = 'airbnb45.p.rapidapi.com';
-        try {
-            const { data } = await axios.get<any>(apiUrl, {
-                params: { propertyId },
-                headers: {
-                    'x-rapidapi-host': apiHost,
-                    'x-rapidapi-key': apiKey,
-                },
-            });
-            // Verifica se há erro nos dados da API
-            const errorMessage = data?.data?.metadata?.errorData?.errorMessage?.errorMessage;
-            if (errorMessage) {
-                throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
-            }
-            const hostId = data?.data?.metadata?.bookingPrefetchData?.hostId ?? null;
-            const hostName = data?.data?.metadata?.bookingPrefetchData?.hostName ?? null;
-            
-            if (!hostId) {
-                throw new NotFoundException(
-                    "Não foi possível encontrar o perfil"
-                );
-            }
-            return { hostId, hostName };
-        } catch (err: any) {
-            if (err instanceof HttpException) {
-                throw err;
-            }
-            if (axios.isAxiosError(err)) {
-                if (err.response) {
-                    throw new HttpException(
-                        `Failed to fetch hostId: [${err.response.status}] ${JSON.stringify(err.response.data)}`,
-                        err.response.status,
-                    );
-                }
-                if (err.request) {
-                    throw new HttpException(`Failed to fetch hostId: no response received - ${err.message}`, HttpStatus.BAD_GATEWAY);
-                }
-            }
-            throw new HttpException(`Failed to fetch hostId: ${err.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        console.log(`⚠️ [getPropertyHostId] Host ID não disponível via scraping SSR para room ${propertyId}. Usando null.`);
+        return { hostId: null, hostName: null };
     }
     async getAccommodationAndFee(
         propertyId: string,
@@ -328,48 +468,16 @@ export class PropriedadeService {
     }
 
 
+    /**
+     * REFATORADO: usa scraping direto ao invés de airbnb45.
+     */
     async getPropertyDetails(propertyId: string): Promise<PropertyResponseDto> {
-        const apiUrl = 'https://airbnb45.p.rapidapi.com/api/v1/getPropertyDetails';
-        const apiKey = process.env.RAPIDAPI_KEY as string;
-        const apiHost = 'airbnb45.p.rapidapi.com';
-
-        try {
-            const response = await axios.get(apiUrl, {
-                params: { propertyId },
-                headers: {
-                    'x-rapidapi-host': apiHost,
-                    'x-rapidapi-key': apiKey,
-                },
-            });
-
-            const propertyData = response.data;
-            const sharingConfig = propertyData?.data?.metadata?.sharingConfig;
-            const houseRules = propertyData?.data?.section?.policiesDefault?.houseRules;
-
-
-
-            return {
-                bedrooms: this.extractNumber(sharingConfig?.title, 'bedroom'),
-                beds: this.extractNumber(sharingConfig?.title, 'bed'),
-                guestMaximum: this.extractNumber(houseRules?.[0]?.title, 'guest'),
-            };
-        } catch (err) {
-            if (axios.isAxiosError(err)) {
-                if (err.response) {
-                    // API respondeu com erro (403, 404, 500...)
-                    throw new Error(
-                        `Failed to fetch property details: [${err.response.status}] ${JSON.stringify(err.response.data)}`
-                    );
-                } else if (err.request) {
-                    // Nenhuma resposta recebida
-                    throw new Error(`Failed to fetch property details: no response received - ${err.message}`);
-                }
-            }
-
-            // Erro genérico (código, parse, etc.)
-            throw new Error(`Failed to fetch property details: ${err.message}`);
-        }
-
+        const scraped = await this.scrapeAirbnbListing(propertyId);
+        return {
+            bedrooms: scraped.bedrooms,
+            beds: scraped.beds,
+            guestMaximum: scraped.guestCapacity,
+        };
     }
 
     private extractNumber(text: string, keyword: string): number {
@@ -525,36 +633,19 @@ export class PropriedadeService {
         }
     }
 
+    /**
+     * REFATORADO: usa scraping direto ao invés de airbnb45.
+     */
     async getPropertyCoordinates(propertyId: string): Promise<PropertyCoordinatesDto | null> {
-        const url = `https://airbnb45.p.rapidapi.com/api/v1/getPropertyDetails?propertyId=${propertyId}`;
-        const headers = {
-            'x-rapidapi-host': 'airbnb45.p.rapidapi.com',
-            'x-rapidapi-key': process.env.RAPIDAPI_KEY as string,
-        };
-
-        try {
-            const response = await axios.get(url, {
-                headers
-            });
-            const {
-                data
-            } = response.data;
-            if (data && data.metadata && data.metadata.loggingContext && data.metadata.loggingContext.eventDataLogging) {
-                const {
-                    listingLat,
-                    listingLng
-                } = data.metadata.loggingContext.eventDataLogging;
-                return {
-                    latitude: listingLat,
-                    longitude: listingLng
-                };
-            }
-            return null;
-        } catch (error) {
-            console.error('Erro ao buscar detalhes da propriedade:', error);
-            throw error;
+        const scraped = await this.scrapeAirbnbListing(propertyId);
+        if (scraped.latitude && scraped.longitude) {
+            return {
+                latitude: scraped.latitude,
+                longitude: scraped.longitude,
+            };
         }
-    };
+        return null;
+    }
     // Service
     async getRoomBasicInfo(roomId: string) {
         const BASE_URL = 'http://localhost:4000/airbnb/room-info';
