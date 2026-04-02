@@ -145,15 +145,80 @@ export class PropriedadeService {
         }));
 
     }
-    // ===================================================================
-    // 🕷️ SCRAPING DIRETO DO AIRBNB (substitui RapidAPI airbnb45)
-    // ===================================================================
 
-    /**
-     * Core: Faz um único HTTP GET na página do Airbnb e extrai TODOS os dados
-     * via meta tags OG + JSON embeddado no HTML.
-     * Substitui: getPropertyDetails, getPropertyCoordinates, getPropertyQuickInfo, getPropertyHostId
-     */
+    // --- Mapa de tradução EN → PT-BR para tipos de imóvel ---
+    private static readonly PROPERTY_TYPE_PT: Record<string, string> = {
+        'Entire home': 'Casa inteira',
+        'Entire rental unit': 'Unidade inteira',
+        'Entire serviced apartment': 'Apartamento com serviços',
+        'Serviced apartment': 'Apartamento com serviços',
+        'Private room': 'Quarto privado',
+        'Shared room': 'Quarto compartilhado',
+        'Entire villa': 'Villa inteira',
+        'Entire condo': 'Condomínio inteiro',
+        'Entire loft': 'Loft inteiro',
+        'Entire guest suite': 'Suíte completa',
+        'Entire place': 'Espaço inteiro',
+        'Entire cottage': 'Chalé inteiro',
+        'Entire cabin': 'Cabana inteira',
+        'Entire bungalow': 'Bangalô inteiro',
+        'Tiny home': 'Mini casa',
+        'Treehouse': 'Casa na árvore',
+        'Houseboat': 'Barco-casa',
+        'Room in a hotel': 'Quarto de hotel',
+        'Room in a bed and breakfast': 'Quarto em pousada',
+        'Room in a boutique hotel': 'Quarto em hotel boutique',
+        'Aparthotel': 'Aparthotel',
+        'Apartment': 'Apartamento',
+        'Apartamento': 'Apartamento',
+        'Casa': 'Casa',
+    };
+
+    private translatePropertyType(enType: string): string {
+        // Busca exata
+        if (PropriedadeService.PROPERTY_TYPE_PT[enType]) {
+            return PropriedadeService.PROPERTY_TYPE_PT[enType];
+        }
+        // Busca case-insensitive
+        const key = Object.keys(PropriedadeService.PROPERTY_TYPE_PT)
+            .find(k => k.toLowerCase() === enType.toLowerCase());
+        if (key) return PropriedadeService.PROPERTY_TYPE_PT[key];
+        // Se já é PT ou desconhecido, retorna como está
+        return enType;
+    }
+
+    // --- Reverse Geocoding via Nominatim (OpenStreetMap) ---
+    private async reverseGeocode(lat: number, lng: number): Promise<{
+        street: string;
+        neighborhood: string;
+        city: string;
+        state: string;
+        zipCode: string;
+        fullAddress: string;
+    }> {
+        try {
+            const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1&accept-language=pt-BR`;
+            const { data } = await axios.get(url, {
+                headers: { 'User-Agent': 'UrbanAI/1.0 (contact@myurbanai.com)' },
+                timeout: 10000,
+            });
+
+            const addr = data.address || {};
+            const street = addr.road || addr.pedestrian || addr.footway || '';
+            const neighborhood = addr.suburb || addr.neighbourhood || addr.city_district || '';
+            const city = addr.city || addr.town || addr.municipality || addr.village || '';
+            const state = addr.state || '';
+            const zipCode = addr.postcode || '';
+            const fullAddress = data.display_name || '';
+
+            console.log(`📍 [geocode] ${lat},${lng} → ${street}, ${neighborhood}, ${city}-${state} ${zipCode}`);
+            return { street, neighborhood, city, state, zipCode, fullAddress };
+        } catch (err: any) {
+            console.warn(`⚠️ [geocode] Falha no reverse geocoding: ${err.message}`);
+            return { street: '', neighborhood: '', city: '', state: '', zipCode: '', fullAddress: '' };
+        }
+    }
+
     async scrapeAirbnbListing(roomId: string): Promise<{
         roomId: string;
         title: string;
@@ -168,18 +233,24 @@ export class PropriedadeService {
         reviewCount: number;
         propertyType: string;
         neighborhood: string;
+        street: string;
+        city: string;
+        state: string;
+        zipCode: string;
+        fullAddress: string;
         amenitiesCount: number;
         guestCapacity: number;
     }> {
-        const url = `https://www.airbnb.com/rooms/${roomId}?locale=pt`;
+        // Scrape em EN para extração confiável de dados estruturados
+        const url = `https://www.airbnb.com/rooms/${roomId}`;
         const headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-            'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.5',
+            'Accept-Language': 'en-US,en;q=0.9',
             'Accept': 'text/html,application/xhtml+xml',
         };
 
         try {
-            console.log(`🕷️ [scrape] Extraindo dados do Airbnb para room ${roomId}...`);
+            console.log(`🕷️ [scrape] Extraindo dados do Airbnb para room ${roomId} (EN)...`);
             const response = await axios.get(url, { headers, timeout: 20000 });
             const html: string = response.data;
 
@@ -195,59 +266,78 @@ export class PropriedadeService {
             const latitude = latMatch ? parseFloat(latMatch[1]) : null;
             const longitude = lngMatch ? parseFloat(lngMatch[1]) : null;
 
-            // --- Parse do título OG via split por "·" (robusto para PT e EN) ---
-            // PT: "Apartamento · São Paulo · ★Novidade · 1 quarto · 1 cama · 1 banheiro"
+            // --- Parse do título OG via split por "·" ---
             // EN: "Serviced apartment in São Paulo · ★4.65 · 1 bedroom · 1 bed · 1 bath"
             const segments = ogTitle.split(/\s*·\s*/).map(s => s.trim()).filter(Boolean);
 
-            // --- Tipo e Bairro ---
-            let propertyType = 'Unknown';
-            let neighborhood = '';
+            // --- Tipo e Localização (do OG title) ---
+            let propertyTypeRaw = 'Unknown';
+            let ogLocationHint = '';
 
             if (segments.length > 0) {
                 const firstSeg = segments[0];
-                // EN: "Serviced apartment in São Paulo" — contém "in" ou "em"
-                const typeLocMatch = firstSeg.match(/^(.+?)\s+(?:in|em)\s+(.+)$/i);
+                const typeLocMatch = firstSeg.match(/^(.+?)\s+in\s+(.+)$/i);
                 if (typeLocMatch) {
-                    propertyType = typeLocMatch[1].trim();
-                    neighborhood = typeLocMatch[2].trim();
+                    propertyTypeRaw = typeLocMatch[1].trim();
+                    ogLocationHint = typeLocMatch[2].trim();
                 } else {
-                    // PT: primeiro segmento é tipo, segundo é localização
-                    propertyType = firstSeg;
+                    propertyTypeRaw = firstSeg;
                     if (segments.length > 1 && !segments[1].startsWith('★') && !/^\d/.test(segments[1])) {
-                        neighborhood = segments[1];
+                        ogLocationHint = segments[1];
                     }
                 }
             }
 
-            // --- Rating (★4.65 ou ★Novidade/★Novo/★New) ---
+            // Traduz tipo para PT-BR
+            const propertyType = this.translatePropertyType(propertyTypeRaw);
+
+            // --- Rating ---
             const ratingSegment = segments.find(s => s.includes('★')) || '';
             const ratingNumeric = ratingSegment.match(/★([\d.]+)/);
             const rating = ratingNumeric ? parseFloat(ratingNumeric[1]) : 0;
-            const isNewListing = /★\s*(?:Novidade|Novo|New)/i.test(ratingSegment);
+            const isNewListing = /★\s*(?:New|Novidade|Novo)/i.test(ratingSegment);
 
-            // --- Quartos, Camas, Banheiros (dos segmentos) ---
+            // --- Quartos, Camas, Banheiros ---
             const bedrooms = this.extractNumber(ogTitle, '(?:bedroom|quarto)');
             const beds = this.extractNumber(ogTitle, '(?:bed(?!room)|cama)');
             const bathrooms = this.extractNumber(ogTitle, '(?:(?:private\\s+)?bath(?:room)?|banheiro)');
 
-            // --- Reviews (do HTML — PT: "283 avaliações", EN: "283 reviews") ---
-            const reviewMatch = html.match(/(\d+)\s+(?:reviews?|avaliações?|avaliacao|avaliacoes)/i);
+            // --- Reviews ---
+            const reviewMatch = html.match(/(\d+)\s+(?:reviews?|avaliações?)/i);
             const reviewCount = reviewMatch ? parseInt(reviewMatch[1], 10) : 0;
 
-            // --- Guest capacity (PT: "6 hóspedes", EN: "6 guests") ---
-            const guestMatch = html.match(/(\d+)\s+(?:guests?|hóspedes?|hospedes?)/i);
+            // --- Guest capacity ---
+            const guestMatch = html.match(/(\d+)\s+(?:guests?|hóspedes?)/i);
             const guestCapacity = guestMatch ? parseInt(guestMatch[1], 10) : 0;
 
-            // --- Amenidades (PT: "Mostrar todas as 27 comodidades", EN: "Show all 27 amenities") ---
+            // --- Amenidades ---
             const amenitiesMatch = html.match(/(?:Show all|Mostrar\s+todas?\s+(?:as\s+)?)\s*(\d+)\s+(?:amenities|comodidades)/i);
             const amenitiesCount = amenitiesMatch ? parseInt(amenitiesMatch[1], 10) : 0;
 
-            console.log(`✅ [scrape] Room ${roomId}: "${ogTitle}" | ${latitude},${longitude} | ${bedrooms}q ${beds}c ${bathrooms}b | ★${rating}${isNewListing ? ' (Novidade)' : ''} (${reviewCount} reviews) | 📍${neighborhood} | 🏠${propertyType}`);
+            // --- 📍 Reverse Geocoding: lat/lng → endereço completo ---
+            let street = '', neighborhood = '', city = '', state = '', zipCode = '', fullAddress = '';
+
+            if (latitude && longitude) {
+                const geo = await this.reverseGeocode(latitude, longitude);
+                street = geo.street;
+                neighborhood = geo.neighborhood;
+                city = geo.city;
+                state = geo.state;
+                zipCode = geo.zipCode;
+                fullAddress = geo.fullAddress;
+            } else {
+                // Fallback: usa hint do OG title
+                city = ogLocationHint;
+            }
+
+            // Monta título limpo em PT-BR
+            const title = `${propertyType}${neighborhood ? ' em ' + neighborhood : city ? ' em ' + city : ''}`;
+
+            console.log(`✅ [scrape] Room ${roomId}: "${title}" | ${latitude},${longitude} | ${bedrooms}q ${beds}c ${bathrooms}b | ★${rating}${isNewListing ? ' (New)' : ''} (${reviewCount} reviews) | 📍${street}, ${neighborhood}, ${city}-${state}`);
 
             return {
                 roomId,
-                title: ogTitle,
+                title,
                 pictureUrl,
                 latitude,
                 longitude,
@@ -259,12 +349,16 @@ export class PropriedadeService {
                 reviewCount,
                 propertyType,
                 neighborhood,
+                street,
+                city,
+                state,
+                zipCode,
+                fullAddress,
                 amenitiesCount,
                 guestCapacity,
             };
         } catch (err: any) {
             console.error(`❌ [scrape] Erro ao scrapear room ${roomId}:`, err.message);
-            // Retorna dados mínimos em caso de falha para não bloquear o fluxo
             return {
                 roomId,
                 title: `Imóvel ${roomId}`,
@@ -277,8 +371,13 @@ export class PropriedadeService {
                 rating: 0,
                 isNewListing: false,
                 reviewCount: 0,
-                propertyType: 'Unknown',
+                propertyType: 'Desconhecido',
                 neighborhood: '',
+                street: '',
+                city: '',
+                state: '',
+                zipCode: '',
+                fullAddress: '',
                 amenitiesCount: 0,
                 guestCapacity: 0,
             };
@@ -406,6 +505,13 @@ export class PropriedadeService {
         reviewCount: number;
         propertyType: string;
         neighborhood: string;
+        street: string;
+        city: string;
+        state: string;
+        zipCode: string;
+        fullAddress: string;
+        latitude: number | null;
+        longitude: number | null;
         amenitiesCount: number;
     }> {
         const scraped = await this.scrapeAirbnbListing(propertyId);
@@ -425,6 +531,13 @@ export class PropriedadeService {
             reviewCount: scraped.reviewCount,
             propertyType: scraped.propertyType,
             neighborhood: scraped.neighborhood,
+            street: scraped.street,
+            city: scraped.city,
+            state: scraped.state,
+            zipCode: scraped.zipCode,
+            fullAddress: scraped.fullAddress,
+            latitude: scraped.latitude,
+            longitude: scraped.longitude,
             amenitiesCount: scraped.amenitiesCount,
         };
     }
