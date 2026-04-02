@@ -37,8 +37,8 @@ export default function PostLoginPage() {
 
     const timeout = setTimeout(() => {
       if (!finished && !cancelled) {
-        console.warn('[post-login] timeout de 7s — fallback -> /app');
-        router.replace('/app');
+        console.warn('[post-login] timeout de 7s — fallback -> /onboarding');
+        router.replace('/onboarding');
       }
     }, 7000);
 
@@ -74,7 +74,7 @@ export default function PostLoginPage() {
         if (hasAddress) {
           router.replace('/dashboard'); // Se TEM endereço, vai para dashboard
         } else {
-          router.replace('/app'); // Se NÃO TEM endereço, vai para app
+          router.replace('/onboarding'); // Se NÃO TEM endereço, vai para app
         }
       } catch (err: any) {
         if (cancelled) return;

@@ -68,7 +68,7 @@ export default function InternoLayout() {
     { path: '/dashboard', icon: FiCalendar, labelKey: "Calendário" },   
     { path: '/maps', icon: FiMapPin, labelKey: 'Mapa' },
         { path: '/properties', icon: FiHome, labelKey: "Propriedades" }, 
-    { path: '/app', icon: FiLink, labelKey: 'Adicionar' },
+    { path: '/onboarding', icon: FiLink, labelKey: 'Adicionar' },
     { path: '/event-log', icon: FiSettings, labelKey: 'Configuração' },
      { path: '/my-plan', icon: FiDollarSign, labelKey: 'Meu plano' },
   ];

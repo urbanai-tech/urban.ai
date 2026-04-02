@@ -53,7 +53,7 @@ export default function MyProperties() {
   };
 
   const handleAddProperty = () => {
-    router.push('/app');
+    router.push('/onboarding');
   };
 
   if (loading) {
