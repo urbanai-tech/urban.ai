@@ -906,7 +906,7 @@ export default function OnboardingWizard() {
                               </Text>
                               <HStack spacing={1} mt={1}>
                                 <Badge colorScheme={preset.color} variant="subtle" fontSize="0.65rem">
-                                  {preset.inicial > 0 ? '+' : ''}{preset.inicial}% a {preset.final > 0 ? '+' : ''}{preset.final}%
+                                  {preset.inicial > 0 ? '+' : ''}{preset.inicial}% a {preset.final !== null ? (preset.final > 0 ? '+' : '') + preset.final + '%' : 'IA Livre'}
                                 </Badge>
                               </HStack>
                             </VStack>
