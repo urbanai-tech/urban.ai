@@ -5,6 +5,9 @@ import { Providers } from "./providers";
 export const metadata: Metadata = {
   title: "Urban ai",
   description: "create Lumina Lab",
+  icons: {
+    icon: "/urlaranja.png",
+  },
 };
 
 export default function RootLayout({
