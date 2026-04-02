@@ -120,10 +120,10 @@ const Register = () => {
         localStorage.setItem("lastRegisterEmail", email);
       }
 
-      toast("Conta criada! Autenticando e enviando código...", { type: "success" });
+      toast("Conta criada com sucesso! Carregando seu painel...", { type: "success" });
 
       setTimeout(() => {
-        router.push("/confirm-email/" + encodeURIComponent(email));
+        router.push("/post-login");
       }, 1500);
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.message || "Erro desconhecido.");
