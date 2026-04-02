@@ -105,6 +105,22 @@ import {
     categoria: string;
   
     // =====================================
+    // ⚙️ INTELIGÊNCIA ARTIFICIAL (ENRIQUECIMENTO)
+    // =====================================
+
+    @ApiProperty({ description: "Score de relevância do evento calculado pela IA (1 a 100)", required: false })
+    @Column("int", { nullable: true })
+    relevancia: number;
+
+    @ApiProperty({ description: "Raio gravitacional estimado do evento em km (via IA)", required: false })
+    @Column("decimal", { precision: 5, scale: 2, nullable: true })
+    raioImpactoKm: number;
+
+    @ApiProperty({ description: "Capacidade estimada de público gerada pela IA", required: false })
+    @Column("int", { nullable: true })
+    capacidadeEstimada: number;
+
+    // =====================================
     // ⚙️ CONTROLE DO SISTEMA
     // =====================================
   
