@@ -170,10 +170,10 @@ export class PropriedadeService {
         amenitiesCount: number;
         guestCapacity: number;
     }> {
-        const url = `https://www.airbnb.com/rooms/${roomId}`;
+        const url = `https://www.airbnb.com/rooms/${roomId}?locale=pt`;
         const headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.5',
             'Accept': 'text/html,application/xhtml+xml',
         };
 
@@ -194,33 +194,35 @@ export class PropriedadeService {
             const latitude = latMatch ? parseFloat(latMatch[1]) : null;
             const longitude = lngMatch ? parseFloat(lngMatch[1]) : null;
 
-            // --- Dados do título OG ("Aparthotel in Asa Norte · ★4.65 · 1 bedroom · 1 bed · 1 private bath") ---
-            const bedrooms = this.extractNumber(ogTitle, 'bedroom');
-            const beds = this.extractNumber(ogTitle, 'bed(?!room)');
-            const bathrooms = this.extractNumber(ogTitle, '(?:private\\s+)?bath');
+            // --- Dados do título OG ---
+            // PT: "Apartamento com serviços em São Paulo · ★4.65 · 1 quarto · 1 cama · 1 banheiro"
+            // EN: "Aparthotel in Asa Norte · ★4.65 · 1 bedroom · 1 bed · 1 private bath"
+            const bedrooms = this.extractNumber(ogTitle, '(?:bedroom|quarto)');
+            const beds = this.extractNumber(ogTitle, '(?:bed(?!room)|cama)');
+            const bathrooms = this.extractNumber(ogTitle, '(?:(?:private\\s+)?bath(?:room)?|banheiro)');
 
             // Rating e tipo do imóvel
             const ratingMatch = ogTitle.match(/★([\d.]+)/);
             const rating = ratingMatch ? parseFloat(ratingMatch[1]) : 0;
 
-            // Tipo: primeiro token antes de " in " (ex: "Aparthotel")
-            const typeMatch = ogTitle.match(/^([\w\s-]+?)\s+in\s+/i);
+            // Tipo: primeiro token antes de " in " ou " em " (ex: "Aparthotel", "Apartamento com serviços")
+            const typeMatch = ogTitle.match(/^(.+?)\s+(?:in|em)\s+/i);
             const propertyType = typeMatch ? typeMatch[1].trim() : 'Unknown';
 
-            // Bairro: token depois de " in " antes de " · " (ex: "Asa Norte")
-            const neighborhoodMatch = ogTitle.match(/\bin\s+([^·]+)/i);
+            // Bairro: token depois de " in " ou " em " antes de " · " (ex: "Asa Norte", "São Paulo")
+            const neighborhoodMatch = ogTitle.match(/\b(?:in|em)\s+([^·]+)/i);
             const neighborhood = neighborhoodMatch ? neighborhoodMatch[1].trim() : '';
 
-            // --- Reviews (do HTML) ---
-            const reviewMatch = html.match(/(\d+)\s+reviews?/i);
+            // --- Reviews (do HTML — PT: "283 avaliações", EN: "283 reviews") ---
+            const reviewMatch = html.match(/(\d+)\s+(?:reviews?|avaliações?|avaliacao|avaliacoes)/i);
             const reviewCount = reviewMatch ? parseInt(reviewMatch[1], 10) : 0;
 
-            // --- Guest capacity (do HTML — "X guests" na seção de overview) ---
-            const guestMatch = html.match(/(\d+)\s+guests?/i);
+            // --- Guest capacity (PT: "6 hóspedes", EN: "6 guests") ---
+            const guestMatch = html.match(/(\d+)\s+(?:guests?|hóspedes?|hospedes?)/i);
             const guestCapacity = guestMatch ? parseInt(guestMatch[1], 10) : 0;
 
-            // --- Amenidades (contagem de "What this place offers") ---
-            const amenitiesMatch = html.match(/Show all\s+(\d+)\s+amenities/i);
+            // --- Amenidades (PT: "Mostrar todas as 27 comodidades", EN: "Show all 27 amenities") ---
+            const amenitiesMatch = html.match(/(?:Show all|Mostrar\s+todas?\s+(?:as\s+)?)\s*(\d+)\s+(?:amenities|comodidades)/i);
             const amenitiesCount = amenitiesMatch ? parseInt(amenitiesMatch[1], 10) : 0;
 
             console.log(`✅ [scrape] Room ${roomId}: "${ogTitle}" | ${latitude},${longitude} | ${bedrooms}q ${beds}c ${bathrooms}b | ★${rating} (${reviewCount} reviews)`);
@@ -376,7 +378,14 @@ export class PropriedadeService {
         hostId: string | null;
         hostName: string | null;
         bedrooms: number;
+        beds: number;
+        bathrooms: number;
         guests: number;
+        rating: number;
+        reviewCount: number;
+        propertyType: string;
+        neighborhood: string;
+        amenitiesCount: number;
     }> {
         const scraped = await this.scrapeAirbnbListing(propertyId);
 
@@ -384,10 +393,17 @@ export class PropriedadeService {
             propertyId,
             title: scraped.title,
             pictureUrl: scraped.pictureUrl,
-            hostId: null, // Não extraível via OG tags — precisa de headless browser
+            hostId: null,
             hostName: null,
             bedrooms: scraped.bedrooms,
+            beds: scraped.beds,
+            bathrooms: scraped.bathrooms,
             guests: scraped.guestCapacity,
+            rating: scraped.rating,
+            reviewCount: scraped.reviewCount,
+            propertyType: scraped.propertyType,
+            neighborhood: scraped.neighborhood,
+            amenitiesCount: scraped.amenitiesCount,
         };
     }
 

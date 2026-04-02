@@ -668,7 +668,14 @@ export type PropertyQuickInfo = {
   hostId: string | null;
   hostName: string | null;
   bedrooms: number;
+  beds: number;
+  bathrooms: number;
   guests: number;
+  rating: number;
+  reviewCount: number;
+  propertyType: string;
+  neighborhood: string;
+  amenitiesCount: number;
 };
 
 /** Busca info rápida de um imóvel individual (título, imagem, hostId) */

@@ -38,6 +38,15 @@ interface Property {
   id_do_anuncio: string;
   ativo: boolean;
   pictureUrl: string;
+  bedrooms?: number;
+  beds?: number;
+  bathrooms?: number;
+  guests?: number;
+  rating?: number;
+  reviewCount?: number;
+  propertyType?: string;
+  neighborhood?: string;
+  amenitiesCount?: number;
 }
 
 interface RegisteredProperty {
@@ -208,6 +217,15 @@ export default function OnboardingWizard() {
           id_do_anuncio: propertyId,
           ativo: true,
           pictureUrl: info.pictureUrl,
+          bedrooms: info.bedrooms || 0,
+          beds: info.beds || 0,
+          bathrooms: info.bathrooms || 0,
+          guests: info.guests || 0,
+          rating: info.rating || 0,
+          reviewCount: info.reviewCount || 0,
+          propertyType: info.propertyType || '',
+          neighborhood: info.neighborhood || '',
+          amenitiesCount: info.amenitiesCount || 0,
         });
       } catch (error) {
         console.error(`Erro ao buscar imóvel do link: ${link}`, error);
@@ -674,31 +692,98 @@ export default function OnboardingWizard() {
                         onChange={handleSelectAllToggle} />
                     </FormControl>
 
-                    <Stack spacing={3} maxH="280px" overflowY="auto" pr={2}>
+                    <Stack spacing={3} maxH="450px" overflowY="auto" pr={2}>
                       {properties.map((property) => (
-                        <FormControl
-                          key={property.id_do_anuncio} display="flex" alignItems="center"
-                          justifyContent="space-between" bg="white" p={3} borderRadius="md"
+                        <Box
+                          key={property.id_do_anuncio}
+                          bg="white" p={4} borderRadius="lg"
                           border="1px solid"
-                          borderColor={selectedProperties[property.id_do_anuncio] ? 'blue.200' : 'gray.200'}
-                          boxShadow="sm" transition="all 0.2s"
+                          borderColor={selectedProperties[property.id_do_anuncio] ? 'blue.300' : 'gray.200'}
+                          boxShadow={selectedProperties[property.id_do_anuncio] ? 'md' : 'sm'}
+                          transition="all 0.2s"
+                          _hover={{ borderColor: 'blue.200', boxShadow: 'md' }}
                         >
-                          <Flex align="center" gap={3}>
-                            {property.pictureUrl ? (
-                              <Image src={property.pictureUrl} alt={property.titulo}
-                                boxSize="44px" objectFit="cover" borderRadius="md" />
-                            ) : (
-                              <Box boxSize="44px" bg="gray.200" borderRadius="md" />
-                            )}
-                            <FormLabel mb="0" fontWeight="medium" color="gray.700"
-                              noOfLines={1} maxW="260px">
-                              {property.titulo}
-                            </FormLabel>
+                          <Flex justify="space-between" align="start" mb={3}>
+                            <Flex gap={3} flex={1}>
+                              {property.pictureUrl ? (
+                                <Image src={property.pictureUrl} alt={property.titulo}
+                                  w="80px" h="60px" objectFit="cover" borderRadius="md" flexShrink={0} />
+                              ) : (
+                                <Box w="80px" h="60px" bg="gray.200" borderRadius="md" flexShrink={0} />
+                              )}
+                              <Box flex={1} minW={0}>
+                                <Text fontWeight="semibold" color="gray.800" fontSize="sm"
+                                  noOfLines={2} lineHeight="tight" mb={1}>
+                                  {property.titulo}
+                                </Text>
+                                <HStack spacing={2} flexWrap="wrap">
+                                  {property.propertyType && property.propertyType !== 'Unknown' && (
+                                    <Badge colorScheme="purple" fontSize="2xs" borderRadius="full" px={2}>
+                                      {property.propertyType}
+                                    </Badge>
+                                  )}
+                                  {property.neighborhood && (
+                                    <Badge colorScheme="teal" fontSize="2xs" borderRadius="full" px={2}>
+                                      📍 {property.neighborhood}
+                                    </Badge>
+                                  )}
+                                </HStack>
+                              </Box>
+                            </Flex>
+                            <Switch colorScheme="blue" size="md"
+                              isChecked={selectedProperties[property.id_do_anuncio] || false}
+                              onChange={() => handlePropertyToggle(property.id_do_anuncio)} />
                           </Flex>
-                          <Switch colorScheme="blue"
-                            isChecked={selectedProperties[property.id_do_anuncio] || false}
-                            onChange={() => handlePropertyToggle(property.id_do_anuncio)} />
-                        </FormControl>
+
+                          {/* Detalhes do imóvel */}
+                          <Flex gap={4} flexWrap="wrap" px={1}>
+                            {(property.bedrooms !== undefined && property.bedrooms > 0) && (
+                              <HStack spacing={1}>
+                                <Text fontSize="xs" color="gray.500">🛏️</Text>
+                                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                                  {property.bedrooms} {property.bedrooms === 1 ? 'quarto' : 'quartos'}
+                                </Text>
+                              </HStack>
+                            )}
+                            {(property.beds !== undefined && property.beds > 0) && (
+                              <HStack spacing={1}>
+                                <Text fontSize="xs" color="gray.500">🛌</Text>
+                                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                                  {property.beds} {property.beds === 1 ? 'cama' : 'camas'}
+                                </Text>
+                              </HStack>
+                            )}
+                            {(property.bathrooms !== undefined && property.bathrooms > 0) && (
+                              <HStack spacing={1}>
+                                <Text fontSize="xs" color="gray.500">🚿</Text>
+                                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                                  {property.bathrooms} {property.bathrooms === 1 ? 'banheiro' : 'banheiros'}
+                                </Text>
+                              </HStack>
+                            )}
+                            {(property.guests !== undefined && property.guests > 0) && (
+                              <HStack spacing={1}>
+                                <Text fontSize="xs" color="gray.500">👥</Text>
+                                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                                  {property.guests} {property.guests === 1 ? 'hóspede' : 'hóspedes'}
+                                </Text>
+                              </HStack>
+                            )}
+                            {(property.rating !== undefined && property.rating > 0) && (
+                              <HStack spacing={1}>
+                                <Text fontSize="xs" color="yellow.500">★</Text>
+                                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                                  {property.rating.toFixed(2)}
+                                </Text>
+                                {(property.reviewCount !== undefined && property.reviewCount > 0) && (
+                                  <Text fontSize="xs" color="gray.400">
+                                    ({property.reviewCount})
+                                  </Text>
+                                )}
+                              </HStack>
+                            )}
+                          </Flex>
+                        </Box>
                       ))}
                     </Stack>
                   </Box>
