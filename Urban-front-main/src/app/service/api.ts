@@ -672,6 +672,7 @@ export type PropertyQuickInfo = {
   bathrooms: number;
   guests: number;
   rating: number;
+  isNewListing: boolean;
   reviewCount: number;
   propertyType: string;
   neighborhood: string;

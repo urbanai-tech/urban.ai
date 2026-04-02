@@ -164,6 +164,7 @@ export class PropriedadeService {
         beds: number;
         bathrooms: number;
         rating: number;
+        isNewListing: boolean;
         reviewCount: number;
         propertyType: string;
         neighborhood: string;
@@ -194,24 +195,41 @@ export class PropriedadeService {
             const latitude = latMatch ? parseFloat(latMatch[1]) : null;
             const longitude = lngMatch ? parseFloat(lngMatch[1]) : null;
 
-            // --- Dados do título OG ---
-            // PT: "Apartamento com serviços em São Paulo · ★4.65 · 1 quarto · 1 cama · 1 banheiro"
-            // EN: "Aparthotel in Asa Norte · ★4.65 · 1 bedroom · 1 bed · 1 private bath"
+            // --- Parse do título OG via split por "·" (robusto para PT e EN) ---
+            // PT: "Apartamento · São Paulo · ★Novidade · 1 quarto · 1 cama · 1 banheiro"
+            // EN: "Serviced apartment in São Paulo · ★4.65 · 1 bedroom · 1 bed · 1 bath"
+            const segments = ogTitle.split(/\s*·\s*/).map(s => s.trim()).filter(Boolean);
+
+            // --- Tipo e Bairro ---
+            let propertyType = 'Unknown';
+            let neighborhood = '';
+
+            if (segments.length > 0) {
+                const firstSeg = segments[0];
+                // EN: "Serviced apartment in São Paulo" — contém "in" ou "em"
+                const typeLocMatch = firstSeg.match(/^(.+?)\s+(?:in|em)\s+(.+)$/i);
+                if (typeLocMatch) {
+                    propertyType = typeLocMatch[1].trim();
+                    neighborhood = typeLocMatch[2].trim();
+                } else {
+                    // PT: primeiro segmento é tipo, segundo é localização
+                    propertyType = firstSeg;
+                    if (segments.length > 1 && !segments[1].startsWith('★') && !/^\d/.test(segments[1])) {
+                        neighborhood = segments[1];
+                    }
+                }
+            }
+
+            // --- Rating (★4.65 ou ★Novidade/★Novo/★New) ---
+            const ratingSegment = segments.find(s => s.includes('★')) || '';
+            const ratingNumeric = ratingSegment.match(/★([\d.]+)/);
+            const rating = ratingNumeric ? parseFloat(ratingNumeric[1]) : 0;
+            const isNewListing = /★\s*(?:Novidade|Novo|New)/i.test(ratingSegment);
+
+            // --- Quartos, Camas, Banheiros (dos segmentos) ---
             const bedrooms = this.extractNumber(ogTitle, '(?:bedroom|quarto)');
             const beds = this.extractNumber(ogTitle, '(?:bed(?!room)|cama)');
             const bathrooms = this.extractNumber(ogTitle, '(?:(?:private\\s+)?bath(?:room)?|banheiro)');
-
-            // Rating e tipo do imóvel
-            const ratingMatch = ogTitle.match(/★([\d.]+)/);
-            const rating = ratingMatch ? parseFloat(ratingMatch[1]) : 0;
-
-            // Tipo: primeiro token antes de " in " ou " em " (ex: "Aparthotel", "Apartamento com serviços")
-            const typeMatch = ogTitle.match(/^(.+?)\s+(?:in|em)\s+/i);
-            const propertyType = typeMatch ? typeMatch[1].trim() : 'Unknown';
-
-            // Bairro: token depois de " in " ou " em " antes de " · " (ex: "Asa Norte", "São Paulo")
-            const neighborhoodMatch = ogTitle.match(/\b(?:in|em)\s+([^·]+)/i);
-            const neighborhood = neighborhoodMatch ? neighborhoodMatch[1].trim() : '';
 
             // --- Reviews (do HTML — PT: "283 avaliações", EN: "283 reviews") ---
             const reviewMatch = html.match(/(\d+)\s+(?:reviews?|avaliações?|avaliacao|avaliacoes)/i);
@@ -225,7 +243,7 @@ export class PropriedadeService {
             const amenitiesMatch = html.match(/(?:Show all|Mostrar\s+todas?\s+(?:as\s+)?)\s*(\d+)\s+(?:amenities|comodidades)/i);
             const amenitiesCount = amenitiesMatch ? parseInt(amenitiesMatch[1], 10) : 0;
 
-            console.log(`✅ [scrape] Room ${roomId}: "${ogTitle}" | ${latitude},${longitude} | ${bedrooms}q ${beds}c ${bathrooms}b | ★${rating} (${reviewCount} reviews)`);
+            console.log(`✅ [scrape] Room ${roomId}: "${ogTitle}" | ${latitude},${longitude} | ${bedrooms}q ${beds}c ${bathrooms}b | ★${rating}${isNewListing ? ' (Novidade)' : ''} (${reviewCount} reviews) | 📍${neighborhood} | 🏠${propertyType}`);
 
             return {
                 roomId,
@@ -237,6 +255,7 @@ export class PropriedadeService {
                 beds,
                 bathrooms,
                 rating,
+                isNewListing,
                 reviewCount,
                 propertyType,
                 neighborhood,
@@ -256,6 +275,7 @@ export class PropriedadeService {
                 beds: 0,
                 bathrooms: 0,
                 rating: 0,
+                isNewListing: false,
                 reviewCount: 0,
                 propertyType: 'Unknown',
                 neighborhood: '',
@@ -382,6 +402,7 @@ export class PropriedadeService {
         bathrooms: number;
         guests: number;
         rating: number;
+        isNewListing: boolean;
         reviewCount: number;
         propertyType: string;
         neighborhood: string;
@@ -400,6 +421,7 @@ export class PropriedadeService {
             bathrooms: scraped.bathrooms,
             guests: scraped.guestCapacity,
             rating: scraped.rating,
+            isNewListing: scraped.isNewListing,
             reviewCount: scraped.reviewCount,
             propertyType: scraped.propertyType,
             neighborhood: scraped.neighborhood,

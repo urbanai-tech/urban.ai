@@ -43,6 +43,7 @@ interface Property {
   bathrooms?: number;
   guests?: number;
   rating?: number;
+  isNewListing?: boolean;
   reviewCount?: number;
   propertyType?: string;
   neighborhood?: string;
@@ -222,6 +223,7 @@ export default function OnboardingWizard() {
           bathrooms: info.bathrooms || 0,
           guests: info.guests || 0,
           rating: info.rating || 0,
+          isNewListing: info.isNewListing || false,
           reviewCount: info.reviewCount || 0,
           propertyType: info.propertyType || '',
           neighborhood: info.neighborhood || '',
@@ -703,31 +705,48 @@ export default function OnboardingWizard() {
                           transition="all 0.2s"
                           _hover={{ borderColor: 'blue.200', boxShadow: 'md' }}
                         >
+                          {/* Cabeçalho: Imagem + Info + Toggle */}
                           <Flex justify="space-between" align="start" mb={3}>
                             <Flex gap={3} flex={1}>
                               {property.pictureUrl ? (
                                 <Image src={property.pictureUrl} alt={property.titulo}
-                                  w="80px" h="60px" objectFit="cover" borderRadius="md" flexShrink={0} />
+                                  w="90px" h="68px" objectFit="cover" borderRadius="md" flexShrink={0} />
                               ) : (
-                                <Box w="80px" h="60px" bg="gray.200" borderRadius="md" flexShrink={0} />
+                                <Box w="90px" h="68px" bg="gray.200" borderRadius="md" flexShrink={0} />
                               )}
                               <Box flex={1} minW={0}>
-                                <Text fontWeight="semibold" color="gray.800" fontSize="sm"
-                                  noOfLines={2} lineHeight="tight" mb={1}>
-                                  {property.titulo}
+                                {/* Tipo do imóvel como título limpo */}
+                                <Text fontWeight="bold" color="gray.800" fontSize="sm"
+                                  lineHeight="tight" mb={1}>
+                                  {property.propertyType && property.propertyType !== 'Unknown'
+                                    ? property.propertyType
+                                    : property.titulo}
                                 </Text>
-                                <HStack spacing={2} flexWrap="wrap">
-                                  {property.propertyType && property.propertyType !== 'Unknown' && (
-                                    <Badge colorScheme="purple" fontSize="2xs" borderRadius="full" px={2}>
-                                      {property.propertyType}
-                                    </Badge>
-                                  )}
+
+                                {/* Badges: Localização + Rating */}
+                                <HStack spacing={2} flexWrap="wrap" mb={1}>
                                   {property.neighborhood && (
                                     <Badge colorScheme="teal" fontSize="2xs" borderRadius="full" px={2}>
                                       📍 {property.neighborhood}
                                     </Badge>
                                   )}
+                                  {(property.rating !== undefined && property.rating > 0) ? (
+                                    <Badge colorScheme="yellow" fontSize="2xs" borderRadius="full" px={2}>
+                                      ★ {property.rating.toFixed(2)}
+                                      {(property.reviewCount !== undefined && property.reviewCount > 0) &&
+                                        ` (${property.reviewCount})`}
+                                    </Badge>
+                                  ) : property.isNewListing ? (
+                                    <Badge colorScheme="green" fontSize="2xs" borderRadius="full" px={2}>
+                                      ✨ Novidade
+                                    </Badge>
+                                  ) : null}
                                 </HStack>
+
+                                {/* ID do anúncio */}
+                                <Text fontSize="2xs" color="gray.400" fontFamily="mono">
+                                  ID: {property.id_do_anuncio}
+                                </Text>
                               </Box>
                             </Flex>
                             <Switch colorScheme="blue" size="md"
@@ -735,51 +754,47 @@ export default function OnboardingWizard() {
                               onChange={() => handlePropertyToggle(property.id_do_anuncio)} />
                           </Flex>
 
-                          {/* Detalhes do imóvel */}
-                          <Flex gap={4} flexWrap="wrap" px={1}>
+                          {/* Detalhes do imóvel — sempre visíveis */}
+                          <Flex gap={3} flexWrap="wrap" px={1} py={2}
+                            bg="gray.50" borderRadius="md" justify="center">
                             {(property.bedrooms !== undefined && property.bedrooms > 0) && (
                               <HStack spacing={1}>
-                                <Text fontSize="xs" color="gray.500">🛏️</Text>
-                                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                                <Text fontSize="xs">🛏️</Text>
+                                <Text fontSize="xs" color="gray.700" fontWeight="medium">
                                   {property.bedrooms} {property.bedrooms === 1 ? 'quarto' : 'quartos'}
                                 </Text>
                               </HStack>
                             )}
                             {(property.beds !== undefined && property.beds > 0) && (
                               <HStack spacing={1}>
-                                <Text fontSize="xs" color="gray.500">🛌</Text>
-                                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                                <Text fontSize="xs">🛌</Text>
+                                <Text fontSize="xs" color="gray.700" fontWeight="medium">
                                   {property.beds} {property.beds === 1 ? 'cama' : 'camas'}
                                 </Text>
                               </HStack>
                             )}
                             {(property.bathrooms !== undefined && property.bathrooms > 0) && (
                               <HStack spacing={1}>
-                                <Text fontSize="xs" color="gray.500">🚿</Text>
-                                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                                <Text fontSize="xs">🚿</Text>
+                                <Text fontSize="xs" color="gray.700" fontWeight="medium">
                                   {property.bathrooms} {property.bathrooms === 1 ? 'banheiro' : 'banheiros'}
                                 </Text>
                               </HStack>
                             )}
                             {(property.guests !== undefined && property.guests > 0) && (
                               <HStack spacing={1}>
-                                <Text fontSize="xs" color="gray.500">👥</Text>
-                                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                                <Text fontSize="xs">👥</Text>
+                                <Text fontSize="xs" color="gray.700" fontWeight="medium">
                                   {property.guests} {property.guests === 1 ? 'hóspede' : 'hóspedes'}
                                 </Text>
                               </HStack>
                             )}
-                            {(property.rating !== undefined && property.rating > 0) && (
+                            {(property.amenitiesCount !== undefined && property.amenitiesCount > 0) && (
                               <HStack spacing={1}>
-                                <Text fontSize="xs" color="yellow.500">★</Text>
-                                <Text fontSize="xs" color="gray.600" fontWeight="medium">
-                                  {property.rating.toFixed(2)}
+                                <Text fontSize="xs">🏠</Text>
+                                <Text fontSize="xs" color="gray.700" fontWeight="medium">
+                                  {property.amenitiesCount} comodidades
                                 </Text>
-                                {(property.reviewCount !== undefined && property.reviewCount > 0) && (
-                                  <Text fontSize="xs" color="gray.400">
-                                    ({property.reviewCount})
-                                  </Text>
-                                )}
                               </HStack>
                             )}
                           </Flex>
