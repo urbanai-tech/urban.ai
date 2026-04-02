@@ -807,9 +807,9 @@ export default function OnboardingWizard() {
                             )}
                             {(property.amenitiesCount !== undefined && property.amenitiesCount > 0) && (
                               <HStack spacing={1}>
-                                <Text fontSize="xs">🏠</Text>
+                                <Text fontSize="xs">✅</Text>
                                 <Text fontSize="xs" color="gray.700" fontWeight="medium">
-                                  {property.amenitiesCount} comodidades
+                                  {property.amenitiesCount} amenidades
                                 </Text>
                               </HStack>
                             )}
