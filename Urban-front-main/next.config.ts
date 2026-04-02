@@ -10,6 +10,22 @@ const nextConfig: NextConfig = {
     // ⚠️ Ignora erros de ESLint no build (temporário)
     ignoreDuringBuilds: true,
   },
+  async rewrites() {
+    return [
+      {
+        source: '/copilot/:path*',
+        destination: 'http://200.142.105.90:31806/copilot/:path*',
+      },
+      {
+        source: '/ws/:path*',
+        destination: 'http://200.142.105.90:31806/ws/:path*',
+      },
+      {
+        source: '/assets/:path*',
+        destination: 'http://200.142.105.90:31806/assets/:path*',
+      }
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {
