@@ -69,10 +69,10 @@ interface SelectedPropertiesState {
   [key: string]: boolean;
 }
 
-type PricingStrategy = 'conservative' | 'balanced' | 'aggressive';
+type PricingStrategy = 'conservative' | 'balanced' | 'aggressive' | 'autonomous';
 type OperationMode = 'notifications' | 'automatic';
 
-const PRICING_PRESETS: Record<PricingStrategy, { inicial: number; final: number; label: string; desc: string; color: string; icon: string }> = {
+const PRICING_PRESETS: Record<PricingStrategy, { inicial: number; final: number | null; label: string; desc: string; color: string; icon: string }> = {
   conservative: {
     inicial: -5, final: 10,
     label: 'Conservadora', desc: 'Prioriza ocupação mantendo preços competitivos. Ideal para quem está começando.',
@@ -87,6 +87,11 @@ const PRICING_PRESETS: Record<PricingStrategy, { inicial: number; final: number;
     inicial: -15, final: 35,
     label: 'Agressiva', desc: 'Maximiza receita em períodos de alta demanda. Para anfitriões experientes.',
     color: 'orange', icon: '🚀'
+  },
+  autonomous: {
+    inicial: -5, final: null,
+    label: 'Piloto Automático IA', desc: 'Estratégia dinâmica. Otimiza sem teto na alta, e impede baixas drásticas (-5% max).',
+    color: 'purple', icon: '🤖'
   },
 };
 
@@ -973,61 +978,25 @@ export default function OnboardingWizard() {
                   </Box>
 
                   {/* ── Raio de busca de eventos ── */}
-                  <Box bg="gray.50" p={6} borderRadius="xl" border="1px solid" borderColor="gray.200">
-                    <Flex justify="space-between" align="center" mb={4}>
+                  <Box bg="purple.50" p={6} borderRadius="xl" border="1px solid" borderColor="purple.200">
+                    <Flex justify="space-between" align="center" mb={1}>
                       <Box>
-                        <Text fontWeight="bold" color="gray.800" fontSize="md">
-                          Raio de Análise de Eventos
-                        </Text>
-                        <Text fontSize="sm" color="gray.500">
-                          Define o alcance, em km, que o motor analisará eventos próximos aos seus imóveis.
+                        <Flex alignItems="center" gap={2}>
+                          <Text fontWeight="bold" color="purple.800" fontSize="md">
+                            Grau de Influência Inteligente
+                          </Text>
+                          <Badge colorScheme="purple" variant="solid" borderRadius="full" px={2} fontSize="0.65rem">
+                            Novo Motor IA
+                          </Badge>
+                        </Flex>
+                        <Text fontSize="sm" color="purple.600" mt={1}>
+                          O raio de impacto agora é gerido dinamicamente pela I.A. 
+                          Um show internacional atrai hóspedes de até 60km, enquanto um teatro local influencia apenas 3km. 
+                          Deixe a matemática conosco.
                         </Text>
                       </Box>
-                      <Tooltip label="Eventos muito distantes (acima de 50km) impactam menos no preço do seu imóvel."
-                        hasArrow placement="top">
-                        <InfoIcon color="gray.400" />
-                      </Tooltip>
+                      <Box as={FiZap} color="purple.500" boxSize={6} ml={4} opacity={0.8} />
                     </Flex>
-
-                    <Box px={4} pt={6} pb={2}>
-                      <Slider
-                        min={5} max={100} step={5}
-                        value={distanceKm}
-                        onChange={(val) => setDistanceKm(val)}
-                        colorScheme="blue"
-                      >
-                        <SliderMark value={10} mt={3} ml={-2} fontSize="xs" color="gray.400">
-                          10km
-                        </SliderMark>
-                        <SliderMark value={30} mt={3} ml={-2} fontSize="xs" color="gray.400">
-                          30km
-                        </SliderMark>
-                        <SliderMark value={50} mt={3} ml={-2} fontSize="xs" color="gray.400">
-                          50km
-                        </SliderMark>
-                        <SliderMark value={100} mt={3} ml={-4} fontSize="xs" color="gray.400">
-                          100km
-                        </SliderMark>
-                        <SliderMark
-                          value={distanceKm}
-                          textAlign="center"
-                          bg="blue.500"
-                          color="white"
-                          mt="-10"
-                          ml="-5"
-                          w="10"
-                          borderRadius="md"
-                          fontSize="sm"
-                          fontWeight="bold"
-                        >
-                          {distanceKm}
-                        </SliderMark>
-                        <SliderTrack h="8px" borderRadius="full">
-                          <SliderFilledTrack />
-                        </SliderTrack>
-                        <SliderThumb boxSize={6} bg="blue.500" border="3px solid white" boxShadow="md" />
-                      </Slider>
-                    </Box>
                   </Box>
 
                   <Flex gap={4} mt={2}>

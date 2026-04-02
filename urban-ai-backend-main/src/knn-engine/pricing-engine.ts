@@ -51,6 +51,12 @@ export class UrbanAIPricingEngine {
             multiplier += 0.3;
         }
 
+        // Boost autônomo baseado na IA (event.relevancia de 1 a 100)
+        // Uma relevância 100 (Mega evento) trará um boost elástico de +0.50 (50%).
+        if (event.relevancia) {
+            multiplier += (event.relevancia / 200);
+        }
+
         const suggestedPrice = basePrice * multiplier;
 
         return {
@@ -63,8 +69,10 @@ export class UrbanAIPricingEngine {
                 classification: classification.categoryName,
                 attractivity: attractivity.attractivityLevel,
                 travelTimeMinutes: attractivity.travelTime,
+                eventAIRelevance: event.relevancia || null,
                 reasoning: `Imóvel classificado como '${classification.categoryName}'. ` +
-                           `Acesso ao evento '${event.name}' em ${attractivity.travelTime} min (${attractivity.attractivityLevel}).`
+                           `Acesso ao evento '${event.name || event.nome}' em ${attractivity.travelTime} min (${attractivity.attractivityLevel}). ` +
+                           (event.relevancia ? `Boost de Relevância IA: ${event.relevancia}/100.` : '')
             }
         };
     }

@@ -1,6 +1,7 @@
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EventoController } from './evento.controller';
 import { EventoService } from './evento.service';
+import { EventsEnrichmentService } from './events-enrichment.service';
 import { Module } from '@nestjs/common';
 import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity';
 import { List } from 'src/entities/list.entity';
@@ -17,6 +18,8 @@ import { Event } from 'src/entities/events.entity';
     controllers: [
         EventoController,],
     providers: [
-        EventoService,],
+        EventoService,
+        EventsEnrichmentService,
+    ],
 })
 export class EventoModule { }

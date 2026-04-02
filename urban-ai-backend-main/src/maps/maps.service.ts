@@ -373,8 +373,7 @@ export class MapsService {
       let analisesProcessadas = 0;
 
       const processUser = async (user: User) => {
-        const distanceKm = user.distanceKm ?? 0;
-        if (distanceKm === 0) return null;
+        const userDistanceKm = user.distanceKm ?? 0;
 
         try {
           console.log(`🔹 Análise iniciada para o usuário ${user.id}`);
@@ -394,7 +393,9 @@ export class MapsService {
                         event.longitude
                       );
 
-                      if (aproximadamenteOuMenor(distanceKm, distance)) {
+                      // Usa primeiramente o raio do motor de IA do evento. Se não tiver, cai pro user fallback.
+                      const maxDistance = event.raioImpactoKm || userDistanceKm || 5;
+                      if (aproximadamenteOuMenor(maxDistance, distance)) {
                         const result = await calculateDistanceHere(
                           address.latitude,
                           address.longitude,
@@ -511,8 +512,7 @@ export class MapsService {
       const limit = pLimit(5);
 
       const processUser = async (user: User) => {
-        const distanceKm = user.distanceKm ?? 0;
-        if (distanceKm === 0) return 0;
+        const userDistanceKm = user.distanceKm ?? 0;
 
         try {
           const [addresses, events] = await Promise.all([
@@ -544,7 +544,8 @@ export class MapsService {
                   console.log(`Analisando endereço ${address.id} com evento ${event.id}: ${address.latitude},${address.longitude} | ${event.latitude},${event.longitude}`);
                   const distance = await calculateDistance(address.latitude, address.longitude, event.latitude, event.longitude);
 
-                  if (aproximadamenteOuMenor(user?.distanceKm, distance)) {
+                  const maxDistance = event.raioImpactoKm || userDistanceKm || 5;
+                  if (aproximadamenteOuMenor(maxDistance, distance)) {
                     const result = await calculateDistanceHere(
                       address.latitude,
                       address.longitude,
@@ -565,7 +566,7 @@ export class MapsService {
 
                     await this.analysisRepo.save(novaAnalise);
                   } else {
-                    console.log("Nenhuma distancia fez match", user?.distanceKm, distance)
+                    console.log("Nenhuma distancia fez match. Raio max:", maxDistance, " Distancia calculada:", distance);
                   }
 
                   totalAnalises++;
