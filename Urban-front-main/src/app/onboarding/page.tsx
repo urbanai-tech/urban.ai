@@ -53,6 +53,7 @@ interface Property {
   zipCode?: string;
   fullAddress?: string;
   amenitiesCount?: number;
+  amenities?: string[];
 }
 
 interface RegisteredProperty {
@@ -238,6 +239,7 @@ export default function OnboardingWizard() {
           zipCode: info.zipCode || '',
           fullAddress: info.fullAddress || '',
           amenitiesCount: info.amenitiesCount || 0,
+          amenities: info.amenities || [],
         });
       } catch (error) {
         console.error(`Erro ao buscar imóvel do link: ${link}`, error);
@@ -809,7 +811,7 @@ export default function OnboardingWizard() {
                               <HStack spacing={1}>
                                 <Text fontSize="xs">✅</Text>
                                 <Text fontSize="xs" color="gray.700" fontWeight="medium">
-                                  {property.amenitiesCount} amenidades
+                                  {property.amenitiesCount} itens disponíveis
                                 </Text>
                               </HStack>
                             )}

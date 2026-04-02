@@ -684,6 +684,7 @@ export type PropertyQuickInfo = {
   latitude: number | null;
   longitude: number | null;
   amenitiesCount: number;
+  amenities: string[];
 };
 
 /** Busca info rápida de um imóvel individual (título, imagem, hostId) */
