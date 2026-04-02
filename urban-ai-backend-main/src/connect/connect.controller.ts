@@ -176,7 +176,7 @@ export class ConnectController {
 
   // Endpoint para criar/atualizar múltiplos endereços - DEVE VIR DEPOIS
   @UseGuards(JwtAuthGuard)
-  @Post(["addresses", "create-addresses"])
+  @Post(["addresses", "create-addresses", "create-multiple-addresses"])
   @ApiOperation({
     summary: "Criar/atualizar múltiplos endereços para o usuário autenticado",
     description: "Disponível nas rotas POST /connect/addresses e POST /connect/create-addresses"
