@@ -133,9 +133,10 @@ export type PropertyDropdown = {
   propertyName: string;
   userId: string;
   analisado	: string;
-  image_url:string;
-  latitude:number;
-  longitude:number;
+  image_url: string;
+  latitude: number;
+  longitude: number;
+  id_do_anuncio?: string;
   nome: string;
 };
 
