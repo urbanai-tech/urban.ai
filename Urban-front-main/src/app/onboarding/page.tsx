@@ -995,12 +995,11 @@ export default function OnboardingWizard() {
                         p={5}
                         borderRadius="xl"
                         border="2px solid"
-                        borderColor={operationMode === 'automatic' ? 'orange.400' : 'gray.200'}
-                        bg={operationMode === 'automatic' ? 'orange.50' : 'gray.50'}
-                        cursor="pointer"
+                        borderColor="gray.200"
+                        bg="gray.100"
+                        opacity={0.6}
+                        cursor="not-allowed"
                         transition="all 0.2s"
-                        _hover={{ borderColor: 'orange.300', transform: 'translateY(-1px)', boxShadow: 'sm' }}
-                        onClick={() => setOperationMode('automatic')}
                       >
                         <VStack spacing={2} align="start">
                           <Flex wrap="wrap" gap={2} alignItems="center">
@@ -1016,27 +1015,7 @@ export default function OnboardingWizard() {
                     </SimpleGrid>
                   </Box>
 
-                  {/* ── Raio de busca de eventos ── */}
-                  <Box bg="purple.50" p={6} borderRadius="xl" border="1px solid" borderColor="purple.200">
-                    <Flex justify="space-between" align="center" mb={1}>
-                      <Box>
-                        <Flex alignItems="center" gap={2}>
-                          <Text fontWeight="bold" color="purple.800" fontSize="md">
-                            Grau de Influência Inteligente
-                          </Text>
-                          <Badge colorScheme="purple" variant="solid" borderRadius="full" px={2} fontSize="0.65rem">
-                            Novo Motor IA
-                          </Badge>
-                        </Flex>
-                        <Text fontSize="sm" color="purple.600" mt={1}>
-                          O raio de impacto agora é gerido dinamicamente pela I.A. 
-                          Um show internacional atrai hóspedes de até 60km, enquanto um teatro local influencia apenas 3km. 
-                          Deixe a matemática conosco.
-                        </Text>
-                      </Box>
-                      <Box as={FiZap} color="purple.500" boxSize={6} ml={4} opacity={0.8} />
-                    </Flex>
-                  </Box>
+
 
                   <Flex gap={4} mt={2}>
                     <Button variant="ghost" size="lg" color="gray.500"
