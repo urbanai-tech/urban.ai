@@ -42,6 +42,10 @@ export default function MyProperties() {
   }, []);
 
   const handleDelete = async (id: string) => {
+    if (!window.confirm("Tem certeza que deseja excluir esta propriedade? Esta ação não pode ser desfeita.")) {
+      return;
+    }
+
     try {
       await requestDeleteAddress(id);
       toast("Propriedade excluída", { type: "success" });
