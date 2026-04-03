@@ -496,7 +496,7 @@ export async function updateProfileById(
   payload: UpdateProfilePayload,
 ): Promise<ProfileResponse> {
   try {
-    const { data } = await api.put<any>(`/auth/profile/${userId}`, payload);
+    const { data } = await api.put<any>('/auth/profile', payload);
     return {
       ...data,
       profile: {
