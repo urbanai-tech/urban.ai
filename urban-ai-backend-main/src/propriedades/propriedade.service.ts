@@ -141,7 +141,8 @@ export class PropriedadeService {
             propertyName: address.list?.titulo || `Propriedade sem nome (${address.id.substring(0, 4)})`,
             image_url: address.list?.pictureUrl,
             userId: userId,
-            analisado: address?.analisado
+            analisado: address?.analisado,
+            id_do_anuncio: address.list?.id_do_anuncio
         }));
 
     }
