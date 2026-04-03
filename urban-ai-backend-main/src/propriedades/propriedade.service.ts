@@ -251,103 +251,186 @@ export class PropriedadeService {
     }
 
     /**
-     * Scraping direto da página de perfil do anfitrião no Airbnb.
-     * Extrai os IDs dos imóveis listados sem depender de API externa (RapidAPI).
-     * Tenta ambas as rotas: /users/show/{id} e /users/profile/{id}
+     * Busca os imóveis de um anfitrião via API GraphQL interna do Airbnb.
+     * Usa o endpoint ContextualPublicProfileQuery que é a mesma chamada
+     * que o site faz no browser para popular o carrossel de acomodações.
+     * Não depende de APIs externas pagas (RapidAPI).
      */
     async scrapeHostListings(userId: string): Promise<{
         roomId: string;
         title: string;
         pictureUrl: string;
     }[]> {
-        const urls = [
-            `https://www.airbnb.com/users/show/${userId}`,
-            `https://www.airbnb.com/users/profile/${userId}`,
-        ];
+        // A API do Airbnb espera o userId codificado em Base64 no formato "ContextualUser:{id}"
+        const encodedUserId = Buffer.from(`ContextualUser:${userId}`).toString('base64');
 
-        const headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-            'Accept-Language': 'en-US,en;q=0.9,pt-BR;q=0.8,pt;q=0.7',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        // Hash estável do ContextualPublicProfileQuery (extraído via interceptação de rede)
+        const queryHash = 'cc10d90fbc2db4f1d74d42017017066b854e382f29d1273f32b6588d6ae25494';
+        const apiKey = 'd306zoyjsyarp7ifhu67rjxn52tv0t20';
+
+        // Variables corretos conforme interceptação real do browser
+        const variables = {
+            contextualUserId: encodedUserId,
+            viewerUserId: '',
+            isViewerLoggedIn: false,
         };
 
-        let html = '';
+        const extensions = {
+            persistedQuery: {
+                version: 1,
+                sha256Hash: queryHash,
+            },
+        };
 
-        for (const url of urls) {
-            try {
-                console.log(`🔎 [scrapeHost] Tentando URL: ${url}`);
-                const response = await axios.get(url, { headers, timeout: 20000 });
-                if (response.status === 200 && response.data) {
-                    html = response.data;
-                    console.log(`✅ [scrapeHost] Página carregada com sucesso (${html.length} chars)`);
-                    break;
-                }
-            } catch (err: any) {
-                console.warn(`⚠️ [scrapeHost] Falha na URL ${url}: ${err.message}`);
+        const url = `https://www.airbnb.com/api/v3/ContextualPublicProfileQuery/${queryHash}`;
+
+        // Headers obrigatórios — sem x-airbnb-graphql-platform a API rejeita a query
+        const headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'x-airbnb-api-key': apiKey,
+            'x-airbnb-graphql-platform': 'web',
+            'x-airbnb-graphql-platform-client': 'minimalist-niobe',
+            'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+        };
+
+        try {
+            console.log(`🔎 [scrapeHost] Buscando listings do host ${userId} via GraphQL API...`);
+
+            const response = await axios.get(url, {
+                headers,
+                params: {
+                    operationName: 'ContextualPublicProfileQuery',
+                    locale: 'pt-BR',
+                    currency: 'BRL',
+                    variables: JSON.stringify(variables),
+                    extensions: JSON.stringify(extensions),
+                },
+                timeout: 20000,
+            });
+
+            if (response.status !== 200) {
+                console.warn(`⚠️ [scrapeHost] API retornou status ${response.status}`);
+                return [];
             }
-        }
 
-        if (!html) {
-            console.error(`❌ [scrapeHost] Não foi possível carregar o perfil do host ${userId}`);
+            const data = response.data;
+            const results: { roomId: string; title: string; pictureUrl: string }[] = [];
+
+            // Estrutura real: data.data.contextualUser.staySupplyListings.edges[].node
+            // Os IDs são Base64 no formato Relay: "StaySupplyListing:{roomId}"
+            const edges = data?.data?.contextualUser?.staySupplyListings?.edges;
+
+            if (Array.isArray(edges) && edges.length > 0) {
+                for (const edge of edges) {
+                    const node = edge?.node;
+                    if (!node?.id) continue;
+
+                    // Decodifica o ID Base64 Relay → extrair o roomId numérico
+                    let roomId: string;
+                    try {
+                        const decoded = Buffer.from(node.id, 'base64').toString('utf8');
+                        // Formato: "StaySupplyListing:1500322322785854842"
+                        roomId = decoded.replace(/^StaySupplyListing:/, '');
+                    } catch {
+                        roomId = node.id;
+                    }
+
+                    // name/pictureUrl vêm vazios no nível do node, mas extraímos o que houver
+                    const title = node.name || node.title || `Imóvel ${roomId}`;
+                    const pictureUrl = node.pictureUrl || node.picture || '';
+
+                    results.push({
+                        roomId: String(roomId),
+                        title: String(title),
+                        pictureUrl: String(pictureUrl),
+                    });
+                }
+            }
+
+            // Fallback genérico: se staySupplyListings vazio, busca em experienceListings ou serviceListings
+            if (results.length === 0) {
+                const user = data?.data?.contextualUser;
+                for (const field of ['experienceListings', 'serviceListings']) {
+                    const conn = user?.[field];
+                    if (conn?.edges && Array.isArray(conn.edges)) {
+                        for (const edge of conn.edges) {
+                            const node = edge?.node;
+                            if (!node?.id) continue;
+                            let roomId: string;
+                            try {
+                                const decoded = Buffer.from(node.id, 'base64').toString('utf8');
+                                roomId = decoded.replace(/^[^:]+:/, '');
+                            } catch {
+                                roomId = node.id;
+                            }
+                            results.push({
+                                roomId: String(roomId),
+                                title: node.name || `Imóvel ${roomId}`,
+                                pictureUrl: node.pictureUrl || '',
+                            });
+                        }
+                    }
+                }
+            }
+
+            if (results.length === 0) {
+                console.warn(`⚠️ [scrapeHost] Nenhum imóvel encontrado para host ${userId}`);
+                return [];
+            }
+
+            console.log(`✅ [scrapeHost] Encontrados ${results.length} imóveis para host ${userId}: [${results.map(r => r.roomId).join(', ')}]`);
+            return results;
+
+        } catch (err: any) {
+            console.error(`❌ [scrapeHost] Erro ao buscar listings via GraphQL:`, err.message);
+
+            // Se falhar a API GraphQL, tenta fallback por HTML
+            return this.scrapeHostListingsFallback(userId);
+        }
+    }
+
+    /**
+     * Fallback: scraping direto do HTML da página de perfil.
+     * Usado apenas se a API GraphQL falhar.
+     */
+    private async scrapeHostListingsFallback(userId: string): Promise<{
+        roomId: string;
+        title: string;
+        pictureUrl: string;
+    }[]> {
+        const url = `https://www.airbnb.com/users/profile/${userId}`;
+        const headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept': 'text/html,application/xhtml+xml',
+        };
+
+        try {
+            console.log(`🔎 [scrapeHost:fallback] Tentando HTML direto para host ${userId}...`);
+            const response = await axios.get(url, { headers, timeout: 20000, maxRedirects: 5 });
+            const html: string = response.data;
+
+            const roomIdPattern = /\/rooms\/(\d+)/g;
+            const roomIds = new Set<string>();
+            let match: RegExpExecArray | null;
+
+            while ((match = roomIdPattern.exec(html)) !== null) {
+                roomIds.add(match[1]);
+            }
+
+            if (roomIds.size === 0) {
+                console.warn(`⚠️ [scrapeHost:fallback] Nenhum room ID encontrado no HTML`);
+                return [];
+            }
+
+            console.log(`✅ [scrapeHost:fallback] Encontrados ${roomIds.size} imóveis via HTML`);
+            return [...roomIds].map(id => ({ roomId: id, title: `Imóvel ${id}`, pictureUrl: '' }));
+        } catch (err: any) {
+            console.error(`❌ [scrapeHost:fallback] Falha total: ${err.message}`);
             return [];
         }
-
-        // --- Estratégia 1: Extrair IDs de rooms dos links href="/rooms/XXXXX" ---
-        const roomIdPattern = /href="\/rooms\/(\d+)/g;
-        const roomIds = new Set<string>();
-        let match: RegExpExecArray | null;
-
-        while ((match = roomIdPattern.exec(html)) !== null) {
-            roomIds.add(match[1]);
-        }
-
-        if (roomIds.size === 0) {
-            // --- Estratégia 2: Tentar extrair do JSON embarcado (deferred_state / bootstrapData) ---
-            try {
-                const jsonDataMatch = html.match(/<!--\s*({.+?})\s*-->/s) ||
-                                      html.match(/"managedListings"\s*:\s*(\[.+?\])/s) ||
-                                      html.match(/"userListings"\s*:\s*(\[.+?\])/s);
-                if (jsonDataMatch) {
-                    const roomIdsFromJson = [...jsonDataMatch[0].matchAll(/"id"\s*:\s*"?(\d{10,})"?/g)];
-                    roomIdsFromJson.forEach(m => roomIds.add(m[1]));
-                }
-            } catch {
-                // fallback silencioso
-            }
-        }
-
-        if (roomIds.size === 0) {
-            console.warn(`⚠️ [scrapeHost] Nenhum imóvel encontrado no perfil do host ${userId}`);
-            return [];
-        }
-
-        // --- Extrair títulos e imagens dos cards (best-effort a partir do HTML) ---
-        const results: { roomId: string; title: string; pictureUrl: string }[] = [];
-
-        for (const id of roomIds) {
-            // Tenta extrair título do card (padrão: link /rooms/ID seguido de texto no card)
-            let title = `Imóvel ${id}`;
-            let pictureUrl = '';
-
-            // Título: busca og:title ou aria-label próximo ao link do room
-            const titlePattern = new RegExp(`/rooms/${id}[^"]*"[^>]*>.*?(?:aria-label|title)="([^"]+)"`, 's');
-            const titleMatch = html.match(titlePattern);
-            if (titleMatch) {
-                title = titleMatch[1];
-            }
-
-            // Imagem: busca a primeira imagem antes ou dentro do bloco do room
-            const imgPattern = new RegExp(`/rooms/${id}[\\s\\S]{0,2000}?(?:src|data-original)="(https://[^"]+\\.(?:jpg|jpeg|png|webp)[^"]*)"`);
-            const imgMatch = html.match(imgPattern);
-            if (imgMatch) {
-                pictureUrl = imgMatch[1];
-            }
-
-            results.push({ roomId: id, title, pictureUrl });
-        }
-
-        console.log(`✅ [scrapeHost] Encontrados ${results.length} imóveis para host ${userId}: [${[...roomIds].join(', ')}]`);
-        return results;
     }
 
     async scrapeAirbnbListing(roomId: string): Promise<{
