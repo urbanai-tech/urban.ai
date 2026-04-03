@@ -66,70 +66,54 @@ export class ConnectService {
   }
 
   async getUserManagedListings(userId: string): Promise<List[]> {
-    const API_URL = "https://airbnb45.p.rapidapi.com/api/v1/getUserManagedListing";
-
     try {
-      this.logger.log(`🔎 Buscando listagens para o usuário Airbnb com ID=${userId}`);
+      this.logger.log(`🔎 Buscando listagens para o usuário Airbnb com ID=${userId} (via scraping direto)`);
 
-      const response = await axios.get(API_URL, {
-        headers: {
-          "X-RapidAPI-Host": this.RAPIDAPI_HOST_LISTINGS,
-          "X-RapidAPI-Key": this.RAPIDAPI_KEY,
-        },
-        params: { userId, page: 1 },
-        timeout: 15000,
-      });
+      // 1) Scraping direto na página de perfil do host
+      const hostListings = await this.propriedadeService.scrapeHostListings(userId);
 
-      const { data, status } = response;
-
-      if (status !== 200) {
-        this.logger.warn(`⚠️ API retornou status inesperado ${status}`);
+      if (!hostListings || hostListings.length === 0) {
+        this.logger.warn(`⚠️ Nenhum imóvel encontrado via scraping para host ${userId}`);
         return [];
       }
 
-      if (!data?.data?.listings || !Array.isArray(data.data.listings)) {
-        this.logger.warn(`⚠️ Resposta inesperada da API: ${JSON.stringify(data)}`);
-        return [];
+      this.logger.log(`📦 Encontrados ${hostListings.length} room IDs. Enriquecendo dados...`);
+
+      // 2) Para cada room, buscar dados detalhados (título, foto, etc.) via scrapeAirbnbListing
+      const listings: List[] = [];
+      for (const item of hostListings) {
+        try {
+          const scraped = await this.propriedadeService.scrapeAirbnbListing(item.roomId);
+          listings.push({
+            id: scraped.roomId,
+            id_do_anuncio: scraped.roomId,
+            titulo: scraped.title || item.title || `Imóvel ${item.roomId}`,
+            pictureUrl: scraped.pictureUrl || item.pictureUrl || '',
+            ativo: false,
+            user: { id: userId } as any,
+          } as any);
+        } catch (scrapeErr: any) {
+          // Se falhar o enriquecimento, usa dados básicos do perfil
+          this.logger.warn(`⚠️ Falha ao enriquecer room ${item.roomId}: ${scrapeErr.message}. Usando dados básicos.`);
+          listings.push({
+            id: item.roomId,
+            id_do_anuncio: item.roomId,
+            titulo: item.title || `Imóvel ${item.roomId}`,
+            pictureUrl: item.pictureUrl || '',
+            ativo: false,
+            user: { id: userId } as any,
+          } as any);
+        }
       }
 
-      // Mapeia os dados da API para List[], incluindo pictureUrl
-      const listings: List[] = data.data.listings.map((l) => ({
-        id: String(l.id || ""),                    // id do banco será gerado ao salvar
-        id_do_anuncio: String(l.id || ""),        // ID do anúncio na Airbnb
-        titulo: l.nameOrPlaceholderName || l.name || "Listagem sem nome",
-        pictureUrl: l.pictureUrl || "",           // URL da foto principal
-        ativo: false,                             // default false
-        user: { id: userId } as any,
-      }));
-
-      this.logger.log(`✅ Encontradas ${listings.length} listagens para o usuário ${userId}`);
+      this.logger.log(`✅ ${listings.length} listagens prontas para o host ${userId}`);
       return listings;
 
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        if (err.response) {
-          // A API respondeu com status de erro
-          this.logger.error(
-            `❌ API retornou status ${err.response.status} com dados: ${JSON.stringify(err.response.data)}`
-          );
-        } else if (err.request) {
-          // Nenhuma resposta recebida
-          this.logger.error(`❌ Nenhuma resposta da API recebida. Request:`, err.request);
-        } else {
-          // Erro durante configuração da requisição
-          this.logger.error(`❌ Erro na configuração da requisição Axios:`, err.message);
-        }
-
-        if (err.code === 'ECONNABORTED') {
-          this.logger.warn('⚠️ Requisição excedeu o tempo limite (timeout)');
-        }
-
-      } else {
-        // Qualquer outro tipo de erro
-        this.logger.error(`❌ Erro inesperado ao buscar listagens:`, err instanceof Error ? err.stack : String(err));
-      }
-
-      // Retorna lista vazia para não quebrar a aplicação
+      this.logger.error(
+        `❌ Erro ao buscar listagens via scraping:`,
+        err instanceof Error ? err.stack : String(err),
+      );
       return [];
     }
   }
