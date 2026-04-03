@@ -324,6 +324,23 @@ export default function OnboardingWizard() {
         id_do_anuncio: item.id_do_anuncio ?? '',
         ativo: true,
         pictureUrl: item.pictureUrl ?? '',
+        // Dados enriquecidos do scraping
+        bedrooms: item.bedrooms,
+        beds: item.beds,
+        bathrooms: item.bathrooms,
+        guests: item.guests ?? item.guestCapacity,
+        rating: item.rating,
+        isNewListing: item.isNewListing,
+        reviewCount: item.reviewCount,
+        propertyType: item.propertyType,
+        neighborhood: item.neighborhood,
+        street: item.street,
+        city: item.city,
+        state: item.state,
+        zipCode: item.zipCode,
+        fullAddress: item.fullAddress,
+        amenitiesCount: item.amenitiesCount,
+        amenities: item.amenities,
       }));
 
       setProperties(mappedProperties);

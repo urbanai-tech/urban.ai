@@ -91,6 +91,25 @@ export class ConnectService {
             pictureUrl: scraped.pictureUrl || item.pictureUrl || '',
             ativo: false,
             user: { id: userId } as any,
+            // Dados enriquecidos do scraping individual
+            bedrooms: scraped.bedrooms,
+            beds: scraped.beds,
+            bathrooms: scraped.bathrooms,
+            rating: scraped.rating,
+            isNewListing: scraped.isNewListing,
+            reviewCount: scraped.reviewCount,
+            propertyType: scraped.propertyType,
+            neighborhood: scraped.neighborhood,
+            street: scraped.street,
+            city: scraped.city,
+            state: scraped.state,
+            zipCode: scraped.zipCode,
+            fullAddress: scraped.fullAddress,
+            amenitiesCount: scraped.amenitiesCount,
+            amenities: scraped.amenities,
+            guests: scraped.guestCapacity,
+            latitude: scraped.latitude,
+            longitude: scraped.longitude,
           } as any);
         } catch (scrapeErr: any) {
           // Se falhar o enriquecimento, usa dados básicos do perfil
