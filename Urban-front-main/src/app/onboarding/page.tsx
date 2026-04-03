@@ -7,9 +7,9 @@ import {
   SliderFilledTrack, SliderThumb, SliderMark,
   Button, Image, Container, Badge, SimpleGrid,
   List, ListItem, ListIcon, Spinner, Tooltip, Tabs, TabList,
-  TabPanels, Tab, TabPanel, Textarea, IconButton
+  TabPanels, Tab, TabPanel, Textarea, IconButton, Link
 } from '@chakra-ui/react';
-import { CheckIcon, InfoIcon, AddIcon, CloseIcon } from '@chakra-ui/icons';
+import { CheckIcon, InfoIcon, AddIcon, CloseIcon, ExternalLinkIcon } from '@chakra-ui/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
@@ -114,6 +114,7 @@ export default function OnboardingWizard() {
   const [individualLinks, setIndividualLinks] = useState<string[]>(['']);
   const [individualProperties, setIndividualProperties] = useState<Property[]>([]);
   const [loadingIndividual, setLoadingIndividual] = useState(false);
+  const [hostUserId, setHostUserId] = useState<string | null>(null);
 
   // Step 4 — Configurações do motor de IA
   const [distanceKm, setDistanceKm] = useState(30);
@@ -301,6 +302,7 @@ export default function OnboardingWizard() {
       }
 
       let userId = userIdFromGetHostId || extractAirbnbUserId(urlEditor ? urlEditor : result.finalUrl);
+      setHostUserId(userId);
 
       if (!userId) {
         toast("Por favor, insira um link válido do perfil ou imóvel do Airbnb.", { type: "error" });
@@ -699,6 +701,19 @@ export default function OnboardingWizard() {
                       Encontramos <strong>{properties.length}</strong> {properties.length === 1 ? 'imóvel' : 'imóveis'}.
                       Ative os que deseja monitorar com a inteligência do Urban AI.
                     </Text>
+                    {hostUserId && (
+                      <Link
+                        href={`https://www.airbnb.com/users/profile/${hostUserId}`}
+                        isExternal
+                        color="blue.500"
+                        fontSize="sm"
+                        fontWeight="medium"
+                        mt={1}
+                        _hover={{ color: 'blue.600', textDecoration: 'underline' }}
+                      >
+                        🏠 Ver perfil do anfitrião no Airbnb <ExternalLinkIcon mx="2px" />
+                      </Link>
+                    )}
                   </Box>
 
                   <Box p={4} bg="gray.50" borderRadius="lg" border="1px solid" borderColor="gray.200">
@@ -766,10 +781,17 @@ export default function OnboardingWizard() {
                                   </Text>
                                 )}
 
-                                {/* ID do anúncio */}
-                                <Text fontSize="2xs" color="gray.400" fontFamily="mono">
-                                  ID: {property.id_do_anuncio}
-                                </Text>
+                                {/* Link do anúncio no Airbnb */}
+                                <Link
+                                  href={`https://www.airbnb.com/rooms/${property.id_do_anuncio}`}
+                                  isExternal
+                                  fontSize="2xs"
+                                  color="blue.400"
+                                  fontFamily="mono"
+                                  _hover={{ color: 'blue.600', textDecoration: 'underline' }}
+                                >
+                                  🔗 {property.id_do_anuncio} <ExternalLinkIcon mx="1px" boxSize="10px" />
+                                </Link>
                               </Box>
                             </Flex>
                             <Switch colorScheme="blue" size="md"
