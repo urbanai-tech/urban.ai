@@ -250,22 +250,31 @@ export class PropriedadeService {
         }
     }
 
+    // Hash do GraphQL lida do .env (AIRBNB_GRAPHQL_HASH) com fallback para o valor padrão conhecido
+    private static readonly GRAPHQL_DEFAULT_HASH = 'cc10d90fbc2db4f1d74d42017017066b854e382f29d1273f32b6588d6ae25494';
+
+    private get graphqlActiveHash(): string {
+        return process.env.AIRBNB_GRAPHQL_HASH || PropriedadeService.GRAPHQL_DEFAULT_HASH;
+    }
+
+    // Flag para evitar spam de notificações — só notifica 1x por ciclo de vida do servidor
+    private static hashExpirationNotified = false;
+
     /**
      * Busca os imóveis de um anfitrião via API GraphQL interna do Airbnb.
      * Usa o endpoint ContextualPublicProfileQuery que é a mesma chamada
      * que o site faz no browser para popular o carrossel de acomodações.
-     * Não depende de APIs externas pagas (RapidAPI).
+     * Hash lida da variável de ambiente AIRBNB_GRAPHQL_HASH.
+     * Se expirar, notifica o admin via e-mail.
      */
     async scrapeHostListings(userId: string): Promise<{
-        roomId: string;
-        title: string;
-        pictureUrl: string;
+        roomId: string; title: string; pictureUrl: string;
     }[]> {
         // A API do Airbnb espera o userId codificado em Base64 no formato "ContextualUser:{id}"
         const encodedUserId = Buffer.from(`ContextualUser:${userId}`).toString('base64');
 
-        // Hash estável do ContextualPublicProfileQuery (extraído via interceptação de rede)
-        const queryHash = 'cc10d90fbc2db4f1d74d42017017066b854e382f29d1273f32b6588d6ae25494';
+        // Hash lido do .env a cada chamada (permite hot-reload sem redeploy se o Railway atualizar)
+        const queryHash = this.graphqlActiveHash;
         const apiKey = 'd306zoyjsyarp7ifhu67rjxn52tv0t20';
 
         // Variables corretos conforme interceptação real do browser
@@ -282,7 +291,7 @@ export class PropriedadeService {
             },
         };
 
-        const url = `https://www.airbnb.com/api/v3/ContextualPublicProfileQuery/${queryHash}`;
+        const url = `https://www.airbnb.com.br/api/v3/ContextualPublicProfileQuery/${queryHash}`;
 
         // Headers obrigatórios — sem x-airbnb-graphql-platform a API rejeita a query
         const headers = {
@@ -296,7 +305,7 @@ export class PropriedadeService {
         };
 
         try {
-            console.log(`🔎 [scrapeHost] Buscando listings do host ${userId} via GraphQL API...`);
+            console.log(`🔎 [scrapeHost] Buscando listings do host ${userId} via GraphQL API... (Hash atual: ${queryHash?.substring(0, 10)}...)`);
 
             const response = await axios.get(url, {
                 headers,
@@ -312,10 +321,29 @@ export class PropriedadeService {
 
             if (response.status !== 200) {
                 console.warn(`⚠️ [scrapeHost] API retornou status ${response.status}`);
-                return [];
+                throw new Error(`Invalid status: ${response.status}`);
             }
 
             const data = response.data;
+
+            // Se o GraphQL responder com erro de query expirada, notifica o admin
+            if (data.errors && data.errors.some((e: any) =>
+                (e.extensions?.response?.statusCode === 400 && e.message === 'PersistedQueryNotFound') ||
+                e.message?.includes('PersistedQueryNotFound')
+            )) {
+                console.error(`🚨 [scrapeHost] AIRBNB HASH EXPIRADA! A hash "${queryHash?.substring(0, 12)}..." não é mais válida. Atualize a variável AIRBNB_GRAPHQL_HASH no Railway.`);
+
+                // Notifica o admin por e-mail (apenas 1x por ciclo de vida do servidor)
+                if (!PropriedadeService.hashExpirationNotified) {
+                    PropriedadeService.hashExpirationNotified = true;
+                    this.notifyAdminHashExpired(queryHash).catch(err =>
+                        console.error('❌ [scrapeHost] Falha ao notificar admin:', err.message)
+                    );
+                }
+
+                return [];
+            }
+
             const results: { roomId: string; title: string; pictureUrl: string }[] = [];
 
             // Estrutura real: data.data.contextualUser.staySupplyListings.edges[].node
@@ -384,52 +412,127 @@ export class PropriedadeService {
             return results;
 
         } catch (err: any) {
-            console.error(`❌ [scrapeHost] Erro ao buscar listings via GraphQL:`, err.message);
+            console.error(`❌ [scrapeHost] Erro ao buscar listings via GraphQL (.com.br):`, err.message);
 
-            // Se falhar a API GraphQL, tenta fallback por HTML
-            return this.scrapeHostListingsFallback(userId);
+            // Fallback: tenta domínio .com internacional antes de desistir
+            return this.scrapeHostListingsFallbackInternational(userId, queryHash, apiKey, variables, extensions, headers);
         }
     }
 
     /**
-     * Fallback: scraping direto do HTML da página de perfil.
-     * Usado apenas se a API GraphQL falhar.
+     * Fallback #1: tenta o domínio internacional (.com) caso o .com.br falhe.
+     * Ambos os domínios usam a mesma API, mas podem ter políticas de rate-limit diferentes.
      */
-    private async scrapeHostListingsFallback(userId: string): Promise<{
-        roomId: string;
-        title: string;
-        pictureUrl: string;
-    }[]> {
-        const url = `https://www.airbnb.com/users/profile/${userId}`;
-        const headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Accept': 'text/html,application/xhtml+xml',
-        };
+    private async scrapeHostListingsFallbackInternational(
+        userId: string,
+        queryHash: string,
+        apiKey: string,
+        variables: any,
+        extensions: any,
+        headers: any,
+    ): Promise<{ roomId: string; title: string; pictureUrl: string }[]> {
+        try {
+            const urlIntl = `https://www.airbnb.com/api/v3/ContextualPublicProfileQuery/${queryHash}`;
+            console.log(`🔎 [scrapeHost:fallback-intl] Tentando domínio .com para host ${userId}...`);
+
+            const response = await axios.get(urlIntl, {
+                headers,
+                params: {
+                    operationName: 'ContextualPublicProfileQuery',
+                    locale: 'pt-BR',
+                    currency: 'BRL',
+                    variables: JSON.stringify(variables),
+                    extensions: JSON.stringify(extensions),
+                },
+                timeout: 20000,
+            });
+
+            const data = response.data;
+            const edges = data?.data?.contextualUser?.staySupplyListings?.edges;
+            if (Array.isArray(edges) && edges.length > 0) {
+                const results = edges.map((edge: any) => {
+                    const node = edge?.node;
+                    if (!node?.id) return null;
+                    let roomId: string;
+                    try {
+                        const decoded = Buffer.from(node.id, 'base64').toString('utf8');
+                        roomId = decoded.replace(/^StaySupplyListing:/, '');
+                    } catch {
+                        roomId = node.id;
+                    }
+                    return {
+                        roomId: String(roomId),
+                        title: node.name || `Imóvel ${roomId}`,
+                        pictureUrl: node.pictureUrl || '',
+                    };
+                }).filter(Boolean);
+
+                console.log(`✅ [scrapeHost:fallback-intl] Encontrados ${results.length} imóveis via .com`);
+                return results;
+            }
+
+            console.warn(`⚠️ [scrapeHost:fallback-intl] Nenhum imóvel encontrado via .com`);
+            return [];
+        } catch (err: any) {
+            console.error(`❌ [scrapeHost:fallback-intl] Falha no domínio .com: ${err.message}`);
+            return [];
+        }
+    }
+
+    /**
+     * Notifica o admin por e-mail quando a hash do Airbnb GraphQL expirar.
+     * Envia instrução de como atualizar a variável AIRBNB_GRAPHQL_HASH no Railway.
+     */
+    private async notifyAdminHashExpired(expiredHash: string): Promise<void> {
+        const adminEmail = process.env.ADMIN_ALERT_EMAIL;
+        if (!adminEmail) {
+            console.warn('⚠️ [notifyAdmin] ADMIN_ALERT_EMAIL não configurado no .env — notificação NÃO enviada.');
+            return;
+        }
 
         try {
-            console.log(`🔎 [scrapeHost:fallback] Tentando HTML direto para host ${userId}...`);
-            const response = await axios.get(url, { headers, timeout: 20000, maxRedirects: 5 });
-            const html: string = response.data;
+            const subject = '🚨 Urban AI — Hash do Airbnb GraphQL Expirada';
+            const htmlContent = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #e74c3c;">⚠️ Ação Necessária: Hash do Airbnb Expirada</h2>
+                    <p>O sistema Urban AI detectou que a <strong>hash do GraphQL do Airbnb</strong> expirou 
+                    (<code>${expiredHash?.substring(0, 16)}...</code>). A importação de imóveis por host está 
+                    temporariamente desabilitada.</p>
+                    
+                    <h3>📋 Como Corrigir (30 segundos):</h3>
+                    <ol>
+                        <li>Abra seu Chrome e acesse qualquer perfil de host no Airbnb 
+                        (ex: <a href="https://www.airbnb.com.br/users/show/1462996042612541438">este</a>)</li>
+                        <li>Pressione <strong>F12</strong> → aba <strong>Network</strong></li>
+                        <li>Recarregue a página (F5)</li>
+                        <li>No filtro, busque por <strong>"ContextualPublicProfileQuery"</strong></li>
+                        <li>Copie a string de 64 caracteres hexadecimais que aparece na URL da requisição</li>
+                        <li>Acesse o Railway → Variáveis do Backend → Atualize <code>AIRBNB_GRAPHQL_HASH</code></li>
+                    </ol>
+                    
+                    <p style="color: #7f8c8d; font-size: 12px; margin-top: 20px;">
+                        Este alerta é enviado apenas 1x por reinicialização do servidor.
+                        Após atualizar, o sistema volta a funcionar automaticamente sem redeploy.
+                    </p>
+                </div>
+            `;
 
-            const roomIdPattern = /\/rooms\/(\d+)/g;
-            const roomIds = new Set<string>();
-            let match: RegExpExecArray | null;
+            // Envia via MailerService
+            const { MailerSend, EmailParams, Sender, Recipient } = require('mailersend');
+            const mailerSend = new MailerSend({ apiKey: process.env.MAILERSEND_API_KEY });
+            const sentFrom = new Sender(process.env.EMAIL_SENDER || 'noreply@notify.myurbanai.com', 'Urban AI System');
+            const recipients = [new Recipient(adminEmail, 'Admin')];
+            const emailParams = new EmailParams()
+                .setFrom(sentFrom)
+                .setTo(recipients)
+                .setSubject(subject)
+                .setHtml(htmlContent);
+            
+            await mailerSend.email.send(emailParams);
 
-            while ((match = roomIdPattern.exec(html)) !== null) {
-                roomIds.add(match[1]);
-            }
-
-            if (roomIds.size === 0) {
-                console.warn(`⚠️ [scrapeHost:fallback] Nenhum room ID encontrado no HTML`);
-                return [];
-            }
-
-            console.log(`✅ [scrapeHost:fallback] Encontrados ${roomIds.size} imóveis via HTML`);
-            return [...roomIds].map(id => ({ roomId: id, title: `Imóvel ${id}`, pictureUrl: '' }));
+            console.log(`📧 [notifyAdmin] E-mail de alerta enviado para ${adminEmail}`);
         } catch (err: any) {
-            console.error(`❌ [scrapeHost:fallback] Falha total: ${err.message}`);
-            return [];
+            console.error(`❌ [notifyAdmin] Falha ao enviar e-mail de alerta: ${err.message}`);
         }
     }
 
