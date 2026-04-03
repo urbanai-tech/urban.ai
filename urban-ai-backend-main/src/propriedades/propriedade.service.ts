@@ -455,6 +455,7 @@ export class PropriedadeService {
         amenitiesCount: number;
         amenities: string[];
         guestCapacity: number;
+        hostId: string | null;
     }> {
         // Scrape em EN para extração confiável de dados estruturados
         const url = `https://www.airbnb.com/rooms/${roomId}`;
@@ -535,6 +536,10 @@ export class PropriedadeService {
             // Remove duplicatas mantendo ordem
             const amenities = [...new Set(amenitiesRaw)];
 
+            // --- Extrai hostId ---
+            const hostIdMatch = html.match(/"hostId":"(\d+)"/);
+            const hostId = hostIdMatch ? String(hostIdMatch[1]) : null;
+
             // --- 📍 Reverse Geocoding: lat/lng → endereço completo ---
             let street = '', neighborhood = '', city = '', state = '', zipCode = '', fullAddress = '';
 
@@ -578,6 +583,7 @@ export class PropriedadeService {
                 amenitiesCount,
                 amenities,
                 guestCapacity,
+                hostId,
             };
         } catch (err: any) {
             console.error(`❌ [scrape] Erro ao scrapear room ${roomId}:`, err.message);
@@ -603,6 +609,7 @@ export class PropriedadeService {
                 amenitiesCount: 0,
                 amenities: [],
                 guestCapacity: 0,
+                hostId: null,
             };
         }
     }

@@ -84,6 +84,12 @@ export class ConnectService {
       for (const item of hostListings) {
         try {
           const scraped = await this.propriedadeService.scrapeAirbnbListing(item.roomId);
+
+          if (scraped.hostId && scraped.hostId !== userId) {
+            this.logger.warn(`⚠️ Imóvel ${item.roomId} ignorado (Falso positivo). Pertence ao host ${scraped.hostId}, não ao requisitado (${userId}).`);
+            continue;
+          }
+
           listings.push({
             id: scraped.roomId,
             id_do_anuncio: scraped.roomId,
