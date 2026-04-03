@@ -208,16 +208,17 @@ export class AuthService {
    */
   async updateProfileById(
     userId: string,
-    data: { username?: string; email?: string; phone?: string; company?: string; distanceKm?: number }
+    data: { username?: string; email?: string; phone?: string; company?: string; distanceKm?: number; airbnbHostId?: string }
   ) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
 
     if (data.username !== undefined) user.username = data.username;
     if (data.email !== undefined) user.email = data.email;
-    if (data.phone !== undefined) (user as any).phone = data.phone;       // requer coluna 'phone' na entidade
-    if (data.company !== undefined) (user as any).company = data.company; // requer coluna 'company' na entidade
+    if (data.phone !== undefined) (user as any).phone = data.phone;       
+    if (data.company !== undefined) (user as any).company = data.company; 
     if (data.distanceKm !== undefined) user.distanceKm = data.distanceKm;
+    if (data.airbnbHostId !== undefined) user.airbnbHostId = data.airbnbHostId;
 
     const saved = await this.userRepository.save(user);
     return this.sanitizeUser(saved);

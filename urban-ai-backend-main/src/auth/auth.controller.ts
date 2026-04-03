@@ -214,7 +214,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Perfil atualizado com sucesso' })
   @ApiResponse({ status: 401, description: 'Não autorizado' })
   @ApiBearerAuth() // Adicionado para documentação Swagger
-  @UseGuards(JwtAuthGuard) // Adicionado guarda de autenticação
+  @UseGuards(JwtAuthGuard)
   @Put('profile')
   async updateProfileById(
     @Body()
@@ -224,6 +224,7 @@ export class AuthController {
       phone?: string;
       company?: string;
       distanceKm?: number;
+      airbnbHostId?: string;
     },
     @Req() req,
   ) {
