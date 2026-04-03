@@ -45,6 +45,20 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
+// Interceptor global para tratar expiração de token (401)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("accessToken");
+        window.location.href = "/";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 /* ============================
  *    EMAIL / AUTENTICAÇÃO
  * ============================ */
