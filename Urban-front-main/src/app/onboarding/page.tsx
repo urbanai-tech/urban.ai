@@ -12,13 +12,14 @@ import {
 import { CheckIcon, InfoIcon, AddIcon, CloseIcon, ExternalLinkIcon } from '@chakra-ui/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import '../../../i18n';
 import {
   getHostId, getUserManagedListings, registerProperties,
   createMultipleAddresses, resolveAirbnbUrl,
   createCheckoutSession, updateProfileById, getProfileById,
-  getPropertyQuickInfo, requestCreateOrUpdatePercentual
+  getPropertyQuickInfo, requestCreateOrUpdatePercentual,
+  getPropriedadesDropdownList
 } from '../service/api';
 import { FiMapPin, FiCheckCircle, FiLoader, FiUsers, FiHome, FiZap, FiBell } from 'react-icons/fi';
 import { ToastContainer, toast } from 'react-toastify';
@@ -101,6 +102,8 @@ const PRICING_PRESETS: Record<PricingStrategy, { inicial: number; final: number 
 export default function OnboardingWizard() {
   const { t } = useTranslation();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isAddOnly = searchParams.get('addOnly') === 'true';
 
   const [step, setStep] = useState(1);
 
@@ -197,8 +200,12 @@ export default function OnboardingWizard() {
     setLoadingIndividual(true);
     const fetched: Property[] = [];
 
-    for (const link of validLinks) {
-      try {
+    try {
+      const existingProps = await getPropriedadesDropdownList();
+      const existingIds = existingProps.map(p => p.id_do_anuncio).filter(Boolean);
+
+      for (const link of validLinks) {
+        try {
         // Tenta resolver URLs redirecionadas (ex: links curtos do Airbnb)
         let finalUrl = link;
         try {
@@ -220,8 +227,12 @@ export default function OnboardingWizard() {
           continue;
         }
 
-        // Verifica se já está na lista
+        // Verifica se já está na lista local ou no DB
         if (fetched.some(p => p.id_do_anuncio === propertyId)) continue;
+        if (existingIds.includes(propertyId)) {
+          toast(`O imóvel ${propertyId} já está cadastrado em sua conta.`, { type: "info" });
+          continue;
+        }
 
         const info = await getPropertyQuickInfo(propertyId);
         fetched.push({
@@ -251,22 +262,27 @@ export default function OnboardingWizard() {
         console.error(`Erro ao buscar imóvel do link: ${link}`, error);
         toast(`Não foi possível buscar dados para: ${link.substring(0, 40)}...`, { type: "error" });
       }
-    }
+      } // Fim for
 
-    if (fetched.length > 0) {
-      setIndividualProperties(fetched);
-      // Combina com as que já existem
-      const allProps = [...properties, ...fetched].filter(
-        (v, i, a) => a.findIndex(t => t.id_do_anuncio === v.id_do_anuncio) === i
-      );
-      setProperties(allProps);
-      initializeSelectedProperties(allProps);
-      setStep(3);
-    } else {
-      toast("Nenhum imóvel válido encontrado. Verifique os links.", { type: "error" });
-    }
+      if (fetched.length > 0) {
+        setIndividualProperties(fetched);
+        // Combina com as que já existem
+        const allProps = [...properties, ...fetched].filter(
+          (v, i, a) => a.findIndex(t => t.id_do_anuncio === v.id_do_anuncio) === i
+        );
+        setProperties(allProps);
+        initializeSelectedProperties(allProps);
+        setStep(3);
+      } else {
+        toast("Nenhum imóvel novo encontrado. Verifique os links.", { type: "error" });
+      }
 
-    setLoadingIndividual(false);
+    } catch (e) {
+      console.error(e);
+      toast("Erro ao buscar propriedades já cadastradas.", { type: "error" });
+    } finally {
+      setLoadingIndividual(false);
+    }
   };
 
   // =====================================================
@@ -318,7 +334,18 @@ export default function OnboardingWizard() {
         return;
       }
 
-      const mappedProperties: Property[] = listings.map((item: any) => ({
+      const existingProps = await getPropriedadesDropdownList();
+      const existingIds = existingProps.map(p => p.id_do_anuncio).filter(Boolean);
+
+      const filteredListings = listings.filter((item: any) => !existingIds.includes(item.id_do_anuncio));
+
+      if (filteredListings.length === 0 && listings.length > 0) {
+        toast("Todos os imóveis encontrados já estão cadastrados em sua conta.", { type: "info" });
+        setIsLoading(false);
+        return;
+      }
+
+      const mappedProperties: Property[] = filteredListings.map((item: any) => ({
         id: item.id || 0,
         titulo: item.titulo ?? item.name ?? 'Sem título',
         id_do_anuncio: item.id_do_anuncio ?? '',
@@ -420,7 +447,11 @@ export default function OnboardingWizard() {
       await createMultipleAddresses(addressesToRegister);
 
       toast(`${selectedPropertiesList.length} propriedade(s) registrada(s) com sucesso!`, { type: "success" });
-      setStep(4);
+      if (isAddOnly) {
+        setTimeout(() => router.push('/properties'), 500);
+      } else {
+        setStep(4);
+      }
 
     } catch (error) {
       console.error('Erro ao registrar propriedades:', error);
