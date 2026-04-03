@@ -446,6 +446,14 @@ export default function OnboardingWizard() {
 
       await createMultipleAddresses(addressesToRegister);
 
+      if (hostUserId) {
+        try {
+          await updateProfileById(undefined as any, { airbnbHostId: hostUserId });
+        } catch (e) {
+          console.error("Erro ao salvar airbnbHostId do usuário", e);
+        }
+      }
+
       toast(`${selectedPropertiesList.length} propriedade(s) registrada(s) com sucesso!`, { type: "success" });
       if (isAddOnly) {
         setTimeout(() => router.push('/properties'), 500);

@@ -459,6 +459,7 @@ export type UpdateProfilePayload = {
   phone?: string;
   company?: string;
   distanceKm?: number;
+  airbnbHostId?: string;
 };
 
 // Resposta normalizada para sempre expor { profile: { phone, company } }
