@@ -250,6 +250,106 @@ export class PropriedadeService {
         }
     }
 
+    /**
+     * Scraping direto da página de perfil do anfitrião no Airbnb.
+     * Extrai os IDs dos imóveis listados sem depender de API externa (RapidAPI).
+     * Tenta ambas as rotas: /users/show/{id} e /users/profile/{id}
+     */
+    async scrapeHostListings(userId: string): Promise<{
+        roomId: string;
+        title: string;
+        pictureUrl: string;
+    }[]> {
+        const urls = [
+            `https://www.airbnb.com/users/show/${userId}`,
+            `https://www.airbnb.com/users/profile/${userId}`,
+        ];
+
+        const headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9,pt-BR;q=0.8,pt;q=0.7',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        };
+
+        let html = '';
+
+        for (const url of urls) {
+            try {
+                console.log(`🔎 [scrapeHost] Tentando URL: ${url}`);
+                const response = await axios.get(url, { headers, timeout: 20000 });
+                if (response.status === 200 && response.data) {
+                    html = response.data;
+                    console.log(`✅ [scrapeHost] Página carregada com sucesso (${html.length} chars)`);
+                    break;
+                }
+            } catch (err: any) {
+                console.warn(`⚠️ [scrapeHost] Falha na URL ${url}: ${err.message}`);
+            }
+        }
+
+        if (!html) {
+            console.error(`❌ [scrapeHost] Não foi possível carregar o perfil do host ${userId}`);
+            return [];
+        }
+
+        // --- Estratégia 1: Extrair IDs de rooms dos links href="/rooms/XXXXX" ---
+        const roomIdPattern = /href="\/rooms\/(\d+)/g;
+        const roomIds = new Set<string>();
+        let match: RegExpExecArray | null;
+
+        while ((match = roomIdPattern.exec(html)) !== null) {
+            roomIds.add(match[1]);
+        }
+
+        if (roomIds.size === 0) {
+            // --- Estratégia 2: Tentar extrair do JSON embarcado (deferred_state / bootstrapData) ---
+            try {
+                const jsonDataMatch = html.match(/<!--\s*({.+?})\s*-->/s) ||
+                                      html.match(/"managedListings"\s*:\s*(\[.+?\])/s) ||
+                                      html.match(/"userListings"\s*:\s*(\[.+?\])/s);
+                if (jsonDataMatch) {
+                    const roomIdsFromJson = [...jsonDataMatch[0].matchAll(/"id"\s*:\s*"?(\d{10,})"?/g)];
+                    roomIdsFromJson.forEach(m => roomIds.add(m[1]));
+                }
+            } catch {
+                // fallback silencioso
+            }
+        }
+
+        if (roomIds.size === 0) {
+            console.warn(`⚠️ [scrapeHost] Nenhum imóvel encontrado no perfil do host ${userId}`);
+            return [];
+        }
+
+        // --- Extrair títulos e imagens dos cards (best-effort a partir do HTML) ---
+        const results: { roomId: string; title: string; pictureUrl: string }[] = [];
+
+        for (const id of roomIds) {
+            // Tenta extrair título do card (padrão: link /rooms/ID seguido de texto no card)
+            let title = `Imóvel ${id}`;
+            let pictureUrl = '';
+
+            // Título: busca og:title ou aria-label próximo ao link do room
+            const titlePattern = new RegExp(`/rooms/${id}[^"]*"[^>]*>.*?(?:aria-label|title)="([^"]+)"`, 's');
+            const titleMatch = html.match(titlePattern);
+            if (titleMatch) {
+                title = titleMatch[1];
+            }
+
+            // Imagem: busca a primeira imagem antes ou dentro do bloco do room
+            const imgPattern = new RegExp(`/rooms/${id}[\\s\\S]{0,2000}?(?:src|data-original)="(https://[^"]+\\.(?:jpg|jpeg|png|webp)[^"]*)"`);
+            const imgMatch = html.match(imgPattern);
+            if (imgMatch) {
+                pictureUrl = imgMatch[1];
+            }
+
+            results.push({ roomId: id, title, pictureUrl });
+        }
+
+        console.log(`✅ [scrapeHost] Encontrados ${results.length} imóveis para host ${userId}: [${[...roomIds].join(', ')}]`);
+        return results;
+    }
+
     async scrapeAirbnbListing(roomId: string): Promise<{
         roomId: string;
         title: string;
