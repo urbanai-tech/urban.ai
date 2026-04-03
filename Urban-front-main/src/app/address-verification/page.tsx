@@ -10,10 +10,12 @@ import {
   Flex,
   Heading,
   HStack,
+  Link,
   Progress,
   Text,
   VStack,
 } from '@chakra-ui/react';
+import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { motion } from 'framer-motion';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
@@ -75,6 +77,7 @@ function LoadingFallback() {
 function AddressCard({
   title,
   imageUrl,
+  idDoAnuncio,
   cep,
   number,
   onCepChange,
@@ -85,6 +88,7 @@ function AddressCard({
 }: {
   title: string;
   imageUrl: string;
+  idDoAnuncio: string;
   cep: string;
   number: string;
   onCepChange: (val: string) => void;
@@ -169,7 +173,21 @@ function AddressCard({
         </Box>
 
         <VStack align="stretch" flex={1} spacing={3}>
-          <Text fontWeight="bold">{title}</Text>
+          <HStack justify="space-between" align="center">
+            <Text fontWeight="bold">{title}</Text>
+            {idDoAnuncio && (
+              <Link
+                href={`https://www.airbnb.com/rooms/${idDoAnuncio}`}
+                isExternal
+                fontSize="xs"
+                color="blue.400"
+                fontWeight="medium"
+                _hover={{ color: 'blue.600', textDecoration: 'underline' }}
+              >
+                🔗 Ver no Airbnb <ExternalLinkIcon mx="1px" />
+              </Link>
+            )}
+          </HStack>
           <HStack spacing={3} align="start" flexDirection={{ base: 'column', md: 'row' }}>
             {/* Campo CEP + Botão (agora primeiro) */}
             <Box flex={1}>
@@ -554,6 +572,7 @@ function AddressVerificationContent() {
                   key={address.id}
                   title={address.titulo}
                   imageUrl={address.pictureUrl}
+                  idDoAnuncio={address.id_do_anuncio}
                   cep={addressForms[address.id]?.cep || ''}
                   number={addressForms[address.id]?.number || ''}
                   onCepChange={(val) => updateAddressForm(address.id, 'cep', val)}
