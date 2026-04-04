@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense, useEffect } from 'react';
 import {
   Flex, VStack, HStack, Box, Heading, Text, Input,
   FormControl, FormLabel, Switch, Stack, Slider, SliderTrack,
@@ -99,7 +99,7 @@ const PRICING_PRESETS: Record<PricingStrategy, { inicial: number; final: number 
 // ═══════════════════════════════════════
 //  COMPONENTE PRINCIPAL
 // ═══════════════════════════════════════
-export default function OnboardingWizard() {
+function OnboardingWizardContent() {
   const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -120,7 +120,6 @@ export default function OnboardingWizard() {
   const [hostUserId, setHostUserId] = useState<string | null>(null);
 
   // Step 4 — Configurações do motor de IA
-  const [distanceKm, setDistanceKm] = useState(30);
   const [pricingStrategy, setPricingStrategy] = useState<PricingStrategy>('balanced');
   const [operationMode, setOperationMode] = useState<OperationMode>('notifications');
 
@@ -476,7 +475,7 @@ export default function OnboardingWizard() {
     setIsLoading(true);
     try {
       const profile = await getProfileById();
-      await updateProfileById(profile.id, { distanceKm });
+      await updateProfileById(profile.id, {});
 
       // Salvar percentuais baseado na estratégia selecionada
       const preset = PRICING_PRESETS[pricingStrategy];
@@ -1038,6 +1037,7 @@ export default function OnboardingWizard() {
                         bg="gray.100"
                         opacity={0.6}
                         cursor="not-allowed"
+                        pointerEvents="none"
                         transition="all 0.2s"
                       >
                         <VStack spacing={2} align="start">
@@ -1177,5 +1177,17 @@ export default function OnboardingWizard() {
 
       <ToastContainer position="top-right" />
     </Flex>
+  );
+}
+
+export default function OnboardingWizard() {
+  return (
+    <Suspense fallback={
+      <Flex w="100vw" h="100vh" align="center" justify="center">
+        <Spinner size="xl" color="blue.500" />
+      </Flex>
+    }>
+      <OnboardingWizardContent />
+    </Suspense>
   );
 }
