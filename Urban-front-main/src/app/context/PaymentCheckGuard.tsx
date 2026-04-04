@@ -3,6 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { fetchSubscription, getPagamentosDoUsuario } from '../service/api' // <-- ajusta o path conforme sua estrutura
+import { GlobalPaywallModal } from '../componentes/GlobalPaywallModal'
 
 interface PaymentCheckGuardProps {
   children: React.ReactNode
@@ -38,15 +39,14 @@ const PaymentCheckGuard = ({ children }: PaymentCheckGuardProps) => {
 
         console.log('Status da assinatura:', subscription?.status ?? 'sem assinatura');
 
-        if (!isSubscriptionActive && pathname !== '/plans') {
-          router.push('/plans');
-          return;
+        if (!isSubscriptionActive) {
+          setIsAllowed(false);
+        } else {
+          setIsAllowed(true);
         }
-
-        setIsAllowed(true)
       } catch (error) {
         console.error('Erro ao verificar pagamentos:', error)
-        router.push('/plans')
+        setIsAllowed(false);
       } finally {
         setIsLoading(false)
       }
@@ -60,7 +60,12 @@ const PaymentCheckGuard = ({ children }: PaymentCheckGuardProps) => {
     return null // pode trocar por spinner se quiser
   }
 
-  return isAllowed ? <>{children}</> : null
+  return (
+    <>
+      {children}
+      <GlobalPaywallModal isOpen={!isAllowed} />
+    </>
+  )
 }
 
 export default PaymentCheckGuard
