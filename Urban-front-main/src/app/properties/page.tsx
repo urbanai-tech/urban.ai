@@ -12,6 +12,13 @@ import {
   Stack,
   Center,
   Spinner,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +32,10 @@ export default function MyProperties() {
   const router = useRouter();
   const [properties, setProperties] = useState<PropertyDropdown[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const cancelRef = React.useRef<HTMLButtonElement>(null);
+  const [propertyToDelete, setPropertyToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -41,18 +52,24 @@ export default function MyProperties() {
     fetchProperties();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Tem certeza que deseja excluir esta propriedade? Esta ação não pode ser desfeita.")) {
-      return;
-    }
+  const handleDeleteRequest = (id: string) => {
+    setPropertyToDelete(id);
+    onOpen();
+  };
 
+  const confirmDelete = async () => {
+    if (!propertyToDelete) return;
+    
     try {
-      await requestDeleteAddress(id);
+      await requestDeleteAddress(propertyToDelete);
       toast("Propriedade excluída", { type: "success" });
-      setProperties((prev) => prev.filter((prop) => prop.id !== id));
+      setProperties((prev) => prev.filter((prop) => prop.id !== propertyToDelete));
     } catch (error) {
       toast("Erro ao excluir propriedade", { type: "error" });
       console.error('Erro ao deletar imóvel:', error);
+    } finally {
+      onClose();
+      setPropertyToDelete(null);
     }
   };
 
@@ -119,12 +136,40 @@ export default function MyProperties() {
               aria-label={t('my_properties.delete')}
               icon={<DeleteIcon />}
               variant="ghost"
+              colorScheme="red"
               size="sm"
-              onClick={() => handleDelete(prop.id)}
+              onClick={() => handleDeleteRequest(prop.id)}
             />
           </Flex>
         ))}
       </Stack>
+
+      <AlertDialog
+        isOpen={isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Excluir Propriedade
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Tem certeza que deseja excluir esta propriedade? O motor de IA não atualizará mais os preços desta unidade. Esta ação não pode ser desfeita.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onClose}>
+                Cancelar
+              </Button>
+              <Button colorScheme="red" onClick={confirmDelete} ml={3}>
+                Excluir
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
       <ToastContainer />
     </Box>
   );
