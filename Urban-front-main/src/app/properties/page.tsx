@@ -26,6 +26,7 @@ import '../../../i18n';
 import { getPropriedadesDropdownList, PropertyDropdown, requestDeleteAddress } from '../service/api';
 import { toast, ToastContainer } from 'react-toastify';
 import { useRouter } from 'next/navigation';
+import { AddPropertyModal } from '../componentes/AddPropertyModal';
 
 export default function MyProperties() {
   const { t } = useTranslation();
@@ -37,18 +38,21 @@ export default function MyProperties() {
   const cancelRef = React.useRef<HTMLButtonElement>(null);
   const [propertyToDelete, setPropertyToDelete] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        const data = await getPropriedadesDropdownList();
-        setProperties(data);
-      } catch (error) {
-        console.error('Erro ao buscar propriedades:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclosure();
 
+  const fetchProperties = async () => {
+    setLoading(true);
+    try {
+      const data = await getPropriedadesDropdownList();
+      setProperties(data);
+    } catch (error) {
+      console.error('Erro ao buscar propriedades:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchProperties();
   }, []);
 
@@ -74,7 +78,7 @@ export default function MyProperties() {
   };
 
   const handleAddProperty = () => {
-    router.push('/onboarding?addOnly=true');
+    onAddOpen();
   };
 
   if (loading) {
@@ -170,6 +174,13 @@ export default function MyProperties() {
           </AlertDialogContent>
         </AlertDialogOverlay>
       </AlertDialog>
+
+      <AddPropertyModal 
+        isOpen={isAddOpen} 
+        onClose={onAddClose} 
+        onSuccess={fetchProperties} 
+      />
+
       <ToastContainer />
     </Box>
   );
