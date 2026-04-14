@@ -4,15 +4,17 @@ import { Payment } from 'src/entities/payment.entity';
 import { User } from 'src/entities/user.entity';
 import Stripe from 'stripe';
 import { In, Repository } from 'typeorm';
+import { PlansService } from '../plans/plans.service';
 
 @Injectable()
 export class PaymentsService {
   private stripe: Stripe;
 
-  constructor(@InjectRepository(Payment)
-  private paymentRepository: Repository<Payment>,
-    @InjectRepository(User)
-    private userRepository: Repository<User>) {
+  constructor(
+    @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
+    @InjectRepository(User) private userRepository: Repository<User>,
+    private plansService: PlansService,
+  ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: '2025-08-27.basil',
     });
@@ -137,16 +139,14 @@ export class PaymentsService {
 
 
 
-    const priceMap: Record<string, string> = {
-      pro: process.env.MENSAL_PLAN,
-      enterprise: process.env.ANUAL_PLAN
-    };
+    const planEntity = await this.plansService.getPlanByName(data.plan === 'trial' ? 'profissional' : data.plan);
+    const stripePrice = planEntity?.stripePriceId || process.env.MENSAL_PLAN;
     const TRIAL_PERIOD_DAYS = process.env.TRIAL_PERIOD_DAYS
 
     const session = await this.stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [{
-        price: data.plan === 'trial' ? priceMap['pro'] : priceMap[data.plan],
+        price: stripePrice,
         quantity: 1,
       }],
       ...(data?.plan === 'trial' && {

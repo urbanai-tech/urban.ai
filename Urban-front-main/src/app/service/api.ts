@@ -795,20 +795,31 @@ export const requestCreateOrUpdatePercentual = async (
   }
 };
 
-
 /**
- * Busca os percentuais do usuário pelo ID ou token atual.
- * @param payload Opcional: inicial e final (dependendo da API)
- * @returns Dados retornados pela API
+ * Consulta de Planos Dinâmicos
  */
-export const requestFindPercentualByUserId = async (payload?: PercentualPayload) => {
+export interface Plan {
+  id: string;
+  name: string;
+  title: string;
+  price: string | null;
+  originalPrice: string | null;
+  discountBadge: string | null;
+  highlightBadge: string | null;
+  period: string | null;
+  features: string[];
+  propertyLimit: number | null;
+  isCustomPrice: boolean;
+  stripePriceId: string | null;
+  isActive: boolean;
+}
+
+export const getPlans = async (): Promise<Plan[]> => {
   try {
-    const { data } = await api.get('/propriedades/findPercentualByUserId', {
-      data: payload, // Axios permite enviar body em GET (depende do backend)
-    });
+    const { data } = await api.get<Plan[]>('/plans');
     return data;
   } catch (error) {
-    console.error('Erro ao buscar percentuais do usuário:', error);
+    console.error('Erro ao buscar planos:', error);
     throw error;
   }
 };

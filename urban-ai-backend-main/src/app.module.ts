@@ -31,6 +31,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { SentryGlobalFilter } from '@sentry/nestjs/setup';
+import { PlansModule } from './plans/plans.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { SentryGlobalFilter } from '@sentry/nestjs/setup';
     EmailModule,
     ProcessModule,
     PaymentsModule,
+    PlansModule,
     // 1) Load .env first, globally
     ConfigModule.forRoot({
       isGlobal: true,

@@ -19,7 +19,7 @@ import {
   createMultipleAddresses, resolveAirbnbUrl,
   createCheckoutSession, updateProfileById, getProfileById,
   getPropertyQuickInfo,
-  getPropriedadesDropdownList
+  getPropriedadesDropdownList, getPlans, Plan
 } from '../service/api';
 import { FiMapPin, FiCheckCircle, FiLoader, FiUsers, FiHome, FiZap, FiBell } from 'react-icons/fi';
 import { ToastContainer, toast } from 'react-toastify';
@@ -106,6 +106,22 @@ function OnboardingWizardContent() {
   const isAddOnly = searchParams.get('addOnly') === 'true';
 
   const [step, setStep] = useState(1);
+
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(false);
+
+  useEffect(() => {
+    setLoadingPlans(true);
+    getPlans()
+      .then((data) => {
+        setPlans(data);
+        setLoadingPlans(false);
+      })
+      .catch((err) => {
+        console.error("Erro ao carregar planos:", err);
+        setLoadingPlans(false);
+      });
+  }, []);
 
   // Step 2 — Link Airbnb
   const [airbnbLink, setAirbnbLink] = useState('');
@@ -1116,76 +1132,129 @@ function OnboardingWizardContent() {
                     </Text>
                   </Box>
 
-                  <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                    {/* Teste grátis */}
-                    <Box position="relative" borderRadius="xl" p={6} bg="gray.50"
-                      border="2px solid" borderColor="gray.200"
-                      _hover={{ borderColor: 'green.400', boxShadow: 'md' }}
-                      transition="all 0.3s" cursor="pointer"
-                      onClick={() => handleCheckout('trial')}>
-                      <Badge position="absolute" top={3} right={3} colorScheme="green"
-                        fontSize="0.75rem" px={2} py={0.5} borderRadius="full">
-                        7 dias grátis
-                      </Badge>
-                      <VStack spacing={3} pt={4}>
-                        <Text fontSize="lg" fontWeight="bold" color="gray.700">Trial Gratuito</Text>
-                        <Heading size="2xl" color="green.500">Grátis</Heading>
-                        <Button colorScheme="green" size="md" w="100%" mt={2}
-                          isLoading={isLoading} loadingText="Processando...">
-                          Começar grátis
-                        </Button>
-                        <List spacing={2} pt={2} fontSize="sm" color="gray.600">
-                          <ListItem display="flex" alignItems="center">
-                            <ListIcon as={CheckIcon} color="green.400" />
-                            Cadastre propriedades
-                          </ListItem>
-                          <ListItem display="flex" alignItems="center">
-                            <ListIcon as={CheckIcon} color="green.400" />
-                            Análise detalhada
-                          </ListItem>
-                          <ListItem display="flex" alignItems="center">
-                            <ListIcon as={CheckIcon} color="green.400" />
-                            Sugestão de preço para todas
-                          </ListItem>
-                        </List>
-                      </VStack>
-                    </Box>
+                  {loadingPlans ? (
+                    <Flex justify="center" p={10}>
+                      <Spinner size="xl" />
+                    </Flex>
+                  ) : (
+                    <SimpleGrid columns={{ base: 1, md: plans.length > 2 ? 3 : 2 }} spacing={6}>
+                      {plans.map((plan) => (
+                        <Box
+                           key={plan.id}
+                           position="relative"
+                           borderRadius="xl"
+                           p={6}
+                           bg="white"
+                           boxShadow="0 8px 24px rgba(0,0,0,0.08)"
+                           _hover={{ boxShadow: "0 12px 32px rgba(0,0,0,0.15)", borderColor: plan.highlightBadge ? "orange.400" : "blue.500" }}
+                           transition="all 0.3s"
+                           cursor="pointer"
+                           borderWidth={plan.highlightBadge ? "2px" : "1px"}
+                           borderColor={plan.highlightBadge ? "orange.400" : "gray.200"}
+                           onClick={() => {
+                             if (plan.isCustomPrice) {
+                               window.open("https://wa.me/seunumerodevendas", "_blank");
+                             } else {
+                               handleCheckout(plan.name); // Using handleCheckout here
+                             }
+                           }}
+                         >
+                           {plan.highlightBadge && (
+                             <Badge
+                               position="absolute"
+                               top={-3}
+                               left="50%"
+                               transform="translateX(-50%)"
+                               colorScheme="orange"
+                               bg="orange.500"
+                               color="white"
+                               fontSize="0.75rem"
+                               px={3}
+                               py={1}
+                               borderRadius="full"
+                               fontWeight="bold"
+                             >
+                               {plan.highlightBadge}
+                             </Badge>
+                           )}
 
-                    {/* Plano Mensal */}
-                    <Box position="relative" borderRadius="xl" p={6} bg="white"
-                      border="2px solid" borderColor="blue.400"
-                      _hover={{ borderColor: 'blue.500', boxShadow: 'lg' }}
-                      transition="all 0.3s" cursor="pointer"
-                      onClick={() => handleCheckout('pro')}>
-                      <Badge position="absolute" top={3} right={3} colorScheme="blue"
-                        fontSize="0.75rem" px={2} py={0.5} borderRadius="full">
-                        Mais popular
-                      </Badge>
-                      <VStack spacing={3} pt={4}>
-                        <Text fontSize="lg" fontWeight="bold" color="gray.700">Plano Mensal</Text>
-                        <Heading size="2xl" color="blue.500">Grátis</Heading>
-                        <Text fontSize="sm" color="gray.400">/mês</Text>
-                        <Button colorScheme="blue" size="md" w="100%" mt={2}
-                          isLoading={isLoading} loadingText="Processando...">
-                          Selecionar plano
-                        </Button>
-                        <List spacing={2} pt={2} fontSize="sm" color="gray.600">
-                          <ListItem display="flex" alignItems="center">
-                            <ListIcon as={CheckIcon} color="blue.400" />
-                            Cadastre propriedades
-                          </ListItem>
-                          <ListItem display="flex" alignItems="center">
-                            <ListIcon as={CheckIcon} color="blue.400" />
-                            Análise detalhada
-                          </ListItem>
-                          <ListItem display="flex" alignItems="center">
-                            <ListIcon as={CheckIcon} color="blue.400" />
-                            Sugestão de preço para todas
-                          </ListItem>
-                        </List>
-                      </VStack>
-                    </Box>
-                  </SimpleGrid>
+                           {(!plan.highlightBadge && plan.discountBadge) && (
+                              <Badge
+                                position="absolute"
+                                top={3}
+                                right={3}
+                                colorScheme="green"
+                                fontSize="0.75rem"
+                                px={2}
+                                py={0.5}
+                                borderRadius="full"
+                              >
+                                {plan.discountBadge}
+                              </Badge>
+                           )}
+             
+                           <VStack spacing={3} pt={4} textAlign="center">
+                             <Text fontSize="lg" fontWeight="bold" color="gray.700">
+                               {plan.title}
+                             </Text>
+             
+                             <Box>
+                               {plan.originalPrice && (
+                                 <Flex justify="center" align="center" gap={2}>
+                                   <Text decoration="line-through" color="gray.400" fontSize="md">
+                                     R$ {plan.originalPrice} {plan.period}
+                                   </Text>
+                                 </Flex>
+                               )}
+             
+                               {!plan.isCustomPrice ? (
+                                 <Flex justify="center" align="baseline">
+                                   <Heading size="2xl" color={plan.highlightBadge ? "orange.500" : "blue.500"}>
+                                     R$ {plan.price}
+                                   </Heading>
+                                   {plan.period && (
+                                     <Text as="span" fontSize="sm" color="gray.400" ml={1}>
+                                       {plan.period}
+                                     </Text>
+                                   )}
+                                 </Flex>
+                               ) : (
+                                 <Heading size="xl" color="gray.800">
+                                   Sob consulta
+                                 </Heading>
+                               )}
+                             </Box>
+             
+                             <Button
+                               colorScheme={plan.highlightBadge ? "orange" : "blue"}
+                               bg={plan.highlightBadge ? "orange.500" : "blue.500"}
+                               color="white"
+                               size="md"
+                               w="100%"
+                               mt={2}
+                               isLoading={isLoading}
+                               loadingText="Processando..."
+                             >
+                               {plan.isCustomPrice ? "Fale com consultor" : `Selecionar ${plan.title}`}
+                             </Button>
+             
+                             <List spacing={2} pt={2} fontSize="sm" color="gray.600" textAlign="left" w="full">
+                               {plan.features.map((feat) => (
+                                 <ListItem
+                                   key={feat}
+                                   display="flex"
+                                   alignItems="flex-start"
+                                 >
+                                   <ListIcon as={CheckIcon} color="green.400" mt={1} />
+                                   <Text lineHeight="short">{feat}</Text>
+                                 </ListItem>
+                               ))}
+                             </List>
+                           </VStack>
+                         </Box>
+                      ))}
+                    </SimpleGrid>
+                  )}
 
                 </VStack>
               </MotionBox>
