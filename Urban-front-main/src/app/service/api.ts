@@ -160,12 +160,12 @@ export async function registerProperties(properties: List[]): Promise<List[]> {
   }
 }
 
-export async function createCheckoutSession(planId: string): Promise<{ sessionId: string }> {
+export async function createCheckoutSession(planId: string, billingCycle: 'monthly' | 'annual' = 'monthly'): Promise<{ sessionId: string }> {
   try {
-    const { data } = await api.post<{ sessionId: string }>(
-      "/payments/create-checkout-session",
-      { plan: planId }
-    );
+    const { data } = await api.post<{ sessionId: string }>("/payments/create-checkout-session", {
+      plan: planId,
+      billingCycle
+    });
     return data;
   } catch (error) {
     console.error("Erro ao criar sessão de checkout:", error);
@@ -802,15 +802,18 @@ export interface Plan {
   id: string;
   name: string;
   title: string;
-  price: string | null;
-  originalPrice: string | null;
-  discountBadge: string | null;
-  highlightBadge: string | null;
-  period: string | null;
+  price: string;
+  priceAnnual?: string;
+  originalPrice?: string;
+  originalPriceAnnual?: string;
+  period: string;
+  propertyLimit?: number | null;
   features: string[];
-  propertyLimit: number | null;
-  isCustomPrice: boolean;
-  stripePriceId: string | null;
+  stripePriceId?: string;
+  stripePriceIdAnnual?: string;
+  isCustomPrice?: boolean;
+  highlightBadge?: string;
+  discountBadge?: string;
   isActive: boolean;
 }
 

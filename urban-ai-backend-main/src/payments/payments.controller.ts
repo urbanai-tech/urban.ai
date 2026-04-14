@@ -24,6 +24,9 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 export class CreateCheckoutSessionDto {
   @ApiProperty({ example: "pro", description: 'Tag plano' })
   plan: string;
+
+  @ApiProperty({ example: "monthly", description: 'Intervalo de cobrança (monthly/annual)', required: false })
+  billingCycle?: 'monthly' | 'annual';
 }
 
 @Controller('payments')

@@ -18,11 +18,18 @@ import {
   Stack,
   Text,
   Spinner,
+  Switch,
+  FormControl,
+  FormLabel,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
 } from "@chakra-ui/react";
 import { CheckIcon } from "@chakra-ui/icons";
 
 import { loadStripe } from "@stripe/stripe-js";
-import { createCheckoutSession, getPlans, Plan } from "../service/api";
+import { createCheckoutSession, getPlans, Plan, getPropriedadesDropdownList } from "../service/api";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -34,16 +41,36 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAnnual, setIsAnnual] = useState(true);
+  const [propertyCount, setPropertyCount] = useState<number>(0);
+  const [recommendedPlan, setRecommendedPlan] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      getPlans()
-        .then((data) => {
-          setPlans(data);
+      // Fetch both plans and property count
+      Promise.all([
+        getPlans(),
+        getPropriedadesDropdownList().catch(() => []) // if it fails, return empty
+      ])
+        .then(([plansData, propsData]) => {
+          setPlans(plansData);
+          const count = propsData?.length || 0;
+          setPropertyCount(count);
+
+          // Find recommended plan based on propertyLimit
+          // Assumes propertyLimit is 3 for Starter, 10 for Profissional
+          let recommended = "escala"; // fallback
+          if (count <= 3) {
+            recommended = "starter";
+          } else if (count <= 10) {
+            recommended = "profissional";
+          }
+           setRecommendedPlan(recommended);
+
           setLoading(false);
         })
         .catch((err) => {
-          console.error("Erro ao buscar planos:", err);
+          console.error("Erro ao buscar planos/propriedades:", err);
           setLoading(false);
         });
     }
@@ -57,7 +84,8 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
     }
     try {
       setLoadingPlan(plan.name);
-      const { sessionId } = await createCheckoutSession(plan.name);
+      const billingCycle = isAnnual ? 'annual' : 'monthly';
+      const { sessionId } = await createCheckoutSession(plan.name, billingCycle);
       const stripe = await stripePromise;
 
       if (stripe) {
@@ -83,11 +111,36 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
       closeOnEsc={false}
     >
       <ModalOverlay backdropFilter="blur(8px)" bg="blackAlpha.600" />
-      <ModalContent py={10} borderRadius="2xl" maxW="auto" mx={4}>
+      <ModalContent py={10} borderRadius="2xl" maxW="5xl" mx={4}>
         <ModalBody>
-          <Heading as="h2" size="xl" textAlign="center" mb={12} color="gray.800">
+          <Heading as="h2" size="xl" textAlign="center" mb={6} color="gray.800">
             Escolha seu plano para continuar
           </Heading>
+
+          {propertyCount > 0 && (
+            <Alert status="info" variant="subtle" borderRadius="md" mx="auto" maxW="3xl" mb={6}>
+              <AlertIcon />
+              <Box>
+                <AlertTitle>Você possui {propertyCount} imóveis sincronizados.</AlertTitle>
+                <AlertDescription>
+                  Identificamos sua necessidade e recomendamos o plano <strong>{recommendedPlan === 'starter' ? 'Starter' : recommendedPlan === 'profissional' ? 'Profissional' : 'Escala'}</strong> para não perder a sincronização de nenhuma unidade.
+                </AlertDescription>
+              </Box>
+            </Alert>
+          )}
+
+          <Flex justify="center" mb={10}>
+            <FormControl display="flex" alignItems="center" w="auto" bg="gray.50" p={2} borderRadius="full" borderWidth="1px" borderColor="gray.200">
+              <FormLabel htmlFor="billing-toggle" mb="0" ml={4} fontWeight="bold" color={!isAnnual ? "blue.600" : "gray.500"}>
+                Mensal
+              </FormLabel>
+              <Switch id="billing-toggle" size="lg" colorScheme="blue" isChecked={isAnnual} onChange={(e) => setIsAnnual(e.target.checked)} />
+              <FormLabel htmlFor="billing-toggle" mb="0" ml={3} mr={4} fontWeight="bold" color={isAnnual ? "blue.600" : "gray.500"}>
+                Anual
+                <Badge ml={2} colorScheme="green" borderRadius="full" fontSize="0.7em" px={2}>Economize 20%</Badge>
+              </FormLabel>
+            </FormControl>
+          </Flex>
 
           {loading ? (
             <Flex justify="center" align="center" h="20vh">
@@ -135,10 +188,10 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
                       </Text>
 
                       <Box>
-                        {plan.originalPrice && (
+                        {((isAnnual && plan.originalPriceAnnual) || (!isAnnual && plan.originalPrice)) && (
                           <Flex justify="center" align="center" gap={2}>
                             <Text decoration="line-through" color="gray.400" fontSize="md">
-                              R$ {plan.originalPrice} {plan.period}
+                              R$ {isAnnual && plan.originalPriceAnnual ? plan.originalPriceAnnual : plan.originalPrice} {plan.period}
                             </Text>
                           </Flex>
                         )}
@@ -146,7 +199,7 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
                         {!plan.isCustomPrice ? (
                           <Flex justify="center" align="baseline">
                             <Heading as="h3" size="3xl" color="white" bg="gray.800" bgClip="text">
-                              R$ {plan.price}
+                              R$ {isAnnual && plan.priceAnnual ? plan.priceAnnual : plan.price}
                             </Heading>
                             {plan.period && (
                               <Text as="span" fontSize="lg" color="gray.500" ml={1}>

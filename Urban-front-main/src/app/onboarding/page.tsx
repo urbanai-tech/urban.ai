@@ -109,6 +109,7 @@ function OnboardingWizardContent() {
 
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(true);
 
   useEffect(() => {
     setLoadingPlans(true);
@@ -520,7 +521,8 @@ function OnboardingWizardContent() {
   const handleCheckout = async (planId: string) => {
     setIsLoading(true);
     try {
-      const { sessionId } = await createCheckoutSession(planId);
+      const billingCycle = isAnnual ? 'annual' : 'monthly';
+      const { sessionId } = await createCheckoutSession(planId, billingCycle);
       const stripe = await stripePromise;
       if (stripe) {
         await stripe.redirectToCheckout({ sessionId });
@@ -1132,6 +1134,31 @@ function OnboardingWizardContent() {
                     </Text>
                   </Box>
 
+                  {selectedCount > 0 && (
+                    <Alert status="info" variant="subtle" borderRadius="md" mx="auto" maxW="3xl">
+                      <AlertIcon />
+                      <Box>
+                        <AlertTitle>Você conectou {selectedCount} imóveis.</AlertTitle>
+                        <AlertDescription>
+                          A recomendação ideal para você manter a sincronização completa é o plano <strong>{selectedCount <= 3 ? 'Starter' : selectedCount <= 10 ? 'Profissional' : 'Escala'}</strong>.
+                        </AlertDescription>
+                      </Box>
+                    </Alert>
+                  )}
+
+                  <Flex justify="center" mb={2}>
+                    <FormControl display="flex" alignItems="center" w="auto" bg="gray.50" p={2} borderRadius="full" borderWidth="1px" borderColor="gray.200">
+                      <FormLabel htmlFor="onboarding-billing-toggle" mb="0" ml={4} fontWeight="bold" color={!isAnnual ? "blue.600" : "gray.500"}>
+                        Mensal
+                      </FormLabel>
+                      <Switch id="onboarding-billing-toggle" size="lg" colorScheme="blue" isChecked={isAnnual} onChange={(e) => setIsAnnual(e.target.checked)} />
+                      <FormLabel htmlFor="onboarding-billing-toggle" mb="0" ml={3} mr={4} fontWeight="bold" color={isAnnual ? "blue.600" : "gray.500"}>
+                        Anual
+                        <Badge ml={2} colorScheme="green" borderRadius="full" fontSize="0.7em" px={2}>Economize 20%</Badge>
+                      </FormLabel>
+                    </FormControl>
+                  </Flex>
+
                   {loadingPlans ? (
                     <Flex justify="center" p={10}>
                       <Spinner size="xl" />
@@ -1199,10 +1226,10 @@ function OnboardingWizardContent() {
                              </Text>
              
                              <Box>
-                               {plan.originalPrice && (
+                               {((isAnnual && plan.originalPriceAnnual) || (!isAnnual && plan.originalPrice)) && (
                                  <Flex justify="center" align="center" gap={2}>
                                    <Text decoration="line-through" color="gray.400" fontSize="md">
-                                     R$ {plan.originalPrice} {plan.period}
+                                     R$ {isAnnual && plan.originalPriceAnnual ? plan.originalPriceAnnual : plan.originalPrice} {plan.period}
                                    </Text>
                                  </Flex>
                                )}
@@ -1210,7 +1237,7 @@ function OnboardingWizardContent() {
                                {!plan.isCustomPrice ? (
                                  <Flex justify="center" align="baseline">
                                    <Heading size="2xl" color={plan.highlightBadge ? "orange.500" : "blue.500"}>
-                                     R$ {plan.price}
+                                     R$ {isAnnual && plan.priceAnnual ? plan.priceAnnual : plan.price}
                                    </Heading>
                                    {plan.period && (
                                      <Text as="span" fontSize="sm" color="gray.400" ml={1}>

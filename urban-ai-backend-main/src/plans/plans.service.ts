@@ -17,6 +17,8 @@ export class PlansService implements OnModuleInit {
   }
 
   async seedPlans() {
+    // Temp: Clear table to reseed with new annual data
+    // await this.planRepository.clear();
     const count = await this.planRepository.count();
     if (count > 0) {
       this.logger.log('Plans already seeded, skipping.');
@@ -30,6 +32,8 @@ export class PlansService implements OnModuleInit {
       title: 'Starter',
       price: '124',
       originalPrice: '247',
+      priceAnnual: '99',
+      originalPriceAnnual: '199',
       discountBadge: '50% OFF',
       period: '/mês',
       propertyLimit: 3,
@@ -39,7 +43,8 @@ export class PlansService implements OnModuleInit {
         'Recomendações de preço diárias',
         'Dashboard com histórico 30 dias',
       ],
-      stripePriceId: process.env.MENSAL_PLAN || '',
+      stripePriceId: process.env.STARTER_MENSAL_PLAN || process.env.MENSAL_PLAN || '',
+      stripePriceIdAnnual: process.env.STARTER_ANUAL_PLAN || '',
     });
 
     const profissional = this.planRepository.create({
@@ -47,6 +52,8 @@ export class PlansService implements OnModuleInit {
       title: 'Profissional',
       price: '248',
       originalPrice: '497',
+      priceAnnual: '199',
+      originalPriceAnnual: '399',
       highlightBadge: 'MAIS ESCOLHIDO',
       discountBadge: '50% OFF',
       period: '/mês',
@@ -59,7 +66,8 @@ export class PlansService implements OnModuleInit {
         'Notificações por e-mail + painel',
         'Suporte prioritário',
       ],
-      stripePriceId: process.env.ANUAL_PLAN || '', // Mapping to what exists until new price is added
+      stripePriceId: process.env.PROFISSIONAL_MENSAL_PLAN || '',
+      stripePriceIdAnnual: process.env.PROFISSIONAL_ANUAL_PLAN || process.env.ANUAL_PLAN || '',
     });
 
     const escala = this.planRepository.create({
@@ -72,9 +80,6 @@ export class PlansService implements OnModuleInit {
       propertyLimit: null,
       features: [
         'Imóveis Ilimitados',
-        'Integração via API com seu Channel Manager',
-        'Gerente de Sucesso Dedicado',
-        'Precificação com base em ocupação e mercado inteiro',
       ],
       stripePriceId: '', 
     });

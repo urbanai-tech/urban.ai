@@ -102,7 +102,7 @@ export class PaymentsService {
   }
 
 
-  async createCheckoutSession(data: { plan: string }, userId: string) {
+  async createCheckoutSession(data: { plan: string; billingCycle?: 'monthly' | 'annual' }, userId: string) {
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
@@ -140,8 +140,13 @@ export class PaymentsService {
 
 
     const planEntity = await this.plansService.getPlanByName(data.plan === 'trial' ? 'profissional' : data.plan);
-    const stripePrice = planEntity?.stripePriceId || process.env.MENSAL_PLAN;
-    const TRIAL_PERIOD_DAYS = process.env.TRIAL_PERIOD_DAYS
+    
+    let stripePrice = planEntity?.stripePriceId || process.env.MENSAL_PLAN;
+    if (data.billingCycle === 'annual') {
+      stripePrice = planEntity?.stripePriceIdAnnual || process.env.ANUAL_PLAN;
+    }
+
+    const TRIAL_PERIOD_DAYS = process.env.TRIAL_PERIOD_DAYS;
 
     const session = await this.stripe.checkout.sessions.create({
       payment_method_types: ['card'],

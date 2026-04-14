@@ -15,7 +15,13 @@ export class Plan {
   price: string;
 
   @Column({ nullable: true })
+  priceAnnual: string;
+
+  @Column({ nullable: true })
   originalPrice: string;
+
+  @Column({ nullable: true })
+  originalPriceAnnual: string;
 
   @Column({ nullable: true })
   discountBadge: string;
@@ -37,6 +43,9 @@ export class Plan {
 
   @Column({ nullable: true })
   stripePriceId: string;
+
+  @Column({ nullable: true })
+  stripePriceIdAnnual: string;
 
   @Column({ default: true })
   isActive: boolean;
