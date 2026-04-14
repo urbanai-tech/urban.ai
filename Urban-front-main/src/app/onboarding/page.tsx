@@ -1247,7 +1247,7 @@ function OnboardingWizardContent() {
                                    )}
                                  </Flex>
                                ) : (
-                                 <Heading size="xl" color="gray.800">
+                                 <Heading size="lg" color="gray.800" whiteSpace="nowrap">
                                    Sob consulta
                                  </Heading>
                                )}
@@ -1308,3 +1308,4 @@ export default function OnboardingWizard() {
     </Suspense>
   );
 }
+

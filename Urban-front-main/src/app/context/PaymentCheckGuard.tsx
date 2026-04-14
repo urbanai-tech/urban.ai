@@ -16,28 +16,24 @@ const PaymentCheckGuard = ({ children }: PaymentCheckGuardProps) => {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    if (!pathname) return; // espera o pathname estar definido
+    if (!pathname) return // espera o pathname estar definido
     const verifyPayment = async () => {
-      console.log('🔍 Executando PaymentCheckGuard')
       try {
         const token = localStorage.getItem('accessToken')
         if (!token) {
           router.push('/')
           return
-        } else {
-          console.log("nao ta caindo")
         }
 
-        let subscription = null;
+        let subscription = null
         try {
-          subscription = await fetchSubscription();
+          subscription = await fetchSubscription()
         } catch {
           // Usuário sem customer no Stripe ainda — não é erro
         }
 
-        const isSubscriptionActive = subscription?.status === 'active' || subscription?.status === 'trialing';
-
-        console.log('Status da assinatura:', subscription?.status ?? 'sem assinatura');
+        const isSubscriptionActive =
+          subscription?.status === 'active' || subscription?.status === 'trialing'
 
         if (!isSubscriptionActive) {
           setIsAllowed(false);

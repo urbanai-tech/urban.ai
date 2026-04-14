@@ -249,9 +249,6 @@ useEffect(() => {
       setErrorPropsInfo(null);
       const data = await getPropriedadesDropdownList();
 
-      console.log("array velho", propsInfo);
-      console.log("array novo", data);
-
       if (propsInfo.length > 0 && data.length > 0) {
         // Verifica se alguma propriedade mudou de "running" para "completed"
         const completedProps = propsInfo.filter((oldItem) => {
@@ -260,8 +257,6 @@ useEffect(() => {
         });
 
         if (completedProps.length > 0) {
-          console.log("✅ Propriedades completadas:", completedProps);
-          
           // ✅ Atualiza o dropdown com os novos dados
           setPropsInfo(data);
           
@@ -269,12 +264,9 @@ useEffect(() => {
           if (!propertyId || propsInfo.find(p => p.id === propertyId)?.analisado === 'running') {
             const defaultProp = data.find(p => p.analisado === "completed");
             if (defaultProp) {
-              console.log("✅ Selecionando propriedade completada:", defaultProp.id);
               setPropertyId(defaultProp.id);
             }
           }
-        } else {
-          console.log("Nenhuma propriedade foi completada");
         }
       }
     } catch (err) {
