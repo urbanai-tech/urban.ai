@@ -1165,121 +1165,122 @@ function OnboardingWizardContent() {
                       <Spinner size="xl" />
                     </Flex>
                   ) : (
-                    <SimpleGrid columns={{ base: 1, md: plans.length > 2 ? 3 : 2 }} spacing={6}>
+                    <SimpleGrid columns={{ base: 1, md: plans.length > 2 ? 3 : 2 }} spacing={{ base: 6, lg: 8 }} w="full">
                       {plans.map((plan) => (
                         <Box
-                           key={plan.id}
-                           position="relative"
-                           borderRadius="xl"
-                           p={6}
-                           bg="white"
-                           boxShadow="0 8px 24px rgba(0,0,0,0.08)"
-                           _hover={{ boxShadow: "0 12px 32px rgba(0,0,0,0.15)", borderColor: plan.highlightBadge ? "orange.400" : "blue.500" }}
-                           transition="all 0.3s"
-                           cursor="pointer"
-                           borderWidth={plan.highlightBadge ? "2px" : "1px"}
-                           borderColor={plan.highlightBadge ? "orange.400" : "gray.200"}
-                           onClick={() => {
-                             if (plan.isCustomPrice) {
-                               window.open("https://wa.me/seunumerodevendas", "_blank");
-                             } else {
-                               handleCheckout(plan.name); // Using handleCheckout here
-                             }
-                           }}
-                         >
-                           {plan.highlightBadge && (
-                             <Badge
-                               position="absolute"
-                               top={-3}
-                               left="50%"
-                               transform="translateX(-50%)"
-                               colorScheme="orange"
-                               bg="orange.500"
-                               color="white"
-                               fontSize="0.75rem"
-                               px={3}
-                               py={1}
-                               borderRadius="full"
-                               fontWeight="bold"
-                             >
-                               {plan.highlightBadge}
-                             </Badge>
-                           )}
+                          key={plan.id}
+                          position="relative"
+                          borderRadius="xl"
+                          p={{ base: 5, md: 6 }}
+                          bg="white"
+                          boxShadow="0 4px 12px rgba(0,0,0,0.06)"
+                          _hover={{ boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}
+                          transition="box-shadow 0.2s ease"
+                          borderWidth={plan.highlightBadge ? "2px" : "1px"}
+                          borderColor={plan.highlightBadge ? "orange.400" : "gray.200"}
+                          textAlign="center"
+                          display="flex"
+                          flexDirection="column"
+                        >
+                          {plan.highlightBadge && (
+                            <Badge
+                              position="absolute"
+                              top={-3}
+                              right={{ base: 4, md: "auto" }}
+                              left={{ md: "50%" }}
+                              transform={{ md: "translateX(-50%)" }}
+                              colorScheme="orange"
+                              bg="orange.500"
+                              color="white"
+                              fontSize="0.75rem"
+                              px={3}
+                              py={1}
+                              borderRadius="full"
+                              fontWeight="bold"
+                              border="2px solid white"
+                            >
+                              {plan.highlightBadge}
+                            </Badge>
+                          )}
 
-                           {(!plan.highlightBadge && plan.discountBadge) && (
-                              <Badge
-                                position="absolute"
-                                top={3}
-                                right={3}
-                                colorScheme="green"
-                                fontSize="0.75rem"
-                                px={2}
-                                py={0.5}
-                                borderRadius="full"
-                              >
-                                {plan.discountBadge}
-                              </Badge>
-                           )}
-             
-                           <VStack spacing={3} pt={4} textAlign="center">
-                             <Text fontSize="lg" fontWeight="bold" color="gray.700">
-                               {plan.title}
-                             </Text>
-             
-                             <Box>
-                               {((isAnnual && plan.originalPriceAnnual) || (!isAnnual && plan.originalPrice)) && (
-                                 <Flex justify="center" align="center" gap={2}>
-                                   <Text decoration="line-through" color="gray.400" fontSize="md">
-                                     R$ {isAnnual && plan.originalPriceAnnual ? plan.originalPriceAnnual : plan.originalPrice} {plan.period}
-                                   </Text>
-                                 </Flex>
-                               )}
-             
-                               {!plan.isCustomPrice ? (
-                                 <Flex justify="center" align="baseline">
-                                   <Heading size="2xl" color={plan.highlightBadge ? "orange.500" : "blue.500"}>
-                                     R$ {isAnnual && plan.priceAnnual ? plan.priceAnnual : plan.price}
-                                   </Heading>
-                                   {plan.period && (
-                                     <Text as="span" fontSize="sm" color="gray.400" ml={1}>
-                                       {plan.period}
-                                     </Text>
-                                   )}
-                                 </Flex>
-                               ) : (
-                                 <Heading size="lg" color="gray.800" whiteSpace="nowrap">
-                                   Sob consulta
-                                 </Heading>
-                               )}
-                             </Box>
-             
-                             <Button
-                               colorScheme={plan.highlightBadge ? "orange" : "blue"}
-                               bg={plan.highlightBadge ? "orange.500" : "blue.500"}
-                               color="white"
-                               size="md"
-                               w="100%"
-                               mt={2}
-                               isLoading={isLoading}
-                               loadingText="Processando..."
-                             >
-                               {plan.isCustomPrice ? "Fale conosco" : "Selecionar plano"}
-                             </Button>
-             
-                             <List spacing={2} pt={2} fontSize="sm" color="gray.600" textAlign="left" w="full">
-                               {plan.features.map((feat) => (
-                                 <ListItem
-                                   key={feat}
-                                   display="flex"
-                                   alignItems="flex-start"
-                                 >
-                                   <ListIcon as={CheckIcon} color="green.400" mt={1} />
-                                   <Text lineHeight="short">{feat}</Text>
-                                 </ListItem>
-                               ))}
-                             </List>
-                           </VStack>
-                         </Box>
+                          <Stack mt={plan.highlightBadge ? 4 : 0} spacing={4} flex="1">
+                            <Text fontSize="xl" fontWeight="extrabold" color="gray.700">
+                              {plan.title}
+                            </Text>
+
+                            <Box minH="70px" display="flex" flexDirection="column" justifyContent="center">
+                              {((isAnnual && plan.originalPriceAnnual) || (!isAnnual && plan.originalPrice)) && (
+                                <Flex justify="center" align="center" gap={2}>
+                                  <Text decoration="line-through" color="gray.400" fontSize="sm">
+                                    R$ {isAnnual && plan.originalPriceAnnual ? plan.originalPriceAnnual : plan.originalPrice} {plan.period}
+                                  </Text>
+                                </Flex>
+                              )}
+
+                              {!plan.isCustomPrice ? (
+                                <Flex justify="center" align="baseline">
+                                  <Heading as="h3" size={{ base: "xl", lg: "2xl" }} color="gray.800">
+                                    R$ {isAnnual && plan.priceAnnual ? plan.priceAnnual : plan.price}
+                                  </Heading>
+                                  {plan.period && (
+                                    <Text as="span" fontSize="sm" color="gray.500" ml={1}>
+                                      {plan.period}
+                                    </Text>
+                                  )}
+                                  {plan.discountBadge && (
+                                    <Badge ml={2} colorScheme="red" bg="red.900" color="red.200" px={2} py={0.5} borderRadius="md" fontSize="xs">
+                                      {plan.discountBadge}
+                                    </Badge>
+                                  )}
+                                </Flex>
+                              ) : (
+                                <Heading as="h3" size="lg" color="gray.800" whiteSpace="nowrap">
+                                  Sob consulta
+                                </Heading>
+                              )}
+                            </Box>
+
+                            <Button
+                              colorScheme={plan.highlightBadge ? "orange" : "blue"}
+                              bg={plan.highlightBadge ? "orange.500" : "blue.500"}
+                              color="white"
+                              size="md"
+                              whiteSpace="normal"
+                              height="auto"
+                              py={2}
+                              onClick={() => {
+                                if (plan.isCustomPrice) {
+                                  window.open("https://wa.me/seunumerodevendas", "_blank");
+                                } else {
+                                  handleCheckout(plan.name);
+                                }
+                              }}
+                              isLoading={isLoading}
+                              loadingText="Processando..."
+                              _hover={{ transform: "translateY(-1px)", shadow: "sm" }}
+                              transition="all 0.2s"
+                              w="full"
+                              mt={2}
+                            >
+                              {plan.isCustomPrice ? "Fale com consultor" : "Selecionar plano"}
+                            </Button>
+
+                            <List spacing={2} pt={4} textAlign="left" mx="auto" w="full">
+                              {plan.features.map((feat) => (
+                                <ListItem
+                                  key={feat}
+                                  fontSize="sm"
+                                  color="gray.600"
+                                  display="flex"
+                                  alignItems="flex-start"
+                                >
+                                  <ListIcon as={CheckIcon} color="green.400" mt={1} boxSize="3" />
+                                  <Text lineHeight="short">{feat}</Text>
+                                </ListItem>
+                              ))}
+                            </List>
+                          </Stack>
+                        </Box>
                       ))}
                     </SimpleGrid>
                   )}
