@@ -1263,7 +1263,7 @@ function OnboardingWizardContent() {
                                isLoading={isLoading}
                                loadingText="Processando..."
                              >
-                               {plan.isCustomPrice ? "Fale com consultor" : `Selecionar ${plan.title}`}
+                               {plan.isCustomPrice ? "Fale conosco" : "Selecionar plano"}
                              </Button>
              
                              <List spacing={2} pt={2} fontSize="sm" color="gray.600" textAlign="left" w="full">
@@ -1308,4 +1308,5 @@ export default function OnboardingWizard() {
     </Suspense>
   );
 }
+
 
