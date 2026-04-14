@@ -18,7 +18,7 @@ import {
   getHostId, getUserManagedListings, registerProperties,
   createMultipleAddresses, resolveAirbnbUrl,
   createCheckoutSession, updateProfileById, getProfileById,
-  getPropertyQuickInfo, requestCreateOrUpdatePercentual,
+  getPropertyQuickInfo,
   getPropriedadesDropdownList
 } from '../service/api';
 import { FiMapPin, FiCheckCircle, FiLoader, FiUsers, FiHome, FiZap, FiBell } from 'react-icons/fi';
@@ -478,14 +478,12 @@ function OnboardingWizardContent() {
     setIsLoading(true);
     try {
       const profile = await getProfileById();
-      await updateProfileById(profile.id, {
-        pricingStrategy,
-        operationMode
-      });
-
       // Salvar percentuais baseado na estratégia selecionada
       const preset = PRICING_PRESETS[pricingStrategy];
-      await requestCreateOrUpdatePercentual({
+      
+      await updateProfileById(profile.id, {
+        pricingStrategy,
+        operationMode,
         percentualInicial: preset.inicial,
         percentualFinal: preset.final,
       });

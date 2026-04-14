@@ -53,11 +53,17 @@ export class User {
   @Column({ nullable: true })
   company?: string;
 
-  @Column({ nullable: true, default: 'moderate' })
-  pricingStrategy?: string; // 'conservative' | 'moderate' | 'aggressive'
+  @Column({ nullable: true, default: 'conservative' })
+  pricingStrategy?: string; // 'conservative' | 'balanced' | 'aggressive' | 'ai'
 
   @Column({ nullable: true, default: 'notifications' })
-  operationMode?: string; // 'notifications' | 'automatic'
+  operationMode?: string; // 'notifications' | 'auto'
+
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  percentualInicial?: number;
+
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  percentualFinal?: number;
 
   @Column({ nullable: true })
   airbnbHostId?: string;

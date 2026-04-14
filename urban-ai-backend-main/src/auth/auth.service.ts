@@ -208,7 +208,7 @@ export class AuthService {
    */
   async updateProfileById(
     userId: string,
-    data: { username?: string; email?: string; phone?: string; company?: string; distanceKm?: number; airbnbHostId?: string; pricingStrategy?: string; operationMode?: string; }
+    data: { username?: string; email?: string; phone?: string; company?: string; distanceKm?: number; airbnbHostId?: string; pricingStrategy?: string; operationMode?: string; percentualInicial?: number; percentualFinal?: number; }
   ) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
@@ -221,6 +221,8 @@ export class AuthService {
     if (data.airbnbHostId !== undefined) user.airbnbHostId = data.airbnbHostId;
     if (data.pricingStrategy !== undefined) user.pricingStrategy = data.pricingStrategy;
     if (data.operationMode !== undefined) user.operationMode = data.operationMode;
+    if (data.percentualInicial !== undefined) user.percentualInicial = data.percentualInicial;
+    if (data.percentualFinal !== undefined) user.percentualFinal = data.percentualFinal;
 
     const saved = await this.userRepository.save(user);
     return this.sanitizeUser(saved);

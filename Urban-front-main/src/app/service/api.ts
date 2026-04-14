@@ -462,6 +462,8 @@ export type UpdateProfilePayload = {
   airbnbHostId?: string;
   pricingStrategy?: string;
   operationMode?: string;
+  percentualInicial?: number;
+  percentualFinal?: number;
 };
 
 // Resposta normalizada para sempre expor { profile: { phone, company } }
@@ -472,6 +474,8 @@ export type ProfileResponse = {
   distanceKm?: number;
   pricingStrategy?: string;
   operationMode?: string;
+  percentualInicial?: number;
+  percentualFinal?: number;
   createdAt?: string;
   profile: {
     phone: string | null;

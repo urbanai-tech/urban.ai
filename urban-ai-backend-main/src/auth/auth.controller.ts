@@ -229,6 +229,8 @@ export class AuthController {
       airbnbHostId?: string;
       pricingStrategy?: string;
       operationMode?: string;
+      percentualInicial?: number;
+      percentualFinal?: number;
     },
     @Req() req,
   ) {
