@@ -168,6 +168,9 @@ export default function Home() {
                    bg={plan.highlightBadge ? "orange.500" : "gray.900"}
                    color="white"
                    size="lg"
+                   whiteSpace="normal"
+                   height="auto"
+                   py={3}
                    mt={4}
                    onClick={() => handleCheckout(plan)}
                    _hover={{ transform: "scale(1.02)", bg: plan.highlightBadge ? "orange.600" : "gray.700" }}

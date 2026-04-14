@@ -224,6 +224,9 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
                         bg={plan.highlightBadge ? "orange.500" : "blue.500"}
                         color="white"
                         size="lg"
+                        whiteSpace="normal"
+                        height="auto"
+                        py={3}
                         onClick={() => handleCheckout(plan)}
                         isLoading={loadingPlan === plan.name}
                         loadingText="Redirecionando..."
