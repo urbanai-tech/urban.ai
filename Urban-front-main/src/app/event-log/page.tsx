@@ -26,8 +26,6 @@ import 'react-toastify/dist/ReactToastify.css';
 import {
   getProfileById,
   updateProfileById,
-  requestCreateOrUpdatePercentual,
-  requestFindPercentualByUserId,
 } from '@/app/service/api';
 
 type PricingStrategy = 'conservative' | 'balanced' | 'aggressive' | 'ai';
@@ -95,25 +93,12 @@ export default function ConfiguracoesPage() {
           email: userData.email || '',
           pricingStrategy: userData.pricingStrategy || 'balanced',
           operationMode: userData.operationMode || 'notifications',
+          percentualInicial: userData.percentualInicial?.toString().replace('.', ',') || '',
+          percentualFinal: userData.percentualFinal?.toString().replace('.', ',') || '',
         }));
       })
       .catch(() => {
         toast.error('Falha ao carregar perfil');
-      });
-
-    // Buscar percentuais do usuário
-    requestFindPercentualByUserId()
-      .then((data: any) => {
-        if (data && data.percentualInicial !== undefined) {
-          setForm((prev) => ({
-            ...prev,
-            percentualInicial: data.percentualInicial?.toString().replace('.', ',') || '',
-            percentualFinal: data.percentualFinal?.toString().replace('.', ',') || '',
-          }));
-        }
-      })
-      .catch((error: any) => {
-        console.error('Erro ao carregar percentuais:', error);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -301,16 +286,12 @@ export default function ConfiguracoesPage() {
                 }
 
                 try {
-                  // Atualiza perfil (strat / mode)
+                  // Atualiza perfil (strat / mode / limites)
                   await updateProfileById(userId, {
                     pricingStrategy: form.pricingStrategy,
-                    operationMode: form.operationMode
-                  });
-
-                  // Atualiza limites
-                  await requestCreateOrUpdatePercentual({
+                    operationMode: form.operationMode,
                     percentualInicial: inicial,
-                    percentualFinal: final,
+                    percentualFinal: final
                   });
                   toast.success('Configurações salvas com sucesso!');
                 } catch (error) {
