@@ -106,36 +106,37 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
       isOpen={isOpen} 
       onClose={() => {}} 
       isCentered 
-      size="4xl" 
+      size="5xl"
+      scrollBehavior="inside"
       closeOnOverlayClick={false}
       closeOnEsc={false}
     >
       <ModalOverlay backdropFilter="blur(8px)" bg="blackAlpha.600" />
-      <ModalContent py={10} borderRadius="2xl" maxW="5xl" mx={4}>
+      <ModalContent py={{ base: 4, md: 6 }} borderRadius="2xl" mx={4}>
         <ModalBody>
-          <Heading as="h2" size="xl" textAlign="center" mb={6} color="gray.800">
+          <Heading as="h2" size="lg" textAlign="center" mb={4} color="gray.800">
             Escolha seu plano para continuar
           </Heading>
 
           {propertyCount > 0 && (
-            <Alert status="info" variant="subtle" borderRadius="md" mx="auto" maxW="3xl" mb={6}>
-              <AlertIcon />
-              <Box>
-                <AlertTitle>Você possui {propertyCount} imóveis sincronizados.</AlertTitle>
-                <AlertDescription>
-                  Identificamos sua necessidade e recomendamos o plano <strong>{recommendedPlan === 'starter' ? 'Starter' : recommendedPlan === 'profissional' ? 'Profissional' : 'Escala'}</strong> para não perder a sincronização de nenhuma unidade.
+            <Alert status="info" variant="subtle" borderRadius="md" mx="auto" maxW="3xl" mb={4} py={2}>
+              <AlertIcon boxSize="4" />
+              <Box fontSize="sm">
+                <AlertTitle display="inline" mr={2}>Você possui {propertyCount} imóveis sincronizados.</AlertTitle>
+                <AlertDescription display="inline">
+                  Recomendamos o plano <strong>{recommendedPlan === 'starter' ? 'Starter' : recommendedPlan === 'profissional' ? 'Profissional' : 'Escala'}</strong> para não perder a sincronização de NENHUMA unidade.
                 </AlertDescription>
               </Box>
             </Alert>
           )}
 
-          <Flex justify="center" mb={10}>
+          <Flex justify="center" mb={6}>
             <FormControl display="flex" alignItems="center" w="auto" bg="gray.50" p={2} borderRadius="full" borderWidth="1px" borderColor="gray.200">
-              <FormLabel htmlFor="billing-toggle" mb="0" ml={4} fontWeight="bold" color={!isAnnual ? "blue.600" : "gray.500"}>
+              <FormLabel htmlFor="billing-toggle" mb="0" ml={4} fontWeight="bold" fontSize="sm" color={!isAnnual ? "blue.600" : "gray.500"}>
                 Mensal
               </FormLabel>
-              <Switch id="billing-toggle" size="lg" colorScheme="blue" isChecked={isAnnual} onChange={(e) => setIsAnnual(e.target.checked)} />
-              <FormLabel htmlFor="billing-toggle" mb="0" ml={3} mr={4} fontWeight="bold" color={isAnnual ? "blue.600" : "gray.500"}>
+              <Switch id="billing-toggle" size="md" colorScheme="blue" isChecked={isAnnual} onChange={(e) => setIsAnnual(e.target.checked)} />
+              <FormLabel htmlFor="billing-toggle" mb="0" ml={3} mr={4} fontWeight="bold" fontSize="sm" color={isAnnual ? "blue.600" : "gray.500"}>
                 Anual
                 <Badge ml={2} colorScheme="green" borderRadius="full" fontSize="0.7em" px={2}>Economize 20%</Badge>
               </FormLabel>
@@ -147,33 +148,37 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
               <Spinner size="xl" />
             </Flex>
           ) : (
-            <Flex justify="center" px={{ base: 2, md: 8 }}>
-              <SimpleGrid columns={{ base: 1, md: plans.length > 2 ? 3 : 2 }} spacing={8} w="full">
+            <Flex justify="center" px={{ base: 0, md: 4 }}>
+              <SimpleGrid columns={{ base: 1, md: plans.length > 2 ? 3 : 2 }} spacing={{ base: 6, lg: 8 }} w="full">
                 {plans.map((plan) => (
                   <Box
                     key={plan.id}
                     position="relative"
                     borderRadius="xl"
-                    p={8}
+                    p={{ base: 5, md: 6 }}
                     bg="white"
-                    boxShadow="0 8px 24px rgba(0,0,0,0.08)"
-                    _hover={{ boxShadow: "0 12px 32px rgba(0,0,0,0.15)" }}
-                    transition="box-shadow 0.3s ease"
+                    boxShadow="0 4px 12px rgba(0,0,0,0.06)"
+                    _hover={{ boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}
+                    transition="box-shadow 0.2s ease"
                     borderWidth={plan.highlightBadge ? "2px" : "1px"}
                     borderColor={plan.highlightBadge ? "orange.400" : "gray.200"}
                     textAlign="center"
+                    display="flex"
+                    flexDirection="column"
                   >
                     {plan.highlightBadge && (
                       <Badge
                         position="absolute"
-                        top={-4}
-                        right={4}
+                        top={-3}
+                        right={{ base: 4, md: "auto" }}
+                        left={{ md: "50%" }}
+                        transform={{ md: "translateX(-50%)" }}
                         colorScheme="orange"
                         bg="orange.500"
                         color="white"
-                        fontSize="0.9rem"
-                        px={4}
-                        py={1.5}
+                        fontSize="0.75rem"
+                        px={3}
+                        py={1}
                         borderRadius="full"
                         fontWeight="bold"
                         border="2px solid white"
@@ -182,15 +187,15 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
                       </Badge>
                     )}
 
-                    <Stack mt={6} spacing={6}>
-                      <Text fontSize="2xl" fontWeight="extrabold" color="gray.700">
+                    <Stack mt={plan.highlightBadge ? 4 : 0} spacing={4} flex="1">
+                      <Text fontSize="xl" fontWeight="extrabold" color="gray.700">
                         {plan.title}
                       </Text>
 
-                      <Box>
+                      <Box minH="70px" display="flex" flexDirection="column" justifyContent="center">
                         {((isAnnual && plan.originalPriceAnnual) || (!isAnnual && plan.originalPrice)) && (
                           <Flex justify="center" align="center" gap={2}>
-                            <Text decoration="line-through" color="gray.400" fontSize="md">
+                            <Text decoration="line-through" color="gray.400" fontSize="sm">
                               R$ {isAnnual && plan.originalPriceAnnual ? plan.originalPriceAnnual : plan.originalPrice} {plan.period}
                             </Text>
                           </Flex>
@@ -198,22 +203,22 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
 
                         {!plan.isCustomPrice ? (
                           <Flex justify="center" align="baseline">
-                            <Heading as="h3" size="3xl" color="white" bg="gray.800" bgClip="text">
+                            <Heading as="h3" size={{ base: "xl", lg: "2xl" }} color="gray.800">
                               R$ {isAnnual && plan.priceAnnual ? plan.priceAnnual : plan.price}
                             </Heading>
                             {plan.period && (
-                              <Text as="span" fontSize="lg" color="gray.500" ml={1}>
+                              <Text as="span" fontSize="sm" color="gray.500" ml={1}>
                                 {plan.period}
                               </Text>
                             )}
                             {plan.discountBadge && (
-                              <Badge ml={3} colorScheme="red" bg="red.900" color="red.200" px={2} py={1} borderRadius="md">
+                              <Badge ml={2} colorScheme="red" bg="red.900" color="red.200" px={2} py={0.5} borderRadius="md" fontSize="xs">
                                 {plan.discountBadge}
                               </Badge>
                             )}
                           </Flex>
                         ) : (
-                          <Heading as="h3" size="xl" color="gray.800" whiteSpace="nowrap">
+                          <Heading as="h3" size="lg" color="gray.800" whiteSpace="nowrap">
                             Sob consulta
                           </Heading>
                         )}
@@ -223,31 +228,31 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
                         colorScheme={plan.highlightBadge ? "orange" : "blue"}
                         bg={plan.highlightBadge ? "orange.500" : "blue.500"}
                         color="white"
-                        size="lg"
+                        size="md"
                         whiteSpace="normal"
                         height="auto"
-                        py={3}
+                        py={2}
                         onClick={() => handleCheckout(plan)}
                         isLoading={loadingPlan === plan.name}
-                        loadingText="Redirecionando..."
-                        _hover={{ transform: "translateY(-2px)", shadow: "md" }}
+                        loadingText="Carregando..."
+                        _hover={{ transform: "translateY(-1px)", shadow: "sm" }}
                         transition="all 0.2s"
                         w="full"
-                        mt={4}
+                        mt={2}
                       >
                         {plan.isCustomPrice ? "Fale com consultor" : "Selecionar plano"}
                       </Button>
 
-                      <List spacing={3} pt={6} textAlign="left" mx="auto" w="full" px={4}>
+                      <List spacing={2} pt={4} textAlign="left" mx="auto" w="full">
                         {plan.features.map((feat) => (
                           <ListItem
                             key={feat}
-                            fontSize="md"
+                            fontSize="sm"
                             color="gray.600"
                             display="flex"
                             alignItems="flex-start"
                           >
-                            <ListIcon as={CheckIcon} color="green.400" mt={1} />
+                            <ListIcon as={CheckIcon} color="green.400" mt={1} boxSize="3" />
                             <Text lineHeight="short">{feat}</Text>
                           </ListItem>
                         ))}
