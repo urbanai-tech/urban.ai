@@ -18,7 +18,7 @@ export class PlansService implements OnModuleInit {
 
   async seedPlans() {
     // Temp: Clear table to reseed with new annual data
-    // await this.planRepository.clear();
+    await this.planRepository.clear();
     const count = await this.planRepository.count();
     if (count > 0) {
       this.logger.log('Plans already seeded, skipping.');
@@ -30,10 +30,10 @@ export class PlansService implements OnModuleInit {
     const starter = this.planRepository.create({
       name: 'starter',
       title: 'Starter',
-      price: '124',
-      originalPrice: '247',
-      priceAnnual: '99',
-      originalPriceAnnual: '199',
+      price: '57',
+      originalPrice: '97',
+      priceAnnual: '47,50',
+      originalPriceAnnual: '77',
       discountBadge: '50% OFF',
       period: '/mês',
       propertyLimit: 3,
@@ -43,17 +43,17 @@ export class PlansService implements OnModuleInit {
         'Recomendações de preço diárias',
         'Dashboard com histórico 30 dias',
       ],
-      stripePriceId: process.env.STARTER_MENSAL_PLAN || process.env.MENSAL_PLAN || '',
-      stripePriceIdAnnual: process.env.STARTER_ANUAL_PLAN || '',
+      stripePriceId: process.env.STARTER_MENSAL_PLAN || 'price_1TM4qvEnApK9w8lLlszK4zAo',
+      stripePriceIdAnnual: process.env.STARTER_ANUAL_PLAN || 'price_1TM4r4EnApK9w8lLPJR9fjI0',
     });
 
     const profissional = this.planRepository.create({
       name: 'profissional',
       title: 'Profissional',
-      price: '248',
-      originalPrice: '497',
-      priceAnnual: '199',
-      originalPriceAnnual: '399',
+      price: '87',
+      originalPrice: '147',
+      priceAnnual: '72,50',
+      originalPriceAnnual: '127',
       highlightBadge: 'MAIS ESCOLHIDO',
       discountBadge: '50% OFF',
       period: '/mês',
@@ -66,8 +66,8 @@ export class PlansService implements OnModuleInit {
         'Notificações por e-mail + painel',
         'Suporte prioritário',
       ],
-      stripePriceId: process.env.PROFISSIONAL_MENSAL_PLAN || '',
-      stripePriceIdAnnual: process.env.PROFISSIONAL_ANUAL_PLAN || process.env.ANUAL_PLAN || '',
+      stripePriceId: process.env.PROFISSIONAL_MENSAL_PLAN || 'price_1TM4rDEnApK9w8lLft3dgJ7o',
+      stripePriceIdAnnual: process.env.PROFISSIONAL_ANUAL_PLAN || 'price_1TM4rNEnApK9w8lLkNPlE2QZ',
     });
 
     const escala = this.planRepository.create({
