@@ -13,6 +13,7 @@ import {
   FormControl,
   FormLabel,
   Input,
+  Select,
   useColorModeValue,
   Divider,
   Text,
@@ -24,9 +25,19 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {
   getProfileById,
+  updateProfileById,
   requestCreateOrUpdatePercentual,
   requestFindPercentualByUserId,
 } from '@/app/service/api';
+
+type PricingStrategy = 'conservative' | 'balanced' | 'aggressive' | 'ai';
+
+const PRICING_PRESETS: Record<PricingStrategy, { inicial: number; final: number | null }> = {
+  conservative: { inicial: 5, final: 10 },
+  balanced: { inicial: 10, final: 20 },
+  aggressive: { inicial: 15, final: 35 },
+  ai: { inicial: 5, final: null },
+};
 
 export default function ConfiguracoesPage() {
   const surface = useColorModeValue('white', 'gray.800');
@@ -38,8 +49,11 @@ export default function ConfiguracoesPage() {
     email: '',
     percentualInicial: '',
     percentualFinal: '',
+    pricingStrategy: 'balanced',
+    operationMode: 'notifications',
   });
 
+  const [userId, setUserId] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
 
@@ -69,6 +83,7 @@ export default function ConfiguracoesPage() {
       return;
     }
 
+    setUserId(id);
     setLoading(true);
 
     // Buscar dados do perfil
@@ -78,6 +93,8 @@ export default function ConfiguracoesPage() {
           ...prev,
           nome: userData.username || '',
           email: userData.email || '',
+          pricingStrategy: userData.pricingStrategy || 'balanced',
+          operationMode: userData.operationMode || 'notifications',
         }));
       })
       .catch(() => {
@@ -87,7 +104,7 @@ export default function ConfiguracoesPage() {
     // Buscar percentuais do usuário
     requestFindPercentualByUserId()
       .then((data: any) => {
-        if (data) {
+        if (data && data.percentualInicial !== undefined) {
           setForm((prev) => ({
             ...prev,
             percentualInicial: data.percentualInicial?.toString().replace('.', ',') || '',
@@ -101,11 +118,27 @@ export default function ConfiguracoesPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target;
-    // Permite números, vírgula, ponto e sinal negativo
-    const sanitizedValue = value.replace(/[^0-9,.-]/g, '');
-    setForm((prev) => ({ ...prev, [name]: sanitizedValue }));
+    
+    if (name === 'percentualInicial' || name === 'percentualFinal') {
+       const sanitizedValue = value.replace(/[^0-9,.-]/g, '');
+       setForm((prev) => ({ ...prev, [name]: sanitizedValue }));
+       return;
+    }
+
+    if (name === 'pricingStrategy' && PRICING_PRESETS[value as PricingStrategy]) {
+       const preset = PRICING_PRESETS[value as PricingStrategy];
+       setForm((prev) => ({ 
+         ...prev, 
+         [name]: value,
+         percentualInicial: preset.inicial.toString(),
+         percentualFinal: preset.final ? preset.final.toString() : ''
+       }));
+       return;
+    }
+
+    setForm((prev) => ({ ...prev, [name]: value }));
   }
 
   if (loading) {
@@ -116,7 +149,7 @@ export default function ConfiguracoesPage() {
     );
   }
 
-  const isButtonDisabled = !form.percentualInicial || !form.percentualFinal;
+  const isButtonDisabled = !form.percentualInicial; // Final can be empty for AI mode
 
   return (
     <Container maxW="7xl" py={8}>
@@ -163,10 +196,52 @@ export default function ConfiguracoesPage() {
                 />
               </FormControl>
             </GridItem>
+            
+            {/* INÍCIO - Configurações do Motor AI */}
+            <GridItem>
+              <FormControl>
+                <FormLabel>Estratégia de Precificação (Motor de IA)</FormLabel>
+                <Select 
+                  name="pricingStrategy" 
+                  value={form.pricingStrategy} 
+                  onChange={handleChange}
+                  size="lg"
+                  bg="white"
+                >
+                  <option value="conservative">Conservadora (-5% a +10%)</option>
+                  <option value="balanced">Moderada (-10% a +20%)</option>
+                  <option value="aggressive">Agressiva (-15% a +35%)</option>
+                  <option value="ai">Piloto Automático IA (Livre)</option>
+                </Select>
+                <Text fontSize="sm" color="gray.500" mt={1}>
+                  Isso preencherá automaticamente os seus limites permitidos logo abaixo.
+                </Text>
+              </FormControl>
+            </GridItem>
+
+            <GridItem>
+              <FormControl>
+                <FormLabel>Modo de Operação</FormLabel>
+                <Select 
+                  name="operationMode" 
+                  value={form.operationMode} 
+                  onChange={handleChange}
+                  size="lg"
+                  bg="white"
+                >
+                  <option value="notifications">Apenas Notificações (Recomendado)</option>
+                  <option value="auto" disabled>Automático (Em Breve)</option>
+                </Select>
+                 <Text fontSize="sm" color="gray.500" mt={1}>
+                  Aguarde atualizações para aplicar preços diretamente no painel do Airbnb.
+                </Text>
+              </FormControl>
+            </GridItem>
+            {/* FIM - Configurações do Motor AI */}
 
             <GridItem>
               <FormControl isRequired>
-                <FormLabel>Percentual Inicial (%)</FormLabel>
+                <FormLabel>Limite de Queda (%) - Max Desconto</FormLabel>
                 <Input
                   type="text"
                   name="percentualInicial"
@@ -174,17 +249,17 @@ export default function ConfiguracoesPage() {
                   onChange={handleChange}
                   size="lg"
                   variant="filled"
-                  placeholder="Digite a partir de quanto aceitar automático"
+                  placeholder="Ex: 5 ou 10"
                 />
                 <Text fontSize="sm" color="gray.500" mt={1}>
-                  Digite a partir de quanto você deseja aceitar automático as sugestões
+                  Queda máxima permitida em relação ao sub-preço de mercado.
                 </Text>
               </FormControl>
             </GridItem>
 
             <GridItem>
-              <FormControl isRequired>
-                <FormLabel>Percentual Final (%)</FormLabel>
+              <FormControl>
+                <FormLabel>Limite de Alta (%) - Max Lucro</FormLabel>
                 <Input
                   type="text"
                   name="percentualFinal"
@@ -192,10 +267,11 @@ export default function ConfiguracoesPage() {
                   onChange={handleChange}
                   size="lg"
                   variant="filled"
-                  placeholder="Digite até qual percentual aceitar automático"
+                  placeholder="Deixe vazio para IA livre"
+                  isDisabled={form.pricingStrategy === 'ai'}
                 />
                 <Text fontSize="sm" color="gray.500" mt={1}>
-                  Digite até qual percentual você deseja aceitar automático as sugestões
+                  Alta extrema permitida. No modo Piloto IA, este teto é ilimitado.
                 </Text>
               </FormControl>
             </GridItem>
@@ -209,21 +285,29 @@ export default function ConfiguracoesPage() {
               borderRadius="xl"
               boxShadow="sm"
               _hover={{ boxShadow: 'md', transform: 'scale(1.02)' }}
-              isDisabled={isButtonDisabled || saving} // desabilita durante o saving
-              isLoading={saving} // loading no botão
+              isDisabled={isButtonDisabled || saving}
+              isLoading={saving}
               loadingText="Salvando..."
               onClick={async () => {
+                if (!userId) return;
                 setSaving(true);
                 const inicial = parseFloat(form.percentualInicial.replace(',', '.'));
-                const final = parseFloat(form.percentualFinal.replace(',', '.'));
+                const final = form.percentualFinal ? parseFloat(form.percentualFinal.replace(',', '.')) : null;
 
-                if (isNaN(inicial) || isNaN(final)) {
-                  toast.error('Por favor, insira números válidos.');
+                if (isNaN(inicial)) {
+                  toast.error('O percentual de queda é obrigatório e deve ser numérico.');
                   setSaving(false);
                   return;
                 }
 
                 try {
+                  // Atualiza perfil (strat / mode)
+                  await updateProfileById(userId, {
+                    pricingStrategy: form.pricingStrategy,
+                    operationMode: form.operationMode
+                  });
+
+                  // Atualiza limites
                   await requestCreateOrUpdatePercentual({
                     percentualInicial: inicial,
                     percentualFinal: final,
@@ -237,7 +321,7 @@ export default function ConfiguracoesPage() {
                 }
               }}
             >
-              Salvar
+              Salvar Configurações
             </Button>
           </Flex>
         </Box>

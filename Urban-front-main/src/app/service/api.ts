@@ -470,6 +470,8 @@ export type ProfileResponse = {
   username: string;
   email: string;
   distanceKm?: number;
+  pricingStrategy?: string;
+  operationMode?: string;
   createdAt?: string;
   profile: {
     phone: string | null;
