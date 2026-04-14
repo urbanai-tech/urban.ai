@@ -122,6 +122,7 @@ function OnboardingWizardContent() {
   // Step 4 — Configurações do motor de IA
   const [pricingStrategy, setPricingStrategy] = useState<PricingStrategy>('balanced');
   const [operationMode, setOperationMode] = useState<OperationMode>('notifications');
+  const [allRegistered, setAllRegistered] = useState(false);
 
   // =====================================================
   //  FUNÇÕES AUXILIARES
@@ -230,6 +231,7 @@ function OnboardingWizardContent() {
         if (fetched.some(p => p.id_do_anuncio === propertyId)) continue;
         if (existingIds.includes(propertyId)) {
           toast(`O imóvel ${propertyId} já está cadastrado em sua conta.`, { type: "info" });
+          setAllRegistered(true);
           continue;
         }
 
@@ -340,6 +342,7 @@ function OnboardingWizardContent() {
 
       if (filteredListings.length === 0 && listings.length > 0) {
         toast("Todos os imóveis encontrados já estão cadastrados em sua conta.", { type: "info" });
+        setAllRegistered(true);
         setIsLoading(false);
         return;
       }
@@ -693,6 +696,14 @@ function OnboardingWizardContent() {
                               Buscar {individualLinks.filter(l => l.trim()).length === 1 ? 'imóvel' : 'imóveis'}
                             </Button>
                           </Flex>
+                          {allRegistered && (
+                            <Button 
+                              variant="outline" colorScheme="green" size="lg" w="100%" mt={2}
+                              onClick={() => isAddOnly ? router.push('/properties') : setStep(4)}
+                            >
+                              Meus imóveis já estão cadastrados — Avançar
+                            </Button>
+                          )}
                         </VStack>
                       </TabPanel>
 
@@ -733,6 +744,14 @@ function OnboardingWizardContent() {
                               Buscar todas as propriedades
                             </Button>
                           </Flex>
+                          {allRegistered && (
+                            <Button 
+                              variant="outline" colorScheme="green" size="lg" w="100%" mt={2}
+                              onClick={() => isAddOnly ? router.push('/properties') : setStep(4)}
+                            >
+                              Meus imóveis já estão cadastrados — Avançar
+                            </Button>
+                          )}
                         </VStack>
                       </TabPanel>
                     </TabPanels>
