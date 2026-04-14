@@ -7,7 +7,8 @@ import {
   SliderFilledTrack, SliderThumb, SliderMark,
   Button, Image, Container, Badge, SimpleGrid,
   List, ListItem, ListIcon, Spinner, Tooltip, Tabs, TabList,
-  TabPanels, Tab, TabPanel, Textarea, IconButton, Link
+  TabPanels, Tab, TabPanel, Textarea, IconButton, Link,
+  Alert, AlertIcon, AlertTitle, AlertDescription
 } from '@chakra-ui/react';
 import { CheckIcon, InfoIcon, AddIcon, CloseIcon, ExternalLinkIcon } from '@chakra-ui/icons';
 import { motion, AnimatePresence } from 'framer-motion';
