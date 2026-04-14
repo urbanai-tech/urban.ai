@@ -478,7 +478,10 @@ function OnboardingWizardContent() {
     setIsLoading(true);
     try {
       const profile = await getProfileById();
-      await updateProfileById(profile.id, {});
+      await updateProfileById(profile.id, {
+        pricingStrategy,
+        operationMode
+      });
 
       // Salvar percentuais baseado na estratégia selecionada
       const preset = PRICING_PRESETS[pricingStrategy];

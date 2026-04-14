@@ -460,6 +460,8 @@ export type UpdateProfilePayload = {
   company?: string;
   distanceKm?: number;
   airbnbHostId?: string;
+  pricingStrategy?: string;
+  operationMode?: string;
 };
 
 // Resposta normalizada para sempre expor { profile: { phone, company } }

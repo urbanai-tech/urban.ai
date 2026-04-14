@@ -208,6 +208,8 @@ export class AuthController {
         phone: '+55 11 99999-9999',
         company: 'JS Hospedagem',
         distanceKm: 25,
+        pricingStrategy: 'moderate',
+        operationMode: 'notifications'
       },
     },
   })
@@ -225,6 +227,8 @@ export class AuthController {
       company?: string;
       distanceKm?: number;
       airbnbHostId?: string;
+      pricingStrategy?: string;
+      operationMode?: string;
     },
     @Req() req,
   ) {
