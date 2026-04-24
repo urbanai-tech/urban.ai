@@ -4,6 +4,7 @@ import "./instrument";
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { json, urlencoded } from 'express';
@@ -57,6 +58,10 @@ async function bootstrap() {
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   });
+
+  // cookie-parser — necessário para os cookies httpOnly de auth
+  // (urbanai_access_token, urbanai_refresh_token).
+  app.use(cookieParser());
 
   // ⚠️ Desabilita o body-parser padrão na rota do Stripe Webhook
   app.use(

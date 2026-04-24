@@ -4,11 +4,13 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   InternalServerErrorException,
   Param,
   Post,
   Put,
   Req,
+  Res,
   UseGuards,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -20,13 +22,45 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+import { Request, Response } from 'express';
 import { User } from 'src/entities/user.entity';
-import { AuthService } from './auth.service';
+import { AuthService, TokenPair } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { ACCESS_TOKEN_COOKIE } from './jwt.strategy';
+
+const REFRESH_TOKEN_COOKIE = 'urbanai_refresh_token';
+
+/** Duração máxima do access cookie — deve bater com JWT_EXPIRES_IN. */
+const ACCESS_COOKIE_MAX_AGE_MS = 15 * 60 * 1000; // 15 min
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  /** Configuração comum dos cookies. Em prod: Secure + SameSite=lax. */
+  private cookieOpts(maxAgeMs: number, isRefresh = false) {
+    const isProd =
+      (process.env.APP_ENV || process.env.NODE_ENV) === 'production' ||
+      (process.env.APP_ENV || process.env.NODE_ENV) === 'staging';
+    return {
+      httpOnly: true,
+      secure: isProd, // em dev local (http), cookies secure quebram o fluxo
+      sameSite: 'lax' as const,
+      path: isRefresh ? '/auth' : '/',
+      maxAge: maxAgeMs,
+    };
+  }
+
+  private setAuthCookies(res: Response, tokens: TokenPair) {
+    res.cookie(ACCESS_TOKEN_COOKIE, tokens.accessToken, this.cookieOpts(ACCESS_COOKIE_MAX_AGE_MS));
+    const refreshMaxAge = tokens.refreshExpiresAt.getTime() - Date.now();
+    res.cookie(REFRESH_TOKEN_COOKIE, tokens.refreshToken, this.cookieOpts(refreshMaxAge, true));
+  }
+
+  private clearAuthCookies(res: Response) {
+    res.clearCookie(ACCESS_TOKEN_COOKIE, { path: '/' });
+    res.clearCookie(REFRESH_TOKEN_COOKIE, { path: '/auth' });
+  }
 
   @ApiOperation({ summary: 'Registrar um novo usuário' })
   @ApiResponse({ status: 201, description: 'Usuário registrado com sucesso' })
@@ -51,6 +85,8 @@ export class AuthController {
       password: string;
     },
   ) {
+    // Registro continua retornando o usuário cru — o login separado é que
+    // estabelece a sessão. Mantém compatibilidade com o fluxo atual do front.
     return this.authService.register(data);
   }
 
@@ -69,8 +105,19 @@ export class AuthController {
   })
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('login')
-  login(@Body() data: { email: string; password: string }) {
-    return this.authService.login(data.email, data.password);
+  async login(
+    @Body() data: { email: string; password: string },
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const tokens = await this.authService.login(data.email, data.password, {
+      userAgent: req.headers['user-agent'],
+      ip: req.ip,
+    });
+    this.setAuthCookies(res, tokens);
+    // Retrocompat: ainda devolve o accessToken no body para clientes que
+    // continuam usando localStorage. A Fase 2 do runbook remove isso.
+    return { accessToken: tokens.accessToken };
   }
 
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
@@ -82,6 +129,8 @@ export class AuthController {
       name: string;
       picture?: string;
     },
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
   ) {
     try {
       if (!googleUserData.email) {
@@ -90,7 +139,13 @@ export class AuthController {
       if (!googleUserData.name) {
         throw new BadRequestException('Nome não fornecido');
       }
-      return this.authService.googleLogin(googleUserData);
+      const result = await this.authService.googleLogin(googleUserData, {
+        userAgent: req.headers['user-agent'],
+        ip: req.ip,
+      });
+      this.setAuthCookies(res, result);
+      // Retrocompat: accessToken no body (Fase 2 remove).
+      return { accessToken: result.accessToken, user: result.user };
     } catch (error) {
       console.error('Erro no controller de login Google:', error);
       if (error instanceof BadRequestException) {
@@ -100,6 +155,32 @@ export class AuthController {
         'Ocorreu um erro durante o processamento do login com Google',
       );
     }
+  }
+
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @Post('refresh')
+  @HttpCode(200)
+  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const raw = req.cookies?.[REFRESH_TOKEN_COOKIE];
+    if (!raw) {
+      throw new UnauthorizedException('Refresh token ausente');
+    }
+    const tokens = await this.authService.rotateRefreshToken(raw, {
+      userAgent: req.headers['user-agent'],
+      ip: req.ip,
+    });
+    this.setAuthCookies(res, tokens);
+    return { accessToken: tokens.accessToken };
+  }
+
+  @Post('logout')
+  @HttpCode(204)
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const raw = req.cookies?.[REFRESH_TOKEN_COOKIE];
+    if (raw) {
+      await this.authService.revokeRefreshToken(raw);
+    }
+    this.clearAuthCookies(res);
   }
 
   @ApiOperation({ summary: 'Excluir um usuário pelo ID' })

@@ -7,6 +7,7 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { AuthService } from './auth.service';
 import { User } from '../entities/user.entity';
+import { RefreshToken } from '../entities/refresh-token.entity';
 import { PaymentsService } from '../payments/payments.service';
 
 type Repo<T> = Partial<Record<keyof Repository<T>, jest.Mock>>;
@@ -14,6 +15,7 @@ type Repo<T> = Partial<Record<keyof Repository<T>, jest.Mock>>;
 describe('AuthService', () => {
   let service: AuthService;
   let userRepo: Repo<User>;
+  let refreshRepo: Repo<RefreshToken>;
   let jwt: { sign: jest.Mock };
   let payments: { createPayment: jest.Mock };
 
@@ -26,6 +28,12 @@ describe('AuthService', () => {
       save: jest.fn(),
       remove: jest.fn(),
     };
+    refreshRepo = {
+      findOne: jest.fn(),
+      create: jest.fn().mockImplementation((d) => d),
+      save: jest.fn().mockImplementation(async (d) => ({ id: 'rt-1', ...d })),
+      update: jest.fn(),
+    };
     jwt = { sign: jest.fn().mockReturnValue('signed.jwt.token') };
     payments = { createPayment: jest.fn().mockResolvedValue(undefined) };
 
@@ -34,6 +42,7 @@ describe('AuthService', () => {
         AuthService,
         { provide: JwtService, useValue: jwt },
         { provide: getRepositoryToken(User), useValue: userRepo },
+        { provide: getRepositoryToken(RefreshToken), useValue: refreshRepo },
         { provide: PaymentsService, useValue: payments },
       ],
     }).compile();
@@ -104,7 +113,7 @@ describe('AuthService', () => {
       );
     });
 
-    it('returns a JWT on correct password for a bcrypt-stored user (no rehash)', async () => {
+    it('returns a token pair on correct password for a bcrypt-stored user (no rehash)', async () => {
       const user = {
         id: 'u1',
         email: 'u@test.com',
@@ -115,9 +124,14 @@ describe('AuthService', () => {
 
       const result = await service.login('u@test.com', 'correct');
 
-      expect(result).toEqual({ accessToken: 'signed.jwt.token' });
+      expect(result.accessToken).toBe('signed.jwt.token');
+      expect(result.refreshToken).toMatch(/^[A-Za-z0-9_-]+$/);
+      expect(result.refreshExpiresAt).toBeInstanceOf(Date);
       expect(jwt.sign).toHaveBeenCalledWith({ sub: 'u1', username: 'u' });
+      // A única gravação no user repo deve ser ausente (bcrypt já está no banco).
       expect(userRepo.save).not.toHaveBeenCalled();
+      // Refresh token persistido.
+      expect(refreshRepo.save).toHaveBeenCalledTimes(1);
     });
 
     it('accepts a legacy SHA-256 password and transparently rehashes to bcrypt', async () => {
@@ -132,7 +146,7 @@ describe('AuthService', () => {
 
       const result = await service.login('legacy@test.com', 'minhasenha');
 
-      expect(result).toEqual({ accessToken: 'signed.jwt.token' });
+      expect(result.accessToken).toBe('signed.jwt.token');
       expect(userRepo.save).toHaveBeenCalledTimes(1);
       const savedUser = userRepo.save!.mock.calls[0][0];
       expect(savedUser.password).toMatch(/^\$2[aby]\$12\$/);
@@ -150,6 +164,70 @@ describe('AuthService', () => {
       await expect(service.login('g@test.com', 'qualquercoisa')).rejects.toBeInstanceOf(
         UnauthorizedException,
       );
+    });
+  });
+
+  describe('rotateRefreshToken', () => {
+    it('throws when the refresh token does not exist', async () => {
+      refreshRepo.findOne!.mockResolvedValue(null);
+
+      await expect(service.rotateRefreshToken('deadbeef')).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+    });
+
+    it('throws and revokes all user sessions when a revoked token is reused', async () => {
+      const user = { id: 'u1', username: 'u' };
+      refreshRepo.findOne!.mockResolvedValue({
+        id: 'rt-old',
+        user,
+        revokedAt: new Date('2026-01-01'),
+        expiresAt: new Date('2099-01-01'),
+      });
+
+      await expect(service.rotateRefreshToken('reused-token')).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+      // Deve ter tentado revogar todos os refresh ativos do user
+      expect(refreshRepo.update).toHaveBeenCalled();
+    });
+
+    it('throws when the refresh token is expired', async () => {
+      const user = { id: 'u1', username: 'u' };
+      refreshRepo.findOne!.mockResolvedValue({
+        id: 'rt-old',
+        user,
+        revokedAt: null,
+        expiresAt: new Date('2000-01-01'),
+      });
+
+      await expect(service.rotateRefreshToken('expired-token')).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+    });
+
+    it('revokes the current token and issues a new pair on happy path', async () => {
+      const user = { id: 'u1', username: 'u' };
+      const record = {
+        id: 'rt-current',
+        user,
+        revokedAt: null,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      };
+      refreshRepo.findOne!.mockResolvedValue(record);
+
+      const tokens = await service.rotateRefreshToken('valid-token');
+
+      // A linha antiga foi marcada como revogada via .save
+      expect(refreshRepo.save).toHaveBeenCalled();
+      const savedOld = refreshRepo.save!.mock.calls.find(
+        (call) => call[0]?.id === 'rt-current',
+      );
+      expect(savedOld[0].revokedAt).toBeInstanceOf(Date);
+
+      // Novo par emitido
+      expect(tokens.accessToken).toBe('signed.jwt.token');
+      expect(tokens.refreshToken).not.toBe('valid-token');
     });
   });
 
