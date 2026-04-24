@@ -4,15 +4,55 @@ import "./instrument";
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as bodyParser from 'body-parser';
+import helmet from 'helmet';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { json, urlencoded } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // CORS — permite o frontend acessar o backend
+  // Helmet — HSTS, X-Frame-Options, X-Content-Type-Options, etc.
+  // CSP aplicado manualmente porque o backend serve principalmente JSON;
+  // a CSP do front é responsabilidade do Next.js.
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+          defaultSrc: ["'self'"],
+          // Permite Stripe (checkout + webhooks), Sentry e Google (Maps/OAuth)
+          scriptSrc: ["'self'", 'https://js.stripe.com', 'https://*.sentry.io'],
+          connectSrc: [
+            "'self'",
+            'https://api.stripe.com',
+            'https://*.sentry.io',
+            'https://maps.googleapis.com',
+          ],
+          frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
+          imgSrc: ["'self'", 'data:', 'https:'],
+        },
+      },
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    }),
+  );
+
+  // CORS — whitelist explícita. Nunca fallback para "*".
+  // CORS_ALLOWED_ORIGINS (lista separada por vírgula) tem prioridade;
+  // FRONT_BASE_URL sozinha serve como conveniência retrocompatível.
+  const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || process.env.FRONT_BASE_URL || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (allowedOrigins.length === 0) {
+    // Fail-closed: sem whitelist configurada, bloqueia toda origem em vez de abrir "*".
+    console.warn(
+      '[CORS] Nenhuma origem configurada (CORS_ALLOWED_ORIGINS/FRONT_BASE_URL). Requisições cross-origin serão bloqueadas.',
+    );
+  }
+
   app.enableCors({
-    origin: process.env.FRONT_BASE_URL || '*',
+    origin: allowedOrigins.length > 0 ? allowedOrigins : false,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
