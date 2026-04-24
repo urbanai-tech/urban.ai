@@ -68,11 +68,8 @@ export class PropriedadeService {
         @Inject(forwardRef(() => AirbnbService))
         private readonly airbnbService: AirbnbService,
         private readonly emailService: EmailService,
-    ) { 
-        this.aiEngine = new UrbanAIPricingEngine();
-    }
-    
-    private aiEngine: UrbanAIPricingEngine;
+        private readonly aiEngine: UrbanAIPricingEngine,
+    ) { }
 
     async findByUserId(
         userId: string,

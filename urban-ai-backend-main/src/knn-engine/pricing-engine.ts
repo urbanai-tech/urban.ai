@@ -5,15 +5,11 @@ import { DisplacementCostMatrix } from './cost-matrix';
 
 @Injectable()
 export class UrbanAIPricingEngine {
-    private travelEngine: TravelTimeEngine;
-    private classifier: PropertyClassifier;
-    private costMatrix: DisplacementCostMatrix;
-
-    constructor() {
-        this.travelEngine = new TravelTimeEngine();
-        this.classifier = new PropertyClassifier();
-        this.costMatrix = new DisplacementCostMatrix(this.travelEngine);
-    }
+    constructor(
+        private readonly travelEngine: TravelTimeEngine,
+        private readonly classifier: PropertyClassifier,
+        private readonly costMatrix: DisplacementCostMatrix,
+    ) {}
 
     /**
      * Inicializa o motor com dados históricos/atuais de imóveis.
