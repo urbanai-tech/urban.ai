@@ -1,28 +1,39 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
+// URL base do Chainlit Copilot — nunca deve vir hardcoded.
+// Em dev/local: http://localhost:8000 (ou o que estiver no .env.local)
+// Em staging/prod: configurar NEXT_PUBLIC_CHAINLIT_URL no Railway.
+const COPILOT_URL = process.env.NEXT_PUBLIC_CHAINLIT_URL;
+
 const nextConfig: NextConfig = {
   images: {
     domains: ['cdn.usegalileo.ai'],
   },
   output: 'standalone',
   eslint: {
-    // ⚠️ Ignora erros de ESLint no build (temporário)
-    ignoreDuringBuilds: true,
+    // Build falha em ERROS do lint (rules-of-hooks, etc). Warnings (unused
+    // vars, exhaustive-deps, etc) são permitidos até o saneamento completo
+    // descrito em docs/runbooks/eslint-debt.md.
+    ignoreDuringBuilds: false,
   },
   async rewrites() {
+    if (!COPILOT_URL) {
+      // Sem copilot configurado, o rewrite é omitido — 404 natural em vez de crash.
+      return [];
+    }
     return [
       {
         source: '/copilot/:path*',
-        destination: 'http://200.142.105.90:31806/copilot/:path*',
+        destination: `${COPILOT_URL}/copilot/:path*`,
       },
       {
         source: '/ws/:path*',
-        destination: 'http://200.142.105.90:31806/ws/:path*',
+        destination: `${COPILOT_URL}/ws/:path*`,
       },
       {
         source: '/assets/:path*',
-        destination: 'http://200.142.105.90:31806/assets/:path*',
+        destination: `${COPILOT_URL}/assets/:path*`,
       }
     ];
   },
