@@ -30,7 +30,10 @@ import { Repository } from 'typeorm';
 import { PaymentsService } from './payments.service';
 import { Payment } from '../entities/payment.entity';
 import { User } from '../entities/user.entity';
+import { Address } from '../entities/addresses.entity';
 import { PlansService } from '../plans/plans.service';
+
+const stubAddressRepo = () => ({ count: jest.fn().mockResolvedValue(0) });
 
 type Repo<T> = Partial<Record<keyof Repository<T>, jest.Mock>>;
 
@@ -57,6 +60,7 @@ describe('PaymentsService — handleStripeWebhook', () => {
         PaymentsService,
         { provide: getRepositoryToken(Payment), useValue: paymentRepo },
         { provide: getRepositoryToken(User), useValue: userRepo },
+        { provide: getRepositoryToken(Address), useValue: stubAddressRepo() },
         { provide: PlansService, useValue: plansService },
       ],
     }).compile();
@@ -98,7 +102,8 @@ describe('PaymentsService — handleStripeWebhook', () => {
         customer: customerId,
         status: 'trialing',
         billing_cycle_anchor: anchorEpoch,
-        items: { data: [{ plan: { interval: 'month' } }] },
+        items: { data: [{ plan: { interval: 'month' }, quantity: 1 }] },
+        metadata: {},
       });
       paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId, status: 'pending' });
 
@@ -112,6 +117,33 @@ describe('PaymentsService — handleStripeWebhook', () => {
       });
       expect(saved.expireDate).toBeInstanceOf(Date);
       expect(saved.startDate).toBeInstanceOf(Date);
+    });
+
+    it('persists listingsContratados and billingCycle from F6.5 metadata', async () => {
+      mockStripeConstructEvent.mockReturnValue({
+        type: 'checkout.session.completed',
+        data: { object: { subscription: 'sub_meta' } },
+      });
+      mockStripeSubscriptionsRetrieve.mockResolvedValue({
+        id: 'sub_meta',
+        customer: 'cus_abc',
+        status: 'active',
+        billing_cycle_anchor: 1_700_000_000,
+        items: { data: [{ plan: { interval: 'month' }, quantity: 5 }] },
+        metadata: {
+          urbanai_plan: 'profissional',
+          urbanai_billing_cycle: 'quarterly',
+          urbanai_quantity: '5',
+        },
+      });
+      paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId: 'cus_abc' });
+
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+      const saved = paymentRepo.save!.mock.calls[0][0];
+      expect(saved.billingCycle).toBe('quarterly');
+      expect(saved.listingsContratados).toBe(5);
+      expect(saved.planName).toBe('profissional');
     });
 
     it('no-ops when Payment does not exist for the customer', async () => {
@@ -163,7 +195,8 @@ describe('PaymentsService — handleStripeWebhook', () => {
           object: {
             customer: 'cus_abc',
             status: 'active',
-            items: { data: [{ plan: { interval: 'year' } }] },
+            items: { data: [{ plan: { interval: 'year' }, quantity: 1 }] },
+            metadata: {},
           },
         },
       });
@@ -173,6 +206,34 @@ describe('PaymentsService — handleStripeWebhook', () => {
 
       expect(paymentRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({ status: 'active', mode: 'year' }),
+      );
+    });
+
+    it('updates listingsContratados when quantity changes (upsell)', async () => {
+      mockStripeConstructEvent.mockReturnValue({
+        type: 'customer.subscription.updated',
+        data: {
+          object: {
+            customer: 'cus_abc',
+            status: 'active',
+            items: { data: [{ plan: { interval: 'month' }, quantity: 8 }] },
+            metadata: {
+              urbanai_quantity: '8',
+              urbanai_billing_cycle: 'monthly',
+            },
+          },
+        },
+      });
+      paymentRepo.findOne!.mockResolvedValue({
+        id: 'pay1',
+        customerId: 'cus_abc',
+        listingsContratados: 3,
+      });
+
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+      expect(paymentRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ listingsContratados: 8, billingCycle: 'monthly' }),
       );
     });
   });
@@ -242,6 +303,7 @@ describe('PaymentsService — cancelSubscription', () => {
         PaymentsService,
         { provide: getRepositoryToken(Payment), useValue: paymentRepo },
         { provide: getRepositoryToken(User), useValue: userRepo },
+        { provide: getRepositoryToken(Address), useValue: stubAddressRepo() },
         { provide: PlansService, useValue: { getPlanByName: jest.fn() } },
       ],
     }).compile();
@@ -303,6 +365,7 @@ describe('PaymentsService — createCheckoutSession', () => {
         PaymentsService,
         { provide: getRepositoryToken(Payment), useValue: paymentRepo },
         { provide: getRepositoryToken(User), useValue: userRepo },
+        { provide: getRepositoryToken(Address), useValue: stubAddressRepo() },
         { provide: PlansService, useValue: plansService },
       ],
     }).compile();
@@ -344,6 +407,65 @@ describe('PaymentsService — createCheckoutSession', () => {
     expect(createArgs.line_items[0].price).toBe('price_a_pro');
   });
 
+  it('uses the F6.5 quarterly priceId when billingCycle=quarterly', async () => {
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com', username: 'U' });
+    mockStripeCustomersList.mockResolvedValue({ data: [{ id: 'cus_abc' }] });
+    paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId: null });
+    plansService.getPlanByName.mockResolvedValue({
+      name: 'profissional',
+      stripePriceIdMonthly: 'price_m_pro_new',
+      stripePriceIdQuarterly: 'price_q_pro',
+      stripePriceIdSemestral: 'price_s_pro',
+      stripePriceIdAnnualNew: 'price_a_pro_new',
+    });
+    mockStripeCheckoutSessionsCreate.mockResolvedValue({ id: 'cs_1' });
+
+    await service.createCheckoutSession({ plan: 'profissional', billingCycle: 'quarterly' }, 'u1');
+
+    const createArgs = mockStripeCheckoutSessionsCreate.mock.calls[0][0];
+    expect(createArgs.line_items[0].price).toBe('price_q_pro');
+  });
+
+  it('forwards quantity to Stripe line_items (cobrança por imóvel)', async () => {
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com', username: 'U' });
+    mockStripeCustomersList.mockResolvedValue({ data: [{ id: 'cus_abc' }] });
+    paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId: null });
+    plansService.getPlanByName.mockResolvedValue({
+      name: 'profissional',
+      stripePriceIdMonthly: 'price_m_pro',
+    });
+    mockStripeCheckoutSessionsCreate.mockResolvedValue({ id: 'cs_1' });
+
+    await service.createCheckoutSession(
+      { plan: 'profissional', billingCycle: 'monthly', quantity: 5 },
+      'u1',
+    );
+
+    const createArgs = mockStripeCheckoutSessionsCreate.mock.calls[0][0];
+    expect(createArgs.line_items[0].quantity).toBe(5);
+    expect(createArgs.metadata.urbanai_quantity).toBe('5');
+    expect(createArgs.metadata.urbanai_billing_cycle).toBe('monthly');
+  });
+
+  it('clamps quantity to >=1', async () => {
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com', username: 'U' });
+    mockStripeCustomersList.mockResolvedValue({ data: [{ id: 'cus_abc' }] });
+    paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId: null });
+    plansService.getPlanByName.mockResolvedValue({
+      name: 'profissional',
+      stripePriceIdMonthly: 'price_m_pro',
+    });
+    mockStripeCheckoutSessionsCreate.mockResolvedValue({ id: 'cs_1' });
+
+    await service.createCheckoutSession(
+      { plan: 'profissional', billingCycle: 'monthly', quantity: 0 },
+      'u1',
+    );
+
+    const createArgs = mockStripeCheckoutSessionsCreate.mock.calls[0][0];
+    expect(createArgs.line_items[0].quantity).toBe(1);
+  });
+
   it('adds subscription_data.trial_period_days when plan=trial', async () => {
     process.env.TRIAL_PERIOD_DAYS = '10';
     userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com', username: 'U' });
@@ -358,7 +480,8 @@ describe('PaymentsService — createCheckoutSession', () => {
     await service.createCheckoutSession({ plan: 'trial' }, 'u1');
 
     const createArgs = mockStripeCheckoutSessionsCreate.mock.calls[0][0];
-    expect(createArgs.subscription_data).toEqual({ trial_period_days: 10 });
+    expect(createArgs.subscription_data.trial_period_days).toBe(10);
+    expect(createArgs.subscription_data.metadata.urbanai_plan).toBe('trial');
   });
 
   it('creates a new Stripe customer when none exists and persists customerId on Payment', async () => {
@@ -380,5 +503,56 @@ describe('PaymentsService — createCheckoutSession', () => {
     });
     const saved = paymentRepo.save!.mock.calls[0][0];
     expect(saved.customerId).toBe('cus_new');
+  });
+});
+
+describe('PaymentsService — getListingsQuota (F6.5)', () => {
+  let service: PaymentsService;
+  let paymentRepo: Repo<Payment>;
+  let addressRepo: { count: jest.Mock };
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    paymentRepo = { findOne: jest.fn() };
+    addressRepo = { count: jest.fn() };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        PaymentsService,
+        { provide: getRepositoryToken(Payment), useValue: paymentRepo },
+        { provide: getRepositoryToken(User), useValue: { findOne: jest.fn() } },
+        { provide: getRepositoryToken(Address), useValue: addressRepo },
+        { provide: PlansService, useValue: { getPlanByName: jest.fn() } },
+      ],
+    }).compile();
+    service = module.get<PaymentsService>(PaymentsService);
+  });
+
+  it('returns podeAdicionar=true when ativos < contratados', async () => {
+    paymentRepo.findOne!.mockResolvedValue({ listingsContratados: 5 });
+    addressRepo.count.mockResolvedValue(3);
+
+    const quota = await service.getListingsQuota('u1');
+
+    expect(quota).toEqual({ contratados: 5, ativos: 3, podeAdicionar: true });
+  });
+
+  it('returns podeAdicionar=false when ativos === contratados', async () => {
+    paymentRepo.findOne!.mockResolvedValue({ listingsContratados: 3 });
+    addressRepo.count.mockResolvedValue(3);
+
+    const quota = await service.getListingsQuota('u1');
+
+    expect(quota).toEqual({ contratados: 3, ativos: 3, podeAdicionar: false });
+  });
+
+  it('defaults contratados to 1 when no active Payment exists', async () => {
+    paymentRepo.findOne!.mockResolvedValue(null);
+    addressRepo.count.mockResolvedValue(0);
+
+    const quota = await service.getListingsQuota('u1');
+
+    expect(quota.contratados).toBe(1);
+    expect(quota.podeAdicionar).toBe(true);
   });
 });
