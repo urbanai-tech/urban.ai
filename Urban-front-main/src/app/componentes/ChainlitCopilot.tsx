@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect } from "react"
+import { useEffect } from "react"
 import { usePathname } from 'next/navigation'
 import { useAuth } from "../context/AuthContext"
 
@@ -10,18 +10,14 @@ type Props = {
   serverUrl?: string
 }
 
-export default function ChainlitCopilot({ serverUrl }: Props) {
+export default function ChainlitCopilot(_props: Props) {
   const { isAuthenticated } = useAuth()
   const pathname = usePathname()
   const chainlitUrl: string = ""
 
-  // Don't show on public routes or when not authenticated
-  const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(`${route}/`))
-  if (!isAuthenticated || isPublicRoute) {
-    return null
-  }
-
   useEffect(() => {
+    const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(`${route}/`))
+    if (!isAuthenticated || isPublicRoute) return
     if (!chainlitUrl) return
 
     const scriptId = "chainlit-copilot-script"
@@ -219,7 +215,7 @@ ${events.map((event: any, i: number) => `  ${i + 1}. ${event.nome}
       window.removeEventListener("chainlit-call-fn", handleCallFn as EventListener)
       window.clearInterval(interval)
     }
-  }, [chainlitUrl])
+  }, [chainlitUrl, isAuthenticated, pathname])
 
   return null
 }
