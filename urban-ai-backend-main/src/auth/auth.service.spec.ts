@@ -3,6 +3,7 @@ import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { AuthService } from './auth.service';
 import { User } from '../entities/user.entity';
@@ -52,7 +53,7 @@ describe('AuthService', () => {
       expect(payments.createPayment).not.toHaveBeenCalled();
     });
 
-    it('persists the SHA-256 hash of the password when a plain-text is sent', async () => {
+    it('persists a bcrypt hash (not the plaintext) for a new registration', async () => {
       userRepo.findOne!.mockResolvedValue(null);
       userRepo.create!.mockImplementation((data) => data);
       userRepo.save!.mockImplementation(async (data) => ({ id: 'new-id', ...data }));
@@ -60,12 +61,13 @@ describe('AuthService', () => {
       await service.register({ username: 'u', email: 'new@test.com', password: 'minhasenha' });
 
       const saved = userRepo.save!.mock.calls[0][0];
-      expect(saved.password).toBe(sha256('minhasenha'));
+      expect(saved.password).toMatch(/^\$2[aby]\$12\$/);
       expect(saved.password).not.toBe('minhasenha');
+      expect(await bcrypt.compare('minhasenha', saved.password)).toBe(true);
       expect(payments.createPayment).toHaveBeenCalled();
     });
 
-    it('accepts a pre-hashed (hex-64) password from the frontend unchanged', async () => {
+    it('bcrypts the pre-hashed (hex-64) password from the legacy frontend', async () => {
       userRepo.findOne!.mockResolvedValue(null);
       userRepo.create!.mockImplementation((data) => data);
       userRepo.save!.mockImplementation(async (data) => ({ id: 'new-id', ...data }));
@@ -74,7 +76,9 @@ describe('AuthService', () => {
       await service.register({ username: 'u', email: 'new@test.com', password: preHashed });
 
       const saved = userRepo.save!.mock.calls[0][0];
-      expect(saved.password).toBe(preHashed);
+      expect(saved.password).toMatch(/^\$2[aby]\$12\$/);
+      // O caller pode depois logar mandando a mesma forma pré-hashada:
+      expect(await bcrypt.compare(preHashed, saved.password)).toBe(true);
     });
   });
 
@@ -87,11 +91,11 @@ describe('AuthService', () => {
       );
     });
 
-    it('throws UnauthorizedException on wrong password', async () => {
+    it('throws UnauthorizedException on wrong password (bcrypt-stored user)', async () => {
       userRepo.findOne!.mockResolvedValue({
         id: 'u1',
         email: 'u@test.com',
-        password: sha256('correct'),
+        password: await bcrypt.hash('correct', 12),
         username: 'u',
       });
 
@@ -100,18 +104,52 @@ describe('AuthService', () => {
       );
     });
 
-    it('returns a JWT on correct password', async () => {
-      userRepo.findOne!.mockResolvedValue({
+    it('returns a JWT on correct password for a bcrypt-stored user (no rehash)', async () => {
+      const user = {
         id: 'u1',
         email: 'u@test.com',
-        password: sha256('correct'),
+        password: await bcrypt.hash('correct', 12),
         username: 'u',
-      });
+      };
+      userRepo.findOne!.mockResolvedValue(user);
 
       const result = await service.login('u@test.com', 'correct');
 
       expect(result).toEqual({ accessToken: 'signed.jwt.token' });
       expect(jwt.sign).toHaveBeenCalledWith({ sub: 'u1', username: 'u' });
+      expect(userRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('accepts a legacy SHA-256 password and transparently rehashes to bcrypt', async () => {
+      const legacyUser = {
+        id: 'u-legacy',
+        email: 'legacy@test.com',
+        password: sha256('minhasenha'),
+        username: 'legacy',
+      };
+      userRepo.findOne!.mockResolvedValue(legacyUser);
+      userRepo.save!.mockImplementation(async (u) => u);
+
+      const result = await service.login('legacy@test.com', 'minhasenha');
+
+      expect(result).toEqual({ accessToken: 'signed.jwt.token' });
+      expect(userRepo.save).toHaveBeenCalledTimes(1);
+      const savedUser = userRepo.save!.mock.calls[0][0];
+      expect(savedUser.password).toMatch(/^\$2[aby]\$12\$/);
+      expect(await bcrypt.compare('minhasenha', savedUser.password)).toBe(true);
+    });
+
+    it('rejects login for google_* accounts (no password auth)', async () => {
+      userRepo.findOne!.mockResolvedValue({
+        id: 'u-google',
+        email: 'g@test.com',
+        password: 'google_abc-123',
+        username: 'g',
+      });
+
+      await expect(service.login('g@test.com', 'qualquercoisa')).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
     });
   });
 
@@ -120,7 +158,7 @@ describe('AuthService', () => {
       userRepo.findOne!.mockResolvedValue({
         id: 'u1',
         email: 'u@test.com',
-        password: sha256('secret'),
+        password: await bcrypt.hash('secret', 12),
         username: 'u',
       });
 

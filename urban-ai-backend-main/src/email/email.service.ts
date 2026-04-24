@@ -6,7 +6,7 @@ import { ProcessService } from 'src/process/process.service';
 import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity';
 import { IsNull, Not, Repository } from 'typeorm';
 import { User } from 'src/entities/user.entity';
-import * as crypto from 'crypto';
+import * as bcrypt from 'bcrypt';
 import { EmailConfirmation } from 'src/entities/EmailConfirmation';
 import { CreateNotificationDto } from 'src/notifications/tdo/create-notification.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
@@ -51,8 +51,10 @@ export class EmailService {
         console.log(user)
         return user
     }
-    private sha256(str: string): string {
-        return crypto.createHash('sha256').update(str).digest('hex');
+    private async bcryptHash(passwordOrSha256: string): Promise<string> {
+        // O input pode ser texto-puro OU pré-hash SHA-256 vindo do frontend legado.
+        // Em ambos os casos, o valor entrada é tratado como "senha" e vira bcrypt.
+        return bcrypt.hash(passwordOrSha256, 12);
     }
 
 
@@ -93,11 +95,9 @@ export class EmailService {
                 return { enviado: false, motivo: 'Usuário não encontrado' };
             }
 
-            const isHex = /^[a-f0-9]{64}$/i.test(password);
-            const pwdHash = isHex ? password : this.sha256(password);
-
-            // garante update, não insert
-            usuario.password = pwdHash;
+            // Reset de senha sempre grava bcrypt(12), seja o input texto-puro
+            // ou pré-hash SHA-256 do frontend legado.
+            usuario.password = await this.bcryptHash(password);
 
             const user = await this.userRepository.save(usuario);
 
