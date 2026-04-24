@@ -4,21 +4,33 @@
 
 ---
 
-## O que existe hoje (24/04/2026)
+## O que existe hoje (24/04/2026 — atualizado pós-F5C.4 #2)
 
 ### Backend (`urban-ai-backend-main/`)
 
 - **Tipo:** Jest unit tests com mocks (sem DB, sem rede)
 - **Config:** `package.json → jest` — `moduleFileExtensions: ["ts", "js", "json"]`, `modulePaths: [rootDir/..]`
-- **Specs iniciais:**
-  - `src/auth/auth.service.spec.ts` — register, login, getProfileById (5 casos)
-  - `src/knn-engine/knn-classifier.spec.ts` — untrained fallback, classificação após treino, getCategoryName (6 casos)
+- **Specs ativas:**
+  - `src/auth/auth.service.spec.ts` — register/login (bcrypt + lazy rehash), rotate, revoke, getProfileById (13 casos)
+  - `src/auth/jwt.strategy.spec.ts` — fail-fast sem JWT_SECRET, ordem cookie > header, validate payload (6 casos)
+  - `src/knn-engine/knn-classifier.spec.ts` — untrained fallback, classificação, naming (6 casos)
+  - `src/knn-engine/pricing-engine.spec.ts` — multiplicadores (categoria, atratividade, travel time, relevância) (9 casos)
+  - `src/payments/payments.service.spec.ts` — webhook (8 casos) + cancelSubscription (4 casos) + createCheckoutSession (4 casos) = 16 casos
+  - `src/plans/plans.service.spec.ts` — seed, env vars, getPlanByName (5 casos)
 - **Como rodar:**
   ```
   cd urban-ai-backend-main
-  npm test
+  npm test                    # rápido
+  npm test -- --coverage      # com relatório de cobertura
   ```
-- **Cobertura atual:** 11 testes, ~5% das linhas críticas.
+- **Cobertura global atual:** ~10.6% statements / 10.57% lines (de ~5% antes).
+  - **Cobertura dos fluxos críticos:** alta —
+    - `AuthService`: register, login (bcrypt + legado SHA-256), rotação de refresh, revocação — 100% dos caminhos principais
+    - `PaymentsService`: webhook (5 tipos de evento), cancelSubscription, createCheckoutSession (monthly + annual + trial + new customer)
+    - `UrbanAIPricingEngine`: todos os multiplicadores + combinações
+    - `PlansService`: seed com env vars, destaque, custom price
+  - **Gap global**: `PropriedadeService` (1672 linhas), `ConnectService`, `CronService`, `EmailService`, scraping/event enrichment — ainda sem cobertura.
+  - **Meta do roadmap (≥50%)** só será atingida quando um dos serviços pesados (PropriedadeService) ganhar testes — planejado em Pass 1 do plano abaixo.
 
 ### Frontend (`Urban-front-main/`)
 
