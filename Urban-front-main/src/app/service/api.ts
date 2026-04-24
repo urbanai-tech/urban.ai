@@ -827,3 +827,77 @@ export const getPlans = async (): Promise<Plan[]> => {
   }
 };
 
+// ================== Stays integration (F6.4) ==================
+
+export interface StaysAccountPublic {
+  id: string;
+  status: 'pending' | 'active' | 'error' | 'disconnected';
+  clientId: string;
+  lastSyncAt: string | null;
+}
+
+export interface StaysListingPublic {
+  id: string;
+  staysListingId: string;
+  title: string | null;
+  shortAddress: string | null;
+  basePriceCents: number | null;
+  active: boolean;
+  operationMode: 'inherit' | 'notifications' | 'auto';
+  propriedadeId: string | null;
+}
+
+export interface PriceUpdatePublic {
+  id: string;
+  targetDate: string;
+  previousPriceCents: number;
+  newPriceCents: number;
+  currency: string;
+  origin: 'ai_auto' | 'user_accepted' | 'user_manual' | 'rollback';
+  status: 'pending' | 'success' | 'rejected' | 'error';
+  errorMessage: string | null;
+  createdAt: string;
+}
+
+export async function staysConnect(
+  clientId: string,
+  accessToken: string,
+): Promise<StaysAccountPublic> {
+  const { data } = await api.post<StaysAccountPublic>('/stays/connect', {
+    clientId,
+    accessToken,
+  });
+  return data;
+}
+
+export async function staysDisconnect(): Promise<void> {
+  await api.delete('/stays/connect');
+}
+
+export async function staysSyncListings(): Promise<{ count: number; listings: StaysListingPublic[] }> {
+  const { data } = await api.post('/stays/listings/sync');
+  return data;
+}
+
+export async function staysListListings(): Promise<StaysListingPublic[]> {
+  const { data } = await api.get<StaysListingPublic[]>('/stays/listings');
+  return data;
+}
+
+export async function staysPushPrice(input: {
+  listingId: string;
+  targetDate: string;
+  newPriceCents: number;
+  previousPriceCents: number;
+  currency?: string;
+  analisePrecoId?: string;
+}): Promise<PriceUpdatePublic> {
+  const { data } = await api.post<PriceUpdatePublic>('/stays/price/push', input);
+  return data;
+}
+
+export async function staysRollback(priceUpdateId: string): Promise<PriceUpdatePublic> {
+  const { data } = await api.post<PriceUpdatePublic>(`/stays/price/${priceUpdateId}/rollback`);
+  return data;
+}
+
