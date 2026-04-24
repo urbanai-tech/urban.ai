@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Payment } from 'src/entities/payment.entity';
 import { User } from 'src/entities/user.entity';
+import { Address } from 'src/entities/addresses.entity';
 import Stripe from 'stripe';
 import { In, Repository } from 'typeorm';
 import { PlansService } from '../plans/plans.service';
@@ -13,12 +14,45 @@ export class PaymentsService {
   constructor(
     @InjectRepository(Payment) private paymentRepository: Repository<Payment>,
     @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(Address) private addressRepository: Repository<Address>,
     private plansService: PlansService,
   ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: '2025-08-27.basil',
     });
   }
+  /**
+   * F6.5 — quota de imóveis contratados vs. ativos.
+   *
+   * `contratados` vem do Payment ativo mais recente do user. `ativos` é a
+   * contagem de Address vinculados a esse user. `podeAdicionar = ativos < contratados`.
+   *
+   * Quando `podeAdicionar` é falso, o frontend exibe o GlobalPaywallModal
+   * pedindo upgrade de quantity (PaymentCheckGuard reage a este flag).
+   */
+  async getListingsQuota(
+    userId: string,
+  ): Promise<{ contratados: number; ativos: number; podeAdicionar: boolean }> {
+    const payment = await this.paymentRepository.findOne({
+      where: {
+        user: { id: userId },
+        status: In(['active', 'trialing']),
+      },
+      order: { updatedAt: 'DESC' },
+    });
+
+    const contratados = Math.max(1, payment?.listingsContratados ?? 1);
+    const ativos = await this.addressRepository.count({
+      where: { user: { id: userId } },
+    });
+
+    return {
+      contratados,
+      ativos,
+      podeAdicionar: ativos < contratados,
+    };
+  }
+
   async findByUserId(userId: string): Promise<any> {
     const payment = await this.paymentRepository.find({
       where: {
@@ -102,63 +136,73 @@ export class PaymentsService {
   }
 
 
-  async createCheckoutSession(data: { plan: string; billingCycle?: 'monthly' | 'annual' }, userId: string) {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-    });
+  /**
+   * Cria sessão de checkout no Stripe.
+   *
+   * F6.5: aceita 4 ciclos (monthly | quarterly | semestral | annual) e
+   * `quantity` (número de imóveis). O Stripe cobra `price × quantity` por
+   * período de cobrança.
+   *
+   * Compatibilidade: o caller antigo que passa `billingCycle: 'monthly'|'annual'`
+   * continua funcionando — usamos os Price IDs legados (`stripePriceId`,
+   * `stripePriceIdAnnual`) quando os novos não estão setados.
+   */
+  async createCheckoutSession(
+    data: {
+      plan: string;
+      billingCycle?: 'monthly' | 'quarterly' | 'semestral' | 'annual';
+      quantity?: number;
+    },
+    userId: string,
+  ) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new Error('Usuário não encontrado');
 
-    console.log(user)
+    // 1) Resolve customer Stripe (cria se não existir)
+    const customerId = await this.ensureStripeCustomer(user);
 
-    const customers = await this.stripe.customers.list({
-      email: user.email,
-      limit: 1,
-    });
-    let customerId: string;
-
-    if (customers.data.length > 0) {
-      // Cliente já existe
-      customerId = customers.data[0].id;
-      const payment = await this.paymentRepository.findOne({
-        where: { user: { id: user?.id } },
-      });
-      payment.customerId = customerId
-      await this.paymentRepository.save(payment)
-    } else {
-      const newCustomer = await this.stripe.customers.create({
-        email: user.email,
-        name: user.username,
-      });
-
-      const payment = await this.paymentRepository.findOne({
-        where: { user: { id: user?.id } },
-      });
-      payment.customerId = newCustomer.id
-      await this.paymentRepository.save(payment)
-      customerId = newCustomer.id;
+    // 2) Resolve plano + Price ID conforme ciclo
+    const planEntity = await this.plansService.getPlanByName(
+      data.plan === 'trial' ? 'profissional' : data.plan,
+    );
+    const billingCycle = data.billingCycle || 'monthly';
+    const stripePrice = this.resolveStripePriceId(planEntity, billingCycle);
+    if (!stripePrice) {
+      throw new Error(
+        `Stripe Price ID ausente para plano=${data.plan} ciclo=${billingCycle}. Conferir seedPlans / env vars.`,
+      );
     }
 
-
-
-    const planEntity = await this.plansService.getPlanByName(data.plan === 'trial' ? 'profissional' : data.plan);
-    
-    let stripePrice = planEntity?.stripePriceId || process.env.MENSAL_PLAN;
-    if (data.billingCycle === 'annual') {
-      stripePrice = planEntity?.stripePriceIdAnnual || process.env.ANUAL_PLAN;
-    }
+    // 3) Quantidade — número de imóveis contratados. Sempre ≥ 1.
+    const quantity = Math.max(1, Math.floor(data.quantity ?? 1));
 
     const TRIAL_PERIOD_DAYS = process.env.TRIAL_PERIOD_DAYS;
 
+    // Metadata viaja no webhook, permite reconstruir o ciclo + quantity
+    // mesmo que o Stripe não exponha exatamente nossos 4 ciclos.
+    const urbanaiMeta = {
+      urbanai_plan: data.plan,
+      urbanai_billing_cycle: billingCycle,
+      urbanai_quantity: String(quantity),
+    };
+
+    const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData = {
+      metadata: urbanaiMeta,
+      ...(data?.plan === 'trial' && {
+        trial_period_days: Number(TRIAL_PERIOD_DAYS),
+      }),
+    };
+
     const session = await this.stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      line_items: [{
-        price: stripePrice,
-        quantity: 1,
-      }],
-      ...(data?.plan === 'trial' && {
-        subscription_data: {
-          trial_period_days: Number(TRIAL_PERIOD_DAYS)
-        }
-      }),
+      line_items: [
+        {
+          price: stripePrice,
+          quantity,
+        },
+      ],
+      metadata: urbanaiMeta,
+      subscription_data: subscriptionData,
       mode: 'subscription',
       success_url: process.env.SUCCESS_URL,
       cancel_url: process.env.CANCEL_URL,
@@ -167,6 +211,77 @@ export class PaymentsService {
       billing_address_collection: 'auto',
     });
     return session;
+  }
+
+  private async ensureStripeCustomer(user: User): Promise<string> {
+    const customers = await this.stripe.customers.list({
+      email: user.email,
+      limit: 1,
+    });
+
+    let customerId: string;
+    if (customers.data.length > 0) {
+      customerId = customers.data[0].id;
+    } else {
+      const newCustomer = await this.stripe.customers.create({
+        email: user.email,
+        name: user.username,
+      });
+      customerId = newCustomer.id;
+    }
+
+    const payment = await this.paymentRepository.findOne({
+      where: { user: { id: user.id } },
+    });
+    if (payment) {
+      payment.customerId = customerId;
+      await this.paymentRepository.save(payment);
+    }
+
+    return customerId;
+  }
+
+  /**
+   * Mapeia o `interval` do Stripe (month, year) para o billingCycle interno.
+   * Fallback para 'monthly' quando o intervalo não bate.
+   */
+  private intervalToCycle(interval: string | undefined | null): 'monthly' | 'annual' {
+    if (interval === 'year') return 'annual';
+    return 'monthly';
+  }
+
+  private resolveStripePriceId(
+    planEntity: any,
+    billingCycle: 'monthly' | 'quarterly' | 'semestral' | 'annual',
+  ): string {
+    if (!planEntity) {
+      // Fallback para env vars legadas — útil enquanto Stripe Price IDs
+      // novos do F6.5 não estiverem provisionados.
+      if (billingCycle === 'annual') return process.env.ANUAL_PLAN || '';
+      return process.env.MENSAL_PLAN || '';
+    }
+
+    // Caminho F6.5 — preferir os IDs novos por ciclo
+    switch (billingCycle) {
+      case 'monthly':
+        return (
+          planEntity.stripePriceIdMonthly ||
+          planEntity.stripePriceId ||
+          process.env.MENSAL_PLAN ||
+          ''
+        );
+      case 'quarterly':
+        return planEntity.stripePriceIdQuarterly || '';
+      case 'semestral':
+        return planEntity.stripePriceIdSemestral || '';
+      case 'annual':
+        return (
+          planEntity.stripePriceIdAnnualNew ||
+          planEntity.stripePriceIdAnnual ||
+          process.env.ANUAL_PLAN ||
+          ''
+        );
+    }
   }
 
   async handleStripeWebhook(rawBody: Buffer, signature: string) {
@@ -188,18 +303,45 @@ export class PaymentsService {
         const session = event.data.object as Stripe.Checkout.Session;
         if (session.subscription && typeof session.subscription === 'string') {
           try {
-            const subscription = await this.stripe.subscriptions.retrieve(session.subscription) as Stripe.Subscription;
+            const subscription = (await this.stripe.subscriptions.retrieve(
+              session.subscription,
+            )) as Stripe.Subscription;
             const subscriptionId = subscription?.id;
             const customerId = subscription?.customer;
-            const interval = subscription?.items.data[0]?.plan?.interval;
+            const item = subscription?.items.data[0];
+            const interval = item?.plan?.interval;
             const startCycle = new Date(subscription?.billing_cycle_anchor * 1000);
             const status = subscription.status;
 
+            // F6.5: extrair billingCycle e quantity. Preferimos os metadados que
+            // setamos no createCheckoutSession; caímos para o `interval` do Stripe
+            // como fallback se o checkout veio antes desta mudança.
+            const meta = (subscription.metadata || {}) as Record<string, string>;
+            const sessionMeta = (session.metadata || {}) as Record<string, string>;
+            const urbanCycle =
+              meta.urbanai_billing_cycle ||
+              sessionMeta.urbanai_billing_cycle ||
+              this.intervalToCycle(interval);
+            const urbanQuantity = parseInt(
+              meta.urbanai_quantity || sessionMeta.urbanai_quantity || String(item?.quantity ?? 1),
+              10,
+            );
+            const planName = meta.urbanai_plan || sessionMeta.urbanai_plan || null;
+
             const cycleEnd = new Date(startCycle);
-            if (interval === 'month') {
-              cycleEnd.setMonth(cycleEnd.getMonth() + 1);
-            } else if (interval === 'year') {
-              cycleEnd.setFullYear(cycleEnd.getFullYear() + 1);
+            switch (urbanCycle) {
+              case 'monthly':
+                cycleEnd.setMonth(cycleEnd.getMonth() + 1);
+                break;
+              case 'quarterly':
+                cycleEnd.setMonth(cycleEnd.getMonth() + 3);
+                break;
+              case 'semestral':
+                cycleEnd.setMonth(cycleEnd.getMonth() + 6);
+                break;
+              case 'annual':
+                cycleEnd.setFullYear(cycleEnd.getFullYear() + 1);
+                break;
             }
 
             const id = typeof customerId === 'string' ? customerId : customerId.id;
@@ -208,7 +350,10 @@ export class PaymentsService {
             });
 
             if (payment) {
-              payment.mode = interval;
+              payment.mode = interval ?? null;
+              payment.billingCycle = urbanCycle;
+              payment.listingsContratados = Math.max(1, urbanQuantity);
+              if (planName) payment.planName = planName;
               payment.expireDate = cycleEnd;
               payment.subscriptionId = subscriptionId;
               payment.startDate = startCycle;
@@ -218,7 +363,10 @@ export class PaymentsService {
               }
 
               await this.paymentRepository.save(payment);
-              console.log(`✅ checkout.session.completed processado para customer ${id}`);
+              console.log(
+                `✅ checkout.session.completed processado para customer ${id} ` +
+                  `(cycle=${urbanCycle}, qty=${urbanQuantity})`,
+              );
             } else {
               console.warn(`⚠️ Payment não encontrado para customer ${id}`);
             }
@@ -271,13 +419,26 @@ export class PaymentsService {
               : subscription.status === 'past_due' ? 'past_due'
               : payment.status;
 
-            const interval = subscription.items.data[0]?.plan?.interval;
+            const item = subscription.items.data[0];
+            const interval = item?.plan?.interval;
             if (interval) {
               payment.mode = interval;
             }
 
+            // F6.5: refletir mudança de quantity (upsell de imóveis) no nosso state
+            const meta = (subscription.metadata || {}) as Record<string, string>;
+            const newQty = parseInt(meta.urbanai_quantity || String(item?.quantity ?? 1), 10);
+            if (Number.isFinite(newQty) && newQty > 0) {
+              payment.listingsContratados = newQty;
+            }
+            if (meta.urbanai_billing_cycle) {
+              payment.billingCycle = meta.urbanai_billing_cycle;
+            }
+
             await this.paymentRepository.save(payment);
-            console.log(`✅ Subscription atualizada para customer ${id} -> status: ${subscription.status}`);
+            console.log(
+              `✅ Subscription atualizada para customer ${id} -> status: ${subscription.status}, qty=${payment.listingsContratados}`,
+            );
           }
         } catch (err) {
           console.error('❌ Erro ao processar subscription.updated:', err.message);

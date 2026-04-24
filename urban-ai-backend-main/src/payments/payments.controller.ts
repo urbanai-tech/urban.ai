@@ -25,8 +25,19 @@ export class CreateCheckoutSessionDto {
   @ApiProperty({ example: "pro", description: 'Tag plano' })
   plan: string;
 
-  @ApiProperty({ example: "monthly", description: 'Intervalo de cobrança (monthly/annual)', required: false })
-  billingCycle?: 'monthly' | 'annual';
+  @ApiProperty({
+    example: "annual",
+    description: 'Ciclo de cobrança (monthly | quarterly | semestral | annual)',
+    required: false,
+  })
+  billingCycle?: 'monthly' | 'quarterly' | 'semestral' | 'annual';
+
+  @ApiProperty({
+    example: 3,
+    description: 'Quantidade de imóveis contratados (F6.5 — cobrança por imóvel)',
+    required: false,
+  })
+  quantity?: number;
 }
 
 @Controller('payments')
@@ -39,6 +50,13 @@ export class PaymentsController {
     console.log(body, req?.user?.userId)
     const session = await this.paymentsService.createCheckoutSession(body, req?.user?.userId);
     return { sessionId: session.id };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('listings-quota')
+  @ApiOperation({ summary: 'F6.5 — quota de imóveis contratados vs ativos' })
+  async getListingsQuota(@Req() req: any) {
+    return this.paymentsService.getListingsQuota(req?.user?.userId);
   }
 
   @UseGuards(JwtAuthGuard)
