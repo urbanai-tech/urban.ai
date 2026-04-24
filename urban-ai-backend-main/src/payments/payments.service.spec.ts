@@ -2,13 +2,25 @@
 // no constructor, então precisamos controlar os métodos.
 const mockStripeConstructEvent = jest.fn();
 const mockStripeSubscriptionsRetrieve = jest.fn();
+const mockStripeSubscriptionsCancel = jest.fn();
+const mockStripeSubscriptionsList = jest.fn();
+const mockStripeCustomersList = jest.fn();
+const mockStripeCustomersCreate = jest.fn();
+const mockStripeCheckoutSessionsCreate = jest.fn();
 
 jest.mock('stripe', () => {
   return jest.fn().mockImplementation(() => ({
     webhooks: { constructEvent: mockStripeConstructEvent },
-    subscriptions: { retrieve: mockStripeSubscriptionsRetrieve },
-    customers: { list: jest.fn() },
-    checkout: { sessions: { create: jest.fn() } },
+    subscriptions: {
+      retrieve: mockStripeSubscriptionsRetrieve,
+      cancel: mockStripeSubscriptionsCancel,
+      list: mockStripeSubscriptionsList,
+    },
+    customers: {
+      list: mockStripeCustomersList,
+      create: mockStripeCustomersCreate,
+    },
+    checkout: { sessions: { create: mockStripeCheckoutSessionsCreate } },
   }));
 });
 
@@ -207,5 +219,166 @@ describe('PaymentsService — handleStripeWebhook', () => {
       expect(paymentRepo.save).not.toHaveBeenCalled();
       expect(result).toEqual({ event });
     });
+  });
+});
+
+describe('PaymentsService — cancelSubscription', () => {
+  let service: PaymentsService;
+  let paymentRepo: Repo<Payment>;
+  let userRepo: Repo<User>;
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    paymentRepo = {
+      findOne: jest.fn(),
+      find: jest.fn(),
+      save: jest.fn(),
+      create: jest.fn(),
+    };
+    userRepo = { findOne: jest.fn() };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        PaymentsService,
+        { provide: getRepositoryToken(Payment), useValue: paymentRepo },
+        { provide: getRepositoryToken(User), useValue: userRepo },
+        { provide: PlansService, useValue: { getPlanByName: jest.fn() } },
+      ],
+    }).compile();
+    service = module.get<PaymentsService>(PaymentsService);
+  });
+
+  it('throws when the user does not exist', async () => {
+    userRepo.findOne!.mockResolvedValue(null);
+
+    await expect(service.cancelSubscription('missing-user')).rejects.toThrow('Usuário não encontrado');
+  });
+
+  it('throws when no Stripe customer matches the user email', async () => {
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com' });
+    mockStripeCustomersList.mockResolvedValue({ data: [] });
+
+    await expect(service.cancelSubscription('u1')).rejects.toThrow('Cliente Stripe não encontrado');
+  });
+
+  it('throws when Payment row has no subscriptionId', async () => {
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com' });
+    mockStripeCustomersList.mockResolvedValue({ data: [{ id: 'cus_abc' }] });
+    paymentRepo.findOne!.mockResolvedValue({ customerId: 'cus_abc', subscriptionId: null });
+
+    await expect(service.cancelSubscription('u1')).rejects.toThrow('Pagamento ou subscriptionId não encontrado');
+    expect(mockStripeSubscriptionsCancel).not.toHaveBeenCalled();
+  });
+
+  it('cancels the subscription at Stripe on happy path', async () => {
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com' });
+    mockStripeCustomersList.mockResolvedValue({ data: [{ id: 'cus_abc' }] });
+    paymentRepo.findOne!.mockResolvedValue({ customerId: 'cus_abc', subscriptionId: 'sub_xyz' });
+    mockStripeSubscriptionsCancel.mockResolvedValue({ id: 'sub_xyz', status: 'canceled' });
+
+    const result = await service.cancelSubscription('u1');
+
+    expect(mockStripeSubscriptionsCancel).toHaveBeenCalledWith('sub_xyz');
+    expect(result).toEqual({ id: 'sub_xyz', status: 'canceled' });
+  });
+});
+
+describe('PaymentsService — createCheckoutSession', () => {
+  let service: PaymentsService;
+  let paymentRepo: Repo<Payment>;
+  let userRepo: Repo<User>;
+  let plansService: { getPlanByName: jest.Mock };
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    paymentRepo = {
+      findOne: jest.fn(),
+      save: jest.fn().mockImplementation(async (x) => x),
+    };
+    userRepo = { findOne: jest.fn() };
+    plansService = { getPlanByName: jest.fn() };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        PaymentsService,
+        { provide: getRepositoryToken(Payment), useValue: paymentRepo },
+        { provide: getRepositoryToken(User), useValue: userRepo },
+        { provide: PlansService, useValue: plansService },
+      ],
+    }).compile();
+    service = module.get<PaymentsService>(PaymentsService);
+  });
+
+  it('uses monthly stripePriceId when billingCycle is monthly (or omitted)', async () => {
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com', username: 'U' });
+    mockStripeCustomersList.mockResolvedValue({ data: [{ id: 'cus_abc' }] });
+    paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId: null });
+    plansService.getPlanByName.mockResolvedValue({
+      name: 'profissional',
+      stripePriceId: 'price_m_pro',
+      stripePriceIdAnnual: 'price_a_pro',
+    });
+    mockStripeCheckoutSessionsCreate.mockResolvedValue({ id: 'cs_1' });
+
+    await service.createCheckoutSession({ plan: 'profissional' }, 'u1');
+
+    const createArgs = mockStripeCheckoutSessionsCreate.mock.calls[0][0];
+    expect(createArgs.line_items[0].price).toBe('price_m_pro');
+    expect(createArgs.mode).toBe('subscription');
+  });
+
+  it('switches to annual priceId when billingCycle=annual', async () => {
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com', username: 'U' });
+    mockStripeCustomersList.mockResolvedValue({ data: [{ id: 'cus_abc' }] });
+    paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId: null });
+    plansService.getPlanByName.mockResolvedValue({
+      name: 'profissional',
+      stripePriceId: 'price_m_pro',
+      stripePriceIdAnnual: 'price_a_pro',
+    });
+    mockStripeCheckoutSessionsCreate.mockResolvedValue({ id: 'cs_1' });
+
+    await service.createCheckoutSession({ plan: 'profissional', billingCycle: 'annual' }, 'u1');
+
+    const createArgs = mockStripeCheckoutSessionsCreate.mock.calls[0][0];
+    expect(createArgs.line_items[0].price).toBe('price_a_pro');
+  });
+
+  it('adds subscription_data.trial_period_days when plan=trial', async () => {
+    process.env.TRIAL_PERIOD_DAYS = '10';
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com', username: 'U' });
+    mockStripeCustomersList.mockResolvedValue({ data: [{ id: 'cus_abc' }] });
+    paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId: null });
+    plansService.getPlanByName.mockResolvedValue({
+      name: 'profissional',
+      stripePriceId: 'price_m_pro',
+    });
+    mockStripeCheckoutSessionsCreate.mockResolvedValue({ id: 'cs_1' });
+
+    await service.createCheckoutSession({ plan: 'trial' }, 'u1');
+
+    const createArgs = mockStripeCheckoutSessionsCreate.mock.calls[0][0];
+    expect(createArgs.subscription_data).toEqual({ trial_period_days: 10 });
+  });
+
+  it('creates a new Stripe customer when none exists and persists customerId on Payment', async () => {
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com', username: 'U' });
+    mockStripeCustomersList.mockResolvedValue({ data: [] });
+    mockStripeCustomersCreate.mockResolvedValue({ id: 'cus_new' });
+    paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId: null });
+    plansService.getPlanByName.mockResolvedValue({
+      name: 'starter',
+      stripePriceId: 'price_starter',
+    });
+    mockStripeCheckoutSessionsCreate.mockResolvedValue({ id: 'cs_1' });
+
+    await service.createCheckoutSession({ plan: 'starter' }, 'u1');
+
+    expect(mockStripeCustomersCreate).toHaveBeenCalledWith({
+      email: 'u@test.com',
+      name: 'U',
+    });
+    const saved = paymentRepo.save!.mock.calls[0][0];
+    expect(saved.customerId).toBe('cus_new');
   });
 });
