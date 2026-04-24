@@ -1,25 +1,116 @@
 import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { User } from 'src/entities/user.entity';
+import { RefreshToken } from 'src/entities/refresh-token.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { PaymentsService } from 'src/payments/payments.service';
-import { DataSource } from 'typeorm';
 import { ConflictException } from '@nestjs/common';
 
 const BCRYPT_ROUNDS = 12;
 const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
+const REFRESH_TOKEN_BYTES = 48;
+const REFRESH_TOKEN_TTL_DAYS = 7;
+
+export type TokenPair = {
+  accessToken: string;
+  refreshToken: string;
+  refreshExpiresAt: Date;
+};
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(RefreshToken) private refreshTokenRepository: Repository<RefreshToken>,
     private readonly paymentsService: PaymentsService
   ) { }
+
+  // ============ Tokens ============
+
+  private hashRefreshToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
+  }
+
+  /**
+   * Emite um novo par access+refresh para o usuário. O refresh é persistido
+   * como hash; só o valor bruto vai para o cliente (via cookie httpOnly).
+   */
+  async issueTokens(user: User, meta?: { userAgent?: string; ip?: string }): Promise<TokenPair> {
+    const accessToken = this.jwtService.sign({ sub: user.id, username: user.username });
+
+    const rawRefresh = crypto.randomBytes(REFRESH_TOKEN_BYTES).toString('base64url');
+    const refreshExpiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000);
+
+    const record = this.refreshTokenRepository.create({
+      user,
+      tokenHash: this.hashRefreshToken(rawRefresh),
+      expiresAt: refreshExpiresAt,
+      userAgent: meta?.userAgent?.slice(0, 255) ?? null,
+      ip: meta?.ip?.slice(0, 64) ?? null,
+    });
+    await this.refreshTokenRepository.save(record);
+
+    return { accessToken, refreshToken: rawRefresh, refreshExpiresAt };
+  }
+
+  /**
+   * Refresh token rotation: valida o token bruto contra a linha armazenada,
+   * revoga a linha atual e emite um novo par. Reutilização de um refresh já
+   * revogado derruba TODAS as sessões do usuário (detecção de roubo).
+   */
+  async rotateRefreshToken(rawRefresh: string, meta?: { userAgent?: string; ip?: string }): Promise<TokenPair> {
+    if (!rawRefresh) throw new UnauthorizedException('Refresh token ausente');
+    const hash = this.hashRefreshToken(rawRefresh);
+    const record = await this.refreshTokenRepository.findOne({
+      where: { tokenHash: hash },
+      relations: ['user'],
+    });
+    if (!record) throw new UnauthorizedException('Refresh token inválido');
+
+    if (record.revokedAt) {
+      // Reuso de token revogado — possível roubo. Derrubar todas as sessões
+      // do mesmo usuário por segurança.
+      await this.refreshTokenRepository.update(
+        { user: { id: record.user.id }, revokedAt: IsNull() },
+        { revokedAt: new Date() },
+      );
+      throw new UnauthorizedException('Refresh token reutilizado — sessão encerrada por segurança');
+    }
+
+    if (record.expiresAt.getTime() <= Date.now()) {
+      throw new UnauthorizedException('Refresh token expirado');
+    }
+
+    record.revokedAt = new Date();
+    await this.refreshTokenRepository.save(record);
+
+    return this.issueTokens(record.user, meta);
+  }
+
+  /** Revoga um refresh específico (logout de uma sessão). */
+  async revokeRefreshToken(rawRefresh: string): Promise<void> {
+    if (!rawRefresh) return;
+    const hash = this.hashRefreshToken(rawRefresh);
+    await this.refreshTokenRepository.update(
+      { tokenHash: hash, revokedAt: IsNull() },
+      { revokedAt: new Date() },
+    );
+  }
+
+  /** Revoga todos os refresh tokens de um usuário (logout-all). */
+  async revokeAllRefreshTokensForUser(userId: string): Promise<void> {
+    await this.refreshTokenRepository.update(
+      { user: { id: userId }, revokedAt: IsNull() },
+      { revokedAt: new Date() },
+    );
+  }
+
+  // ============ Senha (SHA-256 → bcrypt lazy migration) ============
 
   /** bcrypt hashes começam com $2a$, $2b$ ou $2y$ */
   private isBcryptHash(hash: string): boolean {
@@ -166,7 +257,7 @@ export class AuthService {
     return this.userRepository.save(user);
   }
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string, meta?: { userAgent?: string; ip?: string }) {
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) throw new UnauthorizedException('Credenciais inválidas');
 
@@ -185,15 +276,18 @@ export class AuthService {
       }
     }
 
-    return { accessToken: this.jwtService.sign({ sub: user.id, username: user.username }) };
+    return this.issueTokens(user, meta);
   }
 
-  async googleLogin(userData: {
-    token?: string,
-    email: string,
-    name: string,
-    picture?: string
-  }) {
+  async googleLogin(
+    userData: {
+      token?: string;
+      email: string;
+      name: string;
+      picture?: string;
+    },
+    meta?: { userAgent?: string; ip?: string },
+  ) {
     try {
       // Verificar se o usuário já existe
       let user = await this.userRepository.findOne({
@@ -224,15 +318,14 @@ export class AuthService {
         }
       }
 
-      // Gerar token JWT
-      const payload = { sub: user.id, username: user.username };
+      const tokens = await this.issueTokens(user, meta);
       return {
-        accessToken: this.jwtService.sign(payload),
+        ...tokens,
         user: {
           id: user.id,
           username: user.username,
-          email: user.email
-        }
+          email: user.email,
+        },
       };
     } catch (error) {
       console.error('Erro no login com Google:', error);
