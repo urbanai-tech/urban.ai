@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
 import { StagingBanner } from "./componentes/StagingBanner";
+import { Analytics } from "./componentes/Analytics";
 
 export const metadata: Metadata = {
   title: "Urban ai",
@@ -20,6 +21,7 @@ export default function RootLayout({
     <html lang="en" className="font-press">
       <body cz-shortcut-listen="true">
         <StagingBanner />
+        <Analytics />
         <Providers>
           {children}
 

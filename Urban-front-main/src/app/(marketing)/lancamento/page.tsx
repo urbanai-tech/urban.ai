@@ -1,5 +1,6 @@
 import { ArrowRight, Zap, Target, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { WaitlistForm } from "../../componentes/WaitlistForm";
 
 export default function LançamentoUrbanAIPage() {
   return (
@@ -68,13 +69,27 @@ export default function LançamentoUrbanAIPage() {
         </div>
 
         <div className="mt-16">
-          <button 
-            id="cta-iniciar-blindagem" 
+          <button
+            id="cta-iniciar-blindagem"
             className="bg-transparent border border-blue-500 text-blue-400 hover:bg-blue-500/10 font-semibold py-4 px-8 rounded-full inline-flex gap-2 items-center transition-all duration-300"
           >
             Começar Blindagem do Calendário
           </button>
         </div>
+      </section>
+
+      {/* Waitlist Section */}
+      <section
+        id="waitlist"
+        className="w-full py-24 px-6 flex flex-col items-center border-t border-slate-800/50"
+      >
+        <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-center max-w-2xl">
+          Entre na <span className="text-emerald-400">lista de interesse</span>.
+        </h2>
+        <p className="text-slate-400 max-w-xl text-center mb-10">
+          Estamos abrindo vagas em lotes pequenos para anfitriões profissionais em São Paulo. Deixe seu e-mail para receber acesso antecipado.
+        </p>
+        <WaitlistForm buttonLabel="Quero acesso antecipado" source="lancamento" />
       </section>
     </main>
   );

@@ -20,6 +20,14 @@ test.describe('Smoke — rotas públicas', () => {
     await expect(page.locator('#cta-piloto-automatico-hero')).toBeVisible();
   });
 
+  test('landing tem formulário de waitlist e aceita entrada de e-mail', async ({ page }) => {
+    await page.goto('/lancamento#waitlist');
+    const input = page.locator('input[type="email"][id="waitlist-email"]');
+    await expect(input).toBeVisible();
+    await input.fill('teste+smoke@urbanai.com.br');
+    await expect(page.locator('button[type="submit"]')).toBeEnabled();
+  });
+
   test('página de planos mostra os 2 planos (Starter, Profissional)', async ({ page }) => {
     await page.goto('/plans');
     // Essas páginas podem exigir auth em certas configs; aceitamos redirect
