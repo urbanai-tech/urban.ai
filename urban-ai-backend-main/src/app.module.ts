@@ -72,7 +72,10 @@ import { PlansModule } from './plans/plans.module';
     ScheduleModule.forRoot({}),
 
     // 2) Database connection — MySQL
-    // Suporta DATABASE_URL (Railway) ou variáveis individuais
+    // Suporta DATABASE_URL (Railway) ou variáveis individuais.
+    // synchronize e migrationsRun são controlados por env vars para permitir
+    // cutover seguro de "schema ad-hoc" (DB_SYNCHRONIZE=true) para "migrations versionadas"
+    // (DB_SYNCHRONIZE=false + MIGRATIONS_RUN=true). Default em prod: ambos false.
     TypeOrmModule.forRoot(
       process.env.DATABASE_URL
         ? {
@@ -80,8 +83,10 @@ import { PlansModule } from './plans/plans.module';
             connectorPackage: 'mysql2',
             url: process.env.DATABASE_URL,
             autoLoadEntities: true,
-            synchronize: true,
+            synchronize: process.env.DB_SYNCHRONIZE === 'true',
+            migrationsRun: process.env.MIGRATIONS_RUN === 'true',
             entities: [__dirname + '/**/*.entity{.ts,.js}'],
+            migrations: [__dirname + '/migrations/*{.ts,.js}'],
           }
         : {
             type: 'mysql',
@@ -92,8 +97,10 @@ import { PlansModule } from './plans/plans.module';
             password: process.env.DB_PASSWORD || '',
             database: process.env.DB_NAME || 'ai_urban',
             autoLoadEntities: true,
-            synchronize: true,
+            synchronize: process.env.DB_SYNCHRONIZE === 'true',
+            migrationsRun: process.env.MIGRATIONS_RUN === 'true',
             entities: [__dirname + '/**/*.entity{.ts,.js}'],
+            migrations: [__dirname + '/migrations/*{.ts,.js}'],
           },
     ),
 
