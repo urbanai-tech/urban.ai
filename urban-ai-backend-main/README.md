@@ -1,99 +1,154 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Urban AI — Backend (NestJS)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST do produto. 21 módulos, motor KNN embedado, integração Stripe + Stays + Mailersend + Sentry.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Stack
 
-## Description
+| Tecnologia | Uso |
+|---|---|
+| NestJS 10 | framework HTTP + DI |
+| TypeORM 0.3 + mysql2 | persistência relacional |
+| MySQL gerenciado pelo Railway | DB primário |
+| BullMQ + Upstash Redis | filas (futuro: jobs assíncronos pesados) |
+| Stripe SDK 18 | pagamentos + webhook assinado |
+| Mailersend | e-mail transacional |
+| Sentry NestJS | observabilidade |
+| Passport JWT | auth |
+| bcrypt(12) | hash de senhas |
+| `@nestjs/throttler` + `helmet` | rate limit + CSP |
+| `ml-knn` + `@turf/turf` | motor de precificação |
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Porta
 
-## Project setup
+`process.env.PORT` (default 10000 em dev).
+
+## Setup local
 
 ```bash
-$ yarn install
+yarn install
+cp .env.example .env
+# preencha JWT_SECRET, DATABASE_URL ou DB_*, STRIPE_SECRET_KEY, etc.
+yarn start:dev
 ```
 
-## Compile and run the project
+Para gerar um `JWT_SECRET` seguro:
 
 ```bash
-# development
-$ yarn run start
-
-# watch mode
-$ yarn run start:dev
-
-# production mode
-$ yarn run start:prod
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ```
 
-## Run tests
+## Banco de dados
+
+Por default (`DB_SYNCHRONIZE=true`) o TypeORM cria o schema sozinho a partir das entities — útil em dev, **não use em prod**. Em prod (futuro):
 
 ```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
+DB_SYNCHRONIZE=false MIGRATIONS_RUN=true yarn start:prod
 ```
 
-## Deployment
+Ver `../docs/runbooks/migrations-cutover.md` para o cutover seguro.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Comandos úteis
 
 ```bash
-$ yarn install -g mau
-$ mau deploy
+yarn start:dev          # watch mode
+yarn build              # nest build → dist/
+yarn start:prod         # roda dist/main.js
+yarn test               # jest unit (67 testes)
+yarn test --coverage    # com coverage report
+yarn lint               # eslint --fix
+
+# migrations (após cutover)
+yarn migration:generate --name=AddCampoXNaTabelaY
+yarn migration:run
+yarn migration:revert
+yarn migration:show
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Estrutura
 
-## Resources
+```
+src/
+├── auth/               # JWT + Google OAuth + refresh rotation
+├── user/               # perfil, configurações
+├── propriedades/       # imóveis + análise de preço (módulo grande)
+├── evento/             # eventos scraped + enrichment Gemini
+├── payments/           # Stripe checkout + webhook
+├── plans/              # tiers (a expandir em F6.5)
+├── notifications/      # in-app + email
+├── connect/            # onboarding Airbnb
+├── airbnb/             # client RapidAPI
+├── stays/              # integração Stays (F6.4)
+├── maps/               # Google Maps (geocoding, isochrones)
+├── knn-engine/         # motor de precificação
+├── cron/               # jobs agendados (08:00 BRT, hourly enrichment)
+├── email/ + mailer/    # SendGrid (legado) + Mailersend
+├── entities/           # 14 entities TypeORM
+├── migrations/         # baseline + futuras migrations
+├── data-source.ts      # CLI TypeORM
+├── instrument.ts       # bootstrap Sentry (deve ser o primeiro import)
+├── main.ts             # bootstrap + cookie-parser + helmet + CORS
+└── app.module.ts       # módulo raiz
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+## API e Swagger
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Swagger documentation em `/api`. Autenticação Bearer obrigatória nas rotas protegidas (também aceita cookie `urbanai_access_token` desde F5C.2 item #10).
 
-## Support
+Endpoints novos relevantes:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- `POST /auth/refresh` — rotaciona refresh token (cookie httpOnly)
+- `POST /auth/logout` — revoga refresh + limpa cookies
+- `POST /stays/connect` — conecta conta Stays
+- `POST /stays/listings/sync` — sincroniza listings da Stays
+- `POST /stays/price/push` — push manual de preço
+- `POST /stays/price/:id/rollback` — reverte um push
 
-## Stay in touch
+## Variáveis de ambiente críticas
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Ver `.env.example` para a lista completa. As essenciais:
 
-## License
+| Var | Quando |
+|---|---|
+| `JWT_SECRET` | sempre — backend não sobe sem |
+| `DATABASE_URL` ou `DB_HOST/PORT/USER/PASSWORD/NAME` | sempre |
+| `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` | para o módulo payments |
+| `MAILERSEND_API_KEY` | para email transacional |
+| `RAPIDAPI_KEY` | para o módulo airbnb (até F6.4 substituir por Stays) |
+| `GOOGLE_MAPS_API_KEY` | geocoding + isochrones |
+| `GEMINI_API_KEY` | enrichment de eventos (cron hourly) |
+| `STAYS_API_BASE_URL` | base URL Stays Open API |
+| `CORS_ALLOWED_ORIGINS` | whitelist (sem fallback `*`) |
+| `APP_ENV` | `production` ou `staging` ou `development` |
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Testes
+
+67 testes unitários hoje. Stack: Jest + ts-jest. Cobertura ~10.6% global mas **fluxos críticos** (auth, payments, KNN, plans, stays) bem cobertos.
+
+```bash
+yarn test                                                       # todos
+yarn test --testPathPatterns="auth.service|stays.service"      # filtro
+yarn test --coverage                                            # com relatório
+```
+
+Plano de expansão em `../docs/runbooks/testing-strategy.md`.
+
+## Deploy
+
+Watch automático do Railway na branch `main`. Mudanças sobem em ~2min após push.
+
+Health check: `GET /health` (a criar/verificar — usado pelo UptimeRobot).
+
+## Troubleshooting
+
+- **Backend não sobe + erro JWT_SECRET**: setar a env var no Railway / .env. Antes do F5C.2 item #10 caía no fallback `mysecretkey`; agora é fail-fast por segurança.
+- **CORS bloqueia chamadas do front**: setar `CORS_ALLOWED_ORIGINS=https://app.myurbanai.com,https://urbanai.com.br` (separado por vírgula).
+- **Stripe webhook 401**: o `STRIPE_WEBHOOK_SECRET` precisa ser exatamente o do endpoint configurado no Dashboard, não outro.
+- **`@turf/turf` quebra teste com `Unexpected token 'export'`**: precisa `jest.mock('@turf/turf', () => ({ ... }))` no topo do spec — ver `pricing-engine.spec.ts` como referência.
+
+## Documentação relacionada
+
+- `../docs/runbooks/migrations-cutover.md`
+- `../docs/runbooks/jwt-cookie-migration.md`
+- `../docs/runbooks/stays-integration-setup.md`
+- `../docs/adr/` — ADRs sobre as decisões arquiteturais
+- `../docs/slo.md` — alvos operacionais
