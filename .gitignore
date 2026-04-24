@@ -89,6 +89,7 @@ scraper_test*.html
 # ===== Playwright / navegador =====
 .playwright/
 playwright-report/
+test-results/
 _browser_profile/
 
 # ===== Opensquad (build caches, não deve versionar output de runs) =====
