@@ -1,14 +1,28 @@
-import { forwardRef, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { PropriedadeService } from 'src/propriedades/propriedade.service';
 import { FirstAvailablePriceResult } from './types';
 
 @Injectable()
 export class AirbnbService {
-    constructor(@Inject(forwardRef(() => PropriedadeService))
-    private readonly propriedadeService: PropriedadeService,) { }
+    private readonly logger = new Logger(AirbnbService.name);
     private readonly apiHost = 'airbnb19.p.rapidapi.com';
-    private readonly apiKey = 'e8b495920cmsh21fec04b593ce3ep17cb68jsnce9b835f0eef';
+    private readonly apiKey: string;
+
+    constructor(
+        @Inject(forwardRef(() => PropriedadeService))
+        private readonly propriedadeService: PropriedadeService,
+        private readonly configService: ConfigService,
+    ) {
+        this.apiKey = this.configService.get<string>('RAPIDAPI_KEY') ?? '';
+        if (!this.apiKey) {
+            this.logger.warn('RAPIDAPI_KEY environment variable is not set — Airbnb availability/price lookups will fail');
+        } else {
+            const masked = `${this.apiKey.substring(0, 4)}...${this.apiKey.substring(this.apiKey.length - 4)}`;
+            this.logger.log(`RapidAPI key loaded: ${masked}`);
+        }
+    }
 
   async getAvailability(propertyId: string) {
     const url = `https://${this.apiHost}/api/v1/checkAvailability`;
