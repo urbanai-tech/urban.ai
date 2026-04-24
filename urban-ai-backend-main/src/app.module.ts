@@ -10,9 +10,10 @@ import { EventoModule } from './evento/evento.module';
 import { EmailModule } from './email/email.module';
 import { ProcessModule } from './process/process.module';
 import { Module } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
@@ -71,6 +72,16 @@ import { PlansModule } from './plans/plans.module';
     // 1.1) Registrar o ScheduleModule
     ScheduleModule.forRoot({}),
 
+    // 1.2) Rate limiting global — defaults seguros:
+    //   - 100 req/min por IP (global)
+    //   - rotas sensíveis (/auth/login, /auth/register, /auth/google) usam throttler
+    //     mais agressivo via @Throttle() nos controllers (5/min). O ThrottlerGuard
+    //     abaixo é aplicado globalmente via APP_GUARD.
+    ThrottlerModule.forRoot([
+      { name: 'short', ttl: 1000, limit: 10 },
+      { name: 'medium', ttl: 60_000, limit: 100 },
+    ]),
+
     // 2) Database connection — MySQL
     // Suporta DATABASE_URL (Railway) ou variáveis individuais.
     // synchronize e migrationsRun são controlados por env vars para permitir
@@ -122,6 +133,10 @@ import { PlansModule } from './plans/plans.module';
     {
       provide: APP_FILTER,
       useClass: SentryGlobalFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
     AppService,
   ],

@@ -19,6 +19,7 @@ import {
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { User } from 'src/entities/user.entity';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -41,6 +42,7 @@ export class AuthController {
       },
     },
   })
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('register')
   async register(
     @Body() data: {
@@ -65,11 +67,13 @@ export class AuthController {
       },
     },
   })
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('login')
   login(@Body() data: { email: string; password: string }) {
     return this.authService.login(data.email, data.password);
   }
 
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('google')
   async googleLogin(
     @Body()
