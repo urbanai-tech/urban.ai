@@ -12,6 +12,10 @@ import { AirbnbModule } from 'src/airbnb/airbnb.module';
 import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { User } from 'src/entities/user.entity';
 import { EmailModule } from 'src/email/email.module';
+import { UrbanAIPricingEngine } from '../knn-engine/pricing-engine';
+import { TravelTimeEngine } from '../knn-engine/isochrone';
+import { PropertyClassifier } from '../knn-engine/knn-classifier';
+import { DisplacementCostMatrix } from '../knn-engine/cost-matrix';
 
 @Module({
     imports: [TypeOrmModule.forFeature([
@@ -25,7 +29,15 @@ import { EmailModule } from 'src/email/email.module';
     controllers: [
         PropriedadeController,],
     providers: [
-        PropriedadeService, PricingCalculateService],
+        PropriedadeService,
+        PricingCalculateService,
+        // Motor KNN injetado via DI — habilita mock em testes unitários
+        // e centraliza a decisão de "1 engine por request" vs singleton.
+        TravelTimeEngine,
+        PropertyClassifier,
+        DisplacementCostMatrix,
+        UrbanAIPricingEngine,
+    ],
         exports:[PropriedadeService]
 })
 export class PropriedadeModule { }
