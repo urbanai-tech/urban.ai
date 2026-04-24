@@ -33,6 +33,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { PlansModule } from './plans/plans.module';
+import { StaysModule } from './stays/stays.module';
 
 @Module({
   imports: [
@@ -120,6 +121,7 @@ import { PlansModule } from './plans/plans.module';
     ConnectModule,
     AuthModule,
     MapsModule,
+    StaysModule,
 
     // 4) Static file serving
     ServeStaticModule.forRoot({
