@@ -66,11 +66,6 @@ export class ProcessoController {
 
         const userId = req.user.userId;
 
-        console.log("🛠️  Iniciando criarAcao");
-        console.log("📦 Headers recebidos:", req.headers);
-        console.log("🔑 Authorization:", req.headers.authorization);
-        console.log("👤 Usuário autenticado:", req.user);
-
         if (!userId) {
             throw new UnauthorizedException(
                 "🚫 Usuário não autenticado ou ID não fornecido",

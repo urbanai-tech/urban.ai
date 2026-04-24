@@ -99,10 +99,8 @@ export class EmailService {
             // garante update, não insert
             usuario.password = pwdHash;
 
-            console.log("senha", pwdHash)
             const user = await this.userRepository.save(usuario);
 
-            console.log(`Senha alterada para usuário ${idUsuario}`);
             return { enviado: true, user: { ...user, password: null } };
 
         } catch (error) {

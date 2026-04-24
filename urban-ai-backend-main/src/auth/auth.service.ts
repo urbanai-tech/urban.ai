@@ -48,7 +48,6 @@ export class AuthService {
   async register(data: { username: string; email: string; password: string }) {
     const isHex = /^[a-f0-9]{64}$/i.test(data.password);
     const pwdHash = isHex ? data.password : this.sha256(data.password);
-    console.log(data.password, pwdHash);
 
     // Verifica se e-mail já existe
     const existingUser = await this.userRepository.findOne({ where: { email: data.email } });

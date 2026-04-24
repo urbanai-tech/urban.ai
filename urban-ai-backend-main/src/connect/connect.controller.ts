@@ -148,9 +148,6 @@ export class ConnectController {
   })
   async getUserAddresses(@Req() req: AuthenticatedRequest): Promise<List[]> {
     const userId = req.user.userId;
-    console.log('Headers:', req.headers);
-    console.log('Authorization:', req.headers.authorization);
-    console.log('User from request:', req.user);
 
     if (!userId) {
       throw new UnauthorizedException(
