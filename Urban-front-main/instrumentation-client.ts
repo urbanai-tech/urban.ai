@@ -1,5 +1,8 @@
 import * as Sentry from "@sentry/nextjs";
 
+const appEnv =
+  process.env.NEXT_PUBLIC_APP_ENV || process.env.NODE_ENV || "development";
+
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
@@ -9,11 +12,13 @@ Sentry.init({
   // Quando ocorrer erro, gravar 100% das sessões afetadas
   replaysOnErrorSampleRate: 1.0,
 
-  // Percentual de traces coletados
-  tracesSampleRate: 0.1,
+  // Traces: 10% em prod, 100% em staging para debug
+  tracesSampleRate: appEnv === "production" ? 0.1 : 1.0,
 
-  // Desabilitar em desenvolvimento para não poluir o Sentry
-  enabled: process.env.NODE_ENV === "production",
+  // Habilitado em production e staging; desabilitado em development para não poluir
+  enabled: appEnv === "production" || appEnv === "staging",
+
+  environment: appEnv,
 
   integrations: [
     Sentry.replayIntegration(),
