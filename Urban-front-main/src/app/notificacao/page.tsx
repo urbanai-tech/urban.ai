@@ -36,7 +36,9 @@ interface NotificationCardProps {
 const NotificationCard: React.FC<NotificationCardProps> = ({ notif, cardBorder }) => {
   const router = useRouter();
 
-  const bgColor = notif.opened ? useColorModeValue('white', 'gray.800') : '#E8F0FF';
+  // Sempre chamar o hook (rules-of-hooks) e aplicar a condição no consumo.
+  const unopenedBg = useColorModeValue('white', 'gray.800');
+  const bgColor = notif.opened ? unopenedBg : '#E8F0FF';
   const titleColor = notif.opened ? 'gray.800' : 'blue.800';
 
   const handleClick = async () => {
