@@ -27,5 +27,7 @@ Estrutura sugerida:
 | 0004 | [MySQL gerenciado no Railway vs PostgreSQL](./0004-mysql-railway.md) | Aceito | 24/04/2026 (retroativo) |
 | 0005 | [Hospedagem em Railway vs AWS/GCP direto](./0005-hospedagem-railway.md) | Aceito | 24/04/2026 (retroativo) |
 | 0006 | [Estratégia de cofre de secrets (Railway Secrets)](./0006-secrets-vault-strategy.md) | Aceito | 24/04/2026 |
+| 0007 | [Aposentar repo urban-ai-knn-main](./0007-aposentar-knn-microservice.md) | Aceito | 24/04/2026 |
+| 0008 | [Algoritmo de pricing — KNN baseline → XGBoost moat](./0008-pricing-algoritmo-evolucao.md) | Aceito | 24/04/2026 |
 
 > Os 5 primeiros ADRs foram escritos **retroativamente** em 24/04/2026, em resposta à F5C.4 item #3 da auditoria. Refletem o raciocínio que motivou as decisões originais tomadas por Gustavo + Lumina Lab entre fev–mar/2026.
