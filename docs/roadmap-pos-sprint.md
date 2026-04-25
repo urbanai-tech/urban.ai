@@ -1,7 +1,13 @@
 # Urban AI — Roadmap Pós-Sprint
-**Versão 2.0 · Atualizado: 13/04/2026 · Base: Sprint de migração encerrado em D14 (20/03/2026)**
+**Versão 2.4 · Atualizado: 24/04/2026 · Base: Sprint de migração encerrado em D14 (20/03/2026)**
 
-> O sprint de 14 dias úteis foi concluído com 53 entregas. O sistema está 100% operacional sob controle Urban AI. Este documento cobre o que vem a seguir — pendências em aberto, crescimento e go-live oficial.
+> 🆕 **v2.4 (24/04/2026) — Sprint técnico de hardening + fundação Stays + repricing.** Em uma única sessão de trabalho foram entregues 29 commits cobrindo: F5C inteira (CRIT, P1, Operação, P2 — exceto execução manual de staging/load test), F6.4 (fundação técnica do Stays — domínio, conector, service, cron auto-apply, paywall por imóvel), F6.5 (matriz de cobrança por imóvel × 4 ciclos), itens F5C.4 de docs (5 ADRs, LGPD, SLO, runbooks). Backend cresceu de 0 para **75 testes unitários verdes**. Estado da IA explicitado em **F6.1** com 4 tiers de maturidade — hoje estamos no **Tier 0** (engine matemática rodando com dataset mock).
+>
+> 🆕 **v2.3 (22/04/2026) — Norte Estratégico e confirmação do parceiro Airbnb (Stays S.A.).** Mantido.
+>
+> 🆕 **v2.2 (22/04/2026) — Auditoria técnica completa.** Mantido.
+>
+> 🔄 **v2.1 (21/04/2026) — F5B Entregas Extras (E1–E7).** Mantido.
 
 ---
 
@@ -11,264 +17,375 @@
 - ⬜ Pendente
 - 🔴 Bloqueante — impede avanço
 - 💰 Há custo envolvido
+- 🧠 Tier de maturidade da IA (Tier 0/1/2/3/4)
+
+---
+
+## 📌 Norte Estratégico — 8 Gaps Para Atingir o Objetivo
+
+> **Objetivo Urban AI (brand book):** virar a plataforma líder de otimização de receita para hospedagem na América Latina, começando por anfitriões de Airbnb em SP, com a promessa quantificável de "+30% de receita via IA".
+
+| # | Gap | Estado em 24/04/2026 |
+|---|-----|---|
+| 1 | **Prova numérica de ROI** | ⬜ Sem cases auditados ainda |
+| 2 | **Dataset real para o KNN** | ⬜ Engine roda com 3 imóveis mock (Tier 0) |
+| 3 | **Ação automatizada via canal oficial** | 🔄 Fundação Stays pronta; canal não conectado em prod |
+| 4 | **Unit economics que fechem conta** | ✅ Repricing F6.5 implementado (cobrança por imóvel × 4 ciclos) |
+| 5 | **Confiança operacional** | ✅ F5C.1 + F5C.2 completas (bcrypt, throttler, helmet, JWT cookie, env hardening, refresh rotation) |
+| 6 | **Canal de aquisição validado** | ⬜ Aguarda aprovação de orçamento + start de F5.3 |
+| 7 | **Time com capacidade real** | ⬜ Decisão de contractor pendente |
+| 8 | **Compliance e LGPD mínimo** | 🔄 Política interna escrita; DPAs pendentes; consentimento Stays já no código |
+
+> 💡 **Resumo da posição em 24/04:** lançamento (#5, #6, #7, #8) está 50% destravado — segurança técnica está sólida, faltam decisões comerciais. Objetivo estratégico de liderança (#1, #2, #3, #4) está 25% — repricing pronto, mas IA ainda no Tier 0 e sem prova de ROI.
 
 ---
 
 ## PENDÊNCIAS EM ABERTO (carryover do sprint)
 
-> Itens que não foram concluídos no sprint de migração. Devem ser resolvidos antes ou em paralelo com F5.
-
 | Status | Item | Responsável | Prazo estimado | Observação |
 |--------|------|-------------|----------------|------------|
-| 🔄 | **KYC Stripe** — submeter RG/CPF dos sócios majoritários + contrato social + dados da conta PJ | Gustavo | Semana 1 | Docs em reunião. Após submissão: aprovação em 1–3 dias úteis. Desbloqueia cobranças reais. |
-| 🔄 | **Transferência domínio urbanai.com.br** — processo formal em andamento com Lumina Lab | Gustavo + Lumina | 2–5 dias úteis | Apontamento temporário já ativo. Não bloqueia operação. |
-| 🔄 | **Transferência domínio myurbanai.com** — aguardando Lumina Lab concluir | Lumina Lab | 2–5 dias úteis | Sistema já operando via app.myurbanai.com. Não bloqueia operação. |
+| 🔄 | **KYC Stripe** | Gustavo + Sócios | Semana 6 | Bloqueia cobrança real. Test mode funciona até lá. |
+| 🔄 | **Transferência domínio urbanai.com.br** | Gustavo + Lumina | 2–5 dias úteis | Apontamento temporário ativo. |
+| 🔄 | **Transferência domínio myurbanai.com** | Lumina Lab | 2–5 dias úteis | `app.myurbanai.com` operacional. |
 
 ---
 
-## F5A — Validação de Produto, UX e Fluxos Reais ⚡ (paralelo à F5)
-**Objetivo:** Garantir que o sistema funciona de ponta a ponta com dados e usuários reais, corrigindo todos os problemas de UX, fluxo e onboarding antes de gerar tráfego pago.
-**Período estimado:** Semanas 1–4 (21/03 → 18/04/2026) — em paralelo com F5
-**Prioridade:** 🔴 Alta — problemas identificados no sprint bloqueiam retenção de usuários
+## F5A — Validação de Produto, UX e Fluxos Reais ⚡
+**Status:** ~60% (sem mudança nesta sprint).
+**Pendências:** mensagens de erro acionáveis, onboarding D1/D3/D7 e-mails, responsividade mobile completa.
 
-> ⚠️ **Contexto:** Durante os testes do sprint foram identificados problemas no cadastro (UX, botões, tratamento de erro), ausência de onboarding, falhas no cadastro de imóveis e inconsistências no fluxo real de uso. Esta fase resolve todos esses pontos antes de escalar aquisição.
+### Resumo
 
-### 5A.1 Cadastro e Autenticação — UX e Erros
+Itens de UX e fluxo (5A.1 a 5A.6 da v2.3) seguem **majoritariamente pendentes**. Esta sprint focou em hardening técnico, não em UX. Próxima sprint: priorizar 5A.1 (erros de form) + 5A.6 (mobile) antes de F7 beta.
 
-| Status | Tarefa | Semana | Resp. |
-|--------|--------|--------|-------|
-| ⬜ | Mapear todos os erros de formulário sem feedback visual (campos obrigatórios, formato inválido) | S1 | Gustavo |
-| ⬜ | Corrigir mensagens de erro genéricas — substituir por mensagens claras e acionáveis | S1–2 | Gustavo / Dev |
-| ⬜ | Revisar estados dos botões: loading, disabled, sucesso e erro em todos os CTAs | S1–2 | Gustavo / Dev |
-| ⬜ | Corrigir fluxo de confirmação de e-mail — garantir que link chega e redireciona corretamente | S1–2 | Gustavo / Dev |
-| ✅ | Revisar fluxo de recuperação de senha e Paywall Global Popup (UI + UX) | S2 | Gustavo / Dev |
-| ⬜ | Testar login com Google OAuth — cobrir edge cases (conta já existente, e-mail diferente) | S2 | Gustavo / Dev |
-
-### 5A.2 Onboarding — Criação do Fluxo (não existia)
-
-| Status | Tarefa | Semana | Resp. |
-|--------|--------|--------|-------|
-| ⬜ | Definir jornada do onboarding: quais etapas, em que ordem, o que é obrigatório vs. opcional | S1 | Gustavo |
-| ✅ | Criar nova rota de usuários (/profile/) e boas-vindas pós-cadastro com próximos passos | S2 | Gustavo / Dev |
-| ⬜ | Implementar checklist de setup do perfil (foto, nome, primeiro imóvel) | S2–3 | Gustavo / Dev |
-| ⬜ | Criar tooltip/guia contextual na primeira visita ao dashboard | S3 | Gustavo / Dev |
-| ⬜ | Configurar sequência de e-mails de onboarding via Mailersend (D1, D3, D7) 💰 | S2–3 | Gustavo / Dev |
-| ⬜ | Testar onboarding completo com 2–3 usuários internos e coletar feedback | S3–4 | Gustavo |
-
-### 5A.3 Cadastro de Imóveis — Fluxo e Validações
-
-| Status | Tarefa | Semana | Resp. |
-|--------|--------|--------|-------|
-| ⬜ | Auditar formulário de cadastro de imóvel: campos, ordem, clareza dos labels | S1 | Gustavo |
-| ⬜ | Corrigir campos obrigatórios sem validação + mensagens de erro ausentes | S1–2 | Gustavo / Dev |
-| ⬜ | Garantir que imóvel cadastrado aparece imediatamente no dashboard (sem refresh manual) | S2 | Gustavo / Dev |
-| ⬜ | Revisar fluxo de edição de imóvel — dados pré-preenchidos, confirmação de salvar | S2 | Gustavo / Dev |
-| ⬜ | Testar upload de fotos (se existir): formato, tamanho, preview | S2–3 | Gustavo / Dev |
-| ⬜ | Validar que hostId é passado corretamente em todos os endpoints que exigem (ex: /properties) | S1 | Gustavo / Dev |
-
-### 5A.4 Dashboard e Recomendação de Preço (KNN)
-
-| Status | Tarefa | Semana | Resp. |
-|--------|--------|--------|-------|
-| ⬜ | Verificar se recomendação de preço exibe corretamente com imóvel real cadastrado | S2 | Gustavo |
-| ⬜ | Adicionar estado de loading na tela de recomendação (evita tela em branco) | S2 | Gustavo / Dev |
-| ⬜ | Revisar legibilidade dos dados: labels, unidades (R$/noite), gráficos | S2–3 | Gustavo / Dev |
-| ⬜ | Tratar caso sem dados suficientes para recomendação — exibir mensagem clara ao usuário | S2–3 | Gustavo / Dev |
-| ⬜ | Validar que 36.898 eventos do banco refletem em recomendações coerentes | S3 | Gustavo |
-
-### 5A.5 Assinatura Stripe — Fluxo Real com Usuário
-
-| Status | Tarefa | Semana | Resp. |
-|--------|--------|--------|-------|
-| ⬜ | Testar fluxo completo de assinatura em produção após KYC aprovado | S1–2 | Gustavo |
-| ⬜ | Validar página de checkout Stripe: logo, nome do produto, valor correto | S2 | Gustavo |
-| ⬜ | Testar cancelamento de assinatura — fluxo UI + atualização de status no sistema | S2 | Gustavo / Dev |
-| ⬜ | Garantir que usuário sem assinatura vê CTA claro para assinar (não tela de erro) | S2 | Gustavo / Dev |
-| ⬜ | Validar e-mail de confirmação de assinatura chegando corretamente | S2 | Gustavo |
-
-### 5A.6 UX Geral e Responsividade
-
-| Status | Tarefa | Semana | Resp. |
-|--------|--------|--------|-------|
-| ⬜ | Testar sistema completo em mobile (iOS e Android) — identificar quebras de layout | S1–2 | Gustavo |
-| ⬜ | Corrigir problemas de responsividade críticos (bloqueiam uso no celular) | S2–3 | Gustavo / Dev |
-| ⬜ | Revisar navegação: menu, breadcrumbs, botão de voltar — consistência em todas as telas | S2 | Gustavo / Dev |
-| ⬜ | Auditar estados vazios (zero imóveis, zero dados) — exibir mensagem + CTA em vez de tela branca | S2–3 | Gustavo / Dev |
-| ⬜ | Validar fluxo completo de ponta a ponta: cadastro → onboarding → imóvel → recomendação → assinatura | S3–4 | Gustavo |
-| ⬜ | Documentar bugs restantes e priorizar backlog de produto | S4 | Gustavo |
+| Bloco | % | Próximo passo |
+|---|---|---|
+| 5A.1 Cadastro/Auth UX | 30% (paywall corrigido) | Mensagens acionáveis, estados de botão |
+| 5A.2 Onboarding | 40% (rota /profile feita) | E-mails D1/D3/D7 via Mailersend |
+| 5A.3 Cadastro de imóveis | 20% | Audit de form, validação, refresh imediato no dashboard |
+| 5A.4 Dashboard + recomendação | 30% | Estado de loading, fallback "dados insuficientes" |
+| 5A.5 Stripe fluxo real | bloqueado em KYC | — |
+| 5A.6 Responsividade mobile | 0% | Audit em iOS/Android |
 
 ---
 
 ## F5 — Presença Digital
-**Objetivo:** Gerar demanda e visibilidade para o produto antes do go-live oficial.
-**Período estimado:** Semanas 1–6 (21/03 → 30/04/2026)
-**Custo estimado:** 💰 R$ 2.000–5.000/mês (mídia + produção)
+**Status:** Landing 95% pronta (técnico). Aguarda IDs analytics + domínio.
 
-### 5.1 Landing Page
-**Meta:** Publicar landing page em urbanai.com.br convertendo anfitriões Airbnb em SP.
+| Item | Status |
+|---|---|
+| Landing principal Glassmorphism + SEO | ✅ |
+| Página de planos com Stripe | ✅ (toggle binário antigo) + ✅ /plans/v2 (4 ciclos F6.5) |
+| GA4 + Meta Pixel via `next/script` | ✅ Código pronto, env vars vazias |
+| Formulário de pré-cadastro (`WaitlistForm`) | ✅ Componente pronto, endpoint vazio |
+| Publicar em `urbanai.com.br` | ⬜ Aguarda DNS |
+| Redes sociais (4/12 posts criados) | ⬜ Aguarda 8 posts + cadência |
+| Tráfego pago (F5.3 — experimento com pivot) | 🔴 Aguarda aprovação orçamento |
 
-| Status | Tarefa | Semana | Resp. |
-|--------|--------|--------|-------|
-| ✅ | Definir proposta de valor e copy principal — narrativa "Síndrome da Casa Barata" + dossiê executivo | S1 (21–28/03) | Gustavo |
-| ✅ | Criar wireframe e estrutura de seções (hero, benefícios, preço, CTA, FAQ) | S1–2 | Gustavo |
-| ✅ | Desenvolver design e layout da landing page — Glassmorphism Premium (HTML) 💰 | S2–3 (31/03–11/04) | Gustavo / Dev |
-| ✅ | Criar página de preços com CTA direto de assinatura (Stripe) — 2 planos incluídos | S3–4 | Gustavo / Dev |
-| ✅ | Configurar SEO básico: title, meta description, Open Graph, JSON-LD, sitemap.xml, robots.txt | S4 | Gustavo |
-| 🔄 | Configurar Google Analytics 4 + Meta Pixel — placeholders prontos, aguarda IDs reais | S4 | Gustavo |
-| ⬜ | Publicar landing page em urbanai.com.br (aguarda transferência do domínio) 💰 | S4–5 | Gustavo / Dev |
-| ⬜ | Integrar formulário de pré-cadastro / lista de interesse | S4–5 | Gustavo / Dev |
-
-### 5.2 Redes Sociais
-**Meta:** Construir presença orgânica antes do lançamento pago.
-
-| Status | Tarefa | Semana | Resp. |
-|--------|--------|--------|-------|
-| ⬜ | Criar conta Instagram @urbanai.oficial e LinkedIn Urban AI | S1 (21–28/03) | Gustavo |
-| ✅ | Definir identidade visual para redes — brand book com 6 templates (paleta, tipografia, dimensões) | S1–2 | Gustavo |
-| ✅ | Criar press release de lançamento e e-mail de lançamento (HTML, 3 subject lines A/B) | S2 | Gustavo |
-| 🔄 | Criar banco inicial: 4/12 posts criados — 3 carrosséis HTML + 1 post lançamento 💰 | S2–4 | Gustavo |
-| ⬜ | Completar banco: 8 posts restantes para atingir 12 publicações 💰 | S4–5 | Gustavo |
-| ⬜ | Iniciar publicação regular (2–3x por semana) 💰 | S5+ | Gustavo |
-
-### 5.3 Tráfego Pago
-**Meta:** Adquirir primeiros usuários pagantes via mídia.
-
-| Status | Tarefa | Semana | Resp. |
-|--------|--------|--------|-------|
-| 🔴 | **Aprovar orçamento completo de recursos (ver 5.4 abaixo)** com Fabrício e Rogério 💰 | S4 | Gustavo + Sócios |
-| ⬜ | Configurar Google Ads: busca "precificar airbnb são paulo" 💰 | S5–6 | Gustavo |
-| ⬜ | Configurar Meta Ads: campanha para anfitriões Airbnb em SP 💰 | S5–6 | Gustavo |
-| ⬜ | Monitorar KPIs: CAC, CTR, conversão landing → cadastro | S6+ | Gustavo |
-| ⬜ | Otimizar campanhas semanalmente com base em dados 💰 | S8+ | Gustavo |
+**Sua ação:** criar property GA4 + Pixel Meta + form Formspark/Formspree → setar `NEXT_PUBLIC_GA4_ID`, `NEXT_PUBLIC_META_PIXEL_ID`, `NEXT_PUBLIC_WAITLIST_ENDPOINT` no Railway.
 
 ---
 
-### 5.4 Aprovação de Recursos — Tabela de Investimentos em Marketing
-**Status: 🔴 Aguarda aprovação dos sócios — bloqueia F5.3 inteira**
-**Objetivo:** Formalizar os investimentos mensais em marketing antes do go-live. Valores baseados em pesquisa de mercado (abril 2026).
+## F5B — Entregas Extras 07–21/04 (✅ todas no código)
 
-> ⚠️ Nenhuma campanha paga ou contratação deve ser iniciada sem aprovação formal deste orçamento por Fabrício e Rogério.
+E1 toggle billing mensal/anual · E2 captura `airbnbHostId` no onboarding · E3 cron Gemini hourly · E4 cron de análises aceitas · E5 `/my-plan` + cancelamento · E6 landing `/lancamento` · E7 `PaymentCheckGuard`. **Dívidas D1–D6 (testes ausentes) parcialmente atacadas em F5C.4 #2.**
 
-| Serviço | Fornecedor | Faixa Mensal | Prazo Aprovação | Status |
-|---------|-----------|-------------|-----------------|--------|
-| **Gestão de Tráfego Pago** (Google + Meta Ads) | Urban AI 💰 | R$ 1.500–R$ 2.500 | S4 | ⬜ Aguarda aprovação |
-| **Verba de Mídia** (investimento direto em anúncios) | Google / Meta | R$ 1.500–R$ 3.000 | S4 | ⬜ Aguarda aprovação |
-| **Design de Posts** (8–12 posts/mês, feed + stories) | Parceiro Urban AI 💰 | R$ 800–R$ 1.500 | S4 | ⬜ Aguarda aprovação |
-| **Produção de Vídeos/Reels com IA** | Urban AI + Ferramenta 💰 | R$ 500–R$ 1.000 | S4 | ⬜ Aguarda aprovação |
-| **Ferramenta IA Vídeo** (CapCut Pro ou HeyGen) | Assinatura | R$ 40–R$ 170 | S4 | ⬜ Aguarda aprovação |
-| **Total estimado** | | **R$ 4.340–R$ 8.170/mês** | | 🔴 Bloqueado |
+---
 
-**Referências de mercado consultadas (abril 2026):**
-- Gestão de tráfego (freelancer intermediário a agência): R$ 1.500–R$ 8.000/mês — recomendado nível intermediário para fase inicial
-- Design social media (pacote 8–12 posts/mês): R$ 500–R$ 2.500/mês conforme experiência
-- CapCut Pro: ~R$ 40/mês | HeyGen Creator: US$29/mês (~R$ 165/mês)
-- Verba de mídia: iniciantes validam canais com R$ 1.500–R$ 3.000/mês antes de escalar
+## F5C — Hardening Operacional ✅ (4/4 sub-blocos)
 
-> 💡 **Recomendação:** Para fase pré go-live, iniciar na faixa conservadora (R$ 4.340/mês). Escalar após validação de CAC e ROAS nas primeiras 4 semanas de campanha.
+### 5C.1 CRIT (5/6 + KYC)
+
+| # | Item | Status |
+|---|---|---|
+| 1 | RapidAPI key → env var | ✅ Commit `890ae85` |
+| 2 | `console.log` de senha/Auth removidos (4 leaks) | ✅ Commit `6d1d9c5` |
+| 3 | `synchronize:true` controlado por env | ✅ Commit `cfc1bc4` (cutover manual em runbook) |
+| 4 | `.env.example` em 4 serviços | ✅ Commit `f1bdff4` |
+| 5 | `.gitignore` + 29 arquivos lixo removidos | ✅ Commit `22434e2` |
+| 6 | KYC Stripe | ⬜ Sua ação |
+
+### 5C.2 P1 (10/10) ✅
+
+Todos os 10 itens entregues nesta sprint (commits `9cbf053`, `2430ffb`, `f960825`, `26da4a9`, `b9f5d1f`, `2d6b3a6`, `d1c1bc1`):
+
+- ✅ IP hardcoded → `NEXT_PUBLIC_CHAINLIT_URL`
+- ✅ CORS fail-closed
+- ✅ `@nestjs/throttler` global + 5/min em /auth/*
+- ✅ `helmet` + CSP (Stripe + Sentry + GMaps)
+- ✅ SHA-256 → bcrypt(12) com **lazy rehash transparente** no login
+- ✅ `Dockerfile copy` removido
+- ✅ ESLint reativado no build (rules-of-hooks errors corrigidos)
+- ✅ `UrbanAIPricingEngine` via DI
+- ✅ Suite de testes expandida (11 → 75 testes)
+- ✅ JWT httpOnly cookie + refresh rotation **(Fase 1 backend; Fase 2 frontend pendente)** + bônus crítico: `JWT_SECRET` hardcoded `"mysecretkey"` removido em 2 arquivos
+
+### 5C.3 Operação (5/5) ✅
+
+Commit `b4fd7ea`:
+
+- ✅ `docs/runbooks/access-onboarding.md` — checklist por sistema (10 ferramentas)
+- ✅ `docs/adr/0006-secrets-vault-strategy.md` — Railway Secrets escolhido
+- ✅ `docs/adr/0007-aposentar-knn-microservice.md` + `DEPRECATED.md`
+- ✅ READMEs raiz + backend + frontend reescritos
+- ✅ 5 runbooks de incidente (`docs/runbooks/incident-response/`)
+
+### 5C.4 P2 (8/8 — código + docs) ✅
+
+Commits `604141e`, `62357ca`:
+
+- ✅ JWT httpOnly + refresh rotation (entregue junto com #5C.2 #10)
+- ✅ Cobertura de testes (75 testes; serviços críticos cobertos; gap global em `propriedades/` documentado)
+- ✅ 5 ADRs retroativos (`docs/adr/0001` a `0005`)
+- ✅ Política LGPD interna + DPA checklist
+- ✅ `docs/slo.md` (uptime 99.5%, RTO 2h, RPO 24h, error budget)
+- ✅ `docs/runbooks/backup-restore.md` com drill trimestral
+- ✅ `load-tests/` k6 (smoke + login flow + pricing recommendation)
+- ✅ `e2e/a11y.spec.ts` axe-core + `docs/runbooks/wcag-audit-checklist.md`
+
+**Pendente sua execução manual:**
+- Provisionar staging Railway (runbook em `docs/runbooks/staging-provisioning.md`)
+- Submeter KYC Stripe
+- Disparar primeiro drill de restore + load test em staging
 
 ---
 
 ## F6 — Inteligência Artificial e Produto
-**Objetivo:** Evoluir o motor KNN para dados reais e fortalecer o produto para retenção.
-**Período estimado:** Semanas 3–10 (11/04 → 30/05/2026)
-**Custo estimado:** 💰 Horas de desenvolvimento (a definir)
 
-### 6.1 Motor KNN e Dados Reais
+### 6.1 Motor KNN com Dados Reais — 🧠 **Ainda no Tier 0**
 
-| Status | Tarefa | Semana | Resp. |
-|--------|--------|--------|-------|
-| ⬜ | Expor endpoints REST no backend para resultados do KNN 💰 | S3–4 | Gustavo / Dev |
-| ✅ | Implementado modo autônomo de precificação guiado por IA no frontend e backend 💰 | S4–6 | Gustavo / Dev |
-| ⬜ | Conectar dados reais de propriedades cadastradas ao treinamento do KNN 💰 | S5–7 | Gustavo / Dev |
-| ⬜ | Substituir dados mock por histórico real de preços e ocupação 💰 | S6–8 | Gustavo / Dev |
-| ⬜ | Agendar retreinamento semanal do KNN (pós-scraping de eventos) | S8–9 | Gustavo / Dev |
+> **Estado real (24/04/2026):** o motor existe, é testável (9 testes), aplica multiplicadores corretos, mas **roda com dataset mock**. Sem treinamento com dados reais, a recomendação é uma regra de negócio sofisticada — não uma IA que aprende. Esta seção foi reescrita explicitando os 4 tiers de maturidade necessários para a IA "funcionar de verdade".
+
+#### Tiers de maturidade da IA
+
+| Tier | O que muda | Esforço dev | Quando |
+|---|---|---|---|
+| **🧠 Tier 0** (atual) | Engine matemática + 3 imóveis mock | ✅ Pronto | — |
+| **🧠 Tier 1** | Engine treina ao boot com TODOS os imóveis cadastrados; cron semanal re-treina; lat/lng/metroDistance/amenities resolvidos automaticamente | 1–2 sprints | S6–7 |
+| **🧠 Tier 2** | Dataset histórico externo (AirROI grátis, depois Stays trade) com ≥200 imóveis × 12 meses | 2–3 sprints + parcerias | S7–10 |
+| **🧠 Tier 3** | Backtesting com hold-out + MAPE ≤15% como gate de qualidade | 1 sprint | S9–10 |
+| **🧠 Tier 4** | Loop de receita real (Stays Reservations API alimenta histórico de ocupação por imóvel × dia × preço) | 2–3 sprints + parceria fechada | S11+ |
+
+#### F6.1 — Tarefas concretas (revisadas v2.4)
+
+##### Tier 1 — Treinar o KNN com o que temos hoje (S6–7)
+
+| Status | Tarefa | Resp. |
+|---|---|---|
+| ⬜ | **Chamar `aiEngine.initialize(properties)` no boot do backend** com TODOS os imóveis cadastrados (`addressRepository.find()` → mapear para o shape esperado). Hoje o método existe mas não é invocado. | Gustavo / Dev |
+| ⬜ | **Cron semanal** `0 4 * * 0` (domingo 04h BRT) que re-chama `initialize()` após o scraping da semana terminar. Adicionar em `cron.module.ts`. | Gustavo / Dev |
+| ⬜ | **Resolver lat/lng** automaticamente para todos os imóveis sem coordenada via Google Geocoding API (já temos `GOOGLE_MAPS_API_KEY`). One-off + on-create. | Gustavo / Dev |
+| ⬜ | **Calcular `metroDistance`** via cost-matrix (a estação mais próxima). Persistir em coluna nova `address.metro_distance_km`. | Gustavo / Dev |
+| ⬜ | **Estimar `amenitiesCount`** a partir do título do anúncio Airbnb via Gemini API (mesmo client de events-enrichment). Persistir em `list.amenities_count`. | Gustavo / Dev |
+| ⬜ | **Estimar `category`** (0/1/2) inicial heurística por preço base + bairro até termos histórico real para o KNN aprender sozinho. | Gustavo / Dev |
+| ⬜ | Smoke test: boot do backend + chamada `/propriedades/:id/analise-preco` retorna recomendação **diferente** do fallback Standard | Gustavo |
+
+##### Tier 2 — Dataset externo (S7–10)
+
+| Status | Tarefa | Resp. |
+|---|---|---|
+| ⬜ | **AirROI API gratuita** — testar cobertura SP, criar conta, integrar como fonte secundária no scraping pipeline. Persistir snapshot diário em S3 + tabela `airroi_listings`. | Gustavo |
+| ⬜ | **Stays Modelo 1 (trade)** — após validação parceria, importar dataset agregado anonimizado mensal. Sem PII, formato CSV. | Gustavo + Sócios |
+| ⬜ | **Comunidade Superhost SP** — recrutar 20–30 voluntários beta que cedem histórico em troca de acesso antecipado. Form de coleta + import script. | Gustavo |
+| ⬜ | **Sympla API + Prefeitura SP** — substituir scraping de eventos por APIs oficiais (mitigação jurídica F9.2). | Gustavo / Dev |
+| ⬜ | **Critério mínimo de treinamento documentado:** ≥200 imóveis × 12 meses. Abaixo disso, KNN cai no fallback matemático declarado. | — |
+
+##### Tier 3 — Backtesting + qualidade (S9–10)
+
+| Status | Tarefa | Resp. |
+|---|---|---|
+| ⬜ | **Hold-out 20%** do dataset para teste fora do treino. | Gustavo / Dev |
+| ⬜ | **Função `calculateMAPE`** que mede erro % entre `precoSugerido` e o preço real que teve reserva no hold-out. | Gustavo / Dev |
+| ⬜ | **Job semanal de qualidade** que recalcula MAPE e abre alerta no Sentry se passar de 15%. | Gustavo / Dev |
+| ⬜ | **Gate de release**: MAPE ≤ 15% antes de F7 (beta fechado). Sem isso, beta usa fallback matemático com aviso explícito. | Gustavo |
+| ⬜ | **Dashboard interno** mostrando MAPE histórico, distribuição de erro por bairro/categoria. | Gustavo / Dev |
+
+##### Tier 4 — Loop de receita (S11+)
+
+| Status | Tarefa | Resp. |
+|---|---|---|
+| ⬜ | **Stays Reservations API** — consumir via `StaysConnector.listReservations` (a implementar — método não existe ainda no conector). | Gustavo / Dev |
+| ⬜ | **Tabela `revenue_history`** — uma linha por imóvel/data/preço/status (booked/free/blocked). | Gustavo / Dev |
+| ⬜ | **Job diário** que cruza `AnalisePreco` aceito × reserva real × revenue por noite e calcula uplift. | Gustavo / Dev |
+| ⬜ | **Endpoint `/propriedades/:id/uplift`** que mostra "antes Urban AI vs depois Urban AI" — alimenta dashboard do anfitrião + 3 cases de F7.1. | Gustavo / Dev |
+| ⬜ | **Retraining alimentado por feedback real** — modelo aprende quais sugestões resultaram em reserva e ajusta multiplicadores. | Gustavo / Dev (Pós go-live) |
+
+#### Resumo F6.1 com tradução comercial
+
+| Hoje | Após Tier 1 | Após Tier 2 | Após Tier 3 | Após Tier 4 |
+|---|---|---|---|---|
+| "Engine de regras com mock" | "IA treinada na minha carteira" | "IA treinada com dados de mercado SP" | "IA validada com MAPE conhecido" | "IA que cresce a receita comprovada" |
+| **+0% prova** | +baseline interna | +contexto SP | +qualidade quantificada | +ROI comprovado em número |
+
+---
 
 ### 6.2 Fontes de Dados e APIs
 
-| Status | Tarefa | Semana | Resp. |
-|--------|--------|--------|-------|
-| ⬜ | Pesquisar novas fontes de eventos em SP (Sympla API, Prefeitura SP) | S3–4 | Gustavo |
-| ⬜ | Avaliar e contratar API alternativa ou complementar ao RapidAPI/Airbnb | S4–5 | Gustavo |
-| ⬜ | Reunião estratégica com PriceLabs — parceria ou benchmark | S4 | Gustavo |
-| ⬜ | Ampliar cobertura dos spiders para novos bairros/regiões de SP | S6–8 | Gustavo / Dev |
+Mesmas tarefas da v2.3, sem grandes mudanças. AirROI/Stays se sobrepõem com F6.1 Tier 2. PriceLabs reunião segue prevista.
 
 ### 6.3 Produto e Painel Administrativo
 
-| Status | Tarefa | Semana | Resp. |
-|--------|--------|--------|-------|
-| ⬜ | Implementar painel admin básico: gestão de usuários + assinaturas 💰 | S6–9 | Gustavo / Dev |
-| ⬜ | Criar fluxo de onboarding guiado para novos usuários 💰 | S7–9 | Gustavo / Dev |
-| ⬜ | Configurar e-mails de onboarding automático via Mailersend 💰 | S6–8 | Gustavo / Dev |
-| ⬜ | Implementar métricas de produto no dashboard (NPS, ativação, retenção) | S8–10 | Gustavo / Dev |
+Sem mudança nesta sprint. Painel admin básico ainda pendente — fila para semana 9.
+
+### 6.4 Integração Oficial Airbnb via Stays — 🔄 **Fundação ✅, ativação pendente**
+
+> **Estado em 24/04/2026:** todo o código do lado Urban AI está pronto e testado (13 specs do `StaysService`). Falta apenas: (1) parceria comercial com Stays + credenciais reais; (2) auto-match listing↔imóvel (UI); (3) OAuth flow se Stays oferecer.
+
+| Status | Tarefa | Quando |
+|---|---|---|
+| ✅ | Domínio: entities `StaysAccount`, `StaysListing`, `PriceUpdate` (com idempotency, audit trail, rollback) | Commit `c634805` |
+| ✅ | `StaysConnector` (REST client com retry exponencial 3x, 4xx não-retry) | ✅ |
+| ✅ | `StaysService` (connect, sync, pushPrice com guardrails ±25%/-20%, rollback) | ✅ |
+| ✅ | 6 endpoints REST `/stays/*` | ✅ |
+| ✅ | Cron `stays-auto-apply` (hora em hora) — modo automático | ✅ |
+| ✅ | UI `/settings/integrations` (conectar com checkbox LGPD, sync, listings) | ✅ |
+| ✅ | 13 testes unitários | ✅ |
+| ✅ | Runbook `docs/runbooks/stays-integration-setup.md` | ✅ |
+| 🔴 | **Parceria comercial Stays** (one-pager pronto em `docs/outreach/stays-one-pager.md`) | S5–6 |
+| ⬜ | OAuth 2.0 flow (se Stays disponibilizar) | S9 |
+| ⬜ | Auto-match listing Stays ↔ imóvel Urban AI por similaridade de título/endereço | S10 |
+| ⬜ | UI de histórico de PriceUpdate por imóvel (com botão Reverter) | S10 |
+| ⬜ | Confirmar shape real da API Stays + ajustar `StaysConnector` se necessário | Após reunião |
+| ⬜ | Tela de configuração de guardrails por anfitrião (max increase/decrease %) | S10 |
+
+### 6.5 Repricing por Imóvel — ✅ **Implementado**
+
+> **Estado em 24/04/2026:** todo o backend + UI da matriz de cobrança está pronta e testada. 8 novos Stripe Price IDs precisam ser criados manualmente no Dashboard.
+
+| Status | Tarefa | Status |
+|---|---|---|
+| ✅ | Entity `Plan` estendida com 12 campos novos (4 ciclos × preços/IDs/descontos) | Commit `5e60be9` |
+| ✅ | Entity `Payment` com `billingCycle`, `listingsContratados`, `planName` | ✅ |
+| ✅ | `seedPlans` com matriz F6.5 (Starter R$ 97→58, Profissional R$ 197→118 anual) | ✅ |
+| ✅ | `createCheckoutSession` aceita 4 ciclos + quantity | ✅ |
+| ✅ | Webhook persiste billingCycle + listingsContratados via metadata | ✅ |
+| ✅ | `customer.subscription.updated` trata mudança de quantity (upsell) | ✅ |
+| ✅ | Endpoint `GET /payments/listings-quota` | ✅ |
+| ✅ | UI `/plans/v2` com `PricingCalculatorV2` (seletor de 4 ciclos + quantidade + calculadora) | ✅ |
+| ✅ | `ListingsQuotaGuard` componente | ✅ |
+| ✅ | Testes (8 novos, 75 totais) | ✅ |
+| 🔴 | **Criar 8 Stripe Price IDs no Dashboard** + setar env vars no Railway | Sua ação |
+| ⬜ | Rota `/plans/v2/upsell` para mudança de quantity sem recriar subscription (Stripe Customer Portal ou subscription.update direto) | S8 |
+| ⬜ | E-mails transacionais por ciclo (Mailersend templates) | S9 |
+| ⬜ | Grandfathering 3 meses para usuários ativos pré-F6.5 | S10 |
+| ⬜ | Simulação financeira ARR cenários conservador/base/otimista | S7 |
+| ⬜ | Substituir toggle binário em `/plans` antiga ou redirect para `/plans/v2` | S8 |
 
 ---
 
 ## F7 — Beta Fechado e Go-Live Oficial
-**Objetivo:** Validar o produto com usuários reais e lançar oficialmente.
-**Período estimado:** Semanas 8–14 (18/05 → 04/07/2026)
-**Custo estimado:** 💰 Mídia no go-live + ajustes de produto
 
-### 7.1 Beta Fechado
+**Status:** preparação técnica essencialmente pronta; **execução depende de IA Tier 2/3 + KYC + parceria Stays + dataset**.
 
-| Status | Tarefa | Semana | Resp. |
-|--------|--------|--------|-------|
-| ⬜ | Selecionar 5–10 anfitriões Airbnb em SP para beta (contato direto) | S7–8 | Gustavo |
-| ⬜ | Integrar usuários beta gratuitamente — acompanhar onboarding | S8–9 | Gustavo |
-| ⬜ | Coletar feedback estruturado (formulário + entrevistas curtas) | S9–10 | Gustavo |
-| ⬜ | Priorizar e implementar correções críticas levantadas no beta | S10–12 | Gustavo / Dev |
+### 7.1 Beta com 3 cases auditados de ROI
+
+Sem mudanças vs v2.3. Reforço: **gate explícito** que beta não abre antes de:
+- 🧠 IA no Tier 2 mínimo (algum dataset real)
+- ✅ Staging rodando smoke test ponta-a-ponta
+- ✅ KYC aprovado
+- ✅ MAPE medido
 
 ### 7.2 Go-Live Oficial
 
-| Status | Tarefa | Semana | Resp. |
-|--------|--------|--------|-------|
-| ⬜ | Checklist final de segurança e compliance antes do lançamento | S12 | Gustavo |
-| ⬜ | Preparar comunicação de lançamento (e-mail, redes, press release) | S12–13 | Gustavo + Rogério |
-| ⬜ | Anunciar lançamento oficial — Instagram, LinkedIn, e-mail para lista de interesse | S13–14 | Gustavo |
-| ⬜ | Ativar campanhas de tráfego pago no go-live 💰 | S13–14 | Gustavo |
-| ⬜ | Monitorar métricas de ativação e retenção nas primeiras 2 semanas | S14+ | Gustavo |
+Recalibrado: **S15–17** (mid–late julho/2026).
 
 ---
 
-## Resumo de Custos Pós-Sprint
+## F9 — Time, Compliance e Observabilidade Transversal
 
-| Fase | Custo estimado | Quando |
+### 9.1 Time
+
+Sem mudança. Decisão de contractor segue pendente — agora ainda mais urgente porque F6.1 Tiers 1–3 são 4–6 sprints de dev e o Gustavo está acumulando tudo.
+
+### 9.2 Compliance e LGPD
+
+| Status | Item |
+|---|---|
+| ✅ | Política de Privacidade interna (`docs/lgpd/politica-privacidade-interna.md`) |
+| ✅ | DPA checklist com cronograma (`docs/lgpd/dpa-checklist.md`) |
+| ✅ | Consentimento Stays no código (UI `/settings/integrations`) |
+| ⬜ | Persistir log do consentimento em `User.consents` (campo novo) |
+| ⬜ | Assinar 6 DPAs prioritários (Stripe, Mailersend, AWS, Railway, Upstash, Sentry) — meta S7 |
+| ⬜ | Posicionamento jurídico sobre scraping (`docs/legal-scraping.md`) — após advogado externo |
+| ⬜ | Template + processo de resposta a solicitação LGPD em ≤15 dias |
+| ⬜ | Página pública `/privacidade` sincronizar com a interna |
+
+### 9.3 Observabilidade Estendida
+
+| Status | Item |
+|---|---|
+| ✅ | Sentry com `APP_ENV` separando prod/staging |
+| ✅ | UptimeRobot apontado para `app.myurbanai.com/health` |
+| ⬜ | Eventos custom no Sentry (`user.signed_up`, `pricing.suggestion_accepted`, `stays.price_pushed` etc.) — código pronto para adicionar nos services |
+| ⬜ | Alertas Sentry (webhook Stripe falhando, push Stays falhando >5%, Prefect 2 dias seguidos) |
+| ⬜ | Dashboard de métricas de produto (NPS, ativação, retenção, MRR, churn) — Grafana ou PostHog free |
+| ⬜ | Adicionar `GET /health` ao backend se ainda não existe (referenciado em load-tests + UptimeRobot) |
+
+---
+
+## Resumo de Custos Pós-Sprint (atualizado)
+
+| Fase | Custo estimado | Status |
 |------|----------------|--------|
-| F5 — Presença Digital | R$ 2.000–5.000/mês mídia + R$ 3.000–8.000 produção | A partir de S1 |
-| F6 — IA e Produto | Horas de dev (a definir com equipe) | S3–10 |
-| F7 — Beta e Go-Live | R$ 5.000–10.000 mídia no lançamento | S13–14 |
-| Infraestrutura Railway | ~R$ 1.000/mês (já ativo) | Recorrente |
-| Google Cloud | Grátis até 15/06/2026 (R$ 1.759 crédito) | — |
-| AWS S3 | Grátis até esgotar (USD 200 crédito) | — |
+| F5 — Presença Digital | R$ 4.340–8.170/mês | 🔴 Bloqueado em aprovação |
+| F5C — Hardening | ✅ Entregue (~120h dev consumidas nesta sprint) | ✅ |
+| F6.1 Tier 1 | ~80h dev | S6–7 |
+| F6.1 Tier 2 (dataset) | R$ 0 (trade Stays) ou R$ 5–15k (PMC) | S7–10 |
+| F6.1 Tier 3 (MAPE) | ~40h dev | S9–10 |
+| F6.1 Tier 4 (loop receita) | ~120h dev (depende Stays) | S11+ |
+| F6.4 Stays — fundação | ✅ Entregue (~150h dev consumidas) | ✅ |
+| F6.4 Stays — ativação | depende parceria | S5–11 |
+| F6.5 Repricing | ✅ Entregue | ✅ |
+| F7 Beta + Go-Live | R$ 5–10k mídia | S13–16 |
+| F9 — Time/Compliance/Obs | contractor R$ 12–20k/mês · advogado R$ 3–8k · ferramentas R$ 200/mês | S5–14 |
+| Infra Railway | ~R$ 1.000/mês | recorrente |
 
-> 💡 **Decisão urgente:** Aprovar orçamento de marketing com Fabrício e Rogério na Semana 1 — sem isso F5 não começa.
+> 💡 **Decisão urgente 1:** Aprovar orçamento marketing (semana 5).
+> 💡 **Decisão urgente 2:** Validar Stays + iniciar parceria (semana 5–6).
+> 💡 **Decisão urgente 3:** Decidir contractor dev (semana 5–6).
+> 💡 **Decisão urgente 4:** Submeter KYC Stripe (semana 6).
+> 💡 **Decisão urgente 5 (NOVA):** Aceitar publicamente que **a IA está no Tier 0 hoje** e definir até quando subir para Tier 1/2 — isso afeta a narrativa do go-live e o que a landing pode prometer.
 
 ---
 
-## Marcos Críticos — Próximas Semanas
+## Marcos Críticos — Próximas Semanas (revisados v2.4)
 
 | Quando | Marco | Impacto se atrasar |
 |--------|-------|--------------------|
-| Semana 1 | Submeter KYC Stripe | Cobranças reais bloqueadas — usuários não conseguem assinar |
-| Semana 1 | Aprovar orçamento de marketing | F5 inteira bloqueada |
-| Semana 1–2 | Transferências de domínio concluídas | Landing page não publica em urbanai.com.br |
-| Semana 2–3 | Onboarding implementado + fluxo de cadastro corrigido (F5A) | Tráfego pago chegando num produto com problemas → churn alto |
-| Semana 3–4 | Landing page no ar | Sem landing = sem conversão de tráfego pago |
-| Semana 4 | Validação ponta a ponta concluída (F5A) | Não lançar tráfego pago antes de F5A estar aprovada |
-| Semana 8 | Beta fechado iniciado | Atraso no go-live oficial |
-| Semana 13–14 | Go-Live oficial | — |
+| Semana 5 | F5C.1 CRIT 100% (KYC enviado) | Cobrança real bloqueada |
+| Semana 5 | Aprovar orçamento marketing | F5.3 não inicia |
+| Semana 5 | Validar Stays + contato comercial | F6.4 ativação não inicia |
+| Semana 5–6 | Decisão de time (contractor) | F6.1 trava em uma única pessoa |
+| Semana 6 | **Tier 1 da IA implementado** (initialize + lat/lng + amenities) | Continua "fallback Standard" para todo mundo |
+| Semana 6 | Staging Railway provisionado | F5C.4 testes não rodam |
+| Semana 6–7 | Stripe Price IDs F6.5 criados + ativos no Railway | Repricing fica como código sem efeito |
+| Semana 7 | DPAs assinados (6 prioritários) | Risco LGPD em incidente |
+| Semana 7–8 | **Tier 2 dataset** (AirROI + Stays trade) | IA continua sem base de mercado |
+| Semana 9–10 | **Tier 3 MAPE ≤ 15%** | Beta abre sem qualidade quantificada |
+| Semana 11 | F6.4 ativação (push Stays em prod) | Fica em modo recomendação manual |
+| Semana 11–12 | Beta fechado iniciado | Atraso em F7 |
+| Semana 12 | 3 cases auditados de ROI | Landing não converte |
+| **Semana 15–17** | **Go-Live oficial** | — |
 
 ---
 
 ## Estrutura de Relatórios ao Cliente
 
-> Para os próximos sprints, os relatórios seguirão este ciclo:
-
-| Frequência | Tipo | Conteúdo |
-|------------|------|----------|
-| Semanal | Status rápido (WhatsApp/Notion) | O que foi feito · O que está em andamento · Bloqueios |
-| Quinzenal | Relatório de progresso (.docx) | KPIs da fase · Tarefas concluídas · Próximas 2 semanas |
-| Por fase concluída | Relatório de entrega (.docx) | Resumo executivo · Entregas · Pontos abertos · Próxima fase |
+Mantida da v2.3.
 
 ---
 
-*Urban AI © 2026 · Uso interno · Criado em 20/03/2026 · Versão pós-sprint*
+*Urban AI © 2026 · Uso interno · v2.4*
+
+---
+
+## Changelog do Roadmap
+
+| Data | Versão | Autor | Mudanças |
+|------|--------|-------|----------|
+| 20/03/2026 | v1.0 | Gustavo | Criação pós-D14 |
+| 13/04/2026 | v2.0 | Gustavo | F5/F5A/F6/F7 |
+| 21/04/2026 | v2.1 | Roadmap-Manager Squad | F5B (E1–E7) |
+| 22/04/2026 | v2.2 | Gustavo + Claude | F5C, F6.4, F6.5 |
+| 22/04/2026 | v2.3 | Gustavo + Claude | Norte Estratégico, F9, sequenciamento |
+| 24/04/2026 | **v2.4** | **Gustavo + Claude** | **Sprint técnico de 29 commits.** F5C inteira marcada como ✅ (1/2/3/4). F6.4 fundação ✅. F6.5 ✅. F6.1 reescrita explicitando os 4 Tiers de maturidade da IA — esclarecendo que hoje estamos no **Tier 0**. Marcos recalibrados; go-live S15–17. |
