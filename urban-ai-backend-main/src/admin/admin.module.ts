@@ -8,6 +8,9 @@ import { Payment } from '../entities/payment.entity';
 import { AnalisePreco } from '../entities/AnalisePreco';
 import { PriceSnapshot } from '../entities/price-snapshot.entity';
 import { OccupancyHistory } from '../entities/occupancy-history.entity';
+import { PriceUpdate } from '../entities/price-update.entity';
+import { StaysAccount } from '../entities/stays-account.entity';
+import { StaysListing } from '../entities/stays-listing.entity';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
 import { AuthModule } from '../auth/auth.module';
@@ -24,6 +27,9 @@ import { KnnEngineModule } from '../knn-engine/knn-engine.module';
       AnalisePreco,
       PriceSnapshot,
       OccupancyHistory,
+      PriceUpdate,
+      StaysAccount,
+      StaysListing,
     ]),
     AuthModule,        // RolesGuard precisa do TypeOrm de User; AuthModule já provê
     KnnEngineModule,   // AdaptivePricingStrategy + DatasetCollectorService

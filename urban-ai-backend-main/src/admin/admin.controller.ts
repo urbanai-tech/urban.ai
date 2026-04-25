@@ -52,6 +52,36 @@ export class AdminController {
     return this.admin.datasetMetrics();
   }
 
+  @ApiOperation({ summary: 'Analytics do motor de eventos (cobertura, categorias, top relevância)' })
+  @Get('events/analytics')
+  async eventsAnalytics() {
+    return this.admin.eventsAnalytics();
+  }
+
+  @ApiOperation({ summary: 'Saúde da integração Stays (contas, listings, push history)' })
+  @Get('stays/health')
+  async staysHealth() {
+    return this.admin.staysHealth();
+  }
+
+  @ApiOperation({ summary: 'Funnel de produto (signup → analyses → applied)' })
+  @Get('funnel')
+  async productFunnel() {
+    return this.admin.productFunnel();
+  }
+
+  @ApiOperation({ summary: 'Qualidade do motor (MAPE sobre preço aplicado real)' })
+  @Get('pricing/quality')
+  async pricingQuality() {
+    return this.admin.pricingQuality();
+  }
+
+  @ApiOperation({ summary: 'Cobertura de ocupação (status, origem, listings distintos)' })
+  @Get('occupancy/coverage')
+  async occupancyCoverage() {
+    return this.admin.occupancyCoverage();
+  }
+
   @ApiOperation({ summary: 'Listar usuários (paginado)' })
   @Get('users')
   async listUsers(@Query('page') page: string = '1', @Query('limit') limit: string = '20') {
