@@ -67,4 +67,16 @@ export class User {
 
   @Column({ nullable: true })
   airbnbHostId?: string;
+
+  /**
+   * Papel do usuário na plataforma.
+   *  - 'host' (default): anfitrião comum
+   *  - 'admin': operador Urban AI (Gustavo, sócios, contractor)
+   *  - 'support': leitura ampla mas sem mutação destrutiva
+   *
+   * Usado pelo `RolesGuard` para proteger endpoints administrativos.
+   * Atribuição manual via SQL ou endpoint admin (após o primeiro admin existir).
+   */
+  @Column({ type: 'varchar', length: 16, default: 'host' })
+  role: 'host' | 'admin' | 'support' | string;
 }

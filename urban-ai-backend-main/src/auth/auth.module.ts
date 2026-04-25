@@ -7,6 +7,7 @@ import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtStrategy } from './jwt.strategy';
 import { LocalAuthGuard } from './local-auth.guard';
+import { RolesGuard } from './roles.guard';
 import { User } from 'src/entities/user.entity';
 import { RefreshToken } from 'src/entities/refresh-token.entity';
 import { PaymentsModule } from 'src/payments/payments.module';
@@ -33,7 +34,7 @@ import { PaymentsModule } from 'src/payments/payments.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, LocalAuthGuard],
-  exports: [AuthService],
+  providers: [AuthService, JwtStrategy, LocalAuthGuard, RolesGuard],
+  exports: [AuthService, RolesGuard],
 })
 export class AuthModule {}

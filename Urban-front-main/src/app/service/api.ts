@@ -867,6 +867,112 @@ export const fetchListingsQuota = async (): Promise<ListingsQuota> => {
   return data;
 };
 
+// ================== Admin (F6.3 painel) ==================
+
+export interface AdminOverview {
+  users: { total: number; active: number; admins: number };
+  product: {
+    propertiesRegistered: number;
+    eventsTotal: number;
+    eventsLast7d: number;
+    analysesTotal: number;
+    analysesAccepted: number;
+    acceptanceRatePercent: number;
+  };
+  revenue: { activeSubscriptions: number };
+  ai: {
+    currentTier: string;
+    currentStrategy: string;
+    reason: string;
+    dataset: {
+      totalSnapshots: number;
+      distinctListings: number;
+      distinctDays: number;
+      trainingReady: number;
+    };
+  };
+}
+
+export interface AdminPricingStatus {
+  activeStrategy: string;
+  tier: string;
+  reason: string;
+  datasetSize: {
+    total: number;
+    distinctListings: number;
+    distinctDays: number;
+    trainingReady: number;
+  };
+  strategyEnvDefault: string;
+  bootstrapOnBoot: boolean;
+}
+
+export interface AdminDatasetMetrics {
+  byOrigin: Array<{ origin: string; count: number }>;
+  daysCovered: number;
+  topListings: Array<{ listingId: string; snapshots: number }>;
+}
+
+export interface AdminUser {
+  id: string;
+  username: string;
+  email: string;
+  role: 'host' | 'admin' | 'support' | string;
+  ativo: boolean;
+  createdAt: string;
+  phone?: string;
+  company?: string;
+  pricingStrategy?: string;
+  operationMode?: string;
+  airbnbHostId?: string;
+}
+
+export interface AdminUsersResponse {
+  data: AdminUser[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export async function fetchAdminOverview(): Promise<AdminOverview> {
+  const { data } = await api.get<AdminOverview>('/admin/overview');
+  return data;
+}
+
+export async function fetchAdminPricingStatus(): Promise<AdminPricingStatus> {
+  const { data } = await api.get<AdminPricingStatus>('/admin/pricing/status');
+  return data;
+}
+
+export async function fetchAdminDatasetMetrics(): Promise<AdminDatasetMetrics> {
+  const { data } = await api.get<AdminDatasetMetrics>('/admin/dataset/metrics');
+  return data;
+}
+
+export async function fetchAdminUsers(page = 1, limit = 20): Promise<AdminUsersResponse> {
+  const { data } = await api.get<AdminUsersResponse>('/admin/users', {
+    params: { page, limit },
+  });
+  return data;
+}
+
+export async function setAdminUserRole(
+  userId: string,
+  role: 'host' | 'admin' | 'support',
+): Promise<{ id: string; role: string }> {
+  const { data } = await api.patch(`/admin/users/${userId}/role`, { role });
+  return data;
+}
+
+export async function setAdminUserActive(
+  userId: string,
+  ativo: boolean,
+): Promise<{ id: string; ativo: boolean }> {
+  const { data } = await api.patch(`/admin/users/${userId}/active`, { ativo });
+  return data;
+}
+
 // ================== Stays integration (F6.4) ==================
 
 export interface StaysAccountPublic {
