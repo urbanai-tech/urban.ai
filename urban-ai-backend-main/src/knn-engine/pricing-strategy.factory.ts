@@ -3,18 +3,26 @@ import { PricingStrategy } from './pricing-strategy.interface';
 import { RuleBasedPricingStrategy } from './strategies/rule-based-pricing.strategy';
 import { XGBoostPricingStrategy } from './strategies/xgboost-pricing.strategy';
 import { ShadowPricingStrategy } from './strategies/shadow-pricing.strategy';
+import { AdaptivePricingStrategy } from './strategies/adaptive-pricing.strategy';
 
 /**
  * Selector de PricingStrategy via env var `PRICING_STRATEGY`.
  *
  * Valores:
- *  - `rules` (default) — sempre usa regras + multiplicadores
- *  - `xgboost` — só XGBoost (precisa ter o modelo carregado)
+ *  - `adaptive` (default) — auto-tier: escolhe entre rules/xgboost/hybrid
+ *    conforme o volume de dataset proprietário cresce. **É o caminho do
+ *    moat**: o produto migra de algoritmo automaticamente sem deploy.
+ *  - `rules` — força regras + multiplicadores (fallback eterno)
+ *  - `xgboost` — força XGBoost (precisa ter modelo carregado)
  *  - `shadow` — primária = regras, sombra = XGBoost (loga, não usa)
- *  - `auto` — usa XGBoost se isReady(), senão regras
+ *  - `auto` — alias semântico de adaptive (compat)
  *
- * Selector é executado uma vez no boot. Se quiser trocar em runtime, basta
- * redeployar com a env var nova — não precisa mexer em código.
+ * Default mudou de 'rules' para 'adaptive' nesta versão — o adaptive cai
+ * em 'rules' enquanto dataset é insuficiente, então comportamento atual
+ * em produção é idêntico. A diferença: assim que o dataset cresce, o
+ * switch acontece sem precisar trocar env var ou redeployar.
+ *
+ * Para forçar fallback (ex.: incidente), trocar para 'rules' e redeployar.
  */
 @Injectable()
 export class PricingStrategyFactory {
@@ -23,10 +31,11 @@ export class PricingStrategyFactory {
   constructor(
     private readonly rules: RuleBasedPricingStrategy,
     private readonly xgboost: XGBoostPricingStrategy,
+    private readonly adaptive: AdaptivePricingStrategy,
   ) {}
 
   build(): PricingStrategy {
-    const choice = (process.env.PRICING_STRATEGY || 'rules').toLowerCase();
+    const choice = (process.env.PRICING_STRATEGY || 'adaptive').toLowerCase();
 
     switch (choice) {
       case 'xgboost':
@@ -46,22 +55,17 @@ export class PricingStrategyFactory {
         return new ShadowPricingStrategy({
           primary: this.rules,
           shadow: this.xgboost,
-          // TODO: persistir em tabela `pricing_shadow_log` quando F6.1 Tier 1 fechar.
-          // Hoje só loga via logger do ShadowPricingStrategy.
         });
 
-      case 'auto':
-        if (this.xgboost.isReady()) {
-          this.logger.log("PricingStrategy ativa: 'auto' → 'xgboost'");
-          return this.xgboost;
-        }
-        this.logger.log("PricingStrategy ativa: 'auto' → 'rules' (xgboost not ready)");
-        return this.rules;
-
       case 'rules':
-      default:
         this.logger.log("PricingStrategy ativa: 'rules'");
         return this.rules;
+
+      case 'adaptive':
+      case 'auto':
+      default:
+        this.logger.log("PricingStrategy ativa: 'adaptive' (auto-tier)");
+        return this.adaptive;
     }
   }
 }
