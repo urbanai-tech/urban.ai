@@ -24,6 +24,7 @@ import dayjs from 'dayjs';
 import { addDays, startOfDay, startOfMonth } from 'date-fns';
 import { CreateNotificationDto } from 'src/notifications/tdo/create-notification.dto';
 import { UrbanAIPricingEngine } from '../knn-engine/pricing-engine';
+import { DatasetCollectorService } from '../knn-engine/dataset-collector.service';
 
 class PropertyResponseDto {
     bedrooms: number;
@@ -69,6 +70,7 @@ export class PropriedadeService {
         private readonly airbnbService: AirbnbService,
         private readonly emailService: EmailService,
         private readonly aiEngine: UrbanAIPricingEngine,
+        private readonly datasetCollector: DatasetCollectorService,
     ) { }
 
     async findByUserId(
@@ -1425,6 +1427,26 @@ export class PropriedadeService {
             try {
                 // Treinar a IA dinamicamente usando os comparáveis (Comps) da vizinhança!
                 if(alerts.comps && alerts.comps.length > 0) {
+                    // F6.1 — Persistir os comps no PriceSnapshot ANTES de usar para treino.
+                    // Isso constrói o dataset proprietário Urban AI passivamente:
+                    // cada análise gerada = N pontos novos no histórico, sem custo extra.
+                    // Disparado em "fire-and-forget" para não atrasar a resposta ao usuário.
+                    this.datasetCollector
+                        .recordCompsFromAnalysis(
+                            alerts.comps.map((c: any) => ({
+                                listingID: String(c.listingID),
+                                latitude: c.latitude,
+                                longitude: c.longitude,
+                                bedrooms: c.bedrooms,
+                                bathrooms: c.bathrooms,
+                                avg_booked_daily_rate_ltm: c.avg_booked_daily_rate_ltm,
+                                similarity_score: c.similarity_score,
+                            })),
+                        )
+                        .catch((err) => {
+                            console.warn('Falha ao persistir comps em PriceSnapshot:', err?.message);
+                        });
+
                     const treinamentoLocal = alerts.comps.map(c => ({
                         id: c.listingID, lat: c.latitude, lng: c.longitude,
                         metroDistance: 0.8, // Estimativa fixa caso não haja Map API instanciada

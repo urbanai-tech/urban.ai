@@ -1,5 +1,17 @@
 # Urban AI — Roadmap Pós-Sprint
-**Versão 2.5 · Atualizado: 24/04/2026 (noite) · Base: Sprint de migração encerrado em D14 (20/03/2026)**
+**Versão 2.6 · Atualizado: 24/04/2026 (madrugada) · Base: Sprint de migração encerrado em D14 (20/03/2026)**
+
+> 🆕 **v2.6 (24/04/2026 · madrugada) — Captura passiva de dataset + auto-tier + caminho do moat.** Após a v2.5, descoberta importante na investigação do código: o sistema **já capturava `comps`** (imóveis parecidos da vizinhança via Airbnb GraphQL) durante cada análise mas os **descartava** depois. Virou ouro:
+> 1. **`PriceSnapshot` entity** — tabela do dataset proprietário Urban AI com índice composto p/ idempotência diária + features espaciais + flag `trainingReady`.
+> 2. **`DatasetCollectorService`** com 3 frentes:
+>    - **Cron diário 03:30 BRT** tirando snapshot de TODOS os imóveis cadastrados (não depende de evento próximo)
+>    - **Persistência automática dos comps a cada análise** — dataset cresce passivamente, ~10–30 pontos novos por análise rodada
+>    - **`recordAppliedPrice`** grava ground truth quando Stays aplica preço (Tier 4)
+> 3. **`AdaptivePricingStrategy`** — auto-tier que escolhe modelo automaticamente conforme volume cresce (Tier 0 regras → Tier 2 XGBoost → Tier 4 híbrido). **Sem deploy entre tiers.** Default mudou para 'adaptive' (cai em rules quando dataset insuficiente — comportamento atual idêntico).
+> 4. **ADR 0009** documenta o caminho ao moat: modelo neural híbrido (CNN+LSTM+MLP) com cronograma realista 18–24 meses.
+> 5. **`docs/next-actions.md`** consolidando 18 ações operacionais que dependem de você.
+>
+> Resposta direta à pergunta do Gustavo: **agora sim estamos mapeando e salvando dados de preço dos imóveis cadastrados** para construir dataset próprio — antes não estávamos, era tudo gerado e descartado.
 
 > 🆕 **v2.5 (24/04/2026 · noite) — Arquitetura ML pronta + dataset mapeado.** Após a v2.4, mais 4 entregas técnicas pesadas:
 > 1. **ADR 0008** que substitui parcialmente o ADR 0002: KNN é só baseline; **XGBoost é o caminho do moat**, com modelo neural híbrido como Tier 4 aspiracional. Caminho de evolução em 4 estágios do algoritmo, alinhado com os 4 Tiers de maturidade da IA.
@@ -426,3 +438,4 @@ Mantida da v2.3.
 | 22/04/2026 | v2.3 | Gustavo + Claude | Norte Estratégico, F9, sequenciamento |
 | 24/04/2026 | **v2.4** | **Gustavo + Claude** | **Sprint técnico de 29 commits.** F5C inteira marcada como ✅ (1/2/3/4). F6.4 fundação ✅. F6.5 ✅. F6.1 reescrita explicitando os 4 Tiers de maturidade da IA — esclarecendo que hoje estamos no **Tier 0**. Marcos recalibrados; go-live S15–17. |
 | 24/04/2026 (noite) | **v2.5** | **Gustavo + Claude** | **ML scaffolding completo.** ADR 0008 (KNN→XGBoost). Strategy plugável (`PricingStrategy` + 3 strategies + factory). `PricingBootstrapService` + `FeatureEngineeringService` skeletons. `calculateMAPE` + 9 testes (84 totais). Pesquisa de datasets: Top 3 são AirROI/Base dos Dados/InsideAirbnb. Backend pronto para Tier 1 — falta plug do dataset e completar 3 stubs. |
+| 24/04/2026 (madrugada) | **v2.6** | **Gustavo + Claude** | **Captura passiva de dataset + auto-tier + moat documentado.** `PriceSnapshot` entity + `DatasetCollectorService` (3 frentes: cron diário 03:30, comps persistence em cada análise, recordAppliedPrice). `AdaptivePricingStrategy` (auto-tier escolhe modelo conforme dataset cresce, sem deploy entre tiers). ADR 0009 (modelo neural híbrido como moat). `docs/next-actions.md` com 18 ações operacionais. **Resposta direta:** agora sim estamos mapeando dataset próprio. |
