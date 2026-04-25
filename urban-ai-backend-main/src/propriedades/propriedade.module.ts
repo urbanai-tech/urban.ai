@@ -12,32 +12,25 @@ import { AirbnbModule } from 'src/airbnb/airbnb.module';
 import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { User } from 'src/entities/user.entity';
 import { EmailModule } from 'src/email/email.module';
-import { UrbanAIPricingEngine } from '../knn-engine/pricing-engine';
-import { TravelTimeEngine } from '../knn-engine/isochrone';
-import { PropertyClassifier } from '../knn-engine/knn-classifier';
-import { DisplacementCostMatrix } from '../knn-engine/cost-matrix';
+import { KnnEngineModule } from '../knn-engine/knn-engine.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([
-        Address,
-        Event,
-        List,
-        AnaliseEnderecoEvento,
-        AnalisePreco,
-        User
-    ]), forwardRef(() => AirbnbModule), EmailModule],
-    controllers: [
-        PropriedadeController,],
-    providers: [
-        PropriedadeService,
-        PricingCalculateService,
-        // Motor KNN injetado via DI — habilita mock em testes unitários
-        // e centraliza a decisão de "1 engine por request" vs singleton.
-        TravelTimeEngine,
-        PropertyClassifier,
-        DisplacementCostMatrix,
-        UrbanAIPricingEngine,
+    imports: [
+        TypeOrmModule.forFeature([
+            Address,
+            Event,
+            List,
+            AnaliseEnderecoEvento,
+            AnalisePreco,
+            User,
+        ]),
+        forwardRef(() => AirbnbModule),
+        EmailModule,
+        // F6.1 — motor de pricing (engine + strategies + bootstrap)
+        KnnEngineModule,
     ],
-        exports:[PropriedadeService]
+    controllers: [PropriedadeController],
+    providers: [PropriedadeService, PricingCalculateService],
+    exports: [PropriedadeService],
 })
 export class PropriedadeModule { }

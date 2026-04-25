@@ -1,7 +1,13 @@
 # Urban AI — Roadmap Pós-Sprint
-**Versão 2.4 · Atualizado: 24/04/2026 · Base: Sprint de migração encerrado em D14 (20/03/2026)**
+**Versão 2.5 · Atualizado: 24/04/2026 (noite) · Base: Sprint de migração encerrado em D14 (20/03/2026)**
 
-> 🆕 **v2.4 (24/04/2026) — Sprint técnico de hardening + fundação Stays + repricing.** Em uma única sessão de trabalho foram entregues 29 commits cobrindo: F5C inteira (CRIT, P1, Operação, P2 — exceto execução manual de staging/load test), F6.4 (fundação técnica do Stays — domínio, conector, service, cron auto-apply, paywall por imóvel), F6.5 (matriz de cobrança por imóvel × 4 ciclos), itens F5C.4 de docs (5 ADRs, LGPD, SLO, runbooks). Backend cresceu de 0 para **75 testes unitários verdes**. Estado da IA explicitado em **F6.1** com 4 tiers de maturidade — hoje estamos no **Tier 0** (engine matemática rodando com dataset mock).
+> 🆕 **v2.5 (24/04/2026 · noite) — Arquitetura ML pronta + dataset mapeado.** Após a v2.4, mais 4 entregas técnicas pesadas:
+> 1. **ADR 0008** que substitui parcialmente o ADR 0002: KNN é só baseline; **XGBoost é o caminho do moat**, com modelo neural híbrido como Tier 4 aspiracional. Caminho de evolução em 4 estágios do algoritmo, alinhado com os 4 Tiers de maturidade da IA.
+> 2. **Strategy pattern plugável no motor** (`PricingStrategy` interface + `RuleBasedPricingStrategy` + `XGBoostPricingStrategy` skeleton + `ShadowPricingStrategy` para dual-run + `PricingStrategyFactory`). Trocar algoritmo via env var `PRICING_STRATEGY`. **Backend pronto para receber XGBoost** sem mexer em produto.
+> 3. **`PricingBootstrapService`** chama `initialize()` no boot + cron domingo 04h BRT. **`FeatureEngineeringService`** skeleton para os 3 enriquecimentos (lat/lng, metroDistance, amenitiesCount). **Backtesting** com `calculateMAPE` + `meetsQualityGate(15%)` + 9 testes. Tier 0 → Tier 1 virou questão de plug-in do dataset + completar 3 stubs claros.
+> 4. **Pesquisa de fontes de dataset feita** (`docs/runbooks/dataset-acquisition.md`). Achado: **InsideAirbnb NÃO cobre SP** no portal direto, só Rio. SP vive via Base dos Dados (BigQuery, espelho CC BY 4.0). Top 3 viáveis hoje: AirROI free tier (28k listings SP, API), Base dos Dados (free), InsideAirbnb data request (lead time variável). Backend agora com **84 testes verdes**.
+>
+> 🆕 **v2.4 (24/04/2026) — Sprint técnico de hardening + fundação Stays + repricing.** 29 commits: F5C inteira, F6.4 fundação Stays, F6.5 repricing, F5C.4 docs (5 ADRs, LGPD, SLO, runbooks). Backend de 0 → 75 testes.
 >
 > 🆕 **v2.3 (22/04/2026) — Norte Estratégico e confirmação do parceiro Airbnb (Stays S.A.).** Mantido.
 >
@@ -152,33 +158,63 @@ Commits `604141e`, `62357ca`:
 
 ## F6 — Inteligência Artificial e Produto
 
-### 6.1 Motor KNN com Dados Reais — 🧠 **Ainda no Tier 0**
+### 6.1 Motor KNN/XGBoost com Dados Reais — 🧠 **Tier 0 hoje, Tier 1 a um passo**
 
-> **Estado real (24/04/2026):** o motor existe, é testável (9 testes), aplica multiplicadores corretos, mas **roda com dataset mock**. Sem treinamento com dados reais, a recomendação é uma regra de negócio sofisticada — não uma IA que aprende. Esta seção foi reescrita explicitando os 4 tiers de maturidade necessários para a IA "funcionar de verdade".
+> **Estado real (24/04/2026 · noite):** após a v2.5, **o scaffolding de Tier 1 está implementado**:
+> - `PricingStrategy` interface plugável (commit pós-v2.4)
+> - `RuleBasedPricingStrategy` + `XGBoostPricingStrategy` (skeleton) + `ShadowPricingStrategy` + `PricingStrategyFactory`
+> - `PricingBootstrapService` chama `initialize()` no boot + cron semanal
+> - `FeatureEngineeringService` skeleton para lat/lng + metroDistance + amenitiesCount
+> - `calculateMAPE` + `meetsQualityGate(15%)` + 9 testes
+> - 4 ADRs de algoritmo: KNN baseline → XGBoost moat → ensemble → neural híbrido
+>
+> **O que falta para virar Tier 1 de fato:**
+> 1. Plug-in do **primeiro dataset** (AirROI free tier — `docs/runbooks/dataset-acquisition.md`)
+> 2. Completar os 3 stubs do `FeatureEngineeringService` (Google Geocoding + cálculo metro local + Gemini amenities)
+> 3. Migration adicionando `address.metro_distance_km`, `list.amenities_count`, `list.category`
+>
+> Esforço estimado: 1 sprint (~40h dev). Pode rodar em **paralelo com as regras** via `PRICING_STRATEGY=shadow` — o XGBoost (quando treinado) só loga, regras decidem.
 
 #### Tiers de maturidade da IA
 
-| Tier | O que muda | Esforço dev | Quando |
-|---|---|---|---|
-| **🧠 Tier 0** (atual) | Engine matemática + 3 imóveis mock | ✅ Pronto | — |
-| **🧠 Tier 1** | Engine treina ao boot com TODOS os imóveis cadastrados; cron semanal re-treina; lat/lng/metroDistance/amenities resolvidos automaticamente | 1–2 sprints | S6–7 |
-| **🧠 Tier 2** | Dataset histórico externo (AirROI grátis, depois Stays trade) com ≥200 imóveis × 12 meses | 2–3 sprints + parcerias | S7–10 |
-| **🧠 Tier 3** | Backtesting com hold-out + MAPE ≤15% como gate de qualidade | 1 sprint | S9–10 |
-| **🧠 Tier 4** | Loop de receita real (Stays Reservations API alimenta histórico de ocupação por imóvel × dia × preço) | 2–3 sprints + parceria fechada | S11+ |
+| Tier | Algoritmo | O que muda | Status / Esforço | Quando |
+|---|---|---|---|---|
+| **🧠 Tier 0** (atual) | Regras + multiplicadores | Engine matemática + 3 imóveis mock | ✅ Em produção | — |
+| **🧠 Tier 1** | Regras (primário) + **XGBoost shadow** | Engine treinada ao boot com TODOS os imóveis; cron semanal; lat/lng/metroDistance/amenities resolvidos | 🔄 **Scaffold pronto**, falta dataset + 3 stubs | S6 |
+| **🧠 Tier 2** | XGBoost primário | Dataset externo plugado (AirROI + Base dos Dados + opcionalmente Airbtics) ≥200 imóveis × 12 meses | ~3 sprints + parcerias | S7–10 |
+| **🧠 Tier 3** | XGBoost validado | Backtesting com hold-out 20% + **MAPE ≤15%** como gate de qualidade | 1 sprint | S9–10 |
+| **🧠 Tier 4 (moat)** | Neural híbrido + causal | Loop de receita real (Stays Reservations) + embedding bairro + LSTM de eventos | 2–3 sprints + parceria fechada | S11+ |
+
+#### Fontes de dataset mapeadas (24/04/2026)
+
+| # | Fonte | Custo | Cobertura SP | Status |
+|---|---|---|---|---|
+| 1 | **AirROI** | Free tier (UI) + API pay-as-you-go | 28k listings SP, ADR, ocupação | Top recomendação imediata |
+| 2 | **Base dos Dados** (BigQuery — espelho InsideAirbnb) | Free tier 1 TB/mês | SP histórico parcial | Top recomendação para histórico |
+| 3 | **InsideAirbnb data request** | Grátis (CC BY 4.0) | A solicitar | Lead time variável |
+| 4 | **Airbtics** | US$ 29/mês | Mundial inclui SP | Acelerador opcional |
+| 5 | **IBGE PNAD Turismo** | Grátis | Brasil c/ recorte UF | Features de demanda turística |
+| 6 | Comunidade Superhost SP | Trade (acesso antecipado) | A captar | Dataset proprietário longo prazo |
+| 7 | Stays Modelo 1 | Trade | A negociar | Conforme `docs/outreach/stays-contato-comercial.md` |
+
+> **Achado importante:** InsideAirbnb NÃO cobre SP no portal direto, só Rio. SP vive via Base dos Dados (espelho). Detalhes em `docs/runbooks/dataset-acquisition.md`.
 
 #### F6.1 — Tarefas concretas (revisadas v2.4)
 
-##### Tier 1 — Treinar o KNN com o que temos hoje (S6–7)
+##### Tier 1 — Treinar o motor com o que temos hoje (S6) — **scaffold pronto**
 
 | Status | Tarefa | Resp. |
 |---|---|---|
-| ⬜ | **Chamar `aiEngine.initialize(properties)` no boot do backend** com TODOS os imóveis cadastrados (`addressRepository.find()` → mapear para o shape esperado). Hoje o método existe mas não é invocado. | Gustavo / Dev |
-| ⬜ | **Cron semanal** `0 4 * * 0` (domingo 04h BRT) que re-chama `initialize()` após o scraping da semana terminar. Adicionar em `cron.module.ts`. | Gustavo / Dev |
-| ⬜ | **Resolver lat/lng** automaticamente para todos os imóveis sem coordenada via Google Geocoding API (já temos `GOOGLE_MAPS_API_KEY`). One-off + on-create. | Gustavo / Dev |
-| ⬜ | **Calcular `metroDistance`** via cost-matrix (a estação mais próxima). Persistir em coluna nova `address.metro_distance_km`. | Gustavo / Dev |
-| ⬜ | **Estimar `amenitiesCount`** a partir do título do anúncio Airbnb via Gemini API (mesmo client de events-enrichment). Persistir em `list.amenities_count`. | Gustavo / Dev |
-| ⬜ | **Estimar `category`** (0/1/2) inicial heurística por preço base + bairro até termos histórico real para o KNN aprender sozinho. | Gustavo / Dev |
-| ⬜ | Smoke test: boot do backend + chamada `/propriedades/:id/analise-preco` retorna recomendação **diferente** do fallback Standard | Gustavo |
+| ✅ | `PricingBootstrapService.onModuleInit` chama `engine.initialize()` com todos os imóveis com lat/lng | Entregue v2.5 |
+| ✅ | Cron `0 4 * * 0` America/Sao_Paulo dispara retreino semanal | Entregue v2.5 |
+| ✅ | `FeatureEngineeringService` skeleton (geocodePending, computeMetroDistancePending, estimateAmenitiesPending) | Entregue v2.5 |
+| ✅ | Strategy plugável (`PRICING_STRATEGY=rules\|shadow\|xgboost\|auto`) | Entregue v2.5 |
+| ⬜ | **Completar `geocodePending()`** — chamar `@googlemaps/google-maps-services-js` por endereço completo, validar bbox SP, persistir | Gustavo / Dev |
+| ⬜ | **Completar `computeMetroDistancePending()`** — carregar 76 estações SP, calcular haversine, persistir | Gustavo / Dev |
+| ⬜ | **Completar `estimateAmenitiesPending()`** — Gemini sobre `list.titulo` retornando 0–30, persistir | Gustavo / Dev |
+| ⬜ | Migration: `address.metro_distance_km` + `list.amenities_count` + `list.category` (seguir `docs/runbooks/migrations-cutover.md`) | Gustavo / Dev |
+| ⬜ | Heurística inicial de `category` (Premium se basePrice>350 ∧ amenities≥6, Econ se basePrice<150 ∨ amenities≤2, senão Standard) | Gustavo / Dev |
+| ⬜ | Smoke test: boot backend → `/propriedades/:id/analise-preco` retorna recomendação **diferente** do fallback Standard | Gustavo |
 
 ##### Tier 2 — Dataset externo (S7–10)
 
@@ -389,3 +425,4 @@ Mantida da v2.3.
 | 22/04/2026 | v2.2 | Gustavo + Claude | F5C, F6.4, F6.5 |
 | 22/04/2026 | v2.3 | Gustavo + Claude | Norte Estratégico, F9, sequenciamento |
 | 24/04/2026 | **v2.4** | **Gustavo + Claude** | **Sprint técnico de 29 commits.** F5C inteira marcada como ✅ (1/2/3/4). F6.4 fundação ✅. F6.5 ✅. F6.1 reescrita explicitando os 4 Tiers de maturidade da IA — esclarecendo que hoje estamos no **Tier 0**. Marcos recalibrados; go-live S15–17. |
+| 24/04/2026 (noite) | **v2.5** | **Gustavo + Claude** | **ML scaffolding completo.** ADR 0008 (KNN→XGBoost). Strategy plugável (`PricingStrategy` + 3 strategies + factory). `PricingBootstrapService` + `FeatureEngineeringService` skeletons. `calculateMAPE` + 9 testes (84 totais). Pesquisa de datasets: Top 3 são AirROI/Base dos Dados/InsideAirbnb. Backend pronto para Tier 1 — falta plug do dataset e completar 3 stubs. |
