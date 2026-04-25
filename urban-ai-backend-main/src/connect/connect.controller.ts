@@ -2,7 +2,9 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
+  HttpException,
   Param,
   Post,
   Patch,
@@ -20,6 +22,7 @@ import { List } from "../entities/list.entity";
 import { Request } from "express";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Address } from "../entities/addresses.entity";
+import { PaymentsService } from "../payments/payments.service";
 
 // Interface para tipar Request com user
 export interface AuthenticatedRequest extends Request {
@@ -29,7 +32,10 @@ export interface AuthenticatedRequest extends Request {
 @ApiTags("Connect")
 @Controller("connect")
 export class ConnectController {
-  constructor(private readonly connectService: ConnectService) { }
+  constructor(
+    private readonly connectService: ConnectService,
+    private readonly paymentsService: PaymentsService,
+  ) { }
 
 
 
@@ -195,11 +201,29 @@ export class ConnectController {
     @Body() addresses: any[],
     @Req() req: AuthenticatedRequest
   ): Promise<Address[]> {
-    console.clear()
-    console.log(req?.user)
     const userId = req.user?.userId;
     if (!userId) {
       throw new UnauthorizedException("Usuário não autenticado");
+    }
+
+    // F6.5 — bloqueio de quota: usuário com plano N imóveis não pode
+    // cadastrar mais N + 1 sem fazer upsell. Evita o bug de "anfitrião
+    // pagou Starter (3 imóveis) e cadastrou 47".
+    if (Array.isArray(addresses) && addresses.length > 0) {
+      const quota = await this.paymentsService.getListingsQuota(userId);
+      const totalAposCriacao = quota.ativos + addresses.length;
+      if (totalAposCriacao > quota.contratados) {
+        throw new ForbiddenException({
+          code: "LISTINGS_QUOTA_EXCEEDED",
+          message:
+            `Quota de imóveis excedida. Você contratou ${quota.contratados} ` +
+            `e já tem ${quota.ativos}; está tentando adicionar ${addresses.length}. ` +
+            `Aumente sua assinatura em /plans para liberar mais slots.`,
+          contratados: quota.contratados,
+          ativos: quota.ativos,
+          tentando: addresses.length,
+        });
+      }
     }
 
     return this.connectService.createMultipleAddresses(addresses, userId) as Promise<Address[]>;

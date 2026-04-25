@@ -85,7 +85,11 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
     try {
       setLoadingPlan(plan.name);
       const billingCycle = isAnnual ? 'annual' : 'monthly';
-      const { sessionId } = await createCheckoutSession(plan.name, billingCycle);
+      // F6.5: cobrança por imóvel — usar nº de imóveis cadastrados como quantity.
+      // propertyCount vem da listagem de propriedades carregada no useEffect acima.
+      // Default 1 quando o usuário não tem imóvel ainda (paywall pré-onboarding).
+      const quantity = Math.max(1, Number(propertyCount) || 1);
+      const { sessionId } = await createCheckoutSession(plan.name, billingCycle, quantity);
       const stripe = await stripePromise;
 
       if (stripe) {

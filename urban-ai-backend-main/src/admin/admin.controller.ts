@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -13,6 +15,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { AdminService } from './admin.service';
+import { AdminFinanceService } from './finance.service';
 
 /**
  * Endpoints administrativos da Urban AI.
@@ -32,7 +35,10 @@ import { AdminService } from './admin.service';
 @Roles('admin')
 @Controller('admin')
 export class AdminController {
-  constructor(private readonly admin: AdminService) {}
+  constructor(
+    private readonly admin: AdminService,
+    private readonly finance: AdminFinanceService,
+  ) {}
 
   @ApiOperation({ summary: 'Visão geral do painel admin (KPIs)' })
   @Get('overview')
@@ -108,5 +114,69 @@ export class AdminController {
   ) {
     const user = await this.admin.setUserActive(userId, body.ativo);
     return { id: user.id, ativo: user.ativo };
+  }
+
+  // ================== Finance — custos, receita, margem ==================
+
+  @ApiOperation({ summary: 'Visão consolidada financeira (MRR, custos, margem, por imóvel)' })
+  @Get('finance/overview')
+  async financeOverview() {
+    return this.finance.overview();
+  }
+
+  @ApiOperation({ summary: 'Listar custos cadastrados' })
+  @Get('finance/costs')
+  async listCosts(@Query('includeInactive') inactive: string = 'false') {
+    return this.finance.listCosts(inactive === 'true');
+  }
+
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @ApiOperation({ summary: 'Criar custo operacional novo' })
+  @Post('finance/costs')
+  async createCost(
+    @Body()
+    body: {
+      name: string;
+      category: string;
+      recurrence: string;
+      monthlyCostCents: number;
+      percentOfRevenue?: number;
+      description?: string;
+      scalesWithListings?: boolean;
+      notes?: string;
+    },
+  ) {
+    return this.finance.createCost(body);
+  }
+
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @ApiOperation({ summary: 'Atualizar custo' })
+  @Patch('finance/costs/:id')
+  async updateCost(@Param('id') id: string, @Body() body: any) {
+    return this.finance.updateCost(id, body);
+  }
+
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @ApiOperation({ summary: 'Remover custo' })
+  @Delete('finance/costs/:id')
+  async deleteCost(@Param('id') id: string) {
+    return this.finance.deleteCost(id);
+  }
+
+  // ================== Pricing config (planos) ==================
+
+  @ApiOperation({ summary: 'Listar planos com preços atuais (todos os ciclos)' })
+  @Get('plans-config')
+  async listPlansConfig() {
+    return this.finance.listPlans();
+  }
+
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @ApiOperation({
+    summary: 'Atualizar preço/features de um plano (NÃO atualiza Stripe Price IDs)',
+  })
+  @Patch('plans-config/:name')
+  async updatePlanPricing(@Param('name') name: string, @Body() body: any) {
+    return this.finance.updatePlanPricing(name, body);
   }
 }
