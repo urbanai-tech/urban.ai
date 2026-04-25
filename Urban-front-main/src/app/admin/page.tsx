@@ -206,6 +206,8 @@ export default function AdminPage() {
         <section className="border-t border-slate-800 pt-6">
           <h2 className="text-xl font-bold mb-3">Seções</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <NavCard href="/admin/finance" title="Financeiro" desc="MRR, custos, margem, custo por imóvel" />
+            <NavCard href="/admin/pricing-config" title="Configurar preços" desc="Editar matriz F6.5 (4 ciclos × planos)" />
             <NavCard href="/admin/users" title="Usuários" desc="Roles, ativação, busca" />
             <NavCard href="/admin/events" title="Motor de eventos" desc="Cobertura, categorias, top relevância" />
             <NavCard href="/admin/stays" title="Saúde da Stays" desc="Contas, listings, push history" />
@@ -213,8 +215,8 @@ export default function AdminPage() {
             <NavCard href="/admin/quality" title="Qualidade IA + Ocupação" desc="MAPE, gate, ocupação" />
           </div>
           <p className="text-xs text-slate-500 mt-4">
-            Próximas seções planejadas: receita/MRR/churn, alertas Sentry, health Prefect/Scrapyd,
-            dashboard de marketing GA4/Pixel. Ver <code>docs/runbooks/admin-evolution.md</code>.
+            Próximas seções planejadas: alertas Sentry, health Prefect/Scrapyd,
+            dashboard de marketing GA4/Pixel, drill-down por imóvel. Ver <code>docs/runbooks/admin-evolution.md</code>.
           </p>
         </section>
       </div>

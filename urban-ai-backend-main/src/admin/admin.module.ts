@@ -11,7 +11,10 @@ import { OccupancyHistory } from '../entities/occupancy-history.entity';
 import { PriceUpdate } from '../entities/price-update.entity';
 import { StaysAccount } from '../entities/stays-account.entity';
 import { StaysListing } from '../entities/stays-listing.entity';
+import { Plan } from '../entities/plan.entity';
+import { PlatformCost } from '../entities/platform-cost.entity';
 import { AdminService } from './admin.service';
+import { AdminFinanceService } from './finance.service';
 import { AdminController } from './admin.controller';
 import { AuthModule } from '../auth/auth.module';
 import { KnnEngineModule } from '../knn-engine/knn-engine.module';
@@ -30,12 +33,14 @@ import { KnnEngineModule } from '../knn-engine/knn-engine.module';
       PriceUpdate,
       StaysAccount,
       StaysListing,
+      Plan,
+      PlatformCost,
     ]),
-    AuthModule,        // RolesGuard precisa do TypeOrm de User; AuthModule já provê
-    KnnEngineModule,   // AdaptivePricingStrategy + DatasetCollectorService
+    AuthModule,
+    KnnEngineModule,
   ],
   controllers: [AdminController],
-  providers: [AdminService],
-  exports: [AdminService],
+  providers: [AdminService, AdminFinanceService],
+  exports: [AdminService, AdminFinanceService],
 })
 export class AdminModule {}

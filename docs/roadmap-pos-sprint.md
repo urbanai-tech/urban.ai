@@ -1,8 +1,21 @@
 # Urban AI — Roadmap Pós-Sprint
-**Versão 2.8 · Atualizado: 24/04/2026 (deep night) · Base: Sprint de migração encerrado em D14 (20/03/2026)**
+**Versão 2.9 · Atualizado: 25/04/2026 (madrugada) · Base: Sprint de migração encerrado em D14 (20/03/2026)**
 
 > 📘 **Para sócios / pitch:** [`docs/base-socios.md`](base-socios.md) — base centralizada de status, em linguagem direta.
 > 📕 **Para tecnologia / IA:** [`docs/estado-da-IA-e-evolucao.md`](estado-da-IA-e-evolucao.md) — referência consolidada.
+
+> 🆕 **v2.9 (25/04/2026 · madrugada) — F6.5 100% configurada + painel financeiro + configuração de preços.**
+> 1. **F6.5 fechada de verdade.** Auditoria revelou que estava ~50%: `/plans` antigo (toggle binário) ainda em uso, `/onboarding` chamava checkout sem `quantity`, `GlobalPaywallModal` redirecionava para v1, `ListingsQuotaGuard` criado mas nunca usado em lugar nenhum. **Corrigido tudo:**
+>    - `/plans` agora serve a matriz F6.5 oficial (PricingCalculatorV2). `/plans/v2` virou alias com redirect.
+>    - `/onboarding` step de checkout passa `quantity = selectedCount` (imóveis selecionados).
+>    - `GlobalPaywallModal` passa `quantity = propertyCount`.
+>    - **Bloqueio server-side no `POST /connect/addresses`**: anfitrião com plano de N imóveis não consegue cadastrar mais que N (ForbiddenException 403 com payload `LISTINGS_QUOTA_EXCEEDED`). Proteção real, não só UX.
+> 2. **Página `/admin/finance`** com MRR estimado, custos cadastrados (CRUD completo), margem absoluta + percentual, e **por imóvel ativo:** receita, custo, margem (verde/amarelo/vermelho conforme threshold).
+> 3. **Entity `PlatformCost`** + endpoints `/admin/finance/{overview,costs}` (CRUD).
+> 4. **Página `/admin/pricing-config`** para editar preços F6.5 sem mexer em código (4 preços × ciclo, 3 % desconto, propertyLimit, badges). Stripe Price IDs read-only.
+> 5. **Endpoints `GET/PATCH /admin/plans-config/*`** para CRUD de preços.
+>
+> Resposta às perguntas: **Página de custos com custo por imóvel?** SIM — `/admin/finance`. **Rota para configurar preços?** SIM — `/admin/pricing-config`. **F6.5 está 100%?** AGORA SIM. **Bloqueios necessários?** SIM — quota server-side.
 
 > 🆕 **v2.8 (24/04/2026 · deep night) — Painel admin expandido + F6.2 Plus autorizada + doc executivo.**
 > 1. **Painel admin expandido** com 5 endpoints novos + 4 páginas novas:
@@ -468,4 +481,5 @@ Mantida da v2.3.
 | 24/04/2026 (noite) | **v2.5** | **Gustavo + Claude** | **ML scaffolding completo.** ADR 0008 (KNN→XGBoost). Strategy plugável (`PricingStrategy` + 3 strategies + factory). `PricingBootstrapService` + `FeatureEngineeringService` skeletons. `calculateMAPE` + 9 testes (84 totais). Pesquisa de datasets: Top 3 são AirROI/Base dos Dados/InsideAirbnb. Backend pronto para Tier 1 — falta plug do dataset e completar 3 stubs. |
 | 24/04/2026 (madrugada) | **v2.6** | **Gustavo + Claude** | **Captura passiva de dataset + auto-tier + moat documentado.** `PriceSnapshot` entity + `DatasetCollectorService` (3 frentes: cron diário 03:30, comps persistence em cada análise, recordAppliedPrice). `AdaptivePricingStrategy` (auto-tier escolhe modelo conforme dataset cresce, sem deploy entre tiers). ADR 0009 (modelo neural híbrido como moat). `docs/next-actions.md` com 18 ações operacionais. **Resposta direta:** agora sim estamos mapeando dataset próprio. |
 | 24/04/2026 (final do dia) | **v2.7** | **Gustavo + Claude** | **Painel admin + 5 gaps + motor de eventos + doc consolidado.** Entities: `OccupancyHistory`, `EventProximityFeature`, `AnalisePreco.precoAplicado`. Backend admin: `User.role`, `RolesGuard`, `AdminService`, 6 endpoints. Frontend: `/admin` + `/admin/users`. Runbook `event-engine-evolution.md`. Doc principal `estado-da-IA-e-evolucao.md`. |
-| 24/04/2026 (deep night) | **v2.8** | **Gustavo + Claude** | **Painel admin expandido + F6.2 Plus autorizada + doc para sócios.** 5 endpoints admin novos (events, stays, funnel, quality, occupancy). 4 páginas novas (`/admin/events`, `/admin/stays`, `/admin/funnel`, `/admin/quality`). F6.2 Plus formalizada (`docs/fase-eventos-cobertura-total.md`) com 3 camadas autorizadas. Doc `docs/base-socios.md` para reunião com Fabrício/Rogério. Doc `docs/runbooks/admin-evolution.md` documentando gaps remanescentes (60% do admin completo). |
+| 24/04/2026 (deep night) | **v2.8** | **Gustavo + Claude** | **Painel admin expandido + F6.2 Plus autorizada + doc para sócios.** 5 endpoints admin novos (events, stays, funnel, quality, occupancy). 4 páginas novas. F6.2 Plus formalizada. Doc `base-socios.md`. Doc `runbooks/admin-evolution.md`. |
+| 25/04/2026 (madrugada) | **v2.9** | **Gustavo + Claude** | **F6.5 100% configurada + painel financeiro + config de preços.** Auditoria revelou F6.5 só ~50% (frontend ainda usava /plans antigo, paywall não tinha quota). Corrigido `/plans`, `/onboarding`, `GlobalPaywallModal`. **Bloqueio server-side** em `POST /connect/addresses` retorna 403 quando excede quota. Entity `PlatformCost` + service `AdminFinanceService` (MRR estimado, custos por categoria, margem por imóvel). 5 endpoints novos: `GET /admin/finance/overview`, `GET/POST/PATCH/DELETE /admin/finance/costs`, `GET /admin/plans-config`, `PATCH /admin/plans-config/:name`. Páginas `/admin/finance` e `/admin/pricing-config` no front. |

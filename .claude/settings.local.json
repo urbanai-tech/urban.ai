@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx --no-install tsc --noEmit -p tsconfig.json)",
+      "Bash(npx --no-install tsc --noEmit -p tsconfig.build.json)",
+      "Bash(gh repo *)",
+      "Bash(npx --no-install tsc --noEmit)",
+      "Bash(npm install *)",
+      "Bash(npx --no-install jest --testPathPattern=\"\\(auth.service|knn-classifier\\).spec\" --silent)",
+      "Bash(npx --no-install jest --testPathPatterns=\"\\(auth.service|knn-classifier\\).spec\")",
+      "Bash(npx --no-install jest)"
+    ]
+  }
+}

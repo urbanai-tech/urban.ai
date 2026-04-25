@@ -1137,3 +1137,99 @@ export const fetchAdminPricingQuality = () =>
   api.get<AdminPricingQuality>('/admin/pricing/quality').then((r) => r.data);
 export const fetchAdminOccupancy = () =>
   api.get<AdminOccupancyCoverage>('/admin/occupancy/coverage').then((r) => r.data);
+
+// ---- Admin v2.9 (finance + plans-config) ----
+
+export interface AdminFinanceOverview {
+  currency: string;
+  activeListings: number;
+  activePayments: number;
+  revenue: {
+    mrrCents: number;
+    byPlan: Array<{ planName: string; count: number; monthlyCents: number }>;
+  };
+  costs: {
+    totalCents: number;
+    fixedCents: number;
+    percentualCents: number;
+    byCategory: Array<{ category: string; cents: number }>;
+  };
+  margin: { absoluteCents: number; percent: number };
+  perListing: {
+    revenueCents: number;
+    costCents: number;
+    marginCents: number;
+    marginPercent: number;
+  };
+}
+
+export interface AdminCost {
+  id: string;
+  name: string;
+  category: string;
+  recurrence: string;
+  monthlyCostCents: number;
+  percentOfRevenue: number | null;
+  description: string | null;
+  scalesWithListings: boolean;
+  notes: string | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminPlanConfig {
+  id: string;
+  name: string;
+  title: string;
+  price?: string;
+  priceAnnual?: string;
+  priceMonthly?: string;
+  priceQuarterly?: string;
+  priceSemestral?: string;
+  priceAnnualNew?: string;
+  discountQuarterlyPercent?: number;
+  discountSemestralPercent?: number;
+  discountAnnualPercent?: number;
+  propertyLimit?: number | null;
+  features: string[];
+  highlightBadge?: string | null;
+  discountBadge?: string | null;
+  isActive: boolean;
+  isCustomPrice?: boolean;
+  stripePriceIdMonthly?: string;
+  stripePriceIdQuarterly?: string;
+  stripePriceIdSemestral?: string;
+  stripePriceIdAnnualNew?: string;
+}
+
+export const fetchAdminFinanceOverview = () =>
+  api.get<AdminFinanceOverview>('/admin/finance/overview').then((r) => r.data);
+
+export const fetchAdminCosts = (includeInactive = false) =>
+  api
+    .get<AdminCost[]>('/admin/finance/costs', { params: { includeInactive } })
+    .then((r) => r.data);
+
+export const createAdminCost = (input: {
+  name: string;
+  category: string;
+  recurrence: string;
+  monthlyCostCents: number;
+  percentOfRevenue?: number;
+  description?: string;
+  scalesWithListings?: boolean;
+  notes?: string;
+}) => api.post<AdminCost>('/admin/finance/costs', input).then((r) => r.data);
+
+export const updateAdminCost = (id: string, input: Partial<AdminCost>) =>
+  api.patch<AdminCost>(`/admin/finance/costs/${id}`, input).then((r) => r.data);
+
+export const deleteAdminCost = (id: string) =>
+  api.delete(`/admin/finance/costs/${id}`).then((r) => r.data);
+
+export const fetchAdminPlansConfig = () =>
+  api.get<AdminPlanConfig[]>('/admin/plans-config').then((r) => r.data);
+
+export const updateAdminPlan = (name: string, input: Partial<AdminPlanConfig>) =>
+  api.patch<AdminPlanConfig>(`/admin/plans-config/${name}`, input).then((r) => r.data);

@@ -517,13 +517,17 @@ function OnboardingWizardContent() {
   };
 
   // =====================================================
-  //  STEP 5: Paywall — Checkout Stripe
+  //  STEP 5: Paywall — Checkout Stripe (F6.5 — cobrança por imóvel)
   // =====================================================
   const handleCheckout = async (planId: string) => {
     setIsLoading(true);
     try {
       const billingCycle = isAnnual ? 'annual' : 'monthly';
-      const { sessionId } = await createCheckoutSession(planId, billingCycle);
+      // F6.5: número de imóveis vai como quantity → Stripe cobra price × quantity
+      // selectedCount vem do step anterior (imóveis Airbnb selecionados pelo anfitrião).
+      // Default 1 caso o user pule etapas e chegue aqui sem ter selecionado.
+      const quantity = Math.max(1, Number(selectedCount) || 1);
+      const { sessionId } = await createCheckoutSession(planId, billingCycle, quantity);
       const stripe = await stripePromise;
       if (stripe) {
         await stripe.redirectToCheckout({ sessionId });
