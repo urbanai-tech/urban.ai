@@ -53,11 +53,37 @@ export class SugestionController {
         @Param('id') id: string,
         @Body() body: { aceito: boolean },
     ) {
-       // const userId = req.user.userId;
-        //if (!userId) throw new UnauthorizedException('Usuário não autenticado');
-
-        // Aqui chamamos o service que você já criou
         return this.sugestionService.alterarAceito(id, body.aceito);
     }
 
+    /**
+     * F6.1 Tier 3 — registrar o preço REAL aplicado após a sugestão.
+     * Constrói o ground truth para medir MAPE.
+     */
+    @UseGuards(JwtAuthGuard)
+    @Patch(':id/aplicado')
+    @ApiOperation({
+        summary: 'Registra o preço real aplicado pelo anfitrião (ground truth p/ MAPE)',
+    })
+    @ApiBody({
+        description: 'Preço aplicado e origem da aplicação',
+        schema: {
+            example: {
+                precoAplicado: 247.5,
+                origem: 'manual_dashboard',
+            },
+        },
+    })
+    async registrarPrecoAplicado(
+        @Param('id') id: string,
+        @Body() body: {
+            precoAplicado: number;
+            origem: 'manual_dashboard' | 'manual_off_platform' | 'stays_auto' | 'stays_user_accepted';
+        },
+    ) {
+        return this.sugestionService.registrarPrecoAplicado(id, {
+            precoAplicado: body.precoAplicado,
+            origem: body.origem,
+        });
+    }
 }

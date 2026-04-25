@@ -52,6 +52,32 @@ export class AnalisePreco {
   @Column({ type: 'boolean', default: false })
   aceito: boolean;
 
+  /**
+   * Preço REAL que o anfitrião aplicou após a sugestão (centavos × 100 = R$).
+   * Pode ser igual ao precoSugerido (aceitou cego) ou diferente (ajustou).
+   * NULL enquanto o anfitrião não confirmar.
+   *
+   * Esse campo + `aceito=true` + `criadoEm` formam o ground truth do MAPE
+   * real do motor — sem ele, não dá para validar a promessa "+30% receita".
+   * Ver F6.1 Tier 3 do roadmap.
+   */
+  @Column({ name: 'preco_aplicado', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  precoAplicado: number | null;
+
+  /** Quando o anfitrião confirmou ter aplicado (data de aceite real). */
+  @Column({ name: 'aplicado_em', type: 'timestamp', nullable: true })
+  aplicadoEm: Date | null;
+
+  /**
+   * Origem da aplicação:
+   *  - 'manual_dashboard': anfitrião marcou no nosso dashboard, aplicou no canal sozinho
+   *  - 'manual_off_platform': anfitrião disse que aplicou em outro lugar (auto-declaração)
+   *  - 'stays_auto': pushado automaticamente via integração Stays (F6.4)
+   *  - 'stays_user_accepted': pushado via Stays a partir da aceitação no dashboard
+   */
+  @Column({ name: 'origem_aplicacao', type: 'varchar', length: 32, nullable: true })
+  origemAplicacao: string | null;
+
   // --- IA Reasoning ---
   @Column({ name: 'motivo_ia', type: 'text', nullable: true })
   motivo_ia: string;
