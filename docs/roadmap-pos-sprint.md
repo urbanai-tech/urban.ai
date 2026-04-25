@@ -1,7 +1,25 @@
 # Urban AI — Roadmap Pós-Sprint
-**Versão 2.7 · Atualizado: 24/04/2026 (final do dia) · Base: Sprint de migração encerrado em D14 (20/03/2026)**
+**Versão 2.8 · Atualizado: 24/04/2026 (deep night) · Base: Sprint de migração encerrado em D14 (20/03/2026)**
 
-> 📘 **Documento principal de referência:** [`docs/estado-da-IA-e-evolucao.md`](estado-da-IA-e-evolucao.md) — leitura obrigatória antes de relatórios/reuniões.
+> 📘 **Para sócios / pitch:** [`docs/base-socios.md`](base-socios.md) — base centralizada de status, em linguagem direta.
+> 📕 **Para tecnologia / IA:** [`docs/estado-da-IA-e-evolucao.md`](estado-da-IA-e-evolucao.md) — referência consolidada.
+
+> 🆕 **v2.8 (24/04/2026 · deep night) — Painel admin expandido + F6.2 Plus autorizada + doc executivo.**
+> 1. **Painel admin expandido** com 5 endpoints novos + 4 páginas novas:
+>    - `/admin/events` — analytics do motor de eventos (cobertura geo, % enriquecimento Gemini, próximos 7/30/90d, mega-eventos, top 10 por relevância, distribuição por categoria/cidade)
+>    - `/admin/stays` — saúde da integração (contas por status, listings, push history últimos 30d)
+>    - `/admin/funnel` — funil signup → análise → aceito → aplicado → assinatura
+>    - `/admin/quality` — MAPE real (preço aplicado vs sugerido), gate de qualidade, cobertura de ocupação
+>    - Navegação consolidada no `/admin` raiz
+> 2. **Fase F6.2 Plus** — cobertura total de eventos em SP (3 camadas: APIs oficiais → Firecrawl → curadoria) AUTORIZADA pelo Gustavo. Custo ~US$ 40/mês. Entrega 6 semanas. Doc dedicado: `docs/fase-eventos-cobertura-total.md`.
+> 3. **`docs/base-socios.md`** — documento executivo para conversar com Fabrício/Rogério, organizado em 7 partes (status, IA, eventos, cronograma, decisões pendentes, custos, como acompanhar).
+> 4. **`docs/runbooks/admin-evolution.md`** — análise honesta dos gaps remanescentes do painel (~60% completo) + plano de evolução por sprint (financeiro, saúde técnica, marketing, suporte, drill-down, auditoria).
+>
+> Resposta às perguntas do Gustavo:
+> - **Eventos no painel admin?** SIM — `/admin/events` completo com KPIs.
+> - **Painel mostra 100% da gestão?** Honesto: ~60%. Plano detalhado em runbooks/admin-evolution.md.
+> - **Roadmap dos eventos autorizado?** SIM — F6.2 Plus ativada, KPIs no admin já visíveis.
+> - **Doc consolidado para sócios?** [`docs/base-socios.md`](base-socios.md) entregue.
 
 > 🆕 **v2.7 (24/04/2026 · final do dia) — Painel admin + 5 gaps de captura resolvidos + motor de eventos planejado + doc consolidado.**
 > 1. **5 gaps de captura resolvidos:** `OccupancyHistory` entity (resolve `ocupacaoReferencia: 0` hardcoded), `EventProximityFeature` entity (features no tempo), `AnalisePreco.precoAplicado` + endpoint (ground truth MAPE), snapshot diário + comps persistidos (já v2.6).
@@ -449,4 +467,5 @@ Mantida da v2.3.
 | 24/04/2026 | **v2.4** | **Gustavo + Claude** | **Sprint técnico de 29 commits.** F5C inteira marcada como ✅ (1/2/3/4). F6.4 fundação ✅. F6.5 ✅. F6.1 reescrita explicitando os 4 Tiers de maturidade da IA — esclarecendo que hoje estamos no **Tier 0**. Marcos recalibrados; go-live S15–17. |
 | 24/04/2026 (noite) | **v2.5** | **Gustavo + Claude** | **ML scaffolding completo.** ADR 0008 (KNN→XGBoost). Strategy plugável (`PricingStrategy` + 3 strategies + factory). `PricingBootstrapService` + `FeatureEngineeringService` skeletons. `calculateMAPE` + 9 testes (84 totais). Pesquisa de datasets: Top 3 são AirROI/Base dos Dados/InsideAirbnb. Backend pronto para Tier 1 — falta plug do dataset e completar 3 stubs. |
 | 24/04/2026 (madrugada) | **v2.6** | **Gustavo + Claude** | **Captura passiva de dataset + auto-tier + moat documentado.** `PriceSnapshot` entity + `DatasetCollectorService` (3 frentes: cron diário 03:30, comps persistence em cada análise, recordAppliedPrice). `AdaptivePricingStrategy` (auto-tier escolhe modelo conforme dataset cresce, sem deploy entre tiers). ADR 0009 (modelo neural híbrido como moat). `docs/next-actions.md` com 18 ações operacionais. **Resposta direta:** agora sim estamos mapeando dataset próprio. |
-| 24/04/2026 (final do dia) | **v2.7** | **Gustavo + Claude** | **Painel admin + 5 gaps + motor de eventos + doc consolidado.** Entities: `OccupancyHistory`, `EventProximityFeature`, `AnalisePreco.precoAplicado`. Backend admin: `User.role`, `RolesGuard`, `AdminService`, 6 endpoints. Frontend: `/admin` + `/admin/users`. Runbook `event-engine-evolution.md` (Firecrawl + APIs oficiais). Doc principal `estado-da-IA-e-evolucao.md` para apresentações. |
+| 24/04/2026 (final do dia) | **v2.7** | **Gustavo + Claude** | **Painel admin + 5 gaps + motor de eventos + doc consolidado.** Entities: `OccupancyHistory`, `EventProximityFeature`, `AnalisePreco.precoAplicado`. Backend admin: `User.role`, `RolesGuard`, `AdminService`, 6 endpoints. Frontend: `/admin` + `/admin/users`. Runbook `event-engine-evolution.md`. Doc principal `estado-da-IA-e-evolucao.md`. |
+| 24/04/2026 (deep night) | **v2.8** | **Gustavo + Claude** | **Painel admin expandido + F6.2 Plus autorizada + doc para sócios.** 5 endpoints admin novos (events, stays, funnel, quality, occupancy). 4 páginas novas (`/admin/events`, `/admin/stays`, `/admin/funnel`, `/admin/quality`). F6.2 Plus formalizada (`docs/fase-eventos-cobertura-total.md`) com 3 camadas autorizadas. Doc `docs/base-socios.md` para reunião com Fabrício/Rogério. Doc `docs/runbooks/admin-evolution.md` documentando gaps remanescentes (60% do admin completo). |

@@ -1047,3 +1047,93 @@ export async function staysRollback(priceUpdateId: string): Promise<PriceUpdateP
   return data;
 }
 
+// ================== Admin v2.8 (eventos, Stays, funnel, qualidade, ocupação) ==================
+
+export interface AdminEventsAnalytics {
+  summary: {
+    total: number;
+    ativos: number;
+    coveragePercent: number;
+    enrichmentPercent: number;
+    coordsMissing: number;
+    relevanceMissing: number;
+  };
+  upcoming: { next7d: number; next30d: number; next90d: number; megaUpcoming: number };
+  byCategory: Array<{ categoria: string; count: number }>;
+  byCity: Array<{ cidade: string; count: number }>;
+  byRelevance: Array<{ bucket: string; count: number }>;
+  topUpcoming: Array<{
+    id: string;
+    nome: string;
+    cidade: string;
+    dataInicio: string;
+    relevancia: number | null;
+    categoria: string | null;
+    capacidadeEstimada: number | null;
+    raioImpactoKm: number | null;
+    hasCoords: boolean;
+  }>;
+  lastCrawlAt: string | null;
+}
+
+export interface AdminStaysHealth {
+  accountsByStatus: Array<{ status: string; count: number }>;
+  listings: { total: number; active: number; forcedAuto: number };
+  pushLast30d: Array<{ status: string; count: number }>;
+  recent: Array<{
+    id: string;
+    targetDate: string;
+    previousPriceCents: number;
+    newPriceCents: number;
+    origin: string;
+    status: string;
+    errorMessage: string | null;
+    createdAt: string;
+    userId?: string;
+    listingId?: string;
+  }>;
+}
+
+export interface AdminProductFunnel {
+  windowDays: number;
+  stages: {
+    signups: number;
+    onboardedWithAirbnbId: number;
+    analysesGenerated: number;
+    suggestionsAccepted: number;
+    appliedPriceCaptured: number;
+    activeSubscriptions: number;
+    operationModeAuto: number;
+  };
+  rates: {
+    acceptanceRatePercent: number;
+    applicationRatePercent: number;
+  };
+}
+
+export interface AdminPricingQuality {
+  windowDays: number;
+  sampleSize: number;
+  discarded: number;
+  mapePercent: number | null;
+  rmse: number | null;
+  medianAbsoluteError: number | null;
+  qualityGate: { threshold: number; passes: boolean; meetsMinSample: boolean };
+}
+
+export interface AdminOccupancyCoverage {
+  byStatus: Array<{ status: string; count: number }>;
+  byOrigin: Array<{ origin: string; count: number }>;
+  distinctListings: number;
+}
+
+export const fetchAdminEvents = () =>
+  api.get<AdminEventsAnalytics>('/admin/events/analytics').then((r) => r.data);
+export const fetchAdminStays = () =>
+  api.get<AdminStaysHealth>('/admin/stays/health').then((r) => r.data);
+export const fetchAdminFunnel = () =>
+  api.get<AdminProductFunnel>('/admin/funnel').then((r) => r.data);
+export const fetchAdminPricingQuality = () =>
+  api.get<AdminPricingQuality>('/admin/pricing/quality').then((r) => r.data);
+export const fetchAdminOccupancy = () =>
+  api.get<AdminOccupancyCoverage>('/admin/occupancy/coverage').then((r) => r.data);

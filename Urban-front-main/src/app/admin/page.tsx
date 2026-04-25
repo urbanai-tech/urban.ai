@@ -202,19 +202,35 @@ export default function AdminPage() {
           </section>
         )}
 
-        {/* === Links — outras seções === */}
-        <section className="text-sm text-slate-500 border-t border-slate-800 pt-6">
-          <p>
-            Próximas seções a expandir:{" "}
-            <a href="/admin/users" className="text-emerald-400 hover:underline">
-              gestão de usuários
-            </a>
-            {" · "}
-            histórico de PriceUpdate (push Stays) · ocupação por imóvel · health do pipeline Prefect.
+        {/* === Navegação para outras seções === */}
+        <section className="border-t border-slate-800 pt-6">
+          <h2 className="text-xl font-bold mb-3">Seções</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <NavCard href="/admin/users" title="Usuários" desc="Roles, ativação, busca" />
+            <NavCard href="/admin/events" title="Motor de eventos" desc="Cobertura, categorias, top relevância" />
+            <NavCard href="/admin/stays" title="Saúde da Stays" desc="Contas, listings, push history" />
+            <NavCard href="/admin/funnel" title="Funil de produto" desc="Signup → análise → aceito → aplicado" />
+            <NavCard href="/admin/quality" title="Qualidade IA + Ocupação" desc="MAPE, gate, ocupação" />
+          </div>
+          <p className="text-xs text-slate-500 mt-4">
+            Próximas seções planejadas: receita/MRR/churn, alertas Sentry, health Prefect/Scrapyd,
+            dashboard de marketing GA4/Pixel. Ver <code>docs/runbooks/admin-evolution.md</code>.
           </p>
         </section>
       </div>
     </main>
+  );
+}
+
+function NavCard({ href, title, desc }: { href: string; title: string; desc: string }) {
+  return (
+    <a
+      href={href}
+      className="block p-4 rounded-xl border border-slate-800 bg-slate-900/40 hover:border-emerald-500/50 hover:bg-emerald-950/20 transition-colors"
+    >
+      <p className="font-semibold">{title}</p>
+      <p className="text-xs text-slate-400 mt-1">{desc}</p>
+    </a>
   );
 }
 
