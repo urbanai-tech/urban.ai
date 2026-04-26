@@ -1228,6 +1228,21 @@ export const updateAdminCost = (id: string, input: Partial<AdminCost>) =>
 export const deleteAdminCost = (id: string) =>
   api.delete(`/admin/finance/costs/${id}`).then((r) => r.data);
 
+/**
+ * Popula a tabela `platform_costs` com os custos operacionais default da Urban AI
+ * (Railway, Stripe, Gemini, Mailersend etc.). Idempotente: por padrão NÃO
+ * sobrescreve custos já cadastrados — passe `overwrite=true` para resetar.
+ */
+export const seedAdminCosts = (overwrite = false) =>
+  api
+    .post<{
+      created: number;
+      updated: number;
+      skipped: number;
+      items: Array<{ name: string; action: 'created' | 'updated' | 'skipped' }>;
+    }>(`/admin/finance/costs/seed?overwrite=${overwrite ? 'true' : 'false'}`)
+    .then((r) => r.data);
+
 export const fetchAdminPlansConfig = () =>
   api.get<AdminPlanConfig[]>('/admin/plans-config').then((r) => r.data);
 
