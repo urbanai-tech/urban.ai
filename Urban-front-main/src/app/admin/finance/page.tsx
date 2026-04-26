@@ -7,6 +7,7 @@ import {
   createAdminCost,
   updateAdminCost,
   deleteAdminCost,
+  seedAdminCosts,
   type AdminFinanceOverview,
   type AdminCost,
 } from "../../service/api";
@@ -193,6 +194,22 @@ export default function AdminFinancePage() {
                 />
                 Mostrar inativos
               </label>
+              <button
+                onClick={async () => {
+                  if (!confirm("Popular a tabela com os custos default da Urban AI (Railway, Stripe, Gemini, Mailersend etc.)? Custos já cadastrados são preservados.")) return;
+                  try {
+                    const r = await seedAdminCosts(false);
+                    alert(`Seed OK — ${r.created} criados, ${r.skipped} ignorados.`);
+                    load();
+                  } catch (err: any) {
+                    alert("Erro: " + (err?.message || "falhou"));
+                  }
+                }}
+                className="text-xs px-3 py-1.5 rounded border border-emerald-700 text-emerald-300 hover:bg-emerald-950"
+                title="Cria entradas default (Railway, Stripe, Gemini, etc.) sem sobrescrever as existentes"
+              >
+                Popular default
+              </button>
               <button
                 onClick={() => setShowNew((v) => !v)}
                 className="text-xs px-3 py-1.5 rounded bg-emerald-500 text-slate-900 font-bold"

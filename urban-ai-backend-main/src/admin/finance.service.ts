@@ -90,6 +90,201 @@ export class AdminFinanceService {
     return { ok: true };
   }
 
+  /**
+   * Seed idempotente dos custos operacionais conhecidos da Urban AI (abril/2026).
+   *
+   * Idempotente: usa `name` como chave natural — se já existe, atualiza só os
+   * campos que vieram NULL ou zerados (não sobrescreve o que o admin editou
+   * manualmente). Se não existe, cria.
+   *
+   * Valores são estimativas baseadas em planos atuais e uso médio. Devem ser
+   * revisados pelo admin pelo `/admin/finance` após o primeiro deploy.
+   *
+   * @param overwrite Se true, sobrescreve valores mesmo que o custo já exista.
+   *                  Default false para preservar edits manuais.
+   */
+  async seedDefaultCosts(overwrite = false): Promise<{
+    created: number;
+    updated: number;
+    skipped: number;
+    items: Array<{ name: string; action: 'created' | 'updated' | 'skipped' }>;
+  }> {
+    type Seed = {
+      name: string;
+      category: string;
+      recurrence: string;
+      monthlyCostCents: number;
+      percentOfRevenue?: number;
+      description?: string;
+      scalesWithListings?: boolean;
+      notes?: string;
+    };
+
+    const seeds: Seed[] = [
+      // Infra
+      {
+        name: 'Railway (backend + DB)',
+        category: 'infra',
+        recurrence: 'monthly',
+        monthlyCostCents: 5000_00, // R$50/mês start, escala com uso
+        description: 'Hosting NestJS + MySQL Railway',
+        notes: 'Plano Hobby/Pro; escala com tráfego. Revisar fatura mensal.',
+      },
+      {
+        name: 'Upstash Redis (BullMQ)',
+        category: 'infra',
+        recurrence: 'usage_based',
+        monthlyCostCents: 1000_00, // ~R$10
+        description: 'Fila de jobs (sync Stays, scrapers)',
+      },
+      {
+        name: 'Sentry (error tracking)',
+        category: 'infra',
+        recurrence: 'monthly',
+        monthlyCostCents: 13000_00, // ~$26 dev plan
+        description: 'Error monitoring backend + frontend',
+      },
+      {
+        name: 'UptimeRobot',
+        category: 'infra',
+        recurrence: 'monthly',
+        monthlyCostCents: 0,
+        description: 'Free tier; upgrade R$30/mês quando passar de 50 monitors',
+        notes: 'Atualmente free tier — promover quando a operação justificar',
+      },
+
+      // APIs
+      {
+        name: 'Google Gemini (LLM)',
+        category: 'apis',
+        recurrence: 'usage_based',
+        monthlyCostCents: 8000_00, // ~R$80
+        description: 'Análise de eventos + extração estruturada',
+        scalesWithListings: true,
+        notes: 'Custo por token. Free tier 1500 req/dia inicialmente.',
+      },
+      {
+        name: 'Google Maps APIs',
+        category: 'apis',
+        recurrence: 'usage_based',
+        monthlyCostCents: 2000_00, // ~R$20
+        description: 'Geocoding, Places para listings cadastrados',
+        scalesWithListings: true,
+      },
+      {
+        name: 'Firecrawl',
+        category: 'apis',
+        recurrence: 'monthly',
+        monthlyCostCents: 0, // free tier inicial
+        description: 'Scraping de eventos (Sympla, Eventbrite, prefeituras)',
+        notes: 'Free tier; upgrade ~$19/mo quando passar de 500 páginas/mês',
+      },
+
+      // Comms
+      {
+        name: 'Mailersend',
+        category: 'comms',
+        recurrence: 'monthly',
+        monthlyCostCents: 0, // free 3k emails/mês
+        description: 'Transactional email (boas-vindas, alertas, recuperação)',
+        notes: 'Free 3k emails/mês; upgrade quando passar',
+      },
+
+      // Payments
+      {
+        name: 'Stripe (taxa de processamento)',
+        category: 'payments',
+        recurrence: 'percentual',
+        monthlyCostCents: 0, // calculado em tempo real
+        percentOfRevenue: 4.99,
+        description: 'Taxa Stripe BR ~3.99% + R$0.39/transação. Aprox 4.99% efetivo.',
+      },
+
+      // People (estimativa — ajuste manual no painel)
+      {
+        name: 'Sócios fundadores (custo de oportunidade)',
+        category: 'people',
+        recurrence: 'monthly',
+        monthlyCostCents: 0,
+        description: 'Gustavo + Fabrício + Rogério — equity, sem pró-labore inicial',
+        notes: 'Não é despesa contábil; rastrear custo de oportunidade aqui se desejado',
+      },
+
+      // Marketing — ajustar conforme spend real
+      {
+        name: 'Marketing performance (Meta/Google Ads)',
+        category: 'marketing',
+        recurrence: 'monthly',
+        monthlyCostCents: 0,
+        description: 'Spend de aquisição. Ajustar pelo painel conforme campanha.',
+      },
+
+      // Legal — amortização
+      {
+        name: 'Compliance LGPD (advogado pontual)',
+        category: 'legal',
+        recurrence: 'one_time',
+        monthlyCostCents: 50000, // R$500/mês amortizado de R$6k/ano
+        description: 'Revisão LGPD + termos. Amortizado em 12 meses.',
+        notes: 'Custo one-time R$6k anual amortizado mensalmente',
+      },
+
+      // Data sources externos (Tier 0 enquanto dataset próprio amadurece)
+      {
+        name: 'AirROI (free public dataset)',
+        category: 'data',
+        recurrence: 'monthly',
+        monthlyCostCents: 0,
+        description: 'Dataset público gratuito de mercado Airbnb',
+        notes: 'Sem custo — público. Linha aqui só para visibilidade no painel.',
+      },
+    ];
+
+    const items: Array<{ name: string; action: 'created' | 'updated' | 'skipped' }> = [];
+    let created = 0;
+    let updated = 0;
+    let skipped = 0;
+
+    for (const seed of seeds) {
+      const existing = await this.costRepo.findOne({ where: { name: seed.name } });
+      if (!existing) {
+        await this.costRepo.save(
+          this.costRepo.create({
+            name: seed.name,
+            category: seed.category as any,
+            recurrence: seed.recurrence as any,
+            monthlyCostCents: seed.monthlyCostCents,
+            percentOfRevenue: seed.percentOfRevenue ?? null,
+            description: seed.description ?? null,
+            scalesWithListings: seed.scalesWithListings ?? false,
+            notes: seed.notes ?? null,
+            active: true,
+          }),
+        );
+        created++;
+        items.push({ name: seed.name, action: 'created' });
+      } else if (overwrite) {
+        Object.assign(existing, {
+          category: seed.category,
+          recurrence: seed.recurrence,
+          monthlyCostCents: seed.monthlyCostCents,
+          percentOfRevenue: seed.percentOfRevenue ?? null,
+          description: seed.description ?? null,
+          scalesWithListings: seed.scalesWithListings ?? false,
+          notes: seed.notes ?? null,
+        });
+        await this.costRepo.save(existing);
+        updated++;
+        items.push({ name: seed.name, action: 'updated' });
+      } else {
+        skipped++;
+        items.push({ name: seed.name, action: 'skipped' });
+      }
+    }
+
+    return { created, updated, skipped, items };
+  }
+
   // ================== Cálculo agregado ==================
 
   /**

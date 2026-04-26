@@ -163,6 +163,16 @@ export class AdminController {
     return this.finance.deleteCost(id);
   }
 
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @ApiOperation({
+    summary:
+      'Popular custos default da Urban AI (idempotente). overwrite=true sobrescreve valores manuais.',
+  })
+  @Post('finance/costs/seed')
+  async seedDefaultCosts(@Query('overwrite') overwrite: string = 'false') {
+    return this.finance.seedDefaultCosts(overwrite === 'true');
+  }
+
   // ================== Pricing config (planos) ==================
 
   @ApiOperation({ summary: 'Listar planos com preços atuais (todos os ciclos)' })
