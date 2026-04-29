@@ -7,8 +7,10 @@ on:
     branches: [main, staging]
 
 jobs:
-  backend-unit:
-    name: Backend — Jest unit
+  # ===================== Backend =====================
+
+  backend-test:
+    name: Backend — typecheck + jest
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -18,16 +20,84 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: urban-ai-backend-main/package-lock.json
-      - run: npm ci
-      - name: TypeScript build
-        run: npx tsc --noEmit -p tsconfig.build.json
-      - name: Jest unit specs
-        run: npx jest --passWithNoTests
+          cache: 'yarn'
+          cache-dependency-path: urban-ai-backend-main/yarn.lock
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: TypeScript check
+        run: npx tsc --noEmit
+      - name: Jest unit + integration
+        run: npx jest --passWithNoTests --ci
 
-  frontend-lint:
-    name: Frontend — build + typecheck
+  backend-build:
+    name: Backend — nest build (prod artifact)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: urban-ai-backend-main
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: urban-ai-backend-main/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - name: Nest build
+        run: npx nest build
+      - name: Verify dist/main.js exists
+        run: test -f dist/main.js
+
+  backend-migrations:
+    name: Backend — migrations dry-run against MySQL
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: urban-ai-backend-main
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpw
+          MYSQL_DATABASE: ai_urban_ci
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -prootpw"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '3306'
+      DB_USER: root
+      DB_PASSWORD: rootpw
+      DB_NAME: ai_urban_ci
+      DB_SYNCHRONIZE: 'false'
+      MIGRATIONS_RUN: 'true'
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: urban-ai-backend-main/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - name: Wait for MySQL
+        run: |
+          for i in $(seq 1 30); do
+            if mysqladmin ping -h 127.0.0.1 -uroot -prootpw --silent; then
+              echo "MySQL ready"; break
+            fi
+            echo "waiting MySQL... ($i)"; sleep 2
+          done
+      - name: Run migrations (validate they apply cleanly to fresh DB)
+        run: yarn typeorm migration:run
+
+  # ===================== Frontend =====================
+
+  frontend-test:
+    name: Frontend — typecheck + build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -37,17 +107,26 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: Urban-front-main/package-lock.json
-      - run: npm ci
+          cache: 'yarn'
+          cache-dependency-path: Urban-front-main/yarn.lock
+      - run: yarn install --frozen-lockfile
       - name: TypeScript check
         run: npx tsc --noEmit
+      - name: Next.js build
+        run: yarn build
+        env:
+          # Mocks só pra build CI passar — não vão pra runtime.
+          NEXT_PUBLIC_API_URL: http://localhost:3001
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_dummy
+          NEXTAUTH_SECRET: ci_dummy_secret_not_for_prod
+          NEXTAUTH_URL: http://localhost:3000
+
+  # ===================== E2E (only if staging URL configured) =====================
 
   frontend-smoke:
     name: Frontend — Playwright smoke (staging)
     runs-on: ubuntu-latest
-    # Só roda contra staging quando existir (F5C.2 item 11).
-    # Até lá, o job é ignorado automaticamente pela condição.
+    needs: [frontend-test]
     if: ${{ vars.E2E_BASE_URL != '' }}
     defaults:
       run:
@@ -59,13 +138,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: Urban-front-main/package-lock.json
-      - run: npm ci
+          cache: 'yarn'
+          cache-dependency-path: Urban-front-main/yarn.lock
+      - run: yarn install --frozen-lockfile
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
       - name: Run smoke tests
-        run: npm run test:e2e
+        run: yarn test:e2e
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4

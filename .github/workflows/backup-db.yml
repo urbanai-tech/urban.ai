@@ -1,0 +1,139 @@
+name: Backup MySQL DB
+
+on:
+  # Diário 03:00 UTC (= 00:00 BRT). Roda mesmo se ninguém estiver olhando.
+  schedule:
+    - cron: '0 3 * * *'
+  # Permite disparo manual no Actions UI.
+  workflow_dispatch:
+    inputs:
+      label:
+        description: 'Label opcional pro backup (ex: pre-deploy-v3)'
+        required: false
+        default: 'manual'
+
+# Concorrência: nunca roda 2 backups simultâneos.
+concurrency:
+  group: backup-mysql
+  cancel-in-progress: false
+
+jobs:
+  dump-and-upload:
+    name: Dump MySQL + upload off-site (S3 ou B2)
+    runs-on: ubuntu-latest
+
+    # Backup precisa terminar mesmo que demore (default 360min é suficiente).
+    timeout-minutes: 60
+
+    env:
+      # Setar como GitHub Secrets:
+      #  - DATABASE_URL (formato mysql://user:pass@host:port/dbname)
+      # E pelo menos UM destino:
+      #  - AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY + S3_BUCKET (+ AWS_REGION)
+      #    OU
+      #  - B2_APPLICATION_KEY_ID + B2_APPLICATION_KEY + B2_BUCKET
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      B2_APPLICATION_KEY_ID: ${{ secrets.B2_APPLICATION_KEY_ID }}
+      B2_APPLICATION_KEY: ${{ secrets.B2_APPLICATION_KEY }}
+      B2_BUCKET: ${{ secrets.B2_BUCKET }}
+      LABEL: ${{ inputs.label || 'cron' }}
+
+    steps:
+      - name: Sanity check — DATABASE_URL configurado
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::DATABASE_URL secret não configurado. Cadastre em Settings → Secrets."
+            exit 1
+          fi
+          if [ -z "$S3_BUCKET" ] && [ -z "$B2_BUCKET" ]; then
+            echo "::error::Nenhum destino configurado. Defina S3_BUCKET ou B2_BUCKET."
+            exit 1
+          fi
+
+      - name: Install MySQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mysql-client
+
+      - name: Parse DATABASE_URL
+        id: parse
+        run: |
+          # mysql://user:pass@host:port/dbname → variáveis individuais
+          URL="${DATABASE_URL#mysql://}"
+          USERPASS="${URL%%@*}"
+          HOSTPORTDB="${URL#*@}"
+          DB_USER="${USERPASS%%:*}"
+          DB_PASS="${USERPASS#*:}"
+          HOSTPORT="${HOSTPORTDB%%/*}"
+          DB_NAME="${HOSTPORTDB##*/}"
+          DB_HOST="${HOSTPORT%%:*}"
+          DB_PORT="${HOSTPORT#*:}"
+          if [ "$DB_PORT" = "$DB_HOST" ]; then DB_PORT=3306; fi
+          # Mascara credenciais nos logs
+          echo "::add-mask::$DB_PASS"
+          echo "DB_USER=$DB_USER" >> $GITHUB_OUTPUT
+          echo "DB_PASS=$DB_PASS" >> $GITHUB_OUTPUT
+          echo "DB_HOST=$DB_HOST" >> $GITHUB_OUTPUT
+          echo "DB_PORT=$DB_PORT" >> $GITHUB_OUTPUT
+          echo "DB_NAME=$DB_NAME" >> $GITHUB_OUTPUT
+
+      - name: Dump database
+        env:
+          MYSQL_PWD: ${{ steps.parse.outputs.DB_PASS }}
+        run: |
+          set -euo pipefail
+          STAMP=$(date -u +"%Y%m%dT%H%M%SZ")
+          FILE="urban-ai-${LABEL}-${STAMP}.sql.gz"
+          echo "BACKUP_FILE=$FILE" >> $GITHUB_ENV
+          mysqldump \
+            --host="${{ steps.parse.outputs.DB_HOST }}" \
+            --port="${{ steps.parse.outputs.DB_PORT }}" \
+            --user="${{ steps.parse.outputs.DB_USER }}" \
+            --single-transaction \
+            --routines \
+            --triggers \
+            --quick \
+            --set-gtid-purged=OFF \
+            --no-tablespaces \
+            "${{ steps.parse.outputs.DB_NAME }}" \
+            | gzip -9 > "$FILE"
+          echo "Backup gerado: $(ls -lh $FILE | awk '{print $5, $9}')"
+
+      - name: Upload to AWS S3
+        if: ${{ env.S3_BUCKET != '' }}
+        run: |
+          set -euo pipefail
+          aws s3 cp "$BACKUP_FILE" "s3://$S3_BUCKET/mysql/$BACKUP_FILE" \
+            --storage-class STANDARD_IA
+          echo "✅ Uploaded to s3://$S3_BUCKET/mysql/$BACKUP_FILE"
+
+      - name: Upload to Backblaze B2
+        if: ${{ env.B2_BUCKET != '' && env.S3_BUCKET == '' }}
+        run: |
+          set -euo pipefail
+          pip install --quiet b2
+          b2 authorize-account "$B2_APPLICATION_KEY_ID" "$B2_APPLICATION_KEY"
+          b2 upload-file "$B2_BUCKET" "$BACKUP_FILE" "mysql/$BACKUP_FILE"
+          echo "✅ Uploaded to b2://$B2_BUCKET/mysql/$BACKUP_FILE"
+
+      - name: Notify on success (optional Slack/Discord)
+        if: ${{ success() && env.SLACK_WEBHOOK != '' }}
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_BACKUP_WEBHOOK }}
+        run: |
+          curl -X POST -H 'Content-Type: application/json' \
+            -d "{\"text\":\"✅ Backup Urban AI MySQL OK — $BACKUP_FILE\"}" \
+            "$SLACK_WEBHOOK"
+
+      - name: Notify on failure
+        if: ${{ failure() && env.SLACK_WEBHOOK != '' }}
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_BACKUP_WEBHOOK }}
+        run: |
+          curl -X POST -H 'Content-Type: application/json' \
+            -d "{\"text\":\"🚨 Backup Urban AI MySQL FALHOU — ver Action #${{ github.run_id }}\"}" \
+            "$SLACK_WEBHOOK"
