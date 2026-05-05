@@ -16,6 +16,7 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { AdminService } from './admin.service';
 import { AdminFinanceService } from './finance.service';
+import { StripeSyncCheckService } from './stripe-sync.service';
 
 /**
  * Endpoints administrativos da Urban AI.
@@ -38,6 +39,7 @@ export class AdminController {
   constructor(
     private readonly admin: AdminService,
     private readonly finance: AdminFinanceService,
+    private readonly stripeSync: StripeSyncCheckService,
   ) {}
 
   @ApiOperation({ summary: 'Visão geral do painel admin (KPIs)' })
@@ -188,5 +190,17 @@ export class AdminController {
   @Patch('plans-config/:name')
   async updatePlanPricing(@Param('name') name: string, @Body() body: any) {
     return this.finance.updatePlanPricing(name, body);
+  }
+
+  // ================== Stripe — sync check ==================
+
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @ApiOperation({
+    summary:
+      'Validar que os 8 Stripe Price IDs (matriz F6.5) existem e batem com o ciclo esperado',
+  })
+  @Get('stripe/sync-check')
+  async stripeSyncCheck() {
+    return this.stripeSync.check();
   }
 }

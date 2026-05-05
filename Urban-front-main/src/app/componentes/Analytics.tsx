@@ -1,9 +1,10 @@
 "use client";
 
 import Script from "next/script";
+import { useConsent } from "./useConsent";
 
 /**
- * GA4 + Meta Pixel.
+ * GA4 + Meta Pixel — com gating LGPD via useConsent.
  *
  * Controlado por env vars:
  *   NEXT_PUBLIC_GA4_ID        — "G-XXXXXXXXXX" (desabilitado se vazio)
@@ -11,6 +12,14 @@ import Script from "next/script";
  *
  * Em ambientes staging e development, só ativa se NEXT_PUBLIC_APP_ENV="production"
  * para evitar poluir os relatórios com tráfego sintético.
+ *
+ * Gating de consent:
+ *   - GA4 só carrega quando `state.analytics === true`
+ *   - Meta Pixel só carrega quando `state.marketing === true`
+ *
+ * Antes do user consentir, NENHUM script de telemetria opcional é injetado
+ * — alinhado à LGPD art. 7º (consentimento explícito para tratamento não
+ * essencial).
  */
 export function Analytics() {
   const appEnv =
@@ -20,11 +29,16 @@ export function Analytics() {
   const gaId = process.env.NEXT_PUBLIC_GA4_ID;
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
+  const { state, loaded } = useConsent();
+
+  // Em dev/staging, ou enquanto consent ainda não carregou do localStorage,
+  // não carrega nada. Após `loaded=true`, o gating por categoria toma efeito.
   if (!isProd) return null;
+  if (!loaded) return null;
 
   return (
     <>
-      {gaId && (
+      {gaId && state.analytics && (
         <>
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
@@ -41,7 +55,7 @@ export function Analytics() {
         </>
       )}
 
-      {pixelId && (
+      {pixelId && state.marketing && (
         <>
           <Script id="meta-pixel-init" strategy="afterInteractive">
             {`

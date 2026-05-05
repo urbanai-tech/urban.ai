@@ -1248,3 +1248,47 @@ export const fetchAdminPlansConfig = () =>
 
 export const updateAdminPlan = (name: string, input: Partial<AdminPlanConfig>) =>
   api.patch<AdminPlanConfig>(`/admin/plans-config/${name}`, input).then((r) => r.data);
+
+// =================== Stripe sync check ===================
+
+export type StripePriceCycleStatus =
+  | 'ok'
+  | 'missing'
+  | 'not-found'
+  | 'cycle-mismatch'
+  | 'inactive'
+  | 'currency-mismatch'
+  | 'check-error';
+
+export interface StripeSyncEntry {
+  planName: string;
+  cycle: 'monthly' | 'quarterly' | 'semestral' | 'annual';
+  priceId: string | null;
+  source: 'plan-entity' | 'env-fallback' | 'missing';
+  status: StripePriceCycleStatus;
+  details?: string;
+  stripeAmountCents?: number;
+  stripeCurrency?: string;
+  stripeInterval?: string;
+  stripeIntervalCount?: number;
+  stripeActive?: boolean;
+}
+
+export interface StripeSyncReport {
+  summary: {
+    total: number;
+    ok: number;
+    missing: number;
+    problems: number;
+    stripeKeyConfigured: boolean;
+  };
+  entries: StripeSyncEntry[];
+}
+
+/**
+ * Valida que os 8 Stripe Price IDs (matriz F6.5: 2 planos × 4 ciclos) existem
+ * na conta Stripe e batem com o ciclo esperado. Útil para detectar faltas
+ * antes de um cliente tentar checkout.
+ */
+export const fetchStripeSyncCheck = () =>
+  api.get<StripeSyncReport>('/admin/stripe/sync-check').then((r) => r.data);
