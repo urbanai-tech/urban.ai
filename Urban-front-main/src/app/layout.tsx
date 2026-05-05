@@ -3,6 +3,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { StagingBanner } from "./componentes/StagingBanner";
 import { Analytics } from "./componentes/Analytics";
+import { CookieConsent } from "./componentes/CookieConsent";
 
 export const metadata: Metadata = {
   title: "Urban ai",
@@ -21,10 +22,10 @@ export default function RootLayout({
     <html lang="en" className="font-press">
       <body cz-shortcut-listen="true">
         <StagingBanner />
-        <Analytics />
         <Providers>
           {children}
-
+          <Analytics />
+          <CookieConsent />
         </Providers>
       </body>
     </html>

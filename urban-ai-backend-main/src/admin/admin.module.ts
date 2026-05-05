@@ -15,6 +15,7 @@ import { Plan } from '../entities/plan.entity';
 import { PlatformCost } from '../entities/platform-cost.entity';
 import { AdminService } from './admin.service';
 import { AdminFinanceService } from './finance.service';
+import { StripeSyncCheckService } from './stripe-sync.service';
 import { AdminController } from './admin.controller';
 import { AuthModule } from '../auth/auth.module';
 import { KnnEngineModule } from '../knn-engine/knn-engine.module';
@@ -40,7 +41,7 @@ import { KnnEngineModule } from '../knn-engine/knn-engine.module';
     KnnEngineModule,
   ],
   controllers: [AdminController],
-  providers: [AdminService, AdminFinanceService],
-  exports: [AdminService, AdminFinanceService],
+  providers: [AdminService, AdminFinanceService, StripeSyncCheckService],
+  exports: [AdminService, AdminFinanceService, StripeSyncCheckService],
 })
 export class AdminModule {}
