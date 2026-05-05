@@ -12,6 +12,8 @@ import {
   @Index(["cidade", "estado"])
   @Index(["latitude", "longitude"])
   @Index(["dataInicio", "dataFim"])
+  @Index(["source"])
+  @Index(["venueType"])
   export class Event {
     // =====================================
     // 🆔 IDENTIFICAÇÃO
@@ -119,6 +121,68 @@ import {
     @ApiProperty({ description: "Capacidade estimada de público gerada pela IA", required: false })
     @Column("int", { nullable: true })
     capacidadeEstimada: number;
+
+    // =====================================
+    // 🔀 PROCEDÊNCIA / DEDUP (F6.2 Plus — Camada 1/2/3)
+    // =====================================
+
+    /**
+     * Origem do evento (qual coletor/fonte trouxe). Usado para auditoria
+     * e para ponderar confiabilidade no motor de pricing.
+     *
+     * Convenções:
+     *  - 'api-football' (Camada 1 — jogos)
+     *  - 'sympla-api', 'eventbrite-api', 'sp-aberta-api' (Camada 1)
+     *  - 'firecrawl-<site>' (Camada 2 — ex: 'firecrawl-anhembi')
+     *  - 'admin-manual' (Camada 3 — curadoria humana)
+     *  - 'admin-csv-import' (Camada 3 — import semestral)
+     *  - 'scraper-<spider>' (legado: 'scraper-sympla', 'scraper-eventim', etc.)
+     */
+    @ApiProperty({ description: "Origem do evento (api-football, sympla-api, firecrawl-anhembi, etc.)", required: false })
+    @Column({ type: "varchar", length: 64, nullable: true })
+    @Index()
+    source: string | null;
+
+    /** ID do evento na fonte externa (fixture_id, eventbrite_id, etc.). */
+    @ApiProperty({ description: "ID externo na fonte (fixture_id, eventbrite_id, etc.)", required: false })
+    @Column({ type: "varchar", length: 128, nullable: true })
+    sourceId: string | null;
+
+    /**
+     * Hash SHA-256 para dedup. Calculado em ingest:
+     *   sha256(lower(nome) + '|' + dataInicio.toISOString().slice(0,10)
+     *          + '|' + round(lat,3) + ',' + round(lng,3))
+     *
+     * Permite Sympla + Eventbrite + Firecrawl reportarem o mesmo evento sem duplicar.
+     * Lat/lng arredondadas a ~100m absorvem pequenas variações entre fontes.
+     */
+    @ApiProperty({ description: "Hash de dedup — único por nome+data+geo", required: false })
+    @Column({ type: "varchar", length: 64, nullable: true, unique: true })
+    dedupHash: string | null;
+
+    /** Capacidade física do venue (estádio Allianz = 43kk). Diferente de capacidadeEstimada. */
+    @ApiProperty({ description: "Capacidade física do local (do venue, não do evento específico)", required: false })
+    @Column({ type: "int", nullable: true })
+    venueCapacity: number | null;
+
+    /**
+     * Tipo do venue. Usado pelo motor para ponderar relevância:
+     *  - 'stadium' (capacidade 30k+) → boost extra
+     *  - 'convention_center' → boost médio + público B2B
+     *  - 'theater' → boost localizado
+     *  - 'bar', 'church', 'outdoor', 'other'
+     */
+    @ApiProperty({ description: "Tipo do venue (stadium, convention_center, theater, etc.)", required: false })
+    @Column({ type: "varchar", length: 64, nullable: true })
+    venueType: string | null;
+
+    @ApiProperty({ description: "Público esperado deste evento específico (de bilheteria/inscrição)", required: false })
+    @Column({ type: "int", nullable: true })
+    expectedAttendance: number | null;
+
+    @ApiProperty({ description: "URL crawlada/fonte original deste evento", required: false })
+    @Column("text", { nullable: true })
+    crawledUrl: string | null;
 
     // =====================================
     // ⚙️ CONTROLE DO SISTEMA
