@@ -11,12 +11,13 @@ import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity
 import { List } from 'src/entities/list.entity';
 import { Address } from 'src/entities/addresses.entity';
 import { Event } from 'src/entities/events.entity';
+import { User } from 'src/entities/user.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { MapsModule } from 'src/maps/maps.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AnaliseEnderecoEvento, Address, Event, List]),
+    TypeOrmModule.forFeature([AnaliseEnderecoEvento, Address, Event, List, User]),
     AuthModule,
     MapsModule,
   ],
