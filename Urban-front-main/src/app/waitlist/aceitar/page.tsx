@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Box,
@@ -36,7 +36,23 @@ import {
  *   4. Backend reconhece, cria User real, marca waitlist como converted
  *   5. Redireciona para login com toast de sucesso
  */
-export default function AceitarConvite() {
+export default function AceitarConvitePage() {
+  // Next 15 exige Suspense boundary em volta de useSearchParams para evitar
+  // bailout total do prerender estático.
+  return (
+    <Suspense
+      fallback={
+        <Container maxW="md" py={20} centerContent>
+          <Spinner size="xl" color="blue.500" />
+        </Container>
+      }
+    >
+      <AceitarConvite />
+    </Suspense>
+  );
+}
+
+function AceitarConvite() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams?.get("token") ?? "";

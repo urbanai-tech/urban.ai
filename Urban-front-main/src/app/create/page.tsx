@@ -64,22 +64,8 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // F8: durante pré-lançamento, /create vira tela de waitlist em vez de
-  // signup tradicional. Login segue funcionando para users existentes.
-  if (prelaunchLoading) {
-    return (
-      <Flex minH="100vh" align="center" justify="center" bg="#f8fafb">
-        <Text color="gray.500">Carregando…</Text>
-      </Flex>
-    );
-  }
-  if (prelaunchMode) {
-    return (
-      <Flex minH="100vh" align="center" justify="center" bg="#f8fafb" p={4}>
-        <WaitlistSignup source="create-signup" />
-      </Flex>
-    );
-  }
+  // ⚠️ Todos os hooks ficam aqui — Rules of Hooks proíbem hooks após early return.
+  // O gating de PRELAUNCH (que pode retornar cedo) vem DEPOIS dos hooks.
 
   const checks = useMemo(
     () => ({
@@ -112,6 +98,24 @@ const Register = () => {
     const allRulesOk = Object.values(checks).every(Boolean);
     return !loading && allRulesOk && match && !!email && !!username;
   }, [checks, match, email, username, loading]);
+
+  // F8: durante pré-lançamento, /create vira tela de waitlist em vez de
+  // signup tradicional. Login segue funcionando para users existentes.
+  // (Posicionado APÓS hooks para respeitar Rules of Hooks.)
+  if (prelaunchLoading) {
+    return (
+      <Flex minH="100vh" align="center" justify="center" bg="#f8fafb">
+        <Text color="gray.500">Carregando…</Text>
+      </Flex>
+    );
+  }
+  if (prelaunchMode) {
+    return (
+      <Flex minH="100vh" align="center" justify="center" bg="#f8fafb" p={4}>
+        <WaitlistSignup source="create-signup" />
+      </Flex>
+    );
+  }
 
   const handleRegister = async () => {
     if (!canSubmit) return;

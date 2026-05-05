@@ -114,42 +114,42 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ============== LOG-ONLY mode ==============
-  // Esta versão apenas registra o que o Chunk 4 fará. Não redireciona ainda.
-  // Quando estivermos prontos para ativar:
-  //   1. Comentar/remover este bloco de log e early return.
-  //   2. Descomentar os blocos "TODO Chunk 4" abaixo.
+  // ============== Redirects ativos ==============
 
-  // (em produção, console.log vai pro stdout do Vercel/Railway)
-  console.log(
-    `[middleware] host=${host} path=${pathname} ` +
-      `publicHost=${isPublicHost(host)} appHost=${isAppHost(host)} ` +
-      `appOnlyMatch=${pathMatchesAppOnly(pathname)} publicOnlyMatch=${pathMatchesPublicOnly(pathname)}`,
-  );
+  // 1. Apex (myurbanai.com) na raiz → rewrite interno para servir a landing
+  //    institucional. URL no browser permanece "/". Esse rewrite é silencioso
+  //    (status 200), diferente dos 301 abaixo.
+  if (isPublicHost(host) && pathname === "/") {
+    return NextResponse.rewrite(new URL("/landing", request.url));
+  }
+
+  // 2. Apex pedindo rota que SÓ existe no app → 301 para app.myurbanai.com
+  //    Cobre bookmarks antigos como myurbanai.com/dashboard. Migrações
+  //    permanentes (301) atualizam cache do browser e sinalizam ao Google.
+  if (isPublicHost(host) && pathMatchesAppOnly(pathname)) {
+    const target = new URL(request.url);
+    target.host = "app.myurbanai.com";
+    return NextResponse.redirect(target, 301);
+  }
+
+  // 3. App subdomain pedindo rota PÚBLICA → 301 para apex
+  //    Quem clica em "Sobre" estando logado vai pra myurbanai.com/sobre,
+  //    sem deixar página pública indexável também em app.subdomain (evita
+  //    duplicate content pro SEO).
+  if (isAppHost(host) && pathMatchesPublicOnly(pathname)) {
+    const target = new URL(request.url);
+    target.host = "myurbanai.com";
+    return NextResponse.redirect(target, 301);
+  }
+
+  // 4. App subdomain na raiz → renderiza login normal (page.tsx atual de
+  //    (home)). Nada a fazer; passa direto.
+
+  // 5. Apex em qualquer outro path (ex: /lancamento, /sobre, /precos) →
+  //    serve normalmente. As páginas existem em (public)/ e o layout
+  //    público é aplicado.
 
   return NextResponse.next();
-
-  // ============== TODO Chunk 4 — ATIVAR REDIRECTS ==============
-  // // 1. Apex (myurbanai.com) → rewrite "/" para servir a landing institucional
-  // if (isPublicHost(host) && pathname === "/") {
-  //   return NextResponse.rewrite(new URL("/landing", request.url));
-  // }
-  //
-  // // 2. Apex pedindo rota de app → 301 para app.subdomain
-  // if (isPublicHost(host) && pathMatchesAppOnly(pathname)) {
-  //   const target = new URL(request.url);
-  //   target.host = "app.myurbanai.com";
-  //   return NextResponse.redirect(target, 301);
-  // }
-  //
-  // // 3. App subdomain pedindo rota pública → 301 para apex
-  // if (isAppHost(host) && pathMatchesPublicOnly(pathname)) {
-  //   const target = new URL(request.url);
-  //   target.host = "myurbanai.com";
-  //   return NextResponse.redirect(target, 301);
-  // }
-  //
-  // return NextResponse.next();
 }
 
 /**
