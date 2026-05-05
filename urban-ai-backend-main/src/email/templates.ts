@@ -114,6 +114,265 @@ export class EmailTemplates {
     return baseLayout(content);
   }
 
+  // ================== F6.5 / lifecycle ==================
+
+  /**
+   * E-mail de boas-vindas após signup confirmado.
+   * Não menciona plano ainda — esse e-mail é antes do checkout.
+   */
+  static getWelcomeTemplate(nome: string, dashboardUrl: string): string {
+    const firstName = nome.split(' ')[0];
+    const content = `
+        <div class="title">Bem-vindo(a), ${firstName}!</div>
+        <div class="content">
+            <p>Que bom ter você na <b>Urban AI</b>.</p>
+            <p>Nosso motor cruza dados de mercado, eventos próximos e padrões históricos
+            para ajudar você a precificar melhor seus imóveis. O resultado: mais ocupação,
+            preço mais justo e menos achismo.</p>
+
+            <p><b>Próximos passos:</b></p>
+            <ol style="line-height: 1.8;">
+                <li>Cadastre seu primeiro imóvel</li>
+                <li>Receba a primeira análise em poucos minutos</li>
+                <li>Compare com os preços que você cobra hoje</li>
+            </ol>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${dashboardUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                    Acessar painel
+                </a>
+            </div>
+
+            <p style="font-size: 14px;">Qualquer dúvida, é só responder este e-mail.</p>
+        </div>
+    `;
+    return baseLayout(content);
+  }
+
+  /**
+   * Recibo de assinatura ativada (após webhook checkout.session.completed).
+   * Mostra plano, ciclo, quantity (imóveis), próxima cobrança.
+   */
+  static getSubscriptionActiveTemplate(input: {
+    nome: string;
+    planName: string;
+    billingCycle: 'monthly' | 'quarterly' | 'semestral' | 'annual';
+    listingsContratados: number;
+    totalAmountCents: number;
+    nextBillingDate: string; // ISO ou YYYY-MM-DD
+    invoiceUrl?: string;
+    dashboardUrl: string;
+  }): string {
+    const firstName = input.nome.split(' ')[0];
+    const cycleLabel: Record<string, string> = {
+      monthly: 'mensal',
+      quarterly: 'trimestral',
+      semestral: 'semestral',
+      annual: 'anual',
+    };
+    const total = `R$ ${(input.totalAmountCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    const content = `
+        <div class="title">Assinatura ativada ✓</div>
+        <div class="content">
+            <p>Olá, ${firstName}!</p>
+            <p>Sua assinatura no <b>Urban AI</b> foi ativada com sucesso. Resumo:</p>
+
+            <table style="width: 100%; margin: 20px 0; border-collapse: collapse; font-size: 15px;">
+                <tr><td style="padding: 8px 0; color: #6b7280;">Plano</td><td style="padding: 8px 0; text-align: right; font-weight: bold;">${input.planName}</td></tr>
+                <tr><td style="padding: 8px 0; color: #6b7280;">Ciclo</td><td style="padding: 8px 0; text-align: right;">${cycleLabel[input.billingCycle] ?? input.billingCycle}</td></tr>
+                <tr><td style="padding: 8px 0; color: #6b7280;">Imóveis contratados</td><td style="padding: 8px 0; text-align: right;">${input.listingsContratados}</td></tr>
+                <tr style="border-top: 1px solid #e5e7eb;"><td style="padding: 12px 0; color: #6b7280;">Valor total cobrado</td><td style="padding: 12px 0; text-align: right; font-weight: bold; color: ${PRIMARY_COLOR};">${total}</td></tr>
+                <tr><td style="padding: 8px 0; color: #6b7280;">Próxima cobrança</td><td style="padding: 8px 0; text-align: right;">${input.nextBillingDate}</td></tr>
+            </table>
+
+            ${input.invoiceUrl ? `<p style="text-align: center;"><a href="${input.invoiceUrl}" class="link">Ver recibo Stripe</a></p>` : ''}
+
+            <hr />
+
+            <p><b>Próximos passos:</b></p>
+            <ul style="line-height: 1.8;">
+                <li>Cadastre seus ${input.listingsContratados} ${input.listingsContratados === 1 ? 'imóvel' : 'imóveis'}</li>
+                <li>Conecte sua conta Stays para envio automático de preços</li>
+                <li>Acompanhe as primeiras recomendações no painel</li>
+            </ul>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${input.dashboardUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                    Ir para o painel
+                </a>
+            </div>
+        </div>
+    `;
+    return baseLayout(content);
+  }
+
+  /**
+   * Cancelamento confirmado — informa que acesso continua até o fim do ciclo.
+   */
+  static getSubscriptionCancelledTemplate(input: {
+    nome: string;
+    accessEndsAt: string;
+    reactivateUrl: string;
+  }): string {
+    const firstName = input.nome.split(' ')[0];
+    const content = `
+        <div class="title">Cancelamento confirmado</div>
+        <div class="content">
+            <p>Olá, ${firstName}.</p>
+            <p>Confirmamos o cancelamento da sua assinatura. <b>Você continua com acesso
+            completo até ${input.accessEndsAt}</b>; depois disso a conta vira read-only.</p>
+
+            <p>Caso queira voltar antes da virada, é um clique:</p>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${input.reactivateUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                    Reativar assinatura
+                </a>
+            </div>
+
+            <hr />
+
+            <p style="font-size: 14px;">Se cancelou por algum motivo específico, escreva pra
+            gente — feedback de quem sai é o que mais nos ajuda a melhorar.</p>
+        </div>
+    `;
+    return baseLayout(content);
+  }
+
+  /**
+   * Falha de pagamento (webhook invoice.payment_failed).
+   * Stripe re-tenta automaticamente; nós só comunicamos e damos link.
+   */
+  static getPaymentFailedTemplate(input: {
+    nome: string;
+    amountCents: number;
+    nextRetryDate: string;
+    updatePaymentUrl: string;
+  }): string {
+    const firstName = input.nome.split(' ')[0];
+    const total = `R$ ${(input.amountCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    const content = `
+        <div class="title" style="color: #b45309;">Pagamento não foi processado</div>
+        <div class="content">
+            <p>Olá, ${firstName}.</p>
+            <p>Tentamos processar a cobrança de <b>${total}</b> da sua assinatura no
+            Urban AI mas o cartão recusou.</p>
+
+            <p>Vamos tentar novamente em <b>${input.nextRetryDate}</b>. Para evitar
+            qualquer interrupção, é melhor atualizar o método de pagamento agora:</p>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${input.updatePaymentUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: #b45309; color: white; border-radius: 8px; font-weight: bold;">
+                    Atualizar cartão
+                </a>
+            </div>
+
+            <p style="font-size: 14px;">Causas comuns: cartão expirado, limite insuficiente
+            ou bloqueio antifraude do banco.</p>
+        </div>
+    `;
+    return baseLayout(content);
+  }
+
+  /**
+   * Alerta 80% da quota — antecipação de upsell.
+   */
+  static getQuotaWarningTemplate(input: {
+    nome: string;
+    contratados: number;
+    ativos: number;
+    upgradeUrl: string;
+  }): string {
+    const firstName = input.nome.split(' ')[0];
+    const percent = Math.round((input.ativos / input.contratados) * 100);
+    const content = `
+        <div class="title">Você está usando ${percent}% da sua quota</div>
+        <div class="content">
+            <p>Olá, ${firstName}!</p>
+            <p>Sua conta tem <b>${input.contratados} imóveis contratados</b> e você já
+            cadastrou <b>${input.ativos}</b>. Está perto do limite.</p>
+
+            <p>Quando passar do contratado, novos imóveis ficam bloqueados até upgrade.
+            Para ampliar agora sem fricção:</p>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${input.upgradeUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                    Aumentar quota
+                </a>
+            </div>
+
+            <p style="font-size: 14px;">Lembrete: a Urban AI cobra <b>por imóvel</b>, então
+            você só paga pelo que de fato usa.</p>
+        </div>
+    `;
+    return baseLayout(content);
+  }
+
+  /**
+   * Quota excedida — bloqueio de novo cadastro (gerado pelo guard
+   * `LISTINGS_QUOTA_EXCEEDED` no backend).
+   */
+  static getQuotaExceededTemplate(input: {
+    nome: string;
+    contratados: number;
+    tentando: number;
+    upgradeUrl: string;
+  }): string {
+    const firstName = input.nome.split(' ')[0];
+    const content = `
+        <div class="title" style="color: #b91c1c;">Limite de imóveis atingido</div>
+        <div class="content">
+            <p>Olá, ${firstName}.</p>
+            <p>Você tentou cadastrar <b>${input.tentando}</b> imóvel${input.tentando > 1 ? 'is' : ''} mas
+            seu plano cobre apenas <b>${input.contratados}</b>.</p>
+
+            <p>Para destravar, basta aumentar a quantidade de imóveis no seu plano:</p>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${input.upgradeUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: #b91c1c; color: white; border-radius: 8px; font-weight: bold;">
+                    Aumentar quota agora
+                </a>
+            </div>
+
+            <p style="font-size: 14px;">A cobrança é proporcional ao restante do ciclo —
+            sem trocar de plano nem reiniciar a assinatura.</p>
+        </div>
+    `;
+    return baseLayout(content);
+  }
+
+  /**
+   * Confirmação de conexão Stays (após primeiro sync OK).
+   */
+  static getStaysConnectedTemplate(input: {
+    nome: string;
+    listingsImported: number;
+    settingsUrl: string;
+  }): string {
+    const firstName = input.nome.split(' ')[0];
+    const content = `
+        <div class="title">Stays conectada ✓</div>
+        <div class="content">
+            <p>Olá, ${firstName}!</p>
+            <p>Sua conta Stays foi conectada com sucesso e nós já importamos
+            <b>${input.listingsImported}</b> ${input.listingsImported === 1 ? 'imóvel' : 'imóveis'}.</p>
+
+            <p>Por padrão o modo é <b>Recomendação</b> — você recebe sugestões e aplica
+            quando quiser. Quando confiar no motor, vire <b>Automático</b> em qualquer
+            imóvel individualmente.</p>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${input.settingsUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                    Configurar modo automático
+                </a>
+            </div>
+        </div>
+    `;
+    return baseLayout(content);
+  }
+
+  // ================== legacy ==================
+
   static getSystemNotificationTemplate(nome: string, title: string, description: string, url: string): string {
     const content = `
         <h2 style="font-size: 20px; font-weight: bold; color: #111827; margin-bottom: 20px;">${title}</h2>
