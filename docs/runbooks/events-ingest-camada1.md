@@ -1,15 +1,33 @@
 # Runbook — F6.2 Plus Camada 1: ingestão de eventos via APIs oficiais
 
 **Owner:** Gustavo (manual de credenciais) + Claude (código dos coletores)
-**Status:** Backend pronto · Coletores Python pendentes (próximo PR)
+**Status:** Backend pronto · **Fase A (spiders Scrapy) também pronta** ·
+Coletores de API novos (api-football/Sympla/Eventbrite) pendentes de credencial
 
 ---
 
 ## O que está pronto agora
 
+✅ **Fase A — atualização dos 7 spiders Scrapy existentes**:
+   `UrbanIngestPipeline` registrada em `settings.py` faz POST ao
+   `/events/ingest` em paralelo às pipelines S3 (bronze layer mantido).
+   Auto-desabilita silenciosamente se as envs `URBAN_COLLECTOR_*` não
+   estiverem setadas (dev local sem backend continua OK).
+
+✅ **Geocoding lazy** — eventos sem lat/lng são aceitos quando
+   `enderecoCompleto` presente. Backend marca `pendingGeocode=true,
+   ativo=false`. Cron a cada 30 min (`EventsGeocoderService`) processa
+   em batches de 30 via Google Maps. Endpoint admin
+   `POST /events/geocoder/run?limit=N` dispara imediato.
+
+✅ **Venue map hardcoded** (`venue_map.py`) — 25+ locais conhecidos de SP
+   (Allianz, Morumbi, Itaquera, São Paulo Expo, Anhembi, etc.) com
+   lat/lng, capacidade e tipo. Spider reconhece o nome no endereço/local
+   e preenche tudo de graça (sem ir no geocoder).
+
 ✅ Schema do `event` expandido com colunas de procedência:
    `source`, `sourceId`, `dedupHash` (UNIQUE), `venueCapacity`, `venueType`,
-   `expectedAttendance`, `crawledUrl`
+   `expectedAttendance`, `crawledUrl`, **`pendingGeocode`**
 
 ✅ Migration idempotente `1746000000000-AddEventCoverageFields` — roda
    seguro em base que já tem ou não tem essas colunas

@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -15,6 +17,7 @@ import {
   IngestBatchResponse,
   IngestEventInput,
 } from './events-ingest.service';
+import { EventsGeocoderService } from './events-geocoder.service';
 
 /**
  * Endpoint universal de ingestão de eventos (F6.2 Plus).
@@ -37,7 +40,10 @@ import {
 @Roles('admin')
 @Controller('events')
 export class EventsIngestController {
-  constructor(private readonly ingest: EventsIngestService) {}
+  constructor(
+    private readonly ingest: EventsIngestService,
+    private readonly geocoder: EventsGeocoderService,
+  ) {}
 
   @Throttle({ default: { ttl: 60_000, limit: 60 } })
   @ApiOperation({
@@ -51,5 +57,25 @@ export class EventsIngestController {
   ): Promise<IngestBatchResponse> {
     const events = body?.events ?? [];
     return this.ingest.ingestBatch(events);
+  }
+
+  @ApiOperation({
+    summary: 'Status da fila de geocoding pendente (eventos sem lat/lng)',
+  })
+  @Get('geocoder/status')
+  async geocoderStatus() {
+    const pending = await this.geocoder.pendingCount();
+    return { pendingGeocode: pending };
+  }
+
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @ApiOperation({
+    summary:
+      'Dispara o geocoder agora (em vez de esperar o cron 30 min). Limit default 30.',
+  })
+  @Post('geocoder/run')
+  @HttpCode(200)
+  async geocoderRun(@Query('limit') limit: string = '30') {
+    return this.geocoder.runOnce(parseInt(limit, 10));
   }
 }

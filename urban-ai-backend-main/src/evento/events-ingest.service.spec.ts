@@ -120,6 +120,32 @@ describe('EventsIngestService', () => {
       expect(r.reason).toMatch(/latitude/);
     });
 
+    it('aceita sem lat/lng quando enderecoCompleto presente (geocoding lazy)', async () => {
+      repo.findOne!.mockResolvedValue(null);
+      const r = await service.ingestOne({
+        ...validBase,
+        latitude: null,
+        longitude: null,
+        enderecoCompleto: 'Allianz Parque, São Paulo',
+      });
+      expect(r.status).toBe('created');
+      const saved = repo.save!.mock.calls[0][0];
+      expect(saved.pendingGeocode).toBe(true);
+      expect(saved.ativo).toBe(false);
+      expect(saved.latitude).toBeNull();
+    });
+
+    it('skipped quando sem lat/lng E sem endereço (lixo)', async () => {
+      const r = await service.ingestOne({
+        ...validBase,
+        latitude: null,
+        longitude: null,
+        enderecoCompleto: '',
+      });
+      expect(r.status).toBe('skipped');
+      expect(r.reason).toMatch(/geocodificar|endere/i);
+    });
+
     it('skipped quando source ausente', async () => {
       const r = await service.ingestOne({ ...validBase, source: '' });
       expect(r.status).toBe('skipped');
