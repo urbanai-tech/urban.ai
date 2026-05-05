@@ -59,7 +59,9 @@ Banco de dados: o backend pode rodar contra um MySQL local ou contra o Railway d
 
 | Onde | O que tem |
 |---|---|
-| `docs/roadmap-pos-sprint.md` | **Fonte de verdade** do roadmap em curso (v2.3) |
+| `docs/roadmap-pos-sprint.md` | **Fonte de verdade** do roadmap em curso (v2.10) |
+| `docs/go-live-manual-checklist.md` | Lista do que ainda é manual humano vs. automatizável (P0/P1/P2) |
+| `CHANGELOG.md` | Histórico de releases em formato semver |
 | `docs/avaliacao-projeto-2026-04-16.md` | Auditoria técnica completa que motivou F5C |
 | `docs/adr/` | Architecture Decision Records — por que escolhemos NestJS, MySQL, Railway, etc. |
 | `docs/runbooks/` | Procedimentos operacionais — staging, migrations, restore, incidentes |
@@ -72,11 +74,23 @@ Banco de dados: o backend pode rodar contra um MySQL local ou contra o Railway d
 
 GitHub Actions roda em todo push/PR para `main` e `staging`:
 
-- `backend-unit` — `tsc --noEmit` + `jest` (67 testes hoje)
-- `frontend-lint` — `tsc --noEmit`
+- `backend-test` — `tsc --noEmit` + `jest` (95 testes hoje)
+- `backend-build` — `nest build` com verificação de `dist/main.js`
+- `backend-migrations` — roda migrations contra MySQL service container fresh (valida que aplicam limpas em DB zerado)
+- `frontend-test` — `tsc --noEmit` + `next build` com env mocks
 - `frontend-smoke` — Playwright contra staging (gated em `vars.E2E_BASE_URL` no GitHub)
 
+**Backup automatizado:** workflow `.github/workflows/backup-db.yml` faz dump diário do MySQL às 03:00 UTC e sobe para S3 ou Backblaze B2. Ver `docs/runbooks/backup-offsite.md`.
+
 Deploy é automático via Railway watch da branch `main` (prod) e da branch `staging` quando criada.
+
+## Observabilidade — endpoints públicos
+
+- `GET /health` — DB ping + uptime + version (UptimeRobot bate aqui, < 100ms)
+- `GET /health/live` — apenas confirma que o processo NestJS está vivo (Railway liveness probe)
+- `GET /admin/overview` — KPIs do produto (autenticado, role admin)
+- `GET /admin/finance/overview` — MRR, custos, margem por imóvel
+- `GET /admin/stripe/sync-check` — valida que os 8 Stripe Price IDs (matriz F6.5) batem com a conta Stripe
 
 ## Contato
 
