@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional, Inject } from '@nestjs/common';
 import { DatasetCollectorService } from '../dataset-collector.service';
 import {
   PricingInput,
@@ -61,16 +61,18 @@ export class AdaptivePricingStrategy implements PricingStrategy {
   /** Tier atual logado — só loga ao mudar (evita spam). */
   private lastLoggedTier: string | null = null;
 
-  /**
-   * Slot opcional para futura HybridNeuralPricingStrategy.
-   * Quando o Tier 4 for implementado, basta injetar e usar um token `@Inject()`.
-   */
-  private readonly hybrid: PricingStrategy | null = null;
-
   constructor(
     private readonly rules: RuleBasedPricingStrategy,
     private readonly xgboost: XGBoostPricingStrategy,
     private readonly collector: DatasetCollectorService,
+    
+    /**
+     * Slot opcional para futura HybridNeuralPricingStrategy.
+     * O Decorator @Optional garante que o backend inicie mesmo se a classe ainda não existir.
+     */
+    @Optional()
+    @Inject('HYBRID_STRATEGY')
+    private readonly hybrid?: PricingStrategy,
   ) {}
 
   isReady(): boolean {
