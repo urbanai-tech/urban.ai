@@ -8,6 +8,23 @@ Coletores de API novos (api-football/Sympla/Eventbrite) pendentes de credencial
 
 ## O que está pronto agora
 
+✅ **`BaseCollector` (abstrato)** — esqueleto reusável de coletor. Cada
+   coletor concreto (Sympla API, api-football, Eventbrite, Firecrawl, etc.)
+   só implementa `fetch_raw()` + `normalize(raw)`. O resto (login, batch,
+   dedup, geocoding lazy, enrich via venue_map, retry, métricas) já vem
+   gratuito.
+
+✅ **`SpCulturaCollector`** — primeiro coletor pronto (sem credencial!).
+   Busca eventos do MapaCultural da Prefeitura de SP (CEUs, bibliotecas,
+   museus, casas de cultura, festivais). Cobre o "long tail" cultural
+   municipal que escapa de Sympla/Eventim. Roda via:
+   ```bash
+   python -m urban_webscrapping.collectors.sp_cultura
+   ```
+   Variáveis: `SP_CULTURA_LOOKAHEAD_DAYS` (default 60),
+   `URBAN_API_BASE` + `URBAN_COLLECTOR_*` pra envio,
+   `DRY_RUN=true` pra só logar sem mandar.
+
 ✅ **Fase A — atualização dos 7 spiders Scrapy existentes**:
    `UrbanIngestPipeline` registrada em `settings.py` faz POST ao
    `/events/ingest` em paralelo às pipelines S3 (bronze layer mantido).
