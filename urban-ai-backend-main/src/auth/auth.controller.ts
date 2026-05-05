@@ -54,15 +54,34 @@ export class AuthController {
     return process.env.PRELAUNCH_MODE === 'true';
   }
 
-  /** Configuração comum dos cookies. Em prod: Secure + SameSite=lax. */
+  /**
+   * Configuração comum dos cookies.
+   *
+   * Em prod (subdomain split — Opção B):
+   *   - secure: true
+   *   - sameSite: lax
+   *   - domain: `.myurbanai.com` — começa com ponto para o cookie ser
+   *     compartilhado entre `myurbanai.com` e `app.myurbanai.com`. Sem isso,
+   *     login feito em app.myurbanai.com não bate em myurbanai.com (e vice-
+   *     versa) e usuário "perde sessão" ao navegar entre subdomains.
+   *
+   * Em dev local (`localhost`), `domain` fica `undefined` — o browser usa
+   * o host atual e cookies funcionam normalmente entre /, /create, etc.
+   *
+   * O domínio do cookie pode ser overrideado via env `COOKIE_DOMAIN` para
+   * casos de staging com domínio próprio (ex: `.staging.myurbanai.com`).
+   */
   private cookieOpts(maxAgeMs: number, isRefresh = false) {
-    const isProd =
-      (process.env.APP_ENV || process.env.NODE_ENV) === 'production' ||
-      (process.env.APP_ENV || process.env.NODE_ENV) === 'staging';
+    const env = process.env.APP_ENV || process.env.NODE_ENV;
+    const isProd = env === 'production' || env === 'staging';
+    const cookieDomain =
+      process.env.COOKIE_DOMAIN ?? (isProd ? '.myurbanai.com' : undefined);
+
     return {
       httpOnly: true,
       secure: isProd, // em dev local (http), cookies secure quebram o fluxo
       sameSite: 'lax' as const,
+      domain: cookieDomain,
       path: isRefresh ? '/auth' : '/',
       maxAge: maxAgeMs,
     };
@@ -75,8 +94,15 @@ export class AuthController {
   }
 
   private clearAuthCookies(res: Response) {
-    res.clearCookie(ACCESS_TOKEN_COOKIE, { path: '/' });
-    res.clearCookie(REFRESH_TOKEN_COOKIE, { path: '/auth' });
+    // Para o browser invalidar o cookie corretamente, os atributos
+    // (domain, path) precisam bater com os usados ao setar.
+    const env = process.env.APP_ENV || process.env.NODE_ENV;
+    const isProd = env === 'production' || env === 'staging';
+    const cookieDomain =
+      process.env.COOKIE_DOMAIN ?? (isProd ? '.myurbanai.com' : undefined);
+
+    res.clearCookie(ACCESS_TOKEN_COOKIE, { path: '/', domain: cookieDomain });
+    res.clearCookie(REFRESH_TOKEN_COOKIE, { path: '/auth', domain: cookieDomain });
   }
 
   @ApiOperation({ summary: 'Registrar um novo usuário' })
