@@ -3,8 +3,10 @@ import {
   Body,
   Controller,
   Delete,
+  forwardRef,
   Get,
   HttpCode,
+  Inject,
   InternalServerErrorException,
   Param,
   Post,
@@ -27,6 +29,7 @@ import { User } from 'src/entities/user.entity';
 import { AuthService, TokenPair } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ACCESS_TOKEN_COOKIE } from './jwt.strategy';
+import { WaitlistService } from '../waitlist/waitlist.service';
 
 const REFRESH_TOKEN_COOKIE = 'urbanai_refresh_token';
 
@@ -35,7 +38,21 @@ const ACCESS_COOKIE_MAX_AGE_MS = 15 * 60 * 1000; // 15 min
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    @Inject(forwardRef(() => WaitlistService))
+    private readonly waitlistService: WaitlistService,
+  ) {}
+
+  /**
+   * Pré-lançamento (F8): quando `PRELAUNCH_MODE=true` no Railway, novos
+   * cadastros são redirecionados para a lista de espera em vez de virarem
+   * `User` reais. Login segue funcionando para users já existentes (founders,
+   * admins, beta testers convidados manualmente).
+   */
+  private isPrelaunchMode(): boolean {
+    return process.env.PRELAUNCH_MODE === 'true';
+  }
 
   /** Configuração comum dos cookies. Em prod: Secure + SameSite=lax. */
   private cookieOpts(maxAgeMs: number, isRefresh = false) {
@@ -83,11 +100,40 @@ export class AuthController {
       username: string;
       email: string;
       password: string;
+      // F8: campos opcionais quando o front sabe que está em prelaunch e
+      // já chama /auth/register pretendendo virar waitlist.
+      source?: string;
+      referredBy?: string;
     },
+    @Req() req: Request,
   ) {
-    // Registro continua retornando o usuário cru — o login separado é que
-    // estabelece a sessão. Mantém compatibilidade com o fluxo atual do front.
-    return this.authService.register(data);
+    // F8 — modo pré-lançamento.
+    // Quando ligado, NÃO cria User real. Cria entrada na waitlist e
+    // retorna { mode: 'waitlist', ...stats }. Front detecta `mode` e mostra
+    // a tela de "você é o #N na fila" em vez de tentar fazer login.
+    if (this.isPrelaunchMode()) {
+      const ip =
+        (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+        req.ip ||
+        null;
+      const ua = (req.headers['user-agent'] as string) ?? null;
+      const result = await this.waitlistService.signup({
+        email: data.email,
+        name: data.username,
+        source: data.source ?? 'auth-register',
+        referredBy: data.referredBy,
+        signupIp: ip ?? undefined,
+        userAgent: ua ?? undefined,
+      });
+      return {
+        mode: 'waitlist',
+        ...result,
+      };
+    }
+
+    // Registro normal: cria User cru — o login separado estabelece a sessão.
+    const user = await this.authService.register(data);
+    return { mode: 'registered', user };
   }
 
   @ApiOperation({ summary: 'Autenticar um usuário e retornar um token' })

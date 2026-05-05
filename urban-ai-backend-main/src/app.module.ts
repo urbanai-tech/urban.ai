@@ -35,6 +35,7 @@ import { SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { PlansModule } from './plans/plans.module';
 import { StaysModule } from './stays/stays.module';
 import { AdminModule } from './admin/admin.module';
+import { WaitlistModule } from './waitlist/waitlist.module';
 
 @Module({
   imports: [
@@ -124,6 +125,7 @@ import { AdminModule } from './admin/admin.module';
     MapsModule,
     StaysModule,
     AdminModule,
+    WaitlistModule,
 
     // 4) Static file serving
     ServeStaticModule.forRoot({

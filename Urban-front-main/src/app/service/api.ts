@@ -1292,3 +1292,117 @@ export interface StripeSyncReport {
  */
 export const fetchStripeSyncCheck = () =>
   api.get<StripeSyncReport>('/admin/stripe/sync-check').then((r) => r.data);
+
+// =================== Waitlist (F8 pré-lançamento) ===================
+
+export interface PublicConfig {
+  prelaunchMode: boolean;
+  appEnv: string;
+  version: string;
+}
+
+/**
+ * Configuração pública do ambiente. Usada pelo front para decidir gating
+ * (PRELAUNCH_MODE) sem precisar de env var de build-time, que fica ossificada.
+ * Mudança no Railway reflete em todos os clients no próximo refresh.
+ */
+export const fetchPublicConfig = () =>
+  api.get<PublicConfig>('/public-config').then((r) => r.data);
+
+export interface WaitlistSignupResult {
+  position: number;
+  referralCode: string;
+  aheadOfYou: number;
+  totalSignups: number;
+}
+
+export interface WaitlistStatus {
+  position: number;
+  aheadOfYou: number;
+  totalSignups: number;
+  referralsCount: number;
+  status: 'pending' | 'invited' | 'converted' | 'declined';
+}
+
+export const signupWaitlist = (input: {
+  email: string;
+  name?: string;
+  phone?: string;
+  source?: string;
+  referredBy?: string;
+}) =>
+  api.post<WaitlistSignupResult>('/waitlist', input).then((r) => r.data);
+
+export const fetchWaitlistStatus = (referralCode: string) =>
+  api
+    .get<WaitlistStatus>('/waitlist/me', { params: { code: referralCode } })
+    .then((r) => r.data);
+
+export interface WaitlistInviteValidation {
+  valid: boolean;
+  reason?: string;
+  email?: string;
+  name?: string | null;
+  position?: number;
+}
+
+export const validateWaitlistInvite = (token: string) =>
+  api
+    .get<WaitlistInviteValidation>('/waitlist/invite', { params: { token } })
+    .then((r) => r.data);
+
+// Admin
+export interface WaitlistEntry {
+  id: string;
+  position: number;
+  email: string;
+  name: string | null;
+  phone: string | null;
+  source: string;
+  referralCode: string;
+  referredBy: string | null;
+  referralsCount: number;
+  status: 'pending' | 'invited' | 'converted' | 'declined';
+  invitedAt: string | null;
+  convertedAt: string | null;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface WaitlistListResponse {
+  page: number;
+  limit: number;
+  total: number;
+  items: WaitlistEntry[];
+}
+
+export interface WaitlistStats {
+  total: number;
+  byStatus: Array<{ status: string; count: number }>;
+  bySource: Array<{ source: string; count: number }>;
+  topReferrers: Array<{
+    email: string;
+    referralCode: string;
+    referralsCount: number;
+    position: number;
+  }>;
+}
+
+export const fetchAdminWaitlist = (params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+}) => api.get<WaitlistListResponse>('/admin/waitlist', { params }).then((r) => r.data);
+
+export const fetchAdminWaitlistStats = () =>
+  api.get<WaitlistStats>('/admin/waitlist/stats').then((r) => r.data);
+
+export const inviteWaitlistEntry = (id: string) =>
+  api.post<{ ok: true; inviteUrl: string }>(`/admin/waitlist/${id}/invite`).then((r) => r.data);
+
+export const updateWaitlistNotes = (id: string, notes: string | null) =>
+  api.patch<WaitlistEntry>(`/admin/waitlist/${id}/notes`, { notes }).then((r) => r.data);
+
+export const deleteWaitlistEntry = (id: string) =>
+  api.delete<{ ok: true }>(`/admin/waitlist/${id}`).then((r) => r.data);
