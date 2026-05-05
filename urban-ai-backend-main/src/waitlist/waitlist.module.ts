@@ -1,6 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Waitlist } from '../entities/waitlist.entity';
+import { User } from '../entities/user.entity';
 import { WaitlistService } from './waitlist.service';
 import { WaitlistController } from './waitlist.controller';
 import { MailerModule } from '../mailer/mailer.module';
@@ -16,7 +17,7 @@ import { AuthModule } from '../auth/auth.module';
  */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Waitlist]),
+    TypeOrmModule.forFeature([Waitlist, User]),
     MailerModule,
     forwardRef(() => AuthModule),
   ],
