@@ -72,6 +72,23 @@ export class AppController {
     return { status: 'ok', uptimeSec: Math.floor(process.uptime()) };
   }
 
+  /**
+   * Configuração pública do ambiente — usada pelo frontend para decidir o
+   * comportamento sem precisar bater env vars do build (que ficam ossificadas
+   * em build-time). Aqui é dynamic do server, então mudar no Railway reflete
+   * sem novo build do front.
+   *
+   * NÃO inclui segredos. Só flags de modo.
+   */
+  @Get('public-config')
+  publicConfig() {
+    return {
+      prelaunchMode: process.env.PRELAUNCH_MODE === 'true',
+      appEnv: process.env.APP_ENV ?? process.env.NODE_ENV ?? 'development',
+      version: process.env.npm_package_version ?? 'unknown',
+    };
+  }
+
   @Get('debug/sentry-test')
   sentryTest() {
     throw new InternalServerErrorException(

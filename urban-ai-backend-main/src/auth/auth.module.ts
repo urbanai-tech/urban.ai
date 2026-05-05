@@ -11,10 +11,12 @@ import { RolesGuard } from './roles.guard';
 import { User } from 'src/entities/user.entity';
 import { RefreshToken } from 'src/entities/refresh-token.entity';
 import { PaymentsModule } from 'src/payments/payments.module';
+import { WaitlistModule } from 'src/waitlist/waitlist.module';
 
 @Module({
   imports: [
     PaymentsModule,
+    forwardRef(() => WaitlistModule),
     PassportModule,
     TypeOrmModule.forFeature([User, RefreshToken]),
     JwtModule.registerAsync({

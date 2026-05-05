@@ -380,6 +380,86 @@ Recalibrado: **S15–17** (mid–late julho/2026).
 
 ---
 
+## F8 — Pré-lançamento controlado (waitlist mode) ⚡ PRIORIDADE
+
+**Status:** em construção (v2.12 alvo) · **Janela:** abril–maio/2026
+
+### Por quê
+
+Antes do go-live oficial S15–17 com infraestrutura completa, queremos
+**colocar o sistema no ar** com landing pages ativas e captura de demanda
+em modo "lista de espera". Objetivo:
+
+1. Validar copy, ofertas e funil de aquisição com tráfego real
+2. Construir lista qualificada de anfitriões interessados (vira primeira
+   leva de beta convidada na F7)
+3. Ter URL para compartilhar com sócios, parceiros, conteúdo de marketing
+
+### 8.1 Modo waitlist gated por feature flag
+
+- **Backend:** env var `PRELAUNCH_MODE=true|false` no Railway. Quando
+  `true`:
+  - `POST /auth/register` redireciona automaticamente pra criar entrada
+    em `Waitlist` (entity nova) em vez de `User`
+  - Login segue funcionando para `User` que já existem (founders, admins,
+    beta testers convidados manualmente)
+- **Frontend:** env `NEXT_PUBLIC_PRELAUNCH_MODE`. Quando `true`:
+  - Página `/create` renderiza `WaitlistSignup` em vez do form de signup
+    tradicional
+  - Após inscrição: tela "Você é o #N na fila" com referral code, share
+    pro WhatsApp/X/LinkedIn (incentivo: subir na fila convidando amigos)
+  - Banner persistente "Acesso antecipado — aguarde convite"
+
+### 8.2 Entity `Waitlist` + endpoints
+
+- `Waitlist`: id (uuid), email (unique), name?, phone?, source (qual
+  landing/canal), referralCode (próprio), referredBy?, position
+  (autoincrement), invitedAt?, createdAt
+- `POST /waitlist` (público, throttled) — cria entrada, retorna posição
+  e referralCode
+- `GET /admin/waitlist?page&search` (admin) — lista paginada com filtros
+- `POST /admin/waitlist/:id/invite` (admin) — manda email de convite + cria
+  pre-User pendente
+
+### 8.3 Landing pages ativas
+
+- `/` (home/login) — segue como tela de login para users existentes
+- `/lancamento` — landing pública de pré-lançamento (já existe, refinar copy)
+- `(marketing)/...` — outras landings de campanha
+- DNS aponta `urban.ai` → frontend; `app.urban.ai` → frontend autenticado
+  (decidir se separa ou se mesma URL com routing)
+
+### 8.4 Convite e onboarding pós-waitlist
+
+- Admin clica "Convidar" no `/admin/waitlist`
+- Email com magic link único (token expira 7 dias)
+- Magic link cria User real + login automático
+- Posição na fila vira `inviteOrder` no User pra rastrear LTV por cohort
+
+---
+
+## F8.5 — Pendências de Qualidade (carryover técnico)
+
+Lista do que Claude ainda consegue automatizar mesmo com o produto no ar:
+
+- **k6 load test cenários adicionais** — signup → onboarding → análise
+  → checkout (medir P95, throughput, gargalo)
+- **Smoke E2E Playwright** completo do happy path F6.5 (anfitrião novo
+  → assina → cadastra imóveis → tenta exceder quota → vê bloqueio)
+- **Performance audit** — query slow log MySQL, lighthouse, lazy load de
+  rotas pesadas, otimização de imagens
+- **WCAG 2.1 AA audit** nas páginas novas (`/admin/finance`,
+  `/admin/pricing-config`, `/termos`, `/privacidade`)
+- **OpenAPI Swagger refinement** — `@ApiResponse` em rotas admin que estão
+  sem; gerar SDK automatizado depois
+- **Feature flag system** — pequeno service que liga/desliga features
+  por user/role/percentual sem deploy (`PRELAUNCH_MODE` é o primeiro caso
+  de uso real)
+- **i18n scaffolding** — preparar estrutura `pt-BR/en` (mesmo que MVP
+  saia só pt-BR)
+
+---
+
 ## F9 — Time, Compliance e Observabilidade Transversal
 
 ### 9.1 Time
@@ -482,4 +562,6 @@ Mantida da v2.3.
 | 24/04/2026 (madrugada) | **v2.6** | **Gustavo + Claude** | **Captura passiva de dataset + auto-tier + moat documentado.** `PriceSnapshot` entity + `DatasetCollectorService` (3 frentes: cron diário 03:30, comps persistence em cada análise, recordAppliedPrice). `AdaptivePricingStrategy` (auto-tier escolhe modelo conforme dataset cresce, sem deploy entre tiers). ADR 0009 (modelo neural híbrido como moat). `docs/next-actions.md` com 18 ações operacionais. **Resposta direta:** agora sim estamos mapeando dataset próprio. |
 | 24/04/2026 (final do dia) | **v2.7** | **Gustavo + Claude** | **Painel admin + 5 gaps + motor de eventos + doc consolidado.** Entities: `OccupancyHistory`, `EventProximityFeature`, `AnalisePreco.precoAplicado`. Backend admin: `User.role`, `RolesGuard`, `AdminService`, 6 endpoints. Frontend: `/admin` + `/admin/users`. Runbook `event-engine-evolution.md`. Doc principal `estado-da-IA-e-evolucao.md`. |
 | 24/04/2026 (deep night) | **v2.8** | **Gustavo + Claude** | **Painel admin expandido + F6.2 Plus autorizada + doc para sócios.** 5 endpoints admin novos (events, stays, funnel, quality, occupancy). 4 páginas novas. F6.2 Plus formalizada. Doc `base-socios.md`. Doc `runbooks/admin-evolution.md`. |
+| 25/04/2026 (manhã) | **v2.11** | **Gustavo + Claude** | **Infra + LGPD + observabilidade.** Catch-up migrations das 5 entities pós-baseline (idempotente — destrava `DB_SYNCHRONIZE=false`). CI expandido (5 jobs: backend test, build, migrations contra MySQL service, frontend test, smoke). Workflow de backup off-site (S3/B2, cron diário 03:00 UTC). `/privacidade` e `/termos` LGPD-completos (drafts em revisão jurídica). `<CookieConsent />` + `useConsent` — GA4/Pixel agora gating por consent. `StripeSyncCheckService` + `GET /admin/stripe/sync-check` valida que os 8 Price IDs F6.5 batem com Stripe. `GET /health` expandido (DB ping, version, degraded-tolerant) + `/health/live`. 7 templates de email Mailersend (welcome, subscription-active, cancelled, payment-failed, quota-warning, quota-exceeded, stays-connected). README v2.11, `CHANGELOG.md` novo. |
+| 25/04/2026 (madrugada) | **v2.10** | **Gustavo + Claude** | **Migrations TypeORM `platform_costs` + seed default + 11 testes.** Migration idempotente. `seedDefaultCosts()` popula 13 custos conhecidos (Railway, Sentry, Gemini etc.) — endpoint `POST /admin/finance/costs/seed` + botão UI. 11 specs novos cobrindo MRR matriz F6.5 × 4 ciclos, custos fixos+%, overview, idempotência. 95 testes total (era 84). |
 | 25/04/2026 (madrugada) | **v2.9** | **Gustavo + Claude** | **F6.5 100% configurada + painel financeiro + config de preços.** Auditoria revelou F6.5 só ~50% (frontend ainda usava /plans antigo, paywall não tinha quota). Corrigido `/plans`, `/onboarding`, `GlobalPaywallModal`. **Bloqueio server-side** em `POST /connect/addresses` retorna 403 quando excede quota. Entity `PlatformCost` + service `AdminFinanceService` (MRR estimado, custos por categoria, margem por imóvel). 5 endpoints novos: `GET /admin/finance/overview`, `GET/POST/PATCH/DELETE /admin/finance/costs`, `GET /admin/plans-config`, `PATCH /admin/plans-config/:name`. Páginas `/admin/finance` e `/admin/pricing-config` no front. |

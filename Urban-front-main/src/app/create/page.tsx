@@ -39,6 +39,8 @@ import "../../../i18n";
 import { api } from "../service/api";
 import SelectLanguageChakra from "../componentes/SelectLanguageChakra";
 import { ToastContainer, toast } from "react-toastify";
+import { usePrelaunch } from "../componentes/usePrelaunch";
+import { WaitlistSignup } from "../componentes/WaitlistSignup";
 
 const MotionBox = motion(Box);
 
@@ -53,6 +55,7 @@ async function sha256(message: string): Promise<string> {
 
 const Register = () => {
   const router = useRouter();
+  const { loading: prelaunchLoading, prelaunchMode } = usePrelaunch();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [username, setUserName] = useState("");
@@ -60,6 +63,23 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // F8: durante pré-lançamento, /create vira tela de waitlist em vez de
+  // signup tradicional. Login segue funcionando para users existentes.
+  if (prelaunchLoading) {
+    return (
+      <Flex minH="100vh" align="center" justify="center" bg="#f8fafb">
+        <Text color="gray.500">Carregando…</Text>
+      </Flex>
+    );
+  }
+  if (prelaunchMode) {
+    return (
+      <Flex minH="100vh" align="center" justify="center" bg="#f8fafb" p={4}>
+        <WaitlistSignup source="create-signup" />
+      </Flex>
+    );
+  }
 
   const checks = useMemo(
     () => ({
