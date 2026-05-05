@@ -61,16 +61,16 @@ export class AdaptivePricingStrategy implements PricingStrategy {
   /** Tier atual logado — só loga ao mudar (evita spam). */
   private lastLoggedTier: string | null = null;
 
+  /**
+   * Slot opcional para futura HybridNeuralPricingStrategy.
+   * Quando o Tier 4 for implementado, basta injetar e usar um token `@Inject()`.
+   */
+  private readonly hybrid: PricingStrategy | null = null;
+
   constructor(
     private readonly rules: RuleBasedPricingStrategy,
     private readonly xgboost: XGBoostPricingStrategy,
     private readonly collector: DatasetCollectorService,
-    /**
-     * Slot opcional para futura HybridNeuralPricingStrategy.
-     * Quando o Tier 4 for implementado, basta injetar aqui — a lógica
-     * `decide()` já considera.
-     */
-    private readonly hybrid: PricingStrategy | null = null,
   ) {}
 
   isReady(): boolean {
