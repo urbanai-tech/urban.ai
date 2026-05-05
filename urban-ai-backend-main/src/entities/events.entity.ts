@@ -184,6 +184,19 @@ import {
     @Column("text", { nullable: true })
     crawledUrl: string | null;
 
+    /**
+     * Marca eventos que entraram sem lat/lng (geocoding lazy). Cron periódico
+     * `EventsGeocoderService` pega rows com pendingGeocode=true e tenta
+     * geocodificar via MapsService. Quando bem-sucedido, seta pendingGeocode=false
+     * e ativo=true (pronto pro motor usar).
+     *
+     * Mantém ativo=false enquanto pendente — motor de pricing ignora.
+     */
+    @ApiProperty({ description: "Flag de geocoding pendente (lazy)", required: false })
+    @Column({ type: "boolean", default: false })
+    @Index()
+    pendingGeocode: boolean;
+
     // =====================================
     // ⚙️ CONTROLE DO SISTEMA
     // =====================================

@@ -89,6 +89,14 @@ export class AddEventCoverageFields1746000000000 implements MigrationInterface {
         isNullable: true,
       }));
     }
+    if (!existingColumns.has('pendingGeocode')) {
+      newColumns.push(new TableColumn({
+        name: 'pendingGeocode',
+        type: 'boolean',
+        default: false,
+        isNullable: false,
+      }));
+    }
 
     if (newColumns.length > 0) {
       await queryRunner.addColumns('events', newColumns);
@@ -131,6 +139,16 @@ export class AddEventCoverageFields1746000000000 implements MigrationInterface {
         }),
       );
     }
+
+    if (!indexNames.has('IDX_events_pendingGeocode')) {
+      await queryRunner.createIndex(
+        'events',
+        new TableIndex({
+          name: 'IDX_events_pendingGeocode',
+          columnNames: ['pendingGeocode'],
+        }),
+      );
+    }
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
@@ -139,6 +157,7 @@ export class AddEventCoverageFields1746000000000 implements MigrationInterface {
 
     const indexNames = new Set((table.indices ?? []).map((i) => i.name));
     for (const idxName of [
+      'IDX_events_pendingGeocode',
       'IDX_events_venueType',
       'IDX_events_source',
       'UQ_events_dedupHash',
@@ -150,6 +169,7 @@ export class AddEventCoverageFields1746000000000 implements MigrationInterface {
 
     const existingColumns = new Set(table.columns.map((c) => c.name));
     const colsToDrop = [
+      'pendingGeocode',
       'crawledUrl',
       'expectedAttendance',
       'venueType',
