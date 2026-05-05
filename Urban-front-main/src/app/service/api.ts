@@ -1406,3 +1406,85 @@ export const updateWaitlistNotes = (id: string, notes: string | null) =>
 
 export const deleteWaitlistEntry = (id: string) =>
   api.delete<{ ok: true }>(`/admin/waitlist/${id}`).then((r) => r.data);
+
+// =================== Eventos — Camada 3 (curadoria manual) ===================
+
+export interface ManualEventInput {
+  nome: string;
+  dataInicio: string;
+  dataFim?: string;
+  enderecoCompleto?: string;
+  cidade?: string;
+  estado?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  categoria?: string;
+  venueType?: string;
+  venueCapacity?: number | null;
+  expectedAttendance?: number | null;
+  linkSiteOficial?: string;
+  imagemUrl?: string;
+  descricao?: string;
+}
+
+export interface IngestResult {
+  status: 'created' | 'updated' | 'skipped';
+  reason?: string;
+  id?: string;
+  dedupHash?: string;
+}
+
+export interface IngestBatchResponse {
+  total: number;
+  created: number;
+  updated: number;
+  skipped: number;
+  bySource: Record<string, { created: number; updated: number; skipped: number }>;
+  results: IngestResult[];
+}
+
+/**
+ * Cria/atualiza 1 evento manualmente. Idempotente via dedupHash.
+ * Source forçado a 'admin-manual'.
+ */
+export const createManualEvent = (input: ManualEventInput) =>
+  api
+    .post<IngestBatchResponse>('/events/ingest', {
+      events: [{ ...input, source: 'admin-manual' }],
+    })
+    .then((r) => r.data);
+
+/**
+ * Importa CSV de eventos. Retorna parsedRows + invalidRows + ingest agregado.
+ */
+export const importCsvEvents = (file: File, sourceLabel?: string) => {
+  const fd = new FormData();
+  fd.append('file', file);
+  if (sourceLabel) fd.append('sourceLabel', sourceLabel);
+  return api
+    .post<{
+      parsedRows: number;
+      invalidRows: Array<{ line: number; reason: string }>;
+      ingest: IngestBatchResponse;
+    }>('/events/import-csv', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    .then((r) => r.data);
+};
+
+export interface GeocoderStatus {
+  pendingGeocode: number;
+}
+
+export const fetchGeocoderStatus = () =>
+  api.get<GeocoderStatus>('/events/geocoder/status').then((r) => r.data);
+
+export const runGeocoderNow = (limit = 30) =>
+  api
+    .post<{
+      attempted: number;
+      succeeded: number;
+      failed: number;
+      failures: Array<{ id: string; reason: string }>;
+    }>(`/events/geocoder/run?limit=${limit}`)
+    .then((r) => r.data);

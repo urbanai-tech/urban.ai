@@ -5,6 +5,7 @@ import { EventsEnrichmentService } from './events-enrichment.service';
 import { EventsIngestService } from './events-ingest.service';
 import { EventsIngestController } from './events-ingest.controller';
 import { EventsGeocoderService } from './events-geocoder.service';
+import { EventsCsvImportService } from './events-csv-import.service';
 import { Module } from '@nestjs/common';
 import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity';
 import { List } from 'src/entities/list.entity';
@@ -25,7 +26,8 @@ import { MapsModule } from 'src/maps/maps.module';
     EventsEnrichmentService,
     EventsIngestService,
     EventsGeocoderService,
+    EventsCsvImportService,
   ],
-  exports: [EventsIngestService, EventsGeocoderService],
+  exports: [EventsIngestService, EventsGeocoderService, EventsCsvImportService],
 })
 export class EventoModule {}
