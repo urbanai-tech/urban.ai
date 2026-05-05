@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import NextLink from "next/link";
 import {
   Box,
   Button,
@@ -255,9 +256,9 @@ export function WaitlistSignup({
 
           <Text fontSize="xs" color="gray.500" textAlign="center">
             Já tem convite?{" "}
-            <a href="/" style={{ color: "#2563eb", textDecoration: "underline" }}>
+            <NextLink href="/" style={{ color: "#2563eb", textDecoration: "underline" }}>
               Faça login
-            </a>
+            </NextLink>
           </Text>
         </Stack>
       </form>
