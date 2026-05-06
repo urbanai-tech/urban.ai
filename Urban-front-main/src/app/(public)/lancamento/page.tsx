@@ -1,4 +1,8 @@
-import { WaitlistForm } from "../../componentes/WaitlistForm";
+import dynamic from "next/dynamic";
+
+const WaitlistForm = dynamic(() => import("../../componentes/WaitlistForm").then(mod => mod.WaitlistForm), {
+  loading: () => <div style={{ height: "100px", width: "100%", opacity: 0.5, background: "rgba(255,255,255,0.05)" }} />
+});
 
 /**
  * /lancamento — pré-lançamento Urban AI · waitlist.
