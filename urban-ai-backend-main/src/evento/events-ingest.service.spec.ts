@@ -2,13 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EventsIngestService } from './events-ingest.service';
+import { CoverageService } from './coverage.service';
 import { Event } from '../entities/events.entity';
 
 /**
  * Tests do serviço de ingestão de eventos (F6.2 Plus).
  *
  * Foco principal: idempotência via dedupHash + validação + UPSERT conservador
- * (não sobrescreve campos enriquecidos pela IA).
+ * (não sobrescreve campos enriquecidos pela IA) + filtro de cobertura.
  */
 
 type MockRepo = Partial<Record<keyof Repository<Event>, jest.Mock>>;
@@ -23,14 +24,19 @@ const mockRepo = (): MockRepo => ({
 describe('EventsIngestService', () => {
   let service: EventsIngestService;
   let repo: MockRepo;
+  let coverageMock: { isWithinCoverage: jest.Mock };
 
   beforeEach(async () => {
     repo = mockRepo();
+    // Default: tudo é considerado dentro da cobertura (não muda comportamento
+    // dos tests legados). Cada test pode override via coverageMock.isWithinCoverage.
+    coverageMock = { isWithinCoverage: jest.fn().mockResolvedValue(true) };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EventsIngestService,
         { provide: getRepositoryToken(Event), useValue: repo },
+        { provide: CoverageService, useValue: coverageMock },
       ],
     }).compile();
 
@@ -222,6 +228,59 @@ describe('EventsIngestService', () => {
       expect(r.status).toBe('skipped');
       expect(repo.save).not.toHaveBeenCalled();
       expect(repo.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('cobertura geográfica', () => {
+    it('marca outOfScope=true e ativo=false quando geo está fora da cobertura', async () => {
+      coverageMock.isWithinCoverage.mockResolvedValue(false);
+      repo.findOne!.mockResolvedValue(null);
+
+      await service.ingestOne({
+        nome: 'Show no Rio',
+        dataInicio: '2026-05-10T20:00:00Z',
+        latitude: -22.9,
+        longitude: -43.2,
+        source: 'serpapi',
+      });
+
+      const saved = repo.save!.mock.calls[0][0];
+      expect(saved.outOfScope).toBe(true);
+      expect(saved.ativo).toBe(false);
+    });
+
+    it('marca outOfScope=false e ativo=true quando dentro da cobertura', async () => {
+      coverageMock.isWithinCoverage.mockResolvedValue(true);
+      repo.findOne!.mockResolvedValue(null);
+
+      await service.ingestOne({
+        nome: 'Show em SP',
+        dataInicio: '2026-05-10T20:00:00Z',
+        latitude: -23.5275,
+        longitude: -46.6783,
+        source: 'serpapi',
+      });
+
+      const saved = repo.save!.mock.calls[0][0];
+      expect(saved.outOfScope).toBe(false);
+      expect(saved.ativo).toBe(true);
+    });
+
+    it('quando sem geo, NÃO chama coverage (geocoder cron resolve depois)', async () => {
+      repo.findOne!.mockResolvedValue(null);
+
+      await service.ingestOne({
+        nome: 'Show TBD',
+        dataInicio: '2026-05-10T20:00:00Z',
+        enderecoCompleto: 'Local em São Paulo',
+        source: 'serpapi',
+      });
+
+      expect(coverageMock.isWithinCoverage).not.toHaveBeenCalled();
+      const saved = repo.save!.mock.calls[0][0];
+      expect(saved.pendingGeocode).toBe(true);
+      expect(saved.outOfScope).toBe(false);
+      expect(saved.ativo).toBe(false);
     });
   });
 

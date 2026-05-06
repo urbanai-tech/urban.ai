@@ -213,6 +213,7 @@ export default function AdminPage() {
             <NavCard href="/admin/events" title="Motor de eventos" desc="Cobertura, categorias, top relevância" />
             <NavCard href="/admin/events/new" title="+ Cadastrar evento" desc="Camada 3 — curadoria manual (admin-manual)" />
             <NavCard href="/admin/events/import" title="Importar CSV de eventos" desc="Em lote — SPTuris/PMI/ABRH semestral" />
+            <NavCard href="/admin/coverage" title="Cobertura geográfica" desc="Regiões ativas — onde o motor enxerga eventos" />
             <NavCard href="/admin/stays" title="Saúde da Stays" desc="Contas, listings, push history" />
             <NavCard href="/admin/funnel" title="Funil de produto" desc="Signup → análise → aceito → aplicado" />
             <NavCard href="/admin/quality" title="Qualidade IA + Ocupação" desc="MAPE, gate, ocupação" />

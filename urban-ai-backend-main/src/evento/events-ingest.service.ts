@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { createHash } from 'crypto';
 import { Event } from '../entities/events.entity';
+import { CoverageService } from './coverage.service';
 
 /**
  * EventsIngestService — F6.2 Plus.
@@ -80,6 +81,7 @@ export class EventsIngestService {
 
   constructor(
     @InjectRepository(Event) private readonly eventRepo: Repository<Event>,
+    private readonly coverage: CoverageService,
   ) {}
 
   /**
@@ -183,6 +185,14 @@ export class EventsIngestService {
       return { status: 'updated', id: existing.id, dedupHash };
     }
 
+    // Cobertura: SE tem geo, decide outOfScope agora. SE não tem, deixa
+    // outOfScope=false e o geocoder cron decide quando resolver lat/lng.
+    let outOfScope = false;
+    if (hasGeo) {
+      const inCoverage = await this.coverage.isWithinCoverage(lat, lng);
+      outOfScope = !inCoverage;
+    }
+
     const entity = this.eventRepo.create({
       nome: input.nome.trim().slice(0, 255),
       descricao: input.descricao ?? null,
@@ -197,9 +207,11 @@ export class EventsIngestService {
       linkSiteOficial: input.linkSiteOficial ?? null,
       imagem_url: input.imagemUrl ?? null,
       categoria: input.categoria ?? null,
-      // Sem geo, fica inativo pro motor até geocoder rodar
-      ativo: hasGeo,
+      // Sem geo OU fora de escopo → motor ignora.
+      // Quando tiver geo: ativo só se DENTRO da cobertura.
+      ativo: hasGeo && !outOfScope,
       pendingGeocode: !hasGeo,
+      outOfScope,
       dataCrawl: new Date(),
       source: input.source,
       sourceId: input.sourceId ?? null,

@@ -197,6 +197,42 @@ import {
     @Index()
     pendingGeocode: boolean;
 
+    /**
+     * Marca eventos fora da área de cobertura (CoverageService).
+     * Eventos `outOfScope=true` são preservados no DB (auditoria + reativação
+     * futura quando expandirmos cobertura), mas NÃO entram no motor de pricing
+     * nem são enriquecidos pela IA (economiza Gemini).
+     *
+     * Cobertura = união de:
+     *   - Raio (default 80km) ao redor de cada Address ativo
+     *   - Regiões em `coverage_regions` com status='active' OU 'bootstrap'
+     */
+    @ApiProperty({ description: "Marca evento fora da cobertura ativa", required: false })
+    @Column({ type: "boolean", default: false })
+    @Index()
+    outOfScope: boolean;
+
+    /**
+     * Contador de tentativas de enriquecimento via Gemini.
+     * Cron `EventsEnrichmentService` incrementa a cada try (sucesso ou falha)
+     * e re-tenta após 24h se attempts < 3. Isso evita o "limbo" do
+     * relevancia=0 que travava re-tentativas perpétuas.
+     */
+    @ApiProperty({ description: "Tentativas de enriquecimento via IA", required: false })
+    @Column({ type: "int", default: 0 })
+    enrichmentAttempts: number;
+
+    /** Timestamp da última tentativa de enriquecimento (sucesso ou falha). */
+    @ApiProperty({ description: "Última tentativa de enriquecimento", required: false })
+    @Column({ type: "datetime", nullable: true })
+    @Index()
+    enrichmentLastAttemptAt: Date | null;
+
+    /** Mensagem do último erro de enriquecimento (debug). */
+    @ApiProperty({ description: "Último erro de enriquecimento (debug)", required: false })
+    @Column({ type: "varchar", length: 500, nullable: true })
+    enrichmentLastError: string | null;
+
     // =====================================
     // ⚙️ CONTROLE DO SISTEMA
     // =====================================

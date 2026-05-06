@@ -43,9 +43,13 @@ build/
 Thumbs.db
 ~$*
 
-# ===== Coverage =====
-coverage/
-.nyc_output/
+# ===== Coverage (test reports) =====
+# Padrão restrito a pastas de relatório de cobertura de testes (Jest/Istanbul/c8).
+# NÃO ignorar `src/app/admin/coverage/` (UI de cobertura geográfica do motor).
+**/jest-coverage/
+**/.nyc_output/
+/coverage/
+**/test-coverage/
 
 # ===== Logs (nunca commitar — podem conter tokens, PII, API keys) =====
 *.log
