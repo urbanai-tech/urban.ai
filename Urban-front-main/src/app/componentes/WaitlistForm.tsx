@@ -14,6 +14,9 @@ type Status = "idle" | "loading" | "success" | "error";
  * Se a env var estiver vazia, o form mostra uma mensagem de config pendente
  * ao invés de falhar silenciosamente em prod.
  *
+ * Visual: tema manifesto Urban AI — input minimalista (border-bottom),
+ * botão laranja #E8500A. Usado em /lancamento.
+ *
  * Dispara eventos:
  *  - gtag('event', 'sign_up', { method: 'waitlist' })  — se GA4 ativo
  *  - fbq('track', 'Lead')                              — se Pixel ativo
@@ -39,7 +42,7 @@ export function WaitlistForm({
     if (!endpoint) {
       setStatus("error");
       setErrorMessage(
-        "Formulário ainda não está conectado ao backend. Volte em breve."
+        "Formulário ainda não está conectado ao backend. Volte em breve.",
       );
       return;
     }
@@ -81,7 +84,7 @@ export function WaitlistForm({
       setErrorMessage(
         err instanceof Error
           ? `Não foi possível registrar agora: ${err.message}. Tente de novo em instantes.`
-          : "Não foi possível registrar agora."
+          : "Não foi possível registrar agora.",
       );
     }
   }
@@ -90,47 +93,132 @@ export function WaitlistForm({
     return (
       <div
         role="status"
-        className="w-full max-w-md rounded-xl bg-emerald-500/10 border border-emerald-500/40 px-4 py-3 text-emerald-200"
+        style={{
+          width: "100%",
+          padding: "24px 0",
+          borderTop: "1px solid #E8500A",
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
+        }}
       >
-        Obrigado — e-mail registrado. Entraremos em contato quando a plataforma abrir para novos anfitriões.
+        <p
+          style={{
+            fontSize: 11,
+            letterSpacing: 3,
+            textTransform: "uppercase",
+            color: "#E8500A",
+            fontWeight: 600,
+            margin: 0,
+          }}
+        >
+          REGISTRADO
+        </p>
+        <p
+          style={{
+            fontSize: 22,
+            fontWeight: 400,
+            lineHeight: 1.5,
+            color: "#FFFFFF",
+            margin: "12px 0 0",
+            letterSpacing: "-0.3px",
+          }}
+        >
+          Você está na lista. Entraremos em contato quando a plataforma abrir
+          para novos anfitriões.
+        </p>
       </div>
     );
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="w-full max-w-md flex flex-col sm:flex-row gap-3"
-      noValidate
-    >
-      <label className="sr-only" htmlFor="waitlist-email">
+    <form onSubmit={handleSubmit} noValidate style={{ width: "100%" }}>
+      <label
+        htmlFor="waitlist-email"
+        style={{
+          position: "absolute",
+          width: 1,
+          height: 1,
+          padding: 0,
+          margin: -1,
+          overflow: "hidden",
+          clip: "rect(0,0,0,0)",
+          whiteSpace: "nowrap",
+          borderWidth: 0,
+        }}
+      >
         E-mail
       </label>
-      <input
-        id="waitlist-email"
-        type="email"
-        name="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder={placeholder}
-        required
-        autoComplete="email"
-        disabled={status === "loading"}
-        aria-invalid={status === "error"}
-        className="flex-1 px-4 py-3 rounded-lg bg-slate-900/70 border border-slate-700 text-slate-50 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500"
-      />
-      <button
-        type="submit"
-        disabled={status === "loading"}
-        className="px-6 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#070B14] font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+        }}
       >
-        {status === "loading" ? "Enviando…" : buttonLabel}
-      </button>
-      {errorMessage && (
-        <p role="alert" className="text-red-400 text-sm sm:col-span-2">
-          {errorMessage}
-        </p>
-      )}
+        <input
+          id="waitlist-email"
+          type="email"
+          name="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder={placeholder}
+          required
+          autoComplete="email"
+          disabled={status === "loading"}
+          aria-invalid={status === "error"}
+          style={{
+            width: "100%",
+            padding: "20px 0",
+            background: "transparent",
+            border: "none",
+            borderBottom: "1px solid rgba(255,255,255,0.20)",
+            color: "#FFFFFF",
+            fontSize: 22,
+            fontWeight: 300,
+            outline: "none",
+            fontFamily: "Inter, system-ui, sans-serif",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderBottomColor = "#E8500A";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderBottomColor = "rgba(255,255,255,0.20)";
+          }}
+        />
+        <button
+          type="submit"
+          disabled={status === "loading"}
+          style={{
+            alignSelf: "flex-start",
+            padding: "22px 40px",
+            background: "#E8500A",
+            color: "#080A0F",
+            border: "none",
+            fontWeight: 700,
+            fontSize: 14,
+            letterSpacing: 3,
+            textTransform: "uppercase",
+            cursor: status === "loading" ? "not-allowed" : "pointer",
+            opacity: status === "loading" ? 0.5 : 1,
+            fontFamily: "Inter, system-ui, sans-serif",
+          }}
+        >
+          {status === "loading" ? "Enviando…" : buttonLabel}
+        </button>
+        {errorMessage && (
+          <p
+            role="alert"
+            style={{
+              color: "#E8500A",
+              fontSize: 14,
+              fontWeight: 500,
+              margin: 0,
+              lineHeight: 1.5,
+            }}
+          >
+            {errorMessage}
+          </p>
+        )}
+      </div>
     </form>
   );
 }
