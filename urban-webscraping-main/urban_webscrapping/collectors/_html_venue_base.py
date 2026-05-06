@@ -66,12 +66,107 @@ class HtmlVenueCollector(BaseCollector):
     # ============== A subclasse implementa ==============
 
     def parse_listing(self, html: str) -> list[dict[str, Any]]:
-        """Extrai eventos crus do HTML. Cada item dict deve ter ao menos:
+        """Extrai eventos crus do HTML.
+
+        Default usa `parse_default_listing` (heurística genérica que serve
+        ~80% dos sites WordPress/Bootstrap). Subclasses podem override
+        para layouts customizados.
+
+        Cada item dict precisa ter ao menos:
           - title (str)
           - starts_on (str, formato livre — 'normalize' tenta parsear)
-          - optional: description, ends_on, category, url
+          - optional: description, ends_on, category, url, source_id
         """
-        raise NotImplementedError
+        return self.parse_default_listing(html)
+
+    def parse_default_listing(self, html: str) -> list[dict[str, Any]]:
+        """Heurística genérica padrão.
+
+        1. Tenta cards (article/div/li com classe contendo event/evento/agenda/feira/card)
+        2. Fallback: h2/h3/h4 + data nos próximos 600 chars
+        """
+        import re
+        items: list[dict[str, Any]] = []
+        seen: set[str] = set()
+
+        for m in re.finditer(
+            r'<(?:article|div|li)[^>]*class="[^"]*(?:event|evento|agenda|feira|card)[^"]*"[^>]*>(.*?)</(?:article|div|li)>',
+            html,
+            re.IGNORECASE | re.DOTALL,
+        ):
+            ev = self._extract_card_block(m.group(1))
+            if ev and ev["title"].lower() not in seen:
+                seen.add(ev["title"].lower())
+                items.append(ev)
+
+        if not items:
+            for hm in re.finditer(
+                r'<h[1-4][^>]*>(?:<a[^>]*href="([^"]+)"[^>]*>)?([^<]+)(?:</a>)?</h[1-4]>',
+                html,
+                re.IGNORECASE,
+            ):
+                url, title = hm.groups()
+                title = (title or "").strip()
+                if not title or len(title) < 3 or title.lower() in seen:
+                    continue
+                tail = html[hm.end(): hm.end() + 600]
+                d = self._extract_date_loose(tail)
+                if not d:
+                    continue
+                seen.add(title.lower())
+                items.append({
+                    "title": title[:255],
+                    "starts_on": d,
+                    "url": url,
+                    "source_id": (url or title)[:128],
+                })
+
+        return items
+
+    def _extract_card_block(self, block: str) -> dict[str, Any] | None:
+        import re
+        mt = re.search(
+            r'<h[1-4][^>]*>(?:<a[^>]*href="([^"]+)"[^>]*>)?([^<]+)(?:</a>)?</h[1-4]>',
+            block,
+            re.IGNORECASE,
+        )
+        if not mt:
+            return None
+        url = mt.group(1)
+        title = self._clean_html(mt.group(2))
+        if not title or len(title) < 3:
+            return None
+        d = self._extract_date_loose(block)
+        if not d:
+            return None
+        md = re.search(r"<p[^>]*>([^<]{20,400})</p>", block, re.IGNORECASE)
+        return {
+            "title": title[:255],
+            "starts_on": d,
+            "url": url,
+            "description": self._clean_html(md.group(1)) if md else None,
+            "source_id": (url or title)[:128],
+        }
+
+    @staticmethod
+    def _extract_date_loose(text: str) -> str | None:
+        """Extrai data PT-BR de um trecho. Cobre 4 padrões comuns."""
+        import re
+        m = re.search(r"(\d{2}/\d{2}/\d{4}(?:\s*(?:às?\s*)?\d{1,2}:\d{2})?)", text)
+        if m:
+            return m.group(1)
+        m = re.search(r"(\d{1,2}\s*(?:a|–|-)\s*\d{1,2}\s*de\s*\w+\s*(?:de\s*)?\d{4})", text)
+        if m:
+            return m.group(1)
+        m = re.search(r"(\d{1,2}\s*de\s*\w+\s*(?:de\s*)?\d{4})", text)
+        if m:
+            return m.group(1)
+        return None
+
+    @staticmethod
+    def _clean_html(s: str) -> str:
+        import html as html_lib
+        return html_lib.unescape(s).strip()
 
     # ============== fetch + normalize compartilhados ==============
 

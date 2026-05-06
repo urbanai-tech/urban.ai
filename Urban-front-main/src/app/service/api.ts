@@ -1644,3 +1644,46 @@ export const fetchEventsTimeline = (days = 30) =>
   api
     .get<EventsTimelineResponse>('/admin/events/timeline', { params: { days } })
     .then((r) => r.data);
+
+// =================== Dashboard summary ===================
+
+export interface DashboardSummary {
+  generatedAt: string;
+  health: 'green' | 'amber' | 'red';
+  alerts: Array<{ severity: 'red' | 'amber' | 'info'; message: string }>;
+  events: {
+    total: number;
+    inScope: number;
+    outOfScope: number;
+    outOfScopePercent: number;
+    pendingGeocode: number;
+    pendingEnrichment: number;
+    last24h: number;
+    last7d: number;
+    next7d: number;
+    next30d: number;
+    megaUpcoming: number;
+    distinctSources: number;
+  };
+  waitlist: {
+    total: number;
+    pending: number;
+    invited: number;
+    converted: number;
+  };
+  coverage: {
+    activeRegions: number;
+    bootstrapRegions: number;
+  };
+  revenue: {
+    activeSubscriptions: number;
+  };
+  topSources: Array<{ source: string; count: number }>;
+  timeline: {
+    days: number;
+    buckets: Array<{ day: string; inScope: number; outOfScope: number }>;
+  };
+}
+
+export const fetchDashboardSummary = () =>
+  api.get<DashboardSummary>('/admin/dashboard-summary').then((r) => r.data);

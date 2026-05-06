@@ -48,6 +48,15 @@ export class AdminController {
     return this.admin.overview();
   }
 
+  @ApiOperation({
+    summary:
+      'Dashboard executivo — snapshot agregado em 1 chamada (eventos, waitlist, alertas, timeline 7d, saúde geral)',
+  })
+  @Get('dashboard-summary')
+  async dashboardSummary() {
+    return this.admin.dashboardSummary();
+  }
+
   @ApiOperation({ summary: 'Status do motor de pricing (estratégia ativa, tier, dataset)' })
   @Get('pricing/status')
   async pricingStatus() {
