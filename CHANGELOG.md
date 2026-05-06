@@ -7,6 +7,142 @@ primeiro.
 
 ---
 
+## [2.16] — 2026-05-06
+
+### Adicionado
+
+- **`AdminService.eventsListing(filters)`** + endpoint `GET /admin/events/list` —
+  listagem paginada de eventos com filtro `scope=in/out/all`, `source`, `search`,
+  `upcoming`. Default `scope=in` (esconde out-of-scope).
+- **`AdminService.collectorsHealth()`** + endpoint `GET /admin/events/collectors-health` —
+  stats agregadas por source: total, last24h, last7d, outOfScope%, pendingGeocode,
+  pendingEnrichment, enriched, errorRate, lastSeen.
+- **Página `/admin/events` ganha:** KPI "Dentro da cobertura", atalhos pra
+  `/admin/coverage` e `/admin/collectors-health`, seção "Listagem detalhada"
+  com tabs in/out/all + busca + filtro source + tabela compacta com flags
+  Geo/Scope/Enrich e paginação.
+- **Página `/admin/collectors-health` nova** — 5 KPIs agregados, tabela por source
+  com 10 colunas, badge "STALE" para coletor >48h sem dados, color coding
+  (red `last24h=0`, amber `outOfScope%>30`, etc.), guia "como ler" no rodapé.
+- **`UspEventosCollector`** — scraping leve do `eventos.usp.br` (sem JS),
+  rejeita eventos em campi fora SP capital (Ribeirão, Bauru, Lorena, etc.),
+  parsing de data PT-BR + ISO 8601. 8 testes.
+- **`MarchaParaJesusCollector`** — evento anual fixo (~3M pessoas), tenta
+  scraping leve do site oficial; fallback heurístico (primeira quinta de junho,
+  Corpus Christi). venueCapacity=3M, venueType=outdoor. 6 testes.
+- **`run_all_collectors.sh`** atualizado com USP + Marcha pra Jesus no cron 24h.
+- **Documentos:** `docs/base-socios.md` v2.0 com estado atual, `docs/roadmap-pos-sprint.md`
+  v2.16 com changelog completo.
+
+### Métricas
+- 196 testes verdes (141 backend + 55 Python).
+
+---
+
+## [2.15] — 2026-05-06
+
+### Adicionado
+
+- **F6.2 Plus — Cobertura geográfica híbrida** (resolve poluição "eventos do
+  Brasil todo" no DB + permite expansão Rio/BH/Brasil sem deploy):
+  - Entity `CoverageRegion` + migration `AddCoverageAndEnrichmentFields1746500000000`
+    idempotente
+  - `CoverageService.isWithinCoverage(lat, lng)` com cache 5min, haversine,
+    suporta 2 modos de geometria (centro+raio OU bounding box)
+  - Modelo Híbrido: data-driven (raio 80km de cada Address) + admin override
+    (regions com status active/bootstrap/inactive)
+  - `CoverageController` CRUD admin completo + endpoint `/check` (testar ponto)
+  - `CoverageSeederService` cria automaticamente "Grande São Paulo" no boot
+- **EventsIngest e Geocoder** agora aplicam check de cobertura — marcam
+  `outOfScope=true` (preservado no DB, mas ignorado pelo motor e Gemini)
+- **Bug fix crítico:** `EventsEnrichmentService` reescrito. Antigo travava em
+  `relevancia=0` permanente em qualquer falha do Gemini (limbo). Agora usa
+  `enrichmentAttempts` (max 3) com retry após 24h. Endpoint
+  `/admin/coverage/reset-stale-enrichment` corrige eventos antigos.
+- **LLM extractor** ganha `is_in_scope: bool` no schema Pydantic. Coletores
+  LLM (Firecrawl/SerpAPI/Tavily) refatorados com 3-4 queries focadas SP capital
+  + dedup por title/url. SerpAPI usa `location` param.
+- **Página `/admin/coverage`** — CRUD visual completo com stats, tabela com
+  dropdown de status, formulário circle/bbox, ferramenta de teste de ponto.
+
+### Mudado
+
+- Entity `Event` ganha 4 colunas: `outOfScope` (indexed), `enrichmentAttempts`,
+  `enrichmentLastAttemptAt` (indexed), `enrichmentLastError`.
+
+---
+
+## [2.14] — 2026-05-05 (outro dev)
+
+### Adicionado
+
+- **Camada 2 do motor de eventos** — coletores REST por outro dev:
+  - `ApiFootballCollector` (jogos Allianz/Morumbi/Itaquerão, filtra cidade SP)
+  - `FirecrawlExtractor` (busca + scraping + Gemini LLM extraction)
+  - `SerpApiEventsCollector` (Google Events box)
+  - `TavilySearchCollector` (busca web semântica)
+  - `utils/llm_extractor.py` com schema Pydantic
+- **Cron 24h em `auth_proxy.py`** thread roda `run_all_collectors.sh` com
+  os 4 coletores REST + 7 spiders Scrapyd via curl.
+- **`EventsEnrichmentService`** agora chama Gemini Flash de verdade (era stub) —
+  prompt específico de hospitalidade, gera relevancia 1-100 + raioImpactoKm +
+  capacidadeEstimada.
+- **`pyproject.toml`** ganha deps: `bcrypt`, `google-genai`, `pydantic`, `pymysql`.
+- **User `collector@urban.ai`** criado em prod com role admin.
+
+### Auditado por Claude (06/05)
+- Identificado bug do enrichment (limbo perpétuo) → fix em v2.15
+- Identificado gap de cobertura geográfica → resolvido em v2.15
+- `sp_cultura` ainda fora do cron → adicionado em v2.15
+
+---
+
+## [2.13] — 2026-04-25
+
+### Adicionado
+
+- **F6.2 Plus Camada 3 — curadoria humana e import CSV**
+  - `EventsCsvImportService` com parser CSV próprio (sem dep externa, suporta
+    aspas/escape ""/CRLF/LF, max 1000 linhas, 5MB)
+  - `POST /events/import-csv` (multer admin-only, throttled 10/min)
+  - Página `/admin/events/new` form completo com defaults sensatos
+  - Página `/admin/events/import` upload com preview, stats por source,
+    botão "Baixar template CSV"
+  - 14 testes novos
+
+---
+
+## [2.12] — 2026-04-25
+
+### Adicionado
+
+- **F6.2 Plus base — schema + endpoint universal de ingestão de eventos:**
+  - Entity Event ganha colunas de procedência: `source`, `sourceId`,
+    `dedupHash` (UNIQUE), `venueCapacity`, `venueType`, `expectedAttendance`,
+    `crawledUrl`, `pendingGeocode`. Migration `AddEventCoverageFields1746000000000`
+    idempotente.
+  - `EventsIngestService` com `ingestBatch` (max 500), dedup por hash
+    sha256(nome|date|geo~3), UPSERT conservador (preserva enriquecimento da IA).
+  - `POST /events/ingest` admin-only throttled 60/min.
+  - `EventsGeocoderService` com cron 30min — pega eventos `pendingGeocode=true`
+    e geocodifica via Maps. Endpoint admin `POST /events/geocoder/run` para
+    disparar manual.
+- **Fase A — atualização dos 7 spiders Scrapy legados:**
+  - `UrbanIngestPipeline` em `pipelines.py` — postam pro `/events/ingest`
+    em paralelo às pipelines S3
+  - `utils/venue_map.py` com 25+ venues SP catalogados (Allianz, Morumbi,
+    Itaquerão, Pacaembu, Interlagos, SP Expo, Anhembi, etc.)
+  - `utils/urban_backend_client.py` cliente HTTP Python com login JWT cache,
+    buffer batch 100, retry exponencial, fail-soft
+- **`SpCulturaCollector`** — coletor da Prefeitura SP (sem auth, gratuito).
+  Paginação até 5 páginas × 100 items, suporte a 4 formatos de geo.
+- **`BaseCollector`** abstrato — esqueleto reusável: subclasses só implementam
+  `fetch_raw()` e `normalize(raw)`, resto vem de graça (auth, batch, dedup,
+  enrich via venue_map, retry, métricas).
+- **36 testes novos** (jest + pytest).
+
+---
+
 ## [2.11] — 2026-04-25
 
 ### Adicionado

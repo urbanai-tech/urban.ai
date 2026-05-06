@@ -1,5 +1,61 @@
 # Urban AI — Base de Conversa com os Sócios
-**Versão 1.0 · 24/04/2026 · Para:** Fabrício, Rogério (sócios) · **De:** Gustavo Macedo (fundador-operador)
+**Versão 2.0 · 06/05/2026 · Para:** Fabrício, Rogério (sócios) · **De:** Gustavo Macedo (fundador-operador)
+
+> ⚠️ **Atualização v2.0:** versão antiga (24/04/2026) preservada após esta seção pra contexto histórico. Esta versão reflete o estado de 06/05/2026, **~12 dias e mais de 80 commits** depois — o produto andou MUITO. Mudanças principais: subdomain split em produção, pré-lançamento (waitlist) ativo, motor de eventos completo com 3 camadas + cobertura híbrida, painel admin de saúde dos coletores.
+
+---
+
+## 🚀 Em uma página: onde estamos (06/05/2026)
+
+A Urban AI saiu da Lumina em março/2026. **Em pouco mais de 2 meses entregamos uma plataforma completa** — tecnicamente robusta, com pré-lançamento ativo no ar, motor de IA real funcionando, e infra escalável pra Rio/BH/Brasil sem precisar refazer código.
+
+### O que está rodando AGORA em produção
+
+- **Subdomain split:** `myurbanai.com` (landing institucional + LGPD + lançamento) e `app.myurbanai.com` (login + dashboard + admin) — DNS via Cloudflare, deploy Railway, sessão compartilhada entre os dois via cookie domain
+- **Modo pré-lançamento (waitlist):** novos cadastros viram lista de espera com sistema de referral, magic link de aceite, gestão admin completa em `/admin/waitlist`
+- **Motor de eventos com 3 camadas:**
+  - **Camada 1 — APIs oficiais e fontes públicas:** api-football (jogos Allianz/Morumbi/Itaquerão), Sympla/Eventim/Ingresse/Ticketmaster/etc. (7 spiders Scrapy legados atualizados), SP Cultura (Prefeitura SP), USP Eventos, Marcha pra Jesus
+  - **Camada 2 — Web search + LLM extraction:** Firecrawl, SerpAPI Google Events, Tavily — todos com queries focadas SP capital + Gemini extraindo formato estruturado com filtro `is_in_scope`
+  - **Camada 3 — Curadoria humana:** `/admin/events/new` (form 1 a 1) + `/admin/events/import` (upload CSV em lote)
+- **Cobertura geográfica híbrida** — a peça mais inteligente pra escala:
+  - Default: cobre raio de 80km de cada imóvel cadastrado (data-driven)
+  - Override: admin marca regiões manualmente (`active`, `bootstrap`, `inactive`) em `/admin/coverage`
+  - **Quando primeiro anfitrião do Rio cadastrar imóvel, eventos do Rio entram no motor automaticamente** — zero deploy, zero configuração extra
+  - Eventos fora ficam `outOfScope=true` (preservados, mas ignorados pelo motor + Gemini)
+- **IA real enriquecendo eventos:** cron de hora em hora pega eventos sem relevância e chama Gemini Flash com prompt específico de hospitalidade — gera score 1-100, raio de impacto em km, capacidade estimada. Bug fix recente: agora retry após 24h até 3x em vez do limbo permanente do release anterior.
+- **Painel admin completo:**
+  - `/admin/finance` — MRR, custos operacionais, custo por imóvel, margem
+  - `/admin/pricing-config` — matriz F6.5 editável (4 ciclos × 2 planos)
+  - `/admin/waitlist` — gerenciar lista de espera + convites
+  - `/admin/events` + filtro in/out/all + busca + por source + tabela detalhada
+  - `/admin/coverage` — CRUD de regiões geográficas
+  - `/admin/collectors-health` — saúde por source (24h/7d/outOfScope%/errorRate, badge STALE)
+  - `/admin/users`, `/admin/funnel`, `/admin/quality`, `/admin/stays`
+- **LGPD:** páginas `/termos` e `/privacidade` completas (12+ seções), banner de consent, GA4/Pixel só carregam após aceite, DPO designado
+- **Infra:** subdomain split em produção, CI com 5 jobs, backup off-site, robots/sitemap host-aware, Sentry, health endpoints, 7 templates email transacional Mailersend
+
+### Métricas técnicas
+- **141 testes backend verdes** + **55 testes Python verdes** = 196 testes automatizados rodando em CI
+- **Tempo de boot do backend:** < 8 segundos
+- **Custo operacional atual:** ~R$ 1.000/mês infra + ~$85/mês previsto quando ativarmos APIs pagas
+
+### O que ainda trava o lançamento (depende de vocês)
+1. **KYC Stripe submetido** — sem isso, cobrança real bloqueada
+2. **API keys das fontes pagas:** api-football ($19/mês), Firecrawl ($16), SerpAPI ($50), Tavily — cada uma já tem coletor pronto, só plugar key
+3. **Stays Open API** — credencial Preferred+ Partner pra modo automático
+4. **Stripe Webhook signing secret** + 8 Stripe Price IDs F6.5 (2 planos × 4 ciclos)
+5. **Decisão de orçamento marketing** — waitlist enche quando ligarmos campanhas
+
+### Go-live realista atualizado
+- **Pré-lançamento via waitlist:** PRONTO HOJE — basta marketing rodar
+- **Beta fechado** (3 cases auditados de ROI): possível em **semanas 13–15** se keys forem liberadas
+- **Go-live público:** continua mirando **S15–17** (mid-late julho/2026)
+
+---
+
+## ✅ Versão histórica (v1.0 — 24/04/2026)
+
+> Mantida abaixo pra contexto. As respostas eram corretas pra aquela data; muita coisa avançou desde então. Skip se você quer só o estado atual.
 
 > Este documento é a **base centralizada de status** para nossas reuniões. Resume tudo o que foi feito, onde estamos, para onde vamos e quais decisões dependem de vocês. Linguagem direta, sem jargão técnico desnecessário.
 
