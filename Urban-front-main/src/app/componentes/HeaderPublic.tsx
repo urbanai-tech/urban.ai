@@ -2,18 +2,14 @@
 
 import React, { useState } from "react";
 import NextLink from "next/link";
-import NextImage from "next/image";
 
 /**
  * Header do site PÚBLICO (myurbanai.com).
  *
- * Diferente do Header do app: não tem links para /dashboard, /plans, etc.
- * Os CTAs Entrar / Criar conta apontam pro subdomínio do app
- * (`app.myurbanai.com/`).
+ * Estilo manifesto editorial: dark #080A0F, Inter minimalista, accent #E8500A
+ * apenas no CTA. Sem logo grande — Urban AI é a tipografia.
  *
- * Em ambiente de produção, o app vive em outro subdomínio. Em dev local
- * tudo está no mesmo host (localhost:3000), então o link aponta pra rota
- * absoluta `/` que serve o login.
+ * Os CTAs apontam pro subdomain do app (`app.myurbanai.com/`).
  */
 const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ||
@@ -22,7 +18,7 @@ const APP_URL =
     : "https://app.myurbanai.com/");
 
 const NAV = [
-  { label: "Sobre", href: "/sobre" },
+  { label: "Manifesto", href: "/" },
   { label: "Preços", href: "/precos" },
   { label: "Lançamento", href: "/lancamento" },
   { label: "Contato", href: "/contato" },
@@ -33,121 +29,253 @@ export default function HeaderPublic() {
 
   return (
     <header
-      className="
-        sticky top-0 z-40
-        flex items-center justify-between
-        h-16 md:h-20 px-4 md:px-10
-        bg-white/80 backdrop-blur
-        border-b border-[#e8eef3]
-      "
+      className="urban-manifesto"
+      style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 50,
+        background: "rgba(8, 10, 15, 0.85)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        borderBottom: "1px solid rgba(255,255,255,0.08)",
+      }}
     >
-      {/* Logo */}
-      <NextLink href="/" className="flex items-center gap-2 shrink-0">
-        <NextImage
-          src="/urban-logo-transparent-soft.png"
-          alt="Urban AI"
-          width={130}
-          height={36}
-          priority
-        />
-      </NextLink>
-
-      {/* Nav desktop */}
-      <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-700">
-        {NAV.map((item) => (
-          <NextLink
-            key={item.href}
-            href={item.href}
-            className="hover:text-blue-600 transition-colors"
-          >
-            {item.label}
-          </NextLink>
-        ))}
-      </nav>
-
-      {/* CTAs desktop */}
-      <div className="hidden md:flex items-center gap-3">
-        <a
-          href={APP_URL}
-          className="text-sm font-semibold text-slate-700 hover:text-blue-600 px-3 py-2"
-        >
-          Entrar
-        </a>
-        <a
-          href={`${APP_URL}create`.replace(/\/+create/, "/create")}
-          className="text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-        >
-          Criar conta
-        </a>
-      </div>
-
-      {/* Mobile menu toggle */}
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="md:hidden flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100"
-        aria-label="Abrir menu"
+      <div
+        style={{
+          maxWidth: 1280,
+          margin: "0 auto",
+          padding: "0 24px",
+          height: 72,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 32,
+        }}
       >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden
+        {/* Logo — Bebas Neue tipo wordmark */}
+        <NextLink
+          href="/"
+          style={{
+            textDecoration: "none",
+            display: "flex",
+            alignItems: "baseline",
+            gap: 8,
+          }}
         >
-          {open ? (
-            <path
-              d="M5 5L15 15M5 15L15 5"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          ) : (
-            <>
-              <path d="M3 6H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              <path d="M3 10H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              <path d="M3 14H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </>
-          )}
-        </svg>
-      </button>
+          <span
+            className="urban-display"
+            style={{
+              fontSize: 28,
+              letterSpacing: 0,
+              fontWeight: 400,
+              color: "#FFFFFF",
+              textTransform: "uppercase",
+              lineHeight: 1,
+            }}
+          >
+            URBAN
+          </span>
+          <span
+            className="urban-display"
+            style={{
+              fontSize: 28,
+              letterSpacing: 0,
+              fontWeight: 400,
+              color: "#E8500A",
+              textTransform: "uppercase",
+              lineHeight: 1,
+            }}
+          >
+            AI
+          </span>
+        </NextLink>
+
+        {/* Nav desktop */}
+        <nav
+          style={{
+            display: "none",
+            alignItems: "center",
+            gap: 36,
+          }}
+          className="urban-nav-desktop"
+        >
+          {NAV.map((item) => (
+            <NextLink
+              key={item.href}
+              href={item.href}
+              style={{
+                fontSize: 12,
+                letterSpacing: 2,
+                textTransform: "uppercase",
+                fontWeight: 500,
+                color: "rgba(255,255,255,0.65)",
+                textDecoration: "none",
+                transition: "color 150ms",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.color = "#FFFFFF";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.65)";
+              }}
+            >
+              {item.label}
+            </NextLink>
+          ))}
+        </nav>
+
+        {/* CTAs desktop */}
+        <div style={{ display: "none", alignItems: "center", gap: 16 }} className="urban-cta-desktop">
+          <a
+            href={APP_URL}
+            style={{
+              fontSize: 12,
+              letterSpacing: 2,
+              textTransform: "uppercase",
+              fontWeight: 500,
+              color: "rgba(255,255,255,0.65)",
+              textDecoration: "none",
+              padding: "8px 4px",
+            }}
+          >
+            Entrar
+          </a>
+          <a
+            href={`${APP_URL}create`.replace(/\/+create/, "/create")}
+            style={{
+              fontSize: 12,
+              letterSpacing: 2,
+              textTransform: "uppercase",
+              fontWeight: 700,
+              color: "#080A0F",
+              background: "#E8500A",
+              padding: "12px 22px",
+              textDecoration: "none",
+            }}
+          >
+            Criar conta
+          </a>
+        </div>
+
+        {/* Mobile toggle */}
+        <button
+          onClick={() => setOpen((v) => !v)}
+          aria-label="Abrir menu"
+          className="urban-mobile-toggle"
+          style={{
+            display: "flex",
+            height: 40,
+            width: 40,
+            alignItems: "center",
+            justifyContent: "center",
+            background: "transparent",
+            border: "1px solid rgba(255,255,255,0.20)",
+            color: "#FFFFFF",
+            cursor: "pointer",
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+            {open ? (
+              <path
+                d="M5 5L15 15M5 15L15 5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            ) : (
+              <>
+                <path d="M3 7H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                <path d="M3 13H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </>
+            )}
+          </svg>
+        </button>
+      </div>
 
       {/* Mobile menu */}
       {open && (
         <div
-          className="
-            absolute top-16 left-0 right-0
-            bg-white border-b border-slate-200
-            shadow-lg
-            md:hidden
-            flex flex-col gap-1 py-3 px-4
-          "
+          style={{
+            position: "absolute",
+            top: 72,
+            left: 0,
+            right: 0,
+            background: "#080A0F",
+            borderBottom: "1px solid rgba(255,255,255,0.08)",
+            padding: "24px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+          }}
         >
           {NAV.map((item) => (
             <NextLink
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
-              className="px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded"
+              style={{
+                padding: "16px 0",
+                fontSize: 14,
+                letterSpacing: 2,
+                textTransform: "uppercase",
+                fontWeight: 500,
+                color: "rgba(255,255,255,0.85)",
+                textDecoration: "none",
+                borderBottom: "1px solid rgba(255,255,255,0.08)",
+              }}
             >
               {item.label}
             </NextLink>
           ))}
-          <hr className="my-2 border-slate-200" />
           <a
             href={APP_URL}
-            className="px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded"
+            style={{
+              marginTop: 16,
+              padding: "16px 0",
+              fontSize: 14,
+              letterSpacing: 2,
+              textTransform: "uppercase",
+              fontWeight: 500,
+              color: "rgba(255,255,255,0.65)",
+              textDecoration: "none",
+            }}
           >
             Entrar
           </a>
           <a
             href={`${APP_URL}create`.replace(/\/+create/, "/create")}
-            className="mt-1 px-3 py-2 text-sm font-bold text-center bg-blue-600 text-white rounded-lg"
+            style={{
+              marginTop: 12,
+              padding: "16px 24px",
+              fontSize: 14,
+              letterSpacing: 2,
+              textTransform: "uppercase",
+              fontWeight: 700,
+              textAlign: "center",
+              background: "#E8500A",
+              color: "#080A0F",
+              textDecoration: "none",
+            }}
           >
             Criar conta
           </a>
         </div>
       )}
+
+      {/* Responsive helpers — usa media query inline via <style> */}
+      <style jsx>{`
+        @media (min-width: 768px) {
+          :global(.urban-nav-desktop) {
+            display: flex !important;
+          }
+          :global(.urban-cta-desktop) {
+            display: flex !important;
+          }
+          :global(.urban-mobile-toggle) {
+            display: none !important;
+          }
+        }
+      `}</style>
     </header>
   );
 }

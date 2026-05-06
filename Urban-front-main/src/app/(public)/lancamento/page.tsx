@@ -1,96 +1,283 @@
-import { ArrowRight, Zap, Target, ShieldCheck } from "lucide-react";
-import Link from "next/link";
 import { WaitlistForm } from "../../componentes/WaitlistForm";
 
-export default function LançamentoUrbanAIPage() {
+/**
+ * /lancamento — pré-lançamento Urban AI · waitlist.
+ *
+ * Estilo manifesto editorial: dark, Bebas Neue gigante, accent #E8500A.
+ * Vide globals.css → .urban-manifesto / .urban-grain / .urban-glow / .urban-pull.
+ *
+ * Não é uma "página de produto" — é uma declaração. Energia de manifesto,
+ * não de SaaS landing.
+ */
+export default function LancamentoPage() {
   return (
-    <main className="flex flex-col min-h-screen bg-[#070B14] text-slate-50 items-center justify-start overflow-x-hidden">
-      {/* Hero Section */}
-      <section className="w-full max-w-5xl text-center pt-32 pb-24 px-6 flex flex-col items-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-900/30 text-blue-400 font-semibold mb-8 border border-blue-800/50">
-          <Zap size={16} /> Lançamento Oficial Urban AI
-        </div>
-        
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 leading-tight">
-          A Nova Inteligência Que Blinda O Seu Calendário Contra A <br className="hidden md:block"/> 
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-400">
-            "Síndrome Da Casa Barata".
-          </span>
-        </h1>
-        
-        <p className="text-xl md:text-2xl text-slate-300 max-w-3xl leading-relaxed mb-12">
-          Comemorar que seus finais de semana e feriados esgotaram rapidamente não é um troféu — na grande maioria das vezes, significa que você fixou os preços cedo demais. Nossa automação protege suas margens enquanto você dorme.
-        </p>
-        
-        <button 
-          id="cta-piloto-automatico-hero" 
-          className="bg-emerald-500 hover:bg-emerald-400 text-[#070B14] font-bold text-lg md:text-xl py-5 px-10 rounded-full inline-flex gap-3 items-center transition-all duration-300 shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:-translate-y-1"
-        >
-          Experimentar O Piloto Automático <ArrowRight size={24}/>
-        </button>
-      </section>
-
-      {/* Features Section */}
-      <section className="w-full bg-[#0A0F1D] py-24 px-6 flex flex-col items-center border-t border-slate-800/50">
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-16 text-center max-w-2xl">
-          Chega de perder 30% da sua receita por não <span className="text-blue-400">antecipar o mercado.</span>
-        </h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full">
-          <div className="bg-[#070B14] border border-slate-800 p-8 rounded-2xl flex flex-col gap-4">
-            <div className="bg-slate-800/50 p-4 rounded-xl w-fit text-blue-400">
-              <Target size={32} />
-            </div>
-            <h3 className="text-xl font-bold">Vasculhamento Massivo de Eventos Locais</h3>
-            <p className="text-slate-400 leading-relaxed">
-              A inteligência artificial detecta quando eventos, shows e feriados aquecem silenciosamente seu bairro e calibra antes das vagas esgotarem.
-            </p>
-          </div>
-
-          <div className="bg-[#070B14] border border-slate-800 p-8 rounded-2xl flex flex-col gap-4">
-            <div className="bg-slate-800/50 p-4 rounded-xl w-fit text-emerald-400">
-              <Zap size={32} />
-            </div>
-            <h3 className="text-xl font-bold">Micro-Ajustes na Base de Preço</h3>
-            <p className="text-slate-400 leading-relaxed">
-              A tarifa reage cirurgicamente quando a demanda oculta na vizinhança começa a esmagar a oferta existente. Reajustes automáticos impossíveis para a mente humana.
-            </p>
-          </div>
-
-          <div className="bg-[#070B14] border border-slate-800 p-8 rounded-2xl flex flex-col gap-4">
-            <div className="bg-slate-800/50 p-4 rounded-xl w-fit text-blue-400">
-              <ShieldCheck size={32} />
-            </div>
-            <h3 className="text-xl font-bold">Blindagem do seu RevPAR</h3>
-            <p className="text-slate-400 leading-relaxed">
-              Sem planilhas manuais. Uma ferramenta criada de anfitriões profissionais para anfitriões exigentes. Proteja sua rentabilidade diária automatizada.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-16">
-          <button
-            id="cta-iniciar-blindagem"
-            className="bg-transparent border border-blue-500 text-blue-400 hover:bg-blue-500/10 font-semibold py-4 px-8 rounded-full inline-flex gap-2 items-center transition-all duration-300"
+    <main
+      className="urban-manifesto"
+      style={{ background: "#080A0F", color: "#FFFFFF", minHeight: "100vh" }}
+    >
+      {/* ============== HERO ============== */}
+      <section
+        className="urban-grain"
+        style={{ position: "relative", padding: "140px 24px 100px", overflow: "hidden" }}
+      >
+        <div
+          className="urban-glow"
+          style={{ width: 800, height: 800, top: -200, left: "50%", transform: "translateX(-50%)" }}
+        />
+        <div style={{ position: "relative", zIndex: 2, maxWidth: 1280, margin: "0 auto" }}>
+          <p className="urban-eyebrow" style={{ marginBottom: 32 }}>
+            PRÉ-LANÇAMENTO · ACESSO POR CONVITE
+          </p>
+          <h1
+            className="urban-display"
+            style={{
+              fontSize: "clamp(72px, 14vw, 220px)",
+              lineHeight: 0.88,
+              letterSpacing: "-2px",
+              fontWeight: 400,
+              margin: 0,
+              textTransform: "uppercase",
+            }}
           >
-            Começar Blindagem do Calendário
-          </button>
+            ESGOTAR RÁPIDO
+            <br />
+            NÃO É TROFÉU.
+            <br />
+            <span style={{ color: "#E8500A" }}>É PREÇO ERRADO.</span>
+          </h1>
+          <p
+            style={{
+              fontSize: 22,
+              fontWeight: 300,
+              lineHeight: 1.7,
+              color: "rgba(255,255,255,0.65)",
+              maxWidth: 720,
+              marginTop: 56,
+            }}
+          >
+            Quando finais de semana e feriados esgotam em horas, na maioria das
+            vezes significa que você fixou o preço cedo demais. A Urban AI
+            protege a sua margem enquanto você dorme.
+          </p>
         </div>
       </section>
 
-      {/* Waitlist Section */}
+      <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+
+      {/* ============== PULL QUOTE ============== */}
+      <section style={{ padding: "120px 24px", position: "relative" }}>
+        <div style={{ maxWidth: 980, margin: "0 auto" }}>
+          <div className="urban-pull">
+            <p
+              style={{
+                fontSize: "clamp(28px, 4vw, 44px)",
+                fontWeight: 500,
+                lineHeight: 1.35,
+                letterSpacing: "-0.5px",
+                color: "#FFFFFF",
+                margin: 0,
+              }}
+            >
+              30% da receita anual fica na mesa porque o preço foi fixado
+              <span style={{ color: "#E8500A" }}> antes </span>
+              do mercado se mover.
+            </p>
+            <p
+              style={{
+                marginTop: 24,
+                fontSize: 13,
+                letterSpacing: 3,
+                textTransform: "uppercase",
+                color: "rgba(255,255,255,0.45)",
+                fontWeight: 600,
+              }}
+            >
+              — A CONTA QUE NINGUÉM FAZ
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+
+      {/* ============== O QUE FAZEMOS ============== */}
+      <section style={{ padding: "120px 24px" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+          <p className="urban-eyebrow" style={{ marginBottom: 32 }}>
+            O QUE FAZEMOS
+          </p>
+          <h2
+            className="urban-display"
+            style={{
+              fontSize: "clamp(64px, 11vw, 180px)",
+              lineHeight: 0.88,
+              letterSpacing: "-1.5px",
+              fontWeight: 400,
+              margin: "0 0 96px",
+              textTransform: "uppercase",
+            }}
+          >
+            ANTECIPAMOS
+            <br />
+            <span style={{ color: "#E8500A" }}>O MERCADO.</span>
+            <br />
+            VOCÊ CAPTURA.
+          </h2>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              borderTop: "1px solid rgba(255,255,255,0.08)",
+            }}
+          >
+            <Step
+              num="01"
+              title="VARREDURA"
+              body="Eventos, shows, feriados, congressos. A IA detecta quando o bairro aquece silenciosamente — antes do mercado se mover."
+            />
+            <Step
+              num="02"
+              title="CALIBRAGEM"
+              body="A tarifa reage cirurgicamente quando demanda oculta começa a esmagar oferta. Reajustes impossíveis para a mente humana."
+              borderLeft
+            />
+            <Step
+              num="03"
+              title="BLINDAGEM"
+              body="Sem planilha. Sem checagem manual. Limites e tetos definidos por você. Rentabilidade diária protegida no automático."
+              borderLeft
+            />
+          </div>
+        </div>
+      </section>
+
+      <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+
+      {/* ============== WAITLIST ============== */}
       <section
         id="waitlist"
-        className="w-full py-24 px-6 flex flex-col items-center border-t border-slate-800/50"
+        className="urban-grain"
+        style={{ position: "relative", padding: "140px 24px", overflow: "hidden" }}
       >
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-center max-w-2xl">
-          Entre na <span className="text-emerald-400">lista de interesse</span>.
-        </h2>
-        <p className="text-slate-400 max-w-xl text-center mb-10">
-          Estamos abrindo vagas em lotes pequenos para anfitriões profissionais em São Paulo. Deixe seu e-mail para receber acesso antecipado.
-        </p>
-        <WaitlistForm buttonLabel="Quero acesso antecipado" source="lancamento" />
+        <div
+          className="urban-glow"
+          style={{ width: 700, height: 700, bottom: -200, left: -200 }}
+        />
+        <div style={{ position: "relative", zIndex: 2, maxWidth: 980, margin: "0 auto" }}>
+          <p className="urban-eyebrow" style={{ marginBottom: 32 }}>
+            ENTRAR ANTES — VAGAS LIMITADAS
+          </p>
+          <h2
+            className="urban-display"
+            style={{
+              fontSize: "clamp(64px, 12vw, 200px)",
+              lineHeight: 0.88,
+              letterSpacing: "-2px",
+              fontWeight: 400,
+              margin: 0,
+              textTransform: "uppercase",
+            }}
+          >
+            LISTA DE
+            <br />
+            <span style={{ color: "#E8500A" }}>ACESSO ANTECIPADO.</span>
+          </h2>
+          <p
+            style={{
+              fontSize: 20,
+              fontWeight: 300,
+              lineHeight: 1.75,
+              color: "rgba(255,255,255,0.65)",
+              maxWidth: 640,
+              marginTop: 48,
+              marginBottom: 56,
+            }}
+          >
+            Estamos abrindo vagas em lotes pequenos para anfitriões profissionais
+            em São Paulo. Deixe seu e-mail abaixo. Você é avisado antes da abertura
+            geral.
+          </p>
+
+          <div style={{ maxWidth: 640 }}>
+            <WaitlistForm
+              buttonLabel="Quero acesso antecipado →"
+              source="lancamento"
+            />
+          </div>
+
+          <p
+            style={{
+              marginTop: 56,
+              fontSize: 12,
+              letterSpacing: 2,
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.45)",
+              fontWeight: 500,
+            }}
+          >
+            Sem spam · sem cartão · cancela quando quiser
+          </p>
+        </div>
       </section>
     </main>
+  );
+}
+
+function Step({
+  num,
+  title,
+  body,
+  borderLeft = false,
+}: {
+  num: string;
+  title: string;
+  body: string;
+  borderLeft?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        padding: "56px 32px",
+        borderLeft: borderLeft ? "1px solid rgba(255,255,255,0.08)" : "none",
+      }}
+    >
+      <p
+        className="urban-display"
+        style={{
+          fontSize: 64,
+          lineHeight: 1,
+          fontWeight: 400,
+          color: "#E8500A",
+          margin: 0,
+        }}
+      >
+        {num}
+      </p>
+      <h3
+        className="urban-display"
+        style={{
+          fontSize: 32,
+          letterSpacing: "-0.5px",
+          fontWeight: 400,
+          textTransform: "uppercase",
+          margin: "32px 0 20px",
+          color: "#FFFFFF",
+        }}
+      >
+        {title}
+      </h3>
+      <p
+        style={{
+          fontSize: 17,
+          fontWeight: 300,
+          lineHeight: 1.7,
+          color: "rgba(255,255,255,0.65)",
+          margin: 0,
+        }}
+      >
+        {body}
+      </p>
+    </div>
   );
 }

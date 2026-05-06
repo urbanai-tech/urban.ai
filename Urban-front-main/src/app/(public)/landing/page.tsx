@@ -1,36 +1,25 @@
-import {
-  ArrowRight,
-  Brain,
-  CalendarClock,
-  Check,
-  Layers,
-  Link2,
-  ShieldCheck,
-  TrendingUp,
-  Zap,
-} from "lucide-react";
 import NextLink from "next/link";
 import { Metadata } from "next";
 
 /**
- * Landing institucional principal (myurbanai.com/).
+ * Landing institucional — manifesto editorial.
  *
- * Servida pelo middleware via rewrite "/" → "/landing" quando o host é
- * myurbanai.com. Em app.myurbanai.com não é acessível (middleware redireciona
- * /landing para o apex).
- *
- * Diferente da `/lancamento` que é uma campanha específica de pré-lançamento,
- * esta é a porta de entrada permanente do site público — explica o produto,
- * mostra o problema/solução, planos e CTA para waitlist.
+ * Design system Urban AI aplicado:
+ *  - Background #080A0F com grain overlay obrigatório (SVG fractalNoise)
+ *  - Bebas Neue gigante (120-220px) nos headlines, line-height 0.88-0.92
+ *  - Inter 300 no body
+ *  - Accent único #E8500A (laranja), usado com parcimônia
+ *  - Sem cards rounded, sem badges coloridos, sem gradientes saturados
+ *  - Pull quotes com border-left laranja
+ *  - Tom: declarações manifesto, não SaaS
  */
 export const metadata: Metadata = {
-  title: "Urban AI · Precificação dinâmica para anfitriões Airbnb",
+  title: "Urban AI · Precificação que não perdoa noites vazias",
   description:
-    "Plataforma de IA que precifica seu Airbnb cruzando eventos da cidade, demanda local e padrões históricos. +30% receita potencial, sem vigiar a agenda manualmente.",
+    "A IA da Urban cruza a agenda da cidade com a demanda real. Sugestão de preço todo dia. Você dorme, seu calendário trabalha.",
   openGraph: {
-    title: "Urban AI · Precificação dinâmica para anfitriões Airbnb",
-    description:
-      "IA + eventos da cidade que blindam seu calendário. Cobrança por imóvel, sem fidelidade.",
+    title: "Urban AI · Precificação dinâmica para anfitriões",
+    description: "Cada noite vazia é R$ 600 que nunca volta.",
     type: "website",
   },
 };
@@ -41,367 +30,745 @@ const WAITLIST_URL = `${APP_URL.replace(/\/$/, "")}/create`;
 
 export default function LandingPage() {
   return (
-    <>
-      {/* ============== HERO ============== */}
-      <section className="relative bg-gradient-to-b from-[#070B14] to-[#0A0F1D] text-slate-50 overflow-hidden">
-        <div className="max-w-6xl mx-auto px-6 pt-24 pb-32 md:pt-32 md:pb-40 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-900/30 text-blue-300 font-semibold mb-8 border border-blue-800/50 text-xs">
-            <Zap size={14} /> Pré-lançamento aberto
-          </div>
+    <div
+      className="urban-manifesto"
+      style={{
+        background: "#080A0F",
+        color: "#FFFFFF",
+        minHeight: "100vh",
+      }}
+    >
+      <Hero />
+      <ManifestoCost />
+      <FourSteps />
+      <Differentiators />
+      <Numbers />
+      <PricingTeaser />
+      <Faq />
+      <FinalCta />
+    </div>
+  );
+}
 
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight max-w-4xl mx-auto">
-            Cada noite vazia ou subprecificada custa{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-400">
-              R$ 200 a R$ 800
-            </span>{" "}
-            que você nunca vai recuperar.
-          </h1>
+/* ============================================================
+   HERO — Manifesto declarativo
+   ============================================================ */
+function Hero() {
+  return (
+    <section
+      className="urban-grain"
+      style={{
+        position: "relative",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        padding: "8vh 6vw",
+        overflow: "hidden",
+      }}
+    >
+      {/* Glow radial discreto atrás do título */}
+      <div
+        className="urban-glow"
+        style={{
+          width: "60vw",
+          height: "60vw",
+          left: "-10vw",
+          top: "-10vw",
+        }}
+      />
 
-          <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed mb-10">
-            A Urban AI cruza eventos da cidade, demanda local e seu histórico
-            para sugerir o preço certo todo dia — automaticamente, sem você
-            precisar olhar a agenda da cidade.
-          </p>
+      <div
+        style={{
+          position: "relative",
+          zIndex: 2,
+          maxWidth: "1400px",
+          margin: "0 auto",
+          width: "100%",
+        }}
+      >
+        <p className="urban-eyebrow" style={{ marginBottom: 56 }}>
+          Pré-lançamento aberto
+        </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-12">
-            <a
-              href={WAITLIST_URL}
-              className="bg-emerald-500 hover:bg-emerald-400 text-[#070B14] font-bold text-base md:text-lg py-4 px-8 rounded-full inline-flex gap-2 items-center transition-all duration-300 shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:-translate-y-0.5"
-            >
-              Garantir meu acesso <ArrowRight size={20} />
-            </a>
-            <NextLink
-              href="/precos"
-              className="text-slate-300 hover:text-white font-semibold py-4 px-6 inline-flex items-center gap-1 transition-colors"
-            >
-              Ver planos →
-            </NextLink>
-          </div>
+        <h1
+          className="urban-display"
+          style={{
+            fontSize: "clamp(72px, 14vw, 220px)",
+            lineHeight: 0.88,
+            letterSpacing: "-0.02em",
+            margin: 0,
+            color: "#FFFFFF",
+          }}
+        >
+          CADA NOITE VAZIA<br />
+          É R$ 600 QUE<br />
+          <span style={{ color: "#E8500A" }}>NUNCA VOLTA.</span>
+        </h1>
 
-          <p className="text-xs text-slate-500">
-            Cobrança por imóvel · Cancele quando quiser · Setup em minutos
-          </p>
-        </div>
+        <p
+          style={{
+            marginTop: 56,
+            maxWidth: 640,
+            fontSize: 22,
+            fontWeight: 300,
+            lineHeight: 1.7,
+            color: "rgba(255,255,255,0.65)",
+          }}
+        >
+          A Urban AI cruza a agenda da cidade com a demanda real do bairro
+          e te entrega o preço certo todo dia — automaticamente, sem você
+          precisar olhar planilha.
+        </p>
 
-        {/* Glow gradients de fundo */}
-        <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-      </section>
-
-      {/* ============== PROBLEMA ============== */}
-      <section className="bg-[#0A0F1D] text-slate-50 py-20 px-6 border-t border-slate-800/50">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3 text-center">
-            O preço errado tem 3 sintomas. Algum é familiar?
-          </h2>
-          <p className="text-slate-400 text-center max-w-2xl mx-auto mb-14">
-            Anfitriões experientes perdem 20–40% de receita silenciosamente. A
-            culpa quase nunca é do imóvel.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <ProblemCard
-              icon={<CalendarClock size={28} />}
-              title="Lota cedo demais"
-              description="Os finais de semana de feriado esgotaram em janeiro? Você precificou antes dos eventos serem anunciados — alguém pagaria 60% a mais."
-              accent="text-red-400"
-            />
-            <ProblemCard
-              icon={<TrendingUp size={28} />}
-              title="Preço estático em mercado dinâmico"
-              description="A média do bairro varia 3–4x por mês conforme show, congresso, feriado. Você não consegue acompanhar manualmente — e nem deveria."
-              accent="text-amber-400"
-            />
-            <ProblemCard
-              icon={<Layers size={28} />}
-              title="Concorrência invisível"
-              description="Imóvel novo na sua rua, mais barato e melhor avaliado, ofusca o seu nas buscas. Você só descobre quando o calendário já está vazio."
-              accent="text-blue-400"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ============== SOLUÇÃO — Como funciona ============== */}
-      <section className="bg-white py-24 px-6">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3 text-center text-slate-900">
-            A IA olha pra cidade inteira por você.
-          </h2>
-          <p className="text-slate-600 text-center max-w-2xl mx-auto mb-16">
-            Em 4 passos, você ganha o que faltava: contexto + tempo + decisão
-            quantificada.
-          </p>
-
-          <div className="space-y-12">
-            <StepRow
-              step="1"
-              icon={<Link2 size={24} />}
-              title="Conecta seu Airbnb (ou Stays)"
-              description="Setup leva 3 minutos. Importamos seus imóveis automaticamente — você não precisa cadastrar nada manual."
-            />
-            <StepRow
-              step="2"
-              icon={<Brain size={24} />}
-              title="Mapeamos eventos no raio do imóvel"
-              description="Shows, congressos, feriados, partidas, festivais, formaturas. Calculamos travel time real (não só distância em km) para entender quem é vizinho de fato do evento."
-            />
-            <StepRow
-              step="3"
-              icon={<TrendingUp size={24} />}
-              title="Cruzamos com dados de mercado e seu histórico"
-              description="Modelo proprietário aprende com cada análise: comps na sua faixa, sazonalidade do bairro, quanto seu imóvel especificamente respondeu a aumentos passados."
-            />
-            <StepRow
-              step="4"
-              icon={<Zap size={24} />}
-              title="Recomenda — ou aplica direto via Stays"
-              description="Modo Recomendação: você decide. Modo Automático: a IA aplica respeitando os tetos que você define (ex.: nunca subir mais que 25% num dia). Você dorme tranquilo."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ============== DIFERENCIAIS ============== */}
-      <section className="bg-slate-50 py-24 px-6">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3 text-center text-slate-900">
-            Por que a Urban AI é diferente
-          </h2>
-          <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
-            Não é mais uma extensão do Airbnb que olha só preço. É um motor de
-            revenue management feito pra Brasil.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <DiffCard
-              icon={<Brain className="text-blue-600" size={28} />}
-              title="Dataset proprietário, não scraping"
-              description="A cada análise gerada, alimentamos nosso próprio histórico de preços, ocupação e eventos. Em meses, isso vira um motor que ninguém consegue reproduzir copiando produto."
-            />
-            <DiffCard
-              icon={<Layers className="text-emerald-600" size={28} />}
-              title="Modelo escala com você"
-              description="Começamos com regras inteligentes, evoluímos para XGBoost quando temos dados, depois para um modelo neural híbrido. Você só vê o preço melhorando — sem migração de plataforma."
-            />
-            <DiffCard
-              icon={<ShieldCheck className="text-orange-600" size={28} />}
-              title="Integração Stays Preferred+"
-              description="Somos parceiros do canal Preferred+ da Stays — pushar preço pro Airbnb é nativo, não scraping nem hack. Mesma confiabilidade da própria Stays."
-            />
-            <DiffCard
-              icon={<TrendingUp className="text-purple-600" size={28} />}
-              title="Foco no Brasil"
-              description="Eventos brasileiros (Sympla, Eventbrite, prefeituras), feriados regionais, peculiaridades de Carnaval, Réveillon, eleições, festivais. Concorrentes globais ignoram tudo isso."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ============== PRICING SUMMARY ============== */}
-      <section className="bg-white py-24 px-6">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3 text-center text-slate-900">
-            Você só paga pelo que de fato usa
-          </h2>
-          <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
-            Cobrança <strong>por imóvel</strong>, não por plano flat. Quanto
-            mais você usa, menor o preço por unidade — e nada cobrado por
-            funcionalidade que você não precisa.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <PricingTeaser
-              name="Starter"
-              priceFrom="R$ 97"
-              suffix="/imóvel/mês"
-              tagline="Para 1 a 3 imóveis"
-              features={[
-                "Análises ilimitadas",
-                "Recomendações por evento",
-                "Painel completo",
-                "E-mail de oportunidade",
-              ]}
-            />
-            <PricingTeaser
-              name="Profissional"
-              priceFrom="R$ 67"
-              suffix="/imóvel/mês"
-              tagline="A partir de 4 imóveis"
-              highlight
-              features={[
-                "Tudo do Starter",
-                "Integração Stays (auto)",
-                "API/webhooks",
-                "Suporte prioritário",
-              ]}
-            />
-            <PricingTeaser
-              name="Escala"
-              priceFrom="Sob consulta"
-              suffix=""
-              tagline="20+ imóveis ou rede"
-              features={[
-                "Onboarding dedicado",
-                "SLA personalizado",
-                "Relatórios executivos",
-                "Multi-conta",
-              ]}
-            />
-          </div>
-
-          <div className="text-center">
-            <NextLink
-              href="/precos"
-              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold"
-            >
-              Ver tabela completa com 4 ciclos de pagamento <ArrowRight size={18} />
-            </NextLink>
-          </div>
-        </div>
-      </section>
-
-      {/* ============== FAQ ============== */}
-      <section className="bg-slate-50 py-24 px-6">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-12 text-center text-slate-900">
-            Dúvidas comuns
-          </h2>
-
-          <div className="space-y-3">
-            <FAQItem
-              q="Vocês precificam pra todo o Brasil?"
-              a="Hoje cobrimos São Paulo capital com profundidade total. Outras capitais entram conforme nosso pipeline de eventos amadurecer (RJ, Belo Horizonte, Curitiba e Porto Alegre são os próximos). Se você tem imóvel fora dessa lista, entre na lista de espera — avisamos quando abrirmos."
-            />
-            <FAQItem
-              q="Preciso integrar com Stays para usar?"
-              a="Não. No modo Recomendação você recebe sugestões e aplica manualmente no Airbnb (ou onde quer que anuncie). A integração com Stays é só para quem quer modo Automático — onde a Urban AI aplica o preço sem você precisar abrir nada."
-            />
-            <FAQItem
-              q="Como vocês garantem que o preço não vai ficar errado?"
-              a="No modo Automático você define tetos de variação (ex.: nunca subir mais que 25% ou descer mais que 20% num único dia). Toda mudança é logada — você vê histórico completo de cada decisão da IA. Se algo parecer estranho, basta pausar com um clique."
-            />
-            <FAQItem
-              q="Os meus dados ficam seguros?"
-              a="Sim. Não vendemos dados, nunca. Senhas armazenadas como bcrypt, tráfego TLS 1.3, banco criptografado em repouso, backup off-site diário. Conformidade LGPD com DPO designado e processo de exclusão de conta documentado."
-            />
-            <FAQItem
-              q="Posso cancelar quando quiser?"
-              a="Sim. O cancelamento é direto pelo painel — sem ligação, sem fidelidade. Você mantém acesso até o final do ciclo já pago e depois a conta vira read-only (você não perde histórico)."
-            />
-            <FAQItem
-              q="O que vocês NÃO fazem?"
-              a="Não somos OTA, corretora nem hospedagem — não vendemos diárias nem captamos hóspedes para você. Só ajudamos a precificar melhor os anúncios que você já tem. Promessa simples, escopo focado."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ============== FINAL CTA ============== */}
-      <section className="bg-gradient-to-b from-[#0A0F1D] to-[#070B14] text-slate-50 py-24 px-6">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-6">
-            Garanta seu lugar antes da abertura geral
-          </h2>
-          <p className="text-lg text-slate-300 mb-10 max-w-2xl mx-auto">
-            Estamos abrindo acesso por convite, na ordem da lista de espera.
-            Quem entra agora também ganha posições subindo na fila a cada
-            indicação.
-          </p>
-
+        <div
+          style={{
+            display: "flex",
+            gap: 24,
+            marginTop: 64,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
           <a
             href={WAITLIST_URL}
-            className="bg-emerald-500 hover:bg-emerald-400 text-[#070B14] font-bold text-base md:text-lg py-4 px-10 rounded-full inline-flex gap-2 items-center transition-all duration-300 shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:-translate-y-0.5"
+            style={{
+              padding: "22px 44px",
+              background: "#E8500A",
+              color: "#FFFFFF",
+              fontFamily: "Inter, sans-serif",
+              fontWeight: 600,
+              fontSize: 16,
+              letterSpacing: "0.04em",
+              textTransform: "uppercase",
+              textDecoration: "none",
+              transition: "transform 0.15s ease",
+            }}
           >
-            Entrar na lista de espera <ArrowRight size={20} />
+            Garantir meu acesso  →
           </a>
+          <NextLink
+            href="/precos"
+            style={{
+              fontFamily: "Inter, sans-serif",
+              fontSize: 14,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.45)",
+              textDecoration: "none",
+              borderBottom: "1px solid rgba(255,255,255,0.20)",
+              paddingBottom: 4,
+            }}
+          >
+            Ver planos
+          </NextLink>
+        </div>
 
-          <p className="mt-6 text-xs text-slate-500">
-            Sem compromisso · 100% gratuito · Você só vê preço no convite final
+        <p
+          style={{
+            marginTop: 80,
+            fontSize: 12,
+            letterSpacing: "0.3em",
+            color: "rgba(255,255,255,0.20)",
+            textTransform: "uppercase",
+          }}
+        >
+          Cobrança por imóvel · Cancele quando quiser · Setup em minutos
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   MANIFESTO COST — pull quote sobre a dor
+   ============================================================ */
+function ManifestoCost() {
+  return (
+    <section
+      className="urban-grain"
+      style={{
+        position: "relative",
+        padding: "20vh 6vw",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          position: "relative",
+          zIndex: 2,
+          maxWidth: 1200,
+          margin: "0 auto",
+        }}
+      >
+        <p className="urban-eyebrow" style={{ marginBottom: 40 }}>
+          O custo invisível
+        </p>
+
+        <h2
+          className="urban-display"
+          style={{
+            fontSize: "clamp(56px, 9vw, 150px)",
+            lineHeight: 0.92,
+            letterSpacing: "-0.015em",
+            margin: 0,
+            maxWidth: 1100,
+          }}
+        >
+          O PREÇO ERRADO TEM<br />
+          TRÊS SINTOMAS.<br />
+          <span style={{ color: "rgba(255,255,255,0.45)" }}>
+            ALGUM É FAMILIAR?
+          </span>
+        </h2>
+
+        <div
+          style={{
+            marginTop: 100,
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: 64,
+          }}
+        >
+          <Symptom
+            number="01"
+            title="Lota cedo demais."
+            desc="Os finais de semana de feriado esgotaram em janeiro? Você precificou antes dos eventos serem anunciados. Alguém pagaria 60% a mais."
+          />
+          <Symptom
+            number="02"
+            title="Preço estático em mercado dinâmico."
+            desc="A média do bairro varia 3 a 4 vezes por mês conforme show, congresso, feriado. Você não consegue acompanhar manualmente — e nem deveria."
+          />
+          <Symptom
+            number="03"
+            title="Concorrência invisível."
+            desc="Imóvel novo na sua rua, mais barato e melhor avaliado, ofusca o seu nas buscas. Você só descobre quando o calendário já está vazio."
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Symptom({
+  number,
+  title,
+  desc,
+}: {
+  number: string;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <div>
+      <p
+        className="urban-display"
+        style={{
+          fontSize: 64,
+          lineHeight: 1,
+          color: "#E8500A",
+          margin: 0,
+          marginBottom: 24,
+        }}
+      >
+        {number}
+      </p>
+      <h3
+        style={{
+          fontFamily: "Inter, sans-serif",
+          fontSize: 22,
+          fontWeight: 500,
+          lineHeight: 1.3,
+          margin: 0,
+          marginBottom: 16,
+          color: "#FFFFFF",
+        }}
+      >
+        {title}
+      </h3>
+      <p
+        style={{
+          fontSize: 16,
+          fontWeight: 300,
+          lineHeight: 1.7,
+          color: "rgba(255,255,255,0.45)",
+          margin: 0,
+        }}
+      >
+        {desc}
+      </p>
+    </div>
+  );
+}
+
+/* ============================================================
+   FOUR STEPS — Como funciona, manifesto numerado gigante
+   ============================================================ */
+function FourSteps() {
+  const steps = [
+    {
+      n: "01",
+      title: "CONECTA.",
+      desc: "Setup leva 3 minutos. Importamos seus imóveis automaticamente do Airbnb ou Stays — você não cadastra nada manual.",
+    },
+    {
+      n: "02",
+      title: "MAPEIA.",
+      desc: "Shows, congressos, feriados, jogos, festivais, formaturas. Calculamos travel time real (não distância em linha reta) pra entender quem é vizinho de fato do evento.",
+    },
+    {
+      n: "03",
+      title: "CRUZA.",
+      desc: "Modelo proprietário aprende a cada análise: comparáveis na sua faixa, sazonalidade do bairro, quanto seu imóvel especificamente respondeu a aumentos passados.",
+    },
+    {
+      n: "04",
+      title: "APLICA.",
+      desc: "Recomendação no painel: você decide. Ou modo automático via Stays: a IA aplica respeitando os tetos que você define. Você dorme tranquilo.",
+    },
+  ];
+
+  return (
+    <section
+      style={{
+        position: "relative",
+        padding: "20vh 6vw",
+        background: "#080A0F",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
+      <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+        <p className="urban-eyebrow" style={{ marginBottom: 40 }}>
+          Como funciona
+        </p>
+
+        <h2
+          className="urban-display"
+          style={{
+            fontSize: "clamp(56px, 9vw, 150px)",
+            lineHeight: 0.92,
+            letterSpacing: "-0.015em",
+            margin: 0,
+            marginBottom: 120,
+            maxWidth: 1100,
+          }}
+        >
+          A IA OLHA PRA<br />
+          CIDADE INTEIRA<br />
+          POR VOCÊ.
+        </h2>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          {steps.map((s, i) => (
+            <Step key={s.n} {...s} last={i === steps.length - 1} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Step({
+  n,
+  title,
+  desc,
+  last,
+}: {
+  n: string;
+  title: string;
+  desc: string;
+  last: boolean;
+}) {
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "minmax(120px, 200px) 1fr",
+        gap: "8vw",
+        alignItems: "start",
+        padding: "60px 0",
+        borderBottom: last ? "none" : "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
+      <div
+        className="urban-display"
+        style={{
+          fontSize: "clamp(80px, 9vw, 140px)",
+          lineHeight: 0.85,
+          color: "#E8500A",
+          margin: 0,
+        }}
+      >
+        {n}
+      </div>
+      <div>
+        <h3
+          className="urban-display"
+          style={{
+            fontSize: "clamp(40px, 5vw, 72px)",
+            lineHeight: 1,
+            margin: 0,
+            marginBottom: 24,
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {title}
+        </h3>
+        <p
+          style={{
+            fontSize: 20,
+            fontWeight: 300,
+            lineHeight: 1.7,
+            color: "rgba(255,255,255,0.65)",
+            margin: 0,
+            maxWidth: 720,
+          }}
+        >
+          {desc}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   DIFFERENTIATORS — declarações manifesto, não cards
+   ============================================================ */
+function Differentiators() {
+  const items = [
+    {
+      label: "Dataset proprietário",
+      headline: "NÃO RASPAMOS. CONSTRUÍMOS.",
+      body: "A cada análise gerada, alimentamos nosso próprio histórico de preços, ocupação e eventos. Em meses, isso vira um motor que ninguém consegue reproduzir copiando produto.",
+    },
+    {
+      label: "Modelo escala com você",
+      headline: "REGRAS HOJE. NEURAL DEPOIS.",
+      body: "Começamos com regras inteligentes. Evoluímos pra XGBoost quando temos dados. Depois pra modelo neural híbrido. Você só vê o preço melhorando — sem migração de plataforma.",
+    },
+    {
+      label: "Stays Preferred+",
+      headline: "INTEGRAÇÃO NATIVA. NÃO SCRAPING.",
+      body: "Somos parceiros do canal Preferred+ da Stays. Pushar preço pro Airbnb é nativo, não scraping nem hack. Mesma confiabilidade da própria Stays.",
+    },
+    {
+      label: "Foco no Brasil",
+      headline: "BRASIL TEM PARTICULARIDADES.",
+      body: "Eventos brasileiros (Sympla, Eventbrite, prefeituras), feriados regionais, peculiaridades de Carnaval, Réveillon, festivais e religiosos. Concorrentes globais ignoram tudo isso.",
+    },
+  ];
+
+  return (
+    <section
+      style={{
+        position: "relative",
+        padding: "20vh 6vw",
+        background: "#080A0F",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
+      <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+        <p className="urban-eyebrow" style={{ marginBottom: 40 }}>
+          Por que somos diferentes
+        </p>
+
+        <h2
+          className="urban-display"
+          style={{
+            fontSize: "clamp(56px, 9vw, 150px)",
+            lineHeight: 0.92,
+            letterSpacing: "-0.015em",
+            margin: 0,
+            marginBottom: 100,
+            maxWidth: 1100,
+          }}
+        >
+          NÃO É MAIS UMA<br />
+          EXTENSÃO DO AIRBNB.
+        </h2>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))",
+            gap: 0,
+          }}
+        >
+          {items.map((d, i) => (
+            <div
+              key={d.label}
+              style={{
+                padding: "48px 32px",
+                borderTop:
+                  i < 2 ? "1px solid rgba(255,255,255,0.08)" : "none",
+                borderLeft:
+                  i % 2 === 1
+                    ? "1px solid rgba(255,255,255,0.08)"
+                    : "none",
+              }}
+            >
+              <p className="urban-eyebrow" style={{ marginBottom: 24 }}>
+                {d.label}
+              </p>
+              <h3
+                className="urban-display"
+                style={{
+                  fontSize: "clamp(32px, 3.5vw, 48px)",
+                  lineHeight: 1,
+                  letterSpacing: "-0.01em",
+                  margin: 0,
+                  marginBottom: 24,
+                  color: "#FFFFFF",
+                }}
+              >
+                {d.headline}
+              </h3>
+              <p
+                style={{
+                  fontSize: 17,
+                  fontWeight: 300,
+                  lineHeight: 1.7,
+                  color: "rgba(255,255,255,0.55)",
+                  margin: 0,
+                }}
+              >
+                {d.body}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   NUMBERS — 3 grandes statements numéricos (tipografia gigante)
+   ============================================================ */
+function Numbers() {
+  return (
+    <section
+      className="urban-grain"
+      style={{
+        position: "relative",
+        padding: "20vh 6vw",
+        background: "#080A0F",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        className="urban-glow"
+        style={{
+          width: "70vw",
+          height: "70vw",
+          right: "-20vw",
+          top: "10vh",
+        }}
+      />
+      <div
+        style={{
+          position: "relative",
+          zIndex: 2,
+          maxWidth: 1400,
+          margin: "0 auto",
+        }}
+      >
+        <div
+          className="urban-pull"
+          style={{
+            maxWidth: 900,
+            marginBottom: 80,
+          }}
+        >
+          <p
+            style={{
+              fontFamily: "Inter, sans-serif",
+              fontSize: 26,
+              fontWeight: 500,
+              lineHeight: 1.45,
+              color: "#FFFFFF",
+              margin: 0,
+              letterSpacing: "-0.005em",
+            }}
+          >
+            &ldquo;Comemorar que seus finais de semana esgotaram cedo
+            não é um troféu. Significa que você fixou os preços antes
+            do mercado mostrar a cara dele.&rdquo;
           </p>
         </div>
-      </section>
-    </>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: 80,
+            marginTop: 100,
+          }}
+        >
+          <BigNumber
+            value="20–40%"
+            label="da receita perdida silenciosamente por subprecificação"
+          />
+          <BigNumber
+            value="5K+"
+            label="eventos mapeados em SP atualmente, atualizados todo dia"
+          />
+          <BigNumber
+            value="3min"
+            label="de setup até a primeira recomendação"
+          />
+        </div>
+      </div>
+    </section>
   );
 }
 
-// =================== Subcomponents ===================
-
-function ProblemCard({
-  icon,
-  title,
-  description,
-  accent,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  accent: string;
-}) {
+function BigNumber({ value, label }: { value: string; label: string }) {
   return (
-    <div className="bg-[#070B14] border border-slate-800 p-6 rounded-2xl flex flex-col gap-3">
-      <div className={`bg-slate-800/50 p-3 rounded-xl w-fit ${accent}`}>
-        {icon}
-      </div>
-      <h3 className="text-lg font-bold">{title}</h3>
-      <p className="text-slate-400 text-sm leading-relaxed">{description}</p>
+    <div>
+      <p
+        className="urban-display"
+        style={{
+          fontSize: "clamp(72px, 8vw, 130px)",
+          lineHeight: 1,
+          color: "#FFFFFF",
+          margin: 0,
+          letterSpacing: "-0.02em",
+        }}
+      >
+        {value}
+      </p>
+      <p
+        style={{
+          marginTop: 24,
+          fontSize: 16,
+          fontWeight: 300,
+          lineHeight: 1.55,
+          color: "rgba(255,255,255,0.45)",
+          maxWidth: 320,
+        }}
+      >
+        {label}
+      </p>
     </div>
   );
 }
 
-function StepRow({
-  step,
-  icon,
-  title,
-  description,
-}: {
-  step: string;
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) {
+/* ============================================================
+   PRICING TEASER — minimal, tipografia gigante
+   ============================================================ */
+function PricingTeaser() {
   return (
-    <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start">
-      <div className="flex-shrink-0 flex items-center gap-3">
-        <div className="text-3xl font-extrabold text-blue-600 w-10">{step}</div>
-        <div className="bg-blue-50 text-blue-600 p-3 rounded-xl">{icon}</div>
+    <section
+      style={{
+        position: "relative",
+        padding: "20vh 6vw",
+        background: "#080A0F",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
+      <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+        <p className="urban-eyebrow" style={{ marginBottom: 40 }}>
+          Cobrança por imóvel
+        </p>
+
+        <h2
+          className="urban-display"
+          style={{
+            fontSize: "clamp(56px, 9vw, 150px)",
+            lineHeight: 0.92,
+            letterSpacing: "-0.015em",
+            margin: 0,
+            marginBottom: 100,
+            maxWidth: 1100,
+          }}
+        >
+          VOCÊ SÓ PAGA<br />
+          PELO QUE USA.
+        </h2>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+            gap: 0,
+            border: "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
+          <PriceColumn
+            name="Starter"
+            price="R$ 97"
+            suffix="/imóvel/mês"
+            tagline="1 a 3 imóveis"
+            features={[
+              "Análises ilimitadas",
+              "Recomendações por evento",
+              "Painel completo",
+              "E-mail de oportunidade",
+            ]}
+          />
+          <PriceColumn
+            name="Profissional"
+            price="R$ 67"
+            suffix="/imóvel/mês"
+            tagline="A partir de 4 imóveis"
+            highlight
+            features={[
+              "Tudo do Starter",
+              "Integração Stays (auto)",
+              "API/webhooks",
+              "Suporte prioritário",
+            ]}
+          />
+          <PriceColumn
+            name="Escala"
+            price="Sob consulta"
+            suffix=""
+            tagline="20+ imóveis ou rede"
+            features={[
+              "Onboarding dedicado",
+              "SLA personalizado",
+              "Relatórios executivos",
+              "Multi-conta",
+            ]}
+          />
+        </div>
+
+        <div style={{ marginTop: 56, textAlign: "center" }}>
+          <NextLink
+            href="/precos"
+            style={{
+              fontFamily: "Inter, sans-serif",
+              fontSize: 13,
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              color: "#E8500A",
+              textDecoration: "none",
+              borderBottom: "1px solid #E8500A",
+              paddingBottom: 4,
+            }}
+          >
+            Ver tabela completa com 4 ciclos →
+          </NextLink>
+        </div>
       </div>
-      <div className="flex-1">
-        <h3 className="text-xl font-bold text-slate-900 mb-2">{title}</h3>
-        <p className="text-slate-600 leading-relaxed">{description}</p>
-      </div>
-    </div>
+    </section>
   );
 }
 
-function DiffCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col gap-3">
-      <div>{icon}</div>
-      <h3 className="text-lg font-bold text-slate-900">{title}</h3>
-      <p className="text-slate-600 text-sm leading-relaxed">{description}</p>
-    </div>
-  );
-}
-
-function PricingTeaser({
+function PriceColumn({
   name,
-  priceFrom,
+  price,
   suffix,
   tagline,
   features,
-  highlight = false,
+  highlight,
 }: {
   name: string;
-  priceFrom: string;
+  price: string;
   suffix: string;
   tagline: string;
   features: string[];
@@ -409,28 +776,77 @@ function PricingTeaser({
 }) {
   return (
     <div
-      className={`relative bg-white rounded-2xl p-8 ${
-        highlight
-          ? "border-2 border-orange-400 shadow-lg shadow-orange-200/50"
-          : "border border-slate-200"
-      }`}
+      style={{
+        padding: "48px 36px",
+        position: "relative",
+        background: highlight ? "rgba(232,80,10,0.04)" : "transparent",
+        borderRight: "1px solid rgba(255,255,255,0.08)",
+      }}
     >
       {highlight && (
-        <span className="absolute top-0 right-6 -translate-y-1/2 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-          Mais escolhido
-        </span>
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: 6,
+            height: "100%",
+            background: "#E8500A",
+          }}
+        />
       )}
-      <h3 className="text-xl font-bold text-slate-900 mb-1">{name}</h3>
-      <p className="text-slate-500 text-sm mb-4">{tagline}</p>
-      <div className="mb-6">
-        <span className="text-3xl font-extrabold text-slate-900">{priceFrom}</span>
-        {suffix && <span className="text-sm text-slate-500 ml-1">{suffix}</span>}
-      </div>
-      <ul className="space-y-2 text-sm text-slate-700">
+      <p className="urban-eyebrow" style={{ marginBottom: 16 }}>
+        {name}
+      </p>
+      <p
+        style={{
+          fontFamily: "Inter, sans-serif",
+          fontSize: 13,
+          color: "rgba(255,255,255,0.45)",
+          margin: 0,
+          marginBottom: 32,
+        }}
+      >
+        {tagline}
+      </p>
+      <p
+        className="urban-display"
+        style={{
+          fontSize: "clamp(56px, 5vw, 84px)",
+          lineHeight: 1,
+          letterSpacing: "-0.015em",
+          margin: 0,
+          color: "#FFFFFF",
+        }}
+      >
+        {price}
+      </p>
+      {suffix && (
+        <p
+          style={{
+            fontSize: 13,
+            color: "rgba(255,255,255,0.45)",
+            marginTop: 8,
+            marginBottom: 40,
+          }}
+        >
+          {suffix}
+        </p>
+      )}
+      {!suffix && <div style={{ height: 40 }} />}
+      <ul style={{ listStyle: "none", padding: 0, margin: 0, fontFamily: "Inter, sans-serif" }}>
         {features.map((f) => (
-          <li key={f} className="flex items-start gap-2">
-            <Check size={16} className="text-emerald-500 mt-0.5 flex-shrink-0" />
-            <span>{f}</span>
+          <li
+            key={f}
+            style={{
+              fontSize: 15,
+              fontWeight: 300,
+              color: "rgba(255,255,255,0.65)",
+              padding: "12px 0",
+              borderBottom: "1px solid rgba(255,255,255,0.08)",
+            }}
+          >
+            {f}
           </li>
         ))}
       </ul>
@@ -438,16 +854,222 @@ function PricingTeaser({
   );
 }
 
-function FAQItem({ q, a }: { q: string; a: string }) {
+/* ============================================================
+   FAQ — minimal accordion (details/summary nativo)
+   ============================================================ */
+function Faq() {
+  const items = [
+    {
+      q: "Vocês precificam pra todo o Brasil?",
+      a: "Hoje cobrimos São Paulo capital e Grande SP com profundidade total. Outras capitais entram conforme o pipeline de eventos amadurecer (RJ, BH, Curitiba, Porto Alegre são os próximos). Se seu imóvel está fora dessa lista, entre na lista de espera — avisamos quando abrir.",
+    },
+    {
+      q: "Preciso integrar com Stays para usar?",
+      a: "Não. No modo Recomendação você recebe sugestões e aplica manualmente no Airbnb. A Stays é só pra quem quer modo Automático — onde a Urban aplica o preço sem você abrir nada.",
+    },
+    {
+      q: "Como vocês garantem que o preço não fica errado?",
+      a: "No modo Automático você define tetos de variação (ex.: nunca subir mais que 25% num único dia). Toda mudança é logada — você vê histórico completo de cada decisão da IA. Se algo parecer estranho, basta pausar com um clique.",
+    },
+    {
+      q: "Os meus dados ficam seguros?",
+      a: "Sim. Não vendemos dados, nunca. Senhas em bcrypt, tráfego TLS 1.3, banco criptografado em repouso, backup off-site diário. LGPD com DPO designado e processo de exclusão de conta documentado.",
+    },
+    {
+      q: "Posso cancelar quando quiser?",
+      a: "Sim. Sem fidelidade, sem ligação. Cancela direto no painel. Acesso até o fim do ciclo já pago, depois vira read-only (não perde histórico).",
+    },
+    {
+      q: "O que vocês NÃO fazem?",
+      a: "Não somos OTA, corretora nem hospedagem — não vendemos diárias nem captamos hóspedes. Só ajudamos a precificar melhor os anúncios que você já tem. Promessa simples, escopo focado.",
+    },
+  ];
+
   return (
-    <details className="group bg-white border border-slate-200 rounded-xl overflow-hidden">
-      <summary className="cursor-pointer list-none px-6 py-4 flex items-center justify-between gap-3 font-semibold text-slate-900 hover:bg-slate-50 transition-colors">
-        <span>{q}</span>
-        <span className="text-slate-400 group-open:rotate-45 transition-transform text-xl leading-none">
-          +
-        </span>
-      </summary>
-      <div className="px-6 pb-5 text-slate-600 leading-relaxed text-sm">{a}</div>
-    </details>
+    <section
+      style={{
+        position: "relative",
+        padding: "20vh 6vw",
+        background: "#080A0F",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
+      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <p className="urban-eyebrow" style={{ marginBottom: 40 }}>
+          Dúvidas comuns
+        </p>
+
+        <h2
+          className="urban-display"
+          style={{
+            fontSize: "clamp(56px, 8vw, 120px)",
+            lineHeight: 0.92,
+            letterSpacing: "-0.015em",
+            margin: 0,
+            marginBottom: 80,
+          }}
+        >
+          PERGUNTAS<br />
+          DIRETAS.
+        </h2>
+
+        <div>
+          {items.map((it, i) => (
+            <details
+              key={i}
+              style={{
+                borderTop: "1px solid rgba(255,255,255,0.08)",
+                borderBottom:
+                  i === items.length - 1
+                    ? "1px solid rgba(255,255,255,0.08)"
+                    : "none",
+                padding: "32px 0",
+              }}
+            >
+              <summary
+                style={{
+                  cursor: "pointer",
+                  listStyle: "none",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: 22,
+                  fontWeight: 400,
+                  color: "#FFFFFF",
+                  letterSpacing: "-0.005em",
+                }}
+              >
+                {it.q}
+                <span
+                  style={{
+                    fontSize: 24,
+                    color: "#E8500A",
+                    marginLeft: 32,
+                    flexShrink: 0,
+                  }}
+                >
+                  +
+                </span>
+              </summary>
+              <p
+                style={{
+                  marginTop: 24,
+                  fontSize: 17,
+                  fontWeight: 300,
+                  lineHeight: 1.75,
+                  color: "rgba(255,255,255,0.55)",
+                  maxWidth: 800,
+                }}
+              >
+                {it.a}
+              </p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   FINAL CTA — manifesto closing
+   ============================================================ */
+function FinalCta() {
+  return (
+    <section
+      className="urban-grain"
+      style={{
+        position: "relative",
+        padding: "30vh 6vw",
+        background: "#080A0F",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        className="urban-glow"
+        style={{
+          width: "80vw",
+          height: "80vw",
+          left: "10vw",
+          top: "-30vw",
+        }}
+      />
+      <div
+        style={{
+          position: "relative",
+          zIndex: 2,
+          maxWidth: 1400,
+          margin: "0 auto",
+          textAlign: "center",
+        }}
+      >
+        <p className="urban-eyebrow" style={{ marginBottom: 56 }}>
+          Pré-lançamento aberto
+        </p>
+
+        <h2
+          className="urban-display"
+          style={{
+            fontSize: "clamp(64px, 12vw, 200px)",
+            lineHeight: 0.88,
+            letterSpacing: "-0.02em",
+            margin: 0,
+          }}
+        >
+          GARANTE SEU LUGAR<br />
+          ANTES DA<br />
+          <span style={{ color: "#E8500A" }}>ABERTURA GERAL.</span>
+        </h2>
+
+        <p
+          style={{
+            marginTop: 56,
+            fontSize: 20,
+            fontWeight: 300,
+            lineHeight: 1.7,
+            color: "rgba(255,255,255,0.65)",
+            maxWidth: 720,
+            margin: "56px auto 0",
+          }}
+        >
+          Estamos abrindo acesso por convite, na ordem da lista. Quem entra
+          agora também ganha posições subindo a cada indicação.
+        </p>
+
+        <div style={{ marginTop: 80 }}>
+          <a
+            href={WAITLIST_URL}
+            style={{
+              padding: "26px 56px",
+              background: "#E8500A",
+              color: "#FFFFFF",
+              fontFamily: "Inter, sans-serif",
+              fontWeight: 600,
+              fontSize: 18,
+              letterSpacing: "0.04em",
+              textTransform: "uppercase",
+              textDecoration: "none",
+              display: "inline-block",
+            }}
+          >
+            Entrar na lista  →
+          </a>
+        </div>
+
+        <p
+          style={{
+            marginTop: 56,
+            fontSize: 12,
+            letterSpacing: "0.3em",
+            color: "rgba(255,255,255,0.20)",
+            textTransform: "uppercase",
+          }}
+        >
+          Sem compromisso · 100% gratuito · Você só vê preço no convite
+        </p>
+      </div>
+    </section>
   );
 }
