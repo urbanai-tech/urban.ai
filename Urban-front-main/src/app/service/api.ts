@@ -1488,3 +1488,56 @@ export const runGeocoderNow = (limit = 30) =>
       failures: Array<{ id: string; reason: string }>;
     }>(`/events/geocoder/run?limit=${limit}`)
     .then((r) => r.data);
+
+// =================== Coverage Regions (admin) ===================
+
+export interface CoverageRegion {
+  id: string;
+  name: string;
+  status: 'active' | 'bootstrap' | 'inactive';
+  centerLat: number | null;
+  centerLng: number | null;
+  radiusKm: number | null;
+  minLat: number | null;
+  maxLat: number | null;
+  minLng: number | null;
+  maxLng: number | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CoverageStats {
+  activeRegions: number;
+  bootstrapRegions: number;
+  addresses: number;
+  addressRadiusKm: number;
+}
+
+export const fetchCoverageRegions = () =>
+  api.get<CoverageRegion[]>('/admin/coverage').then((r) => r.data);
+
+export const fetchCoverageStats = () =>
+  api.get<CoverageStats>('/admin/coverage/stats').then((r) => r.data);
+
+export const createCoverageRegion = (input: Partial<CoverageRegion>) =>
+  api.post<CoverageRegion>('/admin/coverage', input).then((r) => r.data);
+
+export const updateCoverageRegion = (id: string, input: Partial<CoverageRegion>) =>
+  api.patch<CoverageRegion>(`/admin/coverage/${id}`, input).then((r) => r.data);
+
+export const deleteCoverageRegion = (id: string) =>
+  api.delete<{ ok: true }>(`/admin/coverage/${id}`).then((r) => r.data);
+
+export const checkCoveragePoint = (latitude: number, longitude: number) =>
+  api
+    .post<{ latitude: number; longitude: number; inCoverage: boolean }>(
+      '/admin/coverage/check',
+      { latitude, longitude },
+    )
+    .then((r) => r.data);
+
+export const resetStaleEnrichment = () =>
+  api
+    .post<{ reset: number }>('/admin/coverage/reset-stale-enrichment')
+    .then((r) => r.data);

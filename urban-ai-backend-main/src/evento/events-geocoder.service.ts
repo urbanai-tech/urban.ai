@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Event } from '../entities/events.entity';
 import { MapsService } from '../maps/maps.service';
+import { CoverageService } from './coverage.service';
 
 /**
  * EventsGeocoderService — F6.2 Plus.
@@ -28,6 +29,7 @@ export class EventsGeocoderService {
   constructor(
     @InjectRepository(Event) private readonly eventRepo: Repository<Event>,
     private readonly mapsService: MapsService,
+    private readonly coverage: CoverageService,
   ) {}
 
   /**
@@ -75,11 +77,20 @@ export class EventsGeocoderService {
     for (const ev of pending) {
       try {
         const result = await this.mapsService.updateLatLngByEventId(ev.id);
-        if (result?.ok) {
-          // Geocode bem-sucedido — ativa pro motor e remove da fila
+        if (result?.ok && Number.isFinite(result.lat) && Number.isFinite(result.lng)) {
+          // Geocode bem-sucedido — agora valida cobertura
+          const inCoverage = await this.coverage.isWithinCoverage(
+            Number(result.lat),
+            Number(result.lng),
+          );
           await this.eventRepo.update(
             { id: ev.id },
-            { pendingGeocode: false, ativo: true },
+            {
+              pendingGeocode: false,
+              outOfScope: !inCoverage,
+              // Só ativa se tá dentro da cobertura — fora vira out-of-scope
+              ativo: inCoverage,
+            },
           );
           succeeded++;
         } else {
