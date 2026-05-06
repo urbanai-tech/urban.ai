@@ -310,10 +310,18 @@ export class AdminService {
     const enrichmentPercent =
       total > 0 ? Math.round((withRelevance / total) * 1000) / 10 : 0;
 
+    // Contadores de cobertura geográfica (F6.2 Plus)
+    const [inScope, outOfScope] = await Promise.all([
+      this.eventRepo.count({ where: { outOfScope: false } }),
+      this.eventRepo.count({ where: { outOfScope: true } }),
+    ]);
+
     return {
       summary: {
         total,
         ativos,
+        inScope,
+        outOfScope,
         coveragePercent, // % com coordenadas
         enrichmentPercent, // % com relevância (Gemini)
         coordsMissing: total - withCoords,
@@ -571,6 +579,171 @@ export class AdminService {
       byStatus: byStatus.map((r: any) => ({ status: r.status, count: Number(r.count) })),
       byOrigin: byOrigin.map((r: any) => ({ origin: r.origin, count: Number(r.count) })),
       distinctListings,
+    };
+  }
+
+  // ========================================================================
+  // F6.2 Plus — Listing paginada de eventos com filtro de cobertura
+  // ========================================================================
+
+  /**
+   * Lista paginada de eventos para o painel admin com filtros.
+   * Usado pelo `/admin/events` quando admin quer auditar eventos individualmente.
+   *
+   * @param filters.scope 'in' (default — só dentro da cobertura) | 'out' | 'all'
+   * @param filters.source filtro por source (api-football, sympla, scraper-eventim, etc.)
+   * @param filters.search match contra nome/cidade
+   * @param filters.upcoming se true, só dataInicio >= now
+   */
+  async eventsListing(filters: {
+    page?: number;
+    limit?: number;
+    scope?: 'in' | 'out' | 'all';
+    source?: string;
+    search?: string;
+    upcoming?: boolean;
+  }) {
+    const page = Math.max(1, filters.page ?? 1);
+    const limit = Math.min(100, Math.max(1, filters.limit ?? 50));
+    const scope = filters.scope ?? 'in';
+
+    const qb = this.eventRepo.createQueryBuilder('e');
+
+    if (scope === 'in') qb.andWhere('e.outOfScope = :v', { v: false });
+    else if (scope === 'out') qb.andWhere('e.outOfScope = :v', { v: true });
+
+    if (filters.source) qb.andWhere('e.source = :src', { src: filters.source });
+
+    if (filters.upcoming) qb.andWhere('e.dataInicio >= :now', { now: new Date() });
+
+    if (filters.search) {
+      const like = `%${filters.search.toLowerCase()}%`;
+      qb.andWhere(
+        '(LOWER(e.nome) LIKE :like OR LOWER(COALESCE(e.cidade, \'\')) LIKE :like)',
+        { like },
+      );
+    }
+
+    qb.orderBy('e.dataInicio', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [items, total] = await qb.getManyAndCount();
+
+    return {
+      page,
+      limit,
+      total,
+      scope,
+      items: items.map((e) => ({
+        id: e.id,
+        nome: e.nome,
+        cidade: e.cidade,
+        estado: e.estado,
+        dataInicio: e.dataInicio,
+        dataFim: e.dataFim,
+        categoria: e.categoria,
+        relevancia: e.relevancia,
+        capacidadeEstimada: e.capacidadeEstimada,
+        raioImpactoKm: e.raioImpactoKm,
+        venueType: e.venueType,
+        venueCapacity: e.venueCapacity,
+        source: e.source,
+        outOfScope: e.outOfScope,
+        pendingGeocode: e.pendingGeocode,
+        ativo: e.ativo,
+        latitude: e.latitude,
+        longitude: e.longitude,
+        enrichmentAttempts: e.enrichmentAttempts,
+        enrichmentLastError: e.enrichmentLastError,
+        crawledUrl: e.crawledUrl,
+      })),
+    };
+  }
+
+  // ========================================================================
+  // F6.2 Plus — Saúde dos coletores (por source)
+  // ========================================================================
+
+  /**
+   * Métricas de saúde por `source`. Usado pra debugar quais coletores estão
+   * trazendo lixo, qual fonte tem mais eventos out-of-scope, qual tem mais
+   * falhas de enrichment, etc.
+   *
+   * Considera todos os eventos NÃO-source-NULL agrupados por source.
+   * Inclui spider-* (legados Scrapy) e api-* / firecrawl / serpapi / tavily /
+   * sp-cultura / admin-* (Camadas 1+2+3).
+   */
+  async collectorsHealth() {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const rows = await this.eventRepo
+      .createQueryBuilder('e')
+      .select('COALESCE(e.source, \'(sem source)\')', 'source')
+      .addSelect('COUNT(*)', 'total')
+      .addSelect(
+        'SUM(CASE WHEN e.dataCrawl >= :sevenDaysAgo THEN 1 ELSE 0 END)',
+        'last7d',
+      )
+      .addSelect(
+        'SUM(CASE WHEN e.dataCrawl >= :oneDayAgo THEN 1 ELSE 0 END)',
+        'last24h',
+      )
+      .addSelect(
+        'SUM(CASE WHEN e.outOfScope = TRUE THEN 1 ELSE 0 END)',
+        'outOfScope',
+      )
+      .addSelect(
+        'SUM(CASE WHEN e.pendingGeocode = TRUE THEN 1 ELSE 0 END)',
+        'pendingGeocode',
+      )
+      .addSelect(
+        'SUM(CASE WHEN e.relevancia IS NULL AND e.outOfScope = FALSE THEN 1 ELSE 0 END)',
+        'pendingEnrichment',
+      )
+      .addSelect(
+        'SUM(CASE WHEN e.relevancia IS NOT NULL THEN 1 ELSE 0 END)',
+        'enriched',
+      )
+      .addSelect(
+        'SUM(CASE WHEN e.enrichmentLastError IS NOT NULL THEN 1 ELSE 0 END)',
+        'withErrors',
+      )
+      .addSelect('MAX(e.dataCrawl)', 'lastSeen')
+      .setParameter('sevenDaysAgo', sevenDaysAgo)
+      .setParameter('oneDayAgo', oneDayAgo)
+      .groupBy('source')
+      .orderBy('total', 'DESC')
+      .getRawMany();
+
+    return {
+      generatedAt: new Date().toISOString(),
+      sources: rows.map((r: any) => {
+        const total = Number(r.total ?? 0);
+        const outOfScope = Number(r.outOfScope ?? 0);
+        const pendingEnrichment = Number(r.pendingEnrichment ?? 0);
+        const enriched = Number(r.enriched ?? 0);
+        const withErrors = Number(r.withErrors ?? 0);
+        return {
+          source: r.source,
+          total,
+          last7d: Number(r.last7d ?? 0),
+          last24h: Number(r.last24h ?? 0),
+          outOfScope,
+          outOfScopePercent:
+            total > 0 ? Math.round((outOfScope / total) * 1000) / 10 : 0,
+          pendingGeocode: Number(r.pendingGeocode ?? 0),
+          pendingEnrichment,
+          enriched,
+          withErrors,
+          errorRate:
+            enriched + withErrors > 0
+              ? Math.round((withErrors / (enriched + withErrors)) * 1000) / 10
+              : 0,
+          lastSeen: r.lastSeen ?? null,
+        };
+      }),
     };
   }
 }

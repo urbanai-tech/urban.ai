@@ -66,6 +66,37 @@ export class AdminController {
     return this.admin.eventsAnalytics();
   }
 
+  @ApiOperation({
+    summary:
+      'Listagem paginada de eventos com filtros (scope, source, search). Default scope=in.',
+  })
+  @Get('events/list')
+  async eventsList(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '50',
+    @Query('scope') scope: string = 'in',
+    @Query('source') source?: string,
+    @Query('search') search?: string,
+    @Query('upcoming') upcoming?: string,
+  ) {
+    return this.admin.eventsListing({
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+      scope: (scope === 'out' || scope === 'all' ? scope : 'in') as 'in' | 'out' | 'all',
+      source,
+      search,
+      upcoming: upcoming === 'true',
+    });
+  }
+
+  @ApiOperation({
+    summary: 'Saúde dos coletores agrupada por source (volume, % out-of-scope, errors)',
+  })
+  @Get('events/collectors-health')
+  async collectorsHealth() {
+    return this.admin.collectorsHealth();
+  }
+
   @ApiOperation({ summary: 'Saúde da integração Stays (contas, listings, push history)' })
   @Get('stays/health')
   async staysHealth() {
