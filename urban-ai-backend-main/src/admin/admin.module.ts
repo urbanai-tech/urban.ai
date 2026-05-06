@@ -13,6 +13,8 @@ import { StaysAccount } from '../entities/stays-account.entity';
 import { StaysListing } from '../entities/stays-listing.entity';
 import { Plan } from '../entities/plan.entity';
 import { PlatformCost } from '../entities/platform-cost.entity';
+import { Waitlist } from '../entities/waitlist.entity';
+import { CoverageRegion } from '../entities/coverage-region.entity';
 import { AdminService } from './admin.service';
 import { AdminFinanceService } from './finance.service';
 import { StripeSyncCheckService } from './stripe-sync.service';
@@ -36,6 +38,8 @@ import { KnnEngineModule } from '../knn-engine/knn-engine.module';
       StaysListing,
       Plan,
       PlatformCost,
+      Waitlist,
+      CoverageRegion,
     ]),
     AuthModule,
     KnnEngineModule,

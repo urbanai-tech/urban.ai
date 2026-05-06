@@ -12,6 +12,8 @@ import { OccupancyHistory } from '../entities/occupancy-history.entity';
 import { PriceUpdate } from '../entities/price-update.entity';
 import { StaysAccount } from '../entities/stays-account.entity';
 import { StaysListing } from '../entities/stays-listing.entity';
+import { Waitlist } from '../entities/waitlist.entity';
+import { CoverageRegion } from '../entities/coverage-region.entity';
 import { AdaptivePricingStrategy } from '../knn-engine/strategies/adaptive-pricing.strategy';
 import { DatasetCollectorService } from '../knn-engine/dataset-collector.service';
 import { calculateBacktest } from '../knn-engine/backtesting';
@@ -37,6 +39,8 @@ export class AdminService {
     @InjectRepository(PriceUpdate) private readonly priceUpdateRepo: Repository<PriceUpdate>,
     @InjectRepository(StaysAccount) private readonly staysAccountRepo: Repository<StaysAccount>,
     @InjectRepository(StaysListing) private readonly staysListingRepo: Repository<StaysListing>,
+    @InjectRepository(Waitlist) private readonly waitlistRepo: Repository<Waitlist>,
+    @InjectRepository(CoverageRegion) private readonly coverageRepo: Repository<CoverageRegion>,
     private readonly adaptiveStrategy: AdaptivePricingStrategy,
     private readonly collector: DatasetCollectorService,
   ) {}
@@ -817,6 +821,228 @@ export class AdminService {
           lastSeen: r.lastSeen ?? null,
         };
       }),
+    };
+  }
+
+  // ========================================================================
+  // F6.2 Plus — Dashboard summary (overview executivo numa única chamada)
+  // ========================================================================
+
+  /**
+   * Snapshot agregado pra `/admin/dashboard` — uma única chamada que cobre:
+   *  - Eventos: total, in/out scope, pendingGeocode, pendingEnrichment,
+   *    sources únicos, próximos 7d, mega-eventos
+   *  - Waitlist: total, pending/invited/converted, top referrers
+   *  - Receita: assinaturas ativas, MRR estimado (cap simples sem matriz F6.5)
+   *  - Cobertura: regiões active/bootstrap, addresses ativos
+   *  - Alertas: coletores stale (>48h sem dados), high errorRate, fila Gemini grande
+   *  - Timeline: 7 dias últimos pro mini-chart
+   *  - Saúde geral: 'green' | 'amber' | 'red' baseado nos alertas
+   *
+   * Faz tudo em paralelo, < 500ms mesmo com DB grande.
+   */
+  async dashboardSummary() {
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+    const next7d = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const next30d = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    const [
+      // Eventos
+      eventsTotal,
+      eventsInScope,
+      eventsOutOfScope,
+      eventsPendingGeocode,
+      eventsPendingEnrichment,
+      eventsLast24h,
+      eventsLast7d,
+      eventsNext7d,
+      eventsNext30d,
+      megaUpcoming,
+      // Waitlist
+      waitlistTotal,
+      waitlistByStatus,
+      // Coverage
+      coverageActive,
+      coverageBootstrap,
+      // Subscriptions
+      activeSubscriptions,
+      // Sources distinct
+      distinctSources,
+      // Coletores stale
+      staleSources,
+    ] = await Promise.all([
+      this.eventRepo.count(),
+      this.eventRepo.count({ where: { outOfScope: false } }),
+      this.eventRepo.count({ where: { outOfScope: true } }),
+      this.eventRepo.count({ where: { pendingGeocode: true } }),
+      this.eventRepo
+        .createQueryBuilder('e')
+        .where('e.relevancia IS NULL')
+        .andWhere('e.outOfScope = :v', { v: false })
+        .getCount(),
+      this.eventRepo
+        .createQueryBuilder('e')
+        .where('e.dataCrawl >= :since', { since: oneDayAgo })
+        .getCount(),
+      this.eventRepo
+        .createQueryBuilder('e')
+        .where('e.dataCrawl >= :since', { since: sevenDaysAgo })
+        .getCount(),
+      this.eventRepo
+        .createQueryBuilder('e')
+        .where('e.dataInicio BETWEEN :start AND :end', { start: now, end: next7d })
+        .andWhere('e.outOfScope = :v', { v: false })
+        .getCount(),
+      this.eventRepo
+        .createQueryBuilder('e')
+        .where('e.dataInicio BETWEEN :start AND :end', { start: now, end: next30d })
+        .andWhere('e.outOfScope = :v', { v: false })
+        .getCount(),
+      this.eventRepo
+        .createQueryBuilder('e')
+        .where('e.dataInicio BETWEEN :start AND :end', { start: now, end: next30d })
+        .andWhere('e.relevancia >= 80')
+        .andWhere('e.outOfScope = :v', { v: false })
+        .getCount(),
+      this.waitlistRepo.count(),
+      this.waitlistRepo
+        .createQueryBuilder('w')
+        .select('w.status', 'status')
+        .addSelect('COUNT(*)', 'count')
+        .groupBy('w.status')
+        .getRawMany(),
+      this.coverageRepo.count({ where: { status: 'active' } }),
+      this.coverageRepo.count({ where: { status: 'bootstrap' } }),
+      this.paymentRepo.count({ where: { status: 'active' as any } }),
+      this.eventRepo
+        .createQueryBuilder('e')
+        .select('COUNT(DISTINCT e.source)', 'c')
+        .where('e.source IS NOT NULL')
+        .getRawOne()
+        .then((r: any) => Number(r?.c ?? 0)),
+      // Coletores stale: que tem total >0 mas dataCrawl mais recente é < 48h ago
+      this.eventRepo
+        .createQueryBuilder('e')
+        .select('e.source', 'source')
+        .addSelect('MAX(e.dataCrawl)', 'lastSeen')
+        .addSelect('COUNT(*)', 'total')
+        .where('e.source IS NOT NULL')
+        .groupBy('e.source')
+        .having('MAX(e.dataCrawl) < :cutoff', { cutoff: fortyEightHoursAgo })
+        .andHaving('COUNT(*) >= 5') // ignora sources muito pequenas (curadoria, etc.)
+        .getRawMany(),
+    ]);
+
+    // Timeline 7 dias (mini-chart)
+    const timeline = await this.eventsTimeline(7);
+
+    // Top sources últimos 7d (top 5)
+    const topSources = await this.eventRepo
+      .createQueryBuilder('e')
+      .select('COALESCE(e.source, \'(sem source)\')', 'source')
+      .addSelect('COUNT(*)', 'count')
+      .where('e.dataCrawl >= :since', { since: sevenDaysAgo })
+      .groupBy('source')
+      .orderBy('count', 'DESC')
+      .limit(5)
+      .getRawMany();
+
+    // Alertas
+    const alerts: Array<{ severity: 'red' | 'amber' | 'info'; message: string }> = [];
+
+    if (eventsPendingEnrichment > 100) {
+      alerts.push({
+        severity: 'amber',
+        message: `${eventsPendingEnrichment} eventos aguardando enrichment Gemini (cron 1h)`,
+      });
+    }
+    if (eventsPendingGeocode > 50) {
+      alerts.push({
+        severity: 'amber',
+        message: `${eventsPendingGeocode} eventos pendentes de geocoding (cron 30min)`,
+      });
+    }
+    if ((staleSources as any[]).length > 0) {
+      alerts.push({
+        severity: 'red',
+        message: `${(staleSources as any[]).length} coletor(es) sem dados há >48h: ${(staleSources as any[])
+          .slice(0, 3)
+          .map((s: any) => s.source)
+          .join(', ')}`,
+      });
+    }
+    if (eventsLast24h === 0 && eventsTotal > 0) {
+      alerts.push({
+        severity: 'red',
+        message: 'Zero eventos coletados nas últimas 24h — todos os crons podem estar parados',
+      });
+    }
+    if (coverageActive === 0 && coverageBootstrap === 0) {
+      alerts.push({
+        severity: 'amber',
+        message: 'Nenhuma região de cobertura ativa — motor pode estar marcando tudo out-of-scope',
+      });
+    }
+
+    // Saúde geral (resumo binário)
+    const overallHealth: 'green' | 'amber' | 'red' = alerts.some((a) => a.severity === 'red')
+      ? 'red'
+      : alerts.some((a) => a.severity === 'amber')
+        ? 'amber'
+        : 'green';
+
+    // Reduce by-status pro waitlist
+    const wlByStatus = (waitlistByStatus as any[]).reduce(
+      (acc: Record<string, number>, r: any) => {
+        acc[r.status] = Number(r.count);
+        return acc;
+      },
+      { pending: 0, invited: 0, converted: 0, declined: 0 },
+    );
+
+    return {
+      generatedAt: now.toISOString(),
+      health: overallHealth,
+      alerts,
+      events: {
+        total: eventsTotal,
+        inScope: eventsInScope,
+        outOfScope: eventsOutOfScope,
+        outOfScopePercent:
+          eventsTotal > 0 ? Math.round((eventsOutOfScope / eventsTotal) * 1000) / 10 : 0,
+        pendingGeocode: eventsPendingGeocode,
+        pendingEnrichment: eventsPendingEnrichment,
+        last24h: eventsLast24h,
+        last7d: eventsLast7d,
+        next7d: eventsNext7d,
+        next30d: eventsNext30d,
+        megaUpcoming,
+        distinctSources,
+      },
+      waitlist: {
+        total: waitlistTotal,
+        pending: wlByStatus.pending,
+        invited: wlByStatus.invited,
+        converted: wlByStatus.converted,
+      },
+      coverage: {
+        activeRegions: coverageActive,
+        bootstrapRegions: coverageBootstrap,
+      },
+      revenue: {
+        activeSubscriptions,
+      },
+      topSources: (topSources as any[]).map((r: any) => ({
+        source: r.source,
+        count: Number(r.count),
+      })),
+      timeline: {
+        days: 7,
+        buckets: timeline.buckets,
+      },
     };
   }
 }

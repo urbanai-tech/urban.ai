@@ -74,11 +74,19 @@ export default function AdminPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        <header>
-          <h1 className="text-3xl font-bold mb-2">Painel Urban AI</h1>
-          <p className="text-slate-400">
-            Visão consolidada da operação. Acesso restrito a usuários com role=admin.
-          </p>
+        <header className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Painel Urban AI</h1>
+            <p className="text-slate-400">
+              Visão consolidada da operação. Acesso restrito a usuários com role=admin.
+            </p>
+          </div>
+          <a
+            href="/admin/dashboard"
+            className="px-4 py-2 rounded-xl bg-emerald-500 text-slate-900 font-bold text-sm hover:bg-emerald-400 transition-colors"
+          >
+            Dashboard executivo →
+          </a>
         </header>
 
         {/* === Overview KPIs === */}

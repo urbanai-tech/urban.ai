@@ -13,6 +13,12 @@ uv run python -m urban_webscrapping.collectors.marcha_para_jesus  || echo "Aviso
 uv run python -m urban_webscrapping.collectors.allianz_parque     || echo "Aviso: allianz_parque falhou"
 uv run python -m urban_webscrapping.collectors.anhembi            || echo "Aviso: anhembi falhou"
 uv run python -m urban_webscrapping.collectors.sao_paulo_expo     || echo "Aviso: sao_paulo_expo falhou"
+uv run python -m urban_webscrapping.collectors.expo_center_norte  || echo "Aviso: expo_center_norte falhou"
+uv run python -m urban_webscrapping.collectors.transamerica_expo  || echo "Aviso: transamerica_expo falhou"
+uv run python -m urban_webscrapping.collectors.vibra_sao_paulo    || echo "Aviso: vibra_sao_paulo falhou"
+uv run python -m urban_webscrapping.collectors.tokio_marine_hall  || echo "Aviso: tokio_marine_hall falhou"
+uv run python -m urban_webscrapping.collectors.espaco_unimed      || echo "Aviso: espaco_unimed falhou"
+uv run python -m urban_webscrapping.collectors.wtc_sao_paulo      || echo "Aviso: wtc_sao_paulo falhou"
 
 # Camada 2 — Web search + LLM extraction
 uv run python -m urban_webscrapping.collectors.serpapi_events || echo "Aviso: serpapi_events falhou"
