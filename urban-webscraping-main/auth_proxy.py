@@ -27,6 +27,22 @@ def start_scrapyd():
     return proc
 
 
+def cron_worker():
+    """Executa os coletores diariamente em background."""
+    while True:
+        try:
+            print("[cron-worker] Iniciando bateria de coletores REST...", flush=True)
+            # Execute the shell script
+            script_path = os.path.join(os.getcwd(), "scripts", "run_all_collectors.sh")
+            subprocess.run(["bash", script_path], check=True)
+            print("[cron-worker] Bateria de coletores finalizada com sucesso.", flush=True)
+        except Exception as e:
+            print(f"[cron-worker] Erro ao executar coletores: {e}", flush=True)
+        
+        # Dorme por 24 horas (86400 segundos)
+        time.sleep(86400)
+
+
 def wait_for_scrapyd(timeout=30):
     """Wait until scrapyd is ready."""
     start = time.time()
@@ -109,6 +125,11 @@ def main():
 
     auth_status = "ENABLED" if API_KEY else "DISABLED (no SCRAPYD_API_KEY set)"
     print(f"[auth-proxy] Auth proxy listening on port {PROXY_PORT} (auth: {auth_status})", flush=True)
+
+    # Inicia o cron-worker em background
+    cron_thread = threading.Thread(target=cron_worker, daemon=True)
+    cron_thread.start()
+    print("[auth-proxy] Cron worker started in background.", flush=True)
 
     server = HTTPServer(("0.0.0.0", PROXY_PORT), AuthProxyHandler)
 

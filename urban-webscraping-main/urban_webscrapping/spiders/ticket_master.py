@@ -22,8 +22,8 @@ class TicketMasterSpider(Spider):
         custom_conf = OmegaConf.load(f)
     custom_settings = OmegaConf.to_container(custom_conf, resolve=True)
 
-    async def start(self):
-        base_url = "https://app.ticketmaster.com/discovery/v2/events?apikey={}&unit=km&source=ticketmaster&locale=*&countryCode=BR&stateCode=SP"
+    def start_requests(self):
+        base_url = "https://app.ticketmaster.com/discovery/v2/events?apikey={}&unit=km&locale=*&countryCode=BR&stateCode=SP&size=100"
 
         api_key = os.getenv("TICKETMASTER_API_KEY")
 
@@ -39,7 +39,7 @@ class TicketMasterSpider(Spider):
             callback=self.parse,
         )
 
-    async def parse(self, response):
+    def parse(self, response):
         ticket_helper = TicketMasterHelper()
         try:
             data = response.json()
@@ -58,6 +58,9 @@ class TicketMasterSpider(Spider):
         links = data.get("_links", {})
         if "next" in links:
             next_url = urljoin(response.url, links["next"]["href"])
+            api_key = os.getenv("TICKETMASTER_API_KEY")
+            if "apikey=" not in next_url and api_key:
+                next_url += f"&apikey={api_key}"
             yield Request(url=next_url, meta={"playwright": False}, callback=self.parse)
 
     async def errback(self, failure):

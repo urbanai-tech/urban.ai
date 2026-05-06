@@ -62,24 +62,24 @@ class EvenThreeSpider(CrawlSpider):
 
     @staticmethod
     def _parse_name(loader: EventLoader) -> EventLoader:
-        loader.add_xpath("name", "/html/body/div[3]/div/div/div/div[1]/h1/text()")
+        loader.add_xpath("nome", "/html/body/div[3]/div/div/div/div[1]/h1/text()")
         return loader
 
     @staticmethod
     def _parse_image_url(loader: EventLoader) -> EventLoader:
-        loader.add_xpath("image_url", "/html/body/div[2]/img/@src")
+        loader.add_xpath("imagem_url", "/html/body/div[2]/img/@src")
         return loader
 
     @staticmethod
     def _parse_page_url(response: Response, loader: EventLoader) -> EventLoader:
-        loader.add_value("page_url", response.url)
+        loader.add_value("linkSiteOficial", response.url)
         return loader
 
     @staticmethod
     def _parse_location(response: Response, loader: EventLoader) -> EventLoader:
         locations = response.xpath('//*[@id="evento_presencial"]//text()').getall()
         address = "".join(locations).strip()
-        loader.add_value("address", address)
+        loader.add_value("enderecoCompleto", address)
         return loader
 
     @staticmethod
@@ -87,6 +87,6 @@ class EvenThreeSpider(CrawlSpider):
         dates = response.xpath('//*[@id="horarios"]//span[@id]/text()').getall()[:2]
         if dates:
             dates = [date.replace("–", " ").strip() for date in dates]
-            loader.add_value("start_date", dates[0])
-            loader.add_value("end_date", dates[1])
+            loader.add_value("dataInicio", dates[0])
+            loader.add_value("dataFim", dates[1])
         return loader
