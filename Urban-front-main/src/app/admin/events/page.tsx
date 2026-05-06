@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import {
   fetchAdminEvents,
   fetchAdminEventsList,
+  fetchEventsTimeline,
   type AdminEventsAnalytics,
   type EventListItem,
+  type EventsTimelineResponse,
 } from "../../service/api";
 
 /**
@@ -36,6 +38,10 @@ export default function AdminEventsPage() {
   const [sourceFilter, setSourceFilter] = useState('');
   const [page, setPage] = useState(1);
 
+  // Timeline
+  const [timeline, setTimeline] = useState<EventsTimelineResponse | null>(null);
+  const [timelineDays, setTimelineDays] = useState(30);
+
   useEffect(() => {
     fetchAdminEvents()
       .then(setData)
@@ -49,6 +55,10 @@ export default function AdminEventsPage() {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetchEventsTimeline(timelineDays).then(setTimeline).catch(() => {});
+  }, [timelineDays]);
 
   async function loadListing() {
     setListingLoading(true);
@@ -205,6 +215,30 @@ export default function AdminEventsPage() {
               </tbody>
             </table>
           </div>
+        </section>
+
+        {/* ============== Timeline de ingestão ============== */}
+        <section>
+          <header className="flex items-center justify-between mb-3">
+            <h2 className="text-xl font-bold">Evolução de ingestão</h2>
+            <div className="flex gap-1">
+              {[7, 14, 30, 60, 90].map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setTimelineDays(d)}
+                  className={`text-xs px-2 py-1 rounded ${
+                    timelineDays === d
+                      ? "bg-emerald-500 text-slate-900 font-bold"
+                      : "border border-slate-700 hover:bg-slate-800"
+                  }`}
+                >
+                  {d}d
+                </button>
+              ))}
+            </div>
+          </header>
+
+          {timeline && <TimelineChart data={timeline} />}
         </section>
 
         {/* ============== Listagem detalhada com filtros ============== */}
@@ -453,5 +487,116 @@ function BarList({ rows }: { rows: Array<{ label: string; value: number }> }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+// ============== TimelineChart ==============
+
+function TimelineChart({ data }: { data: EventsTimelineResponse }) {
+  const buckets = data.buckets;
+  const maxTotal = Math.max(
+    ...buckets.map((b) => b.inScope + b.outOfScope),
+    1,
+  );
+
+  // Mostra label de data esparso pra não poluir
+  const labelStep = Math.max(1, Math.floor(buckets.length / 8));
+
+  return (
+    <div className="border border-slate-800 rounded-xl bg-slate-900/40 p-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 text-xs">
+        <div>
+          <p className="text-slate-500 uppercase">Período</p>
+          <p className="text-slate-200 font-bold mt-0.5">{data.days}d</p>
+        </div>
+        <div>
+          <p className="text-slate-500 uppercase">Total in-scope</p>
+          <p className="text-emerald-300 font-bold mt-0.5">
+            {data.totalInScope.toLocaleString("pt-BR")}
+          </p>
+        </div>
+        <div>
+          <p className="text-slate-500 uppercase">Total out-of-scope</p>
+          <p className="text-red-300 font-bold mt-0.5">
+            {data.totalOutScope.toLocaleString("pt-BR")}
+          </p>
+        </div>
+        <div>
+          <p className="text-slate-500 uppercase">Pico</p>
+          <p className="text-slate-200 font-bold mt-0.5">
+            {data.peakDay.day
+              ? `${new Date(data.peakDay.day).toLocaleDateString("pt-BR")}: ${data.peakDay.total}`
+              : "—"}
+          </p>
+        </div>
+      </div>
+
+      {/* Stacked bar chart simples em SVG/CSS */}
+      <div className="flex items-end gap-px h-32 border-b border-slate-700 pb-1">
+        {buckets.map((b) => {
+          const total = b.inScope + b.outOfScope;
+          const inHeight = total > 0 ? (b.inScope / maxTotal) * 100 : 0;
+          const outHeight = total > 0 ? (b.outOfScope / maxTotal) * 100 : 0;
+          return (
+            <div
+              key={b.day}
+              className="flex-1 flex flex-col justify-end relative group min-w-0"
+              title={`${new Date(b.day).toLocaleDateString("pt-BR")} — in: ${b.inScope}, out: ${b.outOfScope}`}
+            >
+              {/* Out-of-scope no topo */}
+              {b.outOfScope > 0 && (
+                <div
+                  className="bg-red-400 hover:bg-red-300 transition-colors"
+                  style={{ height: `${outHeight}%` }}
+                />
+              )}
+              {/* In-scope embaixo */}
+              {b.inScope > 0 && (
+                <div
+                  className="bg-emerald-400 hover:bg-emerald-300 transition-colors"
+                  style={{ height: `${inHeight}%` }}
+                />
+              )}
+              {/* Tooltip on hover */}
+              <div className="opacity-0 group-hover:opacity-100 absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-[10px] whitespace-nowrap pointer-events-none z-10">
+                <div className="font-bold">
+                  {new Date(b.day).toLocaleDateString("pt-BR", {
+                    day: "2-digit",
+                    month: "short",
+                  })}
+                </div>
+                <div className="text-emerald-300">in: {b.inScope}</div>
+                <div className="text-red-300">out: {b.outOfScope}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Labels do eixo X */}
+      <div className="flex gap-px mt-1 text-[9px] text-slate-500">
+        {buckets.map((b, i) => (
+          <div key={b.day} className="flex-1 text-center min-w-0">
+            {i % labelStep === 0
+              ? new Date(b.day).toLocaleDateString("pt-BR", {
+                  day: "2-digit",
+                  month: "2-digit",
+                })
+              : ""}
+          </div>
+        ))}
+      </div>
+
+      <div className="flex gap-4 mt-3 text-xs">
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 h-3 bg-emerald-400 rounded-sm inline-block" />
+          <span className="text-slate-400">In-scope</span>
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-3 h-3 bg-red-400 rounded-sm inline-block" />
+          <span className="text-slate-400">Out-of-scope</span>
+        </span>
+      </div>
+    </div>
   );
 }

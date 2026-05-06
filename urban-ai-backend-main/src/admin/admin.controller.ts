@@ -97,6 +97,15 @@ export class AdminController {
     return this.admin.collectorsHealth();
   }
 
+  @ApiOperation({
+    summary:
+      'Timeline diária dos últimos N dias (in-scope vs out-of-scope) — gráfico de evolução',
+  })
+  @Get('events/timeline')
+  async eventsTimeline(@Query('days') days: string = '30') {
+    return this.admin.eventsTimeline(parseInt(days, 10));
+  }
+
   @ApiOperation({ summary: 'Saúde da integração Stays (contas, listings, push history)' })
   @Get('stays/health')
   async staysHealth() {

@@ -1621,3 +1621,26 @@ export interface CollectorsHealthResponse {
 
 export const fetchCollectorsHealth = () =>
   api.get<CollectorsHealthResponse>('/admin/events/collectors-health').then((r) => r.data);
+
+// =================== Events timeline ===================
+
+export interface EventsTimelineBucket {
+  day: string; // YYYY-MM-DD
+  inScope: number;
+  outOfScope: number;
+}
+
+export interface EventsTimelineResponse {
+  days: number;
+  generatedAt: string;
+  totalInScope: number;
+  totalOutScope: number;
+  avgPerDay: number;
+  peakDay: { day: string; total: number };
+  buckets: EventsTimelineBucket[];
+}
+
+export const fetchEventsTimeline = (days = 30) =>
+  api
+    .get<EventsTimelineResponse>('/admin/events/timeline', { params: { days } })
+    .then((r) => r.data);
