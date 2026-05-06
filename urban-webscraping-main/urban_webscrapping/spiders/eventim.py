@@ -44,14 +44,14 @@ class EventimSpider(Spider):
         for event in data["productGroups"]:
             yield {
                 "id": event["productGroupId"],
-                "name": event["name"],
-                "date": event.get("eventDate", ""),
-                "address": event["products"][0]
+                "nome": event["name"],
+                "dataInicio": event.get("eventDate", ""),
+                "enderecoCompleto": event["products"][0]
                 .get("typeAttributes", {})
                 .get("liveEntertainment", {})
                 .get("location", {})
                 .get("name", "Endereço não disponível"),
-                "imageUrl": event.get("imageUrl", ""),
+                "imagem_url": event.get("imageUrl", ""),
             }
 
         current_page = int(response.url.split("page=")[1].split("&")[0])
@@ -61,18 +61,18 @@ class EventimSpider(Spider):
             next_page = current_page + 1
             next_url = response.url.replace(f"page={current_page}", f"page={next_page}")
 
-        yield Request(
-            url=next_url,
-            meta={
-                "playwright": True,
-                "playwright_include_page": True,
-                "playwright_context": "eventim_context",
-                "playwright_page_methods": [
-                    PageMethod("wait_for_selector", "body", timeout=15000),
-                ],
-            },
-            callback=self.parse,
-        )
+            yield Request(
+                url=next_url,
+                meta={
+                    "playwright": True,
+                    "playwright_include_page": True,
+                    "playwright_context": "eventim_context",
+                    "playwright_page_methods": [
+                        PageMethod("wait_for_selector", "body", timeout=15000),
+                    ],
+                },
+                callback=self.parse,
+            )
 
     async def errback(self, failure):
         page = failure.request.meta.get("playwright_page")

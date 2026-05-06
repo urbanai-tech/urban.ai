@@ -31,13 +31,11 @@ class TicketMasterHelper():
         
         return {
             "id": event_id,
-            "name": name,
-            "event_url": event_url,
-            "image_url": image_url,
-            "date_start": date_start,
-            "time_start": time_start,
-            "datetime": datetime_utc,
-            "location": location,
+            "nome": name,
+            "linkSiteOficial": event_url,
+            "imagem_url": image_url,
+            "dataInicio": datetime_utc or date_start,
+            "enderecoCompleto": location,
             "postal_code": postal_code,
             "latitude": latitude,
             "longitude": longitude

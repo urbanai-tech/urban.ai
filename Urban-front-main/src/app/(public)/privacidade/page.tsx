@@ -32,10 +32,10 @@ export default function Privacidade() {
           Política de Privacidade
         </Heading>
         <Text color="gray.500" mb={2} fontSize="sm">
-          Última atualização: 25 de abril de 2026
+          Última atualização: 05 de maio de 2026
         </Text>
         <Text color="gray.500" mb={8} fontSize="xs" fontStyle="italic">
-          Versão alinhada à Lei Geral de Proteção de Dados (Lei 13.709/2018 — LGPD).
+          Versão alinhada à Lei Geral de Proteção de Dados (Lei 13.709/2018 — LGPD). Documento DRAFT — revisão jurídica externa em andamento.
         </Text>
 
         <VStack spacing={6} align="flex-start" color="gray.700" lineHeight="tall" fontSize="md">
@@ -46,13 +46,22 @@ export default function Privacidade() {
             <Text>
               A <strong>Urban AI</strong> ("nós") é uma plataforma de precificação dinâmica
               para anfitriões de aluguel por temporada. Esta política descreve como tratamos
-              dados pessoais coletados quando você usa nossos serviços em <code>urban.ai</code>.
+              dados pessoais coletados quando você usa nossos serviços em <code>myurbanai.com</code>.
             </Text>
             <Text mt={2}>
-              <strong>Controlador dos dados:</strong> Urban AI (CNPJ a confirmar — empresa em
-              constituição). Para questões de privacidade, contate{" "}
-              <ChakraLink href="mailto:privacidade@urban.ai" color="blue.600">
-                privacidade@urban.ai
+              <strong>Controladora dos dados:</strong> MP IA Tecnologia Ltda, inscrita no CNPJ sob nº{" "}
+              <strong>62.497.936/0001-27</strong>, com sede na Rua Doutor Cesar, 530, Conj 804,
+              Santana, São Paulo/SP, CEP 02013-002.
+            </Text>
+            <Text mt={2}>
+              <strong>Operadora do produto:</strong> Gustavo Gouveia Macedo LTDA (nome fantasia "Guilds"),
+              CNPJ 44.361.255/0001-55, presta serviço contínuo de operação técnica e gestão do produto Urban AI
+              à MP IA Tecnologia desde fevereiro de 2026.
+            </Text>
+            <Text mt={2}>
+              Para questões de privacidade, contate{" "}
+              <ChakraLink href="mailto:privacidade@myurbanai.com" color="blue.600">
+                privacidade@myurbanai.com
               </ChakraLink>.
             </Text>
           </Box>
@@ -150,9 +159,12 @@ export default function Privacidade() {
               prestam serviços, sob acordos de proteção de dados:
             </Text>
             <UnorderedList spacing={2}>
+              <ListItem><strong>Guilds (Gustavo Gouveia Macedo LTDA)</strong> — operação técnica e gestão do produto desde fev/2026</ListItem>
               <ListItem><strong>Railway</strong> — hospedagem de servidor e banco de dados</ListItem>
               <ListItem><strong>Stripe</strong> — processamento de pagamento e cobrança recorrente</ListItem>
-              <ListItem><strong>Mailersend</strong> — envio de e-mails transacionais</ListItem>
+              <ListItem><strong>SendGrid (Twilio)</strong> — envio de e-mails transacionais (fluxos legados: recuperação de senha, alertas de imóveis)</ListItem>
+              <ListItem><strong>MailerSend</strong> — envio de e-mails transacionais (fluxos novos: waitlist, parte do cron)</ListItem>
+              <ListItem><strong>RapidAPI</strong> — enriquecimento de dados públicos do Airbnb (disponibilidade, preço de mercado)</ListItem>
               <ListItem><strong>Google Cloud (Maps + Gemini)</strong> — geocoding e análise de eventos</ListItem>
               <ListItem><strong>Sentry</strong> — monitoramento de erros (somente metadados técnicos, nunca payload de usuário)</ListItem>
               <ListItem><strong>Stays.net</strong> — quando você conecta sua conta para envio automático de preços</ListItem>
@@ -214,8 +226,8 @@ export default function Privacidade() {
             </UnorderedList>
             <Text mt={3}>
               Para exercer qualquer destes direitos, escreva para{" "}
-              <ChakraLink href="mailto:privacidade@urban.ai" color="blue.600">
-                privacidade@urban.ai
+              <ChakraLink href="mailto:privacidade@myurbanai.com" color="blue.600">
+                privacidade@myurbanai.com
               </ChakraLink>{" "}
               — respondemos em até 15 dias.
             </Text>
@@ -274,14 +286,16 @@ export default function Privacidade() {
               11. Encarregado de Proteção de Dados (DPO)
             </Heading>
             <Text>
-              <strong>DPO:</strong> Gustavo Macedo · {" "}
-              <ChakraLink href="mailto:dpo@urban.ai" color="blue.600">
-                dpo@urban.ai
-              </ChakraLink>
+              <strong>Encarregado (DPO):</strong> a designar (designação formal em curso).{" "}
+              Enquanto isso, o canal oficial é{" "}
+              <ChakraLink href="mailto:privacidade@myurbanai.com" color="blue.600">
+                privacidade@myurbanai.com
+              </ChakraLink>.
             </Text>
             <Text mt={2} fontSize="sm" color="gray.600">
-              Nosso DPO é o canal oficial para exercer seus direitos da LGPD e para
-              questões da Autoridade Nacional de Proteção de Dados (ANPD).
+              O canal acima é o ponto de contato oficial para exercer seus direitos da LGPD e
+              para questões da Autoridade Nacional de Proteção de Dados (ANPD). O nome do
+              Encarregado será publicado nesta página assim que a designação for formalizada.
             </Text>
           </Box>
           <Divider borderColor="gray.200" />

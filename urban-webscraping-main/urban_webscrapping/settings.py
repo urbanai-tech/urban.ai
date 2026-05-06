@@ -61,8 +61,8 @@ DOWNLOADER_MIDDLEWARES = {
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     # Bronze layer — mantido pra ML futuro / data lake
-    "urban_webscrapping.pipelines.S3ItemPipelineJson": 300,
-    "urban_webscrapping.pipelines.S3ItemPipelineParquet": 400,
+    # "urban_webscrapping.pipelines.S3ItemPipelineJson": 300,
+    # "urban_webscrapping.pipelines.S3ItemPipelineParquet": 400,
     # F6.2 Plus — envia eventos pro backend Urban AI (dedup + geocoding lazy)
     # Auto-desabilita se URBAN_COLLECTOR_EMAIL/PASSWORD não setadas (dev local).
     "urban_webscrapping.pipelines.UrbanIngestPipeline": 500,
