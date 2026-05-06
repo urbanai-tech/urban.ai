@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Urban AI · Portal de Marketing para Sócios</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Poppins:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Montserrat:wght@800;900&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#07101E; --surface:#0D1828; --surface-2:#111F32;
+    --border:rgba(255,255,255,0.07); --border-warm:rgba(232,80,10,0.22); --border-blue:rgba(59,130,246,0.2);
+    --text-1:#EEF2FF; --text-2:#7A8FAD; --text-3:#3D5070;
+    --accent:#E8500A; --accent-dim:rgba(232,80,10,0.10);
+    --blue:#3B82F6; --blue-dim:rgba(59,130,246,0.10); --blue-light:#60A5FA;
+    --green:#22C55E; --green-light:#10B981; --red:#EF4444; --red-light:#F87171; --amber:#F59E0B;
+    --purple:#A78BFA;
+    --f-display:'Syne',sans-serif; --f-body:'Poppins',sans-serif; --f-mono:'DM Mono',monospace;
+  }
+  body { background:var(--bg); color:var(--text-1); font-family:var(--f-body); min-height:100vh; line-height:1.6; }
+
+  .site-header { background:linear-gradient(135deg,#0A0F1D 0%,#0D1526 100%); border-bottom:1px solid var(--border); padding:20px 32px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+  .h-left { display:flex; align-items:center; gap:18px; }
+  .logo { font-family:var(--f-display); font-weight:800; font-size:22px; letter-spacing:-0.02em; }
+  .logo span { color:var(--accent); }
+  .h-version { font-family:var(--f-mono); font-size:11px; color:var(--text-3); letter-spacing:0.1em; text-transform:uppercase; padding-left:18px; border-left:1px solid var(--border); }
+  .header-badge { background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); color:var(--green); font-size:12px; font-weight:600; padding:4px 12px; border-radius:100px; }
+
+  .tabs-bar { background:var(--surface); border-bottom:1px solid var(--border); display:flex; overflow-x:auto; scrollbar-width:none; padding:0 16px; }
+  .tabs-bar::-webkit-scrollbar { display:none; }
+  .tab-btn { padding:16px 22px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:transparent; color:var(--text-2); border-bottom:3px solid transparent; white-space:nowrap; transition:all .2s; font-family:var(--f-body); }
+  .tab-btn:hover { color:var(--text-1); }
+  .tab-btn.active { color:var(--text-1); border-bottom-color:var(--accent); }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
+
+  .section-wrap { max-width:1280px; margin:0 auto; padding:48px 24px 80px; }
+  .section-label { font-family:var(--f-mono); font-size:11px; font-weight:500; letter-spacing:0.14em; color:var(--text-3); text-transform:uppercase; margin-bottom:12px; }
+  .section-title { font-family:var(--f-display); font-size:32px; font-weight:800; line-height:1.15; margin-bottom:10px; letter-spacing:-0.02em; }
+  .section-sub { font-size:15px; color:var(--text-2); margin-bottom:36px; line-height:1.7; max-width:760px; font-weight:300; }
+  code { font-family:var(--f-mono); font-size:12px; background:rgba(255,255,255,0.06); padding:2px 7px; border-radius:5px; color:var(--text-1); }
+
+  .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:48px; }
+  .kpi { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px; }
+  .kpi-label { font-family:var(--f-mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-3); margin-bottom:10px; }
+  .kpi-value { font-family:var(--f-display); font-size:34px; font-weight:800; letter-spacing:-0.02em; line-height:1; }
+  .kpi-value.green { color:var(--green); } .kpi-value.orange { color:var(--accent); } .kpi-value.blue { color:var(--blue); } .kpi-value.amber { color:var(--amber); } .kpi-value.purple { color:var(--purple); }
+  .kpi-note { font-size:11px; color:var(--text-3); margin-top:6px; font-weight:300; }
+
+  .item-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin-bottom:30px; }
+  .item-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px 24px; display:flex; flex-direction:column; gap:8px; transition:border-color .2s,transform .15s; text-decoration:none; color:inherit; }
+  .item-card:hover { border-color:var(--border-warm); transform:translateY(-1px); }
+  .item-name { font-family:var(--f-display); font-weight:700; font-size:15px; }
+  .item-desc { font-size:13px; color:var(--text-2); font-weight:300; line-height:1.55; }
+  .item-meta { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+  .pill { font-family:var(--f-mono); font-size:10px; letter-spacing:0.05em; text-transform:uppercase; padding:3px 9px; border-radius:6px; font-weight:500; }
+  .pill-green { background:rgba(34,197,94,0.10); color:var(--green); border:1px solid rgba(34,197,94,0.22); }
+  .pill-orange { background:var(--accent-dim); color:var(--accent); border:1px solid var(--border-warm); }
+  .pill-blue { background:var(--blue-dim); color:var(--blue); border:1px solid var(--border-blue); }
+  .pill-grey { background:rgba(255,255,255,0.04); color:var(--text-3); border:1px solid var(--border); }
+  .pill-red { background:rgba(239,68,68,0.08); color:var(--red); border:1px solid rgba(239,68,68,0.18); }
+  .pill-amber { background:rgba(245,158,11,0.10); color:var(--amber); border:1px solid rgba(245,158,11,0.24); }
+  .pill-purple { background:rgba(167,139,250,0.10); color:var(--purple); border:1px solid rgba(167,139,250,0.22); }
+  .new-badge { display:inline-block; background:var(--green); color:#000; font-size:9px; font-weight:800; padding:2px 6px; border-radius:4px; letter-spacing:0.08em; margin-left:6px; }
+  .v2-badge { display:inline-block; background:linear-gradient(90deg,#E8500A,#FB923C); color:#fff; font-size:9px; font-weight:800; padding:2px 6px; border-radius:4px; letter-spacing:0.08em; margin-left:6px; }
+
+  .open-btn { display:inline-flex; align-items:center; gap:8px; background:var(--accent); color:#fff; font-weight:600; font-size:13px; padding:9px 18px; border-radius:8px; text-decoration:none; transition:background .2s; margin-top:8px; align-self:flex-start; }
+  .open-btn:hover { background:#cf4709; }
+  .open-btn svg { width:13px; height:13px; }
+
+  /* POSTS */
+  .posts-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; }
+  .post-preview { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:transform .2s,border-color .2s; cursor:pointer; text-decoration:none; color:inherit; display:flex; flex-direction:column; }
+  .post-preview:hover { transform:translateY(-2px); border-color:var(--border-warm); }
+  .post-preview.is-founder { border-color:rgba(232,80,10,0.32); }
+  .post-preview.is-v2 { border-color:rgba(167,139,250,0.30); box-shadow:0 0 30px rgba(167,139,250,0.04); }
+
+  .post-canvas { aspect-ratio:4/5; padding:14px 14px 12px; position:relative; overflow:hidden; display:flex; flex-direction:column; }
+  .post-canvas-43 { aspect-ratio:3/4; padding:14px 14px 12px; position:relative; overflow:hidden; display:flex; flex-direction:column; }
+
+  .pc-label { font-family:var(--f-mono); font-size:8px; letter-spacing:0.14em; text-transform:uppercase; margin-bottom:8px; }
+  .pc-headline { font-family:var(--f-display); font-size:15px; font-weight:800; line-height:1.05; letter-spacing:-0.02em; margin-bottom:6px; }
+  .pc-headline em { font-style:normal; }
+  .pc-sub { font-size:9px; line-height:1.4; opacity:0.65; font-weight:300; }
+  .pc-bigtext { font-family:'Montserrat',sans-serif; font-weight:900; line-height:0.9; letter-spacing:-0.03em; margin:6px 0; }
+  .pc-foot { font-family:var(--f-mono); font-size:7px; letter-spacing:0.1em; opacity:0.55; text-transform:uppercase; padding-top:6px; border-top:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; margin-top:auto; }
+  .pc-tag-tpl { position:absolute; top:12px; right:12px; font-family:var(--f-mono); font-size:7px; padding:2px 5px; border-radius:3px; background:rgba(0,0,0,0.45); border:1px solid rgba(255,255,255,0.18); letter-spacing:0.06em; color:#fff; }
+  .pc-founder-tag { position:absolute; top:12px; left:12px; font-family:var(--f-mono); font-size:7px; padding:2px 5px; border-radius:3px; background:rgba(232,80,10,0.20); border:1px solid rgba(232,80,10,0.45); letter-spacing:0.06em; color:#FB923C; }
+  .pc-v2-tag { position:absolute; top:12px; left:12px; font-family:var(--f-mono); font-size:7px; padding:2px 5px; border-radius:3px; background:linear-gradient(90deg,#E8500A,#FB923C); letter-spacing:0.06em; color:#fff; font-weight:700; }
+
+  .post-info { padding:11px 14px; background:var(--surface); border-top:1px solid var(--border); }
+  .post-info-line { font-family:var(--f-display); font-weight:700; font-size:12px; margin-bottom:3px; display:flex; align-items:center; gap:5px; }
+  .post-info-meta { font-family:var(--f-mono); font-size:8px; color:var(--text-3); letter-spacing:0.08em; text-transform:uppercase; display:flex; justify-content:space-between; }
+
+  .pc-dark-orange { background:radial-gradient(ellipse at top,rgba(232,80,10,0.10),#07101E 70%); color:#fff; }
+  .pc-dark-blue { background:radial-gradient(ellipse at top right,rgba(59,130,246,0.10),#07101E 65%); color:#fff; }
+  .pc-dark-green { background:radial-gradient(ellipse at center,rgba(34,197,94,0.06),#07101E 65%); color:#fff; }
+  .pc-dark-mixed { background:linear-gradient(135deg,#07101E 0%,#0E1A2E 60%,rgba(232,80,10,0.18) 100%); color:#fff; }
+  .pc-dark-checklist { background:radial-gradient(circle at top right,rgba(245,158,11,0.18),#070B14 70%); color:#fff; }
+  .pc-light { background:#F8F9FC; color:#0A0F1D; }
+  .pc-light .pc-foot { border-top-color:rgba(0,0,0,0.08); opacity:1; color:#94A3B8; }
+  .pc-contrast { background:linear-gradient(90deg,#1f0f0f 0%,#1f0f0f 50%,#0c1428 50%,#0c1428 100%); color:#fff; }
+  .pc-launch { background:linear-gradient(135deg,#0A0F1D 0%,rgba(232,80,10,0.18) 100%); color:#fff; }
+  .pc-founder { background:linear-gradient(155deg,#07101E 0%,rgba(232,80,10,0.10) 50%,#07101E 100%); color:#fff; }
+
+  /* RICH PREVIEW (v2 posts) */
+  .pc-rich-area { flex:1; display:flex; align-items:center; justify-content:center; padding:8px 0; min-height:90px; }
+
+  /* mini iPhone mockup */
+  .mini-iphone { width:80px; height:130px; background:#000; border-radius:12px; padding:4px; box-shadow:0 8px 20px rgba(0,0,0,0.6); position:relative; }
+  .mini-iphone-screen { width:100%; height:100%; background:#07101E; border-radius:9px; padding:14px 6px 4px; display:flex; flex-direction:column; gap:3px; position:relative; }
+  .mini-iphone-notch { position:absolute; top:5px; left:50%; transform:translateX(-50%); width:32px; height:6px; background:#000; border-radius:6px; z-index:2; }
+  .mini-card { background:rgba(232,80,10,0.20); border:0.5px solid rgba(232,80,10,0.5); border-radius:4px; padding:4px; }
+  .mini-card-line { height:2px; background:rgba(255,255,255,0.4); border-radius:1px; margin:2px 0; }
+  .mini-card-line.short { width:50%; }
+  .mini-card-button { background:#E8500A; height:6px; border-radius:2px; margin-top:3px; }
+
+  /* mini macbook */
+  .mini-macbook { width:140px; }
+  .mini-macbook-screen { background:#1a1a1a; border-radius:5px 5px 0 0; padding:3px; }
+  .mini-macbook-tabs { display:flex; gap:2px; padding:1px; }
+  .mini-macbook-tab { width:3px; height:3px; border-radius:50%; }
+  .mini-macbook-display { background:#07101E; border-radius:2px; padding:5px; display:grid; grid-template-columns:repeat(4,1fr); gap:3px; }
+  .mini-kpi-cell { background:rgba(255,255,255,0.05); border-radius:2px; height:14px; }
+  .mini-kpi-cell.orange { background:rgba(232,80,10,0.18); }
+  .mini-kpi-cell.blue { background:rgba(59,130,246,0.18); }
+  .mini-kpi-cell.green { background:rgba(34,197,94,0.18); }
+  .mini-macbook-base { background:#2a2a2a; height:5px; border-radius:0 0 3px 3px; width:108%; margin-left:-4%; }
+
+  /* mini map */
+  .mini-map { width:120px; height:90px; position:relative; }
+
+  /* mini bars */
+  .mini-bars { display:flex; align-items:flex-end; gap:6px; height:80px; }
+  .mini-bar-pair { display:flex; gap:2px; align-items:flex-end; }
+  .mini-bar { width:7px; border-radius:1px 1px 0 0; }
+  .mini-bar.gray { background:#94A3B8; }
+  .mini-bar.green { background:linear-gradient(180deg,#22C55E,#16A34A); }
+
+  /* mini calendars antes/depois */
+  .mini-cal-pair { display:flex; gap:6px; }
+  .mini-cal { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; padding:3px; border-radius:3px; }
+  .mini-cal.before { background:rgba(239,68,68,0.06); }
+  .mini-cal.after { background:rgba(34,197,94,0.06); }
+  .mini-cal-cell { width:6px; height:6px; border-radius:1px; }
+  .mini-cal-cell.red { background:rgba(239,68,68,0.5); }
+  .mini-cal-cell.green { background:rgba(34,197,94,0.4); }
+  .mini-cal-cell.orange { background:#E8500A; }
+
+  /* mini icons set */
+  .mini-icons { display:flex; gap:6px; align-items:center; }
+  .mini-icon { width:38px; height:38px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+  .mini-icon.orange { background:rgba(232,80,10,0.15); border:1px solid rgba(232,80,10,0.4); }
+  .mini-icon.blue { background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.4); }
+  .mini-icon.solid-orange { background:linear-gradient(135deg,#E8500A,#FB923C); }
+
+  /* mini houses */
+  .mini-houses { display:flex; gap:3px; align-items:center; }
+  .mini-house { width:18px; height:18px; border-radius:3px; display:flex; align-items:center; justify-content:center; }
+  .mini-house.outline { background:rgba(232,80,10,0.15); border:1px solid rgba(232,80,10,0.4); }
+  .mini-house.solid { background:linear-gradient(135deg,#E8500A,#FB923C); }
+
+  /* mini radar */
+  .mini-radar { width:100px; height:100px; border-radius:50%; background:radial-gradient(circle,rgba(232,80,10,0.15),transparent 70%); position:relative; display:flex; align-items:center; justify-content:center; }
+  .mini-radar-center { width:18px; height:14px; background:#E8500A; border-radius:50%; }
+  .mini-radar-ring { position:absolute; border:1px dashed rgba(232,80,10,0.4); border-radius:50%; }
+
+  /* mini skyline */
+  .mini-skyline { display:flex; align-items:flex-end; gap:2px; height:50px; }
+  .mini-building { background:rgba(232,80,10,0.4); border:1px solid rgba(232,80,10,0.8); border-radius:2px 2px 0 0; }
+
+  /* mini avatar */
+  .mini-avatar { width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,#FB923C,#E8500A); padding:2px; }
+  .mini-avatar-inner { width:100%; height:100%; border-radius:50%; background:#0E1A2E; }
+
+  /* mini countdown */
+  .mini-countdown { display:flex; gap:4px; }
+  .mini-countdown-box { background:rgba(0,0,0,0.4); border:1px solid rgba(232,80,10,0.32); border-radius:4px; padding:4px 6px; min-width:30px; text-align:center; }
+  .mini-countdown-num { font-family:'Montserrat',sans-serif; font-weight:900; font-size:14px; color:#fff; line-height:1; }
+  .mini-countdown-label { font-family:var(--f-mono); font-size:6px; color:#FB923C; letter-spacing:0.1em; text-transform:uppercase; margin-top:2px; }
+
+  /* FILTERS */
+  .filter-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
+  .filter-btn { padding:7px 14px; border-radius:100px; font-size:12px; font-weight:600; border:1px solid var(--border); background:transparent; color:var(--text-2); cursor:pointer; transition:all .2s; font-family:var(--f-body); }
+  .filter-btn:hover { border-color:var(--accent); color:var(--text-1); }
+  .filter-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .filter-count { display:inline-block; background:rgba(255,255,255,0.1); padding:1px 6px; border-radius:8px; font-size:10px; margin-left:5px; }
+
+  /* CARROSSEIS */
+  .carrosseis-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:24px; }
+  .carrossel-card { background:var(--surface); border:1px solid var(--border); border-radius:18px; overflow:hidden; }
+  .carrossel-head { padding:22px 26px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .carrossel-name { font-family:var(--f-display); font-weight:800; font-size:18px; letter-spacing:-0.01em; }
+  .carrossel-count { font-family:var(--f-mono); font-size:11px; color:var(--accent); padding:4px 10px; background:var(--accent-dim); border:1px solid var(--border-warm); border-radius:6px; letter-spacing:0.08em; }
+  .carrossel-strip { display:flex; gap:8px; padding:18px 22px; overflow-x:auto; scrollbar-width:thin; }
+  .strip-slide { flex-shrink:0; width:120px; aspect-ratio:3/4; border-radius:10px; padding:10px 8px 8px; position:relative; overflow:hidden; display:flex; flex-direction:column; text-decoration:none; }
+  .strip-slide .ss-num { font-family:var(--f-mono); font-size:8px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.65; color:#fff; }
+  .strip-slide .ss-title { font-family:var(--f-display); font-size:11px; font-weight:800; line-height:1.1; margin-top:auto; color:#fff; }
+  .strip-slide .ss-foot { font-family:var(--f-mono); font-size:7px; letter-spacing:0.1em; opacity:0.5; margin-top:6px; color:#fff; }
+  .carrossel-foot { padding:18px 26px; border-top:1px solid var(--border); }
+
+  /* REELS */
+  .reels-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:20px; }
+  .reel-card { background:var(--surface); border:1px solid var(--border); border-radius:18px; overflow:hidden; transition:border-color .2s,transform .15s; }
+  .reel-card:hover { border-color:var(--border-warm); transform:translateY(-2px); }
+  .reel-frame { aspect-ratio:9/16; max-height:480px; padding:24px 20px; position:relative; overflow:hidden; display:flex; flex-direction:column; }
+  .reel-frame.bg-dashboard { background:radial-gradient(ellipse at center,rgba(59,130,246,0.18),#07101E 70%); }
+  .reel-frame.bg-founder { background:linear-gradient(155deg,#07101E 0%,rgba(232,80,10,0.18) 100%); }
+  .reel-frame.bg-edu { background:radial-gradient(circle at top,rgba(245,158,11,0.18),#070B14 70%); }
+  .reel-frame.bg-comparison { background:linear-gradient(135deg,rgba(34,197,94,0.10),#07101E 60%,rgba(232,80,10,0.10) 100%); }
+  .reel-frame .rf-label { font-family:var(--f-mono); font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.65); margin-bottom:12px; }
+  .reel-frame .rf-hook { font-family:var(--f-display); font-size:32px; font-weight:800; line-height:1.05; letter-spacing:-0.025em; color:#fff; }
+  .reel-frame .rf-hook em { font-style:normal; color:var(--accent); }
+  .reel-frame .rf-foot { margin-top:auto; display:flex; justify-content:space-between; align-items:center; font-family:var(--f-mono); font-size:9px; color:rgba(255,255,255,0.55); letter-spacing:0.1em; text-transform:uppercase; }
+  .reel-frame .rf-duration { background:rgba(0,0,0,0.55); padding:3px 9px; border-radius:5px; color:#fff; }
+  .reel-frame .rf-play { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:54px; height:54px; border-radius:50%; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; color:#fff; }
+  .reel-info { padding:18px 22px; }
+  .reel-name { font-family:var(--f-display); font-weight:800; font-size:16px; letter-spacing:-0.01em; margin-bottom:4px; }
+  .reel-meta { font-family:var(--f-mono); font-size:10px; color:var(--text-3); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px; }
+  .reel-desc { font-size:13px; color:var(--text-2); font-weight:300; line-height:1.5; margin-bottom:14px; }
+
+  /* CALENDARIO */
+  .week-block { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:28px; margin-bottom:18px; }
+  .week-head { display:flex; align-items:baseline; gap:14px; margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .week-num { font-family:var(--f-mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent); }
+  .week-name { font-family:var(--f-display); font-size:18px; font-weight:700; }
+  .week-tag { font-family:var(--f-mono); font-size:10px; letter-spacing:0.08em; text-transform:uppercase; padding:3px 8px; border-radius:5px; background:var(--blue-dim); color:var(--blue); border:1px solid var(--border-blue); }
+  .week-tone { font-size:13px; color:var(--text-2); margin-bottom:14px; font-weight:300; font-style:italic; }
+  .week-posts { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:12px; }
+  .wpost { background:rgba(0,0,0,0.18); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
+  .wpost-day { font-family:var(--f-mono); font-size:10px; color:var(--blue); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:4px; }
+  .wpost-title { font-size:14px; font-weight:500; margin-bottom:4px; line-height:1.3; }
+  .wpost-goal { font-size:12px; color:var(--text-2); font-weight:300; }
+
+  .palette-mini { display:flex; gap:0; border-radius:10px; overflow:hidden; margin-bottom:24px; }
+  .palette-mini > div { flex:1; height:80px; padding:14px; display:flex; flex-direction:column; justify-content:flex-end; font-family:var(--f-mono); font-size:11px; }
+  .palette-mini > div span { font-size:10px; opacity:0.7; }
+
+  .alert { background:linear-gradient(135deg,rgba(232,80,10,0.08),rgba(232,80,10,0.02)); border:1px solid var(--border-warm); border-radius:14px; padding:20px 24px; margin-bottom:24px; display:flex; gap:14px; align-items:flex-start; }
+  .alert-icon { width:36px; height:36px; border-radius:9px; background:var(--accent-dim); display:flex; align-items:center; justify-content:center; color:var(--accent); flex-shrink:0; font-weight:700; font-family:var(--f-display); font-size:18px; }
+  .alert h4 { font-family:var(--f-display); font-weight:700; font-size:14px; margin-bottom:4px; }
+  .alert p { font-size:13px; color:var(--text-2); line-height:1.6; font-weight:300; margin:0; }
+  .alert.green { background:linear-gradient(135deg,rgba(34,197,94,0.06),rgba(34,197,94,0.01)); border-color:rgba(34,197,94,0.22); }
+  .alert.green .alert-icon { background:rgba(34,197,94,0.10); color:var(--green); }
+  .alert.purple { background:linear-gradient(135deg,rgba(167,139,250,0.06),rgba(167,139,250,0.01)); border-color:rgba(167,139,250,0.22); }
+  .alert.purple .alert-icon { background:rgba(167,139,250,0.10); color:var(--purple); }
+
+  .preview-summary { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:36px; }
+  .preview-summary h4 { font-family:var(--f-display); font-size:20px; font-weight:700; margin-bottom:14px; }
+  .preview-summary p { font-size:14px; color:var(--text-2); margin-bottom:14px; font-weight:300; line-height:1.7; }
+  .preview-summary ul { padding-left:20px; color:var(--text-2); font-size:14px; font-weight:300; margin-bottom:14px; }
+  .preview-summary li { margin-bottom:6px; }
+
+  .doc-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:14px; }
+  .site-footer { border-top:1px solid var(--border); padding:24px 32px; text-align:center; font-size:12px; color:var(--text-3); }
+
+  /* PRICING */
+  .pricing-hero { text-align:center; margin-bottom:36px; }
+  .pricing-hero .badge { display:inline-block; background:var(--accent-dim); border:1px solid var(--border-warm); color:var(--accent); font-size:11px; font-weight:600; letter-spacing:0.1em; padding:5px 14px; border-radius:100px; text-transform:uppercase; margin-bottom:16px; font-family:var(--f-mono); }
+  .cycle-selector { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-bottom:32px; }
+  .cycle-btn { padding:10px 20px; border-radius:100px; font-size:13px; font-weight:600; border:1px solid var(--border); background:transparent; color:var(--text-2); cursor:pointer; transition:all .2s; position:relative; font-family:var(--f-body); }
+  .cycle-btn:hover { border-color:var(--accent); color:var(--text-1); }
+  .cycle-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .cycle-discount { position:absolute; top:-8px; right:-8px; background:var(--green); color:#000; font-size:10px; font-weight:800; padding:2px 6px; border-radius:100px; }
+  .qty-selector { text-align:center; margin-bottom:32px; }
+  .qty-label { font-size:14px; color:var(--text-2); margin-bottom:14px; }
+  .qty-controls { display:inline-flex; align-items:center; border:1px solid var(--border); border-radius:100px; overflow:hidden; }
+  .qty-btn { width:40px; height:40px; background:rgba(255,255,255,0.05); border:none; color:var(--text-1); font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .2s; }
+  .qty-btn:hover { background:rgba(255,255,255,0.1); }
+  .qty-val { width:56px; height:40px; background:transparent; text-align:center; font-size:16px; font-weight:700; color:var(--text-1); border:none; outline:none; }
+  .plans-grid-pricing { display:grid; grid-template-columns:1fr 1fr; gap:20px; max-width:760px; margin:0 auto; }
+  @media(max-width:600px) { .plans-grid-pricing { grid-template-columns:1fr; } }
+  .plan-card { background:var(--surface-2); border:1px solid var(--border); border-radius:18px; padding:30px; position:relative; transition:border-color .2s,transform .2s; }
+  .plan-card:hover { border-color:var(--accent); transform:translateY(-2px); }
+  .plan-card.featured { border-color:var(--accent); background:linear-gradient(135deg,rgba(232,80,10,0.05),rgba(13,24,40,1)); }
+  .plan-tag { position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:var(--accent); color:#fff; font-size:11px; font-weight:700; padding:4px 14px; border-radius:100px; letter-spacing:0.08em; white-space:nowrap; text-transform:uppercase; font-family:var(--f-mono); }
+  .plan-name { font-family:var(--f-mono); font-size:11px; font-weight:600; letter-spacing:0.14em; color:var(--text-3); text-transform:uppercase; margin-bottom:14px; }
+  .plan-price { font-family:var(--f-display); font-weight:800; font-size:42px; color:var(--text-1); line-height:1; margin-bottom:4px; }
+  .plan-price span { font-size:14px; font-weight:500; color:var(--text-2); font-family:var(--f-body); }
+  .plan-total { font-size:12px; color:var(--green); font-weight:500; margin-bottom:18px; font-family:var(--f-mono); }
+  .plan-desc { font-size:13px; color:var(--text-2); line-height:1.55; margin-bottom:18px; font-weight:300; }
+  .pricing-note { text-align:center; margin-top:30px; font-size:13px; color:var(--text-3); padding:18px; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid var(--border); max-width:760px; margin-left:auto; margin-right:auto; line-height:1.6; }
+  .pricing-note strong { color:var(--text-2); }
+
+  .email-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
+  .email-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px 24px; display:flex; flex-direction:column; gap:8px; }
+  .email-day { font-family:var(--f-mono); font-size:11px; color:var(--accent); letter-spacing:0.14em; text-transform:uppercase; }
+  .email-subject { font-family:var(--f-display); font-size:15px; font-weight:700; }
+  .email-purpose { font-size:13px; color:var(--text-2); font-weight:300; line-height:1.55; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="h-left">
+    <div class="logo">URBAN<span>AI</span></div>
+    <div class="h-version">Portal de Marketing · v5.0 · 27/04/2026</div>
+  </div>
+  <div class="header-badge">Para os sócios · Confidencial</div>
+</header>
+
+<nav class="tabs-bar">
+  <button class="tab-btn active" onclick="switchTab(event,'overview')">Visão geral</button>
+  <button class="tab-btn" onclick="switchTab(event,'landing')">Landing page</button>
+  <button class="tab-btn" onclick="switchTab(event,'posts')">Posts (42)</button>
+  <button class="tab-btn" onclick="switchTab(event,'reels')">Reels (4)</button>
+  <button class="tab-btn" onclick="switchTab(event,'carrosseis')">Carrosseis (3)</button>
+  <button class="tab-btn" onclick="switchTab(event,'calendar')">Calendário 8 sem</button>
+  <button class="tab-btn" onclick="switchTab(event,'emails')">E-mails</button>
+  <button class="tab-btn" onclick="switchTab(event,'brandbook')">Brand Book</button>
+  <button class="tab-btn" onclick="switchTab(event,'pricing')">Pricing F6.5</button>
+  <button class="tab-btn" onclick="switchTab(event,'estrategia')">Avaliações</button>
+</nav>
+
+<!-- TAB OVERVIEW -->
+<div id="tab-overview" class="tab-panel active">
+  <div class="section-wrap">
+    <div class="section-label">Resumo executivo · v5.0 · 27/04/2026</div>
+    <h2 class="section-title">Onde estamos com a presença digital.</h2>
+    <p class="section-sub">42 posts feed, 4 reels com roteiro, 3 carrosseis. 12 posts da v2 com upgrade visual completo (mockup iPhone, MacBook, mapa SP, gráficos, calendários, depoimentos, countdown). Aspect ratio dos novos: 1080×1350 (4:5).</p>
+
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Posts feed</div><div class="kpi-value orange">42</div><div class="kpi-note">30 v1 + 12 v2 visualmente densos</div></div>
+      <div class="kpi"><div class="kpi-label">Posts founder-led</div><div class="kpi-value orange">5</div><div class="kpi-note">post-27 a 30 + 40</div></div>
+      <div class="kpi"><div class="kpi-label">Reels roteiros</div><div class="kpi-value purple">4</div><div class="kpi-note">S2, S4, S6, S8</div></div>
+      <div class="kpi"><div class="kpi-label">Carrosseis</div><div class="kpi-value blue">3</div><div class="kpi-note">18 slides totais</div></div>
+      <div class="kpi"><div class="kpi-label">Páginas web</div><div class="kpi-value green">4</div><div class="kpi-note">Landing + 3 institucionais</div></div>
+      <div class="kpi"><div class="kpi-label">E-mails</div><div class="kpi-value blue">4</div><div class="kpi-note">D1, D3, D7 + lista</div></div>
+    </div>
+
+    <div class="alert">
+      <div class="alert-icon">!</div>
+      <div>
+        <h4>3 itens críticos antes da campanha rodar</h4>
+        <p>1. Configurar IDs reais GA4 e Meta Pixel · 2. Reservar @myurbanai em todas as redes · 3. Capturar fotos reais dos sócios (substituir avatares SVG nos posts founder).</p>
+      </div>
+    </div>
+
+    <div class="alert purple">
+      <div class="alert-icon">★</div>
+      <div>
+        <h4>O que mudou na v5 (pedido dos sócios)</h4>
+        <p>Os 12 posts de v2 (post-31 a 42) têm visuais densos: mockup iPhone com app real, mockup MacBook com dashboard, mapa de SP com pontos de eventos, gráfico de barras de economia, calendário antes/depois, ícones grandes, ilustração de imóveis, radar Allianz, skyline de bairros, avatar fundador, depoimento mock e countdown de cadastro. Aspect ratio mudou para 1080×1350 (4:5), padrão Instagram 2026 para B2B.</p>
+      </div>
+    </div>
+
+    <div class="alert green">
+      <div class="alert-icon">✓</div>
+      <div>
+        <h4>Tudo o que foi entregue (19 ondas)</h4>
+        <p>Auditoria crítica · Páginas legais · 30 posts v1 + 12 posts v2 · 3 carrosseis · 4 reels · Brand Book v2 · Calendário editorial 8 semanas · 4 e-mails · Press release · Bios padronizadas · Modelo F6.5 aplicado em tudo · Concorrentes nominais removidos · Auto-desarmamento removido · Avaliação visual com referências online · Travessões em-dash limpos · Portal v5 com 42 posts navegáveis.</p>
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--f-display);font-size:22px;font-weight:700;margin-top:36px;margin-bottom:16px;">Documentos completos</h3>
+    <div class="doc-list">
+      <a class="item-card" href="../../../Claude/Projects/UrbanAi/calendario-editorial-8-semanas.md" target="_blank"><div class="item-name">Calendário editorial 8 semanas</div><div class="item-desc">Captions e hashtags por post.</div><div class="item-meta"><span class="pill pill-grey">Markdown</span></div></a>
+      <a class="item-card" href="../../../Claude/Projects/UrbanAi/avaliacao-visual-posts.md" target="_blank"><div class="item-name">Avaliação visual <span class="new-badge">NOVO</span></div><div class="item-desc">Análise como anfitrião + referências dos concorrentes (Stays, Beyond) + plano de upgrade.</div><div class="item-meta"><span class="pill pill-grey">Markdown</span></div></a>
+      <a class="item-card" href="../../../Claude/Projects/UrbanAi/avaliacao-estrategica-campanha.md" target="_blank"><div class="item-name">Avaliação estratégica</div><div class="item-desc">Análise de 7 riscos identificados e como foram corrigidos.</div><div class="item-meta"><span class="pill pill-grey">Markdown</span></div></a>
+      <a class="item-card" href="../../../Claude/Projects/UrbanAi/brandbook-v2.html" target="_blank"><div class="item-name">Brand Book v2</div><div class="item-desc">Sistema visual e verbal oficial.</div><div class="item-meta"><span class="pill pill-grey">HTML</span></div></a>
+      <a class="item-card" href="../../../Claude/Projects/UrbanAi/auditoria-presenca-digital-2026-04.md" target="_blank"><div class="item-name">Auditoria crítica</div><div class="item-desc">Diagnóstico completo de presença digital.</div><div class="item-meta"><span class="pill pill-grey">Markdown</span></div></a>
+      <a class="item-card" href="../../../Claude/Projects/UrbanAi/mapeamento-conteudos-gaps.md" target="_blank"><div class="item-name">Mapeamento de gaps</div><div class="item-desc">38 itens em 3 horizontes.</div><div class="item-meta"><span class="pill pill-grey">Markdown</span></div></a>
+    </div>
+  </div>
+</div>
+
+<!-- TAB LANDING -->
+<div id="tab-landing" class="tab-panel">
+  <div class="section-wrap">
+    <div class="section-label">Página principal · urbanai.com.br</div>
+    <h2 class="section-title">Landing page em produção.</h2>
+    <p class="section-sub">Modelo F6.5 aplicado: cobrança por imóvel, 4 ciclos, seletor de quantidade, calculadora dinâmica.</p>
+
+    <div class="preview-summary">
+      <h4>O que tem na landing</h4>
+      <ul>
+        <li><strong>Hero:</strong> "O Airbnb ao lado subiu o preço essa semana. O seu deveria."</li>
+        <li><strong>Problema:</strong> 3 cards de dor</li>
+        <li><strong>Mecanismo:</strong> 3 etapas (monitorar, prever, recomendar)</li>
+        <li><strong>Produto hoje:</strong> 6 itens em check-list + dashboard mock</li>
+        <li><strong>Para quem é/não é:</strong> 5 itens em cada coluna</li>
+        <li><strong>Planos:</strong> Starter R$ 97, Profissional R$ 197, Escala. Toggle 4 ciclos.</li>
+        <li><strong>FAQ:</strong> 7 perguntas (2 sobre LGPD)</li>
+        <li><strong>SEO:</strong> JSON-LD com 5 ofertas</li>
+        <li><strong>Tracking:</strong> GA4 e Meta Pixel como variável</li>
+      </ul>
+      <a class="open-btn" href="../../../Claude/Projects/UrbanAi/landing-page.html" target="_blank">Abrir landing<svg fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+    </div>
+
+    <h3 style="font-family:var(--f-display);font-size:20px;font-weight:700;margin-top:48px;margin-bottom:14px;">Páginas institucionais</h3>
+    <div class="item-grid">
+      <a class="item-card" href="../../../Claude/Projects/UrbanAi/privacidade.html" target="_blank"><div class="item-name">Privacidade</div><div class="item-desc">Política LGPD em 11 seções.</div><div class="item-meta"><span class="pill pill-green">Pronto</span></div></a>
+      <a class="item-card" href="../../../Claude/Projects/UrbanAi/sobre.html" target="_blank"><div class="item-name">Sobre</div><div class="item-desc">Lumina 2022 → operação independente 2026.</div><div class="item-meta"><span class="pill pill-green">Pronto</span></div></a>
+      <a class="item-card" href="../../../Claude/Projects/UrbanAi/contato.html" target="_blank"><div class="item-name">Contato</div><div class="item-desc">6 canais especializados.</div><div class="item-meta"><span class="pill pill-green">Pronto</span></div></a>
+    </div>
+  </div>
+</div>
+
+<!-- TAB POSTS -->
+<div id="tab-posts" class="tab-panel">
+  <div class="section-wrap">
+    <div class="section-label">Conteúdo Instagram · @myurbanai</div>
+    <h2 class="section-title">42 posts feed.</h2>
+    <p class="section-sub">30 posts v1 (1080×1440, tipográficos) + 12 posts v2 (1080×1350, com mockups iPhone, MacBook, mapas, gráficos, calendários e ilustrações ricas). Filtra por tipo abaixo. Clique para abrir o HTML real.</p>
+
+    <div class="filter-bar" id="filter-bar">
+      <button class="filter-btn active" data-filter="all" onclick="filterPosts(event,'all')">Todos<span class="filter-count">42</span></button>
+      <button class="filter-btn" data-filter="v2" onclick="filterPosts(event,'v2')">v2 visual<span class="filter-count">12</span></button>
+      <button class="filter-btn" data-filter="v1" onclick="filterPosts(event,'v1')">v1<span class="filter-count">30</span></button>
+      <button class="filter-btn" data-filter="founder" onclick="filterPosts(event,'founder')">Founder-led<span class="filter-count">5</span></button>
+      <button class="filter-btn" data-filter="S0" onclick="filterPosts(event,'S0')">S0</button>
+      <button class="filter-btn" data-filter="S1" onclick="filterPosts(event,'S1')">S1</button>
+      <button class="filter-btn" data-filter="S2" onclick="filterPosts(event,'S2')">S2</button>
+      <button class="filter-btn" data-filter="S3" onclick="filterPosts(event,'S3')">S3</button>
+      <button class="filter-btn" data-filter="S4" onclick="filterPosts(event,'S4')">S4</button>
+      <button class="filter-btn" data-filter="S5" onclick="filterPosts(event,'S5')">S5</button>
+      <button class="filter-btn" data-filter="S6" onclick="filterPosts(event,'S6')">S6</button>
+      <button class="filter-btn" data-filter="S7" onclick="filterPosts(event,'S7')">S7</button>
+      <button class="filter-btn" data-filter="S8" onclick="filterPosts(event,'S8')">S8</button>
+    </div>
+
+    <div class="posts-grid" id="posts-grid"></div>
+  </div>
+</div>
+
+<!-- TAB REELS -->
+<div id="tab-reels" class="tab-panel">
+  <div class="section-wrap">
+    <div class="section-label">Vídeo vertical · 1080×1920</div>
+    <h2 class="section-title">4 reels com roteiro completo.</h2>
+    <p class="section-sub">Distribuídos em S2, S4, S6 e S8. Cada um com hook, beats segundo a segundo, fala on-camera, B-roll, texto na tela e caption pronto.</p>
+    <div class="reels-grid" id="reels-grid"></div>
+  </div>
+</div>
+
+<!-- TAB CARROSSEIS -->
+<div id="tab-carrosseis" class="tab-panel">
+  <div class="section-wrap">
+    <div class="section-label">Carrosseis · Conteúdo de profundidade</div>
+    <h2 class="section-title">3 carrosseis · 18 slides.</h2>
+    <p class="section-sub">Distribuídos em S1, S3 e S6.</p>
+    <div class="carrosseis-grid" id="carrosseis-grid"></div>
+  </div>
+</div>
+
+<!-- TAB CALENDARIO -->
+<div id="tab-calendar" class="tab-panel">
+  <div class="section-wrap">
+    <div class="section-label">Plano de publicação · 8 semanas + abertura</div>
+    <h2 class="section-title">Calendário editorial.</h2>
+    <p class="section-sub">3 posts/semana feed + stories + 1 reel a cada duas semanas + carrossel mensal.</p>
+    <div id="weeks-blocks"></div>
+    <a class="open-btn" href="../../../Claude/Projects/UrbanAi/calendario-editorial-8-semanas.md" target="_blank" style="margin-top:18px;">Abrir calendário completo<svg fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+  </div>
+</div>
+
+<!-- TAB EMAILS -->
+<div id="tab-emails" class="tab-panel">
+  <div class="section-wrap">
+    <div class="section-label">Comunicação por e-mail</div>
+    <h2 class="section-title">Sequência de onboarding.</h2>
+    <p class="section-sub">4 e-mails HTML em produção. Pendência: D14, D30 e winback.</p>
+
+    <div class="email-list">
+      <a class="email-card item-card" href="../../../Claude/Projects/UrbanAi/emails/email-d1-boas-vindas.html" target="_blank"><div class="email-day">D1 · Boas-vindas</div><div class="email-subject">Urban AI ativado. Próximo passo: 5 minutos.</div><div class="email-purpose">Confirma cadastro, instrui primeiros passos.</div><div class="item-meta"><span class="pill pill-green">Pronto</span></div></a>
+      <a class="email-card item-card" href="../../../Claude/Projects/UrbanAi/emails/email-d3-como-ler-recomendacao.html" target="_blank"><div class="email-day">D3 · Como ler</div><div class="email-subject">Como ler uma recomendação Urban AI</div><div class="email-purpose">Explica os 4 elementos da recomendação.</div><div class="item-meta"><span class="pill pill-green">Pronto</span></div></a>
+      <a class="email-card item-card" href="../../../Claude/Projects/UrbanAi/emails/email-d7-reengajamento.html" target="_blank"><div class="email-day">D7 · Reengajamento</div><div class="email-subject">Sua semana com Urban AI</div><div class="email-purpose">Revisa atividade da primeira semana.</div><div class="item-meta"><span class="pill pill-green">Pronto</span></div></a>
+      <a class="email-card item-card" href="../../../Claude/Projects/UrbanAi/emails/email-lancamento-lista-interesse.html" target="_blank"><div class="email-day">Pré-lançamento</div><div class="email-subject">Urban AI está no ar. Plano anual com −40%.</div><div class="email-purpose">Para lista de interesse.</div><div class="item-meta"><span class="pill pill-green">Pronto</span></div></a>
+    </div>
+  </div>
+</div>
+
+<!-- TAB BRANDBOOK -->
+<div id="tab-brandbook" class="tab-panel">
+  <div class="section-wrap">
+    <div class="section-label">Sistema visual e verbal · v2.0</div>
+    <h2 class="section-title">Brand Book oficial.</h2>
+    <p class="section-sub">15 seções cobrindo essência, posicionamento, paleta, tipografia, logotipo, tom de voz, vocabulário e governança.</p>
+
+    <h3 style="font-family:var(--f-display);font-size:18px;font-weight:700;margin-bottom:14px;">Paleta principal</h3>
+    <div class="palette-mini">
+      <div style="background:#E8500A;color:#fff;"><strong>#E8500A</strong><span>Laranja Urban</span></div>
+      <div style="background:#3B82F6;color:#fff;"><strong>#3B82F6</strong><span>Azul Mecanismo</span></div>
+      <div style="background:#07101E;color:#fff;"><strong>#07101E</strong><span>Background</span></div>
+      <div style="background:#0D1828;color:#fff;"><strong>#0D1828</strong><span>Surface</span></div>
+      <div style="background:#22C55E;color:#000;"><strong>#22C55E</strong><span>Sucesso</span></div>
+      <div style="background:#EF4444;color:#fff;"><strong>#EF4444</strong><span>Erro</span></div>
+    </div>
+
+    <a class="open-btn" href="../../../Claude/Projects/UrbanAi/brandbook-v2.html" target="_blank" style="margin-top:24px;">Abrir Brand Book completo<svg fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+  </div>
+</div>
+
+<!-- TAB PRICING -->
+<div id="tab-pricing" class="tab-panel">
+  <div class="section-wrap">
+    <div class="pricing-hero">
+      <div class="badge">Modelo F6.5 · Aprovado em 25/04</div>
+      <h2 class="section-title">Cobrança por imóvel.</h2>
+      <p class="section-sub" style="margin-left:auto;margin-right:auto;text-align:center;">Anfitrião paga pelo número de imóveis. Quanto mais tempo contrata, maior o desconto.</p>
+    </div>
+
+    <div class="cycle-selector">
+      <button class="cycle-btn active" onclick="setCycle('mensal',0)" id="btn-mensal">Mensal</button>
+      <button class="cycle-btn" onclick="setCycle('trimestral',15)" id="btn-trimestral">Trimestral <span class="cycle-discount">-15%</span></button>
+      <button class="cycle-btn" onclick="setCycle('semestral',25)" id="btn-semestral">Semestral <span class="cycle-discount">-25%</span></button>
+      <button class="cycle-btn" onclick="setCycle('anual',40)" id="btn-anual">Anual <span class="cycle-discount">-40%</span></button>
+    </div>
+
+    <div class="qty-selector">
+      <div class="qty-label">Quantos imóveis?</div>
+      <div class="qty-controls">
+        <button class="qty-btn" onclick="changeQty(-1)">−</button>
+        <input class="qty-val" id="qty-val" value="1" readonly/>
+        <button class="qty-btn" onclick="changeQty(1)">+</button>
+      </div>
+    </div>
+
+    <div class="plans-grid-pricing">
+      <div class="plan-card" id="card-starter"><div class="plan-name">Starter</div><div class="plan-price" id="price-starter">R$ 97<span>/imóvel/mês</span></div><div class="plan-total" id="total-starter">Total: R$ 97/mês</div><div class="plan-desc">Até 3 imóveis.</div></div>
+      <div class="plan-card featured" id="card-pro"><div class="plan-tag">Mais escolhido</div><div class="plan-name">Profissional</div><div class="plan-price" id="price-pro">R$ 197<span>/imóvel/mês</span></div><div class="plan-total" id="total-pro" style="color:var(--accent)">Total: R$ 197/mês</div><div class="plan-desc">Sem limite. Modo automático Stays.</div></div>
+    </div>
+
+    <div class="pricing-note"><strong>Ciclo anual:</strong> 5 imóveis Profissional anual = R$ 590/mês × 12 = <strong style="color:var(--green)">R$ 7.080 travados, economia de R$ 4.740 vs mensal.</strong></div>
+  </div>
+</div>
+
+<!-- TAB ESTRATEGIA -->
+<div id="tab-estrategia" class="tab-panel">
+  <div class="section-wrap">
+    <div class="section-label">Avaliações estratégicas aplicadas</div>
+    <h2 class="section-title">O que foi corrigido.</h2>
+    <p class="section-sub">Duas avaliações foram aplicadas: estratégica (concorrentes, auto-desarmamento) e visual (densidade gráfica, mockups).</p>
+
+    <h3 style="font-family:var(--f-display);font-size:20px;font-weight:700;margin-top:18px;margin-bottom:14px;">Decisões aplicadas</h3>
+    <div class="item-grid">
+      <div class="item-card"><div class="item-name">Concorrentes nominais removidos</div><div class="item-desc">PriceLabs, Beyond, Wheelhouse retirados de todos os materiais públicos. Posicionamento por categoria.</div><div class="item-meta"><span class="pill pill-green">Aplicado</span></div></div>
+      <div class="item-card"><div class="item-name">Auto-desarmamento removido</div><div class="item-desc">Post-19, 20, 23 reescritos sem expor "Tier 0", MAPE confessado e antiventa.</div><div class="item-meta"><span class="pill pill-green">Aplicado</span></div></div>
+      <div class="item-card"><div class="item-name">Founder-led marketing</div><div class="item-desc">5 posts com fundador (origem, bastidor, aprendizado, objeção, avatar bastidor).</div><div class="item-meta"><span class="pill pill-green">Aplicado</span></div></div>
+      <div class="item-card"><div class="item-name">Reels na campanha</div><div class="item-desc">4 reels com roteiros completos para S2, S4, S6, S8.</div><div class="item-meta"><span class="pill pill-green">Aplicado</span></div></div>
+      <div class="item-card"><div class="item-name">Upgrade visual v2 <span class="v2-badge">v2</span></div><div class="item-desc">12 posts (post-31 a 42) com mockup iPhone, MacBook, mapa SP, gráficos, calendários, depoimento mock, countdown.</div><div class="item-meta"><span class="pill pill-purple">Aplicado v5</span></div></div>
+      <div class="item-card"><div class="item-name">Aspect ratio 4:5</div><div class="item-desc">Posts v2 em 1080×1350 (padrão Instagram 2026 para B2B).</div><div class="item-meta"><span class="pill pill-purple">Aplicado v5</span></div></div>
+    </div>
+
+    <h3 style="font-family:var(--f-display);font-size:20px;font-weight:700;margin-top:32px;margin-bottom:14px;">Pendências</h3>
+    <div class="item-grid">
+      <div class="item-card"><div class="item-name">Tracking real GA4 e Pixel</div><div class="item-desc">15 minutos. Crítico antes de mídia paga.</div><div class="item-meta"><span class="pill pill-red">Crítico</span></div></div>
+      <div class="item-card"><div class="item-name">Reservar @myurbanai</div><div class="item-desc">IG, LinkedIn, X, TikTok, YouTube. 30 minutos.</div><div class="item-meta"><span class="pill pill-red">Crítico</span></div></div>
+      <div class="item-card"><div class="item-name">Fotos reais dos sócios</div><div class="item-desc">Substituir avatares SVG nos posts founder. Sessão de 1 dia com os 3 sócios.</div><div class="item-meta"><span class="pill pill-amber">Pendente</span></div></div>
+      <div class="item-card"><div class="item-name">3 a 5 depoimentos beta validados</div><div class="item-desc">Substituir depoimento mock (post-41) por caso real.</div><div class="item-meta"><span class="pill pill-amber">Pendente</span></div></div>
+      <div class="item-card"><div class="item-name">Produção dos 4 reels</div><div class="item-desc">Roteiros prontos. R$ 800 a R$ 2.000 por reel.</div><div class="item-meta"><span class="pill pill-amber">Pendente</span></div></div>
+    </div>
+
+    <div style="display:flex;gap:14px;margin-top:24px;flex-wrap:wrap;">
+      <a class="open-btn" href="../../../Claude/Projects/UrbanAi/avaliacao-estrategica-campanha.md" target="_blank">Avaliação estratégica<svg fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+      <a class="open-btn" href="../../../Claude/Projects/UrbanAi/avaliacao-visual-posts.md" target="_blank" style="background:var(--purple);">Avaliação visual<svg fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  Urban AI · Portal de Marketing v5.0 · Confidencial · Mantido por Gustavo Macedo · 27/04/2026
+</footer>
+
+<script>
+  function switchTab(ev,name) {
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-'+name).classList.add('active');
+    if (ev&&ev.currentTarget) ev.currentTarget.classList.add('active');
+  }
+
+  const POSTS_BASE = '../../../Claude/Projects/UrbanAi/posts/';
+
+  // Helper: render rich preview HTML por post
+  function renderRich(p) {
+    if (!p.rich) return '';
+    switch(p.rich) {
+      case 'iphone-app':
+        return `<div class="pc-rich-area"><div class="mini-iphone"><div class="mini-iphone-notch"></div><div class="mini-iphone-screen"><div style="display:flex;align-items:center;gap:3px;padding-bottom:3px;border-bottom:0.5px solid rgba(255,255,255,0.08);"><div style="width:8px;height:8px;border-radius:2px;background:#E8500A;"></div><div style="height:2px;background:#fff;flex:1;border-radius:1px;opacity:0.6;"></div></div><div class="mini-card"><div class="mini-card-line short"></div><div class="mini-card-line"></div><div class="mini-card-line short"></div><div class="mini-card-button"></div></div></div></div></div>`;
+      case 'macbook-dashboard':
+        return `<div class="pc-rich-area"><div class="mini-macbook"><div class="mini-macbook-screen"><div class="mini-macbook-tabs"><div class="mini-macbook-tab" style="background:#FF5F56;"></div><div class="mini-macbook-tab" style="background:#FFBD2E;"></div><div class="mini-macbook-tab" style="background:#27C93F;"></div></div><div class="mini-macbook-display"><div class="mini-kpi-cell"></div><div class="mini-kpi-cell blue"></div><div class="mini-kpi-cell orange"></div><div class="mini-kpi-cell green"></div><div class="mini-kpi-cell" style="grid-column:span 4;height:24px;background:rgba(34,197,94,0.05);border:0.5px solid rgba(34,197,94,0.18);"></div></div></div><div class="mini-macbook-base"></div></div></div>`;
+      case 'map-sp':
+        return `<div class="pc-rich-area"><svg viewBox="0 0 200 130" style="width:130px;height:90px;"><path d="M 30,40 Q 25,25 45,20 L 90,15 Q 130,12 160,25 L 175,55 Q 175,90 150,110 L 100,115 Q 50,110 35,85 Z" fill="rgba(59,130,246,0.08)" stroke="rgba(59,130,246,0.3)" stroke-width="1.5"/><circle cx="70" cy="55" r="13" fill="rgba(232,80,10,0.15)" stroke="rgba(232,80,10,0.5)" stroke-width="1"/><circle cx="105" cy="60" r="16" fill="rgba(232,80,10,0.18)" stroke="rgba(232,80,10,0.55)" stroke-width="1"/><circle cx="130" cy="80" r="11" fill="rgba(232,80,10,0.15)" stroke="rgba(232,80,10,0.5)" stroke-width="1"/><circle cx="65" cy="50" r="2" fill="#E8500A"/><circle cx="74" cy="58" r="2" fill="#E8500A"/><circle cx="100" cy="55" r="2.5" fill="#E8500A"/><circle cx="110" cy="65" r="2" fill="#E8500A"/><circle cx="105" cy="70" r="2" fill="#E8500A"/><circle cx="128" cy="82" r="2" fill="#E8500A"/><circle cx="135" cy="75" r="1.5" fill="#E8500A"/><circle cx="50" cy="35" r="1.5" fill="#3B82F6" opacity="0.5"/><circle cx="155" cy="45" r="1.5" fill="#3B82F6" opacity="0.5"/><circle cx="160" cy="95" r="1.5" fill="#3B82F6" opacity="0.5"/><circle cx="55" cy="100" r="1.5" fill="#3B82F6" opacity="0.5"/></svg></div>`;
+      case 'bar-chart':
+        return `<div class="pc-rich-area"><div class="mini-bars"><div class="mini-bar-pair"><div class="mini-bar gray" style="height:36px;"></div><div class="mini-bar green" style="height:22px;"></div></div><div class="mini-bar-pair"><div class="mini-bar gray" style="height:64px;"></div><div class="mini-bar green" style="height:38px;"></div></div><div class="mini-bar-pair"><div class="mini-bar gray" style="height:80px;"></div><div class="mini-bar green" style="height:48px;"></div></div></div></div>`;
+      case 'cal-before-after':
+        return `<div class="pc-rich-area"><div class="mini-cal-pair">${makeBeforeCal()}${makeAfterCal()}</div></div>`;
+      case 'three-icons':
+        return `<div class="pc-rich-area"><div class="mini-icons"><div class="mini-icon orange"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E8500A" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div><div class="mini-icon blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M3 3v18h18"/><polyline points="7 14 11 10 15 14 19 8"/></svg></div><div class="mini-icon solid-orange"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><polyline points="20 6 9 17 4 12"/></svg></div></div></div>`;
+      case 'houses-row':
+        return `<div class="pc-rich-area"><div class="mini-houses"><div class="mini-house solid"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="mini-house solid"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="mini-house solid"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="mini-house solid"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="mini-house solid"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div style="font-family:'DM Mono',monospace;font-size:10px;color:#22C55E;margin-left:4px;font-weight:700;">R$590</div></div></div>`;
+      case 'radar':
+        return `<div class="pc-rich-area"><div class="mini-radar"><div class="mini-radar-ring" style="width:50%;height:50%;"></div><div class="mini-radar-ring" style="width:75%;height:75%;"></div><div class="mini-radar-ring" style="width:100%;height:100%;"></div><div class="mini-radar-center"></div></div></div>`;
+      case 'skyline':
+        return `<div class="pc-rich-area"><div class="mini-skyline"><div class="mini-building" style="width:14px;height:30px;"></div><div class="mini-building" style="width:16px;height:42px;"></div><div class="mini-building" style="width:14px;height:36px;"></div><div class="mini-building" style="width:12px;height:26px;"></div><div class="mini-building" style="width:14px;height:32px;"></div><div style="font-family:'DM Mono',monospace;font-size:10px;color:#FB923C;margin-left:6px;font-weight:700;">+34%</div></div></div>`;
+      case 'avatar-quote':
+        return `<div class="pc-rich-area" style="flex-direction:column;gap:6px;"><div class="mini-avatar"><div class="mini-avatar-inner"></div></div><div style="font-family:'Syne',sans-serif;font-size:9px;font-style:italic;color:#FED7AA;text-align:center;line-height:1.3;max-width:140px;">"A linha apareceu sozinha no painel."</div></div>`;
+      case 'avatar-quote-female':
+        return `<div class="pc-rich-area" style="flex-direction:column;gap:6px;"><div class="mini-avatar" style="background:linear-gradient(135deg,#FB923C,#E8500A);"><div class="mini-avatar-inner" style="background:#fff;"></div></div><div style="font-family:'Syne',sans-serif;font-size:9px;font-style:italic;color:#0A0F1D;text-align:center;line-height:1.3;max-width:140px;">"Subi 28%. Reservou pelo preço certo."</div><div style="font-family:'DM Mono',monospace;font-size:8px;color:#94A3B8;">Mariana, anfitriã beta</div></div>`;
+      case 'countdown':
+        return `<div class="pc-rich-area"><div class="mini-countdown"><div class="mini-countdown-box"><div class="mini-countdown-num">04</div><div class="mini-countdown-label">dias</div></div><div class="mini-countdown-box"><div class="mini-countdown-num">12</div><div class="mini-countdown-label">hrs</div></div><div class="mini-countdown-box"><div class="mini-countdown-num">36</div><div class="mini-countdown-label">min</div></div></div></div>`;
+      default:
+        return '';
+    }
+  }
+  function makeBeforeCal() {
+    let html = '<div class="mini-cal before">';
+    for (let i=0; i<21; i++) html += '<div class="mini-cal-cell red"></div>';
+    return html + '</div>';
+  }
+  function makeAfterCal() {
+    let html = '<div class="mini-cal after">';
+    const events = [3,4,5,6,13,14,15,16];
+    for (let i=0; i<21; i++) {
+      const cls = events.includes(i) ? 'orange' : 'green';
+      html += `<div class="mini-cal-cell ${cls}"></div>`;
+    }
+    return html + '</div>';
+  }
+
+  // 42 posts feed
+  const POSTS = [
+    { id:'01', file:'post-01-anuncio-abertura.html', tpl:'A Editorial', semana:'S0', bg:'pc-dark-orange', founder:false, v2:false, labelColor:'#E8500A', label:'// Lançamento · Maio', headline:'Hoje a Urban AI<br>está <em style="color:#E8500A">no ar</em>.', sub:'Precificação dinâmica para SP.' },
+    { id:'02', file:'post-02-pergunta-aquecimento.html', tpl:'A Editorial', semana:'S0', bg:'pc-dark-orange', founder:false, v2:false, labelColor:'#E8500A', label:'// Pergunta', headline:'Quanto você <em style="color:#E8500A">perdeu</em> em março?', sub:'3.247 eventos em SP.' },
+    { id:'03', file:'post-03-checklist-sinais.html', tpl:'F Checklist', semana:'S1', bg:'pc-dark-checklist', founder:false, v2:false, labelColor:'#F59E0B', label:'// Checklist', headline:'5 sinais de calendário <em style="color:#F59E0B">mal precificado</em>.', sub:'Reconheceu 3 ou mais?' },
+    { id:'04', file:'post-04-contraste-sem-dados-vs-urbani.html', tpl:'D Contraste', semana:'S1', bg:'pc-contrast', founder:false, v2:false, labelColor:'#3B82F6', label:'// Sem dados vs com dados', headline:'Segunda-feira.<br>Você decide o preço.', sub:'A diferença é o momento da informação.' },
+    { id:'05', file:'post-05-editorial-36898-eventos.html', tpl:'A Editorial', semana:'S2', bg:'pc-dark-blue', founder:false, v2:false, labelColor:'#3B82F6', label:'// Sistema · Maio', headline:'Eventos monitorados em SP.', sub:null, big:'36.898' },
+    { id:'06', file:'post-06-guia-como-funciona.html', tpl:'B Guia clean', semana:'S2', bg:'pc-light', founder:false, v2:false, labelColor:'#E8500A', label:'// Como funciona', headline:'Urban AI em<br><em style="color:#E8500A">3 passos</em>.', sub:'Do monitoramento à recomendação.' },
+    { id:'07', file:'post-07-editorial-adr.html', tpl:'A Editorial', semana:'S1', bg:'pc-dark-blue', founder:false, v2:false, labelColor:'#3B82F6', label:'// Glossário', headline:'O que é <em style="color:#3B82F6">ADR</em>.', sub:'Average Daily Rate.', big:'ADR' },
+    { id:'08', file:'post-08-checklist-feriado.html', tpl:'F Checklist', semana:'S3', bg:'pc-dark-checklist', founder:false, v2:false, labelColor:'#F59E0B', label:'// Checklist', headline:'O que revisar antes de <em style="color:#F59E0B">feriado</em>.', sub:'Preparação 2 semanas antes.' },
+    { id:'09', file:'post-09-contraste-show-sp.html', tpl:'D Contraste', semana:'S3', bg:'pc-contrast', founder:false, v2:false, labelColor:'#3B82F6', label:'// Cenário SP', headline:'Sexta de show.<br>Dois anfitriões.', sub:'Mesmo bairro, resultados diferentes.' },
+    { id:'10', file:'post-10-editorial-5-imoveis.html', tpl:'A Editorial', semana:'S3', bg:'pc-dark-blue', founder:false, v2:false, labelColor:'#3B82F6', label:'// Painel · ICP', headline:'5 imóveis em<br><em style="color:#3B82F6">1 painel</em>.', sub:'Visão única.' },
+    { id:'11', file:'post-11-guia-glossario.html', tpl:'B Guia clean', semana:'S2', bg:'pc-light', founder:false, v2:false, labelColor:'#E8500A', label:'// Glossário', headline:'<em style="color:#E8500A">ADR. RevPAR. Lead time.</em>', sub:'3 termos essenciais.' },
+    { id:'12', file:'post-12-lancamento-50off.html', tpl:'A Lançamento', semana:'S4', bg:'pc-launch', founder:false, v2:false, labelColor:'#E8500A', label:'// Profissional anual', headline:null, sub:'Profissional anual. −40%.', big:'R$ 118' },
+    { id:'13', file:'post-13-calculadora-economia.html', tpl:'A Numérico', semana:'S4', bg:'pc-dark-green', founder:false, v2:false, labelColor:'#22C55E', label:'// A conta exata', headline:'Quanto você <em style="color:#22C55E">economiza</em>.', sub:'5 imóveis: R$ 4.740/ano.' },
+    { id:'14', file:'post-14-por-imovel-faz-sentido.html', tpl:'A Argumentativo', semana:'S4', bg:'pc-dark-orange', founder:false, v2:false, labelColor:'#E8500A', label:'// Modelo', headline:'Por que cobrar <em style="color:#E8500A">por imóvel</em>.', sub:'A estrutura que escala.' },
+    { id:'15', file:'post-15-eventos-da-semana.html', tpl:'C Dashboard', semana:'S5', bg:'pc-dark-blue', founder:false, v2:false, labelColor:'#3B82F6', label:'// Relatório semanal', headline:'O que detectamos.', sub:'47 eventos. 3 bairros.', big:'47' },
+    { id:'16', file:'post-16-bastidor-deteccao.html', tpl:'A Timeline', semana:'S5', bg:'pc-dark-orange', founder:false, v2:false, labelColor:'#E8500A', label:'// Bastidor', headline:'O Allianz, <em style="color:#E8500A">9 dias</em> antes.', sub:'Como o sistema antecipou.' },
+    { id:'17', file:'post-17-rd-summit-bairros.html', tpl:'A Editorial', semana:'S5', bg:'pc-dark-orange', founder:false, v2:false, labelColor:'#E8500A', label:'// 14 a 16 junho', headline:'RD Summit chega.<br><em style="color:#E8500A">3 bairros</em>.', sub:'Vila Olímpia, Itaim, V. Mariana.' },
+    { id:'18', file:'post-18-lead-time-7-vs-30.html', tpl:'D Contraste', semana:'S6', bg:'pc-contrast', founder:false, v2:false, labelColor:'#3B82F6', label:'// Educação técnica', headline:'7 e 30 dias são <em style="color:#3B82F6">mercados diferentes</em>.', sub:'Janela muda a estratégia.' },
+    { id:'19', file:'post-19-dataset-proprietario.html', tpl:'C Dashboard', semana:'S6', bg:'pc-dark-blue', founder:false, v2:false, labelColor:'#3B82F6', label:'// Bastidor', headline:'Todo dia às <em style="color:#3B82F6">3h30</em>.', sub:'Captura passiva.' },
+    { id:'20', file:'post-20-mape-metrica.html', tpl:'A Editorial', semana:'S6', bg:'pc-dark-orange', founder:false, v2:false, labelColor:'#E8500A', label:'// 3 perguntas', headline:'Antes de assinar IA.', sub:'3 perguntas chave.' },
+    { id:'21', file:'post-21-pricelabs-vs-urbanai.html', tpl:'D Contraste', semana:'S7', bg:'pc-contrast', founder:false, v2:false, labelColor:'#3B82F6', label:'// Mercado local vs global', headline:'Modelo global e local não veem a mesma SP.', sub:'Cada um para um perfil.' },
+    { id:'22', file:'post-22-pm-vs-anfitriao-dono.html', tpl:'D Contraste', semana:'S7', bg:'pc-contrast', founder:false, v2:false, labelColor:'#3B82F6', label:'// ICP', headline:'<em style="color:#3B82F6">PM</em> e anfitrião dono.', sub:'Workflow diferente.' },
+    { id:'23', file:'post-23-conta-completa-5-imoveis.html', tpl:'C Dashboard', semana:'S7', bg:'pc-dark-green', founder:false, v2:false, labelColor:'#22C55E', label:'// A conta', headline:'5 imóveis em SP.<br><em style="color:#22C55E">Conta total.</em>', sub:'Receita já no primeiro evento.' },
+    { id:'24', file:'post-24-calendario-recorrente.html', tpl:'A Timeline anual', semana:'S8', bg:'pc-dark-orange', founder:false, v2:false, labelColor:'#E8500A', label:'// O ano inteiro', headline:'O calendário<br>de SP <em style="color:#E8500A">nunca dorme</em>.', sub:'12 meses de oportunidade.' },
+    { id:'25', file:'post-25-calculadora-final.html', tpl:'C Dashboard', semana:'S8', bg:'pc-dark-green', founder:false, v2:false, labelColor:'#22C55E', label:'// Monte seu plano', headline:'Sem letrinha pequena.', sub:'Calculadora no link da bio.' },
+    { id:'26', file:'post-26-chamada-final.html', tpl:'A Prazo', semana:'S8', bg:'pc-dark-orange', founder:false, v2:false, labelColor:'#E8500A', label:'// Próximo evento', headline:'RD Summit em<br><em style="color:#E8500A">14 de junho</em>.', sub:'Cadastra antes de 31/05.' },
+    { id:'27', file:'post-27-fundador-origem.html', tpl:'Founder origem', semana:'S0', bg:'pc-founder', founder:true, v2:false, labelColor:'#FB923C', label:'// Fundador · Gustavo', headline:'Saí da Lumina para construir o que <em style="color:#E8500A">faltava em SP</em>.', sub:'A história.' },
+    { id:'28', file:'post-28-fundador-bastidor.html', tpl:'Founder bastidor', semana:'S2', bg:'pc-founder', founder:true, v2:false, labelColor:'#FB923C', label:'// Bastidor · Gustavo', headline:'O dia em que detectou o <em style="color:#E8500A">primeiro show</em>.', sub:'Sábado, 9h.' },
+    { id:'29', file:'post-29-fundador-aprendizado.html', tpl:'Founder aprendizado', semana:'S5', bg:'pc-founder', founder:true, v2:false, labelColor:'#FB923C', label:'// Aprendizado', headline:'3 coisas com <em style="color:#3B82F6">30 anfitriões</em>.', sub:'Comenta qual reconhece.' },
+    { id:'30', file:'post-30-fundador-objecao.html', tpl:'Founder resposta', semana:'S7', bg:'pc-founder', founder:true, v2:false, labelColor:'#FB923C', label:'// Resposta', headline:'A pergunta que <em style="color:#E8500A">mais me fazem</em>.', sub:'Por que não automatiza tudo.' },
+    // ── 12 V2 POSTS COM RICH PREVIEW ──
+    { id:'31', file:'post-31-mockup-iphone-app.html', tpl:'V2 iPhone mockup', semana:'S0', bg:'pc-dark-orange', founder:false, v2:true, labelColor:'#FB923C', label:'// Sistema no ar · Maio', headline:'Recomendação<br>chega <em style="color:#E8500A">assim</em>.', sub:'Show no Allianz, 12d.', rich:'iphone-app' },
+    { id:'32', file:'post-32-mockup-dashboard-macbook.html', tpl:'V2 MacBook dashboard', semana:'S2', bg:'pc-dark-blue', founder:false, v2:true, labelColor:'#3B82F6', label:'// Painel Urban AI', headline:'5 imóveis em<br><em style="color:#3B82F6">1 painel</em>.', sub:'Recomendação por imóvel.', rich:'macbook-dashboard' },
+    { id:'33', file:'post-33-mapa-sp-eventos.html', tpl:'V2 Mapa SP', semana:'S5', bg:'pc-dark-orange', founder:false, v2:true, labelColor:'#E8500A', label:'// Última semana', headline:'<em style="color:#E8500A">47 eventos</em><br>detectados.', sub:'12 em 3 bairros.', rich:'map-sp' },
+    { id:'34', file:'post-34-grafico-economia-anual.html', tpl:'V2 Bar chart', semana:'S4', bg:'pc-light', founder:false, v2:true, labelColor:'#E8500A', label:'// Economia anual', headline:'O que o anual<br><em style="color:#22C55E">deixa no caixa</em>.', sub:'Por tamanho de portfólio.', rich:'bar-chart' },
+    { id:'35', file:'post-35-calendario-antes-depois.html', tpl:'V2 Calendário', semana:'S1', bg:'pc-dark-orange', founder:false, v2:true, labelColor:'#3B82F6', label:'// Mesma semana', headline:'Antes.<br><em style="color:#E8500A">Depois.</em>', sub:'Mesmo imóvel, +R$ 1.840.', rich:'cal-before-after' },
+    { id:'36', file:'post-36-3perguntas-icones.html', tpl:'V2 Ícones grandes', semana:'S6', bg:'pc-light', founder:false, v2:true, labelColor:'#E8500A', label:'// Antes de assinar', headline:'3 perguntas que separam<br><em style="color:#E8500A">IA séria</em>.', sub:'De palpite caro.', rich:'three-icons' },
+    { id:'37', file:'post-37-cobranca-ilustrada.html', tpl:'V2 Casinhas', semana:'S4', bg:'pc-dark-mixed', founder:false, v2:true, labelColor:'#FB923C', label:'// Modelo de cobrança', headline:'Você paga pelo que <em style="color:#E8500A">gerencia</em>.', sub:'Cada caixinha = um imóvel.', rich:'houses-row' },
+    { id:'38', file:'post-38-allianz-radar-mapa.html', tpl:'V2 Radar', semana:'S5', bg:'pc-dark-orange', founder:false, v2:true, labelColor:'#E8500A', label:'// Detecção real', headline:'Show no Allianz.<br><em style="color:#E8500A">12 dias antes</em>.', sub:'Imóveis a até 3 km.', rich:'radar' },
+    { id:'39', file:'post-39-bairros-heatmap.html', tpl:'V2 Skyline', semana:'S5', bg:'pc-dark-orange', founder:false, v2:true, labelColor:'#E8500A', label:'// RD Summit', headline:'3 bairros em <em style="color:#E8500A">aceleração</em>.', sub:'Vila Olímpia +34%.', rich:'skyline' },
+    { id:'40', file:'post-40-fundador-avatar-bastidor.html', tpl:'V2 Avatar bastidor', semana:'S2', bg:'pc-founder', founder:true, v2:true, labelColor:'#FB923C', label:'// Fundador · Gustavo', headline:'Sábado, 9h.<br><em style="color:#E8500A">Apareceu sozinho</em>.', sub:'O dia em que entendi.', rich:'avatar-quote' },
+    { id:'41', file:'post-41-depoimento-mock.html', tpl:'V2 Depoimento', semana:'S7', bg:'pc-light', founder:false, v2:true, labelColor:'#3B82F6', label:'// Caso real beta', headline:'Sexta em Pinheiros.<br><em style="color:#E8500A">Mesma data</em>.', sub:'Mariana, 4 imóveis.', rich:'avatar-quote-female' },
+    { id:'42', file:'post-42-rd-summit-countdown.html', tpl:'V2 Countdown', semana:'S8', bg:'pc-dark-mixed', founder:false, v2:true, labelColor:'#FB923C', label:'// 14 a 16 de junho', headline:'Cadastra antes de<br><em style="color:#E8500A">31 de maio</em>.', sub:'Tempo até fechar.', rich:'countdown' }
+  ];
+
+  const grid = document.getElementById('posts-grid');
+  function renderPosts(filter) {
+    grid.innerHTML = '';
+    POSTS.filter(p =>
+      filter==='all' ||
+      (filter==='founder'&&p.founder) ||
+      (filter==='v2'&&p.v2) ||
+      (filter==='v1'&&!p.v2) ||
+      p.semana===filter
+    ).forEach(p => {
+      const link = document.createElement('a');
+      let cls = 'post-preview';
+      if (p.founder) cls += ' is-founder';
+      if (p.v2) cls += ' is-v2';
+      link.className = cls;
+      link.href = POSTS_BASE + p.file;
+      link.target = '_blank';
+      let centerpiece = '';
+      if (p.big && !p.rich) centerpiece = `<div class="pc-bigtext" style="font-size:${p.big.length>4?32:48}px;color:${p.labelColor};">${p.big}</div>`;
+      const richArea = renderRich(p);
+      const founderTag = p.founder ? '<div class="pc-founder-tag">FOUNDER</div>' : '';
+      const v2Tag = p.v2 && !p.founder ? '<div class="pc-v2-tag">★ V2</div>' : '';
+      const canvasClass = p.v2 ? 'post-canvas' : 'post-canvas-43';
+
+      link.innerHTML = `
+        <div class="${canvasClass} ${p.bg}">
+          ${founderTag || v2Tag}
+          <div class="pc-tag-tpl">${p.tpl}</div>
+          <div class="pc-label" style="color:${p.labelColor};margin-top:${(p.founder||p.v2)?'14px':'0'};">${p.label}</div>
+          ${p.headline ? `<div class="pc-headline">${p.headline}</div>` : ''}
+          ${centerpiece}
+          ${richArea}
+          ${p.sub && !p.rich ? `<div class="pc-sub">${p.sub}</div>` : (p.sub && p.rich ? `<div class="pc-sub" style="margin-top:6px;">${p.sub}</div>` : '')}
+          <div class="pc-foot"><span>@myurbanai</span><span>urbanai.com.br</span></div>
+        </div>
+        <div class="post-info">
+          <div class="post-info-line">post-${p.id}${p.founder ? ' <span class="v2-badge" style="background:#FB923C;">FOUNDER</span>' : ''}${p.v2 && !p.founder ? ' <span class="v2-badge">★ V2</span>' : ''}</div>
+          <div class="post-info-meta"><span>${p.semana}</span><span>${p.tpl}</span></div>
+        </div>
+      `;
+      grid.appendChild(link);
+    });
+  }
+  renderPosts('all');
+
+  function filterPosts(ev,filter) {
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    if (ev&&ev.currentTarget) ev.currentTarget.classList.add('active');
+    renderPosts(filter);
+  }
+
+  // Reels
+  const REELS = [
+    { id:'01', file:'reel-01-bastidor-dashboard.md', name:'Bastidor do dashboard', semana:'S2', duration:'30s', bg:'bg-dashboard', label:'// Reel 01 · Bastidor', hook:'8h25. Sábado.<br>Acabou de <em>acontecer</em>.', desc:'Screencast detectando show em tempo real. Voz off do fundador.' },
+    { id:'02', file:'reel-02-fundador-cobranca.md', name:'Fundador explica cobrança', semana:'S4', duration:'60s', bg:'bg-founder', label:'// Reel 02 · Fundador', hook:'Por que cobrança <em>por imóvel</em>?', desc:'Fundador on-camera explica F6.5 em 60s.' },
+    { id:'03', file:'reel-03-adr-em-45s.md', name:'ADR em 45 segundos', semana:'S6', duration:'45s', bg:'bg-edu', label:'// Reel 03 · Educação', hook:'<em>ADR.</em><br>Em 45 segundos.', desc:'Motion graphic educacional.' },
+    { id:'04', file:'reel-04-antes-e-depois.md', name:'Antes e depois calendário', semana:'S8', duration:'40s', bg:'bg-comparison', label:'// Reel 04', hook:'Antes.<br>Depois.<br><em>+ R$ 1.840</em>', desc:'Comparação visual de calendário.' }
+  ];
+  const REELS_BASE = '../../../Claude/Projects/UrbanAi/reels/';
+  const reelsGrid = document.getElementById('reels-grid');
+  if (reelsGrid) {
+    REELS.forEach(r => {
+      const card = document.createElement('div');
+      card.className = 'reel-card';
+      card.innerHTML = `
+        <div class="reel-frame ${r.bg}">
+          <div class="rf-label">${r.label}</div>
+          <div class="rf-hook">${r.hook}</div>
+          <div class="rf-play"><svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+          <div class="rf-foot"><span>@myurbanai</span><span class="rf-duration">${r.duration}</span></div>
+        </div>
+        <div class="reel-info">
+          <div class="reel-name">${r.name}</div>
+          <div class="reel-meta">${r.semana} · ${r.duration} · 9:16</div>
+          <div class="reel-desc">${r.desc}</div>
+          <a class="open-btn" href="${REELS_BASE}${r.file}" target="_blank" style="margin-top:0;">Abrir roteiro<svg fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+        </div>
+      `;
+      reelsGrid.appendChild(card);
+    });
+  }
+
+  // Carrosseis
+  const CARROSSEIS = [
+    { id:'01', file:'carrossel-01-erros-precificacao-sp.html', name:'5 erros de precificação em SP', semana:'S1', slides:[
+      { num:'1/6', title:'5 erros em SP', bg:'pc-dark-orange' },
+      { num:'2/6', title:'Erro 01: preço fixo', bg:'pc-dark-orange' },
+      { num:'3/6', title:'Erro 02: ignorar eventos', bg:'pc-dark-orange' },
+      { num:'4/6', title:'Erro 03: reagir tarde', bg:'pc-dark-orange' },
+      { num:'5/6', title:'Erros 04 e 05', bg:'pc-dark-orange' },
+      { num:'6/6', title:'Aplica em 30 dias', bg:'pc-dark-orange' }
+    ]},
+    { id:'02', file:'carrossel-02-pipeline-funciona.html', name:'Como o pipeline funciona', semana:'S3', slides:[
+      { num:'1/5', title:'O pipeline', bg:'pc-dark-blue' },
+      { num:'2/5', title:'01 Coleta', bg:'pc-dark-blue' },
+      { num:'3/5', title:'02 Classificação', bg:'pc-dark-blue' },
+      { num:'4/5', title:'03 Predição', bg:'pc-dark-blue' },
+      { num:'5/5', title:'04 Recomendação', bg:'pc-dark-green' }
+    ]},
+    { id:'03', file:'carrossel-03-calendario-q3-sp.html', name:'Calendário Q3 SP', semana:'S6', slides:[
+      { num:'1/7', title:'Calendário Q3', bg:'pc-dark-orange' },
+      { num:'2/7', title:'Julho', bg:'pc-dark-orange' },
+      { num:'3/7', title:'Agosto', bg:'pc-dark-orange' },
+      { num:'4/7', title:'Setembro', bg:'pc-dark-orange' },
+      { num:'5/7', title:'Top 5 bairros', bg:'pc-dark-orange' },
+      { num:'6/7', title:'3 ações', bg:'pc-dark-green' },
+      { num:'7/7', title:'Salva e volta', bg:'pc-dark-orange' }
+    ]}
+  ];
+  const carrosselGrid = document.getElementById('carrosseis-grid');
+  if (carrosselGrid) {
+    CARROSSEIS.forEach(c => {
+      const card = document.createElement('div');
+      card.className = 'carrossel-card';
+      const slidesHtml = c.slides.map(s => `<a class="strip-slide ${s.bg}" href="${POSTS_BASE}${c.file}" target="_blank"><div class="ss-num">${s.num}</div><div class="ss-title">${s.title}</div><div class="ss-foot">@myurbanai</div></a>`).join('');
+      card.innerHTML = `
+        <div class="carrossel-head">
+          <div><div class="carrossel-name">${c.name}</div><div style="font-family:var(--f-mono);font-size:11px;color:var(--text-3);letter-spacing:0.08em;text-transform:uppercase;margin-top:4px;">Carrossel ${c.id} · ${c.semana}</div></div>
+          <div class="carrossel-count">${c.slides.length} slides</div>
+        </div>
+        <div class="carrossel-strip">${slidesHtml}</div>
+        <div class="carrossel-foot"><a class="open-btn" href="${POSTS_BASE}${c.file}" target="_blank" style="margin-top:0;">Abrir carrossel<svg fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a></div>
+      `;
+      carrosselGrid.appendChild(card);
+    });
+  }
+
+  // Semanas
+  const WEEKS = [
+    { num:'S0 · Pré-lançamento', name:'"Estamos no ar."', tone:'Marcação de território. Inclui post de fundador e mockup iPhone.', posts:[
+      { day:'Quinta · D-3', title:'★ post-31 · Mockup iPhone com app', goal:'V2 visual · prova de produto' },
+      { day:'Sexta · D-2', title:'post-01 · Anúncio institucional', goal:'Marca presença' },
+      { day:'Sábado · D-1', title:'post-02 · Quanto perdeu em março', goal:'Pergunta provocativa' },
+      { day:'Domingo · bônus', title:'★ post-27 · Founder origem', goal:'História do fundador' }
+    ]},
+    { num:'S1 · Dor', name:'"Você já perdeu receita."', tone:'Questionador. Inclui calendário antes/depois e carrossel.', posts:[
+      { day:'Segunda', title:'post-03 · 5 sinais de mau preço', goal:'Checklist' },
+      { day:'Terça', title:'★ post-35 · Calendário antes e depois', goal:'V2 visual · +R$ 1.840' },
+      { day:'Quarta', title:'post-04 · Sem dados vs com dados', goal:'Contraste' },
+      { day:'Sexta', title:'post-07 · O que é ADR', goal:'Educação' }
+    ], extra:'+ Carrossel 01 (sábado)' },
+    { num:'S2 · Mecanismo', name:'"Existe forma melhor."', tone:'Confiante. Inclui MacBook dashboard, reel e fundador.', posts:[
+      { day:'Segunda', title:'★ post-32 · Dashboard em MacBook', goal:'V2 visual · 5 imóveis em 1 painel' },
+      { day:'Terça', title:'★ Reel 01 · Bastidor dashboard', goal:'Vídeo prova de operação' },
+      { day:'Quarta', title:'post-06 · Urban AI em 3 passos', goal:'Educação' },
+      { day:'Quinta', title:'★ post-28 · Founder bastidor', goal:'Storytelling' },
+      { day:'Sexta', title:'post-05 · 36.898 eventos', goal:'Prova de realidade' },
+      { day:'Sábado', title:'★ post-40 · Avatar founder bastidor', goal:'V2 + Founder' }
+    ]},
+    { num:'S3 · Identificação', name:'"Para quem é."', tone:'Narrativo. Inclui carrossel.', posts:[
+      { day:'Segunda', title:'post-08 · Checklist feriado', goal:'Utilidade prática' },
+      { day:'Quarta', title:'post-09 · Sexta de show, 2 anfitriões', goal:'Cenário' },
+      { day:'Sexta', title:'post-10 · 5 imóveis em 1 painel', goal:'ICP' }
+    ], extra:'+ Carrossel 02 (quinta)' },
+    { num:'S4 · Conversão', name:'"O anual paga ele mesmo."', tone:'Matemática direta. Inclui gráfico, casinhas e reel.', posts:[
+      { day:'Segunda', title:'post-12 · Plano anual −40%', goal:'Conversão' },
+      { day:'Terça', title:'★ post-34 · Gráfico de economia', goal:'V2 visual · barras coloridas' },
+      { day:'Quarta', title:'post-13 · Calculadora economia', goal:'Tabela' },
+      { day:'Quinta', title:'★ Reel 02 · Fundador cobrança', goal:'Founder-led 60s' },
+      { day:'Sexta', title:'★ post-37 · Cobrança ilustrada', goal:'V2 visual · 5 casinhas' }
+    ]},
+    { num:'S5 · Prova de operação', name:'"Sistema rodou."', tone:'Mostra dado real. Inclui mapa SP, radar Allianz, skyline.', posts:[
+      { day:'Segunda', title:'★ post-33 · Mapa SP com eventos', goal:'V2 visual · 47 detectados' },
+      { day:'Terça', title:'★ post-38 · Radar Allianz', goal:'V2 visual · raio 3 km' },
+      { day:'Quarta', title:'post-15 · Eventos da semana', goal:'Relatório' },
+      { day:'Quinta', title:'★ post-29 · Founder aprendizado', goal:'30 anfitriões' },
+      { day:'Sexta', title:'★ post-39 · Skyline 3 bairros', goal:'V2 visual · RD Summit' }
+    ]},
+    { num:'S6 · Educação profunda', name:'"Para quem leva a sério."', tone:'Profundidade técnica. Inclui ícones grandes, reel, carrossel.', posts:[
+      { day:'Segunda', title:'post-18 · Lead time', goal:'Estratégia por janela' },
+      { day:'Terça', title:'★ post-36 · 3 perguntas com ícones', goal:'V2 visual · ícones 80px' },
+      { day:'Quarta', title:'post-19 · Dataset proprietário', goal:'Bastidor' },
+      { day:'Quinta', title:'★ Reel 03 · ADR em 45s', goal:'Educação visual' },
+      { day:'Sexta', title:'post-20 · 3 perguntas IA', goal:'Autoridade' }
+    ], extra:'+ Carrossel 03 (terça)' },
+    { num:'S7 · Comparativo e ICP', name:'"Escopo diferente."', tone:'Comparação por categoria. Inclui depoimento mock e founder.', posts:[
+      { day:'Segunda', title:'post-21 · Modelo global vs local', goal:'Posicionamento' },
+      { day:'Terça', title:'★ post-41 · Depoimento Mariana', goal:'V2 visual · prova social' },
+      { day:'Quarta', title:'post-22 · PM vs anfitrião dono', goal:'ICP segmentado' },
+      { day:'Quinta', title:'★ post-30 · Founder objeção', goal:'Resposta a dúvida' },
+      { day:'Sexta', title:'post-23 · 5 imóveis · conta total', goal:'ROI' }
+    ]},
+    { num:'S8 · Decisão e recorrência', name:'"O próximo evento."', tone:'Convite firme com prazo. Inclui calendário, countdown, reel.', posts:[
+      { day:'Segunda', title:'post-24 · Calendário SP nunca dorme', goal:'Recorrência' },
+      { day:'Terça', title:'★ Reel 04 · Antes e depois', goal:'Prova visual' },
+      { day:'Quarta', title:'post-25 · Calculadora final', goal:'Conversão' },
+      { day:'Quinta', title:'★ post-42 · Countdown RD Summit', goal:'V2 visual · countdown 04:12:36' },
+      { day:'Sexta', title:'post-26 · RD Summit 14/06', goal:'Fechamento com prazo' }
+    ]}
+  ];
+  const weeksContainer = document.getElementById('weeks-blocks');
+  if (weeksContainer) {
+    WEEKS.forEach(w => {
+      const block = document.createElement('div');
+      block.className = 'week-block';
+      const postsHtml = w.posts.map(p=>`<div class="wpost"><div class="wpost-day">${p.day}</div><div class="wpost-title">${p.title}</div><div class="wpost-goal">${p.goal}</div></div>`).join('');
+      block.innerHTML = `<div class="week-head"><div class="week-num">${w.num}</div><div class="week-name">${w.name}</div>${w.extra?`<div class="week-tag">${w.extra}</div>`:''}</div><div class="week-tone">${w.tone}</div><div class="week-posts">${postsHtml}</div>`;
+      weeksContainer.appendChild(block);
+    });
+  }
+
+  // Pricing
+  const BASE_PRICE = { starter:97, pro:197 };
+  let qty=1, disc=0;
+  function fmt(n) { return 'R$ '+Math.round(n).toLocaleString('pt-BR'); }
+  function updatePricing() {
+    const factor = 1-disc/100;
+    const ps = BASE_PRICE.starter*factor;
+    const pp = BASE_PRICE.pro*factor;
+    document.getElementById('price-starter').innerHTML = fmt(ps)+'<span>/imóvel/mês</span>';
+    document.getElementById('price-pro').innerHTML = fmt(pp)+'<span>/imóvel/mês</span>';
+    document.getElementById('total-starter').textContent = qty>1 ? `${qty} imóveis: ${fmt(ps*qty)}/mês` : `Total: ${fmt(ps)}/mês`;
+    document.getElementById('total-pro').textContent = qty>1 ? `${qty} imóveis: ${fmt(pp*qty)}/mês` : `Total: ${fmt(pp)}/mês`;
+    document.getElementById('qty-val').value = qty;
+  }
+  function setCycle(name,d) {
+    disc = d;
+    document.querySelectorAll('.cycle-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('btn-'+name).classList.add('active');
+    updatePricing();
+  }
+  function changeQty(delta) {
+    qty = Math.max(1,Math.min(20,qty+delta));
+    updatePricing();
+  }
+  updatePricing();
+</script>
+</body>
+</html>

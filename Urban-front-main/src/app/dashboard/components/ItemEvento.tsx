@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { format, parseISO } from "date-fns";
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
     
 
 export interface EventItem {
@@ -249,7 +249,6 @@ export const EventCard: React.FC<EventCardProps> = ({
           )}
         </HStack>
       </Flex>
-         <ToastContainer />
     </Box>
   );
 };

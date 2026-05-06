@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { width: 1080px; height: 1080px; overflow: hidden; }
+  </style>
+</head>
+<body>
+
+<div style="
+  width: 1080px;
+  height: 1080px;
+  background: #070B14;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  color: #E2E8F0;
+">
+
+  <!-- Grid de linhas de fundo -->
+  <svg style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0.06" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+        <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#3B82F6" stroke-width="1"/>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#grid)"/>
+  </svg>
+
+  <!-- Glow laranja inferior direito -->
+  <div style="
+    position: absolute;
+    bottom: -120px;
+    right: -120px;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(232,80,10,0.18) 0%, transparent 70%);
+  "></div>
+
+  <!-- Glow azul superior esquerdo -->
+  <div style="
+    position: absolute;
+    top: -80px;
+    left: -80px;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
+  "></div>
+
+  <!-- Conteúdo principal -->
+  <div style="
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px;
+    gap: 0;
+  ">
+
+    <!-- Logo -->
+    <div style="
+      width: 72px;
+      height: 72px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #1A1A2E, #2D3A6A);
+      border: 2px solid rgba(59,130,246,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: 32px;
+      color: #60A5FA;
+      margin-bottom: 48px;
+      box-shadow: 0 0 30px rgba(59,130,246,0.25);
+    ">U</div>
+
+    <!-- Label topo -->
+    <div style="
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: #E8500A;
+      margin-bottom: 28px;
+    ">LANÇAMENTO OFICIAL</div>
+
+    <!-- Data grande -->
+    <div style="
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: 148px;
+      line-height: 1;
+      color: #FFFFFF;
+      letter-spacing: -4px;
+      margin-bottom: 0;
+    ">18<span style="color: #E8500A;">.</span>05</div>
+
+    <!-- Linha divisória -->
+    <div style="
+      width: 120px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #E8500A, transparent);
+      margin: 36px 0;
+    "></div>
+
+    <!-- Headline -->
+    <div style="
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 38px;
+      line-height: 1.2;
+      text-align: center;
+      color: #FFFFFF;
+      max-width: 780px;
+      margin-bottom: 24px;
+    ">O Piloto Automático de Receita<br>para Anfitriões Profissionais.</div>
+
+    <!-- Subheadline -->
+    <div style="
+      font-size: 20px;
+      font-weight: 400;
+      line-height: 1.6;
+      text-align: center;
+      color: #94A3B8;
+      max-width: 680px;
+      margin-bottom: 56px;
+    ">Sua lista de espera garante acesso antes de todos.<br>Vagas limitadas para o beta.</div>
+
+    <!-- CTA pill -->
+    <div style="
+      background: linear-gradient(135deg, #E8500A, #C44008);
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 18px 52px;
+      border-radius: 100px;
+      box-shadow: 0 0 40px rgba(232,80,10,0.4);
+    ">GARANTA SUA VAGA → app.myurbanai.com</div>
+
+  </div>
+
+  <!-- Rodapé com domínio discreto -->
+  <div style="
+    position: absolute;
+    bottom: 32px;
+    right: 48px;
+    font-size: 13px;
+    color: #334155;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 600;
+  ">@myurbanai</div>
+
+</div>
+</body>
+</html>

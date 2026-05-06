@@ -7,9 +7,9 @@
 
 ## KPIs do Período
 
-| Entregues (F5 + F5A + F6 + F7) | Em Andamento | Pendentes | Bloqueantes |
+| Entregues (F5 + F5A + F5C + F6 + F7) | Em Andamento | Pendentes | Bloqueantes |
 |:---:|:---:|:---:|:---:|
-| **39** | **6** | **8** | **2** |
+| **67** | **6** | **6** | **2** |
 
 ---
 
@@ -19,8 +19,9 @@
 |------|-----------|
 | Pendências em Aberto (Carryover) | 0% |
 | F5A — Validação de Produto e UX | 60% |
-| F5 — Presença Digital | 78% |
-| F6 — IA e Produto | 20% |
+| F5C — Segurança e Hardening | **100% ✅** |
+| F5 — Presença Digital | 85% |
+| F6 — IA e Produto | 52% |
 | F7 — Beta e Go-Live | 10% |
 
 ---
@@ -138,6 +139,46 @@
 
 ---
 
+## F5C — Segurança e Hardening ✅ 100% Concluída
+
+**Período:** 24/04/2026 (sprint dedicado)  
+Todos os 7 riscos críticos da auditoria de segurança resolvidos antes do go-live com clientes reais.
+
+### 5C.1 Criptografia e Autenticação
+
+| Status | Tarefa | Semana | Resp. |
+|--------|--------|--------|-------|
+| ✅ | SHA-256 → bcrypt(12): hash antigo era reversível em milissegundos com rainbow tables. Rehash lazy no próximo login sem reset forçado (commit f960825) | S4 | Gustavo/Dev |
+| ✅ | JWT_SECRET via env — era hardcoded `"mysecretkey"` no código. Agora via ConfigService; backend recusa boot se ausente. TTL: 12h → 15min (commit d1c1bc1) | S4 | Gustavo/Dev |
+| ✅ | httpOnly cookies + refresh token rotation — JWT saiu do localStorage (vulnerável a XSS). Backend pronto; migração frontend documentada em runbooks/ (commit d1c1bc1) | S4 | Gustavo/Dev |
+
+### 5C.2 Hardening da Infraestrutura
+
+| Status | Tarefa | Semana | Resp. |
+|--------|--------|--------|-------|
+| ✅ | CORS whitelist + throttler + helmet+CSP: removido `*` do CORS (fail-closed), rate limiting 5 req/min no auth (brute-force bloqueado), headers HTTP protegidos (commit 2430ffb) | S4 | Gustavo/Dev |
+| ✅ | TypeORM `synchronize:true` → migrations versionadas: modo synchronize podia destruir a estrutura do banco em qualquer deploy (commit cfc1bc4) | S4 | Gustavo/Dev |
+| ✅ | IP hardcoded removido + Dockerfile duplicado deletado. Chave RapidAPI movida do código-fonte para variável de ambiente (commits 9cbf053 + 890ae85) | S4 | Gustavo/Dev |
+| ✅ | `console.log` que vazava senhas, JWTs e headers em produção removido — risco de exposição de credenciais em logs eliminado (commit 6d1d9c5) | S4 | Gustavo/Dev |
+
+### 5C.3 Ambiente e Runbooks
+
+| Status | Tarefa | Semana | Resp. |
+|--------|--------|--------|-------|
+| ✅ | `.env.example` para todos os serviços (backend, frontend, KNN, scraping) + `.gitignore` fortalecido + logs/dumps purgados do git (commits f1bdfd4 + 22434e2) | S4 | Gustavo/Dev |
+| ✅ | `APP_ENV` para distinguir staging de produção. Runbooks: operação, acessos, incidentes (commits 19a1378 + b4fd7ea) | S4 | Gustavo/Dev |
+| ✅ | 5 ADRs retroativos documentados (NestJS, KNN, Prefect, MySQL, Railway) + LGPD + SLO + k6 load tests + WCAG (commit 62357ca) | S4 | Gustavo/Dev |
+
+### 5C.4 Cobertura de Testes — de zero para 84 testes
+
+| Status | Tarefa | Semana | Resp. |
+|--------|--------|--------|-------|
+| ✅ | Suíte inicial: auth.service (5 casos), knn-classifier (6 casos) + Playwright smoke no frontend + CI configurado (commit a6bc320) | S4 | Gustavo/Dev |
+| ✅ | Specs do UrbanAIPricingEngine + Stripe webhook handler (commit 2d6b3a6) | S4 | Gustavo/Dev |
+| ✅ | Cobertura expandida para 84 testes: plans.service, payments.service, checkout anual, cancelamento, JWT strategy (commit 604141e) | S4 | Gustavo/Dev |
+
+---
+
 ## F5 — Presença Digital
 
 **Período:** Semanas 1–6 (21/03 → 30/04/2026)  
@@ -154,7 +195,7 @@
 | ✅ | Configurar SEO básico: meta tags completas, OG, Twitter Card, JSON-LD (SoftwareApplication + Offer nos 2 planos), canonical URL | S4 | Gustavo |
 | ✅ | Criar sitemap.xml (4 páginas) + robots.txt (bloqueando /app/, /api/, /admin/) | S4 | Gustavo |
 | ✅ | Páginas institucionais criadas: Sobre, Contato, Privacidade — com layout e identidade visual Urban AI (commit beba9cc) | S3 | Gustavo/Dev |
-| 🔄 | Google Analytics 4 + Meta Pixel — snippets injetados na landing com placeholders, aguarda IDs reais para ativar rastreamento | S4 | Gustavo |
+| ✅ | Google Analytics 4 + Meta Pixel ativos em /lancamento + formulário de waitlist funcionando — rastreamento real ativo (commit f7a114c) | S4 | Gustavo/Dev |
 | ⬜ | Publicar landing page em urbanai.com.br (aguarda transferência do domínio) 💰 | S4–5 | Gustavo/Dev |
 | ⬜ | Integrar formulário de pré-cadastro / lista de interesse | S4–5 | Gustavo/Dev |
 | ✅ | Rota /lancamento/page.tsx criada no app — página de lançamento integrada ao Next.js (commit 3107496) | S3 | Gustavo/Dev |
@@ -212,33 +253,54 @@
 **Período:** Semanas 3–10 (11/04 → 30/05/2026)  
 **Custo estimado:** 💰 Horas de desenvolvimento (a definir)
 
-### 6.1 Motor KNN e Dados Reais
+### 6.1 Motor KNN e Evolução do Modelo
 
 | Status | Tarefa | Semana | Resp. |
 |--------|--------|--------|-------|
-| ⬜ | Expor endpoints REST no backend para resultados do KNN 💰 | S3–4 | Gustavo/Dev |
-| ✅ | Implementado modo autônomo de precificação guiado por IA no frontend e backend 💰 | S4–6 | Gustavo/Dev |
-| ⬜ | Conectar dados reais de propriedades cadastradas ao treinamento do KNN 💰 | S5–7 | Gustavo/Dev |
-| ⬜ | Substituir dados mock por histórico real de preços e ocupação 💰 | S6–8 | Gustavo/Dev |
-| ⬜ | Agendar retreinamento semanal do KNN (pós-scraping de eventos) | S8–9 | Gustavo/Dev |
+| ⬜ | Expor endpoints REST no backend para resultados do KNN | S3–4 | Gustavo/Dev |
+| ✅ | Modo autônomo de precificação guiado por IA no frontend e backend | S4–6 | Gustavo/Dev |
+| ✅ | Strategy pattern plugável: RuleBasedPricingStrategy (Tier 0) + XGBoostPricingStrategy (skeleton) + ShadowPricingStrategy (dual-run). Troca via env var sem deploy. ADR 0008 documenta migração KNN→XGBoost (commit 593d846) | S5 | Gustavo/Dev |
+| ✅ | AdaptivePricingStrategy: auto-tier que escolhe modelo conforme dataset cresce (Tier 0→2→4) sem necessidade de deploy entre tiers (commit 54a1da1) | S5 | Gustavo/Dev |
+| ✅ | Captura passiva de dataset próprio em 3 frentes: cron diário 03:30 BRT (snapshot todos os imóveis), comps persistidos a cada análise (~10–30 pontos/análise), ground truth via Stays. Dataset acumulando desde 25/04 (commit 54a1da1) | S5 | Gustavo/Dev |
+| ✅ | Cron de retreinamento ativo — DatasetCollectorService + PricingBootstrapService no boot (commit 54a1da1) | S5 | Gustavo/Dev |
+| 🔄 | Conectar dataset acumulado ao treinamento XGBoost (Tier 1 → Tier 2) | S6–8 | Gustavo/Dev |
 
 ### 6.2 Fontes de Dados e APIs
 
 | Status | Tarefa | Semana | Resp. |
 |--------|--------|--------|-------|
-| ✅ | Substituição completa do RapidAPI por scraping direto GraphQL do Airbnb — domínio .com.br + fallback intl + decode Base64 Relay + cron mensal de re-scraping (commits 135dc46, 7555609, 130cee0) | S3–4 | Gustavo/Dev |
-| ⬜ | Pesquisar novas fontes de eventos em SP (Sympla API, Prefeitura SP) | S4–5 | Gustavo |
-| ⬜ | Reunião estratégica com PriceLabs — parceria ou benchmark | S4 | Gustavo |
+| ✅ | Substituição completa do RapidAPI por scraping direto GraphQL do Airbnb — domínio .com.br + fallback intl + decode Base64 Relay + cron mensal (commits 135dc46, 7555609, 130cee0) | S3–4 | Gustavo/Dev |
+| ✅ | Pesquisa de fontes realizada: InsideAirbnb não cobre SP diretamente. Fontes mapeadas: AirROI free (28k listings SP), Base dos Dados BigQuery, Airbtics US$29/mês. Documentado em runbooks/dataset-acquisition.md (commit 593d846) | S5 | Gustavo/Dev |
+| ⬜ | Reunião estratégica com PriceLabs — parceria ou benchmark | S5 | Gustavo |
 | ⬜ | Ampliar cobertura dos spiders para novos bairros/regiões de SP | S6–8 | Gustavo/Dev |
 
-### 6.3 Produto e Painel Administrativo
+### 6.3 Painel Administrativo Urban AI
 
 | Status | Tarefa | Semana | Resp. |
 |--------|--------|--------|-------|
-| ⬜ | Implementar painel admin básico: gestão de usuários + assinaturas 💰 | S6–9 | Gustavo/Dev |
-| ⬜ | Criar fluxo de onboarding guiado para novos usuários 💰 | S7–9 | Gustavo/Dev |
-| ⬜ | Configurar e-mails de onboarding automático via Mailersend 💰 | S6–8 | Gustavo/Dev |
-| ⬜ | Implementar métricas de produto no dashboard (NPS, ativação, retenção) | S8–10 | Gustavo/Dev |
+| ✅ | Painel admin completo: /admin/users (gestão de usuários, papéis, RolesGuard) + /admin/overview + 6 endpoints backend com autenticação por role (commits 35ae7c2 + b5e7eb3) | S5 | Gustavo/Dev |
+| ✅ | Analytics do motor de eventos em /admin/events: cobertura geo, % Gemini, volume 7/30/90d, mega-eventos, top 10 por relevância (commit b5e7eb3) | S5 | Gustavo/Dev |
+| ✅ | /admin/stays + /admin/funnel (funil signup→assinatura) + /admin/quality (MAPE real, gate de qualidade) (commit b5e7eb3) | S5 | Gustavo/Dev |
+| ✅ | Módulo financeiro /admin/finance: MRR estimado, custos CRUD, margem por imóvel ativo (verde/amarelo/vermelho). Entity PlatformCost + migration + seed + 11 testes (commits 188a896 + 0df8a85) | S5 | Gustavo/Dev |
+| ✅ | /admin/pricing-config: editar preços F6.5 sem tocar código. Endpoints GET/PATCH /admin/plans-config/* (commit 188a896) | S5 | Gustavo/Dev |
+| ⬜ | Configurar e-mails de onboarding automático via Mailersend (triggers D+0/D+3/D+7) | S6–8 | Gustavo/Dev |
+| ⬜ | Implementar NPS e métricas de ativação/retenção no dashboard (hoje apenas funil admin) | S8–10 | Gustavo/Dev |
+
+### 6.4 Integração Stays — Aplicação Automática de Preços
+
+| Status | Tarefa | Semana | Resp. |
+|--------|--------|--------|-------|
+| ✅ | Dual-mode integration com API Stays: modo Recomendação (usuário aplica) + modo Automático (cron aplica via Stays Open API com guardrails). Entidades StaysAccount, StaysListing, StaysPushHistory criadas (commit c634805) | S5 | Gustavo/Dev |
+| 🔄 | Conectar integração Stays em produção — requer conta Stays ativa e credenciais OAuth (parceria Airbnb Preferred+) | S6–7 | Gustavo |
+
+### 6.5 Modelo de Cobrança por Imóvel
+
+| Status | Tarefa | Semana | Resp. |
+|--------|--------|--------|-------|
+| ✅ | Cobrança por imóvel com 4 ciclos e descontos progressivos: mensal (cheio), trimestral (−15%), semestral (−25%), anual (−40%). PricingCalculatorV2 no frontend (commit 5e60be9) | S5 | Gustavo/Dev |
+| ✅ | Bloqueio server-side real: ListingsQuotaGuard retorna ForbiddenException 403 com `LISTINGS_QUOTA_EXCEEDED` — proteção real, não só UX (commit 5e60be9) | S5 | Gustavo/Dev |
+| ✅ | Preços exatos no Stripe: R$124/mês e R$99/mês (anual) para Profissional; R$248/mês e R$199/mês (anual) para Escala (commits 022b19c + 041b565) | S5 | Gustavo/Dev |
+| ✅ | Refactor dos pricing cards: GlobalPaywallModal, planos e onboarding com layout responsivo consistente nas 3 telas (commit a816a12) | S5 | Gustavo/Dev |
 
 ---
 
