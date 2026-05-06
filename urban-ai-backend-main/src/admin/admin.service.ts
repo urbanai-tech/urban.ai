@@ -662,6 +662,79 @@ export class AdminService {
   }
 
   // ========================================================================
+  // F6.2 Plus — Timeline diária de ingestão (in-scope vs out-of-scope)
+  // ========================================================================
+
+  /**
+   * Agregado diário de eventos coletados nos últimos N dias, separados por
+   * scope (in/out). Usado pelo gráfico de evolução em `/admin/events`.
+   *
+   * Critério: `e.dataCrawl` (timestamp da última coleta).
+   *
+   * @param days janela em dias (default 30, max 90)
+   */
+  async eventsTimeline(days: number = 30) {
+    const safeDays = Math.max(1, Math.min(90, days));
+    const since = new Date(Date.now() - safeDays * 24 * 60 * 60 * 1000);
+    since.setHours(0, 0, 0, 0);
+
+    const rows = await this.eventRepo
+      .createQueryBuilder('e')
+      .select('DATE(e.dataCrawl)', 'day')
+      .addSelect(
+        'SUM(CASE WHEN e.outOfScope = FALSE THEN 1 ELSE 0 END)',
+        'inScope',
+      )
+      .addSelect(
+        'SUM(CASE WHEN e.outOfScope = TRUE THEN 1 ELSE 0 END)',
+        'outOfScope',
+      )
+      .where('e.dataCrawl >= :since', { since })
+      .groupBy('day')
+      .orderBy('day', 'ASC')
+      .getRawMany();
+
+    // Preenche dias vazios (sem coleta) com 0/0 pra gráfico contínuo
+    const map = new Map<string, { in: number; out: number }>();
+    for (const r of rows) {
+      const dayKey = String(r.day).slice(0, 10);
+      map.set(dayKey, {
+        in: Number(r.inScope ?? 0),
+        out: Number(r.outOfScope ?? 0),
+      });
+    }
+    const buckets: Array<{ day: string; inScope: number; outOfScope: number }> = [];
+    for (let i = safeDays - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      d.setHours(0, 0, 0, 0);
+      const key = d.toISOString().slice(0, 10);
+      const entry = map.get(key) ?? { in: 0, out: 0 };
+      buckets.push({ day: key, inScope: entry.in, outOfScope: entry.out });
+    }
+
+    const totalIn = buckets.reduce((s, b) => s + b.inScope, 0);
+    const totalOut = buckets.reduce((s, b) => s + b.outOfScope, 0);
+    const peakDay = buckets.reduce(
+      (acc, b) =>
+        b.inScope + b.outOfScope > acc.total
+          ? { day: b.day, total: b.inScope + b.outOfScope }
+          : acc,
+      { day: '', total: 0 },
+    );
+
+    return {
+      days: safeDays,
+      generatedAt: new Date().toISOString(),
+      totalInScope: totalIn,
+      totalOutScope: totalOut,
+      avgPerDay: Math.round((totalIn + totalOut) / safeDays),
+      peakDay,
+      buckets,
+    };
+  }
+
+  // ========================================================================
   // F6.2 Plus — Saúde dos coletores (por source)
   // ========================================================================
 
