@@ -1053,6 +1053,8 @@ export interface AdminEventsAnalytics {
   summary: {
     total: number;
     ativos: number;
+    inScope: number;
+    outOfScope: number;
     coveragePercent: number;
     enrichmentPercent: number;
     coordsMissing: number;
@@ -1541,3 +1543,81 @@ export const resetStaleEnrichment = () =>
   api
     .post<{ reset: number }>('/admin/coverage/reset-stale-enrichment')
     .then((r) => r.data);
+
+// =================== Events listing + collectors health ===================
+
+export interface EventListItem {
+  id: string;
+  nome: string;
+  cidade: string;
+  estado: string;
+  dataInicio: string;
+  dataFim: string;
+  categoria: string | null;
+  relevancia: number | null;
+  capacidadeEstimada: number | null;
+  raioImpactoKm: number | null;
+  venueType: string | null;
+  venueCapacity: number | null;
+  source: string | null;
+  outOfScope: boolean;
+  pendingGeocode: boolean;
+  ativo: boolean;
+  latitude: number | null;
+  longitude: number | null;
+  enrichmentAttempts: number;
+  enrichmentLastError: string | null;
+  crawledUrl: string | null;
+}
+
+export interface EventsListResponse {
+  page: number;
+  limit: number;
+  total: number;
+  scope: 'in' | 'out' | 'all';
+  items: EventListItem[];
+}
+
+export const fetchAdminEventsList = (params: {
+  page?: number;
+  limit?: number;
+  scope?: 'in' | 'out' | 'all';
+  source?: string;
+  search?: string;
+  upcoming?: boolean;
+}) =>
+  api
+    .get<EventsListResponse>('/admin/events/list', {
+      params: {
+        page: params.page ?? 1,
+        limit: params.limit ?? 50,
+        scope: params.scope ?? 'in',
+        source: params.source,
+        search: params.search,
+        upcoming: params.upcoming ? 'true' : undefined,
+      },
+    })
+    .then((r) => r.data);
+
+export interface CollectorSourceStats {
+  source: string;
+  total: number;
+  last7d: number;
+  last24h: number;
+  outOfScope: number;
+  outOfScopePercent: number;
+  pendingGeocode: number;
+  pendingEnrichment: number;
+  enriched: number;
+  withErrors: number;
+  errorRate: number;
+  lastSeen: string | null;
+}
+
+export interface CollectorsHealthResponse {
+  generatedAt: string;
+  sources: CollectorSourceStats[];
+}
+
+export const fetchCollectorsHealth = () =>
+  api.get<CollectorsHealthResponse>('/admin/events/collectors-health').then((r) => r.data);

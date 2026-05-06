@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchAdminEvents, type AdminEventsAnalytics } from "../../service/api";
+import {
+  fetchAdminEvents,
+  fetchAdminEventsList,
+  type AdminEventsAnalytics,
+  type EventListItem,
+} from "../../service/api";
 
 /**
  * /admin/events — analytics do motor de eventos (F6.2).
@@ -18,6 +23,19 @@ export default function AdminEventsPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Listing detalhada (filtros)
+  const [listing, setListing] = useState<{
+    items: EventListItem[];
+    total: number;
+    page: number;
+    limit: number;
+  } | null>(null);
+  const [listingLoading, setListingLoading] = useState(false);
+  const [scope, setScope] = useState<'in' | 'out' | 'all'>('in');
+  const [search, setSearch] = useState('');
+  const [sourceFilter, setSourceFilter] = useState('');
+  const [page, setPage] = useState(1);
+
   useEffect(() => {
     fetchAdminEvents()
       .then(setData)
@@ -31,6 +49,29 @@ export default function AdminEventsPage() {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  async function loadListing() {
+    setListingLoading(true);
+    try {
+      const r = await fetchAdminEventsList({
+        page,
+        limit: 50,
+        scope,
+        source: sourceFilter || undefined,
+        search: search.trim() || undefined,
+      });
+      setListing({ items: r.items, total: r.total, page: r.page, limit: r.limit });
+    } catch (err: any) {
+      console.error(err);
+    } finally {
+      setListingLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadListing();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scope, page, sourceFilter]);
 
   if (loading) {
     return (
@@ -71,13 +112,39 @@ export default function AdminEventsPage() {
 
         <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Kpi label="Total no DB" value={summary.total} />
-          <Kpi label="Ativos" value={summary.ativos} />
+          <Kpi
+            label="Dentro da cobertura"
+            value={summary.inScope}
+            sub={`${summary.outOfScope} fora`}
+            color="text-emerald-300"
+          />
           <Kpi label="Cobertura geo" value={`${summary.coveragePercent}%`} sub={`${summary.coordsMissing} sem coord`} />
           <Kpi label="Enriquecidos (Gemini)" value={`${summary.enrichmentPercent}%`} sub={`${summary.relevanceMissing} sem relevância`} />
           <Kpi label="Próximos 7d" value={upcoming.next7d} />
           <Kpi label="Próximos 30d" value={upcoming.next30d} />
           <Kpi label="Próximos 90d" value={upcoming.next90d} />
           <Kpi label="Mega-eventos 30d" value={upcoming.megaUpcoming} sub="relevância ≥ 80" />
+        </section>
+
+        <section className="flex flex-wrap gap-2 text-xs">
+          <a
+            href="/admin/coverage"
+            className="px-3 py-1.5 rounded border border-emerald-700 text-emerald-300 hover:bg-emerald-950/30"
+          >
+            Ver/editar regiões de cobertura →
+          </a>
+          <a
+            href="/admin/collectors-health"
+            className="px-3 py-1.5 rounded border border-blue-700 text-blue-300 hover:bg-blue-950/30"
+          >
+            Saúde dos coletores →
+          </a>
+          <a
+            href="/admin/events/new"
+            className="px-3 py-1.5 rounded border border-slate-700 hover:bg-slate-800"
+          >
+            + Cadastrar evento manual
+          </a>
         </section>
 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -140,12 +207,194 @@ export default function AdminEventsPage() {
           </div>
         </section>
 
+        {/* ============== Listagem detalhada com filtros ============== */}
+        <section>
+          <h2 className="text-xl font-bold mb-3">Listagem detalhada</h2>
+
+          <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex rounded-lg overflow-hidden border border-slate-700">
+              {(['in', 'out', 'all'] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => {
+                    setScope(s);
+                    setPage(1);
+                  }}
+                  className={`px-3 py-1.5 text-xs font-bold transition-colors ${
+                    scope === s
+                      ? 'bg-emerald-500 text-slate-900'
+                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  {s === 'in' && 'Dentro da cobertura'}
+                  {s === 'out' && 'Fora (out-of-scope)'}
+                  {s === 'all' && 'Todos'}
+                </button>
+              ))}
+            </div>
+
+            <input
+              type="text"
+              placeholder="Buscar por nome ou cidade…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setPage(1);
+                  loadListing();
+                }
+              }}
+              className="flex-1 min-w-[200px] px-3 py-1.5 rounded bg-slate-800 border border-slate-700 text-xs"
+            />
+
+            <input
+              type="text"
+              placeholder="Source (api-football, sympla...)"
+              value={sourceFilter}
+              onChange={(e) => setSourceFilter(e.target.value)}
+              onBlur={() => setPage(1)}
+              className="px-3 py-1.5 rounded bg-slate-800 border border-slate-700 text-xs w-56"
+            />
+
+            <button
+              onClick={() => {
+                setPage(1);
+                loadListing();
+              }}
+              className="px-3 py-1.5 rounded bg-emerald-500 text-slate-900 font-bold text-xs"
+            >
+              Buscar
+            </button>
+          </div>
+
+          <div className="border border-slate-800 rounded-xl overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="bg-slate-900/60 text-slate-400 uppercase">
+                <tr>
+                  <th className="px-2 py-1.5 text-left">Nome</th>
+                  <th className="px-2 py-1.5 text-left">Cidade</th>
+                  <th className="px-2 py-1.5 text-left">Data</th>
+                  <th className="px-2 py-1.5 text-center">Rel.</th>
+                  <th className="px-2 py-1.5 text-left">Source</th>
+                  <th className="px-2 py-1.5 text-center">Geo</th>
+                  <th className="px-2 py-1.5 text-center">Scope</th>
+                  <th className="px-2 py-1.5 text-center">Enrich</th>
+                </tr>
+              </thead>
+              <tbody>
+                {listingLoading ? (
+                  <tr>
+                    <td colSpan={8} className="px-3 py-6 text-center text-slate-500">
+                      Carregando…
+                    </td>
+                  </tr>
+                ) : !listing || listing.items.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-3 py-6 text-center text-slate-500">
+                      Nenhum evento com esses filtros.
+                    </td>
+                  </tr>
+                ) : (
+                  listing.items.map((e) => (
+                    <tr key={e.id} className="border-t border-slate-800 hover:bg-slate-900/30">
+                      <td className="px-2 py-1.5 max-w-xs truncate" title={e.nome}>
+                        {e.nome}
+                      </td>
+                      <td className="px-2 py-1.5 text-slate-400">
+                        {e.cidade}/{e.estado}
+                      </td>
+                      <td className="px-2 py-1.5 text-slate-400">
+                        {new Date(e.dataInicio).toLocaleDateString('pt-BR')}
+                      </td>
+                      <td className="px-2 py-1.5 text-center">
+                        {e.relevancia !== null ? (
+                          <span
+                            className={`px-1.5 py-0.5 rounded font-bold ${
+                              e.relevancia >= 80
+                                ? 'bg-rose-500/20 text-rose-300'
+                                : e.relevancia >= 60
+                                ? 'bg-amber-500/20 text-amber-300'
+                                : 'bg-slate-700 text-slate-300'
+                            }`}
+                          >
+                            {e.relevancia}
+                          </span>
+                        ) : (
+                          <span className="text-slate-500">—</span>
+                        )}
+                      </td>
+                      <td className="px-2 py-1.5 text-slate-500 font-mono text-[10px]">
+                        {e.source ?? '—'}
+                      </td>
+                      <td className="px-2 py-1.5 text-center">
+                        {e.latitude && e.longitude ? (
+                          '✓'
+                        ) : e.pendingGeocode ? (
+                          <span className="text-amber-400" title="Aguardando geocoder">
+                            ⌛
+                          </span>
+                        ) : (
+                          <span className="text-red-400">✗</span>
+                        )}
+                      </td>
+                      <td className="px-2 py-1.5 text-center">
+                        {e.outOfScope ? (
+                          <span className="text-red-400" title="Fora da cobertura">
+                            ✗
+                          </span>
+                        ) : (
+                          <span className="text-emerald-400">✓</span>
+                        )}
+                      </td>
+                      <td
+                        className="px-2 py-1.5 text-center"
+                        title={e.enrichmentLastError ?? ''}
+                      >
+                        {e.relevancia !== null
+                          ? '✓'
+                          : e.enrichmentAttempts > 0
+                          ? `${e.enrichmentAttempts}x ⚠️`
+                          : '⌛'}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {listing && listing.total > listing.limit && (
+            <div className="flex justify-between items-center mt-2 text-xs">
+              <span className="text-slate-500">
+                Página {listing.page} · {listing.total.toLocaleString('pt-BR')} no total
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={listing.page === 1}
+                  className="px-3 py-1 rounded border border-slate-700 disabled:opacity-30"
+                >
+                  ← Anterior
+                </button>
+                <button
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={listing.page * listing.limit >= listing.total}
+                  className="px-3 py-1 rounded border border-slate-700 disabled:opacity-30"
+                >
+                  Próxima →
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+
         <section className="text-xs text-slate-500 border-t border-slate-800 pt-4">
           <p>
-            <strong>Gap conhecido:</strong> os 8 spiders atuais cobrem shows e ingressos comerciais.
-            Conferências, cursos profissionais, jogos em estádios e centros de eventos ainda não entram.
-            Plano de evolução em 3 camadas (APIs oficiais → Firecrawl → curadoria) em
-            <code className="px-1">docs/runbooks/event-engine-evolution.md</code>.
+            <strong>Status do motor:</strong> spiders Scrapy (Camada legado) + APIs
+            oficiais (api-football, sp-cultura) + LLM extractors (Firecrawl/SerpAPI/Tavily,
+            Camada 2) + curadoria humana (admin-manual / admin-csv-import, Camada 3).
+            Cobertura geográfica controlada em <code>/admin/coverage</code>.
+            Saúde dos coletores em <code>/admin/collectors-health</code>.
           </p>
         </section>
       </div>
@@ -153,11 +402,21 @@ export default function AdminEventsPage() {
   );
 }
 
-function Kpi({ label, value, sub }: { label: string; value: number | string; sub?: string }) {
+function Kpi({
+  label,
+  value,
+  sub,
+  color,
+}: {
+  label: string;
+  value: number | string;
+  sub?: string;
+  color?: string;
+}) {
   return (
     <div className="border border-slate-800 rounded-xl bg-slate-900/40 p-3">
       <p className="text-[10px] uppercase tracking-wider text-slate-500">{label}</p>
-      <p className="text-xl font-bold mt-1">{value}</p>
+      <p className={`text-xl font-bold mt-1 ${color ?? ""}`}>{value}</p>
       {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}
     </div>
   );

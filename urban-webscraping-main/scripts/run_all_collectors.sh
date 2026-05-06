@@ -3,9 +3,11 @@ set -e
 
 echo "Iniciando bateria de coletores REST (Camada 1 + 2)..."
 
-# Camada 1 — APIs oficiais
-uv run python -m urban_webscrapping.collectors.api_football || echo "Aviso: api_football falhou"
+# Camada 1 — APIs oficiais e fontes públicas
+uv run python -m urban_webscrapping.collectors.api_football   || echo "Aviso: api_football falhou"
 uv run python -m urban_webscrapping.collectors.sp_cultura     || echo "Aviso: sp_cultura falhou"
+uv run python -m urban_webscrapping.collectors.usp_eventos    || echo "Aviso: usp_eventos falhou"
+uv run python -m urban_webscrapping.collectors.marcha_para_jesus || echo "Aviso: marcha_para_jesus falhou"
 
 # Camada 2 — Web search + LLM extraction
 uv run python -m urban_webscrapping.collectors.serpapi_events || echo "Aviso: serpapi_events falhou"
