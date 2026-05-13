@@ -1,7 +1,6 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { ROLES_KEY } from './roles.decorator';
 
@@ -21,7 +20,7 @@ import { ROLES_KEY } from './roles.decorator';
 export class RolesGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    @InjectRepository(User) private readonly userRepo: Repository<User>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -41,7 +40,7 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('Acesso negado: usuário não autenticado.');
     }
 
-    const user = await this.userRepo.findOne({
+    const user = await this.dataSource.getRepository(User).findOne({
       where: { id: userId },
       select: ['id', 'role', 'ativo'],
     });
