@@ -1,14 +1,17 @@
 import { MailerController } from './mailer.controller';
 import { MailerService } from './mailer.service';
-import { forwardRef, Module } from '@nestjs/common';
-import { AuthModule } from 'src/auth/auth.module';
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { User } from 'src/entities/user.entity';
 
 @Module({
-    imports: [forwardRef(() => AuthModule)],
+    imports: [TypeOrmModule.forFeature([User])],
     controllers: [
         MailerController,],
     providers: [
-        MailerService,],
-        exports: [MailerService]
+        MailerService,
+        RolesGuard,],
+    exports: [MailerService]
 })
 export class MailerModule { }
