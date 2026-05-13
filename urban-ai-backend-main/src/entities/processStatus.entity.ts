@@ -16,7 +16,7 @@ export class ProcessStatus {
   @Column({
     type: 'enum',
     enum: ['running', 'completed', 'error'],
-    default: 'running',
+    default: 'completed',
   })
   status: ProcessState;
 

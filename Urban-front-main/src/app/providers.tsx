@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext';
 import ChainlitCopilot from './componentes/ChainlitCopilot'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import '../../i18n';
 
 const theme = extendTheme({
   colors: {

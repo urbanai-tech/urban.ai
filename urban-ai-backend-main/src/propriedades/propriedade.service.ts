@@ -1,4 +1,4 @@
-import { forwardRef, HttpException, HttpStatus, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, HttpException, HttpStatus, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { Address } from 'src/entities/addresses.entity';
@@ -51,6 +51,7 @@ export class CreateAlertDto {
 
 @Injectable()
 export class PropriedadeService {
+    private readonly logger = new Logger(PropriedadeService.name);
 
     constructor(
         @InjectRepository(Address)
@@ -89,17 +90,17 @@ export class PropriedadeService {
         return { data, total, page, limit };
     }
 
-    async findAddressById(id: string): Promise<Address> {
+    async findAddressById(id: string, userId: string): Promise<Address> {
         return this.addressRepository.findOne({
-            where: { id },
+            where: { id, user: { id: userId } },
             relations: ["list", "user"],
         });
     }
 
-    async deleteAddressAndList(addressId: string): Promise<void> {
-        // 1. Buscar o endereço pelo ID (junto com o list relacionado)
+    async deleteAddressAndList(addressId: string, userId: string): Promise<void> {
+        // 1. Buscar o endereço pelo ID e dono autenticado (junto com o list relacionado)
         const address = await this.addressRepository.findOne({
-            where: { id: addressId },
+            where: { id: addressId, user: { id: userId } },
             relations: ["list"],
         });
 
@@ -910,7 +911,7 @@ export class PropriedadeService {
                     'x-rapidapi-key': apiKey,
                 },
             });
-            console.log(data)
+            this.logger.debug(`Quote response received for property=${propertyId}`);
             // Se houver mensagem de erro no metadata
             const errorMessage = data?.data?.metadata?.errorData?.errorMessage?.errorMessage;
             if (errorMessage) {
@@ -1197,7 +1198,7 @@ export class PropriedadeService {
             };
 
             if (eventosUnicos.size > 0) {
-                console.log(`📌 Usuário ${user.username} (${user.id}) possui ${eventosUnicos.size} eventos futuros únicos analisados.`);
+                this.logger.debug(`Usuario ${user.id} possui ${eventosUnicos.size} eventos futuros unicos analisados.`);
 
                 const enviado = await this.emailService.sendEmail(
                     user?.email,
@@ -1207,12 +1208,12 @@ export class PropriedadeService {
                 );
 
                 if (enviado && enviado?.enviado) {
-                    console.log(`✅ Email enviado com sucesso para o usuário ${user?.username}`);
+                    this.logger.log(`Email de eventos futuros enviado para user=${user.id}`);
                 } else {
-                    console.log(`❌ Falha ao enviar email para o usuário ${user?.username}`);
+                    this.logger.warn(`Falha ao enviar email de eventos futuros para user=${user.id}`);
                 }
             } else {
-                console.log(`ℹ️ Nenhum evento futuro disponível no momento para o usuário ${user?.username}.`);
+                this.logger.debug(`Nenhum evento futuro disponivel para user=${user.id}`);
             }
 
             return relatorioUsuario;
@@ -1248,7 +1249,7 @@ export class PropriedadeService {
 
             const alerts = await this.buscarAlertPorId(address?.idAlertAirb);
 
-            console.log(dadosAirbnb)
+            this.logger.debug(`Dados Airbnb carregados para list=${list?.id}`);
             const maxObj = alerts.comps.reduce((prev, curr) =>
                 curr.similarity_score > prev.similarity_score ? curr : prev
             );
@@ -1500,6 +1501,7 @@ export class PropriedadeService {
     }
     async getEventosByEnderecoForMap(
         enderecoId: string,
+        userId: string,
         page: number = 1,
         limit: number = 10,
         raio: number,
@@ -1520,6 +1522,7 @@ export class PropriedadeService {
         const [resultados, total] = await this.analisePrecoRepository.findAndCount({
             where: {
                 endereco: { id: enderecoId },
+                usuarioProprietario: { id: userId },
                 distanciaSuaPropriedade: LessThanOrEqual(raio),
                 evento: {
                     dataInicio: Between(startDate, endDate), // compara apenas dd/mm/yyyy
@@ -1624,6 +1627,7 @@ export class PropriedadeService {
 
     async getEventosByEndereco(
         enderecoId: string,
+        userId: string,
         dataInicial: string,
         page: number = 1,
         limit: number = 10,
@@ -1633,6 +1637,7 @@ export class PropriedadeService {
         const [resultados, total] = await this.analisePrecoRepository.findAndCount({
             where: {
                 endereco: { id: enderecoId },
+                usuarioProprietario: { id: userId },
                 evento: {
                     dataInicio: Between(inicio, fim),
                 },

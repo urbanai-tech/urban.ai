@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
+import { api } from '../service/api'
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -20,22 +21,22 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
   }, [])
 
   useEffect(() => {
-    const checkAuth = () => {
+    const checkAuth = async () => {
       if (typeof window === 'undefined') return
-      
-      const token = localStorage.getItem('accessToken')
-      
+
       if (isPublicPath(pathname)) {
         setIsLoading(false)
         return
       }
-      
-      if (!token) {
+
+      try {
+        await api.get('/auth/me')
+        setIsAuthenticated(true)
+      } catch {
         router.push('/')
         return
       }
-      
-      setIsAuthenticated(true)
+
       setIsLoading(false)
     }
     

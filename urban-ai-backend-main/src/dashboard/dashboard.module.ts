@@ -9,6 +9,7 @@ import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity
 import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { User } from 'src/entities/user.entity';
 import { PropriedadeModule } from 'src/propriedades/propriedade.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
     imports: [TypeOrmModule.forFeature([
@@ -18,7 +19,7 @@ import { PropriedadeModule } from 'src/propriedades/propriedade.module';
         AnaliseEnderecoEvento,
         AnalisePreco,
         User
-    ]), PropriedadeModule],
+    ]), PropriedadeModule, AuthModule],
     controllers: [
         DashboardController,],
     providers: [

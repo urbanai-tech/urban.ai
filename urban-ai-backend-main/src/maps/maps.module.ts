@@ -16,6 +16,7 @@ import { ProcessService } from 'src/process/process.service';
 import { ProcessModule } from 'src/process/process.module';
 import { EmailModule } from 'src/email/email.module';
 import { PropriedadeModule } from 'src/propriedades/propriedade.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { PropriedadeModule } from 'src/propriedades/propriedade.module';
     ScheduleModule,
     PropriedadeModule,
     EmailModule,
+    AuthModule,
     TypeOrmModule.forFeature([
       Event,
       Address,

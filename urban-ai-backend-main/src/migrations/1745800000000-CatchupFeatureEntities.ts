@@ -31,7 +31,7 @@ export class CatchupFeatureEntities1745800000000 implements MigrationInterface {
           },
           { name: 'user_id', type: 'varchar', length: '36', isNullable: false },
           { name: 'clientId', type: 'varchar', length: '128', isNullable: false },
-          { name: 'accessToken', type: 'varchar', length: '512', isNullable: false },
+          { name: 'accessToken', type: 'varchar', length: '2048', isNullable: false },
           { name: 'tokenExpiresAt', type: 'datetime', isNullable: true },
           {
             name: 'status', type: 'varchar', length: '32',
@@ -66,7 +66,7 @@ export class CatchupFeatureEntities1745800000000 implements MigrationInterface {
             generationStrategy: 'uuid', default: '(UUID())',
           },
           { name: 'stays_account_id', type: 'varchar', length: '36', isNullable: false },
-          { name: 'propriedade_id', type: 'int', isNullable: true },
+          { name: 'propriedade_id', type: 'varchar', length: '36', isNullable: true },
           { name: 'staysListingId', type: 'varchar', length: '64', isNullable: false },
           { name: 'title', type: 'varchar', length: '255', isNullable: true },
           { name: 'shortAddress', type: 'varchar', length: '255', isNullable: true },
@@ -101,8 +101,8 @@ export class CatchupFeatureEntities1745800000000 implements MigrationInterface {
             generationStrategy: 'uuid', default: '(UUID())',
           },
           { name: 'snapshotDate', type: 'date', isNullable: false },
-          { name: 'list_id', type: 'int', isNullable: true },
-          { name: 'address_id', type: 'int', isNullable: true },
+          { name: 'list_id', type: 'varchar', length: '36', isNullable: true },
+          { name: 'address_id', type: 'varchar', length: '36', isNullable: true },
           { name: 'externalListingId', type: 'varchar', length: '64', isNullable: true },
           { name: 'priceCents', type: 'int', isNullable: false },
           {
@@ -143,8 +143,8 @@ export class CatchupFeatureEntities1745800000000 implements MigrationInterface {
             generationStrategy: 'uuid', default: '(UUID())',
           },
           { name: 'date', type: 'date', isNullable: false },
-          { name: 'list_id', type: 'int', isNullable: false },
-          { name: 'address_id', type: 'int', isNullable: true },
+          { name: 'list_id', type: 'varchar', length: '36', isNullable: false },
+          { name: 'address_id', type: 'varchar', length: '36', isNullable: true },
           { name: 'user_id', type: 'varchar', length: '36', isNullable: false },
           {
             name: 'status', type: 'varchar', length: '16',
@@ -186,8 +186,8 @@ export class CatchupFeatureEntities1745800000000 implements MigrationInterface {
             generationStrategy: 'uuid', default: '(UUID())',
           },
           { name: 'snapshotDate', type: 'date', isNullable: false },
-          { name: 'list_id', type: 'int', isNullable: false },
-          { name: 'address_id', type: 'int', isNullable: true },
+          { name: 'list_id', type: 'varchar', length: '36', isNullable: false },
+          { name: 'address_id', type: 'varchar', length: '36', isNullable: true },
           { name: 'eventsNext7d', type: 'int', default: 0, isNullable: false },
           { name: 'eventsNext14d', type: 'int', default: 0, isNullable: false },
           { name: 'eventsNext30d', type: 'int', default: 0, isNullable: false },
@@ -224,7 +224,7 @@ export class CatchupFeatureEntities1745800000000 implements MigrationInterface {
     // bases existentes criadas por synchronize:true, as FKs já estão lá.
     await this.ensureForeignKey(queryRunner, 'stays_accounts', {
       columnNames: ['user_id'],
-      referencedTableName: 'users',
+      referencedTableName: 'user',
       referencedColumnNames: ['id'],
       onDelete: 'CASCADE',
     });
@@ -236,13 +236,13 @@ export class CatchupFeatureEntities1745800000000 implements MigrationInterface {
     });
     await this.ensureForeignKey(queryRunner, 'stays_listings', {
       columnNames: ['propriedade_id'],
-      referencedTableName: 'lists',
+      referencedTableName: 'list',
       referencedColumnNames: ['id'],
       onDelete: 'SET NULL',
     });
     await this.ensureForeignKey(queryRunner, 'price_snapshots', {
       columnNames: ['list_id'],
-      referencedTableName: 'lists',
+      referencedTableName: 'list',
       referencedColumnNames: ['id'],
       onDelete: 'SET NULL',
     });
@@ -254,7 +254,7 @@ export class CatchupFeatureEntities1745800000000 implements MigrationInterface {
     });
     await this.ensureForeignKey(queryRunner, 'occupancy_history', {
       columnNames: ['list_id'],
-      referencedTableName: 'lists',
+      referencedTableName: 'list',
       referencedColumnNames: ['id'],
       onDelete: 'CASCADE',
     });
@@ -266,13 +266,13 @@ export class CatchupFeatureEntities1745800000000 implements MigrationInterface {
     });
     await this.ensureForeignKey(queryRunner, 'occupancy_history', {
       columnNames: ['user_id'],
-      referencedTableName: 'users',
+      referencedTableName: 'user',
       referencedColumnNames: ['id'],
       onDelete: 'CASCADE',
     });
     await this.ensureForeignKey(queryRunner, 'event_proximity_features', {
       columnNames: ['list_id'],
-      referencedTableName: 'lists',
+      referencedTableName: 'list',
       referencedColumnNames: ['id'],
       onDelete: 'CASCADE',
     });

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { Repository } from 'typeorm';
@@ -10,10 +10,16 @@ export class SugestionService {
     private readonly analisePrecoRepository: Repository<AnalisePreco>,
   ) {}
 
-  async alterarAceito(id: string, aceito: boolean): Promise<AnalisePreco> {
-    const registro = await this.analisePrecoRepository.findOneBy({ id });
+  async alterarAceito(id: string, userId: string, aceito: boolean): Promise<AnalisePreco> {
+    const registro = await this.analisePrecoRepository.findOne({
+      where: { id },
+      relations: ['usuarioProprietario'],
+    });
     if (!registro) {
       throw new NotFoundException('Registro não encontrado');
+    }
+    if (registro.usuarioProprietario.id !== userId) {
+      throw new ForbiddenException('Registro nao pertence ao usuario autenticado');
     }
     registro.aceito = aceito;
     return await this.analisePrecoRepository.save(registro);
@@ -34,14 +40,21 @@ export class SugestionService {
    */
   async registrarPrecoAplicado(
     id: string,
+    userId: string,
     input: {
       precoAplicado: number;
       origem: 'manual_dashboard' | 'manual_off_platform' | 'stays_auto' | 'stays_user_accepted';
     },
   ): Promise<AnalisePreco> {
-    const registro = await this.analisePrecoRepository.findOneBy({ id });
+    const registro = await this.analisePrecoRepository.findOne({
+      where: { id },
+      relations: ['usuarioProprietario'],
+    });
     if (!registro) {
       throw new NotFoundException('Registro não encontrado');
+    }
+    if (registro.usuarioProprietario.id !== userId) {
+      throw new ForbiddenException('Registro nao pertence ao usuario autenticado');
     }
     registro.aceito = true;
     registro.precoAplicado = input.precoAplicado;

@@ -1,9 +1,12 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CronService } from './cron.service';
 import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { Cron } from '@nestjs/schedule';
 import { MailerService } from 'src/mailer/mailer.service';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Roles } from 'src/auth/roles.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
 
 
 @ApiTags('cron') // Grupo no Swagger
@@ -12,6 +15,8 @@ export class CronController {
   constructor(private readonly cronService: CronService, private readonly mailerService: MailerService) { }
 
   @Get('analises-aceitas')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @ApiOperation({ summary: 'Buscar análises aceitas' })
   @ApiResponse({ status: 200, description: 'Lista de análises aceitas', type: [AnalisePreco] })
   async buscarAnalisesAceitas(): Promise<AnalisePreco[]> {
@@ -37,6 +42,8 @@ export class CronController {
 
 
   @Get('buscar-aceitas-teste')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @ApiOperation({
     summary: 'Buscar análises aceitas',
     description: 'Busca todas as análises aceitas a partir da data de hoje e simula notificações.',
@@ -48,6 +55,8 @@ export class CronController {
 
   // ===== RE-SCRAPING MENSAL =====
   @Get('refresh-metadata')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @ApiOperation({
     summary: 'Re-scraping mensal de metadados',
     description: 'Força re-scraping de todos os imóveis ativos. Espaçado ao longo de 8h para evitar rate limiting.',

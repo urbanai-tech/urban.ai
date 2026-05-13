@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Box,
   Heading,
@@ -67,7 +67,7 @@ useEffect(() => {
 }, []);
 
   // Buscar eventos aceitos
-  async function fetchEvents() {
+  const fetchEvents = useCallback(async () => {
     if (propertyId === '') {
       // Se "Todos" estiver selecionado, buscar todos os eventos
       try {
@@ -93,11 +93,11 @@ useEffect(() => {
     } finally {
       setIsLoadingEvents(false);
     }
-  }
+  }, [page, propertyId]);
 
   useEffect(() => {
     fetchEvents();
-  }, [propertyId, page]);
+  }, [fetchEvents]);
 
   const handlePageChange = (novaPagina: number) => {
     setPage(novaPagina);

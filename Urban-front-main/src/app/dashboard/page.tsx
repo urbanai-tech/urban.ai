@@ -17,13 +17,6 @@ import {
   useColorModeValue,
   VStack,
   useBreakpointValue,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverArrow,
-  PopoverCloseButton,
-  PopoverHeader,
-  PopoverBody,
 } from '@chakra-ui/react';
 import {
   eachDayOfInterval,
@@ -49,7 +42,6 @@ import dynamic from 'next/dynamic';
 import { EventCard } from './components/ItemEvento';
 
 import crypto from "crypto";
-import { FaRegLightbulb } from 'react-icons/fa';
 import { SuggestionInfoPopover } from '../componentes/SuggestionInfoPopover';
 
 const makeKey = (ev: any) =>
@@ -82,7 +74,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm] = useState('');
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
 
   const bg = useColorModeValue('white', 'gray.800');
@@ -99,12 +91,10 @@ export default function DashboardPage() {
 
   const [propsInfo, setPropsInfo] = useState<PropertyDropdown[]>([]);
   const [loadingPropsInfo, setLoadingPropsInfo] = useState(true);
-  const [errorPropsInfo, setErrorPropsInfo] = useState<string | null>(null);
+  const [, setErrorPropsInfo] = useState<string | null>(null);
   const [propertyId, setPropertyId] = useState('');
 
   // Obter valores responsivos
-  const isMobile = useBreakpointValue({ base: true, md: false });
-  const calendarSize = useBreakpointValue({ base: 'sm', md: 'md', lg: 'lg' });
   const dayFontSize = useBreakpointValue({ base: 'xs', sm: 'sm', md: 'md' });
   const headingSize = useBreakpointValue({ base: 'lg', md: 'xl', lg: '2xl' });
   const buttonSize = useBreakpointValue({ base: 'sm', md: 'md' });
@@ -250,10 +240,10 @@ useEffect(() => {
       const data = await getPropriedadesDropdownList();
 
       if (propsInfo.length > 0 && data.length > 0) {
-        // Verifica se alguma propriedade mudou de "running" para "completed"
+        // Verifica se alguma propriedade saiu de um estado pendente/processando para "completed"
         const completedProps = propsInfo.filter((oldItem) => {
           const newItem = data.find((n) => n.id === oldItem.id);
-          return oldItem.analisado === "running" && newItem?.analisado === "completed";
+          return oldItem.analisado !== "completed" && newItem?.analisado === "completed";
         });
 
         if (completedProps.length > 0) {
@@ -261,7 +251,7 @@ useEffect(() => {
           setPropsInfo(data);
           
           // ✅ Se temos propriedades completadas, seleciona a primeira delas
-          if (!propertyId || propsInfo.find(p => p.id === propertyId)?.analisado === 'running') {
+          if (!propertyId || propsInfo.find(p => p.id === propertyId)?.analisado !== 'completed') {
             const defaultProp = data.find(p => p.analisado === "completed");
             if (defaultProp) {
               setPropertyId(defaultProp.id);

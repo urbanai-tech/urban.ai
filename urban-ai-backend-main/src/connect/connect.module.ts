@@ -14,6 +14,7 @@ import { AirbnbModule } from "src/airbnb/airbnb.module";
 import { EmailModule } from "src/email/email.module";
 import { User } from "src/entities/user.entity";
 import { PaymentsModule } from "src/payments/payments.module";
+import { AuthModule } from "src/auth/auth.module";
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { PaymentsModule } from "src/payments/payments.module";
     MapsModule,
     AirbnbModule,
     PaymentsModule, // F6.5: ListingsQuotaGuard precisa do getListingsQuota
+    AuthModule,
   ],
   controllers: [ConnectController],
   providers:   [ConnectService],

@@ -4,16 +4,13 @@ import {
   Controller,
   ForbiddenException,
   Get,
-  HttpException,
   Param,
   Post,
-  Patch,
   Req,
   UnauthorizedException,
   UseGuards,
   ValidationPipe,
   UsePipes,
-  HttpStatus,
   Query,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiQuery } from "@nestjs/swagger";
@@ -37,10 +34,30 @@ export class ConnectController {
     private readonly paymentsService: PaymentsService,
   ) { }
 
+  private async assertListingsQuota(userId: string, newSlots: number) {
+    if (newSlots <= 0) return;
+
+    const quota = await this.paymentsService.getListingsQuota(userId);
+    const totalAposCriacao = quota.ativos + newSlots;
+    if (totalAposCriacao > quota.contratados) {
+      throw new ForbiddenException({
+        code: "LISTINGS_QUOTA_EXCEEDED",
+        message:
+          `Quota de imoveis excedida. Voce contratou ${quota.contratados} ` +
+          `e ja tem ${quota.ativos}; esta tentando adicionar ${newSlots}. ` +
+          `Aumente sua assinatura em /plans para liberar mais slots.`,
+        contratados: quota.contratados,
+        ativos: quota.ativos,
+        tentando: newSlots,
+      });
+    }
+  }
+
 
 
 
   @Get("user-managed-listings/:userId")
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: "Recupera lista de imóveis gerenciados por um usuário",
   })
@@ -61,6 +78,7 @@ export class ConnectController {
   }
 
   @Get("listing-price/:id")
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary:
       "Retorna o valor total em reais para um imóvel do Airbnb de hoje até 3 dias após hoje.",
@@ -91,6 +109,7 @@ export class ConnectController {
   }
 
   @Get("cep/:cep")
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: "Consulta informações de endereço a partir do CEP (BrasilAPI)",
   })
@@ -140,6 +159,8 @@ export class ConnectController {
     @Req() req: AuthenticatedRequest,
   ): Promise<List[]> {
     const userId = req.user.userId;
+    const newSlots = await this.connectService.countNewAddressSlotsForProperties(properties, userId);
+    await this.assertListingsQuota(userId, newSlots);
     return this.connectService.saveProperties(properties, userId);
   }
 
@@ -162,19 +183,6 @@ export class ConnectController {
     }
 
     return this.connectService.getUserListingsByUserId(userId as string);
-  }
-
-  @Get('created')
-  @UseGuards(JwtAuthGuard)
-  async createSingleAddress(@Req() req: any,
-    @Body() address: Address[],
-
-  ): Promise<any> {
-    const userId = req.user?.userId;
-    if (!userId) {
-      throw new UnauthorizedException("Usuário não autenticado");
-    }
-    return await this.connectService.createMultipleAddresses(address, userId)
   }
 
   // Endpoint para criar/atualizar múltiplos endereços - DEVE VIR DEPOIS
@@ -210,25 +218,13 @@ export class ConnectController {
     // cadastrar mais N + 1 sem fazer upsell. Evita o bug de "anfitrião
     // pagou Starter (3 imóveis) e cadastrou 47".
     if (Array.isArray(addresses) && addresses.length > 0) {
-      const quota = await this.paymentsService.getListingsQuota(userId);
-      const totalAposCriacao = quota.ativos + addresses.length;
-      if (totalAposCriacao > quota.contratados) {
-        throw new ForbiddenException({
-          code: "LISTINGS_QUOTA_EXCEEDED",
-          message:
-            `Quota de imóveis excedida. Você contratou ${quota.contratados} ` +
-            `e já tem ${quota.ativos}; está tentando adicionar ${addresses.length}. ` +
-            `Aumente sua assinatura em /plans para liberar mais slots.`,
-          contratados: quota.contratados,
-          ativos: quota.ativos,
-          tentando: addresses.length,
-        });
-      }
+      const newSlots = await this.connectService.countNewAddressSlotsForAddresses(addresses, userId);
+      await this.assertListingsQuota(userId, newSlots);
     }
-
     return this.connectService.createMultipleAddresses(addresses, userId) as Promise<Address[]>;
   }
-    @Get('resolve')
+  @Get('resolve')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Resolve Airbnb short link to final URL' })
   @ApiQuery({
     name: 'url',

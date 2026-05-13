@@ -1,8 +1,6 @@
 'use client';
 
 import {
-  Alert,
-  AlertIcon,
   Box,
   Button,
   Image as ChakraImage,
@@ -57,15 +55,10 @@ const Login = () => {
 
       const hashedPassword = await sha256(password);
 
-      const response = await api.post("/auth/login", {
+      await api.post("/auth/login", {
         email,
         password: hashedPassword
       });
-
-      const token = response.data.accessToken as string;
-
-      localStorage.setItem("accessToken", token);
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
       try {
         const { data, status } = await verificarUsuarioState(email);

@@ -1,8 +1,11 @@
-import { Controller, Get, Put, Body, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Put, Body, NotFoundException, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { ProcessState, ProcessStatus } from 'src/entities/processStatus.entity';
 import { ProcessService } from './process.service';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Roles } from 'src/auth/roles.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
 
 class UpdateStatusDto {
     @IsEnum(['running', 'completed', 'error'])
@@ -15,6 +18,8 @@ class UpdateStatusDto {
 
 @ApiTags('Process Status')
 @Controller('process-status')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('admin')
 export class ProcessController {
     constructor(private readonly processStatusService: ProcessService) { }
 

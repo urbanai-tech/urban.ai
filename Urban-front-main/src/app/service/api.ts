@@ -3,19 +3,6 @@ import { Connect, CreateAddressDto } from "../types/connect";
 import { List, Address } from "../types/connect"; // Crie esse tipo DTO correspondente à entidade List
 import { Subscription } from "../componentes/Subscription";
 
-export interface PropertyAnalysisRequest {
-  id: string;
-  titulo: string;
-  id_do_anuncio: string;
-  pictureUrl: string;
-  ativo: boolean;
-  user: { id: string };
-}
-
-// ✅ Adicionado para resolver o erro de tipo
-// TODO: tipar conforme o retorno real do backend
-export type ProcessAnalysesResponse = any;
-
 // Base URL configurada via variável de ambiente
 const url = process.env.NEXT_PUBLIC_API_URL;
 console.log("API Base URL:", url);
@@ -23,23 +10,13 @@ console.log("API Base URL:", url);
 // Cria instância do axios com baseURL
 export const api = axios.create({
   baseURL: url,
+  withCredentials: true,
   // baseURL: 'https://urban-back-719774307855.us-central1.run.app',
 });
-
-// Função de teste para verificar a URL
-export const teste = (): void => {
-  console.log("API Base URL (teste):", url);
-};
 
 // Interceptor para incluir o token de autorização em todas as requisições
 api.interceptors.request.use(
   (config) => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
     return config;
   },
   (error) => Promise.reject(error),
@@ -63,38 +40,6 @@ api.interceptors.response.use(
  *    EMAIL / AUTENTICAÇÃO
  * ============================ */
 
-/** Confirma e-mail no backend usando o token da URL */
-export async function verifyEmail(token: string): Promise<{ ok: boolean }> {
-  const { data } = await api.get<{ ok: boolean }>("/auth/verify-email", {
-    params: { token },
-  });
-  return data;
-}
-
-/** Reenvia o e-mail de verificação (gera novo token no backend) */
-export async function resendVerification(email: string, nome?: string): Promise<{ enviado: boolean; token?: string }> {
-  const { data } = await api.post<{ enviado: boolean; token?: string }>("/email/send-verify", {
-    email,
-    nome,
-  });
-  return data;
-}
-
-/** Inicia fluxo de reset de senha (envia e-mail com link) */
-export async function requestPasswordReset(email: string): Promise<{ ok: boolean }> {
-  const { data } = await api.post<{ ok: boolean }>("/auth/request-password-reset", { email });
-  return data;
-}
-
-/** Finaliza reset de senha com token + nova senha (SHA-256) */
-export async function resetPassword(token: string, newPasswordSha256: string): Promise<{ ok: boolean }> {
-  const { data } = await api.post<{ ok: boolean }>("/auth/reset-password", {
-    token,
-    newPassword: newPasswordSha256,
-  });
-  return data;
-}
-
 /* ============================
  *      CONNECT / PROPS
  * ============================ */
@@ -114,20 +59,6 @@ export async function getUserManagedListings(
 }
 
 /** Busca listagens do usuário com CEP validado pela BrasilAPI */
-export async function getUserManagedListingsWithCep(
-  userId: string,
-): Promise<any[]> {
-  try {
-    const { data } = await api.get<any[]>(
-      `/connect/user-managed-listings-with-cep/${userId}`,
-    );
-    return data;
-  } catch (error) {
-    console.error("Erro ao buscar listings com CEP:", error);
-    throw error;
-  }
-}
-
 export type PropertyDropdown = {
   id: string;
   propertyName: string;
@@ -199,16 +130,6 @@ export async function cancelSubscription(): Promise<void> {
   }
 }
 
-export async function getUserAddresses(): Promise<List[]> {
-  try {
-    const { data } = await api.get<List[]>("/connect/user-addresses");
-    return data;
-  } catch (error) {
-    console.error("Erro ao buscar endereços do usuário:", error);
-    throw error;
-  }
-}
-
 export const getEventos = async (
   page = 1,
   limit = 10,
@@ -262,25 +183,13 @@ export async function getAddressByCep(cep: string): Promise<{
   }
 }
 
-export async function registerAddresses(
-  addresses: Address[],
-): Promise<Address[]> {
-  try {
-    const { data } = await api.post<Address[]>("/connect/addresses", addresses);
-    return data;
-  } catch (error) {
-    console.error("Erro ao registrar endereços:", error);
-    throw error;
-  }
-}
-
 /** Cria múltiplos endereços (endpoint correto conforme guia) */
 export async function createMultipleAddresses(
   addresses: CreateAddressDto[],
 ): Promise<Address[]> {
   try {
     const { data } = await api.post<Address[]>(
-      "/connect/create-multiple-addresses",
+      "/connect/addresses",
       addresses
     );
     return data;
@@ -308,25 +217,6 @@ export async function registerProcess(list:any[]
     return data;
   } catch (error) {
     console.error("Erro ao registrar processo:", error);
-    throw error;
-  }
-}
-
-export async function processAnalysesByProperty(
-  payload: PropertyAnalysisRequest[]
-): Promise<ProcessAnalysesResponse> {
-  try {
-    const { data } = await api.post<ProcessAnalysesResponse>(
-      '/maps/processar-analises-by-property',
-      payload,
-      { headers: { 'Content-Type': 'application/json' } }
-    );
-    return data;
-  } catch (error: any) {
-    console.error(
-      'Erro ao processar análises por propriedade:',
-      error?.response?.data ?? error
-    );
     throw error;
   }
 }
@@ -439,12 +329,12 @@ interface UpdatePasswordResponse {
 }
 
 export const updatePassword = async (
-  userId: string,
+  token: string,
   pass: string
 ): Promise<UpdatePasswordResponse> => {
   try {
     const response = await api.post<UpdatePasswordResponse>('/email/update-password', {
-      userId,
+      token,
       pass,
     });
     return response.data;
@@ -727,16 +617,6 @@ export const getPropertyQuickInfo = async (propertyId: string): Promise<Property
     return data;
   } catch (error) {
     console.error("Erro ao buscar info rápida do imóvel:", error);
-    throw error;
-  }
-};
-
-export const requestforgotPassword = async (email: string) => {
-  try {
-    const { data } = await api.post('/email/forgot-password', { email });
-    return data;
-  } catch (error) {
-    console.error('Erro ao enviar e-mail de redefinição de senha:', error);
     throw error;
   }
 };

@@ -17,7 +17,6 @@ import {
   Flex,
   Image,
   Checkbox,
-  Spinner,
   Badge
 } from '@chakra-ui/react';
 import { toast } from 'react-toastify';
@@ -26,9 +25,10 @@ import {
   getPropriedadesDropdownList,
   registerProperties,
   resolveAirbnbUrl,
-  getPropertyQuickInfo
+  getPropertyQuickInfo,
+  createMultipleAddresses,
+  registerProcess
 } from '../service/api';
-import { useTranslation } from 'react-i18next';
 
 export interface Property {
   id: number;
@@ -60,8 +60,15 @@ interface AddPropertyModalProps {
   onSuccess: () => void;
 }
 
+const quotaErrorMessage = (error: unknown, fallback: string) => {
+  const data = (error as any)?.response?.data;
+  if (data?.code === 'LISTINGS_QUOTA_EXCEEDED') {
+    return data.message || 'Sua quota de imoveis foi atingida. Aumente sua assinatura para continuar.';
+  }
+  return fallback;
+};
+
 export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModalProps) {
-  const { t } = useTranslation();
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [fetchedProperties, setFetchedProperties] = useState<Property[]>([]);
@@ -121,8 +128,6 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
       const existingIds = existingProps.map(p => p.id_do_anuncio).filter(Boolean);
 
       let finalUrl = inputValue.trim();
-      let isProfileLink = false;
-
       // Handle shortened URLs
       if (finalUrl.includes('airbnb.com/h/') || finalUrl.includes('abnb.me')) {
         try {
@@ -134,7 +139,6 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
       // Handle host/editor links vs property links
       const userId = extractAirbnbUserId(finalUrl);
       if (userId) {
-        isProfileLink = true;
         const listings = await getUserManagedListings(userId);
 
         if (!listings || listings.length === 0) {
@@ -233,13 +237,38 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
     setIsLoading(true);
     try {
       const payload = selectedList.map(p => ({ ...p, ativo: true }));
-      await registerProperties(payload as any);
+      const registered = await registerProperties(payload as any);
+      const registeredProperties = Array.isArray((registered as any)?.data)
+        ? (registered as any).data
+        : (registered as any);
+
+      const addressesToRegister = registeredProperties.map((prop: any) => ({
+        cep: '00000-000',
+        numero: 'S/N',
+        logradouro: 'A definir',
+        bairro: 'A definir',
+        cidade: 'A definir',
+        estado: null,
+        list: { id: prop.id_do_anuncio },
+      }));
+
+      await createMultipleAddresses(addressesToRegister);
+
+      const processListIds = registeredProperties
+        .map((prop: any) => prop?.id)
+        .filter(Boolean)
+        .map((id: string) => ({ id }));
+
+      if (processListIds.length > 0) {
+        await registerProcess(processListIds);
+      }
+
       toast(`${selectedList.length} propriedade(s) registrada(s) com sucesso!`, { type: "success" });
       onSuccess(); // Trigger parent refresh
       handleClose();
     } catch (error) {
       console.error(error);
-      toast("Erro ao registrar as propriedades.", { type: "error" });
+      toast(quotaErrorMessage(error, "Erro ao registrar as propriedades."), { type: "error" });
     } finally {
       setIsLoading(false);
     }

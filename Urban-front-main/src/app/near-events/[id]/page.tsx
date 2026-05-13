@@ -14,7 +14,7 @@ import {
     VStack
 } from "@chakra-ui/react";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 
 
@@ -69,7 +69,9 @@ export default function CasaEventosProximosPage() {
     fetchEndereco();
   }, [enderecoId]);
 
-    async function fetchEventos(pagina = 1) {
+    const fetchEventos = useCallback(async (pagina = 1) => {
+        if (!enderecoId) return;
+
         try {
             setLoading(true);
             const data = await getEventos(pagina, limitePorPagina, enderecoId);
@@ -82,11 +84,12 @@ export default function CasaEventosProximosPage() {
         } finally {
             setLoading(false);
         }
-    }
+    }, [enderecoId]);
+
     useEffect(() => {
         // const data = await getUserProperties(userId, 1, 10, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2YmQwYzYxYi0xMzA5LTRhNDMtOTk0Ni1kNGI1MmQ5ZGRiNTkiLCJ1c2VybmFtZSI6InRoaXNsdWNhc21lIiwiaWF0IjoxNzUzNzI0MjkzLCJleHAiOjE3NTM3Njc0OTN9.yVYe_XfHDIdwVVG0S99EQ80TggulhrzGR3jqoel3OsQ");
         fetchEventos(paginaAtual);
-    }, [paginaAtual]);
+    }, [fetchEventos, paginaAtual]);
 
 
 
@@ -102,15 +105,17 @@ export default function CasaEventosProximosPage() {
     return (
         <Container maxW="100%" p={{ base: 4, md: 8 }} bg="gray.50">
             <VStack spacing={10}>
-               <CasaCard
-                 key={endereco.id}
-                 casa={endereco}
-                 /* onClick={() => router.push('/near-events/' + casa.id)} */
-               />
+               {endereco && (
+                 <CasaCard
+                   key={endereco.id}
+                   casa={endereco}
+                   /* onClick={() => router.push('/near-events/' + casa.id)} */
+                 />
+               )}
                 <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 3 }} spacing={4}>
                     {eventos.map((ev: Evento) => (
                         <Box
-                            key={`evento-${Math.random().toString(36).substr(2, 9)}`}
+                            key={ev.id}
 
                             bg="white"
                             borderRadius="2xl"

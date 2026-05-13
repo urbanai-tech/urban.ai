@@ -62,7 +62,7 @@ export function useConsent() {
           });
         }
       }
-    } catch (_err) {
+    } catch {
       // localStorage indisponível (modo privado iOS, e.g.) — segue com default.
     } finally {
       setLoaded(true);
@@ -75,7 +75,7 @@ export function useConsent() {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       // Notifica outras abas / componentes (Analytics.tsx escuta este event)
       window.dispatchEvent(new CustomEvent("urban-ai:consent-change", { detail: next }));
-    } catch (_err) {
+    } catch {
       // Silently ignore — sem persistência, o próximo refresh volta a perguntar
     }
   }, []);
@@ -116,7 +116,7 @@ export function useConsent() {
   const reset = useCallback(() => {
     try {
       window.localStorage.removeItem(STORAGE_KEY);
-    } catch (_err) {}
+    } catch {}
     setState(DEFAULT_STATE);
     window.dispatchEvent(new CustomEvent("urban-ai:consent-change", { detail: DEFAULT_STATE }));
   }, []);
@@ -154,6 +154,6 @@ export function readConsentSync(): ConsentState {
         version: SCHEMA_VERSION,
       };
     }
-  } catch (_err) {}
+  } catch {}
   return DEFAULT_STATE;
 }

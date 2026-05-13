@@ -1,145 +1,214 @@
-// src/processo/processo.controller.ts
 import { InjectQueue } from '@nestjs/bull';
-import { BadRequestException, Body, Controller, Post, Logger, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import {
+    BadRequestException,
+    Body,
+    Controller,
+    Logger,
+    NotFoundException,
+    Post,
+    Req,
+    UnauthorizedException,
+    UseGuards,
+} from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiProperty, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Queue } from 'bull';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
-import { ApiProperty } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Roles } from 'src/auth/roles.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
 import { AuthenticatedRequest } from 'src/connect/connect.controller';
+import { Address } from 'src/entities/addresses.entity';
 import { PropertyDto } from 'src/maps/maps.controller';
+import { DataSource } from 'typeorm';
 
 export class CreatePricingJobDto {
     @ApiProperty({
-        description: 'ID da lista/propriedade que será processada para cálculo de pricing',
+        description: 'ID do usuario dono da propriedade/endereco',
+        example: '123e4567-e89b-12d3-a456-426614174000',
+    })
+    userId: string;
+
+    @ApiProperty({
+        description: 'ID da propriedade/endereco que sera processada para calculo de pricing',
         example: 'df6a7b8c-9d0e-1234-f012-567890ab3456',
     })
-    listId: string;
+    propertyAdressId: string;
 }
 
 export class CreateAcaoDto {
     @ApiProperty({
-        description: 'ID do usuário que será processado',
+        description: 'ID do usuario que sera processado',
         example: '123e4567-e89b-12d3-a456-426614174000',
     })
     userId: string;
-    listIds: PropertyDto[]
-}
 
+    listIds: PropertyDto[];
+}
 
 @ApiTags('processos')
 @Controller('processos')
 export class ProcessoController {
-
     private readonly logger = new Logger(ProcessoController.name);
 
-    constructor(@InjectQueue('processos') private readonly queue: Queue) { }
+    constructor(
+        @InjectQueue('processos') private readonly queue: Queue,
+        private readonly dataSource: DataSource,
+    ) {}
 
     @UseGuards(JwtAuthGuard)
     @Post()
-    @ApiOperation({ summary: 'Cria/Enfileira um job de processo para um usuário' })
-
+    @ApiOperation({ summary: 'Enfileira jobs de processo para o usuario autenticado' })
     @ApiBody({
-        description: 'Dados do usuário e lista de propriedades a serem processadas',
+        description: 'Lista de propriedades a serem processadas',
         type: CreateAcaoDto,
-        examples: {
-            exemplo: {
-                summary: 'Exemplo de requisição',
-                value: {
-                    userId: '123e4567-e89b-12d3-a456-426614174000',
-                    listIds: [
-                        { id: 'ff126501-301a-4af6-b235-1e78a88095ae' },
-                        { id: 'aa126501-301a-4af6-b235-1e78a88095ae' }
-                    ]
-                }
-            }
-        }
     })
     @ApiResponse({
         status: 201,
-        description: 'Job enfileirado com sucesso',
+        description: 'Jobs enfileirados com sucesso',
         schema: {
-            example: { status: 'job enfileirado', userId: '123e4567-e89b-12d3-a456-426614174000' },
+            example: { status: 'jobs enfileirados', userId: '123e4567-e89b-12d3-a456-426614174000' },
         },
     })
-    @ApiResponse({ status: 400, description: 'Request inválido' })
+    @ApiResponse({ status: 400, description: 'Request invalido' })
     async criarAcao(@Body() body: CreateAcaoDto, @Req() req: AuthenticatedRequest) {
-
         const userId = req.user.userId;
 
         if (!userId) {
-            throw new UnauthorizedException(
-                "🚫 Usuário não autenticado ou ID não fornecido",
-            );
+            throw new UnauthorizedException('Usuario nao autenticado ou ID nao fornecido');
         }
 
         if (!body?.listIds || !Array.isArray(body.listIds)) {
-            throw new BadRequestException(
-                "🚫 Nenhuma lista de IDs foi fornecida ou formato inválido",
-            );
+            throw new BadRequestException('Nenhuma lista de IDs foi fornecida ou formato invalido');
         }
 
-        const idsArray = body?.listIds.map(item => item.id);
-        console.log(`📌 Total de propriedades a processar: ${idsArray.length}`);
+        const idsArray = [...new Set(body.listIds.map((item) => item.id).filter(Boolean))];
+        if (idsArray.length === 0) {
+            throw new BadRequestException('Nenhum ID de propriedade valido foi fornecido');
+        }
+
+        const ownedRows = await this.dataSource
+            .getRepository(Address)
+            .createQueryBuilder('address')
+            .select('address.list_id', 'listId')
+            .where('address.user_id = :userId', { userId })
+            .andWhere('address.list_id IN (:...ids)', { ids: idsArray })
+            .getRawMany<{ listId: string }>();
+        const ownedIds = new Set(ownedRows.map((row) => row.listId));
+
+        this.logger.log(`Total de propriedades a enfileirar: ${idsArray.length}`);
 
         let count = 0;
-        for (const propertyId of idsArray) {
-            console.log(`\n🏁 Iniciando propriedade ${count + 1}/${idsArray.length}: ${propertyId}`);
-
+        let skipped = 0;
+        let unauthorized = 0;
+        for (const propertyAdressId of idsArray) {
             try {
-                const propertyAdressId = propertyId; // listId
-                this.logger.log(`🚀 Adicionando job para propriedade ${propertyAdressId} do usuário ${userId}`);
+                if (!ownedIds.has(propertyAdressId)) {
+                    unauthorized++;
+                    this.logger.warn(`Propriedade ${propertyAdressId} ignorada: nao pertence ao usuario ${userId}`);
+                    continue;
+                }
+
+                const jobId = `processo-${userId}-${propertyAdressId}`;
+                const existingJob = await this.queue.getJob(jobId);
+                if (existingJob) {
+                    const state = await existingJob.getState();
+                    if (['waiting', 'active', 'delayed', 'paused'].includes(state)) {
+                        skipped++;
+                        this.logger.warn(`Job ja existe (${state}) para propriedade ${propertyAdressId}`);
+                        continue;
+                    }
+                    if (state === 'failed' || state === 'completed') {
+                        await existingJob.remove();
+                    }
+                }
+
+                this.logger.log(`Adicionando job para propriedade ${propertyAdressId} do usuario ${userId}`);
 
                 await this.queue.add(
-                    { userId: userId, propertyAdressId },
+                    { userId, propertyAdressId },
                     {
-                        jobId: `processo-${propertyAdressId}`, // evita duplicar job para o mesmo user
+                        jobId,
                         removeOnComplete: true,
                         removeOnFail: false,
                     },
                 );
 
-                console.log(`✅ Job enfileirado com sucesso para propriedade ${propertyAdressId}`);
                 count++;
-
             } catch (error) {
-                this.logger.error(`❌ Erro ao processar a propriedade ${propertyId} do usuário ${userId}`, error.stack);
+                this.logger.error(
+                    `Erro ao enfileirar propriedade ${propertyAdressId} do usuario ${userId}`,
+                    error instanceof Error ? error.stack : String(error),
+                );
             }
-
-            console.log(`📍 Propriedade ${count}/${idsArray.length} finalizada`);
         }
 
-        console.log(`\n🎯 Todos os jobs processados. Total enfileirados: ${count}`);
-        return { status: 'job enfileirado', userId: userId };
+        this.logger.log(
+            `Jobs enfileirados: ${count}/${idsArray.length}; duplicados ignorados: ${skipped}; sem ownership: ${unauthorized}`,
+        );
+        return {
+            status: 'jobs enfileirados',
+            userId,
+            totalEnfileirados: count,
+            duplicadosIgnorados: skipped,
+            propriedadesIgnoradas: unauthorized,
+        };
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('admin')
     @Post('pricing')
-    @ApiOperation({ summary: 'Cria/Enfileira um job de pricing para uma lista/propriedade' })
+    @ApiOperation({ summary: 'Enfileira job admin de pricing para uma propriedade' })
     @ApiResponse({
         status: 201,
         description: 'Job enfileirado com sucesso',
-        schema: {
-            example: {
-                status: 'job enfileirado',
-                listId: 'df6a7b8c-9d0e-1234-f012-567890ab3456',
-            },
-        },
     })
-    @ApiResponse({ status: 400, description: 'ID não fornecido' })
+    @ApiResponse({ status: 400, description: 'ID nao fornecido' })
     async criarProcessoLista(@Body() body: CreatePricingJobDto) {
-        if (!body?.listId) {
-            throw new BadRequestException('ID não fornecido');
+        if (!body?.userId || !body?.propertyAdressId) {
+            throw new BadRequestException('ID nao fornecido');
+        }
+
+        const ownedAddress = await this.dataSource
+            .getRepository(Address)
+            .createQueryBuilder('address')
+            .where('address.user_id = :userId', { userId: body.userId })
+            .andWhere('address.list_id = :propertyAdressId', { propertyAdressId: body.propertyAdressId })
+            .getExists();
+
+        if (!ownedAddress) {
+            throw new NotFoundException('Propriedade nao encontrada para o usuario informado');
+        }
+
+        const jobId = `processar-pricing-${body.userId}-${body.propertyAdressId}`;
+        const existingJob = await this.queue.getJob(jobId);
+        if (existingJob) {
+            const state = await existingJob.getState();
+            if (['waiting', 'active', 'delayed', 'paused'].includes(state)) {
+                return {
+                    status: 'job ja existente',
+                    state,
+                    userId: body.userId,
+                    propertyAdressId: body.propertyAdressId,
+                };
+            }
+            if (state === 'failed' || state === 'completed') {
+                await existingJob.remove();
+            }
         }
 
         await this.queue.add(
             'processar-pricing',
-            { listId: body.listId },
+            { userId: body.userId, propertyAdressId: body.propertyAdressId },
             {
-                jobId: `processar-pricing-${body.listId}`,
+                jobId,
                 removeOnComplete: true,
                 removeOnFail: false,
             },
         );
 
-        return { status: 'job enfileirado', listId: body.listId };
+        return {
+            status: 'job enfileirado',
+            userId: body.userId,
+            propertyAdressId: body.propertyAdressId,
+        };
     }
 }

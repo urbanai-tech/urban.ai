@@ -24,7 +24,7 @@ import { ChevronLeftIcon } from '@chakra-ui/icons';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FiBarChart, FiBell, FiCalendar, FiDollarSign, FiHome, FiLink, FiMapPin, FiSettings } from 'react-icons/fi';
+import { FiBarChart, FiBell, FiCalendar, FiDollarSign, FiHome, FiMapPin, FiSettings } from 'react-icons/fi';
 import { api } from '../service/api';
 import '../../../i18n';
 
@@ -35,19 +35,11 @@ export default function InternoLayout() {
   const router = useRouter();
   const pathname = usePathname();
   const [userName, setUserName] = useState<string>('');
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      router.push('/');
-      return;
-    }
-
     api.get('/auth/me')
       .then(res => {
         setUserName(res.data.username);
-        setLoading(false);
       })
       .catch(() => {
         localStorage.removeItem('accessToken');
@@ -55,7 +47,12 @@ export default function InternoLayout() {
       });
   }, [router]);
 
-  function handleLogout() {
+  async function handleLogout() {
+    try {
+      await api.post('/auth/logout');
+    } catch (error) {
+      console.error('Erro ao encerrar sessão no backend:', error);
+    }
     localStorage.removeItem('accessToken');
     router.push('/');
   }
@@ -113,7 +110,7 @@ export default function InternoLayout() {
   );
 
   // Ícone de hambúrguer personalizado
-  const HamburgerIcon = ({ boxSize }: { boxSize?: number }) => (
+  const HamburgerIcon = () => (
     <svg className="h-6 w-6 text-[#0e161b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
     </svg>
@@ -142,7 +139,7 @@ export default function InternoLayout() {
             {isCollapsed ? (
               <IconButton
                 aria-label={t('layout.toggle_sidebar')}
-                icon={<HamburgerIcon boxSize={6} />}
+                icon={<HamburgerIcon />}
                 onClick={() => setIsCollapsed(false)}
                 size="lg"
                 color="gray.700"
@@ -214,7 +211,7 @@ export default function InternoLayout() {
       <Show below="md">
         <IconButton
           aria-label={t('layout.open_menu')}
-          icon={<HamburgerIcon boxSize={6} />}
+          icon={<HamburgerIcon />}
           onClick={onOpen}
           position="absolute"
           top="4"

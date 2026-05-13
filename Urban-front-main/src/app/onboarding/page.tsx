@@ -3,16 +3,14 @@
 import React, { useState, Suspense, useEffect } from 'react';
 import {
   Flex, VStack, HStack, Box, Heading, Text, Input,
-  FormControl, FormLabel, Switch, Stack, Slider, SliderTrack,
-  SliderFilledTrack, SliderThumb, SliderMark,
+  FormControl, FormLabel, Switch, Stack,
   Button, Image, Container, Badge, SimpleGrid,
   List, ListItem, ListIcon, Spinner, Tooltip, Tabs, TabList,
-  TabPanels, Tab, TabPanel, Textarea, IconButton, Link,
+  TabPanels, Tab, TabPanel, IconButton, Link,
   Alert, AlertIcon, AlertTitle, AlertDescription
 } from '@chakra-ui/react';
 import { CheckIcon, InfoIcon, AddIcon, CloseIcon, ExternalLinkIcon } from '@chakra-ui/icons';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
 import { useRouter, useSearchParams } from 'next/navigation';
 import '../../../i18n';
 import {
@@ -20,9 +18,9 @@ import {
   createMultipleAddresses, resolveAirbnbUrl,
   createCheckoutSession, updateProfileById, getProfileById,
   getPropertyQuickInfo,
-  getPropriedadesDropdownList, getPlans, Plan
+  getPropriedadesDropdownList, getPlans, Plan, registerProcess
 } from '../service/api';
-import { FiMapPin, FiCheckCircle, FiLoader, FiUsers, FiHome, FiZap, FiBell } from 'react-icons/fi';
+import { FiUsers, FiHome, FiZap, FiBell } from 'react-icons/fi';
 import { ToastContainer, toast } from 'react-toastify';
 import { loadStripe } from '@stripe/stripe-js';
 
@@ -30,6 +28,14 @@ const MotionBox = motion(Box);
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 const TOTAL_STEPS = 5;
+
+const quotaErrorMessage = (error: unknown, fallback: string) => {
+  const data = (error as any)?.response?.data;
+  if (data?.code === 'LISTINGS_QUOTA_EXCEEDED') {
+    return data.message || 'Sua quota de imoveis foi atingida. Aumente sua assinatura para continuar.';
+  }
+  return fallback;
+};
 
 // ═══════════════════════════════════════
 //  TIPOS
@@ -101,7 +107,6 @@ const PRICING_PRESETS: Record<PricingStrategy, { inicial: number; final: number 
 //  COMPONENTE PRINCIPAL
 // ═══════════════════════════════════════
 function OnboardingWizardContent() {
-  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isAddOnly = searchParams.get('addOnly') === 'true';
@@ -133,7 +138,7 @@ function OnboardingWizardContent() {
   const [selectAll, setSelectAll] = useState(false);
   const [importMode, setImportMode] = useState(0); // 0 = individual, 1 = host
   const [individualLinks, setIndividualLinks] = useState<string[]>(['']);
-  const [individualProperties, setIndividualProperties] = useState<Property[]>([]);
+  const [, setIndividualProperties] = useState<Property[]>([]);
   const [loadingIndividual, setLoadingIndividual] = useState(false);
   const [hostUserId, setHostUserId] = useState<string | null>(null);
 
@@ -336,7 +341,7 @@ function OnboardingWizardContent() {
         }
       }
 
-      let userId = userIdFromGetHostId || extractAirbnbUserId(urlEditor ? urlEditor : result.finalUrl);
+      const userId = userIdFromGetHostId || extractAirbnbUserId(urlEditor ? urlEditor : result.finalUrl);
       setHostUserId(userId);
 
       if (!userId) {
@@ -447,10 +452,6 @@ function OnboardingWizardContent() {
         ? (response as any).data
         : (response as any);
 
-      if (Array.isArray(registered)) {
-        localStorage.setItem('registeredProperties', JSON.stringify(registered));
-      }
-
       const addressesToRegister = registered.map((prop: any) => {
         const estado = 'A definir';
         return {
@@ -465,6 +466,15 @@ function OnboardingWizardContent() {
       });
 
       await createMultipleAddresses(addressesToRegister);
+
+      const processListIds = registered
+        .map((prop: any) => prop?.id)
+        .filter(Boolean)
+        .map((id: string) => ({ id }));
+
+      if (processListIds.length > 0) {
+        await registerProcess(processListIds);
+      }
 
       if (hostUserId) {
         try {
@@ -483,7 +493,7 @@ function OnboardingWizardContent() {
 
     } catch (error) {
       console.error('Erro ao registrar propriedades:', error);
-      toast("Falha ao configurar propriedades. Tente novamente.", { type: "error" });
+      toast(quotaErrorMessage(error, "Falha ao configurar propriedades. Tente novamente."), { type: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -1313,5 +1323,3 @@ export default function OnboardingWizard() {
     </Suspense>
   );
 }
-
-

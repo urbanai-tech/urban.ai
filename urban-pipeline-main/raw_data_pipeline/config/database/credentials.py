@@ -6,6 +6,7 @@ for database connections.
 """
 
 from dataclasses import dataclass
+from pathlib import Path
 from urllib.parse import quote_plus
 
 
@@ -29,6 +30,11 @@ class DatabaseCredentials:
         Returns:
             str: Formatted connection string
         """
+        if driver.startswith("sqlite"):
+            if self.database == ":memory:":
+                return "sqlite:///:memory:"
+            return f"sqlite:///{Path(self.database).as_posix()}"
+
         encoded_password = quote_plus(self.password)
         return (
             f"{driver}://{self.username}:{encoded_password}"

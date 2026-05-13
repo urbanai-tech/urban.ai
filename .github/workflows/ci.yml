@@ -121,6 +121,48 @@ jobs:
           NEXTAUTH_SECRET: ci_dummy_secret_not_for_prod
           NEXTAUTH_URL: http://localhost:3000
 
+  # ===================== Python services =====================
+
+  webscraping-test:
+    name: Webscraping - pytest
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: urban-webscraping-main
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: urban-webscraping-main/uv.lock
+      - name: Install dependencies
+        run: uv sync --all-groups --frozen
+      - name: Pytest
+        run: uv run pytest -q
+
+  pipeline-test:
+    name: Pipeline - pytest
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: urban-pipeline-main
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: urban-pipeline-main/uv.lock
+      - name: Install dependencies
+        run: uv sync --all-groups --frozen
+      - name: Pytest
+        run: uv run pytest tests -q
+
   # ===================== E2E (only if staging URL configured) =====================
 
   frontend-smoke:

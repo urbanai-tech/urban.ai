@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notification } from 'src/entities/notification.entity';
@@ -32,11 +32,18 @@ export class NotificationsService {
     return await this.notificationRepository.save(notification);
   }
 
-  async markAsOpened(id: string) {
-    const notification = await this.notificationRepository.findOne({ where: { id } });
+  async markAsOpened(id: string, userId: string) {
+    const notification = await this.notificationRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
 
     if (!notification) {
       throw new NotFoundException('Notification not found');
+    }
+
+    if (notification.user.id !== userId) {
+      throw new ForbiddenException('Notification does not belong to this user');
     }
 
     notification.opened = true;

@@ -44,21 +44,10 @@ export default function PostLoginPage() {
 
     (async () => {
       try {
-        const token = localStorage.getItem('accessToken');
-        if (!token) {
-          console.warn('[post-login] Sem token — /login');
-          finished = true;
-          router.replace('/login');
-          return;
-        }
-
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
         console.log('[post-login] baseURL =>', (api.defaults as any).baseURL);
 
         const { data } = await api.get<HasAddressResult>('/users/me/has-address', {
           params: { onlyActive: true },
-          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (cancelled) return;

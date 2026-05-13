@@ -73,20 +73,26 @@ async function bootstrap() {
   app.use(json({ limit: '10mb' }));
   app.use(urlencoded({ limit: '10mb', extended: true }));
 
-  // Swagger config
-  const config = new DocumentBuilder()
-    .setTitle('API Urban AI')
-    .setDescription(`
+  const appEnv = process.env.APP_ENV || process.env.NODE_ENV || 'development';
+  const shouldEnableSwagger =
+    process.env.ENABLE_SWAGGER === 'true' || appEnv !== 'production';
+
+  if (shouldEnableSwagger) {
+    // Swagger config
+    const config = new DocumentBuilder()
+      .setTitle('API Urban AI')
+      .setDescription(`
       A API RESTful da plataforma Urban AI — um sistema inteligente que identifica eventos em diferentes regiões e se integra ao Airbnb para sugerir ajustes dinâmicos de preços em hospedagens.
 
       Essa plataforma permite que anfitriões verifiquem automaticamente se há eventos programados em suas localidades e, com base nisso, otimizem seus anúncios para aumentar a lucratividade.
     `)
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document);
+  }
 
   const port = parseInt(process.env.PORT, 10) || 8080;
   console.log(`🔁 Tentando escutar na porta ${port}`);

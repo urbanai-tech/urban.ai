@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import sgMail from '@sendgrid/mail';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,14 +8,17 @@ import { IsNull, Not, Repository } from 'typeorm';
 import { User } from 'src/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { EmailConfirmation } from 'src/entities/EmailConfirmation';
+import { PasswordResetToken } from 'src/entities/password-reset-token.entity';
 import { CreateNotificationDto } from 'src/notifications/tdo/create-notification.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { MailerService } from 'src/mailer/mailer.service';
 import { EmailTemplates } from './templates';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class EmailService {
 
+    private readonly logger = new Logger(EmailService.name);
     private transporter: nodemailer.Transporter;
 
     constructor(
@@ -25,6 +28,8 @@ export class EmailService {
         private readonly userRepository: Repository<User>,
         @InjectRepository(EmailConfirmation)
         private readonly emailConfirmationRepository: Repository<EmailConfirmation>,
+        @InjectRepository(PasswordResetToken)
+        private readonly passwordResetTokenRepository: Repository<PasswordResetToken>,
         private readonly notificationService: NotificationsService,
         private readonly mailerService: MailerService,
     ) {
@@ -45,16 +50,30 @@ export class EmailService {
     }
 
     async getProfileById(userId: string) {
-        console.log(userId)
         const user = await this.userRepository.findOne({ where: { id: userId } });
-        //if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
-        console.log(user)
         return user
     }
     private async bcryptHash(passwordOrSha256: string): Promise<string> {
         // O input pode ser texto-puro OU pré-hash SHA-256 vindo do frontend legado.
         // Em ambos os casos, o valor entrada é tratado como "senha" e vira bcrypt.
         return bcrypt.hash(passwordOrSha256, 12);
+    }
+
+    private hashResetToken(token: string): string {
+        return crypto.createHash('sha256').update(token).digest('hex');
+    }
+
+    private buildResetLink(token: string): string {
+        const base =
+            process.env.RESET_PASS_URL ||
+            `${process.env.FRONT_BASE_URL || 'https://app.myurbanai.com'}/reset-password`;
+        return `${base.replace(/\/$/, '')}/${encodeURIComponent(token)}`;
+    }
+
+    private maskEmail(email?: string): string {
+        if (!email || !email.includes('@')) return 'unknown';
+        const [local, domain] = email.split('@');
+        return `${local.slice(0, 2)}***@${domain}`;
     }
 
 
@@ -85,20 +104,24 @@ export class EmailService {
         }
     }
 
-    async confirmPassword(idUsuario: string, password: string) {
+    async confirmPassword(token: string, password: string) {
         try {
-            const usuario = await this.userRepository.findOne({ where: { id: idUsuario } });
-            console.log(usuario, idUsuario);
+            const resetToken = await this.passwordResetTokenRepository.findOne({
+                where: { tokenHash: this.hashResetToken(token) },
+                relations: ['user'],
+            });
 
-            if (!usuario) {
-                console.warn(`Usuário com email ${idUsuario} não encontrado.`);
-                return { enviado: false, motivo: 'Usuário não encontrado' };
+            if (!resetToken || resetToken.usedAt || resetToken.expiresAt <= new Date()) {
+                return { enviado: false, motivo: 'Token invalido ou expirado' };
             }
 
             // Reset de senha sempre grava bcrypt(12), seja o input texto-puro
             // ou pré-hash SHA-256 do frontend legado.
+            const usuario = resetToken.user;
             usuario.password = await this.bcryptHash(password);
+            resetToken.usedAt = new Date();
 
+            await this.passwordResetTokenRepository.save(resetToken);
             const user = await this.userRepository.save(usuario);
 
             return { enviado: true, user: { ...user, password: null } };
@@ -137,7 +160,7 @@ export class EmailService {
             // 1️⃣ Buscar o usuário
             const usuario = await this.userRepository.findOne({ where: { email: email } });
             if (!usuario) {
-                console.warn(`Usuário com email ${email} não encontrado.`);
+                this.logger.warn(`Usuario nao encontrado para envio de codigo: ${this.maskEmail(email)}`);
                 return { enviado: false, motivo: 'Usuário não encontrado' };
             }
 
@@ -183,7 +206,7 @@ export class EmailService {
                 htmlContent
             );
 
-            console.log(`Email de confirmação enviado para ${email}`);
+            this.logger.log(`Email de confirmacao enviado para ${this.maskEmail(email)}`);
             return { enviado: true };
 
         } catch (error) {
@@ -201,7 +224,7 @@ export class EmailService {
             // 1️⃣ Buscar o usuário
             const usuario = await this.userRepository.findOne({ where: { email: email } });
             if (!usuario) {
-                console.warn(`Usuário com id ${email} não encontrado.`);
+                this.logger.warn(`Usuario nao encontrado para confirmar email: ${this.maskEmail(email)}`);
                 return { ok: false, motivo: 'Usuário não encontrado' };
             }
 
@@ -240,7 +263,7 @@ export class EmailService {
             newUserState.ativo = true;
             await this.userRepository.save(newUserState);
 
-            console.log(`Email do usuário ${email} confirmado com sucesso.`);
+            this.logger.log(`Email confirmado com sucesso para ${this.maskEmail(email)}`);
             return { ok: true };
 
         } catch (error) {
@@ -256,13 +279,13 @@ export class EmailService {
             // 🔎 Buscar usuário
             const usuario = await this.userRepository.findOne({ where: { email } });
             if (!usuario) {
-                console.warn(`⚠️ Usuário com email ${email} não encontrado.`);
+                this.logger.warn(`Usuario nao encontrado para aviso de processamento: ${this.maskEmail(email)}`);
                 return { enviado: false, motivo: 'Usuário não encontrado' };
             }
 
             const nome = usuario.username || 'Usuário';
 
-            console.log(`👤 Usuário encontrado: ${nome} (${usuario.email})`);
+            this.logger.debug(`Usuario encontrado para aviso de processamento: user=${usuario.id}`);
             console.log("✉️  Preparando mensagem de aviso...");
 
             const htmlContent = EmailTemplates.getAnalysisStartedTemplate(
@@ -294,13 +317,13 @@ export class EmailService {
             // 🔎 Buscar usuário
             const usuario = await this.userRepository.findOne({ where: { email } });
             if (!usuario) {
-                console.warn(`⚠️ Usuário com email ${email} não encontrado.`);
+                this.logger.warn(`Usuario nao encontrado para aviso de processamento finalizado: ${this.maskEmail(email)}`);
                 return { enviado: false, motivo: 'Usuário não encontrado' };
             }
 
             const nome = usuario.username || 'Usuário';
 
-            console.log(`👤 Usuário encontrado: ${nome} (${usuario.email})`);
+            this.logger.debug(`Usuario encontrado para aviso de processamento finalizado: user=${usuario.id}`);
             console.log("✉️  Preparando mensagem de aviso...");
 
             const htmlContent = EmailTemplates.getAnalysisFinishedTemplate(
@@ -326,70 +349,40 @@ export class EmailService {
         }
     }
 
-    async forgotPassword_bkp(email: string) {
-        console.log(email)
-        try {
-            const usuario = await this.userRepository.findOne({
-                where: { email: email }
-            });
-
-            if (!usuario) {
-                console.warn(`Usuário com email ${email} não encontrado.`);
-                return { enviado: false, motivo: 'Usuário não encontrado' };
-            }
-
-            const nome = usuario.username || 'Usuário';
-            const userId = usuario.id;
-
-            const msg = {
-                to: usuario?.email,
-                templateId: process.env.SENDGRID_FORGOT_PASS_TEMPLATE,
-                dynamic_template_data: {
-                    nome: nome,
-                    email: usuario?.email,
-                    userId: userId,
-                    subject: "Forgot password",
-                    app_name: "Urban Ai",
-                    link_reset: `${process.env.RESET_PASS_URL}/${userId}`
-                },
-                from: process.env.EMAIL_SENDER,
-                subject: 'Forgot password',
-            };
-
-            console.log(msg)
-
-            await sgMail.send(msg);
-
-            console.log(`Email de recuperação enviado para ${userId}`);
-            return { enviado: true };
-
-        } catch (error) {
-            console.error('Erro ao processar forgotPassword:', error);
-            if (error.response && error.response.body) {
-                console.error('Detalhes do erro SendGrid:', error.response.body);
-            }
-
-            return { enviado: false, motivo: 'Erro interno ao enviar email' };
-        }
-    }
     async forgotPassword(email: string) {
-        console.log(email)
         try {
             const usuario = await this.userRepository.findOne({
                 where: { email: email }
             });
 
             if (!usuario) {
-                console.warn(`Usuário com email ${email} não encontrado.`);
-                return { enviado: false, motivo: 'Usuário não encontrado' };
+                return { enviado: true };
             }
 
             const nome = usuario.username || 'Usuário';
-            const userId = usuario.id;
+            const token = crypto.randomBytes(32).toString('base64url');
+            const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+            await this.passwordResetTokenRepository
+                .createQueryBuilder()
+                .update(PasswordResetToken)
+                .set({ usedAt: new Date() })
+                .where('user_id = :userId', { userId: usuario.id })
+                .andWhere('usedAt IS NULL')
+                .execute();
+
+            await this.passwordResetTokenRepository.save(
+                this.passwordResetTokenRepository.create({
+                    user: usuario,
+                    tokenHash: this.hashResetToken(token),
+                    expiresAt,
+                    usedAt: null,
+                })
+            );
 
             const htmlContent = EmailTemplates.getForgotPasswordTemplate(
                 nome,
-                `${process.env.RESET_PASS_URL}/${userId}`
+                this.buildResetLink(token)
             );
 
             await this.mailerService.sendHtmlEmail(
@@ -400,7 +393,7 @@ export class EmailService {
 
             // await sgMail.send(msg);
 
-            console.log(`Email de recuperação enviado para ${userId}`);
+            console.log(`Email de recuperação enviado para usuario ${usuario.id}`);
             return { enviado: true };
 
         } catch (error) {
@@ -415,18 +408,17 @@ export class EmailService {
 
 
     async enviarNotification(usuarioId: string, notificationContent: CreateNotificationDto) {
-        console.log(usuarioId)
         try {
             const notification = await this.notificationService.create(usuarioId, notificationContent)
             if (notification) {
-                console.log("Notificação salvo com sucesso!")
+                this.logger.debug(`Notificacao salva para user=${usuarioId}`);
             }
             const usuario = await this.userRepository.findOne({
                 where: { id: usuarioId }
             });
 
             if (!usuario) {
-                console.warn(`Usuário com id ${usuarioId} não encontrado.`);
+                this.logger.warn(`Usuario nao encontrado para notificacao: user=${usuarioId}`);
                 return { enviado: false, motivo: 'Usuário não encontrado' };
             }
 
@@ -447,7 +439,7 @@ export class EmailService {
                   htmlContent
                 );
 
-                console.log(`Email de notificação enviado para ${userId}`);
+                this.logger.log(`Email de notificacao enviado para user=${userId}`);
             } else {
                 console.log("Email foi marcado para não ser enviado, portanto não foi enviado.")
             }
@@ -498,16 +490,16 @@ export class EmailService {
                 });
 
                 if (eventosUnicos.size > 0) {
-                    console.log(`Usuário ${user.username}, ${user.id} possui ${eventosUnicos.size} eventos únicos analisados.`);
+                    this.logger.debug(`Usuario ${user.id} possui ${eventosUnicos.size} eventos unicos analisados.`);
                     const enviado = await this.sendEmail(user?.email, user?.username, "Novos eventos", eventosUnicos.size)
 
                     if (enviado && enviado?.enviado) {
-                        console.log(`✅ Email enviado com sucesso para o usuário ${user?.username}`);
+                        this.logger.log(`Email de eventos enviado para user=${user.id}`);
                     } else {
-                        console.log(`❌ Falha ao enviar email para o usuário ${user?.username}`);
+                        this.logger.warn(`Falha ao enviar email de eventos para user=${user.id}`);
                     }
                 } else {
-                    console.log(`ℹ️ Nenhum evento disponível para envio no momento para o usuário ${user?.username}.`);
+                    this.logger.debug(`Nenhum evento disponivel para envio para user=${user.id}`);
                 }
 
             }

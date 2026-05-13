@@ -126,7 +126,7 @@ export class Address {
   @JoinColumn({ name: "user_id" })
   user?: User;
 
-  @Column({ type: "varchar", default: "running" })
+  @Column({ type: "varchar", default: "pending" })
   analisado: string;
 
   @Column({ type: "varchar", default: "no_id" })
@@ -159,4 +159,3 @@ export class Address {
     );
   }
 }
-

@@ -40,6 +40,7 @@ jobs:
       B2_APPLICATION_KEY_ID: ${{ secrets.B2_APPLICATION_KEY_ID }}
       B2_APPLICATION_KEY: ${{ secrets.B2_APPLICATION_KEY }}
       B2_BUCKET: ${{ secrets.B2_BUCKET }}
+      SLACK_WEBHOOK: ${{ secrets.SLACK_BACKUP_WEBHOOK }}
       LABEL: ${{ inputs.label || 'cron' }}
 
     steps:
@@ -63,23 +64,33 @@ jobs:
         id: parse
         run: |
           # mysql://user:pass@host:port/dbname → variáveis individuais
-          URL="${DATABASE_URL#mysql://}"
-          USERPASS="${URL%%@*}"
-          HOSTPORTDB="${URL#*@}"
-          DB_USER="${USERPASS%%:*}"
-          DB_PASS="${USERPASS#*:}"
-          HOSTPORT="${HOSTPORTDB%%/*}"
-          DB_NAME="${HOSTPORTDB##*/}"
-          DB_HOST="${HOSTPORT%%:*}"
-          DB_PORT="${HOSTPORT#*:}"
-          if [ "$DB_PORT" = "$DB_HOST" ]; then DB_PORT=3306; fi
-          # Mascara credenciais nos logs
-          echo "::add-mask::$DB_PASS"
-          echo "DB_USER=$DB_USER" >> $GITHUB_OUTPUT
-          echo "DB_PASS=$DB_PASS" >> $GITHUB_OUTPUT
-          echo "DB_HOST=$DB_HOST" >> $GITHUB_OUTPUT
-          echo "DB_PORT=$DB_PORT" >> $GITHUB_OUTPUT
-          echo "DB_NAME=$DB_NAME" >> $GITHUB_OUTPUT
+          python - <<'PY'
+          import os
+          from urllib.parse import unquote, urlparse
+
+          database_url = os.environ["DATABASE_URL"]
+          parsed = urlparse(database_url)
+
+          if parsed.scheme not in {"mysql", "mysql2"}:
+              raise SystemExit(f"Unsupported DATABASE_URL scheme: {parsed.scheme}")
+
+          db_user = unquote(parsed.username or "")
+          db_pass = unquote(parsed.password or "")
+          db_host = parsed.hostname or ""
+          db_port = str(parsed.port or 3306)
+          db_name = unquote((parsed.path or "").lstrip("/"))
+
+          if not all([db_user, db_host, db_name]):
+              raise SystemExit("DATABASE_URL must include user, host and database name")
+
+          print(f"::add-mask::{db_pass}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"DB_USER={db_user}\n")
+              output.write(f"DB_PASS={db_pass}\n")
+              output.write(f"DB_HOST={db_host}\n")
+              output.write(f"DB_PORT={db_port}\n")
+              output.write(f"DB_NAME={db_name}\n")
+          PY
 
       - name: Dump database
         env:
@@ -96,6 +107,7 @@ jobs:
             --single-transaction \
             --routines \
             --triggers \
+            --events \
             --quick \
             --set-gtid-purged=OFF \
             --no-tablespaces \
@@ -122,8 +134,6 @@ jobs:
 
       - name: Notify on success (optional Slack/Discord)
         if: ${{ success() && env.SLACK_WEBHOOK != '' }}
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_BACKUP_WEBHOOK }}
         run: |
           curl -X POST -H 'Content-Type: application/json' \
             -d "{\"text\":\"✅ Backup Urban AI MySQL OK — $BACKUP_FILE\"}" \
@@ -131,8 +141,6 @@ jobs:
 
       - name: Notify on failure
         if: ${{ failure() && env.SLACK_WEBHOOK != '' }}
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_BACKUP_WEBHOOK }}
         run: |
           curl -X POST -H 'Content-Type: application/json' \
             -d "{\"text\":\"🚨 Backup Urban AI MySQL FALHOU — ver Action #${{ github.run_id }}\"}" \
