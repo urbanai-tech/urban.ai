@@ -24,7 +24,7 @@ import {
 @Controller('sugestoes-preco')
 export class SugestionController {
     constructor(private readonly sugestionService: SugestionService) { }
-    // @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
     @Patch(':id/aceito')
     @ApiOperation({ summary: 'Altera o status de aceito de uma análise de preço' })
     @ApiBody({
@@ -53,7 +53,7 @@ export class SugestionController {
         @Param('id') id: string,
         @Body() body: { aceito: boolean },
     ) {
-        return this.sugestionService.alterarAceito(id, body.aceito);
+        return this.sugestionService.alterarAceito(id, req.user.userId, body.aceito);
     }
 
     /**
@@ -75,13 +75,14 @@ export class SugestionController {
         },
     })
     async registrarPrecoAplicado(
+        @Req() req: any,
         @Param('id') id: string,
         @Body() body: {
             precoAplicado: number;
             origem: 'manual_dashboard' | 'manual_off_platform' | 'stays_auto' | 'stays_user_accepted';
         },
     ) {
-        return this.sugestionService.registrarPrecoAplicado(id, {
+        return this.sugestionService.registrarPrecoAplicado(id, req.user.userId, {
             precoAplicado: body.precoAplicado,
             origem: body.origem,
         });

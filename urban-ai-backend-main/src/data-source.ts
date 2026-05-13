@@ -9,6 +9,8 @@ const baseOptions: Partial<DataSourceOptions> = {
   entities: [__dirname + '/**/*.entity{.ts,.js}', __dirname + '/entities/*{.ts,.js}'],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
   migrationsTableName: 'migrations',
+  synchronize: false,
+  migrationsRun: false,
 };
 
 export const AppDataSource = new DataSource(

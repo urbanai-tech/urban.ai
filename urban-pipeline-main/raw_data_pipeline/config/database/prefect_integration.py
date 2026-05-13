@@ -8,6 +8,11 @@ from Prefect secret blocks with proper error handling.
 from ..settings import Settings
 from .config import DatabaseConfig
 
+try:
+    from prefect.blocks.system import Secret
+except Exception:  # pragma: no cover - surfaced when setup is called
+    Secret = None
+
 
 def setup_database_from_prefect(
     secret_name: str = "mysql-bronze-url",
@@ -39,7 +44,11 @@ def setup_database_from_prefect(
         ... )
     """
     try:
-        settings = Settings.create_with_prefect_db(secret_name)
+        if Secret is None:
+            raise ValueError("Prefect Secret block is not available")
+
+        settings = Settings()
+        settings.MYSQL_URL = Secret.load(secret_name).get()
 
         database_config = DatabaseConfig.from_settings(settings)
 
@@ -81,7 +90,11 @@ def create_database_config_from_secret(secret_name: str) -> DatabaseConfig:
         ValueError: If configuration fails
     """
     try:
-        settings = Settings.create_with_prefect_db(secret_name)
+        if Secret is None:
+            raise ValueError("Prefect Secret block is not available")
+
+        settings = Settings()
+        settings.MYSQL_URL = Secret.load(secret_name).get()
         return DatabaseConfig.from_settings(settings)
     except Exception as e:
         raise ValueError(

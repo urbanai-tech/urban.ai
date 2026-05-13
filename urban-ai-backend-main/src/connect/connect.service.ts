@@ -285,10 +285,7 @@ export class ConnectService {
   }
 
   async saveProperties(properties: List[], userId: string): Promise<List[]> {
-    this.logger.debug(
-      "▶️ Payload recebido em saveProperties:",
-      JSON.stringify(properties, null, 2),
-    );
+    this.logger.debug(`saveProperties received count=${properties.length} for user=${userId}`);
     try {
       this.logger.log(
         `Salvando ${properties.length} propriedades para o usuário ${userId}...`,
@@ -337,6 +334,51 @@ export class ConnectService {
     }
   }
 
+  async countNewAddressSlotsForProperties(
+    properties: Pick<List, 'id_do_anuncio'>[],
+    userId: string,
+  ): Promise<number> {
+    const listingIds = [
+      ...new Set(
+        (properties ?? [])
+          .map((property) => property?.id_do_anuncio)
+          .filter(Boolean),
+      ),
+    ];
+
+    return this.countNewAddressSlotsByListingIds(listingIds, userId);
+  }
+
+  async countNewAddressSlotsForAddresses(addresses: any[], userId: string): Promise<number> {
+    const listingIds = [
+      ...new Set(
+        (addresses ?? [])
+          .map((address) => address?.list?.id)
+          .filter(Boolean),
+      ),
+    ];
+
+    return this.countNewAddressSlotsByListingIds(listingIds, userId);
+  }
+
+  private async countNewAddressSlotsByListingIds(listingIds: string[], userId: string): Promise<number> {
+    if (!listingIds.length) return 0;
+
+    const existingAddressRows = await this.addressRepo
+      .createQueryBuilder('address')
+      .innerJoin('address.list', 'list')
+      .select('list.id_do_anuncio', 'id_do_anuncio')
+      .where('address.user_id = :userId', { userId })
+      .andWhere('list.id_do_anuncio IN (:...listingIds)', { listingIds })
+      .getRawMany<{ id_do_anuncio: string }>();
+
+    const existingAddressListingIds = new Set(
+      existingAddressRows.map((row) => row.id_do_anuncio),
+    );
+
+    return listingIds.filter((listingId) => !existingAddressListingIds.has(listingId)).length;
+  }
+
   async getUserListingsByUserId(userId: string): Promise<List[]> {
     try {
       // Filtra os imóveis associados ao `userId` fornecido
@@ -344,14 +386,16 @@ export class ConnectService {
         where: { user: { id: userId } },
         relations: ["user"], // Inclui o relacionamento com o usuário
       });
-      console.log(listings);
       if (!listings || listings.length === 0) {
         throw new Error("Nenhum imóvel encontrado para o usuário");
       }
 
       return listings; // Retorna a lista filtrada de imóveis do usuário
     } catch (error) {
-      console.error(error);
+      this.logger.error(
+        `Erro ao buscar imoveis do usuario ${userId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
       throw new HttpException(
         "Erro ao buscar imóveis do usuário",
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -364,13 +408,12 @@ export class ConnectService {
   ): Promise<Address[] | any[]> {
     let address: Address[] | [] = addresses;
     let addressSaved: Address[] = [];
-    console.log(address)
     try {
       this.logger.log(
         `📍 Salvando ${addresses.length} endereço(s) para o usuário ${userId}`
       );
 
-      console.log("endereços", address)
+      this.logger.debug(`createMultipleAddresses received count=${address.length}`);
 
       for (const addr of addresses) {
         try {
@@ -381,6 +424,9 @@ export class ConnectService {
             },
           });
 
+          if (!list) {
+            throw new NotFoundException(`Imovel ${addr?.list?.id ?? 'sem id'} nao encontrado para o usuario`);
+          }
 
           const userData = await this.userRepository.findOne({
             where: {
@@ -392,7 +438,7 @@ export class ConnectService {
           }
 
           // ===== SCRAPING DIRETO (substitui RapidAPI) =====
-          console.log(`🕷️ [onboarding] Scraping room ${list?.id_do_anuncio}...`);
+          this.logger.log(`🕷️ [onboarding] Scraping room ${list?.id_do_anuncio}...`);
           const scraped = await this.propriedadeService.scrapeAirbnbListing(list?.id_do_anuncio);
 
           // Persistir dados enriquecidos na entity List
@@ -411,12 +457,20 @@ export class ConnectService {
               reviewCount: scraped.reviewCount,
               lastScrapedAt: new Date(),
             });
-            console.log(`✅ [onboarding] Dados enriquecidos salvos para ${list.id_do_anuncio}`);
+            this.logger.log(`✅ [onboarding] Dados enriquecidos salvos para ${list.id_do_anuncio}`);
           }
 
-          console.log("id list:", list?.id_do_anuncio)
+          this.logger.debug(`Address linked to listing=${list?.id_do_anuncio}`);
 
-          const addressEntity = await this.addressRepo.save({
+          const existingAddress = await this.addressRepo.findOne({
+            where: {
+              list: { id: list.id },
+              user: { id: userId },
+            },
+            relations: ['list', 'user'],
+          });
+
+          const addressPayload = {
             cep: addr.cep,
             numero: addr.numero,
             logradouro: addr.logradouro,
@@ -428,9 +482,12 @@ export class ConnectService {
             list: list,
             user: { id: userId } as User,
             ativo: true,
-            idAlertAirb: 'scraping_direct'
+            idAlertAirb: 'scraping_direct',
+          };
 
-          });
+          const addressEntity = existingAddress
+            ? await this.addressRepo.save({ ...existingAddress, ...addressPayload })
+            : await this.addressRepo.save(addressPayload);
 
           addressSaved.push(addressEntity);
 
@@ -444,7 +501,10 @@ export class ConnectService {
 
 
         } catch (error: any) {
-          console.error("Ocorreu um erro aqui", error);
+          this.logger.error(
+            'Erro ao criar endereco no onboarding',
+            error instanceof Error ? error.stack : String(error),
+          );
         }
       }
     } catch (error: any) {
@@ -470,5 +530,3 @@ export class ConnectService {
     return response.url; // já vem com a URL final
   }
 }
-
-

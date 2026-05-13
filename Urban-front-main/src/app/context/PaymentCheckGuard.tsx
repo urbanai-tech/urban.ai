@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { fetchSubscription, getPagamentosDoUsuario } from '../service/api' // <-- ajusta o path conforme sua estrutura
+import { fetchSubscription } from '../service/api'
 import { GlobalPaywallModal } from '../componentes/GlobalPaywallModal'
 
 interface PaymentCheckGuardProps {
@@ -19,12 +19,6 @@ const PaymentCheckGuard = ({ children }: PaymentCheckGuardProps) => {
     if (!pathname) return // espera o pathname estar definido
     const verifyPayment = async () => {
       try {
-        const token = localStorage.getItem('accessToken')
-        if (!token) {
-          router.push('/')
-          return
-        }
-
         let subscription = null
         try {
           subscription = await fetchSubscription()

@@ -92,7 +92,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   ev,
   cardBorder,
   bg,
-  propertyId,
+  propertyId: _propertyId,
   setIsLoading,
   onChange,
 }) => {
@@ -124,7 +124,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 
                    toast(`Você aceitou a sugestão de preço de ${formatBRL(sugNum)}`, { type: "success" });
       setLoadingSaving(false);
-    } catch (error) {
+    } catch {
        toast("Não foi possível aceitar a sugestão de preço", { type: "error" });
       setLoadingSaving(false);
     } finally {
@@ -144,7 +144,7 @@ export const EventCard: React.FC<EventCardProps> = ({
       onChange?.(updated);
                toast("A sugestão de preço foi cancelada.", { type: "info" });
       setLoadingSaving(false);
-    } catch (error) {
+    } catch {
        toast("Não foi possível cancelar a sugestão de preço.", { type: "error" });
       setLoadingSaving(false);
     } finally {

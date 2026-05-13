@@ -35,7 +35,7 @@ export default function SubscriptionsPage() {
       await cancelSubscription();
                    toast("Assinatura cancelada com sucesso", { type: "success" });
       await loadSubscription(); // recarrega a subscription depois do cancelamento
-    } catch (err: any) {
+    } catch {
       toast("Erro ao cancelar assinatura", { type: "error" });
     } finally {
       setCancelLoading(false);

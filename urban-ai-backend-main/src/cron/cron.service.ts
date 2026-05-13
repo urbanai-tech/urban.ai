@@ -28,7 +28,7 @@ export class CronService {
         hoje.setHours(0, 0, 0, 0);
         const dataHoje = hoje.toISOString().split('T')[0];
 
-        console.log(`\n🔎 Buscando análises aceitas a partir de ${dataHoje}...\n`);
+        this.logger.log(`Buscando analises aceitas a partir de ${dataHoje}`);
 
         const aceites = await this.analisePrecoRepository.find({
             where: {
@@ -43,19 +43,16 @@ export class CronService {
             relations: ['endereco', 'evento', 'usuarioProprietario'],
         });
 
-        console.log(`✅ ${aceites.length} análises aceitas encontradas.\n`);
+        this.logger.log(`${aceites.length} analises aceitas encontradas`);
 
         for (const element of aceites) {
-            console.log(`🏠 Propriedade de: ${element.usuarioProprietario.email}`);
-            console.log(`   📊 Diferença percentual: ${element.diferencaPercentual}%`);
-            console.log(`   📝 Recomendação: ${element.recomendacao}`);
-            console.log(`   💵 Seu preço atual: R$${element.seuPrecoAtual}`);
-            console.log(`   🎯 Preço sugerido: R$${element.precoSugerido}`);
-            console.log(`   🌐 Airbnb ID: ${element.endereco.list.id_do_anuncio}\n`);
+            this.logger.debug(
+                `Analise aceita user=${element.usuarioProprietario.id} address=${element.endereco?.id} diff=${element.diferencaPercentual}`,
+            );
 
             console.log(`🔎 Buscando dados no Airbnb para o anúncio ${element.endereco.list.id_do_anuncio}...`);
             const dadosProperty = await this.airbnbService.getFirstAvailablePrice(element.endereco.list.id_do_anuncio);
-            console.log(`📦 Dados retornados do Airbnb:`, dadosProperty);
+            this.logger.debug(`Dados Airbnb recebidos para listing=${element.endereco.list.id_do_anuncio}`);
 
             const diaria = getDiariaForCron(dadosProperty);
             console.log(`💰 Diária atual no Airbnb: R$${diaria}`);
@@ -71,7 +68,7 @@ export class CronService {
                         redirectTo: '/painel',
                         sendEmail: true,
                     };
-                    console.log(`📧 Enviando email para: ${element.usuarioProprietario.email}`);
+                    this.logger.log(`Enviando notificacao para user=${element.usuarioProprietario.id}`);
                     const { enviado } = await this.emailService.enviarNotification(element?.usuarioProprietario.id, tdo);
                     console.log(enviado ? `✅ Email enviado com sucesso!` : `❌ Falha ao enviar email.`);
                 }
@@ -84,7 +81,7 @@ export class CronService {
                         redirectTo: '/painel',
                         sendEmail: true,
                     };
-                    console.log(`📧 Enviando email para: ${element.usuarioProprietario.email}`);
+                    this.logger.log(`Enviando notificacao para user=${element.usuarioProprietario.id}`);
                     const { enviado } = await this.emailService.enviarNotification(element?.usuarioProprietario.id, tdo);
                     console.log(enviado ? `✅ Email enviado com sucesso!` : `❌ Falha ao enviar email.`);
                 }
@@ -140,7 +137,7 @@ export class CronService {
         console.log(`✅ ${aceites.length} análises aceitas encontradas.`);
 
         for (const element of aceites) {
-            console.log(`\n📌 Analisando propriedade do usuário: ${element.usuarioProprietario.email}`);
+            this.logger.debug(`Simulando analise aceita user=${element.usuarioProprietario.id}`);
             console.log(`- Diferença percentual: ${element.diferencaPercentual}`);
             console.log(`- Recomendação: ${element.recomendacao}`);
             console.log(`- Preço atual: ${element.seuPrecoAtual}`);

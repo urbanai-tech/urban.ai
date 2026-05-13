@@ -1,17 +1,13 @@
 'use client';
 
 import {
-  Alert,
-  AlertIcon,
   Box,
   Button,
   Flex,
   FormControl,
   FormLabel,
   Heading,
-  HStack,
   Input,
-  Link,
   Text,
   VStack,
   InputGroup,
@@ -33,7 +29,7 @@ const MotionBox = motion(Box);
 
 const PasswordConfirmation = () => {
   const router = useRouter();
-  const {  showToastCustom, ToastContainer } = useToastCustom();
+  const { showToastCustom } = useToastCustom();
 
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState('');
@@ -43,7 +39,7 @@ const PasswordConfirmation = () => {
   const [success, setSuccess] = useState(false);
 
   const params = useParams();
-  const userId = params?.id as string; // capturado da rota
+  const token = params?.id as string; // capturado da rota
 
   async function sha256(message: string): Promise<string> {
     const encoder = new TextEncoder();
@@ -85,7 +81,7 @@ const PasswordConfirmation = () => {
       setLoading(true);
 
       const hashedPassword = await sha256(password);
-      const res = await updatePassword(userId, hashedPassword);
+      const res = await updatePassword(token, hashedPassword);
 
       if (!res.enviado) {
         throw new Error("Erro ao confirmar redefinição de senha");

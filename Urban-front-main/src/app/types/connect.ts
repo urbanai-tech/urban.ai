@@ -1,21 +1,5 @@
 // types/connect.ts
 
-/** Dados de endereço enriquecido pela BrasilAPI */
-export interface AddressData {
-  logradouro: string;
-  cidade: string;
-  estado: string;
-  bairro?: string;
-}
-
-/** Interface extendida para listagens com CEP validado */
-export interface ConnectWithCep extends Connect {
-  cep: string;
-  endereco: AddressData;
-  cepStatus: 'validado' | 'invalido' | 'nao-encontrado';
-  cepData?: any; // Dados brutos da BrasilAPI
-}
-
 export interface Connect {
   pictureUrl: string;
   id_do_anuncio: string;
@@ -59,13 +43,4 @@ export interface CreateAddressDto {
   cidade?: string;
   estado?: string | null;
   list: { id: string };
-}
-
-/** Informações de validação de CEP para comparação */
-export interface CepValidation {
-  propertyId: string;
-  propertyCep: string;
-  userCep: string;
-  isValid: boolean;
-  message?: string;
 }

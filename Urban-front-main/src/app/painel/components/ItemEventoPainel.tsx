@@ -67,7 +67,7 @@ const Pill = ({
     </Badge>
 );
 
-export const EventCard: React.FC<EventCardProps> = ({ ev, cardBorder, bg, propertyId, setIsLoading, onChange }) => {
+export const EventCard: React.FC<EventCardProps> = ({ ev, cardBorder, bg, propertyId: _propertyId, setIsLoading, onChange }) => {
     const startDate = parseISO(ev.dataInicio);
     const diff = Number(ev.diferencaPercentual);
     const showPositiveDiff = Number.isFinite(diff) && diff > 0;

@@ -1,7 +1,6 @@
 'use client';
 
 import { Box, Flex, Text } from '@chakra-ui/react';
-import { TFunction } from 'i18next';
 
 interface PaginationProps {
   paginaAtual: number;

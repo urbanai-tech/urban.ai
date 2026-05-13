@@ -1,13 +1,31 @@
-import { Controller, Patch, Param, Get, Post, Query, Logger, NotFoundException, UseGuards, Req, Body } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiOkResponse, ApiResponse, ApiQuery, ApiBody, ApiProperty } from '@nestjs/swagger';
-import { MapsService } from './maps.service';
-import { ProcessService } from 'src/process/process.service';
-import { Res } from '@nestjs/common';
-import { Response } from 'express';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Logger,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiProperty,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Cron } from '@nestjs/schedule';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { IsString } from 'class-validator';
-
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Roles } from 'src/auth/roles.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { ProcessService } from 'src/process/process.service';
+import { MapsService } from './maps.service';
 
 export class PropertyDto {
   @ApiProperty({ example: 'ddhddhdhh', description: 'ID da propriedade' })
@@ -18,93 +36,83 @@ export class PropertyDto {
 @ApiTags('maps')
 @Controller('maps')
 export class MapsController {
-  private readonly logger = new Logger(MapsController.name); // Instanciando o logger corretamente
+  private readonly logger = new Logger(MapsController.name);
 
-  constructor(private readonly mapsService: MapsService,
+  constructor(
+    private readonly mapsService: MapsService,
     private readonly processService: ProcessService,
-  ) { }
+  ) {}
 
   @Patch('events/:eventId/location')
-  @ApiOperation({
-    summary: 'Geocodifica e atualiza lat/lng de um evento usando seu enderecoCompleto',
-  })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiOperation({ summary: 'Geocodifica e atualiza lat/lng de um evento' })
   @ApiParam({
     name: 'eventId',
     description: 'UUID do evento a ser atualizado',
     example: '0351e831-4549-11f0-84fc-42010a400016',
   })
   @ApiOkResponse({
-    description: 'Resultado da geocodificação bem-sucedida',
+    description: 'Resultado da geocodificacao',
     schema: { example: { ok: true, lat: -23.55052, lng: -46.633308 } },
   })
-  @ApiResponse({ status: 400, description: 'Erro de requisição ou evento não encontrado.' })
-  async updateEventLocation(
-    @Param('eventId') eventId: string,
-  ) {
+  @ApiResponse({ status: 400, description: 'Erro de requisicao ou evento nao encontrado.' })
+  async updateEventLocation(@Param('eventId') eventId: string) {
     return this.mapsService.updateLatLngByEventId(eventId);
   }
 
   @Post('events/update-all-locations')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @ApiOperation({ summary: 'Geocodifica e atualiza lat/lng de todos eventos sem coordenadas' })
-  @ApiOkResponse({ description: 'Resultado da atualização em lote', schema: { example: { ok: true, updated: 5, failed: 2, total: 7 } } })
+  @ApiOkResponse({
+    description: 'Resultado da atualizacao em lote',
+    schema: { example: { ok: true, updated: 5, failed: 2, total: 7 } },
+  })
   async updateAllEventLocations() {
     return this.mapsService.updateAllEventsLatLng();
   }
 
   @Post('events/update-next-batch')
-  @ApiOperation({ summary: 'Atualiza o próximo lote de eventos sem coordenada' })
-  @ApiOkResponse({ description: 'Resumo da atualização', schema: { example: { ok: true, updated: 45, failed: 5, total: 50, results: [] } } })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiOperation({ summary: 'Atualiza o proximo lote de eventos sem coordenada' })
+  @ApiOkResponse({
+    description: 'Resumo da atualizacao',
+    schema: { example: { ok: true, updated: 45, failed: 5, total: 50, results: [] } },
+  })
   async updateNextBatch(
     @Query('limit') limit = 50,
     @Query('offset') offset = 0,
   ) {
-    return await this.mapsService.updatePendingEventsLatLngBatch(Number(limit), Number(offset));
+    return this.mapsService.updatePendingEventsLatLngBatch(Number(limit), Number(offset));
   }
 
-
-
-  @Cron('0 3 * * 4') // Toda quinta às 3h da manhã
+  @Cron('0 3 * * 4')
   async handleCron() {
-    this.logger.log('Iniciando o processamento agendado de quinta às 3h...');
-    await this.iniciarProcessamentoCron()
+    this.logger.log('Iniciando processamento agendado de quinta as 3h.');
+    await this.iniciarProcessamentoCron();
   }
 
   @Post('processar-lat-long-eventos')
-  @ApiOperation({ summary: 'Processa as análises lat long eventos' })
-  @ApiOkResponse({
-    description: 'Resultado do processamento das análises lat long eventos',
-    schema: { example: { message: 'Processamento concluído', totalAnalises: 100 } }
-  })
-  async processarLatLogEventos(@Res() res: Response) {
-    const result = this.mapsService.updateAllEventsLatLng();
-    res.send({ result: "Processamento iniciado.." })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiOperation({ summary: 'Geocodifica eventos sem lat/lng' })
+  async processarLatLogEventos() {
+    return this.mapsService.updateAllEventsLatLng();
   }
 
   @Post('processar-lat-long-adress')
-  @ApiOperation({ summary: 'Processa as análises lat long address' })
-  @ApiOkResponse({
-    description: 'Resultado do processamento das análises lat long address',
-    schema: { example: { message: 'Processamento concluído', totalAnalises: 100 } }
-  })
-  async processarLatLogAddress(@Res() res: Response) {
-    const result = this.mapsService.updateAllAddressLatLng();
-    res.send({ result: "Processamento iniciado.." })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiOperation({ summary: 'Geocodifica enderecos sem lat/lng' })
+  async processarLatLogAddress() {
+    return this.mapsService.updateAllAddressLatLng();
   }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('processar-analises-by-property-teste')
-  async processarAnalisesByPropertyTeste(
-    @Req() req: any,
-    @Body() propertyList: PropertyDto[]
-  ) {
-    return { value: true }
-    //return this.iniciarProcessamentoByProperty(req.user.userId, propertyList);
-  }
-
 
   @UseGuards(JwtAuthGuard)
   @Post('processar-analises-by-property')
-  @ApiOperation({ summary: 'Processa as análises para todos os usuários' })
+  @ApiOperation({ summary: 'Processa analises para propriedades do usuario autenticado' })
   @ApiBody({
     description: 'Lista de propriedades com IDs a serem processados',
     schema: {
@@ -112,116 +120,46 @@ export class MapsController {
       items: {
         type: 'object',
         properties: {
-          id: { type: 'string', example: 'ddhddhdhh' }
-        }
+          id: { type: 'string', example: 'ff126501-301a-4af6-b235-1e78a88095ae' },
+        },
       },
-      example: [
-        { id: 'ff126501-301a-4af6-b235-1e78a88095ae' },
-        { id: 'ff126501-301a-4af6-b235-1e78a88095ae' }
-      ]
-    }
-  })
-  @ApiOkResponse({
-    description: 'Resultado do processamento das análises',
-    schema: { example: { message: 'Processamento concluído', totalAnalises: 2 } }
+    },
   })
   async processarAnalisesByProperty(
-    @Res() res: Response,
     @Req() req: any,
-    @Body() propertyList: PropertyDto[]
+    @Body() propertyList: PropertyDto[],
   ) {
-    const userId = '7296eafd-9186-4270-a673-2a3f57e50a36'
-    const propertyAdressId = 'ff126501-301a-4af6-b235-1e78a88095ae'; //listId 
-    //req?.user?.userId
-    this.iniciarProcessamentoByProperty(res, req?.user?.userId, propertyList);
-    console.log('apos')
+    return this.iniciarProcessamentoByProperty(req?.user?.userId, propertyList);
   }
-  @Post('processar-analises')
-  @ApiOperation({ summary: 'Processa as análises para todos os usuários' })
-  @ApiOkResponse({
-    description: 'Resultado do processamento das análises',
-    schema: { example: { message: 'Processamento concluído', totalAnalises: 100 } }
-  })
-  async processarAnalisesTeste(@Res() res: Response) {
-    const status = await this.processService.getCurrentStatus();
 
+  @Post('processar-analises')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiOperation({ summary: 'Processa analises para todos os usuarios' })
+  async processarAnalisesTodosUsuarios() {
+    const status = await this.processService.getCurrentStatus();
     if (!status) {
-      return res.status(500).json({ message: 'Não foi possível obter o status atual.' });
+      throw new BadRequestException('Nao foi possivel obter o status atual.');
     }
 
     this.logger.log(`Status atual: ${status.status}`);
-return this.iniciarProcessamento(res);
-    // switch (status.status) {
-    //   case 'running':
-    //     return res.status(409).json({ message: 'O processamento já está em execução.' });
-
-    //   case 'completed':
-    //     return this.iniciarProcessamento(res);
-
-    //   case 'error':
-    //     return this.iniciarProcessamento(res);
-
-    //   default:
-    //     return this.iniciarProcessamento(res);
-    // }
+    return this.iniciarProcessamento();
   }
-  private async iniciarProcessamento(res: Response) {
+
+  private async iniciarProcessamento() {
     try {
-      this.logger.log('Iniciando o processamento das análises de todos os usuários.');
-      const result = this.mapsService.processarAnalisesTodosUsuarios();
-
-      return res.status(200).json({
-        message: 'Processamento iniciado com sucesso.',
-        ...result,
-      });
-    } catch (error) {
-      this.logger.error('Erro ao processar as análises de todos os usuários.', error.stack);
-      return res.status(500).json({
-        message: 'Erro inesperado durante o processamento',
-        totalAnalises: 0,
-      });
-    }
-  }
-  private async iniciarProcessamentoByProperty(res: Response, userId: string, propertyList: PropertyDto[]) {
-
-
-    const idsArray = propertyList.map(item => item.id);
-
-    let count = 0;
-    for (const propertyId of idsArray) {
-      console.log("🏁 Propriedade: ", count, propertyId)
-      try {
-        const propertyAdressId = propertyId; //listId 
-        this.logger.log('Iniciando o processamento das análises de todos os usuários.');
-        const result = this.mapsService.processarAnalisesByProperty(userId, propertyAdressId);
-        count++
-
-
-      } catch (error) {
-        this.logger.error('Erro ao processar as análises de todos os usuários.', error.stack);
-        return res.status(500).json({
-          message: 'Erro inesperado durante o processamento',
-          totalAnalises: 0,
-        });
-      }
-      return res.status(200).json({
-        message: 'Processamento iniciado com sucesso.',
-      });
-    }
-  }
-
-
-  private async iniciarProcessamentoCron(): Promise<{ message: string; totalAnalises?: number }> {
-    try {
-      this.logger.log('Iniciando o processamento das análises de todos os usuários.');
+      this.logger.log('Iniciando processamento de analises de todos os usuarios.');
       const result = await this.mapsService.processarAnalisesTodosUsuarios();
 
       return {
-        message: 'Processamento iniciado com sucesso.',
+        message: 'Processamento concluido.',
         ...result,
       };
     } catch (error) {
-      this.logger.error('Erro ao processar as análises de todos os usuários.', error.stack);
+      this.logger.error(
+        'Erro ao processar analises de todos os usuarios.',
+        error instanceof Error ? error.stack : String(error),
+      );
       return {
         message: 'Erro inesperado durante o processamento',
         totalAnalises: 0,
@@ -229,5 +167,65 @@ return this.iniciarProcessamento(res);
     }
   }
 
+  private async iniciarProcessamentoByProperty(userId: string, propertyList: PropertyDto[]) {
+    if (!userId) {
+      throw new BadRequestException('Usuario autenticado nao encontrado.');
+    }
+    if (!Array.isArray(propertyList) || propertyList.length === 0) {
+      throw new BadRequestException('Nenhuma propriedade informada.');
+    }
 
+    const results = [];
+    let totalProcessados = 0;
+
+    for (const property of propertyList) {
+      if (!property?.id) {
+        results.push({ propertyAdressId: null, error: 'ID de propriedade ausente' });
+        continue;
+      }
+
+      try {
+        this.logger.log(`Iniciando processamento user=${userId} property=${property.id}`);
+        const result = await this.mapsService.processarAnalisesByProperty(userId, property.id);
+        results.push({ propertyAdressId: property.id, result });
+        totalProcessados++;
+      } catch (error) {
+        this.logger.error(
+          `Erro ao processar propriedade ${property.id}`,
+          error instanceof Error ? error.stack : String(error),
+        );
+        results.push({
+          propertyAdressId: property.id,
+          error: 'Erro inesperado durante o processamento',
+        });
+      }
+    }
+
+    return {
+      message: 'Processamento concluido.',
+      totalProcessados,
+      results,
+    };
+  }
+
+  private async iniciarProcessamentoCron(): Promise<{ message: string; totalAnalises?: number }> {
+    try {
+      this.logger.log('Iniciando processamento agendado de analises de todos os usuarios.');
+      const result = await this.mapsService.processarAnalisesTodosUsuarios();
+
+      return {
+        message: 'Processamento concluido.',
+        ...result,
+      };
+    } catch (error) {
+      this.logger.error(
+        'Erro ao processar analises de todos os usuarios.',
+        error instanceof Error ? error.stack : String(error),
+      );
+      return {
+        message: 'Erro inesperado durante o processamento',
+        totalAnalises: 0,
+      };
+    }
+  }
 }

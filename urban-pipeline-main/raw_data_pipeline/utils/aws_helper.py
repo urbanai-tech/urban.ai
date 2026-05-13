@@ -52,9 +52,15 @@ class S3Helper:
 
         folders = []
 
+        for prefix in response.get("CommonPrefixes", []):
+            folder_path = prefix.get("Prefix")
+            if folder_path:
+                folders.append(folder_path)
+
         for content in response.get("Contents", []):
             folder_path = content.get("Key")
-            folders.append(folder_path)
+            if folder_path:
+                folders.append(folder_path)
 
         return folders
 

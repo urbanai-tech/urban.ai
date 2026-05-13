@@ -1,16 +1,12 @@
 'use client';
 
 import {
-  Avatar,
-  Button,
   Link,
   Text
 } from '@chakra-ui/react';
-import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import NextImage from 'next/image';
-import { api } from '../service/api';
 
 const NAV_ITEMS = [
   { path: '/dashboard', key: 'Iniciar',      href: '/dashboard'  },
@@ -20,7 +16,6 @@ const NAV_ITEMS = [
 
 export default function Header() {
   const { t } = useTranslation();
-  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -49,7 +44,7 @@ export default function Header() {
 </div>
       {/* Desktop Nav */}
       <div className="hidden md:flex flex-1 justify-end items-center gap-6">
-        <NavLinks t={t} />
+        <NavLinks />
       </div>
 
       {/* Mobile Menu Button (tamanho acompanha header) */}
@@ -79,7 +74,7 @@ export default function Header() {
               </button>
             </div>
 
-            <NavLinks mobile t={t} onLinkClick={() => setIsMenuOpen(false)} />
+            <NavLinks mobile onLinkClick={() => setIsMenuOpen(false)} />
 
             <div className="mt-4 flex gap-2">
               <ButtonIcon><LightningIcon /></ButtonIcon>
@@ -95,11 +90,9 @@ export default function Header() {
 const NavLinks = ({
   mobile = false,
   onLinkClick,
-  t,
 }: {
   mobile?: boolean;
   onLinkClick?: () => void;
-  t: (key: string) => string;
 }) => (
   <nav className={`flex ${mobile ? 'flex-col gap-4' : 'items-center gap-9'}`}>
     {NAV_ITEMS.map(item => (

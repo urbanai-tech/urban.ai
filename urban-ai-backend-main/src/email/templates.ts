@@ -68,7 +68,7 @@ export class EmailTemplates {
             <div style="text-align: center; margin: 30px 0;">
                 <p>Para redefinir sua senha, clique no link abaixo:</p>
                 <a href="${resetLink}" class="link">${resetLink}</a>
-                <p style="margin-top: 15px;">Este link expira em <b>2</b> minutos por motivos de segurança.</p>
+                <p style="margin-top: 15px;">Este link expira em <b>30</b> minutos por motivos de segurança.</p>
             </div>
             
             <hr />

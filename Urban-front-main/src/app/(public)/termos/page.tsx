@@ -28,7 +28,7 @@ export default function Termos() {
               1. Sobre o serviço
             </Heading>
             <Text>
-              A Urban AI ("nós", "nosso") fornece uma plataforma SaaS de
+              A Urban AI (&quot;nós&quot;, &quot;nosso&quot;) fornece uma plataforma SaaS de
               precificação dinâmica para anfitriões de aluguel por temporada
               (Airbnb, Booking, Vrbo e similares). Nossa missão é ajudar você a
               tomar melhores decisões de preço cruzando dados de mercado, eventos
@@ -128,7 +128,7 @@ export default function Termos() {
             </Text>
             <Text>
               <strong>Você é o decisor final</strong> sobre qual preço cobrar
-              em seus anúncios. Nosso modo "automático" via integração Stays
+              em seus anúncios. Nosso modo &quot;automático&quot; via integração Stays
               opera dentro de tetos de variação que você define e pode pausar
               a qualquer momento.
             </Text>

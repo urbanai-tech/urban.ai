@@ -137,6 +137,26 @@ class E2ETestDatabase:
         
         return pd.read_sql(f"SELECT * FROM {table_name}", engine)
 
+    def table_exists(self, table_name: str) -> bool:
+        """Return whether a table exists in the configured test database."""
+        engine = (
+            self.engine or
+            (self.db_config.get_engine() if self.db_config else None)
+        )
+        if not engine:
+            raise RuntimeError("Database not started")
+
+        with engine.connect() as conn:
+            try:
+                result = conn.execute(
+                    text("SELECT name FROM sqlite_master WHERE type='table' AND name=:name"),
+                    {"name": table_name},
+                )
+                return result.fetchone() is not None
+            except Exception:
+                result = conn.execute(text("SHOW TABLES"))
+                return table_name in {row[0] for row in result.fetchall()}
+
 
 class E2ETestS3:
     """
@@ -157,8 +177,11 @@ class E2ETestS3:
         
         # Create mock S3 bucket
         import boto3
-        s3_client = boto3.client("s3", region_name="us-east-1")
-        s3_client.create_bucket(Bucket=self.bucket_name)
+        s3_client = boto3.client("s3", region_name="us-west-2")
+        s3_client.create_bucket(
+            Bucket=self.bucket_name,
+            CreateBucketConfiguration={"LocationConstraint": "us-west-2"},
+        )
 
     def stop(self) -> None:
         """Stop mock AWS S3 service."""
@@ -174,8 +197,19 @@ class E2ETestS3:
             content: File content as bytes
         """
         import boto3
-        s3_client = boto3.client("s3", region_name="us-east-1")
+        s3_client = boto3.client("s3", region_name="us-west-2")
         s3_client.put_object(Bucket=self.bucket_name, Key=key, Body=content)
+
+    def upload_test_data(
+        self, folder_name: str, dataframes: list[pd.DataFrame]
+    ) -> list[str]:
+        """Upload one or more DataFrames as parquet files under a test folder."""
+        uploaded_files = []
+        for index, df in enumerate(dataframes, start=1):
+            key = f"{self.prefix}{folder_name}/data_{index}.parquet"
+            self.upload_test_file(key, df.to_parquet())
+            uploaded_files.append(key)
+        return uploaded_files
 
     def create_test_folder_structure(
         self, datasets: dict[str, pd.DataFrame]
@@ -191,17 +225,11 @@ class E2ETestS3:
         """
         uploaded_files = {}
         
-        for folder_name, df in datasets.items():
-            # Convert DataFrame to parquet bytes
-            parquet_buffer = df.to_parquet()
-            
-            # Create S3 key
-            key = f"{self.prefix}{folder_name}/data.parquet"
-            
-            # Upload to mock S3
-            self.upload_test_file(key, parquet_buffer)
-            
-            uploaded_files[folder_name] = [key]
+        for folder_name, dataset in datasets.items():
+            dataframes = dataset if isinstance(dataset, list) else [dataset]
+            uploaded_files[folder_name] = self.upload_test_data(
+                folder_name, dataframes
+            )
         
         return uploaded_files
 
@@ -223,13 +251,29 @@ class E2ETestDataFactory:
         Returns:
             pd.DataFrame: Valid test dataset
         """
+        categories = (["A", "B", "C"] * ((size + 2) // 3))[:size]
+
         return pd.DataFrame({
             "id": range(1, size + 1),
             "name": [f"Name_{i}" for i in range(1, size + 1)],
             "value": [i * 10.5 for i in range(1, size + 1)],
-            "category": ["A", "B", "C"] * (size // 3 + 1),
+            "category": categories,
             "created_at": pd.date_range("2024-01-01", periods=size, freq="D"),
-        })[:size]
+        })
+
+    @staticmethod
+    def create_event_dataframe(size: int = 100, source: str = "eventim") -> pd.DataFrame:
+        """Create event-shaped data used by the pipeline E2E tests."""
+        return pd.DataFrame(
+            {
+                "event_id": [f"{source}_{i}" for i in range(1, size + 1)],
+                "title": [f"{source.title()} Event {i}" for i in range(1, size + 1)],
+                "source": [source] * size,
+                "venue": [f"Venue {i % 5}" for i in range(1, size + 1)],
+                "price": [float((i % 10) * 25) for i in range(1, size + 1)],
+                "date": pd.date_range("2024-01-01", periods=size, freq="D"),
+            }
+        )
 
     def create_dataset_with_nulls(self, size: int = 50) -> pd.DataFrame:
         """
@@ -266,10 +310,14 @@ class E2ETestDataFactory:
         Returns:
             dict: Mapping of folder names to DataFrames
         """
+        sources = ["eventim", "ticketmaster", "blue_ticket", "even3", "ingresse"]
         return {
-            "events": self.create_valid_dataset(50),
-            "users": self.create_dataset_with_nulls(30),
-            "transactions": self.create_large_dataset(100),
+            source: [
+                self.create_event_dataframe(100, source),
+                self.create_event_dataframe(50, source),
+                self.create_event_dataframe(75, source),
+            ]
+            for source in sources
         }
 
     def create_invalid_dataset(self) -> pd.DataFrame:

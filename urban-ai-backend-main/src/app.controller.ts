@@ -1,7 +1,10 @@
-import { Controller, Get, HttpCode, InternalServerErrorException, Logger } from '@nestjs/common';
+import { Controller, Get, HttpCode, InternalServerErrorException, Logger, UseGuards } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { AppService } from './app.service';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { Roles } from './auth/roles.decorator';
+import { RolesGuard } from './auth/roles.guard';
 
 /**
  * AppController — endpoints públicos de saúde + utilidades.
@@ -90,6 +93,8 @@ export class AppController {
   }
 
   @Get('debug/sentry-test')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   sentryTest() {
     throw new InternalServerErrorException(
       'Sentry test error — triggered by /debug/sentry-test',

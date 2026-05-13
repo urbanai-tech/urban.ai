@@ -1,8 +1,6 @@
 'use client';
 
 import {
-  Alert,
-  AlertIcon,
   Box,
   Button,
   Flex,
@@ -79,7 +77,7 @@ const EmailConfirmation = () => {
   }, []);
 
 
-  const decideRedirect = async (accessToken: string) => {
+  const decideRedirect = async () => {
     try {
       const { data: profile } = await getProfile();
 
@@ -133,7 +131,7 @@ const EmailConfirmation = () => {
 
       if (result.data.ok) {
         toast("Sua conta foi ativada com sucesso.", { type: "success" });
-        await decideRedirect("token_nao_necessario");
+        await decideRedirect();
       } else {
         toast.error(result.data.motivo || 'Erro ao confirmar e-mail.');
       }

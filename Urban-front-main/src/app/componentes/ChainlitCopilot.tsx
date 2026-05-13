@@ -31,7 +31,6 @@ export default function ChainlitCopilot(_props: Props) {
       document.body.appendChild(s)
 
       s.addEventListener("error", () => {
-        // eslint-disable-next-line no-console
         console.error("Failed to load Chainlit Copilot script from", s.src)
       })
     }
@@ -50,7 +49,6 @@ export default function ChainlitCopilot(_props: Props) {
 
     async function handleCallFn(e: any) {
       const { name, args, callback } = e.detail || {}
-      const accessToken = localStorage.getItem('accessToken')
       const baseUrl = process.env.NEXT_PUBLIC_API_URL
 
       try {
@@ -60,8 +58,8 @@ export default function ChainlitCopilot(_props: Props) {
             console.log('[Copilot] Fetching user info:', url)
             const response = await fetch(url, {
               method: 'GET',
+              credentials: 'include',
               headers: {
-                'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json'
               }
             })
@@ -77,8 +75,8 @@ export default function ChainlitCopilot(_props: Props) {
             console.log('[Copilot] Fetching user properties:', url)
             const response = await fetch(url, {
               method: 'GET',
+              credentials: 'include',
               headers: {
-                'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json'
               }
             })
@@ -95,8 +93,8 @@ export default function ChainlitCopilot(_props: Props) {
             // Fetch properties
             const propRes = await fetch(propUrl, {
               method: 'GET',
+              credentials: 'include',
               headers: {
-                'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json'
               }
             })
@@ -104,8 +102,8 @@ export default function ChainlitCopilot(_props: Props) {
             // Fetch events
             const eventRes = await fetch(eventUrl, {
               method: 'GET',
+              credentials: 'include',
               headers: {
-                'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json'
               }
             })
@@ -168,7 +166,7 @@ export default function ChainlitCopilot(_props: Props) {
         .join("\n\n")
     }
 
-    function formatNearbyEvents(eventsData: any): string {
+    function _formatNearbyEvents(eventsData: any): string {
       if (!Array.isArray(eventsData) || !eventsData.length) return "Não foram encontrados eventos próximos às suas propriedades."
       // Show top 5 events
       return eventsData.slice(0, 5)
@@ -206,7 +204,6 @@ ${events.map((event: any, i: number) => `  ${i + 1}. ${event.nome}
           mountFn({ chainlitServer: chainlitUrl })
         }
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error("Error while attempting to mount Chainlit widget:", err)
       }
     }, 300)

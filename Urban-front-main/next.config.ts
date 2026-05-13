@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
     domains: ['cdn.usegalileo.ai'],
   },
   output: 'standalone',
+  outputFileTracingRoot: process.cwd(),
   eslint: {
     // Build falha em ERROS do lint (rules-of-hooks, etc). Warnings (unused
     // vars, exhaustive-deps, etc) são permitidos até o saneamento completo

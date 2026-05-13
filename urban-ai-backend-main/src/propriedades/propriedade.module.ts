@@ -13,6 +13,7 @@ import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { User } from 'src/entities/user.entity';
 import { EmailModule } from 'src/email/email.module';
 import { KnnEngineModule } from '../knn-engine/knn-engine.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
     imports: [
@@ -26,6 +27,7 @@ import { KnnEngineModule } from '../knn-engine/knn-engine.module';
         ]),
         forwardRef(() => AirbnbModule),
         EmailModule,
+        AuthModule,
         // F6.1 — motor de pricing (engine + strategies + bootstrap)
         KnnEngineModule,
     ],

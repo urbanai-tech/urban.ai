@@ -90,10 +90,7 @@ class DatabaseTemplates:
             credentials=credentials,
             echo=False,
             pool_size=1,
-        )
-
-        config.credentials.get_connection_string = (
-            lambda driver="sqlite": "sqlite:///:memory:"
+            driver="sqlite",
         )
 
         return config

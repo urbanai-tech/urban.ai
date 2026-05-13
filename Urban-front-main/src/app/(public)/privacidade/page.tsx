@@ -44,7 +44,7 @@ export default function Privacidade() {
               1. Quem somos
             </Heading>
             <Text>
-              A <strong>Urban AI</strong> ("nós") é uma plataforma de precificação dinâmica
+              A <strong>Urban AI</strong> (&quot;nós&quot;) é uma plataforma de precificação dinâmica
               para anfitriões de aluguel por temporada. Esta política descreve como tratamos
               dados pessoais coletados quando você usa nossos serviços em <code>myurbanai.com</code>.
             </Text>
@@ -54,7 +54,7 @@ export default function Privacidade() {
               Santana, São Paulo/SP, CEP 02013-002.
             </Text>
             <Text mt={2}>
-              <strong>Operadora do produto:</strong> Gustavo Gouveia Macedo LTDA (nome fantasia "Guilds"),
+              <strong>Operadora do produto:</strong> Gustavo Gouveia Macedo LTDA (nome fantasia &quot;Guilds&quot;),
               CNPJ 44.361.255/0001-55, presta serviço contínuo de operação técnica e gestão do produto Urban AI
               à MP IA Tecnologia desde fevereiro de 2026.
             </Text>

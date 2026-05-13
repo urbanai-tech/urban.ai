@@ -228,6 +228,86 @@ export class MapsService {
   }
 
 
+  private async updateMissingAddressLatLngForList(listId: string, userId: string) {
+    const addresses = await this.addressRepo.find({
+      where: [
+        { list: { id: listId }, user: { id: userId }, latitude: IsNull() },
+        { list: { id: listId }, user: { id: userId }, longitude: IsNull() },
+      ],
+      relations: ['list', 'user'],
+    });
+
+    if (!addresses.length) {
+      return { ok: true, total: 0, sucesso: 0, erros: 0 };
+    }
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const address of addresses) {
+      const endereco = [
+        address.logradouro,
+        address.numero,
+        address.bairro,
+        address.cidade,
+        address.estado,
+        address.cep,
+      ].filter(Boolean).join(', ');
+
+      if (!endereco) {
+        errorCount++;
+        this.logger.warn(`Address ${address.id} ignorado: endereco vazio.`);
+        continue;
+      }
+
+      try {
+        const resp = await this.client.geocode({
+          params: {
+            address: endereco,
+            key: this.apiKey,
+          },
+        });
+
+        const first = resp.data.results[0];
+        if (!first) {
+          errorCount++;
+          this.logger.warn(`Nenhuma coordenada encontrada para address ${address.id}.`);
+          continue;
+        }
+
+        address.latitude = first.geometry.location.lat;
+        address.longitude = first.geometry.location.lng;
+        await this.addressRepo.save(address);
+        successCount++;
+      } catch (err) {
+        errorCount++;
+        this.logger.error(
+          `Erro ao geocodificar address ${address.id}`,
+          err instanceof Error ? err.stack : String(err),
+        );
+      }
+
+      await new Promise(r => setTimeout(r, 200));
+    }
+
+    return { ok: true, total: addresses.length, sucesso: successCount, erros: errorCount };
+  }
+
+  private async updatePropertyAnalysisStatus(
+    listId: string,
+    userId: string,
+    analisado: 'running' | 'completed' | 'error',
+  ) {
+    await this.addressRepo
+      .createQueryBuilder()
+      .update(Address)
+      .set({ analisado })
+      .where('list_id = :listId', { listId })
+      .andWhere('user_id = :userId', { userId })
+      .execute();
+  }
+
+
   /**
  * Retorna todos os eventos sem latitude ou longitude
  */
@@ -317,15 +397,14 @@ export class MapsService {
   async processarAnalisesByProperty(userId: string, propertyAdressId: string) {
 
     try {
-      console.log("📍 Iniciando preenchimento de dados lat/long em addresses...");
-      await this.updateAllAddressLatLng();
-      console.log("✅ Preenchimento de dados lat/long em addresses finalizado");
-
-      console.log("📍 Iniciando preenchimento de dados lat/long em eventos...");
-      await this.updateAllEventsLatLng();
-      console.log("✅ Preenchimento de dados lat/long em eventos finalizado");
+      await this.updatePropertyAnalysisStatus(propertyAdressId, userId, 'running');
+      this.logger.log(`Garantindo lat/lng apenas para property=${propertyAdressId}`);
+      await this.updateMissingAddressLatLngForList(propertyAdressId, userId);
     } catch (error) {
-      console.error("❌ Erro durante preenchimento inicial:", error);
+      this.logger.error(
+        `Erro durante geocodificacao inicial da property=${propertyAdressId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
     }
 
     try {
@@ -340,6 +419,7 @@ export class MapsService {
         this.addressRepo.find({
           where: {
             list: { id: propertyAdressId },
+            user: { id: userId },
             ativo: true,
             latitude: Not(IsNull()),
             longitude: Not(IsNull())
@@ -463,12 +543,7 @@ export class MapsService {
           return { userId: user.id, addresses, events };
         } catch (userError) {
           console.error(`❌ Erro ao processar usuário ${user.id}:`, userError);
-          const created = await this.processService.updateStatus("error");
-          await this.addressRepo.update(
-            { list: { id: propertyAdressId } }, // condição
-            { analisado: "error" }          // novos valores
-          );
-          if (!created) throw new NotFoundException("Não salvou o erro porque o status não foi encontrado para criar");
+          await this.updatePropertyAnalysisStatus(propertyAdressId, userId, 'error');
           return null;
         }
       };
@@ -480,13 +555,8 @@ export class MapsService {
 
       //alterar status da propriedade para completed
  
-      await this.propriedadeService.buscarAddress(propertyAdressId)
-           await this.addressRepo.update(
-        { list: { id: propertyAdressId } }, // condição
-        { analisado: "completed" }          // novos valores
-      );
-      const created = await this.processService.updateStatus("completed");
-      if (!created) throw new NotFoundException("Não salvou porque o status não foi encontrado para criar");
+      await this.propriedadeService.buscarAddress(propertyAdressId);
+      await this.updatePropertyAnalysisStatus(propertyAdressId, userId, 'completed');
 
       // await this.emailService.compilarEventosUnicosUsuarios();
 
@@ -495,8 +565,7 @@ export class MapsService {
 
       return { ok: true };
     } catch (error) {
-      const created = await this.processService.updateStatus("error");
-      if (!created) throw new NotFoundException("Não salvou o erro porque o status não foi encontrado para criar");
+      await this.updatePropertyAnalysisStatus(propertyAdressId, userId, 'error');
       console.error("❌ Erro inesperado durante o processamento de análises:", error);
       return { ok: false, error: error.message };
     }
@@ -506,8 +575,15 @@ export class MapsService {
       const users = await this.userRepo.find({ where: { distanceKm: Not(IsNull()) } });
       let totalAnalises = 0;
       console.log(`Encontrados ${users.length} usuários com distância definida.`);
-      const updated = await this.processService.updateStatus('running');
-      if (!updated) throw new NotFoundException('Não iniciou porque o Status não foi encontrado para atualizar');
+      const processStart = await this.processService.tryMarkRunning();
+      if (!processStart.started) {
+        return {
+          ok: false,
+          status: 'running',
+          message: 'Processamento global ja esta em execucao.',
+          updatedAt: processStart.status.updatedAt,
+        };
+      }
 
       const limit = pLimit(5);
 
@@ -612,5 +688,3 @@ export class MapsService {
   }
 
 }
-
-

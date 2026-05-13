@@ -69,6 +69,9 @@ Actions roda mesmo assim.
 2. Copiar URL `https://hooks.slack.com/services/...`
 3. GitHub Secret: `SLACK_BACKUP_WEBHOOK`
 
+Depois de configurar, rode um `workflow_dispatch` manual e confirme que a
+mensagem de sucesso chegou no canal.
+
 ---
 
 ## Como verificar que está OK

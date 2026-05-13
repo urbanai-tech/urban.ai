@@ -1,7 +1,5 @@
 "use client";
 import {
-  Alert,
-  AlertIcon,
   Box,
   Button,
   Flex,
@@ -37,7 +35,6 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import "../../../i18n";
 import { api } from "../service/api";
-import SelectLanguageChakra from "../componentes/SelectLanguageChakra";
 import { ToastContainer, toast } from "react-toastify";
 import { usePrelaunch } from "../componentes/usePrelaunch";
 import { WaitlistSignup } from "../componentes/WaitlistSignup";
@@ -131,14 +128,10 @@ const Register = () => {
       });
 
       // Auto-login com o hash
-      const loginResponse = await api.post("/auth/login", {
+      await api.post("/auth/login", {
         email,
         password: hashedPassword
       });
-      const token = loginResponse.data.accessToken;
-
-      localStorage.setItem("accessToken", token);
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
       if (typeof window !== "undefined") {
         localStorage.setItem("lastRegisterEmail", email);
