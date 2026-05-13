@@ -36,6 +36,8 @@ import { PlansModule } from './plans/plans.module';
 import { StaysModule } from './stays/stays.module';
 import { AdminModule } from './admin/admin.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
+import { User } from './entities/user.entity';
+import { RolesGuard } from './auth/roles.guard';
 
 @Module({
   imports: [
@@ -117,6 +119,7 @@ import { WaitlistModule } from './waitlist/waitlist.module';
             migrations: [__dirname + '/migrations/*{.ts,.js}'],
           },
     ),
+    TypeOrmModule.forFeature([User]),
 
     // 3) Módulos de domínio
     UserModule,
@@ -145,6 +148,7 @@ import { WaitlistModule } from './waitlist/waitlist.module';
       useClass: ThrottlerGuard,
     },
     AppService,
+    RolesGuard,
   ],
 })
 export class AppModule { }
