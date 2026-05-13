@@ -13,28 +13,27 @@ import {
   HttpException,
   HttpStatus,
   UnauthorizedException,
+  Logger,
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
-import { Request, Response } from 'express'; // IMPORTA EXPRESS AQUI
-import * as rawBody from 'raw-body';
+import { Request, Response } from 'express';
 import { ApiOperation, ApiProperty, ApiResponse } from '@nestjs/swagger';
-import Stripe from 'stripe';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 export class CreateCheckoutSessionDto {
-  @ApiProperty({ example: "pro", description: 'Tag plano' })
+  @ApiProperty({ example: 'pro', description: 'Tag plano' })
   plan: string;
 
   @ApiProperty({
-    example: "annual",
-    description: 'Ciclo de cobrança (monthly | quarterly | semestral | annual)',
+    example: 'annual',
+    description: 'Ciclo de cobranca (monthly | quarterly | semestral | annual)',
     required: false,
   })
   billingCycle?: 'monthly' | 'quarterly' | 'semestral' | 'annual';
 
   @ApiProperty({
     example: 3,
-    description: 'Quantidade de imóveis contratados (F6.5 — cobrança por imóvel)',
+    description: 'Quantidade de imoveis contratados',
     required: false,
   })
   quantity?: number;
@@ -42,19 +41,23 @@ export class CreateCheckoutSessionDto {
 
 @Controller('payments')
 export class PaymentsController {
-  constructor(private readonly paymentsService: PaymentsService) { }
+  private readonly logger = new Logger(PaymentsController.name);
+
+  constructor(private readonly paymentsService: PaymentsService) {}
 
   @UseGuards(JwtAuthGuard)
   @Post('create-checkout-session')
   async createCheckout(@Body() body: CreateCheckoutSessionDto, @Req() req: any) {
-    console.log(body, req?.user?.userId)
+    this.logger.log(
+      `Creating checkout session for user=${req?.user?.userId} plan=${body.plan} cycle=${body.billingCycle || 'monthly'} quantity=${body.quantity ?? 1}`,
+    );
     const session = await this.paymentsService.createCheckoutSession(body, req?.user?.userId);
     return { sessionId: session.id };
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('listings-quota')
-  @ApiOperation({ summary: 'F6.5 — quota de imóveis contratados vs ativos' })
+  @ApiOperation({ summary: 'F6.5 - quota de imoveis contratados vs ativos' })
   async getListingsQuota(@Req() req: any) {
     return this.paymentsService.getListingsQuota(req?.user?.userId);
   }
@@ -62,16 +65,15 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard)
   @Get('getSubscription')
   async getSubscriptions(@Req() req: any) {
-    const subscriptions = await this.paymentsService.getSubscription(req?.user?.userId);
-    return subscriptions
+    return this.paymentsService.getSubscription(req?.user?.userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  @ApiOperation({ summary: 'Lista os pagamentos do usuário autenticado' })
+  @ApiOperation({ summary: 'Lista os pagamentos do usuario autenticado' })
   @ApiResponse({
     status: 200,
-    description: 'Lista de pagamentos do usuário',
+    description: 'Lista de pagamentos do usuario',
     schema: {
       example: [
         {
@@ -88,17 +90,16 @@ export class PaymentsController {
       ],
     },
   })
-  @ApiResponse({ status: 401, description: 'Usuário não autenticado' })
+  @ApiResponse({ status: 401, description: 'Usuario nao autenticado' })
   async getMyPayments(@Req() req: any) {
     const userId = req.user.userId;
 
     if (!userId) {
-      throw new UnauthorizedException('🚫 Usuário não autenticado ou ID não fornecido');
+      throw new UnauthorizedException('Usuario nao autenticado ou ID nao fornecido');
     }
 
     return this.paymentsService.findByUserId(userId);
   }
-
 
   @UseGuards(JwtAuthGuard)
   @Delete('cancelSubscription')
@@ -121,24 +122,20 @@ export class PaymentsController {
   ) {
     try {
       const buf = req.body as Buffer;
-
       const result = await this.paymentsService.handleStripeWebhook(buf, signature);
 
       if (result.error) {
-        console.log('❌ Erro no webhook:', result.error);
+        this.logger.warn(`Stripe webhook rejected: ${result.error.message}`);
         return res.status(400).send(`Webhook Error: ${result.error.message}`);
       }
 
-      //console.log('✅ Evento recebido:', result.event.type);
-      if (result.event.type == 'checkout.session.completed') {
-        const session = result.event.data.object as Stripe.Checkout.Session;
-        //console.log('🎯 Sessão completa:');
-      }
       return res.send({ received: true });
     } catch (error) {
-      console.log('❌ Erro inesperado:', error);
+      this.logger.error(
+        'Unexpected Stripe webhook error',
+        error instanceof Error ? error.stack : String(error),
+      );
       return res.status(500).send('Internal Server Error');
     }
   }
-
 }

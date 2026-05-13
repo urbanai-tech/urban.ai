@@ -30,6 +30,8 @@ import { AuthService, TokenPair } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ACCESS_TOKEN_COOKIE } from './jwt.strategy';
 import { WaitlistService } from '../waitlist/waitlist.service';
+import { Roles } from './roles.decorator';
+import { RolesGuard } from './roles.guard';
 
 const REFRESH_TOKEN_COOKIE = 'urbanai_refresh_token';
 
@@ -265,6 +267,9 @@ export class AuthController {
     description: 'ID do usuário a ser excluído',
     example: '1',
   })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Delete(':id')
   async deleteUser(@Param('id') id: string): Promise<void> {
     return this.authService.deleteUser(id);
@@ -308,6 +313,9 @@ export class AuthController {
       },
     },
   })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Put(':id/update')
   async updateUser(
     @Param('id') id: string,

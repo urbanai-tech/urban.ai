@@ -1,9 +1,11 @@
-import { Body, Controller, Get, NotFoundException, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, NotFoundException, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { EmailService } from './email.service';
-import { ApiTags, ApiOperation, ApiBody, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBody, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 
 import { ApiProperty } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Roles } from 'src/auth/roles.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
 import { AuthenticatedRequest } from 'src/connect/connect.controller';
 import { IsEmail } from 'class-validator';
 import { User } from 'src/entities/user.entity';
@@ -46,9 +48,8 @@ export class EnviarCodigo {
 }
 
 export class UpdatePass {
-    @ApiProperty({ example: '6f4c52ca-7f0f-4365-8071-db75ad6efff7', description: 'Id do usuário' })
-    @IsEmail({}, { message: 'Id inválido' })
-    userId: string;
+    @ApiProperty({ example: 'Df90Cz...reset-token', description: 'Token de redefinição enviado por e-mail' })
+    token: string;
 
     @ApiProperty({ example: '9b74c9897bac770ffc029102a200c5de9f3a0e326e4d4a0f86d5f2a7bc01db57', description: 'Senha válida' })
     pass: string;
@@ -104,6 +105,9 @@ export class EmailController {
     }
 
     @Post(':usuarioId/enviar-notification')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('admin')
     @ApiOperation({ summary: 'Enviar notificação para um usuário' })
     @ApiParam({ name: 'usuarioId', description: 'ID do usuário que receberá a notificação' })
     @ApiBody({ type: CreateNotificationDto })
@@ -127,17 +131,23 @@ export class EmailController {
     }
 
     @Get(':id')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Get a user profile by ID' })
     @ApiParam({ name: 'id', description: 'User UUID' })
     @ApiResponse({ status: 200, description: 'User found', type: User })
     @ApiResponse({ status: 404, description: 'User not found' })
-    async getProfile(@Param('id') userId: string): Promise<Partial<User>> {
+    async getProfile(@Param('id') userId: string, @Req() req: AuthenticatedRequest): Promise<Partial<User>> {
+        if (req.user?.userId !== userId) {
+            throw new ForbiddenException('Acesso negado.');
+        }
+
         const user = await this.emailService.getProfileById(userId);
         if (!user) {
             throw new NotFoundException(`User with ID ${userId} not found`);
         }
-        // Retorna o usuário sem a senha (Partial<User> já exclui o password)
-        return user;
+        const { password, ...safeUser } = user;
+        return safeUser;
     }
 
 
@@ -156,8 +166,7 @@ export class EmailController {
     @ApiResponse({ status: 201, description: 'Senha atualizado com sucesso.' })
     @ApiResponse({ status: 400, description: 'Parâmetros inválidos.' })
     async updatePassword(@Body() body: UpdatePass) {
-        console.log("usuário", body)
-        return this.emailService.confirmPassword(body.userId, body?.pass);
+        return this.emailService.confirmPassword(body.token, body?.pass);
     }
 
     @Get()

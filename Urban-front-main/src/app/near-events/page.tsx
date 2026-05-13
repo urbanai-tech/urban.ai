@@ -8,7 +8,7 @@ import {
   VStack
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import CasaCard from "../componentes/CasaCard";
 import { Pagination } from "../componentes/Pagination";
@@ -49,7 +49,7 @@ export default function CasaEventosProximosPage() {
   const limite = 10;
 
 
-  async function fetchHouses(pagina = 1) {
+  const fetchHouses = useCallback(async (pagina = 1) => {
     try {
       setLoading(true);
       const data = await getUserProperties(pagina, limite);
@@ -66,12 +66,12 @@ export default function CasaEventosProximosPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [router]);
 
 
   useEffect(() => {
     fetchHouses(paginaAtual);
-  }, [paginaAtual]);
+  }, [fetchHouses, paginaAtual]);
 
 
   if (loading) {

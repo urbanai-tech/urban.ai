@@ -1,6 +1,85 @@
-import { Column, CreateDateColumn, Entity, Index, OneToMany, OneToOne, JoinColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import * as crypto from 'crypto';
+import { Column, CreateDateColumn, Entity, Index, OneToMany, OneToOne, JoinColumn, PrimaryGeneratedColumn, UpdateDateColumn, ValueTransformer } from 'typeorm';
 import { User } from './user.entity';
 import { StaysListing } from './stays-listing.entity';
+
+const STAYS_TOKEN_PREFIX = 'enc:v1:';
+
+function getEncryptionKey(): Buffer | null {
+  const raw = process.env.STAYS_TOKEN_ENCRYPTION_KEY;
+  if (!raw) return null;
+
+  const trimmed = raw.trim();
+  const decoded =
+    /^[a-f0-9]{64}$/i.test(trimmed)
+      ? Buffer.from(trimmed, 'hex')
+      : Buffer.from(trimmed, 'base64');
+
+  if (decoded.length === 32) {
+    return decoded;
+  }
+
+  return crypto.createHash('sha256').update(trimmed).digest();
+}
+
+function shouldRequireEncryptionKey(): boolean {
+  const env = process.env.APP_ENV || process.env.NODE_ENV;
+  return env === 'production' || env === 'staging';
+}
+
+export const staysTokenTransformer: ValueTransformer = {
+  to(value?: string | null): string | null {
+    if (!value) return value ?? null;
+    if (value.startsWith(STAYS_TOKEN_PREFIX)) return value;
+
+    const key = getEncryptionKey();
+    if (!key) {
+      if (shouldRequireEncryptionKey()) {
+        throw new Error('STAYS_TOKEN_ENCRYPTION_KEY is required to persist Stays tokens');
+      }
+      return value;
+    }
+
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+    const ciphertext = Buffer.concat([cipher.update(value, 'utf8'), cipher.final()]);
+    const tag = cipher.getAuthTag();
+
+    return [
+      STAYS_TOKEN_PREFIX.slice(0, -1),
+      iv.toString('base64url'),
+      tag.toString('base64url'),
+      ciphertext.toString('base64url'),
+    ].join(':');
+  },
+
+  from(value?: string | null): string | null {
+    if (!value) return value ?? null;
+    if (!value.startsWith(STAYS_TOKEN_PREFIX)) return value;
+
+    const key = getEncryptionKey();
+    if (!key) {
+      throw new Error('STAYS_TOKEN_ENCRYPTION_KEY is required to read encrypted Stays tokens');
+    }
+
+    const [, , ivRaw, tagRaw, ciphertextRaw] = value.split(':');
+    if (!ivRaw || !tagRaw || !ciphertextRaw) {
+      throw new Error('Invalid encrypted Stays token format');
+    }
+
+    const decipher = crypto.createDecipheriv(
+      'aes-256-gcm',
+      key,
+      Buffer.from(ivRaw, 'base64url'),
+    );
+    decipher.setAuthTag(Buffer.from(tagRaw, 'base64url'));
+
+    return Buffer.concat([
+      decipher.update(Buffer.from(ciphertextRaw, 'base64url')),
+      decipher.final(),
+    ]).toString('utf8');
+  },
+};
 
 /**
  * Conta Stays (stays.net) conectada por um anfitrião Urban AI.
@@ -35,7 +114,7 @@ export class StaysAccount {
    * Access token / client secret para chamar a Open API.
    * ⚠️ Conteúdo sensível — nunca logar.
    */
-  @Column({ type: 'varchar', length: 512 })
+  @Column({ type: 'varchar', length: 2048, transformer: staysTokenTransformer })
   accessToken: string;
 
   @Column({ type: 'datetime', nullable: true })

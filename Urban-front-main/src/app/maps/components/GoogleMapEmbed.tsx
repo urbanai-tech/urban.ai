@@ -174,6 +174,7 @@ export default function AirbnbMap({ height = 500, events, property }: AirbnbMapP
             icon={createPropertyIcon(property.propertyName, property.image_url)}
           >
             <Popup>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={property.image_url}
                 alt={property.propertyName}
@@ -204,6 +205,7 @@ export default function AirbnbMap({ height = 500, events, property }: AirbnbMapP
             >
               <Popup>
                 {ev.imagem_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={ev.imagem_url}
                     alt={ev.nome}

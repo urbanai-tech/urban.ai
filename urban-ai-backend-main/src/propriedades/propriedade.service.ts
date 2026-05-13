@@ -1,4 +1,4 @@
-import { forwardRef, HttpException, HttpStatus, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, HttpException, HttpStatus, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { Address } from 'src/entities/addresses.entity';
@@ -51,6 +51,7 @@ export class CreateAlertDto {
 
 @Injectable()
 export class PropriedadeService {
+    private readonly logger = new Logger(PropriedadeService.name);
 
     constructor(
         @InjectRepository(Address)
@@ -89,17 +90,17 @@ export class PropriedadeService {
         return { data, total, page, limit };
     }
 
-    async findAddressById(id: string): Promise<Address> {
+    async findAddressById(id: string, userId: string): Promise<Address> {
         return this.addressRepository.findOne({
-            where: { id },
+            where: { id, user: { id: userId } },
             relations: ["list", "user"],
         });
     }
 
-    async deleteAddressAndList(addressId: string): Promise<void> {
-        // 1. Buscar o endereço pelo ID (junto com o list relacionado)
+    async deleteAddressAndList(addressId: string, userId: string): Promise<void> {
+        // 1. Buscar o endereço pelo ID e dono autenticado (junto com o list relacionado)
         const address = await this.addressRepository.findOne({
-            where: { id: addressId },
+            where: { id: addressId, user: { id: userId } },
             relations: ["list"],
         });
 
@@ -910,7 +911,7 @@ export class PropriedadeService {
                     'x-rapidapi-key': apiKey,
                 },
             });
-            console.log(data)
+            this.logger.debug(`Quote response received for property=${propertyId}`);
             // Se houver mensagem de erro no metadata
             const errorMessage = data?.data?.metadata?.errorData?.errorMessage?.errorMessage;
             if (errorMessage) {
@@ -1197,7 +1198,7 @@ export class PropriedadeService {
             };
 
             if (eventosUnicos.size > 0) {
-                console.log(`📌 Usuário ${user.username} (${user.id}) possui ${eventosUnicos.size} eventos futuros únicos analisados.`);
+                this.logger.debug(`Usuario ${user.id} possui ${eventosUnicos.size} eventos futuros unicos analisados.`);
 
                 const enviado = await this.emailService.sendEmail(
                     user?.email,
@@ -1207,12 +1208,12 @@ export class PropriedadeService {
                 );
 
                 if (enviado && enviado?.enviado) {
-                    console.log(`✅ Email enviado com sucesso para o usuário ${user?.username}`);
+                    this.logger.log(`Email de eventos futuros enviado para user=${user.id}`);
                 } else {
-                    console.log(`❌ Falha ao enviar email para o usuário ${user?.username}`);
+                    this.logger.warn(`Falha ao enviar email de eventos futuros para user=${user.id}`);
                 }
             } else {
-                console.log(`ℹ️ Nenhum evento futuro disponível no momento para o usuário ${user?.username}.`);
+                this.logger.debug(`Nenhum evento futuro disponivel para user=${user.id}`);
             }
 
             return relatorioUsuario;
@@ -1233,9 +1234,14 @@ export class PropriedadeService {
                 },
             });
 
+            if (!address) {
+                this.logger.warn(`Nenhum endereco com idAlertAirb valido para list=${listId}; pricing nao sera gerado.`);
+                return { ok: false, reason: 'missing_alert_airb', pricingGenerated: 0 };
+            }
+
             const list = await this.propriedades.findOne({
                 where: {
-                    id: address?.list.id
+                    id: address.list.id
                 },
             });
             //fora do loop
@@ -1248,7 +1254,11 @@ export class PropriedadeService {
 
             const alerts = await this.buscarAlertPorId(address?.idAlertAirb);
 
-            console.log(dadosAirbnb)
+            this.logger.debug(`Dados Airbnb carregados para list=${list?.id}`);
+            if (!alerts?.comps?.length) {
+                this.logger.warn(`Nenhum comparavel encontrado para list=${listId}; pricing nao sera gerado.`);
+                return { ok: false, reason: 'missing_comps', pricingGenerated: 0 };
+            }
             const maxObj = alerts.comps.reduce((prev, curr) =>
                 curr.similarity_score > prev.similarity_score ? curr : prev
             );
@@ -1276,6 +1286,7 @@ export class PropriedadeService {
             // Limite de threads para processamento pesado
             const limit = pLimit(2); // no máximo 3 eventos ao mesmo tempo
 
+            let pricingGenerated = 0;
             const promises = enderecoAnalises.map((element, index) =>
                 limit(async () => {
                     try {
@@ -1286,7 +1297,7 @@ export class PropriedadeService {
 
                         if (thereIsLatLong) {
                             console.log("📍 Evento possui latitude e longitude. Executando cálculo de preço...");
-                            await this.getPricingPropriedadeByEventAndByProperty(
+                            const pricingResult = await this.getPricingPropriedadeByEventAndByProperty(
                                 address?.idAlertAirb,
                                 address?.list?.id,
                                 element?.evento?.id,
@@ -1294,6 +1305,9 @@ export class PropriedadeService {
                                 propriedadeReferencia,
                                 alerts
                             );
+                            if (pricingResult?.ok) {
+                                pricingGenerated++;
+                            }
                             console.log(`✅ [${index + 1}/${enderecoAnalises.length}] Cálculo finalizado para o evento: ${evento?.id}`);
                         } else {
                             console.log(`⚠️ [${index + 1}/${enderecoAnalises.length}] Evento não possui latitude e longitude. Pulando cálculo.`);
@@ -1315,12 +1329,23 @@ export class PropriedadeService {
                 redirectTo: "/dashboard",
                 sendEmail: true,
             };
-            this.emailService.enviarNotification(address?.user?.id, notificationContent);
+            if (pricingGenerated > 0) {
+                notificationContent.title = "Sugestoes de preco disponiveis";
+                notificationContent.description = `Geramos ${pricingGenerated} sugestoes de preco para a propriedade ${list?.titulo}.`;
+            }
+            await this.emailService.enviarNotification(address?.user?.id, notificationContent);
 
             await this.compilarEventosFuturosPorUsuario(address?.user?.id)
 
+            return { ok: true, pricingGenerated };
+
         } catch (err) {
             console.log("❌ Erro ao buscar endereço ou análises:", err);
+            return {
+                ok: false,
+                reason: err instanceof Error ? err.message : String(err),
+                pricingGenerated: 0,
+            };
         }
     }
 
@@ -1390,18 +1415,37 @@ export class PropriedadeService {
             const fatorLocalizacao = Math.min(Math.max(distanciaReferencia / distanciaSua, 0.8), 1.2);
             const minhaPropriedadePricePerDay = getDiaria(dadosAirbnb);
             const PropriedadeReferenciaPricePerDay = getDiaria(propriedadeReferencia);
+            const referenceCandidates = [
+                Number(PropriedadeReferenciaPricePerDay),
+                Number(maxObj.avg_booked_daily_rate_ltm),
+            ].filter((price) => Number.isFinite(price) && price > 0);
+            const referenceDailyPrice =
+                referenceCandidates.length > 0
+                    ? referenceCandidates.reduce((sum, price) => sum + price, 0) / referenceCandidates.length
+                    : Number(PropriedadeReferenciaPricePerDay);
+            const propertyDetails = dadosAirbnb?.propertyDetails as any;
+            const myBathrooms =
+                Number(propertyDetails?.bathrooms) ||
+                Number(propertyDetails?.bathroomCount) ||
+                1;
+            const referenceBathrooms = Number(maxObj.bathrooms) || 1;
+            const publicoEsperado =
+                Number(evento.expectedAttendance) ||
+                Number(evento.capacidadeEstimada) ||
+                Number(evento.venueCapacity) ||
+                null;
 
             //aqui nao tá considerando o preço do imovel referencia, porque o imóvel tem um preço extremamente inferior maxObj.avg_booked_daily_rate_ltm)
             const result = this.pricingCalculateService.calcular({
-                precoReferencia: Number(Number(PropriedadeReferenciaPricePerDay)),
+                precoReferencia: Number(referenceDailyPrice),
                 seuPrecoAtual: Number(minhaPropriedadePricePerDay),
                 capacidadeReferencia: Number(maxObj.bedrooms ?? 1),
-                suaCapacidade: Number(dadosAirbnb?.propertyDetails?.bedrooms ?? 1),
-                banheiroReferencia: Number(maxObj.bathrooms),
-                seuBanheiro: Number(dadosAirbnb?.propertyDetails?.bedrooms ?? 1),
-                ocupacaoReferencia: Number(0),
-                suaOcupacao: 0 !== undefined ? Number(0) : undefined,
+                suaCapacidade: Number(propertyDetails?.bedrooms ?? 1),
+                banheiroReferencia: referenceBathrooms,
+                seuBanheiro: myBathrooms,
                 fatorLocalizacao: fatorLocalizacao !== undefined ? Number(fatorLocalizacao) : undefined,
+                relevanciaEvento: evento.relevancia,
+                publicoEsperado,
             });
 
 
@@ -1409,11 +1453,9 @@ export class PropriedadeService {
             console.log("precoReferencia:", Number(maxObj.avg_booked_daily_rate_ltm));
             console.log("seuPrecoAtual:", Number(dadosAirbnb?.price?.data?.accommodationCost));
             console.log("capacidadeReferencia:", Number(maxObj.bedrooms ?? 1));
-            console.log("suaCapacidade:", Number(dadosAirbnb?.propertyDetails?.bedrooms ?? 1));
+            console.log("suaCapacidade:", Number(propertyDetails?.bedrooms ?? 1));
             console.log("banheiroReferencia:", Number(maxObj.bathrooms));
-            console.log("seuBanheiro:", Number(dadosAirbnb?.propertyDetails?.bedrooms ?? 1));
-            console.log("ocupacaoReferencia:", Number(0));
-            console.log("suaOcupacao:", 0 !== undefined ? Number(0) : undefined);
+            console.log("seuBanheiro:", myBathrooms);
             console.log("fatorLocalizacao:", fatorLocalizacao !== undefined ? Number(fatorLocalizacao) : undefined);
 
             console.log("💰 Resultado do cálculo de preço (Matemático):", result);
@@ -1422,7 +1464,7 @@ export class PropriedadeService {
             let precoFinalSugerido = result.precoSugerido;
             let percentualFinal = result.diferencaPercentual;
             let recomendacaoFinal = result.recomendacao;
-            let motivoDaIA = "Cálculo Matemático Padrão (Fallback). Histórico insuficiente para IA intervir.";
+            let motivoDaIA = result.motivo;
 
             try {
                 // Treinar a IA dinamicamente usando os comparáveis (Comps) da vizinhança!
@@ -1458,7 +1500,7 @@ export class PropriedadeService {
                     
                     const minhaPropParaIA = { 
                         id: property.id, lat: address.latitude, lng: address.longitude, 
-                        metroDistance: 0.5, amenitiesCount: dadosAirbnb?.propertyDetails?.bedrooms ?? 1 
+                        metroDistance: 0.5, amenitiesCount: propertyDetails?.bedrooms ?? 1
                     };
                     const eventoParaIA = { 
                         name: evento.nome || "Evento", lat: evento.latitude, lng: evento.longitude 
@@ -1478,9 +1520,36 @@ export class PropriedadeService {
                 console.error("⚠️ Falha ao predizer preço via IA (Falta de Histórico/Atributos). Acionando Fallback Matemático Integralmente:", err.message);
             }
 
+            const maxAllowedFinalPrice = result.seuPrecoAtual * 1.45;
+            const minAllowedFinalPrice = result.seuPrecoAtual * 0.75;
+            const boundedFinalPrice = Math.min(Math.max(precoFinalSugerido, minAllowedFinalPrice), maxAllowedFinalPrice);
+
+            if (boundedFinalPrice !== precoFinalSugerido) {
+                precoFinalSugerido = Number(boundedFinalPrice.toFixed(2));
+                percentualFinal = Number((((precoFinalSugerido - result.seuPrecoAtual) / result.seuPrecoAtual) * 100).toFixed(1));
+                recomendacaoFinal =
+                    percentualFinal > 15
+                        ? 'AUMENTAR (preco abaixo do mercado/evento)'
+                        : percentualFinal > 5
+                            ? 'Pode aumentar'
+                            : Math.abs(percentualFinal) <= 5
+                                ? 'Manter'
+                                : 'Reduzir levemente (preco acima do sugerido)';
+                motivoDaIA = `${motivoDaIA ?? ''} Guardrail aplicado: sugestao limitada entre -25% e +45% do preco atual.`;
+            }
+
+            const existingAnalise = await this.analisePrecoRepository.findOne({
+                where: {
+                    endereco: { id: address.id },
+                    evento: { id: evento.id },
+                    usuarioProprietario: { id: property?.user?.id },
+                },
+            });
+
             // --- Salvar no banco ---
             console.log("💾 Salvando análise de preço...");
-            await this.analisePrecoRepository.save({
+            const savedAnalise = await this.analisePrecoRepository.save({
+                ...(existingAnalise ? { id: existingAnalise.id } : {}),
                 endereco: address,
                 evento: evento,
                 usuarioProprietario: property?.user ?? null,
@@ -1492,14 +1561,26 @@ export class PropriedadeService {
                 recomendacao: recomendacaoFinal,
                 motivo_ia: motivoDaIA,
             });
-            console.log("✅ Análise de preço salva com sucesso");
+            console.log("Análise de preço salva com sucesso");
+            return {
+                ok: true,
+                id: savedAnalise.id,
+                updated: Boolean(existingAnalise),
+                precoSugerido: precoFinalSugerido,
+                diferencaPercentual: percentualFinal,
+            };
 
         } catch (err) {
             console.log(`❌ Erro no processamento de pricing para alertAirbId=${alertAirbId}, eventId=${eventId}:`, err);
+            return {
+                ok: false,
+                reason: err instanceof Error ? err.message : String(err),
+            };
         }
     }
     async getEventosByEnderecoForMap(
         enderecoId: string,
+        userId: string,
         page: number = 1,
         limit: number = 10,
         raio: number,
@@ -1520,6 +1601,7 @@ export class PropriedadeService {
         const [resultados, total] = await this.analisePrecoRepository.findAndCount({
             where: {
                 endereco: { id: enderecoId },
+                usuarioProprietario: { id: userId },
                 distanciaSuaPropriedade: LessThanOrEqual(raio),
                 evento: {
                     dataInicio: Between(startDate, endDate), // compara apenas dd/mm/yyyy
@@ -1624,6 +1706,7 @@ export class PropriedadeService {
 
     async getEventosByEndereco(
         enderecoId: string,
+        userId: string,
         dataInicial: string,
         page: number = 1,
         limit: number = 10,
@@ -1633,6 +1716,7 @@ export class PropriedadeService {
         const [resultados, total] = await this.analisePrecoRepository.findAndCount({
             where: {
                 endereco: { id: enderecoId },
+                usuarioProprietario: { id: userId },
                 evento: {
                     dataInicio: Between(inicio, fim),
                 },

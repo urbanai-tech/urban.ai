@@ -25,12 +25,10 @@ import { useTranslation } from 'react-i18next';
 import '../../../i18n';
 import { getPropriedadesDropdownList, PropertyDropdown, requestDeleteAddress } from '../service/api';
 import { toast, ToastContainer } from 'react-toastify';
-import { useRouter } from 'next/navigation';
 import { AddPropertyModal } from '../componentes/AddPropertyModal';
 
 export default function MyProperties() {
   const { t } = useTranslation();
-  const router = useRouter();
   const [properties, setProperties] = useState<PropertyDropdown[]>([]);
   const [loading, setLoading] = useState(true);
   

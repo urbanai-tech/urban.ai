@@ -12,7 +12,6 @@ interface Props {
 
 const PropertySelect: React.FC<Props> = ({ propsInfo, setPropertyId }) => {
 
-    const [loading, setLoading] = useState(true);
     const [prevPropsInfo, setPrevPropsInfo] = useState<PropertyDropdown[]>([]);
 
     // ✅ Detecta quando alguma propriedade ficou "completed" e notifica
@@ -20,7 +19,7 @@ const PropertySelect: React.FC<Props> = ({ propsInfo, setPropertyId }) => {
         if (prevPropsInfo.length > 0 && propsInfo.length > 0) {
             const completedProps = prevPropsInfo.filter((oldItem) => {
                 const newItem = propsInfo.find((n) => n.id === oldItem.id);
-                return oldItem.analisado === "running" && newItem?.analisado === "completed";
+                return oldItem.analisado !== "completed" && newItem?.analisado === "completed";
             });
 
             if (completedProps.length > 0) {
@@ -29,7 +28,7 @@ const PropertySelect: React.FC<Props> = ({ propsInfo, setPropertyId }) => {
             }
         }
         setPrevPropsInfo(propsInfo);
-    }, [propsInfo]);
+    }, [propsInfo, prevPropsInfo]);
 
     const options = propsInfo.map((p) => ({
         value: p.id,

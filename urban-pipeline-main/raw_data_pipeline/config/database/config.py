@@ -25,6 +25,7 @@ class DatabaseConfig(BaseModel):
         default=True, description="Enable connection health checks"
     )
     echo: bool = Field(default=False, description="Enable SQL query logging")
+    driver: str = Field(default="mysql+pymysql", description="SQLAlchemy driver")
 
     _engine: Engine | None = None
     _session_factory: sessionmaker[Session] | None = None
@@ -45,6 +46,17 @@ class DatabaseConfig(BaseModel):
         """
         if not settings.MYSQL_URL:
             raise ValueError("MYSQL_URL not configured in settings")
+
+        if settings.MYSQL_URL.startswith("sqlite"):
+            database = settings.MYSQL_URL.replace("sqlite:///", "", 1)
+            credentials = DatabaseCredentials(
+                host="",
+                port=0,
+                username="",
+                password="",
+                database=database,
+            )
+            return cls(credentials=credentials, driver="sqlite")
 
         # Parse MySQL URL format: mysql://user:password@host:port/database
         url_parts = settings.MYSQL_URL.replace("mysql://", "").split("/")
@@ -78,15 +90,23 @@ class DatabaseConfig(BaseModel):
             Engine: SQLAlchemy engine for database operations
         """
         if self._engine is None:
-            connection_string = self.credentials.get_connection_string()
-            self._engine = create_engine(
-                connection_string,
-                pool_size=self.pool_size,
-                pool_recycle=self.pool_recycle,
-                pool_pre_ping=self.pool_pre_ping,
-                echo=self.echo,
-            )
+            connection_string = self.get_connection_string()
+            engine_kwargs = {"echo": self.echo}
+            if not self.driver.startswith("sqlite"):
+                engine_kwargs.update(
+                    {
+                        "pool_size": self.pool_size,
+                        "pool_recycle": self.pool_recycle,
+                        "pool_pre_ping": self.pool_pre_ping,
+                    }
+                )
+
+            self._engine = create_engine(connection_string, **engine_kwargs)
         return self._engine
+
+    def get_connection_string(self) -> str:
+        """Return the configured SQLAlchemy connection string."""
+        return self.credentials.get_connection_string(self.driver)
 
     def get_session_factory(self) -> sessionmaker[Session]:
         """

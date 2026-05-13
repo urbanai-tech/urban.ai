@@ -55,25 +55,8 @@ export default function ConfiguracoesPage() {
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
 
-  function getUserIdFromToken(): string | null {
-    try {
-      const token =
-        typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-      if (!token) return null;
-      const parts = token.split('.');
-      if (parts.length !== 3) return null;
-      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
-      return payload.sub ?? null;
-    } catch {
-      return null;
-    }
-  }
-
   React.useEffect(() => {
-    const lsId =
-      typeof window !== 'undefined' ? (localStorage.getItem('userId') || '').trim() : '';
-    const fallbackId = getUserIdFromToken();
-    const id = lsId || fallbackId;
+    const id = 'me';
 
     if (!id) {
       setLoading(false);

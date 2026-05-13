@@ -1,9 +1,14 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { AirbnbService } from './airbnb.service';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Roles } from 'src/auth/roles.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
 
 @ApiTags('Airbnb') // Tag no Swagger
 @Controller('airbnb')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('admin')
 export class AirbnbController {
   constructor(private readonly airbnbService: AirbnbService) {}
 

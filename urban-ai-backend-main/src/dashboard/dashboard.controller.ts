@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, ForbiddenException, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -9,6 +9,7 @@ export class DashboardController {
 
     }
     @Get('receita-projetada/:usuarioId')
+    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Calcula a receita projetada do mês atual de um usuário' })
     @ApiParam({
         name: 'usuarioId',
@@ -22,7 +23,11 @@ export class DashboardController {
             example: { receitaProjetada: 'R$ 15.2k' },
         },
     })
-    async receitaProjetada(@Param('usuarioId') usuarioId: string) {
+    async receitaProjetada(@Param('usuarioId') usuarioId: string, @Req() req: any) {
+        if (req.user?.userId !== usuarioId) {
+            throw new ForbiddenException('Nao autorizado para este usuario');
+        }
+
         const receita = await this.dashboardService.getReceitaProjetada(usuarioId, "");
 
         return {
@@ -34,6 +39,7 @@ export class DashboardController {
     }
 
     @Get('lucro-projetado/:usuarioId')
+    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: 'Calcula o lucro projetado do mês atual para um usuário' })
     @ApiParam({
         name: 'usuarioId',
@@ -47,7 +53,11 @@ export class DashboardController {
             example: { lucroProjetado: 'R$ 4.5k' },
         },
     })
-    async lucroProjetado(@Param('usuarioId') usuarioId: string) {
+    async lucroProjetado(@Param('usuarioId') usuarioId: string, @Req() req: any) {
+        if (req.user?.userId !== usuarioId) {
+            throw new ForbiddenException('Nao autorizado para este usuario');
+        }
+
         const lucro = await this.dashboardService.getLucroProjetado(usuarioId, "");
 
         return {
@@ -59,6 +69,7 @@ export class DashboardController {
     }
 
     @Get('quantidade-enderecos/:usuarioId')
+@UseGuards(JwtAuthGuard)
 @ApiOperation({ summary: 'Quantidade de endereços únicos com sugestões aceitas no mês atual' })
 @ApiParam({
   name: 'usuarioId',
@@ -72,7 +83,11 @@ export class DashboardController {
     example: { quantidadeEnderecos: 3 },
   },
 })
-async quantidadeEnderecos(@Param('usuarioId') usuarioId: string) {
+async quantidadeEnderecos(@Param('usuarioId') usuarioId: string, @Req() req: any) {
+  if (req.user?.userId !== usuarioId) {
+    throw new ForbiddenException('Nao autorizado para este usuario');
+  }
+
   const total = await this.dashboardService.getQuantidadeEnderecos(usuarioId, "");
   return { quantidadeEnderecos: total };
 }

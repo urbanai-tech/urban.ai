@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   fetchAdminUsers,
   setAdminUserRole,
@@ -22,7 +22,7 @@ export default function AdminUsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
-  async function load(p = page) {
+  const load = useCallback(async (p: number) => {
     setLoading(true);
     setError(null);
     try {
@@ -40,17 +40,17 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     load(1);
-  }, []);
+  }, [load]);
 
   async function handleRoleChange(userId: string, role: "host" | "admin" | "support") {
     setBusy(userId);
     try {
       await setAdminUserRole(userId, role);
-      await load();
+      await load(page);
     } catch (err: any) {
       alert("Erro: " + (err?.message || "falhou"));
     } finally {
@@ -62,7 +62,7 @@ export default function AdminUsersPage() {
     setBusy(userId);
     try {
       await setAdminUserActive(userId, ativo);
-      await load();
+      await load(page);
     } catch (err: any) {
       alert("Erro: " + (err?.message || "falhou"));
     } finally {

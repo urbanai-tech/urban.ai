@@ -1,6 +1,5 @@
 'use client';
-import { Badge, Box, Center, Flex, FormControl, FormLabel, Heading, Spinner, Text, useColorModeValue } from '@chakra-ui/react';
-import { parseISO, format } from 'date-fns';
+import { Box, Center, Flex, FormControl, FormLabel, Heading, Spinner, Text, useColorModeValue } from '@chakra-ui/react';
 import { useState, useEffect, useMemo } from 'react';
 import { getEventosForMaps, getPropriedadesDropdownList, PropertyDropdown } from '../service/api';
 import dynamic from 'next/dynamic';
@@ -30,35 +29,14 @@ const AirbnbMap = dynamic(() => import('./components/GoogleMapEmbed'), {
   )
 });
 
-interface EventItem {
-  id: string;
-  nome: string;
-  dataInicio: string;
-  dataFim: string;
-  enderecoCompleto: string;
-  cidade: string;
-  estado: string;
-  precoSugerido: string;
-  seuPrecoAtual: string;
-  diferencaPercentual: string;
-  recomendacao: string;
-  distancia_metros: string;
-  latitude: string;
-  longitude: string;
-  imagem_url?: string;
-}
-
 export default function DashboardPage() {
   const [allEvents, setAllEvents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const bg = useColorModeValue('white', 'gray.800');
   const cardBg = useColorModeValue('white', 'gray.800');
   const cardBorder = useColorModeValue('gray.200', 'gray.700');
   const [propsInfo, setPropsInfo] = useState<PropertyDropdown[]>([]);
-  const [loadingPropsInfo, setLoadingPropsInfo] = useState(true);
-  const [errorPropsInfo, setErrorPropsInfo] = useState<string | null>(null);
   const [propertyId, setPropertyId] = useState('');
   const [selectedRadius, setSelectedRadius] = useState(30);
   const [selectedPeriod, setSelectedPeriod] = useState<[Dayjs, Dayjs]>([
@@ -80,7 +58,7 @@ export default function DashboardPage() {
         selectedPeriod?.[1].toISOString()
       );
       setAllEvents(response.data);
-    } catch (err) {
+    } catch {
       setError('Erro ao carregar eventos');
     } finally {
 
@@ -104,7 +82,7 @@ export default function DashboardPage() {
           selectedPeriod?.[1].toISOString()
         );
         setAllEvents(response.data);
-      } catch (err) {
+      } catch {
         setError('Erro ao carregar eventos');
       } finally {
         setIsLoading(false);
@@ -118,67 +96,20 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchPropsInfo() {
       try {
-        setLoadingPropsInfo(true);
-        setErrorPropsInfo(null);
         const data = await getPropriedadesDropdownList();
         setPropsInfo(data);
         const defaultProp = data.find(p => p.analisado === "completed");
         if (defaultProp) {
           setPropertyId(defaultProp.id);
         }
-      } catch (err) {
-        setErrorPropsInfo('Erro ao carregar propriedades');
-      } finally {
-        setLoadingPropsInfo(false);
+      } catch {
+        setError('Erro ao carregar propriedades');
       }
     }
     fetchPropsInfo();
   }, []);
 
   const eventsToDisplay = useMemo(() => allEvents, [allEvents]);
-
-  const toNumber = (v: string | number | undefined) => {
-    if (v === undefined || v === null) return NaN;
-    if (typeof v === 'number') return v;
-    const s = v.trim();
-    if (s.includes(',')) return Number(s.replace(/\./g, '').replace(',', '.'));
-    return Number(s);
-  };
-
-  const formatBRL = (value: string | number | undefined) => {
-    if (value === undefined || value === null) return '';
-    const n = typeof value === 'string' ? toNumber(value) : value;
-    if (!Number.isFinite(n)) return '';
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      maximumFractionDigits: 2,
-      minimumFractionDigits: 2,
-    }).format(n as number);
-  };
-
-  const Pill = ({ bgColor, children, ariaLabel }: {
-    bgColor: string;
-    children: React.ReactNode;
-    ariaLabel?: string;
-  }) => (
-    <Badge
-      aria-label={ariaLabel}
-      color="white"
-      bg={bgColor}
-      fontSize="md"
-      fontWeight="bold"
-      px={3}
-      py={1.5}
-      borderRadius="full"
-      letterSpacing={0.4}
-      textTransform="uppercase"
-      boxShadow="sm"
-      whiteSpace="nowrap"
-    >
-      {children}
-    </Badge>
-  );
 
   return (
     <Flex direction="column" minH="100vh" bg={bg}>
@@ -309,13 +240,6 @@ export default function DashboardPage() {
                 <Box flex="1" overflowY="auto" maxHeight="calc(100vh - 320px)" pr={1}>
                   <Flex direction="column" gap={4}>
                     {eventsToDisplay.map(ev => {
-                      const startDate = parseISO(ev.dataInicio);
-                      const atualNum = toNumber(ev.seuPrecoAtual);
-                      const sugNum = toNumber(ev.precoSugerido);
-                      const diff = Number(ev.diferencaPercentual);
-                      const showPositiveDiff = Number.isFinite(diff) && diff > 0;
-                      const showSuggested = Number.isFinite(sugNum) && Number.isFinite(atualNum) && (sugNum as number) > (atualNum as number);
-
                       return (
                         <EventCard
                           setIsLoading={()=>{}}

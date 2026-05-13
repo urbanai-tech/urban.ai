@@ -14,6 +14,7 @@ export class PropriedadeController {
   ) { }
 
   @Get('hostId')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Obter o hostId de uma propriedade' })
   @ApiQuery({ name: 'propertyId', type: String, required: true, description: 'ID da propriedade' })
   @ApiResponse({ status: 200, description: 'Host ID retornado com sucesso' })
@@ -31,6 +32,7 @@ export class PropriedadeController {
   }
 
   @Get('quick-info')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Busca info rápida de um imóvel individual (título, imagem, hostId)' })
   @ApiQuery({ name: 'propertyId', type: String, required: true, description: 'ID do listing no Airbnb' })
   @ApiResponse({ status: 200, description: 'Info do imóvel retornada com sucesso' })
@@ -48,6 +50,7 @@ export class PropriedadeController {
   }
 
   @Get('checkout-prices')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get Airbnb accommodation and service fee in USD' })
   @ApiQuery({ name: 'propertyId', type: String, required: true })
   @ApiQuery({ name: 'checkinDate', type: String, required: true, example: '2025-09-17' })
@@ -61,6 +64,7 @@ export class PropriedadeController {
   }
 
   @Get('getPropertyDetails/:id')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Obtém detalhes de uma propriedade pelo ID' })
   @ApiParam({
     name: 'id',
@@ -80,6 +84,7 @@ export class PropriedadeController {
   }
 
   @Get('airbnb/room-info')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Busca dados de checkout prefetch para uma propriedade' })
   @ApiQuery({
     name: 'propertyId',
@@ -123,6 +128,7 @@ export class PropriedadeController {
 
   // Controller
   @Get('airbnb/room-basic-info')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Busca informações básicas de uma propriedade Airbnb' })
   @ApiQuery({
     name: 'roomId',
@@ -145,6 +151,7 @@ export class PropriedadeController {
   }
 
   @Post('airbnb/create-alert')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Retorna lalerta de propriedades próxima a uma localização' })
   @ApiResponse({ status: 200, description: 'Listagens retornadas com sucesso.' })
   @ApiResponse({ status: 500, description: 'Erro ao buscar listagens.' })
@@ -174,10 +181,12 @@ export class PropriedadeController {
   }
 
   @Get('eventos-analisados-com-price')
+  @UseGuards(JwtAuthGuard)
   @ApiQuery({ name: 'propriedadeId', required: true })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
   async getEventos(
+    @Req() req: any,
     @Query('propriedadeId') propriedadeId: string,
     @Query('dataInicial') dataInicial: string,
     @Query('page') page: number = 1,
@@ -185,6 +194,7 @@ export class PropriedadeController {
   ) {
     return this.propriedadeService.getEventosByEndereco(
       propriedadeId,
+      req.user.userId,
       dataInicial,
       Number(page),
       Number(limit),
@@ -192,6 +202,7 @@ export class PropriedadeController {
   }
 
   @Get('quantidade-eventos/:usuarioId')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Quantidade de eventos futuros do usuário' })
   @ApiParam({
     name: 'usuarioId',
@@ -205,7 +216,10 @@ export class PropriedadeController {
       example: { quantidadeEventos: 5 },
     },
   })
-  async getQuantidadeEventos(@Param('usuarioId') usuarioId: string) {
+  async getQuantidadeEventos(@Param('usuarioId') usuarioId: string, @Req() req: any) {
+    if (req.user.userId !== usuarioId) {
+      throw new UnauthorizedException("Usuario nao autorizado para este recurso");
+    }
     const total = await this.propriedadeService.getQuantidadeEventosByUsuario(usuarioId, "");
     return { quantidadeEventos: total };
   }
@@ -235,6 +249,7 @@ export class PropriedadeController {
   }
 
   @Get('eventos-analisados-com-price-para-maps')
+  @UseGuards(JwtAuthGuard)
   @ApiQuery({ name: 'propriedadeId', required: true })
   @ApiQuery({ name: 'raio', required: false })
   @ApiQuery({ name: 'dataInicial', required: false })
@@ -242,6 +257,7 @@ export class PropriedadeController {
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
   async getEventosForMaps(
+    @Req() req: any,
     @Query('propriedadeId') propriedadeId: string,
     @Query('dataInicial') dataInicial: string,
     @Query('dataFinal') dataFinal: string,
@@ -251,6 +267,7 @@ export class PropriedadeController {
   ) {
     return this.propriedadeService.getEventosByEnderecoForMap(
       propriedadeId,
+      req.user.userId,
       Number(page),
       Number(limit),
       Number(raio),
@@ -260,6 +277,7 @@ export class PropriedadeController {
   }
 
   @Get('get-alert')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Retorna dados de previsão de renda de uma propriedade pelo ID' })
   @ApiResponse({ status: 500, description: 'Erro ao buscar dados da propriedade.' })
   @ApiQuery({ name: 'id', required: true, type: 'string', example: '8a2999b68e85e90928bddeb0' })
@@ -281,6 +299,7 @@ export class PropriedadeController {
   }
 
   @Get('ajuste-preco')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Calcula preço sugerido para uma propriedade com base em parâmetros' })
   @ApiResponse({ status: 200, description: 'Preço sugerido calculado com sucesso.' })
   @ApiResponse({ status: 500, description: 'Erro ao calcular o preço sugerido.' })
@@ -329,6 +348,7 @@ export class PropriedadeController {
   }
 
   @Get(':propertyId/coordinates')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Obtém a latitude e longitude de uma propriedade do Airbnb.'
@@ -371,8 +391,8 @@ export class PropriedadeController {
   @Delete('address/:id')
   @ApiOperation({ summary: 'Remove um endereço e o imóvel associado (list)' })
   @UseGuards(JwtAuthGuard)
-  async deleteAddressAndList(@Param('id') id: string) {
-    await this.propriedadeService.deleteAddressAndList(id);
+  async deleteAddressAndList(@Param('id') id: string, @Req() req: any) {
+    await this.propriedadeService.deleteAddressAndList(id, req.user.userId);
     return { message: 'Endereço e list removidos com sucesso (quando aplicável)' };
   }
 
@@ -415,8 +435,8 @@ export class PropriedadeController {
   })
   @ApiResponse({ status: 404, description: 'Endereço não encontrado' })
   @UseGuards(JwtAuthGuard)
-  async findOne(@Param('id') id: string): Promise<Address> {
-    const address = await this.propriedadeService.findAddressById(id);
+  async findOne(@Param('id') id: string, @Req() req: any): Promise<Address> {
+    const address = await this.propriedadeService.findAddressById(id, req.user.userId);
     if (!address) {
       throw new NotFoundException('Endereço não encontrado');
     }

@@ -10,9 +10,11 @@ import {
     Req,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
-import { ApiTags, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { CreateNotificationDto } from './tdo/create-notification.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Roles } from 'src/auth/roles.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
 
 @ApiTags('notifications')
 @Controller('notifications')
@@ -20,6 +22,9 @@ export class NotificationController {
     constructor(private readonly notificationsService: NotificationsService) { }
 
     @Post(':userId')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('admin')
     @ApiResponse({ status: 201, description: 'Notification created' })
     async create(
         @Param('userId') userId: string,
@@ -29,9 +34,11 @@ export class NotificationController {
     }
 
     @Patch(':id/opened')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @ApiResponse({ status: 200, description: 'Notification marked as opened' })
-    async markAsOpened(@Param('id') id: string) {
-        return this.notificationsService.markAsOpened(id);
+    async markAsOpened(@Param('id') id: string, @Req() req: any) {
+        return this.notificationsService.markAsOpened(id, req.user.userId);
     }
 
     @UseGuards(JwtAuthGuard)
@@ -55,7 +62,6 @@ export class NotificationController {
         @Query('limit') limit = 10,
         @Req() req: any,
     ) {
-        console.log(req?.user?.userId)
         return this.notificationsService.findAllByUser(req?.user?.userId, +page, +limit);
     }
 }

@@ -21,7 +21,7 @@ const PropertySelect: React.FC<Props> = ({ propsInfo, setPropertyId, value }) =>
         if (prevPropsInfo.length > 0 && propsInfo.length > 0) {
             const completedProps = prevPropsInfo.filter((oldItem) => {
                 const newItem = propsInfo.find((n) => n.id === oldItem.id);
-                return oldItem.analisado === "running" && newItem?.analisado === "completed";
+                return oldItem.analisado !== "completed" && newItem?.analisado === "completed";
             });
 
             if (completedProps.length > 0) {
@@ -29,7 +29,7 @@ const PropertySelect: React.FC<Props> = ({ propsInfo, setPropertyId, value }) =>
             }
         }
         setPrevPropsInfo(propsInfo);
-    }, [propsInfo]);
+    }, [propsInfo, prevPropsInfo]);
 
     const options = propsInfo.map((p) => ({
         value: p.id,

@@ -3,8 +3,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
+import { api } from '../service/api'
 
-// Estender a interface Session do NextAuth
 declare module "next-auth" {
   interface Session {
     accessToken?: string;
@@ -18,7 +18,7 @@ declare module "next-auth" {
 
 interface AuthContextType {
   isAuthenticated: boolean
-  login: (token: string) => void
+  login: () => void
   logout: () => void
 }
 
@@ -35,38 +35,45 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const router = useRouter()
-  const { data: session } = useSession() // Obtendo a sessão do NextAuth
+  const { data: session } = useSession()
 
-  // Verifica se há um token no localStorage ao iniciar ou se há uma sessão do NextAuth
   useEffect(() => {
-    // Verificar o token no localStorage
-    const token = localStorage.getItem('accessToken')
-    
-    // Verificar se há uma sessão NextAuth ativa
-    const hasSession = session && session.user
-    
-    if (token || hasSession) {
-      // Se houver sessão do NextAuth, também podemos salvar no localStorage
-      if (hasSession && !token && session.accessToken) {
-        localStorage.setItem('accessToken', session.accessToken as string)
+    let cancelled = false
+
+    const checkSession = async () => {
+      if (session?.user) {
+        setIsAuthenticated(true)
+        return
       }
-      
-      setIsAuthenticated(true)
-    } else {
-      setIsAuthenticated(false)
+
+      try {
+        await api.get('/auth/me')
+        if (!cancelled) setIsAuthenticated(true)
+      } catch {
+        if (!cancelled) setIsAuthenticated(false)
+      }
+    }
+
+    checkSession()
+
+    return () => {
+      cancelled = true
     }
   }, [session])
 
-  const login = (token: string) => {
-    localStorage.setItem('accessToken', token)
+  const login = () => {
     setIsAuthenticated(true)
   }
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout')
+    } catch (error) {
+      console.error('Erro ao encerrar sessao no backend:', error)
+    }
     localStorage.removeItem('accessToken')
     setIsAuthenticated(false)
-    
-    // Fazer logout do NextAuth também
+
     signOut({ redirect: false }).then(() => {
       router.push('/')
     })

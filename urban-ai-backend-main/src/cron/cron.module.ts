@@ -14,6 +14,7 @@ import { EmailService } from 'src/email/email.service';
 import { EmailModule } from 'src/email/email.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PropriedadeModule } from 'src/propriedades/propriedade.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
     imports: [ScheduleModule.forRoot(), TypeOrmModule.forFeature([
@@ -23,7 +24,7 @@ import { PropriedadeModule } from 'src/propriedades/propriedade.module';
             AnalisePreco,
             User,
             MailerModule
-        ]), AirbnbModule, MailerModule, EmailModule, PropriedadeModule],
+        ]), AirbnbModule, MailerModule, EmailModule, PropriedadeModule, AuthModule],
     controllers: [
         CronController,],
     providers: [

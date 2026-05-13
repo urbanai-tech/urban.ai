@@ -4,7 +4,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StaysService } from './stays.service';
 import { StaysConnector } from './stays-connector';
-import { StaysAccount } from '../entities/stays-account.entity';
+import { StaysAccount, staysTokenTransformer } from '../entities/stays-account.entity';
 import { StaysListing } from '../entities/stays-listing.entity';
 import { PriceUpdate } from '../entities/price-update.entity';
 import { User } from '../entities/user.entity';
@@ -373,5 +373,52 @@ describe('StaysService', () => {
         }),
       ).rejects.toBeInstanceOf(BadRequestException);
     });
+  });
+});
+
+describe('staysTokenTransformer', () => {
+  const originalEncryptionKey = process.env.STAYS_TOKEN_ENCRYPTION_KEY;
+  const originalAppEnv = process.env.APP_ENV;
+
+  afterEach(() => {
+    if (originalEncryptionKey === undefined) {
+      delete process.env.STAYS_TOKEN_ENCRYPTION_KEY;
+    } else {
+      process.env.STAYS_TOKEN_ENCRYPTION_KEY = originalEncryptionKey;
+    }
+
+    if (originalAppEnv === undefined) {
+      delete process.env.APP_ENV;
+    } else {
+      process.env.APP_ENV = originalAppEnv;
+    }
+  });
+
+  it('encrypts and decrypts a token when STAYS_TOKEN_ENCRYPTION_KEY is configured', () => {
+    process.env.STAYS_TOKEN_ENCRYPTION_KEY = 'test-encryption-key';
+    process.env.APP_ENV = 'test';
+
+    const encrypted = staysTokenTransformer.to('stays-secret-token') as string;
+
+    expect(encrypted).toMatch(/^enc:v1:/);
+    expect(encrypted).not.toContain('stays-secret-token');
+    expect(staysTokenTransformer.from(encrypted)).toBe('stays-secret-token');
+  });
+
+  it('keeps legacy plaintext readable when no key is configured', () => {
+    delete process.env.STAYS_TOKEN_ENCRYPTION_KEY;
+    process.env.APP_ENV = 'test';
+
+    expect(staysTokenTransformer.from('legacy-token')).toBe('legacy-token');
+    expect(staysTokenTransformer.to('legacy-token')).toBe('legacy-token');
+  });
+
+  it('requires an encryption key to persist tokens in production', () => {
+    delete process.env.STAYS_TOKEN_ENCRYPTION_KEY;
+    process.env.APP_ENV = 'production';
+
+    expect(() => staysTokenTransformer.to('prod-token')).toThrow(
+      'STAYS_TOKEN_ENCRYPTION_KEY is required',
+    );
   });
 });
