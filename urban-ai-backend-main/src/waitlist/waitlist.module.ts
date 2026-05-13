@@ -18,7 +18,7 @@ import { AuthModule } from '../auth/auth.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Waitlist, User]),
-    MailerModule,
+    forwardRef(() => MailerModule),
     forwardRef(() => AuthModule),
   ],
   controllers: [WaitlistController],
