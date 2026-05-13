@@ -4,6 +4,10 @@ export class AddPricingColumnsToPlans1778015000000 implements MigrationInterface
     name = 'AddPricingColumnsToPlans1778015000000'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
+        if (!(await queryRunner.hasTable('plans'))) {
+            return;
+        }
+
         await this.addColumnIfMissing(queryRunner, 'priceMonthly', 'varchar(255) NULL');
         await this.addColumnIfMissing(queryRunner, 'priceQuarterly', 'varchar(255) NULL');
         await this.addColumnIfMissing(queryRunner, 'priceSemestral', 'varchar(255) NULL');
@@ -22,6 +26,10 @@ export class AddPricingColumnsToPlans1778015000000 implements MigrationInterface
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
+        if (!(await queryRunner.hasTable('plans'))) {
+            return;
+        }
+
         await this.dropColumnIfExists(queryRunner, 'discountAnnualPercent');
         await this.dropColumnIfExists(queryRunner, 'discountSemestralPercent');
         await this.dropColumnIfExists(queryRunner, 'discountQuarterlyPercent');
