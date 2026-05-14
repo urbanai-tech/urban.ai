@@ -863,6 +863,100 @@ export async function fetchAdminDatasetMetrics(): Promise<AdminDatasetMetrics> {
   return data;
 }
 
+export interface AdminDatasetDiagnostics {
+  generatedAt: string;
+  health: 'red' | 'amber' | 'green';
+  readiness: 'empty' | 'collecting' | 'training_ready' | 'ground_truth_ready';
+  blockers: Array<{
+    code: string;
+    severity: 'red' | 'amber' | 'green';
+    message: string;
+    nextAction: string;
+  }>;
+  tables: {
+    priceSnapshots: AdminDatasetMetrics & {
+      total: number;
+      distinctListings: number;
+      distinctDays: number;
+      trainingReady: number;
+      latestSnapshotDate: string | null;
+    };
+    occupancyHistory: {
+      total: number;
+      trainingReady: number;
+      latestDate: string | null;
+    };
+    eventProximityFeatures: {
+      total: number;
+      latestSnapshotDate: string | null;
+    };
+  };
+  externalDependencies: Record<string, { configured: boolean; status: string; message: string }>;
+  lastOwnedListingsSnapshot: unknown | null;
+}
+
+export interface AdminJobRunResponse<T = unknown> {
+  id: string;
+  name: string;
+  status: 'running' | 'success' | 'error';
+  triggeredByUserId: string | null;
+  startedAt: string;
+  finishedAt: string | null;
+  durationMs: number | null;
+  result: T | null;
+  errorMessage: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface DatasetSnapshotResult {
+  captured: number;
+  skipped: number;
+  duplicates: number;
+  totalLists: number;
+  skippedMissingPrice: number;
+  skippedInvalidPrice: number;
+  externalDataAvailable: boolean;
+  status: string;
+  warnings: string[];
+}
+
+export type DatasetSnapshotRunResponse = AdminJobRunResponse<DatasetSnapshotResult>;
+
+export interface GeocoderRunResult {
+  attempted: number;
+  succeeded: number;
+  failed: number;
+  failures: Array<{ id: string; reason: string }>;
+}
+
+export interface ResetStaleEnrichmentResult {
+  reset: number;
+}
+
+export const fetchAdminDatasetDiagnostics = () =>
+  api.get<AdminDatasetDiagnostics>('/admin/dataset/diagnostics').then((r) => r.data);
+
+export const runAdminDatasetSnapshot = () =>
+  api.post<DatasetSnapshotRunResponse>('/admin/dataset/snapshot/run').then((r) => r.data);
+
+export const fetchAdminJobRuns = (limit = 10) =>
+  api.get<AdminJobRunResponse[]>('/admin/jobs/runs', { params: { limit } }).then((r) => r.data);
+
+export const runAdminGeocoderJob = (limit = 50) =>
+  api
+    .post<AdminJobRunResponse<GeocoderRunResult>>('/admin/jobs/geocoder/run', null, {
+      params: { limit },
+    })
+    .then((r) => r.data);
+
+export const runAdminResetStaleEnrichmentJob = () =>
+  api
+    .post<AdminJobRunResponse<ResetStaleEnrichmentResult>>(
+      '/admin/jobs/reset-stale-enrichment/run',
+    )
+    .then((r) => r.data);
+
 export async function fetchAdminUsers(page = 1, limit = 20): Promise<AdminUsersResponse> {
   const { data } = await api.get<AdminUsersResponse>('/admin/users', {
     params: { page, limit },

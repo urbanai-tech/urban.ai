@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -17,6 +18,9 @@ import { Roles } from '../auth/roles.decorator';
 import { AdminService } from './admin.service';
 import { AdminFinanceService } from './finance.service';
 import { StripeSyncCheckService } from './stripe-sync.service';
+import { DatasetCollectorService } from '../knn-engine/dataset-collector.service';
+import { EventsGeocoderService } from '../evento/events-geocoder.service';
+import { EventsEnrichmentService } from '../evento/events-enrichment.service';
 
 /**
  * Endpoints administrativos da Urban AI.
@@ -40,6 +44,9 @@ export class AdminController {
     private readonly admin: AdminService,
     private readonly finance: AdminFinanceService,
     private readonly stripeSync: StripeSyncCheckService,
+    private readonly datasetCollector: DatasetCollectorService,
+    private readonly geocoder: EventsGeocoderService,
+    private readonly enrichment: EventsEnrichmentService,
   ) {}
 
   @ApiOperation({ summary: 'Visão geral do painel admin (KPIs)' })
@@ -67,6 +74,51 @@ export class AdminController {
   @Get('dataset/metrics')
   async datasetMetrics() {
     return this.admin.datasetMetrics();
+  }
+
+  @ApiOperation({ summary: 'Diagnostico completo do dataset proprietario e dependencias' })
+  @Get('dataset/diagnostics')
+  async datasetDiagnostics() {
+    return this.datasetCollector.datasetDiagnostics();
+  }
+
+  @ApiOperation({ summary: 'Executar snapshot manual dos imoveis cadastrados' })
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @Post('dataset/snapshot/run')
+  async runDatasetSnapshot(@Req() req: any) {
+    return this.admin.runTrackedJob(
+      'dataset-snapshot',
+      req?.user?.userId ?? null,
+      () => this.datasetCollector.recordOwnedListingsSnapshot(),
+    );
+  }
+
+  @ApiOperation({ summary: 'Historico de execucao dos jobs admin' })
+  @Get('jobs/runs')
+  async jobRuns(@Query('limit') limit: string = '10', @Query('name') name?: string) {
+    return this.admin.listJobRuns(parseInt(limit, 10), name);
+  }
+
+  @ApiOperation({ summary: 'Executar geocoder de eventos com historico admin' })
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @Post('jobs/geocoder/run')
+  async runGeocoderJob(@Query('limit') limit: string = '50', @Req() req: any) {
+    return this.admin.runTrackedJob(
+      'geocoder',
+      req?.user?.userId ?? null,
+      () => this.geocoder.runOnce(parseInt(limit, 10)),
+    );
+  }
+
+  @ApiOperation({ summary: 'Resetar enrichment stale com historico admin' })
+  @Throttle({ default: { ttl: 60_000, limit: 3 } })
+  @Post('jobs/reset-stale-enrichment/run')
+  async runResetStaleEnrichment(@Req() req: any) {
+    return this.admin.runTrackedJob(
+      'reset-stale-enrichment',
+      req?.user?.userId ?? null,
+      () => this.enrichment.resetStaleZeroRelevance(),
+    );
   }
 
   @ApiOperation({ summary: 'Analytics do motor de eventos (cobertura, categorias, top relevância)' })

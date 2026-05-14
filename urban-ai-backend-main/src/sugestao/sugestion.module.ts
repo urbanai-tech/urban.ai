@@ -7,14 +7,18 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Event } from 'src/entities/events.entity';
 import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { Address } from 'src/entities/addresses.entity';
+import { KnnEngineModule } from 'src/knn-engine/knn-engine.module';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([
-          User,
-          Event,
-          AnalisePreco,
-          Address
-      ]),],
+  imports: [
+    TypeOrmModule.forFeature([
+      User,
+      Event,
+      AnalisePreco,
+      Address,
+    ]),
+    KnnEngineModule,
+  ],
     controllers: [
         SugestionController,],
     providers: [
