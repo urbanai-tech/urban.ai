@@ -69,6 +69,22 @@ export class List {
   @Column({ type: "float", nullable: true })
   dailyPrice: number;
 
+  @ApiProperty({ description: "Preco base manual informado pelo anfitriao", example: 387 })
+  @Column({ type: "float", nullable: true })
+  manualDailyPrice: number;
+
+  @ApiProperty({ description: "Receita media mensal informada pelo anfitriao", example: 8500 })
+  @Column({ type: "float", nullable: true })
+  averageMonthlyRevenue: number;
+
+  @ApiProperty({ description: "Origem do preco base atual", example: "manual" })
+  @Column({ nullable: true })
+  pricingInputSource: string;
+
+  @ApiProperty({ description: "Quando os inputs de pricing foram atualizados pela ultima vez" })
+  @Column({ type: "timestamp", nullable: true })
+  pricingInputsUpdatedAt: Date;
+
   // ===== CAMPOS ADICIONAIS DO RETORNO DA API =====
   @ApiProperty({ description: "Número de hóspedes", example: 2 })
   @Column({ type: "int", nullable: true })

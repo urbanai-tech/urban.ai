@@ -35,6 +35,19 @@ export class PaymentsService {
   async getListingsQuota(
     userId: string,
   ): Promise<{ contratados: number; ativos: number; podeAdicionar: boolean }> {
+    const alphaQuota = await this.getAlphaQuota(userId);
+    if (alphaQuota) {
+      const ativos = await this.addressRepository.count({
+        where: { user: { id: userId } },
+      });
+
+      return {
+        contratados: alphaQuota,
+        ativos,
+        podeAdicionar: ativos < alphaQuota,
+      };
+    }
+
     const payment = await this.paymentRepository.findOne({
       where: {
         user: { id: userId },
@@ -56,6 +69,15 @@ export class PaymentsService {
   }
 
   async findByUserId(userId: string): Promise<any> {
+    const alphaQuota = await this.getAlphaQuota(userId);
+    if (alphaQuota) {
+      return {
+        active: true,
+        alpha: true,
+        listingsContratados: alphaQuota,
+      };
+    }
+
     const payment = await this.paymentRepository.find({
       where: {
         user: { id: userId },
@@ -70,6 +92,18 @@ export class PaymentsService {
     }
   }
   async getSubscription(userId: string) {
+    const alphaQuota = await this.getAlphaQuota(userId);
+    if (alphaQuota) {
+      return {
+        id: `alpha-${userId}`,
+        status: 'trialing',
+        metadata: {
+          urbanai_plan: 'alpha',
+          urbanai_quantity: String(alphaQuota),
+        },
+      };
+    }
+
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
@@ -100,6 +134,30 @@ export class PaymentsService {
 
     const subscription = subscriptions.data.find(sub => sub.id === payment.subscriptionId);
     return subscription || null;
+  }
+
+  private async getAlphaQuota(userId: string): Promise<number | null> {
+    const raw = process.env.ALPHA_USER_QUOTAS || '';
+    if (!raw.trim()) return null;
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+    const keys = new Set([
+      userId.toLowerCase(),
+      user?.email?.toLowerCase(),
+    ].filter(Boolean));
+
+    for (const entry of raw.split(',')) {
+      const [rawKey, rawQuota] = entry.split(':').map((part) => part?.trim());
+      if (!rawKey || !rawQuota) continue;
+      if (!keys.has(rawKey.toLowerCase())) continue;
+
+      const quota = Number(rawQuota);
+      return Number.isFinite(quota) && quota > 0 ? Math.floor(quota) : null;
+    }
+
+    return null;
   }
 
   async cancelSubscription(userId: string) {

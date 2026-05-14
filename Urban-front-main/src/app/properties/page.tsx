@@ -7,6 +7,7 @@ import {
   Heading,
   Text,
   Image,
+  Input,
   Button,
   IconButton,
   Stack,
@@ -23,7 +24,7 @@ import {
 import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
 import { useTranslation } from 'react-i18next';
 import '../../../i18n';
-import { getPropriedadesDropdownList, PropertyDropdown, requestDeleteAddress } from '../service/api';
+import { getPropriedadesDropdownList, PropertyDropdown, requestDeleteAddress, updatePropertyPricingInputs } from '../service/api';
 import { toast, ToastContainer } from 'react-toastify';
 import { AddPropertyModal } from '../componentes/AddPropertyModal';
 
@@ -31,6 +32,8 @@ export default function MyProperties() {
   const { t } = useTranslation();
   const [properties, setProperties] = useState<PropertyDropdown[]>([]);
   const [loading, setLoading] = useState(true);
+  const [savingPricing, setSavingPricing] = useState<string | null>(null);
+  const [pricingDrafts, setPricingDrafts] = useState<Record<string, { manualDailyPrice: string; averageMonthlyRevenue: string }>>({});
   
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef<HTMLButtonElement>(null);
@@ -43,6 +46,13 @@ export default function MyProperties() {
     try {
       const data = await getPropriedadesDropdownList();
       setProperties(data);
+      setPricingDrafts(Object.fromEntries(data.map((prop) => [
+        prop.id,
+        {
+          manualDailyPrice: prop.manualDailyPrice ? String(prop.manualDailyPrice) : '',
+          averageMonthlyRevenue: prop.averageMonthlyRevenue ? String(prop.averageMonthlyRevenue) : '',
+        },
+      ])));
     } catch (error) {
       console.error('Erro ao buscar propriedades:', error);
     } finally {
@@ -79,6 +89,49 @@ export default function MyProperties() {
     onAddOpen();
   };
 
+  const updateDraft = (id: string, field: 'manualDailyPrice' | 'averageMonthlyRevenue', value: string) => {
+    setPricingDrafts((prev) => ({
+      ...prev,
+      [id]: {
+        manualDailyPrice: prev[id]?.manualDailyPrice ?? '',
+        averageMonthlyRevenue: prev[id]?.averageMonthlyRevenue ?? '',
+        [field]: value,
+      },
+    }));
+  };
+
+  const parseMoney = (value: string) => {
+    const normalized = value.trim().replace(/\./g, '').replace(',', '.');
+    if (!normalized) return null;
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  };
+
+  const savePricingInputs = async (prop: PropertyDropdown) => {
+    const draft = pricingDrafts[prop.id] ?? { manualDailyPrice: '', averageMonthlyRevenue: '' };
+    const manualDailyPrice = parseMoney(draft.manualDailyPrice);
+
+    if (!manualDailyPrice) {
+      toast("Informe uma diária base válida para este imóvel.", { type: "warning" });
+      return;
+    }
+
+    try {
+      setSavingPricing(prop.id);
+      const updated = await updatePropertyPricingInputs(prop.id, {
+        manualDailyPrice,
+        averageMonthlyRevenue: parseMoney(draft.averageMonthlyRevenue),
+      });
+      setProperties((prev) => prev.map((item) => item.id === prop.id ? { ...item, ...updated } : item));
+      toast("Preço base salvo. As próximas análises usarão este valor.", { type: "success" });
+    } catch (error) {
+      toast("Erro ao salvar preço base do imóvel.", { type: "error" });
+      console.error('Erro ao salvar inputs de pricing:', error);
+    } finally {
+      setSavingPricing(null);
+    }
+  };
+
   if (loading) {
     return (
       <Center height="300px">
@@ -112,8 +165,10 @@ export default function MyProperties() {
         {properties.map((prop) => (
           <Flex
             key={prop.id}
-            align="center"
+            align={{ base: 'stretch', md: 'center' }}
             justify="space-between"
+            direction={{ base: 'column', md: 'row' }}
+            gap={4}
             p={3}
             borderRadius="md"
             _hover={{ bg: 'gray.50' }}
@@ -134,14 +189,40 @@ export default function MyProperties() {
                 </Text>
               </Box>
             </Flex>
-            <IconButton
-              aria-label={t('my_properties.delete')}
-              icon={<DeleteIcon />}
-              variant="ghost"
-              colorScheme="red"
-              size="sm"
-              onClick={() => handleDeleteRequest(prop.id)}
-            />
+            <Flex align={{ base: 'stretch', md: 'center' }} gap={2} direction={{ base: 'column', md: 'row' }}>
+              <Input
+                size="sm"
+                w={{ base: 'full', md: '150px' }}
+                placeholder="Diária base"
+                inputMode="decimal"
+                value={pricingDrafts[prop.id]?.manualDailyPrice ?? ''}
+                onChange={(event) => updateDraft(prop.id, 'manualDailyPrice', event.target.value)}
+              />
+              <Input
+                size="sm"
+                w={{ base: 'full', md: '180px' }}
+                placeholder="Receita média/mês"
+                inputMode="decimal"
+                value={pricingDrafts[prop.id]?.averageMonthlyRevenue ?? ''}
+                onChange={(event) => updateDraft(prop.id, 'averageMonthlyRevenue', event.target.value)}
+              />
+              <Button
+                size="sm"
+                colorScheme="blue"
+                isLoading={savingPricing === prop.id}
+                onClick={() => savePricingInputs(prop)}
+              >
+                Salvar
+              </Button>
+              <IconButton
+                aria-label={t('my_properties.delete')}
+                icon={<DeleteIcon />}
+                variant="ghost"
+                colorScheme="red"
+                size="sm"
+                onClick={() => handleDeleteRequest(prop.id)}
+              />
+            </Flex>
           </Flex>
         ))}
       </Stack>

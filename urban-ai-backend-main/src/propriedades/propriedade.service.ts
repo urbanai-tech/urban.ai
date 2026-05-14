@@ -126,7 +126,17 @@ export class PropriedadeService {
 
     async findPropertiesForDropdown(
         userId: string
-    ): Promise<{ id: string; propertyName: string; userId: string, latitude: number, longitude: number }[]> {
+    ): Promise<{
+        id: string;
+        propertyName: string;
+        userId: string;
+        latitude: number;
+        longitude: number;
+        manualDailyPrice: number | null;
+        averageMonthlyRevenue: number | null;
+        dailyPrice: number | null;
+        pricingInputSource: string | null;
+    }[]> {
         // Busca específica pelo userId fornecido
         const addresses = await this.addressRepository.find({
             where: { user: { id: userId } },
@@ -142,9 +152,63 @@ export class PropriedadeService {
             image_url: address.list?.pictureUrl,
             userId: userId,
             analisado: address?.analisado,
-            id_do_anuncio: address.list?.id_do_anuncio
+            id_do_anuncio: address.list?.id_do_anuncio,
+            manualDailyPrice: address.list?.manualDailyPrice ?? null,
+            averageMonthlyRevenue: address.list?.averageMonthlyRevenue ?? null,
+            dailyPrice: address.list?.dailyPrice ?? null,
+            pricingInputSource: address.list?.pricingInputSource ?? null,
         }));
 
+    }
+
+    async updatePricingInputs(
+        addressId: string,
+        userId: string,
+        input: { manualDailyPrice?: number | null; averageMonthlyRevenue?: number | null },
+    ) {
+        const address = await this.addressRepository.findOne({
+            where: { id: addressId, user: { id: userId } },
+            relations: ['list'],
+        });
+
+        if (!address?.list) {
+            throw new NotFoundException('Propriedade nao encontrada');
+        }
+
+        const manualDailyPrice = this.normalizeOptionalMoney(input.manualDailyPrice, 'manualDailyPrice');
+        const averageMonthlyRevenue = this.normalizeOptionalMoney(input.averageMonthlyRevenue, 'averageMonthlyRevenue');
+
+        address.list.manualDailyPrice = manualDailyPrice;
+        address.list.averageMonthlyRevenue = averageMonthlyRevenue;
+        address.list.pricingInputSource = manualDailyPrice ? 'manual' : null;
+        address.list.pricingInputsUpdatedAt = new Date();
+
+        if (manualDailyPrice) {
+            address.list.dailyPrice = manualDailyPrice;
+            address.list.raw = manualDailyPrice;
+            address.list.currency = 'BRL';
+            address.list.priceText = `R$${manualDailyPrice.toFixed(2)}`;
+        }
+
+        const saved = await this.propriedades.save(address.list);
+        return {
+            addressId,
+            listId: saved.id,
+            manualDailyPrice: saved.manualDailyPrice ?? null,
+            averageMonthlyRevenue: saved.averageMonthlyRevenue ?? null,
+            dailyPrice: saved.dailyPrice ?? null,
+            pricingInputSource: saved.pricingInputSource ?? null,
+            pricingInputsUpdatedAt: saved.pricingInputsUpdatedAt ?? null,
+        };
+    }
+
+    private normalizeOptionalMoney(value: unknown, field: string): number | null {
+        if (value === undefined || value === null || value === '') return null;
+        const parsed = Number(String(value).replace(',', '.'));
+        if (!Number.isFinite(parsed) || parsed < 0) {
+            throw new HttpException(`${field} invalido`, HttpStatus.BAD_REQUEST);
+        }
+        return parsed > 0 ? Number(parsed.toFixed(2)) : null;
     }
 
     // --- Mapa de tradução EN → PT-BR para tipos de imóvel ---
@@ -1256,9 +1320,7 @@ export class PropriedadeService {
                     id: address.list.id
                 },
             });
-            //fora do loop
-            //const dadosAirbnb = await this.airbnbService.getFirstAvailablePrice(list?.id_do_anuncio);
-            const dadosAirbnb = await this.airbnbService.getFirstAvailablePrice(list?.id_do_anuncio);
+            const dadosAirbnb = await this.getPricingBaseQuote(list);
 
             if (!dadosAirbnb?.price?.status || !dadosAirbnb?.propertyDetails) {
                 this.logger.warn(`Nao foi possivel obter preco Airbnb para list=${listId}`);
@@ -1290,7 +1352,18 @@ export class PropriedadeService {
             const maxObj = alerts.comps.reduce((prev, curr) =>
                 curr.similarity_score > prev.similarity_score ? curr : prev
             );
-            const propriedadeReferencia = await this.airbnbService.getFirstAvailablePrice(maxObj?.listingID);
+            let propriedadeReferencia: FirstAvailablePriceResult;
+            try {
+                propriedadeReferencia = await this.airbnbService.getFirstAvailablePrice(maxObj?.listingID);
+            } catch (error) {
+                const referencePrice = Number(maxObj?.avg_booked_daily_rate_ltm);
+                if (!Number.isFinite(referencePrice) || referencePrice <= 0) throw error;
+                propriedadeReferencia = this.buildManualPriceQuote(referencePrice, {
+                    bedrooms: Number(maxObj?.bedrooms ?? list?.quartos ?? 1),
+                    beds: Number((maxObj as any)?.beds ?? list?.camas ?? 1),
+                    guestMaximum: Number(maxObj?.accommodates ?? list?.hospedes ?? 1),
+                });
+            }
             //console.log(maxObj)
             // console.log(propriedadeReferencia)
             // console.log("Valores:")
@@ -1713,6 +1786,43 @@ export class PropriedadeService {
         };
     }
 
+    private async getPricingBaseQuote(list: List): Promise<FirstAvailablePriceResult> {
+        const storedPrice = this.resolveStoredDailyPrice(list);
+        if (storedPrice && storedPrice > 0) {
+            return this.buildManualPriceQuote(storedPrice, {
+                bedrooms: Number(list?.quartos ?? 1),
+                beds: Number(list?.camas ?? 1),
+                guestMaximum: Number(list?.hospedes ?? 1),
+            });
+        }
+
+        return this.airbnbService.getFirstAvailablePrice(list?.id_do_anuncio);
+    }
+
+    private buildManualPriceQuote(
+        dailyPrice: number,
+        details: { bedrooms?: number; beds?: number; guestMaximum?: number },
+    ): FirstAvailablePriceResult {
+        return {
+            price: {
+                status: true,
+                message: 'Preco base manual informado pelo anfitriao',
+                timestamp: Date.now(),
+                data: {
+                    accommodationCost: Number(dailyPrice.toFixed(2)),
+                    accommodationCostFormatted: `R$${dailyPrice.toFixed(2)}`,
+                    accommodationCostTitle: '1 night',
+                    details: [],
+                },
+            },
+            propertyDetails: {
+                bedrooms: Number(details?.bedrooms ?? 1),
+                beds: Number(details?.beds ?? 1),
+                guestMaximum: Number(details?.guestMaximum ?? 1),
+            },
+        };
+    }
+
     private toDirectComp(address: Address, dailyPrice: number, details: any, distanceKm: number): any {
         const list = address.list as List;
         return {
@@ -1754,6 +1864,8 @@ export class PropriedadeService {
 
     private resolveStoredDailyPrice(list: List): number | null {
         const rawList = list as any;
+        const manual = Number(rawList?.manualDailyPrice);
+        if (Number.isFinite(manual) && manual > 0) return manual;
         const direct = Number(rawList?.dailyPrice);
         if (Number.isFinite(direct) && direct > 0) return direct;
         const raw = Number(rawList?.raw);
