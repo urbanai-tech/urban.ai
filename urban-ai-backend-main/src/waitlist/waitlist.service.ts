@@ -105,6 +105,7 @@ export class WaitlistService {
     }
 
     const totalSignups = await this.repo.count();
+    await this.trySendSignupConfirmation(saved, totalSignups);
 
     return {
       position: saved.position,
@@ -331,6 +332,55 @@ export class WaitlistService {
       <p style="font-size:12px;color:#9ca3af;text-align:center;">
         © ${new Date().getFullYear()} Urban AI · E-mail automático.
       </p>
+    </body></html>`;
+  }
+
+  private async trySendSignupConfirmation(entry: Waitlist, totalSignups: number): Promise<void> {
+    if (process.env.WAITLIST_SIGNUP_EMAIL_DISABLED === 'true') return;
+    try {
+      const result = await this.mailer.sendHtmlEmail(
+        { email: entry.email, name: entry.name ?? '' },
+        'Voce entrou na lista da Urban AI',
+        this.buildSignupConfirmationEmail({
+          name: entry.name,
+          position: entry.position,
+          referralCode: entry.referralCode,
+          totalSignups,
+        }),
+      );
+      if (!result?.enviado) {
+        this.logger.warn(
+          `Confirmacao de waitlist nao enviada para ${entry.email}: status=${result?.status ?? 'unknown'}`,
+        );
+      }
+    } catch (error) {
+      this.logger.warn(
+        `Falha ao enviar confirmacao de waitlist para ${entry.email}: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  private buildSignupConfirmationEmail(input: {
+    name: string | null;
+    position: number;
+    referralCode: string;
+    totalSignups: number;
+  }): string {
+    const firstName = input.name?.split(' ')[0] ?? 'pessoal';
+    const launchUrl = (process.env.FRONT_BASE_URL || 'https://urban.ai').replace(/\/$/, '');
+    const referralUrl = `${launchUrl}/lancamento?ref=${encodeURIComponent(input.referralCode)}`;
+    return `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;color:#374151;max-width:600px;margin:0 auto;padding:32px;">
+      <h2 style="color:#0ea5e9;text-align:center;">Voce entrou na lista da Urban AI, ${firstName}.</h2>
+      <p>Seu cadastro no pre-lancamento foi confirmado.</p>
+      <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:20px;margin:24px 0;text-align:center;">
+        <p style="margin:0;color:#0369a1;font-size:14px;">Sua posicao atual</p>
+        <p style="font-size:36px;font-weight:bold;margin:8px 0;color:#0f172a;">#${input.position}</p>
+        <p style="margin:0;color:#64748b;font-size:13px;">Total na lista: ${input.totalSignups}</p>
+      </div>
+      <p>Quer melhorar sua prioridade? Compartilhe seu link:</p>
+      <p style="font-size:13px;word-break:break-all;color:#2563eb;">${referralUrl}</p>
+      <p>Quando sua vez chegar, voce recebera um convite com acesso antecipado.</p>
+      <p style="font-size:12px;color:#6b7280;">Se voce nao se cadastrou, ignore este e-mail.</p>
     </body></html>`;
   }
 }
