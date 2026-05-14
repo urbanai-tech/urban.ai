@@ -68,6 +68,10 @@ export type PropertyDropdown = {
   latitude: number;
   longitude: number;
   id_do_anuncio?: string;
+  manualDailyPrice?: number | null;
+  averageMonthlyRevenue?: number | null;
+  dailyPrice?: number | null;
+  pricingInputSource?: string | null;
   nome: string;
 };
 
@@ -79,6 +83,14 @@ export async function getPropriedadesDropdownList(): Promise<PropertyDropdown[]>
     console.error("Erro ao buscar propriedades dropdown list:", error);
     throw error;
   }
+}
+
+export async function updatePropertyPricingInputs(
+  addressId: string,
+  payload: { manualDailyPrice?: number | null; averageMonthlyRevenue?: number | null },
+): Promise<PropertyDropdown> {
+  const { data } = await api.patch(`/propriedades/${addressId}/pricing-inputs`, payload);
+  return data;
 }
 
 export async function registerProperties(properties: List[]): Promise<List[]> {

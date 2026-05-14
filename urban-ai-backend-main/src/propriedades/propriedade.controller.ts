@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, NotFoundException, Param, Post, Query, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, NotFoundException, Param, Patch, Post, Query, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { PropriedadeService } from './propriedade.service';
 import { Address } from 'src/entities/addresses.entity';
 import { ApiTags, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiOkResponse, ApiBody } from '@nestjs/swagger';
@@ -419,6 +419,17 @@ export class PropriedadeController {
     @Query('limit') limit = 10
   ): Promise<any> {
     return this.propriedadeService.findByUserId(req?.user?.userId, page, limit);
+  }
+
+  @Patch(':id/pricing-inputs')
+  @ApiOperation({ summary: 'Atualiza preco base manual e receita media mensal de uma propriedade' })
+  @UseGuards(JwtAuthGuard)
+  async updatePricingInputs(
+    @Param('id') id: string,
+    @Req() req: any,
+    @Body() body: { manualDailyPrice?: number | null; averageMonthlyRevenue?: number | null },
+  ) {
+    return this.propriedadeService.updatePricingInputs(id, req.user.userId, body);
   }
 
   @Get(':id')
