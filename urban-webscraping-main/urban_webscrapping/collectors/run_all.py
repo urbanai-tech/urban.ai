@@ -103,7 +103,7 @@ REST_COLLECTORS: tuple[CollectorSpec, ...] = (
 
 LEGACY_SPIDERS: tuple[str, ...] = (
     "blue_ticket",
-    "even_three",
+    "even3",
     "eventim",
     "ingresse",
     "sympla",
