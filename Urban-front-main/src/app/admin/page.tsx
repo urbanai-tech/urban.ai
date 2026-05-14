@@ -220,6 +220,7 @@ export default function AdminPage() {
             <NavCard href="/admin/waitlist" title="Lista de Espera" desc="Pré-lançamento — gerir convites e referrals" />
             <NavCard href="/admin/contacts" title="Contatos" desc="Mensagens do formulario publico e triagem comercial" />
             <NavCard href="/admin/users" title="Usuários" desc="Roles, ativação, busca" />
+            <NavCard href="/admin/audit-logs" title="Auditoria" desc="Historico de mutacoes criticas no admin" />
             <NavCard href="/admin/events" title="Motor de eventos" desc="Cobertura, categorias, top relevância" />
             <NavCard href="/admin/events/new" title="+ Cadastrar evento" desc="Camada 3 — curadoria manual (admin-manual)" />
             <NavCard href="/admin/alpha" title="Painel Alpha" desc="Gustavo/testers: KPIs, export e reprocessamento" />
