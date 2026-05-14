@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class TokioMarineHallCollector(HtmlVenueCollector):
     source = "tokio-marine-hall"
-    LISTING_URL = "https://www.tokiomarinehall.com.br/agenda"
+    LISTING_URL = "https://www.tokiomarinehall.com.br/shows/"
     VENUE_NAME = "Tokio Marine Hall"
     DEFAULT_CATEGORY = "show"
 

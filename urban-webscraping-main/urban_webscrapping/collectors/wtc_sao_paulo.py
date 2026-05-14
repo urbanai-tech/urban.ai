@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class WtcSaoPauloCollector(HtmlVenueCollector):
     source = "wtc-sao-paulo"
-    LISTING_URL = "https://www.wtcsaopaulo.com.br/eventos"
+    LISTING_URL = "https://wtcclub.com.br/agenda/"
     VENUE_NAME = "WTC São Paulo"
     DEFAULT_CATEGORY = "conferencia"
 

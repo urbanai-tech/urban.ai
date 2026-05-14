@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class EspacoUnimedCollector(HtmlVenueCollector):
     source = "espaco-unimed"
-    LISTING_URL = "https://www.espacounimed.com.br/agenda"
+    LISTING_URL = "https://www.espacounimed.com.br/agenda-de-shows/"
     VENUE_NAME = "Espaço Unimed"
     DEFAULT_CATEGORY = "show"
 

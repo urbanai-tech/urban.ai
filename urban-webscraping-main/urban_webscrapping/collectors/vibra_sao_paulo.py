@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class VibraSaoPauloCollector(HtmlVenueCollector):
     source = "vibra-sao-paulo"
-    LISTING_URL = "https://www.vibrasaopaulo.com.br/agenda"
+    LISTING_URL = "https://www.vibrasaopaulo.com/agenda"
     VENUE_NAME = "Vibra São Paulo"
     DEFAULT_CATEGORY = "show"
 
