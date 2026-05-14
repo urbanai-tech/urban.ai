@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual, IsNull, Not } from 'typeorm';
 import { User } from '../entities/user.entity';
@@ -18,6 +18,7 @@ import { AdminJobRun } from '../entities/admin-job-run.entity';
 import { AdaptivePricingStrategy } from '../knn-engine/strategies/adaptive-pricing.strategy';
 import { DatasetCollectorService } from '../knn-engine/dataset-collector.service';
 import { calculateBacktest } from '../knn-engine/backtesting';
+import { MapsService } from '../maps/maps.service';
 
 /**
  * AdminService — agrega métricas de gestão Urban AI para o painel admin.
@@ -45,6 +46,7 @@ export class AdminService {
     @InjectRepository(AdminJobRun) private readonly jobRunRepo: Repository<AdminJobRun>,
     private readonly adaptiveStrategy: AdaptivePricingStrategy,
     private readonly collector: DatasetCollectorService,
+    private readonly mapsService: MapsService,
   ) {}
 
   async listJobRuns(limit = 10, name?: string) {
@@ -119,7 +121,7 @@ export class AdminService {
     return {
       message: error?.message || 'Job failed',
       status: error?.status ?? error?.response?.statusCode ?? null,
-      response: error?.response ?? null,
+      code: error?.code ?? error?.response?.code ?? null,
     };
   }
 
@@ -209,6 +211,119 @@ export class AdminService {
     };
   }
 
+  async alphaDashboard(email = 'gustavo8gouveia@hotmail.com') {
+    const user = await this.userRepo.findOne({ where: { email } });
+    if (!user) {
+      throw new NotFoundException('Usuario alpha nao encontrado');
+    }
+
+    const [addresses, analyses, eventsTotal, upcomingEvents, eventsLast24h] = await Promise.all([
+      this.addressRepo.find({ where: { user: { id: user.id }, ativo: true }, relations: ['list'] }),
+      this.analiseRepo.find({
+        where: { usuarioProprietario: { id: user.id } },
+        relations: ['endereco', 'endereco.list', 'evento'],
+        order: { criadoEm: 'DESC' },
+      }),
+      this.eventRepo.count(),
+      this.eventRepo
+        .createQueryBuilder('e')
+        .where('e.ativo = :ativo', { ativo: true })
+        .andWhere('e.dataInicio >= :now', { now: new Date() })
+        .getCount(),
+      this.eventRepo
+        .createQueryBuilder('e')
+        .where('e.createdAt >= :cutoff', { cutoff: new Date(Date.now() - 24 * 60 * 60 * 1000) })
+        .getCount(),
+    ]);
+
+    const lists = addresses.map((address) => address.list).filter(Boolean);
+    const uniqueListIds = new Set(lists.map((list) => list.id));
+    const completed = addresses.filter((address) => address.analisado === 'completed').length;
+    const withManualPrice = lists.filter((list) => Number(list.manualDailyPrice) > 0).length;
+    const withRevenue = lists.filter((list) => Number(list.averageMonthlyRevenue) > 0).length;
+    const totalMonthlyRevenue = lists.reduce((sum, list) => sum + (Number(list.averageMonthlyRevenue) || 0), 0);
+    const accepted = analyses.filter((analysis) => analysis.aceito).length;
+    const applied = analyses.filter((analysis) => Number(analysis.precoAplicado) > 0).length;
+    const feedbackCaptured = analyses.filter((analysis) => analysis.resultadoRegistradoEm || analysis.reservaStatus).length;
+    const booked = analyses.filter((analysis) => analysis.reservaStatus === 'booked').length;
+    const realRevenue = analyses.reduce((sum, analysis) => sum + (Number(analysis.receitaReal) || 0), 0);
+    const potentialDailyLift = analyses.reduce((sum, analysis) => {
+      const suggested = Number(analysis.precoSugerido);
+      const current = Number(analysis.seuPrecoAtual);
+      return Number.isFinite(suggested) && Number.isFinite(current)
+        ? sum + Math.max(0, suggested - current)
+        : sum;
+    }, 0);
+
+    const qualityFlags = analyses.reduce<Record<string, number>>((acc, analysis) => {
+      for (const flag of this.eventQualityFlags(analysis.evento)) {
+        acc[flag] = (acc[flag] ?? 0) + 1;
+      }
+      return acc;
+    }, {});
+
+    return {
+      generatedAt: new Date().toISOString(),
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        ativo: user.ativo,
+        role: user.role,
+      },
+      properties: {
+        total: uniqueListIds.size,
+        activeAddresses: addresses.length,
+        completed,
+        withManualPrice,
+        withAverageMonthlyRevenue: withRevenue,
+        totalAverageMonthlyRevenue: totalMonthlyRevenue,
+      },
+      recommendations: {
+        total: analyses.length,
+        accepted,
+        applied,
+        feedbackCaptured,
+        booked,
+        realRevenue,
+        potentialDailyLift,
+        distinctProperties: new Set(analyses.map((analysis) => analysis.endereco?.list?.id).filter(Boolean)).size,
+        distinctEvents: new Set(analyses.map((analysis) => analysis.evento?.id).filter(Boolean)).size,
+      },
+      events: {
+        total: eventsTotal,
+        upcoming: upcomingEvents,
+        createdLast24h: eventsLast24h,
+        qualityFlags,
+      },
+      recentRecommendations: this.formatAlphaRecommendations(analyses.slice(0, 20)),
+    };
+  }
+
+  async alphaRecommendations(email = 'gustavo8gouveia@hotmail.com', limit = 250) {
+    const take = Math.max(1, Math.min(1000, Number(limit) || 250));
+    const user = await this.userRepo.findOne({ where: { email } });
+    if (!user) {
+      throw new NotFoundException('Usuario alpha nao encontrado');
+    }
+    const analyses = await this.analiseRepo.find({
+      where: { usuarioProprietario: { id: user.id } },
+      relations: ['endereco', 'endereco.list', 'evento'],
+      order: { criadoEm: 'DESC' },
+      take,
+    });
+    return {
+      generatedAt: new Date().toISOString(),
+      user: { id: user.id, email: user.email, username: user.username },
+      total: analyses.length,
+      rows: this.formatAlphaRecommendations(analyses),
+    };
+  }
+
+  async runAlphaReprocess(email = 'gustavo8gouveia@hotmail.com') {
+    return this.mapsService.reprocessAlphaPricing(email);
+  }
+
   /**
    * Métricas do dataset proprietário com breakdown por origem.
    */
@@ -250,9 +365,11 @@ export class AdminService {
    * Não expõe campo password.
    */
   async listUsers(page = 1, limit = 20) {
+    const safePage = Math.max(1, Number(page) || 1);
+    const safeLimit = Math.min(100, Math.max(1, Number(limit) || 20));
     const [data, total] = await this.userRepo.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
+      skip: (safePage - 1) * safeLimit,
+      take: safeLimit,
       order: { createdAt: 'DESC' },
       select: [
         'id', 'username', 'email', 'role', 'ativo', 'createdAt',
@@ -262,22 +379,54 @@ export class AdminService {
     return {
       data,
       total,
-      page,
-      limit,
-      totalPages: Math.max(1, Math.ceil(total / limit)),
+      page: safePage,
+      limit: safeLimit,
+      totalPages: Math.max(1, Math.ceil(total / safeLimit)),
     };
   }
 
-  async setUserRole(userId: string, role: 'host' | 'admin' | 'support'): Promise<User> {
+  async setUserRole(
+    userId: string,
+    role: 'host' | 'admin' | 'support',
+    actorUserId?: string | null,
+  ): Promise<User> {
+    if (!['host', 'admin', 'support'].includes(role)) {
+      throw new BadRequestException('role invalido');
+    }
     const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (!user) throw new Error('Usuário não encontrado');
+    if (!user) throw new NotFoundException('Usuario nao encontrado');
+    if (actorUserId && actorUserId === userId && role !== 'admin') {
+      throw new ForbiddenException('Voce nao pode remover seu proprio acesso admin.');
+    }
+    if (user.role === 'admin' && role !== 'admin') {
+      const activeAdmins = await this.userRepo.count({ where: { role: 'admin', ativo: true } });
+      if (activeAdmins <= 1 && user.ativo) {
+        throw new ForbiddenException('Nao e possivel remover o ultimo admin ativo.');
+      }
+    }
     user.role = role;
     return this.userRepo.save(user);
   }
 
-  async setUserActive(userId: string, ativo: boolean): Promise<User> {
+  async setUserActive(
+    userId: string,
+    ativo: boolean,
+    actorUserId?: string | null,
+  ): Promise<User> {
+    if (typeof ativo !== 'boolean') {
+      throw new BadRequestException('ativo deve ser booleano');
+    }
     const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (!user) throw new Error('Usuário não encontrado');
+    if (!user) throw new NotFoundException('Usuario nao encontrado');
+    if (actorUserId && actorUserId === userId && ativo === false) {
+      throw new ForbiddenException('Voce nao pode desativar seu proprio usuario.');
+    }
+    if (user.role === 'admin' && ativo === false) {
+      const activeAdmins = await this.userRepo.count({ where: { role: 'admin', ativo: true } });
+      if (activeAdmins <= 1 && user.ativo) {
+        throw new ForbiddenException('Nao e possivel desativar o ultimo admin ativo.');
+      }
+    }
     user.ativo = ativo;
     return this.userRepo.save(user);
   }
@@ -1389,5 +1538,79 @@ export class AdminService {
         buckets: timeline.buckets,
       },
     };
+  }
+
+  private formatAlphaRecommendations(analyses: AnalisePreco[]) {
+    return analyses.map((analysis) => {
+      const current = Number(analysis.seuPrecoAtual);
+      const suggested = Number(analysis.precoSugerido);
+      return {
+        id: analysis.id,
+        createdAt: analysis.criadoEm?.toISOString?.() ?? analysis.criadoEm,
+        property: {
+          listId: analysis.endereco?.list?.id ?? null,
+          addressId: analysis.endereco?.id ?? null,
+          title: analysis.endereco?.list?.titulo ?? null,
+          manualDailyPrice: analysis.endereco?.list?.manualDailyPrice ?? null,
+          averageMonthlyRevenue: analysis.endereco?.list?.averageMonthlyRevenue ?? null,
+        },
+        event: {
+          id: analysis.evento?.id ?? null,
+          name: analysis.evento?.nome ?? null,
+          city: analysis.evento?.cidade ?? null,
+          state: analysis.evento?.estado ?? null,
+          startsAt: analysis.evento?.dataInicio?.toISOString?.() ?? analysis.evento?.dataInicio ?? null,
+          source: analysis.evento?.source ?? null,
+          relevance: analysis.evento?.relevancia ?? null,
+          expectedAttendance: analysis.evento?.expectedAttendance ?? analysis.evento?.capacidadeEstimada ?? null,
+        },
+        pricing: {
+          current,
+          suggested,
+          lift: Number.isFinite(current) && Number.isFinite(suggested) ? suggested - current : null,
+          liftPercent: analysis.diferencaPercentual,
+          recommendation: analysis.recomendacao,
+          reason: analysis.motivo_ia,
+          distanceKm: analysis.distanciaSuaPropriedade,
+        },
+        lifecycle: {
+          accepted: analysis.aceito,
+          status: analysis.status,
+          appliedPrice: analysis.precoAplicado,
+          appliedAt: analysis.aplicadoEm?.toISOString?.() ?? analysis.aplicadoEm,
+          applicationOrigin: analysis.origemAplicacao,
+        },
+        outcome: {
+          reservationStatus: analysis.reservaStatus,
+          realRevenue: analysis.receitaReal,
+          bookedNights: analysis.noitesReservadas,
+          capturedAt: analysis.resultadoRegistradoEm?.toISOString?.() ?? analysis.resultadoRegistradoEm,
+          note: analysis.feedbackObservacao,
+        },
+        qualityFlags: this.eventQualityFlags(analysis.evento),
+      };
+    });
+  }
+
+  private eventQualityFlags(evento: EventEntity | null | undefined): string[] {
+    const flags: string[] = [];
+    if (!evento) return ['missing_event'];
+    if (evento.ativo === false) flags.push('inactive');
+    if (evento.outOfScope === true) flags.push('out_of_scope');
+    if (evento.pendingGeocode === true) flags.push('pending_geocode');
+    if (!evento.dataInicio || new Date(evento.dataInicio) < new Date()) flags.push('past_or_missing_date');
+    if (!evento.latitude || !evento.longitude) flags.push('missing_coordinates');
+
+    const sourceText = `${evento.source ?? ''} ${evento.categoria ?? ''} ${evento.venueType ?? ''} ${evento.nome ?? ''}`.toLowerCase();
+    if (sourceText.includes('online') || sourceText.includes('virtual') || sourceText.includes('webinar')) {
+      flags.push('online_event');
+    }
+
+    const relevance = Number(evento.relevancia);
+    const radius = Number(evento.raioImpactoKm);
+    if (Number.isFinite(relevance) && relevance <= 0 && Number.isFinite(radius) && radius <= 0) {
+      flags.push('zero_impact');
+    }
+    return flags;
   }
 }

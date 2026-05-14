@@ -1462,6 +1462,7 @@ export class PropriedadeService {
             let pricingFailed = 0;
             let pricingSkippedPastEvent = 0;
             let pricingSkippedNoCoordinates = 0;
+            const pricingSkippedEventQuality: Record<string, number> = {};
             const promises = enderecoAnalises.map((element, index) =>
                 limit(async () => {
                     try {
@@ -1469,6 +1470,16 @@ export class PropriedadeService {
                         const thereIsLatLong = evento?.latitude && evento?.longitude;
                         if (!evento?.dataInicio || new Date(evento.dataInicio) < startedAt) {
                             pricingSkippedPastEvent++;
+                            return;
+                        }
+                        const eventQualityFlags = this.getPricingEventQualityFlags(evento, startedAt);
+                        if (eventQualityFlags.length > 0) {
+                            for (const flag of eventQualityFlags) {
+                                pricingSkippedEventQuality[flag] = (pricingSkippedEventQuality[flag] ?? 0) + 1;
+                            }
+                            this.logger.warn(
+                                `Evento ${evento?.id} ignorado para pricing por qualidade: ${eventQualityFlags.join(', ')}`,
+                            );
                             return;
                         }
 
@@ -1537,6 +1548,7 @@ export class PropriedadeService {
                 pricingFailed,
                 pricingSkippedPastEvent,
                 pricingSkippedNoCoordinates,
+                pricingSkippedEventQuality,
                 pricingCandidates: enderecoAnalises.length,
                 failureReasons: pricingFailureReasons,
             };
@@ -1943,6 +1955,30 @@ export class PropriedadeService {
         const parsed = Number(priceText);
         return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
     }
+
+    getPricingEventQualityFlags(evento: EventEntity | null | undefined, now = new Date()): string[] {
+        const flags: string[] = [];
+        if (!evento) return ['missing_event'];
+        if (evento.ativo === false) flags.push('inactive');
+        if (evento.outOfScope === true) flags.push('out_of_scope');
+        if (evento.pendingGeocode === true) flags.push('pending_geocode');
+        if (!evento.dataInicio || new Date(evento.dataInicio) < now) flags.push('past_or_missing_date');
+        if (!evento.latitude || !evento.longitude) flags.push('missing_coordinates');
+
+        const sourceText = `${evento.source ?? ''} ${evento.categoria ?? ''} ${evento.venueType ?? ''} ${evento.nome ?? ''}`.toLowerCase();
+        if (sourceText.includes('online') || sourceText.includes('virtual') || sourceText.includes('webinar')) {
+            flags.push('online_event');
+        }
+
+        const relevance = Number(evento.relevancia);
+        const radius = Number(evento.raioImpactoKm);
+        if (Number.isFinite(relevance) && relevance <= 0 && Number.isFinite(radius) && radius <= 0) {
+            flags.push('zero_impact');
+        }
+
+        return flags;
+    }
+
     async getEventosByEnderecoForMap(
         enderecoId: string,
         userId: string,
@@ -1995,6 +2031,11 @@ export class PropriedadeService {
                 aceitoEm: analise.aceitoEm,
                 rejeitadoEm: analise.rejeitadoEm,
                 expiradoEm: analise.expiradoEm,
+                reservaStatus: analise.reservaStatus,
+                receitaReal: analise.receitaReal,
+                noitesReservadas: analise.noitesReservadas,
+                resultadoRegistradoEm: analise.resultadoRegistradoEm,
+                feedbackObservacao: analise.feedbackObservacao,
                 distanciaAteMinhaPropriedade: analise?.distanciaSuaPropriedade,
                 idAnalise: analise.id,
                 aceito: analise.aceito
@@ -2048,6 +2089,11 @@ export class PropriedadeService {
                     aceitoEm: analise.aceitoEm,
                     rejeitadoEm: analise.rejeitadoEm,
                     expiradoEm: analise.expiradoEm,
+                    reservaStatus: analise.reservaStatus,
+                    receitaReal: analise.receitaReal,
+                    noitesReservadas: analise.noitesReservadas,
+                    resultadoRegistradoEm: analise.resultadoRegistradoEm,
+                    feedbackObservacao: analise.feedbackObservacao,
                     idAnalise: analise.id,
                     aceito: analise.aceito,
                 })),
@@ -2084,6 +2130,11 @@ export class PropriedadeService {
                     aceitoEm: analise.aceitoEm,
                     rejeitadoEm: analise.rejeitadoEm,
                     expiradoEm: analise.expiradoEm,
+                    reservaStatus: analise.reservaStatus,
+                    receitaReal: analise.receitaReal,
+                    noitesReservadas: analise.noitesReservadas,
+                    resultadoRegistradoEm: analise.resultadoRegistradoEm,
+                    feedbackObservacao: analise.feedbackObservacao,
                     idAnalise: analise.id,
                     aceito: analise.aceito,
                 })),
@@ -2136,6 +2187,11 @@ export class PropriedadeService {
                 aceitoEm: analise.aceitoEm,
                 rejeitadoEm: analise.rejeitadoEm,
                 expiradoEm: analise.expiradoEm,
+                reservaStatus: analise.reservaStatus,
+                receitaReal: analise.receitaReal,
+                noitesReservadas: analise.noitesReservadas,
+                resultadoRegistradoEm: analise.resultadoRegistradoEm,
+                feedbackObservacao: analise.feedbackObservacao,
                 idAnalise: analise.id,
                 aceito: analise.aceito
             })),

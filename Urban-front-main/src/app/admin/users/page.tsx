@@ -47,6 +47,12 @@ export default function AdminUsersPage() {
   }, [load]);
 
   async function handleRoleChange(userId: string, role: "host" | "admin" | "support") {
+    const user = users.find((u) => u.id === userId);
+    const label = user?.email || user?.username || userId;
+    if (!confirm(`Alterar role de ${label} para ${role}? Essa mudança tem efeito imediato.`)) {
+      await load(page);
+      return;
+    }
     setBusy(userId);
     try {
       await setAdminUserRole(userId, role);
@@ -59,6 +65,11 @@ export default function AdminUsersPage() {
   }
 
   async function handleToggleActive(userId: string, ativo: boolean) {
+    const user = users.find((u) => u.id === userId);
+    const label = user?.email || user?.username || userId;
+    if (!confirm(`${ativo ? "Ativar" : "Desativar"} ${label}? Essa mudança tem efeito imediato.`)) {
+      return;
+    }
     setBusy(userId);
     try {
       await setAdminUserActive(userId, ativo);

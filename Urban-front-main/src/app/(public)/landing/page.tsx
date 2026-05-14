@@ -383,6 +383,7 @@ function Step({
 }) {
   return (
     <div
+      className="urban-step-row"
       style={{
         display: "grid",
         gridTemplateColumns: "minmax(120px, 200px) 1fr",
@@ -490,6 +491,7 @@ function Differentiators() {
         </h2>
 
         <div
+          className="urban-differentiators-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))",
@@ -499,6 +501,7 @@ function Differentiators() {
           {items.map((d, i) => (
             <div
               key={d.label}
+              className="urban-differentiator"
               style={{
                 padding: "48px 32px",
                 borderTop:

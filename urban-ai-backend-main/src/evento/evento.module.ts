@@ -18,6 +18,7 @@ import { User } from 'src/entities/user.entity';
 import { CoverageRegion } from 'src/entities/coverage-region.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { MapsModule } from 'src/maps/maps.module';
+import { AdminAuditModule } from 'src/admin-audit/admin-audit.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { MapsModule } from 'src/maps/maps.module';
     ]),
     AuthModule,
     MapsModule,
+    AdminAuditModule,
   ],
   controllers: [EventoController, EventsIngestController, CoverageController],
   providers: [

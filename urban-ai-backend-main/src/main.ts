@@ -3,6 +3,7 @@ import "./instrument";
 
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
 import * as bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
@@ -11,6 +12,14 @@ import { json, urlencoded } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: false,
+    }),
+  );
 
   // Helmet — HSTS, X-Frame-Options, X-Content-Type-Options, etc.
   // CSP aplicado manualmente porque o backend serve principalmente JSON;

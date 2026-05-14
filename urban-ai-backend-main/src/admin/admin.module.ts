@@ -23,6 +23,9 @@ import { AdminController } from './admin.controller';
 import { AuthModule } from '../auth/auth.module';
 import { KnnEngineModule } from '../knn-engine/knn-engine.module';
 import { EventoModule } from '../evento/evento.module';
+import { MapsModule } from '../maps/maps.module';
+import { RoiModule } from '../roi/roi.module';
+import { AdminAuditModule } from '../admin-audit/admin-audit.module';
 
 @Module({
   imports: [
@@ -47,6 +50,9 @@ import { EventoModule } from '../evento/evento.module';
     AuthModule,
     KnnEngineModule,
     EventoModule,
+    MapsModule,
+    RoiModule,
+    AdminAuditModule,
   ],
   controllers: [AdminController],
   providers: [AdminService, AdminFinanceService, StripeSyncCheckService],

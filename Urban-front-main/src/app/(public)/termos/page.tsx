@@ -9,8 +9,10 @@ import { Box, Container, Heading, Text, VStack, Divider, UnorderedList, ListItem
  */
 export default function Termos() {
   return (
-    <Container maxW="container.lg" py={8}>
-      <Box bg="white" p={{ base: 6, md: 10 }} borderRadius="xl" boxShadow="sm" borderWidth="1px" borderColor="gray.100">
+    <main className="urban-manifesto urban-public-page">
+      <section className="urban-public-section">
+        <Container maxW="container.lg" py={0}>
+      <Box className="urban-legal-panel" bg="white" p={{ base: 0, md: 0 }} borderRadius="xl" boxShadow="sm" borderWidth="1px" borderColor="gray.100">
         <Heading as="h1" size="xl" mb={4} color="#1C1D3B">
           Termos de Uso
         </Heading>
@@ -294,6 +296,8 @@ export default function Termos() {
           </Text>
         </VStack>
       </Box>
-    </Container>
+        </Container>
+      </section>
+    </main>
   );
 }

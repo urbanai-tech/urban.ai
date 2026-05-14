@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { PlatformCost } from '../entities/platform-cost.entity';
@@ -49,15 +49,16 @@ export class AdminFinanceService {
     scalesWithListings?: boolean;
     notes?: string;
   }) {
+    const normalized = this.normalizeCostInput(input, true);
     const row = this.costRepo.create({
-      name: input.name,
-      category: input.category as any,
-      recurrence: input.recurrence as any,
-      monthlyCostCents: Math.max(0, Math.floor(input.monthlyCostCents)),
-      percentOfRevenue: input.percentOfRevenue ?? null,
-      description: input.description ?? null,
-      scalesWithListings: input.scalesWithListings ?? false,
-      notes: input.notes ?? null,
+      name: normalized.name,
+      category: normalized.category as any,
+      recurrence: normalized.recurrence as any,
+      monthlyCostCents: normalized.monthlyCostCents,
+      percentOfRevenue: normalized.percentOfRevenue ?? null,
+      description: normalized.description ?? null,
+      scalesWithListings: normalized.scalesWithListings ?? false,
+      notes: normalized.notes ?? null,
       active: true,
     });
     return this.costRepo.save(row);
@@ -79,7 +80,7 @@ export class AdminFinanceService {
   ) {
     const row = await this.costRepo.findOne({ where: { id } });
     if (!row) throw new NotFoundException('Custo não encontrado');
-    Object.assign(row, input);
+    Object.assign(row, this.normalizeCostInput(input, false));
     return this.costRepo.save(row);
   }
 
@@ -501,11 +502,119 @@ export class AdminFinanceService {
   ) {
     const plan = await this.planRepo.findOne({ where: { name } });
     if (!plan) throw new NotFoundException(`Plano '${name}' não encontrado`);
-    Object.assign(plan, input);
+    Object.assign(plan, this.normalizePlanPricingInput(input));
     return this.planRepo.save(plan);
   }
 
   async listPlans() {
     return this.planRepo.find({ order: { createdAt: 'ASC' } });
+  }
+
+  private normalizeCostInput(input: Record<string, any>, requireRequired: boolean) {
+    const allowedCategories = ['infra', 'apis', 'comms', 'payments', 'people', 'marketing', 'legal', 'data', 'other'];
+    const allowedRecurrences = ['monthly', 'usage_based', 'one_time', 'percentual'];
+    const next: Record<string, any> = {};
+
+    if (requireRequired || input.name !== undefined) {
+      const name = String(input.name ?? '').trim();
+      if (name.length < 2 || name.length > 128) {
+        throw new BadRequestException('name deve ter 2..128 caracteres');
+      }
+      next.name = name;
+    }
+    if (requireRequired || input.category !== undefined) {
+      if (!allowedCategories.includes(input.category)) {
+        throw new BadRequestException('category invalida');
+      }
+      next.category = input.category;
+    }
+    if (requireRequired || input.recurrence !== undefined) {
+      if (!allowedRecurrences.includes(input.recurrence)) {
+        throw new BadRequestException('recurrence invalida');
+      }
+      next.recurrence = input.recurrence;
+    }
+    if (requireRequired || input.monthlyCostCents !== undefined) {
+      const cents = Number(input.monthlyCostCents ?? 0);
+      if (!Number.isFinite(cents) || cents < 0 || cents > 100_000_000) {
+        throw new BadRequestException('monthlyCostCents invalido');
+      }
+      next.monthlyCostCents = Math.floor(cents);
+    }
+    if (input.percentOfRevenue !== undefined) {
+      if (input.percentOfRevenue === null || input.percentOfRevenue === '') {
+        next.percentOfRevenue = null;
+      } else {
+        const percent = Number(input.percentOfRevenue);
+        if (!Number.isFinite(percent) || percent < 0 || percent > 100) {
+          throw new BadRequestException('percentOfRevenue deve estar entre 0 e 100');
+        }
+        next.percentOfRevenue = percent;
+      }
+    }
+    if (input.description !== undefined) {
+      next.description = input.description ? String(input.description).slice(0, 255) : null;
+    }
+    if (input.notes !== undefined) {
+      next.notes = input.notes ? String(input.notes).slice(0, 5000) : null;
+    }
+    if (input.scalesWithListings !== undefined) next.scalesWithListings = Boolean(input.scalesWithListings);
+    if (input.active !== undefined) next.active = Boolean(input.active);
+
+    return next;
+  }
+
+  private normalizePlanPricingInput(input: Record<string, any>) {
+    const allowed = [
+      'price',
+      'priceAnnual',
+      'priceMonthly',
+      'priceQuarterly',
+      'priceSemestral',
+      'priceAnnualNew',
+      'originalPriceMonthly',
+      'originalPriceQuarterly',
+      'originalPriceSemestral',
+      'originalPriceAnnualNew',
+      'discountQuarterlyPercent',
+      'discountSemestralPercent',
+      'discountAnnualPercent',
+      'propertyLimit',
+      'title',
+      'features',
+      'isActive',
+      'highlightBadge',
+      'discountBadge',
+    ];
+    const next: Record<string, any> = {};
+    for (const key of allowed) {
+      if (!(key in input)) continue;
+      const value = input[key];
+      if (key.startsWith('discount')) {
+        const percent = Number(value);
+        if (!Number.isInteger(percent) || percent < 0 || percent > 100) {
+          throw new BadRequestException(`${key} deve ser inteiro entre 0 e 100`);
+        }
+        next[key] = percent;
+      } else if (key === 'propertyLimit') {
+        if (value === null || value === '') {
+          next.propertyLimit = null;
+        } else {
+          const limit = Number(value);
+          if (!Number.isInteger(limit) || limit < 0 || limit > 100000) {
+            throw new BadRequestException('propertyLimit invalido');
+          }
+          next.propertyLimit = limit;
+        }
+      } else if (key === 'features') {
+        if (!Array.isArray(value)) throw new BadRequestException('features deve ser array');
+        next.features = value.map((item) => String(item).trim()).filter(Boolean).slice(0, 50);
+      } else if (key === 'isActive') {
+        next.isActive = Boolean(value);
+      } else {
+        next[key] = value == null ? null : String(value).trim().slice(0, 255);
+      }
+    }
+    return next;
   }
 }

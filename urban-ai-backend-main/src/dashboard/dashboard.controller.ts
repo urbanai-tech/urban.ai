@@ -2,10 +2,14 @@ import { Controller, ForbiddenException, Get, Param, Query, Req, UseGuards } fro
 import { DashboardService } from './dashboard.service';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RoiService } from 'src/roi/roi.service';
 
 @Controller()
 export class DashboardController {
-    constructor(private readonly dashboardService: DashboardService) {
+    constructor(
+        private readonly dashboardService: DashboardService,
+        private readonly roiService: RoiService,
+    ) {
 
     }
     @Get('receita-projetada/:usuarioId')
@@ -116,6 +120,20 @@ async quantidadeEnderecos(@Param('usuarioId') usuarioId: string, @Req() req: any
   async getDashboard(@Req() req: any, @Query('propertyId') propertyId: string) {
     console.log("parametro:", propertyId)
     return this.dashboardService.getDashBoard(req.user.userId, propertyId);
+  }
+
+  @Get('roi/me')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'ROI do anfitriao: dinheiro gerado pela Urban AI' })
+  async myRoi(
+    @Req() req: any,
+    @Query('windowDays') windowDays: string = '30',
+    @Query('propertyId') propertyId?: string,
+  ) {
+    return this.roiService.getUserRoi(req.user.userId, {
+      windowDays: parseInt(windowDays, 10),
+      propertyId,
+    });
   }
 
 }

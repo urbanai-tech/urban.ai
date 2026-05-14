@@ -298,7 +298,7 @@ export default function AdminDashboardPage() {
             />
           </Block>
 
-          <Block title="Dataset & ROI" icon="D" href="/admin/quality">
+          <Block title="Dataset & ROI" icon="D" href="/admin/roi">
             <Stat
               label="Health"
               value={data.dataset.health}

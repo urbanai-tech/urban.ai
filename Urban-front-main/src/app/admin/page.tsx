@@ -215,11 +215,13 @@ export default function AdminPage() {
           <h2 className="text-xl font-bold mb-3">Seções</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             <NavCard href="/admin/finance" title="Financeiro" desc="MRR, custos, margem, custo por imóvel" />
+            <NavCard href="/admin/roi" title="ROI dos anfitriões" desc="Dinheiro gerado, payback e ranking por usuário" />
             <NavCard href="/admin/pricing-config" title="Configurar preços" desc="Editar matriz F6.5 (4 ciclos × planos)" />
             <NavCard href="/admin/waitlist" title="Lista de Espera" desc="Pré-lançamento — gerir convites e referrals" />
             <NavCard href="/admin/users" title="Usuários" desc="Roles, ativação, busca" />
             <NavCard href="/admin/events" title="Motor de eventos" desc="Cobertura, categorias, top relevância" />
             <NavCard href="/admin/events/new" title="+ Cadastrar evento" desc="Camada 3 — curadoria manual (admin-manual)" />
+            <NavCard href="/admin/alpha" title="Painel Alpha" desc="Gustavo/testers: KPIs, export e reprocessamento" />
             <NavCard href="/admin/events/import" title="Importar CSV de eventos" desc="Em lote — SPTuris/PMI/ABRH semestral" />
             <NavCard href="/admin/coverage" title="Cobertura geográfica" desc="Regiões ativas — onde o motor enxerga eventos" />
             <NavCard href="/admin/collectors-health" title="Saúde dos coletores" desc="Volume + qualidade por source (24h/7d)" />

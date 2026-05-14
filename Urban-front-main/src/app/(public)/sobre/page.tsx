@@ -1,45 +1,64 @@
-"use client";
-
-import React from "react";
-import { Box, Container, Heading, Text, VStack } from "@chakra-ui/react";
-
 export default function Sobre() {
   return (
-    <Container maxW="container.lg" py={8}>
-      <VStack spacing={8} align="flex-start">
-        <Heading as="h1" size="2xl" color="#1C1D3B">
-          Sobre a Urban AI
-        </Heading>
-        
-        <Text fontSize="lg" color="gray.700" lineHeight="tall">
-          A Urban AI nasceu com a missão de revolucionar a precificação de aluguéis de curta temporada. 
-          Nós entendemos que o valor de um imóvel não é estático; ele muda dinamicamente de acordo com
-          eventos locais, demanda turística e fatores sazonais.
-        </Text>
-        
-        <Box w="full" bg="white" p={8} borderRadius="xl" boxShadow="sm" borderWidth="1px" borderColor="gray.100">
-          <Heading as="h2" size="lg" mb={4} color="blue.600">
-            Nossa Tecnologia
-          </Heading>
-          <Text fontSize="md" color="gray.600" lineHeight="tall">
-            Utilizando Inteligência Artificial e algoritmos de KNN (K-Nearest Neighbors), cruzamos 
-            informações geográficas precisas (isócronas) com uma vasta base de dados de eventos e shows 
-            para sugerir a precificação mais competitiva para a sua propriedade. Nosso objetivo é 
-            maximizar o seu rendimento sem o esforço de ficar acompanhando a agenda da cidade manualmente.
-          </Text>
-        </Box>
+    <main className="urban-manifesto urban-public-page">
+      <section className="urban-grain urban-public-section" style={{ position: "relative", overflow: "hidden" }}>
+        <div
+          className="urban-glow"
+          style={{ width: 720, height: 720, top: -240, right: -180 }}
+        />
+        <div className="urban-public-container" style={{ position: "relative", zIndex: 2 }}>
+          <p className="urban-eyebrow" style={{ marginBottom: 32 }}>
+            Sobre a Urban AI
+          </p>
+          <h1
+            className="urban-display"
+            style={{
+              fontSize: "clamp(72px, 13vw, 190px)",
+              lineHeight: 0.88,
+              margin: 0,
+              textTransform: "uppercase",
+            }}
+          >
+            A CIDADE MUDA.
+            <br />
+            <span style={{ color: "#E8500A" }}>O PREÇO TAMBÉM.</span>
+          </h1>
+          <p className="urban-public-copy" style={{ maxWidth: 760, marginTop: 48 }}>
+            A Urban AI nasceu para transformar a precificação de aluguéis de curta temporada
+            em uma decisão guiada por dados reais: eventos locais, demanda turística,
+            sazonalidade e o comportamento do bairro em volta do imóvel.
+          </p>
+        </div>
+      </section>
 
-        <Box w="full" bg="#1C1D3B" p={8} borderRadius="xl" color="white" boxShadow="md">
-           <Heading as="h2" size="lg" mb={4} color="white">
-            Nossa Visão
-          </Heading>
-          <Text fontSize="md" lineHeight="tall">
-            Queremos ser a plataforma definitiva para anfitriões que desejam previsibilidade e 
-            lucratividade baseada em dados reais, atuando como o copiloto inteligente para os seus negócios 
-            no setor imobiliário.
-          </Text>
-        </Box>
-      </VStack>
-    </Container>
+      <section className="urban-public-section">
+        <div className="urban-public-container">
+          <div className="urban-public-panel">
+            <p className="urban-eyebrow" style={{ marginBottom: 20 }}>
+              Nossa tecnologia
+            </p>
+            <h2>IA, geografia e calendário urbano.</h2>
+            <p className="urban-public-copy" style={{ maxWidth: 820, margin: 0 }}>
+              Cruzamos informações geográficas, isócronas, base de eventos e sinais de mercado
+              para sugerir preços mais competitivos. O objetivo é simples: ajudar o anfitrião
+              a capturar dias de alta demanda sem precisar acompanhar manualmente tudo o que
+              acontece na cidade.
+            </p>
+          </div>
+
+          <div className="urban-public-panel">
+            <p className="urban-eyebrow" style={{ marginBottom: 20 }}>
+              Nossa visão
+            </p>
+            <h2>Um copiloto de receita para anfitriões.</h2>
+            <p className="urban-public-copy" style={{ maxWidth: 820, margin: 0 }}>
+              Queremos ser a plataforma de referência para quem administra imóveis de curta
+              temporada como negócio: mais previsibilidade, mais clareza e menos decisão no
+              escuro quando a cidade começa a se mover.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }

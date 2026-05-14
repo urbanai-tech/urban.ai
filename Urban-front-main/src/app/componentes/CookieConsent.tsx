@@ -51,28 +51,29 @@ export function CookieConsent() {
     <>
       <Box
         position="fixed"
-        bottom={{ base: 0, md: 4 }}
-        left={{ base: 0, md: 4 }}
-        right={{ base: 0, md: 4 }}
+        bottom={{ base: 0, md: 6 }}
+        left={{ base: 0, md: "auto" }}
+        right={{ base: 0, md: 6 }}
         zIndex={9999}
-        bg="white"
-        borderRadius={{ base: 0, md: "xl" }}
-        boxShadow="0 8px 32px rgba(0,0,0,0.16)"
+        bg="#080A0F"
+        color="white"
+        borderRadius={{ base: 0, md: "lg" }}
+        boxShadow="0 18px 50px rgba(0,0,0,0.38)"
         borderWidth="1px"
-        borderColor="gray.200"
-        p={{ base: 4, md: 5 }}
-        maxW={{ md: "4xl" }}
-        mx="auto"
+        borderColor="rgba(255,255,255,0.16)"
+        p={{ base: 3, md: 4 }}
+        maxW={{ md: "430px" }}
+        mx={{ base: 0, md: "initial" }}
         role="region"
         aria-label="Consentimento de cookies"
       >
         <Flex
-          direction={{ base: "column", md: "row" }}
-          align={{ base: "stretch", md: "center" }}
-          gap={4}
+          direction="column"
+          align="stretch"
+          gap={3}
         >
-          <Box flex="1" fontSize="sm" color="gray.700">
-            <Text fontWeight="bold" mb={1} color="gray.800">
+          <Box flex="1" fontSize="xs" color="rgba(255,255,255,0.70)">
+            <Text fontWeight="bold" mb={1} color="white">
               Privacidade e cookies
             </Text>
             <Text>
@@ -80,7 +81,7 @@ export function CookieConsent() {
               com seu consentimento, cookies opcionais de analytics e
               marketing para entender o uso e melhorar o produto. Veja
               detalhes na{" "}
-              <ChakraLink href="/privacidade" color="blue.600" isExternal={false}>
+              <ChakraLink href="/privacidade" color="#E8500A" isExternal={false}>
                 Política de Privacidade
               </ChakraLink>.
             </Text>
@@ -90,11 +91,13 @@ export function CookieConsent() {
             direction={{ base: "column", sm: "row" }}
             spacing={2}
             flexShrink={0}
-            w={{ base: "full", md: "auto" }}
+            w="full"
           >
             <Button
               size="sm"
               variant="ghost"
+              color="rgba(255,255,255,0.82)"
+              _hover={{ bg: "rgba(255,255,255,0.08)" }}
               onClick={() => {
                 setAnalyticsPref(state.analytics);
                 setMarketingPref(state.marketing);
@@ -103,10 +106,23 @@ export function CookieConsent() {
             >
               Personalizar
             </Button>
-            <Button size="sm" variant="outline" onClick={rejectAll}>
+            <Button
+              size="sm"
+              variant="outline"
+              borderColor="rgba(255,255,255,0.24)"
+              color="white"
+              _hover={{ bg: "rgba(255,255,255,0.08)" }}
+              onClick={rejectAll}
+            >
               Apenas essenciais
             </Button>
-            <Button size="sm" colorScheme="blue" onClick={acceptAll}>
+            <Button
+              size="sm"
+              bg="#E8500A"
+              color="#080A0F"
+              _hover={{ bg: "#ff641f" }}
+              onClick={acceptAll}
+            >
               Aceitar todos
             </Button>
           </Stack>
