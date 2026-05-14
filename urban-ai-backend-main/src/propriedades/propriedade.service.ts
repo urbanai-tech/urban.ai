@@ -1265,7 +1265,22 @@ export class PropriedadeService {
                 return { ok: false, reason: 'missing_airbnb_price', pricingGenerated: 0 };
             }
 
-            const alerts = await this.buscarAlertPorId(address?.idAlertAirb);
+            let alerts: APITypes | null = null;
+            if (address?.idAlertAirb && address.idAlertAirb !== 'scraping_direct') {
+                try {
+                    alerts = await this.buscarAlertPorId(address.idAlertAirb);
+                } catch (error) {
+                    this.logger.warn(
+                        `Falha ao buscar comps externos para list=${listId}; tentando fallback direto: ${
+                            error instanceof Error ? error.message : String(error)
+                        }`,
+                    );
+                }
+            }
+
+            if (!alerts?.comps?.length) {
+                alerts = await this.buildDirectScrapingComps(address, list, dadosAirbnb);
+            }
 
             this.logger.debug(`Dados Airbnb carregados para list=${list?.id}`);
             if (!alerts?.comps?.length) {
@@ -1625,6 +1640,127 @@ export class PropriedadeService {
                 reason: err instanceof Error ? err.message : String(err),
             };
         }
+    }
+
+    private async buildDirectScrapingComps(
+        address: Address,
+        list: List,
+        dadosAirbnb: FirstAvailablePriceResult,
+    ): Promise<APITypes | null> {
+        const targetPrice = Number(getDiaria(dadosAirbnb));
+        const targetDetails = dadosAirbnb?.propertyDetails as any;
+        const comps: any[] = [];
+
+        const candidates = await this.addressRepository.find({
+            where: { ativo: true },
+            relations: ['list'],
+            take: 50,
+        });
+
+        const nearby = [];
+        for (const candidate of candidates) {
+            if (!candidate?.list?.id_do_anuncio || candidate.list.id === list.id) continue;
+            if (!candidate.latitude || !candidate.longitude || !address.latitude || !address.longitude) continue;
+            const distanceKm = await calculateDistance(
+                Number(address.latitude),
+                Number(address.longitude),
+                Number(candidate.latitude),
+                Number(candidate.longitude),
+            );
+            if (distanceKm <= 10) nearby.push({ candidate, distanceKm });
+        }
+
+        nearby.sort((a, b) => a.distanceKm - b.distanceKm);
+
+        for (const { candidate, distanceKm } of nearby.slice(0, 5)) {
+            let dailyPrice = this.resolveStoredDailyPrice(candidate.list);
+            let details: any = null;
+            if (!dailyPrice) {
+                try {
+                    const quote = await this.airbnbService.getFirstAvailablePrice(candidate.list.id_do_anuncio);
+                    dailyPrice = Number(getDiaria(quote));
+                    details = quote.propertyDetails as any;
+                } catch (error) {
+                    this.logger.warn(
+                        `Fallback comps: sem preco para listing=${candidate.list.id_do_anuncio}: ${
+                            error instanceof Error ? error.message : String(error)
+                        }`,
+                    );
+                }
+            }
+            if (!dailyPrice || dailyPrice <= 0) continue;
+            comps.push(this.toDirectComp(candidate, dailyPrice, details, distanceKm));
+        }
+
+        if (comps.length === 0 && targetPrice > 0) {
+            comps.push(this.toDirectComp(address, targetPrice, targetDetails, 0));
+        }
+
+        if (comps.length === 0) return null;
+
+        return {
+            id: `direct-${address.id}`,
+            latitude: Number(address.latitude),
+            longitude: Number(address.longitude),
+            bedrooms: Number(targetDetails?.bedrooms ?? list.quartos ?? 1),
+            bathrooms: Number(targetDetails?.bathrooms ?? list.banheiros ?? 1),
+            accommodates: Number(targetDetails?.guestMaximum ?? list.hospedes ?? 1),
+            created_at: new Date(),
+            radius: 10,
+            comps_status: 'direct_scraping_fallback',
+            comps,
+            kpis: {} as any,
+        };
+    }
+
+    private toDirectComp(address: Address, dailyPrice: number, details: any, distanceKm: number): any {
+        const list = address.list as List;
+        return {
+            listingID: list?.id_do_anuncio,
+            bathrooms: Number(details?.bathrooms ?? list?.banheiros ?? 1),
+            bedrooms: String(Number(details?.bedrooms ?? list?.quartos ?? 1)),
+            accommodates: Number(details?.guestMaximum ?? list?.hospedes ?? 1),
+            name: list?.titulo ?? `Listing ${list?.id_do_anuncio}`,
+            thumbnail_url: list?.pictureUrl ?? '',
+            host_id: '',
+            host_name: '',
+            room_type: 'entire_home',
+            latitude: Number(address.latitude),
+            longitude: Number(address.longitude),
+            minimum_nights: 1,
+            visible_review_count: Number(list?.reviewCount ?? 0),
+            reveiw_scores_rating: Number(list?.rating ?? 0) || null,
+            amenities: {},
+            cleaning_fee: null,
+            annual_revenue_ltm: 0,
+            revenue_potential: 0,
+            avg_occupancy_rate_ltm: 0,
+            avg_booked_daily_rate_ltm: Number(dailyPrice),
+            active_days_count_ltm: 0,
+            no_of_bookings_ltm: null,
+            booked_daily_rate_ltm_monthly: {},
+            revenue_ltm_monthly: {},
+            occupancy_rate_ltm_monthly: {},
+            no_of_bookings_ltm_monthly: {},
+            is_selected: 0,
+            last_seen: new Date(),
+            thumbnail_url_extended: null,
+            rank: 1,
+            similarity_score_meta: {},
+            similarity_score: Number(Math.max(0.5, 1 - distanceKm / 10).toFixed(2)),
+            distance: distanceKm,
+        };
+    }
+
+    private resolveStoredDailyPrice(list: List): number | null {
+        const rawList = list as any;
+        const direct = Number(rawList?.dailyPrice);
+        if (Number.isFinite(direct) && direct > 0) return direct;
+        const raw = Number(rawList?.raw);
+        if (Number.isFinite(raw) && raw > 0) return raw;
+        const priceText = String(rawList?.priceText ?? '').replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.');
+        const parsed = Number(priceText);
+        return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
     }
     async getEventosByEnderecoForMap(
         enderecoId: string,
