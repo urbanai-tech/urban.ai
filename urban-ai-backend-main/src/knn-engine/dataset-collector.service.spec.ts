@@ -97,7 +97,33 @@ describe('DatasetCollectorService', () => {
     process.env = originalEnv;
   });
 
-  it('reports owned listing snapshot as blocked when no price resolver is wired', async () => {
+  it('captures owned listing snapshots from stored listing prices without an external resolver', async () => {
+    const list = makeRepo({
+      findResult: [
+        { id: 'list-1', dailyPrice: 387, raw: 774, priceText: 'R$774' },
+        { id: 'list-2', priceText: 'R$ 1.234,56' },
+      ],
+    });
+    const { service, snapshot } = buildService({ list });
+
+    const result = await service.recordOwnedListingsSnapshot();
+
+    expect(result.status).toBe('ok');
+    expect(result.totalLists).toBe(2);
+    expect(result.captured).toBe(2);
+    expect(result.skippedMissingPrice).toBe(0);
+    expect(result.externalDataAvailable).toBe(false);
+    expect(snapshot.save).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ externalListingId: 'urban-list:list-1', priceCents: 38700 }),
+    );
+    expect(snapshot.save).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ externalListingId: 'urban-list:list-2', priceCents: 123456 }),
+    );
+  });
+
+  it('reports owned listing snapshot as blocked when no stored or external price is available', async () => {
     const list = makeRepo({ findResult: [{ id: 'list-1' }, { id: 'list-2' }] });
     const { service, snapshot } = buildService({ list });
 
@@ -107,7 +133,6 @@ describe('DatasetCollectorService', () => {
     expect(result.totalLists).toBe(2);
     expect(result.captured).toBe(0);
     expect(result.skippedMissingPrice).toBe(2);
-    expect(result.externalDataAvailable).toBe(false);
     expect(snapshot.save).not.toHaveBeenCalled();
   });
 

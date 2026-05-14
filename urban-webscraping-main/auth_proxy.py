@@ -16,6 +16,13 @@ from urllib.request import Request, urlopen
 SCRAPYD_PORT = 6801
 PROXY_PORT = int(os.environ.get("PORT", "8080"))
 API_KEY = os.environ.get("SCRAPYD_API_KEY", "")
+COLLECTOR_CRON_INTERVAL_SECONDS = int(os.environ.get("COLLECTOR_CRON_INTERVAL_SECONDS", "21600"))
+RUN_COLLECTORS_ON_BOOT = os.environ.get("RUN_COLLECTORS_ON_BOOT", "true").lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
 logger = logging.getLogger(__name__)
 
 
@@ -30,19 +37,28 @@ def start_scrapyd():
 
 
 def cron_worker():
-    """Executa os coletores diariamente em background."""
+    """Executa os coletores periodicamente em background."""
+    if not RUN_COLLECTORS_ON_BOOT:
+        logger.info(
+            "[cron-worker] Initial run disabled; sleeping %s seconds before first collectors run.",
+            COLLECTOR_CRON_INTERVAL_SECONDS,
+        )
+        time.sleep(COLLECTOR_CRON_INTERVAL_SECONDS)
+
     while True:
         try:
             logger.info("[cron-worker] Iniciando bateria de coletores REST...")
-            # Execute the shell script
             script_path = os.path.join(os.getcwd(), "scripts", "run_all_collectors.sh")
             subprocess.run(["bash", script_path], check=True)
             logger.info("[cron-worker] Bateria de coletores finalizada com sucesso.")
         except Exception as e:
             logger.exception("[cron-worker] Erro ao executar coletores: %s", e)
 
-        # Dorme por 24 horas (86400 segundos)
-        time.sleep(86400)
+        logger.info(
+            "[cron-worker] Proxima bateria de coletores em %s segundos.",
+            COLLECTOR_CRON_INTERVAL_SECONDS,
+        )
+        time.sleep(COLLECTOR_CRON_INTERVAL_SECONDS)
 
 
 def wait_for_scrapyd(timeout=30):
@@ -136,7 +152,11 @@ def main():
     # Inicia o cron-worker em background
     cron_thread = threading.Thread(target=cron_worker, daemon=True)
     cron_thread.start()
-    logger.info("[auth-proxy] Cron worker started in background.")
+    logger.info(
+        "[auth-proxy] Cron worker started in background (interval=%ss run_on_boot=%s).",
+        COLLECTOR_CRON_INTERVAL_SECONDS,
+        RUN_COLLECTORS_ON_BOOT,
+    )
 
     server = HTTPServer(("0.0.0.0", PROXY_PORT), AuthProxyHandler)
 
