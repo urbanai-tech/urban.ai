@@ -24,6 +24,11 @@ const NAV = [
   { label: "Contato", href: "/contato" },
 ];
 
+function appHref(path = "") {
+  if (!path) return APP_URL;
+  return `${APP_URL.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+}
+
 export default function HeaderPublic() {
   const [open, setOpen] = useState(false);
 
@@ -141,7 +146,7 @@ export default function HeaderPublic() {
             Entrar
           </a>
           <a
-            href={`${APP_URL}create`.replace(/\/+create/, "/create")}
+            href={appHref("/create")}
             style={{
               fontSize: 12,
               letterSpacing: 2,
@@ -243,7 +248,7 @@ export default function HeaderPublic() {
             Entrar
           </a>
           <a
-            href={`${APP_URL}create`.replace(/\/+create/, "/create")}
+            href={appHref("/create")}
             style={{
               marginTop: 12,
               padding: "16px 24px",

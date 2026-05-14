@@ -1,26 +1,24 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Smoke tests — verificam que as páginas públicas respondem 200 e renderizam
- * o conteúdo essencial. Não cobrem fluxo autenticado — esse virá quando
- * staging estiver provisionado (F5C.2 item 11), permitindo signup real contra
- * um backend não-produtivo.
+ * Smoke tests - public production-safe checks.
+ * Authenticated E2E needs a real beta tester credential or a staging seed user.
  */
 
-test.describe('Smoke — rotas públicas', () => {
-  test('home responde e não explode', async ({ page }) => {
+test.describe('Smoke - rotas publicas', () => {
+  test('home responde e nao explode', async ({ page }) => {
     const response = await page.goto('/');
     expect(response?.status(), 'home should respond 200-ish').toBeLessThan(400);
     await expect(page).toHaveTitle(/urban ai/i);
   });
 
-  test('landing de lançamento tem o copy da "Síndrome da Casa Barata"', async ({ page }) => {
+  test('landing de lancamento tem hero e CTA de acesso antecipado', async ({ page }) => {
     await page.goto('/lancamento');
-    await expect(page.locator('text=Síndrome Da Casa Barata')).toBeVisible();
-    await expect(page.locator('#cta-piloto-automatico-hero')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /ESGOTAR R.PIDO/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /LISTA DE ACESSO ANTECIPADO/i })).toBeVisible();
   });
 
-  test('landing tem formulário de waitlist e aceita entrada de e-mail', async ({ page }) => {
+  test('landing tem formulario de waitlist e aceita entrada de e-mail', async ({ page }) => {
     await page.goto('/lancamento#waitlist');
     const input = page.locator('input[type="email"][id="waitlist-email"]');
     await expect(input).toBeVisible();
@@ -28,21 +26,27 @@ test.describe('Smoke — rotas públicas', () => {
     await expect(page.locator('button[type="submit"]')).toBeEnabled();
   });
 
-  test('página de planos mostra os 2 planos (Starter, Profissional)', async ({ page }) => {
+  test('link criar conta do header aponta para o app com barra correta', async ({ page }) => {
+    await page.goto('/lancamento');
+    await expect(page.getByRole('link', { name: 'Criar conta' }).first()).toHaveAttribute(
+      'href',
+      /https:\/\/app\.myurbanai\.com\/create$/,
+    );
+  });
+
+  test('pagina de planos mostra os 2 planos ou redireciona para auth', async ({ page }) => {
     await page.goto('/plans');
-    // Essas páginas podem exigir auth em certas configs; aceitamos redirect
-    // para login desde que a navegação não quebre.
     const url = page.url();
     const reachedPlansOrLogin = /\/plans|\/(login|auth)/.test(url);
     expect(reachedPlansOrLogin, `inesperado: ${url}`).toBe(true);
   });
 });
 
-test.describe('Smoke — sinalizações de ambiente', () => {
+test.describe('Smoke - sinalizacoes de ambiente', () => {
   test('banner de STAGING aparece quando NEXT_PUBLIC_APP_ENV=staging', async ({ page, baseURL }) => {
     test.skip(
       !baseURL?.includes('staging'),
-      'Sobe só quando rodando contra staging — em prod, banner não deve aparecer.',
+      'Sobe so quando rodando contra staging - em prod, banner nao deve aparecer.',
     );
     await page.goto('/');
     await expect(page.locator('text=/STAGING/i')).toBeVisible();
