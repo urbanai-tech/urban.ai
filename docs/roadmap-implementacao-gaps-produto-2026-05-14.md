@@ -2,7 +2,7 @@
 
 Data: 2026-05-14
 Ultima atualizacao de acompanhamento: 2026-05-14
-Base: `docs/auditoria-produto-lancamento-2026-05-13.md`, `docs/roadmap-pos-sprint.md`, `docs/backlog-produto-pos-assuncao.md`, `docs/go-live-manual-checklist.md`, codigo local em andamento em `Urban-front-main/`, `urban-ai-backend-main/` e `urban-webscraping-main/`.
+Base: `docs/auditoria-produto-lancamento-2026-05-13.md`, `docs/roadmap-pos-sprint.md`, `docs/backlog-produto-pos-assuncao.md`, `docs/go-live-manual-checklist.md`, commits recentes em `main/origin` e codigo em `Urban-front-main/`, `urban-ai-backend-main/` e `urban-webscraping-main/`.
 Objetivo: transformar todos os gaps encontrados na auditoria de produto em plano executavel, com fases, tarefas, dependencias, criterios de aceite e gates de lancamento.
 
 ---
@@ -32,50 +32,94 @@ A Urban AI deve seguir por tres marcos, em vez de tentar um go-live publico dire
 
 ## 2. Fases macro
 
-| Fase | Janela sugerida | Tema | Status em 2026-05-14 | Gate de saida |
-|---|---:|---|---|---|
-| F0 | 0-1 dia | Alinhamento e baseline de execucao | Em andamento | Backlog fechado, branch/processo definidos, metricas base salvas. |
-| F1 | 2-3 dias | Pre-lancamento seguro | Parcialmente implementado em codigo; falta validar prod | Waitlist testada, analytics pronto, copy ajustada. |
-| F2 | 3-7 dias | Eventos vivos | Parcialmente implementado; falta rodar coletores e medir base real | >= 200 eventos futuros SP/30d ou fallback manual ativo; coletores com lastSeen < 48h. |
-| F3 | 3-7 dias | Recomendacoes novas | Parcialmente implementado; falta prova em prod/controlado | Recomendacoes com `criado_em` atual; cobertura >= 70% dos imoveis ativos em regioes cobertas. |
-| F4 | 1-2 semanas | Dataset, qualidade e ROI | Parcialmente implementado; dataset ainda depende de fonte de preco/ocupacao | Snapshots por 7 dias, preco aplicado capturado, relatorio de qualidade inicial. |
-| F5 | 3-5 dias | Billing e planos | Parcialmente implementado; falta smoke Stripe/KYC | Checkout/webhook/quota/cancelamento testados; status de pagamentos saneado. |
-| F6 | 1-2 semanas apos credenciais | Stays beta privado | Mantido como beta privado/oculto; credenciais e smoke pendentes | Connect/sync/push/rollback testado com conta real ou sandbox. |
-| F7 | 1-2 semanas em paralelo | Admin, ops e confiabilidade | Dashboard executivo parcial entregue; jobs/audit/staging pendentes | Jobs/admin/audit/staging/observabilidade cobrindo operacao diaria. |
-| F8 | 2 semanas | Beta fechado assistido | Nao iniciado comercialmente | 5-10 anfitrioes ativos, feedback semanal, primeiros cases. |
-| F9 | apos gates | Beta pago / go-live controlado | Nao liberado | 3 cases, billing ok, suporte/termos/observabilidade ok. |
-| F10 | continuo | Evolucao IA/moat | Fundacao parcial; sem dataset real suficiente | Tier 1/2 com dataset real, MAPE, shadow mode e roadmap ML. |
+### 2.0 Placar rapido em porcentagens
+
+As porcentagens abaixo sao estimativas operacionais para acompanhamento. Elas combinam codigo pronto, validacao em ambiente real, dependencias externas e prova de produto. Nao sao "percentual de linhas de codigo"; sao percentual de prontidao para usar com seguranca.
+
+| Marco | Prontidao | Leitura simples | O que falta para 100% |
+|---|---:|---|---|
+| M1 - Pre-lancamento seguro | **79%** | Waitlist, convite definitivo e painel admin estao bem mais operaveis; falta prova real ponta-a-ponta. | GA4/Pixel reais, teste com 5 leads, smoke de convite em staging/prod e conferir copy em todos os canais. |
+| M2 - Beta fechado assistido | **53%** | O core ganhou mais operacao: preco aplicado alimenta dataset, admin roda snapshot e coletores alertam com menos falso positivo. | Eventos futuros suficientes, recomendacoes com data atual, snapshots por 7 dias e amostra real de preco aplicado. |
+| M3 - Beta pago / go-live controlado | **40%** | Operacao, release gate e historico de jobs melhoraram, mas ainda nao ha prova suficiente para cobrar com tranquilidade. | Stripe/KYC/smoke, cases, audit log amplo, suporte e legal. |
+| M4 - Go-live publico | **30%** | Fundacao operacional mais madura, prova de mercado ainda insuficiente. | 3 cases auditados, cobertura alta, dataset/ROI, suporte, observabilidade e billing maduros. |
+
+| Area | Pronto | O que ja esta pronto | Principal bloqueio |
+|---|---:|---|---|
+| Narrativa e prelaunch | **80%** | Copy mais segura, `LAUNCH_MODE`, envs publicas no Docker, waitlist/analytics instrumentados, aceite de convite real e admin com reenvio/copia de link. | Validar fluxo real com 5 leads e confirmar GA4/Pixel. |
+| Eventos e coletores | **60%** | Runner estruturado, cron configuravel, Docker corrigido, fontes gratuitas/camadas ja codadas, health alinhado com aliases/criticidade do runner. | Medir eventos futuros reais apos deploy e popular 100-200 eventos SP/30d. |
+| Recomendacoes de preco | **48%** | Job com contadores, dedupe, motivos de falha, `criadoEm` atualizado, dashboard com cobertura. | Provar recomendacoes novas em prod/controlado e atingir >=70% de cobertura beta. |
+| Dataset, IA e ROI | **48%** | Diagnostics, snapshots usando preco armazenado, UI de preco aplicado, preco aplicado gravado em `PriceSnapshot` e snapshot manual no admin. | Ocupacao, features diarias, 7 dias de snapshots, MAPE/cases. |
+| Billing e Stripe | **55%** | Resolver de Price IDs, seed idempotente, erro claro, webhook/status, migration `peding`. | Smoke checkout/webhook/quota/cancelamento e KYC/live. |
+| Stays automatico | **25%** | Produto reposicionado como beta privado; guardrails conceituais e admin sinalizam falta de env. | Credenciais, criptografia, connect/sync/push/rollback real. |
+| Admin e operacao | **68%** | Dashboard executivo com eventos, pricing, dataset, billing e Stays; `/admin/jobs` roda geocoder/reset/snapshot com historico persistente; waitlist permite reenvio/copia de convite. | Audit log amplo, drill-down por propriedade, alertas externos. |
+| Infra/release | **57%** | Health/config melhores, Docker frontend/webscraping corrigido, runner evita sucesso falso, runbook de release gate, protocolo para devs/agentes e migration de historico admin. | Staging, branch protection, smoke automatizado, restore drill. |
+| Legal/LGPD | **40%** | Consentimento de analytics/marketing e copy conservadora. | DPAs, revisao juridica final, processo LGPD, consentimentos versionados. |
+| Marketing/beta | **30%** | Atribuicao/referral pronta para medir campanhas. | ICP, recrutamento, playbook beta, oferta e cases. |
+| Testes E2E | **41%** | Spec inicial de prelaunch/waitlist/analytics; build backend, typecheck frontend e build Next passaram nesta rodada. | Smokes completos de login, onboarding, dashboard, reset/e-mail e checkout. |
+
+Resumo honesto: **pre-lancamento esta perto**, **beta fechado ainda depende do core voltar a gerar valor real**, e **beta pago/go-live continuam bloqueados por prova de ROI, Stripe validado e operacao**.
+
+| Fase | Janela sugerida | Tema | Pronto | Status em 2026-05-14 | Gate de saida |
+|---|---:|---|---:|---|---|
+| F0 | 0-1 dia | Alinhamento e baseline de execucao | 70% | Protocolo de trabalho paralelo criado; falta branch/processo formal de release | Backlog fechado, branch/processo definidos, metricas base salvas. |
+| F1 | 2-3 dias | Pre-lancamento seguro | 79% | Convite definitivo e admin waitlist avancaram; falta validar prod/staging | Waitlist testada, analytics pronto, copy ajustada. |
+| F2 | 3-7 dias | Eventos vivos | 60% | Runner/cron/container corrigidos e health menos ruidoso; falta medir base real apos deploy | >= 200 eventos futuros SP/30d ou fallback manual ativo; coletores com lastSeen < 48h. |
+| F3 | 3-7 dias | Recomendacoes novas | 48% | Parcialmente implementado; falta prova em prod/controlado | Recomendacoes com `criado_em` atual; cobertura >= 70% dos imoveis ativos em regioes cobertas. |
+| F4 | 1-2 semanas | Dataset, qualidade e ROI | 48% | Snapshot automatizado/manual avancou e preco aplicado alimenta `PriceSnapshot`; ocupacao/features/ROI ainda pendentes | Snapshots por 7 dias, preco aplicado capturado, relatorio de qualidade inicial. |
+| F5 | 3-5 dias | Billing e planos | 55% | Parcialmente implementado; falta smoke Stripe/KYC | Checkout/webhook/quota/cancelamento testados; status de pagamentos saneado. |
+| F6 | 1-2 semanas apos credenciais | Stays beta privado | 25% | Mantido como beta privado/oculto; credenciais e smoke pendentes | Connect/sync/push/rollback testado com conta real ou sandbox. |
+| F7 | 1-2 semanas em paralelo | Admin, ops e confiabilidade | 68% | Dashboard executivo + jobs manuais com historico persistente + docs de release/protocolo; audit amplo/staging pendentes | Jobs/admin/audit/staging/observabilidade cobrindo operacao diaria. |
+| F8 | 2 semanas | Beta fechado assistido | 30% | Nao iniciado comercialmente; operacao da waitlist ficou mais pronta | 5-10 anfitrioes ativos, feedback semanal, primeiros cases. |
+| F9 | apos gates | Beta pago / go-live controlado | 27% | Nao liberado; release gate e historico de jobs documentado/implementado, mas billing/cases seguem bloqueando | 3 cases, billing ok, suporte/termos/observabilidade ok. |
+| F10 | continuo | Evolucao IA/moat | 32% | Fundacao parcial; dataset proprio ganhou entrada de preco aplicado | Tier 1/2 com dataset real, MAPE, shadow mode e roadmap ML. |
 
 ### 2.1 Acompanhamento executivo - 2026-05-14
 
-Legenda: **feito em codigo** = implementado no workspace local, ainda sujeito a testes/deploy; **validar** = precisa rodar em staging/producao ou com credencial real; **pendente** = ainda nao implementado.
+Legenda: **feito em codigo** = implementado e commitado, ainda sujeito a validacao de ambiente; **validar** = precisa rodar em staging/producao ou com credencial real; **pendente** = ainda nao implementado.
 
 | Frente | Feito em codigo | Falta validar | Ainda pendente |
 |---|---|---|---|
 | A - Narrativa | Copy publica removeu promessa direta de "30%" e automatismo forte em `/landing` e `/lancamento`. `LAUNCH_MODE` entrou no `public-config`. | Conferir todas as paginas, pitch e materiais externos. | Matriz final de mensagens por modo e FAQ explicando recomendacao. |
-| B - Waitlist e analytics | GA4/Meta continuam gated por consentimento; atribuicao first/last touch, UTM/referral, eventos `waitlist_signup`, `waitlist_referral_*` e fallback para backend `/waitlist` foram adicionados. | Teste ponta-a-ponta em producao/staging com GA4/Pixel reais e 5 inscricoes teste. | Aceite definitivo de convite ainda nao cria usuario real no backend; e-mails de waitlist e A/B test continuam pendentes. |
-| C - Eventos e coletores | `run_all_collectors.sh` agora chama runner Python estruturado; coletores opcionais sem chave viram `skipped/missing_key`; falha critica retorna exit code; resumo machine-readable foi adicionado. | Rodar `DRY_RUN` e execucao real no ambiente do cron; confirmar `lastSeen`, `created24h` e eventos futuros no banco. | Popular 100-200 eventos futuros SP; configurar API Football/SerpAPI/Tavily/Firecrawl se aprovadas; termos/fallback por fonte. |
+| B - Waitlist e analytics | GA4/Meta continuam gated por consentimento; atribuicao first/last touch, UTM/referral, eventos `waitlist_signup`, `waitlist_referral_*` e fallback para backend `/waitlist` foram adicionados. Docker do front expoe envs publicas no build. Aceite definitivo em `/auth/waitlist/accept` cria usuario real, marca waitlist como converted, bloqueia duplicidade com 409 claro e o admin permite convidar/reenviar/copiar link. | Teste ponta-a-ponta em producao/staging com GA4/Pixel reais, build Docker/Railway, 5 inscricoes teste e 1 convite aceito em conta real. | E-mails de waitlist, A/B test e revisao final de copy/canais continuam pendentes. |
+| C - Eventos e coletores | `run_all_collectors.sh` agora chama runner Python estruturado; coletores opcionais sem chave viram `skipped/missing_key`; falha critica retorna exit code; resumo machine-readable foi adicionado. Cron de coletores ficou configuravel (`COLLECTOR_CRON_INTERVAL_SECONDS`, `RUN_COLLECTORS_ON_BOOT`), roda o modulo Python direto no container e o spider legado correto e `even3`. Health admin passou a respeitar aliases e criticidade real do runner. | Rodar `DRY_RUN` e execucao real no container/Railway; confirmar `lastSeen`, `created24h` e eventos futuros no banco. | Popular 100-200 eventos futuros SP; configurar API Football/SerpAPI/Tavily/Firecrawl se aprovadas; termos/fallback por fonte. |
 | D - Recomendacoes | Job de processamento ganhou contadores reais, dedupe de analises, motivos de falha, skip de evento passado e update de `criadoEm` ao recalcular recomendacao. Dashboard mostra coverage/created24h e alertas. | Reprocessar imoveis em ambiente controlado e provar recomendacoes novas com data atual. | Status completo sugerida/aceita/aplicada/rejeitada/expirada, expiracao formal e simulador admin. |
-| E - Dataset e ROI | `DatasetCollectorService` ganhou diagnostics de readiness, blockers, dependencias externas e metricas de `PriceSnapshot`, ocupacao e features. UI permite registrar preco aplicado manualmente no card de recomendacao. | Confirmar migration/tabelas em prod, rodar snapshot com fonte real de preco e ver crescimento por 7 dias. | Fonte real de preco para snapshots proprios, captura/import de ocupacao, `EventProximityFeature` diario, MAPE/cases. |
+| E - Dataset e ROI | `DatasetCollectorService` ganhou diagnostics de readiness, blockers, dependencias externas e metricas de `PriceSnapshot`, ocupacao e features. Snapshot proprio tenta usar preco armazenado em `dailyPrice`, `raw` ou `priceText`. UI permite registrar preco aplicado manualmente e o backend grava esse valor em `PriceSnapshot`. Admin expõe diagnostics e execucao manual de snapshot. | Confirmar migration/tabelas em prod, rodar snapshot automatico por 7 dias e validar se os listings reais tem preco armazenado/utilizavel. | Captura/import de ocupacao, `EventProximityFeature` diario, MAPE/cases e fonte externa AirROI/GCP quando aprovada. |
 | F - Billing e Stripe | Resolvedor unico de Price ID por plano/ciclo; seed de planos ficou idempotente; checkout falha com erro claro se Stripe/URLs nao estiverem configurados; webhook normaliza status; migration corrige `peding` para `pending`. | Smoke Stripe: checkout, webhook, quota, cancelamento e sync check 8/8. Confirmar KYC/live mode. | E-mails transacionais de billing reais e upsell de quantity. |
 | G - Stays | Copy/onboarding reposicionam automatico como beta privado via Stays, com preview/consent/rollback como requisito. Admin dashboard explicita se Stays esta em beta privado por falta de envs. | Configurar `STAYS_API_BASE_URL` e `STAYS_TOKEN_ENCRYPTION_KEY` em staging/sandbox. | Connect/sync/push/rollback real, allowlist, consentimento auditavel e auto-match listing. |
 | H - Onboarding e dashboard | Empty states no dashboard explicam imovel sem recomendacao e mes/dia sem eventos; card mostra motivo da sugestao e preco aplicado. | Validar UX com dados reais e mobile. | Backfill cidade/UF invalida e validacao forte de endereco no onboarding. |
-| I - Admin e ops | `/admin/dashboard` ganhou blocos de recomendacoes, dataset, billing e Stays, com alertas para eventos baixos, pricing stale, dataset red/amber, preco aplicado zero, `peding` legado e Stays sem env. | Conferir dados reais no admin depois de deploy e comparar com SQL. | Painel de jobs self-service, historico de execucao, audit log e drill-down por propriedade. |
-| J - Infra e release | Health/public-config ficaram mais explicitos; runner dos coletores evita "sucesso falso". | Staging real, branch protection e smoke automatizado antes de release. | Backup restore drill, alertas externos, Sentry prod/staging separado e load test. |
+| I - Admin e ops | `/admin/dashboard` ganhou blocos de recomendacoes, dataset, billing e Stays, com alertas para eventos baixos, pricing stale, dataset red/amber, preco aplicado zero, `peding` legado e Stays sem env. `/admin/jobs` executa geocoder, reset de enrichment stale e snapshot de dataset com historico persistente em `admin_job_runs`. `/admin/waitlist` mostra link de convite gerado e permite reenvio. | Conferir dados reais no admin depois de deploy e comparar com SQL; validar jobs com usuario admin em staging. | Audit log amplo, drill-down por propriedade e alertas externos. |
+| J - Infra e release | Health/public-config ficaram mais explicitos; runner dos coletores evita "sucesso falso". Docker do frontend passa envs publicas no build. Docker do webscraping copia pacote/scripts para `/app`, instala o projeto com `uv sync` e executa coletores via modulo Python dentro do container. Runbook de release gate, protocolo para devs/agentes paralelos e migration de `admin_job_runs` foram adicionados. | Staging real, branch protection, smoke automatizado e verificacao de deploy Railway apos os ajustes de Docker/migration. | Backup restore drill, alertas externos, Sentry prod/staging separado e load test. |
 | K - Legal/LGPD | Consentimento continua gateando analytics/marketing; copy ficou mais conservadora. | Revisao juridica de termos/copy atualizada. | DPAs, processo LGPD completo, consentimentos versionados para Stays/comunicacoes. |
 | L - Marketing/beta | Base tecnica de atribuicao/referral melhorou para medir campanhas. | Rodar campanha pequena/waitlist real. | ICP beta, recrutamento 20-30 leads, playbook assistido, oferta beta e cases. |
-| M - Testes frontend | Spec E2E de prelaunch/waitlist/analytics foi adicionada. | Rodar Playwright em staging/local e confirmar GA/Pixel com consentimento. | Smokes completos: login, onboarding, dashboard com recomendacao, reset/e-mail e checkout. |
+| M - Testes frontend | Spec E2E de prelaunch/waitlist/analytics foi adicionada. Nesta rodada, `nest build`, `tsc --noEmit` e `next build` passaram localmente; nova leva de admin jobs tambem passou build backend e typecheck front. | Rodar Playwright em staging/local e confirmar GA/Pixel com consentimento. | Smokes completos: login, onboarding, dashboard com recomendacao, reset/e-mail e checkout. |
 
 ### 2.2 Proximos checkpoints de acompanhamento
 
 | Checkpoint | Dono sugerido | Como marcar pronto |
 |---|---|---|
 | Validar waitlist/analytics | Produto + Dev | 5 leads teste com source/UTM, 1 invite validado, eventos GA4/Meta visiveis. |
-| Rodar coletores sem sucesso falso | Dev/Ops | Runner mostra `success/degraded/failed`, sources criticas com `lastSeen < 48h` e eventos futuros crescendo. |
+| Rodar coletores sem sucesso falso | Dev/Ops | Container sobe, cron executa no intervalo configurado, runner mostra `success/degraded/failed`, sources criticas com `lastSeen < 48h` e eventos futuros crescendo. |
 | Provar recomendacao nova | Dev/Produto | Pelo menos 1 imovel reprocessado gera/atualiza `AnalisePreco` com `criadoEm` de hoje. |
 | Capturar ground truth inicial | Produto | Pelo menos 1 sugestao aceita com `precoAplicado` registrado via dashboard. |
+| Confirmar snapshots automaticos | Dev/Ops | `PriceSnapshot` cresce diariamente usando preco armazenado dos listings ou resolver externo documentado. |
+| Operar jobs admin | Dev/Ops | `/admin/jobs` roda geocoder, reset de enrichment stale e snapshot de dataset, registra historico em `admin_job_runs` e mostra sucesso/erro compreensivel para operador. |
 | Saneamento Stripe | Dev/Financeiro | `peding = 0`, sync check sem missing/not-configured, smoke checkout/webhook/quota/cancel ok. |
 | Readiness admin confiavel | Dev/Ops | Numeros do `/admin/dashboard` batem com consulta direta no banco para eventos, pricing, dataset e billing. |
+
+### 2.3 Mudancas incorporadas nesta rodada
+
+| Referencia | Frente | O que muda no acompanhamento |
+|---|---|---|
+| `workspace atual` - `fix: harden waitlist invite acceptance` | B, I | Aceite definitivo de convite agora cria usuario real, bloqueia duplicidade com mensagem 409, marca conversao e o admin mostra/copia/reenvia link para smoke operacional. |
+| `workspace atual` - `feat: feed applied prices into dataset snapshots` | D, E | Preco aplicado registrado pelo usuario passa a alimentar `PriceSnapshot`, reduzindo o gap entre recomendacao aceita e ground truth inicial. |
+| `workspace atual` - `feat: add admin jobs and dataset diagnostics` | E, I | Admin ganhou pagina de jobs com geocoder, reset de enrichment stale, diagnostics de dataset e execucao manual de snapshot. |
+| `workspace atual` - `fix: align collector health criticality` | C, I | Health dos coletores normaliza aliases e criticidade para reduzir alerta falso quando uma fonte opcional esta sem chave. |
+| `workspace atual` - `docs: add release and parallel-dev protocols` | J, M | Runbook de release gate e protocolo de devs/agentes paralelos deixam o processo menos dependente de conversa solta. |
+| `workspace atual` - `feat: persist admin job run history` | I, J, M | Jobs admin passam a ser rastreados em `admin_job_runs`, com migration, endpoints `/admin/jobs/*` e historico visivel em `/admin/jobs`. |
+| `3d9e1db` - `fix: automate dataset snapshots and scraper cadence` | C, E | Cron dos coletores passou a ter intervalo configuravel e execucao no boot; snapshot de dataset agora consegue capturar preco de listings com `dailyPrice`, `raw` ou `priceText`, reduzindo dependencia imediata de resolver externo. |
+| `92958db` - `fix: expose frontend public envs in docker build` | B, J | Build Docker do frontend agora recebe envs publicas criticas para prelaunch, analytics, Pixel, waitlist, app URL e Sentry. |
+| `01c15c1` - `fix: run webscraping collectors in container` | C, J | Imagem Docker do webscraping copia pacote e scripts para o runtime e o cron chama `python -m urban_webscrapping.collectors.run_all`, evitando dependencia de caminho shell fora do container. |
+| `9eb1495` - `fix: schedule legacy even3 spider` | C | Runner agenda o spider legado correto `even3`, removendo falha operacional por nome antigo `even_three`. |
 
 ---
 

@@ -1,19 +1,23 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AnalisePreco } from 'src/entities/AnalisePreco';
+import { DatasetCollectorService } from 'src/knn-engine/dataset-collector.service';
 import { Repository } from 'typeorm';
 
 @Injectable()
 export class SugestionService {
+  private readonly logger = new Logger(SugestionService.name);
+
   constructor(
     @InjectRepository(AnalisePreco)
     private readonly analisePrecoRepository: Repository<AnalisePreco>,
+    private readonly datasetCollector: DatasetCollectorService,
   ) {}
 
   async alterarAceito(id: string, userId: string, aceito: boolean): Promise<AnalisePreco> {
     const registro = await this.analisePrecoRepository.findOne({
       where: { id },
-      relations: ['usuarioProprietario'],
+      relations: ['usuarioProprietario', 'endereco', 'endereco.list', 'evento'],
     });
     if (!registro) {
       throw new NotFoundException('Registro não encontrado');
@@ -67,7 +71,9 @@ export class SugestionService {
     registro.aceitoEm = registro.aceitoEm ?? new Date();
     registro.rejeitadoEm = null;
     registro.expiradoEm = null;
-    return this.analisePrecoRepository.save(registro);
+    const saved = await this.analisePrecoRepository.save(registro);
+    await this.tryRecordAppliedPriceSnapshot(saved, input.precoAplicado);
+    return saved;
   }
 
   async expirarAntigas(daysValid = 30): Promise<{ expired: number }> {
@@ -92,5 +98,40 @@ export class SugestionService {
 
   async aceitar(id: string, userId: string): Promise<AnalisePreco> {
     return this.alterarAceito(id, userId, true);
+  }
+
+  private async tryRecordAppliedPriceSnapshot(
+    registro: AnalisePreco,
+    precoAplicado: number,
+  ): Promise<void> {
+    const targetDate = registro.evento?.dataInicio
+      ? new Date(registro.evento.dataInicio).toISOString().slice(0, 10)
+      : new Date().toISOString().slice(0, 10);
+    const list = registro.endereco?.list;
+    const listingId = list?.id_do_anuncio || (list?.id ? `urban-list:${list.id}` : null);
+
+    if (!listingId) {
+      this.logger.warn(`Nao foi possivel gravar PriceSnapshot: AnalisePreco ${registro.id} sem listing associado.`);
+      return;
+    }
+
+    const appliedPriceCents = Math.round(Number(precoAplicado) * 100);
+    if (!Number.isFinite(appliedPriceCents) || appliedPriceCents <= 0) {
+      this.logger.warn(`Preco aplicado invalido para AnalisePreco ${registro.id}: ${precoAplicado}`);
+      return;
+    }
+
+    try {
+      await this.datasetCollector.recordAppliedPrice({
+        listingId,
+        targetDate,
+        appliedPriceCents,
+        listInternalId: list?.id,
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Falha ao persistir PriceSnapshot aplicado para AnalisePreco ${registro.id}: ${(error as Error).message}`,
+      );
+    }
   }
 }

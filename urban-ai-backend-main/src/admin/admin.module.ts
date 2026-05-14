@@ -15,12 +15,14 @@ import { Plan } from '../entities/plan.entity';
 import { PlatformCost } from '../entities/platform-cost.entity';
 import { Waitlist } from '../entities/waitlist.entity';
 import { CoverageRegion } from '../entities/coverage-region.entity';
+import { AdminJobRun } from '../entities/admin-job-run.entity';
 import { AdminService } from './admin.service';
 import { AdminFinanceService } from './finance.service';
 import { StripeSyncCheckService } from './stripe-sync.service';
 import { AdminController } from './admin.controller';
 import { AuthModule } from '../auth/auth.module';
 import { KnnEngineModule } from '../knn-engine/knn-engine.module';
+import { EventoModule } from '../evento/evento.module';
 
 @Module({
   imports: [
@@ -40,9 +42,11 @@ import { KnnEngineModule } from '../knn-engine/knn-engine.module';
       PlatformCost,
       Waitlist,
       CoverageRegion,
+      AdminJobRun,
     ]),
     AuthModule,
     KnnEngineModule,
+    EventoModule,
   ],
   controllers: [AdminController],
   providers: [AdminService, AdminFinanceService, StripeSyncCheckService],

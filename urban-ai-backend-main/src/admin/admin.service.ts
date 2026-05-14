@@ -14,6 +14,7 @@ import { StaysAccount } from '../entities/stays-account.entity';
 import { StaysListing } from '../entities/stays-listing.entity';
 import { Waitlist } from '../entities/waitlist.entity';
 import { CoverageRegion } from '../entities/coverage-region.entity';
+import { AdminJobRun } from '../entities/admin-job-run.entity';
 import { AdaptivePricingStrategy } from '../knn-engine/strategies/adaptive-pricing.strategy';
 import { DatasetCollectorService } from '../knn-engine/dataset-collector.service';
 import { calculateBacktest } from '../knn-engine/backtesting';
@@ -41,9 +42,86 @@ export class AdminService {
     @InjectRepository(StaysListing) private readonly staysListingRepo: Repository<StaysListing>,
     @InjectRepository(Waitlist) private readonly waitlistRepo: Repository<Waitlist>,
     @InjectRepository(CoverageRegion) private readonly coverageRepo: Repository<CoverageRegion>,
+    @InjectRepository(AdminJobRun) private readonly jobRunRepo: Repository<AdminJobRun>,
     private readonly adaptiveStrategy: AdaptivePricingStrategy,
     private readonly collector: DatasetCollectorService,
   ) {}
+
+  async listJobRuns(limit = 10, name?: string) {
+    const take = Math.max(1, Math.min(50, Number(limit) || 10));
+    return this.jobRunRepo.find({
+      where: name ? { name } : {},
+      order: { startedAt: 'DESC' },
+      take,
+    });
+  }
+
+  async runTrackedJob<T>(
+    name: string,
+    triggeredByUserId: string | null,
+    handler: () => Promise<T>,
+  ) {
+    const startedAt = new Date();
+    const run = await this.jobRunRepo.save(
+      this.jobRunRepo.create({
+        name,
+        status: 'running',
+        triggeredByUserId,
+        startedAt,
+        finishedAt: null,
+        durationMs: null,
+        result: null,
+        errorMessage: null,
+      }),
+    );
+
+    try {
+      const result = await handler();
+      const finishedAt = new Date();
+      const saved = await this.jobRunRepo.save({
+        ...run,
+        status: 'success',
+        finishedAt,
+        durationMs: finishedAt.getTime() - startedAt.getTime(),
+        result,
+        errorMessage: null,
+      });
+      return this.toJobRunResponse(saved);
+    } catch (error: any) {
+      const finishedAt = new Date();
+      await this.jobRunRepo.save({
+        ...run,
+        status: 'error',
+        finishedAt,
+        durationMs: finishedAt.getTime() - startedAt.getTime(),
+        result: this.safeErrorPayload(error),
+        errorMessage: error?.message || 'Job failed',
+      });
+      throw error;
+    }
+  }
+
+  private toJobRunResponse(run: AdminJobRun) {
+    return {
+      id: run.id,
+      name: run.name,
+      status: run.status,
+      triggeredByUserId: run.triggeredByUserId,
+      startedAt: run.startedAt.toISOString(),
+      finishedAt: run.finishedAt?.toISOString() ?? null,
+      durationMs: run.durationMs,
+      result: run.result,
+      errorMessage: run.errorMessage,
+    };
+  }
+
+  private safeErrorPayload(error: any) {
+    return {
+      message: error?.message || 'Job failed',
+      status: error?.status ?? error?.response?.statusCode ?? null,
+      response: error?.response ?? null,
+    };
+  }
 
   /**
    * Visão geral do painel admin: contagens essenciais + estado da IA.
@@ -846,25 +924,32 @@ export class AdminService {
 
     const knownCollectors = [
       { source: 'api-football', critical: false, requiredEnv: ['API_FOOTBALL_KEY'] },
-      { source: 'sp-cultura', critical: true, requiredEnv: [] },
-      { source: 'usp-eventos', critical: true, requiredEnv: [] },
-      { source: 'marcha-para-jesus', critical: true, requiredEnv: [] },
-      { source: 'allianz-parque', critical: true, requiredEnv: [] },
-      { source: 'anhembi', critical: true, requiredEnv: [] },
-      { source: 'sao-paulo-expo', critical: true, requiredEnv: [] },
-      { source: 'expo-center-norte', critical: true, requiredEnv: [] },
-      { source: 'transamerica-expo', critical: true, requiredEnv: [] },
-      { source: 'vibra-sao-paulo', critical: true, requiredEnv: [] },
-      { source: 'tokio-marine-hall', critical: true, requiredEnv: [] },
-      { source: 'espaco-unimed', critical: true, requiredEnv: [] },
-      { source: 'wtc-sao-paulo', critical: true, requiredEnv: [] },
-      { source: 'serpapi-events', critical: false, requiredEnv: ['SERPAPI_KEY'] },
+      { source: 'sp-cultura', critical: false, requiredEnv: [] },
+      { source: 'usp-eventos', critical: false, requiredEnv: [] },
+      { source: 'marcha-para-jesus', critical: false, requiredEnv: [] },
+      { source: 'allianz-parque', critical: false, requiredEnv: [] },
+      { source: 'anhembi', critical: false, requiredEnv: [] },
+      { source: 'sao-paulo-expo', critical: false, requiredEnv: [] },
+      { source: 'expo-center-norte', critical: false, requiredEnv: [] },
+      { source: 'transamerica-expo', critical: false, requiredEnv: [] },
+      { source: 'vibra-sao-paulo', critical: false, requiredEnv: [] },
+      { source: 'tokio-marine-hall', critical: false, requiredEnv: [] },
+      { source: 'espaco-unimed', critical: false, requiredEnv: [] },
+      { source: 'wtc-sao-paulo', critical: false, requiredEnv: [] },
+      { source: 'serpapi-events', critical: false, requiredEnv: ['SERPAPI_KEY'], aliases: ['serpapi_events'] },
       { source: 'tavily', critical: false, requiredEnv: ['TAVILY_API_KEY', 'GEMINI_API_KEY'] },
       { source: 'firecrawl', critical: false, requiredEnv: ['FIRECRAWL_API_KEY', 'GEMINI_API_KEY'] },
-      { source: 'legacy-scrapyd-spiders', critical: true, requiredEnv: ['SCRAPYD_URL'] },
+      { source: 'legacy-scrapyd-spiders', critical: false, requiredEnv: [] },
     ];
 
     const sources: any[] = rows.map((r: any) => {
+      const rawSource = String(r.source ?? '(sem source)');
+      const normalizedSource = rawSource.replace(/_/g, '-');
+      const known = knownCollectors.find(
+        (collector) =>
+          collector.source === normalizedSource ||
+          ('aliases' in collector && collector.aliases?.includes(rawSource)),
+      );
       const total = Number(r.total ?? 0);
       const outOfScope = Number(r.outOfScope ?? 0);
       const pendingEnrichment = Number(r.pendingEnrichment ?? 0);
@@ -873,7 +958,7 @@ export class AdminService {
       return {
         source: r.source,
         status: 'has_events',
-        critical: knownCollectors.find((c) => c.source === r.source)?.critical ?? null,
+        critical: known?.critical ?? null,
         total,
         last7d: Number(r.last7d ?? 0),
         last24h: Number(r.last24h ?? 0),
@@ -891,7 +976,9 @@ export class AdminService {
         lastSeen: r.lastSeen ?? null,
       };
     });
-    const present = new Set(sources.map((source) => source.source));
+    const present = new Set(
+      sources.map((source) => String(source.source ?? '').replace(/_/g, '-')),
+    );
     for (const collector of knownCollectors) {
       if (present.has(collector.source)) {
         continue;

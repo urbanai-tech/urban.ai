@@ -141,10 +141,13 @@ function AceitarConvite() {
         source: "waitlist-invite",
       });
       router.push("/dashboard");
-    } catch (error) {
-      setSubmitError("Nao foi possivel ativar sua conta. Tente novamente ou fale com o suporte.");
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "Nao foi possivel ativar sua conta. Tente novamente ou fale com o suporte.";
+      setSubmitError(message);
       trackAnalyticsEvent("waitlist_invite_accept_error", {
-        reason: error instanceof Error ? error.message : "unknown",
+        reason: error?.response?.status ? `http_${error.response.status}` : error?.message || "unknown",
       });
     } finally {
       setSubmitting(false);

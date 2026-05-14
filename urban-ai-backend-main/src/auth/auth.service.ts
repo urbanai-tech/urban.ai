@@ -231,6 +231,10 @@ export class AuthService {
     return user;
   }
 
+  async findUserByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { email } });
+  }
+
   async update(userId: string, data: {
     username?: string;
     email?: string;

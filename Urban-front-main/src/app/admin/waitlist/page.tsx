@@ -29,6 +29,7 @@ export default function AdminWaitlistPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [lastInvite, setLastInvite] = useState<{ email: string; inviteUrl: string } | null>(null);
 
   async function load() {
     setLoading(true);
@@ -63,11 +64,13 @@ export default function AdminWaitlistPage() {
   }, [page, statusFilter]);
 
   async function handleInvite(entry: WaitlistEntry) {
-    if (!confirm(`Enviar convite para ${entry.email}?`)) return;
+    const action = entry.status === "invited" ? "Reenviar" : "Enviar";
+    if (!confirm(`${action} convite para ${entry.email}?`)) return;
     setBusyId(entry.id);
     try {
-      await inviteWaitlistEntry(entry.id);
-      alert("Convite enviado!");
+      const result = await inviteWaitlistEntry(entry.id);
+      setLastInvite({ email: entry.email, inviteUrl: result.inviteUrl });
+      alert(entry.status === "invited" ? "Convite reenviado!" : "Convite enviado!");
       load();
     } catch (err: any) {
       alert("Erro: " + (err?.response?.data?.message || err?.message || "falhou"));
@@ -191,6 +194,32 @@ export default function AdminWaitlistPage() {
           </section>
         )}
 
+        {lastInvite && (
+          <section className="border border-emerald-700/50 rounded-xl bg-emerald-950/20 p-4 space-y-3">
+            <div>
+              <h3 className="text-xs font-bold text-emerald-300 uppercase">Ultimo convite gerado</h3>
+              <p className="text-sm text-slate-300">
+                {lastInvite.email} recebeu um link valido por 7 dias. Use este bloco para smoke manual
+                ou reenvio por outro canal.
+              </p>
+            </div>
+            <div className="flex flex-col md:flex-row gap-2">
+              <input
+                readOnly
+                value={lastInvite.inviteUrl}
+                className="flex-1 px-3 py-2 rounded bg-slate-950 border border-slate-700 text-xs text-slate-200"
+              />
+              <button
+                type="button"
+                onClick={() => navigator.clipboard?.writeText(lastInvite.inviteUrl)}
+                className="px-4 py-2 rounded bg-emerald-500 text-slate-950 font-bold text-sm"
+              >
+                Copiar link
+              </button>
+            </div>
+          </section>
+        )}
+
         {/* Filtros */}
         <section className="flex flex-col md:flex-row gap-2">
           <input
@@ -271,13 +300,13 @@ export default function AdminWaitlistPage() {
                     </td>
                     <td className="px-3 py-2 text-right">
                       <div className="flex gap-1 justify-end">
-                        {e.status === "pending" && (
+                        {(e.status === "pending" || e.status === "invited") && (
                           <button
                             onClick={() => handleInvite(e)}
                             disabled={busyId === e.id}
                             className="text-xs px-2 py-1 rounded bg-emerald-500 text-slate-900 font-bold disabled:opacity-50"
                           >
-                            Convidar
+                            {e.status === "invited" ? "Reenviar" : "Convidar"}
                           </button>
                         )}
                         <button

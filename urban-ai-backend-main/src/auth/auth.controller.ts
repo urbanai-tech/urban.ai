@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Body,
+  ConflictException,
   Controller,
   Delete,
   forwardRef,
@@ -206,6 +207,12 @@ export class AuthController {
     const entry = await this.waitlistService.lookupByInviteToken(data.token);
     if (!entry) {
       throw new BadRequestException('convite invalido ou expirado');
+    }
+
+    const existingUser = await this.authService.findUserByEmail(entry.email);
+    if (existingUser) {
+      await this.waitlistService.markConverted(entry.id);
+      throw new ConflictException('Este convite ja foi vinculado a uma conta existente. Faca login para continuar.');
     }
 
     const user = await this.authService.register({

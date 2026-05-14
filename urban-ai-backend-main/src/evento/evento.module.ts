@@ -44,6 +44,7 @@ import { MapsModule } from 'src/maps/maps.module';
   ],
   exports: [
     EventsIngestService,
+    EventsEnrichmentService,
     EventsGeocoderService,
     EventsCsvImportService,
     CoverageService,
