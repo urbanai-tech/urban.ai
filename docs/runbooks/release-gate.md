@@ -8,7 +8,7 @@ Escopo: fluxo minimo para promover mudancas rumo a M1/M2/M3 sem repetir hotfix d
 1. Abrir PR ou consolidar branch de trabalho.
 2. Rodar verificacoes locais da area alterada.
 3. CI verde.
-4. Deploy em staging ou ambiente controlado equivalente.
+4. Deploy em staging ou ambiente controlado equivalente, seguindo `docs/runbooks/staging-release-drill.md`.
 5. Smoke operacional conforme matriz abaixo.
 6. Aprovar promocao para producao.
 7. Monitorar dashboard admin, logs e alertas por 30 minutos.
