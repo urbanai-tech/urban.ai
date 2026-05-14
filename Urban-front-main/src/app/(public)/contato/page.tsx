@@ -161,7 +161,14 @@ function Field({
       <span className="urban-eyebrow" style={{ display: "block", marginBottom: 12 }}>
         {label}
       </span>
-      <input name={name} type={type} required minLength={type === "email" ? undefined : 2} placeholder={placeholder} style={fieldStyle} />
+      <input
+        name={name}
+        type={type}
+        required
+        minLength={type === "email" ? undefined : 2}
+        placeholder={placeholder}
+        style={fieldStyle}
+      />
     </label>
   );
 }
