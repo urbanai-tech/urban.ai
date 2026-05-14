@@ -24,6 +24,7 @@ Escopo: fluxo minimo para promover mudancas rumo a M1/M2/M3 sem repetir hotfix d
 | Billing | Seguir `docs/runbooks/stripe-billing-smoke.md`: sync check, checkout test/live definido, webhook, quota e cancelamento | `/admin/stripe/sync-check` sem problemas, evento Stripe refletido no DB, quota correta e evidencia registrada. |
 | Stays | Seguir `docs/runbooks/stays-beta-private-smoke.md`: somente beta privado, connect/sync/push/rollback em sandbox | `PriceUpdate` success, rollback success, token criptografado, consentimento rastreavel e evidencia registrada. |
 | Beta fechado | Seguir `docs/runbooks/beta-fechado-assistido.md` para recrutar/onboardar 5-10 anfitrioes assistidos | Relatorio semanal com recomendacoes, aceite, preco aplicado, bugs e decisao de manter/ampliar/bloquear. |
+| Suporte/LGPD | Seguir `docs/runbooks/suporte-lgpd-beta-pago.md` antes de beta pago | Canal de suporte/privacidade ativo, P0/P1 com dono, DPAs/consentimentos revisados e evidencia registrada. |
 | Admin/ops | `/admin/dashboard` e `/admin/jobs` carregando sem erro | Alertas coerentes, sem falso sucesso/falso alerta conhecido. |
 
 ## Nao promover se
