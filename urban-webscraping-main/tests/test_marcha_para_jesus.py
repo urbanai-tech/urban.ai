@@ -1,7 +1,7 @@
 """Tests do MarchaParaJesusCollector."""
 
 from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from urban_webscrapping.collectors.marcha_para_jesus import MarchaParaJesusCollector
 

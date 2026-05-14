@@ -1,4 +1,4 @@
-import { Injectable, Logger, HttpException, HttpStatus, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, HttpException, HttpStatus, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -470,13 +470,27 @@ export class ConnectService {
             relations: ['list', 'user'],
           });
 
+          const isUsableAddressField = (value: unknown) =>
+            typeof value === 'string' &&
+            value.trim().length > 0 &&
+            value.trim().toLowerCase() !== 'a definir';
+          const city = isUsableAddressField(addr.cidade) ? addr.cidade.trim() : scraped.city?.trim();
+          const stateRaw = isUsableAddressField(addr.estado) ? addr.estado.trim() : scraped.state?.trim();
+          const state = stateRaw ? stateRaw.slice(0, 2).toUpperCase() : '';
+
+          if (!city || !state) {
+            throw new BadRequestException(
+              `Nao foi possivel validar cidade/UF do imovel ${list.id_do_anuncio}. Confira o link do Airbnb ou complete o endereco antes de gerar recomendacoes.`,
+            );
+          }
+
           const addressPayload = {
-            cep: addr.cep,
-            numero: addr.numero,
-            logradouro: addr.logradouro,
-            bairro: addr.bairro || scraped.neighborhood,
-            cidade: addr.cidade,
-            estado: addr.estado,
+            cep: isUsableAddressField(addr.cep) ? addr.cep : scraped.zipCode || '00000-000',
+            numero: isUsableAddressField(addr.numero) ? addr.numero : 'S/N',
+            logradouro: isUsableAddressField(addr.logradouro) ? addr.logradouro : scraped.street || null,
+            bairro: isUsableAddressField(addr.bairro) ? addr.bairro : scraped.neighborhood || null,
+            cidade: city,
+            estado: state,
             latitude: scraped.latitude,
             longitude: scraped.longitude,
             list: list,

@@ -1,24 +1,28 @@
-import os
-import requests
 import logging
+import os
 from datetime import datetime
+
+import requests
 from dotenv import load_dotenv
 
-from urban_webscrapping.collectors.base_collector import BaseCollector, setup_logging
+from urban_webscrapping.collectors.base_collector import (
+    BaseCollector,
+    MissingApiKeyError,
+    setup_logging,
+)
 
 load_dotenv()
 logger = logging.getLogger(__name__)
 
 class ApiFootballCollector(BaseCollector):
-    """
-    Coletor para o API-Football, focado em jogos de futebol em São Paulo.
+    """Coletor para o API-Football, focado em jogos de futebol em São Paulo.
     """
     source = "api-football"
 
     def fetch_raw(self) -> list[dict]:
         api_key = os.getenv("API_FOOTBALL_KEY")
         if not api_key:
-            raise ValueError("API_FOOTBALL_KEY não encontrada no .env")
+            raise MissingApiKeyError("API_FOOTBALL_KEY")
 
         headers = {
             "x-apisports-key": api_key,
@@ -33,7 +37,7 @@ class ApiFootballCollector(BaseCollector):
         ]
 
         raw_events = []
-        
+
         # Buscar próximos jogos desses times
         for team_id in sp_teams:
             try:
@@ -41,19 +45,19 @@ class ApiFootballCollector(BaseCollector):
                 response = requests.get(url, headers=headers, timeout=15)
                 response.raise_for_status()
                 data = response.json()
-                
+
                 if data.get("response"):
                     raw_events.extend(data["response"])
             except Exception as e:
                 logger.error("Erro ao buscar jogos para o time %s: %s", team_id, e)
-                
+
         return raw_events
 
     def normalize(self, raw: dict) -> dict | None:
         fixture = raw.get("fixture", {})
         teams = raw.get("teams", {})
         venue = fixture.get("venue", {})
-        
+
         city = venue.get("city", "")
         if city and "sao paulo" not in city.lower() and "são paulo" not in city.lower():
             # Pula jogos que não são em São Paulo
@@ -91,5 +95,7 @@ class ApiFootballCollector(BaseCollector):
 
 if __name__ == "__main__":
     setup_logging()
-    collector = ApiFootballCollector(dry_run=True)
-    collector.run()
+    dry_run = os.environ.get("DRY_RUN", "").lower() == "true"
+    collector = ApiFootballCollector(dry_run=dry_run)
+    result = collector.run()
+    raise SystemExit(1 if result.status in {"failed", "partial_failure"} else 0)

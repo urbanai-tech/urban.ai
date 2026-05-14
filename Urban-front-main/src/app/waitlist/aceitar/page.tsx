@@ -20,9 +20,11 @@ import {
   AlertDescription,
 } from "@chakra-ui/react";
 import {
+  acceptWaitlistInvite,
   validateWaitlistInvite,
   type WaitlistInviteValidation,
 } from "../../service/api";
+import { trackAnalyticsEvent } from "../../componentes/Analytics";
 
 /**
  * Página de aceite de convite da waitlist (F8.4).
@@ -59,6 +61,8 @@ function AceitarConvite() {
 
   const [validation, setValidation] = useState<WaitlistInviteValidation | null>(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -69,8 +73,18 @@ function AceitarConvite() {
       return;
     }
     validateWaitlistInvite(token)
-      .then((v) => setValidation(v))
-      .catch(() => setValidation({ valid: false, reason: "Erro ao validar convite" }))
+      .then((v) => {
+        setValidation(v);
+        trackAnalyticsEvent(v.valid ? "waitlist_invite_valid" : "waitlist_invite_invalid", {
+          reason: v.reason,
+        });
+      })
+      .catch(() => {
+        setValidation({ valid: false, reason: "Erro ao validar convite" });
+        trackAnalyticsEvent("waitlist_invite_invalid", {
+          reason: "validation_request_failed",
+        });
+      })
       .finally(() => setLoading(false));
   }, [token]);
 
@@ -106,14 +120,35 @@ function AceitarConvite() {
 
   const passwordsMatch = password.length >= 8 && password === confirmPassword;
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!passwordsMatch || !validation) return;
+    setSubmitting(true);
+    setSubmitError("");
+    trackAnalyticsEvent("waitlist_invite_accept_attempt", {
+      source: "waitlist-invite",
+    });
     // O endpoint definitivo de "aceitar convite + criar User" é responsabilidade
-    // do backend (vai num PR seguinte de F8.4). Por hora, este form prepara
     // a UI; submit redireciona pra home com email pré-preenchido pra usuário
     // saber que precisa terminar o cadastro lá.
-    router.push(`/?email=${encodeURIComponent(validation.email ?? "")}`);
+    try {
+      await acceptWaitlistInvite({
+        token,
+        username: validation.name ?? validation.email?.split("@")[0],
+        password,
+      });
+      trackAnalyticsEvent("waitlist_invite_accept", {
+        source: "waitlist-invite",
+      });
+      router.push("/dashboard");
+    } catch (error) {
+      setSubmitError("Nao foi possivel ativar sua conta. Tente novamente ou fale com o suporte.");
+      trackAnalyticsEvent("waitlist_invite_accept_error", {
+        reason: error instanceof Error ? error.message : "unknown",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -138,6 +173,7 @@ function AceitarConvite() {
             <FormControl isRequired>
               <FormLabel>Crie sua senha</FormLabel>
               <Input
+                name="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -149,6 +185,7 @@ function AceitarConvite() {
             <FormControl isRequired>
               <FormLabel>Confirme a senha</FormLabel>
               <Input
+                name="confirmPassword"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -164,11 +201,19 @@ function AceitarConvite() {
               type="submit"
               colorScheme="blue"
               size="lg"
-              isDisabled={!passwordsMatch}
+              isDisabled={!passwordsMatch || submitting}
+              isLoading={submitting}
               mt={2}
             >
               Ativar minha conta
             </Button>
+
+            {submitError && (
+              <Alert status="error" borderRadius="md">
+                <AlertIcon />
+                <AlertDescription>{submitError}</AlertDescription>
+              </Alert>
+            )}
           </Stack>
         </form>
       </Box>

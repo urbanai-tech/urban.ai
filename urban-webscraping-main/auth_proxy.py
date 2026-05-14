@@ -1,20 +1,22 @@
-"""
-Auth proxy for Scrapyd — validates X-API-Key header before forwarding requests.
+"""Auth proxy for Scrapyd — validates X-API-Key header before forwarding requests.
+
 This runs on $PORT (Railway) and proxies to Scrapyd on localhost:6800.
 """
 
+import logging
 import os
 import subprocess
 import sys
-import time
 import threading
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.request import Request, urlopen
+import time
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.error import URLError
+from urllib.request import Request, urlopen
 
 SCRAPYD_PORT = 6801
 PROXY_PORT = int(os.environ.get("PORT", "8080"))
 API_KEY = os.environ.get("SCRAPYD_API_KEY", "")
+logger = logging.getLogger(__name__)
 
 
 def start_scrapyd():
@@ -31,14 +33,14 @@ def cron_worker():
     """Executa os coletores diariamente em background."""
     while True:
         try:
-            print("[cron-worker] Iniciando bateria de coletores REST...", flush=True)
+            logger.info("[cron-worker] Iniciando bateria de coletores REST...")
             # Execute the shell script
             script_path = os.path.join(os.getcwd(), "scripts", "run_all_collectors.sh")
             subprocess.run(["bash", script_path], check=True)
-            print("[cron-worker] Bateria de coletores finalizada com sucesso.", flush=True)
+            logger.info("[cron-worker] Bateria de coletores finalizada com sucesso.")
         except Exception as e:
-            print(f"[cron-worker] Erro ao executar coletores: {e}", flush=True)
-        
+            logger.exception("[cron-worker] Erro ao executar coletores: %s", e)
+
         # Dorme por 24 horas (86400 segundos)
         time.sleep(86400)
 
@@ -49,11 +51,11 @@ def wait_for_scrapyd(timeout=30):
     while time.time() - start < timeout:
         try:
             urlopen(f"http://127.0.0.1:{SCRAPYD_PORT}/daemonstatus.json")
-            print("[auth-proxy] Scrapyd is ready!", flush=True)
+            logger.info("[auth-proxy] Scrapyd is ready!")
             return True
         except (URLError, ConnectionError):
             time.sleep(0.5)
-    print("[auth-proxy] WARNING: Scrapyd did not start in time", flush=True)
+    logger.warning("[auth-proxy] Scrapyd did not start in time")
     return False
 
 
@@ -113,23 +115,28 @@ class AuthProxyHandler(BaseHTTPRequestHandler):
         self._proxy()
 
     def log_message(self, format, *args):
-        print(f"[auth-proxy] {args[0]}", flush=True)
+        logger.info("[auth-proxy] %s", format % args)
 
 
 def main():
-    print(f"[auth-proxy] Starting Scrapyd on port {SCRAPYD_PORT}...", flush=True)
+    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
+    logger.info("[auth-proxy] Starting Scrapyd on port %s...", SCRAPYD_PORT)
     scrapyd_proc = start_scrapyd()
 
-    print(f"[auth-proxy] Waiting for Scrapyd...", flush=True)
+    logger.info("[auth-proxy] Waiting for Scrapyd...")
     wait_for_scrapyd()
 
     auth_status = "ENABLED" if API_KEY else "DISABLED (no SCRAPYD_API_KEY set)"
-    print(f"[auth-proxy] Auth proxy listening on port {PROXY_PORT} (auth: {auth_status})", flush=True)
+    logger.info(
+        "[auth-proxy] Auth proxy listening on port %s (auth: %s)",
+        PROXY_PORT,
+        auth_status,
+    )
 
     # Inicia o cron-worker em background
     cron_thread = threading.Thread(target=cron_worker, daemon=True)
     cron_thread.start()
-    print("[auth-proxy] Cron worker started in background.", flush=True)
+    logger.info("[auth-proxy] Cron worker started in background.")
 
     server = HTTPServer(("0.0.0.0", PROXY_PORT), AuthProxyHandler)
 

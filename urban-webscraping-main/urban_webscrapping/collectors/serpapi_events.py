@@ -1,17 +1,21 @@
-import os
-import requests
 import logging
+import os
+
+import requests
 from dateutil import parser
 from dotenv import load_dotenv
 
-from urban_webscrapping.collectors.base_collector import BaseCollector, setup_logging
+from urban_webscrapping.collectors.base_collector import (
+    BaseCollector,
+    MissingApiKeyError,
+    setup_logging,
+)
 
 load_dotenv()
 logger = logging.getLogger(__name__)
 
 class SerpApiEventsCollector(BaseCollector):
-    """
-    Coletor para Google Events via SerpAPI.
+    """Coletor para Google Events via SerpAPI.
 
     Faz múltiplas queries focadas em SP capital e usa o param `location`
     do SerpAPI pra forçar viés geográfico ao Google Events. Isso reduz
@@ -38,7 +42,7 @@ class SerpApiEventsCollector(BaseCollector):
     def fetch_raw(self) -> list[dict]:
         api_key = os.getenv("SERPAPI_KEY")
         if not api_key:
-            raise ValueError("SERPAPI_KEY não encontrada no .env")
+            raise MissingApiKeyError("SERPAPI_KEY")
 
         url = "https://serpapi.com/search.json"
         all_events: list[dict] = []
@@ -80,13 +84,13 @@ class SerpApiEventsCollector(BaseCollector):
         # Data vem como dicionário
         date_info = raw.get("date", {})
         start_date_str = date_info.get("start_date")
-        
+
         if not start_date_str:
             # As vezes a data vem em string plain text em outro campo ou 'when'
             start_date_str = date_info.get("when")
             if not start_date_str:
                 return None
-                
+
         # Tentativa de parsing da data
         try:
             # "Apr 25", "May 13" -> precisamos adicionar o ano atual se não tiver
@@ -109,7 +113,7 @@ class SerpApiEventsCollector(BaseCollector):
             if isinstance(address, list):
                 address = ", ".join(address)
             payload["enderecoCompleto"] = address
-            
+
         venue = raw.get("venue", {}).get("name")
         if venue and not payload.get("enderecoCompleto"):
             payload["enderecoCompleto"] = venue
@@ -128,5 +132,8 @@ class SerpApiEventsCollector(BaseCollector):
 
 if __name__ == "__main__":
     setup_logging()
-    collector = SerpApiEventsCollector(query="Jonas Brothers São Paulo", dry_run=True)
-    collector.run()
+    dry_run = os.environ.get("DRY_RUN", "").lower() == "true"
+    query = os.environ.get("SERPAPI_QUERY")
+    collector = SerpApiEventsCollector(query=query, dry_run=dry_run)
+    result = collector.run()
+    raise SystemExit(1 if result.status in {"failed", "partial_failure"} else 0)

@@ -268,6 +268,102 @@ export default function AdminDashboardPage() {
           </Block>
         </section>
 
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Block title="Recomendações" icon="R" href="/admin/funnel">
+            <Stat
+              label="Criadas 24h"
+              value={data.pricing.last24h}
+              color={data.pricing.last24h === 0 ? "text-red-300" : "text-emerald-300"}
+              sub={`${data.pricing.last30d} nos últimos 30d`}
+            />
+            <Stat
+              label="Futuras"
+              value={data.pricing.futureRecommendations}
+              sub={`${data.pricing.activeWithFuturePricing}/${data.pricing.activeAddresses} imóveis ativos`}
+            />
+            <Stat
+              label="Cobertura"
+              value={`${data.pricing.coveragePercent}%`}
+              color={data.pricing.coveragePercent < 70 ? "text-red-300" : "text-emerald-300"}
+              sub="gate beta: 70%"
+            />
+            <Stat
+              label="Preço aplicado"
+              value={data.pricing.appliedPriceCaptured}
+              sub={
+                data.pricing.invalidLocalityAddresses > 0
+                  ? `${data.pricing.invalidLocalityAddresses} imóveis com localidade inválida`
+                  : "ground truth capturado"
+              }
+            />
+          </Block>
+
+          <Block title="Dataset & ROI" icon="D" href="/admin/quality">
+            <Stat
+              label="Health"
+              value={data.dataset.health}
+              color={
+                data.dataset.health === "red"
+                  ? "text-red-300"
+                  : data.dataset.health === "amber"
+                    ? "text-amber-300"
+                    : "text-emerald-300"
+              }
+            />
+            <Stat label="Price snapshots" value={data.dataset.priceSnapshots} sub={data.dataset.latestSnapshotDate ?? "sem snapshot"} />
+            <Stat label="Ocupação" value={data.dataset.occupancyRecords} />
+            <Stat label="Features evento" value={data.dataset.eventProximityFeatures} />
+          </Block>
+
+          <Block title="Billing" icon="B" href="/admin/pricing-config">
+            <Stat
+              label="Stripe secret"
+              value={data.billing.stripeSecretConfigured ? "ok" : "faltando"}
+              color={data.billing.stripeSecretConfigured ? "text-emerald-300" : "text-red-300"}
+            />
+            <Stat
+              label="Webhook"
+              value={data.billing.stripeWebhookConfigured ? "ok" : "faltando"}
+              color={data.billing.stripeWebhookConfigured ? "text-emerald-300" : "text-red-300"}
+            />
+            <Stat
+              label="Status peding"
+              value={data.billing.legacyPedingPayments}
+              color={data.billing.legacyPedingPayments > 0 ? "text-amber-300" : "text-emerald-300"}
+            />
+            <Stat label="Ativas" value={data.billing.activeSubscriptions} />
+          </Block>
+
+          <Block title="Stays" icon="S" href="/admin/stays">
+            <Stat
+              label="Modo"
+              value={data.stays.betaPrivate ? "beta privado" : "configurado"}
+              color={data.stays.betaPrivate ? "text-amber-300" : "text-emerald-300"}
+            />
+            <Stat label="Contas" value={data.stays.accounts} />
+            <Stat label="Listings" value={data.stays.listings} />
+            <Stat label="Pushes 30d" value={data.stays.priceUpdatesLast30d} />
+          </Block>
+        </section>
+
+        {data.dataset.blockers.length > 0 && (
+          <section className="border border-slate-800 rounded-xl bg-slate-900/40 p-5">
+            <h2 className="text-sm font-bold text-slate-200 mb-3">
+              Bloqueios de dataset e qualidade
+            </h2>
+            <ul className="space-y-2 text-sm">
+              {data.dataset.blockers.map((blocker) => (
+                <li key={blocker.code} className="flex flex-col gap-1 border-b border-slate-800/70 pb-2 last:border-0 last:pb-0">
+                  <span className={blocker.severity === "red" ? "text-red-300" : blocker.severity === "amber" ? "text-amber-300" : "text-slate-300"}>
+                    {blocker.code}: {blocker.message}
+                  </span>
+                  <span className="text-xs text-slate-500">{blocker.nextAction}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {/* Mini-timeline + top sources */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Timeline 7d */}

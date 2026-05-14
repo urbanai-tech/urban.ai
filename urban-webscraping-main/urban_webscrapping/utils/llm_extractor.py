@@ -1,9 +1,9 @@
-import os
 import json
 import logging
+import os
+
 from google import genai
 from pydantic import BaseModel, Field
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -21,17 +21,16 @@ class EventExtraction(BaseModel):
             "Eventos fora da Grande SP NÃO devem ser marcados como in_scope mesmo que sejam interessantes."
         ),
     )
-    nome: Optional[str] = Field(None, description="Nome do evento. Ex: 'Jonas Brothers: Greetings From Your Hometown'")
-    dataInicio: Optional[str] = Field(None, description="Data de início do evento no formato YYYY-MM-DD HH:MM:SS. Ex: 2026-05-13 20:00:00")
-    enderecoCompleto: Optional[str] = Field(None, description="Endereço ou local do evento incluindo cidade e UF. Ex: 'Allianz Parque, São Paulo, SP'")
-    cidade: Optional[str] = Field(None, description="Cidade do evento. Ex: 'São Paulo', 'Rio de Janeiro'")
-    estado: Optional[str] = Field(None, description="UF do evento, 2 letras. Ex: 'SP', 'RJ'")
-    categoria: Optional[str] = Field("Outros", description="Categoria do evento: Show, Teatro, Esportes, Conferência, etc.")
+    nome: str | None = Field(None, description="Nome do evento. Ex: 'Jonas Brothers: Greetings From Your Hometown'")
+    dataInicio: str | None = Field(None, description="Data de início do evento no formato YYYY-MM-DD HH:MM:SS. Ex: 2026-05-13 20:00:00")
+    enderecoCompleto: str | None = Field(None, description="Endereço ou local do evento incluindo cidade e UF. Ex: 'Allianz Parque, São Paulo, SP'")
+    cidade: str | None = Field(None, description="Cidade do evento. Ex: 'São Paulo', 'Rio de Janeiro'")
+    estado: str | None = Field(None, description="UF do evento, 2 letras. Ex: 'SP', 'RJ'")
+    categoria: str | None = Field("Outros", description="Categoria do evento: Show, Teatro, Esportes, Conferência, etc.")
 
 
-def extract_event_from_text(text: str) -> Optional[dict]:
-    """
-    Usa Gemini Flash para extrair informações de evento a partir de texto cru.
+def extract_event_from_text(text: str) -> dict | None:
+    """Usa Gemini Flash para extrair informações de evento a partir de texto cru.
 
     Filtra duplamente:
       1. is_event = True (descarta texto que não é evento)

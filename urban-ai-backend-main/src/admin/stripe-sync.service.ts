@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import Stripe from 'stripe';
 import { Plan } from '../entities/plan.entity';
+import { BILLING_CYCLES, resolveStripePriceId } from '../payments/stripe-price-id.resolver';
 
 /**
  * StripeSyncCheckService — valida que os Stripe Price IDs configurados
@@ -22,7 +23,7 @@ export interface PriceStatusEntry {
   cycle: Cycle;
   priceId: string | null;
   source: 'plan-entity' | 'env-fallback' | 'missing';
-  status: 'ok' | 'missing' | 'not-found' | 'cycle-mismatch' | 'inactive' | 'currency-mismatch' | 'check-error';
+  status: 'ok' | 'missing' | 'not-configured' | 'not-found' | 'cycle-mismatch' | 'inactive' | 'currency-mismatch' | 'check-error';
   details?: string;
   // Dados do Stripe quando encontrado
   stripeAmountCents?: number;
@@ -64,6 +65,7 @@ export class StripeSyncCheckService {
       total: number;
       ok: number;
       missing: number;
+      notConfigured: number;
       problems: number;
       stripeKeyConfigured: boolean;
     };
@@ -77,7 +79,7 @@ export class StripeSyncCheckService {
       this.logger.warn('STRIPE_SECRET_KEY ausente — não é possível validar Price IDs');
     }
 
-    const cycles: Cycle[] = ['monthly', 'quarterly', 'semestral', 'annual'];
+    const cycles: Cycle[] = BILLING_CYCLES;
 
     for (const plan of plans) {
       // Plano custom (ex: Escala "fale com consultor") não passa por checkout
@@ -85,7 +87,7 @@ export class StripeSyncCheckService {
       if ((plan as any).isCustomPrice) continue;
 
       for (const cycle of cycles) {
-        const { priceId, source } = this.resolveExpectedPriceId(plan, cycle);
+        const { priceId, source } = resolveStripePriceId(plan, cycle);
 
         if (!priceId) {
           entries.push({
@@ -105,7 +107,7 @@ export class StripeSyncCheckService {
             cycle,
             priceId,
             source,
-            status: 'check-error',
+            status: 'not-configured',
             details: 'STRIPE_SECRET_KEY ausente — pulando validação remota',
           });
           continue;
@@ -141,6 +143,7 @@ export class StripeSyncCheckService {
 
     const ok = entries.filter((e) => e.status === 'ok').length;
     const missing = entries.filter((e) => e.status === 'missing').length;
+    const notConfigured = entries.filter((e) => e.status === 'not-configured').length;
     const problems = entries.filter((e) => !['ok', 'missing'].includes(e.status)).length;
 
     return {
@@ -148,6 +151,7 @@ export class StripeSyncCheckService {
         total: entries.length,
         ok,
         missing,
+        notConfigured,
         problems,
         stripeKeyConfigured,
       },

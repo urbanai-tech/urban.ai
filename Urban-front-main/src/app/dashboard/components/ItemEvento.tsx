@@ -1,4 +1,4 @@
-import { alterarAceitoSugestao } from "@/app/service/api";
+import { alterarAceitoSugestao, registrarPrecoAplicadoSugestao } from "@/app/service/api";
 import { CloseIcon } from "@chakra-ui/icons";
 import {
   Badge,
@@ -6,6 +6,7 @@ import {
   Button,
   Flex,
   HStack,
+  Input,
   Text
 } from "@chakra-ui/react";
 import { format, parseISO } from "date-fns";
@@ -25,6 +26,15 @@ export interface EventItem {
   seuPrecoAtual?: string | number;
   diferencaPercentual: string;
   recomendacao?: string;
+  motivo_ia?: string | null;
+  criadoEm?: string;
+  precoAplicado?: string | number | null;
+  aplicadoEm?: string | null;
+  origemAplicacao?: string | null;
+  status?: "suggested" | "accepted" | "rejected" | "applied_manual" | "applied_stays" | "expired";
+  aceitoEm?: string | null;
+  rejeitadoEm?: string | null;
+  expiradoEm?: string | null;
   idAnalise: string;
   aceito: boolean;
 }
@@ -100,15 +110,20 @@ export const EventCard: React.FC<EventCardProps> = ({
   const diff = Number(ev.diferencaPercentual);
   const showPositiveDiff = Number.isFinite(diff) && diff > 0;
   const [loadingSaving, setLoadingSaving] = useState(false);
+  const [loadingAppliedPrice, setLoadingAppliedPrice] = useState(false);
 
   const sugNum = toNumber(ev.precoSugerido);
   const atualNum = toNumber(ev.seuPrecoAtual);
 
   const [accepted, setAccepted] = useState(ev.aceito);
+  const [appliedPriceInput, setAppliedPriceInput] = useState(
+    ev.precoAplicado ? String(ev.precoAplicado).replace(".", ",") : "",
+  );
 
   useEffect(() => {
     setAccepted(ev.aceito);
-  }, [ev.aceito]);
+    setAppliedPriceInput(ev.precoAplicado ? String(ev.precoAplicado).replace(".", ",") : "");
+  }, [ev.aceito, ev.precoAplicado]);
 
   const handleAccept = async () => {
     setLoadingSaving(true);
@@ -116,7 +131,7 @@ export const EventCard: React.FC<EventCardProps> = ({
     try {
       await alterarAceitoSugestao(ev.idAnalise, true);
 
-      const updated = { ...ev, aceito: true };
+      const updated = { ...ev, aceito: true, status: "accepted" as const };
       setAccepted(true);
       onChange?.(updated);
 
@@ -139,7 +154,7 @@ export const EventCard: React.FC<EventCardProps> = ({
     try {
       await alterarAceitoSugestao(ev.idAnalise, false);
 
-      const updated = { ...ev, aceito: false };
+      const updated = { ...ev, aceito: false, status: "rejected" as const };
       setAccepted(false);
       onChange?.(updated);
                toast("A sugestão de preço foi cancelada.", { type: "info" });
@@ -150,6 +165,31 @@ export const EventCard: React.FC<EventCardProps> = ({
     } finally {
       setLoadingSaving(false);
       setIsLoading(false);
+    }
+  };
+
+  const handleRegisterAppliedPrice = async () => {
+    const appliedPrice = toNumber(appliedPriceInput);
+    if (!Number.isFinite(appliedPrice) || appliedPrice <= 0) {
+      toast("Informe um preço aplicado válido.", { type: "warning" });
+      return;
+    }
+
+    setLoadingAppliedPrice(true);
+    try {
+      await registrarPrecoAplicadoSugestao(ev.idAnalise, appliedPrice, "manual_dashboard");
+      onChange?.({
+        ...ev,
+        precoAplicado: appliedPrice,
+        aplicadoEm: new Date().toISOString(),
+        origemAplicacao: "manual_dashboard",
+        status: "applied_manual",
+      });
+      toast("Preço aplicado registrado.", { type: "success" });
+    } catch {
+      toast("Não foi possível registrar o preço aplicado.", { type: "error" });
+    } finally {
+      setLoadingAppliedPrice(false);
     }
   };
 
@@ -218,6 +258,35 @@ export const EventCard: React.FC<EventCardProps> = ({
             : `${ev.cidade}, ${ev.estado}`}
         </Text>
 
+        {(ev.motivo_ia || ev.recomendacao) && (
+          <Box bg="gray.50" border="1px solid" borderColor="gray.200" borderRadius="lg" p={3}>
+            <Text fontSize="xs" color="gray.500" fontWeight="bold" textTransform="uppercase">
+              Por que sugerimos
+            </Text>
+            <Text fontSize="sm" color="gray.700" mt={1}>
+              {ev.motivo_ia || ev.recomendacao}
+            </Text>
+          </Box>
+        )}
+
+        {ev.precoAplicado && (
+          <Pill bgColor="#1A7F64" ariaLabel="Preço aplicado registrado">
+            APLICADO {formatBRL(ev.precoAplicado)}
+          </Pill>
+        )}
+
+        {ev.status === "rejected" && (
+          <Badge alignSelf="flex-start" colorScheme="red" borderRadius="full" px={3} py={1}>
+            Rejeitada
+          </Badge>
+        )}
+
+        {ev.status === "expired" && (
+          <Badge alignSelf="flex-start" colorScheme="gray" borderRadius="full" px={3} py={1}>
+            Expirada
+          </Badge>
+        )}
+
         <HStack spacing={3} mt={4}>
           {!accepted ? (
             <Button
@@ -248,6 +317,26 @@ export const EventCard: React.FC<EventCardProps> = ({
             </Button>
           )}
         </HStack>
+
+        {accepted && (
+          <Flex gap={2} align={{ base: "stretch", sm: "center" }} direction={{ base: "column", sm: "row" }}>
+            <Input
+              value={appliedPriceInput}
+              onChange={(event) => setAppliedPriceInput(event.target.value)}
+              placeholder="Preço aplicado"
+              inputMode="decimal"
+              maxW={{ base: "100%", sm: "180px" }}
+            />
+            <Button
+              onClick={handleRegisterAppliedPrice}
+              isLoading={loadingAppliedPrice}
+              colorScheme="blue"
+              variant="outline"
+            >
+              Registrar preço aplicado
+            </Button>
+          </Flex>
+        )}
       </Flex>
     </Box>
   );

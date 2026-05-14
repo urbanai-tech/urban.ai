@@ -443,6 +443,17 @@ export class MapsService {
       console.log(`🏠 Endereços encontrados: ${addresses.length}`);
       console.log(`🎉 Eventos encontrados: ${events.length}`);
       const totalPossiveis = users.length * addresses.length * events.length * transportModes.length;
+      const summary = {
+        usersFound: users.length,
+        addressesFound: addresses.length,
+        eventsFound: events.length,
+        potentialAnalyses: totalPossiveis,
+        proximityAnalysesCreated: 0,
+        proximityAnalysesSkippedDuplicate: 0,
+        proximityAnalysesSkippedDistance: 0,
+        proximityAnalysesFailed: 0,
+        pricing: null as any,
+      };
       console.log(`⚡ Total de análises potenciais: ${totalPossiveis}`);
       console.log("🚀 Iniciando processamento...\n");
 
@@ -459,6 +470,19 @@ export class MapsService {
           console.log(`🔹 Análise iniciada para o usuário ${user.id}`);
           const novasAnalises: any[] = [];
           const analysisTasks = [];
+          const addressIds = addresses.map((address) => address.id);
+          const existingAnalyses = addressIds.length
+            ? await this.analysisRepo.find({
+                where: {
+                  endereco: { id: In(addressIds) },
+                  usuarioProprietario: { id: user.id },
+                },
+                relations: ['evento', 'endereco'],
+              })
+            : [];
+          const existingKeys = new Set(
+            existingAnalyses.map((analysis) => `${analysis.endereco?.id}:${analysis.evento?.id}:${analysis.transportMode}`),
+          );
 
           for (const address of addresses) {
             for (const transport of transportModes) {
@@ -476,6 +500,11 @@ export class MapsService {
                       // Usa primeiramente o raio do motor de IA do evento. Se não tiver, cai pro user fallback.
                       const maxDistance = event.raioImpactoKm || userDistanceKm || 5;
                       if (aproximadamenteOuMenor(maxDistance, distance)) {
+                        const dedupeKey = `${address.id}:${event.id}:${transport}`;
+                        if (existingKeys.has(dedupeKey)) {
+                          summary.proximityAnalysesSkippedDuplicate++;
+                          return;
+                        }
                         const result = await calculateDistanceHere(
                           address.latitude,
                           address.longitude,
@@ -496,11 +525,16 @@ export class MapsService {
 
                         novasAnalises.push(novaAnalise);
                         totalAnalises++;
+                        summary.proximityAnalysesCreated++;
+                        existingKeys.add(dedupeKey);
 
                         // Mostrar compatível e salvo
                         console.log(`✅ Compatível e salvo: Endereço ${address.id} <-> Evento ${event.id}`);
+                      } else {
+                        summary.proximityAnalysesSkippedDistance++;
                       }
                     } catch (innerError) {
+                      summary.proximityAnalysesFailed++;
                       console.error(
                         `❌ Erro no evento ${event.id} e endereço ${address.id} para o usuário ${user.id}:`,
                         innerError
@@ -555,7 +589,7 @@ export class MapsService {
 
       //alterar status da propriedade para completed
  
-      await this.propriedadeService.buscarAddress(propertyAdressId);
+      summary.pricing = await this.propriedadeService.buscarAddress(propertyAdressId);
       await this.updatePropertyAnalysisStatus(propertyAdressId, userId, 'completed');
 
       // await this.emailService.compilarEventosUnicosUsuarios();
@@ -563,7 +597,7 @@ export class MapsService {
 
 
 
-      return { ok: true };
+      return { ok: true, ...summary };
     } catch (error) {
       await this.updatePropertyAnalysisStatus(propertyAdressId, userId, 'error');
       console.error("❌ Erro inesperado durante o processamento de análises:", error);

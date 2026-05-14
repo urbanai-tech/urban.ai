@@ -3,8 +3,68 @@ import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PriceSnapshot } from '../entities/price-snapshot.entity';
+import { EventProximityFeature } from '../entities/event-proximity-feature.entity';
+import { OccupancyHistory } from '../entities/occupancy-history.entity';
 import { Address } from '../entities/addresses.entity';
 import { List } from '../entities/list.entity';
+
+export type DatasetHealth = 'red' | 'amber' | 'green';
+export type DatasetReadiness = 'empty' | 'collecting' | 'training_ready' | 'ground_truth_ready';
+
+export interface DatasetCollectionResult {
+  captured: number;
+  skipped: number;
+  duplicates: number;
+  totalLists: number;
+  skippedMissingPrice: number;
+  skippedInvalidPrice: number;
+  externalDataAvailable: boolean;
+  status: 'ok' | 'empty_catalog' | 'blocked_missing_price_source' | 'partial_missing_prices';
+  warnings: string[];
+}
+
+export interface DatasetSize {
+  total: number;
+  distinctListings: number;
+  distinctDays: number;
+  trainingReady: number;
+}
+
+export interface DatasetDiagnostics {
+  generatedAt: string;
+  health: DatasetHealth;
+  readiness: DatasetReadiness;
+  blockers: Array<{
+    code: string;
+    severity: DatasetHealth;
+    message: string;
+    nextAction: string;
+  }>;
+  tables: {
+    priceSnapshots: DatasetSize & {
+      latestSnapshotDate: string | null;
+      byOrigin: Array<{ origin: string; count: number }>;
+    };
+    occupancyHistory: {
+      total: number;
+      trainingReady: number;
+      latestDate: string | null;
+    };
+    eventProximityFeatures: {
+      total: number;
+      latestSnapshotDate: string | null;
+    };
+  };
+  externalDependencies: Record<
+    string,
+    {
+      configured: boolean;
+      status: 'configured' | 'missing' | 'defaulted';
+      message: string;
+    }
+  >;
+  lastOwnedListingsSnapshot: DatasetCollectionResult | null;
+}
 
 /**
  * F6.1 — Coletor passivo do dataset proprietário Urban AI.
@@ -35,9 +95,13 @@ import { List } from '../entities/list.entity';
 export class DatasetCollectorService {
   private readonly logger = new Logger(DatasetCollectorService.name);
   private isRunning = false;
+  private lastOwnedListingsSnapshot: DatasetCollectionResult | null = null;
 
   constructor(
     @InjectRepository(PriceSnapshot) private readonly snapshotRepo: Repository<PriceSnapshot>,
+    @InjectRepository(OccupancyHistory) private readonly occupancyRepo: Repository<OccupancyHistory>,
+    @InjectRepository(EventProximityFeature)
+    private readonly eventFeatureRepo: Repository<EventProximityFeature>,
     @InjectRepository(Address) private readonly addressRepo: Repository<Address>,
     @InjectRepository(List) private readonly listRepo: Repository<List>,
   ) {}
@@ -78,13 +142,16 @@ export class DatasetCollectorService {
    */
   async recordOwnedListingsSnapshot(
     priceCentsResolver?: (list: List) => Promise<number | null>,
-  ): Promise<{ captured: number; skipped: number; duplicates: number }> {
+  ): Promise<DatasetCollectionResult> {
     const today = new Date().toISOString().slice(0, 10);
 
     const lists = await this.listRepo.find({ take: 5000 }); // soft cap p/ batch
     let captured = 0;
     let skipped = 0;
     let duplicates = 0;
+    let skippedMissingPrice = 0;
+    let skippedInvalidPrice = 0;
+    const warnings: string[] = [];
 
     for (const list of lists) {
       let priceCents: number | null = null;
@@ -93,12 +160,18 @@ export class DatasetCollectorService {
       }
 
       // Sem preço resolvido → pulamos (mas logamos no aggregate).
-      if (!priceCents || priceCents <= 0) {
+      if (priceCents == null) {
         skipped++;
+        skippedMissingPrice++;
+        continue;
+      }
+      if (!Number.isFinite(priceCents) || priceCents <= 0) {
+        skipped++;
+        skippedInvalidPrice++;
         continue;
       }
 
-      const externalListingId = (list as any).id_do_anuncio || null;
+      const externalListingId = this.resolveListingKey(list);
 
       // Dedup — usa o índice composto. Se já existe snapshot hoje, pula.
       const existing = await this.snapshotRepo.findOne({
@@ -132,7 +205,31 @@ export class DatasetCollectorService {
       captured++;
     }
 
-    return { captured, skipped, duplicates };
+    if (!priceCentsResolver && lists.length > 0) {
+      warnings.push(
+        'No price resolver was provided; owned listing snapshots cannot capture prices yet.',
+      );
+    }
+    if (skippedMissingPrice > 0) {
+      warnings.push(`${skippedMissingPrice} listings skipped because no current price was available.`);
+    }
+    if (skippedInvalidPrice > 0) {
+      warnings.push(`${skippedInvalidPrice} listings skipped because the resolved price was invalid.`);
+    }
+
+    const result: DatasetCollectionResult = {
+      captured,
+      skipped,
+      duplicates,
+      totalLists: lists.length,
+      skippedMissingPrice,
+      skippedInvalidPrice,
+      externalDataAvailable: !!priceCentsResolver,
+      status: this.collectionStatus(lists.length, captured, skippedMissingPrice, priceCentsResolver),
+      warnings,
+    };
+    this.lastOwnedListingsSnapshot = result;
+    return result;
   }
 
   // ============ Frente 2: persistência dos comps que vêm de cada análise ============
@@ -230,12 +327,7 @@ export class DatasetCollectorService {
 
   // ============ Helpers de diagnóstico ============
 
-  async datasetSize(): Promise<{
-    total: number;
-    distinctListings: number;
-    distinctDays: number;
-    trainingReady: number;
-  }> {
+  async datasetSize(): Promise<DatasetSize> {
     const total = await this.snapshotRepo.count();
     const trainingReady = await this.snapshotRepo.count({ where: { trainingReady: true } });
 
@@ -252,5 +344,243 @@ export class DatasetCollectorService {
       .then((r: any) => Number(r.c));
 
     return { total, distinctListings, distinctDays, trainingReady };
+  }
+
+  async datasetDiagnostics(): Promise<DatasetDiagnostics> {
+    const [datasetSize, byOrigin, latestSnapshotDate, occupancy, eventFeatures] =
+      await Promise.all([
+        this.datasetSize(),
+        this.snapshotsByOrigin(),
+        this.maxColumn(this.snapshotRepo, 's', 'snapshotDate'),
+        this.occupancyMetrics(),
+        this.eventFeatureMetrics(),
+      ]);
+
+    const externalDependencies = this.externalDependencyStatus();
+    const blockers = this.buildBlockers(datasetSize, occupancy, eventFeatures, externalDependencies);
+    const readiness = this.readiness(datasetSize, occupancy, eventFeatures);
+    const health: DatasetHealth = blockers.some((b) => b.severity === 'red')
+      ? 'red'
+      : blockers.some((b) => b.severity === 'amber')
+        ? 'amber'
+        : 'green';
+
+    return {
+      generatedAt: new Date().toISOString(),
+      health,
+      readiness,
+      blockers,
+      tables: {
+        priceSnapshots: {
+          ...datasetSize,
+          latestSnapshotDate,
+          byOrigin,
+        },
+        occupancyHistory: occupancy,
+        eventProximityFeatures: eventFeatures,
+      },
+      externalDependencies,
+      lastOwnedListingsSnapshot: this.lastOwnedListingsSnapshot,
+    };
+  }
+
+  private resolveListingKey(list: List): string {
+    const external = (list as any).id_do_anuncio;
+    if (external) return String(external);
+    return `urban-list:${list.id}`;
+  }
+
+  private collectionStatus(
+    totalLists: number,
+    captured: number,
+    skippedMissingPrice: number,
+    priceCentsResolver?: (list: List) => Promise<number | null>,
+  ): DatasetCollectionResult['status'] {
+    if (totalLists === 0) return 'empty_catalog';
+    if (!priceCentsResolver && captured === 0) return 'blocked_missing_price_source';
+    if (skippedMissingPrice > 0) return 'partial_missing_prices';
+    return 'ok';
+  }
+
+  private async snapshotsByOrigin(): Promise<Array<{ origin: string; count: number }>> {
+    const rows = await this.snapshotRepo
+      .createQueryBuilder('s')
+      .select('COALESCE(s.origin, :unknown)', 'origin')
+      .addSelect('COUNT(*)', 'count')
+      .setParameter('unknown', 'unknown')
+      .groupBy('origin')
+      .getRawMany();
+
+    return rows.map((row: any) => ({
+      origin: String(row.origin ?? 'unknown'),
+      count: Number(row.count ?? 0),
+    }));
+  }
+
+  private async occupancyMetrics(): Promise<DatasetDiagnostics['tables']['occupancyHistory']> {
+    const [total, trainingReady, latestDate] = await Promise.all([
+      this.occupancyRepo.count(),
+      this.occupancyRepo.count({ where: { trainingReady: true } }),
+      this.maxColumn(this.occupancyRepo, 'o', 'date'),
+    ]);
+
+    return { total, trainingReady, latestDate };
+  }
+
+  private async eventFeatureMetrics(): Promise<
+    DatasetDiagnostics['tables']['eventProximityFeatures']
+  > {
+    const [total, latestSnapshotDate] = await Promise.all([
+      this.eventFeatureRepo.count(),
+      this.maxColumn(this.eventFeatureRepo, 'f', 'snapshotDate'),
+    ]);
+
+    return { total, latestSnapshotDate };
+  }
+
+  private async maxColumn(
+    repo: Repository<any>,
+    alias: string,
+    column: string,
+  ): Promise<string | null> {
+    const row = await repo
+      .createQueryBuilder(alias)
+      .select(`MAX(${alias}.${column})`, 'latest')
+      .getRawOne();
+
+    return row?.latest ? String(row.latest).slice(0, 10) : null;
+  }
+
+  private externalDependencyStatus(): DatasetDiagnostics['externalDependencies'] {
+    const isConfigured = (name: string) => !!process.env[name]?.trim();
+    const isProdLike = ['production', 'staging'].includes(
+      String(process.env.NODE_ENV || process.env.APP_ENV || '').toLowerCase(),
+    );
+
+    return {
+      AIRROI_API_KEY: {
+        configured: isConfigured('AIRROI_API_KEY'),
+        status: isConfigured('AIRROI_API_KEY') ? 'configured' : 'missing',
+        message: isConfigured('AIRROI_API_KEY')
+          ? 'External pricing dataset import can be enabled.'
+          : 'External pricing dataset import is inactive until AIRROI_API_KEY is configured.',
+      },
+      STAYS_API_BASE_URL: {
+        configured: isConfigured('STAYS_API_BASE_URL'),
+        status: isConfigured('STAYS_API_BASE_URL') ? 'configured' : 'defaulted',
+        message: isConfigured('STAYS_API_BASE_URL')
+          ? 'Stays sync base URL is explicitly configured.'
+          : 'Stays connector will use its default URL; configure sandbox/prod explicitly before real sync.',
+      },
+      STAYS_TOKEN_ENCRYPTION_KEY: {
+        configured: isConfigured('STAYS_TOKEN_ENCRYPTION_KEY'),
+        status: isConfigured('STAYS_TOKEN_ENCRYPTION_KEY') ? 'configured' : 'missing',
+        message:
+          isConfigured('STAYS_TOKEN_ENCRYPTION_KEY') || !isProdLike
+            ? 'Stays token encryption gate is clear for this environment.'
+            : 'Stays token encryption key is required before real production/staging tokens.',
+      },
+      GOOGLE_MAPS_API_KEY: {
+        configured: isConfigured('GOOGLE_MAPS_API_KEY'),
+        status: isConfigured('GOOGLE_MAPS_API_KEY') ? 'configured' : 'missing',
+        message: isConfigured('GOOGLE_MAPS_API_KEY')
+          ? 'Travel-time/event proximity enrichment can use Maps data.'
+          : 'Event proximity features that depend on travel time are inactive.',
+      },
+    };
+  }
+
+  private buildBlockers(
+    datasetSize: DatasetSize,
+    occupancy: DatasetDiagnostics['tables']['occupancyHistory'],
+    eventFeatures: DatasetDiagnostics['tables']['eventProximityFeatures'],
+    externalDependencies: DatasetDiagnostics['externalDependencies'],
+  ): DatasetDiagnostics['blockers'] {
+    const blockers: DatasetDiagnostics['blockers'] = [];
+
+    if (datasetSize.total === 0) {
+      blockers.push({
+        code: 'price_snapshots_empty',
+        severity: 'red',
+        message: 'No price snapshots exist yet; model tier must remain on rules.',
+        nextAction:
+          'Run owned listing snapshot with a real price resolver or persist comps from recommendation analyses.',
+      });
+    } else if (datasetSize.trainingReady === 0) {
+      blockers.push({
+        code: 'price_snapshots_not_training_ready',
+        severity: 'amber',
+        message: 'Price snapshots exist, but none are marked trainingReady.',
+        nextAction: 'Populate lat/lng/features for snapshots before using them for model training.',
+      });
+    }
+
+    if (occupancy.total === 0) {
+      blockers.push({
+        code: 'occupancy_history_empty',
+        severity: 'red',
+        message: 'No occupancy history exists; ROI and demand ground truth cannot be measured.',
+        nextAction: 'Import manual/Stays occupancy records before claiming measured revenue uplift.',
+      });
+    }
+
+    if (eventFeatures.total === 0) {
+      blockers.push({
+        code: 'event_proximity_features_empty',
+        severity: 'amber',
+        message: 'No event proximity feature snapshots exist.',
+        nextAction:
+          'Add a dedicated feature snapshot job or call the collector from the recommendation batch.',
+      });
+    }
+
+    if (!externalDependencies.AIRROI_API_KEY.configured) {
+      blockers.push({
+        code: 'airroi_api_key_missing',
+        severity: 'amber',
+        message: externalDependencies.AIRROI_API_KEY.message,
+        nextAction: 'Configure AIRROI_API_KEY when external dataset acquisition is approved.',
+      });
+    }
+
+    if (
+      externalDependencies.STAYS_TOKEN_ENCRYPTION_KEY.status === 'missing' &&
+      ['production', 'staging'].includes(
+        String(process.env.NODE_ENV || process.env.APP_ENV || '').toLowerCase(),
+      )
+    ) {
+      blockers.push({
+        code: 'stays_token_encryption_key_missing',
+        severity: 'red',
+        message: externalDependencies.STAYS_TOKEN_ENCRYPTION_KEY.message,
+        nextAction: 'Configure STAYS_TOKEN_ENCRYPTION_KEY before enabling real Stays ground truth.',
+      });
+    }
+
+    const lastRun = this.lastOwnedListingsSnapshot;
+    if (lastRun?.status === 'blocked_missing_price_source') {
+      blockers.push({
+        code: 'owned_listing_snapshot_missing_price_source',
+        severity: 'red',
+        message: 'Owned listing snapshot ran, but no price source/resolver was available.',
+        nextAction:
+          'Wire a price source into DatasetCollectorService.recordOwnedListingsSnapshot; do not rely on the bare cron.',
+      });
+    }
+
+    return blockers;
+  }
+
+  private readiness(
+    datasetSize: DatasetSize,
+    occupancy: DatasetDiagnostics['tables']['occupancyHistory'],
+    eventFeatures: DatasetDiagnostics['tables']['eventProximityFeatures'],
+  ): DatasetReadiness {
+    if (datasetSize.total === 0) return 'empty';
+    if (datasetSize.trainingReady > 0 && occupancy.trainingReady > 0 && eventFeatures.total > 0) {
+      return 'ground_truth_ready';
+    }
+    if (datasetSize.trainingReady > 0) return 'training_ready';
+    return 'collecting';
   }
 }

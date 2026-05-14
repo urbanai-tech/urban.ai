@@ -85,8 +85,20 @@ export class AppController {
    */
   @Get('public-config')
   publicConfig() {
+    const configuredLaunchMode = process.env.LAUNCH_MODE;
+    const launchMode =
+      configuredLaunchMode === 'closed_beta' ||
+      configuredLaunchMode === 'paid_beta' ||
+      configuredLaunchMode === 'public' ||
+      configuredLaunchMode === 'prelaunch'
+        ? configuredLaunchMode
+        : process.env.PRELAUNCH_MODE === 'true'
+          ? 'prelaunch'
+          : 'closed_beta';
+
     return {
-      prelaunchMode: process.env.PRELAUNCH_MODE === 'true',
+      launchMode,
+      prelaunchMode: launchMode === 'prelaunch',
       appEnv: process.env.APP_ENV ?? process.env.NODE_ENV ?? 'development',
       version: process.env.npm_package_version ?? 'unknown',
     };

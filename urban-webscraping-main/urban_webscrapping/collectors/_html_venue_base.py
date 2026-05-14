@@ -26,7 +26,6 @@ import requests
 from urban_webscrapping.collectors.base_collector import BaseCollector
 from urban_webscrapping.utils.venue_map import VenueInfo, match_venue
 
-
 logger = logging.getLogger(__name__)
 
 

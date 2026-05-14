@@ -26,7 +26,6 @@ do Prefect/Scrapyd/Railway.
 from __future__ import annotations
 
 import logging
-import os
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -38,7 +37,6 @@ from urban_webscrapping.utils.urban_backend_client import (
 )
 from urban_webscrapping.utils.venue_map import match_venue
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -47,6 +45,8 @@ class CollectorRunResult:
     """Resumo de uma execução de coletor."""
 
     source: str
+    status: str = "pending"
+    skip_reason: str | None = None
     fetched: int = 0
     normalized: int = 0
     sent: int = 0
@@ -55,6 +55,22 @@ class CollectorRunResult:
     errors: list[str] = field(default_factory=list)
     elapsed_seconds: float = 0.0
     backend_response: dict[str, Any] | None = None  # Última resposta agregada do backend
+
+
+class MissingCollectorDependency(RuntimeError):
+    """Dependencia externa ausente para um coletor opcional."""
+
+    reason = "missing_dependency"
+
+    def __init__(self, dependency: str):
+        self.dependency = dependency
+        super().__init__(f"{dependency} nao configurada")
+
+
+class MissingApiKeyError(MissingCollectorDependency):
+    """API key ausente para uma fonte opcional."""
+
+    reason = "missing_key"
 
 
 class BaseCollector(ABC):
@@ -152,8 +168,16 @@ class BaseCollector(ABC):
 
         try:
             raw_items = self.fetch_raw()
+        except MissingCollectorDependency as e:
+            logger.warning("[%s] skipped: %s (%s)", self.source, e.reason, e.dependency)
+            result.status = "skipped"
+            result.skip_reason = e.reason
+            result.errors.append(str(e))
+            result.elapsed_seconds = round(time.time() - start, 2)
+            return result
         except Exception as e:
             logger.exception("[%s] fetch_raw falhou", self.source)
+            result.status = "failed"
             result.errors.append(f"fetch_raw: {e}")
             result.elapsed_seconds = round(time.time() - start, 2)
             return result
@@ -204,10 +228,18 @@ class BaseCollector(ABC):
                 logger.error("[%s] flush final falhou: %s", self.source, e)
                 result.errors.append(f"flush: {e}")
 
+        if result.errors:
+            result.status = "partial_failure" if result.normalized or result.sent else "failed"
+        elif result.fetched == 0:
+            result.status = "no_data"
+        else:
+            result.status = "success"
+
         result.elapsed_seconds = round(time.time() - start, 2)
         logger.info(
-            "[%s] DONE — fetched=%d normalized=%d sent=%d skipped_empty=%d skipped_invalid=%d errors=%d in %.1fs",
+            "[%s] DONE — status=%s fetched=%d normalized=%d sent=%d skipped_empty=%d skipped_invalid=%d errors=%d in %.1fs",
             self.source,
+            result.status,
             result.fetched,
             result.normalized,
             result.sent,

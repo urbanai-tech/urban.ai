@@ -31,7 +31,7 @@ def _building_s3_client():
             DurationSeconds=1800
         )
         creds = resp['Credentials']
-        
+
         return boto3.client(
             "s3",
             aws_access_key_id=creds["AccessKeyId"],
@@ -40,24 +40,24 @@ def _building_s3_client():
             config=aws_urban_config,
             region_name='sa-east-1',
         )
-        
+
     return session.client("s3", config=aws_urban_config)
 
 
 class S3Helper:
     def __init__(self):
         self.client = _building_s3_client()
-        
+
     def put_object_json(self, bucket_name: str, object_name: str, data: dict, kms_key_id: str | None = None) -> None:
         body = json.dumps(data, default=str, ensure_ascii=False).encode("utf-8")
 
         self.client.put_object(
-            Bucket=bucket_name, 
-            Key=object_name, 
+            Bucket=bucket_name,
+            Key=object_name,
             Body=body,
             ContentType="application/json"
             )
-    
+
     def put_object_parquet(self, bucket_name: str, object_name: str, data) -> None:
         record = data
         table = pa.Table.from_pylist([record])
@@ -65,10 +65,10 @@ class S3Helper:
         pq.write_table(table, buf, compression="snappy")   # write Parquet into memory
         buf.seek(0)
         body = buf.getvalue()
-        
+
         self.client.put_object(
-            Bucket=bucket_name, 
-            Key=object_name, 
+            Bucket=bucket_name,
+            Key=object_name,
             Body=body,
             ContentType="application/vnd.apache.parquet"
             )

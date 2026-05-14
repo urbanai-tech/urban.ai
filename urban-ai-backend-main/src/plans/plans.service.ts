@@ -2,6 +2,7 @@ import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Plan } from '../entities/plan.entity';
+import { getEnvKeys } from '../payments/stripe-price-id.resolver';
 
 @Injectable()
 export class PlansService implements OnModuleInit {
@@ -17,12 +18,9 @@ export class PlansService implements OnModuleInit {
   }
 
   async seedPlans() {
-    // Temp: Clear table to reseed with new pricing matrix.
+    // Idempotente: preserva ajustes feitos no banco e so preenche campos ausentes.
     // ⚠️ Esse comportamento sobrescreve dados a cada boot. Migrar para
-    //    migration idempotente antes do go-live (D3 em RELEASE_NOTES_SPRINT_2026-04-21).
-    await this.planRepository.clear();
-
-    this.logger.log('Seeding initial plans (com matriz F6.5)...');
+    this.logger.log('Ensuring initial plans (com matriz F6.5)...');
 
     // Tabela F6.5 — preço POR IMÓVEL, POR MÊS equivalente.
     // Mensal é "caro" (ancora); demais ciclos têm desconto progressivo.
@@ -119,8 +117,71 @@ export class PlansService implements OnModuleInit {
       stripePriceId: '',
     });
 
-    await this.planRepository.save([starter, profissional, escala]);
-    this.logger.log('Plans seeded successfully (com matriz F6.5).');
+    const seeds = [starter, profissional, escala];
+    const plans: Plan[] = [];
+
+    for (const seed of seeds) {
+      const existing = await this.planRepository.findOne({ where: { name: seed.name } });
+      plans.push(existing ? this.mergeSeedPlan(existing, seed) : seed);
+    }
+
+    await this.planRepository.save(plans);
+    this.logger.log('Plans ensured successfully (com matriz F6.5).');
+  }
+
+  private mergeSeedPlan(existing: Plan, seed: Plan): Plan {
+    const merged = Object.assign(existing, this.fillMissing(existing, seed));
+    this.applyStripeEnvOverrides(merged, seed);
+    return merged;
+  }
+
+  private fillMissing(existing: Plan, seed: Plan): Partial<Plan> {
+    const patch: Partial<Plan> = {};
+
+    for (const [key, value] of Object.entries(seed) as Array<[keyof Plan, any]>) {
+      const current = existing[key];
+      const isMissing =
+        current === undefined ||
+        current === null ||
+        (typeof current === 'string' && current.trim() === '');
+
+      if (isMissing) {
+        (patch as any)[key] = value;
+      }
+    }
+
+    return patch;
+  }
+
+  private applyStripeEnvOverrides(plan: Plan, seed: Plan) {
+    const fieldsByCycle = {
+      monthly: ['stripePriceIdMonthly', 'stripePriceId'],
+      quarterly: ['stripePriceIdQuarterly'],
+      semestral: ['stripePriceIdSemestral'],
+      annual: ['stripePriceIdAnnualNew', 'stripePriceIdAnnual'],
+    } as const;
+
+    for (const [cycle, fields] of Object.entries(fieldsByCycle)) {
+      const envValue = this.firstConfiguredEnv(getEnvKeys(plan.name, cycle as any));
+      if (envValue) {
+        (plan as any)[fields[0]] = envValue;
+        continue;
+      }
+
+      for (const field of fields) {
+        if (!(plan as any)[field] && (seed as any)[field]) {
+          (plan as any)[field] = (seed as any)[field];
+        }
+      }
+    }
+  }
+
+  private firstConfiguredEnv(keys: string[]): string | null {
+    for (const key of keys) {
+      const value = process.env[key]?.trim();
+      if (value) return value;
+    }
+    return null;
   }
 
   async getActivePlans(): Promise<Plan[]> {

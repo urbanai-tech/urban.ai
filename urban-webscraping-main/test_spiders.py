@@ -1,5 +1,5 @@
-import os
 import time
+
 import requests
 
 API_KEY = "urban-scrapyd-2026-secret"
@@ -38,7 +38,7 @@ def main():
             print(f"Error fetching listjobs: {resp.text}")
             time.sleep(10)
             continue
-            
+
         data = resp.json()
         running_jobs = {job["id"] for job in data.get("running", [])}
         pending_jobs = {job["id"] for job in data.get("pending", [])}
@@ -52,7 +52,7 @@ def main():
 
         if not active:
             break
-            
+
         print(f"Still active: {len(running_jobs)} running, {len(pending_jobs)} pending")
         time.sleep(10)
 

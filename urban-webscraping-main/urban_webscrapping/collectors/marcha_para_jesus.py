@@ -30,11 +30,11 @@ from datetime import date, datetime, timedelta
 from typing import Any
 
 import requests
+
 from urban_webscrapping.collectors.base_collector import (
     BaseCollector,
     CollectorRunResult,
 )
-
 
 logger = logging.getLogger(__name__)
 

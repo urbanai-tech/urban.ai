@@ -777,9 +777,18 @@ export class PropriedadeService {
 
                 // Atualiza coordenadas no address se disponíveis
                 if (scraped.latitude && scraped.longitude) {
+                    const state = scraped.state ? scraped.state.slice(0, 2).toUpperCase() : undefined;
                     await this.addressRepository.update(
                         { list: { id: prop.id } },
-                        { latitude: scraped.latitude, longitude: scraped.longitude }
+                        {
+                            latitude: scraped.latitude,
+                            longitude: scraped.longitude,
+                            logradouro: scraped.street || undefined,
+                            bairro: scraped.neighborhood || undefined,
+                            cidade: scraped.city || undefined,
+                            estado: state,
+                            cep: scraped.zipCode || undefined,
+                        }
                     );
                 }
 
@@ -1226,6 +1235,9 @@ export class PropriedadeService {
     async buscarAddress(listId: string) {
 
         try {
+            const startedAt = new Date();
+            const pricingFailureReasons: Record<string, number> = {};
+            this.logger.log(`Buscando endereco com idAlertAirb valido para list=${listId}`);
             console.log("🔍 Buscando endereço com idAlertAirb válido...");
             const address = await this.addressRepository.findOne({
                 where: {
@@ -1249,7 +1261,8 @@ export class PropriedadeService {
             const dadosAirbnb = await this.airbnbService.getFirstAvailablePrice(list?.id_do_anuncio);
 
             if (!dadosAirbnb?.price?.status || !dadosAirbnb?.propertyDetails) {
-                throw new Error('Não foi possível obter preço no Airbnb');
+                this.logger.warn(`Nao foi possivel obter preco Airbnb para list=${listId}`);
+                return { ok: false, reason: 'missing_airbnb_price', pricingGenerated: 0 };
             }
 
             const alerts = await this.buscarAlertPorId(address?.idAlertAirb);
@@ -1287,11 +1300,20 @@ export class PropriedadeService {
             const limit = pLimit(2); // no máximo 3 eventos ao mesmo tempo
 
             let pricingGenerated = 0;
+            let pricingCreated = 0;
+            let pricingUpdated = 0;
+            let pricingFailed = 0;
+            let pricingSkippedPastEvent = 0;
+            let pricingSkippedNoCoordinates = 0;
             const promises = enderecoAnalises.map((element, index) =>
                 limit(async () => {
                     try {
                         const evento = element?.evento;
                         const thereIsLatLong = evento?.latitude && evento?.longitude;
+                        if (!evento?.dataInicio || new Date(evento.dataInicio) < startedAt) {
+                            pricingSkippedPastEvent++;
+                            return;
+                        }
 
                         console.log(`🔍 [${index + 1}/${enderecoAnalises.length}] Analisando evento: ${evento?.id} (${evento?.nome ?? 'sem nome'})`);
 
@@ -1307,12 +1329,25 @@ export class PropriedadeService {
                             );
                             if (pricingResult?.ok) {
                                 pricingGenerated++;
+                                if (pricingResult.updated) {
+                                    pricingUpdated++;
+                                } else {
+                                    pricingCreated++;
+                                }
+                            } else {
+                                pricingFailed++;
+                                const reason = pricingResult?.reason || 'unknown_pricing_failure';
+                                pricingFailureReasons[reason] = (pricingFailureReasons[reason] ?? 0) + 1;
                             }
                             console.log(`✅ [${index + 1}/${enderecoAnalises.length}] Cálculo finalizado para o evento: ${evento?.id}`);
                         } else {
+                            pricingSkippedNoCoordinates++;
                             console.log(`⚠️ [${index + 1}/${enderecoAnalises.length}] Evento não possui latitude e longitude. Pulando cálculo.`);
                         }
                     } catch (eventError) {
+                        pricingFailed++;
+                        const reason = eventError instanceof Error ? eventError.message : 'unknown_error';
+                        pricingFailureReasons[reason] = (pricingFailureReasons[reason] ?? 0) + 1;
                         console.log(`❌ [${index + 1}/${enderecoAnalises.length}] Erro ao processar análise do evento:`, eventError);
                     }
                 })
@@ -1337,7 +1372,17 @@ export class PropriedadeService {
 
             await this.compilarEventosFuturosPorUsuario(address?.user?.id)
 
-            return { ok: true, pricingGenerated };
+            return {
+                ok: true,
+                pricingGenerated,
+                pricingCreated,
+                pricingUpdated,
+                pricingFailed,
+                pricingSkippedPastEvent,
+                pricingSkippedNoCoordinates,
+                pricingCandidates: enderecoAnalises.length,
+                failureReasons: pricingFailureReasons,
+            };
 
         } catch (err) {
             console.log("❌ Erro ao buscar endereço ou análises:", err);
@@ -1345,6 +1390,9 @@ export class PropriedadeService {
                 ok: false,
                 reason: err instanceof Error ? err.message : String(err),
                 pricingGenerated: 0,
+                pricingCreated: 0,
+                pricingUpdated: 0,
+                pricingFailed: 0,
             };
         }
     }
@@ -1361,7 +1409,7 @@ export class PropriedadeService {
             });
             if (!evento) {
                 console.log(`❌ Evento não encontrado: ${eventId}`);
-                return;
+                return { ok: false, reason: 'event_not_found' };
             }
 
             const property = await this.propriedades.findOne({
@@ -1369,7 +1417,7 @@ export class PropriedadeService {
             });
             if (!property) {
                 console.log(`❌ Propriedade não encontrada: ${listId}`);
-                return;
+                return { ok: false, reason: 'property_not_found' };
             }
 
             //const dadosAirbnb = await this.airbnbService.getFirstAvailablePrice(property?.id_do_anuncio);
@@ -1381,12 +1429,12 @@ export class PropriedadeService {
 
             if (!address) {
                 console.log(`❌ Endereço não encontrado para listId: ${listId}`);
-                return;
+                return { ok: false, reason: 'address_not_found' };
             }
 
             if (!alerts?.comps?.length) {
                 console.log("⚠️ Nenhum comparativo encontrado nos alerts para o cálculo de preço");
-                return;
+                return { ok: false, reason: 'missing_comps' };
             }
 
             const maxObj = alerts.comps.reduce((prev, curr) =>
@@ -1549,7 +1597,7 @@ export class PropriedadeService {
             // --- Salvar no banco ---
             console.log("💾 Salvando análise de preço...");
             const savedAnalise = await this.analisePrecoRepository.save({
-                ...(existingAnalise ? { id: existingAnalise.id } : {}),
+                ...(existingAnalise ? { id: existingAnalise.id, criadoEm: new Date() } : {}),
                 endereco: address,
                 evento: evento,
                 usuarioProprietario: property?.user ?? null,
@@ -1621,6 +1669,15 @@ export class PropriedadeService {
                 seuPrecoAtual: analise.seuPrecoAtual,
                 diferencaPercentual: analise.diferencaPercentual,
                 recomendacao: analise.recomendacao,
+                motivo_ia: analise.motivo_ia,
+                criadoEm: analise.criadoEm,
+                precoAplicado: analise.precoAplicado,
+                aplicadoEm: analise.aplicadoEm,
+                origemAplicacao: analise.origemAplicacao,
+                status: analise.status,
+                aceitoEm: analise.aceitoEm,
+                rejeitadoEm: analise.rejeitadoEm,
+                expiradoEm: analise.expiradoEm,
                 distanciaAteMinhaPropriedade: analise?.distanciaSuaPropriedade,
                 idAnalise: analise.id,
                 aceito: analise.aceito
@@ -1665,6 +1722,15 @@ export class PropriedadeService {
                     seuPrecoAtual: analise.seuPrecoAtual,
                     diferencaPercentual: analise.diferencaPercentual,
                     recomendacao: analise.recomendacao,
+                    motivo_ia: analise.motivo_ia,
+                    criadoEm: analise.criadoEm,
+                    precoAplicado: analise.precoAplicado,
+                    aplicadoEm: analise.aplicadoEm,
+                    origemAplicacao: analise.origemAplicacao,
+                    status: analise.status,
+                    aceitoEm: analise.aceitoEm,
+                    rejeitadoEm: analise.rejeitadoEm,
+                    expiradoEm: analise.expiradoEm,
                     idAnalise: analise.id,
                     aceito: analise.aceito,
                 })),
@@ -1692,6 +1758,15 @@ export class PropriedadeService {
                     seuPrecoAtual: analise.seuPrecoAtual,
                     diferencaPercentual: analise.diferencaPercentual,
                     recomendacao: analise.recomendacao,
+                    motivo_ia: analise.motivo_ia,
+                    criadoEm: analise.criadoEm,
+                    precoAplicado: analise.precoAplicado,
+                    aplicadoEm: analise.aplicadoEm,
+                    origemAplicacao: analise.origemAplicacao,
+                    status: analise.status,
+                    aceitoEm: analise.aceitoEm,
+                    rejeitadoEm: analise.rejeitadoEm,
+                    expiradoEm: analise.expiradoEm,
                     idAnalise: analise.id,
                     aceito: analise.aceito,
                 })),
@@ -1735,6 +1810,15 @@ export class PropriedadeService {
                 seuPrecoAtual: analise.seuPrecoAtual,
                 diferencaPercentual: analise.diferencaPercentual,
                 recomendacao: analise.recomendacao,
+                motivo_ia: analise.motivo_ia,
+                criadoEm: analise.criadoEm,
+                precoAplicado: analise.precoAplicado,
+                aplicadoEm: analise.aplicadoEm,
+                origemAplicacao: analise.origemAplicacao,
+                status: analise.status,
+                aceitoEm: analise.aceitoEm,
+                rejeitadoEm: analise.rejeitadoEm,
+                expiradoEm: analise.expiradoEm,
                 idAnalise: analise.id,
                 aceito: analise.aceito
             })),

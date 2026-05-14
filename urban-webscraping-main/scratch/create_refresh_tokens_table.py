@@ -23,7 +23,7 @@ try:
                 CONSTRAINT FK_refresh_tokens_user FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
             );
         """)
-        
+
         # also create the unique index
         cursor.execute("""
             CREATE UNIQUE INDEX IDX_refresh_tokens_tokenHash ON refresh_tokens (tokenHash);

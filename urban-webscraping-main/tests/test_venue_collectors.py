@@ -7,7 +7,6 @@ from urban_webscrapping.collectors.allianz_parque import AllianzParqueCollector
 from urban_webscrapping.collectors.anhembi import AnhembiCollector
 from urban_webscrapping.collectors.sao_paulo_expo import SaoPauloExpoCollector
 
-
 # ============== AllianzParqueCollector ==============
 
 

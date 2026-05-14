@@ -1,5 +1,5 @@
-import pymysql
 import bcrypt
+import pymysql
 
 try:
     conn = pymysql.connect(
@@ -13,7 +13,7 @@ try:
     # create hash
     pwd = "Urban_Coll3ct0r!2026"
     hashed = bcrypt.hashpw(pwd.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-    
+
     with conn.cursor() as cursor:
         cursor.execute("UPDATE user SET password = %s WHERE email = 'collector@urban.ai'", (hashed,))
         conn.commit()

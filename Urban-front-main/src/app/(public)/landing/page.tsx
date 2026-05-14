@@ -116,9 +116,9 @@ function Hero() {
             color: "rgba(255,255,255,0.65)",
           }}
         >
-          A Urban AI cruza a agenda da cidade com a demanda real do bairro
-          e te entrega o preço certo todo dia — automaticamente, sem você
-          precisar olhar planilha.
+          A Urban AI cruza a agenda da cidade com sinais de demanda do bairro
+          e entrega recomendações de preço para você decidir com mais clareza,
+          sem depender de planilha.
         </p>
 
         <div
@@ -311,7 +311,7 @@ function FourSteps() {
     {
       n: "01",
       title: "CONECTA.",
-      desc: "Setup leva 3 minutos. Importamos seus imóveis automaticamente do Airbnb ou Stays — você não cadastra nada manual.",
+      desc: "Cadastro assistido para seus imóveis. Durante o beta, revisamos os dados principais antes de liberar recomendações.",
     },
     {
       n: "02",

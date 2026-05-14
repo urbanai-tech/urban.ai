@@ -45,6 +45,10 @@ describe('PaymentsService — handleStripeWebhook', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
+    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+    process.env.SUCCESS_URL = 'https://urban.test/success';
+    process.env.CANCEL_URL = 'https://urban.test/cancel';
 
     paymentRepo = {
       find: jest.fn(),
@@ -69,6 +73,16 @@ describe('PaymentsService — handleStripeWebhook', () => {
   });
 
   describe('signature verification', () => {
+    it('returns { error } when webhook secret is not configured', async () => {
+      delete process.env.STRIPE_WEBHOOK_SECRET;
+
+      const result = await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+      expect(result).toEqual({ error: expect.any(Error) });
+      expect(mockStripeConstructEvent).not.toHaveBeenCalled();
+      expect(paymentRepo.save).not.toHaveBeenCalled();
+    });
+
     it('returns { error } when the signature is invalid (no DB side effects)', async () => {
       mockStripeConstructEvent.mockImplementation(() => {
         throw new Error('Invalid signature');
@@ -141,6 +155,7 @@ describe('PaymentsService — handleStripeWebhook', () => {
       await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
 
       const saved = paymentRepo.save!.mock.calls[0][0];
+      expect(saved.status).toBe('active');
       expect(saved.billingCycle).toBe('quarterly');
       expect(saved.listingsContratados).toBe(5);
       expect(saved.planName).toBe('profissional');
@@ -290,6 +305,7 @@ describe('PaymentsService — cancelSubscription', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
     paymentRepo = {
       findOne: jest.fn(),
       find: jest.fn(),
@@ -343,6 +359,14 @@ describe('PaymentsService — cancelSubscription', () => {
     expect(mockStripeSubscriptionsCancel).toHaveBeenCalledWith('sub_xyz');
     expect(result).toEqual({ id: 'sub_xyz', status: 'canceled' });
   });
+
+  it('reports not configured before calling Stripe when key is absent', async () => {
+    delete process.env.STRIPE_SECRET_KEY;
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com' });
+
+    await expect(service.cancelSubscription('u1')).rejects.toThrow('Stripe is not configured');
+    expect(mockStripeCustomersList).not.toHaveBeenCalled();
+  });
 });
 
 describe('PaymentsService — createCheckoutSession', () => {
@@ -353,6 +377,9 @@ describe('PaymentsService — createCheckoutSession', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
+    process.env.SUCCESS_URL = 'https://urban.test/success';
+    process.env.CANCEL_URL = 'https://urban.test/cancel';
     paymentRepo = {
       findOne: jest.fn(),
       save: jest.fn().mockImplementation(async (x) => x),
@@ -424,6 +451,49 @@ describe('PaymentsService — createCheckoutSession', () => {
 
     const createArgs = mockStripeCheckoutSessionsCreate.mock.calls[0][0];
     expect(createArgs.line_items[0].price).toBe('price_q_pro');
+  });
+
+  it('uses env fallback when the plan row has no Price ID', async () => {
+    process.env.PROFISSIONAL_PRICE_QUARTERLY = 'price_env_q_pro';
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com', username: 'U' });
+    mockStripeCustomersList.mockResolvedValue({ data: [{ id: 'cus_abc' }] });
+    paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId: null });
+    plansService.getPlanByName.mockResolvedValue({ name: 'profissional' });
+    mockStripeCheckoutSessionsCreate.mockResolvedValue({ id: 'cs_1' });
+
+    await service.createCheckoutSession({ plan: 'profissional', billingCycle: 'quarterly' }, 'u1');
+
+    const createArgs = mockStripeCheckoutSessionsCreate.mock.calls[0][0];
+    expect(createArgs.line_items[0].price).toBe('price_env_q_pro');
+    delete process.env.PROFISSIONAL_PRICE_QUARTERLY;
+  });
+
+  it('reports not configured without calling Stripe when key is absent', async () => {
+    delete process.env.STRIPE_SECRET_KEY;
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com', username: 'U' });
+    plansService.getPlanByName.mockResolvedValue({
+      name: 'profissional',
+      stripePriceIdMonthly: 'price_m_pro',
+    });
+
+    await expect(service.createCheckoutSession({ plan: 'profissional' }, 'u1')).rejects.toThrow(
+      'Stripe is not configured',
+    );
+    expect(mockStripeCustomersList).not.toHaveBeenCalled();
+    expect(mockStripeCheckoutSessionsCreate).not.toHaveBeenCalled();
+  });
+
+  it('rejects invalid billingCycle before calling Stripe', async () => {
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com', username: 'U' });
+    plansService.getPlanByName.mockResolvedValue({
+      name: 'profissional',
+      stripePriceIdMonthly: 'price_m_pro',
+    });
+
+    await expect(
+      service.createCheckoutSession({ plan: 'profissional', billingCycle: 'weekly' as any }, 'u1'),
+    ).rejects.toThrow('Invalid billingCycle');
+    expect(mockStripeCustomersList).not.toHaveBeenCalled();
   });
 
   it('forwards quantity to Stripe line_items (cobrança por imóvel)', async () => {
@@ -513,6 +583,7 @@ describe('PaymentsService — getListingsQuota (F6.5)', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
     paymentRepo = { findOne: jest.fn() };
     addressRepo = { count: jest.fn() };
 

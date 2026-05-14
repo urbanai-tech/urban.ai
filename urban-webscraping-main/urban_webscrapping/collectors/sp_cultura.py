@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from urllib.parse import urlencode
 
@@ -36,7 +36,6 @@ from urban_webscrapping.collectors.base_collector import (
     BaseCollector,
     CollectorRunResult,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +71,7 @@ class SpCulturaCollector(BaseCollector):
     # ============== fetch ==============
 
     def fetch_raw(self) -> list[dict[str, Any]]:
-        today = datetime.now(timezone.utc).date()
+        today = datetime.now(UTC).date()
         end = today + timedelta(days=self.lookahead_days)
 
         # API usa filtros tipo `startsOn=GTE(YYYY-MM-DD)`. Campos retornados:

@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 
 import pkg_resources
 from omegaconf import OmegaConf

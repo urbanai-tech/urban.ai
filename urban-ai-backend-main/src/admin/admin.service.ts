@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual, IsNull, Not } from 'typeorm';
 import { User } from '../entities/user.entity';
@@ -586,6 +586,56 @@ export class AdminService {
     };
   }
 
+  async upsertManualOccupancy(input: {
+    listId?: string;
+    airbnbListingId?: string;
+    date: string;
+    status: 'booked' | 'available' | 'blocked' | 'unknown';
+    revenueCents?: number | null;
+    listedPriceCents?: number | null;
+    currency?: string;
+  }) {
+    if (!input.date || !/^\d{4}-\d{2}-\d{2}$/.test(input.date)) {
+      throw new BadRequestException('date deve estar no formato YYYY-MM-DD');
+    }
+    if (!['booked', 'available', 'blocked', 'unknown'].includes(input.status)) {
+      throw new BadRequestException('status invalido');
+    }
+
+    const list = await this.listRepo.findOne({
+      where: input.listId
+        ? { id: input.listId }
+        : { id_do_anuncio: input.airbnbListingId ?? '' },
+      relations: ['user'],
+    });
+    if (!list) {
+      throw new NotFoundException('Imovel nao encontrado');
+    }
+
+    const address = await this.addressRepo.findOne({
+      where: { list: { id: list.id } } as any,
+      relations: ['list'],
+    });
+    const existing = await this.occupancyRepo.findOne({
+      where: { list: { id: list.id }, date: input.date } as any,
+      relations: ['list', 'user', 'address'],
+    });
+    const record = existing ?? this.occupancyRepo.create();
+    record.list = list;
+    record.user = list.user;
+    record.address = address ?? null;
+    record.date = input.date;
+    record.status = input.status;
+    record.origin = 'manual';
+    record.revenueCents = input.revenueCents ?? null;
+    record.listedPriceCents = input.listedPriceCents ?? null;
+    record.currency = input.currency ?? 'BRL';
+    record.trainingReady = input.status === 'booked' || input.status === 'available';
+    record.nightsBooked = input.status === 'booked' ? 1 : null;
+
+    return this.occupancyRepo.save(record);
+  }
+
   // ========================================================================
   // F6.2 Plus — Listing paginada de eventos com filtro de cobertura
   // ========================================================================
@@ -794,33 +844,81 @@ export class AdminService {
       .orderBy('total', 'DESC')
       .getRawMany();
 
+    const knownCollectors = [
+      { source: 'api-football', critical: false, requiredEnv: ['API_FOOTBALL_KEY'] },
+      { source: 'sp-cultura', critical: true, requiredEnv: [] },
+      { source: 'usp-eventos', critical: true, requiredEnv: [] },
+      { source: 'marcha-para-jesus', critical: true, requiredEnv: [] },
+      { source: 'allianz-parque', critical: true, requiredEnv: [] },
+      { source: 'anhembi', critical: true, requiredEnv: [] },
+      { source: 'sao-paulo-expo', critical: true, requiredEnv: [] },
+      { source: 'expo-center-norte', critical: true, requiredEnv: [] },
+      { source: 'transamerica-expo', critical: true, requiredEnv: [] },
+      { source: 'vibra-sao-paulo', critical: true, requiredEnv: [] },
+      { source: 'tokio-marine-hall', critical: true, requiredEnv: [] },
+      { source: 'espaco-unimed', critical: true, requiredEnv: [] },
+      { source: 'wtc-sao-paulo', critical: true, requiredEnv: [] },
+      { source: 'serpapi-events', critical: false, requiredEnv: ['SERPAPI_KEY'] },
+      { source: 'tavily', critical: false, requiredEnv: ['TAVILY_API_KEY', 'GEMINI_API_KEY'] },
+      { source: 'firecrawl', critical: false, requiredEnv: ['FIRECRAWL_API_KEY', 'GEMINI_API_KEY'] },
+      { source: 'legacy-scrapyd-spiders', critical: true, requiredEnv: ['SCRAPYD_URL'] },
+    ];
+
+    const sources: any[] = rows.map((r: any) => {
+      const total = Number(r.total ?? 0);
+      const outOfScope = Number(r.outOfScope ?? 0);
+      const pendingEnrichment = Number(r.pendingEnrichment ?? 0);
+      const enriched = Number(r.enriched ?? 0);
+      const withErrors = Number(r.withErrors ?? 0);
+      return {
+        source: r.source,
+        status: 'has_events',
+        critical: knownCollectors.find((c) => c.source === r.source)?.critical ?? null,
+        total,
+        last7d: Number(r.last7d ?? 0),
+        last24h: Number(r.last24h ?? 0),
+        outOfScope,
+        outOfScopePercent:
+          total > 0 ? Math.round((outOfScope / total) * 1000) / 10 : 0,
+        pendingGeocode: Number(r.pendingGeocode ?? 0),
+        pendingEnrichment,
+        enriched,
+        withErrors,
+        errorRate:
+          enriched + withErrors > 0
+            ? Math.round((withErrors / (enriched + withErrors)) * 1000) / 10
+            : 0,
+        lastSeen: r.lastSeen ?? null,
+      };
+    });
+    const present = new Set(sources.map((source) => source.source));
+    for (const collector of knownCollectors) {
+      if (present.has(collector.source)) {
+        continue;
+      }
+      const missingEnv = collector.requiredEnv.filter((name) => !process.env[name]);
+      sources.push({
+        source: collector.source,
+        status: missingEnv.length ? 'missing_key' : 'no_events',
+        critical: collector.critical,
+        total: 0,
+        last7d: 0,
+        last24h: 0,
+        outOfScope: 0,
+        outOfScopePercent: 0,
+        pendingGeocode: 0,
+        pendingEnrichment: 0,
+        enriched: 0,
+        withErrors: 0,
+        errorRate: 0,
+        lastSeen: null,
+        missingEnv,
+      });
+    }
+
     return {
       generatedAt: new Date().toISOString(),
-      sources: rows.map((r: any) => {
-        const total = Number(r.total ?? 0);
-        const outOfScope = Number(r.outOfScope ?? 0);
-        const pendingEnrichment = Number(r.pendingEnrichment ?? 0);
-        const enriched = Number(r.enriched ?? 0);
-        const withErrors = Number(r.withErrors ?? 0);
-        return {
-          source: r.source,
-          total,
-          last7d: Number(r.last7d ?? 0),
-          last24h: Number(r.last24h ?? 0),
-          outOfScope,
-          outOfScopePercent:
-            total > 0 ? Math.round((outOfScope / total) * 1000) / 10 : 0,
-          pendingGeocode: Number(r.pendingGeocode ?? 0),
-          pendingEnrichment,
-          enriched,
-          withErrors,
-          errorRate:
-            enriched + withErrors > 0
-              ? Math.round((withErrors / (enriched + withErrors)) * 1000) / 10
-              : 0,
-          lastSeen: r.lastSeen ?? null,
-        };
-      }),
+      sources: sources.sort((a, b) => b.total - a.total || a.source.localeCompare(b.source)),
     };
   }
 
@@ -848,6 +946,7 @@ export class AdminService {
     const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
     const next7d = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     const next30d = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const last30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
     const [
       // Eventos
@@ -869,10 +968,23 @@ export class AdminService {
       coverageBootstrap,
       // Subscriptions
       activeSubscriptions,
+      paymentsByStatus,
+      legacyPedingPayments,
       // Sources distinct
       distinctSources,
       // Coletores stale
       staleSources,
+      activeAddresses,
+      invalidLocalityAddresses,
+      pricingLast24h,
+      pricingLast30d,
+      futurePricingCount,
+      activeWithFuturePricing,
+      appliedPriceCaptured,
+      datasetDiagnostics,
+      staysAccounts,
+      staysListings,
+      priceUpdatesLast30d,
     ] = await Promise.all([
       this.eventRepo.count(),
       this.eventRepo.count({ where: { outOfScope: false } }),
@@ -917,6 +1029,13 @@ export class AdminService {
       this.coverageRepo.count({ where: { status: 'active' } }),
       this.coverageRepo.count({ where: { status: 'bootstrap' } }),
       this.paymentRepo.count({ where: { status: 'active' as any } }),
+      this.paymentRepo
+        .createQueryBuilder('p')
+        .select('p.status', 'status')
+        .addSelect('COUNT(*)', 'count')
+        .groupBy('p.status')
+        .getRawMany(),
+      this.paymentRepo.count({ where: { status: 'peding' as any } }),
       this.eventRepo
         .createQueryBuilder('e')
         .select('COUNT(DISTINCT e.source)', 'c')
@@ -934,6 +1053,47 @@ export class AdminService {
         .having('MAX(e.dataCrawl) < :cutoff', { cutoff: fortyEightHoursAgo })
         .andHaving('COUNT(*) >= 5') // ignora sources muito pequenas (curadoria, etc.)
         .getRawMany(),
+      this.addressRepo.count({ where: { ativo: true } }),
+      this.addressRepo
+        .createQueryBuilder('a')
+        .where('a.ativo = true')
+        .andWhere(
+          "(a.cidade IS NULL OR TRIM(a.cidade) = '' OR LOWER(a.cidade) = :undefinedCity OR a.estado IS NULL OR TRIM(a.estado) = '' OR TRIM(a.estado) = :undefinedState)",
+          { undefinedCity: 'a definir', undefinedState: 'A' },
+        )
+        .getCount(),
+      this.analiseRepo
+        .createQueryBuilder('a')
+        .where('a.criadoEm >= :since', { since: oneDayAgo })
+        .getCount(),
+      this.analiseRepo
+        .createQueryBuilder('a')
+        .where('a.criadoEm >= :since', { since: last30d })
+        .getCount(),
+      this.analiseRepo
+        .createQueryBuilder('a')
+        .innerJoin('a.evento', 'evento')
+        .where('evento.dataInicio >= :now', { now })
+        .getCount(),
+      this.analiseRepo
+        .createQueryBuilder('a')
+        .innerJoin('a.evento', 'evento')
+        .innerJoin('a.endereco', 'endereco')
+        .select('COUNT(DISTINCT endereco.id)', 'count')
+        .where('evento.dataInicio >= :now', { now })
+        .getRawOne()
+        .then((r: any) => Number(r?.count ?? 0)),
+      this.analiseRepo
+        .createQueryBuilder('a')
+        .where('a.precoAplicado IS NOT NULL')
+        .getCount(),
+      this.collector.datasetDiagnostics(),
+      this.staysAccountRepo.count(),
+      this.staysListingRepo.count(),
+      this.priceUpdateRepo
+        .createQueryBuilder('p')
+        .where('p.createdAt >= :since', { since: last30d })
+        .getCount(),
     ]);
 
     // Timeline 7 dias (mini-chart)
@@ -978,6 +1138,67 @@ export class AdminService {
       alerts.push({
         severity: 'red',
         message: 'Zero eventos coletados nas últimas 24h — todos os crons podem estar parados',
+      });
+    }
+    const pricingCoveragePercent =
+      activeAddresses > 0 ? Math.round((activeWithFuturePricing / activeAddresses) * 1000) / 10 : 0;
+
+    if (eventsNext30d < 100) {
+      alerts.push({
+        severity: 'red',
+        message: `Cobertura de eventos futuros abaixo do gate beta: ${eventsNext30d}/100 nos proximos 30 dias`,
+      });
+    } else if (eventsNext30d < 200) {
+      alerts.push({
+        severity: 'amber',
+        message: `Eventos futuros abaixo do alvo publico: ${eventsNext30d}/200 nos proximos 30 dias`,
+      });
+    }
+    if (pricingLast24h === 0 && eventsNext30d > 0) {
+      alerts.push({
+        severity: 'red',
+        message: 'Zero recomendacoes de preco criadas nas ultimas 24h apesar de haver eventos futuros',
+      });
+    }
+    if (activeAddresses > 0 && pricingCoveragePercent < 70) {
+      alerts.push({
+        severity: 'red',
+        message: `Cobertura de recomendacao futura abaixo do gate beta: ${pricingCoveragePercent}% dos imoveis ativos`,
+      });
+    }
+    if (invalidLocalityAddresses > 0) {
+      alerts.push({
+        severity: 'amber',
+        message: `${invalidLocalityAddresses} endereco(s) ativo(s) com cidade/UF invalidos`,
+      });
+    }
+    if (datasetDiagnostics.health === 'red') {
+      alerts.push({
+        severity: 'red',
+        message: `Dataset nao pronto: ${datasetDiagnostics.blockers.filter((b) => b.severity === 'red').length} bloqueio(s) critico(s)`,
+      });
+    } else if (datasetDiagnostics.health === 'amber') {
+      alerts.push({
+        severity: 'amber',
+        message: 'Dataset ainda incompleto para validar ROI/MAPE com confianca',
+      });
+    }
+    if (appliedPriceCaptured === 0) {
+      alerts.push({
+        severity: 'amber',
+        message: 'Nenhum preco aplicado capturado; MAPE/ROI ainda nao sao comprovaveis',
+      });
+    }
+    if (legacyPedingPayments > 0) {
+      alerts.push({
+        severity: 'amber',
+        message: `${legacyPedingPayments} pagamento(s) com status legado "peding" aguardam saneamento`,
+      });
+    }
+    if (!process.env.STAYS_API_BASE_URL || !process.env.STAYS_TOKEN_ENCRYPTION_KEY) {
+      alerts.push({
+        severity: 'info',
+        message: 'Stays em beta privado: configure API base e encryption key antes de tokens reais',
       });
     }
     if (coverageActive === 0 && coverageBootstrap === 0) {
@@ -1031,6 +1252,43 @@ export class AdminService {
       coverage: {
         activeRegions: coverageActive,
         bootstrapRegions: coverageBootstrap,
+      },
+      pricing: {
+        last24h: pricingLast24h,
+        last30d: pricingLast30d,
+        futureRecommendations: futurePricingCount,
+        activeAddresses,
+        activeWithFuturePricing,
+        coveragePercent: pricingCoveragePercent,
+        appliedPriceCaptured,
+        invalidLocalityAddresses,
+      },
+      dataset: {
+        health: datasetDiagnostics.health,
+        readiness: datasetDiagnostics.readiness,
+        blockers: datasetDiagnostics.blockers.slice(0, 5),
+        priceSnapshots: datasetDiagnostics.tables.priceSnapshots.total,
+        occupancyRecords: datasetDiagnostics.tables.occupancyHistory.total,
+        eventProximityFeatures: datasetDiagnostics.tables.eventProximityFeatures.total,
+        latestSnapshotDate: datasetDiagnostics.tables.priceSnapshots.latestSnapshotDate,
+      },
+      billing: {
+        activeSubscriptions,
+        legacyPedingPayments,
+        stripeSecretConfigured: Boolean(process.env.STRIPE_SECRET_KEY),
+        stripeWebhookConfigured: Boolean(process.env.STRIPE_WEBHOOK_SECRET),
+        byStatus: (paymentsByStatus as any[]).map((r: any) => ({
+          status: String(r.status ?? 'unknown'),
+          count: Number(r.count ?? 0),
+        })),
+      },
+      stays: {
+        accounts: staysAccounts,
+        listings: staysListings,
+        priceUpdatesLast30d,
+        apiBaseConfigured: Boolean(process.env.STAYS_API_BASE_URL),
+        tokenEncryptionConfigured: Boolean(process.env.STAYS_TOKEN_ENCRYPTION_KEY),
+        betaPrivate: !process.env.STAYS_API_BASE_URL || !process.env.STAYS_TOKEN_ENCRYPTION_KEY,
       },
       revenue: {
         activeSubscriptions,

@@ -1,5 +1,5 @@
+
 import pymysql
-import sys
 
 try:
     conn = pymysql.connect(

@@ -1,11 +1,12 @@
 import logging
+
 from dotenv import load_dotenv
 
 from urban_webscrapping.collectors.api_football import ApiFootballCollector
+from urban_webscrapping.collectors.base_collector import setup_logging
+from urban_webscrapping.collectors.firecrawl_extractor import FirecrawlExtractor
 from urban_webscrapping.collectors.serpapi_events import SerpApiEventsCollector
 from urban_webscrapping.collectors.tavily_search import TavilySearchCollector
-from urban_webscrapping.collectors.firecrawl_extractor import FirecrawlExtractor
-from urban_webscrapping.collectors.base_collector import setup_logging
 
 load_dotenv()
 logger = logging.getLogger("test_camada2")

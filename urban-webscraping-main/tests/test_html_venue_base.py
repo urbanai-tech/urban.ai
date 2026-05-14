@@ -1,7 +1,7 @@
 """Tests da HtmlVenueCollector base + parser de data + normalize."""
 
 from typing import Any
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 
@@ -161,7 +161,8 @@ class TestVenueObrigatorio:
 class TestVenueDesconhecido:
     def test_venue_fora_do_map_avisa_mas_funciona(self, caplog):
         """Quando VENUE_NAME não bate em venue_map, normalize segue mas sem
-        lat/lng. Backend marca pendingGeocode."""
+        lat/lng. Backend marca pendingGeocode.
+        """
         class UnknownVenue(HtmlVenueCollector):
             source = "unknown-venue"
             LISTING_URL = "https://x.com"

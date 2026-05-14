@@ -1,13 +1,12 @@
 """Tests do BaseCollector — orquestração genérica."""
 
-from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 
 from urban_webscrapping.collectors.base_collector import (
     BaseCollector,
-    CollectorRunResult,
+    MissingApiKeyError,
 )
 
 
@@ -113,7 +112,17 @@ def test_run_captura_excecao_em_fetch():
     result = c.run()
     assert result.fetched == 0
     assert result.normalized == 0
+    assert result.status == "failed"
     assert any("fetch_raw" in e for e in result.errors)
+
+
+def test_run_marca_missing_key_como_skipped():
+    c = _FakeCollector(raw_items=MissingApiKeyError("FAKE_API_KEY"), dry_run=True)
+    result = c.run()
+    assert result.status == "skipped"
+    assert result.skip_reason == "missing_key"
+    assert result.fetched == 0
+    assert any("FAKE_API_KEY" in e for e in result.errors)
 
 
 def test_enrich_with_venue_preenche_quando_faltando():
