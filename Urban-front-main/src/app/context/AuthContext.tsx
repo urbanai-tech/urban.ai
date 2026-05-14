@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { api } from '../service/api'
 
@@ -35,12 +35,38 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
   const { data: session } = useSession()
 
   useEffect(() => {
     let cancelled = false
+    const publicPrefixes = [
+      '/',
+      '/login',
+      '/create',
+      '/request-reset-password',
+      '/reset-password',
+      '/confirm-email',
+      '/waitlist',
+      '/privacidade',
+      '/termos',
+      '/contato',
+      '/sobre',
+      '/lancamento',
+      '/precos',
+      '/landing',
+    ]
 
     const checkSession = async () => {
+      const isPublicPath =
+        publicPrefixes.includes(pathname) ||
+        publicPrefixes.some((path) => path !== '/' && pathname.startsWith(`${path}/`))
+
+      if (isPublicPath) {
+        if (!cancelled) setIsAuthenticated(false)
+        return
+      }
+
       if (session?.user) {
         setIsAuthenticated(true)
         return
@@ -59,7 +85,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       cancelled = true
     }
-  }, [session])
+  }, [session, pathname])
 
   const login = () => {
     setIsAuthenticated(true)
