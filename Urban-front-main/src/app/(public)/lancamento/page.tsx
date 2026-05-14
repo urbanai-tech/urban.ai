@@ -61,7 +61,7 @@ export default function LancamentoPage() {
           >
             Quando finais de semana e feriados esgotam em horas, na maioria das
             vezes significa que você fixou o preço cedo demais. A Urban AI
-            protege a sua margem enquanto você dorme.
+            ajuda você a revisar a tarifa antes da demanda aparecer no calendário.
           </p>
         </div>
       </section>
@@ -143,14 +143,61 @@ export default function LancamentoPage() {
             <Step
               num="02"
               title="CALIBRAGEM"
-              body="A tarifa reage cirurgicamente quando demanda oculta começa a esmagar oferta. Reajustes impossíveis para a mente humana."
+              body="A recomendação cruza evento, distância, janela e perfil do imóvel para sugerir um ajuste defensável antes do pico de procura."
               borderLeft
             />
             <Step
               num="03"
               title="BLINDAGEM"
-              body="Sem planilha. Sem checagem manual. Limites e tetos definidos por você. Rentabilidade diária protegida no automático."
+              body="Você decide se aplica manualmente ou se testa automação em beta privado. Tetos e limites ficam definidos por você."
               borderLeft
+            />
+          </div>
+        </div>
+      </section>
+
+      <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+
+      {/* ============== FAQ ============== */}
+      <section style={{ padding: "120px 24px" }}>
+        <div style={{ maxWidth: 980, margin: "0 auto" }}>
+          <p className="urban-eyebrow" style={{ marginBottom: 32 }}>
+            COMO FUNCIONA
+          </p>
+          <h2
+            className="urban-display"
+            style={{
+              fontSize: "clamp(56px, 10vw, 160px)",
+              lineHeight: 0.9,
+              fontWeight: 400,
+              margin: "0 0 80px",
+              textTransform: "uppercase",
+            }}
+          >
+            PERGUNTAS
+            <br />
+            <span style={{ color: "#E8500A" }}>DIRETAS.</span>
+          </h2>
+          <div>
+            <LaunchFaq
+              q="A Urban AI muda meu preço automaticamente?"
+              a="No pré-lançamento, o fluxo principal é recomendação: você recebe a sugestão, entende o motivo e decide se aplica. Automação via Stays fica em beta privado, com consentimento, limites e rollback."
+            />
+            <LaunchFaq
+              q="De onde vem a recomendação?"
+              a="A recomendação combina eventos futuros, distância do imóvel, janela de antecedência, dados do anúncio e histórico capturado pela plataforma. O objetivo é sinalizar dias em que a demanda pode mudar antes do calendário mostrar."
+            />
+            <LaunchFaq
+              q="Vocês prometem aumento fixo de receita?"
+              a="Não. Antes de cases auditados, tratamos a Urban AI como uma ferramenta de decisão e aprendizado. O beta fechado serve justamente para medir cobertura, preço aplicado e resultado real com anfitriões."
+            />
+            <LaunchFaq
+              q="E se a sugestão parecer agressiva?"
+              a="Você pode ignorar, aplicar outro valor ou registrar o preço realmente usado. Esse retorno melhora o dataset e ajuda a calibrar próximas recomendações."
+            />
+            <LaunchFaq
+              q="Qual região está mais pronta?"
+              a="A operação está priorizando São Paulo e Grande SP, onde o calendário de eventos e a cobertura inicial fazem mais sentido para o beta assistido."
             />
           </div>
         </div>
@@ -225,6 +272,41 @@ export default function LancamentoPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+function LaunchFaq({ q, a }: { q: string; a: string }) {
+  return (
+    <details
+      style={{
+        borderTop: "1px solid rgba(255,255,255,0.08)",
+        padding: "28px 0",
+      }}
+    >
+      <summary
+        style={{
+          cursor: "pointer",
+          listStyle: "none",
+          fontSize: 22,
+          fontWeight: 500,
+          color: "#FFFFFF",
+        }}
+      >
+        {q}
+      </summary>
+      <p
+        style={{
+          marginTop: 20,
+          maxWidth: 760,
+          fontSize: 17,
+          fontWeight: 300,
+          lineHeight: 1.75,
+          color: "rgba(255,255,255,0.65)",
+        }}
+      >
+        {a}
+      </p>
+    </details>
   );
 }
 
