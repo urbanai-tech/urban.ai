@@ -1237,6 +1237,37 @@ export async function setAdminUserActive(
   return data;
 }
 
+export interface AdminAuditLog {
+  id: string;
+  actorUserId: string | null;
+  action: string;
+  entityType: string;
+  entityId: string | null;
+  before: unknown | null;
+  after: unknown | null;
+  metadata: unknown | null;
+  createdAt: string;
+}
+
+export interface AdminAuditLogsResponse {
+  items: AdminAuditLog[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export const fetchAdminAuditLogs = (params?: {
+  page?: number;
+  limit?: number;
+  actorUserId?: string;
+  action?: string;
+  entityType?: string;
+  entityId?: string;
+}) =>
+  api
+    .get<AdminAuditLogsResponse>('/admin/audit-logs', { params })
+    .then((r) => r.data);
+
 // ================== Stays integration (F6.4) ==================
 
 export interface StaysAccountPublic {
@@ -1686,7 +1717,59 @@ export const updateWaitlistNotes = (id: string, notes: string | null) =>
 export const deleteWaitlistEntry = (id: string) =>
   api.delete<{ ok: true }>(`/admin/waitlist/${id}`).then((r) => r.data);
 
-// =================== Eventos — Camada 3 (curadoria manual) ===================
+// =================== Contato publico + admin ===================
+
+export type ContactSubmissionStatus = 'new' | 'in_progress' | 'resolved' | 'archived';
+
+export interface ContactSubmission {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  source: string;
+  status: ContactSubmissionStatus;
+  notes: string | null;
+  ipAddress: string | null;
+  userAgent: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContactSubmissionListResponse {
+  page: number;
+  limit: number;
+  total: number;
+  items: ContactSubmission[];
+}
+
+export const createContactSubmission = (input: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  source?: string;
+}) => api.post<ContactSubmission>('/contact-submissions', input).then((r) => r.data);
+
+export const fetchAdminContactSubmissions = (params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: ContactSubmissionStatus | 'all';
+}) =>
+  api
+    .get<ContactSubmissionListResponse>('/admin/contact-submissions', { params })
+    .then((r) => r.data);
+
+export const updateAdminContactSubmission = (
+  id: string,
+  input: { status?: ContactSubmissionStatus; notes?: string | null },
+) =>
+  api
+    .patch<ContactSubmission>(`/admin/contact-submissions/${id}`, input)
+    .then((r) => r.data);
+
+// =================== Eventos - Camada 3 (curadoria manual) ===================
 
 export interface ManualEventInput {
   nome: string;

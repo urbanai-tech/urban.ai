@@ -1,13 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
+import { createContactSubmission } from "../../service/api";
 
 export default function Contato() {
-  const [sent, setSent] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSent(true);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    setStatus("loading");
+    setErrorMessage(null);
+
+    try {
+      await createContactSubmission({
+        name: String(formData.get("name") || ""),
+        email: String(formData.get("email") || ""),
+        subject: String(formData.get("subject") || ""),
+        message: String(formData.get("message") || ""),
+        source: "public-contact",
+      });
+      form.reset();
+      setStatus("success");
+    } catch (err: any) {
+      const message = err?.response?.data?.message;
+      setErrorMessage(
+        Array.isArray(message)
+          ? message.join(" ")
+          : message || "Nao foi possivel registrar a mensagem agora.",
+      );
+      setStatus("error");
+    }
   }
 
   return (
@@ -62,6 +88,7 @@ export default function Contato() {
               <textarea
                 name="message"
                 required
+                minLength={10}
                 rows={6}
                 placeholder="Descreva como podemos ajudar..."
                 style={fieldStyle}
@@ -69,6 +96,7 @@ export default function Contato() {
             </label>
             <button
               type="submit"
+              disabled={status === "loading"}
               style={{
                 width: "100%",
                 padding: "20px 28px",
@@ -79,14 +107,20 @@ export default function Contato() {
                 fontSize: 13,
                 letterSpacing: 3,
                 textTransform: "uppercase",
-                cursor: "pointer",
+                cursor: status === "loading" ? "wait" : "pointer",
+                opacity: status === "loading" ? 0.7 : 1,
               }}
             >
-              Enviar mensagem
+              {status === "loading" ? "Enviando..." : "Enviar mensagem"}
             </button>
-            {sent && (
+            {status === "success" && (
               <p className="urban-public-copy" role="status" style={{ marginTop: 24, color: "#FFFFFF" }}>
                 Mensagem registrada. Nossa equipe retorna em breve.
+              </p>
+            )}
+            {status === "error" && (
+              <p className="urban-public-copy" role="alert" style={{ marginTop: 24, color: "#FFB4A0" }}>
+                {errorMessage}
               </p>
             )}
           </form>
@@ -127,7 +161,7 @@ function Field({
       <span className="urban-eyebrow" style={{ display: "block", marginBottom: 12 }}>
         {label}
       </span>
-      <input name={name} type={type} required placeholder={placeholder} style={fieldStyle} />
+      <input name={name} type={type} required minLength={type === "email" ? undefined : 2} placeholder={placeholder} style={fieldStyle} />
     </label>
   );
 }

@@ -218,6 +218,7 @@ export default function AdminPage() {
             <NavCard href="/admin/roi" title="ROI dos anfitriões" desc="Dinheiro gerado, payback e ranking por usuário" />
             <NavCard href="/admin/pricing-config" title="Configurar preços" desc="Editar matriz F6.5 (4 ciclos × planos)" />
             <NavCard href="/admin/waitlist" title="Lista de Espera" desc="Pré-lançamento — gerir convites e referrals" />
+            <NavCard href="/admin/contacts" title="Contatos" desc="Mensagens do formulario publico e triagem comercial" />
             <NavCard href="/admin/users" title="Usuários" desc="Roles, ativação, busca" />
             <NavCard href="/admin/events" title="Motor de eventos" desc="Cobertura, categorias, top relevância" />
             <NavCard href="/admin/events/new" title="+ Cadastrar evento" desc="Camada 3 — curadoria manual (admin-manual)" />

@@ -36,6 +36,7 @@ import { PlansModule } from './plans/plans.module';
 import { StaysModule } from './stays/stays.module';
 import { AdminModule } from './admin/admin.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
+import { ContactSubmissionsModule } from './contact-submissions/contact-submissions.module';
 import { User } from './entities/user.entity';
 import { RolesGuard } from './auth/roles.guard';
 
@@ -131,6 +132,7 @@ import { RolesGuard } from './auth/roles.guard';
     StaysModule,
     AdminModule,
     WaitlistModule,
+    ContactSubmissionsModule,
 
     // 4) Static file serving
     ServeStaticModule.forRoot({
