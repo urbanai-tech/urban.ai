@@ -27,7 +27,7 @@ class AnhembiCollector(HtmlVenueCollector):
     """Scraping HTML simples do calendário Anhembi."""
 
     source = "anhembi"
-    LISTING_URL = "https://distritoanhembi.com.br/eventos"
+    LISTING_URL = "https://distritoanhembi.com.br/agenda/"
     VENUE_NAME = "Distrito Anhembi"
     DEFAULT_CATEGORY = "feira"
 

@@ -34,7 +34,7 @@ class AllianzParqueCollector(HtmlVenueCollector):
     """Scraping HTML do calendário público do Allianz Parque."""
 
     source = "allianz-parque"
-    LISTING_URL = "https://www.allianzparque.com.br/eventos"
+    LISTING_URL = "https://allianzparque.com.br"
     VENUE_NAME = "Allianz Parque"
     DEFAULT_CATEGORY = "show"
 

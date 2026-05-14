@@ -128,7 +128,9 @@ export function middleware(request: NextRequest) {
   //    permanentes (301) atualizam cache do browser e sinalizam ao Google.
   if (isPublicHost(host) && pathMatchesAppOnly(pathname)) {
     const target = new URL(request.url);
-    target.host = "app.myurbanai.com";
+    target.hostname = "app.myurbanai.com";
+    target.port = "";
+    target.protocol = "https:";
     return NextResponse.redirect(target, 301);
   }
 
@@ -138,7 +140,9 @@ export function middleware(request: NextRequest) {
   //    duplicate content pro SEO).
   if (isAppHost(host) && pathMatchesPublicOnly(pathname)) {
     const target = new URL(request.url);
-    target.host = "myurbanai.com";
+    target.hostname = "myurbanai.com";
+    target.port = "";
+    target.protocol = "https:";
     return NextResponse.redirect(target, 301);
   }
 

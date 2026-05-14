@@ -30,7 +30,7 @@ class SaoPauloExpoCollector(HtmlVenueCollector):
     """Scraping HTML do calendário SP Expo."""
 
     source = "sao-paulo-expo"
-    LISTING_URL = "https://www.saopauloexpo.com.br/agenda"
+    LISTING_URL = "https://www.saopauloexpo.com.br/pt/eventoscorporativos/"
     VENUE_NAME = "São Paulo Expo"
     DEFAULT_CATEGORY = "feira"
 
