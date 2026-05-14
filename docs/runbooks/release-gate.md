@@ -19,7 +19,7 @@ Escopo: fluxo minimo para promover mudancas rumo a M1/M2/M3 sem repetir hotfix d
 |---|---|---|
 | Prelaunch/waitlist | `/create` em modo prelaunch, signup, admin invite, aceite de convite | Print ou log com waitlist `converted`. |
 | Eventos | `/admin/events`, `/admin/collectors-health`, geocoder manual quando houver pendentes; se `next30d < 100`, seguir `docs/runbooks/eventos-fallback-manual.md` | Contagem de eventos futuros, `lastSeen` por source e evidencia do sourceLabel importado. |
-| Recomendacoes | Reprocessar pelo menos 1 imovel em ambiente controlado | `AnalisePreco.criadoEm` atual e motivo visivel no dashboard. |
+| Recomendacoes | Seguir `docs/runbooks/recomendacao-nova-smoke.md` para reprocessar pelo menos 1 imovel em ambiente controlado | `AnalisePreco.criadoEm` atual, evento futuro, motivo visivel no dashboard e registro de evidencia. |
 | Dataset/ROI | Registrar preco aplicado e rodar snapshot manual | `PriceSnapshot` com `appliedPriceCents` ou resultado do snapshot. |
 | Billing | Sync check, checkout test mode, webhook, quota, cancelamento | `/admin/stripe/sync-check` sem problemas e evento Stripe refletido no DB. |
 | Stays | Somente beta privado: connect/sync/push/rollback em sandbox | `PriceUpdate` success e rollback success. |
