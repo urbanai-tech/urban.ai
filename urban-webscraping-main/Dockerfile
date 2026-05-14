@@ -20,6 +20,7 @@ RUN ls -lR
 
 # Build the image.
 FROM mcr.microsoft.com/playwright:v1.55.0-noble-amd64
+WORKDIR /app
 
 # Copy UV
 COPY --from=build-stage /bin/uv /bin/uv
@@ -27,9 +28,12 @@ COPY --from=build-stage /bin/uv /bin/uv
 # Install Scrapy dependencies - and any others for your project.
 COPY --from=build-stage /workdir/pyproject.toml .
 COPY --from=build-stage /workdir/uv.lock .
+COPY --from=build-stage /workdir/README.md .
+COPY --from=build-stage /workdir/urban_webscrapping ./urban_webscrapping
+COPY --from=build-stage /workdir/scripts ./scripts
 
 USER root
-RUN uv sync --active --frozen --no-install-project --no-dev --no-cache --compile-bytecode
+RUN uv sync --active --frozen --no-dev --no-cache --compile-bytecode
 
 RUN uv run playwright install --with-deps
 

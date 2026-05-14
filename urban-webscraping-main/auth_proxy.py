@@ -48,8 +48,10 @@ def cron_worker():
     while True:
         try:
             logger.info("[cron-worker] Iniciando bateria de coletores REST...")
-            script_path = os.path.join(os.getcwd(), "scripts", "run_all_collectors.sh")
-            subprocess.run(["bash", script_path], check=True)
+            subprocess.run(
+                [sys.executable, "-m", "urban_webscrapping.collectors.run_all"],
+                check=True,
+            )
             logger.info("[cron-worker] Bateria de coletores finalizada com sucesso.")
         except Exception as e:
             logger.exception("[cron-worker] Erro ao executar coletores: %s", e)
