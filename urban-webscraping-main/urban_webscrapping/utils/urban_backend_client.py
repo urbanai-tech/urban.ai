@@ -21,19 +21,18 @@ Variáveis de ambiente esperadas:
 
 from __future__ import annotations
 
-import hashlib
 import logging
 import os
 import time
-from datetime import datetime, timezone
 from typing import Any
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-
 logger = logging.getLogger(__name__)
+HTTP_BAD_REQUEST = 400
+HTTP_UNAUTHORIZED = 401
 
 
 class UrbanBackendError(Exception):
@@ -85,7 +84,7 @@ class UrbanBackendClient:
         self._session = self._build_session()
 
     @classmethod
-    def from_env(cls, batch_size: int = DEFAULT_BATCH_SIZE) -> "UrbanBackendClient":
+    def from_env(cls, batch_size: int = DEFAULT_BATCH_SIZE) -> UrbanBackendClient:
         """Constrói via env vars. Lança ValueError se faltar configuração."""
         api_base = os.environ.get("URBAN_API_BASE", "http://localhost:10000")
         email = os.environ.get("URBAN_COLLECTOR_EMAIL")
@@ -130,7 +129,7 @@ class UrbanBackendClient:
         except requests.RequestException as e:
             raise UrbanBackendError(f"Erro de rede no login: {e}") from e
 
-        if resp.status_code >= 400:
+        if resp.status_code >= HTTP_BAD_REQUEST:
             raise UrbanBackendError(
                 f"Login falhou (HTTP {resp.status_code}): {resp.text[:300]}"
             )
@@ -186,7 +185,7 @@ class UrbanBackendClient:
         except requests.RequestException as e:
             raise UrbanBackendError(f"Erro de rede em /events/ingest: {e}") from e
 
-        if resp.status_code == 401:
+        if resp.status_code == HTTP_UNAUTHORIZED:
             # Token possivelmente expirou apesar do safe lifetime; força refresh
             logger.warning("/events/ingest retornou 401, refazendo login")
             self._token = None
@@ -198,7 +197,7 @@ class UrbanBackendClient:
                 timeout=self.timeout,
             )
 
-        if resp.status_code >= 400:
+        if resp.status_code >= HTTP_BAD_REQUEST:
             raise UrbanBackendError(
                 f"/events/ingest falhou (HTTP {resp.status_code}): {resp.text[:300]}"
             )

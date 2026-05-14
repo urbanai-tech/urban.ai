@@ -22,6 +22,9 @@ export class SugestionService {
       throw new ForbiddenException('Registro nao pertence ao usuario autenticado');
     }
     registro.aceito = aceito;
+    registro.status = aceito ? 'accepted' : 'rejected';
+    registro.aceitoEm = aceito ? new Date() : null;
+    registro.rejeitadoEm = aceito ? null : new Date();
     return await this.analisePrecoRepository.save(registro);
   }
 
@@ -60,6 +63,34 @@ export class SugestionService {
     registro.precoAplicado = input.precoAplicado;
     registro.aplicadoEm = new Date();
     registro.origemAplicacao = input.origem;
+    registro.status = input.origem.startsWith('stays') ? 'applied_stays' : 'applied_manual';
+    registro.aceitoEm = registro.aceitoEm ?? new Date();
+    registro.rejeitadoEm = null;
+    registro.expiradoEm = null;
     return this.analisePrecoRepository.save(registro);
+  }
+
+  async expirarAntigas(daysValid = 30): Promise<{ expired: number }> {
+    const cutoff = new Date(Date.now() - daysValid * 24 * 60 * 60 * 1000);
+    const result = await this.analisePrecoRepository
+      .createQueryBuilder()
+      .update(AnalisePreco)
+      .set({
+        status: 'expired',
+        expiradoEm: new Date(),
+      })
+      .where('criado_em < :cutoff', { cutoff })
+      .andWhere('aceito = :aceito', { aceito: false })
+      .andWhere("(status IS NULL OR status IN ('suggested', 'rejected'))")
+      .execute();
+    return { expired: result.affected ?? 0 };
+  }
+
+  async rejeitar(id: string, userId: string): Promise<AnalisePreco> {
+    return this.alterarAceito(id, userId, false);
+  }
+
+  async aceitar(id: string, userId: string): Promise<AnalisePreco> {
+    return this.alterarAceito(id, userId, true);
   }
 }

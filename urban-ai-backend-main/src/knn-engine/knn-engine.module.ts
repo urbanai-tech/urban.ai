@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Address } from '../entities/addresses.entity';
 import { List } from '../entities/list.entity';
+import { EventProximityFeature } from '../entities/event-proximity-feature.entity';
+import { OccupancyHistory } from '../entities/occupancy-history.entity';
 import { PriceSnapshot } from '../entities/price-snapshot.entity';
 import { UrbanAIPricingEngine } from './pricing-engine';
 import { PropertyClassifier } from './knn-classifier';
@@ -31,7 +33,7 @@ import { AdaptivePricingStrategy } from './strategies/adaptive-pricing.strategy'
  * `docs/adr/0009-modelo-neural-hibrido-moat.md` (Tier 4 aspiracional).
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([Address, List, PriceSnapshot])],
+  imports: [TypeOrmModule.forFeature([Address, List, PriceSnapshot, OccupancyHistory, EventProximityFeature])],
   providers: [
     // Componentes nativos
     TravelTimeEngine,

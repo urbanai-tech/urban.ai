@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Payment } from 'src/entities/payment.entity';
 import { User } from 'src/entities/user.entity';
@@ -6,6 +6,8 @@ import { Address } from 'src/entities/addresses.entity';
 import Stripe from 'stripe';
 import { In, Repository } from 'typeorm';
 import { PlansService } from '../plans/plans.service';
+import { BillingCycle } from '../entities/plan.entity';
+import { isBillingCycle, resolveStripePriceId } from './stripe-price-id.resolver';
 
 @Injectable()
 export class PaymentsService {
@@ -17,7 +19,7 @@ export class PaymentsService {
     @InjectRepository(Address) private addressRepository: Repository<Address>,
     private plansService: PlansService,
   ) {
-    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_not_configured', {
       apiVersion: '2025-08-27.basil',
     });
   }
@@ -72,6 +74,8 @@ export class PaymentsService {
       where: { id: userId },
     });
 
+    if (!this.isStripeConfigured()) return null;
+
     const customers = await this.stripe.customers.list({
       email: user.email,
       limit: 1,
@@ -107,6 +111,8 @@ export class PaymentsService {
     if (!user) {
       throw new Error("Usuário não encontrado");
     }
+
+    this.ensureStripeConfigured();
 
     // Buscar o cliente Stripe pelo email
     const customers = await this.stripe.customers.list({
@@ -159,19 +165,21 @@ export class PaymentsService {
     if (!user) throw new Error('Usuário não encontrado');
 
     // 1) Resolve customer Stripe (cria se não existir)
-    const customerId = await this.ensureStripeCustomer(user);
-
     // 2) Resolve plano + Price ID conforme ciclo
     const planEntity = await this.plansService.getPlanByName(
       data.plan === 'trial' ? 'profissional' : data.plan,
     );
-    const billingCycle = data.billingCycle || 'monthly';
-    const stripePrice = this.resolveStripePriceId(planEntity, billingCycle);
+    const billingCycle = this.resolveBillingCycle(data.billingCycle);
+    const { priceId: stripePrice } = resolveStripePriceId(planEntity, billingCycle, data.plan);
     if (!stripePrice) {
-      throw new Error(
-        `Stripe Price ID ausente para plano=${data.plan} ciclo=${billingCycle}. Conferir seedPlans / env vars.`,
+      throw new ServiceUnavailableException(
+        `Stripe Price ID not configured for plan=${data.plan} cycle=${billingCycle}`,
       );
     }
+    this.ensureStripeConfigured();
+    this.ensureCheckoutUrlsConfigured();
+
+    const customerId = await this.ensureStripeCustomer(user);
 
     // 3) Quantidade — número de imóveis contratados. Sempre ≥ 1.
     const quantity = Math.max(1, Math.floor(data.quantity ?? 1));
@@ -250,7 +258,7 @@ export class PaymentsService {
     return 'monthly';
   }
 
-  private resolveStripePriceId(
+  private deprecatedResolveStripePriceId(
     planEntity: any,
     billingCycle: 'monthly' | 'quarterly' | 'semestral' | 'annual',
   ): string {
@@ -284,10 +292,62 @@ export class PaymentsService {
     }
   }
 
+  private resolveBillingCycle(value: unknown): BillingCycle {
+    const cycle = value || 'monthly';
+    if (!isBillingCycle(cycle)) {
+      throw new BadRequestException('Invalid billingCycle. Use monthly, quarterly, semestral or annual.');
+    }
+    return cycle;
+  }
+
+  private isStripeConfigured(): boolean {
+    return !!process.env.STRIPE_SECRET_KEY?.trim();
+  }
+
+  private ensureStripeConfigured() {
+    if (!this.isStripeConfigured()) {
+      throw new ServiceUnavailableException('Stripe is not configured');
+    }
+  }
+
+  private ensureCheckoutUrlsConfigured() {
+    if (!process.env.SUCCESS_URL?.trim() || !process.env.CANCEL_URL?.trim()) {
+      throw new ServiceUnavailableException('Stripe checkout URLs are not configured');
+    }
+  }
+
+  private normalizePaymentStatus(status: string | null | undefined): string {
+    return status === 'peding' ? 'pending' : status || 'pending';
+  }
+
+  private subscriptionStatusToPaymentStatus(status: string, currentStatus?: string | null): string {
+    switch (status) {
+      case 'active':
+      case 'trialing':
+      case 'past_due':
+      case 'canceled':
+      case 'unpaid':
+      case 'incomplete':
+      case 'incomplete_expired':
+      case 'paused':
+        return status;
+      default:
+        return this.normalizePaymentStatus(currentStatus);
+    }
+  }
+
   async handleStripeWebhook(rawBody: Buffer, signature: string) {
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
     let event: Stripe.Event;
+
+    if (!endpointSecret?.trim()) {
+      return { error: new Error('STRIPE_WEBHOOK_SECRET not configured') };
+    }
+
+    if (!signature) {
+      return { error: new Error('stripe-signature header missing') };
+    }
 
     try {
       event = this.stripe.webhooks.constructEvent(rawBody, signature, endpointSecret);
@@ -358,9 +418,7 @@ export class PaymentsService {
               payment.subscriptionId = subscriptionId;
               payment.startDate = startCycle;
 
-              if (status === 'trialing') {
-                payment.status = status;
-              }
+              payment.status = this.subscriptionStatusToPaymentStatus(status, payment.status);
 
               await this.paymentRepository.save(payment);
               console.log(
@@ -414,10 +472,7 @@ export class PaymentsService {
           });
 
           if (payment) {
-            payment.status = subscription.status === 'active' ? 'active'
-              : subscription.status === 'trialing' ? 'trialing'
-              : subscription.status === 'past_due' ? 'past_due'
-              : payment.status;
+            payment.status = this.subscriptionStatusToPaymentStatus(subscription.status, payment.status);
 
             const item = subscription.items.data[0];
             const interval = item?.plan?.interval;

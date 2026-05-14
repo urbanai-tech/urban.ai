@@ -1,7 +1,182 @@
 "use client";
 
+import { useEffect } from "react";
 import Script from "next/script";
-import { useConsent } from "./useConsent";
+import { readConsentSync, useConsent } from "./useConsent";
+
+declare global {
+  interface Window {
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
+    fbq?: (...args: unknown[]) => void;
+  }
+}
+
+type AnalyticsValue = string | number | boolean | null | undefined;
+type AnalyticsParams = Record<string, AnalyticsValue>;
+
+type TouchAttribution = {
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmTerm?: string;
+  utmContent?: string;
+  referralCode?: string;
+  gclid?: string;
+  fbclid?: string;
+  referrerHost?: string;
+  capturedAt: string;
+};
+
+export type MarketingAttribution = {
+  firstTouch: TouchAttribution | null;
+  lastTouch: TouchAttribution | null;
+};
+
+const ATTRIBUTION_STORAGE_KEY = "urban-ai-attribution-v1";
+const SOURCE_MAX_LENGTH = 64;
+
+function sanitizeParams(params: AnalyticsParams = {}) {
+  return Object.fromEntries(
+    Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== ""),
+  );
+}
+
+function readUrlAttribution(): TouchAttribution | null {
+  if (typeof window === "undefined") return null;
+
+  const url = new URL(window.location.href);
+  const search = url.searchParams;
+  const referrer = document.referrer ? new URL(document.referrer) : null;
+  const referrerHost =
+    referrer && referrer.host !== window.location.host ? referrer.host : undefined;
+
+  const touch: TouchAttribution = {
+    utmSource: search.get("utm_source") || undefined,
+    utmMedium: search.get("utm_medium") || undefined,
+    utmCampaign: search.get("utm_campaign") || undefined,
+    utmTerm: search.get("utm_term") || undefined,
+    utmContent: search.get("utm_content") || undefined,
+    referralCode: search.get("ref") || search.get("referral") || undefined,
+    gclid: search.get("gclid") || undefined,
+    fbclid: search.get("fbclid") || undefined,
+    referrerHost,
+    capturedAt: new Date().toISOString(),
+  };
+
+  const hasAttribution = Object.entries(touch).some(
+    ([key, value]) => key !== "capturedAt" && !!value,
+  );
+
+  return hasAttribution ? touch : null;
+}
+
+export function readStoredAttribution(): MarketingAttribution {
+  if (typeof window === "undefined") {
+    return { firstTouch: null, lastTouch: null };
+  }
+
+  try {
+    const raw = window.localStorage.getItem(ATTRIBUTION_STORAGE_KEY);
+    if (!raw) return { firstTouch: null, lastTouch: null };
+    const parsed = JSON.parse(raw) as MarketingAttribution;
+    return {
+      firstTouch: parsed.firstTouch ?? null,
+      lastTouch: parsed.lastTouch ?? null,
+    };
+  } catch {
+    return { firstTouch: null, lastTouch: null };
+  }
+}
+
+export function captureAttribution(): MarketingAttribution {
+  if (typeof window === "undefined") {
+    return { firstTouch: null, lastTouch: null };
+  }
+
+  const stored = readStoredAttribution();
+  const current = readUrlAttribution();
+  if (!current) return stored;
+
+  const next = {
+    firstTouch: stored.firstTouch ?? current,
+    lastTouch: current,
+  };
+
+  try {
+    window.localStorage.setItem(ATTRIBUTION_STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    // Sem persistencia, a atribuicao da sessao atual ainda e usada.
+  }
+
+  return next;
+}
+
+export function compactWaitlistSource(
+  baseSource: string,
+  attribution: MarketingAttribution = captureAttribution(),
+) {
+  const touch = attribution.lastTouch ?? attribution.firstTouch;
+  const parts = [
+    baseSource || "unknown",
+    touch?.utmSource,
+    touch?.utmMedium,
+    touch?.utmCampaign,
+    touch?.referrerHost ? `referrer-${touch.referrerHost}` : undefined,
+  ]
+    .filter(Boolean)
+    .map((part) =>
+      String(part)
+        .toLowerCase()
+        .replace(/[^a-z0-9._-]+/g, "-")
+        .replace(/^-+|-+$/g, ""),
+    )
+    .filter(Boolean);
+
+  const compact = parts.join("|") || "unknown";
+  return compact.slice(0, SOURCE_MAX_LENGTH);
+}
+
+export function getReferralCode(attribution: MarketingAttribution = captureAttribution()) {
+  return attribution.lastTouch?.referralCode ?? attribution.firstTouch?.referralCode;
+}
+
+export function attributionEventParams(attribution: MarketingAttribution) {
+  const touch = attribution.lastTouch ?? attribution.firstTouch;
+  return sanitizeParams({
+    utm_source: touch?.utmSource,
+    utm_medium: touch?.utmMedium,
+    utm_campaign: touch?.utmCampaign,
+    utm_term: touch?.utmTerm,
+    utm_content: touch?.utmContent,
+    referral_code: touch?.referralCode,
+    referrer_host: touch?.referrerHost,
+  });
+}
+
+export function trackAnalyticsEvent(
+  eventName: string,
+  params: AnalyticsParams = {},
+  options: { metaEventName?: string } = {},
+) {
+  if (typeof window === "undefined") return;
+
+  const consent = readConsentSync();
+  const cleanParams = sanitizeParams(params);
+
+  if (consent.analytics) {
+    window.gtag?.("event", eventName, cleanParams);
+  }
+
+  if (consent.marketing && options.metaEventName) {
+    window.fbq?.("track", options.metaEventName, cleanParams);
+  }
+}
+
+export function trackWaitlistSignup(params: AnalyticsParams = {}) {
+  trackAnalyticsEvent("waitlist_signup", params, { metaEventName: "Lead" });
+  trackAnalyticsEvent("sign_up", { method: "waitlist", ...params });
+}
 
 /**
  * GA4 + Meta Pixel — com gating LGPD via useConsent.
@@ -31,6 +206,11 @@ export function Analytics() {
 
   const { state, loaded } = useConsent();
 
+  useEffect(() => {
+    if (!loaded) return;
+    captureAttribution();
+  }, [loaded]);
+
   // Em dev/staging, ou enquanto consent ainda não carregou do localStorage,
   // não carrega nada. Após `loaded=true`, o gating por categoria toma efeito.
   if (!isProd) return null;
@@ -47,9 +227,9 @@ export function Analytics() {
           <Script id="ga4-init" strategy="afterInteractive">
             {`
               window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', '${gaId}', { anonymize_ip: true });
+              window.gtag = window.gtag || function(){window.dataLayer.push(arguments);}
+              window.gtag('js', new Date());
+              window.gtag('config', '${gaId}', { anonymize_ip: true });
             `}
           </Script>
         </>

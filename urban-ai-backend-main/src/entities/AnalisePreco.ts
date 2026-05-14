@@ -10,6 +10,14 @@ import { Address } from './addresses.entity';
 import { Event } from './events.entity';
 import { User } from './user.entity';
 
+export type AnalisePrecoStatus =
+  | 'suggested'
+  | 'accepted'
+  | 'rejected'
+  | 'applied_manual'
+  | 'applied_stays'
+  | 'expired';
+
 @Entity('analise_preco')
 export class AnalisePreco {
   @PrimaryGeneratedColumn('uuid')
@@ -51,6 +59,18 @@ export class AnalisePreco {
 
   @Column({ type: 'boolean', default: false })
   aceito: boolean;
+
+  @Column({ name: 'status', type: 'varchar', length: 24, default: 'suggested' })
+  status: AnalisePrecoStatus;
+
+  @Column({ name: 'aceito_em', type: 'timestamp', nullable: true })
+  aceitoEm: Date | null;
+
+  @Column({ name: 'rejeitado_em', type: 'timestamp', nullable: true })
+  rejeitadoEm: Date | null;
+
+  @Column({ name: 'expirado_em', type: 'timestamp', nullable: true })
+  expiradoEm: Date | null;
 
   /**
    * Preço REAL que o anfitrião aplicou após a sugestão (centavos × 100 = R$).

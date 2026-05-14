@@ -1,6 +1,5 @@
 """Tests do UrbanBackendClient — auth, buffer, batch, retry, fail-soft."""
 
-import os
 from unittest.mock import MagicMock, patch
 
 import pytest

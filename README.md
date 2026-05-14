@@ -1,14 +1,14 @@
 # Urban AI
 
-Plataforma de IA para otimização de receita de anfitriões Airbnb.
-Promessa quantificável: **+30% de receita** via recomendação de preços guiada por eventos da cidade, classificação KNN e proximidade geoespacial.
+Plataforma para anfitriões Airbnb identificarem eventos próximos e receberem recomendações de preço em beta controlado.
+Promessas quantitativas de ROI ficam bloqueadas até existirem ground truth, preço aplicado e cases auditados.
 
 > Foco inicial: São Paulo. Visão: liderança de revenue optimization para hospedagem na América Latina.
 
 ## Modos de operação
 
 - **Recomendação** — IA sugere preço, anfitrião aplica manualmente.
-- **Automático** — IA aplica direto via integração Stays (Preferred+ Partner Airbnb LATAM). Requer conta Stays conectada e guardrails configurados.
+- **Automático** — beta privado via integração Stays. Requer conta Stays conectada, consentimento, preview, guardrails e rollback validados.
 
 Ver `docs/runbooks/stays-integration-setup.md` para detalhes.
 

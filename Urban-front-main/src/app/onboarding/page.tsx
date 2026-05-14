@@ -1052,7 +1052,7 @@ function OnboardingWizardContent() {
                       <Text fontWeight="bold" color="gray.800" fontSize="md">
                         Modo de Operação
                       </Text>
-                      <Tooltip label="Como você quer que o motor opere: apenas alertando ou alterando preços automaticamente."
+                      <Tooltip label="Como você quer operar no beta: recomendações manuais agora; modo automático apenas por allowlist Stays."
                         hasArrow placement="top">
                         <InfoIcon color="gray.400" boxSize={3.5} />
                       </Tooltip>
@@ -1100,7 +1100,7 @@ function OnboardingWizardContent() {
                             <Badge colorScheme="orange" fontSize="0.6rem">Em breve</Badge>
                           </Flex>
                           <Text fontSize="xs" color="gray.500" lineHeight="short">
-                            O motor ajusta os preços automaticamente na sua conta do Airbnb com base nos eventos detectados.
+                            Beta privado via Stays, liberado apenas com conta conectada, preview, consentimento e rollback validados.
                           </Text>
                         </VStack>
                       </Box>

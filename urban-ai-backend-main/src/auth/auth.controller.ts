@@ -53,6 +53,10 @@ export class AuthController {
    * admins, beta testers convidados manualmente).
    */
   private isPrelaunchMode(): boolean {
+    const launchMode = process.env.LAUNCH_MODE;
+    if (launchMode) {
+      return launchMode === 'prelaunch';
+    }
     return process.env.PRELAUNCH_MODE === 'true';
   }
 
@@ -162,6 +166,50 @@ export class AuthController {
     // Registro normal: cria User cru — o login separado estabelece a sessão.
     const user = await this.authService.register(data);
     return { mode: 'registered', user };
+  }
+
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @Post('waitlist/accept')
+  async acceptWaitlistInvite(
+    @Body()
+    data: {
+      token: string;
+      username?: string;
+      password: string;
+    },
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    if (!data?.token) {
+      throw new BadRequestException('token obrigatorio');
+    }
+    if (!data?.password || data.password.length < 8) {
+      throw new BadRequestException('senha deve ter pelo menos 8 caracteres');
+    }
+
+    const entry = await this.waitlistService.lookupByInviteToken(data.token);
+    if (!entry) {
+      throw new BadRequestException('convite invalido ou expirado');
+    }
+
+    const user = await this.authService.register({
+      username: data.username?.trim() || entry.name || entry.email.split('@')[0],
+      email: entry.email,
+      password: data.password,
+    });
+    await this.waitlistService.markConverted(entry.id);
+
+    const tokens = await this.authService.issueTokens(user, {
+      userAgent: req.headers['user-agent'],
+      ip: req.ip,
+    });
+    this.setAuthCookies(res, tokens);
+
+    return {
+      mode: 'registered',
+      accessToken: tokens.accessToken,
+      user,
+    };
   }
 
   @ApiOperation({ summary: 'Autenticar um usuário e retornar um token' })

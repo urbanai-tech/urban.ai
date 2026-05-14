@@ -25,7 +25,6 @@ from urban_webscrapping.utils.venue_map import match_venue
 
 from .items import EventItem
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -48,7 +47,7 @@ class S3ItemPipelineJson:
             data=ItemAdapter(item).asdict(),
         )
 
-        print(response)
+        logger.info("S3 JSON upload response: %s", response)
 
         return item
 
@@ -69,7 +68,7 @@ class S3ItemPipelineParquet:
             data=ItemAdapter(item).asdict(),
         )
 
-        print(response)
+        logger.info("S3 Parquet upload response: %s", response)
 
         return item
 

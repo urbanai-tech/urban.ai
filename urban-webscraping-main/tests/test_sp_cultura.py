@@ -4,7 +4,6 @@ from unittest.mock import MagicMock, patch
 
 from urban_webscrapping.collectors.sp_cultura import SpCulturaCollector
 
-
 # ============================ normalize ============================
 
 

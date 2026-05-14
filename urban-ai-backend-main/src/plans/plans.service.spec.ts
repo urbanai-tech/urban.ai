@@ -34,6 +34,7 @@ describe('PlansService', () => {
     it('seeds the 3 expected plans on an empty table', async () => {
       await service.seedPlans();
 
+      expect(repo.clear).not.toHaveBeenCalled();
       expect(repo.save).toHaveBeenCalledTimes(1);
       const saved = repo.save!.mock.calls[0][0];
       const names = saved.map((p: any) => p.name);
@@ -77,6 +78,30 @@ describe('PlansService', () => {
       expect(escala.isCustomPrice).toBe(true);
       expect(escala.propertyLimit).toBeNull();
       expect(escala.price).toBe('Sob consulta');
+    });
+
+    it('does not overwrite existing DB plan configuration on boot', async () => {
+      repo.findOne!.mockImplementation(async ({ where }: any) => {
+        if (where.name !== 'starter') return null;
+        return {
+          id: 'starter-id',
+          name: 'starter',
+          title: 'Starter DB',
+          priceMonthly: '123',
+          stripePriceIdMonthly: 'price_db_monthly',
+          features: ['Feature editada no admin'],
+        };
+      });
+
+      await service.seedPlans();
+
+      const saved = repo.save!.mock.calls[0][0];
+      const starter = saved.find((p: any) => p.name === 'starter');
+      expect(starter.title).toBe('Starter DB');
+      expect(starter.priceMonthly).toBe('123');
+      expect(starter.stripePriceIdMonthly).toBe('price_db_monthly');
+      expect(starter.features).toEqual(['Feature editada no admin']);
+      expect(starter.priceQuarterly).toBe('82');
     });
   });
 

@@ -122,6 +122,14 @@ export default function DashboardPage() {
     () => startOfMonth(currentMonth) <= mesMinimo,
     [currentMonth, mesMinimo]
   );
+  const hasCompletedProperties = useMemo(
+    () => propsInfo.some((property) => property.analisado === "completed"),
+    [propsInfo],
+  );
+  const selectedPropertyInfo = useMemo(
+    () => propsInfo.find((property) => property.id === propertyId),
+    [propsInfo, propertyId],
+  );
 
   const daysInMonth = useMemo(() => {
     const start = startOfMonth(currentMonth);
@@ -220,7 +228,8 @@ export default function DashboardPage() {
         } else {
           // Nenhuma propriedade válida: mantém tela em loading
           setPropertyId('');
-          setIsLoading(true);
+          setIsLoading(false);
+          setLoadingPropsInfo(false);
         }
       } catch (err) {
         setErrorPropsInfo('Erro ao carregar propriedades');
@@ -319,10 +328,15 @@ useEffect(() => {
         </Flex>
 
         {/* Mantém loading se nenhuma propriedade "completed" */}
-        {loadingPropsInfo || !propertyId || isLoading ? (
+        {loadingPropsInfo || isLoading ? (
           <Center height="300px">
             <Spinner size="xl" />
           </Center>
+        ) : !propertyId || !hasCompletedProperties ? (
+          <EmptyState
+            title="Ainda não há imóvel pronto para recomendações"
+            description="Assim que o cadastro terminar o processamento, as recomendações aparecem aqui. Se o imóvel ficou muito tempo nesse estado, revise endereço, coordenadas e quota do plano."
+          />
         ) : error ? (
           <Center height="300px" color="red.500">{error}</Center>
         ) : (
@@ -495,9 +509,20 @@ useEffect(() => {
               </Flex>
 
               {eventsToDisplay.length === 0 ? (
-                <Text color="gray.500" textAlign="center" py={8}>
+                <>
+                <EmptyState
+                  title={selectedDay ? "Nenhum evento relevante neste dia" : "Sem recomendações neste mês"}
+                  description={
+                    selectedPropertyInfo?.analisado !== "completed"
+                      ? "O imóvel ainda está processando. As sugestões aparecem quando endereço, eventos e preço base estiverem prontos."
+                      : "Não encontramos evento futuro compatível com este imóvel no período. O sistema continuará verificando novos eventos e mostrará sugestões quando houver match com distância, preço base e comparáveis."
+                  }
+                  compact
+                />
+                <Box display="none">
                   {selectedDay ? 'Nenhum evento neste dia' : 'Sem eventos neste mês'}
-                </Text>
+                </Box>
+                </>
               ) : (
                 <Box flex="1" overflowY="auto" pr={1}>
                   <Flex direction="column" gap={3}>
@@ -526,5 +551,28 @@ useEffect(() => {
         )}
       </Box>
     </Flex>
+  );
+}
+
+function EmptyState({
+  title,
+  description,
+  compact = false,
+}: {
+  title: string;
+  description: string;
+  compact?: boolean;
+}) {
+  return (
+    <Center py={compact ? 8 : 20} px={4}>
+      <Box maxW="520px" textAlign="center">
+        <Text fontWeight="bold" color="gray.700" fontSize={compact ? "md" : "lg"}>
+          {title}
+        </Text>
+        <Text color="gray.500" mt={2} fontSize="sm">
+          {description}
+        </Text>
+      </Box>
+    </Center>
   );
 }

@@ -24,16 +24,14 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime, timedelta
 from typing import Any
-from urllib.parse import urljoin
 
 import requests
+
 from urban_webscrapping.collectors.base_collector import (
     BaseCollector,
     CollectorRunResult,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -182,8 +180,6 @@ class UspEventosCollector(BaseCollector):
         Heurísticas leves — quando layout muda, não quebra completamente, só
         retorna campos parciais. Quando faltar nome ou data, retorna None.
         """
-        import re
-
         # Title — tag h1 ou og:title
         title = self._first_match(
             html,

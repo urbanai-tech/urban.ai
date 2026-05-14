@@ -1,19 +1,22 @@
-import os
-import requests
 import logging
-from dotenv import load_dotenv
+import os
 from typing import Any
 
-from urban_webscrapping.utils.llm_extractor import extract_event_from_text
+import requests
+from dotenv import load_dotenv
 
-from urban_webscrapping.collectors.base_collector import BaseCollector, setup_logging
+from urban_webscrapping.collectors.base_collector import (
+    BaseCollector,
+    MissingApiKeyError,
+    setup_logging,
+)
+from urban_webscrapping.utils.llm_extractor import extract_event_from_text
 
 load_dotenv()
 logger = logging.getLogger(__name__)
 
 class FirecrawlExtractor(BaseCollector):
-    """
-    Coletor para Firecrawl API (REST). Faz busca + extração de eventos.
+    """Coletor para Firecrawl API (REST). Faz busca + extração de eventos.
 
     Múltiplas queries focadas em SP capital. O LLM extractor depois aplica
     is_in_scope=true como segundo filtro pra descartar resultados que
@@ -39,7 +42,9 @@ class FirecrawlExtractor(BaseCollector):
     def fetch_raw(self) -> list[dict[str, Any]]:
         api_key = os.getenv("FIRECRAWL_API_KEY")
         if not api_key:
-            raise ValueError("FIRECRAWL_API_KEY não encontrada no .env")
+            raise MissingApiKeyError("FIRECRAWL_API_KEY")
+        if not os.getenv("GEMINI_API_KEY"):
+            raise MissingApiKeyError("GEMINI_API_KEY")
 
         headers = {
             "Authorization": f"Bearer {api_key}",
@@ -73,8 +78,7 @@ class FirecrawlExtractor(BaseCollector):
         return all_results
 
     def normalize(self, raw: dict[str, Any]) -> dict[str, Any] | None:
-        """
-        O Firecrawl /search retorna { title, description, url, markdown }.
+        """O Firecrawl /search retorna { title, description, url, markdown }.
         Utiliza Gemini LLM para extrair os dados reais da string.
         """
         title = raw.get("title")
@@ -85,7 +89,7 @@ class FirecrawlExtractor(BaseCollector):
         # Tenta usar o Gemini
         text_to_analyze = f"Title: {title}\nDescription: {description}"
         llm_data = extract_event_from_text(text_to_analyze)
-        
+
         if llm_data:
             payload = llm_data
             payload["source"] = self.source
@@ -96,5 +100,8 @@ class FirecrawlExtractor(BaseCollector):
 
 if __name__ == "__main__":
     setup_logging()
-    collector = FirecrawlExtractor(query="Jonas Brothers São Paulo", dry_run=True)
-    collector.run()
+    dry_run = os.environ.get("DRY_RUN", "").lower() == "true"
+    query = os.environ.get("FIRECRAWL_QUERY")
+    collector = FirecrawlExtractor(query=query, dry_run=dry_run)
+    result = collector.run()
+    raise SystemExit(1 if result.status in {"failed", "partial_failure"} else 0)

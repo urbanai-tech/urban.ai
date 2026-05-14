@@ -541,6 +541,27 @@ export const alterarAceitoSugestao = async (id: string, aceito: boolean) => {
   }
 };
 
+export const registrarPrecoAplicadoSugestao = async (
+  id: string,
+  precoAplicado: number,
+  origem:
+    | 'manual_dashboard'
+    | 'manual_off_platform'
+    | 'stays_auto'
+    | 'stays_user_accepted' = 'manual_dashboard',
+) => {
+  try {
+    const { data } = await api.patch(`/sugestoes-preco/${id}/aplicado`, {
+      precoAplicado,
+      origem,
+    });
+    return data;
+  } catch (error) {
+    console.error(`Erro ao registrar o preco aplicado da sugestao ${id}:`, error);
+    throw error;
+  }
+};
+
 
 
 
@@ -1178,6 +1199,7 @@ export const fetchStripeSyncCheck = () =>
 // =================== Waitlist (F8 pré-lançamento) ===================
 
 export interface PublicConfig {
+  launchMode: 'prelaunch' | 'closed_beta' | 'paid_beta' | 'public';
   prelaunchMode: boolean;
   appEnv: string;
   version: string;
@@ -1231,6 +1253,18 @@ export interface WaitlistInviteValidation {
 export const validateWaitlistInvite = (token: string) =>
   api
     .get<WaitlistInviteValidation>('/waitlist/invite', { params: { token } })
+    .then((r) => r.data);
+
+export const acceptWaitlistInvite = (input: {
+  token: string;
+  username?: string;
+  password: string;
+}) =>
+  api
+    .post<{ mode: 'registered'; accessToken: string; user: unknown }>(
+      '/auth/waitlist/accept',
+      input,
+    )
     .then((r) => r.data);
 
 // Admin
@@ -1554,6 +1588,40 @@ export interface DashboardSummary {
   coverage: {
     activeRegions: number;
     bootstrapRegions: number;
+  };
+  pricing: {
+    last24h: number;
+    last30d: number;
+    futureRecommendations: number;
+    activeAddresses: number;
+    activeWithFuturePricing: number;
+    coveragePercent: number;
+    appliedPriceCaptured: number;
+    invalidLocalityAddresses: number;
+  };
+  dataset: {
+    health: 'green' | 'amber' | 'red';
+    readiness: Record<string, boolean>;
+    blockers: Array<{ severity: 'red' | 'amber' | 'green'; code: string; message: string; nextAction: string }>;
+    priceSnapshots: number;
+    occupancyRecords: number;
+    eventProximityFeatures: number;
+    latestSnapshotDate: string | null;
+  };
+  billing: {
+    activeSubscriptions: number;
+    legacyPedingPayments: number;
+    stripeSecretConfigured: boolean;
+    stripeWebhookConfigured: boolean;
+    byStatus: Array<{ status: string; count: number }>;
+  };
+  stays: {
+    accounts: number;
+    listings: number;
+    priceUpdatesLast30d: number;
+    apiBaseConfigured: boolean;
+    tokenEncryptionConfigured: boolean;
+    betaPrivate: boolean;
   };
   revenue: {
     activeSubscriptions: number;

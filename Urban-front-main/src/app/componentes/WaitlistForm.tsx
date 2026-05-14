@@ -1,6 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { signupWaitlist, type WaitlistSignupResult } from "../service/api";
+import {
+  attributionEventParams,
+  captureAttribution,
+  compactWaitlistSource,
+  getReferralCode,
+  trackWaitlistSignup,
+  type MarketingAttribution,
+} from "./Analytics";
 
 type Status = "idle" | "loading" | "success" | "error";
 
@@ -11,8 +20,8 @@ type Status = "idle" | "loading" | "success" | "error";
  *  - um endpoint Formspark/Formspree/Getform (zero backend)
  *  - ou um endpoint próprio /waitlist no backend quando for criado
  *
- * Se a env var estiver vazia, o form mostra uma mensagem de config pendente
- * ao invés de falhar silenciosamente em prod.
+ * Se a env var estiver vazia, o form usa o backend principal via `/waitlist`.
+ * Isso deixa a landing funcional sem depender de um provedor externo de forms.
  *
  * Visual: tema manifesto Urban AI — input minimalista (border-bottom),
  * botão laranja #E8500A. Usado em /lancamento.
@@ -33,19 +42,20 @@ export function WaitlistForm({
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [result, setResult] = useState<WaitlistSignupResult | null>(null);
+  const [attribution, setAttribution] = useState<MarketingAttribution>({
+    firstTouch: null,
+    lastTouch: null,
+  });
 
-  const endpoint = process.env.NEXT_PUBLIC_WAITLIST_ENDPOINT;
+  const endpoint = process.env.NEXT_PUBLIC_WAITLIST_ENDPOINT?.trim();
+
+  useEffect(() => {
+    setAttribution(captureAttribution());
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
-    if (!endpoint) {
-      setStatus("error");
-      setErrorMessage(
-        "Formulário ainda não está conectado ao backend. Volte em breve.",
-      );
-      return;
-    }
 
     const trimmed = email.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
@@ -58,27 +68,45 @@ export function WaitlistForm({
     setErrorMessage(null);
 
     try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ email: trimmed, source }),
-      });
+      const attributionParams = attributionEventParams(attribution);
+      const waitlistSource = compactWaitlistSource(source, attribution);
+      const referredBy = getReferralCode(attribution);
+      let signupResult: WaitlistSignupResult | null = null;
 
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
+      if (endpoint) {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            email: trimmed,
+            source: waitlistSource,
+            referredBy,
+            attribution: attributionParams,
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+      } else {
+        signupResult = await signupWaitlist({
+          email: trimmed,
+          source: waitlistSource,
+          referredBy,
+        });
       }
 
+      setResult(signupResult);
       setStatus("success");
       setEmail("");
 
-      if (typeof window !== "undefined") {
-        const w = window as unknown as {
-          gtag?: (...args: unknown[]) => void;
-          fbq?: (...args: unknown[]) => void;
-        };
-        w.gtag?.("event", "sign_up", { method: "waitlist", source });
-        w.fbq?.("track", "Lead", { content_name: source });
-      }
+      trackWaitlistSignup({
+        source: waitlistSource,
+        position: signupResult?.position,
+        total_signups: signupResult?.totalSignups,
+        referred_by: referredBy,
+        ...attributionParams,
+      });
     } catch (err) {
       setStatus("error");
       setErrorMessage(
@@ -125,6 +153,19 @@ export function WaitlistForm({
           Você está na lista. Entraremos em contato quando a plataforma abrir
           para novos anfitriões.
         </p>
+        {result && (
+          <p
+            style={{
+              fontSize: 14,
+              lineHeight: 1.6,
+              color: "rgba(255,255,255,0.62)",
+              margin: "16px 0 0",
+            }}
+          >
+            Sua posicao na fila: #{result.position}. Guarde seu link de
+            indicacao quando ele aparecer no e-mail de confirmacao.
+          </p>
+        )}
       </div>
     );
   }

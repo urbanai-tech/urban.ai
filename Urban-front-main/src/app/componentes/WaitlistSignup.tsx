@@ -24,6 +24,15 @@ import {
   fetchWaitlistStatus,
   type WaitlistSignupResult,
 } from "../service/api";
+import {
+  attributionEventParams,
+  captureAttribution,
+  compactWaitlistSource,
+  getReferralCode,
+  trackAnalyticsEvent,
+  trackWaitlistSignup,
+  type MarketingAttribution,
+} from "./Analytics";
 
 const STORAGE_KEY = "urban-ai-waitlist-code-v1";
 
@@ -58,16 +67,22 @@ export function WaitlistSignup({
   const [phone, setPhone] = useState("");
   const [result, setResult] = useState<WaitlistSignupResult | null>(null);
   const [statusReferrals, setStatusReferrals] = useState<number>(0);
+  const [attribution, setAttribution] = useState<MarketingAttribution>({
+    firstTouch: null,
+    lastTouch: null,
+  });
 
   // ?ref=<code> na URL é capturado e enviado no signup
   const [referredBy, setReferredBy] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const nextAttribution = captureAttribution();
+    setAttribution(nextAttribution);
 
     // 1. Pega ?ref= da URL (e limpa pra não poluir UX após signup)
     const url = new URL(window.location.href);
-    const refParam = url.searchParams.get("ref");
+    const refParam = url.searchParams.get("ref") || getReferralCode(nextAttribution);
     if (refParam) setReferredBy(refParam);
 
     // 2. Se já há referralCode salvo, vai direto pra status
@@ -110,12 +125,15 @@ export function WaitlistSignup({
 
     setSubmitting(true);
     try {
+      const attributionParams = attributionEventParams(attribution);
+      const waitlistSource = compactWaitlistSource(source, attribution);
+      const referralCode = referredBy ?? getReferralCode(attribution);
       const r = await signupWaitlist({
         email: trimmedEmail,
         name: name.trim() || undefined,
         phone: phone.trim() || undefined,
-        source,
-        referredBy: referredBy ?? undefined,
+        source: waitlistSource,
+        referredBy: referralCode ?? undefined,
       });
       setResult(r);
       if (typeof window !== "undefined") {
@@ -123,15 +141,13 @@ export function WaitlistSignup({
       }
       setPhase("status");
 
-      // Telemetria
-      if (typeof window !== "undefined") {
-        const w = window as unknown as {
-          gtag?: (...args: unknown[]) => void;
-          fbq?: (...args: unknown[]) => void;
-        };
-        w.gtag?.("event", "sign_up", { method: "waitlist", source });
-        w.fbq?.("track", "Lead", { content_name: source });
-      }
+      trackWaitlistSignup({
+        source: waitlistSource,
+        position: r.position,
+        total_signups: r.totalSignups,
+        referred_by: referralCode,
+        ...attributionParams,
+      });
     } catch (err: any) {
       const message =
         err?.response?.data?.message ||
@@ -287,6 +303,9 @@ function WaitlistStatusCard({
 
   function copyLink() {
     navigator.clipboard.writeText(referralUrl).then(() => {
+      trackAnalyticsEvent("waitlist_referral_copy", {
+        source: "waitlist-status",
+      });
       toast({
         title: "Link copiado!",
         description: "Compartilhe pra subir na fila.",
@@ -297,11 +316,19 @@ function WaitlistStatusCard({
   }
 
   function shareWhatsApp() {
+    trackAnalyticsEvent("waitlist_referral_share", {
+      source: "waitlist-status",
+      channel: "whatsapp",
+    });
     const url = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${referralUrl}`)}`;
     window.open(url, "_blank");
   }
 
   function shareTwitter() {
+    trackAnalyticsEvent("waitlist_referral_share", {
+      source: "waitlist-status",
+      channel: "x-twitter",
+    });
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
       shareText,
     )}&url=${encodeURIComponent(referralUrl)}`;
@@ -309,6 +336,10 @@ function WaitlistStatusCard({
   }
 
   function shareLinkedIn() {
+    trackAnalyticsEvent("waitlist_referral_share", {
+      source: "waitlist-status",
+      channel: "linkedin",
+    });
     const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
       referralUrl,
     )}`;

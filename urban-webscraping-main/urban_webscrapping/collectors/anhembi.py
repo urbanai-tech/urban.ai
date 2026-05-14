@@ -20,7 +20,6 @@ from urban_webscrapping.collectors.base_collector import (
     setup_logging,
 )
 
-
 logger = logging.getLogger(__name__)
 
 

@@ -140,6 +140,25 @@ export class AdminController {
   }
 
   @ApiOperation({ summary: 'Listar usuários (paginado)' })
+  @Throttle({ default: { ttl: 60_000, limit: 60 } })
+  @ApiOperation({ summary: 'Criar/atualizar ocupacao manual de um imovel por dia' })
+  @Post('occupancy/manual')
+  async upsertManualOccupancy(
+    @Body()
+    body: {
+      listId?: string;
+      airbnbListingId?: string;
+      date: string;
+      status: 'booked' | 'available' | 'blocked' | 'unknown';
+      revenueCents?: number | null;
+      listedPriceCents?: number | null;
+      currency?: string;
+    },
+  ) {
+    return this.admin.upsertManualOccupancy(body);
+  }
+
+  @ApiOperation({ summary: 'Listar usuarios (paginado)' })
   @Get('users')
   async listUsers(@Query('page') page: string = '1', @Query('limit') limit: string = '20') {
     return this.admin.listUsers(parseInt(page, 10), parseInt(limit, 10));

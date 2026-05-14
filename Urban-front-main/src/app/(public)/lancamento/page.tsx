@@ -82,9 +82,9 @@ export default function LancamentoPage() {
                 margin: 0,
               }}
             >
-              30% da receita anual fica na mesa porque o preço foi fixado
+              Dias de alta demanda escapam quando o preco foi fixado
               <span style={{ color: "#E8500A" }}> antes </span>
-              do mercado se mover.
+              da cidade se mover.
             </p>
             <p
               style={{
