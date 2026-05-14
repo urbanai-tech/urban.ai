@@ -14,6 +14,7 @@ import { User } from 'src/entities/user.entity';
 import { EmailModule } from 'src/email/email.module';
 import { KnnEngineModule } from '../knn-engine/knn-engine.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { PricingInputHistory } from 'src/entities/pricing-input-history.entity';
 
 @Module({
     imports: [
@@ -24,6 +25,7 @@ import { AuthModule } from 'src/auth/auth.module';
             AnaliseEnderecoEvento,
             AnalisePreco,
             User,
+            PricingInputHistory,
         ]),
         forwardRef(() => AirbnbModule),
         EmailModule,

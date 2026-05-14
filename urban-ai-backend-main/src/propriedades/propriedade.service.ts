@@ -25,6 +25,7 @@ import { addDays, startOfDay, startOfMonth } from 'date-fns';
 import { CreateNotificationDto } from 'src/notifications/tdo/create-notification.dto';
 import { UrbanAIPricingEngine } from '../knn-engine/pricing-engine';
 import { DatasetCollectorService } from '../knn-engine/dataset-collector.service';
+import { PricingInputHistory } from 'src/entities/pricing-input-history.entity';
 
 class PropertyResponseDto {
     bedrooms: number;
@@ -67,6 +68,8 @@ export class PropriedadeService {
         private readonly eventoRepository: Repository<EventEntity>,
         @InjectRepository(AnalisePreco)
         private readonly analisePrecoRepository: Repository<AnalisePreco>,
+        @InjectRepository(PricingInputHistory)
+        private readonly pricingInputHistoryRepository: Repository<PricingInputHistory>,
         @Inject(forwardRef(() => AirbnbService))
         private readonly airbnbService: AirbnbService,
         private readonly emailService: EmailService,
@@ -177,6 +180,8 @@ export class PropriedadeService {
 
         const manualDailyPrice = this.normalizeOptionalMoney(input.manualDailyPrice, 'manualDailyPrice');
         const averageMonthlyRevenue = this.normalizeOptionalMoney(input.averageMonthlyRevenue, 'averageMonthlyRevenue');
+        const previousManualDailyPrice = address.list.manualDailyPrice ?? null;
+        const previousAverageMonthlyRevenue = address.list.averageMonthlyRevenue ?? null;
 
         address.list.manualDailyPrice = manualDailyPrice;
         address.list.averageMonthlyRevenue = averageMonthlyRevenue;
@@ -191,6 +196,16 @@ export class PropriedadeService {
         }
 
         const saved = await this.propriedades.save(address.list);
+        await this.recordPricingInputHistory({
+            address,
+            list: saved,
+            userId,
+            previousManualDailyPrice,
+            newManualDailyPrice: saved.manualDailyPrice ?? null,
+            previousAverageMonthlyRevenue,
+            newAverageMonthlyRevenue: saved.averageMonthlyRevenue ?? null,
+        });
+
         return {
             addressId,
             listId: saved.id,
@@ -200,6 +215,60 @@ export class PropriedadeService {
             pricingInputSource: saved.pricingInputSource ?? null,
             pricingInputsUpdatedAt: saved.pricingInputsUpdatedAt ?? null,
         };
+    }
+
+    async getPricingInputHistory(addressId: string, userId: string, limit = 20) {
+        const address = await this.addressRepository.findOne({
+            where: { id: addressId, user: { id: userId } },
+            relations: ['list'],
+        });
+
+        if (!address?.list) {
+            throw new NotFoundException('Propriedade nao encontrada');
+        }
+
+        const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 100);
+        return this.pricingInputHistoryRepository.find({
+            where: { list: { id: address.list.id }, user: { id: userId } },
+            order: { createdAt: 'DESC' },
+            take: safeLimit,
+        });
+    }
+
+    private async recordPricingInputHistory(input: {
+        address: Address;
+        list: List;
+        userId: string;
+        previousManualDailyPrice: number | null;
+        newManualDailyPrice: number | null;
+        previousAverageMonthlyRevenue: number | null;
+        newAverageMonthlyRevenue: number | null;
+    }): Promise<void> {
+        const changed =
+            !this.sameMoney(input.previousManualDailyPrice, input.newManualDailyPrice) ||
+            !this.sameMoney(input.previousAverageMonthlyRevenue, input.newAverageMonthlyRevenue);
+
+        if (!changed) return;
+
+        await this.pricingInputHistoryRepository.save(
+            this.pricingInputHistoryRepository.create({
+                address: input.address,
+                list: input.list,
+                user: { id: input.userId } as User,
+                previousManualDailyPrice: input.previousManualDailyPrice,
+                newManualDailyPrice: input.newManualDailyPrice,
+                previousAverageMonthlyRevenue: input.previousAverageMonthlyRevenue,
+                newAverageMonthlyRevenue: input.newAverageMonthlyRevenue,
+                source: 'manual',
+                changedByUserId: input.userId,
+            }),
+        );
+    }
+
+    private sameMoney(a: number | null, b: number | null): boolean {
+        if (a === null && b === null) return true;
+        if (a === null || b === null) return false;
+        return Math.round(Number(a) * 100) === Math.round(Number(b) * 100);
     }
 
     private normalizeOptionalMoney(value: unknown, field: string): number | null {

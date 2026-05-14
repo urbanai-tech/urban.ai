@@ -75,6 +75,17 @@ export type PropertyDropdown = {
   nome: string;
 };
 
+export type PricingInputHistory = {
+  id: string;
+  previousManualDailyPrice: number | null;
+  newManualDailyPrice: number | null;
+  previousAverageMonthlyRevenue: number | null;
+  newAverageMonthlyRevenue: number | null;
+  source: string;
+  changedByUserId: string | null;
+  createdAt: string;
+};
+
 export async function getPropriedadesDropdownList(): Promise<PropertyDropdown[]> {
   try {
     const { data } = await api.get<any[]>("/propriedades/dropdown/list");
@@ -90,6 +101,17 @@ export async function updatePropertyPricingInputs(
   payload: { manualDailyPrice?: number | null; averageMonthlyRevenue?: number | null },
 ): Promise<PropertyDropdown> {
   const { data } = await api.patch(`/propriedades/${addressId}/pricing-inputs`, payload);
+  return data;
+}
+
+export async function getPropertyPricingInputHistory(
+  addressId: string,
+  limit = 10,
+): Promise<PricingInputHistory[]> {
+  const { data } = await api.get<PricingInputHistory[]>(
+    `/propriedades/${addressId}/pricing-inputs/history`,
+    { params: { limit } },
+  );
   return data;
 }
 
