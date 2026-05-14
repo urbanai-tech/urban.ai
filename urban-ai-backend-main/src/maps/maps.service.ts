@@ -1,5 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Cron } from '@nestjs/schedule';
 import { In, IsNull, Not, Raw, Repository, MoreThanOrEqual } from 'typeorm';
 
 import { Client, TravelMode } from '@googlemaps/google-maps-services-js';
@@ -389,6 +390,92 @@ export class MapsService {
       events,
       total: events.length,
     };
+  }
+
+  @Cron('0 15 7,15 * * *', { name: 'alpha-pricing-reprocess', timeZone: 'America/Sao_Paulo' })
+  async reprocessAlphaPricingCron() {
+    if (process.env.PRICING_ALPHA_REPROCESS_ENABLED === 'false') {
+      return { ok: true, skipped: true, reason: 'disabled_by_env' };
+    }
+    return this.reprocessAlphaPricing();
+  }
+
+  async reprocessAlphaPricing(email?: string) {
+    const alphaEmails = this.resolveAlphaEmails(email);
+    if (!alphaEmails.length) {
+      this.logger.warn('Reprocessamento alpha ignorado: nenhum email alpha configurado.');
+      return { ok: true, users: 0, properties: 0, processed: 0, failed: 0, results: [] };
+    }
+
+    const users = await this.userRepo.find({
+      where: { email: In(alphaEmails), ativo: true },
+    });
+    const userIds = users.map((user) => user.id);
+    if (!userIds.length) {
+      return { ok: true, users: 0, properties: 0, processed: 0, failed: 0, results: [] };
+    }
+
+    const addresses = await this.addressRepo.find({
+      where: { user: { id: In(userIds) }, ativo: true },
+      relations: ['list', 'user'],
+    });
+
+    const uniqueByList = new Map<string, Address>();
+    for (const address of addresses) {
+      if (address?.list?.id && !uniqueByList.has(address.list.id)) {
+        uniqueByList.set(address.list.id, address);
+      }
+    }
+
+    const results: any[] = [];
+    let processed = 0;
+    let failed = 0;
+    const limit = pLimit(1);
+
+    await Promise.all(
+      Array.from(uniqueByList.values()).map((address) =>
+        limit(async () => {
+          try {
+            const result = await this.processarAnalisesByProperty(address.user.id, address.list.id);
+            processed++;
+            results.push({
+              userId: address.user.id,
+              email: address.user.email,
+              listId: address.list.id,
+              title: address.list.titulo,
+              result,
+            });
+          } catch (error) {
+            failed++;
+            results.push({
+              userId: address.user?.id,
+              email: address.user?.email,
+              listId: address.list?.id,
+              title: address.list?.titulo,
+              error: error instanceof Error ? error.message : String(error),
+            });
+          }
+        }),
+      ),
+    );
+
+    return {
+      ok: failed === 0,
+      users: users.length,
+      properties: uniqueByList.size,
+      processed,
+      failed,
+      results,
+    };
+  }
+
+  private resolveAlphaEmails(email?: string): string[] {
+    if (email) return [email.toLowerCase().trim()].filter(Boolean);
+    const configured = process.env.ALPHA_USER_QUOTAS ?? '';
+    return configured
+      .split(',')
+      .map((item) => item.split(':')[0]?.toLowerCase().trim())
+      .filter(Boolean);
   }
 
 

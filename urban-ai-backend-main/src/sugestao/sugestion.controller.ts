@@ -71,6 +71,10 @@ export class SugestionController {
             example: {
                 precoAplicado: 247.5,
                 origem: 'manual_dashboard',
+                reservaStatus: 'booked',
+                receitaReal: 990,
+                noitesReservadas: 4,
+                feedbackObservacao: 'Reserva fechada no Airbnb',
             },
         },
     })
@@ -80,11 +84,50 @@ export class SugestionController {
         @Body() body: {
             precoAplicado: number;
             origem: 'manual_dashboard' | 'manual_off_platform' | 'stays_auto' | 'stays_user_accepted';
+            reservaStatus?: 'unknown' | 'booked' | 'not_booked' | 'blocked' | null;
+            receitaReal?: number | null;
+            noitesReservadas?: number | null;
+            feedbackObservacao?: string | null;
         },
     ) {
         return this.sugestionService.registrarPrecoAplicado(id, req.user.userId, {
             precoAplicado: body.precoAplicado,
             origem: body.origem,
+            reservaStatus: body.reservaStatus,
+            receitaReal: body.receitaReal,
+            noitesReservadas: body.noitesReservadas,
+            feedbackObservacao: body.feedbackObservacao,
         });
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Patch(':id/resultado')
+    @ApiOperation({
+        summary: 'Registra o resultado real da sugestÃ£o (reserva, receita, noites)',
+    })
+    @ApiBody({
+        description: 'Resultado observado depois do evento',
+        schema: {
+            example: {
+                reservaStatus: 'booked',
+                receitaReal: 990,
+                noitesReservadas: 4,
+                precoAplicado: 247.5,
+                feedbackObservacao: 'Reserva fechada no Airbnb',
+            },
+        },
+    })
+    async registrarResultado(
+        @Req() req: any,
+        @Param('id') id: string,
+        @Body() body: {
+            reservaStatus?: 'unknown' | 'booked' | 'not_booked' | 'blocked' | null;
+            receitaReal?: number | null;
+            noitesReservadas?: number | null;
+            precoAplicado?: number | null;
+            feedbackObservacao?: string | null;
+        },
+    ) {
+        return this.sugestionService.registrarResultado(id, req.user.userId, body);
     }
 }

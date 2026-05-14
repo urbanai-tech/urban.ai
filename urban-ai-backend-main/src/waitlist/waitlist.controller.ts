@@ -18,6 +18,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { WaitlistService } from './waitlist.service';
+import { AdminAuditService } from '../admin-audit/admin-audit.service';
 
 /**
  * Controller da Waitlist (F8.2).
@@ -37,7 +38,10 @@ import { WaitlistService } from './waitlist.service';
 @ApiTags('waitlist')
 @Controller()
 export class WaitlistController {
-  constructor(private readonly waitlist: WaitlistService) {}
+  constructor(
+    private readonly waitlist: WaitlistService,
+    private readonly audit: AdminAuditService,
+  ) {}
 
   // ================== PÚBLICO ==================
 
@@ -143,9 +147,17 @@ export class WaitlistController {
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @ApiOperation({ summary: 'Convidar uma entry (gera magic link + envia email)' })
   @Post('admin/waitlist/:id/invite')
-  async invite(@Param('id') id: string) {
+  async invite(@Param('id') id: string, @Req() req: Request) {
     const frontUrl = process.env.FRONT_BASE_URL || 'https://urban.ai';
-    return this.waitlist.invite(id, frontUrl);
+    const result = await this.waitlist.invite(id, frontUrl);
+    await this.audit.record({
+      actorUserId: (req as any)?.user?.userId ?? null,
+      action: 'waitlist.invite',
+      entityType: 'waitlist',
+      entityId: id,
+      after: { status: 'invited', emailSent: result.emailSent },
+    });
+    return result;
   }
 
   @ApiBearerAuth()
@@ -154,8 +166,20 @@ export class WaitlistController {
   @Throttle({ default: { ttl: 60_000, limit: 60 } })
   @ApiOperation({ summary: 'Atualizar notas internas de uma entry' })
   @Patch('admin/waitlist/:id/notes')
-  async updateNotes(@Param('id') id: string, @Body() body: { notes: string | null }) {
-    return this.waitlist.updateNotes(id, body.notes);
+  async updateNotes(
+    @Param('id') id: string,
+    @Body() body: { notes: string | null },
+    @Req() req: Request,
+  ) {
+    const entry = await this.waitlist.updateNotes(id, body.notes);
+    await this.audit.record({
+      actorUserId: (req as any)?.user?.userId ?? null,
+      action: 'waitlist.notes_update',
+      entityType: 'waitlist',
+      entityId: id,
+      after: { notes: entry.notes },
+    });
+    return entry;
   }
 
   @ApiBearerAuth()
@@ -164,7 +188,14 @@ export class WaitlistController {
   @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @ApiOperation({ summary: 'Remover uma entry da lista' })
   @Delete('admin/waitlist/:id')
-  async remove(@Param('id') id: string) {
-    return this.waitlist.remove(id);
+  async remove(@Param('id') id: string, @Req() req: Request) {
+    const result = await this.waitlist.remove(id);
+    await this.audit.record({
+      actorUserId: (req as any)?.user?.userId ?? null,
+      action: 'waitlist.delete',
+      entityType: 'waitlist',
+      entityId: id,
+    });
+    return result;
   }
 }

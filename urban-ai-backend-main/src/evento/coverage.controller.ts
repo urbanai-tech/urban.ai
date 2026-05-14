@@ -9,6 +9,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -21,6 +22,7 @@ import { Roles } from '../auth/roles.decorator';
 import { CoverageRegion } from '../entities/coverage-region.entity';
 import { CoverageService } from './coverage.service';
 import { EventsEnrichmentService } from './events-enrichment.service';
+import { AdminAuditService } from '../admin-audit/admin-audit.service';
 
 /**
  * Controller admin pra gerenciar regiões de cobertura geográfica.
@@ -45,6 +47,7 @@ export class CoverageController {
     private readonly regionRepo: Repository<CoverageRegion>,
     private readonly coverage: CoverageService,
     private readonly enrichment: EventsEnrichmentService,
+    private readonly audit: AdminAuditService,
   ) {}
 
   @ApiOperation({ summary: 'Lista todas as regiões de cobertura' })
@@ -76,10 +79,14 @@ export class CoverageController {
       maxLng?: number | null;
       notes?: string | null;
     },
+    @Req() req: any,
   ) {
     this.validateGeometry(body);
     if (!body.name || body.name.trim().length < 2) {
       throw new BadRequestException('name obrigatório (mín 2 chars)');
+    }
+    if (body.status && !['active', 'bootstrap', 'inactive'].includes(body.status)) {
+      throw new BadRequestException('status inválido');
     }
     const row = this.regionRepo.create({
       name: body.name.trim().slice(0, 128),
@@ -95,30 +102,55 @@ export class CoverageController {
     });
     const saved = await this.regionRepo.save(row);
     this.coverage.invalidateCache();
+    await this.audit.record({
+      actorUserId: req?.user?.userId ?? null,
+      action: 'coverage.create',
+      entityType: 'coverage_region',
+      entityId: saved.id,
+      after: this.auditCoverage(saved),
+    });
     return saved;
   }
 
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @ApiOperation({ summary: 'Atualiza região existente' })
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() body: Partial<CoverageRegion>) {
+  async update(@Param('id') id: string, @Body() body: Partial<CoverageRegion>, @Req() req: any) {
     const row = await this.regionRepo.findOne({ where: { id } });
     if (!row) throw new NotFoundException('Região não encontrada');
-    this.validateGeometry({ ...row, ...body });
-    Object.assign(row, body);
+    const before = this.auditCoverage(row);
+    const patch = this.pickCoveragePatch(body);
+    this.validateGeometry({ ...row, ...patch });
+    Object.assign(row, patch);
     const saved = await this.regionRepo.save(row);
     this.coverage.invalidateCache();
+    await this.audit.record({
+      actorUserId: req?.user?.userId ?? null,
+      action: 'coverage.update',
+      entityType: 'coverage_region',
+      entityId: saved.id,
+      before,
+      after: this.auditCoverage(saved),
+    });
     return saved;
   }
 
   @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @ApiOperation({ summary: 'Remove região' })
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @Req() req: any) {
     const row = await this.regionRepo.findOne({ where: { id } });
     if (!row) throw new NotFoundException('Região não encontrada');
+    const before = this.auditCoverage(row);
     await this.regionRepo.remove(row);
     this.coverage.invalidateCache();
+    await this.audit.record({
+      actorUserId: req?.user?.userId ?? null,
+      action: 'coverage.delete',
+      entityType: 'coverage_region',
+      entityId: id,
+      before,
+    });
     return { ok: true };
   }
 
@@ -182,5 +214,47 @@ export class CoverageController {
       if (minLat >= maxLat) throw new BadRequestException('minLat deve ser < maxLat');
       if (minLng >= maxLng) throw new BadRequestException('minLng deve ser < maxLng');
     }
+  }
+
+  private pickCoveragePatch(input: Partial<CoverageRegion>): Partial<CoverageRegion> {
+    const patch: Partial<CoverageRegion> = {};
+    if (input.name !== undefined) {
+      const name = String(input.name).trim();
+      if (name.length < 2 || name.length > 128) {
+        throw new BadRequestException('name obrigatório (mín 2 chars)');
+      }
+      patch.name = name;
+    }
+    if (input.status !== undefined) {
+      if (!['active', 'bootstrap', 'inactive'].includes(input.status)) {
+        throw new BadRequestException('status inválido');
+      }
+      patch.status = input.status;
+    }
+    for (const key of ['centerLat', 'centerLng', 'radiusKm', 'minLat', 'maxLat', 'minLng', 'maxLng'] as const) {
+      if (input[key] !== undefined) {
+        patch[key] = input[key] === null ? null : (Number(input[key]) as any);
+      }
+    }
+    if (input.notes !== undefined) {
+      patch.notes = input.notes ? String(input.notes).slice(0, 5000) : null;
+    }
+    return patch;
+  }
+
+  private auditCoverage(row: CoverageRegion) {
+    return {
+      id: row.id,
+      name: row.name,
+      status: row.status,
+      centerLat: row.centerLat,
+      centerLng: row.centerLng,
+      radiusKm: row.radiusKm,
+      minLat: row.minLat,
+      maxLat: row.maxLat,
+      minLng: row.minLng,
+      maxLng: row.maxLng,
+      notes: row.notes,
+    };
   }
 }

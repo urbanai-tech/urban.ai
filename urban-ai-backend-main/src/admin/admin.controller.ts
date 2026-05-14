@@ -21,6 +21,8 @@ import { StripeSyncCheckService } from './stripe-sync.service';
 import { DatasetCollectorService } from '../knn-engine/dataset-collector.service';
 import { EventsGeocoderService } from '../evento/events-geocoder.service';
 import { EventsEnrichmentService } from '../evento/events-enrichment.service';
+import { RoiService } from '../roi/roi.service';
+import { AdminAuditService } from '../admin-audit/admin-audit.service';
 
 /**
  * Endpoints administrativos da Urban AI.
@@ -47,6 +49,8 @@ export class AdminController {
     private readonly datasetCollector: DatasetCollectorService,
     private readonly geocoder: EventsGeocoderService,
     private readonly enrichment: EventsEnrichmentService,
+    private readonly roi: RoiService,
+    private readonly audit: AdminAuditService,
   ) {}
 
   @ApiOperation({ summary: 'Visão geral do painel admin (KPIs)' })
@@ -68,6 +72,32 @@ export class AdminController {
   @Get('pricing/status')
   async pricingStatus() {
     return this.admin.pricingStatus();
+  }
+
+  @ApiOperation({ summary: 'Painel alpha por usuario: KPIs, qualidade de eventos e recomendacoes recentes' })
+  @Get('alpha/dashboard')
+  async alphaDashboard(@Query('email') email: string = 'gustavo8gouveia@hotmail.com') {
+    return this.admin.alphaDashboard(email);
+  }
+
+  @ApiOperation({ summary: 'Export/auditoria das recomendacoes alpha' })
+  @Get('alpha/recommendations')
+  async alphaRecommendations(
+    @Query('email') email: string = 'gustavo8gouveia@hotmail.com',
+    @Query('limit') limit: string = '250',
+  ) {
+    return this.admin.alphaRecommendations(email, parseInt(limit, 10));
+  }
+
+  @ApiOperation({ summary: 'Reprocessar propriedades do usuario alpha' })
+  @Throttle({ default: { ttl: 60_000, limit: 3 } })
+  @Post('alpha/reprocess')
+  async alphaReprocess(@Query('email') email: string = 'gustavo8gouveia@hotmail.com', @Req() req: any) {
+    return this.admin.runTrackedJob(
+      'alpha-pricing-reprocess',
+      req?.user?.userId ?? null,
+      () => this.admin.runAlphaReprocess(email),
+    );
   }
 
   @ApiOperation({ summary: 'Métricas do dataset proprietário (por origem, top listings)' })
@@ -191,7 +221,18 @@ export class AdminController {
     return this.admin.occupancyCoverage();
   }
 
-  @ApiOperation({ summary: 'Listar usuários (paginado)' })
+  @ApiOperation({ summary: 'ROI dos anfitrioes: dinheiro atribuido a Urban AI por usuario' })
+  @Get('roi')
+  async roiOverview(
+    @Query('windowDays') windowDays: string = '30',
+    @Query('limit') limit: string = '25',
+  ) {
+    return this.roi.getAdminRoi({
+      windowDays: parseInt(windowDays, 10),
+      limit: parseInt(limit, 10),
+    });
+  }
+
   @Throttle({ default: { ttl: 60_000, limit: 60 } })
   @ApiOperation({ summary: 'Criar/atualizar ocupacao manual de um imovel por dia' })
   @Post('occupancy/manual')
@@ -206,8 +247,18 @@ export class AdminController {
       listedPriceCents?: number | null;
       currency?: string;
     },
+    @Req() req: any,
   ) {
-    return this.admin.upsertManualOccupancy(body);
+    const result = await this.admin.upsertManualOccupancy(body);
+    await this.audit.record({
+      actorUserId: req?.user?.userId ?? null,
+      action: 'occupancy.manual_upsert',
+      entityType: 'occupancy_history',
+      entityId: result?.id ?? null,
+      after: result,
+      metadata: { listId: body.listId, airbnbListingId: body.airbnbListingId, date: body.date },
+    });
+    return result;
   }
 
   @ApiOperation({ summary: 'Listar usuarios (paginado)' })
@@ -222,8 +273,16 @@ export class AdminController {
   async setUserRole(
     @Param('id') userId: string,
     @Body() body: { role: 'host' | 'admin' | 'support' },
+    @Req() req: any,
   ) {
-    const user = await this.admin.setUserRole(userId, body.role);
+    const user = await this.admin.setUserRole(userId, body.role, req?.user?.userId ?? null);
+    await this.audit.record({
+      actorUserId: req?.user?.userId ?? null,
+      action: 'user.role_update',
+      entityType: 'user',
+      entityId: user.id,
+      after: { id: user.id, role: user.role },
+    });
     return { id: user.id, role: user.role };
   }
 
@@ -233,8 +292,16 @@ export class AdminController {
   async setUserActive(
     @Param('id') userId: string,
     @Body() body: { ativo: boolean },
+    @Req() req: any,
   ) {
-    const user = await this.admin.setUserActive(userId, body.ativo);
+    const user = await this.admin.setUserActive(userId, body.ativo, req?.user?.userId ?? null);
+    await this.audit.record({
+      actorUserId: req?.user?.userId ?? null,
+      action: 'user.active_update',
+      entityType: 'user',
+      entityId: user.id,
+      after: { id: user.id, ativo: user.ativo },
+    });
     return { id: user.id, ativo: user.ativo };
   }
 
@@ -267,22 +334,46 @@ export class AdminController {
       scalesWithListings?: boolean;
       notes?: string;
     },
+    @Req() req: any,
   ) {
-    return this.finance.createCost(body);
+    const cost = await this.finance.createCost(body);
+    await this.audit.record({
+      actorUserId: req?.user?.userId ?? null,
+      action: 'finance.cost_create',
+      entityType: 'platform_cost',
+      entityId: cost.id,
+      after: cost,
+    });
+    return cost;
   }
 
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @ApiOperation({ summary: 'Atualizar custo' })
   @Patch('finance/costs/:id')
-  async updateCost(@Param('id') id: string, @Body() body: any) {
-    return this.finance.updateCost(id, body);
+  async updateCost(@Param('id') id: string, @Body() body: any, @Req() req: any) {
+    const cost = await this.finance.updateCost(id, body);
+    await this.audit.record({
+      actorUserId: req?.user?.userId ?? null,
+      action: 'finance.cost_update',
+      entityType: 'platform_cost',
+      entityId: cost.id,
+      after: cost,
+    });
+    return cost;
   }
 
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @ApiOperation({ summary: 'Remover custo' })
   @Delete('finance/costs/:id')
-  async deleteCost(@Param('id') id: string) {
-    return this.finance.deleteCost(id);
+  async deleteCost(@Param('id') id: string, @Req() req: any) {
+    const result = await this.finance.deleteCost(id);
+    await this.audit.record({
+      actorUserId: req?.user?.userId ?? null,
+      action: 'finance.cost_delete',
+      entityType: 'platform_cost',
+      entityId: id,
+    });
+    return result;
   }
 
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
@@ -291,8 +382,15 @@ export class AdminController {
       'Popular custos default da Urban AI (idempotente). overwrite=true sobrescreve valores manuais.',
   })
   @Post('finance/costs/seed')
-  async seedDefaultCosts(@Query('overwrite') overwrite: string = 'false') {
-    return this.finance.seedDefaultCosts(overwrite === 'true');
+  async seedDefaultCosts(@Query('overwrite') overwrite: string = 'false', @Req() req: any) {
+    const result = await this.finance.seedDefaultCosts(overwrite === 'true');
+    await this.audit.record({
+      actorUserId: req?.user?.userId ?? null,
+      action: 'finance.cost_seed',
+      entityType: 'platform_cost',
+      metadata: { overwrite: overwrite === 'true', summary: result },
+    });
+    return result;
   }
 
   // ================== Pricing config (planos) ==================
@@ -308,8 +406,17 @@ export class AdminController {
     summary: 'Atualizar preço/features de um plano (NÃO atualiza Stripe Price IDs)',
   })
   @Patch('plans-config/:name')
-  async updatePlanPricing(@Param('name') name: string, @Body() body: any) {
-    return this.finance.updatePlanPricing(name, body);
+  async updatePlanPricing(@Param('name') name: string, @Body() body: any, @Req() req: any) {
+    const plan = await this.finance.updatePlanPricing(name, body);
+    await this.audit.record({
+      actorUserId: req?.user?.userId ?? null,
+      action: 'plan.pricing_update',
+      entityType: 'plan',
+      entityId: plan.id,
+      after: plan,
+      metadata: { name },
+    });
+    return plan;
   }
 
   // ================== Stripe — sync check ==================

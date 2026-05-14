@@ -18,6 +18,12 @@ export type AnalisePrecoStatus =
   | 'applied_stays'
   | 'expired';
 
+export type AnalisePrecoReservaStatus =
+  | 'unknown'
+  | 'booked'
+  | 'not_booked'
+  | 'blocked';
+
 @Entity('analise_preco')
 export class AnalisePreco {
   @PrimaryGeneratedColumn('uuid')
@@ -97,6 +103,21 @@ export class AnalisePreco {
    */
   @Column({ name: 'origem_aplicacao', type: 'varchar', length: 32, nullable: true })
   origemAplicacao: string | null;
+
+  @Column({ name: 'reserva_status', type: 'varchar', length: 24, nullable: true })
+  reservaStatus: AnalisePrecoReservaStatus | null;
+
+  @Column({ name: 'receita_real', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  receitaReal: number | null;
+
+  @Column({ name: 'noites_reservadas', type: 'int', nullable: true })
+  noitesReservadas: number | null;
+
+  @Column({ name: 'resultado_registrado_em', type: 'timestamp', nullable: true })
+  resultadoRegistradoEm: Date | null;
+
+  @Column({ name: 'feedback_observacao', type: 'text', nullable: true })
+  feedbackObservacao: string | null;
 
   // --- IA Reasoning ---
   @Column({ name: 'motivo_ia', type: 'text', nullable: true })

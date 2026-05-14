@@ -10,6 +10,7 @@ import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { User } from 'src/entities/user.entity';
 import { PropriedadeModule } from 'src/propriedades/propriedade.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { RoiModule } from 'src/roi/roi.module';
 
 @Module({
     imports: [TypeOrmModule.forFeature([
@@ -19,7 +20,7 @@ import { AuthModule } from 'src/auth/auth.module';
         AnaliseEnderecoEvento,
         AnalisePreco,
         User
-    ]), PropriedadeModule, AuthModule],
+    ]), PropriedadeModule, AuthModule, RoiModule],
     controllers: [
         DashboardController,],
     providers: [

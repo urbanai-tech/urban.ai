@@ -583,15 +583,41 @@ export const registrarPrecoAplicadoSugestao = async (
     | 'manual_off_platform'
     | 'stays_auto'
     | 'stays_user_accepted' = 'manual_dashboard',
+  feedback?: {
+    reservaStatus?: 'unknown' | 'booked' | 'not_booked' | 'blocked' | null;
+    receitaReal?: number | null;
+    noitesReservadas?: number | null;
+    feedbackObservacao?: string | null;
+  },
 ) => {
   try {
     const { data } = await api.patch(`/sugestoes-preco/${id}/aplicado`, {
       precoAplicado,
       origem,
+      ...feedback,
     });
     return data;
   } catch (error) {
     console.error(`Erro ao registrar o preco aplicado da sugestao ${id}:`, error);
+    throw error;
+  }
+};
+
+export const registrarResultadoSugestao = async (
+  id: string,
+  feedback: {
+    precoAplicado?: number | null;
+    reservaStatus?: 'unknown' | 'booked' | 'not_booked' | 'blocked' | null;
+    receitaReal?: number | null;
+    noitesReservadas?: number | null;
+    feedbackObservacao?: string | null;
+  },
+) => {
+  try {
+    const { data } = await api.patch(`/sugestoes-preco/${id}/resultado`, feedback);
+    return data;
+  } catch (error) {
+    console.error(`Erro ao registrar resultado da sugestao ${id}:`, error);
     throw error;
   }
 };
@@ -802,6 +828,112 @@ export const fetchListingsQuota = async (): Promise<ListingsQuota> => {
   return data;
 };
 
+// ================== ROI do anfitriao ==================
+
+export type RoiConfidence = 'high' | 'medium' | 'low';
+
+export interface RoiSummary {
+  windowDays: number;
+  generatedAt: string;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+  };
+  subscription: {
+    monthlyCostCents: number;
+    activePayments: number;
+  };
+  money: {
+    confirmedIncrementalCents: number;
+    projectedIncrementalCents: number;
+    totalAttributedCents: number;
+    potentialLostCents: number;
+    netValueCents: number;
+    roiPercent: number | null;
+    roiMultiple: number | null;
+  };
+  activity: {
+    recommendations: number;
+    accepted: number;
+    applied: number;
+    booked: number;
+    rejected: number;
+    impactedNights: number;
+    acceptanceRatePercent: number;
+    applicationRatePercent: number;
+  };
+  dataQuality: {
+    confidence: RoiConfidence;
+    label: string;
+    explanation: string;
+  };
+  perProperty: Array<{
+    propertyId: string | null;
+    propertyName: string;
+    recommendations: number;
+    accepted: number;
+    applied: number;
+    booked: number;
+    impactedNights: number;
+    confirmedIncrementalCents: number;
+    projectedIncrementalCents: number;
+    totalAttributedCents: number;
+    potentialLostCents: number;
+  }>;
+  recentWins: Array<{
+    id: string;
+    propertyName: string;
+    currentPriceCents: number;
+    appliedPriceCents: number;
+    deltaCents: number;
+    nights: number;
+    incrementalCents: number;
+    status: string;
+    createdAt: string;
+  }>;
+}
+
+export interface AdminRoiOverview {
+  windowDays: number;
+  generatedAt: string;
+  totals: {
+    users: number;
+    usersWithPositiveRoi: number;
+    activePayments: number;
+    confirmedIncrementalCents: number;
+    projectedIncrementalCents: number;
+    totalAttributedCents: number;
+    subscriptionCostCents: number;
+    netValueCents: number;
+    roiPercent: number | null;
+    roiMultiple: number | null;
+    potentialLostCents: number;
+    impactedNights: number;
+  };
+  leaderboard: Array<RoiSummary & { activeListings: number }>;
+}
+
+export const fetchMyRoi = (params?: { windowDays?: number; propertyId?: string }) =>
+  api
+    .get<RoiSummary>('/roi/me', {
+      params: {
+        windowDays: params?.windowDays ?? 30,
+        propertyId: params?.propertyId || undefined,
+      },
+    })
+    .then((r) => r.data);
+
+export const fetchAdminRoi = (params?: { windowDays?: number; limit?: number }) =>
+  api
+    .get<AdminRoiOverview>('/admin/roi', {
+      params: {
+        windowDays: params?.windowDays ?? 30,
+        limit: params?.limit ?? 25,
+      },
+    })
+    .then((r) => r.data);
+
 // ================== Admin (F6.3 painel) ==================
 
 export interface AdminOverview {
@@ -882,6 +1014,109 @@ export async function fetchAdminPricingStatus(): Promise<AdminPricingStatus> {
 
 export async function fetchAdminDatasetMetrics(): Promise<AdminDatasetMetrics> {
   const { data } = await api.get<AdminDatasetMetrics>('/admin/dataset/metrics');
+  return data;
+}
+
+export interface AdminAlphaRecommendation {
+  id: string;
+  createdAt: string;
+  property: {
+    listId: string | null;
+    addressId: string | null;
+    title: string | null;
+    manualDailyPrice: number | null;
+    averageMonthlyRevenue: number | null;
+  };
+  event: {
+    id: string | null;
+    name: string | null;
+    city: string | null;
+    state: string | null;
+    startsAt: string | null;
+    source: string | null;
+    relevance: number | null;
+    expectedAttendance: number | null;
+  };
+  pricing: {
+    current: number;
+    suggested: number;
+    lift: number | null;
+    liftPercent: number;
+    recommendation: string | null;
+    reason: string | null;
+    distanceKm: number;
+  };
+  lifecycle: {
+    accepted: boolean;
+    status: string;
+    appliedPrice: number | null;
+    appliedAt: string | null;
+    applicationOrigin: string | null;
+  };
+  outcome: {
+    reservationStatus: 'unknown' | 'booked' | 'not_booked' | 'blocked' | null;
+    realRevenue: number | null;
+    bookedNights: number | null;
+    capturedAt: string | null;
+    note: string | null;
+  };
+  qualityFlags: string[];
+}
+
+export interface AdminAlphaDashboard {
+  generatedAt: string;
+  user: { id: string; email: string; username: string; ativo: boolean; role: string };
+  properties: {
+    total: number;
+    activeAddresses: number;
+    completed: number;
+    withManualPrice: number;
+    withAverageMonthlyRevenue: number;
+    totalAverageMonthlyRevenue: number;
+  };
+  recommendations: {
+    total: number;
+    accepted: number;
+    applied: number;
+    feedbackCaptured: number;
+    booked: number;
+    realRevenue: number;
+    potentialDailyLift: number;
+    distinctProperties: number;
+    distinctEvents: number;
+  };
+  events: {
+    total: number;
+    upcoming: number;
+    createdLast24h: number;
+    qualityFlags: Record<string, number>;
+  };
+  recentRecommendations: AdminAlphaRecommendation[];
+}
+
+export interface AdminAlphaRecommendationsExport {
+  generatedAt: string;
+  user: { id: string; email: string; username: string };
+  total: number;
+  rows: AdminAlphaRecommendation[];
+}
+
+export async function fetchAdminAlphaDashboard(email = 'gustavo8gouveia@hotmail.com') {
+  const { data } = await api.get<AdminAlphaDashboard>('/admin/alpha/dashboard', { params: { email } });
+  return data;
+}
+
+export async function fetchAdminAlphaRecommendations(email = 'gustavo8gouveia@hotmail.com', limit = 250) {
+  const { data } = await api.get<AdminAlphaRecommendationsExport>('/admin/alpha/recommendations', {
+    params: { email, limit },
+  });
+  return data;
+}
+
+export async function runAdminAlphaReprocess(email = 'gustavo8gouveia@hotmail.com') {
+  const { data } = await api.post<AdminJobRunResponse>('/admin/alpha/reprocess', null, {
+    params: { email },
+  });
   return data;
 }
 
@@ -1443,7 +1678,7 @@ export const fetchAdminWaitlistStats = () =>
   api.get<WaitlistStats>('/admin/waitlist/stats').then((r) => r.data);
 
 export const inviteWaitlistEntry = (id: string) =>
-  api.post<{ ok: true; inviteUrl: string }>(`/admin/waitlist/${id}/invite`).then((r) => r.data);
+  api.post<{ ok: true; inviteUrl: string; emailSent: boolean }>(`/admin/waitlist/${id}/invite`).then((r) => r.data);
 
 export const updateWaitlistNotes = (id: string, notes: string | null) =>
   api.patch<WaitlistEntry>(`/admin/waitlist/${id}/notes`, { notes }).then((r) => r.data);

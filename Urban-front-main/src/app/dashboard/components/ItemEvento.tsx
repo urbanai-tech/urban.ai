@@ -7,7 +7,9 @@ import {
   Flex,
   HStack,
   Input,
-  Text
+  Select,
+  Text,
+  Textarea,
 } from "@chakra-ui/react";
 import { format, parseISO } from "date-fns";
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
@@ -31,6 +33,11 @@ export interface EventItem {
   precoAplicado?: string | number | null;
   aplicadoEm?: string | null;
   origemAplicacao?: string | null;
+  reservaStatus?: "unknown" | "booked" | "not_booked" | "blocked" | null;
+  receitaReal?: string | number | null;
+  noitesReservadas?: string | number | null;
+  resultadoRegistradoEm?: string | null;
+  feedbackObservacao?: string | null;
   status?: "suggested" | "accepted" | "rejected" | "applied_manual" | "applied_stays" | "expired";
   aceitoEm?: string | null;
   rejeitadoEm?: string | null;
@@ -119,11 +126,25 @@ export const EventCard: React.FC<EventCardProps> = ({
   const [appliedPriceInput, setAppliedPriceInput] = useState(
     ev.precoAplicado ? String(ev.precoAplicado).replace(".", ",") : "",
   );
+  const [reservationStatus, setReservationStatus] = useState<EventItem["reservaStatus"]>(
+    ev.reservaStatus || "unknown",
+  );
+  const [realRevenueInput, setRealRevenueInput] = useState(
+    ev.receitaReal ? String(ev.receitaReal).replace(".", ",") : "",
+  );
+  const [bookedNightsInput, setBookedNightsInput] = useState(
+    ev.noitesReservadas ? String(ev.noitesReservadas) : "",
+  );
+  const [feedbackNote, setFeedbackNote] = useState(ev.feedbackObservacao || "");
 
   useEffect(() => {
     setAccepted(ev.aceito);
     setAppliedPriceInput(ev.precoAplicado ? String(ev.precoAplicado).replace(".", ",") : "");
-  }, [ev.aceito, ev.precoAplicado]);
+    setReservationStatus(ev.reservaStatus || "unknown");
+    setRealRevenueInput(ev.receitaReal ? String(ev.receitaReal).replace(".", ",") : "");
+    setBookedNightsInput(ev.noitesReservadas ? String(ev.noitesReservadas) : "");
+    setFeedbackNote(ev.feedbackObservacao || "");
+  }, [ev.aceito, ev.precoAplicado, ev.reservaStatus, ev.receitaReal, ev.noitesReservadas, ev.feedbackObservacao]);
 
   const handleAccept = async () => {
     setLoadingSaving(true);
@@ -177,15 +198,32 @@ export const EventCard: React.FC<EventCardProps> = ({
 
     setLoadingAppliedPrice(true);
     try {
-      await registrarPrecoAplicadoSugestao(ev.idAnalise, appliedPrice, "manual_dashboard");
+      const receitaReal = realRevenueInput ? toNumber(realRevenueInput) : null;
+      const noitesReservadas = bookedNightsInput ? Number(bookedNightsInput) : null;
+      const normalizedNights = Number.isFinite(noitesReservadas as number)
+        ? Math.max(0, Math.floor(noitesReservadas as number))
+        : null;
+      const normalizedRevenue = Number.isFinite(receitaReal as number) ? receitaReal : null;
+
+      await registrarPrecoAplicadoSugestao(ev.idAnalise, appliedPrice, "manual_dashboard", {
+        reservaStatus: reservationStatus,
+        receitaReal: normalizedRevenue,
+        noitesReservadas: normalizedNights,
+        feedbackObservacao: feedbackNote || null,
+      });
       onChange?.({
         ...ev,
         precoAplicado: appliedPrice,
         aplicadoEm: new Date().toISOString(),
         origemAplicacao: "manual_dashboard",
+        reservaStatus: reservationStatus,
+        receitaReal: normalizedRevenue,
+        noitesReservadas: normalizedNights,
+        resultadoRegistradoEm: new Date().toISOString(),
+        feedbackObservacao: feedbackNote || null,
         status: "applied_manual",
       });
-      toast("Preço aplicado registrado.", { type: "success" });
+      toast("Preco e resultado registrados.", { type: "success" });
     } catch {
       toast("Não foi possível registrar o preço aplicado.", { type: "error" });
     } finally {
@@ -319,13 +357,39 @@ export const EventCard: React.FC<EventCardProps> = ({
         </HStack>
 
         {accepted && (
-          <Flex gap={2} align={{ base: "stretch", sm: "center" }} direction={{ base: "column", sm: "row" }}>
+          <Flex gap={2} align={{ base: "stretch", sm: "center" }} direction={{ base: "column", md: "row" }} wrap="wrap">
             <Input
               value={appliedPriceInput}
               onChange={(event) => setAppliedPriceInput(event.target.value)}
               placeholder="Preço aplicado"
               inputMode="decimal"
               maxW={{ base: "100%", sm: "180px" }}
+            />
+            <Select
+              value={reservationStatus || "unknown"}
+              onChange={(event) =>
+                setReservationStatus((event.target.value as EventItem["reservaStatus"]) || "unknown")
+              }
+              maxW={{ base: "100%", sm: "180px" }}
+            >
+              <option value="unknown">Resultado</option>
+              <option value="booked">Reservou</option>
+              <option value="not_booked">Nao reservou</option>
+              <option value="blocked">Bloqueado</option>
+            </Select>
+            <Input
+              value={realRevenueInput}
+              onChange={(event) => setRealRevenueInput(event.target.value)}
+              placeholder="Receita real"
+              inputMode="decimal"
+              maxW={{ base: "100%", sm: "150px" }}
+            />
+            <Input
+              value={bookedNightsInput}
+              onChange={(event) => setBookedNightsInput(event.target.value)}
+              placeholder="Noites"
+              inputMode="numeric"
+              maxW={{ base: "100%", sm: "110px" }}
             />
             <Button
               onClick={handleRegisterAppliedPrice}
@@ -336,6 +400,15 @@ export const EventCard: React.FC<EventCardProps> = ({
               Registrar preço aplicado
             </Button>
           </Flex>
+        )}
+        {accepted && (
+          <Textarea
+            value={feedbackNote}
+            onChange={(event) => setFeedbackNote(event.target.value)}
+            placeholder="Observacao opcional sobre a reserva"
+            size="sm"
+            resize="vertical"
+          />
         )}
       </Flex>
     </Box>

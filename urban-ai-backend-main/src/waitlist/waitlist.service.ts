@@ -218,7 +218,7 @@ export class WaitlistService {
     };
   }
 
-  async invite(id: string, frontUrl: string): Promise<{ ok: true; inviteUrl: string }> {
+  async invite(id: string, frontUrl: string): Promise<{ ok: true; inviteUrl: string; emailSent: boolean }> {
     const entry = await this.repo.findOne({ where: { id } });
     if (!entry) throw new NotFoundException('Entry não encontrada');
     if (entry.status === 'converted') {
@@ -236,6 +236,7 @@ export class WaitlistService {
 
     const inviteUrl = `${frontUrl.replace(/\/$/, '')}/waitlist/aceitar?token=${token}`;
 
+    let emailSent = false;
     try {
       await this.mailer.sendHtmlEmail(
         { email: entry.email, name: entry.name ?? '' },
@@ -246,12 +247,13 @@ export class WaitlistService {
           position: entry.position,
         }),
       );
+      emailSent = true;
     } catch (err) {
       this.logger.error(`Falha ao enviar convite ${entry.email}`, err);
       // Não desfaz o token — admin pode tentar reenviar.
     }
 
-    return { ok: true, inviteUrl };
+    return { ok: true, inviteUrl, emailSent };
   }
 
   async lookupByInviteToken(token: string): Promise<Waitlist | null> {

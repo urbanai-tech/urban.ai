@@ -24,7 +24,7 @@ import { ChevronLeftIcon } from '@chakra-ui/icons';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FiBarChart, FiBell, FiCalendar, FiDollarSign, FiHome, FiMapPin, FiSettings } from 'react-icons/fi';
+import { FiBarChart, FiBell, FiCalendar, FiDollarSign, FiHome, FiMapPin, FiSettings, FiTrendingUp } from 'react-icons/fi';
 import { api } from '../service/api';
 import '../../../i18n';
 
@@ -65,6 +65,7 @@ export default function InternoLayout() {
     { path: '/dashboard', icon: FiCalendar, labelKey: "Calendário" },   
     { path: '/maps', icon: FiMapPin, labelKey: 'Mapa' },
     { path: '/properties', icon: FiHome, labelKey: "Propriedades" }, 
+    { path: '/my-roi', icon: FiTrendingUp, labelKey: 'Meu ROI' },
     { path: '/event-log', icon: FiSettings, labelKey: 'Configuração' },
      { path: '/my-plan', icon: FiDollarSign, labelKey: 'Meu plano' },
   ];

@@ -4,6 +4,15 @@ import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { DatasetCollectorService } from 'src/knn-engine/dataset-collector.service';
 import { Repository } from 'typeorm';
 
+type AppliedPriceInput = {
+  precoAplicado: number;
+  origem: 'manual_dashboard' | 'manual_off_platform' | 'stays_auto' | 'stays_user_accepted';
+  reservaStatus?: 'unknown' | 'booked' | 'not_booked' | 'blocked' | null;
+  receitaReal?: number | null;
+  noitesReservadas?: number | null;
+  feedbackObservacao?: string | null;
+};
+
 @Injectable()
 export class SugestionService {
   private readonly logger = new Logger(SugestionService.name);
@@ -48,14 +57,11 @@ export class SugestionService {
   async registrarPrecoAplicado(
     id: string,
     userId: string,
-    input: {
-      precoAplicado: number;
-      origem: 'manual_dashboard' | 'manual_off_platform' | 'stays_auto' | 'stays_user_accepted';
-    },
+    input: AppliedPriceInput,
   ): Promise<AnalisePreco> {
     const registro = await this.analisePrecoRepository.findOne({
       where: { id },
-      relations: ['usuarioProprietario'],
+      relations: ['usuarioProprietario', 'endereco', 'endereco.list', 'evento'],
     });
     if (!registro) {
       throw new NotFoundException('Registro não encontrado');
@@ -71,8 +77,45 @@ export class SugestionService {
     registro.aceitoEm = registro.aceitoEm ?? new Date();
     registro.rejeitadoEm = null;
     registro.expiradoEm = null;
+    this.applyOutcomeFeedback(registro, input);
     const saved = await this.analisePrecoRepository.save(registro);
     await this.tryRecordAppliedPriceSnapshot(saved, input.precoAplicado);
+    return saved;
+  }
+
+  async registrarResultado(
+    id: string,
+    userId: string,
+    input: Omit<AppliedPriceInput, 'origem' | 'precoAplicado'> & { precoAplicado?: number | null },
+  ): Promise<AnalisePreco> {
+    const registro = await this.analisePrecoRepository.findOne({
+      where: { id },
+      relations: ['usuarioProprietario', 'endereco', 'endereco.list', 'evento'],
+    });
+    if (!registro) {
+      throw new NotFoundException('Registro nÃ£o encontrado');
+    }
+    if (registro.usuarioProprietario.id !== userId) {
+      throw new ForbiddenException('Registro nao pertence ao usuario autenticado');
+    }
+
+    if (input.precoAplicado !== undefined && input.precoAplicado !== null) {
+      const precoAplicado = Number(input.precoAplicado);
+      if (Number.isFinite(precoAplicado) && precoAplicado > 0) {
+        registro.precoAplicado = precoAplicado;
+        registro.aplicadoEm = registro.aplicadoEm ?? new Date();
+        registro.origemAplicacao = registro.origemAplicacao ?? 'manual_dashboard';
+        registro.aceito = true;
+        registro.aceitoEm = registro.aceitoEm ?? new Date();
+        registro.status = 'applied_manual';
+      }
+    }
+
+    this.applyOutcomeFeedback(registro, input);
+    const saved = await this.analisePrecoRepository.save(registro);
+    if (saved.precoAplicado) {
+      await this.tryRecordAppliedPriceSnapshot(saved, Number(saved.precoAplicado));
+    }
     return saved;
   }
 
@@ -132,6 +175,41 @@ export class SugestionService {
       this.logger.warn(
         `Falha ao persistir PriceSnapshot aplicado para AnalisePreco ${registro.id}: ${(error as Error).message}`,
       );
+    }
+  }
+
+  private applyOutcomeFeedback(
+    registro: AnalisePreco,
+    input: {
+      reservaStatus?: 'unknown' | 'booked' | 'not_booked' | 'blocked' | null;
+      receitaReal?: number | null;
+      noitesReservadas?: number | null;
+      feedbackObservacao?: string | null;
+    },
+  ) {
+    let touched = false;
+
+    if (input.reservaStatus !== undefined) {
+      registro.reservaStatus = input.reservaStatus ?? null;
+      touched = true;
+    }
+    if (input.receitaReal !== undefined) {
+      const receita = input.receitaReal === null ? null : Number(input.receitaReal);
+      registro.receitaReal = Number.isFinite(receita as number) ? (receita as number) : null;
+      touched = true;
+    }
+    if (input.noitesReservadas !== undefined) {
+      const noites = input.noitesReservadas === null ? null : Math.max(0, Math.floor(Number(input.noitesReservadas)));
+      registro.noitesReservadas = Number.isFinite(noites as number) ? (noites as number) : null;
+      touched = true;
+    }
+    if (input.feedbackObservacao !== undefined) {
+      registro.feedbackObservacao = input.feedbackObservacao?.trim() || null;
+      touched = true;
+    }
+
+    if (touched) {
+      registro.resultadoRegistradoEm = new Date();
     }
   }
 }

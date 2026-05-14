@@ -70,7 +70,11 @@ export default function AdminWaitlistPage() {
     try {
       const result = await inviteWaitlistEntry(entry.id);
       setLastInvite({ email: entry.email, inviteUrl: result.inviteUrl });
-      alert(entry.status === "invited" ? "Convite reenviado!" : "Convite enviado!");
+      alert(
+        result.emailSent
+          ? entry.status === "invited" ? "Convite reenviado!" : "Convite enviado!"
+          : "Link gerado, mas o e-mail falhou. Copie o link e envie por outro canal.",
+      );
       load();
     } catch (err: any) {
       alert("Erro: " + (err?.response?.data?.message || err?.message || "falhou"));

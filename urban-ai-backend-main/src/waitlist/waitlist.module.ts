@@ -6,6 +6,7 @@ import { WaitlistService } from './waitlist.service';
 import { WaitlistController } from './waitlist.controller';
 import { MailerModule } from '../mailer/mailer.module';
 import { AuthModule } from '../auth/auth.module';
+import { AdminAuditModule } from '../admin-audit/admin-audit.module';
 
 /**
  * F8.2 — pré-lançamento (waitlist).
@@ -20,6 +21,7 @@ import { AuthModule } from '../auth/auth.module';
     TypeOrmModule.forFeature([Waitlist, User]),
     forwardRef(() => MailerModule),
     forwardRef(() => AuthModule),
+    AdminAuditModule,
   ],
   controllers: [WaitlistController],
   providers: [WaitlistService],
