@@ -16,8 +16,10 @@ import { importCsvEvents } from "../../../service/api";
  */
 
 const CSV_TEMPLATE = `nome,dataInicio,dataFim,enderecoCompleto,cidade,estado,latitude,longitude,categoria,venueType,venueCapacity,expectedAttendance,linkSiteOficial,descricao
-"RD Summit 2026","2026-10-15T08:00:00","2026-10-17T18:00:00","São Paulo Expo, SP","São Paulo","SP","-23.6258","-46.6469","conferencia","convention_center","90000","30000","https://rdsummit.com.br","Maior conferência de marketing e vendas da AL"
-"Palmeiras x Santos","2026-05-10T16:00:00","","Allianz Parque","São Paulo","SP","","","esporte","stadium","43713","","",""`;
+"Congresso de Turismo SP","2026-06-18T09:00:00","2026-06-20T18:00:00","São Paulo Expo, SP","São Paulo","SP","-23.6258","-46.6469","conferencia","convention_center","90000","25000","https://example.com","Evento curado manualmente para fallback beta"
+"Final regional de futebol","2026-06-27T16:00:00","","Allianz Parque","São Paulo","SP","-23.5275","-46.6783","esporte","stadium","43713","40000","",""`;
+
+const BETA_FALLBACK_TARGET = 100;
 
 interface ImportResult {
   parsedRows: number;
@@ -115,6 +117,27 @@ export default function ImportarCsvEventos() {
           </button>
         </section>
 
+        <section className="rounded-xl border border-amber-700/40 bg-amber-950/20 p-4 text-sm">
+          <h3 className="font-bold mb-2 text-amber-200">Meta do fallback manual</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-slate-300">
+            <p>
+              <strong className="text-slate-50">Volume:</strong> envie pelo menos{" "}
+              {BETA_FALLBACK_TARGET} eventos futuros de SP/30d quando APIs ainda nao
+              estiverem completas.
+            </p>
+            <p>
+              <strong className="text-slate-50">Qualidade:</strong> priorize endereco,
+              cidade, categoria, venue/capacidade e link oficial para dedupe e explicacao
+              de impacto.
+            </p>
+            <p>
+              <strong className="text-slate-50">Depois do upload:</strong> confira o
+              dashboard, rode geocoder em `/admin/jobs` se houver pendentes e revise
+              invalidRows.
+            </p>
+          </div>
+        </section>
+
         <form
           onSubmit={handleSubmit}
           className="space-y-4 bg-slate-900/40 border border-slate-800 rounded-2xl p-6"
@@ -178,6 +201,8 @@ export default function ImportarCsvEventos() {
               <Stat label="Skipados (backend)" value={result.ingest.skipped} color="text-red-300" />
             </div>
 
+            <ImportReadiness result={result} />
+
             {result.invalidRows.length > 0 && (
               <div className="rounded-xl border border-amber-700/40 bg-amber-950/20 p-4">
                 <h3 className="font-bold mb-2 text-amber-200 text-sm">Linhas inválidas</h3>
@@ -230,6 +255,46 @@ function Stat({ label, value, color }: { label: string; value: number; color?: s
       <p className={`text-xl font-bold ${color ?? "text-slate-50"}`}>
         {value.toLocaleString("pt-BR")}
       </p>
+    </div>
+  );
+}
+
+function ImportReadiness({ result }: { result: ImportResult }) {
+  const acceptedRows = Math.max(0, result.parsedRows - result.invalidRows.length);
+  const usefulRows = result.ingest.created + result.ingest.updated;
+  const progress = Math.min(100, Math.round((usefulRows / BETA_FALLBACK_TARGET) * 100));
+  const ready = usefulRows >= BETA_FALLBACK_TARGET;
+
+  return (
+    <div
+      className={`rounded-xl border p-4 ${
+        ready ? "border-emerald-700/40 bg-emerald-950/20" : "border-amber-700/40 bg-amber-950/20"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h3 className={`font-bold text-sm ${ready ? "text-emerald-200" : "text-amber-200"}`}>
+            {ready ? "Lote suficiente para fallback beta" : "Lote ainda abaixo da meta beta"}
+          </h3>
+          <p className="text-xs text-slate-400 mt-1">
+            {usefulRows.toLocaleString("pt-BR")} eventos criados/atualizados de{" "}
+            {BETA_FALLBACK_TARGET.toLocaleString("pt-BR")} recomendados para SP/30d.{" "}
+            {acceptedRows.toLocaleString("pt-BR")} linhas passaram pela validacao basica.
+          </p>
+        </div>
+        <div className="text-right">
+          <p className={`text-2xl font-bold ${ready ? "text-emerald-300" : "text-amber-300"}`}>
+            {progress}%
+          </p>
+          <p className="text-[10px] uppercase tracking-wider text-slate-500">do alvo</p>
+        </div>
+      </div>
+      {!ready && (
+        <p className="text-xs text-slate-400 mt-3">
+          Complete com mais eventos oficiais ou divida a planilha por fonte, mantendo um
+          sourceLabel rastreavel como <code>csv-spturis-2026q2</code>.
+        </p>
+      )}
     </div>
   );
 }
