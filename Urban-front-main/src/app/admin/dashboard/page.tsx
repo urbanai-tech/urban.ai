@@ -346,6 +346,46 @@ export default function AdminDashboardPage() {
           </Block>
         </section>
 
+        {data.events.next30d < 100 && (
+          <section className="border border-amber-700/40 rounded-xl bg-amber-950/20 p-5">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-amber-300">
+                  Fallback manual de eventos
+                </p>
+                <h2 className="text-lg font-semibold text-slate-50 mt-1">
+                  Cobertura futura abaixo do gate beta
+                </h2>
+                <p className="text-sm text-slate-400 mt-2 max-w-3xl">
+                  Existem {data.events.next30d.toLocaleString("pt-BR")} eventos nos proximos 30
+                  dias. Para liberar beta assistido, complete o calendario de SP via cadastro
+                  manual ou importacao CSV enquanto os coletores amadurecem.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 text-sm">
+                <a
+                  href="/admin/events/new"
+                  className="px-3 py-2 rounded bg-amber-400 text-slate-950 font-bold"
+                >
+                  Cadastrar evento
+                </a>
+                <a
+                  href="/admin/events/import"
+                  className="px-3 py-2 rounded border border-amber-700/60 text-amber-200 hover:bg-amber-950/40"
+                >
+                  Importar CSV
+                </a>
+                <a
+                  href="/admin/jobs"
+                  className="px-3 py-2 rounded border border-slate-700 text-slate-200 hover:bg-slate-800"
+                >
+                  Rodar jobs
+                </a>
+              </div>
+            </div>
+          </section>
+        )}
+
         {data.dataset.blockers.length > 0 && (
           <section className="border border-slate-800 rounded-xl bg-slate-900/40 p-5">
             <h2 className="text-sm font-bold text-slate-200 mb-3">
