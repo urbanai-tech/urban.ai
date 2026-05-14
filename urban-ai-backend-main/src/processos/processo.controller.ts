@@ -17,6 +17,7 @@ import { Roles } from 'src/auth/roles.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { AuthenticatedRequest } from 'src/connect/connect.controller';
 import { Address } from 'src/entities/addresses.entity';
+import { MapsService } from 'src/maps/maps.service';
 import { PropertyDto } from 'src/maps/maps.controller';
 import { DataSource } from 'typeorm';
 
@@ -52,6 +53,7 @@ export class ProcessoController {
     constructor(
         @InjectQueue('processos') private readonly queue: Queue,
         private readonly dataSource: DataSource,
+        private readonly mapsService: MapsService,
     ) {}
 
     @UseGuards(JwtAuthGuard)
@@ -123,14 +125,22 @@ export class ProcessoController {
 
                 this.logger.log(`Adicionando job para propriedade ${propertyAdressId} do usuario ${userId}`);
 
-                await this.queue.add(
-                    { userId, propertyAdressId },
-                    {
-                        jobId,
-                        removeOnComplete: true,
-                        removeOnFail: false,
-                    },
-                );
+                try {
+                    await this.queue.add(
+                        { userId, propertyAdressId },
+                        {
+                            jobId,
+                            removeOnComplete: true,
+                            removeOnFail: false,
+                        },
+                    );
+                } catch (queueError) {
+                    this.logger.warn(
+                        `Fila indisponivel; processando propriedade ${propertyAdressId} inline para nao bloquear o usuario`,
+                    );
+                    this.logger.error(queueError instanceof Error ? queueError.stack : String(queueError));
+                    await this.mapsService.processarAnalisesByProperty(userId, propertyAdressId);
+                }
 
                 count++;
             } catch (error) {

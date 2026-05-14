@@ -66,7 +66,17 @@ export async function calculateDistanceHere(
   });
 
   if (!response.ok) {
-    throw new Error(`Erro ao buscar rota Google Maps: ${response.statusText}`);
+    const distanceKm = await calculateDistance(originLat, originLng, destinationLat, destinationLng);
+    const distanceMeters = Math.round(distanceKm * 1000);
+    const averageSpeedKmh = travelMode === 'WALK' ? 5 : travelMode === 'BICYCLE' ? 15 : 28;
+    const durationSeconds = Math.max(60, Math.round((distanceKm / averageSpeedKmh) * 3600));
+
+    return {
+      duration: durationSeconds,
+      length: distanceMeters,
+      baseDuration: durationSeconds,
+      mode: `${transportMode}_fallback`,
+    };
   }
 
   const data = await response.json();
@@ -119,4 +129,3 @@ export function getDiariaForCron(obj: any): number {
 
   return total / nights;
 }
-
