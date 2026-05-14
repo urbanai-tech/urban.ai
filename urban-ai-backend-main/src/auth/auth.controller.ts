@@ -37,6 +37,7 @@ const REFRESH_TOKEN_COOKIE = 'urbanai_refresh_token';
 
 /** Duração máxima do access cookie — deve bater com JWT_EXPIRES_IN. */
 const ACCESS_COOKIE_MAX_AGE_MS = 15 * 60 * 1000; // 15 min
+type CookieSameSite = 'lax' | 'strict' | 'none';
 
 @Controller('auth')
 export class AuthController {
@@ -80,13 +81,23 @@ export class AuthController {
   private cookieOpts(maxAgeMs: number, isRefresh = false) {
     const env = process.env.APP_ENV || process.env.NODE_ENV;
     const isProd = env === 'production' || env === 'staging';
+    const configuredCookieDomain = process.env.COOKIE_DOMAIN?.trim();
     const cookieDomain =
-      process.env.COOKIE_DOMAIN ?? (isProd ? '.myurbanai.com' : undefined);
+      configuredCookieDomain && configuredCookieDomain.toLowerCase() !== 'none'
+        ? configuredCookieDomain
+        : isProd
+          ? '.myurbanai.com'
+          : undefined;
+    const configuredSameSite = process.env.COOKIE_SAME_SITE?.trim().toLowerCase();
+    const sameSite: CookieSameSite =
+      configuredSameSite === 'none' || configuredSameSite === 'strict' || configuredSameSite === 'lax'
+        ? configuredSameSite
+        : 'lax';
 
     return {
       httpOnly: true,
-      secure: isProd, // em dev local (http), cookies secure quebram o fluxo
-      sameSite: 'lax' as const,
+      secure: isProd || sameSite === 'none',
+      sameSite,
       domain: cookieDomain,
       path: isRefresh ? '/auth' : '/',
       maxAge: maxAgeMs,
@@ -104,8 +115,13 @@ export class AuthController {
     // (domain, path) precisam bater com os usados ao setar.
     const env = process.env.APP_ENV || process.env.NODE_ENV;
     const isProd = env === 'production' || env === 'staging';
+    const configuredCookieDomain = process.env.COOKIE_DOMAIN?.trim();
     const cookieDomain =
-      process.env.COOKIE_DOMAIN ?? (isProd ? '.myurbanai.com' : undefined);
+      configuredCookieDomain && configuredCookieDomain.toLowerCase() !== 'none'
+        ? configuredCookieDomain
+        : isProd
+          ? '.myurbanai.com'
+          : undefined;
 
     res.clearCookie(ACCESS_TOKEN_COOKIE, { path: '/', domain: cookieDomain });
     res.clearCookie(REFRESH_TOKEN_COOKIE, { path: '/auth', domain: cookieDomain });
