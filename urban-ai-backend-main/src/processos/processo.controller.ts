@@ -109,23 +109,23 @@ export class ProcessoController {
                     continue;
                 }
 
-                const jobId = `processo-${userId}-${propertyAdressId}`;
-                const existingJob = await this.queue.getJob(jobId);
-                if (existingJob) {
-                    const state = await existingJob.getState();
-                    if (['waiting', 'active', 'delayed', 'paused'].includes(state)) {
-                        skipped++;
-                        this.logger.warn(`Job ja existe (${state}) para propriedade ${propertyAdressId}`);
-                        continue;
-                    }
-                    if (state === 'failed' || state === 'completed') {
-                        await existingJob.remove();
-                    }
-                }
-
-                this.logger.log(`Adicionando job para propriedade ${propertyAdressId} do usuario ${userId}`);
-
                 try {
+                    const jobId = `processo-${userId}-${propertyAdressId}`;
+                    const existingJob = await this.queue.getJob(jobId);
+                    if (existingJob) {
+                        const state = await existingJob.getState();
+                        if (['waiting', 'active', 'delayed', 'paused'].includes(state)) {
+                            skipped++;
+                            this.logger.warn(`Job ja existe (${state}) para propriedade ${propertyAdressId}`);
+                            continue;
+                        }
+                        if (state === 'failed' || state === 'completed') {
+                            await existingJob.remove();
+                        }
+                    }
+
+                    this.logger.log(`Adicionando job para propriedade ${propertyAdressId} do usuario ${userId}`);
+
                     await this.queue.add(
                         { userId, propertyAdressId },
                         {
