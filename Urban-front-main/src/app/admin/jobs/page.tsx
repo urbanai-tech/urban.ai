@@ -209,6 +209,13 @@ export default function AdminJobsPage() {
                         {new Date(run.startedAt).toLocaleString("pt-BR")}
                       </td>
                       <td className="py-2 text-right text-slate-400">
+                        <button
+                          type="button"
+                          onClick={() => setResult(run)}
+                          className="mr-3 text-blue-300 hover:underline"
+                        >
+                          Ver resultado
+                        </button>
                         {typeof run.durationMs === "number" ? `${run.durationMs}ms` : "-"}
                       </td>
                     </tr>
