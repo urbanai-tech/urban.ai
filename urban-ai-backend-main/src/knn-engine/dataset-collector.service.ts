@@ -158,6 +158,9 @@ export class DatasetCollectorService {
       if (priceCentsResolver) {
         priceCents = await priceCentsResolver(list).catch(() => null);
       }
+      if (priceCents == null) {
+        priceCents = this.resolveStoredListingPriceCents(list);
+      }
 
       // Sem preço resolvido → pulamos (mas logamos no aggregate).
       if (priceCents == null) {
@@ -205,11 +208,6 @@ export class DatasetCollectorService {
       captured++;
     }
 
-    if (!priceCentsResolver && lists.length > 0) {
-      warnings.push(
-        'No price resolver was provided; owned listing snapshots cannot capture prices yet.',
-      );
-    }
     if (skippedMissingPrice > 0) {
       warnings.push(`${skippedMissingPrice} listings skipped because no current price was available.`);
     }
@@ -225,7 +223,7 @@ export class DatasetCollectorService {
       skippedMissingPrice,
       skippedInvalidPrice,
       externalDataAvailable: !!priceCentsResolver,
-      status: this.collectionStatus(lists.length, captured, skippedMissingPrice, priceCentsResolver),
+      status: this.collectionStatus(lists.length, captured, duplicates, skippedMissingPrice),
       warnings,
     };
     this.lastOwnedListingsSnapshot = result;
@@ -390,14 +388,39 @@ export class DatasetCollectorService {
     return `urban-list:${list.id}`;
   }
 
+  private resolveStoredListingPriceCents(list: List): number | null {
+    return (
+      this.priceLikeToCents((list as any).dailyPrice) ??
+      this.priceLikeToCents((list as any).raw) ??
+      this.priceLikeToCents((list as any).priceText)
+    );
+  }
+
+  private priceLikeToCents(value: unknown): number | null {
+    if (typeof value === 'number') {
+      return Number.isFinite(value) && value > 0 ? Math.round(value * 100) : null;
+    }
+    if (typeof value !== 'string') return null;
+
+    const sanitized = value.trim().replace(/[^\d,.-]/g, '');
+    if (!sanitized) return null;
+
+    const normalized = sanitized.includes(',')
+      ? sanitized.replace(/\./g, '').replace(',', '.')
+      : sanitized.replace(/^(\d{1,3}(?:\.\d{3})+)$/, (match) => match.replace(/\./g, ''));
+
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed * 100) : null;
+  }
+
   private collectionStatus(
     totalLists: number,
     captured: number,
+    duplicates: number,
     skippedMissingPrice: number,
-    priceCentsResolver?: (list: List) => Promise<number | null>,
   ): DatasetCollectionResult['status'] {
     if (totalLists === 0) return 'empty_catalog';
-    if (!priceCentsResolver && captured === 0) return 'blocked_missing_price_source';
+    if (captured + duplicates === 0 && skippedMissingPrice > 0) return 'blocked_missing_price_source';
     if (skippedMissingPrice > 0) return 'partial_missing_prices';
     return 'ok';
   }
@@ -562,9 +585,9 @@ export class DatasetCollectorService {
       blockers.push({
         code: 'owned_listing_snapshot_missing_price_source',
         severity: 'red',
-        message: 'Owned listing snapshot ran, but no price source/resolver was available.',
+        message: 'Owned listing snapshot ran, but no stored or external price source was available.',
         nextAction:
-          'Wire a price source into DatasetCollectorService.recordOwnedListingsSnapshot; do not rely on the bare cron.',
+          'Populate dailyPrice/raw/priceText on listings or wire an external resolver into DatasetCollectorService.recordOwnedListingsSnapshot.',
       });
     }
 
