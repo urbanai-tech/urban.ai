@@ -432,6 +432,17 @@ export class PropriedadeController {
     return this.propriedadeService.updatePricingInputs(id, req.user.userId, body);
   }
 
+  @Get(':id/pricing-inputs/history')
+  @ApiOperation({ summary: 'Historico de alteracoes da diaria base e receita media mensal' })
+  @UseGuards(JwtAuthGuard)
+  async getPricingInputHistory(
+    @Param('id') id: string,
+    @Req() req: any,
+    @Query('limit') limit = 20,
+  ) {
+    return this.propriedadeService.getPricingInputHistory(id, req.user.userId, Number(limit));
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Buscar endereço por ID' })
   @ApiParam({

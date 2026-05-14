@@ -24,7 +24,14 @@ import {
 import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
 import { useTranslation } from 'react-i18next';
 import '../../../i18n';
-import { getPropriedadesDropdownList, PropertyDropdown, requestDeleteAddress, updatePropertyPricingInputs } from '../service/api';
+import {
+  getPropriedadesDropdownList,
+  getPropertyPricingInputHistory,
+  PricingInputHistory,
+  PropertyDropdown,
+  requestDeleteAddress,
+  updatePropertyPricingInputs,
+} from '../service/api';
 import { toast, ToastContainer } from 'react-toastify';
 import { AddPropertyModal } from '../componentes/AddPropertyModal';
 
@@ -34,6 +41,9 @@ export default function MyProperties() {
   const [loading, setLoading] = useState(true);
   const [savingPricing, setSavingPricing] = useState<string | null>(null);
   const [pricingDrafts, setPricingDrafts] = useState<Record<string, { manualDailyPrice: string; averageMonthlyRevenue: string }>>({});
+  const [openHistory, setOpenHistory] = useState<string | null>(null);
+  const [loadingHistory, setLoadingHistory] = useState<string | null>(null);
+  const [pricingHistory, setPricingHistory] = useState<Record<string, PricingInputHistory[]>>({});
   
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef<HTMLButtonElement>(null);
@@ -123,6 +133,11 @@ export default function MyProperties() {
         averageMonthlyRevenue: parseMoney(draft.averageMonthlyRevenue),
       });
       setProperties((prev) => prev.map((item) => item.id === prop.id ? { ...item, ...updated } : item));
+      setPricingHistory((prev) => {
+        const next = { ...prev };
+        delete next[prop.id];
+        return next;
+      });
       toast("Preço base salvo. As próximas análises usarão este valor.", { type: "success" });
     } catch (error) {
       toast("Erro ao salvar preço base do imóvel.", { type: "error" });
@@ -131,6 +146,40 @@ export default function MyProperties() {
       setSavingPricing(null);
     }
   };
+
+  const loadPricingHistory = async (propId: string) => {
+    if (openHistory === propId) {
+      setOpenHistory(null);
+      return;
+    }
+
+    setOpenHistory(propId);
+    if (pricingHistory[propId]) return;
+
+    try {
+      setLoadingHistory(propId);
+      const history = await getPropertyPricingInputHistory(propId, 10);
+      setPricingHistory((prev) => ({ ...prev, [propId]: history }));
+    } catch (error) {
+      toast("Erro ao carregar histórico de preço.", { type: "error" });
+      console.error('Erro ao carregar histórico de inputs de pricing:', error);
+    } finally {
+      setLoadingHistory(null);
+    }
+  };
+
+  const formatMoney = (value: number | null | undefined) => {
+    if (value === null || value === undefined) return '-';
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
+
+  const formatDateTime = (value: string) => new Date(value).toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
   if (loading) {
     return (
@@ -163,8 +212,8 @@ export default function MyProperties() {
 
       <Stack spacing={4} mb={4}>
         {properties.map((prop) => (
+          <Box key={prop.id} borderBottom="1px solid" borderColor="gray.100">
           <Flex
-            key={prop.id}
             align={{ base: 'stretch', md: 'center' }}
             justify="space-between"
             direction={{ base: 'column', md: 'row' }}
@@ -214,6 +263,14 @@ export default function MyProperties() {
               >
                 Salvar
               </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                isLoading={loadingHistory === prop.id}
+                onClick={() => loadPricingHistory(prop.id)}
+              >
+                Histórico
+              </Button>
               <IconButton
                 aria-label={t('my_properties.delete')}
                 icon={<DeleteIcon />}
@@ -224,6 +281,40 @@ export default function MyProperties() {
               />
             </Flex>
           </Flex>
+          {openHistory === prop.id && (
+            <Box px={3} pb={3}>
+              <Text fontSize="sm" fontWeight="semibold" mb={2}>
+                Últimas alterações de preço base
+              </Text>
+              {(pricingHistory[prop.id] ?? []).length === 0 ? (
+                <Text fontSize="sm" color="gray.500">
+                  Nenhuma alteração registrada ainda.
+                </Text>
+              ) : (
+                <Stack spacing={2}>
+                  {pricingHistory[prop.id].map((item) => (
+                    <Flex
+                      key={item.id}
+                      justify="space-between"
+                      gap={3}
+                      direction={{ base: 'column', md: 'row' }}
+                      fontSize="sm"
+                      color="gray.700"
+                    >
+                      <Text color="gray.500">{formatDateTime(item.createdAt)}</Text>
+                      <Text>
+                        Diária {formatMoney(item.previousManualDailyPrice)} -&gt; {formatMoney(item.newManualDailyPrice)}
+                      </Text>
+                      <Text>
+                        Mês {formatMoney(item.previousAverageMonthlyRevenue)} -&gt; {formatMoney(item.newAverageMonthlyRevenue)}
+                      </Text>
+                    </Flex>
+                  ))}
+                </Stack>
+              )}
+            </Box>
+          )}
+          </Box>
         ))}
       </Stack>
 
