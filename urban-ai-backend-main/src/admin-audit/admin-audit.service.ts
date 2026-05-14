@@ -13,6 +13,15 @@ export type AdminAuditInput = {
   metadata?: unknown | null;
 };
 
+export type AdminAuditListInput = {
+  page?: number;
+  limit?: number;
+  actorUserId?: string;
+  action?: string;
+  entityType?: string;
+  entityId?: string;
+};
+
 @Injectable()
 export class AdminAuditService {
   private readonly logger = new Logger(AdminAuditService.name);
@@ -38,6 +47,36 @@ export class AdminAuditService {
     } catch (error: any) {
       this.logger.warn(`Falha ao registrar auditoria admin: ${error?.message ?? error}`);
     }
+  }
+
+  async list(input: AdminAuditListInput = {}) {
+    const page = Math.max(1, Number.isFinite(input.page ?? NaN) ? Number(input.page) : 1);
+    const limit = Math.min(
+      100,
+      Math.max(1, Number.isFinite(input.limit ?? NaN) ? Number(input.limit) : 25),
+    );
+
+    const qb = this.repo
+      .createQueryBuilder('log')
+      .orderBy('log.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    if (input.actorUserId?.trim()) {
+      qb.andWhere('log.actorUserId = :actorUserId', { actorUserId: input.actorUserId.trim() });
+    }
+    if (input.action?.trim()) {
+      qb.andWhere('log.action = :action', { action: input.action.trim() });
+    }
+    if (input.entityType?.trim()) {
+      qb.andWhere('log.entityType = :entityType', { entityType: input.entityType.trim() });
+    }
+    if (input.entityId?.trim()) {
+      qb.andWhere('log.entityId = :entityId', { entityId: input.entityId.trim() });
+    }
+
+    const [items, total] = await qb.getManyAndCount();
+    return { items, total, page, limit };
   }
 
   private safeJson(value: unknown): unknown {

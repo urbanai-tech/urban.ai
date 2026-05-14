@@ -68,6 +68,26 @@ export class AdminController {
     return this.admin.dashboardSummary();
   }
 
+  @ApiOperation({ summary: 'Logs de auditoria das mutacoes administrativas' })
+  @Get('audit-logs')
+  async auditLogs(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '25',
+    @Query('actorUserId') actorUserId?: string,
+    @Query('action') action?: string,
+    @Query('entityType') entityType?: string,
+    @Query('entityId') entityId?: string,
+  ) {
+    return this.audit.list({
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+      actorUserId,
+      action,
+      entityType,
+      entityId,
+    });
+  }
+
   @ApiOperation({ summary: 'Status do motor de pricing (estratégia ativa, tier, dataset)' })
   @Get('pricing/status')
   async pricingStatus() {
