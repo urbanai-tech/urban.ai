@@ -194,3 +194,41 @@ jobs:
           name: playwright-report
           path: Urban-front-main/playwright-report/
           retention-days: 14
+
+  product-audit:
+    name: Produto - E2E audit admin/host
+    runs-on: ubuntu-latest
+    needs: [frontend-test]
+    if: ${{ vars.E2E_BASE_URL != '' && vars.E2E_API_URL != '' }}
+    defaults:
+      run:
+        working-directory: Urban-front-main
+    env:
+      E2E_AUDIT_MODE: all
+      E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
+      E2E_API_URL: ${{ vars.E2E_API_URL }}
+      E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: Urban-front-main/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Validate audit credentials
+        run: |
+          test -n "$E2E_EMAIL"
+          test -n "$E2E_PASSWORD"
+      - name: Run product audit
+        run: node ./scripts/e2e-product-audit.js
+      - name: Upload product audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-e2e-audit
+          path: docs/e2e-reports/
+          retention-days: 14

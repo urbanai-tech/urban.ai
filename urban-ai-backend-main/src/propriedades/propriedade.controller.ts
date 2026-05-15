@@ -457,7 +457,7 @@ export class PropriedadeController {
   })
   @ApiResponse({ status: 404, description: 'Endereço não encontrado' })
   @UseGuards(JwtAuthGuard)
-  async findOne(@Param('id') id: string, @Req() req: any): Promise<Address> {
+  async findOne(@Param('id') id: string, @Req() req: any): Promise<any> {
     const address = await this.propriedadeService.findAddressById(id, req.user.userId);
     if (!address) {
       throw new NotFoundException('Endereço não encontrado');
