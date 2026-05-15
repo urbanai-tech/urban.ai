@@ -679,3 +679,53 @@ describe('PaymentsService — getListingsQuota (F6.5)', () => {
     expect(quota.podeAdicionar).toBe(true);
   });
 });
+
+describe('PaymentsService — quota billing emails', () => {
+  let service: PaymentsService;
+  let userRepo: Repo<User>;
+  let mailerService: { sendHtmlEmail: jest.Mock };
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
+    process.env.FRONT_BASE_URL = 'https://app.myurbanai.com';
+    userRepo = { findOne: jest.fn() };
+    mailerService = { sendHtmlEmail: jest.fn().mockResolvedValue({ enviado: true, status: 202 }) };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        PaymentsService,
+        { provide: getRepositoryToken(Payment), useValue: { findOne: jest.fn() } },
+        { provide: getRepositoryToken(User), useValue: userRepo },
+        { provide: getRepositoryToken(Address), useValue: stubAddressRepo() },
+        { provide: PlansService, useValue: { getPlanByName: jest.fn() } },
+        { provide: MailerService, useValue: mailerService },
+      ],
+    }).compile();
+    service = module.get<PaymentsService>(PaymentsService);
+  });
+
+  it('sends a quota warning email with the upgrade link', async () => {
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'host@test.com', username: 'Carla Host' });
+
+    await service.sendQuotaWarningEmail('u1', 10, 8);
+
+    expect(mailerService.sendHtmlEmail).toHaveBeenCalledWith(
+      { email: 'host@test.com', name: 'Carla Host' },
+      'Urban AI - Voce esta perto do limite de imoveis',
+      expect.stringContaining('https://app.myurbanai.com/plans?upsell=quota'),
+    );
+  });
+
+  it('sends a quota exceeded email with the attempted total', async () => {
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'host@test.com', username: 'Carla Host' });
+
+    await service.sendQuotaExceededEmail('u1', 10, 11);
+
+    expect(mailerService.sendHtmlEmail).toHaveBeenCalledWith(
+      { email: 'host@test.com', name: 'Carla Host' },
+      'Urban AI - Limite de imoveis atingido',
+      expect.stringContaining('11'),
+    );
+  });
+});
