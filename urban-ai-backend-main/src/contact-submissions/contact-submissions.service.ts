@@ -52,6 +52,8 @@ export class ContactSubmissionsService {
     const page = Math.max(1, input.page ?? 1);
     const limit = Math.min(100, Math.max(1, input.limit ?? 30));
 
+    const search = input.search?.trim().toLowerCase();
+
     const qb = this.repo
       .createQueryBuilder('c')
       .orderBy('c.createdAt', 'DESC')
@@ -62,17 +64,28 @@ export class ContactSubmissionsService {
       qb.andWhere('c.status = :status', { status: input.status });
     }
 
-    const search = input.search?.trim().toLowerCase();
-    if (search) {
-      const like = `%${search}%`;
-      qb.andWhere(
-        `(LOWER(c.name) LIKE :like OR LOWER(c.email) LIKE :like OR LOWER(c.subject) LIKE :like OR LOWER(c.message) LIKE :like)`,
-        { like },
-      );
-    }
+    this.applySearch(qb, search);
+
+    const statusQb = this.repo
+      .createQueryBuilder('c')
+      .select('c.status', 'status')
+      .addSelect('COUNT(*)', 'count')
+      .groupBy('c.status');
+    this.applySearch(statusQb, search);
 
     const [items, total] = await qb.getManyAndCount();
-    return { page, limit, total, items };
+    const rawStatusCounts = await statusQb.getRawMany();
+
+    return {
+      page,
+      limit,
+      total,
+      byStatus: rawStatusCounts.map((row: any) => ({
+        status: row.status as ContactSubmissionStatus,
+        count: Number(row.count ?? 0),
+      })),
+      items,
+    };
   }
 
   async update(id: string, input: UpdateContactSubmissionDto) {
@@ -90,5 +103,14 @@ export class ContactSubmissionsService {
     }
 
     return this.repo.save(submission);
+  }
+
+  private applySearch(qb: any, search?: string) {
+    if (!search) return;
+    const like = `%${search}%`;
+    qb.andWhere(
+      `(LOWER(c.name) LIKE :like OR LOWER(c.email) LIKE :like OR LOWER(c.subject) LIKE :like OR LOWER(c.message) LIKE :like)`,
+      { like },
+    );
   }
 }
