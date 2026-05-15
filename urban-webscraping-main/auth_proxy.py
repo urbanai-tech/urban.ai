@@ -3,6 +3,7 @@
 This runs on $PORT (Railway) and proxies to Scrapyd on localhost:6800.
 """
 
+import json
 import logging
 import os
 import subprocess
@@ -11,6 +12,7 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.error import URLError
+from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 SCRAPYD_PORT = 6801
@@ -24,6 +26,51 @@ RUN_COLLECTORS_ON_BOOT = os.environ.get("RUN_COLLECTORS_ON_BOOT", "true").lower(
     "on",
 }
 logger = logging.getLogger(__name__)
+cron_state_lock = threading.Lock()
+cron_state = {
+    "running": False,
+    "runs": 0,
+    "lastStartedAt": None,
+    "lastFinishedAt": None,
+    "lastDurationSeconds": None,
+    "lastStatus": "never_run",
+    "lastError": None,
+    "nextRunAt": None,
+}
+
+
+def utc_iso(ts: float | None = None) -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ts or time.time()))
+
+
+def set_next_run(delay_seconds: int) -> None:
+    with cron_state_lock:
+        cron_state["nextRunAt"] = utc_iso(time.time() + delay_seconds)
+
+
+def build_health_payload(scrapyd_ready: bool | None = None) -> dict:
+    with cron_state_lock:
+        state = dict(cron_state)
+
+    scrapyd_status = "unknown"
+    if scrapyd_ready is not None:
+        scrapyd_status = "ready" if scrapyd_ready else "unavailable"
+
+    degraded = scrapyd_ready is False or state["lastStatus"] == "failed"
+
+    return {
+        "status": "degraded" if degraded else "ok",
+        "service": "urban-webscraping",
+        "generatedAt": utc_iso(),
+        "authConfigured": bool(API_KEY),
+        "scrapyd": {"status": scrapyd_status},
+        "collectorCron": {
+            "enabled": True,
+            "intervalSeconds": COLLECTOR_CRON_INTERVAL_SECONDS,
+            "runOnBoot": RUN_COLLECTORS_ON_BOOT,
+            **state,
+        },
+    }
 
 
 def start_scrapyd():
@@ -39,6 +86,7 @@ def start_scrapyd():
 def cron_worker():
     """Executa os coletores periodicamente em background."""
     if not RUN_COLLECTORS_ON_BOOT:
+        set_next_run(COLLECTOR_CRON_INTERVAL_SECONDS)
         logger.info(
             "[cron-worker] Initial run disabled; sleeping %s seconds before first collectors run.",
             COLLECTOR_CRON_INTERVAL_SECONDS,
@@ -46,16 +94,54 @@ def cron_worker():
         time.sleep(COLLECTOR_CRON_INTERVAL_SECONDS)
 
     while True:
+        started = time.time()
+        with cron_state_lock:
+            cron_state.update(
+                {
+                    "running": True,
+                    "lastStartedAt": utc_iso(started),
+                    "lastFinishedAt": None,
+                    "lastDurationSeconds": None,
+                    "lastStatus": "running",
+                    "lastError": None,
+                    "nextRunAt": None,
+                }
+            )
         try:
             logger.info("[cron-worker] Iniciando bateria de coletores REST...")
             subprocess.run(
                 [sys.executable, "-m", "urban_webscrapping.collectors.run_all"],
                 check=True,
             )
+            finished = time.time()
+            with cron_state_lock:
+                cron_state.update(
+                    {
+                        "running": False,
+                        "runs": int(cron_state["runs"]) + 1,
+                        "lastFinishedAt": utc_iso(finished),
+                        "lastDurationSeconds": round(finished - started, 3),
+                        "lastStatus": "success",
+                        "lastError": None,
+                    }
+                )
             logger.info("[cron-worker] Bateria de coletores finalizada com sucesso.")
         except Exception as e:
+            finished = time.time()
+            with cron_state_lock:
+                cron_state.update(
+                    {
+                        "running": False,
+                        "runs": int(cron_state["runs"]) + 1,
+                        "lastFinishedAt": utc_iso(finished),
+                        "lastDurationSeconds": round(finished - started, 3),
+                        "lastStatus": "failed",
+                        "lastError": str(e),
+                    }
+                )
             logger.exception("[cron-worker] Erro ao executar coletores: %s", e)
 
+        set_next_run(COLLECTOR_CRON_INTERVAL_SECONDS)
         logger.info(
             "[cron-worker] Proxima bateria de coletores em %s segundos.",
             COLLECTOR_CRON_INTERVAL_SECONDS,
@@ -75,6 +161,14 @@ def wait_for_scrapyd(timeout=30):
             time.sleep(0.5)
     logger.warning("[auth-proxy] Scrapyd did not start in time")
     return False
+
+
+def check_scrapyd_ready(timeout=2) -> bool:
+    try:
+        urlopen(f"http://127.0.0.1:{SCRAPYD_PORT}/daemonstatus.json", timeout=timeout)
+        return True
+    except (URLError, TimeoutError, ConnectionError):
+        return False
 
 
 class AuthProxyHandler(BaseHTTPRequestHandler):
@@ -123,7 +217,24 @@ class AuthProxyHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(f'{{"status": "error", "message": "Scrapyd unavailable: {e}"}}'.encode())
 
+    def _send_json(self, payload: dict, status=200):
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _handle_health(self):
+        payload = build_health_payload(scrapyd_ready=check_scrapyd_ready())
+        status = 200 if payload["status"] == "ok" else 503
+        self._send_json(payload, status=status)
+
     def do_GET(self):
+        path = urlparse(self.path).path
+        if path in {"/health", "/health.json", "/health/live", "/cron-status.json"}:
+            self._handle_health()
+            return
         self._proxy()
 
     def do_POST(self):
