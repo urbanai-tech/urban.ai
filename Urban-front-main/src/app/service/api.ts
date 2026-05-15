@@ -1180,6 +1180,19 @@ export interface DatasetSnapshotResult {
 
 export type DatasetSnapshotRunResponse = AdminJobRunResponse<DatasetSnapshotResult>;
 
+export interface EventProximitySnapshotResult {
+  captured: number;
+  skipped: number;
+  duplicates: number;
+  totalAddresses: number;
+  totalEvents: number;
+  status: string;
+  warnings: string[];
+}
+
+export type EventProximitySnapshotRunResponse =
+  AdminJobRunResponse<EventProximitySnapshotResult>;
+
 export interface GeocoderRunResult {
   attempted: number;
   succeeded: number;
@@ -1196,6 +1209,11 @@ export const fetchAdminDatasetDiagnostics = () =>
 
 export const runAdminDatasetSnapshot = () =>
   api.post<DatasetSnapshotRunResponse>('/admin/dataset/snapshot/run').then((r) => r.data);
+
+export const runAdminEventProximitySnapshot = () =>
+  api
+    .post<EventProximitySnapshotRunResponse>('/admin/dataset/event-proximity/run')
+    .then((r) => r.data);
 
 export const fetchAdminJobRuns = (limit = 10) =>
   api.get<AdminJobRunResponse[]>('/admin/jobs/runs', { params: { limit } }).then((r) => r.data);

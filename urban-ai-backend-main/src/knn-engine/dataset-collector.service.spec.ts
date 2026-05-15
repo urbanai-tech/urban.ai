@@ -56,12 +56,14 @@ function buildService(repos: {
   eventFeature?: any;
   address?: any;
   list?: any;
+  event?: any;
 } = {}) {
   const snapshot = repos.snapshot ?? makeRepo();
   const occupancy = repos.occupancy ?? makeRepo();
   const eventFeature = repos.eventFeature ?? makeRepo();
   const address = repos.address ?? makeRepo();
   const list = repos.list ?? makeRepo();
+  const event = repos.event ?? makeRepo();
 
   return {
     service: new DatasetCollectorService(
@@ -70,12 +72,14 @@ function buildService(repos: {
       eventFeature as any,
       address as any,
       list as any,
+      event as any,
     ),
     snapshot,
     occupancy,
     eventFeature,
     address,
     list,
+    event,
   };
 }
 
@@ -160,6 +164,70 @@ describe('DatasetCollectorService', () => {
         priceCents: 32100,
         origin: 'self_cron',
         trainingReady: true,
+      }),
+    );
+  });
+
+  it('captures event proximity snapshots for active geocoded addresses', async () => {
+    const now = Date.now();
+    const address = makeRepo({
+      findResult: [
+        {
+          id: 'address-1',
+          bairro: 'Perdizes',
+          latitude: -23.527,
+          longitude: -46.678,
+          list: { id: 'list-1' },
+        },
+        {
+          id: 'address-2',
+          bairro: 'Perdizes',
+          latitude: -23.528,
+          longitude: -46.679,
+          list: { id: 'list-2' },
+        },
+      ],
+    });
+    const event = makeRepo({
+      findResult: [
+        {
+          id: 'event-1',
+          latitude: -23.526,
+          longitude: -46.677,
+          dataInicio: new Date(now + 2 * 24 * 60 * 60 * 1000),
+          relevancia: 90,
+          raioImpactoKm: 5,
+          categoria: 'feira',
+        },
+        {
+          id: 'event-2',
+          latitude: -23.53,
+          longitude: -46.68,
+          dataInicio: new Date(now + 20 * 24 * 60 * 60 * 1000),
+          relevancia: 40,
+          raioImpactoKm: 5,
+          categoria: 'show',
+        },
+      ],
+    });
+    const eventFeature = makeRepo();
+    const { service } = buildService({ address, event, eventFeature });
+
+    const result = await service.recordEventProximityFeatures();
+
+    expect(result.status).toBe('ok');
+    expect(result.captured).toBe(2);
+    expect(eventFeature.save).toHaveBeenCalledTimes(2);
+    expect(eventFeature.save).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        list: { id: 'list-1' },
+        eventsNext7d: 1,
+        eventsNext14d: 1,
+        eventsNext30d: 2,
+        megaEventsNext30d: 1,
+        predominantCategory: expect.any(String),
+        competitiveSupplyCount: 1,
       }),
     );
   });

@@ -6,6 +6,7 @@ import {
   fetchAdminDatasetDiagnostics,
   fetchGeocoderStatus,
   runAdminDatasetSnapshot,
+  runAdminEventProximitySnapshot,
   runAdminGeocoderJob,
   runAdminResetStaleEnrichmentJob,
   type AdminJobRunResponse,
@@ -83,7 +84,7 @@ export default function AdminJobsPage() {
           </div>
         )}
 
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <JobCard
             title="Geocoder de eventos"
             status={pendingGeocode === null ? "carregando" : `${pendingGeocode} pendentes`}
@@ -112,6 +113,16 @@ export default function AdminJobsPage() {
             running={running === "dataset-snapshot"}
             actionLabel="Rodar snapshot"
             onRun={() => runJob("dataset-snapshot", runAdminDatasetSnapshot)}
+          />
+
+          <JobCard
+            title="Features de eventos"
+            status={datasetHealth ?? "carregando"}
+            description="Gera snapshots de proximidade a eventos por imovel para alimentar o dataset evolutivo."
+            disabled={!!running}
+            running={running === "event-proximity-snapshot"}
+            actionLabel="Gerar features"
+            onRun={() => runJob("event-proximity-snapshot", runAdminEventProximitySnapshot)}
           />
 
           <div className="border border-slate-800 rounded-xl bg-slate-900/40 p-5">
