@@ -32,7 +32,7 @@ O motor de recomendacao esta gerando recomendacoes novas e coerentes com guardra
 | Stripe sync | 8/8 OK |
 | Price snapshots | 20, em 9 listings e 3 dias |
 | Ocupacao/receita real | 0 registros |
-| Event proximity features | 0 registros |
+| Event proximity features | 28 registros apos correcao e backfill controlado |
 
 ## Gustavo alpha
 
@@ -101,7 +101,7 @@ Leitura: os 9 listings alpha ja tinham snapshot duplicado para o dia, mas ainda 
 3. Elevar cobertura de recomendacao de 62.1% para pelo menos 70%.
 4. Corrigir 7 enderecos ativos com cidade/UF invalidos.
 5. Capturar ocupacao/reserva/receita real para sair de ROI estimado.
-6. Criar rotina de event proximity features ou acoplar snapshot ao batch de recomendacao. Implementado no workspace atual: cron diario `dataset-event-proximity-snapshot`, endpoint admin `/admin/dataset/event-proximity/run` e botao em `/admin/jobs`; falta deploy/rerun em producao para o contador sair de 0.
+6. ~~Criar rotina de event proximity features ou acoplar snapshot ao batch de recomendacao.~~ Resolvido em 2026-05-15: cron diario `dataset-event-proximity-snapshot`, endpoint admin `/admin/dataset/event-proximity/run`, botao em `/admin/jobs`, migration do indice composto `(list_id, snapshotDate)` aplicada em producao e backfill controlado gerando 28 registros. O blocker `event_proximity_features_empty` saiu do diagnostico.
 7. Configurar `AIRROI_API_KEY` somente quando a aquisicao externa for aprovada.
 8. Configurar `STAYS_API_BASE_URL` antes de qualquer smoke real Stays.
 
