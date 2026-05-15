@@ -1,0 +1,181 @@
+{
+  "generatedAt": "2026-05-15T16:22:07.627Z",
+  "appUrl": "https://app.myurbanai.com",
+  "apiUrl": "https://urbanai-production-85fd.up.railway.app",
+  "email": "gustavo8gouveia@hotmail.com",
+  "summaries": [
+    {
+      "name": "Anfitriao",
+      "routeScore": 100,
+      "apiScore": 100,
+      "combined": 100,
+      "failedRoutes": [],
+      "failedApis": [],
+      "routes": [
+        {
+          "path": "/",
+          "feature": "Login entry",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/",
+          "title": "Urban AI",
+          "durationMs": 1913,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/post-login",
+          "feature": "Post-login router",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/dashboard",
+          "title": "Urban AI",
+          "durationMs": 2038,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/dashboard",
+          "feature": "Host dashboard",
+          "weight": 4,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/dashboard",
+          "title": "Urban AI",
+          "durationMs": 2373,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/onboarding",
+          "feature": "Onboarding",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/onboarding",
+          "title": "Urban AI",
+          "durationMs": 1873,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/onboarding/payment/price",
+          "feature": "Onboarding pricing step",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/onboarding/payment/price",
+          "title": "Urban AI",
+          "durationMs": 1965,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/plans",
+          "feature": "Plan selection",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/plans",
+          "title": "Urban AI",
+          "durationMs": 1857,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/plans/v2",
+          "feature": "Plan selection alias",
+          "weight": 1,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/plans",
+          "title": "Urban AI",
+          "durationMs": 1825,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/my-plan",
+          "feature": "My plan",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/my-plan",
+          "title": "Urban AI",
+          "durationMs": 1927,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/my-roi",
+          "feature": "Host ROI",
+          "weight": 4,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/my-roi",
+          "title": "Urban AI",
+          "durationMs": 2496,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/settings/integrations",
+          "feature": "Stays integrations",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/settings/integrations",
+          "title": "Urban AI",
+          "durationMs": 1828,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/event-log",
+          "feature": "Event log",
+          "weight": 1,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/event-log",
+          "title": "Urban AI",
+          "durationMs": 1914,
+          "ok": true,
+          "problems": []
+        }
+      ],
+      "apis": [
+        {
+          "endpoint": "/propriedades/dropdown/list",
+          "ok": true,
+          "status": 200,
+          "durationMs": 320,
+          "bodySummary": "array(9)",
+          "issue": null
+        },
+        {
+          "endpoint": "/payments/getSubscription",
+          "ok": true,
+          "status": 200,
+          "durationMs": 302,
+          "bodySummary": "object(id,status,currency,start_date,metadata,plan)",
+          "issue": null
+        },
+        {
+          "endpoint": "/payments/getSubscription",
+          "ok": true,
+          "status": 200,
+          "durationMs": 228,
+          "bodySummary": "object(id,status,currency,start_date,metadata,plan)",
+          "issue": null
+        },
+        {
+          "endpoint": "/roi/me",
+          "ok": true,
+          "status": 200,
+          "durationMs": 283,
+          "bodySummary": "object(windowDays,generatedAt,user,subscription,money,activity,dataQuality,perProperty)",
+          "issue": null
+        },
+        {
+          "endpoint": "/stays/listings",
+          "ok": true,
+          "status": 200,
+          "durationMs": 222,
+          "bodySummary": "array(0)",
+          "issue": null
+        }
+      ]
+    }
+  ]
+}
