@@ -4,6 +4,8 @@ export class AddAlphaFeedbackToAnalisePreco1779200000000 implements MigrationInt
   name = 'AddAlphaFeedbackToAnalisePreco1779200000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    if (!(await queryRunner.hasTable('analise_preco'))) return;
+
     await this.addColumnIfMissing(queryRunner, 'reserva_status', new TableColumn({
       name: 'reserva_status',
       type: 'varchar',
@@ -35,6 +37,8 @@ export class AddAlphaFeedbackToAnalisePreco1779200000000 implements MigrationInt
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    if (!(await queryRunner.hasTable('analise_preco'))) return;
+
     for (const column of [
       'feedback_observacao',
       'resultado_registrado_em',
