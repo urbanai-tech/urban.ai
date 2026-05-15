@@ -1374,6 +1374,12 @@ export interface AdminEventsAnalytics {
 }
 
 export interface AdminStaysHealth {
+  readiness?: {
+    apiBaseConfigured: boolean;
+    tokenEncryptionConfigured: boolean;
+    betaPrivate: boolean;
+    missingEnv: string[];
+  };
   accountsByStatus: Array<{ status: string; count: number }>;
   listings: { total: number; active: number; forcedAuto: number };
   pushLast30d: Array<{ status: string; count: number }>;

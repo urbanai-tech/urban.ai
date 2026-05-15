@@ -37,6 +37,39 @@ export default function AdminStaysPage() {
           <a href="/admin" className="text-sm text-emerald-400 hover:underline">← Voltar</a>
         </header>
 
+        {data.readiness && (
+          <section
+            className={`rounded-xl border p-4 ${
+              data.readiness.betaPrivate
+                ? "border-amber-700 bg-amber-950/30"
+                : "border-emerald-700 bg-emerald-950/30"
+            }`}
+          >
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-sm font-bold">
+                  {data.readiness.betaPrivate
+                    ? "Stays bloqueado em beta privado"
+                    : "Stays pronto para smoke controlado"}
+                </p>
+                <p className="mt-1 text-xs text-slate-300">
+                  API base: {data.readiness.apiBaseConfigured ? "ok" : "faltando"} · Token encryption:{" "}
+                  {data.readiness.tokenEncryptionConfigured ? "ok" : "faltando"}
+                </p>
+              </div>
+              {data.readiness.missingEnv.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {data.readiness.missingEnv.map((env) => (
+                    <code key={env} className="rounded bg-slate-950/60 px-2 py-1 text-xs text-amber-200">
+                      {env}
+                    </code>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="border border-slate-800 rounded-xl bg-slate-900/40 p-4">
             <h3 className="font-semibold mb-3">Contas conectadas</h3>
