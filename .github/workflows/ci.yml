@@ -186,7 +186,7 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
       - name: Run public smoke tests
-        run: npx playwright test smoke.spec.ts release-gate-public.spec.ts onboarding-airbnb-import.spec.ts dashboard-recommendations.spec.ts --project=chromium
+        run: npx playwright test smoke.spec.ts release-gate-public.spec.ts onboarding-airbnb-import.spec.ts dashboard-recommendations.spec.ts properties-pricing.spec.ts --project=chromium
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
