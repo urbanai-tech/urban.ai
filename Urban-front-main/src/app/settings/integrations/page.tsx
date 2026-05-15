@@ -10,6 +10,8 @@ import {
   type StaysListingPublic,
 } from "../../service/api";
 
+const STAYS_CONSENT_VERSION = "stays-connect-v1";
+
 /**
  * Settings › Integrações › Stays
  *
@@ -71,7 +73,10 @@ export default function IntegrationsPage() {
 
     setSubmitBusy(true);
     try {
-      const acc = await staysConnect(clientId.trim(), accessToken.trim());
+      const acc = await staysConnect(clientId.trim(), accessToken.trim(), {
+        consentAccepted: consent,
+        consentVersion: STAYS_CONSENT_VERSION,
+      });
       setAccount(acc);
       setAccessToken(""); // limpa o campo — não manter token em memória do browser mais do que o necessário
       const sync = await staysSyncListings();

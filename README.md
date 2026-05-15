@@ -91,7 +91,7 @@ Deploy é automático via Railway watch da branch `main` (prod) e da branch `sta
 - `GET /health/live` — apenas confirma que o processo NestJS está vivo (Railway liveness probe)
 - `GET /admin/overview` — KPIs do produto (autenticado, role admin)
 - `GET /admin/finance/overview` — MRR, custos, margem por imóvel
-- `GET /admin/stripe/sync-check` — valida que os 8 Stripe Price IDs (matriz F6.5) batem com a conta Stripe
+- `GET /admin/stripe/sync-check` — valida que os 8 Stripe Price IDs (matriz F6.5) batem com a conta Stripe; ver `docs/runbooks/stripe-billing-smoke.md`
 
 ## Contato
 

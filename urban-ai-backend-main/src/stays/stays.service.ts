@@ -11,6 +11,10 @@ import { StaysConnector } from './stays-connector';
 export interface ConnectInput {
   clientId: string;
   accessToken: string;
+  consentAccepted?: boolean;
+  consentVersion?: string;
+  ip?: string;
+  userAgent?: string | string[];
 }
 
 export interface PushPriceInput {
@@ -42,6 +46,10 @@ export class StaysService {
   async connectAccount(userId: string, input: ConnectInput): Promise<StaysAccount> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('Usuário não encontrado');
+    const consentVersion = input.consentVersion?.trim();
+    if (input.consentAccepted !== true || !consentVersion) {
+      throw new BadRequestException('Consentimento Stays obrigatorio para conectar a conta.');
+    }
     this.assertStaysReadiness();
 
     // Valida o token antes de persistir — previne guardar credencial quebrada.
@@ -56,6 +64,10 @@ export class StaysService {
     if (account) {
       account.clientId = input.clientId;
       account.accessToken = input.accessToken;
+      account.consentAcceptedAt = new Date();
+      account.consentVersion = consentVersion;
+      account.consentIp = input.ip?.slice(0, 64) ?? null;
+      account.consentUserAgent = this.normalizeUserAgent(input.userAgent);
       account.status = 'active';
       account.lastErrorAt = null;
       account.lastErrorMessage = null;
@@ -64,6 +76,10 @@ export class StaysService {
         user,
         clientId: input.clientId,
         accessToken: input.accessToken,
+        consentAcceptedAt: new Date(),
+        consentVersion,
+        consentIp: input.ip?.slice(0, 64) ?? null,
+        consentUserAgent: this.normalizeUserAgent(input.userAgent),
         status: 'active',
       });
     }
@@ -276,6 +292,11 @@ export class StaysService {
         `Integração Stays em beta privado bloqueada. Configure ${missing.join(', ')} antes de conectar ou enviar dados reais.`,
       );
     }
+  }
+
+  private normalizeUserAgent(userAgent?: string | string[]): string | null {
+    const raw = Array.isArray(userAgent) ? userAgent.join(' ') : userAgent;
+    return raw?.slice(0, 255) ?? null;
   }
 
   private buildIdempotencyKey(listingId: string, date: string, priceCents: number): string {
