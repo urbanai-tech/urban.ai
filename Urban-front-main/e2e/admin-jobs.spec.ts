@@ -97,7 +97,7 @@ test.describe('Admin jobs operations', () => {
 
     await page.getByRole('button', { name: /Rodar geocoder/i }).click();
 
-    await expect(page.getByRole('heading', { name: 'geocoder' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'geocoder', exact: true })).toBeVisible();
     await expect(page.getByText(/attempted/i)).toBeVisible();
     await expect(page.getByText(/missing address/i)).toBeVisible();
     expect(geocoderRunRequested).toBe(true);

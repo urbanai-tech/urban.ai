@@ -815,3 +815,23 @@ Se a execucao for feita por mim, a ordem mais eficiente e:
 - Observabilidade e suporte prontos.
 - Legal minimo ok.
 - Narrativa comercial corresponde aos dados.
+
+---
+
+## 10. Atualizacao de execucao - 15/05/2026
+
+### Resolvido para alfa assistido
+
+- **Recomendacao/preco:** respostas mutantes foram saneadas e cobertas por teste para nao expor entidade de usuario, senha ou relacoes internas.
+- **Propriedades/anfitriao:** `/propriedades/user/` e `/propriedades/:id` foram convertidos para DTO publico; achado critico de hash de senha aninhado foi corrigido no codigo.
+- **Billing:** matriz Stripe F6.5 foi completada em producao e `/admin/stripe/sync-check` retornou 8/8 OK.
+- **Alpha Gustavo:** 9 imoveis com diaria manual R$150, receita media mensal R$4.500 e localidades corrigidas de forma conservadora a partir dos dados internos.
+- **Admin/release:** CI ganhou job `product-audit`; Playwright cobre paginas publicas, anonymous access, admin jobs e Meu Plano com quota.
+- **Stays:** token encryption configurado e beta privado mantido; pronto para smoke controlado assim que a URL oficial da API Stays for definida.
+
+### Ainda depende de configuracao ou dado real
+
+- `STAYS_API_BASE_URL` precisa ser informado com base oficial/sandbox da Stays.
+- GitHub Actions precisa receber `E2E_BASE_URL`, `E2E_API_URL`, `E2E_EMAIL`, `E2E_PASSWORD` para ativar o gate no CI.
+- O aprendizado evolutivo precisa de 3 a 5 ciclos reais com resultado observado de reserva/receita; isso nao deve ser simulado como sucesso.
+- Apos deploy desta rodada, revalidar em producao que endpoints de propriedades e sugestoes nao retornam `password`, `user` completo ou `usuarioProprietario`.

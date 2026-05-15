@@ -32,6 +32,56 @@ class PropertyResponseDto {
     beds: number;
     guestMaximum: number;
 }
+
+type PublicListResponse = {
+    id: string;
+    titulo: string;
+    id_do_anuncio: string;
+    pictureUrl: string | null;
+    ativo: boolean;
+    userId: string | null;
+    priceText: string | null;
+    raw: number | null;
+    currency: string | null;
+    checkIn: string | null;
+    checkOut: string | null;
+    status: string | null;
+    dailyPrice: number | null;
+    manualDailyPrice: number | null;
+    averageMonthlyRevenue: number | null;
+    pricingInputSource: string | null;
+    pricingInputsUpdatedAt: Date | null;
+    hospedes: number | null;
+    quartos: number | null;
+    camas: number | null;
+    banheiros: number | null;
+    rating: number | null;
+    propertyType: string | null;
+    amenitiesCount: number | null;
+    neighborhood: string | null;
+    reviewCount: number | null;
+    lastScrapedAt: Date | null;
+};
+
+type PublicAddressResponse = {
+    id: string;
+    cep: string;
+    numero: string;
+    logradouro: string | null;
+    bairro: string | null;
+    cidade: string | null;
+    estado: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    ativo: boolean;
+    created_at: Date;
+    updated_at: Date;
+    analisado: string;
+    idAlertAirb: string;
+    userId: string | null;
+    list: PublicListResponse | null;
+};
+
 export class CreateAlertDto {
     @ApiProperty({ example: 12.9713964, description: 'Latitude do imóvel' })
     latitude: number;
@@ -81,7 +131,7 @@ export class PropriedadeService {
         userId: string,
         page = 1,
         limit = 10
-    ): Promise<{ data: Address[]; total: number; page: number; limit: number }> {
+    ): Promise<{ data: PublicAddressResponse[]; total: number; page: number; limit: number }> {
         const [data, total] = await this.addressRepository.findAndCount({
             where: { user: { id: userId } },
             relations: ['list'],
@@ -90,14 +140,15 @@ export class PropriedadeService {
             order: { created_at: 'DESC' },
         });
 
-        return { data, total, page, limit };
+        return { data: data.map((address) => this.toPublicAddress(address)), total, page, limit };
     }
 
-    async findAddressById(id: string, userId: string): Promise<Address> {
-        return this.addressRepository.findOne({
+    async findAddressById(id: string, userId: string): Promise<PublicAddressResponse | null> {
+        const address = await this.addressRepository.findOne({
             where: { id, user: { id: userId } },
             relations: ["list", "user"],
         });
+        return address ? this.toPublicAddress(address) : null;
     }
 
     async deleteAddressAndList(addressId: string, userId: string): Promise<void> {
@@ -278,6 +329,65 @@ export class PropriedadeService {
             throw new HttpException(`${field} invalido`, HttpStatus.BAD_REQUEST);
         }
         return parsed > 0 ? Number(parsed.toFixed(2)) : null;
+    }
+
+    private toPublicAddress(address: Address): PublicAddressResponse {
+        return {
+            id: address.id,
+            cep: address.cep,
+            numero: address.numero,
+            logradouro: address.logradouro ?? null,
+            bairro: address.bairro ?? null,
+            cidade: address.cidade ?? null,
+            estado: address.estado ?? null,
+            latitude: this.nullableNumber(address.latitude),
+            longitude: this.nullableNumber(address.longitude),
+            ativo: address.ativo,
+            created_at: address.created_at,
+            updated_at: address.updated_at,
+            analisado: address.analisado,
+            idAlertAirb: address.idAlertAirb,
+            userId: address.user?.id ?? address.list?.user?.id ?? null,
+            list: address.list ? this.toPublicList(address.list) : null,
+        };
+    }
+
+    private toPublicList(list: List): PublicListResponse {
+        return {
+            id: list.id,
+            titulo: list.titulo,
+            id_do_anuncio: list.id_do_anuncio,
+            pictureUrl: list.pictureUrl ?? null,
+            ativo: list.ativo,
+            userId: list.user?.id ?? null,
+            priceText: list.priceText ?? null,
+            raw: this.nullableNumber(list.raw),
+            currency: list.currency ?? null,
+            checkIn: list.checkIn ?? null,
+            checkOut: list.checkOut ?? null,
+            status: list.status ?? null,
+            dailyPrice: this.nullableNumber(list.dailyPrice),
+            manualDailyPrice: this.nullableNumber(list.manualDailyPrice),
+            averageMonthlyRevenue: this.nullableNumber(list.averageMonthlyRevenue),
+            pricingInputSource: list.pricingInputSource ?? null,
+            pricingInputsUpdatedAt: list.pricingInputsUpdatedAt ?? null,
+            hospedes: list.hospedes ?? null,
+            quartos: list.quartos ?? null,
+            camas: list.camas ?? null,
+            banheiros: list.banheiros ?? null,
+            rating: this.nullableNumber(list.rating),
+            propertyType: list.propertyType ?? null,
+            amenitiesCount: list.amenitiesCount ?? null,
+            neighborhood: list.neighborhood ?? null,
+            reviewCount: list.reviewCount ?? null,
+            lastScrapedAt: list.lastScrapedAt ?? null,
+        };
+    }
+
+    private nullableNumber(value: unknown): number | null {
+        if (value === null || value === undefined || value === '') return null;
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
     }
 
     // --- Mapa de tradução EN → PT-BR para tipos de imóvel ---

@@ -13,6 +13,52 @@ type AppliedPriceInput = {
   feedbackObservacao?: string | null;
 };
 
+export type SuggestionPublicResponse = {
+  id: string;
+  createdAt: string | Date;
+  property: {
+    addressId: string | null;
+    listId: string | null;
+    title: string | null;
+    manualDailyPrice: number | null;
+    averageMonthlyRevenue: number | null;
+  };
+  event: {
+    id: string | null;
+    name: string | null;
+    city: string | null;
+    state: string | null;
+    startsAt: string | Date | null;
+    source: string | null;
+    relevance: number | null;
+  };
+  pricing: {
+    current: number;
+    suggested: number;
+    lift: number | null;
+    liftPercent: number;
+    recommendation: string;
+    reason: string | null;
+    distanceKm: number;
+  };
+  lifecycle: {
+    accepted: boolean;
+    status: string;
+    acceptedAt: string | Date | null;
+    rejectedAt: string | Date | null;
+    appliedPrice: number | null;
+    appliedAt: string | Date | null;
+    applicationOrigin: string | null;
+  };
+  outcome: {
+    reservationStatus: string | null;
+    realRevenue: number | null;
+    bookedNights: number | null;
+    capturedAt: string | Date | null;
+    note: string | null;
+  };
+};
+
 @Injectable()
 export class SugestionService {
   private readonly logger = new Logger(SugestionService.name);
@@ -23,7 +69,7 @@ export class SugestionService {
     private readonly datasetCollector: DatasetCollectorService,
   ) {}
 
-  async alterarAceito(id: string, userId: string, aceito: boolean): Promise<AnalisePreco> {
+  async alterarAceito(id: string, userId: string, aceito: boolean): Promise<SuggestionPublicResponse> {
     const registro = await this.analisePrecoRepository.findOne({
       where: { id },
       relations: ['usuarioProprietario', 'endereco', 'endereco.list', 'evento'],
@@ -38,7 +84,8 @@ export class SugestionService {
     registro.status = aceito ? 'accepted' : 'rejected';
     registro.aceitoEm = aceito ? new Date() : null;
     registro.rejeitadoEm = aceito ? null : new Date();
-    return await this.analisePrecoRepository.save(registro);
+    const saved = await this.analisePrecoRepository.save(registro);
+    return this.toPublicResponse(saved);
   }
 
   /**
@@ -58,7 +105,7 @@ export class SugestionService {
     id: string,
     userId: string,
     input: AppliedPriceInput,
-  ): Promise<AnalisePreco> {
+  ): Promise<SuggestionPublicResponse> {
     const registro = await this.analisePrecoRepository.findOne({
       where: { id },
       relations: ['usuarioProprietario', 'endereco', 'endereco.list', 'evento'],
@@ -80,14 +127,14 @@ export class SugestionService {
     this.applyOutcomeFeedback(registro, input);
     const saved = await this.analisePrecoRepository.save(registro);
     await this.tryRecordAppliedPriceSnapshot(saved, input.precoAplicado);
-    return saved;
+    return this.toPublicResponse(saved);
   }
 
   async registrarResultado(
     id: string,
     userId: string,
     input: Omit<AppliedPriceInput, 'origem' | 'precoAplicado'> & { precoAplicado?: number | null },
-  ): Promise<AnalisePreco> {
+  ): Promise<SuggestionPublicResponse> {
     const registro = await this.analisePrecoRepository.findOne({
       where: { id },
       relations: ['usuarioProprietario', 'endereco', 'endereco.list', 'evento'],
@@ -116,7 +163,7 @@ export class SugestionService {
     if (saved.precoAplicado) {
       await this.tryRecordAppliedPriceSnapshot(saved, Number(saved.precoAplicado));
     }
-    return saved;
+    return this.toPublicResponse(saved);
   }
 
   async expirarAntigas(daysValid = 30): Promise<{ expired: number }> {
@@ -135,12 +182,68 @@ export class SugestionService {
     return { expired: result.affected ?? 0 };
   }
 
-  async rejeitar(id: string, userId: string): Promise<AnalisePreco> {
+  async rejeitar(id: string, userId: string): Promise<SuggestionPublicResponse> {
     return this.alterarAceito(id, userId, false);
   }
 
-  async aceitar(id: string, userId: string): Promise<AnalisePreco> {
+  async aceitar(id: string, userId: string): Promise<SuggestionPublicResponse> {
     return this.alterarAceito(id, userId, true);
+  }
+
+  private toPublicResponse(registro: AnalisePreco): SuggestionPublicResponse {
+    const current = Number(registro.seuPrecoAtual);
+    const suggested = Number(registro.precoSugerido);
+    return {
+      id: registro.id,
+      createdAt: registro.criadoEm?.toISOString?.() ?? registro.criadoEm,
+      property: {
+        addressId: registro.endereco?.id ?? null,
+        listId: registro.endereco?.list?.id ?? null,
+        title: registro.endereco?.list?.titulo ?? null,
+        manualDailyPrice: this.nullableNumber(registro.endereco?.list?.manualDailyPrice),
+        averageMonthlyRevenue: this.nullableNumber(registro.endereco?.list?.averageMonthlyRevenue),
+      },
+      event: {
+        id: registro.evento?.id ?? null,
+        name: registro.evento?.nome ?? null,
+        city: registro.evento?.cidade ?? null,
+        state: registro.evento?.estado ?? null,
+        startsAt: registro.evento?.dataInicio?.toISOString?.() ?? registro.evento?.dataInicio ?? null,
+        source: registro.evento?.source ?? null,
+        relevance: this.nullableNumber(registro.evento?.relevancia),
+      },
+      pricing: {
+        current,
+        suggested,
+        lift: Number.isFinite(current) && Number.isFinite(suggested) ? suggested - current : null,
+        liftPercent: Number(registro.diferencaPercentual),
+        recommendation: registro.recomendacao,
+        reason: registro.motivo_ia ?? null,
+        distanceKm: Number(registro.distanciaSuaPropriedade),
+      },
+      lifecycle: {
+        accepted: registro.aceito,
+        status: registro.status,
+        acceptedAt: registro.aceitoEm?.toISOString?.() ?? registro.aceitoEm ?? null,
+        rejectedAt: registro.rejeitadoEm?.toISOString?.() ?? registro.rejeitadoEm ?? null,
+        appliedPrice: this.nullableNumber(registro.precoAplicado),
+        appliedAt: registro.aplicadoEm?.toISOString?.() ?? registro.aplicadoEm ?? null,
+        applicationOrigin: registro.origemAplicacao ?? null,
+      },
+      outcome: {
+        reservationStatus: registro.reservaStatus ?? null,
+        realRevenue: this.nullableNumber(registro.receitaReal),
+        bookedNights: registro.noitesReservadas ?? null,
+        capturedAt: registro.resultadoRegistradoEm?.toISOString?.() ?? registro.resultadoRegistradoEm ?? null,
+        note: registro.feedbackObservacao ?? null,
+      },
+    };
+  }
+
+  private nullableNumber(value: unknown): number | null {
+    if (value === null || value === undefined || value === '') return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
   private async tryRecordAppliedPriceSnapshot(
