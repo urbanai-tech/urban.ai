@@ -39,6 +39,21 @@ describe('EmailTemplates - billing lifecycle', () => {
     expect(html).not.toContain('undefined');
   });
 
+  it('renders subscription cancelled template with access window and reactivation link', () => {
+    const html = EmailTemplates.getSubscriptionCancelledTemplate({
+      nome: 'Carla Host',
+      accessEndsAt: '2026-06-15',
+      reactivateUrl: 'https://app.myurbanai.com/plans?reactivate=1',
+    });
+
+    expect(html).toContain('Carla');
+    expect(html).toContain('Cancelamento confirmado');
+    expect(html).toContain('2026-06-15');
+    expect(html).toContain('https://app.myurbanai.com/plans?reactivate=1');
+    expect(html).toContain('Reativar assinatura');
+    expect(html).not.toContain('undefined');
+  });
+
   it('renders quota warning and exceeded messages with counts and upgrade link', () => {
     const warning = EmailTemplates.getQuotaWarningTemplate({
       nome: 'Bruno Beta',
