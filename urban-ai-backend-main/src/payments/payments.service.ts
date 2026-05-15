@@ -97,9 +97,18 @@ export class PaymentsService {
       return {
         id: `alpha-${userId}`,
         status: 'trialing',
+        currency: 'brl',
+        start_date: Math.floor(Date.now() / 1000),
         metadata: {
           urbanai_plan: 'alpha',
           urbanai_quantity: String(alphaQuota),
+          urbanai_billing_cycle: 'monthly',
+        },
+        plan: {
+          id: 'alpha',
+          amount: 0,
+          currency: 'brl',
+          interval: 'monthly',
         },
       };
     }
