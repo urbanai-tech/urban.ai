@@ -1557,6 +1557,7 @@ export const updateAdminPlan = (name: string, input: Partial<AdminPlanConfig>) =
 export type StripePriceCycleStatus =
   | 'ok'
   | 'missing'
+  | 'not-configured'
   | 'not-found'
   | 'cycle-mismatch'
   | 'inactive'
@@ -1582,6 +1583,7 @@ export interface StripeSyncReport {
     total: number;
     ok: number;
     missing: number;
+    notConfigured: number;
     problems: number;
     stripeKeyConfigured: boolean;
   };
