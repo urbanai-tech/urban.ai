@@ -1275,6 +1275,8 @@ export interface StaysAccountPublic {
   status: 'pending' | 'active' | 'error' | 'disconnected';
   clientId: string;
   lastSyncAt: string | null;
+  consentVersion?: string | null;
+  consentAcceptedAt?: string | null;
 }
 
 export interface StaysListingPublic {
@@ -1303,10 +1305,13 @@ export interface PriceUpdatePublic {
 export async function staysConnect(
   clientId: string,
   accessToken: string,
+  consent: { consentAccepted: boolean; consentVersion: string },
 ): Promise<StaysAccountPublic> {
   const { data } = await api.post<StaysAccountPublic>('/stays/connect', {
     clientId,
     accessToken,
+    consentAccepted: consent.consentAccepted,
+    consentVersion: consent.consentVersion,
   });
   return data;
 }

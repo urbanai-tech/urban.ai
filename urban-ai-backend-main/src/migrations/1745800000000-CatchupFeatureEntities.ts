@@ -33,6 +33,10 @@ export class CatchupFeatureEntities1745800000000 implements MigrationInterface {
           { name: 'clientId', type: 'varchar', length: '128', isNullable: false },
           { name: 'accessToken', type: 'varchar', length: '2048', isNullable: false },
           { name: 'tokenExpiresAt', type: 'datetime', isNullable: true },
+          { name: 'consentAcceptedAt', type: 'datetime', isNullable: true },
+          { name: 'consentVersion', type: 'varchar', length: '64', isNullable: true },
+          { name: 'consentIp', type: 'varchar', length: '64', isNullable: true },
+          { name: 'consentUserAgent', type: 'varchar', length: '255', isNullable: true },
           {
             name: 'status', type: 'varchar', length: '32',
             default: "'pending'", isNullable: false,

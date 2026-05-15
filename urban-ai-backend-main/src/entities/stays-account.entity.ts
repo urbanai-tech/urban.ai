@@ -120,6 +120,18 @@ export class StaysAccount {
   @Column({ type: 'datetime', nullable: true })
   tokenExpiresAt: Date | null;
 
+  @Column({ type: 'datetime', nullable: true })
+  consentAcceptedAt: Date | null;
+
+  @Column({ type: 'varchar', length: 64, nullable: true })
+  consentVersion: string | null;
+
+  @Column({ type: 'varchar', length: 64, nullable: true })
+  consentIp: string | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  consentUserAgent: string | null;
+
   /**
    * Estado operacional da conta:
    * - pending: anfitrião iniciou o connect, aguardando validação

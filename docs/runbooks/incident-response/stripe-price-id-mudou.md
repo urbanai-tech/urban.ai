@@ -32,7 +32,7 @@
 KYC aprovado e os Price IDs antigos eram do test mode.
 
 **Ação:**
-- Criar todos os Prices em Live mode no Dashboard, espelhando a estrutura test (mensal/anual de cada plano).
+- Criar todos os Prices em Live mode no Dashboard, espelhando a estrutura test (Starter/Profissional x mensal/trimestral/semestral/anual).
 - Atualizar env vars no Railway: `STRIPE_SECRET_KEY=sk_live_*`, `STRIPE_PUBLIC_KEY=pk_live_*`, `STRIPE_WEBHOOK_SECRET=whsec_*` (do endpoint Live), e os Price IDs.
 - Recriar o webhook endpoint no Live mode (o do Test não serve).
 - Smoke test em modo Live com cartão real (cobrar R$ 1 em si mesmo).
@@ -54,7 +54,7 @@ Se o backend acabou de rodar `clear()` + reseed (ver `D3` em `RELEASE_NOTES_SPRI
 
 ## Após estabilizar
 
-- Documentar todos os Price IDs em `docs/stripe-price-matrix.md` (planejado em F6.5) com data de criação e responsável — para rastreabilidade.
+- Registrar a matriz de Price IDs e evidências no runbook `../stripe-billing-smoke.md`; a configuração esperada da F6.5 está em `../f65-pricing-100pc.md`.
 - Adicionar alerta Sentry: > 1 erro `StripeInvalidRequestError` por hora → WhatsApp Gustavo.
 - Considerar **smoke test de checkout** rodando todo dia em staging (cron simulando checkout flow).
 

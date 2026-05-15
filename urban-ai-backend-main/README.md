@@ -73,7 +73,7 @@ src/
 ├── propriedades/       # imóveis + análise de preço (módulo grande)
 ├── evento/             # eventos scraped + enrichment Gemini
 ├── payments/           # Stripe checkout + webhook
-├── plans/              # tiers (a expandir em F6.5)
+├── plans/              # tiers + matriz F6.5 de cobrança por imóvel
 ├── notifications/      # in-app + email
 ├── connect/            # onboarding Airbnb
 ├── airbnb/             # client RapidAPI
@@ -149,6 +149,8 @@ Health check: `GET /health` (a criar/verificar — usado pelo UptimeRobot).
 
 - `../docs/runbooks/migrations-cutover.md`
 - `../docs/runbooks/jwt-cookie-migration.md`
+- `../docs/runbooks/f65-pricing-100pc.md`
+- `../docs/runbooks/stripe-billing-smoke.md`
 - `../docs/runbooks/stays-integration-setup.md`
 - `../docs/adr/` — ADRs sobre as decisões arquiteturais
 - `../docs/slo.md` — alvos operacionais

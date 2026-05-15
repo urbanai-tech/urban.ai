@@ -42,6 +42,44 @@ test.describe('Release gate - public pages', () => {
     await expect(page.getByRole('link', { name: /Privacidade/i }).first()).toHaveAttribute('href', /\/privacidade$/);
     await expect(page.getByRole('link', { name: /Termos/i }).first()).toHaveAttribute('href', /\/termos$/);
   });
+
+  test('/contato submits public lead to triage API', async ({ page }) => {
+    let payload: Record<string, unknown> | null = null;
+
+    await page.route('**/contact-submissions', async (route) => {
+      if (route.request().method() !== 'POST') {
+        await route.continue();
+        return;
+      }
+
+      payload = route.request().postDataJSON() as Record<string, unknown>;
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 'contact-e2e',
+          status: 'new',
+          ...payload,
+        }),
+      });
+    });
+
+    await page.goto('/contato');
+    await page.getByPlaceholder('Seu nome').fill('Lead Operacional');
+    await page.getByPlaceholder('seu@email.com').fill('lead+contato@urbanai.com.br');
+    await page.getByPlaceholder('Qual o motivo do contato?').fill('Quero entrar no beta');
+    await page.getByPlaceholder('Descreva como podemos ajudar...').fill('Tenho 4 imoveis em Sao Paulo e quero testar a Urban AI.');
+    await page.getByRole('button', { name: /Enviar mensagem/i }).click();
+
+    await expect(page.getByRole('status')).toContainText(/Mensagem registrada/i);
+    expect(payload).toMatchObject({
+      name: 'Lead Operacional',
+      email: 'lead+contato@urbanai.com.br',
+      subject: 'Quero entrar no beta',
+      message: 'Tenho 4 imoveis em Sao Paulo e quero testar a Urban AI.',
+      source: 'public-contact',
+    });
+  });
 });
 
 test.describe('Release gate - anonymous access', () => {

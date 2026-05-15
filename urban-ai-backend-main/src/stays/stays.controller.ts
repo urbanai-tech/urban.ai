@@ -28,15 +28,21 @@ export class StaysController {
   @HttpCode(200)
   async connect(
     @Req() req: AuthedReq,
-    @Body() body: { clientId: string; accessToken: string },
+    @Body() body: { clientId: string; accessToken: string; consentAccepted?: boolean; consentVersion?: string },
   ) {
-    const account = await this.stays.connectAccount(req.user.userId, body);
+    const account = await this.stays.connectAccount(req.user.userId, {
+      ...body,
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
     // Nunca retornamos o token — só os dados públicos da conta.
     return {
       id: account.id,
       status: account.status,
       clientId: account.clientId,
       lastSyncAt: account.lastSyncAt,
+      consentVersion: account.consentVersion,
+      consentAcceptedAt: account.consentAcceptedAt,
     };
   }
 

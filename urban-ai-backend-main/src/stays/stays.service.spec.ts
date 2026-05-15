@@ -81,13 +81,29 @@ describe('StaysService', () => {
   });
 
   describe('connectAccount', () => {
+    const consentInput = {
+      consentAccepted: true,
+      consentVersion: 'stays-connect-v1',
+    };
+
+    it('rejects before ping when consent was not accepted', async () => {
+      userRepo.findOne!.mockResolvedValue({ id: 'u1' });
+
+      await expect(
+        service.connectAccount('u1', { clientId: 'c', accessToken: 'real-token' }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+
+      expect(connector.ping).not.toHaveBeenCalled();
+      expect(accountRepo.save).not.toHaveBeenCalled();
+    });
+
     it('fails closed before ping when Stays envs are not configured', async () => {
       delete process.env.STAYS_API_BASE_URL;
       delete process.env.STAYS_TOKEN_ENCRYPTION_KEY;
       userRepo.findOne!.mockResolvedValue({ id: 'u1' });
 
       await expect(
-        service.connectAccount('u1', { clientId: 'c', accessToken: 'real-token' }),
+        service.connectAccount('u1', { clientId: 'c', accessToken: 'real-token', ...consentInput }),
       ).rejects.toBeInstanceOf(BadRequestException);
 
       expect(connector.ping).not.toHaveBeenCalled();
@@ -99,7 +115,7 @@ describe('StaysService', () => {
       connector.ping.mockResolvedValue(false);
 
       await expect(
-        service.connectAccount('u1', { clientId: 'c', accessToken: 'bad' }),
+        service.connectAccount('u1', { clientId: 'c', accessToken: 'bad', ...consentInput }),
       ).rejects.toBeInstanceOf(BadRequestException);
 
       expect(accountRepo.save).not.toHaveBeenCalled();
@@ -110,9 +126,21 @@ describe('StaysService', () => {
       accountRepo.findOne!.mockResolvedValue(null);
       connector.ping.mockResolvedValue(true);
 
-      const result = await service.connectAccount('u1', { clientId: 'c1', accessToken: 't1' });
+      const result = await service.connectAccount('u1', {
+        clientId: 'c1',
+        accessToken: 't1',
+        ip: '127.0.0.1',
+        userAgent: 'jest',
+        ...consentInput,
+      });
 
       expect(result.status).toBe('active');
+      expect(accountRepo.save!.mock.calls[0][0]).toMatchObject({
+        consentVersion: 'stays-connect-v1',
+        consentIp: '127.0.0.1',
+        consentUserAgent: 'jest',
+      });
+      expect(accountRepo.save!.mock.calls[0][0].consentAcceptedAt).toBeInstanceOf(Date);
       expect(accountRepo.save).toHaveBeenCalled();
     });
 
@@ -127,12 +155,13 @@ describe('StaysService', () => {
       });
       connector.ping.mockResolvedValue(true);
 
-      await service.connectAccount('u1', { clientId: 'new-c', accessToken: 'new-t' });
+      await service.connectAccount('u1', { clientId: 'new-c', accessToken: 'new-t', ...consentInput });
 
       const saved = accountRepo.save!.mock.calls[0][0];
       expect(saved).toMatchObject({
         clientId: 'new-c',
         accessToken: 'new-t',
+        consentVersion: 'stays-connect-v1',
         status: 'active',
         lastErrorAt: null,
         lastErrorMessage: null,
