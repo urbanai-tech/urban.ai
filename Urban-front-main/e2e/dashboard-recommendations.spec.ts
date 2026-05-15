@@ -31,6 +31,25 @@ const recommendation = {
 };
 
 async function mockProperties(page: import('@playwright/test').Page) {
+  await page.route('**/auth/me', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 'user-e2e',
+        username: 'Host E2E',
+        email: 'host.e2e@urbanai.com.br',
+        role: 'USER',
+      }),
+    });
+  });
+  await page.route('**/payments/getSubscription', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 'active', plan: 'alpha' }),
+    });
+  });
   await page.route('**/propriedades/dropdown/list', async (route) => {
     await route.fulfill({
       status: 200,
@@ -71,7 +90,7 @@ test.describe('Dashboard recommendations', () => {
     await page.goto('/dashboard');
 
     await expect(page.getByText('Expo Turismo SP')).toBeVisible();
-    await expect(page.getByLabel(/Pre.o sugerido/i)).toContainText(/R\$/);
+    await expect(page.getByLabel('Preço sugerido', { exact: true })).toContainText(/R\$/);
     await expect(page.getByText(/Por que sugerimos/i)).toBeVisible();
     await expect(page.getByText(/Evento proximo/i)).toBeVisible();
     await expect(page.getByRole('button', { name: /Aceitar Sugest/i })).toBeVisible();
