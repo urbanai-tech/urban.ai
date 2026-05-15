@@ -15,6 +15,7 @@ import { ProcessStatus } from 'src/entities/processStatus.entity';
 import { ProcessService } from 'src/process/process.service';
 import { EmailService } from 'src/email/email.service';
 import { PropriedadeService } from 'src/propriedades/propriedade.service';
+import { summarizeGoogleMapsError } from './google-maps-error';
 
 @Injectable()
 export class MapsService {
@@ -54,6 +55,13 @@ export class MapsService {
     }
 
     this.logger.debug(`Endereço para geocodificação: "${endereco}"`);
+    if (!this.apiKey?.trim()) {
+      return {
+        ok: false,
+        message: 'GOOGLE_MAPS_API_KEY is not configured for server-side geocoding.',
+      };
+    }
+
     try {
       // Chama a Google Maps Geocoding API
       const resp = await this.client.geocode({
@@ -75,8 +83,9 @@ export class MapsService {
       this.logger.log(`Evento ${eventId} atualizado: lat=${first.geometry.location.lat}, lng=${first.geometry.location.lng}`);
       return { ok: true, lat: first.geometry.location.lat, lng: first.geometry.location.lng };
     } catch (err: any) {
-      this.logger.error('Erro na geocodificação:', err.message || err);
-      return { ok: false, message: err.message || 'Erro desconhecido' };
+      const message = summarizeGoogleMapsError(err);
+      this.logger.error('Erro na geocodificação:', message);
+      return { ok: false, message };
     }
   }
 

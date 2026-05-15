@@ -84,6 +84,8 @@ Resultado: `attempted=100`, `succeeded=0`, `failed=100`.
 
 Todas as falhas retornaram `Request failed with status code 403`, indicando problema de configuracao/permissao da API de geocoding no provedor externo. O job antigo marcava isso como `success`; o backend foi corrigido para classificar como `error` quando todos os itens tentados falham.
 
+Validacao pos-deploy: o mesmo fluxo foi rerodado com `limit=1` depois do deploy do backend. O job passou a gravar `status=error` e `errorMessage=Job failed all attempted items (1/1)`, confirmando que o falso verde foi corrigido em producao. Em seguida, o backend recebeu normalizacao de erro Google Maps para trocar `Request failed with status code 403` por uma mensagem acionavel sobre `GOOGLE_MAPS_API_KEY`, restricoes server-side, Geocoding API e billing.
+
 ### Dataset snapshot
 
 Resultado: `captured=0`, `duplicates=9`, `skipped=32`, `totalLists=41`, `skippedMissingPrice=32`, `status=partial_missing_prices`.
@@ -92,7 +94,7 @@ Leitura: os 9 listings alpha ja tinham snapshot duplicado para o dia, mas ainda 
 
 ## Bloqueios que permanecem
 
-1. Corrigir Google Maps/Geocoding em producao: chave existe, mas chamadas retornam 403.
+1. Corrigir Google Maps/Geocoding em producao: chave existe, mas chamadas retornam 403. A aplicacao ja classifica isso como erro operacional; falta corrigir a chave/projeto Google Cloud.
 2. Subir eventos futuros de 95 para pelo menos 100 no gate minimo, idealmente 200 SP/30d.
 3. Elevar cobertura de recomendacao de 62.1% para pelo menos 70%.
 4. Corrigir 7 enderecos ativos com cidade/UF invalidos.
