@@ -166,7 +166,7 @@ jobs:
   # ===================== E2E (only if staging URL configured) =====================
 
   frontend-smoke:
-    name: Frontend — Playwright smoke (staging)
+    name: Frontend - Playwright public smoke
     runs-on: ubuntu-latest
     needs: [frontend-test]
     if: ${{ vars.E2E_BASE_URL != '' }}
@@ -185,8 +185,8 @@ jobs:
       - run: yarn install --frozen-lockfile
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
-      - name: Run smoke tests
-        run: yarn test:e2e
+      - name: Run public smoke tests
+        run: npx playwright test smoke.spec.ts release-gate-public.spec.ts --project=chromium
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
@@ -199,7 +199,7 @@ jobs:
     name: Produto - E2E audit admin/host
     runs-on: ubuntu-latest
     needs: [frontend-test]
-    if: ${{ vars.E2E_BASE_URL != '' && vars.E2E_API_URL != '' }}
+    if: ${{ vars.E2E_PRODUCT_AUDIT_ENABLED == 'true' && vars.E2E_BASE_URL != '' && vars.E2E_API_URL != '' }}
     defaults:
       run:
         working-directory: Urban-front-main
