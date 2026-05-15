@@ -1,0 +1,413 @@
+{
+  "generatedAt": "2026-05-15T13:27:37.806Z",
+  "appUrl": "https://app.myurbanai.com",
+  "apiUrl": "https://urbanai-production-85fd.up.railway.app",
+  "email": "gustavo8gouveia@hotmail.com",
+  "summaries": [
+    {
+      "name": "Admin",
+      "routeScore": 100,
+      "apiScore": 100,
+      "combined": 100,
+      "failedRoutes": [],
+      "failedApis": [],
+      "routes": [
+        {
+          "path": "/admin",
+          "feature": "Admin home",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin",
+          "title": "Urban AI",
+          "durationMs": 1815,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/dashboard",
+          "feature": "Executive dashboard",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/dashboard",
+          "title": "Urban AI",
+          "durationMs": 1798,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/users",
+          "feature": "Users and roles",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/users",
+          "title": "Urban AI",
+          "durationMs": 1862,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/alpha",
+          "feature": "Alpha ops",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/alpha",
+          "title": "Urban AI",
+          "durationMs": 2014,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/roi",
+          "feature": "Admin ROI",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/roi",
+          "title": "Urban AI",
+          "durationMs": 1800,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/audit-logs",
+          "feature": "Audit logs",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/audit-logs",
+          "title": "Urban AI",
+          "durationMs": 1807,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/contacts",
+          "feature": "Contact inbox",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/contacts",
+          "title": "Urban AI",
+          "durationMs": 1812,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/waitlist",
+          "feature": "Waitlist ops",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/waitlist",
+          "title": "Urban AI",
+          "durationMs": 1769,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/events",
+          "feature": "Events inventory",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/events",
+          "title": "Urban AI",
+          "durationMs": 1844,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/events/new",
+          "feature": "Manual event creation",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/events/new",
+          "title": "Urban AI",
+          "durationMs": 1766,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/events/import",
+          "feature": "Event CSV import",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/events/import",
+          "title": "Urban AI",
+          "durationMs": 1827,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/collectors-health",
+          "feature": "Collectors health",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/collectors-health",
+          "title": "Urban AI",
+          "durationMs": 1786,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/jobs",
+          "feature": "Admin jobs",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/jobs",
+          "title": "Urban AI",
+          "durationMs": 1781,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/coverage",
+          "feature": "Coverage regions",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/coverage",
+          "title": "Urban AI",
+          "durationMs": 1774,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/finance",
+          "feature": "Finance",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/finance",
+          "title": "Urban AI",
+          "durationMs": 1780,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/pricing-config",
+          "feature": "Pricing config",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/pricing-config",
+          "title": "Urban AI",
+          "durationMs": 1870,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/stays",
+          "feature": "Stays admin health",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/stays",
+          "title": "Urban AI",
+          "durationMs": 1771,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/funnel",
+          "feature": "Product funnel",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/funnel",
+          "title": "Urban AI",
+          "durationMs": 1812,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/quality",
+          "feature": "Pricing quality",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/quality",
+          "title": "Urban AI",
+          "durationMs": 1823,
+          "ok": true,
+          "problems": []
+        }
+      ],
+      "apis": [
+        {
+          "endpoint": "/admin/dashboard-summary",
+          "ok": true,
+          "status": 200,
+          "durationMs": 340,
+          "bodySummary": "object(generatedAt,health,alerts,events,waitlist,coverage,pricing,dataset)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/users",
+          "ok": true,
+          "status": 200,
+          "durationMs": 241,
+          "bodySummary": "object(data,total,page,limit,totalPages)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/alpha/dashboard",
+          "ok": true,
+          "status": 200,
+          "durationMs": 721,
+          "bodySummary": "object(generatedAt,user,properties,recommendations,events,recentRecommendations)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/alpha/recommendations",
+          "ok": true,
+          "status": 200,
+          "durationMs": 761,
+          "bodySummary": "object(generatedAt,user,total,rows)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/roi",
+          "ok": true,
+          "status": 200,
+          "durationMs": 284,
+          "bodySummary": "object(windowDays,generatedAt,totals,leaderboard)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/audit-logs",
+          "ok": true,
+          "status": 200,
+          "durationMs": 228,
+          "bodySummary": "object(items,total,page,limit)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/contact-submissions",
+          "ok": true,
+          "status": 200,
+          "durationMs": 226,
+          "bodySummary": "object(page,limit,total,items)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/waitlist",
+          "ok": true,
+          "status": 200,
+          "durationMs": 237,
+          "bodySummary": "object(page,limit,total,items)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/waitlist/stats",
+          "ok": true,
+          "status": 200,
+          "durationMs": 245,
+          "bodySummary": "object(total,byStatus,bySource,topReferrers)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/events/analytics",
+          "ok": true,
+          "status": 200,
+          "durationMs": 280,
+          "bodySummary": "object(summary,upcoming,byCategory,byCity,byRelevance,topUpcoming,lastCrawlAt)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/events/list",
+          "ok": true,
+          "status": 200,
+          "durationMs": 308,
+          "bodySummary": "object(page,limit,total,scope,items)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/events/collectors-health",
+          "ok": true,
+          "status": 200,
+          "durationMs": 298,
+          "bodySummary": "object(generatedAt,sources)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/jobs/runs",
+          "ok": true,
+          "status": 200,
+          "durationMs": 224,
+          "bodySummary": "array(0)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/coverage",
+          "ok": true,
+          "status": 200,
+          "durationMs": 236,
+          "bodySummary": "array(1)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/coverage/stats",
+          "ok": true,
+          "status": 200,
+          "durationMs": 230,
+          "bodySummary": "object(activeRegions,bootstrapRegions,addresses,addressRadiusKm)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/finance/overview",
+          "ok": true,
+          "status": 200,
+          "durationMs": 237,
+          "bodySummary": "object(currency,activeListings,activePayments,revenue,costs,margin,perListing)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/finance/costs",
+          "ok": true,
+          "status": 200,
+          "durationMs": 223,
+          "bodySummary": "array(0)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/plans-config",
+          "ok": true,
+          "status": 200,
+          "durationMs": 235,
+          "bodySummary": "array(3)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/stripe/sync-check",
+          "ok": true,
+          "status": 200,
+          "durationMs": 401,
+          "bodySummary": "object(summary,entries)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/stays/health",
+          "ok": true,
+          "status": 200,
+          "durationMs": 223,
+          "bodySummary": "object(accountsByStatus,listings,pushLast30d,recent)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/funnel",
+          "ok": true,
+          "status": 200,
+          "durationMs": 230,
+          "bodySummary": "object(windowDays,stages,rates)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/pricing/quality",
+          "ok": true,
+          "status": 200,
+          "durationMs": 226,
+          "bodySummary": "object(windowDays,sampleSize,discarded,mapePercent,rmse,medianAbsoluteError,qualityGate)",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/occupancy/coverage",
+          "ok": true,
+          "status": 200,
+          "durationMs": 227,
+          "bodySummary": "object(byStatus,byOrigin,distinctListings)",
+          "issue": null
+        }
+      ]
+    }
+  ]
+}
