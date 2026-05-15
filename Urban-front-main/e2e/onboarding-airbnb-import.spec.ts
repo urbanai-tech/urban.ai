@@ -272,4 +272,82 @@ test.describe('Onboarding Airbnb import', () => {
       percentualFinal: 20,
     });
   });
+
+  test('inicia checkout do paywall com plano anual e quantidade selecionada', async ({ page }) => {
+    const checkoutPayloads: Array<Record<string, unknown>> = [];
+
+    await mockAuthenticatedSession(page);
+    await mockPlans(page);
+    await mockAirbnbIndividualImport(page);
+
+    await page.route('**/connect/register', async (route) => {
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          {
+            id: 'list-checkout-e2e',
+            titulo: 'Loft Paulista perto do metro',
+            id_do_anuncio: '12345678',
+            pictureUrl: 'https://example.com/loft.jpg',
+            ativo: true,
+          },
+        ]),
+      });
+    });
+    await page.route('**/connect/addresses', async (route) => {
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify([{ id: 'address-checkout-e2e' }]),
+      });
+    });
+    await page.route('**/processos', async (route) => {
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'queued' }),
+      });
+    });
+    await page.route('**/auth/profile**', async (route) => {
+      if (route.request().method() === 'PUT') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ id: 'user-e2e', profile: {}, ...route.request().postDataJSON() }),
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ id: 'user-e2e', profile: {} }),
+      });
+    });
+    await page.route('**/payments/create-checkout-session', async (route) => {
+      checkoutPayloads.push(route.request().postDataJSON());
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({ sessionId: 'cs_onboarding_e2e' }),
+      });
+    });
+
+    await page.goto('/onboarding');
+
+    await page.getByRole('button', { name: /Come.*configura/i }).click();
+    await page
+      .getByPlaceholder('https://www.airbnb.com.br/rooms/12345678')
+      .fill('https://www.airbnb.com.br/rooms/12345678');
+    await page.getByRole('button', { name: /Buscar im/i }).click();
+    await page.getByRole('button', { name: /Registrar 1 im/i }).click();
+    await page.getByRole('button', { name: /Salvar e continuar/i }).click();
+    await page.getByRole('button', { name: /Selecionar plano/i }).click();
+
+    expect(checkoutPayloads[0]).toEqual({
+      plan: 'starter',
+      billingCycle: 'annual',
+      quantity: 1,
+    });
+  });
 });
