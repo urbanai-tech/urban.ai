@@ -1,0 +1,337 @@
+{
+  "generatedAt": "2026-05-15T13:03:42.989Z",
+  "appUrl": "https://app.myurbanai.com",
+  "apiUrl": "https://urbanai-production-85fd.up.railway.app",
+  "email": "gustavo8gouveia@hotmail.com",
+  "summaries": [
+    {
+      "name": "Anfitriao",
+      "routeScore": 37,
+      "apiScore": 100,
+      "combined": 59,
+      "failedRoutes": [
+        {
+          "path": "/post-login",
+          "feature": "Post-login router",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/dashboard",
+          "title": "Urban AI",
+          "durationMs": 1953,
+          "ok": false,
+          "problems": [
+            "Console: error: Access to fetch at 'https://myurbanai.com/privacidade' (redirected from 'https://app.myurbanai.com/privacidade?_rsc=xif8e') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED",
+            "Console: error: Failed to fetch RSC payload for https://app.myurbanai.com/privacidade. Falling back to browser navigation. TypeError: Failed to fetch (app.myurbanai.com)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:20749\n    at m (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:4445)\n    at _ (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:3315)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:",
+            "Console: error: Access to fetch at 'https://myurbanai.com/contato' (redirected from 'https://app.myurbanai.com/contato?_rsc=xif8e') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED"
+          ]
+        },
+        {
+          "path": "/dashboard",
+          "feature": "Host dashboard",
+          "weight": 4,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/dashboard",
+          "title": "Urban AI",
+          "durationMs": 2087,
+          "ok": false,
+          "problems": [
+            "Console: error: Access to fetch at 'https://myurbanai.com/privacidade' (redirected from 'https://app.myurbanai.com/privacidade?_rsc=skepm') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED",
+            "Console: error: Failed to fetch RSC payload for https://app.myurbanai.com/privacidade. Falling back to browser navigation. TypeError: Failed to fetch (app.myurbanai.com)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:20749\n    at m (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:4445)\n    at _ (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:3315)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:",
+            "Console: error: Access to fetch at 'https://myurbanai.com/contato' (redirected from 'https://app.myurbanai.com/contato?_rsc=skepm') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED"
+          ]
+        },
+        {
+          "path": "/plans",
+          "feature": "Plan selection",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/plans",
+          "title": "Urban AI",
+          "durationMs": 1825,
+          "ok": false,
+          "problems": [
+            "Console: error: Access to fetch at 'https://myurbanai.com/contato' (redirected from 'https://app.myurbanai.com/contato?_rsc=1r3zm') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED",
+            "Console: error: Failed to fetch RSC payload for https://app.myurbanai.com/contato. Falling back to browser navigation. TypeError: Failed to fetch (app.myurbanai.com)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:20749\n    at m (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:4445)\n    at _ (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:3315)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:2523",
+            "Console: error: Access to fetch at 'https://myurbanai.com/sobre' (redirected from 'https://app.myurbanai.com/sobre?_rsc=1r3zm') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED"
+          ]
+        },
+        {
+          "path": "/plans/v2",
+          "feature": "Plan selection alias",
+          "weight": 1,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/plans",
+          "title": "Urban AI",
+          "durationMs": 1839,
+          "ok": false,
+          "problems": [
+            "Console: error: Access to fetch at 'https://myurbanai.com/sobre' (redirected from 'https://app.myurbanai.com/sobre?_rsc=1w2zr') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED",
+            "Console: error: Failed to fetch RSC payload for https://app.myurbanai.com/sobre. Falling back to browser navigation. TypeError: Failed to fetch (app.myurbanai.com)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:20749\n    at m (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:4445)\n    at _ (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:3315)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:25231\n",
+            "Console: error: Access to fetch at 'https://myurbanai.com/contato' (redirected from 'https://app.myurbanai.com/contato?_rsc=1w2zr') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED"
+          ]
+        },
+        {
+          "path": "/my-plan",
+          "feature": "My plan",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/my-plan",
+          "title": "",
+          "durationMs": 1933,
+          "ok": false,
+          "problems": [
+            "Visible error pattern: /Internal Server Error/i",
+            "Console: error: TypeError: Cannot read properties of undefined (reading 'amount')\n    at https://app.myurbanai.com/_next/static/chunks/app/my-plan/page-aed60e51441546b4.js:1:4707\n    at Array.map (<anonymous>)\n    at y (https://app.myurbanai.com/_next/static/chunks/app/my-plan/page-aed60e51441546b4.js:1:3982)\n    at l9 (https://app.myurbanai.com/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js:1:51130)\n    at o_ (https://app.myurbanai.com/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js:1:70990)\n    at oq (http"
+          ]
+        },
+        {
+          "path": "/my-roi",
+          "feature": "Host ROI",
+          "weight": 4,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/my-roi",
+          "title": "Urban AI",
+          "durationMs": 1952,
+          "ok": false,
+          "problems": [
+            "Console: error: Access to fetch at 'https://myurbanai.com/sobre' (redirected from 'https://app.myurbanai.com/sobre?_rsc=1dsi3') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED",
+            "Console: error: Failed to fetch RSC payload for https://app.myurbanai.com/sobre. Falling back to browser navigation. TypeError: Failed to fetch (app.myurbanai.com)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:20749\n    at m (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:4445)\n    at _ (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:3315)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:25231\n",
+            "Console: error: Access to fetch at 'https://myurbanai.com/contato' (redirected from 'https://app.myurbanai.com/contato?_rsc=1dsi3') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED"
+          ]
+        },
+        {
+          "path": "/event-log",
+          "feature": "Event log",
+          "weight": 1,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/event-log",
+          "title": "Urban AI",
+          "durationMs": 1939,
+          "ok": false,
+          "problems": [
+            "Console: error: Access to fetch at 'https://myurbanai.com/privacidade' (redirected from 'https://app.myurbanai.com/privacidade?_rsc=795tn') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED",
+            "Console: error: Failed to fetch RSC payload for https://app.myurbanai.com/privacidade. Falling back to browser navigation. TypeError: Failed to fetch (app.myurbanai.com)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:20749\n    at m (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:4445)\n    at _ (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:3315)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:",
+            "Console: error: Access to fetch at 'https://myurbanai.com/contato' (redirected from 'https://app.myurbanai.com/contato?_rsc=795tn') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED"
+          ]
+        }
+      ],
+      "failedApis": [],
+      "routes": [
+        {
+          "path": "/",
+          "feature": "Login entry",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/",
+          "title": "Urban AI",
+          "durationMs": 2273,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/post-login",
+          "feature": "Post-login router",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/dashboard",
+          "title": "Urban AI",
+          "durationMs": 1953,
+          "ok": false,
+          "problems": [
+            "Console: error: Access to fetch at 'https://myurbanai.com/privacidade' (redirected from 'https://app.myurbanai.com/privacidade?_rsc=xif8e') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED",
+            "Console: error: Failed to fetch RSC payload for https://app.myurbanai.com/privacidade. Falling back to browser navigation. TypeError: Failed to fetch (app.myurbanai.com)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:20749\n    at m (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:4445)\n    at _ (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:3315)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:",
+            "Console: error: Access to fetch at 'https://myurbanai.com/contato' (redirected from 'https://app.myurbanai.com/contato?_rsc=xif8e') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED"
+          ]
+        },
+        {
+          "path": "/dashboard",
+          "feature": "Host dashboard",
+          "weight": 4,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/dashboard",
+          "title": "Urban AI",
+          "durationMs": 2087,
+          "ok": false,
+          "problems": [
+            "Console: error: Access to fetch at 'https://myurbanai.com/privacidade' (redirected from 'https://app.myurbanai.com/privacidade?_rsc=skepm') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED",
+            "Console: error: Failed to fetch RSC payload for https://app.myurbanai.com/privacidade. Falling back to browser navigation. TypeError: Failed to fetch (app.myurbanai.com)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:20749\n    at m (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:4445)\n    at _ (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:3315)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:",
+            "Console: error: Access to fetch at 'https://myurbanai.com/contato' (redirected from 'https://app.myurbanai.com/contato?_rsc=skepm') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED"
+          ]
+        },
+        {
+          "path": "/onboarding",
+          "feature": "Onboarding",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/onboarding",
+          "title": "Urban AI",
+          "durationMs": 1831,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/onboarding/payment/price",
+          "feature": "Onboarding pricing step",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/onboarding/payment/price",
+          "title": "Urban AI",
+          "durationMs": 1902,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/plans",
+          "feature": "Plan selection",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/plans",
+          "title": "Urban AI",
+          "durationMs": 1825,
+          "ok": false,
+          "problems": [
+            "Console: error: Access to fetch at 'https://myurbanai.com/contato' (redirected from 'https://app.myurbanai.com/contato?_rsc=1r3zm') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED",
+            "Console: error: Failed to fetch RSC payload for https://app.myurbanai.com/contato. Falling back to browser navigation. TypeError: Failed to fetch (app.myurbanai.com)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:20749\n    at m (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:4445)\n    at _ (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:3315)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:2523",
+            "Console: error: Access to fetch at 'https://myurbanai.com/sobre' (redirected from 'https://app.myurbanai.com/sobre?_rsc=1r3zm') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED"
+          ]
+        },
+        {
+          "path": "/plans/v2",
+          "feature": "Plan selection alias",
+          "weight": 1,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/plans",
+          "title": "Urban AI",
+          "durationMs": 1839,
+          "ok": false,
+          "problems": [
+            "Console: error: Access to fetch at 'https://myurbanai.com/sobre' (redirected from 'https://app.myurbanai.com/sobre?_rsc=1w2zr') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED",
+            "Console: error: Failed to fetch RSC payload for https://app.myurbanai.com/sobre. Falling back to browser navigation. TypeError: Failed to fetch (app.myurbanai.com)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:20749\n    at m (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:4445)\n    at _ (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:3315)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:25231\n",
+            "Console: error: Access to fetch at 'https://myurbanai.com/contato' (redirected from 'https://app.myurbanai.com/contato?_rsc=1w2zr') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED"
+          ]
+        },
+        {
+          "path": "/my-plan",
+          "feature": "My plan",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/my-plan",
+          "title": "",
+          "durationMs": 1933,
+          "ok": false,
+          "problems": [
+            "Visible error pattern: /Internal Server Error/i",
+            "Console: error: TypeError: Cannot read properties of undefined (reading 'amount')\n    at https://app.myurbanai.com/_next/static/chunks/app/my-plan/page-aed60e51441546b4.js:1:4707\n    at Array.map (<anonymous>)\n    at y (https://app.myurbanai.com/_next/static/chunks/app/my-plan/page-aed60e51441546b4.js:1:3982)\n    at l9 (https://app.myurbanai.com/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js:1:51130)\n    at o_ (https://app.myurbanai.com/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js:1:70990)\n    at oq (http"
+          ]
+        },
+        {
+          "path": "/my-roi",
+          "feature": "Host ROI",
+          "weight": 4,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/my-roi",
+          "title": "Urban AI",
+          "durationMs": 1952,
+          "ok": false,
+          "problems": [
+            "Console: error: Access to fetch at 'https://myurbanai.com/sobre' (redirected from 'https://app.myurbanai.com/sobre?_rsc=1dsi3') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED",
+            "Console: error: Failed to fetch RSC payload for https://app.myurbanai.com/sobre. Falling back to browser navigation. TypeError: Failed to fetch (app.myurbanai.com)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:20749\n    at m (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:4445)\n    at _ (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:3315)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:25231\n",
+            "Console: error: Access to fetch at 'https://myurbanai.com/contato' (redirected from 'https://app.myurbanai.com/contato?_rsc=1dsi3') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED"
+          ]
+        },
+        {
+          "path": "/settings/integrations",
+          "feature": "Stays integrations",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/settings/integrations",
+          "title": "Urban AI",
+          "durationMs": 1822,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/event-log",
+          "feature": "Event log",
+          "weight": 1,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/event-log",
+          "title": "Urban AI",
+          "durationMs": 1939,
+          "ok": false,
+          "problems": [
+            "Console: error: Access to fetch at 'https://myurbanai.com/privacidade' (redirected from 'https://app.myurbanai.com/privacidade?_rsc=795tn') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED",
+            "Console: error: Failed to fetch RSC payload for https://app.myurbanai.com/privacidade. Falling back to browser navigation. TypeError: Failed to fetch (app.myurbanai.com)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:20749\n    at m (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:4445)\n    at _ (https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:6:3315)\n    at https://app.myurbanai.com/_next/static/chunks/3284-914ae3bec3858c11.js:18:",
+            "Console: error: Access to fetch at 'https://myurbanai.com/contato' (redirected from 'https://app.myurbanai.com/contato?_rsc=795tn') from origin 'https://app.myurbanai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+            "Console: error: Failed to load resource: net::ERR_FAILED"
+          ]
+        }
+      ],
+      "apis": [
+        {
+          "endpoint": "/propriedades/dropdown/list",
+          "ok": true,
+          "status": 200,
+          "durationMs": 295,
+          "bodySummary": "array(9)",
+          "issue": null
+        },
+        {
+          "endpoint": "/payments/getSubscription",
+          "ok": true,
+          "status": 200,
+          "durationMs": 283,
+          "bodySummary": "object(id,status,metadata)",
+          "issue": null
+        },
+        {
+          "endpoint": "/payments/getSubscription",
+          "ok": true,
+          "status": 200,
+          "durationMs": 229,
+          "bodySummary": "object(id,status,metadata)",
+          "issue": null
+        },
+        {
+          "endpoint": "/roi/me",
+          "ok": true,
+          "status": 200,
+          "durationMs": 293,
+          "bodySummary": "object(windowDays,generatedAt,user,subscription,money,activity,dataQuality,perProperty)",
+          "issue": null
+        },
+        {
+          "endpoint": "/stays/listings",
+          "ok": true,
+          "status": 200,
+          "durationMs": 224,
+          "bodySummary": "array(0)",
+          "issue": null
+        }
+      ]
+    }
+  ]
+}
