@@ -12,6 +12,17 @@ import {
 
 const STAYS_CONSENT_VERSION = "stays-connect-v1";
 
+const operationModeLabels: Record<StaysListingPublic["operationMode"], string> = {
+  inherit: "Herdar padrao",
+  notifications: "Recomendacao manual",
+  auto: "Automatico beta",
+};
+
+function formatStaysDate(value?: string | null) {
+  if (!value) return "Nao registrado";
+  return new Date(value).toLocaleString("pt-BR");
+}
+
 /**
  * Settings › Integrações › Stays
  *
@@ -105,6 +116,10 @@ export default function IntegrationsPage() {
       setLoading(false);
     }
   }
+
+  const activeListings = listings.filter((listing) => listing.active).length;
+  const autoListings = listings.filter((listing) => listing.operationMode === "auto").length;
+  const linkedListings = listings.filter((listing) => Boolean(listing.propriedadeId)).length;
 
   if (loading) {
     return (
@@ -207,6 +222,21 @@ export default function IntegrationsPage() {
             Status: <span className="font-bold">{account.status}</span>
             {account.lastSyncAt && <> · última sincronização: {new Date(account.lastSyncAt).toLocaleString("pt-BR")}</>}
           </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+            <StatusCard label="Ultima sync" value={formatStaysDate(account.lastSyncAt)} />
+            <StatusCard
+              label="Consentimento"
+              value={
+                account.consentAcceptedAt
+                  ? `${formatStaysDate(account.consentAcceptedAt)} (${account.consentVersion || "sem versao"})`
+                  : "Nao informado nesta sessao"
+              }
+            />
+            <StatusCard
+              label="Listings"
+              value={`${activeListings}/${listings.length} ativos - ${linkedListings} vinculados - ${autoListings} auto`}
+            />
+          </div>
           <button
             onClick={handleResync}
             className="px-4 py-2 rounded-lg border border-emerald-500 text-emerald-300 hover:bg-emerald-500/10 text-sm"
@@ -232,8 +262,10 @@ export default function IntegrationsPage() {
                     {l.shortAddress || "—"} · ID Stays: {l.staysListingId}
                   </p>
                   <p className="text-xs text-slate-500">
-                    Modo: <span className="font-mono">{l.operationMode}</span> ·
-                    {l.propriedadeId ? ` vinculado a imóvel Urban AI` : " ainda não vinculado"}
+                    Modo operacional: <span className="font-mono">{operationModeLabels[l.operationMode] || l.operationMode}</span>
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {l.propriedadeId ? "Vinculado a imovel Urban AI" : "Ainda nao vinculado"}
                   </p>
                 </div>
                 <span
@@ -248,6 +280,15 @@ export default function IntegrationsPage() {
           </div>
         </section>
       )}
+    </div>
+  );
+}
+
+function StatusCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-emerald-900/60 bg-slate-950/40 p-3">
+      <p className="text-[10px] uppercase tracking-wider text-slate-500">{label}</p>
+      <p className="mt-1 text-sm text-slate-200">{value}</p>
     </div>
   );
 }
