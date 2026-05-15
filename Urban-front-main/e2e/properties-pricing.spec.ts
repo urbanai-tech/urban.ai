@@ -103,4 +103,35 @@ test.describe('Properties pricing inputs', () => {
     await expect(page.getByText(/R\$\s*7\.400,00/)).toBeVisible();
     await expect(page.getByText(/R\$\s*9\.900,00/)).toBeVisible();
   });
+
+  test('confirma exclusao e remove propriedade da lista', async ({ page }) => {
+    const deletions: string[] = [];
+
+    await mockAppShell(page);
+    await page.route('**/propriedades/dropdown/list', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([property]),
+      });
+    });
+    await page.route('**/propriedades/address/prop-pricing-e2e', async (route) => {
+      deletions.push(route.request().method());
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: true }),
+      });
+    });
+
+    await page.goto('/properties');
+
+    await expect(page.getByText('Apartamento Vila Mariana')).toBeVisible();
+    await page.getByRole('button', { name: /delete|excluir/i }).click();
+    await expect(page.getByRole('alertdialog')).toBeVisible();
+    await page.getByRole('button', { name: /^Excluir$/i }).click();
+
+    expect(deletions).toEqual(['DELETE']);
+    await expect(page.getByText('Apartamento Vila Mariana')).toHaveCount(0);
+  });
 });
