@@ -60,6 +60,12 @@ export default function AdminContactsPage() {
       resolved: 0,
       archived: 0,
     };
+    if (data?.byStatus?.length) {
+      data.byStatus.forEach((item) => {
+        base[item.status] = item.count;
+      });
+      return base;
+    }
     data?.items.forEach((item) => {
       base[item.status] += 1;
     });
@@ -118,9 +124,9 @@ export default function AdminContactsPage() {
 
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Stat label="Nesta pagina" value={(data?.items.length ?? 0).toLocaleString("pt-BR")} />
-          <Stat label="Novos" value={counts.new.toLocaleString("pt-BR")} color="text-orange-300" />
+          <Stat label="Novos no filtro" value={counts.new.toLocaleString("pt-BR")} color="text-orange-300" />
           <Stat
-            label="Em andamento"
+            label="Em andamento no filtro"
             value={counts.in_progress.toLocaleString("pt-BR")}
             color="text-sky-300"
           />

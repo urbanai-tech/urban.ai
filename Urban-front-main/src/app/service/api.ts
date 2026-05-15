@@ -1746,6 +1746,7 @@ export interface ContactSubmissionListResponse {
   page: number;
   limit: number;
   total: number;
+  byStatus?: Array<{ status: ContactSubmissionStatus; count: number }>;
   items: ContactSubmission[];
 }
 
