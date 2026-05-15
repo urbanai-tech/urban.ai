@@ -7,6 +7,27 @@ import {
   type CollectorSourceStats,
 } from "../../service/api";
 
+type CollectorHealthStatus =
+  | "has_events"
+  | "missing_key"
+  | "no_events"
+  | "stale"
+  | (string & {});
+
+type CollectorHealthRow = CollectorSourceStats & {
+  status?: CollectorHealthStatus;
+  critical?: boolean | null;
+  missingEnv?: string[];
+  missingVariables?: string[];
+  missingKeys?: string[];
+  missingRequiredEnv?: string[];
+  missing_env?: string[];
+  requiredEnv?: string[];
+  aliases?: string[];
+  signals?: string[];
+  stale?: boolean;
+};
+
 /**
  * /admin/collectors-health — saúde dos coletores agrupada por source.
  *
@@ -59,7 +80,7 @@ export default function CollectorsHealthPage() {
     );
   }
 
-  const sources = data?.sources ?? [];
+  const sources = (data?.sources ?? []) as CollectorHealthRow[];
   const totalsByCategory = sources.reduce(
     (acc, s) => {
       acc.total += s.total;
@@ -131,6 +152,7 @@ export default function CollectorsHealthPage() {
                 <thead className="bg-slate-900/60 text-slate-400 uppercase">
                   <tr>
                     <th className="px-3 py-2 text-left">Source</th>
+                    <th className="px-3 py-2 text-left">Status</th>
                     <th className="px-3 py-2 text-right">Total</th>
                     <th className="px-3 py-2 text-right">Últimas 24h</th>
                     <th className="px-3 py-2 text-right">Últimos 7d</th>
@@ -140,6 +162,8 @@ export default function CollectorsHealthPage() {
                     <th className="px-3 py-2 text-right">Enriquecidos</th>
                     <th className="px-3 py-2 text-right">Erro %</th>
                     <th className="px-3 py-2 text-left">Último crawl</th>
+                    <th className="px-3 py-2 text-left">Variáveis</th>
+                    <th className="px-3 py-2 text-left">Sinais</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -193,20 +217,42 @@ function Stat({ label, value, color }: { label: string; value: number; color?: s
   );
 }
 
-function SourceRow({ s }: { s: CollectorSourceStats }) {
-  const stale =
+function SourceRow({ s }: { s: CollectorHealthRow }) {
+  const localStale = Boolean(
     s.lastSeen &&
-    Date.now() - new Date(s.lastSeen).getTime() > 48 * 60 * 60 * 1000;
+      Date.now() - new Date(s.lastSeen).getTime() > 48 * 60 * 60 * 1000,
+  );
+  const stale = Boolean(s.stale || s.status === "stale" || localStale);
+  const missingEnv = getMissingEnv(s);
+  const signals = getSignals(s, stale, missingEnv);
+  const aliases = uniqueList(s.aliases);
 
   return (
     <tr className={`border-t border-slate-800 ${stale ? "opacity-70" : ""}`}>
       <td className="px-3 py-2 font-mono text-slate-200">
-        {s.source}
-        {stale && (
-          <span className="ml-2 text-[10px] text-amber-400" title="Sem dados há > 48h">
-            STALE
-          </span>
+        <div>
+          {s.source}
+          {stale && (
+            <span className="ml-2 text-[10px] text-amber-400" title="Sem dados há > 48h">
+              STALE
+            </span>
+          )}
+        </div>
+        {aliases.length > 0 && (
+          <div className="mt-1 flex flex-wrap gap-1 text-[10px] font-normal text-slate-500">
+            {aliases.map((alias) => (
+              <span key={alias} className="rounded border border-slate-800 px-1.5 py-0.5">
+                alias: {alias}
+              </span>
+            ))}
+          </div>
         )}
+      </td>
+      <td className="px-3 py-2">
+        <div className="flex flex-wrap gap-1">
+          <HealthBadge status={s.status ?? "has_events"} critical={s.critical} />
+          <CriticalityBadge critical={s.critical} />
+        </div>
       </td>
       <td className="px-3 py-2 text-right">{s.total.toLocaleString("pt-BR")}</td>
       <td
@@ -256,6 +302,125 @@ function SourceRow({ s }: { s: CollectorSourceStats }) {
             })
           : "—"}
       </td>
+      <td className="px-3 py-2 text-slate-400">
+        {missingEnv.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {missingEnv.map((env) => (
+              <span key={env} className="rounded bg-red-950/40 px-1.5 py-0.5 text-[10px] text-red-300">
+                {env}
+              </span>
+            ))}
+          </div>
+        ) : uniqueList(s.requiredEnv).length > 0 ? (
+          <span className="text-[10px] text-emerald-300">OK</span>
+        ) : (
+          "—"
+        )}
+      </td>
+      <td className="px-3 py-2 text-slate-400">
+        {signals.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {signals.map((signal) => (
+              <span key={signal} className="rounded bg-slate-900 px-1.5 py-0.5 text-[10px] text-amber-300">
+                {formatSignal(signal)}
+              </span>
+            ))}
+          </div>
+        ) : (
+          "—"
+        )}
+      </td>
     </tr>
   );
+}
+
+function HealthBadge({
+  status,
+  critical,
+}: {
+  status: CollectorHealthStatus;
+  critical?: boolean | null;
+}) {
+  const color =
+    status === "missing_key"
+      ? critical
+        ? "border-red-600 bg-red-950/40 text-red-200"
+        : "border-amber-700 bg-amber-950/30 text-amber-200"
+      : status === "no_events" || status === "stale"
+        ? "border-amber-700 bg-amber-950/30 text-amber-200"
+        : status === "has_events"
+          ? "border-emerald-700 bg-emerald-950/30 text-emerald-200"
+          : "border-slate-700 bg-slate-900 text-slate-300";
+
+  return (
+    <span className={`rounded border px-1.5 py-0.5 text-[10px] uppercase ${color}`}>
+      {formatStatus(status)}
+    </span>
+  );
+}
+
+function CriticalityBadge({ critical }: { critical?: boolean | null }) {
+  if (critical === true) {
+    return (
+      <span className="rounded border border-red-700 bg-red-950/30 px-1.5 py-0.5 text-[10px] uppercase text-red-300">
+        crítico
+      </span>
+    );
+  }
+
+  if (critical === false) {
+    return (
+      <span className="rounded border border-slate-800 px-1.5 py-0.5 text-[10px] uppercase text-slate-500">
+        opcional
+      </span>
+    );
+  }
+
+  return (
+    <span className="rounded border border-slate-800 px-1.5 py-0.5 text-[10px] uppercase text-slate-600">
+      não mapeado
+    </span>
+  );
+}
+
+function getMissingEnv(s: CollectorHealthRow) {
+  return uniqueList([
+    ...(s.missingEnv ?? []),
+    ...(s.missingVariables ?? []),
+    ...(s.missingKeys ?? []),
+    ...(s.missingRequiredEnv ?? []),
+    ...(s.missing_env ?? []),
+  ]);
+}
+
+function getSignals(s: CollectorHealthRow, stale: boolean, missingEnv: string[]) {
+  return uniqueList([
+    ...(s.signals ?? []),
+    stale ? "stale" : "",
+    s.status === "missing_key" || missingEnv.length > 0 ? "missing_key" : "",
+    s.status === "no_events" ? "no_events" : "",
+  ]);
+}
+
+function uniqueList(values?: string[]) {
+  return Array.from(new Set((values ?? []).filter(Boolean)));
+}
+
+function formatStatus(status: CollectorHealthStatus) {
+  switch (status) {
+    case "has_events":
+      return "com eventos";
+    case "missing_key":
+      return "sem chave";
+    case "no_events":
+      return "sem eventos";
+    case "stale":
+      return "stale";
+    default:
+      return status.replace(/_/g, " ");
+  }
+}
+
+function formatSignal(signal: string) {
+  return signal.replace(/_/g, " ");
 }

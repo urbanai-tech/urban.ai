@@ -89,9 +89,9 @@ Quando admin clica "Convidar" em `/admin/waitlist`:
 Quando o convidado clica o link:
 1. Frontend chama `GET /waitlist/invite?token=...` para validar
 2. Se OK, mostra form de criar senha (email já vem do convite, read-only)
-3. Submit — fluxo de aceite definitivo (criar User real + login automático)
-   está marcado como TODO próximo PR (front atualmente redireciona pro home
-   com email pré-preenchido).
+3. Submit chama `POST /auth/waitlist/accept` com `{ token, username, password }`
+4. Backend cria o `User` real, marca a entry como `converted` e emite sessão
+5. Frontend redireciona para `/dashboard`
 
 ## Métricas de sucesso
 
@@ -110,9 +110,10 @@ Tudo acessível em `/admin/waitlist` (KPIs no topo + tabela detalhada).
 - **Email de "sua posição mudou"** — não enviamos a cada movimento da fila
   (anti-spam). Só email de boas-vindas no signup e o convite final.
 - **A/B test do landing copy** — feito separadamente via flags de marketing
-- **Aceite de convite de fato criando User** — UI pronta, endpoint de
-  `POST /auth/register-from-waitlist?token=...` é o próximo PR
+- **Smoke com e-mail real de convite** — o fluxo técnico já cria User via
+  `POST /auth/waitlist/accept`, mas ainda precisa ser validado em staging/prod
+  com MailerSend e uma conta convidada de ponta a ponta
 
 ---
 
-*Última atualização: 25/04/2026.*
+*Última atualização: 15/05/2026.*
