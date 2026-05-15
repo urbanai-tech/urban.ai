@@ -1,4 +1,16 @@
 # Urban AI — Roadmap Pós-Sprint
+
+> 🆕 **v2.17 (15/05/2026) - Alpha assistido operavel + admin/ROI/auditoria/contatos no ar.**
+> 1. **Modo real definido:** publico novo continua em prelaunch/waitlist; contas existentes com imoveis operam em alpha assistido, com Gustavo como tester prioritario.
+> 2. **Fluxo de recomendacao de preco corrigido para validacao real:** diaria base inicial, receita mensal real, feedback de resultado, historico sugerido vs. praticado e filtros de qualidade de eventos.
+> 3. **Operacao alpha:** `/admin/alpha` mostra KPIs e recomendacoes, permite reprocessar usuarios alpha e acompanha cobertura/flags.
+> 4. **ROI:** `/my-roi` e `/admin/roi` permitem acompanhar receita incremental estimada, base mensal e historico por usuario/propriedade.
+> 5. **Admin mais auditavel:** `/admin/audit-logs` registra mudancas sensiveis; `/admin/contacts` captura e tria mensagens publicas.
+> 6. **Deploy confirmado:** commits ate `369fa81` foram enviados para `origin/main` e `urbanai-tech/main`; backend e frontend Railway ficaram `SUCCESS` em 2026-05-14 20:35 UTC.
+>
+> **Fonte operacional atual:** [`docs/roadmap-implementacao-gaps-produto-2026-05-14.md`](roadmap-implementacao-gaps-produto-2026-05-14.md), com fases, gates e gaps de produto atualizados em 2026-05-15.
+>
+> Estado honesto: **prelaunch publico esta quase pronto; alpha assistido esta pronto para E2E real; beta pago/go-live ainda dependem de 3-5 evidencias de ROI, Stripe smoke/KYC e monitoramento operacional.**
 **Versão 2.9 · Atualizado: 25/04/2026 (madrugada) · Base: Sprint de migração encerrado em D14 (20/03/2026)**
 
 > 📘 **Para sócios / pitch:** [`docs/base-socios.md`](base-socios.md) — base centralizada de status, em linguagem direta.

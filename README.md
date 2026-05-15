@@ -59,7 +59,8 @@ Banco de dados: o backend pode rodar contra um MySQL local ou contra o Railway d
 
 | Onde | O que tem |
 |---|---|
-| `docs/roadmap-pos-sprint.md` | **Fonte de verdade** do roadmap em curso (v2.10) |
+| `docs/roadmap-pos-sprint.md` | **Resumo executivo** do roadmap em curso (v2.17) |
+| `docs/roadmap-implementacao-gaps-produto-2026-05-14.md` | **Fonte operacional atual** de fases, gaps, gates e checkpoints pos-auditoria |
 | `docs/go-live-manual-checklist.md` | Lista do que ainda é manual humano vs. automatizável (P0/P1/P2) |
 | `CHANGELOG.md` | Histórico de releases em formato semver |
 | `docs/avaliacao-projeto-2026-04-16.md` | Auditoria técnica completa que motivou F5C |
