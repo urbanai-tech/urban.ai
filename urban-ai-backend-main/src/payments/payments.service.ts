@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, Injectable, Optional, ServiceUnavailableException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Payment } from 'src/entities/payment.entity';
 import { User } from 'src/entities/user.entity';
@@ -8,6 +8,8 @@ import { In, Repository } from 'typeorm';
 import { PlansService } from '../plans/plans.service';
 import { BillingCycle } from '../entities/plan.entity';
 import { isBillingCycle, resolveStripePriceId } from './stripe-price-id.resolver';
+import { MailerService } from '../mailer/mailer.service';
+import { EmailTemplates } from '../email/templates';
 
 @Injectable()
 export class PaymentsService {
@@ -18,6 +20,7 @@ export class PaymentsService {
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Address) private addressRepository: Repository<Address>,
     private plansService: PlansService,
+    @Optional() private readonly mailerService?: MailerService,
   ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_not_configured', {
       apiVersion: '2025-08-27.basil',
@@ -410,6 +413,29 @@ export class PaymentsService {
     }
   }
 
+  private getFrontBaseUrl(): string {
+    return (process.env.FRONT_BASE_URL || 'https://app.myurbanai.com').replace(/\/$/, '');
+  }
+
+  private async sendBillingEmail(
+    payment: Payment | null | undefined,
+    subject: string,
+    html: string,
+  ): Promise<void> {
+    const user = payment?.user;
+    if (!this.mailerService || !user?.email) return;
+
+    try {
+      await this.mailerService.sendHtmlEmail(
+        { email: user.email, name: user.username || user.email },
+        subject,
+        html,
+      );
+    } catch (error: any) {
+      console.warn(`Billing email failed for payment=${payment?.id || 'unknown'}: ${error?.message || error}`);
+    }
+  }
+
   async handleStripeWebhook(rawBody: Buffer, signature: string) {
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -481,6 +507,7 @@ export class PaymentsService {
             const id = typeof customerId === 'string' ? customerId : customerId.id;
             const payment = await this.paymentRepository.findOne({
               where: { customerId: id },
+              relations: ['user'],
             });
 
             if (payment) {
@@ -495,6 +522,20 @@ export class PaymentsService {
               payment.status = this.subscriptionStatusToPaymentStatus(status, payment.status);
 
               await this.paymentRepository.save(payment);
+              await this.sendBillingEmail(
+                payment,
+                'Urban AI - Assinatura ativada',
+                EmailTemplates.getSubscriptionActiveTemplate({
+                  nome: payment.user?.username || payment.user?.email || 'Usuario',
+                  planName: planName || payment.planName || 'Urban AI',
+                  billingCycle: urbanCycle as BillingCycle,
+                  listingsContratados: Math.max(1, urbanQuantity),
+                  totalAmountCents: this.resolveSubscriptionAmountCents(item, urbanQuantity, session.amount_total),
+                  nextBillingDate: cycleEnd.toISOString().slice(0, 10),
+                  invoiceUrl: this.resolveHostedInvoiceUrl(session.invoice),
+                  dashboardUrl: `${this.getFrontBaseUrl()}/dashboard`,
+                }),
+              );
               console.log(
                 `✅ checkout.session.completed processado para customer ${id} ` +
                   `(cycle=${urbanCycle}, qty=${urbanQuantity})`,
@@ -582,11 +623,24 @@ export class PaymentsService {
           const id = typeof customerId === 'string' ? customerId : customerId.id;
           const payment = await this.paymentRepository.findOne({
             where: { customerId: id },
+            relations: ['user'],
           });
 
           if (payment) {
             payment.status = 'canceled';
             await this.paymentRepository.save(payment);
+            const accessEndsAt = payment.expireDate instanceof Date
+              ? payment.expireDate.toISOString().slice(0, 10)
+              : new Date().toISOString().slice(0, 10);
+            await this.sendBillingEmail(
+              payment,
+              'Urban AI - Cancelamento confirmado',
+              EmailTemplates.getSubscriptionCancelledTemplate({
+                nome: payment.user?.username || payment.user?.email || 'Usuario',
+                accessEndsAt,
+                reactivateUrl: `${this.getFrontBaseUrl()}/plans?reactivate=1`,
+              }),
+            );
             console.log(`🚫 Subscription cancelada para customer ${id}`);
           }
         } catch (err) {
@@ -602,11 +656,24 @@ export class PaymentsService {
           const id = typeof customerId === 'string' ? customerId : customerId.id;
           const payment = await this.paymentRepository.findOne({
             where: { customerId: id },
+            relations: ['user'],
           });
 
           if (payment) {
             payment.status = 'past_due';
             await this.paymentRepository.save(payment);
+            await this.sendBillingEmail(
+              payment,
+              'Urban AI - Falha no pagamento',
+              EmailTemplates.getPaymentFailedTemplate({
+                nome: payment.user?.username || payment.user?.email || 'Usuario',
+                amountCents: invoice.amount_due || 0,
+                nextRetryDate: invoice.next_payment_attempt
+                  ? new Date(invoice.next_payment_attempt * 1000).toISOString().slice(0, 10)
+                  : 'em breve',
+                updatePaymentUrl: `${this.getFrontBaseUrl()}/plans?billing=payment_failed`,
+              }),
+            );
             console.log(`⚠️ Pagamento falhou para customer ${id}`);
           }
         } catch (err) {
@@ -620,6 +687,22 @@ export class PaymentsService {
     }
 
     return { event };
+  }
+
+  private resolveSubscriptionAmountCents(
+    item: Stripe.SubscriptionItem | undefined,
+    quantity: number,
+    sessionAmountTotal?: number | null,
+  ): number {
+    if (Number.isFinite(sessionAmountTotal)) return sessionAmountTotal as number;
+    const unitAmount = item?.price?.unit_amount ?? item?.plan?.amount ?? 0;
+    return Math.max(0, unitAmount * Math.max(1, quantity));
+  }
+
+  private resolveHostedInvoiceUrl(invoice: unknown): string | undefined {
+    if (!invoice || typeof invoice !== 'object') return undefined;
+    const hostedInvoiceUrl = (invoice as { hosted_invoice_url?: string | null }).hosted_invoice_url;
+    return hostedInvoiceUrl || undefined;
   }
 
 

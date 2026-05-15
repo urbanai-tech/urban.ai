@@ -32,6 +32,7 @@ import { Payment } from '../entities/payment.entity';
 import { User } from '../entities/user.entity';
 import { Address } from '../entities/addresses.entity';
 import { PlansService } from '../plans/plans.service';
+import { MailerService } from '../mailer/mailer.service';
 
 const stubAddressRepo = () => ({ count: jest.fn().mockResolvedValue(0) });
 
@@ -42,6 +43,7 @@ describe('PaymentsService — handleStripeWebhook', () => {
   let paymentRepo: Repo<Payment>;
   let userRepo: Repo<User>;
   let plansService: { getPlanByName: jest.Mock };
+  let mailerService: { sendHtmlEmail: jest.Mock };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -58,6 +60,7 @@ describe('PaymentsService — handleStripeWebhook', () => {
     };
     userRepo = { findOne: jest.fn() };
     plansService = { getPlanByName: jest.fn() };
+    mailerService = { sendHtmlEmail: jest.fn().mockResolvedValue({ enviado: true, status: 202 }) };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -66,6 +69,7 @@ describe('PaymentsService — handleStripeWebhook', () => {
         { provide: getRepositoryToken(User), useValue: userRepo },
         { provide: getRepositoryToken(Address), useValue: stubAddressRepo() },
         { provide: PlansService, useValue: plansService },
+        { provide: MailerService, useValue: mailerService },
       ],
     }).compile();
 
@@ -136,21 +140,25 @@ describe('PaymentsService — handleStripeWebhook', () => {
     it('persists listingsContratados and billingCycle from F6.5 metadata', async () => {
       mockStripeConstructEvent.mockReturnValue({
         type: 'checkout.session.completed',
-        data: { object: { subscription: 'sub_meta' } },
+        data: { object: { subscription: 'sub_meta', amount_total: 148500, invoice: 'in_123' } },
       });
       mockStripeSubscriptionsRetrieve.mockResolvedValue({
         id: 'sub_meta',
         customer: 'cus_abc',
         status: 'active',
         billing_cycle_anchor: 1_700_000_000,
-        items: { data: [{ plan: { interval: 'month' }, quantity: 5 }] },
+        items: { data: [{ plan: { interval: 'month', amount: 29700 }, quantity: 5 }] },
         metadata: {
           urbanai_plan: 'profissional',
           urbanai_billing_cycle: 'quarterly',
           urbanai_quantity: '5',
         },
       });
-      paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId: 'cus_abc' });
+      paymentRepo.findOne!.mockResolvedValue({
+        id: 'pay1',
+        customerId: 'cus_abc',
+        user: { email: 'host@test.com', username: 'Carla Host' },
+      });
 
       await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
 
@@ -159,6 +167,11 @@ describe('PaymentsService — handleStripeWebhook', () => {
       expect(saved.billingCycle).toBe('quarterly');
       expect(saved.listingsContratados).toBe(5);
       expect(saved.planName).toBe('profissional');
+      expect(mailerService.sendHtmlEmail).toHaveBeenCalledWith(
+        { email: 'host@test.com', name: 'Carla Host' },
+        'Urban AI - Assinatura ativada',
+        expect.stringContaining('Assinatura ativada'),
+      );
     });
 
     it('no-ops when Payment does not exist for the customer', async () => {
@@ -259,12 +272,23 @@ describe('PaymentsService — handleStripeWebhook', () => {
         type: 'customer.subscription.deleted',
         data: { object: { customer: 'cus_abc' } },
       });
-      paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId: 'cus_abc', status: 'active' });
+      paymentRepo.findOne!.mockResolvedValue({
+        id: 'pay1',
+        customerId: 'cus_abc',
+        status: 'active',
+        expireDate: new Date('2026-06-15T00:00:00.000Z'),
+        user: { email: 'host@test.com', username: 'Carla Host' },
+      });
 
       await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
 
       expect(paymentRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({ status: 'canceled' }),
+      );
+      expect(mailerService.sendHtmlEmail).toHaveBeenCalledWith(
+        { email: 'host@test.com', name: 'Carla Host' },
+        'Urban AI - Cancelamento confirmado',
+        expect.stringContaining('2026-06-15'),
       );
     });
   });
@@ -273,14 +297,24 @@ describe('PaymentsService — handleStripeWebhook', () => {
     it('marks the Payment row as past_due', async () => {
       mockStripeConstructEvent.mockReturnValue({
         type: 'invoice.payment_failed',
-        data: { object: { customer: 'cus_abc' } },
+        data: { object: { customer: 'cus_abc', amount_due: 9700, next_payment_attempt: 1_780_000_000 } },
       });
-      paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId: 'cus_abc', status: 'active' });
+      paymentRepo.findOne!.mockResolvedValue({
+        id: 'pay1',
+        customerId: 'cus_abc',
+        status: 'active',
+        user: { email: 'host@test.com', username: 'Carla Host' },
+      });
 
       await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
 
       expect(paymentRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({ status: 'past_due' }),
+      );
+      expect(mailerService.sendHtmlEmail).toHaveBeenCalledWith(
+        { email: 'host@test.com', name: 'Carla Host' },
+        'Urban AI - Falha no pagamento',
+        expect.stringContaining('R$ 97,00'),
       );
     });
   });
