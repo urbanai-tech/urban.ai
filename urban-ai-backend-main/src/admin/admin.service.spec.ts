@@ -32,6 +32,7 @@ function makeService(
     priceUpdateRepo?: any;
     staysAccountRepo?: any;
     staysListingRepo?: any;
+    jobRunRepo?: any;
   } = {},
 ) {
   return new AdminService(
@@ -48,12 +49,72 @@ function makeService(
     overrides.staysListingRepo ?? ({} as any),
     {} as any,
     {} as any,
-    {} as any,
+    overrides.jobRunRepo ?? ({} as any),
     {} as any,
     {} as any,
     {} as any,
   );
 }
+
+describe('AdminService runTrackedJob', () => {
+  function makeJobRunRepo() {
+    let seq = 0;
+    return {
+      create: jest.fn((input) => ({ id: `job-${++seq}`, ...input })),
+      save: jest.fn(async (input) => ({ ...input })),
+    };
+  }
+
+  it('marks a job as error when every attempted item fails', async () => {
+    const jobRunRepo = makeJobRunRepo();
+    const service = makeService(makeEventRepo([]), { jobRunRepo });
+
+    const result = await service.runTrackedJob('geocoder', 'admin-user', async () => ({
+      attempted: 100,
+      succeeded: 0,
+      failed: 100,
+      failures: [{ id: 'event-1', reason: 'Request failed with status code 403' }],
+    }));
+
+    expect(result.status).toBe('error');
+    expect(result.errorMessage).toBe('Job failed all attempted items (100/100)');
+    expect(jobRunRepo.save).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        status: 'error',
+        errorMessage: 'Job failed all attempted items (100/100)',
+      }),
+    );
+  });
+
+  it('keeps a partial job successful when at least one item succeeds', async () => {
+    const jobRunRepo = makeJobRunRepo();
+    const service = makeService(makeEventRepo([]), { jobRunRepo });
+
+    const result = await service.runTrackedJob('geocoder', 'admin-user', async () => ({
+      attempted: 10,
+      succeeded: 7,
+      failed: 3,
+      failures: [],
+    }));
+
+    expect(result.status).toBe('success');
+    expect(result.errorMessage).toBeNull();
+  });
+
+  it('marks blocked result statuses as error', async () => {
+    const jobRunRepo = makeJobRunRepo();
+    const service = makeService(makeEventRepo([]), { jobRunRepo });
+
+    const result = await service.runTrackedJob('dataset-snapshot', 'admin-user', async () => ({
+      status: 'blocked_missing_price_source',
+      captured: 0,
+      skippedMissingPrice: 41,
+    }));
+
+    expect(result.status).toBe('error');
+    expect(result.errorMessage).toBe('blocked_missing_price_source');
+  });
+});
 
 describe('AdminService collectorsHealth', () => {
   const originalEnv = process.env;
