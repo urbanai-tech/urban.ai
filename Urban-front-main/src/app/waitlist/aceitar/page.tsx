@@ -128,9 +128,8 @@ function AceitarConvite() {
     trackAnalyticsEvent("waitlist_invite_accept_attempt", {
       source: "waitlist-invite",
     });
-    // O endpoint definitivo de "aceitar convite + criar User" é responsabilidade
-    // a UI; submit redireciona pra home com email pré-preenchido pra usuário
-    // saber que precisa terminar o cadastro lá.
+    // Aceite definitivo: cria o User real, marca a waitlist como converted e
+    // deixa a sessao pronta para o redirecionamento ao dashboard.
     try {
       await acceptWaitlistInvite({
         token,

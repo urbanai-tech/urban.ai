@@ -86,6 +86,7 @@ src/
 Specs em `e2e/`:
 
 - `smoke.spec.ts` — home/landing/plans + waitlist form + staging banner
+- `authenticated-smoke.spec.ts` — login + dashboard/admin/alpha/ROI; pula por padrão sem credenciais
 - `a11y.spec.ts` — axe-core nas 3 rotas públicas, falha em violations critical/serious
 
 Rodar contra dev local:
@@ -103,6 +104,18 @@ Rodar contra staging:
 ```bash
 E2E_BASE_URL=https://staging.myurbanai.com yarn test:e2e
 ```
+
+Smoke autenticado contra staging/prod-like:
+
+```bash
+E2E_BASE_URL=https://staging.myurbanai.com \
+E2E_AUTH_EMAIL=admin@example.com \
+E2E_AUTH_PASSWORD='senha-real' \
+E2E_ALPHA_EMAIL=gustavo8gouveia@hotmail.com \
+yarn test:e2e --grep "Smoke autenticado"
+```
+
+Sem `E2E_AUTH_EMAIL`/`E2E_AUTH_PASSWORD` (ou aliases `E2E_EMAIL`/`E2E_PASSWORD`), o spec autenticado usa `test.skip` e a suite pública continua rodando normalmente.
 
 ## Build production
 
