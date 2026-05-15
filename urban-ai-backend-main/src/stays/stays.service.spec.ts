@@ -22,8 +22,13 @@ describe('StaysService', () => {
     listListings: jest.Mock;
     pushPrice: jest.Mock;
   };
+  const originalStaysApiBaseUrl = process.env.STAYS_API_BASE_URL;
+  const originalStaysTokenKey = process.env.STAYS_TOKEN_ENCRYPTION_KEY;
 
   beforeEach(async () => {
+    process.env.STAYS_API_BASE_URL = 'https://stays.test';
+    process.env.STAYS_TOKEN_ENCRYPTION_KEY = 'test-encryption-key';
+
     accountRepo = {
       findOne: jest.fn(),
       create: jest.fn().mockImplementation((d) => d),
@@ -61,7 +66,34 @@ describe('StaysService', () => {
     service = module.get<StaysService>(StaysService);
   });
 
+  afterAll(() => {
+    if (originalStaysApiBaseUrl === undefined) {
+      delete process.env.STAYS_API_BASE_URL;
+    } else {
+      process.env.STAYS_API_BASE_URL = originalStaysApiBaseUrl;
+    }
+
+    if (originalStaysTokenKey === undefined) {
+      delete process.env.STAYS_TOKEN_ENCRYPTION_KEY;
+    } else {
+      process.env.STAYS_TOKEN_ENCRYPTION_KEY = originalStaysTokenKey;
+    }
+  });
+
   describe('connectAccount', () => {
+    it('fails closed before ping when Stays envs are not configured', async () => {
+      delete process.env.STAYS_API_BASE_URL;
+      delete process.env.STAYS_TOKEN_ENCRYPTION_KEY;
+      userRepo.findOne!.mockResolvedValue({ id: 'u1' });
+
+      await expect(
+        service.connectAccount('u1', { clientId: 'c', accessToken: 'real-token' }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+
+      expect(connector.ping).not.toHaveBeenCalled();
+      expect(accountRepo.save).not.toHaveBeenCalled();
+    });
+
     it('rejects when the accessToken fails the ping validation', async () => {
       userRepo.findOne!.mockResolvedValue({ id: 'u1' });
       connector.ping.mockResolvedValue(false);

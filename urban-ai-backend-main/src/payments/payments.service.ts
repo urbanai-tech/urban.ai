@@ -237,10 +237,9 @@ export class PaymentsService {
     this.ensureStripeConfigured();
     this.ensureCheckoutUrlsConfigured();
 
-    const customerId = await this.ensureStripeCustomer(user);
-
     // 3) Quantidade — número de imóveis contratados. Sempre ≥ 1.
-    const quantity = Math.max(1, Math.floor(data.quantity ?? 1));
+    const quantity = this.resolveCheckoutQuantity(data.quantity);
+    const customerId = await this.ensureStripeCustomer(user);
 
     const TRIAL_PERIOD_DAYS = process.env.TRIAL_PERIOD_DAYS;
 
@@ -305,6 +304,14 @@ export class PaymentsService {
     }
 
     return customerId;
+  }
+
+  private resolveCheckoutQuantity(quantity: unknown): number {
+    const parsed = Number(quantity ?? 1);
+    if (!Number.isFinite(parsed)) {
+      throw new BadRequestException('Invalid checkout quantity');
+    }
+    return Math.max(1, Math.floor(parsed));
   }
 
   /**

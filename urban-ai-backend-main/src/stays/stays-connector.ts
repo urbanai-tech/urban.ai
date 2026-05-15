@@ -47,10 +47,14 @@ export interface StaysListingSummary {
 @Injectable()
 export class StaysConnector {
   private readonly logger = new Logger(StaysConnector.name);
-  private readonly baseURL = process.env.STAYS_API_BASE_URL || 'https://api.stays.net';
+  private readonly baseURL = process.env.STAYS_API_BASE_URL || '';
   private readonly maxRetries = 3;
 
   private client(accessToken: string): AxiosInstance {
+    if (!this.baseURL) {
+      throw new Error('STAYS_API_BASE_URL is required before calling Stays API');
+    }
+
     return axios.create({
       baseURL: this.baseURL,
       timeout: 15_000,

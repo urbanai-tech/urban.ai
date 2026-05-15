@@ -19,9 +19,14 @@ import { PaymentsService } from './payments.service';
 import { Request, Response } from 'express';
 import { ApiOperation, ApiProperty, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Type } from 'class-transformer';
+import { IsIn, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min } from 'class-validator';
+import { BILLING_CYCLES } from './stripe-price-id.resolver';
 
 export class CreateCheckoutSessionDto {
   @ApiProperty({ example: 'pro', description: 'Tag plano' })
+  @IsString()
+  @IsNotEmpty()
   plan: string;
 
   @ApiProperty({
@@ -29,6 +34,8 @@ export class CreateCheckoutSessionDto {
     description: 'Ciclo de cobranca (monthly | quarterly | semestral | annual)',
     required: false,
   })
+  @IsOptional()
+  @IsIn(BILLING_CYCLES)
   billingCycle?: 'monthly' | 'quarterly' | 'semestral' | 'annual';
 
   @ApiProperty({
@@ -36,6 +43,11 @@ export class CreateCheckoutSessionDto {
     description: 'Quantidade de imoveis contratados',
     required: false,
   })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(500)
   quantity?: number;
 }
 

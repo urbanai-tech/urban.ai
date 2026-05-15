@@ -1071,7 +1071,12 @@ export class AdminService {
       .orderBy('total', 'DESC')
       .getRawMany();
 
-    const knownCollectors = [
+    const knownCollectors: Array<{
+      source: string;
+      critical: boolean;
+      requiredEnv: string[];
+      aliases?: string[];
+    }> = [
       { source: 'api-football', critical: false, requiredEnv: ['API_FOOTBALL_KEY'] },
       { source: 'sp-cultura', critical: false, requiredEnv: [] },
       { source: 'usp-eventos', critical: false, requiredEnv: [] },
@@ -1104,10 +1109,20 @@ export class AdminService {
       const pendingEnrichment = Number(r.pendingEnrichment ?? 0);
       const enriched = Number(r.enriched ?? 0);
       const withErrors = Number(r.withErrors ?? 0);
+      const lastSeen = r.lastSeen ?? null;
+      const missingEnv = known?.requiredEnv.filter((name) => !process.env[name]) ?? [];
+      const stale = Boolean(
+        lastSeen &&
+          Date.now() - new Date(lastSeen).getTime() > 48 * 60 * 60 * 1000,
+      );
       return {
-        source: r.source,
-        status: 'has_events',
+        source: known?.source ?? rawSource,
+        status: missingEnv.length ? 'missing_key' : stale ? 'stale' : 'has_events',
         critical: known?.critical ?? null,
+        aliases: known?.aliases ?? [],
+        requiredEnv: known?.requiredEnv ?? [],
+        missingEnv,
+        stale,
         total,
         last7d: Number(r.last7d ?? 0),
         last24h: Number(r.last24h ?? 0),
@@ -1122,7 +1137,7 @@ export class AdminService {
           enriched + withErrors > 0
             ? Math.round((withErrors / (enriched + withErrors)) * 1000) / 10
             : 0,
-        lastSeen: r.lastSeen ?? null,
+        lastSeen,
       };
     });
     const present = new Set(
