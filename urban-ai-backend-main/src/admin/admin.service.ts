@@ -80,13 +80,14 @@ export class AdminService {
     try {
       const result = await handler();
       const finishedAt = new Date();
+      const outcome = this.evaluateJobOutcome(result);
       const saved = await this.jobRunRepo.save({
         ...run,
-        status: 'success',
+        status: outcome.status,
         finishedAt,
         durationMs: finishedAt.getTime() - startedAt.getTime(),
         result,
-        errorMessage: null,
+        errorMessage: outcome.errorMessage,
       });
       return this.toJobRunResponse(saved);
     } catch (error: any) {
@@ -101,6 +102,41 @@ export class AdminService {
       });
       throw error;
     }
+  }
+
+  private evaluateJobOutcome(result: any): {
+    status: 'success' | 'error';
+    errorMessage: string | null;
+  } {
+    if (!result || typeof result !== 'object') {
+      return { status: 'success', errorMessage: null };
+    }
+
+    if (result.ok === false) {
+      return { status: 'error', errorMessage: result.errorMessage || result.message || 'Job reported ok=false' };
+    }
+
+    if (
+      typeof result.attempted === 'number' &&
+      result.attempted > 0 &&
+      typeof result.failed === 'number' &&
+      result.failed >= result.attempted &&
+      Number(result.succeeded ?? 0) === 0
+    ) {
+      return {
+        status: 'error',
+        errorMessage: `Job failed all attempted items (${result.failed}/${result.attempted})`,
+      };
+    }
+
+    if (typeof result.status === 'string') {
+      const status = result.status.toLowerCase();
+      if (status === 'failed' || status === 'error' || status.startsWith('blocked')) {
+        return { status: 'error', errorMessage: result.errorMessage || result.message || result.status };
+      }
+    }
+
+    return { status: 'success', errorMessage: null };
   }
 
   private toJobRunResponse(run: AdminJobRun) {
