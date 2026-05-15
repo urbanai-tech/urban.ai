@@ -69,15 +69,27 @@ function getPlanName(sub: Subscription) {
   return "Plano Urban AI";
 }
 
+function getCycleLabel(sub: Subscription) {
+  const cycle = sub.metadata?.urbanai_billing_cycle || sub.plan?.interval || "monthly";
+  return cycleLabels[cycle] || cycle;
+}
+
+function getQuantityLabel(sub: Subscription) {
+  const quantity = Number(sub.metadata?.urbanai_quantity);
+  if (Number.isFinite(quantity) && quantity > 0) {
+    return `${Math.floor(quantity)} imoveis contratados`;
+  }
+  return "1 imovel contratado";
+}
+
 function getPriceLabel(sub: Subscription) {
   const amount = sub.plan?.amount;
   if (typeof amount === "number" && Number.isFinite(amount)) {
     const currency = (sub.plan?.currency || sub.currency || "brl").toUpperCase();
-    const interval = sub.plan?.interval || sub.metadata?.urbanai_billing_cycle || "monthly";
     return `${(amount / 100).toLocaleString("pt-BR", {
       style: "currency",
       currency,
-    })} / ${cycleLabels[interval] || interval}`;
+    })} / ${getCycleLabel(sub)}`;
   }
 
   const quantity = sub.metadata?.urbanai_quantity;
@@ -149,6 +161,25 @@ export default function SubscriptionCards({
                 </Text>
 
                 <Divider />
+
+                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={3}>
+                  <Box bg="gray.50" borderRadius="md" p={3}>
+                    <Text fontSize="xs" fontWeight="bold" color="gray.500" textTransform="uppercase">
+                      Ciclo
+                    </Text>
+                    <Text color="gray.700" fontWeight="semibold">
+                      {getCycleLabel(sub)}
+                    </Text>
+                  </Box>
+                  <Box bg="gray.50" borderRadius="md" p={3}>
+                    <Text fontSize="xs" fontWeight="bold" color="gray.500" textTransform="uppercase">
+                      Quota
+                    </Text>
+                    <Text color="gray.700" fontWeight="semibold">
+                      {getQuantityLabel(sub)}
+                    </Text>
+                  </Box>
+                </SimpleGrid>
 
                 <Stack spacing={1} fontSize="md" color="gray.600">
                   <Text>{getDateLabel(sub)}</Text>
