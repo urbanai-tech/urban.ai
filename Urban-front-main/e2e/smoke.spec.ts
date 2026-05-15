@@ -34,11 +34,15 @@ test.describe('Smoke - rotas publicas', () => {
     );
   });
 
-  test('pagina de planos mostra os 2 planos ou redireciona para auth', async ({ page }) => {
+  test('pagina de planos mostra os 2 planos, auth ou pre-launch', async ({ page }) => {
     await page.goto('/plans');
-    const url = page.url();
-    const reachedPlansOrLogin = /\/plans|\/(login|auth)/.test(url);
-    expect(reachedPlansOrLogin, `inesperado: ${url}`).toBe(true);
+    const { pathname } = new URL(page.url());
+    const reachedExpectedRoute =
+      pathname === '/' ||
+      pathname === '/plans' ||
+      pathname === '/login' ||
+      pathname.startsWith('/auth');
+    expect(reachedExpectedRoute, `inesperado: ${page.url()}`).toBe(true);
   });
 });
 

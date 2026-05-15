@@ -4,6 +4,8 @@ export class CreatePriceUpdates1779500000000 implements MigrationInterface {
   name = 'CreatePriceUpdates1779500000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    if (await queryRunner.hasTable('price_updates')) return;
+
     await queryRunner.createTable(
       new Table({
         name: 'price_updates',
@@ -136,6 +138,8 @@ export class CreatePriceUpdates1779500000000 implements MigrationInterface {
       onDelete: 'CASCADE' | 'SET NULL' | 'RESTRICT';
     },
   ) {
+    if (!(await queryRunner.hasTable(input.referencedTableName))) return;
+
     const table = await queryRunner.getTable(tableName);
     const exists = table?.foreignKeys.some(
       (fk) =>
