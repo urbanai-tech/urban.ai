@@ -13,8 +13,15 @@ Usuario: gustavo8gouveia@hotmail.com
 - Endpoints admin basicos passaram a responder `200` apos a promocao: `/admin/overview`, `/admin/users`, `/admin/alpha/dashboard`.
 - Auditor E2E criado em `Urban-front-main/scripts/e2e-product-audit.js`.
 - Relatorios brutos gerados:
-  - Admin: `docs/e2e-reports/2026-05-15T13-01-21/report.md`
-  - Anfitriao: `docs/e2e-reports/2026-05-15T13-03-42/report.md`
+  - Admin inicial: `docs/e2e-reports/2026-05-15T13-01-21/report.md`
+  - Anfitriao inicial: `docs/e2e-reports/2026-05-15T13-03-42/report.md`
+  - Admin final: `docs/e2e-reports/2026-05-15T13-27-37/report.md`
+  - Anfitriao final: `docs/e2e-reports/2026-05-15T13-45-31/report.md`
+- Hotfixes aplicados e deployados:
+  - Migration `price_updates` para destravar dashboard/admin Stays.
+  - `/my-plan` defensivo para payload alpha/sem `plan.amount`.
+  - Links publicos do footer interno como URL absoluta para eliminar prefetch/RSC cross-origin.
+- Deploy Railway final em `SUCCESS` no backend e no frontend para o commit `f20da01`.
 
 ## 2. Plano E2E completo
 
@@ -58,37 +65,37 @@ Cobertura mutante planejada para staging ou fixture isolada:
 
 | Modulo | Entrega funcional estimada | UI | APIs | Leitura |
 |---|---:|---:|---:|---|
-| Admin | 87% | 85% | 91% | Quase operavel; bloqueado por 2 endpoints 500 ligados a tabela ausente. |
-| Anfitriao | 59% estrito | 37% | 100% | APIs principais estao vivas, mas UI tem 1 crash real e varios erros de console por prefetch/CORS. |
+| Admin | 100% | 100% | 100% | Read-only operacional em producao; zero P0 no auditor final. |
+| Anfitriao | 100% | 100% | 100% | Jornada autenticada basica operacional em producao; `/my-plan` e CORS/RSC resolvidos. |
 
-Observacao: a nota do anfitriao esta em modo estrito porque qualquer erro de console rebaixa a rota. Se isolar a familia repetida de CORS/RSC dos links publicos, o modulo sobe operacionalmente, mas ainda fica bloqueado por `/my-plan`.
+Observacao: a nota atual mede cobertura read-only de rotas e APIs criticas. Fluxos mutantes, como checkout Stripe, aceite/aplicacao de sugestao, reprocessamento alpha, import CSV, push/rollback Stays e alteracoes administrativas, continuam exigindo staging/fixture ou execucao controlada.
 
 ## 4. Achados por severidade
 
 ### P0 - corrigir antes de ampliar alpha/beta
 
-1. **Admin dashboard e Stays health quebram por tabela ausente**
+1. **Resolvido - Admin dashboard e Stays health quebravam por tabela ausente**
    - Sintoma: `/admin/dashboard-summary` retorna `500`.
    - Sintoma: `/admin/stays/health` retorna `500`.
    - Impacto UI: `/admin`, `/admin/dashboard` e `/admin/stays` exibem erro.
    - Evidencia Railway: `Table 'railway.price_updates' doesn't exist`.
    - Causa provavel: entity `PriceUpdate` existe, mas a migration/tabela `price_updates` nao foi aplicada/criada em producao.
-   - Acao recomendada: criar migration idempotente `price_updates` ou aplicar migration pendente; depois reexecutar admin E2E.
+   - Acao executada: migration idempotente `price_updates` criada/aplicada/verificada; admin E2E final em 100%.
 
-2. **Pagina do plano do anfitriao quebra**
+2. **Resolvido - Pagina do plano do anfitriao quebrava**
    - Rota: `/my-plan`.
    - Sintoma: `Internal Server Error` na UI.
    - Erro JS: `Cannot read properties of undefined (reading 'amount')`.
    - Causa provavel: componente `SubscriptionCards` assume `subscription.plan.amount`, mas o payload real de `/payments/getSubscription` pode vir sem `plan`/`amount`.
-   - Acao recomendada: normalizar payload no backend ou tornar a UI defensiva com fallback para planos F6.5/metadata.
+   - Acao executada: backend passou a retornar payload alpha com `plan`; UI ficou defensiva para payloads sem `plan.amount`; host E2E final em 100%.
 
 ### P1 - corrigir para experiencia limpa e E2E confiavel
 
-3. **CORS/RSC em links publicos dentro do app autenticado**
+3. **Resolvido - CORS/RSC em links publicos dentro do app autenticado**
    - Rotas afetadas: `/post-login`, `/dashboard`, `/plans`, `/plans/v2`, `/my-roi`, `/event-log`.
    - Sintoma: Next tenta buscar RSC em `app.myurbanai.com/sobre|contato|privacidade`, middleware redireciona para `myurbanai.com`, e o browser bloqueia por CORS.
    - Impacto: a tela geralmente carrega, mas o console fica vermelho, prefetch degrada e o E2E acusa falhas.
-   - Acao recomendada: em links do app para paginas publicas, usar URL absoluta `https://myurbanai.com/...` com `prefetch={false}` ou `<a>` simples; evitar `next/link` relativo para rotas que o middleware redireciona cross-origin.
+   - Acao executada: footer interno usa links absolutos `https://myurbanai.com/...` sem `next/link`, removendo o prefetch/RSC cross-origin.
 
 ### P2 - melhorias de confiabilidade
 
@@ -107,25 +114,23 @@ Observacao: a nota do anfitriao esta em modo estrito porque qualquer erro de con
 
 | Frente | Status funcional | Gap principal | Proximo teste |
 |---|---:|---|---|
-| Admin core | 87% | `price_updates` ausente quebra dashboard/stays | Reexecutar admin E2E apos migration. |
+| Admin core | 100% read-only | Fluxos mutantes ainda precisam de staging/fixture | Testar audit log com mutacoes controladas. |
 | Alpha ops | 90%+ | Precisa validar acao mutante de reprocessamento com evidencia | POST `/admin/alpha/reprocess` em fixture/alpha real. |
 | ROI admin/usuario | 80%+ | APIs OK; falta conferir numeros contra dados reais | Comparar `/my-roi` e `/admin/roi` com SQL/planilha. |
 | Eventos/admin | 80%+ | UI/API carregam; qualidade de base ainda depende dos coletores | Rodar coletores e validar `created24h/future`. |
-| Billing/plano | 45% | `/my-plan` quebra; smoke Stripe ainda pendente | Corrigir UI/payload e rodar checkout/webhook/quota. |
-| Stays | 35% | Admin Stays quebra por `price_updates`; usuario ve listings vazio | Criar tabela, manter beta privado e testar sandbox. |
-| Host dashboard | 70% visual, 100% API basica | Console CORS/RSC polui navegacao | Corrigir links publicos no app. |
+| Billing/plano | 65% | `/my-plan` corrigido; smoke Stripe ainda pendente | Rodar checkout/webhook/quota/cancelamento. |
+| Stays | 40% | Admin health e tabela OK; listings ainda vazios sem sandbox real | Manter beta privado e testar connect/sync/push/rollback. |
+| Host dashboard | 100% read-only | Falta fluxo mutante de recomendacao aplicada | Reprocessar, aceitar/aplicar sugestao e registrar resultado real. |
 
 ## 6. Recomendacao de ordem de correcao
 
-1. Criar/aplicar migration da tabela `price_updates`.
-2. Corrigir `/my-plan` para payloads sem `plan.amount`.
-3. Corrigir links publicos no app autenticado para eliminar CORS/RSC.
-4. Reexecutar auditor E2E admin e anfitriao.
-5. Rodar fluxos mutantes controlados: alpha reprocess, pricing input, sugestao aplicada, ROI e Stripe test mode.
-6. Promover o auditor para CI/staging como release gate.
+1. Rodar fluxos mutantes controlados: alpha reprocess, pricing input, sugestao aplicada, ROI e Stripe test mode.
+2. Validar Stays em sandbox/allowlist: connect, sync, preview, push e rollback.
+3. Promover o auditor para CI/staging como release gate.
+4. Adicionar seletores estaveis `data-testid` para reduzir fragilidade do auditor.
 
 ## 7. Criterio para considerar modulo pronto
 
-- **Admin pronto para operacao diaria:** >= 95% no auditor, zero P0, zero endpoint admin 500, audit log validado em pelo menos 3 mutacoes.
-- **Anfitriao pronto para alpha ampliado:** >= 90% no auditor, dashboard/my-plan/my-roi sem erro visual ou console P1, recomendacao aceita/aplicada com historico e ROI.
+- **Admin pronto para operacao diaria:** criterio read-only atingido; falta audit log validado em pelo menos 3 mutacoes.
+- **Anfitriao pronto para alpha ampliado:** criterio read-only atingido; falta recomendacao aceita/aplicada com historico e ROI real.
 - **Beta pago pronto:** admin e anfitriao >= 95%, Stripe smoke completo, 3-5 evidencias reais de ROI e suporte/LGPD operando.
