@@ -637,6 +637,15 @@ export class AdminService {
     ]);
 
     return {
+      readiness: {
+        apiBaseConfigured: Boolean(process.env.STAYS_API_BASE_URL),
+        tokenEncryptionConfigured: Boolean(process.env.STAYS_TOKEN_ENCRYPTION_KEY),
+        betaPrivate: !process.env.STAYS_API_BASE_URL || !process.env.STAYS_TOKEN_ENCRYPTION_KEY,
+        missingEnv: [
+          !process.env.STAYS_API_BASE_URL ? 'STAYS_API_BASE_URL' : '',
+          !process.env.STAYS_TOKEN_ENCRYPTION_KEY ? 'STAYS_TOKEN_ENCRYPTION_KEY' : '',
+        ].filter(Boolean),
+      },
       accountsByStatus: accountsByStatus.map((r: any) => ({
         status: r.status,
         count: Number(r.count),

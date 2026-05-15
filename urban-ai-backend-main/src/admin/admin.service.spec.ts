@@ -26,7 +26,14 @@ function makeEventRepo(rows: any[]) {
   };
 }
 
-function makeService(eventRepo: any) {
+function makeService(
+  eventRepo: any,
+  overrides: {
+    priceUpdateRepo?: any;
+    staysAccountRepo?: any;
+    staysListingRepo?: any;
+  } = {},
+) {
   return new AdminService(
     {} as any,
     {} as any,
@@ -36,9 +43,9 @@ function makeService(eventRepo: any) {
     {} as any,
     {} as any,
     {} as any,
-    {} as any,
-    {} as any,
-    {} as any,
+    overrides.priceUpdateRepo ?? ({} as any),
+    overrides.staysAccountRepo ?? ({} as any),
+    overrides.staysListingRepo ?? ({} as any),
     {} as any,
     {} as any,
     {} as any,
@@ -133,5 +140,61 @@ describe('AdminService collectorsHealth', () => {
       status: 'missing_key',
       missingEnv: ['TAVILY_API_KEY', 'GEMINI_API_KEY'],
     });
+  });
+});
+
+describe('AdminService staysHealth', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+    delete process.env.STAYS_API_BASE_URL;
+    delete process.env.STAYS_TOKEN_ENCRYPTION_KEY;
+  });
+
+  afterAll(() => {
+    process.env = originalEnv;
+  });
+
+  function rawQuery(rows: any[]) {
+    return {
+      select: jest.fn().mockReturnThis(),
+      addSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      groupBy: jest.fn().mockReturnThis(),
+      getRawMany: jest.fn().mockResolvedValue(rows),
+    };
+  }
+
+  it('exposes Stays readiness and missing envs for the admin page', async () => {
+    const accountQb = rawQuery([{ status: 'active', count: '1' }]);
+    const pushQb = rawQuery([{ status: 'success', count: '2' }]);
+    const service = makeService(makeEventRepo([]), {
+      staysAccountRepo: { createQueryBuilder: jest.fn().mockReturnValue(accountQb) },
+      staysListingRepo: {
+        count: jest
+          .fn()
+          .mockResolvedValueOnce(3)
+          .mockResolvedValueOnce(2)
+          .mockResolvedValueOnce(1),
+      },
+      priceUpdateRepo: {
+        createQueryBuilder: jest.fn().mockReturnValue(pushQb),
+        find: jest.fn().mockResolvedValue([]),
+      },
+    });
+
+    const result = await service.staysHealth();
+
+    expect(result.readiness).toEqual({
+      apiBaseConfigured: false,
+      tokenEncryptionConfigured: false,
+      betaPrivate: true,
+      missingEnv: ['STAYS_API_BASE_URL', 'STAYS_TOKEN_ENCRYPTION_KEY'],
+    });
+    expect(result.accountsByStatus).toEqual([{ status: 'active', count: 1 }]);
+    expect(result.listings).toEqual({ total: 3, active: 2, forcedAuto: 1 });
+    expect(result.pushLast30d).toEqual([{ status: 'success', count: 2 }]);
   });
 });

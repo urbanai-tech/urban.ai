@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { loadStripe } from "@stripe/stripe-js";
 import type { BillingCycle, Plan } from "../service/api";
 import { createCheckoutSession } from "../service/api";
 
@@ -22,6 +23,9 @@ const CYCLES: { value: BillingCycle; label: string; mesesNoCiclo: number }[] = [
 ];
 
 const QUANTITY_PRESETS = [1, 3, 5, 10];
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  : null;
 
 function priceForCycle(plan: Plan, cycle: BillingCycle): number {
   const raw =
@@ -76,19 +80,19 @@ export function PricingCalculatorV2({ plan }: { plan: Plan }) {
     setBusy(true);
     setError(null);
     try {
+      if (!stripePromise) {
+        throw new Error("Checkout indisponivel: chave publica Stripe nao configurada.");
+      }
+
       const { sessionId } = await createCheckoutSession(plan.name, cycle, quantity);
-      // Em produção chamamos stripe.redirectToCheckout aqui — depende do
-      // wrapper StripeJS já carregado pela aplicação.
-      const stripeJs = (window as unknown as {
-        Stripe?: (key: string) => { redirectToCheckout: (opts: { sessionId: string }) => Promise<unknown> };
-      }).Stripe;
-      const pubKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-      if (stripeJs && pubKey) {
-        const stripe = stripeJs(pubKey);
-        await stripe.redirectToCheckout({ sessionId });
-      } else {
-        // Fallback — alguns ambientes carregam Stripe via componentes específicos
-        window.location.href = `/api/stripe/checkout-redirect?session=${sessionId}`;
+      const stripe = await stripePromise;
+      if (!stripe) {
+        throw new Error("Checkout indisponivel: Stripe.js nao carregou.");
+      }
+
+      const result = await stripe.redirectToCheckout({ sessionId });
+      if (result.error) {
+        throw new Error(result.error.message || "Erro ao redirecionar para o checkout.");
       }
     } catch (err) {
       const msg = (err as Error)?.message || "Erro ao iniciar checkout.";
