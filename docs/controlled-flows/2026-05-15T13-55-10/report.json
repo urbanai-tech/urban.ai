@@ -1,0 +1,179 @@
+{
+  "generatedAt": "2026-05-15T13:55:18.866Z",
+  "api": "https://urbanai-production-85fd.up.railway.app",
+  "email": "gustavo8gouveia@hotmail.com",
+  "steps": [
+    {
+      "name": "login",
+      "ok": true,
+      "status": 201,
+      "skipped": false,
+      "data": "object(accessToken)"
+    },
+    {
+      "name": "properties.list",
+      "ok": true,
+      "status": 200,
+      "skipped": false,
+      "data": "array(9)"
+    },
+    {
+      "name": "pricing.history.before",
+      "ok": true,
+      "status": 200,
+      "skipped": false,
+      "data": "array(1)"
+    },
+    {
+      "name": "pricing.patch.smoke",
+      "ok": true,
+      "status": 200,
+      "skipped": false,
+      "data": {
+        "addressId": "1a4e0b1a-fc66-43be-b35a-529ade42a641",
+        "listId": "83a7a51a-9036-47f4-8791-ebdc78d83023",
+        "manualDailyPrice": 151,
+        "averageMonthlyRevenue": 4500,
+        "dailyPrice": 151,
+        "pricingInputSource": "manual",
+        "pricingInputsUpdatedAt": "2026-05-15T13:55:13.371Z"
+      }
+    },
+    {
+      "name": "pricing.patch.rollback",
+      "ok": true,
+      "status": 200,
+      "skipped": false,
+      "data": {
+        "addressId": "1a4e0b1a-fc66-43be-b35a-529ade42a641",
+        "listId": "83a7a51a-9036-47f4-8791-ebdc78d83023",
+        "manualDailyPrice": 150,
+        "averageMonthlyRevenue": 4500,
+        "dailyPrice": 150,
+        "pricingInputSource": "manual",
+        "pricingInputsUpdatedAt": "2026-05-15T13:55:13.680Z"
+      }
+    },
+    {
+      "name": "pricing.history.after",
+      "ok": true,
+      "status": 200,
+      "skipped": false,
+      "data": "array(3)"
+    },
+    {
+      "name": "admin.alpha.reprocess",
+      "ok": false,
+      "status": 400,
+      "skipped": false,
+      "data": "object(message,error,statusCode)"
+    },
+    {
+      "name": "admin.alpha.recommendations",
+      "ok": true,
+      "status": 200,
+      "skipped": false,
+      "data": "object(generatedAt,user,total,rows)"
+    },
+    {
+      "name": "suggestion.mutation",
+      "ok": false,
+      "status": null,
+      "skipped": false,
+      "issue": "no recommendation id found in admin alpha recommendations"
+    },
+    {
+      "name": "roi.me.after",
+      "ok": true,
+      "status": 200,
+      "skipped": false,
+      "data": "object(windowDays,generatedAt,user,subscription,money,activity,dataQuality,perProperty,recentWins)"
+    },
+    {
+      "name": "billing.quota",
+      "ok": true,
+      "status": 200,
+      "skipped": false,
+      "data": {
+        "contratados": 30,
+        "ativos": 9,
+        "podeAdicionar": true
+      }
+    },
+    {
+      "name": "billing.subscription",
+      "ok": true,
+      "status": 200,
+      "skipped": false,
+      "data": {
+        "id": "alpha-24d09b73-6532-4aa6-8ede-36a0dd7ea634",
+        "status": "trialing",
+        "currency": "brl",
+        "start_date": 1778853315,
+        "metadata": {
+          "urbanai_plan": "alpha",
+          "urbanai_quantity": "30",
+          "urbanai_billing_cycle": "monthly"
+        },
+        "plan": {
+          "id": "alpha",
+          "amount": 0,
+          "currency": "brl",
+          "interval": "monthly"
+        }
+      }
+    },
+    {
+      "name": "stripe.sync_check",
+      "ok": true,
+      "status": 200,
+      "skipped": false,
+      "data": {
+        "total": 8,
+        "ok": 4,
+        "missing": 4,
+        "notConfigured": 0,
+        "problems": 0,
+        "stripeKeyConfigured": true
+      }
+    },
+    {
+      "name": "stripe.checkout_session_create_no_charge",
+      "ok": true,
+      "status": 201,
+      "skipped": false,
+      "data": {
+        "sessionIdPrefix": "cs_test_a1K7"
+      }
+    },
+    {
+      "name": "stays.admin_health",
+      "ok": true,
+      "status": 200,
+      "skipped": false,
+      "data": {
+        "apiBaseConfigured": false,
+        "tokenEncryptionConfigured": false,
+        "betaPrivate": true,
+        "missingEnv": [
+          "STAYS_API_BASE_URL",
+          "STAYS_TOKEN_ENCRYPTION_KEY"
+        ]
+      }
+    },
+    {
+      "name": "stays.listings",
+      "ok": true,
+      "status": 200,
+      "skipped": false,
+      "data": "array(0)"
+    },
+    {
+      "name": "stays.push.rollback",
+      "ok": false,
+      "status": null,
+      "skipped": true,
+      "issue": "no sandbox/listing available or Stays still beta private"
+    }
+  ]
+}
