@@ -76,4 +76,78 @@ test.describe('Dashboard recommendations', () => {
     await expect(page.getByText(/Evento proximo/i)).toBeVisible();
     await expect(page.getByRole('button', { name: /Aceitar Sugest/i })).toBeVisible();
   });
+
+  test('aceita recomendacao e registra preco aplicado com resultado', async ({ page }) => {
+    const acceptPayloads: Array<{ aceito?: boolean }> = [];
+    const appliedPayloads: Array<{
+      precoAplicado?: number;
+      origem?: string;
+      reservaStatus?: string;
+      receitaReal?: number;
+      noitesReservadas?: number;
+      feedbackObservacao?: string;
+    }> = [];
+    let currentRecommendation: Record<string, unknown> = { ...recommendation };
+
+    await mockProperties(page);
+    await page.route('**/propriedades/eventos-analisados-com-price**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [currentRecommendation] }),
+      });
+    });
+    await page.route('**/sugestoes-preco/analysis-e2e/aceito', async (route) => {
+      acceptPayloads.push(route.request().postDataJSON());
+      currentRecommendation = { ...currentRecommendation, aceito: true, status: 'accepted' };
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: true }),
+      });
+    });
+    await page.route('**/sugestoes-preco/analysis-e2e/aplicado', async (route) => {
+      const payload = route.request().postDataJSON();
+      appliedPayloads.push(payload);
+      currentRecommendation = {
+        ...currentRecommendation,
+        precoAplicado: payload.precoAplicado,
+        aplicadoEm: new Date().toISOString(),
+        origemAplicacao: payload.origem,
+        reservaStatus: payload.reservaStatus,
+        receitaReal: payload.receitaReal,
+        noitesReservadas: payload.noitesReservadas,
+        feedbackObservacao: payload.feedbackObservacao,
+        status: 'applied_manual',
+      };
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: true }),
+      });
+    });
+
+    await page.goto('/dashboard');
+    await page.getByRole('button', { name: /Aceitar Sugest/i }).click();
+
+    expect(acceptPayloads[0]).toEqual({ aceito: true });
+    await expect(page.getByRole('button', { name: /Cancelar/i })).toBeVisible();
+
+    await page.getByPlaceholder(/aplicado/i).fill('450');
+    await page.locator('select').selectOption('booked');
+    await page.getByPlaceholder(/Receita real/i).fill('1350');
+    await page.getByPlaceholder(/Noites/i).fill('3');
+    await page.getByPlaceholder(/Observacao/i).fill('Reserva fechada pelo Airbnb');
+    await page.getByRole('button', { name: /Registrar pre/i }).click();
+
+    expect(appliedPayloads[0]).toMatchObject({
+      precoAplicado: 450,
+      origem: 'manual_dashboard',
+      reservaStatus: 'booked',
+      receitaReal: 1350,
+      noitesReservadas: 3,
+      feedbackObservacao: 'Reserva fechada pelo Airbnb',
+    });
+    await expect(page.getByLabel(/Pre.o aplicado registrado/i)).toContainText(/R\$/);
+  });
 });
