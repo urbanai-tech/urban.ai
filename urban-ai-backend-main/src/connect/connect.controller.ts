@@ -35,11 +35,12 @@ export class ConnectController {
   ) { }
 
   private async assertListingsQuota(userId: string, newSlots: number) {
-    if (newSlots <= 0) return;
+    if (newSlots <= 0) return null;
 
     const quota = await this.paymentsService.getListingsQuota(userId);
     const totalAposCriacao = quota.ativos + newSlots;
     if (totalAposCriacao > quota.contratados) {
+      await this.paymentsService.sendQuotaExceededEmail(userId, quota.contratados, totalAposCriacao);
       throw new ForbiddenException({
         code: "LISTINGS_QUOTA_EXCEEDED",
         message:
@@ -51,6 +52,15 @@ export class ConnectController {
         tentando: newSlots,
       });
     }
+
+    return {
+      ...quota,
+      totalAposCriacao,
+      crossedWarningThreshold:
+        quota.contratados > 0 &&
+        quota.ativos / quota.contratados < 0.8 &&
+        totalAposCriacao / quota.contratados >= 0.8,
+    };
   }
 
 
@@ -160,8 +170,12 @@ export class ConnectController {
   ): Promise<List[]> {
     const userId = req.user.userId;
     const newSlots = await this.connectService.countNewAddressSlotsForProperties(properties, userId);
-    await this.assertListingsQuota(userId, newSlots);
-    return this.connectService.saveProperties(properties, userId);
+    const quotaCheck = await this.assertListingsQuota(userId, newSlots);
+    const saved = await this.connectService.saveProperties(properties, userId);
+    if (quotaCheck?.crossedWarningThreshold) {
+      await this.paymentsService.sendQuotaWarningEmail(userId, quotaCheck.contratados, quotaCheck.totalAposCriacao);
+    }
+    return saved;
   }
 
   @UseGuards(JwtAuthGuard)
@@ -219,9 +233,15 @@ export class ConnectController {
     // pagou Starter (3 imóveis) e cadastrou 47".
     if (Array.isArray(addresses) && addresses.length > 0) {
       const newSlots = await this.connectService.countNewAddressSlotsForAddresses(addresses, userId);
-      await this.assertListingsQuota(userId, newSlots);
+      const quotaCheck = await this.assertListingsQuota(userId, newSlots);
+      const saved = await this.connectService.createMultipleAddresses(addresses, userId);
+      if (quotaCheck?.crossedWarningThreshold) {
+        await this.paymentsService.sendQuotaWarningEmail(userId, quotaCheck.contratados, quotaCheck.totalAposCriacao);
+      }
+      return saved as Address[];
     }
-    return this.connectService.createMultipleAddresses(addresses, userId) as Promise<Address[]>;
+    const saved = await this.connectService.createMultipleAddresses(addresses, userId);
+    return saved as Address[];
   }
   @Get('resolve')
   @UseGuards(JwtAuthGuard)

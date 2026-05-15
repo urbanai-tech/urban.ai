@@ -423,6 +423,15 @@ export class PaymentsService {
     html: string,
   ): Promise<void> {
     const user = payment?.user;
+    await this.sendBillingEmailToUser(user, subject, html, payment?.id);
+  }
+
+  private async sendBillingEmailToUser(
+    user: User | null | undefined,
+    subject: string,
+    html: string,
+    paymentId = 'none',
+  ): Promise<void> {
     if (!this.mailerService || !user?.email) return;
 
     try {
@@ -432,8 +441,36 @@ export class PaymentsService {
         html,
       );
     } catch (error: any) {
-      console.warn(`Billing email failed for payment=${payment?.id || 'unknown'}: ${error?.message || error}`);
+      console.warn(`Billing email failed for payment=${paymentId}: ${error?.message || error}`);
     }
+  }
+
+  async sendQuotaWarningEmail(userId: string, contratados: number, ativos: number): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    await this.sendBillingEmailToUser(
+      user,
+      'Urban AI - Voce esta perto do limite de imoveis',
+      EmailTemplates.getQuotaWarningTemplate({
+        nome: user?.username || user?.email || 'Usuario',
+        contratados,
+        ativos,
+        upgradeUrl: `${this.getFrontBaseUrl()}/plans?upsell=quota`,
+      }),
+    );
+  }
+
+  async sendQuotaExceededEmail(userId: string, contratados: number, tentando: number): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    await this.sendBillingEmailToUser(
+      user,
+      'Urban AI - Limite de imoveis atingido',
+      EmailTemplates.getQuotaExceededTemplate({
+        nome: user?.username || user?.email || 'Usuario',
+        contratados,
+        tentando,
+        upgradeUrl: `${this.getFrontBaseUrl()}/plans?upsell=quota`,
+      }),
+    );
   }
 
   async handleStripeWebhook(rawBody: Buffer, signature: string) {
