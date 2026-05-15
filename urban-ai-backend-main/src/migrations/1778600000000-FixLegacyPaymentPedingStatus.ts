@@ -4,6 +4,9 @@ export class FixLegacyPaymentPedingStatus1778600000000 implements MigrationInter
   name = 'FixLegacyPaymentPedingStatus1778600000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    const table = await queryRunner.getTable('payment');
+    if (!table) return;
+
     await queryRunner.query("UPDATE payment SET status = 'pending' WHERE status = 'peding'");
   }
 
