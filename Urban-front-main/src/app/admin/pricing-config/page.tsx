@@ -286,6 +286,7 @@ function StripeSyncCard({
   const statusColor: Record<string, string> = {
     ok: "text-emerald-400 border-emerald-700/40 bg-emerald-950/20",
     missing: "text-red-300 border-red-700/40 bg-red-950/30",
+    "not-configured": "text-slate-300 border-slate-700/40 bg-slate-900/50",
     "not-found": "text-red-300 border-red-700/40 bg-red-950/30",
     "cycle-mismatch": "text-amber-300 border-amber-700/40 bg-amber-950/30",
     "currency-mismatch": "text-amber-300 border-amber-700/40 bg-amber-950/30",
@@ -322,10 +323,23 @@ function StripeSyncCard({
             </div>
           )}
 
-          <div className="flex gap-3 text-xs mb-4">
+          {report.summary.total !== 8 || report.summary.ok !== 8 ? (
+            <div className="mb-3 p-3 rounded border border-amber-700/40 bg-amber-950/30 text-xs text-amber-200">
+              <strong>Gate F5 ainda incompleto.</strong> O sync check precisa fechar 8/8 Price IDs OK
+              antes de liberar smoke de checkout pago. Resolva faltantes, nao configurados ou divergentes
+              no banco/env e no Dashboard Stripe.
+            </div>
+          ) : (
+            <div className="mb-3 p-3 rounded border border-emerald-700/40 bg-emerald-950/20 text-xs text-emerald-300">
+              <strong>Gate F5 pronto para smoke.</strong> Os 8 Price IDs esperados estao OK no sync check.
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-3 text-xs mb-4">
             <Stat label="Total" value={report.summary.total} />
             <Stat label="OK" value={report.summary.ok} color="text-emerald-400" />
             <Stat label="Faltando" value={report.summary.missing} color="text-red-300" />
+            <Stat label="Sem chave" value={report.summary.notConfigured} color="text-slate-300" />
             <Stat label="Problemas" value={report.summary.problems} color="text-amber-300" />
           </div>
 
