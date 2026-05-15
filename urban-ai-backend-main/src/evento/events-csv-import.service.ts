@@ -79,7 +79,7 @@ export class EventsCsvImportService {
     const events: IngestEventInput[] = [];
     const invalidRows: Array<{ line: number; reason: string }> = [];
 
-    const source = sourceLabel?.trim() || this.DEFAULT_SOURCE;
+    const source = this.sanitizeSourceLabel(sourceLabel);
 
     for (let i = 0; i < dataRows.length; i++) {
       const cells = dataRows[i];
@@ -89,6 +89,11 @@ export class EventsCsvImportService {
         const payload = this.cellsToPayload(header, cells, source);
         if (!payload) {
           invalidRows.push({ line: i + 2, reason: 'nome ou dataInicio ausentes' });
+          continue;
+        }
+        const validationError = this.validateFallbackPayload(payload);
+        if (validationError) {
+          invalidRows.push({ line: i + 2, reason: validationError });
           continue;
         }
         events.push(payload);
@@ -268,6 +273,37 @@ export class EventsCsvImportService {
     if (sourceId) payload.sourceId = sourceId;
 
     return payload;
+  }
+
+  private sanitizeSourceLabel(sourceLabel?: string): string {
+    const raw = sourceLabel?.trim() || this.DEFAULT_SOURCE;
+    const normalized = raw
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]+/g, '-')
+      .replace(/-{2,}/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 80);
+    return normalized || this.DEFAULT_SOURCE;
+  }
+
+  private validateFallbackPayload(payload: IngestEventInput): string | null {
+    const date = new Date(payload.dataInicio);
+    if (Number.isNaN(date.getTime())) {
+      return 'dataInicio inválida';
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (date < today) {
+      return 'dataInicio passada';
+    }
+
+    const estado = (payload.estado || 'SP').trim().toUpperCase();
+    if (estado !== 'SP') {
+      return 'estado fora de SP';
+    }
+
+    return null;
   }
 
   private toNumberOrNull(s: string): number | null {

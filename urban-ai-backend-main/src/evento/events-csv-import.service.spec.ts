@@ -5,6 +5,7 @@ import { EventsIngestService } from './events-ingest.service';
 describe('EventsCsvImportService', () => {
   let service: EventsCsvImportService;
   let ingestMock: { ingestBatch: jest.Mock };
+  const FUTURE_DATE = '2026-06-10';
 
   beforeEach(async () => {
     ingestMock = {
@@ -80,7 +81,7 @@ describe('EventsCsvImportService', () => {
       const csv = [
         'nome,dataInicio,enderecoCompleto,latitude,longitude,categoria,venueType',
         '"RD Summit 2026","2026-10-15T08:00:00","São Paulo Expo","-23.6258","-46.6469","conference","convention_center"',
-        '"Palmeiras x Santos","2026-05-10T16:00:00","Allianz Parque","","","esporte","stadium"',
+        '"Palmeiras x Santos","2026-06-10T16:00:00","Allianz Parque","","","esporte","stadium"',
       ].join('\n');
 
       ingestMock.ingestBatch.mockResolvedValue({
@@ -118,7 +119,7 @@ describe('EventsCsvImportService', () => {
         'nome,dataInicio',
         ',2026-10-15', // sem nome
         'Show X,', // sem data
-        'Show Y,2026-05-10', // OK
+        `Show Y,${FUTURE_DATE}`, // OK
       ].join('\n');
 
       const r = await service.importFromBuffer(Buffer.from(csv));
@@ -132,7 +133,7 @@ describe('EventsCsvImportService', () => {
     it('força source admin-csv-import (não aceita override do CSV)', async () => {
       const csv = [
         'nome,dataInicio,source',
-        'Show A,2026-05-10,fake-source-do-csv',
+        `Show A,${FUTURE_DATE},fake-source-do-csv`,
       ].join('\n');
 
       await service.importFromBuffer(Buffer.from(csv));
@@ -143,32 +144,51 @@ describe('EventsCsvImportService', () => {
     });
 
     it('aceita sourceLabel custom', async () => {
-      const csv = ['nome,dataInicio', 'Show A,2026-05-10'].join('\n');
+      const csv = ['nome,dataInicio', `Show A,${FUTURE_DATE}`].join('\n');
 
-      await service.importFromBuffer(Buffer.from(csv), 'admin-special');
+      await service.importFromBuffer(Buffer.from(csv), 'CSV SPTuris 2026/Q2!');
 
       const sentEvents = ingestMock.ingestBatch.mock.calls[0][0];
-      expect(sentEvents[0].source).toBe('admin-special');
+      expect(sentEvents[0].source).toBe('csv-spturis-2026-q2');
+    });
+
+    it('rejeita linhas com data passada antes de chamar ingest', async () => {
+      const csv = ['nome,dataInicio', 'Show velho,2026-01-10'].join('\n');
+
+      const r = await service.importFromBuffer(Buffer.from(csv));
+
+      expect(r.invalidRows).toEqual([{ line: 2, reason: 'dataInicio passada' }]);
+      expect(r.ingest.total).toBe(0);
+      expect(ingestMock.ingestBatch).not.toHaveBeenCalled();
+    });
+
+    it('rejeita linhas fora de SP no fallback manual', async () => {
+      const csv = ['nome,dataInicio,cidade,estado', `Show RJ,${FUTURE_DATE},Rio de Janeiro,RJ`].join('\n');
+
+      const r = await service.importFromBuffer(Buffer.from(csv));
+
+      expect(r.invalidRows).toEqual([{ line: 2, reason: 'estado fora de SP' }]);
+      expect(ingestMock.ingestBatch).not.toHaveBeenCalled();
     });
 
     it('aceita variações de cabeçalho (name vs nome, etc.)', async () => {
       const csv = [
         'name,startdate,address,lat,lng',
-        'Show X,2026-05-10,Rua A,-23.5,-46.6',
+        `Show X,${FUTURE_DATE},Rua A,-23.5,-46.6`,
       ].join('\n');
 
       await service.importFromBuffer(Buffer.from(csv));
 
       const sent = ingestMock.ingestBatch.mock.calls[0][0][0];
       expect(sent.nome).toBe('Show X');
-      expect(sent.dataInicio).toBe('2026-05-10');
+      expect(sent.dataInicio).toBe(FUTURE_DATE);
       expect(sent.enderecoCompleto).toBe('Rua A');
       expect(sent.latitude).toBe(-23.5);
       expect(sent.longitude).toBe(-46.6);
     });
 
     it('default cidade São Paulo + estado SP quando ausentes', async () => {
-      const csv = ['nome,dataInicio', 'Show A,2026-05-10'].join('\n');
+      const csv = ['nome,dataInicio', `Show A,${FUTURE_DATE}`].join('\n');
 
       await service.importFromBuffer(Buffer.from(csv));
 
@@ -179,7 +199,7 @@ describe('EventsCsvImportService', () => {
 
     it('rejeita CSV > 1000 linhas', async () => {
       const header = 'nome,dataInicio';
-      const lines = Array.from({ length: 1002 }, (_, i) => `Show ${i},2026-05-10`);
+      const lines = Array.from({ length: 1002 }, (_, i) => `Show ${i},${FUTURE_DATE}`);
       const csv = [header, ...lines].join('\n');
 
       await expect(service.importFromBuffer(Buffer.from(csv))).rejects.toThrow(/1000/);

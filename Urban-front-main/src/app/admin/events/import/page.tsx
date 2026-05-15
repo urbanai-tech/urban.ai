@@ -131,6 +131,11 @@ export default function ImportarCsvEventos() {
               de impacto.
             </p>
             <p>
+              <strong className="text-slate-50">Gate:</strong> linhas com data passada
+              ou UF fora de SP sao rejeitadas antes do ingest para manter o lote util
+              ao beta.
+            </p>
+            <p>
               <strong className="text-slate-50">Depois do upload:</strong> confira o
               dashboard, rode geocoder em `/admin/jobs` se houver pendentes e revise
               invalidRows.
@@ -165,8 +170,8 @@ export default function ImportarCsvEventos() {
               className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
             />
             <p className="text-xs text-slate-500 mt-1">
-              Útil pra rastrear de qual planilha veio. Aparece no painel admin
-              filtrado por source.
+              Util pra rastrear de qual planilha veio. O backend normaliza para
+              letras minusculas, numeros, ponto, underline e hifen.
             </p>
           </label>
 
