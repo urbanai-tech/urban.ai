@@ -42,6 +42,7 @@ export class StaysService {
   async connectAccount(userId: string, input: ConnectInput): Promise<StaysAccount> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('Usuário não encontrado');
+    this.assertStaysReadiness();
 
     // Valida o token antes de persistir — previne guardar credencial quebrada.
     const ok = await this.connector.ping(input.accessToken);
@@ -94,6 +95,7 @@ export class StaysService {
     if (!account || account.status !== 'active') {
       throw new BadRequestException('Conta Stays não conectada.');
     }
+    this.assertStaysReadiness({ requireEncryptionKey: false });
 
     const remote = await this.connector.listListings(account.accessToken);
     account.lastSyncAt = new Date();
@@ -159,6 +161,7 @@ export class StaysService {
     if (account.status !== 'active') {
       throw new BadRequestException('Conta Stays não está ativa — reconecte.');
     }
+    this.assertStaysReadiness({ requireEncryptionKey: false });
 
     const listing = await this.listingRepo.findOne({
       where: { id: input.listingId, account: { id: account.id } },
@@ -258,6 +261,22 @@ export class StaysService {
   }
 
   // =========== Helpers ===========
+
+  private assertStaysReadiness(options: { requireEncryptionKey?: boolean } = {}) {
+    const requireEncryptionKey = options.requireEncryptionKey ?? true;
+    const missing = [
+      !process.env.STAYS_API_BASE_URL ? 'STAYS_API_BASE_URL' : '',
+      requireEncryptionKey && !process.env.STAYS_TOKEN_ENCRYPTION_KEY
+        ? 'STAYS_TOKEN_ENCRYPTION_KEY'
+        : '',
+    ].filter(Boolean);
+
+    if (missing.length > 0) {
+      throw new BadRequestException(
+        `Integração Stays em beta privado bloqueada. Configure ${missing.join(', ')} antes de conectar ou enviar dados reais.`,
+      );
+    }
+  }
 
   private buildIdempotencyKey(listingId: string, date: string, priceCents: number): string {
     const raw = `${listingId}|${date}|${priceCents}`;

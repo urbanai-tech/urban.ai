@@ -1,6 +1,6 @@
 # Runbook - Stays beta privado
 
-Data: 2026-05-14
+Data: 2026-05-15
 Escopo: validar Stays como beta privado antes de permitir qualquer aplicacao automatica de preco em conta real.
 
 ## Principio de release
@@ -15,6 +15,8 @@ Stays nao deve aparecer como automacao pronta enquanto qualquer item abaixo esti
 - evidencia de `PriceUpdate` para sucesso, rejeicao e rollback.
 
 Se algo falhar, manter o produto em modo recomendacao manual e tratar Stays como beta privado.
+
+Nota operacional: o backend esta em fail-closed. Sem `STAYS_API_BASE_URL`, o conector nao chama a API Stays; sem `STAYS_TOKEN_ENCRYPTION_KEY`, `POST /stays/connect` bloqueia antes de validar ou persistir token real.
 
 ## Pre-condicoes
 
@@ -76,6 +78,7 @@ O smoke bloqueia Stays quando:
 |---|---|---|
 | `apiBaseConfigured=false` | Env ausente | Manter beta privado e configurar sandbox antes do teste. |
 | `tokenEncryptionConfigured=false` | Segredo ausente | Nao conectar token real; configurar segredo e redeploy. |
+| Connect bloqueado antes do ping | `STAYS_API_BASE_URL` ou `STAYS_TOKEN_ENCRYPTION_KEY` ausente | Configurar envs e redeploy; nao usar fallback para prod. |
 | Connect falha | Token invalido ou API fora | Validar no painel Stays e checar `/admin/stays`. |
 | Sync retorna zero listings | Conta sem Open API/listings ou filtro errado | Confirmar conta sandbox e permissao. |
 | Push rejected | Guardrail, data, listing inativo ou regra Stays | Registrar motivo e manter recomendacao manual. |

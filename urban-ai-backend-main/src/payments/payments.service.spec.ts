@@ -536,6 +536,24 @@ describe('PaymentsService — createCheckoutSession', () => {
     expect(createArgs.line_items[0].quantity).toBe(1);
   });
 
+  it('rejects non-numeric quantity before calling Stripe checkout', async () => {
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com', username: 'U' });
+    plansService.getPlanByName.mockResolvedValue({
+      name: 'profissional',
+      stripePriceIdMonthly: 'price_m_pro',
+    });
+
+    await expect(
+      service.createCheckoutSession(
+        { plan: 'profissional', billingCycle: 'monthly', quantity: 'abc' as any },
+        'u1',
+      ),
+    ).rejects.toThrow('Invalid checkout quantity');
+
+    expect(mockStripeCustomersList).not.toHaveBeenCalled();
+    expect(mockStripeCheckoutSessionsCreate).not.toHaveBeenCalled();
+  });
+
   it('adds subscription_data.trial_period_days when plan=trial', async () => {
     process.env.TRIAL_PERIOD_DAYS = '10';
     userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com', username: 'U' });
