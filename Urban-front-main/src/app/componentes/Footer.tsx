@@ -5,7 +5,9 @@ import React from 'react';
 import "../../../i18n"; // inicializa o i18n
 import { useTranslation } from 'react-i18next';
 import { Box, Text, Flex, Link as ChakraLink, VStack } from '@chakra-ui/react';
-import NextLink from 'next/link';
+
+const PUBLIC_SITE_URL =
+  process.env.NEXT_PUBLIC_PUBLIC_SITE_URL || "https://myurbanai.com";
 
 const Footer = () => {
   const { t } = useTranslation();
@@ -25,22 +27,19 @@ const Footer = () => {
         </Text>
         <Flex justify="center" gap={6} wrap="wrap">
           <ChakraLink
-            as={NextLink}
-            href="/sobre"
+            href={`${PUBLIC_SITE_URL}/sobre`}
             _hover={{ textDecoration: 'underline' }}
           >
             {t('footer.links.about')}
           </ChakraLink>
           <ChakraLink
-            as={NextLink}
-            href="/contato"
+            href={`${PUBLIC_SITE_URL}/contato`}
             _hover={{ textDecoration: 'underline' }}
           >
             {t('footer.links.contact')}
           </ChakraLink>
           <ChakraLink
-            as={NextLink}
-            href="/privacidade"
+            href={`${PUBLIC_SITE_URL}/privacidade`}
             _hover={{ textDecoration: 'underline' }}
           >
             {t('footer.links.privacy')}
