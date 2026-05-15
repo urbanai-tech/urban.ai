@@ -5,6 +5,7 @@ import { List } from '../entities/list.entity';
 import { EventProximityFeature } from '../entities/event-proximity-feature.entity';
 import { OccupancyHistory } from '../entities/occupancy-history.entity';
 import { PriceSnapshot } from '../entities/price-snapshot.entity';
+import { Event } from '../entities/events.entity';
 import { UrbanAIPricingEngine } from './pricing-engine';
 import { PropertyClassifier } from './knn-classifier';
 import { TravelTimeEngine } from './isochrone';
@@ -33,7 +34,9 @@ import { AdaptivePricingStrategy } from './strategies/adaptive-pricing.strategy'
  * `docs/adr/0009-modelo-neural-hibrido-moat.md` (Tier 4 aspiracional).
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([Address, List, PriceSnapshot, OccupancyHistory, EventProximityFeature])],
+  imports: [
+    TypeOrmModule.forFeature([Address, List, PriceSnapshot, OccupancyHistory, EventProximityFeature, Event]),
+  ],
   providers: [
     // Componentes nativos
     TravelTimeEngine,

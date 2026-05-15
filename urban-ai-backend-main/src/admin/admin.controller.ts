@@ -143,6 +143,17 @@ export class AdminController {
     );
   }
 
+  @ApiOperation({ summary: 'Executar snapshot manual das features de proximidade a eventos' })
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @Post('dataset/event-proximity/run')
+  async runEventProximitySnapshot(@Req() req: any) {
+    return this.admin.runTrackedJob(
+      'event-proximity-snapshot',
+      req?.user?.userId ?? null,
+      () => this.datasetCollector.recordEventProximityFeatures(),
+    );
+  }
+
   @ApiOperation({ summary: 'Historico de execucao dos jobs admin' })
   @Get('jobs/runs')
   async jobRuns(@Query('limit') limit: string = '10', @Query('name') name?: string) {

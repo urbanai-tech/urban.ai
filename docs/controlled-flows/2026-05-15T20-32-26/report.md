@@ -86,6 +86,8 @@ Todas as falhas retornaram `Request failed with status code 403`, indicando prob
 
 Validacao pos-deploy: o mesmo fluxo foi rerodado com `limit=1` depois do deploy do backend. O job passou a gravar `status=error` e `errorMessage=Job failed all attempted items (1/1)`, confirmando que o falso verde foi corrigido em producao. Em seguida, o backend recebeu normalizacao de erro Google Maps para trocar `Request failed with status code 403` por uma mensagem acionavel sobre `GOOGLE_MAPS_API_KEY`, restricoes server-side, Geocoding API e billing.
 
+Validacao do cron das 21:00 UTC: a mensagem nova expôs a causa raiz real: `Google Geocoding API request failed (HTTP 403, REQUEST_DENIED)` porque a Geocoding API nao esta ativada no projeto Google Cloud associado a chave. Acao externa pendente: abrir Google Cloud Console do projeto da chave, ativar **Geocoding API**, manter billing ativo e confirmar que a restricao da key permite uso server-side para a API Geocoding.
+
 ### Dataset snapshot
 
 Resultado: `captured=0`, `duplicates=9`, `skipped=32`, `totalLists=41`, `skippedMissingPrice=32`, `status=partial_missing_prices`.
@@ -94,12 +96,12 @@ Leitura: os 9 listings alpha ja tinham snapshot duplicado para o dia, mas ainda 
 
 ## Bloqueios que permanecem
 
-1. Corrigir Google Maps/Geocoding em producao: chave existe, mas chamadas retornam 403. A aplicacao ja classifica isso como erro operacional; falta corrigir a chave/projeto Google Cloud.
+1. Corrigir Google Maps/Geocoding em producao: chave existe, mas a Geocoding API nao esta ativada no projeto Google Cloud da chave. A aplicacao ja classifica isso como erro operacional; falta ativar a API no console/projeto correto.
 2. Subir eventos futuros de 95 para pelo menos 100 no gate minimo, idealmente 200 SP/30d.
 3. Elevar cobertura de recomendacao de 62.1% para pelo menos 70%.
 4. Corrigir 7 enderecos ativos com cidade/UF invalidos.
 5. Capturar ocupacao/reserva/receita real para sair de ROI estimado.
-6. Criar rotina de event proximity features ou acoplar snapshot ao batch de recomendacao.
+6. Criar rotina de event proximity features ou acoplar snapshot ao batch de recomendacao. Implementado no workspace atual: cron diario `dataset-event-proximity-snapshot`, endpoint admin `/admin/dataset/event-proximity/run` e botao em `/admin/jobs`; falta deploy/rerun em producao para o contador sair de 0.
 7. Configurar `AIRROI_API_KEY` somente quando a aquisicao externa for aprovada.
 8. Configurar `STAYS_API_BASE_URL` antes de qualquer smoke real Stays.
 

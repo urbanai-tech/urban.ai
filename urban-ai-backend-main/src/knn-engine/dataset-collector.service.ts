@@ -1,12 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Between, IsNull, Not, Repository } from 'typeorm';
 import { PriceSnapshot } from '../entities/price-snapshot.entity';
 import { EventProximityFeature } from '../entities/event-proximity-feature.entity';
 import { OccupancyHistory } from '../entities/occupancy-history.entity';
 import { Address } from '../entities/addresses.entity';
 import { List } from '../entities/list.entity';
+import { Event } from '../entities/events.entity';
 
 export type DatasetHealth = 'red' | 'amber' | 'green';
 export type DatasetReadiness = 'empty' | 'collecting' | 'training_ready' | 'ground_truth_ready';
@@ -20,6 +21,16 @@ export interface DatasetCollectionResult {
   skippedInvalidPrice: number;
   externalDataAvailable: boolean;
   status: 'ok' | 'empty_catalog' | 'blocked_missing_price_source' | 'partial_missing_prices';
+  warnings: string[];
+}
+
+export interface EventProximityCollectionResult {
+  captured: number;
+  skipped: number;
+  duplicates: number;
+  totalAddresses: number;
+  totalEvents: number;
+  status: 'ok' | 'empty_addresses' | 'empty_events';
   warnings: string[];
 }
 
@@ -104,6 +115,7 @@ export class DatasetCollectorService {
     private readonly eventFeatureRepo: Repository<EventProximityFeature>,
     @InjectRepository(Address) private readonly addressRepo: Repository<Address>,
     @InjectRepository(List) private readonly listRepo: Repository<List>,
+    @InjectRepository(Event) private readonly eventRepo: Repository<Event>,
   ) {}
 
   // ============ Frente 1: snapshot diário dos imóveis cadastrados ============
@@ -129,6 +141,111 @@ export class DatasetCollectorService {
     } finally {
       this.isRunning = false;
     }
+  }
+
+  @Cron('45 3 * * *', { name: 'dataset-event-proximity-snapshot', timeZone: 'America/Sao_Paulo' })
+  async handleDailyEventProximitySnapshot() {
+    try {
+      const result = await this.recordEventProximityFeatures();
+      this.logger.log(
+        `Event proximity snapshot: capturados=${result.captured} pulados=${result.skipped} duplicados=${result.duplicates}`,
+      );
+    } catch (err) {
+      this.logger.error(`Event proximity snapshot falhou: ${(err as Error).message}`);
+    }
+  }
+
+  async recordEventProximityFeatures(radiusKm = 5): Promise<EventProximityCollectionResult> {
+    const snapshotDate = new Date().toISOString().slice(0, 10);
+    const now = new Date();
+    const in30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    const [addresses, events] = await Promise.all([
+      this.addressRepo.find({
+        where: {
+          ativo: true,
+          latitude: Not(IsNull()),
+          longitude: Not(IsNull()),
+        } as any,
+        relations: ['list'],
+        take: 5000,
+      }),
+      this.eventRepo.find({
+        where: {
+          ativo: true,
+          latitude: Not(IsNull()),
+          longitude: Not(IsNull()),
+          dataInicio: Between(now, in30Days),
+        } as any,
+        take: 5000,
+      }),
+    ]);
+
+    if (addresses.length === 0) {
+      return {
+        captured: 0,
+        skipped: 0,
+        duplicates: 0,
+        totalAddresses: 0,
+        totalEvents: events.length,
+        status: 'empty_addresses',
+        warnings: ['No active geocoded addresses were available for event proximity snapshots.'],
+      };
+    }
+
+    if (events.length === 0) {
+      return {
+        captured: 0,
+        skipped: addresses.length,
+        duplicates: 0,
+        totalAddresses: addresses.length,
+        totalEvents: 0,
+        status: 'empty_events',
+        warnings: ['No active geocoded events were available in the next 30 days.'],
+      };
+    }
+
+    let captured = 0;
+    let skipped = 0;
+    let duplicates = 0;
+
+    for (const address of addresses) {
+      if (!address.list?.id || !this.isFiniteCoordinate(address.latitude, address.longitude)) {
+        skipped++;
+        continue;
+      }
+
+      const existing = await this.eventFeatureRepo.findOne({
+        where: { snapshotDate, list: { id: address.list.id } } as any,
+      });
+      if (existing) {
+        duplicates++;
+        continue;
+      }
+
+      const aggregate = this.aggregateEventsForAddress(address, events, radiusKm, now);
+      await this.eventFeatureRepo.save(
+        this.eventFeatureRepo.create({
+          snapshotDate,
+          list: address.list,
+          address,
+          ...aggregate,
+          competitiveSupplyCount: this.countComparableSupply(address, addresses),
+          medianCompPriceCents: null,
+        }),
+      );
+      captured++;
+    }
+
+    return {
+      captured,
+      skipped,
+      duplicates,
+      totalAddresses: addresses.length,
+      totalEvents: events.length,
+      status: 'ok',
+      warnings: [],
+    };
   }
 
   /**
@@ -411,6 +528,89 @@ export class DatasetCollectorService {
 
     const parsed = Number(normalized);
     return Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed * 100) : null;
+  }
+
+  private aggregateEventsForAddress(address: Address, events: Event[], radiusKm: number, now: Date) {
+    const next7d = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const next14d = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+    const matches = events
+      .map((event) => ({
+        event,
+        distanceKm: this.distanceKm(
+          Number(address.latitude),
+          Number(address.longitude),
+          Number(event.latitude),
+          Number(event.longitude),
+        ),
+      }))
+      .filter(({ event, distanceKm }) => {
+        const impactRadius = Number(event.raioImpactoKm ?? radiusKm);
+        return Number.isFinite(distanceKm) && distanceKm <= Math.max(radiusKm, impactRadius || 0);
+      });
+
+    const in7d = matches.filter(({ event }) => event.dataInicio <= next7d);
+    const in14d = matches.filter(({ event }) => event.dataInicio <= next14d);
+    const relevance = matches
+      .map(({ event }) => Number(event.relevancia ?? 0))
+      .filter((value) => Number.isFinite(value) && value > 0);
+    const closest = in14d.reduce<null | { distanceKm: number }>(
+      (best, item) => (!best || item.distanceKm < best.distanceKm ? item : best),
+      null,
+    );
+
+    return {
+      eventsNext7d: in7d.length,
+      eventsNext14d: in14d.length,
+      eventsNext30d: matches.length,
+      megaEventsNext30d: matches.filter(({ event }) => Number(event.relevancia ?? 0) >= 80).length,
+      closestEventDistanceKm: closest ? Number(closest.distanceKm.toFixed(3)) : null,
+      closestEventTravelMin: closest ? Number(((closest.distanceKm / 25) * 60).toFixed(2)) : null,
+      avgRelevanceScore: relevance.length
+        ? Number((relevance.reduce((sum, value) => sum + value, 0) / relevance.length).toFixed(2))
+        : null,
+      maxRelevanceScore: relevance.length ? Math.max(...relevance) : null,
+      predominantCategory: this.predominantCategory(matches.map(({ event }) => event.categoria)),
+    };
+  }
+
+  private countComparableSupply(address: Address, addresses: Address[]): number | null {
+    const bairro = String(address.bairro ?? '').trim().toLowerCase();
+    if (!bairro) return null;
+    return addresses.filter(
+      (candidate) =>
+        candidate.id !== address.id &&
+        String(candidate.bairro ?? '').trim().toLowerCase() === bairro,
+    ).length;
+  }
+
+  private predominantCategory(categories: Array<string | null | undefined>): string | null {
+    const counts = new Map<string, number>();
+    for (const category of categories) {
+      const normalized = String(category ?? '').trim().toLowerCase();
+      if (!normalized) continue;
+      counts.set(normalized, (counts.get(normalized) ?? 0) + 1);
+    }
+    const [winner] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0] ?? [];
+    return winner ?? null;
+  }
+
+  private isFiniteCoordinate(latitude: unknown, longitude: unknown): boolean {
+    return Number.isFinite(Number(latitude)) && Number.isFinite(Number(longitude));
+  }
+
+  private distanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const toRad = (value: number) => (value * Math.PI) / 180;
+    const earthRadiusKm = 6371;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) *
+        Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return earthRadiusKm * c;
   }
 
   private collectionStatus(
