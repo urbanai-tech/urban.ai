@@ -38,16 +38,32 @@ test.describe('My plan billing view', () => {
       });
     });
 
+    await page.route('**/payments/billing-portal-session', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ url: '/billing-portal-e2e' }),
+      });
+    });
+
     await page.goto('/my-plan');
 
     await expect(page.getByRole('heading', { name: /Meu plano/i })).toBeVisible();
     await expect(page.getByText(/Plano profissional/i)).toBeVisible();
-    await expect(page.getByText(/trimestral/i)).toBeVisible();
+    await expect(page.getByText('trimestral', { exact: true })).toBeVisible();
     await expect(page.getByText(/5 imoveis contratados/i)).toBeVisible();
-    await expect(page.getByText(/Contratados/i)).toBeVisible();
-    await expect(page.getByText(/Ativos/i)).toBeVisible();
-    await expect(page.getByText(/Disponiveis/i)).toBeVisible();
+    await expect(page.getByTestId('quota-contracted-card')).toContainText('Contratados');
+    await expect(page.getByTestId('quota-active-card')).toContainText('Ativos');
+    await expect(page.getByTestId('quota-available-card')).toContainText('Disponiveis');
     await expect(page.getByText(/Pode cadastrar mais/i)).toBeVisible();
+
+    const essentialCookiesButton = page.getByRole('button', { name: /Apenas essenciais/i });
+    if (await essentialCookiesButton.count()) {
+      await essentialCookiesButton.click();
+    }
+
+    await page.getByTestId('manage-billing-button').click();
+    await expect(page).toHaveURL(/\/billing-portal-e2e$/);
   });
 
   test('mantem assinatura visivel quando quota falha', async ({ page }) => {
@@ -81,5 +97,6 @@ test.describe('My plan billing view', () => {
     await expect(page.getByText(/Plano Alpha/i)).toBeVisible();
     await expect(page.getByText(/Alpha assistido/i)).toBeVisible();
     await expect(page.getByText(/Nao foi possivel carregar sua quota/i)).toBeVisible();
+    await expect(page.getByTestId('manage-billing-button')).toHaveCount(0);
   });
 });

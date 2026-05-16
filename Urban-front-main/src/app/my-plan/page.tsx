@@ -18,6 +18,7 @@ import { ToastContainer, toast } from "react-toastify";
 import SubscriptionCards, { Subscription } from "../componentes/Subscription";
 import {
   cancelSubscription,
+  createBillingPortalSession,
   fetchListingsQuota,
   fetchSubscription,
   type ListingsQuota,
@@ -34,6 +35,7 @@ export default function SubscriptionsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [manageBillingLoading, setManageBillingLoading] = useState(false);
 
   async function loadSubscription() {
     setLoading(true);
@@ -55,8 +57,7 @@ export default function SubscriptionsPage() {
     if (quotaResult.status === "fulfilled") {
       setQuota(quotaResult.value);
     } else {
-      const err = quotaResult.reason as Error;
-      setQuotaError(err.message || "Nao foi possivel carregar sua quota de imoveis.");
+      setQuotaError("Nao foi possivel carregar sua quota de imoveis.");
     }
 
     setLoading(false);
@@ -76,6 +77,20 @@ export default function SubscriptionsPage() {
       toast("Erro ao cancelar assinatura", { type: "error" });
     } finally {
       setCancelLoading(false);
+    }
+  }
+
+  async function handleManageBilling() {
+    setManageBillingLoading(true);
+    try {
+      const session = await createBillingPortalSession();
+      if (!session.url) {
+        throw new Error("Portal indisponivel");
+      }
+      window.location.href = session.url;
+    } catch {
+      toast("Nao foi possivel abrir o portal de billing", { type: "error" });
+      setManageBillingLoading(false);
     }
   }
 
@@ -106,7 +121,7 @@ export default function SubscriptionsPage() {
   const available = quota ? remainingQuota(quota) : null;
 
   return (
-    <Box maxW="container.lg" mx="auto" px={{ base: 4, md: 8 }} py={8}>
+    <Box data-testid="my-plan-page" maxW="container.lg" mx="auto" px={{ base: 4, md: 8 }} py={8}>
       <Stack spacing={6}>
         <Box textAlign="center">
           <HStack justify="center" spacing={3} mb={2}>
@@ -127,9 +142,15 @@ export default function SubscriptionsPage() {
 
         {quota && (
           <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
-            <QuotaCard label="Contratados" value={quota.contratados} helper="Limite atual do plano" />
-            <QuotaCard label="Ativos" value={quota.ativos} helper="Imoveis cadastrados" />
             <QuotaCard
+              testId="quota-contracted-card"
+              label="Contratados"
+              value={quota.contratados}
+              helper="Limite atual do plano"
+            />
+            <QuotaCard testId="quota-active-card" label="Ativos" value={quota.ativos} helper="Imoveis cadastrados" />
+            <QuotaCard
+              testId="quota-available-card"
               label="Disponiveis"
               value={available ?? 0}
               helper={quota.podeAdicionar ? "Pode cadastrar mais" : "Quota atingida"}
@@ -140,7 +161,11 @@ export default function SubscriptionsPage() {
 
         <SubscriptionCards
           cancelLoading={cancelLoading}
+          manageBillingLoading={manageBillingLoading}
           subscriptions={[subscription]}
+          onManageBilling={() => {
+            if (!manageBillingLoading) handleManageBilling();
+          }}
           onCancel={() => {
             if (!cancelLoading) handleCancel();
           }}
@@ -156,11 +181,13 @@ function QuotaCard({
   value,
   helper,
   tone = "blue",
+  testId,
 }: {
   label: string;
   value: number;
   helper: string;
   tone?: "blue" | "green" | "orange";
+  testId?: string;
 }) {
   const colors = {
     blue: { bg: "blue.50", border: "blue.100", text: "blue.700" },
@@ -169,7 +196,7 @@ function QuotaCard({
   }[tone];
 
   return (
-    <Box bg={colors.bg} border="1px solid" borderColor={colors.border} borderRadius="lg" p={5}>
+    <Box data-testid={testId} bg={colors.bg} border="1px solid" borderColor={colors.border} borderRadius="lg" p={5}>
       <Text fontSize="xs" fontWeight="bold" color="gray.500" textTransform="uppercase">
         {label}
       </Text>
