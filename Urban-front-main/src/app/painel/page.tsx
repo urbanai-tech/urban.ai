@@ -1,22 +1,14 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  Box,
-  Heading,
-  FormControl,
-  FormLabel,
-  useColorModeValue,
-  Spinner,
-  Center,
-  Flex,
-} from '@chakra-ui/react';
+import { Box, FormControl, FormLabel, Spinner, Center, Flex } from '@chakra-ui/react';
 import dynamic from 'next/dynamic';
 import { getEventosAcompanhando, getPropriedadesDropdownList, PropertyDropdown } from '@/app/service/api';
 import { EventItem } from '../dashboard/components/ItemEvento';
 import { Pagination } from '../componentes/Pagination';
 import { EventCard } from './components/ItemEventoPainel';
 import DashboardCards from './components/StatCard';
+import { AppPageShell, AppSectionHeader, AppEmptyState, Icons } from '../componentes/ui';
 
 const PropertySelect = dynamic(() => import('./components/CustomSelect'), { ssr: false });
 
@@ -30,8 +22,6 @@ export default function SugestoesAceitas() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 5; // itens por página
-
-  const bg = useColorModeValue('gray.50', 'gray.900');
 
   // Buscar propriedades
 useEffect(() => {
@@ -104,49 +94,55 @@ useEffect(() => {
   };
 
   return (
-    <Box p={{ base: 4, md: 10 }} bg={bg}>
-      <Flex
-        direction={{ base: 'column', md: 'row' }}
-        justify="space-between"
-        align={{ base: 'flex-start', md: 'center' }}
-        gap={{ base: 4, md: 0 }}
-      >
-        <Heading fontWeight="extrabold" size="2xl">
-          Painel de controle
-        </Heading>
-
-        {loadingProps ? (
-          <Center>
-            <Spinner size="lg" />
-          </Center>
-        ) : (
-          <Box maxW={{ base: '100%', md: '320px' }} w="full">
-            <FormControl>
-              <FormLabel fontWeight="semibold" color="gray.800">
-                Filtrar propriedade
-              </FormLabel>
-              <PropertySelect
-                value={propertyId}
-                propsInfo={propsInfo}
-                setPropertyId={(id) => {
-                  setPropertyId(id);
-                  setPage(1); // resetar página ao trocar de propriedade
-                }}
-              />
-            </FormControl>
-          </Box>
-        )}
-      </Flex>
+    <AppPageShell maxWidth={1280}>
+      <AppSectionHeader
+        eyebrow="PAINEL · HOJE NA SUA OPERAÇÃO"
+        title="Painel de controle"
+        subtitle="Eventos com sugestão da Urban AI que merecem sua atenção agora. Filtre por imóvel pra focar onde tem mais oportunidade."
+        actions={
+          loadingProps ? (
+            <Spinner size="sm" color="orange.500" />
+          ) : (
+            <Box maxW={{ base: '100%', md: '320px' }} w="full">
+              <FormControl>
+                <FormLabel
+                  fontSize="11px"
+                  letterSpacing="1.5px"
+                  textTransform="uppercase"
+                  fontWeight="600"
+                  color="gray.500"
+                  mb={1}
+                >
+                  Filtrar imóvel
+                </FormLabel>
+                <PropertySelect
+                  value={propertyId}
+                  propsInfo={propsInfo}
+                  setPropertyId={(id) => {
+                    setPropertyId(id);
+                    setPage(1);
+                  }}
+                />
+              </FormControl>
+            </Box>
+          )
+        }
+      />
 
       <DashboardCards propertyId={propertyId} />
 
-      <Box mt={6}>
+      <Box mt={8}>
         {isLoadingEvents ? (
           <Center py={20}>
-            <Spinner size="xl" />
+            <Spinner size="xl" color="orange.500" thickness="2px" />
           </Center>
         ) : events.length === 0 ? (
-          <Center py={20}>Nenhum evento aceito encontrado</Center>
+          <AppEmptyState
+            eyebrow="SEM SUGESTÕES PENDENTES"
+            title="Tudo certo por aqui"
+            body="Quando a Urban AI detectar uma nova oportunidade de evento, aparece aqui. Você também recebe por e-mail."
+            icon={<Icons.Sparkles size={32} />}
+          />
         ) : (
           <Flex direction="column" gap={4}>
             {events.map(ev => (
@@ -169,6 +165,6 @@ useEffect(() => {
           </Flex>
         )}
       </Box>
-    </Box>
+    </AppPageShell>
   );
 }
