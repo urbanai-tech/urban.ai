@@ -100,7 +100,7 @@ Leitura: os 9 listings alpha ja tinham snapshot duplicado para o dia, mas ainda 
 2. Subir eventos futuros de 95 para pelo menos 100 no gate minimo, idealmente 200 SP/30d.
 3. Elevar cobertura de recomendacao de 62.1% para pelo menos 70%.
 4. Corrigir 7 enderecos ativos com cidade/UF invalidos.
-5. Capturar ocupacao/reserva/receita real para sair de ROI estimado.
+5. Capturar ocupacao/reserva/receita real para sair de ROI estimado. Atualizacao de execucao: o fluxo manual admin foi implementado em `/admin/quality` e usa `POST /admin/occupancy/manual`; falta inserir observacoes reais do beta, nao simuladas.
 6. ~~Criar rotina de event proximity features ou acoplar snapshot ao batch de recomendacao.~~ Resolvido em 2026-05-15: cron diario `dataset-event-proximity-snapshot`, endpoint admin `/admin/dataset/event-proximity/run`, botao em `/admin/jobs`, migration do indice composto `(list_id, snapshotDate)` aplicada em producao e backfill controlado gerando 28 registros. O blocker `event_proximity_features_empty` saiu do diagnostico.
 7. Configurar `AIRROI_API_KEY` somente quando a aquisicao externa for aprovada.
 8. Configurar `STAYS_API_BASE_URL` antes de qualquer smoke real Stays.
@@ -112,5 +112,5 @@ Antes de chamar beta pago: corrigir geocoding 403, rerodar geocoder, reprocessar
 - eventos futuros 30d >= 100;
 - cobertura de recomendacao >= 70%;
 - pelo menos 3 precos aplicados;
-- pelo menos 1 resultado real de reserva/receita;
+- pelo menos 1 resultado real de reserva/receita registrado pelo fluxo de ocupacao manual/admin ou por integracao real;
 - quality gate com amostra minima maior que 1.

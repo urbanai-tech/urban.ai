@@ -252,6 +252,12 @@ export class AdminController {
     return this.admin.occupancyCoverage();
   }
 
+  @ApiOperation({ summary: 'Imoveis elegiveis para apontamento manual de ocupacao' })
+  @Get('occupancy/properties')
+  async occupancyProperties() {
+    return this.admin.occupancyProperties();
+  }
+
   @ApiOperation({ summary: 'ROI dos anfitrioes: dinheiro atribuido a Urban AI por usuario' })
   @Get('roi')
   async roiOverview(
