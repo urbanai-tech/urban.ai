@@ -9,7 +9,6 @@ import {
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { useTranslation } from 'react-i18next';
 import CasaCard from "../componentes/CasaCard";
 import { Pagination } from "../componentes/Pagination";
 import { getUserProperties } from "../service/api";
@@ -38,8 +37,6 @@ export type Evento = {
 
 
 export default function CasaEventosProximosPage() {
-  const { t } = useTranslation();
- // const userId = "fc93170a-1e58-4d5c-a615-b373859a84e0";
   const [houses, setHouses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -85,9 +82,12 @@ export default function CasaEventosProximosPage() {
   return (
     <Container maxW="100%" p={{ base: 4, md: 8 }} bg="gray.50">
       <VStack spacing={10}>
-        <VStack w={"100%"} alignItems={"start"}>
+        <VStack w={"100%"} alignItems={"start"} spacing={1}>
           <Heading size="lg" textAlign={{ base: 'center', sm: 'left' }}>
-            {t('my_properties.title')}
+            Eventos próximos aos seus imóveis
+          </Heading>
+          <Heading as="p" size="sm" color="gray.500" fontWeight="normal">
+            Selecione um imóvel para ver os eventos detectados nas redondezas.
           </Heading>
         </VStack>
 
