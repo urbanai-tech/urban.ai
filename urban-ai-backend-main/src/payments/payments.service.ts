@@ -290,6 +290,38 @@ export class PaymentsService {
     return session;
   }
 
+  async createBillingPortalSession(userId: string): Promise<{ url: string }> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new Error('UsuÃ¡rio nÃ£o encontrado');
+
+    this.ensureStripeConfigured();
+
+    const payment = await this.paymentRepository.findOne({
+      where: { user: { id: userId } },
+      order: { updatedAt: 'DESC' },
+    });
+    let customerId = payment?.customerId;
+
+    if (!customerId) {
+      const customers = await this.stripe.customers.list({
+        email: user.email,
+        limit: 1,
+      });
+      customerId = customers.data[0]?.id;
+    }
+
+    if (!customerId) {
+      throw new Error('Cliente Stripe nÃ£o encontrado');
+    }
+
+    const session = await this.stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: this.getBillingPortalReturnUrl(),
+    });
+
+    return { url: session.url };
+  }
+
   private async ensureStripeCustomer(user: User): Promise<string> {
     const customers = await this.stripe.customers.list({
       email: user.email,
@@ -415,6 +447,13 @@ export class PaymentsService {
 
   private getFrontBaseUrl(): string {
     return (process.env.FRONT_BASE_URL || 'https://app.myurbanai.com').replace(/\/$/, '');
+  }
+
+  private getBillingPortalReturnUrl(): string {
+    return (
+      process.env.BILLING_PORTAL_RETURN_URL ||
+      `${this.getFrontBaseUrl()}/my-plan`
+    );
   }
 
   private async sendBillingEmail(

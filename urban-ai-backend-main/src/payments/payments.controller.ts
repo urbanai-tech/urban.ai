@@ -75,6 +75,13 @@ export class PaymentsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('billing-portal-session')
+  @ApiOperation({ summary: 'Cria sessao do Stripe Billing Portal para gerenciar plano/quantity' })
+  async createBillingPortalSession(@Req() req: any) {
+    return this.paymentsService.createBillingPortalSession(req?.user?.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('getSubscription')
   async getSubscriptions(@Req() req: any) {
     return this.paymentsService.getSubscription(req?.user?.userId);

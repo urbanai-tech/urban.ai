@@ -7,6 +7,7 @@ const mockStripeSubscriptionsList = jest.fn();
 const mockStripeCustomersList = jest.fn();
 const mockStripeCustomersCreate = jest.fn();
 const mockStripeCheckoutSessionsCreate = jest.fn();
+const mockStripeBillingPortalSessionsCreate = jest.fn();
 
 jest.mock('stripe', () => {
   return jest.fn().mockImplementation(() => ({
@@ -21,6 +22,7 @@ jest.mock('stripe', () => {
       create: mockStripeCustomersCreate,
     },
     checkout: { sessions: { create: mockStripeCheckoutSessionsCreate } },
+    billingPortal: { sessions: { create: mockStripeBillingPortalSessionsCreate } },
   }));
 });
 
@@ -329,6 +331,71 @@ describe('PaymentsService — handleStripeWebhook', () => {
       expect(paymentRepo.save).not.toHaveBeenCalled();
       expect(result).toEqual({ event });
     });
+  });
+});
+
+describe('PaymentsService - createBillingPortalSession', () => {
+  let service: PaymentsService;
+  let paymentRepo: Repo<Payment>;
+  let userRepo: Repo<User>;
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
+    process.env.FRONT_BASE_URL = 'https://app.myurbanai.com';
+    delete process.env.BILLING_PORTAL_RETURN_URL;
+    paymentRepo = { findOne: jest.fn() };
+    userRepo = { findOne: jest.fn() };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        PaymentsService,
+        { provide: getRepositoryToken(Payment), useValue: paymentRepo },
+        { provide: getRepositoryToken(User), useValue: userRepo },
+        { provide: getRepositoryToken(Address), useValue: stubAddressRepo() },
+        { provide: PlansService, useValue: { getPlanByName: jest.fn() } },
+      ],
+    }).compile();
+    service = module.get<PaymentsService>(PaymentsService);
+  });
+
+  it('creates a Stripe Billing Portal session for the stored customerId', async () => {
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'host@test.com' });
+    paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId: 'cus_abc' });
+    mockStripeBillingPortalSessionsCreate.mockResolvedValue({ url: 'https://billing.stripe.test/session' });
+
+    const result = await service.createBillingPortalSession('u1');
+
+    expect(mockStripeCustomersList).not.toHaveBeenCalled();
+    expect(mockStripeBillingPortalSessionsCreate).toHaveBeenCalledWith({
+      customer: 'cus_abc',
+      return_url: 'https://app.myurbanai.com/my-plan',
+    });
+    expect(result).toEqual({ url: 'https://billing.stripe.test/session' });
+  });
+
+  it('falls back to the Stripe customer lookup by email when Payment has no customerId', async () => {
+    process.env.BILLING_PORTAL_RETURN_URL = 'https://app.myurbanai.com/plans';
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'host@test.com' });
+    paymentRepo.findOne!.mockResolvedValue(null);
+    mockStripeCustomersList.mockResolvedValue({ data: [{ id: 'cus_from_email' }] });
+    mockStripeBillingPortalSessionsCreate.mockResolvedValue({ url: 'https://billing.stripe.test/session' });
+
+    await service.createBillingPortalSession('u1');
+
+    expect(mockStripeCustomersList).toHaveBeenCalledWith({ email: 'host@test.com', limit: 1 });
+    expect(mockStripeBillingPortalSessionsCreate).toHaveBeenCalledWith({
+      customer: 'cus_from_email',
+      return_url: 'https://app.myurbanai.com/plans',
+    });
+  });
+
+  it('reports not configured before creating portal sessions when key is absent', async () => {
+    delete process.env.STRIPE_SECRET_KEY;
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'host@test.com' });
+
+    await expect(service.createBillingPortalSession('u1')).rejects.toThrow('Stripe is not configured');
+    expect(mockStripeBillingPortalSessionsCreate).not.toHaveBeenCalled();
   });
 });
 
