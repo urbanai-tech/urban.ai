@@ -11,17 +11,35 @@ import {
   type AdminFinanceOverview,
   type AdminCost,
 } from "../../service/api";
+import {
+  AdminSectionHeader,
+  AdminCard,
+  AdminCardHeader,
+  AdminButton,
+  AdminMetricCard,
+  AdminTable,
+  type AdminTableColumn,
+  AdminInput,
+  AdminSelect,
+  AdminSwitch,
+  AdminBadge,
+  AdminDrawer,
+  AdminConfirmDialog,
+  AdminEmptyState,
+  AdminPageLoading,
+  useAdminToast,
+  Icons,
+} from "../_components";
 
 /**
  * /admin/finance — gestão financeira da plataforma.
  *
- * Mostra:
- *  - MRR estimado, custos, margem, margem por imóvel
- *  - CRUD de custos operacionais (Railway, Mailersend, Gemini, etc.)
- *  - Distribuição de custos por categoria
- *
- * Não substitui ERP/financeiro real — é instrumento de gestão para
- * decisões de pricing e visão rápida de saúde financeira.
+ * Migrado para o design system admin (.urban-admin):
+ *  - Hero: Margem por imóvel em Bebas Neue gigante (KPI estratégico).
+ *  - KPIs em grid plano (sem cards arredondados verdes).
+ *  - Barras de custo em laranja (não verde — custo ≠ receita).
+ *  - NewCostForm vira AdminDrawer lateral.
+ *  - alert()/confirm() nativos → AdminToast / AdminConfirmDialog.
  */
 export default function AdminFinancePage() {
   const [overview, setOverview] = useState<AdminFinanceOverview | null>(null);
@@ -30,6 +48,9 @@ export default function AdminFinancePage() {
   const [error, setError] = useState<string | null>(null);
   const [showInactive, setShowInactive] = useState(false);
   const [showNew, setShowNew] = useState(false);
+  const [confirmSeed, setConfirmSeed] = useState(false);
+  const [seeding, setSeeding] = useState(false);
+  const toast = useAdminToast();
 
   async function load() {
     setLoading(true);
@@ -41,9 +62,12 @@ export default function AdminFinancePage() {
       ]);
       setOverview(o);
       setCosts(c);
-    } catch (err: any) {
-      const status = err?.response?.status;
-      setError(status === 401 || status === 403 ? "Acesso negado." : err?.message || "Erro");
+    } catch (err: unknown) {
+      const e = err as { response?: { status?: number }; message?: string };
+      const status = e?.response?.status;
+      setError(
+        status === 401 || status === 403 ? "Acesso negado." : e?.message || "Erro",
+      );
     } finally {
       setLoading(false);
     }
@@ -54,219 +78,486 @@ export default function AdminFinancePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showInactive]);
 
-  if (loading) return <main className="min-h-screen bg-slate-950 text-slate-50 p-8"><p>Carregando…</p></main>;
-  if (error || !overview) return (
-    <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
-      <div className="max-w-2xl p-6 border border-red-700 rounded bg-red-950/30">{error}</div>
-    </main>
-  );
+  if (loading) return <AdminPageLoading />;
+
+  if (error || !overview) {
+    return (
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+        <AdminEmptyState
+          eyebrow="Erro"
+          title="Falha ao carregar"
+          body={error ?? "Resposta vazia do backend"}
+          icon={<Icons.AlertCircle size={32} />}
+          action={
+            <AdminButton variant="primary" onClick={load}>
+              Tentar novamente
+            </AdminButton>
+          }
+        />
+      </div>
+    );
+  }
 
   const fmt = (cents: number) =>
     `R$ ${(cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  const marginColor =
-    overview.margin.percent > 30 ? "text-emerald-300"
-    : overview.margin.percent > 0 ? "text-amber-300"
-    : "text-red-300";
+  const perListingMargin = overview.perListing.marginPercent;
+  const marginTrend: "up" | "down" = perListingMargin > 0 ? "up" : "down";
+
+  const costColumns: AdminTableColumn<AdminCost>[] = [
+    {
+      key: "name",
+      header: "Nome",
+      render: (c) => (
+        <div>
+          <p style={{ fontWeight: 600, color: "var(--admin-text)", margin: 0 }}>
+            {c.name}
+          </p>
+          {c.description && (
+            <p
+              style={{
+                fontSize: 11,
+                color: "var(--admin-text-muted)",
+                margin: "2px 0 0",
+              }}
+            >
+              {c.description}
+            </p>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "category",
+      header: "Categoria",
+      width: 110,
+      render: (c) => (
+        <AdminBadge kind="neutral">{c.category}</AdminBadge>
+      ),
+    },
+    {
+      key: "recurrence",
+      header: "Recorrência",
+      width: 110,
+      render: (c) => (
+        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+          {c.recurrence}
+        </span>
+      ),
+    },
+    {
+      key: "monthly",
+      header: "Mensal",
+      width: 120,
+      align: "right",
+      render: (c) => (
+        <span style={{ fontFamily: "monospace", color: "var(--admin-text)" }}>
+          R$ {(c.monthlyCostCents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+        </span>
+      ),
+    },
+    {
+      key: "percent",
+      header: "% receita",
+      width: 90,
+      align: "center",
+      render: (c) =>
+        c.percentOfRevenue != null ? (
+          <span style={{ fontFamily: "monospace", color: "var(--admin-accent)" }}>
+            {c.percentOfRevenue}%
+          </span>
+        ) : (
+          <span style={{ color: "var(--admin-text-dim)" }}>—</span>
+        ),
+    },
+    {
+      key: "scales",
+      header: "Escala",
+      width: 70,
+      align: "center",
+      render: (c) =>
+        c.scalesWithListings ? (
+          <Icons.Check size={14} style={{ color: "var(--admin-success)" }} />
+        ) : (
+          <span style={{ color: "var(--admin-text-dim)" }}>—</span>
+        ),
+    },
+    {
+      key: "active",
+      header: "Status",
+      width: 100,
+      render: (c) => (
+        <AdminBadge kind={c.active ? "success" : "neutral"}>
+          {c.active ? "Ativo" : "Inativo"}
+        </AdminBadge>
+      ),
+    },
+    {
+      key: "actions",
+      header: "",
+      width: 90,
+      align: "right",
+      render: (c) => <CostActions cost={c} onChange={load} />,
+    },
+  ];
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <header className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Financeiro</h1>
-            <p className="text-sm text-slate-400">
-              Custos operacionais, receita estimada e margem em tempo real.
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <a href="/admin/pricing-config" className="text-sm px-3 py-1.5 rounded border border-slate-700 hover:bg-slate-800">
-              Configurar preços
-            </a>
-            <a href="/admin" className="text-sm text-emerald-400 hover:underline self-center">← Voltar</a>
-          </div>
-        </header>
+    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <AdminSectionHeader
+        eyebrow="ADMIN · FINANCEIRO"
+        title="Resumo financeiro"
+        subtitle="Custos operacionais, receita estimada e margem em tempo real."
+        actions={
+          <AdminButton
+            variant="secondary"
+            as="a"
+            href="/admin/pricing-config"
+            rightIcon={<Icons.ArrowRight size={12} />}
+          >
+            Configurar preços
+          </AdminButton>
+        }
+      />
 
-        {/* === KPIs financeiros === */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Kpi label="MRR estimado" value={fmt(overview.revenue.mrrCents)} sub={`${overview.activePayments} assinaturas ativas`} />
-          <Kpi label="Custos mensais" value={fmt(overview.costs.totalCents)} sub={`${fmt(overview.costs.fixedCents)} fixos + ${fmt(overview.costs.percentualCents)} variáveis`} />
-          <Kpi
+      {/* === Hero — Margem por imóvel === */}
+      <section style={{ marginBottom: 56 }}>
+        <AdminCard variant="accent" style={{ padding: "40px 40px 36px" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)",
+              gap: 32,
+              alignItems: "end",
+            }}
+          >
+            <div>
+              <p className="urban-admin-eyebrow">MARGEM POR IMÓVEL ATIVO</p>
+              <p
+                className="urban-admin-display-hero"
+                style={{
+                  marginTop: 12,
+                  color:
+                    perListingMargin > 30
+                      ? "var(--admin-success)"
+                      : perListingMargin > 0
+                        ? "var(--admin-text)"
+                        : "var(--admin-danger)",
+                }}
+              >
+                {fmt(overview.perListing.marginCents)}
+              </p>
+              <p
+                style={{
+                  marginTop: 12,
+                  fontSize: 14,
+                  color: "var(--admin-text-muted)",
+                  lineHeight: 1.55,
+                }}
+              >
+                {perListingMargin.toFixed(1)}% sobre receita por imóvel · Use
+                como teto/piso para decisões de pricing.
+              </p>
+            </div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr",
+                gap: 16,
+                borderLeft: "1px solid var(--admin-divider)",
+                paddingLeft: 32,
+              }}
+            >
+              <SmallInline label="Receita por imóvel" value={fmt(overview.perListing.revenueCents)} />
+              <SmallInline label="Custo por imóvel" value={fmt(overview.perListing.costCents)} />
+            </div>
+          </div>
+        </AdminCard>
+      </section>
+
+      {/* === KPIs financeiros === */}
+      <section style={{ marginBottom: 64 }}>
+        <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
+          INDICADORES MENSAIS
+        </p>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: 32,
+            borderTop: "1px solid var(--admin-divider)",
+            borderBottom: "1px solid var(--admin-divider)",
+          }}
+        >
+          <AdminMetricCard
+            label="MRR estimado"
+            value={fmt(overview.revenue.mrrCents)}
+            sub={`${overview.activePayments} assinaturas ativas`}
+          />
+          <AdminMetricCard
+            label="Custos mensais"
+            value={fmt(overview.costs.totalCents)}
+            sub={`${fmt(overview.costs.fixedCents)} fixos + ${fmt(overview.costs.percentualCents)} variáveis`}
+          />
+          <AdminMetricCard
             label="Margem"
             value={fmt(overview.margin.absoluteCents)}
-            sub={`${overview.margin.percent.toFixed(1)}%`}
-            valueClassName={marginColor}
+            sub={`${overview.margin.percent.toFixed(1)}% sobre MRR`}
+            trend={marginTrend}
+            trendValue={`${overview.margin.percent.toFixed(1)}%`}
+            accent={perListingMargin > 30}
           />
-          <Kpi label="Imóveis ativos" value={overview.activeListings.toLocaleString("pt-BR")} />
-        </section>
+          <AdminMetricCard
+            label="Imóveis ativos"
+            value={overview.activeListings}
+          />
+        </div>
+      </section>
 
-        {/* === Por imóvel === */}
-        <section className="border border-emerald-800/40 rounded-2xl bg-emerald-950/20 p-6">
-          <h2 className="text-lg font-bold mb-4">Por imóvel ativo</h2>
-          <p className="text-xs text-slate-400 mb-4">
-            Cálculo: MRR ÷ imóveis · custos ÷ imóveis · margem por imóvel.
-            Use como teto/piso para decisões de pricing.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Kpi label="Receita por imóvel" value={fmt(overview.perListing.revenueCents)} />
-            <Kpi label="Custo por imóvel" value={fmt(overview.perListing.costCents)} />
-            <Kpi
-              label="Margem por imóvel"
-              value={fmt(overview.perListing.marginCents)}
-              sub={`${overview.perListing.marginPercent.toFixed(1)}%`}
-              valueClassName={
-                overview.perListing.marginPercent > 30 ? "text-emerald-300"
-                : overview.perListing.marginPercent > 0 ? "text-amber-300"
-                : "text-red-300"
-              }
-            />
-          </div>
-        </section>
-
-        {/* === Receita por plano === */}
-        <section>
-          <h2 className="text-lg font-bold mb-3">Receita por plano</h2>
-          <div className="border border-slate-800 rounded-xl overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-900/60 text-slate-400 text-xs uppercase">
-                <tr>
-                  <th className="px-3 py-2 text-left">Plano</th>
-                  <th className="px-3 py-2 text-right">Assinaturas</th>
-                  <th className="px-3 py-2 text-right">MRR equivalente</th>
-                </tr>
-              </thead>
-              <tbody>
-                {overview.revenue.byPlan.length === 0 ? (
-                  <tr>
-                    <td colSpan={3} className="px-3 py-4 text-center text-slate-500 text-xs">
-                      Sem assinaturas ativas ainda.
-                    </td>
-                  </tr>
-                ) : (
-                  overview.revenue.byPlan.map((p) => (
-                    <tr key={p.planName} className="border-t border-slate-800">
-                      <td className="px-3 py-2">{p.planName}</td>
-                      <td className="px-3 py-2 text-right">{p.count}</td>
-                      <td className="px-3 py-2 text-right text-emerald-300">{fmt(p.monthlyCents)}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        {/* === Custos por categoria === */}
-        <section>
-          <h2 className="text-lg font-bold mb-3">Custos por categoria</h2>
-          {overview.costs.byCategory.length === 0 ? (
-            <p className="text-xs text-slate-500">Cadastre custos abaixo.</p>
+      {/* === Receita por plano + Custos por categoria === */}
+      <section
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(380px, 1fr))",
+          gap: 24,
+          marginBottom: 64,
+        }}
+      >
+        <AdminCard variant="subtle">
+          <AdminCardHeader title="Receita por plano" />
+          {overview.revenue.byPlan.length === 0 ? (
+            <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
+              Sem assinaturas ativas ainda.
+            </p>
           ) : (
-            <div className="space-y-1.5">
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {overview.revenue.byPlan.map((p) => (
+                <li
+                  key={p.planName}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr auto auto",
+                    gap: 16,
+                    padding: "10px 0",
+                    borderBottom: "1px solid var(--admin-divider)",
+                    fontSize: 13,
+                    alignItems: "baseline",
+                  }}
+                >
+                  <span style={{ color: "var(--admin-text)", fontWeight: 500 }}>
+                    {p.planName}
+                  </span>
+                  <span style={{ color: "var(--admin-text-muted)", fontSize: 12 }}>
+                    {p.count} assinaturas
+                  </span>
+                  <span
+                    style={{
+                      color: "var(--admin-accent)",
+                      fontFamily: "monospace",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {fmt(p.monthlyCents)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </AdminCard>
+
+        <AdminCard variant="subtle">
+          <AdminCardHeader title="Custos por categoria" />
+          {overview.costs.byCategory.length === 0 ? (
+            <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
+              Cadastre custos abaixo.
+            </p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {overview.costs.byCategory.map((c) => {
-                const max = Math.max(...overview.costs.byCategory.map((x) => x.cents), 1);
+                const max = Math.max(
+                  ...overview.costs.byCategory.map((x) => x.cents),
+                  1,
+                );
                 return (
                   <div key={c.category}>
-                    <div className="flex justify-between text-xs mb-0.5">
-                      <span className="text-slate-300">{c.category}</span>
-                      <span className="text-emerald-300 font-bold">{fmt(c.cents)}</span>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: 12,
+                        marginBottom: 6,
+                      }}
+                    >
+                      <span style={{ color: "var(--admin-text)" }}>{c.category}</span>
+                      <span
+                        style={{
+                          color: "var(--admin-text)",
+                          fontFamily: "monospace",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {fmt(c.cents)}
+                      </span>
                     </div>
-                    <div className="h-2 rounded bg-slate-800">
-                      <div className="h-full rounded bg-emerald-500" style={{ width: `${(c.cents / max) * 100}%` }} />
+                    <div
+                      style={{
+                        height: 2,
+                        background: "var(--admin-divider)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: "100%",
+                          width: `${(c.cents / max) * 100}%`,
+                          background: "var(--admin-accent)",
+                        }}
+                      />
                     </div>
                   </div>
                 );
               })}
             </div>
           )}
-        </section>
+        </AdminCard>
+      </section>
 
-        {/* === CRUD de custos === */}
-        <section>
-          <header className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold">Custos cadastrados</h2>
-            <div className="flex gap-2 items-center">
-              <label className="text-xs text-slate-400 flex items-center gap-1">
-                <input
-                  type="checkbox"
-                  checked={showInactive}
-                  onChange={(e) => setShowInactive(e.target.checked)}
-                />
-                Mostrar inativos
-              </label>
-              <button
-                onClick={async () => {
-                  if (!confirm("Popular a tabela com os custos default da Urban AI (Railway, Stripe, Gemini, Mailersend etc.)? Custos já cadastrados são preservados.")) return;
-                  try {
-                    const r = await seedAdminCosts(false);
-                    alert(`Seed OK — ${r.created} criados, ${r.skipped} ignorados.`);
-                    load();
-                  } catch (err: any) {
-                    alert("Erro: " + (err?.message || "falhou"));
-                  }
-                }}
-                className="text-xs px-3 py-1.5 rounded border border-emerald-700 text-emerald-300 hover:bg-emerald-950"
-                title="Cria entradas default (Railway, Stripe, Gemini, etc.) sem sobrescrever as existentes"
-              >
-                Popular default
-              </button>
-              <button
-                onClick={() => setShowNew((v) => !v)}
-                className="text-xs px-3 py-1.5 rounded bg-emerald-500 text-slate-900 font-bold"
-              >
-                {showNew ? "Cancelar" : "+ Novo custo"}
-              </button>
-            </div>
-          </header>
-
-          {showNew && <NewCostForm onCreated={() => { setShowNew(false); load(); }} />}
-
-          <div className="border border-slate-800 rounded-xl overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-900/60 text-slate-400 text-xs uppercase">
-                <tr>
-                  <th className="px-3 py-2 text-left">Nome</th>
-                  <th className="px-3 py-2 text-left">Categoria</th>
-                  <th className="px-3 py-2 text-left">Recorrência</th>
-                  <th className="px-3 py-2 text-right">Mensal</th>
-                  <th className="px-3 py-2 text-center">% receita</th>
-                  <th className="px-3 py-2 text-center">Escala</th>
-                  <th className="px-3 py-2 text-center">Ativo</th>
-                  <th className="px-3 py-2"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {costs.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="px-3 py-4 text-center text-slate-500 text-xs">
-                      Nenhum custo cadastrado. Comece adicionando Railway, Mailersend, Gemini etc.
-                    </td>
-                  </tr>
-                ) : (
-                  costs.map((c) => (
-                    <CostRow key={c.id} cost={c} onChange={load} />
-                  ))
-                )}
-              </tbody>
-            </table>
+      {/* === Custos cadastrados (CRUD) === */}
+      <section>
+        <header
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 16,
+            flexWrap: "wrap",
+            marginBottom: 20,
+          }}
+        >
+          <div>
+            <p className="urban-admin-eyebrow">CUSTOS CADASTRADOS</p>
+            <h2
+              style={{
+                fontSize: 20,
+                fontWeight: 600,
+                color: "var(--admin-text)",
+                margin: "8px 0 0",
+                letterSpacing: -0.3,
+              }}
+            >
+              Todos os custos operacionais
+            </h2>
           </div>
-        </section>
-      </div>
-    </main>
-  );
-}
+          <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+            <AdminSwitch
+              checked={showInactive}
+              onChange={setShowInactive}
+              label="Mostrar inativos"
+            />
+            <AdminButton
+              variant="secondary"
+              size="md"
+              onClick={() => setConfirmSeed(true)}
+              leftIcon={<Icons.Database size={12} />}
+            >
+              Popular default
+            </AdminButton>
+            <AdminButton
+              variant="primary"
+              size="md"
+              onClick={() => setShowNew(true)}
+              leftIcon={<Icons.Plus size={12} />}
+            >
+              Novo custo
+            </AdminButton>
+          </div>
+        </header>
 
-function Kpi({ label, value, sub, valueClassName }: { label: string; value: string | number; sub?: string; valueClassName?: string }) {
-  return (
-    <div className="border border-slate-800 rounded-xl bg-slate-900/40 p-4">
-      <p className="text-xs uppercase tracking-wider text-slate-500">{label}</p>
-      <p className={`text-2xl font-bold mt-1 ${valueClassName ?? ""}`}>{value}</p>
-      {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}
+        <AdminTable
+          columns={costColumns}
+          rows={costs}
+          rowKey={(r) => r.id}
+          empty={
+            <AdminEmptyState
+              title="Nenhum custo cadastrado"
+              body="Comece adicionando Railway, Mailersend, Gemini etc."
+              action={
+                <AdminButton
+                  variant="primary"
+                  onClick={() => setShowNew(true)}
+                  leftIcon={<Icons.Plus size={12} />}
+                >
+                  Adicionar custo
+                </AdminButton>
+              }
+            />
+          }
+        />
+      </section>
+
+      {/* === Drawer: novo custo === */}
+      <AdminDrawer
+        open={showNew}
+        onClose={() => setShowNew(false)}
+        eyebrow="NOVO CUSTO"
+        title="Cadastrar"
+      >
+        <NewCostForm
+          onCreated={() => {
+            setShowNew(false);
+            toast.success("Custo cadastrado.");
+            load();
+          }}
+          onCancel={() => setShowNew(false)}
+        />
+      </AdminDrawer>
+
+      {/* === Dialog: confirmar seed default === */}
+      <AdminConfirmDialog
+        open={confirmSeed}
+        onClose={() => setConfirmSeed(false)}
+        loading={seeding}
+        title="Popular custos default"
+        body="Cria entradas default (Railway, Stripe, Gemini, Mailersend etc.) sem sobrescrever as existentes."
+        confirmLabel="Popular"
+        onConfirm={async () => {
+          setSeeding(true);
+          try {
+            const r = await seedAdminCosts(false);
+            toast.success(`Seed OK — ${r.created} criados, ${r.skipped} ignorados.`);
+            setConfirmSeed(false);
+            load();
+          } catch (err: unknown) {
+            const e = err as { message?: string };
+            toast.error("Erro: " + (e?.message ?? "falhou"));
+          } finally {
+            setSeeding(false);
+          }
+        }}
+      />
     </div>
   );
 }
 
-function NewCostForm({ onCreated }: { onCreated: () => void }) {
+function SmallInline({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="urban-admin-eyebrow-muted">{label}</p>
+      <p
+        style={{
+          fontSize: 22,
+          fontWeight: 600,
+          color: "var(--admin-text)",
+          margin: "6px 0 0",
+          fontFamily: "monospace",
+          letterSpacing: -0.3,
+        }}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function NewCostForm({ onCreated, onCancel }: { onCreated: () => void; onCancel: () => void }) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("infra");
   const [recurrence, setRecurrence] = useState("monthly");
@@ -274,6 +565,7 @@ function NewCostForm({ onCreated }: { onCreated: () => void }) {
   const [percent, setPercent] = useState("");
   const [scales, setScales] = useState(false);
   const [busy, setBusy] = useState(false);
+  const toast = useAdminToast();
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -287,10 +579,10 @@ function NewCostForm({ onCreated }: { onCreated: () => void }) {
         percentOfRevenue: percent ? Number(percent.replace(",", ".")) : undefined,
         scalesWithListings: scales,
       });
-      setName(""); setValueReais(""); setPercent(""); setScales(false);
       onCreated();
-    } catch (err: any) {
-      alert("Erro: " + (err?.message || "falhou"));
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error("Erro: " + (e?.message ?? "falhou"));
     } finally {
       setBusy(false);
     }
@@ -299,114 +591,165 @@ function NewCostForm({ onCreated }: { onCreated: () => void }) {
   return (
     <form
       onSubmit={submit}
-      className="mb-3 p-4 rounded-xl border border-emerald-800/40 bg-emerald-950/20 grid grid-cols-2 md:grid-cols-6 gap-2 text-sm"
+      style={{ display: "flex", flexDirection: "column", gap: 18 }}
     >
-      <input
-        placeholder="Nome (ex: Railway Pro)"
+      <AdminInput
+        label="Nome do custo"
+        placeholder="ex: Railway Pro"
         value={name}
         onChange={(e) => setName(e.target.value)}
         required
-        className="col-span-2 px-3 py-2 rounded bg-slate-800 border border-slate-700"
       />
-      <select value={category} onChange={(e) => setCategory(e.target.value)} className="px-2 py-2 rounded bg-slate-800 border border-slate-700">
-        <option value="infra">infra</option>
-        <option value="apis">apis</option>
-        <option value="comms">comms</option>
-        <option value="payments">payments</option>
-        <option value="people">people</option>
-        <option value="marketing">marketing</option>
-        <option value="legal">legal</option>
-        <option value="data">data</option>
-        <option value="other">other</option>
-      </select>
-      <select value={recurrence} onChange={(e) => setRecurrence(e.target.value)} className="px-2 py-2 rounded bg-slate-800 border border-slate-700">
-        <option value="monthly">mensal</option>
-        <option value="usage_based">por uso</option>
-        <option value="one_time">único</option>
-        <option value="percentual">% receita</option>
-      </select>
-      <input
-        placeholder="R$ mensal"
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+        <AdminSelect
+          label="Categoria"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        >
+          <option value="infra">infra</option>
+          <option value="apis">apis</option>
+          <option value="comms">comms</option>
+          <option value="payments">payments</option>
+          <option value="people">people</option>
+          <option value="marketing">marketing</option>
+          <option value="legal">legal</option>
+          <option value="data">data</option>
+          <option value="other">other</option>
+        </AdminSelect>
+
+        <AdminSelect
+          label="Recorrência"
+          value={recurrence}
+          onChange={(e) => setRecurrence(e.target.value)}
+        >
+          <option value="monthly">mensal</option>
+          <option value="usage_based">por uso</option>
+          <option value="one_time">único</option>
+          <option value="percentual">% receita</option>
+        </AdminSelect>
+      </div>
+
+      <AdminInput
+        label="Valor mensal"
+        leftAddon={<span style={{ fontSize: 12, fontWeight: 600 }}>R$</span>}
+        placeholder="0,00"
         value={valueReais}
         onChange={(e) => setValueReais(e.target.value)}
-        className="px-3 py-2 rounded bg-slate-800 border border-slate-700"
       />
+
       {recurrence === "percentual" ? (
-        <input
-          placeholder="% (ex: 4.99)"
+        <AdminInput
+          label="Percentual da receita"
+          placeholder="ex: 4.99"
           value={percent}
           onChange={(e) => setPercent(e.target.value)}
-          className="px-3 py-2 rounded bg-slate-800 border border-slate-700"
+          helper="Custo proporcional à receita captada (ex: Stripe fees 4.99%)"
         />
       ) : (
-        <label className="flex items-center text-xs gap-2">
-          <input type="checkbox" checked={scales} onChange={(e) => setScales(e.target.checked)} />
-          Escala c/ imóveis
-        </label>
+        <AdminSwitch
+          checked={scales}
+          onChange={setScales}
+          label="Escala com imóveis"
+        />
       )}
-      <button
-        type="submit"
-        disabled={busy}
-        className="col-span-2 md:col-span-6 mt-1 px-4 py-2 rounded bg-emerald-500 text-slate-900 font-bold disabled:opacity-50"
-      >
-        {busy ? "Salvando…" : "Adicionar custo"}
-      </button>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8 }}>
+        <AdminButton variant="ghost" onClick={onCancel} type="button" disabled={busy}>
+          Cancelar
+        </AdminButton>
+        <AdminButton type="submit" variant="primary" loading={busy}>
+          {busy ? "Salvando…" : "Adicionar custo"}
+        </AdminButton>
+      </div>
     </form>
   );
 }
 
-function CostRow({ cost, onChange }: { cost: AdminCost; onChange: () => void }) {
+function CostActions({ cost, onChange }: { cost: AdminCost; onChange: () => void }) {
   const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const toast = useAdminToast();
 
   async function toggle() {
     setBusy(true);
     try {
       await updateAdminCost(cost.id, { active: !cost.active });
+      toast.success(cost.active ? "Custo desativado." : "Custo reativado.");
       onChange();
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error("Erro: " + (e?.message ?? "falhou"));
     } finally {
       setBusy(false);
     }
   }
+
   async function remove() {
-    if (!confirm(`Remover '${cost.name}'?`)) return;
     setBusy(true);
     try {
       await deleteAdminCost(cost.id);
+      toast.success(`'${cost.name}' removido.`);
+      setConfirmDelete(false);
       onChange();
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error("Erro: " + (e?.message ?? "falhou"));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <tr className="border-t border-slate-800">
-      <td className="px-3 py-2">
-        <p className="font-semibold">{cost.name}</p>
-        {cost.description && <p className="text-xs text-slate-500">{cost.description}</p>}
-      </td>
-      <td className="px-3 py-2 text-xs text-slate-300">{cost.category}</td>
-      <td className="px-3 py-2 text-xs">{cost.recurrence}</td>
-      <td className="px-3 py-2 text-right">
-        R$ {(cost.monthlyCostCents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-      </td>
-      <td className="px-3 py-2 text-center text-xs">
-        {cost.percentOfRevenue != null ? `${cost.percentOfRevenue}%` : "—"}
-      </td>
-      <td className="px-3 py-2 text-center text-xs">{cost.scalesWithListings ? "✓" : "—"}</td>
-      <td className="px-3 py-2 text-center">
-        <button
-          onClick={toggle}
-          disabled={busy}
-          className={`px-2 py-1 rounded text-xs font-bold ${cost.active ? "bg-emerald-500/20 text-emerald-300" : "bg-slate-700 text-slate-400"}`}
-        >
-          {cost.active ? "Ativo" : "Inativo"}
-        </button>
-      </td>
-      <td className="px-3 py-2 text-center">
-        <button onClick={remove} disabled={busy} className="text-xs text-red-400 hover:text-red-300">
-          remover
-        </button>
-      </td>
-    </tr>
+    <div style={{ display: "inline-flex", gap: 6 }}>
+      <button
+        type="button"
+        onClick={toggle}
+        disabled={busy}
+        title={cost.active ? "Desativar" : "Ativar"}
+        aria-label={cost.active ? "Desativar custo" : "Ativar custo"}
+        style={{
+          background: "transparent",
+          border: "1px solid var(--admin-divider-strong)",
+          borderRadius: 2,
+          color: "var(--admin-text-muted)",
+          padding: 6,
+          cursor: busy ? "not-allowed" : "pointer",
+          display: "inline-flex",
+          lineHeight: 0,
+        }}
+      >
+        <Icons.RefreshCw size={12} />
+      </button>
+      <button
+        type="button"
+        onClick={() => setConfirmDelete(true)}
+        disabled={busy}
+        title="Remover"
+        aria-label="Remover custo"
+        style={{
+          background: "transparent",
+          border: "1px solid rgba(248, 113, 113, 0.3)",
+          borderRadius: 2,
+          color: "var(--admin-danger)",
+          padding: 6,
+          cursor: busy ? "not-allowed" : "pointer",
+          display: "inline-flex",
+          lineHeight: 0,
+        }}
+      >
+        <Icons.Trash size={12} />
+      </button>
+      <AdminConfirmDialog
+        open={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={remove}
+        title={`Remover '${cost.name}'?`}
+        body="Esta ação é permanente. O custo será excluído da matriz."
+        confirmLabel="Remover"
+        destructive
+        loading={busy}
+      />
+    </div>
   );
 }

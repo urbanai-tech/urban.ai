@@ -5,16 +5,32 @@ import {
   fetchDashboardSummary,
   type DashboardSummary,
 } from "../../service/api";
+import {
+  AdminSectionHeader,
+  AdminCard,
+  AdminCardHeader,
+  AdminButton,
+  AdminMetricCard,
+  AdminBadge,
+  AdminStatusDot,
+  AdminSwitch,
+  AdminEmptyState,
+  AdminPageLoading,
+  Icons,
+} from "../_components";
+import type { AdminStatusKind } from "../_components";
 
 /**
- * /admin/dashboard — overview executivo numa única página.
+ * /admin/dashboard — overview executivo agregado em 1 chamada de API.
  *
- * Tudo agregado em 1 chamada de API. Mostra:
- *  - Saúde geral (green/amber/red) + alertas
- *  - 4 grandes blocos: eventos, waitlist, cobertura, receita
- *  - Mini-timeline 7 dias
- *  - Top 5 sources últimos 7d
- *  - Atalhos pras páginas detalhadas
+ * Migrado para o design system admin (.urban-admin):
+ *  - Emojis 🟢🟡🔴🚨⚠️ℹ️ substituídos por AdminStatusDot + ícones SVG.
+ *  - Cards Block (8x) viram AdminCard + AdminMetricCard com hierarquia (KPI
+ *    principal grande Bebas, sub-KPIs menores).
+ *  - "Saúde geral" vira faixa horizontal com border-left de 4px na cor do estado.
+ *  - MiniTimeline com paleta branco/orange (não verde/vermelho saturado).
+ *  - Auto-refresh checkbox cru vira AdminSwitch.
+ *  - Banner "Fallback manual" vira AdminCard accent no topo (não embaixo cortado).
  *
  * Auto-refresh a cada 60s.
  */
@@ -29,10 +45,11 @@ export default function AdminDashboardPage() {
       const r = await fetchDashboardSummary();
       setData(r);
       setError(null);
-    } catch (err: any) {
-      const status = err?.response?.status;
+    } catch (err: unknown) {
+      const e = err as { response?: { status?: number }; message?: string };
+      const status = e?.response?.status;
       setError(
-        status === 401 || status === 403 ? "Acesso negado." : err?.message || "Erro",
+        status === 401 || status === 403 ? "Acesso negado." : e?.message || "Erro",
       );
     } finally {
       setLoading(false);
@@ -45,486 +62,699 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     if (!autoRefresh) return;
-    const id = setInterval(load, 60_000); // 60s
+    const id = setInterval(load, 60_000);
     return () => clearInterval(id);
   }, [autoRefresh]);
 
   if (error) {
     return (
-      <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
-        <div className="max-w-2xl p-6 border border-red-700 rounded bg-red-950/30">
-          {error}
-        </div>
-      </main>
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+        <AdminEmptyState
+          eyebrow="Erro"
+          title="Não foi possível carregar"
+          body={error}
+          icon={<Icons.AlertCircle size={32} />}
+          action={
+            <AdminButton
+              variant="primary"
+              onClick={load}
+              leftIcon={<Icons.RefreshCw size={12} />}
+            >
+              Tentar de novo
+            </AdminButton>
+          }
+        />
+      </div>
     );
   }
 
   if (loading || !data) {
-    return (
-      <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
-        <p className="text-slate-400">Carregando dashboard…</p>
-      </main>
-    );
+    return <AdminPageLoading showTable={false} />;
   }
 
-  const healthColor =
+  const healthKind: AdminStatusKind =
+    data.health === "green" ? "success" : data.health === "amber" ? "warn" : "error";
+
+  const healthLabel =
     data.health === "green"
-      ? "text-emerald-300 border-emerald-700/40 bg-emerald-950/30"
+      ? "Tudo certo"
       : data.health === "amber"
-        ? "text-amber-300 border-amber-700/40 bg-amber-950/30"
-        : "text-red-300 border-red-700/40 bg-red-950/30";
+        ? "Atenção em alguns pontos"
+        : "Problemas críticos";
+
+  const healthBorderColor =
+    data.health === "green"
+      ? "var(--admin-success)"
+      : data.health === "amber"
+        ? "var(--admin-warning)"
+        : "var(--admin-danger)";
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <header className="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <h1 className="text-2xl font-bold">Dashboard executivo</h1>
-            <p className="text-sm text-slate-400">
-              Snapshot consolidado · auto-atualiza a cada 60s ·{" "}
-              <span className="text-slate-500">
-                Última: {new Date(data.generatedAt).toLocaleTimeString("pt-BR")}
-              </span>
-            </p>
-          </div>
-          <div className="flex gap-2 items-center">
-            <label className="text-xs text-slate-400 flex items-center gap-1">
-              <input
-                type="checkbox"
-                checked={autoRefresh}
-                onChange={(e) => setAutoRefresh(e.target.checked)}
-              />
-              Auto-refresh
-            </label>
-            <button
+    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "40px 32px" }}>
+      <AdminSectionHeader
+        eyebrow="ADMIN · DASHBOARD EXECUTIVO"
+        title="Snapshot da operação"
+        subtitle={
+          <span>
+            Atualiza a cada 60s · Última leitura:{" "}
+            <strong style={{ color: "var(--admin-text)" }}>
+              {new Date(data.generatedAt).toLocaleTimeString("pt-BR")}
+            </strong>
+          </span>
+        }
+        actions={
+          <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+            <AdminSwitch
+              id="auto-refresh"
+              checked={autoRefresh}
+              onChange={setAutoRefresh}
+              label="Auto-refresh"
+            />
+            <AdminButton
+              variant="secondary"
               onClick={load}
-              className="text-xs px-3 py-1.5 rounded border border-slate-700 hover:bg-slate-800"
+              leftIcon={<Icons.RefreshCw size={12} />}
             >
               Atualizar
-            </button>
-            <a href="/admin" className="text-sm text-emerald-400 hover:underline">
-              ← Voltar
-            </a>
+            </AdminButton>
           </div>
-        </header>
+        }
+      />
 
-        {/* Saúde geral */}
-        <section className={`rounded-2xl border p-5 ${healthColor}`}>
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">
-                {data.health === "green"
-                  ? "🟢"
-                  : data.health === "amber"
-                    ? "🟡"
-                    : "🔴"}
-              </span>
-              <div>
-                <p className="text-xs uppercase tracking-wider opacity-70">
-                  Saúde geral do sistema
-                </p>
-                <p className="text-xl font-bold">
-                  {data.health === "green" && "Tudo certo"}
-                  {data.health === "amber" && "Atenção em alguns pontos"}
-                  {data.health === "red" && "Problemas críticos"}
+      {/* === Saúde geral — faixa horizontal === */}
+      <section
+        style={{
+          padding: "20px 24px",
+          borderLeft: `3px solid ${healthBorderColor}`,
+          background: "var(--admin-surface)",
+          marginBottom: 32,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <AdminStatusDot kind={healthKind} size={14} pulse={data.health !== "green"} />
+            <div>
+              <p className="urban-admin-eyebrow-muted">SAÚDE GERAL DO SISTEMA</p>
+              <p
+                style={{
+                  fontSize: 20,
+                  fontWeight: 600,
+                  color: "var(--admin-text)",
+                  margin: "4px 0 0",
+                  letterSpacing: -0.3,
+                }}
+              >
+                {healthLabel}
+              </p>
+            </div>
+          </div>
+          {data.alerts.length === 0 && (
+            <AdminBadge kind="neutral">Nenhum alerta ativo</AdminBadge>
+          )}
+        </div>
+
+        {data.alerts.length > 0 && (
+          <ul
+            style={{
+              listStyle: "none",
+              padding: 0,
+              margin: "16px 0 0",
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+            }}
+          >
+            {data.alerts.map((a, i) => {
+              const aKind: AdminStatusKind =
+                a.severity === "red"
+                  ? "error"
+                  : a.severity === "amber"
+                    ? "warn"
+                    : "accent";
+              return (
+                <li
+                  key={i}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 12,
+                    fontSize: 13,
+                    color: "var(--admin-text)",
+                  }}
+                >
+                  <span style={{ paddingTop: 5 }}>
+                    <AdminStatusDot kind={aKind} size={7} />
+                  </span>
+                  <span style={{ lineHeight: 1.55 }}>{a.message}</span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      {/* === Fallback de eventos — só se cobertura abaixo do gate === */}
+      {data.events.next30d < 100 && (
+        <section style={{ marginBottom: 32 }}>
+          <AdminCard variant="accent" style={{ padding: "20px 24px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: 24,
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <p className="urban-admin-eyebrow">FALLBACK MANUAL DE EVENTOS</p>
+                <h3
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 600,
+                    color: "var(--admin-text)",
+                    margin: "8px 0 8px",
+                    letterSpacing: -0.2,
+                  }}
+                >
+                  Cobertura futura abaixo do gate beta
+                </h3>
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: "var(--admin-text-muted)",
+                    lineHeight: 1.55,
+                    margin: 0,
+                    maxWidth: 720,
+                  }}
+                >
+                  Existem {data.events.next30d.toLocaleString("pt-BR")} eventos
+                  nos próximos 30 dias. Para liberar beta assistido, complete o
+                  calendário de SP via cadastro manual ou importação CSV
+                  enquanto os coletores amadurecem.
                 </p>
               </div>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <AdminButton variant="primary" as="a" href="/admin/events/new" leftIcon={<Icons.Plus size={12} />}>
+                  Cadastrar evento
+                </AdminButton>
+                <AdminButton variant="secondary" as="a" href="/admin/events/import" leftIcon={<Icons.Upload size={12} />}>
+                  Importar CSV
+                </AdminButton>
+                <AdminButton variant="ghost" as="a" href="/admin/jobs" leftIcon={<Icons.Server size={12} />}>
+                  Rodar jobs
+                </AdminButton>
+              </div>
             </div>
-            {data.alerts.length === 0 && (
-              <span className="text-xs opacity-70">Nenhum alerta ativo</span>
-            )}
-          </div>
+          </AdminCard>
+        </section>
+      )}
 
-          {data.alerts.length > 0 && (
-            <ul className="mt-4 space-y-1.5 text-sm">
-              {data.alerts.map((a, i) => (
-                <li key={i} className="flex gap-2">
-                  <span>
-                    {a.severity === "red" && "🚨"}
-                    {a.severity === "amber" && "⚠️"}
-                    {a.severity === "info" && "ℹ️"}
-                  </span>
-                  <span>{a.message}</span>
-                </li>
-              ))}
+      {/* === 8 blocos — 2 rows × 4 cols === */}
+      <section
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: 24,
+          marginBottom: 32,
+        }}
+      >
+        <DataBlock title="Motor de eventos" icon={<Icons.Calendar size={14} />} href="/admin/events">
+          <SmallStat label="Total" value={data.events.total} />
+          <SmallStat
+            label="Dentro da cobertura"
+            value={data.events.inScope}
+            sub={`${data.events.outOfScope} fora (${data.events.outOfScopePercent}%)`}
+            status="success"
+          />
+          <SmallStat
+            label="Próximos 30 dias"
+            value={data.events.next30d}
+            sub={`${data.events.megaUpcoming} mega-eventos (rel ≥ 80)`}
+          />
+          <SmallStat
+            label="Coletados últimas 24h"
+            value={data.events.last24h}
+            status={data.events.last24h === 0 ? "error" : "success"}
+            sub={`${data.events.last7d} nos últimos 7d`}
+          />
+        </DataBlock>
+
+        <DataBlock title="Lista de espera" icon={<Icons.Users size={14} />} href="/admin/waitlist">
+          <SmallStat label="Total" value={data.waitlist.total} />
+          <SmallStat label="Aguardando convite" value={data.waitlist.pending} status="warn" />
+          <SmallStat label="Convidados" value={data.waitlist.invited} status="accent" />
+          <SmallStat label="Convertidos em conta" value={data.waitlist.converted} status="success" />
+        </DataBlock>
+
+        <DataBlock title="Pipeline de processamento" icon={<Icons.Server size={14} />} href="/admin/collectors-health">
+          <SmallStat
+            label="Sources distintos"
+            value={data.events.distinctSources}
+            sub="coletores ativos"
+          />
+          <SmallStat
+            label="Pendentes Gemini"
+            value={data.events.pendingEnrichment}
+            status={data.events.pendingEnrichment > 100 ? "warn" : "neutral"}
+            sub="aguardando enriquecimento"
+          />
+          <SmallStat
+            label="Pendentes Geocoding"
+            value={data.events.pendingGeocode}
+            status={data.events.pendingGeocode > 50 ? "warn" : "neutral"}
+          />
+          <SmallStat
+            label="Regiões cobertas"
+            value={data.coverage.activeRegions}
+            sub={
+              data.coverage.bootstrapRegions > 0
+                ? `+${data.coverage.bootstrapRegions} bootstrap`
+                : undefined
+            }
+          />
+        </DataBlock>
+
+        <DataBlock title="Receita & assinaturas" icon={<Icons.DollarSign size={14} />} href="/admin/finance">
+          <SmallStat label="Assinaturas ativas" value={data.revenue.activeSubscriptions} status="success" />
+          <NavLink href="/admin/finance">Ver MRR + custos + margem</NavLink>
+          <NavLink href="/admin/pricing-config">Configurar preços (matriz F6.5)</NavLink>
+          <NavLink href="/admin/coverage">Cobertura geográfica</NavLink>
+        </DataBlock>
+      </section>
+
+      <section
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: 24,
+          marginBottom: 32,
+        }}
+      >
+        <DataBlock title="Recomendações" icon={<Icons.Activity size={14} />} href="/admin/funnel">
+          <SmallStat
+            label="Criadas 24h"
+            value={data.pricing.last24h}
+            status={data.pricing.last24h === 0 ? "error" : "success"}
+            sub={`${data.pricing.last30d} nos últimos 30d`}
+          />
+          <SmallStat
+            label="Futuras"
+            value={data.pricing.futureRecommendations}
+            sub={`${data.pricing.activeWithFuturePricing}/${data.pricing.activeAddresses} imóveis ativos`}
+          />
+          <SmallStat
+            label="Cobertura"
+            value={`${data.pricing.coveragePercent}%`}
+            status={data.pricing.coveragePercent < 70 ? "error" : "success"}
+            sub="gate beta: 70%"
+          />
+          <SmallStat
+            label="Preço aplicado"
+            value={data.pricing.appliedPriceCaptured}
+            sub={
+              data.pricing.invalidLocalityAddresses > 0
+                ? `${data.pricing.invalidLocalityAddresses} imóveis com localidade inválida`
+                : "ground truth capturado"
+            }
+          />
+        </DataBlock>
+
+        <DataBlock title="Dataset & ROI" icon={<Icons.Database size={14} />} href="/admin/roi">
+          <SmallStat
+            label="Health"
+            value={data.dataset.health}
+            status={
+              data.dataset.health === "red"
+                ? "error"
+                : data.dataset.health === "amber"
+                  ? "warn"
+                  : "success"
+            }
+          />
+          <SmallStat
+            label="Price snapshots"
+            value={data.dataset.priceSnapshots}
+            sub={data.dataset.latestSnapshotDate ?? "sem snapshot"}
+          />
+          <SmallStat label="Ocupação" value={data.dataset.occupancyRecords} />
+          <SmallStat label="Features evento" value={data.dataset.eventProximityFeatures} />
+        </DataBlock>
+
+        <DataBlock title="Billing" icon={<Icons.Briefcase size={14} />} href="/admin/pricing-config">
+          <SmallStat
+            label="Stripe secret"
+            value={data.billing.stripeSecretConfigured ? "ok" : "faltando"}
+            status={data.billing.stripeSecretConfigured ? "success" : "error"}
+          />
+          <SmallStat
+            label="Webhook"
+            value={data.billing.stripeWebhookConfigured ? "ok" : "faltando"}
+            status={data.billing.stripeWebhookConfigured ? "success" : "error"}
+          />
+          <SmallStat
+            label="Status peding"
+            value={data.billing.legacyPedingPayments}
+            status={data.billing.legacyPedingPayments > 0 ? "warn" : "success"}
+          />
+          <SmallStat label="Ativas" value={data.billing.activeSubscriptions} />
+        </DataBlock>
+
+        <DataBlock title="Stays" icon={<Icons.Layers size={14} />} href="/admin/stays">
+          <SmallStat
+            label="Modo"
+            value={data.stays.betaPrivate ? "beta privado" : "configurado"}
+            status={data.stays.betaPrivate ? "warn" : "success"}
+          />
+          <SmallStat label="Contas" value={data.stays.accounts} />
+          <SmallStat label="Listings" value={data.stays.listings} />
+          <SmallStat label="Pushes 30d" value={data.stays.priceUpdatesLast30d} />
+        </DataBlock>
+      </section>
+
+      {/* === Bloqueios dataset (opcional) === */}
+      {data.dataset.blockers.length > 0 && (
+        <section style={{ marginBottom: 32 }}>
+          <AdminCard variant="default">
+            <AdminCardHeader title="Bloqueios de dataset e qualidade" />
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {data.dataset.blockers.map((blocker) => {
+                const kind: AdminStatusKind =
+                  blocker.severity === "red"
+                    ? "error"
+                    : blocker.severity === "amber"
+                      ? "warn"
+                      : "neutral";
+                return (
+                  <li
+                    key={blocker.code}
+                    style={{
+                      padding: "12px 0",
+                      borderBottom: "1px solid var(--admin-divider)",
+                      display: "flex",
+                      gap: 12,
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    <span style={{ paddingTop: 6 }}>
+                      <AdminStatusDot kind={kind} size={7} />
+                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p
+                        style={{
+                          fontSize: 13,
+                          color: "var(--admin-text)",
+                          margin: 0,
+                          fontWeight: 500,
+                        }}
+                      >
+                        <code style={{ color: "var(--admin-accent)", fontWeight: 600 }}>
+                          {blocker.code}
+                        </code>
+                        {": "}
+                        {blocker.message}
+                      </p>
+                      <p
+                        style={{
+                          fontSize: 12,
+                          color: "var(--admin-text-muted)",
+                          margin: "4px 0 0",
+                        }}
+                      >
+                        {blocker.nextAction}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </AdminCard>
+        </section>
+      )}
+
+      {/* === Mini-timeline + Top sources === */}
+      <section
+        style={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)",
+          gap: 24,
+          marginBottom: 32,
+        }}
+      >
+        <AdminCard variant="subtle">
+          <AdminCardHeader
+            title={`Ingestão últimos ${data.timeline.days} dias`}
+            actions={
+              <AdminButton
+                variant="ghost"
+                size="sm"
+                as="a"
+                href="/admin/events"
+                rightIcon={<Icons.ArrowRight size={11} />}
+              >
+                Ver completo
+              </AdminButton>
+            }
+          />
+          <MiniTimeline buckets={data.timeline.buckets} />
+        </AdminCard>
+
+        <AdminCard variant="subtle">
+          <AdminCardHeader
+            title="Top 5 sources (7d)"
+            actions={
+              <AdminButton
+                variant="ghost"
+                size="sm"
+                as="a"
+                href="/admin/collectors-health"
+                rightIcon={<Icons.ArrowRight size={11} />}
+              >
+                Ver todos
+              </AdminButton>
+            }
+          />
+          {data.topSources.length === 0 ? (
+            <p
+              style={{
+                fontSize: 13,
+                color: "var(--admin-text-muted)",
+                margin: 0,
+              }}
+            >
+              Sem dados nos últimos 7 dias.
+            </p>
+          ) : (
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {data.topSources.map((s, i) => {
+                const max = Math.max(...data.topSources.map((x) => x.count), 1);
+                const pct = (s.count / max) * 100;
+                return (
+                  <li key={s.source} style={{ marginBottom: 14 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: 12,
+                        marginBottom: 6,
+                      }}
+                    >
+                      <code
+                        style={{
+                          color: "var(--admin-text)",
+                          fontFamily: "monospace",
+                        }}
+                      >
+                        {String(i + 1).padStart(2, "0")} · {s.source}
+                      </code>
+                      <span
+                        style={{
+                          color: "var(--admin-accent)",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {s.count.toLocaleString("pt-BR")}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        height: 2,
+                        background: "var(--admin-divider)",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: "100%",
+                          width: `${pct}%`,
+                          background: "var(--admin-accent)",
+                        }}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
-        </section>
+        </AdminCard>
+      </section>
 
-        {/* 4 blocos grandes */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Eventos */}
-          <Block
-            title="Motor de eventos"
-            icon="📅"
-            href="/admin/events"
-          >
-            <Stat label="Total" value={data.events.total} />
-            <Stat
-              label="Dentro da cobertura"
-              value={data.events.inScope}
-              sub={`${data.events.outOfScope} fora (${data.events.outOfScopePercent}%)`}
-              color="text-emerald-300"
-            />
-            <Stat
-              label="Próximos 30 dias"
-              value={data.events.next30d}
-              sub={`${data.events.megaUpcoming} mega-eventos (rel ≥ 80)`}
-            />
-            <Stat
-              label="Coletados últimas 24h"
-              value={data.events.last24h}
-              color={data.events.last24h === 0 ? "text-red-300" : "text-emerald-300"}
-              sub={`${data.events.last7d} nos últimos 7d`}
-            />
-          </Block>
-
-          {/* Waitlist */}
-          <Block
-            title="Lista de espera"
-            icon="🎟️"
-            href="/admin/waitlist"
-          >
-            <Stat label="Total" value={data.waitlist.total} />
-            <Stat
-              label="Aguardando convite"
-              value={data.waitlist.pending}
-              color="text-amber-300"
-            />
-            <Stat
-              label="Convidados"
-              value={data.waitlist.invited}
-              color="text-blue-300"
-            />
-            <Stat
-              label="Convertidos em conta"
-              value={data.waitlist.converted}
-              color="text-emerald-300"
-            />
-          </Block>
-
-          {/* Cobertura + processamento */}
-          <Block
-            title="Pipeline de processamento"
-            icon="⚙️"
-            href="/admin/collectors-health"
-          >
-            <Stat
-              label="Sources distintos"
-              value={data.events.distinctSources}
-              sub="coletores ativos"
-            />
-            <Stat
-              label="Pendentes Gemini"
-              value={data.events.pendingEnrichment}
-              color={
-                data.events.pendingEnrichment > 100 ? "text-amber-300" : "text-slate-300"
-              }
-              sub="aguardando enriquecimento"
-            />
-            <Stat
-              label="Pendentes Geocoding"
-              value={data.events.pendingGeocode}
-              color={
-                data.events.pendingGeocode > 50 ? "text-amber-300" : "text-slate-300"
-              }
-            />
-            <Stat
-              label="Regiões cobertas"
-              value={data.coverage.activeRegions}
-              sub={
-                data.coverage.bootstrapRegions > 0
-                  ? `+${data.coverage.bootstrapRegions} bootstrap`
-                  : ""
-              }
-            />
-          </Block>
-
-          {/* Receita */}
-          <Block title="Receita & assinaturas" icon="💰" href="/admin/finance">
-            <Stat
-              label="Assinaturas ativas"
-              value={data.revenue.activeSubscriptions}
-              color="text-emerald-300"
-            />
-            <a
-              href="/admin/finance"
-              className="block text-xs text-blue-300 hover:underline mt-2"
-            >
-              Ver MRR + custos + margem por imóvel →
-            </a>
-            <a
-              href="/admin/pricing-config"
-              className="block text-xs text-blue-300 hover:underline"
-            >
-              Configurar preços (matriz F6.5) →
-            </a>
-            <a
-              href="/admin/coverage"
-              className="block text-xs text-blue-300 hover:underline"
-            >
-              Cobertura geográfica →
-            </a>
-          </Block>
-        </section>
-
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Block title="Recomendações" icon="R" href="/admin/funnel">
-            <Stat
-              label="Criadas 24h"
-              value={data.pricing.last24h}
-              color={data.pricing.last24h === 0 ? "text-red-300" : "text-emerald-300"}
-              sub={`${data.pricing.last30d} nos últimos 30d`}
-            />
-            <Stat
-              label="Futuras"
-              value={data.pricing.futureRecommendations}
-              sub={`${data.pricing.activeWithFuturePricing}/${data.pricing.activeAddresses} imóveis ativos`}
-            />
-            <Stat
-              label="Cobertura"
-              value={`${data.pricing.coveragePercent}%`}
-              color={data.pricing.coveragePercent < 70 ? "text-red-300" : "text-emerald-300"}
-              sub="gate beta: 70%"
-            />
-            <Stat
-              label="Preço aplicado"
-              value={data.pricing.appliedPriceCaptured}
-              sub={
-                data.pricing.invalidLocalityAddresses > 0
-                  ? `${data.pricing.invalidLocalityAddresses} imóveis com localidade inválida`
-                  : "ground truth capturado"
-              }
-            />
-          </Block>
-
-          <Block title="Dataset & ROI" icon="D" href="/admin/roi">
-            <Stat
-              label="Health"
-              value={data.dataset.health}
-              color={
-                data.dataset.health === "red"
-                  ? "text-red-300"
-                  : data.dataset.health === "amber"
-                    ? "text-amber-300"
-                    : "text-emerald-300"
-              }
-            />
-            <Stat label="Price snapshots" value={data.dataset.priceSnapshots} sub={data.dataset.latestSnapshotDate ?? "sem snapshot"} />
-            <Stat label="Ocupação" value={data.dataset.occupancyRecords} />
-            <Stat label="Features evento" value={data.dataset.eventProximityFeatures} />
-          </Block>
-
-          <Block title="Billing" icon="B" href="/admin/pricing-config">
-            <Stat
-              label="Stripe secret"
-              value={data.billing.stripeSecretConfigured ? "ok" : "faltando"}
-              color={data.billing.stripeSecretConfigured ? "text-emerald-300" : "text-red-300"}
-            />
-            <Stat
-              label="Webhook"
-              value={data.billing.stripeWebhookConfigured ? "ok" : "faltando"}
-              color={data.billing.stripeWebhookConfigured ? "text-emerald-300" : "text-red-300"}
-            />
-            <Stat
-              label="Status peding"
-              value={data.billing.legacyPedingPayments}
-              color={data.billing.legacyPedingPayments > 0 ? "text-amber-300" : "text-emerald-300"}
-            />
-            <Stat label="Ativas" value={data.billing.activeSubscriptions} />
-          </Block>
-
-          <Block title="Stays" icon="S" href="/admin/stays">
-            <Stat
-              label="Modo"
-              value={data.stays.betaPrivate ? "beta privado" : "configurado"}
-              color={data.stays.betaPrivate ? "text-amber-300" : "text-emerald-300"}
-            />
-            <Stat label="Contas" value={data.stays.accounts} />
-            <Stat label="Listings" value={data.stays.listings} />
-            <Stat label="Pushes 30d" value={data.stays.priceUpdatesLast30d} />
-          </Block>
-        </section>
-
-        {data.events.next30d < 100 && (
-          <section className="border border-amber-700/40 rounded-xl bg-amber-950/20 p-5">
-            <div className="flex items-start justify-between gap-4 flex-wrap">
-              <div>
-                <p className="text-xs uppercase tracking-wider text-amber-300">
-                  Fallback manual de eventos
-                </p>
-                <h2 className="text-lg font-semibold text-slate-50 mt-1">
-                  Cobertura futura abaixo do gate beta
-                </h2>
-                <p className="text-sm text-slate-400 mt-2 max-w-3xl">
-                  Existem {data.events.next30d.toLocaleString("pt-BR")} eventos nos proximos 30
-                  dias. Para liberar beta assistido, complete o calendario de SP via cadastro
-                  manual ou importacao CSV enquanto os coletores amadurecem.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2 text-sm">
-                <a
-                  href="/admin/events/new"
-                  className="px-3 py-2 rounded bg-amber-400 text-slate-950 font-bold"
-                >
-                  Cadastrar evento
-                </a>
-                <a
-                  href="/admin/events/import"
-                  className="px-3 py-2 rounded border border-amber-700/60 text-amber-200 hover:bg-amber-950/40"
-                >
-                  Importar CSV
-                </a>
-                <a
-                  href="/admin/jobs"
-                  className="px-3 py-2 rounded border border-slate-700 text-slate-200 hover:bg-slate-800"
-                >
-                  Rodar jobs
-                </a>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {data.dataset.blockers.length > 0 && (
-          <section className="border border-slate-800 rounded-xl bg-slate-900/40 p-5">
-            <h2 className="text-sm font-bold text-slate-200 mb-3">
-              Bloqueios de dataset e qualidade
-            </h2>
-            <ul className="space-y-2 text-sm">
-              {data.dataset.blockers.map((blocker) => (
-                <li key={blocker.code} className="flex flex-col gap-1 border-b border-slate-800/70 pb-2 last:border-0 last:pb-0">
-                  <span className={blocker.severity === "red" ? "text-red-300" : blocker.severity === "amber" ? "text-amber-300" : "text-slate-300"}>
-                    {blocker.code}: {blocker.message}
-                  </span>
-                  <span className="text-xs text-slate-500">{blocker.nextAction}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {/* Mini-timeline + top sources */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Timeline 7d */}
-          <div className="lg:col-span-2 border border-slate-800 rounded-xl bg-slate-900/40 p-5">
-            <header className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-bold text-slate-200">
-                Ingestão últimos {data.timeline.days} dias
-              </h2>
-              <a
-                href="/admin/events"
-                className="text-xs text-blue-300 hover:underline"
-              >
-                Ver completo →
-              </a>
-            </header>
-            <MiniTimeline buckets={data.timeline.buckets} />
-          </div>
-
-          {/* Top sources */}
-          <div className="border border-slate-800 rounded-xl bg-slate-900/40 p-5">
-            <header className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-bold text-slate-200">
-                Top 5 sources (7d)
-              </h2>
-              <a
-                href="/admin/collectors-health"
-                className="text-xs text-blue-300 hover:underline"
-              >
-                Ver todos →
-              </a>
-            </header>
-            {data.topSources.length === 0 ? (
-              <p className="text-xs text-slate-500">Sem dados nos últimos 7 dias.</p>
-            ) : (
-              <ul className="space-y-2 text-sm">
-                {data.topSources.map((s, i) => {
-                  const max = Math.max(...data.topSources.map((x) => x.count), 1);
-                  const pct = (s.count / max) * 100;
-                  return (
-                    <li key={s.source}>
-                      <div className="flex justify-between text-xs mb-0.5">
-                        <code className="text-slate-300">
-                          {i + 1}. {s.source}
-                        </code>
-                        <span className="text-emerald-300 font-bold">
-                          {s.count.toLocaleString("pt-BR")}
-                        </span>
-                      </div>
-                      <div className="h-1.5 rounded bg-slate-800">
-                        <div
-                          className="h-full rounded bg-emerald-500"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-        </section>
-
-        <section className="text-xs text-slate-500 border-t border-slate-800 pt-4">
-          <p>
-            <strong>Como ler:</strong> 🟢 verde = sem alertas; 🟡 amber = atenção
-            em algum ponto; 🔴 vermelho = problema crítico (coletor caído,
-            cobertura zero, etc.). Auto-refresh 60s pode ser desligado no header.
-          </p>
-        </section>
-      </div>
-    </main>
-  );
-}
-
-function Block({
-  title,
-  icon,
-  children,
-  href,
-}: {
-  title: string;
-  icon: string;
-  children: React.ReactNode;
-  href?: string;
-}) {
-  return (
-    <div className="border border-slate-800 rounded-xl bg-slate-900/40 p-4 flex flex-col">
-      <header className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
-          <span>{icon}</span> {title}
-        </h3>
-        {href && (
-          <a href={href} className="text-xs text-blue-300 hover:underline">
-            →
-          </a>
-        )}
-      </header>
-      <div className="space-y-2 flex-1">{children}</div>
+      <footer
+        style={{
+          paddingTop: 24,
+          borderTop: "1px solid var(--admin-divider)",
+          fontSize: 12,
+          color: "var(--admin-text-muted)",
+          lineHeight: 1.55,
+        }}
+      >
+        <p style={{ margin: 0 }}>
+          <strong style={{ color: "var(--admin-text)" }}>Como ler:</strong> dot
+          verde = sem alertas; amarelo = atenção em algum ponto; vermelho =
+          problema crítico (coletor caído, cobertura zero, etc.). Auto-refresh
+          60s pode ser desligado no header acima.
+        </p>
+      </footer>
     </div>
   );
 }
 
-function Stat({
+function DataBlock({
+  title,
+  icon,
+  href,
+  children,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  href?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <AdminCard variant="subtle" style={{ display: "flex", flexDirection: "column" }}>
+      <AdminCardHeader
+        title={
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <span style={{ color: "var(--admin-text-muted)" }}>{icon}</span>
+            {title}
+          </span>
+        }
+        actions={
+          href && (
+            <AdminButton
+              variant="ghost"
+              size="sm"
+              as="a"
+              href={href}
+              rightIcon={<Icons.ArrowRight size={11} />}
+            >
+              Detalhes
+            </AdminButton>
+          )
+        }
+      />
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {children}
+      </div>
+    </AdminCard>
+  );
+}
+
+function SmallStat({
   label,
   value,
   sub,
-  color,
+  status,
 }: {
   label: string;
   value: number | string;
   sub?: string;
-  color?: string;
+  status?: AdminStatusKind;
 }) {
   return (
     <div>
-      <p className="text-[10px] uppercase tracking-wider text-slate-500">{label}</p>
-      <p className={`text-lg font-bold ${color ?? "text-slate-50"}`}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+        {status && <AdminStatusDot kind={status} size={6} />}
+        <p
+          style={{
+            fontSize: 10,
+            letterSpacing: 2,
+            textTransform: "uppercase",
+            color: "var(--admin-text-muted)",
+            fontWeight: 600,
+            margin: 0,
+          }}
+        >
+          {label}
+        </p>
+      </div>
+      <p
+        style={{
+          fontSize: 22,
+          fontWeight: 600,
+          color:
+            status === "error"
+              ? "var(--admin-danger)"
+              : status === "warn"
+                ? "var(--admin-warning)"
+                : "var(--admin-text)",
+          margin: 0,
+          letterSpacing: -0.3,
+          fontFamily: typeof value === "number" ? "'Bebas Neue', Inter, sans-serif" : "Inter, sans-serif",
+        }}
+      >
         {typeof value === "number" ? value.toLocaleString("pt-BR") : value}
       </p>
-      {sub && <p className="text-[10px] text-slate-400">{sub}</p>}
+      {sub && (
+        <p
+          style={{
+            fontSize: 11,
+            color: "var(--admin-text-muted)",
+            margin: "2px 0 0",
+          }}
+        >
+          {sub}
+        </p>
+      )}
     </div>
+  );
+}
+
+function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        fontSize: 12,
+        color: "var(--admin-text-muted)",
+        textDecoration: "none",
+        padding: "4px 0",
+        borderBottom: "1px solid transparent",
+        width: "fit-content",
+        transition: "color 120ms, border-color 120ms",
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLAnchorElement).style.color = "var(--admin-accent)";
+        (e.currentTarget as HTMLAnchorElement).style.borderBottomColor = "var(--admin-accent)";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLAnchorElement).style.color = "var(--admin-text-muted)";
+        (e.currentTarget as HTMLAnchorElement).style.borderBottomColor = "transparent";
+      }}
+    >
+      {children} <Icons.ArrowRight size={10} />
+    </a>
   );
 }
 
@@ -536,49 +766,104 @@ function MiniTimeline({
   const max = Math.max(...buckets.map((b) => b.inScope + b.outOfScope), 1);
   return (
     <div>
-      <div className="flex items-end gap-1 h-24 border-b border-slate-700 pb-1">
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-end",
+          gap: 3,
+          height: 120,
+          paddingBottom: 4,
+          borderBottom: "1px solid var(--admin-divider)",
+        }}
+      >
         {buckets.map((b) => {
-          const total = b.inScope + b.outOfScope;
-          const inHeight = total > 0 ? (b.inScope / max) * 100 : 0;
-          const outHeight = total > 0 ? (b.outOfScope / max) * 100 : 0;
+          const inHeight = (b.inScope / max) * 100;
+          const outHeight = (b.outOfScope / max) * 100;
           return (
             <div
               key={b.day}
-              className="flex-1 flex flex-col justify-end relative group"
               title={`${new Date(b.day).toLocaleDateString("pt-BR")} — in: ${b.inScope}, out: ${b.outOfScope}`}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "flex-end",
+                position: "relative",
+                cursor: "default",
+              }}
             >
               {b.outOfScope > 0 && (
                 <div
-                  className="bg-red-400"
-                  style={{ height: `${outHeight}%` }}
+                  style={{
+                    height: `${outHeight}%`,
+                    background: "var(--admin-accent)",
+                    opacity: 0.35,
+                  }}
                 />
               )}
               {b.inScope > 0 && (
                 <div
-                  className="bg-emerald-400"
-                  style={{ height: `${inHeight}%` }}
+                  style={{
+                    height: `${inHeight}%`,
+                    background: "var(--admin-text)",
+                    opacity: 0.85,
+                  }}
                 />
               )}
             </div>
           );
         })}
       </div>
-      <div className="flex gap-1 mt-1 text-[9px] text-slate-500">
-        {buckets.map((b) => (
-          <div key={b.day} className="flex-1 text-center">
-            {new Date(b.day).toLocaleDateString("pt-BR", {
-              day: "2-digit",
-              month: "2-digit",
-            })}
+      <div
+        style={{
+          display: "flex",
+          gap: 3,
+          marginTop: 6,
+          fontSize: 9,
+          color: "var(--admin-text-dim)",
+        }}
+      >
+        {buckets.map((b, i) => (
+          <div key={b.day} style={{ flex: 1, textAlign: "center" }}>
+            {i % Math.ceil(buckets.length / 7) === 0
+              ? new Date(b.day).toLocaleDateString("pt-BR", {
+                  day: "2-digit",
+                  month: "2-digit",
+                })
+              : ""}
           </div>
         ))}
       </div>
-      <div className="flex gap-3 mt-2 text-[10px]">
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 bg-emerald-400 inline-block" /> in-scope
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          marginTop: 12,
+          fontSize: 11,
+          color: "var(--admin-text-muted)",
+        }}
+      >
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span
+            style={{
+              width: 10,
+              height: 6,
+              background: "var(--admin-text)",
+              opacity: 0.85,
+            }}
+          />
+          in-scope
         </span>
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 bg-red-400 inline-block" /> out-of-scope
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span
+            style={{
+              width: 10,
+              height: 6,
+              background: "var(--admin-accent)",
+              opacity: 0.35,
+            }}
+          />
+          out-of-scope
         </span>
       </div>
     </div>

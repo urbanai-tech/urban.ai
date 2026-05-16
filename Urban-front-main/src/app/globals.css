@@ -53,6 +53,236 @@
   color: #E8500A;
 }
 
+/* === Design System Urban AI — ADMIN (dark premium tool) === */
+/* Aplicado dentro de .urban-admin (todas as rotas /admin/* via admin/layout.tsx) */
+
+.urban-admin,
+.urban-admin * {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+}
+
+.urban-admin .urban-admin-display,
+.urban-admin .urban-admin-display * {
+  font-family: 'Bebas Neue', 'Inter', sans-serif !important;
+}
+
+.urban-admin {
+  /* Surfaces */
+  --admin-bg: #080A0F;
+  --admin-surface: rgba(255, 255, 255, 0.02);
+  --admin-surface-elevated: rgba(255, 255, 255, 0.04);
+  --admin-surface-sidebar: #0E1117;
+
+  /* Text */
+  --admin-text: rgba(255, 255, 255, 0.92);
+  --admin-text-muted: rgba(255, 255, 255, 0.55);
+  --admin-text-dim: rgba(255, 255, 255, 0.35);
+
+  /* Borders */
+  --admin-divider: rgba(255, 255, 255, 0.08);
+  --admin-divider-strong: rgba(255, 255, 255, 0.12);
+
+  /* Brand + semantic */
+  --admin-accent: #E8500A;
+  --admin-accent-soft: rgba(232, 80, 10, 0.15);
+  --admin-success: #4ADE80;
+  --admin-warning: #F5B547;
+  --admin-danger: #F87171;
+
+  background: var(--admin-bg);
+  color: var(--admin-text);
+  min-height: 100vh;
+}
+
+/* Display headings — Bebas Neue */
+.urban-admin .urban-admin-display-hero {
+  font-family: 'Bebas Neue', 'Inter', sans-serif !important;
+  font-size: clamp(56px, 7vw, 96px);
+  line-height: 0.92;
+  letter-spacing: -1px;
+  font-weight: 400;
+  color: var(--admin-text);
+  margin: 0;
+}
+
+.urban-admin .urban-admin-display-md {
+  font-family: 'Bebas Neue', 'Inter', sans-serif !important;
+  font-size: clamp(40px, 5vw, 56px);
+  line-height: 1;
+  letter-spacing: -0.5px;
+  font-weight: 400;
+  color: var(--admin-text);
+  margin: 0;
+}
+
+.urban-admin .urban-admin-display-sm {
+  font-family: 'Bebas Neue', 'Inter', sans-serif !important;
+  font-size: 32px;
+  line-height: 1;
+  letter-spacing: -0.3px;
+  font-weight: 400;
+  color: var(--admin-text);
+  margin: 0;
+}
+
+/* Eyebrow padronizado admin */
+.urban-admin .urban-admin-eyebrow {
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--admin-accent);
+  margin: 0;
+}
+
+.urban-admin .urban-admin-eyebrow-muted {
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--admin-text-muted);
+  margin: 0;
+}
+
+/* Tabela admin — row hover orange */
+.urban-admin .urban-admin-row {
+  transition: background 120ms, box-shadow 120ms;
+}
+.urban-admin .urban-admin-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: inset 0 -1px 0 var(--admin-accent);
+}
+
+/* Loading skeleton shimmer */
+@keyframes urban-admin-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.urban-admin .urban-admin-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 800px 100%;
+  animation: urban-admin-shimmer 1.4s ease-in-out infinite;
+  border-radius: 2px;
+}
+
+/* Drawer slide-in da direita */
+@keyframes urban-admin-drawer-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+@keyframes urban-admin-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.urban-admin .urban-admin-drawer-panel {
+  animation: urban-admin-drawer-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.urban-admin .urban-admin-backdrop {
+  animation: urban-admin-fade-in 160ms ease-out;
+}
+
+/* Switch custom */
+.urban-admin .urban-admin-switch {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 150ms;
+  flex-shrink: 0;
+  border: none;
+  padding: 0;
+}
+.urban-admin .urban-admin-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: #FFFFFF;
+  border-radius: 999px;
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.urban-admin .urban-admin-switch[data-checked="true"] {
+  background: var(--admin-accent);
+}
+.urban-admin .urban-admin-switch[data-checked="true"]::after {
+  transform: translateX(14px);
+}
+
+/* Focus rings (acessibilidade) */
+.urban-admin button:focus-visible,
+.urban-admin a:focus-visible,
+.urban-admin input:focus-visible,
+.urban-admin select:focus-visible,
+.urban-admin textarea:focus-visible {
+  outline: 2px solid var(--admin-accent);
+  outline-offset: 2px;
+}
+
+/* Scrollbar dark sutil */
+.urban-admin ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.urban-admin ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.urban-admin ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+}
+.urban-admin ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Sidebar admin */
+.urban-admin .urban-admin-sidebar {
+  background: var(--admin-surface-sidebar);
+  border-right: 1px solid var(--admin-divider);
+}
+
+.urban-admin .urban-admin-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  color: var(--admin-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: color 120ms, background 120ms, border-color 120ms;
+}
+.urban-admin .urban-admin-sidebar-item:hover {
+  color: var(--admin-text);
+  background: rgba(255, 255, 255, 0.02);
+}
+.urban-admin .urban-admin-sidebar-item[data-active="true"] {
+  color: var(--admin-text);
+  background: rgba(255, 255, 255, 0.03);
+  border-left-color: var(--admin-accent);
+}
+
+.urban-admin .urban-admin-sidebar-section {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--admin-text-dim);
+  font-weight: 600;
+  padding: 20px 16px 8px;
+}
+
 @media (min-width: 768px) {
   .urban-nav-desktop,
   .urban-cta-desktop {
