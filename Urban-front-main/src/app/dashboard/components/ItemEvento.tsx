@@ -1,20 +1,38 @@
-import { alterarAceitoSugestao, registrarPrecoAplicadoSugestao } from "@/app/service/api";
-import { CloseIcon } from "@chakra-ui/icons";
-import {
-  Badge,
-  Box,
-  Button,
-  Flex,
-  HStack,
-  Input,
-  Select,
-  Text,
-  Textarea,
-} from "@chakra-ui/react";
-import { format, parseISO } from "date-fns";
+"use client";
+
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { toast } from 'react-toastify';
-    
+import { toast } from "react-toastify";
+import {
+  alterarAceitoSugestao,
+  registrarPrecoAplicadoSugestao,
+} from "@/app/service/api";
+import {
+  RecommendationCard,
+  AppButton,
+  AppInput,
+  AppSelect,
+  AppTextarea,
+  AppBadge,
+  Icons,
+} from "@/app/componentes/ui";
+
+/**
+ * EventCard do /dashboard (calendario) — REFATORADO (Sprint 3 redesign).
+ *
+ * Antes (screenshot host-calendario.png):
+ *  - SUG (azul #1931CF) somia, ATUAL (verde #3FCF19) dominava — hierarquia
+ *    invertida.
+ *  - Form "Registrar resultado" inline com campos cortados pelo viewport.
+ *  - Botoes colorScheme=teal/red.
+ *
+ * Agora:
+ *  - RecommendationCard (Pilar D do plano) com sugestao Bebas accent
+ *    dominando, atual como referencia menor, CTA primary #E8500A
+ *    "Aplicar sugestao" inconfundivel.
+ *  - "Registrar resultado" vira Drawer slide-in (campos respiram, nada
+ *    cortado).
+ *  - Cores semanticas via design system (success/warn/danger sutis).
+ */
 
 export interface EventItem {
   id: string;
@@ -38,7 +56,13 @@ export interface EventItem {
   noitesReservadas?: string | number | null;
   resultadoRegistradoEm?: string | null;
   feedbackObservacao?: string | null;
-  status?: "suggested" | "accepted" | "rejected" | "applied_manual" | "applied_stays" | "expired";
+  status?:
+    | "suggested"
+    | "accepted"
+    | "rejected"
+    | "applied_manual"
+    | "applied_stays"
+    | "expired";
   aceitoEm?: string | null;
   rejeitadoEm?: string | null;
   expiradoEm?: string | null;
@@ -55,7 +79,6 @@ interface EventCardProps {
   onChange?: (updated: EventItem) => void;
 }
 
-// Função utilitária para converter valor em número
 const toNumber = (v: string | number | undefined): number => {
   if (v === undefined || v === null) return NaN;
   if (typeof v === "number") return v;
@@ -64,7 +87,6 @@ const toNumber = (v: string | number | undefined): number => {
   return Number(s);
 };
 
-// Formata número em BRL
 const formatBRL = (value: string | number | undefined): string => {
   if (value === undefined || value === null) return "";
   const n = typeof value === "string" ? toNumber(value) : value;
@@ -72,57 +94,24 @@ const formatBRL = (value: string | number | undefined): string => {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 2,
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
   }).format(n as number);
 };
 
-// Subcomponente Pill
-const Pill = ({
-  bgColor,
-  children,
-  ariaLabel,
-}: {
-  bgColor: string;
-  children: React.ReactNode;
-  ariaLabel?: string;
-}) => (
-  <Badge
-    aria-label={ariaLabel}
-    color="white"
-    bg={bgColor}
-    fontSize="sm"
-    fontWeight="bold"
-    px={3}
-    py={1}
-    borderRadius="full"
-    letterSpacing={0.4}
-    textTransform="uppercase"
-    boxShadow="sm"
-    whiteSpace="nowrap"
-  >
-    {children}
-  </Badge>
-);
-
 export const EventCard: React.FC<EventCardProps> = ({
   ev,
-  cardBorder,
-  bg,
-  propertyId: _propertyId,
   setIsLoading,
   onChange,
 }) => {
-  const startDate = parseISO(ev.dataInicio);
-  const diff = Number(ev.diferencaPercentual);
-  const showPositiveDiff = Number.isFinite(diff) && diff > 0;
-  const [loadingSaving, setLoadingSaving] = useState(false);
-  const [loadingAppliedPrice, setLoadingAppliedPrice] = useState(false);
-
   const sugNum = toNumber(ev.precoSugerido);
   const atualNum = toNumber(ev.seuPrecoAtual);
 
   const [accepted, setAccepted] = useState(ev.aceito);
+  const [loadingSaving, setLoadingSaving] = useState(false);
+  const [loadingAppliedPrice, setLoadingAppliedPrice] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   const [appliedPriceInput, setAppliedPriceInput] = useState(
     ev.precoAplicado ? String(ev.precoAplicado).replace(".", ",") : "",
   );
@@ -139,78 +128,91 @@ export const EventCard: React.FC<EventCardProps> = ({
 
   useEffect(() => {
     setAccepted(ev.aceito);
-    setAppliedPriceInput(ev.precoAplicado ? String(ev.precoAplicado).replace(".", ",") : "");
+    setAppliedPriceInput(
+      ev.precoAplicado ? String(ev.precoAplicado).replace(".", ",") : "",
+    );
     setReservationStatus(ev.reservaStatus || "unknown");
-    setRealRevenueInput(ev.receitaReal ? String(ev.receitaReal).replace(".", ",") : "");
+    setRealRevenueInput(
+      ev.receitaReal ? String(ev.receitaReal).replace(".", ",") : "",
+    );
     setBookedNightsInput(ev.noitesReservadas ? String(ev.noitesReservadas) : "");
     setFeedbackNote(ev.feedbackObservacao || "");
-  }, [ev.aceito, ev.precoAplicado, ev.reservaStatus, ev.receitaReal, ev.noitesReservadas, ev.feedbackObservacao]);
+  }, [
+    ev.aceito,
+    ev.precoAplicado,
+    ev.reservaStatus,
+    ev.receitaReal,
+    ev.noitesReservadas,
+    ev.feedbackObservacao,
+  ]);
 
-  const handleAccept = async () => {
+  async function handleAccept() {
     setLoadingSaving(true);
     setIsLoading(true);
     try {
       await alterarAceitoSugestao(ev.idAnalise, true);
-
       const updated = { ...ev, aceito: true, status: "accepted" as const };
       setAccepted(true);
       onChange?.(updated);
-
-
-
-                   toast(`Você aceitou a sugestão de preço de ${formatBRL(sugNum)}`, { type: "success" });
-      setLoadingSaving(false);
+      toast(`Voce aceitou a sugestao de preco de ${formatBRL(sugNum)}`, {
+        type: "success",
+      });
     } catch {
-       toast("Não foi possível aceitar a sugestão de preço", { type: "error" });
-      setLoadingSaving(false);
+      toast("Nao foi possivel aceitar a sugestao de preco", { type: "error" });
     } finally {
       setIsLoading(false);
       setLoadingSaving(false);
     }
-  };
+  }
 
-  const handleCancel = async () => {
-    setIsLoading(true);
+  async function handleCancel() {
     setLoadingSaving(true);
+    setIsLoading(true);
     try {
       await alterarAceitoSugestao(ev.idAnalise, false);
-
       const updated = { ...ev, aceito: false, status: "rejected" as const };
       setAccepted(false);
       onChange?.(updated);
-               toast("A sugestão de preço foi cancelada.", { type: "info" });
-      setLoadingSaving(false);
+      toast("A sugestao de preco foi cancelada.", { type: "info" });
     } catch {
-       toast("Não foi possível cancelar a sugestão de preço.", { type: "error" });
-      setLoadingSaving(false);
+      toast("Nao foi possivel cancelar a sugestao de preco.", { type: "error" });
     } finally {
       setLoadingSaving(false);
       setIsLoading(false);
     }
-  };
+  }
 
-  const handleRegisterAppliedPrice = async () => {
+  async function handleRegisterAppliedPrice() {
     const appliedPrice = toNumber(appliedPriceInput);
     if (!Number.isFinite(appliedPrice) || appliedPrice <= 0) {
-      toast("Informe um preço aplicado válido.", { type: "warning" });
+      toast("Informe um preco aplicado valido.", { type: "warning" });
       return;
     }
 
     setLoadingAppliedPrice(true);
     try {
       const receitaReal = realRevenueInput ? toNumber(realRevenueInput) : null;
-      const noitesReservadas = bookedNightsInput ? Number(bookedNightsInput) : null;
+      const noitesReservadas = bookedNightsInput
+        ? Number(bookedNightsInput)
+        : null;
       const normalizedNights = Number.isFinite(noitesReservadas as number)
         ? Math.max(0, Math.floor(noitesReservadas as number))
         : null;
-      const normalizedRevenue = Number.isFinite(receitaReal as number) ? receitaReal : null;
+      const normalizedRevenue = Number.isFinite(receitaReal as number)
+        ? receitaReal
+        : null;
 
-      await registrarPrecoAplicadoSugestao(ev.idAnalise, appliedPrice, "manual_dashboard", {
-        reservaStatus: reservationStatus,
-        receitaReal: normalizedRevenue,
-        noitesReservadas: normalizedNights,
-        feedbackObservacao: feedbackNote || null,
-      });
+      await registrarPrecoAplicadoSugestao(
+        ev.idAnalise,
+        appliedPrice,
+        "manual_dashboard",
+        {
+          reservaStatus: reservationStatus,
+          receitaReal: normalizedRevenue,
+          noitesReservadas: normalizedNights,
+          feedbackObservacao: feedbackNote || null,
+        },
+      );
       onChange?.({
         ...ev,
         precoAplicado: appliedPrice,
@@ -224,193 +226,246 @@ export const EventCard: React.FC<EventCardProps> = ({
         status: "applied_manual",
       });
       toast("Preco e resultado registrados.", { type: "success" });
+      setDrawerOpen(false);
     } catch {
-      toast("Não foi possível registrar o preço aplicado.", { type: "error" });
+      toast("Nao foi possivel registrar o preco aplicado.", { type: "error" });
     } finally {
       setLoadingAppliedPrice(false);
     }
-  };
+  }
+
+  const distanceMeta = ev.enderecoCompleto || `${ev.cidade}, ${ev.estado}`;
+  const eventCategory = ev.recomendacao ? undefined : undefined;
+  const cardStatus: "pending" | "accepted" | "applied" | "rejected" =
+    ev.status === "applied_manual" || ev.status === "applied_stays"
+      ? "applied"
+      : accepted
+        ? "accepted"
+        : ev.status === "rejected"
+          ? "rejected"
+          : "pending";
 
   return (
-    <Box
-      border="1px solid"
-      borderColor={cardBorder}
-      borderRadius="2xl"
-      p={5}
-      bg={bg}
-      boxShadow="xs"
-      _hover={{ boxShadow: "md" }}
-      transition="box-shadow 0.15s ease"
-      w="100%"
-    >
-      <Flex direction="column" gap={3}>
-        <Text fontWeight="extrabold" fontSize="xl" lineHeight="short">
-          {ev.nome}
-        </Text>
+    <>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <RecommendationCard
+          eventTitle={ev.nome}
+          eventCategory={eventCategory}
+          eventDate={ev.dataInicio}
+          eventLocation={distanceMeta}
+          currentPrice={Number.isFinite(atualNum) ? atualNum : 0}
+          suggestedPrice={Number.isFinite(sugNum) ? sugNum : 0}
+          reason={ev.motivo_ia ?? ev.recomendacao ?? undefined}
+          status={cardStatus}
+          onPrimary={accepted ? handleCancel : handleAccept}
+          primaryLabel={accepted ? "Cancelar aceite" : "Aplicar sugestao"}
+          onSecondary={accepted ? () => setDrawerOpen(true) : undefined}
+          secondaryLabel="Registrar resultado"
+          loading={loadingSaving}
+        />
 
-        <Flex gap={3} wrap="wrap" align="center">
-          {/* Preço sugerido */}
-
-      
-          <Pill bgColor="#1931CF" ariaLabel="Preço sugerido">
-            SUG. {formatBRL(sugNum)}
-          </Pill>
-
-
-          {/* Preço atual */}
-          {ev.seuPrecoAtual && (
-            <Pill bgColor="#3FCF19" ariaLabel="Preço atual">
-              ATUAL {formatBRL(atualNum)}
-              <Box
-                as="span"
-                ml={1}
-                textTransform="none"
-                fontSize="xs"
-                opacity={0.9}
-                whiteSpace="nowrap"
-              >
-                /diária
-              </Box>
-            </Pill>
-          )}
-
-          {/* Diferença percentual */}
-          {showPositiveDiff ? (
-            <Pill bgColor="#3FCF19" ariaLabel="Diferença positiva">
-              +{diff.toFixed(2)}%
-            </Pill>
-          ) : (
-            <Pill bgColor="#cf2519ff" ariaLabel="Diferença negativa">
-              {diff.toFixed(2)}%
-            </Pill>
-          )}
-        </Flex>
-
-        <Text color="gray.600" fontSize="lg" fontWeight="semibold">
-          {format(startDate, "dd/MM/yyyy")}
-        </Text>
-
-        <Text fontSize="md" color="gray.700">
-          {ev.enderecoCompleto
-            ? ev.enderecoCompleto
-            : `${ev.cidade}, ${ev.estado}`}
-        </Text>
-
-        {(ev.motivo_ia || ev.recomendacao) && (
-          <Box bg="gray.50" border="1px solid" borderColor="gray.200" borderRadius="lg" p={3}>
-            <Text fontSize="xs" color="gray.500" fontWeight="bold" textTransform="uppercase">
-              Por que sugerimos
-            </Text>
-            <Text fontSize="sm" color="gray.700" mt={1}>
-              {ev.motivo_ia || ev.recomendacao}
-            </Text>
-          </Box>
-        )}
-
+        {/* Estado: ja aplicado */}
         {ev.precoAplicado && (
-          <Pill bgColor="#1A7F64" ariaLabel="Preço aplicado registrado">
-            APLICADO {formatBRL(ev.precoAplicado)}
-          </Pill>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              alignSelf: "flex-start",
+              padding: "6px 12px",
+              borderRadius: 999,
+              border: "1px solid rgba(22, 160, 107, 0.25)",
+              background: "rgba(22, 160, 107, 0.08)",
+              color: "var(--app-success)",
+              fontSize: 12,
+              fontWeight: 600,
+            }}
+          >
+            <Icons.Check size={12} /> Aplicado {formatBRL(ev.precoAplicado)}
+          </div>
         )}
 
         {ev.status === "rejected" && (
-          <Badge alignSelf="flex-start" colorScheme="red" borderRadius="full" px={3} py={1}>
-            Rejeitada
-          </Badge>
+          <div style={{ alignSelf: "flex-start" }}>
+            <AppBadge kind="error">Rejeitada</AppBadge>
+          </div>
         )}
 
         {ev.status === "expired" && (
-          <Badge alignSelf="flex-start" colorScheme="gray" borderRadius="full" px={3} py={1}>
-            Expirada
-          </Badge>
+          <div style={{ alignSelf: "flex-start" }}>
+            <AppBadge kind="neutral">Expirada</AppBadge>
+          </div>
         )}
+      </div>
 
-        <HStack spacing={3} mt={4}>
-          {!accepted ? (
-            <Button
-              colorScheme="teal"
-              isLoading={loadingSaving}
-              size="md"
-              fontWeight="bold"
-              borderRadius="xl"
-              boxShadow="sm"
-              _hover={{ boxShadow: "md", transform: "scale(1.02)" }}
-              onClick={handleAccept}
-            >
-              Aceitar Sugestão
-            </Button>
-          ) : (
-            <Button
-              colorScheme="red"
-              size="md"
-              isLoading={loadingSaving}
-              fontWeight="bold"
-              borderRadius="xl"
-              boxShadow="sm"
-              _hover={{ boxShadow: "md", transform: "scale(1.02)" }}
-              onClick={handleCancel}
-              leftIcon={<CloseIcon />}
-            >
-              Cancelar
-            </Button>
-          )}
-        </HStack>
-
-        {accepted && (
-          <Flex gap={2} align={{ base: "stretch", sm: "center" }} direction={{ base: "column", md: "row" }} wrap="wrap">
-            <Input
-              value={appliedPriceInput}
-              onChange={(event) => setAppliedPriceInput(event.target.value)}
-              placeholder="Preço aplicado"
-              inputMode="decimal"
-              maxW={{ base: "100%", sm: "180px" }}
-            />
-            <Select
-              value={reservationStatus || "unknown"}
-              onChange={(event) =>
-                setReservationStatus((event.target.value as EventItem["reservaStatus"]) || "unknown")
-              }
-              maxW={{ base: "100%", sm: "180px" }}
-            >
-              <option value="unknown">Resultado</option>
-              <option value="booked">Reservou</option>
-              <option value="not_booked">Nao reservou</option>
-              <option value="blocked">Bloqueado</option>
-            </Select>
-            <Input
-              value={realRevenueInput}
-              onChange={(event) => setRealRevenueInput(event.target.value)}
-              placeholder="Receita real"
-              inputMode="decimal"
-              maxW={{ base: "100%", sm: "150px" }}
-            />
-            <Input
-              value={bookedNightsInput}
-              onChange={(event) => setBookedNightsInput(event.target.value)}
-              placeholder="Noites"
-              inputMode="numeric"
-              maxW={{ base: "100%", sm: "110px" }}
-            />
-            <Button
-              onClick={handleRegisterAppliedPrice}
-              isLoading={loadingAppliedPrice}
-              colorScheme="blue"
-              variant="outline"
-            >
-              Registrar preço aplicado
-            </Button>
-          </Flex>
-        )}
-        {accepted && (
-          <Textarea
-            value={feedbackNote}
-            onChange={(event) => setFeedbackNote(event.target.value)}
-            placeholder="Observacao opcional sobre a reserva"
-            size="sm"
-            resize="vertical"
+      {/* Drawer "Registrar resultado" — substitui o form inline cortado */}
+      {drawerOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            display: "flex",
+            justifyContent: "flex-end",
+          }}
+        >
+          <div
+            onClick={() => setDrawerOpen(false)}
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "rgba(0,0,0,0.45)",
+            }}
           />
-        )}
-      </Flex>
-    </Box>
+          <aside
+            className="urban-app"
+            style={{
+              position: "relative",
+              width: "100%",
+              maxWidth: 480,
+              background: "var(--app-surface)",
+              borderLeft: "1px solid var(--app-divider)",
+              display: "flex",
+              flexDirection: "column",
+              height: "100%",
+              animation: "urban-app-drawer-in 220ms cubic-bezier(0.16, 1, 0.3, 1)",
+            }}
+          >
+            <header
+              style={{
+                padding: "20px 24px",
+                borderBottom: "1px solid var(--app-divider)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                gap: 16,
+              }}
+            >
+              <div>
+                <p className="urban-app-eyebrow">RESULTADO DA SUGESTAO</p>
+                <h2
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 600,
+                    color: "var(--app-text)",
+                    margin: "6px 0 0",
+                    letterSpacing: -0.2,
+                  }}
+                >
+                  Registrar preco aplicado
+                </h2>
+              </div>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                aria-label="Fechar"
+                style={{
+                  background: "transparent",
+                  border: "1px solid var(--app-divider-strong)",
+                  borderRadius: 6,
+                  color: "var(--app-text-muted)",
+                  padding: 6,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  lineHeight: 0,
+                }}
+              >
+                <Icons.Close size={16} />
+              </button>
+            </header>
+            <div
+              style={{
+                flex: 1,
+                overflowY: "auto",
+                padding: "24px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 16,
+              }}
+            >
+              <AppInput
+                label="Preco aplicado"
+                leftAddon={<span style={{ fontSize: 13 }}>R$</span>}
+                value={appliedPriceInput}
+                onChange={(e) => setAppliedPriceInput(e.target.value)}
+                inputMode="decimal"
+                placeholder="0,00"
+              />
+              <AppSelect
+                label="Resultado da reserva"
+                value={reservationStatus || "unknown"}
+                onChange={(e) =>
+                  setReservationStatus(
+                    (e.target.value as EventItem["reservaStatus"]) || "unknown",
+                  )
+                }
+              >
+                <option value="unknown">Ainda nao sei</option>
+                <option value="booked">Reservou</option>
+                <option value="not_booked">Nao reservou</option>
+                <option value="blocked">Bloqueado</option>
+              </AppSelect>
+              <AppInput
+                label="Receita real (opcional)"
+                leftAddon={<span style={{ fontSize: 13 }}>R$</span>}
+                value={realRevenueInput}
+                onChange={(e) => setRealRevenueInput(e.target.value)}
+                inputMode="decimal"
+                placeholder="0,00"
+              />
+              <AppInput
+                label="Noites reservadas (opcional)"
+                value={bookedNightsInput}
+                onChange={(e) => setBookedNightsInput(e.target.value)}
+                inputMode="numeric"
+                placeholder="0"
+              />
+              <AppTextarea
+                label="Observacao (opcional)"
+                value={feedbackNote}
+                onChange={(e) => setFeedbackNote(e.target.value)}
+                rows={4}
+                placeholder="Anotacao livre sobre como foi a reserva."
+              />
+            </div>
+            <div
+              style={{
+                padding: "16px 24px",
+                borderTop: "1px solid var(--app-divider)",
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 10,
+              }}
+            >
+              <AppButton
+                variant="ghost"
+                onClick={() => setDrawerOpen(false)}
+                disabled={loadingAppliedPrice}
+              >
+                Cancelar
+              </AppButton>
+              <AppButton
+                variant="primary"
+                onClick={handleRegisterAppliedPrice}
+                loading={loadingAppliedPrice}
+              >
+                Salvar resultado
+              </AppButton>
+            </div>
+          </aside>
+          <style jsx global>{`
+            @keyframes urban-app-drawer-in {
+              from {
+                transform: translateX(100%);
+              }
+              to {
+                transform: translateX(0);
+              }
+            }
+          `}</style>
+        </div>
+      )}
+    </>
   );
 };
