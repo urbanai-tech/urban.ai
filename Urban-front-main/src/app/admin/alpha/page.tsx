@@ -8,9 +8,33 @@ import {
   type AdminAlphaDashboard,
   type AdminAlphaRecommendation,
 } from "@/app/service/api";
+import {
+  AdminSectionHeader,
+  AdminMetricCard,
+  AdminButton,
+  AdminCard,
+  AdminCardHeader,
+  AdminTable,
+  type AdminTableColumn,
+  AdminInput,
+  AdminEmptyState,
+  AdminPageLoading,
+  useAdminToast,
+  Icons,
+} from "../_components";
 
 const DEFAULT_EMAIL = "gustavo8gouveia@hotmail.com";
 
+/**
+ * /admin/alpha — painel alpha (KPIs reais + auditoria + reprocesso).
+ *
+ * Migrado pro design system admin (.urban-admin):
+ *  - Hero KPI "Receita real" em Bebas Neue (decisão central da operação alpha).
+ *  - Toolbar com hierarquia: Reprocessar=primary, Export=secondary, Atualizar=ghost.
+ *  - Tabela com AdminTable + hover orange.
+ *  - Cards "Qualidade" / "Operação" viram AdminCard variant="subtle".
+ *  - alert() → useAdminToast.
+ */
 export default function AdminAlphaPage() {
   const [email, setEmail] = useState(DEFAULT_EMAIL);
   const [dashboard, setDashboard] = useState<AdminAlphaDashboard | null>(null);
@@ -19,6 +43,7 @@ export default function AdminAlphaPage() {
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastRun, setLastRun] = useState<string | null>(null);
+  const toast = useAdminToast();
 
   const load = async (targetEmail = email) => {
     setError(null);
@@ -30,9 +55,10 @@ export default function AdminAlphaPage() {
       ]);
       setDashboard(dash);
       setRows(exportData.rows);
-    } catch (err: any) {
-      const status = err?.response?.status;
-      setError(status === 403 ? "Acesso negado para este painel." : err?.message || "Erro ao carregar alpha.");
+    } catch (err: unknown) {
+      const e = err as { response?: { status?: number }; message?: string };
+      const status = e?.response?.status;
+      setError(status === 403 ? "Acesso negado para este painel." : e?.message || "Erro ao carregar alpha.");
     } finally {
       setLoading(false);
     }
@@ -90,6 +116,7 @@ export default function AdminAlphaPage() {
     link.download = `urban-alpha-${email}-${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+    toast.success(`Export CSV gerado (${rows.length} linhas).`);
   };
 
   const handleReprocess = async () => {
@@ -98,175 +125,433 @@ export default function AdminAlphaPage() {
     try {
       const run = await runAdminAlphaReprocess(email);
       setLastRun(`${run.status} - ${run.id}`);
+      toast.success(`Reprocessamento disparado (${run.status}).`);
       await load(email);
-    } catch (err: any) {
-      setError(err?.message || "Erro ao reprocessar alpha.");
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      const msg = e?.message || "Erro ao reprocessar alpha.";
+      setError(msg);
+      toast.error("Erro: " + msg);
     } finally {
       setRunning(false);
     }
   };
 
   if (loading && !dashboard) {
-    return (
-      <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
-        <p className="text-slate-400">Carregando painel alpha...</p>
-      </main>
-    );
+    return <AdminPageLoading />;
   }
 
+  const columns: AdminTableColumn<AdminAlphaRecommendation>[] = [
+    {
+      key: "property",
+      header: "Imóvel",
+      render: (r) => (
+        <span style={{ color: "var(--admin-text)", fontWeight: 500 }}>
+          {r.property.title || r.property.listId}
+        </span>
+      ),
+    },
+    {
+      key: "event",
+      header: "Evento",
+      render: (r) => (
+        <div>
+          <p style={{ fontWeight: 500, color: "var(--admin-text)", margin: 0 }}>
+            {r.event.name}
+          </p>
+          <p
+            style={{
+              fontSize: 11,
+              color: "var(--admin-text-dim)",
+              margin: "2px 0 0",
+              fontFamily: "monospace",
+            }}
+          >
+            {r.event.startsAt
+              ? new Date(r.event.startsAt).toLocaleDateString("pt-BR")
+              : "—"}
+          </p>
+        </div>
+      ),
+    },
+    {
+      key: "current",
+      header: "Atual",
+      width: 100,
+      align: "right",
+      render: (r) => (
+        <span style={{ fontFamily: "monospace", color: "var(--admin-text)" }}>
+          {formatBRL(r.pricing.current)}
+        </span>
+      ),
+    },
+    {
+      key: "suggested",
+      header: "Sug.",
+      width: 100,
+      align: "right",
+      render: (r) => (
+        <span
+          style={{
+            fontFamily: "monospace",
+            color: "var(--admin-accent)",
+            fontWeight: 600,
+          }}
+        >
+          {formatBRL(r.pricing.suggested)}
+        </span>
+      ),
+    },
+    {
+      key: "lift",
+      header: "Lift",
+      width: 100,
+      align: "right",
+      render: (r) => (
+        <span style={{ fontFamily: "monospace", color: "var(--admin-text-muted)" }}>
+          {r.pricing.lift === null ? "—" : formatBRL(r.pricing.lift)}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      width: 120,
+      render: (r) => (
+        <code style={{ fontSize: 11, color: "var(--admin-text-muted)" }}>
+          {r.lifecycle.status}
+        </code>
+      ),
+    },
+    {
+      key: "outcome",
+      header: "Resultado",
+      render: (r) => (
+        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+          {r.outcome.reservationStatus || "pendente"}
+          {r.outcome.realRevenue ? ` · ${formatBRL(r.outcome.realRevenue)}` : ""}
+        </span>
+      ),
+    },
+    {
+      key: "flags",
+      header: "Flags",
+      render: (r) =>
+        r.qualityFlags.length ? (
+          <span style={{ fontSize: 11, color: "var(--admin-warning)" }}>
+            {r.qualityFlags.join(", ")}
+          </span>
+        ) : (
+          <span style={{ fontSize: 11, color: "var(--admin-success)" }}>ok</span>
+        ),
+    },
+  ];
+
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <header className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <a href="/admin" className="text-sm text-emerald-300 hover:text-emerald-200">
-              Admin
-            </a>
-            <h1 className="text-3xl font-bold mt-2">Painel Alpha</h1>
-            <p className="text-slate-400 mt-1">KPIs reais, auditoria de recomendacoes e rotina de reprocessamento.</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <input
-              className="h-10 w-72 rounded-lg border border-slate-700 bg-slate-900 px-3 text-sm text-slate-100"
+    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "40px 32px" }}>
+      <AdminSectionHeader
+        eyebrow="ADMIN · ALPHA"
+        title="Painel Alpha"
+        subtitle="KPIs reais, auditoria de recomendações e rotina de reprocessamento."
+        actions={
+          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+            <AdminInput
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") load(email);
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") load(email);
               }}
+              placeholder="email@dominio.com"
+              shellStyle={{ width: 260 }}
+              leftAddon={<Icons.Mail size={12} />}
             />
-            <button
-              className="h-10 rounded-lg border border-slate-700 px-4 text-sm font-semibold hover:bg-slate-900"
+            <AdminButton
+              variant="ghost"
               onClick={() => load(email)}
+              disabled={loading}
+              leftIcon={<Icons.RefreshCw size={12} />}
             >
               Atualizar
-            </button>
-            <button
-              className="h-10 rounded-lg border border-emerald-500 px-4 text-sm font-semibold text-emerald-200 hover:bg-emerald-950 disabled:opacity-60"
+            </AdminButton>
+            <AdminButton
+              variant="secondary"
               onClick={handleExport}
               disabled={!rows.length}
+              leftIcon={<Icons.Download size={12} />}
             >
               Export CSV
-            </button>
-            <button
-              className="h-10 rounded-lg bg-emerald-500 px-4 text-sm font-bold text-slate-950 hover:bg-emerald-400 disabled:opacity-60"
+            </AdminButton>
+            <AdminButton
+              variant="primary"
               onClick={handleReprocess}
-              disabled={running}
+              loading={running}
+              leftIcon={<Icons.Zap size={12} />}
             >
-              {running ? "Reprocessando..." : "Reprocessar alpha"}
-            </button>
+              {running ? "Reprocessando…" : "Reprocessar alpha"}
+            </AdminButton>
           </div>
-        </header>
+        }
+      />
 
-        {error && (
-          <div className="rounded-lg border border-red-700 bg-red-950/30 p-4 text-sm text-red-100">
-            {error}
-          </div>
-        )}
+      {error && (
+        <div style={{ marginBottom: 32 }}>
+          <AdminEmptyState
+            eyebrow="Erro"
+            title="Falha no painel alpha"
+            body={error}
+            icon={<Icons.AlertCircle size={32} />}
+          />
+        </div>
+      )}
 
-        {dashboard && (
-          <>
-            <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-              <Kpi label="Imoveis alpha" value={dashboard.properties.total} sub={`${dashboard.properties.completed} completos`} />
-              <Kpi label="Com preco base" value={dashboard.properties.withManualPrice} sub={`${dashboard.properties.withAverageMonthlyRevenue} com receita mensal`} />
-              <Kpi label="Recomendacoes" value={dashboard.recommendations.total} sub={`${dashboard.recommendations.distinctEvents} eventos distintos`} />
-              <Kpi label="Feedback capturado" value={dashboard.recommendations.feedbackCaptured} sub={`${dashboard.recommendations.booked} reservas confirmadas`} />
-              <Kpi label="Preco aplicado" value={dashboard.recommendations.applied} sub={`${dashboard.recommendations.accepted} aceites`} />
-              <Kpi label="Receita real" value={formatBRL(dashboard.recommendations.realRevenue)} />
-              <Kpi label="Lift diario potencial" value={formatBRL(dashboard.recommendations.potentialDailyLift)} />
-              <Kpi label="Eventos futuros" value={dashboard.events.upcoming} sub={`+${dashboard.events.createdLast24h} em 24h`} />
-            </section>
-
-            <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-                <h2 className="font-bold mb-3">Qualidade de eventos</h2>
-                {qualityFlags.length ? (
-                  <ul className="space-y-2 text-sm">
-                    {qualityFlags.map(([flag, count]) => (
-                      <li key={flag} className="flex justify-between">
-                        <code className="text-slate-300">{flag}</code>
-                        <span className="font-bold text-amber-300">{count.toLocaleString("pt-BR")}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-emerald-300">Sem flags nas recomendacoes atuais.</p>
-                )}
-              </div>
-
-              <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5 lg:col-span-2">
-                <h2 className="font-bold mb-3">Operacao</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-                  <Status label="Tester" value={dashboard.user.email} />
-                  <Status label="Ultima leitura" value={new Date(dashboard.generatedAt).toLocaleString("pt-BR")} />
-                  <Status label="Ultimo job" value={lastRun || "Sem disparo nesta sessao"} />
+      {dashboard && (
+        <>
+          {/* === Hero KPI: Receita real === */}
+          <section style={{ marginBottom: 56 }}>
+            <AdminCard variant="accent" style={{ padding: "40px 40px 36px" }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)",
+                  gap: 32,
+                  alignItems: "end",
+                }}
+              >
+                <div>
+                  <p className="urban-admin-eyebrow">RECEITA REAL (ALPHA)</p>
+                  <p
+                    className="urban-admin-display-hero"
+                    style={{ marginTop: 12, color: "var(--admin-accent)" }}
+                  >
+                    {formatBRL(dashboard.recommendations.realRevenue)}
+                  </p>
+                  <p
+                    style={{
+                      marginTop: 12,
+                      fontSize: 14,
+                      color: "var(--admin-text-muted)",
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    Receita captada a partir de recomendações aplicadas ·{" "}
+                    Lift diário potencial:{" "}
+                    <span style={{ color: "var(--admin-accent)", fontWeight: 600 }}>
+                      {formatBRL(dashboard.recommendations.potentialDailyLift)}
+                    </span>
+                  </p>
+                </div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr",
+                    gap: 16,
+                    borderLeft: "1px solid var(--admin-divider)",
+                    paddingLeft: 32,
+                  }}
+                >
+                  <InlineStat
+                    label="Aplicados"
+                    value={dashboard.recommendations.applied.toLocaleString("pt-BR")}
+                  />
+                  <InlineStat
+                    label="Aceites"
+                    value={dashboard.recommendations.accepted.toLocaleString("pt-BR")}
+                  />
+                  <InlineStat
+                    label="Reservas"
+                    value={dashboard.recommendations.booked.toLocaleString("pt-BR")}
+                  />
                 </div>
               </div>
-            </section>
+            </AdminCard>
+          </section>
 
-            <section className="rounded-xl border border-slate-800 bg-slate-900/40 overflow-hidden">
-              <div className="flex items-center justify-between gap-4 border-b border-slate-800 px-5 py-4">
-                <h2 className="font-bold">Auditoria de recomendacoes</h2>
-                <span className="text-xs text-slate-500">{rows.length.toLocaleString("pt-BR")} linhas</span>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[1100px] text-sm">
-                  <thead className="bg-slate-950/60 text-xs uppercase text-slate-500">
-                    <tr>
-                      <th className="px-4 py-3 text-left">Imovel</th>
-                      <th className="px-4 py-3 text-left">Evento</th>
-                      <th className="px-4 py-3 text-right">Atual</th>
-                      <th className="px-4 py-3 text-right">Sug.</th>
-                      <th className="px-4 py-3 text-right">Lift</th>
-                      <th className="px-4 py-3 text-left">Status</th>
-                      <th className="px-4 py-3 text-left">Resultado</th>
-                      <th className="px-4 py-3 text-left">Flags</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.slice(0, 100).map((row) => (
-                      <tr key={row.id} className="border-t border-slate-800/80">
-                        <td className="px-4 py-3 text-slate-200">{row.property.title || row.property.listId}</td>
-                        <td className="px-4 py-3">
-                          <p className="font-medium text-slate-100">{row.event.name}</p>
-                          <p className="text-xs text-slate-500">{row.event.startsAt ? new Date(row.event.startsAt).toLocaleDateString("pt-BR") : "-"}</p>
-                        </td>
-                        <td className="px-4 py-3 text-right">{formatBRL(row.pricing.current)}</td>
-                        <td className="px-4 py-3 text-right text-emerald-300">{formatBRL(row.pricing.suggested)}</td>
-                        <td className="px-4 py-3 text-right">{row.pricing.lift === null ? "-" : formatBRL(row.pricing.lift)}</td>
-                        <td className="px-4 py-3">{row.lifecycle.status}</td>
-                        <td className="px-4 py-3">
-                          {row.outcome.reservationStatus || "pendente"}
-                          {row.outcome.realRevenue ? ` / ${formatBRL(row.outcome.realRevenue)}` : ""}
-                        </td>
-                        <td className="px-4 py-3 text-xs text-amber-200">{row.qualityFlags.join(", ") || "ok"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          </>
-        )}
-      </div>
-    </main>
-  );
-}
+          {/* === KPIs principais === */}
+          <section style={{ marginBottom: 64 }}>
+            <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
+              INDICADORES OPERACIONAIS
+            </p>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: 32,
+                borderTop: "1px solid var(--admin-divider)",
+                borderBottom: "1px solid var(--admin-divider)",
+              }}
+            >
+              <AdminMetricCard
+                label="Imóveis alpha"
+                value={dashboard.properties.total}
+                sub={`${dashboard.properties.completed} completos`}
+              />
+              <AdminMetricCard
+                label="Com preço base"
+                value={dashboard.properties.withManualPrice}
+                sub={`${dashboard.properties.withAverageMonthlyRevenue} com receita mensal`}
+              />
+              <AdminMetricCard
+                label="Recomendações"
+                value={dashboard.recommendations.total}
+                sub={`${dashboard.recommendations.distinctEvents} eventos distintos`}
+              />
+              <AdminMetricCard
+                label="Feedback capturado"
+                value={dashboard.recommendations.feedbackCaptured}
+                sub={`${dashboard.recommendations.booked} reservas confirmadas`}
+                status="success"
+              />
+              <AdminMetricCard
+                label="Eventos futuros"
+                value={dashboard.events.upcoming}
+                sub={`+${dashboard.events.createdLast24h} em 24h`}
+              />
+            </div>
+          </section>
 
-function Kpi({ label, value, sub }: { label: string; value: number | string; sub?: string }) {
-  return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-      <p className="text-xs uppercase text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold">{typeof value === "number" ? value.toLocaleString("pt-BR") : value}</p>
-      {sub && <p className="mt-1 text-xs text-slate-400">{sub}</p>}
+          {/* === Qualidade + Operação === */}
+          <section
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 1fr) minmax(0, 2fr)",
+              gap: 24,
+              marginBottom: 56,
+            }}
+          >
+            <AdminCard variant="subtle">
+              <AdminCardHeader title="Qualidade de eventos" />
+              {qualityFlags.length ? (
+                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                  {qualityFlags.map(([flag, count]) => (
+                    <li
+                      key={flag}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        padding: "10px 0",
+                        borderBottom: "1px solid var(--admin-divider)",
+                        fontSize: 13,
+                      }}
+                    >
+                      <code style={{ color: "var(--admin-text)" }}>{flag}</code>
+                      <span style={{ color: "var(--admin-warning)", fontWeight: 600 }}>
+                        {count.toLocaleString("pt-BR")}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p style={{ fontSize: 13, color: "var(--admin-success)", margin: 0 }}>
+                  Sem flags nas recomendações atuais.
+                </p>
+              )}
+            </AdminCard>
+
+            <AdminCard variant="subtle">
+              <AdminCardHeader title="Operação" />
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                  gap: 16,
+                }}
+              >
+                <SmallStat label="Tester" value={dashboard.user.email} />
+                <SmallStat
+                  label="Última leitura"
+                  value={new Date(dashboard.generatedAt).toLocaleString("pt-BR")}
+                />
+                <SmallStat
+                  label="Último job"
+                  value={lastRun || "Sem disparo nesta sessão"}
+                />
+              </div>
+            </AdminCard>
+          </section>
+
+          {/* === Auditoria de recomendações === */}
+          <section>
+            <header
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 16,
+                marginBottom: 20,
+              }}
+            >
+              <div>
+                <p className="urban-admin-eyebrow">AUDITORIA</p>
+                <h2
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 600,
+                    color: "var(--admin-text)",
+                    margin: "8px 0 0",
+                    letterSpacing: -0.3,
+                  }}
+                >
+                  Recomendações
+                </h2>
+              </div>
+              <span style={{ fontSize: 11, color: "var(--admin-text-dim)", letterSpacing: 1.5, textTransform: "uppercase" }}>
+                {rows.length.toLocaleString("pt-BR")} linhas · mostrando até 100
+              </span>
+            </header>
+
+            <AdminTable
+              columns={columns}
+              rows={rows.slice(0, 100)}
+              rowKey={(r) => r.id}
+              empty={
+                <AdminEmptyState
+                  title="Sem recomendações"
+                  body="Nenhuma recomendação foi gerada para esse tester ainda."
+                />
+              }
+            />
+          </section>
+        </>
+      )}
     </div>
   );
 }
 
-function Status({ label, value }: { label: string; value: string }) {
+function InlineStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-3">
-      <p className="text-xs uppercase text-slate-500">{label}</p>
-      <p className="mt-1 break-words text-slate-200">{value}</p>
+    <div>
+      <p className="urban-admin-eyebrow-muted">{label}</p>
+      <p
+        style={{
+          fontSize: 22,
+          fontWeight: 600,
+          color: "var(--admin-text)",
+          margin: "6px 0 0",
+          fontFamily: "monospace",
+          letterSpacing: -0.3,
+        }}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function SmallStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="urban-admin-eyebrow-muted">{label}</p>
+      <p
+        style={{
+          fontSize: 13,
+          color: "var(--admin-text)",
+          margin: "6px 0 0",
+          wordBreak: "break-word",
+          lineHeight: 1.4,
+        }}
+      >
+        {value}
+      </p>
     </div>
   );
 }

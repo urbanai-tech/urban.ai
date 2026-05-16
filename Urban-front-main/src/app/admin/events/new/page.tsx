@@ -7,17 +7,28 @@ import {
   runGeocoderNow,
   type ManualEventInput,
 } from "../../../service/api";
+import {
+  AdminSectionHeader,
+  AdminCard,
+  AdminCardHeader,
+  AdminButton,
+  AdminInput,
+  AdminSelect,
+  AdminTextarea,
+  AdminBadge,
+  useAdminToast,
+  Icons,
+} from "../../_components";
 
 /**
  * /admin/events/new — Camada 3 (F6.2 Plus): cadastro manual de eventos.
  *
- * Use-case típico: você ouviu falar de um evento crítico que ainda não está
- * coberto pelos coletores (ex: Web Summit Rio, Bett Brasil, conferência
- * setorial específica) e quer garantir que está no DB pra a IA ponderar.
- *
- * Source forçado a 'admin-manual'. Dedup automático via dedupHash — se
- * outro coletor já cadastrou o mesmo evento, este faz UPSERT conservador
- * (não sobrescreve campos já preenchidos pela IA).
+ * Migrado para design system admin (.urban-admin):
+ *  - AdminSectionHeader com eyebrow.
+ *  - Inputs/Selects/Textarea padronizados.
+ *  - Resultado vira AdminCard variant accent com Badge de status.
+ *  - alert()/erros nativos → toast.
+ *  - CTA "Salvar" como AdminButton primary com loading.
  */
 
 const VENUE_TYPES = [
@@ -45,6 +56,8 @@ const CATEGORIAS = [
   "outro",
 ];
 
+type ResultStatus = "created" | "updated" | "skipped";
+
 export default function NovoEventoManual() {
   const [form, setForm] = useState<ManualEventInput>({
     nome: "",
@@ -54,15 +67,18 @@ export default function NovoEventoManual() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [lastResult, setLastResult] = useState<{
-    status: "created" | "updated" | "skipped";
+    status: ResultStatus;
     reason?: string;
     id?: string;
     dedupHash?: string;
   } | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [geocoderQueue, setGeocoderQueue] = useState<number | null>(null);
+  const toast = useAdminToast();
 
-  function patch<K extends keyof ManualEventInput>(key: K, value: ManualEventInput[K]) {
+  function patch<K extends keyof ManualEventInput>(
+    key: K,
+    value: ManualEventInput[K],
+  ) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
@@ -70,30 +86,48 @@ export default function NovoEventoManual() {
     e.preventDefault();
     if (submitting) return;
     setSubmitting(true);
-    setError(null);
     setLastResult(null);
     try {
       const r = await createManualEvent({
         ...form,
         latitude:
-          form.latitude !== undefined && form.latitude !== null && !Number.isNaN(Number(form.latitude))
+          form.latitude !== undefined &&
+          form.latitude !== null &&
+          !Number.isNaN(Number(form.latitude))
             ? Number(form.latitude)
             : undefined,
         longitude:
-          form.longitude !== undefined && form.longitude !== null && !Number.isNaN(Number(form.longitude))
+          form.longitude !== undefined &&
+          form.longitude !== null &&
+          !Number.isNaN(Number(form.longitude))
             ? Number(form.longitude)
             : undefined,
-        venueCapacity: form.venueCapacity ? Number(form.venueCapacity) : undefined,
-        expectedAttendance: form.expectedAttendance ? Number(form.expectedAttendance) : undefined,
+        venueCapacity: form.venueCapacity
+          ? Number(form.venueCapacity)
+          : undefined,
+        expectedAttendance: form.expectedAttendance
+          ? Number(form.expectedAttendance)
+          : undefined,
       });
-      setLastResult(r.results[0] ?? null);
-      // Atualiza fila do geocoder pra mostrar se entrou pendente
+      const first = r.results[0] ?? null;
+      setLastResult(first);
+      if (first) {
+        if (first.status === "created") toast.success("Evento cadastrado.");
+        else if (first.status === "updated") toast.info("Evento atualizado.");
+        else toast.warn(`Skipado: ${first.reason ?? "duplicado"}.`);
+      }
       try {
         const g = await fetchGeocoderStatus();
         setGeocoderQueue(g.pendingGeocode);
       } catch {}
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || "Erro ao cadastrar.");
+    } catch (err: unknown) {
+      const e = err as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+      toast.error(
+        e?.response?.data?.message ?? e?.message ?? "Erro ao cadastrar.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -102,309 +136,337 @@ export default function NovoEventoManual() {
   function reset() {
     setForm({ nome: "", dataInicio: "", cidade: "São Paulo", estado: "SP" });
     setLastResult(null);
-    setError(null);
   }
 
   async function triggerGeocoder() {
     try {
       const r = await runGeocoderNow(50);
-      alert(`Geocoder: tentou ${r.attempted}, sucesso ${r.succeeded}, falhou ${r.failed}`);
+      toast.success(
+        `Geocoder: tentou ${r.attempted}, sucesso ${r.succeeded}, falhou ${r.failed}.`,
+      );
       const g = await fetchGeocoderStatus();
       setGeocoderQueue(g.pendingGeocode);
-    } catch (err: any) {
-      alert("Erro: " + (err?.message || "falhou"));
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error("Erro: " + (e?.message ?? "falhou"));
     }
   }
 
+  const resultBadgeKind: Record<ResultStatus, "success" | "warn" | "error"> = {
+    created: "success",
+    updated: "warn",
+    skipped: "error",
+  };
+
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
-      <div className="max-w-3xl mx-auto space-y-6">
-        <header className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Novo evento (manual)</h1>
-            <p className="text-sm text-slate-400">
-              Camada 3 — curadoria humana. Source: <code>admin-manual</code>.
-              Lat/lng opcional (backend geocodifica via cron quando ausente).
-            </p>
-          </div>
-          <div className="flex gap-3 items-center">
-            <a
-              href="/admin/events/import"
-              className="text-xs px-3 py-1.5 rounded border border-slate-700 hover:bg-slate-800"
-            >
-              Importar CSV →
-            </a>
-            <a href="/admin" className="text-sm text-emerald-400 hover:underline">
-              ← Voltar
-            </a>
-          </div>
-        </header>
-
-        {/* Resultado */}
-        {lastResult && (
-          <div
-            className={`rounded-xl border p-4 text-sm ${
-              lastResult.status === "created"
-                ? "border-emerald-700/40 bg-emerald-950/30 text-emerald-200"
-                : lastResult.status === "updated"
-                ? "border-amber-700/40 bg-amber-950/30 text-amber-200"
-                : "border-red-700/40 bg-red-950/30 text-red-200"
-            }`}
+    <div style={{ maxWidth: 880, margin: "0 auto", padding: "40px 32px" }}>
+      <AdminSectionHeader
+        eyebrow="ADMIN · EVENTOS"
+        title="Novo evento manual"
+        subtitle={
+          <>
+            Camada 3 — curadoria humana. Source: <code>admin-manual</code>.
+            Lat/lng opcional (backend geocodifica via cron quando ausente).
+          </>
+        }
+        actions={
+          <AdminButton
+            variant="secondary"
+            as="a"
+            href="/admin/events/import"
+            rightIcon={<Icons.ArrowRight size={12} />}
           >
-            <strong>{lastResult.status.toUpperCase()}</strong>
+            Importar CSV
+          </AdminButton>
+        }
+      />
+
+      {/* Resultado */}
+      {lastResult && (
+        <AdminCard variant="accent" style={{ marginBottom: 24 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              flexWrap: "wrap",
+            }}
+          >
+            <AdminBadge kind={resultBadgeKind[lastResult.status]}>
+              {lastResult.status}
+            </AdminBadge>
             {lastResult.id && (
-              <span className="ml-2 font-mono text-xs">{lastResult.id}</span>
+              <span
+                style={{
+                  fontFamily: "monospace",
+                  fontSize: 12,
+                  color: "var(--admin-text-muted)",
+                }}
+              >
+                {lastResult.id}
+              </span>
             )}
-            {lastResult.reason && <span className="ml-2">— {lastResult.reason}</span>}
-            <div className="mt-3 flex gap-2">
-              <button
-                onClick={reset}
-                className="text-xs px-3 py-1.5 rounded bg-emerald-500 text-slate-900 font-bold"
+            {lastResult.reason && (
+              <span
+                style={{
+                  fontSize: 13,
+                  color: "var(--admin-text-muted)",
+                }}
               >
-                + Cadastrar outro
-              </button>
-              <a
-                href="/admin/events"
-                className="text-xs px-3 py-1.5 rounded border border-slate-700 hover:bg-slate-800"
-              >
-                Ver todos
-              </a>
-            </div>
+                — {lastResult.reason}
+              </span>
+            )}
           </div>
-        )}
-
-        {error && (
-          <div className="rounded-xl border border-red-700 bg-red-950/30 p-4 text-sm text-red-300">
-            {error}
+          <div style={{ marginTop: 16, display: "flex", gap: 10 }}>
+            <AdminButton
+              variant="primary"
+              size="sm"
+              onClick={reset}
+              leftIcon={<Icons.Plus size={12} />}
+            >
+              Cadastrar outro
+            </AdminButton>
+            <AdminButton
+              variant="secondary"
+              size="sm"
+              as="a"
+              href="/admin/events"
+            >
+              Ver todos
+            </AdminButton>
           </div>
-        )}
+        </AdminCard>
+      )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5 bg-slate-900/40 border border-slate-800 rounded-2xl p-6">
-          <Field label="Nome *" required>
-            <input
-              type="text"
+      {/* Form */}
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: "flex", flexDirection: "column", gap: 18 }}
+      >
+        <AdminCard variant="subtle">
+          <AdminCardHeader title="Identificação" />
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <AdminInput
+              label="Nome *"
               value={form.nome}
               onChange={(e) => patch("nome", e.target.value)}
               required
               maxLength={255}
-              className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
               placeholder='Ex: "Web Summit Rio 2026"'
             />
-          </Field>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Field label="Data início *" required>
-              <input
+            <div
+              style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}
+            >
+              <AdminInput
+                label="Data início *"
                 type="datetime-local"
                 value={form.dataInicio}
                 onChange={(e) => patch("dataInicio", e.target.value)}
                 required
-                className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
               />
-            </Field>
-
-            <Field label="Data fim (opcional)">
-              <input
+              <AdminInput
+                label="Data fim"
                 type="datetime-local"
                 value={form.dataFim ?? ""}
                 onChange={(e) => patch("dataFim", e.target.value)}
-                className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
+                helper="Opcional"
               />
-            </Field>
+            </div>
           </div>
+        </AdminCard>
 
-          <Field label="Endereço completo (recomendado)">
-            <input
-              type="text"
+        <AdminCard variant="subtle">
+          <AdminCardHeader title="Localização" />
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <AdminInput
+              label="Endereço completo (recomendado)"
               value={form.enderecoCompleto ?? ""}
               onChange={(e) => patch("enderecoCompleto", e.target.value)}
-              className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
               placeholder='Ex: "Allianz Parque - Av. Francisco Matarazzo, 1705"'
+              helper="Quando lat/lng abaixo estiver vazio, o backend usa o endereço pra geocodificar via cron (a cada 30 min)."
             />
-            <p className="text-xs text-slate-500 mt-1">
-              Quando lat/lng abaixo estiver vazio, o backend usa o endereço pra geocodificar via cron (a cada 30 min).
-            </p>
-          </Field>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Field label="Cidade">
-              <input
-                type="text"
+            <div
+              style={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: 14 }}
+            >
+              <AdminInput
+                label="Cidade"
                 value={form.cidade ?? ""}
                 onChange={(e) => patch("cidade", e.target.value)}
-                className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
               />
-            </Field>
-
-            <Field label="UF">
-              <input
-                type="text"
+              <AdminInput
+                label="UF"
                 value={form.estado ?? ""}
-                onChange={(e) => patch("estado", e.target.value.toUpperCase().slice(0, 2))}
+                onChange={(e) =>
+                  patch("estado", e.target.value.toUpperCase().slice(0, 2))
+                }
                 maxLength={2}
-                className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
               />
-            </Field>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Field label="Latitude (opcional)">
-              <input
+            </div>
+            <div
+              style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}
+            >
+              <AdminInput
+                label="Latitude"
                 type="number"
                 step="0.000001"
                 value={form.latitude ?? ""}
                 onChange={(e) =>
-                  patch("latitude", e.target.value === "" ? null : Number(e.target.value))
+                  patch(
+                    "latitude",
+                    e.target.value === "" ? null : Number(e.target.value),
+                  )
                 }
-                className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
                 placeholder="-23.5275"
+                helper="Opcional"
               />
-            </Field>
-
-            <Field label="Longitude (opcional)">
-              <input
+              <AdminInput
+                label="Longitude"
                 type="number"
                 step="0.000001"
                 value={form.longitude ?? ""}
                 onChange={(e) =>
-                  patch("longitude", e.target.value === "" ? null : Number(e.target.value))
+                  patch(
+                    "longitude",
+                    e.target.value === "" ? null : Number(e.target.value),
+                  )
                 }
-                className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
                 placeholder="-46.6783"
+                helper="Opcional"
               />
-            </Field>
+            </div>
           </div>
+        </AdminCard>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <Field label="Categoria">
-              <select
+        <AdminCard variant="subtle">
+          <AdminCardHeader title="Categoria e venue" />
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr 1fr",
+                gap: 14,
+              }}
+            >
+              <AdminSelect
+                label="Categoria"
                 value={form.categoria ?? ""}
                 onChange={(e) => patch("categoria", e.target.value)}
-                className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
               >
                 {CATEGORIAS.map((c) => (
                   <option key={c} value={c}>
                     {c || "(sem categoria)"}
                   </option>
                 ))}
-              </select>
-            </Field>
-
-            <Field label="Tipo do venue">
-              <select
+              </AdminSelect>
+              <AdminSelect
+                label="Tipo do venue"
                 value={form.venueType ?? ""}
                 onChange={(e) => patch("venueType", e.target.value)}
-                className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
               >
                 {VENUE_TYPES.map((v) => (
                   <option key={v.value} value={v.value}>
                     {v.label}
                   </option>
                 ))}
-              </select>
-            </Field>
-
-            <Field label="Capacidade do venue">
-              <input
+              </AdminSelect>
+              <AdminInput
+                label="Capacidade do venue"
                 type="number"
                 value={form.venueCapacity ?? ""}
                 onChange={(e) =>
-                  patch("venueCapacity", e.target.value === "" ? null : Number(e.target.value))
+                  patch(
+                    "venueCapacity",
+                    e.target.value === "" ? null : Number(e.target.value),
+                  )
                 }
-                className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
                 placeholder="Ex: 43000"
               />
-            </Field>
-          </div>
-
-          <Field label="Público esperado deste evento">
-            <input
+            </div>
+            <AdminInput
+              label="Público esperado deste evento"
               type="number"
               value={form.expectedAttendance ?? ""}
               onChange={(e) =>
-                patch("expectedAttendance", e.target.value === "" ? null : Number(e.target.value))
+                patch(
+                  "expectedAttendance",
+                  e.target.value === "" ? null : Number(e.target.value),
+                )
               }
-              className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
               placeholder="Ex: 38000 (pode ser menor que capacidade)"
             />
-          </Field>
+          </div>
+        </AdminCard>
 
-          <Field label="Link do site oficial">
-            <input
+        <AdminCard variant="subtle">
+          <AdminCardHeader title="Conteúdo" />
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <AdminInput
+              label="Link do site oficial"
               type="url"
               value={form.linkSiteOficial ?? ""}
               onChange={(e) => patch("linkSiteOficial", e.target.value)}
-              className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
               placeholder="https://..."
             />
-          </Field>
-
-          <Field label="URL da imagem">
-            <input
+            <AdminInput
+              label="URL da imagem"
               type="url"
               value={form.imagemUrl ?? ""}
               onChange={(e) => patch("imagemUrl", e.target.value)}
-              className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
               placeholder="https://..."
             />
-          </Field>
-
-          <Field label="Descrição">
-            <textarea
+            <AdminTextarea
+              label="Descrição"
               rows={4}
               value={form.descricao ?? ""}
               onChange={(e) => patch("descricao", e.target.value)}
-              className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
               placeholder="Resumo do evento — vai pro card no painel admin e ajuda a IA a inferir relevância."
             />
-          </Field>
-
-          <div className="flex justify-between items-center pt-2">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="px-6 py-2.5 rounded bg-emerald-500 text-slate-900 font-bold text-sm disabled:opacity-50"
-            >
-              {submitting ? "Salvando…" : "Salvar evento"}
-            </button>
-
-            <span className="text-xs text-slate-500">
-              {geocoderQueue !== null && (
-                <>
-                  Fila geocoder: <strong>{geocoderQueue}</strong>
-                  <button
-                    onClick={triggerGeocoder}
-                    type="button"
-                    className="ml-3 text-xs px-2 py-1 rounded border border-slate-700 hover:bg-slate-800"
-                  >
-                    Rodar agora
-                  </button>
-                </>
-              )}
-            </span>
           </div>
-        </form>
-      </div>
-    </main>
-  );
-}
+        </AdminCard>
 
-function Field({
-  label,
-  children,
-  required,
-}: {
-  label: string;
-  children: React.ReactNode;
-  required?: boolean;
-}) {
-  return (
-    <label className="block">
-      <span className="block text-xs text-slate-400 mb-1">
-        {label} {required && <span className="text-red-400">*</span>}
-      </span>
-      {children}
-    </label>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 12,
+            flexWrap: "wrap",
+            paddingTop: 8,
+          }}
+        >
+          <AdminButton type="submit" variant="primary" size="lg" loading={submitting}>
+            {submitting ? "Salvando…" : "Cadastrar evento"}
+          </AdminButton>
+
+          {geocoderQueue !== null && (
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 10,
+                fontSize: 12,
+                color: "var(--admin-text-muted)",
+              }}
+            >
+              <span>
+                Fila geocoder:{" "}
+                <strong style={{ color: "var(--admin-text)" }}>
+                  {geocoderQueue}
+                </strong>
+              </span>
+              <AdminButton
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={triggerGeocoder}
+                leftIcon={<Icons.RefreshCw size={11} />}
+              >
+                Rodar agora
+              </AdminButton>
+            </div>
+          )}
+        </div>
+      </form>
+    </div>
   );
 }

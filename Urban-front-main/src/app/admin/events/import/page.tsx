@@ -2,17 +2,30 @@
 
 import { useState } from "react";
 import { importCsvEvents } from "../../../service/api";
+import {
+  AdminSectionHeader,
+  AdminCard,
+  AdminCardHeader,
+  AdminButton,
+  AdminMetricCard,
+  AdminTable,
+  type AdminTableColumn,
+  AdminInput,
+  AdminBadge,
+  AdminEmptyState,
+  useAdminToast,
+  Icons,
+} from "../../_components";
 
 /**
  * /admin/events/import — Camada 3 (F6.2 Plus): import semestral em CSV.
  *
- * Use-case: você recebe da SPTuris/PMI/ABRH/Sebrae uma planilha com 100+
- * eventos do semestre. Cola tudo num CSV (template abaixo), faz upload,
- * e o backend ingere com dedup automático.
- *
- * - Max 1000 linhas por upload (5MB)
- * - Source forçado a 'admin-csv-import' (sobrescreve qualquer source no CSV)
- * - Linhas inválidas (sem nome ou data) viram report — não derrubam o batch
+ * Migrado para design system admin (.urban-admin):
+ *  - File input estilizado com label uppercase + bordas admin.
+ *  - Resumos parsed/criados/atualizados como AdminMetricCard.
+ *  - Tabela de "Resumo por source" via AdminTable.
+ *  - alert()/erros → toast.
+ *  - CTA "Importar" via AdminButton primary com loading.
  */
 
 const CSV_TEMPLATE = `nome,dataInicio,dataFim,enderecoCompleto,cidade,estado,latitude,longitude,categoria,venueType,venueCapacity,expectedAttendance,linkSiteOficial,descricao
@@ -29,37 +42,51 @@ interface ImportResult {
     created: number;
     updated: number;
     skipped: number;
-    bySource: Record<string, { created: number; updated: number; skipped: number }>;
+    bySource: Record<
+      string,
+      { created: number; updated: number; skipped: number }
+    >;
   };
 }
+
+type SourceAggRow = {
+  source: string;
+  created: number;
+  updated: number;
+  skipped: number;
+};
 
 export default function ImportarCsvEventos() {
   const [file, setFile] = useState<File | null>(null);
   const [sourceLabel, setSourceLabel] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const toast = useAdminToast();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!file || submitting) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      setError("Arquivo > 5MB. Divida em partes menores.");
+      toast.error("Arquivo > 5MB. Divida em partes menores.");
       return;
     }
 
     setSubmitting(true);
-    setError(null);
     setResult(null);
     try {
       const r = await importCsvEvents(file, sourceLabel || undefined);
       setResult(r);
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Erro ao processar CSV.",
+      toast.success(
+        `Import concluído: ${r.ingest.created} criados, ${r.ingest.updated} atualizados.`,
+      );
+    } catch (err: unknown) {
+      const e = err as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+      toast.error(
+        e?.response?.data?.message ?? e?.message ?? "Erro ao processar CSV.",
       );
     } finally {
       setSubmitting(false);
@@ -76,230 +103,467 @@ export default function ImportarCsvEventos() {
     URL.revokeObjectURL(url);
   }
 
-  return (
-    <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <header className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Importar eventos via CSV</h1>
-            <p className="text-sm text-slate-400">
-              Camada 3 — curadoria humana em lote. Max 1000 linhas, 5MB.
-              Source: <code>admin-csv-import</code> (override via campo opcional).
-            </p>
-          </div>
-          <div className="flex gap-3 items-center">
-            <a
-              href="/admin/events/new"
-              className="text-xs px-3 py-1.5 rounded border border-slate-700 hover:bg-slate-800"
-            >
-              ← Cadastrar 1 evento
-            </a>
-            <a href="/admin" className="text-sm text-emerald-400 hover:underline">
-              Voltar
-            </a>
-          </div>
-        </header>
-
-        <section className="rounded-xl border border-blue-700/40 bg-blue-950/30 p-4 text-sm text-blue-200">
-          <h3 className="font-bold mb-2">Schema esperado</h3>
-          <p className="text-xs mb-3">
-            Cabeçalho na 1ª linha. Colunas obrigatórias: <code>nome</code>,{" "}
-            <code>dataInicio</code>. Demais opcionais. Aliases aceitos:{" "}
-            <code>name</code>/<code>nome</code>, <code>startdate</code>/
-            <code>dataInicio</code>, <code>address</code>/<code>enderecoCompleto</code>,{" "}
-            <code>lat</code>/<code>latitude</code>, etc.
-          </p>
-          <button
-            onClick={downloadTemplate}
-            className="text-xs px-3 py-1.5 rounded bg-blue-500 text-slate-900 font-bold"
-          >
-            Baixar template CSV
-          </button>
-        </section>
-
-        <section className="rounded-xl border border-amber-700/40 bg-amber-950/20 p-4 text-sm">
-          <h3 className="font-bold mb-2 text-amber-200">Meta do fallback manual</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-slate-300">
-            <p>
-              <strong className="text-slate-50">Volume:</strong> envie pelo menos{" "}
-              {BETA_FALLBACK_TARGET} eventos futuros de SP/30d quando APIs ainda nao
-              estiverem completas.
-            </p>
-            <p>
-              <strong className="text-slate-50">Qualidade:</strong> priorize endereco,
-              cidade, categoria, venue/capacidade e link oficial para dedupe e explicacao
-              de impacto.
-            </p>
-            <p>
-              <strong className="text-slate-50">Gate:</strong> linhas com data passada
-              ou UF fora de SP sao rejeitadas antes do ingest para manter o lote util
-              ao beta.
-            </p>
-            <p>
-              <strong className="text-slate-50">Depois do upload:</strong> confira o
-              dashboard, rode geocoder em `/admin/jobs` se houver pendentes e revise
-              invalidRows.
-            </p>
-          </div>
-        </section>
-
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 bg-slate-900/40 border border-slate-800 rounded-2xl p-6"
+  const sourceColumns: AdminTableColumn<SourceAggRow>[] = [
+    {
+      key: "source",
+      header: "Source",
+      render: (r) => (
+        <span
+          style={{
+            fontFamily: "monospace",
+            fontSize: 12,
+            color: "var(--admin-text)",
+          }}
         >
-          <label className="block">
-            <span className="block text-xs text-slate-400 mb-1">Arquivo CSV *</span>
-            <input
-              type="file"
-              accept=".csv,text/csv"
-              required
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm file:mr-3 file:px-3 file:py-1.5 file:rounded file:border-0 file:bg-emerald-500 file:text-slate-900 file:font-bold file:text-xs"
-            />
-          </label>
+          {r.source}
+        </span>
+      ),
+    },
+    {
+      key: "created",
+      header: "Criados",
+      width: 110,
+      align: "right",
+      render: (r) => (
+        <span
+          style={{
+            fontFamily: "monospace",
+            color: r.created > 0 ? "var(--admin-success)" : "var(--admin-text-dim)",
+          }}
+        >
+          {r.created.toLocaleString("pt-BR")}
+        </span>
+      ),
+    },
+    {
+      key: "updated",
+      header: "Atualizados",
+      width: 120,
+      align: "right",
+      render: (r) => (
+        <span
+          style={{
+            fontFamily: "monospace",
+            color: r.updated > 0 ? "var(--admin-accent)" : "var(--admin-text-dim)",
+          }}
+        >
+          {r.updated.toLocaleString("pt-BR")}
+        </span>
+      ),
+    },
+    {
+      key: "skipped",
+      header: "Skipados",
+      width: 110,
+      align: "right",
+      render: (r) => (
+        <span
+          style={{
+            fontFamily: "monospace",
+            color: r.skipped > 0 ? "var(--admin-danger)" : "var(--admin-text-dim)",
+          }}
+        >
+          {r.skipped.toLocaleString("pt-BR")}
+        </span>
+      ),
+    },
+  ];
 
-          <label className="block">
-            <span className="block text-xs text-slate-400 mb-1">
-              Source label (opcional — default <code>admin-csv-import</code>)
-            </span>
-            <input
-              type="text"
+  const sourceRows: SourceAggRow[] = result
+    ? Object.entries(result.ingest.bySource).map(([source, agg]) => ({
+        source,
+        ...agg,
+      }))
+    : [];
+
+  return (
+    <div style={{ maxWidth: 1080, margin: "0 auto", padding: "40px 32px" }}>
+      <AdminSectionHeader
+        eyebrow="ADMIN · EVENTOS"
+        title="Importar CSV"
+        subtitle={
+          <>
+            Camada 3 — curadoria humana em lote. Max 1000 linhas, 5MB. Source:{" "}
+            <code>admin-csv-import</code> (override via campo opcional).
+          </>
+        }
+        actions={
+          <AdminButton
+            variant="secondary"
+            as="a"
+            href="/admin/events/new"
+            leftIcon={<Icons.ArrowLeft size={11} />}
+          >
+            Cadastrar 1 evento
+          </AdminButton>
+        }
+      />
+
+      {/* Schema esperado */}
+      <AdminCard variant="subtle" style={{ marginBottom: 24 }}>
+        <AdminCardHeader
+          eyebrow="SCHEMA"
+          title="Estrutura do CSV"
+          actions={
+            <AdminButton
+              variant="secondary"
+              size="sm"
+              onClick={downloadTemplate}
+              leftIcon={<Icons.Download size={12} />}
+            >
+              Baixar template
+            </AdminButton>
+          }
+        />
+        <p
+          style={{
+            fontSize: 13,
+            color: "var(--admin-text-muted)",
+            margin: 0,
+            lineHeight: 1.6,
+          }}
+        >
+          Cabeçalho na 1ª linha. Colunas obrigatórias: <code>nome</code>,{" "}
+          <code>dataInicio</code>. Demais opcionais. Aliases aceitos:{" "}
+          <code>name</code>/<code>nome</code>, <code>startdate</code>/
+          <code>dataInicio</code>, <code>address</code>/
+          <code>enderecoCompleto</code>, <code>lat</code>/<code>latitude</code>,
+          etc.
+        </p>
+      </AdminCard>
+
+      {/* Meta beta */}
+      <AdminCard variant="subtle" style={{ marginBottom: 24 }}>
+        <AdminCardHeader eyebrow="META FALLBACK BETA" title="Critérios de aceite" />
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: 16,
+            fontSize: 12,
+            color: "var(--admin-text-muted)",
+            lineHeight: 1.55,
+          }}
+        >
+          <p style={{ margin: 0 }}>
+            <strong style={{ color: "var(--admin-text)" }}>Volume:</strong> envie
+            pelo menos {BETA_FALLBACK_TARGET} eventos futuros de SP/30d quando
+            APIs ainda não estiverem completas.
+          </p>
+          <p style={{ margin: 0 }}>
+            <strong style={{ color: "var(--admin-text)" }}>Qualidade:</strong>{" "}
+            priorize endereço, cidade, categoria, venue/capacidade e link oficial
+            para dedupe e explicação de impacto.
+          </p>
+          <p style={{ margin: 0 }}>
+            <strong style={{ color: "var(--admin-text)" }}>Gate:</strong> linhas
+            com data passada ou UF fora de SP são rejeitadas antes do ingest para
+            manter o lote útil ao beta.
+          </p>
+          <p style={{ margin: 0 }}>
+            <strong style={{ color: "var(--admin-text)" }}>Depois do upload:</strong>{" "}
+            confira o dashboard, rode geocoder em <code>/admin/jobs</code> se
+            houver pendentes e revise invalidRows.
+          </p>
+        </div>
+      </AdminCard>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit}>
+        <AdminCard variant="subtle">
+          <AdminCardHeader title="Upload" />
+          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+            <FileField
+              file={file}
+              onChange={setFile}
+            />
+            <AdminInput
+              label="Source label (opcional)"
               value={sourceLabel}
               onChange={(e) => setSourceLabel(e.target.value)}
               placeholder='Ex: "csv-spturis-2026q2", "csv-pmi-2026"'
-              className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
+              helper="Default: admin-csv-import. Útil pra rastrear de qual planilha veio. Normalizado para minúsculas, números, ponto, underline e hífen."
             />
-            <p className="text-xs text-slate-500 mt-1">
-              Util pra rastrear de qual planilha veio. O backend normaliza para
-              letras minusculas, numeros, ponto, underline e hifen.
-            </p>
-          </label>
 
-          {file && (
-            <div className="text-xs text-slate-400">
-              Arquivo: <strong>{file.name}</strong> ({(file.size / 1024).toFixed(1)} KB)
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 12,
+                flexWrap: "wrap",
+                paddingTop: 6,
+              }}
+            >
+              <AdminButton
+                type="submit"
+                variant="primary"
+                size="lg"
+                disabled={!file}
+                loading={submitting}
+                leftIcon={<Icons.Upload size={13} />}
+              >
+                {submitting ? "Processando…" : "Importar"}
+              </AdminButton>
+              {file && (
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: "var(--admin-text-muted)",
+                  }}
+                >
+                  <strong style={{ color: "var(--admin-text)" }}>
+                    {file.name}
+                  </strong>{" "}
+                  · {(file.size / 1024).toFixed(1)} KB
+                </span>
+              )}
             </div>
+          </div>
+        </AdminCard>
+      </form>
+
+      {/* Resultado */}
+      {result && (
+        <section style={{ marginTop: 32 }}>
+          <p className="urban-admin-eyebrow" style={{ marginBottom: 16 }}>
+            RESULTADO
+          </p>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: 32,
+              borderTop: "1px solid var(--admin-divider)",
+              borderBottom: "1px solid var(--admin-divider)",
+              marginBottom: 32,
+            }}
+          >
+            <AdminMetricCard
+              label="Linhas no CSV"
+              value={result.parsedRows}
+            />
+            <AdminMetricCard
+              label="Inválidas"
+              value={result.invalidRows.length}
+              status={result.invalidRows.length > 0 ? "warn" : undefined}
+            />
+            <AdminMetricCard
+              label="Criados"
+              value={result.ingest.created}
+              status={result.ingest.created > 0 ? "success" : undefined}
+            />
+            <AdminMetricCard
+              label="Atualizados"
+              value={result.ingest.updated}
+            />
+            <AdminMetricCard
+              label="Skipados"
+              value={result.ingest.skipped}
+              status={result.ingest.skipped > 0 ? "error" : undefined}
+            />
+          </div>
+
+          <ImportReadiness result={result} />
+
+          {result.invalidRows.length > 0 && (
+            <AdminCard variant="subtle" style={{ marginTop: 24 }}>
+              <AdminCardHeader
+                eyebrow="LINHAS INVÁLIDAS"
+                title={`${result.invalidRows.length} rejeitadas`}
+              />
+              <ul
+                style={{
+                  listStyle: "none",
+                  padding: 0,
+                  margin: 0,
+                  maxHeight: 200,
+                  overflowY: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 6,
+                  fontFamily: "monospace",
+                  fontSize: 12,
+                  color: "var(--admin-warning)",
+                }}
+              >
+                {result.invalidRows.map((r, i) => (
+                  <li key={i}>
+                    <span style={{ color: "var(--admin-text-muted)" }}>
+                      Linha {r.line}:
+                    </span>{" "}
+                    {r.reason}
+                  </li>
+                ))}
+              </ul>
+            </AdminCard>
           )}
 
-          <button
-            type="submit"
-            disabled={!file || submitting}
-            className="px-6 py-2.5 rounded bg-emerald-500 text-slate-900 font-bold text-sm disabled:opacity-50"
-          >
-            {submitting ? "Processando…" : "Importar"}
-          </button>
-        </form>
-
-        {error && (
-          <div className="rounded-xl border border-red-700 bg-red-950/30 p-4 text-sm text-red-300">
-            {error}
-          </div>
-        )}
-
-        {result && (
-          <section className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              <Stat label="Linhas no CSV" value={result.parsedRows} />
-              <Stat label="Inválidas" value={result.invalidRows.length} color="text-amber-300" />
-              <Stat label="Criados" value={result.ingest.created} color="text-emerald-300" />
-              <Stat label="Atualizados" value={result.ingest.updated} color="text-blue-300" />
-              <Stat label="Skipados (backend)" value={result.ingest.skipped} color="text-red-300" />
-            </div>
-
-            <ImportReadiness result={result} />
-
-            {result.invalidRows.length > 0 && (
-              <div className="rounded-xl border border-amber-700/40 bg-amber-950/20 p-4">
-                <h3 className="font-bold mb-2 text-amber-200 text-sm">Linhas inválidas</h3>
-                <ul className="space-y-1 text-xs font-mono text-amber-200/80 max-h-40 overflow-y-auto">
-                  {result.invalidRows.map((r, i) => (
-                    <li key={i}>
-                      Linha {r.line}: {r.reason}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {Object.keys(result.ingest.bySource).length > 0 && (
-              <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-                <h3 className="font-bold mb-2 text-sm">Resumo por source</h3>
-                <table className="w-full text-xs">
-                  <thead className="text-slate-400 uppercase">
-                    <tr>
-                      <th className="text-left px-2 py-1">Source</th>
-                      <th className="text-right px-2 py-1">Criados</th>
-                      <th className="text-right px-2 py-1">Atualizados</th>
-                      <th className="text-right px-2 py-1">Skipados</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(result.ingest.bySource).map(([s, agg]) => (
-                      <tr key={s} className="border-t border-slate-800">
-                        <td className="px-2 py-1 font-mono">{s}</td>
-                        <td className="px-2 py-1 text-right text-emerald-300">{agg.created}</td>
-                        <td className="px-2 py-1 text-right text-blue-300">{agg.updated}</td>
-                        <td className="px-2 py-1 text-right text-red-300">{agg.skipped}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
-        )}
-      </div>
-    </main>
+          {sourceRows.length > 0 && (
+            <section style={{ marginTop: 24 }}>
+              <p className="urban-admin-eyebrow" style={{ marginBottom: 16 }}>
+                RESUMO POR SOURCE
+              </p>
+              <AdminTable
+                columns={sourceColumns}
+                rows={sourceRows}
+                rowKey={(r) => r.source}
+                empty={<AdminEmptyState title="Sem agregados por source" />}
+              />
+            </section>
+          )}
+        </section>
+      )}
+    </div>
   );
 }
 
-function Stat({ label, value, color }: { label: string; value: number; color?: string }) {
+function FileField({
+  file,
+  onChange,
+}: {
+  file: File | null;
+  onChange: (f: File | null) => void;
+}) {
   return (
-    <div className="border border-slate-800 rounded-xl bg-slate-900/40 p-3">
-      <p className="text-[10px] uppercase tracking-wider text-slate-500">{label}</p>
-      <p className={`text-xl font-bold ${color ?? "text-slate-50"}`}>
-        {value.toLocaleString("pt-BR")}
-      </p>
-    </div>
+    <label style={{ display: "block" }}>
+      <span
+        style={{
+          display: "block",
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: 1.5,
+          textTransform: "uppercase",
+          color: "var(--admin-text-muted)",
+          marginBottom: 8,
+        }}
+      >
+        Arquivo CSV *
+      </span>
+      <input
+        type="file"
+        accept=".csv,text/csv"
+        required
+        onChange={(e) => onChange(e.target.files?.[0] ?? null)}
+        style={{
+          width: "100%",
+          padding: "8px 12px",
+          background: "rgba(255, 255, 255, 0.03)",
+          border: "1px solid var(--admin-divider)",
+          borderRadius: 2,
+          color: "var(--admin-text)",
+          fontSize: 13,
+          fontFamily: "Inter, system-ui, sans-serif",
+        }}
+      />
+      {file && (
+        <p
+          style={{
+            marginTop: 6,
+            fontSize: 12,
+            color: "var(--admin-text-muted)",
+          }}
+        >
+          Selecionado:{" "}
+          <strong style={{ color: "var(--admin-text)" }}>{file.name}</strong>
+        </p>
+      )}
+    </label>
   );
 }
 
 function ImportReadiness({ result }: { result: ImportResult }) {
   const acceptedRows = Math.max(0, result.parsedRows - result.invalidRows.length);
   const usefulRows = result.ingest.created + result.ingest.updated;
-  const progress = Math.min(100, Math.round((usefulRows / BETA_FALLBACK_TARGET) * 100));
+  const progress = Math.min(
+    100,
+    Math.round((usefulRows / BETA_FALLBACK_TARGET) * 100),
+  );
   const ready = usefulRows >= BETA_FALLBACK_TARGET;
 
   return (
     <div
-      className={`rounded-xl border p-4 ${
-        ready ? "border-emerald-700/40 bg-emerald-950/20" : "border-amber-700/40 bg-amber-950/20"
-      }`}
+      style={{
+        padding: 24,
+        borderRadius: 2,
+        border: "1px solid var(--admin-divider)",
+        borderLeft: `2px solid ${
+          ready ? "var(--admin-success)" : "var(--admin-warning)"
+        }`,
+        background: "var(--admin-surface)",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        gap: 24,
+        flexWrap: "wrap",
+      }}
     >
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h3 className={`font-bold text-sm ${ready ? "text-emerald-200" : "text-amber-200"}`}>
-            {ready ? "Lote suficiente para fallback beta" : "Lote ainda abaixo da meta beta"}
-          </h3>
-          <p className="text-xs text-slate-400 mt-1">
-            {usefulRows.toLocaleString("pt-BR")} eventos criados/atualizados de{" "}
-            {BETA_FALLBACK_TARGET.toLocaleString("pt-BR")} recomendados para SP/30d.{" "}
-            {acceptedRows.toLocaleString("pt-BR")} linhas passaram pela validacao basica.
-          </p>
+      <div style={{ flex: 1, minWidth: 240 }}>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 8,
+          }}
+        >
+          <AdminBadge kind={ready ? "success" : "warn"}>
+            {ready ? "Pronto p/ beta" : "Abaixo da meta"}
+          </AdminBadge>
         </div>
-        <div className="text-right">
-          <p className={`text-2xl font-bold ${ready ? "text-emerald-300" : "text-amber-300"}`}>
-            {progress}%
-          </p>
-          <p className="text-[10px] uppercase tracking-wider text-slate-500">do alvo</p>
-        </div>
-      </div>
-      {!ready && (
-        <p className="text-xs text-slate-400 mt-3">
-          Complete com mais eventos oficiais ou divida a planilha por fonte, mantendo um
-          sourceLabel rastreavel como <code>csv-spturis-2026q2</code>.
+        <h3
+          style={{
+            fontSize: 15,
+            fontWeight: 600,
+            color: "var(--admin-text)",
+            margin: 0,
+            letterSpacing: -0.2,
+          }}
+        >
+          {ready
+            ? "Lote suficiente para fallback beta"
+            : "Lote ainda abaixo da meta beta"}
+        </h3>
+        <p
+          style={{
+            marginTop: 8,
+            fontSize: 13,
+            color: "var(--admin-text-muted)",
+            lineHeight: 1.6,
+          }}
+        >
+          {usefulRows.toLocaleString("pt-BR")} eventos criados/atualizados de{" "}
+          {BETA_FALLBACK_TARGET.toLocaleString("pt-BR")} recomendados para
+          SP/30d. {acceptedRows.toLocaleString("pt-BR")} linhas passaram pela
+          validação básica.
         </p>
-      )}
+        {!ready && (
+          <p
+            style={{
+              marginTop: 8,
+              fontSize: 12,
+              color: "var(--admin-text-muted)",
+            }}
+          >
+            Complete com mais eventos oficiais ou divida a planilha por fonte,
+            mantendo um sourceLabel rastreável como{" "}
+            <code>csv-spturis-2026q2</code>.
+          </p>
+        )}
+      </div>
+      <div style={{ textAlign: "right" }}>
+        <p
+          className="urban-admin-display-sm"
+          style={{
+            color: ready ? "var(--admin-success)" : "var(--admin-warning)",
+          }}
+        >
+          {progress}%
+        </p>
+        <p className="urban-admin-eyebrow-muted" style={{ marginTop: 6 }}>
+          DO ALVO
+        </p>
+      </div>
     </div>
   );
 }
