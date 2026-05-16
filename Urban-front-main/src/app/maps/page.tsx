@@ -1,22 +1,26 @@
 'use client';
-import { Box, Center, Flex, FormControl, FormLabel, Heading, Spinner, Text, useColorModeValue } from '@chakra-ui/react';
+import { Box, Center, Flex, FormControl, FormLabel, Spinner, Text } from '@chakra-ui/react';
 import { useState, useEffect, useMemo } from 'react';
 import { getEventosForMaps, getPropriedadesDropdownList, PropertyDropdown } from '../service/api';
 import dynamic from 'next/dynamic';
-import { DatePicker } from 'antd';
-import type { Dayjs } from 'dayjs';
-import dayjs from 'dayjs';
 import { EventCard } from '../dashboard/components/ItemEvento';
 import { SuggestionInfoPopover } from '../componentes/SuggestionInfoPopover';
-
-const { RangePicker } = DatePicker;
+import {
+  AppPageShell,
+  AppSectionHeader,
+  AppCard,
+  AppSelect,
+  AppInput,
+  AppEmptyState,
+  Icons,
+} from '../componentes/ui';
 
 const PropertySelect = dynamic(() => import('./components/CustomSelect'), {
   ssr: false,
   loading: () => (
-    <select style={{ width: "100%", height: "44px", padding: "8px 12px", borderRadius: "8px", border: "1px solid #ccc" }}>
-      <option>Carregando...</option>
-    </select>
+    <Box style={{ height: 40 }}>
+      <Spinner size="sm" color="orange.500" />
+    </Box>
   )
 });
 
@@ -24,29 +28,38 @@ const AirbnbMap = dynamic(() => import('./components/GoogleMapEmbed'), {
   ssr: false,
   loading: () => (
     <Center height="500px">
-      <Spinner size="xl" />
+      <Spinner size="xl" color="orange.500" thickness="2px" />
     </Center>
   )
 });
 
-export default function DashboardPage() {
+// Helpers de data
+const toIsoDate = (d: Date) => d.toISOString().slice(0, 10);
+const parseIsoDate = (s: string) => {
+  const [y, m, day] = s.split('-').map(Number);
+  return new Date(y, (m ?? 1) - 1, day ?? 1);
+};
+
+export default function MapsPage() {
   const [allEvents, setAllEvents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const bg = useColorModeValue('white', 'gray.800');
-  const cardBg = useColorModeValue('white', 'gray.800');
-  const cardBorder = useColorModeValue('gray.200', 'gray.700');
   const [propsInfo, setPropsInfo] = useState<PropertyDropdown[]>([]);
   const [propertyId, setPropertyId] = useState('');
   const [selectedRadius, setSelectedRadius] = useState(30);
-  const [selectedPeriod, setSelectedPeriod] = useState<[Dayjs, Dayjs]>([
-    dayjs(), // Data inicial = hoje
-    dayjs().add(7, 'day') // Data final = 1 semana depois
-  ]);
 
+  // Datas iniciais: hoje e +7 dias
+  const today = useMemo(() => new Date(), []);
+  const inAWeek = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    return d;
+  }, []);
+
+  const [startDate, setStartDate] = useState<string>(toIsoDate(today));
+  const [endDate, setEndDate] = useState<string>(toIsoDate(inAWeek));
 
   const fetchEventsSemLoading = async () => {
-
     setError(null);
     try {
       const response = await getEventosForMaps(
@@ -54,19 +67,14 @@ export default function DashboardPage() {
         1,
         1000,
         selectedRadius,
-        selectedPeriod?.[0].toISOString(),
-        selectedPeriod?.[1].toISOString()
+        parseIsoDate(startDate).toISOString(),
+        parseIsoDate(endDate).toISOString()
       );
       setAllEvents(response.data);
     } catch {
       setError('Erro ao carregar eventos');
-    } finally {
-
     }
   };
-
-
-
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -78,8 +86,8 @@ export default function DashboardPage() {
           1,
           1000,
           selectedRadius,
-          selectedPeriod?.[0].toISOString(),
-          selectedPeriod?.[1].toISOString()
+          parseIsoDate(startDate).toISOString(),
+          parseIsoDate(endDate).toISOString()
         );
         setAllEvents(response.data);
       } catch {
@@ -91,7 +99,7 @@ export default function DashboardPage() {
 
     if (propertyId) fetchEvents();
     else setAllEvents([]);
-  }, [propertyId, selectedRadius, selectedPeriod]);
+  }, [propertyId, selectedRadius, startDate, endDate]);
 
   useEffect(() => {
     async function fetchPropsInfo() {
@@ -112,28 +120,34 @@ export default function DashboardPage() {
   const eventsToDisplay = useMemo(() => allEvents, [allEvents]);
 
   return (
-    <Flex direction="column" minH="100vh" bg={bg}>
-      <Box flex="1" w="full" px={{ base: 4, md: 8 }} pb={8}>
+    <AppPageShell maxWidth={1400}>
+      <AppSectionHeader
+        eyebrow="MAPA · OPORTUNIDADES"
+        title="Mapa Interativo"
+        subtitle="Veja eventos próximos ao seu imóvel num raio configurável. Use o período pra calibrar o radar conforme a operação."
+      />
+
+      {/* Toolbar de filtros — AppCard subtle */}
+      <AppCard variant="subtle" style={{ padding: 20, marginBottom: 24 }}>
         <Flex
           direction={{ base: 'column', lg: 'row' }}
-          justifyContent="space-between"
-          alignItems="flex-end"
-          mb={8}
           gap={4}
-          position="relative"
-          zIndex={10} // Adicionado z-index para garantir que os filtros fiquem acima
+          align={{ base: 'stretch', lg: 'flex-end' }}
+          wrap="wrap"
         >
-          <Heading as="h1" size="2xl" fontWeight="extrabold">
-            Mapa Interativo
-          </Heading>
-
-          {/* Filtros */}
-          <Flex gap={4} align="flex-end" position="relative" zIndex={1000}>
-            <FormControl maxW="320px" position="relative" zIndex={1001}>
-              <FormLabel fontWeight="semibold" color="gray.800">
-                Filtrar propriedade
+          <Box maxW={{ base: '100%', lg: '320px' }} flex="1" position="relative" zIndex={1000}>
+            <FormControl>
+              <FormLabel
+                fontSize="11px"
+                letterSpacing="1.5px"
+                textTransform="uppercase"
+                fontWeight={600}
+                color="var(--app-text-muted)"
+                mb={1}
+              >
+                Filtrar imóvel
               </FormLabel>
-              <Box position="relative" zIndex={1002}>
+              <Box position="relative" zIndex={1001}>
                 <PropertySelect
                   value={propertyId}
                   propsInfo={propsInfo}
@@ -141,63 +155,59 @@ export default function DashboardPage() {
                 />
               </Box>
             </FormControl>
+          </Box>
 
-            <FormControl maxW="180px">
-              <FormLabel fontWeight="semibold" color="gray.800">
-                Raio (km)
-              </FormLabel>
-              <select
-                value={selectedRadius}
-                onChange={(e) => setSelectedRadius(Number(e.target.value))}
-                style={{
-                  width: "100%",
-                  height: "44px",
-                  padding: "8px 12px",
-                  borderRadius: "8px",
-                  border: "1px solid #ccc",
-                  fontSize: "14px",
-                }}
-              >
-                <option value={1}>1 km</option>
-                <option value={2}>2 km</option>
-                <option value={5}>5 km</option>
-                <option value={10}>10 km</option>
-                <option value={30}>30 km</option>
-              </select>
-            </FormControl>
-
-            <FormControl maxW="400px">
-              <FormLabel fontWeight="semibold" color="gray.800">
-                Período
-              </FormLabel>
-              <RangePicker
-                value={selectedPeriod}
-                onChange={(dates) => setSelectedPeriod(dates as [Dayjs, Dayjs])}
-                style={{ width: '100%', height: "44px" }}
-              />
-            </FormControl>
-          </Flex>
-        </Flex>
-
-        {isLoading ? (
-          <Center height="300px"><Spinner size="xl" /></Center>
-        ) : error ? (
-          <Center height="300px" color="red.500">{error}</Center>
-        ) : (
-          <Flex direction={{ base: 'column', lg: 'row' }} gap={6} align="stretch">
-            {/* Mapa */}
-            <Box
-              flex="1"
-              minW={0}
-              bg={cardBg}
-              border="1px solid"
-              borderColor={cardBorder}
-              borderRadius="xl"
-              p={4}
-              boxShadow="sm"
-              position="relative"
-              zIndex={1} // Z-index menor para o mapa
+          <Box maxW={{ base: '100%', lg: '160px' }} flex="0 0 auto">
+            <AppSelect
+              label="Raio (km)"
+              value={selectedRadius}
+              onChange={(e) => setSelectedRadius(Number(e.target.value))}
             >
+              <option value={1}>1 km</option>
+              <option value={2}>2 km</option>
+              <option value={5}>5 km</option>
+              <option value={10}>10 km</option>
+              <option value={30}>30 km</option>
+            </AppSelect>
+          </Box>
+
+          <Box maxW={{ base: '100%', lg: '180px' }} flex="0 0 auto">
+            <AppInput
+              type="date"
+              label="De"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+          </Box>
+
+          <Box maxW={{ base: '100%', lg: '180px' }} flex="0 0 auto">
+            <AppInput
+              type="date"
+              label="Até"
+              value={endDate}
+              min={startDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </Box>
+        </Flex>
+      </AppCard>
+
+      {isLoading ? (
+        <Center py={20}>
+          <Spinner size="xl" color="orange.500" thickness="2px" />
+        </Center>
+      ) : error ? (
+        <AppCard variant="default" style={{ borderColor: 'rgba(194, 52, 46, 0.25)' }}>
+          <Flex align="center" gap={3} color="var(--app-danger)">
+            <Icons.AlertCircle size={18} />
+            <Text fontSize="sm" fontWeight={600}>{error}</Text>
+          </Flex>
+        </AppCard>
+      ) : (
+        <Flex direction={{ base: 'column', lg: 'row' }} gap={6} align="stretch">
+          {/* Mapa */}
+          <Box flex="1" minW={0} position="relative" zIndex={1}>
+            <AppCard variant="default" style={{ padding: 16 }}>
               <AirbnbMap
                 height="500px"
                 events={eventsToDisplay}
@@ -211,57 +221,56 @@ export default function DashboardPage() {
                   } : null
                 }
               />
-            </Box>
+            </AppCard>
+          </Box>
 
-            {/* Painel: Eventos */}
-            <Box
-              w={{ base: 'full', lg: '560px' }}
-              bg={cardBg}
-              border="1px solid"
-              borderColor={cardBorder}
-              borderRadius="2xl"
-              p={{ base: 4, md: 6 }}
-              display="flex"
-              flexDirection="column"
-              boxShadow="sm"
-            >
+          {/* Painel: Eventos */}
+          <Box w={{ base: 'full', lg: '480px' }} flexShrink={0}>
+            <AppCard variant="default" style={{ padding: 20, display: 'flex', flexDirection: 'column' }}>
               <Flex justify="space-between" align="center" mb={4}>
-                <Heading fontSize="xl">Eventos</Heading>
-                              <SuggestionInfoPopover
-  description="Nosso sistema compara seu imóvel com outros de características semelhantes (camas, capacidade, banheiros, faixa de valor e localização). Também considera eventos próximos e seu impacto na demanda para oferecer uma sugestão de preço mais precisa."
-/>
+                <Box minW={0}>
+                  <p className="urban-app-eyebrow-muted" style={{ marginBottom: 4 }}>
+                    EVENTOS NO RAIO
+                  </p>
+                  <Text fontSize={{ base: 'lg', md: 'xl' }} fontWeight={600} style={{ color: 'var(--app-text)' }}>
+                    {eventsToDisplay.length} {eventsToDisplay.length === 1 ? 'evento' : 'eventos'}
+                  </Text>
+                </Box>
+                <SuggestionInfoPopover
+                  description="Nosso sistema compara seu imóvel com outros de características semelhantes (camas, capacidade, banheiros, faixa de valor e localização). Também considera eventos próximos e seu impacto na demanda para oferecer uma sugestão de preço mais precisa."
+                />
               </Flex>
 
-
-
               {eventsToDisplay.length === 0 ? (
-                <Text color="gray.500">Sem eventos</Text>
+                <AppEmptyState
+                  eyebrow="SEM EVENTOS"
+                  title="Nada no raio escolhido"
+                  body="Aumente o raio ou ajuste o período pra ampliar o radar de oportunidades."
+                  icon={<Icons.MapPin size={28} />}
+                />
               ) : (
                 <Box flex="1" overflowY="auto" maxHeight="calc(100vh - 320px)" pr={1}>
                   <Flex direction="column" gap={4}>
-                    {eventsToDisplay.map(ev => {
-                      return (
-                        <EventCard
-                          setIsLoading={()=>{}}
-                          onChange={() => {
-                            console.log("Button clicado")
-                            fetchEventsSemLoading()
-                          }}
-                          key={ev.id}
-                          ev={ev}
-                          cardBorder="gray.200"
-                          bg="white"
-                          propertyId={propertyId}
-                        />
-                      );
-                    })}
+                    {eventsToDisplay.map(ev => (
+                      <EventCard
+                        setIsLoading={() => { }}
+                        onChange={() => {
+                          fetchEventsSemLoading();
+                        }}
+                        key={ev.id}
+                        ev={ev}
+                        cardBorder="gray.200"
+                        bg="white"
+                        propertyId={propertyId}
+                      />
+                    ))}
                   </Flex>
                 </Box>
               )}
-            </Box>
-          </Flex>
-        )}
-      </Box>
-    </Flex>
+            </AppCard>
+          </Box>
+        </Flex>
+      )}
+    </AppPageShell>
   );
 }

@@ -1,20 +1,16 @@
 'use client';
 
 import {
-  Badge,
   Box,
-  Button,
   Center,
   Flex,
   FormControl,
   FormLabel,
   Grid,
   GridItem,
-  Heading,
   IconButton,
   Spinner,
   Text,
-  useColorModeValue,
   VStack,
   useBreakpointValue,
 } from '@chakra-ui/react';
@@ -43,6 +39,14 @@ import { EventCard } from './components/ItemEvento';
 
 import crypto from "crypto";
 import { SuggestionInfoPopover } from '../componentes/SuggestionInfoPopover';
+import {
+  AppPageShell,
+  AppSectionHeader,
+  AppCard,
+  AppButton,
+  AppEmptyState,
+  Icons,
+} from '../componentes/ui';
 
 const makeKey = (ev: any) =>
   crypto.createHash("md5").update(JSON.stringify(ev)).digest("hex");
@@ -77,15 +81,6 @@ export default function DashboardPage() {
   const [searchTerm] = useState('');
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
 
-  const bg = useColorModeValue('white', 'gray.800');
-  const headerBg = useColorModeValue('gray.100', 'gray.700');
-  const dayBg = useColorModeValue('gray.50', 'gray.700');
-  const todayBg = useColorModeValue('blue.100', 'blue.900');
-  const selectedBg = useColorModeValue('blue.200', 'blue.600');
-  const cardBg = useColorModeValue('white', 'gray.800');
-  const cardBorder = useColorModeValue('gray.200', 'gray.700');
-  const hoverBg = useColorModeValue('gray.100', 'gray.600');
-
   const hoje = useMemo(() => startOfDay(new Date()), []);
   const mesMinimo = useMemo(() => startOfMonth(hoje), [hoje]);
 
@@ -96,8 +91,6 @@ export default function DashboardPage() {
 
   // Obter valores responsivos
   const dayFontSize = useBreakpointValue({ base: 'xs', sm: 'sm', md: 'md' });
-  const headingSize = useBreakpointValue({ base: 'lg', md: 'xl', lg: '2xl' });
-  const buttonSize = useBreakpointValue({ base: 'sm', md: 'md' });
 
   useEffect(() => {
     if (startOfMonth(currentMonth) < mesMinimo) setCurrentMonth(mesMinimo);
@@ -256,10 +249,10 @@ useEffect(() => {
         });
 
         if (completedProps.length > 0) {
-          // ✅ Atualiza o dropdown com os novos dados
+          // Atualiza o dropdown com os novos dados
           setPropsInfo(data);
-          
-          // ✅ Se temos propriedades completadas, seleciona a primeira delas
+
+          // Se temos propriedades completadas, seleciona a primeira delas
           if (!propertyId || propsInfo.find(p => p.id === propertyId)?.analisado !== 'completed') {
             const defaultProp = data.find(p => p.analisado === "completed");
             if (defaultProp) {
@@ -306,79 +299,86 @@ useEffect(() => {
 
   // -------- UI --------
   return (
-    <Flex direction="column" minH="100vh" bg={bg}>
-      <Box flex="1" w="full" px={{ base: 2, sm: 4, md: 6, lg: 8 }} pb={4}>
+    <AppPageShell maxWidth={1400}>
+      <AppSectionHeader
+        eyebrow="CALENDÁRIO · EVENTOS POR DIA"
+        title="Calendário"
+        subtitle="Visualize os eventos com sugestões de preço da Urban AI para o imóvel selecionado. Clique em um dia para ver detalhes."
+        actions={
+          <Box minW={{ base: '100%', md: '280px' }}>
+            <FormControl>
+              <FormLabel
+                fontSize="11px"
+                letterSpacing="1.5px"
+                textTransform="uppercase"
+                fontWeight="600"
+                color="var(--app-text-muted)"
+                mb={1}
+              >
+                Filtrar imóvel
+              </FormLabel>
+              <PropertySelect value={propertyId} propsInfo={propsInfo} setPropertyId={setPropertyId} />
+            </FormControl>
+          </Box>
+        }
+      />
+
+      {/* Loading se nenhuma propriedade "completed" */}
+      {loadingPropsInfo || isLoading ? (
+        <Center py={20}>
+          <Spinner size="xl" color="orange.500" thickness="2px" />
+        </Center>
+      ) : !propertyId || !hasCompletedProperties ? (
+        <AppEmptyState
+          eyebrow="IMÓVEIS"
+          title="Ainda não há imóvel pronto para recomendações"
+          body="Assim que o cadastro terminar o processamento, as recomendações aparecem aqui. Se o imóvel ficou muito tempo nesse estado, revise endereço, coordenadas e quota do plano."
+          icon={<Icons.Sparkles size={32} />}
+        />
+      ) : error ? (
+        <AppCard variant="default" style={{ borderColor: 'rgba(194, 52, 46, 0.25)' }}>
+          <Flex align="center" gap={3} color="var(--app-danger)">
+            <Icons.AlertCircle size={18} />
+            <Text fontSize="sm" fontWeight={600}>{error}</Text>
+          </Flex>
+        </AppCard>
+      ) : (
         <Flex
-          direction={{ base: 'column', md: 'row' }}
-          justifyContent="space-between"
-          alignItems={{ base: 'flex-start', md: 'flex-end' }}
-          mb={6}
-          gap={4}
+          direction={{ base: 'column', lg: 'row' }}
+          gap={6}
+          align="stretch"
         >
-          <Heading as="h1" size={headingSize} fontWeight="extrabold" mb={{ base: 2, md: 0 }}>
-            Calendário
-          </Heading>
-
-          <FormControl maxW={{ base: '100%', md: '320px' }}>
-            <FormLabel fontWeight="semibold" color="gray.800" fontSize={{ base: 'sm', md: 'md' }}>
-              Filtrar propriedade
-            </FormLabel>
-            <PropertySelect value={propertyId} propsInfo={propsInfo} setPropertyId={setPropertyId} />
-          </FormControl>
-        </Flex>
-
-        {/* Mantém loading se nenhuma propriedade "completed" */}
-        {loadingPropsInfo || isLoading ? (
-          <Center height="300px">
-            <Spinner size="xl" />
-          </Center>
-        ) : !propertyId || !hasCompletedProperties ? (
-          <EmptyState
-            title="Ainda não há imóvel pronto para recomendações"
-            description="Assim que o cadastro terminar o processamento, as recomendações aparecem aqui. Se o imóvel ficou muito tempo nesse estado, revise endereço, coordenadas e quota do plano."
-          />
-        ) : error ? (
-          <Center height="300px" color="red.500">{error}</Center>
-        ) : (
-          <Flex
-            direction={{ base: 'column', lg: 'row' }}
-            gap={6}
-            align="stretch"
-            height={{ base: 'auto', lg: '70vh' }}
-          >
-            {/* Calendário - 3/5 da largura em desktop */}
-            <Box
-              flex={{ base: '1', lg: '3' }}
-              minW={0}
-              bg={cardBg}
-              border="1px solid"
-              borderColor={cardBorder}
-              borderRadius="xl"
-              p={{ base: 2, md: 4 }}
-              boxShadow="sm"
-              overflow="auto"
-            >
+          {/* Calendário - 3/5 da largura em desktop */}
+          <Box flex={{ base: '1', lg: '3' }} minW={0}>
+            <AppCard variant="default" style={{ padding: 20 }}>
               <Flex justify="space-between" align="center" mb={4} gap={2} flexWrap="wrap">
-                <Button
-                  size={buttonSize}
+                <AppButton
+                  size="sm"
+                  variant="secondary"
                   onClick={() => navigateMonth('prev')}
-                  isDisabled={prevDesabilitado}
-                  variant="outline"
-                  mb={{ base: 2, md: 0 }}
+                  disabled={prevDesabilitado}
+                  leftIcon={<Icons.ArrowLeft size={14} />}
                 >
-                  &larr; Anterior
-                </Button>
-                <Heading as="h3" size={{ base: 'sm', md: 'md' }} textAlign="center" flex="1" minW="200px">
+                  Anterior
+                </AppButton>
+                <Text
+                  fontSize={{ base: 'md', md: 'lg' }}
+                  fontWeight={600}
+                  textAlign="center"
+                  flex="1"
+                  minW="200px"
+                  style={{ color: 'var(--app-text)', textTransform: 'capitalize' }}
+                >
                   {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
-                </Heading>
-                <Button
-                  size={buttonSize}
+                </Text>
+                <AppButton
+                  size="sm"
+                  variant="secondary"
                   onClick={() => navigateMonth('next')}
-                  variant="outline"
-                  mb={{ base: 2, md: 0 }}
+                  rightIcon={<Icons.ArrowRight size={14} />}
                 >
-                  Próximo &rarr;
-                </Button>
+                  Próximo
+                </AppButton>
               </Flex>
 
               <Box overflowX="auto">
@@ -386,15 +386,25 @@ useEffect(() => {
                   templateColumns="repeat(7, 1fr)"
                   gap={1}
                   mb={2}
-                  bg={headerBg}
-                  borderRadius="md"
                   py={2}
                   px={1}
                   minW="min-content"
+                  style={{
+                    background: 'var(--app-surface-muted)',
+                    borderRadius: 8,
+                  }}
                 >
                   {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
                     <GridItem key={day} textAlign="center">
-                      <Text fontSize={{ base: 'xs', sm: 'sm' }} fontWeight="bold">{day}</Text>
+                      <Text
+                        fontSize="11px"
+                        fontWeight={600}
+                        letterSpacing="1.5px"
+                        textTransform="uppercase"
+                        style={{ color: 'var(--app-text-muted)' }}
+                      >
+                        {day}
+                      </Text>
                     </GridItem>
                   ))}
                 </Grid>
@@ -410,32 +420,46 @@ useEffect(() => {
                     const isToday = isSameDay(day, new Date());
                     const isSelected = selectedDay && isSameDay(day, selectedDay);
 
+                    const cellBg = isSelected
+                      ? 'var(--app-accent-soft)'
+                      : isToday
+                        ? 'var(--app-surface-muted)'
+                        : 'var(--app-surface)';
+                    const cellBorder = isSelected
+                      ? 'var(--app-accent)'
+                      : 'var(--app-divider)';
+                    const dayColor = isSelected
+                      ? 'var(--app-accent)'
+                      : isToday
+                        ? 'var(--app-text)'
+                        : 'var(--app-text)';
+
                     return (
                       <GridItem key={dateKey}>
                         <Box
                           aspectRatio="1/1"
                           minW={{ base: '10', sm: '12', md: '14' }}
-                          border="1px solid"
-                          borderColor={isSelected ? 'blue.500' : cardBorder}
-                          borderRadius="md"
-                          bg={isToday ? todayBg : isSelected ? selectedBg : dayBg}
                           position="relative"
                           p={1}
                           cursor="pointer"
                           onClick={() => setSelectedDay(day)}
-                          _hover={{ bg: hoverBg }}
-                          _focus={{ boxShadow: '0 0 0 2px teal', outline: 'none' }}
-                          transition="background-color 0.2s, box-shadow 0.2s"
+                          transition="background-color 120ms, border-color 120ms"
                           display="flex"
                           flexDirection="column"
                           justifyContent="space-between"
                           overflow="hidden"
+                          style={{
+                            background: cellBg,
+                            border: `1px solid ${cellBorder}`,
+                            borderRadius: 8,
+                          }}
+                          _hover={{ borderColor: 'var(--app-accent)' }}
                         >
                           <Text
                             fontSize={dayFontSize}
-                            fontWeight="bold"
+                            fontWeight={isToday || isSelected ? 700 : 500}
                             textAlign="right"
-                            color={isSelected ? 'white' : isToday ? 'blue.700' : 'inherit'}
+                            style={{ color: dayColor }}
                             flexShrink={0}
                           >
                             {format(day, 'd')}
@@ -444,21 +468,38 @@ useEffect(() => {
                           {dayEvents.length > 0 && (
                             <Center>
                               <VStack spacing={0}>
-                                <Badge
-                                  bg="#3FCF19"
-                                  color="white"
-                                  fontSize={{ base: 'xs', sm: 'sm' }}
-                                  fontWeight="bold"
-                                  px={2}
+                                <Flex
+                                  align="center"
+                                  gap={1}
+                                  px={1.5}
                                   py={0.5}
-                                  borderRadius="full"
-                                  boxShadow="md"
-                                  textAlign="center"
-                                  minW="6"
+                                  style={{
+                                    background: 'var(--app-accent-soft)',
+                                    borderRadius: 999,
+                                    border: '1px solid rgba(232, 80, 10, 0.25)',
+                                  }}
                                 >
-                                  {dayEvents.length}
-                                </Badge>
-                                <Text fontSize="2xs" opacity={0.7} display={{ base: 'none', sm: 'block' }}>
+                                  <Box
+                                    style={{
+                                      width: 6,
+                                      height: 6,
+                                      borderRadius: '50%',
+                                      background: 'var(--app-accent)',
+                                    }}
+                                  />
+                                  <Text
+                                    fontSize="11px"
+                                    fontWeight={700}
+                                    style={{ color: 'var(--app-accent)' }}
+                                  >
+                                    {dayEvents.length}
+                                  </Text>
+                                </Flex>
+                                <Text
+                                  fontSize="2xs"
+                                  display={{ base: 'none', sm: 'block' }}
+                                  style={{ color: 'var(--app-text-dim)' }}
+                                >
                                   evento(s)
                                 </Text>
                               </VStack>
@@ -470,61 +511,65 @@ useEffect(() => {
                   })}
                 </Grid>
               </Box>
-            </Box>
+            </AppCard>
+          </Box>
 
-            {/* Painel: Eventos - 2/5 da largura em desktop */}
-            <Box
-              flex={{ base: '1', lg: '2' }}
-              bg={cardBg}
-              border="1px solid"
-              borderColor={cardBorder}
-              borderRadius="2xl"
-              p={{ base: 3, md: 4, lg: 6 }}
-              display="flex"
-              flexDirection="column"
-              boxShadow="sm"
-              overflow="hidden"
-              mt={{ base: 4, lg: 0 }}
+          {/* Painel: Eventos - 2/5 da largura em desktop */}
+          <Box flex={{ base: '1', lg: '2' }} minW={0}>
+            <AppCard
+              variant={selectedDay ? 'accent' : 'default'}
+              style={{ padding: 20, display: 'flex', flexDirection: 'column', height: '100%' }}
             >
-              <Flex justify="space-between" align="center" mb={4}>
-                <Heading fontSize={{ base: 'lg', md: 'xl' }}>
-                  {selectedDay
-                    ? `Eventos - ${format(selectedDay, 'dd/MM/yyyy')}`
-                    : 'Eventos do Mês'}
-                </Heading>
+              <Flex justify="space-between" align="center" mb={4} gap={2}>
+                <Box minW={0}>
+                  <p
+                    className="urban-app-eyebrow-muted"
+                    style={{ marginBottom: 4 }}
+                  >
+                    {selectedDay ? 'DIA SELECIONADO' : 'EVENTOS DO MÊS'}
+                  </p>
+                  <Text
+                    fontSize={{ base: 'lg', md: 'xl' }}
+                    fontWeight={600}
+                    style={{ color: 'var(--app-text)' }}
+                  >
+                    {selectedDay
+                      ? format(selectedDay, 'dd/MM/yyyy')
+                      : format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
+                  </Text>
+                </Box>
 
-                <SuggestionInfoPopover
-                  description="Nosso sistema compara seu imóvel com outros de características semelhantes (camas, capacidade, banheiros, faixa de valor e localização). Também considera eventos próximos e seu impacto na demanda para oferecer uma sugestão de preço mais precisa."
-                />
-
-                {selectedDay && (
-                  <IconButton
-                    icon={<FiX />}
-                    aria-label="Voltar para eventos do mês"
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setSelectedDay(null)}
+                <Flex align="center" gap={1}>
+                  <SuggestionInfoPopover
+                    description="Nosso sistema compara seu imóvel com outros de características semelhantes (camas, capacidade, banheiros, faixa de valor e localização). Também considera eventos próximos e seu impacto na demanda para oferecer uma sugestão de preço mais precisa."
                   />
-                )}
+
+                  {selectedDay && (
+                    <IconButton
+                      icon={<FiX />}
+                      aria-label="Voltar para eventos do mês"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setSelectedDay(null)}
+                      style={{ color: 'var(--app-text-muted)' }}
+                    />
+                  )}
+                </Flex>
               </Flex>
 
               {eventsToDisplay.length === 0 ? (
-                <>
-                <EmptyState
-                  title={selectedDay ? "Nenhum evento relevante neste dia" : "Sem recomendações neste mês"}
-                  description={
-                    selectedPropertyInfo?.analisado !== "completed"
-                      ? "O imóvel ainda está processando. As sugestões aparecem quando endereço, eventos e preço base estiverem prontos."
-                      : "Não encontramos evento futuro compatível com este imóvel no período. O sistema continuará verificando novos eventos e mostrará sugestões quando houver match com distância, preço base e comparáveis."
+                <AppEmptyState
+                  eyebrow={selectedDay ? 'DIA SEM EVENTOS' : 'SEM RECOMENDAÇÕES'}
+                  title={selectedDay ? 'Nenhum evento neste dia' : 'Sem recomendações neste mês'}
+                  body={
+                    selectedPropertyInfo?.analisado !== 'completed'
+                      ? 'O imóvel ainda está processando. As sugestões aparecem quando endereço, eventos e preço base estiverem prontos.'
+                      : 'Não encontramos evento futuro compatível com este imóvel no período. O sistema continuará verificando novos eventos e mostrará sugestões quando houver match.'
                   }
-                  compact
+                  icon={<Icons.Calendar size={28} />}
                 />
-                <Box display="none">
-                  {selectedDay ? 'Nenhum evento neste dia' : 'Sem eventos neste mês'}
-                </Box>
-                </>
               ) : (
-                <Box flex="1" overflowY="auto" pr={1}>
+                <Box flex="1" overflowY="auto" pr={1} maxH={{ base: 'auto', lg: '65vh' }}>
                   <Flex direction="column" gap={3}>
                     {eventsToDisplay.map(ev => (
                       <EventCard
@@ -540,39 +585,15 @@ useEffect(() => {
                         cardBorder="gray.200"
                         bg="white"
                         propertyId={propertyId}
-
                       />
                     ))}
                   </Flex>
                 </Box>
               )}
-            </Box>
-          </Flex>
-        )}
-      </Box>
-    </Flex>
-  );
-}
-
-function EmptyState({
-  title,
-  description,
-  compact = false,
-}: {
-  title: string;
-  description: string;
-  compact?: boolean;
-}) {
-  return (
-    <Center py={compact ? 8 : 20} px={4}>
-      <Box maxW="520px" textAlign="center">
-        <Text fontWeight="bold" color="gray.700" fontSize={compact ? "md" : "lg"}>
-          {title}
-        </Text>
-        <Text color="gray.500" mt={2} fontSize="sm">
-          {description}
-        </Text>
-      </Box>
-    </Center>
+            </AppCard>
+          </Box>
+        </Flex>
+      )}
+    </AppPageShell>
   );
 }
