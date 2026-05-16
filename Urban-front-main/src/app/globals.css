@@ -209,6 +209,23 @@
 /* === Design System Urban AI — ADMIN (dark premium tool) === */
 /* Aplicado dentro de .urban-admin (todas as rotas /admin/* via admin/layout.tsx) */
 
+@media (max-width: 767px) {
+  .urban-app .urban-app-shell-inner {
+    padding: 88px 16px 96px !important;
+    max-width: 100% !important;
+  }
+
+  .urban-app .urban-app-display-hero {
+    font-size: clamp(42px, 13vw, 64px);
+    line-height: 0.96;
+  }
+
+  .urban-app .urban-app-display-md {
+    font-size: clamp(36px, 12vw, 52px);
+    line-height: 0.98;
+  }
+}
+
 .urban-admin,
 .urban-admin * {
   font-family: 'Inter', system-ui, -apple-system, sans-serif !important;

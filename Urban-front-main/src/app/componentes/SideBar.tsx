@@ -240,7 +240,13 @@ export default function SideBar() {
       </Box>
 
       {/* ====================== Mobile: top bar + bottom-nav + drawer Mais ====================== */}
-      <Box display={{ base: 'block', md: 'none' }}>
+      <Box
+        display={{ base: 'block', md: 'none' }}
+        position="fixed"
+        inset="0"
+        zIndex="40"
+        pointerEvents="none"
+      >
         {/* Top bar */}
         <Flex
           as="header"
@@ -254,6 +260,7 @@ export default function SideBar() {
           justify="space-between"
           h="56px"
           px="4"
+          pointerEvents="auto"
         >
           <Image src="/urlaranja.png" alt="Urban AI" maxH="32px" />
           <IconButton
@@ -282,6 +289,7 @@ export default function SideBar() {
           align="stretch"
           justify="space-around"
           px="2"
+          pointerEvents="auto"
         >
           {primaryNav.map((item) => {
             const active = isActive(item.path);
@@ -364,7 +372,6 @@ export default function SideBar() {
         </Drawer>
 
         {/* Spacer pra conteúdo da página não ficar atrás da bottom-nav */}
-        <Box h="64px" />
       </Box>
     </>
   );

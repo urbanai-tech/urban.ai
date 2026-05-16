@@ -244,11 +244,15 @@ class AuthProxyHandler(BaseHTTPRequestHandler):
         self._proxy()
 
     def log_message(self, format, *args):
-        logger.info("[auth-proxy] %s", format % args)
+        message = format % args
+        if self.command == "HEAD" and '"HEAD / HTTP/1.1" 401' in message:
+            logger.debug("[auth-proxy] %s", message)
+            return
+        logger.info("[auth-proxy] %s", message)
 
 
 def main():
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
+    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), stream=sys.stdout)
     logger.info("[auth-proxy] Starting Scrapyd on port %s...", SCRAPYD_PORT)
     scrapyd_proc = start_scrapyd()
 

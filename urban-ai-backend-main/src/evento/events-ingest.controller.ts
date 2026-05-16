@@ -69,8 +69,7 @@ export class EventsIngestController {
   })
   @Get('geocoder/status')
   async geocoderStatus() {
-    const pending = await this.geocoder.pendingCount();
-    return { pendingGeocode: pending };
+    return this.geocoder.status();
   }
 
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
