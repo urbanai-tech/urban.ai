@@ -181,6 +181,43 @@ export default function MyProperties() {
     minute: '2-digit',
   });
 
+  // Local: thumb com fallback. Evita imagem quebrada com alt text exposto
+  // (bug capturado no screenshot host-propriedades.png da auditoria 2026-05-16).
+  function PropertyThumb({ src, alt }: { src?: string | null; alt: string }) {
+    const [errored, setErrored] = useState(false);
+    const initial = (alt?.charAt(0) || '?').toUpperCase();
+    if (!src || errored) {
+      return (
+        <Flex
+          boxSize="60px"
+          borderRadius="md"
+          bg="gray.100"
+          borderWidth="1px"
+          borderColor="gray.200"
+          align="center"
+          justify="center"
+          fontWeight="bold"
+          color="gray.500"
+          fontSize="lg"
+          flexShrink={0}
+        >
+          {initial}
+        </Flex>
+      );
+    }
+    return (
+      <Image
+        src={src}
+        alt={alt}
+        boxSize="60px"
+        objectFit="cover"
+        borderRadius="md"
+        flexShrink={0}
+        onError={() => setErrored(true)}
+      />
+    );
+  }
+
   if (loading) {
     return (
       <Center height="300px">
@@ -223,64 +260,137 @@ export default function MyProperties() {
             _hover={{ bg: 'gray.50' }}
           >
             <Flex align="center">
-              <Image
-                src={prop.image_url}
-                alt={prop.propertyName}
-                boxSize="60px"
-                objectFit="cover"
-                borderRadius="md"
-                mr={4}
-              />
-              <Box>
-                <Text fontWeight="medium">{prop.propertyName}</Text>
-                <Text fontSize="sm" color="gray.500">
-                  Latitude: {prop.latitude}, Longitude: {prop.longitude}
+              <PropertyThumb src={prop.image_url} alt={prop.propertyName} />
+              <Box ml={4} minW={0}>
+                <Text fontWeight="medium" noOfLines={1}>
+                  {prop.propertyName}
+                </Text>
+                <Text fontSize="sm" color="gray.500" noOfLines={1}>
+                  {(prop as any).neighborhood || (prop as any).city || (prop as any).address || 'Imóvel cadastrado'}
                 </Text>
               </Box>
             </Flex>
-            <Flex align={{ base: 'stretch', md: 'center' }} gap={2} direction={{ base: 'column', md: 'row' }}>
-              <Input
-                size="sm"
-                w={{ base: 'full', md: '150px' }}
-                placeholder="Diária base"
-                inputMode="decimal"
-                value={pricingDrafts[prop.id]?.manualDailyPrice ?? ''}
-                onChange={(event) => updateDraft(prop.id, 'manualDailyPrice', event.target.value)}
-              />
-              <Input
-                size="sm"
-                w={{ base: 'full', md: '180px' }}
-                placeholder="Receita média/mês"
-                inputMode="decimal"
-                value={pricingDrafts[prop.id]?.averageMonthlyRevenue ?? ''}
-                onChange={(event) => updateDraft(prop.id, 'averageMonthlyRevenue', event.target.value)}
-              />
-              <Button
-                size="sm"
-                colorScheme="blue"
-                isLoading={savingPricing === prop.id}
-                onClick={() => savePricingInputs(prop)}
-              >
-                Salvar
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                isLoading={loadingHistory === prop.id}
-                onClick={() => loadPricingHistory(prop.id)}
-              >
-                Histórico
-              </Button>
-              <IconButton
-                aria-label={t('my_properties.delete')}
-                icon={<DeleteIcon />}
-                variant="ghost"
-                colorScheme="red"
-                size="sm"
-                onClick={() => handleDeleteRequest(prop.id)}
-              />
+            <Flex
+              align={{ base: 'stretch', md: 'flex-end' }}
+              gap={3}
+              direction={{ base: 'column', md: 'row' }}
+            >
+              <Box>
+                <Text
+                  fontSize="2xs"
+                  textTransform="uppercase"
+                  letterSpacing="wider"
+                  color="gray.500"
+                  fontWeight="semibold"
+                  mb={1}
+                >
+                  Diária base
+                </Text>
+                <Flex
+                  align="center"
+                  borderWidth="1px"
+                  borderColor="gray.200"
+                  borderRadius="md"
+                  pl={2}
+                  bg="white"
+                  w={{ base: 'full', md: '160px' }}
+                  _focusWithin={{ borderColor: 'blue.500' }}
+                >
+                  <Text fontSize="sm" color="gray.500" mr={1}>R$</Text>
+                  <Input
+                    size="sm"
+                    border="none"
+                    pl={0}
+                    placeholder="0,00"
+                    inputMode="decimal"
+                    value={pricingDrafts[prop.id]?.manualDailyPrice ?? ''}
+                    onChange={(event) => updateDraft(prop.id, 'manualDailyPrice', event.target.value)}
+                  />
+                </Flex>
+              </Box>
+              <Box>
+                <Text
+                  fontSize="2xs"
+                  textTransform="uppercase"
+                  letterSpacing="wider"
+                  color="gray.500"
+                  fontWeight="semibold"
+                  mb={1}
+                >
+                  Receita média / mês
+                </Text>
+                <Flex
+                  align="center"
+                  borderWidth="1px"
+                  borderColor="gray.200"
+                  borderRadius="md"
+                  pl={2}
+                  bg="white"
+                  w={{ base: 'full', md: '180px' }}
+                  _focusWithin={{ borderColor: 'blue.500' }}
+                >
+                  <Text fontSize="sm" color="gray.500" mr={1}>R$</Text>
+                  <Input
+                    size="sm"
+                    border="none"
+                    pl={0}
+                    placeholder="0,00"
+                    inputMode="decimal"
+                    value={pricingDrafts[prop.id]?.averageMonthlyRevenue ?? ''}
+                    onChange={(event) => updateDraft(prop.id, 'averageMonthlyRevenue', event.target.value)}
+                  />
+                </Flex>
+              </Box>
+              <Flex gap={2} align="center" mt={{ base: 2, md: 5 }}>
+                <Button
+                  size="sm"
+                  colorScheme="blue"
+                  isLoading={savingPricing === prop.id}
+                  onClick={() => savePricingInputs(prop)}
+                >
+                  Salvar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  isLoading={loadingHistory === prop.id}
+                  onClick={() => loadPricingHistory(prop.id)}
+                >
+                  Histórico
+                </Button>
+                <IconButton
+                  aria-label={t('my_properties.delete')}
+                  icon={<DeleteIcon />}
+                  variant="ghost"
+                  colorScheme="red"
+                  size="sm"
+                  onClick={() => handleDeleteRequest(prop.id)}
+                />
+              </Flex>
             </Flex>
           </Flex>
+
+          {/* Detalhes técnicos (lat/lng) — colapsado em <details> nativo */}
+          <Box px={3} pb={2}>
+            <details>
+              <summary
+                style={{
+                  cursor: 'pointer',
+                  fontSize: 11,
+                  letterSpacing: 0.5,
+                  textTransform: 'uppercase',
+                  color: '#94a3b8',
+                  fontWeight: 600,
+                  outline: 'none',
+                }}
+              >
+                Detalhes técnicos
+              </summary>
+              <Text fontSize="xs" color="gray.500" mt={1} fontFamily="monospace">
+                Latitude {prop.latitude} · Longitude {prop.longitude}
+              </Text>
+            </details>
+          </Box>
           {openHistory === prop.id && (
             <Box px={3} pb={3}>
               <Text fontSize="sm" fontWeight="semibold" mb={2}>

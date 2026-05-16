@@ -41,6 +41,19 @@ export type Evento = {
 
 
 
+function formatEventDate(value: string | null | undefined): string {
+    if (!value) return "—";
+    try {
+        return new Date(value).toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+        });
+    } catch {
+        return value;
+    }
+}
+
 export default function CasaEventosProximosPage() {
     const { t } = useTranslation();
     const params = useParams();
@@ -131,13 +144,16 @@ export default function CasaEventosProximosPage() {
                             />
                             <Box p={4}>
                                 <Text fontWeight="bold" mb={1} noOfLines={2}>
-                                    {ev.enderecoCompleto}
+                                    {ev.nome ?? ev.enderecoCompleto}
                                 </Text>
                                 <Text fontSize="sm" color="gray.600" mb={1}>
-                                    {ev.dataInicio}
+                                    {formatEventDate(ev.dataInicio)}
+                                    {ev.dataFim && ev.dataFim !== ev.dataInicio && (
+                                        <> · até {formatEventDate(ev.dataFim)}</>
+                                    )}
                                 </Text>
-                                <Text fontSize="sm" color="gray.600" mb={2}>
-                                    {ev.dataFim}
+                                <Text fontSize="sm" color="gray.500" mb={2} noOfLines={1}>
+                                    {ev.enderecoCompleto}
                                 </Text>
                                 <Text fontSize="sm" fontWeight="semibold" color="blue.500">
                                     {(Number(ev.distancia_metros) / 1000).toFixed(1)} {t('casas_proximas.km')}
@@ -150,9 +166,7 @@ export default function CasaEventosProximosPage() {
                     paginaAtual={paginaAtual}
                     totalPaginas={totalPaginas}
                     onPageChange={(nova) => setPaginaAtual(nova)}
-              
                 />
-                );
             </VStack>
         </Container>
     );
