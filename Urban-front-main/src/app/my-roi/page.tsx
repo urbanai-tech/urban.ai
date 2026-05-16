@@ -2,20 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Badge,
   Box,
-  Button,
   Center,
   Flex,
   Grid,
-  Heading,
   Progress,
   Select,
   Spinner,
-  Stat,
-  StatHelpText,
-  StatLabel,
-  StatNumber,
   Table,
   Tbody,
   Td,
@@ -23,12 +16,35 @@ import {
   Th,
   Thead,
   Tr,
-  useColorModeValue,
 } from '@chakra-ui/react';
 import { fetchMyRoi, getPropriedadesDropdownList, PropertyDropdown, RoiSummary } from '../service/api';
+import {
+  AppPageShell,
+  AppSectionHeader,
+  AppCard,
+  AppCardHeader,
+  AppMetricCard,
+  AppButton,
+  AppBadge,
+  AppEmptyState,
+  Icons,
+} from '../componentes/ui';
+import type { AppBadgeKind } from '../componentes/ui';
 
 const WINDOWS = [30, 90, 180, 365];
 
+/**
+ * /my-roi — tela mais forte do anfitrião (auditoria 2026-05-16 deu 35/60).
+ *
+ * Redesenhada no Sprint 3 para:
+ *  - Substituir `bg="green.900"` (verde-banco-de-trás-da-padaria) por hero
+ *    card `urban-app-card-accent` com Bebas Neue 96px em #E8500A.
+ *  - Remover `colorScheme="green"` no botão Atualizar (era a única tela onde
+ *    o anfitrião VÊ DINHEIRO — não pode parecer extrato bancário).
+ *  - Verde em "Gerado" + "Resultado por imóvel" → accent #E8500A.
+ *  - Confidence badge → AppBadge.
+ *  - Progress bar → laranja (não verde).
+ */
 export default function MyRoiPage() {
   const [data, setData] = useState<RoiSummary | null>(null);
   const [properties, setProperties] = useState<PropertyDropdown[]>([]);
@@ -36,10 +52,6 @@ export default function MyRoiPage() {
   const [windowDays, setWindowDays] = useState(30);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const pageBg = useColorModeValue('gray.50', 'gray.900');
-  const cardBg = useColorModeValue('white', 'gray.800');
-  const border = useColorModeValue('gray.200', 'gray.700');
 
   async function load(nextWindow = windowDays, nextProperty = propertyId) {
     setLoading(true);
@@ -51,8 +63,13 @@ export default function MyRoiPage() {
       ]);
       setData(roi);
       setProperties(props);
-    } catch (err: any) {
-      setError(err?.response?.status === 401 ? 'Faça login novamente para ver seu ROI.' : err?.message || 'Erro ao carregar ROI.');
+    } catch (err: unknown) {
+      const e = err as { response?: { status?: number }; message?: string };
+      setError(
+        e?.response?.status === 401
+          ? 'Faça login novamente para ver seu ROI.'
+          : e?.message || 'Erro ao carregar ROI.',
+      );
     } finally {
       setLoading(false);
     }
@@ -71,130 +88,170 @@ export default function MyRoiPage() {
     });
 
   const roiLabel = useMemo(() => {
-    if (!data?.money.roiMultiple) return 'Aguardando dados';
+    if (!data?.money.roiMultiple) return '—';
     return `${data.money.roiMultiple.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}x`;
   }, [data]);
 
   if (loading && !data) {
     return (
-      <Center minH="60vh" bg={pageBg}>
-        <Spinner size="xl" />
-      </Center>
+      <AppPageShell>
+        <Center minH="60vh">
+          <Spinner size="xl" color="orange.500" thickness="2px" />
+        </Center>
+      </AppPageShell>
     );
   }
 
   if (error || !data) {
     return (
-      <Box p={{ base: 4, md: 10 }} bg={pageBg} minH="70vh">
-        <Box bg="red.50" border="1px solid" borderColor="red.200" rounded="lg" p={5}>
-          <Text color="red.700">{error ?? 'Nao foi possivel carregar seu ROI.'}</Text>
-        </Box>
-      </Box>
+      <AppPageShell>
+        <AppEmptyState
+          eyebrow="ERRO"
+          title="Não foi possível carregar"
+          body={error ?? 'Não foi possível carregar seu ROI.'}
+          icon={<Icons.AlertCircle size={32} />}
+          action={
+            <AppButton variant="primary" onClick={() => load()}>
+              Tentar de novo
+            </AppButton>
+          }
+        />
+      </AppPageShell>
     );
   }
 
   const acceptance = Math.min(100, data.activity.acceptanceRatePercent);
-  const confidenceColor =
+  const confidenceKind: AppBadgeKind =
     data.dataQuality.confidence === 'high'
-      ? 'green'
+      ? 'success'
       : data.dataQuality.confidence === 'medium'
-        ? 'orange'
-        : 'gray';
+        ? 'warn'
+        : 'neutral';
 
   return (
-    <Box p={{ base: 4, md: 10 }} bg={pageBg}>
-      <Flex justify="space-between" align={{ base: 'stretch', md: 'flex-end' }} direction={{ base: 'column', md: 'row' }} gap={4}>
-        <Box>
-          <Heading size="2xl" color="gray.900">
-            Meu ROI
-          </Heading>
-          <Text color="gray.600" mt={2}>
-            Quanto a Urban AI gerou de dinheiro para seus imóveis.
-          </Text>
-        </Box>
+    <AppPageShell maxWidth={1280}>
+      <AppSectionHeader
+        eyebrow="MEU ROI · IMPACTO DA URBAN AI"
+        title="Quanto a IA gerou de dinheiro"
+        subtitle="Soma das diárias com preço otimizado nos últimos dias. Confirmadas pelo Stays/Airbnb + acompanhando as que ainda não fecharam."
+        actions={
+          <Flex gap={2} direction={{ base: 'column', sm: 'row' }} align="center">
+            <Select
+              size="md"
+              bg="white"
+              borderColor="gray.200"
+              borderRadius="10px"
+              value={propertyId}
+              onChange={(event) => {
+                setPropertyId(event.target.value);
+                load(windowDays, event.target.value);
+              }}
+            >
+              <option value="">Todos os imóveis</option>
+              {properties.map((property) => (
+                <option key={property.id} value={property.id}>
+                  {property.nome || property.propertyName}
+                </option>
+              ))}
+            </Select>
+            <Select
+              size="md"
+              bg="white"
+              borderColor="gray.200"
+              borderRadius="10px"
+              value={windowDays}
+              onChange={(event) => {
+                const next = Number(event.target.value);
+                setWindowDays(next);
+                load(next, propertyId);
+              }}
+            >
+              {WINDOWS.map((days) => (
+                <option key={days} value={days}>
+                  Últimos {days} dias
+                </option>
+              ))}
+            </Select>
+            <AppButton variant="primary" onClick={() => load()} loading={loading} leftIcon={<Icons.Zap size={14} />}>
+              Atualizar
+            </AppButton>
+          </Flex>
+        }
+      />
 
-        <Flex gap={3} direction={{ base: 'column', sm: 'row' }}>
-          <Select
-            bg="white"
-            value={propertyId}
-            onChange={(event) => {
-              setPropertyId(event.target.value);
-              load(windowDays, event.target.value);
-            }}
-          >
-            <option value="">Todos os imóveis</option>
-            {properties.map((property) => (
-              <option key={property.id} value={property.id}>
-                {property.nome || property.propertyName}
-              </option>
-            ))}
-          </Select>
-          <Select
-            bg="white"
-            value={windowDays}
-            onChange={(event) => {
-              const next = Number(event.target.value);
-              setWindowDays(next);
-              load(next, propertyId);
-            }}
-          >
-            {WINDOWS.map((days) => (
-              <option key={days} value={days}>
-                Últimos {days} dias
-              </option>
-            ))}
-          </Select>
-          <Button onClick={() => load()} isLoading={loading} colorScheme="green">
-            Atualizar
-          </Button>
-        </Flex>
-      </Flex>
-
-      <Box mt={8} bg="green.900" color="white" rounded="xl" p={{ base: 5, md: 8 }}>
-        <Flex justify="space-between" align={{ base: 'flex-start', md: 'center' }} direction={{ base: 'column', md: 'row' }} gap={5}>
+      {/* === Hero card: dinheiro atribuído === */}
+      <AppCard variant="accent" style={{ padding: '40px 40px 36px', marginBottom: 32 }}>
+        <Flex justify="space-between" align={{ base: 'flex-start', md: 'flex-end' }} direction={{ base: 'column', md: 'row' }} gap={6}>
           <Box>
-            <Text fontSize="sm" color="green.100" fontWeight="semibold">
-              Dinheiro atribuído à Urban AI
-            </Text>
-            <Heading mt={2} fontSize={{ base: '4xl', md: '6xl' }} lineHeight="1">
+            <p className="urban-app-eyebrow">DINHEIRO ATRIBUÍDO À URBAN AI</p>
+            <p className="urban-app-display-hero" style={{ marginTop: 12, color: 'var(--app-accent)' }}>
               {fmt(data.money.totalAttributedCents)}
-            </Heading>
-            <Text mt={3} color="green.100">
-              {fmt(data.money.confirmedIncrementalCents)} confirmado + {fmt(data.money.projectedIncrementalCents)} em acompanhamento
+            </p>
+            <Text mt={3} fontSize="sm" color="gray.600">
+              <strong style={{ color: 'var(--app-text)' }}>{fmt(data.money.confirmedIncrementalCents)}</strong> confirmado
+              {' · '}
+              <span style={{ color: 'var(--app-text-muted)' }}>{fmt(data.money.projectedIncrementalCents)} em acompanhamento</span>
             </Text>
           </Box>
-          <Box textAlign={{ base: 'left', md: 'right' }}>
-            <Text fontSize="sm" color="green.100" fontWeight="semibold">
-              Retorno sobre assinatura
-            </Text>
-            <Heading mt={2} fontSize={{ base: '4xl', md: '5xl' }}>
+          <Box textAlign={{ base: 'left', md: 'right' }} borderLeft={{ md: '1px solid' }} borderColor={{ md: 'var(--app-divider)' }} pl={{ md: 8 }}>
+            <p className="urban-app-eyebrow-muted">Retorno sobre assinatura</p>
+            <p className="urban-app-display-md" style={{ marginTop: 12 }}>
               {roiLabel}
-            </Heading>
-            <Text mt={3} color={data.money.netValueCents >= 0 ? 'green.100' : 'orange.100'}>
-              Valor líquido: {fmt(data.money.netValueCents)}
+            </p>
+            <Text mt={3} fontSize="sm" color={data.money.netValueCents >= 0 ? 'gray.600' : 'red.600'}>
+              Valor líquido: <strong style={{ color: 'var(--app-text)' }}>{fmt(data.money.netValueCents)}</strong>
             </Text>
           </Box>
         </Flex>
+      </AppCard>
+
+      {/* === KPIs detalhados === */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: 24,
+          borderTop: '1px solid var(--app-divider)',
+          borderBottom: '1px solid var(--app-divider)',
+          padding: '24px 0',
+          marginBottom: 32,
+        }}
+      >
+        <AppMetricCard
+          label="Custo da Urban AI"
+          value={fmt(data.subscription.monthlyCostCents)}
+          sub={`${data.subscription.activePayments} assinatura(s) ativa(s)`}
+        />
+        <AppMetricCard
+          label="Noites impactadas"
+          value={data.activity.impactedNights}
+          sub="diárias com preço otimizado"
+        />
+        <AppMetricCard
+          label="Sugestões aplicadas"
+          value={`${data.activity.applied}/${data.activity.recommendations}`}
+          sub={`${data.activity.applicationRatePercent.toFixed(0)}% das aceitas`}
+        />
+        <AppMetricCard
+          label="Potencial perdido"
+          value={fmt(data.money.potentialLostCents)}
+          sub="sugestões não aplicadas"
+          accent={data.money.potentialLostCents > 0}
+        />
       </Box>
 
-      <Grid mt={6} templateColumns={{ base: '1fr', md: 'repeat(4, 1fr)' }} gap={4}>
-        <Kpi bg={cardBg} border={border} label="Custo da Urban AI" value={fmt(data.subscription.monthlyCostCents)} help={`${data.subscription.activePayments} assinatura(s) ativa(s)`} />
-        <Kpi bg={cardBg} border={border} label="Noites impactadas" value={data.activity.impactedNights.toLocaleString('pt-BR')} help="diárias com preço otimizado" />
-        <Kpi bg={cardBg} border={border} label="Sugestões aplicadas" value={`${data.activity.applied}/${data.activity.recommendations}`} help={`${data.activity.applicationRatePercent.toFixed(0)}% das aceitas`} />
-        <Kpi bg={cardBg} border={border} label="Potencial perdido" value={fmt(data.money.potentialLostCents)} help="sugestões não aplicadas" />
-      </Grid>
-
-      <Grid mt={6} templateColumns={{ base: '1fr', lg: '1.2fr .8fr' }} gap={6}>
-        <Box bg={cardBg} border="1px solid" borderColor={border} rounded="xl" p={5}>
-          <Flex justify="space-between" align="center" mb={4}>
-            <Heading size="md">Resultado por imóvel</Heading>
-            <Badge colorScheme={confidenceColor}>{data.dataQuality.label}</Badge>
-          </Flex>
-          <Text color="gray.500" fontSize="sm" mb={4}>
-            {data.dataQuality.explanation}
-          </Text>
+      <Grid templateColumns={{ base: '1fr', lg: '1.2fr .8fr' }} gap={6} mb={6}>
+        <AppCard variant="default">
+          <AppCardHeader
+            title="Resultado por imóvel"
+            subtitle={data.dataQuality.explanation}
+            actions={<AppBadge kind={confidenceKind}>{data.dataQuality.label}</AppBadge>}
+          />
           {data.perProperty.length === 0 ? (
-            <EmptyState />
+            <AppEmptyState
+              title="Nada aplicado neste período"
+              body="Quando você aplicar uma sugestão da Urban AI, o ROI aparece aqui."
+            />
           ) : (
             <Box overflowX="auto">
               <Table size="sm">
@@ -213,7 +270,11 @@ export default function MyRoiPage() {
                         <Text fontWeight="semibold" noOfLines={1}>{property.propertyName}</Text>
                         <Text color="gray.500" fontSize="xs">{property.recommendations} recomendações</Text>
                       </Td>
-                      <Td isNumeric color="green.600" fontWeight="bold">{fmt(property.totalAttributedCents)}</Td>
+                      <Td isNumeric>
+                        <span style={{ color: 'var(--app-accent)', fontWeight: 700 }}>
+                          {fmt(property.totalAttributedCents)}
+                        </span>
+                      </Td>
                       <Td isNumeric>{property.impactedNights}</Td>
                       <Td isNumeric>{property.applied}</Td>
                     </Tr>
@@ -222,77 +283,58 @@ export default function MyRoiPage() {
               </Table>
             </Box>
           )}
-        </Box>
+        </AppCard>
 
-        <Box bg={cardBg} border="1px solid" borderColor={border} rounded="xl" p={5}>
-          <Heading size="md" mb={4}>Adoção das recomendações</Heading>
+        <AppCard variant="default">
+          <AppCardHeader title="Adoção das recomendações" />
           <Flex justify="space-between" mb={2}>
             <Text fontSize="sm" color="gray.600">Taxa de aceite</Text>
             <Text fontSize="sm" fontWeight="bold">{acceptance.toFixed(0)}%</Text>
           </Flex>
-          <Progress value={acceptance} colorScheme="green" rounded="full" />
-          <Grid templateColumns="repeat(2, 1fr)" gap={4} mt={6}>
-            <SmallMetric label="Aceitas" value={data.activity.accepted} />
-            <SmallMetric label="Aplicadas" value={data.activity.applied} />
-            <SmallMetric label="Reservadas" value={data.activity.booked} />
-            <SmallMetric label="Rejeitadas" value={data.activity.rejected} />
+          <Progress value={acceptance} rounded="full" sx={{ '& > div': { background: 'var(--app-accent)' } }} />
+          <Grid templateColumns="repeat(2, 1fr)" gap={6} mt={6}>
+            <AppMetricCard label="Aceitas" value={data.activity.accepted} variant="sm" />
+            <AppMetricCard label="Aplicadas" value={data.activity.applied} variant="sm" />
+            <AppMetricCard label="Reservadas" value={data.activity.booked} variant="sm" />
+            <AppMetricCard label="Rejeitadas" value={data.activity.rejected} variant="sm" />
           </Grid>
-        </Box>
+        </AppCard>
       </Grid>
 
-      <Box mt={6} bg={cardBg} border="1px solid" borderColor={border} rounded="xl" p={5}>
-        <Heading size="md" mb={4}>Ganhos recentes</Heading>
+      <AppCard variant="default">
+        <AppCardHeader title="Ganhos recentes" subtitle="Últimas sugestões que viraram receita confirmada." />
         {data.recentWins.length === 0 ? (
-          <EmptyState />
+          <AppEmptyState
+            title="Sem ganhos confirmados ainda"
+            body="Aceitas + aplicadas + reservas com noites já vencidas aparecem aqui."
+          />
         ) : (
           <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={3}>
             {data.recentWins.map((win) => (
-              <Box key={win.id} border="1px solid" borderColor={border} rounded="md" p={4}>
-                <Flex justify="space-between" gap={3}>
+              <Box
+                key={win.id}
+                borderWidth="1px"
+                borderColor="var(--app-divider)"
+                rounded="md"
+                p={4}
+                _hover={{ borderColor: 'var(--app-divider-strong)' }}
+              >
+                <Flex justify="space-between" gap={3} align="center">
                   <Box minW={0}>
-                    <Text fontWeight="bold" noOfLines={1}>{win.propertyName}</Text>
-                    <Text fontSize="sm" color="gray.500">
-                      {fmt(win.currentPriceCents)} para {fmt(win.appliedPriceCents)} em {win.nights} noite(s)
+                    <Text fontWeight="semibold" noOfLines={1}>{win.propertyName}</Text>
+                    <Text fontSize="xs" color="gray.500">
+                      {fmt(win.currentPriceCents)} → {fmt(win.appliedPriceCents)} · {win.nights} noite(s)
                     </Text>
                   </Box>
-                  <Text color="green.600" fontWeight="extrabold">{fmt(win.incrementalCents)}</Text>
+                  <Text fontWeight="bold" style={{ color: 'var(--app-accent)' }}>
+                    +{fmt(win.incrementalCents)}
+                  </Text>
                 </Flex>
               </Box>
             ))}
           </Grid>
         )}
-      </Box>
-    </Box>
-  );
-}
-
-function Kpi({ bg, border, label, value, help }: { bg: string; border: string; label: string; value: string; help: string }) {
-  return (
-    <Box bg={bg} border="1px solid" borderColor={border} rounded="xl" p={5}>
-      <Stat>
-        <StatLabel color="gray.500">{label}</StatLabel>
-        <StatNumber color="gray.900" fontSize="2xl">{value}</StatNumber>
-        <StatHelpText>{help}</StatHelpText>
-      </Stat>
-    </Box>
-  );
-}
-
-function SmallMetric({ label, value }: { label: string; value: number }) {
-  return (
-    <Box>
-      <Text fontSize="xs" color="gray.500" textTransform="uppercase">{label}</Text>
-      <Text fontSize="2xl" fontWeight="bold">{value.toLocaleString('pt-BR')}</Text>
-    </Box>
-  );
-}
-
-function EmptyState() {
-  return (
-    <Center py={10}>
-      <Text color="gray.500" textAlign="center">
-        Ainda não há recomendações aplicadas neste período.
-      </Text>
-    </Center>
+      </AppCard>
+    </AppPageShell>
   );
 }

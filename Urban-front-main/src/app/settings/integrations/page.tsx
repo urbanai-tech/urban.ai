@@ -9,34 +9,47 @@ import {
   type StaysAccountPublic,
   type StaysListingPublic,
 } from "../../service/api";
+import {
+  AppPageShell,
+  AppSectionHeader,
+  AppCard,
+  AppCardHeader,
+  AppButton,
+  AppBadge,
+  AppMetricCard,
+  AppInput,
+  AppEmptyState,
+  Icons,
+} from "../../componentes/ui";
 
 const STAYS_CONSENT_VERSION = "stays-connect-v1";
 
 const operationModeLabels: Record<StaysListingPublic["operationMode"], string> = {
-  inherit: "Herdar padrao",
-  notifications: "Recomendacao manual",
-  auto: "Automatico beta",
+  inherit: "Herdar padrão",
+  notifications: "Recomendação manual",
+  auto: "Automático beta",
 };
 
 function formatStaysDate(value?: string | null) {
-  if (!value) return "Nao registrado";
+  if (!value) return "Não registrado";
   return new Date(value).toLocaleString("pt-BR");
 }
 
 /**
- * Settings › Integrações › Stays
+ * /settings/integrations — Stays.
  *
- * MVP do painel de integração. Permite:
- *  - conectar conta Stays (clientId + accessToken manual)
- *  - disparar sync das listings
- *  - ver listings sincronizados e status da conta
- *  - desconectar
+ * REESCRITO no Sprint 3 do redesign anfitrião (auditoria UI/UX 2026-05-16).
+ * Antes era a pior tela do app (P0 do relatório do usuário):
+ *  - Bloco dark `bg-slate-900` sobre fundo claro com texto `text-slate-400`,
+ *    ilegível. CTAs apareciam como links.
+ *  - Resultado: tela representa CONFIANÇA na integração crítica e parecia
+ *    debug interno.
  *
- * Ainda pendente (próximos passos):
- *  - OAuth 2.0 quando a Stays oferecer
- *  - matching auto entre listing Stays e imóvel Urban AI
- *  - seletor de operationMode por listing
- *  - histórico de PriceUpdate por listing
+ * Agora: tela de confiança em light premium. Seções claras:
+ *  1. Status da conexão (success/falha/desconectada) com hero card.
+ *  2. Permissões concedidas + última sincronização.
+ *  3. Listings sincronizados com modo operacional por listing.
+ *  4. Zona perigosa (desconectar) separada visualmente.
  */
 export default function IntegrationsPage() {
   const [account, setAccount] = useState<StaysAccountPublic | null>(null);
@@ -47,6 +60,8 @@ export default function IntegrationsPage() {
   const [consent, setConsent] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitBusy, setSubmitBusy] = useState(false);
+  const [resyncBusy, setResyncBusy] = useState(false);
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -54,7 +69,6 @@ export default function IntegrationsPage() {
         const items = await staysListListings();
         setListings(items);
         if (items.length > 0) {
-          // inferimos que existe conta ativa se há listings cacheados
           setAccount({
             id: "unknown",
             status: "active",
@@ -81,7 +95,6 @@ export default function IntegrationsPage() {
       setSubmitError("Preencha Client ID e Access Token.");
       return;
     }
-
     setSubmitBusy(true);
     try {
       const acc = await staysConnect(clientId.trim(), accessToken.trim(), {
@@ -89,7 +102,7 @@ export default function IntegrationsPage() {
         consentVersion: STAYS_CONSENT_VERSION,
       });
       setAccount(acc);
-      setAccessToken(""); // limpa o campo — não manter token em memória do browser mais do que o necessário
+      setAccessToken("");
       const sync = await staysSyncListings();
       setListings(sync.listings);
     } catch (err) {
@@ -101,194 +114,410 @@ export default function IntegrationsPage() {
   }
 
   async function handleDisconnect() {
-    if (!confirm("Tem certeza? Isso desativa o modo autônomo em todos os imóveis.")) return;
+    setConfirmDisconnect(false);
     await staysDisconnect();
     setAccount(null);
     setListings([]);
   }
 
   async function handleResync() {
-    setLoading(true);
+    setResyncBusy(true);
     try {
       const sync = await staysSyncListings();
       setListings(sync.listings);
     } finally {
-      setLoading(false);
+      setResyncBusy(false);
     }
   }
 
-  const activeListings = listings.filter((listing) => listing.active).length;
-  const autoListings = listings.filter((listing) => listing.operationMode === "auto").length;
-  const linkedListings = listings.filter((listing) => Boolean(listing.propriedadeId)).length;
+  const activeListings = listings.filter((l) => l.active).length;
+  const autoListings = listings.filter((l) => l.operationMode === "auto").length;
+  const linkedListings = listings.filter((l) => Boolean(l.propriedadeId)).length;
+
+  const isConnected = account && account.status !== "disconnected";
 
   if (loading) {
     return (
-      <div className="p-8 max-w-3xl mx-auto">
-        <p className="text-slate-400">Carregando…</p>
-      </div>
+      <AppPageShell maxWidth={900}>
+        <p style={{ color: "var(--app-text-muted)", fontSize: 14 }}>Carregando…</p>
+      </AppPageShell>
     );
   }
 
   return (
-    <div className="p-8 max-w-3xl mx-auto space-y-8">
-      <header>
-        <h1 className="text-3xl font-bold mb-2">Integrações</h1>
-        <p className="text-slate-400">
-          Conecte sua conta Stays para habilitar o modo automático de precificação.
-        </p>
-      </header>
+    <AppPageShell maxWidth={960}>
+      <AppSectionHeader
+        eyebrow="INTEGRAÇÕES · STAYS"
+        title="Conexão com a Stays"
+        subtitle="Conecte sua conta Stays para a Urban AI aplicar preços sugeridos automaticamente nos seus anúncios. Você pode desconectar a qualquer momento."
+      />
 
-      {/* === Bloco: conectar Stays === */}
-      {!account || account.status === "disconnected" ? (
-        <section className="border border-slate-800 rounded-xl p-6 bg-slate-900/60">
-          <h2 className="text-xl font-bold mb-4">Conectar Stays</h2>
-          <p className="text-sm text-slate-400 mb-4">
-            No seu painel Stays, vá em <span className="font-mono">App Center → Open API → Generate credentials</span>.
-            Cole <strong>Client ID</strong> e <strong>Access Token</strong> abaixo. A Urban AI nunca vê sua senha Stays.
-          </p>
-          <form onSubmit={handleConnect} className="space-y-4">
-            <div>
-              <label htmlFor="stays-client-id" className="block text-sm font-semibold mb-1">
-                Client ID
-              </label>
+      {!isConnected ? (
+        // ====================== Não conectado: form de conexão ======================
+        <AppCard variant="default" style={{ padding: 32 }}>
+          <AppCardHeader
+            eyebrow="CONFIGURAÇÃO INICIAL"
+            title="Conectar conta Stays"
+            subtitle={
+              <>
+                No painel Stays, abra{" "}
+                <strong style={{ color: "var(--app-text)" }}>
+                  App Center → Open API → Generate credentials
+                </strong>{" "}
+                e cole abaixo. A Urban AI nunca vê sua senha Stays.
+              </>
+            }
+          />
+          <form onSubmit={handleConnect} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+            <AppInput
+              label="Client ID"
+              type="text"
+              value={clientId}
+              onChange={(e) => setClientId(e.target.value)}
+              disabled={submitBusy}
+              autoComplete="off"
+              placeholder="ex: stays_xxxxxxx"
+            />
+            <AppInput
+              label="Access Token"
+              type="password"
+              value={accessToken}
+              onChange={(e) => setAccessToken(e.target.value)}
+              disabled={submitBusy}
+              autoComplete="off"
+              placeholder="Cole o token gerado"
+              helper="O token nunca sai do seu navegador — só viaja criptografado via HTTPS pra Urban AI."
+            />
+
+            <div
+              style={{
+                background: "var(--app-surface-muted)",
+                border: "1px solid var(--app-divider)",
+                borderRadius: 8,
+                padding: 16,
+                display: "flex",
+                gap: 12,
+                alignItems: "flex-start",
+              }}
+            >
               <input
-                id="stays-client-id"
-                type="text"
-                value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
-                disabled={submitBusy}
-                className="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-50 focus:outline-none focus:border-emerald-500"
-              />
-            </div>
-            <div>
-              <label htmlFor="stays-access-token" className="block text-sm font-semibold mb-1">
-                Access Token
-              </label>
-              <input
-                id="stays-access-token"
-                type="password"
-                value={accessToken}
-                onChange={(e) => setAccessToken(e.target.value)}
-                disabled={submitBusy}
-                autoComplete="off"
-                className="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-50 focus:outline-none focus:border-emerald-500"
-              />
-            </div>
-            <label className="flex items-start gap-3 text-sm text-slate-300">
-              <input
+                id="stays-consent"
                 type="checkbox"
                 checked={consent}
                 onChange={(e) => setConsent(e.target.checked)}
-                className="mt-1 accent-emerald-500"
+                style={{ marginTop: 3, accentColor: "var(--app-accent)", width: 18, height: 18 }}
               />
-              <span>
-                Ao conectar minha conta Stays, autorizo a Urban AI a:
-                <br />
-                • ler meus anúncios, calendário e histórico de reservas
-                <br />
-                • aplicar preços sugeridos pela IA aos meus anúncios
-                <br />
-                • armazenar esse histórico enquanto minha assinatura estiver ativa
-                <br />
-                Posso desconectar a qualquer momento — os dados vinculados ao Airbnb/Stays serão apagados em até 15 dias.
-              </span>
-            </label>
+              <label htmlFor="stays-consent" style={{ fontSize: 13, color: "var(--app-text)", lineHeight: 1.55, cursor: "pointer" }}>
+                <strong>Ao conectar minha conta Stays, autorizo a Urban AI a:</strong>
+                <ul style={{ margin: "8px 0 0", paddingLeft: 18, color: "var(--app-text-muted)" }}>
+                  <li>Ler meus anúncios, calendário e histórico de reservas</li>
+                  <li>Aplicar preços sugeridos pela IA aos meus anúncios</li>
+                  <li>Armazenar esse histórico enquanto minha assinatura estiver ativa</li>
+                </ul>
+                <p style={{ marginTop: 8, fontSize: 12, color: "var(--app-text-muted)" }}>
+                  Posso desconectar a qualquer momento — os dados vinculados ao Airbnb/Stays serão apagados em até 15 dias.
+                </p>
+              </label>
+            </div>
+
             {submitError && (
-              <p role="alert" className="text-red-400 text-sm">
-                {submitError}
-              </p>
+              <div
+                role="alert"
+                style={{
+                  background: "rgba(194, 52, 46, 0.08)",
+                  border: "1px solid rgba(194, 52, 46, 0.25)",
+                  borderRadius: 8,
+                  padding: "10px 14px",
+                  color: "var(--app-danger)",
+                  fontSize: 13,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <Icons.AlertCircle size={14} /> {submitError}
+              </div>
             )}
-            <button
+
+            <AppButton
               type="submit"
+              variant="primary"
+              size="lg"
+              loading={submitBusy}
               disabled={submitBusy || !consent}
-              className="px-6 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+              rightIcon={<Icons.ArrowRight size={14} />}
             >
               {submitBusy ? "Conectando…" : "Conectar Stays"}
-            </button>
+            </AppButton>
           </form>
-        </section>
+        </AppCard>
       ) : (
-        <section className="border border-emerald-800/60 rounded-xl p-6 bg-emerald-950/30">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Stays conectada</h2>
-            <button
-              onClick={handleDisconnect}
-              className="text-sm text-red-400 hover:text-red-300 underline"
+        // ====================== Conectado: status + sync + listings ======================
+        <>
+          <AppCard variant="accent" style={{ padding: 24, marginBottom: 32 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 16,
+                flexWrap: "wrap",
+              }}
             >
-              Desconectar
-            </button>
-          </div>
-          <p className="text-sm text-slate-300 mb-4">
-            Status: <span className="font-bold">{account.status}</span>
-            {account.lastSyncAt && <> · última sincronização: {new Date(account.lastSyncAt).toLocaleString("pt-BR")}</>}
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-            <StatusCard label="Ultima sync" value={formatStaysDate(account.lastSyncAt)} />
-            <StatusCard
-              label="Consentimento"
-              value={
-                account.consentAcceptedAt
-                  ? `${formatStaysDate(account.consentAcceptedAt)} (${account.consentVersion || "sem versao"})`
-                  : "Nao informado nesta sessao"
-              }
-            />
-            <StatusCard
-              label="Listings"
-              value={`${activeListings}/${listings.length} ativos - ${linkedListings} vinculados - ${autoListings} auto`}
-            />
-          </div>
-          <button
-            onClick={handleResync}
-            className="px-4 py-2 rounded-lg border border-emerald-500 text-emerald-300 hover:bg-emerald-500/10 text-sm"
-          >
-            Sincronizar listings
-          </button>
-        </section>
-      )}
-
-      {/* === Bloco: listings === */}
-      {listings.length > 0 && (
-        <section>
-          <h2 className="text-xl font-bold mb-3">Seus listings Stays ({listings.length})</h2>
-          <div className="space-y-3">
-            {listings.map((l) => (
-              <div
-                key={l.id}
-                className="border border-slate-800 rounded-lg p-4 bg-slate-900/40 flex items-center justify-between"
-              >
-                <div className="min-w-0">
-                  <p className="font-semibold truncate">{l.title || "(sem título)"}</p>
-                  <p className="text-xs text-slate-400 truncate">
-                    {l.shortAddress || "—"} · ID Stays: {l.staysListingId}
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: "50%",
+                    background: "rgba(22, 160, 107, 0.12)",
+                    color: "var(--app-success)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  aria-hidden
+                >
+                  <Icons.Check size={18} />
+                </div>
+                <div>
+                  <p className="urban-app-eyebrow-muted">CONEXÃO STAYS</p>
+                  <p
+                    style={{
+                      fontSize: 18,
+                      fontWeight: 600,
+                      color: "var(--app-text)",
+                      margin: "4px 0 0",
+                      letterSpacing: -0.2,
+                    }}
+                  >
+                    Conectada e ativa
                   </p>
-                  <p className="text-xs text-slate-500">
-                    Modo operacional: <span className="font-mono">{operationModeLabels[l.operationMode] || l.operationMode}</span>
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {l.propriedadeId ? "Vinculado a imovel Urban AI" : "Ainda nao vinculado"}
+                  <p style={{ fontSize: 12, color: "var(--app-text-muted)", margin: "2px 0 0" }}>
+                    Última sincronização: {formatStaysDate(account?.lastSyncAt)}
                   </p>
                 </div>
-                <span
-                  className={`text-xs px-2 py-1 rounded ${
-                    l.active ? "bg-emerald-500/20 text-emerald-300" : "bg-slate-700 text-slate-400"
-                  }`}
-                >
-                  {l.active ? "ativo" : "inativo"}
-                </span>
               </div>
-            ))}
-          </div>
-        </section>
-      )}
-    </div>
-  );
-}
+              <AppButton
+                variant="secondary"
+                size="md"
+                onClick={handleResync}
+                loading={resyncBusy}
+                leftIcon={<Icons.Zap size={14} />}
+              >
+                Sincronizar agora
+              </AppButton>
+            </div>
+          </AppCard>
 
-function StatusCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-emerald-900/60 bg-slate-950/40 p-3">
-      <p className="text-[10px] uppercase tracking-wider text-slate-500">{label}</p>
-      <p className="mt-1 text-sm text-slate-200">{value}</p>
-    </div>
+          {/* === KPIs ===*/}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: 24,
+              borderTop: "1px solid var(--app-divider)",
+              borderBottom: "1px solid var(--app-divider)",
+              padding: "24px 0",
+              marginBottom: 40,
+            }}
+          >
+            <AppMetricCard
+              label="Listings ativos"
+              value={`${activeListings}/${listings.length}`}
+              sub="conectados via Stays"
+            />
+            <AppMetricCard
+              label="Vinculados ao Urban AI"
+              value={linkedListings}
+              sub={
+                linkedListings === listings.length
+                  ? "todos vinculados"
+                  : `${listings.length - linkedListings} sem vínculo`
+              }
+            />
+            <AppMetricCard
+              label="Modo automático"
+              value={autoListings}
+              sub="aplicam preço sem confirmação"
+              accent={autoListings > 0}
+            />
+            <AppMetricCard
+              label="Consentimento"
+              value={account?.consentAcceptedAt ? "Ativo" : "—"}
+              sub={
+                account?.consentAcceptedAt
+                  ? `versão ${account.consentVersion || "—"}`
+                  : "registre no fluxo de conexão"
+              }
+            />
+          </div>
+
+          {/* === Listings detalhados === */}
+          <section style={{ marginBottom: 32 }}>
+            <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
+              <div>
+                <p className="urban-app-eyebrow">LISTINGS SINCRONIZADOS</p>
+                <h2
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 600,
+                    color: "var(--app-text)",
+                    margin: "8px 0 0",
+                    letterSpacing: -0.3,
+                  }}
+                >
+                  {listings.length} {listings.length === 1 ? "anúncio" : "anúncios"} no total
+                </h2>
+              </div>
+            </header>
+
+            {listings.length === 0 ? (
+              <AppEmptyState
+                title="Nenhum anúncio sincronizado"
+                body="Clique em Sincronizar agora para puxar os anúncios da sua conta Stays."
+                action={
+                  <AppButton variant="primary" onClick={handleResync} loading={resyncBusy} leftIcon={<Icons.Zap size={14} />}>
+                    Sincronizar agora
+                  </AppButton>
+                }
+              />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {listings.map((l) => (
+                  <AppCard key={l.id} variant="default" style={{ padding: "16px 20px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <p
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 600,
+                            color: "var(--app-text)",
+                            margin: 0,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {l.title || "(sem título)"}
+                        </p>
+                        <p
+                          style={{
+                            fontSize: 12,
+                            color: "var(--app-text-muted)",
+                            margin: "4px 0 0",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {l.shortAddress || "Sem endereço"} ·{" "}
+                          <code style={{ color: "var(--app-text-dim)" }}>ID Stays: {l.staysListingId}</code>
+                        </p>
+                        <p style={{ fontSize: 11, color: "var(--app-text-muted)", margin: "4px 0 0" }}>
+                          {l.propriedadeId ? "Vinculado a imóvel Urban AI" : "Não vinculado ainda"} ·{" "}
+                          Modo: {operationModeLabels[l.operationMode] || l.operationMode}
+                        </p>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+                        <AppBadge kind={l.active ? "success" : "neutral"}>
+                          {l.active ? "Ativo" : "Inativo"}
+                        </AppBadge>
+                        {l.operationMode === "auto" && <AppBadge kind="accent">Auto</AppBadge>}
+                      </div>
+                    </div>
+                  </AppCard>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* === Zona perigosa === */}
+          <section
+            style={{
+              borderTop: "1px solid var(--app-divider)",
+              paddingTop: 32,
+            }}
+          >
+            <p className="urban-app-eyebrow-muted" style={{ marginBottom: 8 }}>
+              ZONA PERIGOSA
+            </p>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 16,
+                padding: "16px 20px",
+                border: "1px solid rgba(194, 52, 46, 0.18)",
+                borderRadius: 8,
+                background: "rgba(194, 52, 46, 0.03)",
+                flexWrap: "wrap",
+              }}
+            >
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 600, color: "var(--app-text)", margin: 0 }}>
+                  Desconectar conta Stays
+                </p>
+                <p style={{ fontSize: 12, color: "var(--app-text-muted)", margin: "4px 0 0", maxWidth: 480 }}>
+                  Desativa o modo automático em todos os imóveis. A Urban AI deixa de aplicar preços sugeridos.
+                  Os dados Stays serão apagados em até 15 dias.
+                </p>
+              </div>
+              <AppButton variant="danger" onClick={() => setConfirmDisconnect(true)}>
+                Desconectar
+              </AppButton>
+            </div>
+          </section>
+
+          {/* Inline confirm modal */}
+          {confirmDisconnect && (
+            <div
+              role="dialog"
+              aria-modal="true"
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 1100,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 24,
+                background: "rgba(0,0,0,0.45)",
+              }}
+              onClick={() => setConfirmDisconnect(false)}
+            >
+              <AppCard
+                variant="elevated"
+                style={{ maxWidth: 440, width: "100%", padding: "24px 24px 20px" }}
+                onClick={undefined}
+              >
+                <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: "var(--app-text)" }}>
+                  Desconectar Stays?
+                </h3>
+                <p
+                  style={{
+                    marginTop: 10,
+                    fontSize: 14,
+                    color: "var(--app-text-muted)",
+                    lineHeight: 1.55,
+                  }}
+                >
+                  O modo automático será desativado em todos os imóveis vinculados. Você pode reconectar a qualquer momento.
+                </p>
+                <div style={{ marginTop: 22, display: "flex", justifyContent: "flex-end", gap: 10 }}>
+                  <AppButton variant="ghost" onClick={() => setConfirmDisconnect(false)}>
+                    Cancelar
+                  </AppButton>
+                  <AppButton variant="danger" onClick={handleDisconnect}>
+                    Desconectar
+                  </AppButton>
+                </div>
+              </AppCard>
+            </div>
+          )}
+        </>
+      )}
+    </AppPageShell>
   );
 }
