@@ -1,21 +1,16 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  Alert,
-  AlertIcon,
-  Badge,
-  Box,
-  Center,
-  Heading,
-  HStack,
-  SimpleGrid,
-  Spinner,
-  Stack,
-  Text,
-} from "@chakra-ui/react";
 import { ToastContainer, toast } from "react-toastify";
 import SubscriptionCards, { Subscription } from "../componentes/Subscription";
+import {
+  AppPageShell,
+  AppSectionHeader,
+  AppMetricCard,
+  AppBadge,
+  AppCard,
+  Icons,
+} from "../componentes/ui";
 import {
   cancelSubscription,
   createBillingPortalSession,
@@ -96,67 +91,117 @@ export default function SubscriptionsPage() {
 
   if (loading) {
     return (
-      <Center h="100vh">
-        <Spinner size="xl" />
-      </Center>
+      <AppPageShell>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "60vh",
+          }}
+        >
+          <Spinner />
+        </div>
+      </AppPageShell>
     );
   }
 
   if (error) {
     return (
-      <Center h="100vh">
-        <Text color="red.500">{error}</Text>
-      </Center>
+      <AppPageShell>
+        <AppCard variant="accent">
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <Icons.AlertCircle size={18} />
+            <span style={{ color: "var(--app-danger)", fontWeight: 500 }}>{error}</span>
+          </div>
+        </AppCard>
+      </AppPageShell>
     );
   }
 
   if (!subscription) {
     return (
-      <Center h="100vh">
-        <Text>Nenhuma assinatura encontrada</Text>
-      </Center>
+      <AppPageShell>
+        <AppCard>
+          <p style={{ color: "var(--app-text-muted)", margin: 0 }}>
+            Nenhuma assinatura encontrada.
+          </p>
+        </AppCard>
+      </AppPageShell>
     );
   }
 
   const available = quota ? remainingQuota(quota) : null;
+  const isAlpha = subscription.id.startsWith("alpha-");
 
   return (
-    <Box data-testid="my-plan-page" maxW="container.lg" mx="auto" px={{ base: 4, md: 8 }} py={8}>
-      <Stack spacing={6}>
-        <Box textAlign="center">
-          <HStack justify="center" spacing={3} mb={2}>
-            <Heading fontSize={{ base: "xl", md: "2xl" }}>Meu plano</Heading>
-            {subscription.id.startsWith("alpha-") && <Badge colorScheme="purple">Alpha assistido</Badge>}
-          </HStack>
-          <Text color="gray.600">
-            Acompanhe status da assinatura, limite de imoveis e acoes de billing.
-          </Text>
-        </Box>
+    <AppPageShell>
+      <div data-testid="my-plan-page">
+        <AppSectionHeader
+          eyebrow="ASSINATURA · MEU PLANO"
+          title="Meu plano"
+          subtitle="Acompanhe status da assinatura, limite de imoveis e acoes de billing."
+          actions={isAlpha ? <AppBadge kind="accent">Alpha assistido</AppBadge> : undefined}
+        />
 
         {quotaError && (
-          <Alert status="warning" borderRadius="md">
-            <AlertIcon />
-            {quotaError}
-          </Alert>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "14px 16px",
+              background: "rgba(200, 129, 14, 0.10)",
+              border: "1px solid rgba(200, 129, 14, 0.25)",
+              borderRadius: 10,
+              color: "var(--app-warning)",
+              fontSize: 14,
+              marginBottom: 24,
+            }}
+          >
+            <Icons.AlertCircle size={18} />
+            <span>{quotaError}</span>
+          </div>
         )}
 
         {quota && (
-          <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
-            <QuotaCard
-              testId="quota-contracted-card"
-              label="Contratados"
-              value={quota.contratados}
-              helper="Limite atual do plano"
-            />
-            <QuotaCard testId="quota-active-card" label="Ativos" value={quota.ativos} helper="Imoveis cadastrados" />
-            <QuotaCard
-              testId="quota-available-card"
-              label="Disponiveis"
-              value={available ?? 0}
-              helper={quota.podeAdicionar ? "Pode cadastrar mais" : "Quota atingida"}
-              tone={quota.podeAdicionar ? "green" : "orange"}
-            />
-          </SimpleGrid>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: 16,
+              marginBottom: 32,
+            }}
+          >
+            <AppCard>
+              <div data-testid="quota-contracted-card">
+                <AppMetricCard
+                  label="Contratados"
+                  value={quota.contratados}
+                  sub="Limite atual do plano"
+                />
+              </div>
+            </AppCard>
+            <AppCard>
+              <div data-testid="quota-active-card">
+                <AppMetricCard
+                  label="Ativos"
+                  value={quota.ativos}
+                  sub="Imoveis cadastrados"
+                />
+              </div>
+            </AppCard>
+            <AppCard variant={quota.podeAdicionar ? "default" : "accent"}>
+              <div data-testid="quota-available-card">
+                <AppMetricCard
+                  label="Disponiveis"
+                  value={available ?? 0}
+                  sub={quota.podeAdicionar ? "Pode cadastrar mais" : "Quota atingida"}
+                  accent={!quota.podeAdicionar}
+                />
+              </div>
+            </AppCard>
+          </div>
         )}
 
         <SubscriptionCards
@@ -170,42 +215,25 @@ export default function SubscriptionsPage() {
             if (!cancelLoading) handleCancel();
           }}
         />
-      </Stack>
+      </div>
       <ToastContainer />
-    </Box>
+    </AppPageShell>
   );
 }
 
-function QuotaCard({
-  label,
-  value,
-  helper,
-  tone = "blue",
-  testId,
-}: {
-  label: string;
-  value: number;
-  helper: string;
-  tone?: "blue" | "green" | "orange";
-  testId?: string;
-}) {
-  const colors = {
-    blue: { bg: "blue.50", border: "blue.100", text: "blue.700" },
-    green: { bg: "green.50", border: "green.100", text: "green.700" },
-    orange: { bg: "orange.50", border: "orange.100", text: "orange.700" },
-  }[tone];
-
+function Spinner() {
   return (
-    <Box data-testid={testId} bg={colors.bg} border="1px solid" borderColor={colors.border} borderRadius="lg" p={5}>
-      <Text fontSize="xs" fontWeight="bold" color="gray.500" textTransform="uppercase">
-        {label}
-      </Text>
-      <Text fontSize="3xl" fontWeight="extrabold" color={colors.text} lineHeight={1.1} mt={1}>
-        {value}
-      </Text>
-      <Text color="gray.600" fontSize="sm" mt={2}>
-        {helper}
-      </Text>
-    </Box>
+    <div
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: "50%",
+        border: "3px solid rgba(232, 80, 10, 0.15)",
+        borderTopColor: "var(--app-accent)",
+        animation: "urban-app-spin 0.9s linear infinite",
+      }}
+    >
+      <style>{`@keyframes urban-app-spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
   );
 }

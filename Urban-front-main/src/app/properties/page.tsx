@@ -344,7 +344,14 @@ export default function MyProperties() {
               <Flex gap={2} align="center" mt={{ base: 2, md: 5 }}>
                 <Button
                   size="sm"
-                  colorScheme="blue"
+                  bg="#E8500A"
+                  color="white"
+                  borderRadius="10px"
+                  fontWeight="600"
+                  letterSpacing="0.2px"
+                  _hover={{ bg: '#D14609' }}
+                  _active={{ bg: '#C04209' }}
+                  _focus={{ boxShadow: '0 0 0 3px rgba(232, 80, 10, 0.30)' }}
                   isLoading={savingPricing === prop.id}
                   onClick={() => savePricingInputs(prop)}
                 >
@@ -353,6 +360,7 @@ export default function MyProperties() {
                 <Button
                   size="sm"
                   variant="ghost"
+                  color="gray.600"
                   isLoading={loadingHistory === prop.id}
                   onClick={() => loadPricingHistory(prop.id)}
                 >
@@ -362,7 +370,7 @@ export default function MyProperties() {
                   aria-label={t('my_properties.delete')}
                   icon={<DeleteIcon />}
                   variant="ghost"
-                  colorScheme="red"
+                  color="red.600"
                   size="sm"
                   onClick={() => handleDeleteRequest(prop.id)}
                 />
@@ -434,20 +442,27 @@ export default function MyProperties() {
         onClose={onClose}
       >
         <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Excluir Propriedade
+          <AlertDialogContent borderRadius="12px">
+            <AlertDialogHeader fontSize="lg" fontWeight="600">
+              Excluir propriedade?
             </AlertDialogHeader>
 
-            <AlertDialogBody>
-              Tem certeza que deseja excluir esta propriedade? O motor de IA não atualizará mais os preços desta unidade. Esta ação não pode ser desfeita.
+            <AlertDialogBody color="gray.600">
+              O motor de IA não atualizará mais os preços desta unidade.
+              Esta ação não pode ser desfeita.
             </AlertDialogBody>
 
             <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose}>
+              <Button ref={cancelRef} onClick={onClose} variant="ghost">
                 Cancelar
               </Button>
-              <Button colorScheme="red" onClick={confirmDelete} ml={3}>
+              <Button
+                bg="red.600"
+                color="white"
+                _hover={{ bg: 'red.700' }}
+                onClick={confirmDelete}
+                ml={3}
+              >
                 Excluir
               </Button>
             </AlertDialogFooter>

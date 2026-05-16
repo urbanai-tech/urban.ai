@@ -98,7 +98,7 @@ export default function PostLoginPage() {
       left={0}
       display="grid"
       placeItems="center"
-      bg="rgba(10,12,24,0.76)"
+      bg="rgba(8,10,15,0.9)"
       backdropFilter="saturate(140%) blur(6px)"
       zIndex={9999}
       role="status"
@@ -155,8 +155,8 @@ export default function PostLoginPage() {
             w: '12px',
             h: '12px',
             borderRadius: 'full',
-            bg: '#E46E2E',
-            boxShadow: '0 0 0 0 rgba(228,110,46,0.75)',
+            bg: '#E8500A',
+            boxShadow: '0 0 0 0 rgba(232,80,10,0.75)',
           }}
         />
       </Box>
