@@ -11,14 +11,37 @@ import {
   type WaitlistListResponse,
   type WaitlistStats,
 } from "../../service/api";
+import {
+  AdminSectionHeader,
+  AdminCard,
+  AdminCardHeader,
+  AdminButton,
+  AdminTable,
+  type AdminTableColumn,
+  AdminInput,
+  AdminSelect,
+  AdminBadge,
+  AdminMetricCard,
+  AdminEmptyState,
+  AdminPageLoading,
+  AdminConfirmDialog,
+  AdminDrawer,
+  AdminTextarea,
+  useAdminToast,
+  Icons,
+} from "../_components";
+import type { AdminBadgeKind } from "../_components";
 
 /**
  * /admin/waitlist — gestão da lista de espera (F8.2 admin).
  *
- * Mostra:
- *  - Stats (total, byStatus, bySource, top referrers)
- *  - Lista paginada com search + filtro de status
- *  - Ações: Convidar (gera magic link + email), Editar notas, Remover
+ * Migrado para design system admin (.urban-admin):
+ *  - 4 KPIs em grid plano sem cards arredondados.
+ *  - Tabela com AdminTable + row hover orange.
+ *  - prompt() nativo para edit de notas → AdminDrawer.
+ *  - confirm() nativo para invite/delete → AdminConfirmDialog.
+ *  - alert() nativo para resultado → AdminToast.
+ *  - Ações ("Convidar Notas Remover") com espaçamento + ícones.
  */
 export default function AdminWaitlistPage() {
   const [stats, setStats] = useState<WaitlistStats | null>(null);
@@ -30,6 +53,14 @@ export default function AdminWaitlistPage() {
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [lastInvite, setLastInvite] = useState<{ email: string; inviteUrl: string } | null>(null);
+
+  // Confirm/drawer state
+  const [confirmInvite, setConfirmInvite] = useState<WaitlistEntry | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<WaitlistEntry | null>(null);
+  const [notesEntry, setNotesEntry] = useState<WaitlistEntry | null>(null);
+  const [notesValue, setNotesValue] = useState("");
+
+  const toast = useAdminToast();
 
   async function load() {
     setLoading(true);
@@ -46,12 +77,13 @@ export default function AdminWaitlistPage() {
       ]);
       setData(list);
       setStats(st);
-    } catch (err: any) {
-      const status = err?.response?.status;
+    } catch (err: unknown) {
+      const e = err as { response?: { status?: number }; message?: string };
+      const status = e?.response?.status;
       setError(
         status === 401 || status === 403
           ? "Acesso negado."
-          : err?.message || "Erro ao carregar.",
+          : e?.message || "Erro ao carregar.",
       );
     } finally {
       setLoading(false);
@@ -63,48 +95,59 @@ export default function AdminWaitlistPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, statusFilter]);
 
-  async function handleInvite(entry: WaitlistEntry) {
-    const action = entry.status === "invited" ? "Reenviar" : "Enviar";
-    if (!confirm(`${action} convite para ${entry.email}?`)) return;
-    setBusyId(entry.id);
+  async function handleInvite() {
+    if (!confirmInvite) return;
+    setBusyId(confirmInvite.id);
     try {
-      const result = await inviteWaitlistEntry(entry.id);
-      setLastInvite({ email: entry.email, inviteUrl: result.inviteUrl });
-      alert(
+      const result = await inviteWaitlistEntry(confirmInvite.id);
+      setLastInvite({ email: confirmInvite.email, inviteUrl: result.inviteUrl });
+      toast.success(
         result.emailSent
-          ? entry.status === "invited" ? "Convite reenviado!" : "Convite enviado!"
+          ? confirmInvite.status === "invited"
+            ? "Convite reenviado!"
+            : "Convite enviado!"
           : "Link gerado, mas o e-mail falhou. Copie o link e envie por outro canal.",
       );
+      setConfirmInvite(null);
       load();
-    } catch (err: any) {
-      alert("Erro: " + (err?.response?.data?.message || err?.message || "falhou"));
+    } catch (err: unknown) {
+      const e = err as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+      toast.error("Erro: " + (e?.response?.data?.message || e?.message || "falhou"));
     } finally {
       setBusyId(null);
     }
   }
 
-  async function handleDelete(entry: WaitlistEntry) {
-    if (!confirm(`Remover ${entry.email} da lista? Não pode ser desfeito.`)) return;
-    setBusyId(entry.id);
+  async function handleDelete() {
+    if (!confirmDelete) return;
+    setBusyId(confirmDelete.id);
     try {
-      await deleteWaitlistEntry(entry.id);
+      await deleteWaitlistEntry(confirmDelete.id);
+      toast.success(`${confirmDelete.email} removido.`);
+      setConfirmDelete(null);
       load();
-    } catch (err: any) {
-      alert("Erro: " + (err?.message || "falhou"));
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error("Erro: " + (e?.message ?? "falhou"));
     } finally {
       setBusyId(null);
     }
   }
 
-  async function handleEditNotes(entry: WaitlistEntry) {
-    const newNotes = prompt("Notas internas:", entry.notes ?? "");
-    if (newNotes === null) return;
-    setBusyId(entry.id);
+  async function handleSaveNotes() {
+    if (!notesEntry) return;
+    setBusyId(notesEntry.id);
     try {
-      await updateWaitlistNotes(entry.id, newNotes || null);
+      await updateWaitlistNotes(notesEntry.id, notesValue || null);
+      toast.success("Notas atualizadas.");
+      setNotesEntry(null);
       load();
-    } catch (err: any) {
-      alert("Erro: " + (err?.message || "falhou"));
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error("Erro: " + (e?.message ?? "falhou"));
     } finally {
       setBusyId(null);
     }
@@ -112,280 +155,470 @@ export default function AdminWaitlistPage() {
 
   if (error) {
     return (
-      <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
-        <div className="max-w-2xl p-6 border border-red-700 rounded bg-red-950/30">{error}</div>
-      </main>
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+        <AdminEmptyState
+          eyebrow="Erro"
+          title="Falha ao carregar waitlist"
+          body={error}
+          icon={<Icons.AlertCircle size={32} />}
+        />
+      </div>
     );
   }
 
+  const columns: AdminTableColumn<WaitlistEntry>[] = [
+    {
+      key: "position",
+      header: "#",
+      width: 64,
+      render: (e) => (
+        <code style={{ color: "var(--admin-accent)", fontWeight: 600, fontFamily: "monospace" }}>
+          #{e.position}
+        </code>
+      ),
+    },
+    {
+      key: "email",
+      header: "E-mail",
+      render: (e) => (
+        <span style={{ fontWeight: 500, color: "var(--admin-text)" }}>{e.email}</span>
+      ),
+    },
+    {
+      key: "name",
+      header: "Nome",
+      render: (e) => (
+        <span style={{ color: "var(--admin-text-muted)", fontSize: 13 }}>
+          {e.name || "—"}
+        </span>
+      ),
+    },
+    {
+      key: "source",
+      header: "Origem",
+      width: 120,
+      render: (e) => (
+        <code style={{ fontSize: 11, color: "var(--admin-text-dim)" }}>
+          {e.source}
+        </code>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      width: 110,
+      align: "center",
+      render: (e) => <StatusBadge status={e.status} />,
+    },
+    {
+      key: "refs",
+      header: "Indicações",
+      width: 100,
+      align: "center",
+      render: (e) =>
+        e.referralsCount > 0 ? (
+          <span style={{ color: "var(--admin-accent)", fontWeight: 600 }}>
+            ×{e.referralsCount}
+          </span>
+        ) : (
+          <span style={{ color: "var(--admin-text-dim)" }}>—</span>
+        ),
+    },
+    {
+      key: "created",
+      header: "Criado em",
+      width: 110,
+      render: (e) => (
+        <span
+          style={{
+            fontSize: 12,
+            color: "var(--admin-text-muted)",
+            fontFamily: "monospace",
+          }}
+        >
+          {new Date(e.createdAt).toLocaleDateString("pt-BR")}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Ações",
+      width: 200,
+      align: "right",
+      render: (e) => (
+        <div
+          style={{
+            display: "inline-flex",
+            gap: 8,
+            justifyContent: "flex-end",
+            flexWrap: "wrap",
+          }}
+        >
+          {(e.status === "pending" || e.status === "invited") && (
+            <AdminButton
+              variant="primary"
+              size="sm"
+              disabled={busyId === e.id}
+              onClick={() => setConfirmInvite(e)}
+              leftIcon={<Icons.Mail size={11} />}
+            >
+              {e.status === "invited" ? "Reenviar" : "Convidar"}
+            </AdminButton>
+          )}
+          <AdminButton
+            variant="ghost"
+            size="sm"
+            disabled={busyId === e.id}
+            onClick={() => {
+              setNotesEntry(e);
+              setNotesValue(e.notes ?? "");
+            }}
+            leftIcon={<Icons.Edit size={11} />}
+          >
+            Notas
+          </AdminButton>
+          <AdminButton
+            variant="danger"
+            size="sm"
+            disabled={busyId === e.id}
+            onClick={() => setConfirmDelete(e)}
+            leftIcon={<Icons.Trash size={11} />}
+          >
+            Remover
+          </AdminButton>
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <header className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Lista de Espera</h1>
-            <p className="text-sm text-slate-400">
-              Gestão da waitlist do pré-lançamento (F8). Convites geram magic
-              link válido por 7 dias.
-            </p>
-          </div>
-          <a href="/admin" className="text-sm text-emerald-400 hover:underline">
-            ← Voltar
-          </a>
-        </header>
+    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "40px 32px" }}>
+      <AdminSectionHeader
+        eyebrow="ADMIN · LISTA DE ESPERA"
+        title="Pré-lançamento (F8)"
+        subtitle="Gestão da waitlist. Convites geram magic link válido por 7 dias."
+      />
 
-        {/* Stats */}
-        {stats && (
-          <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Stat label="Total na fila" value={stats.total.toLocaleString("pt-BR")} />
-            <Stat
+      {/* === KPIs === */}
+      {stats && (
+        <section style={{ marginBottom: 48 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: 32,
+              borderTop: "1px solid var(--admin-divider)",
+              borderBottom: "1px solid var(--admin-divider)",
+            }}
+          >
+            <AdminMetricCard label="Total na fila" value={stats.total} />
+            <AdminMetricCard
               label="Pendentes"
-              value={
-                stats.byStatus.find((s) => s.status === "pending")?.count.toLocaleString("pt-BR") ?? "0"
-              }
+              value={stats.byStatus.find((s) => s.status === "pending")?.count ?? 0}
             />
-            <Stat
+            <AdminMetricCard
               label="Convidados"
-              value={
-                stats.byStatus.find((s) => s.status === "invited")?.count.toLocaleString("pt-BR") ?? "0"
-              }
-              color="text-amber-300"
+              value={stats.byStatus.find((s) => s.status === "invited")?.count ?? 0}
+              status="warn"
             />
-            <Stat
+            <AdminMetricCard
               label="Convertidos"
-              value={
-                stats.byStatus.find((s) => s.status === "converted")?.count.toLocaleString("pt-BR") ?? "0"
-              }
-              color="text-emerald-400"
+              value={stats.byStatus.find((s) => s.status === "converted")?.count ?? 0}
+              status="success"
             />
-          </section>
-        )}
+          </div>
+        </section>
+      )}
 
-        {/* Source breakdown + top referrers */}
-        {stats && (
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="border border-slate-800 rounded-xl bg-slate-900/40 p-4">
-              <h3 className="text-xs font-bold text-slate-400 uppercase mb-3">Origens</h3>
-              {stats.bySource.length === 0 ? (
-                <p className="text-xs text-slate-500">Sem dados ainda.</p>
-              ) : (
-                <ul className="space-y-1.5 text-sm">
-                  {stats.bySource.map((s) => (
-                    <li key={s.source} className="flex justify-between">
-                      <code className="text-slate-300">{s.source}</code>
-                      <span className="font-bold text-emerald-300">{s.count}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <div className="border border-slate-800 rounded-xl bg-slate-900/40 p-4">
-              <h3 className="text-xs font-bold text-slate-400 uppercase mb-3">Top referrers</h3>
-              {stats.topReferrers.length === 0 ? (
-                <p className="text-xs text-slate-500">Ninguém indicou ainda.</p>
-              ) : (
-                <ul className="space-y-1.5 text-sm">
-                  {stats.topReferrers.map((r) => (
-                    <li key={r.referralCode} className="flex justify-between items-center">
-                      <span className="truncate text-slate-300">{r.email}</span>
-                      <span className="font-bold text-orange-300 ml-2">×{r.referralsCount}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </section>
-        )}
-
-        {lastInvite && (
-          <section className="border border-emerald-700/50 rounded-xl bg-emerald-950/20 p-4 space-y-3">
-            <div>
-              <h3 className="text-xs font-bold text-emerald-300 uppercase">Ultimo convite gerado</h3>
-              <p className="text-sm text-slate-300">
-                {lastInvite.email} recebeu um link valido por 7 dias. Use este bloco para smoke manual
-                ou reenvio por outro canal.
+      {/* === Origens + Top referrers === */}
+      {stats && (
+        <section
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+            gap: 24,
+            marginBottom: 48,
+          }}
+        >
+          <AdminCard variant="subtle">
+            <AdminCardHeader title="Origens" />
+            {stats.bySource.length === 0 ? (
+              <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
+                Sem dados ainda.
               </p>
-            </div>
-            <div className="flex flex-col md:flex-row gap-2">
-              <input
+            ) : (
+              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                {stats.bySource.map((s) => (
+                  <li
+                    key={s.source}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "10px 0",
+                      borderBottom: "1px solid var(--admin-divider)",
+                      fontSize: 13,
+                    }}
+                  >
+                    <code style={{ color: "var(--admin-text)" }}>{s.source}</code>
+                    <span style={{ color: "var(--admin-accent)", fontWeight: 600 }}>
+                      {s.count}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </AdminCard>
+
+          <AdminCard variant="subtle">
+            <AdminCardHeader title="Top referrers" />
+            {stats.topReferrers.length === 0 ? (
+              <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
+                Ninguém indicou ainda.
+              </p>
+            ) : (
+              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                {stats.topReferrers.map((r) => (
+                  <li
+                    key={r.referralCode}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "10px 0",
+                      borderBottom: "1px solid var(--admin-divider)",
+                      fontSize: 13,
+                      alignItems: "center",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: "var(--admin-text-muted)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        marginRight: 8,
+                      }}
+                    >
+                      {r.email}
+                    </span>
+                    <span style={{ color: "var(--admin-accent)", fontWeight: 600 }}>
+                      ×{r.referralsCount}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </AdminCard>
+        </section>
+      )}
+
+      {/* === Último convite gerado === */}
+      {lastInvite && (
+        <section style={{ marginBottom: 32 }}>
+          <AdminCard variant="accent">
+            <AdminCardHeader
+              eyebrow="ÚLTIMO CONVITE GERADO"
+              title={lastInvite.email}
+              actions={
+                <AdminButton
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLastInvite(null)}
+                  leftIcon={<Icons.Close size={11} />}
+                >
+                  Fechar
+                </AdminButton>
+              }
+            />
+            <p
+              style={{
+                fontSize: 13,
+                color: "var(--admin-text-muted)",
+                lineHeight: 1.55,
+                margin: "0 0 14px",
+              }}
+            >
+              Magic link válido por 7 dias. Use para smoke manual ou reenvio
+              por outro canal.
+            </p>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <AdminInput
                 readOnly
                 value={lastInvite.inviteUrl}
-                className="flex-1 px-3 py-2 rounded bg-slate-950 border border-slate-700 text-xs text-slate-200"
+                shellStyle={{ flex: 1, minWidth: 280 }}
               />
-              <button
-                type="button"
-                onClick={() => navigator.clipboard?.writeText(lastInvite.inviteUrl)}
-                className="px-4 py-2 rounded bg-emerald-500 text-slate-950 font-bold text-sm"
+              <AdminButton
+                variant="primary"
+                onClick={() => {
+                  navigator.clipboard?.writeText(lastInvite.inviteUrl);
+                  toast.success("Link copiado para a área de transferência.");
+                }}
+                leftIcon={<Icons.Check size={12} />}
               >
                 Copiar link
-              </button>
+              </AdminButton>
             </div>
-          </section>
-        )}
-
-        {/* Filtros */}
-        <section className="flex flex-col md:flex-row gap-2">
-          <input
-            type="text"
-            placeholder="Buscar por email ou nome…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && load()}
-            className="flex-1 px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
-          />
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(1);
-            }}
-            className="px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
-          >
-            <option value="">Todos status</option>
-            <option value="pending">Pendentes</option>
-            <option value="invited">Convidados</option>
-            <option value="converted">Convertidos</option>
-            <option value="declined">Declinados</option>
-          </select>
-          <button
-            onClick={() => load()}
-            className="px-4 py-2 rounded bg-emerald-500 text-slate-900 font-bold text-sm"
-          >
-            Buscar
-          </button>
+          </AdminCard>
         </section>
+      )}
 
-        {/* Tabela */}
-        <section className="border border-slate-800 rounded-xl overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-900/60 text-slate-400 text-xs uppercase">
-              <tr>
-                <th className="px-3 py-2 text-left">#</th>
-                <th className="px-3 py-2 text-left">E-mail</th>
-                <th className="px-3 py-2 text-left">Nome</th>
-                <th className="px-3 py-2 text-left">Origem</th>
-                <th className="px-3 py-2 text-center">Status</th>
-                <th className="px-3 py-2 text-center">Indicações</th>
-                <th className="px-3 py-2 text-left">Criado em</th>
-                <th className="px-3 py-2 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={8} className="px-3 py-6 text-center text-slate-500">
-                    Carregando…
-                  </td>
-                </tr>
-              ) : !data || data.items.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="px-3 py-6 text-center text-slate-500 text-xs">
-                    Lista vazia.
-                  </td>
-                </tr>
-              ) : (
-                data.items.map((e) => (
-                  <tr key={e.id} className="border-t border-slate-800 hover:bg-slate-900/30">
-                    <td className="px-3 py-2 font-mono text-emerald-300">#{e.position}</td>
-                    <td className="px-3 py-2">{e.email}</td>
-                    <td className="px-3 py-2 text-slate-400">{e.name || "—"}</td>
-                    <td className="px-3 py-2 text-xs text-slate-400">
-                      <code>{e.source}</code>
-                    </td>
-                    <td className="px-3 py-2 text-center">
-                      <StatusBadge status={e.status} />
-                    </td>
-                    <td className="px-3 py-2 text-center text-orange-300">
-                      {e.referralsCount > 0 ? `×${e.referralsCount}` : "—"}
-                    </td>
-                    <td className="px-3 py-2 text-xs text-slate-500">
-                      {new Date(e.createdAt).toLocaleDateString("pt-BR")}
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      <div className="flex gap-1 justify-end">
-                        {(e.status === "pending" || e.status === "invited") && (
-                          <button
-                            onClick={() => handleInvite(e)}
-                            disabled={busyId === e.id}
-                            className="text-xs px-2 py-1 rounded bg-emerald-500 text-slate-900 font-bold disabled:opacity-50"
-                          >
-                            {e.status === "invited" ? "Reenviar" : "Convidar"}
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleEditNotes(e)}
-                          disabled={busyId === e.id}
-                          className="text-xs px-2 py-1 rounded border border-slate-700 hover:bg-slate-800"
-                        >
-                          Notas
-                        </button>
-                        <button
-                          onClick={() => handleDelete(e)}
-                          disabled={busyId === e.id}
-                          className="text-xs px-2 py-1 rounded border border-red-700/40 text-red-300 hover:bg-red-950/30"
-                        >
-                          Remover
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </section>
+      {/* === Filtros toolbar === */}
+      <section
+        style={{
+          display: "flex",
+          gap: 12,
+          marginBottom: 20,
+          flexWrap: "wrap",
+          alignItems: "flex-end",
+        }}
+      >
+        <AdminInput
+          placeholder="Buscar por email ou nome…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && load()}
+          leftAddon={<Icons.Search size={12} />}
+          shellStyle={{ flex: 1, minWidth: 220 }}
+        />
+        <AdminSelect
+          value={statusFilter}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setPage(1);
+          }}
+          shellStyle={{ width: 200 }}
+        >
+          <option value="">Todos status</option>
+          <option value="pending">Pendentes</option>
+          <option value="invited">Convidados</option>
+          <option value="converted">Convertidos</option>
+          <option value="declined">Declinados</option>
+        </AdminSelect>
+        <AdminButton
+          variant="primary"
+          onClick={() => load()}
+          leftIcon={<Icons.Search size={12} />}
+        >
+          Buscar
+        </AdminButton>
+      </section>
 
-        {/* Paginação */}
-        {data && data.total > data.limit && (
-          <section className="flex justify-between items-center text-sm">
-            <span className="text-slate-500">
-              Página {data.page} · {data.total.toLocaleString("pt-BR")} no total
-            </span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={data.page === 1}
-                className="px-3 py-1.5 rounded border border-slate-700 disabled:opacity-30"
-              >
-                ← Anterior
-              </button>
-              <button
-                onClick={() => setPage((p) => p + 1)}
-                disabled={data.page * data.limit >= data.total}
-                className="px-3 py-1.5 rounded border border-slate-700 disabled:opacity-30"
-              >
-                Próxima →
-              </button>
-            </div>
-          </section>
-        )}
-      </div>
-    </main>
-  );
-}
+      {/* === Tabela === */}
+      {loading && !data ? (
+        <AdminPageLoading showHeader={false} showKpis={false} />
+      ) : (
+        <AdminTable
+          columns={columns}
+          rows={data?.items ?? []}
+          rowKey={(r) => r.id}
+          empty={<AdminEmptyState title="Lista vazia" body="Ninguém na waitlist ainda." />}
+        />
+      )}
 
-function Stat({ label, value, color }: { label: string; value: string; color?: string }) {
-  return (
-    <div className="border border-slate-800 rounded-xl bg-slate-900/40 p-4">
-      <p className="text-xs uppercase tracking-wider text-slate-500">{label}</p>
-      <p className={`text-2xl font-bold mt-1 ${color ?? "text-slate-50"}`}>{value}</p>
+      {/* === Paginação === */}
+      {data && data.total > data.limit && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: 16,
+            fontSize: 12,
+            color: "var(--admin-text-muted)",
+          }}
+        >
+          <span>
+            Página {data.page} · {data.total.toLocaleString("pt-BR")} no total
+          </span>
+          <div style={{ display: "flex", gap: 8 }}>
+            <AdminButton
+              variant="ghost"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={data.page === 1}
+              leftIcon={<Icons.ArrowLeft size={11} />}
+            >
+              Anterior
+            </AdminButton>
+            <AdminButton
+              variant="ghost"
+              size="sm"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={data.page * data.limit >= data.total}
+              rightIcon={<Icons.ArrowRight size={11} />}
+            >
+              Próxima
+            </AdminButton>
+          </div>
+        </div>
+      )}
+
+      {/* === Confirm invite === */}
+      <AdminConfirmDialog
+        open={!!confirmInvite}
+        onClose={() => setConfirmInvite(null)}
+        onConfirm={handleInvite}
+        title={
+          confirmInvite?.status === "invited"
+            ? "Reenviar convite"
+            : "Enviar convite"
+        }
+        body={`${confirmInvite?.status === "invited" ? "Reenviar" : "Gerar e enviar"} magic link para ${confirmInvite?.email}? Validade: 7 dias.`}
+        confirmLabel={confirmInvite?.status === "invited" ? "Reenviar" : "Enviar"}
+        loading={busyId === confirmInvite?.id}
+      />
+
+      {/* === Confirm delete === */}
+      <AdminConfirmDialog
+        open={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={handleDelete}
+        title={`Remover ${confirmDelete?.email}?`}
+        body="Esta ação é permanente. O usuário não receberá mais convite."
+        confirmLabel="Remover"
+        destructive
+        loading={busyId === confirmDelete?.id}
+      />
+
+      {/* === Drawer notas === */}
+      <AdminDrawer
+        open={!!notesEntry}
+        onClose={() => setNotesEntry(null)}
+        eyebrow="NOTAS INTERNAS"
+        title={notesEntry?.email ?? ""}
+        footer={
+          <>
+            <AdminButton variant="ghost" onClick={() => setNotesEntry(null)} disabled={busyId === notesEntry?.id}>
+              Cancelar
+            </AdminButton>
+            <AdminButton
+              variant="primary"
+              onClick={handleSaveNotes}
+              loading={busyId === notesEntry?.id}
+            >
+              Salvar
+            </AdminButton>
+          </>
+        }
+      >
+        <AdminTextarea
+          label="Notas (visível só pra equipe admin)"
+          rows={8}
+          value={notesValue}
+          onChange={(e) => setNotesValue(e.target.value)}
+          placeholder="Ex: indicado por Fabrício, pediu desconto, espera follow-up em 2 semanas…"
+        />
+      </AdminDrawer>
     </div>
   );
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    pending: "bg-slate-700 text-slate-200",
-    invited: "bg-amber-700/40 text-amber-200",
-    converted: "bg-emerald-700/40 text-emerald-200",
-    declined: "bg-red-900/40 text-red-300",
+  const map: Record<string, { kind: AdminBadgeKind; label: string }> = {
+    pending: { kind: "neutral", label: "Pendente" },
+    invited: { kind: "warn", label: "Convidado" },
+    converted: { kind: "success", label: "Convertido" },
+    declined: { kind: "error", label: "Declinado" },
   };
-  return (
-    <span
-      className={`inline-block px-2 py-0.5 rounded text-[10px] uppercase font-bold ${colors[status] ?? colors.pending}`}
-    >
-      {status}
-    </span>
-  );
+  const it = map[status] ?? map.pending;
+  return <AdminBadge kind={it.kind}>{it.label}</AdminBadge>;
 }
