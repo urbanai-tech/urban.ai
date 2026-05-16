@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   fetchAdminEvents,
   fetchAdminEventsList,
@@ -9,23 +9,40 @@ import {
   type EventListItem,
   type EventsTimelineResponse,
 } from "../../service/api";
+import {
+  AdminSectionHeader,
+  AdminCard,
+  AdminCardHeader,
+  AdminButton,
+  AdminMetricCard,
+  AdminTable,
+  type AdminTableColumn,
+  AdminInput,
+  AdminBadge,
+  AdminEmptyState,
+  AdminPageLoading,
+  AdminStatusDot,
+  Icons,
+} from "../_components";
+import type { AdminBadgeKind } from "../_components";
 
 /**
  * /admin/events — analytics do motor de eventos (F6.2).
  *
- * Mostra:
- *  - Cobertura geral (total, com coordenadas, com relevância)
- *  - Eventos próximos (7/30/90 dias) e mega-eventos
- *  - Distribuição por categoria, cidade, faixa de relevância
- *  - Top 10 eventos próximos por relevância
- *  - Última atualização do crawl
+ * Migrado para o design system admin (.urban-admin):
+ *  - Hero: cobertura % em Bebas Neue (KPI estratégico).
+ *  - 8 KPIs com hierarquia (3 médios + 4 pequenos), não todos iguais.
+ *  - Toggle scope (in/out/all) vira segmented control com underline orange.
+ *  - Relevância: número monocromático + barra horizontal (sem badge rosa/amber).
+ *  - TimelineChart com paleta branco/orange-30 (sem verde/vermelho saturado).
+ *  - Símbolos ✓ ✗ ⌛ viram ícones SVG.
+ *  - Tabelas usam AdminTable.
  */
 export default function AdminEventsPage() {
   const [data, setData] = useState<AdminEventsAnalytics | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Listing detalhada (filtros)
   const [listing, setListing] = useState<{
     items: EventListItem[];
     total: number;
@@ -33,34 +50,36 @@ export default function AdminEventsPage() {
     limit: number;
   } | null>(null);
   const [listingLoading, setListingLoading] = useState(false);
-  const [scope, setScope] = useState<'in' | 'out' | 'all'>('in');
-  const [search, setSearch] = useState('');
-  const [sourceFilter, setSourceFilter] = useState('');
+  const [scope, setScope] = useState<"in" | "out" | "all">("in");
+  const [search, setSearch] = useState("");
+  const [sourceFilter, setSourceFilter] = useState("");
   const [page, setPage] = useState(1);
 
-  // Timeline
   const [timeline, setTimeline] = useState<EventsTimelineResponse | null>(null);
   const [timelineDays, setTimelineDays] = useState(30);
 
   useEffect(() => {
     fetchAdminEvents()
       .then(setData)
-      .catch((err) => {
-        const status = err?.response?.status;
+      .catch((err: unknown) => {
+        const e = err as { response?: { status?: number }; message?: string };
+        const status = e?.response?.status;
         if (status === 401 || status === 403) {
           setError("Acesso negado. Você precisa ser admin.");
         } else {
-          setError(err?.message || "Erro ao carregar.");
+          setError(e?.message || "Erro ao carregar.");
         }
       })
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-    fetchEventsTimeline(timelineDays).then(setTimeline).catch(() => {});
+    fetchEventsTimeline(timelineDays)
+      .then(setTimeline)
+      .catch(() => {});
   }, [timelineDays]);
 
-  async function loadListing() {
+  const loadListing = useCallback(async () => {
     setListingLoading(true);
     try {
       const r = await fetchAdminEventsList({
@@ -71,417 +90,668 @@ export default function AdminEventsPage() {
         search: search.trim() || undefined,
       });
       setListing({ items: r.items, total: r.total, page: r.page, limit: r.limit });
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
     } finally {
       setListingLoading(false);
     }
-  }
+  }, [page, scope, sourceFilter, search]);
 
   useEffect(() => {
     loadListing();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope, page, sourceFilter]);
 
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
-        <p className="text-slate-400">Carregando…</p>
-      </main>
-    );
-  }
+  if (loading) return <AdminPageLoading />;
 
   if (error || !data) {
     return (
-      <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
-        <div className="max-w-2xl mx-auto p-6 border border-red-700 rounded-xl bg-red-950/30">
-          <h1 className="text-xl font-bold mb-2">Erro</h1>
-          <p>{error}</p>
-        </div>
-      </main>
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+        <AdminEmptyState
+          eyebrow="Erro"
+          title="Falha ao carregar eventos"
+          body={error ?? "Resposta vazia."}
+          icon={<Icons.AlertCircle size={32} />}
+        />
+      </div>
     );
   }
 
-  const { summary, upcoming, byCategory, byCity, byRelevance, topUpcoming, lastCrawlAt } = data;
+  const { summary, upcoming, byCategory, byCity, byRelevance, topUpcoming, lastCrawlAt } =
+    data;
+
+  // Top upcoming columns
+  const topCols: AdminTableColumn<(typeof topUpcoming)[number]>[] = [
+    { key: "nome", header: "Nome", render: (e) => <span style={{ fontWeight: 500 }}>{e.nome}</span> },
+    { key: "cidade", header: "Cidade", render: (e) => <span style={{ color: "var(--admin-text-muted)" }}>{e.cidade}</span> },
+    {
+      key: "data",
+      header: "Data",
+      render: (e) => (
+        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+          {new Date(e.dataInicio).toLocaleDateString("pt-BR")}
+        </span>
+      ),
+    },
+    {
+      key: "rel",
+      header: "Relevância",
+      width: 120,
+      align: "center",
+      render: (e) => <RelevanceCell value={e.relevancia ?? null} />,
+    },
+    {
+      key: "cat",
+      header: "Categoria",
+      render: (e) => (
+        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>{e.categoria || "—"}</span>
+      ),
+    },
+    {
+      key: "cap",
+      header: "Capacidade",
+      align: "right",
+      render: (e) => (
+        <span style={{ fontSize: 12, fontFamily: "monospace" }}>{e.capacidadeEstimada ?? "—"}</span>
+      ),
+    },
+    {
+      key: "raio",
+      header: "Raio",
+      align: "right",
+      render: (e) => (
+        <span style={{ fontSize: 12, fontFamily: "monospace" }}>
+          {e.raioImpactoKm ? `${e.raioImpactoKm} km` : "—"}
+        </span>
+      ),
+    },
+    {
+      key: "geo",
+      header: "Geo",
+      width: 60,
+      align: "center",
+      render: (e) =>
+        e.hasCoords ? (
+          <Icons.Check size={14} style={{ color: "var(--admin-success)" }} />
+        ) : (
+          <Icons.Close size={14} style={{ color: "var(--admin-danger)" }} />
+        ),
+    },
+  ];
+
+  // Listing columns (denso)
+  const listCols: AdminTableColumn<EventListItem>[] = [
+    {
+      key: "nome",
+      header: "Nome",
+      render: (e) => (
+        <span
+          style={{
+            display: "inline-block",
+            maxWidth: 320,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            fontSize: 12,
+            fontWeight: 500,
+          }}
+          title={e.nome}
+        >
+          {e.nome}
+        </span>
+      ),
+    },
+    {
+      key: "cidade",
+      header: "Cidade",
+      render: (e) => (
+        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+          {e.cidade}/{e.estado}
+        </span>
+      ),
+    },
+    {
+      key: "data",
+      header: "Data",
+      width: 90,
+      render: (e) => (
+        <span style={{ fontSize: 12, color: "var(--admin-text-muted)", fontFamily: "monospace" }}>
+          {new Date(e.dataInicio).toLocaleDateString("pt-BR")}
+        </span>
+      ),
+    },
+    {
+      key: "rel",
+      header: "Rel.",
+      width: 80,
+      align: "center",
+      render: (e) => <RelevanceCell value={e.relevancia} />,
+    },
+    {
+      key: "source",
+      header: "Source",
+      render: (e) => (
+        <code style={{ fontSize: 11, color: "var(--admin-text-dim)" }}>
+          {e.source ?? "—"}
+        </code>
+      ),
+    },
+    {
+      key: "geo",
+      header: "Geo",
+      width: 60,
+      align: "center",
+      render: (e) =>
+        e.latitude && e.longitude ? (
+          <Icons.Check size={14} style={{ color: "var(--admin-success)" }} />
+        ) : e.pendingGeocode ? (
+          <AdminStatusDot kind="warn" size={6} />
+        ) : (
+          <Icons.Close size={14} style={{ color: "var(--admin-danger)" }} />
+        ),
+    },
+    {
+      key: "scope",
+      header: "Scope",
+      width: 60,
+      align: "center",
+      render: (e) =>
+        e.outOfScope ? (
+          <Icons.Close size={14} style={{ color: "var(--admin-danger)" }} />
+        ) : (
+          <Icons.Check size={14} style={{ color: "var(--admin-success)" }} />
+        ),
+    },
+    {
+      key: "enrich",
+      header: "Enrich",
+      width: 80,
+      align: "center",
+      render: (e) =>
+        e.relevancia !== null ? (
+          <Icons.Check size={14} style={{ color: "var(--admin-success)" }} />
+        ) : e.enrichmentAttempts > 0 ? (
+          <span
+            title={e.enrichmentLastError ?? ""}
+            style={{
+              fontSize: 11,
+              color: "var(--admin-warning)",
+              fontFamily: "monospace",
+            }}
+          >
+            {e.enrichmentAttempts}× retry
+          </span>
+        ) : (
+          <AdminStatusDot kind="warn" size={6} />
+        ),
+    },
+  ];
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <header className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Motor de Eventos</h1>
-            <p className="text-sm text-slate-400">
-              Cobertura, categorias, top eventos próximos.
-              {lastCrawlAt && ` · Último crawl: ${new Date(lastCrawlAt).toLocaleString("pt-BR")}`}
-            </p>
+    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "40px 32px" }}>
+      <AdminSectionHeader
+        eyebrow="ADMIN · MOTOR DE EVENTOS"
+        title="Cobertura & motor"
+        subtitle={
+          <>
+            Cobertura, categorias, top eventos próximos.
+            {lastCrawlAt && (
+              <>
+                {" "}· Último crawl:{" "}
+                <strong style={{ color: "var(--admin-text)" }}>
+                  {new Date(lastCrawlAt).toLocaleString("pt-BR")}
+                </strong>
+              </>
+            )}
+          </>
+        }
+        actions={
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <AdminButton variant="ghost" as="a" href="/admin/coverage" rightIcon={<Icons.ArrowRight size={11} />}>
+              Cobertura
+            </AdminButton>
+            <AdminButton variant="ghost" as="a" href="/admin/collectors-health" rightIcon={<Icons.ArrowRight size={11} />}>
+              Coletores
+            </AdminButton>
+            <AdminButton
+              variant="primary"
+              as="a"
+              href="/admin/events/new"
+              leftIcon={<Icons.Plus size={12} />}
+            >
+              Cadastrar evento
+            </AdminButton>
           </div>
-          <a href="/admin" className="text-sm text-emerald-400 hover:underline">
-            ← Voltar
-          </a>
-        </header>
+        }
+      />
 
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Kpi label="Total no DB" value={summary.total} />
-          <Kpi
-            label="Dentro da cobertura"
-            value={summary.inScope}
-            sub={`${summary.outOfScope} fora`}
-            color="text-emerald-300"
+      {/* === Hero KPI: cobertura geo === */}
+      <section style={{ marginBottom: 56 }}>
+        <AdminCard variant="accent" style={{ padding: "40px 40px 36px" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr)",
+              gap: 32,
+              alignItems: "end",
+            }}
+          >
+            <div>
+              <p className="urban-admin-eyebrow">COBERTURA GEOGRÁFICA</p>
+              <p className="urban-admin-display-hero" style={{ marginTop: 12 }}>
+                {summary.coveragePercent}%
+              </p>
+              <p
+                style={{
+                  marginTop: 12,
+                  fontSize: 14,
+                  color: "var(--admin-text-muted)",
+                  lineHeight: 1.55,
+                }}
+              >
+                {summary.total.toLocaleString("pt-BR")} eventos no DB ·{" "}
+                {summary.coordsMissing.toLocaleString("pt-BR")} sem coordenadas.
+              </p>
+            </div>
+            <div style={{ borderLeft: "1px solid var(--admin-divider)", paddingLeft: 32 }}>
+              <p className="urban-admin-eyebrow-muted">Dentro da cobertura</p>
+              <p
+                className="urban-admin-display-md"
+                style={{ marginTop: 12, color: "var(--admin-success)" }}
+              >
+                {summary.inScope.toLocaleString("pt-BR")}
+              </p>
+              <p
+                style={{
+                  marginTop: 6,
+                  fontSize: 12,
+                  color: "var(--admin-text-muted)",
+                }}
+              >
+                {summary.outOfScope.toLocaleString("pt-BR")} fora
+              </p>
+            </div>
+            <div style={{ borderLeft: "1px solid var(--admin-divider)", paddingLeft: 32 }}>
+              <p className="urban-admin-eyebrow-muted">Enriquecidos (Gemini)</p>
+              <p className="urban-admin-display-md" style={{ marginTop: 12 }}>
+                {summary.enrichmentPercent}%
+              </p>
+              <p
+                style={{
+                  marginTop: 6,
+                  fontSize: 12,
+                  color: "var(--admin-text-muted)",
+                }}
+              >
+                {summary.relevanceMissing} sem relevância
+              </p>
+            </div>
+          </div>
+        </AdminCard>
+      </section>
+
+      {/* === KPIs próximos === */}
+      <section style={{ marginBottom: 64 }}>
+        <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
+          EVENTOS PRÓXIMOS
+        </p>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: 32,
+            borderTop: "1px solid var(--admin-divider)",
+            borderBottom: "1px solid var(--admin-divider)",
+          }}
+        >
+          <AdminMetricCard label="Próximos 7 dias" value={upcoming.next7d} />
+          <AdminMetricCard label="Próximos 30 dias" value={upcoming.next30d} />
+          <AdminMetricCard label="Próximos 90 dias" value={upcoming.next90d} />
+          <AdminMetricCard
+            label="Mega-eventos 30d"
+            value={upcoming.megaUpcoming}
+            sub="relevância ≥ 80"
+            accent={upcoming.megaUpcoming > 0}
           />
-          <Kpi label="Cobertura geo" value={`${summary.coveragePercent}%`} sub={`${summary.coordsMissing} sem coord`} />
-          <Kpi label="Enriquecidos (Gemini)" value={`${summary.enrichmentPercent}%`} sub={`${summary.relevanceMissing} sem relevância`} />
-          <Kpi label="Próximos 7d" value={upcoming.next7d} />
-          <Kpi label="Próximos 30d" value={upcoming.next30d} />
-          <Kpi label="Próximos 90d" value={upcoming.next90d} />
-          <Kpi label="Mega-eventos 30d" value={upcoming.megaUpcoming} sub="relevância ≥ 80" />
-        </section>
+        </div>
+      </section>
 
-        <section className="flex flex-wrap gap-2 text-xs">
-          <a
-            href="/admin/coverage"
-            className="px-3 py-1.5 rounded border border-emerald-700 text-emerald-300 hover:bg-emerald-950/30"
-          >
-            Ver/editar regiões de cobertura →
-          </a>
-          <a
-            href="/admin/collectors-health"
-            className="px-3 py-1.5 rounded border border-blue-700 text-blue-300 hover:bg-blue-950/30"
-          >
-            Saúde dos coletores →
-          </a>
-          <a
-            href="/admin/events/new"
-            className="px-3 py-1.5 rounded border border-slate-700 hover:bg-slate-800"
-          >
-            + Cadastrar evento manual
-          </a>
-        </section>
+      {/* === Breakdown 3 colunas === */}
+      <section
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+          gap: 24,
+          marginBottom: 64,
+        }}
+      >
+        <AdminCard variant="subtle">
+          <AdminCardHeader title="Por categoria" />
+          <BarList rows={byCategory.map((r) => ({ label: r.categoria, value: r.count }))} />
+        </AdminCard>
+        <AdminCard variant="subtle">
+          <AdminCardHeader title="Por cidade (top 10)" />
+          <BarList rows={byCity.map((r) => ({ label: r.cidade, value: r.count }))} />
+        </AdminCard>
+        <AdminCard variant="subtle">
+          <AdminCardHeader title="Distribuição de relevância" />
+          <BarList rows={byRelevance.map((r) => ({ label: r.bucket, value: r.count }))} />
+        </AdminCard>
+      </section>
 
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card title="Por categoria">
-            <BarList rows={byCategory.map((r) => ({ label: r.categoria, value: r.count }))} />
-          </Card>
-          <Card title="Por cidade (top 10)">
-            <BarList rows={byCity.map((r) => ({ label: r.cidade, value: r.count }))} />
-          </Card>
-          <Card title="Distribuição de relevância">
-            <BarList rows={byRelevance.map((r) => ({ label: r.bucket, value: r.count }))} />
-          </Card>
-        </section>
+      {/* === Top 10 próximos === */}
+      <section style={{ marginBottom: 64 }}>
+        <p className="urban-admin-eyebrow" style={{ marginBottom: 16 }}>
+          TOP 10 PRÓXIMOS POR RELEVÂNCIA
+        </p>
+        <AdminTable
+          columns={topCols}
+          rows={topUpcoming}
+          rowKey={(r) => r.id}
+          empty={<AdminEmptyState title="Sem eventos próximos" body="Aguardando próximo crawl." />}
+        />
+      </section>
 
-        <section>
-          <h2 className="text-xl font-bold mb-3">Top 10 próximos por relevância</h2>
-          <div className="border border-slate-800 rounded-xl overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-900/60 text-slate-400 text-xs uppercase">
-                <tr>
-                  <th className="px-3 py-2 text-left">Nome</th>
-                  <th className="px-3 py-2 text-left">Cidade</th>
-                  <th className="px-3 py-2 text-left">Data</th>
-                  <th className="px-3 py-2 text-center">Relevância</th>
-                  <th className="px-3 py-2 text-left">Categoria</th>
-                  <th className="px-3 py-2 text-center">Capacidade</th>
-                  <th className="px-3 py-2 text-center">Raio</th>
-                  <th className="px-3 py-2 text-center">Geo</th>
-                </tr>
-              </thead>
-              <tbody>
-                {topUpcoming.map((e) => (
-                  <tr key={e.id} className="border-t border-slate-800">
-                    <td className="px-3 py-2">{e.nome}</td>
-                    <td className="px-3 py-2 text-slate-300">{e.cidade}</td>
-                    <td className="px-3 py-2 text-slate-300 text-xs">
-                      {new Date(e.dataInicio).toLocaleDateString("pt-BR")}
-                    </td>
-                    <td className="px-3 py-2 text-center">
-                      <span
-                        className={`px-2 py-0.5 rounded text-xs font-bold ${
-                          (e.relevancia ?? 0) >= 80
-                            ? "bg-rose-500/20 text-rose-300"
-                            : (e.relevancia ?? 0) >= 60
-                            ? "bg-amber-500/20 text-amber-300"
-                            : "bg-slate-700 text-slate-300"
-                        }`}
-                      >
-                        {e.relevancia ?? "—"}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-slate-400 text-xs">{e.categoria || "—"}</td>
-                    <td className="px-3 py-2 text-center text-xs">{e.capacidadeEstimada ?? "—"}</td>
-                    <td className="px-3 py-2 text-center text-xs">{e.raioImpactoKm ? `${e.raioImpactoKm} km` : "—"}</td>
-                    <td className="px-3 py-2 text-center">{e.hasCoords ? "✓" : "✗"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+      {/* === Timeline === */}
+      <section style={{ marginBottom: 64 }}>
+        <header
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 16,
+            flexWrap: "wrap",
+            gap: 12,
+          }}
+        >
+          <p className="urban-admin-eyebrow" style={{ margin: 0 }}>
+            EVOLUÇÃO DE INGESTÃO
+          </p>
+          <SegmentedControl
+            value={timelineDays}
+            options={[7, 14, 30, 60, 90]}
+            onChange={setTimelineDays}
+            renderLabel={(d) => `${d}d`}
+          />
+        </header>
+        {timeline && <TimelineChart data={timeline} />}
+      </section>
 
-        {/* ============== Timeline de ingestão ============== */}
-        <section>
-          <header className="flex items-center justify-between mb-3">
-            <h2 className="text-xl font-bold">Evolução de ingestão</h2>
-            <div className="flex gap-1">
-              {[7, 14, 30, 60, 90].map((d) => (
-                <button
-                  key={d}
-                  onClick={() => setTimelineDays(d)}
-                  className={`text-xs px-2 py-1 rounded ${
-                    timelineDays === d
-                      ? "bg-emerald-500 text-slate-900 font-bold"
-                      : "border border-slate-700 hover:bg-slate-800"
-                  }`}
-                >
-                  {d}d
-                </button>
-              ))}
-            </div>
-          </header>
+      {/* === Listagem detalhada === */}
+      <section>
+        <p className="urban-admin-eyebrow" style={{ marginBottom: 16 }}>
+          LISTAGEM DETALHADA
+        </p>
 
-          {timeline && <TimelineChart data={timeline} />}
-        </section>
+        <div
+          style={{
+            display: "flex",
+            gap: 12,
+            marginBottom: 20,
+            flexWrap: "wrap",
+            alignItems: "flex-end",
+          }}
+        >
+          <SegmentedControl
+            value={scope}
+            options={["in", "out", "all"] as const}
+            onChange={(s) => {
+              setScope(s as "in" | "out" | "all");
+              setPage(1);
+            }}
+            renderLabel={(s) =>
+              s === "in" ? "Dentro" : s === "out" ? "Fora" : "Todos"
+            }
+          />
 
-        {/* ============== Listagem detalhada com filtros ============== */}
-        <section>
-          <h2 className="text-xl font-bold mb-3">Listagem detalhada</h2>
-
-          <div className="flex flex-wrap gap-2 mb-3">
-            <div className="flex rounded-lg overflow-hidden border border-slate-700">
-              {(['in', 'out', 'all'] as const).map((s) => (
-                <button
-                  key={s}
-                  onClick={() => {
-                    setScope(s);
-                    setPage(1);
-                  }}
-                  className={`px-3 py-1.5 text-xs font-bold transition-colors ${
-                    scope === s
-                      ? 'bg-emerald-500 text-slate-900'
-                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                  }`}
-                >
-                  {s === 'in' && 'Dentro da cobertura'}
-                  {s === 'out' && 'Fora (out-of-scope)'}
-                  {s === 'all' && 'Todos'}
-                </button>
-              ))}
-            </div>
-
-            <input
-              type="text"
-              placeholder="Buscar por nome ou cidade…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  setPage(1);
-                  loadListing();
-                }
-              }}
-              className="flex-1 min-w-[200px] px-3 py-1.5 rounded bg-slate-800 border border-slate-700 text-xs"
-            />
-
-            <input
-              type="text"
-              placeholder="Source (api-football, sympla...)"
-              value={sourceFilter}
-              onChange={(e) => setSourceFilter(e.target.value)}
-              onBlur={() => setPage(1)}
-              className="px-3 py-1.5 rounded bg-slate-800 border border-slate-700 text-xs w-56"
-            />
-
-            <button
-              onClick={() => {
+          <AdminInput
+            placeholder="Buscar por nome ou cidade…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
                 setPage(1);
                 loadListing();
-              }}
-              className="px-3 py-1.5 rounded bg-emerald-500 text-slate-900 font-bold text-xs"
-            >
-              Buscar
-            </button>
-          </div>
+              }
+            }}
+            leftAddon={<Icons.Search size={12} />}
+            shellStyle={{ flex: 1, minWidth: 220 }}
+          />
 
-          <div className="border border-slate-800 rounded-xl overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead className="bg-slate-900/60 text-slate-400 uppercase">
-                <tr>
-                  <th className="px-2 py-1.5 text-left">Nome</th>
-                  <th className="px-2 py-1.5 text-left">Cidade</th>
-                  <th className="px-2 py-1.5 text-left">Data</th>
-                  <th className="px-2 py-1.5 text-center">Rel.</th>
-                  <th className="px-2 py-1.5 text-left">Source</th>
-                  <th className="px-2 py-1.5 text-center">Geo</th>
-                  <th className="px-2 py-1.5 text-center">Scope</th>
-                  <th className="px-2 py-1.5 text-center">Enrich</th>
-                </tr>
-              </thead>
-              <tbody>
-                {listingLoading ? (
-                  <tr>
-                    <td colSpan={8} className="px-3 py-6 text-center text-slate-500">
-                      Carregando…
-                    </td>
-                  </tr>
-                ) : !listing || listing.items.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="px-3 py-6 text-center text-slate-500">
-                      Nenhum evento com esses filtros.
-                    </td>
-                  </tr>
-                ) : (
-                  listing.items.map((e) => (
-                    <tr key={e.id} className="border-t border-slate-800 hover:bg-slate-900/30">
-                      <td className="px-2 py-1.5 max-w-xs truncate" title={e.nome}>
-                        {e.nome}
-                      </td>
-                      <td className="px-2 py-1.5 text-slate-400">
-                        {e.cidade}/{e.estado}
-                      </td>
-                      <td className="px-2 py-1.5 text-slate-400">
-                        {new Date(e.dataInicio).toLocaleDateString('pt-BR')}
-                      </td>
-                      <td className="px-2 py-1.5 text-center">
-                        {e.relevancia !== null ? (
-                          <span
-                            className={`px-1.5 py-0.5 rounded font-bold ${
-                              e.relevancia >= 80
-                                ? 'bg-rose-500/20 text-rose-300'
-                                : e.relevancia >= 60
-                                ? 'bg-amber-500/20 text-amber-300'
-                                : 'bg-slate-700 text-slate-300'
-                            }`}
-                          >
-                            {e.relevancia}
-                          </span>
-                        ) : (
-                          <span className="text-slate-500">—</span>
-                        )}
-                      </td>
-                      <td className="px-2 py-1.5 text-slate-500 font-mono text-[10px]">
-                        {e.source ?? '—'}
-                      </td>
-                      <td className="px-2 py-1.5 text-center">
-                        {e.latitude && e.longitude ? (
-                          '✓'
-                        ) : e.pendingGeocode ? (
-                          <span className="text-amber-400" title="Aguardando geocoder">
-                            ⌛
-                          </span>
-                        ) : (
-                          <span className="text-red-400">✗</span>
-                        )}
-                      </td>
-                      <td className="px-2 py-1.5 text-center">
-                        {e.outOfScope ? (
-                          <span className="text-red-400" title="Fora da cobertura">
-                            ✗
-                          </span>
-                        ) : (
-                          <span className="text-emerald-400">✓</span>
-                        )}
-                      </td>
-                      <td
-                        className="px-2 py-1.5 text-center"
-                        title={e.enrichmentLastError ?? ''}
-                      >
-                        {e.relevancia !== null
-                          ? '✓'
-                          : e.enrichmentAttempts > 0
-                          ? `${e.enrichmentAttempts}x ⚠️`
-                          : '⌛'}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+          <AdminInput
+            placeholder="Source (api-football, sympla…)"
+            value={sourceFilter}
+            onChange={(e) => setSourceFilter(e.target.value)}
+            onBlur={() => setPage(1)}
+            shellStyle={{ width: 240 }}
+          />
 
-          {listing && listing.total > listing.limit && (
-            <div className="flex justify-between items-center mt-2 text-xs">
-              <span className="text-slate-500">
-                Página {listing.page} · {listing.total.toLocaleString('pt-BR')} no total
-              </span>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={listing.page === 1}
-                  className="px-3 py-1 rounded border border-slate-700 disabled:opacity-30"
-                >
-                  ← Anterior
-                </button>
-                <button
-                  onClick={() => setPage((p) => p + 1)}
-                  disabled={listing.page * listing.limit >= listing.total}
-                  className="px-3 py-1 rounded border border-slate-700 disabled:opacity-30"
-                >
-                  Próxima →
-                </button>
-              </div>
+          <AdminButton
+            variant="primary"
+            onClick={() => {
+              setPage(1);
+              loadListing();
+            }}
+            leftIcon={<Icons.Search size={12} />}
+          >
+            Buscar
+          </AdminButton>
+        </div>
+
+        <AdminTable
+          columns={listCols}
+          rows={listing?.items ?? []}
+          rowKey={(r) => r.id}
+          empty={
+            listingLoading ? (
+              <p style={{ color: "var(--admin-text-muted)", fontSize: 13, textAlign: "center" }}>
+                Carregando…
+              </p>
+            ) : (
+              <AdminEmptyState
+                title="Nenhum evento com esses filtros"
+                body="Ajuste o escopo, source ou busca."
+              />
+            )
+          }
+        />
+
+        {listing && listing.total > listing.limit && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginTop: 16,
+              fontSize: 12,
+              color: "var(--admin-text-muted)",
+            }}
+          >
+            <span>
+              Página {listing.page} · {listing.total.toLocaleString("pt-BR")} no total
+            </span>
+            <div style={{ display: "flex", gap: 8 }}>
+              <AdminButton
+                variant="ghost"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={listing.page === 1}
+                leftIcon={<Icons.ArrowLeft size={11} />}
+              >
+                Anterior
+              </AdminButton>
+              <AdminButton
+                variant="ghost"
+                size="sm"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={listing.page * listing.limit >= listing.total}
+                rightIcon={<Icons.ArrowRight size={11} />}
+              >
+                Próxima
+              </AdminButton>
             </div>
-          )}
-        </section>
+          </div>
+        )}
+      </section>
 
-        <section className="text-xs text-slate-500 border-t border-slate-800 pt-4">
-          <p>
-            <strong>Status do motor:</strong> spiders Scrapy (Camada legado) + APIs
-            oficiais (api-football, sp-cultura) + LLM extractors (Firecrawl/SerpAPI/Tavily,
-            Camada 2) + curadoria humana (admin-manual / admin-csv-import, Camada 3).
-            Cobertura geográfica controlada em <code>/admin/coverage</code>.
-            Saúde dos coletores em <code>/admin/collectors-health</code>.
-          </p>
-        </section>
-      </div>
-    </main>
-  );
-}
-
-function Kpi({
-  label,
-  value,
-  sub,
-  color,
-}: {
-  label: string;
-  value: number | string;
-  sub?: string;
-  color?: string;
-}) {
-  return (
-    <div className="border border-slate-800 rounded-xl bg-slate-900/40 p-3">
-      <p className="text-[10px] uppercase tracking-wider text-slate-500">{label}</p>
-      <p className={`text-xl font-bold mt-1 ${color ?? ""}`}>{value}</p>
-      {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}
+      <footer
+        style={{
+          marginTop: 64,
+          paddingTop: 24,
+          borderTop: "1px solid var(--admin-divider)",
+          fontSize: 12,
+          color: "var(--admin-text-muted)",
+          lineHeight: 1.55,
+        }}
+      >
+        <p style={{ margin: 0 }}>
+          <strong style={{ color: "var(--admin-text)" }}>Status do motor:</strong>{" "}
+          spiders Scrapy + APIs oficiais (api-football, sp-cultura) + LLM
+          extractors (Camada 2) + curadoria manual (admin-manual / admin-csv-import,
+          Camada 3). Cobertura geográfica em{" "}
+          <code style={{ color: "var(--admin-accent)" }}>/admin/coverage</code>.
+        </p>
+      </footer>
     </div>
   );
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+function RelevanceCell({ value }: { value: number | null }) {
+  if (value == null) {
+    return <span style={{ color: "var(--admin-text-dim)" }}>—</span>;
+  }
+  let kind: AdminBadgeKind = "neutral";
+  if (value >= 80) kind = "accent";
+  else if (value >= 60) kind = "warn";
+  const pct = Math.min(100, Math.max(0, value));
   return (
-    <div className="border border-slate-800 rounded-xl bg-slate-900/40 p-4">
-      <h3 className="font-semibold mb-3 text-sm">{title}</h3>
-      {children}
+    <div style={{ display: "inline-flex", flexDirection: "column", gap: 4, minWidth: 70 }}>
+      <span
+        style={{
+          fontFamily: "monospace",
+          fontWeight: 600,
+          color:
+            kind === "accent"
+              ? "var(--admin-accent)"
+              : kind === "warn"
+                ? "var(--admin-warning)"
+                : "var(--admin-text)",
+          fontSize: 13,
+        }}
+      >
+        {value}
+      </span>
+      <div style={{ height: 2, background: "var(--admin-divider)" }}>
+        <div
+          style={{
+            height: "100%",
+            width: `${pct}%`,
+            background:
+              kind === "accent"
+                ? "var(--admin-accent)"
+                : kind === "warn"
+                  ? "var(--admin-warning)"
+                  : "var(--admin-text-muted)",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function SegmentedControl<T extends string | number>({
+  value,
+  options,
+  onChange,
+  renderLabel,
+}: {
+  value: T;
+  options: readonly T[];
+  onChange: (v: T) => void;
+  renderLabel: (v: T) => string;
+}) {
+  return (
+    <div
+      style={{
+        display: "inline-flex",
+        border: "1px solid var(--admin-divider)",
+        borderRadius: 2,
+        overflow: "hidden",
+      }}
+    >
+      {options.map((opt) => {
+        const active = opt === value;
+        return (
+          <button
+            key={String(opt)}
+            type="button"
+            onClick={() => onChange(opt)}
+            style={{
+              background: "transparent",
+              border: "none",
+              borderRight: "1px solid var(--admin-divider)",
+              borderBottom: active ? "2px solid var(--admin-accent)" : "2px solid transparent",
+              color: active ? "var(--admin-text)" : "var(--admin-text-muted)",
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: 1.5,
+              textTransform: "uppercase",
+              padding: "8px 14px",
+              cursor: "pointer",
+              transition: "color 120ms, border-color 120ms",
+            }}
+          >
+            {renderLabel(opt)}
+          </button>
+        );
+      })}
     </div>
   );
 }
 
 function BarList({ rows }: { rows: Array<{ label: string; value: number }> }) {
   if (rows.length === 0) {
-    return <p className="text-xs text-slate-500">Sem dados.</p>;
+    return (
+      <p style={{ fontSize: 12, color: "var(--admin-text-muted)", margin: 0 }}>
+        Sem dados.
+      </p>
+    );
   }
   const max = Math.max(...rows.map((r) => r.value));
   return (
-    <ul className="space-y-1.5 text-xs">
+    <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 12 }}>
       {rows.map((r) => (
         <li key={r.label}>
-          <div className="flex justify-between mb-0.5">
-            <span className="text-slate-300 truncate">{r.label}</span>
-            <span className="text-emerald-300 font-bold ml-2">{r.value}</span>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: 12,
+              marginBottom: 5,
+            }}
+          >
+            <span
+              style={{
+                color: "var(--admin-text)",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                marginRight: 8,
+              }}
+            >
+              {r.label}
+            </span>
+            <span style={{ color: "var(--admin-accent)", fontWeight: 600 }}>
+              {r.value.toLocaleString("pt-BR")}
+            </span>
           </div>
-          <div className="h-1.5 rounded bg-slate-800">
+          <div style={{ height: 2, background: "var(--admin-divider)" }}>
             <div
-              className="h-full rounded bg-emerald-500"
-              style={{ width: `${(r.value / max) * 100}%` }}
+              style={{
+                height: "100%",
+                width: `${(r.value / max) * 100}%`,
+                background: "var(--admin-accent)",
+              }}
             />
           </div>
         </li>
@@ -490,93 +760,99 @@ function BarList({ rows }: { rows: Array<{ label: string; value: number }> }) {
   );
 }
 
-// ============== TimelineChart ==============
-
 function TimelineChart({ data }: { data: EventsTimelineResponse }) {
   const buckets = data.buckets;
-  const maxTotal = Math.max(
-    ...buckets.map((b) => b.inScope + b.outOfScope),
-    1,
-  );
-
-  // Mostra label de data esparso pra não poluir
+  const maxTotal = Math.max(...buckets.map((b) => b.inScope + b.outOfScope), 1);
   const labelStep = Math.max(1, Math.floor(buckets.length / 8));
 
   return (
-    <div className="border border-slate-800 rounded-xl bg-slate-900/40 p-4">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 text-xs">
-        <div>
-          <p className="text-slate-500 uppercase">Período</p>
-          <p className="text-slate-200 font-bold mt-0.5">{data.days}d</p>
-        </div>
-        <div>
-          <p className="text-slate-500 uppercase">Total in-scope</p>
-          <p className="text-emerald-300 font-bold mt-0.5">
-            {data.totalInScope.toLocaleString("pt-BR")}
-          </p>
-        </div>
-        <div>
-          <p className="text-slate-500 uppercase">Total out-of-scope</p>
-          <p className="text-red-300 font-bold mt-0.5">
-            {data.totalOutScope.toLocaleString("pt-BR")}
-          </p>
-        </div>
-        <div>
-          <p className="text-slate-500 uppercase">Pico</p>
-          <p className="text-slate-200 font-bold mt-0.5">
-            {data.peakDay.day
+    <AdminCard variant="subtle">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+          gap: 24,
+          marginBottom: 24,
+        }}
+      >
+        <AdminMetricCard label="Período" value={`${data.days}d`} variant="sm" />
+        <AdminMetricCard label="Total in-scope" value={data.totalInScope} variant="sm" />
+        <AdminMetricCard
+          label="Total out-of-scope"
+          value={data.totalOutScope}
+          variant="sm"
+          accent
+        />
+        <AdminMetricCard
+          label="Pico"
+          value={
+            data.peakDay.day
               ? `${new Date(data.peakDay.day).toLocaleDateString("pt-BR")}: ${data.peakDay.total}`
-              : "—"}
-          </p>
-        </div>
+              : "—"
+          }
+          variant="sm"
+        />
       </div>
 
-      {/* Stacked bar chart simples em SVG/CSS */}
-      <div className="flex items-end gap-px h-32 border-b border-slate-700 pb-1">
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-end",
+          gap: 2,
+          height: 140,
+          paddingBottom: 4,
+          borderBottom: "1px solid var(--admin-divider)",
+        }}
+      >
         {buckets.map((b) => {
-          const total = b.inScope + b.outOfScope;
-          const inHeight = total > 0 ? (b.inScope / maxTotal) * 100 : 0;
-          const outHeight = total > 0 ? (b.outOfScope / maxTotal) * 100 : 0;
+          const inHeight = (b.inScope / maxTotal) * 100;
+          const outHeight = (b.outOfScope / maxTotal) * 100;
           return (
             <div
               key={b.day}
-              className="flex-1 flex flex-col justify-end relative group min-w-0"
               title={`${new Date(b.day).toLocaleDateString("pt-BR")} — in: ${b.inScope}, out: ${b.outOfScope}`}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "flex-end",
+                position: "relative",
+              }}
             >
-              {/* Out-of-scope no topo */}
               {b.outOfScope > 0 && (
                 <div
-                  className="bg-red-400 hover:bg-red-300 transition-colors"
-                  style={{ height: `${outHeight}%` }}
+                  style={{
+                    height: `${outHeight}%`,
+                    background: "var(--admin-accent)",
+                    opacity: 0.35,
+                  }}
                 />
               )}
-              {/* In-scope embaixo */}
               {b.inScope > 0 && (
                 <div
-                  className="bg-emerald-400 hover:bg-emerald-300 transition-colors"
-                  style={{ height: `${inHeight}%` }}
+                  style={{
+                    height: `${inHeight}%`,
+                    background: "var(--admin-text)",
+                    opacity: 0.9,
+                  }}
                 />
               )}
-              {/* Tooltip on hover */}
-              <div className="opacity-0 group-hover:opacity-100 absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-[10px] whitespace-nowrap pointer-events-none z-10">
-                <div className="font-bold">
-                  {new Date(b.day).toLocaleDateString("pt-BR", {
-                    day: "2-digit",
-                    month: "short",
-                  })}
-                </div>
-                <div className="text-emerald-300">in: {b.inScope}</div>
-                <div className="text-red-300">out: {b.outOfScope}</div>
-              </div>
             </div>
           );
         })}
       </div>
 
-      {/* Labels do eixo X */}
-      <div className="flex gap-px mt-1 text-[9px] text-slate-500">
+      <div
+        style={{
+          display: "flex",
+          gap: 2,
+          marginTop: 6,
+          fontSize: 10,
+          color: "var(--admin-text-dim)",
+        }}
+      >
         {buckets.map((b, i) => (
-          <div key={b.day} className="flex-1 text-center min-w-0">
+          <div key={b.day} style={{ flex: 1, textAlign: "center" }}>
             {i % labelStep === 0
               ? new Date(b.day).toLocaleDateString("pt-BR", {
                   day: "2-digit",
@@ -587,16 +863,24 @@ function TimelineChart({ data }: { data: EventsTimelineResponse }) {
         ))}
       </div>
 
-      <div className="flex gap-4 mt-3 text-xs">
-        <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 bg-emerald-400 rounded-sm inline-block" />
-          <span className="text-slate-400">In-scope</span>
+      <div
+        style={{
+          display: "flex",
+          gap: 20,
+          marginTop: 16,
+          fontSize: 11,
+          color: "var(--admin-text-muted)",
+        }}
+      >
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span style={{ width: 12, height: 6, background: "var(--admin-text)", opacity: 0.9 }} />
+          In-scope
         </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 bg-red-400 rounded-sm inline-block" />
-          <span className="text-slate-400">Out-of-scope</span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span style={{ width: 12, height: 6, background: "var(--admin-accent)", opacity: 0.35 }} />
+          Out-of-scope
         </span>
       </div>
-    </div>
+    </AdminCard>
   );
 }
