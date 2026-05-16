@@ -1453,6 +1453,36 @@ export interface AdminOccupancyCoverage {
   distinctListings: number;
 }
 
+export interface AdminOccupancyProperty {
+  addressId: string;
+  listId: string;
+  title: string;
+  airbnbListingId: string | null;
+  userId: string | null;
+  userEmail: string | null;
+  neighborhood: string | null;
+  city: string | null;
+  state: string | null;
+  manualDailyPrice: number | null;
+  dailyPrice: number | null;
+  averageMonthlyRevenue: number | null;
+}
+
+export interface ManualOccupancyPayload {
+  listId: string;
+  date: string;
+  status: 'booked' | 'available' | 'blocked' | 'unknown';
+  revenueCents?: number | null;
+  listedPriceCents?: number | null;
+  currency?: string;
+}
+
+export interface ManualOccupancyRecord extends ManualOccupancyPayload {
+  id: string;
+  origin: string;
+  trainingReady: boolean;
+}
+
 export const fetchAdminEvents = () =>
   api.get<AdminEventsAnalytics>('/admin/events/analytics').then((r) => r.data);
 export const fetchAdminStays = () =>
@@ -1463,6 +1493,10 @@ export const fetchAdminPricingQuality = () =>
   api.get<AdminPricingQuality>('/admin/pricing/quality').then((r) => r.data);
 export const fetchAdminOccupancy = () =>
   api.get<AdminOccupancyCoverage>('/admin/occupancy/coverage').then((r) => r.data);
+export const fetchAdminOccupancyProperties = () =>
+  api.get<AdminOccupancyProperty[]>('/admin/occupancy/properties').then((r) => r.data);
+export const upsertAdminManualOccupancy = (payload: ManualOccupancyPayload) =>
+  api.post<ManualOccupancyRecord>('/admin/occupancy/manual', payload).then((r) => r.data);
 
 // ---- Admin v2.9 (finance + plans-config) ----
 

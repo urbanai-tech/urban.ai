@@ -29,6 +29,7 @@ function makeEventRepo(rows: any[]) {
 function makeService(
   eventRepo: any,
   overrides: {
+    addressRepo?: any;
     priceUpdateRepo?: any;
     staysAccountRepo?: any;
     staysListingRepo?: any;
@@ -37,7 +38,7 @@ function makeService(
 ) {
   return new AdminService(
     {} as any,
-    {} as any,
+    overrides.addressRepo ?? ({} as any),
     {} as any,
     eventRepo as any,
     {} as any,
@@ -55,6 +56,71 @@ function makeService(
     {} as any,
   );
 }
+
+describe('AdminService occupancyProperties', () => {
+  it('returns active listings ordered with admin-safe fields', async () => {
+    const addressRepo = {
+      find: jest.fn().mockResolvedValue([
+        {
+          id: 'address-2',
+          bairro: 'Ipanema',
+          city: 'Rio de Janeiro',
+          state: 'RJ',
+          user: { id: 'user-2', email: 'zeta@example.com' },
+          list: {
+            id: 'list-2',
+            titulo: 'Zeta Loft',
+            id_do_anuncio: '222',
+            manualDailyPrice: 250,
+            dailyPrice: 200,
+            averageMonthlyRevenue: 6000,
+          },
+        },
+        {
+          id: 'address-1',
+          bairro: 'Copacabana',
+          city: 'Rio de Janeiro',
+          state: 'RJ',
+          user: { id: 'user-1', email: 'alpha@example.com' },
+          list: {
+            id: 'list-1',
+            titulo: 'Alpha Studio',
+            id_do_anuncio: '111',
+            manualDailyPrice: 150,
+            dailyPrice: 120,
+            averageMonthlyRevenue: 4500,
+          },
+        },
+        { id: 'address-without-list', list: null },
+      ]),
+    };
+    const service = makeService(makeEventRepo([]), { addressRepo });
+
+    const result = await service.occupancyProperties();
+
+    expect(addressRepo.find).toHaveBeenCalledWith({
+      where: { ativo: true },
+      relations: ['list', 'user'],
+      take: 5000,
+    });
+    expect(result).toEqual([
+      expect.objectContaining({
+        addressId: 'address-1',
+        listId: 'list-1',
+        title: 'Alpha Studio',
+        airbnbListingId: '111',
+        userEmail: 'alpha@example.com',
+        manualDailyPrice: 150,
+        averageMonthlyRevenue: 4500,
+      }),
+      expect.objectContaining({
+        addressId: 'address-2',
+        listId: 'list-2',
+        userEmail: 'zeta@example.com',
+      }),
+    ]);
+  });
+});
 
 describe('AdminService runTrackedJob', () => {
   function makeJobRunRepo() {

@@ -858,6 +858,36 @@ export class AdminService {
     };
   }
 
+  async occupancyProperties() {
+    const addresses = await this.addressRepo.find({
+      where: { ativo: true },
+      relations: ['list', 'user'],
+      take: 5000,
+    });
+
+    return addresses
+      .filter((address) => !!address.list?.id)
+      .map((address) => ({
+        addressId: address.id,
+        listId: address.list.id,
+        title: address.list.titulo,
+        airbnbListingId: address.list.id_do_anuncio,
+        userId: address.user?.id ?? address.list.user?.id ?? null,
+        userEmail: address.user?.email ?? address.list.user?.email ?? null,
+        neighborhood: address.bairro ?? address.list.neighborhood ?? null,
+        city: address.cidade ?? null,
+        state: address.estado ?? null,
+        manualDailyPrice: address.list.manualDailyPrice ?? null,
+        dailyPrice: address.list.dailyPrice ?? null,
+        averageMonthlyRevenue: address.list.averageMonthlyRevenue ?? null,
+      }))
+      .sort((a, b) => {
+        const userCompare = String(a.userEmail ?? '').localeCompare(String(b.userEmail ?? ''));
+        if (userCompare !== 0) return userCompare;
+        return String(a.title ?? '').localeCompare(String(b.title ?? ''));
+      });
+  }
+
   async upsertManualOccupancy(input: {
     listId?: string;
     airbnbListingId?: string;
