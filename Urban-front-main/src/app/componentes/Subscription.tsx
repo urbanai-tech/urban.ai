@@ -11,6 +11,7 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
+import { ExternalLinkIcon } from "@chakra-ui/icons";
 
 export type Subscription = {
   id: string;
@@ -34,7 +35,9 @@ export type Subscription = {
 type Props = {
   subscriptions: Subscription[];
   onCancel?: (subscriptionId: string) => void;
+  onManageBilling?: (subscriptionId: string) => void;
   cancelLoading: boolean;
+  manageBillingLoading?: boolean;
 };
 
 const cycleLabels: Record<string, string> = {
@@ -109,7 +112,9 @@ function getDateLabel(sub: Subscription) {
 export default function SubscriptionCards({
   subscriptions,
   onCancel,
+  onManageBilling,
   cancelLoading,
+  manageBillingLoading = false,
 }: Props) {
   return (
     <Container maxW="container.md" py={10}>
@@ -117,6 +122,10 @@ export default function SubscriptionCards({
         {subscriptions.map((sub) => {
           const isCanceled = sub.status === "canceled";
           const canCancel = onCancel && sub.status === "active" && !sub.id.startsWith("alpha-");
+          const canManageBilling =
+            onManageBilling &&
+            ["active", "trialing", "past_due"].includes(sub.status) &&
+            !sub.id.startsWith("alpha-");
 
           return (
             <Box
@@ -185,18 +194,34 @@ export default function SubscriptionCards({
                   <Text>{getDateLabel(sub)}</Text>
                 </Stack>
 
-                {canCancel && (
-                  <Flex justify="flex-end">
-                    <Button
-                      isLoading={cancelLoading}
-                      colorScheme="red"
-                      variant="outline"
-                      size="md"
-                      onClick={() => onCancel(sub.id)}
-                      _hover={{ bg: "red.50" }}
-                    >
-                      Cancelar Plano
-                    </Button>
+                {(canManageBilling || canCancel) && (
+                  <Flex justify="flex-end" gap={3} wrap="wrap">
+                    {canManageBilling && (
+                      <Button
+                        data-testid="manage-billing-button"
+                        isLoading={manageBillingLoading}
+                        colorScheme="blue"
+                        variant="solid"
+                        size="md"
+                        rightIcon={<ExternalLinkIcon />}
+                        onClick={() => onManageBilling(sub.id)}
+                      >
+                        Gerenciar assinatura
+                      </Button>
+                    )}
+                    {canCancel && (
+                      <Button
+                        data-testid="cancel-subscription-button"
+                        isLoading={cancelLoading}
+                        colorScheme="red"
+                        variant="outline"
+                        size="md"
+                        onClick={() => onCancel(sub.id)}
+                        _hover={{ bg: "red.50" }}
+                      >
+                        Cancelar Plano
+                      </Button>
+                    )}
                   </Flex>
                 )}
               </Stack>

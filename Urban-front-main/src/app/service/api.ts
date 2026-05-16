@@ -164,6 +164,16 @@ export async function cancelSubscription(): Promise<void> {
   }
 }
 
+export async function createBillingPortalSession(): Promise<{ url: string }> {
+  try {
+    const { data } = await api.post<{ url: string }>("/payments/billing-portal-session");
+    return data;
+  } catch (error) {
+    console.error("Erro ao criar sessao do portal de billing:", error);
+    throw error;
+  }
+}
+
 export const getEventos = async (
   page = 1,
   limit = 10,
