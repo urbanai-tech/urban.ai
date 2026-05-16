@@ -1910,8 +1910,33 @@ export const importCsvEvents = (file: File, sourceLabel?: string) => {
     .then((r) => r.data);
 };
 
+export type GeocoderReadinessStatus = 'configured' | 'missing_api_key';
+
+export interface GeocoderRunSummary {
+  attempted: number;
+  succeeded: number;
+  failed: number;
+  failures: Array<{ id: string; reason: string }>;
+}
+
+export interface GeocoderLastRun extends GeocoderRunSummary {
+  startedAt: string;
+  finishedAt: string;
+  durationMs: number;
+  status: 'success' | 'partial_failure' | 'failed' | 'error';
+  errorMessage?: string;
+}
+
 export interface GeocoderStatus {
   pendingGeocode: number;
+  readiness?: {
+    configured: boolean;
+    status: GeocoderReadinessStatus;
+    message: string;
+    nextAction?: string;
+  };
+  running?: boolean;
+  lastRun?: GeocoderLastRun | null;
 }
 
 export const fetchGeocoderStatus = () =>
@@ -1919,12 +1944,7 @@ export const fetchGeocoderStatus = () =>
 
 export const runGeocoderNow = (limit = 30) =>
   api
-    .post<{
-      attempted: number;
-      succeeded: number;
-      failed: number;
-      failures: Array<{ id: string; reason: string }>;
-    }>(`/events/geocoder/run?limit=${limit}`)
+    .post<GeocoderRunSummary>(`/events/geocoder/run?limit=${limit}`)
     .then((r) => r.data);
 
 // =================== Coverage Regions (admin) ===================

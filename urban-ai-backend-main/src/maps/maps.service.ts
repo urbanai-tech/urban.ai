@@ -37,6 +37,27 @@ export class MapsService {
     private readonly propriedadeService: PropriedadeService,
   ) { }
 
+  getGeocodingReadiness() {
+    if (!this.apiKey?.trim()) {
+      return {
+        configured: false,
+        status: 'missing_api_key' as const,
+        message: 'GOOGLE_MAPS_API_KEY nao configurada no backend.',
+        nextAction:
+          'Configure GOOGLE_MAPS_API_KEY no Railway backend e rode o geocoder novamente.',
+      };
+    }
+
+    return {
+      configured: true,
+      status: 'configured' as const,
+      message:
+        'GOOGLE_MAPS_API_KEY configurada. Permissoes da Geocoding API e billing sao confirmados no proximo run.',
+      nextAction:
+        'Se aparecer REQUEST_DENIED/HTTP 403, habilite a Geocoding API no Google Cloud e revise as restricoes da chave.',
+    };
+  }
+
   /**
    * Atualiza lat/lng de um evento usando seu enderecoCompleto
    */

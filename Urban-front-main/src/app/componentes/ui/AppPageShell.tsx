@@ -34,6 +34,7 @@ export function AppPageShell({
       }}
     >
       <div
+        className="urban-app-shell-inner"
         style={{
           maxWidth,
           margin: "0 auto",
