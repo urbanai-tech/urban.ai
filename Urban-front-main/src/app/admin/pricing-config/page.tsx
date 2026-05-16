@@ -7,17 +7,37 @@ import {
   fetchStripeSyncCheck,
   type AdminPlanConfig,
   type StripeSyncReport,
+  type StripePriceCycleStatus,
 } from "../../service/api";
+import {
+  AdminSectionHeader,
+  AdminCard,
+  AdminCardHeader,
+  AdminButton,
+  AdminBadge,
+  AdminStatusDot,
+  AdminMetricCard,
+  AdminTable,
+  type AdminTableColumn,
+  AdminInput,
+  AdminSwitch,
+  AdminEmptyState,
+  AdminPageLoading,
+  Icons,
+  useAdminToast,
+} from "../_components";
+import type { AdminBadgeKind, AdminStatusKind } from "../_components";
 
 /**
  * /admin/pricing-config — gestão dos preços dos planos da Urban AI.
  *
- * Permite editar a matriz F6.5 (preços por imóvel × 4 ciclos + descontos
- * + features + limite de imóveis) sem precisar mexer em código.
- *
- * NÃO altera Stripe Price IDs — esses precisam ser criados no Dashboard
- * Stripe primeiro e atualizados nas env vars do Railway. O painel mostra
- * o ID atual (read-only) para auditoria.
+ * Migrado para o design system admin (.urban-admin):
+ *  - Gate F5 com 3 estados visuais coloridos → AdminStatusDot + texto neutro.
+ *  - StripeSyncCard: 5 stats com hierarquia (1 hero + 4 sm).
+ *  - Tabela sync com 8 status × 8 cores → AdminBadge monocromática (success/warn/error/neutral).
+ *  - details/summary mantido mas estilizado (divider + padding).
+ *  - Inputs nativos → AdminInput/AdminSwitch.
+ *  - "← Voltar" removido (AdminShell tem breadcrumb).
  */
 export default function PricingConfigPage() {
   const [plans, setPlans] = useState<AdminPlanConfig[]>([]);
@@ -30,9 +50,12 @@ export default function PricingConfigPage() {
     setLoading(true);
     try {
       setPlans(await fetchAdminPlansConfig());
-    } catch (err: any) {
-      const status = err?.response?.status;
-      setError(status === 401 || status === 403 ? "Acesso negado." : err?.message || "Erro");
+    } catch (err: unknown) {
+      const e = err as { response?: { status?: number }; message?: string };
+      const status = e?.response?.status;
+      setError(
+        status === 401 || status === 403 ? "Acesso negado." : e?.message || "Erro",
+      );
     } finally {
       setLoading(false);
     }
@@ -42,7 +65,7 @@ export default function PricingConfigPage() {
     setStripeLoading(true);
     try {
       setStripe(await fetchStripeSyncCheck());
-    } catch (err: any) {
+    } catch (err) {
       console.error("Stripe sync check falhou", err);
     } finally {
       setStripeLoading(false);
@@ -54,50 +77,102 @@ export default function PricingConfigPage() {
     loadStripeCheck();
   }, []);
 
-  if (loading) return <main className="min-h-screen bg-slate-950 text-slate-50 p-8"><p>Carregando…</p></main>;
-  if (error) return (
-    <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
-      <div className="max-w-2xl p-6 border border-red-700 rounded bg-red-950/30">{error}</div>
-    </main>
-  );
+  if (loading) return <AdminPageLoading />;
+
+  if (error) {
+    return (
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+        <AdminEmptyState
+          eyebrow="Erro"
+          title="Falha ao carregar"
+          body={error}
+          icon={<Icons.AlertCircle size={32} />}
+          action={
+            <AdminButton variant="primary" onClick={load}>
+              Tentar novamente
+            </AdminButton>
+          }
+        />
+      </div>
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
-        <header className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Configuração de Preços</h1>
-            <p className="text-sm text-slate-400">
-              Matriz F6.5 — preços por imóvel × 4 ciclos com desconto progressivo. Mudanças refletem
-              imediatamente em <code>/plans</code> e novos checkouts.
-            </p>
-          </div>
-          <a href="/admin" className="text-sm text-emerald-400 hover:underline">← Voltar</a>
-        </header>
+    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <AdminSectionHeader
+        eyebrow="ADMIN · PRICING"
+        title="Configuracao de precos"
+        subtitle={
+          <>
+            Matriz F6.5 — precos por imovel x 4 ciclos com desconto progressivo.
+            Mudancas refletem imediatamente em <code style={{ color: "var(--admin-accent)" }}>/plans</code>
+            {" "}e novos checkouts.
+          </>
+        }
+      />
 
-        <div className="rounded-xl border border-amber-700/40 bg-amber-950/20 p-4 text-xs text-amber-200">
-          <strong>Atenção:</strong> os <strong>Stripe Price IDs</strong> mostrados ao final de cada plano são read-only.
-          Para mudar valor cobrado de fato, é necessário criar nova Price no Dashboard Stripe
-          e atualizar a env var correspondente no Railway. Mudar o preço de display aqui sem
-          atualizar o Stripe vai causar mismatch entre o que o usuário vê e o que é cobrado.
-        </div>
+      {/* === Aviso Stripe Price IDs read-only === */}
+      <section
+        style={{
+          marginBottom: 32,
+          padding: "14px 18px",
+          borderLeft: "2px solid var(--admin-warning)",
+          background: "rgba(245, 181, 71, 0.06)",
+          fontSize: 13,
+          color: "var(--admin-text-muted)",
+          lineHeight: 1.55,
+        }}
+      >
+        <p
+          style={{
+            margin: 0,
+            color: "var(--admin-warning)",
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: 1.5,
+            textTransform: "uppercase",
+          }}
+        >
+          Atencao
+        </p>
+        <p style={{ margin: "6px 0 0" }}>
+          Os <strong style={{ color: "var(--admin-text)" }}>Stripe Price IDs</strong>
+          {" "}mostrados ao final de cada plano sao read-only. Para mudar valor
+          cobrado de fato, e necessario criar nova Price no Dashboard Stripe e
+          atualizar a env var correspondente no Railway. Mudar o preco de
+          display aqui sem atualizar o Stripe vai causar mismatch entre o que o
+          usuario ve e o que e cobrado.
+        </p>
+      </section>
 
-        <StripeSyncCard report={stripe} loading={stripeLoading} onRefresh={loadStripeCheck} />
+      {/* === Stripe sync check === */}
+      <section style={{ marginBottom: 56 }}>
+        <StripeSyncCard
+          report={stripe}
+          loading={stripeLoading}
+          onRefresh={loadStripeCheck}
+        />
+      </section>
 
-        <div className="space-y-4">
+      {/* === Planos === */}
+      <section>
+        <p className="urban-admin-eyebrow" style={{ marginBottom: 20 }}>
+          PLANOS
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           {plans.map((plan) => (
             <PlanCard key={plan.id} plan={plan} onSaved={load} />
           ))}
         </div>
-      </div>
-    </main>
+      </section>
+    </div>
   );
 }
 
 function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => void }) {
   const [edited, setEdited] = useState<Partial<AdminPlanConfig>>({});
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const toast = useAdminToast();
 
   function field<K extends keyof AdminPlanConfig>(key: K) {
     return (edited[key] ?? plan[key]) as AdminPlanConfig[K];
@@ -110,114 +185,199 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
   async function save() {
     if (Object.keys(edited).length === 0) return;
     setBusy(true);
-    setMsg(null);
     try {
       await updateAdminPlan(plan.name, edited);
-      setMsg("Salvo ✓");
+      toast.success("Plano salvo.");
       setEdited({});
       onSaved();
-    } catch (err: any) {
-      setMsg("Erro: " + (err?.message || "falhou"));
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error("Erro: " + (e?.message || "falhou"));
     } finally {
       setBusy(false);
-      setTimeout(() => setMsg(null), 3000);
     }
   }
 
   const dirty = Object.keys(edited).length > 0;
 
   return (
-    <div className="border border-slate-800 rounded-2xl bg-slate-900/40 p-5">
-      <header className="flex items-baseline justify-between mb-4">
+    <AdminCard variant="subtle">
+      <header
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: 16,
+          marginBottom: 20,
+          flexWrap: "wrap",
+        }}
+      >
         <div>
-          <h3 className="text-xl font-bold">{plan.title}</h3>
-          <p className="text-xs text-slate-500 font-mono">{plan.name}</p>
+          <h3
+            style={{
+              fontSize: 18,
+              fontWeight: 600,
+              color: "var(--admin-text)",
+              margin: 0,
+              letterSpacing: -0.3,
+            }}
+          >
+            {plan.title}
+          </h3>
+          <p
+            style={{
+              fontFamily: "monospace",
+              fontSize: 11,
+              color: "var(--admin-text-dim)",
+              margin: "4px 0 0",
+            }}
+          >
+            {plan.name}
+          </p>
         </div>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={field("isActive") as boolean}
-            onChange={(e) => patch("isActive", e.target.checked)}
-          />
-          Ativo
-        </label>
+        <AdminSwitch
+          checked={field("isActive") as boolean}
+          onChange={(v) => patch("isActive", v)}
+          label="Ativo"
+        />
       </header>
 
       {plan.isCustomPrice ? (
-        <p className="text-sm text-slate-400">Plano custom (sob consulta) — sem matriz de preços editável.</p>
+        <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
+          Plano custom (sob consulta) — sem matriz de precos editavel.
+        </p>
       ) : (
         <>
-          {/* Matriz F6.5 — 4 ciclos */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-            <Field
-              label="Mensal (R$/imóvel/mês)"
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: 14,
+              marginBottom: 16,
+            }}
+          >
+            <AdminInput
+              label="Mensal (R$/imovel/mes)"
               value={(field("priceMonthly") as string) ?? ""}
-              onChange={(v) => patch("priceMonthly", v)}
+              onChange={(e) => patch("priceMonthly", e.target.value as AdminPlanConfig["priceMonthly"])}
             />
-            <Field
+            <AdminInput
               label="Trimestral"
               value={(field("priceQuarterly") as string) ?? ""}
-              onChange={(v) => patch("priceQuarterly", v)}
+              onChange={(e) => patch("priceQuarterly", e.target.value as AdminPlanConfig["priceQuarterly"])}
             />
-            <Field
+            <AdminInput
               label="Semestral"
               value={(field("priceSemestral") as string) ?? ""}
-              onChange={(v) => patch("priceSemestral", v)}
+              onChange={(e) => patch("priceSemestral", e.target.value as AdminPlanConfig["priceSemestral"])}
             />
-            <Field
+            <AdminInput
               label="Anual"
               value={(field("priceAnnualNew") as string) ?? ""}
-              onChange={(v) => patch("priceAnnualNew", v)}
+              onChange={(e) => patch("priceAnnualNew", e.target.value as AdminPlanConfig["priceAnnualNew"])}
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-3 mb-4">
-            <Field
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: 14,
+              marginBottom: 16,
+            }}
+          >
+            <AdminInput
               label="% desconto trimestral"
+              type="number"
               value={String(field("discountQuarterlyPercent") ?? "")}
-              onChange={(v) => patch("discountQuarterlyPercent", Number(v) as any)}
-              type="number"
+              onChange={(e) =>
+                patch("discountQuarterlyPercent", Number(e.target.value) as AdminPlanConfig["discountQuarterlyPercent"])
+              }
             />
-            <Field
+            <AdminInput
               label="% desconto semestral"
+              type="number"
               value={String(field("discountSemestralPercent") ?? "")}
-              onChange={(v) => patch("discountSemestralPercent", Number(v) as any)}
-              type="number"
+              onChange={(e) =>
+                patch("discountSemestralPercent", Number(e.target.value) as AdminPlanConfig["discountSemestralPercent"])
+              }
             />
-            <Field
+            <AdminInput
               label="% desconto anual"
-              value={String(field("discountAnnualPercent") ?? "")}
-              onChange={(v) => patch("discountAnnualPercent", Number(v) as any)}
               type="number"
+              value={String(field("discountAnnualPercent") ?? "")}
+              onChange={(e) =>
+                patch("discountAnnualPercent", Number(e.target.value) as AdminPlanConfig["discountAnnualPercent"])
+              }
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <Field
-              label="Limite de imóveis (vazio = sem limite)"
-              value={String(field("propertyLimit") ?? "")}
-              onChange={(v) => patch("propertyLimit", v ? (Number(v) as any) : (null as any))}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: 14,
+              marginBottom: 16,
+            }}
+          >
+            <AdminInput
+              label="Limite de imoveis (vazio = sem limite)"
               type="number"
+              value={String(field("propertyLimit") ?? "")}
+              onChange={(e) =>
+                patch(
+                  "propertyLimit",
+                  (e.target.value ? Number(e.target.value) : null) as AdminPlanConfig["propertyLimit"],
+                )
+              }
             />
-            <Field
+            <AdminInput
               label="Highlight badge"
               value={(field("highlightBadge") as string) ?? ""}
-              onChange={(v) => patch("highlightBadge", v as any)}
+              onChange={(e) => patch("highlightBadge", e.target.value as AdminPlanConfig["highlightBadge"])}
+            />
+            <AdminInput
+              label="Discount badge"
+              value={(field("discountBadge") as string) ?? ""}
+              onChange={(e) => patch("discountBadge", e.target.value as AdminPlanConfig["discountBadge"])}
             />
           </div>
 
-          <Field
-            label="Discount badge"
-            value={(field("discountBadge") as string) ?? ""}
-            onChange={(v) => patch("discountBadge", v as any)}
-          />
-
           {/* Stripe Price IDs read-only */}
-          <details className="mt-4 rounded border border-slate-800 bg-slate-950/30 p-3">
-            <summary className="cursor-pointer text-xs text-slate-400">
+          <details
+            style={{
+              marginTop: 20,
+              border: "1px solid var(--admin-divider)",
+              borderRadius: 2,
+              padding: "12px 14px",
+              background: "rgba(255, 255, 255, 0.02)",
+            }}
+          >
+            <summary
+              style={{
+                cursor: "pointer",
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: 1.5,
+                textTransform: "uppercase",
+                color: "var(--admin-text-muted)",
+              }}
+            >
               Stripe Price IDs (read-only — gerenciar no Dashboard Stripe)
             </summary>
-            <div className="mt-2 grid grid-cols-2 gap-2 text-xs font-mono text-slate-500">
+            <div
+              style={{
+                marginTop: 14,
+                paddingTop: 14,
+                borderTop: "1px solid var(--admin-divider)",
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: 10,
+                fontSize: 11,
+                fontFamily: "monospace",
+                color: "var(--admin-text-dim)",
+              }}
+            >
               <div>monthly: {plan.stripePriceIdMonthly || "—"}</div>
               <div>quarterly: {plan.stripePriceIdQuarterly || "—"}</div>
               <div>semestral: {plan.stripePriceIdSemestral || "—"}</div>
@@ -227,46 +387,42 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
         </>
       )}
 
-      <footer className="flex items-center justify-between mt-4 pt-3 border-t border-slate-800">
-        {msg ? (
-          <span className={`text-xs ${msg.startsWith("Erro") ? "text-red-400" : "text-emerald-400"}`}>{msg}</span>
-        ) : (
-          <span className="text-xs text-slate-500">{dirty ? "Mudanças não salvas" : ""}</span>
-        )}
-        <button
-          onClick={save}
-          disabled={busy || !dirty}
-          className="px-4 py-2 rounded bg-emerald-500 text-slate-900 font-bold text-sm disabled:opacity-40"
-        >
-          {busy ? "Salvando…" : "Salvar mudanças"}
-        </button>
+      <footer
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          marginTop: 20,
+          paddingTop: 16,
+          borderTop: "1px solid var(--admin-divider)",
+        }}
+      >
+        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+          {dirty ? "Mudancas nao salvas" : ""}
+        </span>
+        <AdminButton variant="primary" onClick={save} disabled={!dirty} loading={busy}>
+          {busy ? "Salvando…" : "Salvar mudancas"}
+        </AdminButton>
       </footer>
-    </div>
+    </AdminCard>
   );
 }
 
-function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-}) {
-  return (
-    <label className="block">
-      <span className="block text-xs text-slate-400 mb-1">{label}</span>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-700 text-sm"
-      />
-    </label>
-  );
+function statusBadgeKind(status: StripePriceCycleStatus): AdminBadgeKind {
+  switch (status) {
+    case "ok":
+      return "success";
+    case "missing":
+    case "not-found":
+      return "error";
+    case "cycle-mismatch":
+    case "currency-mismatch":
+    case "inactive":
+      return "warn";
+    default:
+      return "neutral";
+  }
 }
 
 function StripeSyncCard({
@@ -283,113 +439,195 @@ function StripeSyncCard({
       ? "—"
       : `R$ ${(cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 
-  const statusColor: Record<string, string> = {
-    ok: "text-emerald-400 border-emerald-700/40 bg-emerald-950/20",
-    missing: "text-red-300 border-red-700/40 bg-red-950/30",
-    "not-configured": "text-slate-300 border-slate-700/40 bg-slate-900/50",
-    "not-found": "text-red-300 border-red-700/40 bg-red-950/30",
-    "cycle-mismatch": "text-amber-300 border-amber-700/40 bg-amber-950/30",
-    "currency-mismatch": "text-amber-300 border-amber-700/40 bg-amber-950/30",
-    inactive: "text-amber-300 border-amber-700/40 bg-amber-950/30",
-    "check-error": "text-slate-400 border-slate-700/40 bg-slate-900/40",
-  };
+  let gateKind: AdminStatusKind = "neutral";
+  let gateLabel = "Verificando…";
+  if (report) {
+    if (!report.summary.stripeKeyConfigured) {
+      gateKind = "error";
+      gateLabel = "STRIPE_SECRET_KEY ausente";
+    } else if (report.summary.total !== 8 || report.summary.ok !== 8) {
+      gateKind = "warn";
+      gateLabel = "Gate F5 incompleto";
+    } else {
+      gateKind = "success";
+      gateLabel = "Gate F5 pronto";
+    }
+  }
+
+  const syncColumns: AdminTableColumn<StripeSyncReport["entries"][number]>[] = [
+    {
+      key: "plan",
+      header: "Plano",
+      render: (e) => (
+        <span style={{ fontSize: 12, color: "var(--admin-text)", fontWeight: 500 }}>
+          {e.planName}
+        </span>
+      ),
+    },
+    {
+      key: "cycle",
+      header: "Ciclo",
+      width: 100,
+      render: (e) => (
+        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>{e.cycle}</span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      width: 140,
+      render: (e) => <AdminBadge kind={statusBadgeKind(e.status)}>{e.status}</AdminBadge>,
+    },
+    {
+      key: "priceId",
+      header: "Price ID",
+      render: (e) => (
+        <code style={{ fontSize: 10, color: "var(--admin-text-dim)" }}>
+          {e.priceId ?? "—"}
+        </code>
+      ),
+    },
+    {
+      key: "amount",
+      header: "Valor Stripe",
+      width: 130,
+      align: "right",
+      render: (e) => (
+        <span style={{ fontFamily: "monospace", fontSize: 12, color: "var(--admin-text)" }}>
+          {fmt(e.stripeAmountCents)}
+        </span>
+      ),
+    },
+    {
+      key: "details",
+      header: "Detalhes",
+      render: (e) => (
+        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+          {e.details ?? "—"}
+        </span>
+      ),
+    },
+  ];
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <h2 className="text-sm font-bold text-slate-200">Stripe Price IDs — sync check</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Valida que os 8 Price IDs (matriz F6.5) existem no Stripe e batem com o ciclo esperado.
-          </p>
-        </div>
-        <button
-          onClick={onRefresh}
-          disabled={loading}
-          className="text-xs px-3 py-1.5 rounded border border-slate-700 hover:bg-slate-800 disabled:opacity-50"
-        >
-          {loading ? "Verificando…" : "Re-verificar"}
-        </button>
-      </div>
+    <AdminCard variant="subtle">
+      <AdminCardHeader
+        eyebrow="STRIPE PRICE IDs"
+        title="Sync check"
+        actions={
+          <AdminButton
+            variant="secondary"
+            size="sm"
+            onClick={onRefresh}
+            disabled={loading}
+            leftIcon={<Icons.RefreshCw size={11} />}
+          >
+            {loading ? "Verificando…" : "Re-verificar"}
+          </AdminButton>
+        }
+      />
+
+      <p
+        style={{
+          fontSize: 13,
+          color: "var(--admin-text-muted)",
+          margin: "0 0 16px",
+          lineHeight: 1.55,
+        }}
+      >
+        Valida que os 8 Price IDs (matriz F6.5) existem no Stripe e batem com o
+        ciclo esperado.
+      </p>
 
       {!report ? (
-        <p className="text-xs text-slate-500">Carregando relatório…</p>
+        <p style={{ fontSize: 13, color: "var(--admin-text-muted)" }}>Carregando relatorio…</p>
       ) : (
         <>
-          {!report.summary.stripeKeyConfigured && (
-            <div className="mb-3 p-3 rounded border border-red-700/40 bg-red-950/30 text-xs text-red-300">
-              <strong>STRIPE_SECRET_KEY ausente.</strong> Sem isso, não é possível validar Price IDs remotamente.
-              Configure no Railway antes de continuar.
+          {/* Gate indicator (substitui 3 cards coloridos) */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "12px 16px",
+              border: "1px solid var(--admin-divider)",
+              borderRadius: 2,
+              marginBottom: 24,
+              background: "rgba(255, 255, 255, 0.02)",
+            }}
+          >
+            <AdminStatusDot kind={gateKind} size={10} />
+            <div style={{ flex: 1 }}>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "var(--admin-text)",
+                }}
+              >
+                {gateLabel}
+              </p>
+              <p
+                style={{
+                  margin: "4px 0 0",
+                  fontSize: 12,
+                  color: "var(--admin-text-muted)",
+                  lineHeight: 1.55,
+                }}
+              >
+                {!report.summary.stripeKeyConfigured
+                  ? "Sem isso, nao e possivel validar Price IDs remotamente. Configure no Railway antes de continuar."
+                  : report.summary.total !== 8 || report.summary.ok !== 8
+                    ? "O sync check precisa fechar 8/8 Price IDs OK antes de liberar smoke de checkout pago."
+                    : "Os 8 Price IDs esperados estao OK no sync check."}
+              </p>
             </div>
-          )}
-
-          {report.summary.total !== 8 || report.summary.ok !== 8 ? (
-            <div className="mb-3 p-3 rounded border border-amber-700/40 bg-amber-950/30 text-xs text-amber-200">
-              <strong>Gate F5 ainda incompleto.</strong> O sync check precisa fechar 8/8 Price IDs OK
-              antes de liberar smoke de checkout pago. Resolva faltantes, nao configurados ou divergentes
-              no banco/env e no Dashboard Stripe.
-            </div>
-          ) : (
-            <div className="mb-3 p-3 rounded border border-emerald-700/40 bg-emerald-950/20 text-xs text-emerald-300">
-              <strong>Gate F5 pronto para smoke.</strong> Os 8 Price IDs esperados estao OK no sync check.
-            </div>
-          )}
-
-          <div className="flex flex-wrap gap-3 text-xs mb-4">
-            <Stat label="Total" value={report.summary.total} />
-            <Stat label="OK" value={report.summary.ok} color="text-emerald-400" />
-            <Stat label="Faltando" value={report.summary.missing} color="text-red-300" />
-            <Stat label="Sem chave" value={report.summary.notConfigured} color="text-slate-300" />
-            <Stat label="Problemas" value={report.summary.problems} color="text-amber-300" />
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead className="text-slate-400 uppercase">
-                <tr>
-                  <th className="px-2 py-1.5 text-left">Plano</th>
-                  <th className="px-2 py-1.5 text-left">Ciclo</th>
-                  <th className="px-2 py-1.5 text-left">Status</th>
-                  <th className="px-2 py-1.5 text-left">Price ID</th>
-                  <th className="px-2 py-1.5 text-right">Valor Stripe</th>
-                  <th className="px-2 py-1.5 text-left">Detalhes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {report.entries.map((e, i) => (
-                  <tr key={`${e.planName}-${e.cycle}-${i}`} className="border-t border-slate-800">
-                    <td className="px-2 py-1.5">{e.planName}</td>
-                    <td className="px-2 py-1.5">{e.cycle}</td>
-                    <td className="px-2 py-1.5">
-                      <span
-                        className={`px-1.5 py-0.5 rounded border text-[10px] uppercase font-bold ${
-                          statusColor[e.status] ?? statusColor["check-error"]
-                        }`}
-                      >
-                        {e.status}
-                      </span>
-                    </td>
-                    <td className="px-2 py-1.5 font-mono text-slate-400 text-[10px]">
-                      {e.priceId ?? "—"}
-                    </td>
-                    <td className="px-2 py-1.5 text-right">{fmt(e.stripeAmountCents)}</td>
-                    <td className="px-2 py-1.5 text-slate-400">{e.details ?? "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Stats em hierarquia: 1 hero "OK" + 4 sm */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 1.6fr) repeat(4, minmax(0, 1fr))",
+              gap: 24,
+              borderTop: "1px solid var(--admin-divider)",
+              borderBottom: "1px solid var(--admin-divider)",
+              marginBottom: 24,
+              alignItems: "end",
+            }}
+          >
+            <AdminMetricCard
+              label="OK / total"
+              value={`${report.summary.ok} / ${report.summary.total}`}
+              variant="md"
+              accent={report.summary.ok === report.summary.total}
+              sub="Price IDs validados"
+            />
+            <AdminMetricCard label="Faltando" value={report.summary.missing} variant="sm" />
+            <AdminMetricCard
+              label="Sem chave"
+              value={report.summary.notConfigured}
+              variant="sm"
+            />
+            <AdminMetricCard label="Problemas" value={report.summary.problems} variant="sm" />
+            <AdminMetricCard
+              label="Stripe key"
+              value={report.summary.stripeKeyConfigured ? "ok" : "ausente"}
+              variant="sm"
+            />
           </div>
+
+          <AdminTable
+            columns={syncColumns}
+            rows={report.entries}
+            rowKey={(_, i) => `${i}`}
+            empty={
+              <AdminEmptyState title="Sem entradas" body="Nenhuma matriz definida." />
+            }
+          />
         </>
       )}
-    </div>
-  );
-}
-
-function Stat({ label, value, color }: { label: string; value: number; color?: string }) {
-  return (
-    <div className="rounded border border-slate-700 px-3 py-1.5 bg-slate-900/40">
-      <span className="block text-[10px] uppercase text-slate-500">{label}</span>
-      <span className={`text-sm font-bold ${color ?? "text-slate-200"}`}>{value}</span>
-    </div>
+    </AdminCard>
   );
 }

@@ -6,6 +6,20 @@ import {
   type CollectorsHealthResponse,
   type CollectorSourceStats,
 } from "../../service/api";
+import {
+  AdminSectionHeader,
+  AdminButton,
+  AdminMetricCard,
+  AdminTable,
+  type AdminTableColumn,
+  AdminBadge,
+  AdminStatusDot,
+  AdminDrawer,
+  AdminEmptyState,
+  AdminPageLoading,
+  Icons,
+} from "../_components";
+import type { AdminBadgeKind } from "../_components";
 
 type CollectorHealthStatus =
   | "has_events"
@@ -31,35 +45,31 @@ type CollectorHealthRow = CollectorSourceStats & {
 /**
  * /admin/collectors-health — saúde dos coletores agrupada por source.
  *
- * Mostra pra cada source ('scraper-sympla', 'api-football', 'firecrawl',
- * 'admin-csv-import', etc.):
- *   - Total no DB
- *   - Volume últimos 7d / 24h
- *   - % out-of-scope
- *   - Pendentes (geocode + enrichment)
- *   - Taxa de erro de enrichment
- *   - Última coleta
- *
- * Útil pra debugar:
- *   - Coletor parou de trazer eventos (last24h=0)?
- *   - Coletor tá trazendo lixo (outOfScope% alto)?
- *   - Gemini tá quebrando muito (errorRate alto)?
- *   - Source escapou (aparece "(sem source)")?
+ * Migrado para o design system admin (.urban-admin):
+ *  - 5 KPIs agregados em grid.
+ *  - Tabela reduzida a 6 colunas principais; row clicável → AdminDrawer com
+ *    detalhes técnicos (variáveis, sinais, missing_env, aliases).
+ *  - HealthBadge / CriticalityBadge → AdminBadge.
+ *  - Métricas threshold-colored substituídas por número monocromático +
+ *    AdminStatusDot warn quando acima do limite.
+ *  - Footer "Como ler" colapsado em <details>.
  */
 export default function CollectorsHealthPage() {
   const [data, setData] = useState<CollectorsHealthResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<CollectorHealthRow | null>(null);
 
   async function load() {
     setLoading(true);
     setError(null);
     try {
       setData(await fetchCollectorsHealth());
-    } catch (err: any) {
-      const status = err?.response?.status;
+    } catch (err: unknown) {
+      const e = err as { response?: { status?: number }; message?: string };
+      const status = e?.response?.status;
       setError(
-        status === 401 || status === 403 ? "Acesso negado." : err?.message || "Erro",
+        status === 401 || status === 403 ? "Acesso negado." : e?.message || "Erro",
       );
     } finally {
       setLoading(false);
@@ -70,18 +80,28 @@ export default function CollectorsHealthPage() {
     load();
   }, []);
 
+  if (loading) return <AdminPageLoading />;
+
   if (error) {
     return (
-      <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
-        <div className="max-w-2xl p-6 border border-red-700 rounded bg-red-950/30">
-          {error}
-        </div>
-      </main>
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+        <AdminEmptyState
+          eyebrow="Erro"
+          title="Falha ao carregar"
+          body={error}
+          icon={<Icons.AlertCircle size={32} />}
+          action={
+            <AdminButton variant="primary" onClick={load}>
+              Tentar novamente
+            </AdminButton>
+          }
+        />
+      </div>
     );
   }
 
   const sources = (data?.sources ?? []) as CollectorHealthRow[];
-  const totalsByCategory = sources.reduce(
+  const totals = sources.reduce(
     (acc, s) => {
       acc.total += s.total;
       acc.last24h += s.last24h;
@@ -93,294 +113,527 @@ export default function CollectorsHealthPage() {
     { total: 0, last24h: 0, outOfScope: 0, withErrors: 0, pendingEnrichment: 0 },
   );
 
-  return (
-    <main className="min-h-screen bg-slate-950 text-slate-50 p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <header className="flex items-center justify-between">
+  const columns: AdminTableColumn<CollectorHealthRow>[] = [
+    {
+      key: "source",
+      header: "Source",
+      render: (s) => {
+        const stale = isStale(s);
+        return (
           <div>
-            <h1 className="text-2xl font-bold">Saúde dos coletores</h1>
-            <p className="text-sm text-slate-400">
-              Volume + qualidade por source. Os 7 spiders Scrapy + 4 coletores
-              REST + curadoria manual + import CSV — tudo agrupado aqui.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={load}
-              disabled={loading}
-              className="text-xs px-3 py-1.5 rounded border border-slate-700 hover:bg-slate-800 disabled:opacity-50"
+            <p
+              style={{
+                fontFamily: "monospace",
+                fontWeight: 600,
+                color: "var(--admin-text)",
+                margin: 0,
+              }}
             >
-              {loading ? "Atualizando…" : "Atualizar"}
-            </button>
-            <a href="/admin/events" className="text-sm text-emerald-400 hover:underline self-center">
-              ← Eventos
-            </a>
+              {s.source}
+            </p>
+            {stale && (
+              <p
+                style={{
+                  marginTop: 4,
+                  fontSize: 10,
+                  letterSpacing: 1.5,
+                  textTransform: "uppercase",
+                  color: "var(--admin-warning)",
+                }}
+              >
+                Stale &gt; 48h
+              </p>
+            )}
           </div>
+        );
+      },
+    },
+    {
+      key: "status",
+      header: "Status",
+      width: 180,
+      render: (s) => (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          <AdminBadge kind={statusKind(s.status ?? "has_events", s.critical)}>
+            {formatStatus(s.status ?? "has_events")}
+          </AdminBadge>
+          {s.critical === true && <AdminBadge kind="error">Crítico</AdminBadge>}
+          {s.critical === false && <AdminBadge kind="neutral">Opcional</AdminBadge>}
+        </div>
+      ),
+    },
+    {
+      key: "last24h",
+      header: "Últimas 24h",
+      width: 110,
+      align: "right",
+      render: (s) => (
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            justifyContent: "flex-end",
+            fontFamily: "monospace",
+            color: "var(--admin-text)",
+          }}
+        >
+          {s.last24h === 0 && <AdminStatusDot kind="error" size={7} />}
+          <span>{s.last24h.toLocaleString("pt-BR")}</span>
+        </div>
+      ),
+    },
+    {
+      key: "outOfScopePercent",
+      header: "Out-of-scope %",
+      width: 140,
+      align: "right",
+      render: (s) => {
+        const high = s.outOfScopePercent > 30;
+        const mid = !high && s.outOfScopePercent > 10;
+        return (
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              justifyContent: "flex-end",
+              fontFamily: "monospace",
+              color: "var(--admin-text)",
+            }}
+          >
+            {high && <AdminStatusDot kind="error" size={7} />}
+            {mid && <AdminStatusDot kind="warn" size={7} />}
+            <span>{s.outOfScopePercent}%</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: "errorRate",
+      header: "Erro %",
+      width: 100,
+      align: "right",
+      render: (s) => {
+        const high = s.errorRate > 20;
+        const mid = !high && s.errorRate > 5;
+        return (
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              justifyContent: "flex-end",
+              fontFamily: "monospace",
+              color: "var(--admin-text)",
+            }}
+          >
+            {high && <AdminStatusDot kind="error" size={7} />}
+            {mid && <AdminStatusDot kind="warn" size={7} />}
+            <span>{s.errorRate}%</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: "lastSeen",
+      header: "Último crawl",
+      width: 150,
+      render: (s) => (
+        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+          {s.lastSeen
+            ? new Date(s.lastSeen).toLocaleString("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "—"}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "",
+      width: 36,
+      align: "right",
+      render: () => (
+        <Icons.ChevronRight size={14} style={{ color: "var(--admin-text-dim)" }} />
+      ),
+    },
+  ];
+
+  return (
+    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <AdminSectionHeader
+        eyebrow="ADMIN · COLETORES"
+        title="Saúde dos coletores"
+        subtitle="Volume + qualidade por source. Os spiders Scrapy + coletores REST + curadoria manual + import CSV — tudo agrupado aqui. Clique numa linha para ver detalhes técnicos."
+        actions={
+          <AdminButton
+            variant="secondary"
+            onClick={load}
+            disabled={loading}
+            leftIcon={<Icons.RefreshCw size={12} />}
+          >
+            {loading ? "Atualizando…" : "Atualizar"}
+          </AdminButton>
+        }
+      />
+
+      {/* === KPIs agregados === */}
+      <section style={{ marginBottom: 56 }}>
+        <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
+          TOTAIS AGREGADOS
+        </p>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: 32,
+            borderTop: "1px solid var(--admin-divider)",
+            borderBottom: "1px solid var(--admin-divider)",
+          }}
+        >
+          <AdminMetricCard label="Total no DB" value={totals.total} />
+          <AdminMetricCard
+            label="Últimas 24h"
+            value={totals.last24h}
+            status={totals.last24h === 0 ? "error" : undefined}
+          />
+          <AdminMetricCard
+            label="Out-of-scope"
+            value={totals.outOfScope}
+            status={totals.outOfScope > 0 ? "error" : undefined}
+          />
+          <AdminMetricCard
+            label="Pendentes Gemini"
+            value={totals.pendingEnrichment}
+            status={totals.pendingEnrichment > 0 ? "warn" : undefined}
+          />
+          <AdminMetricCard
+            label="Erros enrichment"
+            value={totals.withErrors}
+            status={totals.withErrors > 0 ? "error" : undefined}
+          />
+        </div>
+      </section>
+
+      {/* === Tabela por source === */}
+      <section style={{ marginBottom: 32 }}>
+        <header
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            gap: 16,
+            flexWrap: "wrap",
+            marginBottom: 20,
+          }}
+        >
+          <div>
+            <p className="urban-admin-eyebrow">POR SOURCE</p>
+            <h2
+              style={{
+                fontSize: 20,
+                fontWeight: 600,
+                color: "var(--admin-text)",
+                margin: "8px 0 0",
+                letterSpacing: -0.3,
+              }}
+            >
+              {sources.length} coletores ativos
+            </h2>
+          </div>
+          <p style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+            Linha clicável → drawer com variáveis, sinais, aliases
+          </p>
         </header>
 
-        {/* Totais agregados */}
-        <section className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          <Stat label="Total no DB" value={totalsByCategory.total} />
-          <Stat label="Últimas 24h" value={totalsByCategory.last24h} color="text-emerald-300" />
-          <Stat
-            label="Out-of-scope"
-            value={totalsByCategory.outOfScope}
-            color={totalsByCategory.outOfScope > 0 ? "text-red-300" : "text-slate-300"}
-          />
-          <Stat
-            label="Pendentes Gemini"
-            value={totalsByCategory.pendingEnrichment}
-            color="text-amber-300"
-          />
-          <Stat
-            label="Erros enrichment"
-            value={totalsByCategory.withErrors}
-            color="text-red-300"
-          />
-        </section>
+        <AdminTable
+          columns={columns}
+          rows={sources}
+          rowKey={(s) => s.source}
+          onRowClick={(s) => setSelected(s)}
+          empty={
+            <AdminEmptyState
+              title="Nenhum evento ainda no DB"
+              body="Os coletores ainda não rodaram ou o backend está vazio."
+            />
+          }
+        />
+      </section>
 
-        {/* Tabela de sources */}
-        <section>
-          <h2 className="text-lg font-bold mb-3">Por source</h2>
-          {loading ? (
-            <p className="text-sm text-slate-500">Carregando…</p>
-          ) : sources.length === 0 ? (
-            <p className="text-sm text-slate-500">Nenhum evento ainda no DB.</p>
-          ) : (
-            <div className="border border-slate-800 rounded-xl overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead className="bg-slate-900/60 text-slate-400 uppercase">
-                  <tr>
-                    <th className="px-3 py-2 text-left">Source</th>
-                    <th className="px-3 py-2 text-left">Status</th>
-                    <th className="px-3 py-2 text-right">Total</th>
-                    <th className="px-3 py-2 text-right">Últimas 24h</th>
-                    <th className="px-3 py-2 text-right">Últimos 7d</th>
-                    <th className="px-3 py-2 text-right">Out-of-scope</th>
-                    <th className="px-3 py-2 text-right">Pend. geo</th>
-                    <th className="px-3 py-2 text-right">Pend. Gemini</th>
-                    <th className="px-3 py-2 text-right">Enriquecidos</th>
-                    <th className="px-3 py-2 text-right">Erro %</th>
-                    <th className="px-3 py-2 text-left">Último crawl</th>
-                    <th className="px-3 py-2 text-left">Variáveis</th>
-                    <th className="px-3 py-2 text-left">Sinais</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sources.map((s) => (
-                    <SourceRow key={s.source} s={s} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-
-        <section className="border-t border-slate-800 pt-4 text-xs text-slate-500 space-y-1">
-          <p>
-            <strong>Como ler:</strong>
-          </p>
-          <ul className="list-disc list-inside space-y-0.5">
+      {/* === Footer explicativo === */}
+      <section
+        style={{
+          borderTop: "1px solid var(--admin-divider)",
+          paddingTop: 16,
+          fontSize: 12,
+          color: "var(--admin-text-muted)",
+        }}
+      >
+        <details>
+          <summary
+            style={{
+              cursor: "pointer",
+              fontSize: 11,
+              letterSpacing: 1.5,
+              textTransform: "uppercase",
+              fontWeight: 600,
+              color: "var(--admin-text-muted)",
+            }}
+          >
+            Como ler
+          </summary>
+          <ul
+            style={{
+              listStyle: "disc",
+              paddingLeft: 24,
+              marginTop: 12,
+              display: "flex",
+              flexDirection: "column",
+              gap: 6,
+              lineHeight: 1.6,
+            }}
+          >
             <li>
-              <code>last24h = 0</code> em coletor que devia rodar diário → coletor caiu
-              ou cron não disparou
+              <code>last24h = 0</code> em coletor que devia rodar diário → coletor
+              caiu ou cron não disparou.
             </li>
             <li>
-              <code>outOfScopePercent</code> alto (&gt;30%) → query do coletor está pegando muita coisa de fora; refinar
+              <code>outOfScopePercent</code> alto (&gt;30%) → query do coletor está
+              pegando muita coisa de fora; refinar.
             </li>
             <li>
-              <code>errorRate</code> alto → Gemini falhando (rate-limit, prompt malformado, JSON inválido)
+              <code>errorRate</code> alto → Gemini falhando (rate-limit, prompt
+              malformado, JSON inválido).
             </li>
             <li>
-              <code>(sem source)</code> aparecendo → coletor antigo mandando sem `source` setado
+              <code>(sem source)</code> aparecendo → coletor antigo mandando sem{" "}
+              <code>source</code> setado.
             </li>
           </ul>
-          {data && (
-            <p className="pt-2">
-              Snapshot tirado em {new Date(data.generatedAt).toLocaleString("pt-BR")}.
-            </p>
-          )}
-        </section>
-      </div>
-    </main>
+        </details>
+        {data && (
+          <p style={{ marginTop: 12 }}>
+            Snapshot tirado em {new Date(data.generatedAt).toLocaleString("pt-BR")}.
+          </p>
+        )}
+      </section>
+
+      {/* === Drawer: detalhes técnicos === */}
+      <AdminDrawer
+        open={!!selected}
+        onClose={() => setSelected(null)}
+        eyebrow="COLETOR"
+        title={selected?.source ?? ""}
+        width={520}
+      >
+        {selected && <CollectorDetail s={selected} />}
+      </AdminDrawer>
+    </div>
   );
 }
 
-function Stat({ label, value, color }: { label: string; value: number; color?: string }) {
+function CollectorDetail({ s }: { s: CollectorHealthRow }) {
+  const stale = isStale(s);
+  const missingEnv = getMissingEnv(s);
+  const signals = getSignals(s, stale, missingEnv);
+  const aliases = uniqueList(s.aliases);
+  const requiredEnv = uniqueList(s.requiredEnv);
+
   return (
-    <div className="border border-slate-800 rounded-xl bg-slate-900/40 p-3">
-      <p className="text-[10px] uppercase tracking-wider text-slate-500">{label}</p>
-      <p className={`text-xl font-bold mt-1 ${color ?? "text-slate-50"}`}>
-        {value.toLocaleString("pt-BR")}
+    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+      {/* Métricas detalhadas */}
+      <div>
+        <p className="urban-admin-eyebrow-muted" style={{ marginBottom: 12 }}>
+          MÉTRICAS COMPLETAS
+        </p>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 14,
+            fontSize: 13,
+          }}
+        >
+          <DetailRow label="Total no DB" value={s.total.toLocaleString("pt-BR")} />
+          <DetailRow label="Últimas 24h" value={s.last24h.toLocaleString("pt-BR")} />
+          <DetailRow label="Últimos 7d" value={s.last7d.toLocaleString("pt-BR")} />
+          <DetailRow
+            label="Out-of-scope"
+            value={`${s.outOfScope.toLocaleString("pt-BR")} (${s.outOfScopePercent}%)`}
+          />
+          <DetailRow
+            label="Pendentes geocode"
+            value={s.pendingGeocode > 0 ? s.pendingGeocode.toLocaleString("pt-BR") : "—"}
+          />
+          <DetailRow
+            label="Pendentes Gemini"
+            value={s.pendingEnrichment > 0 ? s.pendingEnrichment.toLocaleString("pt-BR") : "—"}
+          />
+          <DetailRow
+            label="Enriquecidos"
+            value={s.enriched.toLocaleString("pt-BR")}
+          />
+          <DetailRow label="Erro %" value={`${s.errorRate}%`} />
+        </div>
+      </div>
+
+      {/* Status técnico */}
+      <div>
+        <p className="urban-admin-eyebrow-muted" style={{ marginBottom: 12 }}>
+          STATUS
+        </p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          <AdminBadge kind={statusKind(s.status ?? "has_events", s.critical)}>
+            {formatStatus(s.status ?? "has_events")}
+          </AdminBadge>
+          {s.critical === true && <AdminBadge kind="error">Crítico</AdminBadge>}
+          {s.critical === false && <AdminBadge kind="neutral">Opcional</AdminBadge>}
+          {stale && <AdminBadge kind="warn">Stale</AdminBadge>}
+        </div>
+      </div>
+
+      {/* Variáveis */}
+      <div>
+        <p className="urban-admin-eyebrow-muted" style={{ marginBottom: 12 }}>
+          VARIÁVEIS DE AMBIENTE
+        </p>
+        {missingEnv.length > 0 ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <p style={{ fontSize: 12, color: "var(--admin-danger)", margin: 0 }}>
+              {missingEnv.length} faltando:
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {missingEnv.map((env) => (
+                <AdminBadge key={env} kind="error">
+                  {env}
+                </AdminBadge>
+              ))}
+            </div>
+          </div>
+        ) : requiredEnv.length > 0 ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <p style={{ fontSize: 12, color: "var(--admin-success)", margin: 0 }}>
+              Todas presentes.
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {requiredEnv.map((env) => (
+                <AdminBadge key={env} kind="success">
+                  {env}
+                </AdminBadge>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p style={{ fontSize: 12, color: "var(--admin-text-dim)", margin: 0 }}>
+            Sem variáveis mapeadas.
+          </p>
+        )}
+      </div>
+
+      {/* Sinais */}
+      <div>
+        <p className="urban-admin-eyebrow-muted" style={{ marginBottom: 12 }}>
+          SINAIS
+        </p>
+        {signals.length > 0 ? (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {signals.map((signal) => (
+              <AdminBadge key={signal} kind="warn">
+                {formatSignal(signal)}
+              </AdminBadge>
+            ))}
+          </div>
+        ) : (
+          <p style={{ fontSize: 12, color: "var(--admin-text-dim)", margin: 0 }}>
+            Sem sinais ativos.
+          </p>
+        )}
+      </div>
+
+      {/* Aliases */}
+      {aliases.length > 0 && (
+        <div>
+          <p className="urban-admin-eyebrow-muted" style={{ marginBottom: 12 }}>
+            ALIASES
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {aliases.map((alias) => (
+              <AdminBadge key={alias} kind="neutral">
+                {alias}
+              </AdminBadge>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Último crawl */}
+      <div>
+        <p className="urban-admin-eyebrow-muted" style={{ marginBottom: 8 }}>
+          ÚLTIMO CRAWL
+        </p>
+        <p
+          style={{
+            fontSize: 13,
+            color: "var(--admin-text)",
+            fontFamily: "monospace",
+            margin: 0,
+          }}
+        >
+          {s.lastSeen ? new Date(s.lastSeen).toLocaleString("pt-BR") : "—"}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div>
+      <p
+        style={{
+          fontSize: 10,
+          letterSpacing: 1.5,
+          textTransform: "uppercase",
+          color: "var(--admin-text-muted)",
+          fontWeight: 600,
+          margin: 0,
+        }}
+      >
+        {label}
+      </p>
+      <p
+        style={{
+          fontFamily: "monospace",
+          fontSize: 14,
+          color: "var(--admin-text)",
+          margin: "4px 0 0",
+        }}
+      >
+        {value}
       </p>
     </div>
   );
 }
 
-function SourceRow({ s }: { s: CollectorHealthRow }) {
-  const localStale = Boolean(
-    s.lastSeen &&
-      Date.now() - new Date(s.lastSeen).getTime() > 48 * 60 * 60 * 1000,
+function isStale(s: CollectorHealthRow): boolean {
+  const local = Boolean(
+    s.lastSeen && Date.now() - new Date(s.lastSeen).getTime() > 48 * 60 * 60 * 1000,
   );
-  const stale = Boolean(s.stale || s.status === "stale" || localStale);
-  const missingEnv = getMissingEnv(s);
-  const signals = getSignals(s, stale, missingEnv);
-  const aliases = uniqueList(s.aliases);
-
-  return (
-    <tr className={`border-t border-slate-800 ${stale ? "opacity-70" : ""}`}>
-      <td className="px-3 py-2 font-mono text-slate-200">
-        <div>
-          {s.source}
-          {stale && (
-            <span className="ml-2 text-[10px] text-amber-400" title="Sem dados há > 48h">
-              STALE
-            </span>
-          )}
-        </div>
-        {aliases.length > 0 && (
-          <div className="mt-1 flex flex-wrap gap-1 text-[10px] font-normal text-slate-500">
-            {aliases.map((alias) => (
-              <span key={alias} className="rounded border border-slate-800 px-1.5 py-0.5">
-                alias: {alias}
-              </span>
-            ))}
-          </div>
-        )}
-      </td>
-      <td className="px-3 py-2">
-        <div className="flex flex-wrap gap-1">
-          <HealthBadge status={s.status ?? "has_events"} critical={s.critical} />
-          <CriticalityBadge critical={s.critical} />
-        </div>
-      </td>
-      <td className="px-3 py-2 text-right">{s.total.toLocaleString("pt-BR")}</td>
-      <td
-        className={`px-3 py-2 text-right ${
-          s.last24h === 0 ? "text-red-400" : "text-emerald-300"
-        }`}
-      >
-        {s.last24h.toLocaleString("pt-BR")}
-      </td>
-      <td className="px-3 py-2 text-right text-slate-300">
-        {s.last7d.toLocaleString("pt-BR")}
-      </td>
-      <td
-        className={`px-3 py-2 text-right ${
-          s.outOfScopePercent > 30
-            ? "text-red-400"
-            : s.outOfScopePercent > 10
-            ? "text-amber-400"
-            : "text-slate-300"
-        }`}
-      >
-        {s.outOfScope.toLocaleString("pt-BR")} ({s.outOfScopePercent}%)
-      </td>
-      <td className="px-3 py-2 text-right text-slate-400">
-        {s.pendingGeocode > 0 ? s.pendingGeocode : "—"}
-      </td>
-      <td className="px-3 py-2 text-right text-slate-400">
-        {s.pendingEnrichment > 0 ? s.pendingEnrichment : "—"}
-      </td>
-      <td className="px-3 py-2 text-right text-emerald-300">
-        {s.enriched.toLocaleString("pt-BR")}
-      </td>
-      <td
-        className={`px-3 py-2 text-right ${
-          s.errorRate > 20 ? "text-red-400" : s.errorRate > 5 ? "text-amber-400" : "text-slate-400"
-        }`}
-      >
-        {s.errorRate}%
-      </td>
-      <td className="px-3 py-2 text-slate-500 text-[10px]">
-        {s.lastSeen
-          ? new Date(s.lastSeen).toLocaleString("pt-BR", {
-              day: "2-digit",
-              month: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          : "—"}
-      </td>
-      <td className="px-3 py-2 text-slate-400">
-        {missingEnv.length > 0 ? (
-          <div className="flex flex-wrap gap-1">
-            {missingEnv.map((env) => (
-              <span key={env} className="rounded bg-red-950/40 px-1.5 py-0.5 text-[10px] text-red-300">
-                {env}
-              </span>
-            ))}
-          </div>
-        ) : uniqueList(s.requiredEnv).length > 0 ? (
-          <span className="text-[10px] text-emerald-300">OK</span>
-        ) : (
-          "—"
-        )}
-      </td>
-      <td className="px-3 py-2 text-slate-400">
-        {signals.length > 0 ? (
-          <div className="flex flex-wrap gap-1">
-            {signals.map((signal) => (
-              <span key={signal} className="rounded bg-slate-900 px-1.5 py-0.5 text-[10px] text-amber-300">
-                {formatSignal(signal)}
-              </span>
-            ))}
-          </div>
-        ) : (
-          "—"
-        )}
-      </td>
-    </tr>
-  );
+  return Boolean(s.stale || s.status === "stale" || local);
 }
 
-function HealthBadge({
-  status,
-  critical,
-}: {
-  status: CollectorHealthStatus;
-  critical?: boolean | null;
-}) {
-  const color =
-    status === "missing_key"
-      ? critical
-        ? "border-red-600 bg-red-950/40 text-red-200"
-        : "border-amber-700 bg-amber-950/30 text-amber-200"
-      : status === "no_events" || status === "stale"
-        ? "border-amber-700 bg-amber-950/30 text-amber-200"
-        : status === "has_events"
-          ? "border-emerald-700 bg-emerald-950/30 text-emerald-200"
-          : "border-slate-700 bg-slate-900 text-slate-300";
-
-  return (
-    <span className={`rounded border px-1.5 py-0.5 text-[10px] uppercase ${color}`}>
-      {formatStatus(status)}
-    </span>
-  );
-}
-
-function CriticalityBadge({ critical }: { critical?: boolean | null }) {
-  if (critical === true) {
-    return (
-      <span className="rounded border border-red-700 bg-red-950/30 px-1.5 py-0.5 text-[10px] uppercase text-red-300">
-        crítico
-      </span>
-    );
-  }
-
-  if (critical === false) {
-    return (
-      <span className="rounded border border-slate-800 px-1.5 py-0.5 text-[10px] uppercase text-slate-500">
-        opcional
-      </span>
-    );
-  }
-
-  return (
-    <span className="rounded border border-slate-800 px-1.5 py-0.5 text-[10px] uppercase text-slate-600">
-      não mapeado
-    </span>
-  );
+function statusKind(
+  status: CollectorHealthStatus,
+  critical?: boolean | null,
+): AdminBadgeKind {
+  if (status === "missing_key") return critical ? "error" : "warn";
+  if (status === "no_events" || status === "stale") return "warn";
+  if (status === "has_events") return "success";
+  return "neutral";
 }
 
 function getMissingEnv(s: CollectorHealthRow) {
@@ -393,7 +646,11 @@ function getMissingEnv(s: CollectorHealthRow) {
   ]);
 }
 
-function getSignals(s: CollectorHealthRow, stale: boolean, missingEnv: string[]) {
+function getSignals(
+  s: CollectorHealthRow,
+  stale: boolean,
+  missingEnv: string[],
+) {
   return uniqueList([
     ...(s.signals ?? []),
     stale ? "stale" : "",
