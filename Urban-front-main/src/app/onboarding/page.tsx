@@ -80,26 +80,79 @@ interface SelectedPropertiesState {
 type PricingStrategy = 'conservative' | 'balanced' | 'aggressive' | 'autonomous';
 type OperationMode = 'notifications' | 'automatic';
 
-const PRICING_PRESETS: Record<PricingStrategy, { inicial: number; final: number | null; label: string; desc: string; color: string; icon: string }> = {
+// Sprint 4 redesign: removido `color` ciclico (green/blue/orange/purple)
+// e icones emoji (🛡️⚖️🚀🤖). Identificador agora e `iconKey` para
+// renderizar com SVG inline (StrategyIcon). Selecao destacada via accent #E8500A.
+type StrategyIconKey = 'shield' | 'scale' | 'rocket' | 'sparkles';
+
+function StrategyIcon({ iconKey }: { iconKey: StrategyIconKey }) {
+  const base = {
+    width: 20,
+    height: 20,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.6,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    'aria-hidden': true,
+  };
+  if (iconKey === 'shield') {
+    return (
+      <svg {...base}>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
+    );
+  }
+  if (iconKey === 'scale') {
+    return (
+      <svg {...base}>
+        <path d="M16 16h6l-3-9-3 9z" />
+        <path d="M2 16h6l-3-9-3 9z" />
+        <path d="M7 7h10" />
+        <path d="M12 7v15" />
+        <path d="M8 22h8" />
+      </svg>
+    );
+  }
+  if (iconKey === 'rocket') {
+    return (
+      <svg {...base}>
+        <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
+        <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
+        <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
+        <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
+      </svg>
+    );
+  }
+  // sparkles (autonomous)
+  return (
+    <svg {...base}>
+      <path d="M12 3l2.39 5.05L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.61-.95L12 3z" />
+    </svg>
+  );
+}
+
+const PRICING_PRESETS: Record<PricingStrategy, { inicial: number; final: number | null; label: string; desc: string; iconKey: StrategyIconKey }> = {
   conservative: {
     inicial: -5, final: 10,
     label: 'Conservadora', desc: 'Prioriza ocupação mantendo preços competitivos. Ideal para quem está começando.',
-    color: 'green', icon: '🛡️'
+    iconKey: 'shield',
   },
   balanced: {
     inicial: -10, final: 20,
     label: 'Moderada', desc: 'Equilíbrio entre ocupação e receita. Recomendado para a maioria dos anfitriões.',
-    color: 'blue', icon: '⚖️'
+    iconKey: 'scale',
   },
   aggressive: {
     inicial: -15, final: 35,
     label: 'Agressiva', desc: 'Maximiza receita em períodos de alta demanda. Para anfitriões experientes.',
-    color: 'orange', icon: '🚀'
+    iconKey: 'rocket',
   },
   autonomous: {
     inicial: -5, final: null,
     label: 'Piloto Automático IA', desc: 'Estratégia dinâmica. Otimiza sem teto na alta, e impede baixas drásticas (-5% max).',
-    color: 'purple', icon: '🤖'
+    iconKey: 'sparkles',
   },
 };
 
@@ -569,7 +622,7 @@ function OnboardingWizardContent() {
       <Container maxW="container.md" mb={2}>
         <HStack spacing={0} w="100%">
           {Array.from({ length: TOTAL_STEPS }, (_, i) => (
-            <Box key={i} flex={1} h="4px" bg={i < step ? "blue.500" : "gray.200"} borderRadius="full"
+            <Box key={i} flex={1} h="4px" bg={i < step ? "#E8500A" : "gray.200"} borderRadius="full"
               mx={0.5} transition="background 0.4s ease" />
           ))}
         </HStack>
@@ -611,9 +664,15 @@ function OnboardingWizardContent() {
                   </Text>
 
                   <Button
-                    mt={4} bg="#ff5a5f" color="white" size="lg" px={10} h="56px" fontSize="lg"
-                    _hover={{ bg: '#e0484d', transform: 'translateY(-2px)', boxShadow: 'lg' }}
-                    _active={{ bg: '#d43b40' }}
+                    mt={4}
+                    bg="#E8500A"
+                    color="white"
+                    _hover={{ bg: '#D14609', transform: 'translateY(-2px)', boxShadow: 'lg' }}
+                    _active={{ bg: '#C04209' }}
+                    size="lg"
+                    px={10}
+                    h="56px"
+                    fontSize="lg"
                     transition="all 0.2s"
                     onClick={() => setStep(2)}
                   >
@@ -721,7 +780,7 @@ function OnboardingWizardContent() {
                               Voltar
                             </Button>
                             <Button
-                              bg="#2E3748" color="white" _hover={{ bg: '#252E3E' }}
+                              bg="#E8500A" color="white" _hover={{ bg: '#D14609' }}
                               _active={{ bg: '#1B2330' }} size="lg" flex={1}
                               isLoading={loadingIndividual}
                               loadingText="Buscando imóveis..."
@@ -769,7 +828,7 @@ function OnboardingWizardContent() {
                               Voltar
                             </Button>
                             <Button
-                              bg="#2E3748" color="white" _hover={{ bg: '#252E3E' }}
+                              bg="#E8500A" color="white" _hover={{ bg: '#D14609' }}
                               _active={{ bg: '#1B2330' }} size="lg" flex={1}
                               isLoading={isLoading}
                               loadingText="Rastreando imóveis..."
@@ -819,7 +878,7 @@ function OnboardingWizardContent() {
                         mt={1}
                         _hover={{ color: 'blue.600', textDecoration: 'underline' }}
                       >
-                        🏠 Ver perfil do anfitrião no Airbnb <ExternalLinkIcon mx="2px" />
+                        Ver perfil do anfitrião no Airbnb <ExternalLinkIcon mx="2px" />
                       </Link>
                     )}
                   </Box>
@@ -830,8 +889,14 @@ function OnboardingWizardContent() {
                       <FormLabel mb="0" fontWeight="bold" color="gray.800">
                         Ativar todos ({properties.length})
                       </FormLabel>
-                      <Switch colorScheme="green" size="lg" isChecked={selectAll}
-                        onChange={handleSelectAllToggle} />
+                      <Switch
+                        size="lg"
+                        isChecked={selectAll}
+                        onChange={handleSelectAllToggle}
+                        sx={{
+                          '& .chakra-switch__track[data-checked]': { background: '#E8500A' },
+                        }}
+                      />
                     </FormControl>
 
                     <Stack spacing={3} maxH="450px" overflowY="auto" pr={2}>
@@ -866,14 +931,20 @@ function OnboardingWizardContent() {
                                 {/* Badges: Rating */}
                                 <HStack spacing={2} flexWrap="wrap" mb={1}>
                                   {(property.rating !== undefined && property.rating > 0) ? (
-                                    <Badge colorScheme="yellow" fontSize="2xs" borderRadius="full" px={2}>
-                                      ★ {property.rating.toFixed(2)}
+                                    <Badge
+                                      bg="rgba(232, 80, 10, 0.10)"
+                                      color="#B43F08"
+                                      fontSize="2xs"
+                                      borderRadius="full"
+                                      px={2}
+                                    >
+                                      {property.rating.toFixed(2)}
                                       {(property.reviewCount !== undefined && property.reviewCount > 0) &&
                                         ` (${property.reviewCount})`}
                                     </Badge>
                                   ) : property.isNewListing ? (
-                                    <Badge colorScheme="green" fontSize="2xs" borderRadius="full" px={2}>
-                                      ✨ Novidade
+                                    <Badge bg="#E8500A" color="white" fontSize="2xs" borderRadius="full" px={2}>
+                                      Novidade
                                     </Badge>
                                   ) : null}
                                 </HStack>
@@ -881,7 +952,7 @@ function OnboardingWizardContent() {
                                 {/* Endereço completo */}
                                 {(property.street || property.neighborhood || property.city) && (
                                   <Text fontSize="2xs" color="gray.500" lineHeight="short" mb={0.5}>
-                                    📍 {[property.street, property.neighborhood].filter(Boolean).join(', ')}
+                                    {[property.street, property.neighborhood].filter(Boolean).join(', ')}
                                     {property.city && (
                                       <> — {property.city}{property.state ? `-${property.state}` : ''}</>
                                     )}
@@ -898,57 +969,47 @@ function OnboardingWizardContent() {
                                   fontFamily="mono"
                                   _hover={{ color: 'blue.600', textDecoration: 'underline' }}
                                 >
-                                  🔗 {property.id_do_anuncio} <ExternalLinkIcon mx="1px" boxSize="10px" />
+                                  {property.id_do_anuncio} <ExternalLinkIcon mx="1px" boxSize="10px" />
                                 </Link>
                               </Box>
                             </Flex>
-                            <Switch colorScheme="blue" size="md"
+                            <Switch
+                              size="md"
+                              sx={{
+                                '& .chakra-switch__track[data-checked]': { background: '#E8500A' },
+                              }}
                               isChecked={selectedProperties[property.id_do_anuncio] || false}
                               onChange={() => handlePropertyToggle(property.id_do_anuncio)} />
                           </Flex>
 
                           {/* Detalhes do imóvel — sempre visíveis */}
-                          <Flex gap={3} flexWrap="wrap" px={1} py={2}
-                            bg="gray.50" borderRadius="md" justify="center">
+                          <Flex gap={4} flexWrap="wrap" px={1} py={2}
+                            bg="gray.50" borderRadius="md" justify="center"
+                            fontSize="xs" color="gray.700" fontWeight="medium">
                             {(property.bedrooms !== undefined && property.bedrooms > 0) && (
-                              <HStack spacing={1}>
-                                <Text fontSize="xs">🛏️</Text>
-                                <Text fontSize="xs" color="gray.700" fontWeight="medium">
-                                  {property.bedrooms} {property.bedrooms === 1 ? 'quarto' : 'quartos'}
-                                </Text>
-                              </HStack>
+                              <Text>
+                                {property.bedrooms} {property.bedrooms === 1 ? 'quarto' : 'quartos'}
+                              </Text>
                             )}
                             {(property.beds !== undefined && property.beds > 0) && (
-                              <HStack spacing={1}>
-                                <Text fontSize="xs">🛌</Text>
-                                <Text fontSize="xs" color="gray.700" fontWeight="medium">
-                                  {property.beds} {property.beds === 1 ? 'cama' : 'camas'}
-                                </Text>
-                              </HStack>
+                              <Text>
+                                {property.beds} {property.beds === 1 ? 'cama' : 'camas'}
+                              </Text>
                             )}
                             {(property.bathrooms !== undefined && property.bathrooms > 0) && (
-                              <HStack spacing={1}>
-                                <Text fontSize="xs">🚿</Text>
-                                <Text fontSize="xs" color="gray.700" fontWeight="medium">
-                                  {property.bathrooms} {property.bathrooms === 1 ? 'banheiro' : 'banheiros'}
-                                </Text>
-                              </HStack>
+                              <Text>
+                                {property.bathrooms} {property.bathrooms === 1 ? 'banheiro' : 'banheiros'}
+                              </Text>
                             )}
                             {(property.guests !== undefined && property.guests > 0) && (
-                              <HStack spacing={1}>
-                                <Text fontSize="xs">👥</Text>
-                                <Text fontSize="xs" color="gray.700" fontWeight="medium">
-                                  {property.guests} {property.guests === 1 ? 'hóspede' : 'hóspedes'}
-                                </Text>
-                              </HStack>
+                              <Text>
+                                {property.guests} {property.guests === 1 ? 'hóspede' : 'hóspedes'}
+                              </Text>
                             )}
                             {(property.amenitiesCount !== undefined && property.amenitiesCount > 0) && (
-                              <HStack spacing={1}>
-                                <Text fontSize="xs">✅</Text>
-                                <Text fontSize="xs" color="gray.700" fontWeight="medium">
-                                  {property.amenitiesCount} itens disponíveis
-                                </Text>
-                              </HStack>
+                              <Text>
+                                {property.amenitiesCount} itens disponíveis
+                              </Text>
                             )}
                           </Flex>
                         </Box>
@@ -961,7 +1022,7 @@ function OnboardingWizardContent() {
                       isDisabled={isLoading}>
                       Voltar
                     </Button>
-                    <Button colorScheme="blue" size="lg" flex={1}
+                    <Button bg="#E8500A" color="white" _hover={{ bg: '#D14609' }} size="lg" flex={1}
                       onClick={handleRegisterProperties}
                       isDisabled={selectedCount === 0}
                       isLoading={isLoading}
@@ -1004,44 +1065,59 @@ function OnboardingWizardContent() {
 
                     <SimpleGrid columns={{ base: 1, md: 3 }} spacing={3}>
                       {(Object.entries(PRICING_PRESETS) as [PricingStrategy, typeof PRICING_PRESETS[PricingStrategy]][]).map(
-                        ([key, preset]) => (
-                          <Box
-                            key={key}
-                            p={4}
-                            borderRadius="xl"
-                            border="2px solid"
-                            borderColor={pricingStrategy === key ? `${preset.color}.400` : 'gray.200'}
-                            bg={pricingStrategy === key ? `${preset.color}.50` : 'gray.50'}
-                            cursor="pointer"
-                            transition="all 0.2s"
-                            _hover={{
-                              borderColor: `${preset.color}.300`,
-                              transform: 'translateY(-2px)',
-                              boxShadow: 'md'
-                            }}
-                            onClick={() => setPricingStrategy(key)}
-                          >
-                            <VStack spacing={2} align="start">
-                              <Flex wrap="wrap" gap={2} alignItems="center">
-                                <Text fontSize="xl" lineHeight="1">{preset.icon}</Text>
-                                <Text fontWeight="bold" color="gray.800" fontSize="sm" lineHeight="1">
-                                  {preset.label}
+                        ([key, preset]) => {
+                          const isSelected = pricingStrategy === key;
+                          return (
+                            <Box
+                              key={key}
+                              p={4}
+                              borderRadius="xl"
+                              border="2px solid"
+                              borderColor={isSelected ? 'var(--app-accent, #E8500A)' : 'gray.200'}
+                              bg={isSelected ? 'rgba(232, 80, 10, 0.06)' : 'gray.50'}
+                              cursor="pointer"
+                              transition="all 0.2s"
+                              _hover={{
+                                borderColor: isSelected ? 'var(--app-accent, #E8500A)' : 'gray.300',
+                                transform: 'translateY(-2px)',
+                                boxShadow: 'md'
+                              }}
+                              onClick={() => setPricingStrategy(key)}
+                            >
+                              <VStack spacing={2} align="start">
+                                <Flex wrap="wrap" gap={2} alignItems="center">
+                                  <Box
+                                    color={isSelected ? '#E8500A' : 'gray.500'}
+                                    display="inline-flex"
+                                  >
+                                    <StrategyIcon iconKey={preset.iconKey} />
+                                  </Box>
+                                  <Text fontWeight="bold" color="gray.800" fontSize="sm" lineHeight="1">
+                                    {preset.label}
+                                  </Text>
+                                  {key === 'balanced' && (
+                                    <Badge bg="#E8500A" color="white" fontSize="0.6rem" px={2} py={0.5} borderRadius="md">
+                                      Recomendado
+                                    </Badge>
+                                  )}
+                                </Flex>
+                                <Text fontSize="xs" color="gray.500" lineHeight="short">
+                                  {preset.desc}
                                 </Text>
-                                {key === 'balanced' && (
-                                  <Badge colorScheme="blue" fontSize="0.6rem">Recomendado</Badge>
-                                )}
-                              </Flex>
-                              <Text fontSize="xs" color="gray.500" lineHeight="short">
-                                {preset.desc}
-                              </Text>
-                              <HStack spacing={1} mt={1}>
-                                <Badge colorScheme={preset.color} variant="subtle" fontSize="0.65rem">
-                                  {preset.inicial > 0 ? '+' : ''}{preset.inicial}% a {preset.final !== null ? (preset.final > 0 ? '+' : '') + preset.final + '%' : 'IA Livre'}
-                                </Badge>
-                              </HStack>
-                            </VStack>
-                          </Box>
-                        )
+                                <HStack spacing={1} mt={1}>
+                                  <Badge
+                                    bg={isSelected ? '#E8500A' : 'gray.200'}
+                                    color={isSelected ? 'white' : 'gray.700'}
+                                    variant="solid"
+                                    fontSize="0.65rem"
+                                  >
+                                    {preset.inicial > 0 ? '+' : ''}{preset.inicial}% a {preset.final !== null ? (preset.final > 0 ? '+' : '') + preset.final + '%' : 'IA Livre'}
+                                  </Badge>
+                                </HStack>
+                              </VStack>
+                            </Box>
+                          );
+                        }
                       )}
                     </SimpleGrid>
                   </Box>
@@ -1114,7 +1190,7 @@ function OnboardingWizardContent() {
                       onClick={() => setStep(5)} isDisabled={isLoading}>
                       Pular
                     </Button>
-                    <Button colorScheme="blue" size="lg" flex={1}
+                    <Button bg="#E8500A" color="white" _hover={{ bg: '#D14609' }} size="lg" flex={1}
                       onClick={handleSaveConfig}
                       isLoading={isLoading}
                       loadingText="Salvando...">
@@ -1163,13 +1239,21 @@ function OnboardingWizardContent() {
 
                   <Flex justify="center" mb={2}>
                     <FormControl display="flex" alignItems="center" w="auto" bg="gray.50" p={2} borderRadius="full" borderWidth="1px" borderColor="gray.200">
-                      <FormLabel htmlFor="onboarding-billing-toggle" mb="0" ml={4} fontWeight="bold" color={!isAnnual ? "blue.600" : "gray.500"}>
+                      <FormLabel htmlFor="onboarding-billing-toggle" mb="0" ml={4} fontWeight="bold" color={!isAnnual ? "#E8500A" : "gray.500"}>
                         Mensal
                       </FormLabel>
-                      <Switch id="onboarding-billing-toggle" size="lg" colorScheme="blue" isChecked={isAnnual} onChange={(e) => setIsAnnual(e.target.checked)} />
-                      <FormLabel htmlFor="onboarding-billing-toggle" mb="0" ml={3} mr={4} fontWeight="bold" color={isAnnual ? "blue.600" : "gray.500"}>
+                      <Switch
+                        id="onboarding-billing-toggle"
+                        size="lg"
+                        isChecked={isAnnual}
+                        onChange={(e) => setIsAnnual(e.target.checked)}
+                        sx={{
+                          '& .chakra-switch__track[data-checked]': { background: '#E8500A' },
+                        }}
+                      />
+                      <FormLabel htmlFor="onboarding-billing-toggle" mb="0" ml={3} mr={4} fontWeight="bold" color={isAnnual ? "#E8500A" : "gray.500"}>
                         Anual
-                        <Badge ml={2} colorScheme="green" borderRadius="full" fontSize="0.7em" px={2}>Economize 20%</Badge>
+                        <Badge ml={2} bg="#E8500A" color="white" borderRadius="full" fontSize="0.7em" px={2}>Economize 20%</Badge>
                       </FormLabel>
                     </FormControl>
                   </Flex>
@@ -1191,7 +1275,7 @@ function OnboardingWizardContent() {
                           _hover={{ boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}
                           transition="box-shadow 0.2s ease"
                           borderWidth={plan.highlightBadge ? "2px" : "1px"}
-                          borderColor={plan.highlightBadge ? "orange.400" : "gray.200"}
+                          borderColor={plan.highlightBadge ? "#E8500A" : "gray.200"}
                           textAlign="center"
                           display="flex"
                           flexDirection="column"
@@ -1203,8 +1287,7 @@ function OnboardingWizardContent() {
                               right={{ base: 4, md: "auto" }}
                               left={{ md: "50%" }}
                               transform={{ md: "translateX(-50%)" }}
-                              colorScheme="orange"
-                              bg="orange.500"
+                              bg="#E8500A"
                               color="white"
                               fontSize="0.75rem"
                               px={3}
@@ -1255,9 +1338,13 @@ function OnboardingWizardContent() {
                             </Box>
 
                             <Button
-                              colorScheme={plan.highlightBadge ? "orange" : "blue"}
-                              bg={plan.highlightBadge ? "orange.500" : "blue.500"}
-                              color="white"
+                              bg={plan.highlightBadge ? "#E8500A" : "white"}
+                              color={plan.highlightBadge ? "white" : "#E8500A"}
+                              borderWidth={plan.highlightBadge ? 0 : "1px"}
+                              borderColor="#E8500A"
+                              _hover={{
+                                bg: plan.highlightBadge ? "#D14609" : "rgba(232, 80, 10, 0.06)",
+                              }}
                               size="md"
                               whiteSpace="normal"
                               height="auto"
@@ -1271,7 +1358,6 @@ function OnboardingWizardContent() {
                               }}
                               isLoading={isLoading}
                               loadingText="Processando..."
-                              _hover={{ transform: "translateY(-1px)", shadow: "sm" }}
                               transition="all 0.2s"
                               w="full"
                               mt={2}
@@ -1288,7 +1374,7 @@ function OnboardingWizardContent() {
                                   display="flex"
                                   alignItems="flex-start"
                                 >
-                                  <ListIcon as={CheckIcon} color="green.400" mt={1} boxSize="3" />
+                                  <ListIcon as={CheckIcon} color="#E8500A" mt={1} boxSize="3" />
                                   <Text lineHeight="short">{feat}</Text>
                                 </ListItem>
                               ))}
@@ -1316,7 +1402,7 @@ export default function OnboardingWizard() {
   return (
     <Suspense fallback={
       <Flex w="100vw" h="100vh" align="center" justify="center">
-        <Spinner size="xl" color="blue.500" />
+        <Spinner size="xl" color="#E8500A" thickness="3px" />
       </Flex>
     }>
       <OnboardingWizardContent />
