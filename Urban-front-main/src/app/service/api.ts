@@ -22,18 +22,63 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-// Interceptor global para tratar expiração de token (401)
+/**
+ * Interceptor global de resposta — sprint design premium 2026-05-17.
+ *
+ * - 401 (não autenticado): limpa token, redireciona pra login `/`.
+ *   Exceção: rotas publicas (/lancamento, /landing, /precos, /sobre, /contato,
+ *   /termos, /privacidade, /create, /forbidden, /post-login, /request-reset-password,
+ *   /reset-password/*, /confirm-email/*) NÃO redirecionam — login não eh
+ *   necessario nelas e o componente que disparou o 401 lida com o erro.
+ * - 403 (sem permissão): redireciona pra `/forbidden` page premium.
+ * - Outros erros: passa adiante.
+ *
+ * O endpoint `/auth/me` é exceção — 401 nele é esperado (componente decide).
+ */
+const PUBLIC_PATH_REGEX =
+  /^\/(lancamento|landing|precos|sobre|contato|termos|privacidade|create|forbidden|post-login|request-reset-password|reset-password|confirm-email|waitlist|robots|sitemap)/;
+
+function isPublicPath(pathname: string): boolean {
+  if (pathname === "/" || pathname === "") return true;
+  return PUBLIC_PATH_REGEX.test(pathname);
+}
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("accessToken");
-        window.location.href = "/";
+    if (typeof window === "undefined") return Promise.reject(error);
+
+    const status = error?.response?.status;
+    const requestUrl: string = error?.config?.url ?? "";
+    const pathname = window.location.pathname || "";
+
+    // 401: invalida sessao + redireciona pra login.
+    // Exceções: /auth/me (componente decide), ou se ja estamos em rota publica.
+    if (status === 401) {
+      const isAuthMeProbe = requestUrl.endsWith("/auth/me");
+      if (!isAuthMeProbe && !isPublicPath(pathname)) {
+        try {
+          localStorage.removeItem("accessToken");
+        } catch {
+          /* ignore storage errors */
+        }
+        const redirect = encodeURIComponent(pathname + window.location.search);
+        window.location.href = `/?next=${redirect}`;
       }
     }
+
+    // 403: usuario logado mas sem permissao — manda pra pagina 403 amigavel.
+    if (status === 403) {
+      const isAuthProbe =
+        requestUrl.endsWith("/auth/me") || requestUrl.endsWith("/auth/logout");
+      const alreadyOnForbidden = pathname.startsWith("/forbidden");
+      if (!isAuthProbe && !alreadyOnForbidden && !isPublicPath(pathname)) {
+        window.location.href = `/forbidden?from=${encodeURIComponent(pathname)}`;
+      }
+    }
+
     return Promise.reject(error);
-  }
+  },
 );
 
 /* ============================
