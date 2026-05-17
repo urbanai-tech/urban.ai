@@ -482,6 +482,18 @@ export default function AdminDashboardPage() {
             status={(data.support?.p0Open ?? 0) > 0 ? "error" : "success"}
           />
           <SmallStat label="LGPD" value={data.support?.lgpdOpen ?? 0} />
+          <SmallStat
+            label="Canal suporte"
+            value={data.support?.supportEmailConfigured ? "env" : "fallback"}
+            status={data.support?.supportEmailDomainOk ? "success" : "warn"}
+            sub={data.support?.supportEmail}
+          />
+          <SmallStat
+            label="Privacidade"
+            value={data.support?.privacyEmailConfigured ? "env" : "fallback"}
+            status={data.support?.privacyEmailDomainOk ? "success" : "warn"}
+            sub={data.support?.privacyEmail}
+          />
         </DataBlock>
 
         <DataBlock title="Stays" icon={<Icons.Layers size={14} />} href="/admin/stays">

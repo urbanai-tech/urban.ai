@@ -1296,6 +1296,12 @@ export class AdminService {
       stripeSecretMode !== 'unknown' &&
       stripePublishableMode !== 'unknown' &&
       stripeSecretMode !== stripePublishableMode;
+    const supportEmail = process.env.SUPPORT_EMAIL?.trim() || 'suporte@myurbanai.com';
+    const privacyEmail = process.env.PRIVACY_EMAIL?.trim() || 'privacidade@myurbanai.com';
+    const supportEmailConfigured = Boolean(process.env.SUPPORT_EMAIL?.trim());
+    const privacyEmailConfigured = Boolean(process.env.PRIVACY_EMAIL?.trim());
+    const supportEmailDomainOk = this.emailDomain(supportEmail).endsWith('myurbanai.com');
+    const privacyEmailDomainOk = this.emailDomain(privacyEmail).endsWith('myurbanai.com');
 
     const [
       // Eventos
@@ -1621,6 +1627,24 @@ export class AdminService {
         message: `${supportLgpdOpen} pedido(s) LGPD aberto(s); prazo operacional: 15 dias corridos`,
       });
     }
+    if (!supportEmailConfigured) {
+      alerts.push({
+        severity: 'info',
+        message: `SUPPORT_EMAIL nao configurado; usando fallback ${supportEmail}`,
+      });
+    }
+    if (!privacyEmailConfigured) {
+      alerts.push({
+        severity: 'info',
+        message: `PRIVACY_EMAIL nao configurado; usando fallback ${privacyEmail}`,
+      });
+    }
+    if (!supportEmailDomainOk || !privacyEmailDomainOk) {
+      alerts.push({
+        severity: 'amber',
+        message: 'Canais suporte/privacidade fora do dominio myurbanai.com; revisar antes do beta pago',
+      });
+    }
     if (!mailerSendApiKeyConfigured) {
       alerts.push({
         severity: 'amber',
@@ -1750,6 +1774,12 @@ export class AdminService {
         overdue: supportOverdue,
         p0Open: supportP0Open,
         lgpdOpen: supportLgpdOpen,
+        supportEmail,
+        privacyEmail,
+        supportEmailConfigured,
+        privacyEmailConfigured,
+        supportEmailDomainOk,
+        privacyEmailDomainOk,
       },
       revenue: {
         activeSubscriptions,
@@ -1773,6 +1803,10 @@ export class AdminService {
     if (key.startsWith(`${expectedPrefix}_test_`) || key === `${expectedPrefix}_test`) return 'test';
     if (key.startsWith(`${expectedPrefix}_live_`) || key === `${expectedPrefix}_live`) return 'live';
     return 'unknown';
+  }
+
+  private emailDomain(email: string): string {
+    return email.includes('@') ? email.split('@').pop()?.toLowerCase() || '' : '';
   }
 
   private formatAlphaRecommendations(analyses: AnalisePreco[]) {
