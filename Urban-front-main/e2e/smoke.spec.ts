@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { acceptCookieConsent } from './test-helpers';
 
 /**
  * Smoke tests - public production-safe checks.
@@ -6,6 +7,10 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Smoke - rotas publicas', () => {
+  test.beforeEach(async ({ page }) => {
+    await acceptCookieConsent(page);
+  });
+
   test('home responde e nao explode', async ({ page }) => {
     const response = await page.goto('/');
     expect(response?.status(), 'home should respond 200-ish').toBeLessThan(400);
@@ -47,6 +52,10 @@ test.describe('Smoke - rotas publicas', () => {
 });
 
 test.describe('Smoke - sinalizacoes de ambiente', () => {
+  test.beforeEach(async ({ page }) => {
+    await acceptCookieConsent(page);
+  });
+
   test('banner de STAGING aparece quando NEXT_PUBLIC_APP_ENV=staging', async ({ page, baseURL }) => {
     test.skip(
       !baseURL?.includes('staging'),
