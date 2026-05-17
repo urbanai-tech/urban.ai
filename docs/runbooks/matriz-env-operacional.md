@@ -14,8 +14,9 @@ Esta matriz consolida as variaveis encontradas no codigo e nos `.env.example`. V
 | Auth | `JWT_SECRET`, `JWT_EXPIRES_IN`, `COOKIE_DOMAIN`, `CORS_ALLOWED_ORIGINS`, `FRONT_BASE_URL` | Obrigatorio. `JWT_SECRET` nao tem fallback seguro. |
 | Redis/filas | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_TLS` | Obrigatorio quando Bull/processos estiver ativo. |
 | Observabilidade | `SENTRY_DSN` | Opcional em dev; recomendado/obrigatorio em staging/prod para operacao. |
-| Stripe | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUCCESS_URL`, `CANCEL_URL`, price IDs `*_PLAN` e `*_PRICE_*` | Obrigatorio antes de checkout/assinaturas. |
-| Email | `MAILERSEND_API_KEY`, `EMAIL_SENDER`, `RESET_PASS_URL`; legado: `SENDGRID_API_KEY`, `EMAIL_*` | Obrigatorio para reset, confirmacao e notificacoes transacionais. |
+| Stripe | `STRIPE_SECRET_KEY`, `STRIPE_PUBLIC_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUCCESS_URL`, `CANCEL_URL`, price IDs `*_PLAN` e `*_PRICE_*` | Obrigatorio antes de checkout/assinaturas. Validar com `npm run preflight:track3:strict` e `/admin/pricing-config`. |
+| Email | `MAILERSEND_API_KEY`, `EMAIL_SENDER`, `FRONT_URL`, `RESET_PASS_URL`; legado: `SENDGRID_API_KEY`, `EMAIL_*` | Obrigatorio para reset, confirmacao e notificacoes transacionais. |
+| Suporte/LGPD | `SUPPORT_EMAIL`, `PRIVACY_EMAIL`, `SUPPORT_OWNER_EMAIL`, `PRIVACY_OWNER_EMAIL` | Obrigatorio antes de beta pago; aparece em `/admin/dashboard` no Go-live Track 3. |
 | Maps/eventos | `GOOGLE_MAPS_API_KEY`, `RAPIDAPI_KEY`, `GEMINI_API_KEY`, `AIRBNB_GRAPHQL_HASH`, `MAPBOX_TOKEN` | Obrigatorio conforme rota/integracao ativada. |
 | Pricing | `PRICING_STRATEGY`, `PRICING_BOOTSTRAP_ON_BOOT` | Recomendado. Default atual cobre dev, mas prod deve ser explicito. |
 | Stays | `STAYS_API_BASE_URL`, `STAYS_TOKEN_ENCRYPTION_KEY` | `STAYS_TOKEN_ENCRYPTION_KEY` obrigatoria em staging/prod para criptografia em repouso. |
@@ -60,3 +61,4 @@ Esta matriz consolida as variaveis encontradas no codigo e nos `.env.example`. V
 - `SENTRY_DSN` deve ser diferente por ambiente para nao misturar erros de staging e prod.
 - Tokens Stays existentes em texto puro devem ser regravados apos configurar `STAYS_TOKEN_ENCRYPTION_KEY`; o transformer ainda le legado para permitir migracao gradual.
 - API keys externas podem ficar pendentes em dev/staging, desde que os fluxos dependentes nao sejam anunciados como prontos.
+- Para Track 3, rodar `npm run preflight:track3` em `urban-ai-backend-main` antes de smoke manual.
