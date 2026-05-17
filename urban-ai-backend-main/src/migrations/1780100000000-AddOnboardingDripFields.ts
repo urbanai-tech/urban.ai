@@ -15,6 +15,11 @@ export class AddOnboardingDripFields1780100000000 implements MigrationInterface 
   name = 'AddOnboardingDripFields1780100000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    const hasUserTable = await this.tableExists(queryRunner, 'user');
+    if (!hasUserTable) {
+      return;
+    }
+
     const hasLastDay = await this.columnExists(queryRunner, 'user', 'onboardingDripLastDay');
     if (!hasLastDay) {
       await queryRunner.query(
@@ -33,6 +38,11 @@ export class AddOnboardingDripFields1780100000000 implements MigrationInterface 
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    const hasUserTable = await this.tableExists(queryRunner, 'user');
+    if (!hasUserTable) {
+      return;
+    }
+
     const hasLastSent = await this.columnExists(queryRunner, 'user', 'onboardingDripLastSentAt');
     if (hasLastSent) {
       await queryRunner.query(
@@ -54,6 +64,15 @@ export class AddOnboardingDripFields1780100000000 implements MigrationInterface 
       `SELECT COUNT(*) AS c FROM information_schema.columns
        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
       [table, column],
+    );
+    return Number(result?.[0]?.c ?? 0) > 0;
+  }
+
+  private async tableExists(runner: QueryRunner, table: string): Promise<boolean> {
+    const result = await runner.query(
+      `SELECT COUNT(*) AS c FROM information_schema.tables
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?`,
+      [table],
     );
     return Number(result?.[0]?.c ?? 0) > 0;
   }
