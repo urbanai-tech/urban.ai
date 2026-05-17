@@ -63,7 +63,8 @@ test.describe('My plan billing view', () => {
     }
 
     await page.getByTestId('manage-billing-button').click();
-    await expect(page).toHaveURL(/\/billing-portal-e2e$/);
+    await page.waitForURL(/\/billing-portal-e2e$/, { waitUntil: 'commit' });
+    expect(page.url()).toMatch(/\/billing-portal-e2e$/);
   });
 
   test('mantem assinatura visivel quando quota falha', async ({ page }) => {
