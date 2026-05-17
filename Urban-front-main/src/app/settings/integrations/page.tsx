@@ -5,9 +5,11 @@ import {
   staysConnect,
   staysDisconnect,
   staysListListings,
+  staysPreviewPrice,
   staysSyncListings,
   type StaysAccountPublic,
   type StaysListingPublic,
+  type StaysPricePreview,
 } from "../../service/api";
 import {
   AppPageShell,
@@ -33,6 +35,17 @@ const operationModeLabels: Record<StaysListingPublic["operationMode"], string> =
 function formatStaysDate(value?: string | null) {
   if (!value) return "Não registrado";
   return new Date(value).toLocaleString("pt-BR");
+}
+
+function tomorrowIso() {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+  return date.toISOString().slice(0, 10);
+}
+
+function formatCurrency(cents?: number | null) {
+  if (typeof cents !== "number" || !Number.isFinite(cents)) return "sem preco";
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 }
 
 /**
@@ -62,6 +75,12 @@ export default function IntegrationsPage() {
   const [submitBusy, setSubmitBusy] = useState(false);
   const [resyncBusy, setResyncBusy] = useState(false);
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
+  const [previewListingId, setPreviewListingId] = useState("");
+  const [previewDate, setPreviewDate] = useState(tomorrowIso());
+  const [previewPrice, setPreviewPrice] = useState("");
+  const [previewBusy, setPreviewBusy] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [previewResult, setPreviewResult] = useState<StaysPricePreview | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -69,6 +88,9 @@ export default function IntegrationsPage() {
         const items = await staysListListings();
         setListings(items);
         if (items.length > 0) {
+          const firstActive = items.find((item) => item.active) ?? items[0];
+          setPreviewListingId(firstActive.id);
+          setPreviewPrice(firstActive.basePriceCents ? String(firstActive.basePriceCents / 100) : "");
           setAccount({
             id: "unknown",
             status: "active",
@@ -105,6 +127,11 @@ export default function IntegrationsPage() {
       setAccessToken("");
       const sync = await staysSyncListings();
       setListings(sync.listings);
+      const firstActive = sync.listings.find((item) => item.active) ?? sync.listings[0];
+      if (firstActive) {
+        setPreviewListingId(firstActive.id);
+        setPreviewPrice(firstActive.basePriceCents ? String(firstActive.basePriceCents / 100) : "");
+      }
     } catch (err) {
       const msg = (err as Error)?.message || "Erro ao conectar.";
       setSubmitError(msg);
@@ -125,14 +152,59 @@ export default function IntegrationsPage() {
     try {
       const sync = await staysSyncListings();
       setListings(sync.listings);
+      const selectedStillExists = sync.listings.some((item) => item.id === previewListingId);
+      if (!selectedStillExists) {
+        const firstActive = sync.listings.find((item) => item.active) ?? sync.listings[0];
+        setPreviewListingId(firstActive?.id ?? "");
+        setPreviewPrice(firstActive?.basePriceCents ? String(firstActive.basePriceCents / 100) : "");
+      }
     } finally {
       setResyncBusy(false);
+    }
+  }
+
+  async function handlePreviewPrice(e: React.FormEvent) {
+    e.preventDefault();
+    setPreviewError(null);
+    setPreviewResult(null);
+
+    const listing = listings.find((item) => item.id === previewListingId);
+    const priceReais = Number(String(previewPrice).replace(",", "."));
+    if (!listing) {
+      setPreviewError("Selecione um listing sincronizado.");
+      return;
+    }
+    if (!previewDate) {
+      setPreviewError("Informe a data alvo.");
+      return;
+    }
+    if (!Number.isFinite(priceReais) || priceReais <= 0) {
+      setPreviewError("Informe um preco valido em reais.");
+      return;
+    }
+
+    setPreviewBusy(true);
+    try {
+      const result = await staysPreviewPrice({
+        listingId: listing.id,
+        targetDate: previewDate,
+        previousPriceCents: listing.basePriceCents ?? null,
+        newPriceCents: Math.round(priceReais * 100),
+        currency: "BRL",
+      });
+      setPreviewResult(result);
+    } catch (err) {
+      const msg = (err as Error)?.message || "Nao foi possivel gerar o preview.";
+      setPreviewError(msg);
+    } finally {
+      setPreviewBusy(false);
     }
   }
 
   const activeListings = listings.filter((l) => l.active).length;
   const autoListings = listings.filter((l) => l.operationMode === "auto").length;
   const linkedListings = listings.filter((l) => Boolean(l.propriedadeId)).length;
+  const previewListing = listings.find((item) => item.id === previewListingId) ?? null;
 
   const isConnected = account && account.status !== "disconnected";
 
@@ -353,6 +425,142 @@ export default function IntegrationsPage() {
             />
           </div>
 
+          <AppCard variant="default" style={{ padding: 24, marginBottom: 32 }}>
+            <AppCardHeader
+              eyebrow="PREVIEW ANTES DO PUSH"
+              title="Validar preco sem chamar a Stays"
+              subtitle="Simule uma alteracao para ver variacao, bloqueios, replay idempotente e se o push real esta liberado no ambiente."
+            />
+            <form
+              onSubmit={handlePreviewPrice}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "minmax(220px, 2fr) minmax(150px, 1fr) minmax(160px, 1fr) auto",
+                gap: 12,
+                alignItems: "end",
+              }}
+            >
+              <label style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "var(--app-text)" }}>
+                  Listing
+                </span>
+                <select
+                  value={previewListingId}
+                  onChange={(e) => {
+                    const next = listings.find((item) => item.id === e.target.value);
+                    setPreviewListingId(e.target.value);
+                    setPreviewPrice(next?.basePriceCents ? String(next.basePriceCents / 100) : "");
+                    setPreviewResult(null);
+                  }}
+                  style={{
+                    minHeight: 42,
+                    border: "1px solid var(--app-divider-strong)",
+                    borderRadius: 8,
+                    padding: "0 12px",
+                    background: "var(--app-surface)",
+                    color: "var(--app-text)",
+                    fontSize: 14,
+                  }}
+                >
+                  {listings.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.title || item.staysListingId}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <AppInput
+                label="Data alvo"
+                type="date"
+                value={previewDate}
+                onChange={(e) => {
+                  setPreviewDate(e.target.value);
+                  setPreviewResult(null);
+                }}
+              />
+              <AppInput
+                label="Novo preco (R$)"
+                type="number"
+                min="1"
+                step="0.01"
+                value={previewPrice}
+                onChange={(e) => {
+                  setPreviewPrice(e.target.value);
+                  setPreviewResult(null);
+                }}
+                helper={previewListing ? `Base: ${formatCurrency(previewListing.basePriceCents)}` : undefined}
+              />
+              <AppButton type="submit" variant="primary" loading={previewBusy} disabled={!previewListingId}>
+                Preview
+              </AppButton>
+            </form>
+
+            {previewError && (
+              <div
+                role="alert"
+                style={{
+                  marginTop: 16,
+                  border: "1px solid rgba(194, 52, 46, 0.22)",
+                  background: "rgba(194, 52, 46, 0.06)",
+                  color: "var(--app-danger)",
+                  borderRadius: 8,
+                  padding: "10px 12px",
+                  fontSize: 13,
+                }}
+              >
+                {previewError}
+              </div>
+            )}
+
+            {previewResult && (
+              <div
+                style={{
+                  marginTop: 18,
+                  borderTop: "1px solid var(--app-divider)",
+                  paddingTop: 18,
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+                  gap: 12,
+                }}
+              >
+                <PreviewStat label="Atual" value={formatCurrency(previewResult.previousPriceCents)} />
+                <PreviewStat label="Novo" value={formatCurrency(previewResult.newPriceCents)} />
+                <PreviewStat
+                  label="Variacao"
+                  value={
+                    previewResult.diffPercent == null
+                      ? "sem baseline"
+                      : `${previewResult.diffPercent > 0 ? "+" : ""}${previewResult.diffPercent.toFixed(1)}%`
+                  }
+                />
+                <PreviewStat
+                  label="Guardrails"
+                  value={previewResult.withinGuardrails ? "ok" : "bloqueado"}
+                  tone={previewResult.withinGuardrails ? "success" : "danger"}
+                />
+                <PreviewStat
+                  label="Push real"
+                  value={previewResult.readyForPush ? "liberado" : "bloqueado"}
+                  tone={previewResult.readyForPush ? "success" : "warning"}
+                />
+                <PreviewStat
+                  label="Replay"
+                  value={previewResult.idempotentReplay ? "ja existe" : "novo"}
+                />
+                {(previewResult.blockers.length > 0 || previewResult.warnings.length > 0) && (
+                  <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: 8 }}>
+                    {previewResult.blockers.map((item) => (
+                      <PreviewIssue key={item.code} issue={item} tone="danger" />
+                    ))}
+                    {previewResult.warnings.map((item) => (
+                      <PreviewIssue key={item.code} issue={item} tone="warning" />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </AppCard>
+
           {/* === Listings detalhados === */}
           <section style={{ marginBottom: 32 }}>
             <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
@@ -519,5 +727,67 @@ export default function IntegrationsPage() {
         </>
       )}
     </AppPageShell>
+  );
+}
+
+function PreviewStat({
+  label,
+  value,
+  tone = "neutral",
+}: {
+  label: string;
+  value: string;
+  tone?: "neutral" | "success" | "warning" | "danger";
+}) {
+  const color =
+    tone === "success"
+      ? "var(--app-success)"
+      : tone === "warning"
+        ? "var(--app-warning)"
+        : tone === "danger"
+          ? "var(--app-danger)"
+          : "var(--app-text)";
+
+  return (
+    <div
+      style={{
+        border: "1px solid var(--app-divider)",
+        borderRadius: 8,
+        padding: "10px 12px",
+        background: "var(--app-surface-muted)",
+        minWidth: 0,
+      }}
+    >
+      <p style={{ margin: 0, fontSize: 11, color: "var(--app-text-muted)", fontWeight: 600 }}>
+        {label}
+      </p>
+      <p style={{ margin: "4px 0 0", fontSize: 14, color, fontWeight: 700 }}>
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function PreviewIssue({
+  issue,
+  tone,
+}: {
+  issue: { code: string; message: string };
+  tone: "warning" | "danger";
+}) {
+  return (
+    <div
+      style={{
+        border: `1px solid ${tone === "danger" ? "rgba(194, 52, 46, 0.22)" : "rgba(200, 129, 14, 0.24)"}`,
+        background: tone === "danger" ? "rgba(194, 52, 46, 0.06)" : "rgba(200, 129, 14, 0.08)",
+        color: tone === "danger" ? "var(--app-danger)" : "var(--app-warning)",
+        borderRadius: 8,
+        padding: "10px 12px",
+        fontSize: 13,
+        lineHeight: 1.45,
+      }}
+    >
+      <strong>{issue.code}</strong>: {issue.message}
+    </div>
   );
 }
