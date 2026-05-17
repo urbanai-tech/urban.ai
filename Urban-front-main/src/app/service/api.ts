@@ -3286,3 +3286,200 @@ export async function fetchMarketIntel(
     return generateMarketIntelMock(input);
   }
 }
+
+// === Gap 7 — AskUrban ===
+//
+// Assistente conversacional do anfitrião — drawer global acionado via
+// Cmd+J / Ctrl+J. Backend ainda nao existe, entao por padrao opera em modo
+// mock determinístico (`NEXT_PUBLIC_ASK_MOCK_DATA` default = 'true').
+//
+// Quando o backend estiver de pé:
+//   - GET    /ask/usage           → AskUsageResponse
+//   - POST   /ask/question        body = AskRequestInput → AskResponse
+//   - POST   /ask/feedback        body = { messageId, vote } → { ok: true }
+
+export type AskCitation = { id: string; label: string; url?: string };
+
+export type AskMessage = {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  citations?: AskCitation[];
+  feedback?: 'up' | 'down';
+  createdAt: string;
+};
+
+export type AskUsageResponse = {
+  used: number;
+  quota: number;
+  hardCap: number;
+};
+
+export type AskRequestInput = {
+  question: string;
+  conversationId?: string;
+};
+
+export type AskResponse = {
+  messageId: string;
+  conversationId: string;
+  content: string;
+  citations: AskCitation[];
+  usage: AskUsageResponse;
+};
+
+const ASK_USE_MOCK =
+  (process.env.NEXT_PUBLIC_ASK_MOCK_DATA ?? 'true').toLowerCase() !== 'false';
+
+// Estado mockado in-memory por sessao — sobrevive a renders, mas nao a refresh.
+const _askMockState: {
+  usage: AskUsageResponse;
+  conversationId: string | null;
+} = {
+  usage: { used: 12, quota: 100, hardCap: 200 },
+  conversationId: null,
+};
+
+function _askGenId(prefix: string): string {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random()
+    .toString(36)
+    .slice(2, 8)}`;
+}
+
+/**
+ * Determinismo por keyword — uma resposta "rica" pra cada uma das 4 sugestoes
+ * iniciais, mais um fallback genérico quando nada bate.
+ */
+function _askPickResponse(question: string): {
+  content: string;
+  citations: AskCitation[];
+} {
+  const q = question.toLowerCase();
+
+  if (q.includes('receita') || q.includes('projetada') || q.includes('projecao')) {
+    return {
+      content:
+        'A receita projetada do próximo mês está em R$ 38.420, alta de 6% vs o atual. O driver principal é a Festa Junina (3 dias com pico de demanda), seguido por dois finais de semana de eventos corporativos em Pinheiros. Sugestão: aceitar as 11 recomendações pendentes pode adicionar +R$ 2.150.',
+      citations: [
+        { id: 'cit-1', label: 'Forecast mensal · Painel', url: '/painel' },
+        {
+          id: 'cit-2',
+          label: 'Sugestões pendentes',
+          url: '/portfolio',
+        },
+        { id: 'cit-3', label: 'Eventos próximos', url: '/near-events' },
+      ],
+    };
+  }
+
+  if (q.includes('ocupa') || q.includes('comp') || q.includes('benchmark')) {
+    return {
+      content:
+        'Sua ocupação dos últimos 30 dias está em 78%, contra mediana 71% do comp set de Pinheiros (10 comparáveis). Você está no percentil 73 do bairro e subiu 4 pontos nos últimos 30 dias. ADR também acima da mediana: R$ 412 vs R$ 389.',
+      citations: [
+        {
+          id: 'cit-1',
+          label: 'Comp set · Market Intel',
+          url: '/properties',
+        },
+        { id: 'cit-2', label: 'Pace 30d', url: '/painel' },
+        { id: 'cit-3', label: 'Histórico ocupação', url: '/portfolio' },
+      ],
+    };
+  }
+
+  if (q.includes('evento') || q.includes('impact')) {
+    return {
+      content:
+        'Nos próximos 45 dias identifiquei 4 eventos com impacto provável: Festa Junina USP (alta), Show Allianz Parque (alta), Congresso Médico Expo Center Norte (média) e Feira Couromoda (baixa). Os dois primeiros já têm sugestão de aumento ativa nos imóveis próximos.',
+      citations: [
+        { id: 'cit-1', label: 'Eventos próximos', url: '/near-events' },
+        {
+          id: 'cit-2',
+          label: 'Sugestões geradas',
+          url: '/portfolio',
+        },
+        { id: 'cit-3', label: 'Histórico de eventos', url: '/event-log' },
+      ],
+    };
+  }
+
+  if (
+    q.includes('semana passada') ||
+    q.includes('airbnb') ||
+    q.includes('perform')
+  ) {
+    return {
+      content:
+        'Semana passada: 6 reservas, R$ 8.940 em receita (alta de 12% vs semana anterior). ADR médio R$ 408. Ocupação 82%. Conversão de visualização → reserva subiu para 3.1%. Recomendação aplicada na quarta-feira gerou +R$ 320 acima do benchmark.',
+      citations: [
+        { id: 'cit-1', label: 'Painel · Semana 19', url: '/painel' },
+        { id: 'cit-2', label: 'Meu ROI', url: '/my-roi' },
+        { id: 'cit-3', label: 'Calendário', url: '/dashboard' },
+      ],
+    };
+  }
+
+  return {
+    content:
+      'Boa pergunta. Ainda estou em beta — consigo responder sobre receita projetada, ocupação vs comp set, eventos próximos e performance recente do seu portfólio. Tente reformular ou clique em uma das sugestões do início.',
+    citations: [
+      { id: 'cit-1', label: 'Painel', url: '/painel' },
+      { id: 'cit-2', label: 'Portfólio', url: '/portfolio' },
+    ],
+  };
+}
+
+export async function fetchAskUsage(): Promise<AskUsageResponse> {
+  if (ASK_USE_MOCK) {
+    return { ..._askMockState.usage };
+  }
+  const { data } = await api.get<AskUsageResponse>('/ask/usage');
+  return data;
+}
+
+export async function postAskQuestion(
+  input: AskRequestInput,
+): Promise<AskResponse> {
+  if (ASK_USE_MOCK) {
+    const latency = 800 + Math.floor(Math.random() * 700); // 800-1500ms
+    await new Promise((resolve) => setTimeout(resolve, latency));
+
+    if (_askMockState.usage.used >= _askMockState.usage.hardCap) {
+      throw new Error('Hard cap diário atingido');
+    }
+
+    _askMockState.usage = {
+      ..._askMockState.usage,
+      used: _askMockState.usage.used + 1,
+    };
+
+    if (!_askMockState.conversationId) {
+      _askMockState.conversationId = _askGenId('conv');
+    }
+
+    const { content, citations } = _askPickResponse(input.question);
+    return {
+      messageId: _askGenId('msg'),
+      conversationId: input.conversationId ?? _askMockState.conversationId,
+      content,
+      citations,
+      usage: { ..._askMockState.usage },
+    };
+  }
+
+  const { data } = await api.post<AskResponse>('/ask/question', input);
+  return data;
+}
+
+export async function submitAskFeedback(
+  messageId: string,
+  vote: 'up' | 'down',
+): Promise<{ ok: true }> {
+  if (ASK_USE_MOCK) {
+    await new Promise((resolve) => setTimeout(resolve, 180));
+    return { ok: true };
+  }
+  await api.post('/ask/feedback', { messageId, vote });
+  return { ok: true };
+}
