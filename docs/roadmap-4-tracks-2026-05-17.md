@@ -8,10 +8,10 @@ Status consolidado da squad multiagente para execucao do roadmap Urban AI.
 |---|---|---|---:|---|
 | Track 1 | Dev 1 | Release, CI, deploy, Railway, coordenacao e evidencias | 79% | Workflow raiz corrigido e typecheck front/back passou; ainda precisa commit/push, Railway verde e smoke autenticado configurado. |
 | Track 2 | Dev 2 | Core de valor: eventos, geocoder, recomendacao, dataset e ROI | 72% | Codigo avancado; prova real depende de Geocoding API, backfill, coletores, reprocess e ground truth. |
-| Track 3 | Dev 3 | Monetizacao e integracoes: Stripe, MailerSend, Stays, LGPD e suporte | 74% | Suporte/LGPD agora tem triagem, SLA, canais e painel; Stays tem preview antes do push tambem na UI; MailerSend e Stripe test/live aparecem no readiness. Smoke real Stripe/MailerSend/Stays ainda depende de credenciais. |
+| Track 3 | Dev 3 | Monetizacao e integracoes: Stripe, MailerSend, Stays, LGPD e suporte | 75% | Suporte/LGPD agora tem triagem, SLA, canais e painel; Stays tem preview antes do push tambem na UI; dashboard consolida go-live Track 3 para Stripe/MailerSend/Stays/Suporte. Smoke real Stripe/MailerSend/Stays ainda depende de credenciais. |
 | Track 4 | Dev 4 | UX, admin, QA, Playwright, design system e smokes | 81% | Base premium forte; mutacoes reais e auditoria visual automatizada ainda precisam virar gate. |
 
-**Prontidao geral:** 76%.
+**Prontidao geral:** 77%.
 
 ## Track 1 - Dev 1
 

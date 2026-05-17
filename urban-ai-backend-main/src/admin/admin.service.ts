@@ -1522,6 +1522,27 @@ export class AdminService {
     }
     const pricingCoveragePercent =
       activeAddresses > 0 ? Math.round((activeWithFuturePricing / activeAddresses) * 1000) / 10 : 0;
+    const integrationsReadiness = this.buildTrack3Readiness({
+      stripeSecretMode,
+      stripePublishableMode,
+      stripeSecretConfigured: Boolean(stripeSecretKey),
+      stripeWebhookConfigured,
+      stripePublishableConfigured,
+      stripeModeMismatch,
+      mailerSendApiKeyConfigured,
+      emailSenderConfigured,
+      senderUsesUrbanDomain,
+      frontUrlConfigured,
+      staysApiBaseConfigured: Boolean(process.env.STAYS_API_BASE_URL),
+      staysTokenEncryptionConfigured: Boolean(process.env.STAYS_TOKEN_ENCRYPTION_KEY),
+      supportP0Open,
+      supportOverdue,
+      supportLgpdOpen,
+      supportEmailConfigured,
+      privacyEmailConfigured,
+      supportEmailDomainOk,
+      privacyEmailDomainOk,
+    });
 
     if (eventsNext30d < 100) {
       alerts.push({
@@ -1781,6 +1802,7 @@ export class AdminService {
         supportEmailDomainOk,
         privacyEmailDomainOk,
       },
+      integrationsReadiness,
       revenue: {
         activeSubscriptions,
       },
@@ -1807,6 +1829,90 @@ export class AdminService {
 
   private emailDomain(email: string): string {
     return email.includes('@') ? email.split('@').pop()?.toLowerCase() || '' : '';
+  }
+
+  private buildTrack3Readiness(input: {
+    stripeSecretMode: 'test' | 'live' | 'unknown' | 'missing';
+    stripePublishableMode: 'test' | 'live' | 'unknown' | 'missing';
+    stripeSecretConfigured: boolean;
+    stripeWebhookConfigured: boolean;
+    stripePublishableConfigured: boolean;
+    stripeModeMismatch: boolean;
+    mailerSendApiKeyConfigured: boolean;
+    emailSenderConfigured: boolean;
+    senderUsesUrbanDomain: boolean;
+    frontUrlConfigured: boolean;
+    staysApiBaseConfigured: boolean;
+    staysTokenEncryptionConfigured: boolean;
+    supportP0Open: number;
+    supportOverdue: number;
+    supportLgpdOpen: number;
+    supportEmailConfigured: boolean;
+    privacyEmailConfigured: boolean;
+    supportEmailDomainOk: boolean;
+    privacyEmailDomainOk: boolean;
+  }) {
+    const stripeBlockers: string[] = [];
+    if (!input.stripeSecretConfigured) stripeBlockers.push('STRIPE_SECRET_KEY ausente');
+    if (!input.stripeWebhookConfigured) stripeBlockers.push('STRIPE_WEBHOOK_SECRET ausente');
+    if (!input.stripePublishableConfigured) stripeBlockers.push('Publishable key Stripe ausente');
+    if (input.stripeSecretMode === 'unknown') stripeBlockers.push('Secret key Stripe com modo desconhecido');
+    if (input.stripePublishableMode === 'unknown') stripeBlockers.push('Publishable key Stripe com modo desconhecido');
+    if (input.stripeModeMismatch) stripeBlockers.push('Secret e publishable key Stripe em modos diferentes');
+
+    const emailBlockers: string[] = [];
+    if (!input.mailerSendApiKeyConfigured) emailBlockers.push('MAILERSEND_API_KEY ausente');
+    if (!input.emailSenderConfigured) emailBlockers.push('EMAIL_SENDER ausente');
+    if (!input.senderUsesUrbanDomain) emailBlockers.push('Sender fora do dominio myurbanai.com');
+    if (!input.frontUrlConfigured) emailBlockers.push('FRONT_URL ausente');
+
+    const staysBlockers: string[] = [];
+    if (!input.staysApiBaseConfigured) staysBlockers.push('STAYS_API_BASE_URL ausente');
+    if (!input.staysTokenEncryptionConfigured) staysBlockers.push('STAYS_TOKEN_ENCRYPTION_KEY ausente');
+
+    const supportBlockers: string[] = [];
+    if (input.supportP0Open > 0) supportBlockers.push(`${input.supportP0Open} ticket(s) P0 abertos`);
+    if (input.supportOverdue > 0) supportBlockers.push(`${input.supportOverdue} ticket(s) com SLA vencido`);
+    if (!input.supportEmailConfigured) supportBlockers.push('SUPPORT_EMAIL ausente');
+    if (!input.privacyEmailConfigured) supportBlockers.push('PRIVACY_EMAIL ausente');
+    if (!input.supportEmailDomainOk || !input.privacyEmailDomainOk) {
+      supportBlockers.push('Canais suporte/privacidade fora do dominio myurbanai.com');
+    }
+    if (input.supportLgpdOpen > 0) {
+      supportBlockers.push(`${input.supportLgpdOpen} pedido(s) LGPD exigem acompanhamento`);
+    }
+
+    return {
+      stripe: this.readinessItem(
+        'Stripe',
+        stripeBlockers,
+        'Configurar chaves test/live coerentes e rodar checkout + webhook em test mode.',
+      ),
+      email: this.readinessItem(
+        'MailerSend',
+        emailBlockers,
+        'Validar dominio, DKIM/SPF e envio real transacional.',
+      ),
+      stays: this.readinessItem(
+        'Stays',
+        staysBlockers,
+        'Configurar sandbox/API oficial e executar smoke beta privado.',
+      ),
+      support: this.readinessItem(
+        'Suporte & LGPD',
+        supportBlockers,
+        'Confirmar donos operacionais e zerar P0/SLA vencido antes do beta pago.',
+      ),
+    };
+  }
+
+  private readinessItem(label: string, blockers: string[], nextAction: string) {
+    return {
+      label,
+      status: blockers.length === 0 ? 'ready' : 'blocked',
+      blockers,
+      nextAction: blockers.length === 0 ? 'Executar smoke real e anexar evidencia.' : nextAction,
+    };
   }
 
   private formatAlphaRecommendations(analyses: AnalisePreco[]) {

@@ -327,3 +327,80 @@ describe('AdminService staysHealth', () => {
     expect(result.pushLast30d).toEqual([{ status: 'success', count: 2 }]);
   });
 });
+
+describe('AdminService Track 3 readiness', () => {
+  it('lists blockers for missing credentials and support gaps', () => {
+    const service = makeService(makeEventRepo([])) as any;
+
+    const result = service.buildTrack3Readiness({
+      stripeSecretMode: 'missing',
+      stripePublishableMode: 'missing',
+      stripeSecretConfigured: false,
+      stripeWebhookConfigured: false,
+      stripePublishableConfigured: false,
+      stripeModeMismatch: false,
+      mailerSendApiKeyConfigured: false,
+      emailSenderConfigured: false,
+      senderUsesUrbanDomain: false,
+      frontUrlConfigured: false,
+      staysApiBaseConfigured: false,
+      staysTokenEncryptionConfigured: false,
+      supportP0Open: 1,
+      supportOverdue: 2,
+      supportLgpdOpen: 1,
+      supportEmailConfigured: false,
+      privacyEmailConfigured: false,
+      supportEmailDomainOk: true,
+      privacyEmailDomainOk: true,
+    });
+
+    expect(result.stripe).toMatchObject({
+      status: 'blocked',
+      blockers: expect.arrayContaining([
+        'STRIPE_SECRET_KEY ausente',
+        'STRIPE_WEBHOOK_SECRET ausente',
+        'Publishable key Stripe ausente',
+      ]),
+    });
+    expect(result.email.blockers).toContain('MAILERSEND_API_KEY ausente');
+    expect(result.stays.blockers).toEqual([
+      'STAYS_API_BASE_URL ausente',
+      'STAYS_TOKEN_ENCRYPTION_KEY ausente',
+    ]);
+    expect(result.support.blockers).toEqual(
+      expect.arrayContaining([
+        '1 ticket(s) P0 abertos',
+        '2 ticket(s) com SLA vencido',
+        '1 pedido(s) LGPD exigem acompanhamento',
+      ]),
+    );
+  });
+
+  it('marks integrations ready when no blockers remain', () => {
+    const service = makeService(makeEventRepo([])) as any;
+
+    const result = service.buildTrack3Readiness({
+      stripeSecretMode: 'test',
+      stripePublishableMode: 'test',
+      stripeSecretConfigured: true,
+      stripeWebhookConfigured: true,
+      stripePublishableConfigured: true,
+      stripeModeMismatch: false,
+      mailerSendApiKeyConfigured: true,
+      emailSenderConfigured: true,
+      senderUsesUrbanDomain: true,
+      frontUrlConfigured: true,
+      staysApiBaseConfigured: true,
+      staysTokenEncryptionConfigured: true,
+      supportP0Open: 0,
+      supportOverdue: 0,
+      supportLgpdOpen: 0,
+      supportEmailConfigured: true,
+      privacyEmailConfigured: true,
+      supportEmailDomainOk: true,
+      privacyEmailDomainOk: true,
+    });
+
+    expect(Object.values(result).every((item: any) => item.status === 'ready')).toBe(true);
+  });
+});
