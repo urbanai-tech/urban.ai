@@ -33,7 +33,7 @@ export class ContactSubmissionsController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('admin', 'support')
   @ApiOperation({ summary: 'Listar mensagens de contato no admin' })
   @Get('admin/contact-submissions')
   list(
@@ -52,7 +52,7 @@ export class ContactSubmissionsController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('admin', 'support')
   @ApiOperation({ summary: 'Atualizar status e notas de uma mensagem de contato' })
   @Patch('admin/contact-submissions/:id')
   async update(
@@ -66,7 +66,14 @@ export class ContactSubmissionsController {
       action: 'contact_submission.update',
       entityType: 'contact_submission',
       entityId: id,
-      after: { status: result.status, notes: result.notes },
+      after: {
+        status: result.status,
+        category: result.category,
+        severity: result.severity,
+        dueAt: result.dueAt,
+        assignedOwner: result.assignedOwner,
+        notes: result.notes,
+      },
     });
     return result;
   }

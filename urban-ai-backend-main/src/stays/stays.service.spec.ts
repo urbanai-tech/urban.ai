@@ -169,6 +169,95 @@ describe('StaysService', () => {
     });
   });
 
+  describe('previewPrice', () => {
+    function withActiveAccount(overrides: Partial<StaysAccount> = {}) {
+      const user = { id: 'u1' };
+      const account = {
+        id: 'acc-1',
+        user,
+        accessToken: 't',
+        status: 'active',
+        maxIncreasePercent: 25,
+        maxDecreasePercent: 20,
+        ...overrides,
+      } as any;
+      accountRepo.findOne!.mockResolvedValue(account);
+      return { user, account };
+    }
+
+    function withListing(listingId = 'l-1', basePriceCents = 10000) {
+      const listing = {
+        id: listingId,
+        staysListingId: `stays-${listingId}`,
+        title: 'Apto Centro',
+        account: { id: 'acc-1' },
+        active: true,
+        basePriceCents,
+      };
+      listingRepo.findOne!.mockResolvedValue(listing);
+      return listing;
+    }
+
+    it('returns guardrail blockers without calling the external connector', async () => {
+      withActiveAccount();
+      withListing();
+      priceUpdateRepo.findOne!.mockResolvedValue(null);
+
+      const result = await service.previewPrice('u1', {
+        listingId: 'l-1',
+        targetDate: '2026-06-01',
+        previousPriceCents: 10000,
+        newPriceCents: 13000,
+      });
+
+      expect(result.readyForPush).toBe(false);
+      expect(result.withinGuardrails).toBe(false);
+      expect(result.blockers.map((b) => b.code)).toContain('increase_cap_exceeded');
+      expect(connector.pushPrice).not.toHaveBeenCalled();
+      expect(priceUpdateRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('uses the listing base price as baseline and flags idempotent replay', async () => {
+      withActiveAccount();
+      withListing('l-1', 10000);
+      priceUpdateRepo.findOne!.mockResolvedValue({ id: 'pu-existing' });
+
+      const result = await service.previewPrice('u1', {
+        listingId: 'l-1',
+        targetDate: '2026-06-01',
+        newPriceCents: 11500,
+      });
+
+      expect(result).toMatchObject({
+        previousPriceCents: 10000,
+        diffCents: 1500,
+        diffPercent: 15,
+        readyForPush: true,
+        existingPriceUpdateId: 'pu-existing',
+        idempotentReplay: true,
+      });
+      expect(connector.pushPrice).not.toHaveBeenCalled();
+    });
+
+    it('keeps preview available when push env is missing, but marks it not ready for push', async () => {
+      delete process.env.STAYS_API_BASE_URL;
+      withActiveAccount();
+      withListing('l-1', 10000);
+      priceUpdateRepo.findOne!.mockResolvedValue(null);
+
+      const result = await service.previewPrice('u1', {
+        listingId: 'l-1',
+        targetDate: '2026-06-01',
+        newPriceCents: 11000,
+      });
+
+      expect(result.blockers).toHaveLength(0);
+      expect(result.readyForPush).toBe(false);
+      expect(result.warnings.map((w) => w.code)).toContain('stays_api_base_url_missing');
+      expect(connector.pushPrice).not.toHaveBeenCalled();
+    });
+  });
+
   describe('pushPrice — guardrails de variação', () => {
     function withActiveAccount(overrides: Partial<StaysAccount> = {}) {
       const user = { id: 'u1' };

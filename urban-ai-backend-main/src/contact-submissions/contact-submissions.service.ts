@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
   ContactSubmission,
+  ContactSubmissionCategory,
+  ContactSubmissionSeverity,
   ContactSubmissionStatus,
 } from '../entities/contact-submission.entity';
 import { CreateContactSubmissionDto } from './dto/create-contact-submission.dto';
@@ -28,6 +30,12 @@ export class ContactSubmissionsService {
       throw new BadRequestException('Campos obrigatorios ausentes');
     }
 
+    const triage = this.classify({
+      source: input.source,
+      subject,
+      message,
+    });
+
     const submission = this.repo.create({
       name,
       email,
@@ -35,6 +43,11 @@ export class ContactSubmissionsService {
       message,
       source: input.source?.trim().slice(0, 80) || 'public-contact',
       status: 'new',
+      category: triage.category,
+      severity: triage.severity,
+      dueAt: triage.dueAt,
+      resolvedAt: null,
+      assignedOwner: null,
       notes: null,
       ipAddress: meta.ipAddress?.slice(0, 80) ?? null,
       userAgent: meta.userAgent ?? null,
@@ -75,6 +88,10 @@ export class ContactSubmissionsService {
 
     const [items, total] = await qb.getManyAndCount();
     const rawStatusCounts = await statusQb.getRawMany();
+    const [rawCategoryCounts, rawSeverityCounts] = await Promise.all([
+      this.countGroupedBy('category', search),
+      this.countGroupedBy('severity', search),
+    ]);
 
     return {
       page,
@@ -82,6 +99,14 @@ export class ContactSubmissionsService {
       total,
       byStatus: rawStatusCounts.map((row: any) => ({
         status: row.status as ContactSubmissionStatus,
+        count: Number(row.count ?? 0),
+      })),
+      byCategory: rawCategoryCounts.map((row: any) => ({
+        category: row.category as ContactSubmissionCategory,
+        count: Number(row.count ?? 0),
+      })),
+      bySeverity: rawSeverityCounts.map((row: any) => ({
+        severity: row.severity as ContactSubmissionSeverity,
         count: Number(row.count ?? 0),
       })),
       items,
@@ -96,6 +121,24 @@ export class ContactSubmissionsService {
 
     if (input.status) {
       submission.status = input.status;
+      submission.resolvedAt =
+        input.status === 'resolved' || input.status === 'archived'
+          ? submission.resolvedAt ?? new Date()
+          : null;
+    }
+
+    if (input.category) {
+      submission.category = input.category;
+      submission.dueAt = this.resolveDueAt(input.category, input.severity ?? submission.severity);
+    }
+
+    if (input.severity) {
+      submission.severity = input.severity;
+      submission.dueAt = this.resolveDueAt(input.category ?? submission.category, input.severity);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(input, 'assignedOwner')) {
+      submission.assignedOwner = input.assignedOwner?.trim() || null;
     }
 
     if (Object.prototype.hasOwnProperty.call(input, 'notes')) {
@@ -112,5 +155,94 @@ export class ContactSubmissionsService {
       `(LOWER(c.name) LIKE :like OR LOWER(c.email) LIKE :like OR LOWER(c.subject) LIKE :like OR LOWER(c.message) LIKE :like)`,
       { like },
     );
+  }
+
+  private async countGroupedBy(field: 'category' | 'severity', search?: string) {
+    const qb = this.repo
+      .createQueryBuilder('c')
+      .select(`c.${field}`, field)
+      .addSelect('COUNT(*)', 'count')
+      .groupBy(`c.${field}`);
+    this.applySearch(qb, search);
+    return qb.getRawMany();
+  }
+
+  private classify(input: {
+    source?: string | null;
+    subject?: string | null;
+    message?: string | null;
+  }): {
+    category: ContactSubmissionCategory;
+    severity: ContactSubmissionSeverity;
+    dueAt: Date;
+  } {
+    const text = this.normalize(`${input.source ?? ''} ${input.subject ?? ''} ${input.message ?? ''}`);
+    const has = (terms: string[]) => terms.some((term) => text.includes(term));
+
+    let category: ContactSubmissionCategory = 'support';
+    if (has(['lgpd', 'privacidade', 'dados pessoais', 'exclusao', 'excluir meus dados', 'portabilidade', 'revogar consentimento'])) {
+      category = 'privacy_lgpd';
+    } else if (has(['stripe', 'pagamento', 'cobranca', 'checkout', 'assinatura', 'cancelamento', 'reembolso', 'fatura'])) {
+      category = 'billing';
+    } else if (has(['stays', 'automatico', 'integracao', 'rollback', 'push de preco'])) {
+      category = 'stays';
+    } else if (has(['vazamento', 'dado exposto', 'login indisponivel', 'fora do ar', 'push indevido', 'cobrou errado'])) {
+      category = 'incident';
+    } else if (has(['parceria', 'partner', 'stays', 'pmc', 'administradora'])) {
+      category = 'partnership';
+    } else if (has(['demo', 'beta', 'preco', 'precos', 'contratar', 'comercial', 'quero testar'])) {
+      category = 'sales';
+    }
+
+    const severity = this.resolveSeverity(category, text);
+    return {
+      category,
+      severity,
+      dueAt: this.resolveDueAt(category, severity),
+    };
+  }
+
+  private resolveSeverity(
+    category: ContactSubmissionCategory,
+    text: string,
+  ): ContactSubmissionSeverity {
+    if (
+      category === 'incident' ||
+      text.includes('vazamento') ||
+      text.includes('push indevido') ||
+      text.includes('cobrou errado')
+    ) {
+      return 'P0';
+    }
+    if (category === 'billing' || category === 'privacy_lgpd' || category === 'stays') {
+      return 'P1';
+    }
+    if (category === 'sales' || category === 'partnership') {
+      return 'P3';
+    }
+    return 'P2';
+  }
+
+  private resolveDueAt(
+    category: ContactSubmissionCategory,
+    severity: ContactSubmissionSeverity,
+  ): Date {
+    const now = new Date();
+    const addMs = (ms: number) => new Date(now.getTime() + ms);
+    const hour = 60 * 60 * 1000;
+    const day = 24 * hour;
+
+    if (category === 'privacy_lgpd') return addMs(15 * day);
+    if (severity === 'P0') return addMs(2 * hour);
+    if (severity === 'P1') return addMs(day);
+    if (severity === 'P2') return addMs(2 * day);
+    return addMs(7 * day);
+  }
+
+  private normalize(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
   }
 }

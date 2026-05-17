@@ -29,6 +29,40 @@ export interface PushPriceInput {
   userAgent?: string;
 }
 
+export interface PreviewPriceInput {
+  listingId: string;
+  targetDate: string;     // YYYY-MM-DD
+  newPriceCents: number;
+  previousPriceCents?: number | null;
+  currency?: string;
+  analisePrecoId?: string;
+}
+
+export interface PricePreviewIssue {
+  code: string;
+  message: string;
+}
+
+export interface PricePreviewResult {
+  listingId: string;
+  staysListingId: string;
+  title: string | null;
+  targetDate: string;
+  previousPriceCents: number;
+  newPriceCents: number;
+  currency: string;
+  diffCents: number;
+  diffPercent: number | null;
+  maxIncreasePercent: number;
+  maxDecreasePercent: number;
+  withinGuardrails: boolean;
+  readyForPush: boolean;
+  blockers: PricePreviewIssue[];
+  warnings: PricePreviewIssue[];
+  existingPriceUpdateId: string | null;
+  idempotentReplay: boolean;
+}
+
 @Injectable()
 export class StaysService {
   private readonly logger = new Logger(StaysService.name);
@@ -156,6 +190,104 @@ export class StaysService {
   }
 
   // =========== Push price (core do modo autônomo) ===========
+
+  async previewPrice(userId: string, input: PreviewPriceInput): Promise<PricePreviewResult> {
+    const currency = input.currency || 'BRL';
+    const blockers: PricePreviewIssue[] = [];
+    const warnings: PricePreviewIssue[] = [];
+
+    const account = await this.accountRepo.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
+    if (!account) throw new NotFoundException('Conta Stays nao encontrada.');
+    if (account.status !== 'active') {
+      blockers.push({
+        code: 'account_not_active',
+        message: 'Conta Stays nao esta ativa. Reconecte antes de aplicar precos.',
+      });
+    }
+
+    const listing = await this.listingRepo.findOne({
+      where: { id: input.listingId, account: { id: account.id } },
+    });
+    if (!listing) throw new NotFoundException('Listing Stays nao encontrado para este usuario.');
+    if (!listing.active) {
+      blockers.push({
+        code: 'listing_inactive',
+        message: 'Listing Stays esta inativo.',
+      });
+    }
+
+    if (!this.isValidTargetDate(input.targetDate)) {
+      blockers.push({
+        code: 'invalid_target_date',
+        message: 'targetDate deve estar no formato YYYY-MM-DD.',
+      });
+    }
+
+    if (!Number.isInteger(input.newPriceCents) || input.newPriceCents <= 0) {
+      blockers.push({
+        code: 'invalid_new_price',
+        message: 'newPriceCents deve ser um inteiro positivo.',
+      });
+    }
+
+    const previousPriceCents = input.previousPriceCents ?? listing.basePriceCents ?? 0;
+    if (previousPriceCents <= 0) {
+      warnings.push({
+        code: 'missing_previous_price',
+        message: 'Sem preco anterior confiavel; a variacao percentual nao sera limitada por baseline.',
+      });
+    }
+
+    const variation = this.evaluateVariationCaps(previousPriceCents, input.newPriceCents, account);
+    blockers.push(...variation.blockers);
+
+    if (!process.env.STAYS_API_BASE_URL) {
+      warnings.push({
+        code: 'stays_api_base_url_missing',
+        message: 'STAYS_API_BASE_URL nao esta configurada; preview liberado, push real bloqueado.',
+      });
+    }
+
+    let existing: PriceUpdate | null = null;
+    if (
+      this.isValidTargetDate(input.targetDate) &&
+      Number.isInteger(input.newPriceCents) &&
+      input.newPriceCents > 0
+    ) {
+      const idempotencyKey = this.buildIdempotencyKey(
+        listing.staysListingId,
+        input.targetDate,
+        input.newPriceCents,
+      );
+      existing = await this.priceUpdateRepo.findOne({ where: { idempotencyKey } });
+    }
+
+    const guardrailBlockers = new Set(['increase_cap_exceeded', 'decrease_cap_exceeded']);
+    const withinGuardrails = !blockers.some((issue) => guardrailBlockers.has(issue.code));
+
+    return {
+      listingId: listing.id,
+      staysListingId: listing.staysListingId,
+      title: listing.title ?? null,
+      targetDate: input.targetDate,
+      previousPriceCents,
+      newPriceCents: input.newPriceCents,
+      currency,
+      diffCents: variation.diffCents,
+      diffPercent: variation.diffPercent,
+      maxIncreasePercent: account.maxIncreasePercent,
+      maxDecreasePercent: account.maxDecreasePercent,
+      withinGuardrails,
+      readyForPush: blockers.length === 0 && Boolean(process.env.STAYS_API_BASE_URL),
+      blockers,
+      warnings,
+      existingPriceUpdateId: existing?.id ?? null,
+      idempotentReplay: Boolean(existing),
+    };
+  }
 
   /**
    * Aplica as regras de guardrail antes de chamar a API:
@@ -304,23 +436,49 @@ export class StaysService {
     return crypto.createHash('sha256').update(raw).digest('hex').slice(0, 48);
   }
 
+  private isValidTargetDate(date: string): boolean {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+    const parsed = new Date(`${date}T00:00:00.000Z`);
+    return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
+  }
+
+  private evaluateVariationCaps(
+    previousCents: number,
+    newCents: number,
+    account: StaysAccount,
+  ): { diffCents: number; diffPercent: number | null; blockers: PricePreviewIssue[] } {
+    const diffCents = newCents - previousCents;
+    if (previousCents <= 0) {
+      return { diffCents, diffPercent: null, blockers: [] };
+    }
+
+    const diffPercent = (diffCents / previousCents) * 100;
+    const blockers: PricePreviewIssue[] = [];
+
+    if (diffPercent > account.maxIncreasePercent) {
+      blockers.push({
+        code: 'increase_cap_exceeded',
+        message: `Variacao de +${diffPercent.toFixed(1)}% excede o teto de +${account.maxIncreasePercent}% configurado para a conta.`,
+      });
+    }
+
+    if (diffPercent < -account.maxDecreasePercent) {
+      blockers.push({
+        code: 'decrease_cap_exceeded',
+        message: `Variacao de ${diffPercent.toFixed(1)}% excede o teto de -${account.maxDecreasePercent}% configurado para a conta.`,
+      });
+    }
+
+    return { diffCents, diffPercent, blockers };
+  }
+
   private enforceVariationCaps(
     previousCents: number,
     newCents: number,
     account: StaysAccount,
   ): void {
-    if (previousCents <= 0) return; // imóvel sem preço anterior → sem teto
-    const diffPct = ((newCents - previousCents) / previousCents) * 100;
-
-    if (diffPct > account.maxIncreasePercent) {
-      throw new BadRequestException(
-        `Variação de +${diffPct.toFixed(1)}% excede o teto de +${account.maxIncreasePercent}% configurado para a conta.`,
-      );
-    }
-    if (diffPct < -account.maxDecreasePercent) {
-      throw new BadRequestException(
-        `Variação de ${diffPct.toFixed(1)}% excede o teto de -${account.maxDecreasePercent}% configurado para a conta.`,
-      );
-    }
+    const variation = this.evaluateVariationCaps(previousCents, newCents, account);
+    const blocker = variation.blockers[0];
+    if (blocker) throw new BadRequestException(blocker.message);
   }
 }

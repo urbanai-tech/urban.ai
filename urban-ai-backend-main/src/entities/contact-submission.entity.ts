@@ -8,6 +8,15 @@ import {
 } from 'typeorm';
 
 export type ContactSubmissionStatus = 'new' | 'in_progress' | 'resolved' | 'archived';
+export type ContactSubmissionCategory =
+  | 'sales'
+  | 'support'
+  | 'billing'
+  | 'privacy_lgpd'
+  | 'stays'
+  | 'incident'
+  | 'partnership';
+export type ContactSubmissionSeverity = 'P0' | 'P1' | 'P2' | 'P3';
 
 @Entity('contact_submissions')
 @Index(['status', 'createdAt'])
@@ -33,6 +42,21 @@ export class ContactSubmission {
 
   @Column({ type: 'varchar', length: 32, default: 'new' })
   status: ContactSubmissionStatus;
+
+  @Column({ type: 'varchar', length: 32, default: 'support' })
+  category: ContactSubmissionCategory;
+
+  @Column({ type: 'varchar', length: 8, default: 'P2' })
+  severity: ContactSubmissionSeverity;
+
+  @Column({ type: 'datetime', nullable: true })
+  dueAt: Date | null;
+
+  @Column({ type: 'datetime', nullable: true })
+  resolvedAt: Date | null;
+
+  @Column({ type: 'varchar', length: 160, nullable: true })
+  assignedOwner: string | null;
 
   @Column({ type: 'text', nullable: true })
   notes: string | null;
