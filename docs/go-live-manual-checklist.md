@@ -413,6 +413,17 @@ Ranqueado por impacto:
 
 ## Como usar este doc
 
+### Preflight Track 3
+
+Antes de Stripe/MailerSend/Stays/Suporte, rode:
+
+```bash
+cd urban-ai-backend-main
+npm run preflight:track3:strict
+```
+
+Handoff detalhado: `docs/runbooks/track3-handoff-manual.md`.
+
 - Marque `[x]` em cada item conforme fizer
 - Quando P0 estiver tudo `[x]`, podemos rodar smoke test e considerar
   produção pronta

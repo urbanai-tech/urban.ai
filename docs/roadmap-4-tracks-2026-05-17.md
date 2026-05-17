@@ -8,10 +8,10 @@ Status consolidado da squad multiagente para execucao do roadmap Urban AI.
 |---|---|---|---:|---|
 | Track 1 | Dev 1 | Release, CI, deploy, Railway, coordenacao e evidencias | 79% | Workflow raiz corrigido e typecheck front/back passou; ainda precisa commit/push, Railway verde e smoke autenticado configurado. |
 | Track 2 | Dev 2 | Core de valor: eventos, geocoder, recomendacao, dataset e ROI | 72% | Codigo avancado; prova real depende de Geocoding API, backfill, coletores, reprocess e ground truth. |
-| Track 3 | Dev 3 | Monetizacao e integracoes: Stripe, MailerSend, Stays, LGPD e suporte | 76% | Suporte/LGPD agora tem triagem, SLA, canais, donos operacionais e painel; Stays tem preview antes do push tambem na UI; dashboard consolida go-live Track 3 para Stripe/MailerSend/Stays/Suporte. Smoke real Stripe/MailerSend/Stays ainda depende de credenciais. |
+| Track 3 | Dev 3 | Monetizacao e integracoes: Stripe, MailerSend, Stays, LGPD e suporte | 78% | Suporte/LGPD agora tem triagem, SLA, canais, donos operacionais e painel; Stays tem preview antes do push tambem na UI; dashboard consolida go-live Track 3 e preflight local valida bloqueios sem chamadas externas. Smoke real Stripe/MailerSend/Stays ainda depende de credenciais. |
 | Track 4 | Dev 4 | UX, admin, QA, Playwright, design system e smokes | 81% | Base premium forte; mutacoes reais e auditoria visual automatizada ainda precisam virar gate. |
 
-**Prontidao geral:** 77%.
+**Prontidao geral:** 78%.
 
 ## Track 1 - Dev 1
 
@@ -55,15 +55,15 @@ Status consolidado da squad multiagente para execucao do roadmap Urban AI.
 - KYC/separacao test-live precisa confirmacao.
 - MailerSend precisa entrega real validada.
 - Stays depende de URL/API oficial ou sandbox.
-- LGPD/suporte tem triagem, painel e contrato de donos operacionais; falta validar canais reais e preencher donos no ambiente.
+- LGPD/suporte tem triagem, painel, contrato de donos operacionais e preflight; falta validar canais reais e preencher donos no ambiente.
 
 ### Proximas acoes
 
 1. Rodar runbook Stripe em staging/test mode.
 2. Fazer readiness MailerSend com dominio, DKIM e envios reais.
 3. Executar smoke Stays beta privado.
-4. Validar canais suporte/privacidade reais e preencher `SUPPORT_OWNER_EMAIL`/`PRIVACY_OWNER_EMAIL`.
-5. Revisar copy comercial de Stays como beta privado.
+4. Rodar `npm run preflight:track3:strict` com as envs do ambiente alvo.
+5. Validar canais suporte/privacidade reais e preencher `SUPPORT_OWNER_EMAIL`/`PRIVACY_OWNER_EMAIL`.
 
 ## Track 4 - Dev 4
 

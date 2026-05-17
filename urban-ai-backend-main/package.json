@@ -24,7 +24,9 @@
     "migration:revert": "npm run typeorm -- migration:revert",
     "migration:show": "npm run typeorm -- migration:show",
     "backfill:geocoder": "ts-node -r tsconfig-paths/register scripts/backfill-geocoder.ts",
-    "backfill:geocoder:dry": "ts-node -r tsconfig-paths/register scripts/backfill-geocoder.ts --dry-run"
+    "backfill:geocoder:dry": "ts-node -r tsconfig-paths/register scripts/backfill-geocoder.ts --dry-run",
+    "preflight:track3": "node scripts/track3-preflight.js",
+    "preflight:track3:strict": "node scripts/track3-preflight.js --strict"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
