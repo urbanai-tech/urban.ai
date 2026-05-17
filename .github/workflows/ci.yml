@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main, staging]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   # ===================== Backend =====================
 
@@ -162,6 +165,71 @@ jobs:
         run: uv sync --all-groups --frozen
       - name: Pytest
         run: uv run pytest tests -q
+
+  # ===================== E2E (mocked local app) =====================
+
+  frontend-e2e-mock-local:
+    name: Frontend - Playwright mocked local E2E
+    runs-on: ubuntu-latest
+    needs: [frontend-test]
+    defaults:
+      run:
+        working-directory: Urban-front-main
+    env:
+      E2E_BASE_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:3001
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_dummy
+      NEXTAUTH_SECRET: ci_dummy_secret_not_for_prod
+      NEXTAUTH_URL: http://127.0.0.1:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: Urban-front-main/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - name: Guard local-only E2E targets
+        run: |
+          test "$E2E_BASE_URL" = "http://127.0.0.1:3000"
+          test "$NEXT_PUBLIC_API_URL" = "http://127.0.0.1:3001"
+          case "$E2E_BASE_URL $NEXT_PUBLIC_API_URL" in
+            *myurbanai*|*railway*|*production*|*staging*) exit 1 ;;
+          esac
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Build local app
+        run: yarn build
+      - name: Start local app
+        run: |
+          yarn start --hostname 127.0.0.1 --port 3000 > /tmp/urban-front-next.log 2>&1 &
+          echo $! > /tmp/urban-front-next.pid
+      - name: Wait for local app
+        run: |
+          for i in $(seq 1 30); do
+            if curl --silent --fail "$E2E_BASE_URL" >/dev/null; then
+              echo "Next.js ready"; exit 0
+            fi
+            echo "waiting Next.js... ($i)"; sleep 2
+          done
+          cat /tmp/urban-front-next.log
+          exit 1
+      - name: Run mocked local E2E tests
+        run: >-
+          npx playwright test
+          onboarding-airbnb-import.spec.ts
+          my-plan-billing.spec.ts
+          reset-password.spec.ts
+          prelaunch-waitlist-analytics.spec.ts
+          admin-quality-occupancy.spec.ts
+          --project=chromium
+      - name: Upload mocked local Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-mock-local
+          path: Urban-front-main/playwright-report/
+          retention-days: 14
 
   # ===================== E2E (only if staging URL configured) =====================
 
