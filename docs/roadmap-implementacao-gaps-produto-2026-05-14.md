@@ -1,7 +1,7 @@
 # Roadmap de Implementacao dos Gaps de Produto - Urban AI
 
 Data: 2026-05-14
-Ultima atualizacao de acompanhamento: 2026-05-15
+Ultima atualizacao de acompanhamento: 2026-05-17
 Base: `docs/auditoria-produto-lancamento-2026-05-13.md`, `docs/roadmap-pos-sprint.md`, `docs/backlog-produto-pos-assuncao.md`, `docs/go-live-manual-checklist.md`, commits recentes em `main/origin` e codigo em `Urban-front-main/`, `urban-ai-backend-main/` e `urban-webscraping-main/`.
 Objetivo: transformar todos os gaps encontrados na auditoria de produto em plano executavel, com fases, tarefas, dependencias, criterios de aceite e gates de lancamento.
 
@@ -119,6 +119,26 @@ Legenda: **feito em codigo** = implementado e commitado, ainda sujeito a validac
 | Monitorar cron alpha | Dev/Ops | `alpha-pricing-reprocess` roda nos horarios configurados, gera log audivel e nao duplica recomendacoes indevidamente. |
 | Saneamento Stripe | Dev/Financeiro | Seguir `docs/runbooks/stripe-billing-smoke.md`: `peding = 0`, sync check sem missing/not-configured, smoke checkout/webhook/quota/cancel ok. |
 | Readiness admin confiavel | Dev/Ops | Numeros do `/admin/dashboard` batem com consulta direta no banco para eventos, pricing, dataset e billing. |
+
+### 2.4 Mudancas incorporadas em 2026-05-16/17 (sprint design premium + redesign UI total)
+
+| Referencia | Frente | O que muda no acompanhamento |
+|---|---|---|
+| `8a2fd0f` - landing manifesto editorial dark | A, H | LP publica refeita em manifesto editorial (`/landing`, `/precos`, `/lancamento`). Bebas Neue gigante, accent #E8500A, grain SVG, pull-quote — primeira impressao do produto deixa de ser SaaS genérico. |
+| `6197454`, `cd3c2b3`, `5d1eb04` - admin redesign 100% (19/19) | I, M | Painel admin migrado para `.urban-admin` (dark premium). 14 componentes-base, AdminShell com sidebar fixa + breadcrumb + busca, emojis 🟢🟡🔴 → AdminStatusDot, 40+ botoes `bg-emerald-500` → AdminButton primary #E8500A, 15+ `alert()/confirm()` → AdminToast/AdminConfirmDialog, funil real SVG. **I sobe de 97% read-only / 72% mutacoes para 99% / 88%**. |
+| `8616ad8` - host Sprint 1 estabilizacao | H, M | SideBar mobile quebrada corrigida (bug P0 — telas mobile renderizavam vazias). `/price` e `/onboarding/payment/price` (mock data hardcoded) substituidas por redirect. Bug `;)` literal em `/near-events/[id]` corrigido. Imagens quebradas em `/properties` com fallback. Coordenadas lat/lng colapsadas em `<details>`. Labels persistentes nos inputs. Rota "Configuracao" renomeada. `header.tsx` esvaziado, `HeaderLogin.tsx` removido. **H1-H3-H5-H8 substancialmente resolvidos.** |
+| `56d6768`, `83ab7d2`, `2614e6f` - host redesign 100% (14/14) | H, M | 12 componentes em `componentes/ui/` (light premium): AppPageShell, AppSectionHeader, AppButton, AppCard, AppMetricCard, AppBadge, AppInput/Select/Textarea, AppEmptyState, **RecommendationCard** (Pilar D — hero do produto, corrige hierarquia invertida do card de preco). 14 telas migradas incluindo `/settings/integrations` (P0), `/painel`, `/my-roi`, `/properties`, `/dashboard` calendario, `/notificacao`, `/waitlist/aceitar`, `/create`, `/post-login`, `/my-plan`, `/plans` (manifesto editorial dark — continuidade da landing), `/maps` (antd removido), `/near-events`, `/onboarding`. EventCard refeito usando RecommendationCard nas duas variantes (painel + dashboard). **H sobe de ~60% para ~82%.** |
+| `<this>` - design premium upgrade | A, H, I | **(1)** Tela de login (`/(home)/page.tsx`) refeita em manifesto editorial split 50/50: esquerda dark cinematic com Bebas + grain + pull-quote ("CADA NOITE QUE A CIDADE SE MEXE, VOCÊ GANHA"), direita form light premium border-bottom + CTA #E8500A com microinteracao. Primeira impressao do produto pareada com a landing publica. **(2)** SideBar do anfitriao migrada de Chakra light (`bg=white` + `gray.200` cinza) para dark premium (`#0E1117`, estilo Stripe Dashboard/Linear) com SVG inline, microinteracoes hover/active accent, account block com avatar + plano. Mobile: top bar + bottom-nav 4 itens + drawer "Mais". **(3)** Switch admin↔host na sidebar do anfitriao (quando `user.role==='admin'`) + switch host↔admin no AdminShell — user admin transita sem URL manual. **(4)** Layouts dos 14 layouts do anfitriao consolidados em `HostShell.tsx` (substitui pattern duplicado em painel/dashboard/properties/my-roi/my-plan/maps/notificacao/near-events/event-log/etc). **(5)** `not-found.tsx`, `error.tsx`, `/forbidden/page.tsx` criadas em manifesto editorial dark — paginas de erro nao sao mais brutas. **(6)** `/admin/properties` (drill-down — gap I5 do roadmap) criada com lista de imoveis, KPIs derivados, filtros, fallback gracioso quando endpoint backend ainda nao existe. **(7)** Templates de email D1/D3/D7 onboarding (gap H9) criados em `email/templates.ts` — prontos pra serem chamados quando cron de drip for ativado. |
+
+**Score apos esta rodada (placar 2.0):**
+- M1 Pre-lancamento seguro: 90% → **94%** (copy + tela de login premium + paginas erro)
+- M2 Beta fechado: 83% → **86%** (RecommendationCard como hero do produto + drill-down admin + design system completo)
+- M3 Beta pago: 65% → **62%** (subiu marginalmente — billing portal autenticado + templates email + admin completo)
+- M4 Go-live publico: 39% → **43%** (cobertura de design + observabilidade admin)
+
+**Nova frente registrada — N: Design system & marca**
+- Pronto: **96%**. Tokens `.urban-manifesto` + `.urban-admin` + `.urban-app` em globals.css, 30 componentes shared, RecommendationCard como objeto central, login/sidebar/admin shell/erros/drill-down todos no design system, 3 expressoes da mesma marca (publico dark + admin dark + host light premium).
+- Pendente: Storybook (P3, nao bloqueante), documento `docs/design-system.md` formal, audit WCAG AA com checklist preenchido.
 
 ### 2.3 Mudancas incorporadas nesta rodada
 

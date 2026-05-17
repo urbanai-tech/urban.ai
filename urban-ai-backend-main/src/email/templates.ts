@@ -371,6 +371,181 @@ export class EmailTemplates {
     return baseLayout(content);
   }
 
+  // ================== Onboarding drip D1/D3/D7 (gap H9 do roadmap) ==================
+
+  /**
+   * D+1 — primeiro dia após signup. Lembra que o motor está coletando
+   * eventos e dá link pra cadastrar o primeiro imovel se nao houver nenhum.
+   */
+  static getOnboardingDay1Template(input: {
+    nome: string;
+    propertiesCount: number;
+    dashboardUrl: string;
+    propertiesUrl: string;
+  }): string {
+    const firstName = input.nome.split(' ')[0];
+    const hasNoProperty = input.propertiesCount === 0;
+    const content = `
+        <div class="title">Bem-vindo, ${firstName}!</div>
+        <div class="content">
+            <p>Você está dentro da Urban AI. Nas próximas 24h o motor começa a:</p>
+            <ul style="line-height: 1.8;">
+                <li>Mapear eventos relevantes a até <b>8km</b> dos seus imóveis</li>
+                <li>Cruzar com calendário do Airbnb / Stays</li>
+                <li>Gerar a primeira recomendação de preço</li>
+            </ul>
+            ${
+              hasNoProperty
+                ? `
+            <hr />
+            <p><b>Você ainda não cadastrou imóveis.</b> O motor só começa quando você fizer isso:</p>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${input.propertiesUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                    Cadastrar primeiro imóvel
+                </a>
+            </div>
+            `
+                : `
+            <p>Seus <b>${input.propertiesCount} ${input.propertiesCount === 1 ? 'imóvel está' : 'imóveis estão'}</b> sendo processados. Confira no painel:</p>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${input.dashboardUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                    Ver painel
+                </a>
+            </div>
+            `
+            }
+            <p style="font-size: 14px;">Dúvidas? É só responder este e-mail.</p>
+        </div>
+    `;
+    return baseLayout(content);
+  }
+
+  /**
+   * D+3 — três dias após signup. Mostra primeiras recomendações se houver,
+   * ou explica por que ainda nao apareceram (eventos baixos / sem cobertura).
+   */
+  static getOnboardingDay3Template(input: {
+    nome: string;
+    recommendationsCount: number;
+    dashboardUrl: string;
+    staysUrl: string;
+  }): string {
+    const firstName = input.nome.split(' ')[0];
+    const hasRecs = input.recommendationsCount > 0;
+    const content = `
+        <div class="title">${hasRecs ? 'Suas primeiras recomendações' : 'Atualização sobre suas recomendações'}</div>
+        <div class="content">
+            <p>Olá, ${firstName}.</p>
+            ${
+              hasRecs
+                ? `
+            <p>Geramos <b>${input.recommendationsCount}</b> ${input.recommendationsCount === 1 ? 'recomendação' : 'recomendações'} de preço pros seus imóveis. Cada uma vem com:</p>
+            <ul style="line-height: 1.8;">
+                <li>Motivo da sugestão (qual evento, qual janela)</li>
+                <li>Preço atual vs. preço sugerido</li>
+                <li>Variação % esperada</li>
+                <li>Botão pra aceitar e (se Stays conectado) aplicar</li>
+            </ul>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${input.dashboardUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                    Ver recomendações
+                </a>
+            </div>
+
+            <p><b>Dica:</b> conecte sua conta Stays pra aplicar sugestões automaticamente. Custa 30 segundos.</p>
+            <p style="text-align: center;">
+                <a href="${input.staysUrl}" class="link">Conectar Stays →</a>
+            </p>
+            `
+                : `
+            <p>Ainda não geramos recomendações pros seus imóveis. Os motivos mais comuns:</p>
+            <ul style="line-height: 1.8;">
+                <li>Sem eventos relevantes no raio dos seus imóveis nos próximos 30 dias</li>
+                <li>Coordenadas pendentes (o geocoder está processando)</li>
+                <li>Sem preço base configurado (fazemos comparativo só se você informar a diária atual)</li>
+            </ul>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${input.dashboardUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                    Ver detalhes
+                </a>
+            </div>
+
+            <p style="font-size: 14px;">Avise a gente se quiser que olhemos manualmente — responde este e-mail.</p>
+            `
+            }
+        </div>
+    `;
+    return baseLayout(content);
+  }
+
+  /**
+   * D+7 — uma semana após signup. Foco em conversão pra plano pago se
+   * ainda está em trial / waitlist convertido sem assinatura.
+   */
+  static getOnboardingDay7Template(input: {
+    nome: string;
+    hasActiveSubscription: boolean;
+    plansUrl: string;
+    dashboardUrl: string;
+    suggestedAppliedCount: number;
+  }): string {
+    const firstName = input.nome.split(' ')[0];
+    const content = `
+        <div class="title">Uma semana com a Urban AI</div>
+        <div class="content">
+            <p>Olá, ${firstName}!</p>
+            <p>Faz uma semana que você entrou. Hora de fazer o motor trabalhar de verdade.</p>
+
+            ${
+              input.suggestedAppliedCount > 0
+                ? `
+            <p><b>Até agora você aplicou ${input.suggestedAppliedCount} ${input.suggestedAppliedCount === 1 ? 'sugestão' : 'sugestões'}.</b> Continue assim — quanto mais ground truth, melhor o motor aprende seu portfólio.</p>
+            `
+                : `
+            <p>Você ainda não aplicou nenhuma sugestão. <b>Sem feedback, o motor não evolui.</b> Aceite/recuse cada recomendação — em 1 clique você nos diz se vamos na direção certa.</p>
+            `
+            }
+
+            ${
+              input.hasActiveSubscription
+                ? `
+            <hr />
+            <p><b>Próximos passos pra extrair o máximo:</b></p>
+            <ol style="line-height: 1.8;">
+                <li>Conecte Stays se ainda não conectou — aplica preço automaticamente</li>
+                <li>Registre receita real das diárias aplicadas (vai no card da sugestão)</li>
+                <li>Confira o painel "Meu ROI" — mostra quanto a IA já gerou de receita atribuída</li>
+            </ol>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${input.dashboardUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                    Ir pro painel
+                </a>
+            </div>
+            `
+                : `
+            <hr />
+            <p><b>Pronto pra ativar tudo?</b></p>
+            <p>Seu trial inicial te deu acesso ao painel e às primeiras recomendações.
+            Pra continuar recebendo recomendações diárias, conectar Stays e ativar o modo automático,
+            escolha um plano. Cobramos por imóvel — sem fidelidade, cancela quando quiser.</p>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${input.plansUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                    Ver planos
+                </a>
+            </div>
+            `
+            }
+
+            <p style="font-size: 14px;">Qualquer dúvida, responde este e-mail. Lemos tudo.</p>
+        </div>
+    `;
+    return baseLayout(content);
+  }
+
   // ================== legacy ==================
 
   static getSystemNotificationTemplate(nome: string, title: string, description: string, url: string): string {

@@ -77,6 +77,7 @@ const NAV: NavSection[] = [
   {
     title: "Operações",
     items: [
+      { href: "/admin/properties", label: "Imóveis (drill-down)", icon: <Briefcase size={16} /> },
       { href: "/admin/jobs", label: "Jobs", icon: <Server size={16} /> },
       { href: "/admin/stays", label: "Stays", icon: <Database size={16} /> },
       { href: "/admin/users", label: "Usuários", icon: <Users size={16} /> },
@@ -350,6 +351,69 @@ function SidebarContent({
           / admin
         </span>
       </div>
+
+      {/* Switch admin → anfitriao (volta pro painel do anfitriao) */}
+      <NextLink
+        href="/painel"
+        title="Voltar para painel do anfitrião"
+        style={{
+          margin: "12px 12px 0",
+          padding: "10px 14px",
+          background: "rgba(232, 80, 10, 0.10)",
+          border: "1px solid rgba(232, 80, 10, 0.30)",
+          borderRadius: 2,
+          color: "var(--admin-accent)",
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: 1.5,
+          textTransform: "uppercase",
+          textDecoration: "none",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 8,
+          transition: "background 120ms",
+        }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLAnchorElement).style.background =
+            "rgba(232, 80, 10, 0.18)";
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLAnchorElement).style.background =
+            "rgba(232, 80, 10, 0.10)";
+        }}
+      >
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <path d="M3 9.5 12 3l9 6.5V20a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2V9.5Z" />
+          </svg>
+          Painel anfitrião
+        </span>
+        <svg
+          width="11"
+          height="11"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <path d="M5 12h14" />
+          <path d="m13 5 7 7-7 7" />
+        </svg>
+      </NextLink>
 
       {/* Busca */}
       <div style={{ padding: "12px 12px 0" }}>
