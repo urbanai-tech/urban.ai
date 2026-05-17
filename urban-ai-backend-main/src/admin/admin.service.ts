@@ -1275,6 +1275,12 @@ export class AdminService {
     const next7d = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     const next30d = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     const last30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const emailSender = process.env.EMAIL_SENDER || 'noreply@notify.myurbanai.com';
+    const senderDomain = emailSender.includes('@') ? emailSender.split('@').pop() || '' : '';
+    const mailerSendApiKeyConfigured = Boolean(process.env.MAILERSEND_API_KEY);
+    const emailSenderConfigured = Boolean(process.env.EMAIL_SENDER);
+    const senderUsesUrbanDomain = senderDomain.endsWith('myurbanai.com');
+    const frontUrlConfigured = Boolean(process.env.FRONT_URL);
 
     const [
       // Eventos
@@ -1566,6 +1572,24 @@ export class AdminService {
         message: `${supportLgpdOpen} pedido(s) LGPD aberto(s); prazo operacional: 15 dias corridos`,
       });
     }
+    if (!mailerSendApiKeyConfigured) {
+      alerts.push({
+        severity: 'amber',
+        message: 'MAILERSEND_API_KEY ausente; e-mails transacionais e drip podem falhar',
+      });
+    }
+    if (!emailSenderConfigured || !senderUsesUrbanDomain) {
+      alerts.push({
+        severity: 'info',
+        message: `Sender de e-mail usando ${senderDomain || 'dominio invalido'}; validar SPF/DKIM antes do beta pago`,
+      });
+    }
+    if (!frontUrlConfigured) {
+      alerts.push({
+        severity: 'info',
+        message: 'FRONT_URL ausente; links em e-mails usam fallback app.myurbanai.com',
+      });
+    }
     if (!process.env.STAYS_API_BASE_URL || !process.env.STAYS_TOKEN_ENCRYPTION_KEY) {
       alerts.push({
         severity: 'info',
@@ -1652,6 +1676,13 @@ export class AdminService {
           status: String(r.status ?? 'unknown'),
           count: Number(r.count ?? 0),
         })),
+      },
+      email: {
+        mailerSendApiKeyConfigured,
+        emailSenderConfigured,
+        senderDomain,
+        senderUsesUrbanDomain,
+        frontUrlConfigured,
       },
       stays: {
         accounts: staysAccounts,

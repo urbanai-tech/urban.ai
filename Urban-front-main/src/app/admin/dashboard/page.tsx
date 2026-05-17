@@ -428,6 +428,26 @@ export default function AdminDashboardPage() {
           <SmallStat label="Ativas" value={data.billing.activeSubscriptions} />
         </DataBlock>
 
+        <DataBlock title="E-mail" icon={<Icons.Mail size={14} />} href="/admin/onboarding-drip">
+          <SmallStat
+            label="MailerSend"
+            value={data.email?.mailerSendApiKeyConfigured ? "ok" : "faltando"}
+            status={data.email?.mailerSendApiKeyConfigured ? "success" : "warn"}
+          />
+          <SmallStat
+            label="Sender"
+            value={data.email?.emailSenderConfigured ? "env" : "fallback"}
+            status={data.email?.senderUsesUrbanDomain ? "success" : "warn"}
+            sub={data.email?.senderDomain || "sem dominio"}
+          />
+          <SmallStat
+            label="FRONT_URL"
+            value={data.email?.frontUrlConfigured ? "ok" : "fallback"}
+            status={data.email?.frontUrlConfigured ? "success" : "warn"}
+          />
+          <NavLink href="/admin/onboarding-drip">Ver drip onboarding</NavLink>
+        </DataBlock>
+
         <DataBlock title="Suporte & LGPD" icon={<Icons.AlertCircle size={14} />} href="/admin/contacts">
           <SmallStat
             label="Abertos"
