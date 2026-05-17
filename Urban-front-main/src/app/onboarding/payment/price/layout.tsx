@@ -1,26 +1,6 @@
-// app/(interno)/layout.tsx
-
-import { Box, Flex } from '@chakra-ui/react'
-
-import Header from '@/app/componentes/header'
-import SideBar from '@/app/componentes/SideBar'
-import Footer from '@/app/componentes/Footer'
-
-export default function InternoLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <Flex minH="100vh" bg="#f8fafb">
-      {/* Sidebar */}
-      <SideBar />
-
-      {/* Conteúdo principal */}
-      <Flex direction="column" flex="1">
-        <Header />
-        <Box mt={10} mb={10} mx={6} as="main" p="0" flex="1">
-          {children}
-        </Box>
-        <Footer />
-      </Flex>
-    </Flex>
-  
-  )
+/**
+ * /onboarding/payment/price — redirect imediato (mock data removido em Sprint 1).
+ */
+export default function PaymentPriceLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }

@@ -1,27 +1,15 @@
-// app/(interno)/layout.tsx
-import Header from '../componentes/header'
-import Footer from '../componentes/Footer'
-import AuthGuard from '../context/AuthGuard'
-import { Box, Flex } from '@chakra-ui/react'
-import SideBar from '../componentes/SideBar'
+"use client";
 
-export default function InternoLayout({ children }: { children: React.ReactNode }) {
-  return (
+import AuthGuard from "../context/AuthGuard";
 
-    <Flex minH="100vh" bg="#f8fafb">
-      {/* Sidebar */}
-      <SideBar />
-
-      {/* Conteúdo principal */}
-      <Flex direction="column" flex="1">
-        <Header />
-        <Box mt={10} mb={10} as="main" p="0" flex="1">
-          <AuthGuard>
-            {children}
-          </AuthGuard>
-        </Box>
-        <Footer />
-      </Flex>
-    </Flex>
-  )
+/**
+ * /plans — checkout pos-login em manifesto editorial dark.
+ *
+ * NAO usa HostShell (sidebar light premium do anfitriao) — a tela e
+ * continuacao direta da landing publica (`/precos`) e deve ocupar viewport
+ * inteiro em fundo dark `#080A0F`. Sidebar apareceria estranha sobre o
+ * manifesto. Anfitriao volta ao app pelos links pos-checkout.
+ */
+export default function PlansLayout({ children }: { children: React.ReactNode }) {
+  return <AuthGuard>{children}</AuthGuard>;
 }
