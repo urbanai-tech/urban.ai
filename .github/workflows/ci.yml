@@ -246,6 +246,7 @@ jobs:
           plans-checkout-readiness.spec.ts
           properties-pricing.spec.ts
           reset-password.spec.ts
+          pwa-mobile.spec.ts
           prelaunch-waitlist-analytics.spec.ts
           admin-quality-occupancy.spec.ts
           stays-integrations.spec.ts
@@ -281,7 +282,7 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
       - name: Run public smoke tests
-        run: npx playwright test smoke.spec.ts release-gate-public.spec.ts --project=chromium
+        run: npx playwright test smoke.spec.ts release-gate-public.spec.ts pwa-mobile.spec.ts --project=chromium
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
@@ -302,8 +303,8 @@ jobs:
       E2E_AUDIT_MODE: all
       E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
       E2E_API_URL: ${{ vars.E2E_API_URL }}
-      E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
-      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+      E2E_EMAIL: ${{ secrets.E2E_EMAIL || secrets.E2E_AUTH_EMAIL }}
+      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD || secrets.E2E_AUTH_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

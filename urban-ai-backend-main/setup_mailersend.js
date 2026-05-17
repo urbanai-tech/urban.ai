@@ -1,9 +1,14 @@
 const fs = require('fs');
 const https = require('https');
 
-const API_KEY = 'mlsn.b1de0589ba5a8d0dbc5dcc6ffa39760caec94d5645567e34064eb55d9076b75f';
-const DOMAIN_ID = 'dnvo4d958yrg5r86'; 
-const SENDER_EMAIL = 'info@test-ywj2lpnk0qpg7oqz.mlsender.net';
+const API_KEY = process.env.MAILERSEND_API_KEY;
+const DOMAIN_ID = process.env.MAILERSEND_DOMAIN_ID;
+const SENDER_EMAIL = process.env.EMAIL_SENDER || 'noreply@notify.myurbanai.com';
+
+if (!API_KEY || !DOMAIN_ID) {
+  console.error('Set MAILERSEND_API_KEY and MAILERSEND_DOMAIN_ID before running this setup script.');
+  process.exit(1);
+}
 
 const templatesToCreate = [
   { key: 'MAILERSEND_FORGOT_PASS_TEMPLATE', name: 'Recuperacao de Senha - Urban AI' },

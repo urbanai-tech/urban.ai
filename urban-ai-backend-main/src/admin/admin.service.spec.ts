@@ -363,10 +363,11 @@ describe('AdminService Track 3 readiness', () => {
       blockers: expect.arrayContaining([
         'STRIPE_SECRET_KEY ausente',
         'STRIPE_WEBHOOK_SECRET ausente',
-        'Publishable key Stripe ausente',
       ]),
     });
+    expect(result.stripe.blockers).not.toContain('Publishable key Stripe ausente');
     expect(result.email.blockers).toContain('MAILERSEND_API_KEY ausente');
+    expect(result.email.blockers).not.toContain('FRONT_URL ausente');
     expect(result.stays.blockers).toEqual([
       'STAYS_API_BASE_URL ausente',
       'STAYS_TOKEN_ENCRYPTION_KEY ausente',
@@ -412,5 +413,70 @@ describe('AdminService Track 3 readiness', () => {
     });
 
     expect(Object.values(result).every((item: any) => item.status === 'ready')).toBe(true);
+  });
+
+  it('allows operational owners outside the public support domain', () => {
+    const service = makeService(makeEventRepo([])) as any;
+
+    const result = service.buildTrack3Readiness({
+      stripeSecretMode: 'test',
+      stripePublishableMode: 'test',
+      stripeSecretConfigured: true,
+      stripeWebhookConfigured: true,
+      stripePublishableConfigured: true,
+      stripeModeMismatch: false,
+      mailerSendApiKeyConfigured: true,
+      emailSenderConfigured: true,
+      senderUsesUrbanDomain: true,
+      frontUrlConfigured: true,
+      staysApiBaseConfigured: true,
+      staysTokenEncryptionConfigured: true,
+      supportP0Open: 0,
+      supportOverdue: 0,
+      supportLgpdOpen: 0,
+      supportEmailConfigured: true,
+      privacyEmailConfigured: true,
+      supportEmailDomainOk: true,
+      privacyEmailDomainOk: true,
+      supportOwnerConfigured: true,
+      privacyOwnerConfigured: true,
+      supportOwnerDomainOk: false,
+      privacyOwnerDomainOk: false,
+    });
+
+    expect(result.support).toMatchObject({ status: 'ready', blockers: [] });
+  });
+
+  it('does not block admin readiness when frontend-only Stripe key and FRONT_URL are not visible to backend', () => {
+    const service = makeService(makeEventRepo([])) as any;
+
+    const result = service.buildTrack3Readiness({
+      stripeSecretMode: 'test',
+      stripePublishableMode: 'missing',
+      stripeSecretConfigured: true,
+      stripeWebhookConfigured: true,
+      stripePublishableConfigured: false,
+      stripeModeMismatch: false,
+      mailerSendApiKeyConfigured: true,
+      emailSenderConfigured: true,
+      senderUsesUrbanDomain: true,
+      frontUrlConfigured: false,
+      staysApiBaseConfigured: true,
+      staysTokenEncryptionConfigured: true,
+      supportP0Open: 0,
+      supportOverdue: 0,
+      supportLgpdOpen: 0,
+      supportEmailConfigured: false,
+      privacyEmailConfigured: false,
+      supportEmailDomainOk: true,
+      privacyEmailDomainOk: true,
+      supportOwnerConfigured: true,
+      privacyOwnerConfigured: true,
+      supportOwnerDomainOk: true,
+      privacyOwnerDomainOk: true,
+    });
+
+    expect(result.stripe).toMatchObject({ status: 'ready', blockers: [] });
+    expect(result.email).toMatchObject({ status: 'ready', blockers: [] });
   });
 });
