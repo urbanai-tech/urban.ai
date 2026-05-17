@@ -1,4 +1,4 @@
-name: Release gate — tsc + build + Playwright
+name: Release gate - frontend tsc, build and Playwright
 
 on:
   pull_request:
@@ -8,11 +8,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  # === Job 1: tsc + Next build (sempre roda) ===
   build:
-    name: tsc + next build
+    name: Frontend - tsc + next build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: Urban-front-main
 
     steps:
       - uses: actions/checkout@v4
@@ -21,13 +23,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache: 'yarn'
+          cache-dependency-path: Urban-front-main/yarn.lock
 
       - name: Install deps
-        run: npm ci --no-audit --no-fund
+        run: yarn install --frozen-lockfile
 
-      - name: Type-check (tsc --noEmit)
+      - name: Type-check
         run: npx tsc --noEmit
 
       - name: Next.js production build
@@ -35,14 +37,19 @@ jobs:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL_STAGING || 'https://urban-ai-back-staging.up.railway.app' }}
           NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL_STAGING || 'https://app-staging.myurbanai.com' }}
           NEXT_PUBLIC_PRELAUNCH_MODE: 'false'
-        run: npx next build
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_dummy
+          NEXTAUTH_SECRET: ci_dummy_secret_not_for_prod
+          NEXTAUTH_URL: http://localhost:3000
+        run: yarn build
 
-  # === Job 2: Playwright smoke público (sem auth — sempre roda) ===
   e2e-public:
-    name: Playwright — smoke público
+    name: Playwright - public smoke
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: build
+    defaults:
+      run:
+        working-directory: Urban-front-main
 
     steps:
       - uses: actions/checkout@v4
@@ -51,10 +58,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'yarn'
+          cache-dependency-path: Urban-front-main/yarn.lock
 
       - name: Install deps
-        run: npm ci --no-audit --no-fund
+        run: yarn install --frozen-lockfile
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -62,7 +70,7 @@ jobs:
       - name: Run public smoke specs
         env:
           E2E_BASE_URL: ${{ secrets.E2E_BASE_URL || 'https://app.myurbanai.com' }}
-          E2E_API_URL: ${{ secrets.E2E_API_URL || 'https://urban-ai-back-production.up.railway.app' }}
+          E2E_API_URL: ${{ secrets.E2E_API_URL || 'https://urbanai-production-85fd.up.railway.app' }}
         run: |
           npx playwright test \
             --project=chromium \
@@ -76,17 +84,18 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-public
-          path: playwright-report/
+          path: Urban-front-main/playwright-report/
           retention-days: 7
 
-  # === Job 3: Playwright smoke autenticado (so roda com secrets) ===
   e2e-authenticated:
-    name: Playwright — smoke autenticado (host + admin)
+    name: Playwright - authenticated smoke
     runs-on: ubuntu-latest
     timeout-minutes: 25
     needs: build
-    # So roda se os secrets de auth estiverem configurados em repo settings
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    defaults:
+      run:
+        working-directory: Urban-front-main
 
     steps:
       - uses: actions/checkout@v4
@@ -95,10 +104,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'yarn'
+          cache-dependency-path: Urban-front-main/yarn.lock
 
       - name: Install deps
-        run: npm ci --no-audit --no-fund
+        run: yarn install --frozen-lockfile
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -106,13 +116,13 @@ jobs:
       - name: Run authenticated smoke specs
         env:
           E2E_BASE_URL: ${{ secrets.E2E_BASE_URL || 'https://app.myurbanai.com' }}
-          E2E_API_URL: ${{ secrets.E2E_API_URL || 'https://urban-ai-back-production.up.railway.app' }}
+          E2E_API_URL: ${{ secrets.E2E_API_URL || 'https://urbanai-production-85fd.up.railway.app' }}
           E2E_AUTH_EMAIL: ${{ secrets.E2E_AUTH_EMAIL }}
           E2E_AUTH_PASSWORD: ${{ secrets.E2E_AUTH_PASSWORD }}
           E2E_ALPHA_EMAIL: ${{ secrets.E2E_ALPHA_EMAIL }}
         run: |
           if [ -z "$E2E_AUTH_EMAIL" ] || [ -z "$E2E_AUTH_PASSWORD" ]; then
-            echo "::warning ::E2E_AUTH_EMAIL/E2E_AUTH_PASSWORD não configurados — pulando smoke autenticado"
+            echo "::warning ::E2E_AUTH_EMAIL/E2E_AUTH_PASSWORD not configured - skipping authenticated smoke"
             exit 0
           fi
           npx playwright test \
@@ -128,5 +138,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-authenticated
-          path: playwright-report/
+          path: Urban-front-main/playwright-report/
           retention-days: 7
