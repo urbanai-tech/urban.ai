@@ -1,10 +1,12 @@
 import { test, expect, type Page } from '@playwright/test';
+import { acceptCookieConsent } from './test-helpers';
 
 const authEmail = process.env.E2E_AUTH_EMAIL || process.env.E2E_EMAIL;
 const authPassword = process.env.E2E_AUTH_PASSWORD || process.env.E2E_PASSWORD;
 const alphaEmail = process.env.E2E_ALPHA_EMAIL || authEmail;
 
 async function login(page: Page) {
+  await acceptCookieConsent(page);
   await page.goto('/');
 
   await page.locator('input[type="email"]').fill(authEmail!);
