@@ -281,8 +281,8 @@ export default function Login() {
         }}
       >
         <MotionDiv
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 20 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
           style={{ width: "100%", maxWidth: 420 }}
         >
@@ -526,9 +526,7 @@ export default function Login() {
                 marginTop: 12,
                 height: 56,
                 padding: "0 28px",
-                background: loading
-                  ? "rgba(232, 80, 10, 0.65)"
-                  : "var(--app-accent)",
+                background: "var(--app-accent)",
                 color: "#FFFFFF",
                 border: "none",
                 borderRadius: 12,
