@@ -370,6 +370,7 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
             ref={closeBtnRef}
             onClick={onClose}
             aria-label="Fechar Ask Urban"
+            className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
             style={{
               background: "transparent",
               border: "none",
@@ -379,6 +380,10 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
               borderRadius: 8,
               lineHeight: 0,
               display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minWidth: 44,
+              minHeight: 44,
             }}
           >
             <Close size={18} />
@@ -478,13 +483,14 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
               onClick={() => void sendQuestion(input)}
               disabled={inputDisabled || input.trim().length === 0}
               aria-label="Enviar pergunta"
+              className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
               style={{
                 background: "var(--app-accent)",
                 color: "#FFFFFF",
                 border: "none",
                 borderRadius: 8,
-                width: 36,
-                height: 36,
+                width: 44,
+                height: 44,
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -554,6 +560,14 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
             transform: translateY(-2px);
           }
         }
+        @media (prefers-reduced-motion: reduce) {
+          [role="dialog"] {
+            animation: none !important;
+          }
+          [aria-hidden="true"] {
+            animation: none !important;
+          }
+        }
       `}</style>
     </div>
   );
@@ -606,12 +620,14 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
           <button
             key={s}
             onClick={() => onPick(s)}
+            className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
             style={{
               textAlign: "left",
               background: "var(--app-surface, #FFFFFF)",
               border: "1px solid var(--app-divider-strong)",
               borderRadius: 10,
               padding: "12px 14px",
+              minHeight: 44,
               fontFamily: "Inter, system-ui, sans-serif",
               fontSize: 12.5,
               lineHeight: 1.4,
@@ -722,6 +738,8 @@ function MessageBubble({
               <button
                 key={c.id}
                 onClick={() => onCitationClick(c)}
+                aria-label={c.url ? `Abrir fonte: ${c.label}` : c.label}
+                className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
                 style={{
                   fontSize: 11,
                   padding: "4px 10px",
@@ -794,13 +812,19 @@ function FeedbackButton({
       disabled={disabled}
       aria-label={vote === "up" ? "Resposta útil" : "Resposta não útil"}
       aria-pressed={active}
+      className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
       style={{
         background: active ? "rgba(232, 80, 10, 0.08)" : "transparent",
         border: "1px solid",
         borderColor: active ? "rgba(232, 80, 10, 0.25)" : "transparent",
         color,
         cursor: disabled ? "default" : "pointer",
-        padding: "4px 6px",
+        padding: "8px",
+        minWidth: 32,
+        minHeight: 32,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
         borderRadius: 6,
         lineHeight: 0,
         opacity: disabled && !active ? 0.4 : 1,
@@ -816,6 +840,7 @@ function ThinkingDots() {
   return (
     <div
       role="status"
+      aria-live="polite"
       aria-label="Pensando"
       style={{ display: "flex", gap: 10, alignItems: "flex-start" }}
     >
