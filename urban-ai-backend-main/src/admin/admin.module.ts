@@ -16,6 +16,7 @@ import { PlatformCost } from '../entities/platform-cost.entity';
 import { Waitlist } from '../entities/waitlist.entity';
 import { CoverageRegion } from '../entities/coverage-region.entity';
 import { AdminJobRun } from '../entities/admin-job-run.entity';
+import { ContactSubmission } from '../entities/contact-submission.entity';
 import { AdminService } from './admin.service';
 import { AdminFinanceService } from './finance.service';
 import { StripeSyncCheckService } from './stripe-sync.service';
@@ -47,6 +48,7 @@ import { EmailModule } from '../email/email.module';
       Waitlist,
       CoverageRegion,
       AdminJobRun,
+      ContactSubmission,
     ]),
     AuthModule,
     KnnEngineModule,
