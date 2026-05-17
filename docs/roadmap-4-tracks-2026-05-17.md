@@ -6,29 +6,29 @@ Status consolidado da squad multiagente para execucao do roadmap Urban AI.
 
 | Track | Dev | Foco | Pronto | Leitura |
 |---|---|---|---:|---|
-| Track 1 | Dev 1 | Release, CI, deploy, Railway, coordenacao e evidencias | 79% | Workflow raiz corrigido e typecheck front/back passou; ainda precisa commit/push, Railway verde e smoke autenticado configurado. |
+| Track 1 | Dev 1 | Release, CI, deploy, Railway, coordenacao e evidencias | 92% | `main` publicado nos dois remotos; CI amplo e Release Gate verdes no GitHub. Restam Railway/deploy observability, secrets do smoke autenticado e branch protection. |
 | Track 2 | Dev 2 | Core de valor: eventos, geocoder, recomendacao, dataset e ROI | 72% | Codigo avancado; prova real depende de Geocoding API, backfill, coletores, reprocess e ground truth. |
-| Track 3 | Dev 3 | Monetizacao e integracoes: Stripe, MailerSend, Stays, LGPD e suporte | 78% | Suporte/LGPD agora tem triagem, SLA, canais, donos operacionais e painel; Stays tem preview antes do push tambem na UI; dashboard consolida go-live Track 3 e preflight local valida bloqueios sem chamadas externas. Smoke real Stripe/MailerSend/Stays ainda depende de credenciais. |
-| Track 4 | Dev 4 | UX, admin, QA, Playwright, design system e smokes | 81% | Base premium forte; mutacoes reais e auditoria visual automatizada ainda precisam virar gate. |
+| Track 3 | Dev 3 | Monetizacao e integracoes: Stripe, MailerSend, Stays, LGPD e suporte | 80% | Suporte/LGPD agora tem triagem, SLA, canais, donos operacionais e painel; Stays tem preview antes do push tambem na UI; dashboard consolida go-live Track 3 e preflight local esta versionado. Smoke real Stripe/MailerSend/Stays ainda depende de credenciais. |
+| Track 4 | Dev 4 | UX, admin, QA, Playwright, design system e smokes | 82% | Release Gate localizado estabilizado com smoke publico local e CI publico production-safe; mutacoes reais e auditoria visual automatizada ainda precisam virar gate. |
 
-**Prontidao geral:** 78%.
+**Prontidao geral:** 81%.
 
 ## Track 1 - Dev 1
 
 ### Bloqueios
 
-- `main` local esta ahead de `origin/main` com um commit de release gate/interceptor ainda nao publicado.
-- O workflow de release gate foi movido para `.github/workflows/release-gate.yml` e corrigido para rodar em `Urban-front-main`.
-- Smoke autenticado depende de secrets/vars no GitHub.
-- Railway precisa ser conferido apos o proximo push.
+- CI e Release Gate estao verdes no GitHub para `11e1e7b`.
+- Smoke autenticado executa o job, mas pula credenciais quando `E2E_AUTH_EMAIL`/`E2E_AUTH_PASSWORD` nao estao configurados.
+- Railway precisa ser conferido apos o push verde para confirmar deploy/health.
+- Branch protection ainda precisa tornar CI/Release Gate obrigatorios em `main`.
 
 ### Proximas acoes
 
-1. Decidir escopo de stage/commit em meio ao trabalho paralelo.
-2. Publicar o commit corrigido e acompanhar GitHub/Railway.
-3. Configurar secrets do smoke autenticado no GitHub.
-4. Tornar branch protection/release gate obrigatorios.
-5. Atualizar este placar apos CI/deploy.
+1. Conferir deploy/health no Railway apos `11e1e7b`.
+2. Configurar `E2E_AUTH_EMAIL`/`E2E_AUTH_PASSWORD` no GitHub para smoke autenticado real.
+3. Tornar branch protection/release gate obrigatorios.
+4. Preparar evidencia do CI verde e do Release Gate para o handoff.
+5. Atualizar este placar apos deploy/branch protection.
 
 ## Track 2 - Dev 2
 
