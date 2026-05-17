@@ -2259,6 +2259,10 @@ export interface DashboardSummary {
     legacyPedingPayments: number;
     stripeSecretConfigured: boolean;
     stripeWebhookConfigured: boolean;
+    stripePublishableConfigured?: boolean;
+    stripeSecretMode?: 'test' | 'live' | 'unknown' | 'missing';
+    stripePublishableMode?: 'test' | 'live' | 'unknown' | 'missing';
+    stripeModeMismatch?: boolean;
     byStatus: Array<{ status: string; count: number }>;
   };
   email?: {

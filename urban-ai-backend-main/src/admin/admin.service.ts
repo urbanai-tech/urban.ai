@@ -1281,6 +1281,21 @@ export class AdminService {
     const emailSenderConfigured = Boolean(process.env.EMAIL_SENDER);
     const senderUsesUrbanDomain = senderDomain.endsWith('myurbanai.com');
     const frontUrlConfigured = Boolean(process.env.FRONT_URL);
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim() || '';
+    const stripePublishableKey =
+      process.env.STRIPE_PUBLIC_KEY?.trim() ||
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim() ||
+      '';
+    const stripeSecretMode = this.resolveStripeKeyMode(stripeSecretKey, 'sk');
+    const stripePublishableMode = this.resolveStripeKeyMode(stripePublishableKey, 'pk');
+    const stripePublishableConfigured = Boolean(stripePublishableKey);
+    const stripeWebhookConfigured = Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim());
+    const stripeModeMismatch =
+      stripeSecretMode !== 'missing' &&
+      stripePublishableMode !== 'missing' &&
+      stripeSecretMode !== 'unknown' &&
+      stripePublishableMode !== 'unknown' &&
+      stripeSecretMode !== stripePublishableMode;
 
     const [
       // Eventos
@@ -1554,6 +1569,40 @@ export class AdminService {
         message: `${legacyPedingPayments} pagamento(s) com status legado "peding" aguardam saneamento`,
       });
     }
+    if (stripeSecretMode === 'missing') {
+      alerts.push({
+        severity: 'amber',
+        message: 'STRIPE_SECRET_KEY ausente; checkout e sync check ficam bloqueados',
+      });
+    } else if (stripeSecretMode === 'unknown') {
+      alerts.push({
+        severity: 'amber',
+        message: 'STRIPE_SECRET_KEY com prefixo inesperado; validar se e sk_test ou sk_live',
+      });
+    }
+    if (!stripeWebhookConfigured) {
+      alerts.push({
+        severity: 'amber',
+        message: 'STRIPE_WEBHOOK_SECRET ausente; checkout pode abrir, mas assinatura local nao sincroniza',
+      });
+    }
+    if (!stripePublishableConfigured) {
+      alerts.push({
+        severity: 'info',
+        message: 'Publishable key Stripe nao visivel no backend; confirmar NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY no frontend',
+      });
+    } else if (stripePublishableMode === 'unknown') {
+      alerts.push({
+        severity: 'amber',
+        message: 'Publishable key Stripe com prefixo inesperado; validar se e pk_test ou pk_live',
+      });
+    }
+    if (stripeModeMismatch) {
+      alerts.push({
+        severity: 'red',
+        message: `Stripe com modos misturados: secret=${stripeSecretMode}, publishable=${stripePublishableMode}`,
+      });
+    }
     if (supportP0Open > 0) {
       alerts.push({
         severity: 'red',
@@ -1670,8 +1719,12 @@ export class AdminService {
       billing: {
         activeSubscriptions,
         legacyPedingPayments,
-        stripeSecretConfigured: Boolean(process.env.STRIPE_SECRET_KEY),
-        stripeWebhookConfigured: Boolean(process.env.STRIPE_WEBHOOK_SECRET),
+        stripeSecretConfigured: Boolean(stripeSecretKey),
+        stripeWebhookConfigured,
+        stripePublishableConfigured,
+        stripeSecretMode,
+        stripePublishableMode,
+        stripeModeMismatch,
         byStatus: (paymentsByStatus as any[]).map((r: any) => ({
           status: String(r.status ?? 'unknown'),
           count: Number(r.count ?? 0),
@@ -1710,6 +1763,16 @@ export class AdminService {
         buckets: timeline.buckets,
       },
     };
+  }
+
+  private resolveStripeKeyMode(
+    key: string,
+    expectedPrefix: 'sk' | 'pk',
+  ): 'test' | 'live' | 'unknown' | 'missing' {
+    if (!key) return 'missing';
+    if (key.startsWith(`${expectedPrefix}_test_`) || key === `${expectedPrefix}_test`) return 'test';
+    if (key.startsWith(`${expectedPrefix}_live_`) || key === `${expectedPrefix}_live`) return 'live';
+    return 'unknown';
   }
 
   private formatAlphaRecommendations(analyses: AnalisePreco[]) {
