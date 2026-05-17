@@ -154,7 +154,7 @@ function Hero() {
               fontSize: 14,
               letterSpacing: "0.18em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.45)",
+              color: "rgba(255,255,255,0.50)",
               textDecoration: "none",
               borderBottom: "1px solid rgba(255,255,255,0.20)",
               paddingBottom: 4,
@@ -218,7 +218,7 @@ function ManifestoCost() {
         >
           O PREÇO ERRADO TEM<br />
           TRÊS SINTOMAS.<br />
-          <span style={{ color: "rgba(255,255,255,0.45)" }}>
+          <span style={{ color: "rgba(255,255,255,0.50)" }}>
             ALGUM É FAMILIAR?
           </span>
         </h2>
@@ -293,7 +293,7 @@ function Symptom({
           fontSize: 16,
           fontWeight: 300,
           lineHeight: 1.7,
-          color: "rgba(255,255,255,0.45)",
+          color: "rgba(255,255,255,0.50)",
           margin: 0,
         }}
       >
@@ -650,7 +650,7 @@ function BigNumber({ value, label }: { value: string; label: string }) {
           fontSize: 16,
           fontWeight: 300,
           lineHeight: 1.55,
-          color: "rgba(255,255,255,0.45)",
+          color: "rgba(255,255,255,0.50)",
           maxWidth: 320,
         }}
       >
@@ -805,7 +805,7 @@ function PriceColumn({
         style={{
           fontFamily: "Inter, sans-serif",
           fontSize: 13,
-          color: "rgba(255,255,255,0.45)",
+          color: "rgba(255,255,255,0.50)",
           margin: 0,
           marginBottom: 32,
         }}
@@ -828,7 +828,7 @@ function PriceColumn({
         <p
           style={{
             fontSize: 13,
-            color: "rgba(255,255,255,0.45)",
+            color: "rgba(255,255,255,0.50)",
             marginTop: 8,
             marginBottom: 40,
           }}

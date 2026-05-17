@@ -81,7 +81,13 @@ export function CookieConsent() {
               com seu consentimento, cookies opcionais de analytics e
               marketing para entender o uso e melhorar o produto. Veja
               detalhes na{" "}
-              <ChakraLink href="/privacidade" color="#E8500A" isExternal={false}>
+              <ChakraLink
+                href="/privacidade"
+                color="#FF8A4C"
+                textDecoration="underline"
+                textUnderlineOffset="2px"
+                isExternal={false}
+              >
                 Política de Privacidade
               </ChakraLink>.
             </Text>

@@ -88,7 +88,7 @@ export default function FooterPublic() {
                 fontSize: 11,
                 letterSpacing: 3,
                 textTransform: "uppercase",
-                color: "rgba(255,255,255,0.45)",
+                color: "rgba(255,255,255,0.50)",
                 fontWeight: 600,
                 margin: "0 0 24px",
               }}
@@ -135,7 +135,7 @@ export default function FooterPublic() {
               fontSize: 11,
               letterSpacing: 3,
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.45)",
+              color: "rgba(255,255,255,0.50)",
               fontWeight: 500,
               margin: 0,
             }}
@@ -147,7 +147,7 @@ export default function FooterPublic() {
               fontSize: 11,
               letterSpacing: 3,
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.20)",
+              color: "rgba(255,255,255,0.50)",
               fontWeight: 500,
               margin: 0,
             }}
@@ -174,7 +174,7 @@ function FooterColumn({
           fontSize: 11,
           letterSpacing: 3,
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.45)",
+          color: "rgba(255,255,255,0.50)",
           fontWeight: 600,
           margin: "0 0 24px",
         }}

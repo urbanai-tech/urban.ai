@@ -424,7 +424,7 @@ function PlanBlock({
                 fontSize: 11,
                 letterSpacing: 3,
                 textTransform: "uppercase",
-                color: "rgba(255,255,255,0.45)",
+                color: "rgba(255,255,255,0.50)",
                 fontWeight: 600,
                 margin: 0,
               }}
@@ -443,7 +443,7 @@ function PlanBlock({
             >
               R${t.price}
             </p>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: 0 }}>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.50)", margin: 0 }}>
               /imóvel/mês
             </p>
             {t.note && (
