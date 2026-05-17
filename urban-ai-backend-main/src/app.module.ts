@@ -35,6 +35,7 @@ import { SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { PlansModule } from './plans/plans.module';
 import { StaysModule } from './stays/stays.module';
 import { AdminModule } from './admin/admin.module';
+import { AdminPropertiesModule } from './admin-properties/admin-properties.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { ContactSubmissionsModule } from './contact-submissions/contact-submissions.module';
 import { User } from './entities/user.entity';
@@ -131,6 +132,7 @@ import { RolesGuard } from './auth/roles.guard';
     MapsModule,
     StaysModule,
     AdminModule,
+    AdminPropertiesModule,
     WaitlistModule,
     ContactSubmissionsModule,
 

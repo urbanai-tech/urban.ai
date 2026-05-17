@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity';
 import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { Address } from 'src/entities/addresses.entity';
+import { Event } from 'src/entities/events.entity';
 import { Payment } from 'src/entities/payment.entity';
 import { User } from 'src/entities/user.entity';
 import { EmailConfirmation } from 'src/entities/EmailConfirmation';
