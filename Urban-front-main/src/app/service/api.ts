@@ -2643,3 +2643,614 @@ export async function mutatePortfolioBulkAction(
     };
   }
 }
+
+// === Gap 2 — Pricing Rules ===
+// Semana 5-6, Track 2. Tela `/properties/:id/pricing-rules` — accordion com 8
+// regras por imóvel. Backend (Dev 1) ainda não entregou na semana 5, então o
+// flag `NEXT_PUBLIC_PRICING_RULES_MOCK_DATA` controla mock (default true em dev).
+// Quando backend entregar:
+//   POST /properties/:id/pricing-rules/preview  → preview 14d
+//   GET  /properties/:id/pricing-rules           → regras atuais
+//   PUT  /properties/:id/pricing-rules           → salva (atomic)
+//   POST /properties/:id/pricing-rules/copy-from/:sourceId → copia outro
+
+export type PricingRuleType =
+  | 'weekend_uplift'
+  | 'weekday_discount'
+  | 'gap_night_filler'
+  | 'last_minute'
+  | 'length_of_stay'
+  | 'min_stay_dynamic'
+  | 'occupancy_floor'
+  | 'event_uplift';
+
+export type PricingRule = {
+  type: PricingRuleType;
+  enabled: boolean;
+  params: Record<string, number>;
+  label: string;
+  description: string;
+};
+
+export type PricingRulesResponse = {
+  propertyId: string;
+  rules: PricingRule[];
+  updatedAt: string | null;
+};
+
+export type PricingRulesPreviewDay = {
+  date: string;
+  basePrice: number;
+  rulesPrice: number;
+  appliedRules: PricingRuleType[];
+};
+
+export type PricingRulesPreviewResponse = {
+  days: PricingRulesPreviewDay[];
+};
+
+/** Defaults inteligentes — usados na primeira vez que o anfitrião abre a tela. */
+export const PRICING_RULES_DEFAULTS: ReadonlyArray<PricingRule> = [
+  {
+    type: 'weekend_uplift',
+    enabled: true,
+    params: { percent: 15 },
+    label: 'Uplift de fim de semana',
+    description:
+      'Sex/sáb costumam ter procura maior. Aumenta o preço base nesses dias automaticamente.',
+  },
+  {
+    type: 'weekday_discount',
+    enabled: true,
+    params: { percent: -8 },
+    label: 'Desconto dias úteis lentos',
+    description:
+      'Seg/ter/qua geralmente têm menos demanda. Aplica um desconto suave pra puxar reservas.',
+  },
+  {
+    type: 'gap_night_filler',
+    enabled: true,
+    params: { percent: -20, maxNights: 2 },
+    label: 'Gap night filler',
+    description:
+      'Quando sobra 1–2 noites entre duas reservas confirmadas, baixa o preço pra fechar o buraco e não perder a noite.',
+  },
+  {
+    type: 'last_minute',
+    enabled: true,
+    params: { percent: -12, daysBefore: 3 },
+    label: 'Last-minute',
+    description:
+      'Se faltam ≤3 dias pra data e ainda está vazio, é melhor ocupar com desconto do que ficar sem hóspede.',
+  },
+  {
+    type: 'length_of_stay',
+    enabled: false,
+    params: { percent: -10, minNights: 7 },
+    label: 'Desconto estadia longa',
+    description:
+      'Estadias ≥7 noites geram receita estável e menos turnover. Dá um desconto pra atrair esse perfil.',
+  },
+  {
+    type: 'min_stay_dynamic',
+    enabled: false,
+    params: { baseMinNights: 2, highMinNights: 3, occupancyThreshold: 70 },
+    label: 'Estadia mínima dinâmica',
+    description:
+      'Quando a ocupação no período subir acima de 70%, aumenta a estadia mínima automaticamente — protege margem em momentos quentes.',
+  },
+  {
+    type: 'occupancy_floor',
+    enabled: true,
+    params: { minPrice: 180 },
+    label: 'Piso de preço',
+    description:
+      'Garante que nenhuma regra (sozinha ou combinada) baixe o preço abaixo desse valor. Trava de segurança.',
+  },
+  {
+    type: 'event_uplift',
+    enabled: true,
+    params: { percent: 25, radiusKm: 3 },
+    label: 'Uplift por evento de alto impacto',
+    description:
+      'Quando há evento com impacto "alta" no raio de 3km da sua propriedade, aplica um uplift extra. Captura o pico de demanda.',
+  },
+];
+
+const PRICING_RULES_USE_MOCK =
+  (process.env.NEXT_PUBLIC_PRICING_RULES_MOCK_DATA ?? 'true').toLowerCase() !== 'false';
+
+function clonePricingRules(rules: ReadonlyArray<PricingRule>): PricingRule[] {
+  return rules.map((r) => ({
+    type: r.type,
+    enabled: r.enabled,
+    params: { ...r.params },
+    label: r.label,
+    description: r.description,
+  }));
+}
+
+function pricingRulesISODate(daysAhead: number, base?: Date): string {
+  const d = base ? new Date(base) : new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + daysAhead);
+  return d.toISOString().slice(0, 10);
+}
+
+function hashPropertyId(propertyId: string): number {
+  let h = 0;
+  for (let i = 0; i < propertyId.length; i++) {
+    h = (h * 31 + propertyId.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h);
+}
+
+/**
+ * Gera 14 dias de mock realista. Baseline R$ 250–280 com leve variação por dia,
+ * e aplica cada regra ligada localmente pra simular o preview.
+ */
+function generatePricingRulesPreviewMock(
+  propertyId: string,
+  rules: ReadonlyArray<PricingRule>,
+): PricingRulesPreviewResponse {
+  const h = hashPropertyId(propertyId);
+  const baseline = 250 + (h % 30); // R$ 250–279 estável por imóvel
+  const days: PricingRulesPreviewDay[] = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // 2 eventos de alto impacto em ~14 dias pra mock ficar interessante
+  const eventDays = new Set<number>([3 + (h % 4), 9 + (h % 3)]);
+  // Lacuna de gap-night entre duas reservas: dia 5
+  const gapDays = new Set<number>([5]);
+
+  for (let i = 0; i < 14; i++) {
+    const iso = pricingRulesISODate(i, today);
+    const weekday = (new Date(iso).getDay() + 7) % 7;
+    const isWeekend = weekday === 5 || weekday === 6;
+    const isWeekdaySlow = weekday === 1 || weekday === 2 || weekday === 3;
+    const isGap = gapDays.has(i);
+    const isLastMinute = i <= 3;
+    const isHighEvent = eventDays.has(i);
+
+    // base price com leve ondulação senoidal (~+/-5)
+    const basePrice = Math.round(baseline + Math.sin(i / 2) * 5);
+    let price = basePrice;
+    const applied: PricingRuleType[] = [];
+
+    for (const rule of rules) {
+      if (!rule.enabled) continue;
+      switch (rule.type) {
+        case 'weekend_uplift':
+          if (isWeekend) {
+            price = Math.round(price * (1 + (rule.params.percent ?? 0) / 100));
+            applied.push(rule.type);
+          }
+          break;
+        case 'weekday_discount':
+          if (isWeekdaySlow) {
+            price = Math.round(price * (1 + (rule.params.percent ?? 0) / 100));
+            applied.push(rule.type);
+          }
+          break;
+        case 'gap_night_filler':
+          if (isGap) {
+            price = Math.round(price * (1 + (rule.params.percent ?? 0) / 100));
+            applied.push(rule.type);
+          }
+          break;
+        case 'last_minute': {
+          const within = (rule.params.daysBefore ?? 3);
+          if (i <= within && isLastMinute) {
+            price = Math.round(price * (1 + (rule.params.percent ?? 0) / 100));
+            applied.push(rule.type);
+          }
+          break;
+        }
+        case 'length_of_stay':
+          // No preview por dia não aplica — é por reserva. Ignora.
+          break;
+        case 'min_stay_dynamic':
+          // Mesmo caso — não muda preço, muda min stay. Ignora no preço.
+          break;
+        case 'event_uplift':
+          if (isHighEvent) {
+            price = Math.round(price * (1 + (rule.params.percent ?? 0) / 100));
+            applied.push(rule.type);
+          }
+          break;
+        case 'occupancy_floor': {
+          const floor = rule.params.minPrice ?? 0;
+          if (price < floor) {
+            price = floor;
+            applied.push(rule.type);
+          }
+          break;
+        }
+      }
+    }
+
+    days.push({
+      date: iso,
+      basePrice,
+      rulesPrice: price,
+      appliedRules: applied,
+    });
+  }
+
+  return { days };
+}
+
+const PRICING_RULES_MOCK_STORE: Record<string, PricingRulesResponse> = {};
+
+function getOrInitMock(propertyId: string): PricingRulesResponse {
+  if (!PRICING_RULES_MOCK_STORE[propertyId]) {
+    PRICING_RULES_MOCK_STORE[propertyId] = {
+      propertyId,
+      rules: clonePricingRules(PRICING_RULES_DEFAULTS),
+      updatedAt: null,
+    };
+  }
+  return PRICING_RULES_MOCK_STORE[propertyId];
+}
+
+export async function fetchPricingRules(propertyId: string): Promise<PricingRulesResponse> {
+  if (PRICING_RULES_USE_MOCK) {
+    await new Promise((resolve) => setTimeout(resolve, 180));
+    const stored = getOrInitMock(propertyId);
+    return {
+      propertyId: stored.propertyId,
+      rules: clonePricingRules(stored.rules),
+      updatedAt: stored.updatedAt,
+    };
+  }
+  try {
+    const { data } = await api.get<PricingRulesResponse>(
+      `/properties/${propertyId}/pricing-rules`,
+    );
+    if (!data || !Array.isArray(data.rules) || data.rules.length === 0) {
+      return {
+        propertyId,
+        rules: clonePricingRules(PRICING_RULES_DEFAULTS),
+        updatedAt: null,
+      };
+    }
+    return data;
+  } catch (err) {
+    console.warn('[fetchPricingRules] endpoint indisponível, usando defaults:', err);
+    return {
+      propertyId,
+      rules: clonePricingRules(PRICING_RULES_DEFAULTS),
+      updatedAt: null,
+    };
+  }
+}
+
+export async function savePricingRules(
+  propertyId: string,
+  rules: PricingRule[],
+): Promise<PricingRulesResponse> {
+  if (PRICING_RULES_USE_MOCK) {
+    await new Promise((resolve) => setTimeout(resolve, 260));
+    const updatedAt = new Date().toISOString();
+    PRICING_RULES_MOCK_STORE[propertyId] = {
+      propertyId,
+      rules: clonePricingRules(rules),
+      updatedAt,
+    };
+    return {
+      propertyId,
+      rules: clonePricingRules(rules),
+      updatedAt,
+    };
+  }
+  try {
+    const { data } = await api.put<PricingRulesResponse>(
+      `/properties/${propertyId}/pricing-rules`,
+      { rules },
+    );
+    return data;
+  } catch (err) {
+    console.error('[savePricingRules] falha ao salvar:', err);
+    throw err;
+  }
+}
+
+export async function previewPricingRules(
+  propertyId: string,
+  rules: PricingRule[],
+): Promise<PricingRulesPreviewResponse> {
+  if (PRICING_RULES_USE_MOCK) {
+    await new Promise((resolve) => setTimeout(resolve, 140));
+    return generatePricingRulesPreviewMock(propertyId, rules);
+  }
+  try {
+    const { data } = await api.post<PricingRulesPreviewResponse>(
+      `/properties/${propertyId}/pricing-rules/preview`,
+      { rules },
+    );
+    return data ?? { days: [] };
+  } catch (err) {
+    console.warn('[previewPricingRules] endpoint indisponível, usando mock:', err);
+    return generatePricingRulesPreviewMock(propertyId, rules);
+  }
+}
+
+export async function copyPricingRulesFromProperty(
+  sourceId: string,
+  targetId: string,
+): Promise<PricingRulesResponse> {
+  if (PRICING_RULES_USE_MOCK) {
+    await new Promise((resolve) => setTimeout(resolve, 220));
+    const source = getOrInitMock(sourceId);
+    const updatedAt = new Date().toISOString();
+    PRICING_RULES_MOCK_STORE[targetId] = {
+      propertyId: targetId,
+      rules: clonePricingRules(source.rules),
+      updatedAt,
+    };
+    return {
+      propertyId: targetId,
+      rules: clonePricingRules(source.rules),
+      updatedAt,
+    };
+  }
+  try {
+    const { data } = await api.post<PricingRulesResponse>(
+      `/properties/${targetId}/pricing-rules/copy-from/${sourceId}`,
+    );
+    return data;
+  } catch (err) {
+    console.error('[copyPricingRulesFromProperty] falha:', err);
+    throw err;
+  }
+}
+
+// === Gap 3 — Market Intel ===
+/**
+ * Market Intel dashboard (Gap 3 — Track 2, semana 5-6).
+ *
+ * Endpoint planejado pelo Dev 1:
+ *   GET /properties/:id/market-intel?from=&to=
+ *   → MarketIntelResponse
+ *
+ * Enquanto o backend não entrega, este módulo serve mock realista controlado
+ * por `NEXT_PUBLIC_MARKET_INTEL_MOCK_DATA` (default 'true' em dev).
+ *
+ * Caso especial: `propertyId === 'empty-comp-test'` retorna apenas 3
+ * comparáveis pra testar o empty state da tela `/properties/:id/market`.
+ */
+export type ComparableProperty = {
+  anonymousId: string;
+  type: 'apartamento' | 'casa' | 'loft' | 'studio';
+  bedrooms: number;
+  medianAdr: number;
+  occupancy: number;
+  distanceKm: number;
+  similarityScore: number;
+};
+
+export type MarketIntelDailyPoint = {
+  date: string;
+  yourAdr: number;
+  medianAdr: number;
+};
+
+export type MarketIntelResponse = {
+  propertyId: string;
+  neighborhood: string;
+  percentile: number;
+  percentileTrend30d: number;
+  comparablesCount: number;
+  medianAdr: number;
+  medianOccupancy: number;
+  yourAdr: number;
+  yourOccupancy: number;
+  eventReactivity: number;
+  daily: MarketIntelDailyPoint[];
+  comparables: ComparableProperty[];
+  updatedAt: string;
+};
+
+export type MarketIntelInput = {
+  propertyId: string;
+  from?: string;
+  to?: string;
+};
+
+const MARKET_INTEL_USE_MOCK =
+  (process.env.NEXT_PUBLIC_MARKET_INTEL_MOCK_DATA ?? 'true').toLowerCase() !== 'false';
+
+const MARKET_INTEL_TYPES: ReadonlyArray<ComparableProperty['type']> = [
+  'apartamento',
+  'loft',
+  'studio',
+  'casa',
+];
+
+function marketIntelRng(seed: number): () => number {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function marketIntelSeedFromString(seed: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function marketIntelDaysBetween(fromIso: string, toIso: string): number {
+  const f = new Date(fromIso);
+  const t = new Date(toIso);
+  const ms = t.getTime() - f.getTime();
+  return Math.max(0, Math.round(ms / 86400000));
+}
+
+function marketIntelIsoOffset(daysAhead: number, base?: Date): string {
+  const d = base ? new Date(base) : new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + daysAhead);
+  return d.toISOString().slice(0, 10);
+}
+
+function generateMarketIntelDaily(
+  propertyId: string,
+  fromIso: string,
+  totalDays: number,
+): MarketIntelDailyPoint[] {
+  const rng = marketIntelRng(marketIntelSeedFromString(`${propertyId}:daily`));
+  const base = new Date(fromIso);
+  const out: MarketIntelDailyPoint[] = [];
+
+  // Curva orgânica — combina baseline (oscila com tendência leve de alta),
+  // sazonalidade semanal (fim-de-semana +R$ 20-30) e ruído diário.
+  for (let i = 0; i < totalDays; i++) {
+    const date = marketIntelIsoOffset(i, base);
+    const weekday = (new Date(date).getDay() + 7) % 7;
+    const isWeekend = weekday === 5 || weekday === 6;
+
+    const yourTrend = 260 + i * 0.6; // pequena alta ao longo dos 30d
+    const yourWeek = isWeekend ? 28 : 0;
+    const yourNoise = (rng() - 0.5) * 28;
+    const yourAdr = Math.round(yourTrend + yourWeek + yourNoise);
+
+    const medianTrend = 240 + i * 0.2;
+    const medianWeek = isWeekend ? 18 : 0;
+    const medianNoise = (rng() - 0.5) * 18;
+    const medianAdr = Math.round(medianTrend + medianWeek + medianNoise);
+
+    out.push({
+      date,
+      yourAdr: Math.max(220, Math.min(330, yourAdr)),
+      medianAdr: Math.max(210, Math.min(280, medianAdr)),
+    });
+  }
+  return out;
+}
+
+function generateMarketIntelComparables(
+  propertyId: string,
+  count: number,
+): ComparableProperty[] {
+  const rng = marketIntelRng(marketIntelSeedFromString(`${propertyId}:comps`));
+  const out: ComparableProperty[] = [];
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+  for (let i = 0; i < count; i++) {
+    const type = MARKET_INTEL_TYPES[Math.floor(rng() * MARKET_INTEL_TYPES.length)];
+    // bedrooms: studio sempre 0, demais 1-3
+    const bedrooms = type === 'studio' ? 0 : 1 + Math.floor(rng() * 3);
+    const medianAdr = Math.round(220 + rng() * 80); // R$ 220-300
+    const occupancy = Number((0.58 + rng() * 0.32).toFixed(2)); // 58-90%
+    const distanceKm = Number((0.4 + rng() * 2.6).toFixed(2)); // 0.4-3.0km
+    // similarity inversamente proporcional à distância + leve ruído
+    const similarityBase = 0.95 - distanceKm / 6;
+    const similarityScore = Number(
+      Math.max(0.45, Math.min(0.98, similarityBase + (rng() - 0.5) * 0.08)).toFixed(2),
+    );
+
+    out.push({
+      anonymousId: letters.charAt(i % letters.length),
+      type,
+      bedrooms,
+      medianAdr,
+      occupancy,
+      distanceKm,
+      similarityScore,
+    });
+  }
+  // Ordena por similaridade decrescente — mais relevantes primeiro
+  return out.sort((a, b) => b.similarityScore - a.similarityScore);
+}
+
+function generateMarketIntelMock(input: MarketIntelInput): MarketIntelResponse {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const defaultFrom = marketIntelIsoOffset(-29, today);
+  const defaultTo = marketIntelIsoOffset(0, today);
+  const fromIso = input.from ?? defaultFrom;
+  const toIso = input.to ?? defaultTo;
+  const totalDays = Math.max(1, Math.min(90, marketIntelDaysBetween(fromIso, toIso) + 1));
+
+  const isEmpty = input.propertyId === 'empty-comp-test';
+  const comparables = generateMarketIntelComparables(
+    input.propertyId,
+    isEmpty ? 3 : 10,
+  );
+
+  const daily = generateMarketIntelDaily(input.propertyId, fromIso, totalDays);
+  const yourAdr = Math.round(
+    daily.reduce((acc, p) => acc + p.yourAdr, 0) / Math.max(1, daily.length),
+  );
+  const medianAdrSeries = Math.round(
+    daily.reduce((acc, p) => acc + p.medianAdr, 0) / Math.max(1, daily.length),
+  );
+  const medianOccupancy =
+    comparables.length > 0
+      ? Number(
+          (
+            comparables.reduce((acc, c) => acc + c.occupancy, 0) /
+            comparables.length
+          ).toFixed(2),
+        )
+      : 0;
+
+  return {
+    propertyId: input.propertyId,
+    neighborhood: 'Pinheiros',
+    percentile: isEmpty ? 0 : 73,
+    percentileTrend30d: isEmpty ? 0 : 4,
+    comparablesCount: comparables.length,
+    medianAdr: medianAdrSeries,
+    medianOccupancy,
+    yourAdr,
+    yourOccupancy: 0.78,
+    eventReactivity: isEmpty ? 0 : 62,
+    daily,
+    comparables,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * fetchMarketIntel — comparáveis + percentile + série diária ADR (Gap 3).
+ *
+ * Quando `NEXT_PUBLIC_MARKET_INTEL_MOCK_DATA !== 'false'` (default), retorna
+ * mock realista local. Caso contrário, chama
+ * `GET /properties/:id/market-intel` com fallback gracioso pro mock se o
+ * backend ainda não respondeu.
+ */
+export async function fetchMarketIntel(
+  input: MarketIntelInput,
+): Promise<MarketIntelResponse> {
+  if (MARKET_INTEL_USE_MOCK) {
+    await new Promise((resolve) => setTimeout(resolve, 220));
+    return generateMarketIntelMock(input);
+  }
+
+  try {
+    const { data } = await api.get<MarketIntelResponse>(
+      `/properties/${encodeURIComponent(input.propertyId)}/market-intel`,
+      {
+        params: {
+          from: input.from,
+          to: input.to,
+        },
+      },
+    );
+    if (!data) throw new Error('empty response');
+    return data;
+  } catch (err) {
+    console.warn('[fetchMarketIntel] endpoint indisponível, usando mock:', err);
+    return generateMarketIntelMock(input);
+  }
+}
