@@ -219,7 +219,9 @@ jobs:
         run: yarn build
       - name: Start local app
         run: |
-          yarn start --hostname 127.0.0.1 --port 3000 > /tmp/urban-front-next.log 2>&1 &
+          cp -r .next/static .next/standalone/.next/static
+          if [ -d public ]; then cp -r public .next/standalone/public; fi
+          PORT=3000 HOSTNAME=127.0.0.1 node .next/standalone/server.js > /tmp/urban-front-next.log 2>&1 &
           echo $! > /tmp/urban-front-next.pid
       - name: Wait for local app
         run: |
@@ -238,6 +240,7 @@ jobs:
           dashboard-recommendations.spec.ts
           email-confirmation.spec.ts
           f8-waitlist-to-login.spec.ts
+          login-post-login.spec.ts
           logout.spec.ts
           my-plan-billing.spec.ts
           plans-checkout-readiness.spec.ts

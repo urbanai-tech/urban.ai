@@ -67,10 +67,8 @@ export default function Login() {
           method: "password",
           user_active: !!data?.ativo,
         });
-        setTimeout(() => {
-          if (data.ativo) router.replace("/post-login");
-          else router.replace("/confirm-email/" + email);
-        }, 1200);
+        if (data.ativo) router.replace("/post-login");
+        else router.replace("/confirm-email/" + email);
       } catch (err) {
         toast("Não foi possível concluir a autenticação.", { type: "error" });
         console.error("Erro ao verificar usuário:", err);

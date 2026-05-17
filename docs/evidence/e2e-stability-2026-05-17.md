@@ -10,6 +10,7 @@ The mocked local CI subset remains the trusted gate:
 - `dashboard-recommendations.spec.ts`
 - `email-confirmation.spec.ts`
 - `f8-waitlist-to-login.spec.ts`
+- `login-post-login.spec.ts`
 - `logout.spec.ts`
 - `my-plan-billing.spec.ts`
 - `plans-checkout-readiness.spec.ts`
@@ -19,7 +20,7 @@ The mocked local CI subset remains the trusted gate:
 - `admin-quality-occupancy.spec.ts`
 - `stays-integrations.spec.ts`
 
-Latest local run of the expanded subset: `21 passed`, `1 skipped`.
+Latest local run of the expanded subset: `22 passed`, `1 skipped`.
 
 ## Extended E2E Investigation
 
@@ -37,18 +38,17 @@ An extended local run against `http://127.0.0.1:3000` included:
 Result after selector/mock repairs:
 
 - Passing: `dashboard-recommendations`, `email-confirmation`,
-  `f8-waitlist-to-login`, `logout`, `plans-checkout-readiness`,
-  `properties-pricing`, and `stays-integrations`.
+  `f8-waitlist-to-login`, `login-post-login`, `logout`,
+  `plans-checkout-readiness`, `properties-pricing`, and `stays-integrations`.
 - Skipped by design: Stripe publishable-key negative smoke when the test key is
   configured.
 
-Still failing and not promoted into CI:
+Promoted into CI:
 
-- `login-post-login.spec.ts`: post-login navigation did not reach `/dashboard`
-  with the current mocked login response.
+- `login-post-login.spec.ts`: consent setup and async state assertion were
+  repaired, and the login success path now routes immediately to `/post-login`.
 
 ## Policy
 
 Only green tests should be promoted to required CI gates. The CI now runs the
-expanded green subset and keeps `login-post-login.spec.ts` out until the mocked
-auth/session contract is repaired.
+expanded green subset, including the repaired login to post-login route.
