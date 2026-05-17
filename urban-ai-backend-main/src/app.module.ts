@@ -40,6 +40,7 @@ import { WaitlistModule } from './waitlist/waitlist.module';
 import { ContactSubmissionsModule } from './contact-submissions/contact-submissions.module';
 import { User } from './entities/user.entity';
 import { RolesGuard } from './auth/roles.guard';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -135,6 +136,7 @@ import { RolesGuard } from './auth/roles.guard';
     AdminPropertiesModule,
     WaitlistModule,
     ContactSubmissionsModule,
+    HealthModule,
 
     // 4) Static file serving
     ServeStaticModule.forRoot({
