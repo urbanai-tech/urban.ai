@@ -2285,6 +2285,12 @@ export interface DashboardSummary {
     overdue: number;
     p0Open: number;
     lgpdOpen: number;
+    supportEmail?: string;
+    privacyEmail?: string;
+    supportEmailConfigured?: boolean;
+    privacyEmailConfigured?: boolean;
+    supportEmailDomainOk?: boolean;
+    privacyEmailDomainOk?: boolean;
   };
   revenue: {
     activeSubscriptions: number;
