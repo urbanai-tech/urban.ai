@@ -1,6 +1,23 @@
 import { expect, test } from '@playwright/test';
+import { acceptCookieConsent } from './test-helpers';
 
 test.describe('My plan billing view', () => {
+  test.beforeEach(async ({ page }) => {
+    await acceptCookieConsent(page);
+    await page.route('**/auth/me', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 'host-my-plan-e2e',
+          username: 'Host My Plan E2E',
+          email: 'host.my-plan@urbanai.com.br',
+          role: 'host',
+        }),
+      });
+    });
+  });
+
   test('mostra assinatura, ciclo e quota com API mockada', async ({ page }) => {
     await page.route('**/payments/getSubscription', async (route) => {
       await route.fulfill({
@@ -46,7 +63,7 @@ test.describe('My plan billing view', () => {
       });
     });
 
-    await page.goto('/my-plan');
+    await page.goto('/my-plan', { waitUntil: 'domcontentloaded' });
 
     await expect(page.getByRole('heading', { name: /Meu plano/i })).toBeVisible();
     await expect(page.getByText(/Plano profissional/i)).toBeVisible();
@@ -93,7 +110,7 @@ test.describe('My plan billing view', () => {
       });
     });
 
-    await page.goto('/my-plan');
+    await page.goto('/my-plan', { waitUntil: 'domcontentloaded' });
 
     await expect(page.getByText(/Plano Alpha/i)).toBeVisible();
     await expect(page.getByText(/Alpha assistido/i)).toBeVisible();
