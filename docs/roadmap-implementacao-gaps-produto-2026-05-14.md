@@ -38,11 +38,11 @@ A Urban AI deve seguir por tres marcos, em vez de tentar um go-live publico dire
 
 ### Modo real em 2026-05-17
 
-- **Producao Railway:** `production` segue `SUCCESS` no servico `urban.ai`, com deploy ativo do commit `1af628d4295e8e57ede0b14e1f1c714702463354`. O commit local mais recente `96deade29fb33c6df067c43f4d68595dc3bb3952` ainda **nao esta confirmado na Railway**.
-- **Estado local auditado:** `main` esta 1 commit a frente de `origin/main` com `feat: design premium upgrade + switch admin/host + drill-down + paginas erro + roadmap`.
-- **Checks locais de 17/05:** `tsc --noEmit` passou no front e no backend. Auditoria visual local via Playwright confirmou ausencia de overflow horizontal nas telas capturadas: login desktop, host dashboard mobile, host properties desktop, `/admin/properties`, `/forbidden` e 404.
+- **Producao Railway:** `backend/urban.ai` e `Front/Frontend` chegaram a `SUCCESS` com o pacote de produto/design `88d29aef57490bde16f186fcabba52bf76f495b7` em 2026-05-17 11:08 UTC. O build do frontend compilou 55 rotas e subiu com warnings nao bloqueantes de imports/variaveis nao usados.
+- **Estado Git:** `origin/main` e `urbanai-tech/main` receberam os commits `96deade` (design premium) e `88d29ae` (roadmap de prontidao). A unica sujeira local remanescente e `Urban-front-main/tsconfig.tsbuildinfo`, artefato gerado.
+- **Checks de 17/05:** `tsc --noEmit` passou no front e no backend. Auditoria visual local via Playwright confirmou ausencia de overflow horizontal nas telas capturadas: login desktop, host dashboard mobile, host properties desktop, `/admin/properties`, `/forbidden` e 404. Railway tambem confirmou `next build` e `nest build`.
 - **Resultado de design:** a marca agora esta muito mais coesa: login manifesto, shell dark do anfitriao, AdminShell com switch host/admin, paginas de erro editoriais e caminho de drill-down admin.
-- **Limites encontrados:** `/admin/properties` esta correto como front/fallback, mas depende do endpoint real do backend para virar ferramenta operacional completa; o host dashboard mobile ficou visualmente sem overflow, mas a auditoria com mocks caiu em paywall/cookies, entao ainda precisa de smoke autenticado real sem overlays; o commit novo precisa de build/deploy Railway antes de ser considerado producao.
+- **Limites encontrados:** `/admin/properties` esta correto como front/fallback, mas depende do endpoint real do backend para virar ferramenta operacional completa; o host dashboard mobile ficou visualmente sem overflow, mas a auditoria com mocks caiu em paywall/cookies, entao ainda precisa de smoke autenticado real sem overlays.
 
 ---
 
@@ -54,36 +54,36 @@ As porcentagens abaixo sao estimativas operacionais para acompanhamento. Elas co
 
 | Marco | Prontidao | Leitura simples | O que falta para 100% |
 |---|---:|---|---|
-| M1 - Pre-lancamento seguro | **93% local / 90% prod** | Waitlist, narrativa conservadora, login manifesto, paginas de erro premium, contato publico, admin waitlist e smoke publico estao operaveis. Producao esta verde ate `1af628d`; o upgrade visual `96deade` ainda precisa deploy. | Deploy Railway do commit novo, GA4/Pixel reais, teste com 5 leads, smoke de e-mail/convite em prod e revisao final de copy/canais. |
-| M2 - Alpha/beta fechado assistido | **86% local / 83% prod** | Alpha de contas existentes esta operavel; UI do anfitriao ganhou RecommendationCard, shell premium e menos ruido visual; admin ganhou drill-down visual de imoveis. | Endpoint real `/admin/properties`, fluxos mutantes controlados com Gustavo, registro de resultado/ocupacao real e 3-5 evidencias reais. |
-| M3 - Beta pago / go-live controlado | **66% local / 65% prod** | Billing portal, checkout oficial, admin mais completo, templates de e-mail e release docs reduzem risco; design ficou pronto para cobrar, mas a prova de valor ainda nao. | Stripe/KYC/smoke ponta-a-ponta, MailerSend real, suporte/legal, cases e monitoramento de incidentes. |
-| M4 - Go-live publico | **43% local / 39% prod** | Base de produto, design e operacao evoluiu bastante, mas ainda falta mercado, dados reais, suporte e observabilidade madura. | 3 cases auditados, cobertura alta de eventos/recomendacoes, dataset/ROI real, billing e suporte prontos. |
+| M1 - Pre-lancamento seguro | **93%** | Waitlist, narrativa conservadora, login manifesto, paginas de erro premium, contato publico, admin waitlist, smoke publico e deploy Railway do novo pacote estao operaveis. | GA4/Pixel reais, teste com 5 leads, smoke de e-mail/convite em prod e revisao final de copy/canais. |
+| M2 - Alpha/beta fechado assistido | **86%** | Alpha de contas existentes esta operavel; UI do anfitriao ganhou RecommendationCard, shell premium e menos ruido visual; admin ganhou drill-down visual de imoveis. | Endpoint real `/admin/properties`, fluxos mutantes controlados com Gustavo, registro de resultado/ocupacao real e 3-5 evidencias reais. |
+| M3 - Beta pago / go-live controlado | **66%** | Billing portal, checkout oficial, admin mais completo, templates de e-mail e release docs reduzem risco; design ficou pronto para cobrar, mas a prova de valor ainda nao. | Stripe/KYC/smoke ponta-a-ponta, MailerSend real, suporte/legal, cases e monitoramento de incidentes. |
+| M4 - Go-live publico | **43%** | Base de produto, design e operacao evoluiu bastante, mas ainda falta mercado, dados reais, suporte e observabilidade madura. | 3 cases auditados, cobertura alta de eventos/recomendacoes, dataset/ROI real, billing e suporte prontos. |
 
 | Area | Pronto | O que ja esta pronto | Principal bloqueio |
 |---|---:|---|---|
-| Narrativa, marca e prelaunch | **92% local / 88% prod** | Copy segura, `LAUNCH_MODE`, waitlist/analytics instrumentados, FAQ, aceite de convite, paginas publicas e login no mesmo manifesto visual. | Deploy do upgrade visual, 5 leads reais, MailerSend, GA4/Pixel e revisao final de canais. |
+| Narrativa, marca e prelaunch | **92%** | Copy segura, `LAUNCH_MODE`, waitlist/analytics instrumentados, FAQ, aceite de convite, paginas publicas e login no mesmo manifesto visual; deploy Railway confirmado. | 5 leads reais, MailerSend, GA4/Pixel e revisao final de canais. |
 | Eventos e coletores | **72%** | Runner/cron/health/fallback manual/import CSV/geocoder readiness estao instrumentados; admin mostra estado acionavel. | Medir eventos futuros reais apos deploy, ativar Geocoding API Google e popular 100-200 eventos SP/30d. |
-| Recomendacoes de preco | **70% local / 67% prod** | Job, filtros, feedback, aceite/aplicacao e RecommendationCard melhoraram o centro de valor do produto. | Smoke autenticado com Gustavo e cobertura >=70% dos imoveis beta com recomendacao ou motivo claro. |
+| Recomendacoes de preco | **70%** | Job, filtros, feedback, aceite/aplicacao e RecommendationCard melhoraram o centro de valor do produto. | Smoke autenticado com Gustavo e cobertura >=70% dos imoveis beta com recomendacao ou motivo claro. |
 | Dataset, IA e ROI | **69%** | Diagnostics, snapshots, preco aplicado, ROI usuario/admin, historico sugerido vs. real, features de proximidade e ocupacao manual existem. | Dados reais de ocupacao/reserva por 7 dias, MAPE inicial e cases. |
-| Billing e Stripe | **79% local / 78% prod** | Resolver de Price IDs, Stripe.js oficial, Billing Portal, quota, webhooks best-effort e templates de e-mail estao prontos em codigo/testes. | Smoke checkout/webhook/quota/cancelamento/portal com Stripe test/live, MailerSend real e KYC. |
+| Billing e Stripe | **79%** | Resolver de Price IDs, Stripe.js oficial, Billing Portal, quota, webhooks best-effort e templates de e-mail estao prontos em codigo/testes e deployados. | Smoke checkout/webhook/quota/cancelamento/portal com Stripe test/live, MailerSend real e KYC. |
 | Stays automatico | **40%** | Produto reposicionado como beta privado; `price_updates` tem migration; conector/servico falham fechado sem `STAYS_API_BASE_URL` e `STAYS_TOKEN_ENCRYPTION_KEY`; connect exige consentimento versionado e persiste IP/user-agent; integracoes mostram sync/consentimento/modo por listing; `/admin/stays` mostra readiness/missing envs; runbook cobre credencial/criptografia/push/rollback. | Credenciais reais/sandbox, executar connect/sync/push/rollback com consentimento real e rollback auditavel. |
 | Admin e operacao | **99% read-only / 84% mutacoes controladas** | AdminShell, dashboards, jobs, waitlist, alpha ops, ROI, audit logs, contatos, Stays readiness, ocupacao manual e drill-down visual de imoveis estao em codigo. | Backend real para `/admin/properties`, mutacoes com fixture real, alertas externos e comparacao de KPIs com banco. |
-| Infra/release | **72% local / 71% prod** | Health/config/runbooks/smokes existem; Railway prod esta verde no commit anterior; typecheck local passou no commit novo. | Deploy Railway do `96deade`, staging real, branch protection, restore drill e smoke pos-deploy autenticado. |
+| Infra/release | **73%** | Health/config/runbooks/smokes existem; Railway prod esta verde no pacote novo; typecheck local e build Railway passaram. | Staging real, branch protection, restore drill e smoke pos-deploy autenticado. |
 | Legal/LGPD | **49%** | Consentimento de analytics/marketing, copy conservadora, FAQ sem promessa quantitativa e consentimento Stays rastreavel estao encaminhados. | DPAs, revisao juridica final, processo LGPD e consentimentos versionados em producao. |
 | Marketing/beta | **47%** | Atribuicao/referral, contato publico, triagem admin, aceite waitlist, playbook beta e visual mais premium para conversao. | Recrutar 20-30 leads, ativar 5-10 anfitrioes e produzir cases reais. |
 | Testes E2E e QA | **94% mock/read-only / 55% mutante real** | Suite Playwright cobre muitos fluxos mockados; E2E prod read-only anterior foi 100%; typecheck front/backend passou em 17/05. | Smokes mutantes reais: MailerSend, Stripe test mode, ocupacao observada, recomendacao/aplicacao com Gustavo e deploy do commit novo. |
-| Design system e UX premium | **90% local / 78% prod** | Publico/admin/anfitriao agora compartilham marca, tokens e componentes; login, shells e erro pages estao muito acima do baseline anterior. | WCAG AA, remover overlays da auditoria, validar mobile autenticado real, formalizar `docs/design-system.md` e publicar o commit novo. |
+| Design system e UX premium | **90%** | Publico/admin/anfitriao agora compartilham marca, tokens e componentes; login, shells e erro pages estao muito acima do baseline anterior e ja foram publicados no Front Railway. | WCAG AA, remover overlays da auditoria, validar mobile autenticado real e formalizar `docs/design-system.md`. |
 
-Resumo honesto: **design e pre-lancamento ficaram muito fortes em codigo local**, **alpha assistido segue operavel**, e **beta pago/go-live continuam bloqueados por prova real de ROI, Stripe validado, MailerSend real, endpoint de drill-down e deploy do commit novo**.
+Resumo honesto: **design e pre-lancamento ficaram muito fortes e ja estao publicados**, **alpha assistido segue operavel**, e **beta pago/go-live continuam bloqueados por prova real de ROI, Stripe validado, MailerSend real e endpoint de drill-down**.
 
 | Fase | Janela sugerida | Tema | Pronto | Status em 2026-05-17 | Gate de saida |
 |---|---:|---|---:|---|---|
 | F0 | 0-1 dia | Alinhamento e baseline de execucao | 88% | Roadmap, runbooks, evidencias Railway e auditoria visual local atualizados; ainda falta rotina fixa de status semanal e deploy do commit novo. | Backlog fechado, branch/processo definidos, metricas base salvas. |
-| F1 | 2-3 dias | Pre-lancamento seguro | 93% local / 90% prod | Login manifesto, paginas de erro, waitlist, convite, FAQ e contato publico estao prontos em codigo; falta provar leads/analytics/e-mail reais e publicar `96deade`. | Waitlist testada, analytics pronto, copy ajustada e deploy confirmado. |
+| F1 | 2-3 dias | Pre-lancamento seguro | 93% | Login manifesto, paginas de erro, waitlist, convite, FAQ e contato publico estao prontos e deployados; falta provar leads/analytics/e-mail reais. | Waitlist testada, analytics pronto, copy ajustada e deploy confirmado. |
 | F2 | 3-7 dias | Eventos vivos | 72% | Runner/cron/container/health/fallback/import CSV e geocoder readiness estao estruturados; Google Geocoding API ainda bloqueia queda dos pendentes. | >= 200 eventos futuros SP/30d ou fallback manual ativo; coletores com lastSeen < 48h. |
-| F3 | 3-7 dias | Recomendacoes novas | 70% local / 67% prod | Reprocessamento, filtros, feedback, RecommendationCard e smokes mockados estao prontos; falta fluxo mutante real com Gustavo. | Recomendacoes com `criado_em` atual; cobertura >= 70% dos imoveis ativos em regioes cobertas. |
+| F3 | 3-7 dias | Recomendacoes novas | 70% | Reprocessamento, filtros, feedback, RecommendationCard e smokes mockados estao prontos/deployados; falta fluxo mutante real com Gustavo. | Recomendacoes com `criado_em` atual; cobertura >= 70% dos imoveis ativos em regioes cobertas. |
 | F4 | 1-2 semanas | Dataset, qualidade e ROI | 69% | Snapshot, preco aplicado, receita real, ROI e ocupacao manual existem; MAPE/cases ainda dependem de dados reais. | Snapshots por 7 dias, ocupacao real capturada, preco aplicado capturado, relatorio de qualidade inicial. |
-| F5 | 3-5 dias | Billing e planos | 79% local / 78% prod | Checkout, Billing Portal, quota, templates e webhooks estao cobertos em codigo/teste; falta smoke Stripe/MailerSend real. | Checkout/webhook/quota/cancelamento/portal testados; status de pagamentos saneado. |
+| F5 | 3-5 dias | Billing e planos | 79% | Checkout, Billing Portal, quota, templates e webhooks estao cobertos em codigo/teste e deployados; falta smoke Stripe/MailerSend real. | Checkout/webhook/quota/cancelamento/portal testados; status de pagamentos saneado. |
 | F6 | 1-2 semanas apos credenciais | Stays beta privado | 40% | Mantido como beta privado/oculto; `price_updates` e consentimento Stays tem migrations, integracao falha fechado sem envs, connect exige consentimento auditavel, tela de integracoes mostra sync/consentimento/modo por listing e o admin mostra readiness/missing envs; execucao real pendente | Connect/sync/push/rollback testado com conta real ou sandbox. |
 | F7 | 1-2 semanas em paralelo | Admin, ops e confiabilidade | 99% read-only / 84% mutacoes controladas | AdminShell, jobs, audit, contatos, ROI, Stays readiness, ocupacao manual e `/admin/properties` visual estao prontos; endpoint real de imoveis e mutacoes reais ainda pendem. | Jobs/admin/audit/staging/observabilidade cobrindo operacao diaria. |
 | F8 | 2 semanas | Beta fechado assistido | 56% | Produto esta mais apresentavel para beta; faltam leads reais, onboarding assistido real e ciclos de recomendacao com resultado observado. | 5-10 anfitrioes ativos, feedback semanal, primeiros cases. |
@@ -140,22 +140,23 @@ Legenda: **feito em codigo** = implementado e commitado, ainda sujeito a validac
 | `<this>` - design premium upgrade | A, H, I | **(1)** Tela de login (`/(home)/page.tsx`) refeita em manifesto editorial split 50/50: esquerda dark cinematic com Bebas + grain + pull-quote ("CADA NOITE QUE A CIDADE SE MEXE, VOCÊ GANHA"), direita form light premium border-bottom + CTA #E8500A com microinteracao. Primeira impressao do produto pareada com a landing publica. **(2)** SideBar do anfitriao migrada de Chakra light (`bg=white` + `gray.200` cinza) para dark premium (`#0E1117`, estilo Stripe Dashboard/Linear) com SVG inline, microinteracoes hover/active accent, account block com avatar + plano. Mobile: top bar + bottom-nav 4 itens + drawer "Mais". **(3)** Switch admin↔host na sidebar do anfitriao (quando `user.role==='admin'`) + switch host↔admin no AdminShell — user admin transita sem URL manual. **(4)** Layouts dos 14 layouts do anfitriao consolidados em `HostShell.tsx` (substitui pattern duplicado em painel/dashboard/properties/my-roi/my-plan/maps/notificacao/near-events/event-log/etc). **(5)** `not-found.tsx`, `error.tsx`, `/forbidden/page.tsx` criadas em manifesto editorial dark — paginas de erro nao sao mais brutas. **(6)** `/admin/properties` (drill-down — gap I5 do roadmap) criada com lista de imoveis, KPIs derivados, filtros, fallback gracioso quando endpoint backend ainda nao existe. **(7)** Templates de email D1/D3/D7 onboarding (gap H9) criados em `email/templates.ts` — prontos pra serem chamados quando cron de drip for ativado. |
 
 **Score apos esta rodada (placar 2.0):**
-- M1 Pre-lancamento seguro: 90% prod / **93% local** (login premium + paginas erro + continuidade visual)
-- M2 Beta fechado: 83% prod / **86% local** (RecommendationCard + shell host + drill-down admin visual)
-- M3 Beta pago: 65% prod / **66% local** (billing/admin/e-mails ajudam, mas ainda sem prova real para cobrar)
-- M4 Go-live publico: 39% prod / **43% local** (melhor design e operacao, ainda sem cases/dados suficientes)
+- M1 Pre-lancamento seguro: **93%** (login premium + paginas erro + continuidade visual publicados)
+- M2 Beta fechado: **86%** (RecommendationCard + shell host + drill-down admin visual publicados)
+- M3 Beta pago: **66%** (billing/admin/e-mails ajudam, mas ainda sem prova real para cobrar)
+- M4 Go-live publico: **43%** (melhor design e operacao, ainda sem cases/dados suficientes)
 
 **Nova frente registrada — N: Design system & marca**
-- Pronto: **90% local / 78% prod**. Tokens `.urban-manifesto` + `.urban-admin` + `.urban-app` em globals.css, componentes shared, RecommendationCard como objeto central, login/sidebar/admin shell/erros/drill-down todos no design system, 3 expressoes da mesma marca (publico dark + admin dark + host light premium).
-- Pendente: deploy do commit `96deade`, Storybook (P3, nao bloqueante), documento `docs/design-system.md` formal, audit WCAG AA com checklist preenchido e smoke autenticado sem overlays de cookie/paywall.
+- Pronto: **90%**. Tokens `.urban-manifesto` + `.urban-admin` + `.urban-app` em globals.css, componentes shared, RecommendationCard como objeto central, login/sidebar/admin shell/erros/drill-down todos no design system, 3 expressoes da mesma marca (publico dark + admin dark + host light premium), com Front Railway em `SUCCESS`.
+- Pendente: Storybook (P3, nao bloqueante), documento `docs/design-system.md` formal, audit WCAG AA com checklist preenchido e smoke autenticado sem overlays de cookie/paywall.
 
 ### 2.5 Auditoria executiva - 2026-05-17
 
 | Item auditado | Resultado | Leitura |
 |---|---|---|
-| Git/local | `main` esta 1 commit a frente de `origin/main` (`96deade`) | O upgrade premium existe no workspace, mas ainda precisa push/deploy para virar producao. |
-| Railway | `production`/`urban.ai` em `SUCCESS` no commit `1af628d` | Producao esta estavel, mas nao valida o commit novo. |
-| Typecheck | Front e backend passaram `tsc --noEmit` | Sem erro TypeScript bloqueante encontrado. |
+| Git/remotes | `origin/main` e `urbanai-tech/main` receberam `88d29ae` | Upgrade premium e roadmap estao publicados nos dois remotes. |
+| Railway backend | `backend/urban.ai` em `SUCCESS` no commit `88d29ae` | `nest build` passou e o app iniciou na porta 8080. |
+| Railway front | `Front/Frontend` em `SUCCESS` no commit `88d29ae` | `next build` compilou 55 rotas; warnings de lint nao bloquearam deploy. |
+| Typecheck | Front e backend passaram `tsc --noEmit` | Sem erro TypeScript bloqueante encontrado antes do push. |
 | Visual desktop login | Sem overflow; manifesto premium consistente | Forte melhora de primeira impressao. |
 | Visual host mobile | Sem overflow horizontal | Ainda precisa smoke autenticado real sem paywall/cookies para validar conteudo util. |
 | Visual admin properties | AdminShell e fallback funcionam | Gap I5 ainda depende de endpoint backend real para deixar de ser "endpoint pendente". |
