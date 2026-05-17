@@ -1302,6 +1302,12 @@ export class AdminService {
     const privacyEmailConfigured = Boolean(process.env.PRIVACY_EMAIL?.trim());
     const supportEmailDomainOk = this.emailDomain(supportEmail).endsWith('myurbanai.com');
     const privacyEmailDomainOk = this.emailDomain(privacyEmail).endsWith('myurbanai.com');
+    const supportOwnerEmail = process.env.SUPPORT_OWNER_EMAIL?.trim() || '';
+    const privacyOwnerEmail = process.env.PRIVACY_OWNER_EMAIL?.trim() || '';
+    const supportOwnerConfigured = Boolean(supportOwnerEmail);
+    const privacyOwnerConfigured = Boolean(privacyOwnerEmail);
+    const supportOwnerDomainOk = !supportOwnerEmail || this.emailDomain(supportOwnerEmail).endsWith('myurbanai.com');
+    const privacyOwnerDomainOk = !privacyOwnerEmail || this.emailDomain(privacyOwnerEmail).endsWith('myurbanai.com');
 
     const [
       // Eventos
@@ -1542,6 +1548,10 @@ export class AdminService {
       privacyEmailConfigured,
       supportEmailDomainOk,
       privacyEmailDomainOk,
+      supportOwnerConfigured,
+      privacyOwnerConfigured,
+      supportOwnerDomainOk,
+      privacyOwnerDomainOk,
     });
 
     if (eventsNext30d < 100) {
@@ -1664,6 +1674,17 @@ export class AdminService {
       alerts.push({
         severity: 'amber',
         message: 'Canais suporte/privacidade fora do dominio myurbanai.com; revisar antes do beta pago',
+      });
+    }
+    if (!supportOwnerConfigured || !privacyOwnerConfigured) {
+      alerts.push({
+        severity: 'info',
+        message: 'Donos operacionais de suporte/privacidade nao configurados; defina SUPPORT_OWNER_EMAIL e PRIVACY_OWNER_EMAIL',
+      });
+    } else if (!supportOwnerDomainOk || !privacyOwnerDomainOk) {
+      alerts.push({
+        severity: 'amber',
+        message: 'Donos operacionais de suporte/privacidade fora do dominio myurbanai.com',
       });
     }
     if (!mailerSendApiKeyConfigured) {
@@ -1801,6 +1822,12 @@ export class AdminService {
         privacyEmailConfigured,
         supportEmailDomainOk,
         privacyEmailDomainOk,
+        supportOwnerEmail,
+        privacyOwnerEmail,
+        supportOwnerConfigured,
+        privacyOwnerConfigured,
+        supportOwnerDomainOk,
+        privacyOwnerDomainOk,
       },
       integrationsReadiness,
       revenue: {
@@ -1851,6 +1878,10 @@ export class AdminService {
     privacyEmailConfigured: boolean;
     supportEmailDomainOk: boolean;
     privacyEmailDomainOk: boolean;
+    supportOwnerConfigured: boolean;
+    privacyOwnerConfigured: boolean;
+    supportOwnerDomainOk: boolean;
+    privacyOwnerDomainOk: boolean;
   }) {
     const stripeBlockers: string[] = [];
     if (!input.stripeSecretConfigured) stripeBlockers.push('STRIPE_SECRET_KEY ausente');
@@ -1877,6 +1908,11 @@ export class AdminService {
     if (!input.privacyEmailConfigured) supportBlockers.push('PRIVACY_EMAIL ausente');
     if (!input.supportEmailDomainOk || !input.privacyEmailDomainOk) {
       supportBlockers.push('Canais suporte/privacidade fora do dominio myurbanai.com');
+    }
+    if (!input.supportOwnerConfigured) supportBlockers.push('SUPPORT_OWNER_EMAIL ausente');
+    if (!input.privacyOwnerConfigured) supportBlockers.push('PRIVACY_OWNER_EMAIL ausente');
+    if (!input.supportOwnerDomainOk || !input.privacyOwnerDomainOk) {
+      supportBlockers.push('Donos operacionais fora do dominio myurbanai.com');
     }
     if (input.supportLgpdOpen > 0) {
       supportBlockers.push(`${input.supportLgpdOpen} pedido(s) LGPD exigem acompanhamento`);

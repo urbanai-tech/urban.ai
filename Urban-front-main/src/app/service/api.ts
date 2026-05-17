@@ -2291,6 +2291,12 @@ export interface DashboardSummary {
     privacyEmailConfigured?: boolean;
     supportEmailDomainOk?: boolean;
     privacyEmailDomainOk?: boolean;
+    supportOwnerEmail?: string;
+    privacyOwnerEmail?: string;
+    supportOwnerConfigured?: boolean;
+    privacyOwnerConfigured?: boolean;
+    supportOwnerDomainOk?: boolean;
+    privacyOwnerDomainOk?: boolean;
   };
   integrationsReadiness?: Record<
     'stripe' | 'email' | 'stays' | 'support',

@@ -352,6 +352,10 @@ describe('AdminService Track 3 readiness', () => {
       privacyEmailConfigured: false,
       supportEmailDomainOk: true,
       privacyEmailDomainOk: true,
+      supportOwnerConfigured: false,
+      privacyOwnerConfigured: false,
+      supportOwnerDomainOk: true,
+      privacyOwnerDomainOk: true,
     });
 
     expect(result.stripe).toMatchObject({
@@ -371,6 +375,8 @@ describe('AdminService Track 3 readiness', () => {
       expect.arrayContaining([
         '1 ticket(s) P0 abertos',
         '2 ticket(s) com SLA vencido',
+        'SUPPORT_OWNER_EMAIL ausente',
+        'PRIVACY_OWNER_EMAIL ausente',
         '1 pedido(s) LGPD exigem acompanhamento',
       ]),
     );
@@ -399,6 +405,10 @@ describe('AdminService Track 3 readiness', () => {
       privacyEmailConfigured: true,
       supportEmailDomainOk: true,
       privacyEmailDomainOk: true,
+      supportOwnerConfigured: true,
+      privacyOwnerConfigured: true,
+      supportOwnerDomainOk: true,
+      privacyOwnerDomainOk: true,
     });
 
     expect(Object.values(result).every((item: any) => item.status === 'ready')).toBe(true);

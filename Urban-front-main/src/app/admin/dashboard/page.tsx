@@ -516,6 +516,18 @@ export default function AdminDashboardPage() {
             status={data.support?.privacyEmailDomainOk ? "success" : "warn"}
             sub={data.support?.privacyEmail}
           />
+          <SmallStat
+            label="Dono suporte"
+            value={data.support?.supportOwnerConfigured ? "definido" : "faltando"}
+            status={data.support?.supportOwnerConfigured && data.support?.supportOwnerDomainOk ? "success" : "warn"}
+            sub={data.support?.supportOwnerEmail || "SUPPORT_OWNER_EMAIL"}
+          />
+          <SmallStat
+            label="Dono LGPD"
+            value={data.support?.privacyOwnerConfigured ? "definido" : "faltando"}
+            status={data.support?.privacyOwnerConfigured && data.support?.privacyOwnerDomainOk ? "success" : "warn"}
+            sub={data.support?.privacyOwnerEmail || "PRIVACY_OWNER_EMAIL"}
+          />
         </DataBlock>
 
         <DataBlock title="Stays" icon={<Icons.Layers size={14} />} href="/admin/stays">
