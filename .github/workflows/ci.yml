@@ -235,10 +235,17 @@ jobs:
         run: >-
           npx playwright test
           onboarding-airbnb-import.spec.ts
+          dashboard-recommendations.spec.ts
+          email-confirmation.spec.ts
+          f8-waitlist-to-login.spec.ts
+          logout.spec.ts
           my-plan-billing.spec.ts
+          plans-checkout-readiness.spec.ts
+          properties-pricing.spec.ts
           reset-password.spec.ts
           prelaunch-waitlist-analytics.spec.ts
           admin-quality-occupancy.spec.ts
+          stays-integrations.spec.ts
           --project=chromium
       - name: Upload mocked local Playwright report
         if: always()

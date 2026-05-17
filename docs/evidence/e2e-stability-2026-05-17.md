@@ -7,12 +7,19 @@ Generated during the automated hardening pass on 2026-05-17.
 The mocked local CI subset remains the trusted gate:
 
 - `onboarding-airbnb-import.spec.ts`
+- `dashboard-recommendations.spec.ts`
+- `email-confirmation.spec.ts`
+- `f8-waitlist-to-login.spec.ts`
+- `logout.spec.ts`
 - `my-plan-billing.spec.ts`
+- `plans-checkout-readiness.spec.ts`
+- `properties-pricing.spec.ts`
 - `reset-password.spec.ts`
 - `prelaunch-waitlist-analytics.spec.ts`
 - `admin-quality-occupancy.spec.ts`
+- `stays-integrations.spec.ts`
 
-Last local run of this subset: `10 passed`.
+Latest local run of the expanded subset: `21 passed`, `1 skipped`.
 
 ## Extended E2E Investigation
 
@@ -27,29 +34,21 @@ An extended local run against `http://127.0.0.1:3000` included:
 - `properties-pricing.spec.ts`
 - `stays-integrations.spec.ts`
 
-Result:
+Result after selector/mock repairs:
 
-- Passed: `5`
-- Skipped: `1`
-- Failed: `7`
-
-Passing in the extended run:
-
-- `dashboard-recommendations.spec.ts`: `3/3`
-- `email-confirmation.spec.ts`: `1/1`
-- `plans-checkout-readiness.spec.ts`: first test passed; Stripe-key test skipped by design
+- Passing: `dashboard-recommendations`, `email-confirmation`,
+  `f8-waitlist-to-login`, `logout`, `plans-checkout-readiness`,
+  `properties-pricing`, and `stays-integrations`.
+- Skipped by design: Stripe publishable-key negative smoke when the test key is
+  configured.
 
 Still failing and not promoted into CI:
 
-- `f8-waitlist-to-login.spec.ts`: navigation timed out on `/waitlist/aceitar`
 - `login-post-login.spec.ts`: post-login navigation did not reach `/dashboard`
-- `logout.spec.ts`: local Next dev overlay intercepted the `Sair` click
-- `plans-checkout-readiness.spec.ts`: custom price case timed out on `/plans`
-- `properties-pricing.spec.ts`: property list did not render expected fixture
-- `stays-integrations.spec.ts`: expected connected status did not render
+  with the current mocked login response.
 
 ## Policy
 
-Only green tests should be promoted to required CI gates. The current CI keeps the
-validated subset while the extended specs remain under repair.
-
+Only green tests should be promoted to required CI gates. The CI now runs the
+expanded green subset and keeps `login-post-login.spec.ts` out until the mocked
+auth/session contract is repaired.

@@ -1,4 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
+import { acceptCookieConsent } from './test-helpers';
 
 type PlanOverride = Partial<{
   id: string;
@@ -34,6 +35,19 @@ const makePlan = (overrides: PlanOverride = {}) => ({
 });
 
 async function mockPlans(page: Page, plans: unknown[]) {
+  await page.route('**/auth/me', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 'user-plans-e2e',
+        username: 'Host Plans E2E',
+        email: 'host.plans@urbanai.com.br',
+        role: 'USER',
+      }),
+    });
+  });
+
   await page.route('**/plans', async (route) => {
     if (route.request().resourceType() === 'document') {
       await route.continue();
@@ -50,6 +64,7 @@ async function mockPlans(page: Page, plans: unknown[]) {
 
 test.describe('Plans checkout readiness', () => {
   test('desabilita checkout quando plano ativo nao tem preco valido no ciclo', async ({ page }) => {
+    await acceptCookieConsent(page);
     await mockPlans(page, [
       makePlan({
         priceMonthly: '0',
@@ -73,6 +88,7 @@ test.describe('Plans checkout readiness', () => {
   });
 
   test('mostra erro claro quando Stripe publishable key nao esta configurada', async ({ page }) => {
+    await acceptCookieConsent(page);
     test.skip(
       !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
       'Este smoke valida especificamente o fail-closed sem publishable key local.',
@@ -94,11 +110,12 @@ test.describe('Plans checkout readiness', () => {
   });
 
   test('plano sob consulta nao renderiza CTA de checkout', async ({ page }) => {
+    await acceptCookieConsent(page);
     await mockPlans(page, [makePlan({ name: 'enterprise', title: 'Enterprise', isCustomPrice: true })]);
 
     await page.goto('/plans');
 
-    await expect(page.getByText(/preco sob consulta/i)).toBeVisible();
+    await expect(page.getByText(/pre.o sob consulta/i)).toBeVisible();
     await expect(page.getByRole('link', { name: /comercial@myurbanai\.com/i })).toHaveAttribute(
       'href',
       'mailto:comercial@myurbanai.com',

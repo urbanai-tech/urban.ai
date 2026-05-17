@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { acceptCookieConsent } from './test-helpers';
 
 async function mockDashboardShell(page: import('@playwright/test').Page) {
   await page.route('**/auth/me', async (route) => {
@@ -52,6 +53,7 @@ async function mockDashboardShell(page: import('@playwright/test').Page) {
 
 test.describe('Logout', () => {
   test('encerra sessao no backend e volta para login', async ({ page }) => {
+    await acceptCookieConsent(page);
     const logoutCalls: string[] = [];
 
     await mockDashboardShell(page);
@@ -67,10 +69,10 @@ test.describe('Logout', () => {
     await page.goto('/dashboard');
 
     await expect(page.getByRole('heading', { name: /Calend.rio/i })).toBeVisible();
-    await page.getByRole('button', { name: /^Logout$/i }).click();
+    await page.getByRole('button', { name: /^Sair$/i }).click();
 
     expect(logoutCalls).toEqual(['POST']);
     await page.waitForURL(/\/$/);
-    await expect(page.getByRole('heading', { name: /Entre na sua conta/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Bem-vindo/i })).toBeVisible();
   });
 });
