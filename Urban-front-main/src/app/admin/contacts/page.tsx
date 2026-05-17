@@ -5,7 +5,9 @@ import {
   fetchAdminContactSubmissions,
   updateAdminContactSubmission,
   type ContactSubmission,
+  type ContactSubmissionCategory,
   type ContactSubmissionListResponse,
+  type ContactSubmissionSeverity,
   type ContactSubmissionStatus,
 } from "../../service/api";
 import {
@@ -33,6 +35,23 @@ const STATUS_LABELS: Record<ContactSubmissionStatus, string> = {
   archived: "Arquivado",
 };
 
+const CATEGORY_LABELS: Record<ContactSubmissionCategory, string> = {
+  sales: "Comercial",
+  support: "Suporte",
+  billing: "Billing",
+  privacy_lgpd: "LGPD",
+  stays: "Stays",
+  incident: "Incidente",
+  partnership: "Parceria",
+};
+
+const SEVERITY_LABELS: Record<ContactSubmissionSeverity, string> = {
+  P0: "P0",
+  P1: "P1",
+  P2: "P2",
+  P3: "P3",
+};
+
 /**
  * /admin/contacts — mensagens recebidas pelo form público de contato.
  *
@@ -52,6 +71,9 @@ export default function AdminContactsPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [notesEntry, setNotesEntry] = useState<ContactSubmission | null>(null);
   const [notesValue, setNotesValue] = useState("");
+  const [categoryValue, setCategoryValue] = useState<ContactSubmissionCategory>("support");
+  const [severityValue, setSeverityValue] = useState<ContactSubmissionSeverity>("P2");
+  const [ownerValue, setOwnerValue] = useState("");
   const toast = useAdminToast();
 
   async function load() {
@@ -124,7 +146,12 @@ export default function AdminContactsPage() {
     if (!notesEntry) return;
     setBusyId(notesEntry.id);
     try {
-      await updateAdminContactSubmission(notesEntry.id, { notes: notesValue || null });
+      await updateAdminContactSubmission(notesEntry.id, {
+        category: categoryValue,
+        severity: severityValue,
+        assignedOwner: ownerValue || null,
+        notes: notesValue || null,
+      });
       toast.success("Notas atualizadas.");
       setNotesEntry(null);
       await load();
@@ -287,6 +314,8 @@ export default function AdminContactsPage() {
                         }}
                       >
                         <StatusBadge status={entry.status} />
+                        <SeverityBadge severity={entry.severity ?? "P2"} />
+                        <CategoryBadge category={entry.category ?? "support"} />
                         <span
                           style={{
                             fontSize: 11,
@@ -327,6 +356,16 @@ export default function AdminContactsPage() {
                         >
                           {entry.email}
                         </a>
+                        {entry.dueAt && (
+                          <span style={{ color: dueColor(entry.dueAt), marginLeft: 8 }}>
+                            SLA: {new Date(entry.dueAt).toLocaleDateString("pt-BR")}
+                          </span>
+                        )}
+                        {entry.assignedOwner && (
+                          <span style={{ marginLeft: 8 }}>
+                            Owner: {entry.assignedOwner}
+                          </span>
+                        )}
                       </p>
                     </div>
                     <div
@@ -358,6 +397,9 @@ export default function AdminContactsPage() {
                         onClick={() => {
                           setNotesEntry(entry);
                           setNotesValue(entry.notes ?? "");
+                          setCategoryValue(entry.category ?? "support");
+                          setSeverityValue(entry.severity ?? "P2");
+                          setOwnerValue(entry.assignedOwner ?? "");
                         }}
                         leftIcon={<Icons.Edit size={12} />}
                       >
@@ -479,6 +521,43 @@ export default function AdminContactsPage() {
             {notesEntry?.name} · {notesEntry?.email}
           </p>
         </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: 12,
+            marginBottom: 16,
+          }}
+        >
+          <AdminSelect
+            label="Categoria"
+            value={categoryValue}
+            onChange={(e) => setCategoryValue(e.target.value as ContactSubmissionCategory)}
+          >
+            {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </AdminSelect>
+          <AdminSelect
+            label="Severidade"
+            value={severityValue}
+            onChange={(e) => setSeverityValue(e.target.value as ContactSubmissionSeverity)}
+          >
+            {Object.entries(SEVERITY_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </AdminSelect>
+          <AdminInput
+            label="Owner"
+            value={ownerValue}
+            onChange={(e) => setOwnerValue(e.target.value)}
+            placeholder="ex: suporte, Gustavo, legal"
+          />
+        </div>
         <AdminTextarea
           label="Notas (visíveis só pra equipe admin)"
           rows={10}
@@ -500,4 +579,34 @@ function StatusBadge({ status }: { status: ContactSubmissionStatus }) {
   };
   const it = map[status] ?? map.new;
   return <AdminBadge kind={it.kind}>{it.label}</AdminBadge>;
+}
+
+function CategoryBadge({ category }: { category: ContactSubmissionCategory }) {
+  const map: Record<ContactSubmissionCategory, { kind: AdminBadgeKind; label: string }> = {
+    sales: { kind: "accent", label: CATEGORY_LABELS.sales },
+    support: { kind: "neutral", label: CATEGORY_LABELS.support },
+    billing: { kind: "warn", label: CATEGORY_LABELS.billing },
+    privacy_lgpd: { kind: "warn", label: CATEGORY_LABELS.privacy_lgpd },
+    stays: { kind: "accent", label: CATEGORY_LABELS.stays },
+    incident: { kind: "error", label: CATEGORY_LABELS.incident },
+    partnership: { kind: "success", label: CATEGORY_LABELS.partnership },
+  };
+  const it = map[category] ?? map.support;
+  return <AdminBadge kind={it.kind}>{it.label}</AdminBadge>;
+}
+
+function SeverityBadge({ severity }: { severity: ContactSubmissionSeverity }) {
+  const map: Record<ContactSubmissionSeverity, AdminBadgeKind> = {
+    P0: "error",
+    P1: "warn",
+    P2: "accent",
+    P3: "neutral",
+  };
+  return <AdminBadge kind={map[severity] ?? "neutral"}>{severity}</AdminBadge>;
+}
+
+function dueColor(value: string) {
+  const due = new Date(value).getTime();
+  if (!Number.isFinite(due)) return "var(--admin-text-muted)";
+  return due < Date.now() ? "var(--admin-danger)" : "var(--admin-text-muted)";
 }

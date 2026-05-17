@@ -18,6 +18,8 @@ describe('ContactSubmissionsService', () => {
   it('returns paginated items plus global status counts for the same search', async () => {
     const listQb = makeQueryBuilder();
     const statusQb = makeQueryBuilder();
+    const categoryQb = makeQueryBuilder();
+    const severityQb = makeQueryBuilder();
     listQb.getManyAndCount.mockResolvedValue([
       [{ id: 'c1', status: 'new', email: 'lead@urban.ai' }],
       3,
@@ -26,12 +28,16 @@ describe('ContactSubmissionsService', () => {
       { status: 'new', count: '2' },
       { status: 'in_progress', count: '1' },
     ]);
+    categoryQb.getRawMany.mockResolvedValue([{ category: 'sales', count: '2' }]);
+    severityQb.getRawMany.mockResolvedValue([{ severity: 'P3', count: '2' }]);
 
     const repo = {
       createQueryBuilder: jest
         .fn()
         .mockReturnValueOnce(listQb)
-        .mockReturnValueOnce(statusQb),
+        .mockReturnValueOnce(statusQb)
+        .mockReturnValueOnce(categoryQb)
+        .mockReturnValueOnce(severityQb),
     };
     const service = new ContactSubmissionsService(repo as any);
 
@@ -62,7 +68,39 @@ describe('ContactSubmissionsService', () => {
         { status: 'new', count: 2 },
         { status: 'in_progress', count: 1 },
       ],
+      byCategory: [{ category: 'sales', count: 2 }],
+      bySeverity: [{ severity: 'P3', count: 2 }],
       items: [{ id: 'c1', status: 'new', email: 'lead@urban.ai' }],
     });
+  });
+
+  it('classifies LGPD requests with a 15-day due date', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-05-17T12:00:00.000Z'));
+    const repo = {
+      create: jest.fn((input) => input),
+      save: jest.fn((input) => Promise.resolve({ id: 'c-lgpd', ...input })),
+    };
+    const service = new ContactSubmissionsService(repo as any);
+
+    const result = await service.create(
+      {
+        name: 'Titular',
+        email: 'titular@example.com',
+        subject: 'Pedido LGPD',
+        message: 'Quero excluir meus dados pessoais e revogar consentimento.',
+        source: 'privacy',
+      },
+      { ipAddress: '127.0.0.1', userAgent: 'jest' },
+    );
+
+    expect(repo.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: 'privacy_lgpd',
+        severity: 'P1',
+        dueAt: new Date('2026-06-01T12:00:00.000Z'),
+      }),
+    );
+    expect(result.category).toBe('privacy_lgpd');
+    jest.useRealTimers();
   });
 });

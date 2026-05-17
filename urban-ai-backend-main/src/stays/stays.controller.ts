@@ -67,6 +67,23 @@ export class StaysController {
     return listings.map((l) => this.publicListing(l));
   }
 
+  @ApiOperation({ summary: 'Previsualizar impacto e bloqueios antes de aplicar preço na Stays' })
+  @Post('price/preview')
+  async previewPrice(
+    @Req() req: AuthedReq,
+    @Body()
+    body: {
+      listingId: string;
+      targetDate: string;
+      newPriceCents: number;
+      previousPriceCents?: number | null;
+      currency?: string;
+      analisePrecoId?: string;
+    },
+  ) {
+    return this.stays.previewPrice(req.user.userId, body);
+  }
+
   @ApiOperation({ summary: 'Aplicar preço (user_accepted) — push manual via dashboard' })
   @Post('price/push')
   async pushPrice(
