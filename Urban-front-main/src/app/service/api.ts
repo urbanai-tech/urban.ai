@@ -2269,6 +2269,12 @@ export interface DashboardSummary {
     tokenEncryptionConfigured: boolean;
     betaPrivate: boolean;
   };
+  support?: {
+    open: number;
+    overdue: number;
+    p0Open: number;
+    lgpdOpen: number;
+  };
   revenue: {
     activeSubscriptions: number;
   };

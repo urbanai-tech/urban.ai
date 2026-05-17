@@ -428,6 +428,25 @@ export default function AdminDashboardPage() {
           <SmallStat label="Ativas" value={data.billing.activeSubscriptions} />
         </DataBlock>
 
+        <DataBlock title="Suporte & LGPD" icon={<Icons.AlertCircle size={14} />} href="/admin/contacts">
+          <SmallStat
+            label="Abertos"
+            value={data.support?.open ?? 0}
+            status={(data.support?.open ?? 0) > 0 ? "warn" : "success"}
+          />
+          <SmallStat
+            label="SLA vencido"
+            value={data.support?.overdue ?? 0}
+            status={(data.support?.overdue ?? 0) > 0 ? "error" : "success"}
+          />
+          <SmallStat
+            label="P0 abertos"
+            value={data.support?.p0Open ?? 0}
+            status={(data.support?.p0Open ?? 0) > 0 ? "error" : "success"}
+          />
+          <SmallStat label="LGPD" value={data.support?.lgpdOpen ?? 0} />
+        </DataBlock>
+
         <DataBlock title="Stays" icon={<Icons.Layers size={14} />} href="/admin/stays">
           <SmallStat
             label="Modo"
