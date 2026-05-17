@@ -2292,6 +2292,15 @@ export interface DashboardSummary {
     supportEmailDomainOk?: boolean;
     privacyEmailDomainOk?: boolean;
   };
+  integrationsReadiness?: Record<
+    'stripe' | 'email' | 'stays' | 'support',
+    {
+      label: string;
+      status: 'ready' | 'blocked';
+      blockers: string[];
+      nextAction: string;
+    }
+  >;
   revenue: {
     activeSubscriptions: number;
   };

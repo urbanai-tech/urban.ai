@@ -222,6 +222,28 @@ export default function AdminDashboardPage() {
       </section>
 
       {/* === Fallback de eventos — só se cobertura abaixo do gate === */}
+      {data.integrationsReadiness && (
+        <section style={{ marginBottom: 32 }}>
+          <AdminCard variant="subtle">
+            <AdminCardHeader
+              title="Go-live Track 3"
+              actions={<AdminBadge kind="neutral">sem chamadas externas</AdminBadge>}
+            />
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: 16,
+              }}
+            >
+              {Object.values(data.integrationsReadiness).map((item) => (
+                <ReadinessTile key={item.label} item={item} />
+              ))}
+            </div>
+          </AdminCard>
+        </section>
+      )}
+
       {data.events.next30d < 100 && (
         <section style={{ marginBottom: 32 }}>
           <AdminCard variant="accent" style={{ padding: "20px 24px" }}>
@@ -823,6 +845,60 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
     >
       {children} <Icons.ArrowRight size={10} />
     </a>
+  );
+}
+
+function ReadinessTile({
+  item,
+}: {
+  item: {
+    label: string;
+    status: "ready" | "blocked";
+    blockers: string[];
+    nextAction: string;
+  };
+}) {
+  const kind: AdminStatusKind = item.status === "ready" ? "success" : "warn";
+  const blockerText =
+    item.blockers.length > 0
+      ? item.blockers.slice(0, 2).join(" | ")
+      : "Pronto para smoke real.";
+
+  return (
+    <div
+      style={{
+        border: "1px solid var(--admin-divider)",
+        padding: "14px 16px",
+        minHeight: 150,
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+        }}
+      >
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+          <AdminStatusDot kind={kind} size={7} />
+          <strong style={{ fontSize: 13, color: "var(--admin-text)" }}>{item.label}</strong>
+        </span>
+        <AdminBadge kind={item.status === "ready" ? "success" : "warn"}>
+          {item.status === "ready" ? "ready" : "bloqueado"}
+        </AdminBadge>
+      </div>
+      <p style={{ margin: 0, fontSize: 12, color: "var(--admin-text-muted)", lineHeight: 1.55 }}>
+        {blockerText}
+        {item.blockers.length > 2 ? ` +${item.blockers.length - 2}` : ""}
+      </p>
+      <p style={{ margin: "auto 0 0", fontSize: 11, color: "var(--admin-text-dim)", lineHeight: 1.5 }}>
+        {item.nextAction}
+      </p>
+    </div>
   );
 }
 
