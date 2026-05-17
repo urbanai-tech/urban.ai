@@ -64,12 +64,34 @@ jobs:
       - name: Install deps
         run: yarn install --frozen-lockfile
 
+      - name: Build local smoke app
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.E2E_API_URL || 'https://urbanai-production-85fd.up.railway.app' }}
+          NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+          NEXT_PUBLIC_PRELAUNCH_MODE: 'false'
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_dummy
+          NEXTAUTH_SECRET: ci_dummy_secret_not_for_prod
+          NEXTAUTH_URL: http://127.0.0.1:3000
+        run: yarn build
+
+      - name: Start local smoke app
+        run: |
+          nohup npx next start -p 3000 > /tmp/urban-next.log 2>&1 &
+          for i in {1..45}; do
+            if curl -fsS http://127.0.0.1:3000 >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/urban-next.log
+          exit 1
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
       - name: Run public smoke specs
         env:
-          E2E_BASE_URL: ${{ secrets.E2E_BASE_URL || 'https://app.myurbanai.com' }}
+          E2E_BASE_URL: http://127.0.0.1:3000
           E2E_API_URL: ${{ secrets.E2E_API_URL || 'https://urbanai-production-85fd.up.railway.app' }}
         run: |
           npx playwright test \
