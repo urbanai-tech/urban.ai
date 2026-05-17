@@ -27,6 +27,7 @@ import axios from 'axios';
 import { DataSource } from 'typeorm';
 import { Address } from '../src/entities/addresses.entity';
 import { List } from '../src/entities/list.entity';
+import { User } from '../src/entities/user.entity';
 
 type GeocodeResult = {
   lat: number;
@@ -38,7 +39,9 @@ type GeocodeResult = {
 };
 
 const API_KEY = process.env.GOOGLE_MAPS_API_KEY;
-const DRY_RUN = String(process.env.DRY_RUN || '').toLowerCase() === 'true';
+const DRY_RUN =
+  String(process.env.DRY_RUN || '').toLowerCase() === 'true' ||
+  process.argv.includes('--dry-run');
 const LIMIT = Number(process.env.LIMIT || 0); // 0 = sem limite
 const RPS = Number(process.env.GEOCODER_BACKFILL_RPS || 1); // requisicoes por segundo
 const SLEEP_MS = Math.max(50, Math.round(1000 / RPS));
@@ -151,7 +154,7 @@ async function main(): Promise<void> {
   const dataSource = new DataSource({
     type: 'mysql',
     url: process.env.DATABASE_URL,
-    entities: [Address, List],
+    entities: [Address, List, User],
     synchronize: false,
     logging: false,
   });
@@ -206,8 +209,6 @@ async function main(): Promise<void> {
       a.longitude = result.lng;
       if (result.city) a.cidade = result.city;
       if (result.state) a.estado = result.state;
-      if (result.country) a.pais = result.country;
-      if (result.formatted) a.enderecoCompleto = result.formatted;
 
       await addressRepo.save(addr);
       log(

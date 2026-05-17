@@ -177,11 +177,15 @@ export class OnboardingDripService {
       });
     }
 
-    await this.mailer.sendHtmlEmail(
+    const result = await this.mailer.sendHtmlEmail(
       { email: user.email, name: user.username },
       subject,
       html,
     );
+
+    if (!result?.enviado) {
+      throw new Error(`MailerSend rejected email with status=${result?.status ?? 'unknown'}`);
+    }
   }
 
   private async gatherContext(userId: string): Promise<{
@@ -214,34 +218,22 @@ export class OnboardingDripService {
   }
 
   private async countFutureRecommendations(userId: string): Promise<number> {
-    try {
-      const count = await this.analisePrecoRepo
-        .createQueryBuilder('ap')
-        .innerJoin('analise_endereco_evento', 'aee', 'aee.id = ap.idAnaliseEnderecoEvento')
-        .innerJoin('event', 'ev', 'ev.id = aee.eventId')
-        .innerJoin('addresses', 'a', 'a.id = aee.enderecoId')
-        .where('a.userId = :userId', { userId })
-        .andWhere('ev.dataInicio >= :now', { now: new Date() })
-        .getCount();
-      return count;
-    } catch {
-      return 0;
-    }
+    return this.analisePrecoRepo
+      .createQueryBuilder('ap')
+      .innerJoin('ap.evento', 'ev')
+      .innerJoin('ap.usuarioProprietario', 'user')
+      .where('user.id = :userId', { userId })
+      .andWhere('ev.dataInicio >= :now', { now: new Date() })
+      .getCount();
   }
 
   private async countAppliedRecommendations(userId: string): Promise<number> {
-    try {
-      const count = await this.analisePrecoRepo
-        .createQueryBuilder('ap')
-        .innerJoin('analise_endereco_evento', 'aee', 'aee.id = ap.idAnaliseEnderecoEvento')
-        .innerJoin('addresses', 'a', 'a.id = aee.enderecoId')
-        .where('a.userId = :userId', { userId })
-        .andWhere('ap.precoAplicado IS NOT NULL')
-        .getCount();
-      return count;
-    } catch {
-      return 0;
-    }
+    return this.analisePrecoRepo
+      .createQueryBuilder('ap')
+      .innerJoin('ap.usuarioProprietario', 'user')
+      .where('user.id = :userId', { userId })
+      .andWhere('ap.precoAplicado IS NOT NULL')
+      .getCount();
   }
 
   private maskEmail(email: string): string {
