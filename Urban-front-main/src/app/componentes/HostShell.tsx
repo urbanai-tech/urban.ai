@@ -3,8 +3,8 @@
 import React from "react";
 import { Box, Flex } from "@chakra-ui/react";
 import SideBar from "./SideBar";
-import Footer from "./Footer";
 import PaymentCheckGuard from "../context/PaymentCheckGuard";
+import { AppFooter, AppToastProvider } from "./ui";
 
 /**
  * HostShell — layout shell unificado para todas as rotas autenticadas do
@@ -55,36 +55,33 @@ export default function HostShell({
   );
 
   return (
-    <Flex
-      minH="100vh"
-      bg="#FAFAFB"
-      sx={{
-        flexDirection: { base: "column", md: "row" },
-      }}
-    >
-      <SideBar />
-
+    <AppToastProvider>
       <Flex
-        direction="column"
-        flex="1"
-        minW={0}
+        minH="100vh"
         bg="#FAFAFB"
+        sx={{
+          flexDirection: { base: "column", md: "row" },
+        }}
       >
-        <Box
-          as="main"
-          flex="1"
-          className="urban-app"
-          sx={{
-            padding: noPadding
-              ? "0"
-              : { base: "24px 16px 96px", md: "32px 32px 80px" },
-            background: "var(--app-bg, #FAFAFB)",
-          }}
-        >
-          {content}
-        </Box>
-        <Footer />
+        <SideBar />
+
+        <Flex direction="column" flex="1" minW={0} bg="#FAFAFB">
+          <Box
+            as="main"
+            flex="1"
+            className="urban-app"
+            sx={{
+              padding: noPadding
+                ? "0"
+                : { base: "24px 16px 96px", md: "32px 32px 80px" },
+              background: "var(--app-bg, #FAFAFB)",
+            }}
+          >
+            {content}
+          </Box>
+          <AppFooter />
+        </Flex>
       </Flex>
-    </Flex>
+    </AppToastProvider>
   );
 }

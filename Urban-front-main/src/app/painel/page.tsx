@@ -3,12 +3,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Box, FormControl, FormLabel, Spinner, Center, Flex } from '@chakra-ui/react';
 import dynamic from 'next/dynamic';
-import { getEventosAcompanhando, getPropriedadesDropdownList, PropertyDropdown } from '@/app/service/api';
+import { fetchPace, getEventosAcompanhando, getPropriedadesDropdownList, PaceApiPoint, PropertyDropdown } from '@/app/service/api';
 import { EventItem } from '../dashboard/components/ItemEvento';
 import { Pagination } from '../componentes/Pagination';
 import { EventCard } from './components/ItemEventoPainel';
 import DashboardCards from './components/StatCard';
-import { AppPageShell, AppSectionHeader, AppEmptyState, Icons } from '../componentes/ui';
+import { AppCard, AppCardHeader, AppEmptyState, AppPageShell, AppSectionHeader, Icons, PaceChart } from '../componentes/ui';
 
 const PropertySelect = dynamic(() => import('./components/CustomSelect'), { ssr: false });
 
@@ -22,6 +22,10 @@ export default function SugestoesAceitas() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 5; // itens por página
+
+  // Pace dos próximos 60 dias
+  const [paceData, setPaceData] = useState<PaceApiPoint[]>([]);
+  const [isLoadingPace, setIsLoadingPace] = useState(false);
 
   // Buscar propriedades
 useEffect(() => {
@@ -89,6 +93,27 @@ useEffect(() => {
     fetchEvents();
   }, [fetchEvents]);
 
+  // Buscar pace (booked vs expected) dos próximos 60 dias
+  useEffect(() => {
+    let cancelled = false;
+    async function loadPace() {
+      try {
+        setIsLoadingPace(true);
+        const points = await fetchPace(propertyId || undefined, { days: 60 });
+        if (!cancelled) setPaceData(points);
+      } catch (err) {
+        console.error('Erro ao carregar pace', err);
+        if (!cancelled) setPaceData([]);
+      } finally {
+        if (!cancelled) setIsLoadingPace(false);
+      }
+    }
+    loadPace();
+    return () => {
+      cancelled = true;
+    };
+  }, [propertyId]);
+
   const handlePageChange = (novaPagina: number) => {
     setPage(novaPagina);
   };
@@ -130,6 +155,21 @@ useEffect(() => {
       />
 
       <DashboardCards propertyId={propertyId} />
+
+      <Box mt={8}>
+        <AppCard variant="default">
+          <AppCardHeader
+            eyebrow="PROJEÇÃO · BOOKED VS BASELINE"
+            title="Pace dos próximos 60 dias"
+            subtitle={
+              propertyId
+                ? 'Quanto das suas noites futuras já está reservado, comparado ao baseline esperado por sazonalidade. Eventos relevantes aparecem como marcadores verticais.'
+                : 'Visão agregada do portfólio. Selecione um imóvel pra ver a curva específica e ações sugeridas.'
+            }
+          />
+          <PaceChart data={paceData} loading={isLoadingPace} height={280} />
+        </AppCard>
+      </Box>
 
       <Box mt={8}>
         {isLoadingEvents ? (
