@@ -2261,6 +2261,13 @@ export interface DashboardSummary {
     stripeWebhookConfigured: boolean;
     byStatus: Array<{ status: string; count: number }>;
   };
+  email?: {
+    mailerSendApiKeyConfigured: boolean;
+    emailSenderConfigured: boolean;
+    senderDomain: string;
+    senderUsesUrbanDomain: boolean;
+    frontUrlConfigured: boolean;
+  };
   stays: {
     accounts: number;
     listings: number;
