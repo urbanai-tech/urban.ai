@@ -14,6 +14,7 @@ import {
   FileText,
   Inbox,
   Layers,
+  Mail,
   MapPin,
   Plus,
   Search,
@@ -89,6 +90,7 @@ const NAV: NavSection[] = [
       { href: "/admin/audit-logs", label: "Auditoria", icon: <Shield size={16} /> },
       { href: "/admin/pricing-config", label: "Pricing config", icon: <Settings size={16} /> },
       { href: "/admin/quality", label: "Qualidade", icon: <AlertCircle size={16} /> },
+      { href: "/admin/onboarding-drip", label: "Onboarding drip", icon: <Mail size={16} /> },
     ],
   },
 ];

@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { toast, ToastContainer } from "react-toastify";
 import "../../../i18n";
 import { api, verificarUsuarioState } from "../service/api";
+import { trackEvent } from "../service/tracking";
 
 /**
  * /(home) — Tela de login.
@@ -62,6 +63,10 @@ export default function Login() {
       try {
         const { data } = await verificarUsuarioState(email);
         toast("Autenticação concluída.", { type: "success" });
+        void trackEvent("login_success", {
+          method: "password",
+          user_active: !!data?.ativo,
+        });
         setTimeout(() => {
           if (data.ativo) router.replace("/post-login");
           else router.replace("/confirm-email/" + email);

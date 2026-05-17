@@ -1375,6 +1375,31 @@ export interface PriceUpdatePublic {
   createdAt: string;
 }
 
+export interface StaysPricePreviewIssue {
+  code: string;
+  message: string;
+}
+
+export interface StaysPricePreview {
+  listingId: string;
+  staysListingId: string;
+  title: string | null;
+  targetDate: string;
+  previousPriceCents: number;
+  newPriceCents: number;
+  currency: string;
+  diffCents: number;
+  diffPercent: number | null;
+  maxIncreasePercent: number;
+  maxDecreasePercent: number;
+  withinGuardrails: boolean;
+  readyForPush: boolean;
+  blockers: StaysPricePreviewIssue[];
+  warnings: StaysPricePreviewIssue[];
+  existingPriceUpdateId: string | null;
+  idempotentReplay: boolean;
+}
+
 export async function staysConnect(
   clientId: string,
   accessToken: string,
@@ -1400,6 +1425,18 @@ export async function staysSyncListings(): Promise<{ count: number; listings: St
 
 export async function staysListListings(): Promise<StaysListingPublic[]> {
   const { data } = await api.get<StaysListingPublic[]>('/stays/listings');
+  return data;
+}
+
+export async function staysPreviewPrice(input: {
+  listingId: string;
+  targetDate: string;
+  newPriceCents: number;
+  previousPriceCents?: number | null;
+  currency?: string;
+  analisePrecoId?: string;
+}): Promise<StaysPricePreview> {
+  const { data } = await api.post<StaysPricePreview>('/stays/price/preview', input);
   return data;
 }
 
@@ -1840,6 +1877,15 @@ export const deleteWaitlistEntry = (id: string) =>
 // =================== Contato publico + admin ===================
 
 export type ContactSubmissionStatus = 'new' | 'in_progress' | 'resolved' | 'archived';
+export type ContactSubmissionCategory =
+  | 'sales'
+  | 'support'
+  | 'billing'
+  | 'privacy_lgpd'
+  | 'stays'
+  | 'incident'
+  | 'partnership';
+export type ContactSubmissionSeverity = 'P0' | 'P1' | 'P2' | 'P3';
 
 export interface ContactSubmission {
   id: string;
@@ -1849,6 +1895,11 @@ export interface ContactSubmission {
   message: string;
   source: string;
   status: ContactSubmissionStatus;
+  category: ContactSubmissionCategory;
+  severity: ContactSubmissionSeverity;
+  dueAt: string | null;
+  resolvedAt: string | null;
+  assignedOwner: string | null;
   notes: string | null;
   ipAddress: string | null;
   userAgent: string | null;
@@ -1861,6 +1912,8 @@ export interface ContactSubmissionListResponse {
   limit: number;
   total: number;
   byStatus?: Array<{ status: ContactSubmissionStatus; count: number }>;
+  byCategory?: Array<{ category: ContactSubmissionCategory; count: number }>;
+  bySeverity?: Array<{ severity: ContactSubmissionSeverity; count: number }>;
   items: ContactSubmission[];
 }
 
@@ -1884,7 +1937,13 @@ export const fetchAdminContactSubmissions = (params: {
 
 export const updateAdminContactSubmission = (
   id: string,
-  input: { status?: ContactSubmissionStatus; notes?: string | null },
+  input: {
+    status?: ContactSubmissionStatus;
+    category?: ContactSubmissionCategory;
+    severity?: ContactSubmissionSeverity;
+    assignedOwner?: string | null;
+    notes?: string | null;
+  },
 ) =>
   api
     .patch<ContactSubmission>(`/admin/contact-submissions/${id}`, input)
@@ -2222,3 +2281,119 @@ export interface DashboardSummary {
 
 export const fetchDashboardSummary = () =>
   api.get<DashboardSummary>('/admin/dashboard-summary').then((r) => r.data);
+
+// =================== Pace (booked vs expected) ===================
+
+/**
+ * Ponto da curva de pace exposto pelo backend (Gap 4 — Dev 1).
+ *
+ * Contrato esperado quando o endpoint estiver pronto:
+ *   GET /properties/:id/pace?targetDateFrom=YYYY-MM-DD&targetDateTo=YYYY-MM-DD
+ *   GET /pace/portfolio?targetDateFrom=YYYY-MM-DD&targetDateTo=YYYY-MM-DD
+ * Resposta:
+ *   { points: [{ date, booked, expected, eventLabel? }, ...] }
+ *
+ * Enquanto o backend não entrega, geramos mock realista local (controlado por
+ * `NEXT_PUBLIC_PACE_MOCK_DATA=true`, default true).
+ */
+export interface PaceApiPoint {
+  date: string;
+  booked: number;
+  expected: number;
+  eventLabel?: string | null;
+}
+
+export interface PaceApiResponse {
+  points: PaceApiPoint[];
+}
+
+const PACE_USE_MOCK =
+  (process.env.NEXT_PUBLIC_PACE_MOCK_DATA ?? 'true').toLowerCase() !== 'false';
+
+function isoFromDaysAhead(daysAhead: number): string {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + daysAhead);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Mock realista de pace pra próximos 60 dias.
+ *
+ * Modelo:
+ *  - booked sobe conforme proximidade da data (close-in mais cheio): ~75% em 0d,
+ *    desce até ~25% em 60d, com microvariação por ruído determinístico.
+ *  - expected: baseline ~55-65% com sazonalidade leve.
+ *  - 3 eventos espalhados (15d, 32d, 47d).
+ */
+function generatePaceMock(propertyId?: string, days = 60): PaceApiPoint[] {
+  // Seed determinístico baseado em propertyId pra ficar estável entre reloads.
+  const seedBase = (propertyId ?? 'portfolio').length;
+  const points: PaceApiPoint[] = [];
+
+  const eventDays: Record<number, string> = {
+    15: 'Show internacional',
+    32: 'Feriado prolongado',
+    47: 'Convenção corporativa',
+  };
+
+  for (let i = 0; i < days; i++) {
+    // booked: curva decrescente (mais cheio perto, mais vazio longe) com ruído
+    const proximityFactor = 1 - i / days; // 1 -> 0
+    const noise = Math.sin((i + seedBase) * 0.7) * 6;
+    let booked = 28 + proximityFactor * 50 + noise;
+    // Boost em dias de evento
+    if (eventDays[i]) booked += 12;
+
+    // expected: baseline mais plana com leve sazonalidade semanal
+    const weekday = (new Date(isoFromDaysAhead(i)).getDay() + 7) % 7;
+    const isWeekend = weekday === 5 || weekday === 6;
+    const expected = (isWeekend ? 68 : 54) + Math.sin(i * 0.18) * 4;
+
+    points.push({
+      date: isoFromDaysAhead(i),
+      booked: Math.max(0, Math.min(100, booked)),
+      expected: Math.max(0, Math.min(100, expected)),
+      eventLabel: eventDays[i] ?? null,
+    });
+  }
+  return points;
+}
+
+/**
+ * fetchPace — busca pace para um imóvel específico ou para o portfólio.
+ *
+ * Quando `NEXT_PUBLIC_PACE_MOCK_DATA=true` (default), retorna mock local.
+ * Quando false, chama o endpoint real do Dev 1.
+ *
+ * Range default: hoje até hoje+60 dias.
+ */
+export async function fetchPace(
+  propertyId?: string,
+  options?: { days?: number },
+): Promise<PaceApiPoint[]> {
+  const days = options?.days ?? 60;
+
+  if (PACE_USE_MOCK) {
+    // Simula latência ~150ms pra exercitar loading state em dev.
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    return generatePaceMock(propertyId, days);
+  }
+
+  const targetDateFrom = isoFromDaysAhead(0);
+  const targetDateTo = isoFromDaysAhead(days);
+  const endpoint = propertyId
+    ? `/properties/${encodeURIComponent(propertyId)}/pace`
+    : '/pace/portfolio';
+
+  try {
+    const { data } = await api.get<PaceApiResponse>(endpoint, {
+      params: { targetDateFrom, targetDateTo },
+    });
+    return data?.points ?? [];
+  } catch (err) {
+    // Backend ainda não entregou — fallback gracioso pro mock.
+    console.warn('[fetchPace] endpoint indisponível, usando mock:', err);
+    return generatePaceMock(propertyId, days);
+  }
+}

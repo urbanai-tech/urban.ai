@@ -26,4 +26,18 @@ export type {
   RecommendationCardProps,
   RecommendationConfidence,
 } from "./RecommendationCard";
+export { DriverBar } from "./DriverBar";
+export { ScenarioComparison } from "./ScenarioComparison";
+export type {
+  Drivers,
+  DriverSegment,
+  HistoricalComparison,
+  Scenario,
+  ScenarioLabel,
+} from "@/app/types/recommendation";
+export { PaceChart } from "./PaceChart";
+export type { PaceChartProps, PacePoint } from "./PaceChart";
+export { AppToastProvider, useAppToast } from "./AppToast";
+export type { AppToastKind } from "./AppToast";
+export { AppFooter } from "./AppFooter";
 export * as Icons from "./Icons";

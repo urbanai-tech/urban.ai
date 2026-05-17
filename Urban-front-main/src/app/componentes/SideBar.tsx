@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../service/api';
+import { setSentryUser, clearSentryUser, trackEvent } from '../service/tracking';
 import '../../../i18n';
 
 /**
@@ -54,7 +55,19 @@ export default function SideBar() {
   useEffect(() => {
     api
       .get('/auth/me')
-      .then((res) => setMe(res.data))
+      .then((res) => {
+        const data = res.data;
+        setMe(data);
+        // Sentry user context (gap J7) — falha silenciosa se Sentry nao carregar.
+        if (data?.id) {
+          void setSentryUser({
+            id: data.id,
+            email: data.email,
+            role: data.role,
+            plan: data.plan ?? data.activePlan ?? undefined,
+          });
+        }
+      })
       .catch(() => {
         localStorage.removeItem('accessToken');
         router.push('/');
@@ -70,6 +83,12 @@ export default function SideBar() {
       await api.post('/auth/logout');
     } catch (error) {
       console.error('Erro ao encerrar sessão:', error);
+    }
+    try {
+      void trackEvent('logout');
+      void clearSentryUser();
+    } catch {
+      /* never block logout */
     }
     localStorage.removeItem('accessToken');
     router.push('/');
