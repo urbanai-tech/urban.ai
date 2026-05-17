@@ -8,10 +8,10 @@ Status consolidado da squad multiagente para execucao do roadmap Urban AI.
 |---|---|---|---:|---|
 | Track 1 | Dev 1 | Release, CI, deploy, Railway, coordenacao e evidencias | 79% | Workflow raiz corrigido e typecheck front/back passou; ainda precisa commit/push, Railway verde e smoke autenticado configurado. |
 | Track 2 | Dev 2 | Core de valor: eventos, geocoder, recomendacao, dataset e ROI | 72% | Codigo avancado; prova real depende de Geocoding API, backfill, coletores, reprocess e ground truth. |
-| Track 3 | Dev 3 | Monetizacao e integracoes: Stripe, MailerSend, Stays, LGPD e suporte | 62% | Stripe esta maduro; Stays real, MailerSend real, KYC, suporte e LGPD seguram beta pago. |
+| Track 3 | Dev 3 | Monetizacao e integracoes: Stripe, MailerSend, Stays, LGPD e suporte | 70% | Suporte/LGPD agora tem triagem, SLA e painel; Stays tem preview antes do push; MailerSend aparece no readiness. Smoke real Stripe/MailerSend/Stays ainda depende de credenciais. |
 | Track 4 | Dev 4 | UX, admin, QA, Playwright, design system e smokes | 81% | Base premium forte; mutacoes reais e auditoria visual automatizada ainda precisam virar gate. |
 
-**Prontidao geral:** 74%.
+**Prontidao geral:** 76%.
 
 ## Track 1 - Dev 1
 
@@ -55,14 +55,14 @@ Status consolidado da squad multiagente para execucao do roadmap Urban AI.
 - KYC/separacao test-live precisa confirmacao.
 - MailerSend precisa entrega real validada.
 - Stays depende de URL/API oficial ou sandbox.
-- LGPD/suporte precisa owner, canal e processo prontos.
+- LGPD/suporte tem triagem e painel; falta validar canais reais e dono operacional.
 
 ### Proximas acoes
 
 1. Rodar runbook Stripe em staging/test mode.
 2. Fazer readiness MailerSend com dominio, DKIM e envios reais.
 3. Executar smoke Stays beta privado.
-4. Fechar gates LGPD/suporte.
+4. Validar canais suporte/privacidade reais e donos P0/P1.
 5. Revisar copy comercial de Stays como beta privado.
 
 ## Track 4 - Dev 4
