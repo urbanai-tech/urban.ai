@@ -26,6 +26,20 @@ export function summarizeGoogleMapsError(err: any): string {
   return [base, googleMessage ?? axiosMessage, guidance].filter(Boolean).join(' - ');
 }
 
+export function isGoogleMapsConfigurationError(messageOrError: any): boolean {
+  if (typeof messageOrError === 'string') {
+    return (
+      messageOrError.includes('HTTP 403') ||
+      messageOrError.includes('REQUEST_DENIED') ||
+      messageOrError.includes('GOOGLE_MAPS_API_KEY') ||
+      messageOrError.includes('Geocoding API enablement')
+    );
+  }
+
+  const response = messageOrError?.response;
+  return response?.status === 403 || response?.data?.status === 'REQUEST_DENIED';
+}
+
 function buildGoogleMapsGuidance(statusCode?: number, googleStatus?: string): string | undefined {
   if (statusCode === 403 || googleStatus === 'REQUEST_DENIED') {
     return 'check GOOGLE_MAPS_API_KEY server restrictions, Geocoding API enablement and Google Cloud billing';

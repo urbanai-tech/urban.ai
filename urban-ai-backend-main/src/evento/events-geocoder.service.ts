@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Event } from '../entities/events.entity';
 import { MapsService } from '../maps/maps.service';
 import { CoverageService } from './coverage.service';
+import { isGoogleMapsConfigurationError } from '../maps/google-maps-error';
 
 export interface GeocoderRunSummary {
   attempted: number;
@@ -73,10 +74,12 @@ export class EventsGeocoderService {
       }
 
       let succeeded = 0;
+      let attempted = 0;
       const failures: Array<{ id: string; reason: string }> = [];
 
       for (const ev of pending) {
         try {
+          attempted++;
           const result = await this.mapsService.updateLatLngByEventId(ev.id);
           if (result?.ok && Number.isFinite(result.lat) && Number.isFinite(result.lng)) {
             const inCoverage = await this.coverage.isWithinCoverage(
@@ -93,19 +96,33 @@ export class EventsGeocoderService {
             );
             succeeded++;
           } else {
-            failures.push({ id: ev.id, reason: result?.message ?? 'unknown' });
+            const reason = result?.message ?? 'unknown';
+            failures.push({ id: ev.id, reason });
+            if (isGoogleMapsConfigurationError(reason)) {
+              this.logger.warn(
+                `Geocoder interrompido apos falha de configuracao Google Maps: ${reason}`,
+              );
+              break;
+            }
           }
         } catch (err: any) {
-          failures.push({ id: ev.id, reason: err?.message ?? 'exception' });
+          const reason = err?.message ?? 'exception';
+          failures.push({ id: ev.id, reason });
+          if (isGoogleMapsConfigurationError(err) || isGoogleMapsConfigurationError(reason)) {
+            this.logger.warn(
+              `Geocoder interrompido apos excecao de configuracao Google Maps: ${reason}`,
+            );
+            break;
+          }
         }
       }
 
       this.logger.log(
-        `Geocoder run: attempted=${pending.length}, succeeded=${succeeded}, failed=${failures.length}`,
+        `Geocoder run: attempted=${attempted}, succeeded=${succeeded}, failed=${failures.length}`,
       );
 
       return this.rememberRun(startedAt, {
-        attempted: pending.length,
+        attempted,
         succeeded,
         failed: failures.length,
         failures,

@@ -1,4 +1,4 @@
-import { summarizeGoogleMapsError } from './google-maps-error';
+import { isGoogleMapsConfigurationError, summarizeGoogleMapsError } from './google-maps-error';
 
 describe('summarizeGoogleMapsError', () => {
   it('turns Google 403 responses into an actionable configuration message', () => {
@@ -25,5 +25,17 @@ describe('summarizeGoogleMapsError', () => {
     expect(summarizeGoogleMapsError({ message: 'network timeout' })).toBe(
       'Google Geocoding API request failed - network timeout',
     );
+  });
+
+  it('detects configuration failures without inspecting secrets', () => {
+    expect(
+      isGoogleMapsConfigurationError({
+        response: { status: 403, data: { status: 'REQUEST_DENIED' } },
+      }),
+    ).toBe(true);
+    expect(isGoogleMapsConfigurationError('Google Geocoding API request failed (HTTP 403)')).toBe(
+      true,
+    );
+    expect(isGoogleMapsConfigurationError('Google Maps quota exceeded')).toBe(false);
   });
 });
