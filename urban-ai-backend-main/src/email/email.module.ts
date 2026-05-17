@@ -1,9 +1,13 @@
 import { ProcessModule } from 'src/process/process.module';
 import { EmailController } from './email.controller';
 import { EmailService } from './email.service';
+import { OnboardingDripService } from './onboarding-drip.service';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity';
+import { AnalisePreco } from 'src/entities/AnalisePreco';
+import { Address } from 'src/entities/addresses.entity';
+import { Payment } from 'src/entities/payment.entity';
 import { User } from 'src/entities/user.entity';
 import { EmailConfirmation } from 'src/entities/EmailConfirmation';
 import { PasswordResetToken } from 'src/entities/password-reset-token.entity';
@@ -19,15 +23,21 @@ import { AuthModule } from 'src/auth/auth.module';
         TypeOrmModule.forFeature([
             Event,
             User,
+            Address,
+            AnalisePreco,
             AnaliseEnderecoEvento,
             EmailConfirmation,
-            PasswordResetToken
+            PasswordResetToken,
+            Payment,
         ]),
     ],
     controllers: [
-        EmailController,],
+        EmailController,
+    ],
     providers: [
-        EmailService,],
-        exports: [EmailService]
+        EmailService,
+        OnboardingDripService,
+    ],
+    exports: [EmailService, OnboardingDripService],
 })
 export class EmailModule { }

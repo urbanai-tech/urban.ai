@@ -23,6 +23,7 @@ import { EventsGeocoderService } from '../evento/events-geocoder.service';
 import { EventsEnrichmentService } from '../evento/events-enrichment.service';
 import { RoiService } from '../roi/roi.service';
 import { AdminAuditService } from '../admin-audit/admin-audit.service';
+import { OnboardingDripService } from '../email/onboarding-drip.service';
 
 /**
  * Endpoints administrativos da Urban AI.
@@ -51,7 +52,20 @@ export class AdminController {
     private readonly enrichment: EventsEnrichmentService,
     private readonly roi: RoiService,
     private readonly audit: AdminAuditService,
+    private readonly onboardingDrip: OnboardingDripService,
   ) {}
+
+  // ================== Onboarding drip (gap H9) ==================
+
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @ApiOperation({
+    summary:
+      'Dispara manualmente o drip de onboarding (D+1/D+3/D+7) — util pra smoke e debug.',
+  })
+  @Post('onboarding-drip/run-now')
+  async runOnboardingDripNow() {
+    return this.onboardingDrip.processAll();
+  }
 
   @ApiOperation({ summary: 'Visão geral do painel admin (KPIs)' })
   @Get('overview')
