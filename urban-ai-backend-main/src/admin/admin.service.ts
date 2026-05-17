@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThanOrEqual, IsNull, Not } from 'typeorm';
+import { Repository, MoreThanOrEqual, IsNull, Not, In, LessThan } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { Address } from '../entities/addresses.entity';
 import { List } from '../entities/list.entity';
@@ -15,6 +15,7 @@ import { StaysListing } from '../entities/stays-listing.entity';
 import { Waitlist } from '../entities/waitlist.entity';
 import { CoverageRegion } from '../entities/coverage-region.entity';
 import { AdminJobRun } from '../entities/admin-job-run.entity';
+import { ContactSubmission } from '../entities/contact-submission.entity';
 import { AdaptivePricingStrategy } from '../knn-engine/strategies/adaptive-pricing.strategy';
 import { DatasetCollectorService } from '../knn-engine/dataset-collector.service';
 import { calculateBacktest } from '../knn-engine/backtesting';
@@ -44,6 +45,7 @@ export class AdminService {
     @InjectRepository(Waitlist) private readonly waitlistRepo: Repository<Waitlist>,
     @InjectRepository(CoverageRegion) private readonly coverageRepo: Repository<CoverageRegion>,
     @InjectRepository(AdminJobRun) private readonly jobRunRepo: Repository<AdminJobRun>,
+    @InjectRepository(ContactSubmission) private readonly contactSubmissionRepo: Repository<ContactSubmission>,
     private readonly adaptiveStrategy: AdaptivePricingStrategy,
     private readonly collector: DatasetCollectorService,
     private readonly mapsService: MapsService,
@@ -1311,6 +1313,10 @@ export class AdminService {
       staysAccounts,
       staysListings,
       priceUpdatesLast30d,
+      supportOpen,
+      supportOverdue,
+      supportP0Open,
+      supportLgpdOpen,
     ] = await Promise.all([
       this.eventRepo.count(),
       this.eventRepo.count({ where: { outOfScope: false } }),
@@ -1420,6 +1426,27 @@ export class AdminService {
         .createQueryBuilder('p')
         .where('p.createdAt >= :since', { since: last30d })
         .getCount(),
+      this.contactSubmissionRepo.count({
+        where: { status: In(['new', 'in_progress'] as any) },
+      }),
+      this.contactSubmissionRepo.count({
+        where: {
+          status: In(['new', 'in_progress'] as any),
+          dueAt: LessThan(now),
+        },
+      }),
+      this.contactSubmissionRepo.count({
+        where: {
+          status: In(['new', 'in_progress'] as any),
+          severity: 'P0',
+        },
+      }),
+      this.contactSubmissionRepo.count({
+        where: {
+          status: In(['new', 'in_progress'] as any),
+          category: 'privacy_lgpd',
+        },
+      }),
     ]);
 
     // Timeline 7 dias (mini-chart)
@@ -1521,6 +1548,24 @@ export class AdminService {
         message: `${legacyPedingPayments} pagamento(s) com status legado "peding" aguardam saneamento`,
       });
     }
+    if (supportP0Open > 0) {
+      alerts.push({
+        severity: 'red',
+        message: `${supportP0Open} ticket(s) P0 abertos em suporte/LGPD`,
+      });
+    }
+    if (supportOverdue > 0) {
+      alerts.push({
+        severity: 'amber',
+        message: `${supportOverdue} ticket(s) de suporte/LGPD com SLA vencido`,
+      });
+    }
+    if (supportLgpdOpen > 0) {
+      alerts.push({
+        severity: 'info',
+        message: `${supportLgpdOpen} pedido(s) LGPD aberto(s); prazo operacional: 15 dias corridos`,
+      });
+    }
     if (!process.env.STAYS_API_BASE_URL || !process.env.STAYS_TOKEN_ENCRYPTION_KEY) {
       alerts.push({
         severity: 'info',
@@ -1615,6 +1660,12 @@ export class AdminService {
         apiBaseConfigured: Boolean(process.env.STAYS_API_BASE_URL),
         tokenEncryptionConfigured: Boolean(process.env.STAYS_TOKEN_ENCRYPTION_KEY),
         betaPrivate: !process.env.STAYS_API_BASE_URL || !process.env.STAYS_TOKEN_ENCRYPTION_KEY,
+      },
+      support: {
+        open: supportOpen,
+        overdue: supportOverdue,
+        p0Open: supportP0Open,
+        lgpdOpen: supportLgpdOpen,
       },
       revenue: {
         activeSubscriptions,
