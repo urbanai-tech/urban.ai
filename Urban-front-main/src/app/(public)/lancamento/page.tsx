@@ -92,7 +92,7 @@ export default function LancamentoPage() {
                 fontSize: 13,
                 letterSpacing: 3,
                 textTransform: "uppercase",
-                color: "rgba(255,255,255,0.45)",
+                color: "rgba(255,255,255,0.50)",
                 fontWeight: 600,
               }}
             >
@@ -263,7 +263,7 @@ export default function LancamentoPage() {
               fontSize: 12,
               letterSpacing: 2,
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.45)",
+              color: "rgba(255,255,255,0.50)",
               fontWeight: 500,
             }}
           >
