@@ -34,6 +34,7 @@ function makeService(
     staysAccountRepo?: any;
     staysListingRepo?: any;
     jobRunRepo?: any;
+    contactSubmissionRepo?: any;
   } = {},
 ) {
   return new AdminService(
@@ -51,6 +52,7 @@ function makeService(
     {} as any,
     {} as any,
     overrides.jobRunRepo ?? ({} as any),
+    overrides.contactSubmissionRepo ?? ({} as any),
     {} as any,
     {} as any,
     {} as any,
