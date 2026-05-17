@@ -67,7 +67,7 @@ jobs:
       - name: Build local smoke app
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.E2E_API_URL || 'https://urbanai-production-85fd.up.railway.app' }}
-          NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+          NEXT_PUBLIC_APP_URL: https://app.myurbanai.com
           NEXT_PUBLIC_PRELAUNCH_MODE: 'false'
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_dummy
           NEXTAUTH_SECRET: ci_dummy_secret_not_for_prod

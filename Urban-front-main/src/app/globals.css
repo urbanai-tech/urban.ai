@@ -79,16 +79,16 @@
   /* Text */
   --app-text: #0E1116;
   --app-text-muted: rgba(14, 17, 22, 0.62);
-  --app-text-dim: rgba(14, 17, 22, 0.60);
+  --app-text-dim: rgba(14, 17, 22, 0.70);
 
   /* Borders */
   --app-divider: rgba(14, 17, 22, 0.06);
   --app-divider-strong: rgba(14, 17, 22, 0.12);
 
   /* Brand + semantic */
-  --app-accent: #D14609;
-  --app-accent-soft: rgba(232, 80, 10, 0.10);
-  --app-accent-hover: #B83D07;
+  --app-accent: #B83D07;
+  --app-accent-soft: rgba(184, 61, 7, 0.12);
+  --app-accent-hover: #9A3105;
   --app-success: #16A06B;
   --app-warning: #C8810E;
   --app-danger: #C2342E;
