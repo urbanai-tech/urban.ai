@@ -31,6 +31,10 @@ jobs:
         run: npx tsc --noEmit
       - name: Jest unit + integration
         run: npx jest --passWithNoTests --ci
+      - name: Migration coverage audit
+        run: yarn audit:migrations:strict
+      - name: MySQL backup dry-run
+        run: yarn backup:mysql:dry
 
   backend-build:
     name: Backend — nest build (prod artifact)
@@ -165,6 +169,19 @@ jobs:
         run: uv sync --all-groups --frozen
       - name: Pytest
         run: uv run pytest tests -q
+
+  # ===================== Release evidence =====================
+
+  release-evidence:
+    name: Release - evidence dry-run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Generate release evidence preview
+        run: node scripts/release-evidence.js --dry-run
 
   # ===================== E2E (mocked local app) =====================
 

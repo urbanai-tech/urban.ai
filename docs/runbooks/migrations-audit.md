@@ -29,11 +29,28 @@ node urban-ai-backend-main/scripts/audit-migrations.js
 ## Interpretacao
 
 - `COVERED`: alguma migration menciona literalmente o nome da tabela.
+- `COVERED` por baseline historica: a tabela nao aparece como SQL literal em
+  migration porque a baseline `1745500000000-Baseline` e no-op, mas o auditor
+  reconhece casos legados documentados em `docs/banco-antigo-schemas.md`.
 - `WEAK`: alguma migration menciona o nome da entity/tabela por heuristica, mas
   nao encontrou literal exato de tabela.
 - `SUSPECT`: nenhuma migration menciona a entity ou a tabela pelos nomes
   detectados. Revisar se a tabela esta coberta pela baseline historica ou se
   precisa de migration explicita.
+
+## Cobertura historica reconhecida
+
+As tabelas abaixo existem no dump/DDL do banco antigo e sao tratadas como
+cobertas pela baseline historica, desde que a migration
+`src/migrations/1745500000000-Baseline.ts` exista no projeto:
+
+- `analise_endereco_evento`
+- `email_confirmations`
+- `notifications`
+
+Tabelas introduzidas depois da baseline precisam de migration propria. Exemplo:
+`refresh_tokens` nao aparece no DDL antigo e deve ser coberta por
+`src/migrations/1780300000000-CreateRefreshTokens.ts`.
 
 O comando normal e consultivo e retorna exit code `0` mesmo quando encontra
 suspeitas. Use `--strict` para retornar exit code `1` quando houver `SUSPECT`,

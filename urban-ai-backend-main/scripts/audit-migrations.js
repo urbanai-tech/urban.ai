@@ -3,6 +3,21 @@
 const fs = require('fs');
 const path = require('path');
 
+const BASELINE_HISTORICAL_TABLES = new Map([
+  [
+    'analise_endereco_evento',
+    'present in docs/banco-antigo-schemas.md before Baseline1745500000000',
+  ],
+  [
+    'email_confirmations',
+    'present in docs/banco-antigo-schemas.md before Baseline1745500000000',
+  ],
+  [
+    'notifications',
+    'present in docs/banco-antigo-schemas.md before Baseline1745500000000',
+  ],
+]);
+
 const options = parseArgs(process.argv.slice(2));
 
 if (options.help) {
@@ -234,11 +249,18 @@ function readMigrations(migrationsDir, projectRoot) {
 }
 
 function auditCoverage(entities, migrations) {
+  const hasHistoricalBaseline = migrations.some((migration) =>
+    /Baseline1745500000000/.test(migration.content),
+  );
+
   const auditedEntities = entities.map((entity) => {
     const direct = [];
     const weak = [];
     const tablePattern = makeIdentifierPattern(entity.tableName);
     const weakKeys = candidateWeakKeys(entity);
+    const baselineReason = hasHistoricalBaseline
+      ? BASELINE_HISTORICAL_TABLES.get(entity.tableName)
+      : '';
 
     for (const migration of migrations) {
       if (tablePattern.test(migration.content)) {
@@ -251,9 +273,23 @@ function auditCoverage(entities, migrations) {
       }
     }
 
-    const status = direct.length > 0 ? 'covered' : weak.length > 0 ? 'weak' : 'suspected';
+    const status =
+      direct.length > 0 || baselineReason
+        ? 'covered'
+        : weak.length > 0
+          ? 'weak'
+          : 'suspected';
     const evidence = [
       ...direct.map((file) => ({ strength: 'table-literal', file })),
+      ...(baselineReason
+        ? [
+            {
+              strength: 'historical-baseline',
+              file: 'src/migrations/1745500000000-Baseline.ts',
+              note: baselineReason,
+            },
+          ]
+        : []),
       ...weak.map((file) => ({ strength: 'name-match', file })),
     ];
 
@@ -334,6 +370,19 @@ function printReport({ projectRoot, entitiesDir, migrationsDir, strict, audit })
     console.log('');
   }
 
+  const baselineCovered = audit.entities.filter((entity) =>
+    entity.evidence.some((item) => item.strength === 'historical-baseline'),
+  );
+  if (baselineCovered.length > 0) {
+    console.log('Historical baseline coverage (legacy schema documented before baseline):');
+    for (const entity of baselineCovered) {
+      const item = entity.evidence.find((evidence) => evidence.strength === 'historical-baseline');
+      console.log(`  COVERED: ${entity.className} -> table "${entity.tableName}"`);
+      console.log(`    ${item.strength}: ${item.file}; ${item.note}`);
+    }
+    console.log('');
+  }
+
   console.log('Coverage details:');
   for (const entity of audit.entities) {
     const label = entity.status.toUpperCase().padEnd(9, ' ');
@@ -346,6 +395,8 @@ function printReport({ projectRoot, entitiesDir, migrationsDir, strict, audit })
 
   if (strict && summary.suspected > 0) {
     console.log('Strict result: failing because suspected uncovered entities were found.');
+  } else if (strict) {
+    console.log('Strict result: pass. No suspected uncovered entities found.');
   } else {
     console.log('Result: advisory pass. Use --strict to fail when suspected coverage gaps exist.');
   }
