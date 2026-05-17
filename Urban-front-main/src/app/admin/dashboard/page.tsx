@@ -412,13 +412,30 @@ export default function AdminDashboardPage() {
         <DataBlock title="Billing" icon={<Icons.Briefcase size={14} />} href="/admin/pricing-config">
           <SmallStat
             label="Stripe secret"
-            value={data.billing.stripeSecretConfigured ? "ok" : "faltando"}
-            status={data.billing.stripeSecretConfigured ? "success" : "error"}
+            value={data.billing.stripeSecretMode ?? (data.billing.stripeSecretConfigured ? "ok" : "faltando")}
+            status={
+              !data.billing.stripeSecretConfigured || data.billing.stripeSecretMode === "unknown"
+                ? "error"
+                : data.billing.stripeModeMismatch
+                  ? "error"
+                  : "success"
+            }
           />
           <SmallStat
             label="Webhook"
             value={data.billing.stripeWebhookConfigured ? "ok" : "faltando"}
             status={data.billing.stripeWebhookConfigured ? "success" : "error"}
+          />
+          <SmallStat
+            label="Publishable"
+            value={data.billing.stripePublishableMode ?? "nao visivel"}
+            status={
+              data.billing.stripeModeMismatch || data.billing.stripePublishableMode === "unknown"
+                ? "error"
+                : data.billing.stripePublishableConfigured
+                  ? "success"
+                  : "warn"
+            }
           />
           <SmallStat
             label="Status peding"
