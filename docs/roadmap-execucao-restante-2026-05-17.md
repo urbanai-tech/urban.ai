@@ -8,7 +8,7 @@ servico externo e ainda precisa apenas de validacao mascarada.
 
 | Frente | Pronto | Mudanca de hoje | Proximo passo |
 | --- | ---: | --- | --- |
-| Codigo/local gates | 97% | PWA MVP entrou, build Next passou e typechecks front/backend passaram. | Rodar suite completa antes do merge. |
+| Codigo/local gates | 98% | PWA MVP entrou, build Next passou, typechecks front/backend passaram e suites principais estao verdes. | Rodar suite final antes do merge. |
 | Producao deployada | 84% | Railway segue `SUCCESS`, mas ainda no commit `f56b46a`. | Merge/deploy da branch atual. |
 | Alpha assistido | 91% | Admin segue 100%; auditoria host tem fix em codigo. | Reteste host pos-deploy com usuario real. |
 | Beta pago controlado | 80% | Stripe sync-check em producao retornou 8/8 OK; suporte/privacidade publicos viraram fallback operacional, nao blocker falso. | Rodar checkout/webhook/portal/cancel/quota e confirmar owners. |

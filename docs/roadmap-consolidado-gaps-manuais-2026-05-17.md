@@ -11,7 +11,7 @@ Este documento consolida os roadmaps e checklists existentes para responder quat
 
 | Dimensao | Pronto | Leitura honesta |
 | --- | ---: | --- |
-| Codigo/local gates | 97% | Build do front passou, typechecks front/backend passaram, PWA MVP entrou, pipeline Python passou, produto/admin audit foi ampliado e o bug de CORS/RSC do footer host foi corrigido em codigo. |
+| Codigo/local gates | 98% | Build do front passou, typechecks front/backend passaram, PWA MVP entrou, pipeline Python passou, produto/admin audit foi ampliado e o bug de CORS/RSC do footer host foi corrigido em codigo. |
 | Producao deployada | 84% | Railway esta saudavel em todos os servicos principais, mas producao ainda esta no commit `f56b46a`; as correcoes atuais ainda precisam merge/deploy e smoke pos-deploy. |
 | Alpha assistido | 91% | Usuario real validado para smokes, admin 100% UI/API, host com APIs 100%; falta revalidar UI host apos deploy do footer e rodar fluxos mutantes controlados. |
 | Beta pago controlado | 80% | Billing, MailerSend, Stays e suporte tem bastante codigo/runbook; Stripe Price IDs passaram 8/8 em producao, mas Stays/owners e smokes mutantes ainda precisam validacao. |
@@ -110,8 +110,8 @@ Para chamar de PWA pronto em producao, falta:
 | Railway front | Deploy `SUCCESS` em producao no commit `f56b46a`. |
 | Railway webscraping | Deploy `SUCCESS` em producao no commit `f56b46a`. |
 | Railway pipeline | Deploy `SUCCESS` em producao no commit `f56b46a`. |
-| Branch atual local | `feat/dev2-track2-semana-7-8-askurban`, HEAD `878bdc7`. |
-| GitHub statuses | `main`/`f56b46a` tem statuses Railway verdes; feature commit atual nao mostrou combined statuses. |
+| Branch atual local | `feat/dev2-track2-semana-7-8-askurban`; branch publicada nos dois remotes. |
+| GitHub statuses | `urbanai-tech` ja passou backend, frontend build, pipeline, release dry-run e scraping; Playwright publico/mocked ainda deve ser conferido antes do merge. `Gustavogm9` esta bloqueado por billing/spending do GitHub Actions. |
 
 ## Ordem recomendada para fechar o restante
 
@@ -136,7 +136,7 @@ Para chamar de PWA pronto em producao, falta:
 | Beta pago | Travado por Stripe Price IDs/smoke, suporte/LGPD e ambiente alvo. |
 | Stays automatico | Travado por API/base/token/sandbox e smoke real. |
 | Go-live publico | Travado por prova de valor, cases, legal, suporte, observabilidade e billing live. |
-| PWA | Travado por implementacao; mobile web pode seguir em paralelo. |
+| PWA | Implementado em codigo; falta deploy, Lighthouse e instalacao em Android/iOS. |
 
 ## Decisao sugerida
 

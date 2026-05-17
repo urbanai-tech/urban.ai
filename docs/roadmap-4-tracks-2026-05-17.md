@@ -49,7 +49,7 @@ Rodada feita sem credenciais externas, em porta local isolada `3100`, para nao i
 | Check | Resultado |
 |---|---|
 | Backend `tsc --noEmit` | Passou. |
-| Backend Jest completo | Passou: 27 suites, 211 testes. |
+| Backend Jest completo | Passou: 27 suites, 213 testes. |
 | Backend build Nest | Passou; `dist/main.js` gerado. |
 | Auditoria de migrations strict | Passou: 26/26 entidades cobertas, 0 suspeitas. |
 | Backup MySQL dry-run | Passou; nenhum comando real executado. |
@@ -91,7 +91,7 @@ Rodada feita sem credenciais externas, em porta local isolada `3100`, para nao i
 - Railway producao segue ativo em `f56b46a`; os commits `2efbc7b..8600d48` ainda precisam chegar em `main`/producao.
 - Smoke autenticado real passou manualmente; falta gravar os segredos no CI sem expor senha em arquivo.
 - Branch protection ainda precisa tornar CI/Release Gate obrigatorios em `main`.
-- Restou sujeira local gerada: `Urban-front-main/tsconfig.tsbuildinfo`.
+- Artefato incremental de build `Urban-front-main/tsconfig.tsbuildinfo` foi restaurado para nao entrar no commit.
 
 ### Entregas
 
