@@ -32,6 +32,7 @@ type Me = {
 const PRIMARY_NAV = [
   { path: '/painel', label: 'Painel', icon: 'bar-chart' as const },
   { path: '/dashboard', label: 'Calendário', icon: 'calendar' as const },
+  { path: '/portfolio', label: 'Portfólio', icon: 'layers' as const },
   { path: '/maps', label: 'Mapa', icon: 'map-pin' as const },
   { path: '/properties', label: 'Imóveis', icon: 'home' as const },
 ];
@@ -738,6 +739,7 @@ type IconKey =
   | 'calendar'
   | 'map-pin'
   | 'home'
+  | 'layers'
   | 'bell'
   | 'trending-up'
   | 'dollar'
@@ -908,6 +910,14 @@ function NavIcon({ name }: { name: IconKey }) {
       return (
         <svg {...props}>
           <path d="M3 9.5 12 3l9 6.5V20a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2V9.5Z" />
+        </svg>
+      );
+    case 'layers':
+      return (
+        <svg {...props}>
+          <polygon points="12 2 2 7 12 12 22 7 12 2" />
+          <polyline points="2 17 12 22 22 17" />
+          <polyline points="2 12 12 17 22 12" />
         </svg>
       );
     case 'bell':

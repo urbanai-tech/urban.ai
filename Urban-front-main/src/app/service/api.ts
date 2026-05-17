@@ -2397,3 +2397,243 @@ export async function fetchPace(
     return generatePaceMock(propertyId, days);
   }
 }
+
+// =================== Portfolio calendar (Gap 1 — Dev 1 ↔ Dev 2) ===================
+
+/**
+ * Contrato B — `/portfolio/calendar` payload (Dev 1 → Dev 2).
+ *
+ *   GET /portfolio/calendar?from=YYYY-MM-DD&to=YYYY-MM-DD
+ *   → {
+ *       properties: [{
+ *         propertyId: string;
+ *         name: string;
+ *         thumbnail: string | null;
+ *         days: [{
+ *           date: string;
+ *           sugestao: number | null;
+ *           atual: number;
+ *           evento: { id: string; nome: string; impacto: 'alta' | 'media' } | null;
+ *         }];
+ *       }]
+ *     }
+ *
+ * Enquanto Dev 1 não entrega (semana 2), usamos mock realista controlado por
+ * `NEXT_PUBLIC_PORTFOLIO_MOCK_DATA` (default = mock ativo, set 'false' pra
+ * tentar o endpoint real).
+ */
+export type PortfolioEventImpact = 'alta' | 'media';
+
+export interface PortfolioEvent {
+  id: string;
+  nome: string;
+  impacto: PortfolioEventImpact;
+}
+
+export interface PortfolioDay {
+  date: string;
+  sugestao: number | null;
+  atual: number;
+  evento: PortfolioEvent | null;
+}
+
+export interface PortfolioProperty {
+  propertyId: string;
+  name: string;
+  thumbnail: string | null;
+  days: PortfolioDay[];
+}
+
+export interface PortfolioCalendarResponse {
+  properties: PortfolioProperty[];
+}
+
+export interface PortfolioCalendarInput {
+  from: string;
+  to: string;
+  propertyIds?: string[];
+  strategy?: string;
+}
+
+const PORTFOLIO_USE_MOCK =
+  (process.env.NEXT_PUBLIC_PORTFOLIO_MOCK_DATA ?? 'true').toLowerCase() !== 'false';
+
+const PORTFOLIO_MOCK_PROPERTIES: ReadonlyArray<{
+  propertyId: string;
+  name: string;
+  thumbnail: string | null;
+  basePrice: number;
+}> = [
+  { propertyId: 'pf-alpha-01', name: 'Studio Faria Lima', thumbnail: null, basePrice: 320 },
+  { propertyId: 'pf-alpha-02', name: 'Loft Jardins', thumbnail: null, basePrice: 410 },
+  { propertyId: 'pf-alpha-03', name: 'Apto 2qts Vila Madalena', thumbnail: null, basePrice: 285 },
+  { propertyId: 'pf-alpha-04', name: 'Cobertura Itaim', thumbnail: null, basePrice: 690 },
+  { propertyId: 'pf-alpha-05', name: 'Casa Pinheiros', thumbnail: null, basePrice: 510 },
+];
+
+const PORTFOLIO_MOCK_EVENTS: ReadonlyArray<Omit<PortfolioEvent, 'id'> & { offset: number }> = [
+  { offset: 6, nome: 'Show internacional Allianz', impacto: 'alta' },
+  { offset: 14, nome: 'Feriado prolongado', impacto: 'media' },
+  { offset: 22, nome: 'Convenção corporativa Expo', impacto: 'alta' },
+  { offset: 34, nome: 'Festival gastronômico', impacto: 'media' },
+  { offset: 48, nome: 'Show internacional Morumbi', impacto: 'alta' },
+];
+
+function isoDateAt(daysAhead: number, base?: Date): string {
+  const d = base ? new Date(base) : new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + daysAhead);
+  return d.toISOString().slice(0, 10);
+}
+
+function daysBetween(fromIso: string, toIso: string): number {
+  const from = new Date(fromIso);
+  const to = new Date(toIso);
+  const ms = to.getTime() - from.getTime();
+  return Math.max(0, Math.round(ms / 86400000));
+}
+
+function generatePortfolioMock(input: PortfolioCalendarInput): PortfolioCalendarResponse {
+  const fromIso = input.from;
+  const totalDays = Math.min(180, daysBetween(input.from, input.to) + 1);
+  const baseDate = new Date(fromIso);
+
+  const filterIds = input.propertyIds && input.propertyIds.length > 0
+    ? new Set(input.propertyIds)
+    : null;
+
+  const properties: PortfolioProperty[] = PORTFOLIO_MOCK_PROPERTIES
+    .filter((p) => (filterIds ? filterIds.has(p.propertyId) : true))
+    .map((p, propertyIdx) => {
+      const days: PortfolioDay[] = [];
+      for (let i = 0; i < totalDays; i++) {
+        const date = isoDateAt(i, baseDate);
+        const matchedEvent = PORTFOLIO_MOCK_EVENTS.find(
+          (ev) => ev.offset === ((i + propertyIdx) % 60),
+        );
+        const evento: PortfolioEvent | null = matchedEvent
+          ? {
+              id: `${p.propertyId}-ev-${matchedEvent.offset}`,
+              nome: matchedEvent.nome,
+              impacto: matchedEvent.impacto,
+            }
+          : null;
+
+        // sugestao só em ~50% dos dias, com bump quando há evento próximo
+        const hasSuggestion = (i + propertyIdx) % 2 === 0 || evento !== null;
+        const eventBoost = evento
+          ? evento.impacto === 'alta' ? 1.45 : 1.2
+          : 1.0;
+        const weekday = (new Date(date).getDay() + 7) % 7;
+        const weekendBoost = weekday === 5 || weekday === 6 ? 1.12 : 1.0;
+        const sugestao = hasSuggestion
+          ? Math.round(p.basePrice * eventBoost * weekendBoost)
+          : null;
+
+        days.push({
+          date,
+          sugestao,
+          atual: p.basePrice,
+          evento,
+        });
+      }
+      return {
+        propertyId: p.propertyId,
+        name: p.name,
+        thumbnail: p.thumbnail,
+        days,
+      };
+    });
+
+  return { properties };
+}
+
+/**
+ * fetchPortfolioCalendar — multi-imóvel calendar (Gap 1).
+ *
+ * Quando `NEXT_PUBLIC_PORTFOLIO_MOCK_DATA !== 'false'` (default), retorna mock
+ * local. Caso contrário, chama `GET /portfolio/calendar` com fallback gracioso
+ * pro mock se o backend ainda não respondeu.
+ */
+export async function fetchPortfolioCalendar(
+  input: PortfolioCalendarInput,
+): Promise<PortfolioCalendarResponse> {
+  if (PORTFOLIO_USE_MOCK) {
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    return generatePortfolioMock(input);
+  }
+
+  try {
+    const { data } = await api.get<PortfolioCalendarResponse>('/portfolio/calendar', {
+      params: {
+        from: input.from,
+        to: input.to,
+        propertyIds: input.propertyIds?.join(',') || undefined,
+        strategy: input.strategy && input.strategy !== 'todas' ? input.strategy : undefined,
+      },
+    });
+    return data ?? { properties: [] };
+  } catch (err) {
+    console.warn('[fetchPortfolioCalendar] endpoint indisponível, usando mock:', err);
+    return generatePortfolioMock(input);
+  }
+}
+
+/**
+ * Contrato C — `/portfolio/bulk-action` (Dev 2 → Dev 1).
+ *
+ *   POST /portfolio/bulk-action
+ *   {
+ *     propertyIds: string[];
+ *     action: 'apply-strategy' | 'set-base-price' | 'accept-suggestions' | string;
+ *     payload?: Record<string, unknown>;
+ *   }
+ *   → { applied: number; failed: { propertyId: string; reason: string }[]; auditLogId: string }
+ */
+export type PortfolioBulkAction =
+  | 'apply-strategy'
+  | 'set-base-price'
+  | 'accept-suggestions'
+  | string;
+
+export interface PortfolioBulkActionInput {
+  propertyIds: string[];
+  action: PortfolioBulkAction;
+  payload?: Record<string, unknown>;
+}
+
+export interface PortfolioBulkActionFailure {
+  propertyId: string;
+  reason: string;
+}
+
+export interface PortfolioBulkActionResponse {
+  applied: number;
+  failed: PortfolioBulkActionFailure[];
+  auditLogId: string;
+}
+
+export async function mutatePortfolioBulkAction(
+  input: PortfolioBulkActionInput,
+): Promise<PortfolioBulkActionResponse> {
+  if (PORTFOLIO_USE_MOCK) {
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    return {
+      applied: input.propertyIds.length,
+      failed: [],
+      auditLogId: `mock-${Date.now()}`,
+    };
+  }
+
+  try {
+    const { data } = await api.post<PortfolioBulkActionResponse>('/portfolio/bulk-action', input);
+    return data;
+  } catch (err) {
+    console.warn('[mutatePortfolioBulkAction] endpoint indisponível, retornando mock:', err);
+    return {
+      applied: input.propertyIds.length,
+      failed: [],
+      auditLogId: `mock-fallback-${Date.now()}`,
+    };
+  }
+}

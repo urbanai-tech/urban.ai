@@ -37,7 +37,14 @@ export type {
 } from "@/app/types/recommendation";
 export { PaceChart } from "./PaceChart";
 export type { PaceChartProps, PacePoint } from "./PaceChart";
+export { PortfolioCalendar } from "./PortfolioCalendar";
+export type {
+  PortfolioCalendarProps,
+  PortfolioProperty,
+  PortfolioDay,
+} from "./PortfolioCalendar";
 export { AppToastProvider, useAppToast } from "./AppToast";
 export type { AppToastKind } from "./AppToast";
 export { AppFooter } from "./AppFooter";
+export { AppConfirmDialog } from "./AppConfirmDialog";
 export * as Icons from "./Icons";
