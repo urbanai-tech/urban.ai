@@ -43,7 +43,7 @@ deployments:
   tags: ['urban']
   concurrency_limit: null
   description: null
-  entrypoint: raw_data_pipeline/main.py:main
+  entrypoint: raw_data_pipeline/main.py:main_flow
   parameters: {}
   work_pool:
     name: urban_webscraping_workpool

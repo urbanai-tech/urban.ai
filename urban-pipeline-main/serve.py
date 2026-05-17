@@ -3,7 +3,7 @@ from prefect import serve
 from prefect.blocks.system import Secret
 
 from spiders_pipeline.main import trigger_all_spiders
-from raw_data_pipeline.main import main as raw_data_pipeline_main
+from raw_data_pipeline.main import main_flow as raw_data_pipeline_main
 
 def load_secrets_to_env():
     """Load secrets from Prefect Blocks and set them in the environment."""

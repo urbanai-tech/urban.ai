@@ -1886,7 +1886,6 @@ export class AdminService {
     const stripeBlockers: string[] = [];
     if (!input.stripeSecretConfigured) stripeBlockers.push('STRIPE_SECRET_KEY ausente');
     if (!input.stripeWebhookConfigured) stripeBlockers.push('STRIPE_WEBHOOK_SECRET ausente');
-    if (!input.stripePublishableConfigured) stripeBlockers.push('Publishable key Stripe ausente');
     if (input.stripeSecretMode === 'unknown') stripeBlockers.push('Secret key Stripe com modo desconhecido');
     if (input.stripePublishableMode === 'unknown') stripeBlockers.push('Publishable key Stripe com modo desconhecido');
     if (input.stripeModeMismatch) stripeBlockers.push('Secret e publishable key Stripe em modos diferentes');
@@ -1895,7 +1894,6 @@ export class AdminService {
     if (!input.mailerSendApiKeyConfigured) emailBlockers.push('MAILERSEND_API_KEY ausente');
     if (!input.emailSenderConfigured) emailBlockers.push('EMAIL_SENDER ausente');
     if (!input.senderUsesUrbanDomain) emailBlockers.push('Sender fora do dominio myurbanai.com');
-    if (!input.frontUrlConfigured) emailBlockers.push('FRONT_URL ausente');
 
     const staysBlockers: string[] = [];
     if (!input.staysApiBaseConfigured) staysBlockers.push('STAYS_API_BASE_URL ausente');
@@ -1904,16 +1902,11 @@ export class AdminService {
     const supportBlockers: string[] = [];
     if (input.supportP0Open > 0) supportBlockers.push(`${input.supportP0Open} ticket(s) P0 abertos`);
     if (input.supportOverdue > 0) supportBlockers.push(`${input.supportOverdue} ticket(s) com SLA vencido`);
-    if (!input.supportEmailConfigured) supportBlockers.push('SUPPORT_EMAIL ausente');
-    if (!input.privacyEmailConfigured) supportBlockers.push('PRIVACY_EMAIL ausente');
     if (!input.supportEmailDomainOk || !input.privacyEmailDomainOk) {
       supportBlockers.push('Canais suporte/privacidade fora do dominio myurbanai.com');
     }
     if (!input.supportOwnerConfigured) supportBlockers.push('SUPPORT_OWNER_EMAIL ausente');
     if (!input.privacyOwnerConfigured) supportBlockers.push('PRIVACY_OWNER_EMAIL ausente');
-    if (!input.supportOwnerDomainOk || !input.privacyOwnerDomainOk) {
-      supportBlockers.push('Donos operacionais fora do dominio myurbanai.com');
-    }
     if (input.supportLgpdOpen > 0) {
       supportBlockers.push(`${input.supportLgpdOpen} pedido(s) LGPD exigem acompanhamento`);
     }

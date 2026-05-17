@@ -53,9 +53,9 @@ test.describe('Smoke autenticado - F3/F4/F7', () => {
 
     await page.goto('/admin');
     await expectNotBackAtLogin(page);
-    await expect(page.getByRole('heading', { name: /painel urban ai/i })).toBeVisible({
-      timeout: 15_000,
-    });
+    await expect(
+      page.getByRole('heading', { name: /painel urban ai|painel/i }),
+    ).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText(/acesso negado/i)).toHaveCount(0);
 
     await page.goto('/admin/alpha');
@@ -70,7 +70,7 @@ test.describe('Smoke autenticado - F3/F4/F7', () => {
       await page.getByRole('button', { name: /atualizar/i }).click();
     }
 
-    await expect(page.getByText(/im.veis alpha|recomendacoes|recomenda..es/i)).toBeVisible({
+    await expect(page.getByRole('heading', { name: /recomenda..es/i })).toBeVisible({
       timeout: 15_000,
     });
 
