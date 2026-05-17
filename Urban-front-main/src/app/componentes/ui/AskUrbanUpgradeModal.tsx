@@ -56,6 +56,7 @@ export function AskUrbanUpgradeModal({
     >
       <div
         onClick={onClose}
+        aria-hidden="true"
         style={{
           position: "absolute",
           inset: 0,
@@ -78,7 +79,8 @@ export function AskUrbanUpgradeModal({
       >
         <button
           onClick={onClose}
-          aria-label="Fechar"
+          aria-label="Fechar modal de upgrade"
+          className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
           style={{
             position: "absolute",
             top: 14,
@@ -87,7 +89,12 @@ export function AskUrbanUpgradeModal({
             border: "none",
             color: "var(--app-text-muted)",
             cursor: "pointer",
-            padding: 6,
+            padding: 8,
+            minWidth: 44,
+            minHeight: 44,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
             lineHeight: 0,
             borderRadius: 6,
           }}

@@ -138,6 +138,15 @@ function FooterLink({
     e.currentTarget.style.borderBottomColor = "transparent";
   }
 
+  function onFocus(e: React.FocusEvent<HTMLAnchorElement>) {
+    e.currentTarget.style.color = "var(--app-accent)";
+    e.currentTarget.style.borderBottomColor = "var(--app-accent)";
+  }
+  function onBlur(e: React.FocusEvent<HTMLAnchorElement>) {
+    e.currentTarget.style.color = "var(--app-text-muted)";
+    e.currentTarget.style.borderBottomColor = "transparent";
+  }
+
   if (external) {
     return (
       <a
@@ -145,8 +154,11 @@ function FooterLink({
         target="_blank"
         rel="noopener noreferrer"
         style={baseStyle}
+        className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2 rounded-sm"
         onMouseEnter={onEnter}
         onMouseLeave={onLeave}
+        onFocus={onFocus}
+        onBlur={onBlur}
       >
         {children}
       </a>
@@ -154,7 +166,15 @@ function FooterLink({
   }
 
   return (
-    <NextLink href={href} style={baseStyle} onMouseEnter={onEnter} onMouseLeave={onLeave}>
+    <NextLink
+      href={href}
+      style={baseStyle}
+      className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2 rounded-sm"
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+      onFocus={onFocus}
+      onBlur={onBlur}
+    >
       {children}
     </NextLink>
   );
