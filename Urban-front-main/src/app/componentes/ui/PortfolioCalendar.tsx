@@ -173,8 +173,8 @@ function PropertyThumb({
 }) {
   const [errored, setErrored] = React.useState(false);
   if (thumbnail && !errored) {
-    /* eslint-disable-next-line @next/next/no-img-element */
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={thumbnail}
         alt={`Foto de ${name}`}
