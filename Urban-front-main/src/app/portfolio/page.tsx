@@ -2,12 +2,11 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AppEmptyState,
   AppPageShell,
   AppSectionHeader,
   AppSelect,
   AppToastProvider,
-  Icons,
+  PortfolioCalendar,
   useAppToast,
 } from "../componentes/ui";
 import {
@@ -23,13 +22,10 @@ import { usePortfolioKeyboard } from "./usePortfolioKeyboard";
  * Página `/portfolio` (Gap 1 — Track 2, semana 3-4).
  *
  * Shell + tela base: header editorial, filtros (date range + estratégia),
- * bulk action toolbar e o componente `<PortfolioCalendar>` (entregue em
- * paralelo por outro agente). Enquanto o calendar não chega, renderiza um
- * placeholder com `AppEmptyState`.
+ * bulk action toolbar e o componente `<PortfolioCalendar>`.
  *
- * Atalhos globais J/K/H/L são registrados pelo hook `usePortfolioKeyboard` —
- * o calendar real lê `activeProperty`/`activeDate` desse hook pra desenhar
- * foco e mover o cursor da grid.
+ * O hook mantém a fonte de verdade do cursor ativo; o calendar registra os
+ * atalhos J/K/H/L e setas quando está montado.
  */
 
 const STRATEGY_OPTIONS: ReadonlyArray<{ id: string; label: string }> = [
@@ -82,18 +78,31 @@ function PortfolioPageContent() {
   const propertyCount = properties.length;
   const dateCount = properties[0]?.days.length ?? 0;
 
-  // Atalhos J/K/H/L — o hook clampa quando os ranges mudam.
-  const keyboard = usePortfolioKeyboard({ propertyCount, dateCount });
+  // O calendar real escuta teclado; o hook clampa quando os ranges mudam.
+  const { activeProperty, activeDate, moveTo } = usePortfolioKeyboard({
+    propertyCount,
+    dateCount,
+    disabled: true,
+  });
 
   // ID/data sob foco (derivados, expostos quando o calendar real plugar).
   const activeIds = useMemo(() => {
-    const prop = properties[keyboard.activeProperty];
-    const day = prop?.days[keyboard.activeDate];
+    const prop = properties[activeProperty];
+    const day = prop?.days[activeDate];
     return {
       propertyId: prop?.propertyId ?? null,
       date: day?.date ?? null,
     };
-  }, [properties, keyboard.activeProperty, keyboard.activeDate]);
+  }, [properties, activeProperty, activeDate]);
+
+  const handleToggleSelect = useCallback((propertyId: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(propertyId)) next.delete(propertyId);
+      else next.add(propertyId);
+      return next;
+    });
+  }, []);
 
   // Bulk action — chama a API e mostra toast.
   const handleBulkAction = useCallback(
@@ -143,13 +152,38 @@ function PortfolioPageContent() {
     [selected, toast],
   );
 
-  const handleSelectAll = useCallback(() => {
-    setSelected(new Set(properties.map((p: PortfolioApiProperty) => p.propertyId)));
-  }, [properties]);
+  const handleSelectAll = useCallback(
+    (shouldSelect = true) => {
+      setSelected(
+        shouldSelect
+          ? new Set(properties.map((p: PortfolioApiProperty) => p.propertyId))
+          : new Set(),
+      );
+    },
+    [properties],
+  );
 
   const handleClearSelection = useCallback(() => {
     setSelected(new Set());
   }, []);
+
+  const handleMoveActive = useCallback(
+    (next: { propertyId: string; date: string }) => {
+      const propertyIndex = properties.findIndex(
+        (p) => p.propertyId === next.propertyId,
+      );
+      const dateIndex =
+        propertyIndex >= 0
+          ? properties[propertyIndex].days.findIndex((d) => d.date === next.date)
+          : -1;
+
+      moveTo({
+        property: propertyIndex >= 0 ? propertyIndex : undefined,
+        date: dateIndex >= 0 ? dateIndex : undefined,
+      });
+    },
+    [moveTo, properties],
+  );
 
   return (
     <AppPageShell maxWidth={1400}>
@@ -192,16 +226,21 @@ function PortfolioPageContent() {
         selectedCount={selected.size}
         totalCount={propertyCount}
         onClearSelection={handleClearSelection}
-        onSelectAll={handleSelectAll}
+        onSelectAll={() => handleSelectAll(true)}
         onAction={handleBulkAction}
         loading={bulkLoading}
       />
 
-      <PortfolioCalendarPlaceholder
+      <PortfolioCalendar
+        data={properties}
+        selectedPropertyIds={selected}
+        onToggleSelect={handleToggleSelect}
+        onSelectAll={handleSelectAll}
         loading={loading}
-        propertyCount={propertyCount}
-        activePropertyId={activeIds.propertyId}
+        activeProperty={activeIds.propertyId}
         activeDate={activeIds.date}
+        onMoveActive={handleMoveActive}
+        onDayClick={(propertyId, date) => handleMoveActive({ propertyId, date })}
       />
     </AppPageShell>
   );
@@ -214,68 +253,6 @@ export default function PortfolioPage() {
     <AppToastProvider>
       <PortfolioPageContent />
     </AppToastProvider>
-  );
-}
-
-/**
- * Placeholder enquanto o `<PortfolioCalendar>` (Dev 2 paralelo) não pluga.
- * Mostra contexto pro reviewer: quantos imóveis a API retornou, qual linha/data
- * o teclado está focando — quando o componente real chegar, é só trocar este
- * import.
- */
-function PortfolioCalendarPlaceholder({
-  loading,
-  propertyCount,
-  activePropertyId,
-  activeDate,
-}: {
-  loading: boolean;
-  propertyCount: number;
-  activePropertyId: string | null;
-  activeDate: string | null;
-}) {
-  if (loading) {
-    return (
-      <div
-        role="status"
-        aria-live="polite"
-        aria-busy="true"
-        style={{
-          padding: "48px 24px",
-          textAlign: "center",
-          color: "var(--app-text-muted)",
-          fontSize: 13,
-          border: "1px dashed var(--app-divider-strong)",
-          borderRadius: 12,
-        }}
-      >
-        Carregando portfólio…
-      </div>
-    );
-  }
-  if (propertyCount === 0) {
-    return (
-      <AppEmptyState
-        eyebrow="SEM IMÓVEIS"
-        title="Cadastre 2 ou mais imóveis"
-        body="A visão consolidada de portfólio é mais útil com pelo menos 2 imóveis pra comparar preço, ocupação e sugestões lado a lado."
-        icon={<Icons.Layers size={32} />}
-      />
-    );
-  }
-  return (
-    <AppEmptyState
-      eyebrow="EM CONSTRUÇÃO"
-      title="PortfolioCalendar virá aqui — outro agente trabalhando"
-      body={
-        <span>
-          {propertyCount} imóvel{propertyCount > 1 ? "s" : ""} no range •{" "}
-          {activePropertyId ? `foco: ${activePropertyId}` : "sem foco"} •{" "}
-          {activeDate ? `data ${activeDate}` : "sem data"}
-        </span>
-      }
-      icon={<Icons.Calendar size={32} />}
-    />
   );
 }
 
