@@ -153,6 +153,8 @@ export function PortfolioToolbar({
                   type="button"
                   onClick={onClearSelection}
                   disabled={loading}
+                  aria-label="Limpar selecao de imoveis"
+                  className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
                   style={{
                     background: "transparent",
                     border: "none",
@@ -160,8 +162,9 @@ export function PortfolioToolbar({
                     cursor: "pointer",
                     fontSize: 12,
                     textDecoration: "underline",
-                    padding: 0,
+                    padding: "4px 6px",
                     marginLeft: 4,
+                    borderRadius: 4,
                   }}
                 >
                   limpar
@@ -375,13 +378,14 @@ function DropdownItem({
       role="menuitem"
       onClick={onClick}
       disabled={disabled}
+      className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-[-2px]"
       style={{
         background: "transparent",
         border: "none",
         textAlign: "left",
         padding: "10px 12px",
         borderRadius: 8,
-        color: disabled ? "var(--app-text-dim)" : "var(--app-text)",
+        color: disabled ? "var(--app-text-muted)" : "var(--app-text)",
         fontSize: 13,
         fontWeight: 500,
         cursor: disabled ? "not-allowed" : "pointer",

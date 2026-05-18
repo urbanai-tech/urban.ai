@@ -69,11 +69,11 @@ export class MailerService {
       );
       return { enviado: false, status: response?.statusCode ?? 500 };
     } catch (error: any) {
+      const diagnostic = this.formatMailerError(error);
       this.logger.error(
-        `Error sending HTML email to=${this.maskEmail(to.email)}`,
-        error?.message || String(error),
+        `Error sending HTML email to=${this.maskEmail(to.email)}: ${diagnostic}`,
       );
-      return { enviado: false, status: 500, message: error.message };
+      return { enviado: false, status: 500, message: diagnostic };
     }
   }
 
@@ -103,12 +103,51 @@ export class MailerService {
       );
       return { enviado: false, status: response?.statusCode ?? 500, message: 'Erro inesperado' };
     } catch (error: any) {
+      const diagnostic = this.formatMailerError(error);
       this.logger.error(
-        `Error sending text email to=${this.maskEmail(to.email)}`,
-        error?.message || String(error),
+        `Error sending text email to=${this.maskEmail(to.email)}: ${diagnostic}`,
       );
-      return { enviado: false, status: 500, message: error.message };
+      return { enviado: false, status: 500, message: diagnostic };
     }
+  }
+
+  private formatMailerError(error: any): string {
+    const statusCode = error?.statusCode ?? error?.status ?? error?.response?.statusCode;
+    const body = error?.body ?? error?.response?.body ?? error?.response?.data;
+    const bodyMessage =
+      typeof body?.message === 'string'
+        ? body.message
+        : Array.isArray(body?.errors)
+          ? body.errors
+              .map((item: any) => item?.message || item?.detail || item?.code)
+              .filter(Boolean)
+              .join('; ')
+          : undefined;
+    const message =
+      bodyMessage ||
+      (typeof error?.message === 'string' ? error.message : undefined) ||
+      this.safeJson(body || error);
+
+    const parts = [
+      statusCode ? `status=${statusCode}` : undefined,
+      message ? `message=${this.redactSecrets(String(message))}` : undefined,
+    ].filter(Boolean);
+
+    return parts.join(' ') || 'unknown mailer error';
+  }
+
+  private safeJson(value: any): string {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+
+  private redactSecrets(value: string): string {
+    return value
+      .replace(/(api[-_ ]?key|token|authorization|bearer)\s*[:=]\s*["']?[^"',\s]+/gi, '$1=[redacted]')
+      .slice(0, 500);
   }
 
   private maskEmail(email?: string): string {

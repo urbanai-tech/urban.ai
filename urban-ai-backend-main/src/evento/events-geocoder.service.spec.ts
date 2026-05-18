@@ -87,6 +87,32 @@ describe('EventsGeocoderService', () => {
     expect(status.lastRun?.failures[0].reason).toContain('REQUEST_DENIED');
   });
 
+  it('stops early on Google Maps configuration errors to avoid log storms', async () => {
+    const { service, repo, maps } = createService();
+    repo.find.mockResolvedValue([{ id: 'evt-1' }, { id: 'evt-2' }, { id: 'evt-3' }]);
+    maps.updateLatLngByEventId.mockResolvedValue({
+      ok: false,
+      message:
+        'Google Geocoding API request failed (HTTP 403, REQUEST_DENIED) - check GOOGLE_MAPS_API_KEY server restrictions, Geocoding API enablement and Google Cloud billing',
+    });
+
+    const result = await service.runOnce(10);
+
+    expect(result).toEqual({
+      attempted: 1,
+      succeeded: 0,
+      failed: 1,
+      failures: [
+        {
+          id: 'evt-1',
+          reason:
+            'Google Geocoding API request failed (HTTP 403, REQUEST_DENIED) - check GOOGLE_MAPS_API_KEY server restrictions, Geocoding API enablement and Google Cloud billing',
+        },
+      ],
+    });
+    expect(maps.updateLatLngByEventId).toHaveBeenCalledTimes(1);
+  });
+
   it('marks successful geocoded events according to coverage', async () => {
     const { service, repo, maps, coverage } = createService();
     repo.find.mockResolvedValue([{ id: 'evt-1' }]);

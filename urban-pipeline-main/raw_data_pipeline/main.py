@@ -7,7 +7,6 @@ from raw_data_pipeline.load.load_on_mysql import load_multiple_dataframes_to_mys
 log = config.get_logger(__name__)
 
 
-@flow(name="Raw Data Pipeline Main Flow")
 def main() -> None:
     """
     Main pipeline flow for processing raw data from S3 to MySQL.
@@ -69,3 +68,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+main_flow = flow(name="Raw Data Pipeline Main Flow")(main)

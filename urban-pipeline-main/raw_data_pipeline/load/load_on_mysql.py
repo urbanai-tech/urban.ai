@@ -1,12 +1,10 @@
 import pandas as pd
-from prefect import task
 
 from raw_data_pipeline.config import logging_config, setup_database_from_prefect
 
 log = logging_config.get_logger(__name__)
 
 
-@task
 def load_dataframe_to_mysql(
     df: pd.DataFrame,
     table_name: str,
@@ -55,7 +53,6 @@ def load_dataframe_to_mysql(
         raise
 
 
-@task(name="Load Data to MySQL")
 def load_multiple_dataframes_to_mysql(
     dataframes: list[pd.DataFrame], table_name: str, if_exists: str = "append"
 ) -> int:

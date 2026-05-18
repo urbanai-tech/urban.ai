@@ -5,8 +5,8 @@ const path = require('path');
 
 const APP_URL = process.env.E2E_BASE_URL || 'https://app.myurbanai.com';
 const API_URL = process.env.E2E_API_URL || 'https://urbanai-production-85fd.up.railway.app';
-const EMAIL = process.env.E2E_EMAIL;
-const PASSWORD = process.env.E2E_PASSWORD;
+const EMAIL = process.env.E2E_EMAIL || process.env.E2E_AUTH_EMAIL;
+const PASSWORD = process.env.E2E_PASSWORD || process.env.E2E_AUTH_PASSWORD;
 const MODE = process.env.E2E_AUDIT_MODE || 'all';
 
 const now = new Date();
@@ -33,6 +33,7 @@ const adminRoutes = [
   { path: '/admin/stays', feature: 'Stays admin health', weight: 2, api: ['/admin/stays/health'] },
   { path: '/admin/funnel', feature: 'Product funnel', weight: 2, api: ['/admin/funnel'] },
   { path: '/admin/quality', feature: 'Pricing quality', weight: 3, api: ['/admin/pricing/quality', '/admin/occupancy/coverage'] },
+  { path: '/admin/properties', feature: 'Properties drill-down list', weight: 3, api: ['/admin/properties'] },
 ];
 
 const hostRoutes = [
@@ -69,7 +70,7 @@ function sha256(value) {
 
 async function apiLogin(request) {
   if (!EMAIL || !PASSWORD) {
-    throw new Error('Set E2E_EMAIL and E2E_PASSWORD before running the audit.');
+    throw new Error('Set E2E_EMAIL/E2E_PASSWORD or E2E_AUTH_EMAIL/E2E_AUTH_PASSWORD before running the audit.');
   }
   const response = await request.post(`${API_URL}/auth/login`, {
     data: { email: EMAIL, password: sha256(PASSWORD) },
@@ -100,10 +101,16 @@ async function probeApi(request, token, endpoint) {
 
   let bodySummary = null;
   const contentType = response.headers()['content-type'] || '';
+  let sampleId = null;
   if (contentType.includes('application/json')) {
     const json = await response.json().catch(() => null);
     if (Array.isArray(json)) bodySummary = `array(${json.length})`;
-    else if (json && typeof json === 'object') bodySummary = `object(${Object.keys(json).slice(0, 8).join(',')})`;
+    else if (json && typeof json === 'object') {
+      bodySummary = `object(${Object.keys(json).slice(0, 8).join(',')})`;
+      if (endpoint === '/admin/properties') {
+        sampleId = json.items?.[0]?.id ?? json.data?.[0]?.id ?? null;
+      }
+    }
   }
 
   return {
@@ -112,6 +119,7 @@ async function probeApi(request, token, endpoint) {
     status: response.status(),
     durationMs: Date.now() - started,
     bodySummary,
+    sampleId,
     issue: response.status() >= 400 ? `HTTP ${response.status()}` : null,
   };
 }
@@ -316,6 +324,19 @@ async function main() {
       adminRouteResults.push(await auditRoute(page, route));
       for (const endpoint of route.api || []) {
         adminApiResults.push(await probeApi(request, token, endpoint));
+      }
+
+      if (route.path === '/admin/properties') {
+        const propertiesProbe = adminApiResults.find((item) => item.endpoint === '/admin/properties');
+        if (propertiesProbe?.ok && propertiesProbe.sampleId) {
+          const detailPath = `/admin/properties/${propertiesProbe.sampleId}`;
+          adminRouteResults.push(await auditRoute(page, {
+            path: detailPath,
+            feature: 'Property drill-down detail',
+            weight: 3,
+          }));
+          adminApiResults.push(await probeApi(request, token, detailPath));
+        }
       }
     }
   }

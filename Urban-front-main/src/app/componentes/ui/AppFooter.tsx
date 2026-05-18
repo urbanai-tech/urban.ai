@@ -3,6 +3,12 @@
 import React from "react";
 import NextLink from "next/link";
 
+const PUBLIC_SITE_URL = (
+  process.env.NEXT_PUBLIC_MARKETING_URL ||
+  process.env.NEXT_PUBLIC_PUBLIC_SITE_URL ||
+  "https://myurbanai.com"
+).replace(/\/$/, "");
+
 /**
  * AppFooter — footer minimal pro app autenticado.
  *
@@ -100,10 +106,16 @@ export function AppFooter() {
             letterSpacing: 0.3,
           }}
         >
-          <FooterLink href="/termos">Termos</FooterLink>
-          <FooterLink href="/privacidade">Privacidade</FooterLink>
-          <FooterLink href="/contato">Contato</FooterLink>
-          <FooterLink href="https://status.myurbanai.com" external>
+          <FooterLink href={`${PUBLIC_SITE_URL}/termos`} external>
+            Termos
+          </FooterLink>
+          <FooterLink href={`${PUBLIC_SITE_URL}/privacidade`} external>
+            Privacidade
+          </FooterLink>
+          <FooterLink href={`${PUBLIC_SITE_URL}/contato`} external>
+            Contato
+          </FooterLink>
+          <FooterLink href="https://status.myurbanai.com" external openInNewTab>
             Status do sistema
           </FooterLink>
         </nav>
@@ -115,10 +127,12 @@ export function AppFooter() {
 function FooterLink({
   href,
   external,
+  openInNewTab,
   children,
 }: {
   href: string;
   external?: boolean;
+  openInNewTab?: boolean;
   children: React.ReactNode;
 }) {
   const baseStyle: React.CSSProperties = {
@@ -138,15 +152,27 @@ function FooterLink({
     e.currentTarget.style.borderBottomColor = "transparent";
   }
 
+  function onFocus(e: React.FocusEvent<HTMLAnchorElement>) {
+    e.currentTarget.style.color = "var(--app-accent)";
+    e.currentTarget.style.borderBottomColor = "var(--app-accent)";
+  }
+  function onBlur(e: React.FocusEvent<HTMLAnchorElement>) {
+    e.currentTarget.style.color = "var(--app-text-muted)";
+    e.currentTarget.style.borderBottomColor = "transparent";
+  }
+
   if (external) {
     return (
       <a
         href={href}
-        target="_blank"
-        rel="noopener noreferrer"
+        target={openInNewTab ? "_blank" : undefined}
+        rel={openInNewTab ? "noopener noreferrer" : undefined}
         style={baseStyle}
+        className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2 rounded-sm"
         onMouseEnter={onEnter}
         onMouseLeave={onLeave}
+        onFocus={onFocus}
+        onBlur={onBlur}
       >
         {children}
       </a>
@@ -154,7 +180,15 @@ function FooterLink({
   }
 
   return (
-    <NextLink href={href} style={baseStyle} onMouseEnter={onEnter} onMouseLeave={onLeave}>
+    <NextLink
+      href={href}
+      style={baseStyle}
+      className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2 rounded-sm"
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+      onFocus={onFocus}
+      onBlur={onBlur}
+    >
       {children}
     </NextLink>
   );

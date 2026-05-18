@@ -346,7 +346,12 @@ function PricingRulesPageContent() {
 
 function PricingRulesSkeleton() {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div
+      role="status"
+      aria-busy="true"
+      aria-label="Carregando regras de preco"
+      style={{ display: "flex", flexDirection: "column", gap: 12 }}
+    >
       {Array.from({ length: 8 }).map((_, i) => (
         <AppCard key={i} style={{ padding: "18px 20px" }}>
           <div

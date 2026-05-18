@@ -144,6 +144,7 @@ function emailReadiness(env) {
   const warnings = [];
   requireEnv(env, blockers, 'MAILERSEND_API_KEY');
   requireEnv(env, blockers, 'EMAIL_SENDER');
+  optionalEnv(env, warnings, 'MAILERSEND_DOMAIN_ID');
   optionalEnv(env, warnings, 'FRONT_URL');
   optionalEnv(env, warnings, 'RESET_PASS_URL');
 
@@ -182,13 +183,24 @@ function staysReadiness(env) {
 function supportReadiness(env) {
   const blockers = [];
   const warnings = [];
-  requireEnv(env, blockers, 'SUPPORT_EMAIL');
-  requireEnv(env, blockers, 'PRIVACY_EMAIL');
+  if (!has(env, 'SUPPORT_EMAIL')) {
+    warnings.push('SUPPORT_EMAIL is not set; app fallback is suporte@myurbanai.com');
+  }
+  if (!has(env, 'PRIVACY_EMAIL')) {
+    warnings.push('PRIVACY_EMAIL is not set; app fallback is privacidade@myurbanai.com');
+  }
   requireEnv(env, blockers, 'SUPPORT_OWNER_EMAIL');
   requireEnv(env, blockers, 'PRIVACY_OWNER_EMAIL');
 
-  for (const key of ['SUPPORT_EMAIL', 'PRIVACY_EMAIL', 'SUPPORT_OWNER_EMAIL', 'PRIVACY_OWNER_EMAIL']) {
-    const domain = value(env, key).split('@').pop() || '';
+  const emailValues = {
+    SUPPORT_EMAIL: value(env, 'SUPPORT_EMAIL') || 'suporte@myurbanai.com',
+    PRIVACY_EMAIL: value(env, 'PRIVACY_EMAIL') || 'privacidade@myurbanai.com',
+    SUPPORT_OWNER_EMAIL: value(env, 'SUPPORT_OWNER_EMAIL'),
+    PRIVACY_OWNER_EMAIL: value(env, 'PRIVACY_OWNER_EMAIL'),
+  };
+
+  for (const [key, email] of Object.entries(emailValues)) {
+    const domain = email.split('@').pop() || '';
     if (domain && !domain.endsWith('myurbanai.com')) {
       warnings.push(`${key} domain is ${domain}; confirm this is intentional`);
     }
@@ -203,7 +215,7 @@ function supportReadiness(env) {
 }
 
 function requireEnv(env, blockers, key) {
-  if (!has(env, key)) blockers.push(`${key} is missing`);
+  if (!has(env, key)) blockers.push(`${key} is not set in the supplied env/runtime`);
 }
 
 function optionalEnv(env, warnings, key) {

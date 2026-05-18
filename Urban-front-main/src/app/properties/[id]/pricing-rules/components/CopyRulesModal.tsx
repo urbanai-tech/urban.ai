@@ -103,6 +103,7 @@ export function CopyRulesModal({
     >
       <div
         onClick={onClose}
+        aria-hidden="true"
         style={{
           position: "absolute",
           inset: 0,
@@ -129,8 +130,36 @@ export function CopyRulesModal({
           style={{
             padding: "22px 24px 16px",
             borderBottom: "1px solid var(--app-divider)",
+            position: "relative",
           }}
         >
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            aria-label="Fechar modal"
+            className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
+            style={{
+              position: "absolute",
+              top: 14,
+              right: 14,
+              background: "transparent",
+              border: "none",
+              color: "var(--app-text-muted)",
+              cursor: loading ? "not-allowed" : "pointer",
+              padding: 8,
+              minWidth: 44,
+              minHeight: 44,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              lineHeight: 0,
+              borderRadius: 6,
+              fontSize: 18,
+            }}
+          >
+            <span aria-hidden="true">×</span>
+          </button>
           <p
             style={{
               margin: 0,
@@ -179,6 +208,8 @@ export function CopyRulesModal({
         >
           {fetching && (
             <div
+              role="status"
+              aria-live="polite"
               style={{
                 padding: "24px 0",
                 textAlign: "center",
@@ -191,6 +222,8 @@ export function CopyRulesModal({
           )}
           {fetchError && !fetching && (
             <div
+              role="alert"
+              aria-live="assertive"
               style={{
                 padding: "16px",
                 border: "1px solid rgba(194, 52, 46, 0.25)",

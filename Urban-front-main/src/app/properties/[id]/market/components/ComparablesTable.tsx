@@ -217,15 +217,17 @@ export function ComparablesTable({
         </table>
       </div>
 
-      {/* Versão mobile (cards) */}
+      {/* Versão mobile (cards) — visível apenas <768px via CSS abaixo. */}
       <div
         className="market-intel-cards"
-        aria-hidden="true"
+        role="list"
+        aria-label={`${comparables.length} imoveis comparaveis (versao mobile)`}
         style={{ display: "none", flexDirection: "column", gap: 12 }}
       >
         {sorted.map((c) => (
           <div
             key={`m-${c.anonymousId}-${c.distanceKm}`}
+            role="listitem"
             style={{
               padding: 16,
               background: "var(--app-surface)",
@@ -357,6 +359,8 @@ function SortableColHeader({
       <button
         type="button"
         onClick={onClick}
+        aria-label={`Ordenar por ${label}`}
+        className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-[-2px]"
         style={{
           width: "100%",
           padding: "12px 16px",

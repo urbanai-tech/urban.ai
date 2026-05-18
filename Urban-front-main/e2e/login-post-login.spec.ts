@@ -1,7 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { acceptCookieConsent } from './test-helpers';
 
 test.describe('Login and post-login routing', () => {
   test('faz login com senha hasheada e direciona host com propriedade para dashboard', async ({ page }) => {
+    await acceptCookieConsent(page);
+
     const loginPayloads: Array<{ email?: string; password?: string }> = [];
     const statePayloads: Array<{ email?: string }> = [];
 
@@ -88,7 +91,7 @@ test.describe('Login and post-login routing', () => {
     expect(loginPayloads[0]?.email).toBe('host.login@urbanai.com.br');
     expect(loginPayloads[0]?.password).toMatch(/^[a-f0-9]{64}$/);
     expect(loginPayloads[0]?.password).not.toBe('UrbanLogin@123');
-    expect(statePayloads[0]).toEqual({ email: 'host.login@urbanai.com.br' });
+    await expect.poll(() => statePayloads[0]).toEqual({ email: 'host.login@urbanai.com.br' });
 
     await page.waitForURL(/\/dashboard$/, { timeout: 10_000 });
     await expect(page.getByRole('heading', { name: /Calend.rio/i })).toBeVisible();
