@@ -1,5 +1,7 @@
 [logging]
 level = "INFO"
 
-[api]
-url = "https://prefect.luminalab.ai/api"
+# Intencionalmente sem [api]. O endpoint Prefect deve vir do ambiente
+# (PREFECT_API_URL / Prefect profile) quando o pipeline legado for usado.
+# Nunca hardcode um workspace de fornecedor aqui: isso travava dev/testes locais
+# tentando conectar em um Prefect externo legado.

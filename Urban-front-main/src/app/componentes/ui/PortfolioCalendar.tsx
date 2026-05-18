@@ -681,6 +681,13 @@ export function PortfolioCalendar({
                       type="button"
                       onClick={() => onDayClick?.(prop.propertyId, day.date)}
                       role="listitem"
+                      aria-label={`${fmtWeekday(day.date)} ${fmtDayMonth(day.date)}${
+                        day.evento ? `, ${day.evento.nome}` : ""
+                      }, preco atual ${fmtBRLFull(day.atual)}${
+                        day.sugestao !== null
+                          ? `, sugestao ${fmtBRLFull(day.sugestao)}`
+                          : ""
+                      }`}
                       title={`${fmtWeekday(day.date)} ${fmtDayMonth(day.date)}${
                         day.evento ? ` · ${day.evento.nome}` : ""
                       } · atual ${fmtBRLFull(day.atual)}${
@@ -688,12 +695,14 @@ export function PortfolioCalendar({
                           ? ` · sugestão ${fmtBRLFull(day.sugestao)}`
                           : ""
                       }`}
+                      className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
                       style={{
                         all: "unset",
                         scrollSnapAlign: "start",
                         flexShrink: 0,
                         width: MOBILE_DAY_WIDTH,
                         height: 76,
+                        minHeight: 44,
                         cursor: onDayClick ? "pointer" : "default",
                         borderRadius: 8,
                         border: isActive
@@ -1018,6 +1027,13 @@ export function PortfolioCalendar({
                       type="button"
                       key={day.date}
                       onClick={() => onDayClick?.(prop.propertyId, day.date)}
+                      aria-label={`${prop.name}, ${fmtWeekday(day.date)} ${fmtDayMonth(day.date)}${
+                        hasEvento ? `, ${day.evento!.nome}` : ""
+                      }, preco atual ${fmtBRLFull(day.atual)}${
+                        day.sugestao !== null
+                          ? `, sugestao ${fmtBRLFull(day.sugestao)}`
+                          : ""
+                      }`}
                       title={`${fmtWeekday(day.date)} ${fmtDayMonth(day.date)}${
                         hasEvento ? ` · ${day.evento!.nome}` : ""
                       } · atual ${fmtBRLFull(day.atual)}${
@@ -1025,6 +1041,7 @@ export function PortfolioCalendar({
                           ? ` · sugestão ${fmtBRLFull(day.sugestao)}`
                           : ""
                       }`}
+                      className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)]"
                       style={{
                         all: "unset",
                         width: DAY_COL_WIDTH,
@@ -1116,9 +1133,10 @@ export function PortfolioCalendar({
                         </span>
                       ) : (
                         <span
+                          aria-label="sem preco"
                           style={{
                             fontSize: 14,
-                            color: "var(--app-text-dim)",
+                            color: "var(--app-text-muted)",
                             fontFamily: "'Inter', sans-serif",
                           }}
                         >

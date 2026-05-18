@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { acceptCookieConsent } from './test-helpers';
 
 test.describe('F8 Happy Path: waitlist -> convite -> aceite -> dashboard', () => {
   test('fluxo completo F8 simulado via API mocks atuais', async ({ page }) => {
+    await acceptCookieConsent(page);
     await page.route('**/waitlist', async (route) => {
       if (route.request().method() !== 'POST') {
         await route.continue();
@@ -75,7 +77,7 @@ test.describe('F8 Happy Path: waitlist -> convite -> aceite -> dashboard', () =>
       });
     });
 
-    await page.route('**/propriedade/dropdown', async (route) => {
+    await page.route('**/propriedades/dropdown/list', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -85,12 +87,12 @@ test.describe('F8 Happy Path: waitlist -> convite -> aceite -> dashboard', () =>
 
     await page.goto('/waitlist/aceitar?token=MOCK_TOKEN_123');
 
-    await expect(page.locator('input[type="email"]')).toHaveValue('teste.e2e@urbanai.com.br');
+    await expect(page.getByLabel(/E-mail/i)).toHaveValue('teste.e2e@urbanai.com.br');
 
-    await page.locator('input[name="password"]').fill('UrbanE2E@123');
-    await page.locator('input[name="confirmPassword"]').fill('UrbanE2E@123');
+    await page.getByLabel(/Crie sua senha/i).fill('UrbanE2E@123');
+    await page.getByLabel(/Confirme a senha/i).fill('UrbanE2E@123');
 
-    await page.getByRole('button', { name: /Ativar minha conta/i }).click();
+    await page.getByRole('button', { name: /Aceitar convite/i }).click();
 
     await expect.poll(() => acceptPayload).toMatchObject({
       token: 'MOCK_TOKEN_123',
@@ -99,6 +101,6 @@ test.describe('F8 Happy Path: waitlist -> convite -> aceite -> dashboard', () =>
     });
 
     await page.waitForURL('**/dashboard');
-    await expect(page.getByText(/Calend.rio|Ainda n.o h. im.vel|Sem recomenda/i)).toBeVisible();
+    await expect(page.locator('main h1')).toContainText(/Calend.rio/i);
   });
 });

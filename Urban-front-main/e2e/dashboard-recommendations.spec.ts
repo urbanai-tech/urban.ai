@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { acceptCookieConsent } from './test-helpers';
 
 const completedProperty = {
   id: 'prop-dashboard-e2e',
@@ -61,6 +62,7 @@ async function mockProperties(page: import('@playwright/test').Page) {
 
 test.describe('Dashboard recommendations', () => {
   test('mostra empty state honesto quando nao ha recomendacoes no mes', async ({ page }) => {
+    await acceptCookieConsent(page);
     await mockProperties(page);
     await page.route('**/propriedades/eventos-analisados-com-price**', async (route) => {
       await route.fulfill({
@@ -73,11 +75,12 @@ test.describe('Dashboard recommendations', () => {
     await page.goto('/dashboard');
 
     await expect(page.getByRole('heading', { name: /Calend.rio/i })).toBeVisible();
-    await expect(page.getByText(/Sem recomenda/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Sem recomenda/i })).toBeVisible();
     await expect(page.getByText(/N.o encontramos evento futuro compat.vel/i)).toBeVisible();
   });
 
   test('mostra card de recomendacao com motivo e preco aplicado', async ({ page }) => {
+    await acceptCookieConsent(page);
     await mockProperties(page);
     await page.route('**/propriedades/eventos-analisados-com-price**', async (route) => {
       await route.fulfill({
@@ -90,13 +93,14 @@ test.describe('Dashboard recommendations', () => {
     await page.goto('/dashboard');
 
     await expect(page.getByText('Expo Turismo SP')).toBeVisible();
-    await expect(page.getByLabel('Preço sugerido', { exact: true })).toContainText(/R\$/);
-    await expect(page.getByText(/Por que sugerimos/i)).toBeVisible();
+    await expect(page.getByText(/Sugestao da IA/i)).toBeVisible();
+    await expect(page.getByText('R$ 420')).toBeVisible();
     await expect(page.getByText(/Evento proximo/i)).toBeVisible();
-    await expect(page.getByRole('button', { name: /Aceitar Sugest/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Aplicar sugest/i })).toBeVisible();
   });
 
   test('aceita recomendacao e registra preco aplicado com resultado', async ({ page }) => {
+    await acceptCookieConsent(page);
     const acceptPayloads: Array<{ aceito?: boolean }> = [];
     const appliedPayloads: Array<{
       precoAplicado?: number;
@@ -147,17 +151,18 @@ test.describe('Dashboard recommendations', () => {
     });
 
     await page.goto('/dashboard');
-    await page.getByRole('button', { name: /Aceitar Sugest/i }).click();
+    await page.getByRole('button', { name: /Aplicar sugest/i }).click();
 
     expect(acceptPayloads[0]).toEqual({ aceito: true });
-    await expect(page.getByRole('button', { name: /Cancelar/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Cancelar aceite/i })).toBeVisible();
 
-    await page.getByPlaceholder(/aplicado/i).fill('450');
-    await page.locator('select').selectOption('booked');
-    await page.getByPlaceholder(/Receita real/i).fill('1350');
-    await page.getByPlaceholder(/Noites/i).fill('3');
-    await page.getByPlaceholder(/Observacao/i).fill('Reserva fechada pelo Airbnb');
-    await page.getByRole('button', { name: /Registrar pre/i }).click();
+    await page.getByRole('button', { name: /Registrar resultado/i }).click();
+    await page.getByLabel(/Preco aplicado/i).fill('450');
+    await page.getByLabel(/Resultado da reserva/i).selectOption('booked');
+    await page.getByLabel(/Receita real/i).fill('1350');
+    await page.getByLabel(/Noites reservadas/i).fill('3');
+    await page.getByLabel(/Observacao/i).fill('Reserva fechada pelo Airbnb');
+    await page.getByRole('button', { name: /Salvar resultado/i }).click();
 
     expect(appliedPayloads[0]).toMatchObject({
       precoAplicado: 450,
@@ -167,6 +172,6 @@ test.describe('Dashboard recommendations', () => {
       noitesReservadas: 3,
       feedbackObservacao: 'Reserva fechada pelo Airbnb',
     });
-    await expect(page.getByLabel(/Pre.o aplicado registrado/i)).toContainText(/R\$/);
+    await expect(page.getByText(/Aplicado\s+R\$\s*450/)).toBeVisible();
   });
 });

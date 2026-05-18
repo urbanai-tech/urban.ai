@@ -332,7 +332,7 @@ function MarketIntelContent() {
           >
             <header style={{ marginBottom: 16 }}>
               <p className="urban-app-eyebrow-muted">ADR DIÁRIO · {period.label.toUpperCase()}</p>
-              <h3
+              <h2
                 style={{
                   fontSize: 18,
                   fontWeight: 600,
@@ -342,7 +342,7 @@ function MarketIntelContent() {
                 }}
               >
                 Sua ADR vs mediana do comp set
-              </h3>
+              </h2>
               <p
                 style={{
                   fontSize: 13,
@@ -361,7 +361,7 @@ function MarketIntelContent() {
           <section aria-label="Imóveis comparáveis">
             <header style={{ marginBottom: 16 }}>
               <p className="urban-app-eyebrow-muted">COMPARÁVEIS ANÔNIMOS</p>
-              <h3
+              <h2
                 style={{
                   fontSize: 18,
                   fontWeight: 600,
@@ -371,7 +371,7 @@ function MarketIntelContent() {
                 }}
               >
                 {data.comparables.length} imóveis similares no raio
-              </h3>
+              </h2>
               <p
                 style={{
                   fontSize: 13,

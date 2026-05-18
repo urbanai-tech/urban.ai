@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { acceptCookieConsent } from './test-helpers';
 
 /**
  * Release-gate smoke for public, production-safe pages.
@@ -26,6 +27,10 @@ const protectedRoutes = [
 ];
 
 test.describe('Release gate - public pages', () => {
+  test.beforeEach(async ({ page }) => {
+    await acceptCookieConsent(page);
+  });
+
   for (const route of publicRoutes) {
     test(`${route} loads without server/runtime error`, async ({ page }) => {
       const response = await page.goto(route, { waitUntil: 'domcontentloaded' });
@@ -83,6 +88,10 @@ test.describe('Release gate - public pages', () => {
 });
 
 test.describe('Release gate - anonymous access', () => {
+  test.beforeEach(async ({ page }) => {
+    await acceptCookieConsent(page);
+  });
+
   for (const route of protectedRoutes) {
     test(`${route} does not expose private app data to anonymous users`, async ({ page }) => {
       await page.goto(route, { waitUntil: 'domcontentloaded' });

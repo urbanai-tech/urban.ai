@@ -26,7 +26,11 @@
     "backfill:geocoder": "ts-node -r tsconfig-paths/register scripts/backfill-geocoder.ts",
     "backfill:geocoder:dry": "ts-node -r tsconfig-paths/register scripts/backfill-geocoder.ts --dry-run",
     "preflight:track3": "node scripts/track3-preflight.js",
-    "preflight:track3:strict": "node scripts/track3-preflight.js --strict"
+    "preflight:track3:strict": "node scripts/track3-preflight.js --strict",
+    "audit:migrations": "node scripts/audit-migrations.js",
+    "audit:migrations:strict": "node scripts/audit-migrations.js --strict",
+    "backup:mysql": "node scripts/mysql-backup.js",
+    "backup:mysql:dry": "node scripts/mysql-backup.js --dry-run"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
