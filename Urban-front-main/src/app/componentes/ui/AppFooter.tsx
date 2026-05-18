@@ -34,6 +34,7 @@ export function AppFooter() {
         color: "var(--app-text-muted)",
         fontSize: 12,
         fontFamily: "Inter, system-ui, sans-serif",
+        minHeight: 0,
       }}
     >
       <div
