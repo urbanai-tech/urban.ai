@@ -25,10 +25,10 @@ test.describe('Smoke - rotas publicas', () => {
 
   test('landing tem formulario de waitlist e aceita entrada de e-mail', async ({ page }) => {
     await page.goto('/lancamento#waitlist');
-    const input = page.locator('input[type="email"][id="waitlist-email"]');
+    const input = page.locator('input[type="email"][id="waitlist-email"]').first();
     await expect(input).toBeVisible();
     await input.fill('teste+smoke@urbanai.com.br');
-    await expect(page.locator('button[type="submit"]')).toBeEnabled();
+    await expect(page.locator('button[type="submit"]').first()).toBeEnabled();
   });
 
   test('link criar conta do header aponta para o app com barra correta', async ({ page }) => {
