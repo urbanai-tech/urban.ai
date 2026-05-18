@@ -9,13 +9,13 @@ servico externo e ainda precisa apenas de validacao mascarada.
 | Frente | Pronto | Mudanca de hoje | Proximo passo |
 | --- | ---: | --- | --- |
 | Codigo/local gates | 98% | PWA MVP entrou, build Next passou, typechecks front/backend passaram e suites principais estao verdes. | Rodar suite final antes do merge. |
-| Producao deployada | 84% | Railway segue `SUCCESS`, mas ainda no commit `f56b46a`. | Merge/deploy da branch atual. |
+| Producao deployada | 94% | PR `urbanai-tech#2` foi mergeado, Railway ficou `SUCCESS` e health/app/smokes pos-deploy passaram. | Fechar mutacoes controladas e branch protection. |
 | Alpha assistido | 91% | Admin segue 100%; auditoria host tem fix em codigo. | Reteste host pos-deploy com usuario real. |
 | Beta pago controlado | 80% | Stripe sync-check em producao retornou 8/8 OK; suporte/privacidade publicos viraram fallback operacional, nao blocker falso. | Rodar checkout/webhook/portal/cancel/quota e confirmar owners. |
 | Go-live publico | 63% | PWA, mobile autenticado e Stripe readiness ficaram mais fortes, mas ainda faltam dados/cases/legal/ops. | Cases, MAPE, LGPD e observabilidade. |
 | Mobile web | 95% | Smoke autenticado mobile real passou em producao nas rotas core. | Manter gate no CI e anexar screenshots pos-deploy. |
-| PWA installavel | 90% | Manifest, icons, apple icon, theme color, service worker, offline fallback e gate Playwright entraram. | Deploy + Lighthouse PWA + teste instalacao Android/iOS. |
-| PWA/mobile combinado | 93% | Saiu de 58% para 93% em codigo/evidencia real. | Validar Lighthouse/instalacao depois do deploy. |
+| PWA installavel | 96% | Manifest, icons, apple icon, theme color, service worker, offline fallback, gate Playwright e installability CDP passaram em producao. | Teste instalacao Android/iOS. |
+| PWA/mobile combinado | 96% | Codigo, deploy, endpoints PWA, Playwright e mobile autenticado passaram em producao. | Validar instalacao em dispositivos reais. |
 
 ## O que foi resolvido agora
 
