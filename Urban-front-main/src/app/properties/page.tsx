@@ -8,6 +8,8 @@ import {
   Text,
   Image,
   Input,
+  InputGroup,
+  InputLeftElement,
   Button,
   IconButton,
   Stack,
@@ -21,7 +23,7 @@ import {
   AlertDialogOverlay,
   useDisclosure,
 } from '@chakra-ui/react';
-import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
+import { AddIcon, CheckIcon, CloseIcon, DeleteIcon, EditIcon, ExternalLinkIcon, SearchIcon } from '@chakra-ui/icons';
 import { useTranslation } from 'react-i18next';
 import '../../../i18n';
 import {
@@ -30,6 +32,7 @@ import {
   PricingInputHistory,
   PropertyDropdown,
   requestDeleteAddress,
+  updatePropertyIdentity,
   updatePropertyPricingInputs,
 } from '../service/api';
 import { toast, ToastContainer } from 'react-toastify';
@@ -40,7 +43,11 @@ export default function MyProperties() {
   const [properties, setProperties] = useState<PropertyDropdown[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingPricing, setSavingPricing] = useState<string | null>(null);
+  const [savingIdentity, setSavingIdentity] = useState<string | null>(null);
+  const [editingIdentity, setEditingIdentity] = useState<string | null>(null);
+  const [propertySearch, setPropertySearch] = useState('');
   const [pricingDrafts, setPricingDrafts] = useState<Record<string, { manualDailyPrice: string; averageMonthlyRevenue: string }>>({});
+  const [identityDrafts, setIdentityDrafts] = useState<Record<string, { internalNickname: string; internalCode: string }>>({});
   const [openHistory, setOpenHistory] = useState<string | null>(null);
   const [loadingHistory, setLoadingHistory] = useState<string | null>(null);
   const [pricingHistory, setPricingHistory] = useState<Record<string, PricingInputHistory[]>>({});
@@ -61,6 +68,13 @@ export default function MyProperties() {
         {
           manualDailyPrice: prop.manualDailyPrice ? String(prop.manualDailyPrice) : '',
           averageMonthlyRevenue: prop.averageMonthlyRevenue ? String(prop.averageMonthlyRevenue) : '',
+        },
+      ])));
+      setIdentityDrafts(Object.fromEntries(data.map((prop) => [
+        prop.id,
+        {
+          internalNickname: prop.internalNickname ?? '',
+          internalCode: prop.internalCode ?? '',
         },
       ])));
     } catch (error) {
@@ -110,11 +124,66 @@ export default function MyProperties() {
     }));
   };
 
+  const updateIdentityDraft = (id: string, field: 'internalNickname' | 'internalCode', value: string) => {
+    setIdentityDrafts((prev) => ({
+      ...prev,
+      [id]: {
+        internalNickname: prev[id]?.internalNickname ?? '',
+        internalCode: prev[id]?.internalCode ?? '',
+        [field]: value,
+      },
+    }));
+  };
+
+  const editIdentity = (prop: PropertyDropdown) => {
+    setIdentityDrafts((prev) => ({
+      ...prev,
+      [prop.id]: {
+        internalNickname: prop.internalNickname ?? '',
+        internalCode: prop.internalCode ?? '',
+      },
+    }));
+    setEditingIdentity(prop.id);
+  };
+
+  const cancelIdentityEdit = (prop: PropertyDropdown) => {
+    setIdentityDrafts((prev) => ({
+      ...prev,
+      [prop.id]: {
+        internalNickname: prop.internalNickname ?? '',
+        internalCode: prop.internalCode ?? '',
+      },
+    }));
+    setEditingIdentity(null);
+  };
+
   const parseMoney = (value: string) => {
     const normalized = value.trim().replace(/\./g, '').replace(',', '.');
     if (!normalized) return null;
     const parsed = Number(normalized);
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  };
+
+  const saveIdentity = async (prop: PropertyDropdown) => {
+    const draft = identityDrafts[prop.id] ?? { internalNickname: '', internalCode: '' };
+    const internalNickname = draft.internalNickname.trim() || null;
+    const internalCode = draft.internalCode.trim() || null;
+
+    try {
+      setSavingIdentity(prop.id);
+      const updated = await updatePropertyIdentity(prop.id, {
+        internalNickname,
+        internalCode,
+      });
+      setProperties((prev) => prev.map((item) => item.id === prop.id ? { ...item, ...updated } : item));
+      setEditingIdentity(null);
+      toast("Identificacao do imovel salva.", { type: "success" });
+    } catch (error) {
+      toast("Erro ao salvar apelido/codigo do imovel.", { type: "error" });
+      console.error('Erro ao salvar identificacao do imovel:', error);
+    } finally {
+      setSavingIdentity(null);
+    }
   };
 
   const savePricingInputs = async (prop: PropertyDropdown) => {
@@ -173,12 +242,40 @@ export default function MyProperties() {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
+  const getAirbnbRoomUrl = (listingId?: string | null) => {
+    const value = listingId?.trim();
+    if (!value) return null;
+    if (/^https?:\/\//i.test(value)) return value;
+    return `https://www.airbnb.com/rooms/${encodeURIComponent(value)}`;
+  };
+
   const formatDateTime = (value: string) => new Date(value).toLocaleString('pt-BR', {
     day: '2-digit',
     month: '2-digit',
     year: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
+  });
+
+  const normalizeSearch = (value: unknown) => String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+
+  const searchNeedle = normalizeSearch(propertySearch);
+  const filteredProperties = properties.filter((prop) => {
+    if (!searchNeedle) return true;
+    return [
+      prop.internalNickname,
+      prop.internalCode,
+      prop.propertyName,
+      prop.id_do_anuncio,
+      prop.id,
+      (prop as any).neighborhood,
+      (prop as any).city,
+      (prop as any).address,
+    ].some((value) => normalizeSearch(value).includes(searchNeedle));
   });
 
   // Local: thumb com fallback. Evita imagem quebrada com alt text exposto
@@ -247,8 +344,57 @@ export default function MyProperties() {
         </Button>
       </Flex>
 
+      <Flex
+        direction={{ base: 'column', md: 'row' }}
+        align={{ base: 'stretch', md: 'center' }}
+        justify="space-between"
+        gap={3}
+        mb={5}
+      >
+        <InputGroup maxW={{ base: 'full', md: '520px' }}>
+          <InputLeftElement pointerEvents="none">
+            <SearchIcon color="gray.400" boxSize={3.5} />
+          </InputLeftElement>
+          <Input
+            value={propertySearch}
+            onChange={(event) => setPropertySearch(event.target.value)}
+            placeholder="Filtrar por apelido, codigo, titulo ou ID Airbnb"
+            bg="white"
+            borderColor="gray.200"
+            size="sm"
+            pl={9}
+          />
+        </InputGroup>
+        <Flex align="center" gap={2} justify={{ base: 'space-between', md: 'flex-end' }}>
+          <Text fontSize="sm" color="gray.500">
+            {filteredProperties.length} de {properties.length} imoveis
+          </Text>
+          {propertySearch && (
+            <IconButton
+              aria-label="Limpar filtro"
+              icon={<CloseIcon />}
+              size="xs"
+              variant="ghost"
+              color="gray.500"
+              onClick={() => setPropertySearch('')}
+            />
+          )}
+        </Flex>
+      </Flex>
+
       <Stack spacing={4} mb={4}>
-        {properties.map((prop) => (
+        {filteredProperties.map((prop) => {
+          const airbnbUrl = getAirbnbRoomUrl(prop.id_do_anuncio);
+          const isEditingIdentity = editingIdentity === prop.id;
+          const identityDraft = identityDrafts[prop.id] ?? { internalNickname: '', internalCode: '' };
+          const locationLabel = (prop as any).neighborhood || (prop as any).city || (prop as any).address || 'Imovel cadastrado';
+          const secondaryLabel = prop.internalNickname ? prop.propertyName : locationLabel;
+          const detailLabel = [
+            prop.id_do_anuncio ? `Airbnb ${prop.id_do_anuncio}` : null,
+            prop.internalNickname ? locationLabel : null,
+          ].filter(Boolean).join(' - ');
+
+          return (
           <Box key={prop.id} borderBottom="1px solid" borderColor="gray.100">
           <Flex
             align={{ base: 'stretch', md: 'center' }}
@@ -261,13 +407,85 @@ export default function MyProperties() {
           >
             <Flex align="center">
               <PropertyThumb src={prop.image_url} alt={prop.propertyName} />
-              <Box ml={4} minW={0}>
-                <Text fontWeight="medium" noOfLines={1}>
-                  {prop.propertyName}
-                </Text>
-                <Text fontSize="sm" color="gray.500" noOfLines={1}>
-                  {(prop as any).neighborhood || (prop as any).city || (prop as any).address || 'Imóvel cadastrado'}
-                </Text>
+              <Box ml={4} minW={0} flex="1">
+                {isEditingIdentity ? (
+                  <Stack spacing={2} maxW={{ base: 'full', md: '460px' }}>
+                    <Flex gap={2} direction={{ base: 'column', sm: 'row' }}>
+                      <Input
+                        size="sm"
+                        placeholder="Apelido interno"
+                        maxLength={80}
+                        value={identityDraft.internalNickname}
+                        onChange={(event) => updateIdentityDraft(prop.id, 'internalNickname', event.target.value)}
+                      />
+                      <Input
+                        size="sm"
+                        placeholder="Codigo"
+                        maxLength={32}
+                        value={identityDraft.internalCode}
+                        onChange={(event) => updateIdentityDraft(prop.id, 'internalCode', event.target.value)}
+                        w={{ base: 'full', sm: '140px' }}
+                      />
+                    </Flex>
+                    <Flex gap={2}>
+                      <Button
+                        size="xs"
+                        leftIcon={<CheckIcon />}
+                        colorScheme="green"
+                        isLoading={savingIdentity === prop.id}
+                        onClick={() => saveIdentity(prop)}
+                      >
+                        Salvar ID
+                      </Button>
+                      <Button
+                        size="xs"
+                        variant="ghost"
+                        leftIcon={<CloseIcon />}
+                        onClick={() => cancelIdentityEdit(prop)}
+                      >
+                        Cancelar
+                      </Button>
+                    </Flex>
+                  </Stack>
+                ) : (
+                  <>
+                    <Flex align="center" gap={2} wrap="wrap">
+                      <Text fontWeight="medium" noOfLines={1}>
+                        {prop.internalNickname || prop.propertyName}
+                      </Text>
+                      {prop.internalCode && (
+                        <Text
+                          as="span"
+                          fontSize="2xs"
+                          color="gray.600"
+                          bg="gray.100"
+                          borderRadius="md"
+                          px={2}
+                          py={0.5}
+                          fontWeight="semibold"
+                        >
+                          {prop.internalCode}
+                        </Text>
+                      )}
+                      <IconButton
+                        aria-label="Editar apelido e codigo do imovel"
+                        icon={<EditIcon />}
+                        size="xs"
+                        variant="ghost"
+                        color="gray.500"
+                        onClick={() => editIdentity(prop)}
+                      />
+                    </Flex>
+                    <Text fontSize="sm" color="gray.500" noOfLines={1}>
+                      {secondaryLabel}
+                    </Text>
+                    {detailLabel && (
+                      <Text fontSize="xs" color="gray.400" noOfLines={1}>
+                        {detailLabel}
+                      </Text>
+                    )}
+                  </>
+                )}
               </Box>
             </Flex>
             <Flex
@@ -366,6 +584,30 @@ export default function MyProperties() {
                 >
                   Histórico
                 </Button>
+                {airbnbUrl ? (
+                  <Button
+                    as="a"
+                    href={airbnbUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    size="sm"
+                    variant="ghost"
+                    color="gray.600"
+                    leftIcon={<ExternalLinkIcon />}
+                  >
+                    Abrir
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    color="gray.400"
+                    leftIcon={<ExternalLinkIcon />}
+                    isDisabled
+                  >
+                    Abrir
+                  </Button>
+                )}
                 <IconButton
                   aria-label={t('my_properties.delete')}
                   icon={<DeleteIcon />}
@@ -433,8 +675,17 @@ export default function MyProperties() {
             </Box>
           )}
           </Box>
-        ))}
+          );
+        })}
       </Stack>
+
+      {properties.length > 0 && filteredProperties.length === 0 && (
+        <Box borderWidth="1px" borderColor="gray.100" borderRadius="md" p={6} textAlign="center">
+          <Text color="gray.500" fontSize="sm">
+            Nenhum imovel encontrado para esse filtro.
+          </Text>
+        </Box>
+      )}
 
       <AlertDialog
         isOpen={isOpen}
