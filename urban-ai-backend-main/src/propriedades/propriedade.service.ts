@@ -26,6 +26,7 @@ import { CreateNotificationDto } from 'src/notifications/tdo/create-notification
 import { UrbanAIPricingEngine } from '../knn-engine/pricing-engine';
 import { DatasetCollectorService } from '../knn-engine/dataset-collector.service';
 import { PricingInputHistory } from 'src/entities/pricing-input-history.entity';
+import { PricingGuardrailService } from './pricing-guardrail.service';
 
 class PropertyResponseDto {
     bedrooms: number;
@@ -127,6 +128,7 @@ export class PropriedadeService {
         private readonly emailService: EmailService,
         private readonly aiEngine: UrbanAIPricingEngine,
         private readonly datasetCollector: DatasetCollectorService,
+        private readonly pricingGuardrailService: PricingGuardrailService,
     ) { }
 
     async findByUserId(
@@ -1820,12 +1822,14 @@ export class PropriedadeService {
             }
 
             const property = await this.propriedades.findOne({
-                where: { id: listId }
+                where: { id: listId },
+                relations: ['user'],
             });
             if (!property) {
                 console.log(`❌ Propriedade não encontrada: ${listId}`);
                 return { ok: false, reason: 'property_not_found' };
             }
+            const pricingGuardrail = this.pricingGuardrailService.resolve(property.user);
 
             //const dadosAirbnb = await this.airbnbService.getFirstAvailablePrice(property?.id_do_anuncio);
             //const dadosAirbnb = await this.airbnbService.getFirstAvailablePrice(property?.id_do_anuncio);
@@ -1901,6 +1905,8 @@ export class PropriedadeService {
                 fatorLocalizacao: fatorLocalizacao !== undefined ? Number(fatorLocalizacao) : undefined,
                 relevanciaEvento: evento.relevancia,
                 publicoEsperado,
+                maxReducaoPercent: pricingGuardrail.maxReducaoPercent,
+                maxAumentoPercent: pricingGuardrail.maxAumentoPercent,
             });
 
 
@@ -1965,7 +1971,7 @@ export class PropriedadeService {
                     
                     if(prediCaaaoIA && prediCaaaoIA.suggestedPrice) {
                         precoFinalSugerido = Math.max(prediCaaaoIA.suggestedPrice, result.precoSugerido); // Mantém o melhor dos dois mundos pro cliente (maior lucro)
-                        percentualFinal = prediCaaaoIA.increasePercentage;
+                        percentualFinal = Number((((precoFinalSugerido - result.seuPrecoAtual) / result.seuPrecoAtual) * 100).toFixed(1));
                         recomendacaoFinal = (percentualFinal > 0) ? "Aumento de Receita Sugerido (IA)" : "Manutenção de Fator de Ocupação (IA)";
                         motivoDaIA = prediCaaaoIA.details.reasoning;
                         console.log(`🤖 IA KNN Ativada! Predição original KNN: R$${prediCaaaoIA.suggestedPrice} (+${percentualFinal}%). Motivo: ${motivoDaIA}`);
@@ -1975,9 +1981,10 @@ export class PropriedadeService {
                 console.error("⚠️ Falha ao predizer preço via IA (Falta de Histórico/Atributos). Acionando Fallback Matemático Integralmente:", err.message);
             }
 
-            const maxAllowedFinalPrice = result.seuPrecoAtual * 1.45;
-            const minAllowedFinalPrice = result.seuPrecoAtual * 0.75;
+            const maxAllowedFinalPrice = result.seuPrecoAtual * pricingGuardrail.maxMultiplier;
+            const minAllowedFinalPrice = result.seuPrecoAtual * pricingGuardrail.minMultiplier;
             const boundedFinalPrice = Math.min(Math.max(precoFinalSugerido, minAllowedFinalPrice), maxAllowedFinalPrice);
+            const guardrailDescription = this.pricingGuardrailService.describe(pricingGuardrail);
 
             if (boundedFinalPrice !== precoFinalSugerido) {
                 precoFinalSugerido = Number(boundedFinalPrice.toFixed(2));
@@ -1990,7 +1997,9 @@ export class PropriedadeService {
                             : Math.abs(percentualFinal) <= 5
                                 ? 'Manter'
                                 : 'Reduzir levemente (preco acima do sugerido)';
-                motivoDaIA = `${motivoDaIA ?? ''} Guardrail aplicado: sugestao limitada entre -25% e +45% do preco atual.`;
+                motivoDaIA = `${motivoDaIA ?? ''} Guardrail aplicado: sugestao limitada pelo ${guardrailDescription}.`;
+            } else {
+                motivoDaIA = `${motivoDaIA ?? ''} Guardrail ativo: ${guardrailDescription}.`;
             }
 
             const existingAnalise = await this.analisePrecoRepository.findOne({

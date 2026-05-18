@@ -2,6 +2,7 @@ jest.mock('p-limit', () => () => (fn: () => unknown) => fn());
 jest.mock('../knn-engine/pricing-engine', () => ({ UrbanAIPricingEngine: class {} }));
 
 import { PropriedadeService } from './propriedade.service';
+import { PricingGuardrailService } from './pricing-guardrail.service';
 
 describe('PropriedadeService public responses', () => {
   const makeService = (overrides: Record<string, any> = {}) => {
@@ -18,6 +19,7 @@ describe('PropriedadeService public responses', () => {
       emailService: {},
       aiEngine: {},
       datasetCollector: {},
+      pricingGuardrailService: new PricingGuardrailService(),
       ...overrides,
     };
 
@@ -34,6 +36,7 @@ describe('PropriedadeService public responses', () => {
       deps.emailService as any,
       deps.aiEngine as any,
       deps.datasetCollector as any,
+      deps.pricingGuardrailService as any,
     );
   };
 
@@ -212,5 +215,108 @@ describe('PropriedadeService public responses', () => {
       pricingUnchanged: 1,
     });
     expect(emailService.enviarNotification).not.toHaveBeenCalled();
+  });
+
+  it('applies user pricing guardrails to math and final AI suggestions', async () => {
+    const pricingCalculateService = {
+      calcular: jest.fn().mockReturnValue({
+        precoSugerido: 120,
+        seuPrecoAtual: 100,
+        diferencaPercentual: 20,
+        recomendacao: 'Pode aumentar',
+        motivo: 'math guardrail',
+      }),
+    };
+    const save = jest.fn().mockImplementation(async (payload) => ({ id: 'analysis-1', ...payload }));
+    const service = makeService({
+      pricingCalculateService,
+      eventoRepository: {
+        findOne: jest.fn().mockResolvedValue({
+          id: 'event-1',
+          nome: 'Mega Show',
+          latitude: -23.5,
+          longitude: -46.6,
+          relevancia: 90,
+        }),
+      },
+      propriedades: {
+        findOne: jest.fn().mockResolvedValue({
+          id: 'list-1',
+          user: {
+            id: 'user-1',
+            pricingStrategy: 'moderate',
+            percentualInicial: -10,
+            percentualFinal: 20,
+          },
+        }),
+      },
+      addressRepository: {
+        findOne: jest.fn().mockResolvedValue({
+          id: 'addr-1',
+          latitude: -23.51,
+          longitude: -46.61,
+        }),
+      },
+      analisePrecoRepository: {
+        findOne: jest.fn().mockResolvedValue(null),
+        save,
+      },
+      aiEngine: {
+        initialize: jest.fn(),
+        suggestPrice: jest.fn().mockResolvedValue({
+          suggestedPrice: 180,
+          increasePercentage: 80,
+          details: { reasoning: 'knn suggested a larger move' },
+        }),
+      },
+      datasetCollector: {
+        recordCompsFromAnalysis: jest.fn().mockResolvedValue(undefined),
+      },
+    });
+
+    const result = await service.getPricingPropriedadeByEventAndByProperty(
+      'alert-1',
+      'list-1',
+      'event-1',
+      {
+        price: { data: { accommodationCost: 100, accommodationCostTitle: '1 night' } },
+        propertyDetails: { bedrooms: 1, bathrooms: 1 },
+      } as any,
+      {
+        price: { data: { accommodationCost: 500, accommodationCostTitle: '1 night' } },
+      } as any,
+      {
+        comps: [
+          {
+            listingID: 'comp-1',
+            latitude: -23.52,
+            longitude: -46.62,
+            bedrooms: 1,
+            bathrooms: 1,
+            avg_booked_daily_rate_ltm: 500,
+            similarity_score: 0.95,
+          },
+        ],
+      } as any,
+    );
+
+    expect(pricingCalculateService.calcular).toHaveBeenCalledWith(
+      expect.objectContaining({
+        maxReducaoPercent: 10,
+        maxAumentoPercent: 20,
+      }),
+    );
+    expect(result).toMatchObject({
+      ok: true,
+      precoSugerido: 120,
+      diferencaPercentual: 20,
+    });
+    expect(save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        precoSugerido: 120,
+        diferencaPercentual: 20,
+        motivo_ia: expect.stringContaining('perfil moderado (-10%/+20%)'),
+      }),
+    );
   });
 });
