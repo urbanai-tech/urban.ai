@@ -15,6 +15,7 @@ import { EmailModule } from 'src/email/email.module';
 import { KnnEngineModule } from '../knn-engine/knn-engine.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { PricingInputHistory } from 'src/entities/pricing-input-history.entity';
+import { PricingGuardrailService } from './pricing-guardrail.service';
 
 @Module({
     imports: [
@@ -34,7 +35,7 @@ import { PricingInputHistory } from 'src/entities/pricing-input-history.entity';
         KnnEngineModule,
     ],
     controllers: [PropriedadeController],
-    providers: [PropriedadeService, PricingCalculateService],
+    providers: [PropriedadeService, PricingCalculateService, PricingGuardrailService],
     exports: [PropriedadeService],
 })
 export class PropriedadeModule { }
