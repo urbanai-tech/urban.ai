@@ -16,12 +16,12 @@ alterar o roadmap operacional grande durante a execucao paralela.
 
 | Track | Dev | Foco | Pronto | Leitura |
 |---|---|---|---:|---|
-| Track 1 | Dev 1 | Release, CI, deploy, Railway, coordenacao e evidencias | 99% | Release/health/local gates foram endurecidos, auditoria de migrations e script de evidencias entraram, `8600d48` esta nos dois remotos, health prod esta 200/DB ok, smoke publico prod passou e smoke autenticado real passou. Producao Railway ainda esta em `f56b46a`, entao falta merge/deploy dos commits novos e branch protection obrigatoria. |
+| Track 1 | Dev 1 | Release, CI, deploy, Railway, coordenacao e evidencias | 99% | PR `urbanai-tech#2` foi mergeado em `main`, checks ficaram verdes, Railway frontend/backend/pipeline/webscraping ficaram `SUCCESS`, health/app 200 e smokes pos-deploy passaram. Falta branch protection e CI autenticado com secrets. |
 | Track 2 | Dev 2 | Core de valor: eventos, geocoder, recomendacao, dataset e ROI | 94% | AskUrban drawer + Cmd+J, market intelligence, pricing rules, WCAG Track 2 e correcoes de pricing/geocoder avancaram bem. Auditoria autenticada leu Admin/Alpha e APIs do anfitriao com sucesso. Ainda faltam Geocoding API, backfill, reprocess com Gustavo, coletores e ground truth. |
 | Track 3 | Dev 3 | Monetizacao e integracoes: Stripe, MailerSend, Stays, LGPD e suporte | 97% | Termos e privacidade revisados foram publicados no front; suporte/LGPD, Stays readiness, preflight e billing seguem bem estruturados. Falso blocker de suporte/privacidade foi reduzido: canais publicos tem fallback; owners operacionais seguem para confirmacao. Stripe sync-check autenticado em producao retornou 8/8 OK; smokes checkout/webhook/portal/cancel/quota e Stays ainda seguram 100%. |
-| Track 4 | Dev 4 | UX, admin, QA, Playwright, design system, PWA e smokes | 98% | WCAG 2.1 AA auditou 22 arquivos do Track 2, `tsc --noEmit` passou, subset E2E local expandiu para `22 passed, 1 skipped`, login post-login foi promovido ao CI, smoke publico prod passou, release-gate publico passou, smoke autenticado real passou e smoke mobile autenticado prod passou. CORS/RSC dos links legais do host foi corrigido em codigo; PWA MVP entrou com manifest, icons, service worker, offline fallback e gate Playwright. Faltam deploy/reteste em prod, Lighthouse/instalacao e mutacoes reais. |
+| Track 4 | Dev 4 | UX, admin, QA, Playwright, design system, PWA e smokes | 99% | Host pos-deploy ficou 100% UI/API, Admin 96% por P2 intermitente no detalhe de imovel, release-gate publico passou, smoke autenticado/mobile passou, PWA endpoints 200 e CDP installability sem erros. Faltam instalacao Android/iOS, limpar P2 admin e mutacoes reais em staging. |
 
-**Prontidao geral:** 98% em codigo/local; 84% em producao deployada.
+**Prontidao geral:** 99% em codigo/local; 94% em producao deployada.
 
 ## Entregas conferidas desde o ultimo placar
 
@@ -75,7 +75,7 @@ Rodada feita sem credenciais externas, em porta local isolada `3100`, para nao i
 | CI obrigatorio | Tornar CI, release gate e smoke autenticado obrigatorios na branch principal. | Pode seguir; configuracao GitHub. |
 | Segredos de CI | Salvar `E2E_AUTH_EMAIL`/`E2E_AUTH_PASSWORD` no GitHub Secrets e rodar smoke/auditoria autenticados no pipeline. | Codigo ja aceita esse par unico; falta gravar no GitHub com aprovacao explicita. |
 | Host UI | Deployar a correcao dos links `termos`, `privacidade` e `contato` e rerodar auditoria host em producao. | Corrigido em codigo; pendente de deploy/reteste. |
-| PWA/mobile | Deployar PWA MVP e rodar Lighthouse/install em Android/iOS. | PWA resolvido em codigo e mobile real passou; pendente validacao em producao/dispositivos apos deploy. |
+| PWA/mobile | Instalar em Android/iOS real. | PWA em producao: manifest/icons/SW/offline 200, Playwright passou e CDP installability sem erros. |
 | Geocoder | Ativar/ajustar Google Geocoding API; producao ainda apontou `HTTP 403 REQUEST_DENIED`. | Travado por configuracao externa do Google Cloud. |
 | Dados reais | Backfill geocoder, reprocess de imovel real do Gustavo, snapshots por 7 dias, coletores `lastSeen < 48h` e ground truth. | Pode seguir depois do Geocoding; parcialmente dependente de dados reais. |
 | Monetizacao | Rodar Stripe checkout/webhook/portal/cancel/quota, MailerSend real e Stays sandbox/API oficial. | Stripe Price IDs ja confirmados 8/8 em prod; Stays depende de credencial/API oficial. |

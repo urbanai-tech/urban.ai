@@ -1,0 +1,672 @@
+{
+  "generatedAt": "2026-05-18T00:32:30.532Z",
+  "appUrl": "https://app.myurbanai.com",
+  "apiUrl": "https://urbanai-production-85fd.up.railway.app",
+  "email": "gustavo8gouveia@hotmail.com",
+  "summaries": [
+    {
+      "name": "Admin",
+      "routeScore": 94,
+      "apiScore": 100,
+      "combined": 96,
+      "failedRoutes": [
+        {
+          "path": "/admin/properties/9b698c72-6457-4e79-a78c-eddf02d515a3",
+          "feature": "Property drill-down detail",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/properties/9b698c72-6457-4e79-a78c-eddf02d515a3",
+          "title": "Urban AI",
+          "durationMs": 1998,
+          "ok": false,
+          "problems": [
+            "Console: error: Failed to load resource: the server responded with a status of 404 ()",
+            "Console: error: Failed to load resource: the server responded with a status of 404 ()"
+          ]
+        }
+      ],
+      "failedApis": [],
+      "routes": [
+        {
+          "path": "/admin",
+          "feature": "Admin home",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin",
+          "title": "Urban AI",
+          "durationMs": 1957,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/dashboard",
+          "feature": "Executive dashboard",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/dashboard",
+          "title": "Urban AI",
+          "durationMs": 1891,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/users",
+          "feature": "Users and roles",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/users",
+          "title": "Urban AI",
+          "durationMs": 2034,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/alpha",
+          "feature": "Alpha ops",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/alpha",
+          "title": "Urban AI",
+          "durationMs": 1870,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/roi",
+          "feature": "Admin ROI",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/roi",
+          "title": "Urban AI",
+          "durationMs": 1901,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/audit-logs",
+          "feature": "Audit logs",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/audit-logs",
+          "title": "Urban AI",
+          "durationMs": 1870,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/contacts",
+          "feature": "Contact inbox",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/contacts",
+          "title": "Urban AI",
+          "durationMs": 1909,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/waitlist",
+          "feature": "Waitlist ops",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/waitlist",
+          "title": "Urban AI",
+          "durationMs": 1844,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/events",
+          "feature": "Events inventory",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/events",
+          "title": "Urban AI",
+          "durationMs": 1891,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/events/new",
+          "feature": "Manual event creation",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/events/new",
+          "title": "Urban AI",
+          "durationMs": 1883,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/events/import",
+          "feature": "Event CSV import",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/events/import",
+          "title": "Urban AI",
+          "durationMs": 1873,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/collectors-health",
+          "feature": "Collectors health",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/collectors-health",
+          "title": "Urban AI",
+          "durationMs": 1875,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/jobs",
+          "feature": "Admin jobs",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/jobs",
+          "title": "Urban AI",
+          "durationMs": 1861,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/coverage",
+          "feature": "Coverage regions",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/coverage",
+          "title": "Urban AI",
+          "durationMs": 1871,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/finance",
+          "feature": "Finance",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/finance",
+          "title": "Urban AI",
+          "durationMs": 1862,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/pricing-config",
+          "feature": "Pricing config",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/pricing-config",
+          "title": "Urban AI",
+          "durationMs": 1890,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/stays",
+          "feature": "Stays admin health",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/stays",
+          "title": "Urban AI",
+          "durationMs": 1862,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/funnel",
+          "feature": "Product funnel",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/funnel",
+          "title": "Urban AI",
+          "durationMs": 1852,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/quality",
+          "feature": "Pricing quality",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/quality",
+          "title": "Urban AI",
+          "durationMs": 1874,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/properties",
+          "feature": "Properties drill-down list",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/properties",
+          "title": "Urban AI",
+          "durationMs": 1888,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/admin/properties/9b698c72-6457-4e79-a78c-eddf02d515a3",
+          "feature": "Property drill-down detail",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/admin/properties/9b698c72-6457-4e79-a78c-eddf02d515a3",
+          "title": "Urban AI",
+          "durationMs": 1998,
+          "ok": false,
+          "problems": [
+            "Console: error: Failed to load resource: the server responded with a status of 404 ()",
+            "Console: error: Failed to load resource: the server responded with a status of 404 ()"
+          ]
+        }
+      ],
+      "apis": [
+        {
+          "endpoint": "/admin/dashboard-summary",
+          "ok": true,
+          "status": 200,
+          "durationMs": 380,
+          "bodySummary": "object(generatedAt,health,alerts,events,waitlist,coverage,pricing,dataset)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/users",
+          "ok": true,
+          "status": 200,
+          "durationMs": 240,
+          "bodySummary": "object(data,total,page,limit,totalPages)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/alpha/dashboard",
+          "ok": true,
+          "status": 200,
+          "durationMs": 490,
+          "bodySummary": "object(generatedAt,user,properties,recommendations,events,recentRecommendations)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/alpha/recommendations",
+          "ok": true,
+          "status": 200,
+          "durationMs": 746,
+          "bodySummary": "object(generatedAt,user,total,rows)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/roi",
+          "ok": true,
+          "status": 200,
+          "durationMs": 380,
+          "bodySummary": "object(windowDays,generatedAt,totals,leaderboard)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/audit-logs",
+          "ok": true,
+          "status": 200,
+          "durationMs": 245,
+          "bodySummary": "object(items,total,page,limit)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/contact-submissions",
+          "ok": true,
+          "status": 200,
+          "durationMs": 264,
+          "bodySummary": "object(page,limit,total,byStatus,byCategory,bySeverity,items)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/waitlist",
+          "ok": true,
+          "status": 200,
+          "durationMs": 251,
+          "bodySummary": "object(page,limit,total,items)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/waitlist/stats",
+          "ok": true,
+          "status": 200,
+          "durationMs": 242,
+          "bodySummary": "object(total,byStatus,bySource,topReferrers)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/events/analytics",
+          "ok": true,
+          "status": 200,
+          "durationMs": 248,
+          "bodySummary": "object(summary,upcoming,byCategory,byCity,byRelevance,topUpcoming,lastCrawlAt)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/events/list",
+          "ok": true,
+          "status": 200,
+          "durationMs": 318,
+          "bodySummary": "object(page,limit,total,scope,items)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/events/collectors-health",
+          "ok": true,
+          "status": 200,
+          "durationMs": 309,
+          "bodySummary": "object(generatedAt,sources)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/jobs/runs",
+          "ok": true,
+          "status": 200,
+          "durationMs": 332,
+          "bodySummary": "array(7)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/coverage",
+          "ok": true,
+          "status": 200,
+          "durationMs": 235,
+          "bodySummary": "array(1)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/coverage/stats",
+          "ok": true,
+          "status": 200,
+          "durationMs": 228,
+          "bodySummary": "object(activeRegions,bootstrapRegions,addresses,addressRadiusKm)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/finance/overview",
+          "ok": true,
+          "status": 200,
+          "durationMs": 242,
+          "bodySummary": "object(currency,activeListings,activePayments,revenue,costs,margin,perListing)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/finance/costs",
+          "ok": true,
+          "status": 200,
+          "durationMs": 232,
+          "bodySummary": "array(0)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/plans-config",
+          "ok": true,
+          "status": 200,
+          "durationMs": 234,
+          "bodySummary": "array(3)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/stripe/sync-check",
+          "ok": true,
+          "status": 200,
+          "durationMs": 1557,
+          "bodySummary": "object(summary,entries)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/stays/health",
+          "ok": true,
+          "status": 200,
+          "durationMs": 241,
+          "bodySummary": "object(readiness,accountsByStatus,listings,pushLast30d,recent)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/funnel",
+          "ok": true,
+          "status": 200,
+          "durationMs": 232,
+          "bodySummary": "object(windowDays,stages,rates)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/pricing/quality",
+          "ok": true,
+          "status": 200,
+          "durationMs": 230,
+          "bodySummary": "object(windowDays,sampleSize,discarded,mapePercent,rmse,medianAbsoluteError,qualityGate)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/occupancy/coverage",
+          "ok": true,
+          "status": 200,
+          "durationMs": 235,
+          "bodySummary": "object(byStatus,byOrigin,distinctListings)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/properties",
+          "ok": true,
+          "status": 200,
+          "durationMs": 358,
+          "bodySummary": "object(generatedAt,total,items)",
+          "sampleId": "9b698c72-6457-4e79-a78c-eddf02d515a3",
+          "issue": null
+        },
+        {
+          "endpoint": "/admin/properties/9b698c72-6457-4e79-a78c-eddf02d515a3",
+          "ok": true,
+          "status": 200,
+          "durationMs": 323,
+          "bodySummary": "object(id,addressId,listId,propertyName,userId,userEmail,city,state)",
+          "sampleId": null,
+          "issue": null
+        }
+      ]
+    },
+    {
+      "name": "Anfitriao",
+      "routeScore": 100,
+      "apiScore": 100,
+      "combined": 100,
+      "failedRoutes": [],
+      "failedApis": [],
+      "routes": [
+        {
+          "path": "/",
+          "feature": "Login entry",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/",
+          "title": "Urban AI",
+          "durationMs": 1816,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/post-login",
+          "feature": "Post-login router",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/dashboard",
+          "title": "Urban AI",
+          "durationMs": 1786,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/dashboard",
+          "feature": "Host dashboard",
+          "weight": 4,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/dashboard",
+          "title": "Urban AI",
+          "durationMs": 1901,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/onboarding",
+          "feature": "Onboarding",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/onboarding",
+          "title": "Urban AI",
+          "durationMs": 1797,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/onboarding/payment/price",
+          "feature": "Onboarding pricing step",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/onboarding",
+          "title": "Urban AI",
+          "durationMs": 2060,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/plans",
+          "feature": "Plan selection",
+          "weight": 2,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/plans",
+          "title": "Urban AI",
+          "durationMs": 1782,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/plans/v2",
+          "feature": "Plan selection alias",
+          "weight": 1,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/plans",
+          "title": "Urban AI",
+          "durationMs": 1801,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/my-plan",
+          "feature": "My plan",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/my-plan",
+          "title": "Urban AI",
+          "durationMs": 1876,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/my-roi",
+          "feature": "Host ROI",
+          "weight": 4,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/my-roi",
+          "title": "Urban AI",
+          "durationMs": 1889,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/settings/integrations",
+          "feature": "Stays integrations",
+          "weight": 3,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/settings/integrations",
+          "title": "Urban AI",
+          "durationMs": 1799,
+          "ok": true,
+          "problems": []
+        },
+        {
+          "path": "/event-log",
+          "feature": "Event log",
+          "weight": 1,
+          "status": 200,
+          "finalUrl": "https://app.myurbanai.com/event-log",
+          "title": "Urban AI",
+          "durationMs": 1858,
+          "ok": true,
+          "problems": []
+        }
+      ],
+      "apis": [
+        {
+          "endpoint": "/propriedades/dropdown/list",
+          "ok": true,
+          "status": 200,
+          "durationMs": 307,
+          "bodySummary": "array(9)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/payments/getSubscription",
+          "ok": true,
+          "status": 200,
+          "durationMs": 306,
+          "bodySummary": "object(id,status,currency,start_date,metadata,plan)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/payments/getSubscription",
+          "ok": true,
+          "status": 200,
+          "durationMs": 227,
+          "bodySummary": "object(id,status,currency,start_date,metadata,plan)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/roi/me",
+          "ok": true,
+          "status": 200,
+          "durationMs": 345,
+          "bodySummary": "object(windowDays,generatedAt,user,subscription,money,activity,dataQuality,perProperty)",
+          "sampleId": null,
+          "issue": null
+        },
+        {
+          "endpoint": "/stays/listings",
+          "ok": true,
+          "status": 200,
+          "durationMs": 235,
+          "bodySummary": "array(0)",
+          "sampleId": null,
+          "issue": null
+        }
+      ]
+    }
+  ]
+}

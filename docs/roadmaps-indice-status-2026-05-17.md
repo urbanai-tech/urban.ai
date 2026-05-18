@@ -21,19 +21,19 @@ sync-check Stripe e push para os dois remotes.
 | Frente | Percentual | Estado agora | Para chegar a 100% |
 | --- | ---: | --- | --- |
 | Codigo/local geral | 98% | Builds, typechecks e suites principais verdes | Rodada final completa antes do merge |
-| Producao deployada | 84% | Railway saudavel, mas precisa receber branch atual | Merge, deploy e smoke pos-deploy |
-| Track 1 - Release/CI/Railway | 99% | CI/release gates e evidencias estruturados | Branch protection, secrets e deploy final |
+| Producao deployada | 94% | PR `urbanai-tech#2` mergeado, Railway frontend/backend/pipeline/webscraping em `SUCCESS`, health/app 200 e smokes pos-deploy passaram | Fechar mutacoes controladas e dados externos |
+| Track 1 - Release/CI/Railway | 99% | CI/release gates verdes no `urbanai-tech`, PR mergeado e deploy Railway validado | Branch protection/secrets autenticados no CI |
 | Track 2 - Core de valor | 94% | AskUrban, pricing, ROI, admin/alpha e APIs core avancados | Geocoding, backfill, dados reais e ground truth |
 | Track 3 - Monetizacao/integracoes | 97% codigo, 82% operacional | Stripe sync-check 8/8 OK e runbooks prontos | Checkout/webhook/portal/cancel/quota, Stays e owners |
-| Track 4 - UX/Admin/QA/PWA | 98% | Admin 100%, PWA MVP, mobile smoke e footer fix em codigo | Deploy/reteste host, Lighthouse e mutacoes staging |
-| Admin read-only | 100% | Auditoria Admin passou incluindo propriedades e detalhe | Manter no CI e repetir pos-deploy |
+| Track 4 - UX/Admin/QA/PWA | 99% | Host 100%, PWA endpoints 200, installability sem erros, mobile/auth/public smokes passaram em producao | Tratar P2 intermitente do detalhe admin e mutacoes staging |
+| Admin read-only | 96% | APIs Admin 100%; UI 94% por dois 404 de console P2 no detalhe de imovel | Identificar/limpar asset 404 intermitente |
 | Admin mutante/ops | 87% | Jobs, readiness e logs estruturados | Mutacoes controladas em staging |
-| Host read-only | 86% | APIs 100%; UI tinha footer fix pendente de deploy | Reteste pos-deploy para voltar acima de 95% |
-| Mobile web | 95% | Smoke autenticado mobile passou em rotas core | Screenshots pos-deploy e gate continuo |
-| PWA installavel | 90% | Manifest, icons, SW, offline e metadata prontos | Lighthouse/install Android/iOS pos-deploy |
-| Billing/Stripe | 82% | Price IDs OK em producao | Smoke mutante controlado |
+| Host read-only | 100% | Auditoria pos-deploy Host UI/API 100%; footer fix validado | Manter no gate |
+| Mobile web | 97% | Smoke autenticado mobile passou em producao nova sem overflow | Screenshots/device manual |
+| PWA installavel | 96% | Manifest, icons, SW, offline, Playwright PWA e CDP installability sem erros em producao | Validacao manual Android/iOS |
+| Billing/Stripe | 86% | Price IDs 8/8 OK, webhook/public key/secret em modo test coerente e sem mismatch | Checkout/webhook/portal/cancel/quota com test user dedicado |
 | MailerSend | 78% | Codigo e env-base encaminhados | Dominio/DKIM/SPF e envio real |
-| Stays | 42% | Beta privado/fail-closed/readiness existem | API/base/token/sandbox e smoke real |
+| Stays | 45% | Token encryption configurado e beta privado/fail-closed ativo | Falta `STAYS_API_BASE_URL`, sandbox/oficial e smoke real |
 | Legal/LGPD/suporte | 68% | Termos/privacidade publicados e fallback publico | Owners, inbox real, DPAs e revisao final |
 | Marketing/prelaunch | 82% | Landing/waitlist/copy/funil basico | GA4/Meta reais e leads/cases |
 | Dados, ROI e cases | 76% | ROI/snapshots/ocupacao manual existem | 7 dias reais, MAPE e 3 cases |
@@ -44,9 +44,9 @@ sync-check Stripe e push para os dois remotes.
 
 | Etapa | Percentual | Bloqueio principal | Proximo passo |
 | --- | ---: | --- | --- |
-| 1. Release atual | 88% | PR ainda nao mergeado/deployado | Mergear, aguardar Railway e rodar health |
-| 2. PWA/mobile | 93% | Precisa validacao pos-deploy/dispositivos | Lighthouse e install Android/iOS |
-| 3. Monetizacao | 80% | Falta smoke mutante Stripe | Rodar checkout/webhook/portal/cancel/quota controlado |
+| 1. Release atual | 96% | Merge/deploy/health/smokes passaram | Branch protection e CI autenticado com secrets |
+| 2. PWA/mobile | 96% | PWA e mobile passaram em producao; installability CDP sem erros | Install Android/iOS manual |
+| 3. Monetizacao | 86% | Stripe read-only 8/8 e modo test coerente | Rodar checkout/webhook/portal/cancel/quota controlado |
 | 4. Stays beta privado | 42% | Falta Stays oficial/sandbox no alvo | Validar readiness mascarado e smoke |
 | 5. Dados/prova de valor | 76% | Google Geocoding 403 e dados reais | Corrigir Google, backfill e 7 dias de coleta |
 | 6. Operacao/legal/go-live | 63% | Owners, DPAs, backups, branch protection e cases | Fechar checklist manual e go/no-go |

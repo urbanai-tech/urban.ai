@@ -12,11 +12,11 @@ Este documento consolida os roadmaps e checklists existentes para responder quat
 | Dimensao | Pronto | Leitura honesta |
 | --- | ---: | --- |
 | Codigo/local gates | 98% | Build do front passou, typechecks front/backend passaram, PWA MVP entrou, pipeline Python passou, produto/admin audit foi ampliado e o bug de CORS/RSC do footer host foi corrigido em codigo. |
-| Producao deployada | 84% | Railway esta saudavel em todos os servicos principais, mas producao ainda esta no commit `f56b46a`; as correcoes atuais ainda precisam merge/deploy e smoke pos-deploy. |
+| Producao deployada | 94% | PR `urbanai-tech#2` foi mergeado em `main`, Railway ficou `SUCCESS`, app/backend retornaram 200 e smokes pos-deploy passaram. |
 | Alpha assistido | 91% | Usuario real validado para smokes, admin 100% UI/API, host com APIs 100%; falta revalidar UI host apos deploy do footer e rodar fluxos mutantes controlados. |
 | Beta pago controlado | 80% | Billing, MailerSend, Stays e suporte tem bastante codigo/runbook; Stripe Price IDs passaram 8/8 em producao, mas Stays/owners e smokes mutantes ainda precisam validacao. |
 | Go-live publico | 63% | PWA, mobile real e Stripe readiness melhoraram, mas ainda depende de cases reais, dados/ROI auditaveis, analytics, legal/LGPD, branch protection, backup/restore e maturidade de operacao. |
-| PWA/mobile combinado | 93% | PWA MVP entrou em codigo e smoke mobile autenticado passou em producao; falta deploy do PWA, Lighthouse e teste de instalacao Android/iOS. |
+| PWA/mobile combinado | 96% | PWA MVP esta em producao, endpoints deram 200, Playwright PWA/mobile passou e CDP installability retornou sem erros; falta instalacao Android/iOS manual. |
 
 **Resumo:** desenvolvimento pode seguir. O que realmente trava 100% nao e Prefect nem Lumina; sao deploy/CI obrigatorio, credenciais/contas externas, dados reais, smokes mutantes controlados e PWA minimo se a experiencia mobile for tratada como app.
 
@@ -41,8 +41,8 @@ Este documento consolida os roadmaps e checklists existentes para responder quat
 | Track 1 - Release, CI, Railway | 88% | Railway verde, health OK, gates locais passaram, CI ja tem fallback para `E2E_AUTH_*`. | Merge/deploy da branch atual, branch protection, GitHub Secrets, smoke autenticado no CI e restore drill. |
 | Track 2 - Core de valor | 86% | Recomendacoes, market/pricing, ROI, admin drill-down e APIs autenticadas respondendo. | Google Geocoding 403, backfill, reprocess Gustavo, coletores vivos e ground truth de ocupacao/preco. |
 | Track 3 - Monetizacao/integracoes | 78% | Billing, Stripe resolver, MailerSend, Stays beta privado, suporte/LGPD e preflight existem em codigo; suporte/privacidade publicos agora usam fallback sem falso blocker; Stripe sync-check prod retornou 8/8 OK. | Stripe checkout/webhook/portal/cancel/quota, Stays API/token se ausentes no alvo, owners operacionais e MailerSend dominio/envio real. |
-| Track 4 - UX, Admin, QA | 96% | Admin 100% UI/API, auditoria admin properties, footer host corrigido em codigo, PWA MVP em codigo, smoke mobile autenticado real passou, typecheck/build OK. | Deploy/reteste do host, Lighthouse PWA, instalacao mobile e fluxos mutantes em staging. |
-| Admin read-only | 100% | `/admin`, `/admin/properties` e detalhe real auditados com sucesso. | Manter no CI e repetir pos-deploy. |
+| Track 4 - UX, Admin, QA | 99% | Host 100% UI/API pos-deploy, Admin 96% por P2 intermitente de asset no detalhe de imovel, PWA em producao sem erros de installability, smoke mobile autenticado real passou. | Limpar P2 admin, instalacao mobile manual e fluxos mutantes em staging. |
+| Admin read-only | 96% | APIs Admin 100%; UI 94% por dois 404 de console P2 no detalhe real de imovel, sem erro critico. | Identificar/limpar asset 404 intermitente e manter no CI. |
 | Admin mutante/ops | 87% | Jobs, audit logs, readiness e operacao estao estruturados. | Rodar mutacoes controladas com fixtures/staging e comparar KPIs com banco. |
 | Billing/Stripe | 82% | Codigo forte, chaves locais presentes, portal/checkout/webhook estruturados; `/admin/stripe/sync-check` prod confirmou 8/8 Price IDs OK. | Smoke checkout/webhook/portal/cancel/quota. |
 | MailerSend | 78% | API key local presente e preflight indicou modulo pronto. | Configurar dominio/DKIM/SPF/DMARC, `FRONT_URL` e envio real monitorado. |
@@ -51,8 +51,8 @@ Este documento consolida os roadmaps e checklists existentes para responder quat
 | Marketing/prelaunch | 82% | Landing, waitlist, copy segura e funis basicos. | GA4/Meta reais, 5 leads reais, campanha/canais e evidencias de conversao. |
 | Dados, ROI e cases | 76% | Snapshots, ROI usuario/admin e ocupacao manual existem. | 7 dias de dados reais, MAPE inicial, 3 cases auditados e cobertura de recomendacoes. |
 | Webscraping/eventos | 68% | Pipeline/coletor/fallback manual e chaves locais de Gemini. | Resolver execucao do ambiente, lastSeen, 100-200 eventos SP/30d e monitoramento de stale data. |
-| Mobile web | 95% | Shells responsivos, drawer mobile, cards/tabelas responsivas e smoke autenticado mobile real em producao sem overflow horizontal nas rotas core. | Manter gate no CI e anexar screenshots pos-deploy. |
-| PWA installavel | 90% | Manifest, icons, apple touch icon, theme color, service worker, offline fallback e gate Playwright entraram e foram verificados localmente. | Deploy, Lighthouse PWA, teste de instalacao Android/iOS e ajustes finos. |
+| Mobile web | 97% | Shells responsivos, drawer mobile, cards/tabelas responsivas e smoke autenticado mobile real em producao nova sem overflow horizontal nas rotas core. | Manter gate no CI e anexar screenshots de dispositivo. |
+| PWA installavel | 96% | Manifest, icons, apple touch icon, theme color, service worker, offline fallback e gate Playwright estao em producao; endpoints 200 e CDP installability sem erros. | Teste de instalacao Android/iOS. |
 
 ## Gaps manuais e externos
 
@@ -90,9 +90,9 @@ Nao gravei valores sensiveis neste documento.
 
 ## PWA/mobile
 
-**Mobile web: 95%.** O produto ja tem bastante estrutura responsiva: shells de admin/anfitriao com drawer, paddings mobile, cards e tabelas responsivas. O smoke autenticado mobile real passou em producao cobrindo dashboard, propriedades, plano, integracoes e admin properties sem overflow horizontal.
+**Mobile web: 97%.** O produto ja tem bastante estrutura responsiva: shells de admin/anfitriao com drawer, paddings mobile, cards e tabelas responsivas. O smoke autenticado mobile real passou em producao nova cobrindo dashboard, propriedades, plano, integracoes e admin properties sem overflow horizontal.
 
-**PWA installavel: 90%.** Agora existe manifest, icons dedicados, maskable icon, apple touch icon, metadata no layout, theme color, service worker e fallback offline. O smoke local do build confirmou `manifest.webmanifest`, `sw.js` e `offline.html` com HTTP 200 e a home contendo manifest/theme/PWA installer. Tambem entrou gate Playwright `pwa-mobile.spec.ts`. Falta deploy, Lighthouse e teste de instalacao em mobile real.
+**PWA installavel: 96%.** Manifest, icons dedicados, maskable icon, apple touch icon, metadata no layout, theme color, service worker e fallback offline estao em producao. Endpoints PWA retornaram HTTP 200, Playwright `pwa-mobile.spec.ts` passou e Chrome DevTools Protocol nao retornou erros de installability. Falta teste de instalacao em Android/iOS real.
 
 Para chamar de PWA pronto em producao, falta:
 
@@ -123,7 +123,7 @@ Para chamar de PWA pronto em producao, falta:
 6. Configurar MailerSend dominio/DKIM/SPF/DMARC e enviar email real.
 7. Resolver Google Geocoding 403 e rodar backfill/reprocess do usuario Gustavo.
 8. Ativar staging ou fixtures para mutacoes controladas de admin, billing, ocupacao, import CSV e Stays.
-9. Implementar PWA minimo ou decidir explicitamente que a meta atual e apenas mobile web.
+9. Validar instalacao PWA em Android/iOS real.
 10. Coletar 7 dias de dados reais, MAPE inicial e 3 cases auditados antes do go-live publico.
 
 ## O que esta travado versus o que pode seguir
