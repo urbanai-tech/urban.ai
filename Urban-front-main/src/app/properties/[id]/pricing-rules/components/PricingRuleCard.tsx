@@ -334,6 +334,7 @@ function Switch({
       aria-label={label}
       onClick={() => !disabled && onChange(!checked)}
       disabled={disabled}
+      className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
       style={{
         width: 40,
         height: 22,
@@ -406,6 +407,7 @@ export function PricingRuleCard({
         role="button"
         tabIndex={0}
         aria-expanded={expanded}
+        aria-label={`${expanded ? "Recolher" : "Expandir"} regra: ${rule.label}`}
         onClick={onToggleExpanded}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -413,11 +415,13 @@ export function PricingRuleCard({
             onToggleExpanded();
           }
         }}
+        className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-[-2px]"
         style={{
           display: "flex",
           alignItems: "center",
           gap: 16,
           padding: "18px 20px",
+          minHeight: 44,
           cursor: "pointer",
           flexWrap: "wrap",
         }}

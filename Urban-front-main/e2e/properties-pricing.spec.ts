@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { acceptCookieConsent } from './test-helpers';
 
 const property = {
   id: 'prop-pricing-e2e',
@@ -41,6 +42,7 @@ async function mockAppShell(page: import('@playwright/test').Page) {
 
 test.describe('Properties pricing inputs', () => {
   test('lista propriedades, salva diaria base e mostra historico', async ({ page }) => {
+    await acceptCookieConsent(page);
     const updates: Array<{ manualDailyPrice?: number; averageMonthlyRevenue?: number }> = [];
 
     await mockAppShell(page);
@@ -85,10 +87,11 @@ test.describe('Properties pricing inputs', () => {
     await page.goto('/properties');
 
     await expect(page.getByText('Apartamento Vila Mariana')).toBeVisible();
-    await expect(page.getByText(/Latitude: -23\.589/)).toBeVisible();
+    await page.getByText(/Detalhes t.cnicos/i).click();
+    await expect(page.getByText(/-23\.589/)).toBeVisible();
 
-    await page.getByPlaceholder(/Di.ria base/i).fill('450');
-    await page.getByPlaceholder(/Receita m.dia/i).fill('9900');
+    await page.locator('input[inputmode="decimal"]').nth(0).fill('450');
+    await page.locator('input[inputmode="decimal"]').nth(1).fill('9900');
     await page.getByRole('button', { name: /^Salvar$/i }).click();
 
     expect(updates[0]).toEqual({
@@ -105,6 +108,7 @@ test.describe('Properties pricing inputs', () => {
   });
 
   test('confirma exclusao e remove propriedade da lista', async ({ page }) => {
+    await acceptCookieConsent(page);
     const deletions: string[] = [];
 
     await mockAppShell(page);

@@ -39,6 +39,11 @@ interface ShadowOptions {
 export class ShadowPricingStrategy implements PricingStrategy {
   public readonly name = 'shadow';
   private readonly logger = new Logger(ShadowPricingStrategy.name);
+  private lastShadowFailureWarningAt = 0;
+  private suppressedShadowFailures = 0;
+  private readonly shadowWarnIntervalMs = Number(
+    process.env.PRICING_SHADOW_WARN_INTERVAL_MS ?? 5 * 60 * 1000,
+  );
 
   constructor(private readonly options: ShadowOptions) {}
 
@@ -84,13 +89,27 @@ export class ShadowPricingStrategy implements PricingStrategy {
             }
           }
         })
-        .catch((err) => {
-          this.logger.warn(
-            `Shadow strategy '${this.options.shadow.name}' falhou: ${(err as Error).message}`,
-          );
-        });
+        .catch((err) => this.warnShadowFailure(err, input));
     }
 
     return primary;
+  }
+
+  private warnShadowFailure(err: unknown, input: PricingInput) {
+    const now = Date.now();
+    const message = err instanceof Error ? err.message : String(err);
+
+    if (now - this.lastShadowFailureWarningAt < this.shadowWarnIntervalMs) {
+      this.suppressedShadowFailures++;
+      return;
+    }
+
+    const suppressed = this.suppressedShadowFailures;
+    this.suppressedShadowFailures = 0;
+    this.lastShadowFailureWarningAt = now;
+    this.logger.warn(
+      `Shadow strategy '${this.options.shadow.name}' falhou para property=${input.property.id}: ` +
+        `${message} suppressedSinceLast=${suppressed}`,
+    );
   }
 }

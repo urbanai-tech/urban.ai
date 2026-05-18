@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { acceptCookieConsent } from './test-helpers';
 
 test.describe('Confirmacao de e-mail', () => {
   test('envia codigo ao abrir, valida 6 digitos e redireciona apos confirmar', async ({ page }) => {
+    await acceptCookieConsent(page);
     const sentCodes: Array<{ email?: string }> = [];
     const confirmationPayloads: Array<{ email?: string; codigo?: string }> = [];
 
@@ -35,7 +37,7 @@ test.describe('Confirmacao de e-mail', () => {
 
     await expect(page.getByRole('heading', { name: /Confirme seu e-mail/i })).toBeVisible();
     await expect(page.getByText('host.confirm@urbanai.com.br')).toBeVisible();
-    expect(sentCodes[0]).toEqual({ email: 'host.confirm@urbanai.com.br' });
+    await expect.poll(() => sentCodes[0]).toEqual({ email: 'host.confirm@urbanai.com.br' });
 
     const confirmButton = page.getByRole('button', { name: /Confirmar E-mail/i });
     await expect(confirmButton).toBeDisabled();
@@ -49,7 +51,7 @@ test.describe('Confirmacao de e-mail', () => {
     await expect(confirmButton).toBeEnabled();
     await confirmButton.click();
 
-    expect(confirmationPayloads[0]).toEqual({
+    await expect.poll(() => confirmationPayloads[0]).toEqual({
       email: 'host.confirm@urbanai.com.br',
       codigo: '123456',
     });

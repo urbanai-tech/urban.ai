@@ -60,6 +60,11 @@ export class AdaptivePricingStrategy implements PricingStrategy {
 
   /** Tier atual logado — só loga ao mudar (evita spam). */
   private lastLoggedTier: string | null = null;
+  private lastFallbackWarningAt = 0;
+  private suppressedFallbackFailures = 0;
+  private readonly fallbackWarnIntervalMs = Number(
+    process.env.PRICING_FALLBACK_WARN_INTERVAL_MS ?? 5 * 60 * 1000,
+  );
 
   constructor(
     private readonly rules: RuleBasedPricingStrategy,
@@ -82,7 +87,27 @@ export class AdaptivePricingStrategy implements PricingStrategy {
 
   async suggestPrice(input: PricingInput): Promise<PriceSuggestion> {
     const decision = await this.getDecision();
-    const result = await decision.strategy.suggestPrice(input);
+    let result: PriceSuggestion;
+
+    try {
+      result = await decision.strategy.suggestPrice(input);
+    } catch (err) {
+      if (decision.strategy.name === this.rules.name) {
+        throw err;
+      }
+
+      this.warnFallbackFailure(decision, err, input);
+      result = await this.rules.suggestPrice(input);
+      return {
+        ...result,
+        details: {
+          ...result.details,
+          strategy: `${this.name}/${decision.tier}/${this.rules.name}`,
+          degradedFrom: decision.strategy.name,
+        } as PriceSuggestion['details'] & { degradedFrom: string },
+      };
+    }
+
     return {
       ...result,
       details: {
@@ -90,6 +115,24 @@ export class AdaptivePricingStrategy implements PricingStrategy {
         strategy: `${this.name}/${decision.tier}/${decision.strategy.name}`,
       },
     };
+  }
+
+  private warnFallbackFailure(decision: AdaptiveDecision, err: unknown, input: PricingInput) {
+    const now = Date.now();
+    const message = err instanceof Error ? err.message : String(err);
+
+    if (now - this.lastFallbackWarningAt < this.fallbackWarnIntervalMs) {
+      this.suppressedFallbackFailures++;
+      return;
+    }
+
+    const suppressed = this.suppressedFallbackFailures;
+    this.suppressedFallbackFailures = 0;
+    this.lastFallbackWarningAt = now;
+    this.logger.warn(
+      `Adaptive pricing fallback: property=${input.property.id} tier=${decision.tier} ` +
+        `strategy=${decision.strategy.name} error="${message}" suppressedSinceLast=${suppressed}`,
+    );
   }
 
   /**

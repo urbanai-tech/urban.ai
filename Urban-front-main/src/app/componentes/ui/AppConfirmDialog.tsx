@@ -77,6 +77,7 @@ export function AppConfirmDialog({
     >
       <div
         onClick={onClose}
+        aria-hidden="true"
         style={{
           position: "absolute",
           inset: 0,
