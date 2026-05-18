@@ -37,6 +37,8 @@ type PublicListResponse = {
     id: string;
     titulo: string;
     id_do_anuncio: string;
+    internalNickname: string | null;
+    internalCode: string | null;
     pictureUrl: string | null;
     ativo: boolean;
     userId: string | null;
@@ -190,6 +192,8 @@ export class PropriedadeService {
         averageMonthlyRevenue: number | null;
         dailyPrice: number | null;
         pricingInputSource: string | null;
+        internalNickname: string | null;
+        internalCode: string | null;
     }[]> {
         // Busca específica pelo userId fornecido
         const addresses = await this.addressRepository.find({
@@ -207,12 +211,41 @@ export class PropriedadeService {
             userId: userId,
             analisado: address?.analisado,
             id_do_anuncio: address.list?.id_do_anuncio,
+            internalNickname: address.list?.internalNickname ?? null,
+            internalCode: address.list?.internalCode ?? null,
             manualDailyPrice: address.list?.manualDailyPrice ?? null,
             averageMonthlyRevenue: address.list?.averageMonthlyRevenue ?? null,
             dailyPrice: address.list?.dailyPrice ?? null,
             pricingInputSource: address.list?.pricingInputSource ?? null,
         }));
 
+    }
+
+    async updateIdentity(
+        addressId: string,
+        userId: string,
+        input: { internalNickname?: string | null; internalCode?: string | null },
+    ) {
+        const address = await this.addressRepository.findOne({
+            where: { id: addressId, user: { id: userId } },
+            relations: ['list'],
+        });
+
+        if (!address?.list) {
+            throw new NotFoundException('Propriedade nao encontrada');
+        }
+
+        address.list.internalNickname = this.normalizeOptionalText(input.internalNickname, 'internalNickname', 80);
+        address.list.internalCode = this.normalizeOptionalText(input.internalCode, 'internalCode', 32);
+
+        const saved = await this.propriedades.save(address.list);
+
+        return {
+            addressId,
+            listId: saved.id,
+            internalNickname: saved.internalNickname ?? null,
+            internalCode: saved.internalCode ?? null,
+        };
     }
 
     async updatePricingInputs(
@@ -322,6 +355,16 @@ export class PropriedadeService {
         return Math.round(Number(a) * 100) === Math.round(Number(b) * 100);
     }
 
+    private normalizeOptionalText(value: unknown, field: string, maxLength: number): string | null {
+        if (value === undefined || value === null) return null;
+        const normalized = String(value).trim();
+        if (!normalized) return null;
+        if (normalized.length > maxLength) {
+            throw new HttpException(`${field} deve ter no maximo ${maxLength} caracteres`, HttpStatus.BAD_REQUEST);
+        }
+        return normalized;
+    }
+
     private normalizeOptionalMoney(value: unknown, field: string): number | null {
         if (value === undefined || value === null || value === '') return null;
         const parsed = Number(String(value).replace(',', '.'));
@@ -357,6 +400,8 @@ export class PropriedadeService {
             id: list.id,
             titulo: list.titulo,
             id_do_anuncio: list.id_do_anuncio,
+            internalNickname: list.internalNickname ?? null,
+            internalCode: list.internalCode ?? null,
             pictureUrl: list.pictureUrl ?? null,
             ativo: list.ativo,
             userId: list.user?.id ?? null,

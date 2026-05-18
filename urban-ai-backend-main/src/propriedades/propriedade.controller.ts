@@ -421,6 +421,17 @@ export class PropriedadeController {
     return this.propriedadeService.findByUserId(req?.user?.userId, page, limit);
   }
 
+  @Patch(':id/identity')
+  @ApiOperation({ summary: 'Atualiza apelido e codigo interno de uma propriedade' })
+  @UseGuards(JwtAuthGuard)
+  async updateIdentity(
+    @Param('id') id: string,
+    @Req() req: any,
+    @Body() body: { internalNickname?: string | null; internalCode?: string | null },
+  ) {
+    return this.propriedadeService.updateIdentity(id, req.user.userId, body);
+  }
+
   @Patch(':id/pricing-inputs')
   @ApiOperation({ summary: 'Atualiza preco base manual e receita media mensal de uma propriedade' })
   @UseGuards(JwtAuthGuard)
