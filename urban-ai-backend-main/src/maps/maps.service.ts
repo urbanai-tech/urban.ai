@@ -15,7 +15,7 @@ import { ProcessStatus } from 'src/entities/processStatus.entity';
 import { ProcessService } from 'src/process/process.service';
 import { EmailService } from 'src/email/email.service';
 import { PropriedadeService } from 'src/propriedades/propriedade.service';
-import { summarizeGoogleMapsError } from './google-maps-error';
+import { isGoogleMapsConfigurationError, summarizeGoogleMapsError } from './google-maps-error';
 
 @Injectable()
 export class MapsService {
@@ -105,7 +105,7 @@ export class MapsService {
       return { ok: true, lat: first.geometry.location.lat, lng: first.geometry.location.lng };
     } catch (err: any) {
       const message = summarizeGoogleMapsError(err);
-      this.logger.error('Erro na geocodificação:', message);
+      this.logger.error(`Erro na geocodificacao do evento ${eventId}: ${message}`);
       return { ok: false, message };
     }
   }
@@ -165,9 +165,14 @@ export class MapsService {
         successCount++;
 
       } catch (err) {
-        this.logger.error(`(${i + 1}) Erro ao processar evento ${ev.id}: ${err.message}`);
+        const reason = summarizeGoogleMapsError(err);
+        this.logger.error(`(${i + 1}) Erro ao processar evento ${ev.id}: ${reason}`);
         errorCount++;
-        errors.push({ id: ev.id, reason: err.message });
+        errors.push({ id: ev.id, reason });
+        if (isGoogleMapsConfigurationError(reason)) {
+          this.logger.warn('Geocoding de eventos interrompido por falha de configuracao Google Maps.');
+          break;
+        }
       }
 
       // Delay entre requisições (evita rate limit)
@@ -239,9 +244,14 @@ export class MapsService {
         successCount++;
 
       } catch (err) {
-        this.logger.error(`(${i + 1}) Erro ao processar adress ${ev.id}: ${err.message}`);
+        const reason = summarizeGoogleMapsError(err);
+        this.logger.error(`(${i + 1}) Erro ao processar address ${ev.id}: ${reason}`);
         errorCount++;
-        errors.push({ id: ev.id, reason: err.message });
+        errors.push({ id: ev.id, reason });
+        if (isGoogleMapsConfigurationError(reason)) {
+          this.logger.warn('Geocoding de enderecos interrompido por falha de configuracao Google Maps.');
+          break;
+        }
       }
 
       // Delay entre requisições (evita rate limit)
@@ -312,10 +322,14 @@ export class MapsService {
         successCount++;
       } catch (err) {
         errorCount++;
+        const reason = summarizeGoogleMapsError(err);
         this.logger.error(
-          `Erro ao geocodificar address ${address.id}`,
-          err instanceof Error ? err.stack : String(err),
+          `Erro ao geocodificar address ${address.id}: ${reason}`,
         );
+        if (isGoogleMapsConfigurationError(reason)) {
+          this.logger.warn('Geocoding pontual de propriedade interrompido por falha de configuracao Google Maps.');
+          break;
+        }
       }
 
       await new Promise(r => setTimeout(r, 200));
@@ -391,7 +405,12 @@ export class MapsService {
         await new Promise(r => setTimeout(r, 200)); // delay para não tomar bloqueio
       } catch (err) {
         failed++;
-        results.push({ id: ev.id, ok: false, reason: (err as any).message || 'Erro desconhecido' });
+        const reason = summarizeGoogleMapsError(err);
+        results.push({ id: ev.id, ok: false, reason });
+        if (isGoogleMapsConfigurationError(reason)) {
+          this.logger.warn('Geocoding pendente interrompido por falha de configuracao Google Maps.');
+          break;
+        }
       }
     }
 

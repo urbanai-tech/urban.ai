@@ -237,6 +237,9 @@ function PortfolioCalendarPlaceholder({
   if (loading) {
     return (
       <div
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
         style={{
           padding: "48px 24px",
           textAlign: "center",
@@ -310,6 +313,7 @@ function DateRangeField({
         min={min}
         max={max}
         onChange={(e) => onChange(e.target.value)}
+        className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
         style={{
           height: 40,
           padding: "0 14px",
@@ -319,7 +323,6 @@ function DateRangeField({
           color: "var(--app-text)",
           fontSize: 14,
           fontWeight: 400,
-          outline: "none",
           fontFamily: "Inter, system-ui, sans-serif",
         }}
       />

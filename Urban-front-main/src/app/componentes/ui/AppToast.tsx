@@ -117,10 +117,12 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
       >
         {toasts.map((t) => {
           const s = KIND_STYLE[t.kind];
+          const isErrorish = t.kind === "error" || t.kind === "warn";
           return (
             <div
               key={t.id}
-              role="status"
+              role={isErrorish ? "alert" : "status"}
+              aria-live={isErrorish ? "assertive" : "polite"}
               style={{
                 pointerEvents: "auto",
                 minWidth: 280,
@@ -175,13 +177,19 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
               </div>
               <button
                 onClick={() => dismiss(t.id)}
-                aria-label="Fechar"
+                aria-label="Fechar notificacao"
+                className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
                 style={{
                   background: "transparent",
                   border: "none",
                   color: "var(--app-text-muted)",
                   cursor: "pointer",
-                  padding: 2,
+                  padding: 6,
+                  minWidth: 28,
+                  minHeight: 28,
+                  borderRadius: 6,
+                  alignItems: "center",
+                  justifyContent: "center",
                   lineHeight: 0,
                   display: "inline-flex",
                   flexShrink: 0,
@@ -202,6 +210,12 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
           to {
             transform: translateX(0);
             opacity: 1;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          [role="status"],
+          [role="alert"] {
+            animation: none !important;
           }
         }
       `}</style>

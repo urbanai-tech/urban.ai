@@ -36,6 +36,7 @@ build/
 .vscode/
 .idea/
 .codex/
+.claude/*.lock
 *.swp
 *.swo
 

@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { acceptCookieConsent } from './test-helpers';
 
 test.describe('Stays integrations settings', () => {
   test('conecta com consentimento e mostra status operacional mockado', async ({ page }) => {
+    await acceptCookieConsent(page);
     let connectPayload: Record<string, unknown> | null = null;
 
     await page.route('**/stays/listings', async (route) => {
@@ -75,12 +77,14 @@ test.describe('Stays integrations settings', () => {
     await page.locator('input[type="checkbox"]').check();
     await page.getByRole('button', { name: /Conectar Stays/i }).click();
 
-    await expect(page.getByRole('heading', { name: /Stays conectada/i })).toBeVisible();
+    await expect(page.getByText(/Conectada e ativa/i)).toBeVisible();
     await expect(page.getByText(/stays-connect-v1/i)).toBeVisible();
-    await expect(page.getByText(/1\/2 ativos - 1 vinculados - 1 auto/i)).toBeVisible();
-    await expect(page.getByText(/Studio Paulista/i)).toBeVisible();
-    await expect(page.getByText(/Automatico beta/i)).toBeVisible();
-    await expect(page.getByText(/Recomendacao manual/i)).toBeVisible();
+    await expect(page.getByText('1/2')).toBeVisible();
+    await expect(page.getByText('1 sem vínculo')).toBeVisible();
+    await expect(page.getByText(/aplicam pre.o sem confirma/i)).toBeVisible();
+    await expect(page.getByText(/Studio Paulista/i).last()).toBeVisible();
+    await expect(page.getByText(/Autom.tico beta/i)).toBeVisible();
+    await expect(page.getByText(/Recomenda..o manual/i)).toBeVisible();
     expect(connectPayload).toMatchObject({
       clientId: 'client-e2e',
       accessToken: 'token-e2e',

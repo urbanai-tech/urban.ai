@@ -495,13 +495,16 @@ export function RecommendationCard({
             onClick={handleToggle}
             aria-expanded={isMobile ? sheetOpen : expanded}
             aria-controls="recommendation-explainer"
+            className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
             style={{
               all: "unset",
               cursor: "pointer",
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
-              padding: "4px 0",
+              padding: "8px 4px",
+              minHeight: 44,
+              borderRadius: 6,
             }}
           >
             <span
@@ -592,15 +595,16 @@ export function RecommendationCard({
             <button
               type="button"
               onClick={() => setSheetOpen(false)}
-              aria-label="Fechar"
+              aria-label="Fechar detalhes da sugestao"
+              className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
               style={{
                 all: "unset",
                 cursor: "pointer",
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                width: 32,
-                height: 32,
+                width: 44,
+                height: 44,
                 borderRadius: 8,
                 color: "var(--app-text)",
               }}
