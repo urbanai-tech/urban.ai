@@ -135,7 +135,7 @@ build verde antes de testar.
 #### Stripe Dashboard
 - https://dashboard.stripe.com → **Developers** → **Webhooks**
 - Endpoint do webhook deve apontar para o backend, ex.:
-  `https://urban-ai-back-production.up.railway.app/payments/webhook`
+  `https://urbanai-production-85fd.up.railway.app/payments/webhook`
   → quando você ativar `api.myurbanai.com` (futuro), atualizar pra
   `https://api.myurbanai.com/payments/webhook`. **Por agora, não muda.**
 - Em **Settings → Customer Portal** → Branding, se tiver URL
