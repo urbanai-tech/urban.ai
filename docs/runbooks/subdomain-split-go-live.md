@@ -159,9 +159,9 @@ build verde antes de testar.
   `https://app.myurbanai.com/stays/oauth/callback` (ou rota equivalente
   que o backend usar)
 
-#### Mailersend
-- Não tem callback. Domínio verificado é `myurbanai.com` (apex) — funciona
-  pros dois subdomínios. **Não muda.**
+#### Brevo
+- Não tem callback. Domínio/remetente transacional verificado deve cobrir
+  `myurbanai.com` e o remetente `noreply@myurbanai.com`.
 
 #### Sentry
 - https://sentry.io → seu projeto → **Settings → Client Keys (DSN)** ou

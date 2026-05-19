@@ -183,12 +183,12 @@ export class AdminFinanceService {
 
       // Comms
       {
-        name: 'Mailersend',
+        name: 'Brevo',
         category: 'comms',
         recurrence: 'monthly',
         monthlyCostCents: 0, // free 3k emails/mês
         description: 'Transactional email (boas-vindas, alertas, recuperação)',
-        notes: 'Free 3k emails/mês; upgrade quando passar',
+        notes: 'Validar limite/plano no painel Brevo antes do beta pago',
       },
 
       // Payments

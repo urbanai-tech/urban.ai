@@ -15,7 +15,7 @@ Esta matriz consolida as variaveis encontradas no codigo e nos `.env.example`. V
 | Redis/filas | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_TLS` | Obrigatorio quando Bull/processos estiver ativo. |
 | Observabilidade | `SENTRY_DSN` | Opcional em dev; recomendado/obrigatorio em staging/prod para operacao. |
 | Stripe | `STRIPE_SECRET_KEY`, `STRIPE_PUBLIC_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUCCESS_URL`, `CANCEL_URL`, price IDs `*_PLAN` e `*_PRICE_*` | Obrigatorio antes de checkout/assinaturas. Validar com `npm run preflight:track3:strict` e `/admin/pricing-config`. |
-| Email | `MAILERSEND_API_KEY`, `EMAIL_SENDER`, `RESET_PASS_URL`, `MAILERSEND_DOMAIN_ID`; recomendado: `FRONT_URL`; legado: `SENDGRID_API_KEY`, `EMAIL_*` | Obrigatorio para reset, confirmacao e notificacoes transacionais. `FRONT_URL` tem fallback, mas precisa ser validado no smoke real de links. |
+| Email | `BREVO_API_KEY`, `EMAIL_SENDER`, `EMAIL_SENDER_NAME`, `RESET_PASS_URL`; recomendado: `FRONT_URL`; opcional: `BREVO_API_BASE_URL` | Obrigatorio para reset, confirmacao e notificacoes transacionais. `FRONT_URL` tem fallback, mas precisa ser validado no smoke real de links. |
 | Suporte/LGPD | `SUPPORT_EMAIL`, `PRIVACY_EMAIL`, `SUPPORT_OWNER_EMAIL`, `PRIVACY_OWNER_EMAIL` | Canais publicos tem fallback no app; owners operacionais precisam estar definidos antes de beta pago. Aparece em `/admin/dashboard` no Go-live Track 3. |
 | Maps/eventos | `GOOGLE_MAPS_API_KEY`, `RAPIDAPI_KEY`, `GEMINI_API_KEY`, `AIRBNB_GRAPHQL_HASH`, `MAPBOX_TOKEN` | Obrigatorio conforme rota/integracao ativada. |
 | Pricing | `PRICING_STRATEGY`, `PRICING_BOOTSTRAP_ON_BOOT` | Recomendado. Default atual cobre dev, mas prod deve ser explicito. |
@@ -56,7 +56,7 @@ Esta matriz consolida as variaveis encontradas no codigo e nos `.env.example`. V
 
 ## Regras de Operacao
 
-- Nunca promover ambiente com `JWT_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `MAILERSEND_API_KEY` ou `STAYS_TOKEN_ENCRYPTION_KEY` vazios.
+- Nunca promover ambiente com `JWT_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `BREVO_API_KEY` ou `STAYS_TOKEN_ENCRYPTION_KEY` vazios.
 - Em producao, `DB_SYNCHRONIZE` deve permanecer `false`.
 - `SENTRY_DSN` deve ser diferente por ambiente para nao misturar erros de staging e prod.
 - Tokens Stays existentes em texto puro devem ser regravados apos configurar `STAYS_TOKEN_ENCRYPTION_KEY`; o transformer ainda le legado para permitir migracao gradual.

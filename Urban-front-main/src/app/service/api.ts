@@ -1699,7 +1699,7 @@ export const deleteAdminCost = (id: string) =>
 
 /**
  * Popula a tabela `platform_costs` com os custos operacionais default da Urban AI
- * (Railway, Stripe, Gemini, Mailersend etc.). Idempotente: por padrão NÃO
+ * (Railway, Stripe, Gemini, Brevo etc.). Idempotente: por padrão NÃO
  * sobrescreve custos já cadastrados — passe `overwrite=true` para resetar.
  */
 export const seedAdminCosts = (overwrite = false) =>
@@ -2283,7 +2283,7 @@ export interface DashboardSummary {
     byStatus: Array<{ status: string; count: number }>;
   };
   email?: {
-    mailerSendApiKeyConfigured: boolean;
+    brevoApiKeyConfigured: boolean;
     emailSenderConfigured: boolean;
     senderDomain: string;
     senderUsesUrbanDomain: boolean;

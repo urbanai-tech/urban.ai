@@ -6,6 +6,14 @@ const TEXT_COLOR = "#374151"; // Dark grey
 const TITLE_COLOR = "#9ca3af"; // Gray for centered titles
 const LINK_COLOR = "#2563eb"; // Standard blue
 
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
 const baseLayout = (content: string) => `
 <!DOCTYPE html>
 <html>
@@ -41,6 +49,23 @@ const baseLayout = (content: string) => `
 `;
 
 export class EmailTemplates {
+  static getEventNotificationTemplate(nome: string, title: string, quantidade: number): string {
+    const safeName = escapeHtml(nome || "Usuario");
+    const safeTitle = escapeHtml(title || "Novos eventos");
+    const safeQuantidade = Math.max(0, Number.isFinite(quantidade) ? quantidade : 0);
+    const plural = safeQuantidade === 1 ? "evento relevante" : "eventos relevantes";
+
+    const content = `
+        <div class="title">${safeTitle}</div>
+        <div class="content">
+            <p>Ola, <b>${safeName}</b>.</p>
+            <p>Encontramos <b>${safeQuantidade}</b> ${plural} para acompanhar na sua operacao Urban AI.</p>
+            <p>Acesse a plataforma para revisar as analises e oportunidades associadas aos seus imoveis.</p>
+        </div>
+    `;
+    return baseLayout(content);
+  }
+
   
   static getConfirmEmailTemplate(nome: string, code: string, frontUrl: string): string {
     const content = `

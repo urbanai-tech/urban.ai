@@ -144,9 +144,9 @@ function stripeReadiness(env) {
 function emailReadiness(env) {
   const blockers = [];
   const warnings = [];
-  requireEnv(env, blockers, 'MAILERSEND_API_KEY');
+  requireEnv(env, blockers, 'BREVO_API_KEY');
   requireEnv(env, blockers, 'EMAIL_SENDER');
-  optionalEnv(env, warnings, 'MAILERSEND_DOMAIN_ID');
+  optionalEnv(env, warnings, 'BREVO_API_BASE_URL');
   optionalEnv(env, warnings, 'FRONT_URL');
   optionalEnv(env, warnings, 'RESET_PASS_URL');
 
@@ -156,10 +156,10 @@ function emailReadiness(env) {
   }
 
   return {
-    label: 'MailerSend',
+    label: 'Brevo',
     blockers,
     warnings,
-    nextAction: 'Verify MailerSend domain, DKIM/SPF and send a real password reset/onboarding email.',
+    nextAction: 'Verify Brevo sender/domain, DKIM/SPF and send a real password reset/onboarding email.',
   };
 }
 

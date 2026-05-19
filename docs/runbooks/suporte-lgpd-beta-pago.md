@@ -60,7 +60,7 @@ Prazo operacional: responder em ate 15 dias corridos, conforme politica interna.
 Antes de beta pago, o responsavel legal deve atualizar `docs/lgpd/dpa-checklist.md` e `docs/lgpd/politica-privacidade-interna.md` com:
 
 - Stripe;
-- MailerSend ou provedor de e-mail ativo;
+- Brevo ou provedor de e-mail transacional ativo;
 - Railway;
 - AWS/S3;
 - Upstash/Redis;

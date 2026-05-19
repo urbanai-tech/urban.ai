@@ -1275,9 +1275,9 @@ export class AdminService {
     const next7d = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     const next30d = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     const last30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const emailSender = process.env.EMAIL_SENDER || 'noreply@notify.myurbanai.com';
+    const emailSender = process.env.EMAIL_SENDER || 'noreply@myurbanai.com';
     const senderDomain = emailSender.includes('@') ? emailSender.split('@').pop() || '' : '';
-    const mailerSendApiKeyConfigured = Boolean(process.env.MAILERSEND_API_KEY);
+    const brevoApiKeyConfigured = Boolean(process.env.BREVO_API_KEY);
     const emailSenderConfigured = Boolean(process.env.EMAIL_SENDER);
     const senderUsesUrbanDomain = senderDomain.endsWith('myurbanai.com');
     const frontUrlConfigured = Boolean(process.env.FRONT_URL);
@@ -1535,7 +1535,7 @@ export class AdminService {
       stripeWebhookConfigured,
       stripePublishableConfigured,
       stripeModeMismatch,
-      mailerSendApiKeyConfigured,
+      brevoApiKeyConfigured,
       emailSenderConfigured,
       senderUsesUrbanDomain,
       frontUrlConfigured,
@@ -1687,10 +1687,10 @@ export class AdminService {
         message: 'Donos operacionais de suporte/privacidade fora do dominio myurbanai.com',
       });
     }
-    if (!mailerSendApiKeyConfigured) {
+    if (!brevoApiKeyConfigured) {
       alerts.push({
         severity: 'amber',
-        message: 'MAILERSEND_API_KEY ausente; e-mails transacionais e drip podem falhar',
+        message: 'BREVO_API_KEY ausente; e-mails transacionais e drip podem falhar',
       });
     }
     if (!emailSenderConfigured || !senderUsesUrbanDomain) {
@@ -1797,7 +1797,7 @@ export class AdminService {
         })),
       },
       email: {
-        mailerSendApiKeyConfigured,
+        brevoApiKeyConfigured,
         emailSenderConfigured,
         senderDomain,
         senderUsesUrbanDomain,
@@ -1865,7 +1865,7 @@ export class AdminService {
     stripeWebhookConfigured: boolean;
     stripePublishableConfigured: boolean;
     stripeModeMismatch: boolean;
-    mailerSendApiKeyConfigured: boolean;
+    brevoApiKeyConfigured: boolean;
     emailSenderConfigured: boolean;
     senderUsesUrbanDomain: boolean;
     frontUrlConfigured: boolean;
@@ -1891,7 +1891,7 @@ export class AdminService {
     if (input.stripeModeMismatch) stripeBlockers.push('Secret e publishable key Stripe em modos diferentes');
 
     const emailBlockers: string[] = [];
-    if (!input.mailerSendApiKeyConfigured) emailBlockers.push('MAILERSEND_API_KEY ausente');
+    if (!input.brevoApiKeyConfigured) emailBlockers.push('BREVO_API_KEY ausente');
     if (!input.emailSenderConfigured) emailBlockers.push('EMAIL_SENDER ausente');
     if (!input.senderUsesUrbanDomain) emailBlockers.push('Sender fora do dominio myurbanai.com');
 
@@ -1918,7 +1918,7 @@ export class AdminService {
         'Configurar chaves test/live coerentes e rodar checkout + webhook em test mode.',
       ),
       email: this.readinessItem(
-        'MailerSend',
+        'Brevo',
         emailBlockers,
         'Validar dominio, DKIM/SPF e envio real transacional.',
       ),
