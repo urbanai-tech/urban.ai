@@ -339,7 +339,7 @@ describe('AdminService Track 3 readiness', () => {
       stripeWebhookConfigured: false,
       stripePublishableConfigured: false,
       stripeModeMismatch: false,
-      mailerSendApiKeyConfigured: false,
+      brevoApiKeyConfigured: false,
       emailSenderConfigured: false,
       senderUsesUrbanDomain: false,
       frontUrlConfigured: false,
@@ -366,7 +366,7 @@ describe('AdminService Track 3 readiness', () => {
       ]),
     });
     expect(result.stripe.blockers).not.toContain('Publishable key Stripe ausente');
-    expect(result.email.blockers).toContain('MAILERSEND_API_KEY ausente');
+    expect(result.email.blockers).toContain('BREVO_API_KEY ausente');
     expect(result.email.blockers).not.toContain('FRONT_URL ausente');
     expect(result.stays.blockers).toEqual([
       'STAYS_API_BASE_URL ausente',
@@ -393,7 +393,7 @@ describe('AdminService Track 3 readiness', () => {
       stripeWebhookConfigured: true,
       stripePublishableConfigured: true,
       stripeModeMismatch: false,
-      mailerSendApiKeyConfigured: true,
+      brevoApiKeyConfigured: true,
       emailSenderConfigured: true,
       senderUsesUrbanDomain: true,
       frontUrlConfigured: true,
@@ -425,7 +425,7 @@ describe('AdminService Track 3 readiness', () => {
       stripeWebhookConfigured: true,
       stripePublishableConfigured: true,
       stripeModeMismatch: false,
-      mailerSendApiKeyConfigured: true,
+      brevoApiKeyConfigured: true,
       emailSenderConfigured: true,
       senderUsesUrbanDomain: true,
       frontUrlConfigured: true,
@@ -457,7 +457,7 @@ describe('AdminService Track 3 readiness', () => {
       stripeWebhookConfigured: true,
       stripePublishableConfigured: false,
       stripeModeMismatch: false,
-      mailerSendApiKeyConfigured: true,
+      brevoApiKeyConfigured: true,
       emailSenderConfigured: true,
       senderUsesUrbanDomain: true,
       frontUrlConfigured: false,

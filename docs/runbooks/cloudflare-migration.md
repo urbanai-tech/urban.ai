@@ -56,7 +56,7 @@ Antes de trocar qualquer coisa, **fotografar** o estado atual.
    | `CNAME` | `app` | Railway front *(se já criado)* | Subdomain split |
    | `MX` | `@` | mail.hostinger.com (ou similar) | Email |
    | `TXT` | `@` | `v=spf1 include:...` | SPF email |
-   | `TXT` | `default._domainkey` | `v=DKIM1; k=rsa; p=...` | DKIM (Mailersend) |
+   | `TXT` | `default._domainkey` | `v=DKIM1; k=rsa; p=...` | DKIM (Brevo) |
    | `TXT` | `_dmarc` | `v=DMARC1; ...` | DMARC |
    | `TXT` | `@` | `google-site-verification=...` | Search Console |
    | `NS` | `@` | `ns1.dns-parking.com`, `ns2.dns-parking.com` | nameservers atuais |
@@ -82,7 +82,7 @@ Antes de trocar qualquer coisa, **fotografar** o estado atual.
    do Passo 1
    - Cada registro que faltar, **adicionar manualmente** clicando "+ Add record"
    - Em particular checar: MX (email), TXT (SPF/DKIM/DMARC), TXT de
-     verificações (Google, Mailersend etc.)
+     verificações (Google, Brevo etc.)
 
 **⚠️ Atenção crucial:** se o scan perdeu alguma coisa, ela vai **deixar de
 funcionar** quando você trocar os nameservers. Email é o que mais quebra.

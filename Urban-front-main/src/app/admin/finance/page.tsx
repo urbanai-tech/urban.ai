@@ -478,7 +478,7 @@ export default function AdminFinancePage() {
           empty={
             <AdminEmptyState
               title="Nenhum custo cadastrado"
-              body="Comece adicionando Railway, Mailersend, Gemini etc."
+              body="Comece adicionando Railway, Brevo, Gemini etc."
               action={
                 <AdminButton
                   variant="primary"
@@ -516,7 +516,7 @@ export default function AdminFinancePage() {
         onClose={() => setConfirmSeed(false)}
         loading={seeding}
         title="Popular custos default"
-        body="Cria entradas default (Railway, Stripe, Gemini, Mailersend etc.) sem sobrescrever as existentes."
+        body="Cria entradas default (Railway, Stripe, Gemini, Brevo etc.) sem sobrescrever as existentes."
         confirmLabel="Popular"
         onConfirm={async () => {
           setSeeding(true);

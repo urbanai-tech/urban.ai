@@ -1,4 +1,4 @@
-# Runbook - smoke MailerSend transacional
+# Runbook - smoke Brevo transacional
 
 Data: 2026-05-17
 
@@ -8,29 +8,29 @@ registrar API keys, tokens ou conteudo sensivel em evidencia.
 ## Pre-condicoes
 
 - Ambiente controlado, preferencialmente staging.
-- Dominio/remetente Urban AI aprovado no MailerSend.
-- `MAILERSEND_API_KEY` configurada no provedor de deploy.
+- Dominio/remetente Urban AI aprovado na Brevo.
+- `BREVO_API_KEY` configurada no provedor de deploy.
 - `EMAIL_SENDER` usando dominio `myurbanai.com` ou subdominio aprovado.
-- Templates necessarios configurados para reset, confirmacao e codigos.
+- `EMAIL_SENDER_NAME` configurado como nome publico do remetente.
 - Caixa de teste acessivel pelo responsavel do smoke.
 
-`MAILERSEND_DOMAIN_ID` ajuda a reconciliar o dominio validado, mas nao deve
-bloquear sozinho se o painel MailerSend e o envio real confirmarem DKIM/SPF.
+`BREVO_API_BASE_URL` deve ficar vazio na maioria dos ambientes; o backend usa
+`https://api.brevo.com/v3` por padrao.
 
 ## Passo a passo
 
-1. Abra o painel MailerSend e confirme dominio verificado, DKIM e SPF ativos.
+1. Abra o painel Brevo e confirme remetente/dominio verificado, DKIM e SPF ativos.
 2. Confirme no ambiente alvo que as variaveis existem sem revelar valores.
 3. Dispare um fluxo real de reset de senha para uma conta de teste.
 4. Abra o e-mail recebido e valide remetente, assunto, link e expiracao esperada.
 5. Dispare confirmacao/codigo quando aplicavel ao ambiente.
-6. Confirme no painel MailerSend status entregue, sem bounce/reject.
+6. Confirme no painel Brevo status entregue, sem bounce/reject.
 7. Abra o link do e-mail e confirme que aponta para o app correto.
 8. Registre evidencia com data, ambiente, remetente, template e status, sem API key.
 
 ## Criterios de aceite
 
-- Dominio MailerSend verificado com DKIM/SPF.
+- Dominio/remetente Brevo verificado com DKIM/SPF.
 - E-mail transacional chega na caixa de teste.
 - Link aponta para o frontend correto ou para fallback operacional aceito.
 - Nenhuma API key, token ou segredo aparece em logs/evidencias.
@@ -39,7 +39,7 @@ bloquear sozinho se o painel MailerSend e o envio real confirmarem DKIM/SPF.
 ## Registro de evidencia
 
 ```text
-Smoke MailerSend
+Smoke Brevo
 Data/hora:
 Ambiente:
 Responsavel:
@@ -49,7 +49,6 @@ EMAIL_SENDER:
 Template testado:
 Entrega: ok/bloqueado
 Link abriu app correto? sim/nao
-MAILERSEND_DOMAIN_ID reconciliado? sim/nao/nao aplicavel
 Resultado: aprovado/bloqueado
 Pendencias:
 ```

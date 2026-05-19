@@ -28,9 +28,9 @@ Sempre rodar este checklist com o **Gustavo** (DPO atual) presente — alguns ac
 - **Default novo dev:** `Member`.
 - 2FA recomendado.
 
-### Mailersend (transacional)
+### Brevo (transacional)
 
-- **Conta:** `urbanai-ff` em https://app.mailersend.com
+- **Conta:** Urban AI no painel Brevo: https://app.brevo.com
 - **Roles:** Owner / Admin / Member.
 - **Default novo dev:** `Member` (só envia teste, vê logs).
 - Trocar template ou domínio: `Admin` (apenas Gustavo).
@@ -117,7 +117,7 @@ Sponsor (sócio/Gustavo):       ____________________________
 Acessos concedidos:
 [ ] Railway (role: ________)
 [ ] Sentry (role: ________)
-[ ] Mailersend (role: ________)
+[ ] Brevo (role: ________)
 [ ] Stripe (role: ________ — test mode/live mode)
 [ ] AWS IAM user nominal (com MFA)
 [ ] GitHub (role: ________)
@@ -153,7 +153,7 @@ Setup local validado:
 
 - [ ] Remover de todos os sistemas listados acima (não apenas downgrade — remoção)
 - [ ] Rotacionar `JWT_SECRET` no Railway (cookies emitidos sob ele continuam válidos até expirarem)
-- [ ] Rotacionar todas as API keys que o dev tinha acesso (RapidAPI, Stripe webhook secret, Google Maps, Mailersend, Sentry DSN se necessário)
+- [ ] Rotacionar todas as API keys que o dev tinha acesso (RapidAPI, Stripe webhook secret, Google Maps, Brevo, Sentry DSN se necessário)
 - [ ] Fazer `git log --author='<email>'` e revisar últimas semanas de commits — verificar se há algo a auditar (raro, mas precaução)
 - [ ] Remover SSH keys do dev no GitHub (configurações pessoais dele) e no Railway
 

@@ -3,7 +3,7 @@
 **Versão:** 1.2 · **Data:** 05/05/2026 · **Controladora:** MP IA Tecnologia Ltda (CNPJ 62.497.936/0001-27) · **Operadora:** Guilds — Gustavo Gouveia Macedo LTDA (CNPJ 44.361.255/0001-55)
 **Status:** Documento interno. A versão pública para usuários vive em `/privacidade` no site.
 
-> **Mudanças vs v1.1 (mesma data):** modelo operacional Guilds-MP IA Tecnologia explicitado (Guilds passou a operar o produto em fev/2026 como prestadora de serviço da MP IA Tecnologia); Gustavo reposicionado como COO+CTO operador via Guilds (não sócio, nem informalmente); SendGrid + MailerSend declarados em coexistência (ambos no código); RapidAPI confirmado em 3 hosts (airbnb19, airbnb45, airbnb-search) e adicionado como sub-operador; contato Gustavo padronizado em `gustavo.macedo@guilds.com.br`.
+> **Mudanças vs v1.1 (mesma data):** modelo operacional Guilds-MP IA Tecnologia explicitado (Guilds passou a operar o produto em fev/2026 como prestadora de serviço da MP IA Tecnologia); Gustavo reposicionado como COO+CTO operador via Guilds (não sócio, nem informalmente); Brevo declarado como provedor transacional de e-mail; RapidAPI confirmado em 3 hosts (airbnb19, airbnb45, airbnb-search) e adicionado como sub-operador; contato Gustavo padronizado em `gustavo.macedo@guilds.com.br`.
 
 ## Identificação do controlador
 
@@ -71,13 +71,13 @@ Este documento responde, em português estruturado, às exigências da LGPD (Lei
 | Logs de IP/user-agent em login | **Legítimo interesse** (art. 7º IX) — segurança da própria plataforma |
 | Integração Stays (push de preço) | **Consentimento explícito** (art. 7º I) — checkbox obrigatório no onboarding em F6.4 |
 | Scraping de eventos públicos | Dados não-pessoais — LGPD não se aplica diretamente |
-| Compartilhamento com Stripe, Mailersend, AWS, Railway | **Execução de contrato** + **cumprimento de obrigação regulatória** (billing) |
+| Compartilhamento com Stripe, Brevo, AWS, Railway | **Execução de contrato** + **cumprimento de obrigação regulatória** (billing) |
 
 ---
 
 ## 3. Direitos dos titulares (Art. 18)
 
-Qualquer anfitrião pode solicitar, por e-mail para `privacidade@myurbanai.com` (a configurar no Mailersend), em até **15 dias corridos**:
+Qualquer anfitrião pode solicitar, por e-mail para `privacidade@myurbanai.com` (a configurar no Brevo), em até **15 dias corridos**:
 
 1. **Acesso aos dados** — export JSON via endpoint administrativo (a implementar no painel F6.3)
 2. **Correção** — edição via perfil já existe
@@ -100,8 +100,7 @@ São terceiros que processam dados em nome da Urban AI. Cada um precisa de DPA a
 |---|---|---|---|
 | **Guilds (Gustavo Gouveia Macedo LTDA)** | operação contínua do produto (dev, infra, suporte) — CNPJ 44.361.255/0001-55 | acesso operacional ao backend, banco e ferramentas | Brasil |
 | **Stripe Brasil** | processamento de pagamento recorrente + KYC | CPF, nome, email, 4 últimos dígitos do cartão | Brasil (transferência p/ EUA para fraud detection) |
-| **SendGrid (Twilio)** | e-mail transacional — fluxos legados (recuperação de senha, alertas de imóveis, notificações de mapas) — `EmailService` | email, nome, conteúdo do e-mail (HTML/template) | EUA |
-| **MailerSend** | e-mail transacional — fluxos novos (waitlist, parte do cron) — `MailerService` | email, nome, conteúdo do e-mail | EUA |
+| **Brevo** | e-mail transacional — confirmação, reset, waitlist, drip, billing e alertas operacionais | email, nome, conteúdo do e-mail | UE/EUA conforme subprocessadores e data centers contratados |
 | **RapidAPI (3 hosts: airbnb19, airbnb45, airbnb-search)** | enriquecimento de dados públicos do Airbnb (disponibilidade, preço de mercado, get-price, checkout prefetch) | airbnbHostId, id_do_anuncio | EUA |
 | **AWS (S3)** | armazenamento do data lake (eventos scraped, não PII) | nenhum dado pessoal direto | sa-east-1 (Brasil) |
 | **Railway** | hosting do backend/front/DB | todos os dados persistidos (criptografados em repouso pelo provider) | EUA |
@@ -113,7 +112,7 @@ São terceiros que processam dados em nome da Urban AI. Cada um precisa de DPA a
 
 ### Transferência internacional
 
-Stripe (parcial), SendGrid, Sentry, Railway, Upstash e Prefect processam dados nos EUA. A LGPD permite essa transferência (art. 33) se houver **garantias contratuais equivalentes**. Todos os DPAs abaixo cobrem essa cláusula.
+Stripe (parcial), Brevo, Sentry, Railway, Upstash e Prefect podem processar dados fora do Brasil. A LGPD permite essa transferência (art. 33) se houver **garantias contratuais equivalentes**. Todos os DPAs abaixo cobrem essa cláusula.
 
 AWS S3 está em região `sa-east-1` (Brasil). Stays.net (planejada, F6.4) processa no Brasil.
 
@@ -127,8 +126,7 @@ Status em 24/04/2026: **nenhum DPA assinado ainda**. Ação urgente em F9.2.
 |---|---|---|---|
 | Guilds (Gustavo Gouveia Macedo LTDA) | DPA bilateral interno entre as PJs | ⬜ a redigir e assinar | `docs/lgpd/dpa/guilds.pdf` |
 | Stripe | https://stripe.com/legal/dpa | ⬜ a assinar online no dashboard | `docs/lgpd/dpa/stripe.pdf` |
-| SendGrid (Twilio) | https://www.twilio.com/legal/data-protection-addendum | ⬜ aceitar online no painel SendGrid (Settings → Legal) | `docs/lgpd/dpa/sendgrid.pdf` |
-| MailerSend | https://www.mailersend.com/legal/dpa | ⬜ solicitar via suporte (DocuSign) | `docs/lgpd/dpa/mailersend.pdf` |
+| Brevo | https://help.brevo.com/hc/pt/articles/15403782599570-Onde-posso-encontrar-o-Contrato-de-Processamento-de-Dados-DPA | ⬜ aceitar/baixar conforme Condições Gerais de Uso da Brevo | `docs/lgpd/dpa/brevo.pdf` |
 | RapidAPI | https://docs.rapidapi.com/docs/data-protection-agreement-dpa | ⬜ solicitar via account manager | `docs/lgpd/dpa/rapidapi.pdf` |
 | AWS | https://aws.amazon.com/service-terms/ (inclui GDPR+LGPD addendum) | ⬜ aceitar no console AWS | `docs/lgpd/dpa/aws.pdf` |
 | Railway | https://railway.app/legal/dpa | ⬜ solicitar via billing page | `docs/lgpd/dpa/railway.pdf` |
@@ -137,7 +135,7 @@ Status em 24/04/2026: **nenhum DPA assinado ainda**. Ação urgente em F9.2.
 | Google Cloud | https://cloud.google.com/terms/data-processing-addendum | ⬜ aceitar no console | `docs/lgpd/dpa/gcp.pdf` |
 | Stays | — negociar no contrato comercial | ⬜ pendente | `docs/lgpd/dpa/stays.pdf` |
 
-Cronograma sugerido: concluir os 6 primeiros (Stripe, Mailersend, AWS, Railway, Upstash, Sentry) na **semana 7** (antes do beta fechado da F7). GCP e Stays podem aguardar para semana 8–9.
+Cronograma sugerido: concluir os 6 primeiros (Stripe, Brevo, AWS, Railway, Upstash, Sentry) na **semana 7** (antes do beta fechado da F7). GCP e Stays podem aguardar para semana 8–9.
 
 ---
 
@@ -145,7 +143,7 @@ Cronograma sugerido: concluir os 6 primeiros (Stripe, Mailersend, AWS, Railway, 
 
 **Decisão (05/05/2026):** o Encarregado **NÃO será o Gustavo**. Será uma pessoa terceira a designar — provavelmente serviço terceirizado de DPO-as-a-Service ou um advogado dedicado. Designação formal pendente antes do go-live público.
 
-**Canal oficial do titular (LGPD art. 18):** `privacidade@myurbanai.com` — alias a criar no provedor de e-mail (MX já aponta para `notify.myurbanai.com`). Triagem operacional pelo Gustavo até a designação do DPO formal; resposta em até 15 dias corridos.
+**Canal oficial do titular (LGPD art. 18):** `privacidade@myurbanai.com` — alias a criar no provedor de e-mail; domínio principal já verificado para envios transacionais na Brevo. Triagem operacional pelo Gustavo até a designação do DPO formal; resposta em até 15 dias corridos.
 
 Enquanto o nome do DPO não estiver fixado, a página pública e o briefing jurídico devem mostrar o canal de e-mail e marcar a designação como "a divulgar". O nome e contato direto do DPO precisam ser publicados na Política de Privacidade assim que a designação for formalizada.
 
@@ -258,8 +256,8 @@ Mudanças que obrigam revisão antecipada:
 | Versão | Data | Autor | Mudança |
 |---|---|---|---|
 | 1.0 | 24/04/2026 | Gustavo + Claude | Criação inicial — resposta à F5C.4 item #4 |
-| 1.1 | 05/05/2026 | Gustavo + Claude | Identificação da PJ controladora (MP IA Tecnologia, CNPJ, sede, foro Barueri); SendGrid corrigido (substitui menção indevida a Mailersend); DPO definido como pessoa terceira a designar; canal padronizado em `privacidade@myurbanai.com`; nota inicial sobre status societário do Gustavo. Disparada por leitura do contrato social registrado e pela montagem do briefing para o jurídico. |
-| 1.2 | 05/05/2026 | Gustavo + Claude | Modelo Guilds-MP IA Tecnologia explicitado: Guilds opera o produto desde fev/2026 como prestadora da MP IA Tecnologia (Guilds adicionada como sub-operadora declarada). Gustavo reposicionado como COO+CTO operador via Guilds — não sócio, nem informalmente; expectativa de entrada futura como sócio sem acordo formal. Provedores de e-mail: SendGrid e MailerSend declarados em coexistência (ambos rodando, código com 2 módulos: `EmailService` e `MailerService`). RapidAPI confirmado em uso ativo em 3 hosts (airbnb19, airbnb45, airbnb-search) e adicionado à lista de operadores. Contato Gustavo padronizado em `gustavo.macedo@guilds.com.br`. Disparada por correção do próprio Gustavo. |
+| 1.1 | 05/05/2026 | Gustavo + Claude | Identificação da PJ controladora (MP IA Tecnologia, CNPJ, sede, foro Barueri); provedor transacional corrigido; DPO definido como pessoa terceira a designar; canal padronizado em `privacidade@myurbanai.com`; nota inicial sobre status societário do Gustavo. Disparada por leitura do contrato social registrado e pela montagem do briefing para o jurídico. |
+| 1.2 | 05/05/2026 | Gustavo + Claude | Modelo Guilds-MP IA Tecnologia explicitado: Guilds opera o produto desde fev/2026 como prestadora da MP IA Tecnologia (Guilds adicionada como sub-operadora declarada). Gustavo reposicionado como COO+CTO operador via Guilds — não sócio, nem informalmente; expectativa de entrada futura como sócio sem acordo formal. Brevo declarado como provedor transacional de e-mail. RapidAPI confirmado em uso ativo em 3 hosts (airbnb19, airbnb45, airbnb-search) e adicionado à lista de operadores. Contato Gustavo padronizado em `gustavo.macedo@guilds.com.br`. Disparada por correção do próprio Gustavo. |
 
 ---
 

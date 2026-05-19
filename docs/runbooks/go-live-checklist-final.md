@@ -80,7 +80,7 @@ Geralmente nada precisa mexer, mas vale dar uma olhada:
       `https://app.myurbanai.com/...` em Authorized redirect URIs
 - [ ] **Sentry** → Project Settings → Allowed Domains → adicionar
       `*.myurbanai.com` (ou os 2 explicitamente)
-- ❌ **Mailersend, Maps API, Gemini API** — não usam redirect URI, não mexer
+- ❌ **Brevo, Maps API, Gemini API** — não usam redirect URI, não mexer
 
 ---
 
@@ -162,7 +162,7 @@ Volta ao estado anterior do split.
 | Redis BullMQ | Upstash | UPSTASH_REDIS_URL |
 | DNS | Cloudflare | nameservers cloudflare |
 | Domínio (registrar) | Hostinger | renovação anual continua aqui |
-| Email (transacional) | Mailersend | DKIM/SPF mantidos |
+| Email (transacional) | Brevo | DKIM/SPF mantidos |
 
 ---
 

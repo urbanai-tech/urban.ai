@@ -1,19 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { MailerSend, EmailParams, Sender, Recipient } from 'mailersend';
+import axios from 'axios';
 
 @Injectable()
 export class MailerService {
   private readonly logger = new Logger(MailerService.name);
-  private readonly mailerSend: MailerSend;
-  private readonly sentFrom: Sender;
+  private readonly apiKey: string;
+  private readonly apiBaseUrl: string;
+  private readonly senderEmail: string;
+  private readonly senderName: string;
 
   constructor() {
-    this.mailerSend = new MailerSend({
-      apiKey: process.env.MAILERSEND_API_KEY,
-    });
-
-    const senderEmail = process.env.EMAIL_SENDER || 'noreply@notify.myurbanai.com';
-    this.sentFrom = new Sender(senderEmail, 'Urban AI');
+    this.apiKey = process.env.BREVO_API_KEY || '';
+    this.apiBaseUrl = (process.env.BREVO_API_BASE_URL || 'https://api.brevo.com/v3').replace(/\/$/, '');
+    this.senderEmail = process.env.EMAIL_SENDER || 'noreply@myurbanai.com';
+    this.senderName = process.env.EMAIL_SENDER_NAME || 'Urban AI';
   }
 
   async sendTemplateEmail(
@@ -22,28 +22,22 @@ export class MailerService {
     templateId: string,
     variables?: Record<string, any>,
   ) {
-    const recipients = [new Recipient(to.email, to.name || '')];
-
+    const numericTemplateId = Number(templateId);
     this.logger.debug(
       `Sending template email templateId=${templateId} to=${this.maskEmail(to.email)} variables=${Object.keys(variables || {}).join(',')}`,
     );
 
-    const emailParams = new EmailParams()
-      .setFrom(this.sentFrom)
-      .setTo(recipients)
-      .setSubject(subject)
-      .setTemplateId(templateId);
-
-    if (variables) {
-      emailParams.setPersonalization([
-        {
-          email: to.email,
-          data: variables,
-        },
-      ]);
+    if (!Number.isFinite(numericTemplateId)) {
+      this.logger.warn(`Invalid Brevo templateId=${templateId} to=${this.maskEmail(to.email)}`);
+      return { enviado: false, status: 400, message: 'Invalid Brevo templateId' };
     }
 
-    return this.mailerSend.email.send(emailParams);
+    return this.sendBrevoEmail({
+      to,
+      subject,
+      templateId: numericTemplateId,
+      params: variables,
+    });
   }
 
   async sendHtmlEmail(
@@ -51,30 +45,7 @@ export class MailerService {
     subject: string,
     html: string,
   ) {
-    const recipients = [new Recipient(to.email, to.name || '')];
-
-    const emailParams = new EmailParams()
-      .setFrom(this.sentFrom)
-      .setTo(recipients)
-      .setSubject(subject)
-      .setHtml(html);
-
-    try {
-      const response = await this.mailerSend.email.send(emailParams);
-      if (response?.statusCode === 202) {
-        return { enviado: true, status: response.statusCode };
-      }
-      this.logger.warn(
-        `Failed to send HTML email to=${this.maskEmail(to.email)} status=${response?.statusCode ?? 500}`,
-      );
-      return { enviado: false, status: response?.statusCode ?? 500 };
-    } catch (error: any) {
-      const diagnostic = this.formatMailerError(error);
-      this.logger.error(
-        `Error sending HTML email to=${this.maskEmail(to.email)}: ${diagnostic}`,
-      );
-      return { enviado: false, status: 500, message: diagnostic };
-    }
+    return this.sendBrevoEmail({ to, subject, htmlContent: html, type: 'HTML' });
   }
 
   async sendTextEmailCron(
@@ -82,41 +53,91 @@ export class MailerService {
     subject: string,
     text: string,
   ): Promise<{ enviado: boolean; status: number; message?: string }> {
-    const recipients = [new Recipient(to.email, to.name || '')];
+    return this.sendBrevoEmail({ to, subject, textContent: text, type: 'text' });
+  }
 
-    const emailParams = new EmailParams()
-      .setFrom(this.sentFrom)
-      .setTo(recipients)
-      .setSubject(subject)
-      .setText(text);
+  private async sendBrevoEmail(input: {
+    to: { email: string; name?: string };
+    subject: string;
+    htmlContent?: string;
+    textContent?: string;
+    templateId?: number;
+    params?: Record<string, any>;
+    type?: string;
+  }): Promise<{ enviado: boolean; status: number; message?: string; messageId?: string }> {
+    if (!this.apiKey) {
+      const message = 'BREVO_API_KEY is not configured';
+      this.logger.error(message);
+      return { enviado: false, status: 500, message };
+    }
+
+    const payload: Record<string, any> = {
+      sender: {
+        email: this.senderEmail,
+        name: this.senderName,
+      },
+      to: [
+        {
+          email: input.to.email,
+          name: input.to.name || '',
+        },
+      ],
+      subject: input.subject,
+    };
+
+    if (input.templateId !== undefined) {
+      payload.templateId = input.templateId;
+      if (input.params) payload.params = input.params;
+    } else if (input.htmlContent !== undefined) {
+      payload.htmlContent = input.htmlContent;
+    } else {
+      payload.textContent = input.textContent || '';
+    }
 
     try {
-      const response = await this.mailerSend.email.send(emailParams);
+      const response = await axios.post(`${this.apiBaseUrl}/smtp/email`, payload, {
+        headers: {
+          accept: 'application/json',
+          'api-key': this.apiKey,
+          'content-type': 'application/json',
+        },
+        timeout: 15_000,
+      });
 
-      if (response?.statusCode === 202) {
-        this.logger.log(`Email sent to=${this.maskEmail(to.email)}`);
-        return { enviado: true, status: response.statusCode };
+      if (response.status >= 200 && response.status < 300) {
+        this.logger.log(`Brevo email sent to=${this.maskEmail(input.to.email)}`);
+        return {
+          enviado: true,
+          status: response.status,
+          messageId: response.data?.messageId,
+        };
       }
 
       this.logger.warn(
-        `Failed to send text email to=${this.maskEmail(to.email)} status=${response?.statusCode ?? 500}`,
+        `Failed to send ${input.type || 'transactional'} email to=${this.maskEmail(input.to.email)} status=${response.status}`,
       );
-      return { enviado: false, status: response?.statusCode ?? 500, message: 'Erro inesperado' };
+      return { enviado: false, status: response.status };
     } catch (error: any) {
       const diagnostic = this.formatMailerError(error);
       this.logger.error(
-        `Error sending text email to=${this.maskEmail(to.email)}: ${diagnostic}`,
+        `Error sending ${input.type || 'transactional'} email to=${this.maskEmail(input.to.email)}: ${diagnostic}`,
       );
-      return { enviado: false, status: 500, message: diagnostic };
+      return {
+        enviado: false,
+        status: error?.response?.status ?? error?.status ?? 500,
+        message: diagnostic,
+      };
     }
   }
 
   private formatMailerError(error: any): string {
-    const statusCode = error?.statusCode ?? error?.status ?? error?.response?.statusCode;
+    const statusCode = error?.statusCode ?? error?.status ?? error?.response?.statusCode ?? error?.response?.status;
     const body = error?.body ?? error?.response?.body ?? error?.response?.data;
     const bodyMessage =
       typeof body?.message === 'string'
         ? body.message
+        : typeof body?.error === 'string'
+          ? body.error
         : Array.isArray(body?.errors)
           ? body.errors
               .map((item: any) => item?.message || item?.detail || item?.code)
@@ -147,6 +168,7 @@ export class MailerService {
   private redactSecrets(value: string): string {
     return value
       .replace(/(api[-_ ]?key|token|authorization|bearer)\s*[:=]\s*["']?[^"',\s]+/gi, '$1=[redacted]')
+      .replace(/xkeysib-[A-Za-z0-9_-]+/g, 'xkeysib-[redacted]')
       .slice(0, 500);
   }
 

@@ -26,7 +26,7 @@ Referencia detalhada: `docs/runbooks/matriz-env-operacional.md`.
 - Swagger/API docs: `ENABLE_SWAGGER=false` em producao, habilitar apenas sob demanda
 - URLs: `FRONT_BASE_URL`, `MARKETING_BASE_URL`, `RESET_PASS_URL`
 - Banco: `DATABASE_URL` ou host/user/pass/db equivalentes
-- E-mail: `EMAIL_SERVICE`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASS`, `EMAIL_SENDER`, `SENDGRID_API_KEY`
+- E-mail: `BREVO_API_KEY`, `EMAIL_SENDER`, `EMAIL_SENDER_NAME`, `RESET_PASS_URL`
 - Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, price IDs
 - Google/Maps: chave de geocoding/maps quando aplicavel
 - Sentry: DSN e auth token apenas em CI/operacao
@@ -129,7 +129,7 @@ Incidente de e-mail/reset:
 
 - Pausar envio de reset se tokens forem expostos.
 - Invalidar tokens pendentes marcando `usedAt`.
-- Rotacionar SendGrid/API key se necessario.
+- Rotacionar `BREVO_API_KEY` se necessario.
 
 Incidente Stripe:
 

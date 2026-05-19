@@ -67,7 +67,7 @@
 
 ### Fase 2 (S7–8 — quando staging existir) — Playwright contra staging
 
-1. **Signup → confirmação de e-mail.** Criar usuário novo, interceptar e-mail de confirmação via inbox Mailersend API, clicar no link.
+1. **Signup → confirmação de e-mail.** Criar usuário novo, interceptar e-mail de confirmação via logs/API transacional da Brevo, clicar no link.
 2. **Onboarding 5 passos.** Wizard completo até imóvel cadastrado.
 3. **Recomendação de preço aparece.** Verificar que o dashboard mostra sugestão (mesmo com fallback mock) e o texto não é "erro".
 4. **Checkout Stripe.** Usar cartão teste `4242 4242 4242 4242`, completar fluxo até `/my-plan` mostrar plano ativo.

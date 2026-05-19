@@ -238,7 +238,7 @@ export class WaitlistService {
 
     let emailSent = false;
     try {
-      await this.mailer.sendHtmlEmail(
+      const result = await this.mailer.sendHtmlEmail(
         { email: entry.email, name: entry.name ?? '' },
         'Seu convite para a Urban AI chegou!',
         this.buildInviteEmail({
@@ -247,7 +247,12 @@ export class WaitlistService {
           position: entry.position,
         }),
       );
-      emailSent = true;
+      emailSent = Boolean(result?.enviado);
+      if (!emailSent) {
+        this.logger.warn(
+          `Convite de waitlist nao enviado para ${entry.email}: status=${result?.status ?? 'unknown'}`,
+        );
+      }
     } catch (err) {
       this.logger.error(`Falha ao enviar convite ${entry.email}`, err);
       // Não desfaz o token — admin pode tentar reenviar.

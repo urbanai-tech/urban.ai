@@ -129,16 +129,16 @@ Setar no Railway: `NEXTAUTH_SECRET=...` e `JWT_SECRET=...`
 
 ---
 
-### 7. Mailersend — domínio + DKIM
+### 7. Brevo — domínio + DKIM
 
 **Por quê:** Sem domínio verificado, e-mails caem em spam ou são rejeitados.
 
 **Como:**
-1. Mailersend Dashboard → Domains → adicionar `urban.ai`
+1. Brevo Dashboard → Senders & IP → Domains → confirmar `myurbanai.com`
 2. Copiar DKIM/SPF/DMARC records
-3. No DNS do `urban.ai` (registro ou Cloudflare), adicionar os 3 records
+3. No DNS do domínio (registro ou Cloudflare), adicionar os records solicitados
 4. Aguardar verificação (até 24h)
-5. Setar Railway env: `MAILERSEND_API_TOKEN=...` e `MAIL_FROM=noreply@urban.ai`
+5. Setar Railway env: `BREVO_API_KEY=...`, `EMAIL_SENDER=noreply@myurbanai.com` e `EMAIL_SENDER_NAME=Urban AI`
 
 **Tempo:** 30min + 24h de espera
 
@@ -375,9 +375,9 @@ Ranqueado por impacto:
 7. **Health endpoints consolidados** — `GET /health` retorna status DB +
    Redis + Stripe + Gemini + tier IA atual. Alimenta UptimeRobot do P1 #10.
 
-8. **Email templates Mailersend** — HTMLs de boas-vindas, recuperação de
-   senha, alerta de quota excedida, recibo de pagamento. Falta dar `MAIL_FROM`
-   e tokens (P1 #7).
+8. **Email templates Brevo** — HTMLs de boas-vindas, recuperação de
+   senha, alerta de quota excedida, recibo de pagamento. Falta validar
+   remetente/DNS e envio real (P1 #7).
 
 9. **k6 load test scripts** — cenários `signup → onboarding → análise →
    checkout`. Roda em staging. Já tem k6 no projeto, falta cobrir mais
@@ -415,7 +415,7 @@ Ranqueado por impacto:
 
 ### Preflight Track 3
 
-Antes de Stripe/MailerSend/Stays/Suporte, rode:
+Antes de Stripe/Brevo/Stays/Suporte, rode:
 
 ```bash
 cd urban-ai-backend-main

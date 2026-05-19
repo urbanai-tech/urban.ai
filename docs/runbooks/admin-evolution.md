@@ -80,7 +80,7 @@ UPDATE user SET role='admin' WHERE email='gustavog.macedo16@gmail.com';
 
 - ❌ **Tickets de suporte** — não temos sistema de ticketing ainda
 - ❌ **NPS** — survey após 30 dias de uso
-- ❌ **E-mails enviados** (volume + bounce rate Mailersend)
+- ❌ **E-mails enviados** (volume + bounce rate Brevo)
 - ❌ **Notificações in-app** estatísticas
 
 **Plano:** integrar com Crisp/Intercom (free tier) → painel agrega contagens. NPS via formulário próprio + agregado em `GET /admin/nps`. ~10h dev. Vale fazer só após go-live.

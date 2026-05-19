@@ -1,6 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
-import sgMail from '@sendgrid/mail';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProcessService } from 'src/process/process.service';
 import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity';
@@ -19,7 +17,6 @@ import * as crypto from 'crypto';
 export class EmailService {
 
     private readonly logger = new Logger(EmailService.name);
-    private transporter: nodemailer.Transporter;
 
     constructor(
         @InjectRepository(AnaliseEnderecoEvento)
@@ -32,22 +29,7 @@ export class EmailService {
         private readonly passwordResetTokenRepository: Repository<PasswordResetToken>,
         private readonly notificationService: NotificationsService,
         private readonly mailerService: MailerService,
-    ) {
-        sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-        this.transporter = nodemailer.createTransport({
-            service: process.env.EMAIL_SERVICE,
-            host: process.env.EMAIL_HOST,
-            port: parseInt(process.env.EMAIL_PORT, 10),
-            secure: false, // true for 465, false for other ports
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS,
-            },
-            tls: {
-                rejectUnauthorized: false,
-            },
-        });
-    }
+    ) { }
 
     async getProfileById(userId: string) {
         const user = await this.userRepository.findOne({ where: { id: userId } });
@@ -76,31 +58,42 @@ export class EmailService {
         return `${local.slice(0, 2)}***@${domain}`;
     }
 
+    private async sendHtmlEmailOrThrow(
+        to: { email: string; name?: string },
+        subject: string,
+        htmlContent: string,
+    ) {
+        const result = await this.mailerService.sendHtmlEmail(to, subject, htmlContent);
+        if (!result?.enviado) {
+            throw new Error(result?.message || `Transactional email rejected with status=${result?.status ?? 'unknown'}`);
+        }
+        return result;
+    }
+
 
 
     async sendEmail(to: string, name: string, subject: string, quantidade: number) {
-        const msg = {
-            to: to,
-            templateId: 'd-c9cb9b52504d449f987db33d47d94ca1',
-            dynamic_template_data: {
-                name: name,
-                nome: name,
-                subject: subject,
-                quantidade: quantidade
-            },
-            from: process.env.EMAIL_SENDER,
-            subject: 'Dengue Zero',
-
-        }
-
-
         try {
-            await sgMail.send(msg);
-            console.log('Email enviado com sucesso');
-            return { enviado: true };
+            if (!to) {
+                return { enviado: false, status: 400, motivo: 'E-mail de destino ausente' };
+            }
+
+            const title = subject || 'Novos eventos';
+            const htmlContent = EmailTemplates.getEventNotificationTemplate(
+                name || 'Usuario',
+                title,
+                Number(quantidade) || 0,
+            );
+
+            const result = await this.sendHtmlEmailOrThrow(
+                { email: to, name: name || undefined },
+                `${title} - Urban AI`,
+                htmlContent,
+            );
+            return { enviado: true, status: result.status };
         } catch (error) {
-            console.error('Erro ao enviar email', error);
-            return { enviado: false };
+            this.logger.error(`Erro ao enviar email transacional: ${error instanceof Error ? error.message : error}`);
+            return { enviado: false, motivo: 'Erro interno ao enviar email' };
         }
     }
 
@@ -149,7 +142,7 @@ export class EmailService {
         } catch (error) {
             console.error('Erro ao processar forgotPassword:', error);
             if (error.response && error.response.body) {
-                console.error('Detalhes do erro SendGrid:', error.response.body);
+                console.error('Detalhes do erro do provedor de email:', error.response.body);
             }
 
             return { enviado: false, motivo: 'Erro interno ao enviar email' };
@@ -200,7 +193,7 @@ export class EmailService {
                 `${process.env.FRONT_BASE_URL}/confirm-email`
             );
 
-            await this.mailerService.sendHtmlEmail(
+            await this.sendHtmlEmailOrThrow(
                 { email: usuario?.email, name: nome },
                 "Confirmação de E-mail",
                 htmlContent
@@ -212,7 +205,7 @@ export class EmailService {
         } catch (error) {
             console.error('Erro ao enviar email de confirmação:', error);
             if (error.response && error.response.body) {
-                console.error('Detalhes do erro SendGrid:', error.response.body);
+                console.error('Detalhes do erro do provedor de email:', error.response.body);
             }
             return { enviado: false, motivo: 'Erro interno ao enviar email' };
         }
@@ -293,7 +286,7 @@ export class EmailService {
                 `${process.env.FRONT_BASE_URL}/dashboard`
             );
 
-            await this.mailerService.sendHtmlEmail(
+            await this.sendHtmlEmailOrThrow(
                 { email: usuario?.email, name: nome },
                 "Urban AI - Análise de propriedades",
                 htmlContent
@@ -305,7 +298,7 @@ export class EmailService {
         } catch (error) {
             console.error('❌ Erro ao enviar email:', error);
             if (error.response?.body) {
-                console.error('📄 Detalhes do erro SendGrid:', error.response.body);
+                console.error('📄 Detalhes do erro do provedor de email:', error.response.body);
             }
             return { enviado: false, motivo: 'Erro interno ao enviar email' };
         }
@@ -331,7 +324,7 @@ export class EmailService {
                 `${process.env.FRONT_BASE_URL}/painel`
             );
 
-            await this.mailerService.sendHtmlEmail(
+            await this.sendHtmlEmailOrThrow(
                 { email: usuario?.email, name: nome },
                 "Urban AI - Análise completed",
                 htmlContent
@@ -343,7 +336,7 @@ export class EmailService {
         } catch (error) {
             console.error('❌ Erro ao enviar email:', error);
             if (error.response?.body) {
-                console.error('📄 Detalhes do erro SendGrid:', error.response.body);
+                console.error('📄 Detalhes do erro do provedor de email:', error.response.body);
             }
             return { enviado: false, motivo: 'Erro interno ao enviar email' };
         }
@@ -385,7 +378,7 @@ export class EmailService {
                 this.buildResetLink(token)
             );
 
-            await this.mailerService.sendHtmlEmail(
+            await this.sendHtmlEmailOrThrow(
                 { email: usuario?.email, name: nome },
                 "Recuperação de Senha - Urban AI",
                 htmlContent
@@ -399,7 +392,7 @@ export class EmailService {
         } catch (error) {
             console.error('Erro ao processar forgotPassword:', error);
             if (error.response && error.response.body) {
-                console.error('Detalhes do erro SendGrid:', error.response.body);
+                console.error('Detalhes do erro do provedor de email:', error.response.body);
             }
 
             return { enviado: false, motivo: 'Erro interno ao enviar email' };
@@ -433,7 +426,7 @@ export class EmailService {
                   notificationContent.redirectTo || process.env.FRONT_BASE_URL || ''
                 );
 
-                await this.mailerService.sendHtmlEmail(
+                await this.sendHtmlEmailOrThrow(
                   { email: usuario.email, name: nome },
                   notificationContent.title || 'Nova Mensagem',
                   htmlContent
@@ -448,7 +441,7 @@ export class EmailService {
         } catch (error) {
             console.error('Erro ao processar envio:', error);
             if (error.response && error.response.body) {
-                console.error('Detalhes do erro SendGrid:', error.response.body);
+                console.error('Detalhes do erro do provedor de email:', error.response.body);
             }
 
             return { enviado: false, motivo: 'Erro interno ao enviar email ou notificação' };

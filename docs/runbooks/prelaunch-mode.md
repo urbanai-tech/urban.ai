@@ -83,7 +83,7 @@ priorizar manualmente quem mais indicou ao convidar.
 Quando admin clica "Convidar" em `/admin/waitlist`:
 1. Backend gera token de 32 bytes (64 hex chars), expira em 7 dias
 2. Status da entry muda `pending` → `invited`
-3. Email é enviado via Mailersend com template (logo, nome, link, posição)
+3. Email é enviado via Brevo com template HTML (logo, nome, link, posição)
 4. URL: `https://urban.ai/waitlist/aceitar?token=<token>`
 
 Quando o convidado clica o link:
@@ -112,7 +112,7 @@ Tudo acessível em `/admin/waitlist` (KPIs no topo + tabela detalhada).
 - **A/B test do landing copy** — feito separadamente via flags de marketing
 - **Smoke com e-mail real de convite** — o fluxo técnico já cria User via
   `POST /auth/waitlist/accept`, mas ainda precisa ser validado em staging/prod
-  com MailerSend e uma conta convidada de ponta a ponta
+  com Brevo e uma conta convidada de ponta a ponta
 
 ---
 

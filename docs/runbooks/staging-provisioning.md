@@ -64,8 +64,9 @@ Na ordem abaixo. Tudo vai puxar de `github.com/Gustavogm9/urban.ai` (branch a es
   - `SUCCESS_URL=https://staging.myurbanai.com/my-plan`
   - `CANCEL_URL=https://staging.myurbanai.com/plans`
   - `API_URL=https://staging-api.myurbanai.com` (a URL pública que você vai dar ao backend staging)
-  - `MAILERSEND_API_KEY=<pode ser a mesma; mas configurar um sender diferente>`
-  - `EMAIL_SENDER=staging-noreply@notify.myurbanai.com` (cadastrar esse subdomínio no Mailersend)
+  - `BREVO_API_KEY=<pode ser a mesma; idealmente key separada para staging>`
+  - `EMAIL_SENDER=staging-noreply@myurbanai.com` (cadastrar esse remetente/domínio na Brevo)
+  - `EMAIL_SENDER_NAME=Urban AI Staging`
   - `SENTRY_DSN=<mesma da prod ou criar projeto Sentry separado>`
   - `REDIS_URL=<url do Upstash staging>`
 - **Custom domain:** adicionar `staging-api.myurbanai.com` e criar CNAME no Hostinger apontando para o proxy do Railway.
