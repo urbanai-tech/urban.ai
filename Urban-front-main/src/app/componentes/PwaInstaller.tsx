@@ -7,11 +7,19 @@ export function PwaInstaller() {
     if (process.env.NODE_ENV !== "production") return;
     if (!("serviceWorker" in navigator)) return;
 
-    window.addEventListener("load", () => {
+    const registerServiceWorker = () => {
       navigator.serviceWorker.register("/sw.js").catch((error) => {
         console.warn("Urban AI service worker registration failed", error);
       });
-    });
+    };
+
+    if (document.readyState === "complete") {
+      registerServiceWorker();
+      return;
+    }
+
+    window.addEventListener("load", registerServiceWorker, { once: true });
+    return () => window.removeEventListener("load", registerServiceWorker);
   }, []);
 
   return null;

@@ -1,7 +1,8 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
+import { requireBaseUrl } from './config.js';
 
-const BASE_URL = __ENV.BASE_URL || 'https://staging-api.myurbanai.com';
+const BASE_URL = requireBaseUrl();
 
 export const options = {
   vus: 1,

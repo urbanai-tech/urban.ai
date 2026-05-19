@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
+    "test:e2e:pwa": "playwright test e2e/pwa-mobile.spec.ts",
+    "test:e2e:gates": "playwright test e2e/release-gate-public.spec.ts e2e/pwa-mobile.spec.ts e2e/readonly-gates.spec.ts",
     "test:e2e:ui": "playwright test --ui",
     "build:watch": "chokidar \"pages/**/*.{js,jsx,ts,tsx}\" \"components/**/*.{js,jsx,ts,tsx}\" \"lib/**/*.{js,jsx,ts,tsx}\" \"next.config.js\" --ignore \"**/node_modules/**\" --ignore \"**/.next/**\" -c \"next build\""
   },

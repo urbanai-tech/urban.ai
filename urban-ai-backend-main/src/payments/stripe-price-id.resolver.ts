@@ -37,12 +37,21 @@ export function getEnvPriceId(planName: string | undefined, cycle: BillingCycle)
 }
 
 export function getEnvKeys(planName: string | undefined, cycle: BillingCycle): string[] {
-  const planPrefix = planName ? planName.toUpperCase().replace(/[^A-Z0-9]/g, '_') : null;
+  const planPrefix = normalizePlanEnvPrefix(planName);
   const planScopedKeys = planPrefix ? getPlanScopedKeys(planPrefix, cycle) : [];
   const legacyGlobalKeys =
     cycle === 'monthly' ? ['MENSAL_PLAN'] : cycle === 'annual' ? ['ANUAL_PLAN'] : [];
 
   return [...planScopedKeys, ...legacyGlobalKeys];
+}
+
+function normalizePlanEnvPrefix(planName: string | undefined): string | null {
+  const normalized = planName
+    ?.toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+
+  return normalized || null;
 }
 
 function getPlanEntityPriceId(plan: Partial<Plan> | null | undefined, cycle: BillingCycle): string | null {

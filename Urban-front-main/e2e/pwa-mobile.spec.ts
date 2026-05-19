@@ -8,8 +8,21 @@ test.describe('PWA e mobile', () => {
     const manifest = await manifestResponse.json();
     expect(manifest.name).toBe('Urban AI');
     expect(manifest.short_name).toBe('Urban AI');
+    expect(manifest.id).toBe('/?source=pwa');
+    expect(manifest.scope).toBe('/');
     expect(manifest.display).toBe('standalone');
+    expect(manifest.background_color).toBe('#080A0F');
+    expect(manifest.theme_color).toBe('#E8500A');
+    expect(manifest.orientation).toBe('portrait');
+    expect(manifest.lang).toBe('pt-BR');
+    expect(manifest.categories).toEqual(expect.arrayContaining(['business', 'productivity']));
     expect(manifest.start_url).toContain('/dashboard');
+    expect(manifest.shortcuts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'Dashboard', url: expect.stringContaining('/dashboard') }),
+        expect.objectContaining({ name: 'Calendario', url: expect.stringContaining('/portfolio') }),
+      ]),
+    );
     expect(manifest.icons).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ src: '/pwa-icon-192.png', sizes: '192x192' }),
@@ -35,6 +48,18 @@ test.describe('PWA e mobile', () => {
 
     const swAvailable = await page.evaluate(() => 'serviceWorker' in navigator);
     expect(swAvailable).toBeTruthy();
+  });
+
+  test('service worker mantem fallback offline seguro para navegacao', async ({ request }) => {
+    const response = await request.get('/sw.js');
+    expect(response.ok()).toBeTruthy();
+
+    const source = await response.text();
+    expect(source).toContain('networkFirstNavigation');
+    expect(source).toContain('navigationPreload');
+    expect(source).toContain('cache.match("/offline.html")');
+    expect(source).toContain('url.pathname.startsWith("/api/")');
+    expect(source).toContain('request.method !== "GET"');
   });
 
   test('rotas publicas principais nao criam overflow horizontal no mobile', async ({ page }) => {
