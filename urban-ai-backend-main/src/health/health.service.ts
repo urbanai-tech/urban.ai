@@ -117,8 +117,7 @@ export class HealthService {
         'CANCEL_URL',
       ]),
       email: this.anyGroup([
-        ['MAILERSEND_API_KEY', 'EMAIL_SENDER'],
-        ['SENDGRID_API_KEY', 'EMAIL_SENDER'],
+        ['BREVO_API_KEY', 'EMAIL_SENDER'],
       ]),
       integrations: this.requiredGroup([
         'GOOGLE_MAPS_API_KEY',

@@ -474,11 +474,16 @@ export class PaymentsService {
     if (!this.mailerService || !user?.email) return;
 
     try {
-      await this.mailerService.sendHtmlEmail(
+      const result = await this.mailerService.sendHtmlEmail(
         { email: user.email, name: user.username || user.email },
         subject,
         html,
       );
+      if (!result?.enviado) {
+        console.warn(
+          `Billing email rejected for payment=${paymentId}: ${result?.message || result?.status || 'unknown'}`,
+        );
+      }
     } catch (error: any) {
       console.warn(`Billing email failed for payment=${paymentId}: ${error?.message || error}`);
     }

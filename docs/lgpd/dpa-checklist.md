@@ -26,14 +26,14 @@ Cada DPA garante que o operador trata os dados com as mesmas proteções que a U
   - Notificação de incidentes em ≤ 24h — ok no template.
 - **Após aceitar:** salvar o PDF que o Stripe disponibiliza para download.
 
-## 2. Mailersend
+## 2. Brevo
 
-- **Link:** https://www.mailersend.com/legal/dpa
-- **Como fazer:** abrir ticket no suporte pedindo DPA assinado. Eles enviam um DocuSign.
+- **Link:** https://help.brevo.com/hc/pt/articles/15403782599570-Onde-posso-encontrar-o-Contrato-de-Processamento-de-Dados-DPA
+- **Como fazer:** acessar as Condições Gerais de Uso da Brevo e localizar a seção DPA ao final do documento, conforme orientação oficial da Brevo.
 - **Pontos críticos:**
   - Dados mínimos compartilhados (só e-mail + nome + corpo do e-mail) — ok.
-  - Retenção no MailerSend: 30 dias de histórico de envios.
-- **Após assinar:** download via DocuSign, salvar no repo.
+  - Confirmar retenção de histórico de envios e subprocessadores aplicáveis no painel/termos da Brevo.
+- **Após aceitar/baixar:** salvar o comprovante/PDF no repo.
 
 ## 3. AWS
 

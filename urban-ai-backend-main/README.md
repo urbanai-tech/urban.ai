@@ -1,6 +1,6 @@
 # Urban AI — Backend (NestJS)
 
-API REST do produto. 21 módulos, motor KNN embedado, integração Stripe + Stays + Mailersend + Sentry.
+API REST do produto. 21 módulos, motor KNN embedado, integração Stripe + Stays + Brevo + Sentry.
 
 ## Stack
 
@@ -11,7 +11,7 @@ API REST do produto. 21 módulos, motor KNN embedado, integração Stripe + Stay
 | MySQL gerenciado pelo Railway | DB primário |
 | BullMQ + Upstash Redis | filas (futuro: jobs assíncronos pesados) |
 | Stripe SDK 18 | pagamentos + webhook assinado |
-| Mailersend | e-mail transacional |
+| Brevo | e-mail transacional |
 | Sentry NestJS | observabilidade |
 | Passport JWT | auth |
 | bcrypt(12) | hash de senhas |
@@ -81,7 +81,7 @@ src/
 ├── maps/               # Google Maps (geocoding, isochrones)
 ├── knn-engine/         # motor de precificação
 ├── cron/               # jobs agendados (08:00 BRT, hourly enrichment)
-├── email/ + mailer/    # SendGrid (legado) + Mailersend
+├── email/ + mailer/    # Brevo transacional
 ├── entities/           # 14 entities TypeORM
 ├── migrations/         # baseline + futuras migrations
 ├── data-source.ts      # CLI TypeORM
@@ -112,7 +112,7 @@ Ver `.env.example` para a lista completa. As essenciais:
 | `JWT_SECRET` | sempre — backend não sobe sem |
 | `DATABASE_URL` ou `DB_HOST/PORT/USER/PASSWORD/NAME` | sempre |
 | `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` | para o módulo payments |
-| `MAILERSEND_API_KEY` | para email transacional |
+| `BREVO_API_KEY` | para email transacional |
 | `RAPIDAPI_KEY` | para o módulo airbnb (até F6.4 substituir por Stays) |
 | `GOOGLE_MAPS_API_KEY` | geocoding + isochrones |
 | `GEMINI_API_KEY` | enrichment de eventos (cron hourly) |

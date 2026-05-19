@@ -263,7 +263,7 @@ export default function AdminOnboardingDripPage() {
               Escolhe variante de copy adaptativa (sem imóvel → CTA cadastrar; sem assinatura no D+7 → CTA planos).
             </li>
             <li>
-              Dispara via MailerSend best-effort. Se falhar, conta como{" "}
+              Dispara via Brevo best-effort. Se falhar, conta como{" "}
               <code style={{ color: "var(--admin-danger)" }}>failed</code> mas não bloqueia os próximos.
             </li>
             <li>

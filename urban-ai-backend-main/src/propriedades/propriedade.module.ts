@@ -16,6 +16,7 @@ import { KnnEngineModule } from '../knn-engine/knn-engine.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { PricingInputHistory } from 'src/entities/pricing-input-history.entity';
 import { PricingGuardrailService } from './pricing-guardrail.service';
+import { MailerModule } from 'src/mailer/mailer.module';
 
 @Module({
     imports: [
@@ -30,6 +31,7 @@ import { PricingGuardrailService } from './pricing-guardrail.service';
         ]),
         forwardRef(() => AirbnbModule),
         EmailModule,
+        MailerModule,
         AuthModule,
         // F6.1 — motor de pricing (engine + strategies + bootstrap)
         KnnEngineModule,
