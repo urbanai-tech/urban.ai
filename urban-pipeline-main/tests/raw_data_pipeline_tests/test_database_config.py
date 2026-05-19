@@ -44,16 +44,17 @@ class TestDatabaseCredentials:
     def test_credentials_with_special_characters(self) -> None:
         """Test credentials with special characters in password."""
         credentials = DatabaseCredentials(
-            username="user",
+            username="user@tenant",
             password="p@ss!w0rd",
             host="localhost",
             port=3306,
-            database="testdb",
+            database="test db",
         )
 
-        # URL should properly encode special characters
         connection_string = credentials.get_connection_string()
+        assert "user%40tenant" in connection_string
         assert "p%40ss%21w0rd" in connection_string  # @ becomes %40, ! becomes %21
+        assert connection_string.endswith("/test%20db")
 
     def test_credentials_different_driver(self) -> None:
         """Test credentials with different database driver."""
@@ -151,6 +152,33 @@ class TestDatabaseConfig:
         settings.MYSQL_URL = ""  # Empty URL
 
         with pytest.raises(ValueError, match="MYSQL_URL not configured"):
+            DatabaseConfig.from_settings(settings)
+
+    def test_database_config_from_settings_parses_encoded_mysql_url(self) -> None:
+        """Test parsing Railway-style MySQL URLs with encoded credentials."""
+        from raw_data_pipeline.config.settings import Settings
+
+        settings = Settings()
+        settings.MYSQL_URL = (
+            "mysql://user%40tenant:p%40ss%21w0rd@db.example.com:3307/urban%20bronze"
+        )
+
+        config = DatabaseConfig.from_settings(settings)
+
+        assert config.credentials.username == "user@tenant"
+        assert config.credentials.password == "p@ss!w0rd"
+        assert config.credentials.host == "db.example.com"
+        assert config.credentials.port == 3307
+        assert config.credentials.database == "urban bronze"
+
+    def test_database_config_from_settings_rejects_unsupported_scheme(self) -> None:
+        """Test unsupported MYSQL_URL schemes fail clearly."""
+        from raw_data_pipeline.config.settings import Settings
+
+        settings = Settings()
+        settings.MYSQL_URL = "postgresql://user:pass@localhost:5432/db"
+
+        with pytest.raises(ValueError, match="Unsupported MYSQL_URL scheme"):
             DatabaseConfig.from_settings(settings)
 
 

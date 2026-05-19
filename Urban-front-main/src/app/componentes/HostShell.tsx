@@ -70,6 +70,7 @@ export default function HostShell({
             <Box
               as="main"
               flex="1"
+              minH={0}
               className="urban-app"
               sx={{
                 padding: noPadding

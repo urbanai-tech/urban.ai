@@ -20,6 +20,8 @@ const groups = [
   emailReadiness(env),
   staysReadiness(env),
   supportReadiness(env),
+  adminOpsReadiness(env),
+  dataRoiReadiness(env),
 ];
 
 const blockers = groups.flatMap((group) =>
@@ -211,6 +213,63 @@ function supportReadiness(env) {
     blockers,
     warnings,
     nextAction: 'Confirm inbox access, owners and P0/LGPD response ritual before accepting paid beta users.',
+  };
+}
+
+function adminOpsReadiness(env) {
+  const blockers = [];
+  const warnings = [];
+
+  requireEnv(env, blockers, 'JWT_SECRET');
+  requireEnv(env, blockers, 'FRONT_BASE_URL');
+  requireEnv(env, blockers, 'CORS_ALLOWED_ORIGINS');
+
+  const appEnv = value(env, 'APP_ENV') || value(env, 'NODE_ENV') || 'development';
+  const isProdLike = ['production', 'prod', 'staging'].includes(appEnv.toLowerCase());
+  const dbSynchronize = value(env, 'DB_SYNCHRONIZE').toLowerCase();
+  const migrationsRun = value(env, 'MIGRATIONS_RUN').toLowerCase();
+
+  if (isProdLike && dbSynchronize === 'true') {
+    blockers.push('DB_SYNCHRONIZE must be false in production/staging');
+  }
+  if (isProdLike && migrationsRun !== 'true') {
+    warnings.push('MIGRATIONS_RUN should be true in production/staging cutover flow');
+  }
+  optionalEnv(env, warnings, 'SENTRY_DSN');
+  optionalEnv(env, warnings, 'ADMIN_ALERT_EMAIL');
+
+  return {
+    label: 'Admin and ops',
+    blockers,
+    warnings,
+    nextAction: 'Confirm admin users, audit-log visibility, job-run history and smoke the guarded admin mutations.',
+  };
+}
+
+function dataRoiReadiness(env) {
+  const blockers = [];
+  const warnings = [];
+
+  requireEnv(env, blockers, 'GOOGLE_MAPS_API_KEY');
+  requireEnv(env, blockers, 'GEMINI_API_KEY');
+  optionalEnv(env, warnings, 'AIRROI_API_KEY');
+  optionalEnv(env, warnings, 'MAPBOX_TOKEN');
+
+  const strategy = value(env, 'PRICING_STRATEGY') || 'rules';
+  const validStrategies = new Set(['rules', 'xgboost', 'shadow', 'auto', 'adaptive']);
+  if (!validStrategies.has(strategy)) {
+    blockers.push(`PRICING_STRATEGY=${strategy} is not supported`);
+  }
+
+  if (value(env, 'PRICING_BOOTSTRAP_ON_BOOT').toLowerCase() === 'false') {
+    warnings.push('PRICING_BOOTSTRAP_ON_BOOT=false; confirm this is intentional outside local tests');
+  }
+
+  return {
+    label: 'Data, ROI and cases',
+    blockers,
+    warnings,
+    nextAction: 'Run dataset diagnostics, pricing quality, ROI overview and capture 3 audited case studies before public proof claims.',
   };
 }
 

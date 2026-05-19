@@ -5,7 +5,16 @@ import { AppButton } from "./AppButton";
 import { AppBadge } from "./AppBadge";
 import { DriverBar } from "./DriverBar";
 import { ScenarioComparison } from "./ScenarioComparison";
-import { ArrowRight, Calendar, ChevronDown, Close, MapPin, Sparkles, TrendingUp } from "./Icons";
+import {
+  ArrowRight,
+  Calendar,
+  ChevronDown,
+  Close,
+  MapPin,
+  Sparkles,
+  TrendingDown,
+  TrendingUp,
+} from "./Icons";
 import type {
   Drivers,
   HistoricalComparison,
@@ -98,6 +107,11 @@ function fmtPct(value: number, fractionDigits = 0): string {
   return `${pct.toFixed(fractionDigits)}%`;
 }
 
+function fmtSignedPct(value: number, fractionDigits = 1): string {
+  const sign = value > 0 ? "+" : "";
+  return `${sign}${value.toFixed(fractionDigits)}%`;
+}
+
 const CONFIDENCE_LABEL: Record<RecommendationConfidence, string> = {
   high: "Confianca alta",
   medium: "Confianca media",
@@ -128,9 +142,315 @@ function useIsMobile(): boolean {
 }
 
 /**
- * Body do bloco "Por que esse preco?" — usado tanto inline (desktop expand)
- * quanto dentro do sheet mobile.
+ * Traduz justificativas tecnicas do motor em leitura didatica para o anfitriao.
  */
+type ParsedReason = {
+  marketPrice?: number;
+  eventMultiplier?: number;
+  guardrailDownPct?: number;
+  guardrailUpPct?: number;
+  isTechnical: boolean;
+};
+
+type ExplanationItem = {
+  label: string;
+  value: string;
+  detail: string;
+};
+
+function parseLocaleNumber(raw: string | undefined): number | undefined {
+  if (!raw) return undefined;
+  const cleaned = raw.replace(/R\$/gi, "").replace(/[^\d.,-]/g, "").trim();
+  if (!cleaned) return undefined;
+
+  const lastComma = cleaned.lastIndexOf(",");
+  const lastDot = cleaned.lastIndexOf(".");
+  let normalized = cleaned;
+
+  if (lastComma >= 0 && lastDot >= 0) {
+    normalized =
+      lastComma > lastDot
+        ? cleaned.replace(/\./g, "").replace(",", ".")
+        : cleaned.replace(/,/g, "");
+  } else if (lastComma >= 0) {
+    normalized = cleaned.replace(",", ".");
+  }
+
+  const value = Number(normalized);
+  return Number.isFinite(value) ? value : undefined;
+}
+
+function parseReason(reason?: string): ParsedReason {
+  const text = reason?.trim() ?? "";
+  const marketMatch = text.match(/\bmercado\s*=\s*(?:R\$\s*)?([\d.,]+)/i);
+  const eventMatch = text.match(/\bevento\s*=\s*([\d.,]+)\s*x/i);
+  const guardrailMatch = text.match(
+    /\bguardrail\s*=\s*([\d.,]+)\s*%\s*queda\s*\/\s*([\d.,]+)\s*%\s*alta/i,
+  );
+
+  return {
+    marketPrice: parseLocaleNumber(marketMatch?.[1]),
+    eventMultiplier: parseLocaleNumber(eventMatch?.[1]),
+    guardrailDownPct: parseLocaleNumber(guardrailMatch?.[1]),
+    guardrailUpPct: parseLocaleNumber(guardrailMatch?.[2]),
+    isTechnical: /\w+\s*=/.test(text) || Boolean(marketMatch || eventMatch || guardrailMatch),
+  };
+}
+
+function buildExplanation({
+  currentPrice,
+  suggestedPrice,
+  deltaAbs,
+  deltaPct,
+  eventTitle,
+  reason,
+}: {
+  currentPrice: number;
+  suggestedPrice: number;
+  deltaAbs: number;
+  deltaPct: number;
+  eventTitle: string;
+  reason?: string;
+}): { lead: string; body: string; items: ExplanationItem[]; humanReason?: string } {
+  const parsed = parseReason(reason);
+  const isIncrease = deltaAbs > 0.5;
+  const isDecrease = deltaAbs < -0.5;
+  const marketPrice = parsed.marketPrice;
+  const eventImpactPct =
+    typeof parsed.eventMultiplier === "number"
+      ? (parsed.eventMultiplier - 1) * 100
+      : undefined;
+
+  const lead = isIncrease
+    ? `Aumentar ${fmtBRL(Math.abs(deltaAbs))} (${fmtSignedPct(deltaPct)}).`
+    : isDecrease
+      ? `Reduzir ${fmtBRL(Math.abs(deltaAbs))} (${fmtSignedPct(deltaPct)}).`
+      : "Manter a diaria atual.";
+
+  let body: string;
+  if (typeof eventImpactPct === "number" && Math.abs(eventImpactPct) >= 0.5) {
+    if (eventImpactPct > 0) {
+      body = `O evento adiciona ${fmtSignedPct(eventImpactPct, 0)} de demanda estimada. Por isso o motor parte da referencia e sobe a diaria para ${fmtBRL(suggestedPrice)}.`;
+    } else {
+      body = `O sinal de demanda esta ${fmtSignedPct(eventImpactPct, 0)} abaixo da referencia. Por isso o motor recomenda um valor mais competitivo para a data.`;
+    }
+  } else if (isIncrease) {
+    body = "O motor encontrou sinais de procura acima do normal para esta data e sugere capturar essa oportunidade sem ultrapassar a faixa de seguranca.";
+  } else if (isDecrease) {
+    body = "O motor entende que a demanda esperada nao sustenta o preco atual. A reducao deixa a diaria mais competitiva para converter reserva.";
+  } else {
+    body = "O motor nao encontrou pressao suficiente para subir ou baixar a diaria com seguranca nesta data.";
+  }
+
+  const items: ExplanationItem[] = [
+    {
+      label: "Referencia",
+      value: fmtBRL(marketPrice ?? currentPrice),
+      detail: marketPrice
+        ? "Preco-base usado para comparar esta diaria com o mercado."
+        : "Ponto de partida usado no calculo da recomendacao.",
+    },
+  ];
+
+  if (typeof eventImpactPct === "number") {
+    items.push({
+      label: "Evento",
+      value: fmtSignedPct(eventImpactPct, 0),
+      detail:
+        eventImpactPct > 0
+          ? "Pressao extra de demanda por causa do evento proximo."
+          : eventImpactPct < 0
+            ? "Sinal de menor demanda para a data analisada."
+            : "Sem impacto relevante de evento no preco final.",
+    });
+  } else {
+    items.push({
+      label: "Sinal",
+      value: eventTitle ? "Evento proximo" : "Demanda",
+      detail: eventTitle
+        ? "O evento e um dos sinais usados para estimar procura na regiao."
+        : "O motor compara demanda esperada, mercado e preco atual.",
+    });
+  }
+
+  if (
+    typeof parsed.guardrailDownPct === "number" &&
+    typeof parsed.guardrailUpPct === "number"
+  ) {
+    items.push({
+      label: "Seguranca",
+      value: `-${parsed.guardrailDownPct.toFixed(0)}% / +${parsed.guardrailUpPct.toFixed(0)}%`,
+      detail: "Limite que evita queda ou alta agressiva demais.",
+    });
+  }
+
+  items.push({
+    label: "Resultado",
+    value: fmtBRL(suggestedPrice),
+    detail: isIncrease
+      ? "Preco final sugerido depois do ajuste de demanda."
+      : isDecrease
+        ? "Preco final sugerido para ganhar competitividade."
+        : "Preco final sugerido para manter estabilidade.",
+  });
+
+  return {
+    lead,
+    body,
+    items,
+    humanReason: reason && !parsed.isTechnical ? reason : undefined,
+  };
+}
+
+function RecommendationReason({
+  currentPrice,
+  suggestedPrice,
+  deltaAbs,
+  deltaPct,
+  eventTitle,
+  reason,
+}: {
+  currentPrice: number;
+  suggestedPrice: number;
+  deltaAbs: number;
+  deltaPct: number;
+  eventTitle: string;
+  reason?: string;
+}) {
+  const explanation = buildExplanation({
+    currentPrice,
+    suggestedPrice,
+    deltaAbs,
+    deltaPct,
+    eventTitle,
+    reason,
+  });
+
+  return (
+    <section
+      aria-label="Explicacao da sugestao"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 12,
+        paddingTop: 14,
+        borderTop: "1px solid var(--app-divider)",
+      }}
+    >
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "auto minmax(0, 1fr)",
+          gap: 10,
+          alignItems: "start",
+        }}
+      >
+        <span
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: 999,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "var(--app-accent-soft)",
+            color: "var(--app-accent)",
+            flexShrink: 0,
+          }}
+        >
+          <Sparkles size={14} />
+        </span>
+        <div style={{ minWidth: 0 }}>
+          <span className="urban-app-eyebrow-muted">
+            Por que o motor sugeriu isso?
+          </span>
+          <p
+            style={{
+              fontSize: 13,
+              color: "var(--app-text)",
+              lineHeight: 1.55,
+              margin: "6px 0 0",
+            }}
+          >
+            <strong>{explanation.lead}</strong> {explanation.body}
+          </p>
+          {explanation.humanReason && (
+            <p
+              style={{
+                fontSize: 12,
+                color: "var(--app-text-muted)",
+                lineHeight: 1.5,
+                margin: "6px 0 0",
+              }}
+            >
+              Motivo informado: {explanation.humanReason}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 136px), 1fr))",
+          borderTop: "1px solid var(--app-divider)",
+          borderBottom: "1px solid var(--app-divider)",
+        }}
+      >
+        {explanation.items.map((item, index) => (
+          <div
+            key={`${item.label}-${index}`}
+            style={{
+              padding: "10px 12px",
+              borderRight:
+                index === explanation.items.length - 1
+                  ? "none"
+                  : "1px solid var(--app-divider)",
+              minWidth: 0,
+            }}
+          >
+            <span
+              style={{
+                display: "block",
+                fontSize: 10,
+                letterSpacing: 1.2,
+                textTransform: "uppercase",
+                color: "var(--app-text-dim)",
+                fontWeight: 700,
+                lineHeight: 1.2,
+              }}
+            >
+              {item.label}
+            </span>
+            <strong
+              style={{
+                display: "block",
+                color: "var(--app-text)",
+                fontSize: 13,
+                lineHeight: 1.35,
+                marginTop: 4,
+              }}
+            >
+              {item.value}
+            </strong>
+            <span
+              style={{
+                display: "block",
+                color: "var(--app-text-muted)",
+                fontSize: 11,
+                lineHeight: 1.35,
+                marginTop: 3,
+              }}
+            >
+              {item.detail}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function ExplainerBody({
   drivers,
   historicalComparison,
@@ -256,6 +576,7 @@ export function RecommendationCard({
   const deltaPct = currentPrice > 0 ? (deltaAbs / currentPrice) * 100 : 0;
   const deltaSign = deltaAbs > 0 ? "+" : "";
   const deltaLabel = `${deltaSign}${deltaPct.toFixed(1)}%`;
+  const DeltaIcon = deltaAbs < 0 ? TrendingDown : TrendingUp;
 
   const isApplied = status === "applied";
   const isAccepted = status === "accepted";
@@ -415,34 +736,20 @@ export function RecommendationCard({
             fontWeight: 600,
           }}
         >
-          <TrendingUp size={12} />
+          <DeltaIcon size={12} />
           {deltaLabel}
         </div>
       </div>
 
-      {/* === Motivo (pull quote curto) === */}
-      {reason && (
-        <div
-          style={{
-            display: "flex",
-            gap: 10,
-            paddingTop: 12,
-            borderTop: "1px solid var(--app-divider)",
-          }}
-        >
-          <Sparkles size={14} style={{ color: "var(--app-accent)", marginTop: 2, flexShrink: 0 }} />
-          <p
-            style={{
-              fontSize: 13,
-              color: "var(--app-text)",
-              lineHeight: 1.55,
-              margin: 0,
-            }}
-          >
-            {reason}
-          </p>
-        </div>
-      )}
+      {/* === Explicacao didatica da recomendacao === */}
+      <RecommendationReason
+        currentPrice={currentPrice}
+        suggestedPrice={suggestedPrice}
+        deltaAbs={deltaAbs}
+        deltaPct={deltaPct}
+        eventTitle={eventTitle}
+        reason={reason}
+      />
 
       {/* === Confianca + CTAs === */}
       <div
