@@ -62,7 +62,7 @@ export function CookieConsent() {
         borderWidth="1px"
         borderColor="rgba(255,255,255,0.16)"
         p={{ base: 3, md: 4 }}
-        maxW={{ md: "430px" }}
+        maxW={{ md: "390px" }}
         mx={{ base: 0, md: "initial" }}
         role="region"
         aria-label="Consentimento de cookies"

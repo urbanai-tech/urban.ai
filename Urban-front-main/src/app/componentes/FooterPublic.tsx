@@ -10,11 +10,7 @@ import NextLink from "next/link";
  * sem cards de 4 colunas estilo SaaS. Tipografia editorial, accent #E8500A
  * apenas em hover/destaque.
  */
-const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL ||
-  (typeof window !== "undefined" && window.location.hostname === "localhost"
-    ? "/"
-    : "https://app.myurbanai.com/");
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.myurbanai.com/";
 
 const COL_PRODUTO = [
   { label: "Manifesto", href: "/" },
@@ -193,7 +189,7 @@ function FooterColumn({
       >
         {items.map((it) =>
           it.external ? (
-            <li key={it.href}>
+            <li key={`${it.label}-${it.href}`}>
               <a
                 href={it.href}
                 style={footerLinkStyle}
@@ -204,7 +200,7 @@ function FooterColumn({
               </a>
             </li>
           ) : (
-            <li key={it.href}>
+            <li key={`${it.label}-${it.href}`}>
               <NextLink
                 href={it.href}
                 style={footerLinkStyle}

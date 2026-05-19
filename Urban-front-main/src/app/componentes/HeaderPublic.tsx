@@ -11,11 +11,7 @@ import NextLink from "next/link";
  *
  * Os CTAs apontam pro subdomain do app (`app.myurbanai.com/`).
  */
-const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL ||
-  (typeof window !== "undefined" && window.location.hostname === "localhost"
-    ? "/"
-    : "https://app.myurbanai.com/");
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.myurbanai.com/";
 
 const NAV = [
   { label: "Manifesto", href: "/" },
