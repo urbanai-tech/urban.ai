@@ -5,7 +5,8 @@ import { headers } from "next/headers";
  * robots.txt host-aware.
  *
  * Next 15 chama esta função no request-time. Lemos o `host` do request:
- *  - myurbanai.com (apex) → permitir tudo público; bloquear só rotas de app
+ *  - myurbanai.com (apex) e aliases públicos → permitir público;
+ *    bloquear só rotas de app
  *  - app.myurbanai.com → Disallow: / (não queremos app indexado)
  *  - localhost / preview → Disallow: / (zero indexação)
  *
@@ -18,7 +19,12 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
   const cleanHost = host.split(":")[0];
 
   // Site público — indexar landing, sobre, lancamento, etc.
-  if (cleanHost === "myurbanai.com" || cleanHost === "www.myurbanai.com") {
+  if (
+    cleanHost === "myurbanai.com" ||
+    cleanHost === "www.myurbanai.com" ||
+    cleanHost === "myurbanai.com.br" ||
+    cleanHost === "www.myurbanai.com.br"
+  ) {
     return {
       rules: [
         {

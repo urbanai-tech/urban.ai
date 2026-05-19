@@ -4,15 +4,20 @@ import { headers } from "next/headers";
 /**
  * sitemap.xml host-aware.
  *
- * Só publicamos sitemap em myurbanai.com (apex). app.myurbanai.com retorna
- * vazio — o app não deve aparecer em busca orgânica.
+ * Só publicamos sitemap em myurbanai.com (apex) e aliases públicos.
+ * app.myurbanai.com retorna vazio — o app não deve aparecer em busca orgânica.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const headersList = await headers();
   const host = headersList.get("host") ?? "";
   const cleanHost = host.split(":")[0];
 
-  if (cleanHost !== "myurbanai.com" && cleanHost !== "www.myurbanai.com") {
+  if (
+    cleanHost !== "myurbanai.com" &&
+    cleanHost !== "www.myurbanai.com" &&
+    cleanHost !== "myurbanai.com.br" &&
+    cleanHost !== "www.myurbanai.com.br"
+  ) {
     return [];
   }
 
