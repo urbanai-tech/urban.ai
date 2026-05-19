@@ -26,7 +26,7 @@ test.describe('F8 Happy Path: waitlist -> convite -> aceite -> dashboard', () =>
 
     await expect(page.getByRole('heading', { name: /ESGOTAR R.PIDO/i })).toBeVisible();
 
-    const emailInput = page.locator('input[type="email"][id="waitlist-email"]');
+    const emailInput = page.locator('input[type="email"][id="waitlist-email"]').first();
     await expect(emailInput).toBeVisible();
     await emailInput.fill('teste.e2e@urbanai.com.br');
 
