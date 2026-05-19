@@ -47,7 +47,7 @@ export class OnboardingDripService {
   }
 
   /**
-   * Cron diario as 10:00 UTC. MailerSend tende a entregar melhor entre 9-11h
+   * Cron diario as 10:00 UTC. E-mail transacional tende a entregar melhor entre 9-11h
    * locais; UTC-3 (Brasil) coloca o disparo em ~7:00 BRT — chega na caixa
    * antes do anfitriao abrir o e-mail no inicio do dia.
    */
@@ -184,7 +184,7 @@ export class OnboardingDripService {
     );
 
     if (!result?.enviado) {
-      throw new Error(`MailerSend rejected email with status=${result?.status ?? 'unknown'}`);
+      throw new Error(`Transactional email provider rejected email with status=${result?.status ?? 'unknown'}`);
     }
   }
 

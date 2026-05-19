@@ -109,6 +109,8 @@ export default function AdminDashboardPage() {
         ? "var(--admin-warning)"
         : "var(--admin-danger)";
 
+  const emailProviderConfigured = data.email?.brevoApiKeyConfigured ?? false;
+
   return (
     <div style={{ maxWidth: 1400, margin: "0 auto", padding: "40px 32px" }}>
       <AdminSectionHeader
@@ -469,9 +471,9 @@ export default function AdminDashboardPage() {
 
         <DataBlock title="E-mail" icon={<Icons.Mail size={14} />} href="/admin/onboarding-drip">
           <SmallStat
-            label="MailerSend"
-            value={data.email?.mailerSendApiKeyConfigured ? "ok" : "faltando"}
-            status={data.email?.mailerSendApiKeyConfigured ? "success" : "warn"}
+            label="Brevo"
+            value={emailProviderConfigured ? "ok" : "faltando"}
+            status={emailProviderConfigured ? "success" : "warn"}
           />
           <SmallStat
             label="Sender"

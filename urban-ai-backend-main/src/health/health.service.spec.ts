@@ -107,7 +107,7 @@ describe('HealthService', () => {
     process.env.STRIPE_WEBHOOK_SECRET = 'whsec_secret';
     process.env.SUCCESS_URL = 'https://app.test/success';
     process.env.CANCEL_URL = 'https://app.test/cancel';
-    process.env.MAILERSEND_API_KEY = 'mailersend-secret';
+    process.env.BREVO_API_KEY = 'brevo-secret';
     process.env.EMAIL_SENDER = 'noreply@test';
 
     const result = await new HealthService(undefined as any).getHealth();
@@ -131,7 +131,7 @@ describe('HealthService', () => {
     expect(result.checks.env.email.ready).toBe(true);
     expect(serialized).not.toContain('very-sensitive');
     expect(serialized).not.toContain('sk_test_secret');
-    expect(serialized).not.toContain('mailersend-secret');
+    expect(serialized).not.toContain('brevo-secret');
   });
 
   it('degrades when critical env groups are not ready', async () => {

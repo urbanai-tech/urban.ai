@@ -7,7 +7,7 @@ Procedimentos passo-a-passo para os 5 cenários mais prováveis de incidente em 
 1. [`db-down.md`](./db-down.md) — MySQL Railway indisponível
 2. [`scrapyd-travado.md`](./scrapyd-travado.md) — Scrapyd não responde / spiders travados
 3. [`prefect-flow-falhando.md`](./prefect-flow-falhando.md) — flow Prefect falha por 2+ dias
-4. [`mailersend-rate-limit.md`](./mailersend-rate-limit.md) — Mailersend rate-limited / e-mails não saem
+4. [`brevo-rate-limit.md`](./brevo-rate-limit.md) — Brevo rate-limited / e-mails não saem
 5. [`stripe-price-id-mudou.md`](./stripe-price-id-mudou.md) — Price ID Stripe inválido / checkout quebrado
 
 ## Princípios gerais
@@ -29,7 +29,7 @@ Procedimentos passo-a-passo para os 5 cenários mais prováveis de incidente em 
 
 - **Canal interno**: WhatsApp Gustavo (futuro: Slack #incidents)
 - **Status público**: a configurar — proposta inicial é uma página estática no GitHub Pages com Status Page por scripts manuais.
-- **Comunicação aos usuários**: e-mail via Mailersend (template a criar) + banner no app (a implementar).
+- **Comunicação aos usuários**: e-mail via Brevo (template a criar) + banner no app (a implementar).
 
 ## Postmortem
 

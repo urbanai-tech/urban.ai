@@ -10,14 +10,14 @@ import {
 /**
  * Custos operacionais da plataforma Urban AI.
  *
- * Cada linha = uma fonte de custo (Railway, Mailersend, Gemini, Stripe,
+ * Cada linha = uma fonte de custo (Railway, Brevo, Gemini, Stripe,
  * Firecrawl, contractor, marketing, etc.). Permite o `/admin/finance`
  * calcular margem real, custo por imóvel e simular cenários de pricing.
  *
  * Categorias sugeridas:
  *  - 'infra': Railway, Upstash, AWS S3, GCP, Sentry, UptimeRobot
  *  - 'apis': RapidAPI, Gemini, Google Maps, api-football, Firecrawl
- *  - 'comms': Mailersend, SendGrid, WhatsApp Business
+ *  - 'comms': Brevo, WhatsApp Business
  *  - 'payments': Stripe (taxa)
  *  - 'people': contractor dev, agência marketing, suporte
  *  - 'marketing': Google Ads, Meta Ads, mídia direta, design
@@ -26,7 +26,7 @@ import {
  *  - 'other': eventuais, ajustes
  *
  * Recorrência:
- *  - 'monthly': cobrado todo mês com valor estável (Railway, Mailersend)
+ *  - 'monthly': cobrado todo mês com valor estável (Railway, Brevo)
  *  - 'usage_based': varia conforme uso (Gemini, Maps); valor é estimativa
  *  - 'one_time': pago uma vez (advogado pontual, audit)
  *  - 'percentual': % de receita (Stripe ~5%; usar `percentOfRevenue`)
@@ -70,7 +70,7 @@ export class PlatformCost {
 
   /**
    * Indica se o custo escala diretamente com o número de imóveis ativos.
-   * Útil para calcular "custo por imóvel". Ex: Mailersend cresce com volume
+   * Útil para calcular "custo por imóvel". Ex: Brevo cresce com volume
    * de e-mails (proporcional a usuários, e usuários ~ imóveis).
    */
   @Column({ type: 'boolean', default: false })

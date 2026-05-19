@@ -27,6 +27,7 @@ import { UrbanAIPricingEngine } from '../knn-engine/pricing-engine';
 import { DatasetCollectorService } from '../knn-engine/dataset-collector.service';
 import { PricingInputHistory } from 'src/entities/pricing-input-history.entity';
 import { PricingGuardrailService } from './pricing-guardrail.service';
+import { MailerService } from 'src/mailer/mailer.service';
 
 class PropertyResponseDto {
     bedrooms: number;
@@ -126,6 +127,7 @@ export class PropriedadeService {
         @Inject(forwardRef(() => AirbnbService))
         private readonly airbnbService: AirbnbService,
         private readonly emailService: EmailService,
+        private readonly mailerService: MailerService,
         private readonly aiEngine: UrbanAIPricingEngine,
         private readonly datasetCollector: DatasetCollectorService,
         private readonly pricingGuardrailService: PricingGuardrailService,
@@ -808,18 +810,15 @@ export class PropriedadeService {
                 </div>
             `;
 
-            // Envia via MailerService
-            const { MailerSend, EmailParams, Sender, Recipient } = require('mailersend');
-            const mailerSend = new MailerSend({ apiKey: process.env.MAILERSEND_API_KEY });
-            const sentFrom = new Sender(process.env.EMAIL_SENDER || 'noreply@notify.myurbanai.com', 'Urban AI System');
-            const recipients = [new Recipient(adminEmail, 'Admin')];
-            const emailParams = new EmailParams()
-                .setFrom(sentFrom)
-                .setTo(recipients)
-                .setSubject(subject)
-                .setHtml(htmlContent);
-            
-            await mailerSend.email.send(emailParams);
+            const result = await this.mailerService.sendHtmlEmail(
+                { email: adminEmail, name: 'Admin' },
+                subject,
+                htmlContent,
+            );
+
+            if (!result.enviado) {
+                throw new Error(result.message || `Brevo rejected email with status=${result.status}`);
+            }
 
             console.log(`📧 [notifyAdmin] E-mail de alerta enviado para ${adminEmail}`);
         } catch (err: any) {
