@@ -45,13 +45,28 @@ const SECONDARY_NAV = [
   { path: '/event-log', label: 'Ajustes', icon: 'settings' as const },
 ];
 
+const HOST_SIDEBAR_COLLAPSED_KEY = 'urban-host-sidebar-collapsed';
+
 export default function SideBar() {
   const { t: _t } = useTranslation();
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname() || '';
   const [me, setMe] = useState<Me | null>(null);
+
+  useEffect(() => {
+    try {
+      const savedCollapsed = window.localStorage.getItem(HOST_SIDEBAR_COLLAPSED_KEY);
+      if (savedCollapsed === 'true') {
+        setCollapsed(true);
+      } else if (savedCollapsed === 'false') {
+        setCollapsed(false);
+      }
+    } catch {
+      /* keep the default expanded state */
+    }
+  }, []);
 
   useEffect(() => {
     api
@@ -99,6 +114,18 @@ export default function SideBar() {
   const isAdmin = (me?.role || '').toLowerCase() === 'admin';
   const displayName = me?.username || 'Anfitrião';
   const initial = displayName.charAt(0).toUpperCase();
+
+  function handleSidebarToggle() {
+    setCollapsed((current) => {
+      const next = !current;
+      try {
+        window.localStorage.setItem(HOST_SIDEBAR_COLLAPSED_KEY, String(next));
+      } catch {
+        /* preference persistence is best-effort */
+      }
+      return next;
+    });
+  }
 
   return (
     <>
@@ -166,7 +193,7 @@ export default function SideBar() {
           )}
           <button
             type="button"
-            onClick={() => setCollapsed((v) => !v)}
+            onClick={handleSidebarToggle}
             aria-label={collapsed ? 'Expandir menu' : 'Colapsar menu'}
             style={{
               width: 32,

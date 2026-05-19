@@ -26,6 +26,7 @@ import { CreateNotificationDto } from 'src/notifications/tdo/create-notification
 import { UrbanAIPricingEngine } from '../knn-engine/pricing-engine';
 import { DatasetCollectorService } from '../knn-engine/dataset-collector.service';
 import { PricingInputHistory } from 'src/entities/pricing-input-history.entity';
+import { PricingGuardrailService } from './pricing-guardrail.service';
 
 class PropertyResponseDto {
     bedrooms: number;
@@ -37,6 +38,8 @@ type PublicListResponse = {
     id: string;
     titulo: string;
     id_do_anuncio: string;
+    internalNickname: string | null;
+    internalCode: string | null;
     pictureUrl: string | null;
     ativo: boolean;
     userId: string | null;
@@ -125,6 +128,7 @@ export class PropriedadeService {
         private readonly emailService: EmailService,
         private readonly aiEngine: UrbanAIPricingEngine,
         private readonly datasetCollector: DatasetCollectorService,
+        private readonly pricingGuardrailService: PricingGuardrailService,
     ) { }
 
     async findByUserId(
@@ -190,6 +194,8 @@ export class PropriedadeService {
         averageMonthlyRevenue: number | null;
         dailyPrice: number | null;
         pricingInputSource: string | null;
+        internalNickname: string | null;
+        internalCode: string | null;
     }[]> {
         // Busca específica pelo userId fornecido
         const addresses = await this.addressRepository.find({
@@ -207,12 +213,41 @@ export class PropriedadeService {
             userId: userId,
             analisado: address?.analisado,
             id_do_anuncio: address.list?.id_do_anuncio,
+            internalNickname: address.list?.internalNickname ?? null,
+            internalCode: address.list?.internalCode ?? null,
             manualDailyPrice: address.list?.manualDailyPrice ?? null,
             averageMonthlyRevenue: address.list?.averageMonthlyRevenue ?? null,
             dailyPrice: address.list?.dailyPrice ?? null,
             pricingInputSource: address.list?.pricingInputSource ?? null,
         }));
 
+    }
+
+    async updateIdentity(
+        addressId: string,
+        userId: string,
+        input: { internalNickname?: string | null; internalCode?: string | null },
+    ) {
+        const address = await this.addressRepository.findOne({
+            where: { id: addressId, user: { id: userId } },
+            relations: ['list'],
+        });
+
+        if (!address?.list) {
+            throw new NotFoundException('Propriedade nao encontrada');
+        }
+
+        address.list.internalNickname = this.normalizeOptionalText(input.internalNickname, 'internalNickname', 80);
+        address.list.internalCode = this.normalizeOptionalText(input.internalCode, 'internalCode', 32);
+
+        const saved = await this.propriedades.save(address.list);
+
+        return {
+            addressId,
+            listId: saved.id,
+            internalNickname: saved.internalNickname ?? null,
+            internalCode: saved.internalCode ?? null,
+        };
     }
 
     async updatePricingInputs(
@@ -322,6 +357,16 @@ export class PropriedadeService {
         return Math.round(Number(a) * 100) === Math.round(Number(b) * 100);
     }
 
+    private normalizeOptionalText(value: unknown, field: string, maxLength: number): string | null {
+        if (value === undefined || value === null) return null;
+        const normalized = String(value).trim();
+        if (!normalized) return null;
+        if (normalized.length > maxLength) {
+            throw new HttpException(`${field} deve ter no maximo ${maxLength} caracteres`, HttpStatus.BAD_REQUEST);
+        }
+        return normalized;
+    }
+
     private normalizeOptionalMoney(value: unknown, field: string): number | null {
         if (value === undefined || value === null || value === '') return null;
         const parsed = Number(String(value).replace(',', '.'));
@@ -357,6 +402,8 @@ export class PropriedadeService {
             id: list.id,
             titulo: list.titulo,
             id_do_anuncio: list.id_do_anuncio,
+            internalNickname: list.internalNickname ?? null,
+            internalCode: list.internalCode ?? null,
             pictureUrl: list.pictureUrl ?? null,
             ativo: list.ativo,
             userId: list.user?.id ?? null,
@@ -1475,6 +1522,32 @@ export class PropriedadeService {
         }
     }
 
+    private getUniqueAnalysesByEvent(analyses: AnaliseEnderecoEvento[]) {
+        const byEvent = new Map<string, AnaliseEnderecoEvento>();
+        for (const analysis of analyses) {
+            const eventId = analysis?.evento?.id;
+            if (!eventId || byEvent.has(eventId)) continue;
+            byEvent.set(eventId, analysis);
+        }
+        return Array.from(byEvent.values());
+    }
+
+    private buildPricingNotificationDescription(listTitle: string | undefined, created: number, updated: number) {
+        const propertyLabel = listTitle || 'imovel';
+        if (created > 0 && updated > 0) {
+            return `Geramos ${this.formatSuggestionCount(created, 'nova')} e atualizamos ${this.formatSuggestionCount(updated)} para a propriedade ${propertyLabel}.`;
+        }
+        if (created > 0) {
+            return `Geramos ${this.formatSuggestionCount(created)} para a propriedade ${propertyLabel}.`;
+        }
+        return `Atualizamos ${this.formatSuggestionCount(updated)} para a propriedade ${propertyLabel}.`;
+    }
+
+    private formatSuggestionCount(count: number, qualifier?: string) {
+        const base = `${count} ${count === 1 ? 'sugestao' : 'sugestoes'} de preco`;
+        return qualifier ? `${base} ${count === 1 ? qualifier : `${qualifier}s`}` : base;
+    }
+
     async buscarAddress(listId: string) {
 
         try {
@@ -1566,14 +1639,23 @@ export class PropriedadeService {
             // Limite de threads para processamento pesado
             const limit = pLimit(2); // no máximo 3 eventos ao mesmo tempo
 
+            const pricingAnalyses = this.getUniqueAnalysesByEvent(enderecoAnalises);
+            const pricingDuplicateTransportRows = enderecoAnalises.length - pricingAnalyses.length;
+            if (pricingDuplicateTransportRows > 0) {
+                this.logger.debug(
+                    `Ignorando ${pricingDuplicateTransportRows} analises duplicadas por modo de transporte para list=${listId}`,
+                );
+            }
+
             let pricingGenerated = 0;
             let pricingCreated = 0;
             let pricingUpdated = 0;
+            let pricingUnchanged = 0;
             let pricingFailed = 0;
             let pricingSkippedPastEvent = 0;
             let pricingSkippedNoCoordinates = 0;
             const pricingSkippedEventQuality: Record<string, number> = {};
-            const promises = enderecoAnalises.map((element, index) =>
+            const promises = pricingAnalyses.map((element, index) =>
                 limit(async () => {
                     try {
                         const evento = element?.evento;
@@ -1593,7 +1675,7 @@ export class PropriedadeService {
                             return;
                         }
 
-                        console.log(`🔍 [${index + 1}/${enderecoAnalises.length}] Analisando evento: ${evento?.id} (${evento?.nome ?? 'sem nome'})`);
+                        console.log(`🔍 [${index + 1}/${pricingAnalyses.length}] Analisando evento: ${evento?.id} (${evento?.nome ?? 'sem nome'})`);
 
                         if (thereIsLatLong) {
                             console.log("📍 Evento possui latitude e longitude. Executando cálculo de preço...");
@@ -1606,27 +1688,31 @@ export class PropriedadeService {
                                 alerts
                             );
                             if (pricingResult?.ok) {
-                                pricingGenerated++;
-                                if (pricingResult.updated) {
-                                    pricingUpdated++;
+                                if (pricingResult.unchanged) {
+                                    pricingUnchanged++;
                                 } else {
-                                    pricingCreated++;
+                                    pricingGenerated++;
+                                    if (pricingResult.updated) {
+                                        pricingUpdated++;
+                                    } else {
+                                        pricingCreated++;
+                                    }
                                 }
                             } else {
                                 pricingFailed++;
                                 const reason = pricingResult?.reason || 'unknown_pricing_failure';
                                 pricingFailureReasons[reason] = (pricingFailureReasons[reason] ?? 0) + 1;
                             }
-                            console.log(`✅ [${index + 1}/${enderecoAnalises.length}] Cálculo finalizado para o evento: ${evento?.id}`);
+                            console.log(`✅ [${index + 1}/${pricingAnalyses.length}] Cálculo finalizado para o evento: ${evento?.id}`);
                         } else {
                             pricingSkippedNoCoordinates++;
-                            console.log(`⚠️ [${index + 1}/${enderecoAnalises.length}] Evento não possui latitude e longitude. Pulando cálculo.`);
+                            console.log(`⚠️ [${index + 1}/${pricingAnalyses.length}] Evento não possui latitude e longitude. Pulando cálculo.`);
                         }
                     } catch (eventError) {
                         pricingFailed++;
                         const reason = eventError instanceof Error ? eventError.message : 'unknown_error';
                         pricingFailureReasons[reason] = (pricingFailureReasons[reason] ?? 0) + 1;
-                        console.log(`❌ [${index + 1}/${enderecoAnalises.length}] Erro ao processar análise do evento:`, eventError);
+                        console.log(`❌ [${index + 1}/${pricingAnalyses.length}] Erro ao processar análise do evento:`, eventError);
                     }
                 })
             );
@@ -1644,9 +1730,19 @@ export class PropriedadeService {
             };
             if (pricingGenerated > 0) {
                 notificationContent.title = "Sugestoes de preco disponiveis";
-                notificationContent.description = `Geramos ${pricingGenerated} sugestoes de preco para a propriedade ${list?.titulo}.`;
+                notificationContent.description = this.buildPricingNotificationDescription(
+                    list?.titulo,
+                    pricingCreated,
+                    pricingUpdated,
+                );
             }
-            await this.emailService.enviarNotification(address?.user?.id, notificationContent);
+            if (pricingGenerated > 0 || pricingUnchanged === 0) {
+                await this.emailService.enviarNotification(address?.user?.id, notificationContent);
+            } else {
+                this.logger.debug(
+                    `Nenhuma notificacao criada para list=${listId}; ${pricingUnchanged} sugestoes ja estavam atualizadas.`,
+                );
+            }
 
             await this.compilarEventosFuturosPorUsuario(address?.user?.id)
 
@@ -1655,11 +1751,13 @@ export class PropriedadeService {
                 pricingGenerated,
                 pricingCreated,
                 pricingUpdated,
+                pricingUnchanged,
                 pricingFailed,
                 pricingSkippedPastEvent,
                 pricingSkippedNoCoordinates,
                 pricingSkippedEventQuality,
-                pricingCandidates: enderecoAnalises.length,
+                pricingDuplicateTransportRows,
+                pricingCandidates: pricingAnalyses.length,
                 failureReasons: pricingFailureReasons,
             };
 
@@ -1674,6 +1772,38 @@ export class PropriedadeService {
                 pricingFailed: 0,
             };
         }
+    }
+
+    private isSamePricingAnalysis(
+        existing: AnalisePreco,
+        next: {
+            distanciaSuaPropriedade: number;
+            distanciaPropriedadeReferencia: number;
+            precoSugerido: number;
+            seuPrecoAtual: number;
+            diferencaPercentual: number;
+            recomendacao: string;
+            motivo_ia?: string | null;
+        },
+    ) {
+        return (
+            this.isSameNumber(existing.distanciaSuaPropriedade, next.distanciaSuaPropriedade, 0.001) &&
+            this.isSameNumber(existing.distanciaPropriedadeReferencia, next.distanciaPropriedadeReferencia, 0.001) &&
+            this.isSameNumber(existing.precoSugerido, next.precoSugerido) &&
+            this.isSameNumber(existing.seuPrecoAtual, next.seuPrecoAtual) &&
+            this.isSameNumber(existing.diferencaPercentual, next.diferencaPercentual) &&
+            (existing.recomendacao ?? '') === (next.recomendacao ?? '') &&
+            (existing.motivo_ia ?? '') === (next.motivo_ia ?? '')
+        );
+    }
+
+    private isSameNumber(left: unknown, right: unknown, tolerance = 0.01) {
+        const leftNumber = Number(left);
+        const rightNumber = Number(right);
+        if (!Number.isFinite(leftNumber) || !Number.isFinite(rightNumber)) {
+            return leftNumber === rightNumber;
+        }
+        return Math.abs(leftNumber - rightNumber) <= tolerance;
     }
 
     async getPricingPropriedadeByEventAndByProperty(alertAirbId: string, listId: string, eventId: string, dadosAirbnb: FirstAvailablePriceResult, propriedadeReferencia: FirstAvailablePriceResult, alerts: APITypes) {
@@ -1692,12 +1822,14 @@ export class PropriedadeService {
             }
 
             const property = await this.propriedades.findOne({
-                where: { id: listId }
+                where: { id: listId },
+                relations: ['user'],
             });
             if (!property) {
                 console.log(`❌ Propriedade não encontrada: ${listId}`);
                 return { ok: false, reason: 'property_not_found' };
             }
+            const pricingGuardrail = this.pricingGuardrailService.resolve(property.user);
 
             //const dadosAirbnb = await this.airbnbService.getFirstAvailablePrice(property?.id_do_anuncio);
             //const dadosAirbnb = await this.airbnbService.getFirstAvailablePrice(property?.id_do_anuncio);
@@ -1773,6 +1905,8 @@ export class PropriedadeService {
                 fatorLocalizacao: fatorLocalizacao !== undefined ? Number(fatorLocalizacao) : undefined,
                 relevanciaEvento: evento.relevancia,
                 publicoEsperado,
+                maxReducaoPercent: pricingGuardrail.maxReducaoPercent,
+                maxAumentoPercent: pricingGuardrail.maxAumentoPercent,
             });
 
 
@@ -1837,7 +1971,7 @@ export class PropriedadeService {
                     
                     if(prediCaaaoIA && prediCaaaoIA.suggestedPrice) {
                         precoFinalSugerido = Math.max(prediCaaaoIA.suggestedPrice, result.precoSugerido); // Mantém o melhor dos dois mundos pro cliente (maior lucro)
-                        percentualFinal = prediCaaaoIA.increasePercentage;
+                        percentualFinal = Number((((precoFinalSugerido - result.seuPrecoAtual) / result.seuPrecoAtual) * 100).toFixed(1));
                         recomendacaoFinal = (percentualFinal > 0) ? "Aumento de Receita Sugerido (IA)" : "Manutenção de Fator de Ocupação (IA)";
                         motivoDaIA = prediCaaaoIA.details.reasoning;
                         console.log(`🤖 IA KNN Ativada! Predição original KNN: R$${prediCaaaoIA.suggestedPrice} (+${percentualFinal}%). Motivo: ${motivoDaIA}`);
@@ -1847,9 +1981,10 @@ export class PropriedadeService {
                 console.error("⚠️ Falha ao predizer preço via IA (Falta de Histórico/Atributos). Acionando Fallback Matemático Integralmente:", err.message);
             }
 
-            const maxAllowedFinalPrice = result.seuPrecoAtual * 1.45;
-            const minAllowedFinalPrice = result.seuPrecoAtual * 0.75;
+            const maxAllowedFinalPrice = result.seuPrecoAtual * pricingGuardrail.maxMultiplier;
+            const minAllowedFinalPrice = result.seuPrecoAtual * pricingGuardrail.minMultiplier;
             const boundedFinalPrice = Math.min(Math.max(precoFinalSugerido, minAllowedFinalPrice), maxAllowedFinalPrice);
+            const guardrailDescription = this.pricingGuardrailService.describe(pricingGuardrail);
 
             if (boundedFinalPrice !== precoFinalSugerido) {
                 precoFinalSugerido = Number(boundedFinalPrice.toFixed(2));
@@ -1862,7 +1997,9 @@ export class PropriedadeService {
                             : Math.abs(percentualFinal) <= 5
                                 ? 'Manter'
                                 : 'Reduzir levemente (preco acima do sugerido)';
-                motivoDaIA = `${motivoDaIA ?? ''} Guardrail aplicado: sugestao limitada entre -25% e +45% do preco atual.`;
+                motivoDaIA = `${motivoDaIA ?? ''} Guardrail aplicado: sugestao limitada pelo ${guardrailDescription}.`;
+            } else {
+                motivoDaIA = `${motivoDaIA ?? ''} Guardrail ativo: ${guardrailDescription}.`;
             }
 
             const existingAnalise = await this.analisePrecoRepository.findOne({
@@ -1872,11 +2009,7 @@ export class PropriedadeService {
                     usuarioProprietario: { id: property?.user?.id },
                 },
             });
-
-            // --- Salvar no banco ---
-            console.log("💾 Salvando análise de preço...");
-            const savedAnalise = await this.analisePrecoRepository.save({
-                ...(existingAnalise ? { id: existingAnalise.id, criadoEm: new Date() } : {}),
+            const nextAnalise = {
                 endereco: address,
                 evento: evento,
                 usuarioProprietario: property?.user ?? null,
@@ -1887,6 +2020,25 @@ export class PropriedadeService {
                 diferencaPercentual: percentualFinal,
                 recomendacao: recomendacaoFinal,
                 motivo_ia: motivoDaIA,
+            };
+
+            if (existingAnalise && this.isSamePricingAnalysis(existingAnalise, nextAnalise)) {
+                console.log("Analise de preco ja estava atualizada");
+                return {
+                    ok: true,
+                    id: existingAnalise.id,
+                    updated: false,
+                    unchanged: true,
+                    precoSugerido: precoFinalSugerido,
+                    diferencaPercentual: percentualFinal,
+                };
+            }
+
+            // --- Salvar no banco ---
+            console.log("💾 Salvando análise de preço...");
+            const savedAnalise = await this.analisePrecoRepository.save({
+                ...(existingAnalise ? { id: existingAnalise.id } : {}),
+                ...nextAnalise,
             });
             console.log("Análise de preço salva com sucesso");
             return {

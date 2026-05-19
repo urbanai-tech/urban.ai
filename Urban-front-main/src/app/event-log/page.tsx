@@ -34,8 +34,24 @@ const PRICING_PRESETS: Record<PricingStrategy, { inicial: number; final: number 
   conservative: { inicial: 5, final: 10 },
   balanced: { inicial: 10, final: 20 },
   aggressive: { inicial: 15, final: 35 },
-  ai: { inicial: 5, final: null },
+  ai: { inicial: 25, final: 45 },
 };
+
+function formatPercent(value: number | string | null | undefined, absolute = false) {
+  if (value === null || value === undefined || value === '') return '';
+  const numericValue = Number(value.toString().replace(',', '.'));
+  const displayValue = absolute && !Number.isNaN(numericValue) ? Math.abs(numericValue) : value;
+
+  return displayValue.toString().replace('.', ',');
+}
+
+function parsePercentInput(value: string) {
+  const trimmedValue = value.trim();
+
+  if (!/^\d+(?:[,.]\d+)?$/.test(trimmedValue)) return null;
+
+  return Number(trimmedValue.replace(',', '.'));
+}
 
 export default function ConfiguracoesPage() {
   const surface = useColorModeValue('white', 'gray.800');
@@ -76,8 +92,8 @@ export default function ConfiguracoesPage() {
           email: userData.email || '',
           pricingStrategy: userData.pricingStrategy || 'balanced',
           operationMode: userData.operationMode || 'notifications',
-          percentualInicial: userData.percentualInicial?.toString().replace('.', ',') || '',
-          percentualFinal: userData.percentualFinal?.toString().replace('.', ',') || '',
+          percentualInicial: formatPercent(userData.percentualInicial, true),
+          percentualFinal: formatPercent(userData.percentualFinal),
         }));
       })
       .catch(() => {
@@ -90,7 +106,7 @@ export default function ConfiguracoesPage() {
     const { name, value } = e.target;
     
     if (name === 'percentualInicial' || name === 'percentualFinal') {
-       const sanitizedValue = value.replace(/[^0-9,.-]/g, '');
+       const sanitizedValue = value.replace(/[^0-9,.]/g, '');
        setForm((prev) => ({ ...prev, [name]: sanitizedValue }));
        return;
     }
@@ -101,7 +117,7 @@ export default function ConfiguracoesPage() {
          ...prev, 
          [name]: value,
          percentualInicial: preset.inicial.toString(),
-         percentualFinal: preset.final ? preset.final.toString() : ''
+         percentualFinal: preset.final !== null ? preset.final.toString() : ''
        }));
        return;
     }
@@ -179,10 +195,10 @@ export default function ConfiguracoesPage() {
                   <option value="conservative">Conservadora (-5% a +10%)</option>
                   <option value="balanced">Moderada (-10% a +20%)</option>
                   <option value="aggressive">Agressiva (-15% a +35%)</option>
-                  <option value="ai">Piloto Automático IA (Livre)</option>
+                  <option value="ai">Piloto Automático IA (com teto sistêmico)</option>
                 </Select>
                 <Text fontSize="sm" color="gray.500" mt={1}>
-                  Isso preencherá automaticamente os seus limites permitidos logo abaixo.
+                  Isso preencherá automaticamente os limites para novas sugestões. A queda é salva como valor positivo.
                 </Text>
               </FormControl>
             </GridItem>
@@ -220,7 +236,7 @@ export default function ConfiguracoesPage() {
                   placeholder="Ex: 5 ou 10"
                 />
                 <Text fontSize="sm" color="gray.500" mt={1}>
-                  Queda máxima permitida em relação ao sub-preço de mercado.
+                  Queda máxima permitida para novas sugestões. Informe 5 para permitir até -5%.
                 </Text>
               </FormControl>
             </GridItem>
@@ -235,11 +251,11 @@ export default function ConfiguracoesPage() {
                   onChange={handleChange}
                   size="lg"
                   variant="filled"
-                  placeholder="Deixe vazio para IA livre"
+                  placeholder="Controlado pelo teto sistêmico"
                   isDisabled={form.pricingStrategy === 'ai'}
                 />
                 <Text fontSize="sm" color="gray.500" mt={1}>
-                  Alta extrema permitida. No modo Piloto IA, este teto é ilimitado.
+                  Alta máxima permitida para novas sugestões. No Piloto IA, vale o teto sistêmico configurado.
                 </Text>
               </FormControl>
             </GridItem>
@@ -259,11 +275,18 @@ export default function ConfiguracoesPage() {
               onClick={async () => {
                 if (!userId) return;
                 setSaving(true);
-                const inicial = parseFloat(form.percentualInicial.replace(',', '.'));
-                const final = form.percentualFinal ? parseFloat(form.percentualFinal.replace(',', '.')) : null;
+                const finalText = form.percentualFinal.trim();
+                const inicial = parsePercentInput(form.percentualInicial);
+                const final = finalText ? parsePercentInput(finalText) : null;
 
-                if (isNaN(inicial)) {
-                  toast.error('O percentual de queda é obrigatório e deve ser numérico.');
+                if (inicial === null || inicial < 0) {
+                  toast.error('A queda é obrigatória e deve ser um número maior ou igual a zero.');
+                  setSaving(false);
+                  return;
+                }
+
+                if (finalText && (final === null || final < 0)) {
+                  toast.error('A alta deve ser um número maior ou igual a zero quando preenchida.');
                   setSaving(false);
                   return;
                 }

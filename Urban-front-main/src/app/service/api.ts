@@ -113,6 +113,8 @@ export type PropertyDropdown = {
   latitude: number;
   longitude: number;
   id_do_anuncio?: string;
+  internalNickname?: string | null;
+  internalCode?: string | null;
   manualDailyPrice?: number | null;
   averageMonthlyRevenue?: number | null;
   dailyPrice?: number | null;
@@ -131,6 +133,13 @@ export type PricingInputHistory = {
   createdAt: string;
 };
 
+export type PropertyIdentityUpdate = {
+  addressId: string;
+  listId: string;
+  internalNickname: string | null;
+  internalCode: string | null;
+};
+
 export async function getPropriedadesDropdownList(): Promise<PropertyDropdown[]> {
   try {
     const { data } = await api.get<any[]>("/propriedades/dropdown/list");
@@ -139,6 +148,14 @@ export async function getPropriedadesDropdownList(): Promise<PropertyDropdown[]>
     console.error("Erro ao buscar propriedades dropdown list:", error);
     throw error;
   }
+}
+
+export async function updatePropertyIdentity(
+  addressId: string,
+  payload: { internalNickname?: string | null; internalCode?: string | null },
+): Promise<PropertyIdentityUpdate> {
+  const { data } = await api.patch(`/propriedades/${addressId}/identity`, payload);
+  return data;
 }
 
 export async function updatePropertyPricingInputs(

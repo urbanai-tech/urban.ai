@@ -1,11 +1,12 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { SharedArray } from 'k6/data';
+import { getUserCount, requireBaseUrl, requireTestPassword } from './config.js';
 
-const BASE_URL = __ENV.BASE_URL || 'https://staging-api.myurbanai.com';
+const BASE_URL = requireBaseUrl();
 const EMAIL_PREFIX = __ENV.TEST_EMAIL_PREFIX || 'loadtest+';
-const PASSWORD = __ENV.TEST_PASSWORD || 'change-me-in-env';
-const USER_COUNT = parseInt(__ENV.USER_COUNT || '100', 10);
+const PASSWORD = requireTestPassword();
+const USER_COUNT = getUserCount();
 
 // Pool de usuários pré-cadastrados em staging (ver load-tests/README.md).
 const users = new SharedArray('users', function () {

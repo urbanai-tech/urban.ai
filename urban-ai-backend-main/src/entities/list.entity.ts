@@ -24,6 +24,14 @@ export class List {
   @Column()
   id_do_anuncio: string;
 
+  @ApiProperty({ description: "Apelido interno definido pelo anfitriao", example: "Perdizes 1 quarto" })
+  @Column({ nullable: true, length: 80 })
+  internalNickname: string;
+
+  @ApiProperty({ description: "Codigo interno definido pelo anfitriao", example: "PER-01" })
+  @Column({ nullable: true, length: 32 })
+  internalCode: string;
+
   @ApiProperty({
     description: "URL da imagem principal do imóvel",
     example:

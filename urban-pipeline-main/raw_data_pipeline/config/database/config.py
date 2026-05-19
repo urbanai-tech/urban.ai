@@ -5,6 +5,8 @@ This module provides the main DatabaseConfig class for managing database
 connections, pools, and sessions.
 """
 
+from urllib.parse import unquote, urlparse
+
 from pydantic import BaseModel, Field
 from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
@@ -58,19 +60,15 @@ class DatabaseConfig(BaseModel):
             )
             return cls(credentials=credentials, driver="sqlite")
 
-        # Parse MySQL URL format: mysql://user:password@host:port/database
-        url_parts = settings.MYSQL_URL.replace("mysql://", "").split("/")
-        database = url_parts[1] if len(url_parts) > 1 else "default"
+        parsed = urlparse(settings.MYSQL_URL)
+        if parsed.scheme not in {"mysql", "mysql+pymysql"}:
+            raise ValueError(f"Unsupported MYSQL_URL scheme: {parsed.scheme}")
 
-        host_part = url_parts[0].split("@")
-        host_port = host_part[1] if len(host_part) > 1 else "localhost:3306"
-        user_pass = host_part[0] if len(host_part) > 1 else "root:"
-
-        username = user_pass.split(":")[0]
-        password = user_pass.split(":")[1] if ":" in user_pass else ""
-
-        host = host_port.split(":")[0]
-        port = int(host_port.split(":")[1]) if ":" in host_port else 3306
+        database = unquote(parsed.path.lstrip("/")) or "default"
+        username = unquote(parsed.username or "root")
+        password = unquote(parsed.password or "")
+        host = parsed.hostname or "localhost"
+        port = parsed.port or 3306
 
         credentials = DatabaseCredentials(
             host=host,
