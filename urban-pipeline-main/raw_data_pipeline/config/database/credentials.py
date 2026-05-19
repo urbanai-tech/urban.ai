@@ -7,7 +7,7 @@ for database connections.
 
 from dataclasses import dataclass
 from pathlib import Path
-from urllib.parse import quote_plus
+from urllib.parse import quote
 
 
 @dataclass
@@ -35,10 +35,12 @@ class DatabaseCredentials:
                 return "sqlite:///:memory:"
             return f"sqlite:///{Path(self.database).as_posix()}"
 
-        encoded_password = quote_plus(self.password)
+        encoded_username = quote(self.username, safe="")
+        encoded_password = quote(self.password, safe="")
+        encoded_database = quote(self.database, safe="")
         return (
-            f"{driver}://{self.username}:{encoded_password}"
-            f"@{self.host}:{self.port}/{self.database}"
+            f"{driver}://{encoded_username}:{encoded_password}"
+            f"@{self.host}:{self.port}/{encoded_database}"
         )
 
     def __repr__(self) -> str:

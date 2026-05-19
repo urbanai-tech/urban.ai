@@ -1,6 +1,7 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { SharedArray } from 'k6/data';
+import { getUserCount, requireBaseUrl, requireTestPassword } from './config.js';
 
 /**
  * Cenário CRÍTICO do SLO: 100 anfitriões simultâneos pedindo recomendação
@@ -10,10 +11,10 @@ import { SharedArray } from 'k6/data';
  * Requer usuários + imóveis pré-cadastrados em staging (ver README).
  */
 
-const BASE_URL = __ENV.BASE_URL || 'https://staging-api.myurbanai.com';
+const BASE_URL = requireBaseUrl();
 const EMAIL_PREFIX = __ENV.TEST_EMAIL_PREFIX || 'loadtest+';
-const PASSWORD = __ENV.TEST_PASSWORD || 'change-me-in-env';
-const USER_COUNT = parseInt(__ENV.USER_COUNT || '100', 10);
+const PASSWORD = requireTestPassword();
+const USER_COUNT = getUserCount();
 
 const users = new SharedArray('users', function () {
   const list = [];

@@ -26,6 +26,7 @@ export function AppFooter() {
   return (
     <footer
       className="urban-app"
+      data-app-footer
       style={{
         marginTop: "auto",
         padding: "32px 32px 28px",
@@ -121,6 +122,20 @@ export function AppFooter() {
           </FooterLink>
         </nav>
       </div>
+      <style jsx global>{`
+        @media (max-width: 767px) {
+          [data-app-footer] {
+            padding: 24px 16px calc(92px + env(safe-area-inset-bottom)) !important;
+          }
+          [data-app-footer] > div {
+            align-items: flex-start !important;
+            flex-direction: column !important;
+          }
+          [data-app-footer] nav {
+            gap: 14px !important;
+          }
+        }
+      `}</style>
     </footer>
   );
 }

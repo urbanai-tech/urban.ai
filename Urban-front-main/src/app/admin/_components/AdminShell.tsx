@@ -180,6 +180,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div
           role="dialog"
           aria-modal="true"
+          aria-label="Menu admin"
           style={{
             position: "fixed",
             inset: 0,
