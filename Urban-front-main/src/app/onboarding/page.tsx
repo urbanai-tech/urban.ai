@@ -17,6 +17,7 @@ import {
   getHostId, getUserManagedListings, registerProperties,
   createMultipleAddresses, resolveAirbnbUrl,
   createCheckoutSession, updateProfileById, getProfileById,
+  fetchSubscription,
   getPropertyQuickInfo,
   getPropriedadesDropdownList, getPlans, Plan, registerProcess
 } from '../service/api';
@@ -169,6 +170,7 @@ function OnboardingWizardContent() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(false);
   const [isAnnual, setIsAnnual] = useState(true);
+  const [hasGrantedAccess, setHasGrantedAccess] = useState(false);
 
   useEffect(() => {
     setLoadingPlans(true);
@@ -181,6 +183,25 @@ function OnboardingWizardContent() {
         console.error("Erro ao carregar planos:", err);
         setLoadingPlans(false);
       });
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchSubscription()
+      .then((subscription) => {
+        if (cancelled) return;
+        setHasGrantedAccess(
+          subscription?.status === 'active' || subscription?.status === 'trialing',
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setHasGrantedAccess(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Step 2 — Link Airbnb
@@ -555,6 +576,20 @@ function OnboardingWizardContent() {
   // =====================================================
   //  STEP 4: Salvar configurações do motor de IA
   // =====================================================
+  const shouldSkipBillingStep = async () => {
+    if (hasGrantedAccess) return true;
+
+    try {
+      const subscription = await fetchSubscription();
+      const active =
+        subscription?.status === 'active' || subscription?.status === 'trialing';
+      if (active) setHasGrantedAccess(true);
+      return active;
+    } catch {
+      return false;
+    }
+  };
+
   const handleSaveConfig = async () => {
     setIsLoading(true);
     try {
@@ -568,6 +603,12 @@ function OnboardingWizardContent() {
         percentualInicial: preset.inicial,
         percentualFinal: preset.final,
       });
+
+      if (await shouldSkipBillingStep()) {
+        toast("Configurações salvas! Seu acesso já está liberado.", { type: "success" });
+        router.replace('/dashboard');
+        return;
+      }
 
       toast("Configurações salvas! Vamos ativar o seu sistema.", { type: "success" });
       setStep(5);
@@ -1186,10 +1227,12 @@ function OnboardingWizardContent() {
 
 
                   <Flex gap={4} mt={2}>
-                    <Button variant="ghost" size="lg" color="gray.500"
-                      onClick={() => setStep(5)} isDisabled={isLoading}>
-                      Pular
-                    </Button>
+                    {!hasGrantedAccess && (
+                      <Button variant="ghost" size="lg" color="gray.500"
+                        onClick={() => setStep(5)} isDisabled={isLoading}>
+                        Pular
+                      </Button>
+                    )}
                     <Button bg="#E8500A" color="white" _hover={{ bg: '#D14609' }} size="lg" flex={1}
                       onClick={handleSaveConfig}
                       isLoading={isLoading}

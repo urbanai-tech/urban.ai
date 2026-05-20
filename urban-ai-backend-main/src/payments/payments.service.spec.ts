@@ -747,6 +747,58 @@ describe('PaymentsService — getListingsQuota (F6.5)', () => {
   });
 });
 
+describe('PaymentsService — getSubscription alpha access', () => {
+  let service: PaymentsService;
+  let paymentRepo: Repo<Payment>;
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    delete process.env.ALPHA_USER_QUOTAS;
+    process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
+
+    paymentRepo = { findOne: jest.fn() };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        PaymentsService,
+        { provide: getRepositoryToken(Payment), useValue: paymentRepo },
+        { provide: getRepositoryToken(User), useValue: { findOne: jest.fn() } },
+        { provide: getRepositoryToken(Address), useValue: stubAddressRepo() },
+        { provide: PlansService, useValue: { getPlanByName: jest.fn() } },
+      ],
+    }).compile();
+    service = module.get<PaymentsService>(PaymentsService);
+  });
+
+  it('returns a zero-price alpha subscription from a local alpha payment without calling Stripe', async () => {
+    const startDate = new Date('2026-05-20T00:00:00.000Z');
+    const expireDate = new Date('2027-05-20T00:00:00.000Z');
+    paymentRepo.findOne!.mockResolvedValue({
+      status: 'trialing',
+      planName: 'alpha',
+      listingsContratados: 20,
+      startDate,
+      expireDate,
+    });
+
+    const subscription = await service.getSubscription('user-1');
+
+    expect(subscription).toMatchObject({
+      id: 'alpha-user-1',
+      status: 'trialing',
+      metadata: {
+        urbanai_plan: 'alpha',
+        urbanai_quantity: '20',
+      },
+      plan: {
+        id: 'alpha',
+        amount: 0,
+      },
+    });
+    expect(mockStripeCustomersList).not.toHaveBeenCalled();
+  });
+});
+
 describe('PaymentsService — quota billing emails', () => {
   let service: PaymentsService;
   let userRepo: Repo<User>;
