@@ -25,7 +25,7 @@ import {
  *
  *   1. Valida token via GET /waitlist/invite
  *   2. Se OK: mostra form para criar senha (email ja vem do backend)
- *   3. Submit chama POST /auth/register com flag de invite_token
+ *   3. Submit chama POST /auth/waitlist/accept com senha pre-hasheada
  *   4. Backend reconhece, cria User real, marca waitlist como converted
  *   5. Redireciona para /dashboard
  *
@@ -58,6 +58,15 @@ export default function AceitarConvitePage() {
       <AceitarConvite />
     </Suspense>
   );
+}
+
+async function sha256(message: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(message);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 /** Spinner laranja simples, sem Chakra. */
@@ -211,10 +220,11 @@ function AceitarConvite() {
       source: "waitlist-invite",
     });
     try {
+      const hashedPassword = await sha256(password);
       await acceptWaitlistInvite({
         token,
         username: validation.name ?? validation.email?.split("@")[0],
-        password,
+        password: hashedPassword,
       });
       trackAnalyticsEvent("waitlist_invite_accept", {
         source: "waitlist-invite",
