@@ -26,6 +26,7 @@ import {
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Request, Response } from 'express';
+import * as crypto from 'crypto';
 import { User } from 'src/entities/user.entity';
 import { AuthService, TokenPair } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -35,6 +36,7 @@ import { Roles } from './roles.decorator';
 import { RolesGuard } from './roles.guard';
 
 const REFRESH_TOKEN_COOKIE = 'urbanai_refresh_token';
+const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
 
 /** Duração máxima do access cookie — deve bater com JWT_EXPIRES_IN. */
 const ACCESS_COOKIE_MAX_AGE_MS = 15 * 60 * 1000; // 15 min
@@ -128,6 +130,14 @@ export class AuthController {
     res.clearCookie(REFRESH_TOKEN_COOKIE, { path: '/auth', domain: cookieDomain });
   }
 
+  private normalizePasswordForRegister(password: string): string {
+    if (SHA256_HEX_REGEX.test(password)) {
+      return password;
+    }
+
+    return crypto.createHash('sha256').update(password).digest('hex');
+  }
+
   @ApiOperation({ summary: 'Registrar um novo usuário' })
   @ApiResponse({ status: 201, description: 'Usuário registrado com sucesso' })
   @ApiResponse({ status: 400, description: 'Dados de entrada inválidos' })
@@ -218,7 +228,7 @@ export class AuthController {
     const user = await this.authService.register({
       username: data.username?.trim() || entry.name || entry.email.split('@')[0],
       email: entry.email,
-      password: data.password,
+      password: this.normalizePasswordForRegister(data.password),
     });
     await this.waitlistService.markConverted(entry.id);
 
