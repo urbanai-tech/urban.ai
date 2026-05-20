@@ -11,6 +11,8 @@ import { isBillingCycle, resolveStripePriceId } from './stripe-price-id.resolver
 import { MailerService } from '../mailer/mailer.service';
 import { EmailTemplates } from '../email/templates';
 
+const LOCAL_ACCESS_STATUSES = ['active', 'trialing', 'alpha'];
+
 @Injectable()
 export class PaymentsService {
   private stripe: Stripe;
@@ -54,7 +56,7 @@ export class PaymentsService {
     const payment = await this.paymentRepository.findOne({
       where: {
         user: { id: userId },
-        status: In(['active', 'trialing']),
+        status: In(LOCAL_ACCESS_STATUSES),
       },
       order: { updatedAt: 'DESC' },
     });
@@ -84,7 +86,7 @@ export class PaymentsService {
     const payment = await this.paymentRepository.find({
       where: {
         user: { id: userId },
-        status: In(['trialing', 'active']),
+        status: In(LOCAL_ACCESS_STATUSES),
       },
       relations: ['user'], // se precisar carregar dados do usuário
     });
@@ -97,23 +99,24 @@ export class PaymentsService {
   async getSubscription(userId: string) {
     const alphaQuota = await this.getAlphaQuota(userId);
     if (alphaQuota) {
-      return {
-        id: `alpha-${userId}`,
-        status: 'trialing',
-        currency: 'brl',
-        start_date: Math.floor(Date.now() / 1000),
-        metadata: {
-          urbanai_plan: 'alpha',
-          urbanai_quantity: String(alphaQuota),
-          urbanai_billing_cycle: 'monthly',
-        },
-        plan: {
-          id: 'alpha',
-          amount: 0,
-          currency: 'brl',
-          interval: 'monthly',
-        },
-      };
+      return this.buildAlphaSubscription(userId, alphaQuota);
+    }
+
+    const alphaPayment = await this.paymentRepository.findOne({
+      where: {
+        user: { id: userId },
+        status: In(LOCAL_ACCESS_STATUSES),
+        planName: 'alpha',
+      },
+      order: { updatedAt: 'DESC' },
+    });
+    if (alphaPayment) {
+      return this.buildAlphaSubscription(
+        userId,
+        Math.max(1, alphaPayment.listingsContratados ?? 1),
+        alphaPayment.startDate,
+        alphaPayment.expireDate,
+      );
     }
 
     const user = await this.userRepository.findOne({
@@ -146,6 +149,32 @@ export class PaymentsService {
 
     const subscription = subscriptions.data.find(sub => sub.id === payment.subscriptionId);
     return subscription || null;
+  }
+
+  private buildAlphaSubscription(
+    userId: string,
+    quota: number,
+    startDate?: Date | null,
+    expireDate?: Date | null,
+  ) {
+    return {
+      id: `alpha-${userId}`,
+      status: 'trialing',
+      currency: 'brl',
+      start_date: Math.floor((startDate?.getTime() ?? Date.now()) / 1000),
+      trial_end: expireDate ? Math.floor(expireDate.getTime() / 1000) : null,
+      metadata: {
+        urbanai_plan: 'alpha',
+        urbanai_quantity: String(quota),
+        urbanai_billing_cycle: 'monthly',
+      },
+      plan: {
+        id: 'alpha',
+        amount: 0,
+        currency: 'brl',
+        interval: 'monthly',
+      },
+    };
   }
 
   private async getAlphaQuota(userId: string): Promise<number | null> {

@@ -303,9 +303,9 @@ export class AdminFinanceService {
     activePayments: number;
     byPlan: Array<{ planName: string; count: number; monthlyCents: number }>;
   }> {
-    const payments = await this.paymentRepo.find({
+    const billablePayments = (await this.paymentRepo.find({
       where: { status: In(['active', 'trialing']) },
-    });
+    })).filter((payment) => payment.planName !== 'alpha');
 
     const plans = await this.planRepo.find();
     const plansByName = new Map(plans.map((p) => [p.name, p]));
@@ -322,7 +322,7 @@ export class AdminFinanceService {
     let total = 0;
     const byPlanAgg = new Map<string, { count: number; monthlyCents: number }>();
 
-    for (const p of payments) {
+    for (const p of billablePayments) {
       const plan = plansByName.get(p.planName ?? '') || plansByName.get('profissional');
       if (!plan) continue;
 
@@ -359,7 +359,7 @@ export class AdminFinanceService {
 
     return {
       mrrCents: total,
-      activePayments: payments.length,
+      activePayments: billablePayments.length,
       byPlan: Array.from(byPlanAgg.entries()).map(([planName, agg]) => ({
         planName,
         count: agg.count,

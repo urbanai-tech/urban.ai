@@ -459,6 +459,8 @@ export class RoiService {
   private monthlySubscriptionCostCents(payments: Payment[], plans: Plan[]) {
     const plansByName = new Map(plans.map((plan) => [plan.name, plan]));
     return payments.reduce((sum, payment) => {
+      if (payment.planName === 'alpha') return sum;
+
       const plan = plansByName.get(payment.planName ?? '') ?? plansByName.get('profissional');
       if (!plan) return sum;
       const cycle = String(payment.billingCycle ?? payment.mode ?? 'monthly').toLowerCase();
