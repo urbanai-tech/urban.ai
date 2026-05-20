@@ -112,6 +112,21 @@ describe('AdminFinanceService', () => {
       expect(r.mrrCents).toBe(9900);
     });
 
+    it('ignora cortesia alpha na receita recorrente', async () => {
+      planRepo.find!.mockResolvedValue([
+        { name: 'profissional', priceMonthly: '99,00' },
+      ]);
+      paymentRepo.find!.mockResolvedValue([
+        { planName: 'alpha', billingCycle: 'monthly', listingsContratados: 20, status: 'trialing' },
+        { planName: 'profissional', billingCycle: 'monthly', listingsContratados: 1, status: 'active' },
+      ]);
+
+      const r = await service.estimatedMrrCents();
+
+      expect(r.activePayments).toBe(1);
+      expect(r.mrrCents).toBe(9900);
+    });
+
     it('retorna zero quando não há Payments ativos', async () => {
       planRepo.find!.mockResolvedValue([]);
       paymentRepo.find!.mockResolvedValue([]);
