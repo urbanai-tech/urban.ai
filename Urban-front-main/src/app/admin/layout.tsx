@@ -1,6 +1,19 @@
 import React from "react";
+import type { Metadata } from "next";
 import { AdminShell } from "./_components/AdminShell";
 import { AdminToastProvider } from "./_components/AdminToast";
+
+export const metadata: Metadata = {
+  title: "Admin - Urban AI",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
+};
 
 /**
  * Layout admin — aplicado a TODAS as rotas /admin/*.

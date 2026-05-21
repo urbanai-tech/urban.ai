@@ -1,6 +1,7 @@
 import React from "react";
 import HeaderPublic from "../componentes/HeaderPublic";
 import FooterPublic from "../componentes/FooterPublic";
+import { JsonLd, publicBaseJsonLd } from "../lib/seo";
 
 /**
  * Layout do site público (myurbanai.com).
@@ -26,8 +27,9 @@ export default function PublicLayout({
         background: "#FFFFFF",
       }}
     >
+      <JsonLd id="urban-public-base-jsonld" data={publicBaseJsonLd()} />
       <HeaderPublic />
-      <main style={{ flex: 1 }}>{children}</main>
+      <div style={{ flex: 1 }}>{children}</div>
       <FooterPublic />
     </div>
   );

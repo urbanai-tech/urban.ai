@@ -6,12 +6,12 @@ import { Analytics } from "./componentes/Analytics";
 import { CookieConsent } from "./componentes/CookieConsent";
 import { PwaInstaller } from "./componentes/PwaInstaller";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.myurbanai.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://myurbanai.com";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(APP_URL),
+  metadataBase: new URL(SITE_URL),
   applicationName: "Urban AI",
-  title: "Urban AI",
+  title: "Urban AI | Precificacao dinamica para Airbnb e aluguel por temporada",
   description: "Precificacao dinamica para anfitrioes com IA, calendario urbano e operacao assistida.",
   manifest: "/manifest.webmanifest",
   icons: {
@@ -32,9 +32,9 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    url: APP_URL,
+    url: SITE_URL,
     siteName: "Urban AI",
-    title: "Urban AI",
+    title: "Urban AI | Precificacao dinamica para Airbnb",
     description: "Precificacao dinamica para anfitrioes com IA, calendario urbano e operacao assistida.",
     images: [{ url: "/pwa-icon-512.png", width: 512, height: 512, alt: "Urban AI" }],
   },

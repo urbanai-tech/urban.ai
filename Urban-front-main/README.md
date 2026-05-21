@@ -43,6 +43,8 @@ Ver `.env.example`. As principais:
 | `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` | Google OAuth |
 | `NEXT_PUBLIC_SENTRY_DSN` | Sentry |
 | `NEXT_PUBLIC_GA4_ID` + `NEXT_PUBLIC_META_PIXEL_ID` | Analytics (vazios = scripts não carregam) |
+| `SEO_GSC_SITE_URL` + `SEO_GA4_PROPERTY_ID` + `SEO_GOOGLE_CLIENT_EMAIL` + `SEO_GOOGLE_PRIVATE_KEY` | conectores server-side SEO/GEO para Search Console e GA4 Data API |
+| `SEO_BOT_LOG_*` + `SEO_AI_MONITOR_*` | readiness server-side para logs de bots e monitoramento de respostas de IA |
 | `NEXT_PUBLIC_WAITLIST_ENDPOINT` | URL onde o `WaitlistForm` posta (Formspark, Formspree, ou backend próprio) |
 | `NEXT_PUBLIC_CHAINLIT_URL` | rewrites do copilot (vazio = rewrites omitidos) |
 
