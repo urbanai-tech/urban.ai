@@ -84,7 +84,7 @@ const PasswordConfirmation = () => {
       const res = await updatePassword(token, hashedPassword);
 
       if (!res.enviado) {
-        throw new Error("Erro ao confirmar redefinição de senha");
+        throw new Error(res.motivo || "Erro ao confirmar redefinição de senha");
       }
       showToastCustom("Sua senha foi redefinida com sucesso.", "success");
 
@@ -93,7 +93,7 @@ const PasswordConfirmation = () => {
 
     } catch (error: any) {
       console.error("Erro handleSubmit:", error.response?.data || error.message);
-      showToastCustom(error.response?.data?.message || "Erro ao atualizar senha.", "error");
+      showToastCustom(error.response?.data?.message || error.message || "Erro ao atualizar senha.", "error");
     } finally {
       setLoading(false);
     }
