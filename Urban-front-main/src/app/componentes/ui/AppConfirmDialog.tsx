@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import { AppButton } from "./AppButton";
+import { appRadius, appShadow, appVar } from "./styles";
 
 /**
  * Dialog de confirmação light premium pro app anfitrião.
@@ -90,11 +91,11 @@ export function AppConfirmDialog({
           position: "relative",
           width: "100%",
           maxWidth: 460,
-          background: "var(--app-surface-elevated, #FFFFFF)",
-          border: "1px solid var(--app-divider-strong)",
-          borderRadius: 14,
+          background: appVar.surfaceElevated,
+          border: `1px solid ${appVar.dividerStrong}`,
+          borderRadius: appRadius.dialog,
           padding: "28px 28px 24px",
-          boxShadow: "0 18px 48px rgba(14, 17, 22, 0.12)",
+          boxShadow: appShadow.overlay,
         }}
       >
         <h2
@@ -103,7 +104,7 @@ export function AppConfirmDialog({
             fontSize: 18,
             fontWeight: 600,
             letterSpacing: -0.2,
-            color: "var(--app-text)",
+            color: appVar.text,
             margin: 0,
             lineHeight: 1.3,
           }}
@@ -116,7 +117,7 @@ export function AppConfirmDialog({
               marginTop: 12,
               fontSize: 14,
               lineHeight: 1.6,
-              color: "var(--app-text-muted)",
+              color: appVar.textMuted,
             }}
           >
             {body}
