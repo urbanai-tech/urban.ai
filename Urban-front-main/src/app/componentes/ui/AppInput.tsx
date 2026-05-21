@@ -87,7 +87,7 @@ export const AppInput = React.forwardRef<HTMLInputElement, InputProps>(function 
       style={{
         ...baseFieldStyle,
         paddingLeft: leftAddon ? 38 : 14,
-        borderColor: error ? "var(--app-danger)" : (baseFieldStyle.border as string),
+        borderColor: error ? "var(--app-danger)" : "var(--app-divider-strong)",
         ...style,
       }}
       {...rest}

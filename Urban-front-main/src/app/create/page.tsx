@@ -10,6 +10,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { api } from "../service/api";
 import { usePrelaunch } from "../componentes/usePrelaunch";
 import { WaitlistSignup } from "../componentes/WaitlistSignup";
+import { AuthFlowShell } from "../componentes/AuthFlowShell";
 import {
   AppButton,
   AppCard,
@@ -122,19 +123,28 @@ const Register = () => {
   }
   if (prelaunchMode) {
     return (
-      <div
-        className="urban-app"
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "var(--app-bg)",
-          padding: 16,
-        }}
+      <AuthFlowShell
+        eyebrow="WAITLIST"
+        title={
+          <>
+            Entre na
+            <br />
+            lista.
+          </>
+        }
+        subtitle="A Urban AI esta liberando acessos por convite. Cadastre seu e-mail para entrar na fila."
+        asideEyebrow="PRE-LANCAMENTO"
+        asideTitle={
+          <>
+            Abertura
+            <br />
+            controlada.
+          </>
+        }
+        asideSubtitle="Estamos liberando novos anfitrioes em ondas para manter a qualidade das recomendacoes."
       >
         <WaitlistSignup source="create-signup" />
-      </div>
+      </AuthFlowShell>
     );
   }
 
