@@ -7,12 +7,19 @@
 - Public pages use the editorial `urban-manifesto` / `urban-public-*` layer.
 - Icons use `lucide-react` for screen-level icons and `componentes/ui/Icons.tsx` for shared app primitives.
 - Toasts use `AppToastProvider`, `useAppToast`, or `useToastCompat`.
+- Shared TSX style primitives live in `src/app/componentes/ui/styles.ts`.
 
 ## Do Not Add
 
 - Chakra UI, Ant Design, Headless UI, FontAwesome, React Icons, Heroicons, or React Toastify.
 - Direct Emotion dependencies. Emotion can remain only as a transitive dependency of `react-select`.
 - New Tailwind utility islands for product UI. Prefer UI components, tokens, or scoped CSS classes.
+
+## Where To Change Design
+
+- Component behavior/variants: edit the component in `src/app/componentes/ui`.
+- Shared TSX primitives: edit `src/app/componentes/ui/styles.ts`.
+- CSS variable values: edit the scoped token blocks in `src/app/globals.css`.
 
 ## Audit
 

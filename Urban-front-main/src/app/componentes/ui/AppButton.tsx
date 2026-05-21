@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { appDisabledStyle, appRadius, appTransition, appVar } from "./styles";
 
 /**
  * Botao app autenticado Urban AI.
@@ -41,26 +42,26 @@ function styleForVariant(variant: AppButtonVariant): React.CSSProperties {
   switch (variant) {
     case "primary":
       return {
-        background: "var(--app-accent)",
-        color: "#FFFFFF",
-        border: "1px solid var(--app-accent)",
+        background: appVar.accent,
+        color: appVar.white,
+        border: `1px solid ${appVar.accent}`,
       };
     case "secondary":
       return {
         background: "transparent",
-        color: "var(--app-text)",
-        border: "1px solid var(--app-divider-strong)",
+        color: appVar.text,
+        border: `1px solid ${appVar.dividerStrong}`,
       };
     case "ghost":
       return {
         background: "transparent",
-        color: "var(--app-text-muted)",
+        color: appVar.textMuted,
         border: "1px solid transparent",
       };
     case "danger":
       return {
         background: "transparent",
-        color: "var(--app-danger)",
+        color: appVar.danger,
         border: "1px solid rgba(194, 52, 46, 0.25)",
       };
   }
@@ -86,16 +87,15 @@ export const AppButton = React.forwardRef<HTMLButtonElement, Props>(function App
   const base: React.CSSProperties = {
     ...sizes[size],
     ...styleForVariant(variant),
+    ...appDisabledStyle(Boolean(disabled || loading)),
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    borderRadius: 10,
+    borderRadius: appRadius.control,
     fontWeight: 600,
     letterSpacing: 0.2,
-    cursor: disabled || loading ? "not-allowed" : "pointer",
-    opacity: disabled || loading ? 0.5 : 1,
-    transition: "background 120ms, border-color 120ms, transform 80ms",
+    transition: appTransition.control,
     whiteSpace: "nowrap",
     textDecoration: "none",
     lineHeight: 1,

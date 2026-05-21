@@ -1,6 +1,13 @@
 "use client";
 
 import React from "react";
+import {
+  appErrorTextStyle,
+  appFieldBaseStyle,
+  appHelperTextStyle,
+  appLabelStyle,
+  appVar,
+} from "./styles";
 
 /**
  * Input/Select/Textarea light premium do app autenticado.
@@ -9,43 +16,6 @@ import React from "react";
  * Estilo: bg branco, border divider, focus border accent #E8500A + ring soft.
  * Label persistente em cima (uppercase 2xs).
  */
-
-const baseFieldStyle: React.CSSProperties = {
-  width: "100%",
-  height: 40,
-  padding: "0 14px",
-  background: "var(--app-surface)",
-  border: "1px solid var(--app-divider-strong)",
-  borderRadius: 10,
-  color: "var(--app-text)",
-  fontSize: 14,
-  fontWeight: 400,
-  outline: "none",
-  transition: "border-color 120ms, box-shadow 120ms",
-  fontFamily: "Inter, system-ui, sans-serif",
-};
-
-const labelStyle: React.CSSProperties = {
-  display: "block",
-  fontSize: 11,
-  fontWeight: 600,
-  letterSpacing: 1.5,
-  textTransform: "uppercase",
-  color: "var(--app-text-muted)",
-  marginBottom: 6,
-};
-
-const helperStyle: React.CSSProperties = {
-  marginTop: 6,
-  fontSize: 12,
-  color: "var(--app-text-muted)",
-};
-
-const errorStyle: React.CSSProperties = {
-  marginTop: 6,
-  fontSize: 12,
-  color: "var(--app-danger)",
-};
 
 function FieldShell({
   label,
@@ -62,9 +32,9 @@ function FieldShell({
 }) {
   return (
     <label style={{ display: "block", ...style }}>
-      {label && <span style={labelStyle}>{label}</span>}
+      {label && <span style={appLabelStyle}>{label}</span>}
       {children}
-      {error ? <p style={errorStyle}>{error}</p> : helper ? <p style={helperStyle}>{helper}</p> : null}
+      {error ? <p style={appErrorTextStyle}>{error}</p> : helper ? <p style={appHelperTextStyle}>{helper}</p> : null}
     </label>
   );
 }
@@ -85,9 +55,9 @@ export const AppInput = React.forwardRef<HTMLInputElement, InputProps>(function 
     <input
       ref={ref}
       style={{
-        ...baseFieldStyle,
+        ...appFieldBaseStyle,
         paddingLeft: leftAddon ? 38 : 14,
-        borderColor: error ? "var(--app-danger)" : "var(--app-divider-strong)",
+        borderColor: error ? appVar.danger : appVar.dividerStrong,
         ...style,
       }}
       {...rest}
@@ -103,7 +73,7 @@ export const AppInput = React.forwardRef<HTMLInputElement, InputProps>(function 
               left: 12,
               top: "50%",
               transform: "translateY(-50%)",
-              color: "var(--app-text-muted)",
+              color: appVar.textMuted,
               pointerEvents: "none",
               display: "flex",
               alignItems: "center",
@@ -138,7 +108,7 @@ export const AppSelect = React.forwardRef<HTMLSelectElement, SelectProps>(functi
       <select
         ref={ref}
         style={{
-          ...baseFieldStyle,
+          ...appFieldBaseStyle,
           appearance: "none",
           paddingRight: 36,
           backgroundImage:
@@ -172,7 +142,7 @@ export const AppTextarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         ref={ref}
         rows={rows}
         style={{
-          ...baseFieldStyle,
+          ...appFieldBaseStyle,
           height: "auto",
           padding: "10px 14px",
           lineHeight: 1.55,

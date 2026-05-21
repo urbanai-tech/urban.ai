@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { appVar } from "./styles";
 
 /**
  * Wrapper de pagina autenticada. Coloca a classe `.urban-app` no container
@@ -28,7 +29,7 @@ export function AppPageShell({
     <div
       className="urban-app"
       style={{
-        background: "var(--app-bg)",
+        background: appVar.bg,
         minHeight: "100%",
         width: "100%",
       }}
