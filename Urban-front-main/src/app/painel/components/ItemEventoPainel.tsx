@@ -1,10 +1,9 @@
 "use client";
 
 import React, { Dispatch, SetStateAction, useState } from "react";
-import { ToastContainer, toast } from "react-toastify";
 import { alterarAceitoSugestao } from "@/app/service/api";
 import { EventItem } from "@/app/dashboard/components/ItemEvento";
-import { RecommendationCard } from "@/app/componentes/ui";
+import { RecommendationCard, useToastCompat } from "@/app/componentes/ui";
 
 /**
  * EventCard do /painel — REFATORADO (Sprint 3 redesign anfitriao).
@@ -48,6 +47,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   setIsLoading,
   onChange,
 }) => {
+  const toast = useToastCompat();
   const sugNum = toNumber(ev.precoSugerido);
   const atualNum = toNumber(ev.seuPrecoAtual);
   const [accepted, setAccepted] = useState(ev.aceito);
@@ -94,20 +94,17 @@ export const EventCard: React.FC<EventCardProps> = ({
   }
 
   return (
-    <>
-      <RecommendationCard
-        eventTitle={ev.nome}
-        eventDate={ev.dataInicio}
-        eventLocation={distanceMeta}
-        currentPrice={Number.isFinite(atualNum) ? atualNum : 0}
-        suggestedPrice={Number.isFinite(sugNum) ? sugNum : 0}
-        reason={ev.motivo_ia ?? ev.recomendacao ?? undefined}
-        status={accepted ? "accepted" : "pending"}
-        onPrimary={accepted ? handleCancel : handleAccept}
-        primaryLabel={accepted ? "Cancelar aceite" : "Aplicar sugestao"}
-        loading={loading}
-      />
-      <ToastContainer />
-    </>
+    <RecommendationCard
+      eventTitle={ev.nome}
+      eventDate={ev.dataInicio}
+      eventLocation={distanceMeta}
+      currentPrice={Number.isFinite(atualNum) ? atualNum : 0}
+      suggestedPrice={Number.isFinite(sugNum) ? sugNum : 0}
+      reason={ev.motivo_ia ?? ev.recomendacao ?? undefined}
+      status={accepted ? "accepted" : "pending"}
+      onPrimary={accepted ? handleCancel : handleAccept}
+      primaryLabel={accepted ? "Cancelar aceite" : "Aplicar sugestao"}
+      loading={loading}
+    />
   );
 };

@@ -27,7 +27,7 @@ import { Close, Sparkles } from "./Icons";
  * componente cuida apenas da UI + estado conversacional in-memory.
  *
  * Sem dependencias pesadas: zero recharts, zero virtual list (lista de
- * mensagens é pequena por sessao), sem `react-toastify` (usa `useAppToast`).
+ * mensagens é pequena por sessao), usando `useAppToast`.
  *
  * Acessibilidade:
  *  - `role="dialog"` + `aria-modal="true"`

@@ -43,7 +43,7 @@ export type {
   PortfolioProperty,
   PortfolioDay,
 } from "./PortfolioCalendar";
-export { AppToastProvider, useAppToast } from "./AppToast";
+export { AppToastProvider, useAppToast, useToastCompat } from "./AppToast";
 export type { AppToastKind } from "./AppToast";
 export { AppFooter } from "./AppFooter";
 export { AppConfirmDialog } from "./AppConfirmDialog";

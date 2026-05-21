@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { toast } from 'react-toastify';
-import { AppButton } from './ui';
+import { AppButton, useToastCompat } from './ui';
 import {
   getUserManagedListings,
   getPropriedadesDropdownList,
@@ -52,6 +51,7 @@ const quotaErrorMessage = (error: unknown, fallback: string) => {
 };
 
 export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModalProps) {
+  const toast = useToastCompat();
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [fetchedProperties, setFetchedProperties] = useState<Property[]>([]);

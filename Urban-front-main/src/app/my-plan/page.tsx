@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ToastContainer, toast } from "react-toastify";
 import SubscriptionCards, { Subscription } from "../componentes/Subscription";
 import {
   AppPageShell,
@@ -10,6 +9,7 @@ import {
   AppBadge,
   AppCard,
   Icons,
+  useToastCompat,
 } from "../componentes/ui";
 import {
   cancelSubscription,
@@ -24,6 +24,7 @@ function remainingQuota(quota: ListingsQuota) {
 }
 
 export default function SubscriptionsPage() {
+  const toast = useToastCompat();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [quota, setQuota] = useState<ListingsQuota | null>(null);
   const [quotaError, setQuotaError] = useState<string | null>(null);
@@ -216,7 +217,6 @@ export default function SubscriptionsPage() {
           }}
         />
       </div>
-      <ToastContainer />
     </AppPageShell>
   );
 }

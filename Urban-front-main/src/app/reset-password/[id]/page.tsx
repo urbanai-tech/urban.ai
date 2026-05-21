@@ -4,9 +4,8 @@ import { useParams, useRouter } from "next/navigation";
 import { Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AuthFlowShell } from "@/app/componentes/AuthFlowShell";
-import { AppButton, AppCard, AppInput, Icons } from "@/app/componentes/ui";
+import { AppButton, AppCard, AppInput, Icons, useAppToast } from "@/app/componentes/ui";
 import { updatePassword } from "@/app/service/api";
-import { useToastCustom } from "@/hooks/useToastCustom";
 
 const PASSWORD_RULES: { key: keyof PasswordChecks; label: string }[] = [
   { key: "lower", label: "Letra minuscula" },
@@ -38,7 +37,7 @@ async function sha256(message: string): Promise<string> {
 export default function PasswordConfirmation() {
   const router = useRouter();
   const params = useParams();
-  const { showToastCustom } = useToastCustom();
+  const toast = useAppToast();
 
   const rawToken = params?.id;
   const token = Array.isArray(rawToken) ? rawToken[0] : rawToken;
@@ -91,12 +90,11 @@ export default function PasswordConfirmation() {
         throw new Error(res.motivo || "Erro ao confirmar redefinicao de senha");
       }
 
-      showToastCustom("Sua senha foi redefinida com sucesso.", "success");
+      toast.success("Sua senha foi redefinida com sucesso.");
       setSuccess(true);
     } catch (error: any) {
-      showToastCustom(
+      toast.error(
         error.response?.data?.message || error.message || "Erro ao atualizar senha.",
-        "error",
       );
     } finally {
       setLoading(false);

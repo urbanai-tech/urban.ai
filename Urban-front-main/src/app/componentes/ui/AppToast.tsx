@@ -6,7 +6,7 @@ import { AlertCircle, Check, Close, Info } from "./Icons";
 /**
  * AppToast — toast manager light premium do anfitriao.
  *
- * Substitui `react-toastify` default (azul/verde/amarelo gritante que destoa
+ * Substitui o toast legado default (azul/verde/amarelo gritante que destoa
  * do design system). Coexiste com o componente — pode trocar gradualmente.
  *
  * Uso:
@@ -19,6 +19,10 @@ import { AlertCircle, Check, Close, Info } from "./Icons";
  */
 
 export type AppToastKind = "success" | "warn" | "error" | "info";
+type ToastCompatType = AppToastKind | "warning" | "default";
+type ToastCompatOptions = {
+  type?: ToastCompatType;
+};
 
 type Toast = {
   id: string;
@@ -236,4 +240,31 @@ export function useAppToast(): Ctx {
     };
   }
   return ctx;
+}
+
+export function useToastCompat() {
+  const appToast = useAppToast();
+  return useCallback(
+    Object.assign(
+      (message: React.ReactNode, options?: ToastCompatOptions) => {
+        const kind: AppToastKind =
+          options?.type === "success"
+            ? "success"
+            : options?.type === "error"
+              ? "error"
+              : options?.type === "warning" || options?.type === "warn"
+                ? "warn"
+                : "info";
+        appToast.show(kind, String(message ?? ""));
+      },
+      {
+        success: (message: React.ReactNode) => appToast.success(String(message ?? "")),
+        error: (message: React.ReactNode) => appToast.error(String(message ?? "")),
+        warn: (message: React.ReactNode) => appToast.warn(String(message ?? "")),
+        warning: (message: React.ReactNode) => appToast.warn(String(message ?? "")),
+        info: (message: React.ReactNode) => appToast.info(String(message ?? "")),
+      },
+    ),
+    [appToast],
+  );
 }
