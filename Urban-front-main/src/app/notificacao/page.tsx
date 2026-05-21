@@ -13,6 +13,7 @@ import {
   AppEmptyState,
   Icons,
 } from '../componentes/ui';
+import { PushNotificationOptIn } from '../componentes/PushNotificationOptIn';
 
 interface NotificationItem {
   id: string;
@@ -187,6 +188,8 @@ export default function NotificationCenter() {
             : 'Tudo em dia. Avisos importantes da Urban AI aparecem aqui.'
         }
       />
+
+      <PushNotificationOptIn />
 
       {loading ? (
         <p style={{ color: 'var(--app-text-muted)', fontSize: 14, padding: '24px 0' }}>

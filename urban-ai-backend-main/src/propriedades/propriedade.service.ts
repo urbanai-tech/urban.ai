@@ -1738,6 +1738,9 @@ export class PropriedadeService {
                 description: "O Sistema analisou os eventos para a propriedade " + list?.titulo,
                 redirectTo: "/dashboard",
                 sendEmail: true,
+                sendPush: true,
+                pushType: 'property_analysis_finished',
+                pushTag: `property-analysis-${listId}`,
             };
             if (pricingGenerated > 0) {
                 notificationContent.title = "Sugestoes de preco disponiveis";
@@ -1746,6 +1749,9 @@ export class PropriedadeService {
                     pricingCreated,
                     pricingUpdated,
                 );
+                notificationContent.redirectTo = `/dashboard?propertyId=${encodeURIComponent(listId)}&source=pwa_push_pricing`;
+                notificationContent.pushType = 'pricing_recommendation';
+                notificationContent.pushTag = `pricing-recommendation-${listId}`;
             }
             if (pricingGenerated > 0 || pricingUnchanged === 0) {
                 await this.emailService.enviarNotification(address?.user?.id, notificationContent);

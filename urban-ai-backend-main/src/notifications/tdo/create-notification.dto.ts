@@ -15,4 +15,13 @@ export class CreateNotificationDto {
 
   @ApiProperty({ example: true, required: false })
   sendEmail?: boolean;
+
+  @ApiProperty({ example: true, required: false })
+  sendPush?: boolean;
+
+  @ApiProperty({ example: 'pricing-list-123', required: false })
+  pushTag?: string;
+
+  @ApiProperty({ example: 'pricing_recommendation', required: false })
+  pushType?: string;
 }

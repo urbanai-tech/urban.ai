@@ -12,6 +12,18 @@ Hoje os canais reais sao:
 
 Conclusao pratica: qualquer coisa enviada por email ainda nao chega como push PWA. Para pushar recomendacoes, precisamos criar a camada de inscricao/disparo e unificar os payloads de notificacao.
 
+## Status De Implementacao
+
+Implementado em 2026-05-21:
+
+- Backend com inscricao Web Push, device secret, entregas pendentes e wake push VAPID sem payload sensivel no provedor de push.
+- Frontend com opt-in no centro de notificacoes, assinatura via Push API e sincronizacao segura do device com o service worker.
+- Service worker com `push` e `notificationclick`, abrindo deep link dentro do app.
+- Dispatcher integrado ao fluxo atual de `EmailService.enviarNotification`, ou seja, notificacoes que ja iam para in-app/email podem tambem virar push PWA.
+- Relatorio semanal de eventos tambem dispara resumo push para usuarios ativos com device inscrito.
+
+Ainda depende de configurar `WEB_PUSH_PUBLIC_KEY`, `WEB_PUSH_PRIVATE_KEY` e `WEB_PUSH_SUBJECT` no ambiente de producao para o canal sair de `INDISPONIVEL` para `DISPONIVEL`.
+
 ## Fontes tecnicas
 
 - MDN `ServiceWorkerRegistration.showNotification`: notificacoes de service worker suportam `body`, `icon`, `badge`, `tag`, `data`, `actions` e resposta via `event.action` no `notificationclick`: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/showNotification
@@ -165,4 +177,3 @@ P2:
 P3:
 
 - Mutacao direta por action button, somente com token assinado, expiracao, idempotencia e auditoria.
-

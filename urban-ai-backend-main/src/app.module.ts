@@ -41,6 +41,7 @@ import { ContactSubmissionsModule } from './contact-submissions/contact-submissi
 import { User } from './entities/user.entity';
 import { RolesGuard } from './auth/roles.guard';
 import { HealthModule } from './health/health.module';
+import { PushModule } from './push/push.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { HealthModule } from './health/health.module';
     DashboardModule,
     AirbnbModule,
     NotificationsModule,
+    PushModule,
     SugestionModule,
     ProcessoModule,
     HttpModule.register({

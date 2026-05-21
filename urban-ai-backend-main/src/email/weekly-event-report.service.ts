@@ -5,6 +5,7 @@ import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { Address } from 'src/entities/addresses.entity';
 import { User } from 'src/entities/user.entity';
 import { MailerService } from 'src/mailer/mailer.service';
+import { PushNotificationService } from 'src/push/push-notification.service';
 import { Between, In, Repository } from 'typeorm';
 import { EmailTemplates } from './templates';
 
@@ -52,6 +53,7 @@ export class WeeklyEventReportService {
     @InjectRepository(AnalisePreco)
     private readonly analisePrecoRepo: Repository<AnalisePreco>,
     private readonly mailer: MailerService,
+    private readonly pushNotificationService: PushNotificationService,
   ) { }
 
   @Cron('0 30 8 * * 1', { name: 'weekly-event-report', timeZone: 'America/Sao_Paulo' })
@@ -113,6 +115,18 @@ export class WeeklyEventReportService {
         if (!result?.enviado) {
           throw new Error(result?.message || `Email provider rejected with status=${result?.status ?? 'unknown'}`);
         }
+
+        await this.pushNotificationService.sendToUser(user.id, {
+          title: 'Radar semanal de eventos',
+          body: this.buildPushSummary(properties, lookaheadDays),
+          url: '/painel?source=pwa_push_weekly_report',
+          tag: `weekly-event-report-${now.toISOString().slice(0, 10)}`,
+          data: {
+            type: 'weekly_event_report',
+            lookaheadDays,
+            properties: properties.length,
+          },
+        });
 
         summary.sent += 1;
       } catch (error) {
@@ -222,6 +236,13 @@ export class WeeklyEventReportService {
       day: '2-digit',
       month: 'short',
     }).format(date);
+  }
+
+  private buildPushSummary(properties: WeeklyEventReportProperty[], lookaheadDays: number): string {
+    const totalEvents = properties.reduce((sum, property) => sum + property.totalEvents, 0);
+    const propertyLabel = properties.length === 1 ? '1 imovel' : `${properties.length} imoveis`;
+    const eventLabel = totalEvents === 1 ? '1 evento relevante' : `${totalEvents} eventos relevantes`;
+    return `${eventLabel} para ${propertyLabel} nos proximos ${lookaheadDays} dias.`;
   }
 
   private nullableNumber(value: unknown): number | null {

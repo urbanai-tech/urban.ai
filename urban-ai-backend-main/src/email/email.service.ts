@@ -12,6 +12,7 @@ import { NotificationsService } from 'src/notifications/notifications.service';
 import { MailerService } from 'src/mailer/mailer.service';
 import { EmailTemplates } from './templates';
 import * as crypto from 'crypto';
+import { PushNotificationService } from 'src/push/push-notification.service';
 
 @Injectable()
 export class EmailService {
@@ -29,6 +30,7 @@ export class EmailService {
         private readonly passwordResetTokenRepository: Repository<PasswordResetToken>,
         private readonly notificationService: NotificationsService,
         private readonly mailerService: MailerService,
+        private readonly pushNotificationService: PushNotificationService,
     ) { }
 
     async getProfileById(userId: string) {
@@ -406,10 +408,6 @@ export class EmailService {
 
     async enviarNotification(usuarioId: string, notificationContent: CreateNotificationDto) {
         try {
-            const notification = await this.notificationService.create(usuarioId, notificationContent)
-            if (notification) {
-                this.logger.debug(`Notificacao salva para user=${usuarioId}`);
-            }
             const usuario = await this.userRepository.findOne({
                 where: { id: usuarioId }
             });
@@ -421,6 +419,11 @@ export class EmailService {
 
             const nome = usuario.username || 'Usuário';
             const userId = usuario.id;
+
+            const notification = await this.notificationService.create(usuarioId, notificationContent)
+            if (notification) {
+                this.logger.debug(`Notificacao salva para user=${usuarioId}`);
+            }
 
             if (notificationContent?.sendEmail) {
                 const htmlContent = EmailTemplates.getSystemNotificationTemplate(
@@ -439,6 +442,20 @@ export class EmailService {
                 this.logger.log(`Email de notificacao enviado para user=${userId}`);
             } else {
                 console.log("Email foi marcado para não ser enviado, portanto não foi enviado.")
+            }
+            const shouldSendPush = notificationContent?.sendPush ?? notificationContent?.sendEmail ?? false;
+            if (shouldSendPush) {
+                const pushResult = await this.pushNotificationService.sendToUser(userId, {
+                    title: notificationContent.title || 'Urban AI',
+                    body: notificationContent.description || '',
+                    url: notificationContent.redirectTo || '/notificacao',
+                    tag: notificationContent.pushTag || `notification-${notification?.id ?? Date.now()}`,
+                    data: {
+                        type: notificationContent.pushType || 'system_notification',
+                        notificationId: notification?.id,
+                    },
+                });
+                this.logger.debug(`Push PWA para user=${userId}: ${JSON.stringify(pushResult)}`);
             }
             return { enviado: true };
 
