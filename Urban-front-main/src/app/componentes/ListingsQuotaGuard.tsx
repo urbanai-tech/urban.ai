@@ -45,7 +45,18 @@ export function ListingsQuotaGuard({ children, onUpsellClick, fallback }: Props)
 
   if (error) {
     return (
-      <div role="alert" className="p-4 border border-red-700 rounded-lg bg-red-950/40 text-red-300 text-sm">
+      <div
+        role="alert"
+        style={{
+          padding: 16,
+          border: "1px solid rgba(194,52,46,0.28)",
+          borderRadius: 8,
+          background: "rgba(194,52,46,0.08)",
+          color: "#C2342E",
+          fontSize: 14,
+          lineHeight: 1.5,
+        }}
+      >
         Não foi possível verificar sua quota de imóveis ({error}). Recarregue a página ou contate o suporte.
       </div>
     );
@@ -57,25 +68,54 @@ export function ListingsQuotaGuard({ children, onUpsellClick, fallback }: Props)
 
   // Quota cheia — bloqueia e mostra upsell
   return (
-    <div className="p-6 border border-amber-700/60 rounded-2xl bg-amber-950/30 space-y-3">
-      <h3 className="text-lg font-bold text-amber-300">
+    <div
+      className="urban-app"
+      style={{
+        padding: 24,
+        border: "1px solid rgba(200,129,14,0.26)",
+        borderRadius: 12,
+        background: "rgba(200,129,14,0.08)",
+        color: "var(--app-text)",
+      }}
+    >
+      <h3 style={{ margin: 0, fontSize: 18, fontWeight: 750, color: "var(--app-warning)" }}>
         Quota de imóveis atingida
       </h3>
-      <p className="text-slate-300 text-sm">
+      <p style={{ margin: "12px 0 0", color: "var(--app-text-dim)", fontSize: 14, lineHeight: 1.6 }}>
         Você contratou <strong>{quota.contratados}</strong> imóveis e já tem <strong>{quota.ativos}</strong> ativos.
         Para cadastrar mais um, atualize sua assinatura aumentando a quantidade.
       </p>
-      <div className="flex gap-3">
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 16 }}>
         <button
           type="button"
           onClick={onUpsellClick}
-          className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold"
+          style={{
+            minHeight: 40,
+            padding: "0 16px",
+            border: "1px solid var(--app-accent)",
+            borderRadius: 10,
+            background: "var(--app-accent)",
+            color: "#FFFFFF",
+            fontWeight: 700,
+            cursor: "pointer",
+          }}
         >
           Aumentar minha quota
         </button>
         <a
           href="mailto:suporte@myurbanai.com"
-          className="px-4 py-2 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800/50"
+          style={{
+            minHeight: 40,
+            padding: "0 16px",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "1px solid var(--app-divider-strong)",
+            borderRadius: 10,
+            color: "var(--app-text)",
+            textDecoration: "none",
+            fontWeight: 650,
+          }}
         >
           Falar com suporte
         </a>

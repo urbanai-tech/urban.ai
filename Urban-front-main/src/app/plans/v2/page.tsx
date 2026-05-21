@@ -1,11 +1,11 @@
 "use client";
 
 /**
- * /plans/v2 — alias mantido por compatibilidade.
+ * /plans/v2 - alias mantido por compatibilidade.
  *
- * Em 24/04/2026 a versão F6.5 do `PricingCalculatorV2` virou a oficial em
- * `/plans` (a página antiga foi substituída). Este arquivo redireciona
- * para evitar 404 em links históricos (p. ex. `?upsell=1`).
+ * Em 24/04/2026 a versao F6.5 do `PricingCalculatorV2` virou a oficial em
+ * `/plans` (a pagina antiga foi substituida). Este arquivo redireciona
+ * para evitar 404 em links historicos (p. ex. `?upsell=1`).
  */
 
 import { useEffect } from "react";
@@ -21,8 +21,20 @@ export default function PlansV2AliasPage() {
   }, [router, search]);
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-50 p-8 flex items-center justify-center">
-      <p className="text-slate-400">Redirecionando…</p>
+    <main
+      style={{
+        minHeight: "100vh",
+        background: "#080A0F",
+        color: "#F8FAFC",
+        padding: 32,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <p style={{ margin: 0, color: "rgba(248,250,252,0.62)" }}>
+        Redirecionando...
+      </p>
     </main>
   );
 }

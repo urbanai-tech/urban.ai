@@ -14,10 +14,33 @@ import React from "react";
  *   <SkipLink targetId="x" />  // pula pra #x
  */
 export function SkipLink({ targetId = "main-content" }: { targetId?: string }) {
+  const [focused, setFocused] = React.useState(false);
+
   return (
     <a
       href={`#${targetId}`}
-      className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-[var(--accent-primary)] focus:text-white focus:rounded-md focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2"
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      style={{
+        position: focused ? "absolute" : "fixed",
+        top: focused ? 8 : 0,
+        left: focused ? 8 : 0,
+        zIndex: 9999,
+        width: focused ? "auto" : 1,
+        height: focused ? "auto" : 1,
+        padding: focused ? "8px 16px" : 0,
+        overflow: focused ? "visible" : "hidden",
+        clip: focused ? "auto" : "rect(0 0 0 0)",
+        whiteSpace: "nowrap",
+        borderRadius: 6,
+        background: "var(--app-accent, #E8500A)",
+        color: "#FFFFFF",
+        textDecoration: "none",
+        fontSize: 14,
+        fontWeight: 650,
+        outline: focused ? "2px solid #FFFFFF" : "none",
+        outlineOffset: 2,
+      }}
     >
       Pular para conteudo principal
     </a>
