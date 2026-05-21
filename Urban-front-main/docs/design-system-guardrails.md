@@ -19,7 +19,8 @@
 
 - Component behavior/variants: edit the component in `src/app/componentes/ui`.
 - Shared TSX primitives: edit `src/app/componentes/ui/styles.ts`.
-- CSS variable values: edit the scoped token blocks in `src/app/globals.css`.
+- App/admin/shared CSS tokens: edit `src/app/componentes/ui/design-tokens.css`.
+- Public page layout helpers: edit the scoped `urban-public-*` blocks in `src/app/globals.css`.
 
 ## Audit
 
