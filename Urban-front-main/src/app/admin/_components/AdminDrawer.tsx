@@ -89,7 +89,7 @@ export function AdminDrawer({
             alignItems: "flex-start",
             justifyContent: "space-between",
             gap: 16,
-            padding: "24px 28px",
+            padding: "24px clamp(16px, 4vw, 28px)",
             borderBottom: "1px solid var(--admin-divider)",
           }}
         >
@@ -131,7 +131,7 @@ export function AdminDrawer({
           style={{
             flex: 1,
             overflowY: "auto",
-            padding: "24px 28px",
+            padding: "24px clamp(16px, 4vw, 28px)",
           }}
         >
           {children}
@@ -139,9 +139,10 @@ export function AdminDrawer({
         {footer && (
           <div
             style={{
-              padding: "16px 28px",
+              padding: "16px clamp(16px, 4vw, 28px)",
               borderTop: "1px solid var(--admin-divider)",
               display: "flex",
+              flexWrap: "wrap",
               gap: 12,
               justifyContent: "flex-end",
               background: "rgba(0, 0, 0, 0.2)",

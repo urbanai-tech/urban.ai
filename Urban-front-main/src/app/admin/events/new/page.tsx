@@ -255,7 +255,7 @@ export default function NovoEventoManual() {
               placeholder='Ex: "Web Summit Rio 2026"'
             />
             <div
-              style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}
+              style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: 14 }}
             >
               <AdminInput
                 label="Data início *"
@@ -286,7 +286,7 @@ export default function NovoEventoManual() {
               helper="Quando lat/lng abaixo estiver vazio, o backend usa o endereço pra geocodificar via cron (a cada 30 min)."
             />
             <div
-              style={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: 14 }}
+              style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))", gap: 14 }}
             >
               <AdminInput
                 label="Cidade"
@@ -303,7 +303,7 @@ export default function NovoEventoManual() {
               />
             </div>
             <div
-              style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}
+              style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: 14 }}
             >
               <AdminInput
                 label="Latitude"
@@ -343,7 +343,7 @@ export default function NovoEventoManual() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 1fr 1fr",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 160px), 1fr))",
                 gap: 14,
               }}
             >

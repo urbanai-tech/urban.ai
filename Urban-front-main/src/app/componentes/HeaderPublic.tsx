@@ -17,6 +17,7 @@ const NAV = [
   { label: "Manifesto", href: "/" },
   { label: "Preços", href: "/precos" },
   { label: "Lançamento", href: "/lancamento" },
+  { label: "Guias", href: "/precificacao-dinamica-airbnb" },
   { label: "Contato", href: "/contato" },
 ];
 
@@ -96,7 +97,7 @@ export default function HeaderPublic() {
           style={{
             display: "none",
             alignItems: "center",
-            gap: 36,
+            gap: 24,
           }}
           className="urban-nav-desktop"
         >
@@ -197,10 +198,13 @@ export default function HeaderPublic() {
       {open && (
         <div
           style={{
-            position: "absolute",
+            position: "fixed",
             top: 72,
             left: 0,
             right: 0,
+            zIndex: 60,
+            maxHeight: "calc(100dvh - 72px)",
+            overflowY: "auto",
             background: "#080A0F",
             borderBottom: "1px solid rgba(255,255,255,0.08)",
             padding: "24px",
@@ -265,7 +269,7 @@ export default function HeaderPublic() {
 
       {/* Responsive helpers — usa media query inline via <style> */}
       <style jsx>{`
-        @media (min-width: 768px) {
+        @media (min-width: 1024px) {
           :global(.urban-nav-desktop) {
             display: flex !important;
           }

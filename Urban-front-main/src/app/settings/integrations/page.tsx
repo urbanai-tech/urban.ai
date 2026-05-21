@@ -435,7 +435,7 @@ export default function IntegrationsPage() {
               onSubmit={handlePreviewPrice}
               style={{
                 display: "grid",
-                gridTemplateColumns: "minmax(220px, 2fr) minmax(150px, 1fr) minmax(160px, 1fr) auto",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))",
                 gap: 12,
                 alignItems: "end",
               }}

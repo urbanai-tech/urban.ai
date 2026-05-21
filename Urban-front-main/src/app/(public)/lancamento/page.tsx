@@ -1,8 +1,35 @@
 import dynamic from "next/dynamic";
+import type { Metadata } from "next";
+import { JsonLd, buildSeoMetadata, faqPageJsonLd } from "../../lib/seo";
 
 const WaitlistForm = dynamic(() => import("../../componentes/WaitlistForm").then(mod => mod.WaitlistForm), {
   loading: () => <div style={{ height: "100px", width: "100%", opacity: 0.5, background: "rgba(255,255,255,0.05)" }} />
 });
+
+export const metadata: Metadata = buildSeoMetadata({
+  title: "Pre-lancamento Urban AI",
+  description:
+    "Entre na lista de acesso antecipado da Urban AI para receber recomendacoes de preco baseadas em eventos, bairro e demanda local.",
+  path: "/lancamento",
+});
+
+const LAUNCH_FAQ_SCHEMA = [
+  {
+    question: "A Urban AI muda meu preco automaticamente?",
+    answer:
+      "No pre-lancamento, o fluxo principal e recomendacao. A automacao via Stays fica em beta privado, com consentimento e limites.",
+  },
+  {
+    question: "De onde vem a recomendacao?",
+    answer:
+      "A recomendacao combina eventos futuros, distancia do imovel, janela de antecedencia, dados do anuncio e historico da plataforma.",
+  },
+  {
+    question: "Qual regiao esta mais pronta?",
+    answer:
+      "A operacao prioriza Sao Paulo e Grande SP, onde o calendario de eventos e a cobertura inicial fazem mais sentido para o beta assistido.",
+  },
+];
 
 /**
  * /lancamento — pré-lançamento Urban AI · waitlist.
@@ -19,6 +46,7 @@ export default function LancamentoPage() {
       className="urban-manifesto"
       style={{ background: "#080A0F", color: "#FFFFFF", minHeight: "100vh" }}
     >
+      <JsonLd id="launch-jsonld" data={faqPageJsonLd(LAUNCH_FAQ_SCHEMA, "/lancamento")} />
       {/* ============== HERO ============== */}
       <section
         className="urban-grain"
@@ -35,12 +63,13 @@ export default function LancamentoPage() {
           <h1
             className="urban-display"
             style={{
-              fontSize: "clamp(72px, 14vw, 220px)",
+              fontSize: "clamp(48px, 14vw, 140px)",
               lineHeight: 0.88,
-              letterSpacing: "-2px",
+              letterSpacing: 0,
               fontWeight: 400,
               margin: 0,
               textTransform: "uppercase",
+              textWrap: "balance",
             }}
           >
             ESGOTAR RÁPIDO
@@ -113,12 +142,13 @@ export default function LancamentoPage() {
           <h2
             className="urban-display"
             style={{
-              fontSize: "clamp(64px, 11vw, 180px)",
+              fontSize: "clamp(46px, 11vw, 140px)",
               lineHeight: 0.88,
-              letterSpacing: "-1.5px",
+              letterSpacing: 0,
               fontWeight: 400,
               margin: "0 0 96px",
               textTransform: "uppercase",
+              textWrap: "balance",
             }}
           >
             ANTECIPAMOS
@@ -167,7 +197,7 @@ export default function LancamentoPage() {
           <h2
             className="urban-display"
             style={{
-              fontSize: "clamp(56px, 10vw, 160px)",
+            fontSize: "clamp(44px, 10vw, 140px)",
               lineHeight: 0.9,
               fontWeight: 400,
               margin: "0 0 80px",
@@ -222,12 +252,13 @@ export default function LancamentoPage() {
           <h2
             className="urban-display"
             style={{
-              fontSize: "clamp(64px, 12vw, 200px)",
+              fontSize: "clamp(46px, 12vw, 140px)",
               lineHeight: 0.88,
-              letterSpacing: "-2px",
+              letterSpacing: 0,
               fontWeight: 400,
               margin: 0,
               textTransform: "uppercase",
+              textWrap: "balance",
             }}
           >
             LISTA DE
@@ -290,6 +321,7 @@ function LaunchFaq({ q, a }: { q: string; a: string }) {
           fontSize: 22,
           fontWeight: 500,
           color: "#FFFFFF",
+          overflowWrap: "anywhere",
         }}
       >
         {q}
@@ -344,7 +376,7 @@ function Step({
         className="urban-display"
         style={{
           fontSize: 32,
-          letterSpacing: "-0.5px",
+          letterSpacing: 0,
           fontWeight: 400,
           textTransform: "uppercase",
           margin: "32px 0 20px",

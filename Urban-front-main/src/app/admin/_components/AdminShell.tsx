@@ -89,6 +89,7 @@ const NAV: NavSection[] = [
     items: [
       { href: "/admin/audit-logs", label: "Auditoria", icon: <Shield size={16} /> },
       { href: "/admin/pricing-config", label: "Pricing config", icon: <Settings size={16} /> },
+      { href: "/admin/seo", label: "SEO / GEO", icon: <Search size={16} /> },
       { href: "/admin/quality", label: "Qualidade", icon: <AlertCircle size={16} /> },
       { href: "/admin/onboarding-drip", label: "Onboarding drip", icon: <Mail size={16} /> },
     ],
@@ -269,7 +270,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Conteúdo da rota */}
-        <main style={{ flex: 1, minWidth: 0 }}>{children}</main>
+        <main className="urban-admin-main" style={{ flex: 1, minWidth: 0 }}>{children}</main>
       </div>
 
       {/* Responsividade — mobile vs desktop */}

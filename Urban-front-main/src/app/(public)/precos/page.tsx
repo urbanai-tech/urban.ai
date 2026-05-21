@@ -1,5 +1,11 @@
 import NextLink from "next/link";
-import { Metadata } from "next";
+import type { Metadata } from "next";
+import {
+  JsonLd,
+  buildSeoMetadata,
+  faqPageJsonLd,
+  offerJsonLd,
+} from "../../lib/seo";
 
 /**
  * /precos — pricing pública (visão resumida).
@@ -10,11 +16,12 @@ import { Metadata } from "next";
  *
  * Checkout vive em app.myurbanai.com/plans — aqui é vitrine pública.
  */
-export const metadata: Metadata = {
-  title: "Preços · Urban AI",
+export const metadata: Metadata = buildSeoMetadata({
+  title: "Precos - Urban AI",
   description:
-    "Cobrança por imóvel, 4 ciclos com desconto progressivo. Sem fidelidade, cancele quando quiser.",
-};
+    "Planos da Urban AI por imovel, com ciclos mensais, trimestrais, semestrais e anuais para anfitrioes e gestoras.",
+  path: "/precos",
+});
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.myurbanai.com";
 const SIGNUP_URL = `${APP_URL.replace(/\/$/, "")}/create`;
@@ -34,12 +41,38 @@ const PROFISSIONAL_TIERS = [
   { cycle: "Anual", price: "67", note: "−32%" },
 ];
 
+const PRICING_FAQ_SCHEMA = [
+  {
+    question: "Como funciona a cobranca por imovel?",
+    answer:
+      "Voce escolhe um plano e ciclo. O valor e calculado por preco, quantidade de imoveis e duracao do ciclo.",
+  },
+  {
+    question: "Posso cancelar?",
+    answer:
+      "Sim. Nao ha fidelidade, e o acesso fica ativo ate o fim do ciclo ja pago.",
+  },
+  {
+    question: "Tem teste gratuito?",
+    answer:
+      "No pre-lancamento, trials sao liberados por convite. No go-live oficial, a previsao e oferecer teste gratuito sem cartao.",
+  },
+];
+
 export default function PrecosPage() {
   return (
     <div
       className="urban-manifesto"
       style={{ background: "#080A0F", color: "#FFFFFF", minHeight: "100vh" }}
     >
+      <JsonLd
+        id="pricing-jsonld"
+        data={[
+          offerJsonLd("Starter", "149", "/precos"),
+          offerJsonLd("Profissional", "99", "/precos"),
+          faqPageJsonLd(PRICING_FAQ_SCHEMA, "/precos"),
+        ]}
+      />
       {/* ============== HERO ============== */}
       <section
         className="urban-grain"
@@ -56,12 +89,13 @@ export default function PrecosPage() {
           <h1
             className="urban-display"
             style={{
-              fontSize: "clamp(72px, 13vw, 200px)",
+              fontSize: "clamp(48px, 13vw, 140px)",
               lineHeight: 0.88,
-              letterSpacing: "-2px",
+              letterSpacing: 0,
               fontWeight: 400,
               margin: 0,
               textTransform: "uppercase",
+              textWrap: "balance",
             }}
           >
             VOCÊ PAGA
@@ -154,12 +188,13 @@ export default function PrecosPage() {
           <h2
             className="urban-display"
             style={{
-              fontSize: "clamp(56px, 9vw, 140px)",
+              fontSize: "clamp(44px, 9vw, 140px)",
               lineHeight: 0.9,
-              letterSpacing: "-1px",
+              letterSpacing: 0,
               fontWeight: 400,
               margin: 0,
               textTransform: "uppercase",
+              textWrap: "balance",
             }}
           >
             20+ IMÓVEIS,
@@ -187,14 +222,17 @@ export default function PrecosPage() {
               rel="noopener noreferrer"
               style={{
                 display: "inline-block",
-                padding: "20px 36px",
+                padding: "18px 24px",
                 background: "#E8500A",
                 color: "#080A0F",
                 fontWeight: 700,
                 fontSize: 14,
-                letterSpacing: 3,
+                letterSpacing: 1.5,
                 textTransform: "uppercase",
                 textDecoration: "none",
+                maxWidth: "100%",
+                textAlign: "center",
+                whiteSpace: "normal",
               }}
             >
               Falar com consultor →
@@ -214,12 +252,13 @@ export default function PrecosPage() {
           <h2
             className="urban-display"
             style={{
-              fontSize: "clamp(56px, 10vw, 160px)",
+              fontSize: "clamp(44px, 10vw, 140px)",
               lineHeight: 0.9,
-              letterSpacing: "-1px",
+              letterSpacing: 0,
               fontWeight: 400,
               margin: "0 0 80px",
               textTransform: "uppercase",
+              textWrap: "balance",
             }}
           >
             RESPOSTAS
@@ -278,12 +317,13 @@ export default function PrecosPage() {
           <h2
             className="urban-display"
             style={{
-              fontSize: "clamp(64px, 12vw, 200px)",
+              fontSize: "clamp(46px, 12vw, 140px)",
               lineHeight: 0.88,
-              letterSpacing: "-2px",
+              letterSpacing: 0,
               fontWeight: 400,
               margin: 0,
               textTransform: "uppercase",
+              textWrap: "balance",
             }}
           >
             COMEÇAR
@@ -309,14 +349,17 @@ export default function PrecosPage() {
               href={WAITLIST_URL}
               style={{
                 display: "inline-block",
-                padding: "22px 40px",
+                padding: "18px 24px",
                 background: "#E8500A",
                 color: "#080A0F",
                 fontWeight: 700,
                 fontSize: 14,
-                letterSpacing: 3,
+                letterSpacing: 1.5,
                 textTransform: "uppercase",
                 textDecoration: "none",
+                maxWidth: "100%",
+                textAlign: "center",
+                whiteSpace: "normal",
               }}
             >
               Garantir meu acesso →
@@ -368,19 +411,29 @@ function PlanBlock({
       <h2
         className="urban-display"
         style={{
-          fontSize: "clamp(56px, 9vw, 140px)",
+          fontSize: "clamp(44px, 9vw, 140px)",
           lineHeight: 0.9,
-          letterSpacing: "-1px",
+          letterSpacing: 0,
           fontWeight: 400,
           margin: 0,
           textTransform: "uppercase",
+          textWrap: "balance",
         }}
       >
         {tagline.split(" · ").map((part, i) =>
           i === 0 ? (
             <span key={i}>{part}</span>
           ) : (
-            <span key={i} style={{ color: "#E8500A" }}>
+            <span
+              key={i}
+              style={{
+                display: "block",
+                color: "#E8500A",
+                fontSize: "clamp(28px, 4vw, 56px)",
+                lineHeight: 1,
+                marginTop: 12,
+              }}
+            >
               {" · "}
               {part}
             </span>
@@ -509,14 +562,14 @@ function Faq({ q, a }: { q: string; a: string }) {
           listStyle: "none",
           fontSize: 22,
           fontWeight: 500,
-          letterSpacing: "-0.3px",
+          letterSpacing: 0,
           color: "#FFFFFF",
           display: "flex",
           justifyContent: "space-between",
           gap: 24,
         }}
       >
-        <span>{q}</span>
+        <span style={{ minWidth: 0, flex: 1, overflowWrap: "anywhere" }}>{q}</span>
         <span
           style={{
             color: "#E8500A",

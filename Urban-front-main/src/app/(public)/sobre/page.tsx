@@ -1,6 +1,17 @@
+import type { Metadata } from "next";
+import { JsonLd, aboutPageJsonLd, buildSeoMetadata } from "../../lib/seo";
+
+export const metadata: Metadata = buildSeoMetadata({
+  title: "Sobre a Urban AI",
+  description:
+    "Conheca a Urban AI, plataforma que une IA, geografia e calendario urbano para orientar precificacao de alugueis de curta temporada.",
+  path: "/sobre",
+});
+
 export default function Sobre() {
   return (
     <main className="urban-manifesto urban-public-page">
+      <JsonLd id="about-jsonld" data={aboutPageJsonLd("/sobre")} />
       <section className="urban-grain urban-public-section" style={{ position: "relative", overflow: "hidden" }}>
         <div
           className="urban-glow"
@@ -13,10 +24,11 @@ export default function Sobre() {
           <h1
             className="urban-display"
             style={{
-              fontSize: "clamp(72px, 13vw, 190px)",
+              fontSize: "clamp(48px, 13vw, 140px)",
               lineHeight: 0.88,
               margin: 0,
               textTransform: "uppercase",
+              textWrap: "balance",
             }}
           >
             A CIDADE MUDA.
