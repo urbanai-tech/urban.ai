@@ -431,7 +431,8 @@ interface User {
 
 interface UpdatePasswordResponse {
   enviado: boolean;
-  user: User;
+  user?: User;
+  motivo?: string;
 }
 
 export const updatePassword = async (
