@@ -2,23 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import NextLink from "next/link";
-import {
-  Box,
-  Button,
-  Flex,
-  Heading,
-  Input,
-  Stack,
-  Text,
-  HStack,
-  IconButton,
-  useToast,
-  Badge,
-  Alert,
-  AlertIcon,
-  AlertDescription,
-} from "@chakra-ui/react";
-import { CheckCircleIcon, CopyIcon } from "@chakra-ui/icons";
+import { Copy, Linkedin, Mail, MessageCircle, Phone, RotateCcw, User } from "lucide-react";
 import {
   signupWaitlist,
   fetchWaitlistStatus,
@@ -33,23 +17,10 @@ import {
   trackWaitlistSignup,
   type MarketingAttribution,
 } from "./Analytics";
+import { AppBadge, AppButton, AppCard, AppInput, Icons } from "./ui";
 
 const STORAGE_KEY = "urban-ai-waitlist-code-v1";
 
-/**
- * Tela de pré-lançamento: form de inscrição + tela de "você é o #N na fila"
- * com referral.
- *
- * Fluxo:
- *  1. Renderiza form (email + nome + opcional phone)
- *  2. POST /waitlist → recebe { position, referralCode, aheadOfYou }
- *  3. Persiste referralCode em localStorage e troca para tela de status
- *  4. Tela de status mostra posição, total na fila, links de share que
- *     incluem ?ref=<code> para premiar quem indica
- *
- * Se o usuário já tem `referralCode` no localStorage, a tela inicial é
- * direto a de status (consultando o backend pra mostrar posição atual).
- */
 export function WaitlistSignup({
   source = "create-signup",
   defaultEmail = "",
@@ -59,20 +30,18 @@ export function WaitlistSignup({
   defaultEmail?: string;
   defaultName?: string;
 }) {
-  const toast = useToast();
   const [phase, setPhase] = useState<"form" | "loading-existing" | "status">("form");
   const [submitting, setSubmitting] = useState(false);
   const [email, setEmail] = useState(defaultEmail);
   const [name, setName] = useState(defaultName);
   const [phone, setPhone] = useState("");
   const [result, setResult] = useState<WaitlistSignupResult | null>(null);
-  const [statusReferrals, setStatusReferrals] = useState<number>(0);
+  const [statusReferrals, setStatusReferrals] = useState(0);
+  const [errorMessage, setErrorMessage] = useState("");
   const [attribution, setAttribution] = useState<MarketingAttribution>({
     firstTouch: null,
     lastTouch: null,
   });
-
-  // ?ref=<code> na URL é capturado e enviado no signup
   const [referredBy, setReferredBy] = useState<string | null>(null);
 
   useEffect(() => {
@@ -80,12 +49,10 @@ export function WaitlistSignup({
     const nextAttribution = captureAttribution();
     setAttribution(nextAttribution);
 
-    // 1. Pega ?ref= da URL (e limpa pra não poluir UX após signup)
     const url = new URL(window.location.href);
     const refParam = url.searchParams.get("ref") || getReferralCode(nextAttribution);
     if (refParam) setReferredBy(refParam);
 
-    // 2. Se já há referralCode salvo, vai direto pra status
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (saved) {
       setPhase("loading-existing");
@@ -101,7 +68,6 @@ export function WaitlistSignup({
           setPhase("status");
         })
         .catch(() => {
-          // localStorage tinha código inválido — limpa e volta pro form
           window.localStorage.removeItem(STORAGE_KEY);
           setPhase("form");
         });
@@ -114,16 +80,13 @@ export function WaitlistSignup({
 
     const trimmedEmail = email.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      toast({
-        title: "E-mail inválido",
-        description: "Use um e-mail válido para continuar.",
-        status: "error",
-        duration: 4000,
-      });
+      setErrorMessage("Use um e-mail valido para continuar.");
       return;
     }
 
     setSubmitting(true);
+    setErrorMessage("");
+
     try {
       const attributionParams = attributionEventParams(attribution);
       const waitlistSource = compactWaitlistSource(source, attribution);
@@ -135,6 +98,7 @@ export function WaitlistSignup({
         source: waitlistSource,
         referredBy: referralCode ?? undefined,
       });
+
       setResult(r);
       if (typeof window !== "undefined") {
         window.localStorage.setItem(STORAGE_KEY, r.referralCode);
@@ -152,13 +116,8 @@ export function WaitlistSignup({
       const message =
         err?.response?.data?.message ||
         err?.message ||
-        "Não foi possível registrar agora. Tente em instantes.";
-      toast({
-        title: "Erro ao registrar",
-        description: typeof message === "string" ? message : "Erro inesperado.",
-        status: "error",
-        duration: 5000,
-      });
+        "Nao foi possivel registrar agora. Tente em instantes.";
+      setErrorMessage(typeof message === "string" ? message : "Erro inesperado.");
     } finally {
       setSubmitting(false);
     }
@@ -166,9 +125,14 @@ export function WaitlistSignup({
 
   if (phase === "loading-existing") {
     return (
-      <Flex minH="60vh" align="center" justify="center">
-        <Text color="gray.500">Carregando sua posição na fila…</Text>
-      </Flex>
+      <AppCard variant="elevated" style={{ padding: 28, width: "100%", maxWidth: 520 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <Spinner />
+          <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 14 }}>
+            Carregando sua posicao na fila...
+          </p>
+        </div>
+      </AppCard>
     );
   }
 
@@ -182,103 +146,111 @@ export function WaitlistSignup({
             window.localStorage.removeItem(STORAGE_KEY);
           }
           setResult(null);
+          setStatusReferrals(0);
           setPhase("form");
         }}
       />
     );
   }
 
-  // Form
   return (
-    <Box maxW="md" w="full" bg="white" p={{ base: 6, md: 8 }} borderRadius="2xl" boxShadow="lg">
-      <Badge colorScheme="orange" mb={3} px={2} py={1} borderRadius="md" fontSize="xs">
-        Pré-lançamento — acesso por convite
-      </Badge>
-      <Heading size="lg" mb={2} color="gray.800">
-        Garanta seu lugar antes da abertura
-      </Heading>
-      <Text color="gray.600" mb={6}>
-        A Urban AI está em pré-lançamento. Cadastre-se na lista de espera e
-        avisamos por e-mail assim que liberarmos seu acesso.
-      </Text>
+    <AppCard variant="elevated" style={{ padding: 28, width: "100%", maxWidth: 520 }}>
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <AppBadge kind="accent">Acesso por convite</AppBadge>
+          <div>
+            <h2 style={{ margin: 0, color: "var(--app-text)", fontSize: 22, lineHeight: 1.25 }}>
+              Garanta seu lugar antes da abertura
+            </h2>
+            <p
+              style={{
+                margin: "8px 0 0",
+                color: "var(--app-text-muted)",
+                fontSize: 14,
+                lineHeight: 1.65,
+              }}
+            >
+              Cadastre-se na lista de espera e receba o convite quando seu acesso for liberado.
+            </p>
+          </div>
+        </div>
 
-      {referredBy && (
-        <Alert status="success" variant="subtle" borderRadius="md" mb={4} fontSize="sm">
-          <AlertIcon />
-          <AlertDescription>
-            Você foi indicado por alguém — bem-vindo(a)!
-          </AlertDescription>
-        </Alert>
-      )}
+        {referredBy && (
+          <InlineNotice kind="success">
+            Voce chegou por indicacao. Seu cadastro ja preserva essa origem.
+          </InlineNotice>
+        )}
 
-      <form onSubmit={handleSubmit}>
-        <Stack spacing={3}>
-          <Box>
-            <Text fontSize="sm" mb={1} color="gray.700" fontWeight="medium">
-              E-mail *
-            </Text>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              required
-              autoComplete="email"
-              isDisabled={submitting}
-            />
-          </Box>
+        <AppInput
+          label="E-mail"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="voce@email.com"
+          required
+          autoComplete="email"
+          disabled={submitting}
+          leftAddon={<Mail size={14} />}
+        />
 
-          <Box>
-            <Text fontSize="sm" mb={1} color="gray.700" fontWeight="medium">
-              Como podemos te chamar?
-            </Text>
-            <Input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Seu nome"
-              autoComplete="name"
-              isDisabled={submitting}
-            />
-          </Box>
+        <AppInput
+          label="Nome"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Seu nome"
+          autoComplete="name"
+          disabled={submitting}
+          leftAddon={<User size={14} />}
+        />
 
-          <Box>
-            <Text fontSize="sm" mb={1} color="gray.700" fontWeight="medium">
-              WhatsApp (opcional)
-            </Text>
-            <Input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="(11) 99999-9999"
-              autoComplete="tel"
-              isDisabled={submitting}
-            />
-            <Text fontSize="xs" color="gray.500" mt={1}>
-              Para chamar você primeiro caso libere acesso prioritário.
-            </Text>
-          </Box>
+        <AppInput
+          label="WhatsApp"
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="(11) 99999-9999"
+          autoComplete="tel"
+          disabled={submitting}
+          helper="Opcional"
+          leftAddon={<Phone size={14} />}
+        />
 
-          <Button
-            type="submit"
-            colorScheme="blue"
-            size="lg"
-            isLoading={submitting}
-            loadingText="Reservando…"
-            mt={2}
+        {errorMessage && <InlineNotice kind="error">{errorMessage}</InlineNotice>}
+
+        <AppButton
+          type="submit"
+          variant="primary"
+          size="lg"
+          fullWidth
+          loading={submitting}
+          rightIcon={<Icons.ArrowRight size={14} />}
+        >
+          Entrar na lista
+        </AppButton>
+
+        <p
+          style={{
+            margin: 0,
+            textAlign: "center",
+            color: "var(--app-text-muted)",
+            fontSize: 13,
+          }}
+        >
+          Ja tem convite?{" "}
+          <NextLink
+            href="/"
+            style={{
+              color: "var(--app-accent)",
+              fontWeight: 650,
+              textDecoration: "none",
+            }}
           >
-            Entrar na lista
-          </Button>
-
-          <Text fontSize="xs" color="gray.500" textAlign="center">
-            Já tem convite?{" "}
-            <NextLink href="/" style={{ color: "#2563eb", textDecoration: "underline" }}>
-              Faça login
-            </NextLink>
-          </Text>
-        </Stack>
+            Fazer login
+          </NextLink>
+        </p>
       </form>
-    </Box>
+    </AppCard>
   );
 }
 
@@ -291,27 +263,23 @@ function WaitlistStatusCard({
   referralsCount: number;
   onReset: () => void;
 }) {
-  const toast = useToast();
+  const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
 
   const referralUrl = useMemo(() => {
     if (typeof window === "undefined") return "";
-    const base = `${window.location.origin}/lancamento`;
-    return `${base}?ref=${result.referralCode}`;
+    return `${window.location.origin}/lancamento?ref=${result.referralCode}`;
   }, [result.referralCode]);
 
-  const shareText = `Acabei de garantir meu acesso antecipado à Urban AI — IA que precifica seu Airbnb cruzando eventos e dados de mercado. Entra você também:`;
+  const shareText =
+    "Acabei de garantir meu acesso antecipado a Urban AI, uma IA que precifica Airbnb cruzando eventos e mercado.";
 
   function copyLink() {
     navigator.clipboard.writeText(referralUrl).then(() => {
       trackAnalyticsEvent("waitlist_referral_copy", {
         source: "waitlist-status",
       });
-      toast({
-        title: "Link copiado!",
-        description: "Compartilhe pra subir na fila.",
-        status: "success",
-        duration: 2500,
-      });
+      setCopyState("copied");
+      window.setTimeout(() => setCopyState("idle"), 2200);
     });
   }
 
@@ -320,19 +288,7 @@ function WaitlistStatusCard({
       source: "waitlist-status",
       channel: "whatsapp",
     });
-    const url = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${referralUrl}`)}`;
-    window.open(url, "_blank");
-  }
-
-  function shareTwitter() {
-    trackAnalyticsEvent("waitlist_referral_share", {
-      source: "waitlist-status",
-      channel: "x-twitter",
-    });
-    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-      shareText,
-    )}&url=${encodeURIComponent(referralUrl)}`;
-    window.open(url, "_blank");
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${shareText} ${referralUrl}`)}`, "_blank");
   }
 
   function shareLinkedIn() {
@@ -340,92 +296,229 @@ function WaitlistStatusCard({
       source: "waitlist-status",
       channel: "linkedin",
     });
-    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
-      referralUrl,
-    )}`;
-    window.open(url, "_blank");
+    window.open(
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(referralUrl)}`,
+      "_blank",
+    );
   }
 
   return (
-    <Box maxW="lg" w="full" bg="white" p={{ base: 6, md: 8 }} borderRadius="2xl" boxShadow="lg" textAlign="center">
-      <Box mx="auto" mb={4}>
-        <CheckCircleIcon boxSize={14} color="green.500" />
-      </Box>
+    <AppCard variant="elevated" style={{ padding: 28, width: "100%", maxWidth: 560 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+          <span
+            aria-hidden
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 10,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "rgba(22, 160, 107, 0.10)",
+              color: "var(--app-success)",
+              flexShrink: 0,
+            }}
+          >
+            <Icons.Check size={20} />
+          </span>
+          <div>
+            <AppBadge kind="success">Cadastro recebido</AppBadge>
+            <h2 style={{ margin: "10px 0 0", fontSize: 22, lineHeight: 1.25 }}>
+              Voce esta na fila
+            </h2>
+            <p
+              style={{
+                margin: "8px 0 0",
+                color: "var(--app-text-muted)",
+                fontSize: 14,
+                lineHeight: 1.65,
+              }}
+            >
+              Avisaremos por e-mail assim que seu acesso for liberado.
+            </p>
+          </div>
+        </div>
 
-      <Heading size="lg" mb={2} color="gray.800">
-        Você está dentro!
-      </Heading>
-      <Text color="gray.600" mb={6}>
-        Avisamos por e-mail assim que liberarmos seu acesso à plataforma.
-      </Text>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+            gap: 10,
+          }}
+        >
+          <StatusMetric label="Posicao" value={`#${result.position}`} />
+          <StatusMetric label="Na frente" value={result.aheadOfYou.toLocaleString("pt-BR")} />
+          <StatusMetric label="Indicacoes" value={referralsCount.toLocaleString("pt-BR")} />
+        </div>
 
-      {/* Posição em destaque */}
-      <Box bg="blue.50" borderWidth="1px" borderColor="blue.200" borderRadius="xl" p={6} mb={6}>
-        <Text fontSize="sm" color="blue.700" fontWeight="bold" textTransform="uppercase" letterSpacing="wide">
-          Sua posição na fila
-        </Text>
-        <Heading size="3xl" color="blue.700" my={2}>
-          #{result.position}
-        </Heading>
-        <Text fontSize="sm" color="blue.600">
-          {result.aheadOfYou === 0
-            ? "Você é o primeiro!"
-            : `${result.aheadOfYou.toLocaleString("pt-BR")} ${result.aheadOfYou === 1 ? "pessoa" : "pessoas"} na sua frente`}
-          {" · "}
-          {result.totalSignups.toLocaleString("pt-BR")} no total
-        </Text>
-      </Box>
+        <div
+          style={{
+            padding: 16,
+            background: "var(--app-surface-muted)",
+            border: "1px solid var(--app-divider)",
+            borderRadius: 10,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+            <div>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 650 }}>Link de indicacao</p>
+              <p style={{ margin: "4px 0 0", color: "var(--app-text-muted)", fontSize: 12 }}>
+                Cada cadastro pelo seu link melhora sua posicao.
+              </p>
+            </div>
+            <AppBadge kind="accent">+1</AppBadge>
+          </div>
 
-      {/* Indique amigos */}
-      <Box textAlign="left" bg="orange.50" borderWidth="1px" borderColor="orange.200" borderRadius="xl" p={5} mb={6}>
-        <HStack mb={2}>
-          <Heading size="sm" color="orange.700">
-            Quer subir na fila?
-          </Heading>
-          <Badge colorScheme="orange">+1 vaga por indicação</Badge>
-        </HStack>
-        <Text fontSize="sm" color="orange.800" mb={3}>
-          Compartilhe seu link único. Cada pessoa que entrar pelo seu link sobe
-          uma posição pra você.
-        </Text>
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "stretch",
+            }}
+          >
+            <div
+              style={{
+                minWidth: 0,
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                padding: "0 12px",
+                minHeight: 40,
+                borderRadius: 8,
+                border: "1px solid var(--app-divider-strong)",
+                background: "var(--app-surface)",
+                color: "var(--app-text-muted)",
+                fontSize: 12,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {referralUrl}
+            </div>
+            <AppButton type="button" variant="secondary" size="md" onClick={copyLink} leftIcon={<Copy size={14} />}>
+              {copyState === "copied" ? "Copiado" : "Copiar"}
+            </AppButton>
+          </div>
 
-        <HStack mb={3}>
-          <Box flex="1" bg="white" borderWidth="1px" borderColor="orange.300" borderRadius="md" px={3} py={2} fontSize="sm" fontFamily="mono" color="gray.700" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
-            {referralUrl}
-          </Box>
-          <IconButton
-            aria-label="Copiar link"
-            icon={<CopyIcon />}
-            onClick={copyLink}
-            colorScheme="orange"
-            variant="outline"
-            size="sm"
-          />
-        </HStack>
+          <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+            <AppButton type="button" variant="secondary" size="sm" onClick={shareWhatsApp} leftIcon={<MessageCircle size={13} />}>
+              WhatsApp
+            </AppButton>
+            <AppButton type="button" variant="secondary" size="sm" onClick={shareLinkedIn} leftIcon={<Linkedin size={13} />}>
+              LinkedIn
+            </AppButton>
+          </div>
+        </div>
 
-        <HStack spacing={2}>
-          <Button size="sm" colorScheme="green" onClick={shareWhatsApp} flex="1">
-            WhatsApp
-          </Button>
-          <Button size="sm" colorScheme="twitter" onClick={shareTwitter} flex="1">
-            X / Twitter
-          </Button>
-          <Button size="sm" colorScheme="linkedin" onClick={shareLinkedIn} flex="1">
-            LinkedIn
-          </Button>
-        </HStack>
+        <button
+          type="button"
+          onClick={onReset}
+          style={{
+            alignSelf: "flex-start",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            border: "none",
+            background: "transparent",
+            color: "var(--app-text-muted)",
+            fontSize: 13,
+            fontWeight: 650,
+            cursor: "pointer",
+            padding: 0,
+          }}
+        >
+          <RotateCcw size={13} />
+          Cadastrar outro e-mail
+        </button>
+      </div>
+    </AppCard>
+  );
+}
 
-        <Text fontSize="xs" color="orange.600" mt={3}>
-          Indicações até agora: <strong>{referralsCount}</strong>
-        </Text>
-      </Box>
+function StatusMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div
+      style={{
+        padding: "14px 12px",
+        border: "1px solid var(--app-divider)",
+        borderRadius: 10,
+        background: "var(--app-surface)",
+      }}
+    >
+      <p
+        style={{
+          margin: 0,
+          color: "var(--app-text-muted)",
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: 1.2,
+          textTransform: "uppercase",
+        }}
+      >
+        {label}
+      </p>
+      <strong style={{ display: "block", marginTop: 6, fontSize: 20, lineHeight: 1 }}>
+        {value}
+      </strong>
+    </div>
+  );
+}
 
-      <Text fontSize="xs" color="gray.500">
-        Quer cadastrar outro e-mail?{" "}
-        <Button variant="link" size="xs" colorScheme="blue" onClick={onReset}>
-          começar de novo
-        </Button>
-      </Text>
-    </Box>
+function InlineNotice({
+  kind,
+  children,
+}: {
+  kind: "success" | "error";
+  children: React.ReactNode;
+}) {
+  const color = kind === "success" ? "var(--app-success)" : "var(--app-danger)";
+  const bg = kind === "success" ? "rgba(22, 160, 107, 0.08)" : "rgba(194, 52, 46, 0.08)";
+  const border =
+    kind === "success" ? "rgba(22, 160, 107, 0.22)" : "rgba(194, 52, 46, 0.22)";
+
+  return (
+    <div
+      role={kind === "error" ? "alert" : "status"}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "10px 12px",
+        borderRadius: 8,
+        border: `1px solid ${border}`,
+        background: bg,
+        color,
+        fontSize: 13,
+        lineHeight: 1.45,
+      }}
+    >
+      {kind === "success" ? <Icons.Check size={14} /> : <Icons.AlertCircle size={14} />}
+      <span>{children}</span>
+    </div>
+  );
+}
+
+function Spinner() {
+  return (
+    <>
+      <style>{`
+        @keyframes urban-spin { to { transform: rotate(360deg); } }
+      `}</style>
+      <span
+        aria-hidden
+        style={{
+          width: 28,
+          height: 28,
+          borderRadius: "50%",
+          border: "3px solid var(--app-accent-soft)",
+          borderTopColor: "var(--app-accent)",
+          animation: "urban-spin 0.9s linear infinite",
+          display: "inline-block",
+          flexShrink: 0,
+        }}
+      />
+    </>
   );
 }
