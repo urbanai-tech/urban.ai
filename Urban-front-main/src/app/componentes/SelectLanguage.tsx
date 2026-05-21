@@ -1,7 +1,6 @@
 'use client';
 
-import { ChevronDownIcon } from '@heroicons/react/16/solid';
-import { LanguageIcon } from '@heroicons/react/20/solid';
+import { ChevronDown, Languages } from 'lucide-react';
 import i18n from 'i18next';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -75,8 +74,8 @@ export default function SelectLanguage() {
           cursor: 'pointer',
         }}
       >
-        <LanguageIcon width={22} />
-        <ChevronDownIcon width={16} />
+        <Languages size={22} strokeWidth={1.8} />
+        <ChevronDown size={16} strokeWidth={1.8} />
         <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>
           {selected.name}
         </span>

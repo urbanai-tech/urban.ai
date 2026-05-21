@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { FiUser } from 'react-icons/fi';
+import { User } from 'lucide-react';
 import { AppButton, AppCard, AppInput, AppPageShell, AppSelect, useToastCompat } from '@/app/componentes/ui';
 import {
   getProfileById,
@@ -180,7 +180,7 @@ export default function ConfiguracoesPage() {
               borderBottom: "1px solid var(--app-divider)",
             }}
           >
-            <FiUser size={24} />
+            <User size={24} strokeWidth={1.8} />
             <h2 style={{ margin: 0, fontSize: 22, lineHeight: 1.2 }}>
               Informacoes pessoais
             </h2>

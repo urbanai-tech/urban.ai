@@ -12,7 +12,7 @@ import {
   getPropertyQuickInfo,
   getPropriedadesDropdownList, getPlans, Plan, registerProcess
 } from '../service/api';
-import { FiUsers, FiHome, FiZap, FiBell } from 'react-icons/fi';
+import { Bell, Home, Users, Zap } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { useToastCompat } from '../componentes/ui';
 
@@ -1316,7 +1316,7 @@ function OnboardingWizardContent() {
                         _selected={{ bg: 'white', color: 'blue.600', boxShadow: 'sm' }}
                       >
                         <HStack spacing={2}>
-                          <FiHome size={16} />
+                          <Home size={16} strokeWidth={1.8} />
                           <Text>Imóvel Individual</Text>
                         </HStack>
                       </Tab>
@@ -1327,7 +1327,7 @@ function OnboardingWizardContent() {
                         _selected={{ bg: 'white', color: 'blue.600', boxShadow: 'sm' }}
                       >
                         <HStack spacing={2}>
-                          <FiUsers size={16} />
+                          <Users size={16} strokeWidth={1.8} />
                           <Text>Importar Tudo (Host)</Text>
                         </HStack>
                       </Tab>
@@ -1744,7 +1744,7 @@ function OnboardingWizardContent() {
                       >
                         <VStack spacing={2} align="start">
                           <Flex wrap="wrap" gap={2} alignItems="center">
-                            <Box as={FiBell} color="blue.500" boxSize={5} />
+                            <Box as={Bell} color="blue.500" boxSize={5} />
                             <Text fontWeight="bold" color="gray.800" fontSize="sm" lineHeight="1">Apenas Notificações</Text>
                             <Badge colorScheme="blue" fontSize="0.6rem">Recomendado</Badge>
                           </Flex>
@@ -1767,7 +1767,7 @@ function OnboardingWizardContent() {
                       >
                         <VStack spacing={2} align="start">
                           <Flex wrap="wrap" gap={2} alignItems="center">
-                            <Box as={FiZap} color="orange.500" boxSize={5} />
+                            <Box as={Zap} color="orange.500" boxSize={5} />
                             <Text fontWeight="bold" color="gray.800" fontSize="sm" lineHeight="1">Automático</Text>
                             <Badge colorScheme="orange" fontSize="0.6rem">Em breve</Badge>
                           </Flex>
