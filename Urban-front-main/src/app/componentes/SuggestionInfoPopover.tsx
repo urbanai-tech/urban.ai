@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { FaRegLightbulb } from "react-icons/fa";
+import { Lightbulb, X } from "lucide-react";
 
 interface SuggestionInfoPopoverProps {
   buttonLabel?: string;
@@ -41,7 +41,7 @@ export const SuggestionInfoPopover: React.FC<SuggestionInfoPopoverProps> = ({
           cursor: "pointer",
         }}
       >
-        <FaRegLightbulb />
+        <Lightbulb size={15} strokeWidth={1.8} />
         {buttonLabel}
       </button>
 
@@ -98,7 +98,7 @@ export const SuggestionInfoPopover: React.FC<SuggestionInfoPopoverProps> = ({
                 cursor: "pointer",
               }}
             >
-              x
+              <X size={15} strokeWidth={1.8} />
             </button>
           </div>
           <p style={{ margin: 0, padding: 12, fontSize: 13, lineHeight: 1.5 }}>

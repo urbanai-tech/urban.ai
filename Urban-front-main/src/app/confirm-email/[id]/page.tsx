@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FiMail, FiRefreshCw } from 'react-icons/fi';
+import { Mail, RefreshCw } from 'lucide-react';
 import { AuthFlowShell } from '@/app/componentes/AuthFlowShell';
 import { AppButton, AppCard, Icons, useToastCompat } from '@/app/componentes/ui';
 import { confirmarEmail, enviarCodigo, getProfile } from '@/app/service/api';
@@ -165,7 +165,7 @@ export default function EmailConfirmation() {
                 color: "var(--app-accent)",
               }}
             >
-              <FiMail size={30} />
+              <Mail size={30} strokeWidth={1.8} />
             </div>
             <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 14 }}>
               Codigo enviado para
@@ -238,7 +238,7 @@ export default function EmailConfirmation() {
                   cursor: resendDisabled || isResending ? "not-allowed" : "pointer",
                 }}
               >
-                <FiRefreshCw />
+                <RefreshCw size={16} strokeWidth={1.8} />
                 {resendDisabled ? `Reenviar codigo em ${countdown}s` : 'Reenviar codigo'}
               </button>
             </div>

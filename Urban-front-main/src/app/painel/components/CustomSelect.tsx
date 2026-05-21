@@ -3,7 +3,7 @@
 import { PropertyDropdown } from "@/app/service/api";
 import React, { useEffect, useState } from "react";
 import ReactSelect, { SingleValue } from "react-select";
-import { FaHome } from "react-icons/fa";
+import { Home } from "lucide-react";
 
 type Option = { value: string; label: React.ReactNode };
 
@@ -89,7 +89,7 @@ function PropertyOption({ property }: { property: PropertyDropdown }) {
             color: "#9CA3AF",
           }}
         >
-          <FaHome />
+          <Home size={18} strokeWidth={1.8} />
         </span>
       )}
 
