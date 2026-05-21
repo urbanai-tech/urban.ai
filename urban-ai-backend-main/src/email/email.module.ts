@@ -16,12 +16,14 @@ import { PasswordResetToken } from 'src/entities/password-reset-token.entity';
 import { NotificationsModule } from 'src/notifications/notifications.module';
 import { MailerModule } from 'src/mailer/mailer.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { PushModule } from 'src/push/push.module';
 
 @Module({
     imports: [ProcessModule,
         AuthModule,
         MailerModule,
         NotificationsModule,
+        PushModule,
         TypeOrmModule.forFeature([
             Event,
             User,

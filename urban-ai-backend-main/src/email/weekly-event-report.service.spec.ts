@@ -14,15 +14,19 @@ describe('WeeklyEventReportService', () => {
     const mailer = {
       sendHtmlEmail: jest.fn().mockResolvedValue({ enviado: true, status: 202 }),
     };
+    const pushNotificationService = {
+      sendToUser: jest.fn().mockResolvedValue({ enabled: true, attempted: 1, sent: 1, failed: 0 }),
+    };
 
     const service = new WeeklyEventReportService(
       userRepo as any,
       addressRepo as any,
       analisePrecoRepo as any,
       mailer as any,
+      pushNotificationService as any,
     );
 
-    return { service, userRepo, addressRepo, analisePrecoRepo, mailer };
+    return { service, userRepo, addressRepo, analisePrecoRepo, mailer, pushNotificationService };
   };
 
   afterEach(() => {
@@ -32,7 +36,7 @@ describe('WeeklyEventReportService', () => {
   });
 
   it('envia um resumo semanal por imovel para usuarios ativos com eventos relevantes', async () => {
-    const { service, userRepo, addressRepo, analisePrecoRepo, mailer } = makeService();
+    const { service, userRepo, addressRepo, analisePrecoRepo, mailer, pushNotificationService } = makeService();
     userRepo.find.mockResolvedValue([
       { id: 'user-1', username: 'Ana Host', email: 'ana@example.com', ativo: true },
     ]);
@@ -84,6 +88,13 @@ describe('WeeklyEventReportService', () => {
       expect.stringContaining('Sao Paulo Tech Week'),
     );
     expect(mailer.sendHtmlEmail.mock.calls[0][2]).toContain('Studio Paulista');
+    expect(pushNotificationService.sendToUser).toHaveBeenCalledWith(
+      'user-1',
+      expect.objectContaining({
+        title: 'Radar semanal de eventos',
+        url: '/painel?source=pwa_push_weekly_report',
+      }),
+    );
     expect(result).toMatchObject({
       ok: true,
       users: 1,
@@ -95,7 +106,7 @@ describe('WeeklyEventReportService', () => {
   });
 
   it('nao envia email quando o usuario ativo nao tem imovel com evento futuro', async () => {
-    const { service, userRepo, addressRepo, analisePrecoRepo, mailer } = makeService();
+    const { service, userRepo, addressRepo, analisePrecoRepo, mailer, pushNotificationService } = makeService();
     userRepo.find.mockResolvedValue([
       { id: 'user-1', username: 'Ana Host', email: 'ana@example.com', ativo: true },
     ]);
@@ -107,6 +118,7 @@ describe('WeeklyEventReportService', () => {
     const result = await service.processWeeklyReports(new Date('2026-05-21T12:00:00Z'));
 
     expect(mailer.sendHtmlEmail).not.toHaveBeenCalled();
+    expect(pushNotificationService.sendToUser).not.toHaveBeenCalled();
     expect(result).toMatchObject({
       users: 1,
       sent: 0,
