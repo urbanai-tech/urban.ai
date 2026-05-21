@@ -2,9 +2,7 @@
 
 import React from 'react';
 import { FiUser } from 'react-icons/fi';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { AppButton, AppCard, AppInput, AppPageShell, AppSelect } from '@/app/componentes/ui';
+import { AppButton, AppCard, AppInput, AppPageShell, AppSelect, useToastCompat } from '@/app/componentes/ui';
 import {
   getProfileById,
   updateProfileById,
@@ -45,6 +43,7 @@ function parsePercentInput(value: string) {
 }
 
 export default function ConfiguracoesPage() {
+  const toast = useToastCompat();
   const [form, setForm] = React.useState<FormState>({
     nome: '',
     email: '',
@@ -159,7 +158,6 @@ export default function ConfiguracoesPage() {
         <div style={{ height: 300, display: "grid", placeItems: "center" }}>
           <Spinner />
         </div>
-        <ToastContainer />
       </AppPageShell>
     );
   }
@@ -274,8 +272,6 @@ export default function ConfiguracoesPage() {
           </div>
         </AppCard>
       </AppCard>
-
-      <ToastContainer />
     </AppPageShell>
   );
 }

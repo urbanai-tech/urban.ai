@@ -3,8 +3,7 @@
 import { CheckCircle, Info, Loader2, TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ToastContainer, toast } from 'react-toastify';
-import { AppButton, AppInput } from "./ui";
+import { AppButton, AppInput, useToastCompat } from "./ui";
 import { getAddressByCep } from "../service/api";
 
 interface AddressCardProps {
@@ -36,6 +35,7 @@ export default function AddressCard({
   onAddressUpdate,
 }: AddressCardProps) {
   const { t } = useTranslation();
+  const toast = useToastCompat();
   const [isLoadingCep, setIsLoadingCep] = useState(false);
   const [cepError, setCepError] = useState<string | null>(null);
   const [imageSrc, setImageSrc] = useState(imageUrl);
@@ -280,7 +280,6 @@ export default function AddressCard({
           }
         }
       `}</style>
-      <ToastContainer />
     </article>
   );
 }

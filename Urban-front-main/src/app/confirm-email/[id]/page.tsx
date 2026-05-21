@@ -3,9 +3,8 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FiMail, FiRefreshCw } from 'react-icons/fi';
-import { ToastContainer, toast } from 'react-toastify';
 import { AuthFlowShell } from '@/app/componentes/AuthFlowShell';
-import { AppButton, AppCard, Icons } from '@/app/componentes/ui';
+import { AppButton, AppCard, Icons, useToastCompat } from '@/app/componentes/ui';
 import { confirmarEmail, enviarCodigo, getProfile } from '@/app/service/api';
 
 const CODE_LENGTH = 6;
@@ -13,6 +12,7 @@ const CODE_LENGTH = 6;
 export default function EmailConfirmation() {
   const params = useParams();
   const router = useRouter();
+  const toast = useToastCompat();
   const email = params.id && !Array.isArray(params.id) ? decodeURIComponent(params.id) : '';
 
   const [loading, setLoading] = useState(false);
@@ -285,7 +285,6 @@ export default function EmailConfirmation() {
           </p>
         </div>
       </AppCard>
-      <ToastContainer />
     </AuthFlowShell>
   );
 }

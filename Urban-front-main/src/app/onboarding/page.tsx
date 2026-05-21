@@ -13,8 +13,8 @@ import {
   getPropriedadesDropdownList, getPlans, Plan, registerProcess
 } from '../service/api';
 import { FiUsers, FiHome, FiZap, FiBell } from 'react-icons/fi';
-import { ToastContainer, toast } from 'react-toastify';
 import { loadStripe } from '@stripe/stripe-js';
+import { useToastCompat } from '../componentes/ui';
 
 type PrimitiveProps = Record<string, any> & {
   as?: React.ElementType;
@@ -721,6 +721,7 @@ const PRICING_PRESETS: Record<PricingStrategy, { inicial: number; final: number 
 //  COMPONENTE PRINCIPAL
 // ═══════════════════════════════════════
 function OnboardingWizardContent() {
+  const toast = useToastCompat();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isAddOnly = searchParams.get('addOnly') === 'true';
@@ -1986,8 +1987,6 @@ function OnboardingWizardContent() {
           </AnimatePresence>
         </MotionBox>
       </Container>
-
-      <ToastContainer position="top-right" />
     </Flex>
   );
 }

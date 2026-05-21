@@ -5,8 +5,8 @@ import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { toast, ToastContainer } from "react-toastify";
 import "../../../i18n";
+import { useToastCompat } from "../componentes/ui";
 import { api, verificarUsuarioState } from "../service/api";
 import { trackEvent } from "../service/tracking";
 
@@ -36,6 +36,7 @@ async function sha256(message: string): Promise<string> {
 export default function Login() {
   const router = useRouter();
   const { t, ready } = useTranslation();
+  const toast = useToastCompat();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -206,7 +207,7 @@ export default function Login() {
               style={{
                 fontSize: "clamp(64px, 8vw, 140px)",
                 lineHeight: 0.88,
-                letterSpacing: "-1.5px",
+                letterSpacing: 0,
                 fontWeight: 400,
                 margin: 0,
                 textTransform: "uppercase",
@@ -329,7 +330,7 @@ export default function Login() {
             style={{
               fontSize: 48,
               lineHeight: 1,
-              letterSpacing: "-0.5px",
+              letterSpacing: 0,
               fontWeight: 400,
               margin: 0,
               textTransform: "uppercase",
@@ -587,21 +588,6 @@ export default function Login() {
           </p>
         </MotionDiv>
       </div>
-
-      <ToastContainer
-        position="top-right"
-        autoClose={3500}
-        hideProgressBar
-        closeOnClick
-        pauseOnHover
-        theme="light"
-        toastStyle={{
-          borderRadius: 10,
-          fontFamily: "Inter, system-ui, sans-serif",
-          fontSize: 14,
-          fontWeight: 500,
-        }}
-      />
 
       {/* Responsive — só mostra split em desktop */}
       <style jsx global>{`

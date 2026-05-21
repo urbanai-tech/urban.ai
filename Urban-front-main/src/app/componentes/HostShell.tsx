@@ -3,7 +3,7 @@
 import React from "react";
 import SideBar from "./SideBar";
 import PaymentCheckGuard from "../context/PaymentCheckGuard";
-import { AppFooter, AppToastProvider, AskUrbanProvider } from "./ui";
+import { AppFooter, AskUrbanProvider } from "./ui";
 
 /**
  * HostShell - layout shell unificado para rotas autenticadas do anfitriao.
@@ -24,54 +24,52 @@ export default function HostShell({
   );
 
   return (
-    <AppToastProvider>
-      <AskUrbanProvider>
+    <AskUrbanProvider>
+      <div
+        data-host-shell
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          background: "#FAFAFB",
+        }}
+      >
+        <SideBar />
+
         <div
-          data-host-shell
           style={{
-            minHeight: "100vh",
+            minWidth: 0,
+            flex: 1,
             display: "flex",
             flexDirection: "column",
             background: "#FAFAFB",
           }}
         >
-          <SideBar />
-
-          <div
+          <main
+            className="urban-app"
             style={{
-              minWidth: 0,
               flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              background: "#FAFAFB",
+              minHeight: 0,
+              padding: noPadding ? 0 : "24px 16px 96px",
+              background: "var(--app-bg, #FAFAFB)",
             }}
           >
-            <main
-              className="urban-app"
-              style={{
-                flex: 1,
-                minHeight: 0,
-                padding: noPadding ? 0 : "24px 16px 96px",
-                background: "var(--app-bg, #FAFAFB)",
-              }}
-            >
-              {content}
-            </main>
-            <AppFooter />
-          </div>
+            {content}
+          </main>
+          <AppFooter />
         </div>
+      </div>
 
-        <style>{`
-          @media (min-width: 768px) {
-            [data-host-shell] {
-              flex-direction: row !important;
-            }
-            [data-host-shell] > div:last-of-type > main {
-              padding: ${noPadding ? "0" : "32px 32px 80px"} !important;
-            }
+      <style>{`
+        @media (min-width: 768px) {
+          [data-host-shell] {
+            flex-direction: row !important;
           }
-        `}</style>
-      </AskUrbanProvider>
-    </AppToastProvider>
+          [data-host-shell] > div:last-of-type > main {
+            padding: ${noPadding ? "0" : "32px 32px 80px"} !important;
+          }
+        }
+      `}</style>
+    </AskUrbanProvider>
   );
 }

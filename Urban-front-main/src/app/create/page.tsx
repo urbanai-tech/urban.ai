@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import "../../../i18n";
-import { ToastContainer, toast } from "react-toastify";
 import { api } from "../service/api";
 import { usePrelaunch } from "../componentes/usePrelaunch";
 import { WaitlistSignup } from "../componentes/WaitlistSignup";
@@ -17,6 +16,7 @@ import {
   AppInput,
   AppSectionHeader,
   Icons,
+  useToastCompat,
 } from "../componentes/ui";
 
 const MotionDiv = motion.div;
@@ -60,6 +60,7 @@ type PasswordChecks = {
 
 const Register = () => {
   const router = useRouter();
+  const toast = useToastCompat();
   const { loading: prelaunchLoading, prelaunchMode } = usePrelaunch();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -448,8 +449,6 @@ const Register = () => {
           </AppCard>
         </MotionDiv>
       </div>
-
-      <ToastContainer />
 
       {/* Responsividade do painel esquerdo via CSS escopado */}
       <style>{`

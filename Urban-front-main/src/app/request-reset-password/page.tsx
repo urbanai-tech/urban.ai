@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ToastContainer, toast } from "react-toastify";
 import { Mail } from "lucide-react";
 import { AuthFlowShell } from "@/app/componentes/AuthFlowShell";
-import { AppButton, AppCard, AppInput, Icons } from "@/app/componentes/ui";
+import { AppButton, AppCard, AppInput, Icons, useToastCompat } from "@/app/componentes/ui";
 import { forgotPassword } from "@/app/service/api";
 
 export default function PasswordResetRequest() {
+  const toast = useToastCompat();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [sentTo, setSentTo] = useState("");
@@ -176,15 +176,6 @@ export default function PasswordResetRequest() {
           </form>
         )}
       </AppCard>
-
-      <ToastContainer
-        position="top-right"
-        autoClose={3500}
-        hideProgressBar
-        closeOnClick
-        pauseOnHover
-        theme="light"
-      />
     </AuthFlowShell>
   );
 }

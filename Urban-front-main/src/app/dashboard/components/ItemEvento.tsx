@@ -1,7 +1,6 @@
 "use client";
 
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { toast } from "react-toastify";
 import {
   alterarAceitoSugestao,
   registrarPrecoAplicadoSugestao,
@@ -14,6 +13,7 @@ import {
   AppTextarea,
   AppBadge,
   Icons,
+  useToastCompat,
 } from "@/app/componentes/ui";
 
 /**
@@ -104,6 +104,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   setIsLoading,
   onChange,
 }) => {
+  const toast = useToastCompat();
   const sugNum = toNumber(ev.precoSugerido);
   const atualNum = toNumber(ev.seuPrecoAtual);
 

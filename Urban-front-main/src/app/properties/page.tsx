@@ -13,7 +13,6 @@ import {
   updatePropertyIdentity,
   updatePropertyPricingInputs,
 } from '../service/api';
-import { toast } from 'react-toastify';
 import { AddPropertyModal } from '../componentes/AddPropertyModal';
 import {
   AppButton,
@@ -22,6 +21,7 @@ import {
   AppInput,
   AppPageShell,
   AppSectionHeader,
+  useToastCompat,
 } from '../componentes/ui';
 
 type PricingDraft = { manualDailyPrice: string; averageMonthlyRevenue: string };
@@ -51,6 +51,7 @@ function PropertyThumb({ src, alt }: { src?: string | null; alt: string }) {
 
 export default function MyProperties() {
   const { t } = useTranslation();
+  const toast = useToastCompat();
   const [properties, setProperties] = useState<PropertyDropdown[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingPricing, setSavingPricing] = useState<string | null>(null);
