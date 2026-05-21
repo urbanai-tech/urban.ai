@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "design:audit": "node scripts/design-system-audit.mjs",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
     "test:e2e:pwa": "playwright test e2e/pwa-mobile.spec.ts",
@@ -15,8 +16,6 @@
     "build:watch": "chokidar \"pages/**/*.{js,jsx,ts,tsx}\" \"components/**/*.{js,jsx,ts,tsx}\" \"lib/**/*.{js,jsx,ts,tsx}\" \"next.config.js\" --ignore \"**/node_modules/**\" --ignore \"**/.next/**\" -c \"next build\""
   },
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
     "@fontsource/inter": "^5.2.5",
     "@sentry/nextjs": "^10.43.0",
     "@stripe/stripe-js": "^7.8.0",
