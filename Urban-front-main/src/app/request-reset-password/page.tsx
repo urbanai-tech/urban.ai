@@ -1,161 +1,190 @@
-'use client';
+"use client";
 
-import {
-  Alert,
-  AlertIcon,
-  Box,
-  Button,
-  Flex,
-  FormControl,
-  FormLabel,
-  Heading,
-  HStack,
-  Input,
-  Link,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
-import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { forgotPassword } from '@/app/service/api';
-  import { ToastContainer, toast } from 'react-toastify';
-      
-const MotionBox = motion(Box);
+import Link from "next/link";
+import { useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import { Mail } from "lucide-react";
+import { AuthFlowShell } from "@/app/componentes/AuthFlowShell";
+import { AppButton, AppCard, AppInput, Icons } from "@/app/componentes/ui";
+import { forgotPassword } from "@/app/service/api";
 
-const PasswordResetRequest = () => {
-
+export default function PasswordResetRequest() {
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
+  const [email, setEmail] = useState("");
+  const [sentTo, setSentTo] = useState("");
 
-  const handleSubmit = async () => {
-    if (!email) {
-      toast.error("Por favor, insira seu e-mail.");
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmedEmail = email.trim().toLowerCase();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      toast.error("Informe um e-mail valido.");
       return;
     }
 
     try {
       setLoading(true);
-      setSuccessMsg('');
-
-      const res = await forgotPassword(email);
+      const res = await forgotPassword(trimmedEmail);
 
       if (res.status !== 201 || !res.data?.enviado) {
-        throw new Error("Erro ao enviar e-mail de redefinição.");
+        throw new Error(res.data?.motivo || "Nao foi possivel enviar o e-mail.");
       }
 
-            toast("E-mail enviado!", { type: "success" });
-
-      setSuccessMsg(`Um e-mail para reset de senha foi enviado para ${email}. 
-        Verifique sua caixa de entrada e siga as instruções.`);
-
+      setSentTo(trimmedEmail);
+      toast("E-mail enviado.", { type: "success" });
     } catch (error: any) {
-      console.error("Erro handleSubmit:", error.response?.data || error.message);
-      toast.error(error.response?.data?.message || error.message || "Erro ao enviar o e-mail de redefinição.");
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Erro ao enviar o e-mail de redefinicao.",
+      );
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleRetry = () => {
-    setEmail('');
-    setSuccessMsg('');
-  };
+  }
 
   return (
-    <Flex
-      minH="100vh"
-      w="100%"
-      align="center"
-      justify="center"
-      bg="gray.50"
-      p={4}
+    <AuthFlowShell
+      eyebrow="ACESSO"
+      title={
+        <>
+          Redefinir{" "}
+          <br />
+          senha.
+        </>
+      }
+      subtitle="Digite o e-mail da sua conta para receber um link seguro de redefinicao."
+      asideEyebrow="SEGURANCA"
+      asideTitle={
+        <>
+          Seu acesso{" "}
+          <br />
+          protegido.
+        </>
+      }
+      asideSubtitle="Links temporarios, validacao por token e uma experiencia visual alinhada ao novo produto."
     >
-      <MotionBox
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        w="100%"
-        maxW="md"
-        bg="white"
-        borderRadius="xl"
-        boxShadow="xl"
-        p={8}
-      >
-
-        <VStack spacing={6} align="stretch">
-          <Box textAlign="center">
-            <Heading size="xl" mb={2} color="blue.600">
-              Resetar Senha
-            </Heading>
-            <Text fontSize="lg" color="gray.600">
-              Insira seu e-mail para receber o link de redefinição
-            </Text>
-          </Box>
-
-          {/* Campo e Botão só aparecem se ainda não foi enviado */}
-          {!successMsg && (
-            <>
-              <FormControl isDisabled={loading}>
-                <FormLabel fontWeight="semibold">E-mail</FormLabel>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="seuemail@exemplo.com"
-                  size="lg"
-                  focusBorderColor="blue.500"
-                />
-              </FormControl>
-
-              <Button
-                size="lg"
-                bg="#1C1D3B"
-                color="white"
-                _hover={{ bg: "#262750" }}   // ~6% mais claro
-                _active={{ bg: "#121326" }}
-                isLoading={loading}
-                loadingText="Enviando..."
-                onClick={handleSubmit}
-                transition="all 0.2s"
-                isDisabled={loading}
+      <AppCard variant="elevated" style={{ padding: 28 }}>
+        {sentTo ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+            <div
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: 10,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "rgba(22, 160, 107, 0.10)",
+                color: "var(--app-success)",
+              }}
+            >
+              <Icons.Check size={20} />
+            </div>
+            <div>
+              <h2
+                style={{
+                  margin: 0,
+                  color: "var(--app-text)",
+                  fontSize: 18,
+                  lineHeight: 1.35,
+                  fontWeight: 650,
+                }}
               >
-                Resetar Senha
-              </Button>
-            </>
-          )}
-
-
-
-          {successMsg && (
-            <>
-              <Alert status="success" borderRadius="md">
-                <AlertIcon />
-                {successMsg}
-              </Alert>
-
-              <Button
+                E-mail enviado
+              </h2>
+              <p
+                style={{
+                  margin: "8px 0 0",
+                  color: "var(--app-text-muted)",
+                  fontSize: 14,
+                  lineHeight: 1.65,
+                }}
+              >
+                Enviamos o link para <strong>{sentTo}</strong>. Ele expira em 30
+                minutos.
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <AppButton
+                variant="secondary"
                 size="md"
-                variant="outline"
-                colorScheme="blue"
-                onClick={handleRetry}
+                type="button"
+                onClick={() => {
+                  setSentTo("");
+                  setEmail("");
+                }}
               >
-                Tentar novamente
-              </Button>
-            </>
-          )}
+                Enviar novamente
+              </AppButton>
+              <AppButton
+                as="a"
+                href="/"
+                variant="primary"
+                size="md"
+                rightIcon={<Icons.ArrowRight size={14} />}
+              >
+                Ir para login
+              </AppButton>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+            <AppInput
+              label="E-mail"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="voce@email.com"
+              autoComplete="email"
+              disabled={loading}
+              leftAddon={<Mail size={14} />}
+            />
 
-          <HStack justify="center" pt={2}>
-            <Text>Lembrou da senha?</Text>
-            <Link color="blue.500" fontWeight="bold" href="/">
-              Fazer login
-            </Link>
-          </HStack>
-        </VStack>
-      </MotionBox>
-         <ToastContainer />
-    </Flex>
+            <AppButton
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={loading}
+              rightIcon={<Icons.ArrowRight size={14} />}
+            >
+              Enviar link
+            </AppButton>
+
+            <p
+              style={{
+                margin: 0,
+                textAlign: "center",
+                color: "var(--app-text-muted)",
+                fontSize: 13,
+                lineHeight: 1.5,
+              }}
+            >
+              Lembrou a senha?{" "}
+              <Link
+                href="/"
+                style={{
+                  color: "var(--app-accent)",
+                  fontWeight: 650,
+                  textDecoration: "none",
+                }}
+              >
+                Fazer login
+              </Link>
+            </p>
+          </form>
+        )}
+      </AppCard>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3500}
+        hideProgressBar
+        closeOnClick
+        pauseOnHover
+        theme="light"
+      />
+    </AuthFlowShell>
   );
-};
-
-export default PasswordResetRequest;
+}
