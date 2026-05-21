@@ -125,4 +125,42 @@ describe('SugestionService', () => {
     );
     expect(JSON.stringify(result)).not.toContain('hashed-secret');
   });
+
+  it('bloqueia preco aplicado quando a sugestao esta incompleta', async () => {
+    const registro = baseRegistro();
+    registro.endereco.list = null as any;
+    repo.findOne.mockResolvedValue(registro);
+
+    await expect(service.registrarPrecoAplicado('rec-1', 'user-1', {
+      precoAplicado: 171,
+      origem: 'manual_dashboard',
+    })).rejects.toThrow('Sugestao sem imovel associado nao pode ser aceita');
+    expect(repo.save).not.toHaveBeenCalled();
+    expect(datasetCollector.recordAppliedPrice).not.toHaveBeenCalled();
+  });
+
+  it('bloqueia aceite de sugestao sem listing Airbnb associado', async () => {
+    const registro = baseRegistro();
+    registro.endereco.list = null as any;
+    repo.findOne.mockResolvedValue(registro);
+
+    await expect(service.alterarAceito('rec-1', 'user-1', true)).rejects.toThrow(
+      'Sugestao sem imovel associado nao pode ser aceita',
+    );
+    expect(repo.save).not.toHaveBeenCalled();
+  });
+
+  it('permite rejeitar sugestao incompleta para limpar o estado do usuario', async () => {
+    const registro = baseRegistro();
+    registro.endereco.list = null as any;
+    repo.findOne.mockResolvedValue(registro);
+
+    const result = await service.alterarAceito('rec-1', 'user-1', false);
+
+    expect(result.lifecycle).toMatchObject({
+      accepted: false,
+      status: 'rejected',
+    });
+    expect(repo.save).toHaveBeenCalled();
+  });
 });

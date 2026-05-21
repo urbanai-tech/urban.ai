@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { DatasetCollectorService } from 'src/knn-engine/dataset-collector.service';
@@ -77,9 +77,9 @@ export class SugestionService {
     if (!registro) {
       throw new NotFoundException('Registro não encontrado');
     }
-    if (registro.usuarioProprietario.id !== userId) {
-      throw new ForbiddenException('Registro nao pertence ao usuario autenticado');
-    }
+    this.assertOwnedByUser(registro, userId);
+    if (aceito) this.assertReadyForAcceptance(registro);
+
     registro.aceito = aceito;
     registro.status = aceito ? 'accepted' : 'rejected';
     registro.aceitoEm = aceito ? new Date() : null;
@@ -113,9 +113,9 @@ export class SugestionService {
     if (!registro) {
       throw new NotFoundException('Registro não encontrado');
     }
-    if (registro.usuarioProprietario.id !== userId) {
-      throw new ForbiddenException('Registro nao pertence ao usuario autenticado');
-    }
+    this.assertOwnedByUser(registro, userId);
+    this.assertReadyForAcceptance(registro);
+
     registro.aceito = true;
     registro.precoAplicado = input.precoAplicado;
     registro.aplicadoEm = new Date();
@@ -142,11 +142,10 @@ export class SugestionService {
     if (!registro) {
       throw new NotFoundException('Registro nÃ£o encontrado');
     }
-    if (registro.usuarioProprietario.id !== userId) {
-      throw new ForbiddenException('Registro nao pertence ao usuario autenticado');
-    }
+    this.assertOwnedByUser(registro, userId);
 
     if (input.precoAplicado !== undefined && input.precoAplicado !== null) {
+      this.assertReadyForAcceptance(registro);
       const precoAplicado = Number(input.precoAplicado);
       if (Number.isFinite(precoAplicado) && precoAplicado > 0) {
         registro.precoAplicado = precoAplicado;
@@ -188,6 +187,34 @@ export class SugestionService {
 
   async aceitar(id: string, userId: string): Promise<SuggestionPublicResponse> {
     return this.alterarAceito(id, userId, true);
+  }
+
+  private assertOwnedByUser(registro: AnalisePreco, userId: string): void {
+    if (!registro.usuarioProprietario?.id) {
+      throw new NotFoundException('Registro sem usuario proprietario associado');
+    }
+    if (registro.usuarioProprietario.id !== userId) {
+      throw new ForbiddenException('Registro nao pertence ao usuario autenticado');
+    }
+    if (registro.usuarioProprietario.ativo === false) {
+      throw new ForbiddenException('Usuario inativo nao pode alterar sugestoes');
+    }
+  }
+
+  private assertReadyForAcceptance(registro: AnalisePreco): void {
+    if (!registro.endereco?.id) {
+      throw new BadRequestException('Sugestao sem endereco associado nao pode ser aceita');
+    }
+    if (!registro.endereco?.list?.id) {
+      throw new BadRequestException('Sugestao sem imovel associado nao pode ser aceita');
+    }
+    const listingId = registro.endereco.list.id_do_anuncio;
+    if (typeof listingId !== 'string' || listingId.trim().length === 0) {
+      throw new BadRequestException('Sugestao sem anuncio Airbnb associado nao pode ser aceita');
+    }
+    if (!registro.evento?.id) {
+      throw new BadRequestException('Sugestao sem evento associado nao pode ser aceita');
+    }
   }
 
   private toPublicResponse(registro: AnalisePreco): SuggestionPublicResponse {

@@ -116,7 +116,12 @@ describe('PropriedadeService public responses', () => {
       list: { id: 'list-1' },
     };
     const propriedades = {
-      findOne: jest.fn().mockResolvedValue({ id: 'list-1', titulo: 'Apartamento em Perdizes' }),
+      findOne: jest.fn().mockResolvedValue({
+        id: 'list-1',
+        titulo: 'Apartamento em Perdizes',
+        id_do_anuncio: 'airbnb-1',
+        user: { id: 'user-1', ativo: true },
+      }),
     };
     const analiseEnderecoEventoRepository = {
       find: jest.fn().mockResolvedValue([
@@ -189,7 +194,12 @@ describe('PropriedadeService public responses', () => {
         }),
       },
       propriedades: {
-        findOne: jest.fn().mockResolvedValue({ id: 'list-1', titulo: 'Apartamento em Perdizes' }),
+        findOne: jest.fn().mockResolvedValue({
+          id: 'list-1',
+          titulo: 'Apartamento em Perdizes',
+          id_do_anuncio: 'airbnb-1',
+          user: { id: 'user-1', ativo: true },
+        }),
       },
       analiseEnderecoEventoRepository: {
         find: jest.fn().mockResolvedValue([{ evento: futureEvent, transportMode: 'car' }]),
@@ -244,8 +254,10 @@ describe('PropriedadeService public responses', () => {
       propriedades: {
         findOne: jest.fn().mockResolvedValue({
           id: 'list-1',
+          id_do_anuncio: 'airbnb-1',
           user: {
             id: 'user-1',
+            ativo: true,
             pricingStrategy: 'moderate',
             percentualInicial: -10,
             percentualFinal: 20,
@@ -257,6 +269,7 @@ describe('PropriedadeService public responses', () => {
           id: 'addr-1',
           latitude: -23.51,
           longitude: -46.61,
+          list: { id: 'list-1' },
         }),
       },
       analisePrecoRepository: {

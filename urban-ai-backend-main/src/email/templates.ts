@@ -66,6 +66,88 @@ export class EmailTemplates {
     return baseLayout(content);
   }
 
+  static getWeeklyEventReportTemplate(input: {
+    nome: string;
+    windowDays: number;
+    dashboardUrl: string;
+    properties: {
+      title: string;
+      totalEvents: number;
+      events: {
+        name: string;
+        dateLabel: string;
+        location: string;
+        relevance: number | null;
+        currentPrice: number | null;
+        suggestedPrice: number | null;
+        liftPercent: number | null;
+        recommendation: string | null;
+      }[];
+    }[];
+  }): string {
+    const safeName = escapeHtml(input.nome || "Usuario");
+    const firstName = safeName.split(" ")[0];
+    const windowDays = Math.max(1, Number(input.windowDays) || 30);
+    const totalEvents = input.properties.reduce((sum, property) => sum + property.totalEvents, 0);
+    const propertyBlocks = input.properties
+      .map((property) => {
+        const safeTitle = escapeHtml(property.title || "Imovel");
+        const eventRows = property.events
+          .map((event) => {
+            const safeEvent = escapeHtml(event.name || "Evento");
+            const safeDate = escapeHtml(event.dateLabel || "");
+            const safeLocation = escapeHtml(event.location || "");
+            const relevance = event.relevance !== null ? `${Math.round(event.relevance)}/100` : "sem score";
+            const priceParts = [
+              event.currentPrice !== null ? `atual ${EmailTemplates.formatMoney(event.currentPrice)}` : null,
+              event.suggestedPrice !== null ? `sugerido ${EmailTemplates.formatMoney(event.suggestedPrice)}` : null,
+              event.liftPercent !== null ? `${event.liftPercent > 0 ? "+" : ""}${event.liftPercent}%` : null,
+            ].filter(Boolean);
+            const safeRecommendation = event.recommendation ? escapeHtml(event.recommendation) : null;
+
+            return `
+              <li style="margin: 0 0 14px 0;">
+                <b>${safeEvent}</b><br />
+                <span style="color:#6b7280;">${safeDate}${safeLocation ? ` &middot; ${safeLocation}` : ""} &middot; relevancia ${relevance}</span>
+                ${priceParts.length ? `<br /><span>${priceParts.join(" &middot; ")}</span>` : ""}
+                ${safeRecommendation ? `<br /><span style="color:#6b7280;">${safeRecommendation}</span>` : ""}
+              </li>
+            `;
+          })
+          .join("");
+
+        return `
+          <div style="border-top:1px solid #e5e7eb; padding-top:22px; margin-top:22px;">
+            <p style="margin:0 0 8px 0; font-weight:bold;">${safeTitle}</p>
+            <p style="margin:0 0 12px 0; color:#6b7280;">${property.totalEvents} ${property.totalEvents === 1 ? "evento relevante" : "eventos relevantes"} nos proximos ${windowDays} dias.</p>
+            <ol style="padding-left:20px; margin:0;">${eventRows}</ol>
+          </div>
+        `;
+      })
+      .join("");
+
+    const content = `
+        <div class="title">Radar semanal de eventos</div>
+        <div class="content">
+            <p>Ola, <b>${firstName}</b>.</p>
+            <p>Encontramos <b>${totalEvents}</b> ${totalEvents === 1 ? "evento relevante" : "eventos relevantes"} para os seus imoveis nos proximos <b>${windowDays} dias</b>.</p>
+            <p>Este e um resumo do que a Urban AI esta monitorando por voce. As sugestoes completas ficam no painel.</p>
+            ${propertyBlocks}
+            <div style="text-align:center; margin:32px 0 8px;">
+              <a href="${escapeHtml(input.dashboardUrl)}" class="link" style="display:inline-block; padding:12px 28px; background:${PRIMARY_COLOR}; color:white; border-radius:8px; font-weight:bold;">
+                Ver recomendacoes no painel
+              </a>
+            </div>
+        </div>
+    `;
+    return baseLayout(content);
+  }
+
+  private static formatMoney(value: number): string {
+    if (!Number.isFinite(value)) return "R$0";
+    return `R$${Math.round(value).toLocaleString("pt-BR")}`;
+  }
+
   
   static getConfirmEmailTemplate(nome: string, code: string, frontUrl: string): string {
     const content = `
