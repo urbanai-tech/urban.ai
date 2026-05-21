@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { BellOff, BellRing, Send } from "lucide-react";
+import { BellOff, BellRing, Send, X } from "lucide-react";
 import { AppBadge, AppButton } from "./ui";
 import {
   getPwaPushSnapshot,
@@ -11,10 +11,34 @@ import {
   unsubscribeFromPwaPush,
 } from "../service/pwaPush";
 
-export function PushNotificationOptIn() {
+const DISMISS_KEY = "urban_ai_push_invite_dismissed";
+
+type PushNotificationOptInProps = {
+  variant?: "full" | "compact";
+};
+
+function getDismissedInvite() {
+  try {
+    return window.localStorage.getItem(DISMISS_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function saveDismissedInvite() {
+  try {
+    window.localStorage.setItem(DISMISS_KEY, "true");
+  } catch {
+    // The browser can block localStorage in stricter privacy modes.
+  }
+}
+
+export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptInProps) {
   const [snapshot, setSnapshot] = React.useState<PwaPushSnapshot | null>(null);
   const [busy, setBusy] = React.useState<"subscribe" | "unsubscribe" | "test" | null>(null);
   const [message, setMessage] = React.useState<string | null>(null);
+  const [dismissed, setDismissed] = React.useState(false);
+  const isCompact = variant === "compact";
 
   const refresh = React.useCallback(async () => {
     const next = await getPwaPushSnapshot();
@@ -31,7 +55,8 @@ export function PushNotificationOptIn() {
         reason: "snapshot_failed",
       });
     });
-  }, [refresh]);
+    if (variant === "compact") setDismissed(getDismissedInvite());
+  }, [refresh, variant]);
 
   const activate = async () => {
     setBusy("subscribe");
@@ -39,9 +64,13 @@ export function PushNotificationOptIn() {
     try {
       const next = await subscribeToPwaPush();
       setSnapshot(next);
-      setMessage(next.subscribed ? "Push ativo neste dispositivo." : "Permissao nao concedida.");
+      setMessage(
+        next.subscribed
+          ? "Pronto. Vamos te avisar quando surgir algo importante."
+          : "Tudo bem. Voce pode ativar os avisos depois.",
+      );
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Nao foi possivel ativar o push.");
+      setMessage(error instanceof Error ? error.message : "Nao conseguimos ativar os avisos agora.");
     } finally {
       setBusy(null);
     }
@@ -53,9 +82,9 @@ export function PushNotificationOptIn() {
     try {
       const next = await unsubscribeFromPwaPush();
       setSnapshot(next);
-      setMessage("Push desativado neste dispositivo.");
+      setMessage("Avisos desativados neste dispositivo.");
     } catch {
-      setMessage("Nao foi possivel desativar agora.");
+      setMessage("Nao conseguimos desativar agora.");
     } finally {
       setBusy(null);
     }
@@ -66,7 +95,7 @@ export function PushNotificationOptIn() {
     setMessage(null);
     try {
       await sendPwaPushTest();
-      setMessage("Teste enviado.");
+      setMessage("Teste enviado. Confira as notificacoes do seu aparelho.");
     } catch {
       setMessage("Nao foi possivel enviar o teste.");
     } finally {
@@ -76,6 +105,12 @@ export function PushNotificationOptIn() {
 
   if (!snapshot) return null;
   if (!snapshot.supported) return null;
+  if (isCompact && (snapshot.subscribed || dismissed)) return null;
+
+  const dismissCompact = () => {
+    saveDismissedInvite();
+    setDismissed(true);
+  };
 
   const badge = snapshot.subscribed
     ? <AppBadge kind="success">ATIVO</AppBadge>
@@ -84,6 +119,15 @@ export function PushNotificationOptIn() {
       : snapshot.enabled
         ? <AppBadge kind="accent">DISPONIVEL</AppBadge>
         : <AppBadge kind="neutral">INDISPONIVEL</AppBadge>;
+  const title = snapshot.subscribed
+    ? "Avisos ativados"
+    : "Receber avisos importantes";
+  const helperText =
+    snapshot.permission === "denied"
+      ? "Os avisos estao bloqueados no navegador. Clique no cadeado ao lado do endereco do site para liberar."
+      : snapshot.enabled
+        ? "A Urban AI avisa quando houver nova sugestao de preco ou evento importante. Quando o navegador perguntar, toque em Permitir."
+        : "Avisos ainda nao estao liberados neste ambiente.";
 
   return (
     <section
@@ -93,11 +137,11 @@ export function PushNotificationOptIn() {
         justifyContent: "space-between",
         gap: 16,
         flexWrap: "wrap",
-        padding: "16px 18px",
-        marginBottom: 20,
+        padding: isCompact ? "14px 16px" : "16px 18px",
+        marginBottom: isCompact ? 24 : 20,
         border: "1px solid var(--app-divider)",
         borderRadius: "var(--app-radius-card)",
-        background: "var(--app-surface)",
+        background: isCompact ? "var(--app-accent-soft)" : "var(--app-surface)",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 220 }}>
@@ -110,7 +154,7 @@ export function PushNotificationOptIn() {
             display: "grid",
             placeItems: "center",
             color: "var(--app-accent)",
-            background: "var(--app-accent-soft)",
+            background: isCompact ? "var(--app-surface)" : "var(--app-accent-soft)",
           }}
         >
           <BellRing size={18} />
@@ -118,15 +162,16 @@ export function PushNotificationOptIn() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--app-text)" }}>
-              Push PWA
+              {title}
             </p>
             {badge}
           </div>
-          {message && (
-            <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--app-text-muted)" }}>
-              {message}
-            </p>
-          )}
+          <p
+            aria-live="polite"
+            style={{ margin: "4px 0 0", fontSize: 13, color: "var(--app-text-muted)", lineHeight: 1.45 }}
+          >
+            {message || helperText}
+          </p>
         </div>
       </div>
 
@@ -140,7 +185,7 @@ export function PushNotificationOptIn() {
               loading={busy === "test"}
               onClick={test}
             >
-              Testar
+              Enviar teste
             </AppButton>
             <AppButton
               size="sm"
@@ -161,7 +206,17 @@ export function PushNotificationOptIn() {
             disabled={!snapshot.enabled || snapshot.permission === "denied"}
             onClick={activate}
           >
-            Ativar
+            Ativar avisos
+          </AppButton>
+        )}
+        {isCompact && (
+          <AppButton
+            size="sm"
+            variant="ghost"
+            leftIcon={<X size={14} />}
+            onClick={dismissCompact}
+          >
+            Agora nao
           </AppButton>
         )}
       </div>

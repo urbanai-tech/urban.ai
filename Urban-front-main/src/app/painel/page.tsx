@@ -7,6 +7,7 @@ import { EventItem } from '../dashboard/components/ItemEvento';
 import { Pagination } from '../componentes/Pagination';
 import { EventCard } from './components/ItemEventoPainel';
 import DashboardCards from './components/StatCard';
+import { PushNotificationOptIn } from '../componentes/PushNotificationOptIn';
 import { AppCard, AppCardHeader, AppEmptyState, AppPageShell, AppSectionHeader, Icons, PaceChart } from '../componentes/ui';
 
 const PropertySelect = dynamic(() => import('./components/CustomSelect'), { ssr: false });
@@ -128,6 +129,8 @@ export default function SugestoesAceitas() {
           )
         }
       />
+
+      <PushNotificationOptIn variant="compact" />
 
       <DashboardCards propertyId={propertyId} />
 

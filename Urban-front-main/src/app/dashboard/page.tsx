@@ -25,6 +25,7 @@ import { EventCard } from './components/ItemEvento';
 
 import crypto from "crypto";
 import { SuggestionInfoPopover } from '../componentes/SuggestionInfoPopover';
+import { PushNotificationOptIn } from '../componentes/PushNotificationOptIn';
 import {
   AppPageShell,
   AppSectionHeader,
@@ -283,6 +284,8 @@ export default function DashboardPage() {
           </div>
         }
       />
+
+      <PushNotificationOptIn variant="compact" />
 
       {loadingPropsInfo || isLoading ? (
         <div className="dashboard-loading">
