@@ -29,11 +29,11 @@ import { usePortfolioKeyboard } from "./usePortfolioKeyboard";
  */
 
 const STRATEGY_OPTIONS: ReadonlyArray<{ id: string; label: string }> = [
-  { id: "todas", label: "Todas estratégias" },
+  { id: "todas", label: "Todos os modos" },
   { id: "conservadora", label: "Conservadora" },
   { id: "moderada", label: "Moderada" },
   { id: "agressiva", label: "Agressiva" },
-  { id: "autonomous", label: "Autonomous" },
+  { id: "autonomous", label: "Automatico" },
 ];
 
 function isoDateAt(daysAhead: number): string {
@@ -125,13 +125,13 @@ function PortfolioPageContent() {
         });
         const label =
           action.type === "apply-strategy"
-            ? `estratégia ${action.strategy}`
+            ? `modo ${action.strategy}`
             : action.type === "set-base-price"
               ? `preço base R$ ${action.price.toLocaleString("pt-BR")}`
-              : "sugestões aceitas";
+              : "sugestoes aprovadas";
         toast.success(
           `Aplicado em ${result.applied} imóvel${result.applied > 1 ? "s" : ""}`,
-          `${label} • audit log ${result.auditLogId}`,
+          `${label} registrado com sucesso`,
         );
         if (result.failed.length > 0) {
           toast.warn(
@@ -190,7 +190,7 @@ function PortfolioPageContent() {
       <AppSectionHeader
         eyebrow="PORTFÓLIO · VISÃO CONSOLIDADA"
         title="Calendário do portfólio"
-        subtitle="Veja preço sugerido vs atual em todos os seus imóveis lado a lado. Selecione linhas e aplique ações em lote em segundos. Use J/K pra navegar imóveis e H/L pra datas."
+        subtitle="Veja o preco sugerido e o preco atual dos seus imoveis lado a lado. Selecione linhas para aplicar mudancas em varios imoveis de uma vez."
         actions={
           <div style={{ display: "inline-flex", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
             <DateRangeField
@@ -207,7 +207,7 @@ function PortfolioPageContent() {
             />
             <div style={{ minWidth: 200 }}>
               <AppSelect
-                label="Estratégia"
+                label="Modo de preco"
                 value={strategy}
                 onChange={(e) => setStrategy(e.target.value)}
               >

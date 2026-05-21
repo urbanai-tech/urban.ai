@@ -130,9 +130,9 @@ export function ComparablesTable({
           }}
         >
           <caption style={visuallyHiddenStyle}>
-            Lista de {comparables.length} imóveis comparáveis ao seu, anônimos.
-            Use os botões de cabeçalho pra ordenar por ADR, ocupação, distância
-            ou similaridade.
+            Lista de {comparables.length} imoveis parecidos com o seu, sem identificacao.
+            Use os botoes de cabecalho para ordenar por diaria media, ocupacao, distancia
+            ou semelhanca.
           </caption>
           <thead>
             <tr
@@ -145,7 +145,7 @@ export function ComparablesTable({
               <ColHeader>Tipo</ColHeader>
               <ColHeader>Quartos</ColHeader>
               <SortableColHeader
-                label="ADR mediano"
+                label="Diaria media"
                 active={sortColumn === "adr"}
                 direction={sortDirection}
                 ariaSort={ariaSort("adr")}
@@ -169,13 +169,13 @@ export function ComparablesTable({
                 align="right"
               />
               <SortableColHeader
-                label="Score similaridade"
+                label="Semelhanca"
                 active={sortColumn === "score"}
                 direction={sortDirection}
                 ariaSort={ariaSort("score")}
                 onClick={() => handleSort("score")}
                 align="left"
-                tooltip="Score de 0 a 1 calculado por tipo, tamanho, distância e padrão de preço. Quanto mais perto de 1, mais similar."
+                tooltip="Nota de 0 a 100 considerando tipo, tamanho, distancia e faixa de preco. Quanto maior, mais parecido."
               />
             </tr>
           </thead>
@@ -275,11 +275,11 @@ export function ComparablesTable({
                 fontSize: 12,
               }}
             >
-              <MiniStat label="ADR mediano" value={formatBRL(c.medianAdr)} />
+              <MiniStat label="Diaria media" value={formatBRL(c.medianAdr)} />
               <MiniStat label="Ocupação" value={formatPct(c.occupancy)} />
               <MiniStat label="Distância" value={formatDistance(c.distanceKm)} />
               <MiniStat
-                label="Score similar."
+                label="Semelhanca"
                 value={<SimilarityBar value={c.similarityScore} />}
               />
             </div>
@@ -409,7 +409,7 @@ function SimilarityBar({ value }: { value: number }) {
         gap: 10,
         minWidth: 130,
       }}
-      aria-label={`Score de similaridade ${pct} por cento`}
+      aria-label={`Semelhanca ${pct} por cento`}
     >
       <div
         style={{
@@ -442,7 +442,7 @@ function SimilarityBar({ value }: { value: number }) {
           textAlign: "right",
         }}
       >
-        {value.toFixed(2).replace(".", ",")}
+        {pct}%
       </span>
     </div>
   );

@@ -239,7 +239,7 @@ test.describe('Onboarding Airbnb import', () => {
     await page.getByRole('button', { name: /Buscar im/i }).click();
     await page.getByRole('button', { name: /Registrar 1 im/i }).click();
 
-    await expect(page.getByRole('heading', { name: /Calibrar o Motor/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Ajustar as recomenda/i })).toBeVisible();
     expect(registerPayloads[0]).toEqual([
       {
         id: 0,

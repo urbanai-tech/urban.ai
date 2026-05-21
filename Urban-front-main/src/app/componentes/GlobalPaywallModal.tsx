@@ -6,6 +6,7 @@ import {
   createCheckoutSession,
   getPlans,
   getPropriedadesDropdownList,
+  getFriendlyApiErrorMessage,
   Plan,
 } from "../service/api";
 import { AppBadge, AppButton, Icons } from "./ui";
@@ -27,11 +28,13 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
   const [isAnnual, setIsAnnual] = useState(true);
   const [propertyCount, setPropertyCount] = useState<number>(0);
   const [recommendedPlan, setRecommendedPlan] = useState<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
 
     setLoading(true);
+    setCheckoutError(null);
     Promise.all([
       getPlans(),
       getPropriedadesDropdownList().catch(() => []),
@@ -64,6 +67,7 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
     }
 
     try {
+      setCheckoutError(null);
       setLoadingPlan(plan.name);
       const billingCycle = isAnnual ? "annual" : "monthly";
       const quantity = Math.max(1, Number(propertyCount) || 1);
@@ -73,11 +77,11 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
       if (stripe) {
         await stripe.redirectToCheckout({ sessionId });
       } else {
-        alert("Stripe nao carregou.");
+        setCheckoutError("Nao foi possivel abrir o checkout agora. Recarregue a pagina e tente novamente.");
       }
     } catch (err) {
-      alert("Erro ao iniciar o pagamento.");
       console.error(err);
+      setCheckoutError(getFriendlyApiErrorMessage(err, "Nao foi possivel iniciar o pagamento agora. Tente novamente em alguns instantes."));
     } finally {
       setLoadingPlan(null);
     }
@@ -96,6 +100,13 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
     <div className="global-paywall-overlay" role="dialog" aria-modal="true">
       <section className="global-paywall-modal">
         <h2>Escolha seu plano para continuar</h2>
+
+        {checkoutError && (
+          <div className="global-paywall-error" role="alert">
+            <Icons.Info size={18} />
+            <p>{checkoutError}</p>
+          </div>
+        )}
 
         {propertyCount > 0 && (
           <div className="global-paywall-alert">
@@ -235,6 +246,25 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
           background: rgba(37, 99, 235, 0.08);
           border: 1px solid rgba(37, 99, 235, 0.18);
           border-radius: 12px;
+        }
+
+        .global-paywall-error {
+          display: flex;
+          gap: 12px;
+          max-width: 760px;
+          margin: 0 auto 20px;
+          padding: 12px 14px;
+          color: var(--app-danger);
+          background: rgba(194, 52, 46, 0.08);
+          border: 1px solid rgba(194, 52, 46, 0.22);
+          border-radius: 12px;
+        }
+
+        .global-paywall-error p {
+          margin: 0;
+          color: var(--app-text);
+          font-size: 14px;
+          line-height: 1.5;
         }
 
         .global-paywall-alert p {

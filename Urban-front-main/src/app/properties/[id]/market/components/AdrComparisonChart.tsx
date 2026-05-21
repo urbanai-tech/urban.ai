@@ -137,7 +137,7 @@ export function AdrComparisonChart({
           borderRadius: 12,
         }}
       >
-        Sem série diária para o período selecionado.
+        Sem dados diarios para o periodo selecionado.
       </div>
     );
   }
@@ -156,22 +156,22 @@ export function AdrComparisonChart({
   const first = geometry.points[0];
   const trendText =
     last.yourAdr > first.yourAdr
-      ? `Seu ADR subiu de ${formatBRL(first.yourAdr)} para ${formatBRL(last.yourAdr)} no período.`
+      ? `Sua diaria media subiu de ${formatBRL(first.yourAdr)} para ${formatBRL(last.yourAdr)} no periodo.`
       : last.yourAdr < first.yourAdr
-        ? `Seu ADR caiu de ${formatBRL(first.yourAdr)} para ${formatBRL(last.yourAdr)} no período.`
-        : `Seu ADR ficou estável em torno de ${formatBRL(last.yourAdr)} no período.`;
+        ? `Sua diaria media caiu de ${formatBRL(first.yourAdr)} para ${formatBRL(last.yourAdr)} no periodo.`
+        : `Sua diaria media ficou estavel em torno de ${formatBRL(last.yourAdr)} no periodo.`;
 
   return (
     <div style={{ position: "relative", width: "100%" }}>
       <p style={visuallyHiddenStyle}>{trendText}</p>
       <svg
         role="img"
-        aria-label={`Gráfico comparativo de ADR diário (sua propriedade vs mediana do comp set), ${data.length} dias.`}
+        aria-label={`Grafico comparativo de diaria media, seu imovel e imoveis parecidos, ${data.length} dias.`}
         viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
         preserveAspectRatio="none"
         style={{ width: "100%", height, display: "block" }}
       >
-        <title>Comparativo ADR diário — sua propriedade vs comp set</title>
+        <title>Comparativo de diaria media</title>
 
         {/* Gridlines Y */}
         {geometry.yTicks.map((t, i) => {
@@ -295,7 +295,7 @@ export function AdrComparisonChart({
               onBlur={() => setHoverIdx(null)}
               tabIndex={0}
               style={{ cursor: "crosshair", outline: "none" }}
-              aria-label={`${formatDateLong(p.date)} — seu ADR ${formatBRL(p.yourAdr)}, mediana ${formatBRL(p.medianAdr)}`}
+              aria-label={`${formatDateLong(p.date)} — sua diaria media ${formatBRL(p.yourAdr)}, media dos parecidos ${formatBRL(p.medianAdr)}`}
             />
           );
         })}
@@ -334,14 +334,14 @@ export function AdrComparisonChart({
           >
             <span>
               <span style={{ color: "var(--app-accent)", fontWeight: 600 }}>
-                Seu ADR
+                Sua diaria
               </span>{" "}
               <span style={{ color: "var(--app-text)" }}>
                 {formatBRL(hovered.yourAdr)}
               </span>
             </span>
             <span style={{ color: "var(--app-text-muted)" }}>
-              Mediana comp set {formatBRL(hovered.medianAdr)}
+              Media dos parecidos {formatBRL(hovered.medianAdr)}
             </span>
           </div>
         </div>
@@ -369,7 +369,7 @@ export function AdrComparisonChart({
               borderRadius: 2,
             }}
           />
-          Seu ADR
+          Sua diaria
         </span>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
           <span
@@ -380,7 +380,7 @@ export function AdrComparisonChart({
               borderTop: "2px dashed var(--app-text-muted)",
             }}
           />
-          Mediana comp set
+          Media dos parecidos
         </span>
       </div>
     </div>

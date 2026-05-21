@@ -12,6 +12,8 @@ import {
   AskMessage,
   AskUsageResponse,
   fetchAskUsage,
+  getFriendlyApiErrorMessage,
+  getUrbanApiDataMode,
   postAskQuestion,
   submitAskFeedback,
 } from "@/app/service/api";
@@ -43,7 +45,7 @@ type Props = {
 
 const INITIAL_SUGGESTIONS: string[] = [
   "Qual a receita projetada do próximo mês?",
-  "Como está minha ocupação vs comp set?",
+  "Como está minha ocupação perto de imóveis parecidos?",
   "Quais eventos podem impactar meu preço?",
   "Como meu Airbnb performou semana passada?",
 ];
@@ -52,7 +54,7 @@ const PLACEHOLDER_ROTATION: string[] = [
   "Pergunte sobre receita, ocupação, eventos...",
   "Ex: como foi minha semana passada?",
   "Ex: quais eventos impactam meu preço?",
-  "Ex: ADR vs comp set este mês?",
+  "Ex: minha diária está boa este mês?",
 ];
 
 export function AskUrbanDrawer({ open, onClose }: Props) {
@@ -66,6 +68,7 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
     undefined,
   );
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  const apiMode = useMemo(() => getUrbanApiDataMode(), []);
 
   const listRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -149,7 +152,7 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
       const trimmed = text.trim();
       if (!trimmed || loading) return;
       if (hardCapReached) {
-        toast.warn("Hard cap diário atingido.", "Volte amanhã para continuar.");
+        toast.warn("Limite diario atingido.", "Volte amanha para continuar.");
         return;
       }
 
@@ -187,9 +190,10 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
         setConversationId(res.conversationId);
         setUsage(res.usage);
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Falha ao consultar Ask Urban.";
-        toast.error("Não consegui responder agora.", message);
+        toast.error(
+          "Nao consegui responder agora.",
+          getFriendlyApiErrorMessage(err, "Tente novamente em alguns instantes."),
+        );
       } finally {
         setLoading(false);
       }
@@ -364,6 +368,23 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
             >
               BETA
             </span>
+            {apiMode.askMock && (
+              <span
+                title="Respostas demonstrativas geradas localmente."
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: 0.6,
+                  padding: "3px 7px",
+                  borderRadius: 4,
+                  background: "rgba(200, 129, 14, 0.10)",
+                  color: "var(--app-warning)",
+                  lineHeight: 1,
+                }}
+              >
+                DEMO
+              </span>
+            )}
           </div>
           <button
             ref={closeBtnRef}
@@ -440,7 +461,7 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
                 borderRadius: 8,
               }}
             >
-              Hard cap diário atingido. O contador reseta amanhã.
+              Limite diario atingido. O contador reseta amanha.
             </p>
           )}
           <div
@@ -605,7 +626,7 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
           }}
         >
           Pergunte em linguagem natural. Respondo com dados do seu portfólio,
-          comp set e eventos próximos.
+          imóveis parecidos e eventos próximos.
         </p>
       </div>
       <div

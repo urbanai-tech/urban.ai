@@ -144,8 +144,8 @@ export function AskUrbanUpgradeModal({
           }}
         >
           O Ask Urban é o assistente conversacional que responde sobre receita
-          projetada, ocupação vs comp set, eventos próximos e performance dos
-          seus anúncios em linguagem natural. Está incluso no plano
+          projetada, ocupação comparada com imóveis parecidos, eventos próximos
+          e desempenho dos seus anúncios em linguagem natural. Está incluso no plano
           Profissional e em planos superiores.
         </p>
 

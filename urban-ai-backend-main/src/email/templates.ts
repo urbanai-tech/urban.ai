@@ -233,9 +233,9 @@ export class EmailTemplates {
         <div class="title">Bem-vindo(a), ${firstName}!</div>
         <div class="content">
             <p>Que bom ter você na <b>Urban AI</b>.</p>
-            <p>Nosso motor cruza dados de mercado, eventos próximos e padrões históricos
-            para ajudar você a precificar melhor seus imóveis. O resultado: mais ocupação,
-            preço mais justo e menos achismo.</p>
+            <p>A Urban AI cruza dados de mercado, eventos próximos e padrões históricos
+            para ajudar você a escolher preços melhores para seus imóveis. O resultado:
+            decisões mais claras, menos achismo e mais controle sobre a diária.</p>
 
             <p><b>Próximos passos:</b></p>
             <ol style="line-height: 1.8;">
@@ -393,7 +393,7 @@ export class EmailTemplates {
     const firstName = input.nome.split(' ')[0];
     const percent = Math.round((input.ativos / input.contratados) * 100);
     const content = `
-        <div class="title">Você está usando ${percent}% da sua quota</div>
+        <div class="title">Você está usando ${percent}% do limite do seu plano</div>
         <div class="content">
             <p>Olá, ${firstName}!</p>
             <p>Sua conta tem <b>${input.contratados} imóveis contratados</b> e você já
@@ -404,7 +404,7 @@ export class EmailTemplates {
 
             <div style="text-align: center; margin: 30px 0;">
                 <a href="${input.upgradeUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
-                    Aumentar quota
+                    Ajustar meu plano
                 </a>
             </div>
 
@@ -437,7 +437,7 @@ export class EmailTemplates {
 
             <div style="text-align: center; margin: 30px 0;">
                 <a href="${input.upgradeUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: #b91c1c; color: white; border-radius: 8px; font-weight: bold;">
-                    Aumentar quota agora
+                    Ajustar meu plano agora
                 </a>
             </div>
 
@@ -465,7 +465,7 @@ export class EmailTemplates {
             <b>${input.listingsImported}</b> ${input.listingsImported === 1 ? 'imóvel' : 'imóveis'}.</p>
 
             <p>Por padrão o modo é <b>Recomendação</b> — você recebe sugestões e aplica
-            quando quiser. Quando confiar no motor, vire <b>Automático</b> em qualquer
+            quando quiser. Quando estiver confortável, vire <b>Automático</b> em qualquer
             imóvel individualmente.</p>
 
             <div style="text-align: center; margin: 30px 0;">
@@ -495,7 +495,7 @@ export class EmailTemplates {
     const content = `
         <div class="title">Bem-vindo, ${firstName}!</div>
         <div class="content">
-            <p>Você está dentro da Urban AI. Nas próximas 24h o motor começa a:</p>
+            <p>Você está dentro da Urban AI. Nas próximas 24h vamos começar a:</p>
             <ul style="line-height: 1.8;">
                 <li>Mapear eventos relevantes a até <b>8km</b> dos seus imóveis</li>
                 <li>Cruzar com calendário do Airbnb / Stays</li>
@@ -505,7 +505,7 @@ export class EmailTemplates {
               hasNoProperty
                 ? `
             <hr />
-            <p><b>Você ainda não cadastrou imóveis.</b> O motor só começa quando você fizer isso:</p>
+            <p><b>Você ainda não cadastrou imóveis.</b> As sugestões começam depois do primeiro cadastro:</p>
             <div style="text-align: center; margin: 30px 0;">
                 <a href="${input.propertiesUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
                     Cadastrar primeiro imóvel
@@ -603,15 +603,15 @@ export class EmailTemplates {
         <div class="title">Uma semana com a Urban AI</div>
         <div class="content">
             <p>Olá, ${firstName}!</p>
-            <p>Faz uma semana que você entrou. Hora de fazer o motor trabalhar de verdade.</p>
+            <p>Faz uma semana que você entrou. Hora de transformar as sugestões em rotina.</p>
 
             ${
               input.suggestedAppliedCount > 0
                 ? `
-            <p><b>Até agora você aplicou ${input.suggestedAppliedCount} ${input.suggestedAppliedCount === 1 ? 'sugestão' : 'sugestões'}.</b> Continue assim — quanto mais ground truth, melhor o motor aprende seu portfólio.</p>
+            <p><b>Até agora você aplicou ${input.suggestedAppliedCount} ${input.suggestedAppliedCount === 1 ? 'sugestão' : 'sugestões'}.</b> Continue assim: cada resposta ajuda a Urban AI a entender melhor seus imóveis.</p>
             `
                 : `
-            <p>Você ainda não aplicou nenhuma sugestão. <b>Sem feedback, o motor não evolui.</b> Aceite/recuse cada recomendação — em 1 clique você nos diz se vamos na direção certa.</p>
+            <p>Você ainda não aplicou nenhuma sugestão. Aceite ou recuse cada recomendação: em 1 clique você nos diz se vamos na direção certa.</p>
             `
             }
 
@@ -623,7 +623,7 @@ export class EmailTemplates {
             <ol style="line-height: 1.8;">
                 <li>Conecte Stays se ainda não conectou — aplica preço automaticamente</li>
                 <li>Registre receita real das diárias aplicadas (vai no card da sugestão)</li>
-                <li>Confira o painel "Meu ROI" — mostra quanto a IA já gerou de receita atribuída</li>
+                <li>Confira o painel "Ganhos" para ver o dinheiro atribuído às sugestões aplicadas</li>
             </ol>
 
             <div style="text-align: center; margin: 30px 0;">

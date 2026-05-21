@@ -301,7 +301,7 @@ export default function MyProperties() {
       <AppSectionHeader
         eyebrow="PORTFOLIO"
         title={t('my_properties.title')}
-        subtitle="Organize apelidos, codigos internos e valores base usados pela IA."
+        subtitle="Organize apelidos, codigos internos e valores que ajudam a Urban AI sugerir precos melhores."
         actions={
           <AppButton
             variant="secondary"
@@ -481,8 +481,8 @@ export default function MyProperties() {
                 </div>
 
                 <details className="properties-details">
-                  <summary>Detalhes tecnicos</summary>
-                  <p>Latitude {prop.latitude} · Longitude {prop.longitude}</p>
+                  <summary>Dados de localizacao</summary>
+                  <p>Usamos o endereco cadastrado para comparar eventos, bairro e demanda.</p>
                 </details>
 
                 {openHistory === prop.id && (
@@ -528,7 +528,7 @@ export default function MyProperties() {
           <div className="properties-dialog">
             <h2>Excluir propriedade?</h2>
             <p>
-              O motor de IA nao atualizara mais os precos desta unidade. Esta acao nao pode ser desfeita.
+              A Urban AI nao atualizara mais os precos desta unidade. Esta acao nao pode ser desfeita.
             </p>
             <div className="properties-dialog-actions">
               <AppButton variant="ghost" onClick={closeDeleteDialog}>

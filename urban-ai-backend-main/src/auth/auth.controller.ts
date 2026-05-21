@@ -208,15 +208,15 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     if (!data?.token) {
-      throw new BadRequestException('token obrigatorio');
+      throw new BadRequestException('Use o link de convite enviado para o seu email.');
     }
     if (!data?.password || data.password.length < 8) {
-      throw new BadRequestException('senha deve ter pelo menos 8 caracteres');
+      throw new BadRequestException('Sua senha precisa ter pelo menos 8 caracteres.');
     }
 
     const entry = await this.waitlistService.lookupByInviteToken(data.token);
     if (!entry) {
-      throw new BadRequestException('convite invalido ou expirado');
+      throw new BadRequestException('Este convite expirou ou ja foi usado. Solicite um novo acesso.');
     }
 
     const existingUser = await this.authService.findUserByEmail(entry.email);
@@ -318,7 +318,7 @@ export class AuthController {
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const raw = req.cookies?.[REFRESH_TOKEN_COOKIE];
     if (!raw) {
-      throw new UnauthorizedException('Refresh token ausente');
+      throw new UnauthorizedException('Sua sessao expirou. Faca login novamente para continuar.');
     }
     const tokens = await this.authService.rotateRefreshToken(raw, {
       userAgent: req.headers['user-agent'],

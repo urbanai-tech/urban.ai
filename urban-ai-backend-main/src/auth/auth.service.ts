@@ -64,7 +64,7 @@ export class AuthService {
    * revogado derruba TODAS as sessões do usuário (detecção de roubo).
    */
   async rotateRefreshToken(rawRefresh: string, meta?: { userAgent?: string; ip?: string }): Promise<TokenPair> {
-    if (!rawRefresh) throw new UnauthorizedException('Refresh token ausente');
+    if (!rawRefresh) throw new UnauthorizedException('Sua sessao expirou. Faca login novamente para continuar.');
     const hash = this.hashRefreshToken(rawRefresh);
     const record = await this.refreshTokenRepository.findOne({
       where: { tokenHash: hash },

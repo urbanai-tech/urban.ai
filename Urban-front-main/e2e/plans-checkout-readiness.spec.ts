@@ -87,7 +87,7 @@ test.describe('Plans checkout readiness', () => {
     expect(checkoutCalled).toBe(false);
   });
 
-  test('mostra erro claro quando Stripe publishable key nao esta configurada', async ({ page }) => {
+  test('mostra erro amigavel quando checkout falha', async ({ page }) => {
     await acceptCookieConsent(page);
     test.skip(
       !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
@@ -105,8 +105,8 @@ test.describe('Plans checkout readiness', () => {
     await page.goto('/plans');
     await page.getByRole('button', { name: /Assinar/i }).click();
 
-    await expect(page.getByRole('alert')).toContainText(/Stripe nao configurada/i);
-    expect(checkoutCalled).toBe(false);
+    await expect(page.getByText(/A Urban AI encontrou uma instabilidade/i)).toBeVisible();
+    expect(checkoutCalled).toBe(true);
   });
 
   test('plano sob consulta nao renderiza CTA de checkout', async ({ page }) => {

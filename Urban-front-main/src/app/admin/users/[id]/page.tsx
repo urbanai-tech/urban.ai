@@ -269,7 +269,7 @@ export default function AdminUserDetailPage() {
             </div>
             <div style={{ flex: 1, minWidth: 200 }}>
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 6 }}>
-                <AdminBadge kind={roleKind}>{user.role}</AdminBadge>
+                <AdminBadge kind={roleKind}>{roleLabel(user.role)}</AdminBadge>
                 <AdminBadge kind={user.ativo ? "success" : "neutral"}>
                   {user.ativo ? "Ativo" : "Inativo"}
                 </AdminBadge>
@@ -295,9 +295,9 @@ export default function AdminUserDetailPage() {
                 }}
                 shellStyle={{ width: 180 }}
               >
-                <option value="host">host</option>
-                <option value="support">support</option>
-                <option value="admin">admin</option>
+                <option value="host">Anfitrião</option>
+                <option value="support">Suporte</option>
+                <option value="admin">Operação completa</option>
               </AdminSelect>
               <AdminButton
                 variant={user.ativo ? "danger" : "primary"}
@@ -352,7 +352,7 @@ export default function AdminUserDetailPage() {
         }}
       >
         <AdminCard variant="subtle">
-          <AdminCardHeader title="Onboarding drip" />
+          <AdminCardHeader title="E-mails de boas-vindas" />
           {user.onboardingDripLastDay ? (
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
@@ -556,7 +556,7 @@ export default function AdminUserDetailPage() {
         title={`Alterar role para ${confirmRole?.next}?`}
         body={
           confirmRole?.next === "admin"
-            ? "Esse usuário ganhará acesso completo ao painel admin. Confirmar?"
+            ? "Esse usuário ganhará acesso completo ao painel de operação. Confirmar?"
             : `Esse usuário será rebaixado para ${confirmRole?.next}.`
         }
         confirmLabel="Confirmar"
@@ -585,6 +585,13 @@ function hasFutureRecsSub(count: number): string {
   if (count === 0) return "Sem cobertura futura";
   if (count < 5) return "Pouca cobertura";
   return "Cobertura saudável";
+}
+
+function roleLabel(role: string): string {
+  if (role === "admin") return "Operação completa";
+  if (role === "support") return "Suporte";
+  if (role === "host") return "Anfitrião";
+  return role;
 }
 
 function Field({ label, value }: { label: string; value: string }) {

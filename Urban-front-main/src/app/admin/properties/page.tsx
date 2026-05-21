@@ -327,9 +327,9 @@ export default function AdminPropertiesPage() {
                   lineHeight: 1.6,
                 }}
               >
-                Esta tela cobre o gap{" "}
-                <strong style={{ color: "var(--admin-accent)" }}>I5</strong> (drill-down de
-                propriedade) do roadmap. Para destravar:{" "}
+                Esta tela cobre o item{" "}
+                <strong style={{ color: "var(--admin-accent)" }}>I5</strong> (detalhe do
+                imóvel) do roadmap. Para destravar:{" "}
                 <strong style={{ color: "var(--admin-text)" }}>
                   ativar Geocoding API
                 </strong>{" "}

@@ -99,7 +99,7 @@ test.describe('Prelaunch waitlist analytics', () => {
     await page.locator('input[type="tel"]').fill('(11) 99999-0000');
     await page.getByRole('button', { name: /Entrar na lista/i }).click();
 
-    await expect(page.getByText(/dentro/i)).toBeVisible();
+    await expect(page.getByText(/Voc. esta na fila/i)).toBeVisible();
     const sentPayload = assertCapturedPayload(payload);
     expect(sentPayload.email).toBe('lead+prelaunch@urbanai.com.br');
     expect(sentPayload.referredBy).toBe('abc123xy');
@@ -142,7 +142,7 @@ test.describe('Prelaunch waitlist analytics', () => {
     await page.goto('/create?utm_source=meta&utm_medium=cpc&utm_campaign=beta-sp');
     await page.locator('input[type="email"]').fill('lead+no-consent@urbanai.com.br');
     await page.getByRole('button', { name: /Entrar na lista/i }).click();
-    await expect(page.getByText(/dentro/i)).toBeVisible();
+    await expect(page.getByText(/Voc. esta na fila/i)).toBeVisible();
 
     const events = await page.evaluate(() => {
       const target = window as unknown as {

@@ -44,9 +44,9 @@ export class ConnectController {
       throw new ForbiddenException({
         code: "LISTINGS_QUOTA_EXCEEDED",
         message:
-          `Quota de imoveis excedida. Voce contratou ${quota.contratados} ` +
-          `e ja tem ${quota.ativos}; esta tentando adicionar ${newSlots}. ` +
-          `Aumente sua assinatura em /plans para liberar mais slots.`,
+          `Limite de imoveis do plano atingido. Seu plano inclui ${quota.contratados} ` +
+          `e voce ja tem ${quota.ativos}; esta tentando adicionar ${newSlots}. ` +
+          `Ajuste seu plano para cadastrar mais imoveis.`,
         contratados: quota.contratados,
         ativos: quota.ativos,
         tentando: newSlots,

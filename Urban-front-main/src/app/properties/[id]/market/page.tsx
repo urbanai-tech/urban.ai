@@ -162,9 +162,9 @@ function MarketIntelContent() {
     return (
       <AppPageShell maxWidth={1280}>
         <AppSectionHeader
-          eyebrow="MERCADO · COMP SET"
+          eyebrow="MERCADO · IMOVEIS PARECIDOS"
           title="Como seu imóvel se compara"
-          subtitle="Análise de imóveis similares em raio 3km · atualizado a cada 24h"
+          subtitle="Comparacao com imoveis parecidos em ate 3 km · atualizado a cada 24h"
         />
         <div
           style={{
@@ -175,13 +175,13 @@ function MarketIntelContent() {
         >
           <div
             aria-busy="true"
-            aria-label="Carregando hero metric"
+            aria-label="Carregando destaque principal"
             className="urban-app-skeleton"
             style={{ height: 200, borderRadius: 16 }}
           />
           <div
             aria-busy="true"
-            aria-label="Carregando KPIs"
+            aria-label="Carregando resumo"
             className="urban-app-skeleton"
             style={{ height: 120, borderRadius: 12 }}
           />
@@ -201,9 +201,9 @@ function MarketIntelContent() {
     return (
       <AppPageShell maxWidth={1280}>
         <AppSectionHeader
-          eyebrow="MERCADO · COMP SET"
+          eyebrow="MERCADO · IMOVEIS PARECIDOS"
           title="Como seu imóvel se compara"
-          subtitle="Análise de imóveis similares em raio 3km · atualizado a cada 24h"
+          subtitle="Comparacao com imoveis parecidos em ate 3 km · atualizado a cada 24h"
         />
         <AppEmptyState
           eyebrow="ALGO DEU ERRADO"
@@ -232,9 +232,9 @@ function MarketIntelContent() {
   return (
     <AppPageShell maxWidth={1280}>
       <AppSectionHeader
-        eyebrow="MERCADO · COMP SET"
+        eyebrow="MERCADO · IMOVEIS PARECIDOS"
         title="Como seu imóvel se compara"
-        subtitle={`Análise de imóveis similares em raio 3km · atualizado a cada 24h${
+        subtitle={`Comparacao com imoveis parecidos em ate 3 km · atualizado a cada 24h${
           data.updatedAt
             ? ` · última atualização ${formatUpdatedAt(data.updatedAt)}`
             : ""
@@ -258,9 +258,9 @@ function MarketIntelContent() {
 
       {insufficient ? (
         <AppEmptyState
-          eyebrow="COMPARÁVEIS INSUFICIENTES"
-          title="Ainda não temos comparáveis suficientes"
-          body={`Precisamos de pelo menos ${MIN_COMPARABLES} imóveis similares no seu bairro para calcular percentil. Vamos buscar mais nos próximos 7 dias.`}
+          eyebrow="POUCOS IMOVEIS PARECIDOS"
+          title="Ainda precisamos de mais referencias"
+          body={`Precisamos de pelo menos ${MIN_COMPARABLES} imoveis parecidos no seu bairro para comparar com seguranca. Vamos buscar mais nos proximos 7 dias.`}
           icon={<Icons.MapPin size={32} />}
           action={
             <AppButton
@@ -288,21 +288,21 @@ function MarketIntelContent() {
             <div className="market-intel-kpi-grid">
               <KpiCardWrap>
                 <AppMetricCard
-                  label="ADR mediano · comp set"
+                  label="Diaria media dos parecidos"
                   value={formatBRL(data.medianAdr)}
                   sub={`Bairro ${data.neighborhood}`}
                 />
               </KpiCardWrap>
               <KpiCardWrap>
                 <AppMetricCard
-                  label="Ocupação mediana · comp set"
+                  label="Ocupacao media dos parecidos"
                   value={formatPct(data.medianOccupancy)}
                   sub={`Sua ocupação ${formatPct(data.yourOccupancy)}`}
                 />
               </KpiCardWrap>
               <KpiCardWrap>
                 <AppMetricCard
-                  label="Sua ADR vs mediana"
+                  label="Sua diaria vs media"
                   value={`${deltaAdr >= 0 ? "+" : ""}${formatBRL(deltaAdr)}`}
                   trend={deltaAdr > 0 ? "up" : deltaAdr < 0 ? "down" : undefined}
                   trendValue={`${deltaPct >= 0 ? "+" : ""}${deltaPct}%`}
@@ -311,9 +311,9 @@ function MarketIntelContent() {
               </KpiCardWrap>
               <KpiCardWrap>
                 <AppMetricCard
-                  label="Reatividade a eventos"
+                  label="Resposta a eventos"
                   value={data.eventReactivity}
-                  sub="Índice 0-100 · sobe preço quando há evento"
+                  sub="Nota 0-100 · aumenta preco quando ha evento"
                 />
               </KpiCardWrap>
             </div>
@@ -321,7 +321,7 @@ function MarketIntelContent() {
 
           {/* ZONA 3 — Gráfico ADR */}
           <section
-            aria-label="Comparativo ADR diário"
+            aria-label="Comparativo de diaria media"
             style={{
               padding: 24,
               background: "var(--app-surface)",
@@ -331,7 +331,7 @@ function MarketIntelContent() {
             }}
           >
             <header style={{ marginBottom: 16 }}>
-              <p className="urban-app-eyebrow-muted">ADR DIÁRIO · {period.label.toUpperCase()}</p>
+              <p className="urban-app-eyebrow-muted">DIARIA MEDIA · {period.label.toUpperCase()}</p>
               <h2
                 style={{
                   fontSize: 18,
@@ -341,7 +341,7 @@ function MarketIntelContent() {
                   letterSpacing: -0.2,
                 }}
               >
-                Sua ADR vs mediana do comp set
+                Sua diaria comparada com imoveis parecidos
               </h2>
               <p
                 style={{
@@ -351,7 +351,7 @@ function MarketIntelContent() {
                   lineHeight: 1.55,
                 }}
               >
-                Linha sólida é sua propriedade · tracejada é a mediana dos {data.comparablesCount} imóveis similares.
+                Linha solida e o seu imovel · tracejada e a media dos {data.comparablesCount} imoveis parecidos.
               </p>
             </header>
             <AdrComparisonChart data={data.daily} />
@@ -360,7 +360,7 @@ function MarketIntelContent() {
           {/* ZONA 4 — Tabela de comparáveis */}
           <section aria-label="Imóveis comparáveis">
             <header style={{ marginBottom: 16 }}>
-              <p className="urban-app-eyebrow-muted">COMPARÁVEIS ANÔNIMOS</p>
+              <p className="urban-app-eyebrow-muted">IMOVEIS PARECIDOS ANONIMOS</p>
               <h2
                 style={{
                   fontSize: 18,
@@ -370,7 +370,7 @@ function MarketIntelContent() {
                   letterSpacing: -0.2,
                 }}
               >
-                {data.comparables.length} imóveis similares no raio
+                {data.comparables.length} imoveis parecidos na regiao
               </h2>
               <p
                 style={{
@@ -380,7 +380,7 @@ function MarketIntelContent() {
                   lineHeight: 1.55,
                 }}
               >
-                Mostramos só métricas — nunca identificamos imóveis reais. Ordene por qualquer coluna.
+                Mostramos apenas numeros anonimos, sem identificar imoveis reais. Voce pode ordenar por qualquer coluna.
               </p>
             </header>
             <ComparablesTable comparables={data.comparables} onSort={handleSort} />

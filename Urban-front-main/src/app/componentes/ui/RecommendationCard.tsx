@@ -230,16 +230,16 @@ function buildExplanation({
   let body: string;
   if (typeof eventImpactPct === "number" && Math.abs(eventImpactPct) >= 0.5) {
     if (eventImpactPct > 0) {
-      body = `O evento adiciona ${fmtSignedPct(eventImpactPct, 0)} de demanda estimada. Por isso o motor parte da referencia e sobe a diaria para ${fmtBRL(suggestedPrice)}.`;
+      body = `O evento adiciona ${fmtSignedPct(eventImpactPct, 0)} de demanda estimada. Por isso a Urban AI parte da referencia e sobe a diaria para ${fmtBRL(suggestedPrice)}.`;
     } else {
-      body = `O sinal de demanda esta ${fmtSignedPct(eventImpactPct, 0)} abaixo da referencia. Por isso o motor recomenda um valor mais competitivo para a data.`;
+      body = `O sinal de demanda esta ${fmtSignedPct(eventImpactPct, 0)} abaixo da referencia. Por isso a Urban AI recomenda um valor mais competitivo para a data.`;
     }
   } else if (isIncrease) {
-    body = "O motor encontrou sinais de procura acima do normal para esta data e sugere capturar essa oportunidade sem ultrapassar a faixa de seguranca.";
+    body = "A Urban AI encontrou sinais de procura acima do normal para esta data e sugere capturar essa oportunidade sem ultrapassar a faixa de seguranca.";
   } else if (isDecrease) {
-    body = "O motor entende que a demanda esperada nao sustenta o preco atual. A reducao deixa a diaria mais competitiva para converter reserva.";
+    body = "A Urban AI entende que a demanda esperada nao sustenta o preco atual. A reducao deixa a diaria mais competitiva para converter reserva.";
   } else {
-    body = "O motor nao encontrou pressao suficiente para subir ou baixar a diaria com seguranca nesta data.";
+    body = "A Urban AI nao encontrou pressao suficiente para subir ou baixar a diaria com seguranca nesta data.";
   }
 
   const items: ExplanationItem[] = [
@@ -269,7 +269,7 @@ function buildExplanation({
       value: eventTitle ? "Evento proximo" : "Demanda",
       detail: eventTitle
         ? "O evento e um dos sinais usados para estimar procura na regiao."
-        : "O motor compara demanda esperada, mercado e preco atual.",
+        : "A Urban AI compara demanda esperada, mercado e preco atual.",
     });
   }
 
@@ -362,7 +362,7 @@ function RecommendationReason({
         </span>
         <div style={{ minWidth: 0 }}>
           <span className="urban-app-eyebrow-muted">
-            Por que o motor sugeriu isso?
+            Por que este preco?
           </span>
           <p
             style={{
@@ -504,7 +504,7 @@ function ExplainerBody({
                   lineHeight: 1.4,
                 }}
               >
-                ADR {fmtBRL(historicalComparison.similarDatesLastYear.adr)}
+                Diaria {fmtBRL(historicalComparison.similarDatesLastYear.adr)}
                 {" · "}
                 Ocup {fmtPct(historicalComparison.similarDatesLastYear.occupancy)}
               </span>
@@ -533,7 +533,7 @@ function ExplainerBody({
                   lineHeight: 1.4,
                 }}
               >
-                ADR {fmtBRL(historicalComparison.comparableHosts.medianAdr)}
+                Diaria {fmtBRL(historicalComparison.comparableHosts.medianAdr)}
                 {" · "}
                 Ocup {fmtPct(historicalComparison.comparableHosts.medianOccupancy)}
               </span>

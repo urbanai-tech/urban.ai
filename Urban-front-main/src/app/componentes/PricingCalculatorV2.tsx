@@ -3,7 +3,7 @@
 import { useState, type CSSProperties } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import type { BillingCycle, Plan } from "../service/api";
-import { createCheckoutSession } from "../service/api";
+import { createCheckoutSession, getFriendlyApiErrorMessage } from "../service/api";
 import { Check } from "./ui/Icons";
 
 /**
@@ -139,11 +139,10 @@ export function PricingCalculatorV2({ plan }: { plan: Plan }) {
 
       const result = await stripe.redirectToCheckout({ sessionId });
       if (result.error) {
-        throw new Error(result.error.message || "Erro ao redirecionar para o checkout.");
+        throw new Error("Nao foi possivel abrir o checkout agora.");
       }
     } catch (err) {
-      const msg = (err as Error)?.message || "Erro ao iniciar checkout.";
-      setError(msg);
+      setError(getFriendlyApiErrorMessage(err, "Nao foi possivel iniciar o checkout agora. Tente novamente em alguns instantes."));
     } finally {
       setBusy(false);
     }

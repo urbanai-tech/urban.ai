@@ -382,7 +382,7 @@ export class PaymentsService {
   private resolveCheckoutQuantity(quantity: unknown): number {
     const parsed = Number(quantity ?? 1);
     if (!Number.isFinite(parsed)) {
-      throw new BadRequestException('Invalid checkout quantity');
+      throw new BadRequestException('Escolha uma quantidade valida de imoveis para continuar.');
     }
     return Math.max(1, Math.floor(parsed));
   }
@@ -433,7 +433,7 @@ export class PaymentsService {
   private resolveBillingCycle(value: unknown): BillingCycle {
     const cycle = value || 'monthly';
     if (!isBillingCycle(cycle)) {
-      throw new BadRequestException('Invalid billingCycle. Use monthly, quarterly, semestral or annual.');
+      throw new BadRequestException('Escolha um ciclo de cobranca valido para continuar.');
     }
     return cycle;
   }
@@ -444,13 +444,13 @@ export class PaymentsService {
 
   private ensureStripeConfigured() {
     if (!this.isStripeConfigured()) {
-      throw new ServiceUnavailableException('Stripe is not configured');
+      throw new ServiceUnavailableException('Pagamento temporariamente indisponivel. Tente novamente mais tarde.');
     }
   }
 
   private ensureCheckoutUrlsConfigured() {
     if (!process.env.SUCCESS_URL?.trim() || !process.env.CANCEL_URL?.trim()) {
-      throw new ServiceUnavailableException('Stripe checkout URLs are not configured');
+      throw new ServiceUnavailableException('Nao foi possivel abrir o pagamento agora. Tente novamente mais tarde.');
     }
   }
 

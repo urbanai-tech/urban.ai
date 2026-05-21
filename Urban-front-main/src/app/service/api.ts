@@ -7,6 +7,88 @@ import { Subscription } from "../componentes/Subscription";
 const url = process.env.NEXT_PUBLIC_API_URL;
 console.log("API Base URL:", url);
 
+type UrbanDataSource = "api" | "demo" | "fallback";
+
+export type UrbanDataProvenance = {
+  __urbanDataSource?: UrbanDataSource;
+  __urbanDataNotice?: string;
+};
+
+const DEMO_DATA_NOTICE =
+  "Dados demonstrativos: use apenas para teste, validacao visual ou treinamento.";
+
+function envFlag(value: string | undefined, fallback = false): boolean {
+  return (value ?? String(fallback)).toLowerCase() === "true";
+}
+
+const ALLOW_MOCK_FALLBACKS = envFlag(
+  process.env.NEXT_PUBLIC_ALLOW_MOCK_FALLBACKS,
+  false,
+);
+
+function markDemo<T extends object>(value: T, source: UrbanDataSource = "demo"): T & UrbanDataProvenance {
+  return {
+    ...value,
+    __urbanDataSource: source,
+    __urbanDataNotice:
+      source === "api"
+        ? undefined
+        : source === "fallback"
+          ? "Dados temporarios gerados localmente porque a API nao respondeu."
+          : DEMO_DATA_NOTICE,
+  };
+}
+
+function logDemoData(feature: string, source: UrbanDataSource = "demo") {
+  if (typeof window === "undefined") return;
+  console.warn(
+    `[Urban AI] ${source === "fallback" ? "fallback local" : "modo demo"} ativo em ${feature}. ` +
+      "Estes dados nao devem ser tratados como informacao real do cliente.",
+  );
+}
+
+export function getUrbanApiDataMode() {
+  return {
+    allowMockFallbacks: ALLOW_MOCK_FALLBACKS,
+    paceMock: PACE_USE_MOCK,
+    portfolioMock: PORTFOLIO_USE_MOCK,
+    pricingRulesMock: PRICING_RULES_USE_MOCK,
+    marketIntelMock: MARKET_INTEL_USE_MOCK,
+    askMock: ASK_USE_MOCK,
+  };
+}
+
+export function getFriendlyApiErrorMessage(error: unknown, fallback?: string): string {
+  const status = (error as any)?.response?.status;
+  const code = (error as any)?.response?.data?.code;
+  const userMessage = (error as any)?.userMessage;
+
+  if (typeof userMessage === "string" && userMessage.trim()) return userMessage;
+
+  if (code === "LISTINGS_QUOTA_EXCEEDED") {
+    return "Voce atingiu o limite de imoveis do seu plano. Ajuste seu plano para cadastrar mais imoveis.";
+  }
+
+  if (status === 400) return fallback ?? "Revise os dados informados e tente novamente.";
+  if (status === 401) return "Sua sessao expirou. Entre novamente para continuar.";
+  if (status === 403) return "Voce nao tem permissao para fazer esta acao.";
+  if (status === 404) return fallback ?? "Nao encontramos essa informacao agora.";
+  if (status === 409) return fallback ?? "Essa acao entrou em conflito com uma informacao ja salva.";
+  if (status === 422) return fallback ?? "Algum dado precisa ser corrigido antes de continuar.";
+  if (status === 429) return "Muitas tentativas em pouco tempo. Aguarde um instante e tente de novo.";
+  if (status >= 500) return "A Urban AI encontrou uma instabilidade. Tente novamente em alguns instantes.";
+
+  if ((error as any)?.code === "ECONNABORTED") {
+    return "A conexao demorou mais que o esperado. Tente novamente.";
+  }
+
+  if ((error as any)?.message === "Network Error") {
+    return "Nao foi possivel conectar com a Urban AI. Verifique sua internet e tente novamente.";
+  }
+
+  return fallback ?? "Nao conseguimos concluir agora. Tente novamente em alguns instantes.";
+}
+
 // Cria instância do axios com baseURL
 export const api = axios.create({
   baseURL: url,
@@ -51,6 +133,7 @@ api.interceptors.response.use(
     const status = error?.response?.status;
     const requestUrl: string = error?.config?.url ?? "";
     const pathname = window.location.pathname || "";
+    error.userMessage = getFriendlyApiErrorMessage(error);
 
     // 401: invalida sessao + redireciona pra login.
     // Exceções: /auth/me (componente decide), ou se ja estamos em rota publica.
@@ -2349,8 +2432,8 @@ export const fetchDashboardSummary = () =>
  * Resposta:
  *   { points: [{ date, booked, expected, eventLabel? }, ...] }
  *
- * Enquanto o backend não entrega, geramos mock realista local (controlado por
- * `NEXT_PUBLIC_PACE_MOCK_DATA=true`, default true).
+ * Mock realista local controlado por `NEXT_PUBLIC_PACE_MOCK_DATA=true`.
+ * Por padrao fica desligado para nao misturar dados demo com dados reais.
  */
 export interface PaceApiPoint {
   date: string;
@@ -2364,7 +2447,7 @@ export interface PaceApiResponse {
 }
 
 const PACE_USE_MOCK =
-  (process.env.NEXT_PUBLIC_PACE_MOCK_DATA ?? 'true').toLowerCase() !== 'false';
+  envFlag(process.env.NEXT_PUBLIC_PACE_MOCK_DATA, false);
 
 function isoFromDaysAhead(daysAhead: number): string {
   const d = new Date();
@@ -2419,7 +2502,7 @@ function generatePaceMock(propertyId?: string, days = 60): PaceApiPoint[] {
 /**
  * fetchPace — busca pace para um imóvel específico ou para o portfólio.
  *
- * Quando `NEXT_PUBLIC_PACE_MOCK_DATA=true` (default), retorna mock local.
+ * Quando `NEXT_PUBLIC_PACE_MOCK_DATA=true`, retorna demo local.
  * Quando false, chama o endpoint real do Dev 1.
  *
  * Range default: hoje até hoje+60 dias.
@@ -2432,6 +2515,7 @@ export async function fetchPace(
 
   if (PACE_USE_MOCK) {
     // Simula latência ~150ms pra exercitar loading state em dev.
+    logDemoData("Pace");
     await new Promise((resolve) => setTimeout(resolve, 150));
     return generatePaceMock(propertyId, days);
   }
@@ -2448,9 +2532,13 @@ export async function fetchPace(
     });
     return data?.points ?? [];
   } catch (err) {
-    // Backend ainda não entregou — fallback gracioso pro mock.
-    console.warn('[fetchPace] endpoint indisponível, usando mock:', err);
-    return generatePaceMock(propertyId, days);
+    if (ALLOW_MOCK_FALLBACKS) {
+      logDemoData("Pace", "fallback");
+      console.warn('[fetchPace] endpoint indisponivel, usando fallback local:', err);
+      return generatePaceMock(propertyId, days);
+    }
+    console.warn('[fetchPace] endpoint indisponivel:', err);
+    throw err;
   }
 }
 
@@ -2474,9 +2562,8 @@ export async function fetchPace(
  *       }]
  *     }
  *
- * Enquanto Dev 1 não entrega (semana 2), usamos mock realista controlado por
- * `NEXT_PUBLIC_PORTFOLIO_MOCK_DATA` (default = mock ativo, set 'false' pra
- * tentar o endpoint real).
+ * Mock realista local controlado por `NEXT_PUBLIC_PORTFOLIO_MOCK_DATA=true`.
+ * Por padrao fica desligado para priorizar a API real.
  */
 export type PortfolioEventImpact = 'alta' | 'media';
 
@@ -2500,7 +2587,7 @@ export interface PortfolioProperty {
   days: PortfolioDay[];
 }
 
-export interface PortfolioCalendarResponse {
+export interface PortfolioCalendarResponse extends UrbanDataProvenance {
   properties: PortfolioProperty[];
 }
 
@@ -2512,7 +2599,7 @@ export interface PortfolioCalendarInput {
 }
 
 const PORTFOLIO_USE_MOCK =
-  (process.env.NEXT_PUBLIC_PORTFOLIO_MOCK_DATA ?? 'true').toLowerCase() !== 'false';
+  envFlag(process.env.NEXT_PUBLIC_PORTFOLIO_MOCK_DATA, false);
 
 const PORTFOLIO_MOCK_PROPERTIES: ReadonlyArray<{
   propertyId: string;
@@ -2607,16 +2694,16 @@ function generatePortfolioMock(input: PortfolioCalendarInput): PortfolioCalendar
 /**
  * fetchPortfolioCalendar — multi-imóvel calendar (Gap 1).
  *
- * Quando `NEXT_PUBLIC_PORTFOLIO_MOCK_DATA !== 'false'` (default), retorna mock
- * local. Caso contrário, chama `GET /portfolio/calendar` com fallback gracioso
- * pro mock se o backend ainda não respondeu.
+ * Quando `NEXT_PUBLIC_PORTFOLIO_MOCK_DATA=true`, retorna demo local.
+ * Caso contrario, chama `GET /portfolio/calendar`.
  */
 export async function fetchPortfolioCalendar(
   input: PortfolioCalendarInput,
 ): Promise<PortfolioCalendarResponse> {
   if (PORTFOLIO_USE_MOCK) {
+    logDemoData("Portfolio Calendar");
     await new Promise((resolve) => setTimeout(resolve, 200));
-    return generatePortfolioMock(input);
+    return markDemo(generatePortfolioMock(input));
   }
 
   try {
@@ -2630,8 +2717,13 @@ export async function fetchPortfolioCalendar(
     });
     return data ?? { properties: [] };
   } catch (err) {
-    console.warn('[fetchPortfolioCalendar] endpoint indisponível, usando mock:', err);
-    return generatePortfolioMock(input);
+    if (ALLOW_MOCK_FALLBACKS) {
+      logDemoData("Portfolio Calendar", "fallback");
+      console.warn('[fetchPortfolioCalendar] endpoint indisponivel, usando fallback local:', err);
+      return markDemo(generatePortfolioMock(input), "fallback");
+    }
+    console.warn('[fetchPortfolioCalendar] endpoint indisponivel:', err);
+    throw err;
   }
 }
 
@@ -2663,7 +2755,7 @@ export interface PortfolioBulkActionFailure {
   reason: string;
 }
 
-export interface PortfolioBulkActionResponse {
+export interface PortfolioBulkActionResponse extends UrbanDataProvenance {
   applied: number;
   failed: PortfolioBulkActionFailure[];
   auditLogId: string;
@@ -2673,31 +2765,37 @@ export async function mutatePortfolioBulkAction(
   input: PortfolioBulkActionInput,
 ): Promise<PortfolioBulkActionResponse> {
   if (PORTFOLIO_USE_MOCK) {
+    logDemoData("Portfolio Bulk Action");
     await new Promise((resolve) => setTimeout(resolve, 250));
-    return {
+    return markDemo({
       applied: input.propertyIds.length,
       failed: [],
       auditLogId: `mock-${Date.now()}`,
-    };
+    });
   }
 
   try {
     const { data } = await api.post<PortfolioBulkActionResponse>('/portfolio/bulk-action', input);
     return data;
   } catch (err) {
-    console.warn('[mutatePortfolioBulkAction] endpoint indisponível, retornando mock:', err);
-    return {
-      applied: input.propertyIds.length,
-      failed: [],
-      auditLogId: `mock-fallback-${Date.now()}`,
-    };
+    if (ALLOW_MOCK_FALLBACKS) {
+      logDemoData("Portfolio Bulk Action", "fallback");
+      console.warn('[mutatePortfolioBulkAction] endpoint indisponivel, retornando fallback local:', err);
+      return markDemo({
+        applied: input.propertyIds.length,
+        failed: [],
+        auditLogId: `mock-fallback-${Date.now()}`,
+      }, "fallback");
+    }
+    console.warn('[mutatePortfolioBulkAction] endpoint indisponivel:', err);
+    throw err;
   }
 }
 
 // === Gap 2 — Pricing Rules ===
 // Semana 5-6, Track 2. Tela `/properties/:id/pricing-rules` — accordion com 8
 // regras por imóvel. Backend (Dev 1) ainda não entregou na semana 5, então o
-// flag `NEXT_PUBLIC_PRICING_RULES_MOCK_DATA` controla mock (default true em dev).
+// flag `NEXT_PUBLIC_PRICING_RULES_MOCK_DATA` controla demo local (default false).
 // Quando backend entregar:
 //   POST /properties/:id/pricing-rules/preview  → preview 14d
 //   GET  /properties/:id/pricing-rules           → regras atuais
@@ -2722,7 +2820,7 @@ export type PricingRule = {
   description: string;
 };
 
-export type PricingRulesResponse = {
+export type PricingRulesResponse = UrbanDataProvenance & {
   propertyId: string;
   rules: PricingRule[];
   updatedAt: string | null;
@@ -2735,7 +2833,7 @@ export type PricingRulesPreviewDay = {
   appliedRules: PricingRuleType[];
 };
 
-export type PricingRulesPreviewResponse = {
+export type PricingRulesPreviewResponse = UrbanDataProvenance & {
   days: PricingRulesPreviewDay[];
 };
 
@@ -2808,7 +2906,7 @@ export const PRICING_RULES_DEFAULTS: ReadonlyArray<PricingRule> = [
 ];
 
 const PRICING_RULES_USE_MOCK =
-  (process.env.NEXT_PUBLIC_PRICING_RULES_MOCK_DATA ?? 'true').toLowerCase() !== 'false';
+  envFlag(process.env.NEXT_PUBLIC_PRICING_RULES_MOCK_DATA, false);
 
 function clonePricingRules(rules: ReadonlyArray<PricingRule>): PricingRule[] {
   return rules.map((r) => ({
@@ -2946,13 +3044,14 @@ function getOrInitMock(propertyId: string): PricingRulesResponse {
 
 export async function fetchPricingRules(propertyId: string): Promise<PricingRulesResponse> {
   if (PRICING_RULES_USE_MOCK) {
+    logDemoData("Pricing Rules");
     await new Promise((resolve) => setTimeout(resolve, 180));
     const stored = getOrInitMock(propertyId);
-    return {
+    return markDemo({
       propertyId: stored.propertyId,
       rules: clonePricingRules(stored.rules),
       updatedAt: stored.updatedAt,
-    };
+    });
   }
   try {
     const { data } = await api.get<PricingRulesResponse>(
@@ -2967,12 +3066,17 @@ export async function fetchPricingRules(propertyId: string): Promise<PricingRule
     }
     return data;
   } catch (err) {
-    console.warn('[fetchPricingRules] endpoint indisponível, usando defaults:', err);
-    return {
-      propertyId,
-      rules: clonePricingRules(PRICING_RULES_DEFAULTS),
-      updatedAt: null,
-    };
+    if (ALLOW_MOCK_FALLBACKS) {
+      logDemoData("Pricing Rules", "fallback");
+      console.warn('[fetchPricingRules] endpoint indisponivel, usando defaults locais:', err);
+      return markDemo({
+        propertyId,
+        rules: clonePricingRules(PRICING_RULES_DEFAULTS),
+        updatedAt: null,
+      }, "fallback");
+    }
+    console.warn('[fetchPricingRules] endpoint indisponivel:', err);
+    throw err;
   }
 }
 
@@ -2981,6 +3085,7 @@ export async function savePricingRules(
   rules: PricingRule[],
 ): Promise<PricingRulesResponse> {
   if (PRICING_RULES_USE_MOCK) {
+    logDemoData("Pricing Rules Save");
     await new Promise((resolve) => setTimeout(resolve, 260));
     const updatedAt = new Date().toISOString();
     PRICING_RULES_MOCK_STORE[propertyId] = {
@@ -2988,11 +3093,11 @@ export async function savePricingRules(
       rules: clonePricingRules(rules),
       updatedAt,
     };
-    return {
+    return markDemo({
       propertyId,
       rules: clonePricingRules(rules),
       updatedAt,
-    };
+    });
   }
   try {
     const { data } = await api.put<PricingRulesResponse>(
@@ -3011,8 +3116,9 @@ export async function previewPricingRules(
   rules: PricingRule[],
 ): Promise<PricingRulesPreviewResponse> {
   if (PRICING_RULES_USE_MOCK) {
+    logDemoData("Pricing Rules Preview");
     await new Promise((resolve) => setTimeout(resolve, 140));
-    return generatePricingRulesPreviewMock(propertyId, rules);
+    return markDemo(generatePricingRulesPreviewMock(propertyId, rules));
   }
   try {
     const { data } = await api.post<PricingRulesPreviewResponse>(
@@ -3021,8 +3127,13 @@ export async function previewPricingRules(
     );
     return data ?? { days: [] };
   } catch (err) {
-    console.warn('[previewPricingRules] endpoint indisponível, usando mock:', err);
-    return generatePricingRulesPreviewMock(propertyId, rules);
+    if (ALLOW_MOCK_FALLBACKS) {
+      logDemoData("Pricing Rules Preview", "fallback");
+      console.warn('[previewPricingRules] endpoint indisponivel, usando fallback local:', err);
+      return markDemo(generatePricingRulesPreviewMock(propertyId, rules), "fallback");
+    }
+    console.warn('[previewPricingRules] endpoint indisponivel:', err);
+    throw err;
   }
 }
 
@@ -3031,6 +3142,7 @@ export async function copyPricingRulesFromProperty(
   targetId: string,
 ): Promise<PricingRulesResponse> {
   if (PRICING_RULES_USE_MOCK) {
+    logDemoData("Pricing Rules Copy");
     await new Promise((resolve) => setTimeout(resolve, 220));
     const source = getOrInitMock(sourceId);
     const updatedAt = new Date().toISOString();
@@ -3039,11 +3151,11 @@ export async function copyPricingRulesFromProperty(
       rules: clonePricingRules(source.rules),
       updatedAt,
     };
-    return {
+    return markDemo({
       propertyId: targetId,
       rules: clonePricingRules(source.rules),
       updatedAt,
-    };
+    });
   }
   try {
     const { data } = await api.post<PricingRulesResponse>(
@@ -3064,8 +3176,8 @@ export async function copyPricingRulesFromProperty(
  *   GET /properties/:id/market-intel?from=&to=
  *   → MarketIntelResponse
  *
- * Enquanto o backend não entrega, este módulo serve mock realista controlado
- * por `NEXT_PUBLIC_MARKET_INTEL_MOCK_DATA` (default 'true' em dev).
+ * Demo local controlada por `NEXT_PUBLIC_MARKET_INTEL_MOCK_DATA=true`.
+ * Por padrao fica desligada para priorizar a API real.
  *
  * Caso especial: `propertyId === 'empty-comp-test'` retorna apenas 3
  * comparáveis pra testar o empty state da tela `/properties/:id/market`.
@@ -3086,7 +3198,7 @@ export type MarketIntelDailyPoint = {
   medianAdr: number;
 };
 
-export type MarketIntelResponse = {
+export type MarketIntelResponse = UrbanDataProvenance & {
   propertyId: string;
   neighborhood: string;
   percentile: number;
@@ -3109,7 +3221,7 @@ export type MarketIntelInput = {
 };
 
 const MARKET_INTEL_USE_MOCK =
-  (process.env.NEXT_PUBLIC_MARKET_INTEL_MOCK_DATA ?? 'true').toLowerCase() !== 'false';
+  envFlag(process.env.NEXT_PUBLIC_MARKET_INTEL_MOCK_DATA, false);
 
 const MARKET_INTEL_TYPES: ReadonlyArray<ComparableProperty['type']> = [
   'apartamento',
@@ -3274,17 +3386,16 @@ function generateMarketIntelMock(input: MarketIntelInput): MarketIntelResponse {
 /**
  * fetchMarketIntel — comparáveis + percentile + série diária ADR (Gap 3).
  *
- * Quando `NEXT_PUBLIC_MARKET_INTEL_MOCK_DATA !== 'false'` (default), retorna
- * mock realista local. Caso contrário, chama
- * `GET /properties/:id/market-intel` com fallback gracioso pro mock se o
- * backend ainda não respondeu.
+ * Quando `NEXT_PUBLIC_MARKET_INTEL_MOCK_DATA=true`, retorna demo local.
+ * Caso contrario, chama `GET /properties/:id/market-intel`.
  */
 export async function fetchMarketIntel(
   input: MarketIntelInput,
 ): Promise<MarketIntelResponse> {
   if (MARKET_INTEL_USE_MOCK) {
+    logDemoData("Market Intel");
     await new Promise((resolve) => setTimeout(resolve, 220));
-    return generateMarketIntelMock(input);
+    return markDemo(generateMarketIntelMock(input));
   }
 
   try {
@@ -3300,8 +3411,13 @@ export async function fetchMarketIntel(
     if (!data) throw new Error('empty response');
     return data;
   } catch (err) {
-    console.warn('[fetchMarketIntel] endpoint indisponível, usando mock:', err);
-    return generateMarketIntelMock(input);
+    if (ALLOW_MOCK_FALLBACKS) {
+      logDemoData("Market Intel", "fallback");
+      console.warn('[fetchMarketIntel] endpoint indisponivel, usando fallback local:', err);
+      return markDemo(generateMarketIntelMock(input), "fallback");
+    }
+    console.warn('[fetchMarketIntel] endpoint indisponivel:', err);
+    throw err;
   }
 }
 
@@ -3309,7 +3425,7 @@ export async function fetchMarketIntel(
 //
 // Assistente conversacional do anfitrião — drawer global acionado via
 // Cmd+J / Ctrl+J. Backend ainda nao existe, entao por padrao opera em modo
-// mock determinístico (`NEXT_PUBLIC_ASK_MOCK_DATA` default = 'true').
+// demo deterministica (`NEXT_PUBLIC_ASK_MOCK_DATA=true`, default false).
 //
 // Quando o backend estiver de pé:
 //   - GET    /ask/usage           → AskUsageResponse
@@ -3327,7 +3443,7 @@ export type AskMessage = {
   createdAt: string;
 };
 
-export type AskUsageResponse = {
+export type AskUsageResponse = UrbanDataProvenance & {
   used: number;
   quota: number;
   hardCap: number;
@@ -3338,7 +3454,7 @@ export type AskRequestInput = {
   conversationId?: string;
 };
 
-export type AskResponse = {
+export type AskResponse = UrbanDataProvenance & {
   messageId: string;
   conversationId: string;
   content: string;
@@ -3347,7 +3463,7 @@ export type AskResponse = {
 };
 
 const ASK_USE_MOCK =
-  (process.env.NEXT_PUBLIC_ASK_MOCK_DATA ?? 'true').toLowerCase() !== 'false';
+  envFlag(process.env.NEXT_PUBLIC_ASK_MOCK_DATA, false);
 
 // Estado mockado in-memory por sessao — sobrevive a renders, mas nao a refresh.
 const _askMockState: {
@@ -3393,15 +3509,15 @@ function _askPickResponse(question: string): {
   if (q.includes('ocupa') || q.includes('comp') || q.includes('benchmark')) {
     return {
       content:
-        'Sua ocupação dos últimos 30 dias está em 78%, contra mediana 71% do comp set de Pinheiros (10 comparáveis). Você está no percentil 73 do bairro e subiu 4 pontos nos últimos 30 dias. ADR também acima da mediana: R$ 412 vs R$ 389.',
+        'Sua ocupacao dos ultimos 30 dias esta em 78%, contra 71% nos imoveis parecidos de Pinheiros. Voce esta melhor que boa parte dos anuncios do bairro e subiu 4 pontos nos ultimos 30 dias. A diaria media tambem esta acima da comparacao: R$ 412 vs R$ 389.',
       citations: [
         {
           id: 'cit-1',
-          label: 'Comp set · Market Intel',
+          label: 'Comparacao de mercado',
           url: '/properties',
         },
-        { id: 'cit-2', label: 'Pace 30d', url: '/painel' },
-        { id: 'cit-3', label: 'Histórico ocupação', url: '/portfolio' },
+        { id: 'cit-2', label: 'Ritmo de reservas', url: '/painel' },
+        { id: 'cit-3', label: 'Historico de ocupacao', url: '/portfolio' },
       ],
     };
   }
@@ -3429,10 +3545,10 @@ function _askPickResponse(question: string): {
   ) {
     return {
       content:
-        'Semana passada: 6 reservas, R$ 8.940 em receita (alta de 12% vs semana anterior). ADR médio R$ 408. Ocupação 82%. Conversão de visualização → reserva subiu para 3.1%. Recomendação aplicada na quarta-feira gerou +R$ 320 acima do benchmark.',
+        'Semana passada: 6 reservas, R$ 8.940 em receita (alta de 12% vs semana anterior). Diaria media de R$ 408 e ocupacao de 82%. A conversao de visualizacao para reserva subiu para 3,1%. Uma sugestao aplicada na quarta-feira gerou R$ 320 acima da comparacao.',
       citations: [
         { id: 'cit-1', label: 'Painel · Semana 19', url: '/painel' },
-        { id: 'cit-2', label: 'Meu ROI', url: '/my-roi' },
+        { id: 'cit-2', label: 'Ganhos', url: '/my-roi' },
         { id: 'cit-3', label: 'Calendário', url: '/dashboard' },
       ],
     };
@@ -3440,7 +3556,7 @@ function _askPickResponse(question: string): {
 
   return {
     content:
-      'Boa pergunta. Ainda estou em beta — consigo responder sobre receita projetada, ocupação vs comp set, eventos próximos e performance recente do seu portfólio. Tente reformular ou clique em uma das sugestões do início.',
+      'Boa pergunta. Ainda estou em fase de testes: consigo responder sobre receita projetada, ocupacao comparada com imoveis parecidos, eventos proximos e desempenho recente do seu portfolio. Tente reformular ou clique em uma das sugestoes do inicio.',
     citations: [
       { id: 'cit-1', label: 'Painel', url: '/painel' },
       { id: 'cit-2', label: 'Portfólio', url: '/portfolio' },
@@ -3450,7 +3566,8 @@ function _askPickResponse(question: string): {
 
 export async function fetchAskUsage(): Promise<AskUsageResponse> {
   if (ASK_USE_MOCK) {
-    return { ..._askMockState.usage };
+    logDemoData("Ask Urban");
+    return markDemo({ ..._askMockState.usage });
   }
   const { data } = await api.get<AskUsageResponse>('/ask/usage');
   return data;
@@ -3460,11 +3577,12 @@ export async function postAskQuestion(
   input: AskRequestInput,
 ): Promise<AskResponse> {
   if (ASK_USE_MOCK) {
+    logDemoData("Ask Urban");
     const latency = 800 + Math.floor(Math.random() * 700); // 800-1500ms
     await new Promise((resolve) => setTimeout(resolve, latency));
 
     if (_askMockState.usage.used >= _askMockState.usage.hardCap) {
-      throw new Error('Hard cap diário atingido');
+      throw new Error('Limite diario atingido');
     }
 
     _askMockState.usage = {
@@ -3477,13 +3595,13 @@ export async function postAskQuestion(
     }
 
     const { content, citations } = _askPickResponse(input.question);
-    return {
+    return markDemo({
       messageId: _askGenId('msg'),
       conversationId: input.conversationId ?? _askMockState.conversationId,
       content,
       citations,
       usage: { ..._askMockState.usage },
-    };
+    });
   }
 
   const { data } = await api.post<AskResponse>('/ask/question', input);
@@ -3495,6 +3613,7 @@ export async function submitAskFeedback(
   vote: 'up' | 'down',
 ): Promise<{ ok: true }> {
   if (ASK_USE_MOCK) {
+    logDemoData("Ask Urban Feedback");
     await new Promise((resolve) => setTimeout(resolve, 180));
     return { ok: true };
   }

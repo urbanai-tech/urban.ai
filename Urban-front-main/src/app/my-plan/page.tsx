@@ -53,7 +53,7 @@ export default function SubscriptionsPage() {
     if (quotaResult.status === "fulfilled") {
       setQuota(quotaResult.value);
     } else {
-      setQuotaError("Nao foi possivel carregar sua quota de imoveis.");
+      setQuotaError("Nao foi possivel carregar o limite de imoveis do seu plano.");
     }
 
     setLoading(false);
@@ -85,7 +85,7 @@ export default function SubscriptionsPage() {
       }
       window.location.href = session.url;
     } catch {
-      toast("Nao foi possivel abrir o portal de billing", { type: "error" });
+      toast("Nao foi possivel abrir a area de pagamento", { type: "error" });
       setManageBillingLoading(false);
     }
   }
@@ -141,7 +141,7 @@ export default function SubscriptionsPage() {
         <AppSectionHeader
           eyebrow="ASSINATURA · MEU PLANO"
           title="Meu plano"
-          subtitle="Acompanhe status da assinatura, limite de imoveis e acoes de billing."
+          subtitle="Acompanhe sua assinatura, quantos imoveis o plano permite e as opcoes de pagamento."
           actions={isAlpha ? <AppBadge kind="accent">Alpha assistido</AppBadge> : undefined}
         />
 
@@ -179,7 +179,7 @@ export default function SubscriptionsPage() {
                 <AppMetricCard
                   label="Contratados"
                   value={quota.contratados}
-                  sub="Limite atual do plano"
+                  sub="Imoveis incluidos no plano"
                 />
               </div>
             </AppCard>
@@ -188,16 +188,16 @@ export default function SubscriptionsPage() {
                 <AppMetricCard
                   label="Ativos"
                   value={quota.ativos}
-                  sub="Imoveis cadastrados"
+                  sub="Imoveis em uso"
                 />
               </div>
             </AppCard>
             <AppCard variant={quota.podeAdicionar ? "default" : "accent"}>
               <div data-testid="quota-available-card">
                 <AppMetricCard
-                  label="Disponiveis"
+                  label="Livres"
                   value={available ?? 0}
-                  sub={quota.podeAdicionar ? "Pode cadastrar mais" : "Quota atingida"}
+                  sub={quota.podeAdicionar ? "Voce ainda pode cadastrar" : "Limite atingido"}
                   accent={!quota.podeAdicionar}
                 />
               </div>

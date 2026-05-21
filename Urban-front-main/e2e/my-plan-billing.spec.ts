@@ -18,7 +18,7 @@ test.describe('My plan billing view', () => {
     });
   });
 
-  test('mostra assinatura, ciclo e quota com API mockada', async ({ page }) => {
+  test('mostra assinatura, ciclo e limite com API mockada', async ({ page }) => {
     await page.route('**/payments/getSubscription', async (route) => {
       await route.fulfill({
         status: 200,
@@ -71,8 +71,8 @@ test.describe('My plan billing view', () => {
     await expect(page.getByText(/5 imoveis contratados/i)).toBeVisible();
     await expect(page.getByTestId('quota-contracted-card')).toContainText('Contratados');
     await expect(page.getByTestId('quota-active-card')).toContainText('Ativos');
-    await expect(page.getByTestId('quota-available-card')).toContainText('Disponiveis');
-    await expect(page.getByText(/Pode cadastrar mais/i)).toBeVisible();
+    await expect(page.getByTestId('quota-available-card')).toContainText('Livres');
+    await expect(page.getByText(/Voce ainda pode cadastrar/i)).toBeVisible();
 
     const essentialCookiesButton = page.getByRole('button', { name: /Apenas essenciais/i });
     if (await essentialCookiesButton.count()) {
@@ -84,7 +84,7 @@ test.describe('My plan billing view', () => {
     expect(page.url()).toMatch(/\/billing-portal-e2e$/);
   });
 
-  test('mantem assinatura visivel quando quota falha', async ({ page }) => {
+  test('mantem assinatura visivel quando limite falha', async ({ page }) => {
     await page.route('**/payments/getSubscription', async (route) => {
       await route.fulfill({
         status: 200,
@@ -106,7 +106,7 @@ test.describe('My plan billing view', () => {
       await route.fulfill({
         status: 503,
         contentType: 'application/json',
-        body: JSON.stringify({ message: 'quota unavailable' }),
+        body: JSON.stringify({ message: 'limit unavailable' }),
       });
     });
 
@@ -114,7 +114,7 @@ test.describe('My plan billing view', () => {
 
     await expect(page.getByText(/Plano Alpha/i)).toBeVisible();
     await expect(page.getByText(/Alpha assistido/i)).toBeVisible();
-    await expect(page.getByText(/Nao foi possivel carregar sua quota/i)).toBeVisible();
+    await expect(page.getByText(/Nao foi possivel carregar o limite de imoveis/i)).toBeVisible();
     await expect(page.getByTestId('manage-billing-button')).toHaveCount(0);
   });
 });
