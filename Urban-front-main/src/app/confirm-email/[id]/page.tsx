@@ -1,81 +1,52 @@
 'use client';
 
-import {
-  Box,
-  Button,
-  Flex,
-  FormControl,
-  FormLabel,
-  Heading,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
-import { motion } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FiMail, FiRefreshCw } from 'react-icons/fi';
-import { useInterval } from '@chakra-ui/react';
-import { confirmarEmail, enviarCodigo, getProfile } from '@/app/service/api';
 import { ToastContainer, toast } from 'react-toastify';
+import { AuthFlowShell } from '@/app/componentes/AuthFlowShell';
+import { AppButton, AppCard, Icons } from '@/app/componentes/ui';
+import { confirmarEmail, enviarCodigo, getProfile } from '@/app/service/api';
 
+const CODE_LENGTH = 6;
 
-const MotionBox = motion(Box);
-
-const EmailConfirmation = () => {
-
-
+export default function EmailConfirmation() {
   const params = useParams();
-  const email = params.id && !Array.isArray(params.id) ? decodeURIComponent(params.id) : '';
-
-
-
   const router = useRouter();
+  const email = params.id && !Array.isArray(params.id) ? decodeURIComponent(params.id) : '';
 
   const [loading, setLoading] = useState(false);
   const [code, setCode] = useState<string>('');
   const [resendDisabled, setResendDisabled] = useState(true);
   const [countdown, setCountdown] = useState(60);
   const [isResending, setIsResending] = useState(false);
-  const [isCodeValid, setIsCodeValid] = useState(false);
 
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
+  const isCodeValid = useMemo(() => /^\d{6}$/.test(code), [code]);
 
   useEffect(() => {
-    if (!email) return; // espera o email estar definido
+    if (!email) return;
 
-    const sendCode = async () => {
-      try {
-        const result = await enviarCodigo(email);
-        console.log('Código enviado com sucesso:', result);
-      } catch (err) {
-        console.error('Erro ao enviar código:', err);
-      }
-    };
-
-    sendCode(); // chama a função uma vez
+    enviarCodigo(email)
+      .then((result) => console.log('Codigo enviado com sucesso:', result))
+      .catch((err) => console.error('Erro ao enviar codigo:', err));
   }, [email]);
 
-
-
-  // Contador para reenvio
-  useInterval(() => {
-    if (countdown > 0) {
-      setCountdown(countdown - 1);
-    } else {
-      setResendDisabled(false);
-    }
-  }, resendDisabled ? 1000 : null);
-
-  // Validação do código em tempo real
   useEffect(() => {
-    setIsCodeValid(/^\d{6}$/.test(code));
-  }, [code]);
+    if (!resendDisabled) return;
 
-  // Foco inicial
+    if (countdown <= 0) {
+      setResendDisabled(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => setCountdown((value) => value - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [countdown, resendDisabled]);
+
   useEffect(() => {
     inputsRef.current[0]?.focus();
   }, []);
-
 
   const decideRedirect = async () => {
     try {
@@ -87,31 +58,30 @@ const EmailConfirmation = () => {
 
       router.replace(notFirstTime ? "/dashboard" : "/onboarding");
     } catch (error) {
-      console.error("Erro na verificação/criação:", error);
-      router.replace("/onboarding"); // fallback
+      console.error("Erro na verificacao/criacao:", error);
+      router.replace("/onboarding");
     }
-
   };
 
   const handleCodeChange = (index: number, value: string) => {
-    if (/^\d$/.test(value) || value === '') {
-      const newCode = code.split('');
-      while (newCode.length < 6) newCode.push('');
-      newCode[index] = value;
-      setCode(newCode.join(''));
+    if (!/^\d$/.test(value) && value !== '') return;
 
-      if (value && index < 5) {
-        inputsRef.current[index + 1]?.focus();
-      }
+    const newCode = code.split('');
+    while (newCode.length < CODE_LENGTH) newCode.push('');
+    newCode[index] = value;
+    setCode(newCode.join(''));
+
+    if (value && index < CODE_LENGTH - 1) {
+      inputsRef.current[index + 1]?.focus();
     }
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData('text/plain').replace(/\D/g, '').slice(0, 6);
-    if (pastedData.length === 6) {
+    const pastedData = e.clipboardData.getData('text/plain').replace(/\D/g, '').slice(0, CODE_LENGTH);
+    if (pastedData.length === CODE_LENGTH) {
       setCode(pastedData);
-      setTimeout(() => inputsRef.current[5]?.focus(), 10);
+      window.setTimeout(() => inputsRef.current[CODE_LENGTH - 1]?.focus(), 10);
     }
   };
 
@@ -126,7 +96,6 @@ const EmailConfirmation = () => {
 
     try {
       setLoading(true);
-
       const result = await confirmarEmail(email, code);
 
       if (result.data.ok) {
@@ -135,7 +104,6 @@ const EmailConfirmation = () => {
       } else {
         toast.error(result.data.motivo || 'Erro ao confirmar e-mail.');
       }
-
     } catch (err: any) {
       toast.error(err.message || 'Erro ao confirmar e-mail. Tente novamente.');
     } finally {
@@ -143,142 +111,181 @@ const EmailConfirmation = () => {
     }
   };
 
-
   const handleResendCode = async () => {
     try {
       setIsResending(true);
       setResendDisabled(true);
       setCountdown(60);
 
-      try {
-        const result = await enviarCodigo(email);
-        toast("Verifique seu e-mail para obter o novo código", { type: "success" });
-        console.log('Código enviado com sucesso:', result);
-      } catch (err) {
-        console.error('Erro ao enviar código:', err);
-      }
-
-
-    } catch {
-      toast.error('Erro ao reenviar código. Tente novamente mais tarde.');
+      const result = await enviarCodigo(email);
+      toast("Verifique seu e-mail para obter o novo codigo.", { type: "success" });
+      console.log('Codigo enviado com sucesso:', result);
+    } catch (err) {
+      console.error('Erro ao enviar codigo:', err);
+      toast.error('Erro ao reenviar codigo. Tente novamente mais tarde.');
     } finally {
       setIsResending(false);
     }
   };
 
   return (
-    <Flex
-      minH="100vh"
-      w="100%"
-      align="center"
-      justify="center"
-      bgGradient="linear(to-br, blue.50, purple.50)"
-      p={4}
+    <AuthFlowShell
+      eyebrow="CONFIRMACAO"
+      title={
+        <>
+          Confirme seu{" "}
+          <br />
+          e-mail.
+        </>
+      }
+      subtitle="Digite o codigo de 6 digitos enviado para concluir a ativacao da sua conta."
+      asideEyebrow="ACESSO URBAN AI"
+      asideTitle={
+        <>
+          Ative sua{" "}
+          <br />
+          conta.
+        </>
+      }
+      asideSubtitle="Uma etapa rapida de seguranca antes de liberar seu painel e onboarding."
     >
-      <MotionBox
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        w="100%"
-        maxW="md"
-        bg="white"
-        borderRadius="2xl"
-        boxShadow="xl"
-        p={8}
-      >
-        <VStack spacing={6} align="stretch">
-          <Box textAlign="center">
-            <Box display="inline-block" p={4} bg="blue.100" borderRadius="full" mb={4}>
-              <FiMail size={40} color="#3182CE" />
-            </Box>
-            <Heading size="xl" mb={2} color="blue.700">Confirme seu e-mail</Heading>
-            <Text fontSize="md" color="gray.600">
-              Enviamos um código de confirmação para seu e-mail
-            </Text>
-            <Text fontWeight="medium" color="gray.700" mt={1}>{email}</Text>
-          </Box>
+      <AppCard variant="elevated" style={{ padding: 28 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+          <div style={{ textAlign: "center" }}>
+            <div
+              style={{
+                width: 58,
+                height: 58,
+                margin: "0 auto 16px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 14,
+                background: "var(--app-accent-soft)",
+                color: "var(--app-accent)",
+              }}
+            >
+              <FiMail size={30} />
+            </div>
+            <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 14 }}>
+              Codigo enviado para
+            </p>
+            <strong style={{ display: "block", marginTop: 4, color: "var(--app-text)", wordBreak: "break-word" }}>
+              {email}
+            </strong>
+          </div>
 
-          <FormControl>
-            <FormLabel fontWeight="semibold" textAlign="center">
-              Digite o código de 6 dígitos
-            </FormLabel>
+          <div>
+            <label
+              style={{
+                display: "block",
+                marginBottom: 14,
+                textAlign: "center",
+                color: "var(--app-text-muted)",
+                fontSize: 12,
+                fontWeight: 650,
+                letterSpacing: 1.5,
+                textTransform: "uppercase",
+              }}
+            >
+              Codigo de 6 digitos
+            </label>
 
-            <Flex justify="center" gap={3} mt={4}>
-              {[...Array(6)].map((_, index) => (
-                <Box key={index}>
-                  <input
-                    ref={(el) => {
-                      inputsRef.current[index] = el;
-                    }}
-                    value={code[index] || ''}
-                    onChange={(e) => handleCodeChange(index, e.target.value)}
-                    onPaste={handlePaste}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    style={{
-                      width: '55px',
-                      height: '55px',
-                      textAlign: 'center',
-                      fontSize: '2rem',
-                      fontWeight: 'bold',
-                      borderRadius: '8px',
-                      border: `2px solid ${code[index] ? '#3182CE' : '#E2E8F0'}`,
-                      outline: 'none',
-                    }}
-                  />
-
-                </Box>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(6, minmax(0, 1fr))", gap: 10 }}>
+              {Array.from({ length: CODE_LENGTH }).map((_, index) => (
+                <input
+                  key={index}
+                  ref={(el) => {
+                    inputsRef.current[index] = el;
+                  }}
+                  value={code[index] || ''}
+                  onChange={(e) => handleCodeChange(index, e.target.value)}
+                  onPaste={handlePaste}
+                  onKeyDown={(e) => handleKeyDown(index, e)}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  aria-label={`Digito ${index + 1}`}
+                  style={{
+                    width: "100%",
+                    aspectRatio: "1",
+                    minHeight: 48,
+                    textAlign: "center",
+                    fontSize: 24,
+                    fontWeight: 750,
+                    borderRadius: 10,
+                    border: `1px solid ${code[index] ? "var(--app-accent)" : "var(--app-divider-strong)"}`,
+                    color: "var(--app-text)",
+                    outline: "none",
+                  }}
+                />
               ))}
-            </Flex>
+            </div>
 
-            <Box mt={4} textAlign="center">
-              <Button
-                variant="link"
-                colorScheme="blue"
+            <div style={{ marginTop: 16, textAlign: "center" }}>
+              <button
+                type="button"
                 onClick={handleResendCode}
-                isLoading={isResending}
-                isDisabled={resendDisabled}
-                leftIcon={<FiRefreshCw />}
+                disabled={resendDisabled || isResending}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  border: "none",
+                  background: "transparent",
+                  color: resendDisabled ? "var(--app-text-muted)" : "var(--app-accent)",
+                  fontWeight: 650,
+                  cursor: resendDisabled || isResending ? "not-allowed" : "pointer",
+                }}
               >
-                {resendDisabled ? `Reenviar código em ${countdown}s` : 'Reenviar código'}
-              </Button>
-            </Box>
-          </FormControl>
+                <FiRefreshCw />
+                {resendDisabled ? `Reenviar codigo em ${countdown}s` : 'Reenviar codigo'}
+              </button>
+            </div>
+          </div>
 
-          <Button
+          <AppButton
+            type="button"
             size="lg"
-            colorScheme="blue"
-            isLoading={loading}
-            loadingText="Verificando..."
-            isDisabled={!isCodeValid}
+            fullWidth
+            loading={loading}
+            disabled={!isCodeValid}
             onClick={handleSubmit}
-            mt={4}
-            _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }}
-            transition="all 0.2s"
-            borderRadius="xl"
-            height="50px"
-            fontSize="md"
+            rightIcon={<Icons.ArrowRight size={14} />}
           >
-            Confirmar E-mail
-          </Button>
+            Confirmar e-mail
+          </AppButton>
 
-
-
-          <Box mt={6} textAlign="center" pt={4} borderTopWidth="1px" borderTopColor="gray.100">
-            <Text fontSize="sm" color="gray.600">
-              Não recebeu o código? Verifique sua pasta de spam ou{' '}
-              <Button variant="link" colorScheme="blue" ml={1} onClick={() => router.push('/suporte')}>
-                contate o suporte
-              </Button>
-            </Text>
-          </Box>
-        </VStack>
-      </MotionBox>
+          <p
+            style={{
+              margin: 0,
+              paddingTop: 18,
+              borderTop: "1px solid var(--app-divider)",
+              textAlign: "center",
+              color: "var(--app-text-muted)",
+              fontSize: 13,
+              lineHeight: 1.55,
+            }}
+          >
+            Nao recebeu o codigo? Verifique sua pasta de spam ou{" "}
+            <button
+              type="button"
+              onClick={() => router.push('/suporte')}
+              style={{
+                border: "none",
+                background: "transparent",
+                color: "var(--app-accent)",
+                fontWeight: 650,
+                cursor: "pointer",
+              }}
+            >
+              contate o suporte
+            </button>
+            .
+          </p>
+        </div>
+      </AppCard>
       <ToastContainer />
-    </Flex>
+    </AuthFlowShell>
   );
-};
-
-export default EmailConfirmation;
+}

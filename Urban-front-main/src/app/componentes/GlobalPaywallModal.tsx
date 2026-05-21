@@ -1,40 +1,23 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
-import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalBody,
-  Box,
-  Badge,
-  Button,
-  Flex,
-  Heading,
-  List,
-  ListIcon,
-  ListItem,
-  SimpleGrid,
-  Stack,
-  Text,
-  Spinner,
-  Switch,
-  FormControl,
-  FormLabel,
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
-} from "@chakra-ui/react";
-import { CheckIcon } from "@chakra-ui/icons";
-
+import React, { useEffect, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
-import { createCheckoutSession, getPlans, Plan, getPropriedadesDropdownList } from "../service/api";
+import {
+  createCheckoutSession,
+  getPlans,
+  getPropriedadesDropdownList,
+  Plan,
+} from "../service/api";
+import { AppBadge, AppButton, Icons } from "./ui";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 interface GlobalPaywallModalProps {
   isOpen: boolean;
+}
+
+function LoadingSpinner() {
+  return <span className="global-paywall-spinner" aria-label="Carregando" />;
 }
 
 export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
@@ -46,48 +29,43 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
   const [recommendedPlan, setRecommendedPlan] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isOpen) {
-      // Fetch both plans and property count
-      Promise.all([
-        getPlans(),
-        getPropriedadesDropdownList().catch(() => []) // if it fails, return empty
-      ])
-        .then(([plansData, propsData]) => {
-          setPlans(plansData);
-          const count = propsData?.length || 0;
-          setPropertyCount(count);
+    if (!isOpen) return;
 
-          // Find recommended plan based on propertyLimit
-          // Assumes propertyLimit is 3 for Starter, 10 for Profissional
-          let recommended = "escala"; // fallback
-          if (count <= 3) {
-            recommended = "starter";
-          } else if (count <= 10) {
-            recommended = "profissional";
-          }
-           setRecommendedPlan(recommended);
+    setLoading(true);
+    Promise.all([
+      getPlans(),
+      getPropriedadesDropdownList().catch(() => []),
+    ])
+      .then(([plansData, propsData]) => {
+        setPlans(plansData);
+        const count = propsData?.length || 0;
+        setPropertyCount(count);
 
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error("Erro ao buscar planos/propriedades:", err);
-          setLoading(false);
-        });
-    }
+        let recommended = "escala";
+        if (count <= 3) {
+          recommended = "starter";
+        } else if (count <= 10) {
+          recommended = "profissional";
+        }
+        setRecommendedPlan(recommended);
+      })
+      .catch((err) => {
+        console.error("Erro ao buscar planos/propriedades:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [isOpen]);
 
   async function handleCheckout(plan: Plan) {
     if (plan.isCustomPrice) {
-      // Implementar envio para WhatsApp ou formulário
       window.open("https://wa.me/seunumerodevendas", "_blank");
       return;
     }
+
     try {
       setLoadingPlan(plan.name);
-      const billingCycle = isAnnual ? 'annual' : 'monthly';
-      // F6.5: cobrança por imóvel — usar nº de imóveis cadastrados como quantity.
-      // propertyCount vem da listagem de propriedades carregada no useEffect acima.
-      // Default 1 quando o usuário não tem imóvel ainda (paywall pré-onboarding).
+      const billingCycle = isAnnual ? "annual" : "monthly";
       const quantity = Math.max(1, Number(propertyCount) || 1);
       const { sessionId } = await createCheckoutSession(plan.name, billingCycle, quantity);
       const stripe = await stripePromise;
@@ -95,7 +73,7 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
       if (stripe) {
         await stripe.redirectToCheckout({ sessionId });
       } else {
-        alert("Stripe não carregou.");
+        alert("Stripe nao carregou.");
       }
     } catch (err) {
       alert("Erro ao iniciar o pagamento.");
@@ -105,171 +83,396 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
     }
   }
 
+  if (!isOpen) return null;
+
+  const recommendedLabel =
+    recommendedPlan === "starter"
+      ? "Starter"
+      : recommendedPlan === "profissional"
+        ? "Profissional"
+        : "Escala";
+
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={() => {}} 
-      isCentered 
-      size="5xl"
-      scrollBehavior="inside"
-      closeOnOverlayClick={false}
-      closeOnEsc={false}
-    >
-      <ModalOverlay backdropFilter="blur(8px)" bg="blackAlpha.600" />
-      <ModalContent py={{ base: 4, md: 6 }} borderRadius="2xl" mx={4}>
-        <ModalBody>
-          <Heading as="h2" size="lg" textAlign="center" mb={4} color="gray.800">
-            Escolha seu plano para continuar
-          </Heading>
+    <div className="global-paywall-overlay" role="dialog" aria-modal="true">
+      <section className="global-paywall-modal">
+        <h2>Escolha seu plano para continuar</h2>
 
-          {propertyCount > 0 && (
-            <Alert status="info" variant="subtle" borderRadius="md" mx="auto" maxW="3xl" mb={4} py={2}>
-              <AlertIcon boxSize="4" />
-              <Box fontSize="sm">
-                <AlertTitle display="inline" mr={2}>Você possui {propertyCount} imóveis sincronizados.</AlertTitle>
-                <AlertDescription display="inline">
-                  Recomendamos o plano <strong>{recommendedPlan === 'starter' ? 'Starter' : recommendedPlan === 'profissional' ? 'Profissional' : 'Escala'}</strong> para não perder a sincronização de NENHUMA unidade.
-                </AlertDescription>
-              </Box>
-            </Alert>
-          )}
+        {propertyCount > 0 && (
+          <div className="global-paywall-alert">
+            <Icons.Info size={18} />
+            <p>
+              <strong>Voce possui {propertyCount} imoveis sincronizados.</strong>{" "}
+              Recomendamos o plano <strong>{recommendedLabel}</strong> para nao perder a
+              sincronizacao de nenhuma unidade.
+            </p>
+          </div>
+        )}
 
-          <Flex justify="center" mb={6}>
-            <FormControl display="flex" alignItems="center" w="auto" bg="gray.50" p={2} borderRadius="full" borderWidth="1px" borderColor="gray.200">
-              <FormLabel htmlFor="billing-toggle" mb="0" ml={4} fontWeight="bold" fontSize="sm" color={!isAnnual ? "blue.600" : "gray.500"}>
-                Mensal
-              </FormLabel>
-              <Switch id="billing-toggle" size="md" colorScheme="blue" isChecked={isAnnual} onChange={(e) => setIsAnnual(e.target.checked)} />
-              <FormLabel htmlFor="billing-toggle" mb="0" ml={3} mr={4} fontWeight="bold" fontSize="sm" color={isAnnual ? "blue.600" : "gray.500"}>
-                Anual
-                <Badge ml={2} colorScheme="green" borderRadius="full" fontSize="0.7em" px={2}>Economize 20%</Badge>
-              </FormLabel>
-            </FormControl>
-          </Flex>
+        <div className="global-paywall-toggle" aria-label="Ciclo de cobranca">
+          <span className={!isAnnual ? "active" : ""}>Mensal</span>
+          <label className="global-paywall-switch">
+            <input
+              id="billing-toggle"
+              type="checkbox"
+              checked={isAnnual}
+              onChange={(event) => setIsAnnual(event.target.checked)}
+            />
+            <span />
+          </label>
+          <span className={isAnnual ? "active" : ""}>Anual</span>
+          <AppBadge kind="success">Economize 20%</AppBadge>
+        </div>
 
-          {loading ? (
-            <Flex justify="center" align="center" h="20vh">
-              <Spinner size="xl" />
-            </Flex>
-          ) : (
-            <Flex justify="center" px={{ base: 0, md: 4 }}>
-              <SimpleGrid columns={{ base: 1, md: plans.length > 2 ? 3 : 2 }} spacing={{ base: 6, lg: 8 }} w="full">
-                {plans.map((plan) => (
-                  <Box
-                    key={plan.id}
-                    position="relative"
-                    borderRadius="xl"
-                    p={{ base: 5, md: 6 }}
-                    bg="white"
-                    boxShadow="0 4px 12px rgba(0,0,0,0.06)"
-                    _hover={{ boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}
-                    transition="box-shadow 0.2s ease"
-                    borderWidth={plan.highlightBadge ? "2px" : "1px"}
-                    borderColor={plan.highlightBadge ? "orange.400" : "gray.200"}
-                    textAlign="center"
-                    display="flex"
-                    flexDirection="column"
-                  >
-                    {plan.highlightBadge && (
-                      <Badge
-                        position="absolute"
-                        top={-3}
-                        right={{ base: 4, md: "auto" }}
-                        left={{ md: "50%" }}
-                        transform={{ md: "translateX(-50%)" }}
-                        colorScheme="orange"
-                        bg="orange.500"
-                        color="white"
-                        fontSize="0.75rem"
-                        px={3}
-                        py={1}
-                        borderRadius="full"
-                        fontWeight="bold"
-                        border="2px solid white"
-                      >
-                        {plan.highlightBadge}
-                      </Badge>
+        {loading ? (
+          <div className="global-paywall-loading">
+            <LoadingSpinner />
+          </div>
+        ) : (
+          <div className="global-paywall-grid" data-count={plans.length}>
+            {plans.map((plan) => (
+              <article
+                className={`global-paywall-plan${plan.highlightBadge ? " is-highlighted" : ""}`}
+                key={plan.id}
+              >
+                {plan.highlightBadge && (
+                  <div className="global-paywall-ribbon">{plan.highlightBadge}</div>
+                )}
+
+                <div className="global-paywall-plan-body">
+                  <h3>{plan.title}</h3>
+
+                  <div className="global-paywall-price">
+                    {((isAnnual && plan.originalPriceAnnual) || (!isAnnual && plan.originalPrice)) && (
+                      <div className="global-paywall-original">
+                        R${" "}
+                        {isAnnual && plan.originalPriceAnnual
+                          ? plan.originalPriceAnnual
+                          : plan.originalPrice}{" "}
+                        {plan.period}
+                      </div>
                     )}
 
-                    <Stack mt={plan.highlightBadge ? 4 : 0} spacing={4} flex="1">
-                      <Text fontSize="xl" fontWeight="extrabold" color="gray.700">
-                        {plan.title}
-                      </Text>
-
-                      <Box minH="70px" display="flex" flexDirection="column" justifyContent="center">
-                        {((isAnnual && plan.originalPriceAnnual) || (!isAnnual && plan.originalPrice)) && (
-                          <Flex justify="center" align="center" gap={2}>
-                            <Text decoration="line-through" color="gray.400" fontSize="sm">
-                              R$ {isAnnual && plan.originalPriceAnnual ? plan.originalPriceAnnual : plan.originalPrice} {plan.period}
-                            </Text>
-                          </Flex>
+                    {!plan.isCustomPrice ? (
+                      <div className="global-paywall-current">
+                        <strong>
+                          R$ {isAnnual && plan.priceAnnual ? plan.priceAnnual : plan.price}
+                        </strong>
+                        {plan.period && <span>{plan.period}</span>}
+                        {plan.discountBadge && (
+                          <AppBadge kind="error" style={{ letterSpacing: 0 }}>
+                            {plan.discountBadge}
+                          </AppBadge>
                         )}
+                      </div>
+                    ) : (
+                      <strong className="global-paywall-consult">Sob consulta</strong>
+                    )}
+                  </div>
 
-                        {!plan.isCustomPrice ? (
-                          <Flex justify="center" align="baseline">
-                            <Heading as="h3" size={{ base: "xl", lg: "2xl" }} color="gray.800">
-                              R$ {isAnnual && plan.priceAnnual ? plan.priceAnnual : plan.price}
-                            </Heading>
-                            {plan.period && (
-                              <Text as="span" fontSize="sm" color="gray.500" ml={1}>
-                                {plan.period}
-                              </Text>
-                            )}
-                            {plan.discountBadge && (
-                              <Badge ml={2} colorScheme="red" bg="red.900" color="red.200" px={2} py={0.5} borderRadius="md" fontSize="xs">
-                                {plan.discountBadge}
-                              </Badge>
-                            )}
-                          </Flex>
-                        ) : (
-                          <Heading as="h3" size="lg" color="gray.800" whiteSpace="nowrap">
-                            Sob consulta
-                          </Heading>
-                        )}
-                      </Box>
+                  <AppButton
+                    fullWidth
+                    loading={loadingPlan === plan.name}
+                    onClick={() => handleCheckout(plan)}
+                    variant={plan.highlightBadge ? "primary" : "secondary"}
+                    style={{ whiteSpace: "normal", minHeight: 42 }}
+                  >
+                    {plan.isCustomPrice ? "Fale com consultor" : "Selecionar plano"}
+                  </AppButton>
 
-                      <Button
-                        colorScheme={plan.highlightBadge ? "orange" : "blue"}
-                        bg={plan.highlightBadge ? "orange.500" : "blue.500"}
-                        color="white"
-                        size="md"
-                        whiteSpace="normal"
-                        height="auto"
-                        py={2}
-                        onClick={() => handleCheckout(plan)}
-                        isLoading={loadingPlan === plan.name}
-                        loadingText="Carregando..."
-                        _hover={{ transform: "translateY(-1px)", shadow: "sm" }}
-                        transition="all 0.2s"
-                        w="full"
-                        mt={2}
-                      >
-                        {plan.isCustomPrice ? "Fale com consultor" : "Selecionar plano"}
-                      </Button>
+                  <ul className="global-paywall-features">
+                    {plan.features.map((feat) => (
+                      <li key={feat}>
+                        <Icons.Check size={15} />
+                        <span>{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
 
-                      <List spacing={2} pt={4} textAlign="left" mx="auto" w="full">
-                        {plan.features.map((feat) => (
-                          <ListItem
-                            key={feat}
-                            fontSize="sm"
-                            color="gray.600"
-                            display="flex"
-                            alignItems="flex-start"
-                          >
-                            <ListIcon as={CheckIcon} color="green.400" mt={1} boxSize="3" />
-                            <Text lineHeight="short">{feat}</Text>
-                          </ListItem>
-                        ))}
-                      </List>
-                    </Stack>
-                  </Box>
-                ))}
-              </SimpleGrid>
-            </Flex>
-          )}
-        </ModalBody>
-      </ModalContent>
-    </Modal>
+      <style jsx>{`
+        .global-paywall-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 9999;
+          display: grid;
+          place-items: center;
+          padding: 24px;
+          background: rgba(18, 24, 38, 0.58);
+          backdrop-filter: blur(8px);
+        }
+
+        .global-paywall-modal {
+          width: min(1120px, 100%);
+          max-height: calc(100vh - 48px);
+          overflow: auto;
+          padding: clamp(24px, 4vw, 36px);
+          border: 1px solid var(--app-divider);
+          border-radius: 18px;
+          background: var(--app-surface);
+          box-shadow: 0 28px 80px rgba(15, 23, 42, 0.22);
+        }
+
+        .global-paywall-modal h2 {
+          margin: 0 0 18px;
+          color: var(--app-text);
+          font-size: clamp(24px, 3vw, 32px);
+          line-height: 1.1;
+          text-align: center;
+        }
+
+        .global-paywall-alert {
+          display: flex;
+          gap: 12px;
+          max-width: 760px;
+          margin: 0 auto 20px;
+          padding: 12px 14px;
+          color: var(--app-info);
+          background: rgba(37, 99, 235, 0.08);
+          border: 1px solid rgba(37, 99, 235, 0.18);
+          border-radius: 12px;
+        }
+
+        .global-paywall-alert p {
+          margin: 0;
+          color: var(--app-text);
+          font-size: 14px;
+          line-height: 1.5;
+        }
+
+        .global-paywall-toggle {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          width: fit-content;
+          max-width: 100%;
+          margin: 0 auto 28px;
+          padding: 8px 12px;
+          color: var(--app-text-muted);
+          background: var(--app-surface-muted);
+          border: 1px solid var(--app-divider);
+          border-radius: 999px;
+          font-size: 13px;
+          font-weight: 700;
+          flex-wrap: wrap;
+        }
+
+        .global-paywall-toggle .active {
+          color: var(--app-text);
+        }
+
+        .global-paywall-switch {
+          position: relative;
+          width: 44px;
+          height: 24px;
+          cursor: pointer;
+        }
+
+        .global-paywall-switch input {
+          position: absolute;
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        .global-paywall-switch span {
+          position: absolute;
+          inset: 0;
+          border-radius: 999px;
+          background: var(--app-divider-strong);
+          transition: background 140ms ease;
+        }
+
+        .global-paywall-switch span::after {
+          content: "";
+          position: absolute;
+          top: 3px;
+          left: 3px;
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: #ffffff;
+          box-shadow: 0 2px 6px rgba(15, 23, 42, 0.16);
+          transition: transform 140ms ease;
+        }
+
+        .global-paywall-switch input:checked + span {
+          background: var(--app-accent);
+        }
+
+        .global-paywall-switch input:checked + span::after {
+          transform: translateX(20px);
+        }
+
+        .global-paywall-loading {
+          display: grid;
+          min-height: 180px;
+          place-items: center;
+        }
+
+        .global-paywall-spinner {
+          width: 42px;
+          height: 42px;
+          border: 3px solid var(--app-divider);
+          border-top-color: var(--app-accent);
+          border-radius: 50%;
+          animation: global-paywall-spin 800ms linear infinite;
+        }
+
+        .global-paywall-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 22px;
+        }
+
+        .global-paywall-grid[data-count="1"] {
+          grid-template-columns: minmax(240px, 360px);
+          justify-content: center;
+        }
+
+        .global-paywall-grid[data-count="2"] {
+          grid-template-columns: repeat(2, minmax(240px, 360px));
+          justify-content: center;
+        }
+
+        .global-paywall-plan {
+          position: relative;
+          min-width: 0;
+          padding: 1px;
+          border-radius: 16px;
+          background: var(--app-divider);
+          transition: transform 140ms ease, box-shadow 140ms ease;
+        }
+
+        .global-paywall-plan:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 18px 46px rgba(15, 23, 42, 0.12);
+        }
+
+        .global-paywall-plan.is-highlighted {
+          background: linear-gradient(180deg, var(--app-accent), rgba(232, 80, 10, 0.32));
+        }
+
+        .global-paywall-plan-body {
+          display: flex;
+          min-height: 100%;
+          flex-direction: column;
+          padding: 26px 22px;
+          text-align: center;
+          background: var(--app-surface);
+          border-radius: 15px;
+        }
+
+        .global-paywall-ribbon {
+          position: absolute;
+          top: -12px;
+          left: 50%;
+          transform: translateX(-50%);
+          max-width: calc(100% - 32px);
+          padding: 5px 14px;
+          color: #ffffff;
+          background: var(--app-accent);
+          border: 2px solid #ffffff;
+          border-radius: 999px;
+          box-shadow: 0 8px 18px rgba(232, 80, 10, 0.22);
+          font-size: 12px;
+          font-weight: 800;
+          line-height: 1.2;
+          white-space: nowrap;
+        }
+
+        .global-paywall-plan h3 {
+          margin: 0;
+          color: var(--app-text);
+          font-size: 20px;
+          line-height: 1.2;
+        }
+
+        .global-paywall-price {
+          display: flex;
+          min-height: 86px;
+          flex-direction: column;
+          justify-content: center;
+          gap: 6px;
+          margin: 18px 0;
+        }
+
+        .global-paywall-original {
+          color: var(--app-text-muted);
+          font-size: 13px;
+          text-decoration: line-through;
+        }
+
+        .global-paywall-current {
+          display: flex;
+          align-items: baseline;
+          justify-content: center;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+
+        .global-paywall-current strong,
+        .global-paywall-consult {
+          color: var(--app-text);
+          font-size: clamp(26px, 3vw, 34px);
+          line-height: 1;
+        }
+
+        .global-paywall-current span {
+          color: var(--app-text-muted);
+          font-size: 13px;
+        }
+
+        .global-paywall-features {
+          display: grid;
+          gap: 10px;
+          margin: 24px 0 0;
+          padding: 0;
+          text-align: left;
+          list-style: none;
+        }
+
+        .global-paywall-features li {
+          display: flex;
+          align-items: flex-start;
+          gap: 9px;
+          color: var(--app-text-muted);
+          font-size: 14px;
+          line-height: 1.35;
+        }
+
+        .global-paywall-features svg {
+          flex: 0 0 auto;
+          color: var(--app-success);
+          margin-top: 1px;
+        }
+
+        @keyframes global-paywall-spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        @media (max-width: 720px) {
+          .global-paywall-overlay {
+            padding: 12px;
+          }
+
+          .global-paywall-modal {
+            max-height: calc(100vh - 24px);
+            border-radius: 14px;
+          }
+
+          .global-paywall-grid,
+          .global-paywall-grid[data-count="2"] {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+    </div>
   );
 }
-

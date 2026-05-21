@@ -1,47 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  Flex,
-  Text,
-  HStack,
-  Switch,
-  FormControl,
-  FormLabel,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  ModalCloseButton,
-  Stack,
-  Link as ChakraLink,
-  useDisclosure,
-} from "@chakra-ui/react";
 import { useConsent } from "./useConsent";
 
-/**
- * Banner de consentimento LGPD para cookies / telemetria.
- *
- * Aparece apenas quando `useConsent.undecided === true` (usuário ainda não
- * tomou decisão). Após decidir (aceitar tudo / rejeitar tudo / personalizar),
- * o banner some até o user limpar localStorage ou clicar em "Preferências"
- * (link no footer/menu).
- *
- * Comportamento:
- *  - "Aceitar todos" → analytics + marketing = true
- *  - "Apenas essenciais" → analytics + marketing = false
- *  - "Personalizar" → modal com toggles individuais
- *
- * Não bloqueia uso da plataforma (não é "cookie wall"). Cookies essenciais
- * sempre estão ativos.
- */
 export function CookieConsent() {
   const { undecided, acceptAll, rejectAll, setPreferences, state } = useConsent();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isOpen, setIsOpen] = useState(false);
   const [analyticsPref, setAnalyticsPref] = useState(state.analytics);
   const [marketingPref, setMarketingPref] = useState(state.marketing);
 
@@ -49,172 +13,278 @@ export function CookieConsent() {
 
   return (
     <>
-      <Box
-        position="fixed"
-        bottom={{ base: 0, md: 6 }}
-        left={{ base: 0, md: "auto" }}
-        right={{ base: 0, md: 6 }}
-        zIndex={9999}
-        bg="#080A0F"
-        color="white"
-        borderRadius={{ base: 0, md: "lg" }}
-        boxShadow="0 18px 50px rgba(0,0,0,0.38)"
-        borderWidth="1px"
-        borderColor="rgba(255,255,255,0.16)"
-        p={{ base: 3, md: 4 }}
-        maxW={{ md: "390px" }}
-        mx={{ base: 0, md: "initial" }}
+      <div
         role="region"
         aria-label="Consentimento de cookies"
+        style={{
+          position: "fixed",
+          right: 24,
+          bottom: 24,
+          zIndex: 9999,
+          maxWidth: 390,
+          padding: 16,
+          borderRadius: 8,
+          border: "1px solid rgba(255,255,255,0.16)",
+          background: "#080A0F",
+          color: "#fff",
+          boxShadow: "0 18px 50px rgba(0,0,0,0.38)",
+        }}
       >
-        <Flex
-          direction="column"
-          align="stretch"
-          gap={3}
-        >
-          <Box flex="1" fontSize="xs" color="rgba(255,255,255,0.70)">
-            <Text fontWeight="bold" mb={1} color="white">
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ flex: 1, color: "rgba(255,255,255,0.70)", fontSize: 12 }}>
+            <p style={{ margin: "0 0 4px", color: "#fff", fontWeight: 700 }}>
               Privacidade e cookies
-            </Text>
-            <Text>
-              Usamos cookies essenciais para o funcionamento da plataforma e,
-              com seu consentimento, cookies opcionais de analytics e
-              marketing para entender o uso e melhorar o produto. Veja
-              detalhes na{" "}
-              <ChakraLink
+            </p>
+            <p style={{ margin: 0, lineHeight: 1.55 }}>
+              Usamos cookies essenciais para o funcionamento da plataforma e, com seu
+              consentimento, cookies opcionais de analytics e marketing para entender o
+              uso e melhorar o produto. Veja detalhes na{" "}
+              <a
                 href="/privacidade"
-                color="#FF8A4C"
-                textDecoration="underline"
-                textUnderlineOffset="2px"
-                isExternal={false}
+                style={{ color: "#FF8A4C", textDecoration: "underline", textUnderlineOffset: 2 }}
               >
-                Política de Privacidade
-              </ChakraLink>.
-            </Text>
-          </Box>
+                Politica de Privacidade
+              </a>.
+            </p>
+          </div>
 
-          <Stack
-            direction={{ base: "column", sm: "row" }}
-            spacing={2}
-            flexShrink={0}
-            w="full"
-          >
-            <Button
-              size="sm"
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <CookieButton
               variant="ghost"
-              color="rgba(255,255,255,0.82)"
-              _hover={{ bg: "rgba(255,255,255,0.08)" }}
               onClick={() => {
                 setAnalyticsPref(state.analytics);
                 setMarketingPref(state.marketing);
-                onOpen();
+                setIsOpen(true);
               }}
             >
               Personalizar
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              borderColor="rgba(255,255,255,0.24)"
-              color="white"
-              _hover={{ bg: "rgba(255,255,255,0.08)" }}
-              onClick={rejectAll}
-            >
+            </CookieButton>
+            <CookieButton variant="outline" onClick={rejectAll}>
               Apenas essenciais
-            </Button>
-            <Button
-              size="sm"
-              bg="#E8500A"
-              color="#080A0F"
-              _hover={{ bg: "#ff641f" }}
-              onClick={acceptAll}
-            >
+            </CookieButton>
+            <CookieButton variant="primary" onClick={acceptAll}>
               Aceitar todos
-            </Button>
-          </Stack>
-        </Flex>
-      </Box>
+            </CookieButton>
+          </div>
+        </div>
+      </div>
 
-      <Modal isOpen={isOpen} onClose={onClose} isCentered size="lg">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Preferências de cookies</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Stack spacing={5}>
-              <Box>
-                <FormControl display="flex" alignItems="center" justifyContent="space-between">
-                  <FormLabel mb={0} fontWeight="bold">
-                    Essenciais
-                  </FormLabel>
-                  <Switch isChecked isDisabled colorScheme="blue" />
-                </FormControl>
-                <Text fontSize="sm" color="gray.600" mt={1}>
-                  Necessários para login, segurança e funcionamento básico.
-                  Não podem ser desativados.
-                </Text>
-              </Box>
+      {isOpen && (
+        <div
+          role="presentation"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 10000,
+            display: "grid",
+            placeItems: "center",
+            padding: 16,
+            background: "rgba(8,10,15,0.52)",
+          }}
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setIsOpen(false);
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cookie-preferences-title"
+            style={{
+              width: "100%",
+              maxWidth: 520,
+              borderRadius: 12,
+              background: "#fff",
+              color: "#0E1116",
+              boxShadow: "0 24px 80px rgba(0,0,0,0.28)",
+              overflow: "hidden",
+            }}
+          >
+            <header
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 16,
+                padding: "20px 22px",
+                borderBottom: "1px solid rgba(14,17,22,0.10)",
+              }}
+            >
+              <h2 id="cookie-preferences-title" style={{ margin: 0, fontSize: 18 }}>
+                Preferencias de cookies
+              </h2>
+              <button
+                type="button"
+                aria-label="Fechar preferencias"
+                onClick={() => setIsOpen(false)}
+                style={iconButtonStyle}
+              >
+                x
+              </button>
+            </header>
 
-              <Box>
-                <FormControl display="flex" alignItems="center" justifyContent="space-between">
-                  <FormLabel htmlFor="analytics-pref" mb={0} fontWeight="bold">
-                    Analytics
-                  </FormLabel>
-                  <Switch
-                    id="analytics-pref"
-                    isChecked={analyticsPref}
-                    onChange={(e) => setAnalyticsPref(e.target.checked)}
-                    colorScheme="blue"
-                  />
-                </FormControl>
-                <Text fontSize="sm" color="gray.600" mt={1}>
-                  Google Analytics 4 — entender quais funcionalidades são
-                  usadas para priorizar melhorias. IP anonimizado.
-                </Text>
-              </Box>
+            <div style={{ display: "flex", flexDirection: "column", gap: 20, padding: 22 }}>
+              <CookieToggle
+                label="Essenciais"
+                description="Necessarios para login, seguranca e funcionamento basico. Nao podem ser desativados."
+                checked
+                disabled
+              />
+              <CookieToggle
+                label="Analytics"
+                description="Google Analytics 4 para entender quais funcionalidades sao usadas e priorizar melhorias. IP anonimizado."
+                checked={analyticsPref}
+                onChange={setAnalyticsPref}
+              />
+              <CookieToggle
+                label="Marketing"
+                description="Meta Pixel para medir eficacia de campanhas e oferecer conteudo relevante em redes sociais."
+                checked={marketingPref}
+                onChange={setMarketingPref}
+              />
+            </div>
 
-              <Box>
-                <FormControl display="flex" alignItems="center" justifyContent="space-between">
-                  <FormLabel htmlFor="marketing-pref" mb={0} fontWeight="bold">
-                    Marketing
-                  </FormLabel>
-                  <Switch
-                    id="marketing-pref"
-                    isChecked={marketingPref}
-                    onChange={(e) => setMarketingPref(e.target.checked)}
-                    colorScheme="blue"
-                  />
-                </FormControl>
-                <Text fontSize="sm" color="gray.600" mt={1}>
-                  Meta Pixel — medir eficácia de campanhas e oferecer conteúdo
-                  relevante em redes sociais.
-                </Text>
-              </Box>
-            </Stack>
-          </ModalBody>
-
-          <ModalFooter>
-            <HStack spacing={2}>
-              <Button variant="ghost" size="sm" onClick={onClose}>
+            <footer
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 8,
+                padding: "16px 22px",
+                borderTop: "1px solid rgba(14,17,22,0.10)",
+              }}
+            >
+              <CookieButton variant="light" onClick={() => setIsOpen(false)}>
                 Cancelar
-              </Button>
-              <Button
-                colorScheme="blue"
-                size="sm"
+              </CookieButton>
+              <CookieButton
+                variant="save"
                 onClick={() => {
                   setPreferences({
                     analytics: analyticsPref,
                     marketing: marketingPref,
                   });
-                  onClose();
+                  setIsOpen(false);
                 }}
               >
-                Salvar preferências
-              </Button>
-            </HStack>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+                Salvar preferencias
+              </CookieButton>
+            </footer>
+          </section>
+        </div>
+      )}
+
+      <style>{`
+        @media (max-width: 767px) {
+          [aria-label="Consentimento de cookies"] {
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            max-width: none !important;
+            border-radius: 0 !important;
+            padding: 12px !important;
+          }
+        }
+      `}</style>
     </>
   );
 }
+
+function CookieButton({
+  variant,
+  onClick,
+  children,
+}: {
+  variant: "ghost" | "outline" | "primary" | "light" | "save";
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button type="button" onClick={onClick} style={buttonStyle(variant)}>
+      {children}
+    </button>
+  );
+}
+
+function CookieToggle({
+  label,
+  description,
+  checked,
+  disabled = false,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  disabled?: boolean;
+  onChange?: (checked: boolean) => void;
+}) {
+  return (
+    <div>
+      <label
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          fontWeight: 700,
+        }}
+      >
+        <span>{label}</span>
+        <input
+          type="checkbox"
+          checked={checked}
+          disabled={disabled}
+          onChange={(event) => onChange?.(event.target.checked)}
+          style={{ width: 18, height: 18, accentColor: "#E8500A" }}
+        />
+      </label>
+      <p style={{ margin: "6px 0 0", color: "rgba(14,17,22,0.62)", fontSize: 13, lineHeight: 1.5 }}>
+        {description}
+      </p>
+    </div>
+  );
+}
+
+function buttonStyle(variant: "ghost" | "outline" | "primary" | "light" | "save"): React.CSSProperties {
+  const base: React.CSSProperties = {
+    minHeight: 32,
+    padding: "0 12px",
+    borderRadius: 8,
+    fontSize: 13,
+    fontWeight: 650,
+    cursor: "pointer",
+  };
+
+  if (variant === "primary") {
+    return { ...base, background: "#E8500A", color: "#080A0F", border: "1px solid #E8500A" };
+  }
+  if (variant === "outline") {
+    return {
+      ...base,
+      background: "transparent",
+      color: "#fff",
+      border: "1px solid rgba(255,255,255,0.24)",
+    };
+  }
+  if (variant === "ghost") {
+    return {
+      ...base,
+      background: "transparent",
+      color: "rgba(255,255,255,0.82)",
+      border: "1px solid transparent",
+    };
+  }
+  if (variant === "save") {
+    return { ...base, background: "#0E1116", color: "#fff", border: "1px solid #0E1116" };
+  }
+  return { ...base, background: "transparent", color: "#0E1116", border: "1px solid transparent" };
+}
+
+const iconButtonStyle: React.CSSProperties = {
+  width: 32,
+  height: 32,
+  border: "1px solid rgba(14,17,22,0.12)",
+  borderRadius: 8,
+  background: "#fff",
+  color: "#0E1116",
+  cursor: "pointer",
+};

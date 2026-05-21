@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Box, Flex, Heading, Text, useColorModeValue, Progress } from '@chakra-ui/react';
-import { getPropertyData } from '@/app/service/api'; // ajuste o path conforme necessário
+import { getPropertyData } from '@/app/service/api';
 
 type DashboardCardsProps = {
   propertyId: string | undefined;
@@ -19,38 +18,45 @@ const StatCard = ({
   subtitle?: string;
   isLoading?: boolean;
 }) => {
-  const bg = useColorModeValue('white', 'gray.700');
-  const borderColor = useColorModeValue('gray.200', 'gray.600');
-  const textColor = useColorModeValue('gray.800', 'white');
-
   return (
-    <Box
-      p={6}
-      minW="220px"
-      flex="1"
-      borderWidth={1}
-      borderColor={borderColor}
-      borderRadius="xl"
-      bg={bg}
-      shadow="md"
-      transition="all 0.2s"
-      _hover={{ shadow: 'xl', transform: 'translateY(-4px)' }}
+    <article
+      style={{
+        minWidth: 220,
+        flex: 1,
+        padding: 24,
+        border: "1px solid rgba(14,17,22,0.12)",
+        borderRadius: 12,
+        background: "#fff",
+        boxShadow: "0 4px 12px rgba(14,17,22,0.08)",
+        transition: "box-shadow 0.2s, transform 0.2s",
+      }}
     >
       {isLoading ? (
-        <Progress size="xs" isIndeterminate mb={4} />
+        <div style={{ height: 3, marginBottom: 16, overflow: "hidden", borderRadius: 999, background: "rgba(232,80,10,0.12)" }}>
+          <span
+            style={{
+              display: "block",
+              width: "35%",
+              height: "100%",
+              borderRadius: 999,
+              background: "#E8500A",
+              animation: "stat-card-progress 1s ease-in-out infinite",
+            }}
+          />
+        </div>
       ) : null}
-      <Text fontSize="sm" color="gray.500" fontWeight="semibold">
+      <p style={{ margin: 0, color: "#6B7280", fontSize: 14, fontWeight: 650 }}>
         {title}
-      </Text>
-      <Heading size="lg" color={textColor} mt={1}>
+      </p>
+      <h3 style={{ margin: "4px 0 0", color: "#1F2937", fontSize: 24, lineHeight: 1.2 }}>
         {value ?? '--'}
-      </Heading>
+      </h3>
       {subtitle && (
-        <Text mt={1} fontSize="sm" color="green.400" fontWeight="semibold">
+        <p style={{ margin: "4px 0 0", color: "#16A06B", fontSize: 14, fontWeight: 650 }}>
           {subtitle}
-        </Text>
+        </p>
       )}
-    </Box>
+    </article>
   );
 };
 
@@ -68,8 +74,6 @@ export default function DashboardCards({ propertyId }: DashboardCardsProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-
-
     async function fetchData() {
       try {
         setLoading(true);
@@ -85,20 +89,18 @@ export default function DashboardCards({ propertyId }: DashboardCardsProps) {
     fetchData();
   }, [propertyId]);
 
-  const bg = useColorModeValue('gray.50', 'gray.900');
-
   const formatCurrency = (value: number) =>
     value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   return (
-    <Box pt={{ base: 6, md: 10 }} bg={bg}>
-      <Flex direction={{ base: 'column', md: 'row' }} gap={6} flexWrap="wrap">
+    <div style={{ paddingTop: 40, background: "#F9FAFB" }}>
+      <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
         <StatCard title="Propriedades Ativas" value={data?.quantidadePropriedadesAtivas} isLoading={loading} />
         <StatCard title="Eventos" value={data?.quantidadeEventos} isLoading={loading} />
         <StatCard
           title="Receita Projetada"
           value={data ? formatCurrency(data.receitaProjetada.receitaProjetada) : undefined}
-           subtitle={new Intl.DateTimeFormat('pt-BR', { month: 'short', year: 'numeric' }).format(new Date())+""}
+          subtitle={new Intl.DateTimeFormat('pt-BR', { month: 'short', year: 'numeric' }).format(new Date())}
           isLoading={loading}
         />
         <StatCard
@@ -107,7 +109,13 @@ export default function DashboardCards({ propertyId }: DashboardCardsProps) {
           subtitle={data ? `+${data.receitaProjetada.diferencaPercentual.toFixed(2)}%` : undefined}
           isLoading={loading}
         />
-      </Flex>
-    </Box>
+      </div>
+      <style>{`
+        @keyframes stat-card-progress {
+          0% { transform: translateX(-120%); }
+          100% { transform: translateX(320%); }
+        }
+      `}</style>
+    </div>
   );
 }

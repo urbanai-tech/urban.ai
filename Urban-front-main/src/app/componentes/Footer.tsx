@@ -4,49 +4,46 @@
 import React from 'react';
 import "../../../i18n"; // inicializa o i18n
 import { useTranslation } from 'react-i18next';
-import { Box, Text, Flex, Link as ChakraLink, VStack } from '@chakra-ui/react';
 
 const PUBLIC_SITE_URL =
   process.env.NEXT_PUBLIC_PUBLIC_SITE_URL || "https://myurbanai.com";
+
+const footerLinkStyle: React.CSSProperties = {
+  color: "inherit",
+  textDecoration: "none",
+  fontSize: 14,
+};
 
 const Footer = () => {
   const { t } = useTranslation();
 
   return (
-    <Box
-      bg="white"
-      color="#0e161b"
-      py={6}
-      h={200}
-      borderTop="1px"
-      borderTopColor="#e8eef3"
+    <footer
+      style={{
+        height: 200,
+        padding: "24px 16px",
+        background: "#fff",
+        color: "#0e161b",
+        borderTop: "1px solid #e8eef3",
+      }}
     >
-      <VStack spacing={4}>
-        <Text textAlign="center" fontSize="sm">
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+        <p style={{ margin: 0, textAlign: "center", fontSize: 14 }}>
           {t('footer.copy', { year: new Date().getFullYear() })}
-        </Text>
-        <Flex justify="center" gap={6} wrap="wrap">
-          <ChakraLink
-            href={`${PUBLIC_SITE_URL}/sobre`}
-            _hover={{ textDecoration: 'underline' }}
-          >
+        </p>
+        <nav style={{ display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap" }}>
+          <a href={`${PUBLIC_SITE_URL}/sobre`} style={footerLinkStyle}>
             {t('footer.links.about')}
-          </ChakraLink>
-          <ChakraLink
-            href={`${PUBLIC_SITE_URL}/contato`}
-            _hover={{ textDecoration: 'underline' }}
-          >
+          </a>
+          <a href={`${PUBLIC_SITE_URL}/contato`} style={footerLinkStyle}>
             {t('footer.links.contact')}
-          </ChakraLink>
-          <ChakraLink
-            href={`${PUBLIC_SITE_URL}/privacidade`}
-            _hover={{ textDecoration: 'underline' }}
-          >
+          </a>
+          <a href={`${PUBLIC_SITE_URL}/privacidade`} style={footerLinkStyle}>
             {t('footer.links.privacy')}
-          </ChakraLink>
-        </Flex>
-      </VStack>
-    </Box>
+          </a>
+        </nav>
+      </div>
+    </footer>
   );
 };
 

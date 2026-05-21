@@ -1,34 +1,25 @@
 'use client';
 
 import React from 'react';
-import {
-  Box,
-  Button,
-  Container,
-  Flex,
-  Grid,
-  GridItem,
-  Heading,
-  Icon,
-  FormControl,
-  FormLabel,
-  Input,
-  Select,
-  useColorModeValue,
-  Divider,
-  Text,
-  Center,
-  Spinner,
-} from '@chakra-ui/react';
 import { FiUser } from 'react-icons/fi';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { AppButton, AppCard, AppInput, AppPageShell, AppSelect } from '@/app/componentes/ui';
 import {
   getProfileById,
   updateProfileById,
 } from '@/app/service/api';
 
 type PricingStrategy = 'conservative' | 'balanced' | 'aggressive' | 'ai';
+
+type FormState = {
+  nome: string;
+  email: string;
+  percentualInicial: string;
+  percentualFinal: string;
+  pricingStrategy: PricingStrategy;
+  operationMode: string;
+};
 
 const PRICING_PRESETS: Record<PricingStrategy, { inicial: number; final: number | null }> = {
   conservative: { inicial: 5, final: 10 },
@@ -54,11 +45,7 @@ function parsePercentInput(value: string) {
 }
 
 export default function ConfiguracoesPage() {
-  const surface = useColorModeValue('white', 'gray.800');
-  const muted = useColorModeValue('gray.50', 'gray.700');
-  const border = useColorModeValue('gray.200', 'whiteAlpha.300');
-
-  const [form, setForm] = React.useState({
+  const [form, setForm] = React.useState<FormState>({
     nome: '',
     email: '',
     percentualInicial: '',
@@ -76,21 +63,24 @@ export default function ConfiguracoesPage() {
 
     if (!id) {
       setLoading(false);
-      toast.info('Sessão expirada');
+      toast.info('Sessao expirada');
       return;
     }
 
     setUserId(id);
     setLoading(true);
 
-    // Buscar dados do perfil
     getProfileById()
       .then((userData) => {
+        const pricingStrategy = PRICING_PRESETS[userData.pricingStrategy as PricingStrategy]
+          ? (userData.pricingStrategy as PricingStrategy)
+          : 'balanced';
+
         setForm((prev) => ({
           ...prev,
           nome: userData.username || '',
           email: userData.email || '',
-          pricingStrategy: userData.pricingStrategy || 'balanced',
+          pricingStrategy,
           operationMode: userData.operationMode || 'notifications',
           percentualInicial: formatPercent(userData.percentualInicial, true),
           percentualFinal: formatPercent(userData.percentualFinal),
@@ -104,217 +94,206 @@ export default function ConfiguracoesPage() {
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target;
-    
+
     if (name === 'percentualInicial' || name === 'percentualFinal') {
-       const sanitizedValue = value.replace(/[^0-9,.]/g, '');
-       setForm((prev) => ({ ...prev, [name]: sanitizedValue }));
-       return;
+      const sanitizedValue = value.replace(/[^0-9,.]/g, '');
+      setForm((prev) => ({ ...prev, [name]: sanitizedValue }));
+      return;
     }
 
     if (name === 'pricingStrategy' && PRICING_PRESETS[value as PricingStrategy]) {
-       const preset = PRICING_PRESETS[value as PricingStrategy];
-       setForm((prev) => ({ 
-         ...prev, 
-         [name]: value,
-         percentualInicial: preset.inicial.toString(),
-         percentualFinal: preset.final !== null ? preset.final.toString() : ''
-       }));
-       return;
+      const preset = PRICING_PRESETS[value as PricingStrategy];
+      setForm((prev) => ({
+        ...prev,
+        pricingStrategy: value as PricingStrategy,
+        percentualInicial: preset.inicial.toString(),
+        percentualFinal: preset.final !== null ? preset.final.toString() : '',
+      }));
+      return;
     }
 
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
+  const isButtonDisabled = !form.percentualInicial;
+
+  async function handleSave() {
+    if (!userId) return;
+
+    setSaving(true);
+    const finalText = form.percentualFinal.trim();
+    const inicial = parsePercentInput(form.percentualInicial);
+    const final = finalText ? parsePercentInput(finalText) : null;
+
+    if (inicial === null || inicial < 0) {
+      toast.error('A queda e obrigatoria e deve ser um numero maior ou igual a zero.');
+      setSaving(false);
+      return;
+    }
+
+    if (finalText && (final === null || final < 0)) {
+      toast.error('A alta deve ser um numero maior ou igual a zero quando preenchida.');
+      setSaving(false);
+      return;
+    }
+
+    try {
+      await updateProfileById(userId, {
+        pricingStrategy: form.pricingStrategy,
+        operationMode: form.operationMode,
+        percentualInicial: inicial,
+        percentualFinal: final,
+      });
+      toast.success('Configuracoes salvas com sucesso!');
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao salvar configuracoes');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   if (loading) {
     return (
-      <Center height="300px">
-        <Spinner size="xl" />
-      </Center>
+      <AppPageShell>
+        <div style={{ height: 300, display: "grid", placeItems: "center" }}>
+          <Spinner />
+        </div>
+        <ToastContainer />
+      </AppPageShell>
     );
   }
 
-  const isButtonDisabled = !form.percentualInicial; // Final can be empty for AI mode
-
   return (
-    <Container maxW="7xl" py={8}>
-      <Flex align="center" justify="space-between" mb={6}>
-        <Heading size="2xl">Configurações</Heading>
-      </Flex>
+    <AppPageShell maxWidth={1180}>
+      <header style={{ marginBottom: 24 }}>
+        <h1 className="urban-app-display-md">Configuracoes</h1>
+      </header>
 
-      <Box bg={muted} borderRadius="xl" p={2} mb={6}>
-        <Box bg={surface} borderRadius="xl" borderWidth="1px" borderColor={border} p={6}>
-          <Flex align="center" gap={3} mb={4}>
-            <Icon as={FiUser} boxSize={6} />
-            <Heading size="lg">Informações Pessoais</Heading>
-          </Flex>
-          <Divider mb={6} />
+      <AppCard variant="subtle" style={{ padding: 8, marginBottom: 24 }}>
+        <AppCard variant="default" style={{ padding: 24 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              paddingBottom: 20,
+              marginBottom: 24,
+              borderBottom: "1px solid var(--app-divider)",
+            }}
+          >
+            <FiUser size={24} />
+            <h2 style={{ margin: 0, fontSize: 22, lineHeight: 1.2 }}>
+              Informacoes pessoais
+            </h2>
+          </div>
 
-          <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap={6}>
-            <GridItem>
-              <FormControl isRequired>
-                <FormLabel>Nome Completo</FormLabel>
-                <Input
-                  isDisabled
-                  name="nome"
-                  value={form.nome}
-                  onChange={handleChange}
-                  size="lg"
-                  variant="filled"
-                  placeholder="Seu nome"
-                />
-              </FormControl>
-            </GridItem>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: 24,
+            }}
+          >
+            <AppInput
+              label="Nome completo"
+              disabled
+              name="nome"
+              value={form.nome}
+              onChange={handleChange}
+              placeholder="Seu nome"
+            />
 
-            <GridItem>
-              <FormControl isRequired>
-                <FormLabel>Email</FormLabel>
-                <Input
-                  isDisabled
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  size="lg"
-                  variant="filled"
-                  placeholder="seu@email.com"
-                />
-              </FormControl>
-            </GridItem>
-            
-            {/* INÍCIO - Configurações do Motor AI */}
-            <GridItem>
-              <FormControl>
-                <FormLabel>Estratégia de Precificação (Motor de IA)</FormLabel>
-                <Select 
-                  name="pricingStrategy" 
-                  value={form.pricingStrategy} 
-                  onChange={handleChange}
-                  size="lg"
-                  bg="white"
-                >
-                  <option value="conservative">Conservadora (-5% a +10%)</option>
-                  <option value="balanced">Moderada (-10% a +20%)</option>
-                  <option value="aggressive">Agressiva (-15% a +35%)</option>
-                  <option value="ai">Piloto Automático IA (com teto sistêmico)</option>
-                </Select>
-                <Text fontSize="sm" color="gray.500" mt={1}>
-                  Isso preencherá automaticamente os limites para novas sugestões. A queda é salva como valor positivo.
-                </Text>
-              </FormControl>
-            </GridItem>
+            <AppInput
+              label="Email"
+              disabled
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="seu@email.com"
+            />
 
-            <GridItem>
-              <FormControl>
-                <FormLabel>Modo de Operação</FormLabel>
-                <Select 
-                  name="operationMode" 
-                  value={form.operationMode} 
-                  onChange={handleChange}
-                  size="lg"
-                  bg="white"
-                >
-                  <option value="notifications">Apenas Notificações (Recomendado)</option>
-                  <option value="auto" disabled>Automático (Em Breve)</option>
-                </Select>
-                 <Text fontSize="sm" color="gray.500" mt={1}>
-                  Aguarde atualizações para aplicar preços diretamente no painel do Airbnb.
-                </Text>
-              </FormControl>
-            </GridItem>
-            {/* FIM - Configurações do Motor AI */}
-
-            <GridItem>
-              <FormControl isRequired>
-                <FormLabel>Limite de Queda (%) - Max Desconto</FormLabel>
-                <Input
-                  type="text"
-                  name="percentualInicial"
-                  value={form.percentualInicial}
-                  onChange={handleChange}
-                  size="lg"
-                  variant="filled"
-                  placeholder="Ex: 5 ou 10"
-                />
-                <Text fontSize="sm" color="gray.500" mt={1}>
-                  Queda máxima permitida para novas sugestões. Informe 5 para permitir até -5%.
-                </Text>
-              </FormControl>
-            </GridItem>
-
-            <GridItem>
-              <FormControl>
-                <FormLabel>Limite de Alta (%) - Max Lucro</FormLabel>
-                <Input
-                  type="text"
-                  name="percentualFinal"
-                  value={form.percentualFinal}
-                  onChange={handleChange}
-                  size="lg"
-                  variant="filled"
-                  placeholder="Controlado pelo teto sistêmico"
-                  isDisabled={form.pricingStrategy === 'ai'}
-                />
-                <Text fontSize="sm" color="gray.500" mt={1}>
-                  Alta máxima permitida para novas sugestões. No Piloto IA, vale o teto sistêmico configurado.
-                </Text>
-              </FormControl>
-            </GridItem>
-          </Grid>
-
-          <Flex justify="flex-end" mt={6}>
-            <Button
-              colorScheme="teal"
-              size="md"
-              fontWeight="bold"
-              borderRadius="xl"
-              boxShadow="sm"
-              _hover={{ boxShadow: 'md', transform: 'scale(1.02)' }}
-              isDisabled={isButtonDisabled || saving}
-              isLoading={saving}
-              loadingText="Salvando..."
-              onClick={async () => {
-                if (!userId) return;
-                setSaving(true);
-                const finalText = form.percentualFinal.trim();
-                const inicial = parsePercentInput(form.percentualInicial);
-                const final = finalText ? parsePercentInput(finalText) : null;
-
-                if (inicial === null || inicial < 0) {
-                  toast.error('A queda é obrigatória e deve ser um número maior ou igual a zero.');
-                  setSaving(false);
-                  return;
-                }
-
-                if (finalText && (final === null || final < 0)) {
-                  toast.error('A alta deve ser um número maior ou igual a zero quando preenchida.');
-                  setSaving(false);
-                  return;
-                }
-
-                try {
-                  // Atualiza perfil (strat / mode / limites)
-                  await updateProfileById(userId, {
-                    pricingStrategy: form.pricingStrategy,
-                    operationMode: form.operationMode,
-                    percentualInicial: inicial,
-                    percentualFinal: final
-                  });
-                  toast.success('Configurações salvas com sucesso!');
-                } catch (error) {
-                  console.error(error);
-                  toast.error('Erro ao salvar configurações');
-                } finally {
-                  setSaving(false);
-                }
-              }}
+            <AppSelect
+              label="Estrategia de precificacao (Motor de IA)"
+              name="pricingStrategy"
+              value={form.pricingStrategy}
+              onChange={handleChange}
+              helper="Isso preenchera automaticamente os limites para novas sugestoes. A queda e salva como valor positivo."
             >
-              Salvar Configurações
-            </Button>
-          </Flex>
-        </Box>
-      </Box>
+              <option value="conservative">Conservadora (-5% a +10%)</option>
+              <option value="balanced">Moderada (-10% a +20%)</option>
+              <option value="aggressive">Agressiva (-15% a +35%)</option>
+              <option value="ai">Piloto Automatico IA (com teto sistemico)</option>
+            </AppSelect>
+
+            <AppSelect
+              label="Modo de operacao"
+              name="operationMode"
+              value={form.operationMode}
+              onChange={handleChange}
+              helper="Aguarde atualizacoes para aplicar precos diretamente no painel do Airbnb."
+            >
+              <option value="notifications">Apenas Notificacoes (Recomendado)</option>
+              <option value="auto" disabled>Automatico (Em Breve)</option>
+            </AppSelect>
+
+            <AppInput
+              label="Limite de queda (%) - Max desconto"
+              type="text"
+              name="percentualInicial"
+              value={form.percentualInicial}
+              onChange={handleChange}
+              placeholder="Ex: 5 ou 10"
+              helper="Queda maxima permitida para novas sugestoes. Informe 5 para permitir ate -5%."
+            />
+
+            <AppInput
+              label="Limite de alta (%) - Max lucro"
+              type="text"
+              name="percentualFinal"
+              value={form.percentualFinal}
+              onChange={handleChange}
+              placeholder="Controlado pelo teto sistemico"
+              disabled={form.pricingStrategy === 'ai'}
+              helper="Alta maxima permitida para novas sugestoes. No Piloto IA, vale o teto sistemico configurado."
+            />
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
+            <AppButton
+              type="button"
+              variant="primary"
+              size="md"
+              disabled={isButtonDisabled || saving}
+              loading={saving}
+              onClick={handleSave}
+            >
+              Salvar configuracoes
+            </AppButton>
+          </div>
+        </AppCard>
+      </AppCard>
 
       <ToastContainer />
-    </Container>
+    </AppPageShell>
+  );
+}
+
+function Spinner() {
+  return (
+    <span
+      aria-label="Carregando"
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: "50%",
+        border: "3px solid var(--app-accent-soft)",
+        borderTopColor: "var(--app-accent)",
+        animation: "event-log-spin 0.9s linear infinite",
+      }}
+    >
+      <style>{`@keyframes event-log-spin { to { transform: rotate(360deg); } }`}</style>
+    </span>
   );
 }

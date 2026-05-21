@@ -1,41 +1,12 @@
 "use client";
 
 import React from "react";
-import { Box, Flex } from "@chakra-ui/react";
 import SideBar from "./SideBar";
 import PaymentCheckGuard from "../context/PaymentCheckGuard";
 import { AppFooter, AppToastProvider, AskUrbanProvider } from "./ui";
 
 /**
- * HostShell — layout shell unificado para todas as rotas autenticadas do
- * anfitrião.
- *
- * Substitui o pattern duplicado que existia em 14 layouts (`painel/`,
- * `dashboard/`, `properties/`, etc.), onde cada um repetia:
- *   <Flex minH="100vh" bg="#f8fafb">
- *     <SideBar />
- *     <Flex direction="column" flex="1">
- *       <Header />
- *       <Box as="main" mt={10} mb={10} mx={6}>...
- *       <Footer />
- *     </Flex>
- *   </Flex>
- *
- * Mudancas 2026-05-17 (sprint design premium):
- *  - Background `#FAFAFB` (var(--app-bg)) ao invés do `#f8fafb` azulado.
- *  - Removido `<Header />` (era null — herança do esvaziamento Sprint 1).
- *  - Padding consistente respira: `padding: 32px 32px 80px` em desktop,
- *    `padding: 24px 16px 96px` em mobile (margem pra bottom-nav).
- *  - Adiciona classe `urban-app` no main para ativar tokens do design system.
- *  - PaymentCheckGuard mantido — não toca em billing flow.
- *
- * Uso:
- *   export default function Layout({ children }) {
- *     return <HostShell>{children}</HostShell>;
- *   }
- *
- * Para rotas que NÃO precisam de PaymentCheckGuard (ex: onboarding inicial,
- * post-login), passar `guard={false}`.
+ * HostShell - layout shell unificado para rotas autenticadas do anfitriao.
  */
 export default function HostShell({
   children,
@@ -43,9 +14,7 @@ export default function HostShell({
   noPadding = false,
 }: {
   children: React.ReactNode;
-  /** Se true, envolve com PaymentCheckGuard. Default true. */
   guard?: boolean;
-  /** Se true, remove padding do main (pra paginas que controlam o proprio). */
   noPadding?: boolean;
 }) {
   const content = guard ? (
@@ -57,33 +26,51 @@ export default function HostShell({
   return (
     <AppToastProvider>
       <AskUrbanProvider>
-        <Flex
-          minH="100vh"
-          bg="#FAFAFB"
-          sx={{
-            flexDirection: { base: "column", md: "row" },
+        <div
+          data-host-shell
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            flexDirection: "column",
+            background: "#FAFAFB",
           }}
         >
           <SideBar />
 
-          <Flex direction="column" flex="1" minW={0} bg="#FAFAFB">
-            <Box
-              as="main"
-              flex="1"
-              minH={0}
+          <div
+            style={{
+              minWidth: 0,
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              background: "#FAFAFB",
+            }}
+          >
+            <main
               className="urban-app"
-              sx={{
-                padding: noPadding
-                  ? "0"
-                  : { base: "24px 16px 96px", md: "32px 32px 80px" },
+              style={{
+                flex: 1,
+                minHeight: 0,
+                padding: noPadding ? 0 : "24px 16px 96px",
                 background: "var(--app-bg, #FAFAFB)",
               }}
             >
               {content}
-            </Box>
+            </main>
             <AppFooter />
-          </Flex>
-        </Flex>
+          </div>
+        </div>
+
+        <style>{`
+          @media (min-width: 768px) {
+            [data-host-shell] {
+              flex-direction: row !important;
+            }
+            [data-host-shell] > div:last-of-type > main {
+              padding: ${noPadding ? "0" : "32px 32px 80px"} !important;
+            }
+          }
+        `}</style>
       </AskUrbanProvider>
     </AppToastProvider>
   );

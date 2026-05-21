@@ -1,64 +1,97 @@
 "use client";
 
 import { PropertyDropdown } from "@/app/service/api";
-import { Badge, Box, HStack, Image, Spinner } from "@chakra-ui/react";
-import React, { JSX } from "react";
+import React from "react";
 import ReactSelect, { SingleValue } from "react-select";
 
+type Option = { value: string; label: React.ReactNode };
+
 interface Props {
-    propsInfo: PropertyDropdown[];
-    setPropertyId: (id: string) => void;
-    value?: string; // id da propriedade selecionada (opcional)
+  propsInfo: PropertyDropdown[];
+  setPropertyId: (id: string) => void;
+  value?: string;
 }
 
 const PropertySelect: React.FC<Props> = ({ propsInfo, setPropertyId, value }) => {
+  const options: Option[] = propsInfo.map((p) => ({
+    value: p.id,
+    label: <PropertyOption property={p} />,
+  }));
 
-    const options = propsInfo.map((p) => ({
-        value: p.id,
-        label: (
-            <Box>
-                <HStack>
-                    <Image
-                        src={p.image_url}
-                        alt={p.propertyName}
-                        boxSize="40px"
-                        objectFit="cover"
-                        borderRadius={4}
-                        marginRight={2}
-                        opacity={p?.analisado !== 'completed' ? 0.5 : 1}
-                    />
-                    {p?.analisado !== 'completed' ? (
-                        <Badge colorScheme="yellow">Processando...</Badge>
-                    ) : (
-                        <span>{p.propertyName}</span>
-                    )}
-                    {p?.analisado !== 'completed' && (
-                        <Spinner size="sm" transform="translate(-50%, -50%)" />
-                    )}
-                </HStack>
-            </Box>
-        ),
-    }));
+  const handleChange = (selected: SingleValue<Option>) => {
+    if (selected) setPropertyId(selected.value);
+  };
 
-    const handleChange = (selected: SingleValue<{ value: string; label: JSX.Element }>) => {
-        if (selected) setPropertyId(selected.value);
-    };
+  const selectedOption = options.find((o) => o.value === value) || null;
 
-    // encontra a opção correspondente ao value atual
-    const selectedOption = options.find(o => o.value === value) || null;
+  return (
+    <>
+      <ReactSelect
+        styles={{
+          container: (provided) => ({ ...provided, width: "100%", maxWidth: 300, minWidth: 0 }),
+          menu: (provided) => ({ ...provided, width: "100%" }),
+        }}
+        options={options}
+        onChange={handleChange}
+        value={selectedOption}
+        placeholder="Selecione"
+      />
+      <style>{`@keyframes property-select-spin { to { transform: rotate(360deg); } }`}</style>
+    </>
+  );
+};
 
-    return (
-        <ReactSelect
-            styles={{
-                container: (provided) => ({ ...provided, width: 300 }),
-                menu: (provided) => ({ ...provided, width: 300 }),
-            }}
-            options={options}
-            onChange={handleChange}
-            value={selectedOption} // mantém a seleção
-            placeholder="Selecione"
-        />
-    );
+function PropertyOption({ property }: { property: PropertyDropdown }) {
+  const processing = property?.analisado !== "completed";
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <img
+        src={property.image_url}
+        alt={property.propertyName}
+        style={{
+          width: 40,
+          height: 40,
+          objectFit: "cover",
+          borderRadius: 4,
+          opacity: processing ? 0.5 : 1,
+        }}
+      />
+      {processing ? (
+        <>
+          <span style={processingBadgeStyle}>Processando...</span>
+          <Spinner />
+        </>
+      ) : (
+        <span>{property.propertyName}</span>
+      )}
+    </div>
+  );
+}
+
+function Spinner() {
+  return <span aria-hidden style={spinnerStyle} />;
+}
+
+const processingBadgeStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  minHeight: 20,
+  padding: "0 8px",
+  borderRadius: 999,
+  background: "rgba(202,138,4,0.12)",
+  color: "#92400E",
+  fontSize: 12,
+  fontWeight: 650,
+};
+
+const spinnerStyle: React.CSSProperties = {
+  width: 14,
+  height: 14,
+  borderRadius: "50%",
+  border: "2px solid rgba(202,138,4,0.20)",
+  borderTopColor: "#CA8A04",
+  animation: "property-select-spin 0.8s linear infinite",
 };
 
 export default PropertySelect;

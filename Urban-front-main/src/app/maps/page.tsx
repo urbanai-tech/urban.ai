@@ -1,6 +1,6 @@
 'use client';
-import { Box, Center, Flex, FormControl, FormLabel, Spinner, Text } from '@chakra-ui/react';
-import { useState, useEffect, useMemo } from 'react';
+
+import { useEffect, useMemo, useState } from 'react';
 import { getEventosForMaps, getPropriedadesDropdownList, PropertyDropdown } from '../service/api';
 import dynamic from 'next/dynamic';
 import { EventCard } from '../dashboard/components/ItemEvento';
@@ -18,22 +18,21 @@ import {
 const PropertySelect = dynamic(() => import('./components/CustomSelect'), {
   ssr: false,
   loading: () => (
-    <Box style={{ height: 40 }}>
-      <Spinner size="sm" color="orange.500" />
-    </Box>
-  )
+    <div style={{ height: 40, display: "grid", placeItems: "center" }}>
+      <Spinner size={18} />
+    </div>
+  ),
 });
 
 const AirbnbMap = dynamic(() => import('./components/GoogleMapEmbed'), {
   ssr: false,
   loading: () => (
-    <Center height="500px">
-      <Spinner size="xl" color="orange.500" thickness="2px" />
-    </Center>
-  )
+    <div style={{ height: 500, display: "grid", placeItems: "center" }}>
+      <Spinner size={36} />
+    </div>
+  ),
 });
 
-// Helpers de data
 const toIsoDate = (d: Date) => d.toISOString().slice(0, 10);
 const parseIsoDate = (s: string) => {
   const [y, m, day] = s.split('-').map(Number);
@@ -48,7 +47,6 @@ export default function MapsPage() {
   const [propertyId, setPropertyId] = useState('');
   const [selectedRadius, setSelectedRadius] = useState(30);
 
-  // Datas iniciais: hoje e +7 dias
   const today = useMemo(() => new Date(), []);
   const inAWeek = useMemo(() => {
     const d = new Date();
@@ -68,7 +66,7 @@ export default function MapsPage() {
         1000,
         selectedRadius,
         parseIsoDate(startDate).toISOString(),
-        parseIsoDate(endDate).toISOString()
+        parseIsoDate(endDate).toISOString(),
       );
       setAllEvents(response.data);
     } catch {
@@ -87,7 +85,7 @@ export default function MapsPage() {
           1000,
           selectedRadius,
           parseIsoDate(startDate).toISOString(),
-          parseIsoDate(endDate).toISOString()
+          parseIsoDate(endDate).toISOString(),
         );
         setAllEvents(response.data);
       } catch {
@@ -98,7 +96,10 @@ export default function MapsPage() {
     };
 
     if (propertyId) fetchEvents();
-    else setAllEvents([]);
+    else {
+      setAllEvents([]);
+      setIsLoading(false);
+    }
   }, [propertyId, selectedRadius, startDate, endDate]);
 
   useEffect(() => {
@@ -106,58 +107,66 @@ export default function MapsPage() {
       try {
         const data = await getPropriedadesDropdownList();
         setPropsInfo(data);
-        const defaultProp = data.find(p => p.analisado === "completed");
+        const defaultProp = data.find((p) => p.analisado === "completed");
         if (defaultProp) {
           setPropertyId(defaultProp.id);
+        } else {
+          setIsLoading(false);
         }
       } catch {
         setError('Erro ao carregar propriedades');
+        setIsLoading(false);
       }
     }
     fetchPropsInfo();
   }, []);
 
   const eventsToDisplay = useMemo(() => allEvents, [allEvents]);
+  const selectedProperty = propsInfo.find((p) => p.id === propertyId);
 
   return (
     <AppPageShell maxWidth={1400}>
       <AppSectionHeader
-        eyebrow="MAPA · OPORTUNIDADES"
+        eyebrow="MAPA - OPORTUNIDADES"
         title="Mapa Interativo"
-        subtitle="Veja eventos próximos ao seu imóvel num raio configurável. Use o período pra calibrar o radar conforme a operação."
+        subtitle="Veja eventos proximos ao seu imovel num raio configuravel. Use o periodo pra calibrar o radar conforme a operacao."
       />
 
-      {/* Toolbar de filtros — AppCard subtle */}
       <AppCard variant="subtle" style={{ padding: 20, marginBottom: 24 }}>
-        <Flex
-          direction={{ base: 'column', lg: 'row' }}
-          gap={4}
-          align={{ base: 'stretch', lg: 'flex-end' }}
-          wrap="wrap"
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-end",
+            gap: 16,
+            flexWrap: "wrap",
+          }}
         >
-          <Box maxW={{ base: '100%', lg: '320px' }} flex="1" position="relative" zIndex={1000}>
-            <FormControl>
-              <FormLabel
-                fontSize="11px"
-                letterSpacing="1.5px"
-                textTransform="uppercase"
-                fontWeight={600}
-                color="var(--app-text-muted)"
-                mb={1}
+          <div style={{ flex: "1 1 260px", maxWidth: 320, position: "relative", zIndex: 1000 }}>
+            <label>
+              <span
+                style={{
+                  display: "block",
+                  marginBottom: 4,
+                  color: "var(--app-text-muted)",
+                  fontSize: 11,
+                  fontWeight: 650,
+                  letterSpacing: 1.5,
+                  textTransform: "uppercase",
+                }}
               >
-                Filtrar imóvel
-              </FormLabel>
-              <Box position="relative" zIndex={1001}>
+                Filtrar imovel
+              </span>
+              <div style={{ position: "relative", zIndex: 1001 }}>
                 <PropertySelect
                   value={propertyId}
                   propsInfo={propsInfo}
                   setPropertyId={setPropertyId}
                 />
-              </Box>
-            </FormControl>
-          </Box>
+              </div>
+            </label>
+          </div>
 
-          <Box maxW={{ base: '100%', lg: '160px' }} flex="0 0 auto">
+          <div style={{ flex: "0 0 160px", maxWidth: 160 }}>
             <AppSelect
               label="Raio (km)"
               value={selectedRadius}
@@ -169,91 +178,91 @@ export default function MapsPage() {
               <option value={10}>10 km</option>
               <option value={30}>30 km</option>
             </AppSelect>
-          </Box>
+          </div>
 
-          <Box maxW={{ base: '100%', lg: '180px' }} flex="0 0 auto">
+          <div style={{ flex: "0 0 180px", maxWidth: 180 }}>
             <AppInput
               type="date"
               label="De"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
             />
-          </Box>
+          </div>
 
-          <Box maxW={{ base: '100%', lg: '180px' }} flex="0 0 auto">
+          <div style={{ flex: "0 0 180px", maxWidth: 180 }}>
             <AppInput
               type="date"
-              label="Até"
+              label="Ate"
               value={endDate}
               min={startDate}
               onChange={(e) => setEndDate(e.target.value)}
             />
-          </Box>
-        </Flex>
+          </div>
+        </div>
       </AppCard>
 
       {isLoading ? (
-        <Center py={20}>
-          <Spinner size="xl" color="orange.500" thickness="2px" />
-        </Center>
+        <div style={{ padding: "80px 0", display: "grid", placeItems: "center" }}>
+          <Spinner size={36} />
+        </div>
       ) : error ? (
         <AppCard variant="default" style={{ borderColor: 'rgba(194, 52, 46, 0.25)' }}>
-          <Flex align="center" gap={3} color="var(--app-danger)">
+          <div style={{ display: "flex", alignItems: "center", gap: 12, color: "var(--app-danger)" }}>
             <Icons.AlertCircle size={18} />
-            <Text fontSize="sm" fontWeight={600}>{error}</Text>
-          </Flex>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 650 }}>{error}</p>
+          </div>
         </AppCard>
       ) : (
-        <Flex direction={{ base: 'column', lg: 'row' }} gap={6} align="stretch">
-          {/* Mapa */}
-          <Box flex="1" minW={0} position="relative" zIndex={1}>
+        <div style={{ display: "flex", gap: 24, alignItems: "stretch", flexWrap: "wrap" }}>
+          <div style={{ flex: "1 1 560px", minWidth: 0, position: "relative", zIndex: 1 }}>
             <AppCard variant="default" style={{ padding: 16 }}>
               <AirbnbMap
                 height="500px"
                 events={eventsToDisplay}
                 property={
-                  propsInfo.find(p => p.id === propertyId) ? {
-                    id: propsInfo.find(p => p.id === propertyId)!.id,
-                    propertyName: propsInfo.find(p => p.id === propertyId)!.propertyName,
-                    latitude: propsInfo.find(p => p.id === propertyId)!.latitude + "",
-                    longitude: propsInfo.find(p => p.id === propertyId)!.longitude + "",
-                    image_url: propsInfo.find(p => p.id === propertyId)!.image_url,
-                  } : null
+                  selectedProperty
+                    ? {
+                        id: selectedProperty.id,
+                        propertyName: selectedProperty.propertyName,
+                        latitude: selectedProperty.latitude + "",
+                        longitude: selectedProperty.longitude + "",
+                        image_url: selectedProperty.image_url,
+                      }
+                    : null
                 }
               />
             </AppCard>
-          </Box>
+          </div>
 
-          {/* Painel: Eventos */}
-          <Box w={{ base: 'full', lg: '480px' }} flexShrink={0}>
+          <div style={{ flex: "0 0 480px", maxWidth: "100%" }}>
             <AppCard variant="default" style={{ padding: 20, display: 'flex', flexDirection: 'column' }}>
-              <Flex justify="space-between" align="center" mb={4}>
-                <Box minW={0}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                <div style={{ minWidth: 0 }}>
                   <p className="urban-app-eyebrow-muted" style={{ marginBottom: 4 }}>
                     EVENTOS NO RAIO
                   </p>
-                  <Text fontSize={{ base: 'lg', md: 'xl' }} fontWeight={600} style={{ color: 'var(--app-text)' }}>
+                  <p style={{ margin: 0, color: "var(--app-text)", fontSize: 20, fontWeight: 650 }}>
                     {eventsToDisplay.length} {eventsToDisplay.length === 1 ? 'evento' : 'eventos'}
-                  </Text>
-                </Box>
+                  </p>
+                </div>
                 <SuggestionInfoPopover
-                  description="Nosso sistema compara seu imóvel com outros de características semelhantes (camas, capacidade, banheiros, faixa de valor e localização). Também considera eventos próximos e seu impacto na demanda para oferecer uma sugestão de preço mais precisa."
+                  description="Nosso sistema compara seu imovel com outros de caracteristicas semelhantes. Tambem considera eventos proximos e seu impacto na demanda para oferecer uma sugestao de preco mais precisa."
                 />
-              </Flex>
+              </div>
 
               {eventsToDisplay.length === 0 ? (
                 <AppEmptyState
                   eyebrow="SEM EVENTOS"
                   title="Nada no raio escolhido"
-                  body="Aumente o raio ou ajuste o período pra ampliar o radar de oportunidades."
+                  body="Aumente o raio ou ajuste o periodo pra ampliar o radar de oportunidades."
                   icon={<Icons.MapPin size={28} />}
                 />
               ) : (
-                <Box flex="1" overflowY="auto" maxHeight="calc(100vh - 320px)" pr={1}>
-                  <Flex direction="column" gap={4}>
-                    {eventsToDisplay.map(ev => (
+                <div style={{ flex: 1, overflowY: "auto", maxHeight: "calc(100vh - 320px)", paddingRight: 4 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                    {eventsToDisplay.map((ev) => (
                       <EventCard
-                        setIsLoading={() => { }}
+                        setIsLoading={() => {}}
                         onChange={() => {
                           fetchEventsSemLoading();
                         }}
@@ -264,13 +273,31 @@ export default function MapsPage() {
                         propertyId={propertyId}
                       />
                     ))}
-                  </Flex>
-                </Box>
+                  </div>
+                </div>
               )}
             </AppCard>
-          </Box>
-        </Flex>
+          </div>
+        </div>
       )}
     </AppPageShell>
+  );
+}
+
+function Spinner({ size }: { size: number }) {
+  return (
+    <span
+      aria-label="Carregando"
+      style={{
+        width: size,
+        height: size,
+        borderRadius: "50%",
+        border: "3px solid var(--app-accent-soft)",
+        borderTopColor: "var(--app-accent)",
+        animation: "maps-spin 0.9s linear infinite",
+      }}
+    >
+      <style>{`@keyframes maps-spin { to { transform: rotate(360deg); } }`}</style>
+    </span>
   );
 }

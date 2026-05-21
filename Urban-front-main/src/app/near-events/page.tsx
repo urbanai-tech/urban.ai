@@ -1,16 +1,10 @@
 'use client';
 
-import {
-  Container,
-  Flex,
-  Heading,
-  Spinner,
-  VStack
-} from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import CasaCard from "../componentes/CasaCard";
 import { Pagination } from "../componentes/Pagination";
+import { AppEmptyState, AppPageShell, AppSectionHeader, Icons } from "../componentes/ui";
 import { getUserProperties } from "../service/api";
 
 export type Evento = {
@@ -25,16 +19,14 @@ export type Evento = {
   longitude: string;
   imagem_url: string;
   linkSiteOficial: string;
-  dataInicio: string;     // ISO date string
-  dataFim: string;        // ISO date string
+  dataInicio: string;
+  dataFim: string;
   dataCrawl: string | null;
   ativo: boolean;
-  createdAt: string;      // ISO date string
-  updatedAt: string;      // ISO date string
+  createdAt: string;
+  updatedAt: string;
   distancia_metros: number;
 };
-
-
 
 export default function CasaEventosProximosPage() {
   const [houses, setHouses] = useState<any[]>([]);
@@ -44,7 +36,6 @@ export default function CasaEventosProximosPage() {
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(1);
   const limite = 10;
-
 
   const fetchHouses = useCallback(async (pagina = 1) => {
     try {
@@ -65,46 +56,69 @@ export default function CasaEventosProximosPage() {
     }
   }, [router]);
 
-
   useEffect(() => {
     fetchHouses(paginaAtual);
   }, [fetchHouses, paginaAtual]);
 
-
   if (loading) {
     return (
-      <Flex align="center" justify="center" minH="100vh">
-        <Spinner size="xl" />
-      </Flex>
+      <AppPageShell>
+        <div style={{ minHeight: "60vh", display: "grid", placeItems: "center" }}>
+          <Spinner />
+        </div>
+      </AppPageShell>
     );
   }
 
   return (
-    <Container maxW="100%" p={{ base: 4, md: 8 }} bg="gray.50">
-      <VStack spacing={10}>
-        <VStack w={"100%"} alignItems={"start"} spacing={1}>
-          <Heading size="lg" textAlign={{ base: 'center', sm: 'left' }}>
-            Eventos próximos aos seus imóveis
-          </Heading>
-          <Heading as="p" size="sm" color="gray.500" fontWeight="normal">
-            Selecione um imóvel para ver os eventos detectados nas redondezas.
-          </Heading>
-        </VStack>
+    <AppPageShell maxWidth={1180}>
+      <AppSectionHeader
+        eyebrow="EVENTOS PROXIMOS"
+        title="Eventos proximos aos seus imoveis"
+        subtitle="Selecione um imovel para ver os eventos detectados nas redondezas."
+      />
 
-        {houses.map((casa) => (
-          <CasaCard
-            key={casa.id}
-            casa={casa}
-            onClick={() => router.push('/near-events/' + casa.id)}
-          />
-        ))}
-        <Pagination
-          paginaAtual={paginaAtual}
-          totalPaginas={totalPaginas}
-          onPageChange={(nova) => setPaginaAtual(nova)}
+      {houses.length === 0 ? (
+        <AppEmptyState
+          eyebrow="SEM IMOVEIS"
+          title="Nenhum imovel encontrado"
+          body="Cadastre um imovel para acompanhar eventos proximos e oportunidades de precificacao."
+          icon={<Icons.MapPin size={32} />}
         />
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          {houses.map((casa) => (
+            <CasaCard
+              key={casa.id}
+              casa={casa}
+              onClick={() => router.push('/near-events/' + casa.id)}
+            />
+          ))}
+          <Pagination
+            paginaAtual={paginaAtual}
+            totalPaginas={totalPaginas}
+            onPageChange={(nova) => setPaginaAtual(nova)}
+          />
+        </div>
+      )}
+    </AppPageShell>
+  );
+}
 
-      </VStack>
-    </Container>
+function Spinner() {
+  return (
+    <span
+      aria-label="Carregando"
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: "50%",
+        border: "3px solid var(--app-accent-soft)",
+        borderTopColor: "var(--app-accent)",
+        animation: "near-events-spin 0.9s linear infinite",
+      }}
+    >
+      <style>{`@keyframes near-events-spin { to { transform: rotate(360deg); } }`}</style>
+    </span>
   );
 }
