@@ -6,6 +6,27 @@ test.describe('Stays integrations settings', () => {
     await acceptCookieConsent(page);
     let connectPayload: Record<string, unknown> | null = null;
 
+    await page.route('**/auth/me', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 'user-stays-e2e',
+          username: 'Host Stays E2E',
+          email: 'host.stays@urbanai.com.br',
+          role: 'USER',
+        }),
+      });
+    });
+
+    await page.route('**/payments/getSubscription', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ id: 'sub_stays_e2e', status: 'active' }),
+      });
+    });
+
     await page.route('**/stays/listings', async (route) => {
       if (route.request().method() !== 'GET') {
         await route.continue();
@@ -72,6 +93,7 @@ test.describe('Stays integrations settings', () => {
     });
 
     await page.goto('/settings/integrations');
+    await expect(page.getByRole('heading', { name: /Conex.o com a Stays/i })).toBeVisible();
     await page.getByLabel('Client ID').fill('client-e2e');
     await page.getByLabel('Access Token').fill('token-e2e');
     await page.locator('input[type="checkbox"]').check();

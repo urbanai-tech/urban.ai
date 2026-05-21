@@ -135,7 +135,7 @@ test.describe('Properties pricing inputs', () => {
     await expect(page.getByRole('alertdialog')).toBeVisible();
     await page.getByRole('button', { name: /^Excluir$/i }).click();
 
-    expect(deletions).toEqual(['DELETE']);
+    await expect.poll(() => deletions).toEqual(['DELETE']);
     await expect(page.getByText('Apartamento Vila Mariana')).toHaveCount(0);
   });
 });

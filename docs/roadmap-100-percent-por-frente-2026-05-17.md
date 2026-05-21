@@ -1,6 +1,6 @@
 # Roadmap 100% por frente - Urban AI
 
-Data: 2026-05-17  
+Data: 2026-05-17
 Base: `docs/roadmap-4-tracks-2026-05-17.md`, `docs/roadmap-execucao-restante-2026-05-17.md`, `docs/roadmap-consolidado-gaps-manuais-2026-05-17.md` e runbooks operacionais.
 
 Este arquivo transforma os percentuais atuais em uma lista objetiva do que falta para cada frente chegar a 100%. A regra usada aqui e simples: 100% nao significa "o codigo existe"; significa codigo pronto, ambiente certo, evidencia salva, owner definido, smoke executado e criterio de rollback conhecido.

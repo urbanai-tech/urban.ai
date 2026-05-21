@@ -88,6 +88,7 @@ test.describe('Login and post-login routing', () => {
     await page.locator('input[type="password"]').fill('UrbanLogin@123');
     await page.getByRole('button', { name: /Entrar/i }).click();
 
+    await expect.poll(() => loginPayloads.length).toBe(1);
     expect(loginPayloads[0]?.email).toBe('host.login@urbanai.com.br');
     expect(loginPayloads[0]?.password).toMatch(/^[a-f0-9]{64}$/);
     expect(loginPayloads[0]?.password).not.toBe('UrbanLogin@123');

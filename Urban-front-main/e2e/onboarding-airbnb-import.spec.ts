@@ -344,6 +344,7 @@ test.describe('Onboarding Airbnb import', () => {
     await page.getByRole('button', { name: /Salvar e continuar/i }).click();
     await page.getByRole('button', { name: /Selecionar plano/i }).click();
 
+    await expect.poll(() => checkoutPayloads.length).toBe(1);
     expect(checkoutPayloads[0]).toEqual({
       plan: 'starter',
       billingCycle: 'annual',
