@@ -1,56 +1,63 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { CronService } from './cron.service';
-import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { Cron } from '@nestjs/schedule';
-import { MailerService } from 'src/mailer/mailer.service';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
+import { CronService } from './cron.service';
 
-
-@ApiTags('cron') // Grupo no Swagger
+@ApiTags('cron')
 @Controller('cron')
 export class CronController {
-  constructor(private readonly cronService: CronService, private readonly mailerService: MailerService) { }
+  constructor(private readonly cronService: CronService) { }
+
+  private async notifyCronStatus(subject: string, content: string): Promise<void> {
+    try {
+      await this.cronService.enviarNotificacaoCron(subject, content);
+    } catch (error) {
+      console.error('Falha ao enviar notificacao de status do cron:', error);
+    }
+  }
 
   @Get('analises-aceitas')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @ApiOperation({ summary: 'Buscar análises aceitas' })
-  @ApiResponse({ status: 200, description: 'Lista de análises aceitas', type: [AnalisePreco] })
-  async buscarAnalisesAceitas(): Promise<AnalisePreco[]> {
+  @ApiOperation({ summary: 'Buscar analises aceitas' })
+  @ApiResponse({ status: 200, description: 'Processo iniciado com sucesso.' })
+  async buscarAnalisesAceitas() {
     return this.cronService.buscarAnalisesAceitas();
   }
 
-  // Cron para rodar todos os dias às 08:00
+  // Cron para rodar todos os dias as 08:00
   @Cron('0 0 8 * * *', { timeZone: 'America/Sao_Paulo' })
   async handleDailyNotification() {
-    console.log('🕗 Iniciando envio diário de notificações às 08:00');
-    this.cronService.enviarNotificacaoCron("Cron iniciado", "Cron iniciado")
-    
+    console.log('Iniciando envio diario de notificacoes as 08:00');
+    await this.notifyCronStatus('Cron iniciado', 'Cron iniciado');
+
     try {
-      await this.cronService.buscarAnalisesAceitas();
-      this.cronService.enviarNotificacaoCron("Cron concluído", "Cron concluído")
-      console.log('✅ Envio diário de notificações concluído');
+      const result = await this.cronService.buscarAnalisesAceitas();
+      await this.notifyCronStatus(
+        'Cron concluido',
+        `Cron concluido: ${result.processed} processadas, ${result.skipped} ignoradas, ${result.failed} com erro`,
+      );
+      console.log('Envio diario de notificacoes concluido');
     } catch (error) {
-      this.cronService.enviarNotificacaoCron("Cron com erro", "Cron com erro")
-      console.error('❌ Erro no envio diário de notificações:', error);
+      const message = error instanceof Error ? error.message : String(error);
+      await this.notifyCronStatus('Cron com erro', `Cron com erro: ${message}`);
+      console.error('Erro no envio diario de notificacoes:', error);
     }
   }
-
-
 
   @Get('buscar-aceitas-teste')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @ApiOperation({
-    summary: 'Buscar análises aceitas',
-    description: 'Busca todas as análises aceitas a partir da data de hoje e simula notificações.',
+    summary: 'Buscar analises aceitas',
+    description: 'Busca todas as analises aceitas a partir da data de hoje e simula notificacoes.',
   })
   @ApiResponse({ status: 200, description: 'Processo iniciado com sucesso.' })
   async buscarAnalisesAceitasTest() {
-    return await this.cronService.buscarAnalisesAceitasTeste();
+    return this.cronService.buscarAnalisesAceitasTeste();
   }
 
   // ===== RE-SCRAPING MENSAL =====
@@ -59,22 +66,22 @@ export class CronController {
   @Roles('admin')
   @ApiOperation({
     summary: 'Re-scraping mensal de metadados',
-    description: 'Força re-scraping de todos os imóveis ativos. Espaçado ao longo de 8h para evitar rate limiting.',
+    description: 'Forca re-scraping de todos os imoveis ativos. Espacado ao longo de 8h para evitar rate limiting.',
   })
-  @ApiResponse({ status: 200, description: 'Re-scraping concluído.' })
+  @ApiResponse({ status: 200, description: 'Re-scraping concluido.' })
   async refreshMetadata() {
-    return await this.cronService.refreshPropertyMetadata();
+    return this.cronService.refreshPropertyMetadata();
   }
 
-  // Cron: 1º dia de cada mês às 02:00 AM
+  // Cron: 1o dia de cada mes as 02:00 AM
   @Cron('0 0 2 1 * *', { timeZone: 'America/Sao_Paulo' })
   async handleMonthlyMetadataRefresh() {
-    console.log('🔄 [cron] Iniciando re-scraping mensal automático...');
+    console.log('[cron] Iniciando re-scraping mensal automatico...');
     try {
       await this.cronService.refreshPropertyMetadata();
-      console.log('✅ [cron] Re-scraping mensal concluído');
+      console.log('[cron] Re-scraping mensal concluido');
     } catch (error) {
-      console.error('❌ [cron] Erro no re-scraping mensal:', error);
+      console.error('[cron] Erro no re-scraping mensal:', error);
     }
   }
 }
