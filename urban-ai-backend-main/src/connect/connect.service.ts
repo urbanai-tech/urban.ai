@@ -425,7 +425,7 @@ export class ConnectService {
           });
 
           if (!list) {
-            throw new NotFoundException(`Imovel ${addr?.list?.id ?? 'sem id'} nao encontrado para o usuario`);
+            throw new NotFoundException('Nao encontramos esse imovel na sua conta. Confira o link do Airbnb e tente novamente.');
           }
 
           const userData = await this.userRepository.findOne({
@@ -434,7 +434,7 @@ export class ConnectService {
             }
           });
           if (!userData) {
-            throw new NotFoundException(`Usuário com id ${userId} não encontrado`);
+            throw new NotFoundException('Sua sessao expirou. Faca login novamente para continuar.');
           }
 
           // ===== SCRAPING DIRETO (substitui RapidAPI) =====
@@ -506,8 +506,8 @@ export class ConnectService {
           addressSaved.push(addressEntity);
 
           const notificationContent: CreateNotificationDto = {
-            title: "Análise Iniciada",
-            description: "O Sistema está analisando os eventos para sua popriedade " + list?.titulo,
+            title: "Analise iniciada",
+            description: "A Urban AI esta analisando os eventos perto do seu imovel " + list?.titulo,
             redirectTo: "/dashboard",
             sendEmail: true,
           };

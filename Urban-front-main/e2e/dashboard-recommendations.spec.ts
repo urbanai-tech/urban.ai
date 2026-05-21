@@ -75,8 +75,8 @@ test.describe('Dashboard recommendations', () => {
     await page.goto('/dashboard');
 
     await expect(page.getByRole('heading', { name: /Calend.rio/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /Sem recomenda/i })).toBeVisible();
-    await expect(page.getByText(/N.o encontramos evento futuro compat.vel/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Sem sugest/i })).toBeVisible();
+    await expect(page.getByText(/N.o encontramos evento futuro que combine/i)).toBeVisible();
   });
 
   test('mostra card de recomendacao com motivo e preco aplicado', async ({ page }) => {
@@ -154,7 +154,7 @@ test.describe('Dashboard recommendations', () => {
     await page.getByRole('button', { name: /Aplicar sugest/i }).click();
 
     expect(acceptPayloads[0]).toEqual({ aceito: true });
-    await expect(page.getByRole('button', { name: /Cancelar aceite/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Desfazer aprova/i })).toBeVisible();
 
     await page.getByRole('button', { name: /Registrar resultado/i }).click();
     await page.getByLabel(/Preco aplicado/i).fill('450');

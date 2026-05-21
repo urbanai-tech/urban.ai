@@ -25,8 +25,8 @@ const DRIVER_DEFS: ReadonlyArray<{
   color: string;
 }> = [
   { key: "event", short: "Evento", color: "var(--app-accent)" },
-  { key: "pace", short: "Pace", color: "var(--app-success)" },
-  { key: "compSet", short: "Comp set", color: "var(--app-warning)" },
+  { key: "pace", short: "Ritmo", color: "var(--app-success)" },
+  { key: "compSet", short: "Comparacao", color: "var(--app-warning)" },
   { key: "seasonality", short: "Sazonalidade", color: "var(--app-text-muted)" },
 ];
 
@@ -51,7 +51,7 @@ export function DriverBar({ drivers }: { drivers: Drivers }) {
       {/* Barra segmentada */}
       <div
         role="img"
-        aria-label="Composicao dos drivers da sugestao de preco"
+        aria-label="Motivos que influenciaram a sugestao de preco"
         style={{
           display: "flex",
           width: "100%",

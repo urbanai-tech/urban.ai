@@ -1222,7 +1222,7 @@ export class PropriedadeService {
             const guestFeeItem = priceItems.find(item => item.type === 'AIRBNB_GUEST_FEE');
 
             if (!accommodationItem || !guestFeeItem) {
-                throw new HttpException('Price data not found', HttpStatus.NOT_FOUND);
+                throw new HttpException('Nao encontramos preco para essas datas. Tente outro periodo.', HttpStatus.NOT_FOUND);
             }
 
             // Converte de string para float
@@ -1248,7 +1248,16 @@ export class PropriedadeService {
             };
 
         } catch (error: any) {
-            throw new HttpException(error.message || 'Unknown error', HttpStatus.BAD_REQUEST);
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            this.logger.warn(
+                `Falha ao buscar preco do Airbnb para room ${propertyId}: ${error?.message || error}`,
+            );
+            throw new HttpException(
+                'Nao foi possivel consultar o preco agora. Tente novamente em alguns minutos.',
+                HttpStatus.BAD_REQUEST,
+            );
         }
     }
 
@@ -1279,7 +1288,7 @@ export class PropriedadeService {
         });
 
         if (!propriedade) {
-            throw new Error(`Propriedade com id_do_anuncio ${id_do_anuncio} não encontrada`);
+            throw new NotFoundException('Nao encontramos esse imovel na sua conta.');
         }
 
         // Atualiza os campos com os dados recebidos

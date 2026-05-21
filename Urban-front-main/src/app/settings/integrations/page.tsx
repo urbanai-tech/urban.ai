@@ -27,9 +27,9 @@ import {
 const STAYS_CONSENT_VERSION = "stays-connect-v1";
 
 const operationModeLabels: Record<StaysListingPublic["operationMode"], string> = {
-  inherit: "Herdar padrão",
+  inherit: "Usar padrão da conta",
   notifications: "Recomendação manual",
-  auto: "Automático beta",
+  auto: "Automático em beta",
 };
 
 function formatStaysDate(value?: string | null) {
@@ -44,7 +44,7 @@ function tomorrowIso() {
 }
 
 function formatCurrency(cents?: number | null) {
-  if (typeof cents !== "number" || !Number.isFinite(cents)) return "sem preco";
+  if (typeof cents !== "number" || !Number.isFinite(cents)) return "sem preço";
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 }
 
@@ -114,7 +114,7 @@ export default function IntegrationsPage() {
       return;
     }
     if (!clientId.trim() || !accessToken.trim()) {
-      setSubmitError("Preencha Client ID e Access Token.");
+      setSubmitError("Preencha os dois códigos gerados na Stays.");
       return;
     }
     setSubmitBusy(true);
@@ -171,15 +171,15 @@ export default function IntegrationsPage() {
     const listing = listings.find((item) => item.id === previewListingId);
     const priceReais = Number(String(previewPrice).replace(",", "."));
     if (!listing) {
-      setPreviewError("Selecione um listing sincronizado.");
+      setPreviewError("Selecione um anúncio sincronizado.");
       return;
     }
     if (!previewDate) {
-      setPreviewError("Informe a data alvo.");
+      setPreviewError("Informe a data da simulação.");
       return;
     }
     if (!Number.isFinite(priceReais) || priceReais <= 0) {
-      setPreviewError("Informe um preco valido em reais.");
+      setPreviewError("Informe um preço válido em reais.");
       return;
     }
 
@@ -194,7 +194,7 @@ export default function IntegrationsPage() {
       });
       setPreviewResult(result);
     } catch (err) {
-      const msg = (err as Error)?.message || "Nao foi possivel gerar o preview.";
+      const msg = (err as Error)?.message || "Não foi possível simular a mudança.";
       setPreviewError(msg);
     } finally {
       setPreviewBusy(false);
@@ -221,7 +221,7 @@ export default function IntegrationsPage() {
       <AppSectionHeader
         eyebrow="INTEGRAÇÕES · STAYS"
         title="Conexão com a Stays"
-        subtitle="Conecte sua conta Stays para a Urban AI aplicar preços sugeridos automaticamente nos seus anúncios. Você pode desconectar a qualquer momento."
+        subtitle="Conecte sua conta Stays para trazer seus anúncios e receber sugestões de preço. O modo automático ainda é beta e só muda preços quando estiver liberado para sua conta."
       />
 
       {!isConnected ? (
@@ -232,33 +232,34 @@ export default function IntegrationsPage() {
             title="Conectar conta Stays"
             subtitle={
               <>
-                No painel Stays, abra{" "}
+                No painel Stays, abra a área onde a Stays gera os códigos de acesso:{" "}
                 <strong style={{ color: "var(--app-text)" }}>
                   App Center → Open API → Generate credentials
                 </strong>{" "}
-                e cole abaixo. A Urban AI nunca vê sua senha Stays.
+                e cole os dois códigos abaixo. A Urban AI nunca vê sua senha da Stays.
               </>
             }
           />
           <form onSubmit={handleConnect} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <AppInput
-              label="Client ID"
+              label="Código da conta Stays"
               type="text"
               value={clientId}
               onChange={(e) => setClientId(e.target.value)}
               disabled={submitBusy}
               autoComplete="off"
-              placeholder="ex: stays_xxxxxxx"
+              placeholder="Ex.: stays_xxxxxxx"
+              helper="Na Stays, esse campo aparece como Client ID."
             />
             <AppInput
-              label="Access Token"
+              label="Chave de acesso Stays"
               type="password"
               value={accessToken}
               onChange={(e) => setAccessToken(e.target.value)}
               disabled={submitBusy}
               autoComplete="off"
-              placeholder="Cole o token gerado"
-              helper="O token nunca sai do seu navegador — só viaja criptografado via HTTPS pra Urban AI."
+              placeholder="Cole a chave gerada"
+              helper="Na Stays, esse campo aparece como Access Token. Ele é enviado por conexão segura para ativar a integração."
             />
 
             <div
@@ -283,7 +284,7 @@ export default function IntegrationsPage() {
                 <strong>Ao conectar minha conta Stays, autorizo a Urban AI a:</strong>
                 <ul style={{ margin: "8px 0 0", paddingLeft: 18, color: "var(--app-text-muted)" }}>
                   <li>Ler meus anúncios, calendário e histórico de reservas</li>
-                  <li>Aplicar preços sugeridos pela IA aos meus anúncios</li>
+                  <li>Mostrar sugestões de preço e, se eu ativar o beta automático, aplicar mudanças permitidas nos meus anúncios</li>
                   <li>Armazenar esse histórico enquanto minha assinatura estiver ativa</li>
                 </ul>
                 <p style={{ marginTop: 8, fontSize: 12, color: "var(--app-text-muted)" }}>
@@ -395,12 +396,12 @@ export default function IntegrationsPage() {
             }}
           >
             <AppMetricCard
-              label="Listings ativos"
+              label="Anúncios ativos"
               value={`${activeListings}/${listings.length}`}
-              sub="conectados via Stays"
+              sub="anúncios vindos da Stays"
             />
             <AppMetricCard
-              label="Vinculados ao Urban AI"
+              label="Ligados à Urban AI"
               value={linkedListings}
               sub={
                 linkedListings === listings.length
@@ -411,25 +412,25 @@ export default function IntegrationsPage() {
             <AppMetricCard
               label="Modo automático"
               value={autoListings}
-              sub="aplicam preço sem confirmação"
+              sub="em beta, mudam preço sem confirmação"
               accent={autoListings > 0}
             />
             <AppMetricCard
-              label="Consentimento"
+              label="Autorização"
               value={account?.consentAcceptedAt ? "Ativo" : "—"}
               sub={
                 account?.consentAcceptedAt
-                  ? `versão ${account.consentVersion || "—"}`
-                  : "registre no fluxo de conexão"
+                  ? "aceita na conexão"
+                  : "pendente"
               }
             />
           </div>
 
           <AppCard variant="default" style={{ padding: 24, marginBottom: 32 }}>
             <AppCardHeader
-              eyebrow="PREVIEW ANTES DO PUSH"
-              title="Validar preco sem chamar a Stays"
-              subtitle="Simule uma alteracao para ver variacao, bloqueios, replay idempotente e se o push real esta liberado no ambiente."
+              eyebrow="SIMULAÇÃO SEGURA"
+              title="Testar preço sem alterar a Stays"
+              subtitle="Simule uma mudança antes de salvar de verdade. Aqui você vê se a data pode receber o novo preço, se há avisos e se a alteração real está liberada."
             />
             <form
               onSubmit={handlePreviewPrice}
@@ -442,7 +443,7 @@ export default function IntegrationsPage() {
             >
               <label style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
                 <span style={{ fontSize: 12, fontWeight: 600, color: "var(--app-text)" }}>
-                  Listing
+                  Anúncio
                 </span>
                 <select
                   value={previewListingId}
@@ -470,7 +471,7 @@ export default function IntegrationsPage() {
                 </select>
               </label>
               <AppInput
-                label="Data alvo"
+                label="Data da simulação"
                 type="date"
                 value={previewDate}
                 onChange={(e) => {
@@ -479,7 +480,7 @@ export default function IntegrationsPage() {
                 }}
               />
               <AppInput
-                label="Novo preco (R$)"
+                label="Novo preço (R$)"
                 type="number"
                 min="1"
                 step="0.01"
@@ -491,7 +492,7 @@ export default function IntegrationsPage() {
                 helper={previewListing ? `Base: ${formatCurrency(previewListing.basePriceCents)}` : undefined}
               />
               <AppButton type="submit" variant="primary" loading={previewBusy} disabled={!previewListingId}>
-                Preview
+                Simular
               </AppButton>
             </form>
 
@@ -526,26 +527,26 @@ export default function IntegrationsPage() {
                 <PreviewStat label="Atual" value={formatCurrency(previewResult.previousPriceCents)} />
                 <PreviewStat label="Novo" value={formatCurrency(previewResult.newPriceCents)} />
                 <PreviewStat
-                  label="Variacao"
+                  label="Diferença"
                   value={
                     previewResult.diffPercent == null
-                      ? "sem baseline"
+                      ? "sem preço anterior"
                       : `${previewResult.diffPercent > 0 ? "+" : ""}${previewResult.diffPercent.toFixed(1)}%`
                   }
                 />
                 <PreviewStat
-                  label="Guardrails"
-                  value={previewResult.withinGuardrails ? "ok" : "bloqueado"}
+                  label="Limites de segurança"
+                  value={previewResult.withinGuardrails ? "dentro do limite" : "bloqueado"}
                   tone={previewResult.withinGuardrails ? "success" : "danger"}
                 />
                 <PreviewStat
-                  label="Push real"
+                  label="Alteração real"
                   value={previewResult.readyForPush ? "liberado" : "bloqueado"}
                   tone={previewResult.readyForPush ? "success" : "warning"}
                 />
                 <PreviewStat
-                  label="Replay"
-                  value={previewResult.idempotentReplay ? "ja existe" : "novo"}
+                  label="Já testado?"
+                  value={previewResult.idempotentReplay ? "sim" : "não"}
                 />
                 {(previewResult.blockers.length > 0 || previewResult.warnings.length > 0) && (
                   <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: 8 }}>
@@ -565,7 +566,7 @@ export default function IntegrationsPage() {
           <section style={{ marginBottom: 32 }}>
             <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
               <div>
-                <p className="urban-app-eyebrow">LISTINGS SINCRONIZADOS</p>
+                <p className="urban-app-eyebrow">ANÚNCIOS SINCRONIZADOS</p>
                 <h2
                   style={{
                     fontSize: 20,
@@ -620,7 +621,7 @@ export default function IntegrationsPage() {
                           }}
                         >
                           {l.shortAddress || "Sem endereço"} ·{" "}
-                          <code style={{ color: "var(--app-text-dim)" }}>ID Stays: {l.staysListingId}</code>
+                          <span style={{ color: "var(--app-text-dim)" }}>Código na Stays: {l.staysListingId}</span>
                         </p>
                         <p style={{ fontSize: 11, color: "var(--app-text-muted)", margin: "4px 0 0" }}>
                           {l.propriedadeId ? "Vinculado a imóvel Urban AI" : "Não vinculado ainda"} ·{" "}
@@ -631,7 +632,7 @@ export default function IntegrationsPage() {
                         <AppBadge kind={l.active ? "success" : "neutral"}>
                           {l.active ? "Ativo" : "Inativo"}
                         </AppBadge>
-                        {l.operationMode === "auto" && <AppBadge kind="accent">Auto</AppBadge>}
+                        {l.operationMode === "auto" && <AppBadge kind="accent">Beta automático</AppBadge>}
                       </div>
                     </div>
                   </AppCard>
@@ -648,7 +649,7 @@ export default function IntegrationsPage() {
             }}
           >
             <p className="urban-app-eyebrow-muted" style={{ marginBottom: 8 }}>
-              ZONA PERIGOSA
+              AÇÃO SENSÍVEL
             </p>
             <div
               style={{
@@ -668,7 +669,7 @@ export default function IntegrationsPage() {
                   Desconectar conta Stays
                 </p>
                 <p style={{ fontSize: 12, color: "var(--app-text-muted)", margin: "4px 0 0", maxWidth: 480 }}>
-                  Desativa o modo automático em todos os imóveis. A Urban AI deixa de aplicar preços sugeridos.
+                  Desativa o modo automático em todos os imóveis. A Urban AI deixa de alterar preços pela Stays.
                   Os dados Stays serão apagados em até 15 dias.
                 </p>
               </div>

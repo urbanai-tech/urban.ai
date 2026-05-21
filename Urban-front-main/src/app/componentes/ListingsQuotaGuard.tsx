@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchListingsQuota, type ListingsQuota } from "../service/api";
+import {
+  fetchListingsQuota,
+  getFriendlyApiErrorMessage,
+  type ListingsQuota,
+} from "../service/api";
 
 /**
  * F6.5 — Guard de quota de imóveis.
@@ -35,7 +39,9 @@ export function ListingsQuotaGuard({ children, onUpsellClick, fallback }: Props)
   useEffect(() => {
     fetchListingsQuota()
       .then((q) => setQuota(q))
-      .catch((err) => setError((err as Error)?.message || "Erro ao verificar quota."))
+      .catch((err) =>
+        setError(getFriendlyApiErrorMessage(err, "Nao conseguimos verificar seu plano agora.")),
+      )
       .finally(() => setLoading(false));
   }, []);
 
@@ -57,7 +63,7 @@ export function ListingsQuotaGuard({ children, onUpsellClick, fallback }: Props)
           lineHeight: 1.5,
         }}
       >
-        Não foi possível verificar sua quota de imóveis ({error}). Recarregue a página ou contate o suporte.
+        Nao foi possivel verificar se seu plano permite cadastrar mais imoveis. {error}
       </div>
     );
   }
@@ -66,7 +72,7 @@ export function ListingsQuotaGuard({ children, onUpsellClick, fallback }: Props)
     return <>{children}</>;
   }
 
-  // Quota cheia — bloqueia e mostra upsell
+  // Limite cheio — bloqueia e mostra upsell
   return (
     <div
       className="urban-app"
@@ -79,11 +85,11 @@ export function ListingsQuotaGuard({ children, onUpsellClick, fallback }: Props)
       }}
     >
       <h3 style={{ margin: 0, fontSize: 18, fontWeight: 750, color: "var(--app-warning)" }}>
-        Quota de imóveis atingida
+        Limite de imoveis atingido
       </h3>
       <p style={{ margin: "12px 0 0", color: "var(--app-text-dim)", fontSize: 14, lineHeight: 1.6 }}>
-        Você contratou <strong>{quota.contratados}</strong> imóveis e já tem <strong>{quota.ativos}</strong> ativos.
-        Para cadastrar mais um, atualize sua assinatura aumentando a quantidade.
+        Seu plano inclui <strong>{quota.contratados}</strong> imoveis e voce ja tem <strong>{quota.ativos}</strong> ativos.
+        Para cadastrar mais um, ajuste seu plano.
       </p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 16 }}>
         <button
@@ -100,7 +106,7 @@ export function ListingsQuotaGuard({ children, onUpsellClick, fallback }: Props)
             cursor: "pointer",
           }}
         >
-          Aumentar minha quota
+          Ajustar meu plano
         </button>
         <a
           href="mailto:suporte@myurbanai.com"

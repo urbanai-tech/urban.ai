@@ -394,7 +394,9 @@ describe('PaymentsService - createBillingPortalSession', () => {
     delete process.env.STRIPE_SECRET_KEY;
     userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'host@test.com' });
 
-    await expect(service.createBillingPortalSession('u1')).rejects.toThrow('Stripe is not configured');
+    await expect(service.createBillingPortalSession('u1')).rejects.toThrow(
+      'Pagamento temporariamente indisponivel',
+    );
     expect(mockStripeBillingPortalSessionsCreate).not.toHaveBeenCalled();
   });
 });
@@ -465,7 +467,9 @@ describe('PaymentsService — cancelSubscription', () => {
     delete process.env.STRIPE_SECRET_KEY;
     userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com' });
 
-    await expect(service.cancelSubscription('u1')).rejects.toThrow('Stripe is not configured');
+    await expect(service.cancelSubscription('u1')).rejects.toThrow(
+      'Pagamento temporariamente indisponivel',
+    );
     expect(mockStripeCustomersList).not.toHaveBeenCalled();
   });
 });
@@ -578,7 +582,7 @@ describe('PaymentsService — createCheckoutSession', () => {
     });
 
     await expect(service.createCheckoutSession({ plan: 'profissional' }, 'u1')).rejects.toThrow(
-      'Stripe is not configured',
+      'Pagamento temporariamente indisponivel',
     );
     expect(mockStripeCustomersList).not.toHaveBeenCalled();
     expect(mockStripeCheckoutSessionsCreate).not.toHaveBeenCalled();
@@ -593,7 +597,7 @@ describe('PaymentsService — createCheckoutSession', () => {
 
     await expect(
       service.createCheckoutSession({ plan: 'profissional', billingCycle: 'weekly' as any }, 'u1'),
-    ).rejects.toThrow('Invalid billingCycle');
+    ).rejects.toThrow('Escolha um ciclo de cobranca valido');
     expect(mockStripeCustomersList).not.toHaveBeenCalled();
   });
 
@@ -649,7 +653,7 @@ describe('PaymentsService — createCheckoutSession', () => {
         { plan: 'profissional', billingCycle: 'monthly', quantity: 'abc' as any },
         'u1',
       ),
-    ).rejects.toThrow('Invalid checkout quantity');
+    ).rejects.toThrow('Escolha uma quantidade valida de imoveis');
 
     expect(mockStripeCustomersList).not.toHaveBeenCalled();
     expect(mockStripeCheckoutSessionsCreate).not.toHaveBeenCalled();

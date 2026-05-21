@@ -294,8 +294,8 @@ export default function DashboardPage() {
       ) : !propertyId || !hasCompletedProperties ? (
         <AppEmptyState
           eyebrow="IMOVEIS"
-          title="Ainda nao ha imovel pronto para recomendacoes"
-          body="Assim que o cadastro terminar o processamento, as recomendacoes aparecem aqui. Se o imovel ficou muito tempo nesse estado, revise endereco, coordenadas e quota do plano."
+          title="Ainda nao ha imovel pronto para sugestoes"
+          body="Assim que o cadastro terminar, as sugestoes aparecem aqui. Se estiver demorando, confira o endereco e se o plano ainda permite novos imoveis."
           icon={<Icons.Sparkles size={32} />}
         />
       ) : error ? (
@@ -405,12 +405,12 @@ export default function DashboardPage() {
 
               {eventsToDisplay.length === 0 ? (
                 <AppEmptyState
-                  eyebrow={selectedDay ? 'DIA SEM EVENTOS' : 'SEM RECOMENDACOES'}
-                  title={selectedDay ? 'Nenhum evento neste dia' : 'Sem recomendacoes neste mes'}
+                  eyebrow={selectedDay ? 'DIA SEM EVENTOS' : 'SEM SUGESTOES'}
+                  title={selectedDay ? 'Nenhum evento neste dia' : 'Sem sugestoes neste mes'}
                   body={
                     selectedPropertyInfo?.analisado !== 'completed'
                       ? 'O imovel ainda esta processando. As sugestoes aparecem quando endereco, eventos e preco base estiverem prontos.'
-                      : 'Nao encontramos evento futuro compativel com este imovel no periodo. O sistema continuara verificando novos eventos e mostrara sugestoes quando houver match.'
+                      : 'Nao encontramos evento futuro que combine com este imovel no periodo. A Urban AI continuara verificando novos eventos e mostrara sugestoes quando encontrar uma oportunidade.'
                   }
                   icon={<Icons.Calendar size={28} />}
                 />

@@ -10,6 +10,7 @@ import {
   getPropertyQuickInfo,
   createMultipleAddresses,
   registerProcess,
+  getFriendlyApiErrorMessage,
 } from '../service/api';
 
 export interface Property {
@@ -45,9 +46,9 @@ interface AddPropertyModalProps {
 const quotaErrorMessage = (error: unknown, fallback: string) => {
   const data = (error as any)?.response?.data;
   if (data?.code === 'LISTINGS_QUOTA_EXCEEDED') {
-    return data.message || 'Sua quota de imoveis foi atingida. Aumente sua assinatura para continuar.';
+    return getFriendlyApiErrorMessage(error, fallback);
   }
-  return fallback;
+  return getFriendlyApiErrorMessage(error, fallback);
 };
 
 export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModalProps) {
@@ -197,7 +198,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
       setSelectedProperties({ [newProp.id_do_anuncio]: true });
     } catch (error) {
       console.error(error);
-      toast("Ocorreu um erro ao buscar o(s) imovel(is).", { type: "error" });
+      toast(getFriendlyApiErrorMessage(error, "Nao conseguimos buscar os imoveis agora. Tente novamente em alguns instantes."), { type: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -248,7 +249,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
       handleClose();
     } catch (error) {
       console.error(error);
-      toast(quotaErrorMessage(error, "Erro ao registrar as propriedades."), { type: "error" });
+      toast(quotaErrorMessage(error, "Nao conseguimos registrar as propriedades agora. Tente novamente em alguns instantes."), { type: "error" });
     } finally {
       setIsLoading(false);
     }

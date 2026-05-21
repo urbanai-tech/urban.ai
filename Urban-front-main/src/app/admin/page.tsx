@@ -53,7 +53,7 @@ export default function AdminPage() {
         const e = err as { response?: { status?: number }; message?: string };
         const status = e?.response?.status;
         if (status === 401 || status === 403) {
-          setError("Acesso negado. Você precisa ser admin para ver este painel.");
+          setError("Acesso negado. Você precisa ter permissão de operação para ver este painel.");
         } else {
           setError(e?.message || "Erro ao carregar painel.");
         }
@@ -83,9 +83,9 @@ export default function AdminPage() {
   return (
     <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
       <AdminSectionHeader
-        eyebrow="ADMIN · OVERVIEW"
+        eyebrow="OPERAÇÃO · RESUMO"
         title="Painel"
-        subtitle="Visão consolidada da operação Urban AI. Acesso restrito a usuários com role=admin."
+        subtitle="Visão consolidada da operação Urban AI. Acesso restrito à equipe autorizada."
         actions={
           <AdminButton
             variant="primary"
@@ -93,7 +93,7 @@ export default function AdminPage() {
             href="/admin/dashboard"
             rightIcon={<Icons.ArrowRight size={12} />}
           >
-            Dashboard executivo
+            Abrir painel executivo
           </AdminButton>
         }
       />
@@ -140,7 +140,7 @@ export default function AdminPage() {
               value={overview.product.analysesAccepted}
               sub={`${overview.product.acceptanceRatePercent}% taxa de aceite`}
             />
-            <KpiCell label="Admins" value={overview.users.admins} />
+            <KpiCell label="Operadores" value={overview.users.admins} />
           </div>
         </section>
       )}

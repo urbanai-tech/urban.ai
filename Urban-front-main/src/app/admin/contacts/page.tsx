@@ -558,7 +558,7 @@ export default function AdminContactsPage() {
           />
         </div>
         <AdminTextarea
-          label="Notas (visíveis só pra equipe admin)"
+          label="Notas internas (visíveis só para suporte/operação)"
           rows={10}
           value={notesValue}
           onChange={(e) => setNotesValue(e.target.value)}

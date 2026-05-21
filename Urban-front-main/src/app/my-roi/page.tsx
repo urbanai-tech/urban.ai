@@ -44,8 +44,8 @@ export default function MyRoiPage() {
       const e = err as { response?: { status?: number }; message?: string };
       setError(
         e?.response?.status === 401
-          ? 'Faca login novamente para ver seu ROI.'
-          : e?.message || 'Erro ao carregar ROI.',
+          ? 'Faca login novamente para ver seus ganhos.'
+          : e?.message || 'Erro ao carregar seus ganhos.',
       );
     } finally {
       setLoading(false);
@@ -86,7 +86,7 @@ export default function MyRoiPage() {
         <AppEmptyState
           eyebrow="ERRO"
           title="Nao foi possivel carregar"
-          body={error ?? 'Nao foi possivel carregar seu ROI.'}
+          body={error ?? 'Nao foi possivel carregar seus ganhos.'}
           icon={<Icons.AlertCircle size={32} />}
           action={
             <AppButton variant="primary" onClick={() => load()}>
@@ -109,9 +109,9 @@ export default function MyRoiPage() {
   return (
     <AppPageShell maxWidth={1280}>
       <AppSectionHeader
-        eyebrow="MEU ROI · IMPACTO DA URBAN AI"
-        title="Quanto a IA gerou de dinheiro"
-        subtitle="Soma das diarias com preco otimizado nos ultimos dias. Confirmadas pelo Stays/Airbnb + acompanhando as que ainda nao fecharam."
+        eyebrow="GANHOS · IMPACTO DA URBAN AI"
+        title="Quanto dinheiro a Urban AI ajudou a gerar"
+        subtitle="Soma das diarias em que o preco sugerido foi usado nos ultimos dias. Inclui reservas confirmadas e oportunidades ainda em acompanhamento."
         actions={
           <div className="roi-actions">
             <AppSelect
@@ -154,7 +154,7 @@ export default function MyRoiPage() {
       <AppCard variant="accent" style={{ padding: '40px 40px 36px', marginBottom: 32 }}>
         <div className="roi-hero">
           <div>
-            <p className="urban-app-eyebrow">DINHEIRO ATRIBUIDO A URBAN AI</p>
+            <p className="urban-app-eyebrow">DINHEIRO GERADO COM AJUDA DA URBAN AI</p>
             <p className="urban-app-display-hero" style={{ marginTop: 12, color: 'var(--app-accent)' }}>
               {fmt(data.money.totalAttributedCents)}
             </p>
@@ -165,7 +165,7 @@ export default function MyRoiPage() {
             </p>
           </div>
           <div className="roi-subhero">
-            <p className="urban-app-eyebrow-muted">Retorno sobre assinatura</p>
+            <p className="urban-app-eyebrow-muted">Quanto voltou sobre o plano</p>
             <p className="urban-app-display-md" style={{ marginTop: 12 }}>
               {roiLabel}
             </p>
@@ -183,19 +183,19 @@ export default function MyRoiPage() {
           sub={`${data.subscription.activePayments} assinatura(s) ativa(s)`}
         />
         <AppMetricCard
-          label="Noites impactadas"
+          label="Noites com sugestao"
           value={data.activity.impactedNights}
-          sub="diarias com preco otimizado"
+          sub="diarias em que a sugestao foi usada"
         />
         <AppMetricCard
-          label="Sugestoes aplicadas"
+          label="Sugestoes usadas"
           value={`${data.activity.applied}/${data.activity.recommendations}`}
-          sub={`${data.activity.applicationRatePercent.toFixed(0)}% das aceitas`}
+          sub={`${data.activity.applicationRatePercent.toFixed(0)}% das aprovadas`}
         />
         <AppMetricCard
-          label="Potencial perdido"
+          label="Oportunidade nao usada"
           value={fmt(data.money.potentialLostCents)}
-          sub="sugestoes nao aplicadas"
+          sub="sugestoes que ficaram de fora"
           accent={data.money.potentialLostCents > 0}
         />
       </div>
@@ -210,7 +210,7 @@ export default function MyRoiPage() {
           {data.perProperty.length === 0 ? (
             <AppEmptyState
               title="Nada aplicado neste periodo"
-              body="Quando voce aplicar uma sugestao da Urban AI, o ROI aparece aqui."
+              body="Quando voce usar uma sugestao da Urban AI, os ganhos aparecem aqui."
             />
           ) : (
             <div className="roi-table-wrap">
@@ -220,7 +220,7 @@ export default function MyRoiPage() {
                     <th>Imovel</th>
                     <th className="numeric">Gerado</th>
                     <th className="numeric">Noites</th>
-                    <th className="numeric">Aplicadas</th>
+                    <th className="numeric">Usadas</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -228,7 +228,7 @@ export default function MyRoiPage() {
                     <tr key={property.propertyId ?? property.propertyName}>
                       <td>
                         <p className="roi-property-name">{property.propertyName}</p>
-                        <p className="roi-property-sub">{property.recommendations} recomendacoes</p>
+                        <p className="roi-property-sub">{property.recommendations} sugestoes</p>
                       </td>
                       <td className="numeric">
                         <strong className="roi-accent">{fmt(property.totalAttributedCents)}</strong>
@@ -244,17 +244,17 @@ export default function MyRoiPage() {
         </AppCard>
 
         <AppCard variant="default">
-          <AppCardHeader title="Adocao das recomendacoes" />
+          <AppCardHeader title="Uso das sugestoes" />
           <div className="roi-progress-label">
-            <span>Taxa de aceite</span>
+            <span>Sugestoes aprovadas</span>
             <strong>{acceptance.toFixed(0)}%</strong>
           </div>
-          <div className="roi-progress" aria-label={`Taxa de aceite ${acceptance.toFixed(0)}%`}>
+          <div className="roi-progress" aria-label={`Sugestoes aprovadas ${acceptance.toFixed(0)}%`}>
             <span style={{ width: `${acceptance}%` }} />
           </div>
           <div className="roi-mini-grid">
-            <AppMetricCard label="Aceitas" value={data.activity.accepted} variant="sm" />
-            <AppMetricCard label="Aplicadas" value={data.activity.applied} variant="sm" />
+            <AppMetricCard label="Aprovadas" value={data.activity.accepted} variant="sm" />
+            <AppMetricCard label="Usadas" value={data.activity.applied} variant="sm" />
             <AppMetricCard label="Reservadas" value={data.activity.booked} variant="sm" />
             <AppMetricCard label="Rejeitadas" value={data.activity.rejected} variant="sm" />
           </div>
@@ -266,7 +266,7 @@ export default function MyRoiPage() {
         {data.recentWins.length === 0 ? (
           <AppEmptyState
             title="Sem ganhos confirmados ainda"
-            body="Aceitas + aplicadas + reservas com noites ja vencidas aparecem aqui."
+            body="As sugestoes aprovadas que viraram reservas aparecem aqui depois que as noites passam."
           />
         ) : (
           <div className="roi-wins">

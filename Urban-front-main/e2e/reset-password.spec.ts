@@ -1,6 +1,11 @@
 import { expect, test } from '@playwright/test';
+import { acceptCookieConsent } from './test-helpers';
 
 test.describe('Reset de senha', () => {
+  test.beforeEach(async ({ page }) => {
+    await acceptCookieConsent(page);
+  });
+
   test('solicita link de reset e mostra confirmacao honesta', async ({ page }) => {
     const payloads: Array<{ email?: string }> = [];
 
@@ -15,14 +20,14 @@ test.describe('Reset de senha', () => {
 
     await page.goto('/request-reset-password');
 
-    await expect(page.getByRole('heading', { name: /Resetar Senha/i })).toBeVisible();
-    await page.getByPlaceholder('seuemail@exemplo.com').fill('host.reset@urbanai.com.br');
-    await page.getByRole('button', { name: /^Resetar Senha$/i }).click();
+    await expect(page.getByRole('heading', { name: /Redefinir senha/i })).toBeVisible();
+    await page.getByPlaceholder('voce@email.com').fill('host.reset@urbanai.com.br');
+    await page.getByRole('button', { name: /^Enviar link$/i }).click();
 
     expect(payloads[0]).toEqual({ email: 'host.reset@urbanai.com.br' });
-    await expect(page.getByText(/Um e-mail para reset de senha foi enviado/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /E-mail enviado/i })).toBeVisible();
     await expect(page.getByText(/host\.reset@urbanai\.com\.br/i)).toBeVisible();
-    await expect(page.getByRole('button', { name: /Tentar novamente/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Enviar novamente/i })).toBeVisible();
   });
 
   test('define nova senha somente quando requisitos sao cumpridos', async ({ page }) => {
@@ -50,13 +55,13 @@ test.describe('Reset de senha', () => {
 
     await page.goto('/reset-password/TOKEN_RESET_E2E');
 
-    await expect(page.getByRole('heading', { name: /Confirma/i })).toBeVisible();
-    const submit = page.getByRole('button', { name: /Confirmar Nova Senha/i });
+    await expect(page.getByRole('heading', { name: /Crie uma senha segura/i })).toBeVisible();
+    const submit = page.getByRole('button', { name: /Confirmar nova senha/i });
     await expect(submit).toBeDisabled();
 
-    await page.getByPlaceholder('Digite sua nova senha').fill('Urban@123');
-    await page.getByPlaceholder('Repita a nova senha').fill('Urban@123');
-    await expect(page.getByText(/As senhas coincidem/i)).toBeVisible();
+    await page.getByLabel('Nova senha').fill('Urban@123');
+    await page.getByLabel('Confirmar senha').fill('Urban@123');
+    await expect(page.getByText(/Senhas coincidem/i)).toBeVisible();
     await expect(submit).toBeEnabled();
     await submit.click();
 
@@ -64,7 +69,7 @@ test.describe('Reset de senha', () => {
     expect(submittedPayload.token).toBe('TOKEN_RESET_E2E');
     expect(submittedPayload.pass).toMatch(/^[a-f0-9]{64}$/);
     expect(submittedPayload.pass).not.toBe('Urban@123');
-    await expect(page.getByText(/Senha atualizada com sucesso/i)).toBeVisible();
-    await expect(page.getByRole('button', { name: /Ir para Login/i })).toBeVisible();
+    await expect(page.getByText(/Senha atualizada/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /Ir para login/i })).toBeVisible();
   });
 });

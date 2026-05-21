@@ -66,6 +66,7 @@ Banco de dados: o backend pode rodar contra um MySQL local ou contra o Railway d
 | `docs/avaliacao-projeto-2026-04-16.md` | Auditoria técnica completa que motivou F5C |
 | `docs/adr/` | Architecture Decision Records — por que escolhemos NestJS, MySQL, Railway, etc. |
 | `docs/runbooks/` | Procedimentos operacionais — staging, migrations, restore, incidentes |
+| `docs/opensquad-manual-operador.md` | Guia rápido para usar o Opensquad sem contexto técnico |
 | `docs/lgpd/` | Política interna + checklist de DPAs |
 | `docs/slo.md` | SLO/SLA, error budget, postmortem |
 | `docs/outreach/` | One-pager + roteiro de contato Stays |
@@ -103,7 +104,7 @@ Deploy é automático via Railway watch da branch `main` (prod) e da branch `sta
 
 ## Sobre o Opensquad neste repo
 
-A pasta `_opensquad/` e os agentes em `squads/` são uma **ferramenta operacional interna** que o Gustavo usa para automatizar parte do trabalho de marketing, auditoria de QA e atualização do roadmap. **Não fazem parte do produto entregue ao cliente.** Para entender o framework Opensquad, ver `_opensquad/README.md` e digitar `/opensquad` no Claude Code.
+A pasta `_opensquad/` e os agentes em `squads/` são uma **ferramenta operacional interna** que o Gustavo usa para automatizar parte do trabalho de marketing, auditoria de QA e atualização do roadmap. **Não fazem parte do produto entregue ao cliente.** Para uso cotidiano por operação/suporte, comece por `docs/opensquad-manual-operador.md` e digite `/opensquad`.
 
 ---
 

@@ -34,7 +34,7 @@ export default function AceitarConvitePage() {
   return (
     <Suspense
       fallback={
-        <InviteShell title="Carregando convite." subtitle="Estamos preparando sua ativacao.">
+        <InviteShell title="Carregando convite." subtitle="Estamos preparando sua ativação.">
           <LoadingCard label="Carregando..." />
         </InviteShell>
       }
@@ -60,7 +60,7 @@ function AceitarConvite() {
 
   useEffect(() => {
     if (!token) {
-      setValidation({ valid: false, reason: "Link sem token" });
+      setValidation({ valid: false, reason: "Este link está incompleto. Peça um novo convite ao suporte." });
       setLoading(false);
       return;
     }
@@ -119,7 +119,7 @@ function AceitarConvite() {
     } catch (error: any) {
       const message =
         error?.response?.data?.message ||
-        "Nao foi possivel ativar sua conta. Tente novamente ou fale com o suporte.";
+        "Não foi possível ativar sua conta. Tente novamente ou fale com o suporte.";
       setSubmitError(message);
       trackAnalyticsEvent("waitlist_invite_accept_error", {
         reason: error?.response?.status
@@ -142,12 +142,12 @@ function AceitarConvite() {
   if (!validation?.valid) {
     return (
       <InviteShell
-        title="Link indisponivel."
-        subtitle="Este convite pode ter expirado, ja ter sido usado ou estar incompleto."
+        title="Link indisponível."
+        subtitle="Este convite pode ter expirado, já ter sido usado ou estar incompleto."
       >
         <AppCard variant="elevated" style={{ padding: 28 }}>
           <InlineNotice kind="error">
-            {validation?.reason ?? "Este link de convite esta expirado ou ja foi usado."}
+            {validation?.reason ?? "Este link de convite expirou ou já foi usado."}
           </InlineNotice>
           <AppButton
             variant="primary"
@@ -156,7 +156,7 @@ function AceitarConvite() {
             leftIcon={<Icons.ArrowLeft size={14} />}
             style={{ marginTop: 20 }}
           >
-            Voltar ao pre-lancamento
+            Voltar ao pré-lançamento
           </AppButton>
         </AppCard>
       </InviteShell>
@@ -171,7 +171,7 @@ function AceitarConvite() {
       : "Bem-vindo a Urban AI.";
   const positionLabel = validation.position
     ? `Sua posicao na fila: #${validation.position}.`
-    : "Voce foi convidado.";
+    : "Você foi convidado.";
 
   return (
     <InviteShell title={heroTitle} subtitle={`${positionLabel} Crie sua senha para ativar o acesso.`}>
@@ -181,7 +181,7 @@ function AceitarConvite() {
             label="E-mail"
             value={validation.email ?? ""}
             readOnly
-            helper="Confirmado via convite. Nao pode ser alterado."
+            helper="Confirmado pelo convite. Não pode ser alterado."
             style={{
               background: "var(--app-surface-muted)",
               color: "var(--app-text-muted)",
@@ -204,7 +204,7 @@ function AceitarConvite() {
             onToggle={() => setShowConfirmPassword((v) => !v)}
             error={
               confirmPassword.length > 0 && !checks.match
-                ? "As senhas nao conferem."
+                ? "As senhas não conferem."
                 : undefined
             }
           />
@@ -252,7 +252,7 @@ function InviteShell({
           antecipado.
         </>
       }
-      asideSubtitle="Uma ativacao direta, segura e alinhada ao novo painel dos anfitrioes."
+      asideSubtitle="Uma ativação simples e segura para acessar o beta da Urban AI."
     >
       {children}
     </AuthFlowShell>

@@ -36,10 +36,10 @@ export interface PortfolioToolbarProps {
 }
 
 const STRATEGIES: ReadonlyArray<{ id: string; label: string; helper: string }> = [
-  { id: "conservadora", label: "Conservadora", helper: "Foca em ocupação, ADR mais baixo." },
-  { id: "moderada", label: "Moderada", helper: "Equilibra ocupação e ADR." },
-  { id: "agressiva", label: "Agressiva", helper: "Maximiza ADR mesmo perdendo dias." },
-  { id: "autonomous", label: "Autonomous", helper: "Urban AI decide caso a caso." },
+  { id: "conservadora", label: "Conservadora", helper: "Prioriza mais noites ocupadas, com diarias mais acessiveis." },
+  { id: "moderada", label: "Moderada", helper: "Equilibra ocupacao e valor da diaria." },
+  { id: "agressiva", label: "Agressiva", helper: "Busca diarias mais altas, mesmo com chance de vender menos noites." },
+  { id: "autonomous", label: "Automatico", helper: "A Urban AI escolhe o melhor caminho caso a caso." },
 ];
 
 export function PortfolioToolbar({
@@ -108,7 +108,7 @@ export function PortfolioToolbar({
             }}
           >
             <Icons.Info size={14} />
-            <span>Selecione imóveis pra aplicar ação em lote.</span>
+            <span>Selecione imoveis para mudar varios de uma vez.</span>
             {totalCount > 0 && onSelectAll && (
               <AppButton size="sm" variant="ghost" onClick={onSelectAll} disabled={loading}>
                 Selecionar todos ({totalCount})
@@ -218,7 +218,7 @@ export function PortfolioToolbar({
                       disabled={loading}
                       rightIcon={<Icons.ChevronDown size={12} />}
                     >
-                      Aplicar estratégia
+                      Aplicar modo
                     </AppButton>
                     {strategyOpen && (
                       <Dropdown onClose={() => setStrategyOpen(false)}>
@@ -272,7 +272,7 @@ export function PortfolioToolbar({
                     </AppButton>
                     {moreOpen && (
                       <Dropdown onClose={() => setMoreOpen(false)}>
-                        <DropdownItem disabled>Pausar autopilot (em breve)</DropdownItem>
+                        <DropdownItem disabled>Pausar automatico (em breve)</DropdownItem>
                         <DropdownItem disabled>Bloquear datas (em breve)</DropdownItem>
                         <DropdownItem disabled>Exportar CSV (em breve)</DropdownItem>
                       </Dropdown>
@@ -292,9 +292,9 @@ export function PortfolioToolbar({
         title="Aceitar sugestões nos imóveis selecionados?"
         body={
           <>
-            A Urban AI vai aplicar o preço sugerido nos dias com sugestão ativa em{" "}
-            <strong>{selectedCount}</strong> imóvel{selectedCount > 1 ? "s" : ""}. A ação fica
-            registrada no audit log e pode ser desfeita por dia.
+            A Urban AI vai aplicar o preco sugerido nos dias com sugestao ativa em{" "}
+            <strong>{selectedCount}</strong> imovel{selectedCount > 1 ? "s" : ""}. A acao fica
+            registrada no historico e pode ser desfeita por dia.
           </>
         }
         confirmLabel={`Aplicar em ${selectedCount} imóvel${selectedCount > 1 ? "s" : ""}`}

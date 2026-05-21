@@ -53,7 +53,7 @@ export function PercentileHero({
 
   return (
     <section
-      aria-label="Percentil de mercado"
+      aria-label="Comparacao com o mercado"
       style={{
         display: "flex",
         flexDirection: "column",
@@ -65,7 +65,7 @@ export function PercentileHero({
         boxShadow: "0 1px 2px rgba(14, 17, 22, 0.04)",
       }}
     >
-      <p className="urban-app-eyebrow">PERCENTIL · ÚLTIMOS 30 DIAS</p>
+      <p className="urban-app-eyebrow">POSICAO NO MERCADO · ULTIMOS 30 DIAS</p>
       <div
         style={{
           display: "flex",
@@ -85,8 +85,9 @@ export function PercentileHero({
             letterSpacing: -1,
           }}
         >
-          PERCENTIL{" "}
+          MELHOR QUE{" "}
           <span style={{ color: "var(--app-accent)" }}>{percentile}</span>
+          %
         </h2>
 
         <span
@@ -125,12 +126,12 @@ export function PercentileHero({
           margin: 0,
         }}
       >
-        Seu ADR está acima de{" "}
+        Sua diaria esta acima de{" "}
         <strong style={{ color: "var(--app-text)" }}>{percentile}%</strong> dos
-        imóveis comparáveis em{" "}
+        imoveis parecidos em{" "}
         <strong style={{ color: "var(--app-text)" }}>{neighborhood}</strong> (
-        {comparablesCount} comparáve{comparablesCount === 1 ? "l" : "is"} · ADR
-        mediano {formatBRL(medianAdr)})
+        {comparablesCount} referencia{comparablesCount === 1 ? "" : "s"} · diaria
+        media {formatBRL(medianAdr)})
       </p>
     </section>
   );

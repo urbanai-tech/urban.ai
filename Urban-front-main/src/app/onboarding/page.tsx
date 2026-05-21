@@ -598,7 +598,7 @@ const TOTAL_STEPS = 5;
 const quotaErrorMessage = (error: unknown, fallback: string) => {
   const data = (error as any)?.response?.data;
   if (data?.code === 'LISTINGS_QUOTA_EXCEEDED') {
-    return data.message || 'Sua quota de imoveis foi atingida. Aumente sua assinatura para continuar.';
+    return data.message || 'Você atingiu o limite de imóveis do seu plano. Escolha um plano maior para adicionar mais imóveis.';
   }
   return fallback;
 };
@@ -702,22 +702,22 @@ function StrategyIcon({ iconKey }: { iconKey: StrategyIconKey }) {
 const PRICING_PRESETS: Record<PricingStrategy, { inicial: number; final: number | null; label: string; desc: string; iconKey: StrategyIconKey }> = {
   conservative: {
     inicial: -5, final: 10,
-    label: 'Conservadora', desc: 'Prioriza ocupação mantendo preços competitivos. Ideal para quem está começando.',
+    label: 'Mais cautelosa', desc: 'Busca manter o imóvel competitivo sem mexer demais nos preços. Boa para começar com tranquilidade.',
     iconKey: 'shield',
   },
   balanced: {
     inicial: -10, final: 20,
-    label: 'Moderada', desc: 'Equilíbrio entre ocupação e receita. Recomendado para a maioria dos anfitriões.',
+    label: 'Equilibrada', desc: 'Tenta equilibrar ocupação e diária média. Recomendado para a maioria dos anfitriões.',
     iconKey: 'scale',
   },
   aggressive: {
     inicial: -15, final: 35,
-    label: 'Agressiva', desc: 'Maximiza receita em períodos de alta demanda. Para anfitriões experientes.',
+    label: 'Mais ousada', desc: 'Permite variações maiores em datas de alta procura. Indicada para quem já acompanha preços de perto.',
     iconKey: 'rocket',
   },
   autonomous: {
     inicial: -5, final: null,
-    label: 'Piloto Automático IA', desc: 'Estratégia dinâmica. Otimiza sem teto na alta, e impede baixas drásticas (-5% max).',
+    label: 'Automático com IA', desc: 'Modo beta. A IA ajusta com mais liberdade, mantendo limite para evitar quedas bruscas.',
     iconKey: 'sparkles',
   },
 };
@@ -1262,9 +1262,9 @@ function OnboardingWizardContent() {
                     Bem-vindo ao Urban AI
                   </Heading>
                   <Text fontSize="lg" color="gray.500" maxW="440px" lineHeight="tall">
-                    Nosso motor de inteligência artificial irá analisar seu mercado local, eventos
-                    próximos e a concorrência para maximizar a receita dos seus imóveis do Airbnb
-                    de forma totalmente automática.
+                    A Urban AI analisa seu mercado local, eventos próximos e anúncios parecidos
+                    para sugerir preços melhores para seus imóveis do Airbnb. No começo, você
+                    acompanha as recomendações antes de qualquer automação.
                   </Text>
                   <Text fontSize="sm" color="gray.400" maxW="380px">
                     O setup inicial leva menos de 2 minutos.
@@ -1412,7 +1412,7 @@ function OnboardingWizardContent() {
                         <VStack spacing={4} align="stretch">
                           <Text fontSize="sm" color="gray.500">
                             Cole a URL do seu perfil de anfitrião ou de qualquer anúncio seu.
-                            Vamos identificar automaticamente todos os seus imóveis.
+                            Vamos procurar seus imóveis e mostrar o que encontramos antes de continuar.
                           </Text>
 
                           <FormControl>
@@ -1645,10 +1645,10 @@ function OnboardingWizardContent() {
                   <Box textAlign="center">
                     <Text fontSize="xs" color="gray.400" fontWeight="bold" textTransform="uppercase"
                       letterSpacing="widest" mb={2}>Passo 3 de 3</Text>
-                    <Heading size="lg" mb={3} color="gray.800">Calibrar o Motor de IA</Heading>
+                    <Heading size="lg" mb={3} color="gray.800">Ajustar as recomendações</Heading>
                     <Text color="gray.500" maxW="440px" mx="auto">
-                      Personalize como nossa inteligência analisa eventos, concorrentes e
-                      sugere preços para os seus imóveis.
+                      Escolha o quanto você quer que as sugestões sejam cautelosas ou ousadas.
+                      Você poderá mudar isso depois.
                     </Text>
                   </Box>
 
@@ -1656,9 +1656,9 @@ function OnboardingWizardContent() {
                   <Box>
                     <Flex align="center" gap={2} mb={4}>
                       <Text fontWeight="bold" color="gray.800" fontSize="md">
-                        Estratégia de Precificação
+                        Estilo das sugestões de preço
                       </Text>
-                      <Tooltip label="Define o quanto o motor varia os preços em relação à média do mercado."
+                      <Tooltip label="Define o quanto a Urban AI pode sugerir subir ou baixar preços em relação ao mercado."
                         hasArrow placement="top">
                         <InfoIcon color="gray.400" boxSize={3.5} />
                       </Tooltip>
@@ -1727,9 +1727,9 @@ function OnboardingWizardContent() {
                   <Box>
                     <Flex align="center" gap={2} mb={4}>
                       <Text fontWeight="bold" color="gray.800" fontSize="md">
-                        Modo de Operação
+                        Como você quer receber as mudanças
                       </Text>
-                      <Tooltip label="Como você quer operar no beta: recomendações manuais agora; modo automático apenas por allowlist Stays."
+                      <Tooltip label="No beta, recomendamos começar com aprovação manual. O automático pela Stays é liberado aos poucos."
                         hasArrow placement="top">
                         <InfoIcon color="gray.400" boxSize={3.5} />
                       </Tooltip>
@@ -1777,7 +1777,7 @@ function OnboardingWizardContent() {
                             <Badge colorScheme="orange" fontSize="0.6rem">Em breve</Badge>
                           </Flex>
                           <Text fontSize="xs" color="gray.500" lineHeight="short">
-                            Beta privado via Stays, liberado apenas com conta conectada, preview, consentimento e rollback validados.
+                            Beta privado via Stays. Só é liberado depois de conectar a conta, aceitar a autorização e testar mudanças antes de aplicar.
                           </Text>
                         </VStack>
                       </Box>
@@ -1823,8 +1823,8 @@ function OnboardingWizardContent() {
                       Tudo configurado!
                     </Heading>
                     <Text color="gray.500" maxW="440px" mx="auto">
-                      Seus imóveis estão conectados e o motor de inteligência está pronto.
-                      Escolha um plano para ativar as recomendações diárias automaticamente.
+                      Seus imóveis estão conectados e as recomendações estão prontas para começar.
+                      Escolha um plano para receber sugestões diárias de preço.
                     </Text>
                   </Box>
 
@@ -1834,7 +1834,7 @@ function OnboardingWizardContent() {
                       <Box>
                         <AlertTitle>Você conectou {selectedCount} imóveis.</AlertTitle>
                         <AlertDescription>
-                          A recomendação ideal para você manter a sincronização completa é o plano <strong>{selectedCount <= 3 ? 'Starter' : selectedCount <= 10 ? 'Profissional' : 'Escala'}</strong>.
+                          Pelo número de imóveis, o plano que deve atender melhor agora é o <strong>{selectedCount <= 3 ? 'Starter' : selectedCount <= 10 ? 'Profissional' : 'Escala'}</strong>.
                         </AlertDescription>
                       </Box>
                     </Alert>

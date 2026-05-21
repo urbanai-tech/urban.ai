@@ -87,8 +87,6 @@ test.describe('Properties pricing inputs', () => {
     await page.goto('/properties');
 
     await expect(page.getByText('Apartamento Vila Mariana')).toBeVisible();
-    await page.getByText(/Detalhes t.cnicos/i).click();
-    await expect(page.getByText(/-23\.589/)).toBeVisible();
 
     await page.locator('input[inputmode="decimal"]').nth(0).fill('450');
     await page.locator('input[inputmode="decimal"]').nth(1).fill('9900');
@@ -132,7 +130,7 @@ test.describe('Properties pricing inputs', () => {
 
     await expect(page.getByText('Apartamento Vila Mariana')).toBeVisible();
     await page.getByRole('button', { name: /delete|excluir/i }).click();
-    await expect(page.getByRole('alertdialog')).toBeVisible();
+    await expect(page.getByRole('dialog')).toBeVisible();
     await page.getByRole('button', { name: /^Excluir$/i }).click();
 
     await expect.poll(() => deletions).toEqual(['DELETE']);

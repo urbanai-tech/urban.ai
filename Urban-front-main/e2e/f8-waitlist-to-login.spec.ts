@@ -97,8 +97,9 @@ test.describe('F8 Happy Path: waitlist -> convite -> aceite -> dashboard', () =>
     await expect.poll(() => acceptPayload).toMatchObject({
       token: 'MOCK_TOKEN_123',
       username: 'Teste E2E',
-      password: 'UrbanE2E@123',
     });
+    expect(String(acceptPayload?.password)).toMatch(/^[a-f0-9]{64}$/);
+    expect(acceptPayload?.password).not.toBe('UrbanE2E@123');
 
     await page.waitForURL('**/dashboard');
     await expect(page.locator('main h1')).toContainText(/Calend.rio/i);

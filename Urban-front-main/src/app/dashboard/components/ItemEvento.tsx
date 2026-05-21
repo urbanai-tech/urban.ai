@@ -259,7 +259,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           reason={ev.motivo_ia ?? ev.recomendacao ?? undefined}
           status={cardStatus}
           onPrimary={accepted ? handleCancel : handleAccept}
-          primaryLabel={accepted ? "Cancelar aceite" : "Aplicar sugestao"}
+          primaryLabel={accepted ? "Desfazer aprovacao" : "Aplicar sugestao"}
           onSecondary={accepted ? () => setDrawerOpen(true) : undefined}
           secondaryLabel="Registrar resultado"
           loading={loadingSaving}

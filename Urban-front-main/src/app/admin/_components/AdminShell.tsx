@@ -54,14 +54,14 @@ const NAV: NavSection[] = [
   {
     title: "Negócio",
     items: [
-      { href: "/admin", label: "Overview", icon: <Layers size={16} /> },
-      { href: "/admin/dashboard", label: "Dashboard", icon: <Activity size={16} /> },
+      { href: "/admin", label: "Resumo", icon: <Layers size={16} /> },
+      { href: "/admin/dashboard", label: "Painel executivo", icon: <Activity size={16} /> },
       { href: "/admin/finance", label: "Financeiro", icon: <DollarSign size={16} /> },
       { href: "/admin/funnel", label: "Funil", icon: <TrendingUp size={16} /> },
       { href: "/admin/roi", label: "ROI", icon: <Briefcase size={16} /> },
       { href: "/admin/alpha", label: "Alpha", icon: <Zap size={16} /> },
       { href: "/admin/contacts", label: "Contatos", icon: <Inbox size={16} /> },
-      { href: "/admin/waitlist", label: "Waitlist", icon: <Users size={16} /> },
+      { href: "/admin/waitlist", label: "Lista de espera", icon: <Users size={16} /> },
     ],
   },
   {
@@ -77,8 +77,8 @@ const NAV: NavSection[] = [
   {
     title: "Operações",
     items: [
-      { href: "/admin/properties", label: "Imóveis (drill-down)", icon: <Briefcase size={16} /> },
-      { href: "/admin/jobs", label: "Jobs", icon: <Server size={16} /> },
+      { href: "/admin/properties", label: "Imóveis detalhados", icon: <Briefcase size={16} /> },
+      { href: "/admin/jobs", label: "Tarefas do sistema", icon: <Server size={16} /> },
       { href: "/admin/stays", label: "Stays", icon: <Database size={16} /> },
       { href: "/admin/users", label: "Usuários", icon: <Users size={16} /> },
     ],
@@ -87,10 +87,10 @@ const NAV: NavSection[] = [
     title: "Sistema",
     items: [
       { href: "/admin/audit-logs", label: "Auditoria", icon: <Shield size={16} /> },
-      { href: "/admin/pricing-config", label: "Pricing config", icon: <Settings size={16} /> },
+      { href: "/admin/pricing-config", label: "Config. de preços", icon: <Settings size={16} /> },
       { href: "/admin/seo", label: "SEO / GEO", icon: <Search size={16} /> },
       { href: "/admin/quality", label: "Qualidade", icon: <AlertCircle size={16} /> },
-      { href: "/admin/onboarding-drip", label: "Onboarding drip", icon: <Mail size={16} /> },
+      { href: "/admin/onboarding-drip", label: "E-mails de boas-vindas", icon: <Mail size={16} /> },
     ],
   },
 ];
@@ -101,7 +101,7 @@ function getBreadcrumb(pathname: string): string {
   // Mais específico primeiro (ex: /admin/events/new antes de /admin/events)
   const sorted = [...FLAT_ITEMS].sort((a, b) => b.href.length - a.href.length);
   const match = sorted.find((item) => pathname === item.href || pathname.startsWith(item.href + "/"));
-  return match?.label ?? "Admin";
+  return match?.label ?? "Operação";
 }
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -180,7 +180,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Menu admin"
+          aria-label="Menu de operação"
           style={{
             position: "fixed",
             inset: 0,
@@ -351,11 +351,11 @@ function SidebarContent({
             color: "var(--admin-text-dim)",
           }}
         >
-          / admin
+          / suporte
         </span>
       </div>
 
-      {/* Switch admin → anfitriao (volta pro painel do anfitriao) */}
+      {/* Switch operação -> anfitrião (volta para o painel do anfitrião) */}
       <NextLink
         href="/painel"
         title="Voltar para painel do anfitrião"
@@ -518,7 +518,7 @@ function Breadcrumb({ pathname }: { pathname: string }) {
           fontWeight: 600,
         }}
       >
-        ADMIN
+        OPERAÇÃO
       </NextLink>
       {!isRoot && (
         <>
@@ -585,7 +585,7 @@ function EnvBadge({ env }: { env: string }) {
 function AdminAvatar() {
   return (
     <div
-      aria-label="Conta admin"
+      aria-label="Conta de operação"
       style={{
         width: 32,
         height: 32,

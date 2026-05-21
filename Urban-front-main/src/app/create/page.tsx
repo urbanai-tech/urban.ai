@@ -133,8 +133,8 @@ const Register = () => {
             lista.
           </>
         }
-        subtitle="A Urban AI esta liberando acessos por convite. Cadastre seu e-mail para entrar na fila."
-        asideEyebrow="PRE-LANCAMENTO"
+        subtitle="A Urban AI ainda está em acesso antecipado. Cadastre seu e-mail para receber um convite quando sua vez chegar."
+        asideEyebrow="PRÉ-LANÇAMENTO"
         asideTitle={
           <>
             Abertura
@@ -142,7 +142,7 @@ const Register = () => {
             controlada.
           </>
         }
-        asideSubtitle="Estamos liberando novos anfitrioes em ondas para manter a qualidade das recomendacoes."
+        asideSubtitle="Estamos liberando novos anfitriões em pequenos grupos para acompanhar tudo de perto e manter a qualidade das recomendações."
       >
         <WaitlistSignup source="create-signup" />
       </AuthFlowShell>
@@ -250,8 +250,8 @@ const Register = () => {
               letterSpacing: -0.1,
             }}
           >
-            Preços otimizados, anúncios sincronizados e ROI mensurado em um só
-            lugar.
+            Sugestões de preço, anúncios organizados e resultados acompanhados
+            em um só lugar.
           </p>
         </div>
       </div>

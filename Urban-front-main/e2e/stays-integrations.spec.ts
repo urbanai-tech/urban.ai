@@ -94,18 +94,17 @@ test.describe('Stays integrations settings', () => {
 
     await page.goto('/settings/integrations');
     await expect(page.getByRole('heading', { name: /Conex.o com a Stays/i })).toBeVisible();
-    await page.getByLabel('Client ID').fill('client-e2e');
-    await page.getByLabel('Access Token').fill('token-e2e');
+    await page.getByRole('textbox', { name: /Código da conta Stays/i }).fill('client-e2e');
+    await page.getByRole('textbox', { name: /Chave de acesso Stays/i }).fill('token-e2e');
     await page.locator('input[type="checkbox"]').check();
     await page.getByRole('button', { name: /Conectar Stays/i }).click();
 
     await expect(page.getByText(/Conectada e ativa/i)).toBeVisible();
-    await expect(page.getByText(/stays-connect-v1/i)).toBeVisible();
     await expect(page.getByText('1/2')).toBeVisible();
     await expect(page.getByText('1 sem vínculo')).toBeVisible();
-    await expect(page.getByText(/aplicam pre.o sem confirma/i)).toBeVisible();
+    await expect(page.getByText(/mudam pre.o sem confirma/i)).toBeVisible();
     await expect(page.getByText(/Studio Paulista/i).last()).toBeVisible();
-    await expect(page.getByText(/Autom.tico beta/i)).toBeVisible();
+    await expect(page.getByText('Beta automático')).toBeVisible();
     await expect(page.getByText(/Recomenda..o manual/i)).toBeVisible();
     expect(connectPayload).toMatchObject({
       clientId: 'client-e2e',
