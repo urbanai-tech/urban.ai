@@ -453,7 +453,7 @@ function CollectorDetail({ s }: { s: CollectorHealthRow }) {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
             gap: 14,
             fontSize: 13,
           }}

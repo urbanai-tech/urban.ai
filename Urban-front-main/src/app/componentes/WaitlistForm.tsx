@@ -131,7 +131,7 @@ export function WaitlistForm({
         <p
           style={{
             fontSize: 11,
-            letterSpacing: 3,
+            letterSpacing: 1.5,
             textTransform: "uppercase",
             color: "#E8500A",
             fontWeight: 600,
@@ -147,7 +147,7 @@ export function WaitlistForm({
             lineHeight: 1.5,
             color: "#FFFFFF",
             margin: "12px 0 0",
-            letterSpacing: "-0.3px",
+            letterSpacing: 0,
           }}
         >
           Você está na lista. Entraremos em contato quando a plataforma abrir
@@ -230,14 +230,18 @@ export function WaitlistForm({
           disabled={status === "loading"}
           style={{
             alignSelf: "flex-start",
-            padding: "22px 40px",
+            width: "min(100%, 320px)",
+            maxWidth: "100%",
+            padding: "18px 24px",
             background: "#E8500A",
             color: "#080A0F",
             border: "none",
             fontWeight: 700,
             fontSize: 14,
-            letterSpacing: 3,
+            letterSpacing: 1.5,
             textTransform: "uppercase",
+            textAlign: "center",
+            whiteSpace: "normal",
             cursor: status === "loading" ? "not-allowed" : "pointer",
             opacity: status === "loading" ? 0.5 : 1,
             fontFamily: "Inter, system-ui, sans-serif",

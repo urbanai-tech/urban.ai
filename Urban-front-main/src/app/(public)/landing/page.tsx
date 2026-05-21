@@ -1,5 +1,10 @@
 import NextLink from "next/link";
-import { Metadata } from "next";
+import type { Metadata } from "next";
+import {
+  JsonLd,
+  buildSeoMetadata,
+  faqPageJsonLd,
+} from "../../lib/seo";
 
 /**
  * Landing institucional — manifesto editorial.
@@ -13,16 +18,30 @@ import { Metadata } from "next";
  *  - Pull quotes com border-left laranja
  *  - Tom: declarações manifesto, não SaaS
  */
-export const metadata: Metadata = {
-  title: "Urban AI · Precificação que não perdoa noites vazias",
+export const metadata: Metadata = buildSeoMetadata({
+  title: "Urban AI - Precificacao dinamica para anfitrioes",
   description:
-    "A IA da Urban cruza a agenda da cidade com a demanda real. Sugestão de preço todo dia. Você dorme, seu calendário trabalha.",
-  openGraph: {
-    title: "Urban AI · Precificação dinâmica para anfitriões",
-    description: "Cada noite vazia é R$ 600 que nunca volta.",
-    type: "website",
+    "A IA da Urban cruza agenda da cidade, eventos locais e demanda real para sugerir precos melhores para alugueis de curta temporada.",
+  path: "/",
+});
+
+const LANDING_FAQ_SCHEMA = [
+  {
+    question: "A Urban AI precifica para todo o Brasil?",
+    answer:
+      "A cobertura inicial prioriza Sao Paulo capital e Grande SP. Outras capitais entram conforme o pipeline de eventos amadurecer.",
   },
-};
+  {
+    question: "Preciso integrar com Stays para usar?",
+    answer:
+      "Nao. No modo recomendacao, voce recebe sugestoes e aplica manualmente. A integracao Stays e para quem quer automacao.",
+  },
+  {
+    question: "Posso cancelar quando quiser?",
+    answer:
+      "Sim. Nao ha fidelidade; o cancelamento pode ser feito no painel, com acesso mantido ate o fim do ciclo pago.",
+  },
+];
 
 const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL || "https://app.myurbanai.com";
@@ -38,6 +57,10 @@ export default function LandingPage() {
         minHeight: "100vh",
       }}
     >
+      <JsonLd
+        id="landing-jsonld"
+        data={faqPageJsonLd(LANDING_FAQ_SCHEMA, "/")}
+      />
       <Hero />
       <ManifestoCost />
       <FourSteps />
@@ -94,11 +117,13 @@ function Hero() {
         <h1
           className="urban-display"
           style={{
-            fontSize: "clamp(72px, 14vw, 220px)",
+            fontSize: "clamp(48px, 14vw, 140px)",
             lineHeight: 0.88,
-            letterSpacing: "-0.02em",
+            letterSpacing: 0,
             margin: 0,
             color: "#FFFFFF",
+            overflowWrap: "normal",
+            textWrap: "balance",
           }}
         >
           CADA NOITE VAZIA<br />
@@ -133,15 +158,18 @@ function Hero() {
           <a
             href={WAITLIST_URL}
             style={{
-              padding: "22px 44px",
+              padding: "18px 24px",
               background: "#E8500A",
               color: "#FFFFFF",
               fontFamily: "Inter, sans-serif",
               fontWeight: 600,
               fontSize: 16,
-              letterSpacing: "0.04em",
+              letterSpacing: "0.02em",
               textTransform: "uppercase",
               textDecoration: "none",
+              maxWidth: "100%",
+              textAlign: "center",
+              whiteSpace: "normal",
               transition: "transform 0.15s ease",
             }}
           >
@@ -209,11 +237,12 @@ function ManifestoCost() {
         <h2
           className="urban-display"
           style={{
-            fontSize: "clamp(56px, 9vw, 150px)",
+            fontSize: "clamp(44px, 9vw, 140px)",
             lineHeight: 0.92,
-            letterSpacing: "-0.015em",
+            letterSpacing: 0,
             margin: 0,
             maxWidth: 1100,
+            textWrap: "balance",
           }}
         >
           O PREÇO ERRADO TEM<br />
@@ -347,12 +376,13 @@ function FourSteps() {
         <h2
           className="urban-display"
           style={{
-            fontSize: "clamp(56px, 9vw, 150px)",
+            fontSize: "clamp(44px, 9vw, 140px)",
             lineHeight: 0.92,
-            letterSpacing: "-0.015em",
+            letterSpacing: 0,
             margin: 0,
             marginBottom: 120,
             maxWidth: 1100,
+            textWrap: "balance",
           }}
         >
           A IA OLHA PRA<br />
@@ -396,7 +426,7 @@ function Step({
       <div
         className="urban-display"
         style={{
-          fontSize: "clamp(80px, 9vw, 140px)",
+          fontSize: "clamp(56px, 9vw, 140px)",
           lineHeight: 0.85,
           color: "#E8500A",
           margin: 0,
@@ -412,7 +442,7 @@ function Step({
             lineHeight: 1,
             margin: 0,
             marginBottom: 24,
-            letterSpacing: "-0.01em",
+            letterSpacing: 0,
           }}
         >
           {title}
@@ -478,12 +508,13 @@ function Differentiators() {
         <h2
           className="urban-display"
           style={{
-            fontSize: "clamp(56px, 9vw, 150px)",
+            fontSize: "clamp(44px, 9vw, 140px)",
             lineHeight: 0.92,
-            letterSpacing: "-0.015em",
+            letterSpacing: 0,
             margin: 0,
             marginBottom: 100,
             maxWidth: 1100,
+            textWrap: "balance",
           }}
         >
           NÃO É MAIS UMA<br />
@@ -635,11 +666,11 @@ function BigNumber({ value, label }: { value: string; label: string }) {
       <p
         className="urban-display"
         style={{
-          fontSize: "clamp(72px, 8vw, 130px)",
+          fontSize: "clamp(48px, 8vw, 130px)",
           lineHeight: 1,
           color: "#FFFFFF",
           margin: 0,
-          letterSpacing: "-0.02em",
+          letterSpacing: 0,
         }}
       >
         {value}
@@ -681,12 +712,13 @@ function PricingTeaser() {
         <h2
           className="urban-display"
           style={{
-            fontSize: "clamp(56px, 9vw, 150px)",
+            fontSize: "clamp(44px, 9vw, 140px)",
             lineHeight: 0.92,
-            letterSpacing: "-0.015em",
+            letterSpacing: 0,
             margin: 0,
             marginBottom: 100,
             maxWidth: 1100,
+            textWrap: "balance",
           }}
         >
           VOCÊ SÓ PAGA<br />
@@ -696,7 +728,7 @@ function PricingTeaser() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
             gap: 0,
             border: "1px solid rgba(255,255,255,0.08)",
           }}
@@ -905,11 +937,12 @@ function Faq() {
         <h2
           className="urban-display"
           style={{
-            fontSize: "clamp(56px, 8vw, 120px)",
-            lineHeight: 0.92,
-            letterSpacing: "-0.015em",
-            margin: 0,
-            marginBottom: 80,
+          fontSize: "clamp(44px, 8vw, 120px)",
+          lineHeight: 0.92,
+          letterSpacing: 0,
+          margin: 0,
+          marginBottom: 80,
+          textWrap: "balance",
           }}
         >
           PERGUNTAS<br />
@@ -943,7 +976,9 @@ function Faq() {
                   letterSpacing: "-0.005em",
                 }}
               >
-                {it.q}
+                <span style={{ minWidth: 0, flex: 1, overflowWrap: "anywhere" }}>
+                  {it.q}
+                </span>
                 <span
                   style={{
                     fontSize: 24,
@@ -1015,10 +1050,11 @@ function FinalCta() {
         <h2
           className="urban-display"
           style={{
-            fontSize: "clamp(64px, 12vw, 200px)",
+            fontSize: "clamp(46px, 12vw, 140px)",
             lineHeight: 0.88,
-            letterSpacing: "-0.02em",
+            letterSpacing: 0,
             margin: 0,
+            textWrap: "balance",
           }}
         >
           GARANTE SEU LUGAR<br />
@@ -1045,16 +1081,19 @@ function FinalCta() {
           <a
             href={WAITLIST_URL}
             style={{
-              padding: "26px 56px",
+              padding: "20px 24px",
               background: "#E8500A",
               color: "#FFFFFF",
               fontFamily: "Inter, sans-serif",
               fontWeight: 600,
               fontSize: 18,
-              letterSpacing: "0.04em",
+              letterSpacing: "0.02em",
               textTransform: "uppercase",
               textDecoration: "none",
               display: "inline-block",
+              maxWidth: "100%",
+              textAlign: "center",
+              whiteSpace: "normal",
             }}
           >
             Entrar na lista  →

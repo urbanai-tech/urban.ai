@@ -50,10 +50,11 @@ export default function Contato() {
           <h1
             className="urban-display"
             style={{
-              fontSize: "clamp(72px, 13vw, 190px)",
+              fontSize: "clamp(48px, 13vw, 140px)",
               lineHeight: 0.88,
               margin: 0,
               textTransform: "uppercase",
+              textWrap: "balance",
             }}
           >
             FALA COM
@@ -99,14 +100,16 @@ export default function Contato() {
               disabled={status === "loading"}
               style={{
                 width: "100%",
-                padding: "20px 28px",
+                padding: "18px 24px",
                 border: "none",
                 background: "#E8500A",
                 color: "#080A0F",
                 fontWeight: 700,
                 fontSize: 13,
-                letterSpacing: 3,
+                letterSpacing: 1.5,
                 textTransform: "uppercase",
+                whiteSpace: "normal",
+                textAlign: "center",
                 cursor: status === "loading" ? "wait" : "pointer",
                 opacity: status === "loading" ? 0.7 : 1,
               }}
@@ -194,4 +197,5 @@ const contactLinkStyle: React.CSSProperties = {
   lineHeight: 1.6,
   textDecoration: "none",
   marginBottom: 12,
+  overflowWrap: "anywhere",
 };

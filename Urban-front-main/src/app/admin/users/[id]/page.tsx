@@ -441,8 +441,8 @@ export default function AdminUserDetailPage() {
             body="Esse usuário ainda não criou imóveis. Se já é cliente, peça pra completar o onboarding."
           />
         ) : (
-          <AdminCard variant="default" style={{ padding: 0 }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <AdminCard variant="default" style={{ padding: 0, overflowX: "auto" }}>
+            <table style={{ width: "100%", minWidth: 760, borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--admin-divider)" }}>
                   <Th>Imóvel</Th>

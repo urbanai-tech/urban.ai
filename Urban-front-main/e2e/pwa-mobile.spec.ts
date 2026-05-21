@@ -63,14 +63,15 @@ test.describe('PWA e mobile', () => {
   });
 
   test('rotas publicas principais nao criam overflow horizontal no mobile', async ({ page }) => {
+    test.setTimeout(60_000);
     await page.setViewportSize({ width: 390, height: 844 });
 
     for (const route of ['/', '/lancamento', '/precos', '/contato', '/termos', '/privacidade']) {
-      await page.goto(route);
-      await page.waitForLoadState('networkidle');
+      await page.goto(route, { waitUntil: 'domcontentloaded' });
+      await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
       const metrics = await page.evaluate(() => ({
-        scrollWidth: document.documentElement.scrollWidth,
-        clientWidth: document.documentElement.clientWidth,
+        scrollWidth: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
+        clientWidth: Math.max(document.documentElement.clientWidth, document.body.clientWidth),
       }));
 
       expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);

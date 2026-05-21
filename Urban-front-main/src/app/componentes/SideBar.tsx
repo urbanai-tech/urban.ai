@@ -45,6 +45,9 @@ const SECONDARY_NAV = [
   { path: '/event-log', label: 'Ajustes', icon: 'settings' as const },
 ];
 
+const MOBILE_PRIMARY_NAV = PRIMARY_NAV.slice(0, 4);
+const MOBILE_MORE_NAV = [...PRIMARY_NAV.slice(4), ...SECONDARY_NAV];
+
 const HOST_SIDEBAR_COLLAPSED_KEY = 'urban-host-sidebar-collapsed';
 
 export default function SideBar() {
@@ -477,7 +480,7 @@ export default function SideBar() {
           fontFamily: 'Inter, system-ui, sans-serif',
         }}
       >
-        {PRIMARY_NAV.map((item) => (
+        {MOBILE_PRIMARY_NAV.map((item) => (
           <BottomNavItem
             key={item.path}
             path={item.path}
@@ -611,8 +614,8 @@ export default function SideBar() {
             )}
 
             <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
-              <SectionLabel label="Conta" />
-              {SECONDARY_NAV.map((item) => (
+              <SectionLabel label="Menu" />
+              {MOBILE_MORE_NAV.map((item) => (
                 <NavLink
                   key={item.path}
                   path={item.path}
@@ -872,6 +875,7 @@ function BottomNavItem({
         transition: 'color 120ms',
         fontFamily: 'Inter, system-ui, sans-serif',
         position: 'relative',
+        minWidth: 0,
       }}
     >
       {active && (
@@ -890,7 +894,17 @@ function BottomNavItem({
         />
       )}
       <NavIcon name={icon} />
-      {label}
+      <span
+        style={{
+          maxWidth: '100%',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          padding: '0 2px',
+        }}
+      >
+        {label}
+      </span>
     </button>
   );
 }

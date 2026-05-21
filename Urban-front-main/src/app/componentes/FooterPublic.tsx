@@ -16,6 +16,7 @@ const COL_PRODUTO = [
   { label: "Manifesto", href: "/" },
   { label: "Preços", href: "/precos" },
   { label: "Lançamento", href: "/lancamento" },
+  { label: "Guias de pricing", href: "/precificacao-dinamica-airbnb" },
   { label: "Entrar", href: APP_URL, external: true },
 ];
 
@@ -52,14 +53,14 @@ export default function FooterPublic() {
         <div
           className="urban-display"
           style={{
-            fontSize: "clamp(80px, 18vw, 280px)",
+            fontSize: "clamp(56px, 18vw, 240px)",
             lineHeight: 0.85,
-            letterSpacing: "-2px",
+            letterSpacing: 0,
             fontWeight: 400,
             textTransform: "uppercase",
             color: "#FFFFFF",
             marginBottom: 80,
-            wordBreak: "break-word",
+            overflowWrap: "anywhere",
           }}
         >
           URBAN<span style={{ color: "#E8500A" }}>·</span>AI
@@ -223,6 +224,7 @@ const footerLinkStyle: React.CSSProperties = {
   color: "rgba(255,255,255,0.85)",
   textDecoration: "none",
   letterSpacing: 0,
+  overflowWrap: "anywhere",
   transition: "color 150ms",
 };
 

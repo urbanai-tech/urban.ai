@@ -33,6 +33,7 @@ type Props<T> = {
   caption?: React.ReactNode;
   stickyHeader?: boolean;
   maxHeight?: number | string;
+  minWidth?: number | string;
   style?: React.CSSProperties;
 };
 
@@ -45,8 +46,11 @@ export function AdminTable<T>({
   caption,
   stickyHeader = true,
   maxHeight,
+  minWidth,
   style,
 }: Props<T>) {
+  const tableMinWidth = minWidth ?? Math.max(560, columns.length * 140);
+
   return (
     <div
       style={{
@@ -62,6 +66,7 @@ export function AdminTable<T>({
       <table
         style={{
           width: "100%",
+          minWidth: tableMinWidth,
           borderCollapse: "collapse",
           fontSize: 13,
           color: "var(--admin-text)",

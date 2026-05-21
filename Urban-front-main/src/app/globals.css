@@ -21,6 +21,10 @@
   font-family: 'Bebas Neue', 'Inter', sans-serif !important;
 }
 
+.urban-manifesto details:not([open]) > :not(summary) {
+  display: none !important;
+}
+
 .urban-grain::before {
   content: "";
   position: absolute;
@@ -211,8 +215,12 @@
 
 @media (max-width: 767px) {
   .urban-app .urban-app-shell-inner {
-    padding: 88px 16px 96px !important;
+    padding: 32px 16px 88px !important;
     max-width: 100% !important;
+  }
+
+  .urban-app .urban-app .urban-app-shell-inner {
+    padding: 0 0 24px !important;
   }
 
   .urban-app .urban-app-display-hero {
@@ -224,6 +232,10 @@
     font-size: clamp(36px, 12vw, 52px);
     line-height: 0.98;
   }
+}
+
+.urban-app .urban-app .urban-app-shell-inner {
+  padding: 0 0 48px !important;
 }
 
 .urban-admin,
@@ -444,6 +456,19 @@
   border-left-color: var(--admin-accent);
 }
 
+@media (max-width: 1180px) {
+  .urban-admin .urban-admin-main > div {
+    padding: 32px 24px !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .urban-admin .urban-admin-main > div {
+    padding: 24px 16px !important;
+  }
+}
+
 .urban-admin .urban-admin-sidebar-section {
   font-size: 10px;
   letter-spacing: 3px;
@@ -453,7 +478,7 @@
   padding: 20px 16px 8px;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .urban-nav-desktop,
   .urban-cta-desktop {
     display: flex !important;
@@ -464,7 +489,7 @@
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .urban-nav-desktop,
   .urban-cta-desktop {
     display: none !important;
