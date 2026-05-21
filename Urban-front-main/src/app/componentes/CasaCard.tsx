@@ -42,6 +42,7 @@ export default function CasaCard({ casa, onClick }: CasaCardProps) {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 24, padding: 24 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="https://a0.muscache.com/im/pictures/042cca29-c44c-4370-8c99-f0f5eb74baac.jpg?im_w=960"
           alt={title}

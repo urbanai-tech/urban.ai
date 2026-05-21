@@ -58,6 +58,7 @@ function PropertyOption({ property }: { property: PropertyDropdown }) {
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={property.image_url}
         alt={property.propertyName}

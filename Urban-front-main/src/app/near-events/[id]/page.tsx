@@ -131,6 +131,7 @@ export default function CasaEventosProximosPage() {
           >
             {eventos.map((ev: Evento) => (
               <AppCard key={ev.id} variant="default" style={{ padding: 0, overflow: 'hidden' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={ev?.imagem_url}
                   alt={ev.enderecoCompleto}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useState } from "react";
 import { AdminStatusDot, type AdminStatusKind } from "./AdminStatusDot";
 import { Close } from "./Icons";
 

@@ -11,7 +11,6 @@ import {
   ChevronRight,
   Database,
   DollarSign,
-  FileText,
   Inbox,
   Layers,
   Mail,

@@ -21,9 +21,6 @@ import {
   AdminInput,
   AdminSelect,
   AdminTextarea,
-  AdminBadge,
-  AdminCard,
-  AdminCardHeader,
   AdminDrawer,
   AdminConfirmDialog,
   AdminEmptyState,
@@ -145,15 +142,6 @@ export default function CoverageAdminPage() {
       </div>
     );
   }
-
-  const statusKindMap: Record<
-    CoverageRegion["status"],
-    "success" | "warn" | "neutral"
-  > = {
-    active: "success",
-    bootstrap: "warn",
-    inactive: "neutral",
-  };
 
   const columns: AdminTableColumn<CoverageRegion>[] = [
     {

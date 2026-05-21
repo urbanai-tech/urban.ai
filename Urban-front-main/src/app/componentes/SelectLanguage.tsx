@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronDown, Languages } from 'lucide-react';
+import NextImage from 'next/image';
 import i18n from 'i18next';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -117,7 +118,7 @@ export default function SelectLanguage() {
                 textAlign: 'left',
               }}
             >
-              <img src={language.avatar} alt="" width={28} height={28} style={{ borderRadius: 999 }} />
+              <NextImage src={language.avatar} alt="" width={28} height={28} style={{ borderRadius: 999 }} />
               {language.label}
             </button>
           ))}

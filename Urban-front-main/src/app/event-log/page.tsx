@@ -89,7 +89,7 @@ export default function ConfiguracoesPage() {
         toast.error('Falha ao carregar perfil');
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [toast]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target;

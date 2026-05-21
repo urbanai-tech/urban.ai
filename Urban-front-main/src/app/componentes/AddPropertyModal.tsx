@@ -379,6 +379,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                         />
 
                         {prop.pictureUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={prop.pictureUrl}
                             alt="Capa"

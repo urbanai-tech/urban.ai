@@ -50,7 +50,6 @@ export function AdminLoadingSkeleton({
   }
 
   if (variant === "kpi") {
-    const cols = columns ?? Math.min(count, 4);
     return (
       <div
         style={{
