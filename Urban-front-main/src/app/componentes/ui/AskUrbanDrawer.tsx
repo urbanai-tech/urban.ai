@@ -142,7 +142,6 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
   }, [open]);
 
   const hardCapReached = usage ? usage.used >= usage.hardCap : false;
-  const quotaReached = usage ? usage.used >= usage.quota : false;
   const inputDisabled = loading || hardCapReached;
 
   const sendQuestion = useCallback(

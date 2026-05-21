@@ -40,6 +40,7 @@ function PropertyThumb({ src, alt }: { src?: string | null; alt: string }) {
   }
 
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       className="properties-thumb"
       src={src}

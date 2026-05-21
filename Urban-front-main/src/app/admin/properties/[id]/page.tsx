@@ -101,7 +101,7 @@ export default function AdminPropertyDetailPage() {
         try {
           const r = await api.get(`/admin/properties/${id}`);
           detail = r.data;
-        } catch (adminErr) {
+        } catch {
           // Fallback: usa endpoint publico de propriedade + busca eventos proximos
           const r = await api.get(`/propriedades/${id}`);
           detail = r.data;

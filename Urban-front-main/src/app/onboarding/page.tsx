@@ -355,7 +355,9 @@ function IconButton({ icon, isDisabled, disabled, ...props }: PrimitiveProps) {
 
 function Image(props: PrimitiveProps) {
   const { domProps, style } = splitPrimitiveProps(props);
-  return <img style={style} {...domProps} />;
+  const { alt = '', ...imageProps } = domProps as React.ImgHTMLAttributes<HTMLImageElement>;
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img alt={alt} style={style} {...imageProps} />;
 }
 
 function Badge({ children, ...props }: PrimitiveProps) {
@@ -438,9 +440,11 @@ function TabList({ children, ...props }: PrimitiveProps) {
 function Tab({ children, tabIndexValue, ...props }: PrimitiveProps) {
   const context = React.useContext(TabsContext);
   const selected = context?.index === tabIndexValue;
+  const { domProps, style } = splitPrimitiveProps(props);
   return (
     <button
       type="button"
+      {...domProps}
       onClick={() => context?.onChange?.(tabIndexValue)}
       style={{
         flex: 1,
@@ -456,6 +460,7 @@ function Tab({ children, tabIndexValue, ...props }: PrimitiveProps) {
         boxShadow: selected ? shadowMap.sm : 'none',
         fontWeight: 650,
         cursor: 'pointer',
+        ...style,
       }}
     >
       {children}

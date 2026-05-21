@@ -18,7 +18,6 @@ import {
   AdminTable,
   type AdminTableColumn,
   AdminInput,
-  AdminBadge,
   AdminEmptyState,
   AdminPageLoading,
   AdminStatusDot,

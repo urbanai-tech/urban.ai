@@ -135,6 +135,7 @@ export default function AddressCard({
       }}
     >
       <div style={{ height: 200, overflow: "hidden" }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imageSrc}
           alt={title}

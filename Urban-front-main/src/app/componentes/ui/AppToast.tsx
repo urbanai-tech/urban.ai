@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { AlertCircle, Check, Close, Info } from "./Icons";
 
 /**
@@ -92,14 +92,17 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
     [dismiss],
   );
 
-  const ctx: Ctx = {
-    show,
-    dismiss,
-    success: (m, s) => show("success", m, s),
-    error: (m, s) => show("error", m, s),
-    warn: (m, s) => show("warn", m, s),
-    info: (m, s) => show("info", m, s),
-  };
+  const ctx: Ctx = useMemo(
+    () => ({
+      show,
+      dismiss,
+      success: (m, s) => show("success", m, s),
+      error: (m, s) => show("error", m, s),
+      warn: (m, s) => show("warn", m, s),
+      info: (m, s) => show("info", m, s),
+    }),
+    [dismiss, show],
+  );
 
   return (
     <AppToastContext.Provider value={ctx}>
@@ -252,8 +255,8 @@ export function useAppToast(): Ctx {
 
 export function useToastCompat() {
   const appToast = useAppToast();
-  return useCallback(
-    Object.assign(
+  return useMemo(
+    () => Object.assign(
       (message: React.ReactNode, options?: ToastCompatOptions) => {
         const kind: AppToastKind =
           options?.type === "success"
