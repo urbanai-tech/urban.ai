@@ -94,8 +94,8 @@ test.describe('Dashboard recommendations', () => {
 
     await expect(page.getByText('Expo Turismo SP')).toBeVisible();
     await expect(page.getByText(/Sugestao da IA/i)).toBeVisible();
-    await expect(page.getByText('R$ 420')).toBeVisible();
-    await expect(page.getByText(/Evento proximo/i)).toBeVisible();
+    await expect(page.getByText('R$ 420').first()).toBeVisible();
+    await expect(page.getByText(/Evento proximo/i).first()).toBeVisible();
     await expect(page.getByRole('button', { name: /Aplicar sugest/i })).toBeVisible();
   });
 
@@ -164,6 +164,7 @@ test.describe('Dashboard recommendations', () => {
     await page.getByLabel(/Observacao/i).fill('Reserva fechada pelo Airbnb');
     await page.getByRole('button', { name: /Salvar resultado/i }).click();
 
+    await expect.poll(() => appliedPayloads.length).toBe(1);
     expect(appliedPayloads[0]).toMatchObject({
       precoAplicado: 450,
       origem: 'manual_dashboard',

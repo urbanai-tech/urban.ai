@@ -29,6 +29,12 @@ const PUBLIC_ONLY_PATHS = [
   "/contato",
   "/precos",
   "/lancamento",
+  "/precificacao-dinamica-airbnb",
+  "/como-precificar-airbnb-em-dias-de-eventos",
+  "/precificacao-por-eventos-sao-paulo",
+  "/integracao-stays-precificacao-automatica",
+  "/urban-ai-vs-planilha-de-precificacao",
+  "/seguranca-lgpd-ia-precificacao",
 ];
 
 /**
