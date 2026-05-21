@@ -40,7 +40,7 @@ const PasswordResetRequest = () => {
 
       const res = await forgotPassword(email);
 
-      if (res.status !== 201) {
+      if (res.status !== 201 || !res.data?.enviado) {
         throw new Error("Erro ao enviar e-mail de redefinição.");
       }
 
@@ -51,7 +51,7 @@ const PasswordResetRequest = () => {
 
     } catch (error: any) {
       console.error("Erro handleSubmit:", error.response?.data || error.message);
-      toast.error(error.response?.data?.message || "Erro ao enviar o e-mail de redefinição.");
+      toast.error(error.response?.data?.message || error.message || "Erro ao enviar o e-mail de redefinição.");
     } finally {
       setLoading(false);
     }
