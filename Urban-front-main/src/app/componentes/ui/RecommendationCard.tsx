@@ -802,7 +802,7 @@ export function RecommendationCard({
             onClick={handleToggle}
             aria-expanded={isMobile ? sheetOpen : expanded}
             aria-controls="recommendation-explainer"
-            className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
+            className="urban-focus-ring"
             style={{
               all: "unset",
               cursor: "pointer",
@@ -903,7 +903,7 @@ export function RecommendationCard({
               type="button"
               onClick={() => setSheetOpen(false)}
               aria-label="Fechar detalhes da sugestao"
-              className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
+              className="urban-focus-ring"
               style={{
                 all: "unset",
                 cursor: "pointer",

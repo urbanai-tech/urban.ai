@@ -290,7 +290,7 @@ function DateRangeField({
         min={min}
         max={max}
         onChange={(e) => onChange(e.target.value)}
-        className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
+        className="urban-focus-ring"
         style={{
           height: 40,
           padding: "0 14px",

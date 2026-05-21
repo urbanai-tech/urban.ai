@@ -3,7 +3,7 @@ import Footer from '../componentes/Footer'
 
 export default function InternoLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen" style={{ background: "#FAFAFB" }}>
+    <div style={{ minHeight: "100vh", background: "#FAFAFB" }}>
       {children}
       <Footer />
     </div>

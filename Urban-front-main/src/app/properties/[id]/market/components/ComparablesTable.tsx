@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from "react";
 import type { ComparableProperty } from "../../../../service/api";
 import { Info } from "../../../../componentes/ui/Icons";
+import { visuallyHiddenStyle } from "../../../../componentes/ui/styles";
 
 /**
  * <ComparablesTable> — 10 imóveis anônimos comparáveis ao seu, com ordenação
@@ -128,7 +129,7 @@ export function ComparablesTable({
             fontSize: 13,
           }}
         >
-          <caption className="sr-only">
+          <caption style={visuallyHiddenStyle}>
             Lista de {comparables.length} imóveis comparáveis ao seu, anônimos.
             Use os botões de cabeçalho pra ordenar por ADR, ocupação, distância
             ou similaridade.
@@ -360,7 +361,7 @@ function SortableColHeader({
         type="button"
         onClick={onClick}
         aria-label={`Ordenar por ${label}`}
-        className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-[-2px]"
+        className="urban-focus-ring"
         style={{
           width: "100%",
           padding: "12px 16px",

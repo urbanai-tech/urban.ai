@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import type { MarketIntelDailyPoint } from "../../../../service/api";
+import { visuallyHiddenStyle } from "../../../../componentes/ui/styles";
 
 /**
  * <AdrComparisonChart> — SVG inline 2 séries (sua ADR vs mediana comp set).
@@ -162,7 +163,7 @@ export function AdrComparisonChart({
 
   return (
     <div style={{ position: "relative", width: "100%" }}>
-      <p className="sr-only">{trendText}</p>
+      <p style={visuallyHiddenStyle}>{trendText}</p>
       <svg
         role="img"
         aria-label={`Gráfico comparativo de ADR diário (sua propriedade vs mediana do comp set), ${data.length} dias.`}

@@ -334,7 +334,7 @@ function Switch({
       aria-label={label}
       onClick={() => !disabled && onChange(!checked)}
       disabled={disabled}
-      className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
+      className="urban-focus-ring"
       style={{
         width: 40,
         height: 22,
@@ -415,7 +415,7 @@ export function PricingRuleCard({
             onToggleExpanded();
           }
         }}
-        className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-[-2px]"
+        className="urban-focus-ring"
         style={{
           display: "flex",
           alignItems: "center",

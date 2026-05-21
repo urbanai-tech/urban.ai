@@ -370,7 +370,7 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
             ref={closeBtnRef}
             onClick={onClose}
             aria-label="Fechar Ask Urban"
-            className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
+            className="urban-focus-ring"
             style={{
               background: "transparent",
               border: "none",
@@ -483,7 +483,7 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
               onClick={() => void sendQuestion(input)}
               disabled={inputDisabled || input.trim().length === 0}
               aria-label="Enviar pergunta"
-              className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
+              className="urban-focus-ring"
               style={{
                 background: "var(--app-accent)",
                 color: "#FFFFFF",
@@ -620,7 +620,7 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
           <button
             key={s}
             onClick={() => onPick(s)}
-            className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
+            className="urban-focus-ring"
             style={{
               textAlign: "left",
               background: "var(--app-surface, #FFFFFF)",
@@ -739,7 +739,7 @@ function MessageBubble({
                 key={c.id}
                 onClick={() => onCitationClick(c)}
                 aria-label={c.url ? `Abrir fonte: ${c.label}` : c.label}
-                className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
+                className="urban-focus-ring"
                 style={{
                   fontSize: 11,
                   padding: "4px 10px",
@@ -812,7 +812,7 @@ function FeedbackButton({
       disabled={disabled}
       aria-label={vote === "up" ? "Resposta útil" : "Resposta não útil"}
       aria-pressed={active}
-      className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
+      className="urban-focus-ring"
       style={{
         background: active ? "rgba(232, 80, 10, 0.08)" : "transparent",
         border: "1px solid",

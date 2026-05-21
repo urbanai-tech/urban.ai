@@ -157,6 +157,7 @@ function FooterLink({
     borderBottom: "1px solid transparent",
     transition: "color 120ms, border-color 120ms",
     paddingBottom: 2,
+    borderRadius: 2,
   };
 
   function onEnter(e: React.MouseEvent<HTMLAnchorElement>) {
@@ -184,7 +185,7 @@ function FooterLink({
         target={openInNewTab ? "_blank" : undefined}
         rel={openInNewTab ? "noopener noreferrer" : undefined}
         style={baseStyle}
-        className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2 rounded-sm"
+        className="urban-focus-ring"
         onMouseEnter={onEnter}
         onMouseLeave={onLeave}
         onFocus={onFocus}
@@ -199,7 +200,7 @@ function FooterLink({
     <NextLink
       href={href}
       style={baseStyle}
-      className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2 rounded-sm"
+      className="urban-focus-ring"
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
       onFocus={onFocus}
