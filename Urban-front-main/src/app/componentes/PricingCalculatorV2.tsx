@@ -1,18 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import type { BillingCycle, Plan } from "../service/api";
 import { createCheckoutSession } from "../service/api";
+import { Check } from "./ui/Icons";
 
 /**
- * Calculadora de preço F6.5: cobrança por imóvel × 4 ciclos com desconto.
+ * Calculadora de preco F6.5: cobranca por imovel x 4 ciclos com desconto.
  *
- * Mostra:
- *  - seletor de 4 ciclos (mensal / trimestral / semestral / anual) com desconto
- *  - seletor de quantidade de imóveis (1, 3, 5, 10, custom)
- *  - cálculo de total mensal equivalente + total cobrado no ciclo
- *  - CTA que abre o checkout Stripe com a combinação escolhida
+ * Mantem a estetica manifesto da tela /plans sem depender de classes Tailwind.
  */
 
 const CYCLES: { value: BillingCycle; label: string; mesesNoCiclo: number }[] = [
@@ -27,17 +24,60 @@ const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
   : null;
 
+const cardStyle: CSSProperties = {
+  padding: 24,
+  border: "1px solid rgba(255,255,255,0.12)",
+  borderRadius: 16,
+  background: "rgba(15,23,42,0.42)",
+  boxShadow: "0 18px 45px rgba(0,0,0,0.24)",
+};
+
+const labelStyle: CSSProperties = {
+  margin: "0 0 8px",
+  fontSize: 14,
+  fontWeight: 650,
+  color: "rgba(248,250,252,0.72)",
+};
+
+const mutedTextStyle: CSSProperties = {
+  margin: 0,
+  fontSize: 14,
+  color: "rgba(248,250,252,0.68)",
+  lineHeight: 1.55,
+};
+
+const smallMutedStyle: CSSProperties = {
+  fontSize: 12,
+  color: "rgba(248,250,252,0.42)",
+};
+
+function optionButtonStyle(selected: boolean): CSSProperties {
+  return {
+    minHeight: 46,
+    padding: "8px 12px",
+    borderRadius: 10,
+    border: selected
+      ? "1px solid rgba(232,80,10,0.72)"
+      : "1px solid rgba(148,163,184,0.28)",
+    background: selected ? "rgba(232,80,10,0.14)" : "rgba(15,23,42,0.54)",
+    color: selected ? "#FFE4D6" : "rgba(248,250,252,0.76)",
+    fontSize: 14,
+    fontWeight: 650,
+    cursor: "pointer",
+    transition: "border-color 140ms, background 140ms",
+  };
+}
+
 function priceForCycle(plan: Plan, cycle: BillingCycle): number {
   const raw =
     cycle === "monthly"
       ? plan.priceMonthly
       : cycle === "quarterly"
-      ? plan.priceQuarterly
-      : cycle === "semestral"
-      ? plan.priceSemestral
-      : plan.priceAnnualNew;
+        ? plan.priceQuarterly
+        : cycle === "semestral"
+          ? plan.priceSemestral
+          : plan.priceAnnualNew;
   if (!raw) return 0;
-  // Aceita "97" ou "97,50"
   return Number(String(raw).replace(",", "."));
 }
 
@@ -62,9 +102,16 @@ export function PricingCalculatorV2({ plan }: { plan: Plan }) {
 
   if (plan.isCustomPrice) {
     return (
-      <div className="p-6 border border-slate-700 rounded-xl bg-slate-900/40">
-        <p className="text-slate-300">
-          Plano <strong>{plan.title}</strong> tem preço sob consulta. Fale com a gente em <a href="mailto:comercial@myurbanai.com" className="text-emerald-400">comercial@myurbanai.com</a>.
+      <div style={{ ...cardStyle, borderRadius: 12 }}>
+        <p style={mutedTextStyle}>
+          Plano <strong>{plan.title}</strong> tem preco sob consulta. Fale com a gente em{" "}
+          <a
+            href="mailto:comercial@myurbanai.com"
+            style={{ color: "#E8500A", fontWeight: 700 }}
+          >
+            comercial@myurbanai.com
+          </a>
+          .
         </p>
       </div>
     );
@@ -103,27 +150,55 @@ export function PricingCalculatorV2({ plan }: { plan: Plan }) {
   }
 
   return (
-    <div className="p-6 border border-slate-700 rounded-2xl bg-slate-900/40 space-y-6">
-      <header className="flex items-baseline justify-between gap-4">
+    <div style={{ ...cardStyle, display: "flex", flexDirection: "column", gap: 24 }}>
+      <header style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16 }}>
         <div>
-          <h3 className="text-2xl font-bold">{plan.title}</h3>
+          <h3 style={{ margin: 0, fontSize: 24, lineHeight: 1.15, fontWeight: 800 }}>
+            {plan.title}
+          </h3>
           {plan.highlightBadge && (
-            <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
+            <span
+              style={{
+                display: "inline-block",
+                marginTop: 6,
+                fontSize: 12,
+                fontWeight: 800,
+                color: "#FFB088",
+                textTransform: "uppercase",
+                letterSpacing: 1.8,
+              }}
+            >
               {plan.highlightBadge}
             </span>
           )}
         </div>
         {discount > 0 && (
-          <span className="text-xs font-bold px-2 py-1 rounded bg-emerald-500/20 text-emerald-300">
+          <span
+            style={{
+              padding: "4px 8px",
+              borderRadius: 6,
+              background: "rgba(232,80,10,0.16)",
+              color: "#FFB088",
+              fontSize: 12,
+              fontWeight: 800,
+              whiteSpace: "nowrap",
+            }}
+          >
             -{discount}%
           </span>
         )}
       </header>
 
-      {/* Seletor de ciclos */}
-      <fieldset>
-        <legend className="text-sm font-semibold mb-2 text-slate-300">Ciclo de cobrança</legend>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="radiogroup">
+      <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+        <legend style={labelStyle}>Ciclo de cobranca</legend>
+        <div
+          role="radiogroup"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(104px, 1fr))",
+            gap: 8,
+          }}
+        >
           {CYCLES.map((c) => {
             const selected = cycle === c.value;
             const cycleDiscount = discountForCycle(plan, c.value);
@@ -134,17 +209,19 @@ export function PricingCalculatorV2({ plan }: { plan: Plan }) {
                 role="radio"
                 aria-checked={selected}
                 onClick={() => setCycle(c.value)}
-                className={`flex flex-col items-center justify-center px-3 py-2 rounded-lg border transition-colors text-sm ${
-                  selected
-                    ? "border-emerald-500 bg-emerald-500/10 text-emerald-200"
-                    : "border-slate-700 bg-slate-800/50 text-slate-300 hover:border-slate-500"
-                }`}
+                style={{
+                  ...optionButtonStyle(selected),
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
-                <span className="font-semibold">{c.label}</span>
+                <span>{c.label}</span>
                 {cycleDiscount > 0 ? (
-                  <span className="text-xs text-emerald-400">-{cycleDiscount}%</span>
+                  <span style={{ fontSize: 12, color: "#FFB088" }}>-{cycleDiscount}%</span>
                 ) : (
-                  <span className="text-xs text-slate-500">base</span>
+                  <span style={smallMutedStyle}>base</span>
                 )}
               </button>
             );
@@ -152,10 +229,17 @@ export function PricingCalculatorV2({ plan }: { plan: Plan }) {
         </div>
       </fieldset>
 
-      {/* Seletor de quantidade */}
-      <fieldset>
-        <legend className="text-sm font-semibold mb-2 text-slate-300">Quantos imóveis?</legend>
-        <div className="grid grid-cols-4 gap-2 mb-2" role="radiogroup">
+      <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+        <legend style={labelStyle}>Quantos imoveis?</legend>
+        <div
+          role="radiogroup"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+            gap: 8,
+            marginBottom: 8,
+          }}
+        >
           {QUANTITY_PRESETS.map((n) => {
             const selected = quantity === n;
             return (
@@ -165,18 +249,22 @@ export function PricingCalculatorV2({ plan }: { plan: Plan }) {
                 role="radio"
                 aria-checked={selected}
                 onClick={() => setQuantity(n)}
-                className={`px-3 py-2 rounded-lg border text-sm font-semibold transition-colors ${
-                  selected
-                    ? "border-emerald-500 bg-emerald-500/10 text-emerald-200"
-                    : "border-slate-700 bg-slate-800/50 text-slate-300 hover:border-slate-500"
-                }`}
+                style={optionButtonStyle(selected)}
               >
                 {n}
               </button>
             );
           })}
         </div>
-        <label className="flex items-center gap-2 text-sm text-slate-400">
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontSize: 14,
+            color: "rgba(248,250,252,0.58)",
+          }}
+        >
           ou
           <input
             type="number"
@@ -184,33 +272,52 @@ export function PricingCalculatorV2({ plan }: { plan: Plan }) {
             max={500}
             value={quantity}
             onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value || "1", 10)))}
-            className="w-20 px-2 py-1 rounded bg-slate-800 border border-slate-700 text-slate-50"
-            aria-label="Quantidade customizada de imóveis"
+            aria-label="Quantidade customizada de imoveis"
+            style={{
+              width: 80,
+              padding: "6px 8px",
+              borderRadius: 8,
+              border: "1px solid rgba(148,163,184,0.28)",
+              background: "rgba(15,23,42,0.78)",
+              color: "#F8FAFC",
+            }}
           />
           custom
         </label>
       </fieldset>
 
-      {/* Cálculo */}
-      <div className="rounded-lg bg-slate-950/60 border border-slate-800 p-4 space-y-1">
-        <p className="text-sm text-slate-400">
-          Preço por imóvel: <strong className="text-slate-100">R$ {pricePerImovelMes.toFixed(2)}/mês</strong>
+      <div
+        style={{
+          padding: 16,
+          borderRadius: 10,
+          border: "1px solid rgba(255,255,255,0.08)",
+          background: "rgba(2,6,23,0.50)",
+          display: "flex",
+          flexDirection: "column",
+          gap: 6,
+        }}
+      >
+        <p style={mutedTextStyle}>
+          Preco por imovel: <strong style={{ color: "#F8FAFC" }}>R$ {pricePerImovelMes.toFixed(2)}/mes</strong>
         </p>
-        <p className="text-sm text-slate-400">
-          Total mensal equivalente ({quantity} imóveis): <strong className="text-slate-100">R$ {totalMensalEquivalente.toFixed(2)}</strong>
+        <p style={mutedTextStyle}>
+          Total mensal equivalente ({quantity} imoveis):{" "}
+          <strong style={{ color: "#F8FAFC" }}>R$ {totalMensalEquivalente.toFixed(2)}</strong>
         </p>
-        <p className="text-base text-emerald-300">
-          Cobrança no ciclo {cycleMeta.label.toLowerCase()}: <strong>R$ {totalNoCiclo.toFixed(2)}</strong>
+        <p style={{ margin: 0, fontSize: 16, color: "#FFB088" }}>
+          Cobranca no ciclo {cycleMeta.label.toLowerCase()}: <strong>R$ {totalNoCiclo.toFixed(2)}</strong>
         </p>
         {discount > 0 && (
-          <p className="text-xs text-slate-500">
-            Você economiza R$ {(pricePerImovelMes * 100 / (100 - discount) * quantity * cycleMeta.mesesNoCiclo - totalNoCiclo).toFixed(2)} no ciclo escolhido vs. mensal cheio.
+          <p style={smallMutedStyle}>
+            Voce economiza R${" "}
+            {(pricePerImovelMes * 100 / (100 - discount) * quantity * cycleMeta.mesesNoCiclo - totalNoCiclo).toFixed(2)}{" "}
+            no ciclo escolhido vs. mensal cheio.
           </p>
         )}
       </div>
 
       {error && (
-        <p role="alert" className="text-sm text-red-400">
+        <p role="alert" style={{ margin: 0, fontSize: 14, color: "#F87171" }}>
           {error}
         </p>
       )}
@@ -219,15 +326,39 @@ export function PricingCalculatorV2({ plan }: { plan: Plan }) {
         type="button"
         onClick={handleSubscribe}
         disabled={busy || pricePerImovelMes <= 0}
-        className="w-full px-4 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        style={{
+          width: "100%",
+          minHeight: 48,
+          padding: "0 16px",
+          borderRadius: 10,
+          border: "1px solid #E8500A",
+          background: "#E8500A",
+          color: "#FFFFFF",
+          fontWeight: 800,
+          cursor: busy || pricePerImovelMes <= 0 ? "not-allowed" : "pointer",
+          opacity: busy || pricePerImovelMes <= 0 ? 0.55 : 1,
+        }}
       >
-        {busy ? "Abrindo checkout…" : `Assinar — R$ ${totalNoCiclo.toFixed(2)} no ciclo`}
+        {busy ? "Abrindo checkout..." : `Assinar - R$ ${totalNoCiclo.toFixed(2)} no ciclo`}
       </button>
 
-      <ul className="space-y-1 text-sm text-slate-300">
+      <ul
+        style={{
+          margin: 0,
+          padding: 0,
+          listStyle: "none",
+          display: "flex",
+          flexDirection: "column",
+          gap: 6,
+          color: "rgba(248,250,252,0.74)",
+          fontSize: 14,
+        }}
+      >
         {plan.features.map((f, i) => (
-          <li key={i} className="flex items-start gap-2">
-            <span className="text-emerald-400">✓</span>
+          <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+            <span style={{ color: "#FFB088", display: "inline-flex", marginTop: 2 }}>
+              <Check size={14} />
+            </span>
             <span>{f}</span>
           </li>
         ))}

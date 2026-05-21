@@ -6,7 +6,7 @@ export default function AddressVerificationLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen" style={{ background: "#FAFAFB" }}>
+    <div style={{ minHeight: "100vh", background: "#FAFAFB" }}>
       {children}
       <Footer />
     </div>
