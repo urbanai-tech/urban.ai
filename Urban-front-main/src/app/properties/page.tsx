@@ -1,29 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Flex,
-  Heading,
-  Text,
-  Image,
-  Input,
-  InputGroup,
-  InputLeftElement,
-  Button,
-  IconButton,
-  Stack,
-  Center,
-  Spinner,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
-  useDisclosure,
-} from '@chakra-ui/react';
-import { AddIcon, CheckIcon, CloseIcon, DeleteIcon, EditIcon, ExternalLinkIcon, SearchIcon } from '@chakra-ui/icons';
+import { Check, Clock, Edit2, ExternalLink, Plus, Search, Trash2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import '../../../i18n';
 import {
@@ -35,8 +13,41 @@ import {
   updatePropertyIdentity,
   updatePropertyPricingInputs,
 } from '../service/api';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { AddPropertyModal } from '../componentes/AddPropertyModal';
+import {
+  AppButton,
+  AppCard,
+  AppEmptyState,
+  AppInput,
+  AppPageShell,
+  AppSectionHeader,
+} from '../componentes/ui';
+
+type PricingDraft = { manualDailyPrice: string; averageMonthlyRevenue: string };
+type IdentityDraft = { internalNickname: string; internalCode: string };
+
+function LoadingSpinner() {
+  return <span className="properties-spinner" aria-label="Carregando" />;
+}
+
+function PropertyThumb({ src, alt }: { src?: string | null; alt: string }) {
+  const [errored, setErrored] = useState(false);
+  const initial = (alt?.charAt(0) || '?').toUpperCase();
+
+  if (!src || errored) {
+    return <div className="properties-thumb-fallback">{initial}</div>;
+  }
+
+  return (
+    <img
+      className="properties-thumb"
+      src={src}
+      alt={alt}
+      onError={() => setErrored(true)}
+    />
+  );
+}
 
 export default function MyProperties() {
   const { t } = useTranslation();
@@ -46,17 +57,13 @@ export default function MyProperties() {
   const [savingIdentity, setSavingIdentity] = useState<string | null>(null);
   const [editingIdentity, setEditingIdentity] = useState<string | null>(null);
   const [propertySearch, setPropertySearch] = useState('');
-  const [pricingDrafts, setPricingDrafts] = useState<Record<string, { manualDailyPrice: string; averageMonthlyRevenue: string }>>({});
-  const [identityDrafts, setIdentityDrafts] = useState<Record<string, { internalNickname: string; internalCode: string }>>({});
+  const [pricingDrafts, setPricingDrafts] = useState<Record<string, PricingDraft>>({});
+  const [identityDrafts, setIdentityDrafts] = useState<Record<string, IdentityDraft>>({});
   const [openHistory, setOpenHistory] = useState<string | null>(null);
   const [loadingHistory, setLoadingHistory] = useState<string | null>(null);
   const [pricingHistory, setPricingHistory] = useState<Record<string, PricingInputHistory[]>>({});
-  
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const cancelRef = React.useRef<HTMLButtonElement>(null);
   const [propertyToDelete, setPropertyToDelete] = useState<string | null>(null);
-
-  const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclosure();
+  const [isAddOpen, setIsAddOpen] = useState(false);
 
   const fetchProperties = async () => {
     setLoading(true);
@@ -90,30 +97,28 @@ export default function MyProperties() {
 
   const handleDeleteRequest = (id: string) => {
     setPropertyToDelete(id);
-    onOpen();
+  };
+
+  const closeDeleteDialog = () => {
+    setPropertyToDelete(null);
   };
 
   const confirmDelete = async () => {
     if (!propertyToDelete) return;
-    
+
     try {
       await requestDeleteAddress(propertyToDelete);
-      toast("Propriedade excluída", { type: "success" });
+      toast("Propriedade excluida", { type: "success" });
       setProperties((prev) => prev.filter((prop) => prop.id !== propertyToDelete));
     } catch (error) {
       toast("Erro ao excluir propriedade", { type: "error" });
-      console.error('Erro ao deletar imóvel:', error);
+      console.error('Erro ao deletar imovel:', error);
     } finally {
-      onClose();
-      setPropertyToDelete(null);
+      closeDeleteDialog();
     }
   };
 
-  const handleAddProperty = () => {
-    onAddOpen();
-  };
-
-  const updateDraft = (id: string, field: 'manualDailyPrice' | 'averageMonthlyRevenue', value: string) => {
+  const updateDraft = (id: string, field: keyof PricingDraft, value: string) => {
     setPricingDrafts((prev) => ({
       ...prev,
       [id]: {
@@ -124,7 +129,7 @@ export default function MyProperties() {
     }));
   };
 
-  const updateIdentityDraft = (id: string, field: 'internalNickname' | 'internalCode', value: string) => {
+  const updateIdentityDraft = (id: string, field: keyof IdentityDraft, value: string) => {
     setIdentityDrafts((prev) => ({
       ...prev,
       [id]: {
@@ -191,7 +196,7 @@ export default function MyProperties() {
     const manualDailyPrice = parseMoney(draft.manualDailyPrice);
 
     if (!manualDailyPrice) {
-      toast("Informe uma diária base válida para este imóvel.", { type: "warning" });
+      toast("Informe uma diaria base valida para este imovel.", { type: "warning" });
       return;
     }
 
@@ -207,9 +212,9 @@ export default function MyProperties() {
         delete next[prop.id];
         return next;
       });
-      toast("Preço base salvo. As próximas análises usarão este valor.", { type: "success" });
+      toast("Preco base salvo. As proximas analises usarao este valor.", { type: "success" });
     } catch (error) {
-      toast("Erro ao salvar preço base do imóvel.", { type: "error" });
+      toast("Erro ao salvar preco base do imovel.", { type: "error" });
       console.error('Erro ao salvar inputs de pricing:', error);
     } finally {
       setSavingPricing(null);
@@ -230,8 +235,8 @@ export default function MyProperties() {
       const history = await getPropertyPricingInputHistory(propId, 10);
       setPricingHistory((prev) => ({ ...prev, [propId]: history }));
     } catch (error) {
-      toast("Erro ao carregar histórico de preço.", { type: "error" });
-      console.error('Erro ao carregar histórico de inputs de pricing:', error);
+      toast("Erro ao carregar historico de preco.", { type: "error" });
+      console.error('Erro ao carregar historico de inputs de pricing:', error);
     } finally {
       setLoadingHistory(null);
     }
@@ -278,456 +283,667 @@ export default function MyProperties() {
     ].some((value) => normalizeSearch(value).includes(searchNeedle));
   });
 
-  // Local: thumb com fallback. Evita imagem quebrada com alt text exposto
-  // (bug capturado no screenshot host-propriedades.png da auditoria 2026-05-16).
-  function PropertyThumb({ src, alt }: { src?: string | null; alt: string }) {
-    const [errored, setErrored] = useState(false);
-    const initial = (alt?.charAt(0) || '?').toUpperCase();
-    if (!src || errored) {
-      return (
-        <Flex
-          boxSize="60px"
-          borderRadius="md"
-          bg="gray.100"
-          borderWidth="1px"
-          borderColor="gray.200"
-          align="center"
-          justify="center"
-          fontWeight="bold"
-          color="gray.500"
-          fontSize="lg"
-          flexShrink={0}
-        >
-          {initial}
-        </Flex>
-      );
-    }
-    return (
-      <Image
-        src={src}
-        alt={alt}
-        boxSize="60px"
-        objectFit="cover"
-        borderRadius="md"
-        flexShrink={0}
-        onError={() => setErrored(true)}
-      />
-    );
-  }
-
   if (loading) {
     return (
-      <Center height="300px">
-        <Spinner size="xl" />
-      </Center>
+      <AppPageShell maxWidth={1180}>
+        <div className="properties-loading">
+          <LoadingSpinner />
+        </div>
+        <style jsx>{styles}</style>
+      </AppPageShell>
     );
   }
 
   return (
-    <Box w="full" mx="auto" px={{ base: 4, md: 6 }} py={8} bg="white" borderRadius="md" shadow="sm">
-      <Flex
-        direction={{ base: 'column', sm: 'row' }}
-        justify="space-between"
-        align={{ base: 'stretch', sm: 'center' }}
-        gap={4}
-        mb={6}
-      >
-        <Heading size="lg">{t('my_properties.title')}</Heading>
-        <Button
-          leftIcon={<AddIcon />}
-          variant="outline"
-          size="sm"
-          alignSelf={{ base: 'flex-start', sm: 'auto' }}
-          onClick={handleAddProperty}
-        >
-          {t('my_properties.add_property')}
-        </Button>
-      </Flex>
-
-      <Flex
-        direction={{ base: 'column', md: 'row' }}
-        align={{ base: 'stretch', md: 'center' }}
-        justify="space-between"
-        gap={3}
-        mb={5}
-      >
-        <InputGroup maxW={{ base: 'full', md: '520px' }}>
-          <InputLeftElement pointerEvents="none">
-            <SearchIcon color="gray.400" boxSize={3.5} />
-          </InputLeftElement>
-          <Input
-            value={propertySearch}
-            onChange={(event) => setPropertySearch(event.target.value)}
-            placeholder="Filtrar por apelido, codigo, titulo ou ID Airbnb"
-            bg="white"
-            borderColor="gray.200"
+    <AppPageShell maxWidth={1180}>
+      <AppSectionHeader
+        eyebrow="PORTFOLIO"
+        title={t('my_properties.title')}
+        subtitle="Organize apelidos, codigos internos e valores base usados pela IA."
+        actions={
+          <AppButton
+            variant="secondary"
             size="sm"
-            pl={9}
-          />
-        </InputGroup>
-        <Flex align="center" gap={2} justify={{ base: 'space-between', md: 'flex-end' }}>
-          <Text fontSize="sm" color="gray.500">
-            {filteredProperties.length} de {properties.length} imoveis
-          </Text>
-          {propertySearch && (
-            <IconButton
-              aria-label="Limpar filtro"
-              icon={<CloseIcon />}
-              size="xs"
-              variant="ghost"
-              color="gray.500"
-              onClick={() => setPropertySearch('')}
-            />
-          )}
-        </Flex>
-      </Flex>
-
-      <Stack spacing={4} mb={4}>
-        {filteredProperties.map((prop) => {
-          const airbnbUrl = getAirbnbRoomUrl(prop.id_do_anuncio);
-          const isEditingIdentity = editingIdentity === prop.id;
-          const identityDraft = identityDrafts[prop.id] ?? { internalNickname: '', internalCode: '' };
-          const locationLabel = (prop as any).neighborhood || (prop as any).city || (prop as any).address || 'Imovel cadastrado';
-          const secondaryLabel = prop.internalNickname ? prop.propertyName : locationLabel;
-          const detailLabel = [
-            prop.id_do_anuncio ? `Airbnb ${prop.id_do_anuncio}` : null,
-            prop.internalNickname ? locationLabel : null,
-          ].filter(Boolean).join(' - ');
-
-          return (
-          <Box key={prop.id} borderBottom="1px solid" borderColor="gray.100">
-          <Flex
-            align={{ base: 'stretch', md: 'center' }}
-            justify="space-between"
-            direction={{ base: 'column', md: 'row' }}
-            gap={4}
-            p={3}
-            borderRadius="md"
-            _hover={{ bg: 'gray.50' }}
+            leftIcon={<Plus size={15} />}
+            onClick={() => setIsAddOpen(true)}
           >
-            <Flex align="center">
-              <PropertyThumb src={prop.image_url} alt={prop.propertyName} />
-              <Box ml={4} minW={0} flex="1">
-                {isEditingIdentity ? (
-                  <Stack spacing={2} maxW={{ base: 'full', md: '460px' }}>
-                    <Flex gap={2} direction={{ base: 'column', sm: 'row' }}>
-                      <Input
-                        size="sm"
-                        placeholder="Apelido interno"
-                        maxLength={80}
-                        value={identityDraft.internalNickname}
-                        onChange={(event) => updateIdentityDraft(prop.id, 'internalNickname', event.target.value)}
-                      />
-                      <Input
-                        size="sm"
-                        placeholder="Codigo"
-                        maxLength={32}
-                        value={identityDraft.internalCode}
-                        onChange={(event) => updateIdentityDraft(prop.id, 'internalCode', event.target.value)}
-                        w={{ base: 'full', sm: '140px' }}
-                      />
-                    </Flex>
-                    <Flex gap={2}>
-                      <Button
-                        size="xs"
-                        leftIcon={<CheckIcon />}
-                        colorScheme="green"
-                        isLoading={savingIdentity === prop.id}
-                        onClick={() => saveIdentity(prop)}
-                      >
-                        Salvar ID
-                      </Button>
-                      <Button
-                        size="xs"
-                        variant="ghost"
-                        leftIcon={<CloseIcon />}
-                        onClick={() => cancelIdentityEdit(prop)}
-                      >
-                        Cancelar
-                      </Button>
-                    </Flex>
-                  </Stack>
-                ) : (
-                  <>
-                    <Flex align="center" gap={2} wrap="wrap">
-                      <Text fontWeight="medium" noOfLines={1}>
-                        {prop.internalNickname || prop.propertyName}
-                      </Text>
-                      {prop.internalCode && (
-                        <Text
-                          as="span"
-                          fontSize="2xs"
-                          color="gray.600"
-                          bg="gray.100"
-                          borderRadius="md"
-                          px={2}
-                          py={0.5}
-                          fontWeight="semibold"
-                        >
-                          {prop.internalCode}
-                        </Text>
-                      )}
-                      <IconButton
-                        aria-label="Editar apelido e codigo do imovel"
-                        icon={<EditIcon />}
-                        size="xs"
-                        variant="ghost"
-                        color="gray.500"
-                        onClick={() => editIdentity(prop)}
-                      />
-                    </Flex>
-                    <Text fontSize="sm" color="gray.500" noOfLines={1}>
-                      {secondaryLabel}
-                    </Text>
-                    {detailLabel && (
-                      <Text fontSize="xs" color="gray.400" noOfLines={1}>
-                        {detailLabel}
-                      </Text>
-                    )}
-                  </>
-                )}
-              </Box>
-            </Flex>
-            <Flex
-              align={{ base: 'stretch', md: 'flex-end' }}
-              gap={3}
-              direction={{ base: 'column', md: 'row' }}
-            >
-              <Box>
-                <Text
-                  fontSize="2xs"
-                  textTransform="uppercase"
-                  letterSpacing="wider"
-                  color="gray.500"
-                  fontWeight="semibold"
-                  mb={1}
-                >
-                  Diária base
-                </Text>
-                <Flex
-                  align="center"
-                  borderWidth="1px"
-                  borderColor="gray.200"
-                  borderRadius="md"
-                  pl={2}
-                  bg="white"
-                  w={{ base: 'full', md: '160px' }}
-                  _focusWithin={{ borderColor: 'blue.500' }}
-                >
-                  <Text fontSize="sm" color="gray.500" mr={1}>R$</Text>
-                  <Input
-                    size="sm"
-                    border="none"
-                    pl={0}
-                    placeholder="0,00"
-                    inputMode="decimal"
-                    value={pricingDrafts[prop.id]?.manualDailyPrice ?? ''}
-                    onChange={(event) => updateDraft(prop.id, 'manualDailyPrice', event.target.value)}
-                  />
-                </Flex>
-              </Box>
-              <Box>
-                <Text
-                  fontSize="2xs"
-                  textTransform="uppercase"
-                  letterSpacing="wider"
-                  color="gray.500"
-                  fontWeight="semibold"
-                  mb={1}
-                >
-                  Receita média / mês
-                </Text>
-                <Flex
-                  align="center"
-                  borderWidth="1px"
-                  borderColor="gray.200"
-                  borderRadius="md"
-                  pl={2}
-                  bg="white"
-                  w={{ base: 'full', md: '180px' }}
-                  _focusWithin={{ borderColor: 'blue.500' }}
-                >
-                  <Text fontSize="sm" color="gray.500" mr={1}>R$</Text>
-                  <Input
-                    size="sm"
-                    border="none"
-                    pl={0}
-                    placeholder="0,00"
-                    inputMode="decimal"
-                    value={pricingDrafts[prop.id]?.averageMonthlyRevenue ?? ''}
-                    onChange={(event) => updateDraft(prop.id, 'averageMonthlyRevenue', event.target.value)}
-                  />
-                </Flex>
-              </Box>
-              <Flex gap={2} align="center" mt={{ base: 2, md: 5 }}>
-                <Button
-                  size="sm"
-                  bg="#E8500A"
-                  color="white"
-                  borderRadius="10px"
-                  fontWeight="600"
-                  letterSpacing="0.2px"
-                  _hover={{ bg: '#D14609' }}
-                  _active={{ bg: '#C04209' }}
-                  _focus={{ boxShadow: '0 0 0 3px rgba(232, 80, 10, 0.30)' }}
-                  isLoading={savingPricing === prop.id}
-                  onClick={() => savePricingInputs(prop)}
-                >
-                  Salvar
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  color="gray.600"
-                  isLoading={loadingHistory === prop.id}
-                  onClick={() => loadPricingHistory(prop.id)}
-                >
-                  Histórico
-                </Button>
-                {airbnbUrl ? (
-                  <Button
-                    as="a"
-                    href={airbnbUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    size="sm"
-                    variant="ghost"
-                    color="gray.600"
-                    leftIcon={<ExternalLinkIcon />}
-                  >
-                    Abrir
-                  </Button>
-                ) : (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    color="gray.400"
-                    leftIcon={<ExternalLinkIcon />}
-                    isDisabled
-                  >
-                    Abrir
-                  </Button>
-                )}
-                <IconButton
-                  aria-label={t('my_properties.delete')}
-                  icon={<DeleteIcon />}
-                  variant="ghost"
-                  color="red.600"
-                  size="sm"
-                  onClick={() => handleDeleteRequest(prop.id)}
-                />
-              </Flex>
-            </Flex>
-          </Flex>
-
-          {/* Detalhes técnicos (lat/lng) — colapsado em <details> nativo */}
-          <Box px={3} pb={2}>
-            <details>
-              <summary
-                style={{
-                  cursor: 'pointer',
-                  fontSize: 11,
-                  letterSpacing: 0.5,
-                  textTransform: 'uppercase',
-                  color: '#94a3b8',
-                  fontWeight: 600,
-                  outline: 'none',
-                }}
-              >
-                Detalhes técnicos
-              </summary>
-              <Text fontSize="xs" color="gray.500" mt={1} fontFamily="monospace">
-                Latitude {prop.latitude} · Longitude {prop.longitude}
-              </Text>
-            </details>
-          </Box>
-          {openHistory === prop.id && (
-            <Box px={3} pb={3}>
-              <Text fontSize="sm" fontWeight="semibold" mb={2}>
-                Últimas alterações de preço base
-              </Text>
-              {(pricingHistory[prop.id] ?? []).length === 0 ? (
-                <Text fontSize="sm" color="gray.500">
-                  Nenhuma alteração registrada ainda.
-                </Text>
-              ) : (
-                <Stack spacing={2}>
-                  {pricingHistory[prop.id].map((item) => (
-                    <Flex
-                      key={item.id}
-                      justify="space-between"
-                      gap={3}
-                      direction={{ base: 'column', md: 'row' }}
-                      fontSize="sm"
-                      color="gray.700"
-                    >
-                      <Text color="gray.500">{formatDateTime(item.createdAt)}</Text>
-                      <Text>
-                        Diária {formatMoney(item.previousManualDailyPrice)} -&gt; {formatMoney(item.newManualDailyPrice)}
-                      </Text>
-                      <Text>
-                        Mês {formatMoney(item.previousAverageMonthlyRevenue)} -&gt; {formatMoney(item.newAverageMonthlyRevenue)}
-                      </Text>
-                    </Flex>
-                  ))}
-                </Stack>
-              )}
-            </Box>
-          )}
-          </Box>
-          );
-        })}
-      </Stack>
-
-      {properties.length > 0 && filteredProperties.length === 0 && (
-        <Box borderWidth="1px" borderColor="gray.100" borderRadius="md" p={6} textAlign="center">
-          <Text color="gray.500" fontSize="sm">
-            Nenhum imovel encontrado para esse filtro.
-          </Text>
-        </Box>
-      )}
-
-      <AlertDialog
-        isOpen={isOpen}
-        leastDestructiveRef={cancelRef}
-        onClose={onClose}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent borderRadius="12px">
-            <AlertDialogHeader fontSize="lg" fontWeight="600">
-              Excluir propriedade?
-            </AlertDialogHeader>
-
-            <AlertDialogBody color="gray.600">
-              O motor de IA não atualizará mais os preços desta unidade.
-              Esta ação não pode ser desfeita.
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose} variant="ghost">
-                Cancelar
-              </Button>
-              <Button
-                bg="red.600"
-                color="white"
-                _hover={{ bg: 'red.700' }}
-                onClick={confirmDelete}
-                ml={3}
-              >
-                Excluir
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
-
-      <AddPropertyModal 
-        isOpen={isAddOpen} 
-        onClose={onAddClose} 
-        onSuccess={fetchProperties} 
+            {t('my_properties.add_property')}
+          </AppButton>
+        }
       />
 
-      <ToastContainer />
-    </Box>
+      <AppCard variant="default" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="properties-toolbar">
+          <label className="properties-search">
+            <Search size={15} />
+            <input
+              value={propertySearch}
+              onChange={(event) => setPropertySearch(event.target.value)}
+              placeholder="Filtrar por apelido, codigo, titulo ou ID Airbnb"
+            />
+          </label>
+          <div className="properties-count">
+            <span>{filteredProperties.length} de {properties.length} imoveis</span>
+            {propertySearch && (
+              <button
+                aria-label="Limpar filtro"
+                className="properties-icon-button"
+                type="button"
+                onClick={() => setPropertySearch('')}
+              >
+                <X size={15} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="properties-list">
+          {filteredProperties.map((prop) => {
+            const airbnbUrl = getAirbnbRoomUrl(prop.id_do_anuncio);
+            const isEditingIdentity = editingIdentity === prop.id;
+            const identityDraft = identityDrafts[prop.id] ?? { internalNickname: '', internalCode: '' };
+            const locationLabel = (prop as any).neighborhood || (prop as any).city || (prop as any).address || 'Imovel cadastrado';
+            const secondaryLabel = prop.internalNickname ? prop.propertyName : locationLabel;
+            const detailLabel = [
+              prop.id_do_anuncio ? `Airbnb ${prop.id_do_anuncio}` : null,
+              prop.internalNickname ? locationLabel : null,
+            ].filter(Boolean).join(' - ');
+
+            return (
+              <article className="properties-row" key={prop.id}>
+                <div className="properties-row-main">
+                  <div className="properties-identity">
+                    <PropertyThumb src={prop.image_url} alt={prop.propertyName} />
+                    <div className="properties-title-block">
+                      {isEditingIdentity ? (
+                        <div className="properties-edit-box">
+                          <div className="properties-identity-inputs">
+                            <AppInput
+                              placeholder="Apelido interno"
+                              maxLength={80}
+                              value={identityDraft.internalNickname}
+                              onChange={(event) => updateIdentityDraft(prop.id, 'internalNickname', event.target.value)}
+                            />
+                            <AppInput
+                              placeholder="Codigo"
+                              maxLength={32}
+                              value={identityDraft.internalCode}
+                              onChange={(event) => updateIdentityDraft(prop.id, 'internalCode', event.target.value)}
+                              shellStyle={{ maxWidth: 150 }}
+                            />
+                          </div>
+                          <div className="properties-inline-actions">
+                            <AppButton
+                              size="sm"
+                              variant="primary"
+                              leftIcon={<Check size={14} />}
+                              loading={savingIdentity === prop.id}
+                              onClick={() => saveIdentity(prop)}
+                            >
+                              Salvar ID
+                            </AppButton>
+                            <AppButton
+                              size="sm"
+                              variant="ghost"
+                              leftIcon={<X size={14} />}
+                              onClick={() => cancelIdentityEdit(prop)}
+                            >
+                              Cancelar
+                            </AppButton>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="properties-name-line">
+                            <p>{prop.internalNickname || prop.propertyName}</p>
+                            {prop.internalCode && <span>{prop.internalCode}</span>}
+                            <button
+                              aria-label="Editar apelido e codigo do imovel"
+                              className="properties-icon-button"
+                              type="button"
+                              onClick={() => editIdentity(prop)}
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                          </div>
+                          <p className="properties-secondary">{secondaryLabel}</p>
+                          {detailLabel && <p className="properties-detail">{detailLabel}</p>}
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="properties-pricing">
+                    <AppInput
+                      label="Diaria base"
+                      leftAddon="R$"
+                      placeholder="0,00"
+                      inputMode="decimal"
+                      value={pricingDrafts[prop.id]?.manualDailyPrice ?? ''}
+                      onChange={(event) => updateDraft(prop.id, 'manualDailyPrice', event.target.value)}
+                      shellStyle={{ minWidth: 150 }}
+                    />
+                    <AppInput
+                      label="Receita media / mes"
+                      leftAddon="R$"
+                      placeholder="0,00"
+                      inputMode="decimal"
+                      value={pricingDrafts[prop.id]?.averageMonthlyRevenue ?? ''}
+                      onChange={(event) => updateDraft(prop.id, 'averageMonthlyRevenue', event.target.value)}
+                      shellStyle={{ minWidth: 170 }}
+                    />
+                    <div className="properties-actions">
+                      <AppButton
+                        size="sm"
+                        variant="primary"
+                        loading={savingPricing === prop.id}
+                        onClick={() => savePricingInputs(prop)}
+                      >
+                        Salvar
+                      </AppButton>
+                      <AppButton
+                        size="sm"
+                        variant="ghost"
+                        leftIcon={<Clock size={14} />}
+                        loading={loadingHistory === prop.id}
+                        onClick={() => loadPricingHistory(prop.id)}
+                      >
+                        Historico
+                      </AppButton>
+                      {airbnbUrl ? (
+                        <a
+                          className="properties-link-button"
+                          href={airbnbUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink size={14} />
+                          Abrir
+                        </a>
+                      ) : (
+                        <span className="properties-link-button disabled">
+                          <ExternalLink size={14} />
+                          Abrir
+                        </span>
+                      )}
+                      <button
+                        aria-label={t('my_properties.delete')}
+                        className="properties-delete-button"
+                        type="button"
+                        onClick={() => handleDeleteRequest(prop.id)}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <details className="properties-details">
+                  <summary>Detalhes tecnicos</summary>
+                  <p>Latitude {prop.latitude} · Longitude {prop.longitude}</p>
+                </details>
+
+                {openHistory === prop.id && (
+                  <div className="properties-history">
+                    <p className="properties-history-title">Ultimas alteracoes de preco base</p>
+                    {(pricingHistory[prop.id] ?? []).length === 0 ? (
+                      <p className="properties-empty-note">Nenhuma alteracao registrada ainda.</p>
+                    ) : (
+                      <div className="properties-history-list">
+                        {pricingHistory[prop.id].map((item) => (
+                          <div className="properties-history-row" key={item.id}>
+                            <span>{formatDateTime(item.createdAt)}</span>
+                            <span>
+                              Diaria {formatMoney(item.previousManualDailyPrice)} -&gt; {formatMoney(item.newManualDailyPrice)}
+                            </span>
+                            <span>
+                              Mes {formatMoney(item.previousAverageMonthlyRevenue)} -&gt; {formatMoney(item.newAverageMonthlyRevenue)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+
+        {properties.length > 0 && filteredProperties.length === 0 && (
+          <div className="properties-empty-filter">
+            <AppEmptyState
+              title="Nenhum imovel encontrado"
+              body="Tente outro apelido, codigo, titulo ou ID Airbnb."
+              icon={<Search size={32} />}
+            />
+          </div>
+        )}
+      </AppCard>
+
+      {propertyToDelete && (
+        <div className="properties-dialog-overlay" role="dialog" aria-modal="true">
+          <div className="properties-dialog">
+            <h2>Excluir propriedade?</h2>
+            <p>
+              O motor de IA nao atualizara mais os precos desta unidade. Esta acao nao pode ser desfeita.
+            </p>
+            <div className="properties-dialog-actions">
+              <AppButton variant="ghost" onClick={closeDeleteDialog}>
+                Cancelar
+              </AppButton>
+              <AppButton variant="danger" onClick={confirmDelete}>
+                Excluir
+              </AppButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <AddPropertyModal
+        isOpen={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        onSuccess={fetchProperties}
+      />
+
+      <style jsx>{styles}</style>
+    </AppPageShell>
   );
 }
+
+const styles = `
+  .properties-loading {
+    display: grid;
+    min-height: 360px;
+    place-items: center;
+  }
+
+  .properties-spinner {
+    width: 42px;
+    height: 42px;
+    border: 3px solid var(--app-divider);
+    border-top-color: var(--app-accent);
+    border-radius: 50%;
+    animation: properties-spin 800ms linear infinite;
+  }
+
+  .properties-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--app-divider);
+    background: var(--app-surface);
+  }
+
+  .properties-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: min(520px, 100%);
+    height: 38px;
+    padding: 0 12px;
+    color: var(--app-text-muted);
+    border: 1px solid var(--app-divider-strong);
+    border-radius: 10px;
+    background: var(--app-surface);
+  }
+
+  .properties-search input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    color: var(--app-text);
+    background: transparent;
+    font: inherit;
+    font-size: 14px;
+  }
+
+  .properties-count {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    color: var(--app-text-muted);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .properties-icon-button,
+  .properties-delete-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    color: var(--app-text-muted);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: color 120ms ease, background 120ms ease, border-color 120ms ease;
+  }
+
+  .properties-icon-button:hover {
+    color: var(--app-text);
+    background: var(--app-surface-muted);
+    border-color: var(--app-divider);
+  }
+
+  .properties-delete-button {
+    color: var(--app-danger);
+  }
+
+  .properties-delete-button:hover {
+    background: rgba(194, 52, 46, 0.08);
+    border-color: rgba(194, 52, 46, 0.22);
+  }
+
+  .properties-list {
+    display: grid;
+  }
+
+  .properties-row {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--app-divider);
+  }
+
+  .properties-row:last-child {
+    border-bottom: 0;
+  }
+
+  .properties-row-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .properties-identity {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    flex: 1 1 420px;
+    gap: 14px;
+  }
+
+  .properties-thumb,
+  .properties-thumb-fallback {
+    width: 60px;
+    height: 60px;
+    flex: 0 0 auto;
+    border-radius: 8px;
+  }
+
+  .properties-thumb {
+    object-fit: cover;
+  }
+
+  .properties-thumb-fallback {
+    display: grid;
+    place-items: center;
+    color: var(--app-text-muted);
+    background: var(--app-surface-muted);
+    border: 1px solid var(--app-divider);
+    font-size: 18px;
+    font-weight: 750;
+  }
+
+  .properties-title-block {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .properties-name-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .properties-name-line p {
+    max-width: min(460px, 100%);
+    margin: 0;
+    overflow: hidden;
+    color: var(--app-text);
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .properties-name-line span {
+    padding: 3px 8px;
+    color: var(--app-text-muted);
+    background: var(--app-surface-muted);
+    border: 1px solid var(--app-divider);
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .properties-secondary,
+  .properties-detail {
+    max-width: 520px;
+    margin: 4px 0 0;
+    overflow: hidden;
+    color: var(--app-text-muted);
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .properties-detail {
+    color: var(--app-text-subtle);
+    font-size: 12px;
+  }
+
+  .properties-edit-box {
+    display: grid;
+    gap: 8px;
+    max-width: 520px;
+  }
+
+  .properties-identity-inputs,
+  .properties-inline-actions,
+  .properties-actions,
+  .properties-pricing {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .properties-pricing {
+    justify-content: flex-end;
+    flex: 0 1 auto;
+  }
+
+  .properties-link-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 32px;
+    padding: 0 14px;
+    color: var(--app-text-muted);
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .properties-link-button:hover {
+    color: var(--app-text);
+    background: var(--app-surface-muted);
+  }
+
+  .properties-link-button.disabled {
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  .properties-details {
+    margin-top: 10px;
+    color: var(--app-text-subtle);
+  }
+
+  .properties-details summary {
+    width: fit-content;
+    cursor: pointer;
+    color: var(--app-text-subtle);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+
+  .properties-details p {
+    margin: 6px 0 0;
+    color: var(--app-text-muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 12px;
+  }
+
+  .properties-history {
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--app-surface-muted);
+    border: 1px solid var(--app-divider);
+    border-radius: 10px;
+  }
+
+  .properties-history-title,
+  .properties-empty-note {
+    margin: 0;
+    color: var(--app-text);
+    font-size: 14px;
+    font-weight: 650;
+  }
+
+  .properties-empty-note {
+    color: var(--app-text-muted);
+    font-weight: 400;
+  }
+
+  .properties-history-list {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .properties-history-row {
+    display: grid;
+    grid-template-columns: 160px 1fr 1fr;
+    gap: 12px;
+    color: var(--app-text-muted);
+    font-size: 13px;
+  }
+
+  .properties-empty-filter {
+    padding: 32px;
+  }
+
+  .properties-dialog-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.48);
+    backdrop-filter: blur(4px);
+  }
+
+  .properties-dialog {
+    width: min(420px, 100%);
+    padding: 24px;
+    background: var(--app-surface);
+    border: 1px solid var(--app-divider);
+    border-radius: 14px;
+    box-shadow: 0 24px 72px rgba(15, 23, 42, 0.20);
+  }
+
+  .properties-dialog h2 {
+    margin: 0;
+    color: var(--app-text);
+    font-size: 20px;
+    line-height: 1.25;
+  }
+
+  .properties-dialog p {
+    margin: 12px 0 0;
+    color: var(--app-text-muted);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .properties-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 22px;
+  }
+
+  @keyframes properties-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (max-width: 980px) {
+    .properties-row-main {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .properties-pricing {
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .properties-toolbar {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .properties-search {
+      width: 100%;
+    }
+
+    .properties-count {
+      justify-content: space-between;
+    }
+
+    .properties-identity {
+      align-items: flex-start;
+    }
+
+    .properties-identity-inputs,
+    .properties-pricing,
+    .properties-actions {
+      align-items: stretch;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .properties-inline-actions {
+      align-items: stretch;
+    }
+
+    .properties-history-row {
+      grid-template-columns: 1fr;
+    }
+
+    .properties-dialog-actions {
+      flex-direction: column-reverse;
+    }
+  }
+`;

@@ -1,17 +1,6 @@
 import React from "react";
-import {
-  Badge,
-  Box,
-  Button,
-  Container,
-  Divider,
-  Flex,
-  Heading,
-  SimpleGrid,
-  Stack,
-  Text,
-} from "@chakra-ui/react";
-import { ExternalLinkIcon } from "@chakra-ui/icons";
+import { ExternalLink } from "lucide-react";
+import { AppButton, AppCard } from "./ui";
 
 export type Subscription = {
   id: string;
@@ -117,8 +106,8 @@ export default function SubscriptionCards({
   manageBillingLoading = false,
 }: Props) {
   return (
-    <Container maxW="container.md" py={10}>
-      <SimpleGrid columns={{ base: 1 }} spacing={8}>
+    <div style={{ width: "100%", maxWidth: 768, margin: "0 auto", padding: "40px 0" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 32 }}>
         {subscriptions.map((sub) => {
           const isCanceled = sub.status === "canceled";
           const canCancel = onCancel && sub.status === "active" && !sub.id.startsWith("alpha-");
@@ -128,107 +117,115 @@ export default function SubscriptionCards({
             !sub.id.startsWith("alpha-");
 
           return (
-            <Box
+            <AppCard
               key={sub.id}
-              bg={isCanceled ? "gray.50" : "white"}
-              borderRadius="xl"
-              boxShadow="xl"
-              p={8}
-              position="relative"
-              _hover={{ boxShadow: isCanceled ? "xl" : "2xl" }}
-              transition="box-shadow 0.3s"
-              opacity={isCanceled ? 0.6 : 1}
+              variant="elevated"
+              style={{
+                position: "relative",
+                padding: 32,
+                opacity: isCanceled ? 0.6 : 1,
+                background: isCanceled ? "var(--app-surface-muted)" : "var(--app-surface)",
+              }}
             >
-              <Badge
-                position="absolute"
-                top={4}
-                right={4}
-                colorScheme={isCanceled ? "red" : "green"}
-                fontWeight="semibold"
-                fontSize="0.85rem"
-                px={3}
-                py={1}
-                borderRadius="full"
-                textTransform="uppercase"
-                letterSpacing="wide"
+              <span
+                style={{
+                  position: "absolute",
+                  top: 16,
+                  right: 16,
+                  padding: "4px 12px",
+                  borderRadius: 999,
+                  background: isCanceled ? "rgba(194,52,46,0.10)" : "rgba(22,160,107,0.10)",
+                  color: isCanceled ? "var(--app-danger)" : "var(--app-success)",
+                  fontSize: 12,
+                  fontWeight: 750,
+                  letterSpacing: 1,
+                  textTransform: "uppercase",
+                }}
               >
                 {statusLabels[sub.status] || sub.status}
-              </Badge>
+              </span>
 
-              <Stack spacing={5}>
-                <Heading fontSize="2xl" fontWeight="extrabold" color="gray.700">
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                <h2 style={{ margin: 0, paddingRight: 110, color: "var(--app-text)", fontSize: 24 }}>
                   {getPlanName(sub)}
-                </Heading>
+                </h2>
 
-                <Text
-                  fontSize="xl"
-                  fontWeight="bold"
-                  color={isCanceled ? "gray.500" : "blue.600"}
-                  textDecoration={isCanceled ? "line-through" : "none"}
+                <p
+                  style={{
+                    margin: 0,
+                    color: isCanceled ? "var(--app-text-muted)" : "var(--app-accent)",
+                    fontSize: 20,
+                    fontWeight: 750,
+                    textDecoration: isCanceled ? "line-through" : "none",
+                  }}
                 >
                   {getPriceLabel(sub)}
-                </Text>
+                </p>
 
-                <Divider />
+                <hr style={{ width: "100%", border: 0, borderTop: "1px solid var(--app-divider)" }} />
 
-                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={3}>
-                  <Box bg="gray.50" borderRadius="md" p={3}>
-                    <Text fontSize="xs" fontWeight="bold" color="gray.500" textTransform="uppercase">
-                      Ciclo
-                    </Text>
-                    <Text color="gray.700" fontWeight="semibold">
-                      {getCycleLabel(sub)}
-                    </Text>
-                  </Box>
-                  <Box bg="gray.50" borderRadius="md" p={3}>
-                    <Text fontSize="xs" fontWeight="bold" color="gray.500" textTransform="uppercase">
-                      Quota
-                    </Text>
-                    <Text color="gray.700" fontWeight="semibold">
-                      {getQuantityLabel(sub)}
-                    </Text>
-                  </Box>
-                </SimpleGrid>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+                  <InfoTile label="Ciclo" value={getCycleLabel(sub)} />
+                  <InfoTile label="Quota" value={getQuantityLabel(sub)} />
+                </div>
 
-                <Stack spacing={1} fontSize="md" color="gray.600">
-                  <Text>{getDateLabel(sub)}</Text>
-                </Stack>
+                <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 15 }}>
+                  {getDateLabel(sub)}
+                </p>
 
                 {(canManageBilling || canCancel) && (
-                  <Flex justify="flex-end" gap={3} wrap="wrap">
+                  <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, flexWrap: "wrap" }}>
                     {canManageBilling && (
-                      <Button
+                      <AppButton
                         data-testid="manage-billing-button"
-                        isLoading={manageBillingLoading}
-                        colorScheme="blue"
-                        variant="solid"
+                        type="button"
+                        loading={manageBillingLoading}
+                        variant="primary"
                         size="md"
-                        rightIcon={<ExternalLinkIcon />}
+                        rightIcon={<ExternalLink size={14} />}
                         onClick={() => onManageBilling(sub.id)}
                       >
                         Gerenciar assinatura
-                      </Button>
+                      </AppButton>
                     )}
                     {canCancel && (
-                      <Button
+                      <AppButton
                         data-testid="cancel-subscription-button"
-                        isLoading={cancelLoading}
-                        colorScheme="red"
-                        variant="outline"
+                        type="button"
+                        loading={cancelLoading}
+                        variant="danger"
                         size="md"
                         onClick={() => onCancel(sub.id)}
-                        _hover={{ bg: "red.50" }}
                       >
-                        Cancelar Plano
-                      </Button>
+                        Cancelar plano
+                      </AppButton>
                     )}
-                  </Flex>
+                  </div>
                 )}
-              </Stack>
-            </Box>
+              </div>
+            </AppCard>
           );
         })}
-      </SimpleGrid>
-    </Container>
+      </div>
+    </div>
+  );
+}
+
+function InfoTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div
+      style={{
+        padding: 12,
+        borderRadius: 8,
+        background: "var(--app-surface-muted)",
+      }}
+    >
+      <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
+        {label}
+      </p>
+      <p style={{ margin: 0, color: "var(--app-text)", fontWeight: 650 }}>
+        {value}
+      </p>
+    </div>
   );
 }

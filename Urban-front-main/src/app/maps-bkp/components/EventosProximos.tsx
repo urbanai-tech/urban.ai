@@ -1,18 +1,6 @@
-import {
-  Box,
-  Heading,
-  VStack,
-  HStack,
-  Text,
-  Badge,
-  Divider,
-  Flex,
-  useColorModeValue,
-} from "@chakra-ui/react";
-
 type Evento = {
   nome: string;
-  impacto: "Alto" | "Médio" | "Baixo";
+  impacto: "Alto" | "Medio" | "Baixo" | "MÃ©dio";
   data: string;
   distancia: string;
   crescimento: string;
@@ -23,10 +11,11 @@ type EventosProximosProps = {
   eventos?: Evento[];
 };
 
-const impactoColorScheme = {
-  Alto: "red",
-  Médio: "yellow",
-  Baixo: "green",
+const impactoColors: Record<string, string> = {
+  Alto: "#C2342E",
+  Medio: "#C8810E",
+  "MÃ©dio": "#C8810E",
+  Baixo: "#16A06B",
 };
 
 function formatDate(dateString: string) {
@@ -50,13 +39,13 @@ export default function EventosProximos({
     },
     {
       nome: "Jogo Flamengo",
-      impacto: "Médio",
+      impacto: "Medio",
       data: "2025-10-20",
       distancia: "2.3 km",
       crescimento: "+35%",
     },
     {
-      nome: "Conferência Tech",
+      nome: "Conferencia Tech",
       impacto: "Baixo",
       data: "2025-08-25",
       distancia: "2.3 km",
@@ -64,75 +53,74 @@ export default function EventosProximos({
     },
   ],
 }: EventosProximosProps) {
-  const bg = useColorModeValue("white", "gray.700");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
-  const textColor = useColorModeValue("gray.700", "gray.300");
-  const metaColor = useColorModeValue("gray.500", "gray.400");
-
   return (
-    <Box
-      height={height}
-      p={6}
-      borderWidth={1}
-      borderRadius="lg"
-      bg={bg}
-      boxShadow="sm"
-      borderColor={borderColor}
-      maxW="600px"
-      mx="auto"
-      overflowY="auto"
+    <section
+      style={{
+        height,
+        maxWidth: 600,
+        margin: "0 auto",
+        overflowY: "auto",
+        padding: 24,
+        border: "1px solid rgba(14,17,22,0.12)",
+        borderRadius: 10,
+        background: "#fff",
+        boxShadow: "0 1px 2px rgba(14,17,22,0.04)",
+      }}
     >
-      <Heading size="lg" mb={6} color={textColor} letterSpacing="wide">
-        Eventos Próximos
-      </Heading>
+      <h2 style={{ margin: "0 0 24px", color: "#374151", fontSize: 24, letterSpacing: 0.3 }}>
+        Eventos Proximos
+      </h2>
 
-      <VStack spacing={6} align="stretch">
-        {eventos.map((evento, index) => (
-          <Box key={index} px={2}>
-            <Flex align="center" mb={1}>
-              <Text
-                fontWeight="bold"
-                fontSize="xl"
-                color={textColor}
-                noOfLines={1}
-                flex="1"
-              >
-                {evento.nome}
-              </Text>
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        {eventos.map((evento, index) => {
+          const color = impactoColors[evento.impacto] || "#6B7280";
+          return (
+            <article key={index} style={{ padding: "0 8px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 6 }}>
+                <h3
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    margin: 0,
+                    color: "#374151",
+                    fontSize: 20,
+                    fontWeight: 750,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {evento.nome}
+                </h3>
+                <span
+                  style={{
+                    padding: "4px 14px",
+                    borderRadius: 999,
+                    background: `${color}1A`,
+                    color,
+                    fontSize: 12,
+                    fontWeight: 750,
+                    letterSpacing: 1,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {evento.impacto === "MÃ©dio" ? "Medio" : evento.impacto}
+                </span>
+              </div>
 
-              <Badge
-                colorScheme={impactoColorScheme[evento.impacto]}
-                px={4}
-                py={1}
-                borderRadius="full"
-                fontWeight="semibold"
-                fontSize="sm"
-                ml={4}
-                textTransform="uppercase"
-                letterSpacing="wider"
-              >
-                {evento.impacto}
-              </Badge>
-            </Flex>
+              <div style={{ display: "flex", gap: 24, flexWrap: "wrap", color: "#6B7280", fontSize: 13, fontWeight: 650 }}>
+                <span>{formatDate(evento.data)}</span>
+                <span>{evento.distancia}</span>
+                <span>{evento.crescimento}</span>
+              </div>
 
-            <HStack
-              spacing={8}
-              color={metaColor}
-              fontSize="sm"
-              fontWeight="medium"
-              letterSpacing="wider"
-            >
-              <Text>{formatDate(evento.data)}</Text>
-              <Text>{evento.distancia}</Text>
-              <Text>{evento.crescimento}</Text>
-            </HStack>
-
-            {index !== eventos.length - 1 && (
-              <Divider mt={5} borderColor={borderColor} />
-            )}
-          </Box>
-        ))}
-      </VStack>
-    </Box>
+              {index !== eventos.length - 1 && (
+                <hr style={{ margin: "20px 0 0", border: 0, borderTop: "1px solid rgba(14,17,22,0.12)" }} />
+              )}
+            </article>
+          );
+        })}
+      </div>
+    </section>
   );
 }

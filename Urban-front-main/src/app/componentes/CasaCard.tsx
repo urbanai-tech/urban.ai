@@ -1,17 +1,7 @@
 // components/CasaCard.tsx
 'use client';
 
-import {
-  Card,
-  CardHeader,
-  Flex,
-  Heading,
-  Image,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
-import { CheckCircleIcon, WarningIcon } from '@chakra-ui/icons';
-
+import { AlertTriangle, CheckCircle } from 'lucide-react';
 
 interface Casa {
   id: string;
@@ -35,71 +25,74 @@ interface CasaCardProps {
 }
 
 export default function CasaCard({ casa, onClick }: CasaCardProps) {
+  const title = casa.list?.titulo || 'Sem titulo';
+  const address = `${casa.logradouro}, ${casa.numero} - ${casa.bairro}, ${casa.cidade} - ${casa.estado}, ${casa.cep}`;
+
   return (
-    <Card
-      cursor={onClick ? 'pointer' : 'default'}
+    <article
       onClick={onClick}
-      key={casa.id}
-      w="100%"
-      borderRadius="2xl"
-      boxShadow="sm"
-      overflow="hidden"
-      bg="white"
+      style={{
+        width: "100%",
+        overflow: "hidden",
+        border: "1px solid rgba(14,17,22,0.06)",
+        borderRadius: 12,
+        background: "#fff",
+        boxShadow: "0 1px 2px rgba(14,17,22,0.04)",
+        cursor: onClick ? "pointer" : "default",
+      }}
     >
-      <CardHeader p={6}>
-        <Flex align="center" gap={6}>
-          <Image
-            src="https://a0.muscache.com/im/pictures/042cca29-c44c-4370-8c99-f0f5eb74baac.jpg?im_w=960"
-            alt={casa.list?.titulo}
-            boxSize="120px"
-            objectFit="cover"
-            borderRadius="lg"
-          />
+      <div style={{ display: "flex", alignItems: "center", gap: 24, padding: 24 }}>
+        <img
+          src="https://a0.muscache.com/im/pictures/042cca29-c44c-4370-8c99-f0f5eb74baac.jpg?im_w=960"
+          alt={title}
+          style={{
+            width: 120,
+            height: 120,
+            borderRadius: 10,
+            objectFit: "cover",
+            flexShrink: 0,
+          }}
+        />
 
-          <VStack align="start" spacing={1} flex="1">
-            <Heading size="md">{casa.list?.titulo || 'Sem título'}</Heading>
-            <Text fontSize="sm" color="gray.600">
-              {`${casa.logradouro}, ${casa.numero} — ${casa.bairro}, ${casa.cidade} - ${casa.estado}, ${casa.cep}`}
-            </Text>
+        <div style={{ minWidth: 0, flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+          <h3 style={{ margin: 0, color: "#0E1116", fontSize: 18, lineHeight: 1.25, fontWeight: 700 }}>
+            {title}
+          </h3>
+          <p style={{ margin: 0, color: "rgba(14,17,22,0.62)", fontSize: 14, lineHeight: 1.5 }}>
+            {address}
+          </p>
 
-            <Flex align="center" gap={2}>
-              {casa.ativo ? (
-                <Flex
-                  align="center"
-                  color="green.500"
-                  fontWeight="semibold"
-                  fontSize="sm"
-                >
-                  <CheckCircleIcon mr={1} /> Ativo
-                </Flex>
-              ) : (
-                <Flex
-                  align="center"
-                  color="red.500"
-                  fontWeight="semibold"
-                  fontSize="sm"
-                >
-                  <WarningIcon mr={1} /> Inativo
-                </Flex>
-              )}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                color: casa.ativo ? "#16A06B" : "#C2342E",
+                fontSize: 13,
+                fontWeight: 650,
+              }}
+            >
+              {casa.ativo ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
+              {casa.ativo ? "Ativo" : "Inativo"}
+            </span>
+          </div>
+        </div>
+      </div>
 
-              <Flex
-                as="a"
-                href={`https://www.google.com/maps/search/?api=1&query=${casa.latitude},${casa.longitude}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                align="center"
-                color="blue.500"
-                fontSize="sm"
-                fontWeight="medium"
-                _hover={{ textDecoration: 'underline' }}
-              >
+      <style>{`
+        @media (max-width: 640px) {
+          article > div {
+            align-items: flex-start !important;
+            flex-direction: column !important;
+          }
 
-              </Flex>
-            </Flex>
-          </VStack>
-        </Flex>
-      </CardHeader>
-    </Card>
+          article > div > img {
+            width: 100% !important;
+            height: 180px !important;
+          }
+        }
+      `}</style>
+    </article>
   );
 }

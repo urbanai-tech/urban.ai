@@ -2,23 +2,9 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Box } from '@chakra-ui/react';
-import { keyframes } from '@emotion/react';
-import Image from 'next/image';
+import UrbanAiLoader from '../componentes/loading';
 import { api } from '../service/api';
 
-// animações
-const shine = keyframes`
-  0% { transform: translateX(-150%); }
-  100% { transform: translateX(150%); }
-`;
-const pulse = keyframes`
-  0%, 100% { transform: scale(1); filter: drop-shadow(0 8px 20px rgba(0,0,0,0.24)); }
-  50% { transform: scale(1.02); filter: drop-shadow(0 10px 28px rgba(0,0,0,0.28)); }
-`;
-const spin = keyframes`to { transform: rotate(360deg); }`;
-
-// normaliza boolean vindo da API (true | "true" | 1)
 function toBool(v: unknown): boolean {
   if (typeof v === 'boolean') return v;
   if (typeof v === 'string') return v.toLowerCase() === 'true' || v === '1';
@@ -37,7 +23,7 @@ export default function PostLoginPage() {
 
     const timeout = setTimeout(() => {
       if (!finished && !cancelled) {
-        console.warn('[post-login] timeout de 7s — fallback -> /onboarding');
+        console.warn('[post-login] timeout de 7s - fallback -> /onboarding');
         router.replace('/onboarding');
       }
     }, 7000);
@@ -53,30 +39,17 @@ export default function PostLoginPage() {
         if (cancelled) return;
 
         console.log('[post-login] payload =>', data);
-
-        // Lógica corrigida para verificar se tem endereço
         const hasAddress = toBool(data.hasAddress) || data.count > 0;
 
         finished = true;
-        
-        // Redirecionamento correto
-        if (hasAddress) {
-          router.replace('/dashboard'); // Se TEM endereço, vai para dashboard
-        } else {
-          router.replace('/onboarding'); // Se NÃO TEM endereço, vai para app
-        }
+        router.replace(hasAddress ? '/dashboard' : '/onboarding');
       } catch (err: any) {
         if (cancelled) return;
         finished = true;
 
         const status = err?.response?.status;
         console.error('[post-login] erro:', status, err?.response?.data || err);
-
-        if (status === 401) {
-          router.replace('/login');
-        } else {
-          router.replace('/app');
-        }
+        router.replace(status === 401 ? '/login' : '/app');
       } finally {
         clearTimeout(timeout);
       }
@@ -88,78 +61,15 @@ export default function PostLoginPage() {
     };
   }, [router]);
 
-  // Loader fullscreen
   return (
-    <Box
-      position="fixed"
-      top={0}
-      right={0}
-      bottom={0}
-      left={0}
-      display="grid"
-      placeItems="center"
-      bg="rgba(8,10,15,0.9)"
-      backdropFilter="saturate(140%) blur(6px)"
-      zIndex={9999}
-      role="status"
-      aria-busy="true"
-    >
-      <Box position="relative" animation={`${pulse} 2.4s ease-in-out infinite`}>
-        <Image
-          src="/urban-logo.png"
-          alt="UrbanAI"
-          width={360}
-          height={120}
-          priority
-          style={{ display: 'block', height: 'auto' }}
-        />
-
-        {/* brilho que varre */}
-        <Box
-          pointerEvents="none"
-          position="absolute"
-          top={0}
-          right={0}
-          bottom={0}
-          left={0}
-          overflow="hidden"
-          _before={{
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            bottom: 0,
-            width: '30%',
-            transform: 'translateX(-150%)',
-            background:
-              'linear-gradient(110deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.35) 45%, rgba(255,255,255,0) 100%)',
-            animation: `${shine} 1.35s ease-in-out infinite`,
-          }}
-        />
-
-        {/* ponto laranja orbitando */}
-        <Box
-          position="absolute"
-          top="50%"
-          left="50%"
-          w={`${Math.max(360, 120) * 0.9}px`}
-          h={`${Math.max(360, 120) * 0.9}px`}
-          transform="translate(-50%, -50%)"
-          borderRadius="full"
-          animation={`${spin} 1.75s linear infinite`}
-          _before={{
-            content: '""',
-            position: 'absolute',
-            top: '-8px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            w: '12px',
-            h: '12px',
-            borderRadius: 'full',
-            bg: '#E8500A',
-            boxShadow: '0 0 0 0 rgba(232,80,10,0.75)',
-          }}
-        />
-      </Box>
-    </Box>
+    <UrbanAiLoader
+      fullscreen
+      src="/urban-logo.png"
+      alt="UrbanAI"
+      width={360}
+      height={120}
+      overlayBg="rgba(8,10,15,0.9)"
+      orbitColor="#E8500A"
+    />
   );
 }

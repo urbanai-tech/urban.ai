@@ -1,22 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Box,
-  Center,
-  Flex,
-  Grid,
-  Progress,
-  Select,
-  Spinner,
-  Table,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
-} from '@chakra-ui/react';
 import { fetchMyRoi, getPropriedadesDropdownList, PropertyDropdown, RoiSummary } from '../service/api';
 import {
   AppPageShell,
@@ -27,24 +11,17 @@ import {
   AppButton,
   AppBadge,
   AppEmptyState,
+  AppSelect,
   Icons,
 } from '../componentes/ui';
 import type { AppBadgeKind } from '../componentes/ui';
 
 const WINDOWS = [30, 90, 180, 365];
 
-/**
- * /my-roi — tela mais forte do anfitrião (auditoria 2026-05-16 deu 35/60).
- *
- * Redesenhada no Sprint 3 para:
- *  - Substituir `bg="green.900"` (verde-banco-de-trás-da-padaria) por hero
- *    card `urban-app-card-accent` com Bebas Neue 96px em #E8500A.
- *  - Remover `colorScheme="green"` no botão Atualizar (era a única tela onde
- *    o anfitrião VÊ DINHEIRO — não pode parecer extrato bancário).
- *  - Verde em "Gerado" + "Resultado por imóvel" → accent #E8500A.
- *  - Confidence badge → AppBadge.
- *  - Progress bar → laranja (não verde).
- */
+function LoadingSpinner() {
+  return <span className="roi-spinner" aria-label="Carregando" />;
+}
+
 export default function MyRoiPage() {
   const [data, setData] = useState<RoiSummary | null>(null);
   const [properties, setProperties] = useState<PropertyDropdown[]>([]);
@@ -67,7 +44,7 @@ export default function MyRoiPage() {
       const e = err as { response?: { status?: number }; message?: string };
       setError(
         e?.response?.status === 401
-          ? 'Faça login novamente para ver seu ROI.'
+          ? 'Faca login novamente para ver seu ROI.'
           : e?.message || 'Erro ao carregar ROI.',
       );
     } finally {
@@ -88,16 +65,17 @@ export default function MyRoiPage() {
     });
 
   const roiLabel = useMemo(() => {
-    if (!data?.money.roiMultiple) return '—';
+    if (!data?.money.roiMultiple) return '-';
     return `${data.money.roiMultiple.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}x`;
   }, [data]);
 
   if (loading && !data) {
     return (
       <AppPageShell>
-        <Center minH="60vh">
-          <Spinner size="xl" color="orange.500" thickness="2px" />
-        </Center>
+        <div className="roi-loading">
+          <LoadingSpinner />
+        </div>
+        <style jsx>{styles}</style>
       </AppPageShell>
     );
   }
@@ -107,8 +85,8 @@ export default function MyRoiPage() {
       <AppPageShell>
         <AppEmptyState
           eyebrow="ERRO"
-          title="Não foi possível carregar"
-          body={error ?? 'Não foi possível carregar seu ROI.'}
+          title="Nao foi possivel carregar"
+          body={error ?? 'Nao foi possivel carregar seu ROI.'}
           icon={<Icons.AlertCircle size={32} />}
           action={
             <AppButton variant="primary" onClick={() => load()}>
@@ -133,90 +111,72 @@ export default function MyRoiPage() {
       <AppSectionHeader
         eyebrow="MEU ROI · IMPACTO DA URBAN AI"
         title="Quanto a IA gerou de dinheiro"
-        subtitle="Soma das diárias com preço otimizado nos últimos dias. Confirmadas pelo Stays/Airbnb + acompanhando as que ainda não fecharam."
+        subtitle="Soma das diarias com preco otimizado nos ultimos dias. Confirmadas pelo Stays/Airbnb + acompanhando as que ainda nao fecharam."
         actions={
-          <Flex gap={2} direction={{ base: 'column', sm: 'row' }} align="center">
-            <Select
-              size="md"
-              bg="white"
-              borderColor="gray.200"
-              borderRadius="10px"
+          <div className="roi-actions">
+            <AppSelect
               value={propertyId}
               onChange={(event) => {
                 setPropertyId(event.target.value);
                 load(windowDays, event.target.value);
               }}
+              shellStyle={{ minWidth: 220 }}
             >
-              <option value="">Todos os imóveis</option>
+              <option value="">Todos os imoveis</option>
               {properties.map((property) => (
                 <option key={property.id} value={property.id}>
                   {property.nome || property.propertyName}
                 </option>
               ))}
-            </Select>
-            <Select
-              size="md"
-              bg="white"
-              borderColor="gray.200"
-              borderRadius="10px"
+            </AppSelect>
+            <AppSelect
               value={windowDays}
               onChange={(event) => {
                 const next = Number(event.target.value);
                 setWindowDays(next);
                 load(next, propertyId);
               }}
+              shellStyle={{ minWidth: 160 }}
             >
               {WINDOWS.map((days) => (
                 <option key={days} value={days}>
-                  Últimos {days} dias
+                  Ultimos {days} dias
                 </option>
               ))}
-            </Select>
+            </AppSelect>
             <AppButton variant="primary" onClick={() => load()} loading={loading} leftIcon={<Icons.Zap size={14} />}>
               Atualizar
             </AppButton>
-          </Flex>
+          </div>
         }
       />
 
-      {/* === Hero card: dinheiro atribuído === */}
       <AppCard variant="accent" style={{ padding: '40px 40px 36px', marginBottom: 32 }}>
-        <Flex justify="space-between" align={{ base: 'flex-start', md: 'flex-end' }} direction={{ base: 'column', md: 'row' }} gap={6}>
-          <Box>
-            <p className="urban-app-eyebrow">DINHEIRO ATRIBUÍDO À URBAN AI</p>
+        <div className="roi-hero">
+          <div>
+            <p className="urban-app-eyebrow">DINHEIRO ATRIBUIDO A URBAN AI</p>
             <p className="urban-app-display-hero" style={{ marginTop: 12, color: 'var(--app-accent)' }}>
               {fmt(data.money.totalAttributedCents)}
             </p>
-            <Text mt={3} fontSize="sm" color="gray.600">
-              <strong style={{ color: 'var(--app-text)' }}>{fmt(data.money.confirmedIncrementalCents)}</strong> confirmado
+            <p className="roi-muted">
+              <strong>{fmt(data.money.confirmedIncrementalCents)}</strong> confirmado
               {' · '}
-              <span style={{ color: 'var(--app-text-muted)' }}>{fmt(data.money.projectedIncrementalCents)} em acompanhamento</span>
-            </Text>
-          </Box>
-          <Box textAlign={{ base: 'left', md: 'right' }} borderLeft={{ md: '1px solid' }} borderColor={{ md: 'var(--app-divider)' }} pl={{ md: 8 }}>
+              <span>{fmt(data.money.projectedIncrementalCents)} em acompanhamento</span>
+            </p>
+          </div>
+          <div className="roi-subhero">
             <p className="urban-app-eyebrow-muted">Retorno sobre assinatura</p>
             <p className="urban-app-display-md" style={{ marginTop: 12 }}>
               {roiLabel}
             </p>
-            <Text mt={3} fontSize="sm" color={data.money.netValueCents >= 0 ? 'gray.600' : 'red.600'}>
-              Valor líquido: <strong style={{ color: 'var(--app-text)' }}>{fmt(data.money.netValueCents)}</strong>
-            </Text>
-          </Box>
-        </Flex>
+            <p className={data.money.netValueCents >= 0 ? 'roi-muted' : 'roi-danger'}>
+              Valor liquido: <strong>{fmt(data.money.netValueCents)}</strong>
+            </p>
+          </div>
+        </div>
       </AppCard>
 
-      {/* === KPIs detalhados === */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: 24,
-          borderTop: '1px solid var(--app-divider)',
-          borderBottom: '1px solid var(--app-divider)',
-          padding: '24px 0',
-          marginBottom: 32,
-        }}
-      >
+      <div className="roi-kpis">
         <AppMetricCard
           label="Custo da Urban AI"
           value={fmt(data.subscription.monthlyCostCents)}
@@ -225,116 +185,345 @@ export default function MyRoiPage() {
         <AppMetricCard
           label="Noites impactadas"
           value={data.activity.impactedNights}
-          sub="diárias com preço otimizado"
+          sub="diarias com preco otimizado"
         />
         <AppMetricCard
-          label="Sugestões aplicadas"
+          label="Sugestoes aplicadas"
           value={`${data.activity.applied}/${data.activity.recommendations}`}
           sub={`${data.activity.applicationRatePercent.toFixed(0)}% das aceitas`}
         />
         <AppMetricCard
           label="Potencial perdido"
           value={fmt(data.money.potentialLostCents)}
-          sub="sugestões não aplicadas"
+          sub="sugestoes nao aplicadas"
           accent={data.money.potentialLostCents > 0}
         />
-      </Box>
+      </div>
 
-      <Grid templateColumns={{ base: '1fr', lg: '1.2fr .8fr' }} gap={6} mb={6}>
+      <div className="roi-main-grid">
         <AppCard variant="default">
           <AppCardHeader
-            title="Resultado por imóvel"
+            title="Resultado por imovel"
             subtitle={data.dataQuality.explanation}
             actions={<AppBadge kind={confidenceKind}>{data.dataQuality.label}</AppBadge>}
           />
           {data.perProperty.length === 0 ? (
             <AppEmptyState
-              title="Nada aplicado neste período"
-              body="Quando você aplicar uma sugestão da Urban AI, o ROI aparece aqui."
+              title="Nada aplicado neste periodo"
+              body="Quando voce aplicar uma sugestao da Urban AI, o ROI aparece aqui."
             />
           ) : (
-            <Box overflowX="auto">
-              <Table size="sm">
-                <Thead>
-                  <Tr>
-                    <Th>Imóvel</Th>
-                    <Th isNumeric>Gerado</Th>
-                    <Th isNumeric>Noites</Th>
-                    <Th isNumeric>Aplicadas</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
+            <div className="roi-table-wrap">
+              <table className="roi-table">
+                <thead>
+                  <tr>
+                    <th>Imovel</th>
+                    <th className="numeric">Gerado</th>
+                    <th className="numeric">Noites</th>
+                    <th className="numeric">Aplicadas</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {data.perProperty.map((property) => (
-                    <Tr key={property.propertyId ?? property.propertyName}>
-                      <Td maxW="280px">
-                        <Text fontWeight="semibold" noOfLines={1}>{property.propertyName}</Text>
-                        <Text color="gray.500" fontSize="xs">{property.recommendations} recomendações</Text>
-                      </Td>
-                      <Td isNumeric>
-                        <span style={{ color: 'var(--app-accent)', fontWeight: 700 }}>
-                          {fmt(property.totalAttributedCents)}
-                        </span>
-                      </Td>
-                      <Td isNumeric>{property.impactedNights}</Td>
-                      <Td isNumeric>{property.applied}</Td>
-                    </Tr>
+                    <tr key={property.propertyId ?? property.propertyName}>
+                      <td>
+                        <p className="roi-property-name">{property.propertyName}</p>
+                        <p className="roi-property-sub">{property.recommendations} recomendacoes</p>
+                      </td>
+                      <td className="numeric">
+                        <strong className="roi-accent">{fmt(property.totalAttributedCents)}</strong>
+                      </td>
+                      <td className="numeric">{property.impactedNights}</td>
+                      <td className="numeric">{property.applied}</td>
+                    </tr>
                   ))}
-                </Tbody>
-              </Table>
-            </Box>
+                </tbody>
+              </table>
+            </div>
           )}
         </AppCard>
 
         <AppCard variant="default">
-          <AppCardHeader title="Adoção das recomendações" />
-          <Flex justify="space-between" mb={2}>
-            <Text fontSize="sm" color="gray.600">Taxa de aceite</Text>
-            <Text fontSize="sm" fontWeight="bold">{acceptance.toFixed(0)}%</Text>
-          </Flex>
-          <Progress value={acceptance} rounded="full" sx={{ '& > div': { background: 'var(--app-accent)' } }} />
-          <Grid templateColumns="repeat(2, 1fr)" gap={6} mt={6}>
+          <AppCardHeader title="Adocao das recomendacoes" />
+          <div className="roi-progress-label">
+            <span>Taxa de aceite</span>
+            <strong>{acceptance.toFixed(0)}%</strong>
+          </div>
+          <div className="roi-progress" aria-label={`Taxa de aceite ${acceptance.toFixed(0)}%`}>
+            <span style={{ width: `${acceptance}%` }} />
+          </div>
+          <div className="roi-mini-grid">
             <AppMetricCard label="Aceitas" value={data.activity.accepted} variant="sm" />
             <AppMetricCard label="Aplicadas" value={data.activity.applied} variant="sm" />
             <AppMetricCard label="Reservadas" value={data.activity.booked} variant="sm" />
             <AppMetricCard label="Rejeitadas" value={data.activity.rejected} variant="sm" />
-          </Grid>
+          </div>
         </AppCard>
-      </Grid>
+      </div>
 
       <AppCard variant="default">
-        <AppCardHeader title="Ganhos recentes" subtitle="Últimas sugestões que viraram receita confirmada." />
+        <AppCardHeader title="Ganhos recentes" subtitle="Ultimas sugestoes que viraram receita confirmada." />
         {data.recentWins.length === 0 ? (
           <AppEmptyState
             title="Sem ganhos confirmados ainda"
-            body="Aceitas + aplicadas + reservas com noites já vencidas aparecem aqui."
+            body="Aceitas + aplicadas + reservas com noites ja vencidas aparecem aqui."
           />
         ) : (
-          <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={3}>
+          <div className="roi-wins">
             {data.recentWins.map((win) => (
-              <Box
-                key={win.id}
-                borderWidth="1px"
-                borderColor="var(--app-divider)"
-                rounded="md"
-                p={4}
-                _hover={{ borderColor: 'var(--app-divider-strong)' }}
-              >
-                <Flex justify="space-between" gap={3} align="center">
-                  <Box minW={0}>
-                    <Text fontWeight="semibold" noOfLines={1}>{win.propertyName}</Text>
-                    <Text fontSize="xs" color="gray.500">
-                      {fmt(win.currentPriceCents)} → {fmt(win.appliedPriceCents)} · {win.nights} noite(s)
-                    </Text>
-                  </Box>
-                  <Text fontWeight="bold" style={{ color: 'var(--app-accent)' }}>
-                    +{fmt(win.incrementalCents)}
-                  </Text>
-                </Flex>
-              </Box>
+              <article className="roi-win-card" key={win.id}>
+                <div className="roi-win-row">
+                  <div className="roi-win-copy">
+                    <p className="roi-property-name">{win.propertyName}</p>
+                    <p className="roi-property-sub">
+                      {fmt(win.currentPriceCents)}
+                      {' -> '}
+                      {fmt(win.appliedPriceCents)} · {win.nights} noite(s)
+                    </p>
+                  </div>
+                  <strong className="roi-accent">+{fmt(win.incrementalCents)}</strong>
+                </div>
+              </article>
             ))}
-          </Grid>
+          </div>
         )}
       </AppCard>
+
+      <style jsx>{styles}</style>
     </AppPageShell>
   );
 }
+
+const styles = `
+  .roi-loading {
+    display: grid;
+    min-height: 60vh;
+    place-items: center;
+  }
+
+  .roi-spinner {
+    width: 42px;
+    height: 42px;
+    border: 3px solid var(--app-divider);
+    border-top-color: var(--app-accent);
+    border-radius: 50%;
+    animation: roi-spin 800ms linear infinite;
+  }
+
+  .roi-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .roi-hero {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .roi-muted,
+  .roi-danger {
+    margin: 12px 0 0;
+    color: var(--app-text-muted);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .roi-muted strong,
+  .roi-danger strong {
+    color: var(--app-text);
+  }
+
+  .roi-danger {
+    color: var(--app-danger);
+  }
+
+  .roi-subhero {
+    min-width: 240px;
+    padding-left: 32px;
+    text-align: right;
+    border-left: 1px solid var(--app-divider);
+  }
+
+  .roi-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+    padding: 24px 0;
+    border-top: 1px solid var(--app-divider);
+    border-bottom: 1px solid var(--app-divider);
+  }
+
+  .roi-main-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .roi-table-wrap {
+    overflow-x: auto;
+  }
+
+  .roi-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .roi-table th {
+    padding: 10px 12px;
+    color: var(--app-text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-align: left;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--app-divider);
+  }
+
+  .roi-table td {
+    padding: 14px 12px;
+    color: var(--app-text);
+    border-bottom: 1px solid var(--app-divider);
+  }
+
+  .roi-table tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .roi-table .numeric {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .roi-property-name {
+    max-width: 280px;
+    margin: 0;
+    overflow: hidden;
+    color: var(--app-text);
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .roi-property-sub {
+    margin: 4px 0 0;
+    color: var(--app-text-muted);
+    font-size: 12px;
+  }
+
+  .roi-accent {
+    color: var(--app-accent);
+    font-weight: 750;
+  }
+
+  .roi-progress-label {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+    color: var(--app-text-muted);
+    font-size: 14px;
+  }
+
+  .roi-progress-label strong {
+    color: var(--app-text);
+  }
+
+  .roi-progress {
+    height: 9px;
+    overflow: hidden;
+    background: var(--app-surface-muted);
+    border-radius: 999px;
+  }
+
+  .roi-progress span {
+    display: block;
+    height: 100%;
+    background: var(--app-accent);
+    border-radius: inherit;
+  }
+
+  .roi-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-top: 24px;
+  }
+
+  .roi-wins {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .roi-win-card {
+    padding: 16px;
+    border: 1px solid var(--app-divider);
+    border-radius: 8px;
+    background: var(--app-surface);
+    transition: border-color 120ms ease;
+  }
+
+  .roi-win-card:hover {
+    border-color: var(--app-divider-strong);
+  }
+
+  .roi-win-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .roi-win-copy {
+    min-width: 0;
+  }
+
+  @keyframes roi-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (max-width: 900px) {
+    .roi-hero {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .roi-subhero {
+      min-width: 0;
+      padding-left: 0;
+      text-align: left;
+      border-left: 0;
+    }
+
+    .roi-main-grid,
+    .roi-wins {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .roi-actions {
+      align-items: stretch;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .roi-mini-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .roi-win-row {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+`;

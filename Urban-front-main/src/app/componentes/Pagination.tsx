@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Flex, Text } from '@chakra-ui/react';
+import React from 'react';
 
 interface PaginationProps {
   paginaAtual: number;
@@ -13,59 +13,58 @@ export function Pagination({
   totalPaginas,
   onPageChange,
 }: PaginationProps) {
-  const anteriorLabel = "Anterior";
-  const proximoLabel  = "Próximo";
-
-
+  const previousDisabled = paginaAtual === 1;
+  const nextDisabled = paginaAtual === totalPaginas;
 
   return (
-    <Flex justify="center" mt={10}>
-      <Flex
-        align="center"
-        bg="white"
-        borderRadius="full"
-        px={6}
-        py={2}
-        gap={6}
+    <div style={{ display: "flex", justifyContent: "center", marginTop: 40 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 24,
+          padding: "8px 24px",
+          borderRadius: 999,
+          background: "#fff",
+          flexWrap: "wrap",
+          justifyContent: "center",
+        }}
       >
-        <Box
-          as="button"
+        <button
+          type="button"
           onClick={() => onPageChange(Math.max(paginaAtual - 1, 1))}
-          disabled={paginaAtual === 1}
-          px={3}
-          py={1}
-          borderRadius="full"
-          bg={paginaAtual === 1 ? 'gray.200' : 'blue.500'}
-          color={paginaAtual === 1 ? 'gray.500' : 'white'}
-          fontWeight="medium"
-          cursor={paginaAtual === 1 ? 'not-allowed' : 'pointer'}
-          _hover={{ bg: paginaAtual === 1 ? 'gray.200' : 'blue.600' }}
-          transition="all 0.2s"
+          disabled={previousDisabled}
+          style={pageButtonStyle(previousDisabled)}
         >
-          ← {anteriorLabel}
-        </Box>
+          {"<-"} Anterior
+        </button>
 
-        <Text fontSize="md" fontWeight="semibold" color="gray.700">
-          Página {paginaAtual} de {totalPaginas}
-        </Text>
+        <p style={{ margin: 0, color: "#374151", fontSize: 16, fontWeight: 650 }}>
+          Pagina {paginaAtual} de {totalPaginas}
+        </p>
 
-        <Box
-          as="button"
+        <button
+          type="button"
           onClick={() => onPageChange(Math.min(paginaAtual + 1, totalPaginas))}
-          disabled={paginaAtual === totalPaginas}
-          px={3}
-          py={1}
-          borderRadius="full"
-          bg={paginaAtual === totalPaginas ? 'gray.200' : 'blue.500'}
-          color={paginaAtual === totalPaginas ? 'gray.500' : 'white'}
-          fontWeight="medium"
-          cursor={paginaAtual === totalPaginas ? 'not-allowed' : 'pointer'}
-          _hover={{ bg: paginaAtual === totalPaginas ? 'gray.200' : 'blue.600' }}
-          transition="all 0.2s"
+          disabled={nextDisabled}
+          style={pageButtonStyle(nextDisabled)}
         >
-          {proximoLabel} →
-        </Box>
-      </Flex>
-    </Flex>
+          Proximo {"->"}
+        </button>
+      </div>
+    </div>
   );
+}
+
+function pageButtonStyle(disabled: boolean): React.CSSProperties {
+  return {
+    padding: "4px 12px",
+    borderRadius: 999,
+    border: "none",
+    background: disabled ? "#E5E7EB" : "#2563EB",
+    color: disabled ? "#6B7280" : "#fff",
+    fontWeight: 600,
+    cursor: disabled ? "not-allowed" : "pointer",
+    transition: "background 0.2s",
+  };
 }

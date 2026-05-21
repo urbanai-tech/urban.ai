@@ -1,25 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-  Button,
-  Input,
-  VStack,
-  Text,
-  Box,
-  Flex,
-  Image,
-  Checkbox,
-  Badge
-} from '@chakra-ui/react';
 import { toast } from 'react-toastify';
+import { AppButton } from './ui';
 import {
   getUserManagedListings,
   getPropriedadesDropdownList,
@@ -27,7 +10,7 @@ import {
   resolveAirbnbUrl,
   getPropertyQuickInfo,
   createMultipleAddresses,
-  registerProcess
+  registerProcess,
 } from '../service/api';
 
 export interface Property {
@@ -86,7 +69,6 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
     onClose();
   };
 
-  // Helper patterns extractors
   const extractAirbnbPropertyId = (link: string): string | null => {
     if (!link || !link.includes('airbnb')) return null;
     const patterns = [/\/rooms\/(\d+)/, /rooms\/([a-zA-Z0-9]+)/];
@@ -116,7 +98,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
   const handleFetchProperties = async () => {
     if (!inputValue.trim()) {
-      toast("Por favor, insira o link de um imóvel ou do perfil Airbnb.", { type: "warning" });
+      toast("Por favor, insira o link de um imovel ou do perfil Airbnb.", { type: "warning" });
       return;
     }
 
@@ -125,39 +107,37 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
     try {
       const existingProps = await getPropriedadesDropdownList();
-      const existingIds = existingProps.map(p => p.id_do_anuncio).filter(Boolean);
+      const existingIds = existingProps.map((p) => p.id_do_anuncio).filter(Boolean);
 
       let finalUrl = inputValue.trim();
-      // Handle shortened URLs
       if (finalUrl.includes('airbnb.com/h/') || finalUrl.includes('abnb.me')) {
         try {
           const resolved = await resolveAirbnbUrl(finalUrl);
           finalUrl = resolved.finalUrl;
-        } catch { }
+        } catch {}
       }
 
-      // Handle host/editor links vs property links
       const userId = extractAirbnbUserId(finalUrl);
       if (userId) {
         const listings = await getUserManagedListings(userId);
 
         if (!listings || listings.length === 0) {
-          toast("Não encontramos imóveis neste perfil.", { type: "warning" });
+          toast("Nao encontramos imoveis neste perfil.", { type: "warning" });
           setIsLoading(false);
           return;
         }
 
         const filteredListings = listings.filter((item: any) => !existingIds.includes(item.id_do_anuncio));
-        
+
         if (filteredListings.length === 0) {
-          toast("Todos os imóveis deste perfil já estão cadastrados em sua conta.", { type: "info" });
+          toast("Todos os imoveis deste perfil ja estao cadastrados em sua conta.", { type: "info" });
           setIsLoading(false);
           return;
         }
 
         const mapped: Property[] = filteredListings.map((item: any) => ({
           id: item.id || 0,
-          titulo: item.titulo ?? item.name ?? 'Sem título',
+          titulo: item.titulo ?? item.name ?? 'Sem titulo',
           id_do_anuncio: item.id_do_anuncio ?? '',
           ativo: true,
           pictureUrl: item.pictureUrl,
@@ -172,13 +152,14 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
         setFetchedProperties(mapped);
         const autoSelect: Record<string, boolean> = {};
-        mapped.forEach(p => { autoSelect[p.id_do_anuncio] = true; });
+        mapped.forEach((p) => {
+          autoSelect[p.id_do_anuncio] = true;
+        });
         setSelectedProperties(autoSelect);
         setIsLoading(false);
         return;
       }
 
-      // It's a single property link
       let propertyId = extractAirbnbPropertyId(finalUrl);
       const editorId = extractAirbnbListingId(finalUrl);
       if (editorId) {
@@ -186,13 +167,13 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
       }
 
       if (!propertyId) {
-        toast("Não foi possível identificar o ID do imóvel no link fornecido.", { type: "error" });
+        toast("Nao foi possivel identificar o ID do imovel no link fornecido.", { type: "error" });
         setIsLoading(false);
         return;
       }
 
       if (existingIds.includes(propertyId)) {
-        toast("Este imóvel já está cadastrado em sua conta.", { type: "info" });
+        toast("Este imovel ja esta cadastrado em sua conta.", { type: "info" });
         setIsLoading(false);
         return;
       }
@@ -214,29 +195,28 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
       setFetchedProperties([newProp]);
       setSelectedProperties({ [newProp.id_do_anuncio]: true });
-      
     } catch (error) {
       console.error(error);
-      toast("Ocorreu um erro ao buscar o(s) imóvel(is).", { type: "error" });
+      toast("Ocorreu um erro ao buscar o(s) imovel(is).", { type: "error" });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleToggleProperty = (id: string, checked: boolean) => {
-    setSelectedProperties(prev => ({ ...prev, [id]: checked }));
+    setSelectedProperties((prev) => ({ ...prev, [id]: checked }));
   };
 
   const handleSaveProperties = async () => {
-    const selectedList = fetchedProperties.filter(p => selectedProperties[p.id_do_anuncio]);
+    const selectedList = fetchedProperties.filter((p) => selectedProperties[p.id_do_anuncio]);
     if (selectedList.length === 0) {
-      toast("Selecione pelo menos um imóvel para adicionar.", { type: "warning" });
+      toast("Selecione pelo menos um imovel para adicionar.", { type: "warning" });
       return;
     }
 
     setIsLoading(true);
     try {
-      const payload = selectedList.map(p => ({ ...p, ativo: true }));
+      const payload = selectedList.map((p) => ({ ...p, ativo: true }));
       const registered = await registerProperties(payload as any);
       const registeredProperties = Array.isArray((registered as any)?.data)
         ? (registered as any).data
@@ -264,7 +244,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
       }
 
       toast(`${selectedList.length} propriedade(s) registrada(s) com sucesso!`, { type: "success" });
-      onSuccess(); // Trigger parent refresh
+      onSuccess();
       handleClose();
     } catch (error) {
       console.error(error);
@@ -274,123 +254,240 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="3xl" scrollBehavior="inside">
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader fontSize="xl" fontWeight="bold">Adicionar Imóvel</ModalHeader>
-        <ModalCloseButton />
-        
-        <ModalBody pb={6}>
+    <div
+      role="presentation"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 10000,
+        display: "grid",
+        placeItems: "center",
+        padding: 16,
+        background: "rgba(8,10,15,0.56)",
+      }}
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) handleClose();
+      }}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-property-title"
+        style={{
+          width: "100%",
+          maxWidth: 760,
+          maxHeight: "calc(100vh - 32px)",
+          display: "flex",
+          flexDirection: "column",
+          borderRadius: 12,
+          background: "#fff",
+          color: "#0E1116",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.28)",
+          overflow: "hidden",
+        }}
+      >
+        <header
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+            padding: "20px 24px",
+            borderBottom: "1px solid rgba(14,17,22,0.10)",
+          }}
+        >
+          <h2 id="add-property-title" style={{ margin: 0, fontSize: 20 }}>
+            Adicionar imovel
+          </h2>
+          <button
+            type="button"
+            aria-label="Fechar"
+            onClick={handleClose}
+            style={iconButtonStyle}
+          >
+            x
+          </button>
+        </header>
+
+        <div style={{ padding: 24, overflowY: "auto" }}>
           {fetchedProperties.length === 0 ? (
-            <VStack spacing={4} align="stretch">
-              <Text color="gray.600">
-                Para adicionar propriedades à sua conta, cole abaixo o <strong>Link do Airbnb</strong> do seu imóvel ou o <strong>link do seu perfil de Anfitrião</strong> (para importar automaticamente todos os imóveis).
-              </Text>
-              
-              <Input
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <p style={{ margin: 0, color: "rgba(14,17,22,0.68)", lineHeight: 1.6 }}>
+                Para adicionar propriedades a sua conta, cole abaixo o <strong>link do Airbnb</strong> do seu imovel
+                ou o <strong>link do seu perfil de anfitriao</strong> para importar automaticamente todos os imoveis.
+              </p>
+
+              <input
                 placeholder="Exemplo: https://www.airbnb.com/rooms/12345678"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                size="lg"
-                isDisabled={isLoading}
+                disabled={isLoading}
+                style={inputStyle}
               />
-              
-              <Button 
-                colorScheme="blue" 
-                size="lg" 
+
+              <AppButton
+                type="button"
+                size="lg"
+                fullWidth
                 onClick={handleFetchProperties}
-                isLoading={isLoading}
-                loadingText="Buscando..."
-                mt={2}
+                loading={isLoading}
               >
-                Buscar Prorpiedades
-              </Button>
-            </VStack>
+                Buscar propriedades
+              </AppButton>
+            </div>
           ) : (
-            <VStack spacing={4} align="stretch">
-              <Text fontWeight="medium" mb={2}>
-                Encontramos {fetchedProperties.length} imóvel(is) elegível(is). Selecione os que deseja monitorar e atualizar:
-              </Text>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <p style={{ margin: 0, fontWeight: 650 }}>
+                Encontramos {fetchedProperties.length} imovel(is) elegivel(is). Selecione os que deseja monitorar e atualizar:
+              </p>
 
-              <Box maxH="400px" overflowY="auto" borderRadius="md" border="1px solid" borderColor="gray.200" p={2}>
-                <VStack spacing={3} align="stretch">
-                  {fetchedProperties.map((prop) => (
-                    <Flex 
-                      key={prop.id_do_anuncio} 
-                      p={3} 
-                      borderWidth="1px" 
-                      borderRadius="lg" 
-                      alignItems="center"
-                      bg={selectedProperties[prop.id_do_anuncio] ? 'blue.50' : 'white'}
-                      borderColor={selectedProperties[prop.id_do_anuncio] ? 'blue.200' : 'gray.200'}
-                      transition="all 0.2s"
-                      _hover={{ borderColor: 'blue.300', transform: 'translateY(-1px)', shadow: 'sm' }}
-                      cursor="pointer"
-                      onClick={() => handleToggleProperty(prop.id_do_anuncio, !selectedProperties[prop.id_do_anuncio])}
-                    >
-                      <Checkbox 
-                        isChecked={selectedProperties[prop.id_do_anuncio] || false}
-                        onChange={(e) => handleToggleProperty(prop.id_do_anuncio, e.target.checked)}
-                        colorScheme="blue"
-                        size="lg"
-                        mr={4}
-                        pointerEvents="none"
-                      />
-                      
-                      {prop.pictureUrl ? (
-                        <Image 
-                          src={prop.pictureUrl} 
-                          alt="Capa" 
-                          boxSize="70px" 
-                          objectFit="cover" 
-                          borderRadius="md" 
-                          mr={4} 
+              <div
+                style={{
+                  maxHeight: 400,
+                  overflowY: "auto",
+                  padding: 8,
+                  border: "1px solid rgba(14,17,22,0.12)",
+                  borderRadius: 8,
+                }}
+              >
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {fetchedProperties.map((prop) => {
+                    const selected = selectedProperties[prop.id_do_anuncio] || false;
+                    return (
+                      <div
+                        key={prop.id_do_anuncio}
+                        onClick={() => handleToggleProperty(prop.id_do_anuncio, !selected)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 16,
+                          padding: 12,
+                          border: `1px solid ${selected ? "rgba(232,80,10,0.35)" : "rgba(14,17,22,0.12)"}`,
+                          borderRadius: 10,
+                          background: selected ? "rgba(232,80,10,0.08)" : "#fff",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          readOnly
+                          style={{ width: 18, height: 18, accentColor: "#E8500A", pointerEvents: "none" }}
                         />
-                      ) : (
-                        <Box boxSize="70px" bg="gray.100" borderRadius="md" mr={4} display="flex" alignItems="center" justifyContent="center">
-                          <Text color="gray.400" fontSize="xs">Sem foto</Text>
-                        </Box>
-                      )}
-                      
-                      <Box flex="1">
-                        <Text fontWeight="semibold" noOfLines={1} fontSize="md">{prop.titulo || `Anúncio #${prop.id_do_anuncio}`}</Text>
-                        <Text color="gray.500" fontSize="sm" mt={1}>
-                          {prop.propertyType || 'Inteiro'} • {prop.guests} hóspedes {prop.bedrooms ? `• ${prop.bedrooms} quartos` : ''} {prop.beds ? `• ${prop.beds} leitos` : ''} {prop.bathrooms ? `• ${prop.bathrooms} banheiros` : ''}
-                        </Text>
-                      </Box>
-                      
-                      {prop.rating !== undefined && prop.rating > 0 && (
-                        <Badge colorScheme="green" ml={2} display="flex" alignItems="center">
-                          ★ {prop.rating}
-                        </Badge>
-                      )}
-                    </Flex>
-                  ))}
-                </VStack>
-              </Box>
-            </VStack>
-          )}
-        </ModalBody>
 
-        <ModalFooter>
-          <Button variant="ghost" mr={3} onClick={handleClose} isDisabled={isLoading}>
-            Cancelar
-          </Button>
-          
-          {fetchedProperties.length > 0 && (
-            <Button 
-              colorScheme="blue" 
-              onClick={handleSaveProperties}
-              isLoading={isLoading}
-              loadingText="Salvando..."
-              isDisabled={!Object.values(selectedProperties).some(Boolean)}
-            >
-              Adicionar Selecionados
-            </Button>
+                        {prop.pictureUrl ? (
+                          <img
+                            src={prop.pictureUrl}
+                            alt="Capa"
+                            style={{ width: 70, height: 70, objectFit: "cover", borderRadius: 8, flexShrink: 0 }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: 70,
+                              height: 70,
+                              display: "grid",
+                              placeItems: "center",
+                              borderRadius: 8,
+                              background: "#F3F4F6",
+                              color: "#9CA3AF",
+                              fontSize: 12,
+                              flexShrink: 0,
+                            }}
+                          >
+                            Sem foto
+                          </div>
+                        )}
+
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <p style={{ margin: 0, color: "#0E1116", fontSize: 15, fontWeight: 650, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {prop.titulo || `Anuncio #${prop.id_do_anuncio}`}
+                          </p>
+                          <p style={{ margin: "4px 0 0", color: "rgba(14,17,22,0.62)", fontSize: 13, lineHeight: 1.45 }}>
+                            {prop.propertyType || 'Inteiro'} - {prop.guests} hospedes
+                            {prop.bedrooms ? ` - ${prop.bedrooms} quartos` : ''}
+                            {prop.beds ? ` - ${prop.beds} leitos` : ''}
+                            {prop.bathrooms ? ` - ${prop.bathrooms} banheiros` : ''}
+                          </p>
+                        </div>
+
+                        {prop.rating !== undefined && prop.rating > 0 && (
+                          <span style={ratingStyle}>* {prop.rating}</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           )}
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+        </div>
+
+        <footer
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 12,
+            padding: "16px 24px",
+            borderTop: "1px solid rgba(14,17,22,0.10)",
+          }}
+        >
+          <AppButton
+            type="button"
+            variant="ghost"
+            onClick={handleClose}
+            disabled={isLoading}
+          >
+            Cancelar
+          </AppButton>
+
+          {fetchedProperties.length > 0 && (
+            <AppButton
+              type="button"
+              onClick={handleSaveProperties}
+              loading={isLoading}
+              disabled={!Object.values(selectedProperties).some(Boolean)}
+            >
+              Adicionar selecionados
+            </AppButton>
+          )}
+        </footer>
+      </section>
+    </div>
   );
 }
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  height: 48,
+  padding: "0 14px",
+  border: "1px solid rgba(14,17,22,0.12)",
+  borderRadius: 10,
+  color: "#0E1116",
+  fontSize: 15,
+  outline: "none",
+};
+
+const iconButtonStyle: React.CSSProperties = {
+  width: 32,
+  height: 32,
+  border: "1px solid rgba(14,17,22,0.12)",
+  borderRadius: 8,
+  background: "#fff",
+  color: "#0E1116",
+  cursor: "pointer",
+};
+
+const ratingStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  padding: "4px 8px",
+  borderRadius: 999,
+  background: "rgba(22,160,107,0.10)",
+  color: "#16A06B",
+  fontSize: 12,
+  fontWeight: 750,
+};

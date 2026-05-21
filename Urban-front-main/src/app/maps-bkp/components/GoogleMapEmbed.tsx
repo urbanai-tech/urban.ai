@@ -4,7 +4,6 @@ import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Box } from '@chakra-ui/react';
 
 // Função para criar ícone da propriedade com nome customizado
 function createPropertyIcon(name: string, imageUrl: string) {
@@ -148,14 +147,16 @@ const properties: Location[] = [
       : [-23.55052, -46.633308];
 
   return (
-    <Box
-      bg="white"
-      borderRadius="md"
-      boxShadow="md"
-      p={1}
-      mx="2"
-      height={resolvedHeight}
-      width="100%"
+    <div
+      style={{
+        height: resolvedHeight,
+        width: "100%",
+        margin: "0 8px",
+        padding: 4,
+        borderRadius: 8,
+        background: "#fff",
+        boxShadow: "0 4px 12px rgba(14,17,22,0.12)",
+      }}
     >
       <MapContainer
         center={center}
@@ -211,6 +212,6 @@ const properties: Location[] = [
           );
         })}
       </MapContainer>
-    </Box>
+    </div>
   );
 }

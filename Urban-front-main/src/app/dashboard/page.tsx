@@ -1,20 +1,6 @@
 'use client';
 
 import {
-  Box,
-  Center,
-  Flex,
-  FormControl,
-  FormLabel,
-  Grid,
-  GridItem,
-  IconButton,
-  Spinner,
-  Text,
-  VStack,
-  useBreakpointValue,
-} from '@chakra-ui/react';
-import {
   eachDayOfInterval,
   endOfDay,
   endOfMonth,
@@ -26,9 +12,9 @@ import {
   startOfMonth,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DateRange } from 'react-day-picker';
-import { FiX } from 'react-icons/fi';
 import {
   getEventosPorPropriedade,
   getPropriedadesDropdownList,
@@ -70,6 +56,10 @@ interface EventItem {
   aceito: boolean;
 }
 
+function LoadingSpinner() {
+  return <span className="dashboard-spinner" aria-label="Carregando" />;
+}
+
 export default function DashboardPage() {
   const [range] = useState<DateRange>();
   const [allEvents, setAllEvents] = useState<EventItem[]>([]);
@@ -89,15 +79,12 @@ export default function DashboardPage() {
   const [, setErrorPropsInfo] = useState<string | null>(null);
   const [propertyId, setPropertyId] = useState('');
 
-  // Obter valores responsivos
-  const dayFontSize = useBreakpointValue({ base: 'xs', sm: 'sm', md: 'md' });
-
   useEffect(() => {
     if (startOfMonth(currentMonth) < mesMinimo) setCurrentMonth(mesMinimo);
   }, [mesMinimo, currentMonth]);
 
   useEffect(() => {
-    console.log('Mês atual:', currentMonth.toISOString());
+    console.log('Mes atual:', currentMonth.toISOString());
   }, [currentMonth]);
 
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -183,7 +170,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Fetch eventos por propriedade
   useEffect(() => {
     const fetchEvents = async () => {
       setIsLoading(true);
@@ -205,7 +191,6 @@ export default function DashboardPage() {
     }
   }, [propertyId, currentMonth]);
 
-  // Fetch propriedades e selecionar a primeira "completed"
   useEffect(() => {
     async function fetchPropsInfo() {
       try {
@@ -219,7 +204,6 @@ export default function DashboardPage() {
           setPropertyId(defaultProp.id);
           setLoadingPropsInfo(false);
         } else {
-          // Nenhuma propriedade válida: mantém tela em loading
           setPropertyId('');
           setIsLoading(false);
           setLoadingPropsInfo(false);
@@ -233,50 +217,39 @@ export default function DashboardPage() {
     fetchPropsInfo();
   }, []);
 
+  useEffect(() => {
+    async function fetchPropsInfo() {
+      try {
+        setErrorPropsInfo(null);
+        const data = await getPropriedadesDropdownList();
 
-  //função auxiliar - Monitora mudanças de status e recarrega quando ficam "completed"
-useEffect(() => {
-  async function fetchPropsInfo() {
-    try {
-      setErrorPropsInfo(null);
-      const data = await getPropriedadesDropdownList();
+        if (propsInfo.length > 0 && data.length > 0) {
+          const completedProps = propsInfo.filter((oldItem) => {
+            const newItem = data.find((n) => n.id === oldItem.id);
+            return oldItem.analisado !== "completed" && newItem?.analisado === "completed";
+          });
 
-      if (propsInfo.length > 0 && data.length > 0) {
-        // Verifica se alguma propriedade saiu de um estado pendente/processando para "completed"
-        const completedProps = propsInfo.filter((oldItem) => {
-          const newItem = data.find((n) => n.id === oldItem.id);
-          return oldItem.analisado !== "completed" && newItem?.analisado === "completed";
-        });
+          if (completedProps.length > 0) {
+            setPropsInfo(data);
 
-        if (completedProps.length > 0) {
-          // Atualiza o dropdown com os novos dados
-          setPropsInfo(data);
-
-          // Se temos propriedades completadas, seleciona a primeira delas
-          if (!propertyId || propsInfo.find(p => p.id === propertyId)?.analisado !== 'completed') {
-            const defaultProp = data.find(p => p.analisado === "completed");
-            if (defaultProp) {
-              setPropertyId(defaultProp.id);
+            if (!propertyId || propsInfo.find(p => p.id === propertyId)?.analisado !== 'completed') {
+              const defaultProp = data.find(p => p.analisado === "completed");
+              if (defaultProp) {
+                setPropertyId(defaultProp.id);
+              }
             }
           }
         }
+      } catch (err) {
+        setErrorPropsInfo("Erro ao carregar propriedades");
+        console.error(err);
       }
-    } catch (err) {
-      setErrorPropsInfo("Erro ao carregar propriedades");
-      console.error(err);
     }
-  }
 
-  // chama imediatamente
-  fetchPropsInfo();
-
-  // cria o intervalo para verificar a cada 3 segundos (mais rápido agora)
-  const intervalId = setInterval(fetchPropsInfo, 3000);
-
-  // limpa o intervalo ao desmontar
-  return () => clearInterval(intervalId);
-}, [propsInfo, propertyId]);
-
+    fetchPropsInfo();
+    const intervalId = setInterval(fetchPropsInfo, 3000);
+    return () => clearInterval(intervalId);
+  }, [propsInfo, propertyId]);
 
   useEffect(() => {
     setFilteredEvents(filterEvents());
@@ -297,61 +270,43 @@ useEffect(() => {
       .sort((a, b) => +parseISO(a.dataInicio) - +parseISO(b.dataInicio));
   }, [selectedDay, currentMonth, allEvents, eventsByDay]);
 
-  // -------- UI --------
   return (
     <AppPageShell maxWidth={1400}>
       <AppSectionHeader
-        eyebrow="CALENDÁRIO · EVENTOS POR DIA"
-        title="Calendário"
-        subtitle="Visualize os eventos com sugestões de preço da Urban AI para o imóvel selecionado. Clique em um dia para ver detalhes."
+        eyebrow="CALENDARIO · EVENTOS POR DIA"
+        title="Calendario"
+        subtitle="Visualize os eventos com sugestoes de preco da Urban AI para o imovel selecionado. Clique em um dia para ver detalhes."
         actions={
-          <Box minW={{ base: '100%', md: '280px' }}>
-            <FormControl>
-              <FormLabel
-                fontSize="11px"
-                letterSpacing="1.5px"
-                textTransform="uppercase"
-                fontWeight="600"
-                color="var(--app-text-muted)"
-                mb={1}
-              >
-                Filtrar imóvel
-              </FormLabel>
-              <PropertySelect value={propertyId} propsInfo={propsInfo} setPropertyId={setPropertyId} />
-            </FormControl>
-          </Box>
+          <div className="dashboard-property-filter">
+            <label>Filtrar imovel</label>
+            <PropertySelect value={propertyId} propsInfo={propsInfo} setPropertyId={setPropertyId} />
+          </div>
         }
       />
 
-      {/* Loading se nenhuma propriedade "completed" */}
       {loadingPropsInfo || isLoading ? (
-        <Center py={20}>
-          <Spinner size="xl" color="orange.500" thickness="2px" />
-        </Center>
+        <div className="dashboard-loading">
+          <LoadingSpinner />
+        </div>
       ) : !propertyId || !hasCompletedProperties ? (
         <AppEmptyState
-          eyebrow="IMÓVEIS"
-          title="Ainda não há imóvel pronto para recomendações"
-          body="Assim que o cadastro terminar o processamento, as recomendações aparecem aqui. Se o imóvel ficou muito tempo nesse estado, revise endereço, coordenadas e quota do plano."
+          eyebrow="IMOVEIS"
+          title="Ainda nao ha imovel pronto para recomendacoes"
+          body="Assim que o cadastro terminar o processamento, as recomendacoes aparecem aqui. Se o imovel ficou muito tempo nesse estado, revise endereco, coordenadas e quota do plano."
           icon={<Icons.Sparkles size={32} />}
         />
       ) : error ? (
         <AppCard variant="default" style={{ borderColor: 'rgba(194, 52, 46, 0.25)' }}>
-          <Flex align="center" gap={3} color="var(--app-danger)">
+          <div className="dashboard-error">
             <Icons.AlertCircle size={18} />
-            <Text fontSize="sm" fontWeight={600}>{error}</Text>
-          </Flex>
+            <span>{error}</span>
+          </div>
         </AppCard>
       ) : (
-        <Flex
-          direction={{ base: 'column', lg: 'row' }}
-          gap={6}
-          align="stretch"
-        >
-          {/* Calendário - 3/5 da largura em desktop */}
-          <Box flex={{ base: '1', lg: '3' }} minW={0}>
+        <div className="dashboard-content-grid">
+          <div className="dashboard-calendar-column">
             <AppCard variant="default" style={{ padding: 20 }}>
-              <Flex justify="space-between" align="center" mb={4} gap={2} flexWrap="wrap">
+              <div className="dashboard-calendar-header">
                 <AppButton
                   size="sm"
                   variant="secondary"
@@ -361,239 +316,392 @@ useEffect(() => {
                 >
                   Anterior
                 </AppButton>
-                <Text
-                  fontSize={{ base: 'md', md: 'lg' }}
-                  fontWeight={600}
-                  textAlign="center"
-                  flex="1"
-                  minW="200px"
-                  style={{ color: 'var(--app-text)', textTransform: 'capitalize' }}
-                >
-                  {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
-                </Text>
+                <h2>{format(currentMonth, 'MMMM yyyy', { locale: ptBR })}</h2>
                 <AppButton
                   size="sm"
                   variant="secondary"
                   onClick={() => navigateMonth('next')}
                   rightIcon={<Icons.ArrowRight size={14} />}
                 >
-                  Próximo
+                  Proximo
                 </AppButton>
-              </Flex>
+              </div>
 
-              <Box overflowX="auto">
-                <Grid
-                  templateColumns="repeat(7, 1fr)"
-                  gap={1}
-                  mb={2}
-                  py={2}
-                  px={1}
-                  minW="min-content"
-                  style={{
-                    background: 'var(--app-surface-muted)',
-                    borderRadius: 8,
-                  }}
-                >
-                  {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
-                    <GridItem key={day} textAlign="center">
-                      <Text
-                        fontSize="11px"
-                        fontWeight={600}
-                        letterSpacing="1.5px"
-                        textTransform="uppercase"
-                        style={{ color: 'var(--app-text-muted)' }}
-                      >
-                        {day}
-                      </Text>
-                    </GridItem>
+              <div className="dashboard-calendar-scroll">
+                <div className="dashboard-weekdays">
+                  {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'].map(day => (
+                    <span key={day}>{day}</span>
                   ))}
-                </Grid>
+                </div>
 
-                <Grid
-                  templateColumns="repeat(7, 1fr)"
-                  gap={1}
-                  minW="min-content"
-                >
+                <div className="dashboard-days">
                   {daysInMonth.map(day => {
                     const dateKey = format(day, 'yyyy-MM-dd');
                     const dayEvents = eventsByDay[dateKey] || [];
                     const isToday = isSameDay(day, new Date());
                     const isSelected = selectedDay && isSameDay(day, selectedDay);
 
-                    const cellBg = isSelected
-                      ? 'var(--app-accent-soft)'
-                      : isToday
-                        ? 'var(--app-surface-muted)'
-                        : 'var(--app-surface)';
-                    const cellBorder = isSelected
-                      ? 'var(--app-accent)'
-                      : 'var(--app-divider)';
-                    const dayColor = isSelected
-                      ? 'var(--app-accent)'
-                      : isToday
-                        ? 'var(--app-text)'
-                        : 'var(--app-text)';
-
                     return (
-                      <GridItem key={dateKey}>
-                        <Box
-                          aspectRatio="1/1"
-                          minW={{ base: '10', sm: '12', md: '14' }}
-                          position="relative"
-                          p={1}
-                          cursor="pointer"
-                          onClick={() => setSelectedDay(day)}
-                          transition="background-color 120ms, border-color 120ms"
-                          display="flex"
-                          flexDirection="column"
-                          justifyContent="space-between"
-                          overflow="hidden"
-                          style={{
-                            background: cellBg,
-                            border: `1px solid ${cellBorder}`,
-                            borderRadius: 8,
-                          }}
-                          _hover={{ borderColor: 'var(--app-accent)' }}
-                        >
-                          <Text
-                            fontSize={dayFontSize}
-                            fontWeight={isToday || isSelected ? 700 : 500}
-                            textAlign="right"
-                            style={{ color: dayColor }}
-                            flexShrink={0}
-                          >
-                            {format(day, 'd')}
-                          </Text>
+                      <button
+                        className={`dashboard-day${isToday ? ' is-today' : ''}${isSelected ? ' is-selected' : ''}`}
+                        key={dateKey}
+                        type="button"
+                        onClick={() => setSelectedDay(day)}
+                      >
+                        <span className="dashboard-day-number">{format(day, 'd')}</span>
 
-                          {dayEvents.length > 0 && (
-                            <Center>
-                              <VStack spacing={0}>
-                                <Flex
-                                  align="center"
-                                  gap={1}
-                                  px={1.5}
-                                  py={0.5}
-                                  style={{
-                                    background: 'var(--app-accent-soft)',
-                                    borderRadius: 999,
-                                    border: '1px solid rgba(232, 80, 10, 0.25)',
-                                  }}
-                                >
-                                  <Box
-                                    style={{
-                                      width: 6,
-                                      height: 6,
-                                      borderRadius: '50%',
-                                      background: 'var(--app-accent)',
-                                    }}
-                                  />
-                                  <Text
-                                    fontSize="11px"
-                                    fontWeight={700}
-                                    style={{ color: 'var(--app-accent)' }}
-                                  >
-                                    {dayEvents.length}
-                                  </Text>
-                                </Flex>
-                                <Text
-                                  fontSize="2xs"
-                                  display={{ base: 'none', sm: 'block' }}
-                                  style={{ color: 'var(--app-text-dim)' }}
-                                >
-                                  evento(s)
-                                </Text>
-                              </VStack>
-                            </Center>
-                          )}
-                        </Box>
-                      </GridItem>
+                        {dayEvents.length > 0 && (
+                          <span className="dashboard-event-count">
+                            <span />
+                            <strong>{dayEvents.length}</strong>
+                          </span>
+                        )}
+                        {dayEvents.length > 0 && <small>evento(s)</small>}
+                      </button>
                     );
                   })}
-                </Grid>
-              </Box>
+                </div>
+              </div>
             </AppCard>
-          </Box>
+          </div>
 
-          {/* Painel: Eventos - 2/5 da largura em desktop */}
-          <Box flex={{ base: '1', lg: '2' }} minW={0}>
+          <div className="dashboard-events-column">
             <AppCard
               variant={selectedDay ? 'accent' : 'default'}
               style={{ padding: 20, display: 'flex', flexDirection: 'column', height: '100%' }}
             >
-              <Flex justify="space-between" align="center" mb={4} gap={2}>
-                <Box minW={0}>
-                  <p
-                    className="urban-app-eyebrow-muted"
-                    style={{ marginBottom: 4 }}
-                  >
-                    {selectedDay ? 'DIA SELECIONADO' : 'EVENTOS DO MÊS'}
+              <div className="dashboard-panel-header">
+                <div className="dashboard-panel-title">
+                  <p className="urban-app-eyebrow-muted">
+                    {selectedDay ? 'DIA SELECIONADO' : 'EVENTOS DO MES'}
                   </p>
-                  <Text
-                    fontSize={{ base: 'lg', md: 'xl' }}
-                    fontWeight={600}
-                    style={{ color: 'var(--app-text)' }}
-                  >
+                  <h3>
                     {selectedDay
                       ? format(selectedDay, 'dd/MM/yyyy')
                       : format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
-                  </Text>
-                </Box>
+                  </h3>
+                </div>
 
-                <Flex align="center" gap={1}>
+                <div className="dashboard-panel-actions">
                   <SuggestionInfoPopover
-                    description="Nosso sistema compara seu imóvel com outros de características semelhantes (camas, capacidade, banheiros, faixa de valor e localização). Também considera eventos próximos e seu impacto na demanda para oferecer uma sugestão de preço mais precisa."
+                    description="Nosso sistema compara seu imovel com outros de caracteristicas semelhantes (camas, capacidade, banheiros, faixa de valor e localizacao). Tambem considera eventos proximos e seu impacto na demanda para oferecer uma sugestao de preco mais precisa."
                   />
 
                   {selectedDay && (
-                    <IconButton
-                      icon={<FiX />}
-                      aria-label="Voltar para eventos do mês"
-                      size="sm"
-                      variant="ghost"
+                    <button
+                      aria-label="Voltar para eventos do mes"
+                      className="dashboard-clear-day"
+                      type="button"
                       onClick={() => setSelectedDay(null)}
-                      style={{ color: 'var(--app-text-muted)' }}
-                    />
+                    >
+                      <X size={16} />
+                    </button>
                   )}
-                </Flex>
-              </Flex>
+                </div>
+              </div>
 
               {eventsToDisplay.length === 0 ? (
                 <AppEmptyState
-                  eyebrow={selectedDay ? 'DIA SEM EVENTOS' : 'SEM RECOMENDAÇÕES'}
-                  title={selectedDay ? 'Nenhum evento neste dia' : 'Sem recomendações neste mês'}
+                  eyebrow={selectedDay ? 'DIA SEM EVENTOS' : 'SEM RECOMENDACOES'}
+                  title={selectedDay ? 'Nenhum evento neste dia' : 'Sem recomendacoes neste mes'}
                   body={
                     selectedPropertyInfo?.analisado !== 'completed'
-                      ? 'O imóvel ainda está processando. As sugestões aparecem quando endereço, eventos e preço base estiverem prontos.'
-                      : 'Não encontramos evento futuro compatível com este imóvel no período. O sistema continuará verificando novos eventos e mostrará sugestões quando houver match.'
+                      ? 'O imovel ainda esta processando. As sugestoes aparecem quando endereco, eventos e preco base estiverem prontos.'
+                      : 'Nao encontramos evento futuro compativel com este imovel no periodo. O sistema continuara verificando novos eventos e mostrara sugestoes quando houver match.'
                   }
                   icon={<Icons.Calendar size={28} />}
                 />
               ) : (
-                <Box flex="1" overflowY="auto" pr={1} maxH={{ base: 'auto', lg: '65vh' }}>
-                  <Flex direction="column" gap={3}>
-                    {eventsToDisplay.map(ev => (
-                      <EventCard
-                        setIsLoading={() => {
-                          console.log("Button clicado")
-                        }}
-                        onChange={() => {
-                          console.log("Button clicado")
-                          fetchEventsSemLoading()
-                        }}
-                        key={makeKey(ev)}
-                        ev={ev}
-                        cardBorder="gray.200"
-                        bg="white"
-                        propertyId={propertyId}
-                      />
-                    ))}
-                  </Flex>
-                </Box>
+                <div className="dashboard-events-list">
+                  {eventsToDisplay.map(ev => (
+                    <EventCard
+                      setIsLoading={() => {
+                        console.log("Button clicado")
+                      }}
+                      onChange={() => {
+                        console.log("Button clicado")
+                        fetchEventsSemLoading()
+                      }}
+                      key={makeKey(ev)}
+                      ev={ev}
+                      cardBorder="gray.200"
+                      bg="white"
+                      propertyId={propertyId}
+                    />
+                  ))}
+                </div>
               )}
             </AppCard>
-          </Box>
-        </Flex>
+          </div>
+        </div>
       )}
+
+      <style jsx>{styles}</style>
     </AppPageShell>
   );
 }
+
+const styles = `
+  .dashboard-property-filter {
+    min-width: min(280px, 100%);
+  }
+
+  .dashboard-property-filter label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--app-text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .dashboard-loading {
+    display: grid;
+    min-height: 320px;
+    place-items: center;
+  }
+
+  .dashboard-spinner {
+    width: 42px;
+    height: 42px;
+    border: 3px solid var(--app-divider);
+    border-top-color: var(--app-accent);
+    border-radius: 50%;
+    animation: dashboard-spin 800ms linear infinite;
+  }
+
+  .dashboard-error {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--app-danger);
+    font-size: 14px;
+    font-weight: 650;
+  }
+
+  .dashboard-content-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(340px, 2fr);
+    align-items: stretch;
+    gap: 24px;
+  }
+
+  .dashboard-calendar-column,
+  .dashboard-events-column {
+    min-width: 0;
+  }
+
+  .dashboard-calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .dashboard-calendar-header h2 {
+    flex: 1;
+    min-width: 200px;
+    margin: 0;
+    color: var(--app-text);
+    font-size: 19px;
+    font-weight: 650;
+    line-height: 1.2;
+    text-align: center;
+    text-transform: capitalize;
+  }
+
+  .dashboard-calendar-scroll {
+    overflow-x: auto;
+  }
+
+  .dashboard-weekdays,
+  .dashboard-days {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(48px, 1fr));
+    gap: 4px;
+    min-width: min-content;
+  }
+
+  .dashboard-weekdays {
+    margin-bottom: 8px;
+    padding: 8px 4px;
+    background: var(--app-surface-muted);
+    border-radius: 8px;
+  }
+
+  .dashboard-weekdays span {
+    color: var(--app-text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .dashboard-day {
+    position: relative;
+    display: flex;
+    aspect-ratio: 1 / 1;
+    min-width: 48px;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    padding: 6px;
+    color: var(--app-text);
+    background: var(--app-surface);
+    border: 1px solid var(--app-divider);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 120ms ease, background 120ms ease;
+  }
+
+  .dashboard-day:hover {
+    border-color: var(--app-accent);
+  }
+
+  .dashboard-day.is-today {
+    background: var(--app-surface-muted);
+  }
+
+  .dashboard-day.is-selected {
+    color: var(--app-accent);
+    background: var(--app-accent-soft);
+    border-color: var(--app-accent);
+  }
+
+  .dashboard-day-number {
+    align-self: flex-end;
+    font-size: 14px;
+    font-weight: 550;
+    line-height: 1;
+  }
+
+  .dashboard-day.is-today .dashboard-day-number,
+  .dashboard-day.is-selected .dashboard-day-number {
+    font-weight: 750;
+  }
+
+  .dashboard-event-count {
+    display: inline-flex;
+    align-items: center;
+    align-self: center;
+    gap: 4px;
+    padding: 3px 7px;
+    color: var(--app-accent);
+    background: var(--app-accent-soft);
+    border: 1px solid rgba(232, 80, 10, 0.25);
+    border-radius: 999px;
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  .dashboard-event-count span {
+    width: 6px;
+    height: 6px;
+    background: var(--app-accent);
+    border-radius: 50%;
+  }
+
+  .dashboard-event-count strong {
+    font-weight: 750;
+  }
+
+  .dashboard-day small {
+    color: var(--app-text-dim);
+    font-size: 10px;
+    text-align: center;
+  }
+
+  .dashboard-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .dashboard-panel-title {
+    min-width: 0;
+  }
+
+  .dashboard-panel-title h3 {
+    margin: 4px 0 0;
+    color: var(--app-text);
+    font-size: 21px;
+    font-weight: 650;
+    line-height: 1.25;
+    text-transform: capitalize;
+  }
+
+  .dashboard-panel-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .dashboard-clear-day {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    color: var(--app-text-muted);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .dashboard-clear-day:hover {
+    color: var(--app-text);
+    background: var(--app-surface-muted);
+    border-color: var(--app-divider);
+  }
+
+  .dashboard-events-list {
+    display: grid;
+    gap: 12px;
+    max-height: 65vh;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  @keyframes dashboard-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .dashboard-content-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .dashboard-events-list {
+      max-height: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dashboard-property-filter {
+      width: 100%;
+    }
+
+    .dashboard-calendar-header {
+      align-items: stretch;
+    }
+
+    .dashboard-calendar-header h2 {
+      order: -1;
+      flex-basis: 100%;
+      min-width: 0;
+    }
+
+    .dashboard-day small {
+      display: none;
+    }
+  }
+`;

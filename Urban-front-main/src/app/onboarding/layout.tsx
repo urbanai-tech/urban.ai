@@ -1,14 +1,17 @@
 "use client"
-import { Box, Flex, Image } from '@chakra-ui/react'
 import React from 'react'
 
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <Flex minH="100vh" bg="#FAFAFB" direction="column">
-      <Box as="main" flex="1" py={8} className="urban-app">
-        <Image src="/urban-logo-transparent-soft.png" alt="Urban AI Logo" display="block" mx="auto" h="40px" mb={4} />
+    <div style={{ minHeight: '100vh', background: '#FAFAFB', display: 'flex', flexDirection: 'column' }}>
+      <main style={{ flex: 1, padding: '32px 0' }} className="urban-app">
+        <img
+          src="/urban-logo-transparent-soft.png"
+          alt="Urban AI Logo"
+          style={{ display: 'block', height: 40, margin: '0 auto 16px' }}
+        />
         {children}
-      </Box>
-    </Flex>
+      </main>
+    </div>
   )
 }

@@ -1,24 +1,21 @@
 "use client";
 
 import React from "react";
-import { Box, Container, Heading, Text, VStack, Divider } from "@chakra-ui/react";
 import { TERMS_UPDATED_AT, termsBlocks } from "../legalContent";
 
 export default function Termos() {
   return (
     <main className="urban-manifesto urban-public-page">
       <section className="urban-public-section">
-        <Container maxW="container.lg" py={0}>
-          <Box className="urban-legal-panel" bg="white" p={{ base: 0, md: 0 }} borderRadius="xl" boxShadow="sm" borderWidth="1px" borderColor="gray.100">
-            <Heading as="h1" size="xl" mb={4} color="#1C1D3B">
-              Termos de Uso
-            </Heading>
-            <Text color="gray.500" mb={8} fontSize="sm">
-              Última atualização: {TERMS_UPDATED_AT}
-            </Text>
+        <div className="urban-public-container">
+          <article className="urban-legal-panel">
+            <h1>Termos de Uso</h1>
+            <p style={{ margin: "0 0 32px", fontSize: 14 }}>
+              Ultima atualizacao: {TERMS_UPDATED_AT}
+            </p>
             <LegalDocument blocks={termsBlocks} />
-          </Box>
-        </Container>
+          </article>
+        </div>
       </section>
     </main>
   );
@@ -30,33 +27,31 @@ function LegalDocument({
   blocks: Array<{ kind: "title" | "section" | "paragraph"; text: string }>;
 }) {
   return (
-    <VStack spacing={4} align="flex-start" color="gray.700" lineHeight="tall" fontSize="md">
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 16, fontSize: 16, lineHeight: 1.7 }}>
       {blocks.map((block, index) => {
         if (block.kind === "title") {
           return (
-            <Text key={index} fontWeight={700} color="#1C1D3B">
+            <p key={index} style={{ margin: 0, fontWeight: 700 }}>
               {block.text}
-            </Text>
+            </p>
           );
         }
 
         if (block.kind === "section") {
           return (
-            <Box key={index} w="full" pt={index === 1 ? 0 : 4}>
-              {index > 1 && <Divider borderColor="gray.200" mb={4} />}
-              <Heading as="h2" size="md" color="blue.600">
-                {block.text}
-              </Heading>
-            </Box>
+            <section key={index} style={{ width: "100%", paddingTop: index === 1 ? 0 : 16 }}>
+              {index > 1 && <hr style={{ margin: "0 0 16px", border: 0, borderTop: "1px solid rgba(255,255,255,0.10)" }} />}
+              <h2>{block.text}</h2>
+            </section>
           );
         }
 
         return (
-          <Text key={index} whiteSpace="pre-wrap">
+          <p key={index} style={{ margin: 0, whiteSpace: "pre-wrap" }}>
             {block.text}
-          </Text>
+          </p>
         );
       })}
-    </VStack>
+    </div>
   );
 }

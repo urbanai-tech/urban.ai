@@ -1,113 +1,102 @@
-import {
-  Box,
-  Heading,
-  VStack,
-  FormControl,
-  FormLabel,
-  Select,
-  HStack,
-  Badge,
-  useColorModeValue,
-} from "@chakra-ui/react";
-
 type FiltroProps = {
   height?: string | number;
 };
 
 export default function Filtro({ height }: FiltroProps) {
-  const bg = useColorModeValue("white", "gray.700");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
-  const headingColor = useColorModeValue("gray.800", "whiteAlpha.900");
-
   return (
-    <Box
-      p={6}
-      borderWidth={1}
-      borderRadius="lg"
-      bg={bg}
-      boxShadow="sm"
-      borderColor={borderColor}
-      height={height}
-      overflowY="auto"
-      maxW="400px"
-   
+    <aside
+      style={{
+        height,
+        maxWidth: 400,
+        overflowY: "auto",
+        padding: 24,
+        border: "1px solid rgba(14,17,22,0.12)",
+        borderRadius: 10,
+        background: "#fff",
+        boxShadow: "0 1px 2px rgba(14,17,22,0.04)",
+      }}
     >
-      <Heading size="lg" mb={6} color={headingColor} letterSpacing="wide">
+      <h2 style={{ margin: "0 0 24px", color: "#1F2937", fontSize: 24, letterSpacing: 0.3 }}>
         Filtros
-      </Heading>
+      </h2>
 
-      <VStack spacing={6} align="stretch">
-        {/* Raio de busca */}
-        <FormControl>
-          <FormLabel fontWeight="semibold" color={headingColor}>
-            Raio de busca
-          </FormLabel>
-          <Select placeholder="Selecione o raio" focusBorderColor="teal.400" size="md">
-            <option value="5">5 km</option>
-            <option value="10">10 km</option>
-            <option value="20">20 km</option>
-            <option value="50">50 km</option>
-          </Select>
-        </FormControl>
+      <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <FilterSelect label="Raio de busca" placeholder="Selecione o raio">
+          <option value="5">5 km</option>
+          <option value="10">10 km</option>
+          <option value="20">20 km</option>
+          <option value="50">50 km</option>
+        </FilterSelect>
 
-        {/* Tipo de evento */}
-        <FormControl>
-          <FormLabel fontWeight="semibold" color={headingColor}>
-            Tipo de evento
-          </FormLabel>
-          <Select placeholder="Selecione o tipo" focusBorderColor="teal.400" size="md">
-            <option value="incendio">Incêndio</option>
-            <option value="enchente">Enchente</option>
-            <option value="deslizamento">Deslizamento</option>
-            <option value="outro">Outro</option>
-          </Select>
-        </FormControl>
+        <FilterSelect label="Tipo de evento" placeholder="Selecione o tipo">
+          <option value="incendio">Incendio</option>
+          <option value="enchente">Enchente</option>
+          <option value="deslizamento">Deslizamento</option>
+          <option value="outro">Outro</option>
+        </FilterSelect>
 
-        {/* Impacto esperado */}
-        <Box>
-          <FormLabel fontWeight="semibold" color={headingColor} mb={3}>
+        <div>
+          <p style={{ margin: "0 0 12px", color: "#1F2937", fontSize: 14, fontWeight: 650 }}>
             Impacto esperado
-          </FormLabel>
-          <HStack spacing={4}>
-            <Badge
-              colorScheme="red"
-              px={4}
-              py={2}
-              borderRadius="full"
-              cursor="pointer"
-              _hover={{ opacity: 0.8 }}
-              fontWeight="bold"
-              fontSize="sm"
-            >
-              Alto
-            </Badge>
-            <Badge
-              colorScheme="yellow"
-              px={4}
-              py={2}
-              borderRadius="full"
-              cursor="pointer"
-              _hover={{ opacity: 0.8 }}
-              fontWeight="bold"
-              fontSize="sm"
-            >
-              Médio
-            </Badge>
-            <Badge
-              colorScheme="green"
-              px={4}
-              py={2}
-              borderRadius="full"
-              cursor="pointer"
-              _hover={{ opacity: 0.8 }}
-              fontWeight="bold"
-              fontSize="sm"
-            >
-              Baixo
-            </Badge>
-          </HStack>
-        </Box>
-      </VStack>
-    </Box>
+          </p>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <ImpactBadge color="#C2342E">Alto</ImpactBadge>
+            <ImpactBadge color="#C8810E">Medio</ImpactBadge>
+            <ImpactBadge color="#16A06B">Baixo</ImpactBadge>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function FilterSelect({
+  label,
+  placeholder,
+  children,
+}: {
+  label: string;
+  placeholder: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label style={{ display: "block" }}>
+      <span style={{ display: "block", marginBottom: 8, color: "#1F2937", fontSize: 14, fontWeight: 650 }}>
+        {label}
+      </span>
+      <select
+        defaultValue=""
+        style={{
+          width: "100%",
+          height: 40,
+          padding: "0 12px",
+          border: "1px solid rgba(14,17,22,0.16)",
+          borderRadius: 8,
+          background: "#fff",
+          color: "#1F2937",
+        }}
+      >
+        <option value="" disabled>{placeholder}</option>
+        {children}
+      </select>
+    </label>
+  );
+}
+
+function ImpactBadge({ color, children }: { color: string; children: React.ReactNode }) {
+  return (
+    <span
+      style={{
+        padding: "8px 16px",
+        borderRadius: 999,
+        background: `${color}1A`,
+        color,
+        fontSize: 13,
+        fontWeight: 750,
+        cursor: "pointer",
+      }}
+    >
+      {children}
+    </span>
   );
 }

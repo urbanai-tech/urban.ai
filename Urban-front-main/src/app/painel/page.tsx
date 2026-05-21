@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Box, FormControl, FormLabel, Spinner, Center, Flex } from '@chakra-ui/react';
 import dynamic from 'next/dynamic';
 import { fetchPace, getEventosAcompanhando, getPropriedadesDropdownList, PaceApiPoint, PropertyDropdown } from '@/app/service/api';
 import { EventItem } from '../dashboard/components/ItemEvento';
@@ -21,65 +20,43 @@ export default function SugestoesAceitas() {
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const limit = 5; // itens por página
+  const limit = 5;
 
-  // Pace dos próximos 60 dias
   const [paceData, setPaceData] = useState<PaceApiPoint[]>([]);
   const [isLoadingPace, setIsLoadingPace] = useState(false);
 
-  // Buscar propriedades
-useEffect(() => {
-  async function fetchProps() {
-    try {
-      setLoadingProps(true);
-      const data = await getPropriedadesDropdownList();
-
-      // Adicionar opção "Todos" no início
-      const todosOption: PropertyDropdown = {
-        id: '', // id vazio representa Todos
-        nome: 'Todos',
-        analisado: 'completed',
-        propertyName: 'Todos',
-        userId: '',
-        image_url: '',
-        latitude: 0,
-        longitude: 0,
-      };
-
-      const updatedData: PropertyDropdown[] = [todosOption, ...data];
-      setPropsInfo(updatedData);
-
-      // Seleciona "Todos" como padrão
-      setPropertyId(''); 
-    } catch (err) {
-      console.error('Erro ao carregar propriedades', err);
-    } finally {
-      setLoadingProps(false);
-    }
-  }
-  fetchProps();
-}, []);
-
-  // Buscar eventos aceitos
-  const fetchEvents = useCallback(async () => {
-    if (propertyId === '') {
-      // Se "Todos" estiver selecionado, buscar todos os eventos
+  useEffect(() => {
+    async function fetchProps() {
       try {
-        setIsLoadingEvents(true);
-        const result = await getEventosAcompanhando(undefined, page, limit); // Ajuste dependendo da API
-        setEvents(result.data);
-        setTotalPages(Math.ceil(result.total / limit));
-      } catch (err) {
-        console.error('Erro ao carregar eventos', err);
-      } finally {
-        setIsLoadingEvents(false);
-      }
-      return;
-    }
+        setLoadingProps(true);
+        const data = await getPropriedadesDropdownList();
 
+        const todosOption: PropertyDropdown = {
+          id: '',
+          nome: 'Todos',
+          analisado: 'completed',
+          propertyName: 'Todos',
+          userId: '',
+          image_url: '',
+          latitude: 0,
+          longitude: 0,
+        };
+
+        setPropsInfo([todosOption, ...data]);
+        setPropertyId('');
+      } catch (err) {
+        console.error('Erro ao carregar propriedades', err);
+      } finally {
+        setLoadingProps(false);
+      }
+    }
+    fetchProps();
+  }, []);
+
+  const fetchEvents = useCallback(async () => {
     try {
       setIsLoadingEvents(true);
-      const result = await getEventosAcompanhando(propertyId, page, limit);
+      const result = await getEventosAcompanhando(propertyId || undefined, page, limit);
       setEvents(result.data);
       setTotalPages(Math.ceil(result.total / limit));
     } catch (err) {
@@ -93,7 +70,6 @@ useEffect(() => {
     fetchEvents();
   }, [fetchEvents]);
 
-  // Buscar pace (booked vs expected) dos próximos 60 dias
   useEffect(() => {
     let cancelled = false;
     async function loadPace() {
@@ -114,32 +90,31 @@ useEffect(() => {
     };
   }, [propertyId]);
 
-  const handlePageChange = (novaPagina: number) => {
-    setPage(novaPagina);
-  };
-
   return (
     <AppPageShell maxWidth={1280}>
       <AppSectionHeader
-        eyebrow="PAINEL · HOJE NA SUA OPERAÇÃO"
+        eyebrow="PAINEL - HOJE NA SUA OPERACAO"
         title="Painel de controle"
-        subtitle="Eventos com sugestão da Urban AI que merecem sua atenção agora. Filtre por imóvel pra focar onde tem mais oportunidade."
+        subtitle="Eventos com sugestao da Urban AI que merecem sua atencao agora. Filtre por imovel pra focar onde tem mais oportunidade."
         actions={
           loadingProps ? (
-            <Spinner size="sm" color="orange.500" />
+            <Spinner size={18} />
           ) : (
-            <Box maxW={{ base: '100%', md: '320px' }} w="full">
-              <FormControl>
-                <FormLabel
-                  fontSize="11px"
-                  letterSpacing="1.5px"
-                  textTransform="uppercase"
-                  fontWeight="600"
-                  color="gray.500"
-                  mb={1}
+            <div style={{ width: "100%", maxWidth: 320 }}>
+              <label>
+                <span
+                  style={{
+                    display: "block",
+                    marginBottom: 4,
+                    color: "var(--app-text-muted)",
+                    fontSize: 11,
+                    fontWeight: 650,
+                    letterSpacing: 1.5,
+                    textTransform: "uppercase",
+                  }}
                 >
-                  Filtrar imóvel
-                </FormLabel>
+                  Filtrar imovel
+                </span>
                 <PropertySelect
                   value={propertyId}
                   propsInfo={propsInfo}
@@ -148,44 +123,44 @@ useEffect(() => {
                     setPage(1);
                   }}
                 />
-              </FormControl>
-            </Box>
+              </label>
+            </div>
           )
         }
       />
 
       <DashboardCards propertyId={propertyId} />
 
-      <Box mt={8}>
+      <div style={{ marginTop: 32 }}>
         <AppCard variant="default">
           <AppCardHeader
-            eyebrow="PROJEÇÃO · BOOKED VS BASELINE"
-            title="Pace dos próximos 60 dias"
+            eyebrow="PROJECAO - BOOKED VS BASELINE"
+            title="Pace dos proximos 60 dias"
             subtitle={
               propertyId
-                ? 'Quanto das suas noites futuras já está reservado, comparado ao baseline esperado por sazonalidade. Eventos relevantes aparecem como marcadores verticais.'
-                : 'Visão agregada do portfólio. Selecione um imóvel pra ver a curva específica e ações sugeridas.'
+                ? 'Quanto das suas noites futuras ja esta reservado, comparado ao baseline esperado por sazonalidade. Eventos relevantes aparecem como marcadores verticais.'
+                : 'Visao agregada do portfolio. Selecione um imovel pra ver a curva especifica e acoes sugeridas.'
             }
           />
           <PaceChart data={paceData} loading={isLoadingPace} height={280} />
         </AppCard>
-      </Box>
+      </div>
 
-      <Box mt={8}>
+      <div style={{ marginTop: 32 }}>
         {isLoadingEvents ? (
-          <Center py={20}>
-            <Spinner size="xl" color="orange.500" thickness="2px" />
-          </Center>
+          <div style={{ padding: "80px 0", display: "grid", placeItems: "center" }}>
+            <Spinner size={36} />
+          </div>
         ) : events.length === 0 ? (
           <AppEmptyState
-            eyebrow="SEM SUGESTÕES PENDENTES"
+            eyebrow="SEM SUGESTOES PENDENTES"
             title="Tudo certo por aqui"
-            body="Quando a Urban AI detectar uma nova oportunidade de evento, aparece aqui. Você também recebe por e-mail."
+            body="Quando a Urban AI detectar uma nova oportunidade de evento, aparece aqui. Voce tambem recebe por e-mail."
             icon={<Icons.Sparkles size={32} />}
           />
         ) : (
-          <Flex direction="column" gap={4}>
-            {events.map(ev => (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {events.map((ev) => (
               <EventCard
                 key={ev.id}
                 ev={ev}
@@ -200,11 +175,29 @@ useEffect(() => {
             <Pagination
               paginaAtual={page}
               totalPaginas={totalPages}
-              onPageChange={handlePageChange}
+              onPageChange={(nova) => setPage(nova)}
             />
-          </Flex>
+          </div>
         )}
-      </Box>
+      </div>
     </AppPageShell>
+  );
+}
+
+function Spinner({ size }: { size: number }) {
+  return (
+    <span
+      aria-label="Carregando"
+      style={{
+        width: size,
+        height: size,
+        borderRadius: "50%",
+        border: "3px solid var(--app-accent-soft)",
+        borderTopColor: "var(--app-accent)",
+        animation: "painel-spin 0.9s linear infinite",
+      }}
+    >
+      <style>{`@keyframes painel-spin { to { transform: rotate(360deg); } }`}</style>
+    </span>
   );
 }
