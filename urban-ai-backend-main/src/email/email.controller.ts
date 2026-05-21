@@ -7,7 +7,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { AuthenticatedRequest } from 'src/connect/connect.controller';
-import { IsEmail } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 import { User } from 'src/entities/user.entity';
 import { CreateNotificationDto } from 'src/notifications/tdo/create-notification.dto';
 
@@ -49,9 +49,13 @@ export class EnviarCodigo {
 
 export class UpdatePass {
     @ApiProperty({ example: 'Df90Cz...reset-token', description: 'Token de redefinição enviado por e-mail' })
+    @IsString()
+    @IsNotEmpty()
     token: string;
 
     @ApiProperty({ example: '9b74c9897bac770ffc029102a200c5de9f3a0e326e4d4a0f86d5f2a7bc01db57', description: 'Senha válida' })
+    @IsString()
+    @IsNotEmpty()
     pass: string;
 }
 export class Nada {

@@ -99,6 +99,10 @@ export class EmailService {
 
     async confirmPassword(token: string, password: string) {
         try {
+            if (!token || !password) {
+                return { enviado: false, motivo: 'Token e senha sao obrigatorios' };
+            }
+
             const resetToken = await this.passwordResetTokenRepository.findOne({
                 where: { tokenHash: this.hashResetToken(token) },
                 relations: ['user'],
