@@ -4,12 +4,12 @@ import { NextResponse, type NextRequest } from "next/server";
  * Middleware do Next.js para roteamento por host (Opção B — subdomain split).
  *
  * Topologia alvo:
- *   myurbanai.com       →  site público (landing, lançamento, sobre, etc.)
+ *   myurbanai.com       →  site público canônico (landing, lançamento, etc.)
+ *   www.myurbanai.com   →  alias público, redireciona para myurbanai.com
+ *   *.com.br público    →  alias público, redireciona para myurbanai.com
  *   app.myurbanai.com   →  app autenticado (login, dashboard, admin, etc.)
  *
- * Estado atual: **log-only**. Está apenas registrando o host de cada request
- * para validarmos que o middleware está rodando. Quando ativarmos os redirects
- * (Chunk 4), as TODOs marcadas abaixo viram código real.
+ * Estado atual: redirects ativos para separar site público, aliases e app.
  *
  * Em ambiente local (`localhost` / `127.0.0.1` / `*.vercel.app`), o middleware
  * NÃO redireciona — preserva o fluxo de dev/preview.
@@ -69,14 +69,32 @@ function isLocalDev(host: string | null): boolean {
   return (
     cleanHost === "localhost" ||
     cleanHost === "127.0.0.1" ||
-    cleanHost.endsWith(".vercel.app") ||
     cleanHost.endsWith(".local")
   );
 }
 
+function isPreviewHost(host: string): boolean {
+  const clean = host.split(":")[0];
+  return clean.endsWith(".vercel.app");
+}
+
 function isPublicHost(host: string): boolean {
   const clean = host.split(":")[0];
-  return clean === "myurbanai.com" || clean === "www.myurbanai.com";
+  return (
+    clean === "myurbanai.com" ||
+    clean === "www.myurbanai.com" ||
+    clean === "myurbanai.com.br" ||
+    clean === "www.myurbanai.com.br"
+  );
+}
+
+function isPublicAliasHost(host: string): boolean {
+  const clean = host.split(":")[0];
+  return (
+    clean === "www.myurbanai.com" ||
+    clean === "myurbanai.com.br" ||
+    clean === "www.myurbanai.com.br"
+  );
 }
 
 function isAppHost(host: string): boolean {
@@ -90,6 +108,11 @@ function pathMatchesAppOnly(pathname: string): boolean {
 
 function pathMatchesPublicOnly(pathname: string): boolean {
   return PUBLIC_ONLY_PATHS.includes(pathname);
+}
+
+function withNoIndex(response: NextResponse): NextResponse {
+  response.headers.set("X-Robots-Tag", "noindex, nofollow");
+  return response;
 }
 
 // ===== Middleware principal =====
@@ -109,23 +132,21 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Em dev / preview, passa direto sem nenhum gating
+  // Em dev local, passa direto sem nenhum gating.
   if (isLocalDev(host)) {
     return NextResponse.next();
   }
 
-  // ============== Redirects ativos ==============
-
-  // 1. Apex (myurbanai.com) na raiz → rewrite interno para servir a landing
-  //    institucional. URL no browser permanece "/". Esse rewrite é silencioso
-  //    (status 200), diferente dos 301 abaixo.
-  if (isPublicHost(host) && pathname === "/") {
-    return NextResponse.rewrite(new URL("/landing", request.url));
+  // Preview fica aberto para QA, mas nunca indexavel.
+  if (isPreviewHost(host)) {
+    return withNoIndex(NextResponse.next());
   }
 
-  // 2. Apex pedindo rota que SÓ existe no app → 301 para app.myurbanai.com
-  //    Cobre bookmarks antigos como myurbanai.com/dashboard. Migrações
-  //    permanentes (301) atualizam cache do browser e sinalizam ao Google.
+  // ============== Redirects ativos ==============
+
+  // 1. Domínio público/alias pedindo rota que SÓ existe no app → 301 direto
+  //    para app.myurbanai.com. Isso evita cadeia dupla em aliases como
+  //    www.myurbanai.com/dashboard ou myurbanai.com.br/admin.
   if (isPublicHost(host) && pathMatchesAppOnly(pathname)) {
     const target = new URL(request.url);
     target.hostname = "app.myurbanai.com";
@@ -134,7 +155,34 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(target, 301);
   }
 
-  // 3. App subdomain pedindo rota PÚBLICA → 301 para apex
+  // 2. Aliases públicos → apex canônico, preservando path e query string.
+  if (isPublicAliasHost(host)) {
+    const target = new URL(request.url);
+    target.hostname = "myurbanai.com";
+    target.port = "";
+    target.protocol = "https:";
+    return NextResponse.redirect(target, 301);
+  }
+
+  // 3. Apex (myurbanai.com) na raiz → rewrite interno para servir a landing
+  //    institucional. URL no browser permanece "/". Esse rewrite é silencioso
+  //    (status 200), diferente dos 301 abaixo.
+  // /landing existe internamente para o rewrite da raiz. A URL publica
+  // canonica e "/" para evitar duplicidade.
+  if (isPublicHost(host) && pathname === "/landing") {
+    const target = new URL(request.url);
+    target.hostname = "myurbanai.com";
+    target.port = "";
+    target.protocol = "https:";
+    target.pathname = "/";
+    return NextResponse.redirect(target, 301);
+  }
+
+  if (isPublicHost(host) && pathname === "/") {
+    return NextResponse.rewrite(new URL("/landing", request.url));
+  }
+
+  // 4. App subdomain pedindo rota PÚBLICA → 301 para apex
   //    Quem clica em "Sobre" estando logado vai pra myurbanai.com/sobre,
   //    sem deixar página pública indexável também em app.subdomain (evita
   //    duplicate content pro SEO).
@@ -143,6 +191,9 @@ export function middleware(request: NextRequest) {
     target.hostname = "myurbanai.com";
     target.port = "";
     target.protocol = "https:";
+    if (pathname === "/landing") {
+      target.pathname = "/";
+    }
     return NextResponse.redirect(target, 301);
   }
 
@@ -152,6 +203,15 @@ export function middleware(request: NextRequest) {
   // 5. Apex em qualquer outro path (ex: /lancamento, /sobre, /precos) →
   //    serve normalmente. As páginas existem em (public)/ e o layout
   //    público é aplicado.
+
+  if (isAppHost(host)) {
+    return withNoIndex(NextResponse.next());
+  }
+
+  // Qualquer host nao reconhecido nao deve ser indexado por acidente.
+  if (!isPublicHost(host)) {
+    return withNoIndex(NextResponse.next());
+  }
 
   return NextResponse.next();
 }

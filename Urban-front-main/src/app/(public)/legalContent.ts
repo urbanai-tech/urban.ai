@@ -3,7 +3,7 @@ export type LegalBlock = { kind: 'title' | 'section' | 'paragraph'; text: string
 function toBlocks(items: string[]): LegalBlock[] {
   return items.map((text, index) => {
     if (index === 0) return { kind: 'title', text };
-    if (/^\d+(\.|\s-)/.test(text) || /^[A-Z??????????? ]{8,}$/.test(text)) {
+    if (/^\d+\.\s/.test(text) || /^[A-Z??????????? ]{8,}$/.test(text)) {
       return { kind: 'section', text };
     }
     return { kind: 'paragraph', text };

@@ -89,6 +89,8 @@
 
 .urban-legal-panel,
 .urban-legal-panel * {
+  max-width: 100%;
+  overflow-wrap: anywhere;
   color: rgba(255,255,255,0.70) !important;
   border-color: rgba(255,255,255,0.10) !important;
   background: transparent !important;
