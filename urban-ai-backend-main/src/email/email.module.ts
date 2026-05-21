@@ -2,6 +2,7 @@ import { ProcessModule } from 'src/process/process.module';
 import { EmailController } from './email.controller';
 import { EmailService } from './email.service';
 import { OnboardingDripService } from './onboarding-drip.service';
+import { WeeklyEventReportService } from './weekly-event-report.service';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity';
@@ -38,7 +39,8 @@ import { AuthModule } from 'src/auth/auth.module';
     providers: [
         EmailService,
         OnboardingDripService,
+        WeeklyEventReportService,
     ],
-    exports: [EmailService, OnboardingDripService],
+    exports: [EmailService, OnboardingDripService, WeeklyEventReportService],
 })
 export class EmailModule { }

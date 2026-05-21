@@ -1565,6 +1565,18 @@ export class PropriedadeService {
                 this.logger.warn(`Nenhum endereco com idAlertAirb valido para list=${listId}; pricing nao sera gerado.`);
                 return { ok: false, reason: 'missing_alert_airb', pricingGenerated: 0 };
             }
+            if (!address.user?.id) {
+                this.logger.warn(`Endereco ${address.id} sem usuario associado; pricing nao sera gerado.`);
+                return { ok: false, reason: 'address_without_user', pricingGenerated: 0 };
+            }
+            if (address.user.ativo === false) {
+                this.logger.warn(`Usuario ${address.user.id} inativo; pricing nao sera gerado para list=${listId}.`);
+                return { ok: false, reason: 'inactive_user', pricingGenerated: 0 };
+            }
+            if (!address.list?.id) {
+                this.logger.warn(`Endereco ${address.id} sem imovel associado; pricing nao sera gerado.`);
+                return { ok: false, reason: 'address_without_listing', pricingGenerated: 0 };
+            }
 
             const list = await this.propriedades.findOne({
                 where: {
@@ -1743,8 +1755,6 @@ export class PropriedadeService {
                 );
             }
 
-            await this.compilarEventosFuturosPorUsuario(address?.user?.id)
-
             return {
                 ok: true,
                 pricingGenerated,
@@ -1828,6 +1838,18 @@ export class PropriedadeService {
                 console.log(`❌ Propriedade não encontrada: ${listId}`);
                 return { ok: false, reason: 'property_not_found' };
             }
+            if (!property.user?.id) {
+                this.logger.warn(`Pricing ignorado para list=${listId}: propriedade sem usuario associado.`);
+                return { ok: false, reason: 'property_without_user' };
+            }
+            if (property.user.ativo === false) {
+                this.logger.warn(`Pricing ignorado para list=${listId}: usuario inativo.`);
+                return { ok: false, reason: 'inactive_user' };
+            }
+            if (!property.id_do_anuncio || !String(property.id_do_anuncio).trim()) {
+                this.logger.warn(`Pricing ignorado para list=${listId}: propriedade sem id_do_anuncio.`);
+                return { ok: false, reason: 'missing_listing_external_id' };
+            }
             const pricingGuardrail = this.pricingGuardrailService.resolve(property.user);
 
             //const dadosAirbnb = await this.airbnbService.getFirstAvailablePrice(property?.id_do_anuncio);
@@ -1840,6 +1862,10 @@ export class PropriedadeService {
             if (!address) {
                 console.log(`❌ Endereço não encontrado para listId: ${listId}`);
                 return { ok: false, reason: 'address_not_found' };
+            }
+            if (!address.list?.id) {
+                this.logger.warn(`Pricing ignorado para list=${listId}: endereco sem imovel associado.`);
+                return { ok: false, reason: 'address_without_listing' };
             }
 
             if (!alerts?.comps?.length) {

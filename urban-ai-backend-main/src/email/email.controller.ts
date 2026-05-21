@@ -10,6 +10,7 @@ import { AuthenticatedRequest } from 'src/connect/connect.controller';
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 import { User } from 'src/entities/user.entity';
 import { CreateNotificationDto } from 'src/notifications/tdo/create-notification.dto';
+import { WeeklyEventReportService } from './weekly-event-report.service';
 
 export class SendEmailDto {
     @ApiProperty()
@@ -79,7 +80,10 @@ export class Nada {
 @ApiTags('Email')
 @Controller('email')
 export class EmailController {
-    constructor(private readonly emailService: EmailService) { }
+    constructor(
+        private readonly emailService: EmailService,
+        private readonly weeklyEventReportService: WeeklyEventReportService,
+    ) { }
 
     @Post()
     @ApiOperation({ summary: 'Enviar e-mail personalizado' })
@@ -122,6 +126,16 @@ export class EmailController {
         @Body() notificationContent: CreateNotificationDto,
     ) {
         return this.emailService.enviarNotification(usuarioId, notificationContent);
+    }
+
+    @Post('weekly-event-report/run-now')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('admin')
+    @ApiOperation({ summary: 'Executar relatorio semanal de eventos manualmente' })
+    @ApiResponse({ status: 201, description: 'Relatorio semanal executado.' })
+    async runWeeklyEventReportNow() {
+        return this.weeklyEventReportService.processWeeklyReports();
     }
 
 
