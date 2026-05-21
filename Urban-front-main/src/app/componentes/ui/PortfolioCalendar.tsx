@@ -695,7 +695,7 @@ export function PortfolioCalendar({
                           ? ` · sugestão ${fmtBRLFull(day.sugestao)}`
                           : ""
                       }`}
-                      className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
+                      className="urban-focus-ring"
                       style={{
                         all: "unset",
                         scrollSnapAlign: "start",
@@ -1041,7 +1041,7 @@ export function PortfolioCalendar({
                           ? ` · sugestão ${fmtBRLFull(day.sugestao)}`
                           : ""
                       }`}
-                      className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)]"
+                      className="urban-focus-ring"
                       style={{
                         all: "unset",
                         width: DAY_COL_WIDTH,

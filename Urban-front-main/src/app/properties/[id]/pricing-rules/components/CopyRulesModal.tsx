@@ -138,7 +138,7 @@ export function CopyRulesModal({
             onClick={onClose}
             disabled={loading}
             aria-label="Fechar modal"
-            className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
+            className="urban-focus-ring"
             style={{
               position: "absolute",
               top: 14,

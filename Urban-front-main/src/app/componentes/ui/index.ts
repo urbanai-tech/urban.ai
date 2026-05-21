@@ -58,6 +58,7 @@ export {
   appTone,
   appTransition,
   appVar,
+  visuallyHiddenStyle,
 } from "./styles";
 export { AppFooter } from "./AppFooter";
 export { AppConfirmDialog } from "./AppConfirmDialog";

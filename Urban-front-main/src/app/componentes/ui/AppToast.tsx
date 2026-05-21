@@ -182,7 +182,7 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
               <button
                 onClick={() => dismiss(t.id)}
                 aria-label="Fechar notificacao"
-                className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
+                className="urban-focus-ring"
                 style={{
                   background: "transparent",
                   border: "none",
@@ -215,6 +215,14 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
             transform: translateX(0);
             opacity: 1;
           }
+        }
+        .urban-focus-ring:focus-visible {
+          outline: 2px solid var(--app-accent);
+          outline-offset: 2px;
+        }
+        .urban-focus-ring-inverse:focus-visible {
+          outline: 2px solid #ffffff;
+          outline-offset: 2px;
         }
         @media (prefers-reduced-motion: reduce) {
           [role="status"],

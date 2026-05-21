@@ -247,7 +247,7 @@ function AskUrbanFab({
         aria-label="Abrir Ask Urban (Ctrl+J)"
         title="Ask Urban · Ctrl+J"
         data-ask-urban-fab
-        className="focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2"
+        className="urban-focus-ring-inverse"
         style={{
           position: "fixed",
           right: 24,

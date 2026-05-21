@@ -154,7 +154,7 @@ export function PortfolioToolbar({
                   onClick={onClearSelection}
                   disabled={loading}
                   aria-label="Limpar selecao de imoveis"
-                  className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-2"
+                  className="urban-focus-ring"
                   style={{
                     background: "transparent",
                     border: "none",
@@ -378,7 +378,7 @@ function DropdownItem({
       role="menuitem"
       onClick={onClick}
       disabled={disabled}
-      className="focus-visible:outline-2 focus-visible:outline-[var(--app-accent)] focus-visible:outline-offset-[-2px]"
+      className="urban-focus-ring"
       style={{
         background: "transparent",
         border: "none",
