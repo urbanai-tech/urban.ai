@@ -12,6 +12,7 @@ import {
   AppSelect,
   AppInput,
   AppEmptyState,
+  AppLoadingStatus,
   Icons,
 } from '../componentes/ui';
 
@@ -44,6 +45,7 @@ export default function MapsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [propsInfo, setPropsInfo] = useState<PropertyDropdown[]>([]);
+  const [isLoadingProperties, setIsLoadingProperties] = useState(true);
   const [propertyId, setPropertyId] = useState('');
   const [selectedRadius, setSelectedRadius] = useState(30);
 
@@ -105,9 +107,10 @@ export default function MapsPage() {
   useEffect(() => {
     async function fetchPropsInfo() {
       try {
+        setIsLoadingProperties(true);
         const data = await getPropriedadesDropdownList();
         setPropsInfo(data);
-        const defaultProp = data.find((p) => p.analisado === "completed");
+        const defaultProp = data.find(isPropertyReady);
         if (defaultProp) {
           setPropertyId(defaultProp.id);
         } else {
@@ -116,6 +119,8 @@ export default function MapsPage() {
       } catch {
         setError('Erro ao carregar propriedades');
         setIsLoading(false);
+      } finally {
+        setIsLoadingProperties(false);
       }
     }
     fetchPropsInfo();
@@ -123,13 +128,52 @@ export default function MapsPage() {
 
   const eventsToDisplay = useMemo(() => allEvents, [allEvents]);
   const selectedProperty = propsInfo.find((p) => p.id === propertyId);
+  const hasProcessingProperties = propsInfo.some((p) => !isPropertyReady(p));
+  const selectedPropertyIsProcessing = Boolean(selectedProperty && !isPropertyReady(selectedProperty));
+  const mapStatus =
+    isLoadingProperties
+      ? {
+          title: "Carregando seus imoveis",
+          body: "Estamos abrindo sua lista antes de atualizar o mapa.",
+          steps: [
+            { id: "properties", label: "Buscar imoveis", status: "active" as const },
+            { id: "events", label: "Procurar eventos", status: "pending" as const },
+            { id: "map", label: "Mostrar no mapa", status: "pending" as const },
+          ],
+          tone: "accent" as const,
+        }
+      : isLoading
+        ? {
+            title: "Procurando eventos perto do imovel",
+            body: `Usando o raio de ${selectedRadius} km e o periodo escolhido.`,
+            steps: [
+              { id: "properties", label: "Imovel escolhido", status: "complete" as const },
+              { id: "events", label: "Procurar eventos", status: "active" as const },
+              { id: "map", label: "Mostrar no mapa", status: "pending" as const },
+            ],
+            tone: "accent" as const,
+          }
+        : selectedPropertyIsProcessing || (!propertyId && hasProcessingProperties)
+          ? {
+              title: selectedPropertyIsProcessing
+                ? selectedProperty?.setupStatus?.publicLabel ?? "Imovel ainda sendo preparado"
+                : "Imoveis ainda sendo preparados",
+              body: selectedProperty?.setupStatus?.publicDescription ?? "Assim que ficar pronto, o mapa mostra eventos perto e sugestoes de preco.",
+              steps: selectedProperty?.setupStatus?.steps ?? [
+                { id: "properties", label: "Imovel adicionado", status: "complete" as const },
+                { id: "events", label: "Procurar eventos", status: "active" as const },
+                { id: "map", label: "Liberar mapa", status: "pending" as const },
+              ],
+              tone: "warn" as const,
+            }
+          : null;
 
   return (
     <AppPageShell maxWidth={1400}>
       <AppSectionHeader
         eyebrow="MAPA - OPORTUNIDADES"
         title="Mapa Interativo"
-        subtitle="Veja eventos proximos ao seu imovel num raio configuravel. Use o periodo pra calibrar o radar conforme a operacao."
+        subtitle="Escolha o imovel, o raio e as datas para ver eventos que podem influenciar a diaria."
       />
 
       <AppCard variant="subtle" style={{ padding: 20, marginBottom: 24 }}>
@@ -154,7 +198,7 @@ export default function MapsPage() {
                   textTransform: "uppercase",
                 }}
               >
-                Filtrar imovel
+                Escolher imovel
               </span>
               <div style={{ position: "relative", zIndex: 1001 }}>
                 <PropertySelect
@@ -170,6 +214,7 @@ export default function MapsPage() {
             <AppSelect
               label="Raio (km)"
               value={selectedRadius}
+              disabled={isLoadingProperties}
               onChange={(e) => setSelectedRadius(Number(e.target.value))}
             >
               <option value={1}>1 km</option>
@@ -185,6 +230,7 @@ export default function MapsPage() {
               type="date"
               label="De"
               value={startDate}
+              disabled={isLoadingProperties}
               onChange={(e) => setStartDate(e.target.value)}
             />
           </div>
@@ -195,17 +241,26 @@ export default function MapsPage() {
               label="Ate"
               value={endDate}
               min={startDate}
+              disabled={isLoadingProperties}
               onChange={(e) => setEndDate(e.target.value)}
             />
           </div>
         </div>
+
+        {mapStatus && (
+          <AppLoadingStatus
+            compact
+            eyebrow="O QUE ESTA ACONTECENDO"
+            title={mapStatus.title}
+            body={mapStatus.body}
+            steps={mapStatus.steps}
+            tone={mapStatus.tone}
+            style={{ marginTop: 16 }}
+          />
+        )}
       </AppCard>
 
-      {isLoading ? (
-        <div style={{ padding: "80px 0", display: "grid", placeItems: "center" }}>
-          <Spinner size={36} />
-        </div>
-      ) : error ? (
+      {error ? (
         <AppCard variant="default" style={{ borderColor: 'rgba(194, 52, 46, 0.25)' }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, color: "var(--app-danger)" }}>
             <Icons.AlertCircle size={18} />
@@ -216,21 +271,49 @@ export default function MapsPage() {
         <div style={{ display: "flex", gap: 24, alignItems: "stretch", flexWrap: "wrap" }}>
           <div style={{ flex: "1 1 560px", minWidth: 0, position: "relative", zIndex: 1 }}>
             <AppCard variant="default" style={{ padding: 16 }}>
-              <AirbnbMap
-                height="500px"
-                events={eventsToDisplay}
-                property={
-                  selectedProperty
-                    ? {
-                        id: selectedProperty.id,
-                        propertyName: selectedProperty.propertyName,
-                        latitude: selectedProperty.latitude + "",
-                        longitude: selectedProperty.longitude + "",
-                        image_url: selectedProperty.image_url,
-                      }
-                    : null
-                }
-              />
+              <div style={{ position: "relative" }}>
+                <AirbnbMap
+                  height="500px"
+                  events={eventsToDisplay}
+                  property={
+                    selectedProperty
+                      ? {
+                          id: selectedProperty.id,
+                          propertyName: selectedProperty.propertyName,
+                          latitude: selectedProperty.latitude + "",
+                          longitude: selectedProperty.longitude + "",
+                          image_url: selectedProperty.image_url,
+                        }
+                      : null
+                  }
+                />
+                {isLoading && mapStatus && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 12,
+                      display: "flex",
+                      alignItems: "flex-start",
+                      justifyContent: "flex-start",
+                      pointerEvents: "none",
+                    }}
+                  >
+                    <AppLoadingStatus
+                      compact
+                      eyebrow="MAPA"
+                      title={mapStatus.title}
+                      body={mapStatus.body}
+                      steps={mapStatus.steps}
+                      tone={mapStatus.tone}
+                      style={{
+                        width: "min(420px, calc(100% - 16px))",
+                        background: "rgba(255,255,255,0.94)",
+                        boxShadow: "0 12px 32px rgba(14,17,22,0.14)",
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             </AppCard>
           </div>
 
@@ -242,7 +325,9 @@ export default function MapsPage() {
                     EVENTOS NO RAIO
                   </p>
                   <p style={{ margin: 0, color: "var(--app-text)", fontSize: 20, fontWeight: 650 }}>
-                    {eventsToDisplay.length} {eventsToDisplay.length === 1 ? 'evento' : 'eventos'}
+                    {isLoading
+                      ? "Atualizando..."
+                      : `${eventsToDisplay.length} ${eventsToDisplay.length === 1 ? 'evento' : 'eventos'}`}
                   </p>
                 </div>
                 <SuggestionInfoPopover
@@ -250,11 +335,20 @@ export default function MapsPage() {
                 />
               </div>
 
-              {eventsToDisplay.length === 0 ? (
+              {isLoading && mapStatus ? (
+                <AppLoadingStatus
+                  compact
+                  eyebrow="PROCURANDO EVENTOS"
+                  title={mapStatus.title}
+                  body={mapStatus.body}
+                  steps={mapStatus.steps}
+                  tone={mapStatus.tone}
+                />
+              ) : eventsToDisplay.length === 0 ? (
                 <AppEmptyState
                   eyebrow="SEM EVENTOS"
                   title="Nada no raio escolhido"
-                  body="Aumente o raio ou ajuste o periodo pra ampliar o radar de oportunidades."
+                  body="Aumente o raio ou ajuste o periodo para ver mais eventos."
                   icon={<Icons.MapPin size={28} />}
                 />
               ) : (
@@ -300,4 +394,8 @@ function Spinner({ size }: { size: number }) {
       <style>{`@keyframes maps-spin { to { transform: rotate(360deg); } }`}</style>
     </span>
   );
+}
+
+function isPropertyReady(property: PropertyDropdown): boolean {
+  return property.setupStatus?.state ? property.setupStatus.state === "ready" : property.analisado === "completed";
 }

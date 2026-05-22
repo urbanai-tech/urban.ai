@@ -43,7 +43,9 @@ const PropertySelect: React.FC<Props> = ({ propsInfo, setPropertyId, value }) =>
 };
 
 function PropertyOption({ property }: { property: PropertyDropdown }) {
-  const processing = property?.analisado !== "completed";
+  const processing = property.setupStatus?.state
+    ? property.setupStatus.state !== "ready"
+    : property?.analisado !== "completed";
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -81,7 +83,9 @@ function PropertyOption({ property }: { property: PropertyDropdown }) {
       <div style={{ flex: 1 }}>
         {processing ? (
           <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <span style={processingBadgeStyle}>Processando...</span>
+            <span style={processingBadgeStyle}>
+              {property.setupStatus?.publicLabel ?? "Preparando..."}
+            </span>
             <Spinner />
           </span>
         ) : (
@@ -108,6 +112,9 @@ const processingBadgeStyle: React.CSSProperties = {
   color: "#92400E",
   fontSize: 12,
   fontWeight: 650,
+  lineHeight: 1.2,
+  maxWidth: 170,
+  whiteSpace: "normal",
 };
 
 const spinnerStyle: React.CSSProperties = {

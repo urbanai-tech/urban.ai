@@ -122,7 +122,7 @@ export function PaceChart({
     return (
       <div
         aria-busy="true"
-        aria-label="Carregando gráfico de pace"
+        aria-label="Carregando grafico de reservas"
         className="urban-app-skeleton"
         style={{
           width: "100%",
@@ -137,7 +137,7 @@ export function PaceChart({
   if (!data || data.length === 0) {
     return (
       <AppEmptyState
-        eyebrow="SEM DADOS DE PACE"
+        eyebrow="SEM DADOS DE RESERVAS"
         title="Aguardando histórico"
         body="Assim que houver reservas futuras suficientes, o gráfico aparece aqui."
         icon={<TrendingUp size={32} />}
@@ -166,7 +166,7 @@ export function PaceChart({
     <div style={{ position: "relative", width: "100%" }}>
       <svg
         role="img"
-        aria-label={`Gráfico de pace dos próximos ${points.length} dias. Booked vs esperado.`}
+        aria-label={`Grafico de reservas dos proximos ${points.length} dias. Reservado comparado ao esperado.`}
         viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
         preserveAspectRatio="none"
         style={{ width: "100%", height, display: "block" }}
@@ -396,7 +396,7 @@ export function PaceChart({
               borderRadius: 2,
             }}
           />
-          Booked
+          Reservado
         </span>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
           <span
@@ -407,7 +407,7 @@ export function PaceChart({
               borderTop: "2px dashed var(--app-text-muted)",
             }}
           />
-          Esperado (baseline)
+          Esperado
         </span>
         {events.length > 0 && (
           <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>

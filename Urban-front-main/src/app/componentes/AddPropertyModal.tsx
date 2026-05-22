@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AppButton, useToastCompat } from './ui';
+import { AppButton, AppLoadingStatus, useToastCompat, type AppLoadingStep } from './ui';
 import {
   getUserManagedListings,
   getPropriedadesDropdownList,
@@ -40,8 +40,20 @@ export interface Property {
 interface AddPropertyModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: () => void | Promise<void>;
 }
+
+type PropertyLoadStage =
+  | 'idle'
+  | 'checking-existing'
+  | 'resolving-link'
+  | 'fetching-profile'
+  | 'fetching-listing'
+  | 'ready'
+  | 'registering'
+  | 'creating-addresses'
+  | 'starting-analysis'
+  | 'refreshing';
 
 const quotaErrorMessage = (error: unknown, fallback: string) => {
   const data = (error as any)?.response?.data;
@@ -51,10 +63,17 @@ const quotaErrorMessage = (error: unknown, fallback: string) => {
   return getFriendlyApiErrorMessage(error, fallback);
 };
 
+const propertyCountLabel = (count: number) =>
+  count === 1 ? "1 imovel" : `${count} imoveis`;
+
+const foundPropertiesLabel = (count: number) =>
+  count === 1 ? "1 imovel encontrado" : `${count} imoveis encontrados`;
+
 export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModalProps) {
   const toast = useToastCompat();
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [loadStage, setLoadStage] = useState<PropertyLoadStage>('idle');
   const [fetchedProperties, setFetchedProperties] = useState<Property[]>([]);
   const [selectedProperties, setSelectedProperties] = useState<Record<string, boolean>>({});
 
@@ -63,6 +82,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
     setFetchedProperties([]);
     setSelectedProperties({});
     setIsLoading(false);
+    setLoadStage('idle');
   };
 
   const handleClose = () => {
@@ -104,6 +124,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
     }
 
     setIsLoading(true);
+    setLoadStage('checking-existing');
     setFetchedProperties([]);
 
     try {
@@ -113,6 +134,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
       let finalUrl = inputValue.trim();
       if (finalUrl.includes('airbnb.com/h/') || finalUrl.includes('abnb.me')) {
         try {
+          setLoadStage('resolving-link');
           const resolved = await resolveAirbnbUrl(finalUrl);
           finalUrl = resolved.finalUrl;
         } catch {}
@@ -120,10 +142,12 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
       const userId = extractAirbnbUserId(finalUrl);
       if (userId) {
+        setLoadStage('fetching-profile');
         const listings = await getUserManagedListings(userId);
 
         if (!listings || listings.length === 0) {
           toast("Nao encontramos imoveis neste perfil.", { type: "warning" });
+          setLoadStage('idle');
           setIsLoading(false);
           return;
         }
@@ -132,6 +156,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
         if (filteredListings.length === 0) {
           toast("Todos os imoveis deste perfil ja estao cadastrados em sua conta.", { type: "info" });
+          setLoadStage('idle');
           setIsLoading(false);
           return;
         }
@@ -157,6 +182,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
           autoSelect[p.id_do_anuncio] = true;
         });
         setSelectedProperties(autoSelect);
+        setLoadStage('ready');
         setIsLoading(false);
         return;
       }
@@ -169,16 +195,19 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
       if (!propertyId) {
         toast("Nao foi possivel identificar o ID do imovel no link fornecido.", { type: "error" });
+        setLoadStage('idle');
         setIsLoading(false);
         return;
       }
 
       if (existingIds.includes(propertyId)) {
         toast("Este imovel ja esta cadastrado em sua conta.", { type: "info" });
+        setLoadStage('idle');
         setIsLoading(false);
         return;
       }
 
+      setLoadStage('fetching-listing');
       const info = await getPropertyQuickInfo(propertyId);
       const newProp: Property = {
         id: 0,
@@ -196,8 +225,10 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
       setFetchedProperties([newProp]);
       setSelectedProperties({ [newProp.id_do_anuncio]: true });
+      setLoadStage('ready');
     } catch (error) {
       console.error(error);
+      setLoadStage('idle');
       toast(getFriendlyApiErrorMessage(error, "Nao conseguimos buscar os imoveis agora. Tente novamente em alguns instantes."), { type: "error" });
     } finally {
       setIsLoading(false);
@@ -217,6 +248,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
     setIsLoading(true);
     try {
+      setLoadStage('registering');
       const payload = selectedList.map((p) => ({ ...p, ativo: true }));
       const registered = await registerProperties(payload as any);
       const registeredProperties = Array.isArray((registered as any)?.data)
@@ -224,15 +256,16 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
         : (registered as any);
 
       const addressesToRegister = registeredProperties.map((prop: any) => ({
-        cep: '00000-000',
-        numero: 'S/N',
-        logradouro: 'A definir',
-        bairro: 'A definir',
-        cidade: 'A definir',
+        cep: null,
+        numero: null,
+        logradouro: null,
+        bairro: null,
+        cidade: null,
         estado: null,
         list: { id: prop.id_do_anuncio },
       }));
 
+      setLoadStage('creating-addresses');
       await createMultipleAddresses(addressesToRegister);
 
       const processListIds = registeredProperties
@@ -241,19 +274,30 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
         .map((id: string) => ({ id }));
 
       if (processListIds.length > 0) {
+        setLoadStage('starting-analysis');
         await registerProcess(processListIds);
       }
 
-      toast(`${selectedList.length} propriedade(s) registrada(s) com sucesso!`, { type: "success" });
-      onSuccess();
+      setLoadStage('refreshing');
+      toast(
+        selectedList.length === 1
+          ? "Imovel registrado com sucesso!"
+          : `${selectedList.length} imoveis registrados com sucesso!`,
+        { type: "success" },
+      );
+      await Promise.resolve(onSuccess());
       handleClose();
     } catch (error) {
       console.error(error);
+      setLoadStage('ready');
       toast(quotaErrorMessage(error, "Nao conseguimos registrar as propriedades agora. Tente novamente em alguns instantes."), { type: "error" });
     } finally {
       setIsLoading(false);
     }
   };
+
+  const loadingStatus = getPropertyLoadingStatus(loadStage, fetchedProperties.length);
+  const showLoadingStatus = isLoading || loadStage !== 'idle';
 
   if (!isOpen) return null;
 
@@ -317,7 +361,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
           {fetchedProperties.length === 0 ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <p style={{ margin: 0, color: "rgba(14,17,22,0.68)", lineHeight: 1.6 }}>
-                Para adicionar propriedades a sua conta, cole abaixo o <strong>link do Airbnb</strong> do seu imovel
+                Para adicionar imoveis a sua conta, cole abaixo o <strong>link do Airbnb</strong> do seu imovel
                 ou o <strong>link do seu perfil de anfitriao</strong> para importar automaticamente todos os imoveis.
               </p>
 
@@ -329,21 +373,44 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                 style={inputStyle}
               />
 
+              {showLoadingStatus && (
+                <AppLoadingStatus
+                  compact
+                  eyebrow={loadingStatus.eyebrow}
+                  title={loadingStatus.title}
+                  body={loadingStatus.body}
+                  steps={loadingStatus.steps}
+                  tone={loadingStatus.tone}
+                />
+              )}
+
               <AppButton
                 type="button"
                 size="lg"
                 fullWidth
                 onClick={handleFetchProperties}
                 loading={isLoading}
+                loadingLabel={loadingStatus.buttonLabel}
               >
-                Buscar propriedades
+                Buscar imoveis
               </AppButton>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <p style={{ margin: 0, fontWeight: 650 }}>
-                Encontramos {fetchedProperties.length} imovel(is) elegivel(is). Selecione os que deseja monitorar e atualizar:
+                Encontramos {propertyCountLabel(fetchedProperties.length)} para acompanhar. Selecione os que deseja monitorar e atualizar:
               </p>
+
+              {showLoadingStatus && (
+                <AppLoadingStatus
+                  compact
+                  eyebrow={loadingStatus.eyebrow}
+                  title={loadingStatus.title}
+                  body={loadingStatus.body}
+                  steps={loadingStatus.steps}
+                  tone={loadingStatus.tone}
+                />
+              )}
 
               <div
                 style={{
@@ -451,6 +518,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
               type="button"
               onClick={handleSaveProperties}
               loading={isLoading}
+              loadingLabel={loadingStatus.buttonLabel}
               disabled={!Object.values(selectedProperties).some(Boolean)}
             >
               Adicionar selecionados
@@ -460,6 +528,111 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
       </section>
     </div>
   );
+}
+
+function getPropertyLoadingStatus(stage: PropertyLoadStage, foundCount: number): {
+  eyebrow: string;
+  title: string;
+  body: string;
+  buttonLabel: string;
+  tone: "accent" | "warn" | "neutral" | "error";
+  steps: AppLoadingStep[];
+} {
+  const activeIndexByStage: Record<PropertyLoadStage, number> = {
+    idle: -1,
+    'checking-existing': 0,
+    'resolving-link': 0,
+    'fetching-profile': 1,
+    'fetching-listing': 1,
+    ready: 2,
+    registering: 3,
+    'creating-addresses': 4,
+    'starting-analysis': 5,
+    refreshing: 6,
+  };
+
+  const copy: Record<PropertyLoadStage, { title: string; body: string; buttonLabel: string }> = {
+    idle: {
+      title: "Pronto para buscar",
+      body: "Cole um link do Airbnb ou perfil de anfitriao para iniciar.",
+      buttonLabel: "Carregando...",
+    },
+    'checking-existing': {
+      title: "Vendo se esse imovel ja esta na sua conta",
+      body: "Assim a lista nao fica com o mesmo anuncio duas vezes.",
+      buttonLabel: "Conferindo...",
+    },
+    'resolving-link': {
+      title: "Abrindo o link informado",
+      body: "Alguns links precisam ser convertidos antes da busca.",
+      buttonLabel: "Abrindo link...",
+    },
+    'fetching-profile': {
+      title: "Procurando seus imoveis",
+      body: "Vamos mostrar os anuncios encontrados para voce escolher.",
+      buttonLabel: "Procurando...",
+    },
+    'fetching-listing': {
+      title: "Procurando dados do imovel",
+      body: "Estamos buscando foto, titulo e informacoes basicas.",
+      buttonLabel: "Procurando imovel...",
+    },
+    ready: {
+      title: foundPropertiesLabel(foundCount),
+      body: "Marque os que voce quer acompanhar na Urban AI.",
+      buttonLabel: "Preparando...",
+    },
+    registering: {
+      title: "Salvando imoveis na sua conta",
+      body: "Eles vao aparecer na sua lista de imoveis em instantes.",
+      buttonLabel: "Salvando...",
+    },
+    'creating-addresses': {
+      title: "Preparando o mapa",
+      body: "Vamos usar a localizacao para encontrar eventos perto do imovel.",
+      buttonLabel: "Preparando mapa...",
+    },
+    'starting-analysis': {
+      title: "Preparando sugestoes de preco",
+      body: "Estamos iniciando a busca por eventos proximos e oportunidades de preco.",
+      buttonLabel: "Preparando sugestoes...",
+    },
+    refreshing: {
+      title: "Atualizando a lista",
+      body: "Estamos mostrando os novos imoveis na tela.",
+      buttonLabel: "Atualizando...",
+    },
+  };
+
+  const activeIndex = activeIndexByStage[stage];
+  const stepDefs: Array<{ id: string; label: string; detail: string }> = [
+    { id: "validate", label: "Conferir link", detail: "Evita cadastro duplicado" },
+    { id: "fetch", label: "Buscar no Airbnb", detail: "Foto e informacoes basicas" },
+    { id: "select", label: "Escolher imoveis", detail: "Voce confirma quais entram" },
+    { id: "register", label: "Salvar na conta", detail: "Adiciona na sua lista" },
+    { id: "location", label: "Preparar mapa", detail: "Localizacao do imovel" },
+    { id: "analysis", label: "Buscar oportunidades", detail: "Eventos e sugestoes" },
+    { id: "refresh", label: "Mostrar na tela", detail: "Lista atualizada" },
+  ];
+
+  return {
+    eyebrow: "O QUE ESTA ACONTECENDO",
+    title: copy[stage].title,
+    body: copy[stage].body,
+    buttonLabel: copy[stage].buttonLabel,
+    tone: stage === "ready" ? "neutral" : "accent",
+    steps: stepDefs.map((step, index) => ({
+      ...step,
+      status:
+        activeIndex < 0
+          ? "pending"
+          : index < activeIndex
+            ? "complete"
+            : index === activeIndex
+              ? "active"
+              : "pending",
+    })),
+  };
 }
 
 const inputStyle: React.CSSProperties = {

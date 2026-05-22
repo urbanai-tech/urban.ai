@@ -19,6 +19,7 @@ import {
   AppCard,
   AppEmptyState,
   AppInput,
+  AppLoadingStatus,
   AppPageShell,
   AppSectionHeader,
   useToastCompat,
@@ -26,10 +27,6 @@ import {
 
 type PricingDraft = { manualDailyPrice: string; averageMonthlyRevenue: string };
 type IdentityDraft = { internalNickname: string; internalCode: string };
-
-function LoadingSpinner() {
-  return <span className="properties-spinner" aria-label="Carregando" />;
-}
 
 function PropertyThumb({ src, alt }: { src?: string | null; alt: string }) {
   const [errored, setErrored] = useState(false);
@@ -110,7 +107,7 @@ export default function MyProperties() {
 
     try {
       await requestDeleteAddress(propertyToDelete);
-      toast("Propriedade excluida", { type: "success" });
+      toast("Imovel excluido", { type: "success" });
       setProperties((prev) => prev.filter((prop) => prop.id !== propertyToDelete));
     } catch (error) {
       toast("Erro ao excluir propriedade", { type: "error" });
@@ -214,7 +211,7 @@ export default function MyProperties() {
         delete next[prop.id];
         return next;
       });
-      toast("Preco base salvo. As proximas analises usarao este valor.", { type: "success" });
+      toast("Valor salvo. As proximas sugestoes usarao essa referencia.", { type: "success" });
     } catch (error) {
       toast("Erro ao salvar preco base do imovel.", { type: "error" });
       console.error('Erro ao salvar inputs de pricing:', error);
@@ -284,13 +281,22 @@ export default function MyProperties() {
       (prop as any).address,
     ].some((value) => normalizeSearch(value).includes(searchNeedle));
   });
+  const processingProperties = properties.filter((prop) => !isPropertyReady(prop));
+  const processingStatus = processingProperties[0]?.setupStatus;
 
   if (loading) {
     return (
       <AppPageShell maxWidth={1180}>
-        <div className="properties-loading">
-          <LoadingSpinner />
-        </div>
+        <AppLoadingStatus
+          eyebrow="IMOVEIS"
+          title="Carregando seus imoveis"
+          body="Estamos preparando sua lista antes de liberar busca e edicoes."
+          steps={[
+            { id: 'list', label: 'Buscar lista', status: 'active', detail: 'Seus imoveis' },
+            { id: 'pricing', label: 'Carregar precos', status: 'pending', detail: 'Valores de referencia' },
+            { id: 'ready', label: 'Liberar edicao', status: 'pending', detail: 'Busca e acoes' },
+          ]}
+        />
         <style jsx>{styles}</style>
       </AppPageShell>
     );
@@ -299,8 +305,8 @@ export default function MyProperties() {
   return (
     <AppPageShell maxWidth={1180}>
       <AppSectionHeader
-        eyebrow="PORTFOLIO"
-        title={t('my_properties.title')}
+        eyebrow="IMOVEIS"
+        title="Meus imoveis"
         subtitle="Organize apelidos, codigos internos e valores que ajudam a Urban AI sugerir precos melhores."
         actions={
           <AppButton
@@ -309,10 +315,29 @@ export default function MyProperties() {
             leftIcon={<Plus size={15} />}
             onClick={() => setIsAddOpen(true)}
           >
-            {t('my_properties.add_property')}
+            Adicionar imovel
           </AppButton>
         }
       />
+
+      {processingProperties.length > 0 && (
+        <AppLoadingStatus
+          compact
+          eyebrow="IMOVEIS SENDO PREPARADOS"
+          title={processingPropertiesTitle(processingProperties.length)}
+          body={processingStatus?.publicDescription ?? "Mapa, eventos por perto e sugestoes de preco aparecem assim que cada imovel ficar pronto. Enquanto isso, voce pode ajustar apelidos e valores."}
+          tone="warn"
+          steps={
+            processingStatus?.steps ?? [
+              { id: 'registered', label: 'Imovel adicionado', status: 'complete' },
+              { id: 'location', label: 'Preparar mapa', status: 'active', detail: 'Endereco e raio' },
+              { id: 'events', label: 'Procurar eventos perto', status: 'pending', detail: 'Shows, feiras e jogos' },
+              { id: 'recommendations', label: 'Preparar sugestoes', status: 'pending', detail: 'Precos por oportunidade' },
+            ]
+          }
+          style={{ marginBottom: 16 }}
+        />
+      )}
 
       <AppCard variant="default" style={{ padding: 0, overflow: 'hidden' }}>
         <div className="properties-toolbar">
@@ -399,6 +424,11 @@ export default function MyProperties() {
                           <div className="properties-name-line">
                             <p>{prop.internalNickname || prop.propertyName}</p>
                             {prop.internalCode && <span>{prop.internalCode}</span>}
+                            {!isPropertyReady(prop) && (
+                              <span className="properties-status-pill">
+                                {prop.setupStatus?.publicLabel ?? 'Preparando sugestoes'}
+                              </span>
+                            )}
                             <button
                               aria-label="Editar apelido e codigo do imovel"
                               className="properties-icon-button"
@@ -554,21 +584,6 @@ export default function MyProperties() {
 }
 
 const styles = `
-  .properties-loading {
-    display: grid;
-    min-height: 360px;
-    place-items: center;
-  }
-
-  .properties-spinner {
-    width: 42px;
-    height: 42px;
-    border: 3px solid var(--app-divider);
-    border-top-color: var(--app-accent);
-    border-radius: 50%;
-    animation: properties-spin 800ms linear infinite;
-  }
-
   .properties-toolbar {
     display: flex;
     align-items: center;
@@ -725,6 +740,12 @@ const styles = `
     border-radius: 8px;
     font-size: 11px;
     font-weight: 700;
+  }
+
+  .properties-name-line span.properties-status-pill {
+    color: #92400E;
+    background: rgba(202, 138, 4, 0.12);
+    border-color: rgba(202, 138, 4, 0.24);
   }
 
   .properties-secondary,
@@ -893,12 +914,6 @@ const styles = `
     margin-top: 22px;
   }
 
-  @keyframes properties-spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
   @media (max-width: 980px) {
     .properties-row-main {
       align-items: stretch;
@@ -949,3 +964,13 @@ const styles = `
     }
   }
 `;
+
+function isPropertyReady(prop: PropertyDropdown): boolean {
+  return prop.setupStatus?.state ? prop.setupStatus.state === 'ready' : prop.analisado === 'completed';
+}
+
+function processingPropertiesTitle(count: number): string {
+  return count === 1
+    ? "1 imovel ainda sendo preparado"
+    : `${count} imoveis ainda sendo preparados`;
+}
