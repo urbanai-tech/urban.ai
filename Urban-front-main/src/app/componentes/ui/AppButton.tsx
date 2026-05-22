@@ -27,6 +27,7 @@ type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   loading?: boolean;
+  loadingLabel?: React.ReactNode;
   as?: "button" | "a";
   href?: string;
   fullWidth?: boolean;
@@ -74,6 +75,7 @@ export const AppButton = React.forwardRef<HTMLButtonElement, Props>(function App
     leftIcon,
     rightIcon,
     loading,
+    loadingLabel,
     disabled,
     children,
     style,
@@ -106,7 +108,7 @@ export const AppButton = React.forwardRef<HTMLButtonElement, Props>(function App
   const content = (
     <>
       {leftIcon}
-      <span>{loading ? "..." : children}</span>
+      <span>{loading ? loadingLabel ?? "..." : children}</span>
       {rightIcon}
     </>
   );

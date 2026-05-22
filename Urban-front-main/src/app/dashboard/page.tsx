@@ -32,6 +32,7 @@ import {
   AppCard,
   AppButton,
   AppEmptyState,
+  AppLoadingStatus,
   Icons,
 } from '../componentes/ui';
 
@@ -100,7 +101,7 @@ export default function DashboardPage() {
     [currentMonth, mesMinimo]
   );
   const hasCompletedProperties = useMemo(
-    () => propsInfo.some((property) => property.analisado === "completed"),
+    () => propsInfo.some((property) => isPropertyReady(property)),
     [propsInfo],
   );
   const selectedPropertyInfo = useMemo(
@@ -196,7 +197,7 @@ export default function DashboardPage() {
         const data = await getPropriedadesDropdownList();
         setPropsInfo(data);
 
-        const defaultProp = data.find(p => p.analisado === "completed");
+        const defaultProp = data.find(isPropertyReady);
         if (defaultProp) {
           setPropertyId(defaultProp.id);
           setLoadingPropsInfo(false);
@@ -223,14 +224,14 @@ export default function DashboardPage() {
         if (propsInfo.length > 0 && data.length > 0) {
           const completedProps = propsInfo.filter((oldItem) => {
             const newItem = data.find((n) => n.id === oldItem.id);
-            return oldItem.analisado !== "completed" && newItem?.analisado === "completed";
+            return !isPropertyReady(oldItem) && Boolean(newItem && isPropertyReady(newItem));
           });
 
           if (completedProps.length > 0) {
             setPropsInfo(data);
 
-            if (!propertyId || propsInfo.find(p => p.id === propertyId)?.analisado !== 'completed') {
-              const defaultProp = data.find(p => p.analisado === "completed");
+            if (!propertyId || !isPropertyReady(propsInfo.find(p => p.id === propertyId))) {
+              const defaultProp = data.find(isPropertyReady);
               if (defaultProp) {
                 setPropertyId(defaultProp.id);
               }
@@ -284,9 +285,20 @@ export default function DashboardPage() {
       <PushNotificationOptIn variant="compact" />
 
       {loadingPropsInfo || isLoading ? (
-        <div className="dashboard-loading">
-          <LoadingSpinner />
-        </div>
+        <AppLoadingStatus
+          eyebrow="CALENDARIO"
+          title={loadingPropsInfo ? "Carregando seus imoveis" : "Procurando eventos e sugestoes de preco"}
+          body={
+            loadingPropsInfo
+              ? "Estamos vendo quais imoveis ja estao prontos para receber sugestoes."
+              : "Estamos olhando o imovel, o mes escolhido e os eventos perto dele."
+          }
+          steps={[
+            { id: 'properties', label: 'Seus imoveis', status: loadingPropsInfo ? 'active' : 'complete' },
+            { id: 'events', label: 'Eventos por perto', status: loadingPropsInfo ? 'pending' : 'active' },
+            { id: 'recommendations', label: 'Sugestoes no calendario', status: 'pending' },
+          ]}
+        />
       ) : !propertyId || !hasCompletedProperties ? (
         <AppEmptyState
           eyebrow="IMOVEIS"
@@ -404,8 +416,8 @@ export default function DashboardPage() {
                   eyebrow={selectedDay ? 'DIA SEM EVENTOS' : 'SEM SUGESTOES'}
                   title={selectedDay ? 'Nenhum evento neste dia' : 'Sem sugestoes neste mes'}
                   body={
-                    selectedPropertyInfo?.analisado !== 'completed'
-                      ? 'O imovel ainda esta processando. As sugestoes aparecem quando endereco, eventos e preco base estiverem prontos.'
+                    selectedPropertyInfo && !isPropertyReady(selectedPropertyInfo)
+                      ? selectedPropertyInfo.setupStatus?.publicDescription ?? 'Este imovel ainda esta sendo preparado. As sugestoes aparecem quando mapa, eventos e valor de referencia estiverem prontos.'
                       : 'Nao encontramos evento futuro que combine com este imovel no periodo. A Urban AI continuara verificando novos eventos e mostrara sugestoes quando encontrar uma oportunidade.'
                   }
                   icon={<Icons.Calendar size={28} />}
@@ -701,3 +713,8 @@ const styles = `
     }
   }
 `;
+
+function isPropertyReady(property?: PropertyDropdown): boolean {
+  if (!property) return false;
+  return property.setupStatus?.state ? property.setupStatus.state === 'ready' : property.analisado === 'completed';
+}

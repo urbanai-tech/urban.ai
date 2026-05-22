@@ -20,6 +20,8 @@ export type { AppMetricVariant } from "./AppMetricCard";
 export { AppBadge } from "./AppBadge";
 export type { AppBadgeKind } from "./AppBadge";
 export { AppEmptyState } from "./AppEmptyState";
+export { AppLoadingStatus } from "./AppLoadingStatus";
+export type { AppLoadingStep, AppLoadingStepStatus } from "./AppLoadingStatus";
 export { AppInput, AppSelect, AppTextarea } from "./AppInput";
 export { RecommendationCard } from "./RecommendationCard";
 export type {

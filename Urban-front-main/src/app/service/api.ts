@@ -149,7 +149,20 @@ export type PropertyDropdown = {
   averageMonthlyRevenue?: number | null;
   dailyPrice?: number | null;
   pricingInputSource?: string | null;
+  setupStatus?: PropertySetupStatus;
   nome: string;
+};
+
+export type PropertySetupStatus = {
+  state: 'preparing' | 'ready' | 'error';
+  currentStep: 'map' | 'events' | 'suggestions' | 'ready' | 'attention';
+  publicLabel: string;
+  publicDescription: string;
+  steps: Array<{
+    id: 'saved' | 'map' | 'events' | 'suggestions';
+    label: string;
+    status: 'complete' | 'active' | 'pending' | 'error';
+  }>;
 };
 
 export type PricingInputHistory = {

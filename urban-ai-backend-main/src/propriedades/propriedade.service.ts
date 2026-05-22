@@ -85,6 +85,18 @@ type PublicAddressResponse = {
     list: PublicListResponse | null;
 };
 
+type PublicPropertySetupStatus = {
+    state: 'preparing' | 'ready' | 'error';
+    currentStep: 'map' | 'events' | 'suggestions' | 'ready' | 'attention';
+    publicLabel: string;
+    publicDescription: string;
+    steps: Array<{
+        id: 'saved' | 'map' | 'events' | 'suggestions';
+        label: string;
+        status: 'complete' | 'active' | 'pending' | 'error';
+    }>;
+};
+
 export class CreateAlertDto {
     @ApiProperty({ example: 12.9713964, description: 'Latitude do imóvel' })
     latitude: number;
@@ -197,6 +209,7 @@ export class PropriedadeService {
         pricingInputSource: string | null;
         internalNickname: string | null;
         internalCode: string | null;
+        setupStatus: PublicPropertySetupStatus;
     }[]> {
         // Busca específica pelo userId fornecido
         const addresses = await this.addressRepository.find({
@@ -220,8 +233,80 @@ export class PropriedadeService {
             averageMonthlyRevenue: address.list?.averageMonthlyRevenue ?? null,
             dailyPrice: address.list?.dailyPrice ?? null,
             pricingInputSource: address.list?.pricingInputSource ?? null,
+            setupStatus: this.buildPublicPropertySetupStatus(address),
         }));
 
+    }
+
+    private buildPublicPropertySetupStatus(address: Address): PublicPropertySetupStatus {
+        const hasCoordinates = this.hasUsableCoordinates(address);
+        const rawStatus = String(address?.analisado ?? '').toLowerCase();
+        const isCompleted = rawStatus === 'completed';
+        const isError = rawStatus === 'error';
+
+        if (isError) {
+            return {
+                state: 'error',
+                currentStep: 'attention',
+                publicLabel: 'Precisa de atencao',
+                publicDescription: 'Nao conseguimos terminar a preparacao deste imovel. Revise endereco e tente novamente.',
+                steps: [
+                    { id: 'saved', label: 'Imovel adicionado', status: 'complete' },
+                    { id: 'map', label: 'Preparar mapa', status: hasCoordinates ? 'complete' : 'error' },
+                    { id: 'events', label: 'Procurar eventos perto', status: 'pending' },
+                    { id: 'suggestions', label: 'Preparar sugestoes', status: 'pending' },
+                ],
+            };
+        }
+
+        if (isCompleted && hasCoordinates) {
+            return {
+                state: 'ready',
+                currentStep: 'ready',
+                publicLabel: 'Pronto para sugestoes',
+                publicDescription: 'Este imovel ja pode mostrar mapa, eventos por perto e sugestoes de preco.',
+                steps: [
+                    { id: 'saved', label: 'Imovel adicionado', status: 'complete' },
+                    { id: 'map', label: 'Mapa pronto', status: 'complete' },
+                    { id: 'events', label: 'Eventos verificados', status: 'complete' },
+                    { id: 'suggestions', label: 'Sugestoes prontas', status: 'complete' },
+                ],
+            };
+        }
+
+        if (!hasCoordinates) {
+            return {
+                state: 'preparing',
+                currentStep: 'map',
+                publicLabel: 'Preparando mapa',
+                publicDescription: 'Estamos encontrando a localizacao para buscar eventos perto deste imovel.',
+                steps: [
+                    { id: 'saved', label: 'Imovel adicionado', status: 'complete' },
+                    { id: 'map', label: 'Preparar mapa', status: 'active' },
+                    { id: 'events', label: 'Procurar eventos perto', status: 'pending' },
+                    { id: 'suggestions', label: 'Preparar sugestoes', status: 'pending' },
+                ],
+            };
+        }
+
+        return {
+            state: 'preparing',
+            currentStep: 'events',
+            publicLabel: 'Procurando eventos perto',
+            publicDescription: 'Estamos olhando os eventos da regiao para preparar sugestoes de preco.',
+            steps: [
+                { id: 'saved', label: 'Imovel adicionado', status: 'complete' },
+                { id: 'map', label: 'Mapa pronto', status: 'complete' },
+                { id: 'events', label: 'Procurar eventos perto', status: 'active' },
+                { id: 'suggestions', label: 'Preparar sugestoes', status: 'pending' },
+            ],
+        };
+    }
+
+    private hasUsableCoordinates(address: Address): boolean {
+        const latitude = Number(address?.latitude);
+        const longitude = Number(address?.longitude);
+        return Number.isFinite(latitude) && Number.isFinite(longitude) && latitude !== 0 && longitude !== 0;
     }
 
     async updateIdentity(
