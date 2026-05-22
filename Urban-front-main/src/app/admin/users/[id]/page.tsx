@@ -32,8 +32,8 @@ import type { AdminBadgeKind } from "../../_components";
  *  - Tabela "Imoveis" do usuario (link pra /admin/properties/[id])
  *  - Acoes: trocar role, ativar/desativar, ver audit log
  *
- * Resiliente: usa endpoints existentes (/admin/users, /admin/properties)
- * + fallback gracioso quando backend ainda nao expoe agregados.
+ * Usa endpoints administrativos dedicados para evitar fallback com lista truncada
+ * ou filtro client-side em dados incompletos.
  */
 
 type UserDetail = {
@@ -90,38 +90,16 @@ export default function AdminUserDetailPage() {
     if (!id) return;
     (async () => {
       try {
-        // Buscar usuario direto. Backend tem /admin/users (lista paginada) e
-        // a entity completa fica em /admin/users/:id se existir, ou fallback.
-        let detail: UserDetail | null = null;
-        try {
-          const r = await api.get(`/admin/users/${id}`);
-          detail = r.data;
-        } catch {
-          // Fallback: percorre listagem ate achar o id.
-          const r = await api.get(`/admin/users`, { params: { limit: 100 } });
-          const items = (r.data?.data || r.data?.items || r.data) as UserDetail[];
-          detail = items.find((u) => u.id === id) || null;
-          if (!detail) throw new Error("Usuário não encontrado na listagem admin.");
-        }
+        const userResponse = await api.get(`/admin/users/${id}`);
+        const detail: UserDetail | null = userResponse.data;
         setUser(detail);
 
-        // Imoveis do usuario — usa /admin/properties com filtro client-side por hostId.
-        try {
-          const r = await api.get(`/admin/properties`, { params: { limit: 500 } });
-          const items = (r.data?.items || r.data) as Array<PropertyRow & { userId?: string }>;
-          const owned = items.filter((p) => p.userId === id || (p as any).host?.id === id);
-          setProperties(owned);
-        } catch {
-          /* sem propriedades — ok */
-        }
+        const propertiesResponse = await api.get(`/admin/users/${id}/properties`);
+        const propertiesData = propertiesResponse.data;
+        setProperties(propertiesData?.items ?? propertiesData ?? []);
 
-        // Assinatura ativa via /admin/users (sub-info pode vir junto) ou /payments
-        try {
-          const r = await api.get(`/admin/users/${id}/subscription`);
-          setSubscription(r.data);
-        } catch {
-          /* sem subscription endpoint — ok */
-        }
+        const subscriptionResponse = await api.get(`/admin/users/${id}/subscription`);
+        setSubscription(subscriptionResponse.data);
       } catch (err: unknown) {
         const e = err as { response?: { status?: number }; message?: string };
         if (e?.response?.status === 401 || e?.response?.status === 403) {

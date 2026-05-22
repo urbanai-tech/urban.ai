@@ -53,7 +53,7 @@ test.describe('Admin quality occupancy', () => {
             title: 'Apto Alpha Copacabana',
             airbnbListingId: '123456',
             userId: 'user-alpha',
-            userEmail: 'gustavo8gouveia@hotmail.com',
+            userEmail: process.env.E2E_ALPHA_EMAIL ?? 'alpha@example.com',
             neighborhood: 'Copacabana',
             city: 'Rio de Janeiro',
             state: 'RJ',

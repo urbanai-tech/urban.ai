@@ -30,8 +30,6 @@ import { ComparablesTable, type SortColumn } from "./components/ComparablesTable
  *  3) Gráfico ADR diário (sua propriedade vs comp set)
  *  4) Tabela 10 comparáveis anônimos (sortable, mobile vira cards)
  *  5) Empty state quando `comparables.length < 5`
- *
- * Mock controlado por `NEXT_PUBLIC_MARKET_INTEL_MOCK_DATA` em api.ts.
  */
 
 const PERIOD_OPTIONS: ReadonlyArray<{ id: string; label: string; days: number }> = [

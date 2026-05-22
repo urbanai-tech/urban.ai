@@ -17,6 +17,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import * as dotenv from 'dotenv';
 
 import { UserModule } from './user/user.module';
 import { ConnectModule } from './connect/connect.module';
@@ -42,6 +43,19 @@ import { User } from './entities/user.entity';
 import { RolesGuard } from './auth/roles.guard';
 import { HealthModule } from './health/health.module';
 import { PushModule } from './push/push.module';
+import { HostPanelsModule } from './host-panels/host-panels.module';
+
+dotenv.config();
+
+const runtimeEnv = process.env.APP_ENV || process.env.NODE_ENV || 'development';
+const isLocalRuntime = ['development', 'dev', 'test', 'local'].includes(runtimeEnv);
+
+function envOrLocalDefault(name: string, localDefault: string): string {
+  const value = process.env[name]?.trim();
+  if (value) return value;
+  if (isLocalRuntime) return localDefault;
+  throw new Error(`${name} is required outside local development`);
+}
 
 @Module({
   imports: [
@@ -55,11 +69,11 @@ import { PushModule } from './push/push.module';
     SugestionModule,
     ProcessoModule,
     HttpModule.register({
-      baseURL: 'http://localhost:3000',
+      baseURL: process.env.INTERNAL_HTTP_BASE_URL || process.env.FRONT_BASE_URL || undefined,
     }),
     BullModule.forRoot({
       redis: {
-        host: process.env.REDIS_HOST || 'localhost',
+        host: envOrLocalDefault('REDIS_HOST', 'localhost'),
         port: parseInt(process.env.REDIS_PORT, 10) || 6379,
         password: process.env.REDIS_PASSWORD || undefined,
         tls: process.env.REDIS_TLS === 'true' ? {} : undefined,
@@ -114,11 +128,11 @@ import { PushModule } from './push/push.module';
         : {
             type: 'mysql',
             connectorPackage: 'mysql2',
-            host: process.env.DB_HOST || 'localhost',
+            host: envOrLocalDefault('DB_HOST', 'localhost'),
             port: parseInt(process.env.DB_PORT, 10) || 3306,
-            username: process.env.DB_USER || 'root',
-            password: process.env.DB_PASSWORD || '',
-            database: process.env.DB_NAME || 'ai_urban',
+            username: envOrLocalDefault('DB_USER', 'root'),
+            password: isLocalRuntime ? (process.env.DB_PASSWORD ?? '') : envOrLocalDefault('DB_PASSWORD', ''),
+            database: envOrLocalDefault('DB_NAME', 'ai_urban'),
             autoLoadEntities: true,
             synchronize: process.env.DB_SYNCHRONIZE === 'true',
             migrationsRun: process.env.MIGRATIONS_RUN === 'true',
@@ -139,6 +153,7 @@ import { PushModule } from './push/push.module';
     WaitlistModule,
     ContactSubmissionsModule,
     HealthModule,
+    HostPanelsModule,
 
     // 4) Static file serving
     ServeStaticModule.forRoot({

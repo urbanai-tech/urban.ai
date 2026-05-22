@@ -31,8 +31,8 @@ import type { AdminBadgeKind } from "../../_components";
  *  - Historico de input de pricing (campo do anfitriao)
  *  - Acoes: editar localidade, reprocessar recomendacao, ver no painel host
  *
- * Resiliente a backend incompleto: se o endpoint /admin/properties/:id ainda
- * nao existir, monta a tela com /propriedades/:id + endpoints publicos.
+ * Usa apenas endpoints administrativos autenticados para evitar dados parciais
+ * ou fallbacks publicos no painel operacional.
  */
 
 type AdminPropertyDetail = {
@@ -96,26 +96,8 @@ export default function AdminPropertyDetailPage() {
     if (!id) return;
     (async () => {
       try {
-        // Tenta endpoint admin oficial; fallback gracioso para endpoints publicos.
-        let detail: AdminPropertyDetail | null = null;
-        try {
-          const r = await api.get(`/admin/properties/${id}`);
-          detail = r.data;
-        } catch {
-          // Fallback: usa endpoint publico de propriedade + busca eventos proximos
-          const r = await api.get(`/propriedades/${id}`);
-          detail = r.data;
-          if (detail) {
-            try {
-              const ev = await api.get(`/eventos`, {
-                params: { enderecoId: id, limit: 20 },
-              });
-              detail.nearbyEvents = ev.data?.data ?? [];
-            } catch {
-              /* sem eventos — ok */
-            }
-          }
-        }
+        const r = await api.get(`/admin/properties/${id}`);
+        const detail: AdminPropertyDetail | null = r.data;
         setData(detail);
 
         // Historico de pricing inputs sempre busca o endpoint dedicado (existe)
@@ -144,9 +126,7 @@ export default function AdminPropertyDetailPage() {
     setReprocessing(true);
     setReprocessResult(null);
     try {
-      const r = await api.post(`/admin/properties/${id}/reprocess`).catch(async () => {
-        return await api.post(`/precos/reprocessar`, { enderecoId: id });
-      });
+      const r = await api.post(`/admin/properties/${id}/reprocess`);
       const result = r?.data;
       setReprocessResult(
         result?.created != null

@@ -1,62 +1,10 @@
-import axios from "axios";
+﻿import axios from "axios";
 import { Connect, CreateAddressDto } from "../types/connect";
 import { List, Address } from "../types/connect"; // Crie esse tipo DTO correspondente à entidade List
 import { Subscription } from "../componentes/Subscription";
 
 // Base URL configurada via variável de ambiente
 const url = process.env.NEXT_PUBLIC_API_URL;
-console.log("API Base URL:", url);
-
-type UrbanDataSource = "api" | "demo" | "fallback";
-
-export type UrbanDataProvenance = {
-  __urbanDataSource?: UrbanDataSource;
-  __urbanDataNotice?: string;
-};
-
-const DEMO_DATA_NOTICE =
-  "Dados demonstrativos: use apenas para teste, validacao visual ou treinamento.";
-
-function envFlag(value: string | undefined, fallback = false): boolean {
-  return (value ?? String(fallback)).toLowerCase() === "true";
-}
-
-const ALLOW_MOCK_FALLBACKS = envFlag(
-  process.env.NEXT_PUBLIC_ALLOW_MOCK_FALLBACKS,
-  false,
-);
-
-function markDemo<T extends object>(value: T, source: UrbanDataSource = "demo"): T & UrbanDataProvenance {
-  return {
-    ...value,
-    __urbanDataSource: source,
-    __urbanDataNotice:
-      source === "api"
-        ? undefined
-        : source === "fallback"
-          ? "Dados temporarios gerados localmente porque a API nao respondeu."
-          : DEMO_DATA_NOTICE,
-  };
-}
-
-function logDemoData(feature: string, source: UrbanDataSource = "demo") {
-  if (typeof window === "undefined") return;
-  console.warn(
-    `[Urban AI] ${source === "fallback" ? "fallback local" : "modo demo"} ativo em ${feature}. ` +
-      "Estes dados nao devem ser tratados como informacao real do cliente.",
-  );
-}
-
-export function getUrbanApiDataMode() {
-  return {
-    allowMockFallbacks: ALLOW_MOCK_FALLBACKS,
-    paceMock: PACE_USE_MOCK,
-    portfolioMock: PORTFOLIO_USE_MOCK,
-    pricingRulesMock: PRICING_RULES_USE_MOCK,
-    marketIntelMock: MARKET_INTEL_USE_MOCK,
-    askMock: ASK_USE_MOCK,
-  };
-}
 
 export function getFriendlyApiErrorMessage(error: unknown, fallback?: string): string {
   const status = (error as any)?.response?.status;
@@ -93,7 +41,6 @@ export function getFriendlyApiErrorMessage(error: unknown, fallback?: string): s
 export const api = axios.create({
   baseURL: url,
   withCredentials: true,
-  // baseURL: 'https://urban-back-719774307855.us-central1.run.app',
 });
 
 // Interceptor para incluir o token de autorização em todas as requisições
@@ -1257,19 +1204,19 @@ export interface AdminAlphaRecommendationsExport {
   rows: AdminAlphaRecommendation[];
 }
 
-export async function fetchAdminAlphaDashboard(email = 'gustavo8gouveia@hotmail.com') {
+export async function fetchAdminAlphaDashboard(email: string) {
   const { data } = await api.get<AdminAlphaDashboard>('/admin/alpha/dashboard', { params: { email } });
   return data;
 }
 
-export async function fetchAdminAlphaRecommendations(email = 'gustavo8gouveia@hotmail.com', limit = 250) {
+export async function fetchAdminAlphaRecommendations(email: string, limit = 250) {
   const { data } = await api.get<AdminAlphaRecommendationsExport>('/admin/alpha/recommendations', {
     params: { email, limit },
   });
   return data;
 }
 
-export async function runAdminAlphaReprocess(email = 'gustavo8gouveia@hotmail.com') {
+export async function runAdminAlphaReprocess(email: string) {
   const { data } = await api.post<AdminJobRunResponse>('/admin/alpha/reprocess', null, {
     params: { email },
   });
@@ -2432,8 +2379,6 @@ export const fetchDashboardSummary = () =>
  * Resposta:
  *   { points: [{ date, booked, expected, eventLabel? }, ...] }
  *
- * Mock realista local controlado por `NEXT_PUBLIC_PACE_MOCK_DATA=true`.
- * Por padrao fica desligado para nao misturar dados demo com dados reais.
  */
 export interface PaceApiPoint {
   date: string;
@@ -2446,9 +2391,6 @@ export interface PaceApiResponse {
   points: PaceApiPoint[];
 }
 
-const PACE_USE_MOCK =
-  envFlag(process.env.NEXT_PUBLIC_PACE_MOCK_DATA, false);
-
 function isoFromDaysAhead(daysAhead: number): string {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
@@ -2457,53 +2399,8 @@ function isoFromDaysAhead(daysAhead: number): string {
 }
 
 /**
- * Mock realista de pace pra próximos 60 dias.
- *
- * Modelo:
- *  - booked sobe conforme proximidade da data (close-in mais cheio): ~75% em 0d,
- *    desce até ~25% em 60d, com microvariação por ruído determinístico.
- *  - expected: baseline ~55-65% com sazonalidade leve.
- *  - 3 eventos espalhados (15d, 32d, 47d).
- */
-function generatePaceMock(propertyId?: string, days = 60): PaceApiPoint[] {
-  // Seed determinístico baseado em propertyId pra ficar estável entre reloads.
-  const seedBase = (propertyId ?? 'portfolio').length;
-  const points: PaceApiPoint[] = [];
-
-  const eventDays: Record<number, string> = {
-    15: 'Show internacional',
-    32: 'Feriado prolongado',
-    47: 'Convenção corporativa',
-  };
-
-  for (let i = 0; i < days; i++) {
-    // booked: curva decrescente (mais cheio perto, mais vazio longe) com ruído
-    const proximityFactor = 1 - i / days; // 1 -> 0
-    const noise = Math.sin((i + seedBase) * 0.7) * 6;
-    let booked = 28 + proximityFactor * 50 + noise;
-    // Boost em dias de evento
-    if (eventDays[i]) booked += 12;
-
-    // expected: baseline mais plana com leve sazonalidade semanal
-    const weekday = (new Date(isoFromDaysAhead(i)).getDay() + 7) % 7;
-    const isWeekend = weekday === 5 || weekday === 6;
-    const expected = (isWeekend ? 68 : 54) + Math.sin(i * 0.18) * 4;
-
-    points.push({
-      date: isoFromDaysAhead(i),
-      booked: Math.max(0, Math.min(100, booked)),
-      expected: Math.max(0, Math.min(100, expected)),
-      eventLabel: eventDays[i] ?? null,
-    });
-  }
-  return points;
-}
-
-/**
  * fetchPace — busca pace para um imóvel específico ou para o portfólio.
  *
- * Quando `NEXT_PUBLIC_PACE_MOCK_DATA=true`, retorna demo local.
- * Quando false, chama o endpoint real do Dev 1.
  *
  * Range default: hoje até hoje+60 dias.
  */
@@ -2512,13 +2409,6 @@ export async function fetchPace(
   options?: { days?: number },
 ): Promise<PaceApiPoint[]> {
   const days = options?.days ?? 60;
-
-  if (PACE_USE_MOCK) {
-    // Simula latência ~150ms pra exercitar loading state em dev.
-    logDemoData("Pace");
-    await new Promise((resolve) => setTimeout(resolve, 150));
-    return generatePaceMock(propertyId, days);
-  }
 
   const targetDateFrom = isoFromDaysAhead(0);
   const targetDateTo = isoFromDaysAhead(days);
@@ -2532,11 +2422,6 @@ export async function fetchPace(
     });
     return data?.points ?? [];
   } catch (err) {
-    if (ALLOW_MOCK_FALLBACKS) {
-      logDemoData("Pace", "fallback");
-      console.warn('[fetchPace] endpoint indisponivel, usando fallback local:', err);
-      return generatePaceMock(propertyId, days);
-    }
     console.warn('[fetchPace] endpoint indisponivel:', err);
     throw err;
   }
@@ -2562,8 +2447,6 @@ export async function fetchPace(
  *       }]
  *     }
  *
- * Mock realista local controlado por `NEXT_PUBLIC_PORTFOLIO_MOCK_DATA=true`.
- * Por padrao fica desligado para priorizar a API real.
  */
 export type PortfolioEventImpact = 'alta' | 'media';
 
@@ -2587,7 +2470,7 @@ export interface PortfolioProperty {
   days: PortfolioDay[];
 }
 
-export interface PortfolioCalendarResponse extends UrbanDataProvenance {
+export interface PortfolioCalendarResponse {
   properties: PortfolioProperty[];
 }
 
@@ -2598,113 +2481,13 @@ export interface PortfolioCalendarInput {
   strategy?: string;
 }
 
-const PORTFOLIO_USE_MOCK =
-  envFlag(process.env.NEXT_PUBLIC_PORTFOLIO_MOCK_DATA, false);
-
-const PORTFOLIO_MOCK_PROPERTIES: ReadonlyArray<{
-  propertyId: string;
-  name: string;
-  thumbnail: string | null;
-  basePrice: number;
-}> = [
-  { propertyId: 'pf-alpha-01', name: 'Studio Faria Lima', thumbnail: null, basePrice: 320 },
-  { propertyId: 'pf-alpha-02', name: 'Loft Jardins', thumbnail: null, basePrice: 410 },
-  { propertyId: 'pf-alpha-03', name: 'Apto 2qts Vila Madalena', thumbnail: null, basePrice: 285 },
-  { propertyId: 'pf-alpha-04', name: 'Cobertura Itaim', thumbnail: null, basePrice: 690 },
-  { propertyId: 'pf-alpha-05', name: 'Casa Pinheiros', thumbnail: null, basePrice: 510 },
-];
-
-const PORTFOLIO_MOCK_EVENTS: ReadonlyArray<Omit<PortfolioEvent, 'id'> & { offset: number }> = [
-  { offset: 6, nome: 'Show internacional Allianz', impacto: 'alta' },
-  { offset: 14, nome: 'Feriado prolongado', impacto: 'media' },
-  { offset: 22, nome: 'Convenção corporativa Expo', impacto: 'alta' },
-  { offset: 34, nome: 'Festival gastronômico', impacto: 'media' },
-  { offset: 48, nome: 'Show internacional Morumbi', impacto: 'alta' },
-];
-
-function isoDateAt(daysAhead: number, base?: Date): string {
-  const d = base ? new Date(base) : new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + daysAhead);
-  return d.toISOString().slice(0, 10);
-}
-
-function daysBetween(fromIso: string, toIso: string): number {
-  const from = new Date(fromIso);
-  const to = new Date(toIso);
-  const ms = to.getTime() - from.getTime();
-  return Math.max(0, Math.round(ms / 86400000));
-}
-
-function generatePortfolioMock(input: PortfolioCalendarInput): PortfolioCalendarResponse {
-  const fromIso = input.from;
-  const totalDays = Math.min(180, daysBetween(input.from, input.to) + 1);
-  const baseDate = new Date(fromIso);
-
-  const filterIds = input.propertyIds && input.propertyIds.length > 0
-    ? new Set(input.propertyIds)
-    : null;
-
-  const properties: PortfolioProperty[] = PORTFOLIO_MOCK_PROPERTIES
-    .filter((p) => (filterIds ? filterIds.has(p.propertyId) : true))
-    .map((p, propertyIdx) => {
-      const days: PortfolioDay[] = [];
-      for (let i = 0; i < totalDays; i++) {
-        const date = isoDateAt(i, baseDate);
-        const matchedEvent = PORTFOLIO_MOCK_EVENTS.find(
-          (ev) => ev.offset === ((i + propertyIdx) % 60),
-        );
-        const evento: PortfolioEvent | null = matchedEvent
-          ? {
-              id: `${p.propertyId}-ev-${matchedEvent.offset}`,
-              nome: matchedEvent.nome,
-              impacto: matchedEvent.impacto,
-            }
-          : null;
-
-        // sugestao só em ~50% dos dias, com bump quando há evento próximo
-        const hasSuggestion = (i + propertyIdx) % 2 === 0 || evento !== null;
-        const eventBoost = evento
-          ? evento.impacto === 'alta' ? 1.45 : 1.2
-          : 1.0;
-        const weekday = (new Date(date).getDay() + 7) % 7;
-        const weekendBoost = weekday === 5 || weekday === 6 ? 1.12 : 1.0;
-        const sugestao = hasSuggestion
-          ? Math.round(p.basePrice * eventBoost * weekendBoost)
-          : null;
-
-        days.push({
-          date,
-          sugestao,
-          atual: p.basePrice,
-          evento,
-        });
-      }
-      return {
-        propertyId: p.propertyId,
-        name: p.name,
-        thumbnail: p.thumbnail,
-        days,
-      };
-    });
-
-  return { properties };
-}
-
 /**
  * fetchPortfolioCalendar — multi-imóvel calendar (Gap 1).
  *
- * Quando `NEXT_PUBLIC_PORTFOLIO_MOCK_DATA=true`, retorna demo local.
- * Caso contrario, chama `GET /portfolio/calendar`.
  */
 export async function fetchPortfolioCalendar(
   input: PortfolioCalendarInput,
 ): Promise<PortfolioCalendarResponse> {
-  if (PORTFOLIO_USE_MOCK) {
-    logDemoData("Portfolio Calendar");
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    return markDemo(generatePortfolioMock(input));
-  }
 
   try {
     const { data } = await api.get<PortfolioCalendarResponse>('/portfolio/calendar', {
@@ -2717,11 +2500,6 @@ export async function fetchPortfolioCalendar(
     });
     return data ?? { properties: [] };
   } catch (err) {
-    if (ALLOW_MOCK_FALLBACKS) {
-      logDemoData("Portfolio Calendar", "fallback");
-      console.warn('[fetchPortfolioCalendar] endpoint indisponivel, usando fallback local:', err);
-      return markDemo(generatePortfolioMock(input), "fallback");
-    }
     console.warn('[fetchPortfolioCalendar] endpoint indisponivel:', err);
     throw err;
   }
@@ -2755,7 +2533,7 @@ export interface PortfolioBulkActionFailure {
   reason: string;
 }
 
-export interface PortfolioBulkActionResponse extends UrbanDataProvenance {
+export interface PortfolioBulkActionResponse {
   applied: number;
   failed: PortfolioBulkActionFailure[];
   auditLogId: string;
@@ -2764,39 +2542,17 @@ export interface PortfolioBulkActionResponse extends UrbanDataProvenance {
 export async function mutatePortfolioBulkAction(
   input: PortfolioBulkActionInput,
 ): Promise<PortfolioBulkActionResponse> {
-  if (PORTFOLIO_USE_MOCK) {
-    logDemoData("Portfolio Bulk Action");
-    await new Promise((resolve) => setTimeout(resolve, 250));
-    return markDemo({
-      applied: input.propertyIds.length,
-      failed: [],
-      auditLogId: `mock-${Date.now()}`,
-    });
-  }
 
   try {
     const { data } = await api.post<PortfolioBulkActionResponse>('/portfolio/bulk-action', input);
     return data;
   } catch (err) {
-    if (ALLOW_MOCK_FALLBACKS) {
-      logDemoData("Portfolio Bulk Action", "fallback");
-      console.warn('[mutatePortfolioBulkAction] endpoint indisponivel, retornando fallback local:', err);
-      return markDemo({
-        applied: input.propertyIds.length,
-        failed: [],
-        auditLogId: `mock-fallback-${Date.now()}`,
-      }, "fallback");
-    }
     console.warn('[mutatePortfolioBulkAction] endpoint indisponivel:', err);
     throw err;
   }
 }
 
 // === Gap 2 — Pricing Rules ===
-// Semana 5-6, Track 2. Tela `/properties/:id/pricing-rules` — accordion com 8
-// regras por imóvel. Backend (Dev 1) ainda não entregou na semana 5, então o
-// flag `NEXT_PUBLIC_PRICING_RULES_MOCK_DATA` controla demo local (default false).
-// Quando backend entregar:
 //   POST /properties/:id/pricing-rules/preview  → preview 14d
 //   GET  /properties/:id/pricing-rules           → regras atuais
 //   PUT  /properties/:id/pricing-rules           → salva (atomic)
@@ -2820,7 +2576,7 @@ export type PricingRule = {
   description: string;
 };
 
-export type PricingRulesResponse = UrbanDataProvenance & {
+export type PricingRulesResponse = {
   propertyId: string;
   rules: PricingRule[];
   updatedAt: string | null;
@@ -2833,248 +2589,18 @@ export type PricingRulesPreviewDay = {
   appliedRules: PricingRuleType[];
 };
 
-export type PricingRulesPreviewResponse = UrbanDataProvenance & {
+export type PricingRulesPreviewResponse = {
   days: PricingRulesPreviewDay[];
 };
 
-/** Defaults inteligentes — usados na primeira vez que o anfitrião abre a tela. */
-export const PRICING_RULES_DEFAULTS: ReadonlyArray<PricingRule> = [
-  {
-    type: 'weekend_uplift',
-    enabled: true,
-    params: { percent: 15 },
-    label: 'Uplift de fim de semana',
-    description:
-      'Sex/sáb costumam ter procura maior. Aumenta o preço base nesses dias automaticamente.',
-  },
-  {
-    type: 'weekday_discount',
-    enabled: true,
-    params: { percent: -8 },
-    label: 'Desconto dias úteis lentos',
-    description:
-      'Seg/ter/qua geralmente têm menos demanda. Aplica um desconto suave pra puxar reservas.',
-  },
-  {
-    type: 'gap_night_filler',
-    enabled: true,
-    params: { percent: -20, maxNights: 2 },
-    label: 'Gap night filler',
-    description:
-      'Quando sobra 1–2 noites entre duas reservas confirmadas, baixa o preço pra fechar o buraco e não perder a noite.',
-  },
-  {
-    type: 'last_minute',
-    enabled: true,
-    params: { percent: -12, daysBefore: 3 },
-    label: 'Last-minute',
-    description:
-      'Se faltam ≤3 dias pra data e ainda está vazio, é melhor ocupar com desconto do que ficar sem hóspede.',
-  },
-  {
-    type: 'length_of_stay',
-    enabled: false,
-    params: { percent: -10, minNights: 7 },
-    label: 'Desconto estadia longa',
-    description:
-      'Estadias ≥7 noites geram receita estável e menos turnover. Dá um desconto pra atrair esse perfil.',
-  },
-  {
-    type: 'min_stay_dynamic',
-    enabled: false,
-    params: { baseMinNights: 2, highMinNights: 3, occupancyThreshold: 70 },
-    label: 'Estadia mínima dinâmica',
-    description:
-      'Quando a ocupação no período subir acima de 70%, aumenta a estadia mínima automaticamente — protege margem em momentos quentes.',
-  },
-  {
-    type: 'occupancy_floor',
-    enabled: true,
-    params: { minPrice: 180 },
-    label: 'Piso de preço',
-    description:
-      'Garante que nenhuma regra (sozinha ou combinada) baixe o preço abaixo desse valor. Trava de segurança.',
-  },
-  {
-    type: 'event_uplift',
-    enabled: true,
-    params: { percent: 25, radiusKm: 3 },
-    label: 'Uplift por evento de alto impacto',
-    description:
-      'Quando há evento com impacto "alta" no raio de 3km da sua propriedade, aplica um uplift extra. Captura o pico de demanda.',
-  },
-];
-
-const PRICING_RULES_USE_MOCK =
-  envFlag(process.env.NEXT_PUBLIC_PRICING_RULES_MOCK_DATA, false);
-
-function clonePricingRules(rules: ReadonlyArray<PricingRule>): PricingRule[] {
-  return rules.map((r) => ({
-    type: r.type,
-    enabled: r.enabled,
-    params: { ...r.params },
-    label: r.label,
-    description: r.description,
-  }));
-}
-
-function pricingRulesISODate(daysAhead: number, base?: Date): string {
-  const d = base ? new Date(base) : new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + daysAhead);
-  return d.toISOString().slice(0, 10);
-}
-
-function hashPropertyId(propertyId: string): number {
-  let h = 0;
-  for (let i = 0; i < propertyId.length; i++) {
-    h = (h * 31 + propertyId.charCodeAt(i)) | 0;
-  }
-  return Math.abs(h);
-}
-
-/**
- * Gera 14 dias de mock realista. Baseline R$ 250–280 com leve variação por dia,
- * e aplica cada regra ligada localmente pra simular o preview.
- */
-function generatePricingRulesPreviewMock(
-  propertyId: string,
-  rules: ReadonlyArray<PricingRule>,
-): PricingRulesPreviewResponse {
-  const h = hashPropertyId(propertyId);
-  const baseline = 250 + (h % 30); // R$ 250–279 estável por imóvel
-  const days: PricingRulesPreviewDay[] = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  // 2 eventos de alto impacto em ~14 dias pra mock ficar interessante
-  const eventDays = new Set<number>([3 + (h % 4), 9 + (h % 3)]);
-  // Lacuna de gap-night entre duas reservas: dia 5
-  const gapDays = new Set<number>([5]);
-
-  for (let i = 0; i < 14; i++) {
-    const iso = pricingRulesISODate(i, today);
-    const weekday = (new Date(iso).getDay() + 7) % 7;
-    const isWeekend = weekday === 5 || weekday === 6;
-    const isWeekdaySlow = weekday === 1 || weekday === 2 || weekday === 3;
-    const isGap = gapDays.has(i);
-    const isLastMinute = i <= 3;
-    const isHighEvent = eventDays.has(i);
-
-    // base price com leve ondulação senoidal (~+/-5)
-    const basePrice = Math.round(baseline + Math.sin(i / 2) * 5);
-    let price = basePrice;
-    const applied: PricingRuleType[] = [];
-
-    for (const rule of rules) {
-      if (!rule.enabled) continue;
-      switch (rule.type) {
-        case 'weekend_uplift':
-          if (isWeekend) {
-            price = Math.round(price * (1 + (rule.params.percent ?? 0) / 100));
-            applied.push(rule.type);
-          }
-          break;
-        case 'weekday_discount':
-          if (isWeekdaySlow) {
-            price = Math.round(price * (1 + (rule.params.percent ?? 0) / 100));
-            applied.push(rule.type);
-          }
-          break;
-        case 'gap_night_filler':
-          if (isGap) {
-            price = Math.round(price * (1 + (rule.params.percent ?? 0) / 100));
-            applied.push(rule.type);
-          }
-          break;
-        case 'last_minute': {
-          const within = (rule.params.daysBefore ?? 3);
-          if (i <= within && isLastMinute) {
-            price = Math.round(price * (1 + (rule.params.percent ?? 0) / 100));
-            applied.push(rule.type);
-          }
-          break;
-        }
-        case 'length_of_stay':
-          // No preview por dia não aplica — é por reserva. Ignora.
-          break;
-        case 'min_stay_dynamic':
-          // Mesmo caso — não muda preço, muda min stay. Ignora no preço.
-          break;
-        case 'event_uplift':
-          if (isHighEvent) {
-            price = Math.round(price * (1 + (rule.params.percent ?? 0) / 100));
-            applied.push(rule.type);
-          }
-          break;
-        case 'occupancy_floor': {
-          const floor = rule.params.minPrice ?? 0;
-          if (price < floor) {
-            price = floor;
-            applied.push(rule.type);
-          }
-          break;
-        }
-      }
-    }
-
-    days.push({
-      date: iso,
-      basePrice,
-      rulesPrice: price,
-      appliedRules: applied,
-    });
-  }
-
-  return { days };
-}
-
-const PRICING_RULES_MOCK_STORE: Record<string, PricingRulesResponse> = {};
-
-function getOrInitMock(propertyId: string): PricingRulesResponse {
-  if (!PRICING_RULES_MOCK_STORE[propertyId]) {
-    PRICING_RULES_MOCK_STORE[propertyId] = {
-      propertyId,
-      rules: clonePricingRules(PRICING_RULES_DEFAULTS),
-      updatedAt: null,
-    };
-  }
-  return PRICING_RULES_MOCK_STORE[propertyId];
-}
-
 export async function fetchPricingRules(propertyId: string): Promise<PricingRulesResponse> {
-  if (PRICING_RULES_USE_MOCK) {
-    logDemoData("Pricing Rules");
-    await new Promise((resolve) => setTimeout(resolve, 180));
-    const stored = getOrInitMock(propertyId);
-    return markDemo({
-      propertyId: stored.propertyId,
-      rules: clonePricingRules(stored.rules),
-      updatedAt: stored.updatedAt,
-    });
-  }
   try {
     const { data } = await api.get<PricingRulesResponse>(
       `/properties/${propertyId}/pricing-rules`,
     );
-    if (!data || !Array.isArray(data.rules) || data.rules.length === 0) {
-      return {
-        propertyId,
-        rules: clonePricingRules(PRICING_RULES_DEFAULTS),
-        updatedAt: null,
-      };
-    }
+    if (!data) throw new Error('empty response');
     return data;
   } catch (err) {
-    if (ALLOW_MOCK_FALLBACKS) {
-      logDemoData("Pricing Rules", "fallback");
-      console.warn('[fetchPricingRules] endpoint indisponivel, usando defaults locais:', err);
-      return markDemo({
-        propertyId,
-        rules: clonePricingRules(PRICING_RULES_DEFAULTS),
-        updatedAt: null,
-      }, "fallback");
-    }
     console.warn('[fetchPricingRules] endpoint indisponivel:', err);
     throw err;
   }
@@ -3084,21 +2610,6 @@ export async function savePricingRules(
   propertyId: string,
   rules: PricingRule[],
 ): Promise<PricingRulesResponse> {
-  if (PRICING_RULES_USE_MOCK) {
-    logDemoData("Pricing Rules Save");
-    await new Promise((resolve) => setTimeout(resolve, 260));
-    const updatedAt = new Date().toISOString();
-    PRICING_RULES_MOCK_STORE[propertyId] = {
-      propertyId,
-      rules: clonePricingRules(rules),
-      updatedAt,
-    };
-    return markDemo({
-      propertyId,
-      rules: clonePricingRules(rules),
-      updatedAt,
-    });
-  }
   try {
     const { data } = await api.put<PricingRulesResponse>(
       `/properties/${propertyId}/pricing-rules`,
@@ -3115,11 +2626,6 @@ export async function previewPricingRules(
   propertyId: string,
   rules: PricingRule[],
 ): Promise<PricingRulesPreviewResponse> {
-  if (PRICING_RULES_USE_MOCK) {
-    logDemoData("Pricing Rules Preview");
-    await new Promise((resolve) => setTimeout(resolve, 140));
-    return markDemo(generatePricingRulesPreviewMock(propertyId, rules));
-  }
   try {
     const { data } = await api.post<PricingRulesPreviewResponse>(
       `/properties/${propertyId}/pricing-rules/preview`,
@@ -3127,11 +2633,6 @@ export async function previewPricingRules(
     );
     return data ?? { days: [] };
   } catch (err) {
-    if (ALLOW_MOCK_FALLBACKS) {
-      logDemoData("Pricing Rules Preview", "fallback");
-      console.warn('[previewPricingRules] endpoint indisponivel, usando fallback local:', err);
-      return markDemo(generatePricingRulesPreviewMock(propertyId, rules), "fallback");
-    }
     console.warn('[previewPricingRules] endpoint indisponivel:', err);
     throw err;
   }
@@ -3141,22 +2642,6 @@ export async function copyPricingRulesFromProperty(
   sourceId: string,
   targetId: string,
 ): Promise<PricingRulesResponse> {
-  if (PRICING_RULES_USE_MOCK) {
-    logDemoData("Pricing Rules Copy");
-    await new Promise((resolve) => setTimeout(resolve, 220));
-    const source = getOrInitMock(sourceId);
-    const updatedAt = new Date().toISOString();
-    PRICING_RULES_MOCK_STORE[targetId] = {
-      propertyId: targetId,
-      rules: clonePricingRules(source.rules),
-      updatedAt,
-    };
-    return markDemo({
-      propertyId: targetId,
-      rules: clonePricingRules(source.rules),
-      updatedAt,
-    });
-  }
   try {
     const { data } = await api.post<PricingRulesResponse>(
       `/properties/${targetId}/pricing-rules/copy-from/${sourceId}`,
@@ -3176,11 +2661,6 @@ export async function copyPricingRulesFromProperty(
  *   GET /properties/:id/market-intel?from=&to=
  *   → MarketIntelResponse
  *
- * Demo local controlada por `NEXT_PUBLIC_MARKET_INTEL_MOCK_DATA=true`.
- * Por padrao fica desligada para priorizar a API real.
- *
- * Caso especial: `propertyId === 'empty-comp-test'` retorna apenas 3
- * comparáveis pra testar o empty state da tela `/properties/:id/market`.
  */
 export type ComparableProperty = {
   anonymousId: string;
@@ -3198,7 +2678,7 @@ export type MarketIntelDailyPoint = {
   medianAdr: number;
 };
 
-export type MarketIntelResponse = UrbanDataProvenance & {
+export type MarketIntelResponse = {
   propertyId: string;
   neighborhood: string;
   percentile: number;
@@ -3220,183 +2700,13 @@ export type MarketIntelInput = {
   to?: string;
 };
 
-const MARKET_INTEL_USE_MOCK =
-  envFlag(process.env.NEXT_PUBLIC_MARKET_INTEL_MOCK_DATA, false);
-
-const MARKET_INTEL_TYPES: ReadonlyArray<ComparableProperty['type']> = [
-  'apartamento',
-  'loft',
-  'studio',
-  'casa',
-];
-
-function marketIntelRng(seed: number): () => number {
-  let a = seed >>> 0;
-  return function () {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function marketIntelSeedFromString(seed: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < seed.length; i++) {
-    h ^= seed.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
-function marketIntelDaysBetween(fromIso: string, toIso: string): number {
-  const f = new Date(fromIso);
-  const t = new Date(toIso);
-  const ms = t.getTime() - f.getTime();
-  return Math.max(0, Math.round(ms / 86400000));
-}
-
-function marketIntelIsoOffset(daysAhead: number, base?: Date): string {
-  const d = base ? new Date(base) : new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + daysAhead);
-  return d.toISOString().slice(0, 10);
-}
-
-function generateMarketIntelDaily(
-  propertyId: string,
-  fromIso: string,
-  totalDays: number,
-): MarketIntelDailyPoint[] {
-  const rng = marketIntelRng(marketIntelSeedFromString(`${propertyId}:daily`));
-  const base = new Date(fromIso);
-  const out: MarketIntelDailyPoint[] = [];
-
-  // Curva orgânica — combina baseline (oscila com tendência leve de alta),
-  // sazonalidade semanal (fim-de-semana +R$ 20-30) e ruído diário.
-  for (let i = 0; i < totalDays; i++) {
-    const date = marketIntelIsoOffset(i, base);
-    const weekday = (new Date(date).getDay() + 7) % 7;
-    const isWeekend = weekday === 5 || weekday === 6;
-
-    const yourTrend = 260 + i * 0.6; // pequena alta ao longo dos 30d
-    const yourWeek = isWeekend ? 28 : 0;
-    const yourNoise = (rng() - 0.5) * 28;
-    const yourAdr = Math.round(yourTrend + yourWeek + yourNoise);
-
-    const medianTrend = 240 + i * 0.2;
-    const medianWeek = isWeekend ? 18 : 0;
-    const medianNoise = (rng() - 0.5) * 18;
-    const medianAdr = Math.round(medianTrend + medianWeek + medianNoise);
-
-    out.push({
-      date,
-      yourAdr: Math.max(220, Math.min(330, yourAdr)),
-      medianAdr: Math.max(210, Math.min(280, medianAdr)),
-    });
-  }
-  return out;
-}
-
-function generateMarketIntelComparables(
-  propertyId: string,
-  count: number,
-): ComparableProperty[] {
-  const rng = marketIntelRng(marketIntelSeedFromString(`${propertyId}:comps`));
-  const out: ComparableProperty[] = [];
-  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-  for (let i = 0; i < count; i++) {
-    const type = MARKET_INTEL_TYPES[Math.floor(rng() * MARKET_INTEL_TYPES.length)];
-    // bedrooms: studio sempre 0, demais 1-3
-    const bedrooms = type === 'studio' ? 0 : 1 + Math.floor(rng() * 3);
-    const medianAdr = Math.round(220 + rng() * 80); // R$ 220-300
-    const occupancy = Number((0.58 + rng() * 0.32).toFixed(2)); // 58-90%
-    const distanceKm = Number((0.4 + rng() * 2.6).toFixed(2)); // 0.4-3.0km
-    // similarity inversamente proporcional à distância + leve ruído
-    const similarityBase = 0.95 - distanceKm / 6;
-    const similarityScore = Number(
-      Math.max(0.45, Math.min(0.98, similarityBase + (rng() - 0.5) * 0.08)).toFixed(2),
-    );
-
-    out.push({
-      anonymousId: letters.charAt(i % letters.length),
-      type,
-      bedrooms,
-      medianAdr,
-      occupancy,
-      distanceKm,
-      similarityScore,
-    });
-  }
-  // Ordena por similaridade decrescente — mais relevantes primeiro
-  return out.sort((a, b) => b.similarityScore - a.similarityScore);
-}
-
-function generateMarketIntelMock(input: MarketIntelInput): MarketIntelResponse {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const defaultFrom = marketIntelIsoOffset(-29, today);
-  const defaultTo = marketIntelIsoOffset(0, today);
-  const fromIso = input.from ?? defaultFrom;
-  const toIso = input.to ?? defaultTo;
-  const totalDays = Math.max(1, Math.min(90, marketIntelDaysBetween(fromIso, toIso) + 1));
-
-  const isEmpty = input.propertyId === 'empty-comp-test';
-  const comparables = generateMarketIntelComparables(
-    input.propertyId,
-    isEmpty ? 3 : 10,
-  );
-
-  const daily = generateMarketIntelDaily(input.propertyId, fromIso, totalDays);
-  const yourAdr = Math.round(
-    daily.reduce((acc, p) => acc + p.yourAdr, 0) / Math.max(1, daily.length),
-  );
-  const medianAdrSeries = Math.round(
-    daily.reduce((acc, p) => acc + p.medianAdr, 0) / Math.max(1, daily.length),
-  );
-  const medianOccupancy =
-    comparables.length > 0
-      ? Number(
-          (
-            comparables.reduce((acc, c) => acc + c.occupancy, 0) /
-            comparables.length
-          ).toFixed(2),
-        )
-      : 0;
-
-  return {
-    propertyId: input.propertyId,
-    neighborhood: 'Pinheiros',
-    percentile: isEmpty ? 0 : 73,
-    percentileTrend30d: isEmpty ? 0 : 4,
-    comparablesCount: comparables.length,
-    medianAdr: medianAdrSeries,
-    medianOccupancy,
-    yourAdr,
-    yourOccupancy: 0.78,
-    eventReactivity: isEmpty ? 0 : 62,
-    daily,
-    comparables,
-    updatedAt: new Date().toISOString(),
-  };
-}
-
 /**
  * fetchMarketIntel — comparáveis + percentile + série diária ADR (Gap 3).
  *
- * Quando `NEXT_PUBLIC_MARKET_INTEL_MOCK_DATA=true`, retorna demo local.
- * Caso contrario, chama `GET /properties/:id/market-intel`.
  */
 export async function fetchMarketIntel(
   input: MarketIntelInput,
 ): Promise<MarketIntelResponse> {
-  if (MARKET_INTEL_USE_MOCK) {
-    logDemoData("Market Intel");
-    await new Promise((resolve) => setTimeout(resolve, 220));
-    return markDemo(generateMarketIntelMock(input));
-  }
 
   try {
     const { data } = await api.get<MarketIntelResponse>(
@@ -3411,11 +2721,6 @@ export async function fetchMarketIntel(
     if (!data) throw new Error('empty response');
     return data;
   } catch (err) {
-    if (ALLOW_MOCK_FALLBACKS) {
-      logDemoData("Market Intel", "fallback");
-      console.warn('[fetchMarketIntel] endpoint indisponivel, usando fallback local:', err);
-      return markDemo(generateMarketIntelMock(input), "fallback");
-    }
     console.warn('[fetchMarketIntel] endpoint indisponivel:', err);
     throw err;
   }
@@ -3424,9 +2729,7 @@ export async function fetchMarketIntel(
 // === Gap 7 — AskUrban ===
 //
 // Assistente conversacional do anfitrião — drawer global acionado via
-// Cmd+J / Ctrl+J. Backend ainda nao existe, entao por padrao opera em modo
-// demo deterministica (`NEXT_PUBLIC_ASK_MOCK_DATA=true`, default false).
-//
+// Cmd+J / Ctrl+J.
 // Quando o backend estiver de pé:
 //   - GET    /ask/usage           → AskUsageResponse
 //   - POST   /ask/question        body = AskRequestInput → AskResponse
@@ -3443,7 +2746,7 @@ export type AskMessage = {
   createdAt: string;
 };
 
-export type AskUsageResponse = UrbanDataProvenance & {
+export type AskUsageResponse = {
   used: number;
   quota: number;
   hardCap: number;
@@ -3454,7 +2757,7 @@ export type AskRequestInput = {
   conversationId?: string;
 };
 
-export type AskResponse = UrbanDataProvenance & {
+export type AskResponse = {
   messageId: string;
   conversationId: string;
   content: string;
@@ -3462,113 +2765,7 @@ export type AskResponse = UrbanDataProvenance & {
   usage: AskUsageResponse;
 };
 
-const ASK_USE_MOCK =
-  envFlag(process.env.NEXT_PUBLIC_ASK_MOCK_DATA, false);
-
-// Estado mockado in-memory por sessao — sobrevive a renders, mas nao a refresh.
-const _askMockState: {
-  usage: AskUsageResponse;
-  conversationId: string | null;
-} = {
-  usage: { used: 12, quota: 100, hardCap: 200 },
-  conversationId: null,
-};
-
-function _askGenId(prefix: string): string {
-  return `${prefix}-${Date.now().toString(36)}-${Math.random()
-    .toString(36)
-    .slice(2, 8)}`;
-}
-
-/**
- * Determinismo por keyword — uma resposta "rica" pra cada uma das 4 sugestoes
- * iniciais, mais um fallback genérico quando nada bate.
- */
-function _askPickResponse(question: string): {
-  content: string;
-  citations: AskCitation[];
-} {
-  const q = question.toLowerCase();
-
-  if (q.includes('receita') || q.includes('projetada') || q.includes('projecao')) {
-    return {
-      content:
-        'A receita projetada do próximo mês está em R$ 38.420, alta de 6% vs o atual. O driver principal é a Festa Junina (3 dias com pico de demanda), seguido por dois finais de semana de eventos corporativos em Pinheiros. Sugestão: aceitar as 11 recomendações pendentes pode adicionar +R$ 2.150.',
-      citations: [
-        { id: 'cit-1', label: 'Forecast mensal · Painel', url: '/painel' },
-        {
-          id: 'cit-2',
-          label: 'Sugestões pendentes',
-          url: '/portfolio',
-        },
-        { id: 'cit-3', label: 'Eventos próximos', url: '/near-events' },
-      ],
-    };
-  }
-
-  if (q.includes('ocupa') || q.includes('comp') || q.includes('benchmark')) {
-    return {
-      content:
-        'Sua ocupacao dos ultimos 30 dias esta em 78%, contra 71% nos imoveis parecidos de Pinheiros. Voce esta melhor que boa parte dos anuncios do bairro e subiu 4 pontos nos ultimos 30 dias. A diaria media tambem esta acima da comparacao: R$ 412 vs R$ 389.',
-      citations: [
-        {
-          id: 'cit-1',
-          label: 'Comparacao de mercado',
-          url: '/properties',
-        },
-        { id: 'cit-2', label: 'Ritmo de reservas', url: '/painel' },
-        { id: 'cit-3', label: 'Historico de ocupacao', url: '/portfolio' },
-      ],
-    };
-  }
-
-  if (q.includes('evento') || q.includes('impact')) {
-    return {
-      content:
-        'Nos próximos 45 dias identifiquei 4 eventos com impacto provável: Festa Junina USP (alta), Show Allianz Parque (alta), Congresso Médico Expo Center Norte (média) e Feira Couromoda (baixa). Os dois primeiros já têm sugestão de aumento ativa nos imóveis próximos.',
-      citations: [
-        { id: 'cit-1', label: 'Eventos próximos', url: '/near-events' },
-        {
-          id: 'cit-2',
-          label: 'Sugestões geradas',
-          url: '/portfolio',
-        },
-        { id: 'cit-3', label: 'Histórico de eventos', url: '/event-log' },
-      ],
-    };
-  }
-
-  if (
-    q.includes('semana passada') ||
-    q.includes('airbnb') ||
-    q.includes('perform')
-  ) {
-    return {
-      content:
-        'Semana passada: 6 reservas, R$ 8.940 em receita (alta de 12% vs semana anterior). Diaria media de R$ 408 e ocupacao de 82%. A conversao de visualizacao para reserva subiu para 3,1%. Uma sugestao aplicada na quarta-feira gerou R$ 320 acima da comparacao.',
-      citations: [
-        { id: 'cit-1', label: 'Painel · Semana 19', url: '/painel' },
-        { id: 'cit-2', label: 'Ganhos', url: '/my-roi' },
-        { id: 'cit-3', label: 'Calendário', url: '/dashboard' },
-      ],
-    };
-  }
-
-  return {
-    content:
-      'Boa pergunta. Ainda estou em fase de testes: consigo responder sobre receita projetada, ocupacao comparada com imoveis parecidos, eventos proximos e desempenho recente do seu portfolio. Tente reformular ou clique em uma das sugestoes do inicio.',
-    citations: [
-      { id: 'cit-1', label: 'Painel', url: '/painel' },
-      { id: 'cit-2', label: 'Portfólio', url: '/portfolio' },
-    ],
-  };
-}
-
 export async function fetchAskUsage(): Promise<AskUsageResponse> {
-  if (ASK_USE_MOCK) {
-    logDemoData("Ask Urban");
-    return markDemo({ ..._askMockState.usage });
-  }
   const { data } = await api.get<AskUsageResponse>('/ask/usage');
   return data;
 }
@@ -3576,33 +2773,6 @@ export async function fetchAskUsage(): Promise<AskUsageResponse> {
 export async function postAskQuestion(
   input: AskRequestInput,
 ): Promise<AskResponse> {
-  if (ASK_USE_MOCK) {
-    logDemoData("Ask Urban");
-    const latency = 800 + Math.floor(Math.random() * 700); // 800-1500ms
-    await new Promise((resolve) => setTimeout(resolve, latency));
-
-    if (_askMockState.usage.used >= _askMockState.usage.hardCap) {
-      throw new Error('Limite diario atingido');
-    }
-
-    _askMockState.usage = {
-      ..._askMockState.usage,
-      used: _askMockState.usage.used + 1,
-    };
-
-    if (!_askMockState.conversationId) {
-      _askMockState.conversationId = _askGenId('conv');
-    }
-
-    const { content, citations } = _askPickResponse(input.question);
-    return markDemo({
-      messageId: _askGenId('msg'),
-      conversationId: input.conversationId ?? _askMockState.conversationId,
-      content,
-      citations,
-      usage: { ..._askMockState.usage },
-    });
-  }
 
   const { data } = await api.post<AskResponse>('/ask/question', input);
   return data;
@@ -3612,11 +2782,6 @@ export async function submitAskFeedback(
   messageId: string,
   vote: 'up' | 'down',
 ): Promise<{ ok: true }> {
-  if (ASK_USE_MOCK) {
-    logDemoData("Ask Urban Feedback");
-    await new Promise((resolve) => setTimeout(resolve, 180));
-    return { ok: true };
-  }
   await api.post('/ask/feedback', { messageId, vote });
   return { ok: true };
 }

@@ -29,10 +29,10 @@ import {
  */
 
 const CSV_TEMPLATE = `nome,dataInicio,dataFim,enderecoCompleto,cidade,estado,latitude,longitude,categoria,venueType,venueCapacity,expectedAttendance,linkSiteOficial,descricao
-"Congresso de Turismo SP","2026-06-18T09:00:00","2026-06-20T18:00:00","São Paulo Expo, SP","São Paulo","SP","-23.6258","-46.6469","conferencia","convention_center","90000","25000","https://example.com","Evento curado manualmente para fallback beta"
+"Congresso de Turismo SP","2026-06-18T09:00:00","2026-06-20T18:00:00","São Paulo Expo, SP","São Paulo","SP","-23.6258","-46.6469","conferencia","convention_center","90000","25000","","Evento curado manualmente para importacao operacional"
 "Final regional de futebol","2026-06-27T16:00:00","","Allianz Parque","São Paulo","SP","-23.5275","-46.6783","esporte","stadium","43713","40000","",""`;
 
-const BETA_FALLBACK_TARGET = 100;
+const BETA_IMPORT_TARGET = 100;
 
 interface ImportResult {
   parsedRows: number;
@@ -247,7 +247,7 @@ export default function ImportarCsvEventos() {
         >
           <p style={{ margin: 0 }}>
             <strong style={{ color: "var(--admin-text)" }}>Volume:</strong> envie
-            pelo menos {BETA_FALLBACK_TARGET} eventos futuros de SP/30d quando
+            pelo menos {BETA_IMPORT_TARGET} eventos futuros de SP/30d quando
             APIs ainda não estiverem completas.
           </p>
           <p style={{ margin: 0 }}>
@@ -477,9 +477,9 @@ function ImportReadiness({ result }: { result: ImportResult }) {
   const usefulRows = result.ingest.created + result.ingest.updated;
   const progress = Math.min(
     100,
-    Math.round((usefulRows / BETA_FALLBACK_TARGET) * 100),
+    Math.round((usefulRows / BETA_IMPORT_TARGET) * 100),
   );
-  const ready = usefulRows >= BETA_FALLBACK_TARGET;
+  const ready = usefulRows >= BETA_IMPORT_TARGET;
 
   return (
     <div
@@ -521,7 +521,7 @@ function ImportReadiness({ result }: { result: ImportResult }) {
           }}
         >
           {ready
-            ? "Lote suficiente para fallback beta"
+            ? "Lote suficiente para beta"
             : "Lote ainda abaixo da meta beta"}
         </h3>
         <p
@@ -533,7 +533,7 @@ function ImportReadiness({ result }: { result: ImportResult }) {
           }}
         >
           {usefulRows.toLocaleString("pt-BR")} eventos criados/atualizados de{" "}
-          {BETA_FALLBACK_TARGET.toLocaleString("pt-BR")} recomendados para
+          {BETA_IMPORT_TARGET.toLocaleString("pt-BR")} recomendados para
           SP/30d. {acceptedRows.toLocaleString("pt-BR")} linhas passaram pela
           validação básica.
         </p>

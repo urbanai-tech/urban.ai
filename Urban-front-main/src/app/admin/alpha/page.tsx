@@ -23,7 +23,7 @@ import {
   Icons,
 } from "../_components";
 
-const DEFAULT_EMAIL = "gustavo8gouveia@hotmail.com";
+const DEFAULT_EMAIL = process.env.NEXT_PUBLIC_ADMIN_ALPHA_DEFAULT_EMAIL?.trim() ?? "";
 
 /**
  * /admin/alpha — painel alpha (KPIs reais + auditoria + reprocesso).
@@ -39,19 +39,25 @@ export default function AdminAlphaPage() {
   const [email, setEmail] = useState(DEFAULT_EMAIL);
   const [dashboard, setDashboard] = useState<AdminAlphaDashboard | null>(null);
   const [rows, setRows] = useState<AdminAlphaRecommendation[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(DEFAULT_EMAIL));
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastRun, setLastRun] = useState<string | null>(null);
   const toast = useAdminToast();
 
   const load = async (targetEmail = email) => {
+    const normalizedEmail = targetEmail.trim();
+    if (!normalizedEmail) {
+      setError("Informe o e-mail do usuario que deseja auditar.");
+      setLoading(false);
+      return;
+    }
     setError(null);
     setLoading(true);
     try {
       const [dash, exportData] = await Promise.all([
-        fetchAdminAlphaDashboard(targetEmail),
-        fetchAdminAlphaRecommendations(targetEmail, 500),
+        fetchAdminAlphaDashboard(normalizedEmail),
+        fetchAdminAlphaRecommendations(normalizedEmail, 500),
       ]);
       setDashboard(dash);
       setRows(exportData.rows);
@@ -65,7 +71,7 @@ export default function AdminAlphaPage() {
   };
 
   useEffect(() => {
-    load(DEFAULT_EMAIL);
+    if (DEFAULT_EMAIL) load(DEFAULT_EMAIL);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -300,6 +306,17 @@ export default function AdminAlphaPage() {
             title="Falha no painel alpha"
             body={error}
             icon={<Icons.AlertCircle size={32} />}
+          />
+        </div>
+      )}
+
+      {!error && !dashboard && (
+        <div style={{ marginBottom: 32 }}>
+          <AdminEmptyState
+            eyebrow="ALPHA"
+            title="Informe um usuario"
+            body="Digite o e-mail do usuario que deseja auditar e carregue os dados reais da API."
+            icon={<Icons.Mail size={32} />}
           />
         </div>
       )}
