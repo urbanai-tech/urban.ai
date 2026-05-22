@@ -32,7 +32,7 @@ ENV NEXT_PUBLIC_WAITLIST_ENDPOINT=$NEXT_PUBLIC_WAITLIST_ENDPOINT
 ENV NEXT_PUBLIC_PRELAUNCH_MODE=$NEXT_PUBLIC_PRELAUNCH_MODE
 
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 COPY . .
 RUN npm run build
 
