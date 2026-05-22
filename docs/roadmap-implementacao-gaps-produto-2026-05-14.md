@@ -219,7 +219,7 @@ Legenda: **feito em codigo** = implementado e commitado, ainda sujeito a validac
 | `workspace atual` - `feat: send waitlist signup confirmation` | B | Cadastro novo na waitlist envia confirmacao por e-mail com posicao e link de referral, sem bloquear signup se MailerSend falhar. |
 | `workspace atual` - `copy: add prelaunch recommendation FAQ` | A, K | `/lancamento` ganhou FAQ de recomendacao/limites e copy menos automatica, reduzindo risco de promessa sem prova antes do beta. |
 | `workspace atual` - `feat: surface event fallback actions` | C, I | Dashboard admin passa a destacar cadastro manual/importacao CSV/jobs quando a cobertura futura esta abaixo do gate beta. |
-| `workspace atual` - `feat: guide csv event fallback readiness` | C, I | Import CSV ganhou template com datas futuras, checklist operacional e indicador de progresso contra a meta de 100 eventos para fallback beta. |
+| `workspace atual` - `feat: guide csv event import readiness` | C, I | Import CSV ganhou template com datas futuras, checklist operacional e indicador de progresso contra a meta de 100 eventos para o beta. |
 | `workspace atual` - `fix: gate csv event fallback quality` | C, I | Import CSV normaliza `sourceLabel` e rejeita linhas com data passada ou UF fora de SP antes do ingest; spec cobre o gate de qualidade. |
 | `workspace atual` - `docs: add manual event fallback runbook` | C, J | Runbook de fallback manual define quando ativar, fontes, campos minimos, evidencia e criterios para aceitar lote de eventos. |
 | `workspace atual` - `docs: add recommendation smoke runbook` | D, J | Runbook de smoke define pre-condicoes, execucao, criterios e evidencia para provar recomendacao nova antes do M2. |

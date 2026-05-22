@@ -2,7 +2,7 @@
 
 Data/hora: 2026-05-15T20:32:26Z
 Ambiente: producao
-Usuario alpha: `gustavo8gouveia@hotmail.com`
+Usuario alpha: `<alpha-email-redacted>`
 Escopo: leitura de gates reais + jobs admin seguros (`geocoder` e `dataset-snapshot`).
 
 ## Veredito

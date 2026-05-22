@@ -13,7 +13,6 @@ import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity
 import { Event as EventEntity } from 'src/entities/events.entity';
 import { AirbnbService } from 'src/airbnb/airbnb.service';
 
-import * as jsonData from './mock_para_teste/read.json';
 import pLimit from 'p-limit';
 import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { User } from 'src/entities/user.entity';
@@ -1349,43 +1348,25 @@ export class PropriedadeService {
             );
         }
     }
-    async buscarAlertPorIdMock_bkp(id: string): Promise<APITypes> {
-        // Simula delay opcional
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        try {
-            // Faz requisição GET para o Mockfly
-            const response = await axios.get('https://raw.githubusercontent.com/thislucasdias/mock-para-testes/refs/heads/main/read.json');
-            const jsonData = response.data;
-
-            // Sobrescreve id e created_at
-            const apiData: APITypes = Convert.toAPITypes(JSON.stringify({
-                ...jsonData,
-                id,
-                created_at: new Date().toISOString()
-            }));
-
-            return apiData;
-        } catch (error: any) {
-            console.error('Erro ao buscar mock:', error.message || error);
-            throw new Error('Falha ao buscar dados do mock');
-        }
-    }
-
     async getRoomPrice({
         roomId,
         checkIn,
         checkOut
     }) {
-        const BASE_URL = 'http://pricing-airbnb-scraper-by-property-production.up.railway.app/getPriceByProperty';
+        const baseUrl = process.env.AIRBNB_PRICE_SCRAPER_URL?.trim();
+        if (!baseUrl) {
+            throw new HttpException(
+                'AIRBNB_PRICE_SCRAPER_URL nao configurada',
+                HttpStatus.SERVICE_UNAVAILABLE,
+            );
+        }
 
         try {
-            const response = await fetch(
-                `${BASE_URL}?roomId=${encodeURIComponent(roomId)}&checkIn=${encodeURIComponent(checkIn)}&checkOut=${encodeURIComponent(checkOut)}`,
-                {
-                    method: 'GET'
-                }
-            );
+            const requestUrl = new URL(baseUrl);
+            requestUrl.searchParams.set('roomId', roomId);
+            requestUrl.searchParams.set('checkIn', checkIn);
+            requestUrl.searchParams.set('checkOut', checkOut);
+            const response = await fetch(requestUrl.toString(), { method: 'GET' });
 
             if (!response.ok) {
                 throw new Error(`Erro HTTP: ${response.status}`);
@@ -1442,11 +1423,17 @@ export class PropriedadeService {
     }
     // Service
     async getRoomBasicInfo(roomId: string) {
-        const BASE_URL = 'http://localhost:4000/airbnb/room-info';
+        const baseUrl = process.env.AIRBNB_ROOM_INFO_URL?.trim();
+        if (!baseUrl) {
+            throw new HttpException(
+                'AIRBNB_ROOM_INFO_URL nao configurada',
+                HttpStatus.SERVICE_UNAVAILABLE,
+            );
+        }
 
         try {
             // Faz a requisição com axios usando params para query string
-            const { data } = await axios.get(BASE_URL, {
+            const { data } = await axios.get(baseUrl, {
                 params: { roomId }
             });
 

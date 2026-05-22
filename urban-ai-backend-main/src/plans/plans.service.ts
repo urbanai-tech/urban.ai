@@ -32,8 +32,8 @@ export class PlansService implements OnModuleInit {
       originalPrice: '97',
       priceAnnual: '47,50',
       originalPriceAnnual: '77',
-      stripePriceId: process.env.STARTER_MENSAL_PLAN || 'price_1TM4wUEnApK9w8lLLF4jxc1p',
-      stripePriceIdAnnual: process.env.STARTER_ANUAL_PLAN || 'price_1TM4whEnApK9w8lLtwtBP6QX',
+      stripePriceId: process.env.STARTER_MENSAL_PLAN || '',
+      stripePriceIdAnnual: process.env.STARTER_ANUAL_PLAN || '',
       // Matriz F6.5 (por imóvel/mês equivalente):
       priceMonthly: '97',
       priceQuarterly: '82',     // -15%
@@ -69,8 +69,8 @@ export class PlansService implements OnModuleInit {
       originalPrice: '497',
       priceAnnual: '199',
       originalPriceAnnual: '399',
-      stripePriceId: process.env.PROFISSIONAL_MENSAL_PLAN || 'price_1TM4wqEnApK9w8lLZy8iPqFl',
-      stripePriceIdAnnual: process.env.PROFISSIONAL_ANUAL_PLAN || 'price_1TM4wzEnApK9w8lLd8kchkNY',
+      stripePriceId: process.env.PROFISSIONAL_MENSAL_PLAN || '',
+      stripePriceIdAnnual: process.env.PROFISSIONAL_ANUAL_PLAN || '',
       priceMonthly: '197',
       priceQuarterly: '167',    // -15%
       priceSemestral: '148',    // -25%

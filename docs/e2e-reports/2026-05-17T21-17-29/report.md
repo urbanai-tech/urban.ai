@@ -2,7 +2,7 @@
 
 Base app: https://app.myurbanai.com
 Base API: https://urbanai-production-85fd.up.railway.app
-Usuario testado: gustavo8gouveia@hotmail.com
+Usuario testado: <alpha-email-redacted>
 
 ## Resumo executivo
 

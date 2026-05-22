@@ -13,7 +13,6 @@ import {
   AskUsageResponse,
   fetchAskUsage,
   getFriendlyApiErrorMessage,
-  getUrbanApiDataMode,
   postAskQuestion,
   submitAskFeedback,
 } from "@/app/service/api";
@@ -68,7 +67,6 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
     undefined,
   );
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
-  const apiMode = useMemo(() => getUrbanApiDataMode(), []);
 
   const listRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -368,23 +366,6 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
             >
               BETA
             </span>
-            {apiMode.askMock && (
-              <span
-                title="Respostas demonstrativas geradas localmente."
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: 0.6,
-                  padding: "3px 7px",
-                  borderRadius: 4,
-                  background: "rgba(200, 129, 14, 0.10)",
-                  color: "var(--app-warning)",
-                  lineHeight: 1,
-                }}
-              >
-                DEMO
-              </span>
-            )}
           </div>
           <button
             ref={closeBtnRef}

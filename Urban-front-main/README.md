@@ -111,9 +111,9 @@ Smoke autenticado contra staging/prod-like:
 
 ```bash
 E2E_BASE_URL=https://staging.myurbanai.com \
-E2E_AUTH_EMAIL=admin@example.com \
+E2E_AUTH_EMAIL=<admin-email> \
 E2E_AUTH_PASSWORD='senha-real' \
-E2E_ALPHA_EMAIL=gustavo8gouveia@hotmail.com \
+E2E_ALPHA_EMAIL=<alpha-email> \
 yarn test:e2e --grep "Smoke autenticado"
 ```
 

@@ -16,7 +16,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             {children}
             {/* Chainlit Copilot widget (loads floating copilot from Chainlit server) */}
             {/* The component injects the copilot script and mounts the floating widget. */}
-            {/* Ensure NEXT_PUBLIC_CHAINLIT_URL is set (e.g. http://localhost:8000) */}
+            {/* Ensure NEXT_PUBLIC_CHAINLIT_URL points to the Chainlit server for the current environment. */}
             <ChainlitCopilot />
           </AppToastProvider>
         </LanguageProvider>

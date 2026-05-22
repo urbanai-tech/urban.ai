@@ -110,14 +110,14 @@ export class AdminController {
 
   @ApiOperation({ summary: 'Painel alpha por usuario: KPIs, qualidade de eventos e recomendacoes recentes' })
   @Get('alpha/dashboard')
-  async alphaDashboard(@Query('email') email: string = 'gustavo8gouveia@hotmail.com') {
+  async alphaDashboard(@Query('email') email: string) {
     return this.admin.alphaDashboard(email);
   }
 
   @ApiOperation({ summary: 'Export/auditoria das recomendacoes alpha' })
   @Get('alpha/recommendations')
   async alphaRecommendations(
-    @Query('email') email: string = 'gustavo8gouveia@hotmail.com',
+    @Query('email') email: string,
     @Query('limit') limit: string = '250',
   ) {
     return this.admin.alphaRecommendations(email, parseInt(limit, 10));
@@ -126,7 +126,7 @@ export class AdminController {
   @ApiOperation({ summary: 'Reprocessar propriedades do usuario alpha' })
   @Throttle({ default: { ttl: 60_000, limit: 3 } })
   @Post('alpha/reprocess')
-  async alphaReprocess(@Query('email') email: string = 'gustavo8gouveia@hotmail.com', @Req() req: any) {
+  async alphaReprocess(@Query('email') email: string, @Req() req: any) {
     return this.admin.runTrackedJob(
       'alpha-pricing-reprocess',
       req?.user?.userId ?? null,
@@ -316,6 +316,24 @@ export class AdminController {
   @Get('users')
   async listUsers(@Query('page') page: string = '1', @Query('limit') limit: string = '20') {
     return this.admin.listUsers(parseInt(page, 10), parseInt(limit, 10));
+  }
+
+  @ApiOperation({ summary: 'Detalhe de usuario para painel admin' })
+  @Get('users/:id')
+  async getUser(@Param('id') userId: string) {
+    return this.admin.getUserDetail(userId);
+  }
+
+  @ApiOperation({ summary: 'Imoveis de um usuario para painel admin' })
+  @Get('users/:id/properties')
+  async getUserProperties(@Param('id') userId: string) {
+    return this.admin.getUserProperties(userId);
+  }
+
+  @ApiOperation({ summary: 'Assinatura ativa/recente de um usuario para painel admin' })
+  @Get('users/:id/subscription')
+  async getUserSubscription(@Param('id') userId: string) {
+    return this.admin.getUserSubscription(userId);
   }
 
   @ApiOperation({ summary: 'Atualizar role do usuário' })

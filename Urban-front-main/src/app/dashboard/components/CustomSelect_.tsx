@@ -1,7 +1,7 @@
 "use client";
 
 import { PropertyDropdown } from "@/app/service/api";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import ReactSelect, { SingleValue } from "react-select";
 
 type Option = { value: string; label: React.ReactNode };
@@ -12,22 +12,6 @@ interface Props {
 }
 
 const PropertySelect: React.FC<Props> = ({ propsInfo, setPropertyId }) => {
-  const [prevPropsInfo, setPrevPropsInfo] = useState<PropertyDropdown[]>([]);
-
-  useEffect(() => {
-    if (prevPropsInfo.length > 0 && propsInfo.length > 0) {
-      const completedProps = prevPropsInfo.filter((oldItem) => {
-        const newItem = propsInfo.find((n) => n.id === oldItem.id);
-        return oldItem.analisado !== "completed" && newItem?.analisado === "completed";
-      });
-
-      if (completedProps.length > 0) {
-        console.log("Propriedades completadas no dropdown:", completedProps);
-      }
-    }
-    setPrevPropsInfo(propsInfo);
-  }, [propsInfo, prevPropsInfo]);
-
   const options: Option[] = propsInfo.map((p) => ({
     value: p.id,
     label: <PropertyOption property={p} />,

@@ -281,25 +281,4 @@ export class AirbnbService {
     return Number.isFinite(parsed) ? parsed : null;
   }
 
-  getFirstAvailablePriceMock_bkp(propertyId: string): Promise<any> {
-    return new Promise((resolve) => {
-      const delay = Math.random() * 1000 + 1000;
-
-      setTimeout(() => {
-        const dadosAirbnb = {
-          price: {
-            data: {
-              accommodationCost: 350,
-            },
-          },
-          propertyDetails: {
-            bedrooms: 3,
-            bathrooms: 2,
-          },
-        };
-
-        resolve(dadosAirbnb);
-      }, delay);
-    });
-  }
 }

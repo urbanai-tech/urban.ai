@@ -3,7 +3,7 @@
 Data: 2026-05-15
 Ambiente: producao
 App/API: https://app.myurbanai.com / https://urbanai-production-85fd.up.railway.app
-Usuario: gustavo8gouveia@hotmail.com
+Usuario: <alpha-email-redacted>
 
 ## Resumo executivo
 

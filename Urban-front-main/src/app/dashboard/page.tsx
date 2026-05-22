@@ -84,10 +84,6 @@ export default function DashboardPage() {
     if (startOfMonth(currentMonth) < mesMinimo) setCurrentMonth(mesMinimo);
   }, [mesMinimo, currentMonth]);
 
-  useEffect(() => {
-    console.log('Mes atual:', currentMonth.toISOString());
-  }, [currentMonth]);
-
   const navigateMonth = (direction: 'prev' | 'next') => {
     setCurrentMonth(prev => {
       const nova = new Date(prev);
@@ -418,11 +414,8 @@ export default function DashboardPage() {
                 <div className="dashboard-events-list">
                   {eventsToDisplay.map(ev => (
                     <EventCard
-                      setIsLoading={() => {
-                        console.log("Button clicado")
-                      }}
+                      setIsLoading={setIsLoading}
                       onChange={() => {
-                        console.log("Button clicado")
                         fetchEventsSemLoading()
                       }}
                       key={makeKey(ev)}

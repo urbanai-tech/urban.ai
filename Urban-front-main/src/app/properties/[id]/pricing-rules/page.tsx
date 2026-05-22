@@ -35,9 +35,6 @@ import { PreviewStrip } from "./components/PreviewStrip";
  *
  * Estado dirty é calculado por JSON.stringify das regras vs snapshot salvo.
  * `Ctrl+S` / `Cmd+S` salva (fora de inputs).
- *
- * Backend ainda não entregou na semana 5 — o mock controlado por
- * `NEXT_PUBLIC_PRICING_RULES_MOCK_DATA` cobre o caso.
  */
 
 function PricingRulesPageContent() {

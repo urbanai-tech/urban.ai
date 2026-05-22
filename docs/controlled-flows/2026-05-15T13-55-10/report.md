@@ -2,7 +2,7 @@
 
 Gerado em: 2026-05-15T13:55:18.866Z
 API: https://urbanai-production-85fd.up.railway.app
-Usuario: gustavo8gouveia@hotmail.com
+Usuario: <alpha-email-redacted>
 
 | Fluxo | Status | Resultado | Resumo |
 |---|---:|---|---|

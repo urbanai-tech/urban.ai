@@ -54,11 +54,7 @@ export default function AdminPropertiesPage() {
   useEffect(() => {
     (async () => {
       try {
-        // Tenta o endpoint admin oficial primeiro; fallback gracioso se nao existir.
-        const r = await api
-          .get("/admin/properties", { params: { limit: 200 } })
-          .catch(() => api.get("/admin/properties/list", { params: { limit: 200 } }))
-          .catch(() => api.get("/propriedades/admin/list", { params: { limit: 200 } }));
+        const r = await api.get("/admin/properties", { params: { limit: 200 } });
         const data = r?.data;
         const items: AdminPropertyRow[] = Array.isArray(data)
           ? data
@@ -68,10 +64,6 @@ export default function AdminPropertiesPage() {
         const e = err as { response?: { status?: number }; message?: string };
         if (e?.response?.status === 401 || e?.response?.status === 403) {
           setError("Acesso negado. Você precisa ser admin.");
-        } else if (e?.response?.status === 404) {
-          setError(
-            "Endpoint /admin/properties ainda não existe no backend. Tela pronta para ligar quando estiver.",
-          );
         } else {
           setError(e?.message || "Erro ao carregar imóveis.");
         }
@@ -248,8 +240,8 @@ export default function AdminPropertiesPage() {
 
       {error ? (
         <AdminEmptyState
-          eyebrow="ENDPOINT PENDENTE"
-          title="Backend ainda não expõe /admin/properties"
+          eyebrow="ERRO"
+          title="Falha ao carregar imóveis"
           body={error}
           icon={<Icons.AlertCircle size={32} />}
         />
