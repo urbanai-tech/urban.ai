@@ -25,6 +25,7 @@ import { RoiService } from '../roi/roi.service';
 import { AdminAuditService } from '../admin-audit/admin-audit.service';
 import { OnboardingDripService } from '../email/onboarding-drip.service';
 import { EventIntelligenceService } from '../event-intelligence/event-intelligence.service';
+import { AirbnbPricingAttemptLogService } from './airbnb-pricing-attempt-log.service';
 
 /**
  * Endpoints administrativos da Urban AI.
@@ -55,6 +56,7 @@ export class AdminController {
     private readonly audit: AdminAuditService,
     private readonly onboardingDrip: OnboardingDripService,
     private readonly eventIntelligence: EventIntelligenceService,
+    private readonly airbnbPricingAttempts: AirbnbPricingAttemptLogService,
   ) {}
 
   // ================== Onboarding drip (gap H9) ==================
@@ -152,6 +154,12 @@ export class AdminController {
   @Get('price-intelligence/health')
   async priceIntelligenceHealth(@Query('windowDays') windowDays: string = '7') {
     return this.admin.priceIntelligenceHealth(parseInt(windowDays, 10));
+  }
+
+  @ApiOperation({ summary: 'Saude das tentativas Airbnb/headless de preco' })
+  @Get('airbnb/pricing-attempts/health')
+  async airbnbPricingAttemptHealth(@Query('windowHours') windowHours: string = '24') {
+    return this.airbnbPricingAttempts.health(parseInt(windowHours, 10));
   }
 
   @ApiOperation({ summary: 'Executar snapshot manual dos imoveis cadastrados' })

@@ -17,7 +17,9 @@ import { Waitlist } from '../entities/waitlist.entity';
 import { CoverageRegion } from '../entities/coverage-region.entity';
 import { AdminJobRun } from '../entities/admin-job-run.entity';
 import { ContactSubmission } from '../entities/contact-submission.entity';
+import { AirbnbPricingAttemptLog } from '../entities/airbnb-pricing-attempt-log.entity';
 import { AdminService } from './admin.service';
+import { AirbnbPricingAttemptLogService } from './airbnb-pricing-attempt-log.service';
 import { AdminFinanceService } from './finance.service';
 import { StripeSyncCheckService } from './stripe-sync.service';
 import { AdminController } from './admin.controller';
@@ -50,6 +52,7 @@ import { EventIntelligenceModule } from '../event-intelligence/event-intelligenc
       CoverageRegion,
       AdminJobRun,
       ContactSubmission,
+      AirbnbPricingAttemptLog,
     ]),
     AuthModule,
     KnnEngineModule,
@@ -61,7 +64,17 @@ import { EventIntelligenceModule } from '../event-intelligence/event-intelligenc
     EventIntelligenceModule,
   ],
   controllers: [AdminController],
-  providers: [AdminService, AdminFinanceService, StripeSyncCheckService],
-  exports: [AdminService, AdminFinanceService, StripeSyncCheckService],
+  providers: [
+    AdminService,
+    AdminFinanceService,
+    StripeSyncCheckService,
+    AirbnbPricingAttemptLogService,
+  ],
+  exports: [
+    AdminService,
+    AdminFinanceService,
+    StripeSyncCheckService,
+    AirbnbPricingAttemptLogService,
+  ],
 })
 export class AdminModule {}

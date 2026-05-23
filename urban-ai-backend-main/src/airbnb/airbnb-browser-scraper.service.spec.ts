@@ -63,6 +63,66 @@ describe('AirbnbBrowserScraperService parsing', () => {
     ).toEqual(['1315879732817724596', '45516670']);
   });
 
+  it('parses PdpAvailabilityCalendar day availability rules', () => {
+    const service = makeService() as any;
+
+    const days = service.extractAvailabilityCalendarDays([
+      {
+        data: {
+          presentation: {
+            pdpAvailabilityCalendar: {
+              calendarMonths: [
+                {
+                  days: [
+                    {
+                      calendarDate: '2026-08-26',
+                      available: true,
+                      bookable: true,
+                      availableForCheckin: true,
+                      availableForCheckout: true,
+                      minNights: 3,
+                      maxNights: 14,
+                    },
+                    {
+                      calendarDate: '2026-08-27',
+                      available: false,
+                      bookable: false,
+                      availableForCheckin: false,
+                      availableForCheckout: true,
+                      minNights: 2,
+                      maxNights: 14,
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      },
+    ]);
+
+    expect(days).toEqual([
+      {
+        date: '2026-08-26',
+        available: true,
+        bookable: true,
+        availableForCheckin: true,
+        availableForCheckout: true,
+        minNights: 3,
+        maxNights: 14,
+      },
+      {
+        date: '2026-08-27',
+        available: false,
+        bookable: false,
+        availableForCheckin: false,
+        availableForCheckout: true,
+        minNights: 2,
+        maxNights: 14,
+      },
+    ]);
+  });
+
   it('classifies captcha and parser diagnostics', () => {
     const service = makeService() as any;
 

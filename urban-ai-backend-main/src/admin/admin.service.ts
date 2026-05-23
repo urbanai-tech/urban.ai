@@ -529,6 +529,19 @@ export class AdminService {
         'verification_source',
         'verification_error',
       ],
+      airbnb_pricing_attempt_logs: [
+        'listingId',
+        'checkIn',
+        'checkOut',
+        'source',
+        'status',
+        'reason',
+        'durationMs',
+        'priceTotal',
+        'dailyPrice',
+        'startedAt',
+        'finishedAt',
+      ],
     };
 
     try {
