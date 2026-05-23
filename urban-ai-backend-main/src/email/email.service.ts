@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Interval } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProcessService } from 'src/process/process.service';
 import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity';
@@ -13,11 +14,22 @@ import { MailerService } from 'src/mailer/mailer.service';
 import { EmailTemplates } from './templates';
 import * as crypto from 'crypto';
 import { PushNotificationService } from 'src/push/push-notification.service';
+import {
+    ClaimedPricingDigest,
+    PricingDigestItem,
+    PricingRecommendationDigestService,
+} from './pricing-recommendation-digest.service';
+import { CommunicationPreferencesService } from 'src/communication-preferences/communication-preferences.service';
 
 @Injectable()
 export class EmailService {
 
     private readonly logger = new Logger(EmailService.name);
+    private readonly pricingDigestDelayMs = Math.max(
+        5000,
+        Number(process.env.PRICING_DIGEST_EMAIL_DELAY_MS || 120000),
+    );
+    private readonly pricingDigestTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
     constructor(
         @InjectRepository(AnaliseEnderecoEvento)
@@ -31,6 +43,8 @@ export class EmailService {
         private readonly notificationService: NotificationsService,
         private readonly mailerService: MailerService,
         private readonly pushNotificationService: PushNotificationService,
+        private readonly pricingDigestService: PricingRecommendationDigestService,
+        private readonly communicationPreferences: CommunicationPreferencesService,
     ) { }
 
     async getProfileById(userId: string) {
@@ -425,6 +439,11 @@ export class EmailService {
                 this.logger.debug(`Notificacao salva para user=${usuarioId}`);
             }
 
+            if (this.shouldBatchPricingRecommendation(notificationContent)) {
+                await this.queuePricingRecommendationDigest(usuario, notificationContent, notification?.id);
+                return { enviado: true, batched: true };
+            }
+
             if (notificationContent?.sendEmail) {
                 const htmlContent = EmailTemplates.getSystemNotificationTemplate(
                   nome,
@@ -467,6 +486,143 @@ export class EmailService {
 
             return { enviado: false, motivo: 'Erro interno ao enviar email ou notificação' };
         }
+    }
+
+    private shouldBatchPricingRecommendation(notificationContent: CreateNotificationDto): boolean {
+        const type = notificationContent?.pushType?.trim();
+        const title = (notificationContent?.title || '').toLowerCase();
+        return (
+            type === 'pricing_recommendation' ||
+            type === 'pricing_recommendation_digest' ||
+            title.includes('sugestoes de preco') ||
+            title.includes('sugestao de preco') ||
+            title.includes('sugestoes disponiveis')
+        );
+    }
+
+    private async queuePricingRecommendationDigest(
+        user: User,
+        notificationContent: CreateNotificationDto,
+        notificationId?: string,
+    ): Promise<void> {
+        const userId = user.id;
+        const preferences = await this.communicationPreferences.getForUser(userId);
+        const wantsEmail = Boolean(notificationContent.sendEmail && preferences.emailPricing);
+        const wantsPush = Boolean((notificationContent.sendPush ?? notificationContent.sendEmail) && preferences.pushPricing);
+        if (!wantsEmail && !wantsPush) return;
+        await this.pricingDigestService.appendPendingDigest({
+            user,
+            item: this.toPricingDigestItem(notificationContent, notificationId),
+            wantsEmail,
+            wantsPush,
+            delayMs: this.pricingDigestDelayMs,
+        });
+
+        if (!this.pricingDigestTimers.has(userId)) {
+            const timer = setTimeout(() => {
+                this.pricingDigestTimers.delete(userId);
+                this.flushPricingRecommendationDigest(userId).catch((error) => {
+                    this.logger.warn(
+                        `pricing digest failed user=${userId}: ${(error as Error)?.message ?? String(error)}`,
+                    );
+                });
+            }, this.pricingDigestDelayMs);
+            timer.unref?.();
+            this.pricingDigestTimers.set(userId, timer);
+        }
+    }
+
+    private async flushPricingRecommendationDigest(userId: string): Promise<void> {
+        const digest = await this.pricingDigestService.claimDueDigest(userId);
+        if (!digest) return;
+        await this.sendClaimedPricingRecommendationDigest(digest);
+    }
+
+    @Interval(30000)
+    private async flushDuePricingRecommendationDigests(): Promise<void> {
+        if (process.env.PRICING_DIGEST_SWEEP_ENABLED === 'false') return;
+
+        const limit = Math.max(1, Math.min(Number(process.env.PRICING_DIGEST_SWEEP_LIMIT || 10), 50));
+        for (let index = 0; index < limit; index += 1) {
+            const digest = await this.pricingDigestService.claimDueDigest();
+            if (!digest) return;
+            await this.sendClaimedPricingRecommendationDigest(digest);
+        }
+    }
+
+    private async sendClaimedPricingRecommendationDigest(digest: ClaimedPricingDigest): Promise<void> {
+        const items = digest.items;
+        if (!items.length) return;
+
+        const dashboardUrl = `${(process.env.FRONT_BASE_URL || 'https://app.myurbanai.com').replace(/\/$/, '')}/dashboard?source=pricing_digest_email`;
+        const subject =
+            items.length === 1
+                ? '1 sugestao de preco pronta - Urban AI'
+                : `${items.length} sugestoes de preco prontas - Urban AI`;
+
+        try {
+            if (digest.wantsEmail) {
+                const html = EmailTemplates.getPricingRecommendationDigestTemplate({
+                    nome: digest.name,
+                    dashboardUrl,
+                    items,
+                });
+                await this.sendHtmlEmailOrThrow(
+                    { email: digest.email, name: digest.name },
+                    subject,
+                    html,
+                );
+            }
+
+            if (digest.wantsPush) {
+                await this.pushNotificationService.sendToUser(digest.userId, {
+                    title: items.length === 1 ? 'Sugestao de preco pronta' : 'Sugestoes de preco prontas',
+                    body: items.length === 1
+                        ? 'A Urban AI preparou uma recomendacao nova para revisar.'
+                        : `A Urban AI preparou ${items.length} recomendacoes para revisar em um so lugar.`,
+                    url: '/dashboard?source=pwa_push_pricing_digest',
+                    tag: `pricing-digest-${new Date().toISOString().slice(0, 10)}`,
+                    data: {
+                        type: 'pricing_recommendation_digest',
+                        count: items.length,
+                        digestId: digest.id,
+                    },
+                });
+            }
+
+            await this.pricingDigestService.markSent(digest.id);
+        } catch (error) {
+            await this.pricingDigestService.markFailed(digest.id, error);
+            throw error;
+        }
+    }
+
+    private toPricingDigestItem(
+        notificationContent: CreateNotificationDto,
+        notificationId?: string,
+    ): PricingDigestItem {
+        const metadata = notificationContent.metadata || {};
+        const reasons = Array.isArray(metadata.reasons)
+            ? metadata.reasons.filter((item) => typeof item === 'string').slice(0, 4)
+            : [];
+        return {
+            notificationId,
+            title: notificationContent.title || 'Sugestao de preco',
+            description: notificationContent.description || 'Nova recomendacao disponivel para revisao.',
+            redirectTo: notificationContent.redirectTo || '/dashboard',
+            propertyTitle:
+                String(metadata.propertyTitle || metadata.listingTitle || metadata.propertyName || '').trim() ||
+                this.extractPropertyTitle(notificationContent.description) ||
+                'Imovel',
+            reasons,
+            createdAt: new Date().toISOString(),
+        };
+    }
+
+    private extractPropertyTitle(description?: string): string | null {
+        if (!description) return null;
+        const match = description.match(/(?:imovel|imóvel)\s+(.+?)(?:\.|$)/i);
+        return match?.[1]?.trim()?.slice(0, 120) || null;
     }
 
 

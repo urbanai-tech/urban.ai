@@ -17,14 +17,18 @@ describe('PushNotificationService', () => {
     const userRepo = {
       findOne: jest.fn(),
     };
+    const communicationLog = {
+      record: jest.fn().mockResolvedValue(undefined),
+    };
 
     const service = new PushNotificationService(
       subscriptionRepo as any,
       deliveryRepo as any,
       userRepo as any,
+      communicationLog as any,
     );
 
-    return { service, subscriptionRepo, deliveryRepo, userRepo };
+    return { service, subscriptionRepo, deliveryRepo, userRepo, communicationLog };
   };
 
   afterEach(() => {
@@ -35,13 +39,21 @@ describe('PushNotificationService', () => {
   });
 
   it('skips sends when VAPID keys are not configured', async () => {
-    const { service } = makeService();
+    const { service, communicationLog } = makeService();
 
     await expect(service.sendToUser('user-1', { title: 'Urban AI' })).resolves.toMatchObject({
       enabled: false,
       attempted: 0,
       skippedReason: 'missing_vapid_keys',
     });
+    expect(communicationLog.record).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-1',
+        channel: 'push',
+        status: 'skipped',
+        failureReason: 'missing_vapid_keys',
+      }),
+    );
   });
 
   it('upserts an active browser subscription and returns a device secret once', async () => {

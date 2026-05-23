@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as crypto from 'crypto';
+import { CommunicationLogService } from 'src/communications/communication-log.service';
 import { PushDelivery } from 'src/entities/push-delivery.entity';
 import { PushSubscription } from 'src/entities/push-subscription.entity';
 import { User } from 'src/entities/user.entity';
@@ -41,6 +42,7 @@ export class PushNotificationService {
     private readonly deliveryRepo: Repository<PushDelivery>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    private readonly communicationLog: CommunicationLogService,
   ) { }
 
   getPublicConfig() {
@@ -113,6 +115,14 @@ export class PushNotificationService {
 
   async sendToUser(userId: string, payload: PwaPushPayload): Promise<PushSendResult> {
     if (!this.isConfigured()) {
+      await this.communicationLog.record({
+        userId,
+        channel: 'push',
+        status: 'skipped',
+        kind: this.pushKind(payload),
+        title: payload.title,
+        failureReason: 'missing_vapid_keys',
+      });
       return { enabled: false, attempted: 0, sent: 0, failed: 0, skippedReason: 'missing_vapid_keys' };
     }
 
@@ -121,6 +131,14 @@ export class PushNotificationService {
       relations: ['user'],
     });
     if (!subscriptions.length) {
+      await this.communicationLog.record({
+        userId,
+        channel: 'push',
+        status: 'skipped',
+        kind: this.pushKind(payload),
+        title: payload.title,
+        failureReason: 'no_active_subscriptions',
+      });
       return { enabled: true, attempted: 0, sent: 0, failed: 0, skippedReason: 'no_active_subscriptions' };
     }
 
@@ -145,6 +163,20 @@ export class PushNotificationService {
         subscription.failureReason = null;
         delivery.pushedAt = new Date();
         sent += 1;
+        await this.communicationLog.record({
+          userId,
+          channel: 'push',
+          status: 'sent',
+          kind: this.pushKind(payload),
+          recipientDeviceId: subscription.deviceId,
+          title: payload.title,
+          provider: 'web_push',
+          providerMessageId: delivery.id,
+          metadata: {
+            tag: payload.tag,
+            url: payload.url,
+          },
+        });
       } catch (error) {
         failed += 1;
         const reason = error instanceof Error ? error.message : String(error);
@@ -155,6 +187,21 @@ export class PushNotificationService {
         delivery.failureReason = reason.slice(0, 255);
         if (this.isGonePushError(reason)) subscription.active = false;
         this.logger.warn(`Falha ao enviar wake push subscription=${subscription.id}: ${reason}`);
+        await this.communicationLog.record({
+          userId,
+          channel: 'push',
+          status: 'failed',
+          kind: this.pushKind(payload),
+          recipientDeviceId: subscription.deviceId,
+          title: payload.title,
+          provider: 'web_push',
+          providerMessageId: delivery.id,
+          failureReason: reason,
+          metadata: {
+            tag: payload.tag,
+            url: payload.url,
+          },
+        });
       }
 
       await Promise.all([
@@ -206,6 +253,11 @@ export class PushNotificationService {
 
   private isConfigured(): boolean {
     return Boolean(this.vapidPublicKey && this.vapidPrivateKey);
+  }
+
+  private pushKind(payload: PwaPushPayload): string {
+    const type = payload.data?.type;
+    return typeof type === 'string' && type.trim() ? type.trim() : 'pwa_push';
   }
 
   private assertValidSubscriptionInput(input: UpsertPushSubscriptionDto): void {

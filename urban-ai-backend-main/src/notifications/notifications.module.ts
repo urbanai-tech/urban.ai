@@ -9,9 +9,10 @@ import { Module } from '@nestjs/common';
 import { Notification } from 'src/entities/notification.entity';
 import { User } from 'src/entities/user.entity';
 import { AuthModule } from 'src/auth/auth.module';
+import { CommunicationsModule } from 'src/communications/communications.module';
 
 @Module({
-    imports: [AuthModule, TypeOrmModule.forFeature([
+    imports: [AuthModule, CommunicationsModule, TypeOrmModule.forFeature([
         Notification,
         User,
     ]),],
