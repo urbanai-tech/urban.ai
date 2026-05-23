@@ -109,10 +109,7 @@ export class CommunicationLogService {
       total,
       byChannel,
       byStatus,
-      items: items.map((item) => ({
-        ...item,
-        metadata: this.safeParse(item.metadataJson),
-      })),
+      items: items.map((item) => this.toPublicEvent(item)),
     };
   }
 
@@ -141,7 +138,7 @@ export class CommunicationLogService {
         status: row.status as CommunicationStatus,
         count: Number(row.count ?? 0),
       })),
-      recentFailures,
+      recentFailures: recentFailures.map((item) => this.toPublicEvent(item)),
     };
   }
 
@@ -178,5 +175,54 @@ export class CommunicationLogService {
     } catch {
       return null;
     }
+  }
+
+  private toPublicEvent(item: CommunicationEvent) {
+    return {
+      ...item,
+      recipientEmail: this.maskEmail(item.recipientEmail),
+      recipientDeviceId: this.maskToken(item.recipientDeviceId),
+      providerMessageId: this.maskToken(item.providerMessageId),
+      failureReason: this.redactSensitiveText(item.failureReason),
+      metadataJson: null,
+      metadata: this.sanitizeMetadata(this.safeParse(item.metadataJson)),
+    };
+  }
+
+  private maskEmail(value?: string | null): string | null {
+    if (!value || !value.includes('@')) return value ?? null;
+    const [local, domain] = value.split('@');
+    const visible = local.slice(0, Math.min(2, local.length));
+    return `${visible}${'*'.repeat(Math.max(3, local.length - visible.length))}@${domain}`;
+  }
+
+  private maskToken(value?: string | null): string | null {
+    if (!value) return null;
+    if (value.length <= 8) return `${value.slice(0, 2)}***`;
+    return `${value.slice(0, 6)}***${value.slice(-4)}`;
+  }
+
+  private redactSensitiveText(value?: string | null): string | null {
+    if (!value) return null;
+    return String(value)
+      .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[redacted-email]')
+      .replace(/Bearer\s+[A-Za-z0-9._~+/=-]+/gi, 'Bearer [redacted]')
+      .replace(/(api[-_ ]?key|token|secret|password)=([^&\s]+)/gi, '$1=[redacted]')
+      .slice(0, 2000);
+  }
+
+  private sanitizeMetadata(value: Record<string, unknown> | null): Record<string, unknown> | null {
+    if (!value) return null;
+    const safe: Record<string, unknown> = {};
+    for (const [key, raw] of Object.entries(value)) {
+      if (/(email|recipient|device|token|secret|password|authorization|apiKey|api_key)/i.test(key)) {
+        safe[key] = '[redacted]';
+      } else if (typeof raw === 'string') {
+        safe[key] = this.redactSensitiveText(raw);
+      } else {
+        safe[key] = raw;
+      }
+    }
+    return safe;
   }
 }

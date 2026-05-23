@@ -1,4 +1,5 @@
 import { Injectable, Logger, Optional } from '@nestjs/common';
+import { isTrustedBasePriceSource } from 'src/pricing/base-price.util';
 import { ModuleRef } from '@nestjs/core';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -825,6 +826,11 @@ export class DatasetCollectorService {
   }
 
   private resolveStoredListingPriceCents(list: List): number | null {
+    const manualDailyPrice = this.priceLikeToCents((list as any).manualDailyPrice);
+    if (manualDailyPrice !== null) return manualDailyPrice;
+
+    if (!isTrustedBasePriceSource((list as any).pricingInputSource)) return null;
+
     return (
       this.priceLikeToCents((list as any).dailyPrice) ??
       this.priceLikeToCents((list as any).raw) ??

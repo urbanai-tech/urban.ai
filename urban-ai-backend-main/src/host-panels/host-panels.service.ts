@@ -749,7 +749,9 @@ export class HostPanelsService {
           take: 500,
         })
       : [];
-    const canonicalAnalyses = analyses.filter((analysis) => this.isCanonicalEvent(analysis.evento));
+    const canonicalAnalyses = analyses.filter((analysis) =>
+      analysis.evento ? this.isCanonicalEvent(analysis.evento) : true,
+    );
     const realRevenue = canonicalAnalyses.reduce((sum, analysis) => sum + (Number(analysis.receitaReal) || 0), 0);
     const potentialLift = canonicalAnalyses.reduce((sum, analysis) => {
       const suggested = Number(analysis.precoSugerido);
@@ -763,7 +765,7 @@ export class HostPanelsService {
 
     if (q.includes('receita') || q.includes('projec') || q.includes('ganho')) {
       return {
-        content: `Com base nos dados reais salvos, seu portfolio tem ${addresses.length} imovel(is), ${analyses.length} recomendacao(oes) geradas e ${this.formatBRL(realRevenue)} de receita real registrada. As recomendacoes ainda abertas somam ${this.formatBRL(potentialLift)} de lift diario potencial.`,
+        content: `Com base nos dados reais salvos, seu portfolio tem ${addresses.length} imovel(is), ${canonicalAnalyses.length} recomendacao(oes) geradas e ${this.formatBRL(realRevenue)} de receita real registrada. As recomendacoes ainda abertas somam ${this.formatBRL(potentialLift)} de lift diario potencial.`,
         citations: [
           { id: 'painel', label: 'Painel', url: '/painel' },
           { id: 'roi', label: 'ROI', url: '/my-roi' },

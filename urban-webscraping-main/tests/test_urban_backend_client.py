@@ -32,19 +32,47 @@ def _mock_response(status: int, body: dict | str = ""):
 
 
 def test_from_env_lança_se_credenciais_faltam(monkeypatch):
+    monkeypatch.delenv("URBAN_EVENTS_INGEST_API_KEY", raising=False)
     monkeypatch.delenv("URBAN_COLLECTOR_EMAIL", raising=False)
     monkeypatch.delenv("URBAN_COLLECTOR_PASSWORD", raising=False)
-    with pytest.raises(ValueError, match="URBAN_COLLECTOR"):
+    with pytest.raises(ValueError, match="URBAN_EVENTS_INGEST_API_KEY"):
         UrbanBackendClient.from_env()
 
 
 def test_from_env_constrói_quando_credenciais_presentes(monkeypatch):
     monkeypatch.setenv("URBAN_API_BASE", "https://api.x")
+    monkeypatch.delenv("URBAN_EVENTS_INGEST_API_KEY", raising=False)
     monkeypatch.setenv("URBAN_COLLECTOR_EMAIL", "bot@x.com")
     monkeypatch.setenv("URBAN_COLLECTOR_PASSWORD", "p")
     c = UrbanBackendClient.from_env()
     assert c.api_base == "https://api.x"
     assert c.email == "bot@x.com"
+    assert c.ingest_api_key is None
+
+
+def test_from_env_prioriza_api_key_sem_credenciais_legadas(monkeypatch):
+    monkeypatch.setenv("URBAN_API_BASE", "https://api.x")
+    monkeypatch.setenv("URBAN_EVENTS_INGEST_API_KEY", "ingest-secret")
+    monkeypatch.setenv("URBAN_COLLECTOR_NAME", "sp-cultura")
+    monkeypatch.setenv("URBAN_COLLECTOR_VERSION", "sha-123")
+    monkeypatch.setenv("URBAN_INGEST_RUN_ID", "run-1")
+    monkeypatch.delenv("URBAN_COLLECTOR_EMAIL", raising=False)
+    monkeypatch.delenv("URBAN_COLLECTOR_PASSWORD", raising=False)
+
+    c = UrbanBackendClient.from_env()
+
+    assert c.api_base == "https://api.x"
+    assert c.ingest_api_key == "ingest-secret"
+    assert c.collector_name == "sp-cultura"
+    assert c.collector_version == "sha-123"
+    assert c.ingest_run_id == "run-1"
+
+
+def test_constructor_preserva_batch_size_posicional_legado():
+    c = UrbanBackendClient("https://api.x", "bot@x.com", "p", 7)
+
+    assert c.batch_size == 7
+    assert c.ingest_api_key is None
 
 
 # ============================ Buffer / batch ============================
@@ -145,6 +173,51 @@ def test_post_ingest_inclui_authorization_header(client):
         ingest_call = post.call_args_list[1]
         headers = ingest_call.kwargs["headers"]
         assert headers["Authorization"] == "Bearer tok"
+
+
+def test_post_ingest_usa_api_key_sem_login():
+    client = UrbanBackendClient(
+        api_base="https://api.test",
+        ingest_api_key="ingest-secret",
+        collector_name="sp-cultura",
+        collector_version="sha-123",
+        ingest_run_id="run-1",
+        batch_size=3,
+    )
+
+    with patch.object(client._session, "post") as post:
+        post.return_value = _mock_response(
+            200,
+            {"total": 1, "created": 1, "updated": 0, "skipped": 0},
+        )
+        client.add_event({"nome": "A", "dataInicio": "2026-05-10"})
+        result = client.flush()
+        assert result is not None
+
+        assert post.call_count == 1
+        headers = post.call_args.kwargs["headers"]
+        assert headers["x-urban-events-ingest-key"] == "ingest-secret"
+        assert headers["x-urban-collector"] == "sp-cultura"
+        assert headers["x-urban-collector-version"] == "sha-123"
+        assert headers["x-urban-ingest-run-id"] == "run-1"
+        assert "Authorization" not in headers
+
+
+def test_post_ingest_com_api_key_nao_tenta_refresh_jwt_em_401():
+    client = UrbanBackendClient(
+        api_base="https://api.test",
+        ingest_api_key="ingest-secret",
+        batch_size=3,
+    )
+
+    with patch.object(client._session, "post") as post:
+        post.return_value = _mock_response(401, "invalid key")
+        client.add_event({"nome": "A", "dataInicio": "2026-05-10"})
+
+        with pytest.raises(UrbanBackendError, match="/events/ingest falhou"):
+            client.flush()
+
+        assert post.call_count == 1
 
 
 def test_post_ingest_em_401_refaz_login_e_retenta(client):

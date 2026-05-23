@@ -110,11 +110,11 @@ describe('DatasetCollectorService', () => {
     process.env = originalEnv;
   });
 
-  it('captures owned listing snapshots from stored listing prices without an external resolver', async () => {
+  it('captures owned listing snapshots from trusted stored listing prices without an external resolver', async () => {
     const list = makeRepo({
       findResult: [
-        { id: 'list-1', dailyPrice: 387, raw: 774, priceText: 'R$774' },
-        { id: 'list-2', priceText: 'R$ 1.234,56' },
+        { id: 'list-1', dailyPrice: 387, raw: 774, priceText: 'R$774', pricingInputSource: 'manual' },
+        { id: 'list-2', priceText: 'R$ 1.234,56', pricingInputSource: 'airbnb_calendar' },
       ],
     });
     const { service, snapshot } = buildService({ list });

@@ -27,6 +27,7 @@ import { DatasetCollectorService } from '../knn-engine/dataset-collector.service
 import { PricingInputHistory } from 'src/entities/pricing-input-history.entity';
 import { PricingGuardrailService } from './pricing-guardrail.service';
 import { MailerService } from 'src/mailer/mailer.service';
+import { hasUsableBasePrice, resolveUsableBaseDailyPrice } from 'src/pricing/base-price.util';
 
 class PropertyResponseDto {
     bedrooms: number;
@@ -240,6 +241,7 @@ export class PropriedadeService {
 
     private buildPublicPropertySetupStatus(address: Address): PublicPropertySetupStatus {
         const hasCoordinates = this.hasUsableCoordinates(address);
+        const hasBasePrice = hasUsableBasePrice(address?.list);
         const rawStatus = String(address?.analisado ?? '').toLowerCase();
         const isCompleted = rawStatus === 'completed';
         const isError = rawStatus === 'error';
@@ -260,6 +262,21 @@ export class PropriedadeService {
         }
 
         if (isCompleted && hasCoordinates) {
+            if (!hasBasePrice) {
+                return {
+                    state: 'preparing',
+                    currentStep: 'attention',
+                    publicLabel: 'Diaria base pendente',
+                    publicDescription: 'Informe a diaria base para liberar sugestoes de preco neste imovel.',
+                    steps: [
+                        { id: 'saved', label: 'Imovel adicionado', status: 'complete' },
+                        { id: 'map', label: 'Mapa pronto', status: 'complete' },
+                        { id: 'events', label: 'Eventos verificados', status: 'complete' },
+                        { id: 'suggestions', label: 'Preparar sugestoes', status: 'pending' },
+                    ],
+                };
+            }
+
             return {
                 state: 'ready',
                 currentStep: 'ready',
@@ -2315,13 +2332,22 @@ export class PropriedadeService {
 
         const candidates = await this.addressRepository.find({
             where: { ativo: true },
-            relations: ['list'],
+            relations: ['list', 'user'],
             take: 50,
         });
 
+        const targetExternalId = String(list?.id_do_anuncio ?? '').trim();
+        const targetUserRole = this.normalizeRole((address?.user as any)?.role ?? (list as any)?.user?.role);
+        const protectHostPricing = targetUserRole === 'host';
         const nearby = [];
         for (const candidate of candidates) {
             if (!candidate?.list?.id_do_anuncio || candidate.list.id === list.id) continue;
+            const candidateExternalId = String(candidate.list.id_do_anuncio ?? '').trim();
+            if (targetExternalId && candidateExternalId === targetExternalId) continue;
+            const candidateUser = candidate.user ?? (candidate.list as any)?.user;
+            if (candidateUser?.ativo === false || (candidate.list as any)?.user?.ativo === false) continue;
+            const candidateRole = this.normalizeRole(candidateUser?.role ?? (candidate.list as any)?.user?.role);
+            if (protectHostPricing && candidateRole !== 'host') continue;
             if (!candidate.latitude || !candidate.longitude || !address.latitude || !address.longitude) continue;
             const distanceKm = await calculateDistance(
                 Number(address.latitude),
@@ -2454,16 +2480,12 @@ export class PropriedadeService {
     }
 
     private resolveStoredDailyPrice(list: List): number | null {
-        const rawList = list as any;
-        const manual = Number(rawList?.manualDailyPrice);
-        if (Number.isFinite(manual) && manual > 0) return manual;
-        const direct = Number(rawList?.dailyPrice);
-        if (Number.isFinite(direct) && direct > 0) return direct;
-        const raw = Number(rawList?.raw);
-        if (Number.isFinite(raw) && raw > 0) return raw;
-        const priceText = String(rawList?.priceText ?? '').replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.');
-        const parsed = Number(priceText);
-        return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+        return resolveUsableBaseDailyPrice(list);
+    }
+
+    private normalizeRole(value: unknown): string {
+        const role = String(value ?? 'host').trim().toLowerCase();
+        return role || 'host';
     }
 
     getPricingEventQualityFlags(evento: EventEntity | null | undefined, now = new Date()): string[] {

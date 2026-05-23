@@ -19,6 +19,7 @@ import { AuthenticatedRequest } from 'src/connect/connect.controller';
 import { Address } from 'src/entities/addresses.entity';
 import { MapsService } from 'src/maps/maps.service';
 import { PropertyDto } from 'src/maps/maps.controller';
+import { hasUsableBasePrice } from 'src/pricing/base-price.util';
 import { DataSource } from 'typeorm';
 
 export class CreatePricingJobDto {
@@ -57,12 +58,7 @@ export class ProcessoController {
     ) {}
 
     private hasValidBasePrice(list: any): boolean {
-        const manualDailyPrice = Number(list?.manualDailyPrice);
-        const dailyPrice = Number(list?.dailyPrice);
-        return (
-            (Number.isFinite(manualDailyPrice) && manualDailyPrice > 0) ||
-            (Number.isFinite(dailyPrice) && dailyPrice > 0)
-        );
+        return hasUsableBasePrice(list);
     }
 
     @UseGuards(JwtAuthGuard)
@@ -114,7 +110,7 @@ export class ProcessoController {
 
         if (missingBasePriceIds.length > 0) {
             throw new BadRequestException({
-                message: 'Informe manualDailyPrice ou dailyPrice antes de iniciar a analise de pricing.',
+                message: 'Informe uma diaria base manual ou aguarde uma cotacao Airbnb confiavel antes de iniciar a analise de pricing.',
                 propriedadesSemPrecoBase: missingBasePriceIds,
             });
         }
@@ -214,7 +210,7 @@ export class ProcessoController {
 
         if (!this.hasValidBasePrice(ownedAddress.list)) {
             throw new BadRequestException(
-                'Informe manualDailyPrice ou dailyPrice antes de iniciar a analise de pricing.',
+                'Informe uma diaria base manual ou aguarde uma cotacao Airbnb confiavel antes de iniciar a analise de pricing.',
             );
         }
 

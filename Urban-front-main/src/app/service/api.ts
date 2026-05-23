@@ -3268,10 +3268,17 @@ export interface EventDedupEventSummary {
   enderecoCompleto: string | null;
   address?: string | null;
   venueName?: string | null;
+  venueType?: string | null;
+  categoria?: string | null;
+  category?: string | null;
   latitude: number | null;
   longitude: number | null;
   source: string | null;
   sourceId: string | null;
+  dedupHash?: string | null;
+  linkSiteOficial?: string | null;
+  url?: string | null;
+  crawledUrl?: string | null;
   dedupStatus: string | null;
   duplicateOfEventId: string | null;
   sourceCount: number;
@@ -3279,6 +3286,8 @@ export interface EventDedupEventSummary {
   ativo: boolean;
   [key: string]: unknown;
 }
+
+export type EventDedupCandidateEvent = EventDedupEventSummary;
 
 export interface EventDedupCandidate {
   id: string;
@@ -3305,17 +3314,35 @@ export interface EventDedupCandidatesResponse {
   status: EventDedupCandidateStatus | 'all';
   confidenceBand: EventDedupConfidenceBand | 'all';
   items: EventDedupCandidate[];
+  summary?: {
+    pending?: number;
+    approved?: number;
+    rejected?: number;
+    high?: number;
+    medium?: number;
+    low?: number;
+    avgScore?: number;
+    [key: string]: unknown;
+  };
 }
 
 export interface EventDedupScanResponse {
   generatedAt: string;
   window: { from: string; to: string };
+  scanned?: number;
+  compared?: number;
+  candidates?: number;
   scannedEvents: number;
   reviewPendingEvents: number;
   created: number;
   updated: number;
   skipped: number;
   pendingTotal: number;
+  highConfidence?: number;
+  mediumConfidence?: number;
+  lowConfidence?: number;
+  durationMs?: number;
+  message?: string;
   items: EventDedupCandidate[];
   [key: string]: unknown;
 }
@@ -3336,26 +3363,84 @@ export interface EventDedupScanRequest {
   includeInactive?: boolean;
 }
 
+type EventDedupCandidatesRawResponse =
+  | EventDedupCandidatesResponse
+  | EventDedupCandidate[]
+  | {
+      data?: EventDedupCandidate[];
+      candidates?: EventDedupCandidate[];
+      items?: EventDedupCandidate[];
+      page?: number;
+      limit?: number;
+      total?: number;
+      status?: EventDedupCandidateStatus | 'all';
+      confidenceBand?: EventDedupConfidenceBand | 'all';
+      summary?: EventDedupCandidatesResponse['summary'];
+    };
+
+function normalizeEventDedupCandidatesResponse(
+  raw: EventDedupCandidatesRawResponse,
+  params: EventDedupCandidatesQuery,
+): EventDedupCandidatesResponse {
+  if (Array.isArray(raw)) {
+    return {
+      page: params.page ?? 1,
+      limit: params.limit ?? raw.length,
+      total: raw.length,
+      status: params.status ?? 'pending',
+      confidenceBand: params.confidenceBand ?? 'all',
+      items: raw,
+    };
+  }
+
+  const shaped = raw as {
+    data?: EventDedupCandidate[];
+    candidates?: EventDedupCandidate[];
+    items?: EventDedupCandidate[];
+    page?: number;
+    limit?: number;
+    total?: number;
+    status?: EventDedupCandidateStatus | 'all';
+    confidenceBand?: EventDedupConfidenceBand | 'all';
+    summary?: EventDedupCandidatesResponse['summary'];
+  };
+  const items = shaped.items ?? shaped.candidates ?? shaped.data ?? [];
+  return {
+    page: Number(shaped.page ?? params.page ?? 1),
+    limit: Number(shaped.limit ?? params.limit ?? items.length),
+    total: Number(shaped.total ?? items.length),
+    status: shaped.status ?? params.status ?? 'pending',
+    confidenceBand: shaped.confidenceBand ?? params.confidenceBand ?? 'all',
+    items,
+    summary: shaped.summary,
+  };
+}
+
 export const fetchEventDedupCandidates = async (
   params: EventDedupCandidatesQuery = {},
 ): Promise<EventDedupCandidatesResponse> => {
-  const { data } = await api.get<EventDedupCandidatesResponse>('/admin/events/dedup/candidates', {
-    params: {
-      page: params.page ?? 1,
-      limit: params.limit ?? 50,
-      status: params.status ?? 'pending',
-      confidenceBand: params.confidenceBand ?? 'all',
-    },
-  });
-  return data;
+  const { data } = await api
+    .get<EventDedupCandidatesRawResponse>('/admin/events/dedup/candidates', {
+      params: {
+        page: params.page ?? 1,
+        limit: params.limit ?? 50,
+        status: params.status ?? 'pending',
+        confidenceBand: params.confidenceBand ?? 'all',
+      },
+    });
+  return normalizeEventDedupCandidatesResponse(data, params);
 };
 
 export const scanEventDedupCandidates = (body: EventDedupScanRequest = {}) =>
   api.post<EventDedupScanResponse>('/admin/events/dedup/scan', body).then((r) => r.data);
 
+export const runEventDedupScan = scanEventDedupCandidates;
+
 export const approveEventDedupCandidate = (id: string) =>
   api
-    .post<EventDedupCandidate>(`/admin/events/dedup/candidates/${encodeURIComponent(id)}/approve`)
+    .post<EventDedupCandidate>(
+      `/admin/events/dedup/candidates/${encodeURIComponent(id)}/approve`,
+    )
     .then((r) => r.data);
 
 export const rejectEventDedupCandidate = (id: string, reason?: string) =>
