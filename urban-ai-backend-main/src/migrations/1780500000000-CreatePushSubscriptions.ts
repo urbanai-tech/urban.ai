@@ -95,8 +95,9 @@ export class CreatePushSubscriptions1780500000000 implements MigrationInterface 
     const subscriptionsTable = await queryRunner.getTable('push_subscriptions');
     const deliveriesTable = await queryRunner.getTable('push_deliveries');
     if (!subscriptionsTable || !deliveriesTable) return;
+    const hasUserTable = await queryRunner.hasTable('user');
 
-    if (!subscriptionsTable.foreignKeys.some((fk) => fk.columnNames.includes('user_id'))) {
+    if (hasUserTable && !subscriptionsTable.foreignKeys.some((fk) => fk.columnNames.includes('user_id'))) {
       await queryRunner.createForeignKey(
         'push_subscriptions',
         new TableForeignKey({
@@ -120,7 +121,7 @@ export class CreatePushSubscriptions1780500000000 implements MigrationInterface 
       );
     }
 
-    if (!deliveriesTable.foreignKeys.some((fk) => fk.columnNames.includes('user_id'))) {
+    if (hasUserTable && !deliveriesTable.foreignKeys.some((fk) => fk.columnNames.includes('user_id'))) {
       await queryRunner.createForeignKey(
         'push_deliveries',
         new TableForeignKey({

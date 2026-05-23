@@ -6,9 +6,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { randomUUID } from 'crypto';
-import { Between, In, LessThan, MoreThanOrEqual, Repository } from 'typeorm';
+import { Between, DataSource, In, MoreThanOrEqual, Repository } from 'typeorm';
 import { Address } from '../entities/addresses.entity';
 import { AnalisePreco } from '../entities/AnalisePreco';
 import { AskUrbanMessage, AskUrbanCitation } from '../entities/ask-urban-message.entity';
@@ -21,9 +21,33 @@ import {
   PricingRuleConfigItem,
   PricingRuleType,
 } from '../entities/pricing-rule-config.entity';
+import { Payment } from '../entities/payment.entity';
 import { User } from '../entities/user.entity';
 
 type DateRange = { from: string; to: string; dates: string[] };
+
+type AskUsageReason =
+  | null
+  | 'no_active_subscription'
+  | 'subscription_expired'
+  | 'plan_not_allowed'
+  | 'quota_exceeded'
+  | 'hard_cap_exceeded';
+
+type AskEntitlement = {
+  plan: string;
+  planAllowed: boolean;
+  reason: Exclude<AskUsageReason, 'quota_exceeded' | 'hard_cap_exceeded'>;
+};
+
+type AskUsagePayload = {
+  used: number;
+  quota: number;
+  hardCap: number;
+  canUse: boolean;
+  plan: string;
+  reason: AskUsageReason;
+};
 
 type PortfolioBulkActionInput = {
   propertyIds: string[];
@@ -32,6 +56,8 @@ type PortfolioBulkActionInput = {
 };
 
 const MS_PER_DAY = 86_400_000;
+const ASK_ACCESS_STATUSES = ['active', 'trialing', 'alpha'];
+const DEFAULT_ASK_ALLOWED_PLANS = ['profissional', 'escala', 'alpha'];
 
 const PRICING_RULE_TYPES: PricingRuleType[] = [
   'weekend_uplift',
@@ -115,6 +141,7 @@ export class HostPanelsService {
     @InjectRepository(OccupancyHistory) private readonly occupancyRepo: Repository<OccupancyHistory>,
     @InjectRepository(PricingRuleConfig) private readonly pricingRuleRepo: Repository<PricingRuleConfig>,
     @InjectRepository(AskUrbanMessage) private readonly askRepo: Repository<AskUrbanMessage>,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async portfolioCalendar(
@@ -379,23 +406,24 @@ export class HostPanelsService {
   }
 
   async askUsage(userId: string) {
-    const used = await this.askRepo.count({
-      where: {
-        user: { id: userId },
-        role: 'user',
-        createdAt: MoreThanOrEqual(this.startOfToday()),
-      },
-    });
-    return this.askUsagePayload(used);
+    const [used, entitlement] = await Promise.all([
+      this.askRepo.count({
+        where: {
+          user: { id: userId },
+          role: 'user',
+          createdAt: MoreThanOrEqual(this.startOfToday()),
+        },
+      }),
+      this.resolveAskEntitlement(userId),
+    ]);
+    return this.askUsagePayload(used, entitlement);
   }
 
   async askQuestion(userId: string, input: { question?: string; conversationId?: string }) {
     const question = String(input.question ?? '').trim();
     if (!question) throw new BadRequestException('question e obrigatoria');
     const usage = await this.askUsage(userId);
-    if (usage.used >= usage.hardCap) {
-      throw new HttpException('Limite diario atingido', HttpStatus.TOO_MANY_REQUESTS);
-    }
+    this.ensureAskCanUse(usage);
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('Usuario nao encontrado');
     const conversationId = input.conversationId || randomUUID();
@@ -415,7 +443,11 @@ export class HostPanelsService {
       conversationId,
       content: answer.content,
       citations: answer.citations,
-      usage: this.askUsagePayload(usage.used + 1),
+      usage: this.askUsagePayload(usage.used + 1, {
+        plan: usage.plan,
+        planAllowed: true,
+        reason: null,
+      }),
     };
   }
 
@@ -953,10 +985,137 @@ export class HostPanelsService {
     return `${letter}${suffix}`;
   }
 
-  private askUsagePayload(used: number) {
-    const quota = Number(process.env.ASK_URBAN_DAILY_QUOTA ?? 100);
-    const hardCap = Number(process.env.ASK_URBAN_DAILY_HARD_CAP ?? 200);
-    return { used, quota, hardCap };
+  private async resolveAskEntitlement(userId: string): Promise<AskEntitlement> {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (user && this.hasAlphaAskAccess(userId, user.email)) {
+      return this.askEntitlementForPlan('alpha');
+    }
+
+    const paymentRepo = this.dataSource.getRepository(Payment);
+    const payments = await paymentRepo.find({
+      where: {
+        user: { id: userId },
+        status: In(ASK_ACCESS_STATUSES),
+      } as any,
+      order: { updatedAt: 'DESC' },
+      take: 10,
+    });
+
+    if (!payments.length) {
+      return { plan: 'none', planAllowed: false, reason: 'no_active_subscription' };
+    }
+
+    const now = Date.now();
+    const activePayment = payments.find((payment) => {
+      if (!payment.expireDate) return true;
+      const expiresAt = new Date(payment.expireDate).getTime();
+      return Number.isFinite(expiresAt) && expiresAt >= now;
+    });
+    const latestPayment = activePayment ?? payments[0];
+    const plan = this.normalizeAskPlan(
+      latestPayment.planName || (latestPayment.status === 'alpha' ? 'alpha' : 'unknown'),
+    );
+
+    if (!activePayment) {
+      return { plan, planAllowed: false, reason: 'subscription_expired' };
+    }
+
+    return this.askEntitlementForPlan(plan);
+  }
+
+  private askEntitlementForPlan(plan: string): AskEntitlement {
+    const normalizedPlan = this.normalizeAskPlan(plan);
+    const planAllowed = this.askAllowedPlans().has(normalizedPlan);
+    return {
+      plan: normalizedPlan,
+      planAllowed,
+      reason: planAllowed ? null : 'plan_not_allowed',
+    };
+  }
+
+  private askUsagePayload(used: number, entitlement: AskEntitlement): AskUsagePayload {
+    const quota = entitlement.planAllowed
+      ? this.askPlanLimit('ASK_URBAN_DAILY_QUOTA', entitlement.plan, 100)
+      : 0;
+    const hardCap = entitlement.planAllowed
+      ? this.askPlanLimit('ASK_URBAN_DAILY_HARD_CAP', entitlement.plan, 200)
+      : 0;
+    let reason: AskUsageReason = entitlement.reason;
+    if (!reason && used >= quota) reason = 'quota_exceeded';
+    if (!reason && used >= hardCap) reason = 'hard_cap_exceeded';
+
+    return {
+      used,
+      quota,
+      hardCap,
+      canUse: !reason,
+      plan: entitlement.plan,
+      reason,
+    };
+  }
+
+  private ensureAskCanUse(usage: AskUsagePayload) {
+    if (usage.canUse) return;
+
+    if (usage.reason === 'quota_exceeded' || usage.reason === 'hard_cap_exceeded') {
+      throw new HttpException(
+        {
+          message: 'Limite diario do AskUrban atingido',
+          reason: usage.reason,
+          usage,
+        },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    throw new ForbiddenException({
+      message: 'AskUrban indisponivel para este plano',
+      reason: usage.reason,
+      usage,
+    });
+  }
+
+  private askAllowedPlans() {
+    const raw = process.env.ASK_URBAN_ALLOWED_PLANS || DEFAULT_ASK_ALLOWED_PLANS.join(',');
+    return new Set(
+      raw
+        .split(',')
+        .map((plan) => this.normalizeAskPlan(plan))
+        .filter(Boolean),
+    );
+  }
+
+  private askPlanLimit(envBase: string, plan: string, fallback: number) {
+    const globalValue = this.readPositiveIntEnv(envBase, fallback);
+    return this.readPositiveIntEnv(`${envBase}_${this.envPlanKey(plan)}`, globalValue);
+  }
+
+  private readPositiveIntEnv(name: string, fallback: number) {
+    const value = Number(process.env[name]);
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : fallback;
+  }
+
+  private envPlanKey(plan: string) {
+    return this.normalizeAskPlan(plan).replace(/[^a-z0-9]+/g, '_').toUpperCase();
+  }
+
+  private normalizeAskPlan(plan: unknown) {
+    return this.normalize(plan) || 'unknown';
+  }
+
+  private hasAlphaAskAccess(userId: string, email?: string | null) {
+    const raw = process.env.ALPHA_USER_QUOTAS || '';
+    if (!raw.trim()) return false;
+    const keys = new Set([userId.toLowerCase(), email?.toLowerCase()].filter(Boolean));
+
+    for (const entry of raw.split(',')) {
+      const [rawKey, rawQuota] = entry.split(':').map((part) => part?.trim());
+      if (!rawKey || !rawQuota) continue;
+      if (!keys.has(rawKey.toLowerCase())) continue;
+      const quota = Number(rawQuota);
+      if (Number.isFinite(quota) && quota > 0) return true;
+    }
+    return false;
   }
 
   private formatBRL(value: number) {

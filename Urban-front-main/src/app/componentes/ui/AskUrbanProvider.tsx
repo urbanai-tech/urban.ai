@@ -10,6 +10,7 @@ import React, {
   useState,
 } from "react";
 import { trackEvent } from "@/app/service/tracking";
+import { AskUsageResponse, fetchAskUsage } from "@/app/service/api";
 import { AskUrbanDrawer } from "./AskUrbanDrawer";
 import { AskUrbanUpgradeModal } from "./AskUrbanUpgradeModal";
 import { Sparkles } from "./Icons";
@@ -38,55 +39,59 @@ type AskUrbanContextValue = {
 
 const AskUrbanContext = createContext<AskUrbanContextValue | null>(null);
 
-const STARTER_PLAN_KEYS = new Set(["starter", "STARTER", "Starter", "free"]);
-
-function readPlanFromStorage(): string {
-  if (typeof window === "undefined") return "profissional";
-  try {
-    const raw = window.localStorage.getItem("urban-plan");
-    if (raw && raw.trim().length > 0) return raw;
-  } catch {
-    /* ignore */
-  }
-  // Fallback: trate como profissional em dev pra desbloquear o teste.
-  return "profissional";
-}
-
-function isStarter(plan: string): boolean {
-  return STARTER_PLAN_KEYS.has(plan);
-}
-
 export function AskUrbanProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
-  const [plan, setPlan] = useState<string>("profissional");
+  const [usage, setUsage] = useState<AskUsageResponse | null>(null);
+  const [usageStatus, setUsageStatus] = useState<"loading" | "ready" | "error">("loading");
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
   // Hidrata o plano só no cliente — evita mismatch SSR.
-  useEffect(() => {
-    setPlan(readPlanFromStorage());
-    // Watcher leve: se outra aba mudar o plano (signup, upgrade), atualiza.
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "urban-plan") setPlan(readPlanFromStorage());
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+  const refreshUsage = useCallback(async (): Promise<AskUsageResponse | null> => {
+    try {
+      const next = await fetchAskUsage();
+      setUsage(next);
+      setUsageStatus("ready");
+      return next;
+    } catch (err) {
+      console.warn("[AskUrbanProvider] falha ao validar entitlement", err);
+      setUsage(null);
+      setUsageStatus("error");
+      return null;
+    }
   }, []);
 
-  const isAvailable = !isStarter(plan);
+  useEffect(() => {
+    void refreshUsage();
+  }, [refreshUsage]);
+
+  const reason = usage?.reason ?? (usageStatus === "error" ? "entitlement_unavailable" : "loading");
+  const isAvailable = usageStatus === "ready" && usage?.canUse === true;
+
+  const openWithUsage = useCallback((currentUsage: AskUsageResponse | null) => {
+    const currentPlan = currentUsage?.plan ?? "unknown";
+    if (!currentUsage?.canUse) {
+      setUpgradeOpen(true);
+      void trackEvent("ask_upgrade_modal_shown", {
+        plan: currentPlan,
+        reason: currentUsage?.reason ?? reason,
+      });
+      return;
+    }
+    setIsOpen(true);
+    void trackEvent("ask_drawer_opened", { plan: currentPlan });
+  }, [reason]);
 
   const open = useCallback(() => {
     if (typeof document !== "undefined") {
       previouslyFocused.current = document.activeElement as HTMLElement | null;
     }
-    if (!isAvailable) {
-      setUpgradeOpen(true);
-      void trackEvent("ask_upgrade_modal_shown", { plan });
+    if (usageStatus !== "ready") {
+      void refreshUsage().then(openWithUsage);
       return;
     }
-    setIsOpen(true);
-    void trackEvent("ask_drawer_opened", { plan });
-  }, [isAvailable, plan]);
+    openWithUsage(usage);
+  }, [openWithUsage, refreshUsage, usage, usageStatus]);
 
   const close = useCallback(() => {
     setIsOpen(false);

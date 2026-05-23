@@ -4,6 +4,16 @@ Data: 2026-05-13
 
 Executar estes testes apos deploy em staging e antes de promover para producao. Nao registrar API keys, senhas reais ou tokens em prints/logs.
 
+## 0. Gate automatizado de auditabilidade
+
+Antes dos smokes manuais por frente, rode o live gate:
+
+```powershell
+node scripts\enterprise-auditability-live-gate.js --env=staging --strict --skip-events-ingest --output docs/evidence/enterprise-live-gate-staging.md
+```
+
+Para validar ingestao de eventos em staging, rode com `--allow-mutations` e `ENTERPRISE_GATE_EVENTS_INGEST_KEY`. Em producao, manter `--skip-events-ingest` salvo janela assistida com aprovacao explicita.
+
 ## 1. Auth e Sessao
 
 - Login com usuario ativo.

@@ -1,0 +1,55 @@
+{
+  "squad": "event-demand-pricing-radar",
+  "status": "completed",
+  "step": {
+    "current": 4,
+    "total": 4,
+    "label": "rodada-final-release-concluida"
+  },
+  "agents": [
+    {
+      "id": "lia-contratos",
+      "name": "Lia Contratos",
+      "icon": "LC",
+      "status": "done",
+      "desk": { "col": 1, "row": 1 }
+    },
+    {
+      "id": "nico-engine",
+      "name": "Nico Engine",
+      "icon": "NE",
+      "status": "done",
+      "desk": { "col": 2, "row": 1 }
+    },
+    {
+      "id": "maya-host",
+      "name": "Maya Host",
+      "icon": "MH",
+      "status": "done",
+      "desk": { "col": 3, "row": 1 }
+    },
+    {
+      "id": "otto-admin",
+      "name": "Otto Admin",
+      "icon": "OA",
+      "status": "done",
+      "desk": { "col": 1, "row": 2 }
+    },
+    {
+      "id": "tais-integracao",
+      "name": "Tais Integracao",
+      "icon": "TI",
+      "status": "done",
+      "desk": { "col": 2, "row": 2 }
+    }
+  ],
+  "startedAt": "2026-05-22T15:06:12-03:00",
+  "handoff": {
+    "from": "tais-integracao",
+    "to": "event-demand-pricing-radar",
+    "message": "Rodada final consolidou idempotencia, outcomes, heatmap Host/Admin e release gate reproduzivel.",
+    "completedAt": "2026-05-22T15:32:00-03:00"
+  },
+  "updatedAt": "2026-05-22T15:32:00-03:00",
+  "completedAt": "2026-05-22T15:32:00-03:00"
+}

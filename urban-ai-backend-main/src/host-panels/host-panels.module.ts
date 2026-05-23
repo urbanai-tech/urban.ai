@@ -9,7 +9,9 @@ import { OccupancyHistory } from '../entities/occupancy-history.entity';
 import { PriceSnapshot } from '../entities/price-snapshot.entity';
 import { PricingRuleConfig } from '../entities/pricing-rule-config.entity';
 import { User } from '../entities/user.entity';
+import { EventIntelligenceModule } from '../event-intelligence/event-intelligence.module';
 import { AskController } from './ask.controller';
+import { HostEventsController } from './host-events.controller';
 import { HostPanelsService } from './host-panels.service';
 import { PaceController } from './pace.controller';
 import { PortfolioController } from './portfolio.controller';
@@ -17,6 +19,7 @@ import { PropertiesPanelController } from './properties-panel.controller';
 
 @Module({
   imports: [
+    EventIntelligenceModule,
     TypeOrmModule.forFeature([
       Address,
       AnalisePreco,
@@ -31,6 +34,7 @@ import { PropertiesPanelController } from './properties-panel.controller';
   ],
   controllers: [
     AskController,
+    HostEventsController,
     PaceController,
     PortfolioController,
     PropertiesPanelController,

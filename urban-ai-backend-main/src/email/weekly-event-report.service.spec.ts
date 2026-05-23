@@ -17,6 +17,9 @@ describe('WeeklyEventReportService', () => {
     const pushNotificationService = {
       sendToUser: jest.fn().mockResolvedValue({ enabled: true, attempted: 1, sent: 1, failed: 0 }),
     };
+    const communicationPreferences = {
+      getForUser: jest.fn().mockResolvedValue({ weeklyReport: true }),
+    };
 
     const service = new WeeklyEventReportService(
       userRepo as any,
@@ -24,9 +27,18 @@ describe('WeeklyEventReportService', () => {
       analisePrecoRepo as any,
       mailer as any,
       pushNotificationService as any,
+      communicationPreferences as any,
     );
 
-    return { service, userRepo, addressRepo, analisePrecoRepo, mailer, pushNotificationService };
+    return {
+      service,
+      userRepo,
+      addressRepo,
+      analisePrecoRepo,
+      mailer,
+      pushNotificationService,
+      communicationPreferences,
+    };
   };
 
   afterEach(() => {

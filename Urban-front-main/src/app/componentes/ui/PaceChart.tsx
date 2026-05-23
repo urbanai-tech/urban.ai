@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import { parseLocalDate } from "@/app/lib/date";
 import { AppEmptyState } from "./AppEmptyState";
 import { TrendingUp } from "./Icons";
 
@@ -49,8 +50,8 @@ const PADDING_TOP = 32;
 const PADDING_BOTTOM = 32;
 
 function formatDateShortPtBR(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
+  const d = parseLocalDate(iso);
+  if (!d) return iso;
   const dd = String(d.getDate()).padStart(2, "0");
   const months = [
     "jan",
@@ -70,8 +71,8 @@ function formatDateShortPtBR(iso: string): string {
 }
 
 function formatDateFullPtBR(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
+  const d = parseLocalDate(iso);
+  if (!d) return iso;
   return d.toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "long",

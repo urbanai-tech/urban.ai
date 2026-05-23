@@ -37,7 +37,7 @@ describe('PropertyClassifier', () => {
         amenitiesCount: 1,
       });
 
-      expect(result.categoryName).toBe('Econômico');
+      expect(result.categoryName).toBe('Econ\u00f4mico');
       expect(result.categoryId).toBe(0);
     });
 
@@ -55,13 +55,70 @@ describe('PropertyClassifier', () => {
       expect(result.categoryName).toBe('Premium');
       expect(result.categoryId).toBe(2);
     });
+
+    it('ignores invalid training rows and still classifies with valid data', () => {
+      const classifier = new PropertyClassifier();
+      classifier.train([
+        { lat: undefined, lng: undefined, metroDistance: 0.2, amenitiesCount: 9, category: 2 },
+        ...trainingSet,
+      ]);
+
+      const result = classifier.classify({
+        lat: -23.57,
+        lng: -46.67,
+        metroDistance: 0.2,
+        amenitiesCount: 9,
+      });
+
+      expect(result.categoryName).toBe('Premium');
+      expect(result.categoryId).toBe(2);
+    });
+
+    it('falls back instead of throwing when the target property has no coordinates', () => {
+      const classifier = new PropertyClassifier();
+      classifier.train(trainingSet);
+
+      expect(() =>
+        classifier.classify({
+          lat: undefined,
+          lng: undefined,
+          metroDistance: 0.2,
+          amenitiesCount: 9,
+        }),
+      ).not.toThrow();
+
+      expect(
+        classifier.classify({
+          lat: undefined,
+          lng: undefined,
+          metroDistance: 0.2,
+          amenitiesCount: 9,
+        }),
+      ).toEqual({ categoryId: 1, categoryName: 'Standard' });
+    });
+
+    it('falls back when every training row is invalid', () => {
+      const classifier = new PropertyClassifier();
+      classifier.train([
+        { lat: undefined, lng: undefined, metroDistance: 0.2, amenitiesCount: 9, category: 2 },
+      ]);
+
+      const result = classifier.classify({
+        lat: -23.57,
+        lng: -46.67,
+        metroDistance: 0.2,
+        amenitiesCount: 9,
+      });
+
+      expect(result).toEqual({ categoryId: 1, categoryName: 'Standard' });
+    });
   });
 
   describe('getCategoryName', () => {
     it('maps ids 0, 1, 2 to human-readable labels', () => {
       const classifier = new PropertyClassifier();
 
-      expect(classifier.getCategoryName(0)).toBe('Econômico');
+      expect(classifier.getCategoryName(0)).toBe('Econ\u00f4mico');
       expect(classifier.getCategoryName(1)).toBe('Standard');
       expect(classifier.getCategoryName(2)).toBe('Premium');
     });

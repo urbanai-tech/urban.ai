@@ -33,6 +33,8 @@ const PRIMARY_NAV = [
   { path: '/painel', label: 'Painel', icon: 'bar-chart' as const },
   { path: '/dashboard', label: 'Calendário', icon: 'calendar' as const },
   { path: '/portfolio', label: 'Portfólio', icon: 'layers' as const },
+  { path: '/event-radar', label: 'Radar', icon: 'trending-up' as const },
+  { path: '/events', label: 'Eventos', icon: 'calendar' as const },
   { path: '/maps', label: 'Mapa', icon: 'map-pin' as const },
   { path: '/properties', label: 'Imóveis', icon: 'home' as const },
 ];
@@ -114,7 +116,7 @@ export default function SideBar() {
     router.push('/');
   }
 
-  const isActive = (route: string) => pathname === route;
+  const isActive = (route: string) => pathname === route || pathname.startsWith(`${route}/`);
   const isAdmin = (me?.role || '').toLowerCase() === 'admin';
   const displayName = me?.username || 'Anfitrião';
   const initial = displayName.charAt(0).toUpperCase();

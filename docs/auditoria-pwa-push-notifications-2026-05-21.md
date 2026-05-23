@@ -1,5 +1,11 @@
 # Auditoria PWA Push Notifications - 2026-05-21
 
+Atualizacao 2026-05-22: o veredito inicial abaixo ficou historico. A camada Web Push
+foi implementada no runtime depois da primeira leitura, com service worker, opt-in no
+frontend, endpoints backend e dispatcher. O canal ainda depende de `WEB_PUSH_PUBLIC_KEY`,
+`WEB_PUSH_PRIVATE_KEY` e `WEB_PUSH_SUBJECT` configurados em producao para ser validado
+como disponivel fora de smoke.
+
 ## Veredito
 
 A Urban AI esta instalavel como PWA, com manifest, icones e service worker de cache/offline, mas ainda nao tem Web Push de verdade.

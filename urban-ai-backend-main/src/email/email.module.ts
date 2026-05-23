@@ -11,6 +11,7 @@ import { Address } from 'src/entities/addresses.entity';
 import { Event } from 'src/entities/events.entity';
 import { Payment } from 'src/entities/payment.entity';
 import { User } from 'src/entities/user.entity';
+import { AdminJobRun } from 'src/entities/admin-job-run.entity';
 import { EmailConfirmation } from 'src/entities/EmailConfirmation';
 import { PasswordResetToken } from 'src/entities/password-reset-token.entity';
 import { PricingRecommendationDigest } from 'src/entities/pricing-recommendation-digest.entity';
@@ -38,6 +39,7 @@ import { CommunicationPreferencesModule } from 'src/communication-preferences/co
             PasswordResetToken,
             PricingRecommendationDigest,
             Payment,
+            AdminJobRun,
         ]),
     ],
     controllers: [

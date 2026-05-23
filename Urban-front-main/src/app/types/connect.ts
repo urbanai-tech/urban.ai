@@ -36,11 +36,11 @@ export interface Address {
 
 /** Tipo para criar endereços (sem id) */
 export interface CreateAddressDto {
-  cep: string;
-  numero: string;
-  logradouro?: string;
-  bairro?: string;
-  cidade?: string;
+  cep: string | null;
+  numero: string | null;
+  logradouro?: string | null;
+  bairro?: string | null;
+  cidade?: string | null;
   estado?: string | null;
   list: { id: string };
 }

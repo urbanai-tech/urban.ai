@@ -1,9 +1,11 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, Optional } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Address } from '../entities/addresses.entity';
 import { UrbanAIPricingEngine } from './pricing-engine';
+import { AdminJobRun } from '../entities/admin-job-run.entity';
+import { runAdminJobWithTracking } from '../admin-job-runs/admin-job-run-tracker';
 
 /**
  * F6.1 Tier 1 — Bootstrap do motor de pricing.
@@ -35,6 +37,9 @@ export class PricingBootstrapService implements OnModuleInit {
   constructor(
     @InjectRepository(Address) private readonly addressRepo: Repository<Address>,
     private readonly engine: UrbanAIPricingEngine,
+    @Optional()
+    @InjectRepository(AdminJobRun)
+    private readonly jobRunRepo?: Repository<AdminJobRun>,
   ) {}
 
   async onModuleInit() {
@@ -64,7 +69,7 @@ export class PricingBootstrapService implements OnModuleInit {
   async handleWeeklyRetrain() {
     this.logger.log('Iniciando retreino semanal do PricingEngine...');
     try {
-      await this.train();
+      await this.runCronWithTracking('pricing-retrain', () => this.train());
     } catch (err) {
       this.logger.error(
         `Retreino semanal falhou: ${(err as Error).message}`,
@@ -107,5 +112,11 @@ export class PricingBootstrapService implements OnModuleInit {
     this.engine.initialize(properties);
     this.logger.log(`PricingEngine treinado com ${properties.length} imóveis.`);
     return { count: properties.length };
+  }
+
+  private async runCronWithTracking<T>(name: string, handler: () => Promise<T>): Promise<T> {
+    if (!this.jobRunRepo) return handler();
+    const run = await runAdminJobWithTracking(this.jobRunRepo, name, null, handler);
+    return run.result as T;
   }
 }

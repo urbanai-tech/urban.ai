@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Raw, Repository } from 'typeorm';
@@ -6,6 +6,8 @@ import { Event } from '../entities/events.entity';
 import { MapsService } from '../maps/maps.service';
 import { CoverageService } from './coverage.service';
 import { isGoogleMapsConfigurationError } from '../maps/google-maps-error';
+import { AdminJobRun } from '../entities/admin-job-run.entity';
+import { runAdminJobWithTracking } from '../admin-job-runs/admin-job-run-tracker';
 
 export interface GeocoderRunSummary {
   attempted: number;
@@ -38,6 +40,9 @@ export class EventsGeocoderService {
     @InjectRepository(Event) private readonly eventRepo: Repository<Event>,
     private readonly mapsService: MapsService,
     private readonly coverage: CoverageService,
+    @Optional()
+    @InjectRepository(AdminJobRun)
+    private readonly jobRunRepo?: Repository<AdminJobRun>,
   ) {}
 
   @Cron(CronExpression.EVERY_30_MINUTES)
@@ -48,7 +53,7 @@ export class EventsGeocoderService {
     }
     this.running = true;
     try {
-      await this.runOnce(30);
+      await this.runCronWithTracking('events-geocoder', () => this.runOnce(30));
     } finally {
       this.running = false;
     }
@@ -140,6 +145,12 @@ export class EventsGeocoderService {
       );
       throw err;
     }
+  }
+
+  private async runCronWithTracking<T>(name: string, handler: () => Promise<T>): Promise<T> {
+    if (!this.jobRunRepo) return handler();
+    const run = await runAdminJobWithTracking(this.jobRunRepo, name, null, handler);
+    return run.result as T;
   }
 
   async pendingCount(): Promise<number> {

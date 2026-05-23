@@ -1,6 +1,8 @@
-import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AirbnbService } from 'src/airbnb/airbnb.service';
 import { AnalisePreco } from 'src/entities/AnalisePreco';
+import { PriceUpdate } from 'src/entities/price-update.entity';
 import { DatasetCollectorService } from 'src/knn-engine/dataset-collector.service';
 import { Repository } from 'typeorm';
 
@@ -57,6 +59,31 @@ export type SuggestionPublicResponse = {
     capturedAt: string | Date | null;
     note: string | null;
   };
+  verification: {
+    status: string | null;
+    checkedAt: string | Date | null;
+    verifiedAppliedAt: string | Date | null;
+    observedPrice: number | null;
+    source: string | null;
+    error: string | null;
+  };
+};
+
+export type SuggestionVerificationHealth = {
+  pending: number;
+  verified: number;
+  failed: number;
+  mismatch: number;
+  acceptedWithoutApplication: number;
+};
+
+export type SuggestionVerificationBatchResult = {
+  scanned: number;
+  verified: number;
+  failed: number;
+  mismatch: number;
+  skipped: number;
+  results: SuggestionPublicResponse[];
 };
 
 @Injectable()
@@ -67,6 +94,11 @@ export class SugestionService {
     @InjectRepository(AnalisePreco)
     private readonly analisePrecoRepository: Repository<AnalisePreco>,
     private readonly datasetCollector: DatasetCollectorService,
+    @Optional()
+    @InjectRepository(PriceUpdate)
+    private readonly priceUpdateRepository?: Repository<PriceUpdate>,
+    @Optional()
+    private readonly airbnbService?: AirbnbService,
   ) {}
 
   async alterarAceito(id: string, userId: string, aceito: boolean): Promise<SuggestionPublicResponse> {
@@ -84,6 +116,7 @@ export class SugestionService {
     registro.status = aceito ? 'accepted' : 'rejected';
     registro.aceitoEm = aceito ? new Date() : null;
     registro.rejeitadoEm = aceito ? null : new Date();
+    this.markVerificationPendingOrNotRequired(registro, aceito);
     const saved = await this.analisePrecoRepository.save(registro);
     return this.toPublicResponse(saved);
   }
@@ -124,6 +157,7 @@ export class SugestionService {
     registro.aceitoEm = registro.aceitoEm ?? new Date();
     registro.rejeitadoEm = null;
     registro.expiradoEm = null;
+    this.markVerificationPendingOrNotRequired(registro, true);
     this.applyOutcomeFeedback(registro, input);
     const saved = await this.analisePrecoRepository.save(registro);
     await this.tryRecordAppliedPriceSnapshot(saved, input.precoAplicado);
@@ -154,6 +188,7 @@ export class SugestionService {
         registro.aceito = true;
         registro.aceitoEm = registro.aceitoEm ?? new Date();
         registro.status = 'applied_manual';
+        this.markVerificationPendingOrNotRequired(registro, true);
       }
     }
 
@@ -187,6 +222,119 @@ export class SugestionService {
 
   async aceitar(id: string, userId: string): Promise<SuggestionPublicResponse> {
     return this.alterarAceito(id, userId, true);
+  }
+
+  async verificationHealth(): Promise<SuggestionVerificationHealth> {
+    const raw = await this.analisePrecoRepository
+      .createQueryBuilder('analise')
+      .select(`
+        SUM(CASE WHEN analise.aceito = 1 AND COALESCE(analise.verificationStatus, 'pending') = 'pending' THEN 1 ELSE 0 END)
+      `, 'pending')
+      .addSelect(`
+        SUM(CASE WHEN analise.aceito = 1 AND analise.verificationStatus = 'verified' THEN 1 ELSE 0 END)
+      `, 'verified')
+      .addSelect(`
+        SUM(CASE WHEN analise.aceito = 1 AND analise.verificationStatus = 'failed' THEN 1 ELSE 0 END)
+      `, 'failed')
+      .addSelect(`
+        SUM(CASE WHEN analise.aceito = 1 AND analise.verificationStatus = 'mismatch' THEN 1 ELSE 0 END)
+      `, 'mismatch')
+      .addSelect(`
+        SUM(CASE WHEN analise.aceito = 1 AND analise.precoAplicado IS NULL THEN 1 ELSE 0 END)
+      `, 'acceptedWithoutApplication')
+      .getRawOne();
+
+    return {
+      pending: Number(raw?.pending ?? 0),
+      verified: Number(raw?.verified ?? 0),
+      failed: Number(raw?.failed ?? 0),
+      mismatch: Number(raw?.mismatch ?? 0),
+      acceptedWithoutApplication: Number(raw?.acceptedWithoutApplication ?? 0),
+    };
+  }
+
+  async listarAceitasPendentesVerificacao(limit = 50): Promise<SuggestionPublicResponse[]> {
+    const registros = await this.pendingVerificationQuery()
+      .take(this.normalizeLimit(limit))
+      .getMany();
+    return registros.map((registro) => this.toPublicResponse(registro));
+  }
+
+  async verificarAnalisesAceitasPendentes(limit = 25): Promise<SuggestionVerificationBatchResult> {
+    const registros = await this.pendingVerificationQuery()
+      .andWhere('analise.precoAplicado IS NOT NULL')
+      .take(this.normalizeLimit(limit, 100))
+      .getMany();
+
+    const results: SuggestionPublicResponse[] = [];
+    let verified = 0;
+    let failed = 0;
+    let mismatch = 0;
+    let skipped = 0;
+
+    for (const registro of registros) {
+      const result = await this.verificarAplicacao(registro.id);
+      results.push(result);
+      if (result.verification.status === 'verified') verified++;
+      else if (result.verification.status === 'failed') failed++;
+      else if (result.verification.status === 'mismatch') mismatch++;
+      else skipped++;
+    }
+
+    return {
+      scanned: registros.length,
+      verified,
+      failed,
+      mismatch,
+      skipped,
+      results,
+    };
+  }
+
+  async verificarAplicacao(id: string): Promise<SuggestionPublicResponse> {
+    const registro = await this.analisePrecoRepository.findOne({
+      where: { id },
+      relations: ['usuarioProprietario', 'endereco', 'endereco.list', 'evento'],
+    });
+    if (!registro) {
+      throw new NotFoundException('Registro nao encontrado');
+    }
+
+    if (!registro.aceito) {
+      registro.verificationStatus = 'not_required';
+      registro.verificationCheckedAt = new Date();
+      registro.verificationError = null;
+      return this.toPublicResponse(await this.analisePrecoRepository.save(registro));
+    }
+
+    if (!registro.precoAplicado) {
+      registro.verificationStatus = 'pending';
+      registro.verificationCheckedAt = new Date();
+      registro.verificationError = 'Sugestao aceita sem preco aplicado registrado.';
+      return this.toPublicResponse(await this.analisePrecoRepository.save(registro));
+    }
+
+    try {
+      const observed = await this.observeAppliedPrice(registro);
+      const expected = this.nullableNumber(registro.precoAplicado) ?? this.nullableNumber(registro.precoSugerido);
+      const status = this.pricesMatch(expected, observed.price) ? 'verified' : 'mismatch';
+
+      registro.verificationStatus = status;
+      registro.verificationCheckedAt = new Date();
+      registro.verifiedAppliedAt = observed.appliedAt;
+      registro.observedPrice = Number(observed.price.toFixed(2));
+      registro.verificationSource = observed.source;
+      registro.verificationError = status === 'mismatch'
+        ? `Preco observado ${observed.price.toFixed(2)} difere do preco esperado ${expected?.toFixed(2) ?? 'n/a'}.`
+        : null;
+
+      return this.toPublicResponse(await this.analisePrecoRepository.save(registro));
+    } catch (error) {
+      registro.verificationStatus = 'failed';
+      registro.verificationCheckedAt = new Date();
+      registro.verificationError = this.truncateError(error);
+      return this.toPublicResponse(await this.analisePrecoRepository.save(registro));
+    }
   }
 
   private assertOwnedByUser(registro: AnalisePreco, userId: string): void {
@@ -263,6 +411,14 @@ export class SugestionService {
         bookedNights: registro.noitesReservadas ?? null,
         capturedAt: registro.resultadoRegistradoEm?.toISOString?.() ?? registro.resultadoRegistradoEm ?? null,
         note: registro.feedbackObservacao ?? null,
+      },
+      verification: {
+        status: registro.verificationStatus ?? null,
+        checkedAt: registro.verificationCheckedAt?.toISOString?.() ?? registro.verificationCheckedAt ?? null,
+        verifiedAppliedAt: registro.verifiedAppliedAt?.toISOString?.() ?? registro.verifiedAppliedAt ?? null,
+        observedPrice: this.nullableNumber(registro.observedPrice),
+        source: registro.verificationSource ?? null,
+        error: registro.verificationError ?? null,
       },
     };
   }
@@ -341,5 +497,117 @@ export class SugestionService {
     if (touched) {
       registro.resultadoRegistradoEm = new Date();
     }
+  }
+
+  private markVerificationPendingOrNotRequired(registro: AnalisePreco, accepted: boolean): void {
+    registro.verificationStatus = accepted ? 'pending' : 'not_required';
+    registro.verificationCheckedAt = null;
+    registro.verifiedAppliedAt = null;
+    registro.observedPrice = null;
+    registro.verificationSource = null;
+    registro.verificationError = null;
+  }
+
+  private pendingVerificationQuery() {
+    return this.analisePrecoRepository
+      .createQueryBuilder('analise')
+      .leftJoinAndSelect('analise.usuarioProprietario', 'usuarioProprietario')
+      .leftJoinAndSelect('analise.endereco', 'endereco')
+      .leftJoinAndSelect('endereco.list', 'list')
+      .leftJoinAndSelect('analise.evento', 'evento')
+      .where('analise.aceito = :aceito', { aceito: true })
+      .andWhere("(analise.verificationStatus IS NULL OR analise.verificationStatus IN ('pending', 'failed', 'mismatch'))")
+      .orderBy('analise.aceitoEm', 'ASC')
+      .addOrderBy('analise.criadoEm', 'ASC');
+  }
+
+  private normalizeLimit(limit: number, max = 200): number {
+    const parsed = Math.floor(Number(limit));
+    if (!Number.isFinite(parsed) || parsed <= 0) return 50;
+    return Math.min(parsed, max);
+  }
+
+  private async observeAppliedPrice(registro: AnalisePreco): Promise<{
+    price: number;
+    source: string;
+    appliedAt: Date;
+  }> {
+    const staysObservation = await this.observeFromSuccessfulPriceUpdate(registro.id);
+    if (staysObservation) return staysObservation;
+    return this.observeFromAirbnb(registro);
+  }
+
+  private async observeFromSuccessfulPriceUpdate(analiseId: string): Promise<{
+    price: number;
+    source: string;
+    appliedAt: Date;
+  } | null> {
+    if (!this.priceUpdateRepository) return null;
+
+    const update = await this.priceUpdateRepository.findOne({
+      where: {
+        analise: { id: analiseId },
+        status: 'success',
+      } as any,
+      order: { createdAt: 'DESC' },
+    });
+    if (!update) return null;
+
+    return {
+      price: update.newPriceCents / 100,
+      source: 'stays_price_update',
+      appliedAt: update.createdAt ?? new Date(),
+    };
+  }
+
+  private async observeFromAirbnb(registro: AnalisePreco): Promise<{
+    price: number;
+    source: string;
+    appliedAt: Date;
+  }> {
+    if (!this.airbnbService) {
+      throw new Error('AirbnbService indisponivel para verificacao.');
+    }
+
+    const listingId = registro.endereco?.list?.id_do_anuncio?.trim();
+    if (!listingId) {
+      throw new Error('Sugestao sem anuncio Airbnb associado para verificacao.');
+    }
+
+    const checkIn = this.resolveTargetDate(registro);
+    const checkOut = this.addDays(checkIn, 1);
+    const quote = await this.airbnbService.getPriceForDateWindow(listingId, checkIn, checkOut);
+    const total = this.nullableNumber(quote.price?.data?.accommodationCost);
+    const nights = Math.max(1, Number(quote.nights ?? 1));
+    if (!total || total <= 0) {
+      throw new Error('Airbnb nao retornou preco observado valido.');
+    }
+
+    return {
+      price: total / nights,
+      source: quote.source ?? 'airbnb',
+      appliedAt: new Date(),
+    };
+  }
+
+  private resolveTargetDate(registro: AnalisePreco): string {
+    const date = registro.evento?.dataInicio ?? registro.aplicadoEm ?? registro.aceitoEm ?? new Date();
+    return new Date(date).toISOString().slice(0, 10);
+  }
+
+  private addDays(date: string, days: number): string {
+    const parsed = new Date(`${date}T00:00:00.000Z`);
+    parsed.setUTCDate(parsed.getUTCDate() + days);
+    return parsed.toISOString().slice(0, 10);
+  }
+
+  private pricesMatch(expected: number | null, observed: number): boolean {
+    if (!expected || !Number.isFinite(expected) || !Number.isFinite(observed)) return false;
+    return Math.abs(expected - observed) <= 1;
+  }
+
+  private truncateError(error: unknown): string {
+    const message = error instanceof Error ? error.message : String(error);
+    return message.slice(0, 2000);
   }
 }
