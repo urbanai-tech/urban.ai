@@ -21,6 +21,16 @@ async function mockPlans(page: Page) {
   });
 }
 
+async function mockInactiveSubscription(page: Page) {
+  await page.route('**/payments/getSubscription', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 'inactive' }),
+    });
+  });
+}
+
 async function mockAuthenticatedSession(page: Page) {
   await page.route('**/auth/me', async (route) => {
     await route.fulfill({
@@ -92,6 +102,7 @@ test.describe('Onboarding Airbnb import', () => {
 
     await mockAuthenticatedSession(page);
     await mockPlans(page);
+    await mockInactiveSubscription(page);
     await mockAirbnbIndividualImport(page);
     await page.route('**/connect/resolve**', async (route) => {
       resolvedUrls.push(route.request().url());
@@ -164,6 +175,7 @@ test.describe('Onboarding Airbnb import', () => {
 
     await mockAuthenticatedSession(page);
     await mockPlans(page);
+    await mockInactiveSubscription(page);
     await mockAirbnbIndividualImport(page);
 
     await page.route('**/connect/register', async (route) => {
@@ -251,12 +263,12 @@ test.describe('Onboarding Airbnb import', () => {
     ]);
     expect(addressPayloads[0]).toEqual([
       {
-        cep: '00000-000',
-        numero: 'S/N',
-        logradouro: 'A definir',
-        bairro: 'A definir',
-        cidade: 'A definir',
-        estado: 'A ',
+        cep: null,
+        numero: null,
+        logradouro: null,
+        bairro: null,
+        cidade: null,
+        estado: null,
         list: { id: '12345678' },
       },
     ]);
@@ -278,6 +290,7 @@ test.describe('Onboarding Airbnb import', () => {
 
     await mockAuthenticatedSession(page);
     await mockPlans(page);
+    await mockInactiveSubscription(page);
     await mockAirbnbIndividualImport(page);
 
     await page.route('**/connect/register', async (route) => {

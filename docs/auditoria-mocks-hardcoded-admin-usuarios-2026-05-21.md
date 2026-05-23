@@ -4,6 +4,11 @@ Data: 2026-05-21
 
 Status: corrigido no codigo de runtime.
 
+Atualizacao 2026-05-22: a auditoria consolidada atual esta em
+`docs/auditoria-consolidada-dados-graficos-relatorios-2026-05-22.md`. Esta auditoria
+continua valida para runtime; mocks de testes e artefatos legados/deprecated devem ser
+tratados separadamente para nao gerar falsos positivos.
+
 ## Escopo
 
 - Frontend Next.js em `Urban-front-main/src/app/admin`.

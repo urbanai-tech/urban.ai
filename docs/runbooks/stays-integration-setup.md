@@ -74,10 +74,67 @@ O anfitrião precisa ser cliente **Stays** e ter a Open API ativada (US$ 19/mês
 - Processa a última `AnalisePreco` aceita (<24h) ainda não aplicada
 - Chama `StaysService.pushPrice({ origin: 'ai_auto' })`
 
+### Kill switch global do auto-apply
+
+O auto-apply Stays e fail-closed por padrao. Mesmo que usuario/listing esteja em modo automatico, o cron nao aplica preco real se `STAYS_AUTO_APPLY_ENABLED` nao estiver explicitamente ligado.
+
+Envs operacionais:
+
+| Env | Default | Uso |
+|---|---:|---|
+| `STAYS_AUTO_APPLY_ENABLED` | `false` | Precisa ser `true` (tambem aceito: `1`, `yes`, `on`) para permitir qualquer auto-apply. |
+| `STAYS_AUTO_APPLY_DRY_RUN` | `false` | Quando `true`, o cron calcula e loga o push que faria, mas nao chama `StaysService.pushPrice`. |
+| `STAYS_AUTO_APPLY_ALLOWED_USER_IDS` | vazio | Lista separada por virgula/espaco/`;`. Se preenchida, apenas esses `user.id` podem rodar auto-apply. |
+| `STAYS_AUTO_APPLY_ALLOWED_LISTING_IDS` | vazio | Lista separada por virgula/espaco/`;`. Se preenchida, apenas esses `stays_listings.id` ou `staysListingId` podem rodar auto-apply. |
+| `STAYS_AUTO_APPLY_COHORT` | `event-safe-beta` | Rotulo auditavel do cohort em execucao. Vai para logs e para `PriceUpdate.userAgent` no push real. |
+| `STAYS_AUTO_APPLY_REQUIRE_PRICING_DECISION` | `true` | Exige `PricingDecisionSnapshot` ligado a `AnalisePreco` antes de auto-apply. |
+| `STAYS_AUTO_APPLY_REQUIRE_LIVE_ALLOWLISTS` | `true` | Em push real, exige allowlist de usuario e listing preenchidas. Dry-run pode ser mais amplo. |
+| `STAYS_AUTO_APPLY_MIN_CONFIDENCE` | `medium` | Confidence minima da decisao de evento. |
+| `STAYS_AUTO_APPLY_MIN_BOOKING_PROBABILITY` | `0.45` | Probabilidade minima de absorcao do cenario recomendado. |
+| `STAYS_AUTO_APPLY_MIN_RECOMMENDED_MULTIPLIER` | `1.00` | Piso de multiplicador para evento; evita reducao automatica de preco no cohort de evento. |
+| `STAYS_AUTO_APPLY_MAX_RECOMMENDED_MULTIPLIER` | `1.25` | Teto do multiplicador seguro do cohort, antes do guardrail final do `StaysService`. |
+| `STAYS_AUTO_APPLY_BLOCKED_RISK_FLAGS` | lista padrao | Flags que bloqueiam auto-apply: `low_confidence,past_event,property_unavailable,property_unavailable_for_event_window,previous_recommendation_rejected,previous_recommendation_expired`. |
+
+Aliases tambem aceitos: `STAYS_AUTO_APPLY_USER_ALLOWLIST` e `STAYS_AUTO_APPLY_LISTING_ALLOWLIST`.
+
+Para beta privado, recomendacao segura:
+
+```text
+STAYS_AUTO_APPLY_ENABLED=true
+STAYS_AUTO_APPLY_DRY_RUN=true
+STAYS_AUTO_APPLY_ALLOWED_USER_IDS=<user-id-beta>
+STAYS_AUTO_APPLY_ALLOWED_LISTING_IDS=<listing-id-beta>
+STAYS_AUTO_APPLY_COHORT=event-safe-beta
+STAYS_AUTO_APPLY_MIN_CONFIDENCE=medium
+STAYS_AUTO_APPLY_MIN_BOOKING_PROBABILITY=0.45
+STAYS_AUTO_APPLY_MIN_RECOMMENDED_MULTIPLIER=1.00
+STAYS_AUTO_APPLY_MAX_RECOMMENDED_MULTIPLIER=1.25
+```
+
+Trocar `STAYS_AUTO_APPLY_DRY_RUN=false` somente depois de validar logs, consentimento, guardrails e rollback no listing allowlisted.
+
+### Cohort seguro para recomendacoes de eventos
+
+O cron nao trata mais `operationMode='auto'` como suficiente para push real de evento. A decisao elegivel precisa passar por estes criterios:
+
+- `AnalisePreco` aceita, recente (<24h) e sem `PriceUpdate.success` anterior.
+- Conta Stays ativa com `consentAcceptedAt` e `consentVersion`.
+- Usuario e listing em allowlist quando o push nao esta em dry-run.
+- `PricingDecisionSnapshot` mais recente da analise com status `suggested` ou `accepted`.
+- `confidence >= STAYS_AUTO_APPLY_MIN_CONFIDENCE`.
+- `bookingProbability >= STAYS_AUTO_APPLY_MIN_BOOKING_PROBABILITY`.
+- `recommendedMultiplier` entre `STAYS_AUTO_APPLY_MIN_RECOMMENDED_MULTIPLIER` e `STAYS_AUTO_APPLY_MAX_RECOMMENDED_MULTIPLIER`.
+- Preco novo nao acima do preco auditado na decisao (`selectedPriceCents` ou `recommendedPriceCents`, tolerancia de 1%).
+- Nenhuma flag critica em `riskFlags` da decisao ou do `EventPropertyImpact`.
+- `previousPriceCents > 0`, para permitir rollback confiavel.
+
+Quando o push real acontece, o `PriceUpdate` mantem `origin='ai_auto'`, `analise_preco_id` e um `userAgent` tecnico no formato `urban-ai-auto-apply/1; cohort=...; decision=...; confidence=...; multiplier=...; probability=...; rollback=ready`. Isso permite ligar aplicacao, recomendacao e decisao auditavel sem sobrescrever outcomes economicos.
+
 ### Guardrails (em `StaysService.enforceVariationCaps`)
 
 - Se variação > +25% ou < -20%: **recusa push** (BadRequestException) e grava `PriceUpdate.status='rejected'`
 - Configurável por conta via `maxIncreasePercent` / `maxDecreasePercent` — o anfitrião pode afrouxar ou apertar
+- Mesmo que a conta permita teto maior, o cohort de evento pode bloquear antes com `STAYS_AUTO_APPLY_MAX_RECOMMENDED_MULTIPLIER`.
 
 ### Idempotência
 
@@ -103,7 +160,7 @@ O anfitrião precisa ser cliente **Stays** e ter a Open API ativada (US$ 19/mês
 
 1. Abrir `PriceUpdate` pelo admin (painel a construir em F6.3).
 2. Olhar `origin`:
-   - `ai_auto`: SIM, foi autônomo. Checar se o consentimento está gravado (User.consents), se o imóvel estava em modo auto, se a variação estava dentro do guardrail.
+   - `ai_auto`: SIM, foi autônomo. Checar consentimento em `StaysAccount`, se o imóvel estava em modo auto, se usuário/listing estavam allowlisted, se a variação estava dentro do guardrail e se `PriceUpdate.userAgent` aponta para `decision=<PricingDecisionSnapshot.id>`.
    - `user_accepted` / `user_manual`: o próprio anfitrião iniciou — mostrar IP e userAgent registrados.
 3. Se for erro (guardrail quebrado, consentimento ausente): fazer rollback imediato + abrir postmortem.
 
@@ -132,11 +189,14 @@ Antes de oferecer o modo autônomo a um anfitrião real:
 - [ ] Staging environment está de pé (F5C.2 item #11)
 - [ ] Credenciais Stays sandbox obtidas (F6.4 reunião com Sven)
 - [ ] `STAYS_API_BASE_URL` apontando para sandbox em staging
+- [ ] `STAYS_AUTO_APPLY_ENABLED` ausente/false ate o beta controlado; quando ligado, usar dry-run e allowlists primeiro
 - [ ] Smoke test ponta-a-ponta executado: conectar → sync → push manual → push auto → rollback
 - [ ] Load test em staging com 10 contas auto simultâneas (subset do k6 `pricing-recommendation.js`)
 - [ ] Consentimento UI + gravação no User.consents validado
 - [ ] Postmortem template + runbook de incidente Stays específico
 - [ ] Primeiro cliente beta Stays identificado (Semana 8-9)
+- [ ] `PricingDecisionSnapshot` persistido para as recomendações candidatas de evento
+- [ ] Cohort seguro validado em dry-run: confidence, probabilidade, multiplicador, risk flags, consentimento e rollback
 
 ---
 

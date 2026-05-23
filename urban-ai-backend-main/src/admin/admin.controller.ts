@@ -24,6 +24,7 @@ import { EventsEnrichmentService } from '../evento/events-enrichment.service';
 import { RoiService } from '../roi/roi.service';
 import { AdminAuditService } from '../admin-audit/admin-audit.service';
 import { OnboardingDripService } from '../email/onboarding-drip.service';
+import { EventIntelligenceService } from '../event-intelligence/event-intelligence.service';
 
 /**
  * Endpoints administrativos da Urban AI.
@@ -53,6 +54,7 @@ export class AdminController {
     private readonly roi: RoiService,
     private readonly audit: AdminAuditService,
     private readonly onboardingDrip: OnboardingDripService,
+    private readonly eventIntelligence: EventIntelligenceService,
   ) {}
 
   // ================== Onboarding drip (gap H9) ==================
@@ -144,6 +146,12 @@ export class AdminController {
   @Get('dataset/diagnostics')
   async datasetDiagnostics() {
     return this.datasetCollector.datasetDiagnostics();
+  }
+
+  @ApiOperation({ summary: 'Saude operacional do pipeline Price Intelligence' })
+  @Get('price-intelligence/health')
+  async priceIntelligenceHealth(@Query('windowDays') windowDays: string = '7') {
+    return this.admin.priceIntelligenceHealth(parseInt(windowDays, 10));
   }
 
   @ApiOperation({ summary: 'Executar snapshot manual dos imoveis cadastrados' })
@@ -240,6 +248,94 @@ export class AdminController {
   @Get('events/timeline')
   async eventsTimeline(@Query('days') days: string = '30') {
     return this.admin.eventsTimeline(parseInt(days, 10));
+  }
+
+  @ApiOperation({ summary: 'Radar admin de inteligencia de eventos e potencial de demanda' })
+  @Get('events/intelligence')
+  async eventsIntelligence(
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('source') source?: string,
+    @Query('category') category?: string,
+    @Query('scope') scope: 'in' | 'out' | 'all' = 'in',
+    @Query('confidence') confidence?: string,
+    @Query('city') city?: string,
+    @Query('search') search?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.eventIntelligence.adminIntelligence({
+      from,
+      to,
+      source,
+      category,
+      scope,
+      confidence,
+      city,
+      search,
+      limit,
+    });
+  }
+
+  @ApiOperation({ summary: 'Heatmap admin de demanda por eventos' })
+  @Get('events/heatmap')
+  async eventsHeatmap(
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('metric') metric?: string,
+    @Query('category') category?: string,
+    @Query('source') source?: string,
+    @Query('scope') scope: 'in' | 'out' | 'all' = 'in',
+  ) {
+    return this.eventIntelligence.adminHeatmap({
+      from,
+      to,
+      metric,
+      category,
+      source,
+      scope,
+    });
+  }
+
+  @ApiOperation({ summary: 'Blind spots admin de cobertura, fonte e inteligencia de eventos' })
+  @Get('events/blind-spots')
+  async eventsBlindSpots() {
+    return this.eventIntelligence.adminBlindSpots();
+  }
+
+  @ApiOperation({ summary: 'Detalhe admin da inteligencia de um evento' })
+  @Get('events/:eventId/intelligence')
+  async eventIntelligenceDetail(@Param('eventId') eventId: string) {
+    return this.eventIntelligence.adminEventIntelligence(eventId);
+  }
+
+  @ApiOperation({ summary: 'Impacto de um evento em imoveis da plataforma' })
+  @Get('events/:eventId/property-impact')
+  async eventPropertyImpact(@Param('eventId') eventId: string) {
+    return this.eventIntelligence.adminEventPropertyImpact(eventId);
+  }
+
+  @ApiOperation({ summary: 'Reprocessar inteligencia de um evento (contrato P0)' })
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @Post('events/:eventId/recompute-intelligence')
+  async recomputeEventIntelligence(@Param('eventId') eventId: string, @Req() req: any) {
+    return this.eventIntelligence.recomputeEventIntelligence(eventId, req?.user?.userId ?? null);
+  }
+
+  @ApiOperation({ summary: 'Reprocessar inteligencia de eventos em lote (contrato P0)' })
+  @Throttle({ default: { ttl: 60_000, limit: 3 } })
+  @Post('events/intelligence/recompute')
+  async recomputeEventsIntelligence(
+    @Req() req: any,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('source') source?: string,
+    @Query('category') category?: string,
+    @Query('scope') scope: 'in' | 'out' | 'all' = 'in',
+  ) {
+    return this.eventIntelligence.recomputeIntelligenceBatch(
+      { from, to, source, category, scope },
+      req?.user?.userId ?? null,
+    );
   }
 
   @ApiOperation({ summary: 'Saúde da integração Stays (contas, listings, push history)' })

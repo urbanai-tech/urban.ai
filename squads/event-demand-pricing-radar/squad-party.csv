@@ -1,0 +1,6 @@
+id,name,role,agent_file
+lia-contratos,Lia Contratos,Backend Data & API Contracts,lia-contratos.agent.md
+nico-engine,Nico Engine,Intelligence & Pricing Engine,nico-engine.agent.md
+maya-host,Maya Host,Host Event Experience,maya-host.agent.md
+otto-admin,Otto Admin,Admin Event Intelligence,otto-admin.agent.md
+tais-integracao,Tais Integracao,QA Contracts & Release,tais-integracao.agent.md

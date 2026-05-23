@@ -18,6 +18,13 @@ export type AnalisePrecoStatus =
   | 'applied_stays'
   | 'expired';
 
+export type AnalisePrecoVerificationStatus =
+  | 'not_required'
+  | 'pending'
+  | 'verified'
+  | 'mismatch'
+  | 'failed';
+
 export type AnalisePrecoReservaStatus =
   | 'unknown'
   | 'booked'
@@ -118,6 +125,24 @@ export class AnalisePreco {
 
   @Column({ name: 'feedback_observacao', type: 'text', nullable: true })
   feedbackObservacao: string | null;
+
+  @Column({ name: 'verification_status', type: 'varchar', length: 24, nullable: true })
+  verificationStatus: AnalisePrecoVerificationStatus | null;
+
+  @Column({ name: 'verification_checked_at', type: 'timestamp', nullable: true })
+  verificationCheckedAt: Date | null;
+
+  @Column({ name: 'verified_applied_at', type: 'timestamp', nullable: true })
+  verifiedAppliedAt: Date | null;
+
+  @Column({ name: 'observed_price', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  observedPrice: number | null;
+
+  @Column({ name: 'verification_source', type: 'varchar', length: 48, nullable: true })
+  verificationSource: string | null;
+
+  @Column({ name: 'verification_error', type: 'text', nullable: true })
+  verificationError: string | null;
 
   // --- IA Reasoning ---
   @Column({ name: 'motivo_ia', type: 'text', nullable: true })

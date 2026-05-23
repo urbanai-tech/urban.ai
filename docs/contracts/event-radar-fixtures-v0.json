@@ -1,0 +1,396 @@
+{
+  "catalogResponse": {
+    "generatedAt": "2026-05-22T12:00:00.000Z",
+    "city": "Sao Paulo",
+    "state": "SP",
+    "filters": {
+      "from": "2026-06-01",
+      "to": "2026-06-30",
+      "category": null,
+      "nearMyProperties": true
+    },
+    "items": [
+      {
+        "id": "evt-gp-sp-2026",
+        "name": "Grande Premio de Sao Paulo 2026",
+        "description": "Fim de semana de automobilismo com alta procura por hospedagem.",
+        "startsAt": "2026-06-12T20:00:00.000Z",
+        "endsAt": "2026-06-14T23:00:00.000Z",
+        "city": "Sao Paulo",
+        "state": "SP",
+        "venueName": "Autodromo de Interlagos",
+        "address": "Av. Senador Teotonio Vilela, Interlagos",
+        "latitude": -23.7036,
+        "longitude": -46.6997,
+        "category": "sports",
+        "imageUrl": "https://example.com/events/gp-sp.jpg",
+        "officialUrl": "https://example.com/gp-sp",
+        "source": "official-site",
+        "crawledUrl": "https://example.com/gp-sp/programacao",
+        "urbanScore": 94,
+        "demandScore": 91,
+        "confidence": "high",
+        "badges": ["alto impacto", "fonte oficial", "demanda aquecida"]
+      },
+      {
+        "id": "evt-expo-tech-2026",
+        "name": "Expo Tech Brasil",
+        "description": "Congresso de tecnologia no centro de convencoes.",
+        "startsAt": "2026-06-20T11:00:00.000Z",
+        "endsAt": "2026-06-22T22:00:00.000Z",
+        "city": "Sao Paulo",
+        "state": "SP",
+        "venueName": "Sao Paulo Expo",
+        "address": "Rodovia dos Imigrantes, Vila Agua Funda",
+        "latitude": -23.6455,
+        "longitude": -46.6308,
+        "category": "conference",
+        "imageUrl": "https://example.com/events/expo-tech.jpg",
+        "officialUrl": "https://example.com/expo-tech",
+        "source": "sympla",
+        "crawledUrl": "https://example.com/source/expo-tech",
+        "urbanScore": 82,
+        "demandScore": 78,
+        "confidence": "medium",
+        "badges": ["perto de voce", "evento monitorado"]
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 2
+    }
+  },
+  "hostRadarResponse": {
+    "generatedAt": "2026-05-22T12:00:00.000Z",
+    "summary": {
+      "estimatedRevenuePotentialCents": 148000,
+      "relevantEventsCount": 2,
+      "opportunityNightsCount": 5,
+      "affectedPropertiesCount": 2,
+      "averageConfidence": "medium"
+    },
+    "events": [
+      {
+        "id": "evt-gp-sp-2026",
+        "name": "Grande Premio de Sao Paulo 2026",
+        "description": "Fim de semana de automobilismo com alta procura por hospedagem.",
+        "startsAt": "2026-06-12T20:00:00.000Z",
+        "endsAt": "2026-06-14T23:00:00.000Z",
+        "city": "Sao Paulo",
+        "state": "SP",
+        "venueName": "Autodromo de Interlagos",
+        "address": "Av. Senador Teotonio Vilela, Interlagos",
+        "latitude": -23.7036,
+        "longitude": -46.6997,
+        "category": "sports",
+        "imageUrl": "https://example.com/events/gp-sp.jpg",
+        "officialUrl": "https://example.com/gp-sp",
+        "source": "official-site",
+        "crawledUrl": "https://example.com/gp-sp/programacao",
+        "urbanScore": 94,
+        "demandScore": 91,
+        "confidence": "high",
+        "badges": ["alto impacto", "fonte oficial", "demanda aquecida"]
+      },
+      {
+        "id": "evt-expo-tech-2026",
+        "name": "Expo Tech Brasil",
+        "description": "Congresso de tecnologia no centro de convencoes.",
+        "startsAt": "2026-06-20T11:00:00.000Z",
+        "endsAt": "2026-06-22T22:00:00.000Z",
+        "city": "Sao Paulo",
+        "state": "SP",
+        "venueName": "Sao Paulo Expo",
+        "address": "Rodovia dos Imigrantes, Vila Agua Funda",
+        "latitude": -23.6455,
+        "longitude": -46.6308,
+        "category": "conference",
+        "imageUrl": "https://example.com/events/expo-tech.jpg",
+        "officialUrl": "https://example.com/expo-tech",
+        "source": "sympla",
+        "crawledUrl": "https://example.com/source/expo-tech",
+        "urbanScore": 82,
+        "demandScore": 78,
+        "confidence": "medium",
+        "badges": ["perto de voce", "evento monitorado"]
+      }
+    ],
+    "propertyImpacts": {
+      "evt-gp-sp-2026": [
+        {
+          "propertyId": "prop-studio-vila-mariana",
+          "propertyName": "Studio Vila Mariana",
+          "distanceKm": 8.4,
+          "travelTimeMinutes": 24,
+          "propertyCaptureScore": 87,
+          "basePriceCents": 32000,
+          "currentPriceCents": 42000,
+          "recommendedPriceCents": 85000,
+          "minAbsorbablePriceCents": 65000,
+          "maxAbsorbablePriceCents": 95000,
+          "recommendedMultiplier": 2.66,
+          "maxPlausibleMultiplier": 3.1,
+          "bookingProbability": 0.63,
+          "expectedRevenueCents": 53550,
+          "expectedIncrementalRevenueCents": 27150,
+          "confidence": "high",
+          "mainDrivers": ["megaevento", "raio de alto impacto", "baixa oferta relativa"],
+          "recommendedAction": "simulate"
+        }
+      ],
+      "evt-expo-tech-2026": [
+        {
+          "propertyId": "prop-loft-paulista",
+          "propertyName": "Loft Paulista",
+          "distanceKm": 6.2,
+          "travelTimeMinutes": 21,
+          "propertyCaptureScore": 72,
+          "basePriceCents": 41000,
+          "currentPriceCents": 48000,
+          "recommendedPriceCents": 72000,
+          "minAbsorbablePriceCents": 62000,
+          "maxAbsorbablePriceCents": 88000,
+          "recommendedMultiplier": 1.76,
+          "maxPlausibleMultiplier": 2.15,
+          "bookingProbability": 0.58,
+          "expectedRevenueCents": 41760,
+          "expectedIncrementalRevenueCents": 13920,
+          "confidence": "medium",
+          "mainDrivers": ["centro de convencoes", "publico corporativo", "lead time bom"],
+          "recommendedAction": "watch"
+        }
+      ]
+    },
+    "heatmap": [
+      {
+        "cellId": "sp-interlagos-2026-06-12",
+        "h3Index": "89a8100d2abffff",
+        "bbox": null,
+        "centerLat": -23.7036,
+        "centerLng": -46.6997,
+        "dateFrom": "2026-06-12",
+        "dateTo": "2026-06-14",
+        "eventDemandScore": 91,
+        "revenuePotentialCents": 99000,
+        "eventsCount": 1,
+        "topEventIds": ["evt-gp-sp-2026"],
+        "affectedPropertiesCount": 1,
+        "averageConfidence": "high",
+        "dominantCategory": "sports",
+        "supplyCompressionScore": 84
+      }
+    ]
+  },
+  "eventDetailResponse": {
+    "event": {
+      "id": "evt-gp-sp-2026",
+      "name": "Grande Premio de Sao Paulo 2026",
+      "description": "Fim de semana de automobilismo com alta procura por hospedagem.",
+      "startsAt": "2026-06-12T20:00:00.000Z",
+      "endsAt": "2026-06-14T23:00:00.000Z",
+      "city": "Sao Paulo",
+      "state": "SP",
+      "venueName": "Autodromo de Interlagos",
+      "address": "Av. Senador Teotonio Vilela, Interlagos",
+      "latitude": -23.7036,
+      "longitude": -46.6997,
+      "category": "sports",
+      "imageUrl": "https://example.com/events/gp-sp.jpg",
+      "officialUrl": "https://example.com/gp-sp",
+      "source": "official-site",
+      "crawledUrl": "https://example.com/gp-sp/programacao",
+      "urbanScore": 94,
+      "demandScore": 91,
+      "confidence": "high",
+      "badges": ["alto impacto", "fonte oficial", "demanda aquecida"]
+    },
+    "intelligence": {
+      "eventDemandScore": 91,
+      "eventRevenuePotentialCents": 99000,
+      "demandRadiusKm": 12,
+      "expectedAttendance": 65000,
+      "sourceReliabilityScore": 94,
+      "sourceFreshnessHours": 6,
+      "confidence": "high",
+      "interpretation": "Este evento deve aquecer a regiao por 3 noites, com maior impacto em imoveis conectados ao eixo sul e metro.",
+      "drivers": [
+        {
+          "key": "attendance",
+          "label": "Publico esperado",
+          "weight": 0.35,
+          "explanation": "Publico estimado acima de 60 mil pessoas."
+        },
+        {
+          "key": "supply_compression",
+          "label": "Oferta pressionada",
+          "weight": 0.25,
+          "explanation": "Alta procura esperada em raio de 12 km."
+        }
+      ],
+      "riskFlags": ["extreme_price_dropoff"],
+      "dataQualityFlags": [],
+      "generatedAt": "2026-05-22T12:00:00.000Z",
+      "modelVersion": "event-demand-v0.1",
+      "metricVersion": "radar-metrics-v0.1",
+      "jobRunId": "job-event-radar-20260522"
+    },
+    "propertyImpacts": [
+      {
+        "propertyId": "prop-studio-vila-mariana",
+        "propertyName": "Studio Vila Mariana",
+        "distanceKm": 8.4,
+        "travelTimeMinutes": 24,
+        "propertyCaptureScore": 87,
+        "basePriceCents": 32000,
+        "currentPriceCents": 42000,
+        "recommendedPriceCents": 85000,
+        "minAbsorbablePriceCents": 65000,
+        "maxAbsorbablePriceCents": 95000,
+        "recommendedMultiplier": 2.66,
+        "maxPlausibleMultiplier": 3.1,
+        "bookingProbability": 0.63,
+        "expectedRevenueCents": 53550,
+        "expectedIncrementalRevenueCents": 27150,
+        "confidence": "high",
+        "mainDrivers": ["megaevento", "raio de alto impacto", "baixa oferta relativa"],
+        "recommendedAction": "simulate"
+      }
+    ],
+    "priceAbsorptionCurves": [
+      {
+        "propertyId": "prop-studio-vila-mariana",
+        "affectedNights": ["2026-06-12", "2026-06-13", "2026-06-14"],
+        "scenarios": [
+          {
+            "scenario": "conservative",
+            "label": "Conservador",
+            "priceCents": 65000,
+            "multiplier": 2.03,
+            "bookingProbability": 0.82,
+            "expectedRevenueCents": 53300,
+            "riskLevel": "low",
+            "explanation": "Alta chance de capturar demanda."
+          },
+          {
+            "scenario": "recommended",
+            "label": "Recomendado",
+            "priceCents": 85000,
+            "multiplier": 2.66,
+            "bookingProbability": 0.63,
+            "expectedRevenueCents": 53550,
+            "riskLevel": "medium",
+            "explanation": "Melhor equilibrio entre diaria maior e chance de reserva."
+          },
+          {
+            "scenario": "aggressive",
+            "label": "Agressivo",
+            "priceCents": 115000,
+            "multiplier": 3.59,
+            "bookingProbability": 0.32,
+            "expectedRevenueCents": 36800,
+            "riskLevel": "high",
+            "explanation": "Pode funcionar se a oferta secar."
+          },
+          {
+            "scenario": "extreme",
+            "label": "Extremo",
+            "priceCents": 140000,
+            "multiplier": 4.38,
+            "bookingProbability": 0.14,
+            "expectedRevenueCents": 19600,
+            "riskLevel": "high",
+            "explanation": "So faz sentido em compressao extrema."
+          }
+        ]
+      }
+    ]
+  },
+  "adminIntelligenceResponse": {
+    "generatedAt": "2026-05-22T12:00:00.000Z",
+    "kpis": {
+      "totalDemandPotentialCents": 280000,
+      "highPotentialEvents": 7,
+      "impactedProperties": 34,
+      "generatedRecommendations": 21,
+      "highPotentialWithoutRecommendation": 3,
+      "averageConfidence": "medium",
+      "weightedCoveragePercent": 76
+    },
+    "items": [
+      {
+        "event": {
+          "id": "evt-gp-sp-2026",
+          "name": "Grande Premio de Sao Paulo 2026",
+          "description": "Fim de semana de automobilismo com alta procura por hospedagem.",
+          "startsAt": "2026-06-12T20:00:00.000Z",
+          "endsAt": "2026-06-14T23:00:00.000Z",
+          "city": "Sao Paulo",
+          "state": "SP",
+          "venueName": "Autodromo de Interlagos",
+          "address": "Av. Senador Teotonio Vilela, Interlagos",
+          "latitude": -23.7036,
+          "longitude": -46.6997,
+          "category": "sports",
+          "imageUrl": "https://example.com/events/gp-sp.jpg",
+          "officialUrl": "https://example.com/gp-sp",
+          "source": "official-site",
+          "crawledUrl": "https://example.com/gp-sp/programacao",
+          "urbanScore": 94,
+          "demandScore": 91,
+          "confidence": "high",
+          "badges": ["alto impacto", "fonte oficial", "demanda aquecida"]
+        },
+        "intelligence": {
+          "eventDemandScore": 91,
+          "eventRevenuePotentialCents": 99000,
+          "demandRadiusKm": 12,
+          "expectedAttendance": 65000,
+          "sourceReliabilityScore": 94,
+          "sourceFreshnessHours": 6,
+          "confidence": "high",
+          "interpretation": "Este evento deve aquecer a regiao por 3 noites, com maior impacto em imoveis conectados ao eixo sul e metro.",
+          "drivers": [
+            {
+              "key": "attendance",
+              "label": "Publico esperado",
+              "weight": 0.35,
+              "explanation": "Publico estimado acima de 60 mil pessoas."
+            }
+          ],
+          "riskFlags": ["extreme_price_dropoff"],
+          "dataQualityFlags": [],
+          "generatedAt": "2026-05-22T12:00:00.000Z",
+          "modelVersion": "event-demand-v0.1",
+          "metricVersion": "radar-metrics-v0.1",
+          "jobRunId": "job-event-radar-20260522"
+        },
+        "impactedPropertiesCount": 12,
+        "generatedRecommendationsCount": 8,
+        "geocodeStatus": "ready",
+        "enrichmentStatus": "ready"
+      }
+    ]
+  },
+  "adminBlindSpotsResponse": {
+    "generatedAt": "2026-05-22T12:00:00.000Z",
+    "groups": [
+      {
+        "code": "high_demand_without_recommendation",
+        "label": "Alta demanda sem recomendacao",
+        "severity": "critical",
+        "count": 3,
+        "eventIds": ["evt-gp-sp-2026"],
+        "nextAction": "Reprocessar inteligencia e verificar disponibilidade dos imoveis impactados."
+      },
+      {
+        "code": "missing_coordinates",
+        "label": "Eventos sem coordenada",
+        "severity": "warn",
+        "count": 12,
+        "eventIds": ["evt-missing-geo-1"],
+        "nextAction": "Rodar geocoder e revisar enderecos de venues prioritarios."
+      }
+    ]
+  }
+}

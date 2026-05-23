@@ -11,6 +11,7 @@ import {
   createMultipleAddresses,
   registerProcess,
   getFriendlyApiErrorMessage,
+  updatePropertyPricingInputs,
 } from '../service/api';
 
 export interface Property {
@@ -55,6 +56,14 @@ type PropertyLoadStage =
   | 'starting-analysis'
   | 'refreshing';
 
+type PendingPricingProperty = {
+  addressId: string;
+  listId: string;
+  propertyName: string;
+  pictureUrl?: string | null;
+  airbnbId?: string | null;
+};
+
 const quotaErrorMessage = (error: unknown, fallback: string) => {
   const data = (error as any)?.response?.data;
   if (data?.code === 'LISTINGS_QUOTA_EXCEEDED') {
@@ -76,16 +85,26 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
   const [loadStage, setLoadStage] = useState<PropertyLoadStage>('idle');
   const [fetchedProperties, setFetchedProperties] = useState<Property[]>([]);
   const [selectedProperties, setSelectedProperties] = useState<Record<string, boolean>>({});
+  const [pendingPricingProperties, setPendingPricingProperties] = useState<PendingPricingProperty[]>([]);
+  const [manualPriceDrafts, setManualPriceDrafts] = useState<Record<string, string>>({});
+  const [pendingProcessListIds, setPendingProcessListIds] = useState<Array<{ id: string }>>([]);
 
   const resetState = () => {
     setInputValue('');
     setFetchedProperties([]);
     setSelectedProperties({});
+    setPendingPricingProperties([]);
+    setManualPriceDrafts({});
+    setPendingProcessListIds([]);
     setIsLoading(false);
     setLoadStage('idle');
   };
 
   const handleClose = () => {
+    if (pendingPricingProperties.length > 0) {
+      toast("Informe a diaria base para concluir o cadastro antes de fechar.", { type: "warning" });
+      return;
+    }
     resetState();
     onClose();
   };
@@ -132,7 +151,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
       const existingIds = existingProps.map((p) => p.id_do_anuncio).filter(Boolean);
 
       let finalUrl = inputValue.trim();
-      if (finalUrl.includes('airbnb.com/h/') || finalUrl.includes('abnb.me')) {
+      if (finalUrl.includes('airbnb.') || finalUrl.includes('abnb.me')) {
         try {
           setLoadStage('resolving-link');
           const resolved = await resolveAirbnbUrl(finalUrl);
@@ -209,6 +228,42 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
       setLoadStage('fetching-listing');
       const info = await getPropertyQuickInfo(propertyId);
+      if (info.hostId) {
+        try {
+          setLoadStage('fetching-profile');
+          const listings = await getUserManagedListings(info.hostId);
+          const filteredListings = (listings ?? []).filter((item: any) => !existingIds.includes(item.id_do_anuncio));
+
+          if (filteredListings.length > 0) {
+            const mapped: Property[] = filteredListings.map((item: any) => ({
+              id: item.id || 0,
+              titulo: item.titulo ?? item.name ?? 'Sem titulo',
+              id_do_anuncio: item.id_do_anuncio ?? '',
+              ativo: true,
+              pictureUrl: item.pictureUrl,
+              bedrooms: item.bedrooms || 0,
+              beds: item.beds || 0,
+              bathrooms: item.bathrooms || 0,
+              guests: item.personCapacity || item.guests || 0,
+              rating: item.rating || 0,
+              propertyType: item.propertyType || '',
+              city: item.city || '',
+            }));
+
+            setFetchedProperties(mapped);
+            const autoSelect: Record<string, boolean> = {};
+            mapped.forEach((p) => {
+              autoSelect[p.id_do_anuncio] = true;
+            });
+            setSelectedProperties(autoSelect);
+            setLoadStage('ready');
+            return;
+          }
+        } catch (hostError) {
+          console.warn('Nao foi possivel importar o perfil pelo link do anuncio; usando imovel individual.', hostError);
+        }
+      }
+
       const newProp: Property = {
         id: 0,
         titulo: info.title,
@@ -239,6 +294,30 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
     setSelectedProperties((prev) => ({ ...prev, [id]: checked }));
   };
 
+  const parseMoneyInput = (value: string): number | null => {
+    const normalized = value
+      .replace(/[^\d,.-]/g, '')
+      .replace(/\.(?=\d{3}(\D|$))/g, '')
+      .replace(',', '.');
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) && parsed > 0 ? Number(parsed.toFixed(2)) : null;
+  };
+
+  const collectPendingPricingProperties = (createdAddresses: any[]): PendingPricingProperty[] =>
+    (createdAddresses ?? [])
+      .filter((address) => {
+        const list = address?.list ?? {};
+        return !(Number(list.manualDailyPrice) > 0 || Number(list.dailyPrice) > 0);
+      })
+      .map((address) => ({
+        addressId: address.id,
+        listId: address.list?.id,
+        propertyName: address.list?.titulo || `Imovel ${String(address.id).slice(0, 4)}`,
+        pictureUrl: address.list?.pictureUrl ?? null,
+        airbnbId: address.list?.id_do_anuncio ?? null,
+      }))
+      .filter((item) => item.addressId && item.listId);
+
   const handleSaveProperties = async () => {
     const selectedList = fetchedProperties.filter((p) => selectedProperties[p.id_do_anuncio]);
     if (selectedList.length === 0) {
@@ -248,8 +327,8 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
     setIsLoading(true);
     try {
-      setLoadStage('registering');
       const payload = selectedList.map((p) => ({ ...p, ativo: true }));
+      setLoadStage('registering');
       const registered = await registerProperties(payload as any);
       const registeredProperties = Array.isArray((registered as any)?.data)
         ? (registered as any).data
@@ -266,12 +345,24 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
       }));
 
       setLoadStage('creating-addresses');
-      await createMultipleAddresses(addressesToRegister);
+      const createdAddresses = await createMultipleAddresses(addressesToRegister);
 
       const processListIds = registeredProperties
         .map((prop: any) => prop?.id)
         .filter(Boolean)
         .map((id: string) => ({ id }));
+
+      const pendingPricing = collectPendingPricingProperties(createdAddresses as any[]);
+      if (pendingPricing.length > 0) {
+        setPendingPricingProperties(pendingPricing);
+        setPendingProcessListIds(processListIds);
+        setManualPriceDrafts(
+          pendingPricing.reduce((acc, property) => ({ ...acc, [property.addressId]: '' }), {}),
+        );
+        setLoadStage('ready');
+        toast("Informe a diaria base para concluir o cadastro.", { type: "info" });
+        return;
+      }
 
       if (processListIds.length > 0) {
         setLoadStage('starting-analysis');
@@ -291,6 +382,47 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
       console.error(error);
       setLoadStage('ready');
       toast(quotaErrorMessage(error, "Nao conseguimos registrar as propriedades agora. Tente novamente em alguns instantes."), { type: "error" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveManualPrices = async () => {
+    const parsedByAddress = pendingPricingProperties.map((property) => ({
+      property,
+      manualDailyPrice: parseMoneyInput(manualPriceDrafts[property.addressId] ?? ''),
+    }));
+
+    const invalid = parsedByAddress.find((item) => !item.manualDailyPrice);
+    if (invalid) {
+      toast("Informe uma diaria base valida para todos os imoveis. Sem esse valor, a Urban AI nao inicia a analise.", { type: "warning" });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      setLoadStage('creating-addresses');
+      for (const item of parsedByAddress) {
+        await updatePropertyPricingInputs(item.property.addressId, {
+          manualDailyPrice: item.manualDailyPrice,
+          averageMonthlyRevenue: null,
+        });
+      }
+
+      if (pendingProcessListIds.length > 0) {
+        setLoadStage('starting-analysis');
+        await registerProcess(pendingProcessListIds);
+      }
+
+      setLoadStage('refreshing');
+      toast("Precos base salvos. Imoveis registrados com sucesso!", { type: "success" });
+      await Promise.resolve(onSuccess());
+      resetState();
+      onClose();
+    } catch (error) {
+      console.error(error);
+      setLoadStage('ready');
+      toast("Nao conseguimos salvar os precos base agora. Tente novamente.", { type: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -394,6 +526,68 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
               >
                 Buscar imoveis
               </AppButton>
+            </div>
+          ) : pendingPricingProperties.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div
+                style={{
+                  padding: 14,
+                  border: "1px solid #FDBA74",
+                  borderRadius: 8,
+                  background: "#FFF7ED",
+                  color: "#0E1116",
+                }}
+              >
+                <p style={{ margin: 0, fontWeight: 700 }}>Informe a diaria base</p>
+                <p style={{ margin: "6px 0 0", color: "rgba(14,17,22,0.68)", lineHeight: 1.5 }}>
+                  Nao conseguimos obter o preco automatico destes imoveis. Informe a diaria atual para concluir o cadastro e iniciar a analise.
+                </p>
+              </div>
+
+              {pendingPricingProperties.map((property) => (
+                <div
+                  key={property.addressId}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 14,
+                    padding: 12,
+                    border: "1px solid rgba(14,17,22,0.12)",
+                    borderRadius: 8,
+                  }}
+                >
+                  {property.pictureUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={property.pictureUrl}
+                      alt="Capa"
+                      style={{ width: 64, height: 52, objectFit: "cover", borderRadius: 8, flexShrink: 0 }}
+                    />
+                  ) : (
+                    <div style={{ width: 64, height: 52, borderRadius: 8, background: "#F3F4F6", flexShrink: 0 }} />
+                  )}
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <p style={{ margin: 0, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {property.propertyName}
+                    </p>
+                    {property.airbnbId && (
+                      <p style={{ margin: "4px 0 0", color: "rgba(14,17,22,0.58)", fontSize: 12 }}>
+                        {property.airbnbId}
+                      </p>
+                    )}
+                  </div>
+                  <input
+                    placeholder="R$ 350"
+                    inputMode="decimal"
+                    value={manualPriceDrafts[property.addressId] ?? ''}
+                    onChange={(event) =>
+                      setManualPriceDrafts((prev) => ({ ...prev, [property.addressId]: event.target.value }))
+                    }
+                    disabled={isLoading}
+                    style={{ ...inputStyle, width: 140, flexShrink: 0 }}
+                  />
+                </div>
+              ))}
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -508,7 +702,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
             type="button"
             variant="ghost"
             onClick={handleClose}
-            disabled={isLoading}
+            disabled={isLoading || pendingPricingProperties.length > 0}
           >
             Cancelar
           </AppButton>
@@ -516,12 +710,16 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
           {fetchedProperties.length > 0 && (
             <AppButton
               type="button"
-              onClick={handleSaveProperties}
+              onClick={pendingPricingProperties.length > 0 ? handleSaveManualPrices : handleSaveProperties}
               loading={isLoading}
-              loadingLabel={loadingStatus.buttonLabel}
-              disabled={!Object.values(selectedProperties).some(Boolean)}
+              loadingLabel={pendingPricingProperties.length > 0 ? "Salvando..." : loadingStatus.buttonLabel}
+              disabled={
+                pendingPricingProperties.length > 0
+                  ? pendingPricingProperties.some((property) => !parseMoneyInput(manualPriceDrafts[property.addressId] ?? ''))
+                  : !Object.values(selectedProperties).some(Boolean)
+              }
             >
-              Adicionar selecionados
+              {pendingPricingProperties.length > 0 ? "Salvar precos e concluir" : "Adicionar selecionados"}
             </AppButton>
           )}
         </footer>

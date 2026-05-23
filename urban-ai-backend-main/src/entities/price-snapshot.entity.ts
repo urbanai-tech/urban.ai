@@ -75,6 +75,34 @@ export class PriceSnapshot {
   @Column({ type: 'varchar', length: 32 })
   origin: 'self_cron' | 'comp_extraction' | 'manual_import' | 'stays_sync' | string;
 
+  /** Check-in consultado quando o snapshot vem de uma observacao real futura. */
+  @Column({ type: 'date', nullable: true })
+  observedCheckIn: string | null;
+
+  /** Check-out consultado quando o snapshot vem de uma observacao real futura. */
+  @Column({ type: 'date', nullable: true })
+  observedCheckOut: string | null;
+
+  /** Numero de noites da cotacao observada. */
+  @Column({ type: 'int', nullable: true })
+  observedNights: number | null;
+
+  /** Total da estadia observado na fonte, em centavos. */
+  @Column({ type: 'int', nullable: true })
+  observedTotalPriceCents: number | null;
+
+  /** Fonte efetiva da observacao: browser, RapidAPI, manual etc. */
+  @Column({ type: 'varchar', length: 32, nullable: true })
+  observedSource: string | null;
+
+  /** Momento exato da coleta, separado de createdAt para auditoria de fonte. */
+  @Column({ type: 'datetime', nullable: true })
+  observedAt: Date | null;
+
+  /** Metadados pequenos e serializaveis da cotacao/fonte. */
+  @Column({ type: 'simple-json', nullable: true })
+  observationMetadata: Record<string, unknown> | null;
+
   /**
    * Snapshot de features que existiam naquele dia (lat/lng não muda mas
    * eventos próximos sim, então persistir o nº de eventos próximos no dia

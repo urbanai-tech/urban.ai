@@ -2,13 +2,17 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  AppButton,
+  AppEmptyState,
   AppPageShell,
   AppSectionHeader,
   AppSelect,
   AppToastProvider,
+  Icons,
   PortfolioCalendar,
   useAppToast,
 } from "../componentes/ui";
+import { dateAtLocalOffset, formatLocalDate } from "../lib/date";
 import {
   fetchPortfolioCalendar,
   mutatePortfolioBulkAction,
@@ -37,10 +41,7 @@ const STRATEGY_OPTIONS: ReadonlyArray<{ id: string; label: string }> = [
 ];
 
 function isoDateAt(daysAhead: number): string {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + daysAhead);
-  return d.toISOString().slice(0, 10);
+  return formatLocalDate(dateAtLocalOffset(daysAhead));
 }
 
 function PortfolioPageContent() {
@@ -52,6 +53,8 @@ function PortfolioPageContent() {
   const [bulkLoading, setBulkLoading] = useState<boolean>(false);
   const [response, setResponse] = useState<PortfolioCalendarResponse>({ properties: [] });
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadCount, setReloadCount] = useState(0);
 
   // Carrega calendário inicial + reage a mudanças de filtro.
   useEffect(() => {
@@ -59,11 +62,17 @@ function PortfolioPageContent() {
     async function load() {
       try {
         setLoading(true);
+        setLoadError(null);
         const data = await fetchPortfolioCalendar({ from, to, strategy });
-        if (!cancelled) setResponse(data);
+        if (!cancelled) {
+          setResponse(data);
+          setLoadError(null);
+        }
       } catch (err) {
         console.error("[/portfolio] erro carregando calendário", err);
-        if (!cancelled) setResponse({ properties: [] });
+        if (!cancelled) {
+          setLoadError("Nao foi possivel carregar o calendario do portfolio agora.");
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -72,11 +81,27 @@ function PortfolioPageContent() {
     return () => {
       cancelled = true;
     };
-  }, [from, to, strategy]);
+  }, [from, to, strategy, reloadCount]);
 
   const properties = response.properties;
   const propertyCount = properties.length;
   const dateCount = properties[0]?.days.length ?? 0;
+
+  useEffect(() => {
+    const validPropertyIds = new Set(properties.map((p) => p.propertyId));
+    setSelected((prev) => {
+      if (prev.size === 0) return prev;
+
+      const next = new Set<string>();
+      for (const propertyId of prev) {
+        if (validPropertyIds.has(propertyId)) {
+          next.add(propertyId);
+        }
+      }
+
+      return next.size === prev.size ? prev : next;
+    });
+  }, [properties]);
 
   // O calendar real escuta teclado; o hook clampa quando os ranges mudam.
   const { activeProperty, activeDate, moveTo } = usePortfolioKeyboard({
@@ -167,6 +192,10 @@ function PortfolioPageContent() {
     setSelected(new Set());
   }, []);
 
+  const handleRetryLoad = useCallback(() => {
+    setReloadCount((count) => count + 1);
+  }, []);
+
   const handleMoveActive = useCallback(
     (next: { propertyId: string; date: string }) => {
       const propertyIndex = properties.findIndex(
@@ -231,17 +260,36 @@ function PortfolioPageContent() {
         loading={bulkLoading}
       />
 
-      <PortfolioCalendar
-        data={properties}
-        selectedPropertyIds={selected}
-        onToggleSelect={handleToggleSelect}
-        onSelectAll={handleSelectAll}
-        loading={loading}
-        activeProperty={activeIds.propertyId}
-        activeDate={activeIds.date}
-        onMoveActive={handleMoveActive}
-        onDayClick={(propertyId, date) => handleMoveActive({ propertyId, date })}
-      />
+      {loadError ? (
+        <AppEmptyState
+          eyebrow="ALGO DEU ERRADO"
+          title="Nao conseguimos carregar o calendario"
+          body={loadError}
+          icon={<Icons.AlertCircle size={32} />}
+          action={
+            <AppButton
+              variant="primary"
+              size="md"
+              onClick={handleRetryLoad}
+              loading={loading}
+            >
+              Tentar de novo
+            </AppButton>
+          }
+        />
+      ) : (
+        <PortfolioCalendar
+          data={properties}
+          selectedPropertyIds={selected}
+          onToggleSelect={handleToggleSelect}
+          onSelectAll={handleSelectAll}
+          loading={loading}
+          activeProperty={activeIds.propertyId}
+          activeDate={activeIds.date}
+          onMoveActive={handleMoveActive}
+          onDayClick={(propertyId, date) => handleMoveActive({ propertyId, date })}
+        />
+      )}
     </AppPageShell>
   );
 }

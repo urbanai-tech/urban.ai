@@ -1,0 +1,71 @@
+name: Event Demand Pricing Radar Delivery
+type: hybrid_parallel
+steps:
+  - id: alinhamento-contratos
+    name: Confirmar escopo e contratos
+    type: checkpoint
+    message: Confirmar P0, rotas host, estrategia de persistencia e feature flag antes de iniciar execucao paralela.
+
+  - id: lia-contratos
+    name: Backend Data & API Contracts
+    agent: lia-contratos
+    task: tasks/implementar-contratos-backend.md
+    execution: parallel
+
+  - id: nico-engine
+    name: Intelligence & Pricing Engine
+    agent: nico-engine
+    task: tasks/implementar-engine-inteligencia.md
+    execution: parallel
+
+  - id: maya-host
+    name: Host Event Experience
+    agent: maya-host
+    task: tasks/implementar-host-events-radar.md
+    execution: parallel
+
+  - id: otto-admin
+    name: Admin Event Intelligence
+    agent: otto-admin
+    task: tasks/implementar-admin-event-radar.md
+    execution: parallel
+
+  - id: tais-integracao
+    name: QA, Contracts & Release
+    agent: tais-integracao
+    task: tasks/preparar-qa-integracao.md
+    execution: parallel
+
+  - id: integracao-backend
+    name: Integracao Backend Intelligence
+    type: squad
+    agents:
+      - lia-contratos
+      - nico-engine
+      - tais-integracao
+    task: tasks/integrar-backend-intelligence.md
+
+  - id: integracao-experiencia
+    name: Integracao Experience
+    type: squad
+    agents:
+      - maya-host
+      - otto-admin
+      - tais-integracao
+    task: tasks/integrar-experiencias.md
+
+  - id: hardening-final
+    name: Hardening final
+    type: squad
+    agents:
+      - lia-contratos
+      - nico-engine
+      - maya-host
+      - otto-admin
+      - tais-integracao
+    task: tasks/hardening-final.md
+
+  - id: aprovacao-final
+    name: Aprovacao final
+    type: checkpoint
+    message: Entrega pronta para revisao humana: validar escopo entregue, riscos remanescentes e proximos passos.

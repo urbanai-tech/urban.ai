@@ -1,0 +1,68 @@
+name: Event Demand Pricing Radar
+code: event-demand-pricing-radar
+purpose: Implementar o ecossistema de inteligencia de eventos, radar de demanda, catalogo de eventos e curva de absorcao de preco da Urban AI.
+domain: Produto, dados, pricing, frontend host/admin e QA
+trigger: Rodar quando for iniciar a entrega P0/P1 do plano consolidado de eventos, demanda e pricing.
+
+output:
+  format: markdown, code patches and test reports
+  type: files and implementation
+  storage: squads/event-demand-pricing-radar/output/
+
+source_docs:
+  - docs/plano-consolidado-inteligencia-eventos-pricing-2026-05-22.md
+  - docs/plano-execucao-paralela-radar-eventos-2026-05-22.md
+  - docs/avaliacao-inteligencia-analytics-relatorios-2026-05-22.md
+
+agents:
+  - id: lia-contratos
+    name: Lia Contratos
+    role: Backend Data & API Contracts
+  - id: nico-engine
+    name: Nico Engine
+    role: Intelligence & Pricing Engine
+  - id: maya-host
+    name: Maya Host
+    role: Host Event Experience
+  - id: otto-admin
+    name: Otto Admin
+    role: Admin Event Intelligence
+  - id: tais-integracao
+    name: Tais Integracao
+    role: QA, Contracts & Release
+
+pipeline:
+  type: hybrid_parallel
+  phases:
+    - id: alinhamento-contratos
+      type: checkpoint
+      description: Confirmar escopo P0, rotas, feature flag e estrategia de persistencia.
+    - id: trabalho-paralelo
+      type: parallel
+      agents:
+        - lia-contratos
+        - nico-engine
+        - maya-host
+        - otto-admin
+        - tais-integracao
+    - id: integracao-backend
+      type: squad
+      agents:
+        - lia-contratos
+        - nico-engine
+        - tais-integracao
+    - id: integracao-experiencia
+      type: squad
+      agents:
+        - maya-host
+        - otto-admin
+        - tais-integracao
+    - id: hardening-final
+      type: squad
+      agents:
+        - lia-contratos
+        - nico-engine
+        - maya-host
+        - otto-admin
+        - tais-integracao
+  max_iterations: 2

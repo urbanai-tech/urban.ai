@@ -11,6 +11,7 @@ import { PropriedadeService } from "src/propriedades/propriedade.service";
 import { AirbnbService } from "src/airbnb/airbnb.service";
 import { EmailService } from "src/email/email.service";
 import { CreateNotificationDto } from "src/notifications/tdo/create-notification.dto";
+import { getDiaria } from "src/util";
 
 type Imovel = {
   id: string;
@@ -26,6 +27,54 @@ type Imovel = {
     id: string;
   };
 };
+
+const BRAZILIAN_UF_CODES = new Set([
+  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO",
+  "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI",
+  "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
+]);
+
+const BRAZILIAN_STATE_NAMES: Record<string, string> = {
+  acre: "AC",
+  alagoas: "AL",
+  amapa: "AP",
+  amazonas: "AM",
+  bahia: "BA",
+  ceara: "CE",
+  distrito_federal: "DF",
+  espirito_santo: "ES",
+  goias: "GO",
+  maranhao: "MA",
+  mato_grosso: "MT",
+  mato_grosso_do_sul: "MS",
+  minas_gerais: "MG",
+  para: "PA",
+  paraiba: "PB",
+  parana: "PR",
+  pernambuco: "PE",
+  piaui: "PI",
+  rio_de_janeiro: "RJ",
+  rio_grande_do_norte: "RN",
+  rio_grande_do_sul: "RS",
+  rondonia: "RO",
+  roraima: "RR",
+  santa_catarina: "SC",
+  sao_paulo: "SP",
+  sergipe: "SE",
+  tocantins: "TO",
+};
+
+const ADDRESS_PLACEHOLDERS = new Set([
+  "a_definir",
+  "indefinido",
+  "undefined",
+  "null",
+  "n_a",
+  "na",
+  "nao_informado",
+  "sem_informacao",
+  "sem_endereco",
+]);
 
 
 @Injectable()
@@ -85,7 +134,7 @@ export class ConnectService {
         try {
           const scraped = await this.propriedadeService.scrapeAirbnbListing(item.roomId);
 
-// O filtro rigoroso de hostId foi desativado temporariamente pois gerava conflito 
+// O filtro rigoroso de hostId foi desativado temporariamente pois gerava conflito
           // entre o Profile ID de 18 dígitos e o Host ID numérico das propriedades reais.
           // Com a importação restrita ao GraphQL/Extractor seguro, os falsos positivos de fallback não ocorrerão.
 
@@ -158,6 +207,39 @@ export class ConnectService {
     const checkoutDate = new Date(now);
     checkoutDate.setDate(now.getDate() + 3);
     const checkout = checkoutDate.toISOString().slice(0, 10);
+
+    const useAirbnbSearchService = process.env.AIRBNB_PRICE_PROVIDER !== "legacy-connect";
+    if (useAirbnbSearchService) {
+      try {
+        this.logger.log(
+          `Buscando preco via airbnb-search para listing ${id} (${checkin} a ${checkout})`,
+        );
+        const quote = await this.airbnbService.getPriceForDateWindow(id, checkin, checkout);
+        const total = Number(quote.price.data.accommodationCost);
+
+        return {
+          total,
+          currency: "BRL",
+          breakdown: {
+            ...quote.price.data,
+            dailyPrice: quote.nights ? Number((total / quote.nights).toFixed(2)) : total,
+            nights: quote.nights,
+            source: quote.source,
+          },
+          checkin,
+          checkout,
+        };
+      } catch (err) {
+        this.logger.error(
+          `Erro ao buscar preco do listing ${id}`,
+          err instanceof Error ? err.stack : String(err),
+        );
+        throw new HttpException(
+          "Falha ao buscar preco no Airbnb Search",
+          HttpStatus.BAD_GATEWAY,
+        );
+      }
+    }
 
     const params = {
       id,
@@ -402,10 +484,260 @@ export class ConnectService {
       );
     }
   }
+
+  private normalizeTextKey(value: string): string {
+    return value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+  }
+
+  private getUsableAddressField(value: unknown): string | null {
+    if (typeof value !== "string") return null;
+
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    const normalized = this.normalizeTextKey(trimmed);
+    if (ADDRESS_PLACEHOLDERS.has(normalized)) return null;
+
+    return trimmed;
+  }
+
+  private normalizeBrazilianState(value: unknown): string | null {
+    const raw = this.getUsableAddressField(value);
+    if (!raw) return null;
+
+    const lettersOnly = raw.toUpperCase().replace(/[^A-Z]/g, "");
+    if (lettersOnly.length === 2 && BRAZILIAN_UF_CODES.has(lettersOnly)) {
+      return lettersOnly;
+    }
+
+    return BRAZILIAN_STATE_NAMES[this.normalizeTextKey(raw)] ?? null;
+  }
+
+  private extractDailyPriceFromQuote(quote: any): number | null {
+    try {
+      const daily = Number(getDiaria(quote));
+      if (Number.isFinite(daily) && daily > 0) return Number(daily.toFixed(2));
+    } catch {}
+
+    const total = Number(quote?.price?.data?.accommodationCost);
+    const nights = Number(quote?.nights);
+    if (Number.isFinite(total) && total > 0 && Number.isFinite(nights) && nights > 0) {
+      return Number((total / nights).toFixed(2));
+    }
+
+    if (Number.isFinite(total) && total > 0) return Number(total.toFixed(2));
+    return null;
+  }
+
+  private async resolveListingBasePrice(list: List): Promise<Partial<List>> {
+    const quote = await this.airbnbService.getFirstAvailablePrice(list.id_do_anuncio);
+    const dailyPrice = this.extractDailyPriceFromQuote(quote);
+
+    if (!dailyPrice || dailyPrice <= 0) {
+      throw new Error("Cotacao do Airbnb nao trouxe diaria valida.");
+    }
+
+    const total = Number(quote?.price?.data?.accommodationCost);
+    const raw = Number.isFinite(total) && total > 0 ? Number(total.toFixed(2)) : dailyPrice;
+    const source = quote?.source === "airbnb-search"
+      ? "airbnb_search_checkout"
+      : quote?.source === "airbnb-browser"
+        ? "airbnb_headless_checkout"
+        : "airbnb_checkout";
+
+    return {
+      dailyPrice,
+      raw,
+      priceText: `R$${dailyPrice.toFixed(2)}`,
+      currency: "BRL",
+      checkIn: quote?.checkIn ?? null,
+      checkOut: quote?.checkOut ?? null,
+      status: "preco_base_airbnb",
+      pricingInputSource: source,
+      pricingInputsUpdatedAt: new Date(),
+    };
+  }
+
+  private publicErrorMessage(error: unknown): string {
+    if (error instanceof HttpException) {
+      const response = error.getResponse();
+      if (typeof response === "string") return response;
+      const message = (response as any)?.message;
+      if (Array.isArray(message)) return message.join("; ");
+      if (typeof message === "string") return message;
+    }
+
+    return error instanceof Error ? error.message : String(error);
+  }
+
+  private async createMultipleAddressesWithScrapedInputs(
+    addresses: any[],
+    userId: string,
+  ): Promise<any[]> {
+    const addressSaved: Address[] = [];
+    const failures: Array<{ listingId: string | null; reason: string }> = [];
+
+    this.logger.log(`Salvando ${addresses.length} endereco(s) para o usuario ${userId}`);
+    this.logger.debug(`createMultipleAddresses received count=${addresses.length}`);
+
+    for (const addr of addresses) {
+      const requestedListingId = addr?.list?.id ?? null;
+
+      try {
+        if (!requestedListingId) {
+          throw new BadRequestException('Informe o ID do imovel do Airbnb para concluir o cadastro.');
+        }
+
+        const list = await this.listRepo.findOne({
+          where: {
+            id_do_anuncio: requestedListingId,
+            user: { id: userId },
+          },
+        });
+
+        if (!list) {
+          throw new NotFoundException('Nao encontramos esse imovel na sua conta. Confira o link do Airbnb e tente novamente.');
+        }
+
+        const userData = await this.userRepository.findOne({ where: { id: userId } });
+        if (!userData) {
+          throw new NotFoundException('Sua sessao expirou. Faca login novamente para continuar.');
+        }
+
+        this.logger.log(`[onboarding] Scraping room ${list.id_do_anuncio}...`);
+        const scraped = await this.propriedadeService.scrapeAirbnbListing(list.id_do_anuncio);
+
+        let pricePatch: Partial<List> = {};
+        try {
+          pricePatch = await this.resolveListingBasePrice(list);
+          this.logger.log(
+            `[onboarding] Preco base salvo para ${list.id_do_anuncio}: diaria=${pricePatch.dailyPrice}`,
+          );
+        } catch (priceError) {
+          this.logger.warn(
+            `[onboarding] Nao foi possivel obter preco base para ${list.id_do_anuncio}: ${this.publicErrorMessage(priceError)}`,
+          );
+        }
+
+        const listPatch: Partial<List> = {
+          titulo: scraped.title || list.titulo,
+          pictureUrl: scraped.pictureUrl || list.pictureUrl,
+          quartos: scraped.bedrooms,
+          camas: scraped.beds,
+          banheiros: scraped.bathrooms,
+          hospedes: scraped.guestCapacity,
+          rating: scraped.rating,
+          propertyType: scraped.propertyType,
+          amenitiesCount: scraped.amenitiesCount,
+          neighborhood: scraped.neighborhood,
+          reviewCount: scraped.reviewCount,
+          lastScrapedAt: new Date(),
+          ...pricePatch,
+        };
+
+        await this.listRepo.update(list.id, listPatch);
+        Object.assign(list, listPatch);
+        this.logger.log(`[onboarding] Dados enriquecidos salvos para ${list.id_do_anuncio}`);
+
+        const existingAddress = await this.addressRepo.findOne({
+          where: {
+            list: { id: list.id },
+            user: { id: userId },
+          },
+          relations: ['list', 'user'],
+        });
+
+        const city = this.getUsableAddressField(addr.cidade) ?? this.getUsableAddressField(scraped.city);
+        const state = this.normalizeBrazilianState(addr.estado) ?? this.normalizeBrazilianState(scraped.state);
+        const latitude = Number(scraped.latitude);
+        const longitude = Number(scraped.longitude);
+
+        if (!city || !state) {
+          throw new BadRequestException(
+            `Nao foi possivel validar cidade/UF do imovel ${list.id_do_anuncio}. Confira o link do Airbnb ou complete o endereco antes de gerar recomendacoes.`,
+          );
+        }
+
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+          throw new BadRequestException(
+            `Nao foi possivel obter latitude/longitude do imovel ${list.id_do_anuncio}. Sem isso nao conseguimos encontrar eventos proximos.`,
+          );
+        }
+
+        const addressPayload = {
+          cep: this.getUsableAddressField(addr.cep) ?? this.getUsableAddressField(scraped.zipCode) ?? '00000-000',
+          numero: this.getUsableAddressField(addr.numero) ?? 'S/N',
+          logradouro: this.getUsableAddressField(addr.logradouro) ?? this.getUsableAddressField(scraped.street),
+          bairro: this.getUsableAddressField(addr.bairro) ?? this.getUsableAddressField(scraped.neighborhood),
+          cidade: city,
+          estado: state,
+          latitude,
+          longitude,
+          list,
+          user: { id: userId } as User,
+          ativo: true,
+          idAlertAirb: 'scraping_direct',
+        };
+
+        const addressEntity = existingAddress
+          ? await this.addressRepo.save({ ...existingAddress, ...addressPayload })
+          : await this.addressRepo.save(addressPayload);
+
+        addressSaved.push(addressEntity);
+
+        const hasBasePrice =
+          Number(list.manualDailyPrice) > 0 || Number(list.dailyPrice) > 0;
+        const notificationContent: CreateNotificationDto = {
+          title: hasBasePrice ? "Analise iniciada" : "Diaria base pendente",
+          description: hasBasePrice
+            ? "A Urban AI esta analisando os eventos perto do seu imovel " + list.titulo
+            : "Informe a diaria base do seu imovel " + list.titulo + " para iniciar a analise da Urban AI.",
+          redirectTo: "/dashboard",
+          sendEmail: hasBasePrice,
+        };
+        this.emailService.enviarNotification(userId, notificationContent);
+      } catch (error: any) {
+        const reason = this.publicErrorMessage(error);
+        failures.push({ listingId: requestedListingId, reason });
+        this.logger.error(
+          `Erro ao criar endereco no onboarding listing=${requestedListingId ?? 'desconhecido'}: ${reason}`,
+          error instanceof Error ? error.stack : String(error),
+        );
+      }
+    }
+
+    if (failures.length > 0) {
+      throw new BadRequestException({
+        message: failures.length === addresses.length
+          ? 'Nao conseguimos concluir o cadastro dos imoveis selecionados.'
+          : 'Alguns imoveis foram cadastrados, mas outros precisam de atencao.',
+        savedCount: addressSaved.length,
+        failedCount: failures.length,
+        failures,
+      });
+    }
+
+    return addressSaved.map(({ user, ...rest }) => {
+      const { user: _, ...listWithoutUser } = rest.list || {};
+      return {
+        ...rest,
+        list: listWithoutUser,
+      };
+    });
+  }
+
   async createMultipleAddresses(
     addresses: any[],
     userId: string
   ): Promise<Address[] | any[]> {
+    return this.createMultipleAddressesWithScrapedInputs(addresses, userId);
+
     let address: Address[] | [] = addresses;
     let addressSaved: Address[] = [];
     try {

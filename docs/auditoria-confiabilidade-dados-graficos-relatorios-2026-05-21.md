@@ -4,6 +4,10 @@ Data: 2026-05-21
 
 Status: corrigido no codigo de runtime.
 
+Atualizacao 2026-05-22: este relatorio foi complementado pela auditoria consolidada
+`docs/auditoria-consolidada-dados-graficos-relatorios-2026-05-22.md`, que diferencia
+os P0 ja corrigidos de mocks/runtime dos novos P0 de governanca enterprise.
+
 ## Resultado
 
 Os paineis que antes dependiam de dados sinteticos locais agora chamam contratos reais no backend ou falham fechado quando a API nao responde. Isso cobre:

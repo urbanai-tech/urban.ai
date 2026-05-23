@@ -28,6 +28,7 @@ import { MapsModule } from '../maps/maps.module';
 import { RoiModule } from '../roi/roi.module';
 import { AdminAuditModule } from '../admin-audit/admin-audit.module';
 import { EmailModule } from '../email/email.module';
+import { EventIntelligenceModule } from '../event-intelligence/event-intelligence.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { EmailModule } from '../email/email.module';
     RoiModule,
     AdminAuditModule,
     EmailModule,
+    EventIntelligenceModule,
   ],
   controllers: [AdminController],
   providers: [AdminService, AdminFinanceService, StripeSyncCheckService],
