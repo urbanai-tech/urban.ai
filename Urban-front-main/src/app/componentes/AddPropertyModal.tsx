@@ -11,7 +11,9 @@ import {
   createMultipleAddresses,
   registerProcess,
   getFriendlyApiErrorMessage,
+  updatePropertyPricingInputs,
 } from '../service/api';
+import { describeBasePriceReadiness } from '../lib/pricingInputs';
 
 export interface Property {
   id: number;
@@ -52,8 +54,24 @@ type PropertyLoadStage =
   | 'ready'
   | 'registering'
   | 'creating-addresses'
+  | 'checking-airbnb-availability'
+  | 'finding-available-dates'
+  | 'calculating-daily-rate'
+  | 'manual-price-required'
+  | 'saving-prices'
   | 'starting-analysis'
   | 'refreshing';
+
+type PendingPricingProperty = {
+  addressId: string;
+  listId: string;
+  propertyName: string;
+  pictureUrl?: string | null;
+  airbnbId?: string | null;
+  sourceLabel?: string;
+  fallbackMessage?: string;
+  provisionalDailyPrice?: number | null;
+};
 
 const quotaErrorMessage = (error: unknown, fallback: string) => {
   const data = (error as any)?.response?.data;
@@ -76,16 +94,26 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
   const [loadStage, setLoadStage] = useState<PropertyLoadStage>('idle');
   const [fetchedProperties, setFetchedProperties] = useState<Property[]>([]);
   const [selectedProperties, setSelectedProperties] = useState<Record<string, boolean>>({});
+  const [pendingPricingProperties, setPendingPricingProperties] = useState<PendingPricingProperty[]>([]);
+  const [manualPriceDrafts, setManualPriceDrafts] = useState<Record<string, string>>({});
+  const [pendingProcessListIds, setPendingProcessListIds] = useState<Array<{ id: string }>>([]);
 
   const resetState = () => {
     setInputValue('');
     setFetchedProperties([]);
     setSelectedProperties({});
+    setPendingPricingProperties([]);
+    setManualPriceDrafts({});
+    setPendingProcessListIds([]);
     setIsLoading(false);
     setLoadStage('idle');
   };
 
   const handleClose = () => {
+    if (pendingPricingProperties.length > 0) {
+      toast("Informe a diaria base para concluir o cadastro antes de fechar.", { type: "warning" });
+      return;
+    }
     resetState();
     onClose();
   };
@@ -132,7 +160,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
       const existingIds = existingProps.map((p) => p.id_do_anuncio).filter(Boolean);
 
       let finalUrl = inputValue.trim();
-      if (finalUrl.includes('airbnb.com/h/') || finalUrl.includes('abnb.me')) {
+      if (finalUrl.includes('airbnb.') || finalUrl.includes('abnb.me')) {
         try {
           setLoadStage('resolving-link');
           const resolved = await resolveAirbnbUrl(finalUrl);
@@ -209,6 +237,42 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
       setLoadStage('fetching-listing');
       const info = await getPropertyQuickInfo(propertyId);
+      if (info.hostId) {
+        try {
+          setLoadStage('fetching-profile');
+          const listings = await getUserManagedListings(info.hostId);
+          const filteredListings = (listings ?? []).filter((item: any) => !existingIds.includes(item.id_do_anuncio));
+
+          if (filteredListings.length > 0) {
+            const mapped: Property[] = filteredListings.map((item: any) => ({
+              id: item.id || 0,
+              titulo: item.titulo ?? item.name ?? 'Sem titulo',
+              id_do_anuncio: item.id_do_anuncio ?? '',
+              ativo: true,
+              pictureUrl: item.pictureUrl,
+              bedrooms: item.bedrooms || 0,
+              beds: item.beds || 0,
+              bathrooms: item.bathrooms || 0,
+              guests: item.personCapacity || item.guests || 0,
+              rating: item.rating || 0,
+              propertyType: item.propertyType || '',
+              city: item.city || '',
+            }));
+
+            setFetchedProperties(mapped);
+            const autoSelect: Record<string, boolean> = {};
+            mapped.forEach((p) => {
+              autoSelect[p.id_do_anuncio] = true;
+            });
+            setSelectedProperties(autoSelect);
+            setLoadStage('ready');
+            return;
+          }
+        } catch (hostError) {
+          console.warn('Nao foi possivel importar o perfil pelo link do anuncio; usando imovel individual.', hostError);
+        }
+      }
+
       const newProp: Property = {
         id: 0,
         titulo: info.title,
@@ -239,6 +303,58 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
     setSelectedProperties((prev) => ({ ...prev, [id]: checked }));
   };
 
+  const parseMoneyInput = (value: string): number | null => {
+    const normalized = value
+      .replace(/[^\d,.-]/g, '')
+      .replace(/\.(?=\d{3}(\D|$))/g, '')
+      .replace(',', '.');
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) && parsed > 0 ? Number(parsed.toFixed(2)) : null;
+  };
+
+  const runWithTimedStages = async <T,>(
+    schedule: Array<{ stage: PropertyLoadStage; delayMs: number }>,
+    action: () => Promise<T>,
+  ): Promise<T> => {
+    const timers: Array<ReturnType<typeof setTimeout>> = [];
+
+    for (const item of schedule) {
+      if (item.delayMs <= 0) {
+        setLoadStage(item.stage);
+      } else {
+        timers.push(setTimeout(() => setLoadStage(item.stage), item.delayMs));
+      }
+    }
+
+    try {
+      return await action();
+    } finally {
+      timers.forEach(clearTimeout);
+    }
+  };
+
+  const collectPendingPricingProperties = (createdAddresses: any[]): PendingPricingProperty[] =>
+    (createdAddresses ?? [])
+      .reduce<PendingPricingProperty[]>((pending, address) => {
+        const list = address?.list ?? {};
+        const readiness = describeBasePriceReadiness(list);
+        if (readiness.ready) return pending;
+
+        const item: PendingPricingProperty = {
+          addressId: address.id,
+          listId: address.list?.id,
+          propertyName: address.list?.titulo || `Imovel ${String(address.id).slice(0, 4)}`,
+          pictureUrl: address.list?.pictureUrl ?? null,
+          airbnbId: address.list?.id_do_anuncio ?? null,
+          sourceLabel: readiness.sourceLabel,
+          fallbackMessage: readiness.message,
+          provisionalDailyPrice: readiness.dailyPrice,
+        };
+
+        if (item.addressId && item.listId) pending.push(item);
+        return pending;
+      }, []);
+
   const handleSaveProperties = async () => {
     const selectedList = fetchedProperties.filter((p) => selectedProperties[p.id_do_anuncio]);
     if (selectedList.length === 0) {
@@ -248,8 +364,8 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
     setIsLoading(true);
     try {
-      setLoadStage('registering');
       const payload = selectedList.map((p) => ({ ...p, ativo: true }));
+      setLoadStage('registering');
       const registered = await registerProperties(payload as any);
       const registeredProperties = Array.isArray((registered as any)?.data)
         ? (registered as any).data
@@ -265,13 +381,32 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
         list: { id: prop.id_do_anuncio },
       }));
 
-      setLoadStage('creating-addresses');
-      await createMultipleAddresses(addressesToRegister);
+      const createdAddresses = await runWithTimedStages(
+        [
+          { stage: 'creating-addresses', delayMs: 0 },
+          { stage: 'checking-airbnb-availability', delayMs: 900 },
+          { stage: 'finding-available-dates', delayMs: 2200 },
+          { stage: 'calculating-daily-rate', delayMs: 3600 },
+        ],
+        () => createMultipleAddresses(addressesToRegister),
+      );
 
       const processListIds = registeredProperties
         .map((prop: any) => prop?.id)
         .filter(Boolean)
         .map((id: string) => ({ id }));
+
+      const pendingPricing = collectPendingPricingProperties(createdAddresses as any[]);
+      if (pendingPricing.length > 0) {
+        setPendingPricingProperties(pendingPricing);
+        setPendingProcessListIds(processListIds);
+        setManualPriceDrafts(
+          pendingPricing.reduce((acc, property) => ({ ...acc, [property.addressId]: '' }), {}),
+        );
+        setLoadStage('manual-price-required');
+        toast("Nao encontramos uma diaria confiavel no Airbnb. Informe a diaria base para concluir.", { type: "info" });
+        return;
+      }
 
       if (processListIds.length > 0) {
         setLoadStage('starting-analysis');
@@ -291,6 +426,47 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
       console.error(error);
       setLoadStage('ready');
       toast(quotaErrorMessage(error, "Nao conseguimos registrar as propriedades agora. Tente novamente em alguns instantes."), { type: "error" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveManualPrices = async () => {
+    const parsedByAddress = pendingPricingProperties.map((property) => ({
+      property,
+      manualDailyPrice: parseMoneyInput(manualPriceDrafts[property.addressId] ?? ''),
+    }));
+
+    const invalid = parsedByAddress.find((item) => !item.manualDailyPrice);
+    if (invalid) {
+      toast("Informe uma diaria base valida para todos os imoveis. Sem esse valor, a Urban AI nao inicia a analise.", { type: "warning" });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      setLoadStage('saving-prices');
+      for (const item of parsedByAddress) {
+        await updatePropertyPricingInputs(item.property.addressId, {
+          manualDailyPrice: item.manualDailyPrice,
+          averageMonthlyRevenue: null,
+        });
+      }
+
+      if (pendingProcessListIds.length > 0) {
+        setLoadStage('starting-analysis');
+        await registerProcess(pendingProcessListIds);
+      }
+
+      setLoadStage('refreshing');
+      toast("Precos base salvos. Imoveis registrados com sucesso!", { type: "success" });
+      await Promise.resolve(onSuccess());
+      resetState();
+      onClose();
+    } catch (error) {
+      console.error(error);
+      setLoadStage('manual-price-required');
+      toast("Nao conseguimos salvar os precos base agora. Tente novamente.", { type: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -394,6 +570,83 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
               >
                 Buscar imoveis
               </AppButton>
+            </div>
+          ) : pendingPricingProperties.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <AppLoadingStatus
+                compact
+                eyebrow={loadingStatus.eyebrow}
+                title={loadingStatus.title}
+                body={loadingStatus.body}
+                steps={loadingStatus.steps}
+                tone={loadingStatus.tone}
+              />
+
+              <div
+                style={{
+                  padding: 14,
+                  border: "1px solid #FDBA74",
+                  borderRadius: 8,
+                  background: "#FFF7ED",
+                  color: "#0E1116",
+                }}
+              >
+                <p style={{ margin: 0, fontWeight: 700 }}>Informe a diaria base</p>
+                <p style={{ margin: "6px 0 0", color: "rgba(14,17,22,0.68)", lineHeight: 1.5 }}>
+                  O Airbnb nao retornou uma diaria confirmada para estes imoveis, ou retornou apenas uma fonte provisoria. Informe a diaria atual para concluir o cadastro e iniciar a analise.
+                </p>
+              </div>
+
+              {pendingPricingProperties.map((property) => (
+                <div
+                  key={property.addressId}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 14,
+                    padding: 12,
+                    border: "1px solid rgba(14,17,22,0.12)",
+                    borderRadius: 8,
+                  }}
+                >
+                  {property.pictureUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={property.pictureUrl}
+                      alt="Capa"
+                      style={{ width: 64, height: 52, objectFit: "cover", borderRadius: 8, flexShrink: 0 }}
+                    />
+                  ) : (
+                    <div style={{ width: 64, height: 52, borderRadius: 8, background: "#F3F4F6", flexShrink: 0 }} />
+                  )}
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <p style={{ margin: 0, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {property.propertyName}
+                    </p>
+                    {property.airbnbId && (
+                      <p style={{ margin: "4px 0 0", color: "rgba(14,17,22,0.58)", fontSize: 12 }}>
+                        {property.airbnbId}
+                      </p>
+                    )}
+                    <p style={{ margin: "4px 0 0", color: "#9A3412", fontSize: 12, lineHeight: 1.35 }}>
+                      {property.fallbackMessage}
+                      {property.provisionalDailyPrice
+                        ? ` Valor encontrado: R$ ${property.provisionalDailyPrice.toFixed(2)} (${property.sourceLabel ?? "fonte nao informada"}).`
+                        : ` Fonte: ${property.sourceLabel ?? "fonte nao informada"}.`}
+                    </p>
+                  </div>
+                  <input
+                    placeholder="R$ 350"
+                    inputMode="decimal"
+                    value={manualPriceDrafts[property.addressId] ?? ''}
+                    onChange={(event) =>
+                      setManualPriceDrafts((prev) => ({ ...prev, [property.addressId]: event.target.value }))
+                    }
+                    disabled={isLoading}
+                    style={{ ...inputStyle, width: 140, flexShrink: 0 }}
+                  />
+                </div>
+              ))}
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -508,7 +761,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
             type="button"
             variant="ghost"
             onClick={handleClose}
-            disabled={isLoading}
+            disabled={isLoading || pendingPricingProperties.length > 0}
           >
             Cancelar
           </AppButton>
@@ -516,12 +769,16 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
           {fetchedProperties.length > 0 && (
             <AppButton
               type="button"
-              onClick={handleSaveProperties}
+              onClick={pendingPricingProperties.length > 0 ? handleSaveManualPrices : handleSaveProperties}
               loading={isLoading}
               loadingLabel={loadingStatus.buttonLabel}
-              disabled={!Object.values(selectedProperties).some(Boolean)}
+              disabled={
+                pendingPricingProperties.length > 0
+                  ? pendingPricingProperties.some((property) => !parseMoneyInput(manualPriceDrafts[property.addressId] ?? ''))
+                  : !Object.values(selectedProperties).some(Boolean)
+              }
             >
-              Adicionar selecionados
+              {pendingPricingProperties.length > 0 ? "Salvar diaria e concluir" : "Adicionar selecionados"}
             </AppButton>
           )}
         </footer>
@@ -547,8 +804,13 @@ function getPropertyLoadingStatus(stage: PropertyLoadStage, foundCount: number):
     ready: 2,
     registering: 3,
     'creating-addresses': 4,
-    'starting-analysis': 5,
-    refreshing: 6,
+    'checking-airbnb-availability': 5,
+    'finding-available-dates': 6,
+    'calculating-daily-rate': 7,
+    'manual-price-required': 8,
+    'saving-prices': 9,
+    'starting-analysis': 10,
+    refreshing: 11,
   };
 
   const copy: Record<PropertyLoadStage, { title: string; body: string; buttonLabel: string }> = {
@@ -588,9 +850,34 @@ function getPropertyLoadingStatus(stage: PropertyLoadStage, foundCount: number):
       buttonLabel: "Salvando...",
     },
     'creating-addresses': {
-      title: "Preparando o mapa",
-      body: "Vamos usar a localizacao para encontrar eventos perto do imovel.",
+      title: "Preparando dados do imovel",
+      body: "Estamos salvando localizacao e dados basicos antes de consultar a diaria.",
       buttonLabel: "Preparando mapa...",
+    },
+    'checking-airbnb-availability': {
+      title: "Buscando disponibilidade no Airbnb",
+      body: "Estamos verificando se o calendario publico oferece noites abertas para cotar.",
+      buttonLabel: "Buscando disponibilidade...",
+    },
+    'finding-available-dates': {
+      title: "Encontrando datas para cotar",
+      body: "Testamos janelas futuras de 2 a 3 noites para evitar usar uma data bloqueada.",
+      buttonLabel: "Encontrando datas...",
+    },
+    'calculating-daily-rate': {
+      title: "Calculando diaria base",
+      body: "Quando o Airbnb retorna um total, dividimos pelo numero de noites e validamos a origem.",
+      buttonLabel: "Calculando diaria...",
+    },
+    'manual-price-required': {
+      title: "Precisamos da diaria base",
+      body: "Nao encontramos uma diaria confiavel no Airbnb. O cadastro continua assim que voce informar o valor atual.",
+      buttonLabel: "Aguardando diaria...",
+    },
+    'saving-prices': {
+      title: "Salvando diaria informada",
+      body: "Vamos usar esse valor como base para iniciar a analise de eventos e oportunidades.",
+      buttonLabel: "Salvando diaria...",
     },
     'starting-analysis': {
       title: "Preparando sugestoes de preco",
@@ -611,6 +898,11 @@ function getPropertyLoadingStatus(stage: PropertyLoadStage, foundCount: number):
     { id: "select", label: "Escolher imoveis", detail: "Voce confirma quais entram" },
     { id: "register", label: "Salvar na conta", detail: "Adiciona na sua lista" },
     { id: "location", label: "Preparar mapa", detail: "Localizacao do imovel" },
+    { id: "availability", label: "Ver disponibilidade", detail: "Calendario publico do Airbnb" },
+    { id: "dates", label: "Encontrar datas", detail: "Janelas futuras disponiveis" },
+    { id: "daily", label: "Calcular diaria", detail: "Total dividido por noites" },
+    { id: "fallback", label: "Fallback manual", detail: "So quando falta fonte confiavel" },
+    { id: "save-price", label: "Salvar diaria", detail: "Valor manual confirmado" },
     { id: "analysis", label: "Buscar oportunidades", detail: "Eventos e sugestoes" },
     { id: "refresh", label: "Mostrar na tela", detail: "Lista atualizada" },
   ];
@@ -620,7 +912,7 @@ function getPropertyLoadingStatus(stage: PropertyLoadStage, foundCount: number):
     title: copy[stage].title,
     body: copy[stage].body,
     buttonLabel: copy[stage].buttonLabel,
-    tone: stage === "ready" ? "neutral" : "accent",
+    tone: stage === "manual-price-required" ? "warn" : stage === "ready" ? "neutral" : "accent",
     steps: stepDefs.map((step, index) => ({
       ...step,
       status:

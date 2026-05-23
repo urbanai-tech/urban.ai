@@ -77,6 +77,17 @@ Alvo: fazer em staging, medir tempo total, validar que o dump restaurado sobe um
    UNION ALL SELECT 'analise_preco', COUNT(*) FROM analise_preco;
    ```
 
+   Tambem rode o verificador automatizado read-only contra o banco restaurado:
+
+   ```bash
+   cd urban-ai-backend-main
+   RESTORE_DATABASE_URL="mysql://<staging-user>:<staging-pass>@<staging-host>:3306/<database>" \
+     node scripts/restore-drill-verify.js \
+       --output ../docs/evidence/restore-drill-YYYY-QX.md
+   ```
+
+   O script valida conexao, tabelas operacionais esperadas, contagens, timestamps recentes e leitura das tabelas de auditabilidade (`admin_job_runs` e `admin_audit_logs`). Ele redige a URL do banco no markdown e nao executa escrita.
+
 6. **Subir backend staging apontando pro DB restaurado:**
    - Atualizar `DATABASE_URL` do serviço backend staging temporariamente.
    - Fazer redeploy.
@@ -183,7 +194,8 @@ Este runbook é considerado "aprovado" somente depois do **primeiro drill real**
 - [ ] Tempo total observado (vs. RTO 2h)
 - [ ] Ajustes ao runbook
 - [ ] Status ✅ na tabela do `docs/slo.md` § Error budget
+- [ ] Evidencia gerada por `node scripts/restore-drill-verify.js` em `docs/evidence/`
 
 ---
 
-*Última atualização: 24/04/2026 · Responsável: Gustavo Macedo*
+*Última atualização: 22/05/2026 · Responsável: Gustavo Macedo*

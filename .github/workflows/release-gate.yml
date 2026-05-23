@@ -26,11 +26,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: Urban-front-main/yarn.lock
+          cache: 'npm'
+          cache-dependency-path: Urban-front-main/package-lock.json
 
       - name: Install deps
-        run: yarn install --frozen-lockfile
+        run: npm ci --legacy-peer-deps
 
       - name: Type-check
         run: npx tsc --noEmit
@@ -43,7 +43,7 @@ jobs:
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_dummy
           NEXTAUTH_SECRET: ci_dummy_secret_not_for_prod
           NEXTAUTH_URL: http://localhost:3000
-        run: yarn build
+        run: npm run build
 
   e2e-public:
     name: Playwright - public smoke
@@ -61,11 +61,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: Urban-front-main/yarn.lock
+          cache: 'npm'
+          cache-dependency-path: Urban-front-main/package-lock.json
 
       - name: Install deps
-        run: yarn install --frozen-lockfile
+        run: npm ci --legacy-peer-deps
 
       - name: Build local smoke app
         env:
@@ -75,7 +75,7 @@ jobs:
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_dummy
           NEXTAUTH_SECRET: ci_dummy_secret_not_for_prod
           NEXTAUTH_URL: http://127.0.0.1:3000
-        run: yarn build
+        run: npm run build
 
       - name: Start local smoke app
         run: |
@@ -131,11 +131,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: Urban-front-main/yarn.lock
+          cache: 'npm'
+          cache-dependency-path: Urban-front-main/package-lock.json
 
       - name: Install deps
-        run: yarn install --frozen-lockfile
+        run: npm ci --legacy-peer-deps
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -159,6 +159,7 @@ jobs:
             login-post-login.spec.ts \
             logout.spec.ts \
             dashboard-recommendations.spec.ts \
+            ask-urban-entitlement.spec.ts \
             my-plan-billing.spec.ts
 
       - name: Upload Playwright report
@@ -168,3 +169,41 @@ jobs:
           name: playwright-report-authenticated
           path: Urban-front-main/playwright-report/
           retention-days: 7
+
+  enterprise-live-gate:
+    name: Enterprise live gate - staging/prod evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run enterprise live gate
+        env:
+          ENTERPRISE_GATE_ENV: ${{ vars.ENTERPRISE_GATE_ENV || 'staging' }}
+          ENTERPRISE_GATE_BACKEND_URL: ${{ vars.ENTERPRISE_GATE_BACKEND_URL || vars.E2E_API_URL }}
+          ENTERPRISE_GATE_FRONTEND_URL: ${{ vars.ENTERPRISE_GATE_FRONTEND_URL || vars.E2E_BASE_URL }}
+          ENTERPRISE_GATE_ADMIN_JWT: ${{ secrets.ENTERPRISE_GATE_ADMIN_JWT }}
+          ENTERPRISE_GATE_HOST_JWT: ${{ secrets.ENTERPRISE_GATE_HOST_JWT }}
+          ENTERPRISE_GATE_EVENTS_INGEST_KEY: ${{ secrets.ENTERPRISE_GATE_EVENTS_INGEST_KEY }}
+          ENTERPRISE_GATE_PROD_MUTATION_OK: ${{ vars.ENTERPRISE_GATE_PROD_MUTATION_OK }}
+        run: >-
+          node scripts/enterprise-auditability-live-gate.js
+          --env=${ENTERPRISE_GATE_ENV}
+          --strict
+          --skip-events-ingest
+          --output docs/evidence/enterprise-live-gate-${ENTERPRISE_GATE_ENV}.md
+
+      - name: Upload enterprise evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: enterprise-live-gate
+          path: docs/evidence/enterprise-live-gate-*.md
+          retention-days: 30

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
@@ -6,6 +6,9 @@ import { StaysAccount } from '../entities/stays-account.entity';
 import { StaysListing } from '../entities/stays-listing.entity';
 import { PriceUpdate } from '../entities/price-update.entity';
 import { User } from '../entities/user.entity';
+import { PricingDecisionSnapshot } from '../entities/pricing-decision-snapshot.entity';
+import { AnalisePreco } from '../entities/AnalisePreco';
+import { PricingCalculateService } from '../propriedades/pricing-calculate.service';
 import { StaysConnector } from './stays-connector';
 
 export interface ConnectInput {
@@ -73,6 +76,14 @@ export class StaysService {
     @InjectRepository(PriceUpdate) private readonly priceUpdateRepo: Repository<PriceUpdate>,
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     private readonly connector: StaysConnector,
+    @Optional()
+    @InjectRepository(PricingDecisionSnapshot)
+    private readonly pricingDecisionSnapshotRepo?: Repository<PricingDecisionSnapshot>,
+    @Optional()
+    @InjectRepository(AnalisePreco)
+    private readonly analiseRepo?: Repository<AnalisePreco>,
+    @Optional()
+    private readonly pricingCalculateService?: PricingCalculateService,
   ) {}
 
   // =========== Connect / disconnect ===========
@@ -324,11 +335,15 @@ export class StaysService {
 
     const idempotencyKey = this.buildIdempotencyKey(listing.staysListingId, input.targetDate, input.newPriceCents);
 
-    const existing = await this.priceUpdateRepo.findOne({ where: { idempotencyKey } });
+    const existing = await this.priceUpdateRepo.findOne({
+      where: { idempotencyKey },
+      relations: ['analise'],
+    });
     if (existing) {
       this.logger.log(
         `pushPrice idempotente listing=${listing.staysListingId} date=${input.targetDate} — reaproveitando update=${existing.id}`,
       );
+      await this.recordPricingDecisionOutcome(existing);
       return existing;
     }
 
@@ -347,6 +362,9 @@ export class StaysService {
       userAgent: input.userAgent ?? null,
     });
     await this.priceUpdateRepo.save(record);
+    await this.recordPricingDecisionOutcome(record, {
+      acceptedAt: record.createdAt ?? new Date(),
+    });
 
     try {
       const result = await this.connector.pushPrice(account.accessToken, {
@@ -364,6 +382,10 @@ export class StaysService {
         record.errorMessage = result.rejectedReason ?? null;
       }
       await this.priceUpdateRepo.save(record);
+      await this.recordPricingDecisionOutcome(record, {
+        appliedAt: result.ok ? new Date() : undefined,
+        rejectedAt: result.ok ? undefined : new Date(),
+      });
       return record;
     } catch (err) {
       record.status = 'error';
@@ -371,6 +393,8 @@ export class StaysService {
       await this.priceUpdateRepo.save(record);
 
       // Se a falha foi de autenticação, marca a conta como error.
+      await this.recordPricingDecisionOutcome(record);
+
       account.status = 'error';
       account.lastErrorAt = new Date();
       account.lastErrorMessage = record.errorMessage;
@@ -409,6 +433,63 @@ export class StaysService {
   }
 
   // =========== Helpers ===========
+
+  private async recordPricingDecisionOutcome(
+    priceUpdate: PriceUpdate,
+    timestamps: { acceptedAt?: Date; appliedAt?: Date; rejectedAt?: Date } = {},
+  ): Promise<void> {
+    if (!this.pricingDecisionSnapshotRepo || !this.pricingCalculateService) return;
+
+    const analiseId = this.entityId(priceUpdate.analise);
+    if (!analiseId) return;
+
+    try {
+      const candidates = await this.pricingDecisionSnapshotRepo.find({
+        where: { analisePreco: { id: analiseId } } as any,
+        relations: ['analisePreco', 'priceUpdate'],
+        order: { createdAt: 'DESC' },
+        take: 25,
+      });
+      const snapshot =
+        candidates.find((candidate) => candidate.targetDate === priceUpdate.targetDate) ??
+        candidates[0] ??
+        null;
+      if (!snapshot) return;
+
+      const analisePreco = (await this.loadAnaliseForOutcome(analiseId)) ?? snapshot.analisePreco;
+      const recordedAt = new Date();
+      const patch = this.pricingCalculateService.criarPatchOutcomeSnapshotDecisao({
+        snapshot,
+        priceUpdate: { ...priceUpdate, analise: analisePreco ?? priceUpdate.analise } as PriceUpdate,
+        analisePreco: analisePreco ?? priceUpdate.analise,
+        acceptedAt: timestamps.acceptedAt ?? priceUpdate.createdAt ?? recordedAt,
+        appliedAt: timestamps.appliedAt,
+        rejectedAt: timestamps.rejectedAt,
+        recordedAt,
+        source: 'price_update',
+        sourceDetail: priceUpdate.origin,
+      });
+
+      Object.assign(snapshot, patch);
+      await this.pricingDecisionSnapshotRepo.save(snapshot);
+    } catch (error) {
+      this.logger.warn(
+        `Falha ao registrar outcome em PricingDecisionSnapshot para PriceUpdate ${priceUpdate.id}: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  private async loadAnaliseForOutcome(analiseId: string): Promise<AnalisePreco | null> {
+    if (!this.analiseRepo) return null;
+    return this.analiseRepo.findOne({
+      where: { id: analiseId },
+      relations: ['endereco', 'endereco.list', 'evento', 'usuarioProprietario'],
+    });
+  }
+
+  private entityId(entity?: { id?: string | null } | null): string | null {
+    return entity?.id ?? null;
+  }
 
   private assertStaysReadiness(options: { requireEncryptionKey?: boolean } = {}) {
     const requireEncryptionKey = options.requireEncryptionKey ?? true;

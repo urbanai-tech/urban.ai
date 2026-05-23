@@ -8,6 +8,8 @@ import { Event } from 'src/entities/events.entity';
 import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { Address } from 'src/entities/addresses.entity';
 import { KnnEngineModule } from 'src/knn-engine/knn-engine.module';
+import { PriceUpdate } from 'src/entities/price-update.entity';
+import { AirbnbModule } from 'src/airbnb/airbnb.module';
 
 @Module({
   imports: [
@@ -16,8 +18,10 @@ import { KnnEngineModule } from 'src/knn-engine/knn-engine.module';
       Event,
       AnalisePreco,
       Address,
+      PriceUpdate,
     ]),
     KnnEngineModule,
+    AirbnbModule,
   ],
     controllers: [
         SugestionController,],

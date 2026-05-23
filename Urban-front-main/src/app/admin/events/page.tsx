@@ -306,6 +306,9 @@ export default function AdminEventsPage() {
         }
         actions={
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <AdminButton variant="ghost" as="a" href="/admin/event-radar" rightIcon={<Icons.ArrowRight size={11} />}>
+              Radar de demanda
+            </AdminButton>
             <AdminButton variant="ghost" as="a" href="/admin/coverage" rightIcon={<Icons.ArrowRight size={11} />}>
               Cobertura
             </AdminButton>

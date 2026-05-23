@@ -8,6 +8,9 @@ import { StaysAccount, staysTokenTransformer } from '../entities/stays-account.e
 import { StaysListing } from '../entities/stays-listing.entity';
 import { PriceUpdate } from '../entities/price-update.entity';
 import { User } from '../entities/user.entity';
+import { AnalisePreco } from '../entities/AnalisePreco';
+import { PricingDecisionSnapshot } from '../entities/pricing-decision-snapshot.entity';
+import { PricingCalculateService } from '../propriedades/pricing-calculate.service';
 
 type Repo<T> = Partial<Record<keyof Repository<T>, jest.Mock>>;
 
@@ -17,6 +20,8 @@ describe('StaysService', () => {
   let listingRepo: Repo<StaysListing>;
   let priceUpdateRepo: Repo<PriceUpdate>;
   let userRepo: Repo<User>;
+  let analiseRepo: Repo<AnalisePreco>;
+  let pricingDecisionSnapshotRepo: Repo<PricingDecisionSnapshot>;
   let connector: {
     ping: jest.Mock;
     listListings: jest.Mock;
@@ -46,6 +51,11 @@ describe('StaysService', () => {
       save: jest.fn().mockImplementation(async (d) => d),
     };
     userRepo = { findOne: jest.fn() };
+    analiseRepo = { findOne: jest.fn().mockResolvedValue(null) };
+    pricingDecisionSnapshotRepo = {
+      find: jest.fn().mockResolvedValue([]),
+      save: jest.fn().mockImplementation(async (d) => d),
+    };
     connector = {
       ping: jest.fn(),
       listListings: jest.fn(),
@@ -59,7 +69,10 @@ describe('StaysService', () => {
         { provide: getRepositoryToken(StaysListing), useValue: listingRepo },
         { provide: getRepositoryToken(PriceUpdate), useValue: priceUpdateRepo },
         { provide: getRepositoryToken(User), useValue: userRepo },
+        { provide: getRepositoryToken(AnalisePreco), useValue: analiseRepo },
+        { provide: getRepositoryToken(PricingDecisionSnapshot), useValue: pricingDecisionSnapshotRepo },
         { provide: StaysConnector, useValue: connector },
+        PricingCalculateService,
       ],
     }).compile();
 
@@ -334,6 +347,88 @@ describe('StaysService', () => {
 
       expect(connector.pushPrice).toHaveBeenCalledTimes(1);
       expect(result.status).toBe('success');
+    });
+
+    it('persists PriceUpdate lifecycle as pricing decision outcome', async () => {
+      withActiveAccount();
+      withListing();
+      priceUpdateRepo.findOne!.mockResolvedValue(null);
+      connector.pushPrice.mockResolvedValue({ ok: true, externalReference: 'ext-1' });
+      analiseRepo.findOne!.mockResolvedValue({
+        id: 'analysis-1',
+        status: 'applied_stays',
+        aceito: true,
+        reservaStatus: 'booked',
+        receitaReal: 230,
+        noitesReservadas: 2,
+        resultadoRegistradoEm: new Date('2026-05-03T12:00:00.000Z'),
+      });
+      pricingDecisionSnapshotRepo.find!.mockResolvedValue([
+        {
+          id: 'snapshot-1',
+          targetDate: '2026-05-01',
+          status: 'suggested',
+          selectedPriceCents: 11500,
+          expectedRevenueCents: 22000,
+          expectedIncrementalRevenueCents: 2000,
+          inputSignals: {
+            auditTrailVersion: 'pricing-decision-audit-v0',
+            generatedFrom: 'pricing-calculate.service',
+            relationIds: {
+              analisePrecoId: 'analysis-1',
+            },
+            selectedScenario: {
+              scenario: 'recommended',
+              priceCents: 11500,
+              multiplier: 1.15,
+              bookingProbability: 0.62,
+              expectedRevenueCents: 22000,
+              expectedIncrementalRevenueCents: 2000,
+            },
+          },
+          riskFlags: [],
+        },
+      ]);
+
+      const result = await service.pushPrice('u1', {
+        listingId: 'l-1',
+        targetDate: '2026-05-01',
+        previousPriceCents: 10000,
+        newPriceCents: 11500,
+        origin: 'ai_auto',
+        analisePrecoId: 'analysis-1',
+      });
+
+      expect(result.status).toBe('success');
+      expect(pricingDecisionSnapshotRepo.save).toHaveBeenCalledTimes(2);
+      expect(pricingDecisionSnapshotRepo.save).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          id: 'snapshot-1',
+          status: 'applied',
+          appliedPriceCents: 11500,
+          priceUpdate: expect.objectContaining({
+            id: 'pu-1',
+            status: 'success',
+            origin: 'ai_auto',
+          }),
+          inputSignals: expect.objectContaining({
+            outcome: expect.objectContaining({
+              decisionStatus: 'applied',
+              status: 'booked',
+              appliedPriceCents: 11500,
+              realizedRevenueCents: 23000,
+              bookedNights: 2,
+              reservationGenerated: true,
+              priceAbsorbed: true,
+              source: 'price_update',
+              sourceDetail: 'ai_auto',
+              priceUpdateId: 'pu-1',
+              priceUpdateStatus: 'success',
+              revenueDeltaCents: 1000,
+            }),
+          }),
+        }),
+      );
     });
 
     it('honors custom caps set on the account', async () => {

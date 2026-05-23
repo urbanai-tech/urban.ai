@@ -1,8 +1,10 @@
 # Matriz Operacional de Variaveis - Urban AI
 
-Data: 2026-05-13
+Data: 2026-05-22
 
 Esta matriz consolida as variaveis encontradas no codigo e nos `.env.example`. Valores reais devem ficar apenas no provedor de deploy/CI. API keys podem ser configuradas depois, mas as variaveis marcadas como obrigatorias precisam existir antes de operar usuarios reais.
+
+Status 2026-05-22: auto-apply Stays opera em fail-closed. O backend aceita os nomes operacionais `STAYS_AUTO_APPLY_ALLOWED_USER_IDS`/`STAYS_AUTO_APPLY_ALLOWED_LISTING_IDS` e os aliases canonicos `STAYS_AUTO_APPLY_USER_ALLOWLIST`/`STAYS_AUTO_APPLY_LISTING_ALLOWLIST`. Antes de preco real, registrar smoke em `docs/evidence/`.
 
 ## Backend (`urban-ai-backend-main`)
 
@@ -19,8 +21,32 @@ Esta matriz consolida as variaveis encontradas no codigo e nos `.env.example`. V
 | Suporte/LGPD | `SUPPORT_EMAIL`, `PRIVACY_EMAIL`, `SUPPORT_OWNER_EMAIL`, `PRIVACY_OWNER_EMAIL` | Canais publicos tem fallback no app; owners operacionais precisam estar definidos antes de beta pago. Aparece em `/admin/dashboard` no Go-live Track 3. |
 | Maps/eventos | `GOOGLE_MAPS_API_KEY`, `RAPIDAPI_KEY`, `GEMINI_API_KEY`, `AIRBNB_GRAPHQL_HASH`, `MAPBOX_TOKEN` | Obrigatorio conforme rota/integracao ativada. |
 | Pricing | `PRICING_STRATEGY`, `PRICING_BOOTSTRAP_ON_BOOT` | Recomendado. Default atual cobre dev, mas prod deve ser explicito. |
-| Stays | `STAYS_API_BASE_URL`, `STAYS_TOKEN_ENCRYPTION_KEY` | `STAYS_TOKEN_ENCRYPTION_KEY` obrigatoria em staging/prod para criptografia em repouso. |
+| Stays | `STAYS_API_BASE_URL`, `STAYS_TOKEN_ENCRYPTION_KEY`, `STAYS_AUTO_APPLY_ENABLED`, `STAYS_AUTO_APPLY_DRY_RUN`, `STAYS_AUTO_APPLY_USER_ALLOWLIST`, `STAYS_AUTO_APPLY_LISTING_ALLOWLIST` | `STAYS_TOKEN_ENCRYPTION_KEY` obrigatoria em staging/prod para criptografia em repouso. Auto-apply deve ficar desligado por default e so pode aplicar preco real depois de smoke documentado. |
+| AskUrban | `ASK_URBAN_DAILY_QUOTA`, `ASK_URBAN_DAILY_HARD_CAP` | Recomendado para controlar uso diario. Entitlement de plano deve vir do backend, nao de env publica nem `localStorage`. |
 | Waitlist | `PRELAUNCH_MODE`, `MARKETING_BASE_URL` | Conforme modo de lancamento. |
+
+### Stays auto-apply safety flags
+
+| Variavel | Valor seguro default | Semantica operacional | Status 2026-05-22 |
+|---|---|---|---|
+| `STAYS_AUTO_APPLY_ENABLED` | `false` | Kill switch global. Qualquer valor diferente de `true` deve impedir aplicacao real. | Implementacao observada; validacao pendente |
+| `STAYS_AUTO_APPLY_DRY_RUN` | `true` | Permite calcular candidatos e registrar resumo, mas sem chamar mutacao externa de preco. | Implementacao observada; validacao pendente |
+| `STAYS_AUTO_APPLY_USER_ALLOWLIST` | vazio | CSV de `userId` liberados. Alias suportado de `STAYS_AUTO_APPLY_ALLOWED_USER_IDS`. | Implementado; smoke prod pendente |
+| `STAYS_AUTO_APPLY_LISTING_ALLOWLIST` | vazio | CSV de `listingId` liberados. Alias suportado de `STAYS_AUTO_APPLY_ALLOWED_LISTING_IDS`. | Implementado; smoke prod pendente |
+
+Aliases observados em codigo durante a releitura estatica:
+
+- `STAYS_AUTO_APPLY_ALLOWED_USER_IDS`
+- `STAYS_AUTO_APPLY_ALLOWED_LISTING_IDS`
+
+Recomendacao: preferir os nomes canonicos `*_ALLOWLIST` pedidos nesta matriz, ou manter aliases somente se estiverem documentados no runbook de Stays e cobertos por testes.
+
+Regras esperadas:
+
+- `STAYS_AUTO_APPLY_ENABLED` ausente ou `false`: registrar run como bloqueado/skipped e nao aplicar nada.
+- `STAYS_AUTO_APPLY_DRY_RUN=true`: registrar candidatos e motivos, mas nao chamar `pushPrice`/mutacao Stays.
+- Allowlists vazias em staging/prod: bloquear aplicacao real ate o operador preencher explicitamente.
+- Mudanca de qualquer flag em producao exige evidencia de smoke anexada em `docs/evidence/`.
 
 ## Frontend (`Urban-front-main`)
 
@@ -60,5 +86,8 @@ Esta matriz consolida as variaveis encontradas no codigo e nos `.env.example`. V
 - Em producao, `DB_SYNCHRONIZE` deve permanecer `false`.
 - `SENTRY_DSN` deve ser diferente por ambiente para nao misturar erros de staging e prod.
 - Tokens Stays existentes em texto puro devem ser regravados apos configurar `STAYS_TOKEN_ENCRYPTION_KEY`; o transformer ainda le legado para permitir migracao gradual.
+- `STAYS_AUTO_APPLY_ENABLED` deve permanecer `false` em producao ate os testes de default-off, dry-run e allowlist estarem aprovados.
+- `STAYS_AUTO_APPLY_DRY_RUN` deve permanecer `true` durante o primeiro smoke com conta/listing allowlisted.
+- `STAYS_AUTO_APPLY_USER_ALLOWLIST` e `STAYS_AUTO_APPLY_LISTING_ALLOWLIST` devem ser revisados antes de cada ativacao real; nunca usar wildcard em beta privado.
 - API keys externas podem ficar pendentes em dev/staging, desde que os fluxos dependentes nao sejam anunciados como prontos.
 - Para Track 3, rodar `npm run preflight:track3` em `urban-ai-backend-main` antes de smoke manual.

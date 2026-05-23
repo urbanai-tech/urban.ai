@@ -7,6 +7,8 @@ function makeRepo(options: {
   distinctDays?: number;
   latest?: string | null;
   byOrigin?: Array<{ origin: string; count: string | number }>;
+  rawOne?: any;
+  rawMany?: any[];
   findResult?: any[];
   findOneResult?: any;
 } = {}) {
@@ -21,9 +23,12 @@ function makeRepo(options: {
     }),
     addSelect: jest.fn(() => builder),
     setParameter: jest.fn(() => builder),
+    where: jest.fn(() => builder),
+    andWhere: jest.fn(() => builder),
     groupBy: jest.fn(() => builder),
-    getRawMany: jest.fn(async () => options.byOrigin ?? []),
+    getRawMany: jest.fn(async () => options.rawMany ?? options.byOrigin ?? []),
     getRawOne: jest.fn(async () => {
+      if (options.rawOne) return options.rawOne;
       if (state.select.includes('DISTINCT') && state.select.includes('externalListingId')) {
         return { c: String(options.distinctListings ?? 0) };
       }
@@ -57,6 +62,7 @@ function buildService(repos: {
   address?: any;
   list?: any;
   event?: any;
+  airbnb?: any;
 } = {}) {
   const snapshot = repos.snapshot ?? makeRepo();
   const occupancy = repos.occupancy ?? makeRepo();
@@ -73,6 +79,9 @@ function buildService(repos: {
       address as any,
       list as any,
       event as any,
+      undefined,
+      undefined,
+      repos.airbnb as any,
     ),
     snapshot,
     occupancy,
@@ -156,6 +165,7 @@ describe('DatasetCollectorService', () => {
       where: {
         snapshotDate: expect.any(String),
         externalListingId: 'urban-list:list-1',
+        origin: 'self_cron',
       },
     });
     expect(snapshot.save).toHaveBeenCalledWith(
@@ -229,6 +239,148 @@ describe('DatasetCollectorService', () => {
         predominantCategory: expect.any(String),
         competitiveSupplyCount: 1,
       }),
+    );
+  });
+
+  it('captures future Airbnb price observations for active listings', async () => {
+    const list = makeRepo({
+      findResult: [
+        {
+          id: 'list-1',
+          id_do_anuncio: '123456',
+          ativo: true,
+          quartos: 2,
+          camas: 2,
+          hospedes: 4,
+          banheiros: 1,
+        },
+      ],
+    });
+    const address = makeRepo({
+      findOneResult: { bairro: 'Pinheiros', latitude: -23.56, longitude: -46.68 },
+    });
+    const snapshot = makeRepo();
+    const airbnb = {
+      getPriceForDateWindow: jest.fn(async (_listingId, checkIn, checkOut, propertyDetails) => ({
+        price: {
+          status: true,
+          message: 'ok',
+          timestamp: Date.now(),
+          data: {
+            accommodationCost: 900,
+            accommodationCostFormatted: 'R$900.00',
+            accommodationCostTitle: '2 nights x R$450.00',
+            details: [],
+          },
+        },
+        propertyDetails,
+        checkIn,
+        checkOut,
+        nights: 2,
+        source: 'airbnb-browser',
+      })),
+    };
+    const { service } = buildService({ list, address, snapshot, airbnb });
+
+    const result = await service.recordAirbnbPriceObservations();
+
+    expect(result.status).toBe('ok');
+    expect(result.totalLists).toBe(1);
+    expect(result.attempted).toBe(10);
+    expect(result.succeeded).toBe(10);
+    expect(result.failed).toBe(0);
+    expect(result.bySource).toEqual([{ source: 'airbnb-browser', count: 10 }]);
+    expect(airbnb.getPriceForDateWindow).toHaveBeenCalledTimes(10);
+    expect(snapshot.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        externalListingId: '123456',
+        priceCents: 45000,
+        observedTotalPriceCents: 90000,
+        observedSource: 'airbnb-browser',
+        origin: 'airbnb_observation',
+        trainingReady: true,
+      }),
+    );
+    expect(list.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dailyPrice: 450,
+        raw: 900,
+        priceText: 'R$450.00',
+        status: 'preco_base_airbnb_observation',
+        pricingInputSource: 'airbnb_headless_observation',
+      }),
+    );
+  });
+
+  it('does not overwrite manual listing prices from Airbnb observations', async () => {
+    const list = makeRepo({
+      findResult: [
+        {
+          id: 'list-1',
+          id_do_anuncio: '123456',
+          ativo: true,
+          manualDailyPrice: 520,
+          dailyPrice: 520,
+          pricingInputSource: 'manual',
+        },
+      ],
+    });
+    const snapshot = makeRepo();
+    const airbnb = {
+      getPriceForDateWindow: jest.fn(async (_listingId, checkIn, checkOut, propertyDetails) => ({
+        price: {
+          status: true,
+          message: 'ok',
+          timestamp: Date.now(),
+          data: {
+            accommodationCost: 900,
+            accommodationCostFormatted: 'R$900.00',
+            accommodationCostTitle: '2 nights x R$450.00',
+            details: [],
+          },
+        },
+        propertyDetails,
+        checkIn,
+        checkOut,
+        nights: 2,
+        source: 'airbnb-browser',
+      })),
+    };
+    const { service } = buildService({ list, snapshot, airbnb });
+
+    await service.recordAirbnbPriceObservations();
+
+    expect(snapshot.save).toHaveBeenCalled();
+    expect(list.save).not.toHaveBeenCalled();
+  });
+
+  it('reports Airbnb observation failures through the health contract', async () => {
+    const list = makeRepo({ findResult: [{ id: 'list-1', id_do_anuncio: '123456', ativo: true }] });
+    const snapshot = makeRepo({
+      rawOne: {
+        total: '0',
+        distinctListings: '0',
+        latestObservedAt: null,
+        averageDailyPriceCents: null,
+      },
+      rawMany: [],
+    });
+    const airbnb = {
+      getPriceForDateWindow: jest.fn(async () => {
+        throw new Error('source unavailable');
+      }),
+    };
+    const { service } = buildService({ list, snapshot, airbnb });
+
+    const run = await service.recordAirbnbPriceObservations();
+    const health = await service.priceIntelligenceHealth();
+
+    expect(run.status).toBe('no_observations');
+    expect(run.failed).toBe(10);
+    expect(health.status).toBe('red');
+    expect(health.failures.total).toBe(10);
+    expect(health.failures.recent[0]).toEqual(
+      expect.objectContaining({ listingId: '123456', reason: 'source unavailable' }),
     );
   });
 

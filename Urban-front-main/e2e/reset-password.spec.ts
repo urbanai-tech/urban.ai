@@ -65,6 +65,7 @@ test.describe('Reset de senha', () => {
     await expect(submit).toBeEnabled();
     await submit.click();
 
+    await expect.poll(() => payloads.length).toBe(1);
     const submittedPayload = payloads[0];
     expect(submittedPayload.token).toBe('TOKEN_RESET_E2E');
     expect(submittedPayload.pass).toMatch(/^[a-f0-9]{64}$/);

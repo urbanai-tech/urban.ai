@@ -48,6 +48,13 @@ export type {
 export { AppToastProvider, useAppToast, useToastCompat } from "./AppToast";
 export type { AppToastKind } from "./AppToast";
 export {
+  EventCatalogCard,
+  EventDemandHeatmapPlaceholder,
+  EventImpactTable,
+  EventRadarCard,
+  PriceAbsorptionScenarios,
+} from "./event-intelligence";
+export {
   appCardVariantStyle,
   appDisabledStyle,
   appErrorTextStyle,

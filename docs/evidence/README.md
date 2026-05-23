@@ -2,6 +2,25 @@
 
 This directory can store generated Markdown evidence for release handoffs.
 
+## Enterprise auditability controls
+
+Use `docs/evidence/enterprise-auditabilidade-controles-2026-05-22.md` as the control log for:
+
+- Stays auto-apply envs: `STAYS_AUTO_APPLY_ENABLED`, `STAYS_AUTO_APPLY_DRY_RUN`, `STAYS_AUTO_APPLY_USER_ALLOWLIST`, `STAYS_AUTO_APPLY_LISTING_ALLOWLIST`.
+- AskUrban entitlement server-side.
+- Error state vs empty state.
+- Persistent jobs tracking.
+- Validation criteria before marking a control as done.
+
+Generated evidence files for the 2026-05-22 enterprise auditability pass:
+
+- `enterprise-live-gate-dry-run-2026-05-22.md`: planned live-gate checks without credentials.
+- `restore-drill-dry-run-2026-05-22.md`: planned restore verification checks without a restored DB URL.
+- `enterprise-access-readiness-2026-05-22.md`: safe presence-only report for required real environment variables.
+- `release-evidence-2026-05-22.md`: local git/workflow metadata evidence.
+
+Do not mark a control as approved only because docs or code changed. Each approval must include date, environment, git SHA/branch when available, command or manual procedure, observed result, and residual risk.
+
 ## SEO/SGO/GEO cases
 
 Use `docs/evidence/seo-case-evidence-framework-2026-05-19.md` before publishing any case, benchmark, ROI, uplift, occupancy, revenue, or comparison claim on public SEO/GEO pages.

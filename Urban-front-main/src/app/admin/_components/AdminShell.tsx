@@ -67,6 +67,7 @@ const NAV: NavSection[] = [
   {
     title: "Motor de eventos",
     items: [
+      { href: "/admin/event-radar", label: "Radar de demanda", icon: <Activity size={16} /> },
       { href: "/admin/events", label: "Eventos", icon: <Calendar size={16} /> },
       { href: "/admin/events/dedup", label: "Deduplicação", icon: <Shield size={16} /> },
       { href: "/admin/events/new", label: "Cadastrar evento", icon: <Plus size={16} /> },
@@ -89,6 +90,7 @@ const NAV: NavSection[] = [
     items: [
       { href: "/admin/audit-logs", label: "Auditoria", icon: <Shield size={16} /> },
       { href: "/admin/pricing-config", label: "Config. de preços", icon: <Settings size={16} /> },
+      { href: "/admin/price-intelligence", label: "Price Intelligence", icon: <DollarSign size={16} /> },
       { href: "/admin/seo", label: "SEO / GEO", icon: <Search size={16} /> },
       { href: "/admin/quality", label: "Qualidade", icon: <AlertCircle size={16} /> },
       { href: "/admin/communications", label: "Comunicações", icon: <Mail size={16} /> },

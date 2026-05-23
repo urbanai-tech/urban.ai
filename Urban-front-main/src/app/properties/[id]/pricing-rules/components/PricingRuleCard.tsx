@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
+import { dateAtLocalOffset } from "@/app/lib/date";
 import { AppCard } from "../../../../componentes/ui";
 import type { PricingRule, PricingRuleType } from "../../../../service/api";
 
@@ -35,9 +36,7 @@ type RuleConfig = {
 
 const WEEKDAY_HEAD = (i: number) => {
   // simula próximos 14 dias começando "hoje"
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + i);
+  const d = dateAtLocalOffset(i);
   return (d.getDay() + 7) % 7;
 };
 
@@ -281,9 +280,11 @@ function MiniChart({ deltas }: { deltas: number[] }) {
       viewBox={`0 0 ${w} ${h}`}
       width={w}
       height={h}
-      aria-hidden="true"
+      role="img"
+      aria-label="Mini-grafico simulado, nao baseado em dados reais"
       style={{ display: "block" }}
     >
+      <title>Mini-grafico simulado</title>
       <line
         x1={0}
         x2={w}
@@ -464,14 +465,33 @@ export function PricingRuleCard({
         </div>
 
         <div
-          aria-hidden="true"
+          role="group"
+          aria-label="Mini-grafico simulado da regra"
           style={{
             flexShrink: 0,
             opacity: rule.enabled ? 1 : 0.4,
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
+            gap: 4,
           }}
         >
+          <span
+            style={{
+              alignSelf: "flex-end",
+              padding: "2px 6px",
+              borderRadius: 999,
+              border: "1px solid var(--app-divider-strong)",
+              color: "var(--app-text-muted)",
+              fontSize: 9,
+              fontWeight: 700,
+              letterSpacing: 0,
+              lineHeight: 1.2,
+              textTransform: "uppercase",
+            }}
+          >
+            Simulado
+          </span>
           <MiniChart deltas={deltas} />
         </div>
 

@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, IsNull, Not, Raw, Repository } from 'typeorm';
@@ -8,6 +9,18 @@ import { OccupancyHistory } from '../entities/occupancy-history.entity';
 import { Address } from '../entities/addresses.entity';
 import { List } from '../entities/list.entity';
 import { Event } from '../entities/events.entity';
+import { AdminJobRun } from '../entities/admin-job-run.entity';
+import { runAdminJobWithTracking } from '../admin-job-runs/admin-job-run-tracker';
+import type { FirstAvailablePriceResult } from '../airbnb/types';
+
+type AirbnbPriceLookup = {
+  getPriceForDateWindow: (
+    propertyId: string,
+    checkIn: string,
+    checkOut: string,
+    propertyDetails: FirstAvailablePriceResult['propertyDetails'],
+  ) => Promise<FirstAvailablePriceResult>;
+};
 
 export type DatasetHealth = 'red' | 'amber' | 'green';
 export type DatasetReadiness = 'empty' | 'collecting' | 'training_ready' | 'ground_truth_ready';
@@ -21,6 +34,47 @@ export interface DatasetCollectionResult {
   skippedInvalidPrice: number;
   externalDataAvailable: boolean;
   status: 'ok' | 'empty_catalog' | 'blocked_missing_price_source' | 'partial_missing_prices';
+  warnings: string[];
+}
+
+export interface AirbnbPriceObservationResult {
+  attempted: number;
+  succeeded: number;
+  failed: number;
+  duplicates: number;
+  skipped: number;
+  totalLists: number;
+  windowsPerListing: number;
+  status: 'ok' | 'partial' | 'blocked_no_airbnb_service' | 'empty_catalog' | 'no_observations';
+  observedAt: string;
+  failures: Array<{
+    listingId: string;
+    checkIn: string;
+    checkOut: string;
+    nights: number;
+    reason: string;
+  }>;
+  bySource: Array<{ source: string; count: number }>;
+  warnings: string[];
+}
+
+export interface PriceIntelligenceHealth {
+  generatedAt: string;
+  windowHours: number;
+  status: 'green' | 'amber' | 'red';
+  observations: {
+    total: number;
+    distinctListings: number;
+    latestObservedAt: string | null;
+    averageDailyPriceCents: number | null;
+    bySource: Array<{ source: string; count: number }>;
+    byWindow: Array<{ nights: number; count: number }>;
+  };
+  failures: {
+    total: number;
+    recent: AirbnbPriceObservationResult['failures'];
+  };
+  lastRun: AirbnbPriceObservationResult | null;
   warnings: string[];
 }
 
@@ -106,7 +160,9 @@ export interface DatasetDiagnostics {
 export class DatasetCollectorService {
   private readonly logger = new Logger(DatasetCollectorService.name);
   private isRunning = false;
+  private isAirbnbObservationRunning = false;
   private lastOwnedListingsSnapshot: DatasetCollectionResult | null = null;
+  private lastAirbnbPriceObservation: AirbnbPriceObservationResult | null = null;
 
   constructor(
     @InjectRepository(PriceSnapshot) private readonly snapshotRepo: Repository<PriceSnapshot>,
@@ -116,6 +172,13 @@ export class DatasetCollectorService {
     @InjectRepository(Address) private readonly addressRepo: Repository<Address>,
     @InjectRepository(List) private readonly listRepo: Repository<List>,
     @InjectRepository(Event) private readonly eventRepo: Repository<Event>,
+    @Optional()
+    private readonly moduleRef?: ModuleRef,
+    @Optional()
+    @InjectRepository(AdminJobRun)
+    private readonly jobRunRepo?: Repository<AdminJobRun>,
+    @Optional()
+    private readonly airbnbServiceOverride?: AirbnbPriceLookup,
   ) {}
 
   // ============ Frente 1: snapshot diário dos imóveis cadastrados ============
@@ -132,7 +195,9 @@ export class DatasetCollectorService {
     }
     this.isRunning = true;
     try {
-      const result = await this.recordOwnedListingsSnapshot();
+      const result = await this.runCronWithTracking('dataset-daily-snapshot', () =>
+        this.recordOwnedListingsSnapshot(),
+      );
       this.logger.log(
         `Daily snapshot: capturados=${result.captured} pulados=${result.skipped} duplicados=${result.duplicates}`,
       );
@@ -146,12 +211,35 @@ export class DatasetCollectorService {
   @Cron('45 3 * * *', { name: 'dataset-event-proximity-snapshot', timeZone: 'America/Sao_Paulo' })
   async handleDailyEventProximitySnapshot() {
     try {
-      const result = await this.recordEventProximityFeatures();
+      const result = await this.runCronWithTracking('dataset-event-proximity-snapshot', () =>
+        this.recordEventProximityFeatures(),
+      );
       this.logger.log(
         `Event proximity snapshot: capturados=${result.captured} pulados=${result.skipped} duplicados=${result.duplicates}`,
       );
     } catch (err) {
       this.logger.error(`Event proximity snapshot falhou: ${(err as Error).message}`);
+    }
+  }
+
+  @Cron('5 4 * * *', { name: 'dataset-airbnb-price-observations', timeZone: 'America/Sao_Paulo' })
+  async handleDailyAirbnbPriceObservations() {
+    if (this.isAirbnbObservationRunning) {
+      this.logger.debug('Airbnb price observations ja em execucao; pulando este tick.');
+      return;
+    }
+    this.isAirbnbObservationRunning = true;
+    try {
+      const result = await this.runCronWithTracking('dataset-airbnb-price-observations', () =>
+        this.recordAirbnbPriceObservations(),
+      );
+      this.logger.log(
+        `Airbnb price observations: sucesso=${result.succeeded} falhas=${result.failed} duplicados=${result.duplicates}`,
+      );
+    } catch (err) {
+      this.logger.error(`Airbnb price observations falhou: ${(err as Error).message}`);
+    } finally {
+      this.isAirbnbObservationRunning = false;
     }
   }
 
@@ -250,6 +338,188 @@ export class DatasetCollectorService {
     };
   }
 
+  private async runCronWithTracking<T>(name: string, handler: () => Promise<T>): Promise<T> {
+    if (!this.jobRunRepo) return handler();
+    const run = await runAdminJobWithTracking(this.jobRunRepo, name, null, handler);
+    return run.result as T;
+  }
+
+  async recordAirbnbPriceObservations(): Promise<AirbnbPriceObservationResult> {
+    const observedAt = new Date();
+    const snapshotDate = observedAt.toISOString().slice(0, 10);
+    const windows = this.priceObservationWindows();
+    const warnings: string[] = [];
+    const failures: AirbnbPriceObservationResult['failures'] = [];
+    const bySource = new Map<string, number>();
+
+    const airbnbService = await this.resolveAirbnbService();
+    if (!airbnbService) {
+      const result = this.buildAirbnbObservationResult({
+        observedAt,
+        totalLists: 0,
+        windowsPerListing: windows.length,
+        attempted: 0,
+        succeeded: 0,
+        failed: 0,
+        duplicates: 0,
+        skipped: 0,
+        failures,
+        bySource,
+        status: 'blocked_no_airbnb_service',
+        warnings: ['AirbnbService is not available in DatasetCollectorService.'],
+      });
+      this.lastAirbnbPriceObservation = result;
+      return result;
+    }
+
+    const lists = await this.listRepo.find({ where: { ativo: true } as any, take: 5000 });
+    if (lists.length === 0) {
+      const result = this.buildAirbnbObservationResult({
+        observedAt,
+        totalLists: 0,
+        windowsPerListing: windows.length,
+        attempted: 0,
+        succeeded: 0,
+        failed: 0,
+        duplicates: 0,
+        skipped: 0,
+        failures,
+        bySource,
+        status: 'empty_catalog',
+        warnings: ['No active listings were available for Airbnb price observations.'],
+      });
+      this.lastAirbnbPriceObservation = result;
+      return result;
+    }
+
+    let attempted = 0;
+    let succeeded = 0;
+    let failed = 0;
+    let duplicates = 0;
+    let skipped = 0;
+
+    for (const list of lists) {
+      const externalListingId = this.resolveExternalAirbnbListingId(list);
+      if (!externalListingId) {
+        skipped += windows.length;
+        warnings.push(`Listing ${list.id} skipped because id_do_anuncio is missing.`);
+        continue;
+      }
+
+      const address = await this.addressRepo.findOne({ where: { list: { id: list.id } } as any });
+      const propertyDetails = {
+        bedrooms: Number((list as any).quartos ?? 1) || 1,
+        beds: Number((list as any).camas ?? 1) || 1,
+        guestMaximum: Number((list as any).hospedes ?? 1) || 1,
+      };
+
+      for (const window of windows) {
+        const existing = await this.snapshotRepo.findOne({
+          where: {
+            snapshotDate,
+            externalListingId,
+            observedCheckIn: window.checkIn,
+            observedNights: window.nights,
+            origin: 'airbnb_observation',
+          } as any,
+        });
+        if (existing) {
+          duplicates++;
+          continue;
+        }
+
+        attempted++;
+        try {
+          const quote = await airbnbService.getPriceForDateWindow(
+            externalListingId,
+            window.checkIn,
+            window.checkOut,
+            propertyDetails,
+          );
+          const totalCents = this.extractObservedTotalCents(quote);
+          const nights = quote.nights ?? window.nights;
+          const dailyCents = totalCents ? Math.round(totalCents / Math.max(1, nights)) : null;
+          if (!dailyCents || dailyCents <= 0) {
+            throw new Error('Airbnb quote did not include a valid total price.');
+          }
+
+          await this.snapshotRepo.save(
+            this.snapshotRepo.create({
+              snapshotDate,
+              list,
+              address: address ?? null,
+              externalListingId,
+              priceCents: dailyCents,
+              currency: 'BRL',
+              origin: 'airbnb_observation',
+              observedCheckIn: quote.checkIn ?? window.checkIn,
+              observedCheckOut: quote.checkOut ?? window.checkOut,
+              observedNights: nights,
+              observedTotalPriceCents: totalCents,
+              observedSource: quote.source ?? 'configured',
+              observedAt,
+              observationMetadata: {
+                accommodationCostTitle: quote.price?.data?.accommodationCostTitle ?? null,
+                message: quote.price?.message ?? null,
+                propertyDetails: quote.propertyDetails ?? propertyDetails,
+              },
+              bedrooms: (list as any).quartos ?? null,
+              bathrooms: (list as any).banheiros ?? null,
+              bairro: address?.bairro ?? (list as any).neighborhood ?? null,
+              trainingReady: !!address?.latitude && !!address?.longitude,
+            }),
+          );
+          await this.hydrateListingPriceFromObservation(
+            list,
+            quote,
+            dailyCents,
+            totalCents,
+            observedAt,
+          );
+          succeeded++;
+          const source = quote.source ?? 'configured';
+          bySource.set(source, (bySource.get(source) ?? 0) + 1);
+        } catch (error) {
+          failed++;
+          failures.push({
+            listingId: externalListingId,
+            checkIn: window.checkIn,
+            checkOut: window.checkOut,
+            nights: window.nights,
+            reason: this.compactErrorMessage(error),
+          });
+        }
+      }
+    }
+
+    const status: AirbnbPriceObservationResult['status'] =
+      succeeded > 0 && failed > 0
+        ? 'partial'
+        : succeeded > 0
+          ? 'ok'
+          : 'no_observations';
+
+    if (failed > 0) warnings.push(`${failed} Airbnb price observation attempts failed.`);
+    if (duplicates > 0) warnings.push(`${duplicates} Airbnb price observations were already captured.`);
+
+    const result = this.buildAirbnbObservationResult({
+      observedAt,
+      totalLists: lists.length,
+      windowsPerListing: windows.length,
+      attempted,
+      succeeded,
+      failed,
+      duplicates,
+      skipped,
+      failures,
+      bySource,
+      status,
+      warnings: [...new Set(warnings)].slice(0, 25),
+    });
+    this.lastAirbnbPriceObservation = result;
+    return result;
+  }
+
   /**
    * Para cada imóvel cadastrado com preço base atual disponível, grava 1
    * `PriceSnapshot` do dia. Idempotente via índice (snapshotDate, externalListingId).
@@ -300,7 +570,8 @@ export class DatasetCollectorService {
         where: {
           snapshotDate: today,
           externalListingId,
-        },
+          origin: 'self_cron',
+        } as any,
       });
       if (existing) {
         duplicates++;
@@ -501,10 +772,56 @@ export class DatasetCollectorService {
     };
   }
 
+  async priceIntelligenceHealth(windowHours = 24): Promise<PriceIntelligenceHealth> {
+    const normalizedWindowHours =
+      Number.isFinite(Number(windowHours)) && Number(windowHours) > 0 ? Number(windowHours) : 24;
+    const since = new Date(Date.now() - normalizedWindowHours * 60 * 60 * 1000);
+    const [summary, bySource, byWindow] = await Promise.all([
+      this.airbnbObservationSummarySince(since),
+      this.airbnbObservationGroupSince(since, 'observedSource', 'source'),
+      this.airbnbObservationGroupSince(since, 'observedNights', 'nights'),
+    ]);
+
+    const lastRun = this.lastAirbnbPriceObservation;
+    const recentFailures = (lastRun?.observedAt && new Date(lastRun.observedAt) >= since)
+      ? lastRun.failures
+      : [];
+    const warnings: string[] = [];
+    if (summary.total === 0) warnings.push('No Airbnb price observations were captured in the selected window.');
+    if (recentFailures.length > 0) warnings.push(`${recentFailures.length} recent Airbnb observation failures.`);
+
+    return {
+      generatedAt: new Date().toISOString(),
+      windowHours: normalizedWindowHours,
+      status: summary.total > 0 ? (recentFailures.length > 0 ? 'amber' : 'green') : 'red',
+      observations: {
+        total: summary.total,
+        distinctListings: summary.distinctListings,
+        latestObservedAt: summary.latestObservedAt,
+        averageDailyPriceCents: summary.averageDailyPriceCents,
+        bySource: bySource.map((row) => ({ source: String(row.key ?? 'unknown'), count: row.count })),
+        byWindow: byWindow.map((row) => ({ nights: Number(row.key ?? 0), count: row.count })),
+      },
+      failures: {
+        total: recentFailures.length,
+        recent: recentFailures.slice(0, 25),
+      },
+      lastRun,
+      warnings,
+    };
+  }
+
   private resolveListingKey(list: List): string {
     const external = (list as any).id_do_anuncio;
     if (external) return String(external);
     return `urban-list:${list.id}`;
+  }
+
+  private resolveExternalAirbnbListingId(list: List): string | null {
+    const value = (list as any).id_do_anuncio;
+    if (value === null || value === undefined) return null;
+    const normalized = String(value).trim();
+    return normalized || null;
   }
 
   private resolveStoredListingPriceCents(list: List): number | null {
@@ -530,6 +847,114 @@ export class DatasetCollectorService {
 
     const parsed = Number(normalized);
     return Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed * 100) : null;
+  }
+
+  private priceObservationWindows(): Array<{ checkIn: string; checkOut: string; nights: number }> {
+    const offsets = [7, 14, 30, 60, 90];
+    const nightsOptions = [2, 3];
+    return offsets.flatMap((offsetDays) =>
+      nightsOptions.map((nights) => {
+        const checkInDate = new Date();
+        checkInDate.setUTCDate(checkInDate.getUTCDate() + offsetDays);
+        const checkOutDate = new Date(checkInDate);
+        checkOutDate.setUTCDate(checkOutDate.getUTCDate() + nights);
+        return {
+          checkIn: checkInDate.toISOString().slice(0, 10),
+          checkOut: checkOutDate.toISOString().slice(0, 10),
+          nights,
+        };
+      }),
+    );
+  }
+
+  private async resolveAirbnbService(): Promise<AirbnbPriceLookup | null> {
+    if (this.airbnbServiceOverride) return this.airbnbServiceOverride;
+    if (!this.moduleRef) return null;
+    try {
+      const { AirbnbService } = await import('../airbnb/airbnb.service');
+      return this.moduleRef.get(AirbnbService, { strict: false }) ?? null;
+    } catch (error) {
+      this.logger.warn(`AirbnbService unavailable for price observations: ${this.compactErrorMessage(error)}`);
+      return null;
+    }
+  }
+
+  private extractObservedTotalCents(quote: FirstAvailablePriceResult): number | null {
+    const total = quote.price?.data?.accommodationCost;
+    return Number.isFinite(Number(total)) && Number(total) > 0 ? Math.round(Number(total) * 100) : null;
+  }
+
+  private async hydrateListingPriceFromObservation(
+    list: List,
+    quote: FirstAvailablePriceResult,
+    dailyCents: number,
+    totalCents: number | null,
+    observedAt: Date,
+  ): Promise<void> {
+    const manualDailyPrice = Number((list as any).manualDailyPrice);
+    const currentSource = String((list as any).pricingInputSource ?? '').trim().toLowerCase();
+    if (Number.isFinite(manualDailyPrice) && manualDailyPrice > 0) return;
+    if (currentSource === 'manual') return;
+    if (!Number.isFinite(dailyCents) || dailyCents <= 0) return;
+
+    const dailyPrice = Number((dailyCents / 100).toFixed(2));
+    const raw = totalCents && totalCents > 0
+      ? Number((totalCents / 100).toFixed(2))
+      : dailyPrice;
+    const source = quote.source === 'airbnb-search'
+      ? 'airbnb_search_observation'
+      : quote.source === 'airbnb-browser'
+        ? 'airbnb_headless_observation'
+        : 'airbnb_observation';
+
+    Object.assign(list, {
+      dailyPrice,
+      raw,
+      priceText: `R$${dailyPrice.toFixed(2)}`,
+      currency: 'BRL',
+      checkIn: quote.checkIn ?? null,
+      checkOut: quote.checkOut ?? null,
+      status: 'preco_base_airbnb_observation',
+      pricingInputSource: source,
+      pricingInputsUpdatedAt: observedAt,
+    });
+
+    await this.listRepo.save(list);
+  }
+
+  private compactErrorMessage(error: unknown): string {
+    const message = error instanceof Error ? error.message : String(error);
+    return message.replace(/\s+/g, ' ').slice(0, 240);
+  }
+
+  private buildAirbnbObservationResult(input: {
+    observedAt: Date;
+    totalLists: number;
+    windowsPerListing: number;
+    attempted: number;
+    succeeded: number;
+    failed: number;
+    duplicates: number;
+    skipped: number;
+    failures: AirbnbPriceObservationResult['failures'];
+    bySource: Map<string, number>;
+    status: AirbnbPriceObservationResult['status'];
+    warnings: string[];
+  }): AirbnbPriceObservationResult {
+    return {
+      attempted: input.attempted,
+      succeeded: input.succeeded,
+      failed: input.failed,
+      duplicates: input.duplicates,
+      skipped: input.skipped,
+      totalLists: input.totalLists,
+      windowsPerListing: input.windowsPerListing,
+      status: input.status,
+      observedAt: input.observedAt.toISOString(),
+      failures: input.failures.slice(0, 50),
+      bySource: [...input.bySource.entries()].map(([source, count]) => ({ source, count })),
+      warnings: input.warnings,
+    };
   }
 
   private aggregateEventsForAddress(address: Address, events: Event[], radiusKm: number, now: Date) {
@@ -674,6 +1099,53 @@ export class DatasetCollectorService {
       .getRawOne();
 
     return row?.latest ? String(row.latest).slice(0, 10) : null;
+  }
+
+  private async airbnbObservationSummarySince(since: Date): Promise<{
+    total: number;
+    distinctListings: number;
+    latestObservedAt: string | null;
+    averageDailyPriceCents: number | null;
+  }> {
+    const row = await this.snapshotRepo
+      .createQueryBuilder('s')
+      .select('COUNT(*)', 'total')
+      .addSelect('COUNT(DISTINCT s.externalListingId)', 'distinctListings')
+      .addSelect('MAX(s.observedAt)', 'latestObservedAt')
+      .addSelect('AVG(s.priceCents)', 'averageDailyPriceCents')
+      .where('s.origin = :origin', { origin: 'airbnb_observation' })
+      .andWhere('s.observedAt >= :since', { since })
+      .getRawOne();
+
+    return {
+      total: Number(row?.total ?? 0),
+      distinctListings: Number(row?.distinctListings ?? 0),
+      latestObservedAt: row?.latestObservedAt ? new Date(row.latestObservedAt).toISOString() : null,
+      averageDailyPriceCents:
+        row?.averageDailyPriceCents === null || row?.averageDailyPriceCents === undefined
+          ? null
+          : Math.round(Number(row.averageDailyPriceCents)),
+    };
+  }
+
+  private async airbnbObservationGroupSince(
+    since: Date,
+    column: 'observedSource' | 'observedNights',
+    alias: string,
+  ): Promise<Array<{ key: string | number | null; count: number }>> {
+    const rows = await this.snapshotRepo
+      .createQueryBuilder('s')
+      .select(`s.${column}`, alias)
+      .addSelect('COUNT(*)', 'count')
+      .where('s.origin = :origin', { origin: 'airbnb_observation' })
+      .andWhere('s.observedAt >= :since', { since })
+      .groupBy(`s.${column}`)
+      .getRawMany();
+
+    return rows.map((row: any) => ({
+      key: row[alias] ?? null,
+      count: Number(row.count ?? 0),
+    }));
   }
 
   private externalDependencyStatus(): DatasetDiagnostics['externalDependencies'] {

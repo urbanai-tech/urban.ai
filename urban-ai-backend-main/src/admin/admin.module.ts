@@ -19,9 +19,11 @@ import { AdminJobRun } from '../entities/admin-job-run.entity';
 import { ContactSubmission } from '../entities/contact-submission.entity';
 import { EventDedupCandidate } from '../entities/event-dedup-candidate.entity';
 import { EventSource } from '../entities/event-source.entity';
+import { AirbnbPricingAttemptLog } from '../entities/airbnb-pricing-attempt-log.entity';
 import { EventIdentityService } from '../evento/event-identity.service';
 import { AdminService } from './admin.service';
 import { EventDedupAdminService } from './event-dedup-admin.service';
+import { AirbnbPricingAttemptLogService } from './airbnb-pricing-attempt-log.service';
 import { AdminFinanceService } from './finance.service';
 import { StripeSyncCheckService } from './stripe-sync.service';
 import { AdminController } from './admin.controller';
@@ -32,6 +34,7 @@ import { MapsModule } from '../maps/maps.module';
 import { RoiModule } from '../roi/roi.module';
 import { AdminAuditModule } from '../admin-audit/admin-audit.module';
 import { EmailModule } from '../email/email.module';
+import { EventIntelligenceModule } from '../event-intelligence/event-intelligence.module';
 
 @Module({
   imports: [
@@ -55,6 +58,7 @@ import { EmailModule } from '../email/email.module';
       ContactSubmission,
       EventSource,
       EventDedupCandidate,
+      AirbnbPricingAttemptLog,
     ]),
     AuthModule,
     KnnEngineModule,
@@ -63,6 +67,7 @@ import { EmailModule } from '../email/email.module';
     RoiModule,
     AdminAuditModule,
     EmailModule,
+    EventIntelligenceModule,
   ],
   controllers: [AdminController],
   providers: [
@@ -71,7 +76,14 @@ import { EmailModule } from '../email/email.module';
     StripeSyncCheckService,
     EventIdentityService,
     EventDedupAdminService,
+    AirbnbPricingAttemptLogService,
   ],
-  exports: [AdminService, AdminFinanceService, StripeSyncCheckService, EventDedupAdminService],
+  exports: [
+    AdminService,
+    AdminFinanceService,
+    StripeSyncCheckService,
+    EventDedupAdminService,
+    AirbnbPricingAttemptLogService,
+  ],
 })
 export class AdminModule {}

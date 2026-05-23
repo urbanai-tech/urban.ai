@@ -11,6 +11,8 @@ import {
 } from '@nestjs/common';
 import { SugestionService } from './sugestion.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 import {
     ApiBearerAuth,
     ApiBody,
@@ -24,6 +26,39 @@ import {
 @Controller('sugestoes-preco')
 export class SugestionController {
     constructor(private readonly sugestionService: SugestionService) { }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('admin')
+    @Get('admin/verification-health')
+    @ApiOperation({ summary: 'Resumo admin da verificacao de aplicacao das sugestoes aceitas' })
+    async verificationHealth() {
+        return this.sugestionService.verificationHealth();
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('admin')
+    @Get('admin/pending-verification')
+    @ApiOperation({ summary: 'Lista sugestoes aceitas pendentes de verificacao de aplicacao' })
+    async listarAceitasPendentesVerificacao() {
+        return this.sugestionService.listarAceitasPendentesVerificacao();
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('admin')
+    @Post('admin/verify-pending')
+    @ApiOperation({ summary: 'Verifica em lote sugestoes aceitas pendentes com preco aplicado' })
+    async verificarAceitasPendentes(@Body() body: { limit?: number }) {
+        return this.sugestionService.verificarAnalisesAceitasPendentes(body?.limit);
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('admin')
+    @Post(':id/verificar-aplicacao')
+    @ApiOperation({ summary: 'Verifica se uma sugestao aceita foi aplicada no canal externo' })
+    async verificarAplicacao(@Param('id') id: string) {
+        return this.sugestionService.verificarAplicacao(id);
+    }
+
     @UseGuards(JwtAuthGuard)
     @Patch(':id/aceito')
     @ApiOperation({ summary: 'Altera o status de aceito de uma análise de preço' })
