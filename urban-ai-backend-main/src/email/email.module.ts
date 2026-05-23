@@ -13,10 +13,13 @@ import { Payment } from 'src/entities/payment.entity';
 import { User } from 'src/entities/user.entity';
 import { EmailConfirmation } from 'src/entities/EmailConfirmation';
 import { PasswordResetToken } from 'src/entities/password-reset-token.entity';
+import { PricingRecommendationDigest } from 'src/entities/pricing-recommendation-digest.entity';
 import { NotificationsModule } from 'src/notifications/notifications.module';
 import { MailerModule } from 'src/mailer/mailer.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { PushModule } from 'src/push/push.module';
+import { PricingRecommendationDigestService } from './pricing-recommendation-digest.service';
+import { CommunicationPreferencesModule } from 'src/communication-preferences/communication-preferences.module';
 
 @Module({
     imports: [ProcessModule,
@@ -24,6 +27,7 @@ import { PushModule } from 'src/push/push.module';
         MailerModule,
         NotificationsModule,
         PushModule,
+        CommunicationPreferencesModule,
         TypeOrmModule.forFeature([
             Event,
             User,
@@ -32,6 +36,7 @@ import { PushModule } from 'src/push/push.module';
             AnaliseEnderecoEvento,
             EmailConfirmation,
             PasswordResetToken,
+            PricingRecommendationDigest,
             Payment,
         ]),
     ],
@@ -40,6 +45,7 @@ import { PushModule } from 'src/push/push.module';
     ],
     providers: [
         EmailService,
+        PricingRecommendationDigestService,
         OnboardingDripService,
         WeeklyEventReportService,
     ],

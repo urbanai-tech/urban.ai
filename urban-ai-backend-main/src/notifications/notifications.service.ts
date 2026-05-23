@@ -1,6 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { CommunicationLogService } from 'src/communications/communication-log.service';
 import { Notification } from 'src/entities/notification.entity';
 import { User } from 'src/entities/user.entity';
 import { CreateNotificationDto } from './tdo/create-notification.dto';
@@ -14,6 +15,8 @@ export class NotificationsService {
 
     @InjectRepository(User)
     private userRepository: Repository<User>,
+
+    private readonly communicationLog: CommunicationLogService,
   ) {}
 
   async create(userId: string, dto: CreateNotificationDto) {
@@ -29,7 +32,21 @@ export class NotificationsService {
       sent: true,
     });
 
-    return await this.notificationRepository.save(notification);
+    const saved = await this.notificationRepository.save(notification);
+    await this.communicationLog.record({
+      userId,
+      channel: 'in_app',
+      status: 'sent',
+      kind: dto.pushType || 'notification',
+      title: dto.title,
+      providerMessageId: saved.id,
+      metadata: {
+        redirectTo: dto.redirectTo,
+        sendEmail: dto.sendEmail,
+        sendPush: dto.sendPush,
+      },
+    });
+    return saved;
   }
 
   async markAsOpened(id: string, userId: string) {

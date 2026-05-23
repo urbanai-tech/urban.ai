@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import axios from 'axios';
+import { CommunicationLogService } from 'src/communications/communication-log.service';
 
 @Injectable()
 export class MailerService {
@@ -9,7 +10,10 @@ export class MailerService {
   private readonly senderEmail: string;
   private readonly senderName: string;
 
-  constructor() {
+  constructor(
+    @Optional()
+    private readonly communicationLog?: CommunicationLogService,
+  ) {
     this.apiKey = process.env.BREVO_API_KEY || '';
     this.apiBaseUrl = (process.env.BREVO_API_BASE_URL || 'https://api.brevo.com/v3').replace(/\/$/, '');
     this.senderEmail = process.env.EMAIL_SENDER || 'noreply@myurbanai.com';
@@ -68,6 +72,9 @@ export class MailerService {
     if (!this.apiKey) {
       const message = 'BREVO_API_KEY is not configured';
       this.logger.error(message);
+      await this.recordEmailEvent(input, 'failed', {
+        failureReason: message,
+      });
       return { enviado: false, status: 500, message };
     }
 
@@ -106,6 +113,10 @@ export class MailerService {
 
       if (response.status >= 200 && response.status < 300) {
         this.logger.log(`Brevo email sent to=${this.maskEmail(input.to.email)}`);
+        await this.recordEmailEvent(input, 'sent', {
+          providerMessageId: response.data?.messageId,
+          statusCode: response.status,
+        });
         return {
           enviado: true,
           status: response.status,
@@ -116,18 +127,59 @@ export class MailerService {
       this.logger.warn(
         `Failed to send ${input.type || 'transactional'} email to=${this.maskEmail(input.to.email)} status=${response.status}`,
       );
+      await this.recordEmailEvent(input, 'failed', {
+        failureReason: `provider status=${response.status}`,
+        statusCode: response.status,
+      });
       return { enviado: false, status: response.status };
     } catch (error: any) {
       const diagnostic = this.formatMailerError(error);
       this.logger.error(
         `Error sending ${input.type || 'transactional'} email to=${this.maskEmail(input.to.email)}: ${diagnostic}`,
       );
+      await this.recordEmailEvent(input, 'failed', {
+        failureReason: diagnostic,
+        statusCode: error?.response?.status ?? error?.status ?? 500,
+      });
       return {
         enviado: false,
         status: error?.response?.status ?? error?.status ?? 500,
         message: diagnostic,
       };
     }
+  }
+
+  private async recordEmailEvent(
+    input: {
+      to: { email: string; name?: string };
+      subject: string;
+      templateId?: number;
+      params?: Record<string, any>;
+      type?: string;
+    },
+    status: 'sent' | 'failed',
+    meta: {
+      providerMessageId?: string;
+      failureReason?: string;
+      statusCode?: number;
+    },
+  ): Promise<void> {
+    if (!this.communicationLog) return;
+    await this.communicationLog.record({
+      channel: 'email',
+      status,
+      kind: input.templateId ? 'brevo_template' : input.type === 'text' ? 'cron_text' : 'html_email',
+      templateName: input.templateId ? String(input.templateId) : input.type || 'html',
+      recipientEmail: input.to.email,
+      subject: input.subject,
+      provider: 'brevo',
+      providerMessageId: meta.providerMessageId,
+      failureReason: meta.failureReason,
+      metadata: {
+        statusCode: meta.statusCode,
+        variables: Object.keys(input.params || {}),
+      },
+    });
   }
 
   private formatMailerError(error: any): string {

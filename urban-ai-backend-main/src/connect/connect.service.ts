@@ -408,6 +408,8 @@ export class ConnectService {
   ): Promise<Address[] | any[]> {
     let address: Address[] | [] = addresses;
     let addressSaved: Address[] = [];
+    const analysisStartedTitles: string[] = [];
+    const basePricePendingTitles: string[] = [];
     try {
       this.logger.log(
         `📍 Salvando ${addresses.length} endereço(s) para o usuário ${userId}`
@@ -505,13 +507,11 @@ export class ConnectService {
 
           addressSaved.push(addressEntity);
 
-          const notificationContent: CreateNotificationDto = {
-            title: "Analise iniciada",
-            description: "A Urban AI esta analisando os eventos perto do seu imovel " + list?.titulo,
-            redirectTo: "/dashboard",
-            sendEmail: true,
-          };
-          this.emailService.enviarNotification(userId, notificationContent);
+          const hasBasePrice =
+            Number(list.manualDailyPrice) > 0 || Number(list.dailyPrice) > 0;
+          const title = scraped.title || list?.titulo || list?.id_do_anuncio;
+          if (hasBasePrice) analysisStartedTitles.push(title);
+          else basePricePendingTitles.push(title);
 
 
         } catch (error: any) {
@@ -521,6 +521,11 @@ export class ConnectService {
           );
         }
       }
+
+      await this.sendAddressBatchNotifications(userId, {
+        analysisStartedTitles,
+        basePricePendingTitles,
+      });
     } catch (error: any) {
       this.logger.debug(`Ocorreu um erro ao criar um address`);
     }
@@ -534,6 +539,62 @@ export class ConnectService {
     });
 
     return sanitized;
+  }
+
+  private async sendAddressBatchNotifications(
+    userId: string,
+    input: { analysisStartedTitles: string[]; basePricePendingTitles: string[] },
+  ): Promise<void> {
+    const send = async (notificationContent: CreateNotificationDto) => {
+      const result = await this.emailService.enviarNotification(userId, notificationContent);
+      if (!result?.enviado) {
+        this.logger.warn(
+          `Falha ao enviar notificacao agregada de onboarding user=${userId}: ${result?.motivo ?? 'unknown'}`,
+        );
+      }
+    };
+
+    if (input.analysisStartedTitles.length > 0) {
+      const count = input.analysisStartedTitles.length;
+      await send({
+        title: count === 1 ? 'Analise iniciada' : `Analise iniciada para ${count} imoveis`,
+        description: count === 1
+          ? `A Urban AI esta analisando eventos perto de ${input.analysisStartedTitles[0]}.`
+          : `A Urban AI esta analisando eventos perto de ${count} imoveis: ${this.humanList(input.analysisStartedTitles)}.`,
+        redirectTo: '/dashboard',
+        sendEmail: true,
+        sendPush: true,
+        pushType: 'property_analysis_started_batch',
+        metadata: {
+          propertyTitles: input.analysisStartedTitles,
+          count,
+        },
+      });
+    }
+
+    if (input.basePricePendingTitles.length > 0) {
+      const count = input.basePricePendingTitles.length;
+      await send({
+        title: count === 1 ? 'Diaria base pendente' : `Diaria base pendente em ${count} imoveis`,
+        description: count === 1
+          ? `Informe a diaria base de ${input.basePricePendingTitles[0]} para iniciar a analise da Urban AI.`
+          : `Informe a diaria base destes imoveis para iniciar a analise da Urban AI: ${this.humanList(input.basePricePendingTitles)}.`,
+        redirectTo: '/properties',
+        sendEmail: true,
+        sendPush: true,
+        pushType: 'base_price_pending_batch',
+        metadata: {
+          propertyTitles: input.basePricePendingTitles,
+          count,
+        },
+      });
+    }
+  }
+
+  private humanList(items: string[]): string {
+    const clean = items.map((item) => item?.trim()).filter(Boolean);
+    if (clean.length <= 3) return clean.join(', ');
+    return `${clean.slice(0, 3).join(', ')} e mais ${clean.length - 3}`;
   }
 
   async resolveUrl(shortUrl: string): Promise<string> {
