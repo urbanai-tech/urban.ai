@@ -2503,6 +2503,68 @@ export const fetchAdminPriceIntelligenceHealth = () =>
     .get<AdminPriceIntelligenceHealth>('/admin/price-intelligence/health')
     .then((r) => r.data);
 
+export interface AdminAirbnbPricingAttemptHealth {
+  generatedAt: string;
+  windowHours: number;
+  health: 'green' | 'amber' | 'red';
+  schema: {
+    available: boolean;
+    error: string | null;
+  };
+  summary: {
+    total: number;
+    successes: number;
+    failures: number;
+    pending: number;
+    openPending: number;
+    stalePending: number;
+    avgDurationMs: number | null;
+    latestAttemptAt: string | null;
+  };
+  failuresByReason: Array<{
+    reason: string;
+    count: number;
+    avgDurationMs: number | null;
+    lastSeenAt: string | null;
+  }>;
+  sources: Array<{
+    source: string;
+    total: number;
+    successes: number;
+    failures: number;
+    pending: number;
+    avgDurationMs: number | null;
+    latestAttemptAt: string | null;
+  }>;
+  recent: Array<{
+    id: string;
+    listingId: string;
+    userId: string | null;
+    listId: string | null;
+    addressId: string | null;
+    checkIn: string;
+    checkOut: string;
+    source: string;
+    status: string;
+    reason: string | null;
+    durationMs: number | null;
+    priceTotal: number | null;
+    dailyPrice: number | null;
+    currency: string;
+    finalUrl: string | null;
+    metadata: Record<string, unknown> | null;
+    startedAt: string | null;
+    finishedAt: string | null;
+  }>;
+}
+
+export const fetchAdminAirbnbPricingAttemptHealth = (windowHours = 24) =>
+  api
+    .get<AdminAirbnbPricingAttemptHealth>('/admin/airbnb/pricing-attempts/health', {
+      params: { windowHours },
+    })
+    .then((r) => r.data);
+
 // ---- Admin v2.9 (finance + plans-config) ----
 
 export interface AdminFinanceOverview {

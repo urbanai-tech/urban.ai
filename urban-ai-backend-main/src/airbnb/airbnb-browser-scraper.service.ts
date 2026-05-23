@@ -20,6 +20,24 @@ export type AirbnbRenderedListingSnapshot = {
   priceCandidateCount: number;
 };
 
+export type AirbnbAvailabilityCalendarDay = {
+  date: string;
+  available: boolean;
+  bookable: boolean;
+  availableForCheckin: boolean;
+  availableForCheckout: boolean;
+  minNights: number | null;
+  maxNights: number | null;
+};
+
+export type AirbnbAvailabilityCalendar = {
+  roomId: string;
+  url: string;
+  finalUrl: string;
+  source: 'PdpAvailabilityCalendar';
+  days: AirbnbAvailabilityCalendarDay[];
+};
+
 export type AirbnbRenderedHostListing = {
   roomId: string;
   title: string;
@@ -52,6 +70,12 @@ type BrowserPageSnapshot = {
   metas: Record<string, string>;
   links: Array<{ href: string; text: string; ariaLabel: string; image: string }>;
   images: Array<{ src: string; alt: string }>;
+};
+
+type CapturedGraphqlResponse = {
+  operationName: string;
+  url: string;
+  payload: unknown;
 };
 
 type DateWindow = {
@@ -107,6 +131,25 @@ export class AirbnbBrowserScraperService {
     });
   }
 
+  async scrapeAvailabilityCalendar(roomId: string): Promise<AirbnbAvailabilityCalendar | null> {
+    if (!this.isEnabled()) return null;
+
+    const url = this.buildListingUrl(roomId, {});
+    return this.withSnapshot(
+      url,
+      async (snapshot, finalUrl, capturedResponses) => {
+        const calendar = this.parseAvailabilityCalendar(roomId, url, finalUrl, snapshot, capturedResponses);
+        if (!calendar?.days.length) {
+          this.logger.warn(`PdpAvailabilityCalendar nao trouxe dias parseaveis para room=${roomId}`);
+          return null;
+        }
+
+        return calendar;
+      },
+      { captureGraphqlOperations: ['PdpAvailabilityCalendar'] },
+    );
+  }
+
   async scrapeHostListings(hostId: string): Promise<AirbnbRenderedHostListing[]> {
     if (!this.isEnabled()) return [];
 
@@ -143,10 +186,15 @@ export class AirbnbBrowserScraperService {
 
   private async withSnapshot<T>(
     url: string,
-    parser: (snapshot: BrowserPageSnapshot, finalUrl: string) => T | Promise<T>,
-    options: { scroll?: boolean } = {},
+    parser: (
+      snapshot: BrowserPageSnapshot,
+      finalUrl: string,
+      capturedResponses: CapturedGraphqlResponse[],
+    ) => T | Promise<T>,
+    options: { scroll?: boolean; captureGraphqlOperations?: string[] } = {},
   ): Promise<T | null> {
     let browser: any;
+    const capturedResponses: CapturedGraphqlResponse[] = [];
     try {
       const playwright = await import('playwright-core');
       const executablePath = this.resolveChromiumExecutablePath();
@@ -173,16 +221,24 @@ export class AirbnbBrowserScraperService {
       });
 
       const page = await context.newPage();
+      this.captureGraphqlResponses(page, options.captureGraphqlOperations ?? [], capturedResponses);
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: this.navigationTimeoutMs });
       await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => undefined);
       await this.acceptCookiePrompt(page);
+
+      if (options.captureGraphqlOperations?.includes('PdpAvailabilityCalendar')) {
+        await this.waitForCapturedOperation(page, capturedResponses, 'PdpAvailabilityCalendar', 2500);
+        if (!this.hasCapturedOperation(capturedResponses, 'PdpAvailabilityCalendar')) {
+          await this.stimulateAvailabilityCalendar(page, capturedResponses);
+        }
+      }
 
       if (options.scroll) {
         await this.scrollProfilePage(page);
       }
 
       const snapshot = await this.readSnapshot(page);
-      return parser(snapshot, page.url());
+      return parser(snapshot, page.url(), capturedResponses);
     } catch (error) {
       const reason = this.classifyScrapeError(error);
       this.logger.warn(JSON.stringify({
@@ -200,6 +256,82 @@ export class AirbnbBrowserScraperService {
       );
     } finally {
       await browser?.close().catch(() => undefined);
+    }
+  }
+
+  private captureGraphqlResponses(
+    page: any,
+    operationNames: string[],
+    capturedResponses: CapturedGraphqlResponse[],
+  ): void {
+    if (operationNames.length === 0) return;
+
+    page.on('response', async (response: any) => {
+      const operationName = this.matchedGraphqlOperation(response, operationNames);
+      if (!operationName) return;
+
+      try {
+        const payload = await response.json();
+        capturedResponses.push({
+          operationName,
+          url: response.url(),
+          payload,
+        });
+      } catch (error) {
+        this.logger.debug(
+          `Nao foi possivel ler resposta ${operationName}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+    });
+  }
+
+  private matchedGraphqlOperation(response: any, operationNames: string[]): string | null {
+    const url = typeof response.url === 'function' ? response.url() : '';
+    const request = typeof response.request === 'function' ? response.request() : null;
+    const postData = request && typeof request.postData === 'function' ? request.postData() : '';
+
+    return operationNames.find((operationName) =>
+      url.includes(operationName) || String(postData ?? '').includes(operationName),
+    ) ?? null;
+  }
+
+  private async waitForCapturedOperation(
+    page: any,
+    capturedResponses: CapturedGraphqlResponse[],
+    operationName: string,
+    timeoutMs: number,
+  ): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if (this.hasCapturedOperation(capturedResponses, operationName)) return;
+      await page.waitForTimeout(250).catch(() => undefined);
+    }
+  }
+
+  private hasCapturedOperation(
+    capturedResponses: CapturedGraphqlResponse[],
+    operationName: string,
+  ): boolean {
+    return capturedResponses.some((response) => response.operationName === operationName);
+  }
+
+  private async stimulateAvailabilityCalendar(
+    page: any,
+    capturedResponses: CapturedGraphqlResponse[],
+  ): Promise<void> {
+    await this.openAvailabilityCalendar(page);
+
+    for (let i = 0; i < 8; i += 1) {
+      if (this.hasCapturedOperation(capturedResponses, 'PdpAvailabilityCalendar')) return;
+
+      if (i === 2 || i === 5) {
+        await this.openAvailabilityCalendar(page);
+      }
+
+      await page.mouse.wheel(0, 1100).catch(() => undefined);
+      await this.waitForCapturedOperation(page, capturedResponses, 'PdpAvailabilityCalendar', 750);
     }
   }
 
@@ -253,6 +385,38 @@ export class AirbnbBrowserScraperService {
     for (let i = 0; i < 7; i += 1) {
       await page.mouse.wheel(0, 1800).catch(() => undefined);
       await page.waitForTimeout(700);
+    }
+  }
+
+  private async openAvailabilityCalendar(page: any): Promise<void> {
+    const labels = [
+      /check-?in/i,
+      /check in/i,
+      /datas/i,
+      /dates/i,
+      /adicionar datas/i,
+      /selecionar datas/i,
+    ];
+
+    for (const label of labels) {
+      try {
+        await page.getByRole('button', { name: label }).first().click({ timeout: 1200 });
+        return;
+      } catch {}
+    }
+
+    const selectors = [
+      '[data-testid*="datepicker"]',
+      '[data-testid*="calendar"]',
+      '[data-testid*="check-in"]',
+      '[data-testid*="checkin"]',
+    ];
+
+    for (const selector of selectors) {
+      try {
+        await page.locator(selector).first().click({ timeout: 1200 });
+        return;
+      } catch {}
     }
   }
 
@@ -397,6 +561,156 @@ export class AirbnbBrowserScraperService {
     return best
       ? { value: best.value, text: best.text, candidateCount: candidates.length }
       : { value: null, text: null, candidateCount: candidates.length };
+  }
+
+  private parseAvailabilityCalendar(
+    roomId: string,
+    url: string,
+    finalUrl: string,
+    snapshot: BrowserPageSnapshot,
+    capturedResponses: CapturedGraphqlResponse[],
+  ): AirbnbAvailabilityCalendar | null {
+    const payloads = [
+      ...capturedResponses
+        .filter((response) => response.operationName === 'PdpAvailabilityCalendar')
+        .map((response) => response.payload),
+      ...this.extractJsonPayloadsFromHtml(snapshot.html),
+    ];
+
+    const days = this.extractAvailabilityCalendarDays(payloads);
+    if (days.length === 0) return null;
+
+    return {
+      roomId,
+      url,
+      finalUrl,
+      source: 'PdpAvailabilityCalendar',
+      days,
+    };
+  }
+
+  private extractAvailabilityCalendarDays(payloads: unknown[]): AirbnbAvailabilityCalendarDay[] {
+    const daysByDate = new Map<string, AirbnbAvailabilityCalendarDay>();
+    const visited = new Set<object>();
+
+    const walk = (value: unknown) => {
+      if (value === null || value === undefined) return;
+
+      if (Array.isArray(value)) {
+        value.forEach((item) => walk(item));
+        return;
+      }
+
+      if (typeof value !== 'object') return;
+      if (visited.has(value)) return;
+      visited.add(value);
+
+      const day = this.normalizeCalendarDay(value as Record<string, unknown>);
+      if (day) daysByDate.set(day.date, day);
+
+      Object.values(value as Record<string, unknown>).forEach((item) => walk(item));
+    };
+
+    payloads.forEach((payload) => walk(payload));
+    return [...daysByDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  private normalizeCalendarDay(value: Record<string, unknown>): AirbnbAvailabilityCalendarDay | null {
+    const date = this.normalizeCalendarDate(
+      value.calendarDate ??
+      value.date ??
+      value.day ??
+      value.isoDate,
+    );
+    if (!date) return null;
+
+    const hasCalendarSignal = [
+      'available',
+      'bookable',
+      'availableForCheckin',
+      'availableForCheckIn',
+      'availableForCheckout',
+      'availableForCheckOut',
+      'minNights',
+      'maxNights',
+    ].some((key) => Object.prototype.hasOwnProperty.call(value, key));
+    if (!hasCalendarSignal) return null;
+
+    const available = this.normalizeBoolean(value.available ?? value.isAvailable) ?? false;
+    const bookable = this.normalizeBoolean(value.bookable ?? value.isBookable) ?? available;
+    const availableForCheckin =
+      this.normalizeBoolean(value.availableForCheckin ?? value.availableForCheckIn) ?? available;
+    const availableForCheckout =
+      this.normalizeBoolean(value.availableForCheckout ?? value.availableForCheckOut) ?? available;
+
+    return {
+      date,
+      available,
+      bookable,
+      availableForCheckin,
+      availableForCheckout,
+      minNights: this.normalizePositiveInteger(value.minNights ?? value.minimumNights),
+      maxNights: this.normalizePositiveInteger(value.maxNights ?? value.maximumNights),
+    };
+  }
+
+  private extractJsonPayloadsFromHtml(html: string): unknown[] {
+    const payloads: unknown[] = [];
+    const scriptPattern = /<script\b[^>]*type=["'][^"']*json[^"']*["'][^>]*>([\s\S]*?)<\/script>/gi;
+    let match: RegExpExecArray | null;
+
+    while ((match = scriptPattern.exec(html)) !== null) {
+      const raw = this.decodeHtmlEntities(match[1]?.trim() ?? '');
+      if (!raw || !/PdpAvailabilityCalendar|availabilityCalendar|calendarMonths/i.test(raw)) continue;
+
+      const parsed = this.tryParseJson(raw);
+      if (parsed !== null) payloads.push(parsed);
+    }
+
+    return payloads;
+  }
+
+  private normalizeCalendarDate(value: unknown): string | null {
+    if (typeof value !== 'string') return null;
+    const match = value.match(/\d{4}-\d{2}-\d{2}/);
+    return match?.[0] ?? null;
+  }
+
+  private normalizeBoolean(value: unknown): boolean | null {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'number') {
+      if (value === 1) return true;
+      if (value === 0) return false;
+    }
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (normalized === 'true') return true;
+      if (normalized === 'false') return false;
+    }
+    return null;
+  }
+
+  private normalizePositiveInteger(value: unknown): number | null {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) return null;
+    return Math.floor(parsed);
+  }
+
+  private tryParseJson(raw: string): unknown | null {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  private decodeHtmlEntities(value: string): string {
+    return value
+      .replace(/&quot;/g, '"')
+      .replace(/&#34;/g, '"')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>');
   }
 
   private extractMoneyValues(text: string): number[] {

@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
+  fetchAdminAirbnbPricingAttemptHealth,
   fetchAdminPriceIntelligenceHealth,
+  type AdminAirbnbPricingAttemptHealth,
   type AdminJobRunResponse,
   type AdminPriceIntelligenceHealth,
 } from "../../service/api";
@@ -27,14 +29,32 @@ const integer = new Intl.NumberFormat("pt-BR");
 
 export default function AdminPriceIntelligencePage() {
   const [data, setData] = useState<AdminPriceIntelligenceHealth | null>(null);
+  const [airbnbAttempts, setAirbnbAttempts] = useState<AdminAirbnbPricingAttemptHealth | null>(null);
+  const [airbnbAttemptsError, setAirbnbAttemptsError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
+    setLoading(true);
     try {
-      const response = await fetchAdminPriceIntelligenceHealth();
-      setData(response);
+      const [healthResult, attemptsResult] = await Promise.allSettled([
+        fetchAdminPriceIntelligenceHealth(),
+        fetchAdminAirbnbPricingAttemptHealth(24),
+      ]);
+
+      if (healthResult.status === "rejected") throw healthResult.reason;
+
+      setData(healthResult.value);
       setError(null);
+
+      if (attemptsResult.status === "fulfilled") {
+        setAirbnbAttempts(attemptsResult.value);
+        setAirbnbAttemptsError(null);
+      } else {
+        setAirbnbAttempts(null);
+        const e = attemptsResult.reason as { userMessage?: string; message?: string };
+        setAirbnbAttemptsError(e?.userMessage || e?.message || "Erro ao carregar tentativas Airbnb.");
+      }
     } catch (err: unknown) {
       const e = err as { response?: { status?: number }; userMessage?: string; message?: string };
       setError(
@@ -172,6 +192,7 @@ export default function AdminPriceIntelligencePage() {
   const shortcuts = data.shortcuts?.length
     ? data.shortcuts
     : defaultShortcuts;
+  const airbnbAttemptStatus = airbnbAttempts ? statusFromHealth(airbnbAttempts.health) : "warn";
 
   return (
     <div style={{ maxWidth: 1320, margin: "0 auto", padding: "40px 32px" }}>
@@ -263,6 +284,16 @@ export default function AdminPriceIntelligencePage() {
           sub={`${integer.format(data.jobs.failedLast24h)} falhas nas ultimas 24h`}
           status={data.jobs.failedLast24h > 0 ? "error" : "success"}
         />
+        <AdminMetricCard
+          label="Scraper Airbnb"
+          value={airbnbAttempts ? `${integer.format(airbnbAttempts.summary.successes)}/${integer.format(airbnbAttempts.summary.total)}` : "--"}
+          sub={
+            airbnbAttempts
+              ? `${integer.format(airbnbAttempts.summary.failures)} falhas / ${formatDuration(airbnbAttempts.summary.avgDurationMs)} medio`
+              : airbnbAttemptsError || "Sem leitura das tentativas"
+          }
+          status={airbnbAttempts ? airbnbAttemptStatus : "warn"}
+        />
       </section>
 
       <section
@@ -300,6 +331,79 @@ export default function AdminPriceIntelligencePage() {
               </p>
             )}
           </div>
+        </AdminCard>
+      </section>
+
+      <section style={{ marginBottom: 48 }}>
+        <AdminCard variant={airbnbAttempts?.health === "green" ? "subtle" : "accent"}>
+          <AdminCardHeader eyebrow="AIRBNB" title="Saude das cotacoes headless" />
+          {airbnbAttemptsError ? (
+            <QuietEmpty>{airbnbAttemptsError}</QuietEmpty>
+          ) : !airbnbAttempts ? (
+            <QuietEmpty>Nenhuma leitura de tentativa retornada.</QuietEmpty>
+          ) : (
+            <div style={{ display: "grid", gap: 24 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 }}>
+                <InlineStat label="Tentativas 24h" value={integer.format(airbnbAttempts.summary.total)} />
+                <InlineStat label="Sucessos" value={integer.format(airbnbAttempts.summary.successes)} />
+                <InlineStat label="Falhas" value={integer.format(airbnbAttempts.summary.failures)} />
+                <InlineStat label="Pendentes" value={integer.format(airbnbAttempts.summary.openPending)} />
+                <InlineStat label="Tempo medio" value={formatDuration(airbnbAttempts.summary.avgDurationMs)} />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(260px, 0.8fr) minmax(0, 1.2fr)", gap: 24 }}>
+                <div style={{ display: "grid", gap: 14 }}>
+                  <StatusLine
+                    label="Schema"
+                    value={airbnbAttempts.schema.available ? "Disponivel" : "Indisponivel"}
+                    kind={airbnbAttempts.schema.available ? "success" : "error"}
+                  />
+                  <StatusLine
+                    label="Ultima tentativa"
+                    value={formatDate(airbnbAttempts.summary.latestAttemptAt)}
+                    kind={airbnbAttempts.summary.latestAttemptAt ? "neutral" : "warn"}
+                  />
+                  <StatusLine
+                    label="Stale pendente"
+                    value={integer.format(airbnbAttempts.summary.stalePending)}
+                    kind={airbnbAttempts.summary.stalePending > 0 ? "error" : "success"}
+                  />
+                  {airbnbAttempts.schema.error && <QuietEmpty>{airbnbAttempts.schema.error}</QuietEmpty>}
+                </div>
+
+                <div style={{ display: "grid", gap: 14 }}>
+                  {airbnbAttempts.sources.length === 0 ? (
+                    <QuietEmpty>Sem tentativas por fonte na janela.</QuietEmpty>
+                  ) : (
+                    airbnbAttempts.sources.map((source) => (
+                      <BarRow
+                        key={source.source}
+                        label={source.source}
+                        value={source.total}
+                        max={Math.max(...airbnbAttempts.sources.map((item) => item.total), 1)}
+                        sub={`${integer.format(source.successes)} ok / ${integer.format(source.failures)} falhas / ${formatDuration(source.avgDurationMs)}`}
+                      />
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {airbnbAttempts.failuresByReason.length > 0 && (
+                <div style={{ display: "grid", gap: 14 }}>
+                  <p className="urban-admin-eyebrow-muted" style={{ margin: 0 }}>FALHAS AIRBNB POR MOTIVO</p>
+                  {airbnbAttempts.failuresByReason.slice(0, 5).map((failure) => (
+                    <BarRow
+                      key={failure.reason}
+                      label={failure.reason}
+                      value={failure.count}
+                      max={Math.max(...airbnbAttempts.failuresByReason.map((item) => item.count), 1)}
+                      sub={`Ultima: ${formatDate(failure.lastSeenAt)} / ${formatDuration(failure.avgDurationMs)}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </AdminCard>
       </section>
 

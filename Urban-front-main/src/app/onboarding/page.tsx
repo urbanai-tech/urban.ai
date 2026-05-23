@@ -15,6 +15,7 @@ import {
 import { Bell, Home, Users, Zap } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { AppLoadingStatus, useToastCompat, type AppLoadingStep } from '../componentes/ui';
+import { describeBasePriceReadiness } from '../lib/pricingInputs';
 
 type PrimitiveProps = Record<string, any> & {
   as?: React.ElementType;
@@ -649,6 +650,9 @@ type PendingPricingProperty = {
   propertyName: string;
   pictureUrl?: string | null;
   airbnbId?: string | null;
+  sourceLabel?: string;
+  fallbackMessage?: string;
+  provisionalDailyPrice?: number | null;
 };
 
 type PricingStrategy = 'conservative' | 'balanced' | 'aggressive' | 'autonomous';
@@ -744,6 +748,10 @@ type OnboardingLoadStage =
   | 'registering'
   | 'creating-addresses'
   | 'pricing'
+  | 'checking-airbnb-availability'
+  | 'finding-available-dates'
+  | 'calculating-daily-rate'
+  | 'manual-price-required'
   | 'saving-prices'
   | 'starting-analysis';
 
@@ -757,6 +765,10 @@ const onboardingStageOrder: OnboardingLoadStage[] = [
   'registering',
   'creating-addresses',
   'pricing',
+  'checking-airbnb-availability',
+  'finding-available-dates',
+  'calculating-daily-rate',
+  'manual-price-required',
   'saving-prices',
   'starting-analysis',
 ];
@@ -765,6 +777,7 @@ function getOnboardingLoadingStatus(stage: OnboardingLoadStage, foundCount: numb
   eyebrow: string;
   title: string;
   body: string;
+  tone: "accent" | "warn" | "neutral" | "error";
   steps: AppLoadingStep[];
 } {
   const currentIndex = onboardingStageOrder.indexOf(stage);
@@ -776,15 +789,37 @@ function getOnboardingLoadingStatus(stage: OnboardingLoadStage, foundCount: numb
     return 'pending' as const;
   };
 
-  if (['registering', 'creating-addresses', 'pricing', 'saving-prices', 'starting-analysis'].includes(stage)) {
+  if ([
+    'registering',
+    'creating-addresses',
+    'pricing',
+    'checking-airbnb-availability',
+    'finding-available-dates',
+    'calculating-daily-rate',
+    'manual-price-required',
+    'saving-prices',
+    'starting-analysis',
+  ].includes(stage)) {
+    const needsManualPrice = stage === 'manual-price-required';
+
     return {
-      eyebrow: 'Configurando imoveis',
-      title: 'Estamos salvando e preparando as recomendacoes',
-      body: 'Isso pode levar um pouco porque buscamos dados do Airbnb, validamos preco base e iniciamos a analise.',
+      eyebrow: needsManualPrice ? 'Fallback manual' : 'Configurando imoveis',
+      title: needsManualPrice
+        ? 'Precisamos da diaria base para continuar'
+        : 'Estamos preparando a diaria base e as recomendacoes',
+      body: needsManualPrice
+        ? 'O Airbnb nao retornou uma diaria confirmada, ou a origem encontrada era provisoria. Informe o valor atual para iniciar a analise.'
+        : 'Buscamos disponibilidade no Airbnb, tentamos encontrar datas futuras e calculamos a diaria antes de iniciar a analise.',
+      tone: needsManualPrice ? 'warn' : 'accent',
       steps: [
         { id: 'registering', label: 'Salvar imoveis', status: status('registering') },
         { id: 'creating-addresses', label: 'Validar dados', status: status('creating-addresses') },
-        { id: 'pricing', label: 'Buscar precos', status: status('pricing') },
+        { id: 'pricing', label: 'Preparar cotacao', status: status('pricing') },
+        { id: 'availability', label: 'Ver disponibilidade', status: status('checking-airbnb-availability') },
+        { id: 'dates', label: 'Encontrar datas', status: status('finding-available-dates') },
+        { id: 'daily', label: 'Calcular diaria', status: status('calculating-daily-rate') },
+        { id: 'manual', label: 'Fallback manual', status: status('manual-price-required') },
+        { id: 'saving-prices', label: 'Salvar diaria', status: status('saving-prices') },
         { id: 'starting-analysis', label: 'Iniciar analise', status: status('starting-analysis') },
       ],
     };
@@ -794,6 +829,7 @@ function getOnboardingLoadingStatus(stage: OnboardingLoadStage, foundCount: numb
     eyebrow: 'Buscando no Airbnb',
     title: foundCount > 0 ? `Encontramos ${foundCount} imoveis ate agora` : 'Estamos buscando informacoes do Airbnb',
     body: 'Abrimos o link, identificamos o anfitriao e validamos os anuncios publicos antes de mostrar a lista.',
+    tone: 'accent',
     steps: [
       { id: 'checking-existing', label: 'Checar conta', status: status('checking-existing') },
       { id: 'resolving-link', label: 'Abrir link', status: status('resolving-link') },
@@ -924,20 +960,48 @@ function OnboardingWizardContent() {
     return Number.isFinite(parsed) && parsed > 0 ? Number(parsed.toFixed(2)) : null;
   };
 
+  const runOnboardingWithTimedStages = async <T,>(
+    schedule: Array<{ stage: OnboardingLoadStage; delayMs: number }>,
+    action: () => Promise<T>,
+  ): Promise<T> => {
+    const timers: Array<ReturnType<typeof setTimeout>> = [];
+
+    for (const item of schedule) {
+      if (item.delayMs <= 0) {
+        setOnboardingLoadStage(item.stage);
+      } else {
+        timers.push(setTimeout(() => setOnboardingLoadStage(item.stage), item.delayMs));
+      }
+    }
+
+    try {
+      return await action();
+    } finally {
+      timers.forEach(clearTimeout);
+    }
+  };
+
   const collectPendingPricingProperties = (createdAddresses: any[]): PendingPricingProperty[] =>
     (createdAddresses ?? [])
-      .filter((address) => {
+      .reduce<PendingPricingProperty[]>((pending, address) => {
         const list = address?.list ?? {};
-        return !(Number(list.manualDailyPrice) > 0 || Number(list.dailyPrice) > 0);
-      })
-      .map((address) => ({
-        addressId: address.id,
-        listId: address.list?.id,
-        propertyName: address.list?.titulo || `Imovel ${String(address.id).slice(0, 4)}`,
-        pictureUrl: address.list?.pictureUrl ?? null,
-        airbnbId: address.list?.id_do_anuncio ?? null,
-      }))
-      .filter((item) => item.addressId && item.listId);
+        const readiness = describeBasePriceReadiness(list);
+        if (readiness.ready) return pending;
+
+        const item: PendingPricingProperty = {
+          addressId: address.id,
+          listId: address.list?.id,
+          propertyName: address.list?.titulo || `Imovel ${String(address.id).slice(0, 4)}`,
+          pictureUrl: address.list?.pictureUrl ?? null,
+          airbnbId: address.list?.id_do_anuncio ?? null,
+          sourceLabel: readiness.sourceLabel,
+          fallbackMessage: readiness.message,
+          provisionalDailyPrice: readiness.dailyPrice,
+        };
+
+        if (item.addressId && item.listId) pending.push(item);
+        return pending;
+      }, []);
 
   const startRegisteredProcess = async (processListIds: Array<{ id: string }>) => {
     if (processListIds.length > 0) {
@@ -1208,6 +1272,8 @@ function OnboardingWizardContent() {
       return;
     }
 
+    let keepManualPriceStage = false;
+
     try {
       setIsLoading(true);
       setOnboardingLoadStage('registering');
@@ -1236,8 +1302,16 @@ function OnboardingWizardContent() {
         };
       });
 
-      setOnboardingLoadStage('creating-addresses');
-      const createdAddresses = await createMultipleAddresses(addressesToRegister);
+      const createdAddresses = await runOnboardingWithTimedStages(
+        [
+          { stage: 'creating-addresses', delayMs: 0 },
+          { stage: 'pricing', delayMs: 700 },
+          { stage: 'checking-airbnb-availability', delayMs: 1200 },
+          { stage: 'finding-available-dates', delayMs: 2600 },
+          { stage: 'calculating-daily-rate', delayMs: 4200 },
+        ],
+        () => createMultipleAddresses(addressesToRegister),
+      );
 
       const processListIds = registered
         .map((prop: any) => prop?.id)
@@ -1252,7 +1326,7 @@ function OnboardingWizardContent() {
         }
       }
 
-      setOnboardingLoadStage('pricing');
+      setOnboardingLoadStage('calculating-daily-rate');
       const pendingPricing = collectPendingPricingProperties(createdAddresses as any[]);
       if (pendingPricing.length > 0) {
         setPendingPricingProperties(pendingPricing);
@@ -1260,7 +1334,9 @@ function OnboardingWizardContent() {
         setManualPriceDrafts(
           pendingPricing.reduce((acc, property) => ({ ...acc, [property.addressId]: '' }), {}),
         );
-        toast("Nao encontramos preco automatico para todos os imoveis. Informe a diaria base para concluir.", { type: "info" });
+        keepManualPriceStage = true;
+        setOnboardingLoadStage('manual-price-required');
+        toast("Nao encontramos uma diaria confiavel no Airbnb. Informe a diaria base para concluir.", { type: "info" });
         return;
       }
 
@@ -1278,7 +1354,9 @@ function OnboardingWizardContent() {
       toast(quotaErrorMessage(error, "Falha ao configurar propriedades. Tente novamente."), { type: "error" });
     } finally {
       setIsLoading(false);
-      setOnboardingLoadStage('idle');
+      if (!keepManualPriceStage) {
+        setOnboardingLoadStage('idle');
+      }
     }
   };
 
@@ -1297,6 +1375,7 @@ function OnboardingWizardContent() {
     }
 
     setIsLoading(true);
+    let manualSaveSucceeded = false;
     try {
       setOnboardingLoadStage('saving-prices');
       for (const item of parsedByAddress) {
@@ -1311,6 +1390,7 @@ function OnboardingWizardContent() {
       setPendingPricingProperties([]);
       setManualPriceDrafts({});
       setPendingProcessListIds([]);
+      manualSaveSucceeded = true;
       toast("Precos base salvos. Imoveis configurados com sucesso!", { type: "success" });
 
       if (isAddOnly) {
@@ -1320,10 +1400,13 @@ function OnboardingWizardContent() {
       }
     } catch (error) {
       console.error('Erro ao salvar precos manuais:', error);
+      setOnboardingLoadStage('manual-price-required');
       toast("Nao conseguimos salvar os precos base. Tente novamente.", { type: "error" });
     } finally {
       setIsLoading(false);
-      setOnboardingLoadStage('idle');
+      if (manualSaveSucceeded) {
+        setOnboardingLoadStage('idle');
+      }
     }
   };
 
@@ -1419,7 +1502,7 @@ function OnboardingWizardContent() {
   const selectedCount = Object.values(selectedProperties).filter(Boolean).length;
   const onboardingLoadingStatus = getOnboardingLoadingStatus(onboardingLoadStage, properties.length);
   const showOnboardingLoadingStatus =
-    onboardingLoadStage !== 'idle' && (isLoading || loadingIndividual);
+    onboardingLoadStage !== 'idle' && (isLoading || loadingIndividual || pendingPricingProperties.length > 0);
 
   return (
     <Flex w="100%" direction="column" align="center" bg="transparent">
@@ -1661,6 +1744,7 @@ function OnboardingWizardContent() {
                       title={onboardingLoadingStatus.title}
                       body={onboardingLoadingStatus.body}
                       steps={onboardingLoadingStatus.steps}
+                      tone={onboardingLoadingStatus.tone}
                     />
                   )}
                 </VStack>
@@ -1703,6 +1787,7 @@ function OnboardingWizardContent() {
                       title={onboardingLoadingStatus.title}
                       body={onboardingLoadingStatus.body}
                       steps={onboardingLoadingStatus.steps}
+                      tone={onboardingLoadingStatus.tone}
                     />
                   )}
 
@@ -1712,7 +1797,7 @@ function OnboardingWizardContent() {
                         <Box>
                           <Text fontWeight="bold" color="gray.800">Informar diaria base</Text>
                           <Text fontSize="sm" color="gray.600" mt={1}>
-                            Nao conseguimos obter o preco automatico destes imoveis. Informe a diaria atual para concluir a configuracao e iniciar a analise.
+                            O Airbnb nao retornou uma diaria confirmada para estes imoveis, ou retornou apenas uma fonte provisoria. Informe a diaria atual para concluir a configuracao e iniciar a analise.
                           </Text>
                         </Box>
                         {pendingPricingProperties.map((property) => (
@@ -1729,6 +1814,12 @@ function OnboardingWizardContent() {
                               {property.airbnbId && (
                                 <Text fontSize="2xs" color="gray.500" fontFamily="mono">{property.airbnbId}</Text>
                               )}
+                              <Text fontSize="2xs" color="#9A3412" lineHeight="short" mt={1}>
+                                {property.fallbackMessage}
+                                {property.provisionalDailyPrice
+                                  ? ` Valor encontrado: R$ ${property.provisionalDailyPrice.toFixed(2)} (${property.sourceLabel ?? 'fonte nao informada'}).`
+                                  : ` Fonte: ${property.sourceLabel ?? 'fonte nao informada'}.`}
+                              </Text>
                             </Box>
                             <Box w="160px">
                               <Input
@@ -1738,6 +1829,7 @@ function OnboardingWizardContent() {
                                   setManualPriceDrafts((prev) => ({ ...prev, [property.addressId]: event.target.value }))
                                 }
                                 inputMode="decimal"
+                                disabled={isLoading}
                               />
                             </Box>
                           </Flex>
@@ -1889,9 +1981,15 @@ function OnboardingWizardContent() {
                           : selectedCount === 0
                       }
                       isLoading={isLoading}
-                      loadingText={pendingPricingProperties.length > 0 ? "Salvando..." : "Registrando..."}>
+                      loadingText={
+                        pendingPricingProperties.length > 0
+                          ? "Salvando diaria..."
+                          : onboardingLoadStage === 'calculating-daily-rate'
+                            ? "Calculando diaria..."
+                            : "Registrando..."
+                      }>
                       {pendingPricingProperties.length > 0
-                        ? "Salvar precos e continuar"
+                        ? "Salvar diaria e continuar"
                         : `Registrar ${selectedCount} ${selectedCount === 1 ? 'imóvel' : 'imóveis'}`}
                     </Button>
                   </Flex>
