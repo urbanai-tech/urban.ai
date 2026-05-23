@@ -5,8 +5,8 @@ Sympla API, Eventbrite, Firecrawl) pra enviar eventos ao backend de forma
 unificada e dedupada.
 
 Características:
-  - Login automático com email/senha de admin "técnico"; cacheia token em
-    memória até expirar (15min); refaz login antes de chamar quando expirado
+  - Preferencialmente usa API key escopada para /events/ingest
+  - Mantém login legado com email/senha de admin "técnico" quando necessário
   - Buffer interno de eventos: bufferiza até `batch_size` antes de enviar
     (default 100), reduz overhead HTTP
   - Retry exponencial em erro de rede / 5xx / 429
@@ -15,8 +15,9 @@ Características:
 
 Variáveis de ambiente esperadas:
   URBAN_API_BASE       — ex: https://api.myurbanai.com (default localhost:10000)
-  URBAN_COLLECTOR_EMAIL — login do user admin técnico
-  URBAN_COLLECTOR_PASSWORD — senha
+  URBAN_EVENTS_INGEST_API_KEY — chave escopada para POST /events/ingest
+  URBAN_COLLECTOR_EMAIL — login legado do user admin técnico
+  URBAN_COLLECTOR_PASSWORD — senha legada
 """
 
 from __future__ import annotations
@@ -40,7 +41,7 @@ class UrbanBackendError(Exception):
 
 
 class UrbanBackendClient:
-    """Cliente leve para POST /events/ingest com login JWT.
+    """Cliente leve para POST /events/ingest.
 
     Uso típico (dentro de uma Scrapy pipeline):
 
@@ -62,17 +63,26 @@ class UrbanBackendClient:
     DEFAULT_TIMEOUT = 30
     TOKEN_LIFETIME_SAFE_SECONDS = 12 * 60  # 12 min, pra dar margem dos 15min do JWT
 
-    def __init__(
+    def __init__(  # noqa: PLR0913 - preserva compatibilidade legada e aceita headers opcionais.
         self,
         api_base: str,
-        email: str,
-        password: str,
+        email: str | None = None,
+        password: str | None = None,
         batch_size: int = DEFAULT_BATCH_SIZE,
         timeout: int = DEFAULT_TIMEOUT,
+        *,
+        ingest_api_key: str | None = None,
+        collector_name: str | None = None,
+        collector_version: str | None = None,
+        ingest_run_id: str | None = None,
     ):
         self.api_base = api_base.rstrip("/")
         self.email = email
         self.password = password
+        self.ingest_api_key = self._clean_optional(ingest_api_key)
+        self.collector_name = self._clean_optional(collector_name)
+        self.collector_version = self._clean_optional(collector_version)
+        self.ingest_run_id = self._clean_optional(ingest_run_id)
         self.batch_size = batch_size
         self.timeout = timeout
 
@@ -87,15 +97,28 @@ class UrbanBackendClient:
     def from_env(cls, batch_size: int = DEFAULT_BATCH_SIZE) -> UrbanBackendClient:
         """Constrói via env vars. Lança ValueError se faltar configuração."""
         api_base = os.environ.get("URBAN_API_BASE", "http://localhost:10000")
+        ingest_api_key = cls._clean_optional(os.environ.get("URBAN_EVENTS_INGEST_API_KEY"))
+        collector_name = cls._clean_optional(os.environ.get("URBAN_COLLECTOR_NAME"))
+        collector_version = cls._clean_optional(os.environ.get("URBAN_COLLECTOR_VERSION"))
+        ingest_run_id = cls._clean_optional(os.environ.get("URBAN_INGEST_RUN_ID"))
         email = os.environ.get("URBAN_COLLECTOR_EMAIL")
         password = os.environ.get("URBAN_COLLECTOR_PASSWORD")
-        if not email or not password:
+        if not ingest_api_key and (not email or not password):
             raise ValueError(
-                "URBAN_COLLECTOR_EMAIL e URBAN_COLLECTOR_PASSWORD obrigatórios "
-                "para o IngestPipeline (criar usuário admin no backend e setar "
-                "as envs). Sem isso o pipeline desabilita o ingest."
+                "URBAN_EVENTS_INGEST_API_KEY obrigatoria para /events/ingest. "
+                "Compatibilidade legada: setar URBAN_COLLECTOR_EMAIL e "
+                "URBAN_COLLECTOR_PASSWORD para autenticar via JWT admin."
             )
-        return cls(api_base=api_base, email=email, password=password, batch_size=batch_size)
+        return cls(
+            api_base=api_base,
+            email=email,
+            password=password,
+            ingest_api_key=ingest_api_key,
+            collector_name=collector_name,
+            collector_version=collector_version,
+            ingest_run_id=ingest_run_id,
+            batch_size=batch_size,
+        )
 
     def _build_session(self) -> requests.Session:
         s = requests.Session()
@@ -111,14 +134,29 @@ class UrbanBackendClient:
         s.mount("http://", adapter)
         return s
 
+    @staticmethod
+    def _clean_optional(value: str | None) -> str | None:
+        text = (value or "").strip()
+        return text or None
+
     # ============================ Auth ============================
 
     def _ensure_token(self) -> str:
+        if not self.email or not self.password:
+            raise UrbanBackendError(
+                "Credenciais legadas ausentes para login JWT. "
+                "Use URBAN_EVENTS_INGEST_API_KEY para /events/ingest."
+            )
         if self._token and (time.time() - self._token_acquired_at) < self.TOKEN_LIFETIME_SAFE_SECONDS:
             return self._token
         return self._login()
 
     def _login(self) -> str:
+        if not self.email or not self.password:
+            raise UrbanBackendError(
+                "Login legado indisponivel: URBAN_COLLECTOR_EMAIL e "
+                "URBAN_COLLECTOR_PASSWORD nao configurados"
+            )
         url = f"{self.api_base}/auth/login"
         try:
             resp = self._session.post(
@@ -173,26 +211,24 @@ class UrbanBackendClient:
             raise
 
     def _post_ingest(self, events: list[dict[str, Any]]) -> dict[str, Any]:
-        token = self._ensure_token()
         url = f"{self.api_base}/events/ingest"
         try:
             resp = self._session.post(
                 url,
-                headers={"Authorization": f"Bearer {token}"},
+                headers=self._ingest_headers(),
                 json={"events": events},
                 timeout=self.timeout,
             )
         except requests.RequestException as e:
             raise UrbanBackendError(f"Erro de rede em /events/ingest: {e}") from e
 
-        if resp.status_code == HTTP_UNAUTHORIZED:
+        if resp.status_code == HTTP_UNAUTHORIZED and not self.ingest_api_key:
             # Token possivelmente expirou apesar do safe lifetime; força refresh
             logger.warning("/events/ingest retornou 401, refazendo login")
             self._token = None
-            token = self._ensure_token()
             resp = self._session.post(
                 url,
-                headers={"Authorization": f"Bearer {token}"},
+                headers=self._ingest_headers(),
                 json={"events": events},
                 timeout=self.timeout,
             )
@@ -211,6 +247,20 @@ class UrbanBackendClient:
             data.get("skipped"),
         )
         return data
+
+    def _ingest_headers(self) -> dict[str, str]:
+        if self.ingest_api_key:
+            headers = {"x-urban-events-ingest-key": self.ingest_api_key}
+            if self.collector_name:
+                headers["x-urban-collector"] = self.collector_name
+            if self.collector_version:
+                headers["x-urban-collector-version"] = self.collector_version
+            if self.ingest_run_id:
+                headers["x-urban-ingest-run-id"] = self.ingest_run_id
+            return headers
+
+        token = self._ensure_token()
+        return {"Authorization": f"Bearer {token}"}
 
     def buffer_size(self) -> int:
         return len(self._buffer)

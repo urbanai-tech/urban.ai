@@ -53,6 +53,17 @@ Rode sempre:
 - health/config publico;
 - smoke da frente alterada.
 
+Antes de aprovar promocao, rode tambem o gate enterprise read-only contra
+staging, sem ingestao de eventos e sem mutacoes externas:
+
+```bash
+npm run gate:enterprise:access
+npm run gate:enterprise -- --env=staging --strict --skip-events-ingest
+```
+
+Registre a evidencia gerada em `docs/evidence/enterprise-live-gate-staging.md`
+ou anexe o artifact do workflow `release-gate.yml`.
+
 Smokes por frente:
 
 | Frente alterada | Runbook |

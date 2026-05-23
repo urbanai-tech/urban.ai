@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 
-export type PricingRecommendationDigestStatus = 'pending' | 'sending' | 'sent' | 'failed';
+export type PricingRecommendationDigestStatus = 'pending' | 'sending' | 'sent' | 'failed' | 'skipped';
 
 @Entity('pricing_recommendation_digests')
 @Index('IDX_pricing_digest_status_scheduled', ['status', 'scheduledFor'])

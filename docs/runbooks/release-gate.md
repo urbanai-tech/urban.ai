@@ -25,7 +25,7 @@ Escopo: fluxo minimo para promover mudancas rumo a M1/M2/M3 sem repetir hotfix d
 | Stays | Seguir `docs/runbooks/stays-beta-private-smoke.md`: somente beta privado, connect/sync/push/rollback em sandbox | `PriceUpdate` success, rollback success, token criptografado, consentimento rastreavel e evidencia registrada. |
 | Beta fechado | Seguir `docs/runbooks/beta-fechado-assistido.md` para recrutar/onboardar 5-10 anfitrioes assistidos | Relatorio semanal com recomendacoes, aceite, preco aplicado, bugs e decisao de manter/ampliar/bloquear. |
 | Suporte/LGPD | Seguir `docs/runbooks/suporte-lgpd-beta-pago.md` antes de beta pago | Canal de suporte/privacidade ativo, P0/P1 com dono, DPAs/consentimentos revisados e evidencia registrada. |
-| Admin/ops | `/admin/dashboard` e `/admin/jobs` carregando sem erro | Alertas coerentes, sem falso sucesso/falso alerta conhecido. |
+| Admin/ops | `/admin/dashboard` e `/admin/jobs` carregando sem erro; enterprise live gate read-only em staging com `--strict --skip-events-ingest` | Alertas coerentes, sem falso sucesso/falso alerta conhecido e evidencia em `docs/evidence/enterprise-live-gate-staging.md` ou artifact equivalente. |
 
 ## Nao promover se
 
@@ -37,6 +37,7 @@ Escopo: fluxo minimo para promover mudancas rumo a M1/M2/M3 sem repetir hotfix d
 - Stripe live/test estiver misturado ou sync check apontar Price ID ausente para M3.
 - Stays estiver visivel como automatico pronto sem credenciais, consentimento e rollback.
 - Alteracao depender de env externa sem fallback claro.
+- Enterprise live gate estiver pendente, sem credenciais de staging ou apontando para URLs de producao por fallback.
 
 ## Rollback minimo
 

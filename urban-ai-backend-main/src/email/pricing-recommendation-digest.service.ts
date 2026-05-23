@@ -118,6 +118,14 @@ export class PricingRecommendationDigestService {
     });
   }
 
+  async markSkipped(id: string, reason: string): Promise<void> {
+    await this.digestRepo.update(id, {
+      status: 'skipped',
+      sentAt: new Date(),
+      failureReason: reason.slice(0, 4000),
+    });
+  }
+
   async markFailed(id: string, error: unknown): Promise<void> {
     const reason = error instanceof Error ? error.message : String(error);
     await this.digestRepo.update(id, {

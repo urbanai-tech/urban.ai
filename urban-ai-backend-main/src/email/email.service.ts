@@ -554,6 +554,14 @@ export class EmailService {
         const items = digest.items;
         if (!items.length) return;
 
+        const preferences = await this.communicationPreferences.getForUser(digest.userId);
+        const wantsEmail = Boolean(digest.wantsEmail && preferences.emailPricing);
+        const wantsPush = Boolean(digest.wantsPush && preferences.pushPricing);
+        if (!wantsEmail && !wantsPush) {
+            await this.pricingDigestService.markSkipped(digest.id, 'pricing_digest_opted_out_before_flush');
+            return;
+        }
+
         const dashboardUrl = `${(process.env.FRONT_BASE_URL || 'https://app.myurbanai.com').replace(/\/$/, '')}/dashboard?source=pricing_digest_email`;
         const subject =
             items.length === 1
@@ -561,7 +569,7 @@ export class EmailService {
                 : `${items.length} sugestoes de preco prontas - Urban AI`;
 
         try {
-            if (digest.wantsEmail) {
+            if (wantsEmail) {
                 const html = EmailTemplates.getPricingRecommendationDigestTemplate({
                     nome: digest.name,
                     dashboardUrl,
@@ -574,7 +582,7 @@ export class EmailService {
                 );
             }
 
-            if (digest.wantsPush) {
+            if (wantsPush) {
                 await this.pushNotificationService.sendToUser(digest.userId, {
                     title: items.length === 1 ? 'Sugestao de preco pronta' : 'Sugestoes de preco prontas',
                     body: items.length === 1

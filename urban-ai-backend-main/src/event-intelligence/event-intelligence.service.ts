@@ -157,7 +157,14 @@ export class EventIntelligenceService {
 
     const filteredImpacts = this.filterImpactsByConfidence(impactDtos, query.confidence);
     const eventIds = Array.from(new Set(filteredImpacts.map((impact: any) => impact.eventId).filter(Boolean)));
-    const events = eventIds.length ? await this.eventRepo.find({ where: { id: In(eventIds) } }) : [];
+    const events = eventIds.length
+      ? await this.eventRepo
+          .createQueryBuilder('event')
+          .where('event.id IN (:...eventIds)', { eventIds })
+          .andWhere('event.duplicateOfEventId IS NULL')
+          .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
+          .getMany()
+      : [];
     const snapshots = await this.latestSnapshotsByEventIds(eventIds);
     const eventsById = new Map(events.map((event) => [event.id, event]));
     const grouped = new Map<string, EventPropertyImpactPayload[]>();
@@ -199,8 +206,8 @@ export class EventIntelligenceService {
 
   async hostEventDetail(userId: string, eventId: string) {
     const event = await this.getEventOrThrow(eventId);
-    const snapshot = await this.latestSnapshot(eventId);
-    const propertyImpact = await this.hostEventPropertyImpact(userId, eventId);
+    const snapshot = await this.latestSnapshot(event.id);
+    const propertyImpact = await this.hostEventPropertyImpact(userId, event.id);
 
     return {
       contractVersion: CONTRACT_VERSION,
@@ -216,7 +223,7 @@ export class EventIntelligenceService {
   async hostEventIntelligence(userId: string, eventId: string) {
     void userId;
     const event = await this.getEventOrThrow(eventId);
-    const snapshot = await this.latestSnapshot(eventId);
+    const snapshot = await this.latestSnapshot(event.id);
     return {
       contractVersion: CONTRACT_VERSION,
       generatedAt: new Date().toISOString(),
@@ -226,11 +233,11 @@ export class EventIntelligenceService {
   }
 
   async hostEventPropertyImpact(userId: string, eventId: string, propertyId?: string) {
-    await this.getEventOrThrow(eventId);
-    const persisted = await this.findPersistedImpactsForEvent(eventId, userId, propertyId);
+    const event = await this.getEventOrThrow(eventId);
+    const persisted = await this.findPersistedImpactsForEvent(event.id, userId, propertyId);
     const items = persisted.length
       ? persisted.map((impact) => this.toPersistedImpactPayload(impact))
-      : (await this.findAnaliseImpactsForEvent(eventId, userId, propertyId)).map((analysis) =>
+      : (await this.findAnaliseImpactsForEvent(event.id, userId, propertyId)).map((analysis) =>
           this.toAnalysisImpactPayload(analysis),
         );
 
@@ -1222,6 +1229,8 @@ export class EventIntelligenceService {
         from: this.startDate(range.from),
         to: this.endDate(range.to),
       })
+      .andWhere('event.duplicateOfEventId IS NULL')
+      .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
       .orderBy('event.dataInicio', 'ASC')
       .addOrderBy('event.relevancia', 'DESC')
       .take(this.limit(query.limit, admin ? 200 : 100));
@@ -1286,6 +1295,13 @@ export class EventIntelligenceService {
   private async getEventOrThrow(eventId: string) {
     const event = await this.eventRepo.findOne({ where: { id: eventId } });
     if (!event) throw new NotFoundException('Evento nao encontrado');
+    if (event.duplicateOfEventId) {
+      const canonical = await this.eventRepo.findOne({ where: { id: event.duplicateOfEventId } });
+      if (canonical) return canonical;
+    }
+    if (event.dedupStatus && event.dedupStatus !== 'canonical') {
+      throw new NotFoundException('Evento nao encontrado');
+    }
     return event;
   }
 
@@ -1311,6 +1327,8 @@ export class EventIntelligenceService {
       .leftJoinAndSelect('impact.intelligenceSnapshot', 'snapshot')
       .leftJoinAndSelect('impact.analisePreco', 'analysis')
       .where('event.id = :eventId', { eventId })
+      .andWhere('event.duplicateOfEventId IS NULL')
+      .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
       .orderBy('impact.generatedAt', 'DESC')
       .take(500);
     if (userId) qb.andWhere('hostUser.id = :userId', { userId });
@@ -1339,6 +1357,8 @@ export class EventIntelligenceService {
         from: this.startDate(input.from),
         to: this.endDate(input.to),
       })
+      .andWhere('event.duplicateOfEventId IS NULL')
+      .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
       .orderBy('impact.generatedAt', 'DESC')
       .take(500);
     if (input.propertyId) qb.andWhere('property.id = :propertyId', { propertyId: input.propertyId });
@@ -1368,6 +1388,8 @@ export class EventIntelligenceService {
       .leftJoinAndSelect('address.list', 'list')
       .leftJoinAndSelect('analysis.usuarioProprietario', 'owner')
       .where('event.id = :eventId', { eventId })
+      .andWhere('event.duplicateOfEventId IS NULL')
+      .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
       .orderBy('analysis.criadoEm', 'DESC')
       .take(500);
     if (userId) qb.andWhere('owner.id = :userId', { userId });
@@ -1387,6 +1409,8 @@ export class EventIntelligenceService {
         from: this.startDate(range.from),
         to: this.endDate(range.to),
       })
+      .andWhere('event.duplicateOfEventId IS NULL')
+      .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
       .orderBy('analysis.criadoEm', 'DESC')
       .take(500);
     if (query.propertyId) qb.andWhere('address.id = :propertyId', { propertyId: query.propertyId });
@@ -1792,6 +1816,8 @@ export class EventIntelligenceService {
     const events = await this.eventRepo
       .createQueryBuilder('event')
       .where('event.id != :eventId', { eventId: event.id })
+      .andWhere('event.duplicateOfEventId IS NULL')
+      .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
       .andWhere('event.cidade = :city', { city: event.cidade })
       .andWhere('event.dataInicio BETWEEN :from AND :to', {
         from: this.startDate(this.dateOnly(event.dataInicio) ?? this.today()),
