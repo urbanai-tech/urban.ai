@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Raw, Repository } from 'typeorm';
 import { Event } from '../entities/events.entity';
 import { MapsService } from '../maps/maps.service';
 import { CoverageService } from './coverage.service';
@@ -59,7 +59,11 @@ export class EventsGeocoderService {
 
     try {
       const pending = await this.eventRepo.find({
-        where: { pendingGeocode: true },
+        where: {
+          pendingGeocode: true,
+          duplicateOfEventId: IsNull(),
+          dedupStatus: Raw((alias) => `(${alias} IS NULL OR ${alias} = 'canonical')`),
+        } as any,
         order: { createdAt: 'ASC' },
         take: Math.max(1, Math.min(100, limit)),
       });

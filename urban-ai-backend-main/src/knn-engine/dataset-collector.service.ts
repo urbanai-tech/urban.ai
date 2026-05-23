@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, IsNull, Not, Repository } from 'typeorm';
+import { Between, IsNull, Not, Raw, Repository } from 'typeorm';
 import { PriceSnapshot } from '../entities/price-snapshot.entity';
 import { EventProximityFeature } from '../entities/event-proximity-feature.entity';
 import { OccupancyHistory } from '../entities/occupancy-history.entity';
@@ -176,6 +176,8 @@ export class DatasetCollectorService {
           latitude: Not(IsNull()),
           longitude: Not(IsNull()),
           dataInicio: Between(now, in30Days),
+          duplicateOfEventId: IsNull(),
+          dedupStatus: Raw((alias) => `(${alias} IS NULL OR ${alias} = 'canonical')`),
         } as any,
         take: 5000,
       }),

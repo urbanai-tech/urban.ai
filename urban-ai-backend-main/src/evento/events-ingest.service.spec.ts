@@ -4,6 +4,9 @@ import { Repository } from 'typeorm';
 import { EventsIngestService } from './events-ingest.service';
 import { CoverageService } from './coverage.service';
 import { Event } from '../entities/events.entity';
+import { EventDedupCandidate } from '../entities/event-dedup-candidate.entity';
+import { EventSource } from '../entities/event-source.entity';
+import { EventIdentityService } from './event-identity.service';
 
 /**
  * Tests do serviço de ingestão de eventos (F6.2 Plus).
@@ -16,18 +19,33 @@ type MockRepo = Partial<Record<keyof Repository<Event>, jest.Mock>>;
 
 const mockRepo = (): MockRepo => ({
   findOne: jest.fn(),
+  createQueryBuilder: jest.fn(() => ({
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    take: jest.fn().mockReturnThis(),
+    getMany: jest.fn().mockResolvedValue([]),
+  })),
   create: jest.fn((row) => row),
   save: jest.fn((row) => Promise.resolve({ id: 'gen-id', ...row })),
   update: jest.fn(),
+  count: jest.fn().mockResolvedValue(1),
 });
 
 describe('EventsIngestService', () => {
   let service: EventsIngestService;
   let repo: MockRepo;
+  let sourceRepo: MockRepo;
+  let candidateRepo: MockRepo;
   let coverageMock: { isWithinCoverage: jest.Mock };
+  let identityService: EventIdentityService;
 
   beforeEach(async () => {
     repo = mockRepo();
+    sourceRepo = mockRepo();
+    candidateRepo = mockRepo();
+    sourceRepo.findOne!.mockResolvedValue(null);
+    candidateRepo.findOne!.mockResolvedValue(null);
+    identityService = new EventIdentityService();
     // Default: tudo é considerado dentro da cobertura (não muda comportamento
     // dos tests legados). Cada test pode override via coverageMock.isWithinCoverage.
     coverageMock = { isWithinCoverage: jest.fn().mockResolvedValue(true) };
@@ -36,7 +54,10 @@ describe('EventsIngestService', () => {
       providers: [
         EventsIngestService,
         { provide: getRepositoryToken(Event), useValue: repo },
+        { provide: getRepositoryToken(EventSource), useValue: sourceRepo },
+        { provide: getRepositoryToken(EventDedupCandidate), useValue: candidateRepo },
         { provide: CoverageService, useValue: coverageMock },
+        { provide: EventIdentityService, useValue: identityService },
       ],
     }).compile();
 

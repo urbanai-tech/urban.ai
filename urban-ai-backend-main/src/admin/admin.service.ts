@@ -1136,6 +1136,11 @@ export class AdminService {
     if (scope === 'in') qb.andWhere('e.outOfScope = :v', { v: false });
     else if (scope === 'out') qb.andWhere('e.outOfScope = :v', { v: true });
 
+    if (scope !== 'all') {
+      qb.andWhere('e.duplicateOfEventId IS NULL')
+        .andWhere("(e.dedupStatus IS NULL OR e.dedupStatus = 'canonical')");
+    }
+
     if (filters.source) qb.andWhere('e.source = :src', { src: filters.source });
 
     if (filters.upcoming) qb.andWhere('e.dataInicio >= :now', { now: new Date() });
@@ -1181,6 +1186,12 @@ export class AdminService {
         enrichmentAttempts: e.enrichmentAttempts,
         enrichmentLastError: e.enrichmentLastError,
         crawledUrl: e.crawledUrl,
+        canonicalName: e.canonicalName,
+        dedupStatus: e.dedupStatus,
+        duplicateOfEventId: e.duplicateOfEventId,
+        identityConfidence: e.identityConfidence,
+        sourceCount: e.sourceCount,
+        lastSeenAt: e.lastSeenAt,
       })),
     };
   }
@@ -1307,6 +1318,15 @@ export class AdminService {
         'SUM(CASE WHEN e.enrichmentLastError IS NOT NULL THEN 1 ELSE 0 END)',
         'withErrors',
       )
+      .addSelect(
+        "SUM(CASE WHEN e.duplicateOfEventId IS NOT NULL OR e.dedupStatus IN ('duplicate', 'merged', 'ignored', 'review_pending') THEN 1 ELSE 0 END)",
+        'duplicateCount',
+      )
+      .addSelect(
+        "SUM(CASE WHEN e.duplicateOfEventId IS NULL AND (e.dedupStatus IS NULL OR e.dedupStatus = 'canonical') THEN 1 ELSE 0 END)",
+        'canonicalCount',
+      )
+      .addSelect('SUM(COALESCE(e.sourceCount, 0))', 'sourceLinksCount')
       .addSelect('MAX(e.dataCrawl)', 'lastSeen')
       .setParameter('sevenDaysAgo', sevenDaysAgo)
       .setParameter('oneDayAgo', oneDayAgo)
@@ -1352,6 +1372,8 @@ export class AdminService {
       const pendingEnrichment = Number(r.pendingEnrichment ?? 0);
       const enriched = Number(r.enriched ?? 0);
       const withErrors = Number(r.withErrors ?? 0);
+      const duplicateCount = Number(r.duplicateCount ?? 0);
+      const canonicalCount = Number(r.canonicalCount ?? 0);
       const lastSeen = r.lastSeen ?? null;
       const missingEnv = known?.requiredEnv.filter((name) => !process.env[name]) ?? [];
       const stale = Boolean(
@@ -1372,6 +1394,11 @@ export class AdminService {
         outOfScope,
         outOfScopePercent:
           total > 0 ? Math.round((outOfScope / total) * 1000) / 10 : 0,
+        canonicalCount,
+        duplicateCount,
+        duplicateRatePercent:
+          total > 0 ? Math.round((duplicateCount / total) * 1000) / 10 : 0,
+        sourceLinksCount: Number(r.sourceLinksCount ?? 0),
         pendingGeocode: Number(r.pendingGeocode ?? 0),
         pendingEnrichment,
         enriched,
@@ -1400,6 +1427,10 @@ export class AdminService {
         last24h: 0,
         outOfScope: 0,
         outOfScopePercent: 0,
+        canonicalCount: 0,
+        duplicateCount: 0,
+        duplicateRatePercent: 0,
+        sourceLinksCount: 0,
         pendingGeocode: 0,
         pendingEnrichment: 0,
         enriched: 0,

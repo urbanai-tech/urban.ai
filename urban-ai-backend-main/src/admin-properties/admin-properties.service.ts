@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThanOrEqual, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Address } from '../entities/addresses.entity';
 import { AnalisePreco } from '../entities/AnalisePreco';
 import { Event } from '../entities/events.entity';
@@ -163,15 +163,16 @@ export class AdminPropertiesService {
   }
 
   private async loadNearbyEvents(address: Address) {
-    const events = await this.eventRepo.find({
-      where: {
-        ativo: true,
-        outOfScope: false,
-        dataInicio: MoreThanOrEqual(new Date()),
-      } as any,
-      order: { dataInicio: 'ASC' },
-      take: 300,
-    });
+    const events = await this.eventRepo
+      .createQueryBuilder('event')
+      .where('event.ativo = :active', { active: true })
+      .andWhere('event.outOfScope = :outOfScope', { outOfScope: false })
+      .andWhere('event.dataInicio >= :now', { now: new Date() })
+      .andWhere('event.duplicateOfEventId IS NULL')
+      .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
+      .orderBy('event.dataInicio', 'ASC')
+      .take(300)
+      .getMany();
 
     const addressLat = this.toNumberOrNull(address.latitude);
     const addressLng = this.toNumberOrNull(address.longitude);

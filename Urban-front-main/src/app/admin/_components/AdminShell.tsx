@@ -68,6 +68,7 @@ const NAV: NavSection[] = [
     title: "Motor de eventos",
     items: [
       { href: "/admin/events", label: "Eventos", icon: <Calendar size={16} /> },
+      { href: "/admin/events/dedup", label: "Deduplicação", icon: <Shield size={16} /> },
       { href: "/admin/events/new", label: "Cadastrar evento", icon: <Plus size={16} /> },
       { href: "/admin/events/import", label: "Importar CSV", icon: <Upload size={16} /> },
       { href: "/admin/coverage", label: "Cobertura", icon: <MapPin size={16} /> },

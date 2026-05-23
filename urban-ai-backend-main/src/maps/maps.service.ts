@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
-import { In, IsNull, Not, Raw, Repository, MoreThanOrEqual } from 'typeorm';
+import { In, IsNull, Not, Raw, Repository } from 'typeorm';
 
 import { Client, TravelMode } from '@googlemaps/google-maps-services-js';
 
@@ -115,12 +115,12 @@ export class MapsService {
     this.logger.log('Iniciando geocodificação em lote de todos os eventos SEM coordenadas.');
 
 
-    const events = await this.eventRepo.find({
-      where: [
-        { latitude: (IsNull()) },
-        { longitude: (IsNull()) },
-      ],
-    });
+    const events = await this.eventRepo
+      .createQueryBuilder('event')
+      .where('(event.latitude IS NULL OR event.longitude IS NULL)')
+      .andWhere('event.duplicateOfEventId IS NULL')
+      .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
+      .getMany();
 
 
     if (!events.length) {
@@ -358,15 +358,15 @@ export class MapsService {
  */
   async updatePendingEventsLatLngBatch(limit = 50, offset = 0) {
     // 1. Busca o próximo lote de eventos sem coordenada
-    const events = await this.eventRepo.find({
-      where: [
-        { latitude: null },
-        { longitude: null },
-      ],
-      take: limit,
-      skip: offset,
-      order: { createdAt: "ASC" },
-    });
+    const events = await this.eventRepo
+      .createQueryBuilder('event')
+      .where('(event.latitude IS NULL OR event.longitude IS NULL)')
+      .andWhere('event.duplicateOfEventId IS NULL')
+      .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
+      .orderBy('event.createdAt', 'ASC')
+      .skip(offset)
+      .take(limit)
+      .getMany();
 
     if (!events.length) {
       this.logger.log('Nenhum evento pendente de geocodificação.');
@@ -561,14 +561,15 @@ export class MapsService {
             longitude: Not(IsNull())
           },
         }),
-        this.eventRepo.find({
-          where: {
-            ativo: true,
-            latitude: Not(IsNull()),
-            longitude: Not(IsNull()),
-            dataInicio: MoreThanOrEqual(new Date())
-          },
-        })
+        this.eventRepo
+          .createQueryBuilder('event')
+          .where('event.ativo = :active', { active: true })
+          .andWhere('event.latitude IS NOT NULL')
+          .andWhere('event.longitude IS NOT NULL')
+          .andWhere('event.dataInicio >= :now', { now: new Date() })
+          .andWhere('event.duplicateOfEventId IS NULL')
+          .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
+          .getMany()
       ]);
 
       const transportModes = ["car"];
@@ -771,14 +772,15 @@ export class MapsService {
               },
               take: 10,
             }),
-            this.eventRepo.find({
-              where: {
-                ativo: true,
-                latitude: Not(IsNull()),
-                longitude: Not(IsNull())
-              },
-              take: 10,
-            })
+            this.eventRepo
+              .createQueryBuilder('event')
+              .where('event.ativo = :active', { active: true })
+              .andWhere('event.latitude IS NOT NULL')
+              .andWhere('event.longitude IS NOT NULL')
+              .andWhere('event.duplicateOfEventId IS NULL')
+              .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
+              .take(10)
+              .getMany()
           ]);
           console.log(`Análise iniciada para o usuário ${user.id}`);
           for (const address of addresses) {
