@@ -92,6 +92,7 @@ const NAV: NavSection[] = [
       { href: "/admin/price-intelligence", label: "Price Intelligence", icon: <DollarSign size={16} /> },
       { href: "/admin/seo", label: "SEO / GEO", icon: <Search size={16} /> },
       { href: "/admin/quality", label: "Qualidade", icon: <AlertCircle size={16} /> },
+      { href: "/admin/communications", label: "Comunicações", icon: <Mail size={16} /> },
       { href: "/admin/onboarding-drip", label: "E-mails de boas-vindas", icon: <Mail size={16} /> },
     ],
   },

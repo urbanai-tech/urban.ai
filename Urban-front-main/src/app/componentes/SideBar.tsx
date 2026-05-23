@@ -44,6 +44,7 @@ const SECONDARY_NAV = [
   { path: '/my-roi', label: 'Ganhos', icon: 'trending-up' as const },
   { path: '/my-plan', label: 'Meu plano', icon: 'dollar' as const },
   { path: '/settings/integrations', label: 'Integrações', icon: 'plug' as const },
+  { path: '/settings/communications', label: 'Comunicações', icon: 'bell' as const },
   { path: '/event-log', label: 'Ajustes', icon: 'settings' as const },
 ];
 

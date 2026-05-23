@@ -10,6 +10,7 @@ import { Between, In, Repository } from 'typeorm';
 import { EmailTemplates } from './templates';
 import { AdminJobRun } from 'src/entities/admin-job-run.entity';
 import { runAdminJobWithTracking } from 'src/admin-job-runs/admin-job-run-tracker';
+import { CommunicationPreferencesService } from 'src/communication-preferences/communication-preferences.service';
 
 type WeeklyEventReportProperty = {
   title: string;
@@ -56,6 +57,7 @@ export class WeeklyEventReportService {
     private readonly analisePrecoRepo: Repository<AnalisePreco>,
     private readonly mailer: MailerService,
     private readonly pushNotificationService: PushNotificationService,
+    private readonly communicationPreferences: CommunicationPreferencesService,
     @Optional()
     @InjectRepository(AdminJobRun)
     private readonly jobRunRepo?: Repository<AdminJobRun>,
@@ -94,6 +96,11 @@ export class WeeklyEventReportService {
     for (const user of users) {
       try {
         if (!user.email) {
+          summary.skipped += 1;
+          continue;
+        }
+        const preferences = await this.communicationPreferences.getForUser(user.id);
+        if (!preferences.weeklyReport) {
           summary.skipped += 1;
           continue;
         }

@@ -574,6 +574,46 @@ export async function updateProfileById(
   }
 }
 
+export type CommunicationPreferences = {
+  id: string;
+  userId: string;
+  emailPricing: boolean;
+  pushPricing: boolean;
+  weeklyReport: boolean;
+  marketing: boolean;
+  staysAlerts: boolean;
+  billingAlerts: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type UpdateCommunicationPreferencesPayload = Partial<
+  Pick<
+    CommunicationPreferences,
+    | "emailPricing"
+    | "pushPricing"
+    | "weeklyReport"
+    | "marketing"
+    | "staysAlerts"
+    | "billingAlerts"
+  >
+>;
+
+export async function fetchCommunicationPreferences(): Promise<CommunicationPreferences> {
+  const { data } = await api.get<CommunicationPreferences>("/communication-preferences/me");
+  return data;
+}
+
+export async function updateCommunicationPreferences(
+  payload: UpdateCommunicationPreferencesPayload,
+): Promise<CommunicationPreferences> {
+  const { data } = await api.put<CommunicationPreferences>(
+    "/communication-preferences/me",
+    payload,
+  );
+  return data;
+}
+
 export const getNotificacoesPorUsuario = async (
   page = 1,
   limit = 10
@@ -2821,6 +2861,61 @@ export const updateAdminContactSubmission = (
   api
     .patch<ContactSubmission>(`/admin/contact-submissions/${id}`, input)
     .then((r) => r.data);
+
+// =================== Admin - Comunicacoes ===================
+
+export type CommunicationChannel = 'email' | 'push' | 'in_app';
+export type CommunicationStatus = 'sent' | 'failed' | 'skipped';
+
+export interface CommunicationEvent {
+  id: string;
+  userId: string | null;
+  channel: CommunicationChannel;
+  status: CommunicationStatus;
+  kind: string | null;
+  templateName: string | null;
+  recipientEmail: string | null;
+  recipientDeviceId: string | null;
+  subject: string | null;
+  title: string | null;
+  provider: string | null;
+  providerMessageId: string | null;
+  failureReason: string | null;
+  metadata?: Record<string, unknown> | null;
+  metadataJson?: string | null;
+  correlationId: string | null;
+  createdAt: string;
+}
+
+export interface CommunicationEventListResponse {
+  page: number;
+  limit: number;
+  total: number;
+  byChannel: Array<{ channel: CommunicationChannel; count: number }>;
+  byStatus: Array<{ status: CommunicationStatus; count: number }>;
+  items: CommunicationEvent[];
+}
+
+export interface CommunicationSummary {
+  windowHours: number;
+  totals: Array<{ channel: CommunicationChannel; status: CommunicationStatus; count: number }>;
+  recentFailures: CommunicationEvent[];
+}
+
+export const fetchAdminCommunications = (params: {
+  page?: number;
+  limit?: number;
+  channel?: CommunicationChannel | 'all';
+  status?: CommunicationStatus | 'all';
+  kind?: string;
+  search?: string;
+}) =>
+  api
+    .get<CommunicationEventListResponse>('/admin/communications', { params })
+    .then((r) => r.data);
+
+export const fetchAdminCommunicationSummary = () =>
+  api.get<CommunicationSummary>('/admin/communications/summary').then((r) => r.data);
 
 // =================== Eventos - Camada 3 (curadoria manual) ===================
 

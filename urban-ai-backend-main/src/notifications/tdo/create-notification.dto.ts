@@ -24,4 +24,7 @@ export class CreateNotificationDto {
 
   @ApiProperty({ example: 'pricing_recommendation', required: false })
   pushType?: string;
+
+  @ApiProperty({ required: false, description: 'Metadados livres para agrupamento, auditoria e templates ricos.' })
+  metadata?: Record<string, any>;
 }
