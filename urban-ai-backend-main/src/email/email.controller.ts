@@ -11,6 +11,7 @@ import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 import { User } from 'src/entities/user.entity';
 import { CreateNotificationDto } from 'src/notifications/tdo/create-notification.dto';
 import { WeeklyEventReportService } from './weekly-event-report.service';
+import { Throttle } from '@nestjs/throttler';
 
 export class SendEmailDto {
     @ApiProperty()
@@ -86,6 +87,9 @@ export class EmailController {
     ) { }
 
     @Post()
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('admin')
     @ApiOperation({ summary: 'Enviar e-mail personalizado' })
     @ApiBody({ type: SendEmailDto })
     @ApiResponse({ status: 201, description: 'E-mail enviado com sucesso.' })
@@ -95,6 +99,7 @@ export class EmailController {
     }
 
     @Post('verificar-usuario-state')
+    @Throttle({ default: { ttl: 60_000, limit: 20 } })
     @ApiOperation({ summary: 'Verificar status do usuário' })
     @ApiBody({ type: VerificarUsuario })
     @ApiResponse({ status: 201, description: 'Status verificado com sucesso.' })
@@ -104,6 +109,7 @@ export class EmailController {
     }
 
     @Post('enviar-codigo')
+    @Throttle({ default: { ttl: 60_000, limit: 5 } })
     @ApiOperation({ summary: 'Enviar código de verificação' })
     @ApiBody({ type: VerificarUsuario })
     @ApiResponse({ status: 201, description: 'Código enviado com sucesso.' })
@@ -140,6 +146,7 @@ export class EmailController {
 
 
     @Post('confirmar-email')
+    @Throttle({ default: { ttl: 60_000, limit: 10 } })
     @ApiOperation({ summary: 'Confirmar email com código de verificação' })
     @ApiBody({ type: ConfirmarEmailWithCodeAndIdDto })
     @ApiResponse({ status: 200, description: 'Email confirmado com sucesso.' })
@@ -170,6 +177,7 @@ export class EmailController {
 
 
     @Post('forgot-password')
+    @Throttle({ default: { ttl: 60_000, limit: 5 } })
     @ApiOperation({ summary: 'Enviar e-mail de recuperação de senha' })
     @ApiBody({ type: VerificarUsuario })
     @ApiResponse({ status: 201, description: 'E-mail enviado com sucesso.' })
@@ -179,6 +187,7 @@ export class EmailController {
     }
 
     @Post('update-password')
+    @Throttle({ default: { ttl: 60_000, limit: 5 } })
     @ApiOperation({ summary: 'Atualizar senha' })
     @ApiBody({ type: UpdatePass })
     @ApiResponse({ status: 201, description: 'Senha atualizado com sucesso.' })
@@ -188,6 +197,9 @@ export class EmailController {
     }
 
     @Get()
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('admin')
     @ApiOperation({ summary: 'Teste compilação' })
     @ApiResponse({ status: 201, description: 'E-mail enviado com sucesso.' })
     @ApiResponse({ status: 400, description: 'Parâmetros inválidos.' })

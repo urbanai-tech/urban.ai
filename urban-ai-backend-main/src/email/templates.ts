@@ -653,6 +653,78 @@ export class EmailTemplates {
     return baseLayout(content);
   }
 
+  static getPricingRecommendationDigestTemplate(input: {
+    nome: string;
+    dashboardUrl: string;
+    items: Array<{
+      propertyTitle: string;
+      title: string;
+      description: string;
+      redirectTo: string;
+      reasons?: string[];
+    }>;
+  }): string {
+    const firstName = EmailTemplates.escapeHtml((input.nome || 'Usuario').split(' ')[0]);
+    const total = input.items.length;
+    const cards = input.items.map((item, index) => {
+      const reasons = item.reasons?.length
+        ? item.reasons
+        : [
+            'Eventos futuros e demanda local perto do imovel.',
+            'Comparacao com a diaria atual e limites de seguranca configurados.',
+            'Sinal de oportunidade para revisar preco antes da data ficar em cima.',
+          ];
+      return `
+        <div style="border:1px solid #e5e7eb;border-radius:12px;padding:18px 20px;margin:0 0 16px;background:#ffffff;">
+          <p style="margin:0 0 6px;color:#6b7280;font-size:12px;letter-spacing:1px;text-transform:uppercase;">Recomendacao ${index + 1}</p>
+          <h3 style="margin:0;color:#111827;font-size:18px;">${EmailTemplates.escapeHtml(item.propertyTitle)}</h3>
+          <p style="margin:10px 0 14px;color:#374151;line-height:1.55;">${EmailTemplates.escapeHtml(item.description)}</p>
+          <p style="margin:0 0 8px;color:#111827;font-weight:700;">Por que vale olhar:</p>
+          <ul style="margin:0 0 16px;padding-left:18px;color:#4b5563;line-height:1.6;">
+            ${reasons.map((reason) => `<li>${EmailTemplates.escapeHtml(reason)}</li>`).join('')}
+          </ul>
+          <a href="${EmailTemplates.escapeHtml(EmailTemplates.absoluteUrl(input.dashboardUrl, item.redirectTo))}" class="link" style="display:inline-block;padding:10px 18px;background:${PRIMARY_COLOR};color:#fff;border-radius:8px;font-weight:bold;">Revisar recomendacao</a>
+        </div>
+      `;
+    }).join('');
+
+    const content = `
+      <div class="title">${total === 1 ? '1 sugestao de preco pronta' : `${total} sugestoes de preco prontas`}</div>
+      <div class="content">
+        <p>Ola, ${firstName}.</p>
+        <p>Em vez de mandar um e-mail por imovel, agrupamos as novas recomendacoes em um resumo unico. Assim voce ve o contexto, prioriza o que importa e revisa tudo em um so lugar.</p>
+        ${cards}
+        <div style="text-align:center;margin:28px 0;">
+          <a href="${EmailTemplates.escapeHtml(input.dashboardUrl)}" class="link" style="display:inline-block;padding:12px 28px;background:${PRIMARY_COLOR};color:white;border-radius:8px;font-weight:bold;">
+            Abrir painel completo
+          </a>
+        </div>
+        <p style="font-size:13px;color:#6b7280;">Dica: se voce conectar a Stays, a Urban AI consegue transformar recomendacoes aprovadas em alteracoes operacionais com guardrails e rollback.</p>
+      </div>
+    `;
+    return baseLayout(content);
+  }
+
+  private static escapeHtml(value: string): string {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  private static absoluteUrl(baseUrl: string, value?: string): string {
+    if (!value) return baseUrl;
+    if (/^https?:\/\//i.test(value)) return value;
+    try {
+      const base = new URL(baseUrl);
+      return new URL(value, `${base.origin}/`).href;
+    } catch {
+      return baseUrl;
+    }
+  }
+
   // ================== legacy ==================
 
   static getSystemNotificationTemplate(nome: string, title: string, description: string, url: string): string {

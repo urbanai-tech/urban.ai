@@ -39,6 +39,8 @@ import { AdminModule } from './admin/admin.module';
 import { AdminPropertiesModule } from './admin-properties/admin-properties.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { ContactSubmissionsModule } from './contact-submissions/contact-submissions.module';
+import { CommunicationsModule } from './communications/communications.module';
+import { CommunicationPreferencesModule } from './communication-preferences/communication-preferences.module';
 import { User } from './entities/user.entity';
 import { RolesGuard } from './auth/roles.guard';
 import { HealthModule } from './health/health.module';
@@ -152,6 +154,8 @@ function envOrLocalDefault(name: string, localDefault: string): string {
     AdminPropertiesModule,
     WaitlistModule,
     ContactSubmissionsModule,
+    CommunicationPreferencesModule,
+    CommunicationsModule,
     HealthModule,
     HostPanelsModule,
 
