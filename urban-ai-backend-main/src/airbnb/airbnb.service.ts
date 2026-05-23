@@ -1,8 +1,58 @@
-import { forwardRef, Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, InternalServerErrorException, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as Sentry from '@sentry/nestjs';
 import axios from 'axios';
 import { PropriedadeService } from 'src/propriedades/propriedade.service';
 import { FirstAvailablePriceResult } from './types';
+import {
+  AirbnbBrowserScraperService,
+  AirbnbHeadlessDiagnosticReason,
+  AirbnbHeadlessScrapeError,
+  AirbnbRenderedHostListing,
+} from './airbnb-browser-scraper.service';
+
+type AirbnbPriceStrategy = 'browser-first' | 'api-first' | 'browser-only' | 'api-only';
+type AirbnbPriceSource = 'airbnb-search' | 'airbnb-browser' | 'headless' | string;
+type AirbnbPricingFailureReason =
+  | 'captcha_blocked'
+  | 'systemic_block'
+  | 'timeout'
+  | 'price_not_found'
+  | 'layout_parser'
+  | 'api_blocked'
+  | 'api_invalid_response'
+  | 'api_error'
+  | 'navigation_error'
+  | 'unknown';
+
+type AirbnbPricingContext = {
+  listingId: string;
+  source: AirbnbPriceSource;
+  checkIn?: string;
+  checkOut?: string;
+  reason?: AirbnbPricingFailureReason;
+};
+
+class AirbnbPricingError extends InternalServerErrorException {
+  declare cause: unknown;
+
+  constructor(
+    message: string,
+    readonly reason: AirbnbPricingFailureReason,
+    readonly context: AirbnbPricingContext,
+    readonly retryable = true,
+    readonly originalCause?: unknown,
+  ) {
+    super({
+      status: false,
+      message,
+      reason,
+    }, { cause: originalCause });
+    this.name = 'AirbnbPricingError';
+    this.message = message;
+    this.cause = originalCause;
+  }
+}
 
 @Injectable()
 export class AirbnbService {
@@ -16,6 +66,8 @@ export class AirbnbService {
     @Inject(forwardRef(() => PropriedadeService))
     private readonly propriedadeService: PropriedadeService,
     private readonly configService: ConfigService,
+    @Optional()
+    private readonly browserScraper?: AirbnbBrowserScraperService,
   ) {
     this.apiKey = this.configService.get<string>('RAPIDAPI_KEY') ?? '';
     if (!this.apiKey) {
@@ -80,60 +132,7 @@ export class AirbnbService {
 
   async getFirstAvailablePrice(propertyId: string): Promise<FirstAvailablePriceResult> {
     const propertyDetails = await this.getSafePropertyDetails(propertyId);
-
-    try {
-      const availability = await this.getAvailability(propertyId);
-
-      if (!availability?.data?.length) {
-        throw new InternalServerErrorException({
-          status: false,
-          message: 'Nao foi encontrada nenhuma disponibilidade para este imovel',
-        });
-      }
-
-      let checkIn: string | null = null;
-      let checkOut: string | null = null;
-
-      for (const month of availability.data) {
-        for (let i = 0; i < month.days.length; i++) {
-          const day = month.days[i];
-
-          if (day.available && day.available_for_checkin) {
-            checkIn = day.date;
-            const minNights = day.min_nights ?? 1;
-            const maxNights = day.max_nights ?? 365;
-
-            for (let j = i + minNights; j <= Math.min(i + maxNights, month.days.length - 1); j++) {
-              const nextDay = month.days[j];
-              if (nextDay.available_for_checkout) {
-                checkOut = nextDay.date;
-                break;
-              }
-            }
-          }
-
-          if (checkIn && checkOut) break;
-        }
-        if (checkIn && checkOut) break;
-      }
-
-      if (!checkIn || !checkOut) {
-        throw new InternalServerErrorException({
-          status: false,
-          message: 'Nenhuma data valida para check-in e check-out encontrada',
-        });
-      }
-
-      const price = await this.getCheckoutPrice(propertyId, checkIn, checkOut);
-      return { price, propertyDetails };
-    } catch (error) {
-      this.logger.warn(
-        `Consulta airbnb19 falhou para listing=${propertyId}; tentando airbnb-search: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      );
-      return this.getFirstAvailablePriceFromPricingApi(propertyId, propertyDetails);
-    }
+    return this.getFirstAvailablePriceFromConfiguredSources(propertyId, propertyDetails);
   }
 
   private async getSafePropertyDetails(propertyId: string) {
@@ -149,66 +148,327 @@ export class AirbnbService {
     }
   }
 
-  private async getFirstAvailablePriceFromPricingApi(
+  private async getFirstAvailablePriceFromConfiguredSources(
     propertyId: string,
     propertyDetails: FirstAvailablePriceResult['propertyDetails'],
   ): Promise<FirstAvailablePriceResult> {
-    const offsets = [7, 14, 30, 60, 90];
-    const nightsOptions = [2, 3];
+    const windows = this.priceSearchWindows();
+    const strategy = this.priceStrategy;
 
-    for (const offsetDays of offsets) {
-      for (const nights of nightsOptions) {
-        const { checkIn, checkOut } = this.buildDateWindow(offsetDays, nights);
-        try {
-          const { data } = await axios.get(this.pricingApiUrl, {
-            headers: {
-              'X-RapidAPI-Host': this.pricingApiHost,
-              'X-RapidAPI-Key': this.apiKey,
-            },
-            params: {
-              id: propertyId,
-              checkin: checkIn,
-              checkout: checkOut,
-              locale: 'PT-BR',
-              currency: 'BRL',
-            },
-            timeout: 15000,
-          });
+    if (strategy === 'browser-first' && this.browserScraper?.isEnabled()) {
+      const browserQuote = await this.findFirstPriceAcrossWindows(
+        propertyId,
+        propertyDetails,
+        windows,
+        'headless',
+        (checkIn, checkOut) => this.getPriceForDateWindowFromBrowser(propertyId, checkIn, checkOut, propertyDetails),
+      );
 
-          const total = this.extractTotalPrice(data);
-          if (!total || total <= 0) continue;
+      if (browserQuote) return browserQuote;
 
-          const daily = total / nights;
-          return {
-            price: {
-              status: true,
-              message: 'Preco obtido via airbnb-search',
-              timestamp: Date.now(),
-              data: {
-                accommodationCost: Number(total.toFixed(2)),
-                accommodationCostFormatted: `R$${total.toFixed(2)}`,
-                accommodationCostTitle: `${nights} nights x R$${daily.toFixed(2)}`,
-                details: [],
-              },
-            },
-            propertyDetails,
-          };
-        } catch (error) {
-          this.logger.warn(
-            `airbnb-search sem preco para listing=${propertyId} (${checkIn}..${checkOut}): ${
-              axios.isAxiosError(error)
-                ? JSON.stringify(error.response?.data || error.message)
-                : error instanceof Error ? error.message : String(error)
-            }`,
-          );
+      const apiQuote = await this.findFirstPriceAcrossWindows(
+        propertyId,
+        propertyDetails,
+        windows,
+        'airbnb-search',
+        (checkIn, checkOut) => this.getPriceForDateWindowFromPricingApi(propertyId, checkIn, checkOut, propertyDetails),
+      );
+
+      if (apiQuote) return apiQuote;
+      this.reportPricingFailure(propertyId, 'all-browser-first-sources-failed', { windows });
+      throw new InternalServerErrorException({
+        status: false,
+        message: 'Nao foi possivel obter preco real do Airbnb nas fontes configuradas',
+      });
+    }
+
+    const configuredQuote = await this.findFirstPriceAcrossWindows(
+      propertyId,
+      propertyDetails,
+      windows,
+      'fontes configuradas',
+      (checkIn, checkOut) => this.getPriceForDateWindow(propertyId, checkIn, checkOut, propertyDetails),
+    );
+
+    if (configuredQuote) return configuredQuote;
+
+    this.reportPricingFailure(propertyId, 'all-configured-sources-failed', { windows, strategy });
+    throw new InternalServerErrorException({
+      status: false,
+      message: 'Nao foi possivel obter preco real do Airbnb nas fontes configuradas',
+    });
+  }
+
+  private async findFirstPriceAcrossWindows(
+    propertyId: string,
+    propertyDetails: FirstAvailablePriceResult['propertyDetails'],
+    windows: Array<{ checkIn: string; checkOut: string }>,
+    sourceLabel: string,
+    getter: (checkIn: string, checkOut: string) => Promise<FirstAvailablePriceResult>,
+  ): Promise<FirstAvailablePriceResult | null> {
+    for (const { checkIn, checkOut } of windows) {
+      try {
+        return await getter(checkIn, checkOut);
+      } catch (error) {
+        if (this.isNonRetryablePricingError(error)) {
+          this.reportPricingFailureFromError(error, { listingId: propertyId, source: sourceLabel, checkIn, checkOut });
+          throw error;
         }
+
+        this.reportPricingFailureFromError(error, { listingId: propertyId, source: sourceLabel, checkIn, checkOut });
+        this.logger.warn(
+          `${sourceLabel} sem preco para listing=${propertyId} (${checkIn}..${checkOut}): ${this.formatPricingError(error)}`,
+        );
       }
     }
 
-    throw new InternalServerErrorException({
-      status: false,
-      message: 'Nao foi possivel obter preco real do Airbnb nas APIs configuradas',
+    return null;
+  }
+
+  private priceSearchWindows(): Array<{ checkIn: string; checkOut: string }> {
+    const offsets = [7, 14, 30, 60, 90];
+    const nightsOptions = [2, 3];
+    return offsets.flatMap((offsetDays) =>
+      nightsOptions.map((nights) => this.buildDateWindow(offsetDays, nights)),
+    );
+  }
+
+  async getPriceForDateWindow(
+    propertyId: string,
+    checkIn: string,
+    checkOut: string,
+    propertyDetails: FirstAvailablePriceResult['propertyDetails'] = {
+      bedrooms: 1,
+      beds: 1,
+      guestMaximum: 1,
+    },
+  ): Promise<FirstAvailablePriceResult> {
+    const strategy = this.priceStrategy;
+
+    if (strategy === 'browser-only') {
+      return this.getPriceForDateWindowFromBrowser(propertyId, checkIn, checkOut, propertyDetails);
+    }
+
+    if (strategy === 'api-only' || !this.browserScraper?.isEnabled()) {
+      return this.getPriceForDateWindowFromPricingApi(propertyId, checkIn, checkOut, propertyDetails);
+    }
+
+    if (strategy === 'api-first') {
+      return this.getPriceWithFallback({
+        primaryName: 'airbnb-search',
+        fallbackName: 'headless',
+        primary: () => this.getPriceForDateWindowFromPricingApi(propertyId, checkIn, checkOut, propertyDetails),
+        fallback: () => this.getPriceForDateWindowFromBrowser(propertyId, checkIn, checkOut, propertyDetails),
+        listingId: propertyId,
+      });
+    }
+
+    return this.getPriceWithFallback({
+      primaryName: 'headless',
+      fallbackName: 'airbnb-search',
+      primary: () => this.getPriceForDateWindowFromBrowser(propertyId, checkIn, checkOut, propertyDetails),
+      fallback: () => this.getPriceForDateWindowFromPricingApi(propertyId, checkIn, checkOut, propertyDetails),
+      listingId: propertyId,
     });
+  }
+
+  private get priceStrategy(): AirbnbPriceStrategy {
+    const configured = String(
+      this.configService.get<string>('AIRBNB_PRICE_STRATEGY') ||
+      this.configService.get<string>('AIRBNB_PRICE_PROVIDER') ||
+      '',
+    ).toLowerCase();
+
+    if (['api-first', 'airbnb-search', 'rapidapi', 'rapid-api'].includes(configured)) return 'api-first';
+    if (['api-only', 'rapidapi-only', 'airbnb-search-only'].includes(configured)) return 'api-only';
+    if (['browser-only', 'headless-only', 'scraper-only'].includes(configured)) return 'browser-only';
+    return 'browser-first';
+  }
+
+  private async getPriceWithFallback(input: {
+    listingId: string;
+    primaryName: string;
+    fallbackName: string;
+    primary: () => Promise<FirstAvailablePriceResult>;
+    fallback: () => Promise<FirstAvailablePriceResult>;
+  }): Promise<FirstAvailablePriceResult> {
+    try {
+      return await input.primary();
+    } catch (error) {
+      this.reportPricingFailureFromError(error, {
+        listingId: input.listingId,
+        source: input.primaryName,
+      });
+
+      if (this.isSystemicBlock(error)) {
+        this.logger.warn(
+          `${input.primaryName} bloqueado para listing=${input.listingId}; sem retry/fallback inutil: ${
+            this.formatPricingError(error)
+          }`,
+        );
+        throw error;
+      }
+
+      this.logger.warn(
+        `${input.primaryName} falhou para listing=${input.listingId}; tentando ${input.fallbackName}: ${
+          this.formatPricingError(error)
+        }`,
+      );
+      return input.fallback();
+    }
+  }
+
+  async resolveListingHostId(propertyId: string): Promise<{ hostId: string | null; hostName: string | null }> {
+    const snapshot = await this.browserScraper?.scrapeListing(propertyId);
+    return {
+      hostId: snapshot?.hostId ?? null,
+      hostName: snapshot?.hostName ?? null,
+    };
+  }
+
+  async scrapeHostListingsWithBrowser(hostId: string): Promise<AirbnbRenderedHostListing[]> {
+    return this.browserScraper?.scrapeHostListings(hostId) ?? [];
+  }
+
+  private async getPriceForDateWindowFromPricingApi(
+    propertyId: string,
+    checkIn: string,
+    checkOut: string,
+    propertyDetails: FirstAvailablePriceResult['propertyDetails'],
+  ): Promise<FirstAvailablePriceResult> {
+    const nights = this.diffCalendarDays(checkIn, checkOut);
+    const context: AirbnbPricingContext = {
+      listingId: propertyId,
+      source: 'airbnb-search',
+      checkIn,
+      checkOut,
+    };
+
+    let data: unknown;
+    try {
+      const response = await axios.get(this.pricingApiUrl, {
+        headers: {
+          'X-RapidAPI-Host': this.pricingApiHost,
+          'X-RapidAPI-Key': this.apiKey,
+        },
+        params: {
+          id: propertyId,
+          checkin: checkIn,
+          checkout: checkOut,
+          locale: 'PT-BR',
+          currency: 'BRL',
+        },
+        timeout: 15000,
+      });
+      data = response.data;
+    } catch (error) {
+      throw this.toPricingError(error, context);
+    }
+
+    const total = this.extractTotalPrice(data);
+    if (!total || total <= 0) {
+      throw new AirbnbPricingError(
+        'Resposta do airbnb-search nao trouxe preco total valido',
+        'api_invalid_response',
+        context,
+        true,
+        data,
+      );
+    }
+
+    const daily = total / nights;
+    return {
+      price: {
+        status: true,
+        message: 'Preco obtido via airbnb-search',
+        timestamp: Date.now(),
+        data: {
+          accommodationCost: Number(total.toFixed(2)),
+          accommodationCostFormatted: `R$${total.toFixed(2)}`,
+          accommodationCostTitle: `${nights} nights x R$${daily.toFixed(2)}`,
+          details: [],
+        },
+      },
+      propertyDetails,
+      checkIn,
+      checkOut,
+      nights,
+      source: 'airbnb-search',
+    };
+  }
+
+  private async getPriceForDateWindowFromBrowser(
+    propertyId: string,
+    checkIn: string,
+    checkOut: string,
+    propertyDetails: FirstAvailablePriceResult['propertyDetails'],
+  ): Promise<FirstAvailablePriceResult> {
+    const nights = this.diffCalendarDays(checkIn, checkOut);
+    const context: AirbnbPricingContext = {
+      listingId: propertyId,
+      source: 'airbnb-browser',
+      checkIn,
+      checkOut,
+    };
+
+    let snapshot: Awaited<ReturnType<AirbnbBrowserScraperService['scrapeListing']>>;
+    try {
+      snapshot = await this.browserScraper?.scrapeListing(propertyId, { checkIn, checkOut });
+    } catch (error) {
+      throw this.toPricingError(error, context);
+    }
+
+    if (snapshot?.captchaDetected) {
+      throw new AirbnbPricingError(
+        'Airbnb exibiu verificacao/captcha no fallback headless',
+        'captcha_blocked',
+        context,
+        false,
+      );
+    }
+
+    const total = snapshot?.priceTotal;
+    if (!total || total <= 0) {
+      const reason = this.normalizeHeadlessReason(snapshot?.diagnosticReason) ?? 'price_not_found';
+      throw new AirbnbPricingError(
+        'Fallback headless nao encontrou preco renderizado valido',
+        reason,
+        context,
+        reason !== 'captcha_blocked',
+        {
+          finalUrl: snapshot?.finalUrl,
+          priceCandidateCount: snapshot?.priceCandidateCount ?? 0,
+          title: snapshot?.title,
+        },
+      );
+    }
+
+    const daily = total / nights;
+    return {
+      price: {
+        status: true,
+        message: 'Preco obtido via fallback headless Airbnb',
+        timestamp: Date.now(),
+        data: {
+          accommodationCost: Number(total.toFixed(2)),
+          accommodationCostFormatted: `R$${total.toFixed(2)}`,
+          accommodationCostTitle: `${nights} nights x R$${daily.toFixed(2)}`,
+          details: snapshot.priceText
+            ? [{
+                type: 'rendered_price',
+                localizedTitle: snapshot.priceText,
+                amount: Number(total.toFixed(2)),
+                amountFormatted: `R$${total.toFixed(2)}`,
+              }]
+            : [],
+        },
+      },
+      propertyDetails,
+      checkIn,
+      checkOut,
+      nights,
+      source: 'airbnb-browser',
+    };
   }
 
   private buildDateWindow(offsetDays: number, nights: number) {
@@ -220,6 +480,142 @@ export class AirbnbService {
       checkIn: checkInDate.toISOString().slice(0, 10),
       checkOut: checkOutDate.toISOString().slice(0, 10),
     };
+  }
+
+  private isNonRetryablePricingError(error: unknown): boolean {
+    if (error instanceof AirbnbPricingError) return !error.retryable;
+    if (!axios.isAxiosError(error)) return false;
+    const status = error.response?.status;
+    return status === 401 || status === 403 || status === 429;
+  }
+
+  private isSystemicBlock(error: unknown): boolean {
+    if (error instanceof AirbnbPricingError) {
+      return !error.retryable && ['captcha_blocked', 'systemic_block', 'api_blocked'].includes(error.reason);
+    }
+
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+      return status === 401 || status === 403 || status === 429;
+    }
+
+    return false;
+  }
+
+  private formatPricingError(error: unknown): string {
+    if (error instanceof AirbnbPricingError) {
+      return JSON.stringify({
+        reason: error.reason,
+        message: error.message,
+        listingId: error.context.listingId,
+        source: error.context.source,
+        checkIn: error.context.checkIn,
+        checkOut: error.context.checkOut,
+      });
+    }
+    if (axios.isAxiosError(error)) {
+      return JSON.stringify(error.response?.data || error.message);
+    }
+    return error instanceof Error ? error.message : String(error);
+  }
+
+  private toPricingError(error: unknown, context: AirbnbPricingContext): AirbnbPricingError {
+    if (error instanceof AirbnbPricingError) return error;
+
+    if (error instanceof AirbnbHeadlessScrapeError) {
+      const reason = this.normalizeHeadlessReason(error.reason);
+      return new AirbnbPricingError(
+        error.message,
+        reason,
+        context,
+        reason !== 'captcha_blocked',
+        error.cause ?? error,
+      );
+    }
+
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+      const code = String(error.code ?? '').toUpperCase();
+      const reason: AirbnbPricingFailureReason =
+        status === 401 || status === 403 || status === 429
+          ? 'api_blocked'
+          : code === 'ECONNABORTED' || /timeout/i.test(error.message)
+            ? 'timeout'
+            : 'api_error';
+
+      return new AirbnbPricingError(
+        error.message,
+        reason,
+        context,
+        reason !== 'api_blocked',
+        error.response?.data ?? error,
+      );
+    }
+
+    return new AirbnbPricingError(
+      error instanceof Error ? error.message : String(error),
+      'unknown',
+      context,
+      true,
+      error,
+    );
+  }
+
+  private normalizeHeadlessReason(reason?: AirbnbHeadlessDiagnosticReason | null): AirbnbPricingFailureReason | null {
+    if (!reason) return null;
+    if (reason === 'navigation_error') return 'navigation_error';
+    return reason;
+  }
+
+  private reportPricingFailureFromError(error: unknown, fallbackContext: AirbnbPricingContext): void {
+    const pricingError = error instanceof AirbnbPricingError ? error : this.toPricingError(error, fallbackContext);
+    this.reportPricingFailure(
+      pricingError.context.listingId,
+      pricingError.reason,
+      {
+        source: pricingError.context.source,
+        checkIn: pricingError.context.checkIn,
+        checkOut: pricingError.context.checkOut,
+        retryable: pricingError.retryable,
+        message: pricingError.message,
+      },
+    );
+  }
+
+  private reportPricingFailure(
+    propertyId: string,
+    reason: string,
+    extra: Record<string, unknown>,
+  ): void {
+    const payload = {
+      event: 'airbnb_pricing_failure',
+      listingId: propertyId,
+      reason,
+      pricingStrategy: this.priceStrategy,
+      ...extra,
+    };
+    this.logger.error(JSON.stringify(payload));
+    Sentry.captureMessage('Airbnb pricing failure', {
+      level: 'warning',
+      tags: {
+        integration: 'airbnb',
+        reason,
+        pricingStrategy: this.priceStrategy,
+        source: typeof extra.source === 'string' ? extra.source : 'unknown',
+      },
+      extra: {
+        listingId: propertyId,
+        ...extra,
+      },
+    });
+  }
+
+  private diffCalendarDays(checkIn: string, checkOut: string) {
+    const inDate = new Date(`${checkIn}T00:00:00.000Z`);
+    const outDate = new Date(`${checkOut}T00:00:00.000Z`);
+    const diffMs = outDate.getTime() - inDate.getTime();
+    if (!Number.isFinite(diffMs) || diffMs <= 0) return 1;
+    return Math.max(1, Math.round(diffMs / 86_400_000));
   }
 
   private extractTotalPrice(payload: unknown): number | null {
@@ -258,7 +654,10 @@ export class AirbnbService {
     if (path.includes('bookingprefetchdata') && path.includes('price')) score += 80;
     if (path.includes('accommodation') || path.includes('base')) score += 60;
     if (path.includes('barprice') || path.includes('displayprice')) score += 50;
+    if (path.includes('pricestring')) score += 25;
     if (path.includes('price')) score += 30;
+    if (path.includes('primaryline.price') || path.includes('accessibilitylabel')) score -= 10;
+    if (path.includes('description')) score -= 30;
     if (/fee|tax|discount|deposit|service|cleaning/.test(path)) score -= 80;
     if (/night|nightly/.test(path)) score -= 20;
     return score;
@@ -273,10 +672,30 @@ export class AirbnbService {
 
     if (typeof value !== 'string') return null;
 
-    const cleaned = value
-      .replace(/[^\d,.-]/g, '')
-      .replace(/\.(?=\d{3}(\D|$))/g, '')
-      .replace(',', '.');
+    const rawValue = value.trim();
+    const currencyMatch = rawValue.match(/(?:R\$|BRL|\$)\s*([-+]?\d[\d.,]*)/i);
+    const numericMatch = rawValue.match(/[-+]?\d[\d.,]*/);
+    const moneyText = currencyMatch?.[1] ?? numericMatch?.[0] ?? '';
+    let cleaned = moneyText.replace(/[^\d,.-]/g, '');
+    if (!cleaned) return null;
+
+    const lastComma = cleaned.lastIndexOf(',');
+    const lastDot = cleaned.lastIndexOf('.');
+
+    if (lastComma >= 0 && lastDot >= 0) {
+      if (lastComma > lastDot) {
+        cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+      } else {
+        cleaned = cleaned.replace(/,/g, '');
+      }
+    } else if (lastComma >= 0) {
+      const decimals = cleaned.length - lastComma - 1;
+      cleaned = decimals === 3 ? cleaned.replace(/,/g, '') : cleaned.replace(',', '.');
+    } else if (lastDot >= 0) {
+      const decimals = cleaned.length - lastDot - 1;
+      if (decimals === 3) cleaned = cleaned.replace(/\./g, '');
+    }
+
     const parsed = Number(cleaned);
     return Number.isFinite(parsed) ? parsed : null;
   }

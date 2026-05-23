@@ -28,4 +28,8 @@ export interface PropertyDetails {
 export interface FirstAvailablePriceResult {
   price: AirbnbPriceResponse;
   propertyDetails: PropertyDetails;
+  checkIn?: string;
+  checkOut?: string;
+  nights?: number;
+  source?: 'airbnb19' | 'airbnb-search' | 'airbnb-browser' | 'manual';
 }

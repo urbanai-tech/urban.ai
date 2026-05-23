@@ -30,7 +30,12 @@
     "audit:migrations": "node scripts/audit-migrations.js",
     "audit:migrations:strict": "node scripts/audit-migrations.js --strict",
     "backup:mysql": "node scripts/mysql-backup.js",
-    "backup:mysql:dry": "node scripts/mysql-backup.js --dry-run"
+    "backup:mysql:dry": "node scripts/mysql-backup.js --dry-run",
+    "restore:verify": "node scripts/restore-drill-verify.js",
+    "restore:verify:dry": "node scripts/restore-drill-verify.js --dry-run",
+    "smoke:airbnb-headless": "node scripts/test-airbnb-headless-scraper.js",
+    "smoke:event-intelligence": "node scripts/event-intelligence-api-smoke.js",
+    "cleanup:legacy-user": "node scripts/cleanup-user-legacy-data.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -69,6 +74,7 @@
     "p-limit": "^6.2.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
+    "playwright-core": "^1.59.1",
     "raw-body": "^3.0.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",

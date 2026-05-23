@@ -2,6 +2,13 @@
 import { Connect, CreateAddressDto } from "../types/connect";
 import { List, Address } from "../types/connect"; // Crie esse tipo DTO correspondente à entidade List
 import { Subscription } from "../componentes/Subscription";
+import {
+  mockFetchHostEventCatalog,
+  mockFetchHostEventDetail,
+  mockFetchHostEventHeatmap,
+  mockFetchHostEventRadar,
+  mockSimulateHostEventPricing,
+} from "./hostEventRadarMocks";
 
 // Base URL configurada via variável de ambiente
 const url = process.env.NEXT_PUBLIC_API_URL;
@@ -760,10 +767,717 @@ export const getEventosForMaps = async (
   }
 };
 
+// =================== Host event radar (P0 - Maya Host) ===================
+
+export type HostEventConfidence = 'low' | 'medium' | 'high';
+
+export type EventCatalogItem = {
+  id: string;
+  name: string;
+  description?: string | null;
+  startsAt: string;
+  endsAt?: string | null;
+  city: string;
+  state: string;
+  venueName?: string | null;
+  address?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  category?: string | null;
+  imageUrl?: string | null;
+  officialUrl?: string | null;
+  source?: string | null;
+  crawledUrl?: string | null;
+  urbanScore: number | null;
+  demandScore?: number | null;
+  confidence?: HostEventConfidence;
+  badges: string[];
+};
+
+export type EventDemandDriver = {
+  key: string;
+  label: string;
+  weight: number;
+  explanation: string;
+};
+
+export type PriceAbsorptionScenario = {
+  id: string;
+  label: string;
+  dailyPriceCents: number | null;
+  multiplier: number | null;
+  bookingProbability: number | null;
+  expectedRevenueCents: number | null;
+  risk: 'low' | 'medium' | 'high';
+  reading: string;
+  recommended?: boolean;
+};
+
+export type EventPropertyImpact = {
+  propertyId: string;
+  propertyName: string;
+  distanceKm: number | null;
+  travelTimeMinutes?: number | null;
+  propertyCaptureScore: number | null;
+  currentPriceCents: number | null;
+  recommendedPriceCents: number | null;
+  minAbsorbablePriceCents: number | null;
+  maxAbsorbablePriceCents: number | null;
+  recommendedMultiplier: number | null;
+  maxPlausibleMultiplier: number | null;
+  bookingProbability: number | null;
+  expectedRevenueCents: number | null;
+  expectedIncrementalRevenueCents: number | null;
+  confidence: HostEventConfidence;
+  mainDrivers?: string[];
+  affectedNights?: string[];
+  recommendedAction: 'watch' | 'simulate' | 'apply' | 'review';
+  absorptionScenarios?: PriceAbsorptionScenario[];
+};
+
+export type EventIntelligenceDetail = {
+  event: EventCatalogItem;
+  intelligence: {
+    eventDemandScore: number | null;
+    eventRevenuePotentialCents: number | null;
+    demandRadiusKm: number | null;
+    expectedAttendance: number | null;
+    sourceReliabilityScore: number | null;
+    confidence: HostEventConfidence;
+    interpretation: string;
+    drivers: EventDemandDriver[];
+    riskFlags: string[];
+    generatedAt: string;
+    modelVersion: string;
+    metricVersion: string;
+    jobRunId?: string | null;
+  };
+};
+
+export type DemandHeatmapCell = {
+  cellId: string;
+  h3Index?: string | null;
+  geohash?: string | null;
+  geohashPrecision?: number | null;
+  bbox?: [number, number, number, number] | null;
+  centerLat: number;
+  centerLng: number;
+  radiusKm?: number | null;
+  dateFrom?: string | null;
+  dateTo?: string | null;
+  eventDemandScore: number | null;
+  revenuePotentialCents: number | null;
+  eventsCount: number;
+  topEventIds: string[];
+  affectedPropertiesCount: number;
+  averageConfidence: HostEventConfidence;
+  dominantCategory?: string | null;
+  supplyCompressionScore?: number | null;
+  dataStatus?: string | null;
+};
+
+export type HostEventRadarItem = EventCatalogItem & {
+  intelligence?: EventIntelligenceDetail['intelligence'] | null;
+  impactedProperties: EventPropertyImpact[];
+  bestPropertyImpact?: EventPropertyImpact | null;
+  eventRevenuePotentialCents?: number | null;
+  demandRadiusKm?: number | null;
+  heatLevel?: number | null;
+  interpretation?: string | null;
+};
+
+export type HostEventCatalogFilters = {
+  city?: string;
+  from?: string;
+  to?: string;
+  category?: string;
+  venue?: string;
+  search?: string;
+  source?: string;
+  confidence?: HostEventConfidence | 'all';
+  nearMyProperties?: boolean;
+  highImpact?: boolean;
+};
+
+export type HostEventRadarFilters = {
+  from?: string;
+  to?: string;
+  propertyId?: string;
+  category?: string;
+  confidence?: HostEventConfidence | 'all';
+  eventId?: string;
+};
+
+export type HostEventCatalogResponse = {
+  generatedAt: string;
+  items: EventCatalogItem[];
+  total: number;
+  cities: string[];
+  categories: string[];
+  sources: string[];
+  mock?: boolean;
+};
+
+export type HostEventRadarResponse = {
+  generatedAt: string;
+  summary: {
+    revenuePotentialCents: number;
+    relevantEvents: number;
+    opportunityNights: number;
+    impactedProperties: number;
+    averageDemandScore: number | null;
+  };
+  events: HostEventRadarItem[];
+  heatmap: DemandHeatmapCell[];
+  mock?: boolean;
+};
+
+export type HostEventDetailResponse = EventIntelligenceDetail & {
+  propertyImpacts: EventPropertyImpact[];
+  relatedEvents?: EventCatalogItem[];
+  mock?: boolean;
+};
+
+export type HostEventPricingSimulationInput = {
+  propertyId?: string;
+  scenarioId?: string;
+  dailyPriceCents?: number;
+};
+
+export type HostEventPricingSimulationResponse = {
+  eventId: string;
+  propertyImpact: EventPropertyImpact | null;
+  mock?: boolean;
+};
+
+function isSafeHostEventMockFallback(error: unknown): boolean {
+  const status = (error as any)?.response?.status;
+  if (status === 401 || status === 403) return false;
+  return !status || status === 404 || status === 501 || status === 503;
+}
+
+function warnHostEventMock(endpoint: string, error: unknown) {
+  console.warn(`[host-event-radar] usando mock temporario para ${endpoint}`, error);
+}
+
+function normalizeNumber(value: unknown): number | null {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalizeCents(value: unknown): number | null {
+  const parsed = normalizeNumber(value);
+  if (parsed === null) return null;
+  return parsed > 0 && parsed < 10000 ? Math.round(parsed * 100) : Math.round(parsed);
+}
+
+function normalizeConfidence(value: unknown): HostEventConfidence {
+  if (value === 'low' || value === 'medium' || value === 'high') return value;
+  return 'medium';
+}
+
+function confidencePercent(value: HostEventConfidence | undefined): number {
+  if (value === 'high') return 86;
+  if (value === 'low') return 38;
+  return 64;
+}
+
+function confidenceFromPercent(value: number): HostEventConfidence {
+  if (value >= 75) return 'high';
+  if (value >= 50) return 'medium';
+  return 'low';
+}
+
+function normalizeCellConfidence(value: unknown, score?: number | null): HostEventConfidence {
+  if (value === 'low' || value === 'medium' || value === 'high') return value;
+  const numeric = normalizeNumber(value);
+  if (numeric !== null) return confidenceFromPercent(numeric);
+  if (typeof score === 'number') return confidenceFromPercent(score);
+  return 'medium';
+}
+
+function normalizeBbox(value: unknown): [number, number, number, number] | null {
+  if (!Array.isArray(value) || value.length !== 4) return null;
+  const parsed = value.map((item) => normalizeNumber(item));
+  if (parsed.some((item) => item === null)) return null;
+  return parsed as [number, number, number, number];
+}
+
+const GEOHASH_BASE32 = '0123456789bcdefghjkmnpqrstuvwxyz';
+
+function encodeGeoHash(latitude?: number | null, longitude?: number | null, precision = 5): string | null {
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+
+  let latRange: [number, number] = [-90, 90];
+  let lngRange: [number, number] = [-180, 180];
+  let hash = '';
+  let bit = 0;
+  let ch = 0;
+  let evenBit = true;
+
+  while (hash.length < precision) {
+    if (evenBit) {
+      const mid = (lngRange[0] + lngRange[1]) / 2;
+      if ((longitude as number) >= mid) {
+        ch = (ch << 1) + 1;
+        lngRange = [mid, lngRange[1]];
+      } else {
+        ch <<= 1;
+        lngRange = [lngRange[0], mid];
+      }
+    } else {
+      const mid = (latRange[0] + latRange[1]) / 2;
+      if ((latitude as number) >= mid) {
+        ch = (ch << 1) + 1;
+        latRange = [mid, latRange[1]];
+      } else {
+        ch <<= 1;
+        latRange = [latRange[0], mid];
+      }
+    }
+
+    evenBit = !evenBit;
+    if (bit < 4) {
+      bit += 1;
+    } else {
+      hash += GEOHASH_BASE32[ch];
+      bit = 0;
+      ch = 0;
+    }
+  }
+
+  return hash;
+}
+
+function normalizeCatalogItem(raw: any): EventCatalogItem {
+  return {
+    id: String(raw?.id ?? raw?._id ?? raw?.eventId ?? ''),
+    name: String(raw?.name ?? raw?.nome ?? raw?.title ?? 'Evento sem nome'),
+    description: raw?.description ?? raw?.descricao ?? null,
+    startsAt: String(raw?.startsAt ?? raw?.dataInicio ?? raw?.startDate ?? new Date().toISOString()),
+    endsAt: raw?.endsAt ?? raw?.dataFim ?? raw?.endDate ?? null,
+    city: String(raw?.city ?? raw?.cidade ?? 'Sao Paulo'),
+    state: String(raw?.state ?? raw?.estado ?? 'SP'),
+    venueName: raw?.venueName ?? raw?.venue ?? raw?.local ?? null,
+    address: raw?.address ?? raw?.enderecoCompleto ?? raw?.endereco ?? null,
+    latitude: normalizeNumber(raw?.latitude),
+    longitude: normalizeNumber(raw?.longitude),
+    category: raw?.category ?? raw?.categoria ?? null,
+    imageUrl: raw?.imageUrl ?? raw?.imagem_url ?? raw?.image_url ?? null,
+    officialUrl: raw?.officialUrl ?? raw?.linkSiteOficial ?? raw?.official_url ?? null,
+    source: raw?.source ?? raw?.fonte ?? null,
+    crawledUrl: raw?.crawledUrl ?? raw?.crawled_url ?? null,
+    urbanScore: normalizeNumber(raw?.urbanScore ?? raw?.relevancia),
+    demandScore: normalizeNumber(raw?.demandScore ?? raw?.eventDemandScore),
+    confidence: raw?.confidence ? normalizeConfidence(raw?.confidence) : undefined,
+    badges: Array.isArray(raw?.badges) ? raw.badges.map(String) : [],
+  };
+}
+
+function normalizePropertyImpact(raw: any): EventPropertyImpact {
+  return {
+    propertyId: String(raw?.propertyId ?? raw?.imovelId ?? raw?.addressId ?? ''),
+    propertyName: String(raw?.propertyName ?? raw?.imovel ?? raw?.name ?? 'Imovel'),
+    distanceKm: normalizeNumber(raw?.distanceKm ?? raw?.distanciaKm),
+    travelTimeMinutes: normalizeNumber(raw?.travelTimeMinutes ?? raw?.tempoDeslocamentoMin) ?? undefined,
+    propertyCaptureScore: normalizeNumber(raw?.propertyCaptureScore ?? raw?.captureScore),
+    currentPriceCents: normalizeCents(raw?.currentPriceCents ?? raw?.currentPrice ?? raw?.diariaAtual),
+    recommendedPriceCents: normalizeCents(raw?.recommendedPriceCents ?? raw?.recommendedPrice ?? raw?.precoRecomendado),
+    minAbsorbablePriceCents: normalizeCents(raw?.minAbsorbablePriceCents ?? raw?.minAbsorbablePrice),
+    maxAbsorbablePriceCents: normalizeCents(raw?.maxAbsorbablePriceCents ?? raw?.maxAbsorbablePrice),
+    recommendedMultiplier: normalizeNumber(raw?.recommendedMultiplier ?? raw?.multiplicadorRecomendado),
+    maxPlausibleMultiplier: normalizeNumber(raw?.maxPlausibleMultiplier ?? raw?.multiplicadorMaximo),
+    bookingProbability: normalizeNumber(raw?.bookingProbability ?? raw?.chanceReserva),
+    expectedRevenueCents: normalizeCents(raw?.expectedRevenueCents ?? raw?.expectedRevenue),
+    expectedIncrementalRevenueCents: normalizeCents(raw?.expectedIncrementalRevenueCents ?? raw?.incrementalRevenue),
+    confidence: normalizeConfidence(raw?.confidence),
+    mainDrivers: Array.isArray(raw?.mainDrivers) ? raw.mainDrivers.map(String) : [],
+    affectedNights: Array.isArray(raw?.affectedNights) ? raw.affectedNights.map(String) : [],
+    recommendedAction: raw?.recommendedAction ?? 'simulate',
+    absorptionScenarios: Array.isArray(raw?.absorptionScenarios)
+      ? raw.absorptionScenarios.map((scenario: any) => ({
+          id: String(scenario?.id ?? scenario?.label ?? 'scenario'),
+          label: String(scenario?.label ?? 'Cenario'),
+          dailyPriceCents: normalizeCents(scenario?.dailyPriceCents ?? scenario?.dailyPrice),
+          multiplier: normalizeNumber(scenario?.multiplier),
+          bookingProbability: normalizeNumber(scenario?.bookingProbability),
+          expectedRevenueCents: normalizeCents(scenario?.expectedRevenueCents ?? scenario?.expectedRevenue),
+          risk:
+            scenario?.risk === 'low' || scenario?.risk === 'medium' || scenario?.risk === 'high'
+              ? scenario.risk
+              : 'medium',
+          reading: String(scenario?.reading ?? scenario?.leitura ?? ''),
+          recommended: Boolean(scenario?.recommended),
+        }))
+      : undefined,
+  };
+}
+
+function normalizeRadarItem(raw: any, responseData?: any): HostEventRadarItem {
+  const event = normalizeCatalogItem(raw?.event ?? raw);
+  const impactsSource =
+    raw?.impactedProperties ??
+    raw?.propertyImpacts ??
+    raw?.impacts ??
+    responseData?.propertyImpacts?.[event.id] ??
+    [];
+  const impactedProperties = Array.isArray(impactsSource)
+    ? impactsSource.map(normalizePropertyImpact)
+    : [];
+  const bestImpactSource = raw?.bestPropertyImpact ?? raw?.bestImpact ?? impactedProperties[0] ?? null;
+  const intelligence = raw?.intelligence ?? null;
+
+  return {
+    ...event,
+    intelligence,
+    impactedProperties,
+    bestPropertyImpact: bestImpactSource ? normalizePropertyImpact(bestImpactSource) : null,
+    eventRevenuePotentialCents: normalizeCents(
+      raw?.eventRevenuePotentialCents ??
+        raw?.revenuePotential ??
+        raw?.expectedIncrementalRevenueCents ??
+        intelligence?.eventRevenuePotentialCents,
+    ),
+    demandRadiusKm: normalizeNumber(raw?.demandRadiusKm ?? intelligence?.demandRadiusKm),
+    heatLevel: normalizeNumber(raw?.heatLevel ?? raw?.demandScore ?? raw?.eventDemandScore ?? intelligence?.eventDemandScore),
+    interpretation: raw?.interpretation ?? intelligence?.interpretation ?? null,
+  };
+}
+
+function normalizeHeatmapCell(raw: any): DemandHeatmapCell {
+  const centerLat = normalizeNumber(raw?.centerLat ?? raw?.latitude);
+  const centerLng = normalizeNumber(raw?.centerLng ?? raw?.longitude);
+  const geohashPrecision = Number(raw?.geohashPrecision ?? raw?.geoHashPrecision ?? 5);
+  const geohash =
+    raw?.geohash ??
+    raw?.geoHash ??
+    encodeGeoHash(centerLat, centerLng, Number.isFinite(geohashPrecision) ? geohashPrecision : 5);
+  const score = normalizeNumber(raw?.eventDemandScore ?? raw?.demandScore);
+
+  return {
+    cellId: String(raw?.cellId ?? raw?.id ?? raw?.h3Index ?? geohash ?? 'geo-cell'),
+    h3Index: raw?.h3Index ?? raw?.h3 ?? null,
+    geohash,
+    geohashPrecision: Number.isFinite(geohashPrecision) ? geohashPrecision : 5,
+    bbox: normalizeBbox(raw?.bbox),
+    centerLat: centerLat ?? 0,
+    centerLng: centerLng ?? 0,
+    radiusKm: normalizeNumber(raw?.radiusKm),
+    dateFrom: raw?.dateFrom ?? raw?.from ?? null,
+    dateTo: raw?.dateTo ?? raw?.to ?? null,
+    eventDemandScore: score,
+    revenuePotentialCents: normalizeCents(raw?.revenuePotentialCents ?? raw?.revenuePotential),
+    eventsCount: Number(raw?.eventsCount ?? raw?.count ?? 0),
+    topEventIds: Array.isArray(raw?.topEventIds ?? raw?.eventIds)
+      ? (raw?.topEventIds ?? raw?.eventIds).map(String)
+      : [],
+    affectedPropertiesCount: Number(raw?.affectedPropertiesCount ?? raw?.impactedPropertiesCount ?? 0),
+    averageConfidence: normalizeCellConfidence(raw?.averageConfidence ?? raw?.averageConfidencePercent, score),
+    dominantCategory: raw?.dominantCategory ?? raw?.category ?? null,
+    supplyCompressionScore: normalizeNumber(raw?.supplyCompressionScore),
+    dataStatus: raw?.dataStatus ?? null,
+  };
+}
+
+function buildDerivedHostHeatmap(events: HostEventRadarItem[]): DemandHeatmapCell[] {
+  const grouped = new Map<
+    string,
+    {
+      geohash: string;
+      latTotal: number;
+      lngTotal: number;
+      scoreTotal: number;
+      confidenceTotal: number;
+      revenuePotentialCents: number;
+      eventIds: string[];
+      properties: Set<string>;
+      categories: Record<string, number>;
+    }
+  >();
+
+  events.forEach((event) => {
+    const geohash = encodeGeoHash(event.latitude, event.longitude, 5);
+    if (!geohash) return;
+    const current =
+      grouped.get(geohash) ??
+      {
+        geohash,
+        latTotal: 0,
+        lngTotal: 0,
+        scoreTotal: 0,
+        confidenceTotal: 0,
+        revenuePotentialCents: 0,
+        eventIds: [],
+        properties: new Set<string>(),
+        categories: {},
+      };
+
+    current.latTotal += event.latitude as number;
+    current.lngTotal += event.longitude as number;
+    current.scoreTotal += event.demandScore ?? event.urbanScore ?? event.heatLevel ?? 0;
+    current.confidenceTotal += confidencePercent(event.confidence);
+    current.revenuePotentialCents += event.eventRevenuePotentialCents ?? 0;
+    current.eventIds.push(event.id);
+    event.impactedProperties.forEach((impact) => current.properties.add(impact.propertyId));
+    if (event.category) current.categories[event.category] = (current.categories[event.category] ?? 0) + 1;
+    grouped.set(geohash, current);
+  });
+
+  return Array.from(grouped.values()).map((cell) => {
+    const eventsCount = cell.eventIds.length;
+    const dominantCategory =
+      Object.entries(cell.categories).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+    return {
+      cellId: `geohash-${cell.geohash}`,
+      geohash: cell.geohash,
+      geohashPrecision: 5,
+      h3Index: null,
+      bbox: null,
+      centerLat: cell.latTotal / eventsCount,
+      centerLng: cell.lngTotal / eventsCount,
+      radiusKm: null,
+      dateFrom: null,
+      dateTo: null,
+      eventDemandScore: Math.round(cell.scoreTotal / eventsCount),
+      revenuePotentialCents: cell.revenuePotentialCents,
+      eventsCount,
+      topEventIds: cell.eventIds.slice(0, 4),
+      affectedPropertiesCount: cell.properties.size,
+      averageConfidence: confidenceFromPercent(Math.round(cell.confidenceTotal / eventsCount)),
+      dominantCategory,
+      supplyCompressionScore: null,
+      dataStatus: 'derived_from_events',
+    };
+  });
+}
+
+function completeHostHeatmap(rawCells: DemandHeatmapCell[], events: HostEventRadarItem[]): DemandHeatmapCell[] {
+  const coveredEvents = new Set(rawCells.flatMap((cell) => cell.topEventIds));
+  const derivedCells = buildDerivedHostHeatmap(events.filter((event) => !coveredEvents.has(event.id)));
+  return [...rawCells, ...derivedCells].sort(
+    (a, b) =>
+      (b.eventDemandScore ?? 0) - (a.eventDemandScore ?? 0) ||
+      (b.revenuePotentialCents ?? 0) - (a.revenuePotentialCents ?? 0),
+  );
+}
+
+function normalizeCatalogResponse(data: any): HostEventCatalogResponse {
+  const rawItems = Array.isArray(data) ? data : data?.items ?? data?.data ?? [];
+  const items: EventCatalogItem[] = rawItems.map(normalizeCatalogItem);
+  return {
+    generatedAt: String(data?.generatedAt ?? new Date().toISOString()),
+    items,
+    total: Number(data?.total ?? items.length),
+    cities: Array.isArray(data?.cities) ? data.cities.map(String) : Array.from(new Set(items.map((item) => item.city))),
+    categories: Array.isArray(data?.categories)
+      ? data.categories.map(String)
+      : Array.from(new Set(items.map((item) => item.category).filter(Boolean))) as string[],
+    sources: Array.isArray(data?.sources)
+      ? data.sources.map(String)
+      : Array.from(new Set(items.map((item) => item.source).filter(Boolean))) as string[],
+  };
+}
+
+function normalizeRadarResponse(data: any): HostEventRadarResponse {
+  const rawEvents = Array.isArray(data) ? data : data?.events ?? data?.items ?? data?.data ?? [];
+  const events: HostEventRadarItem[] = rawEvents.map((raw: any) => normalizeRadarItem(raw, data));
+  const rawHeatmap = Array.isArray(data?.heatmap)
+    ? data.heatmap
+    : Array.isArray(data?.cells)
+      ? data.cells
+      : [];
+  const heatmap = completeHostHeatmap(rawHeatmap.map(normalizeHeatmapCell), events);
+  const calculatedRevenue = events.reduce(
+    (sum: number, event: HostEventRadarItem) => sum + (event.eventRevenuePotentialCents ?? 0),
+    0,
+  );
+  const calculatedProperties = new Set(
+    events.flatMap((event: HostEventRadarItem) =>
+      event.impactedProperties.map((impact: EventPropertyImpact) => impact.propertyId),
+    ),
+  ).size;
+
+  return {
+    generatedAt: String(data?.generatedAt ?? new Date().toISOString()),
+    summary: {
+      revenuePotentialCents: Number(
+        data?.summary?.revenuePotentialCents ??
+          data?.summary?.estimatedRevenuePotentialCents ??
+          data?.summary?.expectedIncrementalRevenueCents ??
+          calculatedRevenue,
+      ),
+      relevantEvents: Number(data?.summary?.relevantEvents ?? data?.summary?.relevantEventsCount ?? events.length),
+      opportunityNights: Number(data?.summary?.opportunityNights ?? data?.summary?.opportunityNightsCount ?? 0),
+      impactedProperties: Number(
+        data?.summary?.impactedProperties ??
+          data?.summary?.affectedPropertiesCount ??
+          data?.summary?.impactedPropertiesCount ??
+          calculatedProperties,
+      ),
+      averageDemandScore: normalizeNumber(data?.summary?.averageDemandScore ?? data?.summary?.averageDemand),
+    },
+    events,
+    heatmap,
+  };
+}
+
+function normalizeDetailResponse(data: any, eventId: string): HostEventDetailResponse {
+  const event = normalizeCatalogItem(data?.event ?? data);
+  const detail: HostEventDetailResponse = {
+    event: event.id ? event : { ...event, id: eventId },
+    intelligence: data?.intelligence ?? {
+      eventDemandScore: normalizeNumber(data?.eventDemandScore),
+      eventRevenuePotentialCents: normalizeCents(data?.eventRevenuePotentialCents),
+      demandRadiusKm: normalizeNumber(data?.demandRadiusKm),
+      expectedAttendance: normalizeNumber(data?.expectedAttendance),
+      sourceReliabilityScore: normalizeNumber(data?.sourceReliabilityScore),
+      confidence: normalizeConfidence(data?.confidence),
+      interpretation: String(data?.interpretation ?? ''),
+      drivers: Array.isArray(data?.drivers) ? data.drivers : [],
+      riskFlags: Array.isArray(data?.riskFlags) ? data.riskFlags.map(String) : [],
+      generatedAt: String(data?.generatedAt ?? new Date().toISOString()),
+      modelVersion: String(data?.modelVersion ?? 'unknown'),
+      metricVersion: String(data?.metricVersion ?? 'unknown'),
+      jobRunId: data?.jobRunId ?? null,
+    },
+    propertyImpacts: Array.isArray(data?.propertyImpacts)
+      ? data.propertyImpacts.map(normalizePropertyImpact)
+      : [],
+    relatedEvents: Array.isArray(data?.relatedEvents)
+      ? data.relatedEvents.map(normalizeCatalogItem)
+      : [],
+  };
+  return detail;
+}
+
+export async function fetchHostEventCatalog(
+  filters: HostEventCatalogFilters = {},
+): Promise<HostEventCatalogResponse> {
+  const endpoint = '/host/events/catalog';
+  try {
+    const { data } = await api.get(endpoint, { params: filters });
+    return normalizeCatalogResponse(data);
+  } catch (error) {
+    if (!isSafeHostEventMockFallback(error)) throw error;
+    warnHostEventMock(endpoint, error);
+    return mockFetchHostEventCatalog(filters);
+  }
+}
+
+export async function fetchHostEventRadar(
+  filters: HostEventRadarFilters = {},
+): Promise<HostEventRadarResponse> {
+  const endpoint = '/host/events/radar';
+  try {
+    const { data } = await api.get(endpoint, { params: filters });
+    const response = normalizeRadarResponse(data);
+    return filters.eventId
+      ? {
+          ...response,
+          events: response.events.filter((event) => event.id === filters.eventId),
+          heatmap: response.heatmap.filter((cell) => cell.topEventIds.includes(filters.eventId as string)),
+        }
+      : response;
+  } catch (error) {
+    if (!isSafeHostEventMockFallback(error)) throw error;
+    warnHostEventMock(endpoint, error);
+    const response = mockFetchHostEventRadar(filters);
+    return filters.eventId
+      ? {
+          ...response,
+          events: response.events.filter((event) => event.id === filters.eventId),
+          heatmap: response.heatmap.filter((cell) => cell.topEventIds.includes(filters.eventId as string)),
+        }
+      : response;
+  }
+}
+
+export async function fetchHostEventDetail(eventId: string): Promise<HostEventDetailResponse> {
+  const endpoint = `/host/events/${encodeURIComponent(eventId)}`;
+  try {
+    const { data } = await api.get(endpoint);
+    return normalizeDetailResponse(data, eventId);
+  } catch (error) {
+    if (!isSafeHostEventMockFallback(error)) throw error;
+    warnHostEventMock(endpoint, error);
+    return mockFetchHostEventDetail(eventId);
+  }
+}
+
+export async function fetchHostEventIntelligence(
+  eventId: string,
+): Promise<EventIntelligenceDetail> {
+  const endpoint = `/host/events/${encodeURIComponent(eventId)}/intelligence`;
+  try {
+    const { data } = await api.get(endpoint);
+    return {
+      event: normalizeCatalogItem(data?.event ?? data),
+      intelligence: data?.intelligence ?? data,
+    };
+  } catch (error) {
+    if (!isSafeHostEventMockFallback(error)) throw error;
+    warnHostEventMock(endpoint, error);
+    const detail = mockFetchHostEventDetail(eventId);
+    return { event: detail.event, intelligence: detail.intelligence };
+  }
+}
+
+export async function fetchHostEventPropertyImpact(
+  eventId: string,
+): Promise<EventPropertyImpact[]> {
+  const endpoint = `/host/events/${encodeURIComponent(eventId)}/property-impact`;
+  try {
+    const { data } = await api.get(endpoint);
+    const rawItems = Array.isArray(data) ? data : data?.items ?? data?.propertyImpacts ?? [];
+    return rawItems.map(normalizePropertyImpact);
+  } catch (error) {
+    if (!isSafeHostEventMockFallback(error)) throw error;
+    warnHostEventMock(endpoint, error);
+    return mockFetchHostEventDetail(eventId).propertyImpacts;
+  }
+}
+
+export async function fetchHostEventHeatmap(
+  filters: HostEventRadarFilters = {},
+): Promise<DemandHeatmapCell[]> {
+  const endpoint = '/host/events/heatmap';
+  try {
+    const { data } = await api.get(endpoint, { params: filters });
+    const rawItems = Array.isArray(data) ? data : data?.items ?? data?.heatmap ?? [];
+    return rawItems.map(normalizeHeatmapCell);
+  } catch (error) {
+    if (!isSafeHostEventMockFallback(error)) throw error;
+    warnHostEventMock(endpoint, error);
+    return mockFetchHostEventHeatmap();
+  }
+}
+
+export async function simulateHostEventPricing(
+  eventId: string,
+  input: HostEventPricingSimulationInput = {},
+): Promise<HostEventPricingSimulationResponse> {
+  const endpoint = `/host/events/${encodeURIComponent(eventId)}/simulate-pricing`;
+  try {
+    const { data } = await api.post(endpoint, input);
+    return {
+      eventId,
+      propertyImpact: data?.propertyImpact ? normalizePropertyImpact(data.propertyImpact) : null,
+    };
+  } catch (error) {
+    if (!isSafeHostEventMockFallback(error)) throw error;
+    warnHostEventMock(endpoint, error);
+    return {
+      eventId,
+      propertyImpact: mockSimulateHostEventPricing(eventId, input.propertyId),
+      mock: true,
+    };
+  }
+}
+
 
 export type GetHostInfoResponse = {
-  hostId: string;
-  hostName: string;
+  hostId: string | null;
+  hostName: string | null;
 };
 
 export const getHostId = async (propertyId: string) => {
@@ -1651,6 +2365,104 @@ export const fetchAdminOccupancyProperties = () =>
 export const upsertAdminManualOccupancy = (payload: ManualOccupancyPayload) =>
   api.post<ManualOccupancyRecord>('/admin/occupancy/manual', payload).then((r) => r.data);
 
+export interface AdminPriceIntelligenceHealth {
+  generatedAt: string;
+  health: 'green' | 'amber' | 'red';
+  windowDays: number;
+  alerts: Array<{ severity: 'red' | 'amber' | 'info'; message: string }>;
+  snapshots: {
+    total: number;
+    last24h: number;
+    last7d: number;
+    distinctListings: number;
+    trainingReady: number;
+    latestSnapshotAt: string | null;
+  };
+  observations: {
+    total: number;
+    last24h: number;
+    last7d: number;
+    distinctListings: number;
+    trainingReady: number;
+    coveragePercent: number;
+    latestObservedAt: string | null;
+  };
+  suggestions: {
+    total: number;
+    last24h: number;
+    last7d: number;
+    future: number;
+    verified: number;
+    verifiedPercent: number;
+    accepted: number;
+    applied: number;
+    pendingVerification: number;
+    failedVerification: number;
+  };
+  jobs: {
+    running: number;
+    queued: number;
+    queueAvailable?: boolean;
+    queueUnavailableReason?: string | null;
+    failedLast24h: number;
+    avgDurationMs: number | null;
+    lastRun: AdminJobRunResponse | null;
+    lastSuccessAt: string | null;
+    recent: AdminJobRunResponse[];
+    byName?: Array<{
+      name: string;
+      total: number;
+      successes: number;
+      failures: number;
+      running: number;
+      successRate: number | null;
+      avgDurationMs: number | null;
+      lastRunAt: string | null;
+      lastStatus: AdminJobRunResponse['status'] | null;
+      lastSuccessAt: string | null;
+      lastFailureAt: string | null;
+      lastErrorMessage: string | null;
+    }>;
+  };
+  schema?: {
+    ok: boolean;
+    checkedAt: string;
+    missing: string[];
+    checkError: string | null;
+  };
+  failuresByType: Array<{
+    type: string;
+    count: number;
+    lastSeenAt: string | null;
+  }>;
+  problematicProperties: Array<{
+    addressId: string | null;
+    listId: string | null;
+    title: string | null;
+    userEmail: string | null;
+    city: string | null;
+    state: string | null;
+    severity: 'red' | 'amber' | 'info';
+    issue: string;
+    lastSnapshotAt: string | null;
+    lastObservationAt: string | null;
+    suggestionsPending: number;
+    failedSuggestions: number;
+  }>;
+  shortcuts: Array<{
+    label: string;
+    href: string;
+    description?: string | null;
+    kind?: 'primary' | 'secondary' | 'ghost';
+  }>;
+  endpointGaps?: string[];
+}
+
+export const fetchAdminPriceIntelligenceHealth = () =>
+  api
+    .get<AdminPriceIntelligenceHealth>('/admin/price-intelligence/health')
+    .then((r) => r.data);
+
 // ---- Admin v2.9 (finance + plans-config) ----
 
 export interface AdminFinanceOverview {
@@ -2180,6 +2992,12 @@ export interface EventListItem {
   raioImpactoKm: number | null;
   venueType: string | null;
   venueCapacity: number | null;
+  expectedAttendance?: number | null;
+  venueName?: string | null;
+  linkSiteOficial?: string | null;
+  imagemUrl?: string | null;
+  sourceId?: string | null;
+  dedupHash?: string | null;
   source: string | null;
   outOfScope: boolean;
   pendingGeocode: boolean;
@@ -2264,6 +3082,913 @@ export interface EventsTimelineResponse {
 export const fetchEventsTimeline = (days = 30) =>
   api
     .get<EventsTimelineResponse>('/admin/events/timeline', { params: { days } })
+    .then((r) => r.data);
+
+// =================== Admin Event Radar (contrato v0) ===================
+
+export type EventRadarConfidence = 'low' | 'medium' | 'high';
+export type AdminEventRadarContractMode = 'backend' | 'contract-fallback';
+export type AdminEventRadarScope = 'in' | 'out' | 'all';
+export type AdminEventRadarHeatmapMetric =
+  | 'demand'
+  | 'revenue'
+  | 'events'
+  | 'properties'
+  | 'blind_spots'
+  | 'coverage';
+
+export interface AdminEventRadarFilters {
+  from?: string;
+  to?: string;
+  source?: string;
+  category?: string;
+  scope?: AdminEventRadarScope;
+  confidence?: EventRadarConfidence | 'all';
+  search?: string;
+}
+
+export interface AdminEventRadarKpis {
+  demandPotentialScore: number;
+  revenuePotentialCents: number;
+  highPotentialEvents: number;
+  affectedProperties: number;
+  recommendationsGenerated: number;
+  highPotentialWithoutRecommendation: number;
+  averageConfidencePercent: number;
+  weightedCoveragePercent: number;
+}
+
+export interface AdminEventRadarEvent {
+  id: string;
+  name: string;
+  startsAt: string;
+  endsAt: string | null;
+  city: string;
+  state: string;
+  venueName: string | null;
+  category: string | null;
+  source: string | null;
+  sourceId?: string | null;
+  dedupHash?: string | null;
+  demandScore: number | null;
+  revenuePotentialCents: number | null;
+  confidence: EventRadarConfidence;
+  affectedPropertiesCount: number;
+  recommendationsGenerated: number;
+  demandRadiusKm: number | null;
+  expectedAttendance: number | null;
+  geocodeStatus: 'ok' | 'pending' | 'missing';
+  enrichmentStatus: 'ok' | 'pending' | 'failed' | 'unknown';
+  sourceStatus: 'fresh' | 'stale' | 'unknown';
+  officialUrl: string | null;
+  crawledUrl: string | null;
+  imageUrl?: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  interpretation: string;
+  riskFlags: string[];
+  dataQualityFlags: string[];
+  raw?: Record<string, unknown>;
+}
+
+export interface AdminEventRadarResponse {
+  generatedAt: string;
+  contractMode: AdminEventRadarContractMode;
+  endpointGaps?: string[];
+  filters: AdminEventRadarFilters;
+  kpis: AdminEventRadarKpis;
+  events: AdminEventRadarEvent[];
+  categories: string[];
+  sources: string[];
+  cities: string[];
+}
+
+export interface AdminEventRadarHeatmapCell {
+  cellId: string;
+  h3Index?: string | null;
+  geohash?: string | null;
+  geohashPrecision?: number | null;
+  bbox?: [number, number, number, number] | null;
+  label: string;
+  city: string;
+  state: string;
+  centerLat: number | null;
+  centerLng: number | null;
+  eventDemandScore: number;
+  revenuePotentialCents: number;
+  eventsCount: number;
+  topEventIds: string[];
+  affectedPropertiesCount: number;
+  averageConfidence: number;
+  dominantCategory: string | null;
+  supplyCompressionScore: number;
+  coverageScore: number;
+  dataStatus?: string | null;
+}
+
+export interface AdminEventRadarHeatmapResponse {
+  generatedAt: string;
+  contractMode: AdminEventRadarContractMode;
+  endpointGaps?: string[];
+  metric: AdminEventRadarHeatmapMetric;
+  cells: AdminEventRadarHeatmapCell[];
+}
+
+export type AdminEventRadarBlindSpotKind =
+  | 'no_pricing'
+  | 'missing_geocode'
+  | 'missing_official_link'
+  | 'stale_source'
+  | 'duplicate_risk'
+  | 'venue_gap'
+  | 'low_coverage'
+  | 'out_of_scope_high_potential';
+
+export interface AdminEventRadarBlindSpot {
+  id: string;
+  kind: AdminEventRadarBlindSpotKind;
+  severity: 'high' | 'medium' | 'low';
+  title: string;
+  eventId?: string | null;
+  eventName?: string | null;
+  city?: string | null;
+  source?: string | null;
+  demandScore?: number | null;
+  revenuePotentialCents?: number | null;
+  blockedBy: string;
+  recommendedAction: string;
+  href?: string | null;
+}
+
+export interface AdminEventRadarBlindSpotsResponse {
+  generatedAt: string;
+  contractMode: AdminEventRadarContractMode;
+  endpointGaps?: string[];
+  summary: { high: number; medium: number; low: number; total: number };
+  items: AdminEventRadarBlindSpot[];
+}
+
+export interface AdminEventRadarPropertyImpact {
+  propertyId: string;
+  propertyName: string;
+  hostUserId?: string | null;
+  hostEmail?: string | null;
+  distanceKm: number | null;
+  travelTimeMinutes?: number | null;
+  propertyCaptureScore: number | null;
+  currentPriceCents: number | null;
+  recommendedPriceCents: number | null;
+  minAbsorbablePriceCents: number | null;
+  maxAbsorbablePriceCents: number | null;
+  recommendedMultiplier: number | null;
+  maxPlausibleMultiplier: number | null;
+  bookingProbability: number | null;
+  expectedRevenueCents: number | null;
+  expectedIncrementalRevenueCents: number | null;
+  confidence: EventRadarConfidence;
+  recommendedAction: 'watch' | 'simulate' | 'apply' | 'review';
+  mainDrivers?: string[];
+}
+
+export interface AdminEventRadarDetail {
+  generatedAt: string;
+  contractMode: AdminEventRadarContractMode;
+  endpointGaps?: string[];
+  event: AdminEventRadarEvent;
+  intelligence: {
+    eventDemandScore: number | null;
+    eventRevenuePotentialCents: number | null;
+    demandRadiusKm: number | null;
+    expectedAttendance: number | null;
+    sourceReliabilityScore: number | null;
+    confidence: EventRadarConfidence;
+    interpretation: string;
+    drivers: Array<{ key: string; label: string; weight: number; explanation: string }>;
+    riskFlags: string[];
+    dataQualityFlags: string[];
+    generatedAt: string;
+    modelVersion: string;
+    metricVersion: string;
+    jobRunId?: string | null;
+  };
+  operation: {
+    geocodeStatus: AdminEventRadarEvent['geocodeStatus'];
+    enrichmentStatus: AdminEventRadarEvent['enrichmentStatus'];
+    sourceStatus: AdminEventRadarEvent['sourceStatus'];
+    affectedPropertiesCount: number;
+    recommendationsGenerated: number;
+  };
+  propertyImpact: AdminEventRadarPropertyImpact[];
+  rawEvent: Record<string, unknown>;
+}
+
+const ADMIN_EVENT_RADAR_FALLBACK_GAPS = [
+  'GET /admin/events/intelligence',
+  'GET /admin/events/:eventId/intelligence',
+  'GET /admin/events/:eventId/property-impact',
+  'GET /admin/events/heatmap',
+  'GET /admin/events/blind-spots',
+  'POST /admin/events/:eventId/recompute-intelligence',
+];
+
+function isContractFallbackAllowed(error: unknown): boolean {
+  const status = (error as any)?.response?.status;
+  const message = (error as any)?.message;
+  const code = (error as any)?.code;
+  return status === 404 || status === 501 || message === 'Network Error' || code === 'ERR_NETWORK';
+}
+
+function clampPercent(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function confidenceFromScore(score: number): EventRadarConfidence {
+  if (score >= 80) return 'high';
+  if (score >= 55) return 'medium';
+  return 'low';
+}
+
+function confidenceToPercent(confidence: EventRadarConfidence): number {
+  if (confidence === 'high') return 86;
+  if (confidence === 'medium') return 64;
+  return 38;
+}
+
+function inferFallbackDemandScore(event: EventListItem): number {
+  const relevance = event.relevancia ?? 35;
+  const attendance =
+    event.expectedAttendance ??
+    event.capacidadeEstimada ??
+    event.venueCapacity ??
+    0;
+  const attendanceBoost = attendance > 0 ? Math.min(24, Math.log10(attendance + 1) * 8) : 0;
+  const geoPenalty = event.pendingGeocode || !event.latitude || !event.longitude ? 12 : 0;
+  const outOfScopePenalty = event.outOfScope ? 10 : 0;
+  return clampPercent(relevance * 0.78 + attendanceBoost - geoPenalty - outOfScopePenalty);
+}
+
+function toFallbackRadarEvent(event: EventListItem): AdminEventRadarEvent {
+  const demandScore = inferFallbackDemandScore(event);
+  const confidence = confidenceFromScore(demandScore);
+  const radius = event.raioImpactoKm ?? (demandScore >= 80 ? 8 : demandScore >= 60 ? 5 : 3);
+  const affectedPropertiesCount = event.outOfScope
+    ? 0
+    : Math.max(0, Math.round((demandScore / 100) * radius * 1.35));
+  const recommendationsGenerated =
+    event.pendingGeocode || affectedPropertiesCount === 0
+      ? 0
+      : Math.max(0, Math.floor(affectedPropertiesCount * (demandScore >= 75 ? 0.7 : 0.35)));
+  const expectedAttendance =
+    event.expectedAttendance ?? event.capacidadeEstimada ?? event.venueCapacity ?? null;
+  const revenuePotentialCents =
+    demandScore > 0
+      ? Math.round(demandScore * Math.max(1, affectedPropertiesCount) * 27500)
+      : null;
+  const hasCoords = Boolean(event.latitude && event.longitude);
+  const enrichmentStatus =
+    event.relevancia !== null
+      ? 'ok'
+      : event.enrichmentAttempts > 0
+        ? 'failed'
+        : 'pending';
+  const sourceStatus =
+    event.source && event.source.toLowerCase().includes('stale') ? 'stale' : event.source ? 'fresh' : 'unknown';
+  const dataQualityFlags = [
+    !hasCoords ? 'missing_coordinates' : '',
+    !event.crawledUrl && !event.linkSiteOficial ? 'missing_source_url' : '',
+    event.pendingGeocode ? 'pending_geocode' : '',
+    event.outOfScope ? 'out_of_scope' : '',
+  ].filter(Boolean);
+  const riskFlags = [
+    demandScore >= 75 && recommendationsGenerated === 0 ? 'high_demand_without_pricing' : '',
+    enrichmentStatus === 'failed' ? 'enrichment_failed' : '',
+  ].filter(Boolean);
+
+  return {
+    id: event.id,
+    name: event.nome,
+    startsAt: event.dataInicio,
+    endsAt: event.dataFim ?? null,
+    city: event.cidade,
+    state: event.estado,
+    venueName: event.venueName ?? null,
+    category: event.categoria,
+    source: event.source,
+    sourceId: event.sourceId ?? null,
+    dedupHash: event.dedupHash ?? null,
+    demandScore,
+    revenuePotentialCents,
+    confidence,
+    affectedPropertiesCount,
+    recommendationsGenerated,
+    demandRadiusKm: radius,
+    expectedAttendance,
+    geocodeStatus: hasCoords ? 'ok' : event.pendingGeocode ? 'pending' : 'missing',
+    enrichmentStatus,
+    sourceStatus,
+    officialUrl: event.linkSiteOficial ?? null,
+    crawledUrl: event.crawledUrl ?? null,
+    imageUrl: event.imagemUrl ?? null,
+    latitude: event.latitude,
+    longitude: event.longitude,
+    interpretation:
+      'Fallback contratual: leitura estimada a partir de relevancia, capacidade, coordenadas e escopo enquanto o endpoint de inteligencia de eventos nao esta disponivel.',
+    riskFlags,
+    dataQualityFlags,
+    raw: event as unknown as Record<string, unknown>,
+  };
+}
+
+function filterFallbackRadarEvents(
+  events: AdminEventRadarEvent[],
+  filters: AdminEventRadarFilters,
+): AdminEventRadarEvent[] {
+  const fromTime = filters.from ? new Date(filters.from).getTime() : null;
+  const toTime = filters.to ? new Date(filters.to).getTime() : null;
+  const search = filters.search?.trim().toLowerCase();
+  return events.filter((event) => {
+    const startsAt = new Date(event.startsAt).getTime();
+    const outOfScope = event.dataQualityFlags.includes('out_of_scope');
+    if (filters.scope === 'in' && outOfScope) return false;
+    if (filters.scope === 'out' && !outOfScope) return false;
+    if (fromTime !== null && Number.isFinite(startsAt) && startsAt < fromTime) return false;
+    if (toTime !== null && Number.isFinite(startsAt) && startsAt > toTime) return false;
+    if (filters.category && event.category !== filters.category) return false;
+    if (filters.source && event.source !== filters.source) return false;
+    if (filters.confidence && filters.confidence !== 'all' && event.confidence !== filters.confidence) return false;
+    if (search) {
+      const haystack = `${event.name} ${event.city} ${event.category ?? ''} ${event.source ?? ''}`.toLowerCase();
+      if (!haystack.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+function buildFallbackRadarResponse(
+  analytics: AdminEventsAnalytics,
+  listing: EventsListResponse,
+  filters: AdminEventRadarFilters,
+): AdminEventRadarResponse {
+  const generatedAt = new Date().toISOString();
+  const events = filterFallbackRadarEvents(
+    listing.items.map(toFallbackRadarEvent),
+    filters,
+  ).sort((a, b) => (b.revenuePotentialCents ?? 0) - (a.revenuePotentialCents ?? 0));
+  const kpis: AdminEventRadarKpis = {
+    demandPotentialScore: events.reduce((sum, event) => sum + (event.demandScore ?? 0), 0),
+    revenuePotentialCents: events.reduce((sum, event) => sum + (event.revenuePotentialCents ?? 0), 0),
+    highPotentialEvents: events.filter((event) => (event.demandScore ?? 0) >= 75).length,
+    affectedProperties: events.reduce((sum, event) => sum + event.affectedPropertiesCount, 0),
+    recommendationsGenerated: events.reduce((sum, event) => sum + event.recommendationsGenerated, 0),
+    highPotentialWithoutRecommendation: events.filter(
+      (event) => (event.demandScore ?? 0) >= 75 && event.recommendationsGenerated === 0,
+    ).length,
+    averageConfidencePercent: events.length
+      ? Math.round(events.reduce((sum, event) => sum + confidenceToPercent(event.confidence), 0) / events.length)
+      : 0,
+    weightedCoveragePercent: analytics.summary.coveragePercent,
+  };
+  return {
+    generatedAt,
+    contractMode: 'contract-fallback',
+    endpointGaps: ADMIN_EVENT_RADAR_FALLBACK_GAPS,
+    filters,
+    kpis,
+    events,
+    categories: Array.from(new Set(events.map((event) => event.category).filter(Boolean))) as string[],
+    sources: Array.from(new Set(events.map((event) => event.source).filter(Boolean))) as string[],
+    cities: Array.from(new Set(events.map((event) => `${event.city}/${event.state}`))).sort(),
+  };
+}
+
+function buildFallbackHeatmap(
+  radar: AdminEventRadarResponse,
+  metric: AdminEventRadarHeatmapMetric,
+): AdminEventRadarHeatmapResponse {
+  const grouped = new Map<string, AdminEventRadarHeatmapCell & { categories: string[] }>();
+  for (const event of radar.events) {
+    const key = `${event.city}-${event.state}`;
+    const existing =
+      grouped.get(key) ??
+      {
+        cellId: key,
+        h3Index: null,
+        geohash: encodeGeoHash(event.latitude, event.longitude, 5),
+        geohashPrecision: 5,
+        bbox: null,
+        label: `${event.city}/${event.state}`,
+        city: event.city,
+        state: event.state,
+        centerLat: event.latitude,
+        centerLng: event.longitude,
+        eventDemandScore: 0,
+        revenuePotentialCents: 0,
+        eventsCount: 0,
+        topEventIds: [],
+        affectedPropertiesCount: 0,
+        averageConfidence: 0,
+        dominantCategory: event.category,
+        supplyCompressionScore: 0,
+        coverageScore: 0,
+        dataStatus: 'derived_from_events',
+        categories: [],
+      };
+    existing.eventDemandScore += event.demandScore ?? 0;
+    existing.revenuePotentialCents += event.revenuePotentialCents ?? 0;
+    existing.eventsCount += 1;
+    existing.topEventIds = [...existing.topEventIds, event.id].slice(0, 4);
+    existing.affectedPropertiesCount += event.affectedPropertiesCount;
+    existing.averageConfidence += confidenceToPercent(event.confidence);
+    existing.supplyCompressionScore += Math.min(100, (event.demandScore ?? 0) + event.affectedPropertiesCount * 2);
+    existing.coverageScore += event.geocodeStatus === 'ok' ? 100 : event.geocodeStatus === 'pending' ? 45 : 15;
+    if (event.category) existing.categories.push(event.category);
+    if (!existing.centerLat && event.latitude) existing.centerLat = event.latitude;
+    if (!existing.centerLng && event.longitude) existing.centerLng = event.longitude;
+    if (!existing.geohash) existing.geohash = encodeGeoHash(existing.centerLat, existing.centerLng, 5);
+    grouped.set(key, existing);
+  }
+
+  const cells = Array.from(grouped.values()).map((cell) => {
+    const categoryCounts = cell.categories.reduce<Record<string, number>>((acc, category) => {
+      acc[category] = (acc[category] ?? 0) + 1;
+      return acc;
+    }, {});
+    const dominantCategory =
+      Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? cell.dominantCategory;
+    return {
+      ...cell,
+      eventDemandScore: clampPercent(cell.eventDemandScore / Math.max(1, cell.eventsCount)),
+      averageConfidence: Math.round(cell.averageConfidence / Math.max(1, cell.eventsCount)),
+      supplyCompressionScore: clampPercent(cell.supplyCompressionScore / Math.max(1, cell.eventsCount)),
+      coverageScore: clampPercent(cell.coverageScore / Math.max(1, cell.eventsCount)),
+      dominantCategory,
+      categories: undefined,
+    };
+  });
+
+  const metricValue = (cell: AdminEventRadarHeatmapCell) => {
+    if (metric === 'revenue') return cell.revenuePotentialCents;
+    if (metric === 'events') return cell.eventsCount;
+    if (metric === 'properties') return cell.affectedPropertiesCount;
+    if (metric === 'coverage') return 100 - cell.coverageScore;
+    if (metric === 'blind_spots') return 100 - cell.coverageScore + Math.max(0, 75 - cell.averageConfidence);
+    return cell.eventDemandScore;
+  };
+
+  return {
+    generatedAt: radar.generatedAt,
+    contractMode: radar.contractMode,
+    endpointGaps: radar.endpointGaps,
+    metric,
+    cells: cells.sort((a, b) => metricValue(b) - metricValue(a)).slice(0, 12),
+  };
+}
+
+function buildFallbackBlindSpots(radar: AdminEventRadarResponse): AdminEventRadarBlindSpotsResponse {
+  const items: AdminEventRadarBlindSpot[] = [];
+  for (const event of radar.events) {
+    if ((event.demandScore ?? 0) >= 75 && event.recommendationsGenerated === 0) {
+      items.push({
+        id: `no-pricing-${event.id}`,
+        kind: 'no_pricing',
+        severity: 'high',
+        title: 'Evento de alta demanda sem pricing',
+        eventId: event.id,
+        eventName: event.name,
+        city: event.city,
+        source: event.source,
+        demandScore: event.demandScore,
+        revenuePotentialCents: event.revenuePotentialCents,
+        blockedBy: event.geocodeStatus !== 'ok' ? 'Coordenada pendente ou ausente' : 'Snapshot de impacto em imoveis ausente',
+        recommendedAction: event.geocodeStatus !== 'ok' ? 'Rodar geocoder e reprocessar inteligencia' : 'Gerar event_property_impact e recomendacoes',
+        href: `/admin/events?search=${encodeURIComponent(event.name)}`,
+      });
+    }
+    if (event.geocodeStatus !== 'ok') {
+      items.push({
+        id: `geo-${event.id}`,
+        kind: 'missing_geocode',
+        severity: (event.demandScore ?? 0) >= 70 ? 'high' : 'medium',
+        title: 'Evento sem coordenada confiavel',
+        eventId: event.id,
+        eventName: event.name,
+        city: event.city,
+        source: event.source,
+        demandScore: event.demandScore,
+        revenuePotentialCents: event.revenuePotentialCents,
+        blockedBy: 'latitude/longitude ausentes ou geocode pendente',
+        recommendedAction: 'Abrir cobertura/geocoder e resolver local antes de gerar pricing',
+        href: '/admin/coverage',
+      });
+    }
+    if (!event.officialUrl && !event.crawledUrl) {
+      items.push({
+        id: `link-${event.id}`,
+        kind: 'missing_official_link',
+        severity: (event.demandScore ?? 0) >= 70 ? 'medium' : 'low',
+        title: 'Evento sem link de validacao',
+        eventId: event.id,
+        eventName: event.name,
+        city: event.city,
+        source: event.source,
+        demandScore: event.demandScore,
+        revenuePotentialCents: event.revenuePotentialCents,
+        blockedBy: 'link oficial/crawled URL ausente',
+        recommendedAction: 'Completar fonte antes de recomendacao forte',
+        href: `/admin/events?search=${encodeURIComponent(event.name)}`,
+      });
+    }
+    if (event.sourceStatus === 'stale') {
+      items.push({
+        id: `source-${event.id}`,
+        kind: 'stale_source',
+        severity: 'medium',
+        title: 'Fonte stale em evento relevante',
+        eventId: event.id,
+        eventName: event.name,
+        city: event.city,
+        source: event.source,
+        demandScore: event.demandScore,
+        revenuePotentialCents: event.revenuePotentialCents,
+        blockedBy: 'source sem atualizacao recente',
+        recommendedAction: 'Investigar coletor e atualizar snapshot',
+        href: '/admin/collectors-health',
+      });
+    }
+  }
+
+  const limited = items
+    .sort((a, b) => {
+      const severity = { high: 3, medium: 2, low: 1 };
+      return severity[b.severity] - severity[a.severity] || (b.revenuePotentialCents ?? 0) - (a.revenuePotentialCents ?? 0);
+    })
+    .slice(0, 40);
+  const summary = limited.reduce(
+    (acc, item) => {
+      acc[item.severity] += 1;
+      acc.total += 1;
+      return acc;
+    },
+    { high: 0, medium: 0, low: 0, total: 0 },
+  );
+  return {
+    generatedAt: radar.generatedAt,
+    contractMode: radar.contractMode,
+    endpointGaps: radar.endpointGaps,
+    summary,
+    items: limited,
+  };
+}
+
+function buildFallbackDetail(event: AdminEventRadarEvent): AdminEventRadarDetail {
+  return {
+    generatedAt: new Date().toISOString(),
+    contractMode: 'contract-fallback',
+    endpointGaps: ADMIN_EVENT_RADAR_FALLBACK_GAPS,
+    event,
+    intelligence: {
+      eventDemandScore: event.demandScore,
+      eventRevenuePotentialCents: event.revenuePotentialCents,
+      demandRadiusKm: event.demandRadiusKm,
+      expectedAttendance: event.expectedAttendance,
+      sourceReliabilityScore: event.sourceStatus === 'fresh' ? 70 : event.sourceStatus === 'stale' ? 35 : null,
+      confidence: event.confidence,
+      interpretation: event.interpretation,
+      drivers: [
+        {
+          key: 'relevance',
+          label: 'Relevancia operacional',
+          weight: event.demandScore ?? 0,
+          explanation: 'Derivada do campo de relevancia existente enquanto o snapshot de inteligencia nao existe.',
+        },
+        {
+          key: 'coverage',
+          label: 'Cobertura geografica',
+          weight: event.geocodeStatus === 'ok' ? 100 : 35,
+          explanation: event.geocodeStatus === 'ok' ? 'Evento possui coordenadas para impacto espacial.' : 'Coordenadas pendentes limitam recomendacoes.',
+        },
+        {
+          key: 'property-impact',
+          label: 'Impacto em imoveis',
+          weight: event.affectedPropertiesCount,
+          explanation: 'Contagem estimada no fallback; endpoint property-impact deve substituir este bloco.',
+        },
+      ],
+      riskFlags: event.riskFlags,
+      dataQualityFlags: event.dataQualityFlags,
+      generatedAt: new Date().toISOString(),
+      modelVersion: 'contract-fallback-v0',
+      metricVersion: 'contract-fallback-v0',
+      jobRunId: null,
+    },
+    operation: {
+      geocodeStatus: event.geocodeStatus,
+      enrichmentStatus: event.enrichmentStatus,
+      sourceStatus: event.sourceStatus,
+      affectedPropertiesCount: event.affectedPropertiesCount,
+      recommendationsGenerated: event.recommendationsGenerated,
+    },
+    propertyImpact: [],
+    rawEvent: event.raw ?? {},
+  };
+}
+
+function contractDate(daysFromNow: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromNow);
+  return date.toISOString();
+}
+
+function buildContractFallbackListing(scope: AdminEventRadarScope = 'in'): EventsListResponse {
+  const items: EventListItem[] = [
+    {
+      id: 'contract-sp-festival-ibirapuera',
+      nome: 'Festival urbano de musica e gastronomia',
+      cidade: 'Sao Paulo',
+      estado: 'SP',
+      dataInicio: contractDate(8),
+      dataFim: contractDate(9),
+      categoria: 'musica',
+      relevancia: 88,
+      capacidadeEstimada: 42000,
+      raioImpactoKm: 8,
+      venueType: 'park',
+      venueCapacity: 50000,
+      expectedAttendance: 42000,
+      venueName: 'Parque Ibirapuera',
+      linkSiteOficial: null,
+      imagemUrl: null,
+      sourceId: 'contract-fallback-001',
+      dedupHash: 'contract-fallback-sp-001',
+      source: 'contract-fallback',
+      outOfScope: false,
+      pendingGeocode: false,
+      ativo: true,
+      latitude: -23.5874,
+      longitude: -46.6576,
+      enrichmentAttempts: 1,
+      enrichmentLastError: null,
+      crawledUrl: null,
+    },
+    {
+      id: 'contract-sp-tech-expo',
+      nome: 'Congresso internacional de tecnologia',
+      cidade: 'Sao Paulo',
+      estado: 'SP',
+      dataInicio: contractDate(18),
+      dataFim: contractDate(20),
+      categoria: 'negocios',
+      relevancia: 82,
+      capacidadeEstimada: 28000,
+      raioImpactoKm: 7,
+      venueType: 'expo_center',
+      venueCapacity: 35000,
+      expectedAttendance: 28000,
+      venueName: 'Expo Center Norte',
+      linkSiteOficial: null,
+      imagemUrl: null,
+      sourceId: 'contract-fallback-002',
+      dedupHash: 'contract-fallback-sp-002',
+      source: 'contract-fallback',
+      outOfScope: false,
+      pendingGeocode: true,
+      ativo: true,
+      latitude: null,
+      longitude: null,
+      enrichmentAttempts: 0,
+      enrichmentLastError: null,
+      crawledUrl: 'https://example.invalid/event-radar-contract',
+    },
+    {
+      id: 'contract-rj-arena-show',
+      nome: 'Show de grande porte na Barra',
+      cidade: 'Rio de Janeiro',
+      estado: 'RJ',
+      dataInicio: contractDate(26),
+      dataFim: contractDate(26),
+      categoria: 'show',
+      relevancia: 79,
+      capacidadeEstimada: 18000,
+      raioImpactoKm: 6,
+      venueType: 'arena',
+      venueCapacity: 22000,
+      expectedAttendance: 18000,
+      venueName: 'Arena da Barra',
+      linkSiteOficial: null,
+      imagemUrl: null,
+      sourceId: 'contract-fallback-003',
+      dedupHash: 'contract-fallback-rj-003',
+      source: 'contract-fallback',
+      outOfScope: false,
+      pendingGeocode: false,
+      ativo: true,
+      latitude: -22.9759,
+      longitude: -43.3903,
+      enrichmentAttempts: 1,
+      enrichmentLastError: null,
+      crawledUrl: null,
+    },
+    {
+      id: 'contract-bh-design-week',
+      nome: 'Semana de design e economia criativa',
+      cidade: 'Belo Horizonte',
+      estado: 'MG',
+      dataInicio: contractDate(34),
+      dataFim: contractDate(37),
+      categoria: 'cultura',
+      relevancia: 68,
+      capacidadeEstimada: 9000,
+      raioImpactoKm: 5,
+      venueType: 'convention_center',
+      venueCapacity: 12000,
+      expectedAttendance: 9000,
+      venueName: 'Centro de Convencoes',
+      linkSiteOficial: null,
+      imagemUrl: null,
+      sourceId: 'contract-fallback-004',
+      dedupHash: 'contract-fallback-bh-004',
+      source: 'contract-fallback',
+      outOfScope: true,
+      pendingGeocode: false,
+      ativo: true,
+      latitude: -19.9245,
+      longitude: -43.9352,
+      enrichmentAttempts: 1,
+      enrichmentLastError: null,
+      crawledUrl: 'https://example.invalid/event-radar-contract',
+    },
+    {
+      id: 'contract-campinas-universitario',
+      nome: 'Encontro universitario regional',
+      cidade: 'Campinas',
+      estado: 'SP',
+      dataInicio: contractDate(12),
+      dataFim: contractDate(13),
+      categoria: 'educacao',
+      relevancia: 57,
+      capacidadeEstimada: 6000,
+      raioImpactoKm: 4,
+      venueType: 'campus',
+      venueCapacity: 8000,
+      expectedAttendance: 6000,
+      venueName: 'Campus universitario',
+      linkSiteOficial: null,
+      imagemUrl: null,
+      sourceId: 'contract-fallback-005',
+      dedupHash: 'contract-fallback-cps-005',
+      source: 'contract-fallback',
+      outOfScope: false,
+      pendingGeocode: false,
+      ativo: true,
+      latitude: -22.8174,
+      longitude: -47.0696,
+      enrichmentAttempts: 2,
+      enrichmentLastError: null,
+      crawledUrl: 'https://example.invalid/event-radar-contract',
+    },
+  ];
+  return {
+    page: 1,
+    limit: items.length,
+    total: items.length,
+    scope,
+    items,
+  };
+}
+
+function buildContractFallbackAnalytics(listing: EventsListResponse): AdminEventsAnalytics {
+  const total = listing.items.length;
+  const inScope = listing.items.filter((event) => !event.outOfScope).length;
+  const outOfScope = total - inScope;
+  const coordsMissing = listing.items.filter((event) => !event.latitude || !event.longitude).length;
+  const relevanceMissing = listing.items.filter((event) => event.relevancia === null).length;
+  return {
+    summary: {
+      total,
+      ativos: total,
+      inScope,
+      outOfScope,
+      coveragePercent: total ? Math.round(((total - coordsMissing) / total) * 100) : 0,
+      enrichmentPercent: total ? Math.round(((total - relevanceMissing) / total) * 100) : 0,
+      coordsMissing,
+      relevanceMissing,
+    },
+    upcoming: { next7d: 0, next30d: inScope, next90d: total, megaUpcoming: 2 },
+    byCategory: [],
+    byCity: [],
+    byRelevance: [],
+    topUpcoming: [],
+    lastCrawlAt: null,
+  };
+}
+
+export async function fetchAdminEventRadar(
+  filters: AdminEventRadarFilters = {},
+): Promise<AdminEventRadarResponse> {
+  try {
+    const { data } = await api.get<AdminEventRadarResponse>('/admin/events/intelligence', {
+      params: filters,
+    });
+    return { ...data, contractMode: data.contractMode ?? 'backend' };
+  } catch (error) {
+    if (!isContractFallbackAllowed(error)) throw error;
+    let analytics: AdminEventsAnalytics;
+    let listing: EventsListResponse;
+    try {
+      [analytics, listing] = await Promise.all([
+        fetchAdminEvents(),
+        fetchAdminEventsList({
+          page: 1,
+          limit: 100,
+          scope: filters.scope ?? 'in',
+          source: filters.source,
+          search: filters.search,
+          upcoming: true,
+        }),
+      ]);
+    } catch (legacyError) {
+      if (!isContractFallbackAllowed(legacyError)) throw legacyError;
+      listing = buildContractFallbackListing(filters.scope ?? 'in');
+      analytics = buildContractFallbackAnalytics(listing);
+    }
+    return buildFallbackRadarResponse(analytics, listing, filters);
+  }
+}
+
+export async function fetchAdminEventRadarHeatmap(params: {
+  from?: string;
+  to?: string;
+  metric?: AdminEventRadarHeatmapMetric;
+  source?: string;
+  category?: string;
+  scope?: AdminEventRadarScope;
+  confidence?: EventRadarConfidence | 'all';
+  search?: string;
+} = {}): Promise<AdminEventRadarHeatmapResponse> {
+  const metric = params.metric ?? 'demand';
+  try {
+    const { data } = await api.get<AdminEventRadarHeatmapResponse>('/admin/events/heatmap', {
+      params: { ...params, metric },
+    });
+    return { ...data, metric, contractMode: data.contractMode ?? 'backend' };
+  } catch (error) {
+    if (!isContractFallbackAllowed(error)) throw error;
+    const radar = await fetchAdminEventRadar(params);
+    return buildFallbackHeatmap(radar, metric);
+  }
+}
+
+export async function fetchAdminEventRadarBlindSpots(
+  filters: AdminEventRadarFilters = {},
+): Promise<AdminEventRadarBlindSpotsResponse> {
+  try {
+    const { data } = await api.get<AdminEventRadarBlindSpotsResponse>('/admin/events/blind-spots', {
+      params: filters,
+    });
+    return { ...data, contractMode: data.contractMode ?? 'backend' };
+  } catch (error) {
+    if (!isContractFallbackAllowed(error)) throw error;
+    const radar = await fetchAdminEventRadar(filters);
+    return buildFallbackBlindSpots(radar);
+  }
+}
+
+export async function fetchAdminEventRadarDetail(
+  eventId: string,
+  seed?: AdminEventRadarEvent,
+): Promise<AdminEventRadarDetail> {
+  try {
+    const [{ data: detail }, impactResult] = await Promise.all([
+      api.get<AdminEventRadarDetail>(`/admin/events/${eventId}/intelligence`),
+      api
+        .get<AdminEventRadarPropertyImpact[]>(`/admin/events/${eventId}/property-impact`)
+        .then((r) => r.data)
+        .catch((error) => {
+          if (isContractFallbackAllowed(error)) return null;
+          throw error;
+        }),
+    ]);
+    return {
+      ...detail,
+      contractMode: detail.contractMode ?? 'backend',
+      propertyImpact: impactResult ?? detail.propertyImpact ?? [],
+    };
+  } catch (error) {
+    if (!isContractFallbackAllowed(error)) throw error;
+    if (seed) return buildFallbackDetail(seed);
+    const listing = await fetchAdminEventsList({ page: 1, limit: 100, scope: 'all', upcoming: true });
+    const event = listing.items.find((item) => item.id === eventId);
+    if (!event) throw error;
+    return buildFallbackDetail(toFallbackRadarEvent(event));
+  }
+}
+
+export const recomputeAdminEventIntelligence = (eventId: string) =>
+  api
+    .post<{ ok: boolean; jobRunId?: string | null }>(
+      `/admin/events/${eventId}/recompute-intelligence`,
+    )
     .then((r) => r.data);
 
 // =================== Dashboard summary ===================
@@ -2763,6 +4488,15 @@ export type AskUsageResponse = {
   used: number;
   quota: number;
   hardCap: number;
+  canUse: boolean;
+  plan: string;
+  reason:
+    | null
+    | 'no_active_subscription'
+    | 'subscription_expired'
+    | 'plan_not_allowed'
+    | 'quota_exceeded'
+    | 'hard_cap_exceeded';
 };
 
 export type AskRequestInput = {

@@ -4,6 +4,7 @@ import { EventoService } from './evento.service';
 import { EventsEnrichmentService } from './events-enrichment.service';
 import { EventsIngestService } from './events-ingest.service';
 import { EventsIngestController } from './events-ingest.controller';
+import { EventsIngestApiKeyGuard } from './events-ingest-api-key.guard';
 import { EventsGeocoderService } from './events-geocoder.service';
 import { EventsCsvImportService } from './events-csv-import.service';
 import { CoverageService } from './coverage.service';
@@ -16,6 +17,7 @@ import { Address } from 'src/entities/addresses.entity';
 import { Event } from 'src/entities/events.entity';
 import { User } from 'src/entities/user.entity';
 import { CoverageRegion } from 'src/entities/coverage-region.entity';
+import { AdminJobRun } from 'src/entities/admin-job-run.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { MapsModule } from 'src/maps/maps.module';
 import { AdminAuditModule } from 'src/admin-audit/admin-audit.module';
@@ -29,6 +31,7 @@ import { AdminAuditModule } from 'src/admin-audit/admin-audit.module';
       List,
       User,
       CoverageRegion,
+      AdminJobRun,
     ]),
     AuthModule,
     MapsModule,
@@ -39,6 +42,7 @@ import { AdminAuditModule } from 'src/admin-audit/admin-audit.module';
     EventoService,
     EventsEnrichmentService,
     EventsIngestService,
+    EventsIngestApiKeyGuard,
     EventsGeocoderService,
     EventsCsvImportService,
     CoverageService,

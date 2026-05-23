@@ -5,7 +5,9 @@ import { List } from '../entities/list.entity';
 import { EventProximityFeature } from '../entities/event-proximity-feature.entity';
 import { OccupancyHistory } from '../entities/occupancy-history.entity';
 import { PriceSnapshot } from '../entities/price-snapshot.entity';
+import { PricingDecisionSnapshot } from '../entities/pricing-decision-snapshot.entity';
 import { Event } from '../entities/events.entity';
+import { AdminJobRun } from '../entities/admin-job-run.entity';
 import { UrbanAIPricingEngine } from './pricing-engine';
 import { PropertyClassifier } from './knn-classifier';
 import { TravelTimeEngine } from './isochrone';
@@ -17,6 +19,8 @@ import { PricingStrategyFactory } from './pricing-strategy.factory';
 import { RuleBasedPricingStrategy } from './strategies/rule-based-pricing.strategy';
 import { XGBoostPricingStrategy } from './strategies/xgboost-pricing.strategy';
 import { AdaptivePricingStrategy } from './strategies/adaptive-pricing.strategy';
+import { EventPricingIntelligenceService } from './event-pricing-intelligence.service';
+import { PricingOutcomeLearningService } from './pricing-outcome-learning.service';
 
 /**
  * Módulo central do motor de pricing.
@@ -35,7 +39,16 @@ import { AdaptivePricingStrategy } from './strategies/adaptive-pricing.strategy'
  */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Address, List, PriceSnapshot, OccupancyHistory, EventProximityFeature, Event]),
+    TypeOrmModule.forFeature([
+      Address,
+      List,
+      PriceSnapshot,
+      OccupancyHistory,
+      EventProximityFeature,
+      Event,
+      PricingDecisionSnapshot,
+      AdminJobRun,
+    ]),
   ],
   providers: [
     // Componentes nativos
@@ -43,10 +56,12 @@ import { AdaptivePricingStrategy } from './strategies/adaptive-pricing.strategy'
     PropertyClassifier,
     DisplacementCostMatrix,
     UrbanAIPricingEngine,
+    EventPricingIntelligenceService,
     // Bootstrap + retreino + feature engineering + dataset collection
     PricingBootstrapService,
     FeatureEngineeringService,
     DatasetCollectorService,
+    PricingOutcomeLearningService,
     // Strategies plugáveis
     RuleBasedPricingStrategy,
     XGBoostPricingStrategy,
@@ -62,6 +77,8 @@ import { AdaptivePricingStrategy } from './strategies/adaptive-pricing.strategy'
     RuleBasedPricingStrategy,
     AdaptivePricingStrategy,
     DatasetCollectorService,
+    EventPricingIntelligenceService,
+    PricingOutcomeLearningService,
   ],
 })
 export class KnnEngineModule {}

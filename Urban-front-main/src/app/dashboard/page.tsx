@@ -23,7 +23,6 @@ import {
 import dynamic from 'next/dynamic';
 import { EventCard } from './components/ItemEvento';
 
-import crypto from "crypto";
 import { SuggestionInfoPopover } from '../componentes/SuggestionInfoPopover';
 import { PushNotificationOptIn } from '../componentes/PushNotificationOptIn';
 import {
@@ -35,9 +34,6 @@ import {
   AppLoadingStatus,
   Icons,
 } from '../componentes/ui';
-
-const makeKey = (ev: any) =>
-  crypto.createHash("md5").update(JSON.stringify(ev)).digest("hex");
 
 const PropertySelect = dynamic(() => import('./components/CustomSelect'), { ssr: false });
 
@@ -58,9 +54,16 @@ interface EventItem {
   aceito: boolean;
 }
 
-function LoadingSpinner() {
-  return <span className="dashboard-spinner" aria-label="Carregando" />;
-}
+const makeEventKey = (ev: EventItem, index: number) =>
+  ev.id ||
+  ev.idAnalise ||
+  [
+    ev.nome,
+    ev.dataInicio,
+    ev.dataFim,
+    ev.enderecoCompleto,
+    index,
+  ].join("|");
 
 export default function DashboardPage() {
   const [range] = useState<DateRange>();
@@ -424,13 +427,13 @@ export default function DashboardPage() {
                 />
               ) : (
                 <div className="dashboard-events-list">
-                  {eventsToDisplay.map(ev => (
+                  {eventsToDisplay.map((ev, index) => (
                     <EventCard
                       setIsLoading={setIsLoading}
                       onChange={() => {
                         fetchEventsSemLoading()
                       }}
-                      key={makeKey(ev)}
+                      key={makeEventKey(ev, index)}
                       ev={ev}
                       cardBorder="gray.200"
                       bg="white"
@@ -462,21 +465,6 @@ const styles = `
     font-weight: 600;
     letter-spacing: 1.5px;
     text-transform: uppercase;
-  }
-
-  .dashboard-loading {
-    display: grid;
-    min-height: 320px;
-    place-items: center;
-  }
-
-  .dashboard-spinner {
-    width: 42px;
-    height: 42px;
-    border: 3px solid var(--app-divider);
-    border-top-color: var(--app-accent);
-    border-radius: 50%;
-    animation: dashboard-spin 800ms linear infinite;
   }
 
   .dashboard-error {
@@ -675,12 +663,6 @@ const styles = `
     max-height: 65vh;
     overflow-y: auto;
     padding-right: 4px;
-  }
-
-  @keyframes dashboard-spin {
-    to {
-      transform: rotate(360deg);
-    }
   }
 
   @media (max-width: 1024px) {

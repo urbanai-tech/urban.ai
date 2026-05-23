@@ -1,13 +1,21 @@
+jest.mock('src/airbnb/airbnb.service', () => ({
+  AirbnbService: class AirbnbService {},
+}));
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { SugestionService } from './sugestion.service';
 import { AnalisePreco } from '../entities/AnalisePreco';
 import { DatasetCollectorService } from '../knn-engine/dataset-collector.service';
+import { PriceUpdate } from '../entities/price-update.entity';
+import { AirbnbService } from 'src/airbnb/airbnb.service';
 
 describe('SugestionService', () => {
   let service: SugestionService;
   let repo: { findOne: jest.Mock; save: jest.Mock };
   let datasetCollector: { recordAppliedPrice: jest.Mock };
+  let priceUpdateRepo: { findOne: jest.Mock };
+  let airbnbService: { getPriceForDateWindow: jest.Mock };
 
   const baseRegistro = () => ({
     id: 'rec-1',
@@ -30,6 +38,12 @@ describe('SugestionService', () => {
     noitesReservadas: null,
     resultadoRegistradoEm: null,
     feedbackObservacao: null,
+    verificationStatus: null,
+    verificationCheckedAt: null,
+    verifiedAppliedAt: null,
+    observedPrice: null,
+    verificationSource: null,
+    verificationError: null,
     motivo_ia: 'Mercado=150, evento=1.14x.',
     criadoEm: new Date('2026-05-15T14:00:00.000Z'),
     usuarioProprietario: {
@@ -66,12 +80,16 @@ describe('SugestionService', () => {
       save: jest.fn().mockImplementation(async (entity) => entity),
     };
     datasetCollector = { recordAppliedPrice: jest.fn().mockResolvedValue(undefined) };
+    priceUpdateRepo = { findOne: jest.fn() };
+    airbnbService = { getPriceForDateWindow: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SugestionService,
         { provide: getRepositoryToken(AnalisePreco), useValue: repo },
         { provide: DatasetCollectorService, useValue: datasetCollector },
+        { provide: getRepositoryToken(PriceUpdate), useValue: priceUpdateRepo },
+        { provide: AirbnbService, useValue: airbnbService },
       ],
     }).compile();
 
@@ -88,6 +106,7 @@ describe('SugestionService', () => {
       property: { addressId: 'addr-1', listId: 'list-1' },
       event: { id: 'event-1', name: 'Brasil Brau 2026' },
       lifecycle: { accepted: true, status: 'accepted' },
+      verification: { status: 'pending' },
     });
     expect(JSON.stringify(result)).not.toContain('hashed-secret');
     expect(JSON.stringify(result)).not.toContain('password');
@@ -111,6 +130,12 @@ describe('SugestionService', () => {
       status: 'applied_manual',
       appliedPrice: 171,
       applicationOrigin: 'manual_dashboard',
+    });
+    expect(result.verification).toMatchObject({
+      status: 'pending',
+      observedPrice: null,
+      source: null,
+      error: null,
     });
     expect(result.outcome).toMatchObject({
       reservationStatus: 'unknown',
@@ -162,5 +187,74 @@ describe('SugestionService', () => {
       status: 'rejected',
     });
     expect(repo.save).toHaveBeenCalled();
+  });
+
+  it('verifica aplicacao usando PriceUpdate Stays confirmado como fonte preferencial', async () => {
+    const registro = baseRegistro();
+    registro.aceito = true;
+    registro.status = 'applied_stays';
+    registro.precoAplicado = 171;
+    registro.aplicadoEm = new Date('2026-05-20T10:00:00.000Z');
+    repo.findOne.mockResolvedValue(registro);
+    priceUpdateRepo.findOne.mockResolvedValue({
+      id: 'pu-1',
+      status: 'success',
+      newPriceCents: 17100,
+      createdAt: new Date('2026-05-20T10:05:00.000Z'),
+    });
+
+    const result = await service.verificarAplicacao('rec-1');
+
+    expect(result.verification).toMatchObject({
+      status: 'verified',
+      observedPrice: 171,
+      source: 'stays_price_update',
+      error: null,
+    });
+    expect(airbnbService.getPriceForDateWindow).not.toHaveBeenCalled();
+    expect(repo.save).toHaveBeenCalledWith(expect.objectContaining({
+      verificationStatus: 'verified',
+      observedPrice: 171,
+      verificationSource: 'stays_price_update',
+    }));
+  });
+
+  it('marca mismatch quando o Airbnb observa preco diferente do aplicado', async () => {
+    const registro = baseRegistro();
+    registro.aceito = true;
+    registro.status = 'applied_manual';
+    registro.precoAplicado = 171;
+    repo.findOne.mockResolvedValue(registro);
+    priceUpdateRepo.findOne.mockResolvedValue(null);
+    airbnbService.getPriceForDateWindow.mockResolvedValue({
+      price: { data: { accommodationCost: 189 } },
+      nights: 1,
+      source: 'airbnb-browser',
+    });
+
+    const result = await service.verificarAplicacao('rec-1');
+
+    expect(result.verification).toMatchObject({
+      status: 'mismatch',
+      observedPrice: 189,
+      source: 'airbnb-browser',
+    });
+    expect(result.verification.error).toContain('Preco observado 189.00');
+  });
+
+  it('mantem aceita sem aplicacao como pendente de verificacao', async () => {
+    const registro = baseRegistro();
+    registro.aceito = true;
+    registro.status = 'accepted';
+    repo.findOne.mockResolvedValue(registro);
+
+    const result = await service.verificarAplicacao('rec-1');
+
+    expect(result.verification).toMatchObject({
+      status: 'pending',
+      error: 'Sugestao aceita sem preco aplicado registrado.',
+    });
+    expect(priceUpdateRepo.findOne).not.toHaveBeenCalled();
+    expect(airbnbService.getPriceForDateWindow).not.toHaveBeenCalled();
   });
 });

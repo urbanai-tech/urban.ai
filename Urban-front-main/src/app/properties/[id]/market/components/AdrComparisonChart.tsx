@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import { parseLocalDate } from "@/app/lib/date";
 import type { MarketIntelDailyPoint } from "../../../../service/api";
 import { visuallyHiddenStyle } from "../../../../componentes/ui/styles";
 
@@ -42,8 +43,8 @@ function formatAxisK(value: number): string {
 }
 
 function formatDateLong(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
+  const d = parseLocalDate(iso);
+  if (!d) return iso;
   return d.toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "long",
@@ -52,8 +53,8 @@ function formatDateLong(iso: string): string {
 }
 
 function formatDateShort(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
+  const d = parseLocalDate(iso);
+  if (!d) return iso;
   return String(d.getDate());
 }
 

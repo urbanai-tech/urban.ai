@@ -150,7 +150,7 @@ export class PropriedadeService {
         limit = 10
     ): Promise<{ data: PublicAddressResponse[]; total: number; page: number; limit: number }> {
         const [data, total] = await this.addressRepository.findAndCount({
-            where: { user: { id: userId } },
+            where: { user: { id: userId }, ativo: true, list: { ativo: true } },
             relations: ['list'],
             skip: (page - 1) * limit,
             take: limit,
@@ -213,7 +213,7 @@ export class PropriedadeService {
     }[]> {
         // Busca específica pelo userId fornecido
         const addresses = await this.addressRepository.find({
-            where: { user: { id: userId } },
+            where: { user: { id: userId }, ativo: true, list: { ativo: true } },
             relations: ['list'],
             select: ['id', 'analisado', 'latitude', 'longitude']
         });
@@ -756,6 +756,8 @@ export class PropriedadeService {
 
             // Fallback genérico: se staySupplyListings vazio, busca em experienceListings ou serviceListings
             if (results.length === 0) {
+                const browserFallback = await this.scrapeHostListingsWithBrowserFallback(userId, 'graphql-empty');
+                if (browserFallback.length > 0) return browserFallback;
                 const user = data?.data?.contextualUser;
                 for (const field of ['experienceListings', 'serviceListings']) {
                     const conn = user?.[field];
@@ -792,7 +794,9 @@ export class PropriedadeService {
             console.error(`❌ [scrapeHost] Erro ao buscar listings via GraphQL (.com.br):`, err.message);
 
             // Fallback: tenta domínio .com internacional antes de desistir
-            return this.scrapeHostListingsFallbackInternational(userId, queryHash, apiKey, variables, extensions, headers);
+            const intlResults = await this.scrapeHostListingsFallbackInternational(userId, queryHash, apiKey, variables, extensions, headers);
+            if (intlResults.length > 0) return intlResults;
+            return this.scrapeHostListingsWithBrowserFallback(userId, 'graphql-error');
         }
     }
 
@@ -856,6 +860,30 @@ export class PropriedadeService {
         }
     }
 
+    private async scrapeHostListingsWithBrowserFallback(
+        userId: string,
+        reason: string,
+    ): Promise<{ roomId: string; title: string; pictureUrl: string }[]> {
+        try {
+            console.warn(`[scrapeHost:headless] Tentando fallback browser para host ${userId} (${reason})...`);
+            const listings = await this.airbnbService.scrapeHostListingsWithBrowser(userId);
+            if (listings.length === 0) {
+                console.warn(`[scrapeHost:headless] Nenhum imovel encontrado via browser para host ${userId}`);
+                return [];
+            }
+
+            console.log(`[scrapeHost:headless] Encontrados ${listings.length} imoveis para host ${userId}`);
+            return listings.map((item) => ({
+                roomId: item.roomId,
+                title: item.title,
+                pictureUrl: item.pictureUrl,
+            }));
+        } catch (err: any) {
+            console.error(`[scrapeHost:headless] Falha no fallback browser: ${err.message}`);
+            return [];
+        }
+    }
+
     /**
      * Notifica o admin por e-mail quando a hash do Airbnb GraphQL expirar.
      * Envia instrução de como atualizar a variável AIRBNB_GRAPHQL_HASH no Railway.
@@ -872,13 +900,13 @@ export class PropriedadeService {
             const htmlContent = `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                     <h2 style="color: #e74c3c;">⚠️ Ação Necessária: Hash do Airbnb Expirada</h2>
-                    <p>O sistema Urban AI detectou que a <strong>hash do GraphQL do Airbnb</strong> expirou 
-                    (<code>${expiredHash?.substring(0, 16)}...</code>). A importação de imóveis por host está 
+                    <p>O sistema Urban AI detectou que a <strong>hash do GraphQL do Airbnb</strong> expirou
+                    (<code>${expiredHash?.substring(0, 16)}...</code>). A importação de imóveis por host está
                     temporariamente desabilitada.</p>
-                    
+
                     <h3>📋 Como Corrigir (30 segundos):</h3>
                     <ol>
-                        <li>Abra seu Chrome e acesse qualquer perfil de host no Airbnb 
+                        <li>Abra seu Chrome e acesse qualquer perfil de host no Airbnb
                         (ex: <a href="https://www.airbnb.com.br/users/show/1462996042612541438">este</a>)</li>
                         <li>Pressione <strong>F12</strong> → aba <strong>Network</strong></li>
                         <li>Recarregue a página (F5)</li>
@@ -886,7 +914,7 @@ export class PropriedadeService {
                         <li>Copie a string de 64 caracteres hexadecimais que aparece na URL da requisição</li>
                         <li>Acesse o Railway → Variáveis do Backend → Atualize <code>AIRBNB_GRAPHQL_HASH</code></li>
                     </ol>
-                    
+
                     <p style="color: #7f8c8d; font-size: 12px; margin-top: 20px;">
                         Este alerta é enviado apenas 1x por reinicialização do servidor.
                         Após atualizar, o sistema volta a funcionar automaticamente sem redeploy.
@@ -907,6 +935,40 @@ export class PropriedadeService {
             console.log(`📧 [notifyAdmin] E-mail de alerta enviado para ${adminEmail}`);
         } catch (err: any) {
             console.error(`❌ [notifyAdmin] Falha ao enviar e-mail de alerta: ${err.message}`);
+        }
+    }
+
+    private extractHostIdFromAirbnbHtml(html: string): string | null {
+        const patterns = [
+            /"hostId"\s*:\s*"(\d+)"/,
+            /"hostId"\s*:\s*(\d+)/,
+            /\/users\/(?:show|profile)\/(\d+)/,
+            /ContextualUser:(\d+)/,
+            /Host:(\d+)/,
+        ];
+
+        for (const pattern of patterns) {
+            const match = html.match(pattern);
+            if (match?.[1]) return String(match[1]);
+        }
+
+        return null;
+    }
+
+    private async scrapeAirbnbListingHostId(roomId: string): Promise<string | null> {
+        const url = `https://www.airbnb.com/rooms/${roomId}`;
+        const headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept': 'text/html,application/xhtml+xml',
+        };
+
+        try {
+            const response = await axios.get(url, { headers, timeout: 20000 });
+            return this.extractHostIdFromAirbnbHtml(String(response.data || ''));
+        } catch (err: any) {
+            console.warn(`[getPropertyHostId] Falha no scrape HTML do host para room ${roomId}: ${err.message}`);
+            return null;
         }
     }
 
@@ -1014,8 +1076,7 @@ export class PropriedadeService {
             const amenities = [...new Set(amenitiesRaw)];
 
             // --- Extrai hostId ---
-            const hostIdMatch = html.match(/"hostId":"(\d+)"/);
-            const hostId = hostIdMatch ? String(hostIdMatch[1]) : null;
+            const hostId = this.extractHostIdFromAirbnbHtml(html);
 
             // --- 📍 Reverse Geocoding: lat/lng → endereço completo ---
             let street = '', neighborhood = '', city = '', state = '', zipCode = '', fullAddress = '';
@@ -1237,7 +1298,7 @@ export class PropriedadeService {
             propertyId,
             title: scraped.title,
             pictureUrl: scraped.pictureUrl,
-            hostId: null,
+            hostId: scraped.hostId,
             hostName: null,
             bedrooms: scraped.bedrooms,
             beds: scraped.beds,
@@ -1261,18 +1322,60 @@ export class PropriedadeService {
     }
 
     /**
-     * REFATORADO: Host ID não é extraível via scraping SSR.
-     * Retorna null para hostId — o fluxo individual não depende dele.
+     * Resolve o hostId a partir de um anúncio. Primeiro tenta o HTML público
+     * e usa o navegador headless como fallback para páginas renderizadas.
      */
     async getPropertyHostId(propertyId: string): Promise<{ hostId: any | null, hostName: any | null }> {
-        console.log(`⚠️ [getPropertyHostId] Host ID não disponível via scraping SSR para room ${propertyId}. Usando null.`);
-        return { hostId: null, hostName: null };
+        console.log(`[getPropertyHostId] Buscando host do Airbnb para room ${propertyId}.`);
+        const htmlHostId = await this.scrapeAirbnbListingHostId(propertyId);
+        if (htmlHostId) return { hostId: htmlHostId, hostName: null };
+
+        const renderedHost = await this.airbnbService.resolveListingHostId(propertyId);
+        return {
+            hostId: renderedHost.hostId,
+            hostName: renderedHost.hostName,
+        };
     }
     async getAccommodationAndFee(
         propertyId: string,
         checkinDate: string,
         checkoutDate: string
     ): Promise<any> {
+        const useAirbnbSearchService = process.env.AIRBNB_PRICE_PROVIDER !== 'legacy-propriedades';
+        if (useAirbnbSearchService) {
+            try {
+                const quote = await this.airbnbService.getPriceForDateWindow(propertyId, checkinDate, checkoutDate);
+                const total = Number(quote.price.data.accommodationCost);
+                const nights = Number(quote.nights ?? 1);
+                const daily = Number((total / Math.max(1, nights)).toFixed(2));
+
+                return {
+                    accommodation: {
+                        brl: total,
+                        formatted: quote.price.data.accommodationCostFormatted,
+                    },
+                    airbnbGuestFee: null,
+                    total: {
+                        brl: total,
+                        formatted: quote.price.data.accommodationCostFormatted,
+                    },
+                    dailyPrice: daily,
+                    nights,
+                    checkIn: quote.checkIn,
+                    checkOut: quote.checkOut,
+                    source: quote.source,
+                };
+            } catch (error: any) {
+                this.logger.warn(
+                    `Falha ao buscar preco airbnb-search para room ${propertyId}: ${error?.message || error}`,
+                );
+                throw new HttpException(
+                    'Nao foi possivel consultar o preco agora. Tente novamente em alguns minutos.',
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
+        }
+
         const apiUrl = 'https://airbnb45.p.rapidapi.com/api/v1/getCheckoutPrefetch';
         const apiKey = process.env.RAPIDAPI_KEY as string;
         const apiHost = 'airbnb45.p.rapidapi.com';
@@ -1438,6 +1541,37 @@ export class PropriedadeService {
         checkIn,
         checkOut
     }) {
+        const useAirbnbSearchService = process.env.AIRBNB_PRICE_PROVIDER !== 'legacy-room-price';
+        if (useAirbnbSearchService) {
+            const quote = await this.airbnbService.getPriceForDateWindow(roomId, checkIn, checkOut);
+            const total = Number(quote.price.data.accommodationCost);
+            const numberOfNights = Number(quote.nights ?? 1);
+            const dailyPrice = Number((total / Math.max(1, numberOfNights)).toFixed(2));
+
+            const propriedadeAtualizado = await this.updateByIdDoAnuncio(roomId, {
+                raw: total,
+                priceText: quote.price.data.accommodationCostFormatted,
+                currency: 'BRL',
+                checkIn: quote.checkIn ?? checkIn,
+                checkOut: quote.checkOut ?? checkOut,
+                dailyPrice,
+            });
+
+            return {
+                property: propriedadeAtualizado,
+                price: {
+                    raw: total,
+                    priceText: quote.price.data.accommodationCostFormatted,
+                    currency: 'BRL',
+                    checkIn: quote.checkIn ?? checkIn,
+                    checkOut: quote.checkOut ?? checkOut,
+                    dailyPrice,
+                    numberOfNights,
+                    source: quote.source,
+                },
+            };
+        }
+
         const baseUrl = process.env.AIRBNB_PRICE_SCRAPER_URL?.trim();
         if (!baseUrl) {
             throw new HttpException(
@@ -2070,17 +2204,17 @@ export class PropriedadeService {
                         category: c.similarity_score >= 0.8 ? 2 : (c.similarity_score >= 0.5 ? 1 : 0)
                     }));
                     this.aiEngine.initialize(treinamentoLocal);
-                    
-                    const minhaPropParaIA = { 
-                        id: property.id, lat: address.latitude, lng: address.longitude, 
+
+                    const minhaPropParaIA = {
+                        id: property.id, lat: address.latitude, lng: address.longitude,
                         metroDistance: 0.5, amenitiesCount: propertyDetails?.bedrooms ?? 1
                     };
-                    const eventoParaIA = { 
-                        name: evento.nome || "Evento", lat: evento.latitude, lng: evento.longitude 
+                    const eventoParaIA = {
+                        name: evento.nome || "Evento", lat: evento.latitude, lng: evento.longitude
                     };
 
                     const prediCaaaoIA = await this.aiEngine.suggestPrice(minhaPropParaIA, eventoParaIA, Number(minhaPropriedadePricePerDay));
-                    
+
                     if(prediCaaaoIA && prediCaaaoIA.suggestedPrice) {
                         precoFinalSugerido = Math.max(prediCaaaoIA.suggestedPrice, result.precoSugerido); // Mantém o melhor dos dois mundos pro cliente (maior lucro)
                         percentualFinal = Number((((precoFinalSugerido - result.seuPrecoAtual) / result.seuPrecoAtual) * 100).toFixed(1));
@@ -2275,6 +2409,8 @@ export class PropriedadeService {
                 beds: Number(details?.beds ?? 1),
                 guestMaximum: Number(details?.guestMaximum ?? 1),
             },
+            nights: 1,
+            source: 'manual',
         };
     }
 

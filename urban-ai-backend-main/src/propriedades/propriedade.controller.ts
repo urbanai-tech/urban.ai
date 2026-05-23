@@ -51,7 +51,7 @@ export class PropriedadeController {
 
   @Get('checkout-prices')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Get Airbnb accommodation and service fee in USD' })
+  @ApiOperation({ summary: 'Get Airbnb checkout price in BRL via airbnb-search' })
   @ApiQuery({ name: 'propertyId', type: String, required: true })
   @ApiQuery({ name: 'checkinDate', type: String, required: true, example: '2025-09-17' })
   @ApiQuery({ name: 'checkoutDate', type: String, required: true, example: '2025-09-19' })

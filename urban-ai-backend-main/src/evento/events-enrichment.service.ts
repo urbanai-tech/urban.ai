@@ -1,9 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, LessThan, Repository } from 'typeorm';
 import { Event } from 'src/entities/events.entity';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { AdminJobRun } from 'src/entities/admin-job-run.entity';
+import { runAdminJobWithTracking } from 'src/admin-job-runs/admin-job-run-tracker';
 
 /**
  * Enriquecimento via Gemini (relevancia + raioImpactoKm + capacidadeEstimada).
@@ -40,6 +42,9 @@ export class EventsEnrichmentService {
   constructor(
     @InjectRepository(Event)
     private readonly eventsRepository: Repository<Event>,
+    @Optional()
+    @InjectRepository(AdminJobRun)
+    private readonly jobRunRepo?: Repository<AdminJobRun>,
   ) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (apiKey) {
@@ -58,7 +63,7 @@ export class EventsEnrichmentService {
     this.isProcessing = true;
 
     try {
-      await this.enrichPendingEvents();
+      await this.runCronWithTracking('events-enrichment', () => this.enrichPendingEvents());
     } catch (error) {
       this.logger.error('Erro geral no enriching de eventos', error);
     } finally {
@@ -175,6 +180,12 @@ Responda APENAS com um Dicionário objeto JSON puro. Sem formatação markdown d
         );
       }
     }
+  }
+
+  private async runCronWithTracking<T>(name: string, handler: () => Promise<T>): Promise<T> {
+    if (!this.jobRunRepo) return handler();
+    const run = await runAdminJobWithTracking(this.jobRunRepo, name, null, handler);
+    return run.result as T;
   }
 
   /**

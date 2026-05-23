@@ -4,6 +4,68 @@
 
 ---
 
+## Atualizacao 2026-05-22 - criterios de validacao enterprise
+
+Esta secao cobre as implementacoes esperadas para auditabilidade. Ela nao declara aprovacao: cada item so pode sair de pendente quando houver comando, ambiente, SHA e resultado registrados em `docs/evidence/`.
+
+### Stays auto-apply
+
+Status atual 2026-05-22: controles P0 principais tem validacao local. Stays auto-apply cobre default-off, dry-run e allowlist/aliases em spec; AskUrban tem backend 403/429 e provider server-side; typechecks frontend/backend passaram. Smokes de staging/prod e E2E autenticado seguem pendentes.
+
+Casos minimos:
+
+- Default-off: env ausente ou `STAYS_AUTO_APPLY_ENABLED=false` nao chama mutacao externa e registra motivo `disabled_by_global_kill_switch`.
+- Dry-run: `STAYS_AUTO_APPLY_ENABLED=true` e `STAYS_AUTO_APPLY_DRY_RUN=true` calcula candidatos, mas nao chama `pushPrice`.
+- Allowlist de usuario: usuario fora de `STAYS_AUTO_APPLY_USER_ALLOWLIST` e bloqueado mesmo com modo auto.
+- Allowlist de listing: listing fora de `STAYS_AUTO_APPLY_LISTING_ALLOWLIST` e bloqueado mesmo com usuario permitido.
+- Caminho real controlado: somente usuario/listing allowlisted com dry-run desligado chama Stays, respeitando guardrails/idempotencia.
+- Compatibilidade de env: testes devem falhar claramente se o codigo e o runbook divergirem sobre `*_ALLOWLIST` vs `*_ALLOWED_*`.
+
+Evidencia minima: unit test do service, teste de cron/handler com mock de Stays, e smoke manual documentado antes de qualquer conta real.
+
+### AskUrban entitlement server-side
+
+Status atual Docs/Evidence: **parcial**. Backend observado ja calcula entitlement com `canUse`, `plan`, `reason` e bloqueio 403/429; frontend ainda mostra `AskUrbanProvider` usando `localStorage` e fallback `profissional`.
+
+Casos minimos:
+
+- `GET /ask/usage` retorna `canUse`, `plan`, `reason`, `used`, `quota`, `hardCap` e `resetAt`.
+- `POST /ask/question` retorna 403 para plano sem direito e 429 para hard cap atingido.
+- Provider inicia em estado `unknown` e bloqueia drawer ate resposta do backend.
+- Alterar `localStorage.urban-plan` para `profissional` nao libera usuario sem entitlement.
+- Falha do endpoint de entitlement mostra erro/upgrade controlado, nao libera uso por fallback.
+
+Evidencia minima: testes backend de permissao/quota, teste frontend do provider e um E2E autenticado com tampering de `localStorage`.
+
+### Erro vs empty state
+
+Status atual Docs/Evidence: **parcial, pendente de teste**. Releitura estatica indica que `/portfolio` e `/painel` agora preservam mensagens de erro em estado separado, mas ainda falta teste UI/API para comprovar comportamento 500 vs 200 vazio.
+
+Casos minimos:
+
+- API 500/timeout renderiza estado de erro com acao de tentar novamente.
+- API 200 com lista vazia renderiza empty state, sem linguagem de falha.
+- Telemetria/analytics diferenciam `load_failed` de `empty_result`.
+- Relatorio/export nao pode usar dataset vazio quando a origem falhou.
+
+Evidencia minima: teste de UI com mock de erro e mock vazio, preferencialmente com screenshot/trace Playwright para as rotas criticas.
+
+### Jobs tracking
+
+Status atual 2026-05-22: **implementado localmente**. `AdminJobRun`/helper cobre triggers admin e crons criticos (`dataset-daily-snapshot`, `dataset-event-proximity-snapshot`, `events-geocoder`, `events-enrichment`, `pricing-retrain`, `weekly-event-report`, `stays-auto-apply`). Ainda falta evidencia de staging/prod e propagacao de `jobRunId` nos relatorios.
+
+Casos minimos:
+
+- Cada cron critico (`dataset-daily-snapshot`, `dataset-event-proximity-snapshot`, `events-geocoder`, `events-enrichment`, `pricing-retrain`, `weekly-event-report`, `stays-auto-apply`) cria run persistido.
+- Runs registram inicio, fim, duracao, status, actor, input resumido, output resumido e erro.
+- Falha simulada aparece como `error`/`failed` no admin.
+- Execucao bloqueada/skipped tambem fica visivel quando for decisao operacional relevante.
+- Relatorio que depende de job consegue expor `jobRunId`.
+
+Evidencia minima: teste de helper, teste de pelo menos um cron automatico, query ou screenshot do admin jobs e arquivo em `docs/evidence/`.
+
+---
+
 ## O que existe hoje (24/04/2026 — atualizado pós-F5C.4 #2)
 
 ### Backend (`urban-ai-backend-main/`)

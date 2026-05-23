@@ -56,6 +56,15 @@ export class ProcessoController {
         private readonly mapsService: MapsService,
     ) {}
 
+    private hasValidBasePrice(list: any): boolean {
+        const manualDailyPrice = Number(list?.manualDailyPrice);
+        const dailyPrice = Number(list?.dailyPrice);
+        return (
+            (Number.isFinite(manualDailyPrice) && manualDailyPrice > 0) ||
+            (Number.isFinite(dailyPrice) && dailyPrice > 0)
+        );
+    }
+
     @UseGuards(JwtAuthGuard)
     @Post()
     @ApiOperation({ summary: 'Enfileira jobs de processo para o usuario autenticado' })
@@ -87,14 +96,28 @@ export class ProcessoController {
             throw new BadRequestException('Nenhum ID de propriedade valido foi fornecido');
         }
 
-        const ownedRows = await this.dataSource
+        const ownedAddresses = await this.dataSource
             .getRepository(Address)
             .createQueryBuilder('address')
-            .select('address.list_id', 'listId')
+            .leftJoinAndSelect('address.list', 'list')
             .where('address.user_id = :userId', { userId })
             .andWhere('address.list_id IN (:...ids)', { ids: idsArray })
-            .getRawMany<{ listId: string }>();
-        const ownedIds = new Set(ownedRows.map((row) => row.listId));
+            .getMany();
+        const ownedIds = new Set(ownedAddresses.map((address) => address.list?.id).filter(Boolean));
+        const pricedIds = new Set(
+            ownedAddresses
+                .filter((address) => this.hasValidBasePrice(address.list))
+                .map((address) => address.list?.id)
+                .filter(Boolean),
+        );
+        const missingBasePriceIds = idsArray.filter((id) => ownedIds.has(id) && !pricedIds.has(id));
+
+        if (missingBasePriceIds.length > 0) {
+            throw new BadRequestException({
+                message: 'Informe manualDailyPrice ou dailyPrice antes de iniciar a analise de pricing.',
+                propriedadesSemPrecoBase: missingBasePriceIds,
+            });
+        }
 
         this.logger.log(`Total de propriedades a enfileirar: ${idsArray.length}`);
 
@@ -180,12 +203,19 @@ export class ProcessoController {
         const ownedAddress = await this.dataSource
             .getRepository(Address)
             .createQueryBuilder('address')
+            .leftJoinAndSelect('address.list', 'list')
             .where('address.user_id = :userId', { userId: body.userId })
             .andWhere('address.list_id = :propertyAdressId', { propertyAdressId: body.propertyAdressId })
-            .getExists();
+            .getOne();
 
         if (!ownedAddress) {
             throw new NotFoundException('Propriedade nao encontrada para o usuario informado');
+        }
+
+        if (!this.hasValidBasePrice(ownedAddress.list)) {
+            throw new BadRequestException(
+                'Informe manualDailyPrice ou dailyPrice antes de iniciar a analise de pricing.',
+            );
         }
 
         const jobId = `processar-pricing-${body.userId}-${body.propertyAdressId}`;

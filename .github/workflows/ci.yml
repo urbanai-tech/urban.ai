@@ -23,18 +23,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: urban-ai-backend-main/yarn.lock
+          cache: 'npm'
+          cache-dependency-path: urban-ai-backend-main/package-lock.json
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: npm ci
       - name: TypeScript check
         run: npx tsc --noEmit
       - name: Jest unit + integration
         run: npx jest --passWithNoTests --ci
       - name: Migration coverage audit
-        run: yarn audit:migrations:strict
+        run: npm run audit:migrations:strict
       - name: MySQL backup dry-run
-        run: yarn backup:mysql:dry
+        run: npm run backup:mysql:dry
 
   backend-build:
     name: Backend — nest build (prod artifact)
@@ -47,11 +47,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: urban-ai-backend-main/yarn.lock
-      - run: yarn install --frozen-lockfile
+          cache: 'npm'
+          cache-dependency-path: urban-ai-backend-main/package-lock.json
+      - run: npm ci
       - name: Nest build
-        run: npx nest build
+        run: npm run build
       - name: Verify dist/main.js exists
         run: test -f dist/main.js
 
@@ -87,9 +87,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: urban-ai-backend-main/yarn.lock
-      - run: yarn install --frozen-lockfile
+          cache: 'npm'
+          cache-dependency-path: urban-ai-backend-main/package-lock.json
+      - run: npm ci
       - name: Wait for MySQL
         run: |
           for i in $(seq 1 30); do
@@ -99,7 +99,7 @@ jobs:
             echo "waiting MySQL... ($i)"; sleep 2
           done
       - name: Run migrations (validate they apply cleanly to fresh DB)
-        run: yarn typeorm migration:run
+        run: npm run migration:run
 
   # ===================== Frontend =====================
 
@@ -114,13 +114,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: Urban-front-main/yarn.lock
-      - run: yarn install --frozen-lockfile
+          cache: 'npm'
+          cache-dependency-path: Urban-front-main/package-lock.json
+      - run: npm ci --legacy-peer-deps
       - name: TypeScript check
         run: npx tsc --noEmit
       - name: Next.js build
-        run: yarn build
+        run: npm run build
         env:
           # Mocks só pra build CI passar — não vão pra runtime.
           NEXT_PUBLIC_API_URL: http://localhost:3001
@@ -182,6 +182,8 @@ jobs:
           node-version: '20'
       - name: Generate release evidence preview
         run: node scripts/release-evidence.js --dry-run
+      - name: Enterprise auditability gate dry-run
+        run: node scripts/enterprise-auditability-live-gate.js --dry-run
 
   # ===================== E2E (mocked local app) =====================
 
@@ -203,9 +205,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: Urban-front-main/yarn.lock
-      - run: yarn install --frozen-lockfile
+          cache: 'npm'
+          cache-dependency-path: Urban-front-main/package-lock.json
+      - run: npm ci --legacy-peer-deps
       - name: Guard local-only E2E targets
         run: |
           test "$E2E_BASE_URL" = "http://127.0.0.1:3000"
@@ -216,7 +218,7 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
       - name: Build local app
-        run: yarn build
+        run: npm run build
       - name: Start local app
         run: |
           cp -r .next/static .next/standalone/.next/static
@@ -276,9 +278,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: Urban-front-main/yarn.lock
-      - run: yarn install --frozen-lockfile
+          cache: 'npm'
+          cache-dependency-path: Urban-front-main/package-lock.json
+      - run: npm ci --legacy-peer-deps
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
       - name: Run public smoke tests
@@ -310,9 +312,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-          cache-dependency-path: Urban-front-main/yarn.lock
-      - run: yarn install --frozen-lockfile
+          cache: 'npm'
+          cache-dependency-path: Urban-front-main/package-lock.json
+      - run: npm ci --legacy-peer-deps
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
       - name: Validate audit credentials

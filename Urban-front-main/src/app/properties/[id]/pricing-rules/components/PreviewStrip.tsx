@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
+import { parseLocalDate } from "@/app/lib/date";
 import type { PricingRulesPreviewResponse } from "../../../../service/api";
 
 /**
@@ -20,7 +21,14 @@ function formatCurrency(value: number): string {
 }
 
 function formatDayLabel(iso: string): { day: string; weekday: string; isWeekend: boolean } {
-  const d = new Date(iso);
+  const d = parseLocalDate(iso);
+  if (!d) {
+    return {
+      day: iso.slice(8, 10) || iso,
+      weekday: "--",
+      isWeekend: false,
+    };
+  }
   const weekday = (d.getDay() + 7) % 7;
   return {
     day: String(d.getDate()).padStart(2, "0"),

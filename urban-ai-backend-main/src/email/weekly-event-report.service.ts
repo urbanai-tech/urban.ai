@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AnalisePreco } from 'src/entities/AnalisePreco';
@@ -8,6 +8,8 @@ import { MailerService } from 'src/mailer/mailer.service';
 import { PushNotificationService } from 'src/push/push-notification.service';
 import { Between, In, Repository } from 'typeorm';
 import { EmailTemplates } from './templates';
+import { AdminJobRun } from 'src/entities/admin-job-run.entity';
+import { runAdminJobWithTracking } from 'src/admin-job-runs/admin-job-run-tracker';
 
 type WeeklyEventReportProperty = {
   title: string;
@@ -54,6 +56,9 @@ export class WeeklyEventReportService {
     private readonly analisePrecoRepo: Repository<AnalisePreco>,
     private readonly mailer: MailerService,
     private readonly pushNotificationService: PushNotificationService,
+    @Optional()
+    @InjectRepository(AdminJobRun)
+    private readonly jobRunRepo?: Repository<AdminJobRun>,
   ) { }
 
   @Cron('0 30 8 * * 1', { name: 'weekly-event-report', timeZone: 'America/Sao_Paulo' })
@@ -64,7 +69,7 @@ export class WeeklyEventReportService {
     }
 
     this.logger.log('[weekly-event-report] cron started');
-    const summary = await this.processWeeklyReports();
+    const summary = await this.runCronWithTracking('weekly-event-report', () => this.processWeeklyReports());
     this.logger.log(`[weekly-event-report] cron finished: ${JSON.stringify(summary)}`);
     return summary;
   }
@@ -138,6 +143,12 @@ export class WeeklyEventReportService {
     }
 
     return summary;
+  }
+
+  private async runCronWithTracking<T>(name: string, handler: () => Promise<T>): Promise<T> {
+    if (!this.jobRunRepo) return handler();
+    const run = await runAdminJobWithTracking(this.jobRunRepo, name, null, handler);
+    return run.result as T;
   }
 
   private async buildReportForUser(

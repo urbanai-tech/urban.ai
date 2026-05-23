@@ -8,6 +8,27 @@
 
 ---
 
+## Atualizacao 2026-05-22 - jobs, evidencias e controles enterprise
+
+Status Docs/Evidence: **parcial**. A leitura estatica confirma que ja existe entidade `AdminJobRun`, helper `runTrackedJob`, endpoint `GET /admin/jobs/runs` e UI `/admin/jobs` para historico de execucoes disparadas pelo admin. Isso e um avanco real, mas ainda nao fecha auditabilidade enterprise porque os crons automaticos criticos precisam gravar runs persistidos e aparecer no painel.
+
+### O que o admin deve mostrar antes de marcar pronto
+
+- Historico filtravel por job, status, data e origem (`admin`, `cron`, `system`).
+- Ultima execucao de `dataset-daily-snapshot`, `dataset-event-proximity-snapshot`, `events-geocoder`, `events-enrichment`, `pricing-retrain`, `weekly-event-report` e `stays-auto-apply`.
+- Status `success`, `error` e `skipped/blocked` quando o bloqueio for decisao operacional relevante, como kill switch Stays.
+- `durationMs`, input resumido, output resumido, erro controlado e link/copia do `jobRunId`.
+- Indicador stale quando job critico nao roda dentro da janela esperada.
+
+### Controles que ainda ficam pendentes
+
+- Ligar `runTrackedJob` ou helper equivalente aos crons automaticos, nao apenas aos botoes manuais.
+- Exibir motivo de bloqueio do Stays auto-apply (`disabled_by_global_kill_switch`, `dry_run`, `user_not_allowlisted`, `listing_not_allowlisted`).
+- Cruzar relatorios/graficos com `jobRunId` quando o dado exibido depender de job.
+- Registrar evidencia em `docs/evidence/` antes de declarar os jobs como validados.
+
+---
+
 ## 1. O que existe hoje (entregue na sessão de 24/04)
 
 ### Backend — 9 endpoints `/admin/*`
