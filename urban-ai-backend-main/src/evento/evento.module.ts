@@ -14,11 +14,14 @@ import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity
 import { List } from 'src/entities/list.entity';
 import { Address } from 'src/entities/addresses.entity';
 import { Event } from 'src/entities/events.entity';
+import { EventDedupCandidate } from 'src/entities/event-dedup-candidate.entity';
+import { EventSource } from 'src/entities/event-source.entity';
 import { User } from 'src/entities/user.entity';
 import { CoverageRegion } from 'src/entities/coverage-region.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { MapsModule } from 'src/maps/maps.module';
 import { AdminAuditModule } from 'src/admin-audit/admin-audit.module';
+import { EventIdentityService } from './event-identity.service';
 
 @Module({
   imports: [
@@ -26,6 +29,8 @@ import { AdminAuditModule } from 'src/admin-audit/admin-audit.module';
       AnaliseEnderecoEvento,
       Address,
       Event,
+      EventDedupCandidate,
+      EventSource,
       List,
       User,
       CoverageRegion,
@@ -39,6 +44,7 @@ import { AdminAuditModule } from 'src/admin-audit/admin-audit.module';
     EventoService,
     EventsEnrichmentService,
     EventsIngestService,
+    EventIdentityService,
     EventsGeocoderService,
     EventsCsvImportService,
     CoverageService,
@@ -46,6 +52,7 @@ import { AdminAuditModule } from 'src/admin-audit/admin-audit.module';
   ],
   exports: [
     EventsIngestService,
+    EventIdentityService,
     EventsEnrichmentService,
     EventsGeocoderService,
     EventsCsvImportService,

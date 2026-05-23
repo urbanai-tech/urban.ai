@@ -17,7 +17,11 @@ import { Waitlist } from '../entities/waitlist.entity';
 import { CoverageRegion } from '../entities/coverage-region.entity';
 import { AdminJobRun } from '../entities/admin-job-run.entity';
 import { ContactSubmission } from '../entities/contact-submission.entity';
+import { EventDedupCandidate } from '../entities/event-dedup-candidate.entity';
+import { EventSource } from '../entities/event-source.entity';
+import { EventIdentityService } from '../evento/event-identity.service';
 import { AdminService } from './admin.service';
+import { EventDedupAdminService } from './event-dedup-admin.service';
 import { AdminFinanceService } from './finance.service';
 import { StripeSyncCheckService } from './stripe-sync.service';
 import { AdminController } from './admin.controller';
@@ -49,6 +53,8 @@ import { EmailModule } from '../email/email.module';
       CoverageRegion,
       AdminJobRun,
       ContactSubmission,
+      EventSource,
+      EventDedupCandidate,
     ]),
     AuthModule,
     KnnEngineModule,
@@ -59,7 +65,13 @@ import { EmailModule } from '../email/email.module';
     EmailModule,
   ],
   controllers: [AdminController],
-  providers: [AdminService, AdminFinanceService, StripeSyncCheckService],
-  exports: [AdminService, AdminFinanceService, StripeSyncCheckService],
+  providers: [
+    AdminService,
+    AdminFinanceService,
+    StripeSyncCheckService,
+    EventIdentityService,
+    EventDedupAdminService,
+  ],
+  exports: [AdminService, AdminFinanceService, StripeSyncCheckService, EventDedupAdminService],
 })
 export class AdminModule {}

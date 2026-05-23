@@ -2189,6 +2189,12 @@ export interface EventListItem {
   enrichmentAttempts: number;
   enrichmentLastError: string | null;
   crawledUrl: string | null;
+  canonicalName?: string | null;
+  dedupStatus?: string | null;
+  duplicateOfEventId?: string | null;
+  identityConfidence?: number | null;
+  sourceCount?: number;
+  lastSeenAt?: string | null;
 }
 
 export interface EventsListResponse {
@@ -2227,6 +2233,10 @@ export interface CollectorSourceStats {
   last24h: number;
   outOfScope: number;
   outOfScopePercent: number;
+  canonicalCount?: number;
+  duplicateCount?: number;
+  duplicateRatePercent?: number;
+  sourceLinksCount?: number;
   pendingGeocode: number;
   pendingEnrichment: number;
   enriched: number;
@@ -2242,6 +2252,144 @@ export interface CollectorsHealthResponse {
 
 export const fetchCollectorsHealth = () =>
   api.get<CollectorsHealthResponse>('/admin/events/collectors-health').then((r) => r.data);
+
+// =================== Event dedup review ===================
+
+export type EventDedupCandidateStatus = 'pending' | 'approved' | 'rejected' | 'obsolete';
+export type EventDedupConfidenceBand = 'high' | 'medium' | 'low';
+
+export type EventDedupSignal =
+  | string
+  | {
+      key?: string;
+      label?: string;
+      name?: string;
+      value?: unknown;
+      score?: number;
+      weight?: number;
+      matched?: boolean;
+      canonicalValue?: unknown;
+      duplicateValue?: unknown;
+      detail?: string;
+      [key: string]: unknown;
+    };
+
+export interface EventDedupEventSummary {
+  id: string;
+  nome: string;
+  name?: string | null;
+  title?: string | null;
+  canonicalName: string | null;
+  cidade: string | null;
+  city?: string | null;
+  estado: string | null;
+  state?: string | null;
+  dataInicio: string;
+  startDate?: string | null;
+  startsAt?: string | null;
+  date?: string | null;
+  dataFim: string | null;
+  endDate?: string | null;
+  enderecoCompleto: string | null;
+  address?: string | null;
+  venueName?: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  source: string | null;
+  sourceId: string | null;
+  dedupStatus: string | null;
+  duplicateOfEventId: string | null;
+  sourceCount: number;
+  identityConfidence: number | null;
+  ativo: boolean;
+  [key: string]: unknown;
+}
+
+export interface EventDedupCandidate {
+  id: string;
+  status: EventDedupCandidateStatus;
+  confidenceBand: EventDedupConfidenceBand;
+  score: number;
+  reason: string | null;
+  signals: Record<string, unknown> | EventDedupSignal[] | null;
+  source: string | null;
+  sourceId: string | null;
+  reviewedByUserId: string | null;
+  reviewedAt: string | null;
+  reviewReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+  canonicalEvent: EventDedupEventSummary | null;
+  duplicateEvent: EventDedupEventSummary | null;
+}
+
+export interface EventDedupCandidatesResponse {
+  page: number;
+  limit: number;
+  total: number;
+  status: EventDedupCandidateStatus | 'all';
+  confidenceBand: EventDedupConfidenceBand | 'all';
+  items: EventDedupCandidate[];
+}
+
+export interface EventDedupScanResponse {
+  generatedAt: string;
+  window: { from: string; to: string };
+  scannedEvents: number;
+  reviewPendingEvents: number;
+  created: number;
+  updated: number;
+  skipped: number;
+  pendingTotal: number;
+  items: EventDedupCandidate[];
+  [key: string]: unknown;
+}
+
+export interface EventDedupCandidatesQuery {
+  page?: number;
+  limit?: number;
+  status?: EventDedupCandidateStatus | 'all';
+  confidenceBand?: EventDedupConfidenceBand | 'all';
+}
+
+export interface EventDedupScanRequest {
+  limit?: number;
+  lookbackDays?: number;
+  lookaheadDays?: number;
+  minScore?: number;
+  highScore?: number;
+  includeInactive?: boolean;
+}
+
+export const fetchEventDedupCandidates = async (
+  params: EventDedupCandidatesQuery = {},
+): Promise<EventDedupCandidatesResponse> => {
+  const { data } = await api.get<EventDedupCandidatesResponse>('/admin/events/dedup/candidates', {
+    params: {
+      page: params.page ?? 1,
+      limit: params.limit ?? 50,
+      status: params.status ?? 'pending',
+      confidenceBand: params.confidenceBand ?? 'all',
+    },
+  });
+  return data;
+};
+
+export const scanEventDedupCandidates = (body: EventDedupScanRequest = {}) =>
+  api.post<EventDedupScanResponse>('/admin/events/dedup/scan', body).then((r) => r.data);
+
+export const approveEventDedupCandidate = (id: string) =>
+  api
+    .post<EventDedupCandidate>(`/admin/events/dedup/candidates/${encodeURIComponent(id)}/approve`)
+    .then((r) => r.data);
+
+export const rejectEventDedupCandidate = (id: string, reason?: string) =>
+  api
+    .post<EventDedupCandidate>(
+      `/admin/events/dedup/candidates/${encodeURIComponent(id)}/reject`,
+      { reason: reason?.trim() || undefined },
+    )
+    .then((r) => r.data);
 
 // =================== Events timeline ===================
 

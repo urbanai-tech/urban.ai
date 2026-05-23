@@ -24,6 +24,7 @@ import { EventsEnrichmentService } from '../evento/events-enrichment.service';
 import { RoiService } from '../roi/roi.service';
 import { AdminAuditService } from '../admin-audit/admin-audit.service';
 import { OnboardingDripService } from '../email/onboarding-drip.service';
+import { EventDedupAdminService } from './event-dedup-admin.service';
 
 /**
  * Endpoints administrativos da Urban AI.
@@ -53,6 +54,7 @@ export class AdminController {
     private readonly roi: RoiService,
     private readonly audit: AdminAuditService,
     private readonly onboardingDrip: OnboardingDripService,
+    private readonly eventDedup: EventDedupAdminService,
   ) {}
 
   // ================== Onboarding drip (gap H9) ==================
@@ -202,6 +204,61 @@ export class AdminController {
     return this.admin.eventsAnalytics();
   }
 
+  @ApiOperation({ summary: 'Listar candidatos de deduplicacao de eventos para revisao admin' })
+  @Get('events/dedup/candidates')
+  async eventDedupCandidates(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '50',
+    @Query('status') status: string = 'pending',
+    @Query('confidenceBand') confidenceBand: string = 'all',
+    @Query('source') source?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.eventDedup.listEventDedupCandidates({
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+      status: this.dedupStatus(status),
+      confidenceBand: this.dedupConfidence(confidenceBand),
+      source,
+      search,
+    });
+  }
+
+  @ApiOperation({ summary: 'Rodar scan admin para encontrar candidatos de deduplicacao de eventos' })
+  @Throttle({ default: { ttl: 60_000, limit: 3 } })
+  @Post('events/dedup/scan')
+  async scanEventDedupCandidates(@Body() body: any = {}) {
+    return this.eventDedup.scanEventDedupCandidates({
+      from: body?.from,
+      to: body?.to,
+      limit: body?.limit,
+      lookbackDays: body?.lookbackDays,
+      lookaheadDays: body?.lookaheadDays,
+      minScore: body?.minScore,
+      highScore: body?.highScore,
+      includeInactive: Boolean(body?.includeInactive),
+      source: body?.source,
+    });
+  }
+
+  @ApiOperation({ summary: 'Aprovar merge de um candidato de deduplicacao' })
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @Post('events/dedup/candidates/:id/approve')
+  async approveEventDedupCandidate(@Param('id') id: string, @Req() req: any) {
+    return this.eventDedup.approveEventDedupCandidate(id, req?.user?.userId ?? null);
+  }
+
+  @ApiOperation({ summary: 'Rejeitar candidato de deduplicacao' })
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @Post('events/dedup/candidates/:id/reject')
+  async rejectEventDedupCandidate(
+    @Param('id') id: string,
+    @Body() body: { reason?: string } = {},
+    @Req() req: any,
+  ) {
+    return this.eventDedup.rejectEventDedupCandidate(id, req?.user?.userId ?? null, body?.reason ?? null);
+  }
+
   @ApiOperation({
     summary:
       'Listagem paginada de eventos com filtros (scope, source, search). Default scope=in.',
@@ -240,6 +297,14 @@ export class AdminController {
   @Get('events/timeline')
   async eventsTimeline(@Query('days') days: string = '30') {
     return this.admin.eventsTimeline(parseInt(days, 10));
+  }
+
+  private dedupStatus(status: string): any {
+    return ['pending', 'approved', 'rejected', 'obsolete', 'all'].includes(status) ? status : 'pending';
+  }
+
+  private dedupConfidence(confidenceBand: string): any {
+    return ['high', 'medium', 'low', 'all'].includes(confidenceBand) ? confidenceBand : 'all';
   }
 
   @ApiOperation({ summary: 'Saúde da integração Stays (contas, listings, push history)' })

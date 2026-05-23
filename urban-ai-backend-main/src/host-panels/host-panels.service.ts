@@ -138,6 +138,8 @@ export class HostPanelsService {
             from: this.startDate(range.from),
             to: this.endDate(range.to),
           })
+          .andWhere('event.duplicateOfEventId IS NULL')
+          .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
           .orderBy('analysis.criadoEm', 'DESC')
           .getMany()
       : [];
@@ -239,6 +241,8 @@ export class HostPanelsService {
             .andWhere('address.id IN (:...addressIds)', { addressIds })
             .andWhere('analysis.aceito = :accepted', { accepted: false })
             .andWhere('event.dataInicio >= :now', { now: new Date() })
+            .andWhere('event.duplicateOfEventId IS NULL')
+            .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
             .getMany()
         : [];
       const changedAddressIds = new Set<string>();
@@ -596,14 +600,18 @@ export class HostPanelsService {
     const cities = Array.from(new Set(addresses.map((address) => address.cidade).filter(Boolean)));
     const states = Array.from(new Set(addresses.map((address) => address.estado).filter(Boolean)));
     if (cities.length === 0 && states.length === 0) return new Map<string, EventEntity[]>();
-    const events = await this.eventRepo.find({
-      where: {
-        ativo: true,
-        outOfScope: false,
-        dataInicio: Between(this.startDate(from), this.endDate(to)),
-      } as any,
-      take: 500,
-    });
+    const events = await this.eventRepo
+      .createQueryBuilder('event')
+      .where('event.ativo = :active', { active: true })
+      .andWhere('event.outOfScope = :outOfScope', { outOfScope: false })
+      .andWhere('event.dataInicio BETWEEN :from AND :to', {
+        from: this.startDate(from),
+        to: this.endDate(to),
+      })
+      .andWhere('event.duplicateOfEventId IS NULL')
+      .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
+      .take(500)
+      .getMany();
     const out = new Map<string, EventEntity[]>();
     for (const event of events) {
       const eventDate = this.dateOnly(event.dataInicio);
@@ -627,6 +635,14 @@ export class HostPanelsService {
     return (
       this.normalize(event.cidade) === this.normalize(address.cidade) &&
       this.normalize(event.estado) === this.normalize(address.estado)
+    );
+  }
+
+  private isCanonicalEvent(event: EventEntity | null | undefined): boolean {
+    return Boolean(
+      event &&
+        !event.duplicateOfEventId &&
+        (!event.dedupStatus || event.dedupStatus === 'canonical'),
     );
   }
 
@@ -684,8 +700,9 @@ export class HostPanelsService {
       relations: ['evento'],
       take: 200,
     });
-    if (!analyses.length) return 0;
-    return Math.round((analyses.filter((analysis) => analysis.aceito || Number(analysis.precoAplicado) > 0).length / analyses.length) * 100);
+    const canonicalAnalyses = analyses.filter((analysis) => this.isCanonicalEvent(analysis.evento));
+    if (!canonicalAnalyses.length) return 0;
+    return Math.round((canonicalAnalyses.filter((analysis) => analysis.aceito || Number(analysis.precoAplicado) > 0).length / canonicalAnalyses.length) * 100);
   }
 
   private async buildAskAnswer(userId: string, question: string): Promise<{ content: string; citations: AskUrbanCitation[] }> {
@@ -700,16 +717,17 @@ export class HostPanelsService {
           take: 500,
         })
       : [];
-    const realRevenue = analyses.reduce((sum, analysis) => sum + (Number(analysis.receitaReal) || 0), 0);
-    const potentialLift = analyses.reduce((sum, analysis) => {
+    const canonicalAnalyses = analyses.filter((analysis) => this.isCanonicalEvent(analysis.evento));
+    const realRevenue = canonicalAnalyses.reduce((sum, analysis) => sum + (Number(analysis.receitaReal) || 0), 0);
+    const potentialLift = canonicalAnalyses.reduce((sum, analysis) => {
       const suggested = Number(analysis.precoSugerido);
       const current = Number(analysis.seuPrecoAtual);
       return Number.isFinite(suggested) && Number.isFinite(current) ? sum + Math.max(0, suggested - current) : sum;
     }, 0);
-    const accepted = analyses.filter((analysis) => analysis.aceito).length;
-    const applied = analyses.filter((analysis) => Number(analysis.precoAplicado) > 0).length;
-    const booked = analyses.filter((analysis) => analysis.reservaStatus === 'booked').length;
-    const futureEvents = analyses.filter((analysis) => analysis.evento?.dataInicio && analysis.evento.dataInicio >= new Date()).length;
+    const accepted = canonicalAnalyses.filter((analysis) => analysis.aceito).length;
+    const applied = canonicalAnalyses.filter((analysis) => Number(analysis.precoAplicado) > 0).length;
+    const booked = canonicalAnalyses.filter((analysis) => analysis.reservaStatus === 'booked').length;
+    const futureEvents = canonicalAnalyses.filter((analysis) => analysis.evento?.dataInicio && analysis.evento.dataInicio >= new Date()).length;
 
     if (q.includes('receita') || q.includes('projec') || q.includes('ganho')) {
       return {

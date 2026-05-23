@@ -3,7 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { createHash } from 'crypto';
 import { Event } from '../entities/events.entity';
+import { EventDedupCandidate } from '../entities/event-dedup-candidate.entity';
+import { EventSource } from '../entities/event-source.entity';
 import { CoverageService } from './coverage.service';
+import { EventIdentityScore, EventIdentityService } from './event-identity.service';
 
 /**
  * EventsIngestService — F6.2 Plus.
@@ -78,10 +81,16 @@ export interface IngestBatchResponse {
 @Injectable()
 export class EventsIngestService {
   private readonly logger = new Logger(EventsIngestService.name);
+  private readonly AUTO_MATCH_THRESHOLD = 0.86;
+  private readonly REVIEW_MATCH_THRESHOLD = 0.74;
 
   constructor(
     @InjectRepository(Event) private readonly eventRepo: Repository<Event>,
+    @InjectRepository(EventSource) private readonly eventSourceRepo: Repository<EventSource>,
+    @InjectRepository(EventDedupCandidate)
+    private readonly dedupCandidateRepo: Repository<EventDedupCandidate>,
     private readonly coverage: CoverageService,
+    private readonly identity: EventIdentityService,
   ) {}
 
   /**
@@ -160,6 +169,11 @@ export class EventsIngestService {
       ? this.computeDedupHash(input.nome, dataInicio, lat, lng)
       : this.computeDedupHashByAddress(input.nome, dataInicio, input.enderecoCompleto ?? '');
 
+    const identityResult = await this.resolveIdentity(input, dedupHash, hasGeo);
+    if (identityResult) {
+      return identityResult;
+    }
+
     const existing = await this.eventRepo.findOne({ where: { dedupHash } });
 
     if (existing) {
@@ -180,13 +194,32 @@ export class EventsIngestService {
       if (Object.keys(patch).length > 1) {
         // > 1 porque sempre tem dataCrawl. Só salva se houve mudança real.
         await this.eventRepo.update({ id: existing.id }, patch);
+        await this.recordSourceEvidence(existing.id, input, {
+          score: 1,
+          reason: 'dedup_hash_exact',
+          signals: { date: 1, name: 1, venue: 1, geo: hasGeo ? 1 : 0, url: 0 },
+          kind: 'strong',
+        });
         return { status: 'updated', id: existing.id, dedupHash };
       }
+      await this.recordSourceEvidence(existing.id, input, {
+        score: 1,
+        reason: 'dedup_hash_exact',
+        signals: { date: 1, name: 1, venue: 1, geo: hasGeo ? 1 : 0, url: 0 },
+        kind: 'strong',
+      });
       return { status: 'updated', id: existing.id, dedupHash };
     }
 
     // Cobertura: SE tem geo, decide outOfScope agora. SE não tem, deixa
     // outOfScope=false e o geocoder cron decide quando resolver lat/lng.
+    const fuzzyMatch = await this.findBestIdentityCandidate(input);
+    if (fuzzyMatch && fuzzyMatch.score.score >= this.AUTO_MATCH_THRESHOLD) {
+      await this.updateCanonicalEvent(fuzzyMatch.event, input, fuzzyMatch.score.reason, fuzzyMatch.score.score);
+      await this.recordSourceEvidence(fuzzyMatch.event.id, input, fuzzyMatch.score);
+      return { status: 'updated', id: fuzzyMatch.event.id, dedupHash: fuzzyMatch.event.dedupHash ?? dedupHash };
+    }
+
     let outOfScope = false;
     if (hasGeo) {
       const inCoverage = await this.coverage.isWithinCoverage(lat, lng);
@@ -209,10 +242,24 @@ export class EventsIngestService {
       categoria: input.categoria ?? null,
       // Sem geo OU fora de escopo → motor ignora.
       // Quando tiver geo: ativo só se DENTRO da cobertura.
-      ativo: hasGeo && !outOfScope,
+      ativo: hasGeo && !outOfScope && !(fuzzyMatch && fuzzyMatch.score.score >= this.REVIEW_MATCH_THRESHOLD),
       pendingGeocode: !hasGeo,
       outOfScope,
       dataCrawl: new Date(),
+      canonicalName: input.nome.trim().slice(0, 255),
+      normalizedName: this.identity.normalizeText(input.nome).slice(0, 255),
+      normalizedVenue: this.identity.normalizeVenue(input.enderecoCompleto ?? '').slice(0, 255) || null,
+      dedupStatus:
+        fuzzyMatch && fuzzyMatch.score.score >= this.REVIEW_MATCH_THRESHOLD
+          ? 'review_pending'
+          : 'canonical',
+      duplicateOfEventId:
+        fuzzyMatch && fuzzyMatch.score.score >= this.REVIEW_MATCH_THRESHOLD
+          ? fuzzyMatch.event.id
+          : null,
+      identityConfidence: fuzzyMatch?.score.score ?? 1,
+      sourceCount: 0,
+      lastSeenAt: new Date(),
       source: input.source,
       sourceId: input.sourceId ?? null,
       dedupHash,
@@ -223,6 +270,15 @@ export class EventsIngestService {
     });
 
     const saved = await this.eventRepo.save(entity);
+    await this.recordSourceEvidence(saved.id, input, fuzzyMatch?.score ?? {
+      score: 1,
+      reason: 'new_canonical_event',
+      signals: { date: 1, name: 1, venue: 0, geo: hasGeo ? 1 : 0, url: 0 },
+      kind: 'new',
+    });
+    if (fuzzyMatch && fuzzyMatch.score.score >= this.REVIEW_MATCH_THRESHOLD) {
+      await this.recordDedupCandidate(fuzzyMatch.event, saved, fuzzyMatch.score, input);
+    }
     return { status: 'created', id: saved.id, dedupHash };
   }
 
@@ -302,5 +358,223 @@ export class EventsIngestService {
     }
 
     return null;
+  }
+
+  private async resolveIdentity(
+    input: IngestEventInput,
+    dedupHash: string,
+    hasGeo: boolean,
+  ): Promise<IngestResult | null> {
+    const exactSourceMatch = await this.findBySourceIdentity(input);
+    if (exactSourceMatch) {
+      await this.updateCanonicalEvent(exactSourceMatch, input, 'source_identity_exact', 1);
+      await this.recordSourceEvidence(exactSourceMatch.id, input, {
+        score: 1,
+        reason: 'source_identity_exact',
+        signals: { date: 1, name: 1, venue: 1, geo: hasGeo ? 1 : 0, url: 0 },
+        kind: 'exact_source',
+      });
+      return { status: 'updated', id: exactSourceMatch.id, dedupHash: exactSourceMatch.dedupHash ?? dedupHash };
+    }
+
+    const exactUrlMatch = await this.findByCanonicalUrl(input);
+    if (exactUrlMatch) {
+      await this.updateCanonicalEvent(exactUrlMatch, input, 'canonical_url_exact', 0.99);
+      await this.recordSourceEvidence(exactUrlMatch.id, input, {
+        score: 0.99,
+        reason: 'canonical_url_exact',
+        signals: { date: 1, name: 1, venue: 1, geo: 0, url: 1 },
+        kind: 'exact_url',
+      });
+      return { status: 'updated', id: exactUrlMatch.id, dedupHash: exactUrlMatch.dedupHash ?? dedupHash };
+    }
+
+    return null;
+  }
+
+  private async findBySourceIdentity(input: IngestEventInput): Promise<Event | null> {
+    const sourceId = input.sourceId?.trim();
+    if (!sourceId) return null;
+    const source = await this.eventSourceRepo.findOne({
+      where: { source: input.source, sourceId },
+      relations: ['event'],
+    });
+    return source?.event ? this.resolveCanonicalEvent(source.event) : null;
+  }
+
+  private async findByCanonicalUrl(input: IngestEventInput): Promise<Event | null> {
+    const canonicalUrl = this.identity.canonicalizeUrl(input.linkSiteOficial ?? input.crawledUrl ?? null);
+    if (!canonicalUrl) return null;
+    const source = await this.eventSourceRepo.findOne({
+      where: { canonicalUrl },
+      relations: ['event'],
+    });
+    return source?.event ? this.resolveCanonicalEvent(source.event) : null;
+  }
+
+  private async findBestIdentityCandidate(
+    input: IngestEventInput,
+  ): Promise<{ event: Event; score: EventIdentityScore } | null> {
+    const dataInicio = new Date(input.dataInicio);
+    const start = new Date(dataInicio);
+    start.setUTCHours(0, 0, 0, 0);
+    const end = new Date(dataInicio);
+    end.setUTCHours(23, 59, 59, 999);
+
+    const qb = this.eventRepo
+      .createQueryBuilder('event')
+      .where('event.dataInicio BETWEEN :start AND :end', { start, end })
+      .andWhere('event.duplicateOfEventId IS NULL')
+      .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
+      .take(100);
+
+    if (input.cidade) {
+      qb.andWhere("(event.cidade = :city OR event.cidade IS NULL OR event.cidade = '')", {
+        city: input.cidade,
+      });
+    }
+    if (input.estado) {
+      qb.andWhere("(event.estado = :state OR event.estado IS NULL OR event.estado = '')", {
+        state: input.estado,
+      });
+    }
+
+    const candidates = await qb.getMany();
+    let best: { event: Event; score: EventIdentityScore } | null = null;
+    for (const event of candidates) {
+      const score = this.identity.scoreCandidate(input, event);
+      if (!best || score.score > best.score.score) best = { event, score };
+    }
+    return best && best.score.score >= this.REVIEW_MATCH_THRESHOLD ? best : null;
+  }
+
+  private async resolveCanonicalEvent(event: Event): Promise<Event> {
+    if (event.duplicateOfEventId) {
+      const canonical = await this.eventRepo.findOne({ where: { id: event.duplicateOfEventId } });
+      if (canonical) return canonical;
+    }
+    return event;
+  }
+
+  private async updateCanonicalEvent(
+    existing: Event,
+    input: IngestEventInput,
+    matchReason: string,
+    confidence: number,
+  ): Promise<void> {
+    const patch: Partial<Event> = {};
+    if (!existing.descricao && input.descricao) patch.descricao = input.descricao;
+    if (!existing.categoria && input.categoria) patch.categoria = input.categoria;
+    if (!existing.linkSiteOficial && input.linkSiteOficial) patch.linkSiteOficial = input.linkSiteOficial;
+    if (!existing.imagem_url && input.imagemUrl) patch.imagem_url = input.imagemUrl;
+    if (!existing.venueCapacity && input.venueCapacity != null) patch.venueCapacity = input.venueCapacity;
+    if (!existing.venueType && input.venueType) patch.venueType = input.venueType;
+    if (!existing.expectedAttendance && input.expectedAttendance != null) {
+      patch.expectedAttendance = input.expectedAttendance;
+    }
+    if (!existing.crawledUrl && input.crawledUrl) patch.crawledUrl = input.crawledUrl;
+    if (!existing.canonicalName) patch.canonicalName = existing.nome ?? input.nome;
+    if (!existing.normalizedName) {
+      patch.normalizedName = this.identity.normalizeText(existing.nome ?? input.nome).slice(0, 255);
+    }
+    if (!existing.normalizedVenue) {
+      patch.normalizedVenue = this.identity
+        .normalizeVenue(existing.enderecoCompleto || input.enderecoCompleto || '')
+        .slice(0, 255) || null;
+    }
+    if (!existing.dedupStatus) patch.dedupStatus = 'canonical';
+    patch.identityConfidence = Math.max(Number(existing.identityConfidence ?? 0), confidence);
+    patch.lastSeenAt = new Date();
+    patch.dataCrawl = new Date();
+
+    await this.eventRepo.update({ id: existing.id }, patch);
+    this.logger.debug(`Event identity match ${matchReason}: ${existing.id}`);
+  }
+
+  private async recordSourceEvidence(
+    eventId: string,
+    input: IngestEventInput,
+    match: EventIdentityScore,
+  ): Promise<void> {
+    const canonicalUrl = this.identity.canonicalizeUrl(input.linkSiteOficial ?? input.crawledUrl ?? null);
+    const now = new Date();
+    const sourceId = input.sourceId?.trim() || null;
+    const existing = sourceId
+      ? await this.eventSourceRepo.findOne({ where: { source: input.source, sourceId } })
+      : canonicalUrl
+        ? await this.eventSourceRepo.findOne({ where: { eventId, source: input.source, canonicalUrl } })
+        : null;
+
+    if (existing) {
+      await this.eventSourceRepo.update(
+        { id: existing.id },
+        {
+          lastSeenAt: now,
+          seenCount: Number(existing.seenCount ?? 0) + 1,
+          confidenceScore: match.score,
+          matchReason: match.reason,
+          rawPayload: input as any,
+        } as Partial<EventSource>,
+      );
+    } else {
+      await this.eventSourceRepo.save(
+        this.eventSourceRepo.create({
+          eventId,
+          source: input.source,
+          sourceId,
+          rawTitle: input.nome?.slice(0, 500) ?? null,
+          rawVenue: (input.enderecoCompleto ?? '').slice(0, 255) || null,
+          rawAddress: input.enderecoCompleto ?? null,
+          rawStartDate: new Date(input.dataInicio),
+          rawEndDate: input.dataFim ? new Date(input.dataFim) : null,
+          url: input.linkSiteOficial ?? input.crawledUrl ?? null,
+          canonicalUrl,
+          crawledUrl: input.crawledUrl ?? null,
+          rawPayload: input,
+          confidenceScore: match.score,
+          matchReason: match.reason,
+          firstSeenAt: now,
+          lastSeenAt: now,
+          seenCount: 1,
+        }),
+      );
+    }
+
+    const sourceCount = await this.eventSourceRepo.count({ where: { eventId } });
+    await this.eventRepo.update({ id: eventId }, { sourceCount, lastSeenAt: now });
+  }
+
+  private async recordDedupCandidate(
+    canonical: Event,
+    duplicate: Event,
+    match: EventIdentityScore,
+    input: IngestEventInput,
+  ): Promise<void> {
+    const existing = await this.dedupCandidateRepo.findOne({
+      where: [
+        { canonicalEventId: canonical.id, duplicateEventId: duplicate.id },
+        { canonicalEventId: duplicate.id, duplicateEventId: canonical.id },
+      ],
+    });
+    if (existing?.status === 'approved' || existing?.status === 'rejected') return;
+
+    const patch: Partial<EventDedupCandidate> = {
+      canonicalEventId: canonical.id,
+      duplicateEventId: duplicate.id,
+      status: 'pending',
+      confidenceBand: match.score >= this.AUTO_MATCH_THRESHOLD ? 'high' : 'medium',
+      score: match.score,
+      reason: match.reason,
+      signals: match.signals,
+      source: 'ingest_review',
+      sourceId: input.sourceId ?? null,
+    };
+
+    if (existing) {
+      await this.dedupCandidateRepo.update({ id: existing.id }, patch);
+      return;
+    }
+
+    await this.dedupCandidateRepo.save(this.dedupCandidateRepo.create(patch));
   }
 }

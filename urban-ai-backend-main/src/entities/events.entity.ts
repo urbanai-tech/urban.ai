@@ -7,6 +7,13 @@ import {
     Index,
   } from "typeorm";
   import { ApiProperty } from "@nestjs/swagger";
+
+  export type EventDedupStatus =
+    | "canonical"
+    | "duplicate"
+    | "review_pending"
+    | "merged"
+    | "ignored";
   
   @Entity("events")
   @Index(["cidade", "estado"])
@@ -184,6 +191,42 @@ import {
     @Column("text", { nullable: true })
     crawledUrl: string | null;
 
+    @ApiProperty({ description: "Nome canonico escolhido apos merge/dedup", required: false })
+    @Column({ type: "varchar", length: 255, nullable: true })
+    canonicalName: string | null;
+
+    @ApiProperty({ description: "Nome normalizado usado para matching de identidade", required: false })
+    @Column({ type: "varchar", length: 255, nullable: true })
+    normalizedName: string | null;
+
+    @ApiProperty({ description: "Venue normalizado usado para matching de identidade", required: false })
+    @Column({ type: "varchar", length: 255, nullable: true })
+    normalizedVenue: string | null;
+
+    @ApiProperty({ description: "ID canonico do venue, quando resolvido", required: false })
+    @Column({ type: "varchar", length: 36, nullable: true })
+    canonicalVenueId: string | null;
+
+    @ApiProperty({ description: "Evento canonico quando este registro for duplicado", required: false })
+    @Column({ type: "varchar", length: 36, nullable: true })
+    duplicateOfEventId: string | null;
+
+    @ApiProperty({ description: "Status de deduplicacao/canonicidade do evento", required: false })
+    @Column({ type: "varchar", length: 16, default: "canonical" })
+    dedupStatus: EventDedupStatus;
+
+    @ApiProperty({ description: "Confianca do matching de identidade", required: false })
+    @Column({ type: "decimal", precision: 5, scale: 4, nullable: true })
+    identityConfidence: number | null;
+
+    @ApiProperty({ description: "Quantidade de fontes associadas ao evento", required: false })
+    @Column({ type: "int", default: 0 })
+    sourceCount: number;
+
+    @ApiProperty({ description: "Ultima vez em que qualquer fonte viu este evento", required: false })
+    @Column({ type: "datetime", nullable: true })
+    lastSeenAt: Date | null;
+
     /**
      * Marca eventos que entraram sem lat/lng (geocoding lazy). Cron periódico
      * `EventsGeocoderService` pega rows com pendingGeocode=true e tenta
@@ -256,4 +299,3 @@ import {
     endereco: any;
     local: any;
   }
-  
