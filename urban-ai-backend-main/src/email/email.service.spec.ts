@@ -61,4 +61,35 @@ describe('EmailService pricing digest', () => {
     );
     expect(pricingDigest.markSent).not.toHaveBeenCalled();
   });
+
+  it('hydrates pricing digest items with property identity metadata', () => {
+    const { service } = makeService();
+
+    const item = (service as any).toPricingDigestItem({
+      title: 'Sugestões de preço disponíveis',
+      description: 'Geramos 2 sugestões de preço para a propriedade Apartamento em Perdizes.',
+      redirectTo: '/dashboard?propertyId=list-1',
+      metadata: {
+        propertyTitle: 'Apartamento em Perdizes',
+        propertyNickname: 'Perdizes 1Q',
+        propertyCode: 'PER-01',
+        propertyAddress: 'Rua Apiacás, 100, Perdizes, São Paulo - SP',
+        currentPrice: 220,
+        suggestedPrice: 286,
+        liftPercent: 30,
+        reasons: ['Show no Allianz a 1,4 km do imóvel.'],
+      },
+    });
+
+    expect(item).toMatchObject({
+      propertyTitle: 'Apartamento em Perdizes',
+      propertyNickname: 'Perdizes 1Q',
+      propertyCode: 'PER-01',
+      propertyAddress: 'Rua Apiacás, 100, Perdizes, São Paulo - SP',
+      currentPrice: 220,
+      suggestedPrice: 286,
+      liftPercent: 30,
+      reasons: ['Show no Allianz a 1,4 km do imóvel.'],
+    });
+  });
 });

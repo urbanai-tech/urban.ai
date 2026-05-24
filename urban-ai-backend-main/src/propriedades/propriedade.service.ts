@@ -98,6 +98,20 @@ type PublicPropertySetupStatus = {
     }>;
 };
 
+type PricingNotificationHighlight = {
+    eventName?: string | null;
+    eventDate?: string | null;
+    eventLocation?: string | null;
+    distanceKm?: number | null;
+    relevance?: number | null;
+    expectedAttendance?: number | null;
+    currentPrice?: number | null;
+    suggestedPrice?: number | null;
+    liftPercent?: number | null;
+    recommendation?: string | null;
+    reason?: string | null;
+};
+
 export class CreateAlertDto {
     @ApiProperty({ example: 12.9713964, description: 'Latitude do imóvel' })
     latitude: number;
@@ -1724,24 +1738,14 @@ export class PropriedadeService {
                 usuarioId: user.id,
                 username: user.username || '',
                 email: user.email || '',
-                eventosUnicosFuturos: eventosUnicos.size
+                eventosUnicosFuturos: eventosUnicos.size,
+                emailDisparado: false,
             };
 
             if (eventosUnicos.size > 0) {
-                this.logger.debug(`Usuario ${user.id} possui ${eventosUnicos.size} eventos futuros unicos analisados.`);
-
-                const enviado = await this.emailService.sendEmail(
-                    user?.email,
-                    user?.username,
-                    "Novos eventos futuros",
-                    eventosUnicos.size
+                this.logger.debug(
+                    `Usuario ${user.id} possui ${eventosUnicos.size} eventos futuros unicos analisados; e-mail legado suprimido.`,
                 );
-
-                if (enviado && enviado?.enviado) {
-                    this.logger.log(`Email de eventos futuros enviado para user=${user.id}`);
-                } else {
-                    this.logger.warn(`Falha ao enviar email de eventos futuros para user=${user.id}`);
-                }
             } else {
                 this.logger.debug(`Nenhum evento futuro disponivel para user=${user.id}`);
             }
@@ -1764,7 +1768,7 @@ export class PropriedadeService {
     }
 
     private buildPricingNotificationDescription(listTitle: string | undefined, created: number, updated: number) {
-        const propertyLabel = listTitle || 'imovel';
+        const propertyLabel = listTitle || 'imóvel';
         if (created > 0 && updated > 0) {
             return `Geramos ${this.formatSuggestionCount(created, 'nova')} e atualizamos ${this.formatSuggestionCount(updated)} para a propriedade ${propertyLabel}.`;
         }
@@ -1775,8 +1779,108 @@ export class PropriedadeService {
     }
 
     private formatSuggestionCount(count: number, qualifier?: string) {
-        const base = `${count} ${count === 1 ? 'sugestao' : 'sugestoes'} de preco`;
+        const base = `${count} ${count === 1 ? 'sugestão' : 'sugestões'} de preço`;
         return qualifier ? `${base} ${count === 1 ? qualifier : `${qualifier}s`}` : base;
+    }
+
+    private formatAddressForEmail(address: Address | null | undefined): string | undefined {
+        if (!address) return undefined;
+        const parts = [
+            address.logradouro && address.numero ? `${address.logradouro}, ${address.numero}` : address.logradouro || address.numero,
+            address.bairro,
+            address.cidade && address.estado ? `${address.cidade} - ${address.estado}` : address.cidade || address.estado,
+            address.cep ? `CEP ${address.cep}` : null,
+        ].filter(Boolean);
+        return parts.length ? parts.join(', ') : undefined;
+    }
+
+    private selectPrimaryPricingHighlight(highlights: PricingNotificationHighlight[]) {
+        return [...highlights].sort((left, right) => {
+            const relevanceDiff = Number(right.relevance ?? 0) - Number(left.relevance ?? 0);
+            if (relevanceDiff !== 0) return relevanceDiff;
+            return Math.abs(Number(right.liftPercent ?? 0)) - Math.abs(Number(left.liftPercent ?? 0));
+        })[0] || null;
+    }
+
+    private buildPricingDigestReasons(
+        highlights: PricingNotificationHighlight[],
+        created: number,
+        updated: number,
+    ): string[] {
+        const reasons: string[] = [];
+        const primary = this.selectPrimaryPricingHighlight(highlights);
+
+        if (primary?.eventName) {
+            const date = primary.eventDate ? ` em ${primary.eventDate}` : '';
+            const location = primary.eventLocation ? ` (${primary.eventLocation})` : '';
+            const relevance = Number.isFinite(Number(primary.relevance))
+                ? `, relevância ${Math.round(Number(primary.relevance))}/100`
+                : '';
+            reasons.push(`Principal sinal: ${primary.eventName}${date}${location}${relevance}.`);
+        }
+
+        if (primary && Number.isFinite(Number(primary.distanceKm))) {
+            const attendance = Number.isFinite(Number(primary.expectedAttendance))
+                ? ` e público estimado de ${Math.round(Number(primary.expectedAttendance)).toLocaleString('pt-BR')} pessoas`
+                : '';
+            reasons.push(`O evento mais forte está a ${Number(primary.distanceKm).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km do imóvel${attendance}.`);
+        }
+
+        if (
+            primary &&
+            Number.isFinite(Number(primary.currentPrice)) &&
+            Number.isFinite(Number(primary.suggestedPrice))
+        ) {
+            const lift = Number.isFinite(Number(primary.liftPercent))
+                ? ` (${Number(primary.liftPercent) > 0 ? '+' : ''}${Number(primary.liftPercent).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%)`
+                : '';
+            reasons.push(`Preço atual ${this.formatMoney(Number(primary.currentPrice))}; sugestão ${this.formatMoney(Number(primary.suggestedPrice))}${lift}.`);
+        }
+
+        const otherEvents = highlights
+            .filter((highlight) => highlight.eventName && highlight.eventName !== primary?.eventName)
+            .slice(0, 2)
+            .map((highlight) => highlight.eventName);
+        if (otherEvents.length) {
+            reasons.push(`Outros sinais na mesma janela: ${otherEvents.join(', ')}.`);
+        }
+
+        const recommendation = this.compactText(primary?.recommendation || primary?.reason);
+        if (recommendation) {
+            reasons.push(recommendation);
+        }
+
+        const roundParts = [
+            created > 0 ? this.formatSuggestionCount(created, 'nova') : null,
+            updated > 0 ? `${this.formatSuggestionCount(updated)} atualizadas` : null,
+        ].filter(Boolean);
+        if (roundParts.length) {
+            reasons.push(`${roundParts.join(' e ')} nesta rodada.`);
+        }
+
+        return reasons.slice(0, 4);
+    }
+
+    private compactText(value?: string | null): string | null {
+        const text = String(value || '').replace(/\s+/g, ' ').trim();
+        if (!text) return null;
+        return text.length > 180 ? `${text.slice(0, 177)}...` : text;
+    }
+
+    private formatMoney(value: number): string {
+        if (!Number.isFinite(value)) return 'R$ 0';
+        return `R$ ${Math.round(value).toLocaleString('pt-BR')}`;
+    }
+
+    private formatEventDateForEmail(value: Date | string | null | undefined): string | null {
+        if (!value) return null;
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return null;
+        return new Intl.DateTimeFormat('pt-BR', {
+            timeZone: 'America/Sao_Paulo',
+            day: '2-digit',
+            month: 'short',
+        }).format(date);
     }
 
     async buscarAddress(listId: string) {
@@ -1898,6 +2002,7 @@ export class PropriedadeService {
             let pricingSkippedPastEvent = 0;
             let pricingSkippedNoCoordinates = 0;
             const pricingSkippedEventQuality: Record<string, number> = {};
+            const pricingHighlights: PricingNotificationHighlight[] = [];
             const promises = pricingAnalyses.map((element, index) =>
                 limit(async () => {
                     try {
@@ -1940,6 +2045,19 @@ export class PropriedadeService {
                                     } else {
                                         pricingCreated++;
                                     }
+                                    pricingHighlights.push({
+                                        eventName: pricingResult.eventName,
+                                        eventDate: pricingResult.eventDate,
+                                        eventLocation: pricingResult.eventLocation,
+                                        distanceKm: pricingResult.distanceKm,
+                                        relevance: pricingResult.relevance,
+                                        expectedAttendance: pricingResult.expectedAttendance,
+                                        currentPrice: pricingResult.currentPrice,
+                                        suggestedPrice: pricingResult.suggestedPrice,
+                                        liftPercent: pricingResult.liftPercent,
+                                        recommendation: pricingResult.recommendation,
+                                        reason: pricingResult.reason,
+                                    });
                                 }
                             } else {
                                 pricingFailed++;
@@ -1966,24 +2084,38 @@ export class PropriedadeService {
             //await this.emailService.enviarEmailAvisandoQueOsDadosForamProcessados(address?.user?.email)
 
             const notificationContent: CreateNotificationDto = {
-                title: "Análise Finalizada",
-                description: "O Sistema analisou os eventos para a propriedade " + list?.titulo,
+                title: "Análise concluída",
+                description: `A Urban AI analisou os eventos para a propriedade ${list?.titulo || 'sem título'}.`,
                 redirectTo: "/dashboard",
-                sendEmail: true,
+                sendEmail: false,
                 sendPush: true,
                 pushType: 'property_analysis_finished',
                 pushTag: `property-analysis-${listId}`,
             };
             if (pricingGenerated > 0) {
-                notificationContent.title = "Sugestoes de preco disponiveis";
+                const primaryHighlight = this.selectPrimaryPricingHighlight(pricingHighlights);
+                notificationContent.title = "Sugestões de preço disponíveis";
                 notificationContent.description = this.buildPricingNotificationDescription(
                     list?.titulo,
                     pricingCreated,
                     pricingUpdated,
                 );
                 notificationContent.redirectTo = `/dashboard?propertyId=${encodeURIComponent(listId)}&source=pwa_push_pricing`;
+                notificationContent.sendEmail = true;
                 notificationContent.pushType = 'pricing_recommendation';
                 notificationContent.pushTag = `pricing-recommendation-${listId}`;
+                notificationContent.metadata = {
+                    propertyTitle: list?.titulo,
+                    propertyNickname: list?.internalNickname,
+                    propertyCode: list?.internalCode,
+                    propertyAddress: this.formatAddressForEmail(address),
+                    created: pricingCreated,
+                    updated: pricingUpdated,
+                    currentPrice: primaryHighlight?.currentPrice ?? null,
+                    suggestedPrice: primaryHighlight?.suggestedPrice ?? null,
+                    liftPercent: primaryHighlight?.liftPercent ?? null,
+                    reasons: this.buildPricingDigestReasons(pricingHighlights, pricingCreated, pricingUpdated),
+                };
             }
             if (pricingGenerated > 0 || pricingUnchanged === 0) {
                 await this.emailService.enviarNotification(address?.user?.id, notificationContent);
@@ -2254,13 +2386,13 @@ export class PropriedadeService {
                 percentualFinal = Number((((precoFinalSugerido - result.seuPrecoAtual) / result.seuPrecoAtual) * 100).toFixed(1));
                 recomendacaoFinal =
                     percentualFinal > 15
-                        ? 'AUMENTAR (preco abaixo do mercado/evento)'
+                        ? 'AUMENTAR (preço abaixo do mercado/evento)'
                         : percentualFinal > 5
                             ? 'Pode aumentar'
                             : Math.abs(percentualFinal) <= 5
                                 ? 'Manter'
-                                : 'Reduzir levemente (preco acima do sugerido)';
-                motivoDaIA = `${motivoDaIA ?? ''} Guardrail aplicado: sugestao limitada pelo ${guardrailDescription}.`;
+                                : 'Reduzir levemente (preço acima do sugerido)';
+                motivoDaIA = `${motivoDaIA ?? ''} Guardrail aplicado: sugestão limitada pelo ${guardrailDescription}.`;
             } else {
                 motivoDaIA = `${motivoDaIA ?? ''} Guardrail ativo: ${guardrailDescription}.`;
             }
@@ -2294,6 +2426,17 @@ export class PropriedadeService {
                     unchanged: true,
                     precoSugerido: precoFinalSugerido,
                     diferencaPercentual: percentualFinal,
+                    eventName: evento.nome,
+                    eventDate: this.formatEventDateForEmail(evento.dataInicio),
+                    eventLocation: [evento.cidade, evento.estado].filter(Boolean).join(' - '),
+                    distanceKm: distanceFromMyPropertyToEvent,
+                    relevance: evento.relevancia,
+                    expectedAttendance: publicoEsperado,
+                    currentPrice: result.seuPrecoAtual,
+                    suggestedPrice: precoFinalSugerido,
+                    liftPercent: percentualFinal,
+                    recommendation: recomendacaoFinal,
+                    reason: motivoDaIA,
                 };
             }
 
@@ -2310,6 +2453,17 @@ export class PropriedadeService {
                 updated: Boolean(existingAnalise),
                 precoSugerido: precoFinalSugerido,
                 diferencaPercentual: percentualFinal,
+                eventName: evento.nome,
+                eventDate: this.formatEventDateForEmail(evento.dataInicio),
+                eventLocation: [evento.cidade, evento.estado].filter(Boolean).join(' - '),
+                distanceKm: distanceFromMyPropertyToEvent,
+                relevance: evento.relevancia,
+                expectedAttendance: publicoEsperado,
+                currentPrice: result.seuPrecoAtual,
+                suggestedPrice: precoFinalSugerido,
+                liftPercent: percentualFinal,
+                recommendation: recomendacaoFinal,
+                reason: motivoDaIA,
             };
 
         } catch (err) {

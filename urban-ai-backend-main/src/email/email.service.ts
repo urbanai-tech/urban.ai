@@ -346,7 +346,7 @@ export class EmailService {
 
             await this.sendHtmlEmailOrThrow(
                 { email: usuario?.email, name: nome },
-                "Urban AI - Análise completed",
+                "Urban AI - Análise concluída",
                 htmlContent
             );
 
@@ -494,6 +494,8 @@ export class EmailService {
         return (
             type === 'pricing_recommendation' ||
             type === 'pricing_recommendation_digest' ||
+            title.includes('sugestões de preço') ||
+            title.includes('sugestão de preço') ||
             title.includes('sugestoes de preco') ||
             title.includes('sugestao de preco') ||
             title.includes('sugestoes disponiveis')
@@ -565,8 +567,8 @@ export class EmailService {
         const dashboardUrl = `${(process.env.FRONT_BASE_URL || 'https://app.myurbanai.com').replace(/\/$/, '')}/dashboard?source=pricing_digest_email`;
         const subject =
             items.length === 1
-                ? '1 sugestao de preco pronta - Urban AI'
-                : `${items.length} sugestoes de preco prontas - Urban AI`;
+                ? '1 recomendação de preço para revisar - Urban AI'
+                : `${items.length} recomendações de preço para revisar - Urban AI`;
 
         try {
             if (wantsEmail) {
@@ -584,10 +586,10 @@ export class EmailService {
 
             if (wantsPush) {
                 await this.pushNotificationService.sendToUser(digest.userId, {
-                    title: items.length === 1 ? 'Sugestao de preco pronta' : 'Sugestoes de preco prontas',
+                    title: items.length === 1 ? 'Recomendação de preço para revisar' : 'Recomendações de preço para revisar',
                     body: items.length === 1
-                        ? 'A Urban AI preparou uma recomendacao nova para revisar.'
-                        : `A Urban AI preparou ${items.length} recomendacoes para revisar em um so lugar.`,
+                        ? 'A Urban AI preparou uma recomendação nova para revisar.'
+                        : `A Urban AI preparou ${items.length} recomendações para revisar em um só lugar.`,
                     url: '/dashboard?source=pwa_push_pricing_digest',
                     tag: `pricing-digest-${new Date().toISOString().slice(0, 10)}`,
                     data: {
@@ -613,15 +615,30 @@ export class EmailService {
         const reasons = Array.isArray(metadata.reasons)
             ? metadata.reasons.filter((item) => typeof item === 'string').slice(0, 4)
             : [];
+        const propertyTitle =
+            this.metadataString(metadata.propertyTitle) ||
+            this.metadataString(metadata.listingTitle) ||
+            this.metadataString(metadata.propertyName) ||
+            this.extractPropertyTitle(notificationContent.description) ||
+            'Imóvel';
         return {
             notificationId,
-            title: notificationContent.title || 'Sugestao de preco',
-            description: notificationContent.description || 'Nova recomendacao disponivel para revisao.',
+            title: notificationContent.title || 'Sugestão de preço',
+            description: notificationContent.description || 'Nova recomendação disponível para revisão.',
             redirectTo: notificationContent.redirectTo || '/dashboard',
-            propertyTitle:
-                String(metadata.propertyTitle || metadata.listingTitle || metadata.propertyName || '').trim() ||
-                this.extractPropertyTitle(notificationContent.description) ||
-                'Imovel',
+            propertyTitle,
+            propertyNickname:
+                this.metadataString(metadata.propertyNickname) ||
+                this.metadataString(metadata.internalNickname),
+            propertyCode:
+                this.metadataString(metadata.propertyCode) ||
+                this.metadataString(metadata.internalCode),
+            propertyAddress:
+                this.metadataString(metadata.propertyAddress) ||
+                this.metadataString(metadata.address),
+            currentPrice: this.metadataNumber(metadata.currentPrice ?? metadata.seuPrecoAtual),
+            suggestedPrice: this.metadataNumber(metadata.suggestedPrice ?? metadata.precoSugerido),
+            liftPercent: this.metadataNumber(metadata.liftPercent ?? metadata.diferencaPercentual),
             reasons,
             createdAt: new Date().toISOString(),
         };
@@ -629,11 +646,21 @@ export class EmailService {
 
     private extractPropertyTitle(description?: string): string | null {
         if (!description) return null;
-        const match = description.match(/(?:imovel|imóvel)\s+(.+?)(?:\.|$)/i);
+        const match = description.match(/(?:imóvel|imovel)\s+(.+?)(?:\.|$)/i);
         return match?.[1]?.trim()?.slice(0, 120) || null;
     }
 
 
+
+    private metadataString(value: unknown): string | undefined {
+        const text = String(value ?? '').trim();
+        return text.length ? text.slice(0, 240) : undefined;
+    }
+
+    private metadataNumber(value: unknown): number | null {
+        const numberValue = Number(value);
+        return Number.isFinite(numberValue) ? numberValue : null;
+    }
 
     async compilarEventosUnicosUsuarios() {
         try {
@@ -646,6 +673,7 @@ export class EmailService {
                 username: string;
                 email: string;
                 eventosUnicos: number;
+                emailDisparado: boolean;
             }[] = [];
 
             for (const user of users) {
@@ -664,20 +692,16 @@ export class EmailService {
                     usuarioId: user.id,
                     username: user.username || '',
                     email: user.email || '',
-                    eventosUnicos: eventosUnicos.size
+                    eventosUnicos: eventosUnicos.size,
+                    emailDisparado: false,
                 });
 
                 if (eventosUnicos.size > 0) {
-                    this.logger.debug(`Usuario ${user.id} possui ${eventosUnicos.size} eventos unicos analisados.`);
-                    const enviado = await this.sendEmail(user?.email, user?.username, "Novos eventos", eventosUnicos.size)
-
-                    if (enviado && enviado?.enviado) {
-                        this.logger.log(`Email de eventos enviado para user=${user.id}`);
-                    } else {
-                        this.logger.warn(`Falha ao enviar email de eventos para user=${user.id}`);
-                    }
+                    this.logger.debug(
+                        `Usuario ${user.id} possui ${eventosUnicos.size} eventos unicos analisados; e-mail legado suprimido.`,
+                    );
                 } else {
-                    this.logger.debug(`Nenhum evento disponivel para envio para user=${user.id}`);
+                    this.logger.debug(`Nenhum evento disponivel para user=${user.id}`);
                 }
 
             }

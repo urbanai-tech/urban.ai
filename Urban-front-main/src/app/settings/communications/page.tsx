@@ -28,23 +28,23 @@ const ITEMS: Array<{
 }> = [
   {
     key: "emailPricing",
-    title: "E-mails de sugestao de preco",
-    body: "Resumo agrupado com recomendacoes, imoveis afetados e explicacao do motivo.",
+    title: "E-mails de sugestão de preço",
+    body: "Resumo agrupado somente quando houver recomendação acionável, com imóveis afetados e explicação do motivo.",
   },
   {
     key: "pushPricing",
-    title: "Push de sugestao de preco",
-    body: "Avisos curtos no dispositivo quando houver recomendacoes novas para revisar.",
+    title: "Push de sugestão de preço",
+    body: "Avisos curtos no dispositivo quando houver recomendações novas para revisar.",
   },
   {
     key: "weeklyReport",
     title: "Radar semanal de eventos",
-    body: "Relatorio semanal com eventos futuros relevantes para os seus imoveis.",
+    body: "Relatório semanal com eventos futuros relevantes para os seus imóveis.",
   },
   {
     key: "staysAlerts",
     title: "Alertas da Stays",
-    body: "Conexao, sincronizacao, falhas de aplicacao, bloqueios de guardrail e rollback.",
+    body: "Conexão, sincronização, falhas de aplicação, bloqueios de guardrail e rollback.",
   },
   {
     key: "billingAlerts",
@@ -54,8 +54,8 @@ const ITEMS: Array<{
   },
   {
     key: "marketing",
-    title: "Novidades e conteudo",
-    body: "Comunicacoes comerciais, lancamentos e materiais educativos.",
+    title: "Novidades e conteúdo",
+    body: "Comunicações comerciais, lançamentos e materiais educativos.",
   },
 ];
 
@@ -70,7 +70,7 @@ export default function CommunicationSettingsPage() {
       try {
         setPreferences(await fetchCommunicationPreferences());
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Nao foi possivel carregar preferencias.");
+        setError(err instanceof Error ? err.message : "Não foi possível carregar preferências.");
       } finally {
         setLoading(false);
       }
@@ -89,7 +89,7 @@ export default function CommunicationSettingsPage() {
       const updated = await updateCommunicationPreferences({ [key]: nextValue });
       setPreferences(updated);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Nao foi possivel salvar agora.");
+      setError(err instanceof Error ? err.message : "Não foi possível salvar agora.");
     } finally {
       setSaving(null);
     }
@@ -108,7 +108,7 @@ export default function CommunicationSettingsPage() {
       <AppPageShell maxWidth={900}>
         <AppEmptyState
           icon={<Icons.AlertCircle size={32} />}
-          title="Nao foi possivel carregar"
+          title="Não foi possível carregar"
           body={error || "Tente novamente em alguns instantes."}
         />
       </AppPageShell>
@@ -118,9 +118,9 @@ export default function CommunicationSettingsPage() {
   return (
     <AppPageShell maxWidth={920}>
       <AppSectionHeader
-        eyebrow="CONFIGURACOES · COMUNICACOES"
-        title="Preferencias de comunicacao"
-        subtitle="Controle quais avisos chegam por e-mail e push. Comunicacoes essenciais de seguranca, conta e cobranca continuam ativas."
+        eyebrow="CONFIGURAÇÕES · COMUNICAÇÕES"
+        title="Preferências de comunicação"
+        subtitle="Controle quais avisos chegam por e-mail e push. Comunicações essenciais de segurança, conta e cobrança continuam ativas."
       />
 
       {error && (
@@ -143,7 +143,7 @@ export default function CommunicationSettingsPage() {
       <AppCard variant="default" style={{ padding: 24 }}>
         <AppCardHeader
           title="Canais e categorias"
-          subtitle="Essas escolhas sao salvas na sua conta e passam a orientar os proximos disparos."
+          subtitle="Essas escolhas são salvas na sua conta e passam a orientar os próximos disparos."
         />
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
