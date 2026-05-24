@@ -4584,11 +4584,32 @@ export interface PortfolioEvent {
   impacto: PortfolioEventImpact;
 }
 
+export type PortfolioSignal =
+  | number
+  | {
+      value?: number | null;
+      score?: number | null;
+      amount?: number | null;
+      percent?: number | null;
+      percentage?: number | null;
+      label?: string | null;
+      title?: string | null;
+      description?: string | null;
+      reason?: string | null;
+      [key: string]: unknown;
+    };
+
 export interface PortfolioDay {
   date: string;
   sugestao: number | null;
   atual: number;
+  base?: number | null;
   evento: PortfolioEvent | null;
+  strategyApplied?: unknown;
+  opportunity?: PortfolioSignal | null;
+  risk?: PortfolioSignal | string | null;
+  lift?: PortfolioSignal | null;
+  confidence?: PortfolioSignal | string | number | null;
 }
 
 export interface PortfolioProperty {
@@ -4596,10 +4617,19 @@ export interface PortfolioProperty {
   name: string;
   thumbnail: string | null;
   days: PortfolioDay[];
+  strategyApplied?: unknown;
+  opportunity?: PortfolioSignal | null;
+  risk?: PortfolioSignal | string | null;
+  lift?: PortfolioSignal | null;
+  confidence?: PortfolioSignal | string | number | null;
 }
 
 export interface PortfolioCalendarResponse {
   properties: PortfolioProperty[];
+  summary?: Record<string, unknown> | null;
+  opportunities?: PortfolioOpportunity[] | null;
+  actionRuns?: PortfolioActionRun[] | null;
+  range?: { from: string; to: string; days: number } | null;
 }
 
 export interface PortfolioCalendarInput {
@@ -4647,13 +4677,18 @@ export async function fetchPortfolioCalendar(
 export type PortfolioBulkAction =
   | 'apply-strategy'
   | 'set-base-price'
+  | 'set-date-price'
   | 'accept-suggestions'
+  | 'apply-internal'
   | string;
 
 export interface PortfolioBulkActionInput {
   propertyIds: string[];
   action: PortfolioBulkAction;
   payload?: Record<string, unknown>;
+  dates?: string[];
+  from?: string;
+  to?: string;
 }
 
 export interface PortfolioBulkActionFailure {
@@ -4662,9 +4697,146 @@ export interface PortfolioBulkActionFailure {
 }
 
 export interface PortfolioBulkActionResponse {
-  applied: number;
-  failed: PortfolioBulkActionFailure[];
-  auditLogId: string;
+  applied?: number;
+  failed?: PortfolioBulkActionFailure[];
+  auditLogId?: string | null;
+  actionRunId?: string | null;
+  status?: string;
+  summary?: Record<string, unknown> | null;
+}
+
+export interface PortfolioActionTarget {
+  propertyId: string;
+  date?: string;
+}
+
+export interface PortfolioActionSnapshot {
+  revenue?: number | null;
+  totalRevenue?: number | null;
+  projectedRevenue?: number | null;
+  averagePrice?: number | null;
+  changedDays?: number | null;
+  changedProperties?: number | null;
+  [key: string]: unknown;
+}
+
+export interface PortfolioActionSimulationItem {
+  propertyId?: string;
+  propertyName?: string | null;
+  date?: string | null;
+  before?: number | Record<string, unknown> | null;
+  after?: number | Record<string, unknown> | null;
+  status?: string | null;
+  estimatedLift?: number | null;
+  applied?: boolean;
+  reason?: string | null;
+  [key: string]: unknown;
+}
+
+export interface PortfolioActionSimulationResponse {
+  action?: PortfolioBulkAction;
+  before?: PortfolioActionSnapshot | null;
+  after?: PortfolioActionSnapshot | null;
+  applied?: number | PortfolioActionSimulationItem[];
+  failed?: PortfolioBulkActionFailure[];
+  changes?: PortfolioActionSimulationItem[];
+  items?: PortfolioActionSimulationItem[];
+  summary?: (PortfolioActionSnapshot & {
+    estimatedLift?: number | null;
+    affectedProperties?: number | null;
+    affectedDates?: number | null;
+  }) | null;
+  simulated?: boolean;
+}
+
+export interface PortfolioOpportunity {
+  id?: string;
+  propertyId?: string;
+  propertyName?: string | null;
+  date?: string | null;
+  dates?: string[];
+  recommendedDates?: string[];
+  targetDates?: string[];
+  title?: string | null;
+  description?: string | null;
+  reason?: string | null;
+  recommendedAction?: string | null;
+  strategyApplied?: unknown;
+  opportunity?: PortfolioSignal | null;
+  risk?: PortfolioSignal | string | null;
+  lift?: PortfolioSignal | null;
+  confidence?: PortfolioSignal | string | number | null;
+  currentPrice?: number | null;
+  suggestedPrice?: number | null;
+  [key: string]: unknown;
+}
+
+export interface PortfolioActionRun {
+  id: string;
+  action: PortfolioBulkAction;
+  status?: 'simulated' | 'applied' | 'failed' | 'partial' | string;
+  applied?: number | null;
+  failed?: number | PortfolioBulkActionFailure[] | null;
+  auditLogId?: string | null;
+  actionRunId?: string | null;
+  propertyIds?: string[];
+  selectedPropertyIds?: string[];
+  targetDates?: string[];
+  targets?: PortfolioActionTarget[];
+  strategyApplied?: string | null;
+  actorName?: string | null;
+  actorEmail?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  summary?: Record<string, unknown> | null;
+}
+
+export interface PortfolioOpportunitiesResponse {
+  range?: { from: string; to: string; days: number } | null;
+  summary?: {
+    opportunities?: number;
+    estimatedLift?: number;
+    affectedProperties?: number;
+    averageRisk?: number;
+    topLift?: number;
+    [key: string]: unknown;
+  } | null;
+  opportunities: PortfolioOpportunity[];
+}
+
+export async function fetchPortfolioOpportunities(
+  input: PortfolioCalendarInput,
+): Promise<PortfolioOpportunitiesResponse> {
+  try {
+    const { data } = await api.get<PortfolioOpportunitiesResponse>('/portfolio/opportunities', {
+      params: {
+        from: input.from,
+        to: input.to,
+        propertyIds: input.propertyIds?.join(',') || undefined,
+        strategy: input.strategy && input.strategy !== 'todas' ? input.strategy : undefined,
+      },
+    });
+    return data ?? { opportunities: [] };
+  } catch (err) {
+    console.warn('[fetchPortfolioOpportunities] endpoint indisponivel:', err);
+    throw err;
+  }
+}
+
+export async function simulatePortfolioAction(
+  input: PortfolioBulkActionInput,
+): Promise<PortfolioActionSimulationResponse> {
+
+  try {
+    const { data } = await api.post<PortfolioActionSimulationResponse>(
+      '/portfolio/simulate-action',
+      input,
+    );
+    return { ...(data ?? {}), simulated: data?.simulated ?? true };
+  } catch (err) {
+    console.warn('[simulatePortfolioAction] endpoint indisponivel:', err);
+    throw err;
+  }
 }
 
 export async function mutatePortfolioBulkAction(
@@ -4676,6 +4848,25 @@ export async function mutatePortfolioBulkAction(
     return data;
   } catch (err) {
     console.warn('[mutatePortfolioBulkAction] endpoint indisponivel:', err);
+    throw err;
+  }
+}
+
+export async function fetchPortfolioActionRuns(limit = 8): Promise<PortfolioActionRun[]> {
+  try {
+    const { data } = await api.get<
+      PortfolioActionRun[] | { runs?: PortfolioActionRun[]; items?: PortfolioActionRun[] }
+    >('/portfolio/action-runs', {
+      params: { limit },
+    });
+    if (Array.isArray(data)) return data;
+    return data?.runs ?? data?.items ?? [];
+  } catch (err) {
+    const status = (err as any)?.response?.status;
+    if (status === 404 || status === 405 || status === 501) {
+      console.warn('[fetchPortfolioActionRuns] endpoint indisponivel:', err);
+      return [];
+    }
     throw err;
   }
 }
