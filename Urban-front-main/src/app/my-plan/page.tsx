@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import SubscriptionCards, { Subscription } from "../componentes/Subscription";
 import {
   AppPageShell,
@@ -25,6 +26,7 @@ function remainingQuota(quota: ListingsQuota) {
 
 export default function SubscriptionsPage() {
   const toast = useToastCompat();
+  const router = useRouter();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [quota, setQuota] = useState<ListingsQuota | null>(null);
   const [quotaError, setQuotaError] = useState<string | null>(null);
@@ -123,10 +125,31 @@ export default function SubscriptionsPage() {
   if (!subscription) {
     return (
       <AppPageShell>
-        <AppCard>
-          <p style={{ color: "var(--app-text-muted)", margin: 0 }}>
-            Nenhuma assinatura encontrada.
-          </p>
+        <AppCard variant="accent">
+          <div style={{ display: "grid", gap: 12 }}>
+            <AppSectionHeader
+              eyebrow="ASSINATURA"
+              title="Nenhuma assinatura encontrada"
+              subtitle="Escolha quantos imoveis quer contratar e ative o checkout self-service."
+            />
+            <button
+              type="button"
+              onClick={() => router.push("/plans?source=my-plan")}
+              style={{
+                width: "fit-content",
+                minHeight: 42,
+                padding: "0 16px",
+                borderRadius: 8,
+                border: "1px solid var(--app-accent)",
+                background: "var(--app-accent)",
+                color: "#fff",
+                fontWeight: 800,
+                cursor: "pointer",
+              }}
+            >
+              Escolher quantidade e periodo
+            </button>
+          </div>
         </AppCard>
       </AppPageShell>
     );
@@ -204,6 +227,35 @@ export default function SubscriptionsPage() {
             </AppCard>
           </div>
         )}
+
+        <AppCard style={{ marginBottom: 24 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: 18, color: "var(--app-text)" }}>
+                Precisa mudar a quantidade?
+              </h3>
+              <p style={{ margin: "6px 0 0", color: "var(--app-text-muted)", fontSize: 14 }}>
+                Abra o seletor self-service para contratar mais imoveis ou mudar o periodo.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => router.push("/plans?source=my-plan")}
+              style={{
+                minHeight: 42,
+                padding: "0 16px",
+                borderRadius: 8,
+                border: "1px solid var(--app-accent)",
+                background: "var(--app-accent)",
+                color: "#fff",
+                fontWeight: 800,
+                cursor: "pointer",
+              }}
+            >
+              Ajustar assinatura
+            </button>
+          </div>
+        </AppCard>
 
         <SubscriptionCards
           cancelLoading={cancelLoading}

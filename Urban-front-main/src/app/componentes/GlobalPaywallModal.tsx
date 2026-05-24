@@ -1,17 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from "react";
-import { loadStripe } from "@stripe/stripe-js";
 import {
-  createCheckoutSession,
   getPlans,
   getPropriedadesDropdownList,
-  getFriendlyApiErrorMessage,
   Plan,
 } from "../service/api";
-import { AppBadge, AppButton, Icons } from "./ui";
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+import { Icons } from "./ui";
+import { PricingSelfServiceCalculator } from "./PricingCalculatorV2";
+import { selectPlanForQuantity } from "../lib/pricingSelfService";
 
 interface GlobalPaywallModalProps {
   isOpen: boolean;
@@ -22,12 +19,9 @@ function LoadingSpinner() {
 }
 
 export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAnnual, setIsAnnual] = useState(true);
   const [propertyCount, setPropertyCount] = useState<number>(0);
-  const [recommendedPlan, setRecommendedPlan] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -43,14 +37,6 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
         setPlans(plansData);
         const count = propsData?.length || 0;
         setPropertyCount(count);
-
-        let recommended = "escala";
-        if (count <= 3) {
-          recommended = "starter";
-        } else if (count <= 10) {
-          recommended = "profissional";
-        }
-        setRecommendedPlan(recommended);
       })
       .catch((err) => {
         console.error("Erro ao buscar planos/propriedades:", err);
@@ -60,41 +46,11 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
       });
   }, [isOpen]);
 
-  async function handleCheckout(plan: Plan) {
-    if (plan.isCustomPrice) {
-      window.open("https://wa.me/seunumerodevendas", "_blank");
-      return;
-    }
-
-    try {
-      setCheckoutError(null);
-      setLoadingPlan(plan.name);
-      const billingCycle = isAnnual ? "annual" : "monthly";
-      const quantity = Math.max(1, Number(propertyCount) || 1);
-      const { sessionId } = await createCheckoutSession(plan.name, billingCycle, quantity);
-      const stripe = await stripePromise;
-
-      if (stripe) {
-        await stripe.redirectToCheckout({ sessionId });
-      } else {
-        setCheckoutError("Nao foi possivel abrir o checkout agora. Recarregue a pagina e tente novamente.");
-      }
-    } catch (err) {
-      console.error(err);
-      setCheckoutError(getFriendlyApiErrorMessage(err, "Nao foi possivel iniciar o pagamento agora. Tente novamente em alguns instantes."));
-    } finally {
-      setLoadingPlan(null);
-    }
-  }
-
   if (!isOpen) return null;
 
-  const recommendedLabel =
-    recommendedPlan === "starter"
-      ? "Starter"
-      : recommendedPlan === "profissional"
-        ? "Profissional"
-        : "Escala";
+  const activePlans = plans.filter((plan) => plan.isActive);
+  const recommendedPlan = selectPlanForQuantity(activePlans, Math.max(1, propertyCount || 1));
+  const recommendedLabel = recommendedPlan?.title ?? "a faixa correta";
 
   return (
     <div className="global-paywall-overlay" role="dialog" aria-modal="true">
@@ -113,95 +69,25 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
             <Icons.Info size={18} />
             <p>
               <strong>Voce possui {propertyCount} imoveis sincronizados.</strong>{" "}
-              Recomendamos o plano <strong>{recommendedLabel}</strong> para nao perder a
-              sincronizacao de nenhuma unidade.
+              A faixa <strong>{recommendedLabel}</strong> sera aplicada automaticamente
+              no checkout self-service.
             </p>
           </div>
         )}
-
-        <div className="global-paywall-toggle" aria-label="Ciclo de cobranca">
-          <span className={!isAnnual ? "active" : ""}>Mensal</span>
-          <label className="global-paywall-switch">
-            <input
-              id="billing-toggle"
-              type="checkbox"
-              checked={isAnnual}
-              onChange={(event) => setIsAnnual(event.target.checked)}
-            />
-            <span />
-          </label>
-          <span className={isAnnual ? "active" : ""}>Anual</span>
-          <AppBadge kind="success">Economize 20%</AppBadge>
-        </div>
 
         {loading ? (
           <div className="global-paywall-loading">
             <LoadingSpinner />
           </div>
         ) : (
-          <div className="global-paywall-grid" data-count={plans.length}>
-            {plans.map((plan) => (
-              <article
-                className={`global-paywall-plan${plan.highlightBadge ? " is-highlighted" : ""}`}
-                key={plan.id}
-              >
-                {plan.highlightBadge && (
-                  <div className="global-paywall-ribbon">{plan.highlightBadge}</div>
-                )}
-
-                <div className="global-paywall-plan-body">
-                  <h3>{plan.title}</h3>
-
-                  <div className="global-paywall-price">
-                    {((isAnnual && plan.originalPriceAnnual) || (!isAnnual && plan.originalPrice)) && (
-                      <div className="global-paywall-original">
-                        R${" "}
-                        {isAnnual && plan.originalPriceAnnual
-                          ? plan.originalPriceAnnual
-                          : plan.originalPrice}{" "}
-                        {plan.period}
-                      </div>
-                    )}
-
-                    {!plan.isCustomPrice ? (
-                      <div className="global-paywall-current">
-                        <strong>
-                          R$ {isAnnual && plan.priceAnnual ? plan.priceAnnual : plan.price}
-                        </strong>
-                        {plan.period && <span>{plan.period}</span>}
-                        {plan.discountBadge && (
-                          <AppBadge kind="error" style={{ letterSpacing: 0 }}>
-                            {plan.discountBadge}
-                          </AppBadge>
-                        )}
-                      </div>
-                    ) : (
-                      <strong className="global-paywall-consult">Sob consulta</strong>
-                    )}
-                  </div>
-
-                  <AppButton
-                    fullWidth
-                    loading={loadingPlan === plan.name}
-                    onClick={() => handleCheckout(plan)}
-                    variant={plan.highlightBadge ? "primary" : "secondary"}
-                    style={{ whiteSpace: "normal", minHeight: 42 }}
-                  >
-                    {plan.isCustomPrice ? "Fale com consultor" : "Selecionar plano"}
-                  </AppButton>
-
-                  <ul className="global-paywall-features">
-                    {plan.features.map((feat) => (
-                      <li key={feat}>
-                        <Icons.Check size={15} />
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </article>
-            ))}
-          </div>
+          <PricingSelfServiceCalculator
+            plans={activePlans}
+            initialQuantity={Math.max(1, propertyCount || 1)}
+            surface="light"
+            compact
+            title="Ajuste sua assinatura"
+            subtitle="Escolha a quantidade de imoveis e o periodo. O plano certo entra sozinho."
+          />
         )}
       </section>
 

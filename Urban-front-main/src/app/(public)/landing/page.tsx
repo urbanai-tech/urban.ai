@@ -736,7 +736,7 @@ function PricingTeaser() {
           <PriceColumn
             name="Starter"
             price="R$ 97"
-            suffix="/imóvel/mês"
+            suffix="/imóvel/mês no anual"
             tagline="1 a 3 imóveis"
             features={[
               "Análises ilimitadas",
@@ -748,8 +748,8 @@ function PricingTeaser() {
           <PriceColumn
             name="Profissional"
             price="R$ 67"
-            suffix="/imóvel/mês"
-            tagline="A partir de 4 imóveis"
+            suffix="/imóvel/mês no anual"
+            tagline="4 a 500 imóveis self-service"
             highlight
             features={[
               "Tudo do Starter",
@@ -762,7 +762,7 @@ function PricingTeaser() {
             name="Escala"
             price="Sob consulta"
             suffix=""
-            tagline="20+ imóveis ou rede"
+            tagline="501+ imóveis ou rede"
             features={[
               "Onboarding dedicado",
               "SLA personalizado",

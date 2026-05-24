@@ -1,129 +1,133 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import type { BillingCycle, Plan } from "../service/api";
 import { createCheckoutSession, getFriendlyApiErrorMessage } from "../service/api";
+import {
+  BILLING_CYCLE_META,
+  BILLING_CYCLES,
+  calculatePricingQuote,
+  firstSelfServicePlan,
+  formatMoney,
+  formatQuantityRange,
+  maxCheckoutQuantity,
+  minProperties,
+  planMatchesQuantity,
+  priceForCycle,
+  selectPlanForQuantity,
+  sortPricingPlans,
+} from "../lib/pricingSelfService";
 import { Check } from "./ui/Icons";
 
-/**
- * Calculadora de preco F6.5: cobranca por imovel x 4 ciclos com desconto.
- *
- * Mantem a estetica manifesto da tela /plans sem depender de classes Tailwind.
- */
+type PricingSurface = "dark" | "light";
 
-const CYCLES: { value: BillingCycle; label: string; mesesNoCiclo: number }[] = [
-  { value: "monthly", label: "Mensal", mesesNoCiclo: 1 },
-  { value: "quarterly", label: "Trimestral", mesesNoCiclo: 3 },
-  { value: "semestral", label: "Semestral", mesesNoCiclo: 6 },
-  { value: "annual", label: "Anual", mesesNoCiclo: 12 },
-];
+interface PricingSelfServiceCalculatorProps {
+  plans: Plan[];
+  initialQuantity?: number;
+  initialCycle?: BillingCycle;
+  surface?: PricingSurface;
+  title?: string;
+  subtitle?: string;
+  compact?: boolean;
+}
 
-const QUANTITY_PRESETS = [1, 3, 5, 10];
+const DEFAULT_PRESETS = [1, 3, 5, 10, 20, 50, 100];
+
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
   : null;
 
-const cardStyle: CSSProperties = {
-  padding: 24,
-  border: "1px solid rgba(255,255,255,0.12)",
-  borderRadius: 16,
-  background: "rgba(15,23,42,0.42)",
-  boxShadow: "0 18px 45px rgba(0,0,0,0.24)",
-};
-
-const labelStyle: CSSProperties = {
-  margin: "0 0 8px",
-  fontSize: 14,
-  fontWeight: 650,
-  color: "rgba(248,250,252,0.72)",
-};
-
-const mutedTextStyle: CSSProperties = {
-  margin: 0,
-  fontSize: 14,
-  color: "rgba(248,250,252,0.68)",
-  lineHeight: 1.55,
-};
-
-const smallMutedStyle: CSSProperties = {
-  fontSize: 12,
-  color: "rgba(248,250,252,0.42)",
-};
-
-function optionButtonStyle(selected: boolean): CSSProperties {
+function theme(surface: PricingSurface) {
+  const dark = surface === "dark";
   return {
-    minHeight: 46,
-    padding: "8px 12px",
-    borderRadius: 10,
-    border: selected
-      ? "1px solid rgba(232,80,10,0.72)"
-      : "1px solid rgba(148,163,184,0.28)",
-    background: selected ? "rgba(232,80,10,0.14)" : "rgba(15,23,42,0.54)",
-    color: selected ? "#FFE4D6" : "rgba(248,250,252,0.76)",
-    fontSize: 14,
-    fontWeight: 650,
-    cursor: "pointer",
-    transition: "border-color 140ms, background 140ms",
+    cardBg: dark ? "rgba(15,23,42,0.42)" : "#FFFFFF",
+    cardBorder: dark ? "rgba(255,255,255,0.12)" : "rgba(15,23,42,0.12)",
+    panelBg: dark ? "rgba(2,6,23,0.50)" : "rgba(248,250,252,0.82)",
+    text: dark ? "#F8FAFC" : "var(--app-text, #111827)",
+    muted: dark ? "rgba(248,250,252,0.68)" : "var(--app-text-muted, #64748B)",
+    faint: dark ? "rgba(248,250,252,0.42)" : "#94A3B8",
+    accent: "#E8500A",
+    accentSoft: dark ? "rgba(232,80,10,0.14)" : "rgba(232,80,10,0.10)",
+    optionBg: dark ? "rgba(15,23,42,0.54)" : "#FFFFFF",
+    optionBorder: dark ? "rgba(148,163,184,0.28)" : "rgba(15,23,42,0.14)",
   };
 }
 
-function priceForCycle(plan: Plan, cycle: BillingCycle): number {
-  const raw =
-    cycle === "monthly"
-      ? plan.priceMonthly
-      : cycle === "quarterly"
-        ? plan.priceQuarterly
-        : cycle === "semestral"
-          ? plan.priceSemestral
-          : plan.priceAnnualNew;
-  if (!raw) return 0;
-  return Number(String(raw).replace(",", "."));
+function cardStyle(surface: PricingSurface, compact?: boolean): CSSProperties {
+  const t = theme(surface);
+  return {
+    padding: compact ? 20 : 24,
+    border: `1px solid ${t.cardBorder}`,
+    borderRadius: surface === "dark" ? 12 : 8,
+    background: t.cardBg,
+    boxShadow: surface === "dark" ? "0 18px 45px rgba(0,0,0,0.24)" : "0 18px 40px rgba(15,23,42,0.08)",
+    color: t.text,
+  };
 }
 
-function discountForCycle(plan: Plan, cycle: BillingCycle): number {
-  switch (cycle) {
-    case "quarterly":
-      return plan.discountQuarterlyPercent ?? 0;
-    case "semestral":
-      return plan.discountSemestralPercent ?? 0;
-    case "annual":
-      return plan.discountAnnualPercent ?? 0;
-    default:
-      return 0;
-  }
+function optionButtonStyle(selected: boolean, surface: PricingSurface): CSSProperties {
+  const t = theme(surface);
+  return {
+    minHeight: 44,
+    padding: "8px 12px",
+    borderRadius: 8,
+    border: selected ? "1px solid rgba(232,80,10,0.78)" : `1px solid ${t.optionBorder}`,
+    background: selected ? t.accentSoft : t.optionBg,
+    color: selected ? t.accent : t.text,
+    fontSize: 14,
+    fontWeight: 700,
+    cursor: "pointer",
+  };
 }
 
-export function PricingCalculatorV2({ plan }: { plan: Plan }) {
-  const [cycle, setCycle] = useState<BillingCycle>("annual");
-  const [quantity, setQuantity] = useState<number>(1);
+function clampQuantity(value: number, max: number): number {
+  if (!Number.isFinite(value)) return 1;
+  return Math.max(1, Math.min(max, Math.floor(value)));
+}
+
+function resolveMaxQuantity(plans: Plan[]): number {
+  const maxes = plans
+    .filter((plan) => plan.selfServiceEnabled !== false && !plan.isCustomPrice)
+    .map(maxCheckoutQuantity)
+    .filter((value): value is number => typeof value === "number" && value > 0);
+  return Math.max(1, Math.min(500, maxes.length ? Math.max(...maxes) : 500));
+}
+
+export function PricingSelfServiceCalculator({
+  plans,
+  initialQuantity,
+  initialCycle = "annual",
+  surface = "dark",
+  title = "Escolha quantidade e periodo",
+  subtitle = "O plano e aplicado automaticamente pela quantidade de imoveis.",
+  compact = false,
+}: PricingSelfServiceCalculatorProps) {
+  const sortedPlans = useMemo(() => sortPricingPlans(plans).filter((plan) => plan.isActive), [plans]);
+  const firstPlan = firstSelfServicePlan(sortedPlans);
+  const maxQuantity = resolveMaxQuantity(sortedPlans);
+  const defaultQuantity = initialQuantity ?? (firstPlan ? minProperties(firstPlan) : 1);
+  const [quantity, setQuantity] = useState(() => clampQuantity(defaultQuantity, maxQuantity));
+  const [cycle, setCycle] = useState<BillingCycle>(initialCycle);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (plan.isCustomPrice) {
-    return (
-      <div style={{ ...cardStyle, borderRadius: 12 }}>
-        <p style={mutedTextStyle}>
-          Plano <strong>{plan.title}</strong> tem preco sob consulta. Fale com a gente em{" "}
-          <a
-            href="mailto:comercial@myurbanai.com"
-            style={{ color: "#E8500A", fontWeight: 700 }}
-          >
-            comercial@myurbanai.com
-          </a>
-          .
-        </p>
-      </div>
-    );
-  }
+  const selectedPlan = selectPlanForQuantity(sortedPlans, quantity);
+  const consultPlan =
+    sortedPlans.find((plan) => planMatchesQuantity(plan, quantity)) ??
+    sortedPlans.find((plan) => plan.isCustomPrice || plan.selfServiceEnabled === false) ??
+    null;
+  const activePlan = selectedPlan ?? consultPlan;
+  const quote = selectedPlan ? calculatePricingQuote(selectedPlan, quantity, cycle) : null;
+  const presets = DEFAULT_PRESETS.filter((value) => value <= maxQuantity);
+  const t = theme(surface);
 
-  const pricePerImovelMes = priceForCycle(plan, cycle);
-  const discount = discountForCycle(plan, cycle);
-  const cycleMeta = CYCLES.find((c) => c.value === cycle)!;
-  const totalNoCiclo = pricePerImovelMes * quantity * cycleMeta.mesesNoCiclo;
-  const totalMensalEquivalente = pricePerImovelMes * quantity;
+  async function handleCheckout() {
+    if (!selectedPlan || !quote) {
+      window.open("mailto:comercial@myurbanai.com", "_blank");
+      return;
+    }
 
-  async function handleSubscribe() {
     setBusy(true);
     setError(null);
     try {
@@ -131,237 +135,229 @@ export function PricingCalculatorV2({ plan }: { plan: Plan }) {
         throw new Error("Checkout indisponivel: chave publica Stripe nao configurada.");
       }
 
-      const { sessionId } = await createCheckoutSession(plan.name, cycle, quantity);
+      const { sessionId } = await createCheckoutSession("auto", cycle, quantity);
       const stripe = await stripePromise;
-      if (!stripe) {
-        throw new Error("Checkout indisponivel: Stripe.js nao carregou.");
-      }
+      if (!stripe) throw new Error("Checkout indisponivel: Stripe.js nao carregou.");
 
       const result = await stripe.redirectToCheckout({ sessionId });
-      if (result.error) {
-        throw new Error("Nao foi possivel abrir o checkout agora.");
-      }
+      if (result.error) throw new Error("Nao foi possivel abrir o checkout agora.");
     } catch (err) {
-      setError(getFriendlyApiErrorMessage(err, "Nao foi possivel iniciar o checkout agora. Tente novamente em alguns instantes."));
+      setError(
+        getFriendlyApiErrorMessage(
+          err,
+          "Nao foi possivel iniciar o checkout agora. Tente novamente em alguns instantes.",
+        ),
+      );
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <div style={{ ...cardStyle, display: "flex", flexDirection: "column", gap: 24 }}>
-      <header style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16 }}>
-        <div>
-          <h3 style={{ margin: 0, fontSize: 24, lineHeight: 1.15, fontWeight: 800 }}>
-            {plan.title}
-          </h3>
-          {plan.highlightBadge && (
-            <span
-              style={{
-                display: "inline-block",
-                marginTop: 6,
-                fontSize: 12,
-                fontWeight: 800,
-                color: "#FFB088",
-                textTransform: "uppercase",
-                letterSpacing: 1.8,
-              }}
-            >
-              {plan.highlightBadge}
-            </span>
-          )}
-        </div>
-        {discount > 0 && (
-          <span
-            style={{
-              padding: "4px 8px",
-              borderRadius: 6,
-              background: "rgba(232,80,10,0.16)",
-              color: "#FFB088",
-              fontSize: 12,
-              fontWeight: 800,
-              whiteSpace: "nowrap",
-            }}
-          >
-            -{discount}%
-          </span>
-        )}
+    <section style={{ ...cardStyle(surface, compact), display: "grid", gap: compact ? 18 : 22 }}>
+      <header style={{ display: "grid", gap: 8 }}>
+        <p style={{ margin: 0, color: t.faint, fontSize: 11, fontWeight: 800, letterSpacing: 2.2, textTransform: "uppercase" }}>
+          Self-service por imovel
+        </p>
+        <h3 style={{ margin: 0, color: t.text, fontSize: compact ? 24 : 30, lineHeight: 1.05 }}>
+          {title}
+        </h3>
+        <p style={{ margin: 0, color: t.muted, fontSize: 14, lineHeight: 1.55 }}>
+          {subtitle}
+        </p>
       </header>
-
-      <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-        <legend style={labelStyle}>Ciclo de cobranca</legend>
-        <div
-          role="radiogroup"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(104px, 1fr))",
-            gap: 8,
-          }}
-        >
-          {CYCLES.map((c) => {
-            const selected = cycle === c.value;
-            const cycleDiscount = discountForCycle(plan, c.value);
-            return (
-              <button
-                key={c.value}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                onClick={() => setCycle(c.value)}
-                style={{
-                  ...optionButtonStyle(selected),
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <span>{c.label}</span>
-                {cycleDiscount > 0 ? (
-                  <span style={{ fontSize: 12, color: "#FFB088" }}>-{cycleDiscount}%</span>
-                ) : (
-                  <span style={smallMutedStyle}>base</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </fieldset>
-
-      <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-        <legend style={labelStyle}>Quantos imoveis?</legend>
-        <div
-          role="radiogroup"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-            gap: 8,
-            marginBottom: 8,
-          }}
-        >
-          {QUANTITY_PRESETS.map((n) => {
-            const selected = quantity === n;
-            return (
-              <button
-                key={n}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                onClick={() => setQuantity(n)}
-                style={optionButtonStyle(selected)}
-              >
-                {n}
-              </button>
-            );
-          })}
-        </div>
-        <label
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            fontSize: 14,
-            color: "rgba(248,250,252,0.58)",
-          }}
-        >
-          ou
-          <input
-            type="number"
-            min={1}
-            max={500}
-            value={quantity}
-            onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value || "1", 10)))}
-            aria-label="Quantidade customizada de imoveis"
-            style={{
-              width: 80,
-              padding: "6px 8px",
-              borderRadius: 8,
-              border: "1px solid rgba(148,163,184,0.28)",
-              background: "rgba(15,23,42,0.78)",
-              color: "#F8FAFC",
-            }}
-          />
-          custom
-        </label>
-      </fieldset>
 
       <div
         style={{
-          padding: 16,
-          borderRadius: 10,
-          border: "1px solid rgba(255,255,255,0.08)",
-          background: "rgba(2,6,23,0.50)",
-          display: "flex",
-          flexDirection: "column",
-          gap: 6,
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
+          gap: 18,
         }}
       >
-        <p style={mutedTextStyle}>
-          Preco por imovel: <strong style={{ color: "#F8FAFC" }}>R$ {pricePerImovelMes.toFixed(2)}/mes</strong>
-        </p>
-        <p style={mutedTextStyle}>
-          Total mensal equivalente ({quantity} imoveis):{" "}
-          <strong style={{ color: "#F8FAFC" }}>R$ {totalMensalEquivalente.toFixed(2)}</strong>
-        </p>
-        <p style={{ margin: 0, fontSize: 16, color: "#FFB088" }}>
-          Cobranca no ciclo {cycleMeta.label.toLowerCase()}: <strong>R$ {totalNoCiclo.toFixed(2)}</strong>
-        </p>
-        {discount > 0 && (
-          <p style={smallMutedStyle}>
-            Voce economiza R${" "}
-            {(pricePerImovelMes * 100 / (100 - discount) * quantity * cycleMeta.mesesNoCiclo - totalNoCiclo).toFixed(2)}{" "}
-            no ciclo escolhido vs. mensal cheio.
+        <div style={{ display: "grid", gap: 18 }}>
+          <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+            <legend style={{ marginBottom: 8, color: t.muted, fontSize: 14, fontWeight: 700 }}>
+              Quantos imoveis voce quer contratar?
+            </legend>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                aria-label="Diminuir quantidade"
+                onClick={() => setQuantity((value) => clampQuantity(value - 1, maxQuantity))}
+                style={{ ...optionButtonStyle(false, surface), width: 44, minHeight: 44, fontSize: 20 }}
+              >
+                -
+              </button>
+              <input
+                type="number"
+                min={1}
+                max={maxQuantity}
+                value={quantity}
+                onChange={(event) => setQuantity(clampQuantity(Number(event.target.value), maxQuantity))}
+                aria-label="Quantidade de imoveis"
+                style={{
+                  width: 116,
+                  minHeight: 52,
+                  borderRadius: 8,
+                  border: `1px solid ${t.optionBorder}`,
+                  background: t.optionBg,
+                  color: t.text,
+                  textAlign: "center",
+                  fontSize: 28,
+                  fontWeight: 900,
+                }}
+              />
+              <button
+                type="button"
+                aria-label="Aumentar quantidade"
+                onClick={() => setQuantity((value) => clampQuantity(value + 1, maxQuantity))}
+                style={{ ...optionButtonStyle(false, surface), width: 44, minHeight: 44, fontSize: 20 }}
+              >
+                +
+              </button>
+              <span style={{ color: t.muted, fontSize: 13 }}>ate {maxQuantity} no checkout self-service</span>
+            </div>
+
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+              {presets.map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setQuantity(preset)}
+                  style={optionButtonStyle(quantity === preset, surface)}
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+            <legend style={{ marginBottom: 8, color: t.muted, fontSize: 14, fontWeight: 700 }}>
+              Periodo de cobranca
+            </legend>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 8 }}>
+              {BILLING_CYCLES.map((value) => {
+                const selected = cycle === value;
+                const discount = selectedPlan ? calculatePricingQuote(selectedPlan, quantity, value).discountPercent : 0;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setCycle(value)}
+                    style={{ ...optionButtonStyle(selected, surface), display: "grid", gap: 2 }}
+                  >
+                    <span>{BILLING_CYCLE_META[value].label}</span>
+                    <span style={{ color: selected ? t.accent : t.faint, fontSize: 12 }}>
+                      {discount > 0 ? `-${discount}%` : "base"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
+        </div>
+
+        <aside
+          style={{
+            padding: 18,
+            borderRadius: 8,
+            border: `1px solid ${t.cardBorder}`,
+            background: t.panelBg,
+            display: "grid",
+            gap: 12,
+            alignContent: "start",
+          }}
+        >
+          <p style={{ margin: 0, color: t.faint, fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase" }}>
+            Faixa aplicada
           </p>
-        )}
+          <div>
+            <h4 style={{ margin: 0, color: t.text, fontSize: 26, lineHeight: 1.05 }}>
+              {activePlan?.title ?? "Sem faixa"}
+            </h4>
+            <p style={{ margin: "6px 0 0", color: t.muted, fontSize: 13 }}>
+              {activePlan ? formatQuantityRange(activePlan) : "Configure uma faixa ativa no admin."}
+            </p>
+          </div>
+
+          {quote ? (
+            <>
+              <div style={{ display: "grid", gap: 6 }}>
+                <p style={{ margin: 0, color: t.muted, fontSize: 14 }}>
+                  Por imovel/mes: <strong style={{ color: t.text }}>{formatMoney(quote.pricePerPropertyMonthly)}</strong>
+                </p>
+                <p style={{ margin: 0, color: t.muted, fontSize: 14 }}>
+                  Equivalente mensal: <strong style={{ color: t.text }}>{formatMoney(quote.monthlyEquivalentTotal)}</strong>
+                </p>
+              </div>
+              <div>
+                <p style={{ margin: 0, color: t.faint, fontSize: 12 }}>
+                  Total no ciclo {BILLING_CYCLE_META[cycle].shortLabel}
+                </p>
+                <p style={{ margin: "2px 0 0", color: t.accent, fontSize: 30, fontWeight: 900, lineHeight: 1 }}>
+                  {formatMoney(quote.cycleTotal)}
+                </p>
+              </div>
+            </>
+          ) : (
+            <p style={{ margin: 0, color: t.muted, fontSize: 14, lineHeight: 1.55 }}>
+              Essa quantidade exige atendimento comercial. Ajuste o teto self-service no admin ou fale com vendas.
+            </p>
+          )}
+
+          {error && (
+            <p role="alert" style={{ margin: 0, color: "#C2342E", fontSize: 13, lineHeight: 1.45 }}>
+              {error}
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={handleCheckout}
+            disabled={busy || (!!quote && priceForCycle(selectedPlan!, cycle) <= 0)}
+            style={{
+              width: "100%",
+              minHeight: 48,
+              borderRadius: 8,
+              border: `1px solid ${t.accent}`,
+              background: t.accent,
+              color: "#FFFFFF",
+              fontWeight: 900,
+              cursor: busy ? "not-allowed" : "pointer",
+              opacity: busy ? 0.58 : 1,
+            }}
+          >
+            {busy ? "Abrindo checkout..." : quote ? "Continuar para pagamento" : "Falar com comercial"}
+          </button>
+        </aside>
       </div>
 
-      {error && (
-        <p role="alert" style={{ margin: 0, fontSize: 14, color: "#F87171" }}>
-          {error}
-        </p>
-      )}
+      {activePlan?.features?.length ? (
+        <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 8, color: t.muted, fontSize: 14 }}>
+          {activePlan.features.map((feature) => (
+            <li key={feature} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+              <span style={{ color: t.accent, display: "inline-flex", marginTop: 2 }}>
+                <Check size={14} />
+              </span>
+              <span>{feature}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
+  );
+}
 
-      <button
-        type="button"
-        onClick={handleSubscribe}
-        disabled={busy || pricePerImovelMes <= 0}
-        style={{
-          width: "100%",
-          minHeight: 48,
-          padding: "0 16px",
-          borderRadius: 10,
-          border: "1px solid #E8500A",
-          background: "#E8500A",
-          color: "#FFFFFF",
-          fontWeight: 800,
-          cursor: busy || pricePerImovelMes <= 0 ? "not-allowed" : "pointer",
-          opacity: busy || pricePerImovelMes <= 0 ? 0.55 : 1,
-        }}
-      >
-        {busy ? "Abrindo checkout..." : `Assinar - R$ ${totalNoCiclo.toFixed(2)} no ciclo`}
-      </button>
-
-      <ul
-        style={{
-          margin: 0,
-          padding: 0,
-          listStyle: "none",
-          display: "flex",
-          flexDirection: "column",
-          gap: 6,
-          color: "rgba(248,250,252,0.74)",
-          fontSize: 14,
-        }}
-      >
-        {plan.features.map((f, i) => (
-          <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-            <span style={{ color: "#FFB088", display: "inline-flex", marginTop: 2 }}>
-              <Check size={14} />
-            </span>
-            <span>{f}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
+export function PricingCalculatorV2({ plan }: { plan: Plan }) {
+  const initialQuantity = minProperties(plan);
+  return (
+    <PricingSelfServiceCalculator
+      plans={[plan]}
+      initialQuantity={initialQuantity}
+      surface="dark"
+      title={plan.title}
+      subtitle={`Faixa ${formatQuantityRange(plan)}. Ajuste quantidade e periodo antes do checkout.`}
+    />
   );
 }

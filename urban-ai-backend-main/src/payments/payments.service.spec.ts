@@ -44,7 +44,7 @@ describe('PaymentsService — handleStripeWebhook', () => {
   let service: PaymentsService;
   let paymentRepo: Repo<Payment>;
   let userRepo: Repo<User>;
-  let plansService: { getPlanByName: jest.Mock };
+  let plansService: { getPlanByName: jest.Mock; getSelfServicePlanForQuantity: jest.Mock };
   let mailerService: { sendHtmlEmail: jest.Mock };
 
   beforeEach(async () => {
@@ -61,7 +61,7 @@ describe('PaymentsService — handleStripeWebhook', () => {
       create: jest.fn(),
     };
     userRepo = { findOne: jest.fn() };
-    plansService = { getPlanByName: jest.fn() };
+    plansService = { getPlanByName: jest.fn(), getSelfServicePlanForQuantity: jest.fn().mockResolvedValue(null) };
     mailerService = { sendHtmlEmail: jest.fn().mockResolvedValue({ enviado: true, status: 202 }) };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -478,7 +478,7 @@ describe('PaymentsService — createCheckoutSession', () => {
   let service: PaymentsService;
   let paymentRepo: Repo<Payment>;
   let userRepo: Repo<User>;
-  let plansService: { getPlanByName: jest.Mock };
+  let plansService: { getPlanByName: jest.Mock; getSelfServicePlanForQuantity: jest.Mock };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -490,7 +490,7 @@ describe('PaymentsService — createCheckoutSession', () => {
       save: jest.fn().mockImplementation(async (x) => x),
     };
     userRepo = { findOne: jest.fn() };
-    plansService = { getPlanByName: jest.fn() };
+    plansService = { getPlanByName: jest.fn(), getSelfServicePlanForQuantity: jest.fn().mockResolvedValue(null) };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -520,6 +520,28 @@ describe('PaymentsService — createCheckoutSession', () => {
     const createArgs = mockStripeCheckoutSessionsCreate.mock.calls[0][0];
     expect(createArgs.line_items[0].price).toBe('price_m_pro');
     expect(createArgs.mode).toBe('subscription');
+  });
+
+  it('auto-selects the self-service plan by quantity', async () => {
+    userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com', username: 'U' });
+    mockStripeCustomersList.mockResolvedValue({ data: [{ id: 'cus_abc' }] });
+    paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId: null });
+    plansService.getSelfServicePlanForQuantity.mockResolvedValue({
+      name: 'profissional',
+      title: 'Profissional',
+      selfServiceEnabled: true,
+      isCustomPrice: false,
+      stripePriceIdAnnualNew: 'price_a_pro_new',
+    });
+    mockStripeCheckoutSessionsCreate.mockResolvedValue({ id: 'cs_1' });
+
+    await service.createCheckoutSession({ plan: 'auto', billingCycle: 'annual', quantity: 50 }, 'u1');
+
+    expect(plansService.getSelfServicePlanForQuantity).toHaveBeenCalledWith(50);
+    const createArgs = mockStripeCheckoutSessionsCreate.mock.calls[0][0];
+    expect(createArgs.line_items[0].price).toBe('price_a_pro_new');
+    expect(createArgs.line_items[0].quantity).toBe(50);
+    expect(createArgs.metadata.urbanai_plan).toBe('profissional');
   });
 
   it('switches to annual priceId when billingCycle=annual', async () => {

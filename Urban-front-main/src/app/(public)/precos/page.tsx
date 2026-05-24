@@ -161,7 +161,7 @@ export default function PrecosPage() {
           />
           <PlanBlock
             eyebrow="02 — PROFISSIONAL"
-            tagline="4 a 19 imóveis · mais escolhido"
+            tagline="4 a 500 imoveis · self-service"
             description="Desbloqueia o modo Automático via Stays — a Urban AI aplica o preço sem você abrir nada. Para quem leva como negócio."
             tiers={PROFISSIONAL_TIERS}
             highlight
@@ -197,7 +197,7 @@ export default function PrecosPage() {
               textWrap: "balance",
             }}
           >
-            20+ IMÓVEIS,
+            501+ IMOVEIS,
             <br />
             <span style={{ color: "var(--theme-public-accent)" }}>FALA COM A GENTE.</span>
           </h2>
@@ -212,12 +212,12 @@ export default function PrecosPage() {
             }}
           >
             Para redes, gestoras multi-conta e operações com integração customizada.
-            Onboarding dedicado, SLA contratual, suporte WhatsApp dedicado, relatórios
+            Onboarding dedicado, SLA contratual, atendimento dedicado, relatórios
             executivos personalizados.
           </p>
           <div style={{ marginTop: 56 }}>
             <a
-              href="https://wa.me/seunumerodevendas"
+              href="mailto:comercial@myurbanai.com"
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -268,7 +268,7 @@ export default function PrecosPage() {
           <div>
             <Faq
               q="Como funciona a cobrança por imóvel?"
-              a="Você escolhe um plano e o ciclo. Multiplica preço × imóveis × ciclo. Profissional anual com 5 imóveis = R$ 67 × 5 × 12 = R$ 4.020 cobrados de uma vez (32% off vs. mensal)."
+              a="Voce escolhe quantidade e ciclo. A faixa entra automaticamente. Profissional anual com 50 imoveis = R$ 67 × 50 × 12 = R$ 40.200 cobrados de uma vez (32% off vs. mensal)."
             />
             <Faq
               q="E se eu adicionar imóveis no meio do ciclo?"

@@ -20,14 +20,14 @@ import { Request, Response } from 'express';
 import { ApiOperation, ApiProperty, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Type } from 'class-transformer';
-import { IsIn, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 import { BILLING_CYCLES } from './stripe-price-id.resolver';
 
 export class CreateCheckoutSessionDto {
-  @ApiProperty({ example: 'pro', description: 'Tag plano' })
+  @ApiProperty({ example: 'auto', description: 'Tag plano. Se ausente/auto, o backend resolve pela quantidade.', required: false })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  plan: string;
+  plan?: string;
 
   @ApiProperty({
     example: 'annual',

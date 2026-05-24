@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 
 /**
- * Rota legada: redireciona para o onboarding canonico.
+ * Rota legada: redireciona para o checkout canonico de planos.
  */
 export default function OnboardingPaymentPriceRedirectPage() {
-  redirect("/onboarding");
+  redirect("/plans?source=onboarding");
 }

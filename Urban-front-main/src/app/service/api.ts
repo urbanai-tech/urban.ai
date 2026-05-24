@@ -1666,6 +1666,11 @@ export interface Plan {
   // Display
   period: string;
   propertyLimit?: number | null;
+  minProperties?: number | null;
+  maxProperties?: number | null;
+  maxCheckoutQuantity?: number | null;
+  selfServiceEnabled?: boolean;
+  sortOrder?: number;
   features: string[];
   isCustomPrice?: boolean;
   highlightBadge?: string;
@@ -1681,6 +1686,32 @@ export const getPlans = async (): Promise<Plan[]> => {
     console.error('Erro ao buscar planos:', error);
     throw error;
   }
+};
+
+export interface PricingQuote {
+  quantity: number;
+  billingCycle: BillingCycle;
+  selfService: boolean;
+  contactRequired: boolean;
+  planName: string | null;
+  planTitle: string;
+  minProperties?: number | null;
+  maxProperties?: number | null;
+  pricePerPropertyMonthly?: number;
+  monthlyEquivalentTotal?: number;
+  cycleTotal?: number;
+  monthsInCycle?: number;
+  discountPercent?: number;
+}
+
+export const getPricingQuote = async (
+  quantity: number,
+  billingCycle: BillingCycle = 'annual',
+): Promise<PricingQuote> => {
+  const { data } = await api.get<PricingQuote>('/plans/quote', {
+    params: { quantity, billingCycle },
+  });
+  return data;
 };
 
 /**
@@ -2619,6 +2650,11 @@ export interface AdminPlanConfig {
   discountSemestralPercent?: number;
   discountAnnualPercent?: number;
   propertyLimit?: number | null;
+  minProperties?: number | null;
+  maxProperties?: number | null;
+  maxCheckoutQuantity?: number | null;
+  selfServiceEnabled?: boolean;
+  sortOrder?: number;
   features: string[];
   highlightBadge?: string | null;
   discountBadge?: string | null;

@@ -1,40 +1,23 @@
-"use client";
+import { redirect } from "next/navigation";
 
 /**
- * /plans/v2 - alias mantido por compatibilidade.
- *
- * Em 24/04/2026 a versao F6.5 do `PricingCalculatorV2` virou a oficial em
- * `/plans` (a pagina antiga foi substituida). Este arquivo redireciona
- * para evitar 404 em links historicos (p. ex. `?upsell=1`).
+ * /plans/v2 - alias legado. Mantem queries antigas como ?upsell=quota.
  */
+export default async function PlansV2AliasPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(resolvedSearchParams ?? {})) {
+    if (Array.isArray(value)) {
+      value.forEach((item) => query.append(key, item));
+    } else if (value !== undefined) {
+      query.set(key, value);
+    }
+  }
 
-import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-
-export default function PlansV2AliasPage() {
-  const router = useRouter();
-  const search = useSearchParams();
-
-  useEffect(() => {
-    const qs = search.toString();
-    router.replace(qs ? `/plans?${qs}` : "/plans");
-  }, [router, search]);
-
-  return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#080A0F",
-        color: "#F8FAFC",
-        padding: 32,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <p style={{ margin: 0, color: "rgba(248,250,252,0.62)" }}>
-        Redirecionando...
-      </p>
-    </main>
-  );
+  const qs = query.toString();
+  redirect(qs ? `/plans?${qs}` : "/plans");
 }

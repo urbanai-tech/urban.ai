@@ -13,7 +13,7 @@
 
 import { useEffect, useState } from "react";
 import { getPlans, type Plan } from "../service/api";
-import { PricingCalculatorV2 } from "../componentes/PricingCalculatorV2";
+import { PricingSelfServiceCalculator } from "../componentes/PricingCalculatorV2";
 
 export default function PlansPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -188,9 +188,13 @@ export default function PlansPage() {
                 gap: 24,
               }}
             >
-              {activePlans.map((plan) => (
-                <PricingCalculatorV2 key={plan.id} plan={plan} />
-              ))}
+              <PricingSelfServiceCalculator
+                plans={activePlans}
+                surface="dark"
+                initialQuantity={5}
+                title="Monte sua assinatura"
+                subtitle="Escolha quantos imoveis quer contratar. A Urban aplica automaticamente a faixa correta e o desconto do periodo."
+              />
             </div>
           )}
         </div>
