@@ -15,6 +15,13 @@ import { AskUrbanMessage, AskUrbanCitation } from '../entities/ask-urban-message
 import { Event as EventEntity } from '../entities/events.entity';
 import { List } from '../entities/list.entity';
 import { OccupancyHistory } from '../entities/occupancy-history.entity';
+import { PortfolioActionItem, PortfolioActionItemStatus } from '../entities/portfolio-action-item.entity';
+import { PortfolioActionRun, PortfolioActionRunSummary } from '../entities/portfolio-action-run.entity';
+import { PortfolioDailyPriceOverride } from '../entities/portfolio-daily-price-override.entity';
+import {
+  PortfolioPricingStrategy,
+  PortfolioPropertySetting,
+} from '../entities/portfolio-property-setting.entity';
 import { PriceSnapshot } from '../entities/price-snapshot.entity';
 import {
   PricingRuleConfig,
@@ -53,6 +60,41 @@ type PortfolioBulkActionInput = {
   propertyIds: string[];
   action: string;
   payload?: Record<string, unknown>;
+  dates?: string[];
+  from?: string;
+  to?: string;
+};
+
+type PortfolioResolvedTargets = {
+  explicit: boolean;
+  dates: string[];
+  byAddress: Map<string, string[]>;
+  keys: Set<string>;
+};
+
+type PortfolioActionPreviewItem = {
+  propertyId: string;
+  propertyName: string;
+  date: string | null;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
+  status: 'planned' | PortfolioActionItemStatus;
+  estimatedLift: number;
+  reason?: string;
+};
+
+type PortfolioActionPreview = {
+  action: string;
+  items: PortfolioActionPreviewItem[];
+  summary: PortfolioActionRunSummary;
+};
+
+type PortfolioStrategyMetadata = {
+  strategy: PortfolioPricingStrategy;
+  source: 'request' | 'property_default' | 'user_default' | 'fallback';
+  adjustmentPercent: number;
+  multiplier: number;
+  rule: string;
 };
 
 const MS_PER_DAY = 86_400_000;
@@ -141,6 +183,10 @@ export class HostPanelsService {
     @InjectRepository(OccupancyHistory) private readonly occupancyRepo: Repository<OccupancyHistory>,
     @InjectRepository(PricingRuleConfig) private readonly pricingRuleRepo: Repository<PricingRuleConfig>,
     @InjectRepository(AskUrbanMessage) private readonly askRepo: Repository<AskUrbanMessage>,
+    @InjectRepository(PortfolioPropertySetting) private readonly portfolioSettingRepo: Repository<PortfolioPropertySetting>,
+    @InjectRepository(PortfolioDailyPriceOverride) private readonly portfolioOverrideRepo: Repository<PortfolioDailyPriceOverride>,
+    @InjectRepository(PortfolioActionRun) private readonly portfolioRunRepo: Repository<PortfolioActionRun>,
+    @InjectRepository(PortfolioActionItem) private readonly portfolioItemRepo: Repository<PortfolioActionItem>,
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
@@ -148,10 +194,16 @@ export class HostPanelsService {
     userId: string,
     input: { from?: string; to?: string; propertyIds?: string; strategy?: string },
   ) {
-    const range = this.resolveRange(input.from, input.to, 60, 180);
+    const range = this.resolveRange(input.from, input.to, 60, 360);
     const propertyIds = this.csv(input.propertyIds);
     const addresses = await this.getOwnedAddresses(userId, propertyIds);
     const addressIds = addresses.map((address) => address.id);
+    const [settingsByAddress, overridesByAddressDate, user] = await Promise.all([
+      this.portfolioSettingsByAddress(addressIds),
+      this.portfolioOverridesByAddressDate(userId, addressIds, range),
+      this.getUser(userId),
+    ]);
+    const requestedStrategy = this.normalizeStrategy(String(input.strategy ?? ''));
 
     const analyses = addressIds.length
       ? await this.analiseRepo
@@ -184,18 +236,53 @@ export class HostPanelsService {
     }
 
     return {
+      range: { from: range.from, to: range.to, days: range.dates.length },
       properties: addresses.map((address) => {
         const basePrice = this.resolveBasePrice(address.list);
+        const storedStrategy = settingsByAddress.get(address.id)?.strategy;
+        const strategyMeta = this.resolvePortfolioStrategyMetadata(
+          requestedStrategy,
+          storedStrategy,
+          this.normalizeStrategy(String(user.pricingStrategy ?? '')),
+        );
         return {
           propertyId: address.id,
           name: address.list?.titulo ?? '(sem nome)',
           thumbnail: address.list?.pictureUrl ?? null,
+          strategy: strategyMeta.strategy,
+          strategyMetadata: strategyMeta,
           days: range.dates.map((date) => {
             const analysis = byAddressDate.get(`${address.id}:${date}`);
+            const override = overridesByAddressDate.get(`${address.id}:${date}`);
+            const currentPrice = override ? this.roundMoney(override.price) : basePrice;
+            const suggestedPrice = analysis
+              ? this.applyPortfolioStrategy(analysis.precoSugerido, strategyMeta.strategy)
+              : null;
+            const lift = suggestedPrice != null ? Math.max(0, suggestedPrice - currentPrice) : 0;
             return {
               date,
-              sugestao: analysis ? this.roundMoney(analysis.precoSugerido) : null,
-              atual: basePrice,
+              sugestao: suggestedPrice,
+              sugestaoOriginal: analysis ? this.roundMoney(analysis.precoSugerido) : null,
+              atual: currentPrice,
+              base: basePrice,
+              override: override
+                ? {
+                    id: override.id,
+                    price: this.roundMoney(override.price),
+                    source: override.source,
+                    updatedAt: this.toIso(override.updatedAt),
+                  }
+                : null,
+              strategyApplied: analysis
+                ? {
+                    ...strategyMeta,
+                    originalPrice: this.roundMoney(analysis.precoSugerido),
+                    adjustedPrice: suggestedPrice,
+                  }
+                : strategyMeta,
+              lift,
+              risk: this.portfolioRisk(currentPrice, suggestedPrice, analysis?.evento),
+              confidence: this.portfolioConfidence(analysis?.evento),
               evento: analysis?.evento
                 ? {
                     id: analysis.evento.id,
@@ -210,17 +297,126 @@ export class HostPanelsService {
     };
   }
 
+  async portfolioOpportunities(
+    userId: string,
+    input: { from?: string; to?: string; propertyIds?: string; strategy?: string },
+  ) {
+    const calendar = await this.portfolioCalendar(userId, input);
+    const opportunities = calendar.properties
+      .flatMap((property: any) =>
+        property.days
+          .filter((day: any) => Number(day.lift ?? 0) > 0)
+          .map((day: any) => ({
+            id: `${property.propertyId}:${day.date}`,
+            propertyId: property.propertyId,
+            propertyName: property.name,
+            date: day.date,
+            currentPrice: day.atual,
+            suggestedPrice: day.sugestao,
+            lift: day.lift,
+            risk: day.risk,
+            confidence: day.confidence,
+            event: day.evento,
+            strategyApplied: day.strategyApplied,
+          })),
+      )
+      .sort((a: any, b: any) => b.lift - a.lift)
+      .slice(0, 50);
+
+    const totalLift = opportunities.reduce((sum: number, item: any) => sum + Number(item.lift ?? 0), 0);
+    const riskScore = opportunities.reduce((sum: number, item: any) => {
+      if (item.risk === 'alta') return sum + 3;
+      if (item.risk === 'media') return sum + 2;
+      return sum + 1;
+    }, 0);
+
+    return {
+      range: calendar.range,
+      summary: {
+        opportunities: opportunities.length,
+        estimatedLift: this.roundMoney(totalLift),
+        affectedProperties: new Set(opportunities.map((item: any) => item.propertyId)).size,
+        averageRisk: opportunities.length ? Number((riskScore / opportunities.length).toFixed(1)) : 0,
+        topLift: opportunities[0]?.lift ?? 0,
+      },
+      opportunities,
+    };
+  }
+
+  async simulatePortfolioAction(userId: string, input: PortfolioBulkActionInput) {
+    const preview = await this.buildPortfolioActionPreview(userId, input);
+    return { simulated: true, ...preview };
+  }
+
+  async portfolioActionRuns(userId: string, input: { limit?: number; includeItems?: boolean; action?: string }) {
+    const limit = Math.max(1, Math.min(50, Number(input.limit ?? 10) || 10));
+    const where: any = { user: { id: userId } };
+    if (input.action) where.action = input.action;
+    const runs = await this.portfolioRunRepo.find({
+      where,
+      relations: input.includeItems ? ['items', 'items.address'] : [],
+      order: { createdAt: 'DESC' },
+      take: limit,
+    });
+    return {
+      runs: runs.map((run) => ({
+        id: run.id,
+        auditLogId: run.id,
+        actionRunId: run.id,
+        action: run.action,
+        status: run.status,
+        selectedPropertyIds: run.selectedPropertyIds ?? [],
+        targetDates: run.targetDates ?? [],
+        payload: run.payload ?? {},
+        summary: run.summary,
+        applied: Number(run.summary?.applied ?? 0),
+        failed: Number(run.summary?.failed ?? 0),
+        createdAt: this.toIso(run.createdAt),
+        completedAt: this.toIso(run.completedAt),
+        items: input.includeItems
+          ? (run.items ?? []).map((item) => ({
+              id: item.id,
+              propertyId: item.propertyId ?? item.address?.id ?? null,
+              propertyName: item.address?.list?.titulo ?? null,
+              date: item.targetDate,
+              action: item.action,
+              status: item.status,
+              before: item.before,
+              after: item.after,
+              estimatedLift: this.roundMoney(item.estimatedLift) ?? 0,
+              errorMessage: item.errorMessage,
+              metadata: item.metadata,
+              createdAt: this.toIso(item.createdAt),
+            }))
+          : undefined,
+      })),
+    };
+  }
+
   async portfolioBulkAction(userId: string, input: PortfolioBulkActionInput) {
     const requestedIds = Array.from(new Set(input.propertyIds ?? [])).filter(Boolean);
     if (requestedIds.length === 0) {
       throw new BadRequestException('propertyIds e obrigatorio');
     }
 
+    const user = await this.getUser(userId);
     const addresses = await this.getOwnedAddresses(userId, requestedIds);
     const foundIds = new Set(addresses.flatMap((address) => [address.id, address.list?.id].filter(Boolean)));
     const failed = requestedIds
       .filter((id) => !foundIds.has(id))
       .map((propertyId) => ({ propertyId, reason: 'Imovel nao encontrado ou sem permissao' }));
+    const preview = await this.buildPortfolioActionPreview(userId, input, addresses);
+    const run = await this.portfolioRunRepo.save(
+      this.portfolioRunRepo.create({
+        user,
+        action: input.action,
+        status: 'running',
+        selectedPropertyIds: requestedIds,
+        targetDates: this.previewTargetDates(preview),
+        payload: input.payload ?? {},
+        summary: preview.summary,
+      }),
+    );
 
     if (input.action === 'set-base-price') {
       const price = Number(input.payload?.price ?? input.payload?.basePrice ?? input.payload?.manualDailyPrice);
@@ -242,23 +438,72 @@ export class HostPanelsService {
         await this.listRepo.save(address.list);
         applied += 1;
       }
-      return { applied, failed, auditLogId: randomUUID() };
+      return this.finishPortfolioRun(run, user, addresses, preview, applied, failed);
     }
 
     if (input.action === 'apply-strategy') {
       const strategy = String(input.payload?.strategy ?? '').trim();
       const mapped = this.normalizeStrategy(strategy);
       if (!mapped) throw new BadRequestException('payload.strategy invalido');
-      const user = await this.userRepo.findOne({ where: { id: userId } });
-      if (!user) throw new NotFoundException('Usuario nao encontrado');
-      user.pricingStrategy = mapped;
-      await this.userRepo.save(user);
-      return { applied: addresses.length, failed, auditLogId: randomUUID() };
+      const existing = await this.portfolioSettingsByAddress(addresses.map((address) => address.id));
+      for (const address of addresses) {
+        const setting =
+          existing.get(address.id) ??
+          this.portfolioSettingRepo.create({
+            user,
+            address,
+          });
+        setting.strategy = mapped;
+        setting.user = user;
+        setting.address = address;
+        await this.portfolioSettingRepo.save(setting);
+      }
+      return this.finishPortfolioRun(run, user, addresses, preview, addresses.length, failed);
+    }
+
+    if (input.action === 'set-date-price') {
+      const price = Number(input.payload?.price ?? input.payload?.datePrice ?? input.payload?.manualDailyPrice);
+      if (!Number.isFinite(price) || price <= 0) {
+        throw new BadRequestException('payload.price deve ser um numero maior que zero');
+      }
+      const targets = this.resolveActionTargets(input, addresses);
+      const dates = targets.dates;
+      if (!dates.length) throw new BadRequestException('dates e obrigatorio para set-date-price');
+      let applied = 0;
+      const targetAddressIds = Array.from(targets.byAddress.keys());
+      const existing = await this.portfolioOverridesByAddressDate(userId, targetAddressIds, {
+        from: dates[0],
+        to: dates[dates.length - 1],
+        dates,
+      });
+      for (const address of addresses) {
+        const addressDates = targets.byAddress.get(address.id) ?? [];
+        for (const date of addressDates) {
+          const override =
+            existing.get(`${address.id}:${date}`) ??
+            this.portfolioOverrideRepo.create({
+              user,
+              address,
+              targetDate: date,
+            });
+          override.price = price;
+          override.source = 'portfolio_manual';
+          override.actionRun = run;
+          override.user = user;
+          override.address = address;
+          await this.portfolioOverrideRepo.save(override);
+          applied += 1;
+        }
+      }
+      return this.finishPortfolioRun(run, user, addresses, preview, applied, failed);
     }
 
     if (input.action === 'accept-suggestions') {
-      const addressIds = addresses.map((address) => address.id);
-      const pending = addressIds.length
+      const targets = this.resolveActionTargets(input, addresses);
+      const addressIds = targets.explicit ? Array.from(targets.byAddress.keys()) : addresses.map((address) => address.id);
+      const relevantAddresses = targets.explicit ? addresses.filter((address) => targets.byAddress.has(address.id)) : addresses;
+      const dates = targets.dates;
+      const rawPending = addressIds.length
         ? await this.analiseRepo
             .createQueryBuilder('analysis')
             .innerJoinAndSelect('analysis.endereco', 'address')
@@ -268,25 +513,47 @@ export class HostPanelsService {
             .andWhere('address.id IN (:...addressIds)', { addressIds })
             .andWhere('analysis.aceito = :accepted', { accepted: false })
             .andWhere('event.dataInicio >= :now', { now: new Date() })
+            .andWhere(dates.length ? 'DATE(event.dataInicio) IN (:...dates)' : '1 = 1', { dates })
             .andWhere('event.duplicateOfEventId IS NULL')
             .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
             .getMany()
         : [];
+      const pending = targets.explicit
+        ? rawPending.filter((item) => {
+            const date = this.dateOnly(item.evento?.dataInicio);
+            return Boolean(date && targets.keys.has(`${item.endereco.id}:${date}`));
+          })
+        : rawPending;
+      const settingsByAddress = await this.portfolioSettingsByAddress(addressIds);
+      const userStrategy = this.normalizeStrategy(String(user.pricingStrategy ?? ''));
       const changedAddressIds = new Set<string>();
       for (const item of pending) {
+        const strategyMeta = this.resolvePortfolioStrategyMetadata(
+          null,
+          settingsByAddress.get(item.endereco.id)?.strategy,
+          userStrategy,
+        );
+        const appliedPrice =
+          this.applyPortfolioStrategy(item.precoSugerido, strategyMeta.strategy) ??
+          this.roundMoney(item.precoSugerido) ??
+          0;
         item.aceito = true;
-        item.status = 'accepted';
+        item.status = 'applied_manual';
         item.aceitoEm = new Date();
         item.rejeitadoEm = null;
+        item.expiradoEm = null;
+        item.precoAplicado = appliedPrice;
+        item.aplicadoEm = new Date();
+        item.origemAplicacao = 'internal_dashboard';
         changedAddressIds.add(item.endereco.id);
       }
       if (pending.length) await this.analiseRepo.save(pending);
-      for (const address of addresses) {
+      for (const address of relevantAddresses) {
         if (!changedAddressIds.has(address.id)) {
           failed.push({ propertyId: address.id, reason: 'Sem sugestoes futuras pendentes' });
         }
       }
-      return { applied: changedAddressIds.size, failed, auditLogId: randomUUID() };
+      return this.finishPortfolioRun(run, user, addresses, preview, pending.length, failed);
     }
 
     throw new BadRequestException('action invalida');
@@ -462,6 +729,461 @@ export class HostPanelsService {
     message.feedback = input.vote;
     await this.askRepo.save(message);
     return { ok: true };
+  }
+
+  private async buildPortfolioActionPreview(
+    userId: string,
+    input: PortfolioBulkActionInput,
+    ownedAddresses?: Address[],
+  ): Promise<PortfolioActionPreview> {
+    const requestedIds = Array.from(new Set(input.propertyIds ?? [])).filter(Boolean);
+    if (!requestedIds.length) throw new BadRequestException('propertyIds e obrigatorio');
+    const addresses = ownedAddresses ?? (await this.getOwnedAddresses(userId, requestedIds));
+    const addressIds = addresses.map((address) => address.id);
+    const foundIds = new Set(addresses.flatMap((address) => [address.id, address.list?.id].filter(Boolean)));
+    const items: PortfolioActionPreviewItem[] = requestedIds
+      .filter((id) => !foundIds.has(id))
+      .map((propertyId) => ({
+        propertyId,
+        propertyName: '(sem permissao)',
+        date: null,
+        before: null,
+        after: null,
+        status: 'failed',
+        estimatedLift: 0,
+        reason: 'Imovel nao encontrado ou sem permissao',
+      }));
+
+    if (input.action === 'apply-strategy') {
+      const mapped = this.normalizeStrategy(String(input.payload?.strategy ?? ''));
+      if (!mapped) throw new BadRequestException('payload.strategy invalido');
+      const [settings, user] = await Promise.all([
+        this.portfolioSettingsByAddress(addressIds),
+        this.getUser(userId),
+      ]);
+      const userStrategy = this.normalizeStrategy(String(user.pricingStrategy ?? ''));
+      for (const address of addresses) {
+        const before = this.resolvePortfolioStrategyMetadata(null, settings.get(address.id)?.strategy, userStrategy);
+        const after = this.resolvePortfolioStrategyMetadata(mapped, null, null);
+        items.push({
+          propertyId: address.id,
+          propertyName: address.list?.titulo ?? '(sem nome)',
+          date: null,
+          before,
+          after,
+          status: 'planned',
+          estimatedLift: 0,
+        });
+      }
+      return { action: input.action, items, summary: this.portfolioPreviewSummary(items) };
+    }
+
+    if (input.action === 'set-base-price') {
+      const price = Number(input.payload?.price ?? input.payload?.basePrice ?? input.payload?.manualDailyPrice);
+      if (!Number.isFinite(price) || price <= 0) {
+        throw new BadRequestException('payload.price deve ser um numero maior que zero');
+      }
+      for (const address of addresses) {
+        const beforePrice = this.resolveBasePrice(address.list);
+        items.push({
+          propertyId: address.id,
+          propertyName: address.list?.titulo ?? '(sem nome)',
+          date: null,
+          before: { price: beforePrice },
+          after: { price },
+          status: address.list ? 'planned' : 'failed',
+          estimatedLift: 0,
+          reason: address.list ? undefined : 'Imovel sem listing associado',
+        });
+      }
+      return { action: input.action, items, summary: this.portfolioPreviewSummary(items) };
+    }
+
+    if (input.action === 'set-date-price') {
+      const price = Number(input.payload?.price ?? input.payload?.datePrice ?? input.payload?.manualDailyPrice);
+      if (!Number.isFinite(price) || price <= 0) {
+        throw new BadRequestException('payload.price deve ser um numero maior que zero');
+      }
+      const targets = this.resolveActionTargets(input, addresses);
+      const dates = targets.dates;
+      if (!dates.length) throw new BadRequestException('dates e obrigatorio para set-date-price');
+      const targetAddressIds = Array.from(targets.byAddress.keys());
+      const overrides = await this.portfolioOverridesByAddressDate(userId, targetAddressIds, {
+        from: dates[0],
+        to: dates[dates.length - 1],
+        dates,
+      });
+      for (const address of addresses) {
+        const base = this.resolveBasePrice(address.list);
+        const addressDates = targets.byAddress.get(address.id) ?? [];
+        for (const date of addressDates) {
+          const override = overrides.get(`${address.id}:${date}`);
+          const current = override?.price ?? base;
+          items.push({
+            propertyId: address.id,
+            propertyName: address.list?.titulo ?? '(sem nome)',
+            date,
+            before: {
+              atual: this.roundMoney(current),
+              source: override ? 'date_override' : 'base_price',
+              overrideId: override?.id ?? null,
+              basePrice: base,
+            },
+            after: {
+              atual: this.roundMoney(price),
+              source: 'date_override',
+              basePrice: base,
+            },
+            status: 'planned',
+            estimatedLift: Math.round(price - Number(current ?? 0)),
+          });
+        }
+      }
+      return { action: input.action, items, summary: this.portfolioPreviewSummary(items) };
+    }
+
+    if (input.action === 'accept-suggestions') {
+      const targets = this.resolveActionTargets(input, addresses);
+      const dates = targets.dates;
+      const targetAddressIds = targets.explicit ? Array.from(targets.byAddress.keys()) : addressIds;
+      const relevantAddresses = targets.explicit ? addresses.filter((address) => targets.byAddress.has(address.id)) : addresses;
+      const rawPending = targetAddressIds.length
+        ? await this.analiseRepo
+            .createQueryBuilder('analysis')
+            .innerJoinAndSelect('analysis.endereco', 'address')
+            .leftJoinAndSelect('analysis.evento', 'event')
+            .innerJoin('analysis.usuarioProprietario', 'owner')
+            .where('owner.id = :userId', { userId })
+            .andWhere('address.id IN (:...addressIds)', { addressIds: targetAddressIds })
+            .andWhere('analysis.aceito = :accepted', { accepted: false })
+            .andWhere('event.dataInicio >= :now', { now: new Date() })
+            .andWhere(dates.length ? 'DATE(event.dataInicio) IN (:...dates)' : '1 = 1', { dates })
+            .andWhere('event.duplicateOfEventId IS NULL')
+            .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
+            .getMany()
+        : [];
+      const pending = targets.explicit
+        ? rawPending.filter((analysis) => {
+            const date = this.dateOnly(analysis.evento?.dataInicio);
+            return Boolean(date && targets.keys.has(`${analysis.endereco?.id}:${date}`));
+          })
+        : rawPending;
+      const [settings, user] = await Promise.all([
+        this.portfolioSettingsByAddress(targetAddressIds),
+        this.getUser(userId),
+      ]);
+      const userStrategy = this.normalizeStrategy(String(user.pricingStrategy ?? ''));
+      const addressById = new Map(addresses.map((address) => [address.id, address]));
+      for (const analysis of pending) {
+        const address = addressById.get(analysis.endereco?.id);
+        if (!address) continue;
+        const date = this.dateOnly(analysis.evento?.dataInicio);
+        const strategyMeta = this.resolvePortfolioStrategyMetadata(
+          null,
+          settings.get(address.id)?.strategy,
+          userStrategy,
+        );
+        const current = this.roundMoney(analysis.seuPrecoAtual ?? this.resolveBasePrice(address.list));
+        const suggested = this.applyPortfolioStrategy(analysis.precoSugerido, strategyMeta.strategy);
+        items.push({
+          propertyId: address.id,
+          propertyName: address.list?.titulo ?? '(sem nome)',
+          date,
+          before: {
+            analysisId: analysis.id,
+            status: analysis.status,
+            accepted: analysis.aceito,
+            price: current,
+          },
+          after: {
+            status: 'applied_manual',
+            accepted: true,
+            price: suggested,
+            origin: 'internal_dashboard',
+            applicationStatus: 'internal/applied_manual',
+            strategyApplied: strategyMeta,
+          },
+          status: 'planned',
+          estimatedLift: suggested != null && current != null ? Math.max(0, suggested - current) : 0,
+        });
+      }
+      for (const address of relevantAddresses) {
+        if (!items.some((item) => item.propertyId === address.id)) {
+          items.push({
+            propertyId: address.id,
+            propertyName: address.list?.titulo ?? '(sem nome)',
+            date: null,
+            before: null,
+            after: null,
+            status: 'skipped',
+            estimatedLift: 0,
+            reason: 'Sem sugestoes futuras pendentes',
+          });
+        }
+      }
+      return { action: input.action, items, summary: this.portfolioPreviewSummary(items) };
+    }
+
+    throw new BadRequestException('action invalida');
+  }
+
+  private async finishPortfolioRun(
+    run: PortfolioActionRun,
+    user: User,
+    addresses: Address[],
+    preview: PortfolioActionPreview,
+    applied: number,
+    failed: Array<{ propertyId: string; reason: string }>,
+  ) {
+    const addressById = new Map(addresses.map((address) => [address.id, address]));
+    const savedItems = preview.items.map((item) => {
+      const address = addressById.get(item.propertyId);
+      const actualStatus: PortfolioActionItemStatus =
+        item.status === 'planned' ? 'applied' : item.status;
+      return this.portfolioItemRepo.create({
+        run,
+        user,
+        address: address ?? null,
+        propertyId: item.propertyId,
+        targetDate: item.date,
+        action: preview.action,
+        status: actualStatus,
+        before: item.before,
+        after: item.after,
+        metadata: { propertyName: item.propertyName, reason: item.reason ?? null },
+        estimatedLift: item.estimatedLift,
+        errorMessage: item.reason ?? null,
+      });
+    });
+    if (savedItems.length) await this.portfolioItemRepo.save(savedItems);
+
+    const skippedOrFailed = preview.items
+      .filter((item) => item.status === 'skipped' || item.status === 'failed')
+      .map((item) => ({ propertyId: item.propertyId, reason: item.reason ?? 'Nao aplicado' }));
+    const allFailed = Array.from(
+      new Map(
+        [...failed, ...skippedOrFailed].map((item) => [`${item.propertyId}:${item.reason}`, item]),
+      ).values(),
+    );
+    const summary = {
+      ...preview.summary,
+      applied,
+      failed: allFailed.length,
+    };
+    run.summary = summary;
+    run.status = allFailed.length > 0 && applied > 0 ? 'partial' : applied > 0 ? 'completed' : 'failed';
+    run.completedAt = new Date();
+    await this.portfolioRunRepo.save(run);
+    return {
+      applied,
+      failed: allFailed,
+      auditLogId: run.id,
+      summary,
+    };
+  }
+
+  private portfolioPreviewSummary(items: PortfolioActionPreviewItem[]): PortfolioActionRunSummary {
+    const actionable = items.filter((item) => item.status === 'planned');
+    const failed = items.filter((item) => item.status === 'failed');
+    const skipped = items.filter((item) => item.status === 'skipped');
+    const targetDates = new Set(actionable.map((item) => item.date).filter(Boolean));
+    return {
+      applied: actionable.length,
+      failed: failed.length,
+      skipped: skipped.length,
+      items: items.length,
+      affectedProperties: new Set(actionable.map((item) => item.propertyId)).size,
+      affectedDates: targetDates.size,
+      estimatedLift: this.roundMoney(actionable.reduce((sum, item) => sum + Number(item.estimatedLift ?? 0), 0)) ?? 0,
+    };
+  }
+
+  private previewTargetDates(preview: PortfolioActionPreview) {
+    return Array.from(new Set(preview.items.map((item) => item.date).filter(Boolean))) as string[];
+  }
+
+  private resolveActionTargets(input: PortfolioBulkActionInput, addresses: Address[]): PortfolioResolvedTargets {
+    const aliases = new Map<string, string>();
+    for (const address of addresses) {
+      aliases.set(address.id, address.id);
+      if (address.list?.id) aliases.set(address.list.id, address.id);
+    }
+
+    const targetSets = new Map<string, Set<string>>();
+    for (const target of this.targetList(input.payload?.targets)) {
+      const rawPropertyId =
+        target.propertyId ?? target.addressId ?? target.listingId ?? target.listId ?? target.id;
+      const addressId = aliases.get(String(rawPropertyId ?? ''));
+      const date = this.dateOnly(target.date ?? target.targetDate ?? target.data ?? target.day);
+      if (!addressId || !date) continue;
+      if (!targetSets.has(addressId)) targetSets.set(addressId, new Set<string>());
+      targetSets.get(addressId)?.add(date);
+    }
+
+    if (targetSets.size) {
+      return this.materializeTargets(targetSets, true);
+    }
+
+    const dates = this.resolveActionDates(input);
+    const fallback = new Map<string, Set<string>>();
+    for (const address of addresses) {
+      fallback.set(address.id, new Set(dates));
+    }
+    return this.materializeTargets(fallback, false);
+  }
+
+  private resolveActionDates(input: PortfolioBulkActionInput): string[] {
+    const payload = input.payload ?? {};
+    const rawDates = [
+      ...this.dateList(input.dates),
+      ...this.dateList(payload.dates),
+      ...this.dateList(payload.targetDates),
+      ...this.dateList(payload.date),
+      ...this.dateList(payload.targetDate),
+    ];
+    const explicitDates = Array.from(new Set(rawDates.map((date) => this.dateOnly(date)).filter(Boolean))) as string[];
+    if (explicitDates.length) return explicitDates.slice(0, 360).sort();
+    const from = input.from ?? (typeof payload.from === 'string' ? payload.from : undefined);
+    const to = input.to ?? (typeof payload.to === 'string' ? payload.to : undefined);
+    if (!from && !to) return [];
+    return this.resolveRange(from, to, 1, 360).dates;
+  }
+
+  private materializeTargets(targets: Map<string, Set<string>>, explicit: boolean): PortfolioResolvedTargets {
+    const byAddress = new Map<string, string[]>();
+    const keys = new Set<string>();
+    const allDates = new Set<string>();
+    for (const [addressId, dates] of targets.entries()) {
+      const sorted = Array.from(dates).sort().slice(0, 360);
+      if (!sorted.length) continue;
+      byAddress.set(addressId, sorted);
+      for (const date of sorted) {
+        keys.add(`${addressId}:${date}`);
+        allDates.add(date);
+      }
+    }
+    return {
+      explicit,
+      dates: Array.from(allDates).sort().slice(0, 360),
+      byAddress,
+      keys,
+    };
+  }
+
+  private targetList(value: unknown): Array<Record<string, unknown>> {
+    if (Array.isArray(value)) {
+      return value.filter((item): item is Record<string, unknown> => Boolean(item && typeof item === 'object'));
+    }
+    return value && typeof value === 'object' ? [value as Record<string, unknown>] : [];
+  }
+
+  private dateList(value: unknown): string[] {
+    if (Array.isArray(value)) return value.map((item) => String(item));
+    if (typeof value === 'string') {
+      return value
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+    return value ? [String(value)] : [];
+  }
+
+  private async portfolioSettingsByAddress(addressIds: string[]) {
+    if (!addressIds.length) return new Map<string, PortfolioPropertySetting>();
+    const settings = await this.portfolioSettingRepo.find({
+      where: { address: { id: In(addressIds) } } as any,
+      relations: ['address'],
+    });
+    return new Map(settings.map((setting) => [setting.address.id, setting]));
+  }
+
+  private async portfolioOverridesByAddressDate(userId: string, addressIds: string[], range: DateRange) {
+    if (!addressIds.length) return new Map<string, PortfolioDailyPriceOverride>();
+    const overrides = await this.portfolioOverrideRepo.find({
+      where: {
+        user: { id: userId },
+        address: { id: In(addressIds) },
+        targetDate: Between(range.from, range.to),
+      } as any,
+      relations: ['address'],
+      take: Math.max(1000, addressIds.length * range.dates.length),
+    });
+    return new Map(
+      overrides
+        .map((override) => {
+          const date = this.dateOnly(override.targetDate);
+          return date ? [`${override.address.id}:${date}`, override] as const : null;
+        })
+        .filter(Boolean),
+    );
+  }
+
+  private resolvePortfolioStrategyMetadata(
+    requested: PortfolioPricingStrategy | null,
+    stored: PortfolioPricingStrategy | null | undefined,
+    userDefault: PortfolioPricingStrategy | null,
+  ): PortfolioStrategyMetadata {
+    const strategy = requested ?? stored ?? userDefault ?? 'balanced';
+    const source = requested ? 'request' : stored ? 'property_default' : userDefault ? 'user_default' : 'fallback';
+    return {
+      strategy,
+      source,
+      ...this.portfolioStrategyAdjustment(strategy),
+    };
+  }
+
+  private portfolioStrategyAdjustment(strategy: PortfolioPricingStrategy) {
+    if (strategy === 'conservative') {
+      return {
+        adjustmentPercent: -5,
+        multiplier: 0.95,
+        rule: 'conservative aplica -5% sobre precoSugerido.',
+      };
+    }
+    if (strategy === 'aggressive') {
+      return {
+        adjustmentPercent: 5,
+        multiplier: 1.05,
+        rule: 'aggressive aplica +5% sobre precoSugerido.',
+      };
+    }
+    if (strategy === 'ai') {
+      return {
+        adjustmentPercent: 0,
+        multiplier: 1,
+        rule: 'ai/autonomous mantem precoSugerido original nesta etapa.',
+      };
+    }
+    return {
+      adjustmentPercent: 0,
+      multiplier: 1,
+      rule: 'balanced mantem precoSugerido original.',
+    };
+  }
+
+  private applyPortfolioStrategy(value: unknown, strategy: PortfolioPricingStrategy) {
+    const base = Number(value);
+    if (!Number.isFinite(base)) return null;
+    return this.roundMoney(base * this.portfolioStrategyAdjustment(strategy).multiplier);
+  }
+
+  private portfolioRisk(currentPrice: number, suggestedPrice?: number | null, event?: EventEntity | null) {
+    if (!suggestedPrice || currentPrice <= 0) return 'baixa';
+    const delta = (suggestedPrice - currentPrice) / currentPrice;
+    if (delta >= 0.25 || (event && this.eventImpact(event) === 'alta')) return 'alta';
+    if (delta >= 0.1) return 'media';
+    return 'baixa';
+  }
+
+  private portfolioConfidence(event?: EventEntity | null) {
+    if (!event) return 'baixa';
+    return this.eventImpact(event) === 'alta' ? 'alta' : 'media';
+  }
+
+  private async getUser(userId: string) {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Usuario nao encontrado');
+    return user;
   }
 
   private async getOwnedAddresses(userId: string, propertyIds?: string[]) {
@@ -875,9 +1597,9 @@ export class HostPanelsService {
     return relevance >= 70 || audience >= 10000 ? 'alta' : 'media';
   }
 
-  private normalizeStrategy(strategy: string) {
+  private normalizeStrategy(strategy: string): PortfolioPricingStrategy | null {
     const normalized = this.normalize(strategy);
-    const map: Record<string, string> = {
+    const map: Record<string, PortfolioPricingStrategy> = {
       conservadora: 'conservative',
       conservative: 'conservative',
       moderada: 'balanced',

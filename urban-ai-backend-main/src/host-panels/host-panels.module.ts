@@ -6,6 +6,10 @@ import { AskUrbanMessage } from '../entities/ask-urban-message.entity';
 import { Event } from '../entities/events.entity';
 import { List } from '../entities/list.entity';
 import { OccupancyHistory } from '../entities/occupancy-history.entity';
+import { PortfolioActionItem } from '../entities/portfolio-action-item.entity';
+import { PortfolioActionRun } from '../entities/portfolio-action-run.entity';
+import { PortfolioDailyPriceOverride } from '../entities/portfolio-daily-price-override.entity';
+import { PortfolioPropertySetting } from '../entities/portfolio-property-setting.entity';
 import { PriceSnapshot } from '../entities/price-snapshot.entity';
 import { PricingRuleConfig } from '../entities/pricing-rule-config.entity';
 import { User } from '../entities/user.entity';
@@ -27,6 +31,10 @@ import { PropertiesPanelController } from './properties-panel.controller';
       Event,
       List,
       OccupancyHistory,
+      PortfolioActionItem,
+      PortfolioActionRun,
+      PortfolioDailyPriceOverride,
+      PortfolioPropertySetting,
       PriceSnapshot,
       PricingRuleConfig,
       User,
