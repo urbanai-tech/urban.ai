@@ -22,9 +22,9 @@ const Footer = () => {
       style={{
         height: 200,
         padding: "24px 16px",
-        background: "#fff",
-        color: "#0e161b",
-        borderTop: "1px solid #e8eef3",
+        background: "var(--app-surface)",
+        color: "var(--app-text)",
+        borderTop: "1px solid var(--app-divider)",
       }}
     >
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>

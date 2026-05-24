@@ -40,7 +40,7 @@ function LegalDocument({
         if (block.kind === "section") {
           return (
             <section key={index} style={{ width: "100%", paddingTop: index === 1 ? 0 : 16 }}>
-              {index > 1 && <hr style={{ margin: "0 0 16px", border: 0, borderTop: "1px solid rgba(255,255,255,0.10)" }} />}
+              {index > 1 && <hr style={{ margin: "0 0 16px", border: 0, borderTop: "1px solid var(--theme-public-soft)" }} />}
               <h2>{block.text}</h2>
             </section>
           );

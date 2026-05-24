@@ -286,7 +286,7 @@ export default function AdminQualityPage() {
                 padding: "12px 16px",
                 border: "1px solid var(--admin-divider)",
                 borderRadius: 2,
-                background: "rgba(255, 255, 255, 0.02)",
+                background: "var(--admin-surface)",
               }}
             >
               <AdminStatusDot
@@ -484,7 +484,7 @@ export default function AdminQualityPage() {
                   padding: "12px 16px",
                   border: "1px solid var(--admin-divider)",
                   borderRadius: 2,
-                  background: "rgba(255, 255, 255, 0.02)",
+                  background: "var(--admin-surface)",
                   fontSize: 12,
                   color: "var(--admin-text-muted)",
                   lineHeight: 1.55,

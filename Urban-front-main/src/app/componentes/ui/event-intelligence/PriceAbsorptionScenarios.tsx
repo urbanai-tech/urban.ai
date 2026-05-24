@@ -96,7 +96,7 @@ export function PriceAbsorptionScenarios({
                     display: "block",
                     height: "100%",
                     width: `${width}%`,
-                    background: scenario.recommended ? "var(--app-accent)" : "rgba(14, 17, 22, 0.24)",
+                    background: scenario.recommended ? "var(--app-accent)" : "var(--app-divider-strong)",
                   }}
                 />
               </div>

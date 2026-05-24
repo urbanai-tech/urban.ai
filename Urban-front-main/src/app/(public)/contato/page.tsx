@@ -59,7 +59,7 @@ export default function Contato() {
           >
             FALA COM
             <br />
-            <span style={{ color: "#E8500A" }}>A URBAN.</span>
+            <span style={{ color: "var(--theme-public-accent)" }}>A URBAN.</span>
           </h1>
           <p className="urban-public-copy" style={{ maxWidth: 700, marginTop: 48 }}>
             Dúvidas, parcerias, suporte ou acesso antecipado. Manda a mensagem e a gente
@@ -78,7 +78,7 @@ export default function Contato() {
             alignItems: "start",
           }}
         >
-          <form onSubmit={handleSubmit} style={{ borderTop: "1px solid rgba(255,255,255,0.10)", paddingTop: 36 }}>
+          <form onSubmit={handleSubmit} style={{ borderTop: "1px solid var(--theme-public-soft)", paddingTop: 36 }}>
             <Field label="Nome completo" name="name" placeholder="Seu nome" />
             <Field label="E-mail" name="email" placeholder="seu@email.com" type="email" />
             <Field label="Assunto" name="subject" placeholder="Qual o motivo do contato?" />
@@ -102,8 +102,8 @@ export default function Contato() {
                 width: "100%",
                 padding: "18px 24px",
                 border: "none",
-                background: "#E8500A",
-                color: "#080A0F",
+                background: "var(--theme-public-accent)",
+                color: "var(--theme-public-bg)",
                 fontWeight: 700,
                 fontSize: 13,
                 letterSpacing: 1.5,
@@ -117,7 +117,7 @@ export default function Contato() {
               {status === "loading" ? "Enviando..." : "Enviar mensagem"}
             </button>
             {status === "success" && (
-              <p className="urban-public-copy" role="status" style={{ marginTop: 24, color: "#FFFFFF" }}>
+              <p className="urban-public-copy" role="status" style={{ marginTop: 24, color: "var(--theme-public-text)" }}>
                 Mensagem registrada. Nossa equipe retorna em breve.
               </p>
             )}
@@ -180,8 +180,8 @@ const fieldStyle: React.CSSProperties = {
   width: "100%",
   background: "transparent",
   border: "none",
-  borderBottom: "1px solid rgba(255,255,255,0.22)",
-  color: "#FFFFFF",
+  borderBottom: "1px solid var(--theme-public-strong)",
+  color: "var(--theme-public-text)",
   fontSize: 19,
   fontWeight: 300,
   lineHeight: 1.5,
@@ -192,7 +192,7 @@ const fieldStyle: React.CSSProperties = {
 
 const contactLinkStyle: React.CSSProperties = {
   display: "block",
-  color: "#FFFFFF",
+  color: "var(--theme-public-text)",
   fontSize: 18,
   lineHeight: 1.6,
   textDecoration: "none",

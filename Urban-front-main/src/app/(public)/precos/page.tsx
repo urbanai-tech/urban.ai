@@ -11,7 +11,7 @@ import {
  * /precos — pricing pública (visão resumida).
  *
  * Estilo manifesto editorial Urban AI: Bebas Neue gigante, Inter body,
- * fundo #080A0F, accent #E8500A (única cor), zero rounded cards coloridos.
+ * fundo var(--theme-public-bg), accent var(--theme-public-accent) (única cor), zero rounded cards coloridos.
  * Vide globals.css → .urban-manifesto, .urban-grain, .urban-pull, .urban-eyebrow
  *
  * Checkout vive em app.myurbanai.com/plans — aqui é vitrine pública.
@@ -63,7 +63,7 @@ export default function PrecosPage() {
   return (
     <div
       className="urban-manifesto"
-      style={{ background: "#080A0F", color: "#FFFFFF", minHeight: "100vh" }}
+      style={{ background: "var(--theme-public-bg)", color: "var(--theme-public-text)", minHeight: "100vh" }}
     >
       <JsonLd
         id="pricing-jsonld"
@@ -102,14 +102,14 @@ export default function PrecosPage() {
             <br />
             POR IMÓVEL.
             <br />
-            <span style={{ color: "#E8500A" }}>NADA MAIS.</span>
+            <span style={{ color: "var(--theme-public-accent)" }}>NADA MAIS.</span>
           </h1>
           <p
             style={{
               fontSize: 20,
               fontWeight: 300,
               lineHeight: 1.75,
-              color: "rgba(255,255,255,0.65)",
+              color: "var(--theme-public-muted)",
               maxWidth: 680,
               marginTop: 48,
             }}
@@ -121,7 +121,7 @@ export default function PrecosPage() {
       </section>
 
       {/* Divider */}
-      <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+      <div style={{ height: 1, background: "var(--theme-public-soft)" }} />
 
       {/* ============== STARTER ============== */}
       <section style={{ padding: "100px 24px" }}>
@@ -143,7 +143,7 @@ export default function PrecosPage() {
         </div>
       </section>
 
-      <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+      <div style={{ height: 1, background: "var(--theme-public-soft)" }} />
 
       {/* ============== PROFISSIONAL — destaque ============== */}
       <section style={{ padding: "100px 24px", position: "relative" }}>
@@ -156,7 +156,7 @@ export default function PrecosPage() {
               top: 0,
               width: 2,
               height: 80,
-              background: "#E8500A",
+              background: "var(--theme-public-accent)",
             }}
           />
           <PlanBlock
@@ -177,7 +177,7 @@ export default function PrecosPage() {
         </div>
       </section>
 
-      <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+      <div style={{ height: 1, background: "var(--theme-public-soft)" }} />
 
       {/* ============== ESCALA ============== */}
       <section style={{ padding: "100px 24px" }}>
@@ -199,14 +199,14 @@ export default function PrecosPage() {
           >
             20+ IMÓVEIS,
             <br />
-            <span style={{ color: "#E8500A" }}>FALA COM A GENTE.</span>
+            <span style={{ color: "var(--theme-public-accent)" }}>FALA COM A GENTE.</span>
           </h2>
           <p
             style={{
               fontSize: 20,
               fontWeight: 300,
               lineHeight: 1.75,
-              color: "rgba(255,255,255,0.65)",
+              color: "var(--theme-public-muted)",
               maxWidth: 680,
               marginTop: 40,
             }}
@@ -223,8 +223,8 @@ export default function PrecosPage() {
               style={{
                 display: "inline-block",
                 padding: "18px 24px",
-                background: "#E8500A",
-                color: "#080A0F",
+                background: "var(--theme-public-accent)",
+                color: "var(--theme-public-bg)",
                 fontWeight: 700,
                 fontSize: 14,
                 letterSpacing: 1.5,
@@ -241,7 +241,7 @@ export default function PrecosPage() {
         </div>
       </section>
 
-      <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+      <div style={{ height: 1, background: "var(--theme-public-soft)" }} />
 
       {/* ============== FAQ ============== */}
       <section style={{ padding: "120px 24px" }}>
@@ -263,7 +263,7 @@ export default function PrecosPage() {
           >
             RESPOSTAS
             <br />
-            <span style={{ color: "#E8500A" }}>CURTAS.</span>
+            <span style={{ color: "var(--theme-public-accent)" }}>CURTAS.</span>
           </h2>
           <div>
             <Faq
@@ -302,7 +302,7 @@ export default function PrecosPage() {
         </div>
       </section>
 
-      <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+      <div style={{ height: 1, background: "var(--theme-public-soft)" }} />
 
       {/* ============== FINAL CTA ============== */}
       <section
@@ -328,14 +328,14 @@ export default function PrecosPage() {
           >
             COMEÇAR
             <br />
-            <span style={{ color: "#E8500A" }}>É RÁPIDO.</span>
+            <span style={{ color: "var(--theme-public-accent)" }}>É RÁPIDO.</span>
           </h2>
           <p
             style={{
               fontSize: 20,
               fontWeight: 300,
               lineHeight: 1.75,
-              color: "rgba(255,255,255,0.65)",
+              color: "var(--theme-public-muted)",
               maxWidth: 580,
               marginTop: 48,
               marginBottom: 56,
@@ -350,8 +350,8 @@ export default function PrecosPage() {
               style={{
                 display: "inline-block",
                 padding: "18px 24px",
-                background: "#E8500A",
-                color: "#080A0F",
+                background: "var(--theme-public-accent)",
+                color: "var(--theme-public-bg)",
                 fontWeight: 700,
                 fontSize: 14,
                 letterSpacing: 1.5,
@@ -367,13 +367,13 @@ export default function PrecosPage() {
             <a
               href={SIGNUP_URL}
               style={{
-                color: "rgba(255,255,255,0.65)",
+                color: "var(--theme-public-muted)",
                 fontSize: 13,
                 letterSpacing: 2,
                 textTransform: "uppercase",
                 fontWeight: 500,
                 textDecoration: "none",
-                borderBottom: "1px solid rgba(255,255,255,0.20)",
+                borderBottom: "1px solid var(--theme-public-strong)",
                 paddingBottom: 4,
               }}
             >
@@ -428,7 +428,7 @@ function PlanBlock({
               key={i}
               style={{
                 display: "block",
-                color: "#E8500A",
+                color: "var(--theme-public-accent)",
                 fontSize: "clamp(28px, 4vw, 56px)",
                 lineHeight: 1,
                 marginTop: 12,
@@ -445,7 +445,7 @@ function PlanBlock({
           fontSize: 20,
           fontWeight: 300,
           lineHeight: 1.75,
-          color: "rgba(255,255,255,0.65)",
+          color: "var(--theme-public-muted)",
           maxWidth: 680,
           marginTop: 40,
         }}
@@ -459,8 +459,8 @@ function PlanBlock({
           marginTop: 64,
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          borderTop: "1px solid rgba(255,255,255,0.08)",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          borderTop: "1px solid var(--theme-public-soft)",
+          borderBottom: "1px solid var(--theme-public-soft)",
         }}
       >
         {tiers.map((t, i) => (
@@ -469,7 +469,7 @@ function PlanBlock({
             style={{
               padding: "32px 24px",
               borderRight:
-                i < tiers.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none",
+                i < tiers.length - 1 ? "1px solid var(--theme-public-soft)" : "none",
             }}
           >
             <p
@@ -477,7 +477,7 @@ function PlanBlock({
                 fontSize: 11,
                 letterSpacing: 3,
                 textTransform: "uppercase",
-                color: "rgba(255,255,255,0.50)",
+                color: "var(--theme-public-muted)",
                 fontWeight: 600,
                 margin: 0,
               }}
@@ -491,12 +491,12 @@ function PlanBlock({
                 lineHeight: 1,
                 fontWeight: 400,
                 margin: "16px 0 4px",
-                color: highlight ? "#FFFFFF" : "rgba(255,255,255,0.92)",
+                color: highlight ? "var(--theme-public-text)" : "var(--theme-public-text)",
               }}
             >
               R${t.price}
             </p>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.50)", margin: 0 }}>
+            <p style={{ fontSize: 12, color: "var(--theme-public-muted)", margin: 0 }}>
               /imóvel/mês
             </p>
             {t.note && (
@@ -506,7 +506,7 @@ function PlanBlock({
                   fontSize: 11,
                   letterSpacing: 2,
                   textTransform: "uppercase",
-                  color: "#E8500A",
+                  color: "var(--theme-public-accent)",
                   fontWeight: 600,
                 }}
               >
@@ -536,10 +536,10 @@ function PlanBlock({
               fontSize: 16,
               fontWeight: 300,
               lineHeight: 1.6,
-              color: "rgba(255,255,255,0.85)",
+              color: "var(--theme-public-text)",
             }}
           >
-            <span style={{ color: "#E8500A", fontWeight: 600, fontSize: 12 }}>—</span>
+            <span style={{ color: "var(--theme-public-accent)", fontWeight: 600, fontSize: 12 }}>—</span>
             <span>{f}</span>
           </div>
         ))}
@@ -552,7 +552,7 @@ function Faq({ q, a }: { q: string; a: string }) {
   return (
     <details
       style={{
-        borderTop: "1px solid rgba(255,255,255,0.08)",
+        borderTop: "1px solid var(--theme-public-soft)",
         padding: "28px 0",
       }}
     >
@@ -563,7 +563,7 @@ function Faq({ q, a }: { q: string; a: string }) {
           fontSize: 22,
           fontWeight: 500,
           letterSpacing: 0,
-          color: "#FFFFFF",
+          color: "var(--theme-public-text)",
           display: "flex",
           justifyContent: "space-between",
           gap: 24,
@@ -572,7 +572,7 @@ function Faq({ q, a }: { q: string; a: string }) {
         <span style={{ minWidth: 0, flex: 1, overflowWrap: "anywhere" }}>{q}</span>
         <span
           style={{
-            color: "#E8500A",
+            color: "var(--theme-public-accent)",
             fontWeight: 400,
             fontSize: 28,
             lineHeight: 1,
@@ -588,7 +588,7 @@ function Faq({ q, a }: { q: string; a: string }) {
           fontSize: 17,
           fontWeight: 300,
           lineHeight: 1.75,
-          color: "rgba(255,255,255,0.65)",
+          color: "var(--theme-public-muted)",
           maxWidth: 720,
         }}
       >

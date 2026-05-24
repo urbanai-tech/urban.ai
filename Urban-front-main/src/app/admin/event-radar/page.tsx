@@ -1473,14 +1473,14 @@ function AdminRadarOverlay() {
             width: `${size}%`,
             aspectRatio: "1 / 1",
             transform: "translate(-50%, -50%)",
-            border: "1px solid rgba(14, 17, 22, 0.08)",
+            border: "1px solid var(--admin-divider)",
             borderRadius: "50%",
             pointerEvents: "none",
           }}
         />
       ))}
-      <span aria-hidden style={{ position: "absolute", left: 38, right: 38, top: "50%", height: 1, background: "rgba(14, 17, 22, 0.06)" }} />
-      <span aria-hidden style={{ position: "absolute", top: 38, bottom: 38, left: "50%", width: 1, background: "rgba(14, 17, 22, 0.06)" }} />
+      <span aria-hidden style={{ position: "absolute", left: 38, right: 38, top: "50%", height: 1, background: "var(--admin-divider)" }} />
+      <span aria-hidden style={{ position: "absolute", top: 38, bottom: 38, left: "50%", width: 1, background: "var(--admin-divider)" }} />
     </>
   );
 }

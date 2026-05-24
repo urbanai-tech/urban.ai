@@ -6,7 +6,7 @@ import NextLink from "next/link";
 /**
  * Header do site PÚBLICO (myurbanai.com).
  *
- * Estilo manifesto editorial: dark #080A0F, Inter minimalista, accent #E8500A
+ * Estilo manifesto editorial: dark var(--theme-public-bg), Inter minimalista, accent var(--theme-public-accent)
  * apenas no CTA. Sem logo grande — Urban AI é a tipografia.
  *
  * Os CTAs apontam pro subdomain do app (`app.myurbanai.com/`).
@@ -36,10 +36,10 @@ export default function HeaderPublic() {
         position: "sticky",
         top: 0,
         zIndex: 50,
-        background: "rgba(8, 10, 15, 0.85)",
+        background: "color-mix(in srgb, var(--theme-public-bg) 85%, transparent)",
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        borderBottom: "1px solid var(--theme-public-soft)",
       }}
     >
       <div
@@ -70,7 +70,7 @@ export default function HeaderPublic() {
               fontSize: 28,
               letterSpacing: 0,
               fontWeight: 400,
-              color: "#FFFFFF",
+              color: "var(--theme-public-text)",
               textTransform: "uppercase",
               lineHeight: 1,
             }}
@@ -83,7 +83,7 @@ export default function HeaderPublic() {
               fontSize: 28,
               letterSpacing: 0,
               fontWeight: 400,
-              color: "#E8500A",
+              color: "var(--theme-public-accent)",
               textTransform: "uppercase",
               lineHeight: 1,
             }}
@@ -110,15 +110,15 @@ export default function HeaderPublic() {
                 letterSpacing: 2,
                 textTransform: "uppercase",
                 fontWeight: 500,
-                color: "rgba(255,255,255,0.65)",
+                color: "var(--theme-public-muted)",
                 textDecoration: "none",
                 transition: "color 150ms",
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.color = "#FFFFFF";
+                (e.currentTarget as HTMLElement).style.color = "var(--theme-public-text)";
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.65)";
+                (e.currentTarget as HTMLElement).style.color = "var(--theme-public-muted)";
               }}
             >
               {item.label}
@@ -135,7 +135,7 @@ export default function HeaderPublic() {
               letterSpacing: 2,
               textTransform: "uppercase",
               fontWeight: 500,
-              color: "rgba(255,255,255,0.65)",
+              color: "var(--theme-public-muted)",
               textDecoration: "none",
               padding: "8px 4px",
             }}
@@ -149,8 +149,8 @@ export default function HeaderPublic() {
               letterSpacing: 2,
               textTransform: "uppercase",
               fontWeight: 700,
-              color: "#080A0F",
-              background: "#E8500A",
+              color: "var(--theme-public-bg)",
+              background: "var(--theme-public-accent)",
               padding: "12px 22px",
               textDecoration: "none",
             }}
@@ -171,8 +171,8 @@ export default function HeaderPublic() {
             alignItems: "center",
             justifyContent: "center",
             background: "transparent",
-            border: "1px solid rgba(255,255,255,0.20)",
-            color: "#FFFFFF",
+            border: "1px solid var(--theme-public-strong)",
+            color: "var(--theme-public-text)",
             cursor: "pointer",
           }}
         >
@@ -205,8 +205,8 @@ export default function HeaderPublic() {
             zIndex: 60,
             maxHeight: "calc(100dvh - 72px)",
             overflowY: "auto",
-            background: "#080A0F",
-            borderBottom: "1px solid rgba(255,255,255,0.08)",
+            background: "var(--theme-public-bg)",
+            borderBottom: "1px solid var(--theme-public-soft)",
             padding: "24px",
             display: "flex",
             flexDirection: "column",
@@ -224,9 +224,9 @@ export default function HeaderPublic() {
                 letterSpacing: 2,
                 textTransform: "uppercase",
                 fontWeight: 500,
-                color: "rgba(255,255,255,0.85)",
+                color: "var(--theme-public-text)",
                 textDecoration: "none",
-                borderBottom: "1px solid rgba(255,255,255,0.08)",
+                borderBottom: "1px solid var(--theme-public-soft)",
               }}
             >
               {item.label}
@@ -241,7 +241,7 @@ export default function HeaderPublic() {
               letterSpacing: 2,
               textTransform: "uppercase",
               fontWeight: 500,
-              color: "rgba(255,255,255,0.65)",
+              color: "var(--theme-public-muted)",
               textDecoration: "none",
             }}
           >
@@ -257,8 +257,8 @@ export default function HeaderPublic() {
               textTransform: "uppercase",
               fontWeight: 700,
               textAlign: "center",
-              background: "#E8500A",
-              color: "#080A0F",
+              background: "var(--theme-public-accent)",
+              color: "var(--theme-public-bg)",
               textDecoration: "none",
             }}
           >

@@ -20,7 +20,7 @@ const baseFieldStyle: React.CSSProperties = {
   width: "100%",
   height: 36,
   padding: "0 12px",
-  background: "rgba(255, 255, 255, 0.03)",
+  background: "var(--admin-surface-elevated)",
   border: "1px solid var(--admin-divider)",
   borderRadius: 2,
   color: "var(--admin-text)",
@@ -147,12 +147,8 @@ export const AdminSelect = React.forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           style={{
             ...baseFieldStyle,
-            appearance: "none",
+            appearance: "auto",
             paddingRight: 36,
-            backgroundImage:
-              "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.55)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>\")",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "right 12px center",
             ...style,
           }}
           {...rest}

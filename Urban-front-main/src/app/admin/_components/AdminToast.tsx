@@ -80,7 +80,7 @@ export function AdminToastProvider({ children }: { children: React.ReactNode }) 
               minWidth: 280,
               maxWidth: 420,
               padding: "12px 14px",
-              background: "#0d1117",
+              background: "var(--admin-surface-elevated)",
               border: "1px solid var(--admin-divider-strong)",
               borderLeft: `2px solid ${kindColor(t.kind)}`,
               borderRadius: 2,
@@ -89,7 +89,7 @@ export function AdminToastProvider({ children }: { children: React.ReactNode }) 
               gap: 12,
               fontSize: 13,
               color: "var(--admin-text)",
-              boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)",
+              boxShadow: "0 8px 24px var(--admin-shadow, rgba(0, 0, 0, 0.32))",
             }}
           >
             <AdminStatusDot kind={t.kind} size={8} />

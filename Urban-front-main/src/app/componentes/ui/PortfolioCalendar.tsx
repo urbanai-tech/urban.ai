@@ -283,7 +283,7 @@ function StyledCheckbox({
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#fff",
+          color: "var(--app-bg)",
           transition: "background 120ms ease, border-color 120ms ease",
         }}
       >
@@ -293,7 +293,7 @@ function StyledCheckbox({
             style={{
               width: 8,
               height: 2,
-              background: "#fff",
+              background: "var(--app-bg)",
               borderRadius: 1,
             }}
           />
@@ -570,7 +570,7 @@ export function PortfolioCalendar({
               padding: "10px 18px",
               borderRadius: 8,
               background: "var(--app-accent)",
-              color: "#fff",
+              color: "var(--app-bg)",
               fontWeight: 600,
               fontSize: 14,
               textDecoration: "none",
@@ -924,7 +924,7 @@ export function PortfolioCalendar({
                     height: HEADER_HEIGHT,
                     borderRight: "1px solid var(--app-divider)",
                     background: weekend
-                      ? "rgba(14, 17, 22, 0.025)"
+                      ? "var(--app-surface-muted)"
                       : "transparent",
                     display: "flex",
                     flexDirection: "column",
@@ -1098,7 +1098,7 @@ export function PortfolioCalendar({
                         background: isSelectedDay
                           ? "var(--app-accent-soft)"
                           : weekend
-                          ? "rgba(14, 17, 22, 0.018)"
+                          ? "var(--app-surface-muted)"
                           : "transparent",
                         position: "relative",
                         boxSizing: "border-box",

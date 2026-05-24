@@ -63,7 +63,7 @@ function styleForVariant(variant: AppButtonVariant): React.CSSProperties {
       return {
         background: "transparent",
         color: appVar.danger,
-        border: "1px solid rgba(194, 52, 46, 0.25)",
+        border: `1px solid ${appVar.dangerBorder}`,
       };
   }
 }

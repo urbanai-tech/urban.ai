@@ -82,7 +82,7 @@ export function AppConfirmDialog({
         style={{
           position: "absolute",
           inset: 0,
-          background: "rgba(14, 17, 22, 0.45)",
+          background: "var(--app-backdrop)",
           backdropFilter: "blur(4px)",
         }}
       />

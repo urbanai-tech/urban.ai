@@ -729,7 +729,7 @@ export function RecommendationCard({
             alignItems: "center",
             gap: 5,
             padding: "6px 12px",
-            background: deltaAbs >= 0 ? "var(--app-accent-soft)" : "rgba(194, 52, 46, 0.08)",
+            background: deltaAbs >= 0 ? "var(--app-accent-soft)" : "var(--app-surface-muted)",
             color: deltaAbs >= 0 ? "var(--app-accent)" : "var(--app-danger)",
             borderRadius: 999,
             fontSize: 13,

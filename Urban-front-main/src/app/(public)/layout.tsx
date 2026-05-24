@@ -24,7 +24,8 @@ export default function PublicLayout({
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        background: "#FFFFFF",
+        background: "var(--theme-public-bg)",
+        color: "var(--theme-public-text)",
       }}
     >
       <JsonLd id="urban-public-base-jsonld" data={publicBaseJsonLd()} />

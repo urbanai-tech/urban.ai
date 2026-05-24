@@ -111,8 +111,7 @@ export const AppSelect = React.forwardRef<HTMLSelectElement, SelectProps>(functi
           ...appFieldBaseStyle,
           appearance: "none",
           paddingRight: 36,
-          backgroundImage:
-            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(14,17,22,0.55)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>\")",
+          backgroundImage: "var(--app-select-chevron)",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "right 12px center",
           ...style,

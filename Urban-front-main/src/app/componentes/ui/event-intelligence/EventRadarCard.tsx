@@ -41,7 +41,7 @@ export function EventRadarCard({
         style={{
           padding: 18,
           cursor: "pointer",
-          outline: selected ? "2px solid rgba(232, 80, 10, 0.12)" : undefined,
+          outline: selected ? "2px solid var(--app-accent-soft)" : undefined,
           minWidth: 0,
         }}
         onClick={onSelect}
@@ -167,8 +167,8 @@ function ScorePill({ value }: { value?: number | null }) {
         borderRadius: 8,
         display: "grid",
         placeItems: "center",
-        background: "rgba(232, 80, 10, 0.10)",
-        border: "1px solid rgba(232, 80, 10, 0.24)",
+        background: "var(--app-accent-soft)",
+        border: "1px solid var(--app-accent)",
         color: "var(--app-accent)",
       }}
     >

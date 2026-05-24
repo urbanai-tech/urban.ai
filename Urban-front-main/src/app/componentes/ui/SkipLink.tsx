@@ -33,7 +33,7 @@ export function SkipLink({ targetId = "main-content" }: { targetId?: string }) {
         clip: focused ? "auto" : "rect(0 0 0 0)",
         whiteSpace: "nowrap",
         borderRadius: 6,
-        background: "var(--app-accent, #E8500A)",
+        background: "var(--app-accent)",
         color: "#FFFFFF",
         textDecoration: "none",
         fontSize: 14,

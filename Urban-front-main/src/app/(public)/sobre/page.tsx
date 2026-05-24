@@ -33,7 +33,7 @@ export default function Sobre() {
           >
             A CIDADE MUDA.
             <br />
-            <span style={{ color: "#E8500A" }}>O PREÇO TAMBÉM.</span>
+            <span style={{ color: "var(--theme-public-accent)" }}>O PREÇO TAMBÉM.</span>
           </h1>
           <p className="urban-public-copy" style={{ maxWidth: 760, marginTop: 48 }}>
             A Urban AI nasceu para transformar a precificação de aluguéis de curta temporada

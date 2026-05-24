@@ -66,7 +66,7 @@ export function AdminDrawer({
         style={{
           position: "absolute",
           inset: 0,
-          background: "rgba(0, 0, 0, 0.6)",
+          background: "var(--admin-backdrop, rgba(0, 0, 0, 0.6))",
           backdropFilter: "blur(2px)",
         }}
       />
@@ -76,7 +76,7 @@ export function AdminDrawer({
           position: "relative",
           width: "100%",
           maxWidth: width,
-          background: "#0d1117",
+          background: "var(--admin-surface-elevated)",
           borderLeft: "1px solid var(--admin-divider)",
           display: "flex",
           flexDirection: "column",
@@ -145,7 +145,7 @@ export function AdminDrawer({
               flexWrap: "wrap",
               gap: 12,
               justifyContent: "flex-end",
-              background: "rgba(0, 0, 0, 0.2)",
+              background: "var(--admin-surface)",
             }}
           >
             {footer}

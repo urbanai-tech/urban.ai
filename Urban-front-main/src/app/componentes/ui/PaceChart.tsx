@@ -337,7 +337,7 @@ export function PaceChart({
             border: "1px solid var(--app-divider-strong)",
             borderRadius: 8,
             padding: "8px 12px",
-            boxShadow: "0 4px 16px rgba(14, 17, 22, 0.10)",
+            boxShadow: "var(--app-shadow-elevated)",
             fontSize: 12,
             color: "var(--app-text)",
             pointerEvents: "none",

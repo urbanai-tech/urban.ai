@@ -184,7 +184,7 @@ export default function CoverageAdminPage() {
             fontSize: 11,
             letterSpacing: 1.5,
             textTransform: "uppercase",
-            background: "rgba(255, 255, 255, 0.03)",
+            background: "var(--admin-surface-elevated)",
             border: "1px solid var(--admin-divider-strong)",
             borderRadius: 2,
             color: "var(--admin-text)",

@@ -50,22 +50,22 @@ const KIND_STYLE: Record<
   success: {
     border: "var(--app-success)",
     iconColor: "var(--app-success)",
-    bg: "rgba(22, 160, 107, 0.06)",
+    bg: "var(--app-surface-muted)",
   },
   warn: {
     border: "var(--app-warning)",
     iconColor: "var(--app-warning)",
-    bg: "rgba(200, 129, 14, 0.06)",
+    bg: "var(--app-surface-muted)",
   },
   error: {
     border: "var(--app-danger)",
     iconColor: "var(--app-danger)",
-    bg: "rgba(194, 52, 46, 0.06)",
+    bg: "var(--app-surface-muted)",
   },
   info: {
     border: "var(--app-accent)",
     iconColor: "var(--app-accent)",
-    bg: "rgba(232, 80, 10, 0.06)",
+    bg: "var(--app-accent-soft)",
   },
 };
 
@@ -144,7 +144,7 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
                 gap: 12,
                 fontSize: 14,
                 color: "var(--app-text)",
-                boxShadow: "0 8px 24px rgba(14, 17, 22, 0.10)",
+                boxShadow: "var(--app-shadow-overlay)",
                 animation: "urban-app-toast-in 220ms cubic-bezier(0.16, 1, 0.3, 1)",
                 fontFamily: "Inter, system-ui, sans-serif",
               }}
@@ -224,7 +224,7 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
           outline-offset: 2px;
         }
         .urban-focus-ring-inverse:focus-visible {
-          outline: 2px solid #ffffff;
+          outline: 2px solid var(--app-surface);
           outline-offset: 2px;
         }
         @media (prefers-reduced-motion: reduce) {

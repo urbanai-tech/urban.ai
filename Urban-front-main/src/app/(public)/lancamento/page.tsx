@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { JsonLd, buildSeoMetadata, faqPageJsonLd } from "../../lib/seo";
 
 const WaitlistForm = dynamic(() => import("../../componentes/WaitlistForm").then(mod => mod.WaitlistForm), {
-  loading: () => <div style={{ height: "100px", width: "100%", opacity: 0.5, background: "rgba(255,255,255,0.05)" }} />
+  loading: () => <div style={{ height: "100px", width: "100%", opacity: 0.5, background: "var(--theme-public-surface)" }} />
 });
 
 export const metadata: Metadata = buildSeoMetadata({
@@ -34,7 +34,7 @@ const LAUNCH_FAQ_SCHEMA = [
 /**
  * /lancamento — pré-lançamento Urban AI · waitlist.
  *
- * Estilo manifesto editorial: dark, Bebas Neue gigante, accent #E8500A.
+ * Estilo manifesto editorial: dark, Bebas Neue gigante, accent var(--theme-public-accent).
  * Vide globals.css → .urban-manifesto / .urban-grain / .urban-glow / .urban-pull.
  *
  * Não é uma "página de produto" — é uma declaração. Energia de manifesto,
@@ -44,7 +44,7 @@ export default function LancamentoPage() {
   return (
     <main
       className="urban-manifesto"
-      style={{ background: "#080A0F", color: "#FFFFFF", minHeight: "100vh" }}
+      style={{ background: "var(--theme-public-bg)", color: "var(--theme-public-text)", minHeight: "100vh" }}
     >
       <JsonLd id="launch-jsonld" data={faqPageJsonLd(LAUNCH_FAQ_SCHEMA, "/lancamento")} />
       {/* ============== HERO ============== */}
@@ -76,14 +76,14 @@ export default function LancamentoPage() {
             <br />
             NÃO É TROFÉU.
             <br />
-            <span style={{ color: "#E8500A" }}>É PREÇO ERRADO.</span>
+            <span style={{ color: "var(--theme-public-accent)" }}>É PREÇO ERRADO.</span>
           </h1>
           <p
             style={{
               fontSize: 22,
               fontWeight: 300,
               lineHeight: 1.7,
-              color: "rgba(255,255,255,0.65)",
+              color: "var(--theme-public-muted)",
               maxWidth: 720,
               marginTop: 56,
             }}
@@ -95,7 +95,7 @@ export default function LancamentoPage() {
         </div>
       </section>
 
-      <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+      <div style={{ height: 1, background: "var(--theme-public-soft)" }} />
 
       {/* ============== PULL QUOTE ============== */}
       <section style={{ padding: "120px 24px", position: "relative" }}>
@@ -107,12 +107,12 @@ export default function LancamentoPage() {
                 fontWeight: 500,
                 lineHeight: 1.35,
                 letterSpacing: "-0.5px",
-                color: "#FFFFFF",
+                color: "var(--theme-public-text)",
                 margin: 0,
               }}
             >
               Dias de alta demanda escapam quando o preco foi fixado
-              <span style={{ color: "#E8500A" }}> antes </span>
+              <span style={{ color: "var(--theme-public-accent)" }}> antes </span>
               da cidade se mover.
             </p>
             <p
@@ -121,7 +121,7 @@ export default function LancamentoPage() {
                 fontSize: 13,
                 letterSpacing: 3,
                 textTransform: "uppercase",
-                color: "rgba(255,255,255,0.50)",
+                color: "var(--theme-public-muted)",
                 fontWeight: 600,
               }}
             >
@@ -131,7 +131,7 @@ export default function LancamentoPage() {
         </div>
       </section>
 
-      <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+      <div style={{ height: 1, background: "var(--theme-public-soft)" }} />
 
       {/* ============== O QUE FAZEMOS ============== */}
       <section style={{ padding: "120px 24px" }}>
@@ -153,7 +153,7 @@ export default function LancamentoPage() {
           >
             ANTECIPAMOS
             <br />
-            <span style={{ color: "#E8500A" }}>O MERCADO.</span>
+            <span style={{ color: "var(--theme-public-accent)" }}>O MERCADO.</span>
             <br />
             VOCÊ CAPTURA.
           </h2>
@@ -162,7 +162,7 @@ export default function LancamentoPage() {
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              borderTop: "1px solid rgba(255,255,255,0.08)",
+              borderTop: "1px solid var(--theme-public-soft)",
             }}
           >
             <Step
@@ -186,7 +186,7 @@ export default function LancamentoPage() {
         </div>
       </section>
 
-      <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+      <div style={{ height: 1, background: "var(--theme-public-soft)" }} />
 
       {/* ============== FAQ ============== */}
       <section style={{ padding: "120px 24px" }}>
@@ -206,7 +206,7 @@ export default function LancamentoPage() {
           >
             PERGUNTAS
             <br />
-            <span style={{ color: "#E8500A" }}>DIRETAS.</span>
+            <span style={{ color: "var(--theme-public-accent)" }}>DIRETAS.</span>
           </h2>
           <div>
             <LaunchFaq
@@ -233,7 +233,7 @@ export default function LancamentoPage() {
         </div>
       </section>
 
-      <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+      <div style={{ height: 1, background: "var(--theme-public-soft)" }} />
 
       {/* ============== WAITLIST ============== */}
       <section
@@ -263,14 +263,14 @@ export default function LancamentoPage() {
           >
             LISTA DE
             <br />
-            <span style={{ color: "#E8500A" }}>ACESSO ANTECIPADO.</span>
+            <span style={{ color: "var(--theme-public-accent)" }}>ACESSO ANTECIPADO.</span>
           </h2>
           <p
             style={{
               fontSize: 20,
               fontWeight: 300,
               lineHeight: 1.75,
-              color: "rgba(255,255,255,0.65)",
+              color: "var(--theme-public-muted)",
               maxWidth: 640,
               marginTop: 48,
               marginBottom: 56,
@@ -294,7 +294,7 @@ export default function LancamentoPage() {
               fontSize: 12,
               letterSpacing: 2,
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.50)",
+              color: "var(--theme-public-muted)",
               fontWeight: 500,
             }}
           >
@@ -310,7 +310,7 @@ function LaunchFaq({ q, a }: { q: string; a: string }) {
   return (
     <details
       style={{
-        borderTop: "1px solid rgba(255,255,255,0.08)",
+        borderTop: "1px solid var(--theme-public-soft)",
         padding: "28px 0",
       }}
     >
@@ -320,7 +320,7 @@ function LaunchFaq({ q, a }: { q: string; a: string }) {
           listStyle: "none",
           fontSize: 22,
           fontWeight: 500,
-          color: "#FFFFFF",
+          color: "var(--theme-public-text)",
           overflowWrap: "anywhere",
         }}
       >
@@ -333,7 +333,7 @@ function LaunchFaq({ q, a }: { q: string; a: string }) {
           fontSize: 17,
           fontWeight: 300,
           lineHeight: 1.75,
-          color: "rgba(255,255,255,0.65)",
+          color: "var(--theme-public-muted)",
         }}
       >
         {a}
@@ -357,7 +357,7 @@ function Step({
     <div
       style={{
         padding: "56px 32px",
-        borderLeft: borderLeft ? "1px solid rgba(255,255,255,0.08)" : "none",
+        borderLeft: borderLeft ? "1px solid var(--theme-public-soft)" : "none",
       }}
     >
       <p
@@ -366,7 +366,7 @@ function Step({
           fontSize: 64,
           lineHeight: 1,
           fontWeight: 400,
-          color: "#E8500A",
+          color: "var(--theme-public-accent)",
           margin: 0,
         }}
       >
@@ -380,7 +380,7 @@ function Step({
           fontWeight: 400,
           textTransform: "uppercase",
           margin: "32px 0 20px",
-          color: "#FFFFFF",
+          color: "var(--theme-public-text)",
         }}
       >
         {title}
@@ -390,7 +390,7 @@ function Step({
           fontSize: 17,
           fontWeight: 300,
           lineHeight: 1.7,
-          color: "rgba(255,255,255,0.65)",
+          color: "var(--theme-public-muted)",
           margin: 0,
         }}
       >

@@ -13,11 +13,11 @@ export type AdminBadgeKind =
   | "accent";
 
 const styles: Record<AdminBadgeKind, React.CSSProperties> = {
-  success: { color: "var(--admin-success)", borderColor: "rgba(74, 222, 128, 0.3)" },
-  warn: { color: "var(--admin-warning)", borderColor: "rgba(245, 181, 71, 0.3)" },
-  error: { color: "var(--admin-danger)", borderColor: "rgba(248, 113, 113, 0.3)" },
+  success: { color: "var(--admin-success)", borderColor: "var(--admin-success)" },
+  warn: { color: "var(--admin-warning)", borderColor: "var(--admin-warning)" },
+  error: { color: "var(--admin-danger)", borderColor: "var(--admin-danger)" },
   neutral: { color: "var(--admin-text-muted)", borderColor: "var(--admin-divider-strong)" },
-  accent: { color: "var(--admin-accent)", borderColor: "rgba(232, 80, 10, 0.3)" },
+  accent: { color: "var(--admin-accent)", borderColor: "var(--admin-accent)" },
 };
 
 export function AdminBadge({

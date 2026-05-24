@@ -60,7 +60,7 @@ export function AskUrbanUpgradeModal({
         style={{
           position: "absolute",
           inset: 0,
-          background: "rgba(14, 17, 22, 0.48)",
+          background: "color-mix(in srgb, var(--app-text) 48%, transparent)",
           backdropFilter: "blur(4px)",
         }}
       />
@@ -69,11 +69,11 @@ export function AskUrbanUpgradeModal({
           position: "relative",
           width: "100%",
           maxWidth: 480,
-          background: "var(--app-surface-elevated, #FFFFFF)",
+          background: "var(--app-surface-elevated, var(--app-surface))",
           border: "1px solid var(--app-divider-strong)",
           borderRadius: 14,
           padding: "28px 28px 24px",
-          boxShadow: "0 18px 48px rgba(14, 17, 22, 0.14)",
+          boxShadow: "var(--app-shadow-overlay)",
           fontFamily: "Inter, system-ui, sans-serif",
         }}
       >
@@ -108,8 +108,8 @@ export function AskUrbanUpgradeModal({
             alignItems: "center",
             gap: 8,
             padding: "6px 12px",
-            background: "rgba(232, 80, 10, 0.08)",
-            border: "1px solid rgba(232, 80, 10, 0.18)",
+            background: "var(--app-accent-soft)",
+            border: "1px solid var(--app-accent)",
             borderRadius: 999,
             color: "var(--app-accent)",
             fontSize: 12,

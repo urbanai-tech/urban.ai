@@ -387,7 +387,7 @@ function JsonBlock({ label, value }: { label: string; value: unknown }) {
         style={{
           marginTop: 8,
           padding: 16,
-          background: "rgba(255, 255, 255, 0.03)",
+          background: "var(--admin-surface-elevated)",
           border: "1px solid var(--admin-divider)",
           borderRadius: 2,
           fontSize: 12,

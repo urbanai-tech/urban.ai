@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
+import { ThemeToggle } from "@/app/componentes/theme/ThemeToggle";
 import {
   Activity,
   AlertCircle,
@@ -198,7 +199,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             style={{
               position: "absolute",
               inset: 0,
-              background: "rgba(0, 0, 0, 0.7)",
+              background: "var(--admin-backdrop, rgba(0, 0, 0, 0.7))",
               backdropFilter: "blur(2px)",
             }}
           />
@@ -232,7 +233,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             zIndex: 50,
             height: 56,
             padding: "0 24px",
-            background: "rgba(8, 10, 15, 0.85)",
+            background: "var(--admin-surface-elevated)",
             backdropFilter: "blur(12px)",
             borderBottom: "1px solid var(--admin-divider)",
             display: "flex",
@@ -267,6 +268,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <Breadcrumb pathname={pathname} />
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <ThemeToggle compact />
             <EnvBadge env={env} />
             <AdminAvatar />
           </div>
@@ -366,8 +368,8 @@ function SidebarContent({
         style={{
           margin: "12px 12px 0",
           padding: "10px 14px",
-          background: "rgba(232, 80, 10, 0.10)",
-          border: "1px solid rgba(232, 80, 10, 0.30)",
+          background: "var(--admin-accent-soft)",
+          border: "1px solid var(--admin-accent)",
           borderRadius: 2,
           color: "var(--admin-accent)",
           fontSize: 11,
@@ -383,11 +385,11 @@ function SidebarContent({
         }}
         onMouseEnter={(e) => {
           (e.currentTarget as HTMLAnchorElement).style.background =
-            "rgba(232, 80, 10, 0.18)";
+            "var(--admin-accent-soft)";
         }}
         onMouseLeave={(e) => {
           (e.currentTarget as HTMLAnchorElement).style.background =
-            "rgba(232, 80, 10, 0.10)";
+            "var(--admin-accent-soft)";
         }}
       >
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
@@ -447,7 +449,7 @@ function SidebarContent({
               width: "100%",
               height: 32,
               padding: "0 10px 0 32px",
-              background: "rgba(255, 255, 255, 0.03)",
+              background: "var(--admin-surface-elevated)",
               border: "1px solid var(--admin-divider)",
               borderRadius: 2,
               color: "var(--admin-text)",
@@ -601,7 +603,7 @@ function AdminAvatar() {
         fontSize: 12,
         fontWeight: 600,
         color: "var(--admin-text)",
-        background: "rgba(255, 255, 255, 0.03)",
+        background: "var(--admin-surface-elevated)",
       }}
     >
       AD

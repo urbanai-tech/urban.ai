@@ -58,9 +58,9 @@ export function EventCatalogCard({
               minWidth: 64,
               padding: "8px 10px",
               borderRadius: 8,
-              background: "rgba(14, 17, 22, 0.82)",
-              color: "#FFFFFF",
-              boxShadow: "0 8px 20px rgba(14, 17, 22, 0.16)",
+              background: "var(--app-text)",
+              color: "var(--app-bg)",
+              boxShadow: "var(--app-shadow-elevated)",
             }}
           >
             <p style={{ margin: 0, fontSize: 10, letterSpacing: 1.4, textTransform: "uppercase", opacity: 0.72 }}>

@@ -4,7 +4,7 @@ import Image from 'next/image'
 
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ minHeight: '100vh', background: '#FAFAFB', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--app-bg)', color: 'var(--app-text)', display: 'flex', flexDirection: 'column' }}>
       <main style={{ flex: 1, padding: '32px 0' }} className="urban-app">
         <Image
           src="/urban-logo-transparent-soft.png"

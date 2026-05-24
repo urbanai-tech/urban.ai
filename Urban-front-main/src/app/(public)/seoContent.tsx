@@ -63,7 +63,7 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
   return (
     <main
       className="urban-manifesto urban-public-page"
-      style={{ background: "#080A0F", color: "#FFFFFF" }}
+      style={{ background: "var(--theme-public-bg)", color: "var(--theme-public-text)" }}
     >
       <JsonLd
         id={`${content.path.replace(/\W+/g, "-")}-jsonld`}
@@ -106,10 +106,10 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
         </div>
       </section>
 
-      <section className="urban-public-section" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+      <section className="urban-public-section" style={{ borderTop: "1px solid var(--theme-public-soft)" }}>
         <div className="urban-public-container">
           <div className="urban-pull" style={{ maxWidth: 920 }}>
-            <p style={{ margin: 0, fontSize: "clamp(24px, 3vw, 38px)", lineHeight: 1.35, color: "#FFFFFF" }}>
+            <p style={{ margin: 0, fontSize: "clamp(24px, 3vw, 38px)", lineHeight: 1.35, color: "var(--theme-public-text)" }}>
               {content.answer}
             </p>
           </div>
@@ -126,11 +126,11 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
               <article
                 key={item.question}
                 style={{
-                  borderLeft: "3px solid #E8500A",
+                  borderLeft: "3px solid var(--theme-public-accent)",
                   paddingLeft: 22,
                 }}
               >
-                <h2 style={{ margin: 0, fontSize: 22, lineHeight: 1.25, color: "#FFFFFF" }}>
+                <h2 style={{ margin: 0, fontSize: 22, lineHeight: 1.25, color: "var(--theme-public-text)" }}>
                   {item.question}
                 </h2>
                 <p className="urban-public-copy" style={{ marginTop: 14, fontSize: 16 }}>
@@ -152,11 +152,11 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
               <article
                 key={section.title}
                 style={{
-                  borderTop: "1px solid rgba(255,255,255,0.10)",
+                  borderTop: "1px solid var(--theme-public-soft)",
                   paddingTop: 24,
                 }}
               >
-                <h2 style={{ margin: 0, fontSize: 24, lineHeight: 1.25, color: "#FFFFFF" }}>
+                <h2 style={{ margin: 0, fontSize: 24, lineHeight: 1.25, color: "var(--theme-public-text)" }}>
                   {section.title}
                 </h2>
                 <p className="urban-public-copy" style={{ marginTop: 16, fontSize: 16 }}>
@@ -171,7 +171,7 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
       <section
         id="evidencias-metodologia"
         className="urban-public-section"
-        style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
+        style={{ borderTop: "1px solid var(--theme-public-soft)" }}
       >
         <div
           className="urban-public-container"
@@ -189,11 +189,11 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
               <article
                 key={item.title}
                 style={{
-                  borderTop: "1px solid rgba(255,255,255,0.10)",
+                  borderTop: "1px solid var(--theme-public-soft)",
                   padding: "24px 0",
                 }}
               >
-                <h2 style={{ margin: 0, fontSize: 22, lineHeight: 1.25, color: "#FFFFFF" }}>
+                <h2 style={{ margin: 0, fontSize: 22, lineHeight: 1.25, color: "var(--theme-public-text)" }}>
                   {item.title}
                 </h2>
                 <p className="urban-public-copy" style={{ marginTop: 14, fontSize: 16 }}>
@@ -211,11 +211,11 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
               <article
                 key={item.title}
                 style={{
-                  borderTop: "1px solid rgba(255,255,255,0.10)",
+                  borderTop: "1px solid var(--theme-public-soft)",
                   padding: "24px 0",
                 }}
               >
-                <h2 style={{ margin: 0, fontSize: 22, lineHeight: 1.25, color: "#FFFFFF" }}>
+                <h2 style={{ margin: 0, fontSize: 22, lineHeight: 1.25, color: "var(--theme-public-text)" }}>
                   {item.title}
                 </h2>
                 <p className="urban-public-copy" style={{ marginTop: 14, fontSize: 16 }}>
@@ -230,7 +230,7 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
       <section
         id="estudos-de-caso"
         className="urban-public-section"
-        style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
+        style={{ borderTop: "1px solid var(--theme-public-soft)" }}
       >
         <div className="urban-public-container">
           <p className="urban-eyebrow" style={{ marginBottom: 24 }}>
@@ -240,7 +240,7 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
             <h2
               style={{
                 margin: 0,
-                color: "#FFFFFF",
+                color: "var(--theme-public-text)",
                 fontSize: "clamp(30px, 5vw, 72px)",
                 lineHeight: 1,
                 textTransform: "uppercase",
@@ -268,14 +268,14 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
               <article
                 key={study.title}
                 style={{
-                  border: "1px solid rgba(255,255,255,0.12)",
+                  border: "1px solid var(--theme-public-strong)",
                   padding: 24,
                 }}
               >
                 <span
                   style={{
                     display: "inline-block",
-                    color: "#E8500A",
+                    color: "var(--theme-public-accent)",
                     fontSize: 12,
                     fontWeight: 700,
                     letterSpacing: 2,
@@ -284,7 +284,7 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
                 >
                   Status: {caseStatusLabels[study.status]}
                 </span>
-                <h3 style={{ margin: "18px 0 0", fontSize: 24, lineHeight: 1.2, color: "#FFFFFF" }}>
+                <h3 style={{ margin: "18px 0 0", fontSize: 24, lineHeight: 1.2, color: "var(--theme-public-text)" }}>
                   {study.title}
                 </h3>
                 <p className="urban-public-copy" style={{ marginTop: 14, fontSize: 16 }}>
@@ -305,7 +305,7 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
                     <div key={label}>
                       <dt
                         style={{
-                          color: "rgba(255,255,255,0.48)",
+                          color: "var(--theme-public-muted)",
                           fontSize: 11,
                           fontWeight: 700,
                           letterSpacing: 2,
@@ -323,7 +323,7 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
                 <p
                   className="urban-public-copy"
                   style={{
-                    borderTop: "1px solid rgba(255,255,255,0.10)",
+                    borderTop: "1px solid var(--theme-public-soft)",
                     marginTop: 24,
                     paddingTop: 18,
                     fontSize: 15,
@@ -344,7 +344,7 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
         ctaCount={content.internalCtas.length}
         pagePath={content.path}
         pageTitle={content.title}
-        style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
+        style={{ borderTop: "1px solid var(--theme-public-soft)" }}
       >
         <div className="urban-public-container">
           <p className="urban-eyebrow" style={{ marginBottom: 24 }}>
@@ -368,16 +368,16 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
                 style={{
                   display: "block",
                   minHeight: 150,
-                  border: "1px solid rgba(255,255,255,0.12)",
+                  border: "1px solid var(--theme-public-strong)",
                   padding: 24,
-                  color: "#FFFFFF",
+                  color: "var(--theme-public-text)",
                   textDecoration: "none",
                 }}
               >
                 <span
                   style={{
                     display: "block",
-                    color: "#E8500A",
+                    color: "var(--theme-public-accent)",
                     fontSize: 12,
                     fontWeight: 700,
                     letterSpacing: 2,
@@ -398,7 +398,7 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
         </div>
       </SeoOrganicCtaSection>
 
-      <section className="urban-public-section" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+      <section className="urban-public-section" style={{ borderTop: "1px solid var(--theme-public-soft)" }}>
         <div className="urban-public-container" style={{ maxWidth: 980 }}>
           <p className="urban-eyebrow" style={{ marginBottom: 24 }}>
             Perguntas frequentes
@@ -407,14 +407,14 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
             <details
               key={item.question}
               style={{
-                borderTop: "1px solid rgba(255,255,255,0.10)",
+                borderTop: "1px solid var(--theme-public-soft)",
                 padding: "28px 0",
               }}
             >
               <summary
                 style={{
                   cursor: "pointer",
-                  color: "#FFFFFF",
+                  color: "var(--theme-public-text)",
                   fontSize: 22,
                   fontWeight: 600,
                   overflowWrap: "anywhere",
@@ -433,8 +433,8 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
               href="/precos"
               style={{
                 padding: "16px 22px",
-                background: "#E8500A",
-                color: "#080A0F",
+                background: "var(--theme-public-accent)",
+                color: "var(--theme-public-bg)",
                 textDecoration: "none",
                 fontWeight: 700,
                 letterSpacing: 1.5,
@@ -450,8 +450,8 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
               href="/contato"
               style={{
                 padding: "16px 22px",
-                border: "1px solid rgba(255,255,255,0.20)",
-                color: "#FFFFFF",
+                border: "1px solid var(--theme-public-strong)",
+                color: "var(--theme-public-text)",
                 textDecoration: "none",
                 fontWeight: 600,
                 letterSpacing: 1.5,

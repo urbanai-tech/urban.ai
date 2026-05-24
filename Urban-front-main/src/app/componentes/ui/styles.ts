@@ -21,9 +21,17 @@ export const appVar = {
   accent: "var(--app-accent)",
   accentSoft: "var(--app-accent-soft)",
   accentHover: "var(--app-accent-hover)",
+  accentBorder: "var(--app-accent-border)",
+  accentShadow: "var(--app-accent-shadow)",
   success: "var(--app-success)",
+  successSoft: "var(--app-success-soft)",
+  successBorder: "var(--app-success-border)",
   warning: "var(--app-warning)",
+  warningSoft: "var(--app-warning-soft)",
+  warningBorder: "var(--app-warning-border)",
   danger: "var(--app-danger)",
+  dangerSoft: "var(--app-danger-soft)",
+  dangerBorder: "var(--app-danger-border)",
   white: "#FFFFFF",
 } as const;
 
@@ -53,18 +61,18 @@ export const appTransition = {
 export const appTone = {
   success: {
     color: appVar.success,
-    background: "rgba(22, 160, 107, 0.10)",
-    borderColor: "rgba(22, 160, 107, 0.25)",
+    background: appVar.successSoft,
+    borderColor: appVar.successBorder,
   },
   warn: {
     color: appVar.warning,
-    background: "rgba(200, 129, 14, 0.10)",
-    borderColor: "rgba(200, 129, 14, 0.25)",
+    background: appVar.warningSoft,
+    borderColor: appVar.warningBorder,
   },
   error: {
     color: appVar.danger,
-    background: "rgba(194, 52, 46, 0.10)",
-    borderColor: "rgba(194, 52, 46, 0.25)",
+    background: appVar.dangerSoft,
+    borderColor: appVar.dangerBorder,
   },
   neutral: {
     color: appVar.textMuted,
@@ -74,7 +82,7 @@ export const appTone = {
   accent: {
     color: appVar.accent,
     background: appVar.accentSoft,
-    borderColor: "rgba(232, 80, 10, 0.25)",
+    borderColor: appVar.accentBorder,
   },
 } satisfies Record<string, React.CSSProperties>;
 

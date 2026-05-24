@@ -46,8 +46,8 @@ export function AuthFlowShell({
           position: "relative",
           minHeight: "100vh",
           overflow: "hidden",
-          background: "#080A0F",
-          color: "#fff",
+          background: "var(--app-bg)",
+          color: "var(--app-text)",
         }}
       >
         <div
@@ -86,7 +86,7 @@ export function AuthFlowShell({
             <p
               style={{
                 margin: "0 0 18px",
-                color: "#E8500A",
+                color: "var(--app-accent)",
                 fontSize: 11,
                 fontWeight: 700,
                 letterSpacing: 3,
@@ -100,7 +100,7 @@ export function AuthFlowShell({
               style={{
                 margin: 0,
                 maxWidth: 520,
-                color: "#fff",
+                color: "var(--app-text)",
                 fontSize: "clamp(56px, 7vw, 104px)",
                 lineHeight: 0.9,
                 fontWeight: 400,
@@ -114,7 +114,7 @@ export function AuthFlowShell({
               style={{
                 margin: "28px 0 0",
                 maxWidth: 420,
-                color: "rgba(255,255,255,0.68)",
+                color: "var(--app-text-muted)",
                 fontSize: 16,
                 lineHeight: 1.65,
               }}
@@ -127,9 +127,9 @@ export function AuthFlowShell({
               display: "flex",
               justifyContent: "space-between",
               gap: 24,
-              borderTop: "1px solid rgba(255,255,255,0.12)",
+              borderTop: "1px solid var(--app-divider-strong)",
               paddingTop: 20,
-              color: "rgba(255,255,255,0.46)",
+              color: "var(--app-text-dim)",
               fontSize: 11,
               fontWeight: 600,
               letterSpacing: 2,
@@ -218,7 +218,7 @@ function BrandMark({ inverse = false }: { inverse?: boolean }) {
       <span
         className="urban-app-display"
         style={{
-          color: inverse ? "#fff" : "var(--app-text)",
+          color: inverse ? "var(--app-text)" : "var(--app-text)",
           fontSize: 28,
           lineHeight: 1,
           fontWeight: 400,
@@ -231,7 +231,7 @@ function BrandMark({ inverse = false }: { inverse?: boolean }) {
       <span
         className="urban-app-display"
         style={{
-          color: inverse ? "#E8500A" : "var(--app-accent)",
+          color: inverse ? "var(--app-accent)" : "var(--app-accent)",
           fontSize: 28,
           lineHeight: 1,
           fontWeight: 400,
