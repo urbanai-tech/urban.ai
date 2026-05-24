@@ -91,7 +91,7 @@ export default function AdminSeoPage() {
               </div>
             </div>
 
-            <div style={{ marginTop: 22, height: 6, background: "rgba(255, 255, 255, 0.1)" }}>
+            <div style={{ marginTop: 22, height: 6, background: "var(--admin-surface-elevated)" }}>
               <div
                 style={{
                   width: `${completion.value}%`,
@@ -369,7 +369,7 @@ function ScoreBreakdown({
         border: "1px solid var(--admin-divider)",
         borderRadius: 2,
         padding: 12,
-        background: "rgba(255, 255, 255, 0.02)",
+        background: "var(--admin-surface)",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -524,7 +524,7 @@ function StatusTile({
         border: "1px solid var(--admin-divider)",
         borderRadius: 2,
         padding: 16,
-        background: "rgba(255, 255, 255, 0.02)",
+        background: "var(--admin-surface)",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

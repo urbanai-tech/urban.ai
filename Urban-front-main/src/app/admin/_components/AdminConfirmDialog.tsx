@@ -81,7 +81,7 @@ export function AdminConfirmDialog({
         style={{
           position: "absolute",
           inset: 0,
-          background: "rgba(0, 0, 0, 0.7)",
+          background: "var(--admin-backdrop, rgba(0, 0, 0, 0.7))",
           backdropFilter: "blur(4px)",
         }}
       />
@@ -91,7 +91,7 @@ export function AdminConfirmDialog({
           position: "relative",
           width: "100%",
           maxWidth: 440,
-          background: "#0d1117",
+          background: "var(--admin-surface-elevated)",
           border: "1px solid var(--admin-divider)",
           borderRadius: 4,
           padding: "28px 28px 24px",

@@ -39,14 +39,14 @@
 }
 
 .urban-public-page {
-  background: #080A0F;
-  color: #FFFFFF;
+  background: var(--theme-public-bg);
+  color: var(--theme-public-text);
   min-height: 100vh;
 }
 
 .urban-public-section {
   padding: 140px 24px;
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid var(--theme-public-soft);
 }
 
 .urban-public-container {
@@ -58,11 +58,11 @@
   font-size: 19px;
   font-weight: 300;
   line-height: 1.75;
-  color: rgba(255,255,255,0.66);
+  color: var(--theme-public-muted);
 }
 
 .urban-public-panel {
-  border-top: 1px solid rgba(255,255,255,0.10);
+  border-top: 1px solid var(--theme-public-soft);
   padding: 36px 0;
 }
 
@@ -73,7 +73,7 @@
   line-height: 0.98 !important;
   letter-spacing: 0 !important;
   text-transform: uppercase;
-  color: #FFFFFF !important;
+  color: var(--theme-public-text) !important;
   margin-bottom: 18px !important;
 }
 
@@ -83,7 +83,7 @@
   line-height: 0.9 !important;
   letter-spacing: 0 !important;
   text-transform: uppercase;
-  color: #FFFFFF !important;
+  color: var(--theme-public-text) !important;
   margin-bottom: 24px !important;
 }
 
@@ -91,23 +91,23 @@
 .urban-legal-panel * {
   max-width: 100%;
   overflow-wrap: anywhere;
-  color: rgba(255,255,255,0.70) !important;
-  border-color: rgba(255,255,255,0.10) !important;
+  color: var(--theme-public-muted) !important;
+  border-color: var(--theme-public-soft) !important;
   background: transparent !important;
   box-shadow: none !important;
 }
 
 .urban-legal-panel a {
-  color: #E8500A !important;
+  color: var(--theme-public-accent) !important;
 }
 
 .urban-legal-panel strong,
 .urban-legal-panel code {
-  color: rgba(255,255,255,0.92) !important;
+  color: var(--theme-public-text) !important;
 }
 
 .urban-legal-panel hr {
-  border-color: rgba(255,255,255,0.10) !important;
+  border-color: var(--theme-public-soft) !important;
 }
 
 @media (max-width: 767px) {
@@ -139,8 +139,13 @@
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --background: var(--theme-page-bg);
+  --foreground: var(--theme-page-text);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -148,13 +153,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #ffffff;
-    --foreground: #ededed;
-  }
 }
 
 body {

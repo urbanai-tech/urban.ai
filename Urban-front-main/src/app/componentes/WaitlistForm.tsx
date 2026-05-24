@@ -24,7 +24,7 @@ type Status = "idle" | "loading" | "success" | "error";
  * Isso deixa a landing funcional sem depender de um provedor externo de forms.
  *
  * Visual: tema manifesto Urban AI — input minimalista (border-bottom),
- * botão laranja #E8500A. Usado em /lancamento.
+ * botão laranja var(--theme-public-accent). Usado em /lancamento.
  *
  * Dispara eventos:
  *  - gtag('event', 'sign_up', { method: 'waitlist' })  — se GA4 ativo
@@ -124,8 +124,8 @@ export function WaitlistForm({
         style={{
           width: "100%",
           padding: "24px 0",
-          borderTop: "1px solid #E8500A",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          borderTop: "1px solid var(--theme-public-accent)",
+          borderBottom: "1px solid var(--theme-public-soft)",
         }}
       >
         <p
@@ -133,7 +133,7 @@ export function WaitlistForm({
             fontSize: 11,
             letterSpacing: 1.5,
             textTransform: "uppercase",
-            color: "#E8500A",
+            color: "var(--theme-public-accent)",
             fontWeight: 600,
             margin: 0,
           }}
@@ -145,7 +145,7 @@ export function WaitlistForm({
             fontSize: 22,
             fontWeight: 400,
             lineHeight: 1.5,
-            color: "#FFFFFF",
+            color: "var(--theme-public-text)",
             margin: "12px 0 0",
             letterSpacing: 0,
           }}
@@ -158,7 +158,7 @@ export function WaitlistForm({
             style={{
               fontSize: 14,
               lineHeight: 1.6,
-              color: "rgba(255,255,255,0.62)",
+              color: "var(--theme-public-muted)",
               margin: "16px 0 0",
             }}
           >
@@ -211,18 +211,18 @@ export function WaitlistForm({
             padding: "20px 0",
             background: "transparent",
             border: "none",
-            borderBottom: "1px solid rgba(255,255,255,0.20)",
-            color: "#FFFFFF",
+            borderBottom: "1px solid var(--theme-public-strong)",
+            color: "var(--theme-public-text)",
             fontSize: 22,
             fontWeight: 300,
             outline: "none",
             fontFamily: "Inter, system-ui, sans-serif",
           }}
           onFocus={(e) => {
-            e.currentTarget.style.borderBottomColor = "#E8500A";
+            e.currentTarget.style.borderBottomColor = "var(--theme-public-accent)";
           }}
           onBlur={(e) => {
-            e.currentTarget.style.borderBottomColor = "rgba(255,255,255,0.20)";
+            e.currentTarget.style.borderBottomColor = "var(--theme-public-strong)";
           }}
         />
         <button
@@ -233,8 +233,8 @@ export function WaitlistForm({
             width: "min(100%, 320px)",
             maxWidth: "100%",
             padding: "18px 24px",
-            background: "#E8500A",
-            color: "#080A0F",
+            background: "var(--theme-public-accent)",
+            color: "var(--theme-public-bg)",
             border: "none",
             fontWeight: 700,
             fontSize: 14,
@@ -253,7 +253,7 @@ export function WaitlistForm({
           <p
             role="alert"
             style={{
-              color: "#E8500A",
+              color: "var(--theme-public-accent)",
               fontSize: 14,
               fontWeight: 500,
               margin: 0,

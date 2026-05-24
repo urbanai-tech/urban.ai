@@ -287,7 +287,7 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
         style={{
           position: "absolute",
           inset: 0,
-          background: "rgba(14, 17, 22, 0.45)",
+          background: "color-mix(in srgb, var(--app-text) 45%, transparent)",
           backdropFilter: "blur(4px)",
           animation: "ask-fade-in 180ms ease-out",
         }}
@@ -304,9 +304,9 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
           right: 0,
           bottom: 0,
           width: "min(480px, 100vw)",
-          background: "var(--app-surface-elevated, #FFFFFF)",
+          background: "var(--app-surface-elevated, var(--app-surface))",
           borderLeft: "1px solid var(--app-divider-strong)",
-          boxShadow: "-12px 0 32px rgba(14, 17, 22, 0.12)",
+          boxShadow: "var(--app-shadow-overlay)",
           display: "flex",
           flexDirection: "column",
           animation: "ask-slide-in 260ms cubic-bezier(0.16, 1, 0.3, 1)",
@@ -328,8 +328,8 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
               width: 32,
               height: 32,
               borderRadius: 10,
-              background: "rgba(232, 80, 10, 0.10)",
-              border: "1px solid rgba(232, 80, 10, 0.18)",
+              background: "var(--app-accent-soft)",
+              border: "1px solid var(--app-accent)",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
@@ -359,7 +359,7 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
                 letterSpacing: 0.6,
                 padding: "3px 7px",
                 borderRadius: 4,
-                background: "rgba(232, 80, 10, 0.10)",
+                background: "var(--app-accent-soft)",
                 color: "var(--app-accent)",
                 lineHeight: 1,
               }}
@@ -424,7 +424,7 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
           style={{
             borderTop: "1px solid var(--app-divider)",
             padding: "14px 20px 16px",
-            background: "var(--app-surface, #FFFFFF)",
+            background: "var(--app-surface)",
             flexShrink: 0,
           }}
         >
@@ -437,8 +437,8 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
                 fontSize: 12,
                 lineHeight: 1.5,
                 color: "var(--app-accent)",
-                background: "rgba(232, 80, 10, 0.06)",
-                border: "1px solid rgba(232, 80, 10, 0.18)",
+                background: "var(--app-accent-soft)",
+                border: "1px solid var(--app-accent)",
                 borderRadius: 8,
               }}
             >
@@ -453,7 +453,7 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
               border: "1px solid var(--app-divider-strong)",
               borderRadius: 12,
               padding: "8px 8px 8px 12px",
-              background: "var(--app-surface, #FFFFFF)",
+              background: "var(--app-surface)",
             }}
           >
             <textarea
@@ -487,7 +487,7 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
               className="urban-focus-ring"
               style={{
                 background: "var(--app-accent)",
-                color: "#FFFFFF",
+                color: "var(--app-bg)",
                 border: "none",
                 borderRadius: 8,
                 width: 44,
@@ -624,7 +624,7 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
             className="urban-focus-ring"
             style={{
               textAlign: "left",
-              background: "var(--app-surface, #FFFFFF)",
+              background: "var(--app-surface)",
               border: "1px solid var(--app-divider-strong)",
               borderRadius: 10,
               padding: "12px 14px",
@@ -639,13 +639,13 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = "var(--app-accent)";
               e.currentTarget.style.background =
-                "rgba(232, 80, 10, 0.04)";
+                "var(--app-accent-soft)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor =
                 "var(--app-divider-strong)";
               e.currentTarget.style.background =
-                "var(--app-surface, #FFFFFF)";
+                "var(--app-surface)";
             }}
           >
             {s}
@@ -673,7 +673,7 @@ function MessageBubble({
         <div
           style={{
             maxWidth: "85%",
-            background: "var(--app-surface-strong, #F1F2F4)",
+            background: "var(--app-surface-muted)",
             color: "var(--app-text)",
             padding: "10px 14px",
             borderRadius: "14px 14px 4px 14px",
@@ -697,8 +697,8 @@ function MessageBubble({
           width: 28,
           height: 28,
           borderRadius: 8,
-          background: "rgba(232, 80, 10, 0.10)",
-          border: "1px solid rgba(232, 80, 10, 0.18)",
+          background: "var(--app-accent-soft)",
+          border: "1px solid var(--app-accent)",
           color: "var(--app-accent)",
           display: "inline-flex",
           alignItems: "center",
@@ -712,7 +712,7 @@ function MessageBubble({
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
-            background: "var(--app-surface, #FFFFFF)",
+            background: "var(--app-surface)",
             border: "1px solid var(--app-divider)",
             color: "var(--app-text)",
             padding: "12px 14px",
@@ -815,9 +815,9 @@ function FeedbackButton({
       aria-pressed={active}
       className="urban-focus-ring"
       style={{
-        background: active ? "rgba(232, 80, 10, 0.08)" : "transparent",
+        background: active ? "var(--app-accent-soft)" : "transparent",
         border: "1px solid",
-        borderColor: active ? "rgba(232, 80, 10, 0.25)" : "transparent",
+        borderColor: active ? "var(--app-accent)" : "transparent",
         color,
         cursor: disabled ? "default" : "pointer",
         padding: "8px",
@@ -851,8 +851,8 @@ function ThinkingDots() {
           width: 28,
           height: 28,
           borderRadius: 8,
-          background: "rgba(232, 80, 10, 0.10)",
-          border: "1px solid rgba(232, 80, 10, 0.18)",
+          background: "var(--app-accent-soft)",
+          border: "1px solid var(--app-accent)",
           color: "var(--app-accent)",
           display: "inline-flex",
           alignItems: "center",
@@ -865,7 +865,7 @@ function ThinkingDots() {
       </div>
       <div
         style={{
-          background: "var(--app-surface, #FFFFFF)",
+          background: "var(--app-surface)",
           border: "1px solid var(--app-divider)",
           padding: "12px 16px",
           borderRadius: "14px 14px 14px 4px",
@@ -910,19 +910,19 @@ function UsageChip({
 }) {
   const palette = {
     normal: {
-      bg: "var(--app-surface-strong, #F1F2F4)",
+      bg: "var(--app-surface-muted)",
       color: "var(--app-text-muted)",
       border: "var(--app-divider-strong)",
     },
     amber: {
-      bg: "rgba(200, 129, 14, 0.08)",
-      color: "var(--app-warning, #B97A0C)",
-      border: "rgba(200, 129, 14, 0.25)",
+      bg: "var(--app-surface-muted)",
+      color: "var(--app-warning)",
+      border: "var(--app-warning)",
     },
     accent: {
-      bg: "rgba(232, 80, 10, 0.08)",
+      bg: "var(--app-accent-soft)",
       color: "var(--app-accent)",
-      border: "rgba(232, 80, 10, 0.25)",
+      border: "var(--app-accent)",
     },
   }[kind];
   return (

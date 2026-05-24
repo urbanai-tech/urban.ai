@@ -5,6 +5,7 @@ import { StagingBanner } from "./componentes/StagingBanner";
 import { Analytics } from "./componentes/Analytics";
 import { CookieConsent } from "./componentes/CookieConsent";
 import { PwaInstaller } from "./componentes/PwaInstaller";
+import { ThemeScript } from "./componentes/theme";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://myurbanai.com";
 
@@ -50,8 +51,11 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  colorScheme: "dark",
-  themeColor: "#E8500A",
+  colorScheme: "light dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FAFAFB" },
+    { media: "(prefers-color-scheme: dark)", color: "#080A0F" },
+  ],
 };
 
 export default function RootLayout({
@@ -60,7 +64,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" className="font-press">
+    <html lang="pt-BR" className="font-press" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body cz-shortcut-listen="true">
         <StagingBanner />
         <Providers>

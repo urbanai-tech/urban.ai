@@ -339,7 +339,7 @@ export default function AdminStaysPage() {
                 border: "1px solid var(--admin-divider)",
                 borderRadius: 2,
                 overflow: "hidden",
-                background: "rgba(255, 255, 255, 0.02)",
+                background: "var(--admin-surface)",
               }}
             >
               {PUSH_STATUS_ORDER.map((s) => {

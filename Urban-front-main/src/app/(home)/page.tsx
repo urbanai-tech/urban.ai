@@ -16,8 +16,8 @@ import { trackEvent } from "../service/tracking";
  * Reescrita 2026-05-16 (sprint design premium):
  *  - Split 50/50 cinematic: esquerda manifesto editorial dark (Bebas Neue
  *    220px, grain, glow accent), direita form light premium com inputs
- *    border-bottom only e CTA #E8500A.
- *  - Substituido bg="#1C1D3B" (azul escuro hex) por accent oficial #E8500A.
+ *    border-bottom only e CTA var(--theme-public-accent).
+ *  - Substituido bg="#1C1D3B" (azul escuro hex) por accent oficial var(--theme-public-accent).
  *  - Eliminado Chakra UI dessa tela — Inter + Bebas Neue inline, tokens
  *    do design system .urban-app.
  *  - Primeira impressao do produto = manifesto direto, sem SaaS genérico.
@@ -105,8 +105,8 @@ export default function Login() {
           position: "relative",
           width: "50%",
           minHeight: "100vh",
-          background: "#080A0F",
-          color: "#FFFFFF",
+          background: "var(--theme-public-bg)",
+          color: "var(--theme-public-text)",
           overflow: "hidden",
         }}
         data-login-side
@@ -151,7 +151,7 @@ export default function Login() {
               fontWeight: 400,
               letterSpacing: 0,
               textTransform: "uppercase",
-              color: "#FFFFFF",
+              color: "var(--theme-public-text)",
               lineHeight: 1,
             }}
           >
@@ -164,7 +164,7 @@ export default function Login() {
               fontWeight: 400,
               letterSpacing: 0,
               textTransform: "uppercase",
-              color: "#E8500A",
+              color: "var(--theme-public-accent)",
               lineHeight: 1,
             }}
           >
@@ -189,7 +189,7 @@ export default function Login() {
               fontSize: 11,
               letterSpacing: 4,
               textTransform: "uppercase",
-              color: "#E8500A",
+              color: "var(--theme-public-accent)",
               fontWeight: 600,
               margin: 0,
               marginBottom: 28,
@@ -217,7 +217,7 @@ export default function Login() {
               <br />
               QUE A CIDADE
               <br />
-              <span style={{ color: "#E8500A" }}>SE MEXE,</span>
+              <span style={{ color: "var(--theme-public-accent)" }}>SE MEXE,</span>
               <br />
               VOCÊ GANHA.
             </h1>
@@ -233,7 +233,7 @@ export default function Login() {
                 fontSize: 18,
                 lineHeight: 1.65,
                 fontWeight: 300,
-                color: "rgba(255,255,255,0.65)",
+                color: "var(--theme-public-muted)",
                 margin: 0,
               }}
             >
@@ -252,13 +252,13 @@ export default function Login() {
             right: 64,
             zIndex: 2,
             paddingTop: 24,
-            borderTop: "1px solid rgba(255,255,255,0.10)",
+            borderTop: "1px solid var(--theme-public-soft)",
             display: "flex",
             justifyContent: "space-between",
             fontSize: 11,
             letterSpacing: 2,
             textTransform: "uppercase",
-            color: "rgba(255,255,255,0.45)",
+            color: "var(--theme-public-muted)",
             fontWeight: 500,
           }}
         >
@@ -526,7 +526,7 @@ export default function Login() {
                 height: 56,
                 padding: "0 28px",
                 background: "var(--app-accent)",
-                color: "#FFFFFF",
+                color: "var(--theme-public-text)",
                 border: "none",
                 borderRadius: 12,
                 fontSize: 15,
@@ -668,8 +668,8 @@ function Spinner() {
         display: "inline-block",
         width: 18,
         height: 18,
-        border: "2px solid rgba(255,255,255,0.4)",
-        borderTopColor: "#FFFFFF",
+        border: "2px solid var(--theme-public-strong)",
+        borderTopColor: "var(--theme-public-text)",
         borderRadius: "50%",
         animation: "urban-spin 0.7s linear infinite",
       }}

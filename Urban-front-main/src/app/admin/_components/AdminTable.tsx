@@ -92,7 +92,7 @@ export function AdminTable<T>({
           style={{
             position: stickyHeader ? "sticky" : "static",
             top: 0,
-            background: "rgba(8, 10, 15, 0.95)",
+            background: "var(--admin-surface-elevated)",
             backdropFilter: "blur(8px)",
             zIndex: 1,
           }}

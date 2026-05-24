@@ -192,7 +192,7 @@ export function AppLoadingStatus({
 function StepMarker({ status }: { status: AppLoadingStepStatus }) {
   if (status === "complete") {
     return (
-      <span style={markerBase("var(--app-success)", "rgba(22,160,107,0.14)")}>
+      <span style={markerBase("var(--app-success)", "var(--app-success-soft)")}>
         <Check size={11} />
       </span>
     );
@@ -200,7 +200,7 @@ function StepMarker({ status }: { status: AppLoadingStepStatus }) {
 
   if (status === "error") {
     return (
-      <span style={markerBase("var(--app-danger)", "rgba(194,52,46,0.12)")}>
+      <span style={markerBase("var(--app-danger)", "var(--app-danger-soft)")}>
         <AlertCircle size={12} />
       </span>
     );
@@ -211,8 +211,8 @@ function StepMarker({ status }: { status: AppLoadingStepStatus }) {
       <span
         aria-hidden
         style={{
-          ...markerBase("var(--app-accent)", "rgba(232,80,10,0.12)"),
-          border: "2px solid rgba(232,80,10,0.22)",
+          ...markerBase("var(--app-accent)", "var(--app-accent-soft)"),
+          border: "2px solid var(--app-accent-border)",
           borderTopColor: "var(--app-accent)",
           animation: "app-loading-status-spin 0.8s linear infinite",
         }}

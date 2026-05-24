@@ -350,7 +350,7 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
               border: "1px solid var(--admin-divider)",
               borderRadius: 2,
               padding: "12px 14px",
-              background: "rgba(255, 255, 255, 0.02)",
+              background: "var(--admin-surface)",
             }}
           >
             <summary
@@ -553,7 +553,7 @@ function StripeSyncCard({
               border: "1px solid var(--admin-divider)",
               borderRadius: 2,
               marginBottom: 24,
-              background: "rgba(255, 255, 255, 0.02)",
+              background: "var(--admin-surface)",
             }}
           >
             <AdminStatusDot kind={gateKind} size={10} />

@@ -30,6 +30,7 @@ export function SquadCard({ squad, state, isSelected, onSelect }: SquadCardProps
         fontSize: 13,
         fontFamily: "inherit",
         transition: "all 0.15s ease",
+        boxShadow: isSelected ? "inset 0 0 0 1px var(--shadow-soft)" : "none",
       }}
     >
       <StatusBadge status={status} />

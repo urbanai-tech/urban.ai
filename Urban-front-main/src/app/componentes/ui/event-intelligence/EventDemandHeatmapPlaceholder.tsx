@@ -150,7 +150,7 @@ export function EventDemandHeatmapPlaceholder({
                 position: "relative",
                 minHeight: 440,
                 background:
-                  "linear-gradient(0deg, rgba(14,17,22,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(14,17,22,0.04) 1px, transparent 1px), #F6F7F9",
+                  "linear-gradient(0deg, var(--app-divider) 1px, transparent 1px), linear-gradient(90deg, var(--app-divider) 1px, transparent 1px), var(--app-surface-muted)",
                 backgroundSize: "34px 34px",
                 overflow: "hidden",
                 borderRight: "1px solid var(--app-divider)",
@@ -161,7 +161,7 @@ export function EventDemandHeatmapPlaceholder({
                 style={{
                   position: "absolute",
                   inset: 26,
-                  border: "1px solid rgba(14, 17, 22, 0.08)",
+                  border: "1px solid var(--app-divider)",
                   borderRadius: 8,
                 }}
               />
@@ -207,8 +207,8 @@ export function EventDemandHeatmapPlaceholder({
                         display: "grid",
                         placeItems: "center",
                         boxShadow: isSelected
-                          ? "0 0 0 5px rgba(232, 80, 10, 0.12), 0 18px 42px rgba(14, 17, 22, 0.16)"
-                          : "0 14px 34px rgba(14, 17, 22, 0.12)",
+                          ? "0 0 0 5px var(--app-accent-soft), var(--app-shadow-overlay)"
+                          : "var(--app-shadow-elevated)",
                         minWidth: 0,
                       }}
                     >
@@ -396,7 +396,7 @@ function HeatmapEmptyState() {
         padding: 24,
         textAlign: "center",
         background:
-          "linear-gradient(0deg, rgba(14,17,22,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(14,17,22,0.035) 1px, transparent 1px), #F6F7F9",
+          "linear-gradient(0deg, var(--app-divider) 1px, transparent 1px), linear-gradient(90deg, var(--app-divider) 1px, transparent 1px), var(--app-surface-muted)",
         backgroundSize: "34px 34px",
       }}
     >
@@ -424,7 +424,7 @@ function MapLabel({ citySummaries }: { citySummaries: CitySummary[] }) {
         top: 28,
         padding: "8px 10px",
         borderRadius: 8,
-        background: "rgba(255, 255, 255, 0.92)",
+        background: "var(--app-surface-elevated, var(--app-surface))",
         border: "1px solid var(--app-divider)",
         color: "var(--app-text-muted)",
         fontSize: 12,
@@ -441,9 +441,9 @@ function MapLabel({ citySummaries }: { citySummaries: CitySummary[] }) {
 
 function HeatLegend() {
   const items = [
-    { label: "Muito quente", color: "#A33A07" },
-    { label: "Aquecida", color: "#8A5A0A" },
-    { label: "Monitorar", color: "#10724D" },
+    { label: "Muito quente", color: "var(--app-accent)" },
+    { label: "Aquecida", color: "var(--app-warning)" },
+    { label: "Monitorar", color: "var(--app-success)" },
   ];
 
   return (
@@ -470,7 +470,7 @@ function HeatLegend() {
             minHeight: 26,
             padding: "0 9px",
             borderRadius: 8,
-            background: "rgba(255, 255, 255, 0.92)",
+            background: "var(--app-surface-elevated, var(--app-surface))",
             border: "1px solid var(--app-divider)",
             color: "var(--app-text-muted)",
             fontSize: 11,
@@ -488,7 +488,7 @@ function HeatLegend() {
           minHeight: 26,
           padding: "0 9px",
           borderRadius: 8,
-          background: "rgba(255, 255, 255, 0.92)",
+          background: "var(--app-surface-elevated, var(--app-surface))",
           border: "1px solid var(--app-divider)",
           color: "var(--app-text-muted)",
           fontSize: 11,
@@ -517,7 +517,7 @@ function RadarGridOverlay() {
             width: `${size}%`,
             aspectRatio: "1 / 1",
             transform: "translate(-50%, -50%)",
-            border: "1px solid rgba(14, 17, 22, 0.08)",
+            border: "1px solid var(--app-divider)",
             borderRadius: "50%",
             pointerEvents: "none",
           }}
@@ -531,7 +531,7 @@ function RadarGridOverlay() {
           top: 44,
           bottom: 44,
           width: 1,
-          background: "rgba(14, 17, 22, 0.06)",
+          background: "var(--app-divider)",
           pointerEvents: "none",
         }}
       />
@@ -543,7 +543,7 @@ function RadarGridOverlay() {
           left: 44,
           right: 44,
           height: 1,
-          background: "rgba(14, 17, 22, 0.06)",
+          background: "var(--app-divider)",
           pointerEvents: "none",
         }}
       />
@@ -619,10 +619,10 @@ function RegionCard({
     <div
       data-testid="host-event-demand-heatmap-region-row"
       style={{
-        border: selected ? "1px solid rgba(232, 80, 10, 0.34)" : "1px solid var(--app-divider)",
+        border: selected ? "1px solid var(--app-accent)" : "1px solid var(--app-divider)",
         borderRadius: 8,
         padding: 12,
-        background: selected ? "rgba(232, 80, 10, 0.08)" : "var(--app-surface)",
+        background: selected ? "var(--app-accent-soft)" : "var(--app-surface)",
         minWidth: 0,
       }}
     >
@@ -815,7 +815,7 @@ function MissingGeoPanel({
         gap: 10,
         padding: 18,
         borderTop: "1px solid var(--app-divider)",
-        background: "rgba(200, 129, 14, 0.08)",
+        background: "var(--app-surface-muted)",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
@@ -839,10 +839,10 @@ function MissingGeoPanel({
               justifyContent: "space-between",
               gap: 10,
               alignItems: "center",
-              border: "1px solid rgba(200, 129, 14, 0.22)",
+              border: "1px solid var(--app-warning)",
               borderRadius: 8,
               padding: 10,
-              background: "rgba(255, 255, 255, 0.72)",
+              background: "var(--app-surface)",
               minWidth: 0,
             }}
           >
@@ -1078,26 +1078,26 @@ function heatLabel(score: number): { label: string; kind: "accent" | "warn" | "n
 function heatColor(score: number): { background: string; border: string; text: string } {
   if (score >= 84) {
     return {
-      background: "rgba(232, 80, 10, 0.22)",
-      border: "rgba(232, 80, 10, 0.48)",
-      text: "#A33A07",
+      background: "var(--app-accent-soft)",
+      border: "var(--app-accent)",
+      text: "var(--app-accent)",
     };
   }
   if (score >= 74) {
     return {
-      background: "rgba(200, 129, 14, 0.22)",
-      border: "rgba(200, 129, 14, 0.44)",
-      text: "#8A5A0A",
+      background: "var(--app-surface-muted)",
+      border: "var(--app-warning)",
+      text: "var(--app-warning)",
     };
   }
   return {
-    background: "rgba(22, 160, 107, 0.17)",
-    border: "rgba(22, 160, 107, 0.36)",
-    text: "#10724D",
+    background: "var(--app-surface-muted)",
+    border: "var(--app-success)",
+    text: "var(--app-success)",
   };
 }
 
 function selectedEventStyle(eventId: string, cell: CellViewModel, selected: boolean): string {
   if (!selected) return "var(--app-surface)";
-  return cell.topEventIds.includes(eventId) ? "rgba(232, 80, 10, 0.10)" : "var(--app-surface)";
+  return cell.topEventIds.includes(eventId) ? "var(--app-accent-soft)" : "var(--app-surface)";
 }

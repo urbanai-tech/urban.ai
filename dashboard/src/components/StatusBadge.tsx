@@ -1,11 +1,11 @@
 import type { SquadStatus } from "@/types/state";
 
 const STATUS_COLORS: Record<SquadStatus | "inactive", string> = {
-  idle: "#888",
+  idle: "var(--status-idle)",
   running: "var(--accent-cyan)",
   completed: "var(--accent-green)",
   checkpoint: "var(--accent-amber)",
-  inactive: "#444",
+  inactive: "var(--status-inactive)",
 };
 
 interface StatusBadgeProps {

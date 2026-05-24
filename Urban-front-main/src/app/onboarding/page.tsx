@@ -24,30 +24,30 @@ type PrimitiveProps = Record<string, any> & {
 };
 
 const colorMap: Record<string, string> = {
-  'gray.50': '#F8FAFC',
-  'gray.100': '#F1F5F9',
-  'gray.200': '#E2E8F0',
-  'gray.300': '#CBD5E1',
-  'gray.400': '#94A3B8',
-  'gray.500': '#64748B',
-  'gray.600': '#475569',
-  'gray.700': '#334155',
-  'gray.800': '#1E293B',
-  'blue.50': '#EFF6FF',
-  'blue.200': '#BFDBFE',
-  'blue.300': '#93C5FD',
-  'blue.400': '#60A5FA',
-  'blue.500': '#2563EB',
-  'blue.600': '#1D4ED8',
-  'green.50': '#ECFDF5',
-  'green.200': '#BBF7D0',
-  'green.400': '#4ADE80',
-  'green.500': '#22C55E',
-  'red.200': '#FECACA',
-  'red.600': '#DC2626',
-  'red.900': '#7F1D1D',
-  'orange.500': '#E8500A',
-  white: '#FFFFFF',
+  'gray.50': 'var(--app-bg)',
+  'gray.100': 'var(--app-surface-muted)',
+  'gray.200': 'var(--app-divider)',
+  'gray.300': 'var(--app-divider-strong)',
+  'gray.400': 'var(--app-text-dim)',
+  'gray.500': 'var(--app-text-muted)',
+  'gray.600': 'var(--app-text-dim)',
+  'gray.700': 'var(--app-text)',
+  'gray.800': 'var(--app-text)',
+  'blue.50': 'var(--app-accent-soft)',
+  'blue.200': 'var(--app-divider-strong)',
+  'blue.300': 'var(--app-accent-soft)',
+  'blue.400': 'var(--app-accent-hover)',
+  'blue.500': 'var(--app-accent)',
+  'blue.600': 'var(--app-accent)',
+  'green.50': 'var(--app-accent-soft)',
+  'green.200': 'var(--app-divider-strong)',
+  'green.400': 'var(--app-success)',
+  'green.500': 'var(--app-success)',
+  'red.200': 'var(--app-divider-strong)',
+  'red.600': 'var(--app-danger)',
+  'red.900': 'var(--app-danger)',
+  'orange.500': 'var(--app-accent)',
+  white: 'var(--app-surface)',
 };
 
 const radiusMap: Record<string, string> = {
@@ -120,6 +120,9 @@ function cssValue(prop: string, value: any): any {
 
   if (typeof resolved !== 'string') return resolved;
   if (prop.toLowerCase().includes('color') || prop === 'background' || prop === 'bg') {
+    if (resolved === 'white') {
+      return prop.toLowerCase().includes('color') ? '#FFFFFF' : 'var(--app-surface)';
+    }
     return colorMap[resolved] ?? resolved;
   }
   if (prop.toLowerCase().includes('radius')) return radiusMap[resolved] ?? resolved;
@@ -272,9 +275,9 @@ function Input(props: PrimitiveProps) {
         width: '100%',
         height: cssValue('height', props.h ?? (props.size === 'lg' ? 13 : 10)),
         padding: '0 14px',
-        color: '#1E293B',
-        background: '#FFFFFF',
-        border: '1px solid #CBD5E1',
+        color: 'var(--app-text)',
+        background: 'var(--app-surface)',
+        border: '1px solid var(--app-divider-strong)',
         borderRadius: 10,
         outline: 'none',
         font: 'inherit',
@@ -311,9 +314,9 @@ function Button({
         gap: 8,
         minHeight: props.size === 'lg' ? 48 : props.size === 'sm' ? 32 : 40,
         padding: props.size === 'sm' ? '0 14px' : '0 20px',
-        color: isGhost ? '#64748B' : isOutline ? '#E8500A' : '#FFFFFF',
-        background: isGhost || isOutline ? 'transparent' : '#E8500A',
-        border: isGhost ? '1px solid transparent' : isOutline ? '1px solid #E8500A' : '1px solid #E8500A',
+        color: isGhost ? 'var(--app-text-muted)' : isOutline ? 'var(--app-accent)' : '#FFFFFF',
+        background: isGhost || isOutline ? 'transparent' : 'var(--app-accent)',
+        border: isGhost ? '1px solid transparent' : isOutline ? '1px solid var(--app-accent)' : '1px solid var(--app-accent)',
         borderRadius: 10,
         fontWeight: 650,
         cursor: disabled || isDisabled || isLoading ? 'not-allowed' : 'pointer',
@@ -341,7 +344,7 @@ function IconButton({ icon, isDisabled, disabled, ...props }: PrimitiveProps) {
         justifyContent: 'center',
         width: 32,
         height: 32,
-        color: props.colorScheme === 'red' ? '#DC2626' : '#64748B',
+        color: props.colorScheme === 'red' ? 'var(--app-danger)' : 'var(--app-text-muted)',
         background: 'transparent',
         border: '1px solid transparent',
         borderRadius: 8,
@@ -370,8 +373,8 @@ function Badge({ children, ...props }: PrimitiveProps) {
         alignItems: 'center',
         width: 'fit-content',
         padding: '2px 8px',
-        color: props.colorScheme === 'blue' ? '#1D4ED8' : props.colorScheme === 'orange' ? '#E8500A' : '#475569',
-        background: props.colorScheme === 'blue' ? '#EFF6FF' : props.colorScheme === 'orange' ? '#FFF7ED' : '#F1F5F9',
+        color: props.colorScheme === 'blue' ? 'var(--app-accent)' : props.colorScheme === 'orange' ? 'var(--app-accent)' : 'var(--app-text-dim)',
+        background: props.colorScheme === 'blue' ? 'var(--app-accent-soft)' : props.colorScheme === 'orange' ? 'var(--app-accent-soft)' : 'var(--app-surface-muted)',
         borderRadius: 999,
         fontSize: 11,
         fontWeight: 700,
@@ -394,7 +397,7 @@ function SimpleGrid({ columns = 1, spacing: gap = 4, children, ...props }: Primi
   return <Component {...props}>{children}</Component>;
 }
 
-function Spinner({ color = '#E8500A', thickness = '3px', ...props }: PrimitiveProps) {
+function Spinner({ color = 'var(--app-accent)', thickness = '3px', ...props }: PrimitiveProps) {
   const { style } = splitPrimitiveProps(props);
   return (
     <span
@@ -402,7 +405,7 @@ function Spinner({ color = '#E8500A', thickness = '3px', ...props }: PrimitivePr
         display: 'inline-block',
         width: props.size === 'xl' ? 42 : 28,
         height: props.size === 'xl' ? 42 : 28,
-        border: `${thickness} solid #E2E8F0`,
+        border: `${thickness} solid var(--app-divider)`,
         borderTopColor: colorMap[color] ?? color,
         borderRadius: '50%',
         animation: 'onboarding-spin 800ms linear infinite',
@@ -454,8 +457,8 @@ function Tab({ children, tabIndexValue, ...props }: PrimitiveProps) {
         alignItems: 'center',
         minHeight: 40,
         padding: '0 12px',
-        color: selected ? '#E8500A' : '#64748B',
-        background: selected ? '#FFFFFF' : 'transparent',
+        color: selected ? 'var(--app-accent)' : 'var(--app-text-muted)',
+        background: selected ? 'var(--app-surface)' : 'transparent',
         border: '1px solid transparent',
         borderRadius: 10,
         boxShadow: selected ? shadowMap.sm : 'none',
@@ -501,7 +504,7 @@ function Switch({ isChecked, onChange, id, ...props }: PrimitiveProps) {
         style={{
           position: 'absolute',
           inset: 0,
-          background: isChecked ? '#E8500A' : '#CBD5E1',
+          background: isChecked ? 'var(--app-accent)' : 'var(--app-divider-strong)',
           borderRadius: 999,
           transition: 'background 140ms ease',
         }}
@@ -513,7 +516,7 @@ function Switch({ isChecked, onChange, id, ...props }: PrimitiveProps) {
           left: isChecked ? 24 : 3,
           width: props.size === 'lg' ? 20 : 18,
           height: props.size === 'lg' ? 20 : 18,
-          background: '#FFFFFF',
+          background: 'var(--app-surface)',
           borderRadius: '50%',
           boxShadow: shadowMap.sm,
           transition: 'left 140ms ease',
@@ -530,7 +533,7 @@ function Link({ isExternal, children, ...props }: PrimitiveProps) {
       {...domProps}
       target={isExternal ? '_blank' : domProps.target}
       rel={isExternal ? 'noopener noreferrer' : domProps.rel}
-      style={{ color: '#2563EB', textDecoration: 'none', ...style }}
+      style={{ color: 'var(--app-accent)', textDecoration: 'none', ...style }}
     >
       {children}
     </a>
@@ -543,9 +546,9 @@ function Alert({ children, ...props }: PrimitiveProps) {
     alignItems: 'flex-start',
     gap: 12,
     padding: 14,
-    color: '#1D4ED8',
-    background: '#EFF6FF',
-    border: '1px solid #BFDBFE',
+    color: 'var(--app-accent)',
+    background: 'var(--app-accent-soft)',
+    border: '1px solid var(--app-divider-strong)',
   });
   return <Component {...props}>{children}</Component>;
 }
@@ -660,7 +663,7 @@ type OperationMode = 'notifications' | 'automatic';
 
 // Sprint 4 redesign: removido `color` ciclico (green/blue/orange/purple)
 // e icones emoji (🛡️⚖️🚀🤖). Identificador agora e `iconKey` para
-// renderizar com SVG inline (StrategyIcon). Selecao destacada via accent #E8500A.
+// renderizar com SVG inline (StrategyIcon). Selecao destacada via accent var(--app-accent).
 type StrategyIconKey = 'shield' | 'scale' | 'rocket' | 'sparkles';
 
 function StrategyIcon({ iconKey }: { iconKey: StrategyIconKey }) {
@@ -1510,7 +1513,7 @@ function OnboardingWizardContent() {
       <Container maxW="container.md" mb={2}>
         <HStack spacing={0} w="100%">
           {Array.from({ length: TOTAL_STEPS }, (_, i) => (
-            <Box key={i} flex={1} h="4px" bg={i < step ? "#E8500A" : "gray.200"} borderRadius="full"
+            <Box key={i} flex={1} h="4px" bg={i < step ? "var(--app-accent)" : "gray.200"} borderRadius="full"
               mx={0.5} transition="background 0.4s ease" />
           ))}
         </HStack>
@@ -1553,10 +1556,10 @@ function OnboardingWizardContent() {
 
                   <Button
                     mt={4}
-                    bg="#E8500A"
+                    bg="var(--app-accent)"
                     color="white"
-                    _hover={{ bg: '#D14609', transform: 'translateY(-2px)', boxShadow: 'lg' }}
-                    _active={{ bg: '#C04209' }}
+                    _hover={{ bg: 'var(--app-accent-hover)', transform: 'translateY(-2px)', boxShadow: 'lg' }}
+                    _active={{ bg: 'var(--app-accent-hover)' }}
                     size="lg"
                     px={10}
                     h="56px"
@@ -1668,8 +1671,8 @@ function OnboardingWizardContent() {
                               Voltar
                             </Button>
                             <Button
-                              bg="#E8500A" color="white" _hover={{ bg: '#D14609' }}
-                              _active={{ bg: '#1B2330' }} size="lg" flex={1}
+                              bg="var(--app-accent)" color="white" _hover={{ bg: 'var(--app-accent-hover)' }}
+                              _active={{ bg: 'var(--app-surface-elevated)' }} size="lg" flex={1}
                               isLoading={loadingIndividual}
                               loadingText="Buscando imóveis..."
                               onClick={fetchIndividualProperties}
@@ -1716,8 +1719,8 @@ function OnboardingWizardContent() {
                               Voltar
                             </Button>
                             <Button
-                              bg="#E8500A" color="white" _hover={{ bg: '#D14609' }}
-                              _active={{ bg: '#1B2330' }} size="lg" flex={1}
+                              bg="var(--app-accent)" color="white" _hover={{ bg: 'var(--app-accent-hover)' }}
+                              _active={{ bg: 'var(--app-surface-elevated)' }} size="lg" flex={1}
                               isLoading={isLoading}
                               loadingText="Rastreando imóveis..."
                               onClick={fetchUserProperties}
@@ -1792,7 +1795,7 @@ function OnboardingWizardContent() {
                   )}
 
                   {pendingPricingProperties.length > 0 && (
-                    <Box p={4} bg="#FFF7ED" borderRadius="lg" border="1px solid" borderColor="#FDBA74">
+                    <Box p={4} bg="var(--app-accent-soft)" borderRadius="lg" border="1px solid" borderColor="var(--app-divider-strong)">
                       <VStack spacing={4} align="stretch">
                         <Box>
                           <Text fontWeight="bold" color="gray.800">Informar diaria base</Text>
@@ -1814,7 +1817,7 @@ function OnboardingWizardContent() {
                               {property.airbnbId && (
                                 <Text fontSize="2xs" color="gray.500" fontFamily="mono">{property.airbnbId}</Text>
                               )}
-                              <Text fontSize="2xs" color="#9A3412" lineHeight="short" mt={1}>
+                              <Text fontSize="2xs" color="var(--app-warning)" lineHeight="short" mt={1}>
                                 {property.fallbackMessage}
                                 {property.provisionalDailyPrice
                                   ? ` Valor encontrado: R$ ${property.provisionalDailyPrice.toFixed(2)} (${property.sourceLabel ?? 'fonte nao informada'}).`
@@ -1885,8 +1888,8 @@ function OnboardingWizardContent() {
                                 <HStack spacing={2} flexWrap="wrap" mb={1}>
                                   {(property.rating !== undefined && property.rating > 0) ? (
                                     <Badge
-                                      bg="rgba(232, 80, 10, 0.10)"
-                                      color="#B43F08"
+                                      bg="var(--app-accent-soft)"
+                                      color="var(--app-accent)"
                                       fontSize="2xs"
                                       borderRadius="full"
                                       px={2}
@@ -1896,7 +1899,7 @@ function OnboardingWizardContent() {
                                         ` (${property.reviewCount})`}
                                     </Badge>
                                   ) : property.isNewListing ? (
-                                    <Badge bg="#E8500A" color="white" fontSize="2xs" borderRadius="full" px={2}>
+                                    <Badge bg="var(--app-accent)" color="white" fontSize="2xs" borderRadius="full" px={2}>
                                       Novidade
                                     </Badge>
                                   ) : null}
@@ -1973,7 +1976,7 @@ function OnboardingWizardContent() {
                       isDisabled={isLoading || pendingPricingProperties.length > 0}>
                       Voltar
                     </Button>
-                    <Button bg="#E8500A" color="white" _hover={{ bg: '#D14609' }} size="lg" flex={1}
+                    <Button bg="var(--app-accent)" color="white" _hover={{ bg: 'var(--app-accent-hover)' }} size="lg" flex={1}
                       onClick={pendingPricingProperties.length > 0 ? handleSaveManualPricesAndContinue : handleRegisterProperties}
                       isDisabled={
                         pendingPricingProperties.length > 0
@@ -2036,12 +2039,12 @@ function OnboardingWizardContent() {
                               p={4}
                               borderRadius="xl"
                               border="2px solid"
-                              borderColor={isSelected ? 'var(--app-accent, #E8500A)' : 'gray.200'}
-                              bg={isSelected ? 'rgba(232, 80, 10, 0.06)' : 'gray.50'}
+                              borderColor={isSelected ? 'var(--app-accent)' : 'gray.200'}
+                              bg={isSelected ? 'var(--app-accent-soft)' : 'gray.50'}
                               cursor="pointer"
                               transition="all 0.2s"
                               _hover={{
-                                borderColor: isSelected ? 'var(--app-accent, #E8500A)' : 'gray.300',
+                                borderColor: isSelected ? 'var(--app-accent)' : 'gray.300',
                                 transform: 'translateY(-2px)',
                                 boxShadow: 'md'
                               }}
@@ -2050,7 +2053,7 @@ function OnboardingWizardContent() {
                               <VStack spacing={2} align="start">
                                 <Flex wrap="wrap" gap={2} alignItems="center">
                                   <Box
-                                    color={isSelected ? '#E8500A' : 'gray.500'}
+                                    color={isSelected ? 'var(--app-accent)' : 'gray.500'}
                                     display="inline-flex"
                                   >
                                     <StrategyIcon iconKey={preset.iconKey} />
@@ -2059,7 +2062,7 @@ function OnboardingWizardContent() {
                                     {preset.label}
                                   </Text>
                                   {key === 'balanced' && (
-                                    <Badge bg="#E8500A" color="white" fontSize="0.6rem" px={2} py={0.5} borderRadius="md">
+                                    <Badge bg="var(--app-accent)" color="white" fontSize="0.6rem" px={2} py={0.5} borderRadius="md">
                                       Recomendado
                                     </Badge>
                                   )}
@@ -2069,7 +2072,7 @@ function OnboardingWizardContent() {
                                 </Text>
                                 <HStack spacing={1} mt={1}>
                                   <Badge
-                                    bg={isSelected ? '#E8500A' : 'gray.200'}
+                                    bg={isSelected ? 'var(--app-accent)' : 'gray.200'}
                                     color={isSelected ? 'white' : 'gray.700'}
                                     variant="solid"
                                     fontSize="0.65rem"
@@ -2155,7 +2158,7 @@ function OnboardingWizardContent() {
                         Pular
                       </Button>
                     )}
-                    <Button bg="#E8500A" color="white" _hover={{ bg: '#D14609' }} size="lg" flex={1}
+                    <Button bg="var(--app-accent)" color="white" _hover={{ bg: 'var(--app-accent-hover)' }} size="lg" flex={1}
                       onClick={handleSaveConfig}
                       isLoading={isLoading}
                       loadingText="Salvando...">
@@ -2175,7 +2178,7 @@ function OnboardingWizardContent() {
                 <VStack spacing={8} align="stretch">
                   <Box textAlign="center">
                     <Box p={4} bg="green.50" borderRadius="full" display="inline-flex" mb={4}>
-                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#38A169"
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--app-success)"
                         strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                         <polyline points="22 4 12 14.01 9 11.01" />
@@ -2204,7 +2207,7 @@ function OnboardingWizardContent() {
 
                   <Flex justify="center" mb={2}>
                     <FormControl display="flex" alignItems="center" w="auto" bg="gray.50" p={2} borderRadius="full" borderWidth="1px" borderColor="gray.200">
-                      <FormLabel htmlFor="onboarding-billing-toggle" mb="0" ml={4} fontWeight="bold" color={!isAnnual ? "#E8500A" : "gray.500"}>
+                      <FormLabel htmlFor="onboarding-billing-toggle" mb="0" ml={4} fontWeight="bold" color={!isAnnual ? "var(--app-accent)" : "gray.500"}>
                         Mensal
                       </FormLabel>
                       <Switch
@@ -2213,9 +2216,9 @@ function OnboardingWizardContent() {
                         isChecked={isAnnual}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsAnnual(e.target.checked)}
                       />
-                      <FormLabel htmlFor="onboarding-billing-toggle" mb="0" ml={3} mr={4} fontWeight="bold" color={isAnnual ? "#E8500A" : "gray.500"}>
+                      <FormLabel htmlFor="onboarding-billing-toggle" mb="0" ml={3} mr={4} fontWeight="bold" color={isAnnual ? "var(--app-accent)" : "gray.500"}>
                         Anual
-                        <Badge ml={2} bg="#E8500A" color="white" borderRadius="full" fontSize="0.7em" px={2}>Economize 20%</Badge>
+                        <Badge ml={2} bg="var(--app-accent)" color="white" borderRadius="full" fontSize="0.7em" px={2}>Economize 20%</Badge>
                       </FormLabel>
                     </FormControl>
                   </Flex>
@@ -2237,7 +2240,7 @@ function OnboardingWizardContent() {
                           _hover={{ boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}
                           transition="box-shadow 0.2s ease"
                           borderWidth={plan.highlightBadge ? "2px" : "1px"}
-                          borderColor={plan.highlightBadge ? "#E8500A" : "gray.200"}
+                          borderColor={plan.highlightBadge ? "var(--app-accent)" : "gray.200"}
                           textAlign="center"
                           display="flex"
                           flexDirection="column"
@@ -2249,7 +2252,7 @@ function OnboardingWizardContent() {
                               right={{ base: 4, md: "auto" }}
                               left={{ md: "50%" }}
                               transform={{ md: "translateX(-50%)" }}
-                              bg="#E8500A"
+                              bg="var(--app-accent)"
                               color="white"
                               fontSize="0.75rem"
                               px={3}
@@ -2300,12 +2303,12 @@ function OnboardingWizardContent() {
                             </Box>
 
                             <Button
-                              bg={plan.highlightBadge ? "#E8500A" : "white"}
-                              color={plan.highlightBadge ? "white" : "#E8500A"}
+                              bg={plan.highlightBadge ? "var(--app-accent)" : "white"}
+                              color={plan.highlightBadge ? "white" : "var(--app-accent)"}
                               borderWidth={plan.highlightBadge ? 0 : "1px"}
-                              borderColor="#E8500A"
+                              borderColor="var(--app-accent)"
                               _hover={{
-                                bg: plan.highlightBadge ? "#D14609" : "rgba(232, 80, 10, 0.06)",
+                                bg: plan.highlightBadge ? "var(--app-accent-hover)" : "var(--app-accent-soft)",
                               }}
                               size="md"
                               whiteSpace="normal"
@@ -2336,7 +2339,7 @@ function OnboardingWizardContent() {
                                   display="flex"
                                   alignItems="flex-start"
                                 >
-                                  <ListIcon as={CheckIcon} color="#E8500A" mt={1} boxSize="3" />
+                                  <ListIcon as={CheckIcon} color="var(--app-accent)" mt={1} boxSize="3" />
                                   <Text lineHeight="short">{feat}</Text>
                                 </ListItem>
                               ))}
@@ -2362,7 +2365,7 @@ export default function OnboardingWizard() {
   return (
     <Suspense fallback={
       <Flex w="100vw" h="100vh" align="center" justify="center">
-        <Spinner size="xl" color="#E8500A" thickness="3px" />
+        <Spinner size="xl" color="var(--app-accent)" thickness="3px" />
       </Flex>
     }>
       <OnboardingWizardContent />

@@ -6,8 +6,8 @@ import NextLink from "next/link";
 /**
  * Footer público Urban AI.
  *
- * Estilo manifesto editorial: dark #080A0F, Inter 400 letter-spacing 2-3px,
- * sem cards de 4 colunas estilo SaaS. Tipografia editorial, accent #E8500A
+ * Estilo manifesto editorial: dark var(--theme-public-bg), Inter 400 letter-spacing 2-3px,
+ * sem cards de 4 colunas estilo SaaS. Tipografia editorial, accent var(--theme-public-accent)
  * apenas em hover/destaque.
  */
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.myurbanai.com/";
@@ -37,8 +37,8 @@ export default function FooterPublic() {
     <footer
       className="urban-manifesto"
       style={{
-        background: "#080A0F",
-        borderTop: "1px solid rgba(255,255,255,0.08)",
+        background: "var(--theme-public-bg)",
+        borderTop: "1px solid var(--theme-public-soft)",
         marginTop: "auto",
       }}
     >
@@ -58,12 +58,12 @@ export default function FooterPublic() {
             letterSpacing: 0,
             fontWeight: 400,
             textTransform: "uppercase",
-            color: "#FFFFFF",
+            color: "var(--theme-public-text)",
             marginBottom: 80,
             overflowWrap: "anywhere",
           }}
         >
-          URBAN<span style={{ color: "#E8500A" }}>·</span>AI
+          URBAN<span style={{ color: "var(--theme-public-accent)" }}>·</span>AI
         </div>
 
         {/* Grid de links */}
@@ -73,7 +73,7 @@ export default function FooterPublic() {
             gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
             gap: 48,
             paddingBottom: 64,
-            borderBottom: "1px solid rgba(255,255,255,0.08)",
+            borderBottom: "1px solid var(--theme-public-soft)",
           }}
         >
           <FooterColumn title="PRODUTO" items={COL_PRODUTO} />
@@ -85,7 +85,7 @@ export default function FooterPublic() {
                 fontSize: 11,
                 letterSpacing: 3,
                 textTransform: "uppercase",
-                color: "rgba(255,255,255,0.50)",
+                color: "var(--theme-public-muted)",
                 fontWeight: 600,
                 margin: "0 0 24px",
               }}
@@ -132,7 +132,7 @@ export default function FooterPublic() {
               fontSize: 11,
               letterSpacing: 3,
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.50)",
+              color: "var(--theme-public-muted)",
               fontWeight: 500,
               margin: 0,
             }}
@@ -144,7 +144,7 @@ export default function FooterPublic() {
               fontSize: 11,
               letterSpacing: 3,
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.50)",
+              color: "var(--theme-public-muted)",
               fontWeight: 500,
               margin: 0,
             }}
@@ -171,7 +171,7 @@ function FooterColumn({
           fontSize: 11,
           letterSpacing: 3,
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.50)",
+          color: "var(--theme-public-muted)",
           fontWeight: 600,
           margin: "0 0 24px",
         }}
@@ -221,7 +221,7 @@ function FooterColumn({
 const footerLinkStyle: React.CSSProperties = {
   fontSize: 14,
   fontWeight: 400,
-  color: "rgba(255,255,255,0.85)",
+  color: "var(--theme-public-text)",
   textDecoration: "none",
   letterSpacing: 0,
   overflowWrap: "anywhere",
@@ -229,8 +229,8 @@ const footerLinkStyle: React.CSSProperties = {
 };
 
 function hoverIn(e: React.MouseEvent<HTMLAnchorElement>) {
-  (e.currentTarget as HTMLElement).style.color = "#E8500A";
+  (e.currentTarget as HTMLElement).style.color = "var(--theme-public-accent)";
 }
 function hoverOut(e: React.MouseEvent<HTMLAnchorElement>) {
-  (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.85)";
+  (e.currentTarget as HTMLElement).style.color = "var(--theme-public-text)";
 }

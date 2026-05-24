@@ -10,10 +10,10 @@ import {
  * Landing institucional — manifesto editorial.
  *
  * Design system Urban AI aplicado:
- *  - Background #080A0F com grain overlay obrigatório (SVG fractalNoise)
+ *  - Background var(--theme-public-bg) com grain overlay obrigatório (SVG fractalNoise)
  *  - Bebas Neue gigante (120-220px) nos headlines, line-height 0.88-0.92
  *  - Inter 300 no body
- *  - Accent único #E8500A (laranja), usado com parcimônia
+ *  - Accent único var(--theme-public-accent) (laranja), usado com parcimônia
  *  - Sem cards rounded, sem badges coloridos, sem gradientes saturados
  *  - Pull quotes com border-left laranja
  *  - Tom: declarações manifesto, não SaaS
@@ -52,8 +52,8 @@ export default function LandingPage() {
     <div
       className="urban-manifesto"
       style={{
-        background: "#080A0F",
-        color: "#FFFFFF",
+        background: "var(--theme-public-bg)",
+        color: "var(--theme-public-text)",
         minHeight: "100vh",
       }}
     >
@@ -121,14 +121,14 @@ function Hero() {
             lineHeight: 0.88,
             letterSpacing: 0,
             margin: 0,
-            color: "#FFFFFF",
+            color: "var(--theme-public-text)",
             overflowWrap: "normal",
             textWrap: "balance",
           }}
         >
           CADA NOITE VAZIA<br />
           É R$ 600 QUE<br />
-          <span style={{ color: "#E8500A" }}>NUNCA VOLTA.</span>
+          <span style={{ color: "var(--theme-public-accent)" }}>NUNCA VOLTA.</span>
         </h1>
 
         <p
@@ -138,7 +138,7 @@ function Hero() {
             fontSize: 22,
             fontWeight: 300,
             lineHeight: 1.7,
-            color: "rgba(255,255,255,0.65)",
+            color: "var(--theme-public-muted)",
           }}
         >
           A Urban AI cruza a agenda da cidade com sinais de demanda do bairro
@@ -159,8 +159,8 @@ function Hero() {
             href={WAITLIST_URL}
             style={{
               padding: "18px 24px",
-              background: "#E8500A",
-              color: "#FFFFFF",
+              background: "var(--theme-public-accent)",
+              color: "var(--theme-public-text)",
               fontFamily: "Inter, sans-serif",
               fontWeight: 600,
               fontSize: 16,
@@ -182,9 +182,9 @@ function Hero() {
               fontSize: 14,
               letterSpacing: "0.18em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.50)",
+              color: "var(--theme-public-muted)",
               textDecoration: "none",
-              borderBottom: "1px solid rgba(255,255,255,0.20)",
+              borderBottom: "1px solid var(--theme-public-strong)",
               paddingBottom: 4,
             }}
           >
@@ -197,7 +197,7 @@ function Hero() {
             marginTop: 80,
             fontSize: 12,
             letterSpacing: "0.3em",
-            color: "rgba(255,255,255,0.20)",
+            color: "var(--theme-public-strong)",
             textTransform: "uppercase",
           }}
         >
@@ -218,7 +218,7 @@ function ManifestoCost() {
       style={{
         position: "relative",
         padding: "20vh 6vw",
-        borderTop: "1px solid rgba(255,255,255,0.08)",
+        borderTop: "1px solid var(--theme-public-soft)",
         overflow: "hidden",
       }}
     >
@@ -247,7 +247,7 @@ function ManifestoCost() {
         >
           O PREÇO ERRADO TEM<br />
           TRÊS SINTOMAS.<br />
-          <span style={{ color: "rgba(255,255,255,0.50)" }}>
+          <span style={{ color: "var(--theme-public-muted)" }}>
             ALGUM É FAMILIAR?
           </span>
         </h2>
@@ -297,7 +297,7 @@ function Symptom({
         style={{
           fontSize: 64,
           lineHeight: 1,
-          color: "#E8500A",
+          color: "var(--theme-public-accent)",
           margin: 0,
           marginBottom: 24,
         }}
@@ -312,7 +312,7 @@ function Symptom({
           lineHeight: 1.3,
           margin: 0,
           marginBottom: 16,
-          color: "#FFFFFF",
+          color: "var(--theme-public-text)",
         }}
       >
         {title}
@@ -322,7 +322,7 @@ function Symptom({
           fontSize: 16,
           fontWeight: 300,
           lineHeight: 1.7,
-          color: "rgba(255,255,255,0.50)",
+          color: "var(--theme-public-muted)",
           margin: 0,
         }}
       >
@@ -364,8 +364,8 @@ function FourSteps() {
       style={{
         position: "relative",
         padding: "20vh 6vw",
-        background: "#080A0F",
-        borderTop: "1px solid rgba(255,255,255,0.08)",
+        background: "var(--theme-public-bg)",
+        borderTop: "1px solid var(--theme-public-soft)",
       }}
     >
       <div style={{ maxWidth: 1400, margin: "0 auto" }}>
@@ -420,7 +420,7 @@ function Step({
         gap: "8vw",
         alignItems: "start",
         padding: "60px 0",
-        borderBottom: last ? "none" : "1px solid rgba(255,255,255,0.08)",
+        borderBottom: last ? "none" : "1px solid var(--theme-public-soft)",
       }}
     >
       <div
@@ -428,7 +428,7 @@ function Step({
         style={{
           fontSize: "clamp(56px, 9vw, 140px)",
           lineHeight: 0.85,
-          color: "#E8500A",
+          color: "var(--theme-public-accent)",
           margin: 0,
         }}
       >
@@ -452,7 +452,7 @@ function Step({
             fontSize: 20,
             fontWeight: 300,
             lineHeight: 1.7,
-            color: "rgba(255,255,255,0.65)",
+            color: "var(--theme-public-muted)",
             margin: 0,
             maxWidth: 720,
           }}
@@ -496,8 +496,8 @@ function Differentiators() {
       style={{
         position: "relative",
         padding: "20vh 6vw",
-        background: "#080A0F",
-        borderTop: "1px solid rgba(255,255,255,0.08)",
+        background: "var(--theme-public-bg)",
+        borderTop: "1px solid var(--theme-public-soft)",
       }}
     >
       <div style={{ maxWidth: 1400, margin: "0 auto" }}>
@@ -536,10 +536,10 @@ function Differentiators() {
               style={{
                 padding: "48px 32px",
                 borderTop:
-                  i < 2 ? "1px solid rgba(255,255,255,0.08)" : "none",
+                  i < 2 ? "1px solid var(--theme-public-soft)" : "none",
                 borderLeft:
                   i % 2 === 1
-                    ? "1px solid rgba(255,255,255,0.08)"
+                    ? "1px solid var(--theme-public-soft)"
                     : "none",
               }}
             >
@@ -554,7 +554,7 @@ function Differentiators() {
                   letterSpacing: "-0.01em",
                   margin: 0,
                   marginBottom: 24,
-                  color: "#FFFFFF",
+                  color: "var(--theme-public-text)",
                 }}
               >
                 {d.headline}
@@ -564,7 +564,7 @@ function Differentiators() {
                   fontSize: 17,
                   fontWeight: 300,
                   lineHeight: 1.7,
-                  color: "rgba(255,255,255,0.55)",
+                  color: "var(--theme-public-muted)",
                   margin: 0,
                 }}
               >
@@ -588,8 +588,8 @@ function Numbers() {
       style={{
         position: "relative",
         padding: "20vh 6vw",
-        background: "#080A0F",
-        borderTop: "1px solid rgba(255,255,255,0.08)",
+        background: "var(--theme-public-bg)",
+        borderTop: "1px solid var(--theme-public-soft)",
         overflow: "hidden",
       }}
     >
@@ -623,7 +623,7 @@ function Numbers() {
               fontSize: 26,
               fontWeight: 500,
               lineHeight: 1.45,
-              color: "#FFFFFF",
+              color: "var(--theme-public-text)",
               margin: 0,
               letterSpacing: "-0.005em",
             }}
@@ -668,7 +668,7 @@ function BigNumber({ value, label }: { value: string; label: string }) {
         style={{
           fontSize: "clamp(48px, 8vw, 130px)",
           lineHeight: 1,
-          color: "#FFFFFF",
+          color: "var(--theme-public-text)",
           margin: 0,
           letterSpacing: 0,
         }}
@@ -681,7 +681,7 @@ function BigNumber({ value, label }: { value: string; label: string }) {
           fontSize: 16,
           fontWeight: 300,
           lineHeight: 1.55,
-          color: "rgba(255,255,255,0.50)",
+          color: "var(--theme-public-muted)",
           maxWidth: 320,
         }}
       >
@@ -700,8 +700,8 @@ function PricingTeaser() {
       style={{
         position: "relative",
         padding: "20vh 6vw",
-        background: "#080A0F",
-        borderTop: "1px solid rgba(255,255,255,0.08)",
+        background: "var(--theme-public-bg)",
+        borderTop: "1px solid var(--theme-public-soft)",
       }}
     >
       <div style={{ maxWidth: 1400, margin: "0 auto" }}>
@@ -730,7 +730,7 @@ function PricingTeaser() {
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
             gap: 0,
-            border: "1px solid rgba(255,255,255,0.08)",
+            border: "1px solid var(--theme-public-soft)",
           }}
         >
           <PriceColumn
@@ -780,9 +780,9 @@ function PricingTeaser() {
               fontSize: 13,
               letterSpacing: "0.2em",
               textTransform: "uppercase",
-              color: "#E8500A",
+              color: "var(--theme-public-accent)",
               textDecoration: "none",
-              borderBottom: "1px solid #E8500A",
+              borderBottom: "1px solid var(--theme-public-accent)",
               paddingBottom: 4,
             }}
           >
@@ -815,7 +815,7 @@ function PriceColumn({
         padding: "48px 36px",
         position: "relative",
         background: highlight ? "rgba(232,80,10,0.04)" : "transparent",
-        borderRight: "1px solid rgba(255,255,255,0.08)",
+        borderRight: "1px solid var(--theme-public-soft)",
       }}
     >
       {highlight && (
@@ -826,7 +826,7 @@ function PriceColumn({
             left: 0,
             width: 6,
             height: "100%",
-            background: "#E8500A",
+            background: "var(--theme-public-accent)",
           }}
         />
       )}
@@ -837,7 +837,7 @@ function PriceColumn({
         style={{
           fontFamily: "Inter, sans-serif",
           fontSize: 13,
-          color: "rgba(255,255,255,0.50)",
+          color: "var(--theme-public-muted)",
           margin: 0,
           marginBottom: 32,
         }}
@@ -851,7 +851,7 @@ function PriceColumn({
           lineHeight: 1,
           letterSpacing: "-0.015em",
           margin: 0,
-          color: "#FFFFFF",
+          color: "var(--theme-public-text)",
         }}
       >
         {price}
@@ -860,7 +860,7 @@ function PriceColumn({
         <p
           style={{
             fontSize: 13,
-            color: "rgba(255,255,255,0.50)",
+            color: "var(--theme-public-muted)",
             marginTop: 8,
             marginBottom: 40,
           }}
@@ -876,9 +876,9 @@ function PriceColumn({
             style={{
               fontSize: 15,
               fontWeight: 300,
-              color: "rgba(255,255,255,0.65)",
+              color: "var(--theme-public-muted)",
               padding: "12px 0",
-              borderBottom: "1px solid rgba(255,255,255,0.08)",
+              borderBottom: "1px solid var(--theme-public-soft)",
             }}
           >
             {f}
@@ -925,8 +925,8 @@ function Faq() {
       style={{
         position: "relative",
         padding: "20vh 6vw",
-        background: "#080A0F",
-        borderTop: "1px solid rgba(255,255,255,0.08)",
+        background: "var(--theme-public-bg)",
+        borderTop: "1px solid var(--theme-public-soft)",
       }}
     >
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -954,10 +954,10 @@ function Faq() {
             <details
               key={i}
               style={{
-                borderTop: "1px solid rgba(255,255,255,0.08)",
+                borderTop: "1px solid var(--theme-public-soft)",
                 borderBottom:
                   i === items.length - 1
-                    ? "1px solid rgba(255,255,255,0.08)"
+                    ? "1px solid var(--theme-public-soft)"
                     : "none",
                 padding: "32px 0",
               }}
@@ -972,7 +972,7 @@ function Faq() {
                   fontFamily: "Inter, sans-serif",
                   fontSize: 22,
                   fontWeight: 400,
-                  color: "#FFFFFF",
+                  color: "var(--theme-public-text)",
                   letterSpacing: "-0.005em",
                 }}
               >
@@ -982,7 +982,7 @@ function Faq() {
                 <span
                   style={{
                     fontSize: 24,
-                    color: "#E8500A",
+                    color: "var(--theme-public-accent)",
                     marginLeft: 32,
                     flexShrink: 0,
                   }}
@@ -996,7 +996,7 @@ function Faq() {
                   fontSize: 17,
                   fontWeight: 300,
                   lineHeight: 1.75,
-                  color: "rgba(255,255,255,0.55)",
+                  color: "var(--theme-public-muted)",
                   maxWidth: 800,
                 }}
               >
@@ -1020,8 +1020,8 @@ function FinalCta() {
       style={{
         position: "relative",
         padding: "30vh 6vw",
-        background: "#080A0F",
-        borderTop: "1px solid rgba(255,255,255,0.08)",
+        background: "var(--theme-public-bg)",
+        borderTop: "1px solid var(--theme-public-soft)",
         overflow: "hidden",
       }}
     >
@@ -1059,7 +1059,7 @@ function FinalCta() {
         >
           GARANTE SEU LUGAR<br />
           ANTES DA<br />
-          <span style={{ color: "#E8500A" }}>ABERTURA GERAL.</span>
+          <span style={{ color: "var(--theme-public-accent)" }}>ABERTURA GERAL.</span>
         </h2>
 
         <p
@@ -1068,7 +1068,7 @@ function FinalCta() {
             fontSize: 20,
             fontWeight: 300,
             lineHeight: 1.7,
-            color: "rgba(255,255,255,0.65)",
+            color: "var(--theme-public-muted)",
             maxWidth: 720,
             margin: "56px auto 0",
           }}
@@ -1082,8 +1082,8 @@ function FinalCta() {
             href={WAITLIST_URL}
             style={{
               padding: "20px 24px",
-              background: "#E8500A",
-              color: "#FFFFFF",
+              background: "var(--theme-public-accent)",
+              color: "var(--theme-public-text)",
               fontFamily: "Inter, sans-serif",
               fontWeight: 600,
               fontSize: 18,
@@ -1105,7 +1105,7 @@ function FinalCta() {
             marginTop: 56,
             fontSize: 12,
             letterSpacing: "0.3em",
-            color: "rgba(255,255,255,0.20)",
+            color: "var(--theme-public-strong)",
             textTransform: "uppercase",
           }}
         >

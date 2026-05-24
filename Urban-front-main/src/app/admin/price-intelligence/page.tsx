@@ -593,7 +593,7 @@ function BarRow({ label, value, max, sub }: { label: string; value: number; max:
         <span style={{ fontSize: 13, color: "var(--admin-text)" }}>{label}</span>
         <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>{integer.format(value)}</span>
       </div>
-      <div style={{ height: 6, background: "rgba(255,255,255,0.06)", borderRadius: 2, overflow: "hidden" }}>
+      <div style={{ height: 6, background: "var(--admin-surface-elevated)", borderRadius: 2, overflow: "hidden" }}>
         <div style={{ width, height: "100%", background: "var(--admin-accent)" }} />
       </div>
       <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--admin-text-dim)" }}>{sub}</p>

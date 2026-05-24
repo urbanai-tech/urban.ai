@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../service/api';
 import { setSentryUser, clearSentryUser, trackEvent } from '../service/tracking';
+import { ThemeToggle } from './theme/ThemeToggle';
 import '../../../i18n';
 
 /**
@@ -145,11 +146,11 @@ export default function SideBar() {
           height: '100vh',
           position: 'sticky',
           top: 0,
-          background: '#0E1117',
-          borderRight: '1px solid rgba(255, 255, 255, 0.06)',
+          background: 'var(--app-nav-bg)',
+          borderRight: '1px solid var(--app-nav-border)',
           transition: 'width 220ms cubic-bezier(0.16, 1, 0.3, 1)',
           flexDirection: 'column',
-          color: 'rgba(255, 255, 255, 0.92)',
+          color: 'var(--app-nav-text)',
           fontFamily: 'Inter, system-ui, sans-serif',
         }}
       >
@@ -160,7 +161,7 @@ export default function SideBar() {
             alignItems: 'center',
             justifyContent: collapsed ? 'center' : 'space-between',
             padding: collapsed ? '20px 0' : '20px 18px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+            borderBottom: '1px solid var(--app-nav-border)',
             height: 64,
           }}
         >
@@ -175,7 +176,7 @@ export default function SideBar() {
                   fontSize: 22,
                   fontWeight: 400,
                   textTransform: 'uppercase',
-                  color: '#FFFFFF',
+                  color: 'var(--app-nav-text)',
                   lineHeight: 1,
                   letterSpacing: 0,
                 }}
@@ -188,7 +189,7 @@ export default function SideBar() {
                   fontSize: 22,
                   fontWeight: 400,
                   textTransform: 'uppercase',
-                  color: '#E8500A',
+                  color: 'var(--app-accent)',
                   lineHeight: 1,
                   letterSpacing: 0,
                 }}
@@ -205,9 +206,9 @@ export default function SideBar() {
               width: 32,
               height: 32,
               borderRadius: 8,
-              border: '1px solid rgba(255, 255, 255, 0.10)',
+              border: '1px solid var(--app-nav-border)',
               background: 'transparent',
-              color: 'rgba(255, 255, 255, 0.65)',
+              color: 'var(--app-nav-muted)',
               cursor: 'pointer',
               display: 'inline-flex',
               alignItems: 'center',
@@ -215,12 +216,12 @@ export default function SideBar() {
               transition: 'background 120ms, color 120ms, border-color 120ms',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
-              e.currentTarget.style.color = '#FFFFFF';
+              e.currentTarget.style.background = 'var(--app-nav-hover)';
+              e.currentTarget.style.color = 'var(--app-nav-text)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)';
+              e.currentTarget.style.color = 'var(--app-nav-muted)';
             }}
           >
             {collapsed ? <MenuIcon /> : <CollapseIcon />}
@@ -236,10 +237,10 @@ export default function SideBar() {
             style={{
               margin: collapsed ? '16px 12px 0' : '16px 16px 0',
               padding: collapsed ? '10px 0' : '10px 14px',
-              background: 'rgba(232, 80, 10, 0.10)',
-              border: '1px solid rgba(232, 80, 10, 0.30)',
+              background: 'var(--app-accent-soft)',
+              border: '1px solid var(--app-accent)',
               borderRadius: 10,
-              color: '#E8500A',
+              color: 'var(--app-accent)',
               fontSize: 12,
               fontWeight: 600,
               letterSpacing: 1,
@@ -252,10 +253,10 @@ export default function SideBar() {
               transition: 'background 120ms, border-color 120ms',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(232, 80, 10, 0.18)';
+              e.currentTarget.style.background = 'var(--app-nav-active)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(232, 80, 10, 0.10)';
+              e.currentTarget.style.background = 'var(--app-accent-soft)';
             }}
           >
             {collapsed ? (
@@ -306,11 +307,30 @@ export default function SideBar() {
           ))}
         </nav>
 
+        <div
+          style={{
+            padding: collapsed ? '8px 0 12px' : '8px 14px 12px',
+            borderTop: '1px solid var(--app-nav-border)',
+            display: 'flex',
+            justifyContent: 'center',
+            overflow: 'hidden',
+          }}
+        >
+          <ThemeToggle
+            compact={collapsed}
+            style={
+              collapsed
+                ? { transform: 'scale(0.72)', transformOrigin: 'center' }
+                : { width: '100%', justifyContent: 'center' }
+            }
+          />
+        </div>
+
         {/* Account block + logout */}
         <div
           style={{
             padding: collapsed ? 12 : 14,
-            borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+            borderTop: '1px solid var(--app-nav-border)',
             display: 'flex',
             flexDirection: collapsed ? 'column' : 'row',
             alignItems: 'center',
@@ -323,13 +343,13 @@ export default function SideBar() {
               width: 36,
               height: 36,
               borderRadius: '50%',
-              background: 'rgba(255, 255, 255, 0.06)',
-              border: '1px solid rgba(255, 255, 255, 0.10)',
+              background: 'var(--app-nav-hover)',
+              border: '1px solid var(--app-nav-border)',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 600,
-              color: '#FFFFFF',
+              color: 'var(--app-nav-text)',
               fontSize: 14,
               flexShrink: 0,
             }}
@@ -343,7 +363,7 @@ export default function SideBar() {
                   margin: 0,
                   fontSize: 13,
                   fontWeight: 600,
-                  color: '#FFFFFF',
+                  color: 'var(--app-nav-text)',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
@@ -357,7 +377,7 @@ export default function SideBar() {
                   fontSize: 11,
                   letterSpacing: 1.5,
                   textTransform: 'uppercase',
-                  color: 'rgba(255, 255, 255, 0.45)',
+                  color: 'var(--app-nav-dim)',
                   fontWeight: 500,
                 }}
               >
@@ -373,9 +393,9 @@ export default function SideBar() {
               width: 36,
               height: 36,
               borderRadius: 8,
-              border: '1px solid rgba(255, 255, 255, 0.10)',
+              border: '1px solid var(--app-nav-border)',
               background: 'transparent',
-              color: 'rgba(255, 255, 255, 0.65)',
+              color: 'var(--app-nav-muted)',
               cursor: 'pointer',
               display: 'inline-flex',
               alignItems: 'center',
@@ -383,13 +403,13 @@ export default function SideBar() {
               transition: 'color 120ms, border-color 120ms, background 120ms',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#FFFFFF';
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.20)';
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
+              e.currentTarget.style.color = 'var(--app-nav-text)';
+              e.currentTarget.style.borderColor = 'var(--app-divider-strong)';
+              e.currentTarget.style.background = 'var(--app-nav-hover)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)';
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.10)';
+              e.currentTarget.style.color = 'var(--app-nav-muted)';
+              e.currentTarget.style.borderColor = 'var(--app-nav-border)';
               e.currentTarget.style.background = 'transparent';
             }}
           >
@@ -408,8 +428,8 @@ export default function SideBar() {
           zIndex: 40,
           height: 56,
           padding: '0 16px',
-          background: '#0E1117',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+          background: 'var(--app-nav-bg)',
+          borderBottom: '1px solid var(--app-nav-border)',
           alignItems: 'center',
           justifyContent: 'space-between',
           fontFamily: 'Inter, system-ui, sans-serif',
@@ -425,7 +445,7 @@ export default function SideBar() {
               fontSize: 20,
               fontWeight: 400,
               textTransform: 'uppercase',
-              color: '#FFFFFF',
+              color: 'var(--app-nav-text)',
               lineHeight: 1,
             }}
           >
@@ -437,7 +457,7 @@ export default function SideBar() {
               fontSize: 20,
               fontWeight: 400,
               textTransform: 'uppercase',
-              color: '#E8500A',
+              color: 'var(--app-accent)',
               lineHeight: 1,
             }}
           >
@@ -452,9 +472,9 @@ export default function SideBar() {
             width: 36,
             height: 36,
             borderRadius: 8,
-            border: '1px solid rgba(255, 255, 255, 0.10)',
+            border: '1px solid var(--app-nav-border)',
             background: 'transparent',
-            color: '#FFFFFF',
+            color: 'var(--app-nav-text)',
             cursor: 'pointer',
             display: 'inline-flex',
             alignItems: 'center',
@@ -476,8 +496,8 @@ export default function SideBar() {
           right: 0,
           zIndex: 40,
           height: 64,
-          background: '#0E1117',
-          borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+          background: 'var(--app-nav-bg)',
+          borderTop: '1px solid var(--app-nav-border)',
           justifyContent: 'space-around',
           alignItems: 'stretch',
           fontFamily: 'Inter, system-ui, sans-serif',
@@ -524,7 +544,7 @@ export default function SideBar() {
             style={{
               position: 'absolute',
               inset: 0,
-              background: 'rgba(0, 0, 0, 0.6)',
+              background: 'var(--app-backdrop)',
               backdropFilter: 'blur(4px)',
             }}
           />
@@ -534,18 +554,18 @@ export default function SideBar() {
               width: '85%',
               maxWidth: 320,
               height: '100%',
-              background: '#0E1117',
-              borderLeft: '1px solid rgba(255, 255, 255, 0.06)',
+              background: 'var(--app-nav-bg)',
+              borderLeft: '1px solid var(--app-nav-border)',
               display: 'flex',
               flexDirection: 'column',
-              color: 'rgba(255, 255, 255, 0.92)',
+              color: 'var(--app-nav-text)',
               animation: 'urban-app-drawer-in 220ms cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           >
             <header
               style={{
                 padding: 16,
-                borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                borderBottom: '1px solid var(--app-nav-border)',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
@@ -556,7 +576,7 @@ export default function SideBar() {
                   fontSize: 11,
                   letterSpacing: 2,
                   textTransform: 'uppercase',
-                  color: 'rgba(255, 255, 255, 0.45)',
+                  color: 'var(--app-nav-dim)',
                   fontWeight: 600,
                   margin: 0,
                 }}
@@ -571,9 +591,9 @@ export default function SideBar() {
                   width: 32,
                   height: 32,
                   borderRadius: 8,
-                  border: '1px solid rgba(255, 255, 255, 0.10)',
+                  border: '1px solid var(--app-nav-border)',
                   background: 'transparent',
-                  color: '#FFFFFF',
+                  color: 'var(--app-nav-text)',
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -594,10 +614,10 @@ export default function SideBar() {
                 style={{
                   margin: '16px',
                   padding: '12px 16px',
-                  background: 'rgba(232, 80, 10, 0.12)',
-                  border: '1px solid rgba(232, 80, 10, 0.30)',
+                  background: 'var(--app-accent-soft)',
+                  border: '1px solid var(--app-accent)',
                   borderRadius: 10,
-                  color: '#E8500A',
+                  color: 'var(--app-accent)',
                   fontSize: 13,
                   fontWeight: 600,
                   letterSpacing: 1,
@@ -615,6 +635,15 @@ export default function SideBar() {
                 <ArrowRightIcon size={12} />
               </button>
             )}
+
+            <div
+              style={{
+                padding: '0 16px 12px',
+                borderBottom: '1px solid var(--app-nav-border)',
+              }}
+            >
+              <ThemeToggle style={{ width: '100%', justifyContent: 'center' }} />
+            </div>
 
             <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
               <SectionLabel label="Menu" />
@@ -636,7 +665,7 @@ export default function SideBar() {
             <div
               style={{
                 padding: 16,
-                borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                borderTop: '1px solid var(--app-nav-border)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 10,
@@ -648,13 +677,13 @@ export default function SideBar() {
                   width: 36,
                   height: 36,
                   borderRadius: '50%',
-                  background: 'rgba(255, 255, 255, 0.06)',
-                  border: '1px solid rgba(255, 255, 255, 0.10)',
+                  background: 'var(--app-nav-hover)',
+                  border: '1px solid var(--app-nav-border)',
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontWeight: 600,
-                  color: '#FFFFFF',
+                  color: 'var(--app-nav-text)',
                   fontSize: 14,
                   flexShrink: 0,
                 }}
@@ -667,7 +696,7 @@ export default function SideBar() {
                     margin: 0,
                     fontSize: 13,
                     fontWeight: 600,
-                    color: '#FFFFFF',
+                    color: 'var(--app-nav-text)',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
@@ -681,7 +710,7 @@ export default function SideBar() {
                     fontSize: 11,
                     letterSpacing: 1.5,
                     textTransform: 'uppercase',
-                    color: 'rgba(255, 255, 255, 0.45)',
+                    color: 'var(--app-nav-dim)',
                     fontWeight: 500,
                   }}
                 >
@@ -696,9 +725,9 @@ export default function SideBar() {
                   width: 36,
                   height: 36,
                   borderRadius: 8,
-                  border: '1px solid rgba(255, 255, 255, 0.10)',
+                  border: '1px solid var(--app-nav-border)',
                   background: 'transparent',
-                  color: 'rgba(255, 255, 255, 0.85)',
+                  color: 'var(--app-nav-muted)',
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -758,7 +787,7 @@ function SectionLabel({ label }: { label: string }) {
         fontSize: 10,
         letterSpacing: 2.5,
         textTransform: 'uppercase',
-        color: 'rgba(255, 255, 255, 0.35)',
+        color: 'var(--app-nav-dim)',
         fontWeight: 600,
       }}
     >
@@ -810,10 +839,10 @@ function NavLink({
         justifyContent: collapsed ? 'center' : 'flex-start',
         border: 'none',
         borderLeft: active
-          ? '2px solid #E8500A'
+          ? '2px solid var(--app-accent)'
           : '2px solid transparent',
-        background: active ? 'rgba(232, 80, 10, 0.06)' : 'transparent',
-        color: active ? '#FFFFFF' : 'rgba(255, 255, 255, 0.65)',
+        background: active ? 'var(--app-nav-active)' : 'transparent',
+        color: active ? 'var(--app-nav-text)' : 'var(--app-nav-muted)',
         fontSize: 13,
         fontWeight: 500,
         letterSpacing: 0.2,
@@ -824,13 +853,13 @@ function NavLink({
       }}
       onMouseEnter={(e) => {
         if (!active) {
-          e.currentTarget.style.color = '#FFFFFF';
-          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+          e.currentTarget.style.color = 'var(--app-nav-text)';
+          e.currentTarget.style.background = 'var(--app-nav-hover)';
         }
       }}
       onMouseLeave={(e) => {
         if (!active) {
-          e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)';
+          e.currentTarget.style.color = 'var(--app-nav-muted)';
           e.currentTarget.style.background = 'transparent';
         }
       }}
@@ -870,7 +899,7 @@ function BottomNavItem({
         justifyContent: 'center',
         gap: 4,
         padding: '8px 0 6px',
-        color: active ? '#E8500A' : 'rgba(255, 255, 255, 0.55)',
+        color: active ? 'var(--app-accent)' : 'var(--app-nav-muted)',
         fontSize: 10,
         fontWeight: active ? 600 : 500,
         letterSpacing: 0.5,
@@ -891,7 +920,7 @@ function BottomNavItem({
             transform: 'translateX(-50%)',
             width: 24,
             height: 2,
-            background: '#E8500A',
+            background: 'var(--app-accent)',
             borderRadius: '0 0 4px 4px',
           }}
         />

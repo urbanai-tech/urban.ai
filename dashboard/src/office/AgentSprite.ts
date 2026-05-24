@@ -1,20 +1,12 @@
 import Phaser from 'phaser';
 import { avatarKeys, DESK_KEYS, FURNITURE_KEYS, type CharacterName } from './assetKeys';
-import { COLORS } from './palette';
+import { COLORS, toHexColor, type OfficePalette } from './palette';
 import type { Agent, AgentStatus } from '@/types/state';
 
 // Avatar display scale — characters should be prominent at desk
 const AVATAR_SCALE = 0.8;
 
 // Status → badge color mapping
-const STATUS_COLORS: Record<AgentStatus, number> = {
-  idle: COLORS.statusIdle,
-  working: COLORS.statusWorking,
-  done: COLORS.statusDone,
-  checkpoint: COLORS.statusCheckpoint,
-  delivering: COLORS.statusWorking,
-};
-
 // Status → display label
 const STATUS_LABELS: Record<AgentStatus, string> = {
   idle: 'idle',
@@ -39,6 +31,7 @@ export class AgentSprite {
   private agent: Agent;
   private characterName: CharacterName;
   private deskVariant: 'black' | 'white';
+  private palette: OfficePalette;
   private avatarDisplayH: number = 0;
 
   constructor(
@@ -48,11 +41,13 @@ export class AgentSprite {
     characterName: CharacterName,
     deskVariant: 'black' | 'white',
     agent: Agent,
+    palette: OfficePalette = COLORS,
   ) {
     this.scene = scene;
     this.agent = agent;
     this.characterName = characterName;
     this.deskVariant = deskVariant;
+    this.palette = palette;
 
     // === VERTICAL LAYOUT (sprites, top to bottom on screen) ===
     // desk_wood: 96x64 @ 1.3x = 125x83px  → y-42 to y+42
@@ -113,9 +108,9 @@ export class AgentSprite {
       fontFamily: '"Segoe UI", "Helvetica Neue", Arial, sans-serif',
       fontSize: '16px',
       fontStyle: 'bold',
-      color: '#ffffff',
+      color: toHexColor(this.palette.nameCardText),
       align: 'center',
-      stroke: '#000000',
+      stroke: toHexColor(this.palette.nameCardStroke),
       strokeThickness: 4,
       resolution: 2,
     }).setOrigin(0.5, 0);
@@ -132,7 +127,7 @@ export class AgentSprite {
       fontStyle: 'bold',
       color: statusColor,
       align: 'center',
-      stroke: '#000000',
+      stroke: toHexColor(this.palette.nameCardStroke),
       strokeThickness: 3,
       resolution: 2,
     }).setOrigin(0.5, 0);
@@ -146,8 +141,19 @@ export class AgentSprite {
   }
 
   private getStatusHexColor(status: AgentStatus): string {
-    const num = STATUS_COLORS[status] ?? COLORS.statusIdle;
-    return '#' + num.toString(16).padStart(6, '0');
+    return toHexColor(this.getStatusColor(status));
+  }
+
+  private getStatusColor(status: AgentStatus): number {
+    const statusColors: Record<AgentStatus, number> = {
+      idle: this.palette.statusIdle,
+      working: this.palette.statusWorking,
+      done: this.palette.statusDone,
+      checkpoint: this.palette.statusCheckpoint,
+      delivering: this.palette.statusWorking,
+    };
+
+    return statusColors[status];
   }
 
   private getDeskKey(_status: AgentStatus): string {
@@ -165,16 +171,16 @@ export class AgentSprite {
     const bgW = nameW + 20;
     const bgH = 44;
     // Solid dark background with rounded corners
-    this.badgeBg.fillStyle(0x1a1225, 0.95);
+    this.badgeBg.fillStyle(this.palette.nameCardBg, 0.95);
     this.badgeBg.fillRoundedRect(x - bgW / 2, labelY, bgW, bgH, 5);
     // Subtle border
-    this.badgeBg.lineStyle(1, 0x6a5a80, 0.4);
+    this.badgeBg.lineStyle(1, this.palette.nameCardBorder, 0.55);
     this.badgeBg.strokeRoundedRect(x - bgW / 2, labelY, bgW, bgH, 4);
     this.badgeBg.setDepth(900);
   }
 
   private drawStatusDot(x: number, _statusY: number, status: AgentStatus): void {
-    const dotColor = STATUS_COLORS[status] ?? COLORS.statusIdle;
+    const dotColor = this.getStatusColor(status);
     const textW = Math.max(this.statusText.width, 24);
     this.statusDot.fillStyle(dotColor, 1);
     this.statusDot.fillCircle(x - textW / 2 - 5, this.statusText.y + this.statusText.height / 2, 3);
@@ -216,7 +222,7 @@ export class AgentSprite {
     this.statusText.setColor(this.getStatusHexColor(agent.status));
 
     this.statusDot.clear();
-    const dotColor = STATUS_COLORS[agent.status] ?? COLORS.statusIdle;
+    const dotColor = this.getStatusColor(agent.status);
     this.statusDot.fillStyle(dotColor, 1);
     const textW = Math.max(this.statusText.width, 24);
     this.statusDot.fillCircle(

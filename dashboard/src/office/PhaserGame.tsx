@@ -2,10 +2,21 @@ import { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 import { OfficeScene } from './OfficeScene';
 import { useSquadStore } from '@/store/useSquadStore';
+import { getOfficePalette, toHexColor } from './palette';
+import type { ResolvedTheme } from '@/theme/useTheme';
 
-export function PhaserGame() {
+interface PhaserGameProps {
+  theme: ResolvedTheme;
+}
+
+export function PhaserGame({ theme }: PhaserGameProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
+  const themeRef = useRef(theme);
+
+  useEffect(() => {
+    themeRef.current = theme;
+  }, [theme]);
 
   // Create Phaser game on mount
   useEffect(() => {
@@ -23,7 +34,7 @@ export function PhaserGame() {
       pixelArt: false,          // disabled globally so text renders smooth
       antialias: false,          // keep pixel art look for sprites
       roundPixels: true,         // snap sprites to whole pixels
-      backgroundColor: '#1a1420',
+      backgroundColor: toHexColor(getOfficePalette(themeRef.current).background),
       scene: [OfficeScene],
       scale: {
         mode: Phaser.Scale.NONE,
@@ -49,6 +60,16 @@ export function PhaserGame() {
       gameRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const game = gameRef.current;
+    if (!game) return;
+
+    const scene = game.scene.getScene('OfficeScene') as OfficeScene | null;
+    if (!scene || !scene.scene.isActive()) return;
+
+    scene.events.emit('themeUpdate', theme);
+  }, [theme]);
 
   // Bridge React state → Phaser scene
   useEffect(() => {

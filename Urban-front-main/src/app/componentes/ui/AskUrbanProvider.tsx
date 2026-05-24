@@ -261,11 +261,11 @@ function AskUrbanFab({
           width: 56,
           height: 56,
           borderRadius: 999,
-          background: "var(--app-accent, #E8500A)",
+          background: "var(--app-accent)",
           color: "#FFFFFF",
           border: "none",
           boxShadow:
-            "0 8px 24px rgba(232, 80, 10, 0.32), 0 2px 6px rgba(14, 17, 22, 0.16)",
+            "0 8px 24px var(--app-accent-shadow), 0 2px 6px var(--app-divider-strong)",
           cursor: "pointer",
           display: "inline-flex",
           alignItems: "center",

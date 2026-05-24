@@ -42,7 +42,7 @@ function styleForVariant(variant: AdminButtonVariant): React.CSSProperties {
     case "primary":
       return {
         background: "var(--admin-accent)",
-        color: "#080A0F",
+        color: "var(--admin-accent-contrast, #080A0F)",
         border: "1px solid var(--admin-accent)",
       };
     case "secondary":
@@ -61,7 +61,7 @@ function styleForVariant(variant: AdminButtonVariant): React.CSSProperties {
       return {
         background: "transparent",
         color: "var(--admin-danger)",
-        border: "1px solid rgba(248, 113, 113, 0.3)",
+        border: "1px solid var(--admin-danger)",
       };
   }
 }

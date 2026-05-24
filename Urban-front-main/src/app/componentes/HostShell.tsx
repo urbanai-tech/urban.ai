@@ -27,11 +27,13 @@ export default function HostShell({
     <AskUrbanProvider>
       <div
         data-host-shell
+        className="urban-app"
         style={{
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
-          background: "#FAFAFB",
+          background: "var(--app-bg)",
+          color: "var(--app-text)",
         }}
       >
         <SideBar />
@@ -42,7 +44,7 @@ export default function HostShell({
             flex: 1,
             display: "flex",
             flexDirection: "column",
-            background: "#FAFAFB",
+            background: "var(--app-bg)",
           }}
         >
           <main
@@ -51,7 +53,7 @@ export default function HostShell({
               flex: 1,
               minHeight: 0,
               padding: noPadding ? 0 : "24px 16px 96px",
-              background: "var(--app-bg, #FAFAFB)",
+              background: "var(--app-bg)",
             }}
           >
             {content}

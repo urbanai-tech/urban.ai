@@ -1,12 +1,18 @@
 import Phaser from 'phaser';
-import { COLORS, TILE, MARGIN, WALL_H } from './palette';
+import { COLORS, TILE, MARGIN, WALL_H, type OfficePalette } from './palette';
 import { FURNITURE_KEYS } from './assetKeys';
 
 export class RoomBuilder {
   private scene: Phaser.Scene;
+  private palette: OfficePalette;
 
-  constructor(scene: Phaser.Scene) {
+  constructor(scene: Phaser.Scene, palette: OfficePalette = COLORS) {
     this.scene = scene;
+    this.palette = palette;
+  }
+
+  setPalette(palette: OfficePalette): void {
+    this.palette = palette;
   }
 
   build(roomW: number, roomH: number): void {
@@ -19,10 +25,10 @@ export class RoomBuilder {
   private drawFloor(roomW: number, roomH: number): void {
     const g = this.scene.add.graphics();
     // Main floor fill
-    g.fillStyle(COLORS.floor, 1);
+    g.fillStyle(this.palette.floor, 1);
     g.fillRect(0, WALL_H, roomW, roomH - WALL_H);
     // Checkerboard texture
-    g.fillStyle(COLORS.floorAlt, 0.25);
+    g.fillStyle(this.palette.floorAlt, 0.25);
     for (let y = WALL_H; y < roomH; y += TILE) {
       for (let x = 0; x < roomW; x += TILE) {
         if ((x / TILE + y / TILE) % 2 === 0) {
@@ -40,7 +46,7 @@ export class RoomBuilder {
     g.fillRect(0, WALL_H, 6, roomH - WALL_H);
     g.fillRect(roomW - 6, WALL_H, 6, roomH - WALL_H);
     // Subtle warm highlight on bottom edge
-    g.fillStyle(0xddc89e, 0.15);
+    g.fillStyle(this.palette.floorHighlight, 0.15);
     g.fillRect(0, roomH - 4, roomW, 4);
     g.setDepth(-2);
   }
@@ -48,34 +54,33 @@ export class RoomBuilder {
   private drawWalls(roomW: number): void {
     const g = this.scene.add.graphics();
     // Wall background — slight gradient effect with two tones
-    g.fillStyle(COLORS.wall, 1);
+    g.fillStyle(this.palette.wall, 1);
     g.fillRect(0, 0, roomW, WALL_H);
     // Lighter upper band for depth
-    g.fillStyle(0xede2d6, 1);
+    g.fillStyle(this.palette.wallBand, 1);
     g.fillRect(0, 0, roomW, WALL_H / 3);
     // Baseboard trim
-    g.fillStyle(COLORS.wallTrim, 1);
+    g.fillStyle(this.palette.wallTrim, 1);
     g.fillRect(0, WALL_H - 5, roomW, 5);
     // Thin highlight line above baseboard
-    g.fillStyle(0xc8b8a8, 1);
+    g.fillStyle(this.palette.wallHighlight, 1);
     g.fillRect(0, WALL_H - 6, roomW, 1);
     g.setDepth(-1);
   }
 
   private drawRoomBorder(roomW: number, roomH: number): void {
     const g = this.scene.add.graphics();
-    const bg = 0x1a1420;
     const pad = 200; // generous padding to cover any viewport overflow
 
     // Dark overlay strips outside the room on all 4 sides
-    g.fillStyle(bg, 1);
+    g.fillStyle(this.palette.background, 1);
     g.fillRect(-pad, -pad, roomW + pad * 2, pad);         // top
     g.fillRect(-pad, roomH, roomW + pad * 2, pad);        // bottom
     g.fillRect(-pad, -pad, pad, roomH + pad * 2);         // left
     g.fillRect(roomW, -pad, pad, roomH + pad * 2);        // right
 
     // Clean 2px border around room edge
-    g.lineStyle(2, 0x2a2030, 0.8);
+    g.lineStyle(2, this.palette.roomBorder, 0.8);
     g.strokeRect(0, 0, roomW, roomH);
     g.setDepth(1000);
   }

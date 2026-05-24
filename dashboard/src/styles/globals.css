@@ -7,16 +7,45 @@
 }
 
 :root {
+  color-scheme: dark;
   --bg-primary: #101018;
   --bg-secondary: #1a1a2e;
   --bg-sidebar: #141422;
   --border: #2a2a3e;
   --text-primary: #e0e0e0;
   --text-secondary: #8888a0;
+  --text-muted: #66667a;
+  --button-hover: #22223a;
   --accent-cyan: #00d4ff;
   --accent-green: #00e676;
   --accent-amber: #ffab00;
   --accent-red: #ff5252;
+  --status-idle: #8888a0;
+  --status-inactive: #505064;
+  --shadow-soft: rgba(0, 0, 0, 0.25);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg-primary: #f5f7fb;
+  --bg-secondary: #e8eef8;
+  --bg-sidebar: #ffffff;
+  --border: #d7dfeb;
+  --text-primary: #172033;
+  --text-secondary: #5f6f86;
+  --text-muted: #8290a4;
+  --button-hover: #f0f4fa;
+  --accent-cyan: #0077b6;
+  --accent-green: #16834a;
+  --accent-amber: #b56b00;
+  --accent-red: #d43f3a;
+  --status-idle: #8290a4;
+  --status-inactive: #b8c2d0;
+  --shadow-soft: rgba(16, 24, 40, 0.12);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 html,
@@ -28,6 +57,10 @@ body,
   font-family: "JetBrains Mono", "Fira Code", monospace;
   background: var(--bg-primary);
   color: var(--text-primary);
+}
+
+button {
+  color: inherit;
 }
 
 @keyframes pulse {

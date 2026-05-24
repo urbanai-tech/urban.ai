@@ -5,9 +5,10 @@ import {
   FURNITURE_PATHS,
   type CharacterName,
 } from './assetKeys';
-import { CELL_W, CELL_H, MARGIN, WALL_H } from './palette';
+import { CELL_W, CELL_H, MARGIN, WALL_H, COLORS, getOfficePalette, type OfficePalette } from './palette';
 import { RoomBuilder } from './RoomBuilder';
 import { AgentSprite } from './AgentSprite';
+import type { ResolvedTheme } from '@/theme/useTheme';
 import type { SquadState, Agent } from '@/types/state';
 
 function assignCharacters(agents: Agent[]): Map<string, CharacterName> {
@@ -37,9 +38,15 @@ const DEMO_AGENTS: Agent[] = [
   { id: '6', name: 'Publisher', icon: '', status: 'idle', gender: 'male', desk: { col: 3, row: 2 } },
 ];
 
+function getDocumentTheme(): ResolvedTheme {
+  return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+}
+
 export class OfficeScene extends Phaser.Scene {
   private agentSprites: Map<string, AgentSprite> = new Map();
   private roomBuilder!: RoomBuilder;
+  private currentAgents: Agent[] = DEMO_AGENTS;
+  private palette: OfficePalette = COLORS;
 
   constructor() {
     super({ key: 'OfficeScene' });
@@ -78,10 +85,15 @@ export class OfficeScene extends Phaser.Scene {
       }
     });
 
-    this.roomBuilder = new RoomBuilder(this);
+    this.palette = getOfficePalette(getDocumentTheme());
+    this.roomBuilder = new RoomBuilder(this, this.palette);
+    this.cameras.main.setBackgroundColor(this.palette.background);
 
     this.events.on('stateUpdate', (state: SquadState | null) => {
       this.onStateUpdate(state);
+    });
+    this.events.on('themeUpdate', (theme: ResolvedTheme) => {
+      this.onThemeUpdate(theme);
     });
 
     this.renderScene(DEMO_AGENTS);
@@ -92,7 +104,16 @@ export class OfficeScene extends Phaser.Scene {
     this.renderScene(agents);
   }
 
+  private onThemeUpdate(theme: ResolvedTheme): void {
+    this.palette = getOfficePalette(theme);
+    this.roomBuilder.setPalette(this.palette);
+    this.cameras.main.setBackgroundColor(this.palette.background);
+    this.renderScene(this.currentAgents);
+  }
+
   private renderScene(agents: Agent[]): void {
+    this.currentAgents = agents;
+
     // Auto-assign desk positions if all agents are at the same spot (default 1,1)
     const allSameDesk = agents.length > 1 &&
       agents.every(a => a.desk.col === agents[0].desk.col && a.desk.row === agents[0].desk.row);
@@ -130,7 +151,7 @@ export class OfficeScene extends Phaser.Scene {
       const y = (agent.desk.row - 1) * cellH + MARGIN + WALL_H + cellH / 2;
       const characterName = characterMap.get(agent.id)!;
       const deskVariant = i % 2 === 0 ? 'black' : 'white';
-      const agentSprite = new AgentSprite(this, x, y, characterName, deskVariant, agent);
+      const agentSprite = new AgentSprite(this, x, y, characterName, deskVariant, agent, this.palette);
       this.agentSprites.set(agent.id, agentSprite);
     }
 
