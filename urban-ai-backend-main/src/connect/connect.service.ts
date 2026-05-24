@@ -749,12 +749,12 @@ export class ConnectService {
     if (input.analysisStartedTitles.length > 0) {
       const count = input.analysisStartedTitles.length;
       await send({
-        title: count === 1 ? 'Analise iniciada' : `Analise iniciada para ${count} imoveis`,
+        title: count === 1 ? 'Análise iniciada' : `Análise iniciada para ${count} imóveis`,
         description: count === 1
-          ? `A Urban AI esta analisando eventos perto de ${input.analysisStartedTitles[0]}.`
-          : `A Urban AI esta analisando eventos perto de ${count} imoveis: ${this.humanList(input.analysisStartedTitles)}.`,
+          ? `A Urban AI está analisando eventos perto de ${input.analysisStartedTitles[0]}.`
+          : `A Urban AI está analisando eventos perto de ${count} imóveis: ${this.humanList(input.analysisStartedTitles)}.`,
         redirectTo: '/dashboard',
-        sendEmail: true,
+        sendEmail: false,
         sendPush: true,
         pushType: 'property_analysis_started_batch',
         metadata: {
@@ -767,13 +767,13 @@ export class ConnectService {
     if (input.basePricePendingTitles.length > 0) {
       const count = input.basePricePendingTitles.length;
       await send({
-        title: count === 1 ? 'Diaria base pendente' : `Diaria base pendente em ${count} imoveis`,
+        title: count === 1 ? 'Diária base pendente' : `Diária base pendente em ${count} imóveis`,
         description: count === 1
-          ? `Informe a diaria base de ${input.basePricePendingTitles[0]} para iniciar a analise da Urban AI.`
-          : `Informe a diaria base destes imoveis para iniciar a analise da Urban AI: ${this.humanList(input.basePricePendingTitles)}.`,
+          ? `Informe a diária base de ${input.basePricePendingTitles[0]} para iniciar a análise da Urban AI.`
+          : `Informe a diária base destes imóveis para iniciar a análise da Urban AI: ${this.humanList(input.basePricePendingTitles)}.`,
         redirectTo: '/properties',
         sendEmail: true,
-        sendPush: true,
+        sendPush: false,
         pushType: 'base_price_pending_batch',
         metadata: {
           propertyTitles: input.basePricePendingTitles,

@@ -90,9 +90,31 @@ describe('CronService', () => {
         id: 'analysis-valid',
         endereco: {
           id: 'address-1',
-          list: { id_do_anuncio: 'airbnb-123' },
+          cep: '05001-000',
+          logradouro: 'Rua Turiassu',
+          numero: '100',
+          bairro: 'Perdizes',
+          cidade: 'Sao Paulo',
+          estado: 'SP',
+          list: {
+            id: 'list-1',
+            id_do_anuncio: 'airbnb-123',
+            titulo: 'Apartamento em Perdizes',
+            internalNickname: 'Perdizes 1',
+            internalCode: 'PER-01',
+          },
+        },
+        evento: {
+          nome: 'Show no Allianz',
+          dataInicio: new Date('2026-06-10T20:00:00.000Z'),
+          cidade: 'Sao Paulo',
+          estado: 'SP',
+          relevancia: 92,
+          expectedAttendance: 43000,
         },
         usuarioProprietario: { id: 'user-1' },
+        distanciaSuaPropriedade: 1.4,
+        recomendacao: 'Aumentar diaria pela demanda do evento.',
         diferencaPercentual: 20,
         precoSugerido: 150,
       },
@@ -117,8 +139,28 @@ describe('CronService', () => {
     expect(emailService.enviarNotification).toHaveBeenCalledWith(
       'user-1',
       expect.objectContaining({
-        redirectTo: '/painel',
+        redirectTo: '/dashboard?propertyId=list-1&source=cron_pricing_digest',
         sendEmail: true,
+        sendPush: true,
+        pushType: 'pricing_recommendation',
+        pushTag: 'pricing-recommendation-list-1',
+        metadata: expect.objectContaining({
+          propertyTitle: 'Apartamento em Perdizes',
+          propertyNickname: 'Perdizes 1',
+          propertyCode: 'PER-01',
+          propertyAddress: 'Rua Turiassu, 100, Perdizes, Sao Paulo - SP, CEP 05001-000',
+          currentPrice: 100,
+          suggestedPrice: 150,
+          liftPercent: 20,
+          eventName: 'Show no Allianz',
+          distanceKm: 1.4,
+          expectedAttendance: 43000,
+          relevance: 92,
+          reasons: expect.arrayContaining([
+            'Evento analisado: Show no Allianz.',
+            'Distância do imóvel: 1,4 km.',
+          ]),
+        }),
       }),
     );
     expect(result).toEqual({
@@ -129,6 +171,63 @@ describe('CronService', () => {
       failed: 0,
       failures: [],
     });
+  });
+
+  it('envia recomendacao de diminuir preco pelo digest de pricing', async () => {
+    const { service, airbnbService, emailService } = makeService([
+      {
+        id: 'analysis-decrease',
+        endereco: {
+          id: 'address-1',
+          list: { id: 'list-2', id_do_anuncio: 'airbnb-456', titulo: 'Studio Paulista' },
+        },
+        evento: {
+          nome: 'Feira de bairro',
+          dataInicio: new Date('2026-06-11T12:00:00.000Z'),
+          enderecoCompleto: 'Expo Center Norte',
+          capacidadeEstimada: 3000,
+        },
+        usuarioProprietario: { id: 'user-1' },
+        distanciaSuaPropriedade: 4.2,
+        recomendacao: 'Reduzir para ocupar datas com demanda menor.',
+        diferencaPercentual: -12,
+        precoSugerido: 220,
+      },
+    ]);
+    airbnbService.getFirstAvailablePrice.mockResolvedValue({
+      price: {
+        data: {
+          accommodationCost: 250,
+          accommodationCostTitle: '1 night x R$250',
+        },
+      },
+    });
+
+    const result = await service.buscarAnalisesAceitas();
+
+    expect(emailService.enviarNotification).toHaveBeenCalledWith(
+      'user-1',
+      expect.objectContaining({
+        title: 'Sugestão de preço para ganhar competitividade',
+        redirectTo: '/dashboard?propertyId=list-2&source=cron_pricing_digest',
+        sendEmail: true,
+        sendPush: true,
+        pushType: 'pricing_recommendation',
+        metadata: expect.objectContaining({
+          propertyTitle: 'Studio Paulista',
+          currentPrice: 250,
+          suggestedPrice: 220,
+          liftPercent: -12,
+          expectedAttendance: 3000,
+          reasons: expect.arrayContaining([
+            'Evento analisado: Feira de bairro.',
+            'Distância do imóvel: 4,2 km.',
+          ]),
+        }),
+      }),
+    );
+    expect(result.processed).toBe(1);
+    expect(result.failed).toBe(0);
   });
 
   it('continua processando proximas analises quando o Airbnb falha em uma delas', async () => {

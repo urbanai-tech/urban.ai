@@ -50,7 +50,7 @@ const baseLayout = (content: string) => `
 
 export class EmailTemplates {
   static getEventNotificationTemplate(nome: string, title: string, quantidade: number): string {
-    const safeName = escapeHtml(nome || "Usuario");
+    const safeName = escapeHtml(nome || "Usuário");
     const safeTitle = escapeHtml(title || "Novos eventos");
     const safeQuantidade = Math.max(0, Number.isFinite(quantidade) ? quantidade : 0);
     const plural = safeQuantidade === 1 ? "evento relevante" : "eventos relevantes";
@@ -58,9 +58,9 @@ export class EmailTemplates {
     const content = `
         <div class="title">${safeTitle}</div>
         <div class="content">
-            <p>Ola, <b>${safeName}</b>.</p>
-            <p>Encontramos <b>${safeQuantidade}</b> ${plural} para acompanhar na sua operacao Urban AI.</p>
-            <p>Acesse a plataforma para revisar as analises e oportunidades associadas aos seus imoveis.</p>
+            <p>Olá, <b>${safeName}</b>.</p>
+            <p>Encontramos <b>${safeQuantidade}</b> ${plural} para acompanhar na sua operação Urban AI.</p>
+            <p>Acesse a plataforma para revisar as análises e oportunidades associadas aos seus imóveis.</p>
         </div>
     `;
     return baseLayout(content);
@@ -85,7 +85,7 @@ export class EmailTemplates {
       }[];
     }[];
   }): string {
-    const safeName = escapeHtml(input.nome || "Usuario");
+    const safeName = escapeHtml(input.nome || "Usuário");
     const firstName = safeName.split(" ")[0];
     const windowDays = Math.max(1, Number(input.windowDays) || 30);
     const totalEvents = input.properties.reduce((sum, property) => sum + property.totalEvents, 0);
@@ -97,7 +97,7 @@ export class EmailTemplates {
             const safeEvent = escapeHtml(event.name || "Evento");
             const safeDate = escapeHtml(event.dateLabel || "");
             const safeLocation = escapeHtml(event.location || "");
-            const relevance = event.relevance !== null ? `${Math.round(event.relevance)}/100` : "sem score";
+            const relevance = event.relevance !== null ? `${Math.round(event.relevance)}/100` : "sem pontuação";
             const priceParts = [
               event.currentPrice !== null ? `atual ${EmailTemplates.formatMoney(event.currentPrice)}` : null,
               event.suggestedPrice !== null ? `sugerido ${EmailTemplates.formatMoney(event.suggestedPrice)}` : null,
@@ -108,7 +108,7 @@ export class EmailTemplates {
             return `
               <li style="margin: 0 0 14px 0;">
                 <b>${safeEvent}</b><br />
-                <span style="color:#6b7280;">${safeDate}${safeLocation ? ` &middot; ${safeLocation}` : ""} &middot; relevancia ${relevance}</span>
+                <span style="color:#6b7280;">${safeDate}${safeLocation ? ` &middot; ${safeLocation}` : ""} &middot; relevância ${relevance}</span>
                 ${priceParts.length ? `<br /><span>${priceParts.join(" &middot; ")}</span>` : ""}
                 ${safeRecommendation ? `<br /><span style="color:#6b7280;">${safeRecommendation}</span>` : ""}
               </li>
@@ -119,7 +119,7 @@ export class EmailTemplates {
         return `
           <div style="border-top:1px solid #e5e7eb; padding-top:22px; margin-top:22px;">
             <p style="margin:0 0 8px 0; font-weight:bold;">${safeTitle}</p>
-            <p style="margin:0 0 12px 0; color:#6b7280;">${property.totalEvents} ${property.totalEvents === 1 ? "evento relevante" : "eventos relevantes"} nos proximos ${windowDays} dias.</p>
+            <p style="margin:0 0 12px 0; color:#6b7280;">${property.totalEvents} ${property.totalEvents === 1 ? "evento relevante" : "eventos relevantes"} nos próximos ${windowDays} dias.</p>
             <ol style="padding-left:20px; margin:0;">${eventRows}</ol>
           </div>
         `;
@@ -129,13 +129,13 @@ export class EmailTemplates {
     const content = `
         <div class="title">Radar semanal de eventos</div>
         <div class="content">
-            <p>Ola, <b>${firstName}</b>.</p>
-            <p>Encontramos <b>${totalEvents}</b> ${totalEvents === 1 ? "evento relevante" : "eventos relevantes"} para os seus imoveis nos proximos <b>${windowDays} dias</b>.</p>
-            <p>Este e um resumo do que a Urban AI esta monitorando por voce. As sugestoes completas ficam no painel.</p>
+            <p>Olá, <b>${firstName}</b>.</p>
+            <p>Encontramos <b>${totalEvents}</b> ${totalEvents === 1 ? "evento relevante" : "eventos relevantes"} para os seus imóveis nos próximos <b>${windowDays} dias</b>.</p>
+            <p>Este é um resumo do que a Urban AI está monitorando por você. As sugestões completas ficam no painel.</p>
             ${propertyBlocks}
             <div style="text-align:center; margin:32px 0 8px;">
               <a href="${escapeHtml(input.dashboardUrl)}" class="link" style="display:inline-block; padding:12px 28px; background:${PRIMARY_COLOR}; color:white; border-radius:8px; font-weight:bold;">
-                Ver recomendacoes no painel
+                Ver recomendações no painel
               </a>
             </div>
         </div>
@@ -144,8 +144,8 @@ export class EmailTemplates {
   }
 
   private static formatMoney(value: number): string {
-    if (!Number.isFinite(value)) return "R$0";
-    return `R$${Math.round(value).toLocaleString("pt-BR")}`;
+    if (!Number.isFinite(value)) return "R$ 0";
+    return `R$ ${Math.round(value).toLocaleString("pt-BR")}`;
   }
 
   
@@ -658,48 +658,93 @@ export class EmailTemplates {
     dashboardUrl: string;
     items: Array<{
       propertyTitle: string;
+      propertyNickname?: string;
+      propertyCode?: string;
+      propertyAddress?: string;
       title: string;
       description: string;
       redirectTo: string;
+      currentPrice?: number | null;
+      suggestedPrice?: number | null;
+      liftPercent?: number | null;
       reasons?: string[];
     }>;
   }): string {
-    const firstName = EmailTemplates.escapeHtml((input.nome || 'Usuario').split(' ')[0]);
+    const firstName = EmailTemplates.escapeHtml((input.nome || 'Usuário').split(' ')[0]);
     const total = input.items.length;
+    const settingsUrl = EmailTemplates.absoluteUrl(
+      input.dashboardUrl,
+      '/settings/communications?source=pricing_digest_email',
+    );
     const cards = input.items.map((item, index) => {
       const reasons = item.reasons?.length
         ? item.reasons
         : [
-            'Eventos futuros e demanda local perto do imovel.',
-            'Comparacao com a diaria atual e limites de seguranca configurados.',
-            'Sinal de oportunidade para revisar preco antes da data ficar em cima.',
+            'Há uma nova recomendação de preço para este imóvel.',
+            'A sugestão considera demanda local, calendário e limites de segurança configurados.',
           ];
+      const propertyRows = [
+        ['Título', item.propertyTitle],
+        ['Apelido', item.propertyNickname],
+        ['Código interno', item.propertyCode],
+        ['Endereço', item.propertyAddress],
+      ].filter(([, value]) => Boolean(String(value || '').trim()));
+      const priceParts = [
+        item.currentPrice !== null && item.currentPrice !== undefined
+          ? `atual ${EmailTemplates.formatMoney(Number(item.currentPrice))}`
+          : null,
+        item.suggestedPrice !== null && item.suggestedPrice !== undefined
+          ? `sugerido ${EmailTemplates.formatMoney(Number(item.suggestedPrice))}`
+          : null,
+        item.liftPercent !== null && item.liftPercent !== undefined
+          ? EmailTemplates.formatSignedPercent(Number(item.liftPercent))
+          : null,
+      ].filter(Boolean);
+
       return `
         <div style="border:1px solid #e5e7eb;border-radius:12px;padding:18px 20px;margin:0 0 16px;background:#ffffff;">
-          <p style="margin:0 0 6px;color:#6b7280;font-size:12px;letter-spacing:1px;text-transform:uppercase;">Recomendacao ${index + 1}</p>
+          <p style="margin:0 0 6px;color:#6b7280;font-size:12px;letter-spacing:1px;text-transform:uppercase;">Recomendação ${index + 1}</p>
           <h3 style="margin:0;color:#111827;font-size:18px;">${EmailTemplates.escapeHtml(item.propertyTitle)}</h3>
-          <p style="margin:10px 0 14px;color:#374151;line-height:1.55;">${EmailTemplates.escapeHtml(item.description)}</p>
-          <p style="margin:0 0 8px;color:#111827;font-weight:700;">Por que vale olhar:</p>
+          ${
+            propertyRows.length
+              ? `<table style="width:100%;border-collapse:collapse;margin:12px 0 14px;font-size:14px;">
+                  ${propertyRows.map(([label, value]) => `
+                    <tr>
+                      <td style="padding:4px 12px 4px 0;color:#6b7280;width:120px;vertical-align:top;">${EmailTemplates.escapeHtml(String(label))}</td>
+                      <td style="padding:4px 0;color:#111827;vertical-align:top;">${EmailTemplates.escapeHtml(String(value))}</td>
+                    </tr>
+                  `).join('')}
+                </table>`
+              : ''
+          }
+          <p style="margin:10px 0 10px;color:#374151;line-height:1.55;">${EmailTemplates.escapeHtml(item.description)}</p>
+          ${
+            priceParts.length
+              ? `<p style="margin:0 0 14px;color:#111827;font-weight:700;">${EmailTemplates.escapeHtml(`Preço: ${priceParts.join(' | ')}`)}</p>`
+              : ''
+          }
+          <p style="margin:0 0 8px;color:#111827;font-weight:700;">Por que vale olhar este imóvel:</p>
           <ul style="margin:0 0 16px;padding-left:18px;color:#4b5563;line-height:1.6;">
             ${reasons.map((reason) => `<li>${EmailTemplates.escapeHtml(reason)}</li>`).join('')}
           </ul>
-          <a href="${EmailTemplates.escapeHtml(EmailTemplates.absoluteUrl(input.dashboardUrl, item.redirectTo))}" class="link" style="display:inline-block;padding:10px 18px;background:${PRIMARY_COLOR};color:#fff;border-radius:8px;font-weight:bold;">Revisar recomendacao</a>
+          <a href="${EmailTemplates.escapeHtml(EmailTemplates.absoluteUrl(input.dashboardUrl, item.redirectTo))}" class="link" style="display:inline-block;padding:10px 18px;background:${PRIMARY_COLOR};color:#fff;border-radius:8px;font-weight:bold;">Revisar recomendação</a>
         </div>
       `;
     }).join('');
 
     const content = `
-      <div class="title">${total === 1 ? '1 sugestao de preco pronta' : `${total} sugestoes de preco prontas`}</div>
+      <div class="title">${total === 1 ? '1 recomendação de preço para revisar' : `${total} recomendações de preço para revisar`}</div>
       <div class="content">
-        <p>Ola, ${firstName}.</p>
-        <p>Em vez de mandar um e-mail por imovel, agrupamos as novas recomendacoes em um resumo unico. Assim voce ve o contexto, prioriza o que importa e revisa tudo em um so lugar.</p>
+        <p>Olá, ${firstName}.</p>
+        <p>Este e-mail chega quando há sugestão acionável de preço. Agrupamos tudo em um resumo único para você identificar o imóvel, entender o motivo e decidir o que revisar primeiro.</p>
         ${cards}
         <div style="text-align:center;margin:28px 0;">
           <a href="${EmailTemplates.escapeHtml(input.dashboardUrl)}" class="link" style="display:inline-block;padding:12px 28px;background:${PRIMARY_COLOR};color:white;border-radius:8px;font-weight:bold;">
             Abrir painel completo
           </a>
         </div>
-        <p style="font-size:13px;color:#6b7280;">Dica: se voce conectar a Stays, a Urban AI consegue transformar recomendacoes aprovadas em alteracoes operacionais com guardrails e rollback.</p>
+        <p style="font-size:13px;color:#6b7280;">Dica: se você conectar a Stays, a Urban AI consegue transformar recomendações aprovadas em alterações operacionais com guardrails e rollback.</p>
+        <p style="font-size:12px;color:#6b7280;">Você recebe este e-mail porque os alertas de preço estão ativos nas suas preferências. Para pausar ou trocar canais, acesse <a href="${EmailTemplates.escapeHtml(settingsUrl)}" class="link">Preferências de comunicação</a>.</p>
       </div>
     `;
     return baseLayout(content);
@@ -723,6 +768,11 @@ export class EmailTemplates {
     } catch {
       return baseUrl;
     }
+  }
+
+  private static formatSignedPercent(value: number): string {
+    if (!Number.isFinite(value)) return '';
+    return `${value > 0 ? '+' : ''}${Number(value.toFixed(1)).toLocaleString('pt-BR')}%`;
   }
 
   // ================== legacy ==================

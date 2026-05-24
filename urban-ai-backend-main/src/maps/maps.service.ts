@@ -849,7 +849,7 @@ export class MapsService {
       if (!created) throw new NotFoundException('Não salvou porque o status não foi encontrado para criar');
 
       //compilar eventos e enviar notificação para o usuário 
-      this.emailService.compilarEventosUnicosUsuarios();
+      this.logger.debug('Resumo legado de eventos não dispara mais e-mail; recomendações seguem pelo digest de preço.');
       return { ok: true };
     } catch (error) {
       const created = await this.processService.updateStatus('error');

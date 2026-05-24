@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PricingRecommendationDigest } from 'src/entities/pricing-recommendation-digest.entity';
 import { User } from 'src/entities/user.entity';
-import { LessThanOrEqual, Repository } from 'typeorm';
+import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 
 export type PricingDigestItem = {
   notificationId?: string;
@@ -10,6 +10,12 @@ export type PricingDigestItem = {
   description: string;
   redirectTo: string;
   propertyTitle: string;
+  propertyNickname?: string;
+  propertyCode?: string;
+  propertyAddress?: string;
+  currentPrice?: number | null;
+  suggestedPrice?: number | null;
+  liftPercent?: number | null;
   reasons: string[];
   createdAt: string;
 };
@@ -40,7 +46,13 @@ export class PricingRecommendationDigestService {
     wantsPush: boolean;
     delayMs: number;
   }): Promise<PricingRecommendationDigest> {
-    const scheduledFor = new Date(Date.now() + input.delayMs);
+    const now = new Date();
+    const alreadySentEmailToday = input.wantsEmail
+      ? await this.hasSentEmailToday(input.user.id, now)
+      : false;
+    const scheduledFor = alreadySentEmailToday
+      ? this.startOfNextDay(now)
+      : new Date(now.getTime() + input.delayMs);
     const existing = await this.digestRepo.findOne({
       where: { userId: input.user.id, status: 'pending' },
       order: { scheduledFor: 'ASC' },
@@ -57,8 +69,7 @@ export class PricingRecommendationDigestService {
         scheduledFor,
       });
 
-    const items = this.parseItems(digest.itemsJson);
-    items.push(input.item);
+    const items = this.upsertDigestItem(this.parseItems(digest.itemsJson), input.item);
 
     digest.recipientEmail = input.user.email;
     digest.recipientName = input.user.username || 'Usuario';
@@ -67,7 +78,11 @@ export class PricingRecommendationDigestService {
     digest.itemsJson = JSON.stringify(items);
     digest.itemCount = items.length;
     digest.failureReason = null;
-    if (!existing) digest.scheduledFor = scheduledFor;
+    if (!existing) {
+      digest.scheduledFor = scheduledFor;
+    } else if (alreadySentEmailToday && digest.scheduledFor < scheduledFor) {
+      digest.scheduledFor = scheduledFor;
+    }
 
     return this.digestRepo.save(digest);
   }
@@ -144,5 +159,65 @@ export class PricingRecommendationDigestService {
       this.logger.warn(`invalid pricing digest payload: ${(error as Error)?.message ?? String(error)}`);
       return [];
     }
+  }
+
+  private async hasSentEmailToday(userId: string, now: Date): Promise<boolean> {
+    const sentToday = await this.digestRepo.findOne({
+      where: {
+        userId,
+        status: 'sent',
+        wantsEmail: true,
+        sentAt: MoreThanOrEqual(this.startOfDay(now)),
+      },
+      order: { sentAt: 'DESC' },
+    });
+    return Boolean(sentToday);
+  }
+
+  private upsertDigestItem(items: PricingDigestItem[], nextItem: PricingDigestItem): PricingDigestItem[] {
+    const duplicateIndex = items.findIndex((item) => this.digestItemKey(item) === this.digestItemKey(nextItem));
+    if (duplicateIndex === -1) return [...items, nextItem];
+
+    const updated = [...items];
+    updated[duplicateIndex] = {
+      ...updated[duplicateIndex],
+      ...nextItem,
+      reasons: this.uniqueStrings([...(updated[duplicateIndex].reasons || []), ...(nextItem.reasons || [])]).slice(0, 4),
+      createdAt: updated[duplicateIndex].createdAt || nextItem.createdAt,
+    };
+    return updated;
+  }
+
+  private digestItemKey(item: PricingDigestItem): string {
+    if (item.notificationId) return `notification:${item.notificationId}`;
+
+    const day = this.itemDay(item.createdAt);
+    const redirectTo = this.normalizeKeyPart(item.redirectTo);
+    const propertyTitle = this.normalizeKeyPart(item.propertyTitle);
+    return `property:${redirectTo}:${propertyTitle}:${day}`;
+  }
+
+  private itemDay(value?: string): string {
+    const parsed = value ? new Date(value) : null;
+    if (!parsed || Number.isNaN(parsed.getTime())) return new Date().toISOString().slice(0, 10);
+    return parsed.toISOString().slice(0, 10);
+  }
+
+  private normalizeKeyPart(value?: string | null): string {
+    return (value || '').trim().toLowerCase();
+  }
+
+  private uniqueStrings(values: string[]): string[] {
+    return Array.from(new Set(values.filter((value) => typeof value === 'string' && value.trim()).map((value) => value.trim())));
+  }
+
+  private startOfDay(value: Date): Date {
+    return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+  }
+
+  private startOfNextDay(value: Date): Date {
+    const start = this.startOfDay(value);
+    start.setDate(start.getDate() + 1);
+    return start;
   }
 }

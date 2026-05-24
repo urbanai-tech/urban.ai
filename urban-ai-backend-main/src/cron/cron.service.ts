@@ -54,6 +54,118 @@ export class CronService {
         return `analise=${element?.id ?? 'sem-id'} user=${element?.usuarioProprietario?.id ?? 'sem-user'} address=${element?.endereco?.id ?? 'sem-address'}`;
     }
 
+    private formatAddressForNotification(element: AnalisePreco): string | undefined {
+        const address = element?.endereco;
+        if (!address) return undefined;
+        const parts = [
+            address.logradouro && address.numero ? `${address.logradouro}, ${address.numero}` : address.logradouro || address.numero,
+            address.bairro,
+            address.cidade && address.estado ? `${address.cidade} - ${address.estado}` : address.cidade || address.estado,
+            address.cep ? `CEP ${address.cep}` : null,
+        ].filter(Boolean);
+        return parts.length ? parts.join(', ') : undefined;
+    }
+
+    private formatEventDate(value: Date | string | null | undefined): string | null {
+        if (!value) return null;
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return null;
+        return new Intl.DateTimeFormat('pt-BR', {
+            timeZone: 'America/Sao_Paulo',
+            day: '2-digit',
+            month: 'short',
+        }).format(date);
+    }
+
+    private formatEventLocation(evento: AnalisePreco['evento']): string | null {
+        const local = typeof evento?.local === 'string' && evento.local.trim()
+            ? evento.local.trim()
+            : null;
+        const cityState = [
+            evento?.cidade,
+            evento?.estado,
+        ].filter(Boolean).join(' - ');
+        return local || evento?.enderecoCompleto || cityState || null;
+    }
+
+    private formatMoney(value: number): string {
+        return `R$ ${Math.round(value).toLocaleString('pt-BR')}`;
+    }
+
+    private formatNumber(value: number): string {
+        return value.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+    }
+
+    private buildPricingRecommendationNotification(
+        element: AnalisePreco,
+        currentPrice: number,
+        suggestedPrice: number,
+        liftPercent: number,
+        direction: 'increase' | 'decrease',
+    ): CreateNotificationDto {
+        const list = element.endereco?.list;
+        const propertyId = list?.id;
+        const propertyTitle = list?.titulo || 'Imóvel';
+        const eventName = element.evento?.nome || 'evento relevante';
+        const eventDate = this.formatEventDate(element.evento?.dataInicio);
+        const eventLocation = this.formatEventLocation(element.evento);
+        const distanceKm = Number(element.distanciaSuaPropriedade);
+        const relevance = Number(element.evento?.relevancia);
+        const expectedAttendance = Number(element.evento?.expectedAttendance ?? element.evento?.capacidadeEstimada);
+        const recommendation = String(element.recomendacao || '').trim();
+        const action = direction === 'increase' ? 'aumentar' : 'diminuir';
+        const title = direction === 'increase'
+            ? 'Sugestão de preço para aumentar receita'
+            : 'Sugestão de preço para ganhar competitividade';
+
+        const reasons = [
+            `Evento analisado: ${eventName}.`,
+            `Data/local: ${[eventDate, eventLocation].filter(Boolean).join(' - ') || 'não informado'}.`,
+            Number.isFinite(distanceKm)
+                ? `Distância do imóvel: ${this.formatNumber(distanceKm)} km.`
+                : 'Distância do imóvel: não informada.',
+            [
+                Number.isFinite(expectedAttendance)
+                    ? `Público estimado de ${Math.round(expectedAttendance).toLocaleString('pt-BR')} pessoas`
+                    : null,
+                Number.isFinite(relevance)
+                    ? `relevância ${Math.round(relevance)}/100`
+                    : null,
+                recommendation ? `recomendação: ${recommendation}` : null,
+            ].filter(Boolean).join('; ') || 'Recomendação gerada pela análise de demanda local.',
+        ];
+
+        return {
+            title,
+            description: `A Urban AI recomenda ${action} o preço de ${propertyTitle} de ${this.formatMoney(currentPrice)} para ${this.formatMoney(suggestedPrice)} (${liftPercent > 0 ? '+' : ''}${this.formatNumber(liftPercent)}%).`,
+            titleButton: 'Revisar recomendação',
+            redirectTo: propertyId
+                ? `/dashboard?propertyId=${encodeURIComponent(propertyId)}&source=cron_pricing_digest`
+                : '/dashboard?source=cron_pricing_digest',
+            sendEmail: true,
+            sendPush: true,
+            pushType: 'pricing_recommendation',
+            pushTag: propertyId ? `pricing-recommendation-${propertyId}` : `pricing-recommendation-${element.id}`,
+            metadata: {
+                propertyTitle,
+                propertyNickname: list?.internalNickname,
+                propertyCode: list?.internalCode,
+                propertyAddress: this.formatAddressForNotification(element),
+                currentPrice,
+                suggestedPrice,
+                liftPercent,
+                eventName,
+                eventDate,
+                eventLocation,
+                distanceKm: Number.isFinite(distanceKm) ? distanceKm : null,
+                expectedAttendance: Number.isFinite(expectedAttendance) ? expectedAttendance : null,
+                relevance: Number.isFinite(relevance) ? relevance : null,
+                recommendation: recommendation || null,
+                reasons,
+            },
+        };
+    }
+
     private async waitBetweenCronItems(): Promise<void> {
         await new Promise(resolve => setTimeout(resolve, 2000));
     }
@@ -129,29 +241,31 @@ export class CronService {
 
                 if (diferencaPercentual > 0) {
                     if (precoSugerido > diaria) {
-                        console.log('Enviando notificacao -> Oportunidade de AUMENTAR o preco!');
-                        const tdo: CreateNotificationDto = {
-                            title: 'Uma oportunidade para aumentar suas vendas!',
-                            description: `Ola! Nossa analise indica que voce poderia aumentar o preco do seu imovel para R$${precoSugerido}, o que representa uma diferenca de ${diferencaPercentual}% em relacao ao seu preco atual de R$${diaria}. Aproveite essa oportunidade para maximizar seus ganhos!`,
-                            redirectTo: '/painel',
-                            sendEmail: true,
-                        };
+                        console.log('Enfileirando digest -> Oportunidade de AUMENTAR o preco!');
+                        const tdo = this.buildPricingRecommendationNotification(
+                            element,
+                            diaria,
+                            precoSugerido,
+                            diferencaPercentual,
+                            'increase',
+                        );
                         this.logger.log(`Enviando notificacao para user=${ownerId}`);
                         const { enviado } = await this.emailService.enviarNotification(ownerId, tdo);
-                        console.log(enviado ? 'Email enviado com sucesso!' : 'Falha ao enviar email.');
+                        console.log(enviado ? 'Notificacao de pricing enfileirada com sucesso!' : 'Falha ao enfileirar notificacao.');
                     }
                 } else if (diferencaPercentual < 0) {
                     if (precoSugerido < diaria) {
-                        console.log('Enviando notificacao -> Oportunidade de DIMINUIR o preco!');
-                        const tdo: CreateNotificationDto = {
-                            title: 'Uma oportunidade para aumentar suas vendas!',
-                            description: `Ola! Nossa analise indica que voce poderia diminuir o preco do seu imovel para R$${precoSugerido}, o que representa uma diferenca de ${diferencaPercentual}% em relacao ao seu preco atual de R$${diaria}. Ajustar o preco pode aumentar suas chances de alugar mais rapidamente!`,
-                            redirectTo: '/painel',
-                            sendEmail: true,
-                        };
+                        console.log('Enfileirando digest -> Oportunidade de DIMINUIR o preco!');
+                        const tdo = this.buildPricingRecommendationNotification(
+                            element,
+                            diaria,
+                            precoSugerido,
+                            diferencaPercentual,
+                            'decrease',
+                        );
                         this.logger.log(`Enviando notificacao para user=${ownerId}`);
                         const { enviado } = await this.emailService.enviarNotification(ownerId, tdo);
-                        console.log(enviado ? 'Email enviado com sucesso!' : 'Falha ao enviar email.');
+                        console.log(enviado ? 'Notificacao de pricing enfileirada com sucesso!' : 'Falha ao enfileirar notificacao.');
                     }
                 } else {
                     console.log('Nenhuma notificacao necessaria para este imovel.');

@@ -80,4 +80,38 @@ describe('EmailTemplates - billing lifecycle', () => {
     expect(exceeded).toContain('https://app.myurbanai.com/plans?upsell=quota');
     expect(exceeded).not.toContain('undefined');
   });
+
+  it('renders pricing digest with property identity and unique reasons', () => {
+    const html = EmailTemplates.getPricingRecommendationDigestTemplate({
+      nome: 'Gustavo Urban',
+      dashboardUrl: 'https://app.myurbanai.com/dashboard',
+      items: [
+        {
+          propertyTitle: 'Apartamento em Perdizes',
+          propertyNickname: 'Perdizes 1Q',
+          propertyCode: 'PER-01',
+          propertyAddress: 'Rua Apiacás, 100, Perdizes, São Paulo - SP',
+          title: 'Sugestões de preço disponíveis',
+          description: 'Geramos 2 sugestões de preço para a propriedade Apartamento em Perdizes.',
+          redirectTo: '/dashboard?propertyId=list-1',
+          currentPrice: 220,
+          suggestedPrice: 286,
+          liftPercent: 30,
+          reasons: [
+            'Principal sinal: Show no Allianz em 25 mai. (São Paulo - SP), relevância 92/100.',
+            'O evento mais forte está a 1,4 km do imóvel e público estimado de 45.000 pessoas.',
+          ],
+        },
+      ],
+    });
+
+    expect(html).toContain('1 recomendação de preço para revisar');
+    expect(html).toContain('Apartamento em Perdizes');
+    expect(html).toContain('Apelido');
+    expect(html).toContain('Perdizes 1Q');
+    expect(html).toContain('Rua Apiacás, 100');
+    expect(html).toContain('Preço: atual R$ 220 | sugerido R$ 286 | +30%');
+    expect(html).toContain('Show no Allianz');
+    expect(html).not.toContain('Eventos futuros e demanda local perto do imovel');
+  });
 });
