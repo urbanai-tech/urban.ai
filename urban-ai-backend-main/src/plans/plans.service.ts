@@ -1,8 +1,8 @@
-import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Plan } from '../entities/plan.entity';
-import { getEnvKeys } from '../payments/stripe-price-id.resolver';
+import { BillingCycle, Plan } from '../entities/plan.entity';
+import { getEnvKeys, isBillingCycle } from '../payments/stripe-price-id.resolver';
 
 @Injectable()
 export class PlansService implements OnModuleInit {
@@ -28,32 +28,37 @@ export class PlansService implements OnModuleInit {
       name: 'starter',
       title: 'Starter',
       // Legados (compat F5B):
-      price: '57',
-      originalPrice: '97',
-      priceAnnual: '47,50',
-      originalPriceAnnual: '77',
+      price: '149',
+      originalPrice: '149',
+      priceAnnual: '97',
+      originalPriceAnnual: '149',
       stripePriceId: process.env.STARTER_MENSAL_PLAN || '',
       stripePriceIdAnnual: process.env.STARTER_ANUAL_PLAN || '',
       // Matriz F6.5 (por imóvel/mês equivalente):
-      priceMonthly: '97',
-      priceQuarterly: '82',     // -15%
-      priceSemestral: '73',     // -25%
-      priceAnnualNew: '58',     // -40%
-      originalPriceMonthly: '97',
-      originalPriceQuarterly: '97',
-      originalPriceSemestral: '97',
-      originalPriceAnnualNew: '97',
+      priceMonthly: '149',
+      priceQuarterly: '129',     // -13%
+      priceSemestral: '109',     // -27%
+      priceAnnualNew: '97',      // -35%
+      originalPriceMonthly: '149',
+      originalPriceQuarterly: '149',
+      originalPriceSemestral: '149',
+      originalPriceAnnualNew: '149',
       stripePriceIdMonthly: process.env.STARTER_PRICE_MONTHLY || '',
       stripePriceIdQuarterly: process.env.STARTER_PRICE_QUARTERLY || '',
       stripePriceIdSemestral: process.env.STARTER_PRICE_SEMESTRAL || '',
       stripePriceIdAnnualNew: process.env.STARTER_PRICE_ANNUAL || '',
-      discountQuarterlyPercent: 15,
-      discountSemestralPercent: 25,
-      discountAnnualPercent: 40,
+      discountQuarterlyPercent: 13,
+      discountSemestralPercent: 27,
+      discountAnnualPercent: 35,
       // Display:
-      discountBadge: '40% OFF anual',
+      discountBadge: '35% OFF anual',
       period: '/imóvel/mês',
       propertyLimit: 3,
+      minProperties: 1,
+      maxProperties: 3,
+      maxCheckoutQuantity: 3,
+      selfServiceEnabled: true,
+      sortOrder: 10,
       features: [
         'Cobrança por imóvel — cresce com seu portfólio',
         'Monitoramento de eventos em SP',
@@ -65,31 +70,36 @@ export class PlansService implements OnModuleInit {
     const profissional = this.planRepository.create({
       name: 'profissional',
       title: 'Profissional',
-      price: '248',
-      originalPrice: '497',
-      priceAnnual: '199',
-      originalPriceAnnual: '399',
+      price: '99',
+      originalPrice: '99',
+      priceAnnual: '67',
+      originalPriceAnnual: '99',
       stripePriceId: process.env.PROFISSIONAL_MENSAL_PLAN || '',
       stripePriceIdAnnual: process.env.PROFISSIONAL_ANUAL_PLAN || '',
-      priceMonthly: '197',
-      priceQuarterly: '167',    // -15%
-      priceSemestral: '148',    // -25%
-      priceAnnualNew: '118',    // -40%
-      originalPriceMonthly: '197',
-      originalPriceQuarterly: '197',
-      originalPriceSemestral: '197',
-      originalPriceAnnualNew: '197',
+      priceMonthly: '99',
+      priceQuarterly: '85',     // -14%
+      priceSemestral: '72',     // -27%
+      priceAnnualNew: '67',     // -32%
+      originalPriceMonthly: '99',
+      originalPriceQuarterly: '99',
+      originalPriceSemestral: '99',
+      originalPriceAnnualNew: '99',
       stripePriceIdMonthly: process.env.PROFISSIONAL_PRICE_MONTHLY || '',
       stripePriceIdQuarterly: process.env.PROFISSIONAL_PRICE_QUARTERLY || '',
       stripePriceIdSemestral: process.env.PROFISSIONAL_PRICE_SEMESTRAL || '',
       stripePriceIdAnnualNew: process.env.PROFISSIONAL_PRICE_ANNUAL || '',
-      discountQuarterlyPercent: 15,
-      discountSemestralPercent: 25,
-      discountAnnualPercent: 40,
+      discountQuarterlyPercent: 14,
+      discountSemestralPercent: 27,
+      discountAnnualPercent: 32,
       highlightBadge: 'MAIS ESCOLHIDO',
-      discountBadge: '40% OFF anual',
+      discountBadge: '32% OFF anual',
       period: '/imóvel/mês',
-      propertyLimit: 10,
+      propertyLimit: 500,
+      minProperties: 4,
+      maxProperties: 500,
+      maxCheckoutQuantity: 500,
+      selfServiceEnabled: true,
+      sortOrder: 20,
       features: [
         'Cobrança por imóvel — sem teto rígido',
         'Monitoramento avançado de eventos',
@@ -109,6 +119,11 @@ export class PlansService implements OnModuleInit {
       isCustomPrice: true,
       period: '',
       propertyLimit: null,
+      minProperties: 501,
+      maxProperties: null,
+      maxCheckoutQuantity: null,
+      selfServiceEnabled: false,
+      sortOrder: 30,
       features: [
         'Imóveis Ilimitados',
         'Comercial dedicado',
@@ -185,10 +200,109 @@ export class PlansService implements OnModuleInit {
   }
 
   async getActivePlans(): Promise<Plan[]> {
-    return this.planRepository.find({ where: { isActive: true }, order: { price: 'ASC' } });
+    return this.planRepository.find({
+      where: { isActive: true },
+      order: { sortOrder: 'ASC', minProperties: 'ASC', createdAt: 'ASC' },
+    });
   }
 
   async getPlanByName(name: string): Promise<Plan> {
     return this.planRepository.findOne({ where: { name } });
+  }
+
+  async getSelfServicePlanForQuantity(quantity: number): Promise<Plan | null> {
+    if (!Number.isInteger(quantity) || quantity < 1) return null;
+
+    const plans = await this.getActivePlans();
+    return (
+      plans.find((plan) => {
+        if (plan.selfServiceEnabled === false || plan.isCustomPrice) return false;
+        const min = plan.minProperties ?? 1;
+        const max = plan.maxProperties ?? plan.propertyLimit ?? null;
+        const checkoutMax = plan.maxCheckoutQuantity ?? max ?? null;
+        if (quantity < min) return false;
+        if (max !== null && quantity > max) return false;
+        if (checkoutMax !== null && quantity > checkoutMax) return false;
+        return true;
+      }) ?? null
+    );
+  }
+
+  async quoteSelfService(quantityInput: unknown, cycleInput: unknown = 'annual') {
+    const quantity = this.resolveQuoteQuantity(quantityInput);
+    const billingCycle: BillingCycle = isBillingCycle(cycleInput) ? cycleInput : 'annual';
+    const plan = await this.getSelfServicePlanForQuantity(quantity);
+
+    if (!plan) {
+      return {
+        quantity,
+        billingCycle,
+        selfService: false,
+        contactRequired: true,
+        planName: null,
+        planTitle: 'Escala',
+      };
+    }
+
+    const pricePerPropertyMonthly = this.priceForCycle(plan, billingCycle);
+    const monthsInCycle = this.monthsForCycle(billingCycle);
+    const monthlyEquivalentTotal = pricePerPropertyMonthly * quantity;
+    const cycleTotal = monthlyEquivalentTotal * monthsInCycle;
+
+    return {
+      quantity,
+      billingCycle,
+      selfService: true,
+      contactRequired: false,
+      planName: plan.name,
+      planTitle: plan.title,
+      minProperties: plan.minProperties ?? 1,
+      maxProperties: plan.maxProperties ?? plan.propertyLimit ?? null,
+      pricePerPropertyMonthly,
+      monthlyEquivalentTotal,
+      cycleTotal,
+      monthsInCycle,
+      discountPercent: this.discountForCycle(plan, billingCycle),
+    };
+  }
+
+  private resolveQuoteQuantity(value: unknown): number {
+    const parsed = Number(value ?? 1);
+    if (!Number.isFinite(parsed) || parsed < 1 || parsed > 100000) {
+      throw new BadRequestException('quantity invalida');
+    }
+    return Math.floor(parsed);
+  }
+
+  private priceForCycle(plan: Plan, cycle: BillingCycle): number {
+    const raw =
+      cycle === 'monthly'
+        ? plan.priceMonthly
+        : cycle === 'quarterly'
+          ? plan.priceQuarterly
+          : cycle === 'semestral'
+            ? plan.priceSemestral
+            : plan.priceAnnualNew;
+    return this.parseMoney(raw);
+  }
+
+  private discountForCycle(plan: Plan, cycle: BillingCycle): number {
+    if (cycle === 'quarterly') return plan.discountQuarterlyPercent ?? 0;
+    if (cycle === 'semestral') return plan.discountSemestralPercent ?? 0;
+    if (cycle === 'annual') return plan.discountAnnualPercent ?? 0;
+    return 0;
+  }
+
+  private monthsForCycle(cycle: BillingCycle): number {
+    if (cycle === 'quarterly') return 3;
+    if (cycle === 'semestral') return 6;
+    if (cycle === 'annual') return 12;
+    return 1;
+  }
+
+  private parseMoney(value: string | null | undefined): number {
+    if (!value) return 0;
+    const parsed = Number(String(value).replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, ''));
+    return Number.isFinite(parsed) ? parsed : 0;
   }
 }

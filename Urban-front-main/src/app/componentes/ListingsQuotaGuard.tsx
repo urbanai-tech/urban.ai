@@ -15,12 +15,12 @@ import {
  * de cadastrar mais um imóvel.
  *
  * Uso:
- *   <ListingsQuotaGuard onUpsellClick={() => router.push('/plans/v2?upsell=1')}>
+ *   <ListingsQuotaGuard onUpsellClick={() => router.push('/plans?upsell=quota')}>
  *     <NovoImovelForm />
  *   </ListingsQuotaGuard>
  *
  * Esse componente é leve por design: não lida com sub-fluxo de mudança de
- * subscription no Stripe, apenas redireciona para `/plans/v2` (ou rota equivalente).
+ * subscription no Stripe, apenas redireciona para `/plans`.
  * O fluxo completo de "atualizar quantity" é responsabilidade do Stripe Customer
  * Portal ou de uma página dedicada que ainda será implementada em F6.5 #7.
  */

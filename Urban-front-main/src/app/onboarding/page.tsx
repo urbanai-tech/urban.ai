@@ -7,15 +7,15 @@ import '../../../i18n';
 import {
   getHostId, getUserManagedListings, registerProperties,
   createMultipleAddresses, resolveAirbnbUrl,
-  createCheckoutSession, updateProfileById, getProfileById,
+  updateProfileById, getProfileById,
   fetchSubscription,
   getPropertyQuickInfo, updatePropertyPricingInputs,
   getPropriedadesDropdownList, getPlans, Plan, registerProcess
 } from '../service/api';
 import { Bell, Home, Users, Zap } from 'lucide-react';
-import { loadStripe } from '@stripe/stripe-js';
 import { AppLoadingStatus, useToastCompat, type AppLoadingStep } from '../componentes/ui';
 import { describeBasePriceReadiness } from '../lib/pricingInputs';
+import { PricingSelfServiceCalculator } from '../componentes/PricingCalculatorV2';
 
 type PrimitiveProps = Record<string, any> & {
   as?: React.ElementType;
@@ -595,7 +595,6 @@ function ListIcon({ as: Icon = CheckIcon, ...props }: PrimitiveProps) {
 }
 
 const MotionBox = motion(Box);
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 const TOTAL_STEPS = 5;
 
@@ -853,7 +852,6 @@ function OnboardingWizardContent() {
 
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(false);
-  const [isAnnual, setIsAnnual] = useState(true);
   const [hasGrantedAccess, setHasGrantedAccess] = useState(false);
 
   useEffect(() => {
@@ -1464,32 +1462,6 @@ function OnboardingWizardContent() {
     } finally {
       setIsLoading(false);
       setOnboardingLoadStage('idle');
-    }
-  };
-
-  // =====================================================
-  //  STEP 5: Paywall — Checkout Stripe (F6.5 — cobrança por imóvel)
-  // =====================================================
-  const handleCheckout = async (planId: string) => {
-    setIsLoading(true);
-    try {
-      const billingCycle = isAnnual ? 'annual' : 'monthly';
-      // F6.5: número de imóveis vai como quantity → Stripe cobra price × quantity
-      // selectedCount vem do step anterior (imóveis Airbnb selecionados pelo anfitrião).
-      // Default 1 caso o user pule etapas e chegue aqui sem ter selecionado.
-      const quantity = Math.max(1, Number(selectedCount) || 1);
-      const { sessionId } = await createCheckoutSession(planId, billingCycle, quantity);
-      const stripe = await stripePromise;
-      if (stripe) {
-        await stripe.redirectToCheckout({ sessionId });
-      } else {
-        toast("Erro ao carregar o Stripe.", { type: "error" });
-      }
-    } catch (err) {
-      console.error(err);
-      toast("Erro ao iniciar o pagamento. Tente novamente.", { type: "error" });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -2199,156 +2171,22 @@ function OnboardingWizardContent() {
                       <Box>
                         <AlertTitle>Você conectou {selectedCount} imóveis.</AlertTitle>
                         <AlertDescription>
-                          Pelo número de imóveis, o plano que deve atender melhor agora é o <strong>{selectedCount <= 3 ? 'Starter' : selectedCount <= 10 ? 'Profissional' : 'Escala'}</strong>.
+                          Pelo numero de imoveis, a faixa aplicada sera <strong>{selectedCount <= 3 ? 'Starter' : selectedCount <= 500 ? 'Profissional' : 'Escala'}</strong>.
                         </AlertDescription>
                       </Box>
                     </Alert>
                   )}
 
-                  <Flex justify="center" mb={2}>
-                    <FormControl display="flex" alignItems="center" w="auto" bg="gray.50" p={2} borderRadius="full" borderWidth="1px" borderColor="gray.200">
-                      <FormLabel htmlFor="onboarding-billing-toggle" mb="0" ml={4} fontWeight="bold" color={!isAnnual ? "var(--app-accent)" : "gray.500"}>
-                        Mensal
-                      </FormLabel>
-                      <Switch
-                        id="onboarding-billing-toggle"
-                        size="lg"
-                        isChecked={isAnnual}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsAnnual(e.target.checked)}
-                      />
-                      <FormLabel htmlFor="onboarding-billing-toggle" mb="0" ml={3} mr={4} fontWeight="bold" color={isAnnual ? "var(--app-accent)" : "gray.500"}>
-                        Anual
-                        <Badge ml={2} bg="var(--app-accent)" color="white" borderRadius="full" fontSize="0.7em" px={2}>Economize 20%</Badge>
-                      </FormLabel>
-                    </FormControl>
-                  </Flex>
-
-                  {loadingPlans ? (
-                    <Flex justify="center" p={10}>
-                      <Spinner size="xl" />
-                    </Flex>
-                  ) : (
-                    <SimpleGrid columns={{ base: 1, md: plans.length > 2 ? 3 : 2 }} spacing={{ base: 6, lg: 8 }} w="full">
-                      {plans.map((plan) => (
-                        <Box
-                          key={plan.id}
-                          position="relative"
-                          borderRadius="xl"
-                          p={{ base: 5, md: 6 }}
-                          bg="white"
-                          boxShadow="0 4px 12px rgba(0,0,0,0.06)"
-                          _hover={{ boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}
-                          transition="box-shadow 0.2s ease"
-                          borderWidth={plan.highlightBadge ? "2px" : "1px"}
-                          borderColor={plan.highlightBadge ? "var(--app-accent)" : "gray.200"}
-                          textAlign="center"
-                          display="flex"
-                          flexDirection="column"
-                        >
-                          {plan.highlightBadge && (
-                            <Badge
-                              position="absolute"
-                              top={-3}
-                              right={{ base: 4, md: "auto" }}
-                              left={{ md: "50%" }}
-                              transform={{ md: "translateX(-50%)" }}
-                              bg="var(--app-accent)"
-                              color="white"
-                              fontSize="0.75rem"
-                              px={3}
-                              py={1}
-                              borderRadius="full"
-                              fontWeight="bold"
-                              border="2px solid white"
-                            >
-                              {plan.highlightBadge}
-                            </Badge>
-                          )}
-
-                          <Stack mt={plan.highlightBadge ? 4 : 0} spacing={4} flex="1">
-                            <Text fontSize="xl" fontWeight="extrabold" color="gray.700">
-                              {plan.title}
-                            </Text>
-
-                            <Box minH="70px" display="flex" flexDirection="column" justifyContent="center">
-                              {((isAnnual && plan.originalPriceAnnual) || (!isAnnual && plan.originalPrice)) && (
-                                <Flex justify="center" align="center" gap={2}>
-                                  <Text decoration="line-through" color="gray.400" fontSize="sm">
-                                    R$ {isAnnual && plan.originalPriceAnnual ? plan.originalPriceAnnual : plan.originalPrice} {plan.period}
-                                  </Text>
-                                </Flex>
-                              )}
-
-                              {!plan.isCustomPrice ? (
-                                <Flex justify="center" align="baseline">
-                                  <Heading as="h3" size={{ base: "xl", lg: "2xl" }} color="gray.800">
-                                    R$ {isAnnual && plan.priceAnnual ? plan.priceAnnual : plan.price}
-                                  </Heading>
-                                  {plan.period && (
-                                    <Text as="span" fontSize="sm" color="gray.500" ml={1}>
-                                      {plan.period}
-                                    </Text>
-                                  )}
-                                  {plan.discountBadge && (
-                                    <Badge ml={2} colorScheme="red" bg="red.900" color="red.200" px={2} py={0.5} borderRadius="md" fontSize="xs">
-                                      {plan.discountBadge}
-                                    </Badge>
-                                  )}
-                                </Flex>
-                              ) : (
-                                <Heading as="h3" size="lg" color="gray.800" whiteSpace="nowrap">
-                                  Sob consulta
-                                </Heading>
-                              )}
-                            </Box>
-
-                            <Button
-                              bg={plan.highlightBadge ? "var(--app-accent)" : "white"}
-                              color={plan.highlightBadge ? "white" : "var(--app-accent)"}
-                              borderWidth={plan.highlightBadge ? 0 : "1px"}
-                              borderColor="var(--app-accent)"
-                              _hover={{
-                                bg: plan.highlightBadge ? "var(--app-accent-hover)" : "var(--app-accent-soft)",
-                              }}
-                              size="md"
-                              whiteSpace="normal"
-                              height="auto"
-                              py={2}
-                              onClick={() => {
-                                if (plan.isCustomPrice) {
-                                  window.open("https://wa.me/seunumerodevendas", "_blank");
-                                } else {
-                                  handleCheckout(plan.name);
-                                }
-                              }}
-                              isLoading={isLoading}
-                              loadingText="Processando..."
-                              transition="all 0.2s"
-                              w="full"
-                              mt={2}
-                            >
-                              {plan.isCustomPrice ? "Fale com consultor" : "Selecionar plano"}
-                            </Button>
-
-                            <List spacing={2} pt={4} textAlign="left" mx="auto" w="full">
-                              {plan.features.map((feat) => (
-                                <ListItem
-                                  key={feat}
-                                  fontSize="sm"
-                                  color="gray.600"
-                                  display="flex"
-                                  alignItems="flex-start"
-                                >
-                                  <ListIcon as={CheckIcon} color="var(--app-accent)" mt={1} boxSize="3" />
-                                  <Text lineHeight="short">{feat}</Text>
-                                </ListItem>
-                              ))}
-                            </List>
-                          </Stack>
-                        </Box>
-                      ))}
-                    </SimpleGrid>
+                  {!loadingPlans && (
+                    <PricingSelfServiceCalculator
+                      plans={plans.filter((plan) => plan.isActive)}
+                      initialQuantity={Math.max(1, selectedCount || 1)}
+                      surface="light"
+                      title="Ative sua assinatura"
+                      subtitle="Ajuste quantidade e periodo. A faixa correta entra automaticamente no checkout."
+                    />
                   )}
+
 
                 </VStack>
               </MotionBox>

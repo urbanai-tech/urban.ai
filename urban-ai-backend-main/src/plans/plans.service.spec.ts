@@ -101,7 +101,7 @@ describe('PlansService', () => {
       expect(starter.priceMonthly).toBe('123');
       expect(starter.stripePriceIdMonthly).toBe('price_db_monthly');
       expect(starter.features).toEqual(['Feature editada no admin']);
-      expect(starter.priceQuarterly).toBe('82');
+      expect(starter.priceQuarterly).toBe('129');
     });
   });
 
@@ -114,6 +114,91 @@ describe('PlansService', () => {
 
       expect(repo.findOne).toHaveBeenCalledWith({ where: { name: 'starter' } });
       expect(result).toBe(plan);
+    });
+  });
+
+  describe('getSelfServicePlanForQuantity', () => {
+    it('selects the active self-service band for a quantity', async () => {
+      repo.find!.mockResolvedValue([
+        {
+          name: 'starter',
+          isActive: true,
+          selfServiceEnabled: true,
+          isCustomPrice: false,
+          minProperties: 1,
+          maxProperties: 3,
+          maxCheckoutQuantity: 3,
+        },
+        {
+          name: 'profissional',
+          isActive: true,
+          selfServiceEnabled: true,
+          isCustomPrice: false,
+          minProperties: 4,
+          maxProperties: 500,
+          maxCheckoutQuantity: 500,
+        },
+      ]);
+
+      await expect(service.getSelfServicePlanForQuantity(2)).resolves.toMatchObject({ name: 'starter' });
+      await expect(service.getSelfServicePlanForQuantity(50)).resolves.toMatchObject({ name: 'profissional' });
+    });
+
+    it('returns null when quantity only matches a consultive band', async () => {
+      repo.find!.mockResolvedValue([
+        {
+          name: 'escala',
+          isActive: true,
+          selfServiceEnabled: false,
+          isCustomPrice: true,
+          minProperties: 501,
+          maxProperties: null,
+        },
+      ]);
+
+      await expect(service.getSelfServicePlanForQuantity(600)).resolves.toBeNull();
+    });
+  });
+
+  describe('quoteSelfService', () => {
+    it('returns quote totals for the selected quantity band and cycle', async () => {
+      repo.find!.mockResolvedValue([
+        {
+          name: 'profissional',
+          title: 'Profissional',
+          isActive: true,
+          selfServiceEnabled: true,
+          isCustomPrice: false,
+          minProperties: 4,
+          maxProperties: 500,
+          maxCheckoutQuantity: 500,
+          priceAnnualNew: '67',
+          discountAnnualPercent: 32,
+        },
+      ]);
+
+      await expect(service.quoteSelfService(50, 'annual')).resolves.toMatchObject({
+        quantity: 50,
+        billingCycle: 'annual',
+        selfService: true,
+        planName: 'profissional',
+        pricePerPropertyMonthly: 67,
+        monthlyEquivalentTotal: 3350,
+        cycleTotal: 40200,
+        monthsInCycle: 12,
+        discountPercent: 32,
+      });
+    });
+
+    it('marks quote as contactRequired when no self-service band matches', async () => {
+      repo.find!.mockResolvedValue([]);
+
+      await expect(service.quoteSelfService(501, 'annual')).resolves.toMatchObject({
+        quantity: 501,
+        selfService: false,
+        contactRequired: true,
+        planTitle: 'Escala',
+      });
     });
   });
 });

@@ -138,6 +138,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (pathname === "/plans/v2") {
+    const target = new URL(request.url);
+    target.pathname = "/plans";
+    return NextResponse.redirect(target, 308);
+  }
+
   // Em dev local, passa direto sem nenhum gating.
   if (isLocalDev(host)) {
     return NextResponse.next();

@@ -493,6 +493,11 @@ export class AdminFinanceService {
       discountSemestralPercent: number;
       discountAnnualPercent: number;
       propertyLimit: number | null;
+      minProperties: number | null;
+      maxProperties: number | null;
+      maxCheckoutQuantity: number | null;
+      selfServiceEnabled: boolean;
+      sortOrder: number;
       title: string;
       features: string[];
       isActive: boolean;
@@ -503,6 +508,7 @@ export class AdminFinanceService {
     const plan = await this.planRepo.findOne({ where: { name } });
     if (!plan) throw new NotFoundException(`Plano '${name}' não encontrado`);
     Object.assign(plan, this.normalizePlanPricingInput(input));
+    this.validatePlanBand(plan);
     return this.planRepo.save(plan);
   }
 
@@ -580,6 +586,11 @@ export class AdminFinanceService {
       'discountSemestralPercent',
       'discountAnnualPercent',
       'propertyLimit',
+      'minProperties',
+      'maxProperties',
+      'maxCheckoutQuantity',
+      'selfServiceEnabled',
+      'sortOrder',
       'title',
       'features',
       'isActive',
@@ -596,25 +607,44 @@ export class AdminFinanceService {
           throw new BadRequestException(`${key} deve ser inteiro entre 0 e 100`);
         }
         next[key] = percent;
-      } else if (key === 'propertyLimit') {
+      } else if (['propertyLimit', 'minProperties', 'maxProperties', 'maxCheckoutQuantity', 'sortOrder'].includes(key)) {
         if (value === null || value === '') {
-          next.propertyLimit = null;
+          next[key] = key === 'sortOrder' ? 0 : null;
         } else {
           const limit = Number(value);
           if (!Number.isInteger(limit) || limit < 0 || limit > 100000) {
-            throw new BadRequestException('propertyLimit invalido');
+            throw new BadRequestException(`${key} invalido`);
           }
-          next.propertyLimit = limit;
+          next[key] = limit;
         }
       } else if (key === 'features') {
         if (!Array.isArray(value)) throw new BadRequestException('features deve ser array');
         next.features = value.map((item) => String(item).trim()).filter(Boolean).slice(0, 50);
-      } else if (key === 'isActive') {
-        next.isActive = Boolean(value);
+      } else if (key === 'isActive' || key === 'selfServiceEnabled') {
+        next[key] = Boolean(value);
       } else {
         next[key] = value == null ? null : String(value).trim().slice(0, 255);
       }
     }
     return next;
+  }
+
+  private validatePlanBand(plan: Plan) {
+    const min = plan.minProperties ?? null;
+    const max = plan.maxProperties ?? plan.propertyLimit ?? null;
+    const checkoutMax = plan.maxCheckoutQuantity ?? null;
+
+    if (min !== null && min < 1) {
+      throw new BadRequestException('minProperties deve ser maior ou igual a 1');
+    }
+    if (min !== null && max !== null && max < min) {
+      throw new BadRequestException('maxProperties deve ser maior ou igual a minProperties');
+    }
+    if (min !== null && checkoutMax !== null && checkoutMax < min) {
+      throw new BadRequestException('maxCheckoutQuantity deve ser maior ou igual a minProperties');
+    }
+    if (max !== null && checkoutMax !== null && checkoutMax > max) {
+      throw new BadRequestException('maxCheckoutQuantity nao pode passar de maxProperties');
+    }
   }
 }

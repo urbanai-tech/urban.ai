@@ -199,6 +199,14 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
   }
 
   const dirty = Object.keys(edited).length > 0;
+  const min = Number(field("minProperties") ?? 1) || 1;
+  const maxRaw = field("maxProperties") as number | null | undefined;
+  const max = maxRaw == null ? null : Number(maxRaw);
+  const previewQuantity = min <= 50 && (max === null || max >= 50) ? 50 : min;
+  const monthly = parseAdminMoney(field("priceMonthly") as string);
+  const quarterly = parseAdminMoney(field("priceQuarterly") as string);
+  const semestral = parseAdminMoney(field("priceSemestral") as string);
+  const annual = parseAdminMoney(field("priceAnnualNew") as string);
 
   return (
     <AdminCard variant="subtle">
@@ -239,6 +247,11 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
           checked={field("isActive") as boolean}
           onChange={(v) => patch("isActive", v)}
           label="Ativo"
+        />
+        <AdminSwitch
+          checked={(field("selfServiceEnabled") as boolean | undefined) ?? true}
+          onChange={(v) => patch("selfServiceEnabled", v)}
+          label="Self-service"
         />
       </header>
 
@@ -321,7 +334,40 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
             }}
           >
             <AdminInput
-              label="Limite de imoveis (vazio = sem limite)"
+              label="Min. imoveis"
+              type="number"
+              value={String(field("minProperties") ?? "")}
+              onChange={(e) =>
+                patch(
+                  "minProperties",
+                  (e.target.value ? Number(e.target.value) : null) as AdminPlanConfig["minProperties"],
+                )
+              }
+            />
+            <AdminInput
+              label="Max. faixa (vazio = sem limite)"
+              type="number"
+              value={String(field("maxProperties") ?? "")}
+              onChange={(e) =>
+                patch(
+                  "maxProperties",
+                  (e.target.value ? Number(e.target.value) : null) as AdminPlanConfig["maxProperties"],
+                )
+              }
+            />
+            <AdminInput
+              label="Max. checkout self-service"
+              type="number"
+              value={String(field("maxCheckoutQuantity") ?? "")}
+              onChange={(e) =>
+                patch(
+                  "maxCheckoutQuantity",
+                  (e.target.value ? Number(e.target.value) : null) as AdminPlanConfig["maxCheckoutQuantity"],
+                )
+              }
+            />
+            <AdminInput
+              label="Legacy propertyLimit"
               type="number"
               value={String(field("propertyLimit") ?? "")}
               onChange={(e) =>
@@ -330,6 +376,12 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
                   (e.target.value ? Number(e.target.value) : null) as AdminPlanConfig["propertyLimit"],
                 )
               }
+            />
+            <AdminInput
+              label="Ordem"
+              type="number"
+              value={String(field("sortOrder") ?? 0)}
+              onChange={(e) => patch("sortOrder", Number(e.target.value) as AdminPlanConfig["sortOrder"])}
             />
             <AdminInput
               label="Highlight badge"
@@ -341,6 +393,23 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
               value={(field("discountBadge") as string) ?? ""}
               onChange={(e) => patch("discountBadge", e.target.value as AdminPlanConfig["discountBadge"])}
             />
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+              gap: 12,
+              marginBottom: 16,
+              padding: 14,
+              border: "1px solid var(--admin-divider)",
+              background: "var(--admin-surface)",
+            }}
+          >
+            <PreviewMetric label={`Preview ${previewQuantity} imoveis / mes`} value={formatAdminMoney(monthly * previewQuantity)} />
+            <PreviewMetric label="Trimestral cobrado" value={formatAdminMoney(quarterly * previewQuantity * 3)} />
+            <PreviewMetric label="Semestral cobrado" value={formatAdminMoney(semestral * previewQuantity * 6)} />
+            <PreviewMetric label="Anual cobrado" value={formatAdminMoney(annual * previewQuantity * 12)} />
           </div>
 
           {/* Stripe Price IDs read-only */}
@@ -406,6 +475,40 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
         </AdminButton>
       </footer>
     </AdminCard>
+  );
+}
+
+function parseAdminMoney(value: string | undefined | null): number {
+  if (!value) return 0;
+  const parsed = Number(String(value).replace(/\./g, "").replace(",", ".").replace(/[^\d.]/g, ""));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatAdminMoney(value: number) {
+  return value.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function PreviewMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div
+        style={{
+          fontSize: 10,
+          color: "var(--admin-text-dim)",
+          textTransform: "uppercase",
+          letterSpacing: 1.2,
+          marginBottom: 4,
+        }}
+      >
+        {label}
+      </div>
+      <div style={{ color: "var(--admin-text)", fontWeight: 700 }}>{value}</div>
+    </div>
   );
 }
 

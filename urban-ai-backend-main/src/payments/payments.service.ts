@@ -254,7 +254,7 @@ export class PaymentsService {
    */
   async createCheckoutSession(
     data: {
-      plan: string;
+      plan?: string;
       billingCycle?: 'monthly' | 'quarterly' | 'semestral' | 'annual';
       quantity?: number;
     },
@@ -265,21 +265,35 @@ export class PaymentsService {
 
     // 1) Resolve customer Stripe (cria se não existir)
     // 2) Resolve plano + Price ID conforme ciclo
-    const planEntity = await this.plansService.getPlanByName(
-      data.plan === 'trial' ? 'profissional' : data.plan,
-    );
+    const quantity = this.resolveCheckoutQuantity(data.quantity);
+    const requestedPlan = String(data.plan ?? '').trim();
+    const isTrialCheckout = requestedPlan === 'trial';
+    const planEntity = isTrialCheckout
+      ? await this.plansService.getPlanByName('profissional')
+      : await this.resolveCheckoutPlan(requestedPlan, quantity);
+
+    if (!planEntity) {
+      throw new BadRequestException(
+        `Nao ha faixa self-service configurada para ${quantity} imoveis.`,
+      );
+    }
+
+    if (!isTrialCheckout && (planEntity.isCustomPrice || planEntity.selfServiceEnabled === false)) {
+      throw new BadRequestException(
+        `A faixa ${planEntity.title || planEntity.name} exige atendimento comercial.`,
+      );
+    }
     const billingCycle = this.resolveBillingCycle(data.billingCycle);
-    const { priceId: stripePrice } = resolveStripePriceId(planEntity, billingCycle, data.plan);
+    const { priceId: stripePrice } = resolveStripePriceId(planEntity, billingCycle, planEntity.name);
     if (!stripePrice) {
       throw new ServiceUnavailableException(
-        `Stripe Price ID not configured for plan=${data.plan} cycle=${billingCycle}`,
+        `Stripe Price ID not configured for plan=${planEntity.name} cycle=${billingCycle}`,
       );
     }
     this.ensureStripeConfigured();
     this.ensureCheckoutUrlsConfigured();
 
     // 3) Quantidade — número de imóveis contratados. Sempre ≥ 1.
-    const quantity = this.resolveCheckoutQuantity(data.quantity);
     const customerId = await this.ensureStripeCustomer(user);
 
     const TRIAL_PERIOD_DAYS = process.env.TRIAL_PERIOD_DAYS;
@@ -287,14 +301,14 @@ export class PaymentsService {
     // Metadata viaja no webhook, permite reconstruir o ciclo + quantity
     // mesmo que o Stripe não exponha exatamente nossos 4 ciclos.
     const urbanaiMeta = {
-      urbanai_plan: data.plan,
+      urbanai_plan: isTrialCheckout ? 'trial' : planEntity.name,
       urbanai_billing_cycle: billingCycle,
       urbanai_quantity: String(quantity),
     };
 
     const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData = {
       metadata: urbanaiMeta,
-      ...(data?.plan === 'trial' && {
+      ...(isTrialCheckout && {
         trial_period_days: Number(TRIAL_PERIOD_DAYS),
       }),
     };
@@ -349,6 +363,31 @@ export class PaymentsService {
     });
 
     return { url: session.url };
+  }
+
+  private async resolveCheckoutPlan(requestedPlan: string, quantity: number) {
+    const quantityPlan =
+      typeof this.plansService.getSelfServicePlanForQuantity === 'function'
+        ? await this.plansService.getSelfServicePlanForQuantity(quantity)
+        : null;
+    if (!requestedPlan || requestedPlan === 'auto') return quantityPlan;
+
+    const explicitPlan = await this.plansService.getPlanByName(requestedPlan);
+    if (!explicitPlan) return quantityPlan;
+
+    if (explicitPlan.isCustomPrice || explicitPlan.selfServiceEnabled === false) {
+      return quantityPlan ?? explicitPlan;
+    }
+
+    const min = explicitPlan.minProperties ?? 1;
+    const max = explicitPlan.maxProperties ?? explicitPlan.propertyLimit ?? null;
+    const checkoutMax = explicitPlan.maxCheckoutQuantity ?? max ?? null;
+    const inRange =
+      quantity >= min &&
+      (max === null || quantity <= max) &&
+      (checkoutMax === null || quantity <= checkoutMax);
+
+    return inRange ? explicitPlan : quantityPlan;
   }
 
   private async ensureStripeCustomer(user: User): Promise<string> {

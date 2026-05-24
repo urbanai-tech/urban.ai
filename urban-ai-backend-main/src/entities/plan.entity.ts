@@ -112,6 +112,21 @@ export class Plan {
   @Column({ type: 'int', nullable: true })
   propertyLimit: number;
 
+  @Column({ type: 'int', nullable: true })
+  minProperties: number;
+
+  @Column({ type: 'int', nullable: true })
+  maxProperties: number;
+
+  @Column({ type: 'int', nullable: true })
+  maxCheckoutQuantity: number;
+
+  @Column({ default: true })
+  selfServiceEnabled: boolean;
+
+  @Column({ type: 'int', default: 0 })
+  sortOrder: number;
+
   @Column({ default: false })
   isCustomPrice: boolean;
 
