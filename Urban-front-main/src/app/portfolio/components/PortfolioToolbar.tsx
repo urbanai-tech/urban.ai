@@ -1,33 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import { AppButton, AppConfirmDialog, AppInput, Icons } from "../../componentes/ui";
-
-/**
- * PortfolioToolbar — barra sticky de bulk action no topo do `/portfolio`.
- *
- * Estados:
- *  - `selectedCount === 0`: mostra hint "Selecione imóveis…" com ícone Info.
- *  - `selectedCount > 0`:   mostra "{n} imóvel(s) selecionado(s)" + 4 ações:
- *      • Aplicar estratégia (primary)         → abre dropdown de estratégias.
- *      • Definir preço base (secondary)       → input inline R$ + botão Aplicar.
- *      • Aceitar sugestões (secondary)        → confirma via AppConfirmDialog.
- *      • Mais ações (ghost)                   → dropdown extra (placeholder).
- *
- * Mobile: vira bottom-sheet fixo no rodapé (acima da bottom-nav 64px) quando
- * há seleção; quando `selectedCount === 0`, hint inline fica sticky no topo.
- *
- * O handler `onAction` recebe a ação e payload — a página é responsável de
- * chamar `mutatePortfolioBulkAction` e tratar o resultado.
- */
+import { AppButton, AppInput, Icons } from "../../componentes/ui";
 
 export type PortfolioToolbarAction =
   | { type: "apply-strategy"; strategy: string }
   | { type: "set-base-price"; price: number }
-  | { type: "accept-suggestions" };
+  | { type: "set-date-price"; price: number }
+  | { type: "accept-suggestions" }
+  | { type: "apply-internal" };
 
 export interface PortfolioToolbarProps {
   selectedCount: number;
+  selectedDatesCount: number;
   totalCount: number;
   onClearSelection?: () => void;
   onSelectAll?: () => void;
@@ -36,14 +21,37 @@ export interface PortfolioToolbarProps {
 }
 
 const STRATEGIES: ReadonlyArray<{ id: string; label: string; helper: string }> = [
-  { id: "conservadora", label: "Conservadora", helper: "Prioriza mais noites ocupadas, com diarias mais acessiveis." },
-  { id: "moderada", label: "Moderada", helper: "Equilibra ocupacao e valor da diaria." },
-  { id: "agressiva", label: "Agressiva", helper: "Busca diarias mais altas, mesmo com chance de vender menos noites." },
-  { id: "autonomous", label: "Automatico", helper: "A Urban AI escolhe o melhor caminho caso a caso." },
+  {
+    id: "conservadora",
+    label: "Conservadora",
+    helper: "Prioriza noites ocupadas com diarias mais acessiveis.",
+  },
+  {
+    id: "moderada",
+    label: "Moderada",
+    helper: "Equilibra ocupacao e valor da diaria.",
+  },
+  {
+    id: "agressiva",
+    label: "Agressiva",
+    helper: "Busca diarias mais altas quando ha demanda.",
+  },
+  {
+    id: "autonomous",
+    label: "Automatico",
+    helper: "A Urban AI escolhe o melhor caminho caso a caso.",
+  },
 ];
+
+function parsePrice(value: string): number | null {
+  const normalized = value.replace(/[^0-9.,]/g, "").replace(",", ".");
+  const num = Number(normalized);
+  return Number.isFinite(num) && num > 0 ? num : null;
+}
 
 export function PortfolioToolbar({
   selectedCount,
+  selectedDatesCount,
   totalCount,
   onClearSelection,
   onSelectAll,
@@ -51,10 +59,8 @@ export function PortfolioToolbar({
   loading = false,
 }: PortfolioToolbarProps) {
   const [strategyOpen, setStrategyOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
-  const [acceptConfirmOpen, setAcceptConfirmOpen] = useState(false);
-  const [basePriceMode, setBasePriceMode] = useState(false);
-  const [basePriceValue, setBasePriceValue] = useState("");
+  const [priceMode, setPriceMode] = useState<"base" | "date" | null>(null);
+  const [priceValue, setPriceValue] = useState("");
 
   const hasSelection = selectedCount > 0;
 
@@ -63,17 +69,21 @@ export function PortfolioToolbar({
     void onAction?.({ type: "apply-strategy", strategy });
   };
 
-  const handleAccept = async () => {
-    await onAction?.({ type: "accept-suggestions" });
-    setAcceptConfirmOpen(false);
+  const handlePrice = () => {
+    const price = parsePrice(priceValue);
+    if (!price || !priceMode) return;
+    void onAction?.({
+      type: priceMode === "base" ? "set-base-price" : "set-date-price",
+      price,
+    });
+    setPriceMode(null);
+    setPriceValue("");
   };
 
-  const handleBasePrice = () => {
-    const num = Number(basePriceValue.replace(/[^0-9.,]/g, "").replace(",", "."));
-    if (!Number.isFinite(num) || num <= 0) return;
-    void onAction?.({ type: "set-base-price", price: num });
-    setBasePriceMode(false);
-    setBasePriceValue("");
+  const openPriceMode = (mode: "base" | "date") => {
+    setStrategyOpen(false);
+    setPriceMode(mode);
+    setPriceValue("");
   };
 
   return (
@@ -105,10 +115,11 @@ export function PortfolioToolbar({
               color: "var(--app-text-muted)",
               fontSize: 13,
               fontWeight: 500,
+              flexWrap: "wrap",
             }}
           >
             <Icons.Info size={14} />
-            <span>Selecione imoveis para mudar varios de uma vez.</span>
+            <span>Selecione imoveis ou datas recomendadas para agir.</span>
             {totalCount > 0 && onSelectAll && (
               <AppButton size="sm" variant="ghost" onClick={onSelectAll} disabled={loading}>
                 Selecionar todos ({totalCount})
@@ -125,6 +136,7 @@ export function PortfolioToolbar({
                 color: "var(--app-text)",
                 fontSize: 14,
                 fontWeight: 600,
+                flexWrap: "wrap",
               }}
             >
               <span
@@ -146,14 +158,27 @@ export function PortfolioToolbar({
                 {selectedCount}
               </span>
               <span>
-                imóvel{selectedCount > 1 ? "s" : ""} selecionado{selectedCount > 1 ? "s" : ""}
+                imovel{selectedCount > 1 ? "s" : ""} selecionado
+                {selectedCount > 1 ? "s" : ""}
               </span>
+              {selectedDatesCount > 0 && (
+                <span
+                  style={{
+                    color: "var(--app-text-muted)",
+                    fontSize: 12,
+                    fontWeight: 500,
+                  }}
+                >
+                  {selectedDatesCount} data{selectedDatesCount > 1 ? "s" : ""} marcada
+                  {selectedDatesCount > 1 ? "s" : ""}
+                </span>
+              )}
               {onClearSelection && (
                 <button
                   type="button"
                   onClick={onClearSelection}
                   disabled={loading}
-                  aria-label="Limpar selecao de imoveis"
+                  aria-label="Limpar selecao"
                   className="urban-focus-ring"
                   style={{
                     background: "transparent",
@@ -163,7 +188,6 @@ export function PortfolioToolbar({
                     fontSize: 12,
                     textDecoration: "underline",
                     padding: "4px 6px",
-                    marginLeft: 4,
                     borderRadius: 4,
                   }}
                 >
@@ -183,25 +207,30 @@ export function PortfolioToolbar({
                 flexWrap: "wrap",
               }}
             >
-              {basePriceMode ? (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              {priceMode ? (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   <AppInput
                     leftAddon="R$"
-                    placeholder="320"
-                    value={basePriceValue}
-                    onChange={(e) => setBasePriceValue(e.target.value)}
+                    placeholder={priceMode === "base" ? "320" : "420"}
+                    value={priceValue}
+                    onChange={(e) => setPriceValue(e.target.value)}
                     style={{ width: 120, height: 36 }}
                     shellStyle={{ width: 140 }}
+                    aria-label={
+                      priceMode === "base"
+                        ? "Preco base por imovel"
+                        : "Preco para datas selecionadas"
+                    }
                   />
-                  <AppButton size="sm" variant="primary" onClick={handleBasePrice} disabled={loading}>
-                    Aplicar
+                  <AppButton size="sm" variant="primary" onClick={handlePrice} disabled={loading}>
+                    Simular
                   </AppButton>
                   <AppButton
                     size="sm"
                     variant="ghost"
                     onClick={() => {
-                      setBasePriceMode(false);
-                      setBasePriceValue("");
+                      setPriceMode(null);
+                      setPriceValue("");
                     }}
                     disabled={loading}
                   >
@@ -222,9 +251,12 @@ export function PortfolioToolbar({
                     </AppButton>
                     {strategyOpen && (
                       <Dropdown onClose={() => setStrategyOpen(false)}>
-                        {STRATEGIES.map((s) => (
-                          <DropdownItem key={s.id} onClick={() => handleStrategy(s.id)}>
-                            <span style={{ fontWeight: 600 }}>{s.label}</span>
+                        {STRATEGIES.map((strategy) => (
+                          <DropdownItem
+                            key={strategy.id}
+                            onClick={() => handleStrategy(strategy.id)}
+                          >
+                            <span style={{ fontWeight: 600 }}>{strategy.label}</span>
                             <span
                               style={{
                                 display: "block",
@@ -234,7 +266,7 @@ export function PortfolioToolbar({
                                 marginTop: 2,
                               }}
                             >
-                              {s.helper}
+                              {strategy.helper}
                             </span>
                           </DropdownItem>
                         ))}
@@ -245,61 +277,49 @@ export function PortfolioToolbar({
                   <AppButton
                     size="sm"
                     variant="secondary"
-                    onClick={() => setBasePriceMode(true)}
+                    onClick={() => openPriceMode("base")}
                     disabled={loading}
                   >
-                    Definir preço base
+                    Preco base
                   </AppButton>
 
                   <AppButton
                     size="sm"
                     variant="secondary"
-                    onClick={() => setAcceptConfirmOpen(true)}
-                    disabled={loading}
+                    onClick={() => openPriceMode("date")}
+                    disabled={loading || selectedDatesCount === 0}
+                    title={
+                      selectedDatesCount === 0
+                        ? "Selecione uma data no calendario ou ranking"
+                        : undefined
+                    }
                   >
-                    Aceitar sugestões
+                    Preco por data
                   </AppButton>
 
-                  <div style={{ position: "relative" }}>
-                    <AppButton
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setMoreOpen((v) => !v)}
-                      disabled={loading}
-                      rightIcon={<Icons.ChevronDown size={12} />}
-                    >
-                      Mais ações
-                    </AppButton>
-                    {moreOpen && (
-                      <Dropdown onClose={() => setMoreOpen(false)}>
-                        <DropdownItem disabled>Pausar automatico (em breve)</DropdownItem>
-                        <DropdownItem disabled>Bloquear datas (em breve)</DropdownItem>
-                        <DropdownItem disabled>Exportar CSV (em breve)</DropdownItem>
-                      </Dropdown>
-                    )}
-                  </div>
+                  <AppButton
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => void onAction?.({ type: "accept-suggestions" })}
+                    disabled={loading}
+                  >
+                    Aceitar sugestoes
+                  </AppButton>
+
+                  <AppButton
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => void onAction?.({ type: "apply-internal" })}
+                    disabled={loading}
+                  >
+                    Aplicar interno
+                  </AppButton>
                 </>
               )}
             </div>
           </>
         )}
       </div>
-
-      <AppConfirmDialog
-        open={acceptConfirmOpen}
-        onClose={() => setAcceptConfirmOpen(false)}
-        onConfirm={handleAccept}
-        title="Aceitar sugestões nos imóveis selecionados?"
-        body={
-          <>
-            A Urban AI vai aplicar o preco sugerido nos dias com sugestao ativa em{" "}
-            <strong>{selectedCount}</strong> imovel{selectedCount > 1 ? "s" : ""}. A acao fica
-            registrada no historico e pode ser desfeita por dia.
-          </>
-        }
-        confirmLabel={`Aplicar em ${selectedCount} imóvel${selectedCount > 1 ? "s" : ""}`}
-        loading={loading}
-      />
 
       <style jsx>{`
         @media (max-width: 767px) {
@@ -346,7 +366,7 @@ function Dropdown({
           top: "calc(100% + 6px)",
           right: 0,
           zIndex: 41,
-          minWidth: 240,
+          minWidth: 260,
           background: "var(--app-surface-elevated, #FFFFFF)",
           border: "1px solid var(--app-divider-strong)",
           borderRadius: 10,
@@ -366,18 +386,15 @@ function Dropdown({
 function DropdownItem({
   children,
   onClick,
-  disabled = false,
 }: {
   children: React.ReactNode;
   onClick?: () => void;
-  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       role="menuitem"
       onClick={onClick}
-      disabled={disabled}
       className="urban-focus-ring"
       style={{
         background: "transparent",
@@ -385,14 +402,14 @@ function DropdownItem({
         textAlign: "left",
         padding: "10px 12px",
         borderRadius: 8,
-        color: disabled ? "var(--app-text-muted)" : "var(--app-text)",
+        color: "var(--app-text)",
         fontSize: 13,
         fontWeight: 500,
-        cursor: disabled ? "not-allowed" : "pointer",
+        cursor: "pointer",
         transition: "background 100ms",
       }}
       onMouseEnter={(e) => {
-        if (!disabled) e.currentTarget.style.background = "var(--app-surface-muted, #F4F5F7)";
+        e.currentTarget.style.background = "var(--app-surface-muted, #F4F5F7)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.background = "transparent";
