@@ -51,6 +51,10 @@ describe('HostPanelsService AskUrban entitlement', () => {
       {} as any,
       {} as any,
       askRepo as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
       dataSource as any,
     );
 

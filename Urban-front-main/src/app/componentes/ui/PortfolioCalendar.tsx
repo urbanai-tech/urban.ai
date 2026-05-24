@@ -38,6 +38,11 @@ export type PortfolioDay = {
   atual: number;
   /** Evento que motiva a sugestão (null = sem evento relevante). */
   evento: { id: string; nome: string; impacto: "alta" | "media" } | null;
+  strategyApplied?: unknown;
+  opportunity?: unknown;
+  risk?: unknown;
+  lift?: unknown;
+  confidence?: unknown;
 };
 
 export type PortfolioProperty = {
@@ -45,6 +50,11 @@ export type PortfolioProperty = {
   name: string;
   thumbnail: string | null;
   days: PortfolioDay[];
+  strategyApplied?: unknown;
+  opportunity?: unknown;
+  risk?: unknown;
+  lift?: unknown;
+  confidence?: unknown;
 };
 
 export type PortfolioCalendarProps = {
@@ -60,6 +70,8 @@ export type PortfolioCalendarProps = {
   onMoveActive?: (next: { propertyId: string; date: string }) => void;
   /** Click numa célula de dia (futuro: abre RecommendationCard inline). */
   onDayClick?: (propertyId: string, date: string) => void;
+  /** Chaves no formato `${propertyId}|${date}` para datas marcadas no cockpit. */
+  selectedDayKeys?: Set<string>;
   loading?: boolean;
 };
 
@@ -138,6 +150,16 @@ function fmtBRLFull(value: number): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
+}
+
+function fmtStrategy(value: unknown): string | null {
+  if (!value) return null;
+  if (typeof value === "string") return value;
+  if (typeof value === "object") {
+    const raw = (value as Record<string, unknown>).strategy;
+    return typeof raw === "string" ? raw : null;
+  }
+  return null;
 }
 
 function initialsFromName(name: string): string {
@@ -345,6 +367,7 @@ export function PortfolioCalendar({
   activeDate,
   onMoveActive,
   onDayClick,
+  selectedDayKeys,
   loading,
 }: PortfolioCalendarProps) {
   const isMobile = useIsMobile();
@@ -674,6 +697,8 @@ export function PortfolioCalendar({
                 {prop.days.map((day) => {
                   const isActive =
                     activeProperty === prop.propertyId && activeDate === day.date;
+                  const isSelectedDay =
+                    selectedDayKeys?.has(`${prop.propertyId}|${day.date}`) ?? false;
                   const weekend = isWeekend(day.date);
                   return (
                     <button
@@ -683,6 +708,8 @@ export function PortfolioCalendar({
                       role="listitem"
                       aria-label={`${fmtWeekday(day.date)} ${fmtDayMonth(day.date)}${
                         day.evento ? `, ${day.evento.nome}` : ""
+                      }${isSelectedDay ? ", data selecionada" : ""}${
+                        fmtStrategy(day.strategyApplied) ? `, modo ${fmtStrategy(day.strategyApplied)}` : ""
                       }, preco atual ${fmtBRLFull(day.atual)}${
                         day.sugestao !== null
                           ? `, sugestao ${fmtBRLFull(day.sugestao)}`
@@ -705,10 +732,12 @@ export function PortfolioCalendar({
                         minHeight: 44,
                         cursor: onDayClick ? "pointer" : "default",
                         borderRadius: 8,
-                        border: isActive
+                        border: isActive || isSelectedDay
                           ? "2px solid var(--app-accent)"
                           : "1px solid var(--app-divider)",
-                        background: weekend
+                        background: isSelectedDay
+                          ? "var(--app-accent-soft)"
+                          : weekend
                           ? "var(--app-surface-muted)"
                           : "var(--app-surface)",
                         position: "relative",
@@ -720,6 +749,19 @@ export function PortfolioCalendar({
                         padding: "6px 4px",
                       }}
                     >
+                      {isSelectedDay && (
+                        <span
+                          aria-hidden="true"
+                          style={{
+                            position: "absolute",
+                            top: 6,
+                            left: 6,
+                            color: "var(--app-accent)",
+                          }}
+                        >
+                          <Check size={10} />
+                        </span>
+                      )}
                       {day.evento && (
                         <span
                           aria-hidden="true"
@@ -1020,6 +1062,8 @@ export function PortfolioCalendar({
                 {prop.days.map((day) => {
                   const isActive =
                     activeProperty === prop.propertyId && activeDate === day.date;
+                  const isSelectedDay =
+                    selectedDayKeys?.has(`${prop.propertyId}|${day.date}`) ?? false;
                   const weekend = isWeekend(day.date);
                   const hasEvento = !!day.evento;
                   return (
@@ -1029,6 +1073,8 @@ export function PortfolioCalendar({
                       onClick={() => onDayClick?.(prop.propertyId, day.date)}
                       aria-label={`${prop.name}, ${fmtWeekday(day.date)} ${fmtDayMonth(day.date)}${
                         hasEvento ? `, ${day.evento!.nome}` : ""
+                      }${isSelectedDay ? ", data selecionada" : ""}${
+                        fmtStrategy(day.strategyApplied) ? `, modo ${fmtStrategy(day.strategyApplied)}` : ""
                       }, preco atual ${fmtBRLFull(day.atual)}${
                         day.sugestao !== null
                           ? `, sugestao ${fmtBRLFull(day.sugestao)}`
@@ -1049,12 +1095,14 @@ export function PortfolioCalendar({
                         height: ROW_HEIGHT,
                         cursor: onDayClick ? "pointer" : "default",
                         borderRight: "1px solid var(--app-divider)",
-                        background: weekend
+                        background: isSelectedDay
+                          ? "var(--app-accent-soft)"
+                          : weekend
                           ? "rgba(14, 17, 22, 0.018)"
                           : "transparent",
                         position: "relative",
                         boxSizing: "border-box",
-                        outline: isActive
+                        outline: isActive || isSelectedDay
                           ? "2px solid var(--app-accent)"
                           : "none",
                         outlineOffset: -2,
@@ -1065,6 +1113,19 @@ export function PortfolioCalendar({
                         gap: 4,
                       }}
                     >
+                      {isSelectedDay && (
+                        <span
+                          aria-hidden="true"
+                          style={{
+                            position: "absolute",
+                            bottom: 6,
+                            right: 6,
+                            color: "var(--app-accent)",
+                          }}
+                        >
+                          <Check size={10} />
+                        </span>
+                      )}
                       {hasEvento && (
                         <>
                           <span
