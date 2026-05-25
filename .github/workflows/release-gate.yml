@@ -184,13 +184,81 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Resolve enterprise gate JWTs
+        env:
+          ENTERPRISE_GATE_BACKEND_URL: ${{ vars.ENTERPRISE_GATE_BACKEND_URL || vars.E2E_API_URL || 'https://urbanai-production-85fd.up.railway.app' }}
+          ENTERPRISE_GATE_ADMIN_JWT: ${{ secrets.ENTERPRISE_GATE_ADMIN_JWT }}
+          ENTERPRISE_GATE_HOST_JWT: ${{ secrets.ENTERPRISE_GATE_HOST_JWT }}
+          ENTERPRISE_GATE_ADMIN_EMAIL: ${{ secrets.ENTERPRISE_GATE_ADMIN_EMAIL || secrets.E2E_AUTH_EMAIL || secrets.E2E_EMAIL }}
+          ENTERPRISE_GATE_ADMIN_PASSWORD: ${{ secrets.ENTERPRISE_GATE_ADMIN_PASSWORD || secrets.E2E_AUTH_PASSWORD || secrets.E2E_PASSWORD }}
+          ENTERPRISE_GATE_HOST_EMAIL: ${{ secrets.ENTERPRISE_GATE_HOST_EMAIL || secrets.E2E_HOST_EMAIL || secrets.E2E_AUTH_EMAIL || secrets.E2E_EMAIL }}
+          ENTERPRISE_GATE_HOST_PASSWORD: ${{ secrets.ENTERPRISE_GATE_HOST_PASSWORD || secrets.E2E_HOST_PASSWORD || secrets.E2E_AUTH_PASSWORD || secrets.E2E_PASSWORD }}
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+
+          const output = process.env.GITHUB_ENV;
+          const backendUrl = String(process.env.ENTERPRISE_GATE_BACKEND_URL || '').replace(/\/+$/, '');
+          const lines = [];
+
+          function exportMasked(name, value) {
+            if (!value) return;
+            console.log(`::add-mask::${value}`);
+            lines.push(`${name}=${value}`);
+          }
+
+          async function login(label, email, password) {
+            if (!email || !password) {
+              console.log(`::notice::${label} gate credentials are not configured; static JWT or CI credentials are required for strict live evidence.`);
+              return null;
+            }
+            if (!backendUrl) throw new Error('ENTERPRISE_GATE_BACKEND_URL is required to mint dynamic gate JWTs.');
+
+            const response = await fetch(`${backendUrl}/auth/login`, {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ email, password }),
+            });
+            if (!response.ok) throw new Error(`${label} login failed with HTTP ${response.status}`);
+
+            const body = await response.json().catch(() => ({}));
+            if (!body.accessToken) throw new Error(`${label} login did not return accessToken.`);
+            return body.accessToken;
+          }
+
+          async function main() {
+            if (process.env.ENTERPRISE_GATE_ADMIN_JWT) {
+              exportMasked('ENTERPRISE_GATE_ADMIN_JWT', process.env.ENTERPRISE_GATE_ADMIN_JWT);
+            } else {
+              exportMasked(
+                'ENTERPRISE_GATE_ADMIN_JWT',
+                await login('admin', process.env.ENTERPRISE_GATE_ADMIN_EMAIL, process.env.ENTERPRISE_GATE_ADMIN_PASSWORD),
+              );
+            }
+
+            if (process.env.ENTERPRISE_GATE_HOST_JWT) {
+              exportMasked('ENTERPRISE_GATE_HOST_JWT', process.env.ENTERPRISE_GATE_HOST_JWT);
+            } else {
+              exportMasked(
+                'ENTERPRISE_GATE_HOST_JWT',
+                await login('host', process.env.ENTERPRISE_GATE_HOST_EMAIL, process.env.ENTERPRISE_GATE_HOST_PASSWORD),
+              );
+            }
+
+            if (lines.length) fs.appendFileSync(output, `${lines.join('\n')}\n`);
+          }
+
+          main().catch((error) => {
+            console.error(error);
+            process.exit(1);
+          });
+          NODE
+
       - name: Run enterprise live gate
         env:
           ENTERPRISE_GATE_ENV: ${{ vars.ENTERPRISE_GATE_ENV || 'staging' }}
-          ENTERPRISE_GATE_BACKEND_URL: ${{ vars.ENTERPRISE_GATE_BACKEND_URL || vars.E2E_API_URL }}
-          ENTERPRISE_GATE_FRONTEND_URL: ${{ vars.ENTERPRISE_GATE_FRONTEND_URL || vars.E2E_BASE_URL }}
-          ENTERPRISE_GATE_ADMIN_JWT: ${{ secrets.ENTERPRISE_GATE_ADMIN_JWT }}
-          ENTERPRISE_GATE_HOST_JWT: ${{ secrets.ENTERPRISE_GATE_HOST_JWT }}
+          ENTERPRISE_GATE_BACKEND_URL: ${{ vars.ENTERPRISE_GATE_BACKEND_URL || vars.E2E_API_URL || 'https://urbanai-production-85fd.up.railway.app' }}
+          ENTERPRISE_GATE_FRONTEND_URL: ${{ vars.ENTERPRISE_GATE_FRONTEND_URL || vars.E2E_BASE_URL || 'https://app.myurbanai.com' }}
           ENTERPRISE_GATE_EVENTS_INGEST_KEY: ${{ secrets.ENTERPRISE_GATE_EVENTS_INGEST_KEY }}
           ENTERPRISE_GATE_PROD_MUTATION_OK: ${{ vars.ENTERPRISE_GATE_PROD_MUTATION_OK }}
         run: >-
