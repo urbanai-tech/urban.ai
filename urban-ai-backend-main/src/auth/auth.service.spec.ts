@@ -67,12 +67,13 @@ describe('AuthService', () => {
       userRepo.create!.mockImplementation((data) => data);
       userRepo.save!.mockImplementation(async (data) => ({ id: 'new-id', ...data }));
 
-      await service.register({ username: 'u', email: 'new@test.com', password: 'minhasenha' });
+      const registered = await service.register({ username: 'u', email: 'new@test.com', password: 'minhasenha' });
 
       const saved = userRepo.save!.mock.calls[0][0];
       expect(saved.password).toMatch(/^\$2[aby]\$12\$/);
       expect(saved.password).not.toBe('minhasenha');
       expect(await bcrypt.compare('minhasenha', saved.password)).toBe(true);
+      expect((registered as any).password).toBeUndefined();
       expect(payments.createPayment).toHaveBeenCalled();
     });
 
@@ -165,6 +166,21 @@ describe('AuthService', () => {
         UnauthorizedException,
       );
     });
+
+    it('rejects login for inactive users', async () => {
+      userRepo.findOne!.mockResolvedValue({
+        id: 'u-inactive',
+        email: 'inactive@test.com',
+        password: await bcrypt.hash('correct', 12),
+        username: 'inactive',
+        ativo: false,
+      });
+
+      await expect(service.login('inactive@test.com', 'correct')).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+      expect(refreshRepo.save).not.toHaveBeenCalled();
+    });
   });
 
   describe('rotateRefreshToken', () => {
@@ -203,6 +219,24 @@ describe('AuthService', () => {
 
       await expect(service.rotateRefreshToken('expired-token')).rejects.toBeInstanceOf(
         UnauthorizedException,
+      );
+    });
+
+    it('revokes active sessions and rejects refresh for inactive users', async () => {
+      const user = { id: 'u-inactive', username: 'u', ativo: false };
+      refreshRepo.findOne!.mockResolvedValue({
+        id: 'rt-current',
+        user,
+        revokedAt: null,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      });
+
+      await expect(service.rotateRefreshToken('valid-token')).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+      expect(refreshRepo.update).toHaveBeenCalledWith(
+        { user: { id: 'u-inactive' }, revokedAt: expect.anything() },
+        { revokedAt: expect.any(Date) },
       );
     });
 

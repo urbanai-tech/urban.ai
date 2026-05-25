@@ -56,6 +56,7 @@ function makeService(
     {} as any,
     {} as any,
     {} as any,
+    { revokeAllRefreshTokensForUser: jest.fn() } as any,
   );
 }
 

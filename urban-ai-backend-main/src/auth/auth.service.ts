@@ -21,6 +21,8 @@ export type TokenPair = {
   refreshExpiresAt: Date;
 };
 
+export type SafeUser = Omit<User, 'password'>;
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -40,14 +42,14 @@ export class AuthService {
    * Emite um novo par access+refresh para o usuário. O refresh é persistido
    * como hash; só o valor bruto vai para o cliente (via cookie httpOnly).
    */
-  async issueTokens(user: User, meta?: { userAgent?: string; ip?: string }): Promise<TokenPair> {
+  async issueTokens(user: Pick<User, 'id' | 'username'>, meta?: { userAgent?: string; ip?: string }): Promise<TokenPair> {
     const accessToken = this.jwtService.sign({ sub: user.id, username: user.username });
 
     const rawRefresh = crypto.randomBytes(REFRESH_TOKEN_BYTES).toString('base64url');
     const refreshExpiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000);
 
     const record = this.refreshTokenRepository.create({
-      user,
+      user: user as User,
       tokenHash: this.hashRefreshToken(rawRefresh),
       expiresAt: refreshExpiresAt,
       userAgent: meta?.userAgent?.slice(0, 255) ?? null,
@@ -71,6 +73,14 @@ export class AuthService {
       relations: ['user'],
     });
     if (!record) throw new UnauthorizedException('Refresh token inválido');
+
+    if (record.user?.ativo === false) {
+      await this.refreshTokenRepository.update(
+        { user: { id: record.user.id }, revokedAt: IsNull() },
+        { revokedAt: new Date() },
+      );
+      throw new UnauthorizedException('Usuário inativo. Faça login com uma conta ativa.');
+    }
 
     if (record.revokedAt) {
       // Reuso de token revogado — possível roubo. Derrubar todas as sessões
@@ -180,12 +190,12 @@ export class AuthService {
   }
 
   /** Remove o campo password do objeto retornado para o cliente. */
-  private sanitizeUser(user: User): Omit<User, 'password'> {
+  sanitizeUser(user: User): SafeUser {
     const { password, ...safe } = user as User & { password?: string };
     return safe;
   }
 
-  async register(data: { username: string; email: string; password: string }) {
+  async register(data: { username: string; email: string; password: string }): Promise<SafeUser> {
     // Verifica se e-mail já existe
     const existingUser = await this.userRepository.findOne({ where: { email: data.email } });
     if (existingUser) {
@@ -201,7 +211,7 @@ export class AuthService {
       const savedUser = await this.userRepository.save(user);
       await this.paymentsService.createPayment(savedUser);
 
-      return savedUser;
+      return this.sanitizeUser(savedUser);
     } catch (error) {
       console.error('Erro ao registrar usuário:', error);
       throw new InternalServerErrorException('Falha no registro do usuário. Verifique com o suporte.');
@@ -218,7 +228,7 @@ export class AuthService {
     await this.userRepository.remove(user);
   }
 
-  async findUserById(userId: string): Promise<User> {
+  async findUserById(userId: string): Promise<SafeUser> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: ['profile']
@@ -228,7 +238,7 @@ export class AuthService {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
-    return user;
+    return this.sanitizeUser(user);
   }
 
   async findUserByEmail(email: string): Promise<User | null> {
@@ -239,7 +249,7 @@ export class AuthService {
     username?: string;
     email?: string;
     password?: string;
-  }): Promise<User> {
+  }): Promise<SafeUser> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: ['profile']
@@ -258,12 +268,17 @@ export class AuthService {
       user.password = await this.bcryptHash(data.password);
     }
 
-    return this.userRepository.save(user);
+    const saved = await this.userRepository.save(user);
+    return this.sanitizeUser(saved);
   }
 
   async login(email: string, password: string, meta?: { userAgent?: string; ip?: string }) {
-    const user = await this.userRepository.findOne({ where: { email } });
+    const user = await this.userRepository.findOne({
+      where: { email },
+      select: ['id', 'username', 'email', 'password', 'ativo'],
+    });
     if (!user) throw new UnauthorizedException('Credenciais inválidas');
+    if (user.ativo === false) throw new UnauthorizedException('Usuário inativo. Faça login com uma conta ativa.');
 
     const { ok, needsRehash } = await this.verifyPassword(password, user.password);
     if (!ok) throw new UnauthorizedException('Credenciais inválidas');
@@ -295,7 +310,8 @@ export class AuthService {
     try {
       // Verificar se o usuário já existe
       let user = await this.userRepository.findOne({
-        where: { email: userData.email }
+        where: { email: userData.email },
+        select: ['id', 'username', 'email', 'password', 'ativo'],
       });
 
       if (!user) {
@@ -313,6 +329,9 @@ export class AuthService {
         await this.paymentsService.createPayment(user);
 
       } else {
+        if (user.ativo === false) {
+          throw new UnauthorizedException('Usuário inativo. Faça login com uma conta ativa.');
+        }
         // Se o usuário existe mas não é conta Google, converte
         if (!user.password.startsWith('google_')) {
           const randomUUID = uuidv4();
@@ -333,6 +352,9 @@ export class AuthService {
       };
     } catch (error) {
       console.error('Erro no login com Google:', error);
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
       throw new InternalServerErrorException('Falha no login com Google');
     }
   }
