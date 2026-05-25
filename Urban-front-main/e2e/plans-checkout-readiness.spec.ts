@@ -83,7 +83,7 @@ test.describe('Plans checkout readiness', () => {
     await page.goto('/plans');
 
     await expect(page.getByRole('heading', { name: /Starter/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Assinar/i })).toBeDisabled();
+    await expect(page.getByRole('button', { name: /Continuar para pagamento/i })).toBeDisabled();
     expect(checkoutCalled).toBe(false);
   });
 
@@ -103,7 +103,7 @@ test.describe('Plans checkout readiness', () => {
     });
 
     await page.goto('/plans');
-    await page.getByRole('button', { name: /Assinar/i }).click();
+    await page.getByRole('button', { name: /Continuar para pagamento/i }).click();
 
     await expect(page.getByText(/A Urban AI encontrou uma instabilidade/i)).toBeVisible();
     expect(checkoutCalled).toBe(true);
@@ -115,11 +115,8 @@ test.describe('Plans checkout readiness', () => {
 
     await page.goto('/plans');
 
-    await expect(page.getByText(/pre.o sob consulta/i)).toBeVisible();
-    await expect(page.getByRole('link', { name: /comercial@myurbanai\.com/i })).toHaveAttribute(
-      'href',
-      'mailto:comercial@myurbanai.com',
-    );
-    await expect(page.getByRole('button', { name: /Assinar/i })).toHaveCount(0);
+    await expect(page.getByText(/atendimento comercial/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /Falar com comercial/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Continuar para pagamento/i })).toHaveCount(0);
   });
 });

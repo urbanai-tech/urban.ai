@@ -40,7 +40,18 @@ test.describe('PWA e mobile', () => {
 
     await page.goto('/');
     await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', '/manifest.webmanifest');
-    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#E8500A');
+    await expect(page.locator('meta[name="theme-color"][media="(prefers-color-scheme: light)"]')).toHaveAttribute(
+      'content',
+      '#FAFAFB',
+    );
+    await expect(page.locator('meta[name="theme-color"][media="(prefers-color-scheme: dark)"]')).toHaveAttribute(
+      'content',
+      '#080A0F',
+    );
+    await expect(page.locator('meta[name="theme-color"][data-urban-runtime-theme="true"]')).toHaveAttribute(
+      'content',
+      /#(?:FAFAFB|080A0F)/,
+    );
     await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute(
       'href',
       '/apple-touch-icon.png',
