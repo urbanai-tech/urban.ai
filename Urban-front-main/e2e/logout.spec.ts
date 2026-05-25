@@ -71,7 +71,7 @@ test.describe('Logout', () => {
     await expect(page.getByRole('heading', { name: /Calend.rio/i })).toBeVisible();
     await page.getByRole('button', { name: /^Sair$/i }).click();
 
-    expect(logoutCalls).toEqual(['POST']);
+    await expect.poll(() => logoutCalls).toEqual(['POST']);
     await page.waitForURL(/\/$/);
     await expect(page.getByRole('heading', { name: /Bem-vindo/i })).toBeVisible();
   });
