@@ -20,10 +20,10 @@ jobs:
         working-directory: Urban-front-main
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6.4.0
         with:
           node-version: '20'
           cache: 'npm'
@@ -55,10 +55,10 @@ jobs:
         working-directory: Urban-front-main
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6.4.0
         with:
           node-version: '20'
           cache: 'npm'
@@ -108,7 +108,7 @@ jobs:
 
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: playwright-report-public
           path: Urban-front-main/playwright-report/
@@ -125,10 +125,10 @@ jobs:
         working-directory: Urban-front-main
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6.4.0
         with:
           node-version: '20'
           cache: 'npm'
@@ -164,7 +164,7 @@ jobs:
 
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: playwright-report-authenticated
           path: Urban-front-main/playwright-report/
@@ -177,10 +177,10 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6.4.0
         with:
           node-version: '20'
 
@@ -202,7 +202,7 @@ jobs:
 
       - name: Upload enterprise evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: enterprise-live-gate
           path: docs/evidence/enterprise-live-gate-*.md
