@@ -33,6 +33,7 @@ out/
 # ===== Build outputs =====
 dist/
 build/
+*.tsbuildinfo
 
 # ===== IDE =====
 .vscode/
@@ -102,3 +103,4 @@ _browser_profile/
 
 # ===== Opensquad (build caches, não deve versionar output de runs) =====
 _opensquad/_browser_profile/
+/squads/*/state.json

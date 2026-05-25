@@ -12,6 +12,7 @@ import {
 
 // Base URL configurada via variável de ambiente
 const url = process.env.NEXT_PUBLIC_API_URL;
+const enableContractFallback = process.env.NEXT_PUBLIC_ENABLE_CONTRACT_FALLBACK === "true";
 
 export function getFriendlyApiErrorMessage(error: unknown, fallback?: string): string {
   const status = (error as any)?.response?.status;
@@ -991,13 +992,14 @@ export type HostEventPricingSimulationResponse = {
 };
 
 function isSafeHostEventMockFallback(error: unknown): boolean {
+  if (!enableContractFallback) return false;
   const status = (error as any)?.response?.status;
   if (status === 401 || status === 403) return false;
   return !status || status === 404 || status === 501 || status === 503;
 }
 
 function warnHostEventMock(endpoint: string, error: unknown) {
-  console.warn(`[host-event-radar] usando mock temporario para ${endpoint}`, error);
+  console.warn(`[host-event-radar] usando mock temporario habilitado por NEXT_PUBLIC_ENABLE_CONTRACT_FALLBACK para ${endpoint}`, error);
 }
 
 function normalizeNumber(value: unknown): number | null {
@@ -3718,6 +3720,7 @@ const ADMIN_EVENT_RADAR_FALLBACK_GAPS = [
 ];
 
 function isContractFallbackAllowed(error: unknown): boolean {
+  if (!enableContractFallback) return false;
   const status = (error as any)?.response?.status;
   const message = (error as any)?.message;
   const code = (error as any)?.code;

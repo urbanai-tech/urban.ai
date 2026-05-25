@@ -1,4 +1,4 @@
-import type { Plugin, ViteDevServer } from "vite";
+import type { Plugin, PreviewServer, ViteDevServer } from "vite";
 import { WebSocketServer, WebSocket } from "ws";
 import type { Server, IncomingMessage } from "node:http";
 import type { Duplex } from "node:stream";
@@ -8,6 +8,9 @@ import { watch as chokidarWatch } from "chokidar";
 import path from "node:path";
 import { parse as parseYaml } from "yaml";
 import type { SquadInfo, SquadState, WsMessage } from "../types/state";
+
+const VALID_SQUAD_STATUSES = new Set(["idle", "running", "completed", "checkpoint"]);
+const ACTIVE_SQUAD_STATUSES = new Set(["running", "checkpoint"]);
 
 function resolveSquadsDir(): string {
   const candidates = [
@@ -38,15 +41,9 @@ async function discoverSquads(squadsDir: string): Promise<SquadInfo[]> {
     try {
       const raw = await fsp.readFile(yamlPath, "utf-8");
       const parsed = parseYaml(raw);
-      const s = parsed?.squad;
-      if (s) {
-        squads.push({
-          code: typeof s.code === "string" ? s.code : entry.name,
-          name: typeof s.name === "string" ? s.name : entry.name,
-          description: typeof s.description === "string" ? s.description : "",
-          icon: typeof s.icon === "string" ? s.icon : "\u{1F4CB}",
-          agents: Array.isArray(s.agents) ? (s.agents as unknown[]).filter((a): a is string => typeof a === "string") : [],
-        });
+      const normalized = normalizeSquadConfig(parsed, entry.name);
+      if (normalized) {
+        squads.push(normalized);
         continue;
       }
     } catch {
@@ -65,14 +62,61 @@ async function discoverSquads(squadsDir: string): Promise<SquadInfo[]> {
   return squads;
 }
 
+function normalizeSquadConfig(parsed: unknown, fallbackCode: string): SquadInfo | null {
+  if (!parsed || typeof parsed !== "object") return null;
+  const root = parsed as Record<string, unknown>;
+  const nested = root.squad && typeof root.squad === "object"
+    ? root.squad as Record<string, unknown>
+    : null;
+  const s = nested ?? root;
+
+  const code = firstString(s.code, root.code, fallbackCode) ?? fallbackCode;
+  const name = firstString(s.name, root.name, s.title, root.title, code) ?? code;
+  const description =
+    firstString(s.description, root.description, s.purpose, root.purpose, s.summary, root.summary) ?? "";
+  const icon = firstString(s.icon, root.icon) ?? "\u{1F4CB}";
+  const agents = normalizeAgents(s.agents ?? root.agents ?? root.team);
+
+  return { code, name, description, icon, agents };
+}
+
+function firstString(...values: unknown[]): string | null {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return null;
+}
+
+function normalizeAgents(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((agent) => {
+      if (typeof agent === "string") return agent;
+      if (agent && typeof agent === "object") {
+        const a = agent as Record<string, unknown>;
+        return firstString(a.file, a.path, a.agent, a.id, a.name);
+      }
+      return null;
+    })
+    .filter((agent): agent is string => typeof agent === "string" && agent.length > 0);
+}
+
 function isValidState(data: unknown): data is SquadState {
   if (!data || typeof data !== "object") return false;
   const d = data as Record<string, unknown>;
+  const step = d.step as Record<string, unknown> | null;
   return (
     typeof d.status === "string" &&
-    d.step != null && typeof d.step === "object" &&
+    VALID_SQUAD_STATUSES.has(d.status) &&
+    step != null && typeof step === "object" &&
+    Number.isFinite(Number(step.current)) &&
+    Number.isFinite(Number(step.total)) &&
     Array.isArray(d.agents)
   );
+}
+
+function isActiveState(state: SquadState): boolean {
+  return ACTIVE_SQUAD_STATUSES.has(state.status);
 }
 
 async function readActiveStates(squadsDir: string): Promise<Record<string, SquadState>> {
@@ -92,7 +136,7 @@ async function readActiveStates(squadsDir: string): Promise<Record<string, Squad
     try {
       const raw = await fsp.readFile(statePath, "utf-8");
       const parsed = JSON.parse(raw);
-      if (isValidState(parsed)) {
+      if (isValidState(parsed) && isActiveState(parsed)) {
         states[entry.name] = parsed;
       }
     } catch {
@@ -122,6 +166,21 @@ function broadcast(wss: WebSocketServer, msg: WsMessage) {
       }
     }
   }
+}
+
+function installSnapshotMiddleware(server: Pick<ViteDevServer | PreviewServer, "middlewares">, squadsDir: string) {
+  server.middlewares.use(async (req, res, next) => {
+    if (req.url !== "/api/snapshot") return next();
+    try {
+      const snapshot = await buildSnapshot(squadsDir);
+      res.setHeader("Content-Type", "application/json");
+      res.setHeader("Cache-Control", "no-cache");
+      res.end(JSON.stringify(snapshot));
+    } catch {
+      res.writeHead(500);
+      res.end("Internal Server Error");
+    }
+  });
 }
 
 export function squadWatcherPlugin(): Plugin {
@@ -163,18 +222,7 @@ export function squadWatcherPlugin(): Plugin {
       });
 
       // REST API fallback — serves snapshot over HTTP for polling clients
-      server.middlewares.use(async (req, res, next) => {
-        if (req.url !== "/api/snapshot") return next();
-        try {
-          const snapshot = await buildSnapshot(squadsDir);
-          res.setHeader("Content-Type", "application/json");
-          res.setHeader("Cache-Control", "no-cache");
-          res.end(JSON.stringify(snapshot));
-        } catch {
-          res.writeHead(500);
-          res.end("Internal Server Error");
-        }
-      });
+      installSnapshotMiddleware(server, squadsDir);
 
       // File watcher using chokidar — reliable cross-platform, handles partial writes
       const watcher = chokidarWatch(squadsDir, {
@@ -196,6 +244,10 @@ export function squadWatcherPlugin(): Plugin {
           fsp.readFile(filePath, "utf-8").then((raw) => {
             const parsed = JSON.parse(raw);
             if (!isValidState(parsed)) return;
+            if (!isActiveState(parsed)) {
+              broadcast(wss, { type: "SQUAD_INACTIVE", squad: squadName });
+              return;
+            }
             broadcast(wss, { type: "SQUAD_UPDATE", squad: squadName, state: parsed });
           }).catch(() => {
             // Invalid JSON — next change event will retry
@@ -227,6 +279,10 @@ export function squadWatcherPlugin(): Plugin {
       server.httpServer.on("close", () => {
         watcher.close();
       });
+    },
+    configurePreviewServer(server: PreviewServer) {
+      const squadsDir = resolveSquadsDir();
+      installSnapshotMiddleware(server, squadsDir);
     },
   };
 }

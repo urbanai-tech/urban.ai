@@ -21,6 +21,7 @@ import { DatasetCollectorService } from '../knn-engine/dataset-collector.service
 import { calculateBacktest } from '../knn-engine/backtesting';
 import { MapsService } from '../maps/maps.service';
 import { runAdminJobWithTracking } from '../admin-job-runs/admin-job-run-tracker';
+import { AuthService } from '../auth/auth.service';
 
 /**
  * AdminService — agrega métricas de gestão Urban AI para o painel admin.
@@ -50,6 +51,7 @@ export class AdminService {
     private readonly adaptiveStrategy: AdaptivePricingStrategy,
     private readonly collector: DatasetCollectorService,
     private readonly mapsService: MapsService,
+    private readonly authService: AuthService,
   ) {}
 
   async listJobRuns(limit = 10, name?: string) {
@@ -1185,7 +1187,11 @@ export class AdminService {
       }
     }
     user.ativo = ativo;
-    return this.userRepo.save(user);
+    const saved = await this.userRepo.save(user);
+    if (ativo === false) {
+      await this.authService.revokeAllRefreshTokensForUser(user.id);
+    }
+    return saved;
   }
 
   // =========================================================================
