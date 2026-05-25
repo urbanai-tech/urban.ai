@@ -21,14 +21,19 @@ Base: `83ec7df` (`feat: unify property pricing self-service`)
 | Backend TypeScript | `tsc --noEmit` via `typescript@5.9.3` local | passou |
 | Backend Nest build | `nest build` via CLI local | passou |
 | Frontend TypeScript | `Urban-front-main/node_modules/.bin/tsc.cmd --noEmit` | passou |
+| Frontend Next build | `next build` com envs de smoke local | passou; 74 rotas geradas; warnings nao bloqueantes em `onboarding/page.tsx` |
+| Frontend public smoke | Playwright local contra build standalone (`release-gate-public.spec.ts`, `smoke.spec.ts`) | 19 testes passaram, 3 skips esperados |
 | Dashboard TypeScript | `dashboard/node_modules/.bin/tsc.cmd --noEmit` | passou |
 | Backend testes focados | `jest` direto nos specs de auth, jwt, admin e propriedades | 4 suites / 37 testes passaram |
+| Backend testes completos | `jest --runInBand` | 52 suites / 356 testes passaram |
 | Pipeline pytest | `.venv/Scripts/python.exe -m pytest` | 49 testes passaram |
 | Webscraping pytest | `.venv/Scripts/python.exe -m pytest` com permissao escalonada | 95 testes passaram |
 
 Observacao: a primeira tentativa de pytest do webscraping falhou por `PermissionError` ao importar `requests` dentro do `.venv`; ao repetir fora da restricao do sandbox, a suite passou integralmente.
 
-Observacao: o build local do Next.js foi tentado apos limpar caches/build outputs ignorados (`.next`, `dashboard/dist`, `urban-ai-backend-main/dist`), mas falhou por `ENOSPC: no space left on device`. No momento da checagem, o disco `C:` tinha cerca de 1.2 GB livres. O typecheck frontend passou, mas o build completo ainda precisa ser repetido em ambiente com mais espaco ou no CI com logs disponiveis.
+Observacao: o build local do Next.js falhou inicialmente por `ENOSPC` quando o disco `C:` tinha cerca de 1.2 GB livres. Apos liberar espaco, o mesmo build passou.
+
+Observacao: o smoke Playwright encontrou um falso positivo em `/precos`: o regex antigo interpretava o texto comercial `500 imoveis` como erro HTTP 500. O teste foi ajustado para procurar mensagens reais de erro runtime/servidor.
 
 Observacao: GitHub Actions disparou para o PR, mas os jobs nao iniciaram por bloqueio de billing/spending limit da conta. Mensagem do GitHub CLI: `The job was not started because recent account payments have failed or your spending limit needs to be increased.`
 
