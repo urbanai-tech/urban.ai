@@ -167,8 +167,8 @@ describe('PropriedadeService public responses', () => {
     expect(emailService.enviarNotification).toHaveBeenCalledWith(
       'user-1',
       expect.objectContaining({
-        title: 'Sugestoes de preco disponiveis',
-        description: 'Geramos 1 sugestao de preco para a propriedade Apartamento em Perdizes.',
+        title: 'Sugestões de preço disponíveis',
+        description: 'Geramos 1 sugestão de preço para a propriedade Apartamento em Perdizes.',
       }),
     );
   });

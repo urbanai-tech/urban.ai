@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, NotFoundException, Param, Patch, Post, Query, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, NotFoundException, Param, Patch, Post, Query, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { PropriedadeService } from './propriedade.service';
 import { Address } from 'src/entities/addresses.entity';
 import { ApiTags, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiOkResponse, ApiBody } from '@nestjs/swagger';
@@ -323,28 +323,32 @@ export class PropriedadeController {
     @Query('suaOcupacao') suaOcupacao?: number,
     @Query('fatorLocalizacao') fatorLocalizacao?: number,
   ) {
-    //const alerts = await this.propriedadeService.buscarAlertPorId("8a2999b68e85e90928bddeb0");
-    //DESCOMENTAR AQUI
-    //const getPricing = await this.propriedadeService.getPricingPropriedadeByEventAndByProperty();
-    await this.propriedadeService.buscarAddress("b54f06c8-44b2-436c-815b-9f7c19ba40dc")
-    // if (alerts?.comps?.length) {
-    //   const maxObj = alerts.comps.reduce((prev, curr) =>
-    //     curr.similarity_score > prev.similarity_score ? curr : prev
-    //   );
+    const required = {
+      precoReferencia,
+      seuPrecoAtual,
+      capacidadeReferencia,
+      suaCapacidade,
+      banheiroReferencia,
+      seuBanheiro,
+      ocupacaoReferencia,
+    };
+    for (const [key, value] of Object.entries(required)) {
+      if (!Number.isFinite(Number(value))) {
+        throw new BadRequestException(`${key} deve ser numerico`);
+      }
+    }
 
-    // }
-    // return this.pricingCalculateService.calcular({
-    //   precoReferencia: Number(precoReferencia),
-    //   seuPrecoAtual: Number(seuPrecoAtual),
-    //   capacidadeReferencia: Number(capacidadeReferencia),
-    //   suaCapacidade: Number(suaCapacidade),
-    //   banheiroReferencia: Number(banheiroReferencia),
-    //   seuBanheiro: Number(seuBanheiro),
-    //   ocupacaoReferencia: Number(ocupacaoReferencia),
-    //   suaOcupacao: suaOcupacao !== undefined ? Number(suaOcupacao) : undefined,
-    //   fatorLocalizacao: fatorLocalizacao !== undefined ? Number(fatorLocalizacao) : undefined,
-    // });
-    return { status: true }
+    return this.pricingCalculateService.calcular({
+      precoReferencia: Number(precoReferencia),
+      seuPrecoAtual: Number(seuPrecoAtual),
+      capacidadeReferencia: Number(capacidadeReferencia),
+      suaCapacidade: Number(suaCapacidade),
+      banheiroReferencia: Number(banheiroReferencia),
+      seuBanheiro: Number(seuBanheiro),
+      ocupacaoReferencia: Number(ocupacaoReferencia),
+      suaOcupacao: suaOcupacao !== undefined ? Number(suaOcupacao) : undefined,
+      fatorLocalizacao: fatorLocalizacao !== undefined ? Number(fatorLocalizacao) : undefined,
+    });
   }
 
   @Get(':propertyId/coordinates')

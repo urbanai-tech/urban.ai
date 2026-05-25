@@ -4,6 +4,7 @@ import {
   ConflictException,
   Controller,
   Delete,
+  ForbiddenException,
   forwardRef,
   Get,
   HttpCode,
@@ -28,7 +29,7 @@ import { Throttle } from '@nestjs/throttler';
 import { Request, Response } from 'express';
 import * as crypto from 'crypto';
 import { User } from 'src/entities/user.entity';
-import { AuthService, TokenPair } from './auth.service';
+import { AuthService, SafeUser, TokenPair } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ACCESS_TOKEN_COOKIE } from './jwt.strategy';
 import { WaitlistService } from '../waitlist/waitlist.service';
@@ -406,7 +407,7 @@ export class AuthController {
       email?: string;
       password?: string;
     },
-  ): Promise<User> {
+  ): Promise<SafeUser> {
     return this.authService.update(id, data);
   }
 
@@ -426,7 +427,11 @@ export class AuthController {
   })
   @UseGuards(JwtAuthGuard)
   @Get('user/:id')
-  getUser(@Param('id') id: string) {
+  getUser(@Param('id') id: string, @Req() req: any) {
+    const requester = req?.user;
+    if (requester?.userId !== id && requester?.role !== 'admin') {
+      throw new ForbiddenException('Acesso negado: voce so pode consultar seu proprio usuario.');
+    }
     return this.authService.findUserById(id);
   }
 

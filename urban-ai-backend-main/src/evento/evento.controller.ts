@@ -8,7 +8,7 @@ export class EventoController {
   constructor(private eventoService: EventoService) {}
 
   @Get()
-  //  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async getEvents(
     @Req() req: any,
     @Query('propriedadeId') propriedadeId: string,
@@ -16,7 +16,8 @@ export class EventoController {
     @Query('limit') limit = 10
   ) {
     return await this.eventoService.findEventosPorEnderecoPaginado(
-     propriedadeId,
+      propriedadeId,
+      req.user.userId,
       Number(page),
       Number(limit),
     );

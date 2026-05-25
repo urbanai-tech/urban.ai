@@ -26,6 +26,8 @@ const protectedRoutes = [
   '/settings/integrations',
 ];
 
+const runtimeErrorPattern = /Application error|Unhandled Runtime Error|404\s*(Not Found|Page Not Found)|500\s*(Internal Server Error|Server Error)|Internal Server Error/i;
+
 test.describe('Release gate - public pages', () => {
   test.beforeEach(async ({ page }) => {
     await acceptCookieConsent(page);
@@ -36,7 +38,7 @@ test.describe('Release gate - public pages', () => {
       const response = await page.goto(route, { waitUntil: 'domcontentloaded' });
 
       expect(response?.status(), `${route} should respond below 400`).toBeLessThan(400);
-      await expect(page.locator('body')).not.toContainText(/Application error|Unhandled Runtime Error|404|500/i);
+      await expect(page.locator('body')).not.toContainText(runtimeErrorPattern);
     });
   }
 

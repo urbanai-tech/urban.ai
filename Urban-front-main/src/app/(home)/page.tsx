@@ -526,7 +526,7 @@ export default function Login() {
                 height: 56,
                 padding: "0 28px",
                 background: "var(--app-accent)",
-                color: "var(--theme-public-text)",
+                color: "var(--theme-page-bg)",
                 border: "none",
                 borderRadius: 12,
                 fontSize: 15,
