@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Address } from 'src/entities/addresses.entity';
 import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity';
@@ -19,17 +19,37 @@ export class EventoService {
     private readonly addressRepository: Repository<Address>,
   ) { }
 
-  async findEventosPorEnderecoPaginado(addressId: string, page = 1, limit = 10) {
+  async findEventosPorEnderecoPaginado(addressId: string, userId: string, page = 1, limit = 10) {
+    if (!addressId) {
+      throw new BadRequestException('propriedadeId e obrigatorio');
+    }
+    if (!userId) {
+      throw new ForbiddenException('Usuario nao autenticado');
+    }
+
+    const address = await this.addressRepository.findOne({
+      where: [
+        { id: addressId, user: { id: userId } } as any,
+        { id: addressId, list: { user: { id: userId } } } as any,
+      ],
+      relations: ['user', 'list', 'list.user'],
+    });
+    if (!address) {
+      throw new ForbiddenException('Acesso negado para esta propriedade');
+    }
+
+    const safePage = Math.max(1, Number(page) || 1);
+    const safeLimit = Math.max(1, Math.min(100, Number(limit) || 10));
+
     const [analises, total] = await this.analiseRepo.findAndCount({
       where: {
         endereco: { id: addressId },
+        usuarioProprietario: { id: userId },
       },
       relations: ['evento'],
-      skip: (page - 1) * limit,
-      take: limit,
+      skip: (safePage - 1) * safeLimit,
+      take: safeLimit,
     });
-
-    const eventos = analises.map((analise) => analise.evento);
 
     return {
       data: analises.map((analise) => ({
@@ -37,8 +57,8 @@ export class EventoService {
         distancia_metros: analise?.distanciaMetros,
       })),
       total,
-      page,
-      limit,
+      page: safePage,
+      limit: safeLimit,
     };
 
   }

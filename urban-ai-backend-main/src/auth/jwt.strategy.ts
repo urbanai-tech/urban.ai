@@ -1,15 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Repository } from 'typeorm';
+import { User } from '../entities/user.entity';
 
 /** Nome do cookie que guarda o access token httpOnly. */
 export const ACCESS_TOKEN_COOKIE = 'urbanai_access_token';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(configService: ConfigService) {
+  constructor(
+    configService: ConfigService,
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
+  ) {
     const secret = configService.get<string>('JWT_SECRET');
     if (!secret) {
       throw new Error('JWT_SECRET environment variable is required');
@@ -28,6 +34,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    return { userId: payload.sub, username: payload.username, profile: payload.profile };
+    const user = await this.userRepository.findOne({
+      where: { id: payload.sub },
+      select: ['id', 'username', 'role', 'ativo'],
+    });
+
+    if (!user || !user.ativo) {
+      throw new UnauthorizedException('Usuário inativo ou inexistente.');
+    }
+
+    return {
+      userId: user.id,
+      username: user.username,
+      role: user.role,
+      profile: payload.profile,
+    };
   }
 }

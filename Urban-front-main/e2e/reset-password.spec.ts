@@ -24,6 +24,7 @@ test.describe('Reset de senha', () => {
     await page.getByPlaceholder('voce@email.com').fill('host.reset@urbanai.com.br');
     await page.getByRole('button', { name: /^Enviar link$/i }).click();
 
+    await expect.poll(() => payloads.length).toBe(1);
     expect(payloads[0]).toEqual({ email: 'host.reset@urbanai.com.br' });
     await expect(page.getByRole('heading', { name: /E-mail enviado/i })).toBeVisible();
     await expect(page.getByText(/host\.reset@urbanai\.com\.br/i)).toBeVisible();

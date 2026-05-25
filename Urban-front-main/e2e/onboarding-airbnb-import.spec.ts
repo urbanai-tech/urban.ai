@@ -12,8 +12,20 @@ async function mockPlans(page: Page) {
           title: 'Starter',
           price: '97',
           priceAnnual: '970',
+          priceMonthly: '97',
+          priceQuarterly: '92',
+          priceSemestral: '87',
+          priceAnnualNew: '77',
+          discountQuarterlyPercent: 5,
+          discountSemestralPercent: 10,
+          discountAnnualPercent: 20,
           period: '/mes',
+          minProperties: 1,
+          maxProperties: 3,
+          maxCheckoutQuantity: 3,
           features: ['1 imovel', 'Recomendacoes por eventos'],
+          isCustomPrice: false,
+          selfServiceEnabled: true,
           isActive: true,
         },
       ]),
@@ -355,11 +367,11 @@ test.describe('Onboarding Airbnb import', () => {
     await page.getByRole('button', { name: /Buscar im/i }).click();
     await page.getByRole('button', { name: /Registrar 1 im/i }).click();
     await page.getByRole('button', { name: /Salvar e continuar/i }).click();
-    await page.getByRole('button', { name: /Selecionar plano/i }).click();
+    await page.getByRole('button', { name: /Continuar para pagamento/i }).click();
 
     await expect.poll(() => checkoutPayloads.length).toBe(1);
     expect(checkoutPayloads[0]).toEqual({
-      plan: 'starter',
+      plan: 'auto',
       billingCycle: 'annual',
       quantity: 1,
     });
