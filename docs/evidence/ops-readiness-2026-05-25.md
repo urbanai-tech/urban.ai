@@ -19,6 +19,7 @@ Base: `83ec7df` (`feat: unify property pricing self-service`)
 | Area | Comando/forma | Resultado |
 |---|---|---|
 | Backend TypeScript | `tsc --noEmit` via `typescript@5.9.3` local | passou |
+| Backend Nest build | `nest build` via CLI local | passou |
 | Frontend TypeScript | `Urban-front-main/node_modules/.bin/tsc.cmd --noEmit` | passou |
 | Dashboard TypeScript | `dashboard/node_modules/.bin/tsc.cmd --noEmit` | passou |
 | Backend testes focados | `jest` direto nos specs de auth, jwt, admin e propriedades | 4 suites / 37 testes passaram |
@@ -26,6 +27,8 @@ Base: `83ec7df` (`feat: unify property pricing self-service`)
 | Webscraping pytest | `.venv/Scripts/python.exe -m pytest` com permissao escalonada | 95 testes passaram |
 
 Observacao: a primeira tentativa de pytest do webscraping falhou por `PermissionError` ao importar `requests` dentro do `.venv`; ao repetir fora da restricao do sandbox, a suite passou integralmente.
+
+Observacao: o build local do Next.js foi tentado apos limpar caches/build outputs ignorados (`.next`, `dashboard/dist`, `urban-ai-backend-main/dist`), mas falhou por `ENOSPC: no space left on device`. No momento da checagem, o disco `C:` tinha cerca de 1.2 GB livres. O typecheck frontend passou, mas o build completo ainda precisa ser repetido em ambiente com mais espaco ou no CI com logs disponiveis.
 
 ## Readiness atual
 
