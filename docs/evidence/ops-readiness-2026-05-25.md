@@ -23,11 +23,13 @@ Base: `83ec7df` (`feat: unify property pricing self-service`)
 | Frontend TypeScript | `Urban-front-main/node_modules/.bin/tsc.cmd --noEmit` | passou |
 | Frontend Next build | `next build` com envs de smoke local | passou; 74 rotas geradas; warnings nao bloqueantes em `onboarding/page.tsx` |
 | Frontend public smoke | Playwright local contra build standalone (`release-gate-public.spec.ts`, `smoke.spec.ts`) | 19 testes passaram, 3 skips esperados |
+| Frontend CI gates focados | Playwright local contra `next start` com envs de CI (`a11y`, `pwa-mobile`, `plans-checkout-readiness`, `onboarding-airbnb-import`, `logout`, `reset-password`) | 14 testes passaram, 1 skip esperado |
 | Dashboard TypeScript | `dashboard/node_modules/.bin/tsc.cmd --noEmit` | passou |
 | Backend testes focados | `jest` direto nos specs de auth, jwt, admin e propriedades | 4 suites / 37 testes passaram |
 | Backend testes completos | `jest --runInBand` | 52 suites / 356 testes passaram |
 | Pipeline pytest | `.venv/Scripts/python.exe -m pytest` | 49 testes passaram |
 | Webscraping pytest | `.venv/Scripts/python.exe -m pytest` com permissao escalonada | 95 testes passaram |
+| GitHub Actions Urban PR #5 | `gh pr checks 5 --repo urbanai-tech/urban.ai --watch` no commit `0ac476f` | checks obrigatorios passaram |
 
 Observacao: a primeira tentativa de pytest do webscraping falhou por `PermissionError` ao importar `requests` dentro do `.venv`; ao repetir fora da restricao do sandbox, a suite passou integralmente.
 
@@ -35,7 +37,11 @@ Observacao: o build local do Next.js falhou inicialmente por `ENOSPC` quando o d
 
 Observacao: o smoke Playwright encontrou um falso positivo em `/precos`: o regex antigo interpretava o texto comercial `500 imoveis` como erro HTTP 500. O teste foi ajustado para procurar mensagens reais de erro runtime/servidor.
 
-Observacao: GitHub Actions disparou para o PR, mas os jobs nao iniciaram por bloqueio de billing/spending limit da conta. Mensagem do GitHub CLI: `The job was not started because recent account payments have failed or your spending limit needs to be increased.`
+Observacao: GitHub Actions no fork `Gustavogm9/urban.ai` disparou para o PR, mas os jobs nao iniciaram por bloqueio de billing/spending limit da conta. Mensagem do GitHub CLI: `The job was not started because recent account payments have failed or your spending limit needs to be increased.`
+
+Observacao: foi aberto o draft PR Urban https://github.com/urbanai-tech/urban.ai/pull/5 para obter sinal de CI no repositorio correto. No commit `0ac476f`, passaram `Backend -- typecheck + jest`, `Backend -- nest build`, `Backend -- migrations dry-run against MySQL`, `Frontend -- typecheck + build`, `Frontend - Playwright public smoke`, `Frontend - Playwright mocked local E2E`, `Pipeline - pytest`, `Webscraping - pytest`, `Release - evidence dry-run`, `Frontend - tsc + next build` e `Playwright - public smoke`. Os checks `Enterprise live gate - staging/prod evidence`, `Playwright - authenticated smoke` e `Produto - E2E audit admin/host` ficaram skipped conforme condicoes/segredos.
+
+Observacao: o workflow agendado `Backup MySQL DB` do repo Urban ainda falha fora do PR porque os secrets do workflow nao estao configurados: `DATABASE_URL` vazio e nenhum destino `S3_BUCKET`/`B2_BUCKET` definido.
 
 ## Readiness atual
 
@@ -92,4 +98,5 @@ Recomendacao: nao mergear a branch inteira. Extrair cirurgicamente apenas itens 
 5. Corrigir Google Geocoding no Google Cloud e setar `GOOGLE_MAPS_API_KEY`.
 6. Obter credenciais Stays sandbox/assistida.
 7. Definir `RESTORE_DATABASE_URL` para restore drill.
-8. Decidir destino da branch `codex-assuncao-operacional-railway`: extrair itens ou apagar apos revisao.
+8. Configurar secrets do workflow `Backup MySQL DB`: `DATABASE_URL` e um destino off-site (`S3_BUCKET` com credenciais AWS ou `B2_BUCKET` com credenciais Backblaze).
+9. Decidir destino da branch `codex-assuncao-operacional-railway`: extrair itens ou apagar apos revisao.
