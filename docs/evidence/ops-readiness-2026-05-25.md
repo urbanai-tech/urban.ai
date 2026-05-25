@@ -30,6 +30,8 @@ Observacao: a primeira tentativa de pytest do webscraping falhou por `Permission
 
 Observacao: o build local do Next.js foi tentado apos limpar caches/build outputs ignorados (`.next`, `dashboard/dist`, `urban-ai-backend-main/dist`), mas falhou por `ENOSPC: no space left on device`. No momento da checagem, o disco `C:` tinha cerca de 1.2 GB livres. O typecheck frontend passou, mas o build completo ainda precisa ser repetido em ambiente com mais espaco ou no CI com logs disponiveis.
 
+Observacao: GitHub Actions disparou para o PR, mas os jobs nao iniciaram por bloqueio de billing/spending limit da conta. Mensagem do GitHub CLI: `The job was not started because recent account payments have failed or your spending limit needs to be increased.`
+
 ## Readiness atual
 
 `enterprise-access-readiness` segue bloqueado em `0/4` grupos prontos:
