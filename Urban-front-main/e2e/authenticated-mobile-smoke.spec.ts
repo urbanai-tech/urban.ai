@@ -53,13 +53,13 @@ test.describe('Smoke autenticado mobile', () => {
     await login(page);
 
     for (const route of ['/dashboard', '/properties', '/my-plan', '/settings/integrations']) {
-      await page.goto(route);
-      await page.waitForLoadState('networkidle');
+      await page.goto(route, { waitUntil: 'domcontentloaded' });
+      await expect(page.locator('body')).toBeVisible();
       await expectMobileHealthy(page);
     }
 
-    await page.goto('/admin/properties');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/admin/properties', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('body')).toBeVisible();
     await expectMobileHealthy(page);
   });
 });
