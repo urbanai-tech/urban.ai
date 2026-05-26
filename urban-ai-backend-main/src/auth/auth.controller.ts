@@ -7,6 +7,7 @@ import {
   ForbiddenException,
   forwardRef,
   Get,
+  HttpException,
   HttpCode,
   Inject,
   InternalServerErrorException,
@@ -281,21 +282,19 @@ export class AuthController {
   async googleLogin(
     @Body()
     googleUserData: {
-      email: string;
-      name: string;
-      picture?: string;
+      idToken?: string;
+      token?: string;
+      credential?: string;
     },
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
     try {
-      if (!googleUserData.email) {
-        throw new BadRequestException('Email não fornecido');
+      const idToken = googleUserData.idToken ?? googleUserData.credential ?? googleUserData.token;
+      if (!idToken) {
+        throw new BadRequestException('Token Google nao fornecido.');
       }
-      if (!googleUserData.name) {
-        throw new BadRequestException('Nome não fornecido');
-      }
-      const result = await this.authService.googleLogin(googleUserData, {
+      const result = await this.authService.googleLogin({ idToken }, {
         userAgent: req.headers['user-agent'],
         ip: req.ip,
       });
@@ -304,7 +303,7 @@ export class AuthController {
       return { accessToken: result.accessToken, user: result.user };
     } catch (error) {
       console.error('Erro no controller de login Google:', error);
-      if (error instanceof BadRequestException) {
+      if (error instanceof HttpException) {
         throw error;
       }
       throw new InternalServerErrorException(

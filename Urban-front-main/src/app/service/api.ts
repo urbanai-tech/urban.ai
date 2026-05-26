@@ -1098,6 +1098,8 @@ export type EventIntelligenceDetail = {
     interpretation: string;
     drivers: EventDemandDriver[];
     riskFlags: string[];
+    dataQualityFlags: string[];
+    dataStatus?: string | null;
     generatedAt: string;
     modelVersion: string;
     metricVersion: string;
@@ -1379,7 +1381,21 @@ function normalizeRadarItem(raw: any, responseData?: any): HostEventRadarItem {
     ? impactsSource.map(normalizePropertyImpact)
     : [];
   const bestImpactSource = raw?.bestPropertyImpact ?? raw?.bestImpact ?? impactedProperties[0] ?? null;
-  const intelligence = raw?.intelligence ?? null;
+  const rawIntelligence = raw?.intelligence ?? null;
+  const intelligence = rawIntelligence
+    ? {
+        ...rawIntelligence,
+        dataQualityFlags: Array.isArray(rawIntelligence?.dataQualityFlags)
+          ? rawIntelligence.dataQualityFlags.map(String)
+          : Array.isArray(raw?.dataQualityFlags)
+            ? raw.dataQualityFlags.map(String)
+            : [],
+        dataStatus: rawIntelligence?.dataStatus ?? raw?.dataStatus ?? null,
+        modelVersion: rawIntelligence?.modelVersion ?? raw?.modelVersion ?? 'unknown',
+        metricVersion: rawIntelligence?.metricVersion ?? raw?.metricVersion ?? 'unknown',
+        jobRunId: rawIntelligence?.jobRunId ?? raw?.jobRunId ?? null,
+      }
+    : null;
 
   return {
     ...event,
@@ -1577,9 +1593,20 @@ function normalizeRadarResponse(data: any): HostEventRadarResponse {
 
 function normalizeDetailResponse(data: any, eventId: string): HostEventDetailResponse {
   const event = normalizeCatalogItem(data?.event ?? data);
+  const rawIntelligence = data?.intelligence ?? null;
   const detail: HostEventDetailResponse = {
     event: event.id ? event : { ...event, id: eventId },
-    intelligence: data?.intelligence ?? {
+    intelligence: rawIntelligence ? {
+      ...rawIntelligence,
+      riskFlags: Array.isArray(rawIntelligence?.riskFlags) ? rawIntelligence.riskFlags.map(String) : [],
+      dataQualityFlags: Array.isArray(rawIntelligence?.dataQualityFlags)
+        ? rawIntelligence.dataQualityFlags.map(String)
+        : [],
+      dataStatus: rawIntelligence?.dataStatus ?? data?.dataStatus ?? null,
+      modelVersion: String(rawIntelligence?.modelVersion ?? data?.modelVersion ?? 'unknown'),
+      metricVersion: String(rawIntelligence?.metricVersion ?? data?.metricVersion ?? 'unknown'),
+      jobRunId: rawIntelligence?.jobRunId ?? data?.jobRunId ?? null,
+    } : {
       eventDemandScore: normalizeNumber(data?.eventDemandScore),
       eventRevenuePotentialCents: normalizeCents(data?.eventRevenuePotentialCents),
       demandRadiusKm: normalizeNumber(data?.demandRadiusKm),
@@ -1589,6 +1616,8 @@ function normalizeDetailResponse(data: any, eventId: string): HostEventDetailRes
       interpretation: String(data?.interpretation ?? ''),
       drivers: Array.isArray(data?.drivers) ? data.drivers : [],
       riskFlags: Array.isArray(data?.riskFlags) ? data.riskFlags.map(String) : [],
+      dataQualityFlags: Array.isArray(data?.dataQualityFlags) ? data.dataQualityFlags.map(String) : [],
+      dataStatus: data?.dataStatus ?? null,
       generatedAt: String(data?.generatedAt ?? new Date().toISOString()),
       modelVersion: String(data?.modelVersion ?? 'unknown'),
       metricVersion: String(data?.metricVersion ?? 'unknown'),
@@ -3788,6 +3817,10 @@ export interface AdminEventRadarEvent {
   interpretation: string;
   riskFlags: string[];
   dataQualityFlags: string[];
+  dataStatus?: string | null;
+  modelVersion?: string | null;
+  metricVersion?: string | null;
+  jobRunId?: string | null;
   raw?: Record<string, unknown>;
 }
 
@@ -3906,6 +3939,7 @@ export interface AdminEventRadarDetail {
     drivers: Array<{ key: string; label: string; weight: number; explanation: string }>;
     riskFlags: string[];
     dataQualityFlags: string[];
+    dataStatus?: string | null;
     generatedAt: string;
     modelVersion: string;
     metricVersion: string;
@@ -3956,6 +3990,221 @@ function confidenceToPercent(confidence: EventRadarConfidence): number {
   return 38;
 }
 
+function normalizeAdminEventRadarEvent(raw: any): AdminEventRadarEvent {
+  const event = raw?.event ?? raw;
+  const intelligence = raw?.intelligence ?? raw;
+  const admin = raw?.admin ?? {};
+  const impact = raw?.impact ?? {};
+  const hasCoords = normalizeNumber(event?.latitude) !== null && normalizeNumber(event?.longitude) !== null;
+  const dataCrawlTime = admin?.dataCrawl ? new Date(admin.dataCrawl).getTime() : null;
+  const staleCutoff = Date.now() - 72 * 60 * 60 * 1000;
+  const sourceStatus: AdminEventRadarEvent['sourceStatus'] =
+    !event?.source
+      ? 'unknown'
+      : dataCrawlTime && Number.isFinite(dataCrawlTime) && dataCrawlTime < staleCutoff
+        ? 'stale'
+        : 'fresh';
+  const enrichmentStatus: AdminEventRadarEvent['enrichmentStatus'] =
+    admin?.enrichmentLastError
+      ? 'failed'
+      : admin?.enrichmentAttempts > 0
+        ? 'ok'
+        : 'pending';
+
+  return {
+    id: String(event?.id ?? raw?.id ?? ''),
+    name: String(event?.name ?? event?.nome ?? raw?.name ?? 'Evento sem nome'),
+    startsAt: String(event?.startsAt ?? event?.dataInicio ?? raw?.startsAt ?? new Date().toISOString()),
+    endsAt: event?.endsAt ?? event?.dataFim ?? null,
+    city: String(event?.city ?? event?.cidade ?? 'Sao Paulo'),
+    state: String(event?.state ?? event?.estado ?? 'SP'),
+    venueName: event?.venueName ?? event?.venue ?? null,
+    category: event?.category ?? event?.categoria ?? null,
+    source: event?.source ?? null,
+    sourceId: admin?.sourceId ?? event?.sourceId ?? null,
+    dedupHash: admin?.dedupHash ?? event?.dedupHash ?? null,
+    demandScore: normalizeNumber(intelligence?.eventDemandScore ?? event?.demandScore ?? event?.urbanScore),
+    revenuePotentialCents: normalizeCents(intelligence?.eventRevenuePotentialCents ?? raw?.revenuePotentialCents),
+    confidence: normalizeConfidence(intelligence?.confidence ?? event?.confidence),
+    affectedPropertiesCount: Number(impact?.affectedPropertiesCount ?? raw?.affectedPropertiesCount ?? 0),
+    recommendationsGenerated: Number(impact?.recommendationsGenerated ?? raw?.recommendationsGenerated ?? 0),
+    demandRadiusKm: normalizeNumber(intelligence?.demandRadiusKm ?? event?.demandRadiusKm),
+    expectedAttendance: normalizeNumber(intelligence?.expectedAttendance ?? event?.expectedAttendance),
+    geocodeStatus: hasCoords ? 'ok' : admin?.pendingGeocode ? 'pending' : 'missing',
+    enrichmentStatus,
+    sourceStatus,
+    officialUrl: event?.officialUrl ?? event?.linkSiteOficial ?? null,
+    crawledUrl: event?.crawledUrl ?? null,
+    imageUrl: event?.imageUrl ?? event?.imagemUrl ?? null,
+    latitude: normalizeNumber(event?.latitude),
+    longitude: normalizeNumber(event?.longitude),
+    interpretation: String(intelligence?.interpretation ?? ''),
+    riskFlags: Array.isArray(intelligence?.riskFlags) ? intelligence.riskFlags.map(String) : [],
+    dataQualityFlags: Array.isArray(admin?.dataQualityFlags)
+      ? admin.dataQualityFlags.map(String)
+      : Array.isArray(intelligence?.dataQualityFlags)
+        ? intelligence.dataQualityFlags.map(String)
+        : [],
+    dataStatus: intelligence?.dataStatus ?? event?.dataStatus ?? null,
+    modelVersion: intelligence?.modelVersion ?? null,
+    metricVersion: intelligence?.metricVersion ?? null,
+    jobRunId: intelligence?.jobRunId ?? null,
+    raw: raw as Record<string, unknown>,
+  };
+}
+
+function normalizeAdminEventRadarResponse(data: any, filters: AdminEventRadarFilters): AdminEventRadarResponse {
+  const rawEvents: any[] = Array.isArray(data?.events)
+    ? data.events
+    : Array.isArray(data?.items)
+      ? data.items
+      : Array.isArray(data)
+        ? data
+        : [];
+  const events: AdminEventRadarEvent[] = rawEvents.map(normalizeAdminEventRadarEvent);
+  const averageDemand = events.length
+    ? clampPercent(events.reduce((sum: number, event: AdminEventRadarEvent) => sum + (event.demandScore ?? 0), 0) / events.length)
+    : 0;
+  const coveragePercent = events.length
+    ? clampPercent((events.filter((event: AdminEventRadarEvent) => event.geocodeStatus === 'ok').length / events.length) * 100)
+    : 0;
+  const highPotentialWithoutRecommendation = events.filter(
+    (event: AdminEventRadarEvent) => (event.demandScore ?? 0) >= 75 && event.recommendationsGenerated === 0,
+  ).length;
+
+  return {
+    generatedAt: String(data?.generatedAt ?? new Date().toISOString()),
+    contractMode: data?.contractMode ?? 'backend',
+    endpointGaps: data?.endpointGaps,
+    filters: data?.filters ?? filters,
+    kpis: {
+      demandPotentialScore: Number(data?.kpis?.demandPotentialScore ?? averageDemand),
+      revenuePotentialCents: Number(
+        data?.kpis?.revenuePotentialCents ??
+          data?.summary?.totalRevenuePotentialCents ??
+          events.reduce((sum: number, event: AdminEventRadarEvent) => sum + (event.revenuePotentialCents ?? 0), 0),
+      ),
+      highPotentialEvents: Number(
+        data?.kpis?.highPotentialEvents ??
+          data?.summary?.highDemandEvents ??
+          events.filter((event: AdminEventRadarEvent) => (event.demandScore ?? 0) >= 70).length,
+      ),
+      affectedProperties: Number(
+        data?.kpis?.affectedProperties ??
+          data?.summary?.affectedProperties ??
+          events.reduce((sum: number, event: AdminEventRadarEvent) => sum + event.affectedPropertiesCount, 0),
+      ),
+      recommendationsGenerated: Number(
+        data?.kpis?.recommendationsGenerated ??
+          data?.summary?.recommendationsGenerated ??
+          events.reduce((sum: number, event: AdminEventRadarEvent) => sum + event.recommendationsGenerated, 0),
+      ),
+      highPotentialWithoutRecommendation: Number(
+        data?.kpis?.highPotentialWithoutRecommendation ?? highPotentialWithoutRecommendation,
+      ),
+      averageConfidencePercent: Number(
+        data?.kpis?.averageConfidencePercent ??
+          confidenceToPercent(data?.summary?.averageConfidence ?? 'medium'),
+      ),
+      weightedCoveragePercent: Number(data?.kpis?.weightedCoveragePercent ?? coveragePercent),
+    },
+    events,
+    categories: Array.isArray(data?.categories)
+      ? data.categories.map(String)
+      : Array.from(new Set(events.map((event: AdminEventRadarEvent) => event.category).filter(Boolean))) as string[],
+    sources: Array.isArray(data?.sources)
+      ? data.sources.map(String)
+      : Array.from(new Set(events.map((event: AdminEventRadarEvent) => event.source).filter(Boolean))) as string[],
+    cities: Array.isArray(data?.cities)
+      ? data.cities.map(String)
+      : Array.from(new Set(events.map((event: AdminEventRadarEvent) => `${event.city}/${event.state}`))).sort(),
+  };
+}
+
+function normalizeAdminPropertyImpact(raw: any): AdminEventRadarPropertyImpact {
+  return {
+    propertyId: String(raw?.propertyId ?? raw?.addressId ?? ''),
+    propertyName: String(raw?.propertyName ?? raw?.name ?? 'Imovel'),
+    hostUserId: raw?.hostUserId ?? null,
+    hostEmail: raw?.hostEmail ?? null,
+    distanceKm: normalizeNumber(raw?.distanceKm),
+    travelTimeMinutes: normalizeNumber(raw?.travelTimeMinutes) ?? undefined,
+    propertyCaptureScore: normalizeNumber(raw?.propertyCaptureScore),
+    currentPriceCents: normalizeCents(raw?.currentPriceCents ?? raw?.basePriceCents),
+    recommendedPriceCents: normalizeCents(raw?.recommendedPriceCents),
+    minAbsorbablePriceCents: normalizeCents(raw?.minAbsorbablePriceCents),
+    maxAbsorbablePriceCents: normalizeCents(raw?.maxAbsorbablePriceCents),
+    recommendedMultiplier: normalizeNumber(raw?.recommendedMultiplier),
+    maxPlausibleMultiplier: normalizeNumber(raw?.maxPlausibleMultiplier),
+    bookingProbability: normalizeNumber(raw?.bookingProbability),
+    expectedRevenueCents: normalizeCents(raw?.expectedRevenueCents),
+    expectedIncrementalRevenueCents: normalizeCents(raw?.expectedIncrementalRevenueCents),
+    confidence: normalizeConfidence(raw?.confidence),
+    recommendedAction: raw?.recommendedAction ?? 'review',
+    mainDrivers: Array.isArray(raw?.mainDrivers) ? raw.mainDrivers.map(String) : [],
+  };
+}
+
+function normalizeAdminEventRadarDetail(
+  data: any,
+  impactResult: AdminEventRadarPropertyImpact[] | null,
+  seed?: AdminEventRadarEvent,
+): AdminEventRadarDetail {
+  const rawEvent = data?.event ?? seed ?? {};
+  const event = normalizeAdminEventRadarEvent({
+    event: rawEvent,
+    intelligence: data?.intelligence,
+    admin: data?.admin,
+    impact: {
+      affectedPropertiesCount:
+        impactResult?.length ?? data?.operation?.affectedPropertiesCount ?? seed?.affectedPropertiesCount ?? 0,
+      recommendationsGenerated:
+        data?.operation?.recommendationsGenerated ?? seed?.recommendationsGenerated ?? 0,
+    },
+  });
+  const propertyImpact = Array.isArray(impactResult)
+    ? impactResult
+    : Array.isArray(data?.propertyImpact)
+      ? data.propertyImpact.map(normalizeAdminPropertyImpact)
+      : [];
+  const intelligence = data?.intelligence ?? {};
+
+  return {
+    generatedAt: String(data?.generatedAt ?? new Date().toISOString()),
+    contractMode: data?.contractMode ?? 'backend',
+    endpointGaps: data?.endpointGaps,
+    event,
+    intelligence: {
+      eventDemandScore: normalizeNumber(intelligence?.eventDemandScore ?? event.demandScore),
+      eventRevenuePotentialCents: normalizeCents(intelligence?.eventRevenuePotentialCents ?? event.revenuePotentialCents),
+      demandRadiusKm: normalizeNumber(intelligence?.demandRadiusKm ?? event.demandRadiusKm),
+      expectedAttendance: normalizeNumber(intelligence?.expectedAttendance ?? event.expectedAttendance),
+      sourceReliabilityScore: normalizeNumber(intelligence?.sourceReliabilityScore),
+      confidence: normalizeConfidence(intelligence?.confidence ?? event.confidence),
+      interpretation: String(intelligence?.interpretation ?? event.interpretation ?? ''),
+      drivers: Array.isArray(intelligence?.drivers) ? intelligence.drivers : [],
+      riskFlags: Array.isArray(intelligence?.riskFlags) ? intelligence.riskFlags.map(String) : event.riskFlags,
+      dataQualityFlags: Array.isArray(intelligence?.dataQualityFlags)
+        ? intelligence.dataQualityFlags.map(String)
+        : event.dataQualityFlags,
+      dataStatus: intelligence?.dataStatus ?? event.dataStatus ?? null,
+      generatedAt: String(intelligence?.generatedAt ?? data?.generatedAt ?? new Date().toISOString()),
+      modelVersion: String(intelligence?.modelVersion ?? event.modelVersion ?? 'unknown'),
+      metricVersion: String(intelligence?.metricVersion ?? event.metricVersion ?? 'unknown'),
+      jobRunId: intelligence?.jobRunId ?? event.jobRunId ?? null,
+    },
+    operation: {
+      geocodeStatus: event.geocodeStatus,
+      enrichmentStatus: event.enrichmentStatus,
+      sourceStatus: event.sourceStatus,
+      affectedPropertiesCount: event.affectedPropertiesCount,
+      recommendationsGenerated: event.recommendationsGenerated,
+    },
+    propertyImpact,
+    rawEvent: data?.rawEvent ?? data ?? {},
+  };
+}
+
 function inferFallbackDemandScore(event: EventListItem): number {
   const relevance = event.relevancia ?? 35;
   const attendance =
@@ -3996,6 +4245,7 @@ function toFallbackRadarEvent(event: EventListItem): AdminEventRadarEvent {
   const sourceStatus =
     event.source && event.source.toLowerCase().includes('stale') ? 'stale' : event.source ? 'fresh' : 'unknown';
   const dataQualityFlags = [
+    'contract_fallback',
     !hasCoords ? 'missing_coordinates' : '',
     !event.crawledUrl && !event.linkSiteOficial ? 'missing_source_url' : '',
     event.pendingGeocode ? 'pending_geocode' : '',
@@ -4037,6 +4287,10 @@ function toFallbackRadarEvent(event: EventListItem): AdminEventRadarEvent {
       'Fallback contratual: leitura estimada a partir de relevancia, capacidade, coordenadas e escopo enquanto o endpoint de inteligencia de eventos nao esta disponivel.',
     riskFlags,
     dataQualityFlags,
+    dataStatus: 'derived_from_event_fields',
+    modelVersion: 'contract-fallback-v0',
+    metricVersion: 'contract-fallback-v0',
+    jobRunId: null,
     raw: event as unknown as Record<string, unknown>,
   };
 }
@@ -4318,10 +4572,11 @@ function buildFallbackDetail(event: AdminEventRadarEvent): AdminEventRadarDetail
       ],
       riskFlags: event.riskFlags,
       dataQualityFlags: event.dataQualityFlags,
+      dataStatus: event.dataStatus ?? 'derived_from_event_fields',
       generatedAt: new Date().toISOString(),
-      modelVersion: 'contract-fallback-v0',
-      metricVersion: 'contract-fallback-v0',
-      jobRunId: null,
+      modelVersion: event.modelVersion ?? 'contract-fallback-v0',
+      metricVersion: event.metricVersion ?? 'contract-fallback-v0',
+      jobRunId: event.jobRunId ?? null,
     },
     operation: {
       geocodeStatus: event.geocodeStatus,
@@ -4531,7 +4786,7 @@ export async function fetchAdminEventRadar(
     const { data } = await api.get<AdminEventRadarResponse>('/admin/events/intelligence', {
       params: filters,
     });
-    return { ...data, contractMode: data.contractMode ?? 'backend' };
+    return normalizeAdminEventRadarResponse(data, filters);
   } catch (error) {
     if (!isContractFallbackAllowed(error)) throw error;
     let analytics: AdminEventsAnalytics;
@@ -4603,18 +4858,20 @@ export async function fetchAdminEventRadarDetail(
     const [{ data: detail }, impactResult] = await Promise.all([
       api.get<AdminEventRadarDetail>(`/admin/events/${eventId}/intelligence`),
       api
-        .get<AdminEventRadarPropertyImpact[]>(`/admin/events/${eventId}/property-impact`)
-        .then((r) => r.data)
+        .get<AdminEventRadarPropertyImpact[] | { items?: AdminEventRadarPropertyImpact[] }>(
+          `/admin/events/${eventId}/property-impact`,
+        )
+        .then((r) => (Array.isArray(r.data) ? r.data : Array.isArray(r.data?.items) ? r.data.items : []))
         .catch((error) => {
           if (isContractFallbackAllowed(error)) return null;
           throw error;
         }),
     ]);
-    return {
-      ...detail,
-      contractMode: detail.contractMode ?? 'backend',
-      propertyImpact: impactResult ?? detail.propertyImpact ?? [],
-    };
+    return normalizeAdminEventRadarDetail(
+      detail,
+      Array.isArray(impactResult) ? impactResult.map(normalizeAdminPropertyImpact) : null,
+      seed,
+    );
   } catch (error) {
     if (!isContractFallbackAllowed(error)) throw error;
     if (seed) return buildFallbackDetail(seed);

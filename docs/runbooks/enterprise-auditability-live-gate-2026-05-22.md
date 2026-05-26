@@ -7,7 +7,7 @@ Escopo: executar um gate reproduzivel para provar, em staging/producao, que os c
 ## O que o gate cobre
 
 - Backend `/health/live`.
-- Backend `/health` com status `ok`.
+- Backend `/health` com status `ok` usando bearer de readiness.
 - Frontend respondendo HTTP menor que 400.
 - Admin read-only: dashboard summary, jobs runs, audit logs e Stays health.
 - AskUrban: `GET /ask/usage` com entitlement server-side e bloqueio de `POST /ask/question` quando `canUse=false`.
@@ -35,6 +35,7 @@ Obrigatorias para live run:
 ```text
 ENTERPRISE_GATE_BACKEND_URL=https://<api>
 ENTERPRISE_GATE_FRONTEND_URL=https://<app>
+ENTERPRISE_GATE_HEALTH_TOKEN=<health-readiness-token>
 ```
 
 Recomendadas:
@@ -54,6 +55,7 @@ E2E_API_URL
 E2E_BASE_URL
 ADMIN_JWT
 HOST_JWT
+HEALTH_READINESS_TOKEN
 EVENTS_INGEST_API_KEY
 ```
 
@@ -70,6 +72,7 @@ Criterio: deve imprimir checks planejados e pular checks que precisam de credenc
 ```powershell
 $env:ENTERPRISE_GATE_BACKEND_URL="https://api-staging.example.com"
 $env:ENTERPRISE_GATE_FRONTEND_URL="https://app-staging.example.com"
+$env:ENTERPRISE_GATE_HEALTH_TOKEN="<health-readiness-token>"
 $env:ENTERPRISE_GATE_ADMIN_JWT="<admin-jwt>"
 $env:ENTERPRISE_GATE_HOST_JWT="<host-jwt>"
 

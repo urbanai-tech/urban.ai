@@ -1,4 +1,5 @@
-import { Injectable, Logger, Optional } from '@nestjs/common';
+import { Injectable, Logger, Optional, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
+import { timingSafeEqual } from 'crypto';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
@@ -59,6 +60,25 @@ export class HealthService {
       status: 'ok' as const,
       uptimeSec: Math.floor(process.uptime()),
     };
+  }
+
+  assertReadinessAccess(authorization?: string | string[] | null): void {
+    if (process.env.HEALTH_READINESS_PUBLIC === 'true') return;
+
+    const env = process.env.APP_ENV ?? process.env.NODE_ENV ?? 'development';
+    const protectedEnv = env === 'production' || env === 'staging';
+    const expectedToken = (process.env.HEALTH_READINESS_TOKEN || process.env.ENTERPRISE_GATE_HEALTH_TOKEN || '').trim();
+
+    if (!expectedToken && !protectedEnv) return;
+    if (!expectedToken) {
+      throw new ServiceUnavailableException('Health readiness token is not configured.');
+    }
+
+    const header = Array.isArray(authorization) ? authorization[0] : authorization;
+    const match = /^Bearer\s+(.+)$/i.exec(String(header || '').trim());
+    if (!match || !this.safeEqual(match[1], expectedToken)) {
+      throw new UnauthorizedException('Invalid health readiness token.');
+    }
   }
 
   private async checkDatabase(): Promise<{
@@ -156,6 +176,12 @@ export class HealthService {
 
   private hasEnv(name: string) {
     return Boolean(process.env[name]?.trim());
+  }
+
+  private safeEqual(actual: string, expected: string) {
+    const actualBuffer = Buffer.from(actual);
+    const expectedBuffer = Buffer.from(expected);
+    return actualBuffer.length === expectedBuffer.length && timingSafeEqual(actualBuffer, expectedBuffer);
   }
 
   private isDatabaseEnvConfigured() {
