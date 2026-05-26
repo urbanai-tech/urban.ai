@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { PropriedadeService } from 'src/propriedades/propriedade.service';
 import { Between, Repository } from 'typeorm';
+import { startOfDay } from 'date-fns';
 
 @Injectable()
 export class DashboardService {
@@ -14,7 +15,7 @@ export class DashboardService {
 
     async getReceitaProjetada(usuarioId: string, propertyId: string): Promise<any> {
         const hoje = new Date();
-        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        const inicioMes = startOfDay(hoje);
         const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0, 23, 59, 59, 999);
 
         const where: any = {
@@ -27,27 +28,29 @@ export class DashboardService {
         }
 
         const analises = await this.analisePrecoRepositoru.find({ where });
-        let diferencaPercentual = 0.0;
+        let precoAtualTotal = 0.0;
+        let precoSugeridoTotal = 0.0;
 
         analises.forEach((element) => {
             const precoSugerido = Number(element?.precoSugerido);
             const precoAtual = Number(element?.seuPrecoAtual);
 
             if (precoAtual && precoSugerido) {
-                diferencaPercentual = ((precoSugerido - precoAtual) / precoAtual) * 100;
+                precoAtualTotal += precoAtual;
+                precoSugeridoTotal += precoSugerido;
             }
         });
 
-        const receitaProjetada = analises.reduce(
-            (total, analise) => total + Number(analise.precoSugerido),
-            0,
-        );
+        const diferencaPercentual = precoAtualTotal
+            ? ((precoSugeridoTotal - precoAtualTotal) / precoAtualTotal) * 100
+            : 0.0;
+        const receitaProjetada = precoSugeridoTotal;
         return { receitaProjetada, diferencaPercentual };
     }
 
     async getLucroProjetado(usuarioId: string, propertyId: string): Promise<number> {
         const hoje = new Date();
-        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        const inicioMes = startOfDay(hoje);
         const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0, 23, 59, 59, 999);
 
         const where: any = {

@@ -111,6 +111,7 @@ export const AppSelect = React.forwardRef<HTMLSelectElement, SelectProps>(functi
           ...appFieldBaseStyle,
           appearance: "none",
           paddingRight: 36,
+          backgroundColor: appVar.surface,
           backgroundImage: "var(--app-select-chevron)",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "right 12px center",

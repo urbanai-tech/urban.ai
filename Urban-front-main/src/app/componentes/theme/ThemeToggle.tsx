@@ -28,6 +28,8 @@ export function ThemeToggle({
         display: "inline-flex",
         alignItems: "center",
         gap: 3,
+        minWidth: 0,
+        maxWidth: "100%",
         padding: 3,
         borderRadius: 999,
         border:
@@ -51,8 +53,9 @@ export function ThemeToggle({
             onClick={() => setTheme(option.value)}
             style={{
               height: compact ? 28 : 30,
-              minWidth: compact ? 30 : 86,
-              padding: compact ? "0 8px" : "0 11px",
+              flex: compact ? "0 0 auto" : "1 1 0",
+              minWidth: compact ? 28 : 0,
+              padding: compact ? "0 7px" : "0 8px",
               border: "none",
               borderRadius: 999,
               background: active
@@ -69,14 +72,19 @@ export function ThemeToggle({
               fontFamily: "Inter, system-ui, sans-serif",
               fontSize: 11,
               fontWeight: active ? 700 : 600,
-              letterSpacing: 0.5,
+              letterSpacing: 0,
               lineHeight: 1,
               transition: "background 120ms, color 120ms",
               whiteSpace: "nowrap",
+              overflow: "hidden",
             }}
           >
             {iconFor[option.value]}
-            {!compact && <span>{option.label}</span>}
+            {!compact && (
+              <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>
+                {option.label}
+              </span>
+            )}
           </button>
         );
       })}

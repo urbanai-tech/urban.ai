@@ -189,8 +189,7 @@ export default function CoverageAdminPage() {
             borderRadius: 2,
             color: "var(--admin-text)",
             appearance: "none",
-            backgroundImage:
-              "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.55)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>\")",
+            backgroundImage: "var(--admin-select-chevron)",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "right 8px center",
             cursor: busyId === r.id ? "not-allowed" : "pointer",

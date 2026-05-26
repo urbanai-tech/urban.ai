@@ -36,3 +36,14 @@ export function dateAtLocalOffset(daysOffset: number, from = new Date()): Date {
   date.setDate(date.getDate() + daysOffset);
   return date;
 }
+
+export function startOfLocalDay(date = new Date()): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+export function isTodayOrFutureDate(value: string | Date | null | undefined, from = new Date()): boolean {
+  if (!value) return false;
+  const date = typeof value === "string" ? parseLocalDate(value) : value;
+  if (!date || Number.isNaN(date.getTime())) return false;
+  return startOfLocalDay(date).getTime() >= startOfLocalDay(from).getTime();
+}

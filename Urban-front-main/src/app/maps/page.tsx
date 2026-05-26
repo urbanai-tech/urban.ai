@@ -15,8 +15,9 @@ import {
   AppLoadingStatus,
   Icons,
 } from '../componentes/ui';
+import { isTodayOrFutureDate } from '../lib/date';
 
-const PropertySelect = dynamic(() => import('./components/CustomSelect'), {
+const PropertySelect = dynamic(() => import('../componentes/PropertySelect'), {
   ssr: false,
   loading: () => (
     <div style={{ height: 40, display: "grid", placeItems: "center" }}>
@@ -58,6 +59,13 @@ export default function MapsPage() {
 
   const [startDate, setStartDate] = useState<string>(toIsoDate(today));
   const [endDate, setEndDate] = useState<string>(toIsoDate(inAWeek));
+  const todayIso = toIsoDate(today);
+
+  function updateStartDate(value: string) {
+    const nextStart = value < todayIso ? todayIso : value;
+    setStartDate(nextStart);
+    if (endDate < nextStart) setEndDate(nextStart);
+  }
 
   const fetchEventsSemLoading = async () => {
     setError(null);
@@ -126,7 +134,10 @@ export default function MapsPage() {
     fetchPropsInfo();
   }, []);
 
-  const eventsToDisplay = useMemo(() => allEvents, [allEvents]);
+  const eventsToDisplay = useMemo(
+    () => allEvents.filter((event) => isTodayOrFutureDate(event.dataInicio)),
+    [allEvents],
+  );
   const selectedProperty = propsInfo.find((p) => p.id === propertyId);
   const hasProcessingProperties = propsInfo.some((p) => !isPropertyReady(p));
   const selectedPropertyIsProcessing = Boolean(selectedProperty && !isPropertyReady(selectedProperty));
@@ -230,8 +241,9 @@ export default function MapsPage() {
               type="date"
               label="De"
               value={startDate}
+              min={todayIso}
               disabled={isLoadingProperties}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={(e) => updateStartDate(e.target.value)}
             />
           </div>
 
@@ -268,8 +280,16 @@ export default function MapsPage() {
           </div>
         </AppCard>
       ) : (
-        <div style={{ display: "flex", gap: 24, alignItems: "stretch", flexWrap: "wrap" }}>
-          <div style={{ flex: "1 1 560px", minWidth: 0, position: "relative", zIndex: 1 }}>
+        <div
+          className="maps-opportunity-layout"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1fr) minmax(340px, 420px)",
+            gap: 20,
+            alignItems: "start",
+          }}
+        >
+          <div style={{ minWidth: 0, position: "relative", zIndex: 1 }}>
             <AppCard variant="default" style={{ padding: 16 }}>
               <div style={{ position: "relative" }}>
                 <AirbnbMap
@@ -317,8 +337,8 @@ export default function MapsPage() {
             </AppCard>
           </div>
 
-          <div style={{ flex: "0 0 480px", maxWidth: "100%" }}>
-            <AppCard variant="default" style={{ padding: 20, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ minWidth: 0, position: "sticky", top: 24 }}>
+            <AppCard variant="default" style={{ padding: 16, display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 16 }}>
                 <div style={{ minWidth: 0 }}>
                   <p className="urban-app-eyebrow-muted" style={{ marginBottom: 4 }}>
@@ -352,8 +372,8 @@ export default function MapsPage() {
                   icon={<Icons.MapPin size={28} />}
                 />
               ) : (
-                <div style={{ flex: 1, overflowY: "auto", maxHeight: "calc(100vh - 320px)", paddingRight: 4 }}>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <div style={{ flex: 1, overflowY: "auto", maxHeight: "calc(100vh - 300px)", paddingRight: 4 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     {eventsToDisplay.map((ev) => (
                       <EventCard
                         setIsLoading={() => {}}
@@ -374,6 +394,18 @@ export default function MapsPage() {
           </div>
         </div>
       )}
+
+      <style>{`
+        @media (max-width: 1050px) {
+          .maps-opportunity-layout {
+            grid-template-columns: 1fr !important;
+          }
+          .maps-opportunity-layout > div {
+            position: relative !important;
+            top: auto !important;
+          }
+        }
+      `}</style>
     </AppPageShell>
   );
 }

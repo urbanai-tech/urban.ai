@@ -80,19 +80,60 @@ function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATH_REGEX.test(pathname);
 }
 
+let refreshPromise: Promise<void> | null = null;
+
+function shouldSkipRefresh(requestUrl: string): boolean {
+  return (
+    requestUrl.endsWith("/auth/login") ||
+    requestUrl.endsWith("/auth/google") ||
+    requestUrl.endsWith("/auth/register") ||
+    requestUrl.endsWith("/auth/refresh") ||
+    requestUrl.endsWith("/auth/logout")
+  );
+}
+
+function refreshSessionOnce(): Promise<void> {
+  if (!refreshPromise) {
+    refreshPromise = api
+      .post("/auth/refresh")
+      .then(() => undefined)
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+}
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (typeof window === "undefined") return Promise.reject(error);
 
     const status = error?.response?.status;
-    const requestUrl: string = error?.config?.url ?? "";
+    const originalRequest = error?.config as any;
+    const requestUrl: string = originalRequest?.url ?? "";
     const pathname = window.location.pathname || "";
     error.userMessage = getFriendlyApiErrorMessage(error);
 
-    // 401: invalida sessao + redireciona pra login.
-    // Exceções: /auth/me (componente decide), ou se ja estamos em rota publica.
+    // 401: primeiro tenta renovar via refresh cookie. Se falhar, cai no fluxo
+    // antigo de limpar sessao/redirecionar.
     if (status === 401) {
+      const canRefresh =
+        originalRequest &&
+        !originalRequest._retry &&
+        !shouldSkipRefresh(requestUrl) &&
+        !isPublicPath(pathname);
+
+      if (canRefresh) {
+        originalRequest._retry = true;
+        try {
+          await refreshSessionOnce();
+          return api(originalRequest);
+        } catch {
+          // continua para o redirecionamento abaixo
+        }
+      }
+
       const isAuthMeProbe = requestUrl.endsWith("/auth/me");
       if (!isAuthMeProbe && !isPublicPath(pathname)) {
         try {
@@ -937,6 +978,7 @@ export type HostEventCatalogFilters = {
   source?: string;
   confidence?: HostEventConfidence | 'all';
   nearMyProperties?: boolean;
+  radiusKm?: string | number;
   highImpact?: boolean;
 };
 
@@ -945,6 +987,7 @@ export type HostEventRadarFilters = {
   to?: string;
   propertyId?: string;
   category?: string;
+  radiusKm?: string | number;
   confidence?: HostEventConfidence | 'all';
   eventId?: string;
 };

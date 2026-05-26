@@ -4,7 +4,8 @@ import { Address } from 'src/entities/addresses.entity';
 import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity';
 import { Event } from 'src/entities/events.entity';
 import { List } from 'src/entities/list.entity';
-import { Repository } from 'typeorm';
+import { MoreThanOrEqual, Repository } from 'typeorm';
+import { startOfDay } from 'date-fns';
 
 @Injectable()
 export class EventoService {
@@ -45,6 +46,7 @@ export class EventoService {
       where: {
         endereco: { id: addressId },
         usuarioProprietario: { id: userId },
+        evento: { dataInicio: MoreThanOrEqual(startOfDay(new Date())) },
       },
       relations: ['evento'],
       skip: (safePage - 1) * safeLimit,
