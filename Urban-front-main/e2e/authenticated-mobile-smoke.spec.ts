@@ -1,8 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 import { acceptCookieConsent } from './test-helpers';
 
-const authEmail = process.env.E2E_AUTH_EMAIL || process.env.E2E_EMAIL;
-const authPassword = process.env.E2E_AUTH_PASSWORD || process.env.E2E_PASSWORD;
+const authEmail = process.env.E2E_EMAIL || process.env.E2E_AUTH_EMAIL;
+const authPassword = process.env.E2E_PASSWORD || process.env.E2E_AUTH_PASSWORD;
 
 function isPostLoginRoute(url: URL) {
   return /\/(post-login|dashboard|onboarding|confirm-email)(\/|$)/.test(url.pathname);
@@ -16,7 +16,7 @@ async function login(page: Page) {
   await page.locator('input[type="email"]').fill(authEmail!);
   await page.locator('input[type="password"]').fill(authPassword!);
 
-  await Promise.all([
+  const [loginResponse] = await Promise.all([
     page.waitForResponse(
       (response) =>
         response.url().includes('/auth/login') &&
@@ -26,13 +26,21 @@ async function login(page: Page) {
     page.getByRole('button', { name: /entrar/i }).click(),
   ]);
 
+  expect(loginResponse.ok(), `login respondeu HTTP ${loginResponse.status()}`).toBeTruthy();
+
   await page.waitForURL(isPostLoginRoute, {
     timeout: 15_000,
   });
 }
 
 async function expectMobileAuthenticatedRouteReady(page: Page) {
-  await expect(page).not.toHaveURL(/\/login$|\/$/);
+  await expect
+    .poll(() => {
+      const url = new URL(page.url());
+      return url.pathname === '/' || /^\/login\/?$/.test(url.pathname);
+    }, { timeout: 10_000 })
+    .toBe(false);
+  await expect(page.getByRole('heading', { name: /bem-vindo|entre na sua conta/i })).toHaveCount(0);
   await expect(page.getByText(/credenciais invalidas|invalid credentials|acesso negado/i)).toHaveCount(0);
 }
 

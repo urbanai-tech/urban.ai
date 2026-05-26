@@ -149,8 +149,10 @@ jobs:
           E2E_TARGET_ENV: staging
           E2E_BASE_URL: ${{ vars.E2E_BASE_URL || secrets.E2E_BASE_URL || 'https://urban-ai-frontend-staging-staging.up.railway.app' }}
           E2E_API_URL: ${{ vars.E2E_API_URL || secrets.E2E_API_URL || 'https://urban-ai-backend-staging-staging.up.railway.app' }}
-          E2E_AUTH_EMAIL: ${{ secrets.E2E_AUTH_EMAIL || secrets.E2E_EMAIL }}
-          E2E_AUTH_PASSWORD: ${{ secrets.E2E_AUTH_PASSWORD || secrets.E2E_PASSWORD }}
+          E2E_EMAIL: ${{ secrets.E2E_EMAIL || secrets.E2E_AUTH_EMAIL }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD || secrets.E2E_AUTH_PASSWORD }}
+          E2E_AUTH_EMAIL: ${{ secrets.E2E_EMAIL || secrets.E2E_AUTH_EMAIL }}
+          E2E_AUTH_PASSWORD: ${{ secrets.E2E_PASSWORD || secrets.E2E_AUTH_PASSWORD }}
         run: node scripts/staging-gate-preflight.mjs --gate authenticated-smoke
 
       - name: Install deps
@@ -166,8 +168,10 @@ jobs:
         env:
           E2E_BASE_URL: ${{ vars.E2E_BASE_URL || secrets.E2E_BASE_URL || 'https://urban-ai-frontend-staging-staging.up.railway.app' }}
           E2E_API_URL: ${{ vars.E2E_API_URL || secrets.E2E_API_URL || 'https://urban-ai-backend-staging-staging.up.railway.app' }}
-          E2E_AUTH_EMAIL: ${{ secrets.E2E_AUTH_EMAIL || secrets.E2E_EMAIL }}
-          E2E_AUTH_PASSWORD: ${{ secrets.E2E_AUTH_PASSWORD || secrets.E2E_PASSWORD }}
+          E2E_EMAIL: ${{ secrets.E2E_EMAIL || secrets.E2E_AUTH_EMAIL }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD || secrets.E2E_AUTH_PASSWORD }}
+          E2E_AUTH_EMAIL: ${{ secrets.E2E_EMAIL || secrets.E2E_AUTH_EMAIL }}
+          E2E_AUTH_PASSWORD: ${{ secrets.E2E_PASSWORD || secrets.E2E_AUTH_PASSWORD }}
           E2E_ALPHA_EMAIL: ${{ secrets.E2E_ALPHA_EMAIL }}
         run: |
           npx playwright test \
@@ -213,6 +217,7 @@ jobs:
           ENTERPRISE_GATE_ENV: staging
           ENTERPRISE_GATE_BACKEND_URL: ${{ vars.ENTERPRISE_GATE_BACKEND_URL || vars.E2E_API_URL || 'https://urban-ai-backend-staging-staging.up.railway.app' }}
           ENTERPRISE_GATE_FRONTEND_URL: ${{ vars.ENTERPRISE_GATE_FRONTEND_URL || vars.E2E_BASE_URL || 'https://urban-ai-frontend-staging-staging.up.railway.app' }}
+          ENTERPRISE_GATE_HEALTH_TOKEN: ${{ secrets.ENTERPRISE_GATE_HEALTH_TOKEN || secrets.HEALTH_READINESS_TOKEN }}
           ENTERPRISE_GATE_ADMIN_JWT: ${{ secrets.ENTERPRISE_GATE_ADMIN_JWT }}
           ENTERPRISE_GATE_HOST_JWT: ${{ secrets.ENTERPRISE_GATE_HOST_JWT }}
           ENTERPRISE_GATE_ADMIN_EMAIL: ${{ secrets.ENTERPRISE_GATE_ADMIN_EMAIL || secrets.E2E_AUTH_EMAIL || secrets.E2E_EMAIL }}
@@ -298,6 +303,7 @@ jobs:
           ENTERPRISE_GATE_ENV: staging
           ENTERPRISE_GATE_BACKEND_URL: ${{ vars.ENTERPRISE_GATE_BACKEND_URL || vars.E2E_API_URL || 'https://urban-ai-backend-staging-staging.up.railway.app' }}
           ENTERPRISE_GATE_FRONTEND_URL: ${{ vars.ENTERPRISE_GATE_FRONTEND_URL || vars.E2E_BASE_URL || 'https://urban-ai-frontend-staging-staging.up.railway.app' }}
+          ENTERPRISE_GATE_HEALTH_TOKEN: ${{ secrets.ENTERPRISE_GATE_HEALTH_TOKEN || secrets.HEALTH_READINESS_TOKEN }}
           ENTERPRISE_GATE_EVENTS_INGEST_KEY: ${{ secrets.ENTERPRISE_GATE_EVENTS_INGEST_KEY }}
           ENTERPRISE_GATE_PROD_MUTATION_OK: ${{ vars.ENTERPRISE_GATE_PROD_MUTATION_OK }}
         run: >-

@@ -15,7 +15,8 @@ Adendo 2026-05-26: para subir o roadmap total para 92-95%, tratar staging como a
 | Runtime | `APP_ENV`, `NODE_ENV`, `PORT` | `APP_ENV=production|staging|development` recomendado em todos os ambientes. |
 | Banco | `DATABASE_URL` ou `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Obrigatorio. |
 | Migrations | `DB_SYNCHRONIZE`, `MIGRATIONS_RUN` | Em prod: `DB_SYNCHRONIZE=false`; `MIGRATIONS_RUN=true` somente quando o deploy deve aplicar migrations no boot. |
-| Auth | `JWT_SECRET`, `JWT_EXPIRES_IN`, `COOKIE_DOMAIN`, `CORS_ALLOWED_ORIGINS`, `FRONT_BASE_URL` | Obrigatorio. `JWT_SECRET` nao tem fallback seguro. |
+| Auth | `JWT_SECRET`, `JWT_EXPIRES_IN`, `GOOGLE_CLIENT_ID`, `COOKIE_DOMAIN`, `CORS_ALLOWED_ORIGINS`, `FRONT_BASE_URL` | Obrigatorio. `JWT_SECRET` nao tem fallback seguro. `GOOGLE_CLIENT_ID` e obrigatorio se `/auth/google` estiver ativo. |
+| Health/readiness | `HEALTH_READINESS_TOKEN`, opcional `HEALTH_READINESS_PUBLIC=false` | Obrigatorio em staging/prod para consultar `/health` detalhado. `/health/live` permanece publico. |
 | Redis/filas | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_TLS` | Obrigatorio quando Bull/processos estiver ativo. |
 | Observabilidade | `SENTRY_DSN` | Opcional em dev; recomendado/obrigatorio em staging/prod para operacao. |
 | Stripe | `STRIPE_SECRET_KEY`, `STRIPE_PUBLIC_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUCCESS_URL`, `CANCEL_URL`, price IDs `*_PLAN` e `*_PRICE_*` | Obrigatorio antes de checkout/assinaturas. Validar com `npm run preflight:track3:strict` e `/admin/pricing-config`. |
@@ -36,7 +37,7 @@ Adendo 2026-05-26: para subir o roadmap total para 92-95%, tratar staging como a
 | Brevo | `BREVO_API_KEY`, `EMAIL_SENDER`, `EMAIL_SENDER_NAME`, `RESET_PASS_URL`; recomendado `FRONT_URL` | E-mail de reset entregue em caixa de teste, sem segredo em log. |
 | Stripe test | `STRIPE_SECRET_KEY`, `STRIPE_PUBLIC_KEY`, `STRIPE_WEBHOOK_SECRET`, `STARTER_PRICE_*`, `PROFISSIONAL_PRICE_*`, `SUCCESS_URL`, `CANCEL_URL` | `preflight:track3:strict` + checkout/webhook/quota/cancelamento em test mode. |
 | Stays sandbox | `STAYS_API_BASE_URL`, `STAYS_TOKEN_ENCRYPTION_KEY`, `STAYS_AUTO_APPLY_DRY_RUN=true`, allowlists quando auto for testado | Connect/sync/push manual/rollback e auto dry-run. |
-| Authenticated gates | `E2E_AUTH_EMAIL`, `E2E_AUTH_PASSWORD`, `E2E_HOST_EMAIL`, `E2E_HOST_PASSWORD` ou `ENTERPRISE_GATE_ADMIN_JWT`, `ENTERPRISE_GATE_HOST_JWT` | Release gate autenticado e enterprise read-only sem skip. |
+| Authenticated gates | `ENTERPRISE_GATE_HEALTH_TOKEN` ou `HEALTH_READINESS_TOKEN`; `E2E_AUTH_EMAIL`, `E2E_AUTH_PASSWORD`, `E2E_HOST_EMAIL`, `E2E_HOST_PASSWORD` ou `ENTERPRISE_GATE_ADMIN_JWT`, `ENTERPRISE_GATE_HOST_JWT` | Release gate autenticado e enterprise read-only sem skip. |
 | Events ingest staging | `ENTERPRISE_GATE_EVENTS_INGEST_KEY` ou `EVENTS_INGEST_API_KEY` | Ingest controlado apenas com `--allow-mutations` em staging. |
 | Outcomes/calibracao | Sem secret novo; exige DB staging, usuarios e dados de `PricingDecisionSnapshot`/`occupancy_history` | Relatorio `pricing-outcome-calibration-report.ts` contra fixture ou DB staging read-only. |
 
@@ -105,4 +106,5 @@ Regras esperadas:
 - `STAYS_AUTO_APPLY_DRY_RUN` deve permanecer `true` durante o primeiro smoke com conta/listing allowlisted.
 - `STAYS_AUTO_APPLY_USER_ALLOWLIST` e `STAYS_AUTO_APPLY_LISTING_ALLOWLIST` devem ser revisados antes de cada ativacao real; nunca usar wildcard em beta privado.
 - API keys externas podem ficar pendentes em dev/staging, desde que os fluxos dependentes nao sejam anunciados como prontos.
+- `/health` detalhado em staging/prod exige `HEALTH_READINESS_TOKEN`; publicar readiness sem token expõe inventario operacional.
 - Para Track 3, rodar `npm run preflight:track3` em `urban-ai-backend-main` antes de smoke manual.

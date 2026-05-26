@@ -292,6 +292,12 @@ export default function AdminEventRadarPage() {
       ),
     },
     {
+      key: "evidence",
+      header: "Dados",
+      width: 170,
+      render: (event) => <EvidenceStatus event={event} />,
+    },
+    {
       key: "ops",
       header: "Status",
       width: 210,
@@ -1810,6 +1816,9 @@ function EventDecisionHero({ detail }: { detail: AdminEventRadarDetail }) {
     (a, b) => (b.propertyCaptureScore ?? -1) - (a.propertyCaptureScore ?? -1),
   )[0];
   const hasPricingGap = (event.demandScore ?? 0) >= 75 && detail.operation.recommendationsGenerated === 0;
+  const dataStatus = detail.intelligence.dataStatus ?? event.dataStatus;
+  const jobRunId = detail.intelligence.jobRunId ?? event.jobRunId;
+  const evidenceReady = isEnterpriseEvidenceReady(detail);
   const decision =
     event.geocodeStatus !== "ok"
       ? "Corrigir geocoding"
@@ -1839,6 +1848,10 @@ function EventDecisionHero({ detail }: { detail: AdminEventRadarDetail }) {
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <AdminBadge kind={kind}>{decision}</AdminBadge>
           <AdminBadge kind={confidenceKind(event.confidence)}>{confidenceLabel(event.confidence)}</AdminBadge>
+          <AdminBadge kind={evidenceReady ? "success" : "warn"}>
+            {evidenceReady ? "Evidencia rastreavel" : "Leitura nao auditada"}
+          </AdminBadge>
+          <AdminBadge kind={dataStatusKind(dataStatus)}>{dataStatusLabel(dataStatus)}</AdminBadge>
         </div>
         <p style={{ margin: "12px 0 0", color: "var(--admin-text-muted)", fontSize: 12, lineHeight: 1.6, overflowWrap: "anywhere" }}>
           {hasPricingGap
@@ -1846,6 +1859,8 @@ function EventDecisionHero({ detail }: { detail: AdminEventRadarDetail }) {
             : topImpact
               ? `Maior captura: ${topImpact.propertyName} (${topImpact.propertyCaptureScore ?? "-"}).`
               : "Sem imovel ranqueado ainda para este evento."}
+          {" "}
+          {jobRunId ? `Trace: ${shortTrace(jobRunId)}.` : "Sem jobRunId persistido para auditoria forte."}
         </p>
       </div>
       <div
@@ -1868,6 +1883,12 @@ function EventDecisionHero({ detail }: { detail: AdminEventRadarDetail }) {
 function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
   const event = detail.event;
   const sourceUrl = event.officialUrl ?? event.crawledUrl;
+  const dataStatus = detail.intelligence.dataStatus ?? event.dataStatus;
+  const jobRunId = detail.intelligence.jobRunId ?? event.jobRunId;
+  const dataQualityFlags = uniqueList([
+    ...event.dataQualityFlags,
+    ...(detail.intelligence.dataQualityFlags ?? []),
+  ]);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
       {detail.contractMode === "contract-fallback" && (
@@ -1897,6 +1918,8 @@ function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
           <AdminBadge kind={event.geocodeStatus === "ok" ? "success" : "warn"}>Geo {event.geocodeStatus}</AdminBadge>
           <AdminBadge kind={event.enrichmentStatus === "ok" ? "success" : "warn"}>Enrich {event.enrichmentStatus}</AdminBadge>
           <AdminBadge kind={event.sourceStatus === "fresh" ? "success" : "neutral"}>Source {event.sourceStatus}</AdminBadge>
+          <AdminBadge kind={dataStatusKind(dataStatus)}>{dataStatusLabel(dataStatus)}</AdminBadge>
+          <AdminBadge kind={jobRunId ? "neutral" : "warn"}>{jobRunId ? `job ${shortTrace(jobRunId)}` : "sem jobRunId"}</AdminBadge>
         </div>
         <p style={{ margin: 0, fontSize: 13, color: "var(--admin-text-muted)", lineHeight: 1.6, overflowWrap: "anywhere" }}>
           {detail.intelligence.interpretation}
@@ -1945,6 +1968,10 @@ function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
           <DetailRow label="Source ID" value={event.sourceId ?? "—"} />
           <DetailRow label="Dedup hash" value={event.dedupHash ?? "—"} />
           <DetailRow label="Lat/lng" value={event.latitude && event.longitude ? `${event.latitude}, ${event.longitude}` : "—"} />
+          <DetailRow label="Data status" value={dataStatusLabel(dataStatus)} />
+          <DetailRow label="Job run" value={jobRunId ?? "—"} />
+          <DetailRow label="Model" value={detail.intelligence.modelVersion ?? event.modelVersion ?? "—"} />
+          <DetailRow label="Metric" value={detail.intelligence.metricVersion ?? event.metricVersion ?? "—"} />
         </div>
       </section>
 
@@ -1990,7 +2017,7 @@ function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
         )}
       </section>
 
-      {(event.riskFlags.length > 0 || event.dataQualityFlags.length > 0) && (
+      {(event.riskFlags.length > 0 || dataQualityFlags.length > 0) && (
         <section>
           <p className="urban-admin-eyebrow-muted" style={{ marginBottom: 12 }}>
             RISCOS E QUALIDADE
@@ -1999,7 +2026,7 @@ function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
             {event.riskFlags.map((flag) => (
               <AdminBadge key={flag} kind="error">{flag}</AdminBadge>
             ))}
-            {event.dataQualityFlags.map((flag) => (
+            {dataQualityFlags.map((flag) => (
               <AdminBadge key={flag} kind="warn">{flag}</AdminBadge>
             ))}
           </div>
@@ -2128,6 +2155,22 @@ function OperationalStatus({ event }: { event: AdminEventRadarEvent }) {
   );
 }
 
+function EvidenceStatus({ event }: { event: AdminEventRadarEvent }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 5, minWidth: 0 }}>
+      <div>
+        <AdminBadge kind={dataStatusKind(event.dataStatus)}>{dataStatusLabel(event.dataStatus)}</AdminBadge>
+      </div>
+      <code style={{ color: "var(--admin-text-dim)", fontSize: 11, overflowWrap: "anywhere" }}>
+        {event.jobRunId ? `job ${shortTrace(event.jobRunId)}` : "sem jobRunId"}
+      </code>
+      <span style={{ color: "var(--admin-text-muted)", fontSize: 11, overflowWrap: "anywhere" }}>
+        {event.modelVersion ?? "sem modelVersion"}
+      </span>
+    </div>
+  );
+}
+
 function ScoreCell({ value }: { value: number | null }) {
   if (value === null) return <span style={{ color: "var(--admin-text-dim)" }}>—</span>;
   const pct = Math.max(0, Math.min(100, value));
@@ -2237,6 +2280,37 @@ function confidenceKind(confidence: EventRadarConfidence): AdminBadgeKind {
   if (confidence === "high") return "success";
   if (confidence === "medium") return "warn";
   return "neutral";
+}
+
+function dataStatusLabel(status?: string | null) {
+  if (status === "persisted") return "Persistido";
+  if (status === "persisted_or_derived") return "Misto";
+  if (status === "derived_from_event_fields") return "Derivado";
+  if (status === "derived_from_analise_preco") return "Derivado";
+  if (status === "derived_from_events") return "Heatmap derivado";
+  if (status === "stub_pending_engine") return "Pendente";
+  if (status === "contract_mock") return "Mock";
+  if (status === "contract_fallback") return "Fallback";
+  return "Sem status";
+}
+
+function dataStatusKind(status?: string | null): AdminBadgeKind {
+  if (status === "persisted") return "success";
+  if (status === "persisted_or_derived") return "warn";
+  if (status === "stub_pending_engine" || status === "contract_mock" || status === "contract_fallback") return "warn";
+  if (status?.startsWith("derived_")) return "warn";
+  return "neutral";
+}
+
+function shortTrace(value?: string | null) {
+  if (!value) return "";
+  return value.length > 14 ? `${value.slice(0, 8)}...${value.slice(-4)}` : value;
+}
+
+function isEnterpriseEvidenceReady(detail: AdminEventRadarDetail) {
+  const status = detail.intelligence.dataStatus ?? detail.event.dataStatus;
+  const jobRunId = detail.intelligence.jobRunId ?? detail.event.jobRunId;
+  return detail.contractMode === "backend" && status === "persisted" && Boolean(jobRunId);
 }
 
 function severityKind(severity: AdminEventRadarBlindSpot["severity"]): AdminBadgeKind {

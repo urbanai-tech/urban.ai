@@ -1,3 +1,4 @@
+import { ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import { HealthService } from './health.service';
 
 describe('HealthService', () => {
@@ -141,5 +142,37 @@ describe('HealthService', () => {
     expect(result.checks.env.database.ready).toBe(false);
     expect(result.checks.env.auth.ready).toBe(false);
     expect(result.checks.env.server.ready).toBe(false);
+  });
+
+  describe('readiness access', () => {
+    it('allows local/test readiness without token for developer compatibility', () => {
+      expect(() => new HealthService(undefined as any).assertReadinessAccess()).not.toThrow();
+    });
+
+    it('fails closed in staging when the readiness token is missing', () => {
+      process.env.APP_ENV = 'staging';
+
+      expect(() => new HealthService(undefined as any).assertReadinessAccess()).toThrow(
+        ServiceUnavailableException,
+      );
+    });
+
+    it('rejects invalid bearer token when readiness token is configured', () => {
+      process.env.APP_ENV = 'staging';
+      process.env.HEALTH_READINESS_TOKEN = 'expected-token';
+
+      expect(() => new HealthService(undefined as any).assertReadinessAccess('Bearer wrong-token')).toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it('accepts valid bearer token when readiness token is configured', () => {
+      process.env.APP_ENV = 'staging';
+      process.env.HEALTH_READINESS_TOKEN = 'expected-token';
+
+      expect(() =>
+        new HealthService(undefined as any).assertReadinessAccess('Bearer expected-token'),
+      ).not.toThrow();
+    });
   });
 });

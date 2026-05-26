@@ -1,5 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ServiceUnavailableException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -262,6 +267,148 @@ describe('AuthService', () => {
       // Novo par emitido
       expect(tokens.accessToken).toBe('signed.jwt.token');
       expect(tokens.refreshToken).not.toBe('valid-token');
+    });
+  });
+
+  describe('googleLogin', () => {
+    const originalGoogleClientId = process.env.GOOGLE_CLIENT_ID;
+    const originalGoogleOauthClientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
+    const originalNextPublicGoogleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const originalFetch = (global as any).fetch;
+
+    const tokenPayload = (overrides: Record<string, unknown> = {}) => ({
+      aud: 'client-id.apps.googleusercontent.com',
+      iss: 'https://accounts.google.com',
+      exp: String(Math.floor(Date.now() / 1000) + 3600),
+      email: 'owner@test.com',
+      email_verified: 'true',
+      name: 'Owner Test',
+      sub: 'google-subject-1',
+      ...overrides,
+    });
+
+    beforeEach(() => {
+      process.env.GOOGLE_CLIENT_ID = 'client-id.apps.googleusercontent.com';
+      delete process.env.GOOGLE_OAUTH_CLIENT_ID;
+      delete process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    });
+
+    afterEach(() => {
+      if (originalGoogleClientId === undefined) delete process.env.GOOGLE_CLIENT_ID;
+      else process.env.GOOGLE_CLIENT_ID = originalGoogleClientId;
+
+      if (originalGoogleOauthClientId === undefined) delete process.env.GOOGLE_OAUTH_CLIENT_ID;
+      else process.env.GOOGLE_OAUTH_CLIENT_ID = originalGoogleOauthClientId;
+
+      if (originalNextPublicGoogleClientId === undefined) delete process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+      else process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID = originalNextPublicGoogleClientId;
+
+      (global as any).fetch = originalFetch;
+    });
+
+    function mockGoogleResponse(payload: Record<string, unknown>, ok = true) {
+      (global as any).fetch = jest.fn().mockResolvedValue({
+        ok,
+        json: jest.fn().mockResolvedValue(payload),
+      });
+    }
+
+    it('rejects calls without a Google id token', async () => {
+      await expect(service.googleLogin({})).rejects.toBeInstanceOf(BadRequestException);
+
+      expect((global as any).fetch).toBe(originalFetch);
+      expect(userRepo.findOne).not.toHaveBeenCalled();
+    });
+
+    it('fails closed when Google OAuth client id is not configured', async () => {
+      delete process.env.GOOGLE_CLIENT_ID;
+      delete process.env.GOOGLE_OAUTH_CLIENT_ID;
+      delete process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
+      await expect(service.googleLogin({ idToken: 'id-token' })).rejects.toBeInstanceOf(
+        ServiceUnavailableException,
+      );
+
+      expect(userRepo.findOne).not.toHaveBeenCalled();
+    });
+
+    it('rejects invalid Google token responses', async () => {
+      mockGoogleResponse({ error: 'invalid_token' }, false);
+
+      await expect(service.googleLogin({ idToken: 'bad-token' })).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+
+      expect(userRepo.findOne).not.toHaveBeenCalled();
+    });
+
+    it('creates a Google user from the verified token and issues tokens', async () => {
+      mockGoogleResponse(tokenPayload());
+      userRepo.findOne!.mockResolvedValue(null);
+      userRepo.create!.mockImplementation((data) => data);
+      userRepo.save!.mockImplementation(async (data) => ({ id: 'u-google', ...data }));
+
+      const result = await service.googleLogin({ idToken: 'verified-token' }, { ip: '127.0.0.1' });
+
+      expect((global as any).fetch).toHaveBeenCalledWith(
+        'https://oauth2.googleapis.com/tokeninfo?id_token=verified-token',
+      );
+      expect(userRepo.findOne).toHaveBeenCalledWith({
+        where: { email: 'owner@test.com' },
+        select: ['id', 'username', 'email', 'password', 'ativo'],
+      });
+      expect(userRepo.create).toHaveBeenCalledWith({
+        username: 'Owner Test',
+        email: 'owner@test.com',
+        password: expect.stringMatching(/^google_/),
+      });
+      expect(payments.createPayment).toHaveBeenCalledWith(expect.objectContaining({ id: 'u-google' }));
+      expect(result).toMatchObject({
+        accessToken: 'signed.jwt.token',
+        user: { id: 'u-google', username: 'Owner Test', email: 'owner@test.com' },
+      });
+      expect(refreshRepo.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects an existing password account instead of converting it silently', async () => {
+      mockGoogleResponse(tokenPayload());
+      userRepo.findOne!.mockResolvedValue({
+        id: 'u-local',
+        email: 'owner@test.com',
+        username: 'Owner Local',
+        password: await bcrypt.hash('local-password', 12),
+        ativo: true,
+      });
+
+      await expect(service.googleLogin({ idToken: 'verified-token' })).rejects.toBeInstanceOf(
+        ConflictException,
+      );
+
+      expect(userRepo.save).not.toHaveBeenCalled();
+      expect(payments.createPayment).not.toHaveBeenCalled();
+      expect(refreshRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('logs in an existing Google account without mutating the user record', async () => {
+      mockGoogleResponse(tokenPayload({ email: 'google@test.com', name: 'Google User' }));
+      userRepo.findOne!.mockResolvedValue({
+        id: 'u-google',
+        email: 'google@test.com',
+        username: 'Google User',
+        password: 'google_existing',
+        ativo: true,
+      });
+
+      const result = await service.googleLogin({ credential: 'verified-token' });
+
+      expect(userRepo.save).not.toHaveBeenCalled();
+      expect(payments.createPayment).not.toHaveBeenCalled();
+      expect(result.user).toEqual({
+        id: 'u-google',
+        username: 'Google User',
+        email: 'google@test.com',
+      });
+      expect(refreshRepo.save).toHaveBeenCalledTimes(1);
     });
   });
 

@@ -9,6 +9,8 @@ const SECRET_KEYS = [
   'ADMIN_JWT',
   'ENTERPRISE_GATE_HOST_JWT',
   'HOST_JWT',
+  'ENTERPRISE_GATE_HEALTH_TOKEN',
+  'HEALTH_READINESS_TOKEN',
   'ENTERPRISE_GATE_EVENTS_INGEST_KEY',
   'EVENTS_INGEST_API_KEY',
 ];
@@ -47,17 +49,21 @@ async function main() {
     return { statusCode: response.statusCode, status: response.body.status, uptimeSec: response.body.uptimeSec };
   });
 
-  await runCheck(evidence, 'backend.health', 'GET /health is fully ready', async () => {
-    const response = await requestJson(`${config.backendUrl}/health`);
-    assert(response.statusCode === 200, `expected HTTP 200, got ${response.statusCode}`);
-    assert(response.body?.status === 'ok', `expected health status ok, got ${response.body?.status}`);
-    return {
-      statusCode: response.statusCode,
-      status: response.body.status,
-      env: response.body?.app?.env,
-      db: response.body?.checks?.db?.status,
-    };
-  });
+  if (config.healthToken) {
+    await runCheck(evidence, 'backend.health', 'GET /health is fully ready', async () => {
+      const response = await requestJson(`${config.backendUrl}/health`, { headers: bearer(config.healthToken) });
+      assert(response.statusCode === 200, `expected HTTP 200, got ${response.statusCode}`);
+      assert(response.body?.status === 'ok', `expected health status ok, got ${response.body?.status}`);
+      return {
+        statusCode: response.statusCode,
+        status: response.body.status,
+        env: response.body?.app?.env,
+        db: response.body?.checks?.db?.status,
+      };
+    });
+  } else {
+    addSkipped(evidence, 'backend.health', 'Detailed /health needs ENTERPRISE_GATE_HEALTH_TOKEN or HEALTH_READINESS_TOKEN.');
+  }
 
   await runCheck(evidence, 'frontend.root', 'Frontend root responds', async () => {
     const response = await requestText(config.frontendUrl);
@@ -148,6 +154,7 @@ function usage() {
     '  ENTERPRISE_GATE_FRONTEND_URL or FRONTEND_BASE_URL or E2E_BASE_URL',
     '',
     'Optional env:',
+    '  ENTERPRISE_GATE_HEALTH_TOKEN or HEALTH_READINESS_TOKEN',
     '  ENTERPRISE_GATE_ADMIN_JWT or ADMIN_JWT',
     '  ENTERPRISE_GATE_HOST_JWT or HOST_JWT',
     '  ENTERPRISE_GATE_EVENTS_INGEST_KEY or EVENTS_INGEST_API_KEY',
@@ -193,6 +200,7 @@ function resolveConfig(env, options) {
     environment: options.environment,
     backendUrl: trimSlash(backendUrl || '<backend-url>'),
     frontendUrl: trimSlash(frontendUrl || '<frontend-url>'),
+    healthToken: firstEnv(env, ['ENTERPRISE_GATE_HEALTH_TOKEN', 'HEALTH_READINESS_TOKEN']),
     adminJwt: firstEnv(env, ['ENTERPRISE_GATE_ADMIN_JWT', 'ADMIN_JWT']),
     hostJwt: firstEnv(env, ['ENTERPRISE_GATE_HOST_JWT', 'HOST_JWT']),
     eventsIngestKey: firstEnv(env, ['ENTERPRISE_GATE_EVENTS_INGEST_KEY', 'EVENTS_INGEST_API_KEY']),
@@ -217,7 +225,9 @@ function trimSlash(value) {
 function plannedChecks(config, options) {
   return [
     planned('backend.live', `GET ${config.backendUrl}/health/live`),
-    planned('backend.health', `GET ${config.backendUrl}/health`),
+    config.healthToken
+      ? planned('backend.health', `GET ${config.backendUrl}/health with readiness bearer`)
+      : skippedPlan('backend.health', 'Needs ENTERPRISE_GATE_HEALTH_TOKEN or HEALTH_READINESS_TOKEN.'),
     planned('frontend.root', `GET ${config.frontendUrl}`),
     config.adminJwt
       ? planned('admin.readonly', 'GET /admin/dashboard-summary, /admin/jobs/runs, /admin/audit-logs, /admin/stays/health')

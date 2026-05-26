@@ -18,6 +18,7 @@ import {
   EventRadarCard,
   Icons,
   PriceAbsorptionScenarios,
+  type AppBadgeKind,
 } from "@/app/componentes/ui";
 import {
   fetchHostEventRadar,
@@ -162,6 +163,10 @@ function EventRadarContent() {
     () => Array.from(new Set(events.map((event) => event.category).filter(Boolean))) as string[],
     [events],
   );
+  const hasNonPersistedEvidence = events.some((event) => {
+    const intelligence = event.intelligence;
+    return !intelligence || intelligence.dataStatus !== "persisted" || !intelligence.jobRunId;
+  });
 
   async function handleSimulate(impact: EventPropertyImpact) {
     if (!selectedEvent) return;
@@ -200,8 +205,10 @@ function EventRadarContent() {
         actions={
           response?.mock ? (
             <AppBadge kind="warn">Mock contratual</AppBadge>
+          ) : hasNonPersistedEvidence ? (
+            <AppBadge kind="warn">Dados derivados</AppBadge>
           ) : (
-            <AppBadge kind="success">Dados Urban AI</AppBadge>
+            <AppBadge kind="success">Dados auditaveis</AppBadge>
           )
         }
       />
@@ -447,6 +454,9 @@ function EventDetailPanel({
     event.officialUrl ? { label: "Site oficial", href: event.officialUrl } : null,
     event.crawledUrl ? { label: "Fonte", href: event.crawledUrl } : null,
   ].filter(Boolean) as Array<{ label: string; href: string }>;
+  const dataStatus = event.intelligence?.dataStatus ?? null;
+  const jobRunId = event.intelligence?.jobRunId ?? null;
+  const modelVersion = event.intelligence?.modelVersion ?? null;
 
   return (
     <AppCard variant="default" style={{ minWidth: 0 }}>
@@ -460,6 +470,13 @@ function EventDetailPanel({
                 style={{ maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}
               >
                 {event.category}
+              </AppBadge>
+            )}
+            <AppBadge kind={dataStatusBadgeKind(dataStatus)}>{dataStatusLabel(dataStatus)}</AppBadge>
+            <AppBadge kind={jobRunId ? "neutral" : "warn"}>{jobRunId ? `job ${shortTrace(jobRunId)}` : "sem jobRunId"}</AppBadge>
+            {modelVersion && (
+              <AppBadge kind="neutral" style={{ maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {modelVersion}
               </AppBadge>
             )}
           </div>
@@ -479,6 +496,11 @@ function EventDetailPanel({
       {event.interpretation && (
         <p style={{ margin: "18px 0 0", color: "var(--app-text)", fontSize: 15, lineHeight: 1.65 }}>
           {event.interpretation}
+        </p>
+      )}
+      {(dataStatus !== "persisted" || !jobRunId) && (
+        <p style={{ margin: "10px 0 0", color: "var(--app-warning)", fontSize: 12, lineHeight: 1.5 }}>
+          Leitura derivada: ainda nao ha snapshot persistido com jobRunId para auditoria completa.
         </p>
       )}
 
@@ -581,6 +603,29 @@ function EventRadarLoading() {
       </div>
     </div>
   );
+}
+
+function dataStatusLabel(status?: string | null) {
+  if (status === "persisted") return "Persistido";
+  if (status === "persisted_or_derived") return "Misto";
+  if (status === "derived_from_event_fields") return "Derivado";
+  if (status === "derived_from_analise_preco") return "Derivado";
+  if (status === "derived_from_events") return "Heatmap derivado";
+  if (status === "stub_pending_engine") return "Pendente";
+  if (status === "contract_mock") return "Mock";
+  return "Sem status";
+}
+
+function dataStatusBadgeKind(status?: string | null): AppBadgeKind {
+  if (status === "persisted") return "success";
+  if (status === "persisted_or_derived") return "warn";
+  if (status === "contract_mock" || status === "stub_pending_engine") return "warn";
+  if (status?.startsWith("derived_")) return "warn";
+  return "neutral";
+}
+
+function shortTrace(value: string) {
+  return value.length > 14 ? `${value.slice(0, 8)}...${value.slice(-4)}` : value;
 }
 
 function Spinner() {
