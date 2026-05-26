@@ -15,5 +15,7 @@ COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/package.json ./
 COPY --from=builder /usr/src/app/scripts/repair-staging-schema.js ./scripts/repair-staging-schema.js
+COPY --from=builder /usr/src/app/scripts/provision-staging-smoke-users.js ./scripts/provision-staging-smoke-users.js
+COPY --from=builder /usr/src/app/scripts/staging-auth-fixtures.js ./scripts/staging-auth-fixtures.js
 EXPOSE 8080
-CMD ["sh", "-c", "node scripts/repair-staging-schema.js && node dist/main"]
+CMD ["sh", "-c", "node scripts/repair-staging-schema.js && node scripts/provision-staging-smoke-users.js && node dist/main"]

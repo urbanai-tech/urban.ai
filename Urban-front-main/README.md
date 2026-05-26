@@ -107,13 +107,20 @@ Rodar contra staging:
 E2E_BASE_URL=https://staging.myurbanai.com yarn test:e2e
 ```
 
-Smoke autenticado contra staging/prod-like:
+Smoke autenticado contra staging:
 
 ```bash
 E2E_BASE_URL=https://staging.myurbanai.com \
+E2E_API_URL=https://api-staging.myurbanai.com \
 E2E_AUTH_EMAIL=<admin-email> \
 E2E_AUTH_PASSWORD='senha-real' \
 E2E_ALPHA_EMAIL=<alpha-email> \
+node scripts/staging-gate-preflight.mjs --gate authenticated-smoke
+
+E2E_BASE_URL=https://staging.myurbanai.com \
+E2E_API_URL=https://api-staging.myurbanai.com \
+E2E_AUTH_EMAIL=<admin-email> \
+E2E_AUTH_PASSWORD='senha-real' \
 yarn test:e2e --grep "Smoke autenticado"
 ```
 
