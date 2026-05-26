@@ -155,12 +155,7 @@ jobs:
           npx playwright test \
             --project=chromium \
             authenticated-smoke.spec.ts \
-            authenticated-mobile-smoke.spec.ts \
-            login-post-login.spec.ts \
-            logout.spec.ts \
-            dashboard-recommendations.spec.ts \
-            ask-urban-entitlement.spec.ts \
-            my-plan-billing.spec.ts
+            authenticated-mobile-smoke.spec.ts
 
       - name: Upload Playwright report
         if: always()

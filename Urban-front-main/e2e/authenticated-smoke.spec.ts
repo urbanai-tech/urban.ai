@@ -5,6 +5,10 @@ const authEmail = process.env.E2E_AUTH_EMAIL || process.env.E2E_EMAIL;
 const authPassword = process.env.E2E_AUTH_PASSWORD || process.env.E2E_PASSWORD;
 const alphaEmail = process.env.E2E_ALPHA_EMAIL || authEmail;
 
+function isPostLoginRoute(url: URL) {
+  return /\/(post-login|dashboard|onboarding|confirm-email)(\/|$)/.test(url.pathname);
+}
+
 async function login(page: Page) {
   await acceptCookieConsent(page);
   await page.goto('/');
@@ -22,7 +26,7 @@ async function login(page: Page) {
     page.getByRole('button', { name: /entrar/i }).click(),
   ]);
 
-  await page.waitForURL(/\/(post-login|dashboard|onboarding|app|confirm-email)/, {
+  await page.waitForURL(isPostLoginRoute, {
     timeout: 15_000,
   });
 
