@@ -36,6 +36,7 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
       S3_BUCKET: ${{ secrets.S3_BUCKET }}
       B2_APPLICATION_KEY_ID: ${{ secrets.B2_APPLICATION_KEY_ID }}
       B2_APPLICATION_KEY: ${{ secrets.B2_APPLICATION_KEY }}
@@ -119,6 +120,29 @@ jobs:
         if: ${{ env.S3_BUCKET != '' }}
         run: |
           set -euo pipefail
+          REGION="${AWS_REGION:-us-east-1}"
+          export AWS_REGION="$REGION"
+          export AWS_DEFAULT_REGION="$REGION"
+
+          if ! aws s3api head-bucket --bucket "$S3_BUCKET" 2>/dev/null; then
+            echo "S3 bucket not found or not accessible; attempting to create it."
+            if [ "$REGION" = "us-east-1" ]; then
+              aws s3api create-bucket --bucket "$S3_BUCKET"
+            else
+              aws s3api create-bucket \
+                --bucket "$S3_BUCKET" \
+                --region "$REGION" \
+                --create-bucket-configuration LocationConstraint="$REGION"
+            fi
+            aws s3api wait bucket-exists --bucket "$S3_BUCKET"
+            aws s3api put-public-access-block \
+              --bucket "$S3_BUCKET" \
+              --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+            aws s3api put-bucket-encryption \
+              --bucket "$S3_BUCKET" \
+              --server-side-encryption-configuration '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
+          fi
+
           aws s3 cp "$BACKUP_FILE" "s3://$S3_BUCKET/mysql/$BACKUP_FILE" \
             --storage-class STANDARD_IA
           echo "✅ Uploaded to s3://$S3_BUCKET/mysql/$BACKUP_FILE"
