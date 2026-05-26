@@ -51,6 +51,10 @@ dotenv.config();
 
 const runtimeEnv = process.env.APP_ENV || process.env.NODE_ENV || 'development';
 const isLocalRuntime = ['development', 'dev', 'test', 'local'].includes(runtimeEnv);
+const typeOrmDiagnosticLogging =
+  process.env.TYPEORM_SCHEMA_LOGGING === 'true'
+    ? { logging: ['query', 'schema', 'error', 'warn'] as ('query' | 'schema' | 'error' | 'warn')[] }
+    : {};
 
 function envOrLocalDefault(name: string, localDefault: string): string {
   const value = process.env[name]?.trim();
@@ -126,6 +130,7 @@ function envOrLocalDefault(name: string, localDefault: string): string {
             migrationsRun: process.env.MIGRATIONS_RUN === 'true',
             entities: [__dirname + '/**/*.entity{.ts,.js}'],
             migrations: [__dirname + '/migrations/*{.ts,.js}'],
+            ...typeOrmDiagnosticLogging,
           }
         : {
             type: 'mysql',
@@ -140,6 +145,7 @@ function envOrLocalDefault(name: string, localDefault: string): string {
             migrationsRun: process.env.MIGRATIONS_RUN === 'true',
             entities: [__dirname + '/**/*.entity{.ts,.js}'],
             migrations: [__dirname + '/migrations/*{.ts,.js}'],
+            ...typeOrmDiagnosticLogging,
           },
     ),
     TypeOrmModule.forFeature([User]),

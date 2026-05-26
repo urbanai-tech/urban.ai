@@ -78,7 +78,7 @@ test.describe('Release gate - public pages', () => {
     await page.getByPlaceholder('Descreva como podemos ajudar...').fill('Tenho 4 imoveis em Sao Paulo e quero testar a Urban AI.');
     await page.getByRole('button', { name: /Enviar mensagem/i }).click();
 
-    await expect(page.getByRole('status')).toContainText(/Mensagem registrada/i);
+    await expect(page.getByRole('status').filter({ hasText: /Mensagem registrada/i })).toBeVisible();
     expect(payload).toMatchObject({
       name: 'Lead Operacional',
       email: 'lead+contato@urbanai.com.br',

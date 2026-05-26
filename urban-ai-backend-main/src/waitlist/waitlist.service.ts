@@ -86,7 +86,7 @@ export class WaitlistService {
 
     const referralCode = await this.generateUniqueReferralCode();
 
-    const entry = this.repo.create({
+    const saved = await this.saveNewEntryWithPosition({
       email,
       name: input.name?.trim() || null,
       phone: input.phone?.trim() || null,
@@ -97,8 +97,6 @@ export class WaitlistService {
       userAgent: input.userAgent?.slice(0, 255) ?? null,
       status: 'pending',
     });
-
-    const saved = await this.repo.save(entry);
 
     if (referredEntry) {
       await this.repo.increment({ id: referredEntry.id }, 'referralsCount', 1);
@@ -313,6 +311,43 @@ export class WaitlistService {
     }
     // Fallback extremamente improvável: 5 colisões em sequência.
     return randomBytes(8).toString('hex').slice(0, 8);
+  }
+
+  private async saveNewEntryWithPosition(input: Partial<Waitlist>): Promise<Waitlist> {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const entry = this.repo.create({
+        ...input,
+        position: await this.nextPosition(),
+      });
+
+      try {
+        return await this.repo.save(entry);
+      } catch (error) {
+        if (attempt < 2 && this.isDuplicatePositionError(error)) continue;
+        throw error;
+      }
+    }
+
+    throw new ConflictException('Nao foi possivel reservar posicao na lista de espera');
+  }
+
+  private async nextPosition(): Promise<number> {
+    const row = await this.repo
+      .createQueryBuilder('w')
+      .select('COALESCE(MAX(w.position), 0)', 'max')
+      .getRawOne<{ max?: string | number | null }>();
+    return Number(row?.max ?? 0) + 1;
+  }
+
+  private isDuplicatePositionError(error: unknown): boolean {
+    const err = error as {
+      code?: string;
+      message?: string;
+      driverError?: { code?: string; message?: string };
+    };
+    const code = err?.code || err?.driverError?.code;
+    const message = `${err?.message ?? ''} ${err?.driverError?.message ?? ''}`.toLowerCase();
+    return code === 'ER_DUP_ENTRY' && message.includes('position');
   }
 
   private buildInviteEmail(input: {

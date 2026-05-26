@@ -26,8 +26,6 @@ export class CreateWaitlist1745900000000 implements MigrationInterface {
             name: 'position',
             type: 'int',
             isUnique: true,
-            isGenerated: true,
-            generationStrategy: 'increment',
           },
           { name: 'email', type: 'varchar', length: '255', isNullable: false },
           { name: 'name', type: 'varchar', length: '128', isNullable: true },
