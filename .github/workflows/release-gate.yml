@@ -119,7 +119,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     needs: build
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: >-
+      ${{
+        github.event_name == 'workflow_dispatch' ||
+        github.event_name == 'push' ||
+        (
+          github.event_name == 'pull_request' &&
+          vars.E2E_AUTHENTICATED_SMOKE_ENABLED == 'true' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        )
+      }}
     defaults:
       run:
         working-directory: Urban-front-main
@@ -134,31 +143,40 @@ jobs:
           cache: 'npm'
           cache-dependency-path: Urban-front-main/package-lock.json
 
+      - name: Preflight authenticated smoke
+        id: auth_preflight
+        env:
+          E2E_TARGET_ENV: staging
+          E2E_BASE_URL: ${{ vars.E2E_BASE_URL || secrets.E2E_BASE_URL || 'https://urban-ai-frontend-staging-staging.up.railway.app' }}
+          E2E_API_URL: ${{ vars.E2E_API_URL || secrets.E2E_API_URL || 'https://urban-ai-backend-staging-staging.up.railway.app' }}
+          E2E_AUTH_EMAIL: ${{ secrets.E2E_AUTH_EMAIL || secrets.E2E_EMAIL }}
+          E2E_AUTH_PASSWORD: ${{ secrets.E2E_AUTH_PASSWORD || secrets.E2E_PASSWORD }}
+        run: node scripts/staging-gate-preflight.mjs --gate authenticated-smoke
+
       - name: Install deps
+        if: steps.auth_preflight.outputs.should_run == 'true'
         run: npm ci --legacy-peer-deps
 
       - name: Install Playwright browsers
+        if: steps.auth_preflight.outputs.should_run == 'true'
         run: npx playwright install --with-deps chromium
 
       - name: Run authenticated smoke specs
+        if: steps.auth_preflight.outputs.should_run == 'true'
         env:
           E2E_BASE_URL: ${{ vars.E2E_BASE_URL || secrets.E2E_BASE_URL || 'https://urban-ai-frontend-staging-staging.up.railway.app' }}
           E2E_API_URL: ${{ vars.E2E_API_URL || secrets.E2E_API_URL || 'https://urban-ai-backend-staging-staging.up.railway.app' }}
-          E2E_AUTH_EMAIL: ${{ secrets.E2E_AUTH_EMAIL }}
-          E2E_AUTH_PASSWORD: ${{ secrets.E2E_AUTH_PASSWORD }}
+          E2E_AUTH_EMAIL: ${{ secrets.E2E_AUTH_EMAIL || secrets.E2E_EMAIL }}
+          E2E_AUTH_PASSWORD: ${{ secrets.E2E_AUTH_PASSWORD || secrets.E2E_PASSWORD }}
           E2E_ALPHA_EMAIL: ${{ secrets.E2E_ALPHA_EMAIL }}
         run: |
-          if [ -z "$E2E_AUTH_EMAIL" ] || [ -z "$E2E_AUTH_PASSWORD" ]; then
-            echo "::warning ::E2E_AUTH_EMAIL/E2E_AUTH_PASSWORD not configured - skipping authenticated smoke"
-            exit 0
-          fi
           npx playwright test \
             --project=chromium \
             authenticated-smoke.spec.ts \
             authenticated-mobile-smoke.spec.ts
 
       - name: Upload Playwright report
-        if: always()
+        if: always() && steps.auth_preflight.outputs.should_run == 'true'
         uses: actions/upload-artifact@v7.0.1
         with:
           name: playwright-report-authenticated
@@ -166,10 +184,20 @@ jobs:
           retention-days: 7
 
   enterprise-live-gate:
-    name: Enterprise live gate - staging/prod evidence
+    name: Enterprise live gate - staging evidence
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: github.event_name == 'workflow_dispatch'
+    needs: build
+    if: >-
+      ${{
+        github.event_name == 'workflow_dispatch' ||
+        github.event_name == 'push' ||
+        (
+          github.event_name == 'pull_request' &&
+          vars.ENTERPRISE_GATE_ENABLED == 'true' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        )
+      }}
 
     steps:
       - uses: actions/checkout@v6.0.2
@@ -179,7 +207,22 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Preflight enterprise live gate
+        id: enterprise_preflight
+        env:
+          ENTERPRISE_GATE_ENV: staging
+          ENTERPRISE_GATE_BACKEND_URL: ${{ vars.ENTERPRISE_GATE_BACKEND_URL || vars.E2E_API_URL || 'https://urban-ai-backend-staging-staging.up.railway.app' }}
+          ENTERPRISE_GATE_FRONTEND_URL: ${{ vars.ENTERPRISE_GATE_FRONTEND_URL || vars.E2E_BASE_URL || 'https://urban-ai-frontend-staging-staging.up.railway.app' }}
+          ENTERPRISE_GATE_ADMIN_JWT: ${{ secrets.ENTERPRISE_GATE_ADMIN_JWT }}
+          ENTERPRISE_GATE_HOST_JWT: ${{ secrets.ENTERPRISE_GATE_HOST_JWT }}
+          ENTERPRISE_GATE_ADMIN_EMAIL: ${{ secrets.ENTERPRISE_GATE_ADMIN_EMAIL || secrets.E2E_AUTH_EMAIL || secrets.E2E_EMAIL }}
+          ENTERPRISE_GATE_ADMIN_PASSWORD: ${{ secrets.ENTERPRISE_GATE_ADMIN_PASSWORD || secrets.E2E_AUTH_PASSWORD || secrets.E2E_PASSWORD }}
+          ENTERPRISE_GATE_HOST_EMAIL: ${{ secrets.ENTERPRISE_GATE_HOST_EMAIL || secrets.E2E_HOST_EMAIL || secrets.E2E_AUTH_EMAIL || secrets.E2E_EMAIL }}
+          ENTERPRISE_GATE_HOST_PASSWORD: ${{ secrets.ENTERPRISE_GATE_HOST_PASSWORD || secrets.E2E_HOST_PASSWORD || secrets.E2E_AUTH_PASSWORD || secrets.E2E_PASSWORD }}
+        run: node Urban-front-main/scripts/staging-gate-preflight.mjs --gate enterprise-live-gate
+
       - name: Resolve enterprise gate JWTs
+        if: steps.enterprise_preflight.outputs.should_run == 'true'
         env:
           ENTERPRISE_GATE_BACKEND_URL: ${{ vars.ENTERPRISE_GATE_BACKEND_URL || vars.E2E_API_URL || 'https://urban-ai-backend-staging-staging.up.railway.app' }}
           ENTERPRISE_GATE_ADMIN_JWT: ${{ secrets.ENTERPRISE_GATE_ADMIN_JWT }}
@@ -250,8 +293,9 @@ jobs:
           NODE
 
       - name: Run enterprise live gate
+        if: steps.enterprise_preflight.outputs.should_run == 'true'
         env:
-          ENTERPRISE_GATE_ENV: ${{ vars.ENTERPRISE_GATE_ENV || 'staging' }}
+          ENTERPRISE_GATE_ENV: staging
           ENTERPRISE_GATE_BACKEND_URL: ${{ vars.ENTERPRISE_GATE_BACKEND_URL || vars.E2E_API_URL || 'https://urban-ai-backend-staging-staging.up.railway.app' }}
           ENTERPRISE_GATE_FRONTEND_URL: ${{ vars.ENTERPRISE_GATE_FRONTEND_URL || vars.E2E_BASE_URL || 'https://urban-ai-frontend-staging-staging.up.railway.app' }}
           ENTERPRISE_GATE_EVENTS_INGEST_KEY: ${{ secrets.ENTERPRISE_GATE_EVENTS_INGEST_KEY }}
@@ -264,7 +308,7 @@ jobs:
           --output docs/evidence/enterprise-live-gate-${ENTERPRISE_GATE_ENV}.md
 
       - name: Upload enterprise evidence
-        if: always()
+        if: always() && steps.enterprise_preflight.outputs.should_run == 'true'
         uses: actions/upload-artifact@v7.0.1
         with:
           name: enterprise-live-gate

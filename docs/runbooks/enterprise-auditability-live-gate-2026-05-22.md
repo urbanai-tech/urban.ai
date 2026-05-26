@@ -23,6 +23,7 @@ scripts/enterprise-auditability-live-gate.js
 Scripts:
 
 ```powershell
+node Urban-front-main\scripts\staging-gate-preflight.mjs --gate enterprise-live-gate
 npm run gate:enterprise:dry
 npm run gate:enterprise -- --env=staging --strict --skip-events-ingest
 ```
@@ -136,7 +137,22 @@ O workflow `.github/workflows/release-gate.yml` tem job manual:
 enterprise-live-gate
 ```
 
-Ele roda via `workflow_dispatch`, usa variaveis/secrets do GitHub e publica o markdown como artifact por 30 dias.
+Ele agora tambem pode passar por PR/push de branch interna, mas o passo real so
+executa quando o preflight encontra URLs de staging e identidade admin + host.
+Sem essas variaveis/secrets, o job registra skip seguro no summary e nao roda
+login, Playwright ou live gate.
+
+Variaveis/segredos minimos para sair do skip:
+
+```text
+vars.E2E_API_URL ou vars.ENTERPRISE_GATE_BACKEND_URL
+vars.E2E_BASE_URL ou vars.ENTERPRISE_GATE_FRONTEND_URL
+secrets.ENTERPRISE_GATE_ADMIN_JWT ou secrets.ENTERPRISE_GATE_ADMIN_EMAIL/PASSWORD
+secrets.ENTERPRISE_GATE_HOST_JWT ou secrets.ENTERPRISE_GATE_HOST_EMAIL/PASSWORD
+```
+
+Fallbacks para `E2E_AUTH_EMAIL/PASSWORD` continuam aceitos para ambientes de
+staging controlados, mas os valores nunca sao impressos em log/evidencia.
 
 ## Resultado esperado
 

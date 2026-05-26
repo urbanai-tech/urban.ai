@@ -35,7 +35,9 @@
     "restore:verify:dry": "node scripts/restore-drill-verify.js --dry-run",
     "smoke:airbnb-headless": "node scripts/test-airbnb-headless-scraper.js",
     "smoke:event-intelligence": "node scripts/event-intelligence-api-smoke.js",
-    "cleanup:legacy-user": "node scripts/cleanup-user-legacy-data.js"
+    "cleanup:legacy-user": "node scripts/cleanup-user-legacy-data.js",
+    "provision:staging-smoke-users": "node scripts/provision-staging-smoke-users.js",
+    "provision:staging-auth-fixtures": "node scripts/staging-auth-fixtures.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

@@ -3,11 +3,18 @@ const crypto = require('crypto');
 const fs = require('fs/promises');
 const path = require('path');
 
-const APP_URL = process.env.E2E_BASE_URL || 'https://app.myurbanai.com';
-const API_URL = process.env.E2E_API_URL || 'https://urbanai-production-85fd.up.railway.app';
+const APP_URL = requiredEnv('E2E_BASE_URL');
+const API_URL = requiredEnv('E2E_API_URL');
 const EMAIL = process.env.E2E_EMAIL || process.env.E2E_AUTH_EMAIL;
 const PASSWORD = process.env.E2E_PASSWORD || process.env.E2E_AUTH_PASSWORD;
 const MODE = process.env.E2E_AUDIT_MODE || 'all';
+const TARGET_ENV = (process.env.E2E_TARGET_ENV || 'staging').toLowerCase();
+
+assertNonProductionTarget('E2E_BASE_URL', APP_URL);
+assertNonProductionTarget('E2E_API_URL', API_URL);
+if (TARGET_ENV === 'production' && process.env.E2E_ALLOW_PRODUCTION_AUDIT !== 'YES') {
+  throw new Error('E2E product audit refuses production by default. Use staging credentials/URLs.');
+}
 
 const now = new Date();
 const stamp = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
@@ -66,6 +73,35 @@ const visualErrorPatterns = [
 
 function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
+}
+
+function requiredEnv(key) {
+  const value = String(process.env[key] || '').trim();
+  if (!value) {
+    throw new Error(`Set ${key} before running the product audit. Production fallbacks are disabled.`);
+  }
+  return value.replace(/\/+$/, '');
+}
+
+function assertNonProductionTarget(key, value) {
+  const parsed = new URL(value);
+  const hostname = parsed.hostname.toLowerCase();
+  const isProduction =
+    hostname === 'app.myurbanai.com' ||
+    hostname === 'myurbanai.com' ||
+    hostname === 'www.myurbanai.com' ||
+    hostname === 'urbanai-production-85fd.up.railway.app' ||
+    /(^|[-.])production([-.]|$)/i.test(hostname);
+  if (isProduction && process.env.E2E_ALLOW_PRODUCTION_AUDIT !== 'YES') {
+    throw new Error(`${key} points to production (${hostname}). Use staging for this audit.`);
+  }
+}
+
+function maskEmail(value) {
+  const email = String(value || '');
+  const [name, domain] = email.split('@');
+  if (!name || !domain) return email ? '[configured]' : '[missing]';
+  return `${name.slice(0, 2)}***@${domain}`;
 }
 
 async function apiLogin(request) {
@@ -180,7 +216,7 @@ async function auditRoute(page, route) {
   const matchedError = visualErrorPatterns.find((pattern) => pattern.test(bodyText));
   const status = response ? response.status() : null;
   const finalUrl = page.url();
-  const redirectedToLogin = route.path !== '/' && /app\.myurbanai\.com\/?$/.test(finalUrl);
+  const redirectedToLogin = route.path !== '/' && isLoginLikeUrl(finalUrl);
 
   const problems = [];
   if (issue) problems.push(issue);
@@ -201,6 +237,17 @@ async function auditRoute(page, route) {
     ok: problems.length === 0,
     problems,
   };
+}
+
+function isLoginLikeUrl(value) {
+  try {
+    const final = new URL(value);
+    const app = new URL(APP_URL);
+    if (final.origin !== app.origin) return false;
+    return final.pathname === '/' || /\/login\/?$/.test(final.pathname);
+  } catch (_) {
+    return false;
+  }
 }
 
 function score(results) {
@@ -233,7 +280,7 @@ function renderMarkdown(report) {
   lines.push('');
   lines.push(`Base app: ${APP_URL}`);
   lines.push(`Base API: ${API_URL}`);
-  lines.push(`Usuario testado: ${EMAIL}`);
+  lines.push(`Usuario testado: ${maskEmail(EMAIL)}`);
   lines.push('');
   lines.push('## Resumo executivo');
   lines.push('');
@@ -372,7 +419,7 @@ async function main() {
     generatedAt: now.toISOString(),
     appUrl: APP_URL,
     apiUrl: API_URL,
-    email: EMAIL,
+    email: maskEmail(EMAIL),
     summaries,
   };
 
