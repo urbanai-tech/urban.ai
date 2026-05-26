@@ -138,10 +138,10 @@ jobs:
         working-directory: urban-webscraping-main
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6.2.0
         with:
           python-version: '3.12'
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v8.1.0
         with:
           enable-cache: true
           cache-dependency-glob: urban-webscraping-main/uv.lock
@@ -158,10 +158,10 @@ jobs:
         working-directory: urban-pipeline-main
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6.2.0
         with:
           python-version: '3.12'
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v8.1.0
         with:
           enable-cache: true
           cache-dependency-glob: urban-pipeline-main/uv.lock
