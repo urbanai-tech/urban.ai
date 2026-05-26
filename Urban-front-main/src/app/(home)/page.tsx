@@ -181,7 +181,8 @@ export default function Login() {
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            padding: "0 64px",
+            boxSizing: "border-box",
+            padding: "64px 64px 112px",
           }}
         >
           <p
@@ -205,7 +206,7 @@ export default function Login() {
             <h1
               className="urban-display"
               style={{
-                fontSize: "clamp(64px, 8vw, 140px)",
+                fontSize: "clamp(64px, min(8vw, 15.5vh), 140px)",
                 lineHeight: 0.88,
                 letterSpacing: 0,
                 fontWeight: 400,

@@ -95,14 +95,14 @@ export function PortfolioToolbar({
           top: 64,
           zIndex: 30,
           background: "var(--app-surface-elevated, #FFFFFF)",
-          borderBottom: "1px solid var(--app-divider)",
-          padding: "14px 20px",
-          display: "flex",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 12,
+          border: "1px solid var(--app-divider)",
+          padding: "16px 18px",
+          display: "grid",
+          gridTemplateColumns: hasSelection ? "minmax(260px, 1fr) auto" : "1fr",
+          alignItems: "start",
+          gap: "14px 20px",
           borderRadius: 12,
-          boxShadow: "0 1px 0 rgba(14, 17, 22, 0.02)",
+          boxShadow: "0 10px 28px rgba(14, 17, 22, 0.08)",
           marginBottom: 20,
         }}
       >
@@ -130,7 +130,7 @@ export function PortfolioToolbar({
           <>
             <div
               style={{
-                display: "inline-flex",
+                display: "flex",
                 alignItems: "center",
                 gap: 10,
                 color: "var(--app-text)",
@@ -194,9 +194,17 @@ export function PortfolioToolbar({
                   limpar
                 </button>
               )}
+              <span
+                style={{
+                  width: "100%",
+                  color: "var(--app-text-muted)",
+                  fontSize: 12,
+                  fontWeight: 500,
+                }}
+              >
+                Toda acao abre uma previa antes de confirmar.
+              </span>
             </div>
-
-            <div style={{ flex: 1 }} />
 
             <div
               data-portfolio-actions
@@ -247,7 +255,7 @@ export function PortfolioToolbar({
                       disabled={loading}
                       rightIcon={<Icons.ChevronDown size={12} />}
                     >
-                      Aplicar modo
+                      Simular modo
                     </AppButton>
                     {strategyOpen && (
                       <Dropdown onClose={() => setStrategyOpen(false)}>
@@ -302,6 +310,7 @@ export function PortfolioToolbar({
                     variant="secondary"
                     onClick={() => void onAction?.({ type: "accept-suggestions" })}
                     disabled={loading}
+                    title="Aceita as sugestoes carregadas para os imoveis e datas selecionados."
                   >
                     Aceitar sugestoes
                   </AppButton>
@@ -311,8 +320,9 @@ export function PortfolioToolbar({
                     variant="ghost"
                     onClick={() => void onAction?.({ type: "apply-internal" })}
                     disabled={loading}
+                    title="Registra o aceite internamente sem empurrar para uma integracao externa."
                   >
-                    Aplicar interno
+                    Salvar interno
                   </AppButton>
                 </>
               )}
@@ -324,6 +334,7 @@ export function PortfolioToolbar({
       <style jsx>{`
         @media (max-width: 767px) {
           [data-portfolio-toolbar] {
+            grid-template-columns: 1fr !important;
             position: ${hasSelection ? "fixed" : "sticky"};
             top: ${hasSelection ? "auto" : "56px"};
             bottom: ${hasSelection ? "64px" : "auto"};
@@ -338,6 +349,7 @@ export function PortfolioToolbar({
           }
           [data-portfolio-actions] {
             width: 100%;
+            justify-content: flex-start !important;
           }
         }
       `}</style>

@@ -26,7 +26,7 @@ export function AppCard({
   children: React.ReactNode;
   style?: React.CSSProperties;
   as?: keyof React.JSX.IntrinsicElements;
-  onClick?: () => void;
+  onClick?: React.MouseEventHandler<HTMLElement>;
 }) {
   const Element = Tag as React.ElementType;
   return (

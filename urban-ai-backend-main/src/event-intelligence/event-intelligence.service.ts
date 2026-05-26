@@ -120,10 +120,13 @@ export class EventIntelligenceService {
     const events = await this.findEvents({ ...query, from: range.from, to: range.to, scope: 'in' }, false);
     const snapshots = await this.latestSnapshotsByEventIds(events.map((event) => event.id));
     const nearMyProperties = this.isTrue(query.nearMyProperties);
-    const ownedAddresses = nearMyProperties ? await this.findOwnedAddresses(userId, query.propertyId) : [];
+    const radiusKm = this.positiveNumber(query.radiusKm);
+    const shouldFilterNear = nearMyProperties || radiusKm !== null || this.isSpecificFilter(query.propertyId);
+    const propertyFilter = this.isSpecificFilter(query.propertyId) ? query.propertyId : undefined;
+    const ownedAddresses = shouldFilterNear ? await this.findOwnedAddresses(userId, propertyFilter) : [];
 
-    const filtered = nearMyProperties
-      ? events.filter((event) => this.isNearAnyOwnedProperty(event, snapshots.get(event.id), ownedAddresses))
+    const filtered = shouldFilterNear
+      ? events.filter((event) => this.isNearAnyOwnedProperty(event, snapshots.get(event.id), ownedAddresses, radiusKm))
       : events;
 
     return {
@@ -256,11 +259,14 @@ export class EventIntelligenceService {
 
   async hostHeatmap(userId: string, query: EventCatalogQuery) {
     const range = this.resolveRange(query.from, query.to, 30);
-    const addresses = await this.findOwnedAddresses(userId, query.propertyId);
+    const propertyFilter = this.isSpecificFilter(query.propertyId) ? query.propertyId : undefined;
+    const addresses = await this.findOwnedAddresses(userId, propertyFilter);
     const events = await this.findEvents({ ...query, from: range.from, to: range.to, scope: 'in' }, false);
     const snapshots = await this.latestSnapshotsByEventIds(events.map((event) => event.id));
     const nearEvents = addresses.length
-      ? events.filter((event) => this.isNearAnyOwnedProperty(event, snapshots.get(event.id), addresses))
+      ? events.filter((event) =>
+          this.isNearAnyOwnedProperty(event, snapshots.get(event.id), addresses, this.positiveNumber(query.radiusKm)),
+        )
       : [];
     const impactCounts = await this.loadImpactCounts(nearEvents.map((event) => event.id));
 
@@ -1245,9 +1251,10 @@ export class EventIntelligenceService {
       qb.andWhere('event.outOfScope = :outOfScope', { outOfScope: true });
     }
 
-    if (query.city) qb.andWhere('event.cidade = :city', { city: query.city });
-    if (query.category) qb.andWhere('event.categoria = :category', { category: query.category });
-    if (query.source) qb.andWhere('event.source = :source', { source: query.source });
+    if (this.isSpecificFilter(query.city)) qb.andWhere('event.cidade = :city', { city: query.city });
+    if (this.isSpecificFilter(query.category)) qb.andWhere('event.categoria = :category', { category: query.category });
+    if (this.isSpecificFilter(query.source)) qb.andWhere('event.source = :source', { source: query.source });
+    if (this.isTrue(query.highImpact)) qb.andWhere('event.relevancia >= :minHighImpact', { minHighImpact: 60 });
     if (query.venue) qb.andWhere('event.enderecoCompleto LIKE :venue', { venue: `%${query.venue}%` });
     if (query.search) {
       qb.andWhere(
@@ -1313,7 +1320,7 @@ export class EventIntelligenceService {
       .where('user.id = :userId', { userId })
       .andWhere('address.ativo = :active', { active: true })
       .take(1000);
-    if (propertyId) qb.andWhere('address.id = :propertyId', { propertyId });
+    if (this.isSpecificFilter(propertyId)) qb.andWhere('address.id = :propertyId', { propertyId });
     return qb.getMany();
   }
 
@@ -1332,7 +1339,7 @@ export class EventIntelligenceService {
       .orderBy('impact.generatedAt', 'DESC')
       .take(500);
     if (userId) qb.andWhere('hostUser.id = :userId', { userId });
-    if (propertyId) qb.andWhere('property.id = :propertyId', { propertyId });
+    if (this.isSpecificFilter(propertyId)) qb.andWhere('property.id = :propertyId', { propertyId });
     return this.latestPersistedImpacts(await qb.getMany());
   }
 
@@ -1361,8 +1368,8 @@ export class EventIntelligenceService {
       .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
       .orderBy('impact.generatedAt', 'DESC')
       .take(500);
-    if (input.propertyId) qb.andWhere('property.id = :propertyId', { propertyId: input.propertyId });
-    if (input.category) qb.andWhere('event.categoria = :category', { category: input.category });
+    if (this.isSpecificFilter(input.propertyId)) qb.andWhere('property.id = :propertyId', { propertyId: input.propertyId });
+    if (this.isSpecificFilter(input.category)) qb.andWhere('event.categoria = :category', { category: input.category });
     if (input.confidence) qb.andWhere('impact.confidence = :confidence', { confidence: input.confidence });
     return this.latestPersistedImpacts(await qb.getMany());
   }
@@ -1393,7 +1400,7 @@ export class EventIntelligenceService {
       .orderBy('analysis.criadoEm', 'DESC')
       .take(500);
     if (userId) qb.andWhere('owner.id = :userId', { userId });
-    if (propertyId) qb.andWhere('address.id = :propertyId', { propertyId });
+    if (this.isSpecificFilter(propertyId)) qb.andWhere('address.id = :propertyId', { propertyId });
     return qb.getMany();
   }
 
@@ -1413,8 +1420,10 @@ export class EventIntelligenceService {
       .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
       .orderBy('analysis.criadoEm', 'DESC')
       .take(500);
-    if (query.propertyId) qb.andWhere('address.id = :propertyId', { propertyId: query.propertyId });
-    if (query.category) qb.andWhere('event.categoria = :category', { category: query.category });
+    if (this.isSpecificFilter(query.propertyId)) qb.andWhere('address.id = :propertyId', { propertyId: query.propertyId });
+    if (this.isSpecificFilter(query.category)) qb.andWhere('event.categoria = :category', { category: query.category });
+    const radiusKm = this.positiveNumber(query.radiusKm);
+    if (radiusKm !== null) qb.andWhere('analysis.distanciaSuaPropriedade <= :radiusKm', { radiusKm });
     return qb.getMany();
   }
 
@@ -1844,11 +1853,12 @@ export class EventIntelligenceService {
     event: EventEntity,
     snapshot: EventIntelligenceSnapshot | undefined,
     addresses: Address[],
+    radiusOverrideKm?: number | null,
   ) {
     const eventLat = this.numberOrNull(event.latitude);
     const eventLng = this.numberOrNull(event.longitude);
     if (eventLat === null || eventLng === null) return false;
-    const radiusKm = this.numberOrNull(snapshot?.demandRadiusKm) ?? this.numberOrNull(event.raioImpactoKm) ?? 8;
+    const radiusKm = radiusOverrideKm ?? this.numberOrNull(snapshot?.demandRadiusKm) ?? this.numberOrNull(event.raioImpactoKm) ?? 8;
     return addresses.some((address) => {
       const lat = this.numberOrNull(address.latitude);
       const lng = this.numberOrNull(address.longitude);
@@ -2108,6 +2118,15 @@ export class EventIntelligenceService {
 
   private isTrue(value: unknown) {
     return value === true || value === 'true' || value === '1';
+  }
+
+  private isSpecificFilter(value: unknown): boolean {
+    return typeof value === 'string' ? value.trim() !== '' && value !== 'all' : Boolean(value);
+  }
+
+  private positiveNumber(value: unknown): number | null {
+    const number = this.numberOrNull(value);
+    return number !== null && number > 0 ? number : null;
   }
 
   private normalizeConfidence(value?: string): EventIntelligenceConfidence | null {

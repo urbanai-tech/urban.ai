@@ -11,6 +11,8 @@ type Props = {
   height?: number;
   overlayBg?: string;
   orbitColor?: string;
+  title?: string;
+  subtitle?: string;
 };
 
 function Inner({
@@ -21,9 +23,13 @@ function Inner({
   height,
   overlayBg,
   orbitColor,
-}: Required<Omit<Props, 'overlayBg' | 'orbitColor'>> & {
+  title,
+  subtitle,
+}: Required<Omit<Props, 'overlayBg' | 'orbitColor' | 'title' | 'subtitle'>> & {
   overlayBg: string;
   orbitColor: string;
+  title: string;
+  subtitle: string;
 }) {
   return (
     <div
@@ -34,83 +40,108 @@ function Inner({
         inset: fullscreen ? 0 : undefined,
         display: 'grid',
         placeItems: 'center',
+        padding: 24,
         background: fullscreen ? overlayBg : 'transparent',
-        backdropFilter: fullscreen ? 'saturate(140%) blur(6px)' : undefined,
+        backdropFilter: fullscreen ? 'saturate(140%) blur(8px)' : undefined,
         zIndex: fullscreen ? 9999 : 'auto',
+        color: 'var(--theme-page-text)',
       }}
     >
-      <div style={{ position: 'relative', animation: 'urban-loader-pulse 2.4s ease-in-out infinite' }}>
-        <Image
-          src={src}
-          alt={alt}
-          width={width}
-          height={height}
-          priority
-          style={{ display: 'block', height: 'auto' }}
-        />
-
-        <span
-          aria-hidden
+      <div
+        style={{
+          display: 'grid',
+          justifyItems: 'center',
+          gap: 22,
+          width: 'min(420px, 100%)',
+          textAlign: 'center',
+        }}
+      >
+        <div
           style={{
-            pointerEvents: 'none',
-            position: 'absolute',
-            inset: 0,
-            overflow: 'hidden',
+            position: 'relative',
+            width: 'min(260px, 72vw)',
+            animation: 'urban-loader-float 2.4s ease-in-out infinite',
           }}
         >
-          <span
+          <Image
+            src={src}
+            alt={alt}
+            width={width}
+            height={height}
+            priority
             style={{
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              width: '30%',
-              transform: 'translateX(-150%)',
-              background:
-                'linear-gradient(110deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.35) 45%, rgba(255,255,255,0) 100%)',
-              animation: 'urban-loader-shine 1.35s ease-in-out infinite',
+              display: 'block',
+              width: '100%',
+              height: 'auto',
+              filter: 'drop-shadow(0 18px 36px rgba(0,0,0,0.26))',
             }}
           />
-        </span>
 
-        <span
-          aria-hidden
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            width: `${Math.max(width, height) * 0.9}px`,
-            height: `${Math.max(width, height) * 0.9}px`,
-            transform: 'translate(-50%, -50%)',
-            borderRadius: '999px',
-            animation: 'urban-loader-spin 1.75s linear infinite',
-          }}
-        >
           <span
+            aria-hidden
             style={{
               position: 'absolute',
-              top: '-8px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: 12,
-              height: 12,
+              inset: '-22px',
+              border: `1px solid ${orbitColor}`,
+              borderRightColor: 'transparent',
+              borderBottomColor: 'transparent',
               borderRadius: '999px',
-              background: orbitColor,
-              boxShadow: '0 0 0 0 rgba(228,110,46,0.75)',
+              opacity: 0.8,
+              animation: 'urban-loader-spin 1.8s linear infinite',
             }}
           />
-        </span>
+          <span
+            aria-hidden
+            style={{
+              position: 'absolute',
+              left: '12%',
+              right: '12%',
+              bottom: -18,
+              height: 1,
+              background:
+                'linear-gradient(90deg, transparent, rgba(232,80,10,0.72), transparent)',
+              animation: 'urban-loader-line 1.4s ease-in-out infinite',
+            }}
+          />
+        </div>
+
+        <div style={{ display: 'grid', gap: 8 }}>
+          <p
+            style={{
+              margin: 0,
+              color: 'var(--theme-app-accent)',
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: 3,
+              textTransform: 'uppercase',
+            }}
+          >
+            {title}
+          </p>
+          <p
+            style={{
+              margin: 0,
+              color: 'var(--theme-app-text-muted)',
+              fontSize: 14,
+              fontWeight: 500,
+              lineHeight: 1.5,
+            }}
+          >
+            {subtitle}
+          </p>
+        </div>
       </div>
       <style>{`
-        @keyframes urban-loader-shine {
-          0% { transform: translateX(-150%); }
-          100% { transform: translateX(150%); }
-        }
-        @keyframes urban-loader-pulse {
+        @keyframes urban-loader-float {
           0%, 100% { transform: scale(1); filter: drop-shadow(0 8px 20px rgba(0,0,0,0.24)); }
-          50% { transform: scale(1.02); filter: drop-shadow(0 10px 28px rgba(0,0,0,0.28)); }
+          50% { transform: scale(1.018) translateY(-2px); filter: drop-shadow(0 12px 32px rgba(0,0,0,0.32)); }
         }
         @keyframes urban-loader-spin {
-          to { transform: translate(-50%, -50%) rotate(360deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes urban-loader-line {
+          0%, 100% { opacity: 0.35; transform: scaleX(0.72); }
+          50% { opacity: 1; transform: scaleX(1); }
         }
       `}</style>
     </div>
@@ -119,12 +150,14 @@ function Inner({
 
 const UrbanAiLoader = memo(function UrbanAiLoader({
   fullscreen = true,
-  src = '/urban-logo.png',
+  src = '/urban-logo-transparent-soft.png',
   alt = 'UrbanAI',
   width = 360,
   height = 120,
-  overlayBg = 'rgba(10,12,24,0.76)',
-  orbitColor = '#E46E2E',
+  overlayBg = 'rgba(8,10,15,0.94)',
+  orbitColor = 'rgba(232,80,10,0.62)',
+  title = 'Entrando na Urban AI',
+  subtitle = 'Preparando seu painel',
 }: Props) {
   return (
     <Inner
@@ -135,6 +168,8 @@ const UrbanAiLoader = memo(function UrbanAiLoader({
       height={height}
       overlayBg={overlayBg}
       orbitColor={orbitColor}
+      title={title}
+      subtitle={subtitle}
     />
   );
 });

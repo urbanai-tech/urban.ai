@@ -9,8 +9,9 @@ import { EventCard } from './components/ItemEventoPainel';
 import DashboardCards from './components/StatCard';
 import { PushNotificationOptIn } from '../componentes/PushNotificationOptIn';
 import { AppButton, AppCard, AppCardHeader, AppEmptyState, AppLoadingStatus, AppPageShell, AppSectionHeader, Icons, PaceChart } from '../componentes/ui';
+import { isTodayOrFutureDate } from '../lib/date';
 
-const PropertySelect = dynamic(() => import('./components/CustomSelect'), { ssr: false });
+const PropertySelect = dynamic(() => import('../componentes/PropertySelect'), { ssr: false });
 
 export default function SugestoesAceitas() {
   const [propsInfo, setPropsInfo] = useState<PropertyDropdown[]>([]);
@@ -30,6 +31,10 @@ export default function SugestoesAceitas() {
   const [isLoadingPace, setIsLoadingPace] = useState(false);
   const [paceError, setPaceError] = useState<string | null>(null);
   const [paceReloadCount, setPaceReloadCount] = useState(0);
+  const selectedPropertyName =
+    propsInfo.find((property) => property.id === propertyId)?.propertyName ||
+    propsInfo.find((property) => property.id === propertyId)?.nome ||
+    "todos os imoveis";
 
   useEffect(() => {
     async function fetchProps() {
@@ -66,8 +71,11 @@ export default function SugestoesAceitas() {
       setIsLoadingEvents(true);
       setEventsError(null);
       const result = await getEventosAcompanhando(propertyId || undefined, page, limit);
-      setEvents(result.data);
-      setTotalPages(Math.ceil(result.total / limit));
+      const actionableEvents = result.data.filter((event: EventItem) =>
+        isTodayOrFutureDate(event.dataInicio),
+      );
+      setEvents(actionableEvents);
+      setTotalPages(Math.max(1, Math.ceil(result.total / limit)));
     } catch (err) {
       console.error('Erro ao carregar eventos', err);
       setEventsError('Nao foi possivel carregar as sugestoes do painel agora.');
@@ -158,6 +166,12 @@ export default function SugestoesAceitas() {
 
       <DashboardCards propertyId={propertyId} />
 
+      <PainelActionCenter
+        recommendationsCount={events.length}
+        paceEventsCount={paceData.filter((point) => point.eventLabel).length}
+        propertyName={selectedPropertyName}
+      />
+
       <div style={{ marginTop: 32 }}>
         <AppCard variant="default">
           <AppCardHeader
@@ -182,7 +196,7 @@ export default function SugestoesAceitas() {
         </AppCard>
       </div>
 
-      <div style={{ marginTop: 32 }}>
+      <div id="painel-sugestoes" style={{ marginTop: 32 }}>
         {isLoadingEvents ? (
           <AppLoadingStatus
             eyebrow="SUGESTOES"
@@ -286,6 +300,115 @@ function ApiErrorState({
         </AppButton>
       }
     />
+  );
+}
+
+function PainelActionCenter({
+  recommendationsCount,
+  paceEventsCount,
+  propertyName,
+}: {
+  recommendationsCount: number;
+  paceEventsCount: number;
+  propertyName: string;
+}) {
+  return (
+    <AppCard variant="accent" style={{ marginTop: 24, padding: 22 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "minmax(260px, 1fr) repeat(3, minmax(180px, 0.7fr))",
+          gap: 14,
+          alignItems: "stretch",
+        }}
+        className="painel-action-center"
+      >
+        <div style={{ minWidth: 0 }}>
+          <p className="urban-app-eyebrow-muted" style={{ marginBottom: 8 }}>
+            O que fazer agora
+          </p>
+          <h2 style={{ margin: 0, color: "var(--app-text)", fontSize: 22, lineHeight: 1.2 }}>
+            Priorize as decisoes que mudam preco hoje.
+          </h2>
+          <p style={{ margin: "8px 0 0", color: "var(--app-text-muted)", fontSize: 13, lineHeight: 1.5 }}>
+            Foco atual: {propertyName}. O painel agora separa acao imediata, leitura de eventos e historico.
+          </p>
+        </div>
+
+        <ActionTile
+          icon={<Icons.Sparkles size={16} />}
+          label="Sugestoes pendentes"
+          value={String(recommendationsCount)}
+          href="#painel-sugestoes"
+        />
+        <ActionTile
+          icon={<Icons.Calendar size={16} />}
+          label="Eventos no periodo"
+          value={String(paceEventsCount)}
+          href="/event-radar"
+        />
+        <ActionTile
+          icon={<Icons.ArrowRight size={16} />}
+          label="Historico"
+          value="Auditoria"
+          href="/portfolio/history"
+        />
+      </div>
+
+      <style>{`
+        @media (max-width: 1050px) {
+          .painel-action-center {
+            grid-template-columns: 1fr 1fr !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .painel-action-center {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+    </AppCard>
+  );
+}
+
+function ActionTile({
+  icon,
+  label,
+  value,
+  href,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  href: string;
+}) {
+  return (
+    <a
+      href={href}
+      className="urban-focus-ring"
+      style={{
+        minHeight: 116,
+        borderRadius: 10,
+        border: "1px solid var(--app-divider)",
+        background: "var(--app-surface)",
+        padding: 14,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        color: "inherit",
+        textDecoration: "none",
+      }}
+    >
+      <span style={{ display: "inline-flex", color: "var(--app-accent)" }}>{icon}</span>
+      <span>
+        <span style={{ display: "block", color: "var(--app-text)", fontSize: 22, fontWeight: 750 }}>
+          {value}
+        </span>
+        <span style={{ display: "block", marginTop: 3, color: "var(--app-text-muted)", fontSize: 12 }}>
+          {label}
+        </span>
+      </span>
+    </a>
   );
 }
 

@@ -76,6 +76,7 @@ function EventRadarContent() {
   const [to, setTo] = useState(addDays(45));
   const [propertyId, setPropertyId] = useState("all");
   const [category, setCategory] = useState("all");
+  const [radiusKm, setRadiusKm] = useState("30");
   const [confidence, setConfidence] = useState<HostEventConfidence | "all">("all");
   const [loading, setLoading] = useState(true);
   const [propertiesLoading, setPropertiesLoading] = useState(true);
@@ -84,9 +85,11 @@ function EventRadarContent() {
   const [simulationError, setSimulationError] = useState<string | null>(null);
   const [reloadCount, setReloadCount] = useState(0);
   const [simulating, setSimulating] = useState(false);
+  const todayIso = addDays(0);
   const hasActiveFilters =
     propertyId !== "all" ||
     category !== "all" ||
+    radiusKm !== "30" ||
     confidence !== "all" ||
     from !== addDays(0) ||
     to !== addDays(45);
@@ -99,8 +102,9 @@ function EventRadarContent() {
         from,
         to,
         propertyId: propertyId === "all" ? undefined : propertyId,
-        category,
-        confidence,
+        category: category === "all" ? undefined : category,
+        radiusKm,
+        confidence: confidence === "all" ? undefined : confidence,
       });
       setResponse(data);
     } catch (err) {
@@ -109,7 +113,7 @@ function EventRadarContent() {
     } finally {
       setLoading(false);
     }
-  }, [category, confidence, from, propertyId, to]);
+  }, [category, confidence, from, propertyId, radiusKm, to]);
 
   useEffect(() => {
     loadRadar();
@@ -208,12 +212,22 @@ function EventRadarContent() {
           style={{ display: "grid", gridTemplateColumns: "repeat(12, minmax(0, 1fr))", gap: 14, alignItems: "end" }}
         >
           <div style={{ gridColumn: "span 2", minWidth: 0 }}>
-            <AppInput type="date" label="De" value={from} onChange={(event) => setFrom(event.target.value)} />
+            <AppInput
+              type="date"
+              label="De"
+              value={from}
+              min={todayIso}
+              onChange={(event) => {
+                const nextFrom = event.target.value < todayIso ? todayIso : event.target.value;
+                setFrom(nextFrom);
+                if (to < nextFrom) setTo(nextFrom);
+              }}
+            />
           </div>
           <div style={{ gridColumn: "span 2", minWidth: 0 }}>
             <AppInput type="date" label="Ate" value={to} min={from} onChange={(event) => setTo(event.target.value)} />
           </div>
-          <div style={{ gridColumn: "span 3", minWidth: 0 }}>
+          <div style={{ gridColumn: "span 2", minWidth: 0 }}>
             <AppSelect
               label="Imovel"
               value={propertyId}
@@ -246,6 +260,15 @@ function EventRadarContent() {
                   {item}
                 </option>
               ))}
+            </AppSelect>
+          </div>
+          <div style={{ gridColumn: "span 1", minWidth: 0 }}>
+            <AppSelect label="Raio" value={radiusKm} onChange={(event) => setRadiusKm(event.target.value)}>
+              <option value="2">2 km</option>
+              <option value="5">5 km</option>
+              <option value="10">10 km</option>
+              <option value="30">30 km</option>
+              <option value="50">50 km</option>
             </AppSelect>
           </div>
           <div style={{ gridColumn: "span 2", minWidth: 0 }}>
@@ -396,6 +419,7 @@ function EventRadarContent() {
   function resetFilters() {
     setPropertyId("all");
     setCategory("all");
+    setRadiusKm("30");
     setConfidence("all");
     setFrom(addDays(0));
     setTo(addDays(45));
