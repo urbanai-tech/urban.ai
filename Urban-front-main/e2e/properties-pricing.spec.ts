@@ -92,7 +92,7 @@ test.describe('Properties pricing inputs', () => {
     await page.locator('input[inputmode="decimal"]').nth(1).fill('9900');
     await page.getByRole('button', { name: /^Salvar$/i }).click();
 
-    expect(updates[0]).toEqual({
+    await expect.poll(() => updates[0]).toEqual({
       manualDailyPrice: 450,
       averageMonthlyRevenue: 9900,
     });
