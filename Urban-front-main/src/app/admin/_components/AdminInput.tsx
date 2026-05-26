@@ -94,7 +94,7 @@ export const AdminInput = React.forwardRef<HTMLInputElement, InputProps>(
         style={{
           ...baseFieldStyle,
           paddingLeft: leftAddon ? 36 : 12,
-          borderColor: error ? "var(--admin-danger)" : (baseFieldStyle.border as string),
+          borderColor: error ? "var(--admin-danger)" : "var(--admin-divider)",
           ...style,
         }}
         {...rest}
@@ -147,8 +147,12 @@ export const AdminSelect = React.forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           style={{
             ...baseFieldStyle,
-            appearance: "auto",
+            appearance: "none",
             paddingRight: 36,
+            backgroundColor: "var(--admin-surface-elevated)",
+            backgroundImage: "var(--admin-select-chevron)",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "right 12px center",
             ...style,
           }}
           {...rest}

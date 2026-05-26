@@ -105,6 +105,7 @@ export const EventCard: React.FC<EventCardProps> = ({
       onPrimary={accepted ? handleCancel : handleAccept}
       primaryLabel={accepted ? "Cancelar aceite" : "Aplicar sugestao"}
       loading={loading}
+      density="compact"
     />
   );
 };

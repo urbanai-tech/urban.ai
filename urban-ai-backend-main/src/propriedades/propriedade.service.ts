@@ -2677,13 +2677,19 @@ export class PropriedadeService {
         console.log("raio:", raio);
 
         // Define datas padrão caso não sejam fornecidas
-        const startDate = dataInicial
+        const requestedStartDate = dataInicial
             ? dayjs(dataInicial).startOf('day').toDate()
             : dayjs().startOf('day').toDate(); // hoje 00:00:00
+        const todayStart = dayjs().startOf('day').toDate();
+        const startDate = requestedStartDate < todayStart ? todayStart : requestedStartDate;
 
         const endDate = dataFinal
             ? dayjs(dataFinal).endOf('day').toDate()
             : dayjs().add(7, 'day').endOf('day').toDate(); // daqui a 7 dias 23:59:59
+
+        if (endDate < startDate) {
+            return { data: [], total: 0, page, limit };
+        }
 
         const [resultados, total] = await this.analisePrecoRepository.findAndCount({
             where: {
@@ -2740,7 +2746,7 @@ export class PropriedadeService {
     ) {
 
         const hoje = new Date();
-        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1); // dia 01 do mês atual
+        const inicioPeriodo = startOfDay(hoje);
         const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0, 23, 59, 59, 999);
 
         if (enderecoId) {
@@ -2750,7 +2756,7 @@ export class PropriedadeService {
                     usuarioProprietario: { id: userId },
                     endereco: { id: enderecoId },
                     aceito: true, // ✅ filtra apenas aceitos
-                    evento: { dataInicio: Between(inicioMes, fimMes) }
+                    evento: { dataInicio: Between(inicioPeriodo, fimMes) }
                 },
                 relations: ['evento'],
                 skip: (page - 1) * limit,
@@ -2791,7 +2797,7 @@ export class PropriedadeService {
             const [resultados, total] = await this.analisePrecoRepository.findAndCount({
                 where: {
                     aceito: true, // ✅ filtra apenas aceitos
-                    evento: { dataInicio: Between(inicioMes, fimMes) },
+                    evento: { dataInicio: Between(inicioPeriodo, fimMes) },
                     usuarioProprietario: { id: userId },
                 },
                 relations: ['evento'],
@@ -2840,8 +2846,14 @@ export class PropriedadeService {
         page: number = 1,
         limit: number = 10,
     ) {
-        const inicio = startOfMonth(new Date(dataInicial));
-        const fim = addDays(inicio, 30);
+        const inicioMes = startOfMonth(new Date(dataInicial));
+        const hoje = startOfDay(new Date());
+        const inicio = inicioMes < hoje ? hoje : inicioMes;
+        const fim = addDays(inicioMes, 30);
+
+        if (fim < inicio) {
+            return { data: [], total: 0, page, limit };
+        }
         const [resultados, total] = await this.analisePrecoRepository.findAndCount({
             where: {
                 endereco: { id: enderecoId },

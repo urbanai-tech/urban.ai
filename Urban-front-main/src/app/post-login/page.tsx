@@ -64,12 +64,12 @@ export default function PostLoginPage() {
   return (
     <UrbanAiLoader
       fullscreen
-      src="/urban-logo.png"
+      src="/urban-logo-transparent-soft.png"
       alt="UrbanAI"
       width={360}
       height={120}
-      overlayBg="rgba(8,10,15,0.9)"
-      orbitColor="#E8500A"
+      overlayBg="rgba(8,10,15,0.94)"
+      orbitColor="rgba(232,80,10,0.62)"
     />
   );
 }

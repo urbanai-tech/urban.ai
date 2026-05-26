@@ -1147,24 +1147,33 @@ export function PortfolioCalendar({
                             aria-hidden="true"
                             style={{
                               position: "absolute",
-                              top: 4,
-                              left: 4,
+                              top: 6,
+                              left: 6,
+                              maxWidth: DAY_COL_WIDTH - 14,
+                              height: 14,
+                              padding: "0 4px",
+                              borderRadius: 999,
+                              background:
+                                day.evento!.impacto === "alta"
+                                  ? "var(--app-accent-soft)"
+                                  : "var(--app-surface-muted)",
                               fontSize: 8,
-                              color: "var(--app-text-dim)",
-                              writingMode: "vertical-rl",
-                              transform: "rotate(180deg)",
+                              color:
+                                day.evento!.impacto === "alta"
+                                  ? "var(--app-accent)"
+                                  : "var(--app-text-muted)",
                               textOverflow: "ellipsis",
                               overflow: "hidden",
-                              maxHeight: ROW_HEIGHT - 12,
                               whiteSpace: "nowrap",
                               fontFamily: "'Inter', sans-serif",
-                              letterSpacing: 0.3,
+                              letterSpacing: 0.4,
                               textTransform: "uppercase",
-                              fontWeight: 600,
+                              fontWeight: 750,
+                              lineHeight: "14px",
                               pointerEvents: "none",
                             }}
                           >
-                            {day.evento!.nome}
+                            {day.evento!.impacto === "alta" ? "Alta" : "Evento"}
                           </span>
                         </>
                       )}

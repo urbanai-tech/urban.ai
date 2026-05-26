@@ -35,7 +35,7 @@ import {
   Icons,
 } from '../componentes/ui';
 
-const PropertySelect = dynamic(() => import('./components/CustomSelect'), { ssr: false });
+const PropertySelect = dynamic(() => import('../componentes/PropertySelect'), { ssr: false });
 
 interface EventItem {
   id: string;
@@ -129,8 +129,16 @@ export default function DashboardPage() {
     return map;
   }, [filteredEvents]);
 
-  const filterEvents = useCallback(() => {
-    let result = [...allEvents];
+  const isActionableEvent = useCallback(
+    (event: EventItem) => {
+      const eventStart = startOfDay(parseISO(event.dataInicio));
+      return Number.isFinite(eventStart.getTime()) && eventStart >= hoje;
+    },
+    [hoje],
+  );
+
+  const filterEvents = useCallback((source: EventItem[] = allEvents) => {
+    let result = source.filter(isActionableEvent);
 
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
@@ -157,14 +165,14 @@ export default function DashboardPage() {
     }
 
     return result;
-  }, [allEvents, searchTerm, range]);
+  }, [allEvents, isActionableEvent, searchTerm, range]);
 
   const fetchEventsSemLoading = async () => {
     setError(null);
     try {
       const response = await getEventosPorPropriedade(propertyId, currentMonth.toISOString());
       setAllEvents(response.data);
-      setFilteredEvents(filterEvents());
+      setFilteredEvents(filterEvents(response.data));
     } catch (err) {
       console.error(err);
       setError('Erro ao carregar eventos');
@@ -258,6 +266,7 @@ export default function DashboardPage() {
 
   const eventsToDisplay = useMemo(() => {
     if (selectedDay) {
+      if (startOfDay(selectedDay) < hoje) return [];
       const dateKey = format(selectedDay, 'yyyy-MM-dd');
       return eventsByDay[dateKey] || [];
     }
@@ -265,11 +274,12 @@ export default function DashboardPage() {
     const monthEnd = endOfMonth(currentMonth);
     return allEvents
       .filter(event => {
+        if (!isActionableEvent(event)) return false;
         const s = parseISO(event.dataInicio);
         return isWithinInterval(s, { start: monthStart, end: monthEnd });
       })
       .sort((a, b) => +parseISO(a.dataInicio) - +parseISO(b.dataInicio));
-  }, [selectedDay, currentMonth, allEvents, eventsByDay]);
+  }, [selectedDay, currentMonth, allEvents, eventsByDay, hoje, isActionableEvent]);
 
   return (
     <AppPageShell maxWidth={1400}>
@@ -354,12 +364,14 @@ export default function DashboardPage() {
                     const dayEvents = eventsByDay[dateKey] || [];
                     const isToday = isSameDay(day, new Date());
                     const isSelected = selectedDay && isSameDay(day, selectedDay);
+                    const isPastDay = startOfDay(day) < hoje;
 
                     return (
                       <button
-                        className={`dashboard-day${isToday ? ' is-today' : ''}${isSelected ? ' is-selected' : ''}`}
+                        className={`dashboard-day${isToday ? ' is-today' : ''}${isSelected ? ' is-selected' : ''}${isPastDay ? ' is-past' : ''}`}
                         key={dateKey}
                         type="button"
+                        disabled={isPastDay}
                         onClick={() => setSelectedDay(day)}
                       >
                         <span className="dashboard-day-number">{format(day, 'd')}</span>
@@ -568,6 +580,16 @@ const styles = `
     border-color: var(--app-accent);
   }
 
+  .dashboard-day.is-past {
+    opacity: 0.36;
+    cursor: not-allowed;
+    background: var(--app-surface-muted);
+  }
+
+  .dashboard-day.is-past:hover {
+    border-color: var(--app-divider);
+  }
+
   .dashboard-day-number {
     align-self: flex-end;
     font-size: 14px;
@@ -660,9 +682,7 @@ const styles = `
   .dashboard-events-list {
     display: grid;
     gap: 12px;
-    max-height: 65vh;
-    overflow-y: auto;
-    padding-right: 4px;
+    overflow: visible;
   }
 
   @media (max-width: 1024px) {

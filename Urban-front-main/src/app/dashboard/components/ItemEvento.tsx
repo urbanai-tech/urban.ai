@@ -263,6 +263,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           onSecondary={accepted ? () => setDrawerOpen(true) : undefined}
           secondaryLabel="Registrar resultado"
           loading={loadingSaving}
+          density="compact"
         />
 
         {/* Estado: ja aplicado */}

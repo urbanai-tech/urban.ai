@@ -45,14 +45,17 @@ export default function EventsPage() {
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState(addDays(0));
   const [to, setTo] = useState(addDays(30));
+  const [radiusKm, setRadiusKm] = useState("30");
   const [nearMyProperties, setNearMyProperties] = useState(false);
   const [highImpact, setHighImpact] = useState(false);
   const [view, setView] = useState<ViewMode>("list");
+  const todayIso = addDays(0);
   const hasActiveFilters =
     search.trim().length > 0 ||
     category !== "all" ||
     source !== "all" ||
     nearMyProperties ||
+    (nearMyProperties && radiusKm !== "30") ||
     highImpact ||
     from !== addDays(0) ||
     to !== addDays(30);
@@ -63,12 +66,13 @@ export default function EventsPage() {
       setError(null);
       const data = await fetchHostEventCatalog({
         city,
-        category,
-        source,
+        category: category === "all" ? undefined : category,
+        source: source === "all" ? undefined : source,
         search,
         from,
         to,
         nearMyProperties,
+        radiusKm: nearMyProperties ? radiusKm : undefined,
         highImpact,
       });
       setResponse(data);
@@ -78,7 +82,7 @@ export default function EventsPage() {
     } finally {
       setLoading(false);
     }
-  }, [category, city, from, highImpact, nearMyProperties, search, source, to]);
+  }, [category, city, from, highImpact, nearMyProperties, radiusKm, search, source, to]);
 
   useEffect(() => {
     loadEvents();
@@ -113,7 +117,7 @@ export default function EventsPage() {
             alignItems: "end",
           }}
         >
-          <div style={{ gridColumn: "span 3", minWidth: 0 }}>
+          <div style={{ gridColumn: "span 2", minWidth: 0 }}>
             <AppInput
               label="Busca"
               placeholder="Nome, local ou bairro"
@@ -151,10 +155,34 @@ export default function EventsPage() {
             </AppSelect>
           </div>
           <div style={{ gridColumn: "span 1", minWidth: 0 }}>
-            <AppInput type="date" label="De" value={from} onChange={(event) => setFrom(event.target.value)} />
+            <AppInput
+              type="date"
+              label="De"
+              value={from}
+              min={todayIso}
+              onChange={(event) => {
+                const nextFrom = event.target.value < todayIso ? todayIso : event.target.value;
+                setFrom(nextFrom);
+                if (to < nextFrom) setTo(nextFrom);
+              }}
+            />
           </div>
           <div style={{ gridColumn: "span 1", minWidth: 0 }}>
             <AppInput type="date" label="Ate" value={to} min={from} onChange={(event) => setTo(event.target.value)} />
+          </div>
+          <div style={{ gridColumn: "span 1", minWidth: 0 }}>
+            <AppSelect
+              label="Raio"
+              value={radiusKm}
+              disabled={!nearMyProperties}
+              onChange={(event) => setRadiusKm(event.target.value)}
+            >
+              <option value="2">2 km</option>
+              <option value="5">5 km</option>
+              <option value="10">10 km</option>
+              <option value="30">30 km</option>
+              <option value="50">50 km</option>
+            </AppSelect>
           </div>
           <div style={{ gridColumn: "span 1", minWidth: 0 }}>
             <AppButton type="button" variant="secondary" fullWidth onClick={() => setReloadCount((count) => count + 1)}>
@@ -262,6 +290,7 @@ export default function EventsPage() {
     setCategory("all");
     setSource("all");
     setNearMyProperties(false);
+    setRadiusKm("30");
     setHighImpact(false);
     setFrom(addDays(0));
     setTo(addDays(30));
