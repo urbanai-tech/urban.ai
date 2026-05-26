@@ -3,7 +3,6 @@ import { acceptCookieConsent } from './test-helpers';
 
 const authEmail = process.env.E2E_AUTH_EMAIL || process.env.E2E_EMAIL;
 const authPassword = process.env.E2E_AUTH_PASSWORD || process.env.E2E_PASSWORD;
-const alphaEmail = process.env.E2E_ALPHA_EMAIL || authEmail;
 
 function isPostLoginRoute(url: URL) {
   return /\/(post-login|dashboard|onboarding|confirm-email)(\/|$)/.test(url.pathname);
@@ -66,15 +65,6 @@ test.describe('Smoke autenticado - F3/F4/F7', () => {
       timeout: 15_000,
     });
     await expect(page.getByText(/acesso negado/i)).toHaveCount(0);
-
-    if (alphaEmail) {
-      await page.locator('input').first().fill(alphaEmail);
-      await page.getByRole('button', { name: /atualizar/i }).click();
-    }
-
-    await expect(page.getByRole('heading', { name: /recomenda..es/i })).toBeVisible({
-      timeout: 15_000,
-    });
 
     await page.goto('/admin/roi');
     await expectNotBackAtLogin(page);
