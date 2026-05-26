@@ -308,7 +308,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           style={{
             position: "fixed",
             inset: 0,
-            zIndex: 1000,
+            zIndex: 1300,
             display: "flex",
             justifyContent: "flex-end",
           }}
