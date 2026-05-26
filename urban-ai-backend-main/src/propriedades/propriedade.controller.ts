@@ -458,6 +458,40 @@ export class PropriedadeController {
     return this.propriedadeService.getPricingInputHistory(id, req.user.userId, Number(limit));
   }
 
+  @Get(':id/occupancy')
+  @ApiOperation({ summary: 'Historico de ocupacao declarado pelo anfitriao para um imovel' })
+  @UseGuards(JwtAuthGuard)
+  async getOccupancyHistory(
+    @Param('id') id: string,
+    @Req() req: any,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.propriedadeService.getOccupancyHistory(id, req.user.userId, {
+      from,
+      to,
+      limit: limit ? Number(limit) : undefined,
+    });
+  }
+
+  @Post(':id/occupancy')
+  @ApiOperation({ summary: 'Cria ou atualiza ocupacao manual de um imovel por data' })
+  @UseGuards(JwtAuthGuard)
+  async upsertManualOccupancy(
+    @Param('id') id: string,
+    @Req() req: any,
+    @Body() body: {
+      date?: string;
+      status?: 'booked' | 'available' | 'blocked' | 'unknown';
+      revenue?: number | null;
+      listedPrice?: number | null;
+      nightsBooked?: number | null;
+    },
+  ) {
+    return this.propriedadeService.upsertManualOccupancy(id, req.user.userId, body);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Buscar endereço por ID' })
   @ApiParam({

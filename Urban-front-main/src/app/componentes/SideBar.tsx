@@ -44,9 +44,10 @@ const SECONDARY_NAV = [
   { path: '/notificacao', label: 'Notificações', icon: 'bell' as const },
   { path: '/my-roi', label: 'Ganhos', icon: 'trending-up' as const },
   { path: '/my-plan', label: 'Meu plano', icon: 'dollar' as const },
+  { path: '/profile', label: 'Perfil', icon: 'user' as const },
   { path: '/settings/integrations', label: 'Integrações', icon: 'plug' as const },
   { path: '/settings/communications', label: 'Comunicações', icon: 'bell' as const },
-  { path: '/event-log', label: 'Ajustes', icon: 'settings' as const },
+  { path: '/settings/pricing', label: 'Precificação', icon: 'settings' as const },
 ];
 
 const MOBILE_PRIMARY_NAV = PRIMARY_NAV.slice(0, 4);
@@ -805,6 +806,7 @@ type IconKey =
   | 'bell'
   | 'trending-up'
   | 'dollar'
+  | 'user'
   | 'plug'
   | 'settings'
   | 'more';
@@ -1012,6 +1014,13 @@ function NavIcon({ name }: { name: IconKey }) {
         <svg {...props}>
           <line x1="12" y1="1" x2="12" y2="23" />
           <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
+      );
+    case 'user':
+      return (
+        <svg {...props}>
+          <path d="M20 21a8 8 0 0 0-16 0" />
+          <circle cx="12" cy="7" r="4" />
         </svg>
       );
     case 'plug':

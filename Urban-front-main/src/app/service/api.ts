@@ -198,8 +198,118 @@ export type PropertyDropdown = {
   averageMonthlyRevenue?: number | null;
   dailyPrice?: number | null;
   pricingInputSource?: string | null;
+  pricingInputsUpdatedAt?: string | null;
+  cep?: string | null;
+  numero?: string | null;
+  logradouro?: string | null;
+  bairro?: string | null;
+  cidade?: string | null;
+  estado?: string | null;
+  addressLine?: string | null;
+  locationLabel?: string | null;
   setupStatus?: PropertySetupStatus;
   nome: string;
+};
+
+function propertyIdentityValue(value?: string | null): string | null {
+  const normalized = String(value ?? "").trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function pushUniquePropertyPart(parts: string[], value?: string | null) {
+  const normalized = propertyIdentityValue(value);
+  if (!normalized) return;
+  const alreadyIncluded = parts.some(
+    (part) => part.localeCompare(normalized, "pt-BR", { sensitivity: "accent" }) === 0,
+  );
+  if (!alreadyIncluded) parts.push(normalized);
+}
+
+export function formatPropertyIdentityLabel(property?: Partial<PropertyDropdown> | null): string {
+  if (!property) return "Imóvel";
+  const parts: string[] = [];
+  pushUniquePropertyPart(parts, property.internalNickname);
+  pushUniquePropertyPart(parts, property.internalCode);
+  pushUniquePropertyPart(parts, property.propertyName);
+  pushUniquePropertyPart(parts, property.nome);
+  return parts.length > 0 ? parts.join(" - ") : property.id || "Imóvel";
+}
+
+export function formatPropertyPrimaryLabel(property?: Partial<PropertyDropdown> | null): string {
+  if (!property) return "Imóvel";
+  const parts: string[] = [];
+  pushUniquePropertyPart(parts, property.internalNickname);
+  pushUniquePropertyPart(parts, property.internalCode);
+  if (parts.length === 0) {
+    pushUniquePropertyPart(parts, property.propertyName);
+    pushUniquePropertyPart(parts, property.nome);
+  }
+  return parts.length > 0 ? parts.join(" - ") : property.id || "Imóvel";
+}
+
+export function formatPropertySecondaryLabel(property?: Partial<PropertyDropdown> | null): string | null {
+  if (!property) return null;
+  const primary = formatPropertyPrimaryLabel(property);
+  const rawName = propertyIdentityValue(property.propertyName) || propertyIdentityValue(property.nome);
+  if (rawName && rawName.localeCompare(primary, "pt-BR", { sensitivity: "accent" }) !== 0) {
+    return rawName;
+  }
+  return property.locationLabel || property.addressLine || null;
+}
+
+export function formatPropertySearchLabel(property?: Partial<PropertyDropdown> | null): string {
+  if (!property) return "";
+  return [
+    formatPropertyIdentityLabel(property),
+    property.id_do_anuncio ? `Airbnb ${property.id_do_anuncio}` : null,
+    property.locationLabel,
+    property.addressLine,
+    property.id,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+export type PropertyDetail = {
+  id: string;
+  cep?: string | null;
+  numero?: string | null;
+  logradouro?: string | null;
+  bairro?: string | null;
+  cidade?: string | null;
+  estado?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  ativo?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  analisado?: string;
+  list?: {
+    id: string;
+    titulo: string;
+    id_do_anuncio?: string | null;
+    internalNickname?: string | null;
+    internalCode?: string | null;
+    pictureUrl?: string | null;
+    priceText?: string | null;
+    raw?: number | null;
+    currency?: string | null;
+    dailyPrice?: number | null;
+    manualDailyPrice?: number | null;
+    averageMonthlyRevenue?: number | null;
+    pricingInputSource?: string | null;
+    pricingInputsUpdatedAt?: string | null;
+    hospedes?: number | null;
+    quartos?: number | null;
+    camas?: number | null;
+    banheiros?: number | null;
+    rating?: number | null;
+    propertyType?: string | null;
+    amenitiesCount?: number | null;
+    neighborhood?: string | null;
+    reviewCount?: number | null;
+    lastScrapedAt?: string | null;
+  } | null;
 };
 
 export type PropertySetupStatus = {
@@ -223,6 +333,30 @@ export type PricingInputHistory = {
   source: string;
   changedByUserId: string | null;
   createdAt: string;
+};
+
+export type PropertyOccupancyStatus = 'booked' | 'available' | 'blocked' | 'unknown';
+
+export type PropertyOccupancyRecord = {
+  id: string;
+  date: string;
+  status: PropertyOccupancyStatus;
+  revenue: number | null;
+  listedPrice: number | null;
+  currency: string;
+  origin: string;
+  nightsBooked: number | null;
+  trainingReady: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PropertyOccupancyPayload = {
+  date: string;
+  status: PropertyOccupancyStatus;
+  revenue?: number | null;
+  listedPrice?: number | null;
+  nightsBooked?: number | null;
 };
 
 export type PropertyIdentityUpdate = {
@@ -265,6 +399,28 @@ export async function getPropertyPricingInputHistory(
   const { data } = await api.get<PricingInputHistory[]>(
     `/propriedades/${addressId}/pricing-inputs/history`,
     { params: { limit } },
+  );
+  return data;
+}
+
+export async function getPropertyOccupancyHistory(
+  addressId: string,
+  params?: { from?: string; to?: string; limit?: number },
+): Promise<PropertyOccupancyRecord[]> {
+  const { data } = await api.get<PropertyOccupancyRecord[]>(
+    `/propriedades/${addressId}/occupancy`,
+    { params },
+  );
+  return data;
+}
+
+export async function upsertPropertyOccupancy(
+  addressId: string,
+  payload: PropertyOccupancyPayload,
+): Promise<PropertyOccupancyRecord> {
+  const { data } = await api.post<PropertyOccupancyRecord>(
+    `/propriedades/${addressId}/occupancy`,
+    payload,
   );
   return data;
 }
@@ -352,8 +508,8 @@ export const getUserProperties = async (page = 1, limit = 10) => {
   return response.data;
 };
 
-export const getPropertyById = async (propertyId: string) => {
-  const response = await api.get(`/propriedades/${propertyId}`, {
+export const getPropertyById = async (propertyId: string): Promise<PropertyDetail> => {
+  const response = await api.get<PropertyDetail>(`/propriedades/${propertyId}`, {
     headers: { accept: 'application/json' },
   });
   return response.data;
@@ -568,6 +724,8 @@ export type ProfileResponse = {
   username: string;
   email: string;
   distanceKm?: number;
+  airbnbHostId?: string | null;
+  role?: string;
   pricingStrategy?: string;
   operationMode?: string;
   percentualInicial?: number | null;
@@ -680,6 +838,17 @@ export const marcarNotificacaoComoAberta = async (notificationId: string) => {
     throw error;
   }
 };
+
+export const marcarTodasNotificacoesComoAbertas = async (): Promise<{ updated: boolean }> => {
+  try {
+    const { data } = await api.patch('/notifications/user/opened');
+    return data;
+  } catch (error) {
+    console.error('Erro ao marcar todas as notificações como abertas:', error);
+    throw error;
+  }
+};
+
 export const getUnreadNotificationsCount = async (): Promise<{ unread: number }> => {
   try {
     const { data } = await api.get('/notifications/user/unread-count');

@@ -289,7 +289,7 @@ export default function DashboardPage() {
         subtitle="Visualize os eventos com sugestoes de preco da Urban AI para o imovel selecionado. Clique em um dia para ver detalhes."
         actions={
           <div className="dashboard-property-filter">
-            <label>Filtrar imovel</label>
+            <label>Filtrar imóvel</label>
             <PropertySelect value={propertyId} propsInfo={propsInfo} setPropertyId={setPropertyId} />
           </div>
         }

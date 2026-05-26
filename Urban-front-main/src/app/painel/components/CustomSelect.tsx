@@ -1,6 +1,6 @@
 "use client";
 
-import { PropertyDropdown } from "@/app/service/api";
+import { formatPropertyPrimaryLabel, PropertyDropdown } from "@/app/service/api";
 import React from "react";
 import ReactSelect, { SingleValue } from "react-select";
 import { Home } from "lucide-react";
@@ -90,7 +90,7 @@ function PropertyOption({ property }: { property: PropertyDropdown }) {
           </span>
         ) : (
           <span style={{ color: '#2d3748', fontWeight: 500 }}>
-            {property.propertyName}
+            {formatPropertyPrimaryLabel(property)}
           </span>
         )}
       </div>

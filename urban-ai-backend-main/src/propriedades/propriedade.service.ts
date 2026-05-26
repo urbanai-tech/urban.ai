@@ -28,6 +28,7 @@ import { PricingInputHistory } from 'src/entities/pricing-input-history.entity';
 import { PricingGuardrailService } from './pricing-guardrail.service';
 import { MailerService } from 'src/mailer/mailer.service';
 import { hasUsableBasePrice, resolveUsableBaseDailyPrice } from 'src/pricing/base-price.util';
+import { OccupancyHistory } from 'src/entities/occupancy-history.entity';
 
 class PropertyResponseDto {
     bedrooms: number;
@@ -150,6 +151,8 @@ export class PropriedadeService {
         private readonly analisePrecoRepository: Repository<AnalisePreco>,
         @InjectRepository(PricingInputHistory)
         private readonly pricingInputHistoryRepository: Repository<PricingInputHistory>,
+        @InjectRepository(OccupancyHistory)
+        private readonly occupancyHistoryRepository: Repository<OccupancyHistory>,
         @Inject(forwardRef(() => AirbnbService))
         private readonly airbnbService: AirbnbService,
         private readonly emailService: EmailService,
@@ -222,15 +225,24 @@ export class PropriedadeService {
         averageMonthlyRevenue: number | null;
         dailyPrice: number | null;
         pricingInputSource: string | null;
+        pricingInputsUpdatedAt: Date | null;
         internalNickname: string | null;
         internalCode: string | null;
+        cep: string | null;
+        numero: string | null;
+        logradouro: string | null;
+        bairro: string | null;
+        cidade: string | null;
+        estado: string | null;
+        addressLine: string | null;
+        locationLabel: string | null;
         setupStatus: PublicPropertySetupStatus;
     }[]> {
         // Busca específica pelo userId fornecido
         const addresses = await this.addressRepository.find({
             where: { user: { id: userId }, ativo: true, list: { ativo: true } },
             relations: ['list'],
-            select: ['id', 'analisado', 'latitude', 'longitude']
+            select: ['id', 'cep', 'numero', 'logradouro', 'bairro', 'cidade', 'estado', 'analisado', 'latitude', 'longitude']
         });
 
         return addresses.map(address => ({
@@ -248,6 +260,15 @@ export class PropriedadeService {
             averageMonthlyRevenue: address.list?.averageMonthlyRevenue ?? null,
             dailyPrice: address.list?.dailyPrice ?? null,
             pricingInputSource: address.list?.pricingInputSource ?? null,
+            pricingInputsUpdatedAt: address.list?.pricingInputsUpdatedAt ?? null,
+            cep: address.cep ?? null,
+            numero: address.numero ?? null,
+            logradouro: address.logradouro ?? null,
+            bairro: address.bairro ?? address.list?.neighborhood ?? null,
+            cidade: address.cidade ?? null,
+            estado: address.estado ?? null,
+            addressLine: this.formatAddressLine(address),
+            locationLabel: this.formatLocationLabel(address),
             setupStatus: this.buildPublicPropertySetupStatus(address),
         }));
 
@@ -438,6 +459,76 @@ export class PropriedadeService {
         });
     }
 
+    async getOccupancyHistory(
+        addressId: string,
+        userId: string,
+        input?: { from?: string; to?: string; limit?: number },
+    ) {
+        const address = await this.findOwnedAddressWithList(addressId, userId);
+        const today = new Date();
+        const defaultFrom = this.dateOnly(addDays(today, -30));
+        const defaultTo = this.dateOnly(addDays(today, 60));
+        const from = this.normalizeDateOnly(input?.from, 'from') ?? defaultFrom;
+        const to = this.normalizeDateOnly(input?.to, 'to') ?? defaultTo;
+        const safeLimit = Math.min(Math.max(Number(input?.limit) || 120, 1), 240);
+
+        const records = await this.occupancyHistoryRepository.find({
+            where: {
+                user: { id: userId },
+                list: { id: address.list.id },
+                date: Between(from, to),
+            },
+            order: { date: 'DESC' },
+            take: safeLimit,
+        });
+
+        return records.map((record) => this.toPublicOccupancyRecord(record));
+    }
+
+    async upsertManualOccupancy(
+        addressId: string,
+        userId: string,
+        input: {
+            date?: string;
+            status?: 'booked' | 'available' | 'blocked' | 'unknown';
+            revenue?: number | null;
+            listedPrice?: number | null;
+            nightsBooked?: number | null;
+        },
+    ) {
+        const address = await this.findOwnedAddressWithList(addressId, userId);
+        const date = this.normalizeDateOnly(input?.date, 'date');
+        if (!date) {
+            throw new HttpException('date e obrigatorio no formato YYYY-MM-DD', HttpStatus.BAD_REQUEST);
+        }
+
+        const status = this.normalizeOccupancyStatus(input?.status);
+        const revenue = this.normalizeOptionalMoney(input?.revenue, 'revenue');
+        const listedPrice = this.normalizeOptionalMoney(input?.listedPrice, 'listedPrice');
+        const nightsBooked = this.normalizeOptionalInteger(input?.nightsBooked, 'nightsBooked');
+
+        const existing = await this.occupancyHistoryRepository.findOne({
+            where: { list: { id: address.list.id }, date },
+        });
+        const record = existing ?? this.occupancyHistoryRepository.create();
+
+        record.date = date;
+        record.list = address.list;
+        record.address = address;
+        record.user = { id: userId } as User;
+        record.status = status;
+        record.revenueCents = revenue == null ? null : Math.round(revenue * 100);
+        record.listedPriceCents = listedPrice == null ? null : Math.round(listedPrice * 100);
+        record.currency = 'BRL';
+        record.origin = 'manual';
+        record.externalReservationId = null;
+        record.nightsBooked = status === 'booked' ? nightsBooked ?? 1 : nightsBooked;
+        record.trainingReady = status === 'booked' || status === 'available';
+
+        const saved = await this.occupancyHistoryRepository.save(record);
+        return this.toPublicOccupancyRecord(saved);
+    }
+
     private async recordPricingInputHistory(input: {
         address: Address;
         list: List;
@@ -474,6 +565,19 @@ export class PropriedadeService {
         return Math.round(Number(a) * 100) === Math.round(Number(b) * 100);
     }
 
+    private async findOwnedAddressWithList(addressId: string, userId: string): Promise<Address & { list: List }> {
+        const address = await this.addressRepository.findOne({
+            where: { id: addressId, user: { id: userId } },
+            relations: ['list'],
+        });
+
+        if (!address?.list) {
+            throw new NotFoundException('Propriedade nao encontrada');
+        }
+
+        return address as Address & { list: List };
+    }
+
     private normalizeOptionalText(value: unknown, field: string, maxLength: number): string | null {
         if (value === undefined || value === null) return null;
         const normalized = String(value).trim();
@@ -491,6 +595,64 @@ export class PropriedadeService {
             throw new HttpException(`${field} invalido`, HttpStatus.BAD_REQUEST);
         }
         return parsed > 0 ? Number(parsed.toFixed(2)) : null;
+    }
+
+    private normalizeOptionalInteger(value: unknown, field: string): number | null {
+        if (value === undefined || value === null || value === '') return null;
+        const parsed = Number(value);
+        if (!Number.isFinite(parsed) || parsed < 0) {
+            throw new HttpException(`${field} invalido`, HttpStatus.BAD_REQUEST);
+        }
+        return Math.floor(parsed);
+    }
+
+    private normalizeDateOnly(value: unknown, field: string): string | null {
+        if (value === undefined || value === null || value === '') return null;
+        const normalized = String(value).trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+            throw new HttpException(`${field} deve estar no formato YYYY-MM-DD`, HttpStatus.BAD_REQUEST);
+        }
+        return normalized;
+    }
+
+    private normalizeOccupancyStatus(value: unknown): 'booked' | 'available' | 'blocked' | 'unknown' {
+        const status = String(value ?? 'unknown').trim();
+        if (status === 'booked' || status === 'available' || status === 'blocked' || status === 'unknown') {
+            return status;
+        }
+        throw new HttpException('status de ocupacao invalido', HttpStatus.BAD_REQUEST);
+    }
+
+    private toPublicOccupancyRecord(record: OccupancyHistory) {
+        return {
+            id: record.id,
+            date: record.date,
+            status: record.status,
+            revenue: record.revenueCents == null ? null : Number((record.revenueCents / 100).toFixed(2)),
+            listedPrice: record.listedPriceCents == null ? null : Number((record.listedPriceCents / 100).toFixed(2)),
+            currency: record.currency,
+            origin: record.origin,
+            nightsBooked: record.nightsBooked ?? null,
+            trainingReady: record.trainingReady,
+            createdAt: record.createdAt,
+            updatedAt: record.updatedAt,
+        };
+    }
+
+    private dateOnly(value: Date): string {
+        return value.toISOString().slice(0, 10);
+    }
+
+    private formatAddressLine(address: Address): string | null {
+        const street = [address.logradouro, address.numero].filter(Boolean).join(', ');
+        return [street || null, address.bairro ?? null, this.formatLocationLabel(address), address.cep ? `CEP ${address.cep}` : null]
+            .filter(Boolean)
+            .join(' - ') || null;
+    }
+
+    private formatLocationLabel(address: Address): string | null {
+        if (address.cidade && address.estado) return `${address.cidade}, ${address.estado}`;
+        return address.cidade ?? address.estado ?? null;
     }
 
     private toPublicAddress(address: Address): PublicAddressResponse {
@@ -1770,12 +1932,12 @@ export class PropriedadeService {
     private buildPricingNotificationDescription(listTitle: string | undefined, created: number, updated: number) {
         const propertyLabel = listTitle || 'imóvel';
         if (created > 0 && updated > 0) {
-            return `Geramos ${this.formatSuggestionCount(created, 'nova')} e atualizamos ${this.formatSuggestionCount(updated)} para a propriedade ${propertyLabel}.`;
+            return `Neste lote de monitoramento, geramos ${this.formatSuggestionCount(created, 'nova')} e atualizamos ${this.formatSuggestionCount(updated)} para ${propertyLabel}.`;
         }
         if (created > 0) {
-            return `Geramos ${this.formatSuggestionCount(created)} para a propriedade ${propertyLabel}.`;
+            return `Neste lote de monitoramento, geramos ${this.formatSuggestionCount(created)} para ${propertyLabel}.`;
         }
-        return `Atualizamos ${this.formatSuggestionCount(updated)} para a propriedade ${propertyLabel}.`;
+        return `Neste lote de monitoramento, atualizamos ${this.formatSuggestionCount(updated)} para ${propertyLabel}.`;
     }
 
     private formatSuggestionCount(count: number, qualifier?: string) {
@@ -2100,7 +2262,7 @@ export class PropriedadeService {
                     pricingCreated,
                     pricingUpdated,
                 );
-                notificationContent.redirectTo = `/dashboard?propertyId=${encodeURIComponent(listId)}&source=pwa_push_pricing`;
+                notificationContent.redirectTo = `/dashboard?propertyId=${encodeURIComponent(address.id)}&source=pwa_push_pricing`;
                 notificationContent.sendEmail = true;
                 notificationContent.pushType = 'pricing_recommendation';
                 notificationContent.pushTag = `pricing-recommendation-${listId}`;

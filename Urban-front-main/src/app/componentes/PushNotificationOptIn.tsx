@@ -71,10 +71,10 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
       setMessage(
         next.subscribed
           ? "Pronto. Vamos te avisar quando surgir algo importante."
-          : "Tudo bem. Voce pode ativar os avisos depois.",
+          : "Tudo bem. Você pode ativar os avisos depois.",
       );
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Nao conseguimos ativar os avisos agora.");
+      setMessage(error instanceof Error ? error.message : "Não conseguimos ativar os avisos agora.");
     } finally {
       setBusy(null);
     }
@@ -88,7 +88,7 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
       setSnapshot(next);
       setMessage("Avisos desativados neste dispositivo.");
     } catch {
-      setMessage("Nao conseguimos desativar agora.");
+      setMessage("Não conseguimos desativar agora.");
     } finally {
       setBusy(null);
     }
@@ -99,9 +99,9 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
     setMessage(null);
     try {
       await sendPwaPushTest();
-      setMessage("Teste enviado. Confira as notificacoes do seu aparelho.");
+      setMessage("Teste enviado. Confira as notificações do seu aparelho.");
     } catch {
-      setMessage("Nao foi possivel enviar o teste.");
+      setMessage("Não foi possível enviar o teste.");
     } finally {
       setBusy(null);
     }
@@ -121,17 +121,17 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
     : snapshot.permission === "denied"
       ? <AppBadge kind="error">BLOQUEADO</AppBadge>
       : snapshot.enabled
-        ? <AppBadge kind="accent">DISPONIVEL</AppBadge>
-        : <AppBadge kind="neutral">INDISPONIVEL</AppBadge>;
+        ? <AppBadge kind="accent">DISPONÍVEL</AppBadge>
+        : <AppBadge kind="neutral">INDISPONÍVEL</AppBadge>;
   const title = snapshot.subscribed
     ? "Avisos ativados"
     : "Receber avisos importantes";
   const helperText =
     snapshot.permission === "denied"
-      ? "Os avisos estao bloqueados no navegador. Clique no cadeado ao lado do endereco do site para liberar."
+      ? "Os avisos estão bloqueados no navegador. Clique no cadeado ao lado do endereço do site para liberar."
       : snapshot.enabled
-        ? "A Urban AI avisa quando houver nova sugestao de preco ou evento importante. Quando o navegador perguntar, toque em Permitir."
-        : "Avisos ainda nao estao liberados neste ambiente.";
+        ? "A Urban AI avisa quando houver nova sugestão de preço ou evento importante. Quando o navegador perguntar, toque em Permitir."
+        : "Avisos ainda não estão liberados neste ambiente.";
 
   return (
     <section
@@ -220,7 +220,7 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
             leftIcon={<X size={14} />}
             onClick={dismissCompact}
           >
-            Agora nao
+            Agora não
           </AppButton>
         )}
       </div>

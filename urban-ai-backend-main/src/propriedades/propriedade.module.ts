@@ -17,6 +17,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { PricingInputHistory } from 'src/entities/pricing-input-history.entity';
 import { PricingGuardrailService } from './pricing-guardrail.service';
 import { MailerModule } from 'src/mailer/mailer.module';
+import { OccupancyHistory } from 'src/entities/occupancy-history.entity';
 
 @Module({
     imports: [
@@ -28,6 +29,7 @@ import { MailerModule } from 'src/mailer/mailer.module';
             AnalisePreco,
             User,
             PricingInputHistory,
+            OccupancyHistory,
         ]),
         forwardRef(() => AirbnbModule),
         EmailModule,

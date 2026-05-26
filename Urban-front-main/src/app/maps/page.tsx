@@ -144,10 +144,10 @@ export default function MapsPage() {
   const mapStatus =
     isLoadingProperties
       ? {
-          title: "Carregando seus imoveis",
+          title: "Carregando seus imóveis",
           body: "Estamos abrindo sua lista antes de atualizar o mapa.",
           steps: [
-            { id: "properties", label: "Buscar imoveis", status: "active" as const },
+            { id: "properties", label: "Buscar imóveis", status: "active" as const },
             { id: "events", label: "Procurar eventos", status: "pending" as const },
             { id: "map", label: "Mostrar no mapa", status: "pending" as const },
           ],
@@ -169,7 +169,7 @@ export default function MapsPage() {
               title: selectedPropertyIsProcessing
                 ? selectedProperty?.setupStatus?.publicLabel ?? "Imovel ainda sendo preparado"
                 : "Imoveis ainda sendo preparados",
-              body: selectedProperty?.setupStatus?.publicDescription ?? "Assim que ficar pronto, o mapa mostra eventos perto e sugestoes de preco.",
+              body: selectedProperty?.setupStatus?.publicDescription ?? "Assim que ficar pronto, o mapa mostra eventos perto e sugestões de preço.",
               steps: selectedProperty?.setupStatus?.steps ?? [
                 { id: "properties", label: "Imovel adicionado", status: "complete" as const },
                 { id: "events", label: "Procurar eventos", status: "active" as const },
@@ -351,7 +351,7 @@ export default function MapsPage() {
                   </p>
                 </div>
                 <SuggestionInfoPopover
-                  description="Nosso sistema compara seu imovel com outros de caracteristicas semelhantes. Tambem considera eventos proximos e seu impacto na demanda para oferecer uma sugestao de preco mais precisa."
+                  description="Nosso sistema compara seu imóvel com outros de características semelhantes. Também considera eventos próximos e seu impacto na demanda para oferecer uma sugestão de preço mais precisa."
                 />
               </div>
 

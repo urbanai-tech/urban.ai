@@ -15,6 +15,7 @@ describe('PropriedadeService public responses', () => {
       eventoRepository: {},
       analisePrecoRepository: {},
       pricingInputHistoryRepository: {},
+      occupancyHistoryRepository: {},
       airbnbService: {},
       emailService: {},
       mailerService: {},
@@ -33,6 +34,7 @@ describe('PropriedadeService public responses', () => {
       deps.eventoRepository as any,
       deps.analisePrecoRepository as any,
       deps.pricingInputHistoryRepository as any,
+      deps.occupancyHistoryRepository as any,
       deps.airbnbService as any,
       deps.emailService as any,
       deps.mailerService as any,
@@ -168,7 +170,8 @@ describe('PropriedadeService public responses', () => {
       'user-1',
       expect.objectContaining({
         title: 'Sugestões de preço disponíveis',
-        description: 'Geramos 1 sugestão de preço para a propriedade Apartamento em Perdizes.',
+        description: 'Neste lote de monitoramento, geramos 1 sugestão de preço para Apartamento em Perdizes.',
+        redirectTo: '/dashboard?propertyId=addr-1&source=pwa_push_pricing',
       }),
     );
   });
