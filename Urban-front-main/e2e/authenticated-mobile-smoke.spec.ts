@@ -31,6 +31,8 @@ async function login(page: Page) {
   await page.waitForURL(isPostLoginRoute, {
     timeout: 15_000,
   });
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(1500);
 }
 
 async function expectMobileAuthenticatedRouteReady(page: Page) {
