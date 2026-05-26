@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { AppButton, Icons } from "../../../../componentes/ui";
 import {
+  formatPropertyIdentityLabel,
   getPropriedadesDropdownList,
   type PropertyDropdown,
 } from "../../../../service/api";
@@ -304,7 +305,7 @@ export function CopyRulesModal({
                             color: "var(--app-text)",
                           }}
                         >
-                          {p.propertyName || p.nome || "Imóvel sem nome"}
+                          {formatPropertyIdentityLabel(p)}
                         </p>
                         {p.dailyPrice != null && (
                           <p

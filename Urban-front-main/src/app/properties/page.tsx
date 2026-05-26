@@ -1,12 +1,15 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Check, Clock, Edit2, ExternalLink, Plus, Search, Trash2, X } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { BarChart3, Check, Clock, Edit2, ExternalLink, MapPin, Plus, Search, Settings2, Trash2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import '../../../i18n';
 import {
+  formatPropertyIdentityLabel,
   getPropriedadesDropdownList,
   getPropertyPricingInputHistory,
+  fetchPortfolioOpportunities,
+  type PortfolioOpportunity,
   PricingInputHistory,
   PropertyDropdown,
   requestDeleteAddress,
@@ -27,6 +30,46 @@ import {
 
 type PricingDraft = { manualDailyPrice: string; averageMonthlyRevenue: string };
 type IdentityDraft = { internalNickname: string; internalCode: string };
+type OpportunityStats = { count: number; lift: number; topTitle: string | null };
+
+function isoFromDaysAhead(daysAhead: number): string {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + daysAhead);
+  return d.toISOString().slice(0, 10);
+}
+
+function getPropertyDisplayName(prop: PropertyDropdown): string {
+  return formatPropertyIdentityLabel(prop);
+}
+
+function getLocationLabel(prop: PropertyDropdown): string {
+  if (prop.locationLabel) return prop.locationLabel;
+  if (prop.cidade && prop.estado) return `${prop.cidade}, ${prop.estado}`;
+  return prop.cidade || prop.estado || prop.bairro || 'Localizacao pendente';
+}
+
+function getAddressLabel(prop: PropertyDropdown): string {
+  return prop.addressLine || [prop.logradouro, prop.numero, prop.bairro, getLocationLabel(prop)].filter(Boolean).join(' - ');
+}
+
+function getPriceSourceLabel(prop: PropertyDropdown): string {
+  if (prop.pricingInputSource === 'manual') return 'Referencia manual';
+  if (prop.dailyPrice) return 'Leitura direta';
+  return 'Sem diária base';
+}
+
+function opportunityLift(opportunity: PortfolioOpportunity): number {
+  if (typeof opportunity.lift === 'number') return opportunity.lift;
+  if (typeof opportunity.lift === 'object' && opportunity.lift) {
+    const signal = opportunity.lift as { value?: number | null; amount?: number | null; score?: number | null };
+    return Number(signal.value ?? signal.amount ?? signal.score ?? 0);
+  }
+  if (typeof opportunity.currentPrice === 'number' && typeof opportunity.suggestedPrice === 'number') {
+    return Math.max(0, opportunity.suggestedPrice - opportunity.currentPrice);
+  }
+  return 0;
+}
 
 function PropertyThumb({ src, alt }: { src?: string | null; alt: string }) {
   const [errored, setErrored] = useState(false);
@@ -63,6 +106,7 @@ export default function MyProperties() {
   const [pricingHistory, setPricingHistory] = useState<Record<string, PricingInputHistory[]>>({});
   const [propertyToDelete, setPropertyToDelete] = useState<string | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [opportunityStats, setOpportunityStats] = useState<Record<string, OpportunityStats>>({});
 
   const fetchProperties = async () => {
     setLoading(true);
@@ -94,6 +138,42 @@ export default function MyProperties() {
     fetchProperties();
   }, []);
 
+  useEffect(() => {
+    if (properties.length === 0) return;
+    let cancelled = false;
+
+    async function loadOpportunityStats() {
+      try {
+        const result = await fetchPortfolioOpportunities({
+          from: isoFromDaysAhead(0),
+          to: isoFromDaysAhead(60),
+        });
+        if (cancelled) return;
+        const grouped: Record<string, OpportunityStats> = {};
+        for (const opportunity of result.opportunities ?? []) {
+          const propertyId = opportunity.propertyId;
+          if (!propertyId) continue;
+          const lift = opportunityLift(opportunity);
+          const current = grouped[propertyId] ?? { count: 0, lift: 0, topTitle: null };
+          grouped[propertyId] = {
+            count: current.count + 1,
+            lift: current.lift + lift,
+            topTitle: current.topTitle || opportunity.title || opportunity.reason || null,
+          };
+        }
+        setOpportunityStats(grouped);
+      } catch (error) {
+      console.warn('Não foi possível carregar oportunidades por imóvel:', error);
+        if (!cancelled) setOpportunityStats({});
+      }
+    }
+
+    loadOpportunityStats();
+    return () => {
+      cancelled = true;
+    };
+  }, [properties.length]);
+
   const handleDeleteRequest = (id: string) => {
     setPropertyToDelete(id);
   };
@@ -111,7 +191,7 @@ export default function MyProperties() {
       setProperties((prev) => prev.filter((prop) => prop.id !== propertyToDelete));
     } catch (error) {
       toast("Erro ao excluir propriedade", { type: "error" });
-      console.error('Erro ao deletar imovel:', error);
+      console.error('Erro ao deletar imóvel:', error);
     } finally {
       closeDeleteDialog();
     }
@@ -183,8 +263,8 @@ export default function MyProperties() {
       setEditingIdentity(null);
       toast("Identificacao do imovel salva.", { type: "success" });
     } catch (error) {
-      toast("Erro ao salvar apelido/codigo do imovel.", { type: "error" });
-      console.error('Erro ao salvar identificacao do imovel:', error);
+      toast("Erro ao salvar apelido/código do imóvel.", { type: "error" });
+      console.error('Erro ao salvar identificação do imóvel:', error);
     } finally {
       setSavingIdentity(null);
     }
@@ -195,7 +275,7 @@ export default function MyProperties() {
     const manualDailyPrice = parseMoney(draft.manualDailyPrice);
 
     if (!manualDailyPrice) {
-      toast("Informe uma diaria base valida para este imovel.", { type: "warning" });
+      toast("Informe uma diária base válida para este imóvel.", { type: "warning" });
       return;
     }
 
@@ -211,9 +291,9 @@ export default function MyProperties() {
         delete next[prop.id];
         return next;
       });
-      toast("Valor salvo. As proximas sugestoes usarao essa referencia.", { type: "success" });
+      toast("Valor salvo. As próximas sugestões usarão essa referência.", { type: "success" });
     } catch (error) {
-      toast("Erro ao salvar preco base do imovel.", { type: "error" });
+      toast("Erro ao salvar preço base do imóvel.", { type: "error" });
       console.error('Erro ao salvar inputs de pricing:', error);
     } finally {
       setSavingPricing(null);
@@ -234,8 +314,8 @@ export default function MyProperties() {
       const history = await getPropertyPricingInputHistory(propId, 10);
       setPricingHistory((prev) => ({ ...prev, [propId]: history }));
     } catch (error) {
-      toast("Erro ao carregar historico de preco.", { type: "error" });
-      console.error('Erro ao carregar historico de inputs de pricing:', error);
+      toast("Erro ao carregar histórico de preço.", { type: "error" });
+      console.error('Erro ao carregar histórico de inputs de pricing:', error);
     } finally {
       setLoadingHistory(null);
     }
@@ -283,17 +363,23 @@ export default function MyProperties() {
   });
   const processingProperties = properties.filter((prop) => !isPropertyReady(prop));
   const processingStatus = processingProperties[0]?.setupStatus;
+  const portfolioSummary = useMemo(() => {
+    const readyCount = properties.filter(isPropertyReady).length;
+    const configuredCount = properties.filter((prop) => prop.manualDailyPrice || prop.dailyPrice).length;
+    const futureOpportunities = Object.values(opportunityStats).reduce((sum, item) => sum + item.count, 0);
+    return { readyCount, configuredCount, futureOpportunities };
+  }, [opportunityStats, properties]);
 
   if (loading) {
     return (
       <AppPageShell maxWidth={1180}>
         <AppLoadingStatus
           eyebrow="IMOVEIS"
-          title="Carregando seus imoveis"
+          title="Carregando seus imóveis"
           body="Estamos preparando sua lista antes de liberar busca e edicoes."
           steps={[
-            { id: 'list', label: 'Buscar lista', status: 'active', detail: 'Seus imoveis' },
-            { id: 'pricing', label: 'Carregar precos', status: 'pending', detail: 'Valores de referencia' },
+            { id: 'list', label: 'Buscar lista', status: 'active', detail: 'Seus imóveis' },
+            { id: 'pricing', label: 'Carregar preços', status: 'pending', detail: 'Valores de referência' },
             { id: 'ready', label: 'Liberar edicao', status: 'pending', detail: 'Busca e acoes' },
           ]}
         />
@@ -306,8 +392,8 @@ export default function MyProperties() {
     <AppPageShell maxWidth={1180}>
       <AppSectionHeader
         eyebrow="IMOVEIS"
-        title="Meus imoveis"
-        subtitle="Organize apelidos, codigos internos e valores que ajudam a Urban AI sugerir precos melhores."
+        title="Meus imóveis"
+        subtitle="Use esta lista para operar rápido. Abra um imóvel para ver histórico, ROI, sugestões, ocupação e conferência de preços."
         actions={
           <AppButton
             variant="secondary"
@@ -325,19 +411,38 @@ export default function MyProperties() {
           compact
           eyebrow="IMOVEIS SENDO PREPARADOS"
           title={processingPropertiesTitle(processingProperties.length)}
-          body={processingStatus?.publicDescription ?? "Mapa, eventos por perto e sugestoes de preco aparecem assim que cada imovel ficar pronto. Enquanto isso, voce pode ajustar apelidos e valores."}
+          body={processingStatus?.publicDescription ?? "Mapa, eventos por perto e sugestões de preço aparecem assim que cada imóvel ficar pronto. Enquanto isso, você pode ajustar apelidos e valores."}
           tone="warn"
           steps={
             processingStatus?.steps ?? [
               { id: 'registered', label: 'Imovel adicionado', status: 'complete' },
               { id: 'location', label: 'Preparar mapa', status: 'active', detail: 'Endereco e raio' },
               { id: 'events', label: 'Procurar eventos perto', status: 'pending', detail: 'Shows, feiras e jogos' },
-              { id: 'recommendations', label: 'Preparar sugestoes', status: 'pending', detail: 'Precos por oportunidade' },
+              { id: 'recommendations', label: 'Preparar sugestões', status: 'pending', detail: 'Preços por oportunidade' },
             ]
           }
           style={{ marginBottom: 16 }}
         />
       )}
+
+      <div className="properties-summary-grid">
+        <div>
+          <span>{properties.length}</span>
+          <p>imóveis ativos</p>
+        </div>
+        <div>
+          <span>{portfolioSummary.readyCount}</span>
+          <p>prontos para sugestões</p>
+        </div>
+        <div>
+          <span>{portfolioSummary.configuredCount}</span>
+          <p>com diária de referência</p>
+        </div>
+        <div>
+          <span>{portfolioSummary.futureOpportunities}</span>
+          <p>oportunidades nos proximos 60 dias</p>
+        </div>
+      </div>
 
       <AppCard variant="default" style={{ padding: 0, overflow: 'hidden' }}>
         <div className="properties-toolbar">
@@ -346,11 +451,11 @@ export default function MyProperties() {
             <input
               value={propertySearch}
               onChange={(event) => setPropertySearch(event.target.value)}
-              placeholder="Filtrar por apelido, codigo, titulo ou ID Airbnb"
+              placeholder="Filtrar por apelido, código, título ou ID Airbnb"
             />
           </label>
           <div className="properties-count">
-            <span>{filteredProperties.length} de {properties.length} imoveis</span>
+            <span>{filteredProperties.length} de {properties.length} imóveis</span>
             {propertySearch && (
               <button
                 aria-label="Limpar filtro"
@@ -369,18 +474,23 @@ export default function MyProperties() {
             const airbnbUrl = getAirbnbRoomUrl(prop.id_do_anuncio);
             const isEditingIdentity = editingIdentity === prop.id;
             const identityDraft = identityDrafts[prop.id] ?? { internalNickname: '', internalCode: '' };
-            const locationLabel = (prop as any).neighborhood || (prop as any).city || (prop as any).address || 'Imovel cadastrado';
-            const secondaryLabel = prop.internalNickname ? prop.propertyName : locationLabel;
+            const displayName = getPropertyDisplayName(prop);
+            const locationLabel = getLocationLabel(prop);
+            const addressLabel = getAddressLabel(prop);
+            const secondaryLabel = prop.internalNickname ? prop.propertyName : prop.id_do_anuncio ? `Airbnb ${prop.id_do_anuncio}` : 'Imovel cadastrado';
             const detailLabel = [
-              prop.id_do_anuncio ? `Airbnb ${prop.id_do_anuncio}` : null,
-              prop.internalNickname ? locationLabel : null,
+              prop.internalCode ? `Codigo ${prop.internalCode}` : null,
+              getPriceSourceLabel(prop),
             ].filter(Boolean).join(' - ');
+            const stats = opportunityStats[prop.id];
+            const hasLocation = Boolean(prop.cidade || prop.estado || prop.bairro || prop.addressLine);
+            const lastPricingUpdate = prop.pricingInputsUpdatedAt ? formatDateTime(prop.pricingInputsUpdatedAt) : null;
 
             return (
               <article className="properties-row" key={prop.id}>
                 <div className="properties-row-main">
                   <div className="properties-identity">
-                    <PropertyThumb src={prop.image_url} alt={prop.propertyName} />
+                    <PropertyThumb src={prop.image_url} alt={displayName} />
                     <div className="properties-title-block">
                       {isEditingIdentity ? (
                         <div className="properties-edit-box">
@@ -422,15 +532,15 @@ export default function MyProperties() {
                       ) : (
                         <>
                           <div className="properties-name-line">
-                            <p>{prop.internalNickname || prop.propertyName}</p>
+                            <p>{displayName}</p>
                             {prop.internalCode && <span>{prop.internalCode}</span>}
                             {!isPropertyReady(prop) && (
                               <span className="properties-status-pill">
-                                {prop.setupStatus?.publicLabel ?? 'Preparando sugestoes'}
+                                {prop.setupStatus?.publicLabel ?? 'Preparando sugestões'}
                               </span>
                             )}
                             <button
-                              aria-label="Editar apelido e codigo do imovel"
+                              aria-label="Editar apelido e código do imóvel"
                               className="properties-icon-button"
                               type="button"
                               onClick={() => editIdentity(prop)}
@@ -439,7 +549,13 @@ export default function MyProperties() {
                             </button>
                           </div>
                           <p className="properties-secondary">{secondaryLabel}</p>
-                          {detailLabel && <p className="properties-detail">{detailLabel}</p>}
+                          <div className="properties-meta-line">
+                            <span className={hasLocation ? '' : 'is-muted'}>
+                              <MapPin size={13} />
+                              {locationLabel}
+                            </span>
+                            {detailLabel && <span>{detailLabel}</span>}
+                          </div>
                         </>
                       )}
                     </div>
@@ -447,7 +563,7 @@ export default function MyProperties() {
 
                   <div className="properties-pricing">
                     <AppInput
-                      label="Diaria base"
+                      label="Diária referência"
                       leftAddon="R$"
                       placeholder="0,00"
                       inputMode="decimal"
@@ -456,7 +572,7 @@ export default function MyProperties() {
                       shellStyle={{ minWidth: 150 }}
                     />
                     <AppInput
-                      label="Receita media / mes"
+                      label="Receita media manual"
                       leftAddon="R$"
                       placeholder="0,00"
                       inputMode="decimal"
@@ -472,6 +588,24 @@ export default function MyProperties() {
                         onClick={() => savePricingInputs(prop)}
                       >
                         Salvar
+                      </AppButton>
+                      <AppButton
+                        as="a"
+                        href={`/properties/${prop.id}`}
+                        size="sm"
+                        variant="secondary"
+                        leftIcon={<BarChart3 size={14} />}
+                      >
+                        Detalhes
+                      </AppButton>
+                      <AppButton
+                        as="a"
+                        href={`/properties/${prop.id}/pricing-rules`}
+                        size="sm"
+                        variant="ghost"
+                        leftIcon={<Settings2 size={14} />}
+                      >
+                        Regras
                       </AppButton>
                       <AppButton
                         size="sm"
@@ -510,14 +644,28 @@ export default function MyProperties() {
                   </div>
                 </div>
 
-                <details className="properties-details">
-                  <summary>Dados de localizacao</summary>
-                  <p>Usamos o endereco cadastrado para comparar eventos, bairro e demanda.</p>
-                </details>
+                <div className="properties-signal-grid">
+                  <div className="properties-signal">
+                    <span>Localizacao</span>
+                    <strong>{addressLabel || 'Revise o endereco'}</strong>
+                  </div>
+                  <div className="properties-signal">
+                    <span>Últimas sugestões</span>
+                    <strong>
+                      {stats?.count ? `${stats.count} oportunidade(s)` : 'Nada futuro carregado'}
+                    </strong>
+                    {stats?.topTitle && <small>{stats.topTitle}</small>}
+                  </div>
+                  <div className="properties-signal">
+                    <span>Preco monitorado</span>
+                    <strong>{getPriceSourceLabel(prop)}</strong>
+                    <small>{lastPricingUpdate ? `Atualizado ${lastPricingUpdate}` : 'Sem alteracao recente'}</small>
+                  </div>
+                </div>
 
                 {openHistory === prop.id && (
                   <div className="properties-history">
-                    <p className="properties-history-title">Ultimas alteracoes de preco base</p>
+                    <p className="properties-history-title">Últimas alterações de preço base</p>
                     {(pricingHistory[prop.id] ?? []).length === 0 ? (
                       <p className="properties-empty-note">Nenhuma alteracao registrada ainda.</p>
                     ) : (
@@ -546,7 +694,7 @@ export default function MyProperties() {
           <div className="properties-empty-filter">
             <AppEmptyState
               title="Nenhum imovel encontrado"
-              body="Tente outro apelido, codigo, titulo ou ID Airbnb."
+              body="Tente outro apelido, código, título ou ID Airbnb."
               icon={<Search size={32} />}
             />
           </div>
@@ -558,7 +706,7 @@ export default function MyProperties() {
           <div className="properties-dialog">
             <h2>Excluir propriedade?</h2>
             <p>
-              A Urban AI nao atualizara mais os precos desta unidade. Esta acao nao pode ser desfeita.
+              A Urban AI não atualizará mais os preços desta unidade. Esta ação não pode ser desfeita.
             </p>
             <div className="properties-dialog-actions">
               <AppButton variant="ghost" onClick={closeDeleteDialog}>
@@ -584,6 +732,36 @@ export default function MyProperties() {
 }
 
 const styles = `
+  .properties-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin: 0 0 18px;
+  }
+
+  .properties-summary-grid > div {
+    min-width: 0;
+    padding: 14px 16px;
+    background: var(--app-surface);
+    border: 1px solid var(--app-divider);
+    border-radius: 12px;
+  }
+
+  .properties-summary-grid span {
+    display: block;
+    color: var(--app-text);
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .properties-summary-grid p {
+    margin: 7px 0 0;
+    color: var(--app-text-muted);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
   .properties-toolbar {
     display: flex;
     align-items: center;
@@ -764,6 +942,37 @@ const styles = `
     font-size: 12px;
   }
 
+  .properties-meta-line {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .properties-meta-line span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    max-width: 100%;
+    padding: 4px 8px;
+    overflow: hidden;
+    color: var(--app-text-muted);
+    background: var(--app-surface-muted);
+    border: 1px solid var(--app-divider);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .properties-meta-line span.is-muted {
+    color: var(--app-warning);
+    background: var(--app-warning-soft);
+    border-color: var(--app-warning-border);
+  }
+
   .properties-edit-box {
     display: grid;
     gap: 8px;
@@ -810,6 +1019,53 @@ const styles = `
   .properties-link-button.disabled {
     opacity: 0.45;
     pointer-events: none;
+  }
+
+  .properties-signal-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .properties-signal {
+    min-width: 0;
+    padding: 11px 12px;
+    background: var(--app-surface-muted);
+    border: 1px solid var(--app-divider);
+    border-radius: 10px;
+  }
+
+  .properties-signal span,
+  .properties-signal small {
+    display: block;
+    overflow: hidden;
+    color: var(--app-text-subtle);
+    font-size: 11px;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .properties-signal span {
+    margin-bottom: 5px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .properties-signal strong {
+    display: block;
+    overflow: hidden;
+    color: var(--app-text);
+    font-size: 13px;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .properties-signal small {
+    margin-top: 4px;
   }
 
   .properties-details {
@@ -915,6 +1171,10 @@ const styles = `
   }
 
   @media (max-width: 980px) {
+    .properties-summary-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .properties-row-main {
       align-items: stretch;
       flex-direction: column;
@@ -923,9 +1183,17 @@ const styles = `
     .properties-pricing {
       justify-content: flex-start;
     }
+
+    .properties-signal-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (max-width: 720px) {
+    .properties-summary-grid {
+      grid-template-columns: 1fr;
+    }
+
     .properties-toolbar {
       align-items: stretch;
       flex-direction: column;
@@ -972,5 +1240,5 @@ function isPropertyReady(prop: PropertyDropdown): boolean {
 function processingPropertiesTitle(count: number): string {
   return count === 1
     ? "1 imovel ainda sendo preparado"
-    : `${count} imoveis ainda sendo preparados`;
+    : `${count} imóveis ainda sendo preparados`;
 }

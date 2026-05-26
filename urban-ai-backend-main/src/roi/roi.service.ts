@@ -365,17 +365,15 @@ export class RoiService {
   private normalizeAnalise(analise: AnalisePreco): RoiAnalise {
     const currentPriceCents = this.moneyToCents(analise.seuPrecoAtual);
     const suggestedPriceCents = this.moneyToCents(analise.precoSugerido);
+    const appliedByStatus = ['applied_manual', 'applied_stays'].includes(analise.status);
     const appliedPriceCents =
-      analise.precoAplicado != null
-        ? this.moneyToCents(analise.precoAplicado)
-        : analise.aceito || ['accepted', 'applied_manual', 'applied_stays'].includes(analise.status)
-          ? suggestedPriceCents
-          : null;
+      analise.precoAplicado != null || appliedByStatus
+        ? this.moneyToCents(analise.precoAplicado ?? analise.precoSugerido)
+        : null;
     const deltaCents = Math.max(0, (appliedPriceCents ?? suggestedPriceCents) - currentPriceCents);
     const nights = Math.max(1, Number(analise.noitesReservadas ?? 1) || 1);
     const isBooked = analise.reservaStatus === 'booked' || Number(analise.receitaReal ?? 0) > 0;
-    const isApplied =
-      appliedPriceCents != null || ['applied_manual', 'applied_stays'].includes(analise.status);
+    const isApplied = appliedPriceCents != null || appliedByStatus;
     const isAccepted = analise.aceito || ['accepted', 'applied_manual', 'applied_stays'].includes(analise.status);
     const positiveSuggestedDelta = Math.max(0, suggestedPriceCents - currentPriceCents);
 
@@ -391,7 +389,7 @@ export class RoiService {
       status: analise.status,
       reservationStatus: analise.reservaStatus,
       confirmedIncrementalCents: isBooked && isApplied ? deltaCents * nights : 0,
-      projectedIncrementalCents: !isBooked && isApplied ? deltaCents * nights : 0,
+      projectedIncrementalCents: !isBooked && isAccepted ? deltaCents * nights : 0,
       potentialLostCents: !isAccepted ? positiveSuggestedDelta : 0,
       createdAt: analise.criadoEm,
     };

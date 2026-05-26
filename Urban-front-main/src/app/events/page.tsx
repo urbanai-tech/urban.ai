@@ -78,7 +78,7 @@ export default function EventsPage() {
       setResponse(data);
     } catch (err) {
       console.error("Erro ao carregar catalogo de eventos", err);
-      setError("Nao foi possivel carregar os eventos da cidade agora.");
+      setError("Não foi possível carregar os eventos da cidade agora.");
     } finally {
       setLoading(false);
     }
@@ -96,7 +96,7 @@ export default function EventsPage() {
       <AppSectionHeader
         eyebrow="EVENTOS NA CIDADE"
         title={`Eventos em ${city || "sua cidade"}`}
-        subtitle="Catalogo de eventos mapeados pela Urban AI com sinais de demanda, fonte e proximidade dos seus imoveis."
+        subtitle="Catálogo de eventos mapeados pela Urban AI com sinais de demanda, fonte e proximidade dos seus imóveis."
         actions={
           response?.mock ? (
             <AppBadge kind="warn">Mock contratual</AppBadge>
@@ -194,7 +194,7 @@ export default function EventsPage() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginTop: 16 }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <QuickFilter active={nearMyProperties} onClick={() => setNearMyProperties((value) => !value)}>
-              Perto dos meus imoveis
+              Perto dos meus imóveis
             </QuickFilter>
             <QuickFilter active={highImpact} onClick={() => setHighImpact((value) => !value)}>
               Alto impacto
@@ -217,7 +217,7 @@ export default function EventsPage() {
         <LoadingBlock />
       ) : error ? (
         <ApiErrorState
-          title="Nao conseguimos carregar os eventos"
+          title="Não conseguimos carregar os eventos"
           body={error}
           onRetry={() => setReloadCount((count) => count + 1)}
         />

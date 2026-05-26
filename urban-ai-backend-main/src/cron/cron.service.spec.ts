@@ -139,11 +139,11 @@ describe('CronService', () => {
     expect(emailService.enviarNotification).toHaveBeenCalledWith(
       'user-1',
       expect.objectContaining({
-        redirectTo: '/dashboard?propertyId=list-1&source=cron_pricing_digest',
+        redirectTo: '/dashboard?propertyId=address-1&source=cron_pricing_digest',
         sendEmail: true,
         sendPush: true,
         pushType: 'pricing_recommendation',
-        pushTag: 'pricing-recommendation-list-1',
+        pushTag: 'pricing-recommendation-address-1',
         metadata: expect.objectContaining({
           propertyTitle: 'Apartamento em Perdizes',
           propertyNickname: 'Perdizes 1',
@@ -209,7 +209,7 @@ describe('CronService', () => {
       'user-1',
       expect.objectContaining({
         title: 'Sugestão de preço para ganhar competitividade',
-        redirectTo: '/dashboard?propertyId=list-2&source=cron_pricing_digest',
+        redirectTo: '/dashboard?propertyId=address-1&source=cron_pricing_digest',
         sendEmail: true,
         sendPush: true,
         pushType: 'pricing_recommendation',

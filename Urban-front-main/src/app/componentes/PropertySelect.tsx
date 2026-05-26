@@ -3,7 +3,12 @@
 import { Home } from "lucide-react";
 import React from "react";
 import ReactSelect, { type SingleValue, type StylesConfig } from "react-select";
-import { PropertyDropdown } from "../service/api";
+import {
+  formatPropertyPrimaryLabel,
+  formatPropertySearchLabel,
+  formatPropertySecondaryLabel,
+  PropertyDropdown,
+} from "../service/api";
 
 type Option = {
   value: string;
@@ -115,7 +120,7 @@ const selectStyles: StylesConfig<Option, false> = {
 const PropertySelect: React.FC<Props> = ({ propsInfo, setPropertyId, value }) => {
   const options: Option[] = propsInfo.map((property) => ({
     value: property.id,
-    searchLabel: property.propertyName || property.nome || property.id,
+    searchLabel: formatPropertySearchLabel(property),
     label: <PropertyOption property={property} />,
   }));
 
@@ -132,7 +137,7 @@ const PropertySelect: React.FC<Props> = ({ propsInfo, setPropertyId, value }) =>
         getOptionLabel={(option) => option.searchLabel}
         getOptionValue={(option) => option.value}
         maxMenuHeight={320}
-        noOptionsMessage={() => "Nenhum imovel encontrado"}
+        noOptionsMessage={() => "Nenhum imóvel encontrado"}
         onChange={handleChange}
         options={options}
         placeholder="Selecione"
@@ -148,7 +153,8 @@ function PropertyOption({ property }: { property: PropertyDropdown }) {
   const processing = property.setupStatus?.state
     ? property.setupStatus.state !== "ready"
     : property?.analisado !== "completed";
-  const title = property.propertyName || property.nome || "Imovel";
+  const title = formatPropertyPrimaryLabel(property);
+  const subtitle = formatPropertySecondaryLabel(property);
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
@@ -209,6 +215,23 @@ function PropertyOption({ property }: { property: PropertyDropdown }) {
             }}
           >
             {title}
+          </span>
+        )}
+        {!processing && subtitle && (
+          <span
+            title={subtitle}
+            style={{
+              display: "block",
+              marginTop: 2,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              color: "var(--theme-app-text-muted)",
+              fontSize: 12,
+              lineHeight: 1.2,
+            }}
+          >
+            {subtitle}
           </span>
         )}
       </div>

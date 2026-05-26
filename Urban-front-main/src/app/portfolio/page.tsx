@@ -334,7 +334,7 @@ function PortfolioPageContent() {
       } catch (err) {
         console.error("[/portfolio] erro carregando cockpit", err);
         if (!cancelled) {
-          setLoadError("Nao foi possivel carregar o cockpit do portfolio agora.");
+          setLoadError("Não foi possível carregar o cockpit do portfólio agora.");
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -493,7 +493,7 @@ function PortfolioPageContent() {
       setActionRuns(await fetchPortfolioActionRuns(8));
     } catch (err) {
       console.error("[/portfolio] historico falhou", err);
-      setRunsError("Nao foi possivel atualizar o historico agora.");
+      setRunsError("Não foi possível atualizar o histórico agora.");
     } finally {
       setRunsLoading(false);
     }
@@ -648,7 +648,7 @@ function PortfolioPageContent() {
         setSimulationOpen(true);
       } catch (err) {
         console.error("[/portfolio] simulacao falhou", err);
-        toast.error("Nao foi possivel simular", "Tente novamente em alguns segundos.");
+        toast.error("Não foi possível simular", "Tente novamente em alguns segundos.");
       } finally {
         setBulkLoading(false);
       }
@@ -668,7 +668,7 @@ function PortfolioPageContent() {
       if ((result.failed?.length ?? 0) > 0) {
         toast.warn(
           `${result.failed?.length ?? 0} falha(s)`,
-          result.failed?.map((failure) => failure.reason).join("; ") || "Veja o historico.",
+          result.failed?.map((failure) => failure.reason).join("; ") || "Veja o histórico.",
         );
       }
       setSimulationOpen(false);
@@ -679,7 +679,7 @@ function PortfolioPageContent() {
       void handleRefreshRuns();
     } catch (err) {
       console.error("[/portfolio] bulk action falhou", err);
-      toast.error("Nao foi possivel aplicar", "Tente novamente em alguns segundos.");
+      toast.error("Não foi possível aplicar", "Tente novamente em alguns segundos.");
     } finally {
       setBulkLoading(false);
     }
@@ -689,8 +689,8 @@ function PortfolioPageContent() {
     <AppPageShell maxWidth={1400}>
       <AppSectionHeader
         eyebrow="PORTFOLIO · COCKPIT"
-        title="Cockpit do portfolio"
-        subtitle="Priorize oportunidades, simule mudancas e aplique acoes rastreaveis por imovel e data."
+        title="Cockpit do portfólio"
+        subtitle="Priorize oportunidades, simule mudanças e aplique ações rastreáveis por imóvel e data."
         actions={
           <div style={{ display: "inline-flex", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
             <DateRangeField label="De" value={from} max={to} onChange={handleFromChange} />
@@ -710,7 +710,7 @@ function PortfolioPageContent() {
             </div>
             <div style={{ minWidth: 200 }}>
               <AppSelect
-                label="Modo de preco"
+                label="Modo de preço"
                 value={strategy}
                 onChange={(event) => setStrategy(event.target.value)}
               >
@@ -745,7 +745,7 @@ function PortfolioPageContent() {
       {loadError ? (
         <AppEmptyState
           eyebrow="ALGO DEU ERRADO"
-          title="Nao conseguimos carregar o cockpit"
+          title="Não conseguimos carregar o cockpit"
           body={loadError}
           icon={<Icons.AlertCircle size={32} />}
           action={

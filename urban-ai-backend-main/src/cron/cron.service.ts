@@ -104,7 +104,7 @@ export class CronService {
         direction: 'increase' | 'decrease',
     ): CreateNotificationDto {
         const list = element.endereco?.list;
-        const propertyId = list?.id;
+        const propertyId = element.endereco?.id;
         const propertyTitle = list?.titulo || 'Imóvel';
         const eventName = element.evento?.nome || 'evento relevante';
         const eventDate = this.formatEventDate(element.evento?.dataInicio);

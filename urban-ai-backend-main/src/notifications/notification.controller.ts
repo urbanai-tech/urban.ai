@@ -33,6 +33,14 @@ export class NotificationController {
         return this.notificationsService.create(userId, dto);
     }
 
+    @Patch('user/opened')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @ApiResponse({ status: 200, description: 'All user notifications marked as opened' })
+    async markAllAsOpened(@Req() req: any) {
+        return this.notificationsService.markAllAsOpened(req.user.userId);
+    }
+
     @Patch(':id/opened')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)

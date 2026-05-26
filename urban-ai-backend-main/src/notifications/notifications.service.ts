@@ -67,6 +67,14 @@ export class NotificationsService {
     return await this.notificationRepository.save(notification);
   }
 
+  async markAllAsOpened(userId: string) {
+    await this.notificationRepository.update(
+      { user: { id: userId }, opened: false },
+      { opened: true },
+    );
+    return { updated: true };
+  }
+
   async countUnreadByUser(userId: string): Promise<number> {
   const count = await this.notificationRepository.count({
     where: {

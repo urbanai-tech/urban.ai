@@ -2,7 +2,14 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { fetchPace, getEventosAcompanhando, getPropriedadesDropdownList, PaceApiPoint, PropertyDropdown } from '@/app/service/api';
+import {
+  fetchPace,
+  formatPropertyPrimaryLabel,
+  getEventosAcompanhando,
+  getPropriedadesDropdownList,
+  PaceApiPoint,
+  PropertyDropdown,
+} from '@/app/service/api';
 import { EventItem } from '../dashboard/components/ItemEvento';
 import { Pagination } from '../componentes/Pagination';
 import { EventCard } from './components/ItemEventoPainel';
@@ -31,10 +38,10 @@ export default function SugestoesAceitas() {
   const [isLoadingPace, setIsLoadingPace] = useState(false);
   const [paceError, setPaceError] = useState<string | null>(null);
   const [paceReloadCount, setPaceReloadCount] = useState(0);
-  const selectedPropertyName =
-    propsInfo.find((property) => property.id === propertyId)?.propertyName ||
-    propsInfo.find((property) => property.id === propertyId)?.nome ||
-    "todos os imoveis";
+  const selectedProperty = propsInfo.find((property) => property.id === propertyId);
+  const selectedPropertyName = selectedProperty
+    ? formatPropertyPrimaryLabel(selectedProperty)
+    : "todos os imóveis";
 
   useEffect(() => {
     async function fetchProps() {
@@ -137,7 +144,7 @@ export default function SugestoesAceitas() {
                     textTransform: "uppercase",
                   }}
                 >
-                  Filtrar imovel
+                  Filtrar imóvel
                 </span>
                 <PropertySelect
                   value={propertyId}

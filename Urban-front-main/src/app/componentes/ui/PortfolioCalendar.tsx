@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { AppEmptyState } from "./AppEmptyState";
 import { Calendar, Check } from "./Icons";
 
@@ -561,7 +562,7 @@ export function PortfolioCalendar({
         body="Cadastre o primeiro imóvel pra começar a ver sugestões de preço por dia, por imóvel, lado a lado."
         icon={<Calendar size={32} />}
         action={
-          <a
+          <Link
             href="/properties"
             style={{
               display: "inline-flex",
@@ -578,7 +579,7 @@ export function PortfolioCalendar({
             }}
           >
             Cadastrar primeiro imóvel
-          </a>
+          </Link>
         }
       />
     );

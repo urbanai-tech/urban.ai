@@ -21,6 +21,7 @@ import {
 } from "@/app/componentes/ui";
 import {
   fetchHostEventRadar,
+  formatPropertyPrimaryLabel,
   getPropriedadesDropdownList,
   simulateHostEventPricing,
   type DemandHeatmapCell,
@@ -109,7 +110,7 @@ function EventRadarContent() {
       setResponse(data);
     } catch (err) {
       console.error("Erro ao carregar radar de eventos", err);
-      setError("Nao foi possivel carregar o radar de eventos agora.");
+      setError("Não foi possível carregar o radar de eventos agora.");
     } finally {
       setLoading(false);
     }
@@ -131,8 +132,8 @@ function EventRadarContent() {
         const data = await getPropriedadesDropdownList();
         setProperties(data);
       } catch (err) {
-        console.error("Erro ao carregar imoveis para o radar", err);
-        setPropertyOptionsError("Nao conseguimos carregar seus imoveis para filtro agora.");
+        console.error("Erro ao carregar imóveis para o radar", err);
+        setPropertyOptionsError("Não conseguimos carregar seus imóveis para filtro agora.");
       } finally {
         setPropertiesLoading(false);
       }
@@ -171,8 +172,8 @@ function EventRadarContent() {
       const result = await simulateHostEventPricing(selectedEvent.id, { propertyId: impact.propertyId });
       if (result.propertyImpact) setSelectedImpact(result.propertyImpact);
     } catch (err) {
-      console.error("Erro ao simular preco no radar", err);
-      setSimulationError("Nao conseguimos atualizar a simulacao agora. A ultima curva disponivel continua visivel.");
+      console.error("Erro ao simular preço no radar", err);
+      setSimulationError("Não conseguimos atualizar a simulação agora. A última curva disponível continua visível.");
     } finally {
       setSimulating(false);
     }
@@ -195,7 +196,7 @@ function EventRadarContent() {
       <AppSectionHeader
         eyebrow="RADAR DE EVENTOS"
         title="Oportunidades por evento"
-        subtitle="Veja quais eventos mexem com seus imoveis, quanto podem gerar e qual faixa de diaria parece absorvivel."
+        subtitle="Veja quais eventos mexem com seus imóveis, quanto podem gerar e qual faixa de diária parece absorvível."
         actions={
           response?.mock ? (
             <AppBadge kind="warn">Mock contratual</AppBadge>
@@ -225,7 +226,7 @@ function EventRadarContent() {
             />
           </div>
           <div style={{ gridColumn: "span 2", minWidth: 0 }}>
-            <AppInput type="date" label="Ate" value={to} min={from} onChange={(event) => setTo(event.target.value)} />
+            <AppInput type="date" label="Até" value={to} min={from} onChange={(event) => setTo(event.target.value)} />
           </div>
           <div style={{ gridColumn: "span 2", minWidth: 0 }}>
             <AppSelect
@@ -234,16 +235,16 @@ function EventRadarContent() {
               disabled={propertiesLoading}
               onChange={(event) => setPropertyId(event.target.value)}
             >
-              <option value="all">Todos os imoveis</option>
+              <option value="all">Todos os imóveis</option>
               {properties.map((property) => (
                 <option key={property.id} value={property.id}>
-                  {property.internalNickname || property.propertyName || property.nome || property.id}
+                  {formatPropertyPrimaryLabel(property)}
                 </option>
               ))}
             </AppSelect>
             {propertiesLoading && (
               <p role="status" aria-live="polite" style={{ margin: "6px 0 0", color: "var(--app-text-muted)", fontSize: 11, lineHeight: 1.35 }}>
-                Carregando imoveis...
+                Carregando imóveis...
               </p>
             )}
             {propertyOptionsError && (
@@ -296,7 +297,7 @@ function EventRadarContent() {
       ) : error ? (
         <AppEmptyState
           eyebrow="ALGO DEU ERRADO"
-          title="Nao conseguimos carregar o radar"
+          title="Não conseguimos carregar o radar"
           body={error}
           icon={<Icons.AlertCircle size={32} />}
           action={
@@ -308,7 +309,7 @@ function EventRadarContent() {
       ) : events.length === 0 ? (
         <AppEmptyState
           eyebrow="SEM OPORTUNIDADES"
-          title="Nenhum evento impactando seus imoveis"
+          title="Nenhum evento impactando seus imóveis"
           body="Ajuste periodo, imovel ou nivel de confianca para ampliar a leitura do radar."
           icon={<Icons.MapPin size={32} />}
           action={
@@ -369,7 +370,7 @@ function EventRadarContent() {
                 <AppCardHeader
                   eyebrow="PRIORIDADE"
                   title="Eventos mais importantes"
-                  subtitle="Clique para ver imoveis impactados e curva de absorcao."
+                  subtitle="Clique para ver imóveis impactados e curva de absorção."
                   style={{ marginBottom: 0 }}
                 />
               </AppCard>
@@ -519,7 +520,7 @@ function EventDetailPanel({
         <AppCardHeader
           eyebrow="IMOVEIS IMPACTADOS"
           title="Onde agir"
-          subtitle="A recomendacao mostra faixa e probabilidade, nao promessa de ocupacao."
+          subtitle="A recomendação mostra faixa e probabilidade, não promessa de ocupação."
         />
         <EventImpactTable impacts={event.impactedProperties} onSimulate={onSimulate} />
       </div>
@@ -532,7 +533,7 @@ function EventDetailPanel({
           />
           {simulating && (
             <p role="status" aria-live="polite" style={{ margin: "10px 0 0", color: "var(--app-text-muted)", fontSize: 12 }}>
-              Atualizando simulacao...
+              Atualizando simulação...
             </p>
           )}
           {simulationError && !simulating && (

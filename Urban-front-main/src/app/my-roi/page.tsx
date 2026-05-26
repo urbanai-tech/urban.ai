@@ -1,7 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { fetchMyRoi, getPropriedadesDropdownList, PropertyDropdown, RoiSummary } from '../service/api';
+import {
+  fetchMyRoi,
+  formatPropertyPrimaryLabel,
+  getPropriedadesDropdownList,
+  PropertyDropdown,
+  RoiSummary,
+} from '../service/api';
 import {
   AppPageShell,
   AppSectionHeader,
@@ -44,7 +50,7 @@ export default function MyRoiPage() {
       const e = err as { response?: { status?: number }; message?: string };
       setError(
         e?.response?.status === 401
-          ? 'Faca login novamente para ver seus ganhos.'
+          ? 'Faça login novamente para ver seus ganhos.'
           : e?.message || 'Erro ao carregar seus ganhos.',
       );
     } finally {
@@ -85,8 +91,8 @@ export default function MyRoiPage() {
       <AppPageShell>
         <AppEmptyState
           eyebrow="ERRO"
-          title="Nao foi possivel carregar"
-          body={error ?? 'Nao foi possivel carregar seus ganhos.'}
+          title="Não foi possível carregar"
+          body={error ?? 'Não foi possível carregar seus ganhos.'}
           icon={<Icons.AlertCircle size={32} />}
           action={
             <AppButton variant="primary" onClick={() => load()}>
@@ -110,8 +116,8 @@ export default function MyRoiPage() {
     <AppPageShell maxWidth={1280}>
       <AppSectionHeader
         eyebrow="GANHOS · IMPACTO DA URBAN AI"
-        title="Quanto dinheiro a Urban AI ajudou a gerar"
-        subtitle="Soma das diarias em que o preco sugerido foi usado nos ultimos dias. Inclui reservas confirmadas e oportunidades ainda em acompanhamento."
+        title="Impacto atribuído às sugestões"
+        subtitle="Soma estimada das diárias em que a sugestão foi aceita ou aplicada. Separar confirmado de acompanhamento evita tratar potencial como dinheiro já recebido."
         actions={
           <div className="roi-actions">
             <AppSelect
@@ -122,10 +128,10 @@ export default function MyRoiPage() {
               }}
               shellStyle={{ minWidth: 220 }}
             >
-              <option value="">Todos os imoveis</option>
+              <option value="">Todos os imóveis</option>
               {properties.map((property) => (
                 <option key={property.id} value={property.id}>
-                  {property.nome || property.propertyName}
+                  {formatPropertyPrimaryLabel(property)}
                 </option>
               ))}
             </AppSelect>
@@ -140,7 +146,7 @@ export default function MyRoiPage() {
             >
               {WINDOWS.map((days) => (
                 <option key={days} value={days}>
-                  Ultimos {days} dias
+                  Últimos {days} dias
                 </option>
               ))}
             </AppSelect>
@@ -154,7 +160,7 @@ export default function MyRoiPage() {
       <AppCard variant="accent" style={{ padding: '40px 40px 36px', marginBottom: 32 }}>
         <div className="roi-hero">
           <div>
-            <p className="urban-app-eyebrow">DINHEIRO GERADO COM AJUDA DA URBAN AI</p>
+            <p className="urban-app-eyebrow">IMPACTO ATRIBUÍDO À URBAN AI</p>
             <p className="urban-app-display-hero" style={{ marginTop: 12, color: 'var(--app-accent)' }}>
               {fmt(data.money.totalAttributedCents)}
             </p>
@@ -170,7 +176,7 @@ export default function MyRoiPage() {
               {roiLabel}
             </p>
             <p className={data.money.netValueCents >= 0 ? 'roi-muted' : 'roi-danger'}>
-              Valor liquido: <strong>{fmt(data.money.netValueCents)}</strong>
+              Valor líquido: <strong>{fmt(data.money.netValueCents)}</strong>
             </p>
           </div>
         </div>
@@ -183,19 +189,19 @@ export default function MyRoiPage() {
           sub={`${data.subscription.activePayments} assinatura(s) ativa(s)`}
         />
         <AppMetricCard
-          label="Noites com sugestao"
+          label="Noites com sugestão"
           value={data.activity.impactedNights}
-          sub="diarias em que a sugestao foi usada"
+          sub="diárias com aceite, aplicação ou reserva"
         />
         <AppMetricCard
-          label="Sugestoes usadas"
-          value={`${data.activity.applied}/${data.activity.recommendations}`}
-          sub={`${data.activity.applicationRatePercent.toFixed(0)}% das aprovadas`}
+          label="Sugestões aceitas"
+          value={`${data.activity.accepted}/${data.activity.recommendations}`}
+          sub={`${data.activity.acceptanceRatePercent.toFixed(0)}% do total sugerido`}
         />
         <AppMetricCard
-          label="Oportunidade nao usada"
+          label="Potencial não aceito"
           value={fmt(data.money.potentialLostCents)}
-          sub="sugestoes que ficaram de fora"
+          sub="estimativa de sugestões recusadas ou ignoradas"
           accent={data.money.potentialLostCents > 0}
         />
       </div>
@@ -209,8 +215,8 @@ export default function MyRoiPage() {
           />
           {data.perProperty.length === 0 ? (
             <AppEmptyState
-              title="Nada aplicado neste periodo"
-              body="Quando voce usar uma sugestao da Urban AI, os ganhos aparecem aqui."
+            title="Nada aplicado neste período"
+            body="Quando você aceitar, aplicar ou confirmar uma sugestão da Urban AI, os ganhos aparecem aqui."
             />
           ) : (
             <div className="roi-table-wrap">
@@ -228,7 +234,7 @@ export default function MyRoiPage() {
                     <tr key={property.propertyId ?? property.propertyName}>
                       <td>
                         <p className="roi-property-name">{property.propertyName}</p>
-                        <p className="roi-property-sub">{property.recommendations} sugestoes</p>
+                        <p className="roi-property-sub">{property.recommendations} sugestões</p>
                       </td>
                       <td className="numeric">
                         <strong className="roi-accent">{fmt(property.totalAttributedCents)}</strong>
@@ -244,12 +250,12 @@ export default function MyRoiPage() {
         </AppCard>
 
         <AppCard variant="default">
-          <AppCardHeader title="Uso das sugestoes" />
+          <AppCardHeader title="Uso das sugestões" />
           <div className="roi-progress-label">
-            <span>Sugestoes aprovadas</span>
+            <span>Sugestões aceitas</span>
             <strong>{acceptance.toFixed(0)}%</strong>
           </div>
-          <div className="roi-progress" aria-label={`Sugestoes aprovadas ${acceptance.toFixed(0)}%`}>
+          <div className="roi-progress" aria-label={`Sugestões aceitas ${acceptance.toFixed(0)}%`}>
             <span style={{ width: `${acceptance}%` }} />
           </div>
           <div className="roi-mini-grid">
@@ -262,11 +268,11 @@ export default function MyRoiPage() {
       </div>
 
       <AppCard variant="default">
-        <AppCardHeader title="Ganhos recentes" subtitle="Ultimas sugestoes que viraram receita confirmada." />
+        <AppCardHeader title="Ganhos recentes" subtitle="Últimas sugestões que viraram receita confirmada." />
         {data.recentWins.length === 0 ? (
           <AppEmptyState
             title="Sem ganhos confirmados ainda"
-            body="As sugestoes aprovadas que viraram reservas aparecem aqui depois que as noites passam."
+            body="As sugestões aceitas que viraram reservas aparecem aqui depois que as noites passam."
           />
         ) : (
           <div className="roi-wins">

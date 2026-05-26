@@ -1,6 +1,6 @@
 "use client";
 
-import { PropertyDropdown } from "@/app/service/api";
+import { formatPropertyPrimaryLabel, PropertyDropdown } from "@/app/service/api";
 import React from "react";
 import ReactSelect, { SingleValue } from "react-select";
 
@@ -68,7 +68,7 @@ function PropertyOption({ property }: { property: PropertyDropdown }) {
           <Spinner />
         </>
       ) : (
-        <span>{property.propertyName}</span>
+        <span>{formatPropertyPrimaryLabel(property)}</span>
       )}
     </div>
   );
