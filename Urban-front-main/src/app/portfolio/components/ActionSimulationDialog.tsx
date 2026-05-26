@@ -86,7 +86,7 @@ function actionLabel(action: PortfolioToolbarAction | null): string {
   if (!action) return "Acao";
   switch (action.type) {
     case "apply-strategy":
-      return `Aplicar modo ${action.strategy}`;
+      return `Simular modo ${action.strategy}`;
     case "set-base-price":
       return `Definir preco base ${formatCurrency(action.price)}`;
     case "set-date-price":
@@ -94,7 +94,7 @@ function actionLabel(action: PortfolioToolbarAction | null): string {
     case "accept-suggestions":
       return "Aceitar sugestoes";
     case "apply-internal":
-      return "Aplicar internamente";
+      return "Salvar internamente";
   }
 }
 
@@ -130,7 +130,7 @@ export function ActionSimulationDialog({
       onClose={onClose}
       onConfirm={onConfirm}
       title="Confirmar depois da simulacao?"
-      confirmLabel="Aplicar acao real"
+      confirmLabel="Confirmar aplicacao"
       cancelLabel="Revisar"
       loading={loading}
       body={

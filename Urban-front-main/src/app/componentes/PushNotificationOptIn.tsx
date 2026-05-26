@@ -64,6 +64,10 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
     try {
       const next = await subscribeToPwaPush();
       setSnapshot(next);
+      if (variant === "compact" && (next.subscribed || next.permission === "denied")) {
+        saveDismissedInvite();
+        setDismissed(true);
+      }
       setMessage(
         next.subscribed
           ? "Pronto. Vamos te avisar quando surgir algo importante."
@@ -105,7 +109,7 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
 
   if (!snapshot) return null;
   if (!snapshot.supported) return null;
-  if (isCompact && (snapshot.subscribed || dismissed)) return null;
+  if (isCompact && (snapshot.subscribed || dismissed || snapshot.permission === "denied")) return null;
 
   const dismissCompact = () => {
     saveDismissedInvite();

@@ -21,9 +21,12 @@ export class HostEventsController {
     @Query('category') category?: string,
     @Query('venue') venue?: string,
     @Query('search') search?: string,
+    @Query('source') source?: string,
     @Query('nearMyProperties') nearMyProperties?: string,
     @Query('propertyId') propertyId?: string,
+    @Query('radiusKm') radiusKm?: string,
     @Query('confidence') confidence?: string,
+    @Query('highImpact') highImpact?: string,
     @Query('limit') limit?: string,
   ) {
     return this.eventIntelligence.hostCatalog(req.user.userId, {
@@ -33,9 +36,12 @@ export class HostEventsController {
       category,
       venue,
       search,
+      source,
       nearMyProperties,
       propertyId,
+      radiusKm,
       confidence,
+      highImpact,
       limit,
     });
   }
@@ -48,6 +54,7 @@ export class HostEventsController {
     @Query('to') to?: string,
     @Query('propertyId') propertyId?: string,
     @Query('category') category?: string,
+    @Query('radiusKm') radiusKm?: string,
     @Query('confidence') confidence?: string,
   ) {
     return this.eventIntelligence.hostRadar(req.user.userId, {
@@ -55,6 +62,7 @@ export class HostEventsController {
       to,
       propertyId,
       category,
+      radiusKm,
       confidence,
     });
   }
@@ -66,8 +74,9 @@ export class HostEventsController {
     @Query('from') from?: string,
     @Query('to') to?: string,
     @Query('propertyId') propertyId?: string,
+    @Query('radiusKm') radiusKm?: string,
   ) {
-    return this.eventIntelligence.hostHeatmap(req.user.userId, { from, to, propertyId });
+    return this.eventIntelligence.hostHeatmap(req.user.userId, { from, to, propertyId, radiusKm });
   }
 
   @ApiOperation({ summary: 'Detalhe host de um evento com inteligencia e impacto' })

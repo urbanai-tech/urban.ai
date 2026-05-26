@@ -64,30 +64,49 @@ export function PortfolioActionRuns({
   loading,
   error,
   onRefresh,
+  compact = false,
+  limit,
+  viewAllHref,
 }: {
   runs: PortfolioActionRun[];
   loading?: boolean;
   error?: string | null;
   onRefresh?: () => void;
+  compact?: boolean;
+  limit?: number;
+  viewAllHref?: string;
 }) {
+  const visibleRuns = typeof limit === "number" ? runs.slice(0, limit) : runs;
+
   return (
-    <AppCard variant="default" style={{ marginTop: 20 }}>
+    <AppCard variant="default" style={{ marginTop: compact ? 18 : 20, padding: compact ? 20 : 24 }}>
       <AppCardHeader
-        eyebrow="AUDITORIA"
-        title="Historico de action runs"
-        subtitle="Registro operacional das simulacoes confirmadas e aplicacoes realizadas no portfolio."
+        eyebrow={compact ? "HISTORICO" : "AUDITORIA"}
+        title={compact ? "Ultimos aceites e aplicacoes" : "Historico de action runs"}
+        subtitle={
+          compact
+            ? "Resumo rapido do que ja foi confirmado. O historico completo fica em uma tela dedicada."
+            : "Registro operacional das simulacoes confirmadas e aplicacoes realizadas no portfolio."
+        }
         actions={
-          onRefresh ? (
-            <AppButton
-              size="sm"
-              variant="ghost"
-              onClick={onRefresh}
-              loading={loading}
-              leftIcon={<Icons.ArrowRight size={12} />}
-            >
-              Atualizar
-            </AppButton>
-          ) : null
+          <div style={{ display: "inline-flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+            {viewAllHref && (
+              <AppButton size="sm" variant="secondary" as="a" href={viewAllHref}>
+                Ver historico
+              </AppButton>
+            )}
+            {onRefresh ? (
+              <AppButton
+                size="sm"
+                variant="ghost"
+                onClick={onRefresh}
+                loading={loading}
+                leftIcon={<Icons.ArrowRight size={12} />}
+              >
+                Atualizar
+              </AppButton>
+            ) : null}
+          </div>
         }
       />
 
@@ -111,7 +130,7 @@ export function PortfolioActionRuns({
             />
           ))}
         </div>
-      ) : runs.length === 0 ? (
+      ) : visibleRuns.length === 0 ? (
         <div
           style={{
             display: "flex",
@@ -122,7 +141,7 @@ export function PortfolioActionRuns({
           }}
         >
           <Icons.Info size={14} />
-          <span>Nenhuma action run registrada para exibir ainda.</span>
+          <span>Nenhuma acao registrada para exibir ainda.</span>
         </div>
       ) : (
         <div
@@ -133,7 +152,7 @@ export function PortfolioActionRuns({
             borderTop: "1px solid var(--app-divider)",
           }}
         >
-          {runs.map((run) => (
+          {visibleRuns.map((run) => (
             <div
               role="listitem"
               key={run.id}

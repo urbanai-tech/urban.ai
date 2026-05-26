@@ -161,7 +161,89 @@ export function PaceChart({
     .join(" ");
 
   const events = points.filter((p) => p.eventLabel && p.eventLabel.trim());
+  const visibleEvents = events.slice(0, 8);
+  const eventList = events.slice(0, 6);
+  const hasCurveSignal = points.some((p) => clamp01(p.booked) > 0 || clamp01(p.expected) > 0);
   const hovered = hoverIdx !== null ? points[hoverIdx] : null;
+
+  if (!hasCurveSignal) {
+    return (
+      <div
+        style={{
+          minHeight: height,
+          display: "grid",
+          gridTemplateColumns: events.length ? "minmax(0, 0.9fr) minmax(260px, 1.1fr)" : "1fr",
+          gap: 18,
+          alignItems: "center",
+        }}
+        className="pace-empty-grid"
+      >
+        <div>
+          <p className="urban-app-eyebrow-muted" style={{ marginBottom: 8 }}>
+            Sem curva de ocupacao
+          </p>
+          <h3 style={{ margin: 0, color: "var(--app-text)", fontSize: 20, lineHeight: 1.25 }}>
+            Ainda nao ha reservas ou baseline suficientes para comparar.
+          </h3>
+          <p style={{ margin: "8px 0 0", color: "var(--app-text-muted)", fontSize: 13, lineHeight: 1.5 }}>
+            Neste estado, o bloco funciona melhor como agenda de eventos relevantes. Quando chegarem dados de
+            ocupacao futura, a curva volta a aparecer.
+          </p>
+        </div>
+
+        {events.length > 0 && (
+          <div style={{ display: "grid", gap: 8 }}>
+            {eventList.map((event, index) => (
+              <div
+                key={`${event.date}-${index}`}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "72px minmax(0, 1fr)",
+                  gap: 10,
+                  alignItems: "center",
+                  padding: "10px 12px",
+                  borderRadius: 8,
+                  border: "1px solid var(--app-divider)",
+                  background: "var(--app-surface-muted)",
+                }}
+              >
+                <span style={{ color: "var(--app-accent)", fontSize: 12, fontWeight: 750 }}>
+                  {formatDateShortPtBR(event.date)}
+                </span>
+                <span
+                  style={{
+                    minWidth: 0,
+                    color: "var(--app-text)",
+                    fontSize: 13,
+                    fontWeight: 650,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                  title={event.eventLabel ?? undefined}
+                >
+                  {event.eventLabel}
+                </span>
+              </div>
+            ))}
+            {events.length > eventList.length && (
+              <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 12 }}>
+                +{events.length - eventList.length} evento(s) no periodo.
+              </p>
+            )}
+          </div>
+        )}
+
+        <style>{`
+          @media (max-width: 820px) {
+            .pace-empty-grid {
+              grid-template-columns: 1fr !important;
+            }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div style={{ position: "relative", width: "100%" }}>
@@ -208,7 +290,7 @@ export function PaceChart({
         })}
 
         {/* Event annotations (linha vertical + label rotacionada) */}
-        {events.map((ev, i) => (
+        {visibleEvents.map((ev, i) => (
           <g key={`ev-${i}`}>
             <line
               x1={ev.x}
@@ -221,19 +303,8 @@ export function PaceChart({
               opacity={0.55}
               vectorEffect="non-scaling-stroke"
             />
-            <text
-              transform={`translate(${ev.x + 4}, ${PADDING_TOP + 6}) rotate(90)`}
-              fontSize={9}
-              fill="var(--app-accent)"
-              style={{
-                fontFamily: "Inter, sans-serif",
-                fontWeight: 600,
-                letterSpacing: 0.4,
-                textTransform: "uppercase",
-              }}
-            >
-              {ev.eventLabel}
-            </text>
+            <circle cx={ev.x} cy={PADDING_TOP + 5} r={3} fill="var(--app-accent)" />
+            <title>{ev.eventLabel ?? "Evento relevante"}</title>
           </g>
         ))}
 
@@ -425,6 +496,40 @@ export function PaceChart({
           </span>
         )}
       </div>
+
+      {events.length > 0 && (
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+          {eventList.map((event, index) => (
+            <span
+              key={`${event.date}-chip-${index}`}
+              title={event.eventLabel ?? undefined}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                maxWidth: 220,
+                padding: "6px 8px",
+                borderRadius: 999,
+                border: "1px solid var(--app-divider)",
+                color: "var(--app-text-muted)",
+                background: "var(--app-surface-muted)",
+                fontSize: 11,
+                fontWeight: 650,
+              }}
+            >
+              <span style={{ color: "var(--app-accent)" }}>{formatDateShortPtBR(event.date)}</span>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {event.eventLabel}
+              </span>
+            </span>
+          ))}
+          {events.length > eventList.length && (
+            <span style={{ color: "var(--app-text-muted)", fontSize: 11, alignSelf: "center" }}>
+              +{events.length - eventList.length}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

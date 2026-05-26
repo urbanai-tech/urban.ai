@@ -255,22 +255,28 @@ function AskUrbanFab({
         className="urban-focus-ring-inverse"
         style={{
           position: "fixed",
-          right: 24,
-          bottom: 24,
-          zIndex: 1100,
-          width: 56,
+          right: 28,
+          bottom: 28,
+          zIndex: 1250,
+          width: "auto",
+          minWidth: 56,
           height: 56,
           borderRadius: 999,
           background: "var(--app-accent)",
           color: "#FFFFFF",
-          border: "none",
+          border: "1px solid rgba(255,255,255,0.18)",
           boxShadow:
-            "0 8px 24px var(--app-accent-shadow), 0 2px 6px var(--app-divider-strong)",
+            "0 18px 44px var(--app-accent-shadow), 0 4px 12px rgba(0,0,0,0.22)",
           cursor: "pointer",
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
+          gap: 10,
+          padding: "0 18px",
           fontFamily: "Inter, system-ui, sans-serif",
+          fontSize: 13,
+          fontWeight: 800,
+          letterSpacing: 0,
           transition: "transform 140ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 140ms",
         }}
         onMouseEnter={(e) => {
@@ -281,14 +287,23 @@ function AskUrbanFab({
         }}
       >
         <Sparkles size={22} />
+        <span data-ask-urban-fab-label>Ask Urban</span>
       </button>
       <style jsx global>{`
+        [data-ask-urban-fab]:hover {
+          box-shadow: 0 22px 54px var(--app-accent-shadow), 0 6px 18px rgba(0,0,0,0.26) !important;
+        }
         @media (max-width: 767px) {
           [data-ask-urban-fab] {
-            bottom: calc(64px + 16px) !important;
+            bottom: calc(64px + 18px + env(safe-area-inset-bottom, 0px)) !important;
             right: 16px !important;
             width: 52px !important;
+            min-width: 52px !important;
             height: 52px !important;
+            padding: 0 !important;
+          }
+          [data-ask-urban-fab-label] {
+            display: none !important;
           }
         }
       `}</style>

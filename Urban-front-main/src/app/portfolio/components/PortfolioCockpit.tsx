@@ -42,17 +42,13 @@ function formatPercent(value: number | null | undefined): string {
 
 export function PortfolioCockpit({ metrics }: { metrics: PortfolioCockpitMetrics }) {
   const liftTrend = metrics.liftAmount >= 0 ? "up" : "down";
-  const confidenceLabel =
-    metrics.averageConfidence == null
-      ? "confianca indisponivel"
-      : `${formatPercent(metrics.averageConfidence)} confianca`;
 
   return (
-    <AppCard variant="elevated" style={{ marginBottom: 20 }}>
+    <AppCard variant="default" style={{ marginBottom: 20 }}>
       <AppCardHeader
         eyebrow="COCKPIT DE DECISAO"
-        title="Sinais executivos do periodo"
-        subtitle={`${metrics.rangeLabel} · ${metrics.dateLabel}`}
+        title="Resumo operacional da janela"
+        subtitle={`${metrics.rangeLabel} - ${metrics.dateLabel}`}
         actions={
           <AppBadge kind={metrics.opportunityCount > 0 ? "accent" : "neutral"}>
             {metrics.opportunityCount} oportunidade{metrics.opportunityCount === 1 ? "" : "s"}
@@ -64,60 +60,78 @@ export function PortfolioCockpit({ metrics }: { metrics: PortfolioCockpitMetrics
         data-portfolio-cockpit-grid
         style={{
           display: "grid",
-          gridTemplateColumns: "1.4fr repeat(3, minmax(0, 1fr))",
-          gap: 20,
+          gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+          gap: 12,
           alignItems: "stretch",
         }}
       >
-        <div
-          style={{
-            borderRight: "1px solid var(--app-divider)",
-            paddingRight: 20,
-            minWidth: 0,
-          }}
-        >
+        <MetricShell accent>
           <AppMetricCard
-            label="Resumo financeiro"
-            value={formatCurrency(metrics.suggestedRevenue)}
-            variant="hero"
+            label="Lift estimado"
+            value={formatCurrency(metrics.liftAmount)}
+            variant="sm"
             accent
             trend={liftTrend}
-            trendValue={formatCurrency(metrics.liftAmount)}
-            sub={`Atual: ${formatCurrency(metrics.currentRevenue)}`}
+            trendValue={metrics.liftPercent != null ? formatPercent(metrics.liftPercent) : formatCurrency(metrics.liftAmount)}
+            sub="incremento potencial"
           />
-        </div>
+        </MetricShell>
 
-        <AppMetricCard
-          label="Oportunidades"
-          value={metrics.opportunityCount}
-          sub="dias ou imoveis com acao recomendada"
-          accent={metrics.opportunityCount > 0}
-        />
+        <MetricShell>
+          <AppMetricCard
+            label="Receita base"
+            value={formatCurrency(metrics.currentRevenue)}
+            variant="sm"
+            sub="precos atuais"
+          />
+        </MetricShell>
 
-        <AppMetricCard
-          label="Risco medio / confianca"
-          value={
-            metrics.averageRisk == null
-              ? "--"
-              : formatPercent(metrics.averageRisk)
-          }
-          sub={confidenceLabel}
-        />
+        <MetricShell>
+          <AppMetricCard
+            label="Receita sugerida"
+            value={formatCurrency(metrics.suggestedRevenue)}
+            variant="sm"
+            accent={metrics.liftAmount > 0}
+            sub="base + sugestoes"
+          />
+        </MetricShell>
 
-        <AppMetricCard
-          label="Maior lift"
-          value={
-            metrics.maxLiftAmount != null
-              ? formatCurrency(metrics.maxLiftAmount)
-              : formatPercent(metrics.maxLiftPercent)
-          }
-          sub={
-            metrics.maxLiftPercent != null
-              ? `${formatPercent(metrics.maxLiftPercent)} no melhor caso`
-              : "aguardando sinais do backend"
-          }
-          accent={metrics.maxLiftAmount != null || metrics.maxLiftPercent != null}
-        />
+        <MetricShell>
+          <AppMetricCard
+            label="Oportunidades"
+            value={metrics.opportunityCount}
+            variant="sm"
+            sub="datas com acao"
+            accent={metrics.opportunityCount > 0}
+          />
+        </MetricShell>
+
+        <MetricShell>
+          <AppMetricCard
+            label="Confianca media"
+            value={metrics.averageConfidence == null ? "--" : formatPercent(metrics.averageConfidence)}
+            variant="sm"
+            sub={metrics.averageRisk == null ? "risco indisponivel" : `risco ${formatPercent(metrics.averageRisk)}`}
+          />
+        </MetricShell>
+
+        <MetricShell>
+          <AppMetricCard
+            label="Maior lift"
+            value={
+              metrics.maxLiftAmount != null
+                ? formatCurrency(metrics.maxLiftAmount)
+                : formatPercent(metrics.maxLiftPercent)
+            }
+            variant="sm"
+            sub={
+              metrics.maxLiftPercent != null
+                ? `${formatPercent(metrics.maxLiftPercent)} no melhor caso`
+                : "aguardando sinais"
+            }
+            accent={metrics.maxLiftAmount != null || metrics.maxLiftPercent != null}
+          />
+        </MetricShell>
       </div>
 
       <div
@@ -133,30 +147,45 @@ export function PortfolioCockpit({ metrics }: { metrics: PortfolioCockpitMetrics
       >
         <Icons.Info size={14} />
         <span>
-          Valores usam sugestoes quando existem e caem para preco atual quando o
-          backend ainda nao envia campos de decisao.
+          Indicadores calculados a partir da janela carregada: preco atual,
+          sugestoes disponiveis e oportunidades retornadas pelo backend.
         </span>
       </div>
 
       <style jsx>{`
-        @media (max-width: 980px) {
+        @media (max-width: 1180px) {
           [data-portfolio-cockpit-grid] {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-          [data-portfolio-cockpit-grid] > div:first-child {
-            grid-column: 1 / -1;
-            border-right: 0 !important;
-            border-bottom: 1px solid var(--app-divider);
-            padding-right: 0 !important;
-            padding-bottom: 16px;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
           }
         }
         @media (max-width: 640px) {
           [data-portfolio-cockpit-grid] {
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr !important;
           }
         }
       `}</style>
     </AppCard>
+  );
+}
+
+function MetricShell({
+  children,
+  accent = false,
+}: {
+  children: React.ReactNode;
+  accent?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        minWidth: 0,
+        border: "1px solid var(--app-divider)",
+        borderRadius: 8,
+        padding: 14,
+        background: accent ? "var(--app-accent-soft)" : "var(--app-surface-muted)",
+      }}
+    >
+      {children}
+    </div>
   );
 }

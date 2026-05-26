@@ -2,7 +2,9 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  AppBadge,
   AppButton,
+  AppCard,
   AppEmptyState,
   AppPageShell,
   AppSectionHeader,
@@ -249,6 +251,26 @@ function buildLocalSimulation(
   };
 }
 
+type InspectedPortfolioCell = {
+  propertyId: string;
+  date: string;
+};
+
+type PortfolioDayDetail = {
+  propertyId: string;
+  propertyName: string;
+  date: string;
+  currentPrice: number;
+  suggestedPrice: number | null;
+  liftAmount: number;
+  liftPercent: number | null;
+  event: PortfolioApiProperty["days"][number]["evento"];
+  strategy: string | null;
+  confidence: number | null;
+  risk: number | null;
+  selected: boolean;
+};
+
 function PortfolioPageContent() {
   const toast = useAppToast();
   const [from, setFrom] = useState<string>(() => isoDateAt(0));
@@ -264,6 +286,7 @@ function PortfolioPageContent() {
   const [actionRuns, setActionRuns] = useState<PortfolioActionRun[]>([]);
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const [selectedDayKeys, setSelectedDayKeys] = useState<Set<string>>(() => new Set());
+  const [inspectedCell, setInspectedCell] = useState<InspectedPortfolioCell | null>(null);
   const [pendingAction, setPendingAction] = useState<PortfolioToolbarAction | null>(null);
   const [simulation, setSimulation] = useState<PortfolioActionSimulationResponse | null>(null);
   const [simulationOpen, setSimulationOpen] = useState(false);
@@ -373,6 +396,35 @@ function PortfolioPageContent() {
       (a, b) => (b.liftAmount ?? b.liftPercent ?? b.score ?? 0) - (a.liftAmount ?? a.liftPercent ?? a.score ?? 0),
     );
   }, [opportunities, properties]);
+
+  const selectedDayDetail = useMemo<PortfolioDayDetail | null>(() => {
+    if (!inspectedCell) return null;
+    const property = properties.find((item) => item.propertyId === inspectedCell.propertyId);
+    const day = property?.days.find((item) => item.date === inspectedCell.date);
+    if (!property || !day) return null;
+    const currentPrice = Number(day.atual ?? 0);
+    const suggestedPrice = day.sugestao == null ? null : Number(day.sugestao);
+    const liftAmount =
+      signalNumber(day.lift) ||
+      (suggestedPrice != null ? Math.max(0, suggestedPrice - currentPrice) : 0);
+    return {
+      propertyId: property.propertyId,
+      propertyName: property.name,
+      date: day.date,
+      currentPrice,
+      suggestedPrice,
+      liftAmount,
+      liftPercent:
+        currentPrice && liftAmount
+          ? Number(((liftAmount / currentPrice) * 100).toFixed(1))
+          : null,
+      event: day.evento,
+      strategy: strategyName(day.strategyApplied ?? property.strategyApplied),
+      confidence: levelToPercent(day.confidence ?? property.confidence),
+      risk: levelToPercent(day.risk ?? property.risk),
+      selected: selectedDayKeys.has(`${property.propertyId}|${day.date}`),
+    };
+  }, [inspectedCell, properties, selectedDayKeys]);
 
   const metrics = useMemo<PortfolioCockpitMetrics>(() => {
     const days = properties.flatMap((property) => property.days);
@@ -501,8 +553,19 @@ function PortfolioPageContent() {
         else next.add(key);
         return next;
       });
+
+      const property = properties.find((item) => item.propertyId === propertyId);
+      const day = property?.days.find((item) => item.date === date);
+      const hasActionableDetail =
+        Boolean(day?.evento) ||
+        day?.sugestao != null ||
+        signalNumber(day?.lift) > 0 ||
+        signalNumber(day?.opportunity) > 0;
+      if (hasActionableDetail) {
+        setInspectedCell({ propertyId, date });
+      }
     },
-    [handleMoveActive],
+    [handleMoveActive, properties],
   );
 
   const handleOpportunitySelect = useCallback(
@@ -711,6 +774,14 @@ function PortfolioPageContent() {
         loading={runsLoading}
         error={runsError}
         onRefresh={handleRefreshRuns}
+        compact
+        limit={3}
+        viewAllHref="/portfolio/history"
+      />
+
+      <PortfolioDayDetailDialog
+        detail={selectedDayDetail}
+        onClose={() => setInspectedCell(null)}
       />
 
       <ActionSimulationDialog
@@ -731,6 +802,232 @@ export default function PortfolioPage() {
       <PortfolioPageContent />
     </AppToastProvider>
   );
+}
+
+function PortfolioDayDetailDialog({
+  detail,
+  onClose,
+}: {
+  detail: PortfolioDayDetail | null;
+  onClose: () => void;
+}) {
+  React.useEffect(() => {
+    if (!detail) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [detail, onClose]);
+
+  if (!detail) return null;
+
+  const suggested = detail.suggestedPrice ?? detail.currentPrice;
+  const delta = suggested - detail.currentPrice;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="portfolio-day-detail-title"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1600,
+        display: "grid",
+        placeItems: "center",
+        padding: 20,
+        background: "rgba(7, 10, 14, 0.62)",
+      }}
+      onClick={onClose}
+    >
+      <AppCard
+        variant="elevated"
+        style={{
+          width: "min(560px, 100%)",
+          padding: 0,
+          overflow: "hidden",
+        }}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <header
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 16,
+            padding: "22px 24px 18px",
+            borderBottom: "1px solid var(--app-divider)",
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <p className="urban-app-eyebrow-muted" style={{ marginBottom: 8 }}>
+              Detalhe da data
+            </p>
+            <h2
+              id="portfolio-day-detail-title"
+              style={{
+                margin: 0,
+                color: "var(--app-text)",
+                fontSize: 22,
+                lineHeight: 1.2,
+              }}
+            >
+              {detail.propertyName}
+            </h2>
+            <p style={{ margin: "6px 0 0", color: "var(--app-text-muted)", fontSize: 13 }}>
+              {formatLongDate(detail.date)}
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label="Fechar detalhes"
+            onClick={onClose}
+            className="urban-focus-ring"
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: 999,
+              border: "1px solid var(--app-divider)",
+              background: "var(--app-surface)",
+              color: "var(--app-text-muted)",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+            }}
+          >
+            <Icons.Close size={15} />
+          </button>
+        </header>
+
+        <div style={{ padding: 24, display: "grid", gap: 18 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {detail.selected && <AppBadge kind="accent">Data marcada</AppBadge>}
+            {detail.event && (
+              <AppBadge kind={detail.event.impacto === "alta" ? "warn" : "neutral"}>
+                Evento {detail.event.impacto}
+              </AppBadge>
+            )}
+            {detail.strategy && <AppBadge kind="neutral">Modo {detail.strategy}</AppBadge>}
+          </div>
+
+          {detail.event && (
+            <section
+              style={{
+                border: "1px solid var(--app-divider)",
+                borderRadius: 10,
+                padding: "14px 16px",
+                background: "var(--app-surface-muted)",
+              }}
+            >
+              <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
+                Evento que influencia a diaria
+              </p>
+              <strong style={{ display: "block", color: "var(--app-text)", fontSize: 16, lineHeight: 1.35 }}>
+                {detail.event.nome}
+              </strong>
+              <p style={{ margin: "8px 0 0", color: "var(--app-text-muted)", fontSize: 13, lineHeight: 1.45 }}>
+                O nome completo fica aqui, fora da celula apertada. A grade passa a mostrar apenas o sinal do evento.
+              </p>
+            </section>
+          )}
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+              gap: 10,
+            }}
+          >
+            <DetailMetric label="Preco atual" value={formatCurrency(detail.currentPrice)} />
+            <DetailMetric label="Sugestao" value={formatCurrency(suggested)} accent />
+            <DetailMetric
+              label="Lift estimado"
+              value={
+                detail.liftAmount > 0
+                  ? `${formatCurrency(detail.liftAmount)}${detail.liftPercent != null ? ` / +${detail.liftPercent}%` : ""}`
+                  : delta > 0
+                    ? formatCurrency(delta)
+                    : "--"
+              }
+            />
+            <DetailMetric
+              label="Confianca / risco"
+              value={`${detail.confidence ?? "--"}% / ${detail.risk ?? "--"}%`}
+            />
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, flexWrap: "wrap" }}>
+            <AppButton variant="secondary" onClick={onClose}>
+              Voltar para a grade
+            </AppButton>
+          </div>
+        </div>
+      </AppCard>
+    </div>
+  );
+}
+
+function DetailMetric({
+  label,
+  value,
+  accent = false,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        border: "1px solid var(--app-divider)",
+        borderRadius: 8,
+        padding: "12px 14px",
+        background: "var(--app-surface)",
+        minWidth: 0,
+      }}
+    >
+      <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
+        {label}
+      </p>
+      <strong
+        style={{
+          display: "block",
+          color: accent ? "var(--app-accent)" : "var(--app-text)",
+          fontSize: 18,
+          lineHeight: 1.2,
+          overflowWrap: "anywhere",
+        }}
+      >
+        {value}
+      </strong>
+    </div>
+  );
+}
+
+function formatLongDate(value: string): string {
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return value;
+  return new Date(year, month - 1, day).toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function formatCurrency(value: number): string {
+  return value.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    maximumFractionDigits: 0,
+  });
 }
 
 function DateRangeField({

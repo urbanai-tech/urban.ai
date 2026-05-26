@@ -8,7 +8,6 @@ import { ScenarioComparison } from "./ScenarioComparison";
 import {
   ArrowRight,
   Calendar,
-  ChevronDown,
   Close,
   MapPin,
   Sparkles,
@@ -69,6 +68,7 @@ export type RecommendationCardProps = {
   secondaryLabel?: string;
   /** Loading durante apply */
   loading?: boolean;
+  density?: "regular" | "compact";
   /** Contrato A — drivers da engine (peso 0-100 por dimensao). */
   drivers?: Drivers;
   /** Contrato A — comparacao com mesma data ano passado + hosts comparaveis. */
@@ -123,23 +123,6 @@ const CONFIDENCE_KIND: Record<RecommendationConfidence, "success" | "warn" | "ne
   medium: "warn",
   low: "neutral",
 };
-
-const MOBILE_BREAKPOINT = 768;
-
-/**
- * Hook simples — true quando viewport < 768px. SSR-safe (false no server).
- */
-function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = React.useState(false);
-  React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-    const update = () => setIsMobile(mql.matches);
-    update();
-    mql.addEventListener("change", update);
-    return () => mql.removeEventListener("change", update);
-  }, []);
-  return isMobile;
-}
 
 /**
  * Traduz justificativas tecnicas do motor em leitura didatica para o anfitriao.
@@ -568,6 +551,7 @@ export function RecommendationCard({
   onSecondary,
   secondaryLabel = "Ver detalhes",
   loading,
+  density = "regular",
   drivers,
   historicalComparison,
   scenarios,
@@ -580,6 +564,7 @@ export function RecommendationCard({
 
   const isApplied = status === "applied";
   const isAccepted = status === "accepted";
+  const compact = density === "compact";
 
   const defaultPrimary = isApplied
     ? "Aplicado"
@@ -587,50 +572,54 @@ export function RecommendationCard({
       ? "Aplicar agora"
       : "Aplicar sugestao";
 
-  const hasExplainer = Boolean(
+  const hasExtendedExplainer = Boolean(
     drivers || historicalComparison || (scenarios && scenarios.length > 0),
   );
 
-  const isMobile = useIsMobile();
-  const [expanded, setExpanded] = React.useState(false);
-  const [sheetOpen, setSheetOpen] = React.useState(false);
+  const explanation = React.useMemo(
+    () =>
+      buildExplanation({
+        currentPrice,
+        suggestedPrice,
+        deltaAbs,
+        deltaPct,
+        eventTitle,
+        reason,
+      }),
+    [currentPrice, deltaAbs, deltaPct, eventTitle, reason, suggestedPrice],
+  );
+  const [detailsOpen, setDetailsOpen] = React.useState(false);
 
-  const handleToggle = React.useCallback(() => {
-    if (isMobile) {
-      setSheetOpen(true);
-    } else {
-      setExpanded((prev) => !prev);
-    }
-  }, [isMobile]);
-
-  // Trava o scroll body enquanto o sheet mobile esta aberto.
+  // Trava o scroll body enquanto o modal esta aberto.
   React.useEffect(() => {
-    if (!sheetOpen) return;
+    if (!detailsOpen) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
     };
-  }, [sheetOpen]);
+  }, [detailsOpen]);
 
-  // ESC fecha o sheet mobile.
+  // ESC fecha os detalhes.
   React.useEffect(() => {
-    if (!sheetOpen) return;
+    if (!detailsOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSheetOpen(false);
+      if (e.key === "Escape") setDetailsOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [sheetOpen]);
+  }, [detailsOpen]);
 
   return (
     <div
       className="urban-app-card-accent"
       style={{
-        padding: "24px 28px",
+        padding: compact ? "18px 20px" : "24px 28px",
         display: "flex",
         flexDirection: "column",
-        gap: 20,
+        gap: compact ? 14 : 20,
+        minWidth: 0,
+        overflow: "hidden",
       }}
     >
       {/* === Header: evento + categoria + meta === */}
@@ -655,12 +644,13 @@ export function RecommendationCard({
         </div>
         <h3
           style={{
-            fontSize: 18,
+            fontSize: compact ? 16 : 18,
             fontWeight: 600,
             color: "var(--app-text)",
             letterSpacing: -0.2,
             margin: 0,
             lineHeight: 1.3,
+            overflowWrap: "anywhere",
           }}
         >
           {eventTitle}
@@ -676,11 +666,20 @@ export function RecommendationCard({
             color: "var(--app-text-muted)",
           }}
         >
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, minWidth: 0 }}>
             <Calendar size={12} /> {fmtDate(eventDate)}
           </span>
           {eventLocation && (
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                minWidth: 0,
+                maxWidth: "100%",
+                overflowWrap: "anywhere",
+              }}
+            >
               <MapPin size={12} /> {eventLocation}
               {typeof distanceKm === "number" && (
                 <span style={{ color: "var(--app-text-dim)" }}>
@@ -708,7 +707,11 @@ export function RecommendationCard({
           </p>
           <p
             className="urban-app-display-md"
-            style={{ color: "var(--app-accent)" }}
+            style={{
+              color: "var(--app-accent)",
+              fontSize: compact ? 44 : undefined,
+              lineHeight: compact ? 0.95 : undefined,
+            }}
           >
             {fmtBRL(suggestedPrice)}
           </p>
@@ -741,15 +744,53 @@ export function RecommendationCard({
         </div>
       </div>
 
-      {/* === Explicacao didatica da recomendacao === */}
-      <RecommendationReason
-        currentPrice={currentPrice}
-        suggestedPrice={suggestedPrice}
-        deltaAbs={deltaAbs}
-        deltaPct={deltaPct}
-        eventTitle={eventTitle}
-        reason={reason}
-      />
+      {/* === Resumo compacto: detalhes completos ficam no modal. === */}
+      <section
+        aria-label="Resumo da sugestao"
+        style={{
+          display: "flex",
+          gap: 12,
+          paddingTop: 14,
+          borderTop: "1px solid var(--app-divider)",
+          minWidth: 0,
+        }}
+      >
+        <span
+          aria-hidden
+          style={{
+            flex: "0 0 auto",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 34,
+            height: 34,
+            borderRadius: 999,
+            background: "var(--app-accent-soft)",
+            color: "var(--app-accent)",
+          }}
+        >
+          <Sparkles size={15} />
+        </span>
+        <div style={{ minWidth: 0 }}>
+          <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
+            Por que este preco?
+          </p>
+          <p
+            style={{
+              margin: 0,
+              color: "var(--app-text)",
+              fontSize: compact ? 12 : 13,
+              lineHeight: 1.5,
+              overflowWrap: "anywhere",
+              maxHeight: compact ? 72 : undefined,
+              overflow: compact ? "hidden" : undefined,
+            }}
+          >
+            <strong>{explanation.lead}</strong>{" "}
+            {explanation.humanReason ?? explanation.body}
+          </p>
+        </div>
+      </section>
 
       {/* === Confianca + CTAs === */}
       <div
@@ -768,16 +809,19 @@ export function RecommendationCard({
             </AppBadge>
           )}
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <AppButton variant="secondary" size={compact ? "sm" : "md"} onClick={() => setDetailsOpen(true)}>
+            Ver detalhes
+          </AppButton>
           {onSecondary && (
-            <AppButton variant="ghost" size="md" onClick={onSecondary}>
+            <AppButton variant="ghost" size={compact ? "sm" : "md"} onClick={onSecondary}>
               {secondaryLabel}
             </AppButton>
           )}
           {onPrimary && !isApplied && (
             <AppButton
               variant="primary"
-              size="md"
+              size={compact ? "sm" : "md"}
               onClick={onPrimary}
               loading={loading}
               rightIcon={<ArrowRight size={14} />}
@@ -788,176 +832,166 @@ export function RecommendationCard({
         </div>
       </div>
 
-      {/* === Expandable: "POR QUE ESSE PRECO?" === */}
-      {hasExplainer && (
+      {detailsOpen && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="recommendation-detail-title"
           style={{
-            borderTop: "1px solid var(--app-divider)",
-            paddingTop: 14,
-            marginTop: -4,
+            position: "fixed",
+            inset: 0,
+            zIndex: 1500,
+            display: "grid",
+            placeItems: "center",
+            padding: 20,
+            background: "rgba(0, 0, 0, 0.58)",
           }}
         >
           <button
             type="button"
-            onClick={handleToggle}
-            aria-expanded={isMobile ? sheetOpen : expanded}
-            aria-controls="recommendation-explainer"
-            className="urban-focus-ring"
+            aria-label="Fechar detalhes da sugestao"
+            onClick={() => setDetailsOpen(false)}
             style={{
-              all: "unset",
-              cursor: "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "8px 4px",
-              minHeight: 44,
-              borderRadius: 6,
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              border: 0,
+              background: "transparent",
+              cursor: "default",
             }}
-          >
-            <span
-              style={{
-                fontFamily: "'Inter', sans-serif",
-                fontWeight: 600,
-                fontSize: 11,
-                letterSpacing: 4,
-                textTransform: "uppercase",
-                color: "var(--app-accent)",
-              }}
-            >
-              Por que esse preco?
-            </span>
-            <ChevronDown
-              size={14}
-              style={{
-                color: "var(--app-accent)",
-                transition: "transform 200ms cubic-bezier(0.16, 1, 0.3, 1)",
-                transform: expanded && !isMobile ? "rotate(180deg)" : "rotate(0deg)",
-              }}
-            />
-          </button>
-
-          {/* Desktop: expand inline com max-height + opacity transition 300ms.
-              Mobile: sheet fora dessa arvore (renderizado abaixo). */}
-          {!isMobile && (
-            <div
-              id="recommendation-explainer"
-              aria-hidden={!expanded}
-              style={{
-                overflow: "hidden",
-                maxHeight: expanded ? 1200 : 0,
-                opacity: expanded ? 1 : 0,
-                transition:
-                  "max-height 300ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease, margin-top 300ms ease",
-                marginTop: expanded ? 16 : 0,
-              }}
-            >
-              <ExplainerBody
-                drivers={drivers}
-                historicalComparison={historicalComparison}
-                scenarios={scenarios}
-              />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* === Mobile full-screen sheet === */}
-      {hasExplainer && isMobile && sheetOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Por que esse preco"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 1000,
-            background: "var(--app-bg)",
-            display: "flex",
-            flexDirection: "column",
-            animation: "urban-app-shimmer 1ms",
-          }}
-        >
-          <header
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "16px 20px",
-              borderBottom: "1px solid var(--app-divider)",
-              background: "var(--app-surface)",
-            }}
-          >
-            <span
-              style={{
-                fontFamily: "'Inter', sans-serif",
-                fontWeight: 600,
-                fontSize: 11,
-                letterSpacing: 4,
-                textTransform: "uppercase",
-                color: "var(--app-accent)",
-              }}
-            >
-              Por que esse preco?
-            </span>
-            <button
-              type="button"
-              onClick={() => setSheetOpen(false)}
-              aria-label="Fechar detalhes da sugestao"
-              className="urban-focus-ring"
-              style={{
-                all: "unset",
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 44,
-                height: 44,
-                borderRadius: 8,
-                color: "var(--app-text)",
-              }}
-            >
-              <Close size={18} />
-            </button>
-          </header>
+          />
 
           <div
+            className="urban-app"
             style={{
-              padding: "20px",
-              overflowY: "auto",
-              flex: 1,
+              position: "relative",
+              width: "min(720px, 100%)",
+              maxHeight: "calc(100vh - 40px)",
+              overflow: "hidden",
+              border: "1px solid var(--app-divider-strong)",
+              borderRadius: 10,
+              background: "var(--app-surface)",
+              boxShadow: "0 24px 80px rgba(0,0,0,0.35)",
               display: "flex",
               flexDirection: "column",
-              gap: 24,
             }}
           >
-            <div>
-              <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
-                Sugestao da IA
-              </p>
-              <p
-                className="urban-app-display-md"
-                style={{ color: "var(--app-accent)" }}
-              >
-                {fmtBRL(suggestedPrice)}
-              </p>
-              <p
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 16,
+                padding: "18px 20px",
+                borderBottom: "1px solid var(--app-divider)",
+              }}
+            >
+              <div style={{ minWidth: 0 }}>
+                <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
+                  Detalhes da sugestao
+                </p>
+                <h2
+                  id="recommendation-detail-title"
+                  style={{
+                    margin: 0,
+                    color: "var(--app-text)",
+                    fontSize: 20,
+                    lineHeight: 1.25,
+                    fontWeight: 700,
+                    overflowWrap: "anywhere",
+                  }}
+                >
+                  {eventTitle}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDetailsOpen(false)}
+                aria-label="Fechar detalhes da sugestao"
+                className="urban-focus-ring"
                 style={{
-                  fontSize: 12,
-                  color: "var(--app-text-muted)",
-                  marginTop: 4,
+                  flex: "0 0 auto",
+                  width: 40,
+                  height: 40,
+                  borderRadius: 8,
+                  border: "1px solid var(--app-divider-strong)",
+                  background: "var(--app-surface-muted)",
+                  color: "var(--app-text)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
                 }}
               >
-                preco atual:{" "}
-                <strong style={{ color: "var(--app-text)" }}>{fmtBRL(currentPrice)}</strong>{" "}
-                / diaria
-              </p>
+                <Close size={17} />
+              </button>
             </div>
 
-            <ExplainerBody
-              drivers={drivers}
-              historicalComparison={historicalComparison}
-              scenarios={scenarios}
-            />
+            <div
+              style={{
+                padding: 20,
+                overflowY: "auto",
+                display: "flex",
+                flexDirection: "column",
+                gap: 22,
+              }}
+            >
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "minmax(0, 1fr) auto",
+                  gap: 16,
+                  alignItems: "end",
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
+                    Sugestao da IA
+                  </p>
+                  <p className="urban-app-display-md" style={{ color: "var(--app-accent)" }}>
+                    {fmtBRL(suggestedPrice)}
+                  </p>
+                  <p style={{ fontSize: 12, color: "var(--app-text-muted)", marginTop: 4 }}>
+                    preco atual:{" "}
+                    <strong style={{ color: "var(--app-text)" }}>{fmtBRL(currentPrice)}</strong>{" "}
+                    / diaria
+                  </p>
+                </div>
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 5,
+                    padding: "6px 12px",
+                    background: deltaAbs >= 0 ? "var(--app-accent-soft)" : "var(--app-surface-muted)",
+                    color: deltaAbs >= 0 ? "var(--app-accent)" : "var(--app-danger)",
+                    borderRadius: 999,
+                    fontSize: 13,
+                    fontWeight: 600,
+                  }}
+                >
+                  <DeltaIcon size={12} />
+                  {deltaLabel}
+                </div>
+              </div>
+
+              <RecommendationReason
+                currentPrice={currentPrice}
+                suggestedPrice={suggestedPrice}
+                deltaAbs={deltaAbs}
+                deltaPct={deltaPct}
+                eventTitle={eventTitle}
+                reason={reason}
+              />
+
+              {hasExtendedExplainer && (
+                <ExplainerBody
+                  drivers={drivers}
+                  historicalComparison={historicalComparison}
+                  scenarios={scenarios}
+                />
+              )}
+            </div>
           </div>
         </div>
       )}

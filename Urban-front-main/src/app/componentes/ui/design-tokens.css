@@ -54,6 +54,7 @@
   --theme-app-nav-active: rgba(184, 61, 7, 0.10);
   --theme-app-backdrop: rgba(14, 17, 22, 0.45);
   --theme-app-select-chevron: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(14,17,22,0.58)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  --theme-admin-select-chevron: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(16,20,26,0.58)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
 
   --theme-admin-bg: #F7F7F8;
   --theme-admin-surface: #FFFFFF;
@@ -119,6 +120,7 @@
   --theme-app-nav-active: rgba(232, 80, 10, 0.13);
   --theme-app-backdrop: rgba(0, 0, 0, 0.62);
   --theme-app-select-chevron: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.66)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  --theme-admin-select-chevron: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.62)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
 
   --theme-admin-bg: #080A0F;
   --theme-admin-surface: rgba(255, 255, 255, 0.02);
@@ -251,6 +253,21 @@
   background: var(--app-bg);
   color: var(--app-text);
   min-height: 100vh;
+}
+
+.urban-app select {
+  background-color: var(--app-surface);
+  color: var(--app-text);
+  color-scheme: light dark;
+}
+
+.urban-app select option {
+  background-color: var(--app-surface-elevated);
+  color: var(--app-text);
+}
+
+.urban-app select option:disabled {
+  color: var(--app-text-dim);
 }
 
 /* Eyebrow padrao (label uppercase, accent, letter-spacing 3) */
@@ -417,10 +434,26 @@
   --admin-success: var(--theme-admin-success);
   --admin-warning: var(--theme-admin-warning);
   --admin-danger: var(--theme-admin-danger);
+  --admin-select-chevron: var(--theme-admin-select-chevron);
 
   background: var(--admin-bg);
   color: var(--admin-text);
   min-height: 100vh;
+}
+
+.urban-admin select {
+  background-color: var(--admin-surface-elevated);
+  color: var(--admin-text);
+  color-scheme: light dark;
+}
+
+.urban-admin select option {
+  background-color: var(--admin-surface-elevated);
+  color: var(--admin-text);
+}
+
+.urban-admin select option:disabled {
+  color: var(--admin-text-dim);
 }
 
 /* Display headings — Bebas Neue */

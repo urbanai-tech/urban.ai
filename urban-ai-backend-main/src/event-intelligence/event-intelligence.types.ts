@@ -107,6 +107,8 @@ export type EventCatalogQuery = {
   confidence?: string;
   propertyId?: string;
   source?: string;
+  radiusKm?: string | number;
+  highImpact?: string | boolean;
   scope?: 'in' | 'out' | 'all';
   metric?: string;
   limit?: string | number;
