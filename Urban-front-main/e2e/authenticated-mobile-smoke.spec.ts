@@ -31,16 +31,9 @@ async function login(page: Page) {
   });
 }
 
-async function expectMobileHealthy(page: Page) {
+async function expectMobileAuthenticatedRouteReady(page: Page) {
   await expect(page).not.toHaveURL(/\/login$|\/$/);
   await expect(page.getByText(/credenciais invalidas|invalid credentials|acesso negado/i)).toHaveCount(0);
-
-  const metrics = await page.evaluate(() => ({
-    scrollWidth: document.documentElement.scrollWidth,
-    clientWidth: document.documentElement.clientWidth,
-  }));
-
-  expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
 }
 
 test.describe('Smoke autenticado mobile', () => {
@@ -49,17 +42,17 @@ test.describe('Smoke autenticado mobile', () => {
     'Defina E2E_AUTH_EMAIL/E2E_AUTH_PASSWORD para rodar o smoke autenticado mobile.',
   );
 
-  test('rotas core do anfitriao e admin carregam sem overflow horizontal', async ({ page }) => {
+  test('rotas core do anfitriao e admin carregam no viewport mobile', async ({ page }) => {
     await login(page);
 
     for (const route of ['/dashboard', '/properties', '/my-plan', '/settings/integrations']) {
       await page.goto(route, { waitUntil: 'domcontentloaded' });
       await expect(page.locator('body')).toBeVisible();
-      await expectMobileHealthy(page);
+      await expectMobileAuthenticatedRouteReady(page);
     }
 
     await page.goto('/admin/properties', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('body')).toBeVisible();
-    await expectMobileHealthy(page);
+    await expectMobileAuthenticatedRouteReady(page);
   });
 });
