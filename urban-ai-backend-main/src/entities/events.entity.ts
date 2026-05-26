@@ -19,7 +19,6 @@ import {
   @Index(["cidade", "estado"])
   @Index(["latitude", "longitude"])
   @Index(["dataInicio", "dataFim"])
-  @Index(["source"])
   @Index(["venueType"])
   export class Event {
     // =====================================

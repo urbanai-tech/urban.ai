@@ -14,5 +14,6 @@ RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefo
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/package.json ./
+COPY --from=builder /usr/src/app/scripts/repair-staging-schema.js ./scripts/repair-staging-schema.js
 EXPOSE 8080
-CMD ["node", "dist/main"]
+CMD ["sh", "-c", "node scripts/repair-staging-schema.js && node dist/main"]

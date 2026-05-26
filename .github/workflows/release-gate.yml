@@ -37,8 +37,8 @@ jobs:
 
       - name: Next.js production build
         env:
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL_STAGING || 'https://urban-ai-back-staging.up.railway.app' }}
-          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL_STAGING || 'https://app-staging.myurbanai.com' }}
+          NEXT_PUBLIC_API_URL: ${{ vars.E2E_API_URL || secrets.NEXT_PUBLIC_API_URL_STAGING || 'https://urban-ai-backend-staging-staging.up.railway.app' }}
+          NEXT_PUBLIC_APP_URL: ${{ vars.E2E_BASE_URL || secrets.NEXT_PUBLIC_APP_URL_STAGING || 'https://urban-ai-frontend-staging-staging.up.railway.app' }}
           NEXT_PUBLIC_PRELAUNCH_MODE: 'false'
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_dummy
           NEXTAUTH_SECRET: ci_dummy_secret_not_for_prod
@@ -69,8 +69,8 @@ jobs:
 
       - name: Build local smoke app
         env:
-          NEXT_PUBLIC_API_URL: ${{ secrets.E2E_API_URL || 'https://urbanai-production-85fd.up.railway.app' }}
-          NEXT_PUBLIC_APP_URL: https://app.myurbanai.com
+          NEXT_PUBLIC_API_URL: ${{ vars.E2E_API_URL || secrets.E2E_API_URL || 'https://urban-ai-backend-staging-staging.up.railway.app' }}
+          NEXT_PUBLIC_APP_URL: ${{ vars.E2E_BASE_URL || secrets.E2E_BASE_URL || 'https://urban-ai-frontend-staging-staging.up.railway.app' }}
           NEXT_PUBLIC_PRELAUNCH_MODE: 'false'
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_dummy
           NEXTAUTH_SECRET: ci_dummy_secret_not_for_prod
@@ -97,7 +97,7 @@ jobs:
       - name: Run public smoke specs
         env:
           E2E_BASE_URL: http://127.0.0.1:3000
-          E2E_API_URL: ${{ secrets.E2E_API_URL || 'https://urbanai-production-85fd.up.railway.app' }}
+          E2E_API_URL: ${{ vars.E2E_API_URL || secrets.E2E_API_URL || 'https://urban-ai-backend-staging-staging.up.railway.app' }}
         run: |
           npx playwright test \
             --project=chromium \
@@ -142,8 +142,8 @@ jobs:
 
       - name: Run authenticated smoke specs
         env:
-          E2E_BASE_URL: ${{ secrets.E2E_BASE_URL || 'https://app.myurbanai.com' }}
-          E2E_API_URL: ${{ secrets.E2E_API_URL || 'https://urbanai-production-85fd.up.railway.app' }}
+          E2E_BASE_URL: ${{ vars.E2E_BASE_URL || secrets.E2E_BASE_URL || 'https://urban-ai-frontend-staging-staging.up.railway.app' }}
+          E2E_API_URL: ${{ vars.E2E_API_URL || secrets.E2E_API_URL || 'https://urban-ai-backend-staging-staging.up.railway.app' }}
           E2E_AUTH_EMAIL: ${{ secrets.E2E_AUTH_EMAIL }}
           E2E_AUTH_PASSWORD: ${{ secrets.E2E_AUTH_PASSWORD }}
           E2E_ALPHA_EMAIL: ${{ secrets.E2E_ALPHA_EMAIL }}
@@ -181,7 +181,7 @@ jobs:
 
       - name: Resolve enterprise gate JWTs
         env:
-          ENTERPRISE_GATE_BACKEND_URL: ${{ vars.ENTERPRISE_GATE_BACKEND_URL || vars.E2E_API_URL || 'https://urbanai-production-85fd.up.railway.app' }}
+          ENTERPRISE_GATE_BACKEND_URL: ${{ vars.ENTERPRISE_GATE_BACKEND_URL || vars.E2E_API_URL || 'https://urban-ai-backend-staging-staging.up.railway.app' }}
           ENTERPRISE_GATE_ADMIN_JWT: ${{ secrets.ENTERPRISE_GATE_ADMIN_JWT }}
           ENTERPRISE_GATE_HOST_JWT: ${{ secrets.ENTERPRISE_GATE_HOST_JWT }}
           ENTERPRISE_GATE_ADMIN_EMAIL: ${{ secrets.ENTERPRISE_GATE_ADMIN_EMAIL || secrets.E2E_AUTH_EMAIL || secrets.E2E_EMAIL }}
@@ -252,8 +252,8 @@ jobs:
       - name: Run enterprise live gate
         env:
           ENTERPRISE_GATE_ENV: ${{ vars.ENTERPRISE_GATE_ENV || 'staging' }}
-          ENTERPRISE_GATE_BACKEND_URL: ${{ vars.ENTERPRISE_GATE_BACKEND_URL || vars.E2E_API_URL || 'https://urbanai-production-85fd.up.railway.app' }}
-          ENTERPRISE_GATE_FRONTEND_URL: ${{ vars.ENTERPRISE_GATE_FRONTEND_URL || vars.E2E_BASE_URL || 'https://app.myurbanai.com' }}
+          ENTERPRISE_GATE_BACKEND_URL: ${{ vars.ENTERPRISE_GATE_BACKEND_URL || vars.E2E_API_URL || 'https://urban-ai-backend-staging-staging.up.railway.app' }}
+          ENTERPRISE_GATE_FRONTEND_URL: ${{ vars.ENTERPRISE_GATE_FRONTEND_URL || vars.E2E_BASE_URL || 'https://urban-ai-frontend-staging-staging.up.railway.app' }}
           ENTERPRISE_GATE_EVENTS_INGEST_KEY: ${{ secrets.ENTERPRISE_GATE_EVENTS_INGEST_KEY }}
           ENTERPRISE_GATE_PROD_MUTATION_OK: ${{ vars.ENTERPRISE_GATE_PROD_MUTATION_OK }}
         run: >-

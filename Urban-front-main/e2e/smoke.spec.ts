@@ -33,10 +33,13 @@ test.describe('Smoke - rotas publicas', () => {
 
   test('link criar conta do header aponta para o app com barra correta', async ({ page }) => {
     await page.goto('/lancamento');
-    await expect(page.getByRole('link', { name: 'Criar conta' }).first()).toHaveAttribute(
-      'href',
-      /https:\/\/app\.myurbanai\.com\/create$/,
-    );
+    const href = await page.getByRole('link', { name: 'Criar conta' }).first().getAttribute('href');
+    expect(href).toBeTruthy();
+
+    const createUrl = new URL(href as string);
+    expect(createUrl.protocol).toBe('https:');
+    expect(createUrl.pathname).toBe('/create');
+    expect(createUrl.href).not.toContain('//create');
   });
 
   test('pagina de planos mostra os 2 planos, auth ou pre-launch', async ({ page }) => {
