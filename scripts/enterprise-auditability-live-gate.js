@@ -302,7 +302,12 @@ async function runAskChecks(evidence, config) {
       return { statusCode: response.statusCode, messageId: response.body?.messageId, usage: response.body?.usage };
     });
   } else {
-    addSkipped(evidence, 'ask.allowed-question', 'Allowed-user POST skipped; set ENTERPRISE_GATE_POST_ASK_QUESTION=true to create a live AskUrban message.');
+    addSkipped(
+      evidence,
+      'ask.allowed-question',
+      'Allowed-user POST skipped; set ENTERPRISE_GATE_POST_ASK_QUESTION=true to create a live AskUrban message.',
+      false,
+    );
   }
 }
 
