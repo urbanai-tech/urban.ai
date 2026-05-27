@@ -153,6 +153,14 @@ jobs:
           E2E_PASSWORD: ${{ secrets.E2E_PASSWORD || secrets.E2E_AUTH_PASSWORD }}
           E2E_AUTH_EMAIL: ${{ secrets.E2E_EMAIL || secrets.E2E_AUTH_EMAIL }}
           E2E_AUTH_PASSWORD: ${{ secrets.E2E_PASSWORD || secrets.E2E_AUTH_PASSWORD }}
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL || secrets.ENTERPRISE_GATE_ADMIN_EMAIL || secrets.E2E_AUTH_EMAIL || secrets.E2E_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD || secrets.ENTERPRISE_GATE_ADMIN_PASSWORD || secrets.E2E_AUTH_PASSWORD || secrets.E2E_PASSWORD }}
+          E2E_HOST_EMAIL: ${{ secrets.E2E_HOST_EMAIL || secrets.ENTERPRISE_GATE_HOST_EMAIL }}
+          E2E_HOST_PASSWORD: ${{ secrets.E2E_HOST_PASSWORD || secrets.ENTERPRISE_GATE_HOST_PASSWORD }}
+          ENTERPRISE_GATE_ADMIN_EMAIL: ${{ secrets.ENTERPRISE_GATE_ADMIN_EMAIL || secrets.E2E_ADMIN_EMAIL || secrets.E2E_AUTH_EMAIL || secrets.E2E_EMAIL }}
+          ENTERPRISE_GATE_ADMIN_PASSWORD: ${{ secrets.ENTERPRISE_GATE_ADMIN_PASSWORD || secrets.E2E_ADMIN_PASSWORD || secrets.E2E_AUTH_PASSWORD || secrets.E2E_PASSWORD }}
+          ENTERPRISE_GATE_HOST_EMAIL: ${{ secrets.ENTERPRISE_GATE_HOST_EMAIL || secrets.E2E_HOST_EMAIL }}
+          ENTERPRISE_GATE_HOST_PASSWORD: ${{ secrets.ENTERPRISE_GATE_HOST_PASSWORD || secrets.E2E_HOST_PASSWORD }}
         run: node scripts/staging-gate-preflight.mjs --gate authenticated-smoke
 
       - name: Install deps
@@ -172,6 +180,14 @@ jobs:
           E2E_PASSWORD: ${{ secrets.E2E_PASSWORD || secrets.E2E_AUTH_PASSWORD }}
           E2E_AUTH_EMAIL: ${{ secrets.E2E_EMAIL || secrets.E2E_AUTH_EMAIL }}
           E2E_AUTH_PASSWORD: ${{ secrets.E2E_PASSWORD || secrets.E2E_AUTH_PASSWORD }}
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL || secrets.ENTERPRISE_GATE_ADMIN_EMAIL || secrets.E2E_AUTH_EMAIL || secrets.E2E_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD || secrets.ENTERPRISE_GATE_ADMIN_PASSWORD || secrets.E2E_AUTH_PASSWORD || secrets.E2E_PASSWORD }}
+          E2E_HOST_EMAIL: ${{ secrets.E2E_HOST_EMAIL || secrets.ENTERPRISE_GATE_HOST_EMAIL }}
+          E2E_HOST_PASSWORD: ${{ secrets.E2E_HOST_PASSWORD || secrets.ENTERPRISE_GATE_HOST_PASSWORD }}
+          ENTERPRISE_GATE_ADMIN_EMAIL: ${{ secrets.ENTERPRISE_GATE_ADMIN_EMAIL || secrets.E2E_ADMIN_EMAIL || secrets.E2E_AUTH_EMAIL || secrets.E2E_EMAIL }}
+          ENTERPRISE_GATE_ADMIN_PASSWORD: ${{ secrets.ENTERPRISE_GATE_ADMIN_PASSWORD || secrets.E2E_ADMIN_PASSWORD || secrets.E2E_AUTH_PASSWORD || secrets.E2E_PASSWORD }}
+          ENTERPRISE_GATE_HOST_EMAIL: ${{ secrets.ENTERPRISE_GATE_HOST_EMAIL || secrets.E2E_HOST_EMAIL }}
+          ENTERPRISE_GATE_HOST_PASSWORD: ${{ secrets.ENTERPRISE_GATE_HOST_PASSWORD || secrets.E2E_HOST_PASSWORD }}
           E2E_ALPHA_EMAIL: ${{ secrets.E2E_ALPHA_EMAIL }}
         run: |
           npx playwright test \

@@ -18,12 +18,21 @@ const GATES = {
       { key: 'E2E_BASE_URL', aliases: ['FRONTEND_BASE_URL'] },
       { key: 'E2E_API_URL', aliases: ['NEXT_PUBLIC_API_URL', 'BACKEND_BASE_URL'] },
     ],
-    requiredPairs: [
+    requiredCredentialGroups: [
       {
-        label: 'authentication credentials',
-        pairs: [
+        label: 'admin authentication credentials',
+        alternatives: [
+          ['E2E_ADMIN_EMAIL', 'E2E_ADMIN_PASSWORD'],
+          ['ENTERPRISE_GATE_ADMIN_EMAIL', 'ENTERPRISE_GATE_ADMIN_PASSWORD'],
           ['E2E_AUTH_EMAIL', 'E2E_AUTH_PASSWORD'],
           ['E2E_EMAIL', 'E2E_PASSWORD'],
+        ],
+      },
+      {
+        label: 'host authentication credentials',
+        alternatives: [
+          ['E2E_HOST_EMAIL', 'E2E_HOST_PASSWORD'],
+          ['ENTERPRISE_GATE_HOST_EMAIL', 'ENTERPRISE_GATE_HOST_PASSWORD'],
         ],
       },
     ],
