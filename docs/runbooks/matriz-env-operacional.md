@@ -107,4 +107,5 @@ Regras esperadas:
 - `STAYS_AUTO_APPLY_USER_ALLOWLIST` e `STAYS_AUTO_APPLY_LISTING_ALLOWLIST` devem ser revisados antes de cada ativacao real; nunca usar wildcard em beta privado.
 - API keys externas podem ficar pendentes em dev/staging, desde que os fluxos dependentes nao sejam anunciados como prontos.
 - `/health` detalhado em staging/prod exige `HEALTH_READINESS_TOKEN`; publicar readiness sem token expõe inventario operacional.
+- Em staging Railway sem dominio proprio, usar `COOKIE_DOMAIN=none`; usar `.myurbanai.com` em host `*.railway.app` faz o browser rejeitar cookie e quebra login UI.
 - Para Track 3, rodar `npm run preflight:track3` em `urban-ai-backend-main` antes de smoke manual.
