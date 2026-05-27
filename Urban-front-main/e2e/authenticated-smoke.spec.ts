@@ -1,4 +1,4 @@
-import { test, expect, type Page, type Response as PlaywrightResponse } from '@playwright/test';
+import { test, expect, type Page, type Response as PlaywrightResponse, type Route } from '@playwright/test';
 import { acceptCookieConsent } from './test-helpers';
 
 type Credentials = {
@@ -20,6 +20,23 @@ const hostCredentials = pickCredentials('host', [
 ]);
 
 test.use({ serviceWorkers: 'block' });
+
+const smokeSubscription = {
+  id: 'alpha-authenticated-smoke',
+  status: 'trialing',
+  metadata: {
+    urbanai_plan: 'alpha',
+    urbanai_quantity: '2',
+    urbanai_billing_cycle: 'monthly',
+  },
+  plan: { id: 'alpha', amount: null, currency: 'brl', interval: 'month' },
+};
+
+const smokeListingsQuota = {
+  contratados: 2,
+  ativos: 1,
+  podeAdicionar: true,
+};
 
 function pickCredentials(role: string, pairs: Array<[string, string]>): Credentials | null {
   for (const [emailKey, passwordKey] of pairs) {
@@ -71,6 +88,8 @@ async function persistBrowserSession(page: Page, loginResponse: PlaywrightRespon
 
   const apiUrl = new URL(process.env.E2E_API_URL || loginResponse.url());
   await page.context().route(`${apiUrl.origin}/**`, async (route) => {
+    if (await fulfillSmokeBillingFixture(route)) return;
+
     await route.continue({
       headers: {
         ...route.request().headers(),
@@ -95,6 +114,30 @@ async function persistBrowserSession(page: Page, loginResponse: PlaywrightRespon
       expires: Math.floor(Date.now() / 1000) + 14 * 60,
     },
   ]);
+}
+
+async function fulfillSmokeBillingFixture(route: Route) {
+  const requestUrl = new URL(route.request().url());
+
+  if (requestUrl.pathname === '/payments/getSubscription') {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(smokeSubscription),
+    });
+    return true;
+  }
+
+  if (requestUrl.pathname === '/payments/listings-quota') {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(smokeListingsQuota),
+    });
+    return true;
+  }
+
+  return false;
 }
 
 async function gotoAuthenticatedRoute(page: Page, route: string) {
