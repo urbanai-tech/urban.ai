@@ -66,11 +66,20 @@ async function persistBrowserSession(page: Page, loginResponse: PlaywrightRespon
   const accessToken = typeof body?.accessToken === 'string' ? body.accessToken : '';
   if (!accessToken) return;
 
+  const apiUrl = new URL(process.env.E2E_API_URL || loginResponse.url());
+  await page.route(`${apiUrl.origin}/**`, async (route) => {
+    await route.continue({
+      headers: {
+        ...route.request().headers(),
+        authorization: `Bearer ${accessToken}`,
+      },
+    });
+  });
+
   await page.evaluate((token) => {
     window.localStorage.setItem('accessToken', token);
   }, accessToken);
 
-  const apiUrl = new URL(process.env.E2E_API_URL || loginResponse.url());
   await page.context().addCookies([
     {
       name: 'urbanai_access_token',
