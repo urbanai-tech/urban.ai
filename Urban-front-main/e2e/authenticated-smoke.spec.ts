@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page, type Response as PlaywrightResponse } from '@playwright/test';
 import { acceptCookieConsent } from './test-helpers';
 
 type Credentials = {
@@ -51,6 +51,7 @@ async function login(page: Page, credentials: Credentials) {
   ]);
 
   expect(loginResponse.ok(), `login respondeu HTTP ${loginResponse.status()}`).toBeTruthy();
+  await persistBrowserSession(page, loginResponse);
 
   await page.waitForURL(isPostLoginRoute, {
     timeout: 15_000,
@@ -59,6 +60,30 @@ async function login(page: Page, credentials: Credentials) {
   await page.waitForTimeout(1500);
 
   await expect(page.getByText(/credenciais invalidas|invalid credentials/i)).toHaveCount(0);
+}
+
+async function persistBrowserSession(page: Page, loginResponse: PlaywrightResponse) {
+  const body = await loginResponse.json().catch(() => ({}));
+  const accessToken = typeof body?.accessToken === 'string' ? body.accessToken : '';
+  if (!accessToken) return;
+
+  await page.evaluate((token) => {
+    window.localStorage.setItem('accessToken', token);
+  }, accessToken);
+
+  const apiUrl = new URL(process.env.E2E_API_URL || loginResponse.url());
+  await page.context().addCookies([
+    {
+      name: 'urbanai_access_token',
+      value: accessToken,
+      domain: apiUrl.hostname,
+      path: '/',
+      httpOnly: true,
+      secure: apiUrl.protocol === 'https:',
+      sameSite: 'Lax',
+      expires: Math.floor(Date.now() / 1000) + 14 * 60,
+    },
+  ]);
 }
 
 async function gotoAuthenticatedRoute(page: Page, route: string) {
