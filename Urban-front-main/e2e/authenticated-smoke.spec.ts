@@ -19,6 +19,8 @@ const hostCredentials = pickCredentials('host', [
   ['ENTERPRISE_GATE_HOST_EMAIL', 'ENTERPRISE_GATE_HOST_PASSWORD'],
 ]);
 
+test.use({ serviceWorkers: 'block' });
+
 function pickCredentials(role: string, pairs: Array<[string, string]>): Credentials | null {
   for (const [emailKey, passwordKey] of pairs) {
     const email = process.env[emailKey];
@@ -68,7 +70,7 @@ async function persistBrowserSession(page: Page, loginResponse: PlaywrightRespon
   if (!accessToken) return;
 
   const apiUrl = new URL(process.env.E2E_API_URL || loginResponse.url());
-  await page.route(`${apiUrl.origin}/**`, async (route) => {
+  await page.context().route(`${apiUrl.origin}/**`, async (route) => {
     await route.continue({
       headers: {
         ...route.request().headers(),

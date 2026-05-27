@@ -90,14 +90,25 @@ function isPublicPath(pathname: string): boolean {
 
 let refreshPromise: Promise<void> | null = null;
 
+function requestPathname(requestUrl: string): string {
+  try {
+    const baseURL =
+      typeof api.defaults.baseURL === "string" && api.defaults.baseURL
+        ? api.defaults.baseURL
+        : window.location.origin;
+    return new URL(requestUrl, baseURL).pathname;
+  } catch {
+    return requestUrl.split("?")[0] || "";
+  }
+}
+
 function shouldSkipRefresh(requestUrl: string): boolean {
-  return (
-    requestUrl.endsWith("/auth/login") ||
-    requestUrl.endsWith("/auth/google") ||
-    requestUrl.endsWith("/auth/register") ||
-    requestUrl.endsWith("/auth/refresh") ||
-    requestUrl.endsWith("/auth/logout")
-  );
+  const pathname = requestPathname(requestUrl);
+  return ["/auth/login", "/auth/google", "/auth/register", "/auth/refresh", "/auth/logout"].includes(pathname);
+}
+
+function isNonFatalUnauthorizedProbe(requestUrl: string): boolean {
+  return ["/auth/me", "/payments/getSubscription"].includes(requestPathname(requestUrl));
 }
 
 function refreshSessionOnce(): Promise<void> {
@@ -130,6 +141,7 @@ api.interceptors.response.use(
         originalRequest &&
         !originalRequest._retry &&
         !shouldSkipRefresh(requestUrl) &&
+        !isNonFatalUnauthorizedProbe(requestUrl) &&
         !isPublicPath(pathname);
 
       if (canRefresh) {
@@ -142,8 +154,8 @@ api.interceptors.response.use(
         }
       }
 
-      const isAuthMeProbe = requestUrl.endsWith("/auth/me");
-      if (!isAuthMeProbe && !isPublicPath(pathname)) {
+      const isNonFatalProbe = isNonFatalUnauthorizedProbe(requestUrl);
+      if (!isNonFatalProbe && !isPublicPath(pathname)) {
         try {
           localStorage.removeItem("accessToken");
         } catch {
