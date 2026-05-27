@@ -66,6 +66,20 @@ export class AuthController {
     return process.env.PRELAUNCH_MODE === 'true';
   }
 
+  private resolveCookieDomain(): string | undefined {
+    const env = process.env.APP_ENV || process.env.NODE_ENV;
+    const isProd = env === 'production' || env === 'staging';
+    const configuredCookieDomain = process.env.COOKIE_DOMAIN?.trim();
+
+    if (configuredCookieDomain) {
+      return configuredCookieDomain.toLowerCase() === 'none'
+        ? undefined
+        : configuredCookieDomain;
+    }
+
+    return isProd ? '.myurbanai.com' : undefined;
+  }
+
   /**
    * Configuração comum dos cookies.
    *
@@ -86,13 +100,7 @@ export class AuthController {
   private cookieOpts(maxAgeMs: number, isRefresh = false) {
     const env = process.env.APP_ENV || process.env.NODE_ENV;
     const isProd = env === 'production' || env === 'staging';
-    const configuredCookieDomain = process.env.COOKIE_DOMAIN?.trim();
-    const cookieDomain =
-      configuredCookieDomain && configuredCookieDomain.toLowerCase() !== 'none'
-        ? configuredCookieDomain
-        : isProd
-          ? '.myurbanai.com'
-          : undefined;
+    const cookieDomain = this.resolveCookieDomain();
     const configuredSameSite = process.env.COOKIE_SAME_SITE?.trim().toLowerCase();
     const sameSite: CookieSameSite =
       configuredSameSite === 'none' || configuredSameSite === 'strict' || configuredSameSite === 'lax'
@@ -118,15 +126,7 @@ export class AuthController {
   private clearAuthCookies(res: Response) {
     // Para o browser invalidar o cookie corretamente, os atributos
     // (domain, path) precisam bater com os usados ao setar.
-    const env = process.env.APP_ENV || process.env.NODE_ENV;
-    const isProd = env === 'production' || env === 'staging';
-    const configuredCookieDomain = process.env.COOKIE_DOMAIN?.trim();
-    const cookieDomain =
-      configuredCookieDomain && configuredCookieDomain.toLowerCase() !== 'none'
-        ? configuredCookieDomain
-        : isProd
-          ? '.myurbanai.com'
-          : undefined;
+    const cookieDomain = this.resolveCookieDomain();
 
     res.clearCookie(ACCESS_TOKEN_COOKIE, { path: '/', domain: cookieDomain });
     res.clearCookie(REFRESH_TOKEN_COOKIE, { path: '/auth', domain: cookieDomain });
