@@ -54,6 +54,14 @@ export const api = axios.create({
 // Interceptor para incluir o token de autorização em todas as requisições
 api.interceptors.request.use(
   (config) => {
+    if (typeof window !== "undefined") {
+      const token = window.localStorage.getItem("accessToken");
+      const headers = (config.headers ?? {}) as Record<string, string>;
+      if (token && !headers.Authorization && !headers.authorization) {
+        headers.Authorization = `Bearer ${token}`;
+        config.headers = headers as typeof config.headers;
+      }
+    }
     return config;
   },
   (error) => Promise.reject(error),
