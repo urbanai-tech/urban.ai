@@ -59,7 +59,13 @@ export default function Login() {
     setLoading(true);
     try {
       const hashedPassword = await sha256(password);
-      await api.post("/auth/login", { email, password: hashedPassword });
+      const { data: loginData } = await api.post<{ accessToken?: string }>("/auth/login", {
+        email,
+        password: hashedPassword,
+      });
+      if (loginData?.accessToken) {
+        localStorage.setItem("accessToken", loginData.accessToken);
+      }
 
       try {
         const { data } = await verificarUsuarioState(email);
