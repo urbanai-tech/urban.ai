@@ -112,7 +112,16 @@ async function expectMobileAuthenticatedRouteReady(page: Page) {
     }, { timeout: 10_000 })
     .toBe(false);
   await expect(page.getByRole('heading', { name: /bem-vindo|entre na sua conta/i })).toHaveCount(0);
-  await expect(page.getByText(/credenciais invalidas|invalid credentials|acesso negado/i)).toHaveCount(0);
+  await expect(page.getByText(/credenciais invalidas|invalid credentials|acesso negado|sessao expirou|request failed/i)).toHaveCount(0);
+}
+
+async function expectMobileRouteContent(page: Page, route: string) {
+  if (route === '/my-plan') {
+    await expect(page.locator('body')).toContainText(/meu plano|nenhuma assinatura encontrada|assinatura/i, {
+      timeout: 15_000,
+    });
+    await expect(page.getByText(/erro ao buscar assinatura|request failed|sessao expirou/i)).toHaveCount(0);
+  }
 }
 
 test.describe('Smoke autenticado mobile', () => {
@@ -125,6 +134,7 @@ test.describe('Smoke autenticado mobile', () => {
       await gotoAuthenticatedRoute(page, route);
       await expect(page.locator('body')).toBeVisible();
       await expectMobileAuthenticatedRouteReady(page);
+      await expectMobileRouteContent(page, route);
     }
   });
 

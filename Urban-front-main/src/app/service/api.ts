@@ -141,7 +141,6 @@ api.interceptors.response.use(
         originalRequest &&
         !originalRequest._retry &&
         !shouldSkipRefresh(requestUrl) &&
-        !isNonFatalUnauthorizedProbe(requestUrl) &&
         !isPublicPath(pathname);
 
       if (canRefresh) {
