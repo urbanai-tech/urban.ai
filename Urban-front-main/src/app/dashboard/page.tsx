@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  addMonths,
   eachDayOfInterval,
   endOfDay,
   endOfMonth,
@@ -55,8 +56,8 @@ interface EventItem {
 }
 
 const makeEventKey = (ev: EventItem, index: number) =>
-  ev.id ||
   ev.idAnalise ||
+  ev.id ||
   [
     ev.nome,
     ev.dataInicio,
@@ -64,6 +65,26 @@ const makeEventKey = (ev: EventItem, index: number) =>
     ev.enderecoCompleto,
     index,
   ].join("|");
+
+const FUTURE_MONTHS_TO_PRELOAD = 8;
+const WEEKDAYS_PT_BR = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+function dedupeEvents(events: EventItem[]): EventItem[] {
+  const seen = new Set<string>();
+  return events.filter((event, index) => {
+    const fallbackKey = [event.nome, event.dataInicio, event.dataFim, event.enderecoCompleto]
+      .filter(Boolean)
+      .join("|");
+    const key =
+      event.idAnalise ||
+      event.id ||
+      fallbackKey ||
+      makeEventKey(event, index);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 
 export default function DashboardPage() {
   const [range] = useState<DateRange>();
@@ -99,6 +120,11 @@ export default function DashboardPage() {
     setSelectedDay(null);
   };
 
+  const navigateToMonth = (month: Date) => {
+    setCurrentMonth(startOfMonth(month));
+    setSelectedDay(null);
+  };
+
   const prevDesabilitado = useMemo(
     () => startOfMonth(currentMonth) <= mesMinimo,
     [currentMonth, mesMinimo]
@@ -112,11 +138,86 @@ export default function DashboardPage() {
     [propsInfo, propertyId],
   );
 
+  const isActionableEvent = useCallback(
+    (event: EventItem) => {
+      const eventStart = startOfDay(parseISO(event.dataInicio));
+      return Number.isFinite(eventStart.getTime()) && eventStart >= hoje;
+    },
+    [hoje],
+  );
+
   const daysInMonth = useMemo(() => {
     const start = startOfMonth(currentMonth);
     const end = endOfMonth(currentMonth);
     return eachDayOfInterval({ start, end });
   }, [currentMonth]);
+  const calendarLeadingBlankDays = startOfMonth(currentMonth).getDay();
+  const calendarTrailingBlankDays =
+    (7 - ((calendarLeadingBlankDays + daysInMonth.length) % 7)) % 7;
+
+  const visibleWindow = useMemo(() => {
+    const start = startOfMonth(currentMonth);
+    const end = endOfMonth(currentMonth);
+    return { start, end };
+  }, [currentMonth]);
+
+  const monthStrip = useMemo(
+    () =>
+      Array.from({ length: FUTURE_MONTHS_TO_PRELOAD + 1 }, (_, index) => {
+        const date = startOfMonth(addMonths(currentMonth, index));
+        return {
+          key: format(date, 'yyyy-MM'),
+          date,
+          label: format(date, 'MMM', { locale: ptBR }).replace('.', ''),
+          count: allEvents.filter((event) => {
+            if (!isActionableEvent(event)) return false;
+            const eventStart = parseISO(event.dataInicio);
+            return isWithinInterval(eventStart, {
+              start: startOfMonth(date),
+              end: endOfMonth(date),
+            });
+          }).length,
+        };
+      }),
+    [allEvents, currentMonth, isActionableEvent],
+  );
+
+  const visibleWindowEvents = useMemo(
+    () =>
+      allEvents.filter((event) => {
+        if (!isActionableEvent(event)) return false;
+        const eventStart = parseISO(event.dataInicio);
+        return isWithinInterval(eventStart, visibleWindow);
+      }),
+    [allEvents, isActionableEvent, visibleWindow],
+  );
+
+  const futureEventsOutsideWindow = useMemo(
+    () =>
+      allEvents.filter((event) => {
+        if (!isActionableEvent(event)) return false;
+        const eventStart = parseISO(event.dataInicio);
+        return eventStart > visibleWindow.end;
+      }),
+    [allEvents, isActionableEvent, visibleWindow.end],
+  );
+
+  const futureMonthsWithEvents = useMemo(
+    () => monthStrip.filter((month) => month.date > visibleWindow.start && month.count > 0),
+    [monthStrip, visibleWindow.start],
+  );
+
+  const nextMonthWithEvents = futureMonthsWithEvents[0] ?? null;
+
+  const windowSummaryLabel = useMemo(
+    () =>
+      `${format(visibleWindow.start, 'dd/MM', { locale: ptBR })} a ${format(
+        visibleWindow.end,
+        'dd/MM',
+        { locale: ptBR },
+      )}`,
+    [visibleWindow],
+  );
 
   const eventsByDay = useMemo(() => {
     const map: Record<string, EventItem[]> = {};
@@ -128,14 +229,6 @@ export default function DashboardPage() {
     });
     return map;
   }, [filteredEvents]);
-
-  const isActionableEvent = useCallback(
-    (event: EventItem) => {
-      const eventStart = startOfDay(parseISO(event.dataInicio));
-      return Number.isFinite(eventStart.getTime()) && eventStart >= hoje;
-    },
-    [hoje],
-  );
 
   const filterEvents = useCallback((source: EventItem[] = allEvents) => {
     let result = source.filter(isActionableEvent);
@@ -167,12 +260,22 @@ export default function DashboardPage() {
     return result;
   }, [allEvents, isActionableEvent, searchTerm, range]);
 
+  const fetchEventsForVisibleHorizon = useCallback(async () => {
+    const monthsToLoad = Array.from({ length: FUTURE_MONTHS_TO_PRELOAD + 1 }, (_, index) =>
+      startOfMonth(addMonths(currentMonth, index)).toISOString(),
+    );
+    const responses = await Promise.all(
+      monthsToLoad.map((monthIso) => getEventosPorPropriedade(propertyId, monthIso)),
+    );
+    return dedupeEvents(responses.flatMap((response) => response.data ?? []));
+  }, [currentMonth, propertyId]);
+
   const fetchEventsSemLoading = async () => {
     setError(null);
     try {
-      const response = await getEventosPorPropriedade(propertyId, currentMonth.toISOString());
-      setAllEvents(response.data);
-      setFilteredEvents(filterEvents(response.data));
+      const events = await fetchEventsForVisibleHorizon();
+      setAllEvents(events);
+      setFilteredEvents(filterEvents(events));
     } catch (err) {
       console.error(err);
       setError('Erro ao carregar eventos');
@@ -184,8 +287,8 @@ export default function DashboardPage() {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await getEventosPorPropriedade(propertyId, currentMonth.toISOString());
-        setAllEvents(response.data);
+        const events = await fetchEventsForVisibleHorizon();
+        setAllEvents(events);
       } catch (err) {
         console.error(err);
         setError('Erro ao carregar eventos');
@@ -198,7 +301,7 @@ export default function DashboardPage() {
       setAllEvents([]);
       setIsLoading(false);
     }
-  }, [propertyId, currentMonth]);
+  }, [propertyId, fetchEventsForVisibleHorizon]);
 
   useEffect(() => {
     async function fetchPropsInfo() {
@@ -329,6 +432,26 @@ export default function DashboardPage() {
       ) : (
         <div className="dashboard-content-grid">
           <div className="dashboard-calendar-column">
+            <div className="dashboard-window-summary" aria-live="polite">
+              <div>
+                <p className="urban-app-eyebrow-muted">JANELA VISIVEL</p>
+                <strong>{windowSummaryLabel}</strong>
+                <span>
+                  {visibleWindowEvents.length === 1
+                    ? '1 sugestao nesta janela'
+                    : `${visibleWindowEvents.length} sugestoes nesta janela`}
+                </span>
+              </div>
+              <div className="dashboard-future-counter">
+                <Icons.Calendar size={18} />
+                <span>
+                  {futureEventsOutsideWindow.length === 1
+                    ? '1 sugestao futura fora desta janela'
+                    : `${futureEventsOutsideWindow.length} sugestoes futuras fora desta janela`}
+                </span>
+              </div>
+            </div>
+
             <AppCard variant="default" style={{ padding: 20 }}>
               <div className="dashboard-calendar-header">
                 <AppButton
@@ -351,14 +474,38 @@ export default function DashboardPage() {
                 </AppButton>
               </div>
 
+              <div className="dashboard-month-strip" aria-label="Meses com sugestoes futuras">
+                {monthStrip.map((month) => {
+                  const isActiveMonth = startOfMonth(currentMonth).getTime() === month.date.getTime();
+                  return (
+                    <button
+                      className={`dashboard-month-chip${isActiveMonth ? ' is-active' : ''}`}
+                      key={month.key}
+                      type="button"
+                      onClick={() => navigateToMonth(month.date)}
+                    >
+                      <span>{month.label}</span>
+                      <strong>{month.count}</strong>
+                    </button>
+                  );
+                })}
+              </div>
+
               <div className="dashboard-calendar-scroll">
                 <div className="dashboard-weekdays">
-                  {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'].map(day => (
+                  {WEEKDAYS_PT_BR.map(day => (
                     <span key={day}>{day}</span>
                   ))}
                 </div>
 
                 <div className="dashboard-days">
+                  {Array.from({ length: calendarLeadingBlankDays }, (_, index) => (
+                    <span
+                      aria-hidden="true"
+                      className="dashboard-day-spacer"
+                      key={`leading-${index}`}
+                    />
+                  ))}
                   {daysInMonth.map(day => {
                     const dateKey = format(day, 'yyyy-MM-dd');
                     const dayEvents = eventsByDay[dateKey] || [];
@@ -386,6 +533,13 @@ export default function DashboardPage() {
                       </button>
                     );
                   })}
+                  {Array.from({ length: calendarTrailingBlankDays }, (_, index) => (
+                    <span
+                      aria-hidden="true"
+                      className="dashboard-day-spacer"
+                      key={`trailing-${index}`}
+                    />
+                  ))}
                 </div>
               </div>
             </AppCard>
@@ -428,14 +582,34 @@ export default function DashboardPage() {
 
               {eventsToDisplay.length === 0 ? (
                 <AppEmptyState
-                  eyebrow={selectedDay ? 'DIA SEM EVENTOS' : 'SEM SUGESTOES'}
-                  title={selectedDay ? 'Nenhum evento neste dia' : 'Sem sugestoes neste mes'}
+                  eyebrow={selectedDay ? 'DIA SEM EVENTOS' : 'SEM SUGESTOES NA JANELA'}
+                  title={
+                    selectedDay
+                      ? 'Nenhum evento neste dia'
+                      : nextMonthWithEvents
+                        ? 'Ha sugestoes fora do periodo atual'
+                        : 'Sem sugestoes neste mes'
+                  }
                   body={
                     selectedPropertyInfo && !isPropertyReady(selectedPropertyInfo)
                       ? selectedPropertyInfo.setupStatus?.publicDescription ?? 'Este imovel ainda esta sendo preparado. As sugestoes aparecem quando mapa, eventos e valor de referencia estiverem prontos.'
-                      : 'Nao encontramos evento futuro que combine com este imovel no periodo. A Urban AI continuara verificando novos eventos e mostrara sugestoes quando encontrar uma oportunidade.'
+                      : !selectedDay && nextMonthWithEvents
+                        ? `Esta janela (${windowSummaryLabel}) esta vazia, mas existem ${futureEventsOutsideWindow.length} sugestoes em meses futuros. Use a faixa de meses ou avance para ${format(nextMonthWithEvents.date, 'MMMM', { locale: ptBR })}.`
+                        : 'Nao encontramos evento futuro que combine com este imovel no periodo. A Urban AI continuara verificando novos eventos e mostrara sugestoes quando encontrar uma oportunidade.'
                   }
                   icon={<Icons.Calendar size={28} />}
+                  action={
+                    !selectedDay && nextMonthWithEvents ? (
+                      <AppButton
+                        size="sm"
+                        variant="primary"
+                        onClick={() => navigateToMonth(nextMonthWithEvents.date)}
+                        rightIcon={<Icons.ArrowRight size={14} />}
+                      >
+                        Ver {format(nextMonthWithEvents.date, 'MMM', { locale: ptBR }).replace('.', '')}
+                      </AppButton>
+                    ) : undefined
+                  }
                 />
               ) : (
                 <div className="dashboard-events-list">
@@ -495,6 +669,52 @@ const styles = `
     gap: 24px;
   }
 
+  .dashboard-window-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+    padding: 14px 16px;
+    background: var(--app-surface-muted);
+    border: 1px solid var(--app-divider);
+    border-radius: 8px;
+  }
+
+  .dashboard-window-summary > div:first-child {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .dashboard-window-summary strong {
+    color: var(--app-text);
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .dashboard-window-summary span {
+    color: var(--app-text-muted);
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .dashboard-future-counter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 0 1 280px;
+    gap: 8px;
+    min-width: min(280px, 100%);
+    color: var(--app-accent);
+    font-weight: 650;
+  }
+
+  .dashboard-future-counter span {
+    overflow-wrap: anywhere;
+  }
+
   .dashboard-calendar-column,
   .dashboard-events-column {
     min-width: 0;
@@ -519,6 +739,62 @@ const styles = `
     line-height: 1.2;
     text-align: center;
     text-transform: capitalize;
+  }
+
+  .dashboard-month-strip {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(58px, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .dashboard-month-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+    height: 38px;
+    padding: 0 10px;
+    color: var(--app-text-muted);
+    background: var(--app-surface);
+    border: 1px solid var(--app-divider);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+  }
+
+  .dashboard-month-chip:hover,
+  .dashboard-month-chip.is-active {
+    color: var(--app-accent);
+    background: var(--app-accent-soft);
+    border-color: rgba(232, 80, 10, 0.35);
+  }
+
+  .dashboard-month-chip span {
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    text-overflow: ellipsis;
+    text-transform: capitalize;
+    white-space: nowrap;
+  }
+
+  .dashboard-month-chip strong {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    color: inherit;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1;
   }
 
   .dashboard-calendar-scroll {
@@ -564,6 +840,13 @@ const styles = `
     border-radius: 8px;
     cursor: pointer;
     transition: border-color 120ms ease, background 120ms ease;
+  }
+
+  .dashboard-day-spacer {
+    aspect-ratio: 1 / 1;
+    min-width: 48px;
+    border: 1px solid transparent;
+    border-radius: 8px;
   }
 
   .dashboard-day:hover {
@@ -700,6 +983,16 @@ const styles = `
       width: 100%;
     }
 
+    .dashboard-window-summary {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .dashboard-future-counter {
+      justify-content: flex-start;
+      min-width: 0;
+    }
+
     .dashboard-calendar-header {
       align-items: stretch;
     }
@@ -708,6 +1001,10 @@ const styles = `
       order: -1;
       flex-basis: 100%;
       min-width: 0;
+    }
+
+    .dashboard-month-strip {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .dashboard-day small {
