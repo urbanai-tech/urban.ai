@@ -11,6 +11,7 @@ import {
   type StaysListingPublic,
   type StaysPricePreview,
 } from "../../service/api";
+import { formatLocalDate } from "../../lib/date";
 import {
   AppPageShell,
   AppSectionHeader,
@@ -40,7 +41,7 @@ function formatStaysDate(value?: string | null) {
 function tomorrowIso() {
   const date = new Date();
   date.setDate(date.getDate() + 1);
-  return date.toISOString().slice(0, 10);
+  return formatLocalDate(date);
 }
 
 function formatCurrency(cents?: number | null) {

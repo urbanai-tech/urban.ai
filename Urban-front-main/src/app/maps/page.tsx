@@ -15,7 +15,7 @@ import {
   AppLoadingStatus,
   Icons,
 } from '../componentes/ui';
-import { isTodayOrFutureDate } from '../lib/date';
+import { formatLocalDate, isTodayOrFutureDate } from '../lib/date';
 
 const PropertySelect = dynamic(() => import('../componentes/PropertySelect'), {
   ssr: false,
@@ -35,7 +35,6 @@ const AirbnbMap = dynamic(() => import('./components/GoogleMapEmbed'), {
   ),
 });
 
-const toIsoDate = (d: Date) => d.toISOString().slice(0, 10);
 const parseIsoDate = (s: string) => {
   const [y, m, day] = s.split('-').map(Number);
   return new Date(y, (m ?? 1) - 1, day ?? 1);
@@ -57,9 +56,9 @@ export default function MapsPage() {
     return d;
   }, []);
 
-  const [startDate, setStartDate] = useState<string>(toIsoDate(today));
-  const [endDate, setEndDate] = useState<string>(toIsoDate(inAWeek));
-  const todayIso = toIsoDate(today);
+  const [startDate, setStartDate] = useState<string>(formatLocalDate(today));
+  const [endDate, setEndDate] = useState<string>(formatLocalDate(inAWeek));
+  const todayIso = formatLocalDate(today);
 
   function updateStartDate(value: string) {
     const nextStart = value < todayIso ? todayIso : value;

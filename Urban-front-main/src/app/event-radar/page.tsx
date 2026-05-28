@@ -38,14 +38,10 @@ import {
   formatDateRange,
   formatTime,
 } from "@/app/componentes/ui/event-intelligence";
-
-const toIsoDate = (date: Date) => date.toISOString().slice(0, 10);
+import { dateAtLocalOffset, formatLocalDate } from "@/app/lib/date";
 
 function addDays(days: number) {
-  const date = new Date();
-  date.setHours(0, 0, 0, 0);
-  date.setDate(date.getDate() + days);
-  return toIsoDate(date);
+  return formatLocalDate(dateAtLocalOffset(days));
 }
 
 export default function EventRadarPage() {
