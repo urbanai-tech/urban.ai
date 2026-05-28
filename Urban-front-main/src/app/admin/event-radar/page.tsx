@@ -19,6 +19,7 @@ import {
   type AdminEventRadarResponse,
   type EventRadarConfidence,
 } from "../../service/api";
+import { formatLocalDate } from "../../lib/date";
 import {
   AdminBadge,
   AdminButton,
@@ -2230,7 +2231,7 @@ function addDays(date: Date, days: number) {
 }
 
 function toInputDate(date: Date) {
-  return date.toISOString().slice(0, 10);
+  return formatLocalDate(date);
 }
 
 function formatCents(value?: number | null) {

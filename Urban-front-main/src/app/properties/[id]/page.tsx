@@ -47,6 +47,7 @@ import {
   type PropertyOccupancyStatus,
   type RoiSummary,
 } from "../../service/api";
+import { dateAtLocalOffset, formatLocalDate } from "../../lib/date";
 
 type SuggestionItem = {
   id?: string;
@@ -90,14 +91,11 @@ type OutcomeDraft = {
 };
 
 function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
+  return formatLocalDate(new Date());
 }
 
 function isoFromDaysAhead(daysAhead: number): string {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + daysAhead);
-  return d.toISOString().slice(0, 10);
+  return formatLocalDate(dateAtLocalOffset(daysAhead));
 }
 
 function toNumber(value: string | number | null | undefined): number | null {

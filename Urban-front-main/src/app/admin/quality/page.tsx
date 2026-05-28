@@ -10,6 +10,7 @@ import {
   type AdminPricingQuality,
   type AdminOccupancyCoverage,
 } from "../../service/api";
+import { formatLocalDate } from "../../lib/date";
 import {
   AdminSectionHeader,
   AdminCard,
@@ -50,7 +51,7 @@ export default function AdminQualityPage() {
   const [occupancy, setOccupancy] = useState<AdminOccupancyCoverage | null>(null);
   const [properties, setProperties] = useState<AdminOccupancyProperty[]>([]);
   const [selectedListId, setSelectedListId] = useState("");
-  const [recordDate, setRecordDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [recordDate, setRecordDate] = useState(() => formatLocalDate(new Date()));
   const [recordStatus, setRecordStatus] = useState<OccupancyStatus>("available");
   const [listedPrice, setListedPrice] = useState("");
   const [realRevenue, setRealRevenue] = useState("");

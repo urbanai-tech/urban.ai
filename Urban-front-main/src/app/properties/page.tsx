@@ -16,6 +16,7 @@ import {
   updatePropertyIdentity,
   updatePropertyPricingInputs,
 } from '../service/api';
+import { dateAtLocalOffset, formatLocalDate } from '../lib/date';
 import { AddPropertyModal } from '../componentes/AddPropertyModal';
 import {
   AppButton,
@@ -33,10 +34,7 @@ type IdentityDraft = { internalNickname: string; internalCode: string };
 type OpportunityStats = { count: number; lift: number; topTitle: string | null };
 
 function isoFromDaysAhead(daysAhead: number): string {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + daysAhead);
-  return d.toISOString().slice(0, 10);
+  return formatLocalDate(dateAtLocalOffset(daysAhead));
 }
 
 function getPropertyDisplayName(prop: PropertyDropdown): string {
