@@ -20,16 +20,12 @@ import {
   type HostEventCatalogResponse,
 } from "@/app/service/api";
 import { formatDateRange, formatTime } from "@/app/componentes/ui/event-intelligence";
+import { dateAtLocalOffset, formatLocalDate } from "@/app/lib/date";
 
 type ViewMode = "list" | "map" | "calendar";
 
-const toIsoDate = (date: Date) => date.toISOString().slice(0, 10);
-
 function addDays(days: number) {
-  const date = new Date();
-  date.setHours(0, 0, 0, 0);
-  date.setDate(date.getDate() + days);
-  return toIsoDate(date);
+  return formatLocalDate(dateAtLocalOffset(days));
 }
 
 export default function EventsPage() {
@@ -281,8 +277,8 @@ export default function EventsPage() {
     saturday.setDate(today.getDate() + daysUntilSaturday);
     const sunday = new Date(saturday);
     sunday.setDate(saturday.getDate() + 1);
-    setFrom(toIsoDate(saturday));
-    setTo(toIsoDate(sunday));
+    setFrom(formatLocalDate(saturday));
+    setTo(formatLocalDate(sunday));
   }
 
   function resetFilters() {
