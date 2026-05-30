@@ -400,10 +400,10 @@ export default function AdminEventRadarPage() {
           className="admin-event-radar-filters"
           style={{
             display: "grid",
-            gridTemplateColumns: "var(--event-radar-filters-grid, repeat(auto-fit, minmax(170px, 1fr)))",
-            gap: 16,
+            gridTemplateColumns: "var(--event-radar-filters-grid, repeat(auto-fit, minmax(150px, 1fr)))",
+            gap: 12,
             alignItems: "end",
-            padding: 16,
+            padding: 12,
             border: "1px solid var(--admin-divider)",
             borderRadius: 2,
           }}
@@ -682,7 +682,7 @@ export default function AdminEventRadarPage() {
           --event-radar-geo-ops-grid: repeat(4, minmax(0, 1fr));
           --event-radar-geo-lists-grid: repeat(2, minmax(0, 1fr));
           --event-radar-detail-hero-grid: minmax(0, 1.2fr) minmax(0, 0.8fr);
-          --event-radar-filters-grid: repeat(auto-fit, minmax(170px, 1fr));
+          --event-radar-filters-grid: repeat(auto-fit, minmax(150px, 1fr));
           --event-radar-heatmap-grid: repeat(auto-fit, minmax(150px, 1fr));
         }
 

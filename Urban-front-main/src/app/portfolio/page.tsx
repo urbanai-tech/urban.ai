@@ -695,7 +695,7 @@ function PortfolioPageContent() {
           <div style={{ display: "inline-flex", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
             <DateRangeField label="De" value={from} max={to} onChange={handleFromChange} />
             <DateRangeField label="Ate" value={to} min={from} onChange={handleToChange} />
-            <div style={{ minWidth: 150 }}>
+            <div style={{ flex: "0 0 150px", maxWidth: 150, minWidth: 0 }}>
               <AppSelect
                 label="Janela"
                 value={String(rangeDays)}
@@ -708,7 +708,7 @@ function PortfolioPageContent() {
                 ))}
               </AppSelect>
             </div>
-            <div style={{ minWidth: 200 }}>
+            <div style={{ flex: "0 0 220px", maxWidth: 220, minWidth: 0 }}>
               <AppSelect
                 label="Modo de preço"
                 value={strategy}

@@ -140,8 +140,8 @@ export default function AdminCommunicationsPage() {
         <AdminCard variant="subtle">
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))",
+              display: "flex",
+              flexWrap: "wrap",
               gap: 12,
               alignItems: "end",
             }}
@@ -154,14 +154,25 @@ export default function AdminCommunicationsPage() {
               onKeyDown={(e) => {
                 if (e.key === "Enter") load(1);
               }}
+              shellStyle={{ flex: "1 1 260px", maxWidth: 420 }}
             />
-            <AdminSelect label="Canal" value={channel} onChange={(e) => setChannel(e.target.value as CommunicationChannel | "all")}>
+            <AdminSelect
+              label="Canal"
+              value={channel}
+              onChange={(e) => setChannel(e.target.value as CommunicationChannel | "all")}
+              shellStyle={{ flex: "0 0 150px" }}
+            >
               <option value="all">Todos</option>
               <option value="email">E-mail</option>
               <option value="push">Push</option>
               <option value="in_app">In-app</option>
             </AdminSelect>
-            <AdminSelect label="Status" value={status} onChange={(e) => setStatus(e.target.value as CommunicationStatus | "all")}>
+            <AdminSelect
+              label="Status"
+              value={status}
+              onChange={(e) => setStatus(e.target.value as CommunicationStatus | "all")}
+              shellStyle={{ flex: "0 0 150px" }}
+            >
               <option value="all">Todos</option>
               <option value="sent">Enviado</option>
               <option value="failed">Falhou</option>
