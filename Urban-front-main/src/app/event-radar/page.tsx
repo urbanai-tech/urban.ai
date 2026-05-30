@@ -21,7 +21,6 @@ import {
 } from "@/app/componentes/ui";
 import {
   fetchHostEventRadar,
-  formatPropertyPrimaryLabel,
   getPropriedadesDropdownList,
   simulateHostEventPricing,
   type DemandHeatmapCell,
@@ -31,6 +30,7 @@ import {
   type HostEventRadarResponse,
   type PropertyDropdown,
 } from "@/app/service/api";
+import PropertySelect from "@/app/componentes/PropertySelect";
 import {
   confidenceBadgeKind,
   confidenceLabel,
@@ -202,13 +202,13 @@ function EventRadarContent() {
         }
       />
 
-      <AppCard variant="default" style={{ padding: 18, marginBottom: 22, overflow: "hidden" }}>
+      <AppCard variant="default" style={{ padding: 14, marginBottom: 22, overflow: "hidden" }}>
         <div
           className="urban-event-radar-filter-grid"
           data-testid="host-event-radar-filters"
-          style={{ display: "grid", gridTemplateColumns: "repeat(12, minmax(0, 1fr))", gap: 14, alignItems: "end" }}
+          style={{ display: "grid", gridTemplateColumns: "repeat(12, minmax(0, 1fr))", gap: 12, alignItems: "end" }}
         >
-          <div style={{ gridColumn: "span 2", minWidth: 0 }}>
+          <div style={{ gridColumn: "span 2", minWidth: 0, maxWidth: 320 }}>
             <AppInput
               type="date"
               label="De"
@@ -224,20 +224,18 @@ function EventRadarContent() {
           <div style={{ gridColumn: "span 2", minWidth: 0 }}>
             <AppInput type="date" label="Até" value={to} min={from} onChange={(event) => setTo(event.target.value)} />
           </div>
-          <div style={{ gridColumn: "span 2", minWidth: 0 }}>
-            <AppSelect
-              label="Imovel"
+          <div style={{ gridColumn: "span 2", minWidth: 0, maxWidth: 320 }}>
+            <FilterLabel>Imovel</FilterLabel>
+            <PropertySelect
               value={propertyId}
+              propsInfo={properties}
+              setPropertyId={setPropertyId}
               disabled={propertiesLoading}
-              onChange={(event) => setPropertyId(event.target.value)}
-            >
-              <option value="all">Todos os imóveis</option>
-              {properties.map((property) => (
-                <option key={property.id} value={property.id}>
-                  {formatPropertyPrimaryLabel(property)}
-                </option>
-              ))}
-            </AppSelect>
+              includeAllOption
+              allOptionValue="all"
+              allOptionLabel="Todos os imoveis"
+              maxWidth="100%"
+            />
             {propertiesLoading && (
               <p role="status" aria-live="polite" style={{ margin: "6px 0 0", color: "var(--app-text-muted)", fontSize: 11, lineHeight: 1.35 }}>
                 Carregando imóveis...
@@ -576,6 +574,24 @@ function EventRadarLoading() {
         ))}
       </div>
     </div>
+  );
+}
+
+function FilterLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <span
+      style={{
+        display: "block",
+        marginBottom: 6,
+        color: "var(--app-text-muted)",
+        fontSize: 11,
+        fontWeight: 600,
+        letterSpacing: 1.5,
+        textTransform: "uppercase",
+      }}
+    >
+      {children}
+    </span>
   );
 }
 

@@ -31,7 +31,7 @@ function FieldShell({
   style?: React.CSSProperties;
 }) {
   return (
-    <label style={{ display: "block", ...style }}>
+    <label style={{ display: "block", maxWidth: "100%", minWidth: 0, ...style }}>
       {label && <span style={appLabelStyle}>{label}</span>}
       {children}
       {error ? <p style={appErrorTextStyle}>{error}</p> : helper ? <p style={appHelperTextStyle}>{helper}</p> : null}
@@ -115,6 +115,9 @@ export const AppSelect = React.forwardRef<HTMLSelectElement, SelectProps>(functi
           backgroundImage: "var(--app-select-chevron)",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "right 12px center",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
           ...style,
         }}
         {...rest}

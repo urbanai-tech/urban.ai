@@ -3,11 +3,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   fetchMyRoi,
-  formatPropertyPrimaryLabel,
   getPropriedadesDropdownList,
   PropertyDropdown,
   RoiSummary,
 } from '../service/api';
+import PropertySelect from '../componentes/PropertySelect';
 import {
   AppPageShell,
   AppSectionHeader,
@@ -120,21 +120,20 @@ export default function MyRoiPage() {
         subtitle="Soma estimada das diárias em que a sugestão foi aceita ou aplicada. Separar confirmado de acompanhamento evita tratar potencial como dinheiro já recebido."
         actions={
           <div className="roi-actions">
-            <AppSelect
-              value={propertyId}
-              onChange={(event) => {
-                setPropertyId(event.target.value);
-                load(windowDays, event.target.value);
-              }}
-              shellStyle={{ minWidth: 220 }}
-            >
-              <option value="">Todos os imóveis</option>
-              {properties.map((property) => (
-                <option key={property.id} value={property.id}>
-                  {formatPropertyPrimaryLabel(property)}
-                </option>
-              ))}
-            </AppSelect>
+            <div style={{ minWidth: 0, width: 320, maxWidth: "100%" }}>
+              <PropertySelect
+                value={propertyId}
+                propsInfo={properties}
+                setPropertyId={(nextPropertyId) => {
+                  setPropertyId(nextPropertyId);
+                  load(windowDays, nextPropertyId);
+                }}
+                includeAllOption
+                allOptionValue=""
+                allOptionLabel="Todos os imoveis"
+                maxWidth="100%"
+              />
+            </div>
             <AppSelect
               value={windowDays}
               onChange={(event) => {
@@ -321,6 +320,9 @@ const styles = `
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: 100%;
+    min-width: 0;
   }
 
   .roi-hero {
