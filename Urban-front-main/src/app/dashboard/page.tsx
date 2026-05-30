@@ -640,7 +640,9 @@ export default function DashboardPage() {
 
 const styles = `
   .dashboard-property-filter {
-    min-width: min(280px, 100%);
+    width: min(320px, 100%);
+    max-width: 320px;
+    min-width: 0;
   }
 
   .dashboard-property-filter label {

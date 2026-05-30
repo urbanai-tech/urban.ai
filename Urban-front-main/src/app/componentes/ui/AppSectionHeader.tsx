@@ -80,8 +80,11 @@ export function AppSectionHeader({
             display: "flex",
             alignItems: "center",
             gap: 12,
-            flexShrink: 0,
+            flex: "0 1 auto",
             flexWrap: "wrap",
+            justifyContent: "flex-end",
+            maxWidth: "100%",
+            minWidth: 0,
           }}
         >
           {actions}

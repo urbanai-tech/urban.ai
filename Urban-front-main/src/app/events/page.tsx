@@ -102,14 +102,14 @@ export default function EventsPage() {
         }
       />
 
-      <AppCard variant="default" style={{ padding: 18, marginBottom: 22, overflow: "hidden" }}>
+      <AppCard variant="default" style={{ padding: 14, marginBottom: 22, overflow: "hidden" }}>
         <div
           className="urban-events-filter-grid"
           data-testid="host-events-filters"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
-            gap: 14,
+            gap: 12,
             alignItems: "end",
           }}
         >

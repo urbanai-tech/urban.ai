@@ -7,20 +7,21 @@ export default function Filtro({ height }: FiltroProps) {
     <aside
       style={{
         height,
-        maxWidth: 400,
+        width: "min(320px, 100%)",
+        maxWidth: 320,
         overflowY: "auto",
-        padding: 24,
+        padding: 16,
         border: "1px solid rgba(14,17,22,0.12)",
-        borderRadius: 10,
+        borderRadius: 8,
         background: "#fff",
         boxShadow: "0 1px 2px rgba(14,17,22,0.04)",
       }}
     >
-      <h2 style={{ margin: "0 0 24px", color: "#1F2937", fontSize: 24, letterSpacing: 0.3 }}>
+      <h2 style={{ margin: "0 0 16px", color: "#1F2937", fontSize: 16, fontWeight: 750 }}>
         Filtros
       </h2>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <FilterSelect label="Raio de busca" placeholder="Selecione o raio">
           <option value="5">5 km</option>
           <option value="10">10 km</option>
@@ -68,12 +69,13 @@ function FilterSelect({
         defaultValue=""
         style={{
           width: "100%",
-          height: 40,
+          height: 36,
           padding: "0 12px",
           border: "1px solid rgba(14,17,22,0.16)",
-          borderRadius: 8,
+          borderRadius: 6,
           background: "#fff",
           color: "#1F2937",
+          fontSize: 13,
         }}
       >
         <option value="" disabled>{placeholder}</option>
@@ -87,8 +89,8 @@ function ImpactBadge({ color, children }: { color: string; children: React.React
   return (
     <span
       style={{
-        padding: "8px 16px",
-        borderRadius: 999,
+        padding: "7px 12px",
+        borderRadius: 8,
         background: `${color}1A`,
         color,
         fontSize: 13,

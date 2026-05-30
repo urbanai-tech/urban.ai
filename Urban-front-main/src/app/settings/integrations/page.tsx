@@ -21,6 +21,7 @@ import {
   AppBadge,
   AppMetricCard,
   AppInput,
+  AppSelect,
   AppEmptyState,
   Icons,
 } from "../../componentes/ui";
@@ -442,35 +443,23 @@ export default function IntegrationsPage() {
                 alignItems: "end",
               }}
             >
-              <label style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "var(--app-text)" }}>
-                  Anúncio
-                </span>
-                <select
-                  value={previewListingId}
-                  onChange={(e) => {
-                    const next = listings.find((item) => item.id === e.target.value);
-                    setPreviewListingId(e.target.value);
-                    setPreviewPrice(next?.basePriceCents ? String(next.basePriceCents / 100) : "");
-                    setPreviewResult(null);
-                  }}
-                  style={{
-                    minHeight: 42,
-                    border: "1px solid var(--app-divider-strong)",
-                    borderRadius: 8,
-                    padding: "0 12px",
-                    background: "var(--app-surface)",
-                    color: "var(--app-text)",
-                    fontSize: 14,
-                  }}
-                >
-                  {listings.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.title || item.staysListingId}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <AppSelect
+                label="Anuncio"
+                value={previewListingId}
+                onChange={(e) => {
+                  const next = listings.find((item) => item.id === e.target.value);
+                  setPreviewListingId(e.target.value);
+                  setPreviewPrice(next?.basePriceCents ? String(next.basePriceCents / 100) : "");
+                  setPreviewResult(null);
+                }}
+                shellStyle={{ minWidth: 0, maxWidth: 340 }}
+              >
+                {listings.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {[item.title || item.staysListingId, item.shortAddress].filter(Boolean).join(" - ")}
+                  </option>
+                ))}
+              </AppSelect>
               <AppInput
                 label="Data da simulação"
                 type="date"

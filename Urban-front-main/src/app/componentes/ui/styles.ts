@@ -115,11 +115,13 @@ export const appCardVariantStyle = {
 
 export const appFieldBaseStyle: React.CSSProperties = {
   width: "100%",
+  minWidth: 0,
   height: 40,
   padding: "0 14px",
   background: appVar.surface,
   border: `1px solid ${appVar.dividerStrong}`,
   borderRadius: appRadius.control,
+  boxSizing: "border-box",
   color: appVar.text,
   fontSize: 14,
   fontWeight: 400,
