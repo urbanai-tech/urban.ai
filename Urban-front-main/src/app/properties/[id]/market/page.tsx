@@ -236,7 +236,7 @@ function MarketIntelContent() {
             : ""
         }`}
         actions={
-          <div style={{ minWidth: 220 }}>
+          <div style={{ flex: "0 0 220px", maxWidth: 220, minWidth: 0 }}>
             <AppSelect
               label="Período"
               value={periodId}

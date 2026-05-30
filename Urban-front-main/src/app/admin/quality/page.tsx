@@ -9,7 +9,9 @@ import {
   type AdminOccupancyProperty,
   type AdminPricingQuality,
   type AdminOccupancyCoverage,
+  type PropertyDropdown,
 } from "../../service/api";
+import PropertySelect from "../../componentes/PropertySelect";
 import { formatLocalDate } from "../../lib/date";
 import {
   AdminSectionHeader,
@@ -63,6 +65,30 @@ export default function AdminQualityPage() {
   const selectedProperty = useMemo(
     () => properties.find((property) => property.listId === selectedListId) ?? null,
     [properties, selectedListId],
+  );
+
+  const propertyPickerOptions = useMemo<PropertyDropdown[]>(
+    () =>
+      properties.map((property) => ({
+        id: property.listId,
+        propertyName: property.title || property.airbnbListingId || property.listId,
+        nome: property.title || property.airbnbListingId || property.listId,
+        userId: property.userId ?? "",
+        analisado: "completed",
+        image_url: "",
+        latitude: 0,
+        longitude: 0,
+        id_do_anuncio: property.airbnbListingId ?? undefined,
+        internalCode: property.userEmail,
+        bairro: property.neighborhood,
+        cidade: property.city,
+        estado: property.state,
+        locationLabel: [property.neighborhood, property.city, property.state].filter(Boolean).join(", "),
+        manualDailyPrice: property.manualDailyPrice,
+        dailyPrice: property.dailyPrice,
+        averageMonthlyRevenue: property.averageMonthlyRevenue,
+      })),
+    [properties],
   );
 
   useEffect(() => {
@@ -422,19 +448,29 @@ export default function AdminQualityPage() {
             onSubmit={handleSubmit}
             style={{ display: "flex", flexDirection: "column", gap: 18 }}
           >
-            <AdminSelect
-              label="Imovel"
-              value={selectedListId}
-              onChange={(e) => setSelectedListId(e.target.value)}
-            >
-              {properties.length === 0 && <option value="">Nenhum imovel elegivel</option>}
-              {properties.map((property) => (
-                <option key={property.listId} value={property.listId}>
-                  {property.title || property.airbnbListingId || property.listId}
-                  {property.userEmail ? ` — ${property.userEmail}` : ""}
-                </option>
-              ))}
-            </AdminSelect>
+            <div style={{ minWidth: 0, maxWidth: 360 }}>
+              <span
+                style={{
+                  display: "block",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: 1.5,
+                  textTransform: "uppercase",
+                  color: "var(--admin-text-muted)",
+                  marginBottom: 8,
+                }}
+              >
+                Imovel
+              </span>
+              <PropertySelect
+                value={selectedListId}
+                propsInfo={propertyPickerOptions}
+                setPropertyId={setSelectedListId}
+                disabled={properties.length === 0}
+                placeholder={properties.length === 0 ? "Nenhum imovel elegivel" : "Buscar imovel"}
+                maxWidth="100%"
+              />
+            </div>
 
             <div
               style={{

@@ -18,11 +18,13 @@ import React from "react";
 
 const baseFieldStyle: React.CSSProperties = {
   width: "100%",
+  minWidth: 0,
   height: 36,
   padding: "0 12px",
   background: "var(--admin-surface-elevated)",
   border: "1px solid var(--admin-divider)",
   borderRadius: 2,
+  boxSizing: "border-box",
   color: "var(--admin-text)",
   fontSize: 13,
   fontWeight: 400,
@@ -63,7 +65,7 @@ type FieldShellProps = {
 
 function FieldShell({ label, helper, error, children, style }: FieldShellProps) {
   return (
-    <label style={{ display: "block", ...style }}>
+    <label style={{ display: "block", maxWidth: "100%", minWidth: 0, ...style }}>
       {label && <span style={labelStyle}>{label}</span>}
       {children}
       {error ? (
@@ -153,6 +155,9 @@ export const AdminSelect = React.forwardRef<HTMLSelectElement, SelectProps>(
             backgroundImage: "var(--admin-select-chevron)",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "right 12px center",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
             ...style,
           }}
           {...rest}

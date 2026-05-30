@@ -1,23 +1,13 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import PropertySelect from "../../../../componentes/PropertySelect";
 import { AppButton, Icons } from "../../../../componentes/ui";
 import {
   formatPropertyIdentityLabel,
   getPropriedadesDropdownList,
   type PropertyDropdown,
 } from "../../../../service/api";
-
-/**
- * Modal "Copiar regras de outro imóvel".
- *
- * Lista os imóveis do anfitrião (exceto o atual), renderiza como rádio +
- * preview pequeno do nome/thumb e um botão único de confirmação.
- *
- * - Carrega a lista via `getPropriedadesDropdownList` (já existe no api.ts)
- * - Se houver apenas o imóvel atual (anfitrião single-property), mostra
- *   empty state amigável.
- */
 
 export function CopyRulesModal({
   open,
@@ -34,33 +24,34 @@ export function CopyRulesModal({
 }) {
   const [properties, setProperties] = useState<PropertyDropdown[] | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [fetching, setFetching] = useState<boolean>(false);
+  const [fetching, setFetching] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
+
     async function load() {
       try {
         setFetching(true);
         setFetchError(null);
         const data = await getPropriedadesDropdownList();
-        if (!cancelled) {
-          setProperties(data);
-          // pré-seleciona o primeiro candidato
-          const firstOther = data.find((p) => p.id !== currentPropertyId);
-          setSelectedId(firstOther?.id ?? null);
-        }
+        if (cancelled) return;
+
+        setProperties(data);
+        const firstOther = data.find((property) => property.id !== currentPropertyId);
+        setSelectedId(firstOther?.id ?? null);
       } catch (err) {
-        console.error("[CopyRulesModal] erro listando imóveis", err);
+        console.error("[CopyRulesModal] erro listando imoveis", err);
         if (!cancelled) {
-          setFetchError("Não foi possível carregar seus imóveis.");
+          setFetchError("Nao foi possivel carregar seus imoveis.");
           setProperties([]);
         }
       } finally {
         if (!cancelled) setFetching(false);
       }
     }
+
     load();
     return () => {
       cancelled = true;
@@ -69,9 +60,10 @@ export function CopyRulesModal({
 
   useEffect(() => {
     if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+    const handler = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
     };
+
     window.addEventListener("keydown", handler);
     document.body.style.overflow = "hidden";
     return () => {
@@ -81,8 +73,13 @@ export function CopyRulesModal({
   }, [open, onClose]);
 
   const otherProperties = useMemo(
-    () => (properties ?? []).filter((p) => p.id !== currentPropertyId),
+    () => (properties ?? []).filter((property) => property.id !== currentPropertyId),
     [properties, currentPropertyId],
+  );
+
+  const selectedSource = useMemo(
+    () => otherProperties.find((property) => property.id === selectedId) ?? null,
+    [otherProperties, selectedId],
   );
 
   if (!open) return null;
@@ -112,6 +109,7 @@ export function CopyRulesModal({
           backdropFilter: "blur(4px)",
         }}
       />
+
       <div
         style={{
           position: "relative",
@@ -159,8 +157,9 @@ export function CopyRulesModal({
               fontSize: 18,
             }}
           >
-            <span aria-hidden="true">×</span>
+            <span aria-hidden="true">x</span>
           </button>
+
           <p
             style={{
               margin: 0,
@@ -184,7 +183,7 @@ export function CopyRulesModal({
               lineHeight: 1.3,
             }}
           >
-            De qual imóvel você quer copiar?
+            De qual imovel voce quer copiar?
           </h2>
           <p
             style={{
@@ -194,8 +193,7 @@ export function CopyRulesModal({
               lineHeight: 1.5,
             }}
           >
-            Você pode ajustar depois — as regras vão substituir as deste imóvel quando você
-            clicar em copiar.
+            Voce pode ajustar depois. As regras vao substituir as deste imovel quando clicar em copiar.
           </p>
         </header>
 
@@ -218,9 +216,10 @@ export function CopyRulesModal({
                 fontSize: 13,
               }}
             >
-              Carregando seus imóveis…
+              Carregando seus imoveis...
             </div>
           )}
+
           {fetchError && !fetching && (
             <div
               role="alert"
@@ -237,6 +236,7 @@ export function CopyRulesModal({
               {fetchError}
             </div>
           )}
+
           {!fetching && !fetchError && otherProperties.length === 0 && (
             <div
               style={{
@@ -251,79 +251,45 @@ export function CopyRulesModal({
             >
               <Icons.Layers size={20} />
               <p style={{ margin: "10px 0 0" }}>
-                Você não tem outros imóveis pra copiar regras ainda. Quando adicionar um
-                segundo imóvel, ele aparecerá aqui.
+                Voce nao tem outros imoveis para copiar regras ainda. Quando adicionar um segundo imovel, ele aparecera aqui.
               </p>
             </div>
           )}
 
           {otherProperties.length > 0 && (
-            <ul
-              style={{
-                listStyle: "none",
-                margin: 0,
-                padding: 0,
-                display: "flex",
-                flexDirection: "column",
-                gap: 8,
-              }}
-            >
-              {otherProperties.map((p) => {
-                const checked = p.id === selectedId;
-                return (
-                  <li key={p.id}>
-                    <label
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                        padding: "12px 14px",
-                        border: "1px solid",
-                        borderColor: checked
-                          ? "var(--app-accent)"
-                          : "var(--app-divider-strong)",
-                        borderRadius: 10,
-                        cursor: "pointer",
-                        background: checked ? "var(--app-accent-soft)" : "var(--app-surface)",
-                        transition: "background 120ms, border-color 120ms",
-                      }}
-                    >
-                      <input
-                        type="radio"
-                        name="copy-source"
-                        value={p.id}
-                        checked={checked}
-                        onChange={() => setSelectedId(p.id)}
-                        style={{ accentColor: "var(--app-accent)" }}
-                      />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p
-                          style={{
-                            margin: 0,
-                            fontSize: 14,
-                            fontWeight: 600,
-                            color: "var(--app-text)",
-                          }}
-                        >
-                          {formatPropertyIdentityLabel(p)}
-                        </p>
-                        {p.dailyPrice != null && (
-                          <p
-                            style={{
-                              margin: "2px 0 0",
-                              fontSize: 12,
-                              color: "var(--app-text-muted)",
-                            }}
-                          >
-                            Preço base R$ {Number(p.dailyPrice).toLocaleString("pt-BR")}
-                          </p>
-                        )}
-                      </div>
-                    </label>
-                  </li>
-                );
-              })}
-            </ul>
+            <div style={{ display: "grid", gap: 10 }}>
+              <PropertySelect
+                value={selectedId ?? ""}
+                propsInfo={otherProperties}
+                setPropertyId={setSelectedId}
+                placeholder="Buscar imovel de origem"
+                maxWidth="100%"
+              />
+
+              {selectedSource && (
+                <div
+                  style={{
+                    padding: "10px 12px",
+                    borderRadius: 8,
+                    background: "var(--app-surface-muted)",
+                    border: "1px solid var(--app-divider)",
+                    color: "var(--app-text-muted)",
+                    fontSize: 12,
+                    lineHeight: 1.45,
+                  }}
+                >
+                  <strong style={{ color: "var(--app-text)" }}>
+                    {formatPropertyIdentityLabel(selectedSource)}
+                  </strong>
+                  {selectedSource.dailyPrice != null && (
+                    <span>
+                      {" "}
+                      - Preco base R$ {Number(selectedSource.dailyPrice).toLocaleString("pt-BR")}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </div>
 
@@ -345,7 +311,7 @@ export function CopyRulesModal({
             loading={loading}
             onClick={() => selectedId && onCopy(selectedId)}
           >
-            Copiar para este imóvel
+            Copiar para este imovel
           </AppButton>
         </footer>
       </div>

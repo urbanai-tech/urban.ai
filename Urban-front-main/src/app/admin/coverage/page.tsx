@@ -172,33 +172,26 @@ export default function CoverageAdminPage() {
       header: "Status",
       width: 160,
       render: (r) => (
-        <select
+        <AdminSelect
           value={r.status}
           onChange={(e) =>
             handleStatusChange(r, e.target.value as CoverageRegion["status"])
           }
           disabled={busyId === r.id}
+          shellStyle={{ width: 136 }}
           style={{
             height: 28,
             padding: "0 24px 0 8px",
             fontSize: 11,
             letterSpacing: 1.5,
             textTransform: "uppercase",
-            background: "var(--admin-surface-elevated)",
-            border: "1px solid var(--admin-divider-strong)",
-            borderRadius: 2,
-            color: "var(--admin-text)",
-            appearance: "none",
-            backgroundImage: "var(--admin-select-chevron)",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "right 8px center",
             cursor: busyId === r.id ? "not-allowed" : "pointer",
           }}
         >
           <option value="active">active</option>
           <option value="bootstrap">bootstrap</option>
           <option value="inactive">inactive</option>
-        </select>
+        </AdminSelect>
       ),
     },
     {
