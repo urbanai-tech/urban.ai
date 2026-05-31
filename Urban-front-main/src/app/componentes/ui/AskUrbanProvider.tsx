@@ -206,7 +206,7 @@ export function AskUrbanProvider({ children }: { children: React.ReactNode }) {
 
       {/* Marca o root do drawer pra detectar Cmd+J dentro dele */}
       {isOpen && (
-        <div data-ask-urban-drawer="true">
+        <div className="urban-app" data-ask-urban-drawer="true">
           <AskUrbanDrawer open={isOpen} onClose={close} />
         </div>
       )}
