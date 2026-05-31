@@ -128,7 +128,7 @@ describe('EventIntelligenceService contracts', () => {
   const event = {
     id: 'event-1',
     nome: 'Festival Centro',
-    descricao: 'Festival de musica',
+    descricao: 'Festival de música',
     dataInicio: new Date('2026-06-10T20:00:00.000Z'),
     dataFim: new Date('2026-06-10T23:00:00.000Z'),
     cidade: 'Sao Paulo',
@@ -391,6 +391,62 @@ describe('EventIntelligenceService contracts', () => {
         eventPropertyImpactsCount: 0,
         pricingDecisionSnapshot: false,
         pricingDecisionSnapshotsCount: 0,
+      },
+    });
+  });
+
+  it('backfills only future events without snapshots by default and reports counts', async () => {
+    const eventWithSnapshot = { ...event, id: 'event-with-snapshot' };
+    const eventWithoutSnapshot = { ...event, id: 'event-without-snapshot' };
+    const analysis = {
+      id: 'analysis-1',
+      evento: eventWithoutSnapshot,
+      endereco: {
+        id: 'property-1',
+        list: { id: 'list-1', titulo: 'Studio Paulista' },
+      },
+      usuarioProprietario: { id: 'user-1' },
+      status: 'suggested',
+      distanciaSuaPropriedade: 2.5,
+      seuPrecoAtual: 300,
+      precoSugerido: 600,
+      criadoEm: new Date('2026-05-22T11:00:00.000Z'),
+    };
+    const { service, repos } = makeService({
+      events: [eventWithSnapshot, eventWithoutSnapshot],
+      snapshots: [{ id: 'existing-snapshot', event: eventWithSnapshot, jobRunId: 'previous-job' }],
+      impacts: [],
+      analyses: [analysis],
+    });
+
+    const result = await service.backfillFutureEventIntelligence(
+      { from: '2026-06-01', to: '2026-06-30', limit: 10 },
+      'admin-1',
+    );
+
+    expect(repos.snapshotRepo.save).toHaveBeenCalledTimes(1);
+    expect(repos.impactRepo.save).toHaveBeenCalledTimes(1);
+    expect(repos.pricingDecisionSnapshotRepo.save).toHaveBeenCalledTimes(1);
+    expect(result).toMatchObject({
+      status: 'ok',
+      triggeredByUserId: 'admin-1',
+      eventIds: ['event-without-snapshot'],
+      summary: {
+        eventsAttempted: 1,
+        eventsProcessed: 1,
+        analysesRead: 1,
+      },
+      backfill: {
+        mode: 'future_events',
+        force: false,
+        limit: 10,
+        candidatesScanned: 2,
+        skippedExistingSnapshots: 1,
+      },
+      writes: {
+        eventIntelligenceSnapshotsCount: 1,
+        eventPropertyImpactsCount: 1,
+        pricingDecisionSnapshotsCount: 1,
       },
     });
   });

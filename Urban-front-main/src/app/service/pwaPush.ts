@@ -66,12 +66,12 @@ export async function getPwaPushSnapshot(): Promise<PwaPushSnapshot> {
 
 export async function subscribeToPwaPush(): Promise<PwaPushSnapshot> {
   if (!isPwaPushSupported()) {
-    throw new Error("Push PWA nao suportado neste navegador");
+    throw new Error("Push PWA não suportado neste navegador");
   }
 
   const config = await getPushPublicConfig();
   if (!config.enabled || !config.publicKey) {
-    throw new Error("Push PWA ainda nao esta configurado no backend");
+    throw new Error("Push PWA ainda não está configurado no backend");
   }
 
   const permission = await Notification.requestPermission();

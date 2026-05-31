@@ -125,19 +125,19 @@ export function CookieConsent() {
             <div style={{ display: "flex", flexDirection: "column", gap: 20, padding: 22 }}>
               <CookieToggle
                 label="Essenciais"
-                description="Necessarios para login, seguranca e funcionamento basico. Nao podem ser desativados."
+                description="Necessarios para login, segurança e funcionamento básico. Não podem ser desativados."
                 checked
                 disabled
               />
               <CookieToggle
                 label="Analytics"
-                description="Google Analytics 4 para entender quais funcionalidades sao usadas e priorizar melhorias. IP anonimizado."
+                description="Google Analytics 4 para entender quais funcionalidades são usadas e priorizar melhorias. IP anonimizado."
                 checked={analyticsPref}
                 onChange={setAnalyticsPref}
               />
               <CookieToggle
                 label="Marketing"
-                description="Meta Pixel para medir eficacia de campanhas e oferecer conteudo relevante em redes sociais."
+                description="Meta Pixel para medir eficácia de campanhas e oferecer conteúdo relevante em redes sociais."
                 checked={marketingPref}
                 onChange={setMarketingPref}
               />

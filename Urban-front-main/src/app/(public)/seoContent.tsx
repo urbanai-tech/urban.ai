@@ -43,9 +43,9 @@ export type SeoContent = {
 };
 
 const caseStatusLabels: Record<SeoEvidenceStatus, string> = {
-  em_validacao: "em validacao",
+  em_validacao: "em validação",
   validado_interno: "validado internamente",
-  aprovado_publicacao: "aprovado para publicacao",
+  aprovado_publicacao: "aprovado para publicação",
   arquivado: "arquivado",
 };
 
@@ -74,7 +74,7 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
             description: content.description,
           }),
           faqPageJsonLd(faqItems, content.path),
-          itemListJsonLd(content, "evidence", "Evidencias rastreaveis", content.evidence),
+          itemListJsonLd(content, "evidence", "Evidências rastreáveis", content.evidence),
           itemListJsonLd(content, "methodology", "Metodologia de leitura", content.methodology),
           caseStudyItemListJsonLd(content),
         ]}
@@ -169,7 +169,7 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
       </section>
 
       <section
-        id="evidencias-metodologia"
+        id="evidências-métodologia"
         className="urban-public-section"
         style={{ borderTop: "1px solid var(--theme-public-soft)" }}
       >
@@ -183,7 +183,7 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
         >
           <div>
             <p className="urban-eyebrow" style={{ marginBottom: 24 }}>
-              Evidencias rastreaveis
+              Evidências rastreáveis
             </p>
             {content.evidence.map((item) => (
               <article
@@ -248,11 +248,11 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
                 textWrap: "balance",
               }}
             >
-              Evidencias em validacao
+              Evidencias em validação
             </h2>
             <p className="urban-public-copy" style={{ marginTop: 22, fontSize: 18 }}>
-              Estudos publicos so recebem metricas quando houver fonte, periodo, amostra e revisao
-              registrados. Ate la, a Urban AI trata cada caso como em validacao.
+              Estudos públicos só recebem métricas quando houver fonte, período, amostra e revisão
+              registrados. Até la, a Urban AI trata cada caso como em validação.
             </p>
           </div>
 
@@ -299,7 +299,7 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
                 >
                   {[
                     ["Fonte", study.source],
-                    ["Periodo", study.period],
+                    ["Período", study.period],
                     ["Amostra", study.sample],
                   ].map(([label, value]) => (
                     <div key={label}>
@@ -348,7 +348,7 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
       >
         <div className="urban-public-container">
           <p className="urban-eyebrow" style={{ marginBottom: 24 }}>
-            Proximos passos
+            Próximos passos
           </p>
           <div
             style={{
@@ -444,7 +444,7 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
                 whiteSpace: "normal",
               }}
             >
-              Ver precos
+              Ver preços
             </NextLink>
             <NextLink
               href="/contato"
@@ -485,7 +485,7 @@ function itemListJsonLd(
       position: index + 1,
       name: item.title,
       description: item.body,
-      url: `${buildCanonical(content.path)}#evidencias-metodologia`,
+      url: `${buildCanonical(content.path)}#evidências-métodologia`,
     })),
   };
 }
@@ -499,7 +499,7 @@ function caseStudyItemListJsonLd(content: SeoContent): JsonLdSchema {
       "@type": "ListItem",
       position: index + 1,
       name: study.title,
-      description: `${study.summary} Status: ${caseStatusLabels[study.status]}. Fonte: ${study.source}. Periodo: ${study.period}. Amostra: ${study.sample}.`,
+      description: `${study.summary} Status: ${caseStatusLabels[study.status]}. Fonte: ${study.source}. Período: ${study.period}. Amostra: ${study.sample}.`,
       url: `${buildCanonical(content.path)}#estudos-de-caso`,
     })),
   };

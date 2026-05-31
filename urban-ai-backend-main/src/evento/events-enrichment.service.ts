@@ -118,9 +118,9 @@ Categoria: ${event.categoria || 'Não informada'}
 Você precisa analisar a magnitude deste evento e prever seu impacto geoturístico.
 Responda APENAS com um Dicionário objeto JSON puro. Sem formatação markdown de código, sem comentários e sem textos introdutórios. Dicionário no seguinte formato exato:
 {
-  "capacidadeEstimada": numero, // Estimativa do público diário esperado.
-  "relevancia": numero, // Um score inteiro rigoroso de 1 a 100 de impacto. 100= Lollapalooza ou Rock in Rio (Super Mega Evento), 80= Estádio Cheio, 50= Centro de Convenções Normal, 15= Evento de Bairro ou de Nicho Cívico, 1= Curso de rua.
-  "raioImpactoKm": numero // Até quantos km de distância do evento uma propriedade se beneficia? Ex: Mega Eventos Globais = 50km, Festas Médias = 15km, Teatros Bairro = 3km.
+  "capacidadeEstimada": número, // Estimativa do público diário esperado.
+  "relevancia": número, // Um score inteiro rigoroso de 1 a 100 de impacto. 100= Lollapalooza ou Rock in Rio (Super Mega Evento), 80= Estádio Cheio, 50= Centro de Convenções Normal, 15= Evento de Bairro ou de Nicho Cívico, 1= Curso de rua.
+  "raioImpactoKm": número // Até quantos km de distância do evento uma propriedade se beneficia? Ex: Mega Eventos Globais = 50km, Festas Médias = 15km, Teatros Bairro = 3km.
 }`;
 
         const result = await model.generateContent(prompt);

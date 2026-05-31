@@ -12,7 +12,7 @@ interface SuggestionInfoPopoverProps {
 
 export const SuggestionInfoPopover: React.FC<SuggestionInfoPopoverProps> = ({
   buttonLabel = "Como funciona?",
-  title = "O que e o preco sugerido?",
+  title = "O que e o preço sugerido?",
   description,
   borderColor = "#FACC15",
 }) => {

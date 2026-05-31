@@ -21,16 +21,16 @@ import {
 import type { AdminBadgeKind } from "../../_components";
 
 /**
- * /admin/users/[id] — drill-down de usuario.
+ * /admin/users/[id] — drill-down de usuário.
  *
- * Tudo que suporte/admin precisa ver de um usuario consolidado:
- *  - Cabecalho: nome, email, role badge, status ativo/inativo, data cadastro
- *  - 4 KPIs: imoveis, recomendacoes aceitas, recomendacoes aplicadas, ROI confirmado
- *  - Card "Assinatura": plano, ciclo, proxima cobranca, link Stripe Customer
- *  - Card "Onboarding drip": dia D+ enviado, ultimo envio
- *  - Card "Stays": conectado/desconectado, ultima sync
- *  - Tabela "Imoveis" do usuario (link pra /admin/properties/[id])
- *  - Acoes: trocar role, ativar/desativar, ver audit log
+ * Tudo que suporte/admin precisa ver de um usuário consolidado:
+ *  - Cabeçalho: nome, e-mail, role badge, status ativo/inativo, data cadastro
+ *  - 4 KPIs: imóveis, recomendações aceitas, recomendações aplicadas, ROI confirmado
+ *  - Card "Assinatura": plano, ciclo, próxima cobrança, link Stripe Customer
+ *  - Card "Onboarding drip": dia D+ enviado, último envio
+ *  - Card "Stays": conectado/desconectado, última sync
+ *  - Tabela "Imóveis" do usuário (link pra /admin/properties/[id])
+ *  - Ações: trocar role, ativar/desativar, ver audit log
  *
  * Usa endpoints administrativos dedicados para evitar fallback com lista truncada
  * ou filtro client-side em dados incompletos.
@@ -47,9 +47,9 @@ type UserDetail = {
   pricingStrategy?: string | null;
   operationMode?: string | null;
   airbnbHostId?: string | null;
-  createdAt?: string;
+  createdAt: string;
   onboardingDripLastDay?: number | null;
-  onboardingDripLastSentAt?: string | null;
+  onboardingDripLastSentAt: string | null;
 };
 
 type PropertyRow = {
@@ -60,7 +60,7 @@ type PropertyRow = {
   manualDailyPrice?: number | null;
   futureRecommendationsCount?: number;
   appliedRecommendationsCount?: number;
-  lastAnalysisAt?: string | null;
+  lastAnalysisAt: string | null;
 };
 
 type SubscriptionInfo = {
@@ -408,7 +408,7 @@ export default function AdminUserDetailPage() {
         </AdminCard>
       </section>
 
-      {/* Imoveis */}
+      {/* Imóveis */}
       <section style={{ marginBottom: 32 }}>
         <p className="urban-admin-eyebrow" style={{ marginBottom: 16 }}>
           IMÓVEIS DO USUÁRIO

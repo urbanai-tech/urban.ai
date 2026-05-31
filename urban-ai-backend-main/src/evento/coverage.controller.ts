@@ -70,11 +70,11 @@ export class CoverageController {
     body: {
       name: string;
       status?: 'active' | 'bootstrap' | 'inactive';
-      centerLat?: number | null;
+      centerLat: number | null;
       centerLng?: number | null;
       radiusKm?: number | null;
-      minLat?: number | null;
-      maxLat?: number | null;
+      minLat: number | null;
+      maxLat: number | null;
       minLng?: number | null;
       maxLng?: number | null;
       notes?: string | null;

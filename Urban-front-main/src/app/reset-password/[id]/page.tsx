@@ -10,9 +10,9 @@ import { updatePassword } from "@/app/service/api";
 const PASSWORD_RULES: { key: keyof PasswordChecks; label: string }[] = [
   { key: "lower", label: "Letra minuscula" },
   { key: "upper", label: "Letra maiuscula" },
-  { key: "number", label: "Numero" },
+  { key: "number", label: "Número" },
   { key: "special", label: "Caractere especial (!@#$%^&*)" },
-  { key: "length", label: "Minimo de 8 caracteres" },
+  { key: "length", label: "Mínimo de 8 caracteres" },
   { key: "match", label: "Senhas coincidem" },
 ];
 
@@ -120,7 +120,7 @@ export default function PasswordConfirmation() {
           seu painel.
         </>
       }
-      asideSubtitle="Depois da troca, o link expira e voce entra normalmente com a nova senha."
+      asideSubtitle="Depois da troca, o link expira e você entra normalmente com a nova senha."
     >
       <AppCard variant="elevated" style={{ padding: 28 }}>
         {success ? (
@@ -151,7 +151,7 @@ export default function PasswordConfirmation() {
                   lineHeight: 1.65,
                 }}
               >
-                Agora voce ja pode acessar a Urban AI com sua nova senha.
+                Agora você já pode acessar a Urban AI com sua nova senha.
               </p>
             </div>
             <AppButton
@@ -184,7 +184,7 @@ export default function PasswordConfirmation() {
               autoComplete="new-password"
               error={
                 confirmPassword.length > 0 && !checks.match
-                  ? "As senhas nao coincidem."
+                  ? "As senhas não coincidem."
                   : undefined
               }
             />

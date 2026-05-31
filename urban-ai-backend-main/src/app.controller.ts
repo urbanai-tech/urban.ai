@@ -9,8 +9,8 @@ import { RolesGuard } from './auth/roles.guard';
 @Controller()
 export class AppController {
   /**
-   * Configuracao publica do ambiente - usada pelo frontend para decidir o
-   * comportamento sem precisar bater env vars do build. Nao inclui segredos.
+   * Configuração pública do ambiente - usada pelo frontend para decidir o
+   * comportamento sem precisar bater env vars do build. Não inclui segredos.
    */
   @Get('public-config')
   publicConfig() {

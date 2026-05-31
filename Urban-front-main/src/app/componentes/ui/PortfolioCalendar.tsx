@@ -711,9 +711,9 @@ export function PortfolioCalendar({
                         day.evento ? `, ${day.evento.nome}` : ""
                       }${isSelectedDay ? ", data selecionada" : ""}${
                         fmtStrategy(day.strategyApplied) ? `, modo ${fmtStrategy(day.strategyApplied)}` : ""
-                      }, preco atual ${fmtBRLFull(day.atual)}${
+                      }, preço atual ${fmtBRLFull(day.atual)}${
                         day.sugestao !== null
-                          ? `, sugestao ${fmtBRLFull(day.sugestao)}`
+                          ? `, sugestão ${fmtBRLFull(day.sugestao)}`
                           : ""
                       }`}
                       title={`${fmtWeekday(day.date)} ${fmtDayMonth(day.date)}${
@@ -1076,9 +1076,9 @@ export function PortfolioCalendar({
                         hasEvento ? `, ${day.evento!.nome}` : ""
                       }${isSelectedDay ? ", data selecionada" : ""}${
                         fmtStrategy(day.strategyApplied) ? `, modo ${fmtStrategy(day.strategyApplied)}` : ""
-                      }, preco atual ${fmtBRLFull(day.atual)}${
+                      }, preço atual ${fmtBRLFull(day.atual)}${
                         day.sugestao !== null
-                          ? `, sugestao ${fmtBRLFull(day.sugestao)}`
+                          ? `, sugestão ${fmtBRLFull(day.sugestao)}`
                           : ""
                       }`}
                       title={`${fmtWeekday(day.date)} ${fmtDayMonth(day.date)}${
@@ -1204,7 +1204,7 @@ export function PortfolioCalendar({
                         </span>
                       ) : (
                         <span
-                          aria-label="sem preco"
+                          aria-label="sem preço"
                           style={{
                             fontSize: 14,
                             color: "var(--app-text-muted)",

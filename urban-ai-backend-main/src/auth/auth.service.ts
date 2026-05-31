@@ -94,7 +94,7 @@ export class AuthService {
    * revogado derruba TODAS as sessões do usuário (detecção de roubo).
    */
   async rotateRefreshToken(rawRefresh: string, meta?: { userAgent?: string; ip?: string }): Promise<TokenPair> {
-    if (!rawRefresh) throw new UnauthorizedException('Sua sessao expirou. Faca login novamente para continuar.');
+    if (!rawRefresh) throw new UnauthorizedException('Sua sessão expirou. Faça login novamente para continuar.');
     const hash = this.hashRefreshToken(rawRefresh);
     const record = await this.refreshTokenRepository.findOne({
       where: { tokenHash: hash },
@@ -350,12 +350,12 @@ export class AuthService {
         `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`,
       );
       if (!response.ok) {
-        throw new UnauthorizedException('Google token invalido.');
+        throw new UnauthorizedException('Google token inválido.');
       }
       payload = (await response.json()) as GoogleTokenInfo;
     } catch (error) {
       if (error instanceof UnauthorizedException) throw error;
-      throw new UnauthorizedException('Google token invalido.');
+      throw new UnauthorizedException('Google token inválido.');
     }
 
     const expiresAt = Number(payload.exp ?? 0) * 1000;
@@ -366,7 +366,7 @@ export class AuthService {
       throw new UnauthorizedException('Google token com audiencia invalida.');
     }
     if (!issuerOk) {
-      throw new UnauthorizedException('Google token com emissor invalido.');
+      throw new UnauthorizedException('Google token com emissor inválido.');
     }
     if (!payload.sub) {
       throw new UnauthorizedException('Google token sem identificador.');
@@ -396,19 +396,19 @@ export class AuthService {
     try {
       const idToken = userData.idToken ?? userData.credential ?? userData.token;
       if (!idToken) {
-        throw new BadRequestException('Token Google nao fornecido.');
+        throw new BadRequestException('Token Google não fornecido.');
       }
 
       const verified = await this.verifyGoogleIdToken(idToken);
 
-      // Verificar se o usuario ja existe
+      // Verificar se o usuário já existe
       let user = await this.userRepository.findOne({
         where: { email: verified.email },
         select: ['id', 'username', 'email', 'password', 'ativo'],
       });
 
       if (!user) {
-        // Se o usuario nao existir, crie-o com formato especial para Google
+        // Se o usuário não existir, crie-o com formato especial para Google
         const randomUUID = uuidv4();
         const googlePassword = `google_${randomUUID}`;
 
@@ -425,10 +425,10 @@ export class AuthService {
         if (user.ativo === false) {
           throw new UnauthorizedException('Usuário inativo. Faça login com uma conta ativa.');
         }
-        // Conta local existente nao e convertida silenciosamente por login social.
+        // Conta local existente não é convertida silenciosamente por login social.
         if (!user.password.startsWith('google_')) {
           throw new ConflictException(
-            'Esta conta ja existe com senha. Faca login com senha e vincule o Google pelo perfil.',
+            'Esta conta já existe com senha. Faça login com senha e vincule o Google pelo perfil.',
           );
         }
       }

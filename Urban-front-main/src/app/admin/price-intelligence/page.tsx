@@ -59,8 +59,8 @@ export default function AdminPriceIntelligencePage() {
       const e = err as { response?: { status?: number }; userMessage?: string; message?: string };
       setError(
         e?.response?.status === 401 || e?.response?.status === 403
-          ? "Acesso negado. Voce precisa ser admin."
-          : e?.userMessage || e?.message || "Erro ao carregar saude de Price Intelligence.",
+          ? "Acesso negado. Você precisa ser admin."
+          : e?.userMessage || e?.message || "Erro ao carregar saúde de Price Intelligence.",
       );
     } finally {
       setLoading(false);
@@ -75,14 +75,14 @@ export default function AdminPriceIntelligencePage() {
     () => [
       {
         key: "property",
-        header: "Imovel",
+        header: "Imóvel",
         render: (row) => (
           <div style={{ minWidth: 0 }}>
             <p style={{ margin: 0, fontWeight: 600, color: "var(--admin-text)" }}>
-              {row.title || row.listId || row.addressId || "Sem identificacao"}
+              {row.title || row.listId || row.addressId || "Sem identificação"}
             </p>
             <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--admin-text-muted)" }}>
-              {[row.city, row.state].filter(Boolean).join(", ") || row.userEmail || "Localidade nao informada"}
+              {[row.city, row.state].filter(Boolean).join(", ") || row.userEmail || "Localidade não informada"}
             </p>
           </div>
         ),
@@ -154,7 +154,7 @@ export default function AdminPriceIntelligencePage() {
       },
       {
         key: "duration",
-        header: "Duracao",
+        header: "Duração",
         align: "right",
         width: 120,
         render: (row) => <SmallMuted>{formatDuration(row.durationMs)}</SmallMuted>,
@@ -198,10 +198,10 @@ export default function AdminPriceIntelligencePage() {
     <div style={{ maxWidth: 1320, margin: "0 auto", padding: "40px 32px" }}>
       <AdminSectionHeader
         eyebrow="ADMIN / PRICE INTELLIGENCE"
-        title="Saude do motor de precos"
+        title="Saúde do motor de preços"
         subtitle={
           <span>
-            Janela de {data.windowDays} dias / ultima leitura:{" "}
+            Janela de {data.windowDays} dias / última leitura:{" "}
             <strong style={{ color: "var(--admin-text)" }}>
               {formatDate(data.generatedAt)}
             </strong>
@@ -226,7 +226,7 @@ export default function AdminPriceIntelligencePage() {
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <AdminStatusDot kind={healthKind} size={14} pulse={data.health !== "green"} />
             <div>
-              <p className="urban-admin-eyebrow-muted">SAUDE GERAL</p>
+              <p className="urban-admin-eyebrow-muted">SAÚDE GERAL</p>
               <p style={{ margin: "4px 0 0", fontSize: 20, fontWeight: 600 }}>
                 {healthLabel(data.health)}
               </p>
@@ -262,26 +262,26 @@ export default function AdminPriceIntelligencePage() {
         <AdminMetricCard
           label="Snapshots"
           value={integer.format(data.snapshots.total)}
-          sub={`${integer.format(data.snapshots.last24h)} nas ultimas 24h`}
+          sub={`${integer.format(data.snapshots.last24h)} nas últimas 24h`}
           status={data.snapshots.last24h > 0 ? "success" : "warn"}
           accent
         />
         <AdminMetricCard
-          label="Observacoes"
+          label="Observações"
           value={integer.format(data.observations.total)}
-          sub={`${integer.format(data.observations.distinctListings)} imoveis com historico`}
+          sub={`${integer.format(data.observations.distinctListings)} imóveis com histórico`}
           status={data.observations.trainingReady > 0 ? "success" : "warn"}
         />
         <AdminMetricCard
-          label="Sugestoes verificadas"
+          label="Sugestões verificadas"
           value={`${formatPercent(data.suggestions.verifiedPercent)}`}
           sub={`${integer.format(data.suggestions.verified)} de ${integer.format(data.suggestions.total)}`}
           status={data.suggestions.failedVerification > 0 ? "warn" : "success"}
         />
         <AdminMetricCard
-          label="Tempo medio jobs"
+          label="Tempo médio jobs"
           value={formatDuration(data.jobs.avgDurationMs)}
-          sub={`${integer.format(data.jobs.failedLast24h)} falhas nas ultimas 24h`}
+          sub={`${integer.format(data.jobs.failedLast24h)} falhas nas últimas 24h`}
           status={data.jobs.failedLast24h > 0 ? "error" : "success"}
         />
         <AdminMetricCard
@@ -289,7 +289,7 @@ export default function AdminPriceIntelligencePage() {
           value={airbnbAttempts ? `${integer.format(airbnbAttempts.summary.successes)}/${integer.format(airbnbAttempts.summary.total)}` : "--"}
           sub={
             airbnbAttempts
-              ? `${integer.format(airbnbAttempts.summary.failures)} falhas / ${formatDuration(airbnbAttempts.summary.avgDurationMs)} medio`
+              ? `${integer.format(airbnbAttempts.summary.failures)} falhas / ${formatDuration(airbnbAttempts.summary.avgDurationMs)} médio`
               : airbnbAttemptsError || "Sem leitura das tentativas"
           }
           status={airbnbAttempts ? airbnbAttemptStatus : "warn"}
@@ -305,7 +305,7 @@ export default function AdminPriceIntelligencePage() {
         }}
       >
         <AdminCard variant="subtle">
-          <AdminCardHeader eyebrow="SUGESTOES" title="Verificacao e aplicacao" />
+          <AdminCardHeader eyebrow="SUGESTÕES" title="Verificação e aplicação" />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 16 }}>
             <InlineStat label="Futuras" value={integer.format(data.suggestions.future)} />
             <InlineStat label="Aceitas" value={integer.format(data.suggestions.accepted)} />
@@ -320,14 +320,14 @@ export default function AdminPriceIntelligencePage() {
             <StatusLine label="Rodando" value={integer.format(data.jobs.running)} kind={data.jobs.running > 0 ? "accent" : "neutral"} />
             <StatusLine
               label="Na fila"
-              value={data.jobs.queueAvailable === false ? "Indisponivel" : integer.format(data.jobs.queued)}
+              value={data.jobs.queueAvailable === false ? "Indisponível" : integer.format(data.jobs.queued)}
               kind={data.jobs.queueAvailable === false ? "warn" : data.jobs.queued > 0 ? "warn" : "neutral"}
             />
-            <StatusLine label="Ultimo sucesso" value={formatDate(data.jobs.lastSuccessAt)} kind={data.jobs.lastSuccessAt ? "success" : "warn"} />
-            <StatusLine label="Ultimo run" value={data.jobs.lastRun ? `${data.jobs.lastRun.name} / ${data.jobs.lastRun.status}` : "Sem execucoes"} kind={data.jobs.lastRun?.status === "error" ? "error" : "neutral"} />
+            <StatusLine label="Último sucesso" value={formatDate(data.jobs.lastSuccessAt)} kind={data.jobs.lastSuccessAt ? "success" : "warn"} />
+            <StatusLine label="Último run" value={data.jobs.lastRun ? `${data.jobs.lastRun.name} / ${data.jobs.lastRun.status}` : "Sem execuções"} kind={data.jobs.lastRun?.status === "error" ? "error" : "neutral"} />
             {data.jobs.queueAvailable === false && (
               <p style={{ margin: 0, fontSize: 12, color: "var(--admin-text-muted)", lineHeight: 1.5 }}>
-                {data.jobs.queueUnavailableReason || "Fila real ainda nao implementada para este pipeline."}
+                {data.jobs.queueUnavailableReason || "Fila real ainda não implementada para este pipeline."}
               </p>
             )}
           </div>
@@ -336,7 +336,7 @@ export default function AdminPriceIntelligencePage() {
 
       <section style={{ marginBottom: 48 }}>
         <AdminCard variant={airbnbAttempts?.health === "green" ? "subtle" : "accent"}>
-          <AdminCardHeader eyebrow="AIRBNB" title="Saude das cotacoes headless" />
+          <AdminCardHeader eyebrow="AIRBNB" title="Saúde das cotações headless" />
           {airbnbAttemptsError ? (
             <QuietEmpty>{airbnbAttemptsError}</QuietEmpty>
           ) : !airbnbAttempts ? (
@@ -348,18 +348,18 @@ export default function AdminPriceIntelligencePage() {
                 <InlineStat label="Sucessos" value={integer.format(airbnbAttempts.summary.successes)} />
                 <InlineStat label="Falhas" value={integer.format(airbnbAttempts.summary.failures)} />
                 <InlineStat label="Pendentes" value={integer.format(airbnbAttempts.summary.openPending)} />
-                <InlineStat label="Tempo medio" value={formatDuration(airbnbAttempts.summary.avgDurationMs)} />
+                <InlineStat label="Tempo médio" value={formatDuration(airbnbAttempts.summary.avgDurationMs)} />
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "minmax(260px, 0.8fr) minmax(0, 1.2fr)", gap: 24 }}>
                 <div style={{ display: "grid", gap: 14 }}>
                   <StatusLine
                     label="Schema"
-                    value={airbnbAttempts.schema.available ? "Disponivel" : "Indisponivel"}
+                    value={airbnbAttempts.schema.available ? "Disponível" : "Indisponível"}
                     kind={airbnbAttempts.schema.available ? "success" : "error"}
                   />
                   <StatusLine
-                    label="Ultima tentativa"
+                    label="Última tentativa"
                     value={formatDate(airbnbAttempts.summary.latestAttemptAt)}
                     kind={airbnbAttempts.summary.latestAttemptAt ? "neutral" : "warn"}
                   />
@@ -397,7 +397,7 @@ export default function AdminPriceIntelligencePage() {
                       label={failure.reason}
                       value={failure.count}
                       max={Math.max(...airbnbAttempts.failuresByReason.map((item) => item.count), 1)}
-                      sub={`Ultima: ${formatDate(failure.lastSeenAt)} / ${formatDuration(failure.avgDurationMs)}`}
+                      sub={`Última: ${formatDate(failure.lastSeenAt)} / ${formatDuration(failure.avgDurationMs)}`}
                     />
                   ))}
                 </div>
@@ -416,9 +416,9 @@ export default function AdminPriceIntelligencePage() {
         }}
       >
         <AdminCard>
-          <AdminCardHeader eyebrow="JOBS" title="Metricas por nome" />
+          <AdminCardHeader eyebrow="JOBS" title="Métricas por nome" />
           {jobMetrics.length === 0 ? (
-            <QuietEmpty>Nenhuma metrica por job retornada.</QuietEmpty>
+            <QuietEmpty>Nenhuma métrica por job retornada.</QuietEmpty>
           ) : (
             <div style={{ display: "grid", gap: 12 }}>
               {jobMetrics.map((job) => (
@@ -434,7 +434,7 @@ export default function AdminPriceIntelligencePage() {
             <div style={{ display: "grid", gap: 12 }}>
               <StatusLine
                 label="Status"
-                value={data.schema.ok ? "Completo" : "Acao necessaria"}
+                value={data.schema.ok ? "Completo" : "Ação necessária"}
                 kind={data.schema.ok ? "success" : "error"}
               />
               <StatusLine label="Checado em" value={formatDate(data.schema.checkedAt)} kind="neutral" />
@@ -450,7 +450,7 @@ export default function AdminPriceIntelligencePage() {
               )}
             </div>
           ) : (
-            <QuietEmpty>Backend ainda nao retornou diagnostico de schema.</QuietEmpty>
+            <QuietEmpty>Backend ainda não retornou diagnóstico de schema.</QuietEmpty>
           )}
         </AdminCard>
       </section>
@@ -475,7 +475,7 @@ export default function AdminPriceIntelligencePage() {
                   label={failure.type}
                   value={failure.count}
                   max={Math.max(...failures.map((item) => item.count), 1)}
-                  sub={`Ultima: ${formatDate(failure.lastSeenAt)}`}
+                  sub={`Última: ${formatDate(failure.lastSeenAt)}`}
                 />
               ))}
             </div>
@@ -483,7 +483,7 @@ export default function AdminPriceIntelligencePage() {
         </AdminCard>
 
         <AdminCard>
-          <AdminCardHeader eyebrow="ATALHOS" title="Acoes rapidas" />
+          <AdminCardHeader eyebrow="ATALHOS" title="Ações rápidas" />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 12 }}>
             {shortcuts.map((shortcut) => (
               <a
@@ -518,18 +518,18 @@ export default function AdminPriceIntelligencePage() {
       </section>
 
       <section style={{ marginBottom: 48 }}>
-        <AdminCardHeader eyebrow="IMOVEIS" title="Imoveis problematicos" />
+        <AdminCardHeader eyebrow="IMÓVEIS" title="Imóveis problemáticos" />
         <AdminTable
           columns={propertyColumns}
           rows={problematicProperties}
           rowKey={(row, index) => row.addressId || row.listId || String(index)}
-          empty={<QuietEmpty>Nenhum imovel problematico retornado.</QuietEmpty>}
+          empty={<QuietEmpty>Nenhum imóvel problemático retornado.</QuietEmpty>}
           minWidth={860}
         />
       </section>
 
       <section>
-        <AdminCardHeader eyebrow="HISTORICO" title="Runs recentes de Price Intelligence" />
+        <AdminCardHeader eyebrow="HISTÓRICO" title="Runs recentes de Price Intelligence" />
         <AdminTable
           columns={jobColumns}
           rows={recentJobs}
@@ -556,10 +556,10 @@ export default function AdminPriceIntelligencePage() {
 type ProblematicPropertyRow = AdminPriceIntelligenceHealth["problematicProperties"][number];
 
 const defaultShortcuts: AdminPriceIntelligenceHealth["shortcuts"] = [
-  { label: "Qualidade", href: "/admin/quality", description: "MAPE, ocupacao e ground truth." },
-  { label: "Jobs do sistema", href: "/admin/jobs", description: "Executar snapshots e recomputacoes." },
-  { label: "Config. de precos", href: "/admin/pricing-config", description: "Regras e parametros operacionais." },
-  { label: "Radar de demanda", href: "/admin/event-radar", description: "Eventos que alimentam sugestoes." },
+  { label: "Qualidade", href: "/admin/quality", description: "MAPE, ocupação e ground truth." },
+  { label: "Jobs do sistema", href: "/admin/jobs", description: "Executar snapshots e recomputações." },
+  { label: "Config. de preços", href: "/admin/pricing-config", description: "Regras e parâmetros operacionais." },
+  { label: "Radar de demanda", href: "/admin/event-radar", description: "Eventos que alimentam sugestões." },
 ];
 
 function InlineStat({ label, value }: { label: string; value: string }) {
@@ -630,7 +630,7 @@ function JobMetricRow({
       <div style={{ minWidth: 0 }}>
         <code style={{ fontSize: 12, color: "var(--admin-text)" }}>{job.name}</code>
         <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--admin-text-dim)" }}>
-          Ultimo: {formatDate(job.lastRunAt)}
+          Último: {formatDate(job.lastRunAt)}
         </p>
         {job.lastErrorMessage && (
           <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--admin-danger)", lineHeight: 1.4 }}>
@@ -662,9 +662,9 @@ function QuietEmpty({ children }: { children: React.ReactNode }) {
 }
 
 function healthLabel(health: AdminPriceIntelligenceHealth["health"]) {
-  if (health === "green") return "Motor saudavel";
-  if (health === "amber") return "Atencao em alguns pontos";
-  return "Problemas criticos";
+  if (health === "green") return "Motor saudável";
+  if (health === "amber") return "Atenção em alguns pontos";
+  return "Problemas críticos";
 }
 
 function statusFromHealth(health: AdminPriceIntelligenceHealth["health"]): AdminStatusKind {
@@ -692,8 +692,8 @@ function badgeFromSeverity(severity: "red" | "amber" | "info"): AdminBadgeKind {
 }
 
 function severityLabel(severity: "red" | "amber" | "info") {
-  if (severity === "red") return "critico";
-  if (severity === "amber") return "atencao";
+  if (severity === "red") return "crítico";
+  if (severity === "amber") return "atenção";
   return "info";
 }
 

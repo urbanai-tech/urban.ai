@@ -46,7 +46,7 @@ export class HostEventsController {
     });
   }
 
-  @ApiOperation({ summary: 'Radar host de eventos que impactam os imoveis do usuario' })
+  @ApiOperation({ summary: 'Radar host de eventos que impactam os imóveis do usuário' })
   @Get('radar')
   async radar(
     @Req() req: any,
@@ -79,19 +79,19 @@ export class HostEventsController {
     return this.eventIntelligence.hostHeatmap(req.user.userId, { from, to, propertyId, radiusKm });
   }
 
-  @ApiOperation({ summary: 'Detalhe host de um evento com inteligencia e impacto' })
+  @ApiOperation({ summary: 'Detalhe host de um evento com inteligência e impacto' })
   @Get(':eventId')
   async detail(@Req() req: any, @Param('eventId') eventId: string) {
     return this.eventIntelligence.hostEventDetail(req.user.userId, eventId);
   }
 
-  @ApiOperation({ summary: 'Inteligencia de demanda de um evento para host' })
+  @ApiOperation({ summary: 'Inteligência de demanda de um evento para host' })
   @Get(':eventId/intelligence')
   async intelligence(@Req() req: any, @Param('eventId') eventId: string) {
     return this.eventIntelligence.hostEventIntelligence(req.user.userId, eventId);
   }
 
-  @ApiOperation({ summary: 'Impacto de um evento nos imoveis do host' })
+  @ApiOperation({ summary: 'Impacto de um evento nos imóveis do host' })
   @Get(':eventId/property-impact')
   async propertyImpact(
     @Req() req: any,
@@ -101,7 +101,7 @@ export class HostEventsController {
     return this.eventIntelligence.hostEventPropertyImpact(req.user.userId, eventId, propertyId);
   }
 
-  @ApiOperation({ summary: 'Simulacao de pricing por evento (contrato P0)' })
+  @ApiOperation({ summary: 'Simulação de pricing por evento (contrato P0)' })
   @Post(':eventId/simulate-pricing')
   async simulatePricing(
     @Req() req: any,

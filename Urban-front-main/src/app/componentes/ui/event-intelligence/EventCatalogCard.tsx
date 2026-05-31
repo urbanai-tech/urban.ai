@@ -23,7 +23,7 @@ export function EventCatalogCard({
   onOpenImpact?: () => void;
 }) {
   const score = event.demandScore ?? event.urbanScore;
-  const sourceLabel = event.source ? event.source.replace(/-/g, " ") : "fonte em validacao";
+  const sourceLabel = event.source ? event.source.replace(/-/g, " ") : "fonte em validação";
 
   return (
     <AppCard

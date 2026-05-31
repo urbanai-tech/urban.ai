@@ -82,10 +82,10 @@ const quotaErrorMessage = (error: unknown, fallback: string) => {
 };
 
 const propertyCountLabel = (count: number) =>
-  count === 1 ? "1 imovel" : `${count} imoveis`;
+  count === 1 ? "1 imóvel" : `${count} imóveis`;
 
 const foundPropertiesLabel = (count: number) =>
-  count === 1 ? "1 imovel encontrado" : `${count} imoveis encontrados`;
+  count === 1 ? "1 imóvel encontrado" : `${count} imóveis encontrados`;
 
 export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModalProps) {
   const toast = useToastCompat();
@@ -111,7 +111,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
   const handleClose = () => {
     if (pendingPricingProperties.length > 0) {
-      toast("Informe a diaria base para concluir o cadastro antes de fechar.", { type: "warning" });
+      toast("Informe a diária base para concluir o cadastro antes de fechar.", { type: "warning" });
       return;
     }
     resetState();
@@ -147,7 +147,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
   const handleFetchProperties = async () => {
     if (!inputValue.trim()) {
-      toast("Por favor, insira o link de um imovel ou do perfil Airbnb.", { type: "warning" });
+      toast("Por favor, insira o link de um imóvel ou do perfil Airbnb.", { type: "warning" });
       return;
     }
 
@@ -174,7 +174,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
         const listings = await getUserManagedListings(userId);
 
         if (!listings || listings.length === 0) {
-          toast("Nao encontramos imoveis neste perfil.", { type: "warning" });
+          toast("Não encontramos imóveis neste perfil.", { type: "warning" });
           setLoadStage('idle');
           setIsLoading(false);
           return;
@@ -183,7 +183,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
         const filteredListings = listings.filter((item: any) => !existingIds.includes(item.id_do_anuncio));
 
         if (filteredListings.length === 0) {
-          toast("Todos os imoveis deste perfil ja estao cadastrados em sua conta.", { type: "info" });
+          toast("Todos os imóveis deste perfil já estão cadastrados em sua conta.", { type: "info" });
           setLoadStage('idle');
           setIsLoading(false);
           return;
@@ -191,7 +191,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
         const mapped: Property[] = filteredListings.map((item: any) => ({
           id: item.id || 0,
-          titulo: item.titulo ?? item.name ?? 'Sem titulo',
+          titulo: item.titulo ?? item.name ?? 'Sem título',
           id_do_anuncio: item.id_do_anuncio ?? '',
           ativo: true,
           pictureUrl: item.pictureUrl,
@@ -222,14 +222,14 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
       }
 
       if (!propertyId) {
-        toast("Nao foi possivel identificar o ID do imovel no link fornecido.", { type: "error" });
+        toast("Não foi possível identificar o ID do imóvel no link fornecido.", { type: "error" });
         setLoadStage('idle');
         setIsLoading(false);
         return;
       }
 
       if (existingIds.includes(propertyId)) {
-        toast("Este imovel ja esta cadastrado em sua conta.", { type: "info" });
+        toast("Este imóvel já está cadastrado em sua conta.", { type: "info" });
         setLoadStage('idle');
         setIsLoading(false);
         return;
@@ -246,7 +246,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
           if (filteredListings.length > 0) {
             const mapped: Property[] = filteredListings.map((item: any) => ({
               id: item.id || 0,
-              titulo: item.titulo ?? item.name ?? 'Sem titulo',
+              titulo: item.titulo ?? item.name ?? 'Sem título',
               id_do_anuncio: item.id_do_anuncio ?? '',
               ativo: true,
               pictureUrl: item.pictureUrl,
@@ -269,7 +269,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
             return;
           }
         } catch (hostError) {
-          console.warn('Nao foi possivel importar o perfil pelo link do anuncio; usando imovel individual.', hostError);
+          console.warn('Não foi possível importar o perfil pelo link do anúncio; usando imóvel individual.', hostError);
         }
       }
 
@@ -293,7 +293,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
     } catch (error) {
       console.error(error);
       setLoadStage('idle');
-      toast(getFriendlyApiErrorMessage(error, "Nao conseguimos buscar os imoveis agora. Tente novamente em alguns instantes."), { type: "error" });
+      toast(getFriendlyApiErrorMessage(error, "Não conseguimos buscar os imóveis agora. Tente novamente em alguns instantes."), { type: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -343,7 +343,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
         const item: PendingPricingProperty = {
           addressId: address.id,
           listId: address.list?.id,
-          propertyName: address.list?.titulo || `Imovel ${String(address.id).slice(0, 4)}`,
+          propertyName: address.list?.titulo || `Imóvel ${String(address.id).slice(0, 4)}`,
           pictureUrl: address.list?.pictureUrl ?? null,
           airbnbId: address.list?.id_do_anuncio ?? null,
           sourceLabel: readiness.sourceLabel,
@@ -358,7 +358,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
   const handleSaveProperties = async () => {
     const selectedList = fetchedProperties.filter((p) => selectedProperties[p.id_do_anuncio]);
     if (selectedList.length === 0) {
-      toast("Selecione pelo menos um imovel para adicionar.", { type: "warning" });
+      toast("Selecione pelo menos um imóvel para adicionar.", { type: "warning" });
       return;
     }
 
@@ -404,7 +404,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
           pendingPricing.reduce((acc, property) => ({ ...acc, [property.addressId]: '' }), {}),
         );
         setLoadStage('manual-price-required');
-        toast("Nao encontramos uma diaria confiavel no Airbnb. Informe a diaria base para concluir.", { type: "info" });
+        toast("Não encontramos uma diária confiável no Airbnb. Informe a diária base para concluir.", { type: "info" });
         return;
       }
 
@@ -416,8 +416,8 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
       setLoadStage('refreshing');
       toast(
         selectedList.length === 1
-          ? "Imovel registrado com sucesso!"
-          : `${selectedList.length} imoveis registrados com sucesso!`,
+          ? "Imóvel registrado com sucesso!"
+          : `${selectedList.length} imóveis registrados com sucesso!`,
         { type: "success" },
       );
       await Promise.resolve(onSuccess());
@@ -425,7 +425,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
     } catch (error) {
       console.error(error);
       setLoadStage('ready');
-      toast(quotaErrorMessage(error, "Nao conseguimos registrar as propriedades agora. Tente novamente em alguns instantes."), { type: "error" });
+      toast(quotaErrorMessage(error, "Não conseguimos registrar as propriedades agora. Tente novamente em alguns instantes."), { type: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -439,7 +439,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
     const invalid = parsedByAddress.find((item) => !item.manualDailyPrice);
     if (invalid) {
-      toast("Informe uma diaria base valida para todos os imoveis. Sem esse valor, a Urban AI nao inicia a analise.", { type: "warning" });
+      toast("Informe uma diária base válida para todos os imóveis. Sem esse valor, a Urban AI não inicia a análise.", { type: "warning" });
       return;
     }
 
@@ -459,14 +459,14 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
       }
 
       setLoadStage('refreshing');
-      toast("Precos base salvos. Imoveis registrados com sucesso!", { type: "success" });
+      toast("Preços base salvos. Imóveis registrados com sucesso!", { type: "success" });
       await Promise.resolve(onSuccess());
       resetState();
       onClose();
     } catch (error) {
       console.error(error);
       setLoadStage('manual-price-required');
-      toast("Nao conseguimos salvar os precos base agora. Tente novamente.", { type: "error" });
+      toast("Não conseguimos salvar os preços base agora. Tente novamente.", { type: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -521,7 +521,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
           }}
         >
           <h2 id="add-property-title" style={{ margin: 0, fontSize: 20 }}>
-            Adicionar imovel
+            Adicionar imóvel
           </h2>
           <button
             type="button"
@@ -537,8 +537,8 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
           {fetchedProperties.length === 0 ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <p style={{ margin: 0, color: "rgba(14,17,22,0.68)", lineHeight: 1.6 }}>
-                Para adicionar imoveis a sua conta, cole abaixo o <strong>link do Airbnb</strong> do seu imovel
-                ou o <strong>link do seu perfil de anfitriao</strong> para importar automaticamente todos os imoveis.
+                Para adicionar imóveis a sua conta, cole abaixo o <strong>link do Airbnb</strong> do seu imóvel
+                ou o <strong>link do seu perfil de anfitrião</strong> para importar automaticamente todos os imóveis.
               </p>
 
               <input
@@ -568,7 +568,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                 loading={isLoading}
                 loadingLabel={loadingStatus.buttonLabel}
               >
-                Buscar imoveis
+                Buscar imóveis
               </AppButton>
             </div>
           ) : pendingPricingProperties.length > 0 ? (
@@ -591,9 +591,9 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                   color: "#0E1116",
                 }}
               >
-                <p style={{ margin: 0, fontWeight: 700 }}>Informe a diaria base</p>
+                <p style={{ margin: 0, fontWeight: 700 }}>Informe a diária base</p>
                 <p style={{ margin: "6px 0 0", color: "rgba(14,17,22,0.68)", lineHeight: 1.5 }}>
-                  O Airbnb nao retornou uma diaria confirmada para estes imoveis, ou retornou apenas uma fonte provisoria. Informe a diaria atual para concluir o cadastro e iniciar a analise.
+                  O Airbnb não retornou uma diária confirmada para estes imóveis, ou retornou apenas uma fonte provisória. Informe a diária atual para concluir o cadastro e iniciar a análise.
                 </p>
               </div>
 
@@ -631,8 +631,8 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                     <p style={{ margin: "4px 0 0", color: "#9A3412", fontSize: 12, lineHeight: 1.35 }}>
                       {property.fallbackMessage}
                       {property.provisionalDailyPrice
-                        ? ` Valor encontrado: R$ ${property.provisionalDailyPrice.toFixed(2)} (${property.sourceLabel ?? "fonte nao informada"}).`
-                        : ` Fonte: ${property.sourceLabel ?? "fonte nao informada"}.`}
+                        ? ` Valor encontrado: R$ ${property.provisionalDailyPrice.toFixed(2)} (${property.sourceLabel ?? "fonte não informada"}).`
+                        : ` Fonte: ${property.sourceLabel ?? "fonte não informada"}.`}
                     </p>
                   </div>
                   <input
@@ -726,10 +726,10 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
                         <div style={{ minWidth: 0, flex: 1 }}>
                           <p style={{ margin: 0, color: "#0E1116", fontSize: 15, fontWeight: 650, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {prop.titulo || `Anuncio #${prop.id_do_anuncio}`}
+                            {prop.titulo || `Anúncio #${prop.id_do_anuncio}`}
                           </p>
                           <p style={{ margin: "4px 0 0", color: "rgba(14,17,22,0.62)", fontSize: 13, lineHeight: 1.45 }}>
-                            {prop.propertyType || 'Inteiro'} - {prop.guests} hospedes
+                            {prop.propertyType || 'Inteiro'} - {prop.guests} hóspedes
                             {prop.bedrooms ? ` - ${prop.bedrooms} quartos` : ''}
                             {prop.beds ? ` - ${prop.beds} leitos` : ''}
                             {prop.bathrooms ? ` - ${prop.bathrooms} banheiros` : ''}
@@ -778,7 +778,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                   : !Object.values(selectedProperties).some(Boolean)
               }
             >
-              {pendingPricingProperties.length > 0 ? "Salvar diaria e concluir" : "Adicionar selecionados"}
+              {pendingPricingProperties.length > 0 ? "Salvar diária e concluir" : "Adicionar selecionados"}
             </AppButton>
           )}
         </footer>
@@ -816,99 +816,99 @@ function getPropertyLoadingStatus(stage: PropertyLoadStage, foundCount: number):
   const copy: Record<PropertyLoadStage, { title: string; body: string; buttonLabel: string }> = {
     idle: {
       title: "Pronto para buscar",
-      body: "Cole um link do Airbnb ou perfil de anfitriao para iniciar.",
-      buttonLabel: "Carregando...",
+      body: "Cole um link do Airbnb ou perfil de anfitrião para iniciar.",
+      buttonLabel: "Carregando…",
     },
     'checking-existing': {
-      title: "Vendo se esse imovel ja esta na sua conta",
-      body: "Assim a lista nao fica com o mesmo anuncio duas vezes.",
-      buttonLabel: "Conferindo...",
+      title: "Vendo se esse imóvel já está na sua conta",
+      body: "Assim a lista não fica com o mesmo anúncio duas vezes.",
+      buttonLabel: "Conferindo…",
     },
     'resolving-link': {
       title: "Abrindo o link informado",
       body: "Alguns links precisam ser convertidos antes da busca.",
-      buttonLabel: "Abrindo link...",
+      buttonLabel: "Abrindo link…",
     },
     'fetching-profile': {
-      title: "Procurando seus imoveis",
-      body: "Vamos mostrar os anuncios encontrados para voce escolher.",
-      buttonLabel: "Procurando...",
+      title: "Procurando seus imóveis",
+      body: "Vamos mostrar os anúncios encontrados para você escolher.",
+      buttonLabel: "Procurando…",
     },
     'fetching-listing': {
-      title: "Procurando dados do imovel",
-      body: "Estamos buscando foto, titulo e informacoes basicas.",
-      buttonLabel: "Procurando imovel...",
+      title: "Procurando dados do imóvel",
+      body: "Estamos buscando foto, título e informações básicas.",
+      buttonLabel: "Procurando imóvel…",
     },
     ready: {
       title: foundPropertiesLabel(foundCount),
-      body: "Marque os que voce quer acompanhar na Urban AI.",
-      buttonLabel: "Preparando...",
+      body: "Marque os que você quer acompanhar na Urban AI.",
+      buttonLabel: "Preparando…",
     },
     registering: {
-      title: "Salvando imoveis na sua conta",
-      body: "Eles vao aparecer na sua lista de imoveis em instantes.",
-      buttonLabel: "Salvando...",
+      title: "Salvando imóveis na sua conta",
+      body: "Eles vão aparecer na sua lista de imóveis em instantes.",
+      buttonLabel: "Salvando…",
     },
     'creating-addresses': {
-      title: "Preparando dados do imovel",
-      body: "Estamos salvando localizacao e dados basicos antes de consultar a diaria.",
-      buttonLabel: "Preparando mapa...",
+      title: "Preparando dados do imóvel",
+      body: "Estamos salvando localização e dados básicos antes de consultar a diária.",
+      buttonLabel: "Preparando mapa…",
     },
     'checking-airbnb-availability': {
       title: "Buscando disponibilidade no Airbnb",
-      body: "Estamos verificando se o calendario publico oferece noites abertas para cotar.",
-      buttonLabel: "Buscando disponibilidade...",
+      body: "Estamos verificando se o calendário público oferece noites abertas para cotar.",
+      buttonLabel: "Buscando disponibilidade…",
     },
     'finding-available-dates': {
       title: "Encontrando datas para cotar",
       body: "Testamos janelas futuras de 2 a 3 noites para evitar usar uma data bloqueada.",
-      buttonLabel: "Encontrando datas...",
+      buttonLabel: "Encontrando datas…",
     },
     'calculating-daily-rate': {
-      title: "Calculando diaria base",
-      body: "Quando o Airbnb retorna um total, dividimos pelo numero de noites e validamos a origem.",
-      buttonLabel: "Calculando diaria...",
+      title: "Calculando diária base",
+      body: "Quando o Airbnb retorna um total, dividimos pelo número de noites e validamos a origem.",
+      buttonLabel: "Calculando diária…",
     },
     'manual-price-required': {
-      title: "Precisamos da diaria base",
-      body: "Nao encontramos uma diaria confiavel no Airbnb. O cadastro continua assim que voce informar o valor atual.",
-      buttonLabel: "Aguardando diaria...",
+      title: "Precisamos da diária base",
+      body: "Não encontramos uma diária confiável no Airbnb. O cadastro continua assim que você informar o valor atual.",
+      buttonLabel: "Aguardando diária…",
     },
     'saving-prices': {
-      title: "Salvando diaria informada",
-      body: "Vamos usar esse valor como base para iniciar a analise de eventos e oportunidades.",
-      buttonLabel: "Salvando diaria...",
+      title: "Salvando diária informada",
+      body: "Vamos usar esse valor como base para iniciar a análise de eventos e oportunidades.",
+      buttonLabel: "Salvando diária…",
     },
     'starting-analysis': {
-      title: "Preparando sugestoes de preco",
-      body: "Estamos iniciando a busca por eventos proximos e oportunidades de preco.",
-      buttonLabel: "Preparando sugestoes...",
+      title: "Preparando sugestões de preço",
+      body: "Estamos iniciando a busca por eventos próximos e oportunidades de preço.",
+      buttonLabel: "Preparando sugestões…",
     },
     refreshing: {
       title: "Atualizando a lista",
-      body: "Estamos mostrando os novos imoveis na tela.",
-      buttonLabel: "Atualizando...",
+      body: "Estamos mostrando os novos imóveis na tela.",
+      buttonLabel: "Atualizando…",
     },
   };
 
   const activeIndex = activeIndexByStage[stage];
   const stepDefs: Array<{ id: string; label: string; detail: string }> = [
     { id: "validate", label: "Conferir link", detail: "Evita cadastro duplicado" },
-    { id: "fetch", label: "Buscar no Airbnb", detail: "Foto e informacoes basicas" },
-    { id: "select", label: "Escolher imoveis", detail: "Voce confirma quais entram" },
+    { id: "fetch", label: "Buscar no Airbnb", detail: "Foto e informações básicas" },
+    { id: "select", label: "Escolher imóveis", detail: "Você confirma quais entram" },
     { id: "register", label: "Salvar na conta", detail: "Adiciona na sua lista" },
-    { id: "location", label: "Preparar mapa", detail: "Localizacao do imovel" },
-    { id: "availability", label: "Ver disponibilidade", detail: "Calendario publico do Airbnb" },
-    { id: "dates", label: "Encontrar datas", detail: "Janelas futuras disponiveis" },
-    { id: "daily", label: "Calcular diaria", detail: "Total dividido por noites" },
-    { id: "fallback", label: "Fallback manual", detail: "So quando falta fonte confiavel" },
-    { id: "save-price", label: "Salvar diaria", detail: "Valor manual confirmado" },
-    { id: "analysis", label: "Buscar oportunidades", detail: "Eventos e sugestoes" },
+    { id: "location", label: "Preparar mapa", detail: "Localização do imóvel" },
+    { id: "availability", label: "Ver disponibilidade", detail: "Calendário público do Airbnb" },
+    { id: "dates", label: "Encontrar datas", detail: "Janelas futuras disponíveis" },
+    { id: "daily", label: "Calcular diária", detail: "Total dividido por noites" },
+    { id: "fallback", label: "Fallback manual", detail: "Só quando falta fonte confiável" },
+    { id: "save-price", label: "Salvar diária", detail: "Valor manual confirmado" },
+    { id: "analysis", label: "Buscar oportunidades", detail: "Eventos e sugestões" },
     { id: "refresh", label: "Mostrar na tela", detail: "Lista atualizada" },
   ];
 
   return {
-    eyebrow: "O QUE ESTA ACONTECENDO",
+    eyebrow: "O QUE ESTÁ ACONTECENDO",
     title: copy[stage].title,
     body: copy[stage].body,
     buttonLabel: copy[stage].buttonLabel,

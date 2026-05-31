@@ -25,7 +25,7 @@ export function EventImpactTable({
     return (
       <AppCard variant="subtle" style={{ padding: 18 }}>
         <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 14 }}>
-          Nenhum imovel impactado encontrado para este evento.
+          Nenhum imóvel impactado encontrado para este evento.
         </p>
       </AppCard>
     );
@@ -50,7 +50,7 @@ export function EventImpactTable({
       >
         <thead>
           <tr>
-            {["Imovel", "Distancia", "Captura", "Diaria atual", "Faixa absorvivel", "Recomendado", "Chance", "Acao"].map(
+            {["Imóvel", "Distância", "Captura", "Diária atual", "Faixa absorvível", "Recomendado", "Chance", "Ação"].map(
               (header) => (
                 <th
                   key={header}
@@ -122,7 +122,7 @@ export function EventImpactTable({
       .event-impact-mobile-list {
         display: none;
       }
-      @media (max-width: 760px) {
+      @média (max-width: 760px) {
         .event-impact-table-scroll {
           display: none;
         }
@@ -131,7 +131,7 @@ export function EventImpactTable({
           gap: 12px;
         }
       }
-      @media (max-width: 420px) {
+      @média (max-width: 420px) {
         .event-impact-mobile-header {
           align-items: stretch !important;
         }

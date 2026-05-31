@@ -12,10 +12,10 @@ const PUBLIC_SITE_URL = (
 /**
  * AppFooter — footer minimal pro app autenticado.
  *
- * Substitui o `componentes/Footer.tsx` usado pelo HostShell quando o anfitriao
- * esta autenticado. Estilo: light premium, tipografia editorial sutil, sem
- * 4-coluna SaaS pesado (essas paginas estao no autenticado e nao precisam de
- * navegacao publica/legal completa que o footer publico ja entrega).
+ * Substitui o `componentes/Footer.tsx` usado pelo HostShell quando o anfitrião
+ * está autenticado. Estilo: light premium, tipografia editorial sutil, sem
+ * 4-coluna SaaS pesado (essas páginas estão no autenticado e não precisam de
+ * navegação pública/legal completa que o footer público já entrega).
  *
  * Estrutura:
  *  - Linha superior: ©  2026 Urban AI · ambiente · status pill

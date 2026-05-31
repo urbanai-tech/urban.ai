@@ -41,7 +41,7 @@ export function formatShortDate(value?: string | null): string {
   }
 }
 
-export function formatDateRange(startsAt?: string | null, endsAt?: string | null): string {
+export function formatDateRange(startsAt: string | null, endsAt: string | null): string {
   const start = formatShortDate(startsAt);
   const end = endsAt ? formatShortDate(endsAt) : null;
   if (!end || end === start) return start;
@@ -61,9 +61,9 @@ export function formatTime(value?: string | null): string {
 }
 
 export function confidenceLabel(confidence?: HostEventConfidence): string {
-  if (confidence === "high") return "Alta confianca";
-  if (confidence === "low") return "Baixa confianca";
-  return "Media confianca";
+  if (confidence === "high") return "Alta confiança";
+  if (confidence === "low") return "Baixa confiança";
+  return "Média confiança";
 }
 
 export function confidenceBadgeKind(confidence?: HostEventConfidence): AppBadgeKind {
@@ -75,7 +75,7 @@ export function confidenceBadgeKind(confidence?: HostEventConfidence): AppBadgeK
 export function riskLabel(risk?: "low" | "medium" | "high"): string {
   if (risk === "low") return "Risco baixo";
   if (risk === "high") return "Risco alto";
-  return "Risco medio";
+  return "Risco médio";
 }
 
 export function riskBadgeKind(risk?: "low" | "medium" | "high"): AppBadgeKind {

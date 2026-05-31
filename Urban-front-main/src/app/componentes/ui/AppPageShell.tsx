@@ -4,7 +4,7 @@ import React from "react";
 import { appVar } from "./styles";
 
 /**
- * Wrapper de pagina autenticada. Coloca a classe `.urban-app` no container
+ * Wrapper de página autenticada. Coloca a classe `.urban-app` no container
  * (ativa todos os tokens CSS variables) + max-width + padding consistente.
  *
  * Use no topo das paginas migradas pro novo design system:
@@ -14,7 +14,7 @@ import { appVar } from "./styles";
  *   </AppPageShell>
  *
  * O layout de `app/<rota>/layout.tsx` continua sendo quem cria o Flex com
- * SideBar — esse shell so estiliza o conteudo da pagina em si.
+ * SideBar — esse shell só estiliza o conteúdo da página em si.
  */
 export function AppPageShell({
   children,

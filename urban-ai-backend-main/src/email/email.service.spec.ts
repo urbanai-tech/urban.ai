@@ -42,11 +42,11 @@ describe('EmailService pricing digest', () => {
       wantsPush: true,
       items: [
         {
-          title: 'Sugestao pronta',
+          title: 'Sugestão pronta',
           description: 'Ajuste recomendado',
           redirectTo: '/dashboard',
           propertyTitle: 'Studio Paulista',
-          reasons: ['Evento proximo'],
+          reasons: ['Evento próximo'],
           createdAt: '2026-05-23T12:00:00Z',
         },
       ],

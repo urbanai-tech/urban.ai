@@ -29,7 +29,7 @@ export type EventDemandScoreInput = {
   categoria?: string | null;
   raioImpactoKm?: number | null;
   leadTimeDays?: number | null;
-  startsAt?: Date | string | null;
+  startsAt: Date | string | null;
   source?: string | null;
   dataCrawl?: Date | string | null;
   sourceFreshnessHours?: number | null;
@@ -69,8 +69,8 @@ export type PropertyCaptureScoreInput = {
   bedrooms?: number | null;
   bathrooms?: number | null;
   affectedNights?: number | null;
-  eventStartsAt?: Date | string | null;
-  eventEndsAt?: Date | string | null;
+  eventStartsAt: Date | string | null;
+  eventEndsAt: Date | string | null;
   now?: Date | string | null;
 };
 
@@ -281,26 +281,26 @@ export function eventDemandScore(input: EventDemandScoreInput): EventDemandScore
   const drivers: IntelligenceDriver[] = [
     {
       key: 'relevance',
-      label: 'Relevancia do evento',
+      label: 'Relevância do evento',
       weight: 30,
       score: roundScore(relevanceScore),
       value: relevanceKnown ? Number(input.relevancia) : null,
       explanation: relevanceKnown
         ? 'Score informado pelo enriquecimento do evento.'
-        : 'Sem relevancia enriquecida; usado fallback conservador.',
+        : 'Sem relevância enriquecida; foi usado fallback conservador.',
     },
     {
       key: 'attendance',
-      label: 'Publico esperado',
+      label: 'Público esperado',
       weight: 25,
       score: roundScore(attendanceScore),
       value: attendance.attendance,
       explanation:
         attendance.source === 'expectedAttendance'
-          ? 'Publico esperado veio da fonte/enriquecimento.'
+          ? 'Público esperado veio da fonte/enriquecimento.'
           : attendance.source === 'missing'
-            ? 'Sem publico esperado; peso reduzido para nao superestimar demanda.'
-            : `Publico inferido de ${attendance.source}.`,
+            ? 'Sem público esperado; peso reduzido para não superestimar demanda.'
+            : `Público inferido de ${attendance.source}.`,
     },
     {
       key: 'venue_category',
@@ -318,7 +318,7 @@ export function eventDemandScore(input: EventDemandScoreInput): EventDemandScore
       value: roundDecimal(demandRadiusKm, 1),
       explanation: input.raioImpactoKm
         ? 'Raio de impacto veio do evento enriquecido.'
-        : 'Raio estimado por publico e tipo de venue.',
+        : 'Raio estimado por público e tipo de venue.',
     },
     {
       key: 'lead_time',
@@ -334,18 +334,18 @@ export function eventDemandScore(input: EventDemandScoreInput): EventDemandScore
       weight: 10,
       score: roundScore(sourceReliabilityScore),
       value: input.source ?? null,
-      explanation: 'Fonte oficial/API e dados frescos aumentam confianca.',
+      explanation: 'Fonte oficial/API e dados frescos aumentam confiança.',
     },
   ];
 
   if (overlapBoost > 0) {
     drivers.push({
       key: 'event_overlap',
-      label: 'Sobreposicao de eventos',
+      label: 'Sobreposição de eventos',
       weight: 8,
       score: roundScore(overlapBoost * 12.5),
       value: overlapEventsCount,
-      explanation: 'Eventos simultaneos aumentam compressao de demanda na regiao.',
+      explanation: 'Eventos simultâneos aumentam compressão de demanda na região.',
     });
   }
 
@@ -428,7 +428,7 @@ export function propertyCaptureScore(input: PropertyCaptureScoreInput): Property
   const drivers: IntelligenceDriver[] = [
     {
       key: 'distance',
-      label: 'Distancia ao evento',
+      label: 'Distância ao evento',
       weight: 35,
       score: roundScore(distanceScore),
       value: distanceKnown ? roundDecimal(Number(input.distanceKm), 2) : null,
@@ -441,8 +441,8 @@ export function propertyCaptureScore(input: PropertyCaptureScoreInput): Property
       score: roundScore(travelScore),
       value: travelKnown ? roundDecimal(Number(input.travelTimeMinutes), 0) : null,
       explanation: travelKnown
-        ? 'Tempo curto aumenta conversao em eventos.'
-        : 'Sem tempo de rota; estimado a partir da distancia.',
+        ? 'Tempo curto aumenta conversão em eventos.'
+        : 'Sem tempo de rota; estimado a partir da distância.',
     },
     {
       key: 'event_demand',
@@ -450,7 +450,7 @@ export function propertyCaptureScore(input: PropertyCaptureScoreInput): Property
       weight: 15,
       score: roundScore(eventDemand),
       value: roundScore(eventDemand),
-      explanation: 'Demanda forte ajuda mesmo imoveis menos centrais.',
+      explanation: 'Demanda forte ajuda mesmo imóveis menos centrais.',
     },
     {
       key: 'market_fit',
@@ -458,7 +458,7 @@ export function propertyCaptureScore(input: PropertyCaptureScoreInput): Property
       weight: 10,
       score: roundScore(marketScore),
       value: input.compMedianPriceCents ?? null,
-      explanation: 'Preco atual versus comparaveis indica folga para capturar demanda.',
+      explanation: 'Preço atual versus comparáveis indica folga para capturar demanda.',
     },
     {
       key: 'availability',
@@ -469,15 +469,15 @@ export function propertyCaptureScore(input: PropertyCaptureScoreInput): Property
         input.available === null || input.available === undefined
           ? null
           : String(input.available),
-      explanation: 'Imovel disponivel tem prioridade; indisponivel deve ser revisado.',
+      explanation: 'Imóvel disponível tem prioridade; indisponível deve ser revisado.',
     },
     {
       key: 'property_quality',
-      label: 'Qualidade do imovel',
+      label: 'Qualidade do imóvel',
       weight: 10,
       score: roundScore(qualityScore),
       value: input.rating ?? input.reviewCount ?? input.accommodates ?? null,
-      explanation: 'Rating, reviews e capacidade sustentam preco maior.',
+      explanation: 'Rating, reviews e capacidade sustentam preço maior.',
     },
   ];
 
@@ -1154,31 +1154,31 @@ function absorptionDrivers(input: {
       weight: 35,
       score: roundScore(input.demandScore),
       value: roundScore(input.demandScore),
-      explanation: 'Score de demanda aumenta a faixa de preco absorvivel.',
+      explanation: 'Score de demanda aumenta a faixa de preço absorvível.',
     },
     {
       key: 'property_capture',
-      label: 'Captura do imovel',
+      label: 'Captura do imóvel',
       weight: 30,
       score: roundScore(input.captureScore),
       value: roundScore(input.captureScore),
-      explanation: 'Imovel mais perto e conveniente sustenta preco maior.',
+      explanation: 'Imóvel mais perto e conveniente sustenta preço maior.',
     },
     {
       key: 'supply_compression',
-      label: 'Compressao de oferta',
+      label: 'Compressão de oferta',
       weight: 20,
       score: roundScore(input.supplyCompressionScore),
       value: roundScore(input.supplyCompressionScore),
-      explanation: 'Oferta curta aumenta tolerancia do mercado a multiplicadores maiores.',
+      explanation: 'Oferta curta aumenta a tolerância do mercado a multiplicadores maiores.',
     },
     {
       key: 'max_plausible_multiplier',
-      label: 'Multiplicador plausivel',
+      label: 'Multiplicador plausível',
       weight: 10,
       score: roundScore((input.maxPlausibleMultiplier / 4.5) * 100),
       value: input.maxPlausibleMultiplier,
-      explanation: 'Limite v0 antes de guardrails, usado para montar os cenarios.',
+      explanation: 'Limite v0 antes dos guardrails, usado para montar os cenários.',
     },
     {
       key: 'guardrail',
@@ -1186,20 +1186,20 @@ function absorptionDrivers(input: {
       weight: 5,
       score: roundScore((input.guardrail.maxMultiplier / 4.5) * 100),
       value: input.guardrail.label ?? input.guardrail.maxMultiplier,
-      explanation: 'Limite do host ou da plataforma corta sugestoes acima do permitido.',
+      explanation: 'Limite do host ou da plataforma corta sugestões acima do permitido.',
     },
   ];
 
   if (input.calibration) {
     drivers.push({
       key: 'outcome_calibration',
-      label: 'Calibracao por outcomes',
+      label: 'Calibração por outcomes',
       weight: 10,
       score: roundScore(input.calibration.observedAbsorptionRate * 100),
       value: input.calibration.sampleSize,
       explanation:
         `Probabilidade ajustada em ${input.calibration.adjustment} ponto absoluto ` +
-        `a partir de outcomes reais de absorcao.`,
+        `a partir de outcomes reais de absorção.`,
     });
   }
 
@@ -1222,28 +1222,28 @@ function demandInterpretation(
   return `Evento com ${strength} em raio aproximado de ${roundDecimal(
     radiusKm,
     1,
-  )} km. Confianca ${confidence}; score combina relevancia, publico, venue, antecedencia, fonte e sobreposicao.`;
+  )} km. Confiança ${confidence}; o score combina relevância, público, venue, antecedência, fonte e sobreposição.`;
 }
 
 function captureInterpretation(score: number, action: RecommendedPricingAction): string {
   const strength =
     score >= 75
-      ? 'alta captura provavel'
+      ? 'alta captura provável'
       : score >= 55
         ? 'captura razoavel'
         : score >= 35
           ? 'captura limitada'
           : 'baixa captura';
-  return `Imovel com ${strength}. Acao v0 sugerida: ${action}.`;
+  return `Imóvel com ${strength}. Ação v0 sugerida: ${action}.`;
 }
 
 function absorptionInterpretation(
   recommendedScenario: PriceAbsorptionScenario,
   maxPlausibleMultiplier: number,
 ): string {
-  return `Cenario ${recommendedScenario.label.toLowerCase()} escolhido por receita esperada, com probabilidade estimada de ${Math.round(
+  return `Cenário ${recommendedScenario.label.toLowerCase()} escolhido por receita esperada, com probabilidade estimada de ${Math.round(
     recommendedScenario.bookingProbability * 100,
-  )}%. O multiplicador maximo plausivel v0 e ${maxPlausibleMultiplier}x, sem promessa de reserva.`;
+  )}%. O multiplicador máximo plausível v0 é ${maxPlausibleMultiplier}x, sem promessa de reserva.`;
 }
 
 function scenarioExplanation(
@@ -1251,17 +1251,17 @@ function scenarioExplanation(
   cappedByGuardrail: boolean,
 ): string {
   const suffix = cappedByGuardrail
-    ? ' Guardrail aplicado; preco exibido foi limitado.'
+    ? ' Guardrail aplicado; preço exibido foi limitado.'
     : '';
   switch (scenario) {
     case 'conservative':
-      return `Prioriza chance de reserva e menor risco de vacancia.${suffix}`;
+      return `Prioriza chance de reserva e menor risco de vacância.${suffix}`;
     case 'recommended':
-      return `Equilibra diaria maior e probabilidade de absorcao.${suffix}`;
+      return `Equilibra diária maior e probabilidade de absorção.${suffix}`;
     case 'aggressive':
       return `Busca capturar upside, aceitando queda relevante na chance de reserva.${suffix}`;
     case 'extreme':
-      return `So faz sentido com demanda e compressao muito fortes; risco de vacancia alto.${suffix}`;
+      return `Só faz sentido com demanda e compressão muito fortes; risco de vacância alto.${suffix}`;
   }
 }
 

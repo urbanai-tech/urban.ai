@@ -26,8 +26,8 @@ const baseFont =
 export function createUrbanSeoImage({
   width,
   height,
-  title = "Precificacao dinamica para Airbnb",
-  subtitle = "Eventos urbanos, demanda local e IA explicavel para orientar diarias.",
+  title = "Precificação dinâmica para Airbnb",
+  subtitle = "Eventos urbanos, demanda local e IA explicável para orientar diárias.",
   eyebrow = "Urban AI",
 }: UrbanSeoImageOptions) {
   const compact = height <= 480;

@@ -285,13 +285,13 @@ export class PropriedadeService {
             return {
                 state: 'error',
                 currentStep: 'attention',
-                publicLabel: 'Precisa de atencao',
-                publicDescription: 'Nao conseguimos terminar a preparacao deste imovel. Revise endereco e tente novamente.',
+                publicLabel: 'Precisa de atenção',
+                publicDescription: 'Não conseguimos terminar a preparação deste imóvel. Revise endereço e tente novamente.',
                 steps: [
-                    { id: 'saved', label: 'Imovel adicionado', status: 'complete' },
+                    { id: 'saved', label: 'Imóvel adicionado', status: 'complete' },
                     { id: 'map', label: 'Preparar mapa', status: hasCoordinates ? 'complete' : 'error' },
                     { id: 'events', label: 'Procurar eventos perto', status: 'pending' },
-                    { id: 'suggestions', label: 'Preparar sugestoes', status: 'pending' },
+                    { id: 'suggestions', label: 'Preparar sugestões', status: 'pending' },
                 ],
             };
         }
@@ -301,13 +301,13 @@ export class PropriedadeService {
                 return {
                     state: 'preparing',
                     currentStep: 'attention',
-                    publicLabel: 'Diaria base pendente',
-                    publicDescription: 'Informe a diaria base para liberar sugestoes de preco neste imovel.',
+                    publicLabel: 'Diária base pendente',
+                    publicDescription: 'Informe a diária base para liberar sugestões de preço neste imóvel.',
                     steps: [
-                        { id: 'saved', label: 'Imovel adicionado', status: 'complete' },
+                        { id: 'saved', label: 'Imóvel adicionado', status: 'complete' },
                         { id: 'map', label: 'Mapa pronto', status: 'complete' },
                         { id: 'events', label: 'Eventos verificados', status: 'complete' },
-                        { id: 'suggestions', label: 'Preparar sugestoes', status: 'pending' },
+                        { id: 'suggestions', label: 'Preparar sugestões', status: 'pending' },
                     ],
                 };
             }
@@ -315,13 +315,13 @@ export class PropriedadeService {
             return {
                 state: 'ready',
                 currentStep: 'ready',
-                publicLabel: 'Pronto para sugestoes',
-                publicDescription: 'Este imovel ja pode mostrar mapa, eventos por perto e sugestoes de preco.',
+                publicLabel: 'Pronto para sugestões',
+                publicDescription: 'Este imóvel já pode mostrar mapa, eventos por perto e sugestões de preço.',
                 steps: [
-                    { id: 'saved', label: 'Imovel adicionado', status: 'complete' },
+                    { id: 'saved', label: 'Imóvel adicionado', status: 'complete' },
                     { id: 'map', label: 'Mapa pronto', status: 'complete' },
                     { id: 'events', label: 'Eventos verificados', status: 'complete' },
-                    { id: 'suggestions', label: 'Sugestoes prontas', status: 'complete' },
+                    { id: 'suggestions', label: 'Sugestões prontas', status: 'complete' },
                 ],
             };
         }
@@ -331,12 +331,12 @@ export class PropriedadeService {
                 state: 'preparing',
                 currentStep: 'map',
                 publicLabel: 'Preparando mapa',
-                publicDescription: 'Estamos encontrando a localizacao para buscar eventos perto deste imovel.',
+                publicDescription: 'Estamos encontrando a localização para buscar eventos perto deste imóvel.',
                 steps: [
-                    { id: 'saved', label: 'Imovel adicionado', status: 'complete' },
+                    { id: 'saved', label: 'Imóvel adicionado', status: 'complete' },
                     { id: 'map', label: 'Preparar mapa', status: 'active' },
                     { id: 'events', label: 'Procurar eventos perto', status: 'pending' },
-                    { id: 'suggestions', label: 'Preparar sugestoes', status: 'pending' },
+                    { id: 'suggestions', label: 'Preparar sugestões', status: 'pending' },
                 ],
             };
         }
@@ -345,12 +345,12 @@ export class PropriedadeService {
             state: 'preparing',
             currentStep: 'events',
             publicLabel: 'Procurando eventos perto',
-            publicDescription: 'Estamos olhando os eventos da regiao para preparar sugestoes de preco.',
+            publicDescription: 'Estamos olhando os eventos da região para preparar sugestões de preço.',
             steps: [
-                { id: 'saved', label: 'Imovel adicionado', status: 'complete' },
+                { id: 'saved', label: 'Imóvel adicionado', status: 'complete' },
                 { id: 'map', label: 'Mapa pronto', status: 'complete' },
                 { id: 'events', label: 'Procurar eventos perto', status: 'active' },
-                { id: 'suggestions', label: 'Preparar sugestoes', status: 'pending' },
+                { id: 'suggestions', label: 'Preparar sugestões', status: 'pending' },
             ],
         };
     }
@@ -372,7 +372,7 @@ export class PropriedadeService {
         });
 
         if (!address?.list) {
-            throw new NotFoundException('Propriedade nao encontrada');
+            throw new NotFoundException('Propriedade não encontrada');
         }
 
         address.list.internalNickname = this.normalizeOptionalText(input.internalNickname, 'internalNickname', 80);
@@ -399,7 +399,7 @@ export class PropriedadeService {
         });
 
         if (!address?.list) {
-            throw new NotFoundException('Propriedade nao encontrada');
+            throw new NotFoundException('Propriedade não encontrada');
         }
 
         const manualDailyPrice = this.normalizeOptionalMoney(input.manualDailyPrice, 'manualDailyPrice');
@@ -448,7 +448,7 @@ export class PropriedadeService {
         });
 
         if (!address?.list) {
-            throw new NotFoundException('Propriedade nao encontrada');
+            throw new NotFoundException('Propriedade não encontrada');
         }
 
         const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 100);
@@ -572,7 +572,7 @@ export class PropriedadeService {
         });
 
         if (!address?.list) {
-            throw new NotFoundException('Propriedade nao encontrada');
+            throw new NotFoundException('Propriedade não encontrada');
         }
 
         return address as Address & { list: List };
@@ -583,7 +583,7 @@ export class PropriedadeService {
         const normalized = String(value).trim();
         if (!normalized) return null;
         if (normalized.length > maxLength) {
-            throw new HttpException(`${field} deve ter no maximo ${maxLength} caracteres`, HttpStatus.BAD_REQUEST);
+            throw new HttpException(`${field} deve ter no máximo ${maxLength} caracteres`, HttpStatus.BAD_REQUEST);
         }
         return normalized;
     }
@@ -592,7 +592,7 @@ export class PropriedadeService {
         if (value === undefined || value === null || value === '') return null;
         const parsed = Number(String(value).replace(',', '.'));
         if (!Number.isFinite(parsed) || parsed < 0) {
-            throw new HttpException(`${field} invalido`, HttpStatus.BAD_REQUEST);
+            throw new HttpException(`${field} inválido`, HttpStatus.BAD_REQUEST);
         }
         return parsed > 0 ? Number(parsed.toFixed(2)) : null;
     }
@@ -601,7 +601,7 @@ export class PropriedadeService {
         if (value === undefined || value === null || value === '') return null;
         const parsed = Number(value);
         if (!Number.isFinite(parsed) || parsed < 0) {
-            throw new HttpException(`${field} invalido`, HttpStatus.BAD_REQUEST);
+            throw new HttpException(`${field} inválido`, HttpStatus.BAD_REQUEST);
         }
         return Math.floor(parsed);
     }
@@ -620,7 +620,7 @@ export class PropriedadeService {
         if (status === 'booked' || status === 'available' || status === 'blocked' || status === 'unknown') {
             return status;
         }
-        throw new HttpException('status de ocupacao invalido', HttpStatus.BAD_REQUEST);
+        throw new HttpException('status de ocupação inválido', HttpStatus.BAD_REQUEST);
     }
 
     private toPublicOccupancyRecord(record: OccupancyHistory) {
@@ -1061,11 +1061,11 @@ export class PropriedadeService {
             console.warn(`[scrapeHost:headless] Tentando fallback browser para host ${userId} (${reason})...`);
             const listings = await this.airbnbService.scrapeHostListingsWithBrowser(userId);
             if (listings.length === 0) {
-                console.warn(`[scrapeHost:headless] Nenhum imovel encontrado via browser para host ${userId}`);
+                console.warn(`[scrapeHost:headless] Nenhum imóvel encontrado via browser para host ${userId}`);
                 return [];
             }
 
-            console.log(`[scrapeHost:headless] Encontrados ${listings.length} imoveis para host ${userId}`);
+            console.log(`[scrapeHost:headless] Encontrados ${listings.length} imóveis para host ${userId}`);
             return listings.map((item) => ({
                 roomId: item.roomId,
                 title: item.title,
@@ -1560,10 +1560,10 @@ export class PropriedadeService {
                 };
             } catch (error: any) {
                 this.logger.warn(
-                    `Falha ao buscar preco airbnb-search para room ${propertyId}: ${error?.message || error}`,
+                    `Falha ao buscar preço airbnb-search para room ${propertyId}: ${error?.message || error}`,
                 );
                 throw new HttpException(
-                    'Nao foi possivel consultar o preco agora. Tente novamente em alguns minutos.',
+                    'Não foi possível consultar o preço agora. Tente novamente em alguns minutos.',
                     HttpStatus.BAD_REQUEST,
                 );
             }
@@ -1602,7 +1602,7 @@ export class PropriedadeService {
             const guestFeeItem = priceItems.find(item => item.type === 'AIRBNB_GUEST_FEE');
 
             if (!accommodationItem || !guestFeeItem) {
-                throw new HttpException('Nao encontramos preco para essas datas. Tente outro periodo.', HttpStatus.NOT_FOUND);
+                throw new HttpException('Não encontramos preço para essas datas. Tente outro período.', HttpStatus.NOT_FOUND);
             }
 
             // Converte de string para float
@@ -1632,10 +1632,10 @@ export class PropriedadeService {
                 throw error;
             }
             this.logger.warn(
-                `Falha ao buscar preco do Airbnb para room ${propertyId}: ${error?.message || error}`,
+                `Falha ao buscar preço do Airbnb para room ${propertyId}: ${error?.message || error}`,
             );
             throw new HttpException(
-                'Nao foi possivel consultar o preco agora. Tente novamente em alguns minutos.',
+                'Não foi possível consultar o preço agora. Tente novamente em alguns minutos.',
                 HttpStatus.BAD_REQUEST,
             );
         }
@@ -1668,7 +1668,7 @@ export class PropriedadeService {
         });
 
         if (!propriedade) {
-            throw new NotFoundException('Nao encontramos esse imovel na sua conta.');
+            throw new NotFoundException('Não encontramos esse imóvel na sua conta.');
         }
 
         // Atualiza os campos com os dados recebidos
@@ -1768,7 +1768,7 @@ export class PropriedadeService {
         const baseUrl = process.env.AIRBNB_PRICE_SCRAPER_URL?.trim();
         if (!baseUrl) {
             throw new HttpException(
-                'AIRBNB_PRICE_SCRAPER_URL nao configurada',
+                'AIRBNB_PRICE_SCRAPER_URL não configurada',
                 HttpStatus.SERVICE_UNAVAILABLE,
             );
         }
@@ -1838,7 +1838,7 @@ export class PropriedadeService {
         const baseUrl = process.env.AIRBNB_ROOM_INFO_URL?.trim();
         if (!baseUrl) {
             throw new HttpException(
-                'AIRBNB_ROOM_INFO_URL nao configurada',
+                'AIRBNB_ROOM_INFO_URL não configurada',
                 HttpStatus.SERVICE_UNAVAILABLE,
             );
         }
@@ -1906,10 +1906,10 @@ export class PropriedadeService {
 
             if (eventosUnicos.size > 0) {
                 this.logger.debug(
-                    `Usuario ${user.id} possui ${eventosUnicos.size} eventos futuros unicos analisados; e-mail legado suprimido.`,
+                    `Usuário ${user.id} possui ${eventosUnicos.size} eventos futuros únicos analisados; e-mail legado suprimido.`,
                 );
             } else {
-                this.logger.debug(`Nenhum evento futuro disponivel para user=${user.id}`);
+                this.logger.debug(`Nenhum evento futuro disponível para user=${user.id}`);
             }
 
             return relatorioUsuario;
@@ -2050,7 +2050,7 @@ export class PropriedadeService {
         try {
             const startedAt = new Date();
             const pricingFailureReasons: Record<string, number> = {};
-            this.logger.log(`Buscando endereco com idAlertAirb valido para list=${listId}`);
+            this.logger.log(`Buscando endereço com idAlertAirb válido para list=${listId}`);
             console.log("🔍 Buscando endereço com idAlertAirb válido...");
             const address = await this.addressRepository.findOne({
                 where: {
@@ -2060,19 +2060,19 @@ export class PropriedadeService {
             });
 
             if (!address) {
-                this.logger.warn(`Nenhum endereco com idAlertAirb valido para list=${listId}; pricing nao sera gerado.`);
+                this.logger.warn(`Nenhum endereço com idAlertAirb válido para list=${listId}; pricing não será gerado.`);
                 return { ok: false, reason: 'missing_alert_airb', pricingGenerated: 0 };
             }
             if (!address.user?.id) {
-                this.logger.warn(`Endereco ${address.id} sem usuario associado; pricing nao sera gerado.`);
+                this.logger.warn(`Endereço ${address.id} sem usuário associado; pricing não será gerado.`);
                 return { ok: false, reason: 'address_without_user', pricingGenerated: 0 };
             }
             if (address.user.ativo === false) {
-                this.logger.warn(`Usuario ${address.user.id} inativo; pricing nao sera gerado para list=${listId}.`);
+                this.logger.warn(`Usuário ${address.user.id} inativo; pricing não será gerado para list=${listId}.`);
                 return { ok: false, reason: 'inactive_user', pricingGenerated: 0 };
             }
             if (!address.list?.id) {
-                this.logger.warn(`Endereco ${address.id} sem imovel associado; pricing nao sera gerado.`);
+                this.logger.warn(`Endereço ${address.id} sem imóvel associado; pricing não será gerado.`);
                 return { ok: false, reason: 'address_without_listing', pricingGenerated: 0 };
             }
 
@@ -2084,7 +2084,7 @@ export class PropriedadeService {
             const dadosAirbnb = await this.getPricingBaseQuote(list);
 
             if (!dadosAirbnb?.price?.status || !dadosAirbnb?.propertyDetails) {
-                this.logger.warn(`Nao foi possivel obter preco Airbnb para list=${listId}`);
+                this.logger.warn(`Não foi possível obter preço Airbnb para list=${listId}`);
                 return { ok: false, reason: 'missing_airbnb_price', pricingGenerated: 0 };
             }
 
@@ -2107,7 +2107,7 @@ export class PropriedadeService {
 
             this.logger.debug(`Dados Airbnb carregados para list=${list?.id}`);
             if (!alerts?.comps?.length) {
-                this.logger.warn(`Nenhum comparavel encontrado para list=${listId}; pricing nao sera gerado.`);
+                this.logger.warn(`Nenhum comparável encontrado para list=${listId}; pricing não será gerado.`);
                 return { ok: false, reason: 'missing_comps', pricingGenerated: 0 };
             }
             const maxObj = alerts.comps.reduce((prev, curr) =>
@@ -2283,7 +2283,7 @@ export class PropriedadeService {
                 await this.emailService.enviarNotification(address?.user?.id, notificationContent);
             } else {
                 this.logger.debug(
-                    `Nenhuma notificacao criada para list=${listId}; ${pricingUnchanged} sugestoes ja estavam atualizadas.`,
+                    `Nenhuma notificação criada para list=${listId}; ${pricingUnchanged} sugestões já estavam atualizadas.`,
                 );
             }
 
@@ -2371,11 +2371,11 @@ export class PropriedadeService {
                 return { ok: false, reason: 'property_not_found' };
             }
             if (!property.user?.id) {
-                this.logger.warn(`Pricing ignorado para list=${listId}: propriedade sem usuario associado.`);
+                this.logger.warn(`Pricing ignorado para list=${listId}: propriedade sem usuário associado.`);
                 return { ok: false, reason: 'property_without_user' };
             }
             if (property.user.ativo === false) {
-                this.logger.warn(`Pricing ignorado para list=${listId}: usuario inativo.`);
+                this.logger.warn(`Pricing ignorado para list=${listId}: usuário inativo.`);
                 return { ok: false, reason: 'inactive_user' };
             }
             if (!property.id_do_anuncio || !String(property.id_do_anuncio).trim()) {
@@ -2396,7 +2396,7 @@ export class PropriedadeService {
                 return { ok: false, reason: 'address_not_found' };
             }
             if (!address.list?.id) {
-                this.logger.warn(`Pricing ignorado para list=${listId}: endereco sem imovel associado.`);
+                this.logger.warn(`Pricing ignorado para list=${listId}: endereço sem imóvel associado.`);
                 return { ok: false, reason: 'address_without_listing' };
             }
 
@@ -2451,7 +2451,7 @@ export class PropriedadeService {
                 Number(evento.venueCapacity) ||
                 null;
 
-            //aqui nao tá considerando o preço do imovel referencia, porque o imóvel tem um preço extremamente inferior maxObj.avg_booked_daily_rate_ltm)
+            // Aqui não considera o preço do imóvel referência, porque o imóvel tem preço extremamente inferior maxObj.avg_booked_daily_rate_ltm.
             const result = this.pricingCalculateService.calcular({
                 precoReferencia: Number(referenceDailyPrice),
                 seuPrecoAtual: Number(minhaPropriedadePricePerDay),
@@ -2580,7 +2580,7 @@ export class PropriedadeService {
             };
 
             if (existingAnalise && this.isSamePricingAnalysis(existingAnalise, nextAnalise)) {
-                console.log("Analise de preco ja estava atualizada");
+                console.log("Análise de preço já estava atualizada");
                 return {
                     ok: true,
                     id: existingAnalise.id,
@@ -2686,7 +2686,7 @@ export class PropriedadeService {
                     details = quote.propertyDetails as any;
                 } catch (error) {
                     this.logger.warn(
-                        `Fallback comps: sem preco para listing=${candidate.list.id_do_anuncio}: ${
+                        `Fallback comps: sem preço para listing=${candidate.list.id_do_anuncio}: ${
                             error instanceof Error ? error.message : String(error)
                         }`,
                     );
@@ -2737,7 +2737,7 @@ export class PropriedadeService {
         return {
             price: {
                 status: true,
-                message: 'Preco base manual informado pelo anfitriao',
+                message: 'Preço base manual informado pelo anfitrião',
                 timestamp: Date.now(),
                 data: {
                     accommodationCost: Number(dailyPrice.toFixed(2)),

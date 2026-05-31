@@ -4,10 +4,10 @@ import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 
 /**
- * /forbidden — pagina 403 amigavel.
+ * /forbidden — página 403 amigável.
  *
- * Usada quando guards (admin/PaymentCheck/AuthGuard) decidem que o usuario
- * nao tem permissao. Manifesto editorial dark, consistente com 404/erro.
+ * Usada quando guards (admin/PaymentCheck/AuthGuard) decidem que o usuário
+ * não tem permissão. Manifesto editorial dark, consistente com 404/erro.
  */
 export default function ForbiddenPage() {
   const router = useRouter();

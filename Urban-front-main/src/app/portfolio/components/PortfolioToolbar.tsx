@@ -24,21 +24,21 @@ const STRATEGIES: ReadonlyArray<{ id: string; label: string; helper: string }> =
   {
     id: "conservadora",
     label: "Conservadora",
-    helper: "Prioriza noites ocupadas com diarias mais acessiveis.",
+    helper: "Prioriza noites ocupadas com diárias mais acessiveis.",
   },
   {
     id: "moderada",
     label: "Moderada",
-    helper: "Equilibra ocupacao e valor da diaria.",
+    helper: "Equilibra ocupação e valor da diária.",
   },
   {
     id: "agressiva",
     label: "Agressiva",
-    helper: "Busca diarias mais altas quando ha demanda.",
+    helper: "Busca diárias mais altas quando há demanda.",
   },
   {
     id: "autonomous",
-    label: "Automatico",
+    label: "Automático",
     helper: "A Urban AI escolhe o melhor caminho caso a caso.",
   },
 ];
@@ -119,7 +119,7 @@ export function PortfolioToolbar({
             }}
           >
             <Icons.Info size={14} />
-            <span>Selecione imoveis ou datas recomendadas para agir.</span>
+            <span>Selecione imóveis ou datas recomendadas para agir.</span>
             {totalCount > 0 && onSelectAll && (
               <AppButton size="sm" variant="ghost" onClick={onSelectAll} disabled={loading}>
                 Selecionar todos ({totalCount})
@@ -158,7 +158,7 @@ export function PortfolioToolbar({
                 {selectedCount}
               </span>
               <span>
-                imovel{selectedCount > 1 ? "s" : ""} selecionado
+                imóvel{selectedCount > 1 ? "s" : ""} selecionado
                 {selectedCount > 1 ? "s" : ""}
               </span>
               {selectedDatesCount > 0 && (
@@ -202,7 +202,7 @@ export function PortfolioToolbar({
                   fontWeight: 500,
                 }}
               >
-                Toda acao abre uma previa antes de confirmar.
+                Toda ação abre uma prévia antes de confirmar.
               </span>
             </div>
 
@@ -226,8 +226,8 @@ export function PortfolioToolbar({
                     shellStyle={{ width: 140 }}
                     aria-label={
                       priceMode === "base"
-                        ? "Preco base por imovel"
-                        : "Preco para datas selecionadas"
+                        ? "Preço base por imóvel"
+                        : "Preço para datas selecionadas"
                     }
                   />
                   <AppButton size="sm" variant="primary" onClick={handlePrice} disabled={loading}>
@@ -288,7 +288,7 @@ export function PortfolioToolbar({
                     onClick={() => openPriceMode("base")}
                     disabled={loading}
                   >
-                    Preco base
+                    Preço base
                   </AppButton>
 
                   <AppButton
@@ -298,11 +298,11 @@ export function PortfolioToolbar({
                     disabled={loading || selectedDatesCount === 0}
                     title={
                       selectedDatesCount === 0
-                        ? "Selecione uma data no calendario ou ranking"
+                        ? "Selecione uma data no calendário ou ranking"
                         : undefined
                     }
                   >
-                    Preco por data
+                    Preço por data
                   </AppButton>
 
                   <AppButton
@@ -310,9 +310,9 @@ export function PortfolioToolbar({
                     variant="secondary"
                     onClick={() => void onAction?.({ type: "accept-suggestions" })}
                     disabled={loading}
-                    title="Aceita as sugestoes carregadas para os imoveis e datas selecionados."
+                    title="Aceita as sugestões carregadas para os imóveis e datas selecionados."
                   >
-                    Aceitar sugestoes
+                    Aceitar sugestões
                   </AppButton>
 
                   <AppButton
@@ -320,7 +320,7 @@ export function PortfolioToolbar({
                     variant="ghost"
                     onClick={() => void onAction?.({ type: "apply-internal" })}
                     disabled={loading}
-                    title="Registra o aceite internamente sem empurrar para uma integracao externa."
+                    title="Registra o aceite internamente sem empurrar para uma integração externa."
                   >
                     Salvar interno
                   </AppButton>

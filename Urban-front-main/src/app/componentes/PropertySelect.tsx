@@ -59,11 +59,11 @@ const PropertySelect: React.FC<Props> = ({
   disabled = false,
   includeAllOption = false,
   allOptionValue = "",
-  allOptionLabel = "Todos os imoveis",
-  placeholder = "Buscar imoveis",
+  allOptionLabel = "Todos os imóveis",
+  placeholder = "Buscar imóveis",
   maxWidth = DEFAULT_MAX_WIDTH,
   menuPlacement = "auto",
-  ariaLabel = "Selecionar imovel",
+  ariaLabel = "Selecionar imóvel",
 }) => {
   const options = useMemo(() => {
     const mapped = propsInfo.map(mapPropertyToOption);
@@ -127,7 +127,7 @@ const PropertySelect: React.FC<Props> = ({
       maxMenuHeight={360}
       menuPlacement={menuPlacement}
       menuPortalTarget={typeof document === "undefined" ? undefined : document.body}
-      noOptionsMessage={() => "Nenhum imovel encontrado"}
+      noOptionsMessage={() => "Nenhum imóvel encontrado"}
       onChange={handleChange}
       options={options}
       placeholder={placeholder}
@@ -164,7 +164,7 @@ function compactPropertyPrimary(property?: Partial<PropertyDropdown> | null): st
       ? identityParts.join(" - ")
       : cleanText(property?.propertyName) || cleanText(property?.nome);
 
-  if (!firstReadable || firstReadable === property?.id) return "Imovel";
+  if (!firstReadable || firstReadable === property?.id) return "Imóvel";
   return firstReadable;
 }
 
@@ -239,7 +239,7 @@ function PropertyMenuOption({ option }: { option: Option }) {
           {option.primary}
         </span>
         <span title={option.secondary ?? undefined} style={menuSecondaryStyle}>
-          {option.statusLabel ?? option.secondary ?? (option.isAll ? "Carteira completa" : "Localizacao nao informada")}
+          {option.statusLabel ?? option.secondary ?? (option.isAll ? "Carteira completa" : "Localização não informada")}
         </span>
       </span>
       {!option.isAll && (

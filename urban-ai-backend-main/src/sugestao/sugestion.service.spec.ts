@@ -151,7 +151,7 @@ describe('SugestionService', () => {
     expect(JSON.stringify(result)).not.toContain('hashed-secret');
   });
 
-  it('bloqueia preco aplicado quando a sugestao esta incompleta', async () => {
+  it('bloqueia preço aplicado quando a sugestão está incompleta', async () => {
     const registro = baseRegistro();
     registro.endereco.list = null as any;
     repo.findOne.mockResolvedValue(registro);
@@ -159,23 +159,23 @@ describe('SugestionService', () => {
     await expect(service.registrarPrecoAplicado('rec-1', 'user-1', {
       precoAplicado: 171,
       origem: 'manual_dashboard',
-    })).rejects.toThrow('Sugestao sem imovel associado nao pode ser aceita');
+    })).rejects.toThrow('Sugestão sem imóvel associado não pode ser aceita');
     expect(repo.save).not.toHaveBeenCalled();
     expect(datasetCollector.recordAppliedPrice).not.toHaveBeenCalled();
   });
 
-  it('bloqueia aceite de sugestao sem listing Airbnb associado', async () => {
+  it('bloqueia aceite de sugestão sem listing Airbnb associado', async () => {
     const registro = baseRegistro();
     registro.endereco.list = null as any;
     repo.findOne.mockResolvedValue(registro);
 
     await expect(service.alterarAceito('rec-1', 'user-1', true)).rejects.toThrow(
-      'Sugestao sem imovel associado nao pode ser aceita',
+      'Sugestão sem imóvel associado não pode ser aceita',
     );
     expect(repo.save).not.toHaveBeenCalled();
   });
 
-  it('permite rejeitar sugestao incompleta para limpar o estado do usuario', async () => {
+  it('permite rejeitar sugestão incompleta para limpar o estado do usuário', async () => {
     const registro = baseRegistro();
     registro.endereco.list = null as any;
     repo.findOne.mockResolvedValue(registro);
@@ -219,7 +219,7 @@ describe('SugestionService', () => {
     }));
   });
 
-  it('marca mismatch quando o Airbnb observa preco diferente do aplicado', async () => {
+  it('marca mismatch quando o Airbnb observa preço diferente do aplicado', async () => {
     const registro = baseRegistro();
     registro.aceito = true;
     registro.status = 'applied_manual';
@@ -239,10 +239,10 @@ describe('SugestionService', () => {
       observedPrice: 189,
       source: 'airbnb-browser',
     });
-    expect(result.verification.error).toContain('Preco observado 189.00');
+    expect(result.verification.error).toContain('Preço observado 189.00');
   });
 
-  it('mantem aceita sem aplicacao como pendente de verificacao', async () => {
+  it('mantém aceita sem aplicação como pendente de verificação', async () => {
     const registro = baseRegistro();
     registro.aceito = true;
     registro.status = 'accepted';
@@ -252,7 +252,7 @@ describe('SugestionService', () => {
 
     expect(result.verification).toMatchObject({
       status: 'pending',
-      error: 'Sugestao aceita sem preco aplicado registrado.',
+      error: 'Sugestão aceita sem preço aplicado registrado.',
     });
     expect(priceUpdateRepo.findOne).not.toHaveBeenCalled();
     expect(airbnbService.getPriceForDateWindow).not.toHaveBeenCalled();

@@ -2,6 +2,7 @@ import { PricingCalculateService } from './pricing-calculate.service';
 
 describe('PricingCalculateService pricing decision audit', () => {
   let service: PricingCalculateService;
+  const generatedAt = '2026-06-13T09:00:00.000Z';
 
   beforeEach(() => {
     service = new PricingCalculateService();
@@ -15,6 +16,7 @@ describe('PricingCalculateService pricing decision audit', () => {
       eventPropertyImpact: { id: 'impact-1' } as any,
       analisePreco: { id: 'analysis-1' } as any,
       targetDate: '2026-06-10',
+      generatedAt,
       jobRunId: 'job-1',
       selectedScenario: 'aggressive',
       priceInput: {
@@ -80,6 +82,7 @@ describe('PricingCalculateService pricing decision audit', () => {
         evento: { id: 'event-1', dataInicio: new Date('2026-07-01T12:00:00.000Z') },
       } as any,
       priceUpdate: { id: 'price-update-1', newPriceCents: 69000 } as any,
+      generatedAt,
       priceInput: {
         eventDemandScore: 92,
         propertyCaptureScore: 84,
@@ -112,6 +115,7 @@ describe('PricingCalculateService pricing decision audit', () => {
         supplyCompressionScore: 70,
         affectedNights: 2,
       },
+      generatedAt,
     });
 
     const patch = service.criarPatchOutcomeSnapshotDecisao({
@@ -126,6 +130,9 @@ describe('PricingCalculateService pricing decision audit', () => {
       appliedPriceCents: draft.selectedPriceCents,
       realizedRevenueCents: 112000,
       bookedNights: 2,
+      acceptedAt: null,
+      appliedAt: null,
+      rejectedAt: null,
       recordedAt: '2026-06-12T12:00:00.000Z',
       source: 'channel',
     });
@@ -167,6 +174,9 @@ describe('PricingCalculateService pricing decision audit', () => {
         status: 'pending',
         createdAt: new Date('2026-06-13T09:00:00.000Z'),
       } as any,
+      acceptedAt: null,
+      appliedAt: null,
+      rejectedAt: null,
       recordedAt: '2026-06-13T09:01:00.000Z',
     });
 
@@ -215,6 +225,10 @@ describe('PricingCalculateService pricing decision audit', () => {
         feedbackObservacao: 'Reserva confirmada no canal.',
       } as any,
       externalReservationId: 'reservation-123',
+      acceptedAt: null,
+      appliedAt: null,
+      rejectedAt: null,
+      recordedAt: null,
     });
 
     expect(patch.status).toBe('applied');
@@ -254,8 +268,12 @@ describe('PricingCalculateService pricing decision audit', () => {
         rejeitadoEm: new Date('2026-06-12T20:00:00.000Z'),
         reservaStatus: 'not_booked',
         resultadoRegistradoEm: new Date('2026-06-20T10:00:00.000Z'),
-        feedbackObservacao: 'Host decidiu manter o preco anterior.',
+        feedbackObservacao: 'Host decidiu manter o preço anterior.',
       } as any,
+      acceptedAt: null,
+      appliedAt: null,
+      rejectedAt: null,
+      recordedAt: null,
     });
 
     expect(patch.status).toBe('rejected');
@@ -267,7 +285,7 @@ describe('PricingCalculateService pricing decision audit', () => {
       rejectedAt: '2026-06-12T20:00:00.000Z',
       recordedAt: '2026-06-20T10:00:00.000Z',
       source: 'analise_preco',
-      note: 'Host decidiu manter o preco anterior.',
+      note: 'Host decidiu manter o preço anterior.',
     });
     expect(patch.riskFlags).toEqual(['decision_rejected', 'no_booking_after_decision']);
   });

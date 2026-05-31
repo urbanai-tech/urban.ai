@@ -4,7 +4,7 @@ import React from "react";
 import type { Drivers } from "@/app/types/recommendation";
 
 /**
- * DriverBar — barra horizontal segmentada que explica POR QUE o preco
+ * DriverBar — barra horizontal segmentada que explica POR QUE o preço
  * sugerido eh esse. Cada segmento eh a contribuicao (em peso 0-100) de
  * um driver da engine: evento, pace, comp set, sazonalidade.
  *
@@ -51,7 +51,7 @@ export function DriverBar({ drivers }: { drivers: Drivers }) {
       {/* Barra segmentada */}
       <div
         role="img"
-        aria-label="Motivos que influenciaram a sugestao de preco"
+        aria-label="Motivos que influenciaram a sugestão de preço"
         style={{
           display: "flex",
           width: "100%",

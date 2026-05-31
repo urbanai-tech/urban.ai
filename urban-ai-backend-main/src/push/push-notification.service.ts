@@ -58,14 +58,14 @@ export class PushNotificationService {
     userAgent?: string,
   ): Promise<{ ok: true; deviceId: string; secret: string; enabled: boolean }> {
     if (!this.isConfigured()) {
-      throw new BadRequestException('Web Push nao configurado no backend');
+      throw new BadRequestException('Web Push não configurado no backend');
     }
 
     this.assertValidSubscriptionInput(input);
 
     const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('Usuario nao encontrado');
-    if (user.ativo === false) throw new BadRequestException('Usuario inativo nao pode ativar push');
+    if (!user) throw new NotFoundException('Usuário não encontrado');
+    if (user.ativo === false) throw new BadRequestException('Usuário inativo não pode ativar push');
 
     const endpointHash = this.sha256(input.endpoint);
     const existingByEndpoint = await this.subscriptionRepo.findOne({ where: { endpointHash } });
@@ -226,7 +226,7 @@ export class PushNotificationService {
         active: true,
       },
     });
-    if (!subscription) throw new UnauthorizedException('Device push invalido');
+    if (!subscription) throw new UnauthorizedException('Device push inválido');
 
     const deliveries = await this.deliveryRepo.find({
       where: {
@@ -262,7 +262,7 @@ export class PushNotificationService {
 
   private assertValidSubscriptionInput(input: UpsertPushSubscriptionDto): void {
     if (!input.endpoint || !/^https:\/\//i.test(input.endpoint)) {
-      throw new BadRequestException('endpoint push invalido');
+      throw new BadRequestException('endpoint push inválido');
     }
     if (!input.keys?.p256dh || !input.keys?.auth) {
       throw new BadRequestException('chaves push ausentes');
@@ -298,7 +298,7 @@ export class PushNotificationService {
     try {
       return this.normalizePayload(JSON.parse(payloadJson));
     } catch {
-      return this.normalizePayload({ title: 'Urban AI', body: 'Voce tem uma nova notificacao.', url: '/notificacao' });
+      return this.normalizePayload({ title: 'Urban AI', body: 'Você tem uma nova notificação.', url: '/notificacao' });
     }
   }
 

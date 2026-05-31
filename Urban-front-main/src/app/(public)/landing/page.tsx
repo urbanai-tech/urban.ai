@@ -19,9 +19,9 @@ import {
  *  - Tom: declarações manifesto, não SaaS
  */
 export const metadata: Metadata = buildSeoMetadata({
-  title: "Urban AI - Precificacao dinamica para anfitrioes",
+  title: "Urban AI - Precificação dinâmica para anfitriões",
   description:
-    "A IA da Urban cruza agenda da cidade, eventos locais e demanda real para sugerir precos melhores para alugueis de curta temporada.",
+    "A IA da Urban cruza agenda da cidade, eventos locais e demanda real para sugerir preços melhores para alugueis de curta temporada.",
   path: "/",
 });
 
@@ -29,17 +29,17 @@ const LANDING_FAQ_SCHEMA = [
   {
     question: "A Urban AI precifica para todo o Brasil?",
     answer:
-      "A cobertura inicial prioriza Sao Paulo capital e Grande SP. Outras capitais entram conforme o pipeline de eventos amadurecer.",
+      "A cobertura inicial prioriza São Paulo capital e Grande SP. Outras capitais entram conforme o pipeline de eventos amadurecer.",
   },
   {
     question: "Preciso integrar com Stays para usar?",
     answer:
-      "Nao. No modo recomendacao, voce recebe sugestoes e aplica manualmente. A integracao Stays e para quem quer automacao.",
+      "Não. No modo recomendação, você recebe sugestões e aplica manualmente. A integração Stays e para quem quer automação.",
   },
   {
     question: "Posso cancelar quando quiser?",
     answer:
-      "Sim. Nao ha fidelidade; o cancelamento pode ser feito no painel, com acesso mantido ate o fim do ciclo pago.",
+      "Sim. Não há fidelidade; o cancelamento pode ser feito no painel, com acesso mantido até o fim do ciclo pago.",
   },
 ];
 

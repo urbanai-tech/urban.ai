@@ -22,13 +22,13 @@ type RoiLeaderboardRow = AdminRoiOverview["leaderboard"][number];
 const WINDOWS = [30, 90, 180, 365] as const;
 
 /**
- * /admin/roi — ROI agregado dos anfitrioes (admin).
+ * /admin/roi — ROI agregado dos anfitriões (admin).
  *
  * Migrado para o design system admin (.urban-admin):
  *  - Hero KPI: "Receita atribuida a IA" em Bebas Neue gigante.
  *  - KPIs em grid plano (sem cards coloridos verde/azul/amber).
  *  - Janela 30/90/180/365 vira SegmentedControl.
- *  - Tabela top anfitrioes com AdminTable + confiança via AdminBadge.
+ *  - Tabela top anfitriões com AdminTable + confiança via AdminBadge.
  *  - "Como o painel calcula" em AdminCard subtle.
  *  - "← Voltar" removido (AdminShell tem breadcrumb).
  */
@@ -89,7 +89,7 @@ export default function AdminRoiPage() {
   const leaderboardColumns: AdminTableColumn<RoiLeaderboardRow>[] = [
     {
       key: "user",
-      header: "Anfitriao",
+      header: "Anfitrião",
       render: (row) => (
         <div>
           <p
@@ -106,7 +106,7 @@ export default function AdminRoiPage() {
             {row.user.email}
           </p>
           <p style={{ fontSize: 11, color: "var(--admin-text-dim)", margin: "2px 0 0" }}>
-            {row.activeListings} imovel(is) ativo(s)
+            {row.activeListings} {row.activeListings === 1 ? "imóvel ativo" : "imóveis ativos"}
           </p>
         </div>
       ),
@@ -214,7 +214,7 @@ export default function AdminRoiPage() {
     },
     {
       key: "confidence",
-      header: "Confianca",
+      header: "Confiança",
       align: "right",
       width: 120,
       render: (row) => (
@@ -229,8 +229,8 @@ export default function AdminRoiPage() {
     <div style={{ maxWidth: 1400, margin: "0 auto", padding: "40px 32px" }}>
       <AdminSectionHeader
         eyebrow="ADMIN · ROI"
-        title="ROI dos anfitrioes"
-        subtitle="Dinheiro atribuido a Urban AI, custo da assinatura e retorno por usuario."
+        title="ROI dos anfitriões"
+        subtitle="Dinheiro atribuído a Urban AI, custo da assinatura e retorno por usuário."
         actions={
           <AdminButton
             variant="secondary"
@@ -303,13 +303,13 @@ export default function AdminRoiPage() {
                 }}
               >
                 {fmt(data.totals.confirmedIncrementalCents)} confirmado ·{" "}
-                {data.totals.users} usuarios no ranking ·{" "}
+                {data.totals.users} usuários no ranking ·{" "}
                 {data.totals.impactedNights.toLocaleString("pt-BR")} noites
                 impactadas.
               </p>
             </div>
             <div style={{ borderLeft: "1px solid var(--admin-divider)", paddingLeft: 32 }}>
-              <p className="urban-admin-eyebrow-muted">ROI medio</p>
+              <p className="urban-admin-eyebrow-muted">ROI médio</p>
               <p
                 className="urban-admin-display-md"
                 style={{
@@ -377,17 +377,17 @@ export default function AdminRoiPage() {
           <AdminMetricCard
             label="Em acompanhamento"
             value={fmt(data.totals.projectedIncrementalCents)}
-            sub="preco aplicado, aguardando reserva"
+            sub="preço aplicado, aguardando reserva"
           />
           <AdminMetricCard
             label="Potencial perdido"
             value={fmt(data.totals.potentialLostCents)}
-            sub="sugestoes nao aplicadas"
+            sub="sugestões não aplicadas"
           />
           <AdminMetricCard
-            label="Anfitrioes com ROI+"
+            label="Anfitriões com ROI+"
             value={data.totals.usersWithPositiveRoi}
-            sub={`de ${data.totals.users} usuarios`}
+            sub={`de ${data.totals.users} usuários`}
             accent={data.totals.usersWithPositiveRoi > 0}
           />
         </div>
@@ -411,8 +411,8 @@ export default function AdminRoiPage() {
             rowKey={(r) => r.user.id}
             empty={
               <AdminEmptyState
-                title="Sem dados de ROI no periodo"
-                body="Aguardando recomendacoes aplicadas com reserva confirmada."
+                title="Sem dados de ROI no período"
+                body="Aguardando recomendações aplicadas com reserva confirmada."
               />
             }
           />
@@ -423,19 +423,19 @@ export default function AdminRoiPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <Rule
               title="Dinheiro gerado"
-              body="Diferenca positiva entre preco aplicado e preco anterior, multiplicada pelas noites impactadas."
+              body="Diferença positiva entre preço aplicado e preço anterior, multiplicada pelas noites impactadas."
             />
             <Rule
               title="Confirmado"
-              body="Quando ha reserva ou receita real vinculada a recomendacao aplicada."
+              body="Quando há reserva ou receita real vinculada a recomendação aplicada."
             />
             <Rule
               title="Em acompanhamento"
-              body="Quando o preco foi aplicado, mas ainda falta confirmar se virou reserva."
+              body="Quando o preço foi aplicado, mas ainda falta confirmar se virou reserva."
             />
             <Rule
               title="Potencial perdido"
-              body="Valor das recomendacoes com aumento positivo que nao foram aceitas ou aplicadas."
+              body="Valor das recomendações com aumento positivo que não foram aceitas ou aplicadas."
             />
           </div>
         </AdminCard>

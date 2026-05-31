@@ -78,21 +78,21 @@ function getFailed(result: PortfolioActionSimulationResponse | null): PortfolioB
     .filter((item) => item.status === "failed" || item.status === "skipped")
     .map((item) => ({
       propertyId: String(item.propertyId ?? "item"),
-      reason: String(item.reason ?? item.status ?? "Nao aplicado"),
+      reason: String(item.reason ?? item.status ?? "Não aplicado"),
     }));
 }
 
 function actionLabel(action: PortfolioToolbarAction | null): string {
-  if (!action) return "Acao";
+  if (!action) return "Ação";
   switch (action.type) {
     case "apply-strategy":
       return `Simular modo ${action.strategy}`;
     case "set-base-price":
-      return `Definir preco base ${formatCurrency(action.price)}`;
+      return `Definir preço base ${formatCurrency(action.price)}`;
     case "set-date-price":
-      return `Definir preco por data ${formatCurrency(action.price)}`;
+      return `Definir preço por data ${formatCurrency(action.price)}`;
     case "accept-suggestions":
-      return "Aceitar sugestoes";
+      return "Aceitar sugestões";
     case "apply-internal":
       return "Salvar internamente";
   }
@@ -129,8 +129,8 @@ export function ActionSimulationDialog({
       open={open}
       onClose={onClose}
       onConfirm={onConfirm}
-      title="Confirmar depois da simulacao?"
-      confirmLabel="Confirmar aplicacao"
+      title="Confirmar depois da simulação?"
+      confirmLabel="Confirmar aplicação"
       cancelLabel="Revisar"
       loading={loading}
       body={
@@ -167,7 +167,7 @@ export function ActionSimulationDialog({
               gap: 10,
             }}
           >
-            <SnapshotBox label="Aplicaveis" value={String(applied)} />
+            <SnapshotBox label="Aplicáveis" value={String(applied)} />
             <SnapshotBox label="Falhas" value={String(failed.length)} tone={failed.length > 0 ? "warn" : "neutral"} />
           </div>
 
@@ -183,8 +183,8 @@ export function ActionSimulationDialog({
 
           {!simulated && (
             <p style={{ margin: 0 }}>
-              O endpoint de simulacao ainda nao respondeu. Esta previa usa os
-              dados carregados no calendario; a acao real so roda se voce confirmar.
+              O endpoint de simulação ainda não respondeu. Esta prévia usa os
+              dados carregados no calendário; a ação real só roda se você confirmar.
             </p>
           )}
         </div>

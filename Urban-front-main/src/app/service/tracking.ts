@@ -2,14 +2,14 @@
  * Tracking helper — Sentry user context + custom events.
  *
  * Fecha o gap J7 do roadmap ("eventos custom de produto + tags por componente").
- * Sentry init ja esta em `instrumentation.ts` (com APP_ENV separando prod/staging).
- * Este modulo adiciona contexto de usuario e eventos de produto.
+ * Sentry init já está em `instrumentation.ts` (com APP_ENV separando prod/staging).
+ * Este módulo adiciona contexto de usuário e eventos de produto.
  *
  * Uso tipico:
  *   import { setSentryUser, trackEvent } from "@/app/service/tracking";
- *   // apos login bem-sucedido:
+ *   // após login bem-sucedido:
  *   setSentryUser({ id: user.id, email: user.email, role: user.role });
- *   // apos action critica:
+ *   // após action crítica:
  *   trackEvent("recommendation_applied", { propertyId, deltaPercent });
  *
  * Falha silenciosa em todos os casos — tracking nunca quebra a aplicacao.
@@ -28,7 +28,7 @@ async function getSentry(): Promise<SentryLike | null> {
   if (_sentry !== null) return _sentry;
   if (typeof window === "undefined") return null;
   try {
-    // Import dinamico — Sentry/nextjs ja esta no bundle via instrumentation.ts.
+    // Import dinâmico — Sentry/nextjs já está no bundle via instrumentation.ts.
     const mod = await import("@sentry/nextjs");
     _sentry = mod as unknown as SentryLike;
     return _sentry;
@@ -46,8 +46,8 @@ export type AppUser = {
 };
 
 /**
- * Define o usuario corrente no Sentry + tags basicas.
- * Chame apos login/refresh do /auth/me.
+ * Define o usuário corrente no Sentry + tags básicas.
+ * Chame após login/refresh do /auth/me.
  */
 export async function setSentryUser(user: AppUser): Promise<void> {
   const sentry = await getSentry();
@@ -56,7 +56,7 @@ export async function setSentryUser(user: AppUser): Promise<void> {
     sentry.setUser?.({
       id: user.id,
       email: user.email,
-      // Nao envia dado sensivel — so id + email pra correlacao em prod.
+      // Não envia dado sensível — só id + email para correlação em prod.
       role: user.role,
     });
     if (user.role) sentry.setTag?.("user.role", user.role);
@@ -81,7 +81,7 @@ export async function clearSentryUser(): Promise<void> {
 
 /**
  * Eventos custom de produto. Vao pro Sentry como `captureMessage` com tag
- * `kind: 'product_event'`, e tambem disparam window.gtag/fbq se configurados.
+ * `kind: 'product_event'`, e também disparam window.gtag/fbq se configurados.
  *
  * Use pra rastrear: signup, login, accept, apply, register_real_price,
  * upgrade_clicked, stays_connected, etc.
@@ -101,7 +101,7 @@ export async function trackEvent(
         message: name,
         data: properties,
       });
-      // captureMessage so para milestones — evita ruido excessivo
+      // captureMessage só para milestones — evita ruído excessivo
       if (PRODUCT_MILESTONES.has(name)) {
         sentry.captureMessage?.(`[product] ${name}`, {
           level: "info",
@@ -125,7 +125,7 @@ export async function trackEvent(
     } catch {
       /* swallow */
     }
-    // Meta Pixel — so eventos padrao (Lead, CompleteRegistration etc) ou custom event
+    // Meta Pixel — só eventos padrão (Lead, CompleteRegistration etc) ou custom event
     if (META_PIXEL_STANDARD_EVENTS.has(name)) {
       try {
         w.fbq?.("track", name, properties);
@@ -138,7 +138,7 @@ export async function trackEvent(
 
 /**
  * Conjunto de eventos que entram como captureMessage no Sentry (milestones).
- * Outros eventos so viram breadcrumbs (visiveis apenas se houver erro depois).
+ * Outros eventos só viram breadcrumbs (visíveis apenas se houver erro depois).
  */
 const PRODUCT_MILESTONES = new Set<string>([
   "signup_completed",
@@ -152,7 +152,7 @@ const PRODUCT_MILESTONES = new Set<string>([
 ]);
 
 /**
- * Eventos padrao Meta Pixel — outros sao tratados como custom (passa para
+ * Eventos padrão Meta Pixel — outros são tratados como custom (passa para
  * fbq("trackCustom", ...)).
  */
 const META_PIXEL_STANDARD_EVENTS = new Set<string>([

@@ -3,11 +3,11 @@
 import React from "react";
 
 /**
- * SkipLink — link "Pular para conteudo principal" invisivel ate receber foco.
+ * SkipLink — link "Pular para conteúdo principal" invisível até receber foco.
  *
- * WCAG 2.4.1 (Bypass Blocks). Renderize logo apos a abertura do `<body>` ou no
+ * WCAG 2.4.1 (Bypass Blocks). Renderize logo após a abertura do `<body>` ou no
  * topo do shell autenticado. O `targetId` precisa existir como `id=` num
- * elemento focavel ou tabindex=-1 (geralmente o `<main>` da pagina).
+ * elemento focável ou tabindex=-1 (geralmente o `<main>` da página).
  *
  * Uso:
  *   <SkipLink />              // pula pra #main-content

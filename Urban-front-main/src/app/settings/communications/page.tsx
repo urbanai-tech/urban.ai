@@ -98,7 +98,7 @@ export default function CommunicationSettingsPage() {
   if (loading) {
     return (
       <AppPageShell maxWidth={900}>
-        <p style={{ color: "var(--app-text-muted)", fontSize: 14 }}>Carregando...</p>
+        <p style={{ color: "var(--app-text-muted)", fontSize: 14 }}>Carregando…</p>
       </AppPageShell>
     );
   }

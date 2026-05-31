@@ -11,7 +11,7 @@ export default function Termos() {
           <article className="urban-legal-panel">
             <h1>Termos de Uso</h1>
             <p style={{ margin: "0 0 32px", fontSize: 14 }}>
-              Ultima atualizacao: {TERMS_UPDATED_AT}
+              Última atualizacao: {TERMS_UPDATED_AT}
             </p>
             <LegalDocument blocks={termsBlocks} />
           </article>

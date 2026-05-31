@@ -387,9 +387,9 @@ export default function DashboardPage() {
   return (
     <AppPageShell maxWidth={1400}>
       <AppSectionHeader
-        eyebrow="CALENDARIO · EVENTOS POR DIA"
-        title="Calendario"
-        subtitle="Visualize os eventos com sugestoes de preco da Urban AI para o imovel selecionado. Clique em um dia para ver detalhes."
+        eyebrow="CALENDÁRIO · EVENTOS POR DIA"
+        title="Calendário"
+        subtitle="Visualize os eventos com sugestões de preço da Urban AI para o imóvel selecionado. Clique em um dia para ver detalhes."
         actions={
           <div className="dashboard-property-filter">
             <label>Filtrar imóvel</label>
@@ -402,24 +402,24 @@ export default function DashboardPage() {
 
       {loadingPropsInfo || isLoading ? (
         <AppLoadingStatus
-          eyebrow="CALENDARIO"
-          title={loadingPropsInfo ? "Carregando seus imoveis" : "Procurando eventos e sugestoes de preco"}
+          eyebrow="CALENDÁRIO"
+          title={loadingPropsInfo ? "Carregando seus imóveis" : "Procurando eventos e sugestões de preço"}
           body={
             loadingPropsInfo
-              ? "Estamos vendo quais imoveis ja estao prontos para receber sugestoes."
-              : "Estamos olhando o imovel, o mes escolhido e os eventos perto dele."
+              ? "Estamos vendo quais imóveis já estão prontos para receber sugestões."
+              : "Estamos olhando o imóvel, o mês escolhido e os eventos perto dele."
           }
           steps={[
-            { id: 'properties', label: 'Seus imoveis', status: loadingPropsInfo ? 'active' : 'complete' },
+            { id: 'properties', label: 'Seus imóveis', status: loadingPropsInfo ? 'active' : 'complete' },
             { id: 'events', label: 'Eventos por perto', status: loadingPropsInfo ? 'pending' : 'active' },
-            { id: 'recommendations', label: 'Sugestoes no calendario', status: 'pending' },
+            { id: 'recommendations', label: 'Sugestões no calendário', status: 'pending' },
           ]}
         />
       ) : !propertyId || !hasCompletedProperties ? (
         <AppEmptyState
-          eyebrow="IMOVEIS"
-          title="Ainda nao ha imovel pronto para sugestoes"
-          body="Assim que o cadastro terminar, as sugestoes aparecem aqui. Se estiver demorando, confira o endereco e se o plano ainda permite novos imoveis."
+          eyebrow="IMÓVEIS"
+          title="Ainda não há imóvel pronto para sugestões"
+          body="Assim que o cadastro terminar, as sugestões aparecem aqui. Se estiver demorando, confira o endereço e se o plano ainda permite novos imóveis."
           icon={<Icons.Sparkles size={32} />}
         />
       ) : error ? (
@@ -434,20 +434,20 @@ export default function DashboardPage() {
           <div className="dashboard-calendar-column">
             <div className="dashboard-window-summary" aria-live="polite">
               <div>
-                <p className="urban-app-eyebrow-muted">JANELA VISIVEL</p>
+                <p className="urban-app-eyebrow-muted">JANELA VISÍVEL</p>
                 <strong>{windowSummaryLabel}</strong>
                 <span>
                   {visibleWindowEvents.length === 1
-                    ? '1 sugestao nesta janela'
-                    : `${visibleWindowEvents.length} sugestoes nesta janela`}
+                    ? '1 sugestão nesta janela'
+                    : `${visibleWindowEvents.length} sugestões nesta janela`}
                 </span>
               </div>
               <div className="dashboard-future-counter">
                 <Icons.Calendar size={18} />
                 <span>
                   {futureEventsOutsideWindow.length === 1
-                    ? '1 sugestao futura fora desta janela'
-                    : `${futureEventsOutsideWindow.length} sugestoes futuras fora desta janela`}
+                    ? '1 sugestão futura fora desta janela'
+                    : `${futureEventsOutsideWindow.length} sugestões futuras fora desta janela`}
                 </span>
               </div>
             </div>
@@ -470,11 +470,11 @@ export default function DashboardPage() {
                   onClick={() => navigateMonth('next')}
                   rightIcon={<Icons.ArrowRight size={14} />}
                 >
-                  Proximo
+                  Próximo
                 </AppButton>
               </div>
 
-              <div className="dashboard-month-strip" aria-label="Meses com sugestoes futuras">
+              <div className="dashboard-month-strip" aria-label="Meses com sugestões futuras">
                 {monthStrip.map((month) => {
                   const isActiveMonth = startOfMonth(currentMonth).getTime() === month.date.getTime();
                   return (
@@ -529,7 +529,7 @@ export default function DashboardPage() {
                             <strong>{dayEvents.length}</strong>
                           </span>
                         )}
-                        {dayEvents.length > 0 && <small>evento(s)</small>}
+                        {dayEvents.length > 0 && <small>{dayEvents.length === 1 ? "evento" : "eventos"}</small>}
                       </button>
                     );
                   })}
@@ -553,7 +553,7 @@ export default function DashboardPage() {
               <div className="dashboard-panel-header">
                 <div className="dashboard-panel-title">
                   <p className="urban-app-eyebrow-muted">
-                    {selectedDay ? 'DIA SELECIONADO' : 'EVENTOS DO MES'}
+                    {selectedDay ? 'DIA SELECIONADO' : 'EVENTOS DO MÊS'}
                   </p>
                   <h3>
                     {selectedDay
@@ -564,12 +564,12 @@ export default function DashboardPage() {
 
                 <div className="dashboard-panel-actions">
                   <SuggestionInfoPopover
-                    description="Nosso sistema compara seu imovel com outros de caracteristicas semelhantes (camas, capacidade, banheiros, faixa de valor e localizacao). Tambem considera eventos proximos e seu impacto na demanda para oferecer uma sugestao de preco mais precisa."
+                    description="Nosso sistema compara seu imóvel com outros de características semelhantes (camas, capacidade, banheiros, faixa de valor e localização). Também considera eventos próximos e seu impacto na demanda para oferecer uma sugestão de preço mais precisa."
                   />
 
                   {selectedDay && (
                     <button
-                      aria-label="Voltar para eventos do mes"
+                      aria-label="Voltar para eventos do mês"
                       className="dashboard-clear-day"
                       type="button"
                       onClick={() => setSelectedDay(null)}
@@ -582,20 +582,20 @@ export default function DashboardPage() {
 
               {eventsToDisplay.length === 0 ? (
                 <AppEmptyState
-                  eyebrow={selectedDay ? 'DIA SEM EVENTOS' : 'SEM SUGESTOES NA JANELA'}
+                  eyebrow={selectedDay ? 'DIA SEM EVENTOS' : 'SEM SUGESTÕES NA JANELA'}
                   title={
                     selectedDay
                       ? 'Nenhum evento neste dia'
                       : nextMonthWithEvents
-                        ? 'Ha sugestoes fora do periodo atual'
-                        : 'Sem sugestoes neste mes'
+                        ? 'Há sugestões fora do período atual'
+                        : 'Sem sugestões neste mês'
                   }
                   body={
                     selectedPropertyInfo && !isPropertyReady(selectedPropertyInfo)
-                      ? selectedPropertyInfo.setupStatus?.publicDescription ?? 'Este imovel ainda esta sendo preparado. As sugestoes aparecem quando mapa, eventos e valor de referencia estiverem prontos.'
+                      ? selectedPropertyInfo.setupStatus?.publicDescription ?? 'Este imóvel ainda está sendo preparado. As sugestões aparecem quando mapa, eventos e valor de referência estiverem prontos.'
                       : !selectedDay && nextMonthWithEvents
-                        ? `Esta janela (${windowSummaryLabel}) esta vazia, mas existem ${futureEventsOutsideWindow.length} sugestoes em meses futuros. Use a faixa de meses ou avance para ${format(nextMonthWithEvents.date, 'MMMM', { locale: ptBR })}.`
-                        : 'Nao encontramos evento futuro que combine com este imovel no periodo. A Urban AI continuara verificando novos eventos e mostrara sugestoes quando encontrar uma oportunidade.'
+                        ? `Esta janela (${windowSummaryLabel}) está vazia, mas existem ${futureEventsOutsideWindow.length} sugestões em meses futuros. Use a faixa de meses ou avance para ${format(nextMonthWithEvents.date, 'MMMM', { locale: ptBR })}.`
+                        : 'Não encontramos evento futuro que combine com este imóvel no período. A Urban AI continuará verificando novos eventos e mostrará sugestões quando encontrar uma oportunidade.'
                   }
                   icon={<Icons.Calendar size={28} />}
                   action={
@@ -970,7 +970,7 @@ const styles = `
     overflow: visible;
   }
 
-  @media (max-width: 1024px) {
+  @média (max-width: 1024px) {
     .dashboard-content-grid {
       grid-template-columns: 1fr;
     }
@@ -980,7 +980,7 @@ const styles = `
     }
   }
 
-  @media (max-width: 640px) {
+  @média (max-width: 640px) {
     .dashboard-property-filter {
       width: 100%;
     }

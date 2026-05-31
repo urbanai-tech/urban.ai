@@ -16,8 +16,8 @@ import {
  *  - Capturar demanda de novos interessados sem expor o sistema
  *  - Construir lista priorizada para o beta fechado da F7
  *
- * `position` e calculado no service ao inserir a linha. Usado para mostrar
- * "voce e o #N na fila".
+ * `position` é calculado no service ao inserir a linha. Usado para mostrar
+ * "você é o #N na fila".
  *
  * `referralCode` é gerado no service ao criar a row (8 chars URL-safe).
  * `referredBy` aponta pro `referralCode` de quem indicou (nullable). Quando
@@ -31,7 +31,7 @@ export class Waitlist {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  /** Posicao na fila, calculada pelo service no cadastro. */
+  /** Posição na fila, calculada pelo service no cadastro. */
   @Column({ type: 'int', unique: true })
   position: number;
 

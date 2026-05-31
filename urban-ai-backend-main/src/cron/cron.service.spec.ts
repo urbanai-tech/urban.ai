@@ -59,7 +59,7 @@ describe('CronService', () => {
     jest.restoreAllMocks();
   });
 
-  it('ignora analise aceita sem endereco/listing sem derrubar o cron', async () => {
+  it('ignora análise aceita sem endereço/listing sem derrubar o cron', async () => {
     const { service, airbnbService, emailService } = makeService([
       {
         id: 'analysis-missing-address',
@@ -84,7 +84,7 @@ describe('CronService', () => {
     expect(emailService.enviarNotification).not.toHaveBeenCalled();
   });
 
-  it('processa uma analise valida usando o id do anuncio do endereco', async () => {
+  it('processa uma análise válida usando o id do anúncio do endereço', async () => {
     const { service, analisePrecoRepository, airbnbService, emailService } = makeService([
       {
         id: 'analysis-valid',
@@ -114,7 +114,7 @@ describe('CronService', () => {
         },
         usuarioProprietario: { id: 'user-1' },
         distanciaSuaPropriedade: 1.4,
-        recomendacao: 'Aumentar diaria pela demanda do evento.',
+        recomendacao: 'Aumentar diária pela demanda do evento.',
         diferencaPercentual: 20,
         precoSugerido: 150,
       },
@@ -173,7 +173,7 @@ describe('CronService', () => {
     });
   });
 
-  it('envia recomendacao de diminuir preco pelo digest de pricing', async () => {
+  it('envia recomendação de diminuir preço pelo digest de pricing', async () => {
     const { service, airbnbService, emailService } = makeService([
       {
         id: 'analysis-decrease',
@@ -254,7 +254,7 @@ describe('CronService', () => {
       },
     ]);
     airbnbService.getFirstAvailablePrice
-      .mockRejectedValueOnce(new Error('Airbnb indisponivel'))
+      .mockRejectedValueOnce(new Error('Airbnb indisponível'))
       .mockResolvedValueOnce({
         price: {
           data: {
@@ -273,7 +273,7 @@ describe('CronService', () => {
     expect(result.failures).toEqual([
       {
         analiseId: 'analysis-airbnb-failure',
-        reason: 'Airbnb indisponivel',
+        reason: 'Airbnb indisponível',
       },
     ]);
   });

@@ -80,7 +80,7 @@ export function WaitlistSignup({
 
     const trimmedEmail = email.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      setErrorMessage("Use um e-mail valido para continuar.");
+      setErrorMessage("Use um e-mail válido para continuar.");
       return;
     }
 
@@ -116,7 +116,7 @@ export function WaitlistSignup({
       const message =
         err?.response?.data?.message ||
         err?.message ||
-        "Nao foi possivel registrar agora. Tente em instantes.";
+        "Não foi possível registrar agora. Tente em instantes.";
       setErrorMessage(typeof message === "string" ? message : "Erro inesperado.");
     } finally {
       setSubmitting(false);
@@ -129,7 +129,7 @@ export function WaitlistSignup({
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <Spinner />
           <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 14 }}>
-            Carregando sua posicao na fila...
+            Carregando sua posição na fila…
           </p>
         </div>
       </AppCard>
@@ -177,7 +177,7 @@ export function WaitlistSignup({
 
         {referredBy && (
           <InlineNotice kind="success">
-            Voce chegou por indicacao. Seu cadastro ja preserva essa origem.
+            Você chegou por indicacao. Seu cadastro já preserva essa origem.
           </InlineNotice>
         )}
 
@@ -186,7 +186,7 @@ export function WaitlistSignup({
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="voce@email.com"
+          placeholder="você@email.com"
           required
           autoComplete="email"
           disabled={submitting}
@@ -237,7 +237,7 @@ export function WaitlistSignup({
             fontSize: 13,
           }}
         >
-          Ja tem convite?{" "}
+          Já tem convite?{" "}
           <NextLink
             href="/"
             style={{
@@ -325,7 +325,7 @@ function WaitlistStatusCard({
           <div>
             <AppBadge kind="success">Cadastro recebido</AppBadge>
             <h2 style={{ margin: "10px 0 0", fontSize: 22, lineHeight: 1.25 }}>
-              Voce esta na fila
+              Você está na fila
             </h2>
             <p
               style={{
@@ -347,9 +347,9 @@ function WaitlistStatusCard({
             gap: 10,
           }}
         >
-          <StatusMetric label="Posicao" value={`#${result.position}`} />
+          <StatusMetric label="Posição" value={`#${result.position}`} />
           <StatusMetric label="Na frente" value={result.aheadOfYou.toLocaleString("pt-BR")} />
-          <StatusMetric label="Indicacoes" value={referralsCount.toLocaleString("pt-BR")} />
+          <StatusMetric label="Indicações" value={referralsCount.toLocaleString("pt-BR")} />
         </div>
 
         <div
@@ -362,9 +362,9 @@ function WaitlistStatusCard({
         >
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
             <div>
-              <p style={{ margin: 0, fontSize: 13, fontWeight: 650 }}>Link de indicacao</p>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 650 }}>Link de indicação</p>
               <p style={{ margin: "4px 0 0", color: "var(--app-text-muted)", fontSize: 12 }}>
-                Cada cadastro pelo seu link melhora sua posicao.
+                Cada cadastro pelo seu link melhora sua posição.
               </p>
             </div>
             <AppBadge kind="accent">+1</AppBadge>

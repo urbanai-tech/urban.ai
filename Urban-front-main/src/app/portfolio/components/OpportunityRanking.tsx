@@ -74,7 +74,7 @@ export function OpportunityRanking({
       <AppCardHeader
         eyebrow="RANKING"
         title="Oportunidades recomendadas"
-        subtitle="Priorize as mudancas com maior impacto esperado e selecione datas para a acao em lote."
+        subtitle="Priorize as mudanças com maior impacto esperado e selecione datas para a ação em lote."
       />
 
       {items.length === 0 ? (

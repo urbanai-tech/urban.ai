@@ -95,9 +95,9 @@ export function firstSelfServicePlan(plans: Plan[]): Plan | null {
 export function formatQuantityRange(plan: Plan): string {
   const min = minProperties(plan);
   const max = maxProperties(plan);
-  if (max === null) return `${min}+ imoveis`;
-  if (min === max) return `${min} imovel`;
-  return `${min} a ${max} imoveis`;
+  if (max === null) return `${min}+ imóveis`;
+  if (min === max) return `${min} imóvel`;
+  return `${min} a ${max} imóveis`;
 }
 
 export function calculatePricingQuote(plan: Plan, quantity: number, cycle: BillingCycle) {

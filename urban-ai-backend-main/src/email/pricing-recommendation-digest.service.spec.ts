@@ -20,11 +20,11 @@ describe('PricingRecommendationDigestService', () => {
 
   const item = {
     notificationId: 'notification-1',
-    title: 'Sugestao pronta',
+    title: 'Sugestão pronta',
     description: 'Ajuste recomendado',
     redirectTo: '/dashboard?propertyId=list-1',
     propertyTitle: 'Studio Paulista',
-    reasons: ['Evento proximo'],
+    reasons: ['Evento próximo'],
     createdAt: '2026-05-23T12:00:00Z',
   };
 
@@ -40,8 +40,8 @@ describe('PricingRecommendationDigestService', () => {
         itemsJson: JSON.stringify([
           {
             ...item,
-            description: 'Descricao antiga',
-            reasons: ['Evento proximo'],
+            description: 'Descrição antiga',
+            reasons: ['Evento próximo'],
           },
         ]),
         wantsEmail: true,
@@ -52,8 +52,8 @@ describe('PricingRecommendationDigestService', () => {
       user,
       item: {
         ...item,
-        description: 'Descricao atualizada',
-        reasons: ['Evento proximo', 'Alta demanda'],
+        description: 'Descrição atualizada',
+        reasons: ['Evento próximo', 'Alta demanda'],
       },
       wantsEmail: true,
       wantsPush: false,
@@ -65,8 +65,8 @@ describe('PricingRecommendationDigestService', () => {
     expect(items).toHaveLength(1);
     expect(items[0]).toMatchObject({
       notificationId: 'notification-1',
-      description: 'Descricao atualizada',
-      reasons: ['Evento proximo', 'Alta demanda'],
+      description: 'Descrição atualizada',
+        reasons: ['Evento próximo', 'Alta demanda'],
     });
     expect(saved.itemCount).toBe(1);
   });
@@ -90,7 +90,7 @@ describe('PricingRecommendationDigestService', () => {
       item: {
         ...item,
         notificationId: undefined,
-        title: 'Sugestao atualizada',
+        title: 'Sugestão atualizada',
       },
       wantsEmail: true,
       wantsPush: false,

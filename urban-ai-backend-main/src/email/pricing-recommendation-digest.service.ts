@@ -72,7 +72,7 @@ export class PricingRecommendationDigestService {
     const items = this.upsertDigestItem(this.parseItems(digest.itemsJson), input.item);
 
     digest.recipientEmail = input.user.email;
-    digest.recipientName = input.user.username || 'Usuario';
+    digest.recipientName = input.user.username || 'Usuário';
     digest.wantsEmail = Boolean(digest.wantsEmail || input.wantsEmail);
     digest.wantsPush = Boolean(digest.wantsPush || input.wantsPush);
     digest.itemsJson = JSON.stringify(items);
@@ -118,7 +118,7 @@ export class PricingRecommendationDigestService {
       id: claimed.id,
       userId: claimed.userId,
       email: claimed.recipientEmail,
-      name: claimed.recipientName || 'Usuario',
+      name: claimed.recipientName || 'Usuário',
       wantsEmail: claimed.wantsEmail,
       wantsPush: claimed.wantsPush,
       items,

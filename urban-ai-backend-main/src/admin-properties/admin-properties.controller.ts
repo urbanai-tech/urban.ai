@@ -14,7 +14,7 @@ import { AdminPropertiesService } from './admin-properties.service';
 export class AdminPropertiesController {
   constructor(private readonly properties: AdminPropertiesService) {}
 
-  @ApiOperation({ summary: 'Listagem admin de imoveis com agregados de pricing' })
+  @ApiOperation({ summary: 'Listagem admin de imóveis com agregados de pricing' })
   @Get()
   async list(@Query('limit') limit: string = '200', @Query('search') search?: string) {
     return this.properties.list({
@@ -23,13 +23,13 @@ export class AdminPropertiesController {
     });
   }
 
-  @ApiOperation({ summary: 'Detalhe admin de um imovel para drill-down operacional' })
+  @ApiOperation({ summary: 'Detalhe admin de um imóvel para drill-down operacional' })
   @Get(':id')
   async detail(@Param('id') id: string) {
     return this.properties.detail(id);
   }
 
-  @ApiOperation({ summary: 'Reprocessar recomendacoes de pricing de um imovel' })
+  @ApiOperation({ summary: 'Reprocessar recomendações de pricing de um imóvel' })
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post(':id/reprocess')
   async reprocess(@Param('id') id: string) {

@@ -7,27 +7,27 @@ const WaitlistForm = dynamic(() => import("../../componentes/WaitlistForm").then
 });
 
 export const metadata: Metadata = buildSeoMetadata({
-  title: "Pre-lancamento Urban AI",
+  title: "Pré-lançamento Urban AI",
   description:
-    "Entre na lista de acesso antecipado da Urban AI para receber recomendacoes de preco baseadas em eventos, bairro e demanda local.",
+    "Entre na lista de acesso antecipado da Urban AI para receber recomendações de preço baseadas em eventos, bairro e demanda local.",
   path: "/lancamento",
 });
 
 const LAUNCH_FAQ_SCHEMA = [
   {
-    question: "A Urban AI muda meu preco automaticamente?",
+    question: "A Urban AI muda meu preço automaticamente?",
     answer:
-      "No pre-lancamento, o fluxo principal e recomendacao. A automacao via Stays fica em beta privado, com consentimento e limites.",
+      "No pré-lançamento, o fluxo principal é recomendação. A automação via Stays fica em beta privado, com consentimento e limites.",
   },
   {
-    question: "De onde vem a recomendacao?",
+    question: "De onde vem a recomendação?",
     answer:
-      "A recomendacao combina eventos futuros, distancia do imovel, janela de antecedencia, dados do anuncio e historico da plataforma.",
+      "A recomendação combina eventos futuros, distância do imóvel, janela de antecedência, dados do anúncio e histórico da plataforma.",
   },
   {
-    question: "Qual regiao esta mais pronta?",
+    question: "Qual região está mais pronta?",
     answer:
-      "A operacao prioriza Sao Paulo e Grande SP, onde o calendario de eventos e a cobertura inicial fazem mais sentido para o beta assistido.",
+      "A operação prioriza São Paulo e Grande SP, onde o calendário de eventos e a cobertura inicial fazem mais sentido para o beta assistido.",
   },
 ];
 
@@ -111,7 +111,7 @@ export default function LancamentoPage() {
                 margin: 0,
               }}
             >
-              Dias de alta demanda escapam quando o preco foi fixado
+              Dias de alta demanda escapam quando o preço foi fixado
               <span style={{ color: "var(--theme-public-accent)" }}> antes </span>
               da cidade se mover.
             </p>

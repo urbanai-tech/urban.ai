@@ -226,7 +226,7 @@ export class DatasetCollectorService {
   @Cron('5 4 * * *', { name: 'dataset-airbnb-price-observations', timeZone: 'America/Sao_Paulo' })
   async handleDailyAirbnbPriceObservations() {
     if (this.isAirbnbObservationRunning) {
-      this.logger.debug('Airbnb price observations ja em execucao; pulando este tick.');
+      this.logger.debug('Airbnb price observations já em execução; pulando este tick.');
       return;
     }
     this.isAirbnbObservationRunning = true;

@@ -30,7 +30,7 @@ export class SugestionController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin')
     @Get('admin/verification-health')
-    @ApiOperation({ summary: 'Resumo admin da verificacao de aplicacao das sugestoes aceitas' })
+    @ApiOperation({ summary: 'Resumo admin da verificação de aplicação das sugestões aceitas' })
     async verificationHealth() {
         return this.sugestionService.verificationHealth();
     }
@@ -38,7 +38,7 @@ export class SugestionController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin')
     @Get('admin/pending-verification')
-    @ApiOperation({ summary: 'Lista sugestoes aceitas pendentes de verificacao de aplicacao' })
+    @ApiOperation({ summary: 'Lista sugestões aceitas pendentes de verificação de aplicação' })
     async listarAceitasPendentesVerificacao() {
         return this.sugestionService.listarAceitasPendentesVerificacao();
     }
@@ -46,7 +46,7 @@ export class SugestionController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin')
     @Post('admin/verify-pending')
-    @ApiOperation({ summary: 'Verifica em lote sugestoes aceitas pendentes com preco aplicado' })
+    @ApiOperation({ summary: 'Verifica em lote sugestões aceitas pendentes com preço aplicado' })
     async verificarAceitasPendentes(@Body() body: { limit?: number }) {
         return this.sugestionService.verificarAnalisesAceitasPendentes(body?.limit);
     }
@@ -54,7 +54,7 @@ export class SugestionController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin')
     @Post(':id/verificar-aplicacao')
-    @ApiOperation({ summary: 'Verifica se uma sugestao aceita foi aplicada no canal externo' })
+    @ApiOperation({ summary: 'Verifica se uma sugestão aceita foi aplicada no canal externo' })
     async verificarAplicacao(@Param('id') id: string) {
         return this.sugestionService.verificarAplicacao(id);
     }
@@ -138,7 +138,7 @@ export class SugestionController {
     @UseGuards(JwtAuthGuard)
     @Patch(':id/resultado')
     @ApiOperation({
-        summary: 'Registra o resultado real da sugestÃ£o (reserva, receita, noites)',
+        summary: 'Registra o resultado real da sugestão (reserva, receita, noites)',
     })
     @ApiBody({
         description: 'Resultado observado depois do evento',

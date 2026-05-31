@@ -20,7 +20,7 @@ export class ContactSubmissionsController {
   ) {}
 
   @Throttle({ default: { ttl: 60_000, limit: 8 } })
-  @ApiOperation({ summary: 'Receber mensagem do formulario publico de contato' })
+  @ApiOperation({ summary: 'Receber mensagem do formulário público de contato' })
   @Post('contact-submissions')
   create(@Body() body: CreateContactSubmissionDto, @Req() req: Request) {
     const ipAddress =

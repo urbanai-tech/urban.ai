@@ -29,7 +29,7 @@ export class DashboardController {
     })
     async receitaProjetada(@Param('usuarioId') usuarioId: string, @Req() req: any) {
         if (req.user?.userId !== usuarioId) {
-            throw new ForbiddenException('Nao autorizado para este usuario');
+            throw new ForbiddenException('Não autorizado para este usuário');
         }
 
         const receita = await this.dashboardService.getReceitaProjetada(usuarioId, "");
@@ -59,7 +59,7 @@ export class DashboardController {
     })
     async lucroProjetado(@Param('usuarioId') usuarioId: string, @Req() req: any) {
         if (req.user?.userId !== usuarioId) {
-            throw new ForbiddenException('Nao autorizado para este usuario');
+            throw new ForbiddenException('Não autorizado para este usuário');
         }
 
         const lucro = await this.dashboardService.getLucroProjetado(usuarioId, "");
@@ -89,7 +89,7 @@ export class DashboardController {
 })
 async quantidadeEnderecos(@Param('usuarioId') usuarioId: string, @Req() req: any) {
   if (req.user?.userId !== usuarioId) {
-    throw new ForbiddenException('Nao autorizado para este usuario');
+    throw new ForbiddenException('Não autorizado para este usuário');
   }
 
   const total = await this.dashboardService.getQuantidadeEnderecos(usuarioId, "");
@@ -118,13 +118,13 @@ async quantidadeEnderecos(@Param('usuarioId') usuarioId: string, @Req() req: any
     },
   })
   async getDashboard(@Req() req: any, @Query('propertyId') propertyId: string) {
-    console.log("parametro:", propertyId)
+    console.log("parâmetro:", propertyId)
     return this.dashboardService.getDashBoard(req.user.userId, propertyId);
   }
 
   @Get('roi/me')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'ROI do anfitriao: dinheiro gerado pela Urban AI' })
+  @ApiOperation({ summary: 'ROI do anfitrião: dinheiro gerado pela Urban AI' })
   async myRoi(
     @Req() req: any,
     @Query('windowDays') windowDays: string = '30',

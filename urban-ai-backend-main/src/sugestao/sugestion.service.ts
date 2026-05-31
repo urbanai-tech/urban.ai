@@ -174,7 +174,7 @@ export class SugestionService {
       relations: ['usuarioProprietario', 'endereco', 'endereco.list', 'evento'],
     });
     if (!registro) {
-      throw new NotFoundException('Registro nÃ£o encontrado');
+      throw new NotFoundException('Registro não encontrado');
     }
     this.assertOwnedByUser(registro, userId);
 
@@ -297,7 +297,7 @@ export class SugestionService {
       relations: ['usuarioProprietario', 'endereco', 'endereco.list', 'evento'],
     });
     if (!registro) {
-      throw new NotFoundException('Registro nao encontrado');
+      throw new NotFoundException('Registro não encontrado');
     }
 
     if (!registro.aceito) {
@@ -310,7 +310,7 @@ export class SugestionService {
     if (!registro.precoAplicado) {
       registro.verificationStatus = 'pending';
       registro.verificationCheckedAt = new Date();
-      registro.verificationError = 'Sugestao aceita sem preco aplicado registrado.';
+      registro.verificationError = 'Sugestão aceita sem preço aplicado registrado.';
       return this.toPublicResponse(await this.analisePrecoRepository.save(registro));
     }
 
@@ -325,7 +325,7 @@ export class SugestionService {
       registro.observedPrice = Number(observed.price.toFixed(2));
       registro.verificationSource = observed.source;
       registro.verificationError = status === 'mismatch'
-        ? `Preco observado ${observed.price.toFixed(2)} difere do preco esperado ${expected?.toFixed(2) ?? 'n/a'}.`
+        ? `Preço observado ${observed.price.toFixed(2)} difere do preço esperado ${expected?.toFixed(2) ?? 'n/a'}.`
         : null;
 
       return this.toPublicResponse(await this.analisePrecoRepository.save(registro));
@@ -339,29 +339,29 @@ export class SugestionService {
 
   private assertOwnedByUser(registro: AnalisePreco, userId: string): void {
     if (!registro.usuarioProprietario?.id) {
-      throw new NotFoundException('Registro sem usuario proprietario associado');
+      throw new NotFoundException('Registro sem usuário proprietário associado');
     }
     if (registro.usuarioProprietario.id !== userId) {
-      throw new ForbiddenException('Registro nao pertence ao usuario autenticado');
+      throw new ForbiddenException('Registro não pertence ao usuário autenticado');
     }
     if (registro.usuarioProprietario.ativo === false) {
-      throw new ForbiddenException('Usuario inativo nao pode alterar sugestoes');
+      throw new ForbiddenException('Usuário inativo não pode alterar sugestões');
     }
   }
 
   private assertReadyForAcceptance(registro: AnalisePreco): void {
     if (!registro.endereco?.id) {
-      throw new BadRequestException('Sugestao sem endereco associado nao pode ser aceita');
+      throw new BadRequestException('Sugestão sem endereço associado não pode ser aceita');
     }
     if (!registro.endereco?.list?.id) {
-      throw new BadRequestException('Sugestao sem imovel associado nao pode ser aceita');
+      throw new BadRequestException('Sugestão sem imóvel associado não pode ser aceita');
     }
     const listingId = registro.endereco.list.id_do_anuncio;
     if (typeof listingId !== 'string' || listingId.trim().length === 0) {
-      throw new BadRequestException('Sugestao sem anuncio Airbnb associado nao pode ser aceita');
+      throw new BadRequestException('Sugestão sem anúncio Airbnb associado não pode ser aceita');
     }
     if (!registro.evento?.id) {
-      throw new BadRequestException('Sugestao sem evento associado nao pode ser aceita');
+      throw new BadRequestException('Sugestão sem evento associado não pode ser aceita');
     }
   }
 
@@ -440,13 +440,13 @@ export class SugestionService {
     const listingId = list?.id_do_anuncio || (list?.id ? `urban-list:${list.id}` : null);
 
     if (!listingId) {
-      this.logger.warn(`Nao foi possivel gravar PriceSnapshot: AnalisePreco ${registro.id} sem listing associado.`);
+      this.logger.warn(`Não foi possível gravar PriceSnapshot: AnalisePreco ${registro.id} sem listing associado.`);
       return;
     }
 
     const appliedPriceCents = Math.round(Number(precoAplicado) * 100);
     if (!Number.isFinite(appliedPriceCents) || appliedPriceCents <= 0) {
-      this.logger.warn(`Preco aplicado invalido para AnalisePreco ${registro.id}: ${precoAplicado}`);
+      this.logger.warn(`Preço aplicado inválido para AnalisePreco ${registro.id}: ${precoAplicado}`);
       return;
     }
 
@@ -566,12 +566,12 @@ export class SugestionService {
     appliedAt: Date;
   }> {
     if (!this.airbnbService) {
-      throw new Error('AirbnbService indisponivel para verificacao.');
+      throw new Error('AirbnbService indisponível para verificação.');
     }
 
     const listingId = registro.endereco?.list?.id_do_anuncio?.trim();
     if (!listingId) {
-      throw new Error('Sugestao sem anuncio Airbnb associado para verificacao.');
+      throw new Error('Sugestão sem anúncio Airbnb associado para verificação.');
     }
 
     const checkIn = this.resolveTargetDate(registro);
@@ -580,7 +580,7 @@ export class SugestionService {
     const total = this.nullableNumber(quote.price?.data?.accommodationCost);
     const nights = Math.max(1, Number(quote.nights ?? 1));
     if (!total || total <= 0) {
-      throw new Error('Airbnb nao retornou preco observado valido.');
+      throw new Error('Airbnb não retornou preço observado válido.');
     }
 
     return {

@@ -77,18 +77,18 @@ describe('HostPanelsService AskUrban entitlement', () => {
     });
   });
 
-  it('bloqueia pergunta quando o plano ativo nao e permitido', async () => {
+  it('bloqueia pergunta quando o plano ativo não é permitido', async () => {
     const { service, askRepo } = makeService({
       payments: [{ status: 'active', planName: 'starter', expireDate: null }],
     });
 
     try {
-      await service.askQuestion('user-1', { question: 'Como esta minha receita?' });
+      await service.askQuestion('user-1', { question: 'Como está minha receita?' });
       throw new Error('expected AskUrban to be blocked');
     } catch (error: any) {
       expect(error).toBeInstanceOf(ForbiddenException);
       expect(error.getResponse()).toMatchObject({
-        message: 'AskUrban indisponivel para este plano',
+        message: 'Ask Urban indisponível para este plano',
         reason: 'plan_not_allowed',
         usage: {
           canUse: false,
@@ -102,7 +102,7 @@ describe('HostPanelsService AskUrban entitlement', () => {
     expect(askRepo.save).not.toHaveBeenCalled();
   });
 
-  it('bloqueia pergunta quando a quota diaria foi atingida', async () => {
+  it('bloqueia pergunta quando a quota diária foi atingida', async () => {
     process.env.ASK_URBAN_DAILY_QUOTA = '1';
     process.env.ASK_URBAN_DAILY_HARD_CAP = '2';
     const { service, askRepo } = makeService({
@@ -111,13 +111,13 @@ describe('HostPanelsService AskUrban entitlement', () => {
     });
 
     try {
-      await service.askQuestion('user-1', { question: 'Como esta minha ocupacao?' });
+      await service.askQuestion('user-1', { question: 'Como está minha ocupação?' });
       throw new Error('expected AskUrban quota to be blocked');
     } catch (error: any) {
       expect(error).toBeInstanceOf(HttpException);
       expect(error.getStatus()).toBe(HttpStatus.TOO_MANY_REQUESTS);
       expect(error.getResponse()).toMatchObject({
-        message: 'Limite diario do AskUrban atingido',
+        message: 'Limite diário do Ask Urban atingido',
         reason: 'quota_exceeded',
         usage: {
           canUse: false,

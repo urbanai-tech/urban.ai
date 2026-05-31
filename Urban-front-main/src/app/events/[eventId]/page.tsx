@@ -53,7 +53,7 @@ export default function EventDetailPage() {
       setSelectedImpact(data.propertyImpacts[0] ?? null);
     } catch (err) {
       console.error("Erro ao carregar detalhe do evento", err);
-      setError("Nao foi possivel carregar o detalhe do evento agora.");
+      setError("Não foi possível carregar o detalhe do evento agora.");
     } finally {
       setLoading(false);
     }
@@ -82,8 +82,8 @@ export default function EventDetailPage() {
       const result = await simulateHostEventPricing(eventId, { propertyId: impact.propertyId });
       if (result.propertyImpact) setSelectedImpact(result.propertyImpact);
     } catch (err) {
-      console.error("Erro ao simular preco do evento", err);
-      setSimulationError("Nao conseguimos atualizar a simulacao agora. A curva anterior continua como referencia.");
+      console.error("Erro ao simular preço do evento", err);
+      setSimulationError("Não conseguimos atualizar a simulação agora. A curva anterior continua como referência.");
     } finally {
       setSimulating(false);
     }
@@ -103,9 +103,9 @@ export default function EventDetailPage() {
     return (
       <AppPageShell>
         <AppEmptyState
-          eyebrow="DETALHE INDISPONIVEL"
-          title="Nao conseguimos abrir este evento"
-          body={error ?? "O evento nao foi encontrado no radar atual."}
+          eyebrow="DETALHE INDISPONÍVEL"
+          title="Não conseguimos abrir este evento"
+          body={error ?? "O evento não foi encontrado no radar atual."}
           icon={<Icons.AlertCircle size={32} />}
           action={
             <AppButton type="button" onClick={() => setReloadCount((count) => count + 1)}>
@@ -186,7 +186,7 @@ export default function EventDetailPage() {
               <Metric label="Score de demanda" value={String(intelligence.eventDemandScore ?? "-")} />
               <Metric label="Potencial estimado" value={formatCompactCurrencyFromCents(intelligence.eventRevenuePotentialCents)} />
               <Metric label="Raio de demanda" value={intelligence.demandRadiusKm ? `${intelligence.demandRadiusKm} km` : "-"} />
-              <Metric label="Publico estimado" value={intelligence.expectedAttendance ? intelligence.expectedAttendance.toLocaleString("pt-BR") : "-"} />
+              <Metric label="Público estimado" value={intelligence.expectedAttendance ? intelligence.expectedAttendance.toLocaleString("pt-BR") : "-"} />
             </div>
 
             {sourceLinks.length > 0 && (
@@ -229,7 +229,7 @@ export default function EventDetailPage() {
           <AppCardHeader
             eyebrow="LEITURA URBAN AI"
             title="O que fazer com este evento"
-            subtitle="Estimativa explicavel. Use a faixa de preco como simulacao, nao como promessa de reserva."
+            subtitle="Estimativa explicável. Use a faixa de preço como simulação, não como promessa de reserva."
           />
           <p style={{ margin: 0, color: "var(--app-text)", fontSize: 15, lineHeight: 1.65 }}>
             {intelligence.interpretation}
@@ -254,7 +254,7 @@ export default function EventDetailPage() {
             ) : (
               <AppCard variant="subtle" style={{ padding: 14 }}>
                 <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 13, lineHeight: 1.5 }}>
-                  Ainda nao ha drivers explicaveis para este evento.
+                  Ainda não há drivers explicáveis para este evento.
                 </p>
               </AppCard>
             )}
@@ -289,9 +289,9 @@ export default function EventDetailPage() {
       <div style={{ marginTop: 24 }}>
         <AppCard variant="default">
           <AppCardHeader
-            eyebrow="MEUS IMOVEIS IMPACTADOS"
-            title="Impacto nos seus imoveis"
-            subtitle="Distancia, captura, faixa absorvivel e acao recomendada para cada imovel."
+            eyebrow="MEUS IMÓVEIS IMPACTADOS"
+            title="Impacto nos seus imóveis"
+            subtitle="Distância, captura, faixa absorvível e ação recomendada para cada imóvel."
           />
           <EventImpactTable impacts={detail.propertyImpacts} onSimulate={handleSimulate} />
         </AppCard>
@@ -305,7 +305,7 @@ export default function EventDetailPage() {
           />
           {simulating && (
             <p role="status" aria-live="polite" style={{ margin: "10px 0 0", color: "var(--app-text-muted)", fontSize: 12 }}>
-              Atualizando simulacao...
+              Atualizando simulação…
             </p>
           )}
         </div>
@@ -321,8 +321,8 @@ export default function EventDetailPage() {
           <AppSectionHeader
             size="sm"
             eyebrow="EVENTOS RELACIONADOS"
-            title="Tambem no radar"
-            subtitle="Eventos proximos no calendario que podem competir ou somar demanda."
+            title="Também no radar"
+            subtitle="Eventos próximos no calendário que podem competir ou somar demanda."
           />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
             {detail.relatedEvents.map((relatedEvent) => (
@@ -357,9 +357,9 @@ function formatFlagLabel(flag: string): string {
   const labels: Record<string, string> = {
     price_absorption_curve_pending_engine: "Curva pendente",
     booking_probability_pending_engine: "Probabilidade pendente",
-    low_source_reliability: "Fonte em validacao",
-    missing_location: "Localizacao incompleta",
-    missing_attendance: "Publico estimado pendente",
+    low_source_reliability: "Fonte em validação",
+    missing_location: "Localização incompleta",
+    missing_attendance: "Público estimado pendente",
   };
   return labels[flag] ?? flag.replace(/_/g, " ");
 }

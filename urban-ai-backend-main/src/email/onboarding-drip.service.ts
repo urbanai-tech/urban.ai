@@ -12,17 +12,17 @@ import { EmailTemplates } from './templates';
 /**
  * OnboardingDripService — fecha o gap H9 do roadmap.
  *
- * Templates D1/D3/D7 ja existem em `email/templates.ts`. Este service:
- *  1. Roda diariamente as 10:00 (cron `0 10 * * *`).
- *  2. Para cada dia D ∈ {1, 3, 7}: pega usuarios criados ha exatamente D dias
+ * Templates D1/D3/D7 já existem em `email/templates.ts`. Este service:
+ *  1. Roda diariamente às 10:00 (cron `0 10 * * *`).
+ *  2. Para cada dia D ∈ {1, 3, 7}: pega usuários criados há exatamente D dias
  *     (janela [start_of_day(now-D), start_of_day(now-D+1)]).
- *  3. Verifica `onboardingDripLastDay` para idempotencia — nao re-envia
- *     se ja mandou esse dia.
- *  4. Calcula contexto (numero de imoveis, recomendacoes, assinatura ativa)
+ *  3. Verifica `onboardingDripLastDay` para idempotência — não reenvia
+ *     se já mandou esse dia.
+ *  4. Calcula contexto (número de imóveis, recomendações, assinatura ativa)
  *     e dispara o template apropriado via MailerService.
  *  5. Atualiza `onboardingDripLastDay` + `onboardingDripLastSentAt`.
  *
- * Falha em um usuario nao bloqueia os outros (best-effort).
+ * Falha em um usuário não bloqueia os outros (best-effort).
  *
  * Pode ser disparado manualmente via endpoint admin para testes:
  *   POST /admin/onboarding-drip/run-now
@@ -47,9 +47,9 @@ export class OnboardingDripService {
   }
 
   /**
-   * Cron diario as 10:00 UTC. E-mail transacional tende a entregar melhor entre 9-11h
+   * Cron diário às 10:00 UTC. E-mail transacional tende a entregar melhor entre 9-11h
    * locais; UTC-3 (Brasil) coloca o disparo em ~7:00 BRT — chega na caixa
-   * antes do anfitriao abrir o e-mail no inicio do dia.
+   * antes do anfitrião abrir o e-mail no início do dia.
    */
   @Cron('0 10 * * *')
   async runDailyDrip(): Promise<void> {
@@ -77,9 +77,9 @@ export class OnboardingDripService {
   }
 
   /**
-   * Janela do dia D: usuarios criados entre meia-noite de (hoje - D dias) e
+   * Janela do dia D: usuários criados entre meia-noite de (hoje - D dias) e
    * meia-noite de (hoje - D + 1 dias). Exemplo: rodando em 17/05 10:00 com D=1,
-   * pega usuarios criados entre 16/05 00:00:00 e 17/05 00:00:00.
+   * pega usuários criados entre 16/05 00:00:00 e 17/05 00:00:00.
    */
   async processDay(targetDay: 1 | 3 | 7): Promise<{
     eligible: number;
@@ -109,7 +109,7 @@ export class OnboardingDripService {
     let skipped = 0;
 
     for (const user of users) {
-      // Idempotencia: nao re-envia se ja enviou esse dia (ou um dia maior)
+      // Idempotência: não reenvia se já enviou esse dia (ou um dia maior)
       if (
         user.onboardingDripLastDay != null &&
         user.onboardingDripLastDay >= targetDay

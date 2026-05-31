@@ -76,10 +76,10 @@ export type PricingDecisionSnapshotInputSignals = {
     reservationGenerated?: boolean | null;
     externalReservationId?: string | null;
     priceAbsorbed?: boolean | null;
-    acceptedAt?: string | null;
-    rejectedAt?: string | null;
-    appliedAt?: string | null;
-    recordedAt?: string | null;
+    acceptedAt: string | null;
+    rejectedAt: string | null;
+    appliedAt: string | null;
+    recordedAt: string | null;
     source?: string | null;
     sourceDetail?: string | null;
     currency?: string | null;
