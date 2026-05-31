@@ -155,11 +155,14 @@ function mapPropertyToOption(property: PropertyDropdown): Option {
 }
 
 function compactPropertyPrimary(property?: Partial<PropertyDropdown> | null): string {
+  const identityParts: string[] = [];
+  pushPart(identityParts, property?.internalNickname);
+  pushPart(identityParts, property?.internalCode);
+
   const firstReadable =
-    cleanText(property?.internalNickname) ||
-    cleanText(property?.propertyName) ||
-    cleanText(property?.nome) ||
-    cleanText(property?.internalCode);
+    identityParts.length > 0
+      ? identityParts.join(" - ")
+      : cleanText(property?.propertyName) || cleanText(property?.nome);
 
   if (!firstReadable || firstReadable === property?.id) return "Imovel";
   return firstReadable;
@@ -169,7 +172,9 @@ function compactPropertySecondary(property?: Partial<PropertyDropdown> | null): 
   if (!property) return null;
 
   const parts: string[] = [];
-  pushPart(parts, property.internalCode);
+  if (cleanText(property.internalNickname) || cleanText(property.internalCode)) {
+    pushPart(parts, property.propertyName || property.nome);
+  }
   pushPart(parts, property.bairro || property.locationLabel);
   pushPart(parts, [property.cidade, property.estado].filter(Boolean).join(", "));
 
