@@ -118,14 +118,18 @@ export function EventDemandHeatmapPlaceholder({
             HEATMAP DE DEMANDA
           </p>
           <h3 style={{ margin: 0, color: "var(--app-text)", fontSize: 17, fontWeight: 750, letterSpacing: 0 }}>
-            Regioes com maior potencial
+            Regiões com maior potencial
           </h3>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
           <AppBadge kind={cellsWithStats.length > 0 ? "accent" : "neutral"}>
-            {geoCells.length} celula(s) geo
+            {geoCells.length} {geoCells.length === 1 ? "célula geo" : "células geo"}
           </AppBadge>
-          {cellsWithoutGeo.length > 0 && <AppBadge kind="warn">{cellsWithoutGeo.length} celula(s) sem centro</AppBadge>}
+          {cellsWithoutGeo.length > 0 && (
+            <AppBadge kind="warn">
+              {cellsWithoutGeo.length} {cellsWithoutGeo.length === 1 ? "célula sem centro" : "células sem centro"}
+            </AppBadge>
+          )}
           {eventsWithoutGeo.length > 0 && <AppBadge kind="warn">{eventsWithoutGeo.length} sem geo</AppBadge>}
         </div>
       </div>
@@ -190,8 +194,8 @@ export function EventDemandHeatmapPlaceholder({
                       data-region={cell.regionLabel}
                       data-cell-code={cell.cellCode}
                       onClick={() => onSelectCell?.(cell)}
-                      title={`${cell.regionLabel}: ${cell.cellCode}, score ${cell.score}, ${cell.eventsCount} evento(s)`}
-                      aria-label={`${cell.regionLabel}, celula ${cell.cellCode}, score de demanda ${cell.score}, ${cell.affectedPropertiesCount} imoveis impactados`}
+                      title={`${cell.regionLabel}: ${cell.cellCode}, score ${cell.score}, ${cell.eventsCount} ${cell.eventsCount === 1 ? "evento" : "eventos"}`}
+                      aria-label={`${cell.regionLabel}, célula ${cell.cellCode}, score de demanda ${cell.score}, ${cell.affectedPropertiesCount} ${cell.affectedPropertiesCount === 1 ? "imóvel impactado" : "imóveis impactados"}`}
                       style={{
                         position: "absolute",
                         left: `${left}%`,
@@ -214,7 +218,7 @@ export function EventDemandHeatmapPlaceholder({
                     >
                       <span style={{ fontSize: 22, fontWeight: 850, lineHeight: 1 }}>{cell.score || "-"}</span>
                       <span style={{ fontSize: 10, fontWeight: 750, lineHeight: 1.2 }}>
-                        {cell.affectedPropertiesCount} imovel(is)
+                        {cell.affectedPropertiesCount === 1 ? "1 imóvel" : `${cell.affectedPropertiesCount} imóveis`}
                       </span>
                       <span
                         aria-hidden
@@ -261,10 +265,10 @@ export function EventDemandHeatmapPlaceholder({
               style={{ padding: 16, display: "grid", gap: 12, alignContent: "start", minWidth: 0 }}
             >
               <p style={{ margin: 0, color: "var(--app-text)", fontSize: 13, fontWeight: 800 }}>
-                Prioridade por regiao
+                Prioridade por região
               </p>
               {hotCells.length === 0 ? (
-                <CompactEmpty text="Ainda nao ha celulas geograficas para ranquear." />
+                <CompactEmpty text="Ainda não há células geograficas para ranquear." />
               ) : (
                 hotCells.map((cell) => (
                   <RegionCard
@@ -342,7 +346,7 @@ function HeatmapLoadingState() {
               HEATMAP DE DEMANDA
             </p>
             <h3 style={{ margin: 0, color: "var(--app-text)", fontSize: 17, fontWeight: 750 }}>
-              Calculando regioes quentes...
+              Calculando regiões quentes…
             </h3>
           </div>
           <AppBadge kind="neutral">Carregando</AppBadge>
@@ -367,9 +371,9 @@ function HeatmapErrorState({ error, onRetry }: { error: string; onRetry?: () => 
     <AppCard as="section" variant="default" style={{ padding: 22 }}>
       <div data-testid="host-event-demand-heatmap-error" style={{ display: "flex", gap: 14, alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap" }}>
         <div style={{ minWidth: 0 }}>
-          <AppBadge kind="warn">Heatmap indisponivel</AppBadge>
+          <AppBadge kind="warn">Heatmap indisponível</AppBadge>
           <h3 style={{ margin: "10px 0 6px", color: "var(--app-text)", fontSize: 17, fontWeight: 750 }}>
-            Nao conseguimos carregar as regioes agora
+            Não conseguimos carregar as regiões agora
           </h3>
           <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 13, lineHeight: 1.55 }}>
             {error}
@@ -403,10 +407,10 @@ function HeatmapEmptyState() {
       <div style={{ maxWidth: 460 }}>
         <Icons.MapPin size={24} style={{ color: "var(--app-text-dim)" }} />
         <p style={{ margin: "10px 0 4px", color: "var(--app-text)", fontSize: 15, fontWeight: 750 }}>
-          Sem regioes quentes neste filtro
+          Sem regiões quentes neste filtro
         </p>
         <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 13, lineHeight: 1.55 }}>
-          Amplie o periodo ou remova filtros para ver onde a Urban esta detectando concentracao de demanda.
+          Amplie o período ou remova filtros para ver onde a Urban está detectando concentração de demanda.
         </p>
       </div>
     </div>
@@ -495,7 +499,7 @@ function HeatLegend() {
           fontWeight: 700,
         }}
       >
-        celula h3/geohash
+        célula h3/geohash
       </span>
     </div>
   );
@@ -588,12 +592,12 @@ function NoGeoCanvas({
       <div style={{ maxWidth: 360 }}>
         <Icons.MapPin size={24} />
         <p style={{ margin: "10px 0 4px", color: "var(--app-text)", fontSize: 14, fontWeight: 750 }}>
-          Eventos sem celula geografica
+          Eventos sem célula geografica
         </p>
         <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5 }}>
           {eventsWithoutGeo.length > 0 || cellsWithoutGeo > 0
-            ? "Use a lista sem geo abaixo para priorizar enriquecimento de endereco e centro da celula."
-            : "Ha eventos no radar, mas o backend ainda nao retornou celulas de heatmap."}
+            ? "Use a lista sem geo abaixo para priorizar enriquecimento de endereço e centro da célula."
+            : "Há eventos no radar, mas o backend ainda não retornou células de heatmap."}
         </p>
       </div>
     </div>
@@ -642,7 +646,7 @@ function RegionCard({
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginTop: 10 }}>
         <MiniMetric label="Score" value={String(cell.score || "-")} />
         <MiniMetric label="Potencial" value={formatCompactCurrencyFromCents(cell.potentialCents)} />
-        <MiniMetric label="Imoveis" value={String(cell.affectedPropertiesCount)} />
+        <MiniMetric label="Imóveis" value={String(cell.affectedPropertiesCount)} />
       </div>
 
       {cell.impactedProperties.length > 0 && (
@@ -714,7 +718,7 @@ function CityPotentialPanel({ citySummaries }: { citySummaries: CitySummary[] })
         Potencial por cidade
       </p>
       {citySummaries.length === 0 ? (
-        <CompactEmpty text="Nenhum evento com cidade disponivel neste filtro." />
+        <CompactEmpty text="Nenhum evento com cidade disponível neste filtro." />
       ) : (
         <div
           className="event-demand-heatmap-city-grid"
@@ -738,7 +742,7 @@ function CityPotentialPanel({ citySummaries }: { citySummaries: CitySummary[] })
                 {formatCompactCurrencyFromCents(city.potentialCents)}
               </p>
               <p style={{ margin: "5px 0 0", color: "var(--app-text-muted)", fontSize: 11, lineHeight: 1.45 }}>
-                {city.eventsCount} evento(s), {city.impactedPropertiesCount} imovel(is), {city.highDemandEventsCount} alta demanda
+                {city.eventsCount} {city.eventsCount === 1 ? "evento" : "eventos"}, {city.impactedPropertiesCount} {city.impactedPropertiesCount === 1 ? "imóvel" : "imóveis"}, {city.highDemandEventsCount} alta demanda
                 {city.noGeoEventsCount > 0 ? `, ${city.noGeoEventsCount} sem geo` : ""}.
               </p>
             </div>
@@ -757,10 +761,10 @@ function ImpactedPropertiesPanel({
   return (
     <div data-testid="host-event-demand-heatmap-property-impact" style={{ minWidth: 0 }}>
       <p style={{ margin: "0 0 10px", color: "var(--app-text)", fontSize: 13, fontWeight: 800 }}>
-        Imoveis mais expostos
+        Imóveis mais expostos
       </p>
       {properties.length === 0 ? (
-        <CompactEmpty text="Nenhum imovel impactado retornado para os eventos deste filtro." />
+        <CompactEmpty text="Nenhum imóvel impactado retornado para os eventos deste filtro." />
       ) : (
         <div style={{ display: "grid", gap: 8 }}>
           {properties.slice(0, 4).map((property) => (
@@ -782,7 +786,7 @@ function ImpactedPropertiesPanel({
                   {property.name}
                 </span>
                 <span style={{ display: "block", marginTop: 3, color: "var(--app-text-muted)", fontSize: 11 }}>
-                  {property.eventsCount} evento(s), melhor score {property.bestScore || "-"}
+                  {property.eventsCount} {property.eventsCount === 1 ? "evento" : "eventos"}, melhor score {property.bestScore || "-"}
                 </span>
               </span>
               <span style={{ color: "var(--app-text)", fontSize: 12, fontWeight: 850 }}>
@@ -821,13 +825,13 @@ function MissingGeoPanel({
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div style={{ minWidth: 0 }}>
           <p style={{ margin: 0, color: "var(--app-text)", fontSize: 13, fontWeight: 800 }}>
-            Eventos sem geolocalizacao confiavel
+            Eventos sem geolocalização confiável
           </p>
           <p style={{ margin: "4px 0 0", color: "var(--app-text-muted)", fontSize: 12, lineHeight: 1.45 }}>
-            Eles entram no potencial por cidade, mas nao aparecem como bolha no mapa ate receberem latitude e longitude.
+            Eles entram no potencial por cidade, mas não aparecem como bolha no mapa até receberem latitude e longitude.
           </p>
         </div>
-        <AppBadge kind="warn">{events.length} pendente(s)</AppBadge>
+        <AppBadge kind="warn">{events.length} {events.length === 1 ? "pendente" : "pendentes"}</AppBadge>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
@@ -851,7 +855,7 @@ function MissingGeoPanel({
                 {event.name}
               </span>
               <span style={{ display: "block", marginTop: 3, color: "var(--app-text-muted)", fontSize: 11 }}>
-                {event.city || "Cidade nao informada"} - {formatCompactCurrencyFromCents(event.eventRevenuePotentialCents)}
+                {event.city || "Cidade não informada"} - {formatCompactCurrencyFromCents(event.eventRevenuePotentialCents)}
               </span>
             </span>
             <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
@@ -927,7 +931,7 @@ function buildCitySummaries(events: HostEventRadarItem[]): CitySummary[] {
   >();
 
   events.forEach((event) => {
-    const city = event.city || "Cidade nao informada";
+    const city = event.city || "Cidade não informada";
     const key = `${city}-${event.state ?? ""}`;
     const current =
       cityMap.get(key) ??
@@ -1001,13 +1005,13 @@ function buildPropertySummaries(events: HostEventRadarItem[]) {
 }
 
 function cityLabelFromEvents(events: HostEventRadarItem[]): string {
-  if (events.length === 0) return "Cidade nao informada";
+  if (events.length === 0) return "Cidade não informada";
   const counts = new Map<string, number>();
   events.forEach((event) => {
-    const label = [event.city, event.state].filter(Boolean).join(" / ") || "Cidade nao informada";
+    const label = [event.city, event.state].filter(Boolean).join(" / ") || "Cidade não informada";
     counts.set(label, (counts.get(label) ?? 0) + 1);
   });
-  return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "Cidade nao informada";
+  return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "Cidade não informada";
 }
 
 function regionLabelFromCell(cell: DemandHeatmapCell): string {
@@ -1018,7 +1022,7 @@ function regionLabelFromCell(cell: DemandHeatmapCell): string {
 
   const withoutState = pieces.length > 2 ? pieces.slice(1) : pieces;
   const label = withoutState.map(titleCase).join(" ").trim();
-  return label || cell.dominantCategory || "Regiao monitorada";
+  return label || cell.dominantCategory || "Região monitorada";
 }
 
 function cellCodeFromCell(cell: DemandHeatmapCell): string {
@@ -1036,7 +1040,7 @@ function cellKindLabel(kind: CellViewModel["cellKind"]) {
   if (kind === "h3") return "H3";
   if (kind === "geohash") return "Geohash";
   if (kind === "derived") return "Derivada";
-  return "Celula";
+  return "Célula";
 }
 
 function titleCase(value: string) {

@@ -241,7 +241,7 @@ export class StaysAutoApplyService {
 
     if (eligible > 0 || blocked > 0 || applied > 0 || errors > 0) {
       this.logger.log(
-        `Stays auto-apply: processados=${autoListings.length} elegiveis=${eligible} dryRun=${dryRun} bloqueados=${blocked} aplicados=${applied} erros=${errors}`,
+        `Stays auto-apply: processados=${autoListings.length} elegíveis=${eligible} dryRun=${dryRun} bloqueados=${blocked} aplicados=${applied} erros=${errors}`,
       );
     }
     return { processed: autoListings.length, eligible, applied, dryRun, blocked, errors };
@@ -498,7 +498,7 @@ export class StaysAutoApplyService {
       return snapshots[0] ?? null;
     } catch (err) {
       this.logger.warn(
-        `Stays auto-apply nao conseguiu carregar PricingDecisionSnapshot analise=${analise.id}: ${(err as Error).message}`,
+        `Stays auto-apply não conseguiu carregar PricingDecisionSnapshot analise=${analise.id}: ${(err as Error).message}`,
       );
       return null;
     }

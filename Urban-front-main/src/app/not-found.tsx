@@ -1,7 +1,7 @@
 import NextLink from "next/link";
 
 /**
- * 404 — pagina nao encontrada.
+ * 404 — página não encontrada.
  *
  * Manifesto editorial dark, consistente com /landing/lancamento/precos.
  * Sem header/footer — tela full-bleed.

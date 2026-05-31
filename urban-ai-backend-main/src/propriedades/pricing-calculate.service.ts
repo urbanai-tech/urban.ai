@@ -52,7 +52,7 @@ export type PricingDecisionSnapshotAuditInput = {
   analisePreco?: PricingDecisionSnapshot['analisePreco'];
   priceUpdate?: PricingDecisionSnapshot['priceUpdate'];
   targetDate?: string | Date | null;
-  generatedAt?: string | Date | null;
+  generatedAt: string | Date | null;
   jobRunId?: string | null;
   decisionType?: string | null;
   status?: PricingDecisionStatus | null;
@@ -86,10 +86,10 @@ export type PricingDecisionOutcomeAuditInput = {
   realizedRevenueCents?: number | null;
   bookedNights?: number | null;
   externalReservationId?: string | null;
-  acceptedAt?: string | Date | null;
-  rejectedAt?: string | Date | null;
-  appliedAt?: string | Date | null;
-  recordedAt?: string | Date | null;
+  acceptedAt: string | Date | null;
+  rejectedAt: string | Date | null;
+  appliedAt: string | Date | null;
+  recordedAt: string | Date | null;
   source?: string | null;
   sourceDetail?: string | null;
   currency?: string | null;
@@ -296,7 +296,7 @@ export class PricingCalculateService {
         seuPrecoAtual: this.roundMoney(seuPrecoAtual || 0),
         diferencaPercentual: 0,
         recomendacao: 'Manter',
-        motivo: 'Preco atual ou preco de referencia ausente/invalidos; sugestao conservadora.',
+        motivo: 'Preço atual ou preço de referência ausente/inválido; sugestão conservadora.',
       };
     }
 
@@ -336,13 +336,13 @@ export class PricingCalculateService {
 
     let recomendacao: string;
     if (diferenca > 15) {
-      recomendacao = 'AUMENTAR (preco abaixo do mercado/evento)';
+      recomendacao = 'AUMENTAR (preço abaixo do mercado/evento)';
     } else if (diferenca > 5) {
       recomendacao = 'Pode aumentar';
     } else if (Math.abs(diferenca) <= 5) {
       recomendacao = 'Manter';
     } else {
-      recomendacao = 'Reduzir levemente (preco acima do sugerido)';
+      recomendacao = 'Reduzir levemente (preço acima do sugerido)';
     }
 
     return {

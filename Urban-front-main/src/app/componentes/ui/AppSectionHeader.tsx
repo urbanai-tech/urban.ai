@@ -3,7 +3,7 @@
 import React from "react";
 
 /**
- * Header de pagina/sessao light premium.
+ * Header de página/sessão light premium.
  *
  * Substitui `<Heading size="2xl" fontWeight="extrabold">` chakra default
  * usado em todas as telas autenticadas, sem hierarquia editorial.

@@ -35,7 +35,7 @@ export default function AceitarConvitePage() {
     <Suspense
       fallback={
         <InviteShell title="Carregando convite." subtitle="Estamos preparando sua ativação.">
-          <LoadingCard label="Carregando..." />
+          <LoadingCard label="Carregando…" />
         </InviteShell>
       }
     >
@@ -134,7 +134,7 @@ function AceitarConvite() {
   if (loading) {
     return (
       <InviteShell title="Validando convite." subtitle="Aguarde um instante para continuarmos.">
-        <LoadingCard label="Validando seu convite..." />
+        <LoadingCard label="Validando seu convite…" />
       </InviteShell>
     );
   }
@@ -170,7 +170,7 @@ function AceitarConvite() {
       ? `Bem-vindo, ${validation.email.split("@")[0]}.`
       : "Bem-vindo a Urban AI.";
   const positionLabel = validation.position
-    ? `Sua posicao na fila: #${validation.position}.`
+    ? `Sua posição na fila: #${validation.position}.`
     : "Você foi convidado.";
 
   return (
@@ -328,11 +328,11 @@ function PasswordInput({
 
 function PasswordRules({ checks }: { checks: PasswordChecks }) {
   const rules: Array<[keyof PasswordChecks, string]> = [
-    ["lower", "Letra minuscula"],
-    ["upper", "Letra maiuscula"],
-    ["number", "Numero"],
+    ["lower", "Letra minúscula"],
+    ["upper", "Letra maiúscula"],
+    ["number", "Número"],
     ["special", "Caractere especial (!@#$%^&*)"],
-    ["length", "Minimo de 8 caracteres"],
+    ["length", "Mínimo de 8 caracteres"],
     ["match", "Senhas coincidem"],
   ];
 

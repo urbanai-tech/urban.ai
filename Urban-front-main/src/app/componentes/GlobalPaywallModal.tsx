@@ -68,8 +68,8 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
           <div className="global-paywall-alert">
             <Icons.Info size={18} />
             <p>
-              <strong>Voce possui {propertyCount} imoveis sincronizados.</strong>{" "}
-              A faixa <strong>{recommendedLabel}</strong> sera aplicada automaticamente
+              <strong>Você possui {propertyCount} imóveis sincronizados.</strong>{" "}
+              A faixa <strong>{recommendedLabel}</strong> será aplicada automaticamente
               no checkout self-service.
             </p>
           </div>
@@ -86,7 +86,7 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
             surface="light"
             compact
             title="Ajuste sua assinatura"
-            subtitle="Escolha a quantidade de imoveis e o periodo. O plano certo entra sozinho."
+            subtitle="Escolha a quantidade de imóveis e o período. O plano certo entra sozinho."
           />
         )}
       </section>
@@ -373,7 +373,7 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
           }
         }
 
-        @media (max-width: 720px) {
+        @média (max-width: 720px) {
           .global-paywall-overlay {
             padding: 12px;
           }

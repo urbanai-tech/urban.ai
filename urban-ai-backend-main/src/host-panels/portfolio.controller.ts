@@ -10,7 +10,7 @@ import { HostPanelsService } from './host-panels.service';
 export class PortfolioController {
   constructor(private readonly hostPanels: HostPanelsService) {}
 
-  @ApiOperation({ summary: 'Calendario consolidado de precos e recomendacoes do portfolio' })
+  @ApiOperation({ summary: 'Calendário consolidado de preços e recomendações do portfólio' })
   @Get('calendar')
   async calendar(
     @Req() req: any,
@@ -27,7 +27,7 @@ export class PortfolioController {
     });
   }
 
-  @ApiOperation({ summary: 'Maiores oportunidades do portfolio por data e imovel' })
+  @ApiOperation({ summary: 'Maiores oportunidades do portfólio por data e imóvel' })
   @Get('opportunities')
   async opportunities(
     @Req() req: any,
@@ -44,7 +44,7 @@ export class PortfolioController {
     });
   }
 
-  @ApiOperation({ summary: 'Historico auditavel de acoes em lote do portfolio' })
+  @ApiOperation({ summary: 'Histórico auditável de ações em lote do portfólio' })
   @Get('action-runs')
   async actionRuns(
     @Req() req: any,
@@ -59,7 +59,7 @@ export class PortfolioController {
     });
   }
 
-  @ApiOperation({ summary: 'Simula uma acao em lote do portfolio antes de aplicar' })
+  @ApiOperation({ summary: 'Simula uma ação em lote do portfolio antes de aplicar' })
   @Post('simulate-action')
   async simulateAction(
     @Req() req: any,
@@ -76,7 +76,7 @@ export class PortfolioController {
     return this.hostPanels.simulatePortfolioAction(req.user.userId, body);
   }
 
-  @ApiOperation({ summary: 'Acao em lote sobre propriedades do portfolio' })
+  @ApiOperation({ summary: 'Ação em lote sobre propriedades do portfolio' })
   @Post('bulk-action')
   async bulkAction(
     @Req() req: any,

@@ -14,15 +14,15 @@ import '../../../i18n';
  *
  * Repaginado de Chakra light para DARK premium (estilo Stripe Dashboard /
  * Linear / Vercel Analytics). Objetivos:
- *  - Sidebar dark `#0E1117` (mesma família do .urban-admin) — anfitriao
+ *  - Sidebar dark `#0E1117` (mesma família do .urban-admin) — anfitrião
  *    sente continuidade com a marca da landing.
- *  - SVG inline (não react-icons) para zero variacao por OS.
+ *  - SVG inline (não react-icons) para zero variação por OS.
  *  - Microinteracoes: hover slide accent, active border-left orange.
  *  - Switch admin↔host na sidebar quando user.role === 'admin' (item #2 do
  *    requerimento).
  *  - Mobile: top bar + bottom-nav 4 itens + drawer "Mais".
  *  - O wrapper Flex/Box do layout `app/<rota>/layout.tsx` continua sendo
- *    quem segura o conteudo da pagina.
+ *    quem segura o conteúdo da página.
  */
 
 type Me = {
@@ -82,7 +82,7 @@ export default function SideBar() {
       .then((res) => {
         const data = res.data;
         setMe(data);
-        // Sentry user context (gap J7) — falha silenciosa se Sentry nao carregar.
+        // Sentry user context (gap J7) — falha silenciosa se Sentry não carregar.
         if (data?.id) {
           void setSentryUser({
             id: data.id,
@@ -752,7 +752,7 @@ export default function SideBar() {
             transform: translateX(0);
           }
         }
-        @media (min-width: 768px) {
+        @média (min-width: 768px) {
           [data-host-sidebar] {
             display: flex !important;
           }
@@ -762,7 +762,7 @@ export default function SideBar() {
             display: none !important;
           }
         }
-        @media (max-width: 767px) {
+        @média (max-width: 767px) {
           [data-host-mobile-topbar] {
             display: flex !important;
           }

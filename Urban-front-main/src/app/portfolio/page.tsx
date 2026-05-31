@@ -40,7 +40,7 @@ const STRATEGY_OPTIONS: ReadonlyArray<{ id: string; label: string }> = [
   { id: "conservadora", label: "Conservadora" },
   { id: "moderada", label: "Moderada" },
   { id: "agressiva", label: "Agressiva" },
-  { id: "autonomous", label: "Automatico" },
+  { id: "autonomous", label: "Automático" },
 ];
 
 const RANGE_OPTIONS = [30, 60, 90, 180, 360] as const;
@@ -129,8 +129,8 @@ function normalizeOpportunity(input: PortfolioOpportunity): PortfolioOpportunity
   return {
     id: input.id ?? `${propertyId}:${dates.join(",") || "opportunity"}`,
     propertyId,
-    propertyName: input.propertyName ?? "Imovel",
-    title: input.title ?? `${input.propertyName ?? "Imovel"} com lift potencial`,
+    propertyName: input.propertyName ?? "Imóvel",
+    title: input.title ?? `${input.propertyName ?? "Imóvel"} com lift potencial`,
     reason: input.reason ?? input.description ?? input.recommendedAction ?? null,
     dates,
     currentPrice,
@@ -182,7 +182,7 @@ function normalizeCalendarOpportunity(
         : typeof opportunity.description === "string"
           ? opportunity.description
           : day.evento
-            ? "Evento proximo pressiona demanda."
+            ? "Evento próximo pressiona demanda."
             : null,
     dates: [day.date],
     currentPrice,
@@ -308,7 +308,7 @@ function PortfolioPageContent() {
           opportunityData = await fetchPortfolioOpportunities({ from, to, strategy });
         } catch (err) {
           if (!isEndpointUnavailable(err)) {
-            console.warn("[/portfolio] oportunidades indisponiveis; usando calendario", err);
+            console.warn("[/portfolio] oportunidades indisponiveis; usando calendário", err);
           }
           opportunityData = {
             opportunities: calendar.opportunities ?? [],
@@ -321,7 +321,7 @@ function PortfolioPageContent() {
         } catch (err) {
           console.warn("[/portfolio] action runs indisponiveis", err);
           runs = calendar.actionRuns ?? [];
-          if (!cancelled) setRunsError("Historico indisponivel no momento.");
+          if (!cancelled) setRunsError("Histórico indisponível no momento.");
         }
 
         if (!cancelled) {
@@ -453,7 +453,7 @@ function PortfolioPageContent() {
       maxLiftAmount: topLift,
       maxLiftPercent: rankingItems[0]?.liftPercent ?? null,
       rangeLabel: `${rangeDays} dias`,
-      dateLabel: `${formatShortDate(from)} ate ${formatShortDate(to)}`,
+      dateLabel: `${formatShortDate(from)} até ${formatShortDate(to)}`,
     };
   }, [from, opportunitySummary, properties, rangeDays, rankingItems, to]);
 
@@ -492,7 +492,7 @@ function PortfolioPageContent() {
       setRunsError(null);
       setActionRuns(await fetchPortfolioActionRuns(8));
     } catch (err) {
-      console.error("[/portfolio] historico falhou", err);
+      console.error("[/portfolio] histórico falhou", err);
       setRunsError("Não foi possível atualizar o histórico agora.");
     } finally {
       setRunsLoading(false);
@@ -631,7 +631,7 @@ function PortfolioPageContent() {
       const input = buildBulkInput(action);
       if (input.propertyIds.length === 0) return;
       if (action.type === "set-date-price" && !input.dates?.length) {
-        toast.warn("Marque ao menos uma data", "Clique numa celula ou selecione uma oportunidade do ranking.");
+        toast.warn("Marque ao menos uma data", "Clique numa célula ou selecione uma oportunidade do ranking.");
         return;
       }
       try {
@@ -647,7 +647,7 @@ function PortfolioPageContent() {
         setSimulation(preview);
         setSimulationOpen(true);
       } catch (err) {
-        console.error("[/portfolio] simulacao falhou", err);
+        console.error("[/portfolio] simulação falhou", err);
         toast.error("Não foi possível simular", "Tente novamente em alguns segundos.");
       } finally {
         setBulkLoading(false);
@@ -663,7 +663,7 @@ function PortfolioPageContent() {
       const result = await mutatePortfolioBulkAction(buildBulkInput(pendingAction));
       toast.success(
         `Aplicado em ${result.applied ?? 0} item${(result.applied ?? 0) === 1 ? "" : "s"}`,
-        result.auditLogId ? `Audit run ${result.auditLogId}` : "Historico registrado.",
+        result.auditLogId ? `Audit run ${result.auditLogId}` : "Histórico registrado.",
       );
       if ((result.failed?.length ?? 0) > 0) {
         toast.warn(
@@ -694,7 +694,7 @@ function PortfolioPageContent() {
         actions={
           <div style={{ display: "inline-flex", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
             <DateRangeField label="De" value={from} max={to} onChange={handleFromChange} />
-            <DateRangeField label="Ate" value={to} min={from} onChange={handleToChange} />
+            <DateRangeField label="Até" value={to} min={from} onChange={handleToChange} />
             <div style={{ flex: "0 0 150px", maxWidth: 150, minWidth: 0 }}>
               <AppSelect
                 label="Janela"
@@ -927,13 +927,13 @@ function PortfolioDayDetailDialog({
               }}
             >
               <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
-                Evento que influencia a diaria
+                Evento que influencia a diária
               </p>
               <strong style={{ display: "block", color: "var(--app-text)", fontSize: 16, lineHeight: 1.35 }}>
                 {detail.event.nome}
               </strong>
               <p style={{ margin: "8px 0 0", color: "var(--app-text-muted)", fontSize: 13, lineHeight: 1.45 }}>
-                O nome completo fica aqui, fora da celula apertada. A grade passa a mostrar apenas o sinal do evento.
+                O nome completo fica aqui, fora da célula apertada. A grade passa a mostrar apenas o sinal do evento.
               </p>
             </section>
           )}
@@ -945,8 +945,8 @@ function PortfolioDayDetailDialog({
               gap: 10,
             }}
           >
-            <DetailMetric label="Preco atual" value={formatCurrency(detail.currentPrice)} />
-            <DetailMetric label="Sugestao" value={formatCurrency(suggested)} accent />
+            <DetailMetric label="Preço atual" value={formatCurrency(detail.currentPrice)} />
+            <DetailMetric label="Sugestão" value={formatCurrency(suggested)} accent />
             <DetailMetric
               label="Lift estimado"
               value={
@@ -958,7 +958,7 @@ function PortfolioDayDetailDialog({
               }
             />
             <DetailMetric
-              label="Confianca / risco"
+              label="Confiança / risco"
               value={`${detail.confidence ?? "--"}% / ${detail.risk ?? "--"}%`}
             />
           </div>

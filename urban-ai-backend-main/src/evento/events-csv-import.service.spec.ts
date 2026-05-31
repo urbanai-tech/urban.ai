@@ -139,7 +139,7 @@ describe('EventsCsvImportService', () => {
       await service.importFromBuffer(Buffer.from(csv));
 
       const sentEvents = ingestMock.ingestBatch.mock.calls[0][0];
-      // Source label do parametro (default) ganha do que veio no CSV
+      // Source label do parâmetro (default) ganha do que veio no CSV
       expect(sentEvents[0].source).toBe('admin-csv-import');
     });
 

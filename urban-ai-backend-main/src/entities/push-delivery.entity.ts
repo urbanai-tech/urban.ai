@@ -35,13 +35,13 @@ export class PushDelivery {
   payloadJson: string;
 
   @Column({ type: 'datetime', nullable: true })
-  pushedAt?: Date | null;
+  pushedAt: Date | null;
 
   @Column({ type: 'datetime', nullable: true })
-  deliveredAt?: Date | null;
+  deliveredAt: Date | null;
 
   @Column({ type: 'datetime', nullable: true })
-  failedAt?: Date | null;
+  failedAt: Date | null;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   failureReason?: string | null;

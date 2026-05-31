@@ -395,7 +395,7 @@ describe('PaymentsService - createBillingPortalSession', () => {
     userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'host@test.com' });
 
     await expect(service.createBillingPortalSession('u1')).rejects.toThrow(
-      'Pagamento temporariamente indisponivel',
+      'Pagamento temporariamente indisponível',
     );
     expect(mockStripeBillingPortalSessionsCreate).not.toHaveBeenCalled();
   });
@@ -468,7 +468,7 @@ describe('PaymentsService — cancelSubscription', () => {
     userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'u@test.com' });
 
     await expect(service.cancelSubscription('u1')).rejects.toThrow(
-      'Pagamento temporariamente indisponivel',
+      'Pagamento temporariamente indisponível',
     );
     expect(mockStripeCustomersList).not.toHaveBeenCalled();
   });
@@ -604,7 +604,7 @@ describe('PaymentsService — createCheckoutSession', () => {
     });
 
     await expect(service.createCheckoutSession({ plan: 'profissional' }, 'u1')).rejects.toThrow(
-      'Pagamento temporariamente indisponivel',
+      'Pagamento temporariamente indisponível',
     );
     expect(mockStripeCustomersList).not.toHaveBeenCalled();
     expect(mockStripeCheckoutSessionsCreate).not.toHaveBeenCalled();
@@ -619,7 +619,7 @@ describe('PaymentsService — createCheckoutSession', () => {
 
     await expect(
       service.createCheckoutSession({ plan: 'profissional', billingCycle: 'weekly' as any }, 'u1'),
-    ).rejects.toThrow('Escolha um ciclo de cobranca valido');
+    ).rejects.toThrow('Escolha um ciclo de cobrança válido');
     expect(mockStripeCustomersList).not.toHaveBeenCalled();
   });
 
@@ -675,7 +675,7 @@ describe('PaymentsService — createCheckoutSession', () => {
         { plan: 'profissional', billingCycle: 'monthly', quantity: 'abc' as any },
         'u1',
       ),
-    ).rejects.toThrow('Escolha uma quantidade valida de imoveis');
+    ).rejects.toThrow('Escolha uma quantidade válida de imóveis');
 
     expect(mockStripeCustomersList).not.toHaveBeenCalled();
     expect(mockStripeCheckoutSessionsCreate).not.toHaveBeenCalled();
@@ -857,7 +857,7 @@ describe('PaymentsService — quota billing emails', () => {
 
     expect(mailerService.sendHtmlEmail).toHaveBeenCalledWith(
       { email: 'host@test.com', name: 'Carla Host' },
-      'Urban AI - Voce esta perto do limite de imoveis',
+      'Urban AI - Você está perto do limite de imóveis',
       expect.stringContaining('https://app.myurbanai.com/plans?upsell=quota'),
     );
   });
@@ -869,7 +869,7 @@ describe('PaymentsService — quota billing emails', () => {
 
     expect(mailerService.sendHtmlEmail).toHaveBeenCalledWith(
       { email: 'host@test.com', name: 'Carla Host' },
-      'Urban AI - Limite de imoveis atingido',
+      'Urban AI - Limite de imóveis atingido',
       expect.stringContaining('11'),
     );
   });

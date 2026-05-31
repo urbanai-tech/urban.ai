@@ -33,13 +33,13 @@ const intelligence = {
   sourceFreshnessHours: 6,
   confidence: 'high',
   interpretation:
-    'Este evento deve aquecer a regiao por 3 noites, com maior impacto em imoveis conectados ao eixo sul e metro.',
+    'Este evento deve aquecer a região por 3 noites, com maior impacto em imóveis conectados ao eixo sul e metrô.',
   drivers: [
     {
       key: 'attendance',
-      label: 'Publico esperado',
+      label: 'Público esperado',
       weight: 0.35,
-      explanation: 'Publico estimado acima de 60 mil pessoas.',
+      explanation: 'Público estimado acima de 60 mil pessoas.',
     },
   ],
   riskFlags: ['extreme_price_dropoff'],
@@ -93,7 +93,7 @@ const priceAbsorptionCurve = {
       bookingProbability: 0.63,
       expectedRevenueCents: 53550,
       riskLevel: 'medium',
-      explanation: 'Melhor equilibrio entre diaria maior e chance de reserva.',
+      explanation: 'Melhor equilíbrio entre diária maior e chance de reserva.',
     },
     {
       scenario: 'aggressive',
@@ -113,7 +113,7 @@ const priceAbsorptionCurve = {
       bookingProbability: 0.14,
       expectedRevenueCents: 19600,
       riskLevel: 'high',
-      explanation: 'So faz sentido em compressao extrema.',
+      explanation: 'Só faz sentido em compressão extrema.',
     },
   ],
 };
@@ -200,11 +200,11 @@ describe('Event radar contract v0', () => {
   it('defines admin blind spot groups with actionable next steps', () => {
     const blindSpot = {
       code: 'high_demand_without_recommendation',
-      label: 'Alta demanda sem recomendacao',
+      label: 'Alta demanda sem recomendação',
       severity: 'critical',
       count: 3,
       eventIds: [eventItem.id],
-      nextAction: 'Reprocessar inteligencia e verificar disponibilidade dos imoveis impactados.',
+      nextAction: 'Reprocessar inteligência e verificar disponibilidade dos imóveis impactados.',
     };
 
     expect(blindSpot).toMatchObject({

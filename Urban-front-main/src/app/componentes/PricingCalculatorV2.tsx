@@ -99,8 +99,8 @@ export function PricingSelfServiceCalculator({
   initialQuantity,
   initialCycle = "annual",
   surface = "dark",
-  title = "Escolha quantidade e periodo",
-  subtitle = "O plano e aplicado automaticamente pela quantidade de imoveis.",
+  title = "Escolha quantidade e período",
+  subtitle = "O plano é aplicado automaticamente pela quantidade de imóveis.",
   compact = false,
 }: PricingSelfServiceCalculatorProps) {
   const sortedPlans = useMemo(() => sortPricingPlans(plans).filter((plan) => plan.isActive), [plans]);
@@ -132,20 +132,20 @@ export function PricingSelfServiceCalculator({
     setError(null);
     try {
       if (!stripePromise) {
-        throw new Error("Checkout indisponivel: chave publica Stripe nao configurada.");
+        throw new Error("Checkout indisponível: chave pública Stripe não configurada.");
       }
 
       const { sessionId } = await createCheckoutSession("auto", cycle, quantity);
       const stripe = await stripePromise;
-      if (!stripe) throw new Error("Checkout indisponivel: Stripe.js nao carregou.");
+      if (!stripe) throw new Error("Checkout indisponível: Stripe.js não carregou.");
 
       const result = await stripe.redirectToCheckout({ sessionId });
-      if (result.error) throw new Error("Nao foi possivel abrir o checkout agora.");
+      if (result.error) throw new Error("Não foi possível abrir o checkout agora.");
     } catch (err) {
       setError(
         getFriendlyApiErrorMessage(
           err,
-          "Nao foi possivel iniciar o checkout agora. Tente novamente em alguns instantes.",
+          "Não foi possível iniciar o checkout agora. Tente novamente em alguns instantes.",
         ),
       );
     } finally {
@@ -157,7 +157,7 @@ export function PricingSelfServiceCalculator({
     <section style={{ ...cardStyle(surface, compact), display: "grid", gap: compact ? 18 : 22 }}>
       <header style={{ display: "grid", gap: 8 }}>
         <p style={{ margin: 0, color: t.faint, fontSize: 11, fontWeight: 800, letterSpacing: 2.2, textTransform: "uppercase" }}>
-          Self-service por imovel
+          Self-service por imóvel
         </p>
         <h3 style={{ margin: 0, color: t.text, fontSize: compact ? 24 : 30, lineHeight: 1.05 }}>
           {title}
@@ -177,7 +177,7 @@ export function PricingSelfServiceCalculator({
         <div style={{ display: "grid", gap: 18 }}>
           <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
             <legend style={{ marginBottom: 8, color: t.muted, fontSize: 14, fontWeight: 700 }}>
-              Quantos imoveis voce quer contratar?
+              Quantos imóveis você quer contratar?
             </legend>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
               <button
@@ -194,7 +194,7 @@ export function PricingSelfServiceCalculator({
                 max={maxQuantity}
                 value={quantity}
                 onChange={(event) => setQuantity(clampQuantity(Number(event.target.value), maxQuantity))}
-                aria-label="Quantidade de imoveis"
+                aria-label="Quantidade de imóveis"
                 style={{
                   width: 116,
                   minHeight: 52,
@@ -215,7 +215,7 @@ export function PricingSelfServiceCalculator({
               >
                 +
               </button>
-              <span style={{ color: t.muted, fontSize: 13 }}>ate {maxQuantity} no checkout self-service</span>
+              <span style={{ color: t.muted, fontSize: 13 }}>até {maxQuantity} no checkout self-service</span>
             </div>
 
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
@@ -234,7 +234,7 @@ export function PricingSelfServiceCalculator({
 
           <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
             <legend style={{ marginBottom: 8, color: t.muted, fontSize: 14, fontWeight: 700 }}>
-              Periodo de cobranca
+              Período de cobrança
             </legend>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 8 }}>
               {BILLING_CYCLES.map((value) => {
@@ -285,7 +285,7 @@ export function PricingSelfServiceCalculator({
             <>
               <div style={{ display: "grid", gap: 6 }}>
                 <p style={{ margin: 0, color: t.muted, fontSize: 14 }}>
-                  Por imovel/mes: <strong style={{ color: t.text }}>{formatMoney(quote.pricePerPropertyMonthly)}</strong>
+                  Por imóvel/mês: <strong style={{ color: t.text }}>{formatMoney(quote.pricePerPropertyMonthly)}</strong>
                 </p>
                 <p style={{ margin: 0, color: t.muted, fontSize: 14 }}>
                   Equivalente mensal: <strong style={{ color: t.text }}>{formatMoney(quote.monthlyEquivalentTotal)}</strong>
@@ -328,7 +328,7 @@ export function PricingSelfServiceCalculator({
               opacity: busy ? 0.58 : 1,
             }}
           >
-            {busy ? "Abrindo checkout..." : quote ? "Continuar para pagamento" : "Falar com comercial"}
+            {busy ? "Abrindo checkout…" : quote ? "Continuar para pagamento" : "Falar com comercial"}
           </button>
         </aside>
       </div>
@@ -357,7 +357,7 @@ export function PricingCalculatorV2({ plan }: { plan: Plan }) {
       initialQuantity={initialQuantity}
       surface="dark"
       title={plan.title}
-      subtitle={`Faixa ${formatQuantityRange(plan)}. Ajuste quantidade e periodo antes do checkout.`}
+      subtitle={`Faixa ${formatQuantityRange(plan)}. Ajuste quantidade e período antes do checkout.`}
     />
   );
 }

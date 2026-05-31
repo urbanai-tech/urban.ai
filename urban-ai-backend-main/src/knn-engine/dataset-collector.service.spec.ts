@@ -5,7 +5,7 @@ function makeRepo(options: {
   trainingReady?: number;
   distinctListings?: number;
   distinctDays?: number;
-  latest?: string | null;
+  latestá: string | null;
   byOrigin?: Array<{ origin: string; count: string | number }>;
   rawOne?: any;
   rawMany?: any[];

@@ -28,8 +28,8 @@ export default function EmailConfirmation() {
     if (!email) return;
 
     enviarCodigo(email)
-      .then((result) => console.log('Codigo enviado com sucesso:', result))
-      .catch((err) => console.error('Erro ao enviar codigo:', err));
+      .then((result) => console.log('Código enviado com sucesso:', result))
+      .catch((err) => console.error('Erro ao enviar código:', err));
   }, [email]);
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export default function EmailConfirmation() {
 
       router.replace(notFirstTime ? "/dashboard" : "/onboarding");
     } catch (error) {
-      console.error("Erro na verificacao/criacao:", error);
+      console.error("Erro na verificação/criacao:", error);
       router.replace("/onboarding");
     }
   };
@@ -118,11 +118,11 @@ export default function EmailConfirmation() {
       setCountdown(60);
 
       const result = await enviarCodigo(email);
-      toast("Verifique seu e-mail para obter o novo codigo.", { type: "success" });
-      console.log('Codigo enviado com sucesso:', result);
+      toast("Verifique seu e-mail para obter o novo código.", { type: "success" });
+      console.log('Código enviado com sucesso:', result);
     } catch (err) {
-      console.error('Erro ao enviar codigo:', err);
-      toast.error('Erro ao reenviar codigo. Tente novamente mais tarde.');
+      console.error('Erro ao enviar código:', err);
+      toast.error('Erro ao reenviar código. Tente novamente mais tarde.');
     } finally {
       setIsResending(false);
     }
@@ -138,7 +138,7 @@ export default function EmailConfirmation() {
           e-mail.
         </>
       }
-      subtitle="Digite o codigo de 6 digitos enviado para concluir a ativacao da sua conta."
+      subtitle="Digite o código de 6 dígitos enviado para concluir a ativação da sua conta."
       asideEyebrow="ACESSO URBAN AI"
       asideTitle={
         <>
@@ -147,7 +147,7 @@ export default function EmailConfirmation() {
           conta.
         </>
       }
-      asideSubtitle="Uma etapa rapida de seguranca antes de liberar seu painel e onboarding."
+      asideSubtitle="Uma etapa rápida de segurança antes de liberar seu painel e onboarding."
     >
       <AppCard variant="elevated" style={{ padding: 28 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
@@ -168,7 +168,7 @@ export default function EmailConfirmation() {
               <Mail size={30} strokeWidth={1.8} />
             </div>
             <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 14 }}>
-              Codigo enviado para
+              Código enviado para
             </p>
             <strong style={{ display: "block", marginTop: 4, color: "var(--app-text)", wordBreak: "break-word" }}>
               {email}
@@ -188,7 +188,7 @@ export default function EmailConfirmation() {
                 textTransform: "uppercase",
               }}
             >
-              Codigo de 6 digitos
+              Código de 6 dígitos
             </label>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(6, minmax(0, 1fr))", gap: 10 }}>
@@ -239,7 +239,7 @@ export default function EmailConfirmation() {
                 }}
               >
                 <RefreshCw size={16} strokeWidth={1.8} />
-                {resendDisabled ? `Reenviar codigo em ${countdown}s` : 'Reenviar codigo'}
+                {resendDisabled ? `Reenviar código em ${countdown}s` : 'Reenviar código'}
               </button>
             </div>
           </div>
@@ -267,7 +267,7 @@ export default function EmailConfirmation() {
               lineHeight: 1.55,
             }}
           >
-            Nao recebeu o codigo? Verifique sua pasta de spam ou{" "}
+            Não recebeu o código? Verifique sua pasta de spam ou{" "}
             <button
               type="button"
               onClick={() => router.push('/suporte')}

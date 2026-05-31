@@ -405,14 +405,14 @@ export default function NovoEventoManual() {
               type="url"
               value={form.linkSiteOficial ?? ""}
               onChange={(e) => patch("linkSiteOficial", e.target.value)}
-              placeholder="https://..."
+              placeholder="https://evento.com"
             />
             <AdminInput
               label="URL da imagem"
               type="url"
               value={form.imagemUrl ?? ""}
               onChange={(e) => patch("imagemUrl", e.target.value)}
-              placeholder="https://..."
+              placeholder="https://evento.com/imagem.jpg"
             />
             <AdminTextarea
               label="Descrição"

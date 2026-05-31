@@ -130,10 +130,10 @@ export class AirbnbService {
       const { data } = await axios.get(url, { params, headers });
       return data;
     } catch (error: any) {
-      console.error('Erro ao consultar preco Airbnb:', error.response?.data || error.message);
+      console.error('Erro ao consultar preço Airbnb:', error.response?.data || error.message);
       throw new InternalServerErrorException({
         status: false,
-        message: 'Erro ao consultar preco no Airbnb',
+        message: 'Erro ao consultar preço no Airbnb',
         details: error.response?.data || error.message,
       });
     }
@@ -149,7 +149,7 @@ export class AirbnbService {
       return await this.propriedadeService.getPropertyDetails(propertyId);
     } catch (error) {
       this.logger.warn(
-        `Nao foi possivel obter detalhes do Airbnb para listing=${propertyId}; usando fallback conservador: ${
+        `Não foi possível obter detalhes do Airbnb para listing=${propertyId}; usando fallback conservador: ${
           error instanceof Error ? error.message : String(error)
         }`,
       );
@@ -195,7 +195,7 @@ export class AirbnbService {
       });
       throw new InternalServerErrorException({
         status: false,
-        message: 'Nao foi possivel obter preco real do Airbnb nas fontes configuradas',
+        message: 'Não foi possível obter preço real do Airbnb nas fontes configuradas',
       });
     }
 
@@ -217,7 +217,7 @@ export class AirbnbService {
     });
     throw new InternalServerErrorException({
       status: false,
-      message: 'Nao foi possivel obter preco real do Airbnb nas fontes configuradas',
+      message: 'Não foi possível obter preço real do Airbnb nas fontes configuradas',
     });
   }
 
@@ -249,7 +249,7 @@ export class AirbnbService {
     const windows = this.findBookableWindowsFromAvailabilityCalendar(calendar);
     if (windows.length === 0) {
       this.logger.warn(
-        `Calendario Airbnb carregado sem janelas bookable para listing=${propertyId}; sem fallback cego`,
+        `Calendário Airbnb carregado sem janelas bookable para listing=${propertyId}; sem fallback cego`,
       );
       await this.recordPricingAttempt({
         listingId: propertyId,
@@ -258,6 +258,8 @@ export class AirbnbService {
         checkOut: this.addDaysIso(this.todayIso(), 1),
         status: 'skipped',
         reason: 'calendar_no_bookable_window',
+        startedAt: new Date(),
+        finishedAt: new Date(),
         durationMs: 0,
         metadata: {
           calendarDayCount: calendar.days.length,
@@ -266,7 +268,7 @@ export class AirbnbService {
       });
     } else {
       this.logger.log(
-        `Calendario Airbnb gerou ${windows.length} janelas bookable para listing=${propertyId}`,
+        `Calendário Airbnb gerou ${windows.length} janelas bookable para listing=${propertyId}`,
       );
     }
 
@@ -290,7 +292,7 @@ export class AirbnbService {
       return await scraper.scrapeAvailabilityCalendar(propertyId);
     } catch (error) {
       this.logger.warn(
-        `Nao foi possivel carregar calendario Airbnb para listing=${propertyId}; usando janelas fixas: ${
+        `Não foi possível carregar calendário Airbnb para listing=${propertyId}; usando janelas fixas: ${
           error instanceof Error ? error.message : String(error)
         }`,
       );
@@ -344,7 +346,7 @@ export class AirbnbService {
 
         this.reportPricingFailureFromError(error, { listingId: propertyId, source: sourceLabel, checkIn, checkOut });
         this.logger.warn(
-          `${sourceLabel} sem preco para listing=${propertyId} (${checkIn}..${checkOut}): ${this.formatPricingError(error)}`,
+          `${sourceLabel} sem preço para listing=${propertyId} (${checkIn}..${checkOut}): ${this.formatPricingError(error)}`,
         );
       }
     }
@@ -433,7 +435,7 @@ export class AirbnbService {
 
       if (this.isSystemicBlock(error)) {
         this.logger.warn(
-          `${input.primaryName} bloqueado para listing=${input.listingId}; sem retry/fallback inutil: ${
+          `${input.primaryName} bloqueado para listing=${input.listingId}; sem retry/fallback inútil: ${
             this.formatPricingError(error)
           }`,
         );
@@ -526,7 +528,7 @@ export class AirbnbService {
         metadata: { responseShape: this.compactPayloadForAttemptLog(data) },
       });
       throw new AirbnbPricingError(
-        'Resposta do airbnb-search nao trouxe preco total valido',
+        'Resposta do airbnb-search não trouxe preço total válido',
         'api_invalid_response',
         context,
         true,
@@ -552,7 +554,7 @@ export class AirbnbService {
     return {
       price: {
         status: true,
-        message: 'Preco obtido via airbnb-search',
+        message: 'Preço obtido via airbnb-search',
         timestamp: Date.now(),
         data: {
           accommodationCost: Number(total.toFixed(2)),
@@ -620,7 +622,7 @@ export class AirbnbService {
         metadata: { priceCandidateCount: snapshot.priceCandidateCount ?? 0 },
       });
       throw new AirbnbPricingError(
-        'Airbnb exibiu verificacao/captcha no fallback headless',
+        'Airbnb exibiu verificação/captcha no fallback headless',
         'captcha_blocked',
         context,
         false,
@@ -647,7 +649,7 @@ export class AirbnbService {
         },
       });
       throw new AirbnbPricingError(
-        'Fallback headless nao encontrou preco renderizado valido',
+        'Fallback headless não encontrou preço renderizado válido',
         reason,
         context,
         reason !== 'captcha_blocked',
@@ -682,7 +684,7 @@ export class AirbnbService {
     return {
       price: {
         status: true,
-        message: 'Preco obtido via fallback headless Airbnb',
+        message: 'Preço obtido via fallback headless Airbnb',
         timestamp: Date.now(),
         data: {
           accommodationCost: Number(total.toFixed(2)),
@@ -784,8 +786,8 @@ export class AirbnbService {
     dailyPrice?: number | null;
     finalUrl?: string | null;
     metadata?: Record<string, unknown> | null;
-    startedAt?: Date;
-    finishedAt?: Date | null;
+    startedAt: Date;
+    finishedAt: Date | null;
   }): Promise<void> {
     if (!this.pricingAttemptRepo) return;
 

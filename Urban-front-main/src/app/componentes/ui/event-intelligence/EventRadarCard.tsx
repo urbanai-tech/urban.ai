@@ -100,7 +100,7 @@ export function EventRadarCard({
         }}
       >
         <Metric label="Potencial" value={formatCompactCurrencyFromCents(event.eventRevenuePotentialCents)} />
-        <Metric label="Imoveis" value={String(event.impactedProperties.length)} />
+        <Metric label="Imóveis" value={String(event.impactedProperties.length)} />
         <Metric label="Multiplicador" value={multiplierRange} />
         <Metric label="Chance" value={formatPercent(impact?.bookingProbability)} />
       </div>

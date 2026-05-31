@@ -48,8 +48,8 @@ export default function AdminSeoPage() {
     <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
       <AdminSectionHeader
         eyebrow="ADMIN - SEO / SGO / GEO"
-        title="Governanca de busca e AI Search"
-        subtitle="Painel dedicado para indexacao, citabilidade em mecanismos generativos e backlog tecnico de descoberta organica."
+        title="Governança de busca e AI Search"
+        subtitle="Painel dedicado para indexação, citabilidade em mecanismos generativos e backlog técnico de descoberta orgânica."
         actions={
           <AdminBadge kind="accent">
             Atualizado {adminSeoPanelData.lastUpdatedLabel}
@@ -59,7 +59,7 @@ export default function AdminSeoPage() {
 
       <section style={{ marginBottom: 56 }}>
         <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
-          OPERACAO DE MEDICAO
+          OPERAÇÃO DE MEDIÇÃO
         </p>
 
         <div
@@ -133,14 +133,14 @@ export default function AdminSeoPage() {
           <div style={{ padding: "20px 20px 0" }}>
             <AdminCardHeader
               eyebrow="INDICADORES OPERACIONAIS"
-              title="Fonte, status e cadencia por medicao"
+              title="Fonte, status e cadência por medição"
             />
           </div>
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 980 }}>
               <thead>
                 <tr>
-                  {["Indicador", "Valor", "Fonte atual", "Cadencia", "Status integracao", "Atualizado / proxima"].map((header) => (
+                  {["Indicador", "Valor", "Fonte atual", "Cadencia", "Status integração", "Atualizado / próxima"].map((header) => (
                     <th key={header} style={thStyle}>
                       {header}
                     </th>
@@ -167,7 +167,7 @@ export default function AdminSeoPage() {
       >
         <AdminCard variant="subtle">
           <AdminCardHeader
-            eyebrow="STATUS TECNICO"
+            eyebrow="STATUS TÉCNICO"
             title="Fundacao de rastreamento"
           />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>

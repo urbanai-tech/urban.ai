@@ -25,7 +25,7 @@ export function AuthFlowShell({
       movimento da cidade.
     </>
   ),
-  asideSubtitle = "Fluxos simples, seguros e consistentes para anfitrioes que operam com dados.",
+  asideSubtitle = "Fluxos simples, seguros e consistentes para anfitriões que operam com dados.",
 }: AuthFlowShellProps) {
   return (
     <main
@@ -137,7 +137,7 @@ export function AuthFlowShell({
             }}
           >
             <span>Beta privado</span>
-            <span>Sao Paulo</span>
+            <span>São Paulo</span>
           </div>
         </div>
       </section>

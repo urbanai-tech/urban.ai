@@ -325,7 +325,7 @@ function Button({
       }}
     >
       {leftIcon}
-      <span>{isLoading ? (loadingText ?? 'Carregando...') : children}</span>
+      <span>{isLoading ? (loadingText ?? 'Carregando…') : children}</span>
       {rightIcon}
     </button>
   );
@@ -805,38 +805,38 @@ function getOnboardingLoadingStatus(stage: OnboardingLoadStage, foundCount: numb
     const needsManualPrice = stage === 'manual-price-required';
 
     return {
-      eyebrow: needsManualPrice ? 'Fallback manual' : 'Configurando imoveis',
+      eyebrow: needsManualPrice ? 'Fallback manual' : 'Configurando imóveis',
       title: needsManualPrice
-        ? 'Precisamos da diaria base para continuar'
-        : 'Estamos preparando a diaria base e as recomendacoes',
+        ? 'Precisamos da diária base para continuar'
+        : 'Estamos preparando a diária base e as recomendações',
       body: needsManualPrice
-        ? 'O Airbnb nao retornou uma diaria confirmada, ou a origem encontrada era provisoria. Informe o valor atual para iniciar a analise.'
-        : 'Buscamos disponibilidade no Airbnb, tentamos encontrar datas futuras e calculamos a diaria antes de iniciar a analise.',
+        ? 'O Airbnb não retornou uma diária confirmada, ou a origem encontrada era provisória. Informe o valor atual para iniciar a análise.'
+        : 'Buscamos disponibilidade no Airbnb, tentamos encontrar datas futuras e calculamos a diária antes de iniciar a análise.',
       tone: needsManualPrice ? 'warn' : 'accent',
       steps: [
-        { id: 'registering', label: 'Salvar imoveis', status: status('registering') },
+        { id: 'registering', label: 'Salvar imóveis', status: status('registering') },
         { id: 'creating-addresses', label: 'Validar dados', status: status('creating-addresses') },
-        { id: 'pricing', label: 'Preparar cotacao', status: status('pricing') },
+        { id: 'pricing', label: 'Preparar cotação', status: status('pricing') },
         { id: 'availability', label: 'Ver disponibilidade', status: status('checking-airbnb-availability') },
         { id: 'dates', label: 'Encontrar datas', status: status('finding-available-dates') },
-        { id: 'daily', label: 'Calcular diaria', status: status('calculating-daily-rate') },
+        { id: 'daily', label: 'Calcular diária', status: status('calculating-daily-rate') },
         { id: 'manual', label: 'Fallback manual', status: status('manual-price-required') },
-        { id: 'saving-prices', label: 'Salvar diaria', status: status('saving-prices') },
-        { id: 'starting-analysis', label: 'Iniciar analise', status: status('starting-analysis') },
+        { id: 'saving-prices', label: 'Salvar diária', status: status('saving-prices') },
+        { id: 'starting-analysis', label: 'Iniciar análise', status: status('starting-analysis') },
       ],
     };
   }
 
   return {
     eyebrow: 'Buscando no Airbnb',
-    title: foundCount > 0 ? `Encontramos ${foundCount} imoveis ate agora` : 'Estamos buscando informacoes do Airbnb',
-    body: 'Abrimos o link, identificamos o anfitriao e validamos os anuncios publicos antes de mostrar a lista.',
+    title: foundCount > 0 ? `Encontramos ${foundCount} imóveis até agora` : 'Estamos buscando informações do Airbnb',
+    body: 'Abrimos o link, identificamos o anfitrião e validamos os anúncios públicos antes de mostrar a lista.',
     tone: 'accent',
     steps: [
       { id: 'checking-existing', label: 'Checar conta', status: status('checking-existing') },
       { id: 'resolving-link', label: 'Abrir link', status: status('resolving-link') },
       { id: 'finding-host', label: 'Identificar host', status: status('finding-host') },
-      { id: 'fetching-profile', label: 'Buscar imoveis', status: status('fetching-profile') },
+      { id: 'fetching-profile', label: 'Buscar imóveis', status: status('fetching-profile') },
       { id: 'filtering-listings', label: 'Validar lista', status: status('filtering-listings') },
     ],
   };
@@ -992,7 +992,7 @@ function OnboardingWizardContent() {
         const item: PendingPricingProperty = {
           addressId: address.id,
           listId: address.list?.id,
-          propertyName: address.list?.titulo || `Imovel ${String(address.id).slice(0, 4)}`,
+          propertyName: address.list?.titulo || `Imóvel ${String(address.id).slice(0, 4)}`,
           pictureUrl: address.list?.pictureUrl ?? null,
           airbnbId: address.list?.id_do_anuncio ?? null,
           sourceLabel: readiness.sourceLabel,
@@ -1066,7 +1066,7 @@ function OnboardingWizardContent() {
 
         const propertyId = extractAirbnbPropertyId(finalUrl);
         if (!propertyId) {
-          toast(`Link inválido: ${link.substring(0, 50)}...`, { type: "warning" });
+          toast(`Link inválido: ${link.substring(0, 50)}…`, { type: "warning" });
           continue;
         }
 
@@ -1105,7 +1105,7 @@ function OnboardingWizardContent() {
         });
       } catch (error) {
         console.error(`Erro ao buscar imóvel do link: ${link}`, error);
-        toast(`Não foi possível buscar dados para: ${link.substring(0, 40)}...`, { type: "error" });
+        toast(`Não foi possível buscar dados para: ${link.substring(0, 40)}…`, { type: "error" });
       }
       } // Fim for
 
@@ -1161,7 +1161,7 @@ function OnboardingWizardContent() {
           const data = await getHostId(propertyIdExtracted);
           userIdFromGetHostId = data?.result.hostId;
         } catch (err) {
-          console.warn('Não foi possível obter hostId via API, tentando extração do link...', err);
+          console.warn('Não foi possível obter hostId via API, tentando extração do link…', err);
         }
       }
 
@@ -1171,7 +1171,7 @@ function OnboardingWizardContent() {
           const info = await getPropertyQuickInfo(propertyIdExtracted);
           userIdFromGetHostId = info.hostId;
         } catch (err) {
-          console.warn('Nao foi possivel obter hostId via quick-info.', err);
+          console.warn('Não foi possível obter hostId via quick-info.', err);
         }
       }
 
@@ -1337,7 +1337,7 @@ function OnboardingWizardContent() {
         );
         keepManualPriceStage = true;
         setOnboardingLoadStage('manual-price-required');
-        toast("Nao encontramos uma diaria confiavel no Airbnb. Informe a diaria base para concluir.", { type: "info" });
+        toast("Não encontramos uma diária confiável no Airbnb. Informe a diária base para concluir.", { type: "info" });
         return;
       }
 
@@ -1371,7 +1371,7 @@ function OnboardingWizardContent() {
 
     const invalid = parsedByAddress.find((item) => !item.manualDailyPrice);
     if (invalid) {
-      toast("Informe uma diaria base valida para todos os imoveis. Sem esse valor, a Urban AI nao inicia a analise.", { type: "warning" });
+      toast("Informe uma diária base válida para todos os imóveis. Sem esse valor, a Urban AI não inicia a análise.", { type: "warning" });
       return;
     }
 
@@ -1392,7 +1392,7 @@ function OnboardingWizardContent() {
       setManualPriceDrafts({});
       setPendingProcessListIds([]);
       manualSaveSucceeded = true;
-      toast("Precos base salvos. Imoveis configurados com sucesso!", { type: "success" });
+      toast("Preços base salvos. Imóveis configurados com sucesso!", { type: "success" });
 
       if (isAddOnly) {
         setTimeout(() => router.push('/properties'), 500);
@@ -1400,9 +1400,9 @@ function OnboardingWizardContent() {
         setStep(4);
       }
     } catch (error) {
-      console.error('Erro ao salvar precos manuais:', error);
+      console.error('Erro ao salvar preços manuais:', error);
       setOnboardingLoadStage('manual-price-required');
-      toast("Nao conseguimos salvar os precos base. Tente novamente.", { type: "error" });
+      toast("Não conseguimos salvar os preços base. Tente novamente.", { type: "error" });
     } finally {
       setIsLoading(false);
       if (manualSaveSucceeded) {
@@ -1431,7 +1431,7 @@ function OnboardingWizardContent() {
   const handleSaveConfig = async () => {
     if (pendingPricingProperties.length > 0) {
       setStep(3);
-      toast("Antes de ajustar as recomendacoes, informe a diaria base dos imoveis pendentes.", { type: "warning" });
+      toast("Antes de ajustar as recomendações, informe a diária base dos imóveis pendentes.", { type: "warning" });
       return;
     }
 
@@ -1646,7 +1646,7 @@ function OnboardingWizardContent() {
                               bg="var(--app-accent)" color="white" _hover={{ bg: 'var(--app-accent-hover)' }}
                               _active={{ bg: 'var(--app-surface-elevated)' }} size="lg" flex={1}
                               isLoading={loadingIndividual}
-                              loadingText="Buscando imóveis..."
+                              loadingText="Buscando imóveis…"
                               onClick={fetchIndividualProperties}
                             >
                               Buscar {individualLinks.filter(l => l.trim()).length === 1 ? 'imóvel' : 'imóveis'}
@@ -1694,7 +1694,7 @@ function OnboardingWizardContent() {
                               bg="var(--app-accent)" color="white" _hover={{ bg: 'var(--app-accent-hover)' }}
                               _active={{ bg: 'var(--app-surface-elevated)' }} size="lg" flex={1}
                               isLoading={isLoading}
-                              loadingText="Rastreando imóveis..."
+                              loadingText="Rastreando imóveis…"
                               onClick={fetchUserProperties}
                             >
                               Buscar todas as propriedades
@@ -1770,9 +1770,9 @@ function OnboardingWizardContent() {
                     <Box p={4} bg="var(--app-accent-soft)" borderRadius="lg" border="1px solid" borderColor="var(--app-divider-strong)">
                       <VStack spacing={4} align="stretch">
                         <Box>
-                          <Text fontWeight="bold" color="gray.800">Informar diaria base</Text>
+                          <Text fontWeight="bold" color="gray.800">Informar diária base</Text>
                           <Text fontSize="sm" color="gray.600" mt={1}>
-                            O Airbnb nao retornou uma diaria confirmada para estes imoveis, ou retornou apenas uma fonte provisoria. Informe a diaria atual para concluir a configuracao e iniciar a analise.
+                            O Airbnb não retornou uma diária confirmada para estes imóveis, ou retornou apenas uma fonte provisória. Informe a diária atual para concluir a configuração e iniciar a análise.
                           </Text>
                         </Box>
                         {pendingPricingProperties.map((property) => (
@@ -1792,8 +1792,8 @@ function OnboardingWizardContent() {
                               <Text fontSize="2xs" color="var(--app-warning)" lineHeight="short" mt={1}>
                                 {property.fallbackMessage}
                                 {property.provisionalDailyPrice
-                                  ? ` Valor encontrado: R$ ${property.provisionalDailyPrice.toFixed(2)} (${property.sourceLabel ?? 'fonte nao informada'}).`
-                                  : ` Fonte: ${property.sourceLabel ?? 'fonte nao informada'}.`}
+                                  ? ` Valor encontrado: R$ ${property.provisionalDailyPrice.toFixed(2)} (${property.sourceLabel ?? 'fonte não informada'}).`
+                                  : ` Fonte: ${property.sourceLabel ?? 'fonte não informada'}.`}
                               </Text>
                             </Box>
                             <Box w="160px">
@@ -1958,13 +1958,13 @@ function OnboardingWizardContent() {
                       isLoading={isLoading}
                       loadingText={
                         pendingPricingProperties.length > 0
-                          ? "Salvando diaria..."
+                          ? "Salvando diária…"
                           : onboardingLoadStage === 'calculating-daily-rate'
-                            ? "Calculando diaria..."
-                            : "Registrando..."
+                            ? "Calculando diária…"
+                            : "Registrando…"
                       }>
                       {pendingPricingProperties.length > 0
-                        ? "Salvar diaria e continuar"
+                        ? "Salvar diária e continuar"
                         : `Registrar ${selectedCount} ${selectedCount === 1 ? 'imóvel' : 'imóveis'}`}
                     </Button>
                   </Flex>
@@ -2133,7 +2133,7 @@ function OnboardingWizardContent() {
                     <Button bg="var(--app-accent)" color="white" _hover={{ bg: 'var(--app-accent-hover)' }} size="lg" flex={1}
                       onClick={handleSaveConfig}
                       isLoading={isLoading}
-                      loadingText="Salvando...">
+                      loadingText="Salvando…">
                       Salvar e continuar
                     </Button>
                   </Flex>
@@ -2171,7 +2171,7 @@ function OnboardingWizardContent() {
                       <Box>
                         <AlertTitle>Você conectou {selectedCount} imóveis.</AlertTitle>
                         <AlertDescription>
-                          Pelo numero de imoveis, a faixa aplicada sera <strong>{selectedCount <= 3 ? 'Starter' : selectedCount <= 500 ? 'Profissional' : 'Escala'}</strong>.
+                          Pelo número de imóveis, a faixa aplicada será <strong>{selectedCount <= 3 ? 'Starter' : selectedCount <= 500 ? 'Profissional' : 'Escala'}</strong>.
                         </AlertDescription>
                       </Box>
                     </Alert>
@@ -2183,7 +2183,7 @@ function OnboardingWizardContent() {
                       initialQuantity={Math.max(1, selectedCount || 1)}
                       surface="light"
                       title="Ative sua assinatura"
-                      subtitle="Ajuste quantidade e periodo. A faixa correta entra automaticamente no checkout."
+                      subtitle="Ajuste quantidade e período. A faixa correta entra automaticamente no checkout."
                     />
                   )}
 

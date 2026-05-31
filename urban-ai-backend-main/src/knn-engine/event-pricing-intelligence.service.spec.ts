@@ -6,6 +6,8 @@ import {
 
 describe('event pricing intelligence v0', () => {
   const now = '2026-05-22T12:00:00.000Z';
+  const eventStartsAt = '2026-06-16T20:00:00.000Z';
+  const eventEndsAt = '2026-06-17T02:00:00.000Z';
 
   it('scores a nearby mega event and recommends an explainable absorption scenario', () => {
     const demand = eventDemandScore({
@@ -16,6 +18,7 @@ describe('event pricing intelligence v0', () => {
       categoria: 'show',
       raioImpactoKm: 12,
       leadTimeDays: 25,
+      startsAt: eventStartsAt,
       source: 'sympla-api',
       sourceFreshnessHours: 4,
       overlapEventsCount: 2,
@@ -36,6 +39,8 @@ describe('event pricing intelligence v0', () => {
       bedrooms: 2,
       bathrooms: 1,
       affectedNights: 2,
+      eventStartsAt,
+      eventEndsAt,
     });
 
     const curve = priceAbsorptionCurve({
@@ -66,6 +71,7 @@ describe('event pricing intelligence v0', () => {
       venueType: 'theater',
       categoria: 'cultura',
       leadTimeDays: 18,
+      startsAt: eventStartsAt,
       source: 'firecrawl-theater',
       sourceFreshnessHours: 48,
       now,
@@ -82,6 +88,8 @@ describe('event pricing intelligence v0', () => {
       rating: 4.4,
       reviewCount: 34,
       accommodates: 2,
+      eventStartsAt,
+      eventEndsAt,
     });
 
     const curve = priceAbsorptionCurve({
@@ -127,6 +135,7 @@ describe('event pricing intelligence v0', () => {
       venueType: 'convention_center',
       categoria: 'conference',
       leadTimeDays: 40,
+      startsAt: eventStartsAt,
       source: 'admin-manual',
       sourceFreshnessHours: 12,
       now,
@@ -180,6 +189,6 @@ describe('event pricing intelligence v0', () => {
     expect(extreme!.multiplier).toBeGreaterThanOrEqual(4);
     expect(extreme!.bookingProbability).toBeLessThan(aggressive!.bookingProbability);
     expect(extreme!.riskFlags).toContain('extreme_price_risk');
-    expect(extreme!.explanation).toContain('risco de vacancia alto');
+    expect(extreme!.explanation).toContain('risco de vacância alto');
   });
 });

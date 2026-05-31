@@ -130,8 +130,8 @@ export function ComparablesTable({
           }}
         >
           <caption style={visuallyHiddenStyle}>
-            Lista de {comparables.length} imoveis parecidos com o seu, sem identificacao.
-            Use os botoes de cabecalho para ordenar por diaria media, ocupacao, distancia
+            Lista de {comparables.length} imóveis parecidos com o seu, sem identificação.
+            Use os botoes de cabecalho para ordenar por diária média, ocupação, distância
             ou semelhanca.
           </caption>
           <thead>
@@ -145,7 +145,7 @@ export function ComparablesTable({
               <ColHeader>Tipo</ColHeader>
               <ColHeader>Quartos</ColHeader>
               <SortableColHeader
-                label="Diaria media"
+                label="Diária média"
                 active={sortColumn === "adr"}
                 direction={sortDirection}
                 ariaSort={ariaSort("adr")}
@@ -175,7 +175,7 @@ export function ComparablesTable({
                 ariaSort={ariaSort("score")}
                 onClick={() => handleSort("score")}
                 align="left"
-                tooltip="Nota de 0 a 100 considerando tipo, tamanho, distancia e faixa de preco. Quanto maior, mais parecido."
+                tooltip="Nota de 0 a 100 considerando tipo, tamanho, distância e faixa de preço. Quanto maior, mais parecido."
               />
             </tr>
           </thead>
@@ -222,7 +222,7 @@ export function ComparablesTable({
       <div
         className="market-intel-cards"
         role="list"
-        aria-label={`${comparables.length} imoveis comparaveis (versao mobile)`}
+        aria-label={`${comparables.length} imóveis comparáveis (versão mobile)`}
         style={{ display: "none", flexDirection: "column", gap: 12 }}
       >
         {sorted.map((c) => (
@@ -275,7 +275,7 @@ export function ComparablesTable({
                 fontSize: 12,
               }}
             >
-              <MiniStat label="Diaria media" value={formatBRL(c.medianAdr)} />
+              <MiniStat label="Diária média" value={formatBRL(c.medianAdr)} />
               <MiniStat label="Ocupação" value={formatPct(c.occupancy)} />
               <MiniStat label="Distância" value={formatDistance(c.distanceKm)} />
               <MiniStat

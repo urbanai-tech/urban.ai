@@ -197,7 +197,7 @@ function EventRadarContent() {
           response?.mock ? (
             <AppBadge kind="warn">Mock contratual</AppBadge>
           ) : (
-            <AppBadge kind="success">Dados Urban AI</AppBadge>
+            <AppBadge kind="success">Dados auditáveis</AppBadge>
           )
         }
       />
@@ -225,7 +225,7 @@ function EventRadarContent() {
             <AppInput type="date" label="Até" value={to} min={from} onChange={(event) => setTo(event.target.value)} />
           </div>
           <div style={{ gridColumn: "span 2", minWidth: 0, maxWidth: 320 }}>
-            <FilterLabel>Imovel</FilterLabel>
+            <FilterLabel>Imóvel</FilterLabel>
             <PropertySelect
               value={propertyId}
               propsInfo={properties}
@@ -233,12 +233,12 @@ function EventRadarContent() {
               disabled={propertiesLoading}
               includeAllOption
               allOptionValue="all"
-              allOptionLabel="Todos os imoveis"
+              allOptionLabel="Todos os imóveis"
               maxWidth="100%"
             />
             {propertiesLoading && (
               <p role="status" aria-live="polite" style={{ margin: "6px 0 0", color: "var(--app-text-muted)", fontSize: 11, lineHeight: 1.35 }}>
-                Carregando imóveis...
+                Carregando imóveis…
               </p>
             )}
             {propertyOptionsError && (
@@ -268,7 +268,7 @@ function EventRadarContent() {
           </div>
           <div style={{ gridColumn: "span 2", minWidth: 0 }}>
             <AppSelect
-              label="Confianca"
+              label="Confiança"
               value={confidence}
               onChange={(event) => setConfidence(event.target.value as HostEventConfidence | "all")}
             >
@@ -304,7 +304,7 @@ function EventRadarContent() {
         <AppEmptyState
           eyebrow="SEM OPORTUNIDADES"
           title="Nenhum evento impactando seus imóveis"
-          body="Ajuste periodo, imovel ou nivel de confianca para ampliar a leitura do radar."
+          body="Ajuste período, imóvel ou nível de confiança para ampliar a leitura do radar."
           icon={<Icons.MapPin size={32} />}
           action={
             <AppButton type="button" variant="secondary" onClick={hasActiveFilters ? resetFilters : () => setReloadCount((count) => count + 1)}>
@@ -329,7 +329,7 @@ function EventRadarContent() {
               <AppMetricCard label="Noites com oportunidade" value={String(response?.summary.opportunityNights ?? 0)} variant="sm" />
             </AppCard>
             <AppCard variant="default" style={{ padding: 18 }}>
-              <AppMetricCard label="Imoveis impactados" value={String(response?.summary.impactedProperties ?? 0)} variant="sm" />
+              <AppMetricCard label="Imóveis impactados" value={String(response?.summary.impactedProperties ?? 0)} variant="sm" />
             </AppCard>
           </div>
 
@@ -512,7 +512,7 @@ function EventDetailPanel({
 
       <div style={{ marginTop: 22 }}>
         <AppCardHeader
-          eyebrow="IMOVEIS IMPACTADOS"
+          eyebrow="IMÓVEIS IMPACTADOS"
           title="Onde agir"
           subtitle="A recomendação mostra faixa e probabilidade, não promessa de ocupação."
         />
@@ -522,12 +522,12 @@ function EventDetailPanel({
       {selectedImpact && (
         <div style={{ marginTop: 22 }}>
           <PriceAbsorptionScenarios
-            title={`${selectedImpact.propertyName} - absorcao inicial`}
+            title={`${selectedImpact.propertyName} - absorção inicial`}
             scenarios={selectedImpact.absorptionScenarios}
           />
           {simulating && (
             <p role="status" aria-live="polite" style={{ margin: "10px 0 0", color: "var(--app-text-muted)", fontSize: 12 }}>
-              Atualizando simulação...
+              Atualizando simulação…
             </p>
           )}
           {simulationError && !simulating && (
@@ -548,7 +548,7 @@ function EventRadarLoading() {
         <div>
           <Spinner />
           <p style={{ margin: "12px 0 0", color: "var(--app-text-muted)", fontSize: 13 }}>
-            Calculando oportunidades dos eventos...
+            Calculando oportunidades dos eventos…
           </p>
         </div>
       </div>

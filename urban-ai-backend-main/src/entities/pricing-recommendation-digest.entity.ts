@@ -52,10 +52,10 @@ export class PricingRecommendationDigest {
   scheduledFor: Date;
 
   @Column({ name: 'locked_at', type: 'datetime', precision: 6, nullable: true })
-  lockedAt?: Date | null;
+  lockedAt: Date | null;
 
   @Column({ name: 'sent_at', type: 'datetime', precision: 6, nullable: true })
-  sentAt?: Date | null;
+  sentAt: Date | null;
 
   @Column({ name: 'failure_reason', type: 'text', nullable: true })
   failureReason?: string | null;

@@ -48,7 +48,7 @@ export default function AdminAlphaPage() {
   const load = async (targetEmail = email) => {
     const normalizedEmail = targetEmail.trim();
     if (!normalizedEmail) {
-      setError("Informe o e-mail do usuario que deseja auditar.");
+      setError("Informe o e-mail do usuário que deseja auditar.");
       setLoading(false);
       return;
     }
@@ -267,7 +267,7 @@ export default function AdminAlphaPage() {
               onKeyDown={(e) => {
                 if (e.key === "Enter") load(email);
               }}
-              placeholder="email@dominio.com"
+              placeholder="nome@empresa.com"
               shellStyle={{ width: 260 }}
               leftAddon={<Icons.Mail size={12} />}
             />
@@ -314,8 +314,8 @@ export default function AdminAlphaPage() {
         <div style={{ marginBottom: 32 }}>
           <AdminEmptyState
             eyebrow="ALPHA"
-            title="Informe um usuario"
-            body="Digite o e-mail do usuario que deseja auditar e carregue os dados reais da API."
+            title="Informe um usuário"
+            body="Digite o e-mail do usuário que deseja auditar e carregue os dados reais da API."
             icon={<Icons.Mail size={32} />}
           />
         </div>

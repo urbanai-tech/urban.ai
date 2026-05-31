@@ -25,17 +25,17 @@ function formatDateTime(value?: string | null): string {
 function actionLabel(action: string): string {
   switch (action) {
     case "apply-strategy":
-      return "Modo por imovel";
+      return "Modo por imóvel";
     case "set-base-price":
-      return "Preco base";
+      return "Preço base";
     case "set-date-price":
-      return "Preco por data";
+      return "Preço por data";
     case "accept-suggestions":
-      return "Sugestoes aceitas";
+      return "Sugestões aceitas";
     case "apply-internal":
-      return "Aplicacao interna";
+      return "Aplicação interna";
     default:
-      return action || "Acao";
+      return action || "Ação";
   }
 }
 
@@ -81,18 +81,18 @@ export function PortfolioActionRuns({
   return (
     <AppCard variant="default" style={{ marginTop: compact ? 18 : 20, padding: compact ? 20 : 24 }}>
       <AppCardHeader
-        eyebrow={compact ? "HISTORICO" : "AUDITORIA"}
-        title={compact ? "Ultimos aceites e aplicacoes" : "Historico de action runs"}
+        eyebrow={compact ? "HISTÓRICO" : "AUDITORIA"}
+        title={compact ? "Últimos aceites e aplicações" : "Histórico de action runs"}
         subtitle={
           compact
-            ? "Resumo rapido do que ja foi confirmado. O historico completo fica em uma tela dedicada."
-            : "Registro operacional das simulacoes confirmadas e aplicacoes realizadas no portfolio."
+            ? "Resumo rapido do que já foi confirmado. O histórico completo fica em uma tela dedicada."
+            : "Registro operacional das simulações confirmadas e aplicações realizadas no portfólio."
         }
         actions={
           <div style={{ display: "inline-flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
             {viewAllHref && (
               <AppButton size="sm" variant="secondary" as="a" href={viewAllHref}>
-                Ver historico
+                Ver histórico
               </AppButton>
             )}
             {onRefresh ? (
@@ -141,7 +141,7 @@ export function PortfolioActionRuns({
           }}
         >
           <Icons.Info size={14} />
-          <span>Nenhuma acao registrada para exibir ainda.</span>
+          <span>Nenhuma ação registrada para exibir ainda.</span>
         </div>
       ) : (
         <div

@@ -18,7 +18,7 @@ export default function PasswordResetRequest() {
     const trimmedEmail = email.trim().toLowerCase();
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      toast.error("Informe um e-mail valido.");
+      toast.error("Informe um e-mail válido.");
       return;
     }
 
@@ -27,7 +27,7 @@ export default function PasswordResetRequest() {
       const res = await forgotPassword(trimmedEmail);
 
       if (res.status !== 201 || !res.data?.enviado) {
-        throw new Error(res.data?.motivo || "Nao foi possivel enviar o e-mail.");
+        throw new Error(res.data?.motivo || "Não foi possível enviar o e-mail.");
       }
 
       setSentTo(trimmedEmail);
@@ -54,7 +54,7 @@ export default function PasswordResetRequest() {
         </>
       }
       subtitle="Digite o e-mail da sua conta para receber um link seguro de redefinicao."
-      asideEyebrow="SEGURANCA"
+      asideEyebrow="SEGURANÇA"
       asideTitle={
         <>
           Seu acesso{" "}
@@ -62,7 +62,7 @@ export default function PasswordResetRequest() {
           protegido.
         </>
       }
-      asideSubtitle="Links temporarios, validacao por token e uma experiencia visual alinhada ao novo produto."
+      asideSubtitle="Links temporários, validação por token e uma experiência visual alinhada ao novo produto."
     >
       <AppCard variant="elevated" style={{ padding: 28 }}>
         {sentTo ? (
@@ -135,7 +135,7 @@ export default function PasswordResetRequest() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="voce@email.com"
+              placeholder="você@email.com"
               autoComplete="email"
               disabled={loading}
               leftAddon={<Mail size={14} />}

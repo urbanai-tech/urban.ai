@@ -44,9 +44,9 @@ export class ConnectController {
       throw new ForbiddenException({
         code: "LISTINGS_QUOTA_EXCEEDED",
         message:
-          `Limite de imoveis do plano atingido. Seu plano inclui ${quota.contratados} ` +
-          `e voce ja tem ${quota.ativos}; esta tentando adicionar ${newSlots}. ` +
-          `Ajuste seu plano para cadastrar mais imoveis.`,
+          `Limite de imóveis do plano atingido. Seu plano inclui ${quota.contratados} ` +
+          `e você já tem ${quota.ativos}; está tentando adicionar ${newSlots}. ` +
+          `Ajuste seu plano para cadastrar mais imóveis.`,
         contratados: quota.contratados,
         ativos: quota.ativos,
         tentando: newSlots,
@@ -208,7 +208,7 @@ export class ConnectController {
   })
   @ApiBody({
     description:
-      "Array de objetos Address. Cada Address deve conter pelo menos: cep, numero, list.id",
+      "Array de objetos Address. Cada Address deve conter pelo menos: cep, número, list.id",
     type: Address,
     isArray: true,
   })

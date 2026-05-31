@@ -451,7 +451,7 @@ export default function AdminDashboardPage() {
           />
           <SmallStat
             label="Publishable"
-            value={data.billing.stripePublishableMode ?? "nao visivel"}
+            value={data.billing.stripePublishableMode ?? "não visível"}
             status={
               data.billing.stripeModeMismatch || data.billing.stripePublishableMode === "unknown"
                 ? "error"
@@ -478,7 +478,7 @@ export default function AdminDashboardPage() {
             label="Sender"
             value={data.email?.emailSenderConfigured ? "env" : "fallback"}
             status={data.email?.senderUsesUrbanDomain ? "success" : "warn"}
-            sub={data.email?.senderDomain || "sem dominio"}
+            sub={data.email?.senderDomain || "sem domínio"}
           />
           <SmallStat
             label="FRONT_URL"

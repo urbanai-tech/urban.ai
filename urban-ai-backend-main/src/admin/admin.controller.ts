@@ -66,7 +66,7 @@ export class AdminController {
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @ApiOperation({
     summary:
-      'Dispara manualmente o drip de onboarding (D+1/D+3/D+7) — util pra smoke e debug.',
+      'Dispara manualmente o drip de onboarding (D+1/D+3/D+7) — útil pra smoke e debug.',
   })
   @Post('onboarding-drip/run-now')
   async runOnboardingDripNow() {
@@ -114,13 +114,13 @@ export class AdminController {
     return this.admin.pricingStatus();
   }
 
-  @ApiOperation({ summary: 'Painel alpha por usuario: KPIs, qualidade de eventos e recomendacoes recentes' })
+  @ApiOperation({ summary: 'Painel alpha por usuário: KPIs, qualidade de eventos e recomendações recentes' })
   @Get('alpha/dashboard')
   async alphaDashboard(@Query('email') email: string) {
     return this.admin.alphaDashboard(email);
   }
 
-  @ApiOperation({ summary: 'Export/auditoria das recomendacoes alpha' })
+  @ApiOperation({ summary: 'Export/auditoria das recomendações alpha' })
   @Get('alpha/recommendations')
   async alphaRecommendations(
     @Query('email') email: string,
@@ -129,7 +129,7 @@ export class AdminController {
     return this.admin.alphaRecommendations(email, parseInt(limit, 10));
   }
 
-  @ApiOperation({ summary: 'Reprocessar propriedades do usuario alpha' })
+  @ApiOperation({ summary: 'Reprocessar propriedades do usuário alpha' })
   @Throttle({ default: { ttl: 60_000, limit: 3 } })
   @Post('alpha/reprocess')
   async alphaReprocess(@Query('email') email: string, @Req() req: any) {
@@ -146,25 +146,25 @@ export class AdminController {
     return this.admin.datasetMetrics();
   }
 
-  @ApiOperation({ summary: 'Diagnostico completo do dataset proprietario e dependencias' })
+  @ApiOperation({ summary: 'Diagnóstico completo do dataset proprietário e dependências' })
   @Get('dataset/diagnostics')
   async datasetDiagnostics() {
     return this.datasetCollector.datasetDiagnostics();
   }
 
-  @ApiOperation({ summary: 'Saude operacional do pipeline Price Intelligence' })
+  @ApiOperation({ summary: 'Saúde operacional do pipeline Price Intelligence' })
   @Get('price-intelligence/health')
   async priceIntelligenceHealth(@Query('windowDays') windowDays: string = '7') {
     return this.admin.priceIntelligenceHealth(parseInt(windowDays, 10));
   }
 
-  @ApiOperation({ summary: 'Saude das tentativas Airbnb/headless de preco' })
+  @ApiOperation({ summary: 'Saúde das tentativas Airbnb/headless de preço' })
   @Get('airbnb/pricing-attempts/health')
   async airbnbPricingAttemptHealth(@Query('windowHours') windowHours: string = '24') {
     return this.airbnbPricingAttempts.health(parseInt(windowHours, 10));
   }
 
-  @ApiOperation({ summary: 'Executar snapshot manual dos imoveis cadastrados' })
+  @ApiOperation({ summary: 'Executar snapshot manual dos imóveis cadastrados' })
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('dataset/snapshot/run')
   async runDatasetSnapshot(@Req() req: any) {
@@ -186,13 +186,13 @@ export class AdminController {
     );
   }
 
-  @ApiOperation({ summary: 'Historico de execucao dos jobs admin' })
+  @ApiOperation({ summary: 'Histórico de execução dos jobs admin' })
   @Get('jobs/runs')
   async jobRuns(@Query('limit') limit: string = '10', @Query('name') name?: string) {
     return this.admin.listJobRuns(parseInt(limit, 10), name);
   }
 
-  @ApiOperation({ summary: 'Executar geocoder de eventos com historico admin' })
+  @ApiOperation({ summary: 'Executar geocoder de eventos com histórico admin' })
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('jobs/geocoder/run')
   async runGeocoderJob(@Query('limit') limit: string = '50', @Req() req: any) {
@@ -203,7 +203,7 @@ export class AdminController {
     );
   }
 
-  @ApiOperation({ summary: 'Resetar enrichment stale com historico admin' })
+  @ApiOperation({ summary: 'Resetar enrichment stale com histórico admin' })
   @Throttle({ default: { ttl: 60_000, limit: 3 } })
   @Post('jobs/reset-stale-enrichment/run')
   async runResetStaleEnrichment(@Req() req: any) {
@@ -220,7 +220,7 @@ export class AdminController {
     return this.admin.eventsAnalytics();
   }
 
-  @ApiOperation({ summary: 'Listar candidatos de deduplicacao de eventos para revisao admin' })
+  @ApiOperation({ summary: 'Listar candidatos de deduplicação de eventos para revisão admin' })
   @Get('events/dedup/candidates')
   async eventDedupCandidates(
     @Query('page') page: string = '1',
@@ -240,7 +240,7 @@ export class AdminController {
     });
   }
 
-  @ApiOperation({ summary: 'Rodar scan admin para encontrar candidatos de deduplicacao de eventos' })
+  @ApiOperation({ summary: 'Rodar scan admin para encontrar candidatos de deduplicação de eventos' })
   @Throttle({ default: { ttl: 60_000, limit: 3 } })
   @Post('events/dedup/scan')
   async scanEventDedupCandidates(@Body() body: any = {}) {
@@ -257,14 +257,14 @@ export class AdminController {
     });
   }
 
-  @ApiOperation({ summary: 'Aprovar merge de um candidato de deduplicacao' })
+  @ApiOperation({ summary: 'Aprovar merge de um candidato de deduplicação' })
   @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @Post('events/dedup/candidates/:id/approve')
   async approveEventDedupCandidate(@Param('id') id: string, @Req() req: any) {
     return this.eventDedup.approveEventDedupCandidate(id, req?.user?.userId ?? null);
   }
 
-  @ApiOperation({ summary: 'Rejeitar candidato de deduplicacao' })
+  @ApiOperation({ summary: 'Rejeitar candidato de deduplicação' })
   @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @Post('events/dedup/candidates/:id/reject')
   async rejectEventDedupCandidate(
@@ -323,7 +323,7 @@ export class AdminController {
     return ['high', 'medium', 'low', 'all'].includes(confidenceBand) ? confidenceBand : 'all';
   }
 
-  @ApiOperation({ summary: 'Radar admin de inteligencia de eventos e potencial de demanda' })
+  @ApiOperation({ summary: 'Radar admin de inteligência de eventos e potencial de demanda' })
   @Get('events/intelligence')
   async eventsIntelligence(
     @Query('from') from?: string,
@@ -369,32 +369,32 @@ export class AdminController {
     });
   }
 
-  @ApiOperation({ summary: 'Blind spots admin de cobertura, fonte e inteligencia de eventos' })
+  @ApiOperation({ summary: 'Blind spots admin de cobertura, fonte e inteligência de eventos' })
   @Get('events/blind-spots')
   async eventsBlindSpots() {
     return this.eventIntelligence.adminBlindSpots();
   }
 
-  @ApiOperation({ summary: 'Detalhe admin da inteligencia de um evento' })
+  @ApiOperation({ summary: 'Detalhe admin da inteligência de um evento' })
   @Get('events/:eventId/intelligence')
   async eventIntelligenceDetail(@Param('eventId') eventId: string) {
     return this.eventIntelligence.adminEventIntelligence(eventId);
   }
 
-  @ApiOperation({ summary: 'Impacto de um evento em imoveis da plataforma' })
+  @ApiOperation({ summary: 'Impacto de um evento em imóveis da plataforma' })
   @Get('events/:eventId/property-impact')
   async eventPropertyImpact(@Param('eventId') eventId: string) {
     return this.eventIntelligence.adminEventPropertyImpact(eventId);
   }
 
-  @ApiOperation({ summary: 'Reprocessar inteligencia de um evento (contrato P0)' })
+  @ApiOperation({ summary: 'Reprocessar inteligência de um evento (contrato P0)' })
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('events/:eventId/recompute-intelligence')
   async recomputeEventIntelligence(@Param('eventId') eventId: string, @Req() req: any) {
     return this.eventIntelligence.recomputeEventIntelligence(eventId, req?.user?.userId ?? null);
   }
 
-  @ApiOperation({ summary: 'Reprocessar inteligencia de eventos em lote (contrato P0)' })
+  @ApiOperation({ summary: 'Reprocessar inteligência de eventos em lote (contrato P0)' })
   @Throttle({ default: { ttl: 60_000, limit: 3 } })
   @Post('events/intelligence/recompute')
   async recomputeEventsIntelligence(
@@ -408,6 +408,45 @@ export class AdminController {
     return this.eventIntelligence.recomputeIntelligenceBatch(
       { from, to, source, category, scope },
       req?.user?.userId ?? null,
+    );
+  }
+
+  @ApiOperation({ summary: 'Backfill controlado da inteligência de eventos futuros sem snapshot' })
+  @Throttle({ default: { ttl: 60_000, limit: 2 } })
+  @Post('events/intelligence/backfill')
+  async backfillFutureEventIntelligence(
+    @Req() req: any,
+    @Body() body: any = {},
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('lookaheadDays') lookaheadDays?: string,
+    @Query('limit') limit?: string,
+    @Query('source') source?: string,
+    @Query('category') category?: string,
+    @Query('city') city?: string,
+    @Query('search') search?: string,
+    @Query('scope') scope: 'in' | 'out' | 'all' = 'in',
+    @Query('force') force?: string,
+  ) {
+    return this.admin.runTrackedJob(
+      'event-intelligence-backfill',
+      req?.user?.userId ?? null,
+      () =>
+        this.eventIntelligence.backfillFutureEventIntelligence(
+          {
+            from: body?.from ?? from,
+            to: body?.to ?? to,
+            lookaheadDays: body?.lookaheadDays ?? lookaheadDays,
+            limit: body?.limit ?? limit,
+            source: body?.source ?? source,
+            category: body?.category ?? category,
+            city: body?.city ?? city,
+            search: body?.search ?? search,
+            scope: body?.scope ?? scope,
+            force: body?.force ?? force,
+          },
+          req?.user?.userId ?? null,
+        ),
     );
   }
 
@@ -435,13 +474,13 @@ export class AdminController {
     return this.admin.occupancyCoverage();
   }
 
-  @ApiOperation({ summary: 'Imoveis elegiveis para apontamento manual de ocupacao' })
+  @ApiOperation({ summary: 'Imóveis elegíveis para apontamento manual de ocupação' })
   @Get('occupancy/properties')
   async occupancyProperties() {
     return this.admin.occupancyProperties();
   }
 
-  @ApiOperation({ summary: 'ROI dos anfitrioes: dinheiro atribuido a Urban AI por usuario' })
+  @ApiOperation({ summary: 'ROI dos anfitriões: dinheiro atribuído à Urban AI por usuário' })
   @Get('roi')
   async roiOverview(
     @Query('windowDays') windowDays: string = '30',
@@ -454,7 +493,7 @@ export class AdminController {
   }
 
   @Throttle({ default: { ttl: 60_000, limit: 60 } })
-  @ApiOperation({ summary: 'Criar/atualizar ocupacao manual de um imovel por dia' })
+  @ApiOperation({ summary: 'Criar/atualizar ocupação manual de um imóvel por dia' })
   @Post('occupancy/manual')
   async upsertManualOccupancy(
     @Body()
@@ -481,25 +520,25 @@ export class AdminController {
     return result;
   }
 
-  @ApiOperation({ summary: 'Listar usuarios (paginado)' })
+  @ApiOperation({ summary: 'Listar usuários (paginado)' })
   @Get('users')
   async listUsers(@Query('page') page: string = '1', @Query('limit') limit: string = '20') {
     return this.admin.listUsers(parseInt(page, 10), parseInt(limit, 10));
   }
 
-  @ApiOperation({ summary: 'Detalhe de usuario para painel admin' })
+  @ApiOperation({ summary: 'Detalhe de usuário para painel admin' })
   @Get('users/:id')
   async getUser(@Param('id') userId: string) {
     return this.admin.getUserDetail(userId);
   }
 
-  @ApiOperation({ summary: 'Imoveis de um usuario para painel admin' })
+  @ApiOperation({ summary: 'Imóveis de um usuário para painel admin' })
   @Get('users/:id/properties')
   async getUserProperties(@Param('id') userId: string) {
     return this.admin.getUserProperties(userId);
   }
 
-  @ApiOperation({ summary: 'Assinatura ativa/recente de um usuario para painel admin' })
+  @ApiOperation({ summary: 'Assinatura ativa/recente de um usuário para painel admin' })
   @Get('users/:id/subscription')
   async getUserSubscription(@Param('id') userId: string) {
     return this.admin.getUserSubscription(userId);

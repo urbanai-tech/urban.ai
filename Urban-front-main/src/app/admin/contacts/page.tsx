@@ -241,7 +241,7 @@ export default function AdminContactsPage() {
         }}
       >
         <AdminInput
-          placeholder="Buscar por nome, email, assunto ou mensagem…"
+          placeholder="Buscar por nome, e-mail, assunto ou mensagem…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && load()}

@@ -44,7 +44,7 @@ function getPropertyDisplayName(prop: PropertyDropdown): string {
 function getLocationLabel(prop: PropertyDropdown): string {
   if (prop.locationLabel) return prop.locationLabel;
   if (prop.cidade && prop.estado) return `${prop.cidade}, ${prop.estado}`;
-  return prop.cidade || prop.estado || prop.bairro || 'Localizacao pendente';
+  return prop.cidade || prop.estado || prop.bairro || 'Localização pendente';
 }
 
 function getAddressLabel(prop: PropertyDropdown): string {
@@ -52,7 +52,7 @@ function getAddressLabel(prop: PropertyDropdown): string {
 }
 
 function getPriceSourceLabel(prop: PropertyDropdown): string {
-  if (prop.pricingInputSource === 'manual') return 'Referencia manual';
+  if (prop.pricingInputSource === 'manual') return 'Referência manual';
   if (prop.dailyPrice) return 'Leitura direta';
   return 'Sem diária base';
 }
@@ -185,7 +185,7 @@ export default function MyProperties() {
 
     try {
       await requestDeleteAddress(propertyToDelete);
-      toast("Imovel excluido", { type: "success" });
+      toast("Imóvel excluído", { type: "success" });
       setProperties((prev) => prev.filter((prop) => prop.id !== propertyToDelete));
     } catch (error) {
       toast("Erro ao excluir propriedade", { type: "error" });
@@ -259,7 +259,7 @@ export default function MyProperties() {
       });
       setProperties((prev) => prev.map((item) => item.id === prop.id ? { ...item, ...updated } : item));
       setEditingIdentity(null);
-      toast("Identificacao do imovel salva.", { type: "success" });
+      toast("Identificação do imóvel salva.", { type: "success" });
     } catch (error) {
       toast("Erro ao salvar apelido/código do imóvel.", { type: "error" });
       console.error('Erro ao salvar identificação do imóvel:', error);
@@ -372,13 +372,13 @@ export default function MyProperties() {
     return (
       <AppPageShell maxWidth={1180}>
         <AppLoadingStatus
-          eyebrow="IMOVEIS"
+          eyebrow="IMÓVEIS"
           title="Carregando seus imóveis"
           body="Estamos preparando sua lista antes de liberar busca e edicoes."
           steps={[
             { id: 'list', label: 'Buscar lista', status: 'active', detail: 'Seus imóveis' },
             { id: 'pricing', label: 'Carregar preços', status: 'pending', detail: 'Valores de referência' },
-            { id: 'ready', label: 'Liberar edicao', status: 'pending', detail: 'Busca e acoes' },
+            { id: 'ready', label: 'Liberar edicao', status: 'pending', detail: 'Busca e ações' },
           ]}
         />
         <style jsx>{styles}</style>
@@ -389,7 +389,7 @@ export default function MyProperties() {
   return (
     <AppPageShell maxWidth={1180}>
       <AppSectionHeader
-        eyebrow="IMOVEIS"
+        eyebrow="IMÓVEIS"
         title="Meus imóveis"
         subtitle="Use esta lista para operar rápido. Abra um imóvel para ver histórico, ROI, sugestões, ocupação e conferência de preços."
         actions={
@@ -399,7 +399,7 @@ export default function MyProperties() {
             leftIcon={<Plus size={15} />}
             onClick={() => setIsAddOpen(true)}
           >
-            Adicionar imovel
+            Adicionar imóvel
           </AppButton>
         }
       />
@@ -407,14 +407,14 @@ export default function MyProperties() {
       {processingProperties.length > 0 && (
         <AppLoadingStatus
           compact
-          eyebrow="IMOVEIS SENDO PREPARADOS"
+          eyebrow="IMÓVEIS SENDO PREPARADOS"
           title={processingPropertiesTitle(processingProperties.length)}
           body={processingStatus?.publicDescription ?? "Mapa, eventos por perto e sugestões de preço aparecem assim que cada imóvel ficar pronto. Enquanto isso, você pode ajustar apelidos e valores."}
           tone="warn"
           steps={
             processingStatus?.steps ?? [
-              { id: 'registered', label: 'Imovel adicionado', status: 'complete' },
-              { id: 'location', label: 'Preparar mapa', status: 'active', detail: 'Endereco e raio' },
+              { id: 'registered', label: 'Imóvel adicionado', status: 'complete' },
+              { id: 'location', label: 'Preparar mapa', status: 'active', detail: 'Endereço e raio' },
               { id: 'events', label: 'Procurar eventos perto', status: 'pending', detail: 'Shows, feiras e jogos' },
               { id: 'recommendations', label: 'Preparar sugestões', status: 'pending', detail: 'Preços por oportunidade' },
             ]
@@ -438,7 +438,7 @@ export default function MyProperties() {
         </div>
         <div>
           <span>{portfolioSummary.futureOpportunities}</span>
-          <p>oportunidades nos proximos 60 dias</p>
+          <p>oportunidades nos próximos 60 dias</p>
         </div>
       </div>
 
@@ -475,9 +475,9 @@ export default function MyProperties() {
             const displayName = getPropertyDisplayName(prop);
             const locationLabel = getLocationLabel(prop);
             const addressLabel = getAddressLabel(prop);
-            const secondaryLabel = prop.internalNickname ? prop.propertyName : prop.id_do_anuncio ? `Airbnb ${prop.id_do_anuncio}` : 'Imovel cadastrado';
+            const secondaryLabel = prop.internalNickname ? prop.propertyName : prop.id_do_anuncio ? `Airbnb ${prop.id_do_anuncio}` : 'Imóvel cadastrado';
             const detailLabel = [
-              prop.internalCode ? `Codigo ${prop.internalCode}` : null,
+              prop.internalCode ? `Código ${prop.internalCode}` : null,
               getPriceSourceLabel(prop),
             ].filter(Boolean).join(' - ');
             const stats = opportunityStats[prop.id];
@@ -500,7 +500,7 @@ export default function MyProperties() {
                               onChange={(event) => updateIdentityDraft(prop.id, 'internalNickname', event.target.value)}
                             />
                             <AppInput
-                              placeholder="Codigo"
+                              placeholder="Código"
                               maxLength={32}
                               value={identityDraft.internalCode}
                               onChange={(event) => updateIdentityDraft(prop.id, 'internalCode', event.target.value)}
@@ -570,7 +570,7 @@ export default function MyProperties() {
                       shellStyle={{ minWidth: 150 }}
                     />
                     <AppInput
-                      label="Receita media manual"
+                      label="Receita média manual"
                       leftAddon="R$"
                       placeholder="0,00"
                       inputMode="decimal"
@@ -612,7 +612,7 @@ export default function MyProperties() {
                         loading={loadingHistory === prop.id}
                         onClick={() => loadPricingHistory(prop.id)}
                       >
-                        Historico
+                        Histórico
                       </AppButton>
                       {airbnbUrl ? (
                         <a
@@ -645,7 +645,7 @@ export default function MyProperties() {
                 <div className="properties-signal-grid">
                   <div className="properties-signal">
                     <span>Localizacao</span>
-                    <strong>{addressLabel || 'Revise o endereco'}</strong>
+                    <strong>{addressLabel || 'Revise o endereço'}</strong>
                   </div>
                   <div className="properties-signal">
                     <span>Últimas sugestões</span>
@@ -655,7 +655,7 @@ export default function MyProperties() {
                     {stats?.topTitle && <small>{stats.topTitle}</small>}
                   </div>
                   <div className="properties-signal">
-                    <span>Preco monitorado</span>
+                    <span>Preço monitorado</span>
                     <strong>{getPriceSourceLabel(prop)}</strong>
                     <small>{lastPricingUpdate ? `Atualizado ${lastPricingUpdate}` : 'Sem alteracao recente'}</small>
                   </div>
@@ -672,7 +672,7 @@ export default function MyProperties() {
                           <div className="properties-history-row" key={item.id}>
                             <span>{formatDateTime(item.createdAt)}</span>
                             <span>
-                              Diaria {formatMoney(item.previousManualDailyPrice)} -&gt; {formatMoney(item.newManualDailyPrice)}
+                              Diária {formatMoney(item.previousManualDailyPrice)} -&gt; {formatMoney(item.newManualDailyPrice)}
                             </span>
                             <span>
                               Mes {formatMoney(item.previousAverageMonthlyRevenue)} -&gt; {formatMoney(item.newAverageMonthlyRevenue)}
@@ -691,7 +691,7 @@ export default function MyProperties() {
         {properties.length > 0 && filteredProperties.length === 0 && (
           <div className="properties-empty-filter">
             <AppEmptyState
-              title="Nenhum imovel encontrado"
+              title="Nenhum imóvel encontrado"
               body="Tente outro apelido, código, título ou ID Airbnb."
               icon={<Search size={32} />}
             />
@@ -1168,7 +1168,7 @@ const styles = `
     margin-top: 22px;
   }
 
-  @media (max-width: 980px) {
+  @média (max-width: 980px) {
     .properties-summary-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1187,7 +1187,7 @@ const styles = `
     }
   }
 
-  @media (max-width: 720px) {
+  @média (max-width: 720px) {
     .properties-summary-grid {
       grid-template-columns: 1fr;
     }
@@ -1237,6 +1237,6 @@ function isPropertyReady(prop: PropertyDropdown): boolean {
 
 function processingPropertiesTitle(count: number): string {
   return count === 1
-    ? "1 imovel ainda sendo preparado"
+    ? "1 imóvel ainda sendo preparado"
     : `${count} imóveis ainda sendo preparados`;
 }

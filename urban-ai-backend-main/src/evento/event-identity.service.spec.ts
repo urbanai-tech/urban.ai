@@ -16,7 +16,7 @@ describe('EventIdentityService', () => {
     expect(service.normalizeText('Show Metallica')).toBe('show metallica');
   });
 
-  it('canonicaliza URLs removendo hash, UTMs e parametros de tracking', () => {
+  it('canonicaliza URLs removendo hash, UTMs e parâmetros de tracking', () => {
     const a = service.canonicalizeUrl(
       'HTTPS://Sympla.com.br/evento/the-town/?utm_source=news&gclid=abc&id=42#tickets',
     );
@@ -135,7 +135,7 @@ describe('EventIdentityService', () => {
     ).toBe(0);
   });
 
-  it('nao pontua alto eventos parecidos mas diferentes no mesmo venue e data', () => {
+  it('não pontua alto eventos parecidos mas diferentes no mesmo venue e data', () => {
     const score = service.scoreCandidate(
       {
         nome: 'Festival de Jazz',

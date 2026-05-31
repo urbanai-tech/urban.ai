@@ -122,7 +122,7 @@ export class RoiService {
     const windowDays = this.safeWindowDays(input?.windowDays);
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) {
-      throw new Error('Usuario nao encontrado');
+      throw new Error('Usuário não encontrado');
     }
 
     const [analises, payments, plans] = await Promise.all([
@@ -433,15 +433,15 @@ export class RoiService {
     if (booked > 0) {
       return {
         confidence: 'high' as Confidence,
-        label: 'Alta confianca',
-        explanation: 'Ha reservas ou receita real vinculada a recomendacoes aplicadas.',
+        label: 'Alta confiança',
+        explanation: 'Há reservas ou receita real vinculada a recomendações aplicadas.',
       };
     }
     if (applied > 0) {
       return {
         confidence: 'medium' as Confidence,
         label: 'Estimativa acompanhada',
-        explanation: 'Ha precos aplicados, mas ainda falta confirmar reserva/receita real.',
+        explanation: 'Há preços aplicados, mas ainda falta confirmar reserva/receita real.',
       };
     }
     return {
@@ -449,8 +449,8 @@ export class RoiService {
       label: recommendations > 0 ? 'Potencial mapeado' : 'Sem dados suficientes',
       explanation:
         recommendations > 0
-          ? 'Existem recomendacoes, mas ainda faltam aplicacoes confirmadas.'
-          : 'Cadastre imoveis e aplique recomendacoes para medir ROI.',
+          ? 'Existem recomendações, mas ainda faltam aplicações confirmadas.'
+          : 'Cadastre imóveis e aplique recomendações para medir ROI.',
     };
   }
 
@@ -490,7 +490,7 @@ export class RoiService {
     const title = address?.list?.titulo;
     if (title) return title;
     const parts = [address?.logradouro, address?.numero, address?.bairro, address?.cidade].filter(Boolean);
-    return parts.length > 0 ? parts.join(', ') : 'Imovel monitorado';
+    return parts.length > 0 ? parts.join(', ') : 'Imóvel monitorado';
   }
 
   private cutoffDate(windowDays: number) {

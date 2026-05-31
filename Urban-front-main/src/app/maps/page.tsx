@@ -154,10 +154,10 @@ export default function MapsPage() {
         }
       : isLoading
         ? {
-            title: "Procurando eventos perto do imovel",
-            body: `Usando o raio de ${selectedRadius} km e o periodo escolhido.`,
+            title: "Procurando eventos perto do imóvel",
+            body: `Usando o raio de ${selectedRadius} km e o período escolhido.`,
             steps: [
-              { id: "properties", label: "Imovel escolhido", status: "complete" as const },
+              { id: "properties", label: "Imóvel escolhido", status: "complete" as const },
               { id: "events", label: "Procurar eventos", status: "active" as const },
               { id: "map", label: "Mostrar no mapa", status: "pending" as const },
             ],
@@ -166,11 +166,11 @@ export default function MapsPage() {
         : selectedPropertyIsProcessing || (!propertyId && hasProcessingProperties)
           ? {
               title: selectedPropertyIsProcessing
-                ? selectedProperty?.setupStatus?.publicLabel ?? "Imovel ainda sendo preparado"
-                : "Imoveis ainda sendo preparados",
+                ? selectedProperty?.setupStatus?.publicLabel ?? "Imóvel ainda sendo preparado"
+                : "Imóveis ainda sendo preparados",
               body: selectedProperty?.setupStatus?.publicDescription ?? "Assim que ficar pronto, o mapa mostra eventos perto e sugestões de preço.",
               steps: selectedProperty?.setupStatus?.steps ?? [
-                { id: "properties", label: "Imovel adicionado", status: "complete" as const },
+                { id: "properties", label: "Imóvel adicionado", status: "complete" as const },
                 { id: "events", label: "Procurar eventos", status: "active" as const },
                 { id: "map", label: "Liberar mapa", status: "pending" as const },
               ],
@@ -183,7 +183,7 @@ export default function MapsPage() {
       <AppSectionHeader
         eyebrow="MAPA - OPORTUNIDADES"
         title="Mapa Interativo"
-        subtitle="Escolha o imovel, o raio e as datas para ver eventos que podem influenciar a diaria."
+        subtitle="Escolha o imóvel, o raio e as datas para ver eventos que podem influenciar a diária."
       />
 
       <AppCard variant="subtle" style={{ padding: 20, marginBottom: 24 }}>
@@ -208,7 +208,7 @@ export default function MapsPage() {
                   textTransform: "uppercase",
                 }}
               >
-                Escolher imovel
+                Escolher imóvel
               </span>
               <div style={{ position: "relative", zIndex: 1001 }}>
                 <PropertySelect
@@ -249,7 +249,7 @@ export default function MapsPage() {
           <div style={{ flex: "0 0 180px", maxWidth: 180 }}>
             <AppInput
               type="date"
-              label="Ate"
+              label="Até"
               value={endDate}
               min={startDate}
               disabled={isLoadingProperties}
@@ -261,7 +261,7 @@ export default function MapsPage() {
         {mapStatus && (
           <AppLoadingStatus
             compact
-            eyebrow="O QUE ESTA ACONTECENDO"
+            eyebrow="O QUE ESTÁ ACONTECENDO"
             title={mapStatus.title}
             body={mapStatus.body}
             steps={mapStatus.steps}
@@ -345,7 +345,7 @@ export default function MapsPage() {
                   </p>
                   <p style={{ margin: 0, color: "var(--app-text)", fontSize: 20, fontWeight: 650 }}>
                     {isLoading
-                      ? "Atualizando..."
+                      ? "Atualizando…"
                       : `${eventsToDisplay.length} ${eventsToDisplay.length === 1 ? 'evento' : 'eventos'}`}
                   </p>
                 </div>
@@ -367,7 +367,7 @@ export default function MapsPage() {
                 <AppEmptyState
                   eyebrow="SEM EVENTOS"
                   title="Nada no raio escolhido"
-                  body="Aumente o raio ou ajuste o periodo para ver mais eventos."
+                  body="Aumente o raio ou ajuste o período para ver mais eventos."
                   icon={<Icons.MapPin size={28} />}
                 />
               ) : (

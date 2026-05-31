@@ -130,7 +130,7 @@ export default function MyRoiPage() {
                 }}
                 includeAllOption
                 allOptionValue=""
-                allOptionLabel="Todos os imoveis"
+                allOptionLabel="Todos os imóveis"
                 maxWidth="100%"
               />
             </div>
@@ -208,7 +208,7 @@ export default function MyRoiPage() {
       <div className="roi-main-grid">
         <AppCard variant="default">
           <AppCardHeader
-            title="Resultado por imovel"
+            title="Resultado por imóvel"
             subtitle={data.dataQuality.explanation}
             actions={<AppBadge kind={confidenceKind}>{data.dataQuality.label}</AppBadge>}
           />
@@ -222,7 +222,7 @@ export default function MyRoiPage() {
               <table className="roi-table">
                 <thead>
                   <tr>
-                    <th>Imovel</th>
+                    <th>Imóvel</th>
                     <th className="numeric">Gerado</th>
                     <th className="numeric">Noites</th>
                     <th className="numeric">Usadas</th>
@@ -499,7 +499,7 @@ const styles = `
     }
   }
 
-  @media (max-width: 900px) {
+  @média (max-width: 900px) {
     .roi-hero {
       align-items: flex-start;
       flex-direction: column;
@@ -518,7 +518,7 @@ const styles = `
     }
   }
 
-  @media (max-width: 640px) {
+  @média (max-width: 640px) {
     .roi-actions {
       align-items: stretch;
       flex-direction: column;
