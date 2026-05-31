@@ -373,7 +373,7 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
           }
         }
 
-        @média (max-width: 720px) {
+        @media (max-width: 720px) {
           .global-paywall-overlay {
             padding: 12px;
           }

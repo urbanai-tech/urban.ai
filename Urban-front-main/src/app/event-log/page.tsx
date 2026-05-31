@@ -468,7 +468,7 @@ const styles = `
     margin-top: 18px;
   }
 
-  @média (max-width: 1020px) {
+  @media (max-width: 1020px) {
     .settings-hero-grid,
     .settings-info-grid,
     .preset-grid,
@@ -477,7 +477,7 @@ const styles = `
     }
   }
 
-  @média (max-width: 700px) {
+  @media (max-width: 700px) {
     .settings-hero-grid,
     .settings-info-grid,
     .preset-grid,

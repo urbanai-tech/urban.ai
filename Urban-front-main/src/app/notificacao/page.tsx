@@ -422,7 +422,7 @@ const styles = `
     white-space: nowrap;
   }
 
-  @média (max-width: 820px) {
+  @media (max-width: 820px) {
     .notification-metrics,
     .notification-card {
       grid-template-columns: 1fr;

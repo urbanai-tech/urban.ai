@@ -233,7 +233,7 @@ export default function AdminSeoPage() {
             <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 860 }}>
               <thead>
                 <tr>
-                  {["Cluster", "Pergunta", "Intencao", "Ativo fonte", "Readiness"].map((header) => (
+                  {["Cluster", "Pergunta", "Intenção", "Ativo fonte", "Readiness"].map((header) => (
                     <th key={header} style={thStyle}>
                       {header}
                     </th>

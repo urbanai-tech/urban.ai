@@ -275,7 +275,7 @@ export default function AddressCard({
 
       <style>{`
         @keyframes address-spin { to { transform: rotate(360deg); } }
-        @média (max-width: 760px) {
+        @media (max-width: 760px) {
           [data-address-fields] {
             grid-template-columns: 1fr !important;
           }

@@ -528,7 +528,7 @@ export const adminSeoPanelData = {
       priority: "P1",
       title: "Criar página de comparacao PMS vs Urban AI",
       owner: "Marketing",
-      impact: "Captura consultas comparativas de alta intencao",
+      impact: "Captura consultas comparativas de alta intenção",
       status: "Briefing",
       trace: trace("editorial-backlog", "ai-monitor"),
     },

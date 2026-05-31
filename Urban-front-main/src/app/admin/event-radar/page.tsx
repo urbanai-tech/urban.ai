@@ -686,7 +686,7 @@ export default function AdminEventRadarPage() {
           --event-radar-heatmap-grid: repeat(auto-fit, minmax(150px, 1fr));
         }
 
-        @média (max-width: 1180px) {
+        @media (max-width: 1180px) {
           .admin-event-radar-page {
             --event-radar-main-grid: 1fr;
             --event-radar-command-grid: repeat(2, minmax(0, 1fr));
@@ -697,7 +697,7 @@ export default function AdminEventRadarPage() {
           }
         }
 
-        @média (max-width: 767px) {
+        @media (max-width: 767px) {
           .admin-event-radar-page {
             --event-radar-command-grid: 1fr;
             --event-radar-health-grid: 1fr;
@@ -2440,7 +2440,7 @@ function heatmapOperationalAction(
   if (cell.eventDemandScore >= 75) {
     return { label: "Monitorar oferta", detail: `score ${cell.eventDemandScore}`, kind: "success" };
   }
-  return { label: "Observar", detail: "sem ação critica", kind: "neutral" };
+  return { label: "Observar", detail: "sem ação crítica", kind: "neutral" };
 }
 
 function heatmapValue(cell: AdminEventRadarHeatmapCell, metric: AdminEventRadarHeatmapMetric) {

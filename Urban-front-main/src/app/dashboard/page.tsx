@@ -970,7 +970,7 @@ const styles = `
     overflow: visible;
   }
 
-  @média (max-width: 1024px) {
+  @media (max-width: 1024px) {
     .dashboard-content-grid {
       grid-template-columns: 1fr;
     }
@@ -980,7 +980,7 @@ const styles = `
     }
   }
 
-  @média (max-width: 640px) {
+  @media (max-width: 640px) {
     .dashboard-property-filter {
       width: 100%;
     }
