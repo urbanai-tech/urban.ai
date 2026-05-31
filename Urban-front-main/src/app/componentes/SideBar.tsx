@@ -319,9 +319,10 @@ export default function SideBar() {
         >
           <ThemeToggle
             compact={collapsed}
+            showLabels={false}
             style={
               collapsed
-                ? { transform: 'scale(0.72)', transformOrigin: 'center' }
+                ? { justifyContent: 'center' }
                 : { width: '100%', justifyContent: 'center' }
             }
           />
