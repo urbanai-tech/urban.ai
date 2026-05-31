@@ -287,8 +287,8 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
         style={{
           position: "absolute",
           inset: 0,
-          background: "color-mix(in srgb, var(--app-text) 45%, transparent)",
-          backdropFilter: "blur(4px)",
+          background: "rgba(0, 0, 0, 0.58)",
+          backdropFilter: "blur(3px)",
           animation: "ask-fade-in 180ms ease-out",
         }}
       />
@@ -304,12 +304,13 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
           right: 0,
           bottom: 0,
           width: "min(480px, 100vw)",
-          background: "var(--app-surface-elevated, var(--app-surface))",
+          background: "var(--app-bg, var(--theme-app-bg, #080A0F))",
           borderLeft: "1px solid var(--app-divider-strong)",
-          boxShadow: "var(--app-shadow-overlay)",
+          boxShadow: "var(--app-shadow-overlay), -18px 0 44px rgba(0,0,0,0.28)",
           display: "flex",
           flexDirection: "column",
           animation: "ask-slide-in 260ms cubic-bezier(0.16, 1, 0.3, 1)",
+          isolation: "isolate",
         }}
       >
         {/* ============================ HEADER ============================ */}
@@ -320,6 +321,7 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
             gap: 12,
             padding: "18px 20px",
             borderBottom: "1px solid var(--app-divider)",
+            background: "var(--app-surface-elevated, var(--theme-app-surface-elevated, #171C24))",
             flexShrink: 0,
           }}
         >
@@ -401,6 +403,7 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
             display: "flex",
             flexDirection: "column",
             gap: 16,
+            background: "var(--app-bg, var(--theme-app-bg, #080A0F))",
           }}
         >
           {messages.length === 0 && !loading && (
@@ -424,7 +427,8 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
           style={{
             borderTop: "1px solid var(--app-divider)",
             padding: "14px 20px 16px",
-            background: "var(--app-surface)",
+            background: "var(--app-surface-elevated, var(--theme-app-surface-elevated, #171C24))",
+            boxShadow: "0 -18px 42px rgba(0,0,0,0.22)",
             flexShrink: 0,
           }}
         >
@@ -453,7 +457,8 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
               border: "1px solid var(--app-divider-strong)",
               borderRadius: 12,
               padding: "8px 8px 8px 12px",
-              background: "var(--app-surface)",
+              background: "var(--app-bg, var(--theme-app-bg, #080A0F))",
+              boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)",
             }}
           >
             <textarea
@@ -569,6 +574,10 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
             animation: none !important;
           }
         }
+        [data-ask-urban-drawer="true"] textarea::placeholder {
+          color: var(--app-text-dim, rgba(255,255,255,0.46));
+          opacity: 1;
+        }
       `}</style>
     </div>
   );
@@ -624,7 +633,7 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
             className="urban-focus-ring"
             style={{
               textAlign: "left",
-              background: "var(--app-surface)",
+              background: "var(--app-surface-elevated, var(--theme-app-surface-elevated, #171C24))",
               border: "1px solid var(--app-divider-strong)",
               borderRadius: 10,
               padding: "12px 14px",
@@ -645,7 +654,7 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
               e.currentTarget.style.borderColor =
                 "var(--app-divider-strong)";
               e.currentTarget.style.background =
-                "var(--app-surface)";
+                "var(--app-surface-elevated, var(--theme-app-surface-elevated, #171C24))";
             }}
           >
             {s}
@@ -673,7 +682,8 @@ function MessageBubble({
         <div
           style={{
             maxWidth: "85%",
-            background: "var(--app-surface-muted)",
+            background: "var(--app-surface-elevated, var(--theme-app-surface-elevated, #171C24))",
+            border: "1px solid var(--app-divider)",
             color: "var(--app-text)",
             padding: "10px 14px",
             borderRadius: "14px 14px 4px 14px",
@@ -712,8 +722,8 @@ function MessageBubble({
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
-            background: "var(--app-surface)",
-            border: "1px solid var(--app-divider)",
+            background: "var(--app-surface-elevated, var(--theme-app-surface-elevated, #171C24))",
+            border: "1px solid var(--app-divider-strong)",
             color: "var(--app-text)",
             padding: "12px 14px",
             borderRadius: "14px 14px 14px 4px",
@@ -865,8 +875,8 @@ function ThinkingDots() {
       </div>
       <div
         style={{
-          background: "var(--app-surface)",
-          border: "1px solid var(--app-divider)",
+          background: "var(--app-surface-elevated, var(--theme-app-surface-elevated, #171C24))",
+          border: "1px solid var(--app-divider-strong)",
           padding: "12px 16px",
           borderRadius: "14px 14px 14px 4px",
           display: "inline-flex",
