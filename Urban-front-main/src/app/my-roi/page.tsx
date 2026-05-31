@@ -499,7 +499,7 @@ const styles = `
     }
   }
 
-  @média (max-width: 900px) {
+  @media (max-width: 900px) {
     .roi-hero {
       align-items: flex-start;
       flex-direction: column;
@@ -518,7 +518,7 @@ const styles = `
     }
   }
 
-  @média (max-width: 640px) {
+  @media (max-width: 640px) {
     .roi-actions {
       align-items: stretch;
       flex-direction: column;

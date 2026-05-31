@@ -131,7 +131,7 @@ api.interceptors.response.use(
 
     const status = error?.response?.status;
     const originalRequest = error?.config as any;
-    const requestUrl: string = originalRequest.url ?? "";
+    const requestUrl: string = originalRequest?.url ?? "";
     const pathname = window.location.pathname || "";
     error.userMessage = getFriendlyApiErrorMessage(error);
 
@@ -301,8 +301,8 @@ export type PropertyDetail = {
   latitude?: number | null;
   longitude?: number | null;
   ativo?: boolean;
-  created_até: string;
-  updated_até: string;
+  created_at: string;
+  updated_at: string;
   analisado?: string;
   list?: {
     id: string;
