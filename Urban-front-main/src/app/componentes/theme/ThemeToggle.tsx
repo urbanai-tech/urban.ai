@@ -13,9 +13,11 @@ const iconFor: Record<ThemePreference, React.ReactNode> = {
 
 export function ThemeToggle({
   compact = false,
+  showLabels = !compact,
   style,
 }: {
   compact?: boolean;
+  showLabels?: boolean;
   style?: React.CSSProperties;
 }) {
   const { preference, setTheme, resolvedTheme } = useTheme();
@@ -44,18 +46,21 @@ export function ThemeToggle({
     >
       {THEME_OPTIONS.map((option) => {
         const active = preference === option.value;
+        const labelsVisible = showLabels && !compact;
         return (
           <button
             key={option.value}
             type="button"
             aria-pressed={active}
+            aria-label={`Usar tema ${option.label.toLowerCase()}`}
             title={option.label}
             onClick={() => setTheme(option.value)}
             style={{
               height: compact ? 28 : 30,
-              flex: compact ? "0 0 auto" : "1 1 0",
+              flex: labelsVisible ? "1 1 0" : "0 0 auto",
               minWidth: compact ? 28 : 0,
-              padding: compact ? "0 7px" : "0 8px",
+              width: labelsVisible ? undefined : compact ? 28 : 32,
+              padding: labelsVisible ? "0 8px" : 0,
               border: "none",
               borderRadius: 999,
               background: active
@@ -67,7 +72,7 @@ export function ThemeToggle({
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: 7,
+              gap: labelsVisible ? 7 : 0,
               cursor: "pointer",
               fontFamily: "Inter, system-ui, sans-serif",
               fontSize: 11,
@@ -80,8 +85,8 @@ export function ThemeToggle({
             }}
           >
             {iconFor[option.value]}
-            {!compact && (
-              <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>
+            {labelsVisible && (
+              <span style={{ minWidth: 0, overflow: "hidden" }}>
                 {option.label}
               </span>
             )}
