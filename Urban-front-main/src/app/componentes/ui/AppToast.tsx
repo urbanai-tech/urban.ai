@@ -227,7 +227,7 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
           outline: 2px solid var(--app-surface);
           outline-offset: 2px;
         }
-        @média (prefers-reduced-motion: reduce) {
+        @media (prefers-reduced-motion: reduce) {
           [role="status"],
           [role="alert"] {
             animation: none !important;

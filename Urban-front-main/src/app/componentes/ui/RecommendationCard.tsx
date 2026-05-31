@@ -311,7 +311,7 @@ function RecommendationReason({
 
   return (
     <section
-      aria-label="Explicacao da sugestão"
+      aria-label="Explicação da sugestão"
       style={{
         display: "flex",
         flexDirection: "column",
@@ -454,7 +454,7 @@ function ExplainerBody({
 
       {historicalComparison && (
         <section style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <span className="urban-app-eyebrow-muted">Referências historicas</span>
+          <span className="urban-app-eyebrow-muted">Referências históricas</span>
           <div
             style={{
               display: "grid",

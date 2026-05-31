@@ -752,7 +752,7 @@ export default function SideBar() {
             transform: translateX(0);
           }
         }
-        @média (min-width: 768px) {
+        @media (min-width: 768px) {
           [data-host-sidebar] {
             display: flex !important;
           }
@@ -762,7 +762,7 @@ export default function SideBar() {
             display: none !important;
           }
         }
-        @média (max-width: 767px) {
+        @media (max-width: 767px) {
           [data-host-mobile-topbar] {
             display: flex !important;
           }

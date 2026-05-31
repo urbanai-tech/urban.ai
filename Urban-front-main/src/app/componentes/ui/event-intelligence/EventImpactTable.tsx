@@ -122,7 +122,7 @@ export function EventImpactTable({
       .event-impact-mobile-list {
         display: none;
       }
-      @média (max-width: 760px) {
+      @media (max-width: 760px) {
         .event-impact-table-scroll {
           display: none;
         }
@@ -131,7 +131,7 @@ export function EventImpactTable({
           gap: 12px;
         }
       }
-      @média (max-width: 420px) {
+      @media (max-width: 420px) {
         .event-impact-mobile-header {
           align-items: stretch !important;
         }
