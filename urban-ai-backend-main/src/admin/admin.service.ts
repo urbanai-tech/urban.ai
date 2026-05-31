@@ -54,6 +54,10 @@ export class AdminService {
     private readonly authService: AuthService,
   ) {}
 
+  private countPt(count: number, singular: string, plural: string) {
+    return `${count} ${count === 1 ? singular : plural}`;
+  }
+
   async listJobRuns(limit = 10, name?: string) {
     const take = Math.max(1, Math.min(50, Number(limit) || 10));
     return this.jobRunRepo.find({
@@ -183,49 +187,61 @@ export class AdminService {
     if (schemaHealth.checkError) {
       alerts.push({
         severity: 'amber',
-        message: `Nao foi possivel validar schema/migrations: ${schemaHealth.checkError}.`,
+        message: `Não foi possível validar schema/migrations: ${schemaHealth.checkError}.`,
       });
     }
     if (observations.last24h === 0 && activeAirbnbListings > 0) {
       alerts.push({
         severity: 'red',
-        message: 'Nenhuma diaria real do Airbnb foi observada nas ultimas 24h.',
+        message: 'Nenhuma diária real do Airbnb foi observada nas últimas 24h.',
       });
     }
     if (activeAirbnbListings > 0 && observationCoveragePercent < 70) {
       alerts.push({
         severity: observationCoveragePercent < 30 ? 'red' : 'amber',
-        message: `Cobertura de observacao abaixo do alvo: ${observationCoveragePercent}% dos imoveis ativos com Airbnb nos ultimos 7 dias.`,
+        message: `Cobertura de observação abaixo do alvo: ${observationCoveragePercent}% dos imóveis ativos com Airbnb nos últimos 7 dias.`,
       });
     }
     if (suggestionMetrics.pendingVerification > 0) {
       alerts.push({
         severity: 'amber',
-        message: `${suggestionMetrics.pendingVerification} sugestao(oes) aceita(s) aguardando verificacao de aplicacao.`,
+        message: `${this.countPt(
+          suggestionMetrics.pendingVerification,
+          'sugestão aceita aguardando verificação de aplicação',
+          'sugestões aceitas aguardando verificação de aplicação',
+        )}.`,
       });
     }
     if (suggestionMetrics.failedVerification > 0) {
       alerts.push({
         severity: 'amber',
-        message: `${suggestionMetrics.failedVerification} sugestao(oes) com verificacao falha ou divergente.`,
+        message: `${this.countPt(
+          suggestionMetrics.failedVerification,
+          'sugestão com verificação falha ou divergente',
+          'sugestões com verificação falha ou divergente',
+        )}.`,
       });
     }
     if (failedJobsLast24h > 0) {
       alerts.push({
         severity: 'red',
-        message: `${failedJobsLast24h} job(s) de Price Intelligence falharam nas ultimas 24h.`,
+        message: `${this.countPt(failedJobsLast24h, 'job de Price Intelligence falhou', 'jobs de Price Intelligence falharam')} nas últimas 24h.`,
       });
     }
     for (const jobMetric of jobMetricsByName) {
       if (jobMetric.failures >= 2) {
         alerts.push({
           severity: 'red',
-          message: `Falha recorrente no job ${jobMetric.name}: ${jobMetric.failures} erro(s) em ${safeWindowDays} dia(s). Acao: abrir historico do job e corrigir a causa antes de reprocessar.`,
+          message: `Falha recorrente no job ${jobMetric.name}: ${this.countPt(jobMetric.failures, 'erro', 'erros')} em ${this.countPt(
+            safeWindowDays,
+            'dia',
+            'dias',
+          )}. Ação: abrir histórico do job e corrigir a causa antes de reprocessar.`,
         });
       } else if (!jobMetric.lastRunAt) {
         alerts.push({
           severity: 'info',
-          message: `Sem AdminJobRun para ${jobMetric.name}; confirmar se o cron/manual trigger esta instrumentado.`,
+          message: `Sem AdminJobRun para ${jobMetric.name}; confirmar se o cron/manual trigger está instrumentado.`,
         });
       }
     }
@@ -292,14 +308,14 @@ export class AdminService {
         running: runningJobs,
         queued: 0,
         queueAvailable: false,
-        queueUnavailableReason: 'Nenhuma fila persistente/BullMQ foi implementada para Price Intelligence; queued e sempre indisponivel neste painel.',
+        queueUnavailableReason: 'Nenhuma fila persistente/BullMQ foi implementada para Price Intelligence; queued está sempre indisponível neste painel.',
         failedLast24h: failedJobsLast24h,
         avgDurationMs:
           avgJobDurationRow?.avgDurationMs === null || avgJobDurationRow?.avgDurationMs === undefined
             ? null
             : Math.round(Number(avgJobDurationRow.avgDurationMs)),
         lastRun: recentJobs[0] ?? null,
-        lastSuccessAt: lastSuccessJob?.finishedAt?.toISOString?.() ?? lastSuccessJob?.finishedAt ?? null,
+        lastSuccessAt: lastSuccessJob?.finishedAt.toISOString?.() ?? lastSuccessJob?.finishedAt ?? null,
         recent: recentJobs,
         byName: jobMetricsByName,
       },
@@ -307,10 +323,10 @@ export class AdminService {
       problematicProperties,
       schema: schemaHealth,
       shortcuts: [
-        { label: 'Qualidade', href: '/admin/quality', description: 'MAPE, ocupacao e ground truth.' },
-        { label: 'Jobs do sistema', href: '/admin/jobs', description: 'Executar snapshots e recomputacoes.' },
-        { label: 'Config. de precos', href: '/admin/pricing-config', description: 'Regras e parametros operacionais.' },
-        { label: 'Radar de demanda', href: '/admin/event-radar', description: 'Eventos que alimentam sugestoes.' },
+        { label: 'Qualidade', href: '/admin/quality', description: 'MAPE, ocupação e ground truth.' },
+        { label: 'Jobs do sistema', href: '/admin/jobs', description: 'Executar snapshots e recomputações.' },
+        { label: 'Config. de preços', href: '/admin/pricing-config', description: 'Regras e parâmetros operacionais.' },
+        { label: 'Radar de demanda', href: '/admin/event-radar', description: 'Eventos que alimentam sugestões.' },
       ],
       endpointGaps,
     };
@@ -418,14 +434,14 @@ export class AdminService {
         failures.push({
           type: this.compactFailureType(failure?.reason ?? result?.errorMessage ?? job.errorMessage ?? job.status),
           count: 1,
-          lastSeenAt: job.finishedAt?.toISOString?.() ?? job.startedAt?.toISOString?.() ?? null,
+          lastSeenAt: job.finishedAt.toISOString?.() ?? job.startedAt.toISOString?.() ?? null,
         });
       }
       if (job.status === 'error' && jobFailures.length === 0) {
         failures.push({
           type: this.compactFailureType(job.errorMessage ?? 'job_error'),
           count: 1,
-          lastSeenAt: job.finishedAt?.toISOString?.() ?? job.startedAt?.toISOString?.() ?? null,
+          lastSeenAt: job.finishedAt.toISOString?.() ?? job.startedAt.toISOString?.() ?? null,
         });
       }
     }
@@ -502,10 +518,10 @@ export class AdminService {
           durations.length > 0
             ? Math.round(durations.reduce((sum, duration) => sum + duration, 0) / durations.length)
             : null,
-        lastRunAt: lastRun?.startedAt?.toISOString?.() ?? null,
+        lastRunAt: lastRun?.startedAt.toISOString?.() ?? null,
         lastStatus: lastRun?.status ?? null,
-        lastSuccessAt: lastSuccess?.finishedAt?.toISOString?.() ?? null,
-        lastFailureAt: lastFailure?.finishedAt?.toISOString?.() ?? null,
+        lastSuccessAt: lastSuccess?.finishedAt.toISOString?.() ?? null,
+        lastFailureAt: lastFailure?.finishedAt.toISOString?.() ?? null,
         lastErrorMessage: lastFailure?.errorMessage ?? null,
       };
     });
@@ -601,12 +617,12 @@ export class AdminService {
   }) {
     const gaps = [
       'POST /admin/dataset/airbnb-observations/run ausente; coleta Airbnb real depende apenas do cron dataset-airbnb-price-observations.',
-      'POST /admin/jobs/pricing-retrain/run ausente; pricing-retrain esta instrumentado como cron, mas nao tem trigger admin dedicado.',
-      'POST /admin/jobs/stays-auto-apply/run ausente; auto-apply aparece em AdminJobRun, mas nao tem execucao manual controlada nesta tela.',
-      'GET /admin/price-intelligence/queue ausente; queued nao e mensuravel porque nao ha fila persistente implementada.',
+      'POST /admin/jobs/pricing-retrain/run ausente; pricing-retrain está instrumentado como cron, mas não tem trigger admin dedicado.',
+      'POST /admin/jobs/stays-auto-apply/run ausente; auto-apply aparece em AdminJobRun, mas não tem execução manual controlada nesta tela.',
+      'GET /admin/price-intelligence/queue ausente; queued não é mensurável porque não há fila persistente implementada.',
     ];
     if (!schemaHealth.ok || schemaHealth.checkError) {
-      gaps.push('Schema health degradado; aplicar migrations de AdminJobRun, verificacao de analise_preco e observacoes Airbnb antes do go-live.');
+      gaps.push('Saúde do schema degradada; aplicar migrations de AdminJobRun, verificação de analise_preco e observações Airbnb antes do go-live.');
     }
     return gaps;
   }
@@ -665,19 +681,19 @@ export class AdminService {
 
       if (!address.list.id_do_anuncio) {
         severity = 'red';
-        issue = 'Imovel ativo sem ID Airbnb; nao conseguimos observar diaria real.';
+        issue = 'Imóvel ativo sem ID Airbnb; não conseguimos observar diária real.';
       } else if (!address.latitude || !address.longitude) {
         severity = 'red';
-        issue = 'Imovel ativo sem latitude/longitude; eventos e features ficam incompletos.';
+        issue = 'Imóvel ativo sem latitude/longitude; eventos e features ficam incompletos.';
       } else if (failedSuggestions > 0) {
         severity = 'red';
-        issue = 'Ha sugestoes aceitas com verificacao falha ou divergente.';
+        issue = 'Há sugestões aceitas com verificação falha ou divergente.';
       } else if (!observation) {
         severity = 'amber';
-        issue = 'Ainda nao existe observacao real de diaria via Airbnb para este imovel.';
+        issue = 'Ainda não existe observação real de diária via Airbnb para este imóvel.';
       } else if (suggestionsPending > 0) {
         severity = 'amber';
-        issue = 'Ha sugestoes aceitas aguardando verificacao de aplicacao.';
+        issue = 'Há sugestões aceitas aguardando verificação de aplicação.';
       }
 
       if (!severity) continue;
@@ -690,8 +706,8 @@ export class AdminService {
         state: address.estado ?? null,
         severity,
         issue,
-        lastSnapshotAt: snapshot?.createdAt?.toISOString?.() ?? null,
-        lastObservationAt: observation?.observedAt?.toISOString?.() ?? null,
+        lastSnapshotAt: snapshot?.createdAt.toISOString?.() ?? null,
+        lastObservationAt: observation?.observedAt.toISOString?.() ?? null,
         suggestionsPending,
         failedSuggestions,
       });
@@ -721,7 +737,7 @@ export class AdminService {
   private requireAlphaEmail(email?: string): string {
     const normalized = String(email ?? '').trim().toLowerCase();
     if (!normalized || !normalized.includes('@')) {
-      throw new BadRequestException('email do usuario alpha e obrigatorio');
+      throw new BadRequestException('e-mail do usuário alpha é obrigatório');
     }
     return normalized;
   }
@@ -816,7 +832,7 @@ export class AdminService {
     const targetEmail = this.requireAlphaEmail(email);
     const user = await this.userRepo.findOne({ where: { email: targetEmail } });
     if (!user) {
-      throw new NotFoundException('Usuario alpha nao encontrado');
+      throw new NotFoundException('Usuário alpha não encontrado');
     }
 
     const [addresses, analyses, eventsTotal, upcomingEvents, eventsLast24h] = await Promise.all([
@@ -907,7 +923,7 @@ export class AdminService {
     const targetEmail = this.requireAlphaEmail(email);
     const user = await this.userRepo.findOne({ where: { email: targetEmail } });
     if (!user) {
-      throw new NotFoundException('Usuario alpha nao encontrado');
+      throw new NotFoundException('Usuário alpha não encontrado');
     }
     const analyses = await this.analiseRepo.find({
       where: { usuarioProprietario: { id: user.id } },
@@ -997,7 +1013,7 @@ export class AdminService {
         'onboardingDripLastDay', 'onboardingDripLastSentAt',
       ],
     });
-    if (!user) throw new NotFoundException('Usuario nao encontrado');
+    if (!user) throw new NotFoundException('Usuário não encontrado');
     return user;
   }
 
@@ -1150,17 +1166,17 @@ export class AdminService {
     actorUserId?: string | null,
   ): Promise<User> {
     if (!['host', 'admin', 'support'].includes(role)) {
-      throw new BadRequestException('role invalido');
+      throw new BadRequestException('role inválido');
     }
     const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('Usuario nao encontrado');
+    if (!user) throw new NotFoundException('Usuário não encontrado');
     if (actorUserId && actorUserId === userId && role !== 'admin') {
-      throw new ForbiddenException('Voce nao pode remover seu proprio acesso admin.');
+      throw new ForbiddenException('Você não pode remover seu próprio acesso admin.');
     }
     if (user.role === 'admin' && role !== 'admin') {
       const activeAdmins = await this.userRepo.count({ where: { role: 'admin', ativo: true } });
       if (activeAdmins <= 1 && user.ativo) {
-        throw new ForbiddenException('Nao e possivel remover o ultimo admin ativo.');
+        throw new ForbiddenException('Não é possível remover o último admin ativo.');
       }
     }
     user.role = role;
@@ -1176,14 +1192,14 @@ export class AdminService {
       throw new BadRequestException('ativo deve ser booleano');
     }
     const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('Usuario nao encontrado');
+    if (!user) throw new NotFoundException('Usuário não encontrado');
     if (actorUserId && actorUserId === userId && ativo === false) {
-      throw new ForbiddenException('Voce nao pode desativar seu proprio usuario.');
+      throw new ForbiddenException('Você não pode desativar seu próprio usuário.');
     }
     if (user.role === 'admin' && ativo === false) {
       const activeAdmins = await this.userRepo.count({ where: { role: 'admin', ativo: true } });
       if (activeAdmins <= 1 && user.ativo) {
-        throw new ForbiddenException('Nao e possivel desativar o ultimo admin ativo.');
+        throw new ForbiddenException('Não é possível desativar o último admin ativo.');
       }
     }
     user.ativo = ativo;
@@ -1628,7 +1644,7 @@ export class AdminService {
       throw new BadRequestException('date deve estar no formato YYYY-MM-DD');
     }
     if (!['booked', 'available', 'blocked', 'unknown'].includes(input.status)) {
-      throw new BadRequestException('status invalido');
+      throw new BadRequestException('status inválido');
     }
 
     const list = await this.listRepo.findOne({
@@ -1638,7 +1654,7 @@ export class AdminService {
       relations: ['user'],
     });
     if (!list) {
-      throw new NotFoundException('Imovel nao encontrado');
+      throw new NotFoundException('Imóvel não encontrado');
     }
 
     const address = await this.addressRepo.findOne({
@@ -2313,47 +2329,55 @@ export class AdminService {
     if (eventsNext30d < 100) {
       alerts.push({
         severity: 'red',
-        message: `Cobertura de eventos futuros abaixo do gate beta: ${eventsNext30d}/100 nos proximos 30 dias`,
+        message: `Cobertura de eventos futuros abaixo do gate beta: ${eventsNext30d}/100 nos próximos 30 dias`,
       });
     } else if (eventsNext30d < 200) {
       alerts.push({
         severity: 'amber',
-        message: `Eventos futuros abaixo do alvo publico: ${eventsNext30d}/200 nos proximos 30 dias`,
+        message: `Eventos futuros abaixo do alvo público: ${eventsNext30d}/200 nos próximos 30 dias`,
       });
     }
     if (pricingLast24h === 0 && eventsNext30d > 0) {
       alerts.push({
         severity: 'red',
-        message: 'Zero recomendacoes de preco criadas nas ultimas 24h apesar de haver eventos futuros',
+        message: 'Zero recomendações de preço criadas nas últimas 24h apesar de haver eventos futuros',
       });
     }
     if (activeAddresses > 0 && pricingCoveragePercent < 70) {
       alerts.push({
         severity: 'red',
-        message: `Cobertura de recomendacao futura abaixo do gate beta: ${pricingCoveragePercent}% dos imoveis ativos`,
+        message: `Cobertura de recomendação futura abaixo do gate beta: ${pricingCoveragePercent}% dos imóveis ativos`,
       });
     }
     if (invalidLocalityAddresses > 0) {
       alerts.push({
         severity: 'amber',
-        message: `${invalidLocalityAddresses} endereco(s) ativo(s) com cidade/UF invalidos`,
+        message: `${this.countPt(
+          invalidLocalityAddresses,
+          'endereço ativo com cidade/UF inválidos',
+          'endereços ativos com cidade/UF inválidos',
+        )}`,
       });
     }
     if (datasetDiagnostics.health === 'red') {
       alerts.push({
         severity: 'red',
-        message: `Dataset nao pronto: ${datasetDiagnostics.blockers.filter((b) => b.severity === 'red').length} bloqueio(s) critico(s)`,
+        message: `Dataset não pronto: ${this.countPt(
+          datasetDiagnostics.blockers.filter((b) => b.severity === 'red').length,
+          'bloqueio crítico',
+          'bloqueios críticos',
+        )}`,
       });
     } else if (datasetDiagnostics.health === 'amber') {
       alerts.push({
         severity: 'amber',
-        message: 'Dataset ainda incompleto para validar ROI/MAPE com confianca',
+        message: 'Dataset ainda incompleto para validar ROI/MAPE com confiança',
       });
     }
     if (appliedPriceCaptured === 0) {
       alerts.push({
         severity: 'amber',
-        message: 'Nenhum preco aplicado capturado; MAPE/ROI ainda nao sao comprovaveis',
+        message: 'Nenhum preço aplicado capturado; MAPE/ROI ainda não são comprováveis',
       });
     }
     if (legacyPedingPayments > 0) {
@@ -2370,24 +2394,24 @@ export class AdminService {
     } else if (stripeSecretMode === 'unknown') {
       alerts.push({
         severity: 'amber',
-        message: 'STRIPE_SECRET_KEY com prefixo inesperado; validar se e sk_test ou sk_live',
+        message: 'STRIPE_SECRET_KEY com prefixo inesperado; validar se é sk_test ou sk_live',
       });
     }
     if (!stripeWebhookConfigured) {
       alerts.push({
         severity: 'amber',
-        message: 'STRIPE_WEBHOOK_SECRET ausente; checkout pode abrir, mas assinatura local nao sincroniza',
+        message: 'STRIPE_WEBHOOK_SECRET ausente; checkout pode abrir, mas assinatura local não sincroniza',
       });
     }
     if (!stripePublishableConfigured) {
       alerts.push({
         severity: 'info',
-        message: 'Publishable key Stripe nao visivel no backend; confirmar NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY no frontend',
+        message: 'Publishable key Stripe não visível no backend; confirmar NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY no frontend',
       });
     } else if (stripePublishableMode === 'unknown') {
       alerts.push({
         severity: 'amber',
-        message: 'Publishable key Stripe com prefixo inesperado; validar se e pk_test ou pk_live',
+        message: 'Publishable key Stripe com prefixo inesperado; validar se é pk_test ou pk_live',
       });
     }
     if (stripeModeMismatch) {
@@ -2417,30 +2441,30 @@ export class AdminService {
     if (!supportEmailConfigured) {
       alerts.push({
         severity: 'info',
-        message: `SUPPORT_EMAIL nao configurado; usando fallback ${supportEmail}`,
+        message: `SUPPORT_EMAIL não configurado; usando fallback ${supportEmail}`,
       });
     }
     if (!privacyEmailConfigured) {
       alerts.push({
         severity: 'info',
-        message: `PRIVACY_EMAIL nao configurado; usando fallback ${privacyEmail}`,
+        message: `PRIVACY_EMAIL não configurado; usando fallback ${privacyEmail}`,
       });
     }
     if (!supportEmailDomainOk || !privacyEmailDomainOk) {
       alerts.push({
         severity: 'amber',
-        message: 'Canais suporte/privacidade fora do dominio myurbanai.com; revisar antes do beta pago',
+        message: 'Canais de suporte/privacidade fora do domínio myurbanai.com; revisar antes do beta pago',
       });
     }
     if (!supportOwnerConfigured || !privacyOwnerConfigured) {
       alerts.push({
         severity: 'info',
-        message: 'Donos operacionais de suporte/privacidade nao configurados; defina SUPPORT_OWNER_EMAIL e PRIVACY_OWNER_EMAIL',
+        message: 'Donos operacionais de suporte/privacidade não configurados; defina SUPPORT_OWNER_EMAIL e PRIVACY_OWNER_EMAIL',
       });
     } else if (!supportOwnerDomainOk || !privacyOwnerDomainOk) {
       alerts.push({
         severity: 'amber',
-        message: 'Donos operacionais de suporte/privacidade fora do dominio myurbanai.com',
+        message: 'Donos operacionais de suporte/privacidade fora do domínio myurbanai.com',
       });
     }
     if (!brevoApiKeyConfigured) {
@@ -2452,7 +2476,7 @@ export class AdminService {
     if (!emailSenderConfigured || !senderUsesUrbanDomain) {
       alerts.push({
         severity: 'info',
-        message: `Sender de e-mail usando ${senderDomain || 'dominio invalido'}; validar SPF/DKIM antes do beta pago`,
+        message: `Sender de e-mail usando ${senderDomain || 'domínio inválido'}; validar SPF/DKIM antes do beta pago`,
       });
     }
     if (!frontUrlConfigured) {
@@ -2649,7 +2673,7 @@ export class AdminService {
     const emailBlockers: string[] = [];
     if (!input.brevoApiKeyConfigured) emailBlockers.push('BREVO_API_KEY ausente');
     if (!input.emailSenderConfigured) emailBlockers.push('EMAIL_SENDER ausente');
-    if (!input.senderUsesUrbanDomain) emailBlockers.push('Sender fora do dominio myurbanai.com');
+    if (!input.senderUsesUrbanDomain) emailBlockers.push('Sender fora do domínio myurbanai.com');
 
     const staysBlockers: string[] = [];
     if (!input.staysApiBaseConfigured) staysBlockers.push('STAYS_API_BASE_URL ausente');
@@ -2659,7 +2683,7 @@ export class AdminService {
     if (input.supportP0Open > 0) supportBlockers.push(`${input.supportP0Open} ticket(s) P0 abertos`);
     if (input.supportOverdue > 0) supportBlockers.push(`${input.supportOverdue} ticket(s) com SLA vencido`);
     if (!input.supportEmailDomainOk || !input.privacyEmailDomainOk) {
-      supportBlockers.push('Canais suporte/privacidade fora do dominio myurbanai.com');
+      supportBlockers.push('Canais de suporte/privacidade fora do domínio myurbanai.com');
     }
     if (!input.supportOwnerConfigured) supportBlockers.push('SUPPORT_OWNER_EMAIL ausente');
     if (!input.privacyOwnerConfigured) supportBlockers.push('PRIVACY_OWNER_EMAIL ausente');
@@ -2676,7 +2700,7 @@ export class AdminService {
       email: this.readinessItem(
         'Brevo',
         emailBlockers,
-        'Validar dominio, DKIM/SPF e envio real transacional.',
+        'Validar domínio, DKIM/SPF e envio real transacional.',
       ),
       stays: this.readinessItem(
         'Stays',
@@ -2696,7 +2720,7 @@ export class AdminService {
       label,
       status: blockers.length === 0 ? 'ready' : 'blocked',
       blockers,
-      nextAction: blockers.length === 0 ? 'Executar smoke real e anexar evidencia.' : nextAction,
+      nextAction: blockers.length === 0 ? 'Executar smoke real e anexar evidência.' : nextAction,
     };
   }
 

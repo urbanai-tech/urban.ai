@@ -138,7 +138,7 @@ export const seoConnectorDefinitions = [
     key: "search-console",
     name: "Google Search Console",
     provider: "Google Search Console API",
-    cadence: "Diaria",
+    cadence: "Diária",
     credentialMode: "google-service-account",
     capabilities: ["search-performance", "index-coverage"],
     env: [
@@ -147,7 +147,7 @@ export const seoConnectorDefinitions = [
         label: "Search Console property URL",
         required: true,
         secret: false,
-        purpose: "Identifica a propriedade que sera consultada.",
+        purpose: "Identifica a propriedade que será consultada.",
       },
       {
         name: "SEO_GOOGLE_CLIENT_EMAIL",
@@ -171,7 +171,7 @@ export const seoConnectorDefinitions = [
     key: "ga4",
     name: "Google Analytics 4",
     provider: "GA4 Data API",
-    cadence: "Diaria",
+    cadence: "Diária",
     credentialMode: "google-service-account",
     capabilities: ["organic-sessions", "organic-conversions"],
     env: [
@@ -180,7 +180,7 @@ export const seoConnectorDefinitions = [
         label: "GA4 property ID",
         required: true,
         secret: false,
-        purpose: "Identifica a propriedade GA4 para metricas organicas.",
+        purpose: "Identifica a propriedade GA4 para métricas orgânicas.",
       },
       {
         name: "SEO_GOOGLE_CLIENT_EMAIL",
@@ -198,7 +198,7 @@ export const seoConnectorDefinitions = [
       },
     ],
     notes:
-      "Pronto para organic sessions, landing pages e conversoes, sem inventar dados quando a API nao esta ligada.",
+      "Pronto para organic sessions, landing pages e conversões, sem inventar dados quando a API não está ligada.",
   },
   {
     key: "bot-logs",
@@ -238,12 +238,12 @@ export const seoConnectorDefinitions = [
       },
     ],
     notes:
-      "Considera pronto quando ha origem e um transporte: arquivo local ou endpoint autenticado.",
+      "Considera pronto quando há origem e um transporte: arquivo local ou endpoint autenticado.",
   },
   {
     key: "ai-monitor",
     name: "AI Monitor",
-    provider: "Dataset proprio ou monitor externo",
+    provider: "Dataset próprio ou monitor externo",
     cadence: "Semanal",
     credentialMode: "dataset-or-http-source",
     capabilities: ["ai-citation-monitoring"],
@@ -253,14 +253,14 @@ export const seoConnectorDefinitions = [
         label: "AI monitor source",
         required: true,
         secret: false,
-        purpose: "Nomeia a origem das rodadas de prompts e citacoes.",
+        purpose: "Nomeia a origem das rodadas de prompts e citações.",
       },
       {
         name: "SEO_AI_MONITOR_DATASET_PATH",
         label: "AI monitor dataset path",
         required: false,
         secret: false,
-        purpose: "Caminho server-side para dataset offline de observacoes.",
+        purpose: "Caminho server-side para dataset offline de observações.",
       },
       {
         name: "SEO_AI_MONITOR_ENDPOINT",
@@ -278,7 +278,7 @@ export const seoConnectorDefinitions = [
       },
     ],
     notes:
-      "Considera pronto quando ha origem e um transporte: dataset offline ou endpoint autenticado.",
+      "Considera pronto quando há origem e um transporte: dataset offline ou endpoint autenticado.",
   },
 ] satisfies readonly SeoConnectorDefinition[];
 
@@ -349,7 +349,7 @@ function getConnectorOperationalItem(
     placeholder: {
       state: "no-data-collected",
       message:
-        "Esta camada valida readiness de configuracao e nao retorna metricas sem uma coleta real ligada.",
+        "Esta camada valida o readiness de configuração e não retorna métricas sem uma coleta real ligada.",
     },
   };
 }
@@ -400,8 +400,8 @@ function getStatus(blockers: string[], presentCount: number): SeoConnectorStatus
 function getStatusLabel(status: SeoConnectorStatus) {
   const labels: Record<SeoConnectorStatus, string> = {
     configured: "Configurado por env",
-    partial: "Configuracao parcial",
-    missing: "Nao configurado",
+    partial: "Configuração parcial",
+    missing: "Não configurado",
   };
 
   return labels[status];

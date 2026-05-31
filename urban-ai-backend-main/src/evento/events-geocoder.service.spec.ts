@@ -37,7 +37,7 @@ describe('EventsGeocoderService', () => {
     maps.getGeocodingReadiness.mockReturnValue({
       configured: false,
       status: 'missing_api_key',
-      message: 'GOOGLE_MAPS_API_KEY nao configurada no backend.',
+      message: 'GOOGLE_MAPS_API_KEY não configurada no backend.',
       nextAction: 'Configure GOOGLE_MAPS_API_KEY.',
     });
 
@@ -46,7 +46,7 @@ describe('EventsGeocoderService', () => {
       readiness: {
         configured: false,
         status: 'missing_api_key',
-        message: 'GOOGLE_MAPS_API_KEY nao configurada no backend.',
+        message: 'GOOGLE_MAPS_API_KEY não configurada no backend.',
         nextAction: 'Configure GOOGLE_MAPS_API_KEY.',
       },
       running: false,

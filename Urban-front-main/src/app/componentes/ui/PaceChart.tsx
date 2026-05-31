@@ -123,7 +123,7 @@ export function PaceChart({
     return (
       <div
         aria-busy="true"
-        aria-label="Carregando grafico de reservas"
+        aria-label="Carregando gráfico de reservas"
         className="urban-app-skeleton"
         style={{
           width: "100%",
@@ -180,14 +180,14 @@ export function PaceChart({
       >
         <div>
           <p className="urban-app-eyebrow-muted" style={{ marginBottom: 8 }}>
-            Sem curva de ocupacao
+            Sem curva de ocupação
           </p>
           <h3 style={{ margin: 0, color: "var(--app-text)", fontSize: 20, lineHeight: 1.25 }}>
-            Ainda nao ha reservas ou baseline suficientes para comparar.
+            Ainda não há reservas ou baseline suficientes para comparar.
           </h3>
           <p style={{ margin: "8px 0 0", color: "var(--app-text-muted)", fontSize: 13, lineHeight: 1.5 }}>
             Neste estado, o bloco funciona melhor como agenda de eventos relevantes. Quando chegarem dados de
-            ocupacao futura, a curva volta a aparecer.
+            ocupação futura, a curva volta a aparecer.
           </p>
         </div>
 
@@ -228,7 +228,7 @@ export function PaceChart({
             ))}
             {events.length > eventList.length && (
               <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 12 }}>
-                +{events.length - eventList.length} evento(s) no periodo.
+                +{events.length - eventList.length} {events.length - eventList.length === 1 ? "evento" : "eventos"} no período.
               </p>
             )}
           </div>
@@ -249,7 +249,7 @@ export function PaceChart({
     <div style={{ position: "relative", width: "100%" }}>
       <svg
         role="img"
-        aria-label={`Grafico de reservas dos proximos ${points.length} dias. Reservado comparado ao esperado.`}
+        aria-label={`Gráfico de reservas dos próximos ${points.length} dias. Reservado comparado ao esperado.`}
         viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
         preserveAspectRatio="none"
         style={{ width: "100%", height, display: "block" }}

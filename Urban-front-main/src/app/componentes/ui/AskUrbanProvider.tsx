@@ -146,7 +146,7 @@ export function AskUrbanProvider({ children }: { children: React.ReactNode }) {
           target.isContentEditable;
         // EXCEÇÃO: se o foco está dentro do próprio drawer, deixa Cmd+J
         // fechar mesmo assim.
-        const inDrawer = target.closest?.('[data-ask-urban-drawer="true"]');
+        const inDrawer = target.closest('[data-ask-urban-drawer="true"]');
         if (editable && !inDrawer) return;
       }
 
@@ -224,7 +224,7 @@ export function useAskUrban(): AskUrbanContextValue {
   const ctx = useContext(AskUrbanContext);
   if (!ctx) {
     // Fallback no-op pra evitar crash em telas sem provider (ex: telas
-    // publicas que importam algo do barrel).
+    // públicas que importam algo do barrel).
     return {
       open: () => undefined,
       close: () => undefined,
@@ -293,9 +293,9 @@ function AskUrbanFab({
         [data-ask-urban-fab]:hover {
           box-shadow: 0 22px 54px var(--app-accent-shadow), 0 6px 18px rgba(0,0,0,0.26) !important;
         }
-        @media (max-width: 767px) {
+        @média (max-width: 767px) {
           [data-ask-urban-fab] {
-            bottom: calc(64px + 18px + env(safe-area-inset-bottom, 0px)) !important;
+            bottom: calc(64px + 18px + env(safe-área-inset-bottom, 0px)) !important;
             right: 16px !important;
             width: 52px !important;
             min-width: 52px !important;

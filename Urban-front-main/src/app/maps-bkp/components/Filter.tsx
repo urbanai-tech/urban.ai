@@ -42,7 +42,7 @@ export default function Filtro({ height }: FiltroProps) {
           </p>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             <ImpactBadge color="#C2342E">Alto</ImpactBadge>
-            <ImpactBadge color="#C8810E">Medio</ImpactBadge>
+            <ImpactBadge color="#C8810E">Médio</ImpactBadge>
             <ImpactBadge color="#16A06B">Baixo</ImpactBadge>
           </div>
         </div>

@@ -543,7 +543,7 @@ export class AdminFinanceService {
     if (requireRequired || input.monthlyCostCents !== undefined) {
       const cents = Number(input.monthlyCostCents ?? 0);
       if (!Number.isFinite(cents) || cents < 0 || cents > 100_000_000) {
-        throw new BadRequestException('monthlyCostCents invalido');
+        throw new BadRequestException('monthlyCostCents inválido');
       }
       next.monthlyCostCents = Math.floor(cents);
     }
@@ -613,7 +613,7 @@ export class AdminFinanceService {
         } else {
           const limit = Number(value);
           if (!Number.isInteger(limit) || limit < 0 || limit > 100000) {
-            throw new BadRequestException(`${key} invalido`);
+            throw new BadRequestException(`${key} inválido`);
           }
           next[key] = limit;
         }
@@ -644,7 +644,7 @@ export class AdminFinanceService {
       throw new BadRequestException('maxCheckoutQuantity deve ser maior ou igual a minProperties');
     }
     if (max !== null && checkoutMax !== null && checkoutMax > max) {
-      throw new BadRequestException('maxCheckoutQuantity nao pode passar de maxProperties');
+      throw new BadRequestException('maxCheckoutQuantity não pode passar de maxProperties');
     }
   }
 }

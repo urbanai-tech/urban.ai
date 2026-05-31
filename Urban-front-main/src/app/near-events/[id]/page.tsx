@@ -92,15 +92,15 @@ export default function CasaEventosProximosPage() {
   }, [fetchEventos, paginaAtual]);
 
   const tituloEndereco = endereco
-    ? endereco.list?.titulo || `${endereco.logradouro ?? ''}${endereco.numero ? ', ' + endereco.numero : ''}`.trim() || 'Imovel'
-    : 'Imovel';
+    ? endereco.list?.titulo || `${endereco.logradouro ?? ''}${endereco.numero ? ', ' + endereco.numero : ''}`.trim() || 'Imóvel'
+    : 'Imóvel';
 
   return (
     <AppPageShell maxWidth={1280}>
       <AppSectionHeader
-        eyebrow="EVENTOS PROXIMOS - DETALHE"
-        title={loading && !endereco ? 'Carregando...' : tituloEndereco}
-        subtitle="Eventos identificados proximos ao imovel. A distancia e calculada em linha reta a partir das coordenadas cadastradas."
+        eyebrow="EVENTOS PRÓXIMOS - DETALHE"
+        title={loading && !endereco ? 'Carregando…' : tituloEndereco}
+        subtitle="Eventos identificados próximos ao imóvel. A distância é calculada em linha reta a partir das coordenadas cadastradas."
       />
 
       {endereco && (
@@ -115,9 +115,9 @@ export default function CasaEventosProximosPage() {
         </div>
       ) : eventos.length === 0 ? (
         <AppEmptyState
-          eyebrow="SEM EVENTOS PROXIMOS"
+          eyebrow="SEM EVENTOS PRÓXIMOS"
           title="Nenhum evento encontrado"
-          body="Nao localizamos eventos proximos a este imovel no momento. Novas oportunidades aparecem conforme o radar e atualizado."
+          body="Não localizamos eventos próximos a este imóvel no momento. Novas oportunidades aparecem conforme o radar e atualizado."
           icon={<Icons.Calendar size={32} />}
         />
       ) : (
@@ -152,7 +152,7 @@ export default function CasaEventosProximosPage() {
                   <MetaRow icon={<Icons.Calendar size={12} />}>
                     {formatEventDate(ev.dataInicio)}
                     {ev.dataFim && ev.dataFim !== ev.dataInicio && (
-                      <> - ate {formatEventDate(ev.dataFim)}</>
+                      <> - até {formatEventDate(ev.dataFim)}</>
                     )}
                   </MetaRow>
                   <MetaRow icon={<Icons.MapPin size={12} />}>

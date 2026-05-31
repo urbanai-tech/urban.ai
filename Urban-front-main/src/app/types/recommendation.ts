@@ -1,5 +1,5 @@
 /**
- * Tipos do Contrato A — recomendacao enriquecida (Dev 1 -> Dev 2).
+ * Tipos do Contrato A — recomendação enriquecida (Dev 1 -> Dev 2).
  *
  * Roadmap 4 Tracks (semana 1-2, Gap 6). Espelha o tipo publicado por
  * Dev 1 em `urban-ai-backend-main/src/types/recommendation.ts`.

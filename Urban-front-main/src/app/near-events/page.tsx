@@ -73,16 +73,16 @@ export default function CasaEventosProximosPage() {
   return (
     <AppPageShell maxWidth={1180}>
       <AppSectionHeader
-        eyebrow="EVENTOS PROXIMOS"
-        title="Eventos proximos aos seus imoveis"
-        subtitle="Selecione um imovel para ver os eventos detectados nas redondezas."
+        eyebrow="EVENTOS PRÓXIMOS"
+        title="Eventos próximos aos seus imóveis"
+        subtitle="Selecione um imóvel para ver os eventos detectados nas redondezas."
       />
 
       {houses.length === 0 ? (
         <AppEmptyState
-          eyebrow="SEM IMOVEIS"
-          title="Nenhum imovel encontrado"
-          body="Cadastre um imovel para acompanhar eventos proximos e oportunidades de precificacao."
+          eyebrow="SEM IMÓVEIS"
+          title="Nenhum imóvel encontrado"
+          body="Cadastre um imóvel para acompanhar eventos próximos e oportunidades de precificação."
           icon={<Icons.MapPin size={32} />}
         />
       ) : (

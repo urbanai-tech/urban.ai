@@ -59,13 +59,14 @@ export default function SugestoesAceitas() {
           image_url: '',
           latitude: 0,
           longitude: 0,
+          pricingInputsUpdatedAt: null,
         };
 
         setPropsInfo([todosOption, ...data]);
         setPropertyId('');
       } catch (err) {
         console.error('Erro ao carregar propriedades', err);
-        setPropsError('Nao foi possivel carregar a lista de imoveis agora.');
+        setPropsError('Não foi possível carregar a lista de imóveis agora.');
       } finally {
         setLoadingProps(false);
       }
@@ -85,7 +86,7 @@ export default function SugestoesAceitas() {
       setTotalPages(Math.max(1, Math.ceil(result.total / limit)));
     } catch (err) {
       console.error('Erro ao carregar eventos', err);
-      setEventsError('Nao foi possivel carregar as sugestoes do painel agora.');
+      setEventsError('Não foi possível carregar as sugestões do painel agora.');
     } finally {
       setIsLoadingEvents(false);
     }
@@ -109,7 +110,7 @@ export default function SugestoesAceitas() {
       } catch (err) {
         console.error('Erro ao carregar pace', err);
         if (!cancelled) {
-          setPaceError('Nao foi possivel carregar os dados de reservas futuras agora.');
+          setPaceError('Não foi possível carregar os dados de reservas futuras agora.');
         }
       } finally {
         if (!cancelled) setIsLoadingPace(false);
@@ -124,9 +125,9 @@ export default function SugestoesAceitas() {
   return (
     <AppPageShell maxWidth={1280}>
       <AppSectionHeader
-        eyebrow="PAINEL - HOJE NA SUA OPERACAO"
+        eyebrow="PAINEL - HOJE NA SUA OPERAÇÃO"
         title="Painel de controle"
-        subtitle="Eventos com sugestao da Urban AI que merecem sua atencao agora. Filtre por imovel pra focar onde tem mais oportunidade."
+        subtitle="Eventos com sugestão da Urban AI que merecem sua atenção agora. Filtre por imóvel pra focar onde tem mais oportunidade."
         actions={
           loadingProps ? (
             <Spinner size={18} />
@@ -183,16 +184,16 @@ export default function SugestoesAceitas() {
         <AppCard variant="default">
           <AppCardHeader
             eyebrow="RESERVAS FUTURAS"
-            title="Reservas dos proximos 60 dias"
+            title="Reservas dos próximos 60 dias"
             subtitle={
               propertyId
-                ? 'Quanto das suas noites futuras ja esta reservado, comparado ao ritmo esperado para a epoca. Eventos importantes aparecem destacados no grafico.'
-                : 'Visao geral dos seus imoveis. Selecione um imovel para ver o grafico e as acoes sugeridas.'
+                ? 'Quanto das suas noites futuras já está reservado, comparado ao ritmo esperado para a época. Eventos importantes aparecem destacados no gráfico.'
+                : 'Visão geral dos seus imóveis. Selecione um imóvel para ver o gráfico e as ações sugeridas.'
             }
           />
           {paceError ? (
             <ApiErrorState
-              title="Nao conseguimos carregar as reservas futuras"
+              title="Não conseguimos carregar as reservas futuras"
               body={paceError}
               onRetry={() => setPaceReloadCount((count) => count + 1)}
               loading={isLoadingPace}
@@ -206,31 +207,31 @@ export default function SugestoesAceitas() {
       <div id="painel-sugestoes" style={{ marginTop: 32 }}>
         {isLoadingEvents ? (
           <AppLoadingStatus
-            eyebrow="SUGESTOES"
-            title="Procurando sugestoes de preco"
+            eyebrow="SUGESTÕES"
+            title="Procurando sugestões de preço"
             body={
               propertyId
-                ? "Estamos procurando eventos e oportunidades para este imovel."
-                : "Estamos olhando seus imoveis para encontrar oportunidades importantes."
+                ? "Estamos procurando eventos e oportunidades para este imóvel."
+                : "Estamos olhando seus imóveis para encontrar oportunidades importantes."
             }
             steps={[
-              { id: 'property', label: propertyId ? 'Imovel escolhido' : 'Seus imoveis', status: 'complete' },
+              { id: 'property', label: propertyId ? 'Imóvel escolhido' : 'Seus imóveis', status: 'complete' },
               { id: 'events', label: 'Eventos por perto', status: 'active' },
-              { id: 'cards', label: 'Sugestoes', status: 'pending' },
+              { id: 'cards', label: 'Sugestões', status: 'pending' },
             ]}
           />
         ) : eventsError ? (
           <ApiErrorState
-            title="Nao conseguimos carregar as sugestoes"
+            title="Não conseguimos carregar as sugestões"
             body={eventsError}
             onRetry={fetchEvents}
             loading={isLoadingEvents}
           />
         ) : events.length === 0 ? (
           <AppEmptyState
-            eyebrow="SEM SUGESTOES PENDENTES"
+            eyebrow="SEM SUGESTÕES PENDENTES"
             title="Tudo certo por aqui"
-            body="Quando a Urban AI detectar uma nova oportunidade de evento, aparece aqui. Voce tambem recebe por e-mail."
+            body="Quando a Urban AI detectar uma nova oportunidade de evento, ela aparece aqui. Você também recebe por e-mail."
             icon={<Icons.Sparkles size={32} />}
           />
         ) : (
@@ -335,28 +336,28 @@ function PainelActionCenter({
             O que fazer agora
           </p>
           <h2 style={{ margin: 0, color: "var(--app-text)", fontSize: 22, lineHeight: 1.2 }}>
-            Priorize as decisoes que mudam preco hoje.
+            Priorize as decisões que mudam preço hoje.
           </h2>
           <p style={{ margin: "8px 0 0", color: "var(--app-text-muted)", fontSize: 13, lineHeight: 1.5 }}>
-            Foco atual: {propertyName}. O painel agora separa acao imediata, leitura de eventos e historico.
+            Foco atual: {propertyName}. O painel agora separa ação imediata, leitura de eventos e histórico.
           </p>
         </div>
 
         <ActionTile
           icon={<Icons.Sparkles size={16} />}
-          label="Sugestoes pendentes"
+          label="Sugestões pendentes"
           value={String(recommendationsCount)}
           href="#painel-sugestoes"
         />
         <ActionTile
           icon={<Icons.Calendar size={16} />}
-          label="Eventos no periodo"
+          label="Eventos no período"
           value={String(paceEventsCount)}
           href="/event-radar"
         />
         <ActionTile
           icon={<Icons.ArrowRight size={16} />}
-          label="Historico"
+          label="Histórico"
           value="Auditoria"
           href="/portfolio/history"
         />

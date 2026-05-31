@@ -17,18 +17,18 @@ import {
 } from "@/app/componentes/ui";
 
 /**
- * EventCard do /dashboard (calendario) — REFATORADO (Sprint 3 redesign).
+ * EventCard do /dashboard (calendário) — REFATORADO (Sprint 3 redesign).
  *
- * Antes (screenshot host-calendario.png):
+ * Antes (screenshot host-calendário.png):
  *  - SUG (azul #1931CF) somia, ATUAL (verde #3FCF19) dominava — hierarquia
  *    invertida.
  *  - Form "Registrar resultado" inline com campos cortados pelo viewport.
  *  - Botoes colorScheme=teal/red.
  *
  * Agora:
- *  - RecommendationCard (Pilar D do plano) com sugestao Bebas accent
+ *  - RecommendationCard (Pilar D do plano) com sugestão Bebas accent
  *    dominando, atual como referencia menor, CTA primary #E8500A
- *    "Aplicar sugestao" inconfundivel.
+ *    "Aplicar sugestão" inconfundivel.
  *  - "Registrar resultado" vira Drawer slide-in (campos respiram, nada
  *    cortado).
  *  - Cores semanticas via design system (success/warn/danger sutis).
@@ -155,11 +155,11 @@ export const EventCard: React.FC<EventCardProps> = ({
       const updated = { ...ev, aceito: true, status: "accepted" as const };
       setAccepted(true);
       onChange?.(updated);
-      toast(`Voce aceitou a sugestao de preco de ${formatBRL(sugNum)}`, {
+      toast(`Você aceitou a sugestão de preço de ${formatBRL(sugNum)}`, {
         type: "success",
       });
     } catch {
-      toast("Nao foi possivel aceitar a sugestao de preco", { type: "error" });
+      toast("Não foi possível aceitar a sugestão de preço", { type: "error" });
     } finally {
       setIsLoading(false);
       setLoadingSaving(false);
@@ -174,9 +174,9 @@ export const EventCard: React.FC<EventCardProps> = ({
       const updated = { ...ev, aceito: false, status: "rejected" as const };
       setAccepted(false);
       onChange?.(updated);
-      toast("A sugestao de preco foi cancelada.", { type: "info" });
+      toast("A sugestão de preço foi cancelada.", { type: "info" });
     } catch {
-      toast("Nao foi possivel cancelar a sugestao de preco.", { type: "error" });
+      toast("Não foi possível cancelar a sugestão de preço.", { type: "error" });
     } finally {
       setLoadingSaving(false);
       setIsLoading(false);
@@ -186,7 +186,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   async function handleRegisterAppliedPrice() {
     const appliedPrice = toNumber(appliedPriceInput);
     if (!Number.isFinite(appliedPrice) || appliedPrice <= 0) {
-      toast("Informe um preco aplicado valido.", { type: "warning" });
+      toast("Informe um preço aplicado válido.", { type: "warning" });
       return;
     }
 
@@ -226,10 +226,10 @@ export const EventCard: React.FC<EventCardProps> = ({
         feedbackObservacao: feedbackNote || null,
         status: "applied_manual",
       });
-      toast("Preco e resultado registrados.", { type: "success" });
+      toast("Preço e resultado registrados.", { type: "success" });
       setDrawerOpen(false);
     } catch {
-      toast("Nao foi possivel registrar o preco aplicado.", { type: "error" });
+      toast("Não foi possível registrar o preço aplicado.", { type: "error" });
     } finally {
       setLoadingAppliedPrice(false);
     }
@@ -259,14 +259,14 @@ export const EventCard: React.FC<EventCardProps> = ({
           reason={ev.motivo_ia ?? ev.recomendacao ?? undefined}
           status={cardStatus}
           onPrimary={accepted ? handleCancel : handleAccept}
-          primaryLabel={accepted ? "Desfazer aprovacao" : "Aplicar sugestao"}
+          primaryLabel={accepted ? "Desfazer aprovação" : "Aplicar sugestão"}
           onSecondary={accepted ? () => setDrawerOpen(true) : undefined}
           secondaryLabel="Registrar resultado"
           loading={loadingSaving}
           density="compact"
         />
 
-        {/* Estado: ja aplicado */}
+        {/* Estado: já aplicado */}
         {ev.precoAplicado && (
           <div
             style={{
@@ -346,7 +346,7 @@ export const EventCard: React.FC<EventCardProps> = ({
               }}
             >
               <div>
-                <p className="urban-app-eyebrow">RESULTADO DA SUGESTAO</p>
+                <p className="urban-app-eyebrow">RESULTADO DA SUGESTÃO</p>
                 <h2
                   style={{
                     fontSize: 18,
@@ -356,7 +356,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                     letterSpacing: -0.2,
                   }}
                 >
-                  Registrar preco aplicado
+                  Registrar preço aplicado
                 </h2>
               </div>
               <button
@@ -387,7 +387,7 @@ export const EventCard: React.FC<EventCardProps> = ({
               }}
             >
               <AppInput
-                label="Preco aplicado"
+                label="Preço aplicado"
                 leftAddon={<span style={{ fontSize: 13 }}>R$</span>}
                 value={appliedPriceInput}
                 onChange={(e) => setAppliedPriceInput(e.target.value)}
@@ -403,9 +403,9 @@ export const EventCard: React.FC<EventCardProps> = ({
                   )
                 }
               >
-                <option value="unknown">Ainda nao sei</option>
+                <option value="unknown">Ainda não sei</option>
                 <option value="booked">Reservou</option>
-                <option value="not_booked">Nao reservou</option>
+                <option value="not_booked">Não reservou</option>
                 <option value="blocked">Bloqueado</option>
               </AppSelect>
               <AppInput
@@ -424,11 +424,11 @@ export const EventCard: React.FC<EventCardProps> = ({
                 placeholder="0"
               />
               <AppTextarea
-                label="Observacao (opcional)"
+                label="Observação (opcional)"
                 value={feedbackNote}
                 onChange={(e) => setFeedbackNote(e.target.value)}
                 rows={4}
-                placeholder="Anotacao livre sobre como foi a reserva."
+                placeholder="Anotação livre sobre como foi a reserva."
               />
             </div>
             <div

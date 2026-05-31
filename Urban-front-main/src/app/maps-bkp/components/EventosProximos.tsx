@@ -1,6 +1,6 @@
 type Evento = {
   nome: string;
-  impacto: "Alto" | "Medio" | "Baixo" | "MÃ©dio";
+  impacto: "Alto" | "Médio" | "Baixo";
   data: string;
   distancia: string;
   crescimento: string;
@@ -13,8 +13,7 @@ type EventosProximosProps = {
 
 const impactoColors: Record<string, string> = {
   Alto: "#C2342E",
-  Medio: "#C8810E",
-  "MÃ©dio": "#C8810E",
+  Médio: "#C8810E",
   Baixo: "#16A06B",
 };
 
@@ -39,7 +38,7 @@ export default function EventosProximos({
     },
     {
       nome: "Jogo Flamengo",
-      impacto: "Medio",
+      impacto: "Médio",
       data: "2025-10-20",
       distancia: "2.3 km",
       crescimento: "+35%",
@@ -68,7 +67,7 @@ export default function EventosProximos({
       }}
     >
       <h2 style={{ margin: "0 0 24px", color: "#374151", fontSize: 24, letterSpacing: 0.3 }}>
-        Eventos Proximos
+        Eventos Próximos
       </h2>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -104,7 +103,7 @@ export default function EventosProximos({
                     textTransform: "uppercase",
                   }}
                 >
-                  {evento.impacto === "MÃ©dio" ? "Medio" : evento.impacto}
+                  {evento.impacto}
                 </span>
               </div>
 

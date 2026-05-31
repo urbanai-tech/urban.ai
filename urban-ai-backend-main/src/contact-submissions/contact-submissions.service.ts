@@ -116,7 +116,7 @@ export class ContactSubmissionsService {
   async update(id: string, input: UpdateContactSubmissionDto) {
     const submission = await this.repo.findOne({ where: { id } });
     if (!submission) {
-      throw new NotFoundException('Contato nao encontrado');
+      throw new NotFoundException('Contato não encontrado');
     }
 
     if (input.status) {
@@ -184,7 +184,7 @@ export class ContactSubmissionsService {
       category = 'privacy_lgpd';
     } else if (has(['stripe', 'pagamento', 'cobranca', 'checkout', 'assinatura', 'cancelamento', 'reembolso', 'fatura'])) {
       category = 'billing';
-    } else if (has(['stays', 'automatico', 'integracao', 'rollback', 'push de preco'])) {
+    } else if (has(['stays', 'automático', 'automatico', 'integração', 'integracao', 'rollback', 'push de preço', 'push de preco'])) {
       category = 'stays';
     } else if (has(['vazamento', 'dado exposto', 'login indisponivel', 'fora do ar', 'push indevido', 'cobrou errado'])) {
       category = 'incident';

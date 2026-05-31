@@ -1,14 +1,14 @@
 "use client";
 
 /**
- * /plans — pagina oficial de planos da Urban AI (checkout pos-login).
+ * /plans — página oficial de planos da Urban AI (checkout pós-login).
  *
- * Mesma estetica do manifesto editorial em `/(public)/precos/page.tsx`:
+ * Mesma estética do manifesto editorial em `/(public)/precos/page.tsx`:
  * Bebas Neue gigante, fundo #080A0F, accent #E8500A, vertical accent bar.
- * Esta tela e a continuacao direta do que o anfitriao viu na landing.
+ * Esta tela é a continuação direta do que o anfitrião viu na landing.
  *
- * Renderiza PricingCalculatorV2 (matriz F6.5: cobranca por imovel x 4 ciclos
- * com desconto progressivo) — usuarios pre-migracao mantem grandfathering.
+ * Renderiza PricingCalculatorV2 (matriz F6.5: cobrança por imóvel x 4 ciclos
+ * com desconto progressivo) — usuários pré-migração mantêm grandfathering.
  */
 
 import { useEffect, useState } from "react";
@@ -48,7 +48,7 @@ export default function PlansPage() {
             margin: 0,
           }}
         >
-          Carregando planos...
+          Carregando planos…
         </p>
       </div>
     );
@@ -105,9 +105,9 @@ export default function PlansPage() {
               textTransform: "uppercase",
             }}
           >
-            VOCE PAGA
+            VOCÊ PAGA
             <br />
-            POR IMOVEL.
+            POR IMÓVEL.
             <br />
             <span style={{ color: "#E8500A" }}>NADA MAIS.</span>
           </h1>
@@ -121,7 +121,7 @@ export default function PlansPage() {
               marginTop: 40,
             }}
           >
-            Comece com 1 imovel ou comece com 10 — voce so paga pelo que conecta.
+            Comece com 1 imóvel ou comece com 10 — você só paga pelo que conecta.
             Ciclos longos tem desconto progressivo.
           </p>
         </div>
@@ -176,8 +176,8 @@ export default function PlansPage() {
                 maxWidth: 580,
               }}
             >
-              Nenhum plano disponivel no momento. Fale com a equipe comercial
-              para opcoes personalizadas.
+              Nenhum plano disponível no momento. Fale com a equipe comercial
+              para opções personalizadas.
             </p>
           ) : (
             <div
@@ -193,7 +193,7 @@ export default function PlansPage() {
                 surface="dark"
                 initialQuantity={5}
                 title="Monte sua assinatura"
-                subtitle="Escolha quantos imoveis quer contratar. A Urban aplica automaticamente a faixa correta e o desconto do periodo."
+                subtitle="Escolha quantos imóveis quer contratar. A Urban aplica automaticamente a faixa correta e o desconto do período."
               />
             </div>
           )}

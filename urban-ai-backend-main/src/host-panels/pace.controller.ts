@@ -10,7 +10,7 @@ import { HostPanelsService } from './host-panels.service';
 export class PaceController {
   constructor(private readonly hostPanels: HostPanelsService) {}
 
-  @ApiOperation({ summary: 'Pace agregado do portfolio do usuario' })
+  @ApiOperation({ summary: 'Pace agregado do portfólio do usuário' })
   @Get('portfolio')
   async portfolio(
     @Req() req: any,

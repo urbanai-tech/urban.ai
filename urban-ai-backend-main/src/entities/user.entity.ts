@@ -82,15 +82,15 @@ export class User {
 
   /**
    * Tracking do drip de onboarding (gap H9 do roadmap).
-   * `onboardingDripLastDay` = ultimo dia D{N} enviado (1, 3, 7); null se nenhum.
-   * `onboardingDripLastSentAt` = timestamp do ultimo envio bem-sucedido.
+   * `onboardingDripLastDay` = último dia D{N} enviado (1, 3, 7); null se nenhum.
+   * `onboardingDripLastSentAt` = timestamp do último envio bem-sucedido.
    *
-   * Usado pelo `OnboardingDripService` para garantir idempotencia entre
-   * execucoes diarias do cron e dar observability no admin.
+   * Usado pelo `OnboardingDripService` para garantir idempotência entre
+   * execuções diárias do cron e dar observability no admin.
    */
   @Column({ type: 'int', nullable: true, default: null })
   onboardingDripLastDay?: number | null;
 
   @Column({ type: 'timestamp', nullable: true, default: null })
-  onboardingDripLastSentAt?: Date | null;
+  onboardingDripLastSentAt: Date | null;
 }

@@ -55,7 +55,7 @@ export default function SubscriptionsPage() {
     if (quotaResult.status === "fulfilled") {
       setQuota(quotaResult.value);
     } else {
-      setQuotaError("Nao foi possivel carregar o limite de imoveis do seu plano.");
+      setQuotaError("Não foi possível carregar o limite de imóveis do seu plano.");
     }
 
     setLoading(false);
@@ -83,11 +83,11 @@ export default function SubscriptionsPage() {
     try {
       const session = await createBillingPortalSession();
       if (!session.url) {
-        throw new Error("Portal indisponivel");
+        throw new Error("Portal indisponível");
       }
       window.location.href = session.url;
     } catch {
-      toast("Nao foi possivel abrir a area de pagamento", { type: "error" });
+      toast("Não foi possível abrir a área de pagamento", { type: "error" });
       setManageBillingLoading(false);
     }
   }
@@ -130,7 +130,7 @@ export default function SubscriptionsPage() {
             <AppSectionHeader
               eyebrow="ASSINATURA"
               title="Nenhuma assinatura encontrada"
-              subtitle="Escolha quantos imoveis quer contratar e ative o checkout self-service."
+              subtitle="Escolha quantos imóveis quer contratar e ative o checkout self-service."
             />
             <button
               type="button"
@@ -147,7 +147,7 @@ export default function SubscriptionsPage() {
                 cursor: "pointer",
               }}
             >
-              Escolher quantidade e periodo
+              Escolher quantidade e período
             </button>
           </div>
         </AppCard>
@@ -164,7 +164,7 @@ export default function SubscriptionsPage() {
         <AppSectionHeader
           eyebrow="ASSINATURA · MEU PLANO"
           title="Meu plano"
-          subtitle="Acompanhe sua assinatura, quantos imoveis o plano permite e as opcoes de pagamento."
+          subtitle="Acompanhe sua assinatura, quantos imóveis o plano permite e as opções de pagamento."
           actions={isAlpha ? <AppBadge kind="accent">Alpha assistido</AppBadge> : undefined}
         />
 
@@ -202,7 +202,7 @@ export default function SubscriptionsPage() {
                 <AppMetricCard
                   label="Contratados"
                   value={quota.contratados}
-                  sub="Imoveis incluidos no plano"
+                  sub="Imóveis incluídos no plano"
                 />
               </div>
             </AppCard>
@@ -211,7 +211,7 @@ export default function SubscriptionsPage() {
                 <AppMetricCard
                   label="Ativos"
                   value={quota.ativos}
-                  sub="Imoveis em uso"
+                  sub="Imóveis em uso"
                 />
               </div>
             </AppCard>
@@ -220,7 +220,7 @@ export default function SubscriptionsPage() {
                 <AppMetricCard
                   label="Livres"
                   value={available ?? 0}
-                  sub={quota.podeAdicionar ? "Voce ainda pode cadastrar" : "Limite atingido"}
+                  sub={quota.podeAdicionar ? "Você ainda pode cadastrar" : "Limite atingido"}
                   accent={!quota.podeAdicionar}
                 />
               </div>
@@ -235,7 +235,7 @@ export default function SubscriptionsPage() {
                 Precisa mudar a quantidade?
               </h3>
               <p style={{ margin: "6px 0 0", color: "var(--app-text-muted)", fontSize: 14 }}>
-                Abra o seletor self-service para contratar mais imoveis ou mudar o periodo.
+                Abra o seletor self-service para contratar mais imóveis ou mudar o período.
               </p>
             </div>
             <button

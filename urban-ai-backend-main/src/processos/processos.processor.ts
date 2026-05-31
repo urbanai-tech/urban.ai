@@ -15,7 +15,7 @@ export class ProcessosConsumer {
   async handle(job: Job<{ userId: string, propertyAdressId: string }>) {
     const { userId, propertyAdressId } = job.data;
 
-    this.logger.log(`Iniciando processamento para usuario ${userId}`);
+    this.logger.log(`Iniciando processamento para usuário ${userId}`);
     await this.analiseEnderecoPropriedadeByProperty(
       'processar-propriedades-eventos-by-user-andpropertyId',
       userId,

@@ -12,7 +12,7 @@ export type EventCatalogItem = {
   name: string;
   description?: string | null;
   startsAt: string;
-  endsAt?: string | null;
+  endsAt: string | null;
   city: string | null;
   state: string | null;
   venueName?: string | null;

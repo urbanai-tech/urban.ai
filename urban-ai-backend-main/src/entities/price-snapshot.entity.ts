@@ -83,7 +83,7 @@ export class PriceSnapshot {
   @Column({ type: 'date', nullable: true })
   observedCheckOut: string | null;
 
-  /** Numero de noites da cotacao observada. */
+  /** Número de noites da cotação observada. */
   @Column({ type: 'int', nullable: true })
   observedNights: number | null;
 
@@ -99,7 +99,7 @@ export class PriceSnapshot {
   @Column({ type: 'datetime', nullable: true })
   observedAt: Date | null;
 
-  /** Metadados pequenos e serializaveis da cotacao/fonte. */
+  /** Metadados pequenos e serializáveis da cotação/fonte. */
   @Column({ type: 'simple-json', nullable: true })
   observationMetadata: Record<string, unknown> | null;
 

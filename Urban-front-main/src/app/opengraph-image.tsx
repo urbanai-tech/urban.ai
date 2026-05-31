@@ -1,7 +1,7 @@
 import { createUrbanSeoImage } from "./lib/seo-og-image";
 
 export const alt =
-  "Urban AI - Precificacao dinamica para Airbnb e aluguel por temporada";
+  "Urban AI - Precificação dinâmica para Airbnb e aluguel por temporada";
 export const size = {
   width: 1200,
   height: 630,

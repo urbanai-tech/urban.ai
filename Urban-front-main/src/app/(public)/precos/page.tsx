@@ -17,9 +17,9 @@ import {
  * Checkout vive em app.myurbanai.com/plans — aqui é vitrine pública.
  */
 export const metadata: Metadata = buildSeoMetadata({
-  title: "Precos - Urban AI",
+  title: "Preços - Urban AI",
   description:
-    "Planos da Urban AI por imovel, com ciclos mensais, trimestrais, semestrais e anuais para anfitrioes e gestoras.",
+    "Planos da Urban AI por imóvel, com ciclos mensais, trimestrais, semestrais e anuais para anfitriões e gestoras.",
   path: "/precos",
 });
 
@@ -43,19 +43,19 @@ const PROFISSIONAL_TIERS = [
 
 const PRICING_FAQ_SCHEMA = [
   {
-    question: "Como funciona a cobranca por imovel?",
+    question: "Como funciona a cobrança por imóvel?",
     answer:
-      "Voce escolhe um plano e ciclo. O valor e calculado por preco, quantidade de imoveis e duracao do ciclo.",
+      "Você escolhe um plano e ciclo. O valor é calculado por preço, quantidade de imóveis e duração do ciclo.",
   },
   {
     question: "Posso cancelar?",
     answer:
-      "Sim. Nao ha fidelidade, e o acesso fica ativo ate o fim do ciclo ja pago.",
+      "Sim. Não há fidelidade, e o acesso fica ativo até o fim do ciclo já pago.",
   },
   {
     question: "Tem teste gratuito?",
     answer:
-      "No pre-lancamento, trials sao liberados por convite. No go-live oficial, a previsao e oferecer teste gratuito sem cartao.",
+      "No pré-lançamento, trials são liberados por convite. No go-live oficial, a previsão é oferecer teste gratuito sem cartão.",
   },
 ];
 
@@ -161,7 +161,7 @@ export default function PrecosPage() {
           />
           <PlanBlock
             eyebrow="02 — PROFISSIONAL"
-            tagline="4 a 500 imoveis · self-service"
+            tagline="4 a 500 imóveis · self-service"
             description="Desbloqueia o modo Automático via Stays — a Urban AI aplica o preço sem você abrir nada. Para quem leva como negócio."
             tiers={PROFISSIONAL_TIERS}
             highlight
@@ -197,7 +197,7 @@ export default function PrecosPage() {
               textWrap: "balance",
             }}
           >
-            501+ IMOVEIS,
+            501+ IMÓVEIS,
             <br />
             <span style={{ color: "var(--theme-public-accent)" }}>FALA COM A GENTE.</span>
           </h2>
@@ -268,7 +268,7 @@ export default function PrecosPage() {
           <div>
             <Faq
               q="Como funciona a cobrança por imóvel?"
-              a="Voce escolhe quantidade e ciclo. A faixa entra automaticamente. Profissional anual com 50 imoveis = R$ 67 × 50 × 12 = R$ 40.200 cobrados de uma vez (32% off vs. mensal)."
+              a="Você escolhe quantidade e ciclo. A faixa entra automaticamente. Profissional anual com 50 imóveis = R$ 67 × 50 × 12 = R$ 40.200 cobrados de uma vez (32% off vs. mensal)."
             />
             <Faq
               q="E se eu adicionar imóveis no meio do ciclo?"

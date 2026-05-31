@@ -4,7 +4,7 @@ import { JsonLd, aboutPageJsonLd, buildSeoMetadata } from "../../lib/seo";
 export const metadata: Metadata = buildSeoMetadata({
   title: "Sobre a Urban AI",
   description:
-    "Conheca a Urban AI, plataforma que une IA, geografia e calendario urbano para orientar precificacao de alugueis de curta temporada.",
+    "Conheca a Urban AI, plataforma que une IA, geografia e calendário urbano para orientar precificação de alugueis de curta temporada.",
   path: "/sobre",
 });
 

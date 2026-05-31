@@ -6,15 +6,15 @@ import { EventItem } from "@/app/dashboard/components/ItemEvento";
 import { RecommendationCard, useToastCompat } from "@/app/componentes/ui";
 
 /**
- * EventCard do /painel — REFATORADO (Sprint 3 redesign anfitriao).
+ * EventCard do /painel — REFATORADO (Sprint 3 redesign anfitrião).
  *
  * Antes (screenshot host-painel.png): hierarquia INVERTIDA — "ATUAL R$ 320"
  * em verde `#3FCF19` dominava, "SUG. R$ 455" em azul `#1931CF` sumia.
- * Auditoria do usuario (P0): a sugestao (output da IA) deve dominar.
+ * Auditoria do usuário (P0): a sugestão (output da IA) deve dominar.
  *
  * Agora: usa o componente compartilhado `RecommendationCard` (Pilar D
- * do plano). Preco sugerido em Bebas Neue accent #E8500A; preco atual
- * vira referencia menor; CTA "Aplicar sugestao" inconfundivel.
+ * do plano). Preço sugerido em Bebas Neue accent #E8500A; preço atual
+ * vira referencia menor; CTA "Aplicar sugestão" inconfundivel.
  */
 
 interface EventCardProps {
@@ -63,11 +63,11 @@ export const EventCard: React.FC<EventCardProps> = ({
       ev.aceito = true;
       setAccepted(true);
       onChange?.({ ...ev });
-      toast(`Voce aceitou a sugestao de preco de ${formatBRL(sugNum)}`, {
+      toast(`Você aceitou a sugestão de preço de ${formatBRL(sugNum)}`, {
         type: "success",
       });
     } catch (error) {
-      toast("Nao foi possivel aceitar a sugestao de preco", { type: "error" });
+      toast("Não foi possível aceitar a sugestão de preço", { type: "error" });
       console.error(error);
     } finally {
       setLoading(false);
@@ -83,9 +83,9 @@ export const EventCard: React.FC<EventCardProps> = ({
       ev.aceito = false;
       setAccepted(false);
       onChange?.({ ...ev });
-      toast("A sugestao de preco foi cancelada.", { type: "info" });
+      toast("A sugestão de preço foi cancelada.", { type: "info" });
     } catch (error) {
-      toast("Nao foi possivel cancelar a sugestao de preco", { type: "error" });
+      toast("Não foi possível cancelar a sugestão de preço", { type: "error" });
       console.error(error);
     } finally {
       setLoading(false);
@@ -103,7 +103,7 @@ export const EventCard: React.FC<EventCardProps> = ({
       reason={ev.motivo_ia ?? ev.recomendacao ?? undefined}
       status={accepted ? "accepted" : "pending"}
       onPrimary={accepted ? handleCancel : handleAccept}
-      primaryLabel={accepted ? "Cancelar aceite" : "Aplicar sugestao"}
+      primaryLabel={accepted ? "Cancelar aceite" : "Aplicar sugestão"}
       loading={loading}
       density="compact"
     />

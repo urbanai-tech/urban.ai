@@ -23,7 +23,7 @@ type PushRow = AdminStaysHealth["recent"][number];
 const PUSH_STATUS_ORDER = ["success", "rejected", "error", "pending"] as const;
 
 /**
- * /admin/stays — Saude da integracao Stays.
+ * /admin/stays — Saúde da integração Stays.
  *
  * Migrado para o design system admin (.urban-admin):
  *  - Hierarquia invertida: KPIs primeiro (push success rate como hero).
@@ -168,8 +168,8 @@ export default function AdminStaysPage() {
     <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
       <AdminSectionHeader
         eyebrow="ADMIN · STAYS"
-        title="Saude da Stays"
-        subtitle="Integracao Stays — contas conectadas, listings sincronizados e pushes de preco."
+        title="Saúde da Stays"
+        subtitle="Integração Stays — contas conectadas, listings sincronizados e pushes de preço."
         actions={
           <AdminButton
             variant="secondary"
@@ -218,7 +218,7 @@ export default function AdminStaysPage() {
                   lineHeight: 1.55,
                 }}
               >
-                {totalPushes.toLocaleString("pt-BR")} pushes nos ultimos 30 dias ·{" "}
+                {totalPushes.toLocaleString("pt-BR")} pushes nos últimos 30 dias ·{" "}
                 {pushByStatus.get("success") ?? 0} aceitos pela Stays.
               </p>
             </div>
@@ -228,7 +228,7 @@ export default function AdminStaysPage() {
                 {data.listings.total}
               </p>
               <p style={{ marginTop: 6, fontSize: 12, color: "var(--admin-text-muted)" }}>
-                {data.listings.active} ativos · {data.listings.forcedAuto} em modo automatico
+                {data.listings.active} ativos · {data.listings.forcedAuto} em modo automático
               </p>
             </div>
             <div style={{ borderLeft: "1px solid var(--admin-divider)", paddingLeft: 32 }}>
@@ -454,7 +454,7 @@ export default function AdminStaysPage() {
                 letterSpacing: -0.3,
               }}
             >
-              Ultimos pushes
+              Últimos pushes
             </h2>
           </div>
           <div

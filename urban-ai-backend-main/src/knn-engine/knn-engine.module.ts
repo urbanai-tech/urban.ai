@@ -28,7 +28,7 @@ import { PricingOutcomeLearningService } from './pricing-outcome-learning.servic
  * Provê:
  *  - Engine atual (regras + multiplicadores) via UrbanAIPricingEngine
  *  - Strategy pattern plugável (rules / xgboost / shadow / adaptive)
- *  - Bootstrap + retreino periódico
+ *  - Bootstrap + retreinamento periódico
  *  - Feature engineering (geocoding, metro distance, amenities)
  *  - **Dataset collector** — captura passiva diária para construir base própria
  *  - **AdaptivePricingStrategy** — auto-tier que muda de algoritmo conforme
@@ -57,7 +57,7 @@ import { PricingOutcomeLearningService } from './pricing-outcome-learning.servic
     DisplacementCostMatrix,
     UrbanAIPricingEngine,
     EventPricingIntelligenceService,
-    // Bootstrap + retreino + feature engineering + dataset collection
+    // Bootstrap + retreinamento + feature engineering + dataset collection
     PricingBootstrapService,
     FeatureEngineeringService,
     DatasetCollectorService,

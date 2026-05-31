@@ -17,13 +17,13 @@ import { CommunicationLogService } from './communication-log.service';
 export class CommunicationsController {
   constructor(private readonly communications: CommunicationLogService) {}
 
-  @ApiOperation({ summary: 'Resumo dos envios de comunicacao nas ultimas 24h' })
+  @ApiOperation({ summary: 'Resumo dos envios de comunicação nas últimas 24h' })
   @Get('summary')
   summary() {
     return this.communications.summary();
   }
 
-  @ApiOperation({ summary: 'Logs de comunicacao por canal/status/tipo' })
+  @ApiOperation({ summary: 'Logs de comunicação por canal/status/tipo' })
   @Get()
   list(
     @Query('page') page: string = '1',

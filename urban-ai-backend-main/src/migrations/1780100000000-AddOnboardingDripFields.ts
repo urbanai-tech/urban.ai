@@ -3,13 +3,13 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 /**
  * Adiciona campos de tracking de drip de onboarding ao `user`.
  *
- *  - `onboardingDripLastDay`: ultimo dia D{N} enviado (1, 3, 7) — null se nunca.
+ *  - `onboardingDripLastDay`: último dia D{N} enviado (1, 3, 7) — null se nunca.
  *  - `onboardingDripLastSentAt`: timestamp pra observability.
  *
  * Gap H9 do roadmap (`docs/roadmap-implementacao-gaps-produto-2026-05-14.md`):
- * "Onboarding e-mails D1/D3/D7 — Usuario beta recebe orientacao depois do
- * cadastro." Templates ja existem em `email/templates.ts`. Falta agendamento
- * e tracking de idempotencia — esta migration prepara o terreno.
+ * "Onboarding e-mails D1/D3/D7 — Usuário beta recebe orientação depois do
+ * cadastro." Templates já existem em `email/templates.ts`. Falta agendamento
+ * e tracking de idempotência — esta migration prepara o terreno.
  */
 export class AddOnboardingDripFields1780100000000 implements MigrationInterface {
   name = 'AddOnboardingDripFields1780100000000';

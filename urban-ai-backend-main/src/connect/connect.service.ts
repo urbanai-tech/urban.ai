@@ -213,7 +213,7 @@ export class ConnectService {
     if (useAirbnbSearchService) {
       try {
         this.logger.log(
-          `Buscando preco via airbnb-search para listing ${id} (${checkin} a ${checkout})`,
+          `Buscando preço via airbnb-search para listing ${id} (${checkin} a ${checkout})`,
         );
         const quote = await this.airbnbService.getPriceForDateWindow(id, checkin, checkout);
         const total = Number(quote.price.data.accommodationCost);
@@ -232,11 +232,11 @@ export class ConnectService {
         };
       } catch (err) {
         this.logger.error(
-          `Erro ao buscar preco do listing ${id}`,
+          `Erro ao buscar preço do listing ${id}`,
           err instanceof Error ? err.stack : String(err),
         );
         throw new HttpException(
-          "Falha ao buscar preco no Airbnb Search",
+          "Falha ao buscar preço no Airbnb Search",
           HttpStatus.BAD_GATEWAY,
         );
       }
@@ -476,7 +476,7 @@ export class ConnectService {
       return listings; // Retorna a lista filtrada de imóveis do usuário
     } catch (error) {
       this.logger.error(
-        `Erro ao buscar imoveis do usuario ${userId}`,
+        `Erro ao buscar imóveis do usuário ${userId}`,
         error instanceof Error ? error.stack : String(error),
       );
       throw new HttpException(
@@ -541,7 +541,7 @@ export class ConnectService {
     const dailyPrice = this.extractDailyPriceFromQuote(quote);
 
     if (!dailyPrice || dailyPrice <= 0) {
-      throw new Error("Cotacao do Airbnb nao trouxe diaria valida.");
+      throw new Error("Cotação do Airbnb não trouxe diária válida.");
     }
 
     const total = Number(quote?.price?.data?.accommodationCost);
@@ -586,7 +586,7 @@ export class ConnectService {
     const analysisStartedTitles: string[] = [];
     const basePricePendingTitles: string[] = [];
 
-    this.logger.log(`Salvando ${addresses.length} endereco(s) para o usuario ${userId}`);
+    this.logger.log(`Salvando ${addresses.length} ${addresses.length === 1 ? 'endereço' : 'endereços'} para o usuário ${userId}`);
     this.logger.debug(`createMultipleAddresses received count=${addresses.length}`);
 
     for (const addr of addresses) {
@@ -594,7 +594,7 @@ export class ConnectService {
 
       try {
         if (!requestedListingId) {
-          throw new BadRequestException('Informe o ID do imovel do Airbnb para concluir o cadastro.');
+          throw new BadRequestException('Informe o ID do imóvel do Airbnb para concluir o cadastro.');
         }
 
         const list = await this.listRepo.findOne({
@@ -605,12 +605,12 @@ export class ConnectService {
         });
 
         if (!list) {
-          throw new NotFoundException('Nao encontramos esse imovel na sua conta. Confira o link do Airbnb e tente novamente.');
+          throw new NotFoundException('Não encontramos esse imóvel na sua conta. Confira o link do Airbnb e tente novamente.');
         }
 
         const userData = await this.userRepository.findOne({ where: { id: userId } });
         if (!userData) {
-          throw new NotFoundException('Sua sessao expirou. Faca login novamente para continuar.');
+          throw new NotFoundException('Sua sessão expirou. Faça login novamente para continuar.');
         }
 
         this.logger.log(`[onboarding] Scraping room ${list.id_do_anuncio}...`);
@@ -620,11 +620,11 @@ export class ConnectService {
         try {
           pricePatch = await this.resolveListingBasePrice(list);
           this.logger.log(
-            `[onboarding] Preco base salvo para ${list.id_do_anuncio}: diaria=${pricePatch.dailyPrice}`,
+            `[onboarding] Preço base salvo para ${list.id_do_anuncio}: diária=${pricePatch.dailyPrice}`,
           );
         } catch (priceError) {
           this.logger.warn(
-            `[onboarding] Nao foi possivel obter preco base para ${list.id_do_anuncio}: ${this.publicErrorMessage(priceError)}`,
+            `[onboarding] Não foi possível obter preço base para ${list.id_do_anuncio}: ${this.publicErrorMessage(priceError)}`,
           );
         }
 
@@ -663,13 +663,13 @@ export class ConnectService {
 
         if (!city || !state) {
           throw new BadRequestException(
-            `Nao foi possivel validar cidade/UF do imovel ${list.id_do_anuncio}. Confira o link do Airbnb ou complete o endereco antes de gerar recomendacoes.`,
+            `Não foi possível validar cidade/UF do imóvel ${list.id_do_anuncio}. Confira o link do Airbnb ou complete o endereço antes de gerar recomendações.`,
           );
         }
 
         if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
           throw new BadRequestException(
-            `Nao foi possivel obter latitude/longitude do imovel ${list.id_do_anuncio}. Sem isso nao conseguimos encontrar eventos proximos.`,
+            `Não foi possível obter latitude/longitude do imóvel ${list.id_do_anuncio}. Sem isso não conseguimos encontrar eventos próximos.`,
           );
         }
 
@@ -702,7 +702,7 @@ export class ConnectService {
         const reason = this.publicErrorMessage(error);
         failures.push({ listingId: requestedListingId, reason });
         this.logger.error(
-          `Erro ao criar endereco no onboarding listing=${requestedListingId ?? 'desconhecido'}: ${reason}`,
+          `Erro ao criar endereço no onboarding listing=${requestedListingId ?? 'desconhecido'}: ${reason}`,
           error instanceof Error ? error.stack : String(error),
         );
       }
@@ -716,8 +716,8 @@ export class ConnectService {
     if (failures.length > 0) {
       throw new BadRequestException({
         message: failures.length === addresses.length
-          ? 'Nao conseguimos concluir o cadastro dos imoveis selecionados.'
-          : 'Alguns imoveis foram cadastrados, mas outros precisam de atencao.',
+          ? 'Não conseguimos concluir o cadastro dos imóveis selecionados.'
+          : 'Alguns imóveis foram cadastrados, mas outros precisam de atenção.',
         savedCount: addressSaved.length,
         failedCount: failures.length,
         failures,
@@ -741,7 +741,7 @@ export class ConnectService {
       const result = await this.emailService.enviarNotification(userId, notificationContent);
       if (!result?.enviado) {
         this.logger.warn(
-          `Falha ao enviar notificacao agregada de onboarding user=${userId}: ${result?.motivo ?? 'unknown'}`,
+          `Falha ao enviar notificação agregada de onboarding user=${userId}: ${result?.motivo ?? 'unknown'}`,
         );
       }
     };
@@ -816,7 +816,7 @@ export class ConnectService {
           });
 
           if (!list) {
-            throw new NotFoundException('Nao encontramos esse imovel na sua conta. Confira o link do Airbnb e tente novamente.');
+            throw new NotFoundException('Não encontramos esse imóvel na sua conta. Confira o link do Airbnb e tente novamente.');
           }
 
           const userData = await this.userRepository.findOne({
@@ -825,7 +825,7 @@ export class ConnectService {
             }
           });
           if (!userData) {
-            throw new NotFoundException('Sua sessao expirou. Faca login novamente para continuar.');
+            throw new NotFoundException('Sua sessão expirou. Faça login novamente para continuar.');
           }
 
           // ===== SCRAPING DIRETO (substitui RapidAPI) =====
@@ -871,7 +871,7 @@ export class ConnectService {
 
           if (!city || !state) {
             throw new BadRequestException(
-              `Nao foi possivel validar cidade/UF do imovel ${list.id_do_anuncio}. Confira o link do Airbnb ou complete o endereco antes de gerar recomendacoes.`,
+              `Não foi possível validar cidade/UF do imóvel ${list.id_do_anuncio}. Confira o link do Airbnb ou complete o endereço antes de gerar recomendações.`,
             );
           }
 
@@ -905,7 +905,7 @@ export class ConnectService {
 
         } catch (error: any) {
           this.logger.error(
-            'Erro ao criar endereco no onboarding',
+            'Erro ao criar endereço no onboarding',
             error instanceof Error ? error.stack : String(error),
           );
         }

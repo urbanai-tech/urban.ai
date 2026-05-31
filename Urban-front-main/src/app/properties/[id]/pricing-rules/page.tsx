@@ -346,7 +346,7 @@ function PricingRulesSkeleton() {
     <div
       role="status"
       aria-busy="true"
-      aria-label="Carregando regras de preco"
+      aria-label="Carregando regras de preço"
       style={{ display: "flex", flexDirection: "column", gap: 12 }}
     >
       {Array.from({ length: 8 }).map((_, i) => (

@@ -377,7 +377,7 @@ const styles = `
     overflow-wrap: anywhere;
   }
 
-  @media (max-width: 920px) {
+  @média (max-width: 920px) {
     .profile-layout,
     .profile-field-grid,
     .profile-field-grid.compact {

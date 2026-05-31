@@ -25,8 +25,8 @@ export default function PortfolioHistoryPage() {
         const data = await fetchPortfolioActionRuns(50);
         if (!cancelled) setRuns(data);
       } catch (err) {
-        console.error("[/portfolio/history] erro carregando historico", err);
-        if (!cancelled) setError("Nao foi possivel carregar o historico agora.");
+        console.error("[/portfolio/history] erro carregando histórico", err);
+        if (!cancelled) setError("Não foi possível carregar o histórico agora.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -41,8 +41,8 @@ export default function PortfolioHistoryPage() {
     <AppPageShell maxWidth={1100}>
       <AppSectionHeader
         eyebrow="AUDITORIA"
-        title="Historico de precos e aceites"
-        subtitle="Registro dedicado das simulacoes confirmadas, aceites e aplicacoes realizadas no portfolio."
+        title="Histórico de preços e aceites"
+        subtitle="Registro dedicado das simulações confirmadas, aceites e aplicações realizadas no portfólio."
         actions={
           <AppButton as="a" href="/portfolio" variant="secondary" leftIcon={<Icons.ArrowLeft size={13} />}>
             Voltar ao cockpit

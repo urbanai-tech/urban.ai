@@ -12,8 +12,8 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://myurbanai.com";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   applicationName: "Urban AI",
-  title: "Urban AI | Precificacao dinamica para Airbnb e aluguel por temporada",
-  description: "Precificacao dinamica para anfitrioes com IA, calendario urbano e operacao assistida.",
+  title: "Urban AI | Precificação dinâmica para Airbnb e aluguel por temporada",
+  description: "Precificação dinâmica para anfitriões com IA, calendário urbano e operação assistida.",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
@@ -35,14 +35,14 @@ export const metadata: Metadata = {
     type: "website",
     url: SITE_URL,
     siteName: "Urban AI",
-    title: "Urban AI | Precificacao dinamica para Airbnb",
-    description: "Precificacao dinamica para anfitrioes com IA, calendario urbano e operacao assistida.",
+    title: "Urban AI | Precificação dinâmica para Airbnb",
+    description: "Precificação dinâmica para anfitriões com IA, calendário urbano e operação assistida.",
     images: [{ url: "/pwa-icon-512.png", width: 512, height: 512, alt: "Urban AI" }],
   },
   twitter: {
     card: "summary",
     title: "Urban AI",
-    description: "Precificacao dinamica para anfitrioes com IA, calendario urbano e operacao assistida.",
+    description: "Precificação dinâmica para anfitriões com IA, calendário urbano e operação assistida.",
     images: ["/pwa-icon-512.png"],
   },
 };

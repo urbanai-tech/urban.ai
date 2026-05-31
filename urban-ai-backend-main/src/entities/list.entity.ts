@@ -24,11 +24,11 @@ export class List {
   @Column()
   id_do_anuncio: string;
 
-  @ApiProperty({ description: "Apelido interno definido pelo anfitriao", example: "Perdizes 1 quarto" })
+  @ApiProperty({ description: "Apelido interno definido pelo anfitrião", example: "Perdizes 1 quarto" })
   @Column({ nullable: true, length: 80 })
   internalNickname: string;
 
-  @ApiProperty({ description: "Codigo interno definido pelo anfitriao", example: "PER-01" })
+  @ApiProperty({ description: "Código interno definido pelo anfitrião", example: "PER-01" })
   @Column({ nullable: true, length: 32 })
   internalCode: string;
 
@@ -77,19 +77,19 @@ export class List {
   @Column({ type: "float", nullable: true })
   dailyPrice: number;
 
-  @ApiProperty({ description: "Preco base manual informado pelo anfitriao", example: 387 })
+  @ApiProperty({ description: "Preço base manual informado pelo anfitrião", example: 387 })
   @Column({ type: "float", nullable: true })
   manualDailyPrice: number;
 
-  @ApiProperty({ description: "Receita media mensal informada pelo anfitriao", example: 8500 })
+  @ApiProperty({ description: "Receita média mensal informada pelo anfitrião", example: 8500 })
   @Column({ type: "float", nullable: true })
   averageMonthlyRevenue: number;
 
-  @ApiProperty({ description: "Origem do preco base atual", example: "manual" })
+  @ApiProperty({ description: "Origem do preço base atual", example: "manual" })
   @Column({ nullable: true })
   pricingInputSource: string;
 
-  @ApiProperty({ description: "Quando os inputs de pricing foram atualizados pela ultima vez" })
+  @ApiProperty({ description: "Quando os inputs de pricing foram atualizados pela última vez" })
   @Column({ type: "timestamp", nullable: true })
   pricingInputsUpdatedAt: Date;
 

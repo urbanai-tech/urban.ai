@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, Optional } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { createHash } from 'crypto';
 import { Brackets, DataSource, In, QueryRunner, Repository } from 'typeorm';
@@ -83,6 +84,10 @@ type RecomputeEventFailure = {
   message: string;
   code: string | null;
 };
+type EventIntelligenceBackfillOptions = EventCatalogQuery & {
+  lookaheadDays?: string | number;
+  force?: string | boolean;
+};
 type DatabaseRecomputeLock = {
   lockKey: string;
   queryRunner: QueryRunner;
@@ -98,6 +103,7 @@ class RecomputeLockBusyError extends Error {
 
 @Injectable()
 export class EventIntelligenceService {
+  private readonly logger = new Logger(EventIntelligenceService.name);
   private readonly inProcessRecomputeLocks = new Set<string>();
 
   constructor(
@@ -301,7 +307,7 @@ export class EventIntelligenceService {
         propertyImpact: firstImpact,
         scenarios,
         selectedScenario,
-        message: 'Curva de absorcao calculada a partir do motor de eventos/pricing v0.',
+        message: 'Curva de absorção calculada a partir do motor de eventos/pricing v0.',
       };
     }
 
@@ -313,7 +319,7 @@ export class EventIntelligenceService {
       propertyImpact: firstImpact,
       scenarios: [] as PriceAbsorptionScenario[],
       message:
-        'Simulacao de curva de absorcao depende do motor da Nico. O endpoint ja fixa o contrato para Maya/Otto/Tais.',
+        'Simulação de curva de absorção depende do motor da Nico. O endpoint já fixa o contrato para Maya/Otto/Tais.',
       requiredEngineFields: [
         'minAbsorbablePriceCents',
         'maxAbsorbablePriceCents',
@@ -528,6 +534,114 @@ export class EventIntelligenceService {
         failures,
       });
     });
+  }
+
+  async backfillFutureEventIntelligence(
+    options: EventIntelligenceBackfillOptions = {},
+    triggeredByUserId?: string | null,
+  ) {
+    const range = this.resolveBackfillRange(options);
+    const limit = this.backfillLimit(options.limit);
+    const force = this.isTrue(options.force);
+    const scope = options.scope ?? 'in';
+    const jobRunId = this.recomputeJobRunId('backfill');
+    const normalizedQuery: EventCatalogQuery = {
+      from: range.from,
+      to: range.to,
+      source: options.source,
+      category: options.category,
+      city: options.city,
+      search: options.search,
+      scope,
+      limit: Math.min(limit * (force ? 1 : 3), 300),
+    };
+
+    return this.withRecomputeRetry(
+      this.backfillRecomputeLockKey({ ...normalizedQuery, force, limit }),
+      jobRunId,
+      async (runtime) => {
+        const candidateEvents = await this.findEvents(normalizedQuery, true);
+        const existingSnapshots = force
+          ? new Map<string, EventIntelligenceSnapshot>()
+          : await this.latestSnapshotsByEventIds(candidateEvents.map((event) => event.id));
+        const eligibleEvents = candidateEvents.filter((event) => force || !existingSnapshots.has(event.id));
+        const events = eligibleEvents.slice(0, limit);
+        const skippedExistingSnapshots = force ? 0 : candidateEvents.length - eligibleEvents.length;
+        const snapshots: EventIntelligenceSnapshot[] = [];
+        const impacts: EventPropertyImpact[] = [];
+        const pricingDecisionSnapshots: PricingDecisionSnapshot[] = [];
+        const failures: RecomputeEventFailure[] = [];
+        const persistence = this.emptyPersistenceStats();
+        let analysesRead = 0;
+        let skippedAnalyses = 0;
+
+        for (const event of events) {
+          try {
+            const processed = await this.withRecomputeOperationRetry(runtime, () =>
+              this.recomputeLoadedEvent(event, jobRunId),
+            );
+            analysesRead += processed.analysesRead;
+            skippedAnalyses += processed.skippedAnalyses;
+            snapshots.push(processed.snapshot);
+            impacts.push(...processed.impacts);
+            pricingDecisionSnapshots.push(...processed.pricingDecisionSnapshots);
+            this.addPersistenceStats(persistence, processed.stats);
+          } catch (error: any) {
+            failures.push(this.toRecomputeEventFailure(event.id, error));
+          }
+        }
+
+        const result = this.recomputeResult({
+          jobRunId,
+          triggeredByUserId,
+          eventIds: events.map((event) => event.id),
+          eventsProcessed: snapshots.length,
+          analysesRead,
+          snapshots,
+          impacts,
+          pricingDecisionSnapshots,
+          skippedAnalyses,
+          query: {
+            ...normalizedQuery,
+            limit,
+            force,
+            candidatesScanned: candidateEvents.length,
+            skippedExistingSnapshots,
+          },
+          persistence,
+          runtime,
+          failures,
+        });
+
+        return {
+          ...result,
+          backfill: {
+            mode: 'future_events',
+            force,
+            range,
+            limit,
+            candidatesScanned: candidateEvents.length,
+            skippedExistingSnapshots,
+          },
+        };
+      },
+    );
+  }
+
+  @Cron('20 4 * * *', { name: 'event-intelligence-backfill', timeZone: 'America/Sao_Paulo' })
+  async handleBackfillCron() {
+    if (!this.isTrue(process.env.EVENT_INTELLIGENCE_BACKFILL_CRON_ENABLED)) return;
+    try {
+      const result = await this.backfillFutureEventIntelligence({
+        limit: process.env.EVENT_INTELLIGENCE_BACKFILL_CRON_LIMIT ?? 20,
+        lookaheadDays: process.env.EVENT_INTELLIGENCE_BACKFILL_LOOKAHEAD_DAYS ?? 90,
+      });
+      this.logger.log(
+        `event-intelligence-backfill: ${result.summary.eventsProcessed}/${result.summary.eventsAttempted} eventos processados, ${result.summary.eventsFailed} falhas`,
+      );
+    } catch (error: any) {
+      this.logger.error(`event-intelligence-backfill falhou: ${error?.message ?? error}`);
+    }
   }
 
   private async recomputeLoadedEvent(event: EventEntity, jobRunId: string) {
@@ -1019,6 +1133,13 @@ export class EventIntelligenceService {
       .slice(0, 32)}`;
   }
 
+  private backfillRecomputeLockKey(query: Record<string, unknown>) {
+    return `event-intelligence:backfill:${createHash('sha256')
+      .update(this.stableJson(this.stableValue(query)))
+      .digest('hex')
+      .slice(0, 32)}`;
+  }
+
   private isRetryableRecomputeError(error: any) {
     const code = error?.code ?? error?.errno ?? '';
     const message = String(error?.message ?? '').toLowerCase();
@@ -1169,7 +1290,7 @@ export class EventIntelligenceService {
         status: snapshot.status,
       })),
       message:
-        'Recompute v0 persistiu ou reutilizou snapshots de evento, impactos por imovel e decisoes auditaveis com lock/retry idempotente por job.',
+        'Recompute v0 persistiu ou reutilizou snapshots de evento, impactos por imóvel e decisões auditáveis com lock/retry idempotente por job.',
     };
   }
 
@@ -1221,7 +1342,7 @@ export class EventIntelligenceService {
     return 'suggested';
   }
 
-  private recomputeJobRunId(scope: 'event' | 'batch', eventId?: string) {
+  private recomputeJobRunId(scope: 'event' | 'batch' | 'backfill', eventId?: string) {
     const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, '');
     const suffix = eventId ? `-${eventId.slice(0, 8)}` : '';
     return `event-intelligence-${scope}-${timestamp}${suffix}`;
@@ -1301,13 +1422,13 @@ export class EventIntelligenceService {
 
   private async getEventOrThrow(eventId: string) {
     const event = await this.eventRepo.findOne({ where: { id: eventId } });
-    if (!event) throw new NotFoundException('Evento nao encontrado');
+    if (!event) throw new NotFoundException('Evento não encontrado');
     if (event.duplicateOfEventId) {
       const canonical = await this.eventRepo.findOne({ where: { id: event.duplicateOfEventId } });
       if (canonical) return canonical;
     }
     if (event.dedupStatus && event.dedupStatus !== 'canonical') {
-      throw new NotFoundException('Evento nao encontrado');
+      throw new NotFoundException('Evento não encontrado');
     }
     return event;
   }
@@ -1979,17 +2100,17 @@ export class EventIntelligenceService {
     const drivers: EventIntelligenceDriver[] = [
       {
         key: 'event_relevance',
-        label: 'Relevancia do evento',
+        label: 'Relevância do evento',
         weight: demandScore ?? 0,
-        explanation: 'Derivado do campo relevancia ate o motor de demanda persistir o score final.',
+        explanation: 'Derivado do campo relevância até o motor de demanda persistir o score final.',
       },
     ];
     if (expectedAttendance !== null) {
       drivers.push({
         key: 'expected_attendance',
-        label: 'Publico esperado',
+        label: 'Público esperado',
         weight: Math.min(100, Math.round(expectedAttendance / 1000)),
-        explanation: 'Usa expectedAttendance, capacidadeEstimada ou venueCapacity quando disponivel.',
+        explanation: 'Usa expectedAttendance, capacidadeEstimada ou venueCapacity quando disponível.',
       });
     }
     if (event.raioImpactoKm) {
@@ -1997,7 +2118,7 @@ export class EventIntelligenceService {
         key: 'impact_radius',
         label: 'Raio de impacto',
         weight: Math.min(100, Math.round(Number(event.raioImpactoKm) * 5)),
-        explanation: 'Raio atual vem do enriquecimento do evento e sera recalibrado pelo motor.',
+        explanation: 'Raio atual vem do enriquecimento do evento e será recalibrado pelo motor.',
       });
     }
     return drivers;
@@ -2005,10 +2126,10 @@ export class EventIntelligenceService {
 
   private derivedInterpretation(event: EventEntity, score: number | null, expectedAttendance: number | null) {
     if (score === null) {
-      return 'Ainda nao ha score suficiente para interpretar este evento com seguranca.';
+      return 'Ainda não há score suficiente para interpretar este evento com segurança.';
     }
-    const size = expectedAttendance ? ` e publico estimado de ${expectedAttendance}` : '';
-    if (score >= 80) return `Este evento deve aquecer a regiao com alta intensidade${size}.`;
+    const size = expectedAttendance ? ` e público estimado de ${expectedAttendance}` : '';
+    if (score >= 80) return `Este evento deve aquecer a região com alta intensidade${size}.`;
     if (score >= 50) return `Este evento pode gerar demanda adicional localizada${size}.`;
     return `Este evento parece ter impacto mais moderado para hospedagem${size}.`;
   }
@@ -2083,6 +2204,24 @@ export class EventIntelligenceService {
     return this.dateOnly(new Date(this.startDate(value).getTime() + days * MS_PER_DAY));
   }
 
+  private resolveBackfillRange(options: EventIntelligenceBackfillOptions): DateRange {
+    const today = this.today();
+    const from = this.maxDateOnly(options.from, today);
+    const lookaheadDays = this.lookaheadDays(options.lookaheadDays);
+    const to = options.to ? this.maxDateOnly(options.to, from) : this.addDays(from, lookaheadDays);
+    return { from, to };
+  }
+
+  private maxDateOnly(value: string | undefined, floor: string) {
+    const normalized = value ? this.dateOnly(value) : floor;
+    return normalized < floor ? floor : normalized;
+  }
+
+  private lookaheadDays(value: unknown) {
+    const parsed = Number(value);
+    return Math.max(1, Math.min(365, Number.isFinite(parsed) ? parsed : 90));
+  }
+
   private dateOnly(value: string | Date) {
     const date = value instanceof Date ? value : new Date(value);
     if (Number.isNaN(date.getTime())) return this.today();
@@ -2114,6 +2253,11 @@ export class EventIntelligenceService {
   private limit(value: unknown, fallback: number) {
     const parsed = Number(value);
     return Math.max(1, Math.min(500, Number.isFinite(parsed) ? parsed : fallback));
+  }
+
+  private backfillLimit(value: unknown) {
+    const parsed = Number(value);
+    return Math.max(1, Math.min(100, Number.isFinite(parsed) ? parsed : 25));
   }
 
   private isTrue(value: unknown) {

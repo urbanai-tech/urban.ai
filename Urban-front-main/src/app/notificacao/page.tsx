@@ -39,7 +39,7 @@ type NotificationKind = 'pricing' | 'analysis' | 'account' | 'general';
 
 function notificationKind(notif: NotificationItem): NotificationKind {
   const text = `${notif.title} ${notif.description ?? ''}`.toLowerCase();
-  if (text.includes('preço') || text.includes('preco') || text.includes('sugest')) return 'pricing';
+  if (text.includes('preço') || text.includes('preço') || text.includes('sugest')) return 'pricing';
   if (text.includes('análise') || text.includes('analise') || text.includes('evento')) return 'analysis';
   if (text.includes('plano') || text.includes('pagamento') || text.includes('conta')) return 'account';
   return 'general';
@@ -422,7 +422,7 @@ const styles = `
     white-space: nowrap;
   }
 
-  @media (max-width: 820px) {
+  @média (max-width: 820px) {
     .notification-metrics,
     .notification-card {
       grid-template-columns: 1fr;

@@ -4,8 +4,8 @@ import React from "react";
 import type { Scenario, ScenarioLabel } from "@/app/types/recommendation";
 
 /**
- * ScenarioComparison — compara 2 ou 3 cenarios de preco lado-a-lado
- * (atual / sugerido / agressivo) com ocupacao + receita estimadas.
+ * ScenarioComparison — compara 2 ou 3 cenários de preço lado-a-lado
+ * (atual / sugerido / agressivo) com ocupação + receita estimadas.
  *
  * Roadmap 4 Tracks (Gap 6 frontend, semana 1-2). Vive dentro do
  * `<details>` expandable do `<RecommendationCard>`.
@@ -24,7 +24,7 @@ function fmtBRL(value: number, fractionDigits = 0): string {
 }
 
 function fmtRevenueShort(value: number): string {
-  // Receita pode ser projetada pra periodo — usa milhar abreviado se >= 1k.
+  // Receita pode ser projetada pra período — usa milhar abreviado se >= 1k.
   if (Math.abs(value) >= 1000) {
     const thousands = value / 1000;
     const formatted = thousands.toLocaleString("pt-BR", {
@@ -103,7 +103,7 @@ export function ScenarioComparison({ scenarios }: { scenarios: Scenario[] }) {
               }}
             >
               <span>
-                Ocupacao estimada:{" "}
+                Ocupação estimada:{" "}
                 <strong style={{ color: "var(--app-text)" }}>
                   {fmtPct(s.estimatedOccupancy)}
                 </strong>

@@ -42,9 +42,9 @@ export function CopyRulesModal({
         const firstOther = data.find((property) => property.id !== currentPropertyId);
         setSelectedId(firstOther?.id ?? null);
       } catch (err) {
-        console.error("[CopyRulesModal] erro listando imoveis", err);
+        console.error("[CopyRulesModal] erro listando imóveis", err);
         if (!cancelled) {
-          setFetchError("Nao foi possivel carregar seus imoveis.");
+          setFetchError("Não foi possível carregar seus imóveis.");
           setProperties([]);
         }
       } finally {
@@ -183,7 +183,7 @@ export function CopyRulesModal({
               lineHeight: 1.3,
             }}
           >
-            De qual imovel voce quer copiar?
+            De qual imóvel você quer copiar?
           </h2>
           <p
             style={{
@@ -193,7 +193,7 @@ export function CopyRulesModal({
               lineHeight: 1.5,
             }}
           >
-            Voce pode ajustar depois. As regras vao substituir as deste imovel quando clicar em copiar.
+            Você pode ajustar depois. As regras vao substituir as deste imóvel quando clicar em copiar.
           </p>
         </header>
 
@@ -216,7 +216,7 @@ export function CopyRulesModal({
                 fontSize: 13,
               }}
             >
-              Carregando seus imoveis...
+              Carregando seus imóveis…
             </div>
           )}
 
@@ -251,7 +251,7 @@ export function CopyRulesModal({
             >
               <Icons.Layers size={20} />
               <p style={{ margin: "10px 0 0" }}>
-                Voce nao tem outros imoveis para copiar regras ainda. Quando adicionar um segundo imovel, ele aparecera aqui.
+                Você não tem outros imóveis para copiar regras ainda. Quando adicionar um segundo imóvel, ele aparecera aqui.
               </p>
             </div>
           )}
@@ -262,7 +262,7 @@ export function CopyRulesModal({
                 value={selectedId ?? ""}
                 propsInfo={otherProperties}
                 setPropertyId={setSelectedId}
-                placeholder="Buscar imovel de origem"
+                placeholder="Buscar imóvel de origem"
                 maxWidth="100%"
               />
 
@@ -284,7 +284,7 @@ export function CopyRulesModal({
                   {selectedSource.dailyPrice != null && (
                     <span>
                       {" "}
-                      - Preco base R$ {Number(selectedSource.dailyPrice).toLocaleString("pt-BR")}
+                      - Preço base R$ {Number(selectedSource.dailyPrice).toLocaleString("pt-BR")}
                     </span>
                   )}
                 </div>
@@ -311,7 +311,7 @@ export function CopyRulesModal({
             loading={loading}
             onClick={() => selectedId && onCopy(selectedId)}
           >
-            Copiar para este imovel
+            Copiar para este imóvel
           </AppButton>
         </footer>
       </div>

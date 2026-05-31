@@ -109,7 +109,7 @@ export default function AdminCommunicationsPage() {
       <AdminSectionHeader
         eyebrow="ADMIN · COMUNICACOES"
         title="Central de envios"
-        subtitle="Acompanhe e-mails, push PWA e notificacoes in-app: status, destinatario, tipo, provedor e falhas recentes."
+        subtitle="Acompanhe e-mails, push PWA e notificações in-app: status, destinatário, tipo, provedor e falhas recentes."
         actions={
           <AdminButton variant="secondary" onClick={() => load(page)} leftIcon={<Icons.RefreshCw size={12} />}>
             Atualizar
@@ -189,7 +189,7 @@ export default function AdminCommunicationsPage() {
         {!data?.items.length ? (
           <AdminEmptyState
             title="Nenhum envio encontrado"
-            body="Quando a plataforma enviar e-mails, push ou notificacoes in-app, os eventos aparecem aqui."
+            body="Quando a plataforma enviar e-mails, push ou notificações in-app, os eventos aparecem aqui."
             icon={<Icons.Mail size={32} />}
           />
         ) : (

@@ -46,7 +46,7 @@ export function PortfolioCockpit({ metrics }: { metrics: PortfolioCockpitMetrics
   return (
     <AppCard variant="default" style={{ marginBottom: 20 }}>
       <AppCardHeader
-        eyebrow="COCKPIT DE DECISAO"
+        eyebrow="COCKPIT DE DECISÃO"
         title="Resumo operacional da janela"
         subtitle={`${metrics.rangeLabel} - ${metrics.dateLabel}`}
         actions={
@@ -82,7 +82,7 @@ export function PortfolioCockpit({ metrics }: { metrics: PortfolioCockpitMetrics
             label="Receita base"
             value={formatCurrency(metrics.currentRevenue)}
             variant="sm"
-            sub="precos atuais"
+            sub="preços atuais"
           />
         </MetricShell>
 
@@ -92,7 +92,7 @@ export function PortfolioCockpit({ metrics }: { metrics: PortfolioCockpitMetrics
             value={formatCurrency(metrics.suggestedRevenue)}
             variant="sm"
             accent={metrics.liftAmount > 0}
-            sub="base + sugestoes"
+            sub="base + sugestões"
           />
         </MetricShell>
 
@@ -101,17 +101,17 @@ export function PortfolioCockpit({ metrics }: { metrics: PortfolioCockpitMetrics
             label="Oportunidades"
             value={metrics.opportunityCount}
             variant="sm"
-            sub="datas com acao"
+            sub="datas com ação"
             accent={metrics.opportunityCount > 0}
           />
         </MetricShell>
 
         <MetricShell>
           <AppMetricCard
-            label="Confianca media"
+            label="Confiança média"
             value={metrics.averageConfidence == null ? "--" : formatPercent(metrics.averageConfidence)}
             variant="sm"
-            sub={metrics.averageRisk == null ? "risco indisponivel" : `risco ${formatPercent(metrics.averageRisk)}`}
+            sub={metrics.averageRisk == null ? "risco indisponível" : `risco ${formatPercent(metrics.averageRisk)}`}
           />
         </MetricShell>
 
@@ -147,8 +147,8 @@ export function PortfolioCockpit({ metrics }: { metrics: PortfolioCockpitMetrics
       >
         <Icons.Info size={14} />
         <span>
-          Indicadores calculados a partir da janela carregada: preco atual,
-          sugestoes disponiveis e oportunidades retornadas pelo backend.
+          Indicadores calculados a partir da janela carregada: preço atual,
+          sugestões disponíveis e oportunidades retornadas pelo backend.
         </span>
       </div>
 

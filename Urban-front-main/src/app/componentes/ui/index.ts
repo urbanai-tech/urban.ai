@@ -1,12 +1,12 @@
 /**
- * Barrel UI Urban AI (anfitriao autenticado).
+ * Barrel UI Urban AI (anfitrião autenticado).
  *
  * Importe pra usar o design system light premium:
  *   import { AppPageShell, AppSectionHeader, AppButton, ... } from "@/app/componentes/ui";
  *
  * Coexiste com:
  *  - `_components/` do admin (dark, em src/app/admin/_components/)
- *  - HeaderPublic/FooterPublic (manifesto editorial publico)
+ *  - HeaderPublic/FooterPublic (manifesto editorial público)
  */
 export { AppPageShell } from "./AppPageShell";
 export { AppSectionHeader } from "./AppSectionHeader";

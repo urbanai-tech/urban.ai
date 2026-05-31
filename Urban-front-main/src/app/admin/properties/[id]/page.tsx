@@ -20,19 +20,19 @@ import {
 import type { AdminBadgeKind } from "../../_components";
 
 /**
- * /admin/properties/[id] — detalhe consolidado de um imovel (gap I5 do roadmap).
+ * /admin/properties/[id] — detalhe consolidado de um imóvel (gap I5 do roadmap).
  *
- * Tudo o que suporte precisa saber sobre um imovel, sem SQL. Combina:
- *  - Cabecalho com host, localidade, status, badges de saude
- *  - 4 KPIs (diaria base, receita media, recomendacoes futuras, ultima analise)
- *  - Card "Saude do imovel" com checks de geo, localidade, preco base, recomendacao
- *  - Tabela de analises recentes (sugerido vs aplicado)
- *  - Tabela de eventos proximos
- *  - Historico de input de pricing (campo do anfitriao)
- *  - Acoes: editar localidade, reprocessar recomendacao, ver no painel host
+ * Tudo o que suporte precisa saber sobre um imóvel, sem SQL. Combina:
+ *  - Cabeçalho com host, localidade, status, badges de saúde
+ *  - 4 KPIs (diária base, receita média, recomendações futuras, última análise)
+ *  - Card "Saúde do imóvel" com checks de geo, localidade, preço base, recomendação
+ *  - Tabela de análises recentes (sugerido vs aplicado)
+ *  - Tabela de eventos próximos
+ *  - Histórico de input de pricing (campo do anfitrião)
+ *  - Ações: editar localidade, reprocessar recomendação, ver no painel host
  *
  * Usa apenas endpoints administrativos autenticados para evitar dados parciais
- * ou fallbacks publicos no painel operacional.
+ * ou fallbacks públicos no painel operacional.
  */
 
 type AdminPropertyDetail = {
@@ -49,8 +49,8 @@ type AdminPropertyDetail = {
   manualDailyPrice?: number | null;
   averageMonthlyRevenue?: number | null;
   active?: boolean;
-  createdAt?: string;
-  lastAnalysisAt?: string | null;
+  createdAt: string;
+  lastAnalysisAt: string | null;
   futureRecommendationsCount?: number;
   appliedRecommendationsCount?: number;
   recentAnalyses?: AnalysisRow[];
@@ -100,12 +100,12 @@ export default function AdminPropertyDetailPage() {
         const detail: AdminPropertyDetail | null = r.data;
         setData(detail);
 
-        // Historico de pricing inputs sempre busca o endpoint dedicado (existe)
+        // Histórico de pricing inputs sempre busca o endpoint dedicado (existe)
         try {
           const history = await getPropertyPricingInputHistory(id, 20);
           setPricingHistory(history);
         } catch {
-          /* nao critico */
+          /* não crítico */
         }
       } catch (err: unknown) {
         const e = err as { response?: { status?: number }; message?: string };
@@ -166,7 +166,7 @@ export default function AdminPropertyDetailPage() {
     );
   }
 
-  // Diagnostico de saude
+  // Diagnóstico de saúde
   const hasCoords =
     data.latitude != null && data.longitude != null && Number(data.latitude) !== 0;
   const hasValidLocality =
@@ -299,7 +299,7 @@ export default function AdminPropertyDetailPage() {
         </div>
       </section>
 
-      {/* === Diagnostico de saude === */}
+      {/* === Diagnóstico de saúde === */}
       <section style={{ marginBottom: 32 }}>
         <AdminCard variant={healthIssues.length === 0 ? "subtle" : "accent"}>
           <AdminCardHeader
@@ -368,7 +368,7 @@ export default function AdminPropertyDetailPage() {
         <PricingHistoryTable rows={pricingHistory} />
       </section>
 
-      {/* === Acoes operacionais === */}
+      {/* === Ações operacionais === */}
       <section style={{ marginTop: 48, paddingTop: 24, borderTop: "1px solid var(--admin-divider)" }}>
         <AdminCard variant="subtle">
           <AdminCardHeader title="Atalhos" />
@@ -638,7 +638,7 @@ function PricingHistoryTable({ rows }: { rows: PricingInputHistory[] }) {
       ),
     },
     {
-      key: "diaria",
+      key: "diária",
       header: "Diária base",
       align: "right",
       width: 220,

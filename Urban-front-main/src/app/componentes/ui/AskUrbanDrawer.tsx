@@ -28,7 +28,7 @@ import { Close, Sparkles } from "./Icons";
  * componente cuida apenas da UI + estado conversacional in-memory.
  *
  * Sem dependencias pesadas: zero recharts, zero virtual list (lista de
- * mensagens é pequena por sessao), usando `useAppToast`.
+ * mensagens é pequena por sessão), usando `useAppToast`.
  *
  * Acessibilidade:
  *  - `role="dialog"` + `aria-modal="true"`
@@ -50,7 +50,7 @@ const INITIAL_SUGGESTIONS: string[] = [
 ];
 
 const PLACEHOLDER_ROTATION: string[] = [
-  "Pergunte sobre receita, ocupação, eventos...",
+  "Pergunte sobre receita, ocupação, eventos…",
   "Ex: como foi minha semana passada?",
   "Ex: quais eventos impactam meu preço?",
   "Ex: minha diária está boa este mês?",
@@ -82,7 +82,7 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
         if (!cancelled) setUsage(res);
       })
       .catch(() => {
-        /* swallow — usage é cosmético, nao bloqueia */
+        /* swallow — usage é cosmético, não bloqueia */
       });
     return () => {
       cancelled = true;
@@ -189,7 +189,7 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
         setUsage(res.usage);
       } catch (err) {
         toast.error(
-          "Nao consegui responder agora.",
+          "Não consegui responder agora.",
           getFriendlyApiErrorMessage(err, "Tente novamente em alguns instantes."),
         );
       } finally {
@@ -253,7 +253,7 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const value = e.target.value;
       setInput(value);
-      // Auto-grow ate 5 linhas.
+      // Auto-grow até 5 linhas.
       const el = e.target;
       el.style.height = "auto";
       const lineHeight = 22;
@@ -566,7 +566,7 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
             transform: translateY(-2px);
           }
         }
-        @media (prefers-reduced-motion: reduce) {
+        @média (prefers-reduced-motion: reduce) {
           [role="dialog"] {
             animation: none !important;
           }

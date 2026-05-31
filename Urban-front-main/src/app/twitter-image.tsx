@@ -1,7 +1,7 @@
 import { createUrbanSeoImage } from "./lib/seo-og-image";
 
 export const alt =
-  "Urban AI - Precificacao dinamica para anfitrioes de curta temporada";
+  "Urban AI - Precificação dinâmica para anfitriões de curta temporada";
 export const size = {
   width: 1200,
   height: 630,
@@ -12,8 +12,8 @@ export default function TwitterImage() {
   return createUrbanSeoImage({
     width: size.width,
     height: size.height,
-    eyebrow: "Urban AI para anfitrioes",
+    eyebrow: "Urban AI para anfitriões",
     subtitle:
-      "Recomendacoes de diaria com eventos urbanos, demanda local e contexto de bairro.",
+      "Recomendações de diária com eventos urbanos, demanda local e contexto de bairro.",
   });
 }

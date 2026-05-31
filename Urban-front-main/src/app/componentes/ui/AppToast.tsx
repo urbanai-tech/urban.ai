@@ -4,18 +4,18 @@ import React, { createContext, useCallback, useContext, useMemo, useState } from
 import { AlertCircle, Check, Close, Info } from "./Icons";
 
 /**
- * AppToast — toast manager light premium do anfitriao.
+ * AppToast — toast manager light premium do anfitrião.
  *
  * Substitui o toast legado default (azul/verde/amarelo gritante que destoa
  * do design system). Coexiste com o componente — pode trocar gradualmente.
  *
  * Uso:
  *   const toast = useAppToast();
- *   toast.success("Sugestao aplicada.");
+ *   toast.success("Sugestão aplicada.");
  *   toast.error("Falha ao salvar.");
  *
  * Coloque <AppToastProvider> uma vez no shell (já feito em HostShell quando
- * voce migrar).
+ * você migrar).
  */
 
 export type AppToastKind = "success" | "warn" | "error" | "info";
@@ -184,7 +184,7 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
               </div>
               <button
                 onClick={() => dismiss(t.id)}
-                aria-label="Fechar notificacao"
+                aria-label="Fechar notificação"
                 className="urban-focus-ring"
                 style={{
                   background: "transparent",
@@ -227,7 +227,7 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
           outline: 2px solid var(--app-surface);
           outline-offset: 2px;
         }
-        @media (prefers-reduced-motion: reduce) {
+        @média (prefers-reduced-motion: reduce) {
           [role="status"],
           [role="alert"] {
             animation: none !important;

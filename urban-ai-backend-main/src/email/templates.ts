@@ -91,7 +91,7 @@ export class EmailTemplates {
     const totalEvents = input.properties.reduce((sum, property) => sum + property.totalEvents, 0);
     const propertyBlocks = input.properties
       .map((property) => {
-        const safeTitle = escapeHtml(property.title || "Imovel");
+        const safeTitle = escapeHtml(property.title || "Imóvel");
         const eventRows = property.events
           .map((event) => {
             const safeEvent = escapeHtml(event.name || "Evento");
@@ -430,7 +430,7 @@ export class EmailTemplates {
         <div class="title" style="color: #b91c1c;">Limite de imóveis atingido</div>
         <div class="content">
             <p>Olá, ${firstName}.</p>
-            <p>Você tentou cadastrar <b>${input.tentando}</b> imóvel${input.tentando > 1 ? 'is' : ''} mas
+            <p>Você tentou cadastrar <b>${input.tentando}</b> ${input.tentando === 1 ? 'imóvel' : 'imóveis'} mas
             seu plano cobre apenas <b>${input.contratados}</b>.</p>
 
             <p>Para destravar, basta aumentar a quantidade de imóveis no seu plano:</p>
@@ -482,7 +482,7 @@ export class EmailTemplates {
 
   /**
    * D+1 — primeiro dia após signup. Lembra que o motor está coletando
-   * eventos e dá link pra cadastrar o primeiro imovel se nao houver nenhum.
+   * eventos e dá link para cadastrar o primeiro imóvel se não houver nenhum.
    */
   static getOnboardingDay1Template(input: {
     nome: string;
@@ -529,7 +529,7 @@ export class EmailTemplates {
 
   /**
    * D+3 — três dias após signup. Mostra primeiras recomendações se houver,
-   * ou explica por que ainda nao apareceram (eventos baixos / sem cobertura).
+   * ou explica por que ainda não apareceram (eventos baixos / sem cobertura).
    */
   static getOnboardingDay3Template(input: {
     nome: string;

@@ -381,7 +381,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 onFocus={() => setFocusEmail(true)}
                 onBlur={() => setFocusEmail(false)}
-                placeholder="voce@email.com"
+                placeholder="você@email.com"
                 autoComplete="email"
                 disabled={loading}
                 style={{

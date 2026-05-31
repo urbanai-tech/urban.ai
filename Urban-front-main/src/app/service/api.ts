@@ -23,27 +23,27 @@ export function getFriendlyApiErrorMessage(error: unknown, fallback?: string): s
   if (typeof userMessage === "string" && userMessage.trim()) return userMessage;
 
   if (code === "LISTINGS_QUOTA_EXCEEDED") {
-    return "Voce atingiu o limite de imoveis do seu plano. Ajuste seu plano para cadastrar mais imoveis.";
+    return "Você atingiu o limite de imóveis do seu plano. Ajuste seu plano para cadastrar mais imóveis.";
   }
 
   if (status === 400) return fallback ?? "Revise os dados informados e tente novamente.";
-  if (status === 401) return "Sua sessao expirou. Entre novamente para continuar.";
-  if (status === 403) return "Voce nao tem permissao para fazer esta acao.";
-  if (status === 404) return fallback ?? "Nao encontramos essa informacao agora.";
-  if (status === 409) return fallback ?? "Essa acao entrou em conflito com uma informacao ja salva.";
+  if (status === 401) return "Sua sessão expirou. Entre novamente para continuar.";
+  if (status === 403) return "Você não tem permissão para fazer esta ação.";
+  if (status === 404) return fallback ?? "Não encontramos essa informação agora.";
+  if (status === 409) return fallback ?? "Essa ação entrou em conflito com uma informação já salva.";
   if (status === 422) return fallback ?? "Algum dado precisa ser corrigido antes de continuar.";
   if (status === 429) return "Muitas tentativas em pouco tempo. Aguarde um instante e tente de novo.";
   if (status >= 500) return "A Urban AI encontrou uma instabilidade. Tente novamente em alguns instantes.";
 
   if ((error as any)?.code === "ECONNABORTED") {
-    return "A conexao demorou mais que o esperado. Tente novamente.";
+    return "A conexão demorou mais que o esperado. Tente novamente.";
   }
 
   if ((error as any)?.message === "Network Error") {
-    return "Nao foi possivel conectar com a Urban AI. Verifique sua internet e tente novamente.";
+    return "Não foi possível conectar com a Urban AI. Verifique sua internet e tente novamente.";
   }
 
-  return fallback ?? "Nao conseguimos concluir agora. Tente novamente em alguns instantes.";
+  return fallback ?? "Não conseguimos concluir agora. Tente novamente em alguns instantes.";
 }
 
 // Cria instância do axios com baseURL
@@ -64,7 +64,7 @@ api.interceptors.request.use(
  * Interceptor global de resposta — sprint design premium 2026-05-17.
  *
  * - 401 (não autenticado): limpa token, redireciona pra login `/`.
- *   Exceção: rotas publicas (/lancamento, /landing, /precos, /sobre, /contato,
+ *   Exceção: rotas públicas (/lancamento, /landing, /precos, /sobre, /contato,
  *   /termos, /privacidade, /create, /forbidden, /post-login, /request-reset-password,
  *   /reset-password/*, /confirm-email/*) NÃO redirecionam — login não eh
  *   necessario nelas e o componente que disparou o 401 lida com o erro.
@@ -112,12 +112,12 @@ api.interceptors.response.use(
 
     const status = error?.response?.status;
     const originalRequest = error?.config as any;
-    const requestUrl: string = originalRequest?.url ?? "";
+    const requestUrl: string = originalRequest.url ?? "";
     const pathname = window.location.pathname || "";
     error.userMessage = getFriendlyApiErrorMessage(error);
 
     // 401: primeiro tenta renovar via refresh cookie. Se falhar, cai no fluxo
-    // antigo de limpar sessao/redirecionar.
+    // antigo de limpar sessão/redirecionar.
     if (status === 401) {
       const canRefresh =
         originalRequest &&
@@ -147,7 +147,7 @@ api.interceptors.response.use(
       }
     }
 
-    // 403: usuario logado mas sem permissao — manda pra pagina 403 amigavel.
+    // 403: usuário logado mas sem permissão — manda pra página 403 amigável.
     if (status === 403) {
       const isAuthProbe =
         requestUrl.endsWith("/auth/me") || requestUrl.endsWith("/auth/logout");
@@ -199,7 +199,7 @@ export type PropertyDropdown = {
   averageMonthlyRevenue?: number | null;
   dailyPrice?: number | null;
   pricingInputSource?: string | null;
-  pricingInputsUpdatedAt?: string | null;
+  pricingInputsUpdatedAt: string | null;
   cep?: string | null;
   numero?: string | null;
   logradouro?: string | null;
@@ -282,8 +282,8 @@ export type PropertyDetail = {
   latitude?: number | null;
   longitude?: number | null;
   ativo?: boolean;
-  created_at?: string;
-  updated_at?: string;
+  created_até: string;
+  updated_até: string;
   analisado?: string;
   list?: {
     id: string;
@@ -299,7 +299,7 @@ export type PropertyDetail = {
     manualDailyPrice?: number | null;
     averageMonthlyRevenue?: number | null;
     pricingInputSource?: string | null;
-    pricingInputsUpdatedAt?: string | null;
+    pricingInputsUpdatedAt: string | null;
     hospedes?: number | null;
     quartos?: number | null;
     camas?: number | null;
@@ -309,7 +309,7 @@ export type PropertyDetail = {
     amenitiesCount?: number | null;
     neighborhood?: string | null;
     reviewCount?: number | null;
-    lastScrapedAt?: string | null;
+    lastScrapedAt: string | null;
   } | null;
 };
 
@@ -480,7 +480,7 @@ export async function createBillingPortalSession(): Promise<{ url: string }> {
     const { data } = await api.post<{ url: string }>("/payments/billing-portal-session");
     return data;
   } catch (error) {
-    console.error("Erro ao criar sessao do portal de billing:", error);
+    console.error("Erro ao criar sessão do portal de billing:", error);
     throw error;
   }
 }
@@ -731,7 +731,7 @@ export type ProfileResponse = {
   operationMode?: string;
   percentualInicial?: number | null;
   percentualFinal?: number | null;
-  createdAt?: string;
+  createdAt: string;
   profile: {
     phone: string | null;
     company: string | null;
@@ -973,7 +973,7 @@ export const registrarPrecoAplicadoSugestao = async (
     });
     return data;
   } catch (error) {
-    console.error(`Erro ao registrar o preco aplicado da sugestao ${id}:`, error);
+    console.error(`Erro ao registrar o preço aplicado da sugestão ${id}:`, error);
     throw error;
   }
 };
@@ -992,7 +992,7 @@ export const registrarResultadoSugestao = async (
     const { data } = await api.patch(`/sugestoes-preco/${id}/resultado`, feedback);
     return data;
   } catch (error) {
-    console.error(`Erro ao registrar resultado da sugestao ${id}:`, error);
+    console.error(`Erro ao registrar resultado da sugestão ${id}:`, error);
     throw error;
   }
 };
@@ -1028,7 +1028,7 @@ export type EventCatalogItem = {
   name: string;
   description?: string | null;
   startsAt: string;
-  endsAt?: string | null;
+  endsAt: string | null;
   city: string;
   state: string;
   venueName?: string | null;
@@ -1212,7 +1212,7 @@ function isSafeHostEventMockFallback(error: unknown): boolean {
 }
 
 function warnHostEventMock(endpoint: string, error: unknown) {
-  console.warn(`[host-event-radar] usando mock temporario habilitado por NEXT_PUBLIC_ENABLE_CONTRACT_FALLBACK para ${endpoint}`, error);
+  console.warn(`[host-event-radar] usando mock temporário habilitado por NEXT_PUBLIC_ENABLE_CONTRACT_FALLBACK para ${endpoint}`, error);
 }
 
 function normalizeNumber(value: unknown): number | null {
@@ -1311,7 +1311,7 @@ function normalizeCatalogItem(raw: any): EventCatalogItem {
     description: raw?.description ?? raw?.descricao ?? null,
     startsAt: String(raw?.startsAt ?? raw?.dataInicio ?? raw?.startDate ?? new Date().toISOString()),
     endsAt: raw?.endsAt ?? raw?.dataFim ?? raw?.endDate ?? null,
-    city: String(raw?.city ?? raw?.cidade ?? 'Sao Paulo'),
+    city: String(raw?.city ?? raw?.cidade ?? 'São Paulo'),
     state: String(raw?.state ?? raw?.estado ?? 'SP'),
     venueName: raw?.venueName ?? raw?.venue ?? raw?.local ?? null,
     address: raw?.address ?? raw?.enderecoCompleto ?? raw?.endereco ?? null,
@@ -1332,7 +1332,7 @@ function normalizeCatalogItem(raw: any): EventCatalogItem {
 function normalizePropertyImpact(raw: any): EventPropertyImpact {
   return {
     propertyId: String(raw?.propertyId ?? raw?.imovelId ?? raw?.addressId ?? ''),
-    propertyName: String(raw?.propertyName ?? raw?.imovel ?? raw?.name ?? 'Imovel'),
+    propertyName: String(raw?.propertyName ?? raw?.imovel ?? raw?.name ?? 'Imóvel'),
     distanceKm: normalizeNumber(raw?.distanceKm ?? raw?.distanciaKm),
     travelTimeMinutes: normalizeNumber(raw?.travelTimeMinutes ?? raw?.tempoDeslocamentoMin) ?? undefined,
     propertyCaptureScore: normalizeNumber(raw?.propertyCaptureScore ?? raw?.captureScore),
@@ -1352,7 +1352,7 @@ function normalizePropertyImpact(raw: any): EventPropertyImpact {
     absorptionScenarios: Array.isArray(raw?.absorptionScenarios)
       ? raw.absorptionScenarios.map((scenario: any) => ({
           id: String(scenario?.id ?? scenario?.label ?? 'scenario'),
-          label: String(scenario?.label ?? 'Cenario'),
+          label: String(scenario?.label ?? 'Cenário'),
           dailyPriceCents: normalizeCents(scenario?.dailyPriceCents ?? scenario?.dailyPrice),
           multiplier: normalizeNumber(scenario?.multiplier),
           bookingProbability: normalizeNumber(scenario?.bookingProbability),
@@ -1944,7 +1944,7 @@ export const fetchListingsQuota = async (): Promise<ListingsQuota> => {
   return data;
 };
 
-// ================== ROI do anfitriao ==================
+// ================== ROI do anfitrião ==================
 
 export type RoiConfidence = 'high' | 'medium' | 'low';
 
@@ -2278,8 +2278,8 @@ export interface AdminJobRunResponse<T = unknown> {
   durationMs: number | null;
   result: T | null;
   errorMessage: string | null;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface DatasetSnapshotResult {
@@ -2410,7 +2410,7 @@ export interface StaysAccountPublic {
   clientId: string;
   lastSyncAt: string | null;
   consentVersion?: string | null;
-  consentAcceptedAt?: string | null;
+  consentAcceptedAt: string | null;
 }
 
 export interface StaysListingPublic {
@@ -3100,7 +3100,7 @@ export const updateWaitlistNotes = (id: string, notes: string | null) =>
 export const deleteWaitlistEntry = (id: string) =>
   api.delete<{ ok: true }>(`/admin/waitlist/${id}`).then((r) => r.data);
 
-// =================== Contato publico + admin ===================
+// =================== Contato público + admin ===================
 
 export type ContactSubmissionStatus = 'new' | 'in_progress' | 'resolved' | 'archived';
 export type ContactSubmissionCategory =
@@ -3420,7 +3420,7 @@ export interface EventListItem {
   duplicateOfEventId?: string | null;
   identityConfidence?: number | null;
   sourceCount?: number;
-  lastSeenAt?: string | null;
+  lastSeenAt: string | null;
 }
 
 export interface EventsListResponse {
@@ -3512,7 +3512,7 @@ export interface EventDedupEventSummary {
   state?: string | null;
   dataInicio: string;
   startDate?: string | null;
-  startsAt?: string | null;
+  startsAt: string | null;
   date?: string | null;
   dataFim: string | null;
   endDate?: string | null;
@@ -4035,7 +4035,7 @@ function toFallbackRadarEvent(event: EventListItem): AdminEventRadarEvent {
     latitude: event.latitude,
     longitude: event.longitude,
     interpretation:
-      'Fallback contratual: leitura estimada a partir de relevancia, capacidade, coordenadas e escopo enquanto o endpoint de inteligencia de eventos nao esta disponivel.',
+      'Fallback contratual: leitura estimada a partir de relevância, capacidade, coordenadas e escopo enquanto o endpoint de inteligência de eventos não está disponível.',
     riskFlags,
     dataQualityFlags,
     raw: event as unknown as Record<string, unknown>,
@@ -4202,8 +4202,8 @@ function buildFallbackBlindSpots(radar: AdminEventRadarResponse): AdminEventRada
         source: event.source,
         demandScore: event.demandScore,
         revenuePotentialCents: event.revenuePotentialCents,
-        blockedBy: event.geocodeStatus !== 'ok' ? 'Coordenada pendente ou ausente' : 'Snapshot de impacto em imoveis ausente',
-        recommendedAction: event.geocodeStatus !== 'ok' ? 'Rodar geocoder e reprocessar inteligencia' : 'Gerar event_property_impact e recomendacoes',
+        blockedBy: event.geocodeStatus !== 'ok' ? 'Coordenada pendente ou ausente' : 'Snapshot de impacto em imóveis ausente',
+        recommendedAction: event.geocodeStatus !== 'ok' ? 'Rodar geocoder e reprocessar inteligência' : 'Gerar event_property_impact e recomendações',
         href: `/admin/events?search=${encodeURIComponent(event.name)}`,
       });
     }
@@ -4212,7 +4212,7 @@ function buildFallbackBlindSpots(radar: AdminEventRadarResponse): AdminEventRada
         id: `geo-${event.id}`,
         kind: 'missing_geocode',
         severity: (event.demandScore ?? 0) >= 70 ? 'high' : 'medium',
-        title: 'Evento sem coordenada confiavel',
+        title: 'Evento sem coordenada confiável',
         eventId: event.id,
         eventName: event.name,
         city: event.city,
@@ -4229,7 +4229,7 @@ function buildFallbackBlindSpots(radar: AdminEventRadarResponse): AdminEventRada
         id: `link-${event.id}`,
         kind: 'missing_official_link',
         severity: (event.demandScore ?? 0) >= 70 ? 'medium' : 'low',
-        title: 'Evento sem link de validacao',
+        title: 'Evento sem link de validação',
         eventId: event.id,
         eventName: event.name,
         city: event.city,
@@ -4237,7 +4237,7 @@ function buildFallbackBlindSpots(radar: AdminEventRadarResponse): AdminEventRada
         demandScore: event.demandScore,
         revenuePotentialCents: event.revenuePotentialCents,
         blockedBy: 'link oficial/crawled URL ausente',
-        recommendedAction: 'Completar fonte antes de recomendacao forte',
+        recommendedAction: 'Completar fonte antes de recomendação forte',
         href: `/admin/events?search=${encodeURIComponent(event.name)}`,
       });
     }
@@ -4253,7 +4253,7 @@ function buildFallbackBlindSpots(radar: AdminEventRadarResponse): AdminEventRada
         source: event.source,
         demandScore: event.demandScore,
         revenuePotentialCents: event.revenuePotentialCents,
-        blockedBy: 'source sem atualizacao recente',
+        blockedBy: 'source sem atualização recente',
         recommendedAction: 'Investigar coletor e atualizar snapshot',
         href: '/admin/collectors-health',
       });
@@ -4300,19 +4300,19 @@ function buildFallbackDetail(event: AdminEventRadarEvent): AdminEventRadarDetail
       drivers: [
         {
           key: 'relevance',
-          label: 'Relevancia operacional',
+          label: 'Relevância operacional',
           weight: event.demandScore ?? 0,
-          explanation: 'Derivada do campo de relevancia existente enquanto o snapshot de inteligencia nao existe.',
+          explanation: 'Derivada do campo de relevância existente enquanto o snapshot de inteligência não existe.',
         },
         {
           key: 'coverage',
           label: 'Cobertura geografica',
           weight: event.geocodeStatus === 'ok' ? 100 : 35,
-          explanation: event.geocodeStatus === 'ok' ? 'Evento possui coordenadas para impacto espacial.' : 'Coordenadas pendentes limitam recomendacoes.',
+          explanation: event.geocodeStatus === 'ok' ? 'Evento possui coordenadas para impacto espacial.' : 'Coordenadas pendentes limitam recomendações.',
         },
         {
           key: 'property-impact',
-          label: 'Impacto em imoveis',
+          label: 'Impacto em imóveis',
           weight: event.affectedPropertiesCount,
           explanation: 'Contagem estimada no fallback; endpoint property-impact deve substituir este bloco.',
         },
@@ -4346,12 +4346,12 @@ function buildContractFallbackListing(scope: AdminEventRadarScope = 'in'): Event
   const items: EventListItem[] = [
     {
       id: 'contract-sp-festival-ibirapuera',
-      nome: 'Festival urbano de musica e gastronomia',
-      cidade: 'Sao Paulo',
+      nome: 'Festival urbano de música e gastronomia',
+      cidade: 'São Paulo',
       estado: 'SP',
       dataInicio: contractDate(8),
       dataFim: contractDate(9),
-      categoria: 'musica',
+      categoria: 'música',
       relevancia: 88,
       capacidadeEstimada: 42000,
       raioImpactoKm: 8,
@@ -4372,15 +4372,16 @@ function buildContractFallbackListing(scope: AdminEventRadarScope = 'in'): Event
       enrichmentAttempts: 1,
       enrichmentLastError: null,
       crawledUrl: null,
+      lastSeenAt: null,
     },
     {
       id: 'contract-sp-tech-expo',
       nome: 'Congresso internacional de tecnologia',
-      cidade: 'Sao Paulo',
+      cidade: 'São Paulo',
       estado: 'SP',
       dataInicio: contractDate(18),
       dataFim: contractDate(20),
-      categoria: 'negocios',
+      categoria: 'negócios',
       relevancia: 82,
       capacidadeEstimada: 28000,
       raioImpactoKm: 7,
@@ -4401,6 +4402,7 @@ function buildContractFallbackListing(scope: AdminEventRadarScope = 'in'): Event
       enrichmentAttempts: 0,
       enrichmentLastError: null,
       crawledUrl: 'https://example.invalid/event-radar-contract',
+      lastSeenAt: null,
     },
     {
       id: 'contract-rj-arena-show',
@@ -4430,6 +4432,7 @@ function buildContractFallbackListing(scope: AdminEventRadarScope = 'in'): Event
       enrichmentAttempts: 1,
       enrichmentLastError: null,
       crawledUrl: null,
+      lastSeenAt: null,
     },
     {
       id: 'contract-bh-design-week',
@@ -4445,7 +4448,7 @@ function buildContractFallbackListing(scope: AdminEventRadarScope = 'in'): Event
       venueType: 'convention_center',
       venueCapacity: 12000,
       expectedAttendance: 9000,
-      venueName: 'Centro de Convencoes',
+      venueName: 'Centro de Convenções',
       linkSiteOficial: null,
       imagemUrl: null,
       sourceId: 'contract-fallback-004',
@@ -4459,22 +4462,23 @@ function buildContractFallbackListing(scope: AdminEventRadarScope = 'in'): Event
       enrichmentAttempts: 1,
       enrichmentLastError: null,
       crawledUrl: 'https://example.invalid/event-radar-contract',
+      lastSeenAt: null,
     },
     {
       id: 'contract-campinas-universitario',
-      nome: 'Encontro universitario regional',
+      nome: 'Encontro universitário regional',
       cidade: 'Campinas',
       estado: 'SP',
       dataInicio: contractDate(12),
       dataFim: contractDate(13),
-      categoria: 'educacao',
+      categoria: 'educação',
       relevancia: 57,
       capacidadeEstimada: 6000,
       raioImpactoKm: 4,
       venueType: 'campus',
       venueCapacity: 8000,
       expectedAttendance: 6000,
-      venueName: 'Campus universitario',
+      venueName: 'Campus universitário',
       linkSiteOficial: null,
       imagemUrl: null,
       sourceId: 'contract-fallback-005',
@@ -4488,6 +4492,7 @@ function buildContractFallbackListing(scope: AdminEventRadarScope = 'in'): Event
       enrichmentAttempts: 2,
       enrichmentLastError: null,
       crawledUrl: 'https://example.invalid/event-radar-contract',
+      lastSeenAt: null,
     },
   ];
   return {
@@ -4799,7 +4804,7 @@ export async function fetchPace(
     });
     return data?.points ?? [];
   } catch (err) {
-    console.warn('[fetchPace] endpoint indisponivel:', err);
+    console.warn('[fetchPace] endpoint indisponível:', err);
     throw err;
   }
 }
@@ -4907,7 +4912,7 @@ export async function fetchPortfolioCalendar(
     });
     return data ?? { properties: [] };
   } catch (err) {
-    console.warn('[fetchPortfolioCalendar] endpoint indisponivel:', err);
+    console.warn('[fetchPortfolioCalendar] endpoint indisponível:', err);
     throw err;
   }
 }
@@ -5035,8 +5040,8 @@ export interface PortfolioActionRun {
   strategyApplied?: string | null;
   actorName?: string | null;
   actorEmail?: string | null;
-  createdAt?: string | null;
-  updatedAt?: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
   summary?: Record<string, unknown> | null;
 }
 
@@ -5067,7 +5072,7 @@ export async function fetchPortfolioOpportunities(
     });
     return data ?? { opportunities: [] };
   } catch (err) {
-    console.warn('[fetchPortfolioOpportunities] endpoint indisponivel:', err);
+    console.warn('[fetchPortfolioOpportunities] endpoint indisponível:', err);
     throw err;
   }
 }
@@ -5083,7 +5088,7 @@ export async function simulatePortfolioAction(
     );
     return { ...(data ?? {}), simulated: data?.simulated ?? true };
   } catch (err) {
-    console.warn('[simulatePortfolioAction] endpoint indisponivel:', err);
+    console.warn('[simulatePortfolioAction] endpoint indisponível:', err);
     throw err;
   }
 }
@@ -5096,7 +5101,7 @@ export async function mutatePortfolioBulkAction(
     const { data } = await api.post<PortfolioBulkActionResponse>('/portfolio/bulk-action', input);
     return data;
   } catch (err) {
-    console.warn('[mutatePortfolioBulkAction] endpoint indisponivel:', err);
+    console.warn('[mutatePortfolioBulkAction] endpoint indisponível:', err);
     throw err;
   }
 }
@@ -5113,7 +5118,7 @@ export async function fetchPortfolioActionRuns(limit = 8): Promise<PortfolioActi
   } catch (err) {
     const status = (err as any)?.response?.status;
     if (status === 404 || status === 405 || status === 501) {
-      console.warn('[fetchPortfolioActionRuns] endpoint indisponivel:', err);
+      console.warn('[fetchPortfolioActionRuns] endpoint indisponível:', err);
       return [];
     }
     throw err;
@@ -5169,7 +5174,7 @@ export async function fetchPricingRules(propertyId: string): Promise<PricingRule
     if (!data) throw new Error('empty response');
     return data;
   } catch (err) {
-    console.warn('[fetchPricingRules] endpoint indisponivel:', err);
+    console.warn('[fetchPricingRules] endpoint indisponível:', err);
     throw err;
   }
 }
@@ -5201,7 +5206,7 @@ export async function previewPricingRules(
     );
     return data ?? { days: [] };
   } catch (err) {
-    console.warn('[previewPricingRules] endpoint indisponivel:', err);
+    console.warn('[previewPricingRules] endpoint indisponível:', err);
     throw err;
   }
 }
@@ -5289,7 +5294,7 @@ export async function fetchMarketIntel(
     if (!data) throw new Error('empty response');
     return data;
   } catch (err) {
-    console.warn('[fetchMarketIntel] endpoint indisponivel:', err);
+    console.warn('[fetchMarketIntel] endpoint indisponível:', err);
     throw err;
   }
 }

@@ -80,10 +80,10 @@ export function isTrustedBasePriceSource(value: unknown): boolean {
 
 export function formatPricingSourceLabel(value: unknown): string {
   const source = normalizeSource(value);
-  if (!source) return 'fonte nao informada';
-  if (source === 'manual' || source === 'manual_backfill' || source === 'admin_manual') return 'diaria manual';
+  if (!source) return 'fonte não informada';
+  if (source === 'manual' || source === 'manual_backfill' || source === 'admin_manual') return 'diária manual';
   if (source.startsWith('airbnb_')) return 'Airbnb checkout';
-  if (source === 'portfolio_bulk_action') return 'acao em lote';
+  if (source === 'portfolio_bulk_action') return 'ação em lote';
   if (source === 'stays_sync' || source === 'stays_auto') return 'Stays';
 
   return source.replace(/_/g, ' ');
@@ -96,9 +96,9 @@ export function describeBasePriceReadiness(list: any): BasePriceReadiness {
       ready: true,
       dailyPrice: manualDailyPrice,
       source: normalizeSource(list?.pricingInputSource) || 'manual',
-      sourceLabel: 'diaria manual',
+      sourceLabel: 'diária manual',
       reason: 'manual',
-      message: 'Diaria base informada manualmente.',
+      message: 'Diária base informada manualmente.',
     };
   }
 
@@ -113,7 +113,7 @@ export function describeBasePriceReadiness(list: any): BasePriceReadiness {
       source,
       sourceLabel,
       reason: 'missing-price',
-      message: 'Ainda nao encontramos uma diaria base para este imovel.',
+      message: 'Ainda não encontramos uma diária base para este imóvel.',
     };
   }
 
@@ -124,7 +124,7 @@ export function describeBasePriceReadiness(list: any): BasePriceReadiness {
       source,
       sourceLabel,
       reason: 'provisional-source',
-      message: 'Existe um valor temporario, mas ele ainda nao e uma diaria confirmada do Airbnb.',
+      message: 'Existe um valor temporário, mas ele ainda não é uma diária confirmada do Airbnb.',
     };
   }
 
@@ -135,7 +135,7 @@ export function describeBasePriceReadiness(list: any): BasePriceReadiness {
       source,
       sourceLabel,
       reason: 'trusted-source',
-      message: 'Diaria base encontrada em uma fonte confiavel.',
+      message: 'Diária base encontrada em uma fonte confiável.',
     };
   }
 
@@ -145,7 +145,7 @@ export function describeBasePriceReadiness(list: any): BasePriceReadiness {
     source,
     sourceLabel,
     reason: 'unknown-source',
-    message: 'Encontramos um valor, mas a origem nao confirma que ele pode iniciar a analise.',
+    message: 'Encontramos um valor, mas a origem não confirma que ele pode iniciar a análise.',
   };
 }
 

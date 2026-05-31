@@ -5,8 +5,8 @@ import { AppButton } from "./AppButton";
 import { Close, Sparkles } from "./Icons";
 
 /**
- * Modal de upgrade para usuarios no plano `starter` que tentam abrir o
- * AskUrban. Substitui o drawer enquanto o usuario nao migra pra
+ * Modal de upgrade para usuários no plano `starter` que tentam abrir o
+ * AskUrban. Substitui o drawer enquanto o usuário não migra pra
  * `profissional`. Pattern espelhado de `AppConfirmDialog` mas com identidade
  * do Ask (chip BETA, ícone Sparkles).
  *
