@@ -390,7 +390,7 @@ function MarketIntelContent() {
           gap: 20px;
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
-        @média (min-width: 900px) {
+        @media (min-width: 900px) {
           .market-intel-kpi-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
         }
       `}</style>

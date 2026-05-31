@@ -566,7 +566,7 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
             transform: translateY(-2px);
           }
         }
-        @média (prefers-reduced-motion: reduce) {
+        @media (prefers-reduced-motion: reduce) {
           [role="dialog"] {
             animation: none !important;
           }

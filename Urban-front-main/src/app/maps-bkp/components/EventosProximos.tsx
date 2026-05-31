@@ -44,7 +44,7 @@ export default function EventosProximos({
       crescimento: "+35%",
     },
     {
-      nome: "Conferencia Tech",
+      nome: "Conferência Tech",
       impacto: "Baixo",
       data: "2025-08-25",
       distancia: "2.3 km",

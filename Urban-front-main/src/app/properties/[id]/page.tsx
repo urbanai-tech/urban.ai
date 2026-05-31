@@ -1103,7 +1103,7 @@ const styles = `
     margin-top: 18px;
   }
 
-  @média (max-width: 1100px) {
+  @media (max-width: 1100px) {
     .property-metric-grid,
     .property-grid.two,
     .property-price-panel,
@@ -1121,7 +1121,7 @@ const styles = `
     }
   }
 
-  @média (max-width: 720px) {
+  @media (max-width: 720px) {
     .property-hero,
     .property-hero-main {
       flex-direction: column;

@@ -293,7 +293,7 @@ function AskUrbanFab({
         [data-ask-urban-fab]:hover {
           box-shadow: 0 22px 54px var(--app-accent-shadow), 0 6px 18px rgba(0,0,0,0.26) !important;
         }
-        @média (max-width: 767px) {
+        @media (max-width: 767px) {
           [data-ask-urban-fab] {
             bottom: calc(64px + 18px + env(safe-área-inset-bottom, 0px)) !important;
             right: 16px !important;

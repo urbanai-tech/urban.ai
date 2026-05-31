@@ -1168,7 +1168,7 @@ const styles = `
     margin-top: 22px;
   }
 
-  @média (max-width: 980px) {
+  @media (max-width: 980px) {
     .properties-summary-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1187,7 +1187,7 @@ const styles = `
     }
   }
 
-  @média (max-width: 720px) {
+  @media (max-width: 720px) {
     .properties-summary-grid {
       grid-template-columns: 1fr;
     }
