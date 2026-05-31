@@ -40,7 +40,7 @@ export function ListingsQuotaGuard({ children, onUpsellClick, fallback }: Props)
     fetchListingsQuota()
       .then((q) => setQuota(q))
       .catch((err) =>
-        setError(getFriendlyApiErrorMessage(err, "Nao conseguimos verificar seu plano agora.")),
+        setError(getFriendlyApiErrorMessage(err, "Não conseguimos verificar seu plano agora.")),
       )
       .finally(() => setLoading(false));
   }, []);
@@ -63,7 +63,7 @@ export function ListingsQuotaGuard({ children, onUpsellClick, fallback }: Props)
           lineHeight: 1.5,
         }}
       >
-        Nao foi possivel verificar se seu plano permite cadastrar mais imoveis. {error}
+        Não foi possível verificar se seu plano permite cadastrar mais imóveis. {error}
       </div>
     );
   }
@@ -85,10 +85,10 @@ export function ListingsQuotaGuard({ children, onUpsellClick, fallback }: Props)
       }}
     >
       <h3 style={{ margin: 0, fontSize: 18, fontWeight: 750, color: "var(--app-warning)" }}>
-        Limite de imoveis atingido
+        Limite de imóveis atingido
       </h3>
       <p style={{ margin: "12px 0 0", color: "var(--app-text-dim)", fontSize: 14, lineHeight: 1.6 }}>
-        Seu plano inclui <strong>{quota.contratados}</strong> imoveis e voce ja tem <strong>{quota.ativos}</strong> ativos.
+        Seu plano inclui <strong>{quota.contratados}</strong> imóveis e você já tem <strong>{quota.ativos}</strong> ativos.
         Para cadastrar mais um, ajuste seu plano.
       </p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 16 }}>

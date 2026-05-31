@@ -15,7 +15,7 @@ function validationCaseStudy({
   source,
   sample,
   validationNote,
-  period = "Em definicao apos coleta assistida e revisao do responsavel.",
+  period = "Em definição após coleta assistida e revisão do responsável.",
 }: ValidationCaseStudyInput): SeoCaseStudy {
   return {
     title,
@@ -30,100 +30,100 @@ function validationCaseStudy({
 
 export const dynamicPricingAirbnb: SeoContent = {
   path: "/precificacao-dinamica-airbnb",
-  title: "Precificacao dinamica para Airbnb - Urban AI",
+  title: "Precificação dinâmica para Airbnb - Urban AI",
   description:
-    "Entenda como precificacao dinamica para Airbnb usa eventos, demanda local e dados do imovel para orientar diarias.",
+    "Entenda como precificação dinâmica para Airbnb usa eventos, demanda local e dados do imóvel para orientar diárias.",
   eyebrow: "Guia - Airbnb pricing",
-  h1: "Precificacao dinamica para Airbnb",
+  h1: "Precificação dinâmica para Airbnb",
   lead:
-    "Precificacao dinamica para Airbnb e o processo de ajustar diarias conforme demanda, antecedencia, eventos, sazonalidade e desempenho do imovel.",
+    "Precificação dinâmica para Airbnb é o processo de ajustar diárias conforme demanda, antecedência, eventos, sazonalidade e desempenho do imóvel.",
   answer:
-    "A Urban AI ajuda anfitrioes a precificar com mais contexto: ela cruza eventos urbanos, localizacao, janela de antecedencia e sinais de mercado para sugerir quando uma diaria pode subir, cair ou permanecer estavel.",
+    "A Urban AI ajuda anfitriões a precificar com mais contexto: ela cruza eventos urbanos, localização, janela de antecedência e sinais de mercado para sugerir quando uma diária pode subir, cair ou permanecer estável.",
   directAnswers: [
     {
-      question: "O que e precificacao dinamica para Airbnb?",
+      question: "O que é precificação dinâmica para Airbnb?",
       answer:
-        "Precificacao dinamica para Airbnb e a revisao recorrente da diaria com base em demanda, calendario, antecedencia, caracteristicas do imovel e sinais locais observaveis.",
+        "Precificação dinâmica para Airbnb é a revisão recorrente da diária com base em demanda, calendário, antecedência, características do imóvel e sinais locais observáveis.",
     },
     {
-      question: "Quando a IA deve recomendar subir ou reduzir a diaria?",
+      question: "Quando a IA deve recomendar subir ou reduzir a diária?",
       answer:
-        "A IA deve recomendar ajuste quando encontra mudanca relevante no contexto, como evento proximo, feriado, baixa procura, alta antecedencia ou risco de ficar fora da faixa de comparaveis.",
+        "A IA deve recomendar ajuste quando encontra mudança relevante no contexto, como evento próximo, feriado, baixa procura, alta antecedência ou risco de ficar fora da faixa de comparáveis.",
     },
   ],
   sections: [
     {
       title: "O problema",
       body:
-        "Muitos anfitrioes definem uma diaria media e so revisam quando o calendario ja ficou vazio ou lotou cedo demais. Isso pode fazer datas de alta demanda serem tratadas como datas comuns.",
+        "Muitos anfitriões definem uma diária média e só revisam quando o calendário já ficou vazio ou lotou cedo demais. Isso pode fazer datas de alta demanda serem tratadas como datas comuns.",
     },
     {
       title: "Como a IA entra",
       body:
-        "A IA combina dados do imovel, comportamento do bairro e calendario de eventos. A recomendacao nao substitui a decisao do anfitriao; ela reduz incerteza.",
+        "A IA combina dados do imóvel, comportamento do bairro e calendário de eventos. A recomendação não substitui a decisão do anfitrião; ela reduz incerteza.",
     },
     {
       title: "Quando vale mais",
       body:
-        "A necessidade de revisao tende a ser maior em cidades com muitos eventos, feriados regionais, shows, congressos e variacao forte de procura por bairro.",
+        "A necessidade de revisão tende a ser maior em cidades com muitos eventos, feriados regionais, shows, congressos e variação forte de procura por bairro.",
     },
   ],
   evidence: [
     {
-      title: "Sinais usados na recomendacao",
+      title: "Sinais usados na recomendação",
       body:
-        "A leitura parte de informacoes rastreaveis: dados do imovel, calendario de disponibilidade, janela de antecedencia, eventos publicos e sinais de mercado quando disponiveis.",
+        "A leitura parte de informações rastreáveis: dados do imóvel, calendário de disponibilidade, janela de antecedência, eventos públicos e sinais de mercado quando disponíveis.",
     },
     {
-      title: "Separacao entre sugestao e execucao",
+      title: "Separação entre sugestão e execução",
       body:
-        "A pagina declara que recomendacao e automacao sao fluxos diferentes. O anfitriao pode revisar a justificativa antes de aplicar o preco.",
+        "A página declara que recomendação e automação são fluxos diferentes. O anfitrião pode revisar a justificativa antes de aplicar o preço.",
     },
     {
       title: "Sem promessa de resultado garantido",
       body:
-        "As respostas evitam promessa de aumento automatico de receita. A proposta e reduzir incerteza e tornar a decisao mais explicavel.",
+        "As respostas evitam promessa de aumento automático de receita. A proposta é reduzir incerteza e tornar a decisão mais explicável.",
     },
   ],
   methodology: [
     {
       title: "1. Normalizar o contexto",
       body:
-        "O primeiro passo e organizar bairro, tipo de imovel, capacidade, calendario, regras do anuncio e historico operacional informado pelo anfitriao.",
+        "O primeiro passo é organizar bairro, tipo de imóvel, capacidade, calendário, regras do anúncio e histórico operacional informado pelo anfitrião.",
     },
     {
       title: "2. Ler a demanda local",
       body:
-        "Depois, o motor procura sinais externos que alteram a procura, como eventos, feriados, sazonalidade e mudancas de comportamento por antecedencia.",
+        "Depois, o motor procura sinais externos que alteram a procura, como eventos, feriados, sazonalidade e mudanças de comportamento por antecedência.",
     },
     {
-      title: "3. Explicar a recomendacao",
+      title: "3. Explicar a recomendação",
       body:
-        "A sugestao deve apontar o motivo do ajuste, o tipo de sinal observado e os limites que protegem a decisao comercial do anfitriao.",
+        "A sugestão deve apontar o motivo do ajuste, o tipo de sinal observado e os limites que protegem a decisão comercial do anfitrião.",
     },
   ],
   caseStudies: [
     validationCaseStudy({
-      title: "Recomendacao assistida por evento urbano",
+      title: "Recomendação assistida por evento urbano",
       summary:
-        "Slot para documentar uma recomendacao gerada a partir de evento, revisao humana e decisao de preco do anfitriao.",
+        "Slot para documentar uma recomendação gerada a partir de evento, revisão humana e decisão de preço do anfitrião.",
       source:
-        "Beta fechado assistido, AnalisePreco e PriceSnapshot, somente quando houver consentimento e vinculo entre recomendacao e imovel.",
+        "Beta fechado assistido, AnalisePreco e PriceSnapshot, somente quando houver consentimento e vínculo entre recomendação e imóvel.",
       sample:
-        "Amostra em formacao: imoveis com recomendacao, preco aplicado e snapshot associado.",
+        "Amostra em formação: imóveis com recomendação, preço aplicado e snapshot associado.",
       validationNote:
-        "Sem metrica publica enquanto a fonte, o periodo e a amostra nao forem revisados. Status atual: em validacao.",
+        "Sem métrica pública enquanto a fonte, o período e a amostra não forem revisados. Status atual: em validação.",
     }),
     validationCaseStudy({
-      title: "Comparacao entre preco recomendado e preco aplicado",
+      title: "Comparação entre preço recomendado e preço aplicado",
       summary:
-        "Slot para comparar decisao sugerida, decisao aplicada e contexto operacional sem atribuir resultado automaticamente a IA.",
+        "Slot para comparar decisão sugerida, decisão aplicada e contexto operacional sem atribuir resultado automaticamente à IA.",
       source:
-        "Historico operacional autorizado, aceite/rejeicao de recomendacao e registro de preco aplicado.",
+        "Histórico operacional autorizado, aceite/rejeição de recomendação e registro de preço aplicado.",
       sample:
-        "Amostra pendente de revisao: recomendacoes com decisao do usuario e dado de aplicacao rastreavel.",
+        "Amostra pendente de revisão: recomendações com decisão do usuário e dado de aplicação rastreável.",
       validationNote:
-        "Qualquer numero futuro precisa separar correlacao, decisao humana e fatores externos antes de aparecer no site.",
+        "Qualquer número futuro precisa separar correlação, decisão humana e fatores externos antes de aparecer no site.",
     }),
   ],
   internalCtas: [
@@ -131,46 +131,46 @@ export const dynamicPricingAirbnb: SeoContent = {
       href: "/como-precificar-airbnb-em-dias-de-eventos",
       label: "Guia de eventos",
       description:
-        "Veja como transformar shows, congressos, jogos e feriados em criterios praticos de preco.",
+        "Veja como transformar shows, congressos, jogos e feriados em critérios práticos de preço.",
     },
     {
       href: "/integracao-stays-precificacao-automatica",
-      label: "Automacao com Stays",
+      label: "Automação com Stays",
       description:
-        "Entenda quando a recomendacao vira aplicacao automatica com consentimento, limites e historico.",
+        "Entenda quando a recomendação vira aplicação automática com consentimento, limites e histórico.",
     },
     {
       href: "/urban-ai-vs-planilha-de-precificacao",
       label: "Comparativo",
       description:
-        "Compare a leitura de IA com regras fixas de planilha para precificacao de curta temporada.",
+        "Compare a leitura de IA com regras fixas de planilha para precificação de curta temporada.",
     },
   ],
   faq: [
     {
-      question: "Precificacao dinamica aumenta receita automaticamente?",
+      question: "Precificação dinâmica aumenta receita automaticamente?",
       answer:
-        "Nao ha garantia automatica. Ela apoia a tomada de decisao ao mostrar datas com maior chance de demanda e riscos de subprecificacao.",
+        "Não há garantia automática. Ela apoia a tomada de decisão ao mostrar datas com maior chance de demanda e riscos de subprecificação.",
     },
     {
       question: "A Urban AI altera meu Airbnb sozinha?",
       answer:
-        "No modo recomendacao, nao. O anfitriao recebe a sugestao e decide. A automacao via Stays exige consentimento e limites configurados.",
+        "No modo recomendação, não. O anfitrião recebe a sugestão e decide. A automação via Stays exige consentimento e limites configurados.",
     },
     {
       question: "Qual o diferencial da Urban AI?",
       answer:
-        "O foco e precificacao por eventos urbanos no Brasil, com prioridade inicial em Sao Paulo e Grande SP.",
+        "O foco é precificação por eventos urbanos no Brasil, com prioridade inicial em São Paulo e Grande SP.",
     },
     {
-      question: "A recomendacao substitui a estrategia do anfitriao?",
+      question: "A recomendação substitui a estratégia do anfitrião?",
       answer:
-        "Nao. A recomendacao organiza sinais e sugere uma faixa de acao, mas metas, custos, risco e posicionamento continuam sendo decisoes do anfitriao.",
+        "Não. A recomendação organiza sinais e sugere uma faixa de ação, mas metas, custos, risco e posicionamento continuam sendo decisões do anfitrião.",
     },
     {
-      question: "Quais dados nao devem ser inventados pela IA?",
+      question: "Quais dados não devem ser inventados pela IA?",
       answer:
-        "A IA nao deve inventar ocupacao, receita, comparaveis ou impacto de eventos. Quando um dado nao esta disponivel, a resposta deve indicar a limitacao.",
+        "A IA não deve inventar ocupação, receita, comparáveis ou impacto de eventos. Quando um dado não está disponível, a resposta deve indicar a limitação.",
     },
   ],
 };
@@ -179,182 +179,182 @@ export const eventPricingGuide: SeoContent = {
   path: "/como-precificar-airbnb-em-dias-de-eventos",
   title: "Como precificar Airbnb em dias de eventos - Urban AI",
   description:
-    "Guia pratico para ajustar diarias de Airbnb em shows, congressos, jogos, feriados e eventos perto do imovel.",
-  eyebrow: "Guia pratico",
+    "Guia prático para ajustar diárias de Airbnb em shows, congressos, jogos, feriados e eventos perto do imóvel.",
+  eyebrow: "Guia prático",
   h1: "Como precificar em dias de eventos",
   lead:
-    "Dias de evento mudam a procura por bairro. A diaria ideal depende de distancia real, antecedencia, tipo de evento e comparaveis.",
+    "Dias de evento mudam a procura por bairro. A diária ideal depende de distância real, antecedência, tipo de evento e comparáveis.",
   answer:
-    "Para precificar Airbnb em dias de eventos, identifique o evento, estime a demanda local, compare imoveis similares, defina um teto de aumento e revise a ocupacao ate a data. A Urban AI automatiza essa leitura e transforma o contexto em recomendacao.",
+    "Para precificar Airbnb em dias de eventos, identifique o evento, estime a demanda local, compare imóveis similares, defina um teto de aumento e revise a ocupação até a data. A Urban AI automatiza essa leitura e transforma o contexto em recomendação.",
   directAnswers: [
     {
       question: "Como precificar Airbnb em dia de evento?",
       answer:
-        "Comece pelo evento, confirme distancia e acesso ate o imovel, compare anuncios semelhantes, defina limites de variacao e revise o preco conforme a data se aproxima.",
+        "Comece pelo evento, confirme distância e acesso até o imóvel, compare anúncios semelhantes, defina limites de variação e revise o preço conforme a data se aproxima.",
     },
     {
-      question: "Qual criterio evita aumento de preco sem base?",
+      question: "Qual critério evita aumento de preço sem base?",
       answer:
-        "O criterio principal e exigir uma justificativa observavel: evento real, proximidade util, publico compatível, calendario de disponibilidade e comparaveis coerentes.",
+        "O critério principal é exigir uma justificativa observável: evento real, proximidade útil, público compatível, calendário de disponibilidade e comparáveis coerentes.",
     },
   ],
   sections: [
     {
       title: "1. Confirme o raio de impacto",
       body:
-        "Nem todo evento impacta toda a cidade. Eventos perto do imovel ou com facil acesso por transporte tendem a afetar mais a diaria.",
+        "Nem todo evento impacta toda a cidade. Eventos perto do imóvel ou com fácil acesso por transporte tendem a afetar mais a diária.",
     },
     {
-      title: "2. Ajuste por antecedencia",
+      title: "2. Ajuste por antecedência",
       body:
-        "Eventos anunciados cedo permitem subir preco com calma. Em datas proximas, a prioridade pode virar ocupacao e velocidade de reserva.",
+        "Eventos anunciados cedo permitem subir preço com calma. Em datas próximas, a prioridade pode virar ocupação e velocidade de reserva.",
     },
     {
       title: "3. Use limites",
       body:
-        "Aumento sem teto pode reduzir conversao. A recomendacao deve respeitar historico do imovel, nota, cancelamento e qualidade do anuncio.",
+        "Aumento sem teto pode reduzir conversão. A recomendação deve respeitar histórico do imóvel, nota, cancelamento e qualidade do anúncio.",
     },
   ],
   evidence: [
     {
-      title: "Evento identificavel",
+      title: "Evento identificável",
       body:
-        "A recomendacao deve partir de um evento com data, local e fonte publica ou operacional, evitando tratar boatos e datas genericas como demanda confirmada.",
+        "A recomendação deve partir de um evento com data, local e fonte pública ou operacional, evitando tratar boatos e datas genéricas como demanda confirmada.",
     },
     {
-      title: "Impacto por acesso, nao so por mapa",
+      title: "Impacto por acesso, não só por mapa",
       body:
-        "A distancia em linha reta pode enganar. Transporte, tempo de deslocamento e barreiras urbanas ajudam a qualificar se o evento afeta o imovel.",
+        "A distância em linha reta pode enganar. Transporte, tempo de deslocamento e barreiras urbanas ajudam a qualificar se o evento afeta o imóvel.",
     },
     {
       title: "Limites comerciais",
       body:
-        "O ajuste precisa respeitar teto, piso, posicionamento do anuncio, politica de cancelamento e objetivo de ocupacao definido pelo anfitriao.",
+        "O ajuste precisa respeitar teto, piso, posicionamento do anúncio, política de cancelamento e objetivo de ocupação definido pelo anfitrião.",
     },
   ],
   methodology: [
     {
       title: "1. Classificar o evento",
       body:
-        "Separe shows, feiras, congressos, jogos, festivais e feriados, porque cada tipo muda a antecedencia e o perfil de hospede.",
+        "Separe shows, feiras, congressos, jogos, festivais e feriados, porque cada tipo muda a antecedência e o perfil de hóspede.",
     },
     {
-      title: "2. Medir relevancia local",
+      title: "2. Medir relevância local",
       body:
-        "Cruze local do evento, acesso, bairro do imovel, datas de entrada e saida provaveis e oferta alternativa na regiao.",
+        "Cruze local do evento, acesso, bairro do imóvel, datas de entrada e saída prováveis e oferta alternativa na região.",
     },
     {
-      title: "3. Revisar ate a data",
+      title: "3. Revisar até a data",
       body:
-        "A primeira recomendacao nao precisa ser definitiva. O preco deve ser revisto conforme calendario, procura e risco de vacancia mudam.",
+        "A primeira recomendação não precisa ser definitiva. O preço deve ser revisto conforme calendário, procura e risco de vacância mudam.",
     },
   ],
   caseStudies: [
     validationCaseStudy({
       title: "Evento com impacto local confirmado",
       summary:
-        "Slot para documentar quando um evento real gerou uma recomendacao revisada, com contexto de acesso e decisao do anfitriao.",
+        "Slot para documentar quando um evento real gerou uma recomendação revisada, com contexto de acesso e decisão do anfitrião.",
       source:
-        "Fonte publica do evento, registro interno da recomendacao e decisao operacional autorizada pelo anfitriao.",
+        "Fonte pública do evento, registro interno da recomendação e decisão operacional autorizada pelo anfitrião.",
       sample:
-        "Amostra em formacao: eventos com data, local, imovel elegivel e decisao registrada.",
+        "Amostra em formação: eventos com data, local, imóvel elegível e decisão registrada.",
       validationNote:
-        "Nenhum percentual de ajuste e publicado enquanto a relacao entre evento, acesso e decisao nao estiver validada.",
+        "Nenhum percentual de ajuste é publicado enquanto a relação entre evento, acesso e decisão não estiver validada.",
     }),
     validationCaseStudy({
       title: "Evento monitorado sem ajuste publicado",
       summary:
-        "Slot para mostrar que nem todo evento vira recomendacao, preservando o criterio de cautela quando o sinal e fraco.",
+        "Slot para mostrar que nem todo evento vira recomendação, preservando o critério de cautela quando o sinal é fraco.",
       source:
-        "Agenda de eventos, criterio de distancia/acesso e registro de motivo para nao recomendar ajuste.",
+        "Agenda de eventos, critério de distância/acesso e registro de motivo para não recomendar ajuste.",
       sample:
-        "Amostra pendente: eventos avaliados e descartados com motivo rastreavel.",
+        "Amostra pendente: eventos avaliados e descartados com motivo rastreável.",
       validationNote:
-        "O status permanece em validacao ate haver revisao do criterio e registro suficiente para publicar o aprendizado.",
+        "O status permanece em validação até haver revisão do critério e registro suficiente para publicar o aprendizado.",
     }),
   ],
   internalCtas: [
     {
       href: "/precificacao-por-eventos-sao-paulo",
-      label: "Sao Paulo",
+      label: "São Paulo",
       description:
-        "Entenda por que eventos em Sao Paulo e Grande SP exigem leitura por bairro e acesso.",
+        "Entenda por que eventos em São Paulo e Grande SP exigem leitura por bairro e acesso.",
     },
     {
       href: "/precificacao-dinamica-airbnb",
-      label: "Precificacao dinamica",
+      label: "Precificação dinâmica",
       description:
-        "Veja como eventos entram em uma estrategia mais ampla de ajuste recorrente de diaria.",
+        "Veja como eventos entram em uma estratégia mais ampla de ajuste recorrente de diária.",
     },
     {
       href: "/precos",
       label: "Planos",
       description:
-        "Conheca os planos publicos da Urban AI para anfitrioes e gestoras.",
+        "Conheça os planos públicos da Urban AI para anfitriões e gestoras.",
     },
   ],
   faq: [
     {
-      question: "Todo evento justifica aumentar diaria?",
+      question: "Todo evento justifica aumentar diária?",
       answer:
-        "Nao. O impacto depende de tamanho, publico, distancia, acesso e conflito com outras datas de demanda.",
+        "Não. O impacto depende de tamanho, público, distância, acesso e conflito com outras datas de demanda.",
     },
     {
       question: "Quanto devo aumentar em dias de show?",
       answer:
-        "Nao existe percentual unico. Um bom ponto de partida e comparar o imovel com similares e aplicar tetos por perfil de demanda.",
+        "Não existe percentual único. Um bom ponto de partida é comparar o imóvel com similares e aplicar tetos por perfil de demanda.",
     },
     {
-      question: "A Urban AI mostra o motivo da sugestao?",
+      question: "A Urban AI mostra o motivo da sugestão?",
       answer:
-        "Sim. A recomendacao deve ser explicavel: evento, proximidade, janela e potenciais impactos no preco.",
+        "Sim. A recomendação deve ser explicável: evento, proximidade, janela e potenciais impactos no preço.",
     },
     {
-      question: "Evento longe do imovel pode afetar preco?",
+      question: "Evento longe do imóvel pode afetar preço?",
       answer:
-        "Pode, mas apenas quando o acesso e facil ou quando a cidade tem baixa oferta alternativa para o publico daquele evento.",
+        "Pode, mas apenas quando o acesso é fácil ou quando a cidade tem baixa oferta alternativa para o público daquele evento.",
     },
     {
-      question: "Quando devo reduzir o preco mesmo em semana de evento?",
+      question: "Quando devo reduzir o preço mesmo em semana de evento?",
       answer:
-        "A reducao pode fazer sentido se a data estiver proxima, o calendario seguir vazio, os comparaveis estiverem mais competitivos ou o evento nao impactar o bairro.",
+        "A redução pode fazer sentido se a data estiver próxima, o calendário seguir vazio, os comparáveis estiverem mais competitivos ou o evento não impactar o bairro.",
     },
   ],
 };
 
 export const saoPauloEventsPricing: SeoContent = {
   path: "/precificacao-por-eventos-sao-paulo",
-  title: "Precificacao por eventos em Sao Paulo - Urban AI",
+  title: "Precificação por eventos em São Paulo - Urban AI",
   description:
-    "Como eventos em Sao Paulo e Grande SP podem influenciar diarias de aluguel por temporada e Airbnb.",
-  eyebrow: "Sao Paulo - Eventos",
-  h1: "Eventos em Sao Paulo mudam a diaria",
+    "Como eventos em São Paulo e Grande SP podem influenciar diárias de aluguel por temporada e Airbnb.",
+  eyebrow: "São Paulo - Eventos",
+  h1: "Eventos em São Paulo mudam a diária",
   lead:
-    "Sao Paulo concentra shows, feiras, congressos, jogos e festivais que deslocam demanda entre bairros e datas.",
+    "São Paulo concentra shows, feiras, congressos, jogos e festivais que deslocam demanda entre bairros e datas.",
   answer:
-    "A Urban AI prioriza Sao Paulo e Grande SP porque a densidade de eventos torna a precificacao manual dificil. O sistema observa o calendario urbano e sinaliza datas em que a procura pode fugir do padrao.",
+    "A Urban AI prioriza São Paulo e Grande SP porque a densidade de eventos torna a precificação manual difícil. O sistema observa o calendário urbano e sinaliza datas em que a procura pode fugir do padrão.",
   directAnswers: [
     {
-      question: "Por que eventos em Sao Paulo afetam o Airbnb?",
+      question: "Por que eventos em São Paulo afetam o Airbnb?",
       answer:
-        "Eventos em Sao Paulo afetam o Airbnb porque deslocam demanda por bairro, transporte e datas especificas, especialmente quando o hospede quer ficar perto do local ou de uma rota simples.",
+        "Eventos em São Paulo afetam o Airbnb porque deslocam demanda por bairro, transporte e datas específicas, especialmente quando o hóspede quer ficar perto do local ou de uma rota simples.",
     },
     {
-      question: "Como a Urban AI avalia eventos em Sao Paulo?",
+      question: "Como a Urban AI avalia eventos em São Paulo?",
       answer:
-        "A Urban AI cruza agenda urbana, localizacao do imovel, acesso, antecedencia e sinais de mercado para indicar se uma data merece atencao de preco.",
+        "A Urban AI cruza agenda urbana, localização do imóvel, acesso, antecedência e sinais de mercado para indicar se uma data merece atenção de preço.",
     },
   ],
   sections: [
     {
       title: "Eventos corporativos",
       body:
-        "Feiras e congressos podem elevar procura em regioes com facil acesso a centros de convencoes e polos comerciais.",
+        "Feiras e congressos podem elevar procura em regiões com fácil acesso a centros de convenções e polos comerciais.",
     },
     {
-      title: "Shows e estadios",
+      title: "Shows e estádios",
       body:
-        "Grandes shows e jogos criam picos localizados. A distancia real e o transporte importam mais que a distancia em linha reta.",
+        "Grandes shows e jogos criam picos localizados. A distância real e o transporte importam mais que a distância em linha reta.",
     },
     {
       title: "Feriados e sazonalidade",
@@ -366,360 +366,360 @@ export const saoPauloEventsPricing: SeoContent = {
     {
       title: "Agenda urbana como ponto de partida",
       body:
-        "A leitura considera eventos publicos e datas conhecidas, como shows, feiras, congressos, jogos e feriados, sem pressupor impacto igual para toda a cidade.",
+        "A leitura considera eventos públicos e datas conhecidas, como shows, feiras, congressos, jogos e feriados, sem pressupor impacto igual para toda a cidade.",
     },
     {
       title: "Bairro e acesso como filtros",
       body:
-        "Sao Paulo exige leitura por acesso real. Proximidade de metro, vias e polos de evento pode ser mais importante que a distancia em linha reta.",
+        "São Paulo exige leitura por acesso real. Proximidade de metrô, vias e polos de evento pode ser mais importante que a distância em linha reta.",
     },
     {
       title: "Cobertura declarada",
       body:
-        "A pagina deixa claro que a profundidade inicial esta em Sao Paulo e Grande SP, evitando afirmar cobertura nacional completa antes da expansao.",
+        "A página deixa claro que a profundidade inicial está em São Paulo e Grande SP, evitando afirmar cobertura nacional completa antes da expansão.",
     },
   ],
   methodology: [
     {
       title: "1. Mapear datas relevantes",
       body:
-        "O calendario organiza eventos por data, tipo e local para separar demanda recorrente de picos especificos.",
+        "O calendário organiza eventos por data, tipo e local para separar demanda recorrente de picos específicos.",
     },
     {
-      title: "2. Associar evento a micro-regiao",
+      title: "2. Associar evento a micro-região",
       body:
-        "Cada evento e avaliado contra bairros, rotas e perfil de hospedagem, em vez de gerar uma regra unica para Sao Paulo inteira.",
+        "Cada evento é avaliado contra bairros, rotas e perfil de hospedagem, em vez de gerar uma regra única para São Paulo inteira.",
     },
     {
-      title: "3. Sinalizar acao possivel",
+      title: "3. Sinalizar ação possível",
       body:
-        "A recomendacao indica se vale observar, ajustar preco, manter estrategia ou priorizar ocupacao conforme a janela de reserva.",
+        "A recomendação indica se vale observar, ajustar preço, manter estratégia ou priorizar ocupação conforme a janela de reserva.",
     },
   ],
   caseStudies: [
     validationCaseStudy({
-      title: "Cobertura de eventos em Sao Paulo e Grande SP",
+      title: "Cobertura de eventos em São Paulo e Grande SP",
       summary:
         "Slot para registrar quais fontes de eventos foram usadas, quais datas foram cobertas e quais lacunas ficaram abertas.",
       source:
-        "Coletores de eventos, fallback manual e evidencia de fonte publica quando disponivel.",
+        "Coletores de eventos, fallback manual e evidência de fonte pública quando disponível.",
       sample:
-        "Amostra em formacao: eventos classificados por data, tipo, local e fonte.",
+        "Amostra em formação: eventos classificados por data, tipo, local e fonte.",
       validationNote:
-        "A cobertura publica deve continuar descrita como em validacao ate a amostra e a cadencia serem auditadas.",
+        "A cobertura pública deve continuar descrita como em validação até a amostra e a cadência serem auditadas.",
     }),
     validationCaseStudy({
-      title: "Leitura por bairro, acesso e micro-regiao",
+      title: "Leitura por bairro, acesso e micro-região",
       summary:
-        "Slot para validar se a recomendacao diferencia bairros e rotas em vez de aplicar uma regra unica para a cidade.",
+        "Slot para validar se a recomendação diferencia bairros e rotas em vez de aplicar uma regra única para a cidade.",
       source:
-        "Dados do imovel, local do evento, criterio de acesso e revisao operacional registrada.",
+        "Dados do imóvel, local do evento, critério de acesso e revisão operacional registrada.",
       sample:
-        "Amostra pendente: recomendacoes com bairro, rota relevante e justificativa da decisao.",
+        "Amostra pendente: recomendações com bairro, rota relevante e justificativa da decisão.",
       validationNote:
-        "Sem dado validado, a pagina deve apenas declarar o metodo e manter qualquer resultado como em validacao.",
+        "Sem dado validado, a página deve apenas declarar o método e manter qualquer resultado como em validação.",
     }),
   ],
   internalCtas: [
     {
       href: "/como-precificar-airbnb-em-dias-de-eventos",
-      label: "Guia pratico",
+      label: "Guia prático",
       description:
-        "Aprenda o passo a passo para transformar um evento em decisao de preco.",
+        "Aprenda o passo a passo para transformar um evento em decisão de preço.",
     },
     {
       href: "/precificacao-dinamica-airbnb",
       label: "Airbnb pricing",
       description:
-        "Entenda como eventos se combinam com antecedencia, sazonalidade e dados do imovel.",
+        "Entenda como eventos se combinam com antecedência, sazonalidade e dados do imóvel.",
     },
     {
       href: "/contato",
       label: "Contato",
       description:
-        "Fale com a Urban AI sobre cobertura, integracoes e leitura de eventos para sua operacao.",
+        "Fale com a Urban AI sobre cobertura, integrações e leitura de eventos para sua operação.",
     },
   ],
   faq: [
     {
-      question: "A cobertura da Urban AI ja e nacional?",
+      question: "A cobertura da Urban AI já é nacional?",
       answer:
-        "A cobertura mais profunda comeca por Sao Paulo e Grande SP. Outras capitais entram conforme o pipeline de eventos amadurece.",
+        "A cobertura mais profunda começa por São Paulo e Grande SP. Outras capitais entram conforme o pipeline de eventos amadurece.",
     },
     {
       question: "Eventos pequenos importam?",
       answer:
-        "Alguns importam, especialmente se estao perto do imovel e atingem um publico com baixa oferta de hospedagem proxima.",
+        "Alguns importam, especialmente se estão perto do imóvel e atingem um público com baixa oferta de hospedagem próxima.",
     },
     {
-      question: "A Urban AI usa dados publicos de eventos?",
+      question: "A Urban AI usa dados públicos de eventos?",
       answer:
-        "Sim. O motor combina fontes publicas de eventos com dados do imovel e sinais de mercado.",
+        "Sim. O motor combina fontes públicas de eventos com dados do imóvel e sinais de mercado.",
     },
     {
-      question: "A mesma regra vale para todos os bairros de Sao Paulo?",
+      question: "A mesma regra vale para todos os bairros de São Paulo?",
       answer:
-        "Nao. A demanda pode variar por bairro, acesso, tipo de evento e perfil de hospede, por isso a recomendacao precisa ser localizada.",
+        "Não. A demanda pode variar por bairro, acesso, tipo de evento e perfil de hóspede, por isso a recomendação precisa ser localizada.",
     },
     {
-      question: "Shows e congressos devem ter estrategias iguais?",
+      question: "Shows e congressos devem ter estratégias iguais?",
       answer:
-        "Nao necessariamente. Shows podem concentrar demanda em uma noite; congressos podem gerar estadias mais longas e busca por acesso corporativo.",
+        "Não necessariamente. Shows podem concentrar demanda em uma noite; congressos podem gerar estadias mais longas e busca por acesso corporativo.",
     },
   ],
 };
 
 export const staysIntegrationPricing: SeoContent = {
   path: "/integracao-stays-precificacao-automatica",
-  title: "Integracao Stays para precificacao automatica - Urban AI",
+  title: "Integração Stays para precificação automática - Urban AI",
   description:
-    "Entenda como a Urban AI usa integracao Stays para aplicar precos sugeridos com consentimento, limites e historico.",
-  eyebrow: "Integracao Stays",
-  h1: "Precificacao automatica com Stays",
+    "Entenda como a Urban AI usa integração Stays para aplicar preços sugeridos com consentimento, limites e histórico.",
+  eyebrow: "Integração Stays",
+  h1: "Precificação automática com Stays",
   lead:
-    "A integracao com Stays permite que recomendacoes aprovadas sejam aplicadas no canal de distribuicao respeitando limites definidos pelo anfitriao.",
+    "A integração com Stays permite que recomendações aprovadas sejam aplicadas no canal de distribuição respeitando limites definidos pelo anfitrião.",
   answer:
-    "A Urban AI separa recomendacao de automacao. Primeiro, o sistema explica o preco sugerido. Depois, quando o anfitriao ativa a integracao, os ajustes podem ser enviados via Stays com tetos, consentimento e rastreabilidade.",
+    "A Urban AI separa recomendação de automação. Primeiro, o sistema explica o preço sugerido. Depois, quando o anfitrião ativa a integração, os ajustes podem ser enviados via Stays com tetos, consentimento e rastreabilidade.",
   directAnswers: [
     {
-      question: "O que a integracao Stays permite na Urban AI?",
+      question: "O que a integração Stays permite na Urban AI?",
       answer:
-        "A integracao Stays permite enviar precos aprovados ou automatizados para a operacao, respeitando consentimento, limites configurados e historico de aplicacao.",
+        "A integração Stays permite enviar preços aprovados ou automatizados para a operação, respeitando consentimento, limites configurados e histórico de aplicação.",
     },
     {
-      question: "A automacao deve aplicar qualquer sugestao de IA?",
+      question: "A automação deve aplicar qualquer sugestão de IA?",
       answer:
-        "Nao. A automacao deve obedecer regras do usuario, como teto, piso, pausa manual e criterios de seguranca antes de alterar um preco.",
+        "Não. A automação deve obedecer regras do usuário, como teto, piso, pausa manual e critérios de segurança antes de alterar um preço.",
     },
   ],
   sections: [
     {
-      title: "Modo recomendacao",
+      title: "Modo recomendação",
       body:
-        "O anfitriao ve a sugestao no painel e decide se aplica manualmente. E o fluxo ideal para comecar com controle total.",
+        "O anfitrião vê a sugestão no painel e decide se aplica manualmente. É o fluxo ideal para começar com controle total.",
     },
     {
-      title: "Modo automatico",
+      title: "Modo automático",
       body:
-        "Quando ativado, o envio respeita regras de seguranca, como tetos de variacao e possibilidade de pausar a automacao.",
+        "Quando ativado, o envio respeita regras de segurança, como tetos de variação e possibilidade de pausar a automação.",
     },
     {
-      title: "Historico e auditoria",
+      title: "Histórico e auditoria",
       body:
-        "Cada sugestao e aplicacao deve ser rastreavel, com motivo, data e parametros usados na decisao.",
+        "Cada sugestão e aplicação deve ser rastreável, com motivo, data e parâmetros usados na decisão.",
     },
   ],
   evidence: [
     {
-      title: "Consentimento explicito",
+      title: "Consentimento explícito",
       body:
-        "A automacao depende de ativacao do usuario. Sem consentimento, a Urban AI deve permanecer no modo recomendacao.",
+        "A automação depende de ativação do usuário. Sem consentimento, a Urban AI deve permanecer no modo recomendação.",
     },
     {
-      title: "Limites configuraveis",
+      title: "Limites configuráveis",
       body:
-        "Tetos, pisos e pausas reduzem risco de aplicacao fora da estrategia comercial do anfitriao.",
+        "Tetos, pisos e pausas reduzem risco de aplicação fora da estratégia comercial do anfitrião.",
     },
     {
-      title: "Historico de decisoes",
+      title: "Histórico de decisões",
       body:
-        "Cada aplicacao precisa manter contexto minimo: data, motivo, origem da recomendacao e regra usada no envio.",
+        "Cada aplicação precisa manter contexto mínimo: data, motivo, origem da recomendação e regra usada no envio.",
     },
   ],
   methodology: [
     {
-      title: "1. Gerar recomendacao explicada",
+      title: "1. Gerar recomendação explicada",
       body:
-        "Antes de qualquer envio, o sistema produz a sugestao com motivo, data afetada e criterio observado.",
+        "Antes de qualquer envio, o sistema produz a sugestão com motivo, data afetada e critério observado.",
     },
     {
-      title: "2. Validar regra de automacao",
+      title: "2. Validar regra de automação",
       body:
-        "A integracao verifica se o ajuste esta dentro dos limites definidos pelo usuario e se a automacao esta ativa.",
+        "A integração verifica se o ajuste está dentro dos limites definidos pelo usuário e se a automação está ativa.",
     },
     {
-      title: "3. Registrar aplicacao",
+      title: "3. Registrar aplicação",
       body:
-        "Quando o preco e enviado, o historico deve permitir auditoria e reversao operacional quando necessario.",
+        "Quando o preço é enviado, o histórico deve permitir auditoria e reversão operacional quando necessário.",
     },
   ],
   caseStudies: [
     validationCaseStudy({
-      title: "Aplicacao via Stays com consentimento",
+      title: "Aplicação via Stays com consentimento",
       summary:
-        "Slot para documentar uma sugestao aprovada e enviada via integracao, com limites configurados e historico de aplicacao.",
+        "Slot para documentar uma sugestão aprovada e enviada via integração, com limites configurados e histórico de aplicação.",
       source:
-        "Consentimento de integracao, PriceUpdate, regra de automacao e log operacional sem expor token ou dado sensivel.",
+        "Consentimento de integração, PriceUpdate, regra de automação e log operacional sem expor token ou dado sensível.",
       sample:
-        "Amostra em formacao: aplicacoes com consentimento, preco/data e status rastreavel.",
+        "Amostra em formação: aplicações com consentimento, preço/data e status rastreável.",
       validationNote:
-        "Sem evidencia completa, a copy publica permanece em validacao e nao afirma melhoria automatica de receita.",
+        "Sem evidência completa, a copy pública permanece em validação e não afirma melhoria automática de receita.",
     }),
     validationCaseStudy({
-      title: "Pausa ou reversao de automacao",
+      title: "Pausa ou reversão de automação",
       summary:
-        "Slot para validar que o usuario consegue interromper ou revisar a automacao quando a regra comercial muda.",
+        "Slot para validar que o usuário consegue interromper ou revisar a automação quando a regra comercial muda.",
       source:
-        "Historico de pausa, rollback ou rejeicao de envio, associado ao usuario e ao motivo operacional.",
+        "Histórico de pausa, rollback ou rejeição de envio, associado ao usuário e ao motivo operacional.",
       sample:
-        "Amostra pendente: casos com acao de controle humano e status final registrado.",
+        "Amostra pendente: casos com ação de controle humano e status final registrado.",
       validationNote:
-        "O case so pode sair de em validacao quando o fluxo for reproduzivel e revisado sem expor dado privado.",
+        "O case só pode sair de em validação quando o fluxo for reproduzível e revisado sem expor dado privado.",
     }),
   ],
   internalCtas: [
     {
       href: "/seguranca-lgpd-ia-precificacao",
-      label: "Seguranca e LGPD",
+      label: "Segurança e LGPD",
       description:
-        "Veja os principios de privacidade, controle do usuario e rastreabilidade da Urban AI.",
+        "Veja os princípios de privacidade, controle do usuário e rastreabilidade da Urban AI.",
     },
     {
       href: "/precificacao-dinamica-airbnb",
-      label: "Recomendacao",
+      label: "Recomendação",
       description:
-        "Entenda a diferenca entre sugestao de preco e aplicacao automatica.",
+        "Entenda a diferença entre sugestão de preço e aplicação automática.",
     },
     {
       href: "/contato",
       label: "Falar com a Urban",
       description:
-        "Converse sobre requisitos de integracao, operacao e limites de automacao.",
+        "Converse sobre requisitos de integração, operação e limites de automação.",
     },
   ],
   faq: [
     {
       question: "Preciso usar Stays para usar a Urban AI?",
       answer:
-        "Nao. Stays e necessario apenas para fluxos de automacao. O modo recomendacao funciona sem integracao automatica.",
+        "Não. Stays é necessário apenas para fluxos de automação. O modo recomendação funciona sem integração automática.",
     },
     {
-      question: "Posso pausar a automacao?",
+      question: "Posso pausar a automação?",
       answer:
-        "Sim. A automacao deve ser ativada, pausada ou desconectada pelo proprio usuario.",
+        "Sim. A automação deve ser ativada, pausada ou desconectada pelo próprio usuário.",
     },
     {
-      question: "A Urban AI faz scraping para aplicar preco?",
+      question: "A Urban AI faz scraping para aplicar preço?",
       answer:
-        "A estrategia correta e integracao nativa quando disponivel, evitando hacks e fluxos frageis.",
+        "A estratégia correta é integração nativa quando disponível, evitando hacks e fluxos frágeis.",
     },
     {
-      question: "O que acontece se eu pausar a integracao?",
+      question: "O que acontece se eu pausar a integração?",
       answer:
-        "Ao pausar, a automacao deve deixar de enviar ajustes. As recomendacoes podem continuar visiveis para revisao manual.",
+        "Ao pausar, a automação deve deixar de enviar ajustes. As recomendações podem continuar visíveis para revisão manual.",
     },
     {
-      question: "A integracao registra quem autorizou a automacao?",
+      question: "A integração registra quem autorizou a automação?",
       answer:
-        "O fluxo deve manter rastreabilidade de ativacao, limites e aplicacoes para que o usuario entenda o que foi alterado e por que.",
+        "O fluxo deve manter rastreabilidade de ativação, limites e aplicações para que o usuário entenda o que foi alterado e por que.",
     },
   ],
 };
 
 export const spreadsheetComparison: SeoContent = {
   path: "/urban-ai-vs-planilha-de-precificacao",
-  title: "Urban AI vs planilha de precificacao - Urban AI",
+  title: "Urban AI vs planilha de precificação - Urban AI",
   description:
-    "Comparativo entre usar planilha para precificar Airbnb e usar IA com eventos, dados locais e recomendacoes explicaveis.",
+    "Comparativo entre usar planilha para precificar Airbnb e usar IA com eventos, dados locais e recomendações explicáveis.",
   eyebrow: "Comparativo",
-  h1: "Urban AI vs planilha de precificacao",
+  h1: "Urban AI vs planilha de precificação",
   lead:
-    "Planilhas ajudam a organizar regras, mas ficam defasadas quando eventos, ocupacao e concorrencia mudam com velocidade.",
+    "Planilhas ajudam a organizar regras, mas ficam defasadas quando eventos, ocupação e concorrência mudam com velocidade.",
   answer:
-    "A Urban AI nao substitui o raciocinio financeiro do anfitriao; ela substitui a parte repetitiva de observar calendario urbano, comparar sinais e transformar mudancas de demanda em recomendacoes acionaveis.",
+    "A Urban AI não substitui o raciocínio financeiro do anfitrião; ela substitui a parte repetitiva de observar calendário urbano, comparar sinais e transformar mudanças de demanda em recomendações acionáveis.",
   directAnswers: [
     {
-      question: "Quando uma planilha de precificacao deixa de bastar?",
+      question: "Quando uma planilha de precificação deixa de bastar?",
       answer:
-        "A planilha deixa de bastar quando o anfitriao precisa atualizar muitas datas, muitos imoveis ou muitos sinais externos que mudam fora da rotina manual.",
+        "A planilha deixa de bastar quando o anfitrião precisa atualizar muitas datas, muitos imóveis ou muitos sinais externos que mudam fora da rotina manual.",
     },
     {
       question: "O que a IA faz melhor que uma planilha fixa?",
       answer:
-        "A IA consegue observar eventos, antecedencia, calendario e contexto local de forma recorrente, enquanto a planilha costuma depender de atualizacao manual.",
+        "A IA consegue observar eventos, antecedência, calendário e contexto local de forma recorrente, enquanto a planilha costuma depender de atualização manual.",
     },
   ],
   sections: [
     {
-      title: "Planilha e boa para controle",
+      title: "Planilha é boa para controle",
       body:
         "Ela funciona para custos, metas e regras fixas. O problema aparece quando a demanda muda diariamente.",
     },
     {
-      title: "IA e boa para contexto",
+      title: "IA é boa para contexto",
       body:
-        "O motor observa sinais externos que uma planilha raramente captura automaticamente, como eventos e mudancas no bairro.",
+        "O motor observa sinais externos que uma planilha raramente captura automaticamente, como eventos e mudanças no bairro.",
     },
     {
       title: "Melhor uso combinado",
       body:
-        "A planilha continua util para metas. A Urban AI entra para alertar oportunidades e riscos que exigem atualizacao constante.",
+        "A planilha continua útil para metas. A Urban AI entra para alertar oportunidades e riscos que exigem atualização constante.",
     },
   ],
   evidence: [
     {
-      title: "Regras fixas continuam uteis",
+      title: "Regras fixas continuam úteis",
       body:
-        "Custos, meta minima, margem desejada e restricoes operacionais podem continuar em planilha ou ERP da gestora.",
+        "Custos, meta mínima, margem desejada e restrições operacionais podem continuar em planilha ou ERP da gestora.",
     },
     {
-      title: "Sinais externos mudam com frequencia",
+      title: "Sinais externos mudam com frequência",
       body:
-        "Eventos, procura por bairro, antecedencia e disponibilidade nao seguem uma regra estatica, por isso exigem revisao recorrente.",
+        "Eventos, procura por bairro, antecedência e disponibilidade não seguem uma regra estática, por isso exigem revisão recorrente.",
     },
     {
-      title: "Comparacao sem promessa absoluta",
+      title: "Comparação sem promessa absoluta",
       body:
-        "A pagina nao afirma que IA sempre supera planilha. Ela delimita onde cada ferramenta tende a ajudar melhor.",
+        "A página não afirma que IA sempre supera planilha. Ela delimita onde cada ferramenta tende a ajudar melhor.",
     },
   ],
   methodology: [
     {
       title: "1. Separar controle de contexto",
       body:
-        "Use planilha para custos e metas internas; use o motor de IA para observar contexto externo e datas sensiveis.",
+        "Use planilha para custos e metas internas; use o motor de IA para observar contexto externo e datas sensíveis.",
     },
     {
-      title: "2. Priorizar excecoes",
+      title: "2. Priorizar exceções",
       body:
-        "Em vez de recalcular tudo manualmente, a recomendacao deve destacar datas com risco ou oportunidade fora do padrao.",
+        "Em vez de recalcular tudo manualmente, a recomendação deve destacar datas com risco ou oportunidade fora do padrão.",
     },
     {
-      title: "3. Manter decisao explicavel",
+      title: "3. Manter decisão explicável",
       body:
-        "Cada sugestao precisa dizer qual sinal motivou o alerta, para que o anfitriao compare com sua propria regra financeira.",
+        "Cada sugestão precisa dizer qual sinal motivou o alerta, para que o anfitrião compare com sua própria regra financeira.",
     },
   ],
   caseStudies: [
     validationCaseStudy({
-      title: "Rotina manual comparada com recomendacao explicavel",
+      title: "Rotina manual comparada com recomendação explicável",
       summary:
-        "Slot para documentar como uma decisao antes feita em planilha foi revisada com apoio de contexto urbano e evento.",
+        "Slot para documentar como uma decisão antes feita em planilha foi revisada com apoio de contexto urbano e evento.",
       source:
-        "Planilha ou regra operacional informada pelo anfitriao, recomendacao Urban AI e decisao aplicada.",
+        "Planilha ou regra operacional informada pelo anfitrião, recomendação Urban AI e decisão aplicada.",
       sample:
-        "Amostra em formacao: datas revisadas com regra original, sinal observado e decisao final.",
+        "Amostra em formação: datas revisadas com regra original, sinal observado e decisão final.",
       validationNote:
-        "A pagina nao deve afirmar substituicao superior da planilha sem case aprovado e consentimento de publicacao.",
+        "A página não deve afirmar substituição superior da planilha sem case aprovado e consentimento de publicação.",
     }),
     validationCaseStudy({
-      title: "Data sensivel fora da rotina fixa",
+      title: "Data sensível fora da rotina fixa",
       summary:
-        "Slot para registrar datas em que o contexto externo exigiu revisao especifica, sem transformar isso em promessa de resultado.",
+        "Slot para registrar datas em que o contexto externo exigiu revisão específica, sem transformar isso em promessa de resultado.",
       source:
-        "Calendario de eventos, disponibilidade do imovel e motivo da recomendacao.",
+        "Calendário de eventos, disponibilidade do imóvel e motivo da recomendação.",
       sample:
-        "Amostra pendente: datas com justificativa, decisao humana e resultado observado separado por fatores externos.",
+        "Amostra pendente: datas com justificativa, decisão humana e resultado observado separado por fatores externos.",
       validationNote:
-        "Qualquer numero futuro precisa mostrar fonte, periodo e amostra; ate la, o status publico e em validacao.",
+        "Qualquer número futuro precisa mostrar fonte, período e amostra; até lá, o status público está em validação.",
     }),
   ],
   internalCtas: [
     {
       href: "/precificacao-dinamica-airbnb",
-      label: "IA de preco",
+      label: "IA de preço",
       description:
-        "Veja como a Urban AI transforma contexto urbano em recomendacoes de diaria.",
+        "Veja como a Urban AI transforma contexto urbano em recomendações de diária.",
     },
     {
       href: "/como-precificar-airbnb-em-dias-de-eventos",
@@ -729,136 +729,136 @@ export const spreadsheetComparison: SeoContent = {
     },
     {
       href: "/precos",
-      label: "Precos",
+      label: "Preços",
       description:
-        "Compare os planos publicos da Urban AI com o custo operacional de manter regras manuais.",
+        "Compare os planos públicos da Urban AI com o custo operacional de manter regras manuais.",
     },
   ],
   faq: [
     {
       question: "Posso continuar usando minha planilha?",
       answer:
-        "Sim. A Urban AI pode complementar a planilha, oferecendo alertas e recomendacoes para datas especificas.",
+        "Sim. A Urban AI pode complementar a planilha, oferecendo alertas e recomendações para datas específicas.",
     },
     {
       question: "A Urban AI calcula custo operacional?",
       answer:
-        "O foco principal e recomendacao de diaria com base em demanda e eventos. Custos internos continuam sendo referencia do anfitriao.",
+        "O foco principal é recomendação de diária com base em demanda e eventos. Custos internos continuam sendo referência do anfitrião.",
     },
     {
       question: "Quando a planilha deixa de ser suficiente?",
       answer:
-        "Quando ha muitos imoveis, muitas datas especiais ou mercado local mudando rapido demais para atualizar manualmente.",
+        "Quando há muitos imóveis, muitas datas especiais ou mercado local mudando rápido demais para atualizar manualmente.",
     },
     {
       question: "A Urban AI substitui meu controle financeiro?",
       answer:
-        "Nao. O controle financeiro interno continua sendo referencia do anfitriao. A Urban AI adiciona leitura de demanda e eventos.",
+        "Não. O controle financeiro interno continua sendo referência do anfitrião. A Urban AI adiciona leitura de demanda e eventos.",
     },
     {
       question: "Planilha e IA podem discordar?",
       answer:
-        "Sim. Quando isso acontece, a melhor pratica e revisar o motivo da recomendacao, o limite financeiro e o objetivo de ocupacao daquela data.",
+        "Sim. Quando isso acontece, a melhor prática é revisar o motivo da recomendação, o limite financeiro e o objetivo de ocupação daquela data.",
     },
   ],
 };
 
 export const lgpdSecurityPricing: SeoContent = {
   path: "/seguranca-lgpd-ia-precificacao",
-  title: "Seguranca, LGPD e IA na precificacao - Urban AI",
+  title: "Segurança, LGPD e IA na precificação - Urban AI",
   description:
-    "Como a Urban AI trata privacidade, seguranca, dados de imoveis e limites de IA para precificacao de aluguel por temporada.",
-  eyebrow: "Seguranca e LGPD",
-  h1: "IA de precificacao precisa de confianca",
+    "Como a Urban AI trata privacidade, segurança, dados de imóveis e limites de IA para precificação de aluguel por temporada.",
+  eyebrow: "Segurança e LGPD",
+  h1: "IA de precificação precisa de confiança",
   lead:
-    "Ferramentas de precificacao lidam com dados de conta, imoveis, integracoes e decisoes comerciais. A protecao desses dados precisa ser clara.",
+    "Ferramentas de precificação lidam com dados de conta, imóveis, integrações e decisões comerciais. A proteção desses dados precisa ser clara.",
   answer:
-    "A Urban AI trata IA como apoio a decisao. O usuario mantem controle sobre aplicacao de preco, consentimento de integracoes e solicitacoes de privacidade.",
+    "A Urban AI trata IA como apoio à decisão. O usuário mantém controle sobre aplicação de preço, consentimento de integrações e solicitações de privacidade.",
   directAnswers: [
     {
-      question: "Como a Urban AI posiciona IA na precificacao?",
+      question: "Como a Urban AI posiciona IA na precificação?",
       answer:
-        "A Urban AI posiciona IA como apoio a decisao, com recomendacoes explicaveis, controle humano e limites configuraveis para automacao.",
+        "A Urban AI posiciona IA como apoio à decisão, com recomendações explicáveis, controle humano e limites configuráveis para automação.",
     },
     {
       question: "Qual canal de privacidade da Urban AI?",
       answer:
-        "O canal informado para solicitacoes de privacidade e privacidade@myurbanai.com, conforme a politica publicada no site.",
+        "O canal informado para solicitações de privacidade é privacidade@myurbanai.com, conforme a política publicada no site.",
     },
   ],
   sections: [
     {
       title: "Dados usados",
       body:
-        "A plataforma usa dados do imovel, sinais publicos de mercado, eventos e historico operacional necessario para gerar recomendacoes.",
+        "A plataforma usa dados do imóvel, sinais públicos de mercado, eventos e histórico operacional necessário para gerar recomendações.",
     },
     {
-      title: "Controle do usuario",
+      title: "Controle do usuário",
       body:
-        "Mesmo quando ha automacao, o usuario deve poder configurar limites, pausar integracoes e revisar historico.",
+        "Mesmo quando há automação, o usuário deve poder configurar limites, pausar integrações e revisar histórico.",
     },
     {
       title: "Canal de privacidade",
       body:
-        "Solicitacoes sobre dados pessoais podem ser enviadas para privacidade@myurbanai.com, conforme a politica publicada.",
+        "Solicitações sobre dados pessoais podem ser enviadas para privacidade@myurbanai.com, conforme a política publicada.",
     },
   ],
   evidence: [
     {
-      title: "Politica publica como referencia",
+      title: "Política pública como referência",
       body:
-        "A pagina aponta para principios alinhados a politicas publicadas: finalidade, controle do usuario, canal de privacidade e direitos do titular.",
+        "A página aponta para princípios alinhados a políticas publicadas: finalidade, controle do usuário, canal de privacidade e direitos do titular.",
     },
     {
       title: "Controle humano declarado",
       body:
-        "A Urban AI descreve a IA como apoio a decisao, nao como decisor irreversivel de preco ou integracao.",
+        "A Urban AI descreve a IA como apoio à decisão, não como decisor irreversível de preço ou integração.",
     },
     {
-      title: "Dados relacionados a operacao",
+      title: "Dados relacionados à operação",
       body:
-        "Os dados citados estao ligados ao funcionamento da plataforma: imoveis, eventos, mercado, historico operacional e integracoes autorizadas.",
+        "Os dados citados estão ligados ao funcionamento da plataforma: imóveis, eventos, mercado, histórico operacional e integrações autorizadas.",
     },
   ],
   methodology: [
     {
-      title: "1. Minimizar dados necessarios",
+      title: "1. Minimizar dados necessários",
       body:
-        "A recomendacao deve usar apenas dados relevantes para calcular, explicar e auditar precos e integracoes.",
+        "A recomendação deve usar apenas dados relevantes para calcular, explicar e auditar preços e integrações.",
     },
     {
       title: "2. Manter rastreabilidade",
       body:
-        "Sugestoes, aplicacoes e limites precisam registrar motivo e contexto para que o usuario possa revisar decisoes.",
+        "Sugestões, aplicações e limites precisam registrar motivo e contexto para que o usuário possa revisar decisões.",
     },
     {
       title: "3. Preservar canais de escolha",
       body:
-        "O usuario deve conseguir revisar recomendacoes, pausar automacao, desconectar integracoes e acionar o canal de privacidade.",
+        "O usuário deve conseguir revisar recomendações, pausar automação, desconectar integrações e acionar o canal de privacidade.",
     },
   ],
   caseStudies: [
     validationCaseStudy({
       title: "Pedido LGPD tratado ponta a ponta",
       summary:
-        "Slot para documentar solicitacao de privacidade recebida, classificada, respondida e registrada com evidencia.",
+        "Slot para documentar solicitação de privacidade recebida, classificada, respondida e registrada com evidência.",
       source:
         "Ticket de privacidade, registro de resposta e checklist interno de suporte/LGPD.",
       sample:
-        "Amostra em formacao: pedidos reais ou testes controlados identificados como teste.",
+        "Amostra em formação: pedidos reais ou testes controlados identificados como teste.",
       validationNote:
-        "Nenhum dado pessoal ou detalhe de titular deve aparecer no case publico; status atual: em validacao.",
+        "Nenhum dado pessoal ou detalhe de titular deve aparecer no case público; status atual: em validação.",
     }),
     validationCaseStudy({
-      title: "Auditoria de recomendacao com controle humano",
+      title: "Auditoria de recomendação com controle humano",
       summary:
-        "Slot para validar se uma recomendacao pode ser explicada, revisada e associada aos limites definidos pelo usuario.",
+        "Slot para validar se uma recomendação pode ser explicada, revisada e associada aos limites definidos pelo usuário.",
       source:
-        "Historico de recomendacao, motivo exibido, limite configurado e decisao do usuario.",
+        "Histórico de recomendação, motivo exibido, limite configurado e decisão do usuário.",
       sample:
-        "Amostra pendente: recomendacoes auditaveis com motivo, data afetada e controle humano registrado.",
+        "Amostra pendente: recomendações auditáveis com motivo, data afetada e controle humano registrado.",
       validationNote:
-        "A publicacao deve focar governanca e rastreabilidade; qualquer metrica fica bloqueada ate revisao.",
+        "A publicação deve focar governança e rastreabilidade; qualquer métrica fica bloqueada até revisão.",
     }),
   ],
   internalCtas: [
@@ -866,46 +866,46 @@ export const lgpdSecurityPricing: SeoContent = {
       href: "/privacidade",
       label: "Privacidade",
       description:
-        "Leia a politica de privacidade publicada e os canais para solicitacoes de dados.",
+        "Leia a política de privacidade publicada e os canais para solicitações de dados.",
     },
     {
       href: "/integracao-stays-precificacao-automatica",
-      label: "Integracao Stays",
+      label: "Integração Stays",
       description:
-        "Entenda como consentimento, limites e historico entram na automacao de preco.",
+        "Entenda como consentimento, limites e histórico entram na automação de preço.",
     },
     {
       href: "/contato",
       label: "Contato",
       description:
-        "Fale com a Urban AI sobre seguranca, privacidade e governanca de integracoes.",
+        "Fale com a Urban AI sobre segurança, privacidade e governança de integrações.",
     },
   ],
   faq: [
     {
       question: "A Urban AI vende meus dados?",
       answer:
-        "A politica publicada informa que dados pessoais nao sao vendidos. O uso e voltado a operacao da plataforma e melhoria das recomendacoes.",
+        "A política publicada informa que dados pessoais não são vendidos. O uso é voltado à operação da plataforma e melhoria das recomendações.",
     },
     {
-      question: "Posso pedir exclusao de dados?",
+      question: "Posso pedir exclusão de dados?",
       answer:
-        "Sim. A politica de privacidade descreve direitos do titular e o canal oficial para solicitacoes.",
+        "Sim. A política de privacidade descreve direitos do titular e o canal oficial para solicitações.",
     },
     {
-      question: "A IA toma decisoes irreversiveis?",
+      question: "A IA toma decisões irreversíveis?",
       answer:
-        "Nao deve. A Urban AI posiciona a IA como apoio a decisao, com controle humano e limites configuraveis.",
+        "Não deve. A Urban AI posiciona a IA como apoio à decisão, com controle humano e limites configuráveis.",
     },
     {
-      question: "Que dados sao relevantes para precificacao?",
+      question: "Que dados são relevantes para precificação?",
       answer:
-        "Dados relevantes incluem informacoes do imovel, disponibilidade, eventos, sinais de mercado e historico operacional necessario para explicar recomendacoes.",
+        "Dados relevantes incluem informações do imóvel, disponibilidade, eventos, sinais de mercado e histórico operacional necessário para explicar recomendações.",
     },
     {
-      question: "Como evitar recomendacoes opacas de IA?",
+      question: "Como evitar recomendações opacas de IA?",
       answer:
-        "A recomendacao deve mostrar motivo, sinal observado, data afetada e limite aplicado, permitindo revisao humana antes ou depois da aplicacao.",
+        "A recomendação deve mostrar motivo, sinal observado, data afetada e limite aplicado, permitindo revisão humana antes ou depois da aplicação.",
     },
   ],
 };

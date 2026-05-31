@@ -30,7 +30,7 @@ export default function Contato() {
       setErrorMessage(
         Array.isArray(message)
           ? message.join(" ")
-          : message || "Nao foi possivel registrar a mensagem agora.",
+          : message || "Não foi possível registrar a mensagem agora.",
       );
       setStatus("error");
     }
@@ -91,7 +91,7 @@ export default function Contato() {
                 required
                 minLength={10}
                 rows={6}
-                placeholder="Descreva como podemos ajudar..."
+                placeholder="Descreva como podemos ajudar…"
                 style={fieldStyle}
               />
             </label>
@@ -114,7 +114,7 @@ export default function Contato() {
                 opacity: status === "loading" ? 0.7 : 1,
               }}
             >
-              {status === "loading" ? "Enviando..." : "Enviar mensagem"}
+              {status === "loading" ? "Enviando…" : "Enviar mensagem"}
             </button>
             {status === "success" && (
               <p className="urban-public-copy" role="status" style={{ marginTop: 24, color: "var(--theme-public-text)" }}>

@@ -48,7 +48,7 @@ export class EventsGeocoderService {
   @Cron(CronExpression.EVERY_30_MINUTES)
   async cronTick() {
     if (this.running) {
-      this.logger.warn('Geocoder run ja em andamento - skipando este tick');
+      this.logger.warn('Geocoder run já em andamento - skipando este tick');
       return;
     }
     this.running = true;
@@ -109,7 +109,7 @@ export class EventsGeocoderService {
             failures.push({ id: ev.id, reason });
             if (isGoogleMapsConfigurationError(reason)) {
               this.logger.warn(
-                `Geocoder interrompido apos falha de configuracao Google Maps: ${reason}`,
+                `Geocoder interrompido após falha de configuração Google Maps: ${reason}`,
               );
               break;
             }
@@ -119,7 +119,7 @@ export class EventsGeocoderService {
           failures.push({ id: ev.id, reason });
           if (isGoogleMapsConfigurationError(err) || isGoogleMapsConfigurationError(reason)) {
             this.logger.warn(
-              `Geocoder interrompido apos excecao de configuracao Google Maps: ${reason}`,
+              `Geocoder interrompido após exceção de configuração Google Maps: ${reason}`,
             );
             break;
           }

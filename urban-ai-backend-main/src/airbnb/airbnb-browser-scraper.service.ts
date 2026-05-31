@@ -140,7 +140,7 @@ export class AirbnbBrowserScraperService {
       async (snapshot, finalUrl, capturedResponses) => {
         const calendar = this.parseAvailabilityCalendar(roomId, url, finalUrl, snapshot, capturedResponses);
         if (!calendar?.days.length) {
-          this.logger.warn(`PdpAvailabilityCalendar nao trouxe dias parseaveis para room=${roomId}`);
+          this.logger.warn(`PdpAvailabilityCalendar não trouxe dias parseáveis para room=${roomId}`);
           return null;
         }
 
@@ -169,7 +169,7 @@ export class AirbnbBrowserScraperService {
           link.ariaLabel ||
           link.text ||
           snapshot.images.find((image) => image.src === link.image)?.alt ||
-          `Imovel ${roomId}`;
+          `Imóvel ${roomId}`;
 
         listings.set(roomId, {
           roomId,
@@ -279,7 +279,7 @@ export class AirbnbBrowserScraperService {
         });
       } catch (error) {
         this.logger.debug(
-          `Nao foi possivel ler resposta ${operationName}: ${
+          `Não foi possível ler resposta ${operationName}: ${
             error instanceof Error ? error.message : String(error)
           }`,
         );

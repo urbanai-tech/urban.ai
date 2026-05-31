@@ -24,13 +24,13 @@ import { DataSource } from 'typeorm';
 
 export class CreatePricingJobDto {
     @ApiProperty({
-        description: 'ID do usuario dono da propriedade/endereco',
+        description: 'ID do usuário dono da propriedade/endereço',
         example: '123e4567-e89b-12d3-a456-426614174000',
     })
     userId: string;
 
     @ApiProperty({
-        description: 'ID da propriedade/endereco que sera processada para calculo de pricing',
+        description: 'ID da propriedade/endereço que será processada para cálculo de pricing',
         example: 'df6a7b8c-9d0e-1234-f012-567890ab3456',
     })
     propertyAdressId: string;
@@ -38,7 +38,7 @@ export class CreatePricingJobDto {
 
 export class CreateAcaoDto {
     @ApiProperty({
-        description: 'ID do usuario que sera processado',
+        description: 'ID do usuário que será processado',
         example: '123e4567-e89b-12d3-a456-426614174000',
     })
     userId: string;
@@ -63,7 +63,7 @@ export class ProcessoController {
 
     @UseGuards(JwtAuthGuard)
     @Post()
-    @ApiOperation({ summary: 'Enfileira jobs de processo para o usuario autenticado' })
+    @ApiOperation({ summary: 'Enfileira jobs de processo para o usuário autenticado' })
     @ApiBody({
         description: 'Lista de propriedades a serem processadas',
         type: CreateAcaoDto,
@@ -75,21 +75,21 @@ export class ProcessoController {
             example: { status: 'jobs enfileirados', userId: '123e4567-e89b-12d3-a456-426614174000' },
         },
     })
-    @ApiResponse({ status: 400, description: 'Request invalido' })
+    @ApiResponse({ status: 400, description: 'Request inválido' })
     async criarAcao(@Body() body: CreateAcaoDto, @Req() req: AuthenticatedRequest) {
         const userId = req.user.userId;
 
         if (!userId) {
-            throw new UnauthorizedException('Usuario nao autenticado ou ID nao fornecido');
+            throw new UnauthorizedException('Usuário não autenticado ou ID não fornecido');
         }
 
         if (!body?.listIds || !Array.isArray(body.listIds)) {
-            throw new BadRequestException('Nenhuma lista de IDs foi fornecida ou formato invalido');
+            throw new BadRequestException('Nenhuma lista de IDs foi fornecida ou formato inválido');
         }
 
         const idsArray = [...new Set(body.listIds.map((item) => item.id).filter(Boolean))];
         if (idsArray.length === 0) {
-            throw new BadRequestException('Nenhum ID de propriedade valido foi fornecido');
+            throw new BadRequestException('Nenhum ID de propriedade válido foi fornecido');
         }
 
         const ownedAddresses = await this.dataSource
@@ -110,7 +110,7 @@ export class ProcessoController {
 
         if (missingBasePriceIds.length > 0) {
             throw new BadRequestException({
-                message: 'Informe uma diaria base manual ou aguarde uma cotacao Airbnb confiavel antes de iniciar a analise de pricing.',
+                message: 'Informe uma diária base manual ou aguarde uma cotação Airbnb confiável antes de iniciar a análise de pricing.',
                 propriedadesSemPrecoBase: missingBasePriceIds,
             });
         }
@@ -124,7 +124,7 @@ export class ProcessoController {
             try {
                 if (!ownedIds.has(propertyAdressId)) {
                     unauthorized++;
-                    this.logger.warn(`Propriedade ${propertyAdressId} ignorada: nao pertence ao usuario ${userId}`);
+                    this.logger.warn(`Propriedade ${propertyAdressId} ignorada: não pertence ao usuário ${userId}`);
                     continue;
                 }
 
@@ -135,7 +135,7 @@ export class ProcessoController {
                         const state = await existingJob.getState();
                         if (['waiting', 'active', 'delayed', 'paused'].includes(state)) {
                             skipped++;
-                            this.logger.warn(`Job ja existe (${state}) para propriedade ${propertyAdressId}`);
+                            this.logger.warn(`Job já existe (${state}) para propriedade ${propertyAdressId}`);
                             continue;
                         }
                         if (state === 'failed' || state === 'completed') {
@@ -143,7 +143,7 @@ export class ProcessoController {
                         }
                     }
 
-                    this.logger.log(`Adicionando job para propriedade ${propertyAdressId} do usuario ${userId}`);
+                    this.logger.log(`Adicionando job para propriedade ${propertyAdressId} do usuário ${userId}`);
 
                     await this.queue.add(
                         { userId, propertyAdressId },
@@ -155,7 +155,7 @@ export class ProcessoController {
                     );
                 } catch (queueError) {
                     this.logger.warn(
-                        `Fila indisponivel; processando propriedade ${propertyAdressId} inline para nao bloquear o usuario`,
+                        `Fila indisponível; processando propriedade ${propertyAdressId} inline para não bloquear o usuário`,
                     );
                     this.logger.error(queueError instanceof Error ? queueError.stack : String(queueError));
                     await this.mapsService.processarAnalisesByProperty(userId, propertyAdressId);
@@ -164,7 +164,7 @@ export class ProcessoController {
                 count++;
             } catch (error) {
                 this.logger.error(
-                    `Erro ao enfileirar propriedade ${propertyAdressId} do usuario ${userId}`,
+                    `Erro ao enfileirar propriedade ${propertyAdressId} do usuário ${userId}`,
                     error instanceof Error ? error.stack : String(error),
                 );
             }
@@ -190,10 +190,10 @@ export class ProcessoController {
         status: 201,
         description: 'Job enfileirado com sucesso',
     })
-    @ApiResponse({ status: 400, description: 'ID nao fornecido' })
+    @ApiResponse({ status: 400, description: 'ID não fornecido' })
     async criarProcessoLista(@Body() body: CreatePricingJobDto) {
         if (!body?.userId || !body?.propertyAdressId) {
-            throw new BadRequestException('ID nao fornecido');
+            throw new BadRequestException('ID não fornecido');
         }
 
         const ownedAddress = await this.dataSource
@@ -205,12 +205,12 @@ export class ProcessoController {
             .getOne();
 
         if (!ownedAddress) {
-            throw new NotFoundException('Propriedade nao encontrada para o usuario informado');
+            throw new NotFoundException('Propriedade não encontrada para o usuário informado');
         }
 
         if (!this.hasValidBasePrice(ownedAddress.list)) {
             throw new BadRequestException(
-                'Informe uma diaria base manual ou aguarde uma cotacao Airbnb confiavel antes de iniciar a analise de pricing.',
+                'Informe uma diária base manual ou aguarde uma cotação Airbnb confiável antes de iniciar a análise de pricing.',
             );
         }
 
@@ -220,7 +220,7 @@ export class ProcessoController {
             const state = await existingJob.getState();
             if (['waiting', 'active', 'delayed', 'paused'].includes(state)) {
                 return {
-                    status: 'job ja existente',
+                    status: 'job já existente',
                     state,
                     userId: body.userId,
                     propertyAdressId: body.propertyAdressId,

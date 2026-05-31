@@ -35,8 +35,8 @@ export interface RecordAirbnbPricingAttemptInput {
   currency?: string | null;
   finalUrl?: string | null;
   metadata?: Record<string, unknown> | null;
-  startedAt?: Date | string | null;
-  finishedAt?: Date | string | null;
+  startedAt: Date | string | null;
+  finishedAt: Date | string | null;
 }
 
 @Injectable()

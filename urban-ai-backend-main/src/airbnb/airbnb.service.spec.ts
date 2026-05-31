@@ -313,7 +313,7 @@ describe('AirbnbService price extraction', () => {
       await expect(service.getFirstAvailablePrice('123')).rejects.toMatchObject({
         response: {
           status: false,
-          message: 'Nao foi possivel obter preco real do Airbnb nas fontes configuradas',
+          message: 'Não foi possível obter preço real do Airbnb nas fontes configuradas',
         },
       });
       expect(browserPriceSpy).not.toHaveBeenCalled();

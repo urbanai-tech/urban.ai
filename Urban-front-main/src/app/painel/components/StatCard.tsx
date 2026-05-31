@@ -106,34 +106,34 @@ export default function DashboardCards({ propertyId }: DashboardCardsProps) {
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
         <Icons.Info size={14} style={{ color: "var(--app-text-muted)" }} />
         <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 12, lineHeight: 1.4 }}>
-          Estes indicadores usam sugestoes e eventos futuros ja calculados para os seus imoveis.
+          Estes indicadores usam sugestões e eventos futuros já calculados para os seus imóveis.
         </p>
       </div>
       <div className="painel-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 14 }}>
         <StatCard
-          title="Imoveis com aceite"
+          title="Imóveis com aceite"
           value={data?.quantidadePropriedadesAtivas}
-          help="Imoveis que ja tiveram pelo menos uma sugestao aceita."
+          help="Imóveis que já tiveram pelo menos uma sugestão aceita."
           isLoading={loading}
         />
         <StatCard
           title="Oportunidades futuras"
           value={data?.quantidadeEventos}
-          help="Linhas de recomendacao futuras, nao eventos unicos."
+          help="Linhas de recomendação futuras, não eventos unicos."
           isLoading={loading}
         />
         <StatCard
           title="Receita sugerida aceita"
           value={data ? formatCurrency(data.receitaProjetada.receitaProjetada) : undefined}
           subtitle={new Intl.DateTimeFormat('pt-BR', { month: 'short', year: 'numeric' }).format(new Date())}
-          help="Soma das diarias sugeridas aceitas no mes atual."
+          help="Soma das diárias sugeridas aceitas no mês atual."
           isLoading={loading}
         />
         <StatCard
-          title="Lift aceito no mes"
+          title="Lift aceito no mês"
           value={data ? formatCurrency(data.lucroProjetadoGeradoPeloUrban) : undefined}
           subtitle={data ? `+${data.receitaProjetada.diferencaPercentual.toFixed(2)}%` : undefined}
-          help="Diferenca entre preco atual e sugestao aceita."
+          help="Diferenca entre preço atual e sugestão aceita."
           isLoading={loading}
         />
       </div>

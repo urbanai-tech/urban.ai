@@ -106,7 +106,7 @@ export function captureAttribution(): MarketingAttribution {
   try {
     window.localStorage.setItem(ATTRIBUTION_STORAGE_KEY, JSON.stringify(next));
   } catch {
-    // Sem persistencia, a atribuicao da sessao atual ainda e usada.
+    // Sem persistencia, a atribuicao da sessão atual ainda e usada.
   }
 
   return next;

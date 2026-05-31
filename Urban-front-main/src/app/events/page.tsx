@@ -35,7 +35,7 @@ export default function EventsPage() {
   const [error, setError] = useState<string | null>(null);
   const [reloadCount, setReloadCount] = useState(0);
 
-  const [city, setCity] = useState("Sao Paulo");
+  const [city, setCity] = useState("São Paulo");
   const [category, setCategory] = useState("all");
   const [source, setSource] = useState("all");
   const [search, setSearch] = useState("");
@@ -123,7 +123,7 @@ export default function EventsPage() {
           </div>
           <div style={{ gridColumn: "span 2", minWidth: 0 }}>
             <AppSelect label="Cidade" value={city} onChange={(event) => setCity(event.target.value)}>
-              {(response?.cities?.length ? response.cities : ["Sao Paulo"]).map((item) => (
+              {(response?.cities?.length ? response.cities : ["São Paulo"]).map((item) => (
                 <option key={item} value={item}>
                   {item}
                 </option>
@@ -164,7 +164,7 @@ export default function EventsPage() {
             />
           </div>
           <div style={{ gridColumn: "span 1", minWidth: 0 }}>
-            <AppInput type="date" label="Ate" value={to} min={from} onChange={(event) => setTo(event.target.value)} />
+            <AppInput type="date" label="Até" value={to} min={from} onChange={(event) => setTo(event.target.value)} />
           </div>
           <div style={{ gridColumn: "span 1", minWidth: 0 }}>
             <AppSelect
@@ -202,7 +202,7 @@ export default function EventsPage() {
               setFrom(addDays(0));
               setTo(addDays(30));
             }}>
-              Proximos 30 dias
+              Próximos 30 dias
             </QuickFilter>
           </div>
           <SegmentedView value={view} onChange={setView} />
@@ -221,7 +221,7 @@ export default function EventsPage() {
         <AppEmptyState
           eyebrow="SEM EVENTOS"
           title="Nenhum evento encontrado"
-          body="Ajuste periodo, categoria ou filtros rapidos para ampliar o calendario monitorado."
+          body="Ajuste período, categoria ou filtros rápidos para ampliar o calendário monitorado."
           icon={<Icons.Calendar size={32} />}
           action={
             <AppButton type="button" variant="secondary" onClick={hasActiveFilters ? resetFilters : () => setReloadCount((count) => count + 1)}>
@@ -338,7 +338,7 @@ function SegmentedView({
   const options: Array<{ value: ViewMode; label: string }> = [
     { value: "list", label: "Lista" },
     { value: "map", label: "Mapa" },
-    { value: "calendar", label: "Calendario" },
+    { value: "calendar", label: "Calendário" },
   ];
   return (
     <div
@@ -425,10 +425,10 @@ function CatalogMap({
             <div style={{ maxWidth: 380 }}>
               <Icons.MapPin size={24} />
               <p style={{ margin: "10px 0 4px", color: "var(--app-text)", fontSize: 15, fontWeight: 750 }}>
-                Eventos aguardando geolocalizacao
+                Eventos aguardando geolocalização
               </p>
               <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5 }}>
-                A lista e o calendario continuam disponiveis enquanto a coordenada do venue e enriquecida.
+                A lista e o calendário continuam disponíveis enquanto a coordenada do venue é enriquecida.
               </p>
             </div>
           </div>
@@ -565,10 +565,10 @@ function CatalogMissingGeoStrip({
             Fora do mapa por enquanto
           </p>
           <p style={{ margin: "4px 0 0", color: "var(--app-text-muted)", fontSize: 12, lineHeight: 1.45 }}>
-            Eventos sem latitude/longitude seguem acionaveis na lista e no calendario.
+            Eventos sem latitude/longitude seguem acionáveis na lista e no calendário.
           </p>
         </div>
-        <AppBadge kind="warn">{events.length} pendente(s)</AppBadge>
+        <AppBadge kind="warn">{events.length} {events.length === 1 ? "pendente" : "pendentes"}</AppBadge>
       </div>
       <div className="host-events-missing-geo-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
         {events.slice(0, 4).map((event) => (
@@ -620,9 +620,9 @@ function CalendarView({
         <AppCard key={group.day} variant="default" style={{ padding: 18 }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
             <h3 style={{ margin: 0, color: "var(--app-text)", fontSize: 16, fontWeight: 750, letterSpacing: 0 }}>
-              {formatDateRange(group.day)}
+              {formatDateRange(group.day, null)}
             </h3>
-            <AppBadge kind="neutral">{group.events.length} evento(s)</AppBadge>
+            <AppBadge kind="neutral">{group.events.length} {group.events.length === 1 ? "evento" : "eventos"}</AppBadge>
           </div>
           <div style={{ display: "grid", gap: 10 }}>
             {group.events.map((event) => (
@@ -726,7 +726,7 @@ function LoadingBlock() {
       <div style={{ minHeight: 160, display: "grid", placeItems: "center", gap: 12, textAlign: "center" }}>
         <Spinner />
         <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 13 }}>
-          Carregando eventos mapeados pela Urban AI...
+          Carregando eventos mapeados pela Urban AI…
         </p>
       </div>
       <div

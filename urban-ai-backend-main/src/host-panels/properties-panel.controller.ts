@@ -11,7 +11,7 @@ import { HostPanelsService } from './host-panels.service';
 export class PropertiesPanelController {
   constructor(private readonly hostPanels: HostPanelsService) {}
 
-  @ApiOperation({ summary: 'Pace de reservas de um imovel' })
+  @ApiOperation({ summary: 'Pace de reservas de um imóvel' })
   @Get(':id/pace')
   async pace(
     @Req() req: any,
@@ -26,13 +26,13 @@ export class PropertiesPanelController {
     });
   }
 
-  @ApiOperation({ summary: 'Regras de pricing salvas para um imovel' })
+  @ApiOperation({ summary: 'Regras de pricing salvas para um imóvel' })
   @Get(':id/pricing-rules')
   async getPricingRules(@Req() req: any, @Param('id') propertyId: string) {
     return this.hostPanels.getPricingRules(req.user.userId, propertyId);
   }
 
-  @ApiOperation({ summary: 'Salvar regras de pricing de um imovel' })
+  @ApiOperation({ summary: 'Salvar regras de pricing de um imóvel' })
   @Put(':id/pricing-rules')
   async savePricingRules(
     @Req() req: any,
@@ -52,7 +52,7 @@ export class PropertiesPanelController {
     return this.hostPanels.previewPricingRules(req.user.userId, propertyId, body.rules);
   }
 
-  @ApiOperation({ summary: 'Copiar regras de pricing de outro imovel do usuario' })
+  @ApiOperation({ summary: 'Copiar regras de pricing de outro imóvel do usuário' })
   @Post(':id/pricing-rules/copy-from/:sourceId')
   async copyPricingRules(
     @Req() req: any,
@@ -62,7 +62,7 @@ export class PropertiesPanelController {
     return this.hostPanels.copyPricingRules(req.user.userId, propertyId, sourceId);
   }
 
-  @ApiOperation({ summary: 'Inteligencia de mercado para um imovel' })
+  @ApiOperation({ summary: 'Inteligência de mercado para um imóvel' })
   @Get(':id/market-intel')
   async marketIntel(
     @Req() req: any,

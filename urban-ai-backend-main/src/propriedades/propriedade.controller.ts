@@ -218,7 +218,7 @@ export class PropriedadeController {
   })
   async getQuantidadeEventos(@Param('usuarioId') usuarioId: string, @Req() req: any) {
     if (req.user.userId !== usuarioId) {
-      throw new UnauthorizedException("Usuario nao autorizado para este recurso");
+      throw new UnauthorizedException("Usuário não autorizado para este recurso");
     }
     const total = await this.propriedadeService.getQuantidadeEventosByUsuario(usuarioId, "");
     return { quantidadeEventos: total };
@@ -426,7 +426,7 @@ export class PropriedadeController {
   }
 
   @Patch(':id/identity')
-  @ApiOperation({ summary: 'Atualiza apelido e codigo interno de uma propriedade' })
+  @ApiOperation({ summary: 'Atualiza apelido e código interno de uma propriedade' })
   @UseGuards(JwtAuthGuard)
   async updateIdentity(
     @Param('id') id: string,
@@ -437,7 +437,7 @@ export class PropriedadeController {
   }
 
   @Patch(':id/pricing-inputs')
-  @ApiOperation({ summary: 'Atualiza preco base manual e receita media mensal de uma propriedade' })
+  @ApiOperation({ summary: 'Atualiza preço base manual e receita media mensal de uma propriedade' })
   @UseGuards(JwtAuthGuard)
   async updatePricingInputs(
     @Param('id') id: string,
@@ -448,7 +448,7 @@ export class PropriedadeController {
   }
 
   @Get(':id/pricing-inputs/history')
-  @ApiOperation({ summary: 'Historico de alteracoes da diaria base e receita media mensal' })
+  @ApiOperation({ summary: 'Histórico de alterações da diária base e receita média mensal' })
   @UseGuards(JwtAuthGuard)
   async getPricingInputHistory(
     @Param('id') id: string,
@@ -459,7 +459,7 @@ export class PropriedadeController {
   }
 
   @Get(':id/occupancy')
-  @ApiOperation({ summary: 'Historico de ocupacao declarado pelo anfitriao para um imovel' })
+  @ApiOperation({ summary: 'Histórico de ocupação declarado pelo anfitrião para um imóvel' })
   @UseGuards(JwtAuthGuard)
   async getOccupancyHistory(
     @Param('id') id: string,
@@ -476,7 +476,7 @@ export class PropriedadeController {
   }
 
   @Post(':id/occupancy')
-  @ApiOperation({ summary: 'Cria ou atualiza ocupacao manual de um imovel por data' })
+  @ApiOperation({ summary: 'Cria ou atualiza ocupação manual de um imóvel por data' })
   @UseGuards(JwtAuthGuard)
   async upsertManualOccupancy(
     @Param('id') id: string,

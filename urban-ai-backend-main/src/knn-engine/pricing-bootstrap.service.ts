@@ -21,7 +21,7 @@ import { runAdminJobWithTracking } from '../admin-job-runs/admin-job-run-tracker
  *  2. **Cron semanal** (`0 4 * * 0` — domingo 04:00 BRT): re-treina depois que
  *     o pipeline de scraping terminou de atualizar a tabela `event` na semana.
  *
- * Idempotente — pode ser chamado N vezes sem efeito colateral além do retreino.
+ * Idempotente — pode ser chamado N vezes sem efeito colateral além do retreinamento.
  *
  * Próximos passos (F6.1 Tier 1 completo):
  *  - Resolver lat/lng automaticamente para imóveis sem coordenada
@@ -62,12 +62,12 @@ export class PricingBootstrapService implements OnModuleInit {
 
   /**
    * Cron domingo 04:00 BRT — re-treina depois do scraping da semana.
-   * Mantida fora do `onModuleInit` para que o restart não force retreino
+   * Mantida fora do `onModuleInit` para que o restart não force retreinamento
    * desnecessário a cada deploy.
    */
   @Cron('0 4 * * 0', { name: 'pricing-retrain', timeZone: 'America/Sao_Paulo' })
   async handleWeeklyRetrain() {
-    this.logger.log('Iniciando retreino semanal do PricingEngine...');
+    this.logger.log('Iniciando retreinamento semanal do PricingEngine...');
     try {
       await this.runCronWithTracking('pricing-retrain', () => this.train());
     } catch (err) {

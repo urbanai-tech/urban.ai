@@ -112,6 +112,6 @@ describe('EmailTemplates - billing lifecycle', () => {
     expect(html).toContain('Rua Apiacás, 100');
     expect(html).toContain('Preço: atual R$ 220 | sugerido R$ 286 | +30%');
     expect(html).toContain('Show no Allianz');
-    expect(html).not.toContain('Eventos futuros e demanda local perto do imovel');
+    expect(html).not.toContain('Eventos futuros e demanda local perto do imóvel');
   });
 });

@@ -96,7 +96,7 @@ export class EmailService {
 
             const title = subject || 'Novos eventos';
             const htmlContent = EmailTemplates.getEventNotificationTemplate(
-                name || 'Usuario',
+                name || 'Usuário',
                 title,
                 Number(quantidade) || 0,
             );
@@ -108,15 +108,15 @@ export class EmailService {
             );
             return { enviado: true, status: result.status };
         } catch (error) {
-            this.logger.error(`Erro ao enviar email transacional: ${error instanceof Error ? error.message : error}`);
-            return { enviado: false, motivo: 'Erro interno ao enviar email' };
+            this.logger.error(`Erro ao enviar e-mail transacional: ${error instanceof Error ? error.message : error}`);
+            return { enviado: false, motivo: 'Erro interno ao enviar e-mail' };
         }
     }
 
     async confirmPassword(token: string, password: string) {
         try {
             if (!token || !password) {
-                return { enviado: false, motivo: 'Token e senha sao obrigatorios' };
+                return { enviado: false, motivo: 'Token e senha são obrigatórios' };
             }
 
             const resetToken = await this.passwordResetTokenRepository.findOne({
@@ -125,7 +125,7 @@ export class EmailService {
             });
 
             if (!resetToken || resetToken.usedAt || resetToken.expiresAt <= new Date()) {
-                return { enviado: false, motivo: 'Token invalido ou expirado' };
+                return { enviado: false, motivo: 'Token inválido ou expirado' };
             }
 
             // Reset de senha sempre grava bcrypt(12), seja o input texto-puro
@@ -162,10 +162,10 @@ export class EmailService {
         } catch (error) {
             console.error('Erro ao processar forgotPassword:', error);
             if (error.response && error.response.body) {
-                console.error('Detalhes do erro do provedor de email:', error.response.body);
+                console.error('Detalhes do erro do provedor de e-mail:', error.response.body);
             }
 
-            return { enviado: false, motivo: 'Erro interno ao enviar email' };
+            return { enviado: false, motivo: 'Erro interno ao enviar e-mail' };
         }
     }
     async enviarCodigo(email: string) {
@@ -173,7 +173,7 @@ export class EmailService {
             // 1️⃣ Buscar o usuário
             const usuario = await this.userRepository.findOne({ where: { email: email } });
             if (!usuario) {
-                this.logger.warn(`Usuario nao encontrado para envio de codigo: ${this.maskEmail(email)}`);
+                this.logger.warn(`Usuário não encontrado para envio de código: ${this.maskEmail(email)}`);
                 return { enviado: false, motivo: 'Usuário não encontrado' };
             }
 
@@ -219,15 +219,15 @@ export class EmailService {
                 htmlContent
             );
 
-            this.logger.log(`Email de confirmacao enviado para ${this.maskEmail(email)}`);
+            this.logger.log(`E-mail de confirmação enviado para ${this.maskEmail(email)}`);
             return { enviado: true };
 
         } catch (error) {
-            console.error('Erro ao enviar email de confirmação:', error);
+            console.error('Erro ao enviar e-mail de confirmação:', error);
             if (error.response && error.response.body) {
-                console.error('Detalhes do erro do provedor de email:', error.response.body);
+                console.error('Detalhes do erro do provedor de e-mail:', error.response.body);
             }
-            return { enviado: false, motivo: 'Erro interno ao enviar email' };
+            return { enviado: false, motivo: 'Erro interno ao enviar e-mail' };
         }
 
     }
@@ -237,7 +237,7 @@ export class EmailService {
             // 1️⃣ Buscar o usuário
             const usuario = await this.userRepository.findOne({ where: { email: email } });
             if (!usuario) {
-                this.logger.warn(`Usuario nao encontrado para confirmar email: ${this.maskEmail(email)}`);
+                this.logger.warn(`Usuário não encontrado para confirmar e-mail: ${this.maskEmail(email)}`);
                 return { ok: false, motivo: 'Usuário não encontrado' };
             }
 
@@ -276,29 +276,29 @@ export class EmailService {
             newUserState.ativo = true;
             await this.userRepository.save(newUserState);
 
-            this.logger.log(`Email confirmado com sucesso para ${this.maskEmail(email)}`);
+            this.logger.log(`E-mail confirmado com sucesso para ${this.maskEmail(email)}`);
             return { ok: true };
 
         } catch (error) {
-            console.error('Erro ao confirmar email:', error);
-            return { ok: false, motivo: 'Erro interno ao confirmar email' };
+            console.error('Erro ao confirmar e-mail:', error);
+            return { ok: false, motivo: 'Erro interno ao confirmar e-mail' };
         }
     }
 
     async enviarEmailAvisandoQueOsDadosEstaoSendoProcessados(email: string) {
         try {
-            console.log("📨 Iniciando processo de envio de email...");
+            console.log("📨 Iniciando processo de envio de e-mail...");
 
             // 🔎 Buscar usuário
             const usuario = await this.userRepository.findOne({ where: { email } });
             if (!usuario) {
-                this.logger.warn(`Usuario nao encontrado para aviso de processamento: ${this.maskEmail(email)}`);
+                this.logger.warn(`Usuário não encontrado para aviso de processamento: ${this.maskEmail(email)}`);
                 return { enviado: false, motivo: 'Usuário não encontrado' };
             }
 
             const nome = usuario.username || 'Usuário';
 
-            this.logger.debug(`Usuario encontrado para aviso de processamento: user=${usuario.id}`);
+            this.logger.debug(`Usuário encontrado para aviso de processamento: user=${usuario.id}`);
             console.log("✉️  Preparando mensagem de aviso...");
 
             const htmlContent = EmailTemplates.getAnalysisStartedTemplate(
@@ -316,27 +316,27 @@ export class EmailService {
             return { enviado: true };
 
         } catch (error) {
-            console.error('❌ Erro ao enviar email:', error);
+            console.error('❌ Erro ao enviar e-mail:', error);
             if (error.response?.body) {
-                console.error('📄 Detalhes do erro do provedor de email:', error.response.body);
+                console.error('📄 Detalhes do erro do provedor de e-mail:', error.response.body);
             }
-            return { enviado: false, motivo: 'Erro interno ao enviar email' };
+            return { enviado: false, motivo: 'Erro interno ao enviar e-mail' };
         }
     }
     async enviarEmailAvisandoQueOsDadosForamProcessados(email: string) {
         try {
-            console.log("📨 Iniciando processo de envio de email...");
+            console.log("📨 Iniciando processo de envio de e-mail...");
 
             // 🔎 Buscar usuário
             const usuario = await this.userRepository.findOne({ where: { email } });
             if (!usuario) {
-                this.logger.warn(`Usuario nao encontrado para aviso de processamento finalizado: ${this.maskEmail(email)}`);
+                this.logger.warn(`Usuário não encontrado para aviso de processamento finalizado: ${this.maskEmail(email)}`);
                 return { enviado: false, motivo: 'Usuário não encontrado' };
             }
 
             const nome = usuario.username || 'Usuário';
 
-            this.logger.debug(`Usuario encontrado para aviso de processamento finalizado: user=${usuario.id}`);
+            this.logger.debug(`Usuário encontrado para aviso de processamento finalizado: user=${usuario.id}`);
             console.log("✉️  Preparando mensagem de aviso...");
 
             const htmlContent = EmailTemplates.getAnalysisFinishedTemplate(
@@ -354,11 +354,11 @@ export class EmailService {
             return { enviado: true };
 
         } catch (error) {
-            console.error('❌ Erro ao enviar email:', error);
+            console.error('❌ Erro ao enviar e-mail:', error);
             if (error.response?.body) {
-                console.error('📄 Detalhes do erro do provedor de email:', error.response.body);
+                console.error('📄 Detalhes do erro do provedor de e-mail:', error.response.body);
             }
-            return { enviado: false, motivo: 'Erro interno ao enviar email' };
+            return { enviado: false, motivo: 'Erro interno ao enviar e-mail' };
         }
     }
 
@@ -406,16 +406,16 @@ export class EmailService {
 
             // await sgMail.send(msg);
 
-            console.log(`Email de recuperação enviado para usuario ${usuario.id}`);
+            console.log(`E-mail de recuperação enviado para usuário ${usuario.id}`);
             return { enviado: true };
 
         } catch (error) {
             console.error('Erro ao processar forgotPassword:', error);
             if (error.response && error.response.body) {
-                console.error('Detalhes do erro do provedor de email:', error.response.body);
+                console.error('Detalhes do erro do provedor de e-mail:', error.response.body);
             }
 
-            return { enviado: false, motivo: 'Erro interno ao enviar email' };
+            return { enviado: false, motivo: 'Erro interno ao enviar e-mail' };
         }
     }
 
@@ -427,7 +427,7 @@ export class EmailService {
             });
 
             if (!usuario) {
-                this.logger.warn(`Usuario nao encontrado para notificacao: user=${usuarioId}`);
+                this.logger.warn(`Usuário não encontrado para notificação: user=${usuarioId}`);
                 return { enviado: false, motivo: 'Usuário não encontrado' };
             }
 
@@ -436,7 +436,7 @@ export class EmailService {
 
             const notification = await this.notificationService.create(usuarioId, notificationContent)
             if (notification) {
-                this.logger.debug(`Notificacao salva para user=${usuarioId}`);
+                this.logger.debug(`Notificação salva para user=${usuarioId}`);
             }
 
             if (this.shouldBatchPricingRecommendation(notificationContent)) {
@@ -458,7 +458,7 @@ export class EmailService {
                   htmlContent
                 );
 
-                this.logger.log(`Email de notificacao enviado para user=${userId}`);
+                this.logger.log(`E-mail de notificação enviado para user=${userId}`);
             } else {
                 console.log("Email foi marcado para não ser enviado, portanto não foi enviado.")
             }
@@ -481,10 +481,10 @@ export class EmailService {
         } catch (error) {
             console.error('Erro ao processar envio:', error);
             if (error.response && error.response.body) {
-                console.error('Detalhes do erro do provedor de email:', error.response.body);
+                console.error('Detalhes do erro do provedor de e-mail:', error.response.body);
             }
 
-            return { enviado: false, motivo: 'Erro interno ao enviar email ou notificação' };
+            return { enviado: false, motivo: 'Erro interno ao enviar e-mail ou notificação' };
         }
     }
 
@@ -496,8 +496,9 @@ export class EmailService {
             type === 'pricing_recommendation_digest' ||
             title.includes('sugestões de preço') ||
             title.includes('sugestão de preço') ||
-            title.includes('sugestoes de preco') ||
-            title.includes('sugestao de preco') ||
+            title.includes('sugestões de preço') ||
+            title.includes('sugestão de preço') ||
+            title.includes('sugestões disponíveis') ||
             title.includes('sugestoes disponiveis')
         );
     }
@@ -698,10 +699,10 @@ export class EmailService {
 
                 if (eventosUnicos.size > 0) {
                     this.logger.debug(
-                        `Usuario ${user.id} possui ${eventosUnicos.size} eventos unicos analisados; e-mail legado suprimido.`,
+                        `Usuário ${user.id} possui ${eventosUnicos.size} eventos únicos analisados; e-mail legado suprimido.`,
                     );
                 } else {
-                    this.logger.debug(`Nenhum evento disponivel para user=${user.id}`);
+                    this.logger.debug(`Nenhum evento disponível para user=${user.id}`);
                 }
 
             }

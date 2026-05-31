@@ -102,7 +102,7 @@ export class AdminPropertiesService {
     const listId = address.list?.id;
 
     if (!userId || !listId) {
-      throw new BadRequestException('Imovel sem usuario ou listing associado para reprocessar');
+      throw new BadRequestException('Imóvel sem usuário ou listing associado para reprocessar');
     }
 
     const result = await this.mapsService.processarAnalisesByProperty(userId, listId);
@@ -121,7 +121,7 @@ export class AdminPropertiesService {
       relations: ['list', 'user', 'list.user'],
     });
     if (!address?.list?.id) {
-      throw new NotFoundException('Imovel nao encontrado');
+      throw new NotFoundException('Imóvel não encontrado');
     }
     return address;
   }

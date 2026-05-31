@@ -80,7 +80,7 @@ export default function AddressCard({
   const consultarCep = async () => {
     if (!isValidCep(cep)) {
       setCepError(t("address.cep_invalid_digits"));
-      toast("O CEP informado nao e valido. Verifique e tente novamente.", { type: "error" });
+      toast("O CEP informado não é válido. Verifique e tente novamente.", { type: "error" });
       return;
     }
 
@@ -101,7 +101,7 @@ export default function AddressCard({
       console.error("Erro ao consultar CEP:", error);
       setCepError(t("address.cep_not_found_description"));
       setAddressData({ street: "", neighborhood: "", city: "", state: "" });
-      toast("O CEP informado nao e valido. Verifique e tente novamente.", { type: "error" });
+      toast("O CEP informado não é válido. Verifique e tente novamente.", { type: "error" });
     } finally {
       setIsLoadingCep(false);
     }
@@ -139,7 +139,7 @@ export default function AddressCard({
         <img
           src={imageSrc}
           alt={title}
-          onError={() => setImageSrc("https://via.placeholder.com/400x200?text=Foto+Indisponivel")}
+          onError={() => setImageSrc("https://via.placeholder.com/400x200?text=Foto+indispon%C3%ADvel")}
           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
         />
       </div>
@@ -275,7 +275,7 @@ export default function AddressCard({
 
       <style>{`
         @keyframes address-spin { to { transform: rotate(360deg); } }
-        @media (max-width: 760px) {
+        @média (max-width: 760px) {
           [data-address-fields] {
             grid-template-columns: 1fr !important;
           }

@@ -175,7 +175,7 @@ export class CronService {
         hoje.setHours(0, 0, 0, 0);
         const dataHoje = hoje.toISOString().split('T')[0];
 
-        this.logger.log(`Buscando analises aceitas a partir de ${dataHoje}`);
+        this.logger.log(`Buscando análises aceitas a partir de ${dataHoje}`);
 
         const aceites = await this.analisePrecoRepository.find({
             where: {
@@ -190,7 +190,7 @@ export class CronService {
             relations: ['endereco', 'endereco.list', 'evento', 'usuarioProprietario'],
         });
 
-        this.logger.log(`${aceites.length} analises aceitas encontradas`);
+        this.logger.log(`${aceites.length} análises aceitas encontradas`);
 
         const result: CronProcessingResult = {
             iniciado: true,
@@ -208,22 +208,22 @@ export class CronService {
 
             if (!listingId) {
                 result.skipped += 1;
-                this.logger.warn(`${context} ignorada no cron diario: endereco/listing Airbnb ausente.`);
+                this.logger.warn(`${context} ignorada no cron diário: endereço/listing Airbnb ausente.`);
                 continue;
             }
 
             if (!ownerId) {
                 result.skipped += 1;
-                this.logger.warn(`${context} ignorada no cron diario: usuario proprietario ausente.`);
+                this.logger.warn(`${context} ignorada no cron diário: usuário proprietário ausente.`);
                 continue;
             }
 
             try {
                 this.logger.debug(
-                    `Analise aceita ${context} listing=${listingId} diff=${element.diferencaPercentual}`,
+                    `Análise aceita ${context} listing=${listingId} diff=${element.diferencaPercentual}`,
                 );
 
-                console.log(`Buscando dados no Airbnb para o anuncio ${listingId}...`);
+                console.log(`Buscando dados no Airbnb para o anúncio ${listingId}...`);
                 const dadosProperty = await this.airbnbService.getFirstAvailablePrice(listingId);
                 this.logger.debug(`Dados Airbnb recebidos para listing=${listingId}`);
 
@@ -232,16 +232,16 @@ export class CronService {
                 const diferencaPercentual = Number(element.diferencaPercentual);
 
                 if (!Number.isFinite(diaria) || !Number.isFinite(precoSugerido) || !Number.isFinite(diferencaPercentual)) {
-                    throw new Error(`Valores invalidos no cron diario para ${context}`);
+                    throw new Error(`Valores inválidos no cron diário para ${context}`);
                 }
 
-                console.log(`Diaria atual no Airbnb: R$${diaria}`);
-                console.log(`Preco sugerido: R$${precoSugerido}`);
-                console.log(`Diferenca percentual: ${diferencaPercentual}%\n`);
+                console.log(`Diária atual no Airbnb: R$${diaria}`);
+                console.log(`Preço sugerido: R$${precoSugerido}`);
+                console.log(`Diferença percentual: ${diferencaPercentual}%\n`);
 
                 if (diferencaPercentual > 0) {
                     if (precoSugerido > diaria) {
-                        console.log('Enfileirando digest -> Oportunidade de AUMENTAR o preco!');
+                        console.log('Enfileirando digest -> Oportunidade de AUMENTAR o preço!');
                         const tdo = this.buildPricingRecommendationNotification(
                             element,
                             diaria,
@@ -249,13 +249,13 @@ export class CronService {
                             diferencaPercentual,
                             'increase',
                         );
-                        this.logger.log(`Enviando notificacao para user=${ownerId}`);
+                        this.logger.log(`Enviando notificação para user=${ownerId}`);
                         const { enviado } = await this.emailService.enviarNotification(ownerId, tdo);
-                        console.log(enviado ? 'Notificacao de pricing enfileirada com sucesso!' : 'Falha ao enfileirar notificacao.');
+                        console.log(enviado ? 'Notificação de pricing enfileirada com sucesso!' : 'Falha ao enfileirar notificação.');
                     }
                 } else if (diferencaPercentual < 0) {
                     if (precoSugerido < diaria) {
-                        console.log('Enfileirando digest -> Oportunidade de DIMINUIR o preco!');
+                        console.log('Enfileirando digest -> Oportunidade de DIMINUIR o preço!');
                         const tdo = this.buildPricingRecommendationNotification(
                             element,
                             diaria,
@@ -263,12 +263,12 @@ export class CronService {
                             diferencaPercentual,
                             'decrease',
                         );
-                        this.logger.log(`Enviando notificacao para user=${ownerId}`);
+                        this.logger.log(`Enviando notificação para user=${ownerId}`);
                         const { enviado } = await this.emailService.enviarNotification(ownerId, tdo);
-                        console.log(enviado ? 'Notificacao de pricing enfileirada com sucesso!' : 'Falha ao enfileirar notificacao.');
+                        console.log(enviado ? 'Notificação de pricing enfileirada com sucesso!' : 'Falha ao enfileirar notificação.');
                     }
                 } else {
-                    console.log('Nenhuma notificacao necessaria para este imovel.');
+                    console.log('Nenhuma notificação necessária para este imóvel.');
                 }
 
                 result.processed += 1;
@@ -280,17 +280,17 @@ export class CronService {
                     reason,
                 });
                 this.logger.error(
-                    `Falha ao processar ${context} no cron diario: ${reason}`,
+                    `Falha ao processar ${context} no cron diário: ${reason}`,
                     error instanceof Error ? error.stack : undefined,
                 );
             }
 
-            console.log('Aguardando 2 segundos antes do proximo...\n');
+            console.log('Aguardando 2 segundos antes do próximo...\n');
             await this.waitBetweenCronItems();
         }
 
         this.logger.log(
-            `Cron diario finalizado: ${result.processed} processadas, ${result.skipped} ignoradas, ${result.failed} com erro`,
+            `Cron diário finalizado: ${result.processed} processadas, ${result.skipped} ignoradas, ${result.failed} com erro`,
         );
         console.log('Processo finalizado com sucesso!\n');
         return result;
@@ -304,9 +304,9 @@ export class CronService {
         );
 
         if (resultado.enviado) {
-            console.log(`Email confirmado como enviado! (status ${resultado.status})`);
+            console.log(`E-mail confirmado como enviado! (status ${resultado.status})`);
         } else {
-            console.log(`Email NAO enviado (status ${resultado.status}): ${resultado.message}`);
+            console.log(`E-mail não enviado (status ${resultado.status}): ${resultado.message}`);
         }
     }
 
@@ -315,7 +315,7 @@ export class CronService {
         hoje.setHours(0, 0, 0, 0);
         const dataHoje = hoje.toISOString().split('T')[0];
 
-        console.log(`Buscando analises aceitas a partir de ${dataHoje}...`);
+        console.log(`Buscando análises aceitas a partir de ${dataHoje}...`);
 
         const aceites = await this.analisePrecoRepository.find({
             where: {
@@ -339,7 +339,7 @@ export class CronService {
             failures: [],
         };
 
-        console.log(`${aceites.length} analises aceitas encontradas.`);
+        console.log(`${aceites.length} análises aceitas encontradas.`);
 
         for (const element of aceites) {
             const context = this.getAnalysisContext(element);
@@ -347,31 +347,31 @@ export class CronService {
 
             if (!listingId) {
                 result.skipped += 1;
-                this.logger.warn(`${context} ignorada na simulacao: endereco/listing Airbnb ausente.`);
+                this.logger.warn(`${context} ignorada na simulação: endereço/listing Airbnb ausente.`);
                 continue;
             }
 
             try {
-                this.logger.debug(`Simulando analise aceita user=${element.usuarioProprietario?.id ?? 'sem-user'}`);
-                console.log(`- Diferenca percentual: ${element.diferencaPercentual}`);
-                console.log(`- Recomendacao: ${element.recomendacao}`);
-                console.log(`- Preco atual: ${element.seuPrecoAtual}`);
-                console.log(`- Preco sugerido: ${element.precoSugerido}`);
-                console.log(`- ID do anuncio Airbnb: ${listingId}`);
+                this.logger.debug(`Simulando análise aceita user=${element.usuarioProprietario?.id ?? 'sem-user'}`);
+                console.log(`- Diferença percentual: ${element.diferencaPercentual}`);
+                console.log(`- Recomendação: ${element.recomendacao}`);
+                console.log(`- Preço atual: ${element.seuPrecoAtual}`);
+                console.log(`- Preço sugerido: ${element.precoSugerido}`);
+                console.log(`- ID do anúncio Airbnb: ${listingId}`);
 
                 const dadosProperty = await this.airbnbService.getFirstAvailablePrice(listingId);
                 const diaria = getDiariaForCron(dadosProperty);
                 const precoSugerido = Number(element.precoSugerido);
                 const diferencaPercentual = Number(element.diferencaPercentual);
 
-                console.log(`Diaria atual no Airbnb: ${diaria}`);
+                console.log(`Diária atual no Airbnb: ${diaria}`);
 
                 if (diferencaPercentual > 0 && precoSugerido > diaria) {
-                    console.log(`Simulacao: Enviar notificacao -> considere aumentar o preco para R$${precoSugerido}.`);
+                    console.log(`Simulação: Enviar notificação -> considere aumentar o preço para R$${precoSugerido}.`);
                 } else if (diferencaPercentual < 0 && precoSugerido < diaria) {
-                    console.log(`Simulacao: Enviar notificacao -> considere diminuir o preco para R$${precoSugerido}.`);
+                    console.log(`Simulação: Enviar notificação -> considere diminuir o preço para R$${precoSugerido}.`);
                 } else {
-                    console.log('Nenhuma notificacao necessaria.');
+                    console.log('Nenhuma notificação necessária.');
                 }
 
                 result.processed += 1;
@@ -383,7 +383,7 @@ export class CronService {
                     reason,
                 });
                 this.logger.error(
-                    `Falha ao simular ${context} no cron diario: ${reason}`,
+                    `Falha ao simular ${context} no cron diário: ${reason}`,
                     error instanceof Error ? error.stack : undefined,
                 );
             }
@@ -396,9 +396,9 @@ export class CronService {
     }
 
     /**
-     * Cron mensal noturno: re-scraping de todos os imoveis ativos.
-     * Deve ser chamado via endpoint ou scheduler as 2h da manha, 1x/mes.
-     * Espacado ao longo de 8h para evitar rate limiting.
+     * Cron mensal noturno: re-scraping de todos os imóveis ativos.
+     * Deve ser chamado via endpoint ou scheduler às 2h da manhã, 1x/mês.
+     * Espaçado ao longo de 8h para evitar rate limiting.
      */
     async refreshPropertyMetadata(): Promise<any> {
         this.logger.log('[cron] Iniciando re-scraping mensal de metadados...');
@@ -407,7 +407,7 @@ export class CronService {
             this.logger.log(`[cron] Re-scraping concluido: ${result.updated}/${result.total} atualizados, ${result.errors} erros`);
 
             await this.enviarNotificacaoCron(
-                'Re-scraping mensal concluido',
+                'Re-scraping mensal concluído',
                 `Total: ${result.total} | Atualizados: ${result.updated} | Erros: ${result.errors}`,
             );
 

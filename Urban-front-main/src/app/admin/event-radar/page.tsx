@@ -114,7 +114,7 @@ export default function AdminEventRadarPage() {
       const e = err as { response?: { status?: number }; userMessage?: string; message?: string };
       setError(
         e?.response?.status === 401 || e?.response?.status === 403
-          ? "Acesso negado. Voce precisa ser admin."
+          ? "Acesso negado. Você precisa ser admin."
           : e?.userMessage || e?.message || "Erro ao carregar radar de demanda.",
       );
     } finally {
@@ -134,7 +134,7 @@ export default function AdminEventRadarPage() {
       setDetail(await fetchAdminEventRadarDetail(event.id, event));
     } catch (err: unknown) {
       const e = err as { userMessage?: string; message?: string };
-      toast.error(e?.userMessage || e?.message || "Nao foi possivel abrir o detalhe do evento.");
+      toast.error(e?.userMessage || e?.message || "Não foi possível abrir o detalhe do evento.");
     } finally {
       setDetailLoading(false);
     }
@@ -151,7 +151,7 @@ export default function AdminEventRadarPage() {
       const e = err as { response?: { status?: number }; userMessage?: string; message?: string };
       toast.error(
         e?.response?.status === 404
-          ? "Endpoint de reprocessamento ainda nao foi exposto pelo backend."
+          ? "Endpoint de reprocessamento ainda não foi exposto pelo backend."
           : e?.userMessage || e?.message || "Falha ao reprocessar evento.",
       );
     } finally {
@@ -375,7 +375,7 @@ export default function AdminEventRadarPage() {
               Coletores
             </AdminButton>
             <AdminButton variant="secondary" onClick={load} disabled={loading} leftIcon={<Icons.RefreshCw size={12} />}>
-              {loading ? "Atualizando..." : "Atualizar"}
+            {loading ? "Atualizando…" : "Atualizar"}
             </AdminButton>
           </div>
         }
@@ -439,7 +439,7 @@ export default function AdminEventRadarPage() {
           </AdminSelect>
           <AdminInput
             label="Busca"
-            placeholder="Evento, cidade, venue..."
+            placeholder="Evento, cidade, venue…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             leftAddon={<Icons.Search size={12} />}
@@ -622,7 +622,7 @@ export default function AdminEventRadarPage() {
           empty={
             <AdminEmptyState
               title="Sem blind spots nesse recorte"
-              body="O motor nao encontrou bloqueios relevantes para os filtros atuais."
+              body="O motor não encontrou bloqueios relevantes para os filtros atuais."
             />
           }
         />
@@ -662,14 +662,14 @@ export default function AdminEventRadarPage() {
       >
         {detailLoading && (
           <p style={{ margin: 0, color: "var(--admin-text-muted)", fontSize: 13 }}>
-            Carregando detalhe...
+            Carregando detalhe…
           </p>
         )}
         {!detailLoading && detail && <EventDetail detail={detail} />}
         {!detailLoading && selected && !detail && (
           <AdminEmptyState
-            title="Detalhe indisponivel"
-            body="Nao foi possivel carregar o detalhe agora. Tente novamente ou use a listagem de eventos."
+            title="Detalhe indisponível"
+            body="Não foi possível carregar o detalhe agora. Tente novamente ou use a listagem de eventos."
           />
         )}
       </AdminDrawer>
@@ -686,7 +686,7 @@ export default function AdminEventRadarPage() {
           --event-radar-heatmap-grid: repeat(auto-fit, minmax(150px, 1fr));
         }
 
-        @media (max-width: 1180px) {
+        @média (max-width: 1180px) {
           .admin-event-radar-page {
             --event-radar-main-grid: 1fr;
             --event-radar-command-grid: repeat(2, minmax(0, 1fr));
@@ -697,7 +697,7 @@ export default function AdminEventRadarPage() {
           }
         }
 
-        @media (max-width: 767px) {
+        @média (max-width: 767px) {
           .admin-event-radar-page {
             --event-radar-command-grid: 1fr;
             --event-radar-health-grid: 1fr;
@@ -804,7 +804,7 @@ function RadarCommandStrip({
       <CommandTile
         icon={<Icons.MapPin size={16} />}
         label="Hotspot"
-        value={topCell?.label ?? "Sem celula"}
+        value={topCell?.label ?? "Sem célula"}
         detail={topCell ? `${integer.format(topCell.eventDemandScore)} score` : "ajuste filtros"}
         kind={topCell ? "warn" : "neutral"}
       />
@@ -903,7 +903,7 @@ function KpiHealthFooter({
       <HealthMeter
         label="Cobertura"
         value={weightedCoveragePercent}
-        detail={weightedCoveragePercent >= 70 ? "saudavel" : "atenção em malha"}
+        detail={weightedCoveragePercent >= 70 ? "saudável" : "atenção em malha"}
       />
       <HealthMeter
         label="Confiança"
@@ -951,7 +951,7 @@ function HealthCounter({ label, value, kind }: { label: string; value: number; k
       <p style={{ margin: "9px 0 8px", color: "var(--admin-text)", fontFamily: "monospace", fontSize: 18 }}>
         {integer.format(value)}
       </p>
-      <AdminBadge kind={kind}>{value > 0 ? "acao pendente" : "sem bloqueio"}</AdminBadge>
+      <AdminBadge kind={kind}>{value > 0 ? "ação pendente" : "sem bloqueio"}</AdminBadge>
     </div>
   );
 }
@@ -986,7 +986,7 @@ function FilterStatusStrip({
       aria-live="polite"
     >
       <span style={{ overflowWrap: "anywhere" }}>
-        {loading ? "Atualizando recorte..." : `${prioritizedCount} de ${eventsCount} eventos priorizados`}
+        {loading ? "Atualizando recorte…" : `${prioritizedCount} de ${eventsCount} eventos priorizados`}
         {activeFilterCount > 0
           ? ` · ${activeFilterCount} filtro${activeFilterCount > 1 ? "s" : ""} ativo${activeFilterCount > 1 ? "s" : ""}`
           : ""}
@@ -1086,8 +1086,8 @@ function GeoOpsHeatmapPanel({
   if (!heatmap || heatmap.cells.length === 0) {
     return (
       <AdminEmptyState
-        title="Sem celulas para o heatmap"
-        body="Ajuste os filtros para visualizar demanda por regiao."
+        title="Sem células para o heatmap"
+        body="Ajuste os filtros para visualizar demanda por região."
       />
     );
   }
@@ -1136,14 +1136,14 @@ function GeoOpsHeatmapPanel({
         <GeoOpsStat
           label="Hotspots"
           value={hotCells}
-          detail={topCells[0]?.cell.label ?? "sem regiao quente"}
+          detail={topCells[0]?.cell.label ?? "sem região quente"}
           kind={hotCells > 0 ? "warn" : "neutral"}
           testId="geo-ops-hotspots"
         />
         <GeoOpsStat
           label="Gaps cobertura"
           value={coverageGapCells}
-          detail="malha ou confianca baixa"
+          detail="malha ou confiança baixa"
           kind={coverageGapCells > 0 ? "error" : "success"}
           testId="geo-ops-coverage-gaps"
         />
@@ -1157,7 +1157,7 @@ function GeoOpsHeatmapPanel({
         <GeoOpsStat
           label="Receita top 5"
           value={formatCents(topOpportunityRevenue)}
-          detail={`${revenueCellCount} regioes com upside`}
+          detail={`${revenueCellCount} regiões com upside`}
           kind={revenueCellCount > 0 ? "accent" : "neutral"}
           testId="geo-ops-revenue-opportunities"
         />
@@ -1176,10 +1176,10 @@ function GeoOpsHeatmapPanel({
       >
         <div style={{ minWidth: 0 }}>
           <p style={{ margin: 0, color: "var(--admin-text)", fontSize: 13, fontWeight: 600 }}>
-            Metrica: {metricLabel(metric)} / foco: {geoOpsFocusLabel(focus)}
+            Métrica: {metricLabel(metric)} / foco: {geoOpsFocusLabel(focus)}
           </p>
           <p style={{ margin: "5px 0 0", color: "var(--admin-text-muted)", fontSize: 12, overflowWrap: "anywhere" }}>
-            {filteredCells.length} de {opsCells.length} celulas visiveis. Cores indicam intensidade; badge indica a proxima acao operacional.
+            {filteredCells.length} de {opsCells.length} células visíveis. Cores indicam intensidade; badge indica a próxima ação operacional.
           </p>
         </div>
         <div
@@ -1265,8 +1265,8 @@ function GeoOpsHeatmapPanel({
 
       {filteredCells.length === 0 ? (
         <AdminEmptyState
-          title="Sem celulas nesse foco"
-          body="Troque o foco Geo Ops ou amplie os filtros para ver regioes operacionais."
+          title="Sem células nesse foco"
+          body="Troque o foco Geo Ops ou amplie os filtros para ver regiões operacionais."
         />
       ) : (
         <div
@@ -1331,7 +1331,7 @@ function GeoOpsHeatmapPanel({
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 11 }}>
                 <MiniStat label="Score" value={item.cell.eventDemandScore} />
                 <MiniStat label="Eventos" value={item.cell.eventsCount} />
-                <MiniStat label="Imoveis" value={item.cell.affectedPropertiesCount} />
+                <MiniStat label="Imóveis" value={item.cell.affectedPropertiesCount} />
                 <MiniStat label="Cobertura" value={`${item.cell.coverageScore}%`} />
               </div>
             </div>
@@ -1382,7 +1382,7 @@ function GeoOpsRadarMap({
       >
         <AdminRadarOverlay />
         <div style={{ position: "absolute", top: 12, left: 12, display: "flex", gap: 8, flexWrap: "wrap", maxWidth: "calc(100% - 24px)" }}>
-          <AdminBadge kind="accent">{geoItems.length} celulas no radar</AdminBadge>
+          <AdminBadge kind="accent">{geoItems.length} células no radar</AdminBadge>
           {missingCenterCount > 0 && <AdminBadge kind="warn">{missingCenterCount} sem centro</AdminBadge>}
         </div>
 
@@ -1399,7 +1399,7 @@ function GeoOpsRadarMap({
               lineHeight: 1.5,
             }}
           >
-            Nenhuma celula com centro geografico neste foco.
+            Nenhuma célula com centro geográfico neste foco.
           </div>
         ) : (
           geoItems.map((item) => {
@@ -1609,8 +1609,8 @@ function BlindSpotOpsSummary({ blindSpots }: { blindSpots: AdminEventRadarBlindS
         marginBottom: 14,
       }}
     >
-      <GeoOpsStat label="Geo/dado" value={geo} detail="corrigir localizacao" kind={geo > 0 ? "error" : "success"} testId="geo-blindspots-geo" />
-      <GeoOpsStat label="Pricing" value={pricing} detail="gerar recomendacao" kind={pricing > 0 ? "error" : "success"} testId="geo-blindspots-pricing" />
+      <GeoOpsStat label="Geo/dado" value={geo} detail="corrigir localização" kind={geo > 0 ? "error" : "success"} testId="geo-blindspots-geo" />
+      <GeoOpsStat label="Pricing" value={pricing} detail="gerar recomendação" kind={pricing > 0 ? "error" : "success"} testId="geo-blindspots-pricing" />
       <GeoOpsStat label="Fonte" value={source} detail="validar crawler/link" kind={source > 0 ? "warn" : "success"} testId="geo-blindspots-source" />
       <GeoOpsStat label="Receita travada" value={formatCents(revenueAtRisk)} detail={`${coverage} gaps cobertura`} kind={coverage > 0 ? "warn" : "neutral"} testId="geo-blindspots-revenue" />
     </div>
@@ -1627,8 +1627,8 @@ function _HeatmapPanelV2({
   if (!heatmap || heatmap.cells.length === 0) {
     return (
       <AdminEmptyState
-        title="Sem celulas para o heatmap"
-        body="Ajuste os filtros para visualizar demanda por regiao."
+        title="Sem células para o heatmap"
+        body="Ajuste os filtros para visualizar demanda por região."
       />
     );
   }
@@ -1654,10 +1654,10 @@ function _HeatmapPanelV2({
       >
         <div style={{ minWidth: 0 }}>
           <p style={{ margin: 0, color: "var(--admin-text)", fontSize: 13, fontWeight: 600 }}>
-            Metrica: {metricLabel(metric)}
+            Métrica: {metricLabel(metric)}
           </p>
           <p style={{ margin: "5px 0 0", color: "var(--admin-text-muted)", fontSize: 12, overflowWrap: "anywhere" }}>
-            {hotCells} regioes quentes · {lowCoverageCells} com cobertura baixa
+            {hotCells} regiões quentes · {lowCoverageCells} com cobertura baixa
           </p>
         </div>
         <div
@@ -1771,7 +1771,7 @@ function _HeatmapPanelV2({
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 11 }}>
                 <MiniStat label="Score" value={cell.eventDemandScore} />
                 <MiniStat label="Eventos" value={cell.eventsCount} />
-                <MiniStat label="Imoveis" value={cell.affectedPropertiesCount} />
+                <MiniStat label="Imóveis" value={cell.affectedPropertiesCount} />
                 <MiniStat label="Cobertura" value={`${cell.coverageScore}%`} />
               </div>
             </div>
@@ -1850,16 +1850,16 @@ function EventDecisionHero({ detail }: { detail: AdminEventRadarDetail }) {
           <AdminBadge kind={kind}>{decision}</AdminBadge>
           <AdminBadge kind={confidenceKind(event.confidence)}>{confidenceLabel(event.confidence)}</AdminBadge>
           <AdminBadge kind={evidenceReady ? "success" : "warn"}>
-            {evidenceReady ? "Evidencia rastreavel" : "Leitura nao auditada"}
+            {evidenceReady ? "Evidência rastreável" : "Leitura não auditada"}
           </AdminBadge>
           <AdminBadge kind={dataStatusKind(dataStatus)}>{dataStatusLabel(dataStatus)}</AdminBadge>
         </div>
         <p style={{ margin: "12px 0 0", color: "var(--admin-text-muted)", fontSize: 12, lineHeight: 1.6, overflowWrap: "anywhere" }}>
           {hasPricingGap
-            ? "Evento forte sem recomendacao gerada: tratar antes de perder janela de demanda."
+            ? "Evento forte sem recomendação gerada: tratar antes de perder janela de demanda."
             : topImpact
               ? `Maior captura: ${topImpact.propertyName} (${topImpact.propertyCaptureScore ?? "-"}).`
-              : "Sem imovel ranqueado ainda para este evento."}
+              : "Sem imóvel ranqueado ainda para este evento."}
           {" "}
           {jobRunId ? `Trace: ${shortTrace(jobRunId)}.` : "Sem jobRunId persistido para auditoria forte."}
         </p>
@@ -1874,7 +1874,7 @@ function EventDecisionHero({ detail }: { detail: AdminEventRadarDetail }) {
       >
         <MetricBlock label="Score" value={event.demandScore ?? "-"} />
         <MetricBlock label="Receita" value={formatCents(event.revenuePotentialCents)} />
-        <MetricBlock label="Imoveis" value={detail.operation.affectedPropertiesCount} />
+        <MetricBlock label="Imóveis" value={detail.operation.affectedPropertiesCount} />
         <MetricBlock label="Recs" value={detail.operation.recommendationsGenerated} />
       </div>
     </section>
@@ -1999,7 +1999,7 @@ function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
         ) : (
           <AdminEmptyState
             title="Sem drivers calculados"
-            body="O backend ainda nao retornou explicacoes de score para este evento."
+            body="O backend ainda não retornou explicações de score para este evento."
           />
         )}
       </section>
@@ -2134,7 +2134,7 @@ function DetailActions({
         loading={recomputing}
         leftIcon={<Icons.RefreshCw size={12} />}
       >
-        {recomputing ? "Reprocessando..." : "Reprocessar"}
+        {recomputing ? "Reprocessando…" : "Reprocessar"}
       </AdminButton>
     </>
   );
@@ -2241,7 +2241,7 @@ function formatCents(value?: number | null) {
 
 function formatPriceRange(min?: number | null, max?: number | null) {
   if (min === null || min === undefined) {
-    return max === null || max === undefined ? formatCents(null) : `ate ${formatCents(max)}`;
+    return max === null || max === undefined ? formatCents(null) : `até ${formatCents(max)}`;
   }
   if (max === null || max === undefined) return `desde ${formatCents(min)}`;
   return `${formatCents(min)} - ${formatCents(max)}`;
@@ -2305,7 +2305,7 @@ function dataStatusKind(status?: string | null): AdminBadgeKind {
 
 function shortTrace(value?: string | null) {
   if (!value) return "";
-  return value.length > 14 ? `${value.slice(0, 8)}...${value.slice(-4)}` : value;
+  return value.length > 14 ? `${value.slice(0, 8)}…${value.slice(-4)}` : value;
 }
 
 function isEnterpriseEvidenceReady(detail: AdminEventRadarDetail) {
@@ -2361,7 +2361,7 @@ function adminCellKind(cell: AdminEventRadarHeatmapCell) {
   if (cell.h3Index) return "H3";
   if (cell.geohash) return "Geohash";
   if (cell.dataStatus === "derived_from_events") return "Derivada";
-  return "Celula";
+  return "Célula";
 }
 
 function getAdminCellBounds(cells: AdminEventRadarHeatmapCell[]) {
@@ -2440,7 +2440,7 @@ function heatmapOperationalAction(
   if (cell.eventDemandScore >= 75) {
     return { label: "Monitorar oferta", detail: `score ${cell.eventDemandScore}`, kind: "success" };
   }
-  return { label: "Observar", detail: "sem acao critica", kind: "neutral" };
+  return { label: "Observar", detail: "sem ação critica", kind: "neutral" };
 }
 
 function heatmapValue(cell: AdminEventRadarHeatmapCell, metric: AdminEventRadarHeatmapMetric) {

@@ -25,7 +25,7 @@ interface CasaCardProps {
 }
 
 export default function CasaCard({ casa, onClick }: CasaCardProps) {
-  const title = casa.list?.titulo || 'Sem titulo';
+  const title = casa.list?.titulo || 'Sem título';
   const address = `${casa.logradouro}, ${casa.numero} - ${casa.bairro}, ${casa.cidade} - ${casa.estado}, ${casa.cep}`;
 
   return (

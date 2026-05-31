@@ -6,7 +6,7 @@ import PaymentCheckGuard from "../context/PaymentCheckGuard";
 import { AppFooter, AskUrbanProvider } from "./ui";
 
 /**
- * HostShell - layout shell unificado para rotas autenticadas do anfitriao.
+ * HostShell - layout shell unificado para rotas autenticadas do anfitrião.
  */
 export default function HostShell({
   children,

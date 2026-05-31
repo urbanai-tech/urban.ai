@@ -397,7 +397,7 @@ export default function CoverageAdminPage() {
         loading={resetting}
         destructive
         title="Reset retroativo de enrichment"
-        body="Reseta eventos com relevancia=0 (bug antigo) para re-tentativa Gemini. Pode levar tempo no próximo cron."
+        body="Reseta eventos com relevância=0 (bug antigo) para re-tentativa Gemini. Pode levar tempo no próximo cron."
         confirmLabel="Resetar"
         onConfirm={handleResetStale}
       />

@@ -95,7 +95,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       await api.post('/auth/logout')
     } catch (error) {
-      console.error('Erro ao encerrar sessao no backend:', error)
+      console.error('Erro ao encerrar sessão no backend:', error)
     }
     localStorage.removeItem('accessToken')
     setIsAuthenticated(false)

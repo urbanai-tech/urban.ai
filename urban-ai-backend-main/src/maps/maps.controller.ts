@@ -53,10 +53,10 @@ export class MapsController {
     example: '0351e831-4549-11f0-84fc-42010a400016',
   })
   @ApiOkResponse({
-    description: 'Resultado da geocodificacao',
+    description: 'Resultado da geocodificação',
     schema: { example: { ok: true, lat: -23.55052, lng: -46.633308 } },
   })
-  @ApiResponse({ status: 400, description: 'Erro de requisicao ou evento nao encontrado.' })
+  @ApiResponse({ status: 400, description: 'Erro de requisição ou evento não encontrado.' })
   async updateEventLocation(@Param('eventId') eventId: string) {
     return this.mapsService.updateLatLngByEventId(eventId);
   }
@@ -66,7 +66,7 @@ export class MapsController {
   @Roles('admin')
   @ApiOperation({ summary: 'Geocodifica e atualiza lat/lng de todos eventos sem coordenadas' })
   @ApiOkResponse({
-    description: 'Resultado da atualizacao em lote',
+    description: 'Resultado da atualização em lote',
     schema: { example: { ok: true, updated: 5, failed: 2, total: 7 } },
   })
   async updateAllEventLocations() {
@@ -76,9 +76,9 @@ export class MapsController {
   @Post('events/update-next-batch')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @ApiOperation({ summary: 'Atualiza o proximo lote de eventos sem coordenada' })
+  @ApiOperation({ summary: 'Atualiza o próximo lote de eventos sem coordenada' })
   @ApiOkResponse({
-    description: 'Resumo da atualizacao',
+    description: 'Resumo da atualização',
     schema: { example: { ok: true, updated: 45, failed: 5, total: 50, results: [] } },
   })
   async updateNextBatch(
@@ -112,7 +112,7 @@ export class MapsController {
 
   @UseGuards(JwtAuthGuard)
   @Post('processar-analises-by-property')
-  @ApiOperation({ summary: 'Processa analises para propriedades do usuario autenticado' })
+  @ApiOperation({ summary: 'Processa análises para propriedades do usuário autenticado' })
   @ApiBody({
     description: 'Lista de propriedades com IDs a serem processados',
     schema: {
@@ -135,11 +135,11 @@ export class MapsController {
   @Post('processar-analises')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @ApiOperation({ summary: 'Processa analises para todos os usuarios' })
+  @ApiOperation({ summary: 'Processa análises para todos os usuários' })
   async processarAnalisesTodosUsuarios() {
     const status = await this.processService.getCurrentStatus();
     if (!status) {
-      throw new BadRequestException('Nao foi possivel obter o status atual.');
+      throw new BadRequestException('Não foi possível obter o status atual.');
     }
 
     this.logger.log(`Status atual: ${status.status}`);
@@ -148,7 +148,7 @@ export class MapsController {
 
   private async iniciarProcessamento() {
     try {
-      this.logger.log('Iniciando processamento de analises de todos os usuarios.');
+      this.logger.log('Iniciando processamento de análises de todos os usuários.');
       const result = await this.mapsService.processarAnalisesTodosUsuarios();
 
       return {
@@ -157,7 +157,7 @@ export class MapsController {
       };
     } catch (error) {
       this.logger.error(
-        'Erro ao processar analises de todos os usuarios.',
+        'Erro ao processar análises de todos os usuários.',
         error instanceof Error ? error.stack : String(error),
       );
       return {
@@ -169,7 +169,7 @@ export class MapsController {
 
   private async iniciarProcessamentoByProperty(userId: string, propertyList: PropertyDto[]) {
     if (!userId) {
-      throw new BadRequestException('Usuario autenticado nao encontrado.');
+      throw new BadRequestException('Usuário autenticado não encontrado.');
     }
     if (!Array.isArray(propertyList) || propertyList.length === 0) {
       throw new BadRequestException('Nenhuma propriedade informada.');
@@ -210,7 +210,7 @@ export class MapsController {
 
   private async iniciarProcessamentoCron(): Promise<{ message: string; totalAnalises?: number }> {
     try {
-      this.logger.log('Iniciando processamento agendado de analises de todos os usuarios.');
+      this.logger.log('Iniciando processamento agendado de análises de todos os usuários.');
       const result = await this.mapsService.processarAnalisesTodosUsuarios();
 
       return {
@@ -219,7 +219,7 @@ export class MapsController {
       };
     } catch (error) {
       this.logger.error(
-        'Erro ao processar analises de todos os usuarios.',
+        'Erro ao processar análises de todos os usuários.',
         error instanceof Error ? error.stack : String(error),
       );
       return {

@@ -33,8 +33,8 @@ export class AnaliseEnderecoEvento {
   @Column({ name: 'distancia_metros', type: 'int' })
   distanciaMetros: number;
 
-  @Column({ name: 'duracao_minutos', type: 'int' })
-  duracaoSegundos: number;
+  @Column({ name: 'duração_minutos', type: 'int' })
+  duraçãoSegundos: number;
 
   @Column({ name: 'transport_mode', type: 'varchar', length: 50 })
   transportMode: string;

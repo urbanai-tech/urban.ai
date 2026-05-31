@@ -14,7 +14,7 @@ import {
 
 export function PriceAbsorptionScenarios({
   scenarios,
-  title = "Cenarios de absorcao",
+  title = "Cenários de absorção",
 }: {
   scenarios?: PriceAbsorptionScenario[];
   title?: string;
@@ -23,10 +23,10 @@ export function PriceAbsorptionScenarios({
     return (
       <AppCard variant="subtle" style={{ padding: 18 }} as="section">
         <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
-          PRECO VS CHANCE
+          PREÇO VS CHANCE
         </p>
         <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 14, lineHeight: 1.5 }}>
-          A curva de absorcao ainda nao esta disponivel para este imovel.
+          A curva de absorção ainda não está disponível para este imóvel.
         </p>
       </AppCard>
     );
@@ -39,7 +39,7 @@ export function PriceAbsorptionScenarios({
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
         <div style={{ minWidth: 0 }}>
           <p className="urban-app-eyebrow-muted" style={{ marginBottom: 4 }}>
-            PRECO VS CHANCE
+            PREÇO VS CHANCE
           </p>
           <h3 style={{ margin: 0, color: "var(--app-text)", fontSize: 16, fontWeight: 700, letterSpacing: 0, overflowWrap: "anywhere" }}>
             {title}
@@ -70,12 +70,12 @@ export function PriceAbsorptionScenarios({
                   {scenario.label}
                 </p>
                 <AppBadge kind={scenario.recommended ? "accent" : riskBadgeKind(scenario.risk)}>
-                  {scenario.recommended ? "Melhor equilibrio" : riskLabel(scenario.risk)}
+                  {scenario.recommended ? "Melhor equilíbrio" : riskLabel(scenario.risk)}
                 </AppBadge>
               </div>
 
               <div style={{ marginTop: 16, display: "grid", gap: 10 }}>
-                <Metric label="Diaria" value={formatCurrencyFromCents(scenario.dailyPriceCents)} strong />
+                <Metric label="Diária" value={formatCurrencyFromCents(scenario.dailyPriceCents)} strong />
                 <Metric label="Multiplicador" value={formatMultiplier(scenario.multiplier)} />
                 <Metric label="Chance de reserva" value={formatPercent(scenario.bookingProbability)} />
                 <Metric label="Receita esperada" value={formatCurrencyFromCents(scenario.expectedRevenueCents)} />

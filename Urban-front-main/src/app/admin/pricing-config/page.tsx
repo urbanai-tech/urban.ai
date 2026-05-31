@@ -101,11 +101,11 @@ export default function PricingConfigPage() {
     <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
       <AdminSectionHeader
         eyebrow="ADMIN · PRICING"
-        title="Configuracao de precos"
+        title="Configuração de preços"
         subtitle={
           <>
-            Matriz F6.5 — precos por imovel x 4 ciclos com desconto progressivo.
-            Mudancas refletem imediatamente em <code style={{ color: "var(--admin-accent)" }}>/plans</code>
+            Matriz F6.5 — preços por imóvel x 4 ciclos com desconto progressivo.
+            Mudanças refletem imediatamente em <code style={{ color: "var(--admin-accent)" }}>/plans</code>
             {" "}e novos checkouts.
           </>
         }
@@ -137,11 +137,11 @@ export default function PricingConfigPage() {
         </p>
         <p style={{ margin: "6px 0 0" }}>
           Os <strong style={{ color: "var(--admin-text)" }}>Stripe Price IDs</strong>
-          {" "}mostrados ao final de cada plano sao read-only. Para mudar valor
-          cobrado de fato, e necessario criar nova Price no Dashboard Stripe e
-          atualizar a env var correspondente no Railway. Mudar o preco de
+          {" "}mostrados ao final de cada plano são read-only. Para mudar valor
+          cobrado de fato, é necessário criar nova Price no Dashboard Stripe e
+          atualizar a env var correspondente no Railway. Mudar o preço de
           display aqui sem atualizar o Stripe vai causar mismatch entre o que o
-          usuario ve e o que e cobrado.
+          usuário vê e o que é cobrado.
         </p>
       </section>
 
@@ -257,7 +257,7 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
 
       {plan.isCustomPrice ? (
         <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
-          Plano custom (sob consulta) — sem matriz de precos editavel.
+          Plano custom (sob consulta) — sem matriz de preços editavel.
         </p>
       ) : (
         <>
@@ -270,7 +270,7 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
             }}
           >
             <AdminInput
-              label="Mensal (R$/imovel/mes)"
+              label="Mensal (R$/imóvel/mês)"
               value={(field("priceMonthly") as string) ?? ""}
               onChange={(e) => patch("priceMonthly", e.target.value as AdminPlanConfig["priceMonthly"])}
             />
@@ -334,7 +334,7 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
             }}
           >
             <AdminInput
-              label="Min. imoveis"
+              label="Min. imóveis"
               type="number"
               value={String(field("minProperties") ?? "")}
               onChange={(e) =>
@@ -406,7 +406,7 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
               background: "var(--admin-surface)",
             }}
           >
-            <PreviewMetric label={`Preview ${previewQuantity} imoveis / mes`} value={formatAdminMoney(monthly * previewQuantity)} />
+            <PreviewMetric label={`Preview ${previewQuantity} imóveis / mês`} value={formatAdminMoney(monthly * previewQuantity)} />
             <PreviewMetric label="Trimestral cobrado" value={formatAdminMoney(quarterly * previewQuantity * 3)} />
             <PreviewMetric label="Semestral cobrado" value={formatAdminMoney(semestral * previewQuantity * 6)} />
             <PreviewMetric label="Anual cobrado" value={formatAdminMoney(annual * previewQuantity * 12)} />
@@ -468,10 +468,10 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
         }}
       >
         <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
-          {dirty ? "Mudancas nao salvas" : ""}
+          {dirty ? "Mudanças não salvas" : ""}
         </span>
         <AdminButton variant="primary" onClick={save} disabled={!dirty} loading={busy}>
-          {busy ? "Salvando…" : "Salvar mudancas"}
+          {busy ? "Salvando…" : "Salvar mudanças"}
         </AdminButton>
       </footer>
     </AdminCard>
@@ -680,10 +680,10 @@ function StripeSyncCard({
                 }}
               >
                 {!report.summary.stripeKeyConfigured
-                  ? "Sem isso, nao e possivel validar Price IDs remotamente. Configure no Railway antes de continuar."
+                  ? "Sem isso, não é possível validar Price IDs remotamente. Configure no Railway antes de continuar."
                   : report.summary.total !== 8 || report.summary.ok !== 8
                     ? "O sync check precisa fechar 8/8 Price IDs OK antes de liberar smoke de checkout pago."
-                    : "Os 8 Price IDs esperados estao OK no sync check."}
+                    : "Os 8 Price IDs esperados estão OK no sync check."}
               </p>
             </div>
           </div>

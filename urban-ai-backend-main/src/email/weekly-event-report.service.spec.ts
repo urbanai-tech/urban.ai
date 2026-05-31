@@ -47,7 +47,7 @@ describe('WeeklyEventReportService', () => {
     delete process.env.WEEKLY_EVENT_REPORT_EVENTS_PER_PROPERTY;
   });
 
-  it('envia um resumo semanal por imovel para usuarios ativos com eventos relevantes', async () => {
+  it('envia um resumo semanal por imóvel para usuários ativos com eventos relevantes', async () => {
     const { service, userRepo, addressRepo, analisePrecoRepo, mailer, pushNotificationService } = makeService();
     userRepo.find.mockResolvedValue([
       { id: 'user-1', username: 'Ana Host', email: 'ana@example.com', ativo: true },
@@ -117,7 +117,7 @@ describe('WeeklyEventReportService', () => {
     });
   });
 
-  it('nao envia email quando o usuario ativo nao tem imovel com evento futuro', async () => {
+  it('não envia e-mail quando o usuário ativo não tem imóvel com evento futuro', async () => {
     const { service, userRepo, addressRepo, analisePrecoRepo, mailer, pushNotificationService } = makeService();
     userRepo.find.mockResolvedValue([
       { id: 'user-1', username: 'Ana Host', email: 'ana@example.com', ativo: true },

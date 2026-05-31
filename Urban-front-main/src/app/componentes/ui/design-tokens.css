@@ -185,10 +185,10 @@
   color: var(--theme-public-accent);
 }
 
-/* === Design System Urban AI — APP (anfitriao autenticado, light premium) === */
-/* Aplicado dentro de .urban-app — todas as rotas autenticadas do anfitriao.
+/* === Design System Urban AI — APP (anfitrião autenticado, light premium) === */
+/* Aplicado dentro de .urban-app — todas as rotas autenticadas do anfitrião.
  * Inspiracao: Stripe Dashboard, Linear (light variant), Apple Business.
- * Coexiste com .urban-manifesto (publico dark) e .urban-admin (admin dark).
+ * Coexiste com .urban-manifesto (público dark) e .urban-admin (admin dark).
  */
 
 .urban-app,
@@ -270,7 +270,7 @@
   color: var(--app-text-dim);
 }
 
-/* Eyebrow padrao (label uppercase, accent, letter-spacing 3) */
+/* Eyebrow padrão (label uppercase, accent, letter-spacing 3) */
 .urban-app .urban-app-eyebrow {
   font-family: 'Inter', sans-serif !important;
   font-weight: 600;
@@ -322,7 +322,7 @@
   margin: 0;
 }
 
-/* Card padrao (light premium) — sombra discreta + radius 12px */
+/* Card padrão (light premium) — sombra discreta + radius 12px */
 .urban-app .urban-app-card {
   background: var(--app-surface);
   border: 1px solid var(--app-divider);

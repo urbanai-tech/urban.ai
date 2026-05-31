@@ -9,9 +9,9 @@ export default function Privacidade() {
       <section className="urban-public-section">
         <div className="urban-public-container">
           <article className="urban-legal-panel">
-            <h1>Politica de Privacidade</h1>
+            <h1>Política de Privacidade</h1>
             <p style={{ margin: "0 0 32px", fontSize: 14 }}>
-              Ultima atualizacao: {PRIVACY_UPDATED_AT}
+              Última atualizacao: {PRIVACY_UPDATED_AT}
             </p>
             <LegalDocument blocks={privacyBlocks} />
           </article>

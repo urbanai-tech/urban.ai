@@ -211,22 +211,22 @@ export class StaysService {
       where: { user: { id: userId } },
       relations: ['user'],
     });
-    if (!account) throw new NotFoundException('Conta Stays nao encontrada.');
+    if (!account) throw new NotFoundException('Conta Stays não encontrada.');
     if (account.status !== 'active') {
       blockers.push({
         code: 'account_not_active',
-        message: 'Conta Stays nao esta ativa. Reconecte antes de aplicar precos.',
+        message: 'Conta Stays não está ativa. Reconecte antes de aplicar preços.',
       });
     }
 
     const listing = await this.listingRepo.findOne({
       where: { id: input.listingId, account: { id: account.id } },
     });
-    if (!listing) throw new NotFoundException('Listing Stays nao encontrado para este usuario.');
+    if (!listing) throw new NotFoundException('Listing Stays não encontrado para este usuário.');
     if (!listing.active) {
       blockers.push({
         code: 'listing_inactive',
-        message: 'Listing Stays esta inativo.',
+        message: 'Listing Stays está inativo.',
       });
     }
 
@@ -248,7 +248,7 @@ export class StaysService {
     if (previousPriceCents <= 0) {
       warnings.push({
         code: 'missing_previous_price',
-        message: 'Sem preco anterior confiavel; a variacao percentual nao sera limitada por baseline.',
+        message: 'Sem preço anterior confiável; a variação percentual não será limitada por baseline.',
       });
     }
 
@@ -258,7 +258,7 @@ export class StaysService {
     if (!process.env.STAYS_API_BASE_URL) {
       warnings.push({
         code: 'stays_api_base_url_missing',
-        message: 'STAYS_API_BASE_URL nao esta configurada; preview liberado, push real bloqueado.',
+        message: 'STAYS_API_BASE_URL não está configurada; preview liberado, push real bloqueado.',
       });
     }
 
@@ -539,14 +539,14 @@ export class StaysService {
     if (diffPercent > account.maxIncreasePercent) {
       blockers.push({
         code: 'increase_cap_exceeded',
-        message: `Variacao de +${diffPercent.toFixed(1)}% excede o teto de +${account.maxIncreasePercent}% configurado para a conta.`,
+        message: `Variação de +${diffPercent.toFixed(1)}% excede o teto de +${account.maxIncreasePercent}% configurado para a conta.`,
       });
     }
 
     if (diffPercent < -account.maxDecreasePercent) {
       blockers.push({
         code: 'decrease_cap_exceeded',
-        message: `Variacao de ${diffPercent.toFixed(1)}% excede o teto de -${account.maxDecreasePercent}% configurado para a conta.`,
+        message: `Variação de ${diffPercent.toFixed(1)}% excede o teto de -${account.maxDecreasePercent}% configurado para a conta.`,
       });
     }
 

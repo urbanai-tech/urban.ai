@@ -5,7 +5,7 @@ import NextLink from "next/link";
 
 /**
  * App-wide error boundary. Manifesto editorial dark.
- * Captura erros nao tratados em qualquer rota.
+ * Captura erros não tratados em qualquer rota.
  */
 export default function GlobalError({
   error,

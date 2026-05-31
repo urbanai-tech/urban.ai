@@ -31,9 +31,9 @@ async function sha256(message: string): Promise<string> {
 }
 
 /**
- * /create — tela de signup do anfitriao Urban AI.
+ * /create — tela de signup do anfitrião Urban AI.
  *
- * MIGRADA no Sprint 3 do redesign anfitriao:
+ * MIGRADA no Sprint 3 do redesign anfitrião:
  *  - bg="#1C1D3B" (azul escuro hex) -> AppButton primary (accent #E8500A).
  *  - color="blue.500" link -> AppButton ghost com cor accent.
  *  - Card de regras de senha bg="gray.50" + CheckCircleIcon green.500 ->
@@ -173,7 +173,7 @@ const Register = () => {
         localStorage.setItem("lastRegisterEmail", email);
       }
 
-      toast("Conta criada com sucesso! Carregando seu painel...", {
+      toast("Conta criada com sucesso! Carregando seu painel…", {
         type: "success",
       });
 

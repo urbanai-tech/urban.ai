@@ -274,7 +274,7 @@ export class PaymentsService {
 
     if (!planEntity) {
       throw new BadRequestException(
-        `Nao ha faixa self-service configurada para ${quantity} imoveis.`,
+        `Não há faixa self-service configurada para ${quantity} imóveis.`,
       );
     }
 
@@ -335,7 +335,7 @@ export class PaymentsService {
 
   async createBillingPortalSession(userId: string): Promise<{ url: string }> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new Error('UsuÃ¡rio nÃ£o encontrado');
+    if (!user) throw new Error('Usuário não encontrado');
 
     this.ensureStripeConfigured();
 
@@ -354,7 +354,7 @@ export class PaymentsService {
     }
 
     if (!customerId) {
-      throw new Error('Cliente Stripe nÃ£o encontrado');
+      throw new Error('Cliente Stripe não encontrado');
     }
 
     const session = await this.stripe.billingPortal.sessions.create({
@@ -421,7 +421,7 @@ export class PaymentsService {
   private resolveCheckoutQuantity(quantity: unknown): number {
     const parsed = Number(quantity ?? 1);
     if (!Number.isFinite(parsed)) {
-      throw new BadRequestException('Escolha uma quantidade valida de imoveis para continuar.');
+      throw new BadRequestException('Escolha uma quantidade válida de imóveis para continuar.');
     }
     return Math.max(1, Math.floor(parsed));
   }
@@ -472,7 +472,7 @@ export class PaymentsService {
   private resolveBillingCycle(value: unknown): BillingCycle {
     const cycle = value || 'monthly';
     if (!isBillingCycle(cycle)) {
-      throw new BadRequestException('Escolha um ciclo de cobranca valido para continuar.');
+      throw new BadRequestException('Escolha um ciclo de cobrança válido para continuar.');
     }
     return cycle;
   }
@@ -483,13 +483,13 @@ export class PaymentsService {
 
   private ensureStripeConfigured() {
     if (!this.isStripeConfigured()) {
-      throw new ServiceUnavailableException('Pagamento temporariamente indisponivel. Tente novamente mais tarde.');
+      throw new ServiceUnavailableException('Pagamento temporariamente indisponível. Tente novamente mais tarde.');
     }
   }
 
   private ensureCheckoutUrlsConfigured() {
     if (!process.env.SUCCESS_URL?.trim() || !process.env.CANCEL_URL?.trim()) {
-      throw new ServiceUnavailableException('Nao foi possivel abrir o pagamento agora. Tente novamente mais tarde.');
+      throw new ServiceUnavailableException('Não foi possível abrir o pagamento agora. Tente novamente mais tarde.');
     }
   }
 
@@ -561,9 +561,9 @@ export class PaymentsService {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     await this.sendBillingEmailToUser(
       user,
-      'Urban AI - Voce esta perto do limite de imoveis',
+      'Urban AI - Você está perto do limite de imóveis',
       EmailTemplates.getQuotaWarningTemplate({
-        nome: user?.username || user?.email || 'Usuario',
+        nome: user?.username || user?.email || 'Usuário',
         contratados,
         ativos,
         upgradeUrl: `${this.getFrontBaseUrl()}/plans?upsell=quota`,
@@ -575,9 +575,9 @@ export class PaymentsService {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     await this.sendBillingEmailToUser(
       user,
-      'Urban AI - Limite de imoveis atingido',
+      'Urban AI - Limite de imóveis atingido',
       EmailTemplates.getQuotaExceededTemplate({
-        nome: user?.username || user?.email || 'Usuario',
+        nome: user?.username || user?.email || 'Usuário',
         contratados,
         tentando,
         upgradeUrl: `${this.getFrontBaseUrl()}/plans?upsell=quota`,
@@ -675,7 +675,7 @@ export class PaymentsService {
                 payment,
                 'Urban AI - Assinatura ativada',
                 EmailTemplates.getSubscriptionActiveTemplate({
-                  nome: payment.user?.username || payment.user?.email || 'Usuario',
+                  nome: payment.user?.username || payment.user?.email || 'Usuário',
                   planName: planName || payment.planName || 'Urban AI',
                   billingCycle: urbanCycle as BillingCycle,
                   listingsContratados: Math.max(1, urbanQuantity),
@@ -785,7 +785,7 @@ export class PaymentsService {
               payment,
               'Urban AI - Cancelamento confirmado',
               EmailTemplates.getSubscriptionCancelledTemplate({
-                nome: payment.user?.username || payment.user?.email || 'Usuario',
+                nome: payment.user?.username || payment.user?.email || 'Usuário',
                 accessEndsAt,
                 reactivateUrl: `${this.getFrontBaseUrl()}/plans?reactivate=1`,
               }),
@@ -815,7 +815,7 @@ export class PaymentsService {
               payment,
               'Urban AI - Falha no pagamento',
               EmailTemplates.getPaymentFailedTemplate({
-                nome: payment.user?.username || payment.user?.email || 'Usuario',
+                nome: payment.user?.username || payment.user?.email || 'Usuário',
                 amountCents: invoice.amount_due || 0,
                 nextRetryDate: invoice.next_payment_attempt
                   ? new Date(invoice.next_payment_attempt * 1000).toISOString().slice(0, 10)

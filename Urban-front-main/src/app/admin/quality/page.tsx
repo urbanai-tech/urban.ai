@@ -31,14 +31,14 @@ import {
 type OccupancyStatus = "booked" | "available" | "blocked" | "unknown";
 
 const statusOptions: Array<{ value: OccupancyStatus; label: string }> = [
-  { value: "available", label: "Disponivel" },
+  { value: "available", label: "Disponível" },
   { value: "booked", label: "Reservado" },
   { value: "blocked", label: "Bloqueado" },
   { value: "unknown", label: "Desconhecido" },
 ];
 
 /**
- * /admin/quality — MAPE + cobertura de ocupacao.
+ * /admin/quality — MAPE + cobertura de ocupação.
  *
  * Migrado para o design system admin (.urban-admin):
  *  - Hero KPI: MAPE atual em Bebas Neue gigante com cor por threshold.
@@ -87,6 +87,7 @@ export default function AdminQualityPage() {
         manualDailyPrice: property.manualDailyPrice,
         dailyPrice: property.dailyPrice,
         averageMonthlyRevenue: property.averageMonthlyRevenue,
+        pricingInputsUpdatedAt: null,
       })),
     [properties],
   );
@@ -134,7 +135,7 @@ export default function AdminQualityPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedListId) {
-      toast.error("Selecione um imovel.");
+      toast.error("Selecione um imóvel.");
       return;
     }
     if (!recordDate) {
@@ -162,7 +163,7 @@ export default function AdminQualityPage() {
       );
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } }; message?: string };
-      toast.error(e?.response?.data?.message || e?.message || "Erro ao salvar ocupacao.");
+      toast.error(e?.response?.data?.message || e?.message || "Erro ao salvar ocupação.");
     } finally {
       setSaving(false);
     }
@@ -198,8 +199,8 @@ export default function AdminQualityPage() {
     <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
       <AdminSectionHeader
         eyebrow="ADMIN · QUALIDADE"
-        title="Qualidade da IA + ocupacao"
-        subtitle="MAPE sobre preco aplicado real e cobertura de historico de ocupacao."
+        title="Qualidade da IA + ocupação"
+        subtitle="MAPE sobre preço aplicado real e cobertura de histórico de ocupação."
       />
 
       {/* === Hero KPI: MAPE === */}
@@ -229,9 +230,9 @@ export default function AdminQualityPage() {
                 Sem amostras
               </p>
               <p style={{ margin: "6px 0 0" }}>
-                Sem dados de preco aplicado real ainda. O ground truth comeca a
-                entrar quando anfitrioes confirmarem o preco aplicado ou quando
-                o push automatico Stays gravar o resultado. Janela:{" "}
+                Sem dados de preço aplicado real ainda. O ground truth comeca a
+                entrar quando anfitriões confirmarem o preço aplicado ou quando
+                o push automático Stays gravar o resultado. Janela:{" "}
                 {quality.windowDays} dias.
               </p>
             </div>
@@ -263,8 +264,8 @@ export default function AdminQualityPage() {
                       lineHeight: 1.55,
                     }}
                   >
-                    Alvo {"<="} {mapeThreshold}% · backtest sobre preco aplicado
-                    real {"vs"} sugestao.
+                    Alvo {"<="} {mapeThreshold}% · backtest sobre preço aplicado
+                    real {"vs"} sugestão.
                   </p>
                 </div>
                 <div
@@ -330,7 +331,7 @@ export default function AdminQualityPage() {
                   }}
                 >
                   Gate de qualidade:{" "}
-                  {quality.qualityGate.passes ? "aprovado" : "ainda nao atingido"}
+                  {quality.qualityGate.passes ? "aprovado" : "ainda não atingido"}
                 </p>
                 <p
                   style={{
@@ -349,7 +350,7 @@ export default function AdminQualityPage() {
         </section>
       )}
 
-      {/* === Cobertura de ocupacao === */}
+      {/* === Cobertura de ocupação === */}
       <section style={{ marginBottom: 56 }}>
         <header
           style={{
@@ -362,7 +363,7 @@ export default function AdminQualityPage() {
           }}
         >
           <div>
-            <p className="urban-admin-eyebrow">COBERTURA DE OCUPACAO</p>
+            <p className="urban-admin-eyebrow">COBERTURA DE OCUPAÇÃO</p>
             <h2
               style={{
                 fontSize: 20,
@@ -372,10 +373,10 @@ export default function AdminQualityPage() {
                 letterSpacing: -0.3,
               }}
             >
-              {occupancy?.distinctListings ?? 0} listings com historico
+              {occupancy?.distinctListings ?? 0} listings com histórico
             </h2>
           </div>
-          <AdminBadge kind="neutral">{properties.length} imoveis elegiveis</AdminBadge>
+          <AdminBadge kind="neutral">{properties.length} imóveis elegíveis</AdminBadge>
         </header>
 
         <div
@@ -390,7 +391,7 @@ export default function AdminQualityPage() {
             {!occupancy || occupancy.byStatus.length === 0 ? (
               <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
                 Sem registros. Use o apontamento manual abaixo para iniciar o
-                historico real.
+                histórico real.
               </p>
             ) : (
               <BarList
@@ -427,7 +428,7 @@ export default function AdminQualityPage() {
             letterSpacing: -0.3,
           }}
         >
-          Registrar ocupacao
+          Registrar ocupação
         </h2>
         <p
           style={{
@@ -438,8 +439,8 @@ export default function AdminQualityPage() {
             maxWidth: 720,
           }}
         >
-          Use para registrar observacoes reais do alpha: disponibilidade,
-          reserva, diaria anunciada e receita realizada por dia. Registros
+          Use para registrar observações reais do alpha: disponibilidade,
+          reserva, diária anunciada e receita realizada por dia. Registros
           booked/available entram no treino.
         </p>
 
@@ -460,14 +461,14 @@ export default function AdminQualityPage() {
                   marginBottom: 8,
                 }}
               >
-                Imovel
+                Imóvel
               </span>
               <PropertySelect
                 value={selectedListId}
                 propsInfo={propertyPickerOptions}
                 setPropertyId={setSelectedListId}
                 disabled={properties.length === 0}
-                placeholder={properties.length === 0 ? "Nenhum imovel elegivel" : "Buscar imovel"}
+                placeholder={properties.length === 0 ? "Nenhum imóvel elegível" : "Buscar imóvel"}
                 maxWidth="100%"
               />
             </div>
@@ -499,7 +500,7 @@ export default function AdminQualityPage() {
               </AdminSelect>
 
               <AdminInput
-                label="Diaria anunciada"
+                label="Diária anunciada"
                 inputMode="decimal"
                 placeholder="150,00"
                 value={listedPrice}
@@ -528,14 +529,14 @@ export default function AdminQualityPage() {
                 }}
               >
                 <strong style={{ color: "var(--admin-text)" }}>
-                  {selectedProperty.title || "Imovel sem titulo"}
+                  {selectedProperty.title || "Imóvel sem título"}
                 </strong>
                 <span style={{ marginLeft: 12 }}>
                   {selectedProperty.city || "cidade n/d"} /{" "}
                   {selectedProperty.state || "UF n/d"}
                 </span>
                 <span style={{ marginLeft: 12 }}>
-                  Receita media mensal:{" "}
+                  Receita média mensal:{" "}
                   {selectedProperty.averageMonthlyRevenue != null
                     ? `R$ ${selectedProperty.averageMonthlyRevenue}`
                     : "n/d"}
@@ -550,7 +551,7 @@ export default function AdminQualityPage() {
                 disabled={properties.length === 0}
                 loading={saving}
               >
-                {saving ? "Salvando…" : "Salvar ocupacao"}
+                {saving ? "Salvando…" : "Salvar ocupação"}
               </AdminButton>
             </div>
           </form>

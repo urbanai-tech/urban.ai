@@ -10,7 +10,7 @@ export class PushController {
   constructor(private readonly pushService: PushNotificationService) { }
 
   @Get('public-key')
-  @ApiOperation({ summary: 'Retorna a chave publica VAPID para assinatura PWA' })
+  @ApiOperation({ summary: 'Retorna a chave pública VAPID para assinatura PWA' })
   getPublicKey() {
     return this.pushService.getPublicConfig();
   }
@@ -18,7 +18,7 @@ export class PushController {
   @Post('subscriptions')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Cria ou atualiza assinatura Web Push do usuario autenticado' })
+  @ApiOperation({ summary: 'Cria ou atualiza assinatura Web Push do usuário autenticado' })
   async upsertSubscription(
     @Req() req: any,
     @Body() body: UpsertPushSubscriptionDto,
@@ -30,7 +30,7 @@ export class PushController {
   @Delete('subscriptions')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Desativa assinatura Web Push do usuario autenticado' })
+  @ApiOperation({ summary: 'Desativa assinatura Web Push do usuário autenticado' })
   async removeSubscription(
     @Req() req: any,
     @Body() body: RemovePushSubscriptionDto,
@@ -41,7 +41,7 @@ export class PushController {
   @Post('test')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Envia uma notificacao PWA de teste para o usuario autenticado' })
+  @ApiOperation({ summary: 'Envia uma notificação PWA de teste para o usuário autenticado' })
   async sendTest(@Req() req: any) {
     return this.pushService.sendToUser(req.user.userId, {
       title: 'Urban AI',

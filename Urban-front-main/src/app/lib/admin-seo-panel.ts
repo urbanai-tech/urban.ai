@@ -155,7 +155,7 @@ export const adminSeoSourceCatalog = {
     lastUpdatedLabel: "19/05/2026 08:20 BRT",
   },
   "geo-matrix": {
-    source: "Matriz GEO e leitura manual de paginas publicas",
+    source: "Matriz GEO e leitura manual de paginas públicas",
     cadence: "Quinzenal",
     integrationStatus: "manual",
     integrationStatusLabel: "Manual validado",
@@ -174,7 +174,7 @@ export const adminSeoSourceCatalog = {
   },
   "admin-fixture": {
     source: "Fixture admin SEO/GEO sem chamadas externas",
-    cadence: "Revisao semanal, com rechecagem apos releases publicos",
+    cadence: "Revisão semanal, com rechecagem após releases públicos",
     integrationStatus: "manual",
     integrationStatusLabel: "Score operacional",
     timestamp: PANEL_TIMESTAMP,
@@ -192,7 +192,7 @@ export const adminSeoSourceCatalog = {
   },
   "search-console": {
     source: "Google Search Console",
-    cadence: "Diaria",
+    cadence: "Diária",
     integrationStatus: "instrumenting",
     integrationStatusLabel: "Conectar API",
     timestamp: PANEL_TIMESTAMP,
@@ -201,7 +201,7 @@ export const adminSeoSourceCatalog = {
   },
   ga4: {
     source: "Google Analytics 4",
-    cadence: "Diaria",
+    cadence: "Diária",
     integrationStatus: "instrumenting",
     integrationStatusLabel: "Eventos GEO definidos",
     timestamp: PANEL_TIMESTAMP,
@@ -239,14 +239,14 @@ export const adminSeoPanelData = {
     value: 97,
     label: "Completude geral da entrega SEO / SGO / GEO",
     detail:
-      "Score consolidado a partir da base tecnica, cobertura GEO, imagens OG, contratos de medicao, conectores real-ready e governanca de evidencias.",
-    formula: "Tecnico 45% + GEO 35% + governanca 20%",
+      "Score consolidado a partir da base técnica, cobertura GEO, imagens OG, contratos de medição, conectores real-ready e governança de evidências.",
+    formula: "Técnico 45% + GEO 35% + governança 20%",
     status: "Score operacional",
     trace: trace("admin-fixture", "search-console"),
     remaining: [
       "Configurar credenciais reais e ativar coletas de Search Console, GA4, logs de bots e AI Monitor",
       "Publicar imagens reais de produto/campanha quando aprovadas",
-      "Aprovar cases quantitativos apos fonte, periodo, amostra, consentimento e revisao",
+      "Aprovar cases quantitativos após fonte, período, amostra, consentimento e revisão",
     ],
   },
   scoreBreakdown: [
@@ -257,13 +257,13 @@ export const adminSeoPanelData = {
       trace: trace("local-audit", "search-console"),
     },
     {
-      label: "Conteudo GEO citavel",
+      label: "Conteúdo GEO citável",
       value: "92%",
       status: "success",
       trace: trace("geo-matrix", "ai-monitor"),
     },
     {
-      label: "Governanca e painel",
+      label: "Governança e painel",
       value: "96%",
       status: "success",
       trace: trace("admin-fixture", "ga4"),
@@ -272,28 +272,28 @@ export const adminSeoPanelData = {
   integrationRoadmap: [
     {
       name: "Search Console",
-      purpose: "Cobertura, queries, CTR e paginas indexadas",
+      purpose: "Cobertura, queries, CTR e páginas indexadas",
       status: "Conectar API",
       statusKind: "warn",
       trace: trace("search-console"),
     },
     {
       name: "GA4",
-      purpose: "Sessao organica, conversao e jornadas por pagina GEO",
+      purpose: "Sessão orgânica, conversão e jornadas por página GEO",
       status: "Eventos GEO definidos",
       statusKind: "warn",
       trace: trace("ga4"),
     },
     {
       name: "Logs de bots",
-      purpose: "Frequencia de crawl por Googlebot, Bingbot e bots generativos",
+      purpose: "Frequência de crawl por Googlebot, Bingbot e bots generativos",
       status: "Planejado",
       statusKind: "neutral",
       trace: trace("bot-logs"),
     },
     {
       name: "Monitor AI",
-      purpose: "Prompts, citacoes, fontes usadas e gap de respostas",
+      purpose: "Prompts, citações, fontes usadas e gap de respostas",
       status: "Criar rodada",
       statusKind: "neutral",
       trace: trace("ai-monitor"),
@@ -323,10 +323,10 @@ export const adminSeoPanelData = {
         "SEO_GOOGLE_PRIVATE_KEY",
       ],
       safeStatusEndpoint: "/api/admin/seo/connectors",
-      readiness: "Eventos publicos definidos",
+      readiness: "Eventos públicos definidos",
       status: "warn",
       note:
-        "Eventos dos hubs ja existem; falta credencial da Data API para metricas agregadas.",
+        "Eventos dos hubs já existem; falta credencial da Data API para métricas agregadas.",
     },
     {
       name: "Logs de bots",
@@ -339,11 +339,11 @@ export const adminSeoPanelData = {
       readiness: "Real-ready",
       status: "neutral",
       note:
-        "Status seguro ja detecta presenca de fonte sem expor token ou ler logs.",
+        "Status seguro já detecta presenca de fonte sem expor token ou ler logs.",
     },
     {
       name: "AI Monitor",
-      provider: "Dataset proprio ou monitor externo",
+      provider: "Dataset próprio ou monitor externo",
       envKeys: [
         "SEO_AI_MONITOR_SOURCE",
         "SEO_AI_MONITOR_DATASET_PATH ou SEO_AI_MONITOR_ENDPOINT + SEO_AI_MONITOR_API_KEY",
@@ -352,14 +352,14 @@ export const adminSeoPanelData = {
       readiness: "Real-ready",
       status: "neutral",
       note:
-        "Pronto para registrar rodadas de prompt e citacoes sem inventar observacoes.",
+        "Pronto para registrar rodadas de prompt e citações sem inventar observações.",
     },
   ],
   operationalMetrics: [
     {
       label: "Cobertura indexavel",
       value: "84%",
-      detail: "Paginas criticas com canonical, schema e crawl liberado.",
+      detail: "Páginas críticas com canonical, schema e crawl liberado.",
       status: "success",
       statusLabel: "Confiavel",
       trace: trace("local-audit", "search-console"),
@@ -376,13 +376,13 @@ export const adminSeoPanelData = {
     {
       label: "Perguntas mapeadas",
       value: 48,
-      detail: "12 perguntas ainda precisam de fonte primaria ou evidencia quantitativa.",
+      detail: "12 perguntas ainda precisam de fonte primaria ou evidência quantitativa.",
       status: "warn",
       statusLabel: "Completar fonte",
       trace: trace("editorial-backlog", "ga4"),
     },
     {
-      label: "Backlog critico",
+      label: "Backlog crítico",
       value: 3,
       detail:
         "Dependencias externas para sair de estimativa manual para medicao real.",
@@ -395,7 +395,7 @@ export const adminSeoPanelData = {
     {
       label: "Sitemap XML",
       value: "Ativo",
-      detail: "Rotas publicas e landing pages no indice",
+      detail: "Rotas públicas e landing pages no indice",
       status: "success",
       trace: trace("local-audit", "search-console"),
     },
@@ -416,7 +416,7 @@ export const adminSeoPanelData = {
     {
       label: "Canonicals",
       value: "Ativo",
-      detail: "Home canonica em / e paginas publicas com URL absoluta",
+      detail: "Home canônica em / e páginas públicas com URL absoluta",
       status: "success",
       trace: trace("local-audit", "search-console"),
     },
@@ -438,15 +438,15 @@ export const adminSeoPanelData = {
   crawlerPolicy: [
     {
       agent: "Googlebot / Bingbot",
-      policy: "Allow publico",
-      scope: "Home, lancamento, precos, sobre, contato, legal",
+      policy: "Allow público",
+      scope: "Home, lancamento, preços, sobre, contato, legal",
       status: "success",
       trace: trace("crawler-policy", "bot-logs"),
     },
     {
       agent: "GPTBot / ClaudeBot / PerplexityBot",
-      policy: "Allow conteudo institucional",
-      scope: "Liberar somente paginas com claims auditaveis",
+      policy: "Allow conteúdo institucional",
+      scope: "Liberar somente páginas com claims auditáveis",
       status: "warn",
       trace: trace("crawler-policy", "ai-monitor"),
     },
@@ -468,7 +468,7 @@ export const adminSeoPanelData = {
   aiSearchQuestions: [
     {
       cluster: "Categoria",
-      question: "O que a Urban AI faz para anfitrioes de aluguel de temporada?",
+      question: "O que a Urban AI faz para anfitriões de aluguel de temporada?",
       intent: "Descoberta",
       asset: "Landing + schema Organization",
       readiness: 82,
@@ -476,7 +476,7 @@ export const adminSeoPanelData = {
     },
     {
       cluster: "Valor",
-      question: "Como IA melhora preco e ocupacao de imoveis?",
+      question: "Como IA melhora preço e ocupação de imóveis?",
       intent: "Educacional",
       asset: "FAQ + estudo de caso alpha",
       readiness: 64,
@@ -486,12 +486,12 @@ export const adminSeoPanelData = {
       cluster: "Comparacao",
       question: "Urban AI substitui gestor, PMS ou channel manager?",
       intent: "Comparativo",
-      asset: "Pagina de posicionamento",
+      asset: "Página de posicionamento",
       readiness: 58,
       trace: trace("editorial-backlog", "ai-monitor"),
     },
     {
-      cluster: "Confianca",
+      cluster: "Confiança",
       question: "Quais dados a Urban AI usa e como protege privacidade?",
       intent: "Risco",
       asset: "Privacidade + security notes",
@@ -502,7 +502,7 @@ export const adminSeoPanelData = {
       cluster: "Compra",
       question: "Quanto custa usar a Urban AI e quando vale a pena?",
       intent: "Conversao",
-      asset: "Precos + calculadora ROI",
+      asset: "Preços + calculadora ROI",
       readiness: 69,
       trace: trace("editorial-backlog", "ga4"),
     },
@@ -520,13 +520,13 @@ export const adminSeoPanelData = {
       priority: "P0",
       title: "Auditar robots para bots generativos",
       owner: "Eng",
-      impact: "Evita exposicao de areas privadas e libera conteudo certo",
+      impact: "Evita exposição de áreas privadas e libera conteúdo certo",
       status: "Base publicada",
       trace: trace("crawler-policy", "bot-logs"),
     },
     {
       priority: "P1",
-      title: "Criar pagina de comparacao PMS vs Urban AI",
+      title: "Criar página de comparacao PMS vs Urban AI",
       owner: "Marketing",
       impact: "Captura consultas comparativas de alta intencao",
       status: "Briefing",
@@ -544,32 +544,32 @@ export const adminSeoPanelData = {
       priority: "P2",
       title: "Adicionar imagens reais por campanha",
       owner: "Design",
-      impact: "Aumenta confianca visual alem do OG global gerado",
+      impact: "Aumenta confiança visual além do OG global gerado",
       status: "Backlog",
       trace: trace("editorial-backlog", "ga4"),
     },
     {
       priority: "P2",
-      title: "Aprovar cases quantitativos publicos",
+      title: "Aprovar cases quantitativos públicos",
       owner: "Growth",
-      impact: "Fecha o marco de 100% com evidencia auditavel",
-      status: "Em validacao",
+      impact: "Fecha o marco de 100% com evidência auditável",
+      status: "Em validação",
       trace: trace("editorial-backlog", "ai-monitor"),
     },
   ],
   actionCards: [
     {
-      title: "Brief para conteudo GEO",
+      title: "Brief para conteúdo GEO",
       body:
-        "Transformar perguntas com readiness abaixo de 70 em blocos FAQ, evidencias e respostas curtas citaveis.",
+        "Transformar perguntas com readiness abaixo de 70 em blocos FAQ, evidências e respostas curtas citáveis.",
       cta: "Preparar pauta",
       icon: "file-text",
       trace: trace("editorial-backlog", "ai-monitor"),
     },
     {
-      title: "Checklist tecnico",
+      title: "Checklist técnico",
       body:
-        "Validar sitemap, canonical, schema, robots e metadados antes de qualquer campanha publica.",
+        "Validar sitemap, canonical, schema, robots e metadados antes de qualquer campanha pública.",
       cta: "Abrir checklist",
       icon: "check",
       trace: trace("local-audit", "search-console"),

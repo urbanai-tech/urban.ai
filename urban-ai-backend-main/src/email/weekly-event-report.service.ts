@@ -112,7 +112,7 @@ export class WeeklyEventReportService {
         }
 
         const html = EmailTemplates.getWeeklyEventReportTemplate({
-          nome: user.username || 'Usuario',
+          nome: user.username || 'Usuário',
           windowDays: lookaheadDays,
           dashboardUrl: `${this.frontUrl}/painel`,
           properties,
@@ -208,7 +208,7 @@ export class WeeklyEventReportService {
         if (!propertyAnalyses.length) return null;
 
         return {
-          title: address.list?.titulo || address.getEnderecoCompleto?.() || 'Imovel',
+          title: address.list?.titulo || address.getEnderecoCompleto?.() || 'Imóvel',
           totalEvents: propertyAnalyses.length,
           events: propertyAnalyses
             .slice(0, this.resolveEventsPerProperty())
@@ -258,9 +258,9 @@ export class WeeklyEventReportService {
 
   private buildPushSummary(properties: WeeklyEventReportProperty[], lookaheadDays: number): string {
     const totalEvents = properties.reduce((sum, property) => sum + property.totalEvents, 0);
-    const propertyLabel = properties.length === 1 ? '1 imovel' : `${properties.length} imoveis`;
+    const propertyLabel = properties.length === 1 ? '1 imóvel' : `${properties.length} imóveis`;
     const eventLabel = totalEvents === 1 ? '1 evento relevante' : `${totalEvents} eventos relevantes`;
-    return `${eventLabel} para ${propertyLabel} nos proximos ${lookaheadDays} dias.`;
+    return `${eventLabel} para ${propertyLabel} nos próximos ${lookaheadDays} dias.`;
   }
 
   private nullableNumber(value: unknown): number | null {

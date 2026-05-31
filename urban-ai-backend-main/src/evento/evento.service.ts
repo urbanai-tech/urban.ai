@@ -25,7 +25,7 @@ export class EventoService {
       throw new BadRequestException('propriedadeId e obrigatorio');
     }
     if (!userId) {
-      throw new ForbiddenException('Usuario nao autenticado');
+      throw new ForbiddenException('Usuário não autenticado');
     }
 
     const address = await this.addressRepository.findOne({

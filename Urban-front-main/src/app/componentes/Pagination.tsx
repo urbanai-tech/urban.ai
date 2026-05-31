@@ -49,7 +49,7 @@ export function Pagination({
           disabled={nextDisabled}
           style={pageButtonStyle(nextDisabled)}
         >
-          Proximo {"->"}
+          Próximo {"->"}
         </button>
       </div>
     </div>

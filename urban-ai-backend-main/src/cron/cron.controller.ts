@@ -15,14 +15,14 @@ export class CronController {
     try {
       await this.cronService.enviarNotificacaoCron(subject, content);
     } catch (error) {
-      console.error('Falha ao enviar notificacao de status do cron:', error);
+      console.error('Falha ao enviar notificação de status do cron:', error);
     }
   }
 
   @Get('analises-aceitas')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @ApiOperation({ summary: 'Buscar analises aceitas' })
+  @ApiOperation({ summary: 'Buscar análises aceitas' })
   @ApiResponse({ status: 200, description: 'Processo iniciado com sucesso.' })
   async buscarAnalisesAceitas() {
     return this.cronService.buscarAnalisesAceitas();
@@ -31,7 +31,7 @@ export class CronController {
   // Cron para rodar todos os dias as 08:00
   @Cron('0 0 8 * * *', { timeZone: 'America/Sao_Paulo' })
   async handleDailyNotification() {
-    console.log('Iniciando envio diario de notificacoes as 08:00');
+    console.log('Iniciando envio diário de notificações às 08:00');
     await this.notifyCronStatus('Cron iniciado', 'Cron iniciado');
 
     try {
@@ -40,11 +40,11 @@ export class CronController {
         'Cron concluido',
         `Cron concluido: ${result.processed} processadas, ${result.skipped} ignoradas, ${result.failed} com erro`,
       );
-      console.log('Envio diario de notificacoes concluido');
+      console.log('Envio diário de notificações concluído');
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       await this.notifyCronStatus('Cron com erro', `Cron com erro: ${message}`);
-      console.error('Erro no envio diario de notificacoes:', error);
+      console.error('Erro no envio diário de notificações:', error);
     }
   }
 
@@ -52,8 +52,8 @@ export class CronController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @ApiOperation({
-    summary: 'Buscar analises aceitas',
-    description: 'Busca todas as analises aceitas a partir da data de hoje e simula notificacoes.',
+    summary: 'Buscar análises aceitas',
+    description: 'Busca todas as análises aceitas a partir da data de hoje e simula notificações.',
   })
   @ApiResponse({ status: 200, description: 'Processo iniciado com sucesso.' })
   async buscarAnalisesAceitasTest() {
@@ -66,7 +66,7 @@ export class CronController {
   @Roles('admin')
   @ApiOperation({
     summary: 'Re-scraping mensal de metadados',
-    description: 'Forca re-scraping de todos os imoveis ativos. Espacado ao longo de 8h para evitar rate limiting.',
+    description: 'Força re-scraping de todos os imóveis ativos. Espaçado ao longo de 8h para evitar rate limiting.',
   })
   @ApiResponse({ status: 200, description: 'Re-scraping concluido.' })
   async refreshMetadata() {
@@ -76,7 +76,7 @@ export class CronController {
   // Cron: 1o dia de cada mes as 02:00 AM
   @Cron('0 0 2 1 * *', { timeZone: 'America/Sao_Paulo' })
   async handleMonthlyMetadataRefresh() {
-    console.log('[cron] Iniciando re-scraping mensal automatico...');
+    console.log('[cron] Iniciando re-scraping mensal automático...');
     try {
       await this.cronService.refreshPropertyMetadata();
       console.log('[cron] Re-scraping mensal concluido');

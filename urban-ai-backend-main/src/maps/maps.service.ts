@@ -42,7 +42,7 @@ export class MapsService {
       return {
         configured: false,
         status: 'missing_api_key' as const,
-        message: 'GOOGLE_MAPS_API_KEY nao configurada no backend.',
+        message: 'GOOGLE_MAPS_API_KEY não configurada no backend.',
         nextAction:
           'Configure GOOGLE_MAPS_API_KEY no Railway backend e rode o geocoder novamente.',
       };
@@ -52,7 +52,7 @@ export class MapsService {
       configured: true,
       status: 'configured' as const,
       message:
-        'GOOGLE_MAPS_API_KEY configurada. Permissoes da Geocoding API e billing sao confirmados no proximo run.',
+        'GOOGLE_MAPS_API_KEY configurada. Permissões da Geocoding API e billing são confirmados no próximo run.',
       nextAction:
         'Se aparecer REQUEST_DENIED/HTTP 403, habilite a Geocoding API no Google Cloud e revise as restricoes da chave.',
     };
@@ -297,7 +297,7 @@ export class MapsService {
 
       if (!endereco) {
         errorCount++;
-        this.logger.warn(`Address ${address.id} ignorado: endereco vazio.`);
+        this.logger.warn(`Address ${address.id} ignorado: endereço vazio.`);
         continue;
       }
 
@@ -655,7 +655,7 @@ export class MapsService {
                           endereco: address,
                           usuarioProprietario: user,
                           distanciaMetros: result?.length,
-                          duracaoSegundos: result?.baseDuration,
+                          duraçãoSegundos: result?.baseDuration,
                           enviado: true,
                           transportMode: transport
                         });
@@ -751,7 +751,7 @@ export class MapsService {
         return {
           ok: false,
           status: 'running',
-          message: 'Processamento global ja esta em execucao.',
+          message: 'Processamento global já está em execução.',
           updatedAt: processStart.status.updatedAt,
         };
       }
@@ -807,14 +807,14 @@ export class MapsService {
                       endereco: address,
                       usuarioProprietario: user,
                       distanciaMetros: result?.length,
-                      duracaoSegundos: result?.baseDuration,
+                      duraçãoSegundos: result?.baseDuration,
                       enviado: true,
                       transportMode: transport
                     });
 
                     await this.analysisRepo.save(novaAnalise);
                   } else {
-                    console.log("Nenhuma distancia fez match. Raio max:", maxDistance, " Distancia calculada:", distance);
+                    console.log("Nenhuma distância fez match. Raio max:", maxDistance, " Distância calculada:", distance);
                   }
 
                   totalAnalises++;

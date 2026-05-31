@@ -98,6 +98,7 @@ export default function IntegrationsPage() {
             status: "active",
             clientId: "",
             lastSyncAt: null,
+            consentAcceptedAt: null,
           });
         }
       } catch {
@@ -444,7 +445,7 @@ export default function IntegrationsPage() {
               }}
             >
               <AppSelect
-                label="Anuncio"
+                label="Anúncio"
                 value={previewListingId}
                 onChange={(e) => {
                   const next = listings.find((item) => item.id === e.target.value);

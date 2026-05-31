@@ -87,7 +87,7 @@ describe('PushNotificationService', () => {
     const { service, subscriptionRepo, deliveryRepo } = makeService();
     const delivery = {
       id: 'delivery-1',
-      payloadJson: JSON.stringify({ title: 'Sugestoes de preco disponiveis', url: '/dashboard' }),
+      payloadJson: JSON.stringify({ title: 'Sugestões de preço disponíveis', url: '/dashboard' }),
       deliveredAt: null,
     };
     subscriptionRepo.findOne.mockResolvedValue({
@@ -103,7 +103,7 @@ describe('PushNotificationService', () => {
     expect(result.notifications).toEqual([
       expect.objectContaining({
         deliveryId: 'delivery-1',
-        title: 'Sugestoes de preco disponiveis',
+        title: 'Sugestões de preço disponíveis',
         url: '/dashboard',
       }),
     ]);

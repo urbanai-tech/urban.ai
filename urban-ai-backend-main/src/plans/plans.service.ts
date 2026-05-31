@@ -18,7 +18,7 @@ export class PlansService implements OnModuleInit {
   }
 
   async seedPlans() {
-    // Idempotente: preserva ajustes feitos no banco e so preenche campos ausentes.
+    // Idempotente: preserva ajustes feitos no banco e só preenche campos ausentes.
     // ⚠️ Esse comportamento sobrescreve dados a cada boot. Migrar para
     this.logger.log('Ensuring initial plans (com matriz F6.5)...');
 

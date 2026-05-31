@@ -56,13 +56,13 @@ export class PushSubscription {
   failedAttempts: number;
 
   @Column({ type: 'datetime', nullable: true })
-  lastPushAttemptAt?: Date | null;
+  lastPushAttemptAt: Date | null;
 
   @Column({ type: 'datetime', nullable: true })
-  lastPushSuccessAt?: Date | null;
+  lastPushSuccessAt: Date | null;
 
   @Column({ type: 'datetime', nullable: true })
-  lastPushFailureAt?: Date | null;
+  lastPushFailureAt: Date | null;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   failureReason?: string | null;

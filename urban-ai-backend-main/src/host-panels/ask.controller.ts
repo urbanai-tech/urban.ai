@@ -10,13 +10,13 @@ import { HostPanelsService } from './host-panels.service';
 export class AskController {
   constructor(private readonly hostPanels: HostPanelsService) {}
 
-  @ApiOperation({ summary: 'Uso diario do AskUrban' })
+  @ApiOperation({ summary: 'Uso diário do Ask Urban' })
   @Get('usage')
   async usage(@Req() req: any) {
     return this.hostPanels.askUsage(req.user.userId);
   }
 
-  @ApiOperation({ summary: 'Responder pergunta do anfitriao usando dados reais da conta' })
+  @ApiOperation({ summary: 'Responder pergunta do anfitrião usando dados reais da conta' })
   @Post('question')
   async question(
     @Req() req: any,

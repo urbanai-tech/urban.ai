@@ -16,16 +16,16 @@ import {
 } from "../_components";
 
 /**
- * /admin/properties — listagem para drill-down por imovel (gap I5 do roadmap).
+ * /admin/properties — listagem para drill-down por imóvel (gap I5 do roadmap).
  *
- * Lista TODOS os imoveis ativos da plataforma com indicadores de saude:
- *  - imovel
- *  - usuario (host)
+ * Lista TODOS os imóveis ativos da plataforma com indicadores de saúde:
+ *  - imóvel
+ *  - usuário (host)
  *  - cidade/estado
  *  - localidade valida? (gap H1 do roadmap: 16/29 com cidade "A definir")
  *  - tem coordenadas? (gap C/H pra geocoder)
- *  - tem recomendacao futura? (gap D4 cobertura)
- *  - ultima analise
+ *  - tem recomendação futura? (gap D4 cobertura)
+ *  - última análise
  *
  * Click em uma row abre /admin/properties/[id] com tela detalhada.
  */
@@ -40,7 +40,7 @@ type AdminPropertyRow = {
   latitude?: number | string | null;
   longitude?: number | string | null;
   manualDailyPrice?: number | null;
-  lastAnalysisAt?: string | null;
+  lastAnalysisAt: string | null;
   futureRecommendationsCount?: number;
   active?: boolean;
 };

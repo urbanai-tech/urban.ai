@@ -40,7 +40,7 @@ export class PropertyClassifier {
     }
 
     /**
-     * Classifica um novo imovel ou um imovel existente no contexto de um evento.
+     * Classifica um novo imóvel ou um imóvel existente no contexto de um evento.
      */
     classify(property: any) {
         if (!this.knn) {
@@ -91,7 +91,7 @@ export class PropertyClassifier {
         if (reason === 'untrained') {
             if (this.warnedUntrained) return;
             this.warnedUntrained = true;
-            console.warn("Modelo KNN nao treinado. Retornando categoria fallback.");
+            console.warn("Modelo KNN não treinado. Retornando categoria fallback.");
             return;
         }
 

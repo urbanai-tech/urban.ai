@@ -162,7 +162,7 @@ export function WaitlistForm({
               margin: "16px 0 0",
             }}
           >
-            Sua posicao na fila: #{result.position}. Guarde seu link de
+            Sua posição na fila: #{result.position}. Guarde seu link de
             indicacao quando ele aparecer no e-mail de confirmacao.
           </p>
         )}

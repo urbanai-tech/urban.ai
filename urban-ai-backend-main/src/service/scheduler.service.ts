@@ -32,7 +32,7 @@ export class SchedulerService  {
     const users = await this.userRepo.find();
     for (const user of users) {
       const maxKm = user.distanceKm ?? 0;
-      this.logger.log(` km do usuario ${user.distanceKm}`);
+      this.logger.log(` km do usuário ${user.distanceKm}`);
       this.logger.log(`→ Usuário ${user.id}: maxKm=${maxKm}`);
       try {
 

@@ -118,56 +118,56 @@ const DEFAULT_PRICING_RULES: PricingRuleConfigItem[] = [
     enabled: true,
     params: { percent: 15 },
     label: 'Uplift de fim de semana',
-    description: 'Aumenta o preco base em sexta e sabado, quando a demanda costuma ser maior.',
+    description: 'Aumenta o preço base em sexta e sábado, quando a demanda costuma ser maior.',
   },
   {
     type: 'weekday_discount',
     enabled: true,
     params: { percent: -8 },
-    label: 'Desconto dias uteis lentos',
-    description: 'Aplica desconto suave em segunda, terca e quarta para puxar reservas.',
+    label: 'Desconto em dias úteis lentos',
+    description: 'Aplica desconto suave em segunda, terça e quarta para puxar reservas.',
   },
   {
     type: 'gap_night_filler',
     enabled: true,
     params: { percent: -20, maxNights: 2 },
-    label: 'Gap night filler',
-    description: 'Reduz preco quando ha lacunas curtas entre noites reservadas.',
+    label: 'Preenchimento de lacunas',
+    description: 'Reduz o preço quando há lacunas curtas entre noites reservadas.',
   },
   {
     type: 'last_minute',
     enabled: true,
     params: { percent: -12, daysBefore: 3 },
-    label: 'Last-minute',
-    description: 'Baixa o preco quando a data esta muito proxima e ainda sem reserva registrada.',
+    label: 'Última hora',
+    description: 'Baixa o preço quando a data está muito próxima e ainda sem reserva registrada.',
   },
   {
     type: 'length_of_stay',
     enabled: false,
     params: { percent: -10, minNights: 7 },
-    label: 'Desconto estadia longa',
-    description: 'Regra por reserva; nao altera o preview diario isolado.',
+    label: 'Desconto para estadia longa',
+    description: 'Regra por reserva; não altera o preview diário isolado.',
   },
   {
     type: 'min_stay_dynamic',
     enabled: false,
     params: { baseMinNights: 2, highMinNights: 3, occupancyThreshold: 70 },
-    label: 'Estadia minima dinamica',
-    description: 'Regra operacional de minimo de noites; nao altera preco no preview.',
+    label: 'Estadia mínima dinâmica',
+    description: 'Regra operacional de mínimo de noites; não altera preço no preview.',
   },
   {
     type: 'occupancy_floor',
     enabled: true,
     params: { minPrice: 180 },
-    label: 'Piso de preco',
-    description: 'Impede que regras combinadas baixem o preco abaixo do piso definido.',
+    label: 'Piso de preço',
+    description: 'Impede que regras combinadas baixem o preço abaixo do piso definido.',
   },
   {
     type: 'event_uplift',
     enabled: true,
     params: { percent: 25, radiusKm: 3 },
     label: 'Uplift por evento de alto impacto',
-    description: 'Aumenta o preco quando ha evento relevante perto do imovel.',
+    description: 'Aumenta o preço quando há evento relevante perto do imóvel.',
   },
 ];
 
@@ -404,7 +404,7 @@ export class HostPanelsService {
     const foundIds = new Set(addresses.flatMap((address) => [address.id, address.list?.id].filter(Boolean)));
     const failed = requestedIds
       .filter((id) => !foundIds.has(id))
-      .map((propertyId) => ({ propertyId, reason: 'Imovel nao encontrado ou sem permissao' }));
+      .map((propertyId) => ({ propertyId, reason: 'Imóvel não encontrado ou sem permissão' }));
     const preview = await this.buildPortfolioActionPreview(userId, input, addresses);
     const run = await this.portfolioRunRepo.save(
       this.portfolioRunRepo.create({
@@ -421,12 +421,12 @@ export class HostPanelsService {
     if (input.action === 'set-base-price') {
       const price = Number(input.payload?.price ?? input.payload?.basePrice ?? input.payload?.manualDailyPrice);
       if (!Number.isFinite(price) || price <= 0) {
-        throw new BadRequestException('payload.price deve ser um numero maior que zero');
+        throw new BadRequestException('payload.price deve ser um número maior que zero');
       }
       let applied = 0;
       for (const address of addresses) {
         if (!address.list) {
-          failed.push({ propertyId: address.id, reason: 'Imovel sem listing associado' });
+          failed.push({ propertyId: address.id, reason: 'Imóvel sem listing associado' });
           continue;
         }
         address.list.manualDailyPrice = price;
@@ -444,7 +444,7 @@ export class HostPanelsService {
     if (input.action === 'apply-strategy') {
       const strategy = String(input.payload?.strategy ?? '').trim();
       const mapped = this.normalizeStrategy(strategy);
-      if (!mapped) throw new BadRequestException('payload.strategy invalido');
+      if (!mapped) throw new BadRequestException('payload.strategy inválido');
       const existing = await this.portfolioSettingsByAddress(addresses.map((address) => address.id));
       for (const address of addresses) {
         const setting =
@@ -464,7 +464,7 @@ export class HostPanelsService {
     if (input.action === 'set-date-price') {
       const price = Number(input.payload?.price ?? input.payload?.datePrice ?? input.payload?.manualDailyPrice);
       if (!Number.isFinite(price) || price <= 0) {
-        throw new BadRequestException('payload.price deve ser um numero maior que zero');
+        throw new BadRequestException('payload.price deve ser um número maior que zero');
       }
       const targets = this.resolveActionTargets(input, addresses);
       const dates = targets.dates;
@@ -550,7 +550,7 @@ export class HostPanelsService {
       if (pending.length) await this.analiseRepo.save(pending);
       for (const address of relevantAddresses) {
         if (!changedAddressIds.has(address.id)) {
-          failed.push({ propertyId: address.id, reason: 'Sem sugestoes futuras pendentes' });
+          failed.push({ propertyId: address.id, reason: 'Sem sugestões futuras pendentes' });
         }
       }
       return this.finishPortfolioRun(run, user, addresses, preview, pending.length, failed);
@@ -608,7 +608,7 @@ export class HostPanelsService {
   async savePricingRules(userId: string, propertyId: string, rules: PricingRuleConfigItem[]) {
     const address = await this.getOwnedAddress(userId, propertyId);
     const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('Usuario nao encontrado');
+    if (!user) throw new NotFoundException('Usuário não encontrado');
     const normalizedRules = this.normalizeRules(rules);
     let config = await this.pricingRuleRepo.findOne({ where: { address: { id: address.id } } });
     if (!config) {
@@ -657,7 +657,7 @@ export class HostPanelsService {
 
     return {
       propertyId: address.id,
-      neighborhood: address.bairro ?? address.list?.neighborhood ?? address.cidade ?? 'Nao informado',
+      neighborhood: address.bairro ?? address.list?.neighborhood ?? address.cidade ?? 'Não informado',
       percentile,
       percentileTrend30d: 0,
       comparablesCount: comparableRows.length,
@@ -692,7 +692,7 @@ export class HostPanelsService {
     const usage = await this.askUsage(userId);
     this.ensureAskCanUse(usage);
     const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('Usuario nao encontrado');
+    if (!user) throw new NotFoundException('Usuário não encontrado');
     const conversationId = input.conversationId || randomUUID();
     await this.askRepo.save(this.askRepo.create({ user, conversationId, role: 'user', content: question }));
     const answer = await this.buildAskAnswer(userId, question);
@@ -720,12 +720,12 @@ export class HostPanelsService {
 
   async askFeedback(userId: string, input: { messageId?: string; vote?: 'up' | 'down' }) {
     if (!input.messageId || !['up', 'down'].includes(String(input.vote))) {
-      throw new BadRequestException('messageId e vote sao obrigatorios');
+      throw new BadRequestException('messageId e vote são obrigatórios');
     }
     const message = await this.askRepo.findOne({
       where: { id: input.messageId, user: { id: userId }, role: 'assistant' },
     });
-    if (!message) throw new NotFoundException('Mensagem nao encontrada');
+    if (!message) throw new NotFoundException('Mensagem não encontrada');
     message.feedback = input.vote;
     await this.askRepo.save(message);
     return { ok: true };
@@ -745,18 +745,18 @@ export class HostPanelsService {
       .filter((id) => !foundIds.has(id))
       .map((propertyId) => ({
         propertyId,
-        propertyName: '(sem permissao)',
+        propertyName: '(sem permissão)',
         date: null,
         before: null,
         after: null,
         status: 'failed',
         estimatedLift: 0,
-        reason: 'Imovel nao encontrado ou sem permissao',
+        reason: 'Imóvel não encontrado ou sem permissão',
       }));
 
     if (input.action === 'apply-strategy') {
       const mapped = this.normalizeStrategy(String(input.payload?.strategy ?? ''));
-      if (!mapped) throw new BadRequestException('payload.strategy invalido');
+      if (!mapped) throw new BadRequestException('payload.strategy inválido');
       const [settings, user] = await Promise.all([
         this.portfolioSettingsByAddress(addressIds),
         this.getUser(userId),
@@ -781,7 +781,7 @@ export class HostPanelsService {
     if (input.action === 'set-base-price') {
       const price = Number(input.payload?.price ?? input.payload?.basePrice ?? input.payload?.manualDailyPrice);
       if (!Number.isFinite(price) || price <= 0) {
-        throw new BadRequestException('payload.price deve ser um numero maior que zero');
+        throw new BadRequestException('payload.price deve ser um número maior que zero');
       }
       for (const address of addresses) {
         const beforePrice = this.resolveBasePrice(address.list);
@@ -793,7 +793,7 @@ export class HostPanelsService {
           after: { price },
           status: address.list ? 'planned' : 'failed',
           estimatedLift: 0,
-          reason: address.list ? undefined : 'Imovel sem listing associado',
+          reason: address.list ? undefined : 'Imóvel sem listing associado',
         });
       }
       return { action: input.action, items, summary: this.portfolioPreviewSummary(items) };
@@ -802,7 +802,7 @@ export class HostPanelsService {
     if (input.action === 'set-date-price') {
       const price = Number(input.payload?.price ?? input.payload?.datePrice ?? input.payload?.manualDailyPrice);
       if (!Number.isFinite(price) || price <= 0) {
-        throw new BadRequestException('payload.price deve ser um numero maior que zero');
+        throw new BadRequestException('payload.price deve ser um número maior que zero');
       }
       const targets = this.resolveActionTargets(input, addresses);
       const dates = targets.dates;
@@ -917,7 +917,7 @@ export class HostPanelsService {
             after: null,
             status: 'skipped',
             estimatedLift: 0,
-            reason: 'Sem sugestoes futuras pendentes',
+            reason: 'Sem sugestões futuras pendentes',
           });
         }
       }
@@ -959,7 +959,7 @@ export class HostPanelsService {
 
     const skippedOrFailed = preview.items
       .filter((item) => item.status === 'skipped' || item.status === 'failed')
-      .map((item) => ({ propertyId: item.propertyId, reason: item.reason ?? 'Nao aplicado' }));
+      .map((item) => ({ propertyId: item.propertyId, reason: item.reason ?? 'Não aplicado' }));
     const allFailed = Array.from(
       new Map(
         [...failed, ...skippedOrFailed].map((item) => [`${item.propertyId}:${item.reason}`, item]),
@@ -1151,13 +1151,13 @@ export class HostPanelsService {
       return {
         adjustmentPercent: 0,
         multiplier: 1,
-        rule: 'ai/autonomous mantem precoSugerido original nesta etapa.',
+        rule: 'ai/autonomous mantém precoSugerido original nesta etapa.',
       };
     }
     return {
       adjustmentPercent: 0,
       multiplier: 1,
-      rule: 'balanced mantem precoSugerido original.',
+      rule: 'balanced mantém precoSugerido original.',
     };
   }
 
@@ -1182,7 +1182,7 @@ export class HostPanelsService {
 
   private async getUser(userId: string) {
     const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('Usuario nao encontrado');
+    if (!user) throw new NotFoundException('Usuário não encontrado');
     return user;
   }
 
@@ -1207,7 +1207,7 @@ export class HostPanelsService {
 
   private async getOwnedAddress(userId: string, propertyId: string) {
     const [address] = await this.getOwnedAddresses(userId, [propertyId]);
-    if (!address) throw new NotFoundException('Imovel nao encontrado');
+    if (!address) throw new NotFoundException('Imóvel não encontrado');
     return address;
   }
 
@@ -1487,11 +1487,11 @@ export class HostPanelsService {
 
     if (q.includes('receita') || q.includes('projec') || q.includes('ganho')) {
       return {
-        content: `Com base nos dados reais salvos, seu portfolio tem ${addresses.length} imovel(is), ${canonicalAnalyses.length} recomendacao(oes) geradas e ${this.formatBRL(realRevenue)} de receita real registrada. As recomendacoes ainda abertas somam ${this.formatBRL(potentialLift)} de lift diario potencial.`,
+        content: `Com base nos dados reais salvos, seu portfólio tem ${this.countPt(addresses.length, 'imóvel', 'imóveis')}, ${this.countPt(canonicalAnalyses.length, 'recomendação', 'recomendações')} geradas e ${this.formatBRL(realRevenue)} de receita real registrada. As recomendações ainda abertas somam ${this.formatBRL(potentialLift)} de lift diário potencial.`,
         citations: [
           { id: 'painel', label: 'Painel', url: '/painel' },
           { id: 'roi', label: 'ROI', url: '/my-roi' },
-          { id: 'portfolio', label: 'Portfolio', url: '/portfolio' },
+          { id: 'portfolio', label: 'Portfólio', url: '/portfolio' },
         ],
       };
     }
@@ -1501,33 +1501,37 @@ export class HostPanelsService {
       const occupancy = first ? await this.occupancyRate([first.list?.id].filter(Boolean), this.dateOnly(new Date(Date.now() - 30 * MS_PER_DAY)), this.dateOnly(new Date())) : 0;
       return {
         content: first
-          ? `Nos ultimos 30 dias, a ocupacao registrada para ${first.list?.titulo ?? 'seu primeiro imovel'} esta em ${Math.round(occupancy * 100)}%. Para comparacao anonima por bairro, abra Mercado do imovel: ele usa seus PriceSnapshots e imoveis reais proximos.`
-          : 'Ainda nao encontrei imoveis ativos para calcular ocupacao comparada.',
+          ? `Nos últimos 30 dias, a ocupação registrada para ${first.list?.titulo ?? 'seu primeiro imóvel'} está em ${Math.round(occupancy * 100)}%. Para comparação anônima por bairro, abra Mercado do imóvel: ele usa seus PriceSnapshots e imóveis reais próximos.`
+          : 'Ainda não encontrei imóveis ativos para calcular ocupação comparada.',
         citations: [
           { id: 'market', label: 'Mercado', url: first ? `/properties/${first.id}/market` : '/properties' },
-          { id: 'portfolio', label: 'Portfolio', url: '/portfolio' },
+          { id: 'portfolio', label: 'Portfólio', url: '/portfolio' },
         ],
       };
     }
 
     if (q.includes('evento') || q.includes('impact')) {
       return {
-        content: `Encontrei ${futureEvents} recomendacao(oes) ligadas a eventos futuros no seu historico recente. ${accepted} recomendacao(oes) foram aceitas e ${applied} ja tem preco aplicado registrado.`,
+        content: `Encontrei ${this.countPt(futureEvents, 'recomendação ligada', 'recomendações ligadas')} a eventos futuros no seu histórico recente. ${this.countPt(accepted, 'recomendação foi aceita', 'recomendações foram aceitas')} e ${this.countPt(applied, 'recomendação já tem preço aplicado registrado', 'recomendações já têm preço aplicado registrado')}.`,
         citations: [
-          { id: 'calendar', label: 'Calendario', url: '/dashboard' },
-          { id: 'near-events', label: 'Eventos proximos', url: '/near-events' },
-          { id: 'portfolio', label: 'Portfolio', url: '/portfolio' },
+          { id: 'calendar', label: 'Calendário', url: '/dashboard' },
+          { id: 'near-events', label: 'Eventos próximos', url: '/near-events' },
+          { id: 'portfolio', label: 'Portfólio', url: '/portfolio' },
         ],
       };
     }
 
     return {
-      content: `Resumo atual: ${addresses.length} imovel(is) ativos, ${analyses.length} recomendacao(oes), ${accepted} aceite(s), ${applied} aplicado(s) e ${booked} reserva(s) confirmada(s) no feedback. Posso detalhar receita, ocupacao, eventos ou desempenho recente.`,
+      content: `Resumo atual: ${this.countPt(addresses.length, 'imóvel ativo', 'imóveis ativos')}, ${this.countPt(analyses.length, 'recomendação', 'recomendações')}, ${this.countPt(accepted, 'aceite', 'aceites')}, ${this.countPt(applied, 'aplicação registrada', 'aplicações registradas')} e ${this.countPt(booked, 'reserva confirmada', 'reservas confirmadas')} no feedback. Posso detalhar receita, ocupação, eventos ou desempenho recente.`,
       citations: [
         { id: 'painel', label: 'Painel', url: '/painel' },
-        { id: 'portfolio', label: 'Portfolio', url: '/portfolio' },
+        { id: 'portfolio', label: 'Portfólio', url: '/portfolio' },
       ],
     };
+  }
+
+  private countPt(count: number, singular: string, plural: string) {
+    return `${count} ${count === 1 ? singular : plural}`;
   }
 
   private normalizeRules(rules: PricingRuleConfigItem[] | undefined) {
@@ -1784,7 +1788,7 @@ export class HostPanelsService {
     if (usage.reason === 'quota_exceeded' || usage.reason === 'hard_cap_exceeded') {
       throw new HttpException(
         {
-          message: 'Limite diario do AskUrban atingido',
+          message: 'Limite diário do Ask Urban atingido',
           reason: usage.reason,
           usage,
         },
@@ -1793,7 +1797,7 @@ export class HostPanelsService {
     }
 
     throw new ForbiddenException({
-      message: 'AskUrban indisponivel para este plano',
+      message: 'Ask Urban indisponível para este plano',
       reason: usage.reason,
       usage,
     });

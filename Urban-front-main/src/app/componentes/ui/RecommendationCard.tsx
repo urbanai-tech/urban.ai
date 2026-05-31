@@ -23,57 +23,57 @@ import type {
 /**
  * RecommendationCard — o objeto central da Urban AI.
  *
- * Pilar D do plano de redesign do anfitriao (docs/plano-redesign-2026-05-16.md):
- * a recomendacao de preco era card operacional com hierarquia INVERTIDA
- * (ATUAL em verde dominante + SUG em azul discreto). Agora o preco SUGERIDO
- * domina visualmente (Bebas Neue 56-72px), o preco atual aparece como
- * referencia menor, o delta % vira badge accent, o motivo eh pull-quote e
- * o CTA primario "Aplicar sugestao" eh impossivel de perder.
+ * Pilar D do plano de redesign do anfitrião (docs/plano-redesign-2026-05-16.md):
+ * a recomendação de preço era card operacional com hierarquia INVERTIDA
+ * (ATUAL em verde dominante + SUG em azul discreto). Agora o preço SUGERIDO
+ * domina visualmente (Bebas Neue 56-72px), o preço atual aparece como
+ * referência menor, o delta % vira badge accent, o motivo é pull-quote e
+ * o CTA primário "Aplicar sugestão" é impossível de perder.
  *
- * Roadmap 4 Tracks (Gap 6, semana 1-2): estendido com secao "POR QUE ESSE
- * PRECO?" expandable contendo DriverBar + HistoricalComparison +
+ * Roadmap 4 Tracks (Gap 6, semana 1-2): estendido com seção "POR QUE ESSE
+ * PREÇO?" expandable contendo DriverBar + HistoricalComparison +
  * ScenarioComparison. Mobile abre como full-screen sheet.
  *
- * Usado em /painel, /dashboard (calendario), /notificacao, futuro email.
+ * Usado em /painel, /dashboard (calendário), /notificacao, futuro email.
  */
 
 export type RecommendationConfidence = "high" | "medium" | "low";
 
 export type RecommendationCardProps = {
-  /** Evento que motiva a recomendacao (ex: "Show no Allianz Parque") */
+  /** Evento que motiva a recomendação (ex: "Show no Allianz Parque") */
   eventTitle: string;
   /** Categoria/eyebrow (ex: "SHOW", "FEIRA", "CONGRESSO") */
   eventCategory?: string;
-  /** Data do evento (ISO ou pt-BR ja formatado) */
+  /** Data do evento (ISO ou pt-BR já formatado) */
   eventDate: string;
-  /** Localizacao curta (ex: "Allianz Parque, Sao Paulo") */
+  /** Localização curta (ex: "Allianz Parque, São Paulo") */
   eventLocation?: string;
-  /** Distancia em km (opcional) */
+  /** Distância em km (opcional) */
   distanceKm?: number;
-  /** Preco atual configurado pelo anfitriao (R$, ja em reais) */
+  /** Preço atual configurado pelo anfitrião (R$, já em reais) */
   currentPrice: number;
-  /** Preco sugerido pela IA (R$, ja em reais) */
+  /** Preço sugerido pela IA (R$, já em reais) */
   suggestedPrice: number;
-  /** Motivo curto (1 frase) que justifica a sugestao */
+  /** Motivo curto (1 frase) que justifica a sugestão */
   reason?: string;
-  /** Nivel de confianca da IA */
+  /** Nível de confiança da IA */
   confidence?: RecommendationConfidence;
-  /** Estado da sugestao */
+  /** Estado da sugestão */
   status?: "pending" | "accepted" | "applied" | "rejected";
-  /** Acao primaria (aceitar / aplicar / etc) */
+  /** Ação primária (aceitar / aplicar / etc) */
   onPrimary?: () => void;
   primaryLabel?: string;
-  /** Acao secundaria (ver detalhes) */
+  /** Ação secundária (ver detalhes) */
   onSecondary?: () => void;
   secondaryLabel?: string;
   /** Loading durante apply */
   loading?: boolean;
   density?: "regular" | "compact";
-  /** Contrato A — drivers da engine (peso 0-100 por dimensao). */
+  /** Contrato A — drivers da engine (peso 0-100 por dimensão). */
   drivers?: Drivers;
-  /** Contrato A — comparacao com mesma data ano passado + hosts comparaveis. */
+  /** Contrato A — comparação com mesma data ano passado + hosts comparáveis. */
   historicalComparison?: HistoricalComparison;
-  /** Contrato A — 2-3 cenarios (atual/sugerido/agressivo) com receita estimada. */
+  /** Contrato A — 2-3 cenários (atual/sugerido/agressivo) com receita estimada. */
   scenarios?: Scenario[];
 };
 
@@ -113,9 +113,9 @@ function fmtSignedPct(value: number, fractionDigits = 1): string {
 }
 
 const CONFIDENCE_LABEL: Record<RecommendationConfidence, string> = {
-  high: "Confianca alta",
-  medium: "Confianca media",
-  low: "Confianca baixa",
+  high: "Confiança alta",
+  medium: "Confiança média",
+  low: "Confiança baixa",
 };
 
 const CONFIDENCE_KIND: Record<RecommendationConfidence, "success" | "warn" | "neutral"> = {
@@ -125,7 +125,7 @@ const CONFIDENCE_KIND: Record<RecommendationConfidence, "success" | "warn" | "ne
 };
 
 /**
- * Traduz justificativas tecnicas do motor em leitura didatica para o anfitriao.
+ * Traduz justificativas técnicas do motor em leitura didática para o anfitrião.
  */
 type ParsedReason = {
   marketPrice?: number;
@@ -208,30 +208,30 @@ function buildExplanation({
     ? `Aumentar ${fmtBRL(Math.abs(deltaAbs))} (${fmtSignedPct(deltaPct)}).`
     : isDecrease
       ? `Reduzir ${fmtBRL(Math.abs(deltaAbs))} (${fmtSignedPct(deltaPct)}).`
-      : "Manter a diaria atual.";
+      : "Manter a diária atual.";
 
   let body: string;
   if (typeof eventImpactPct === "number" && Math.abs(eventImpactPct) >= 0.5) {
     if (eventImpactPct > 0) {
-      body = `O evento adiciona ${fmtSignedPct(eventImpactPct, 0)} de demanda estimada. Por isso a Urban AI parte da referencia e sobe a diaria para ${fmtBRL(suggestedPrice)}.`;
+      body = `O evento adiciona ${fmtSignedPct(eventImpactPct, 0)} de demanda estimada. Por isso a Urban AI parte da referência e sobe a diária para ${fmtBRL(suggestedPrice)}.`;
     } else {
-      body = `O sinal de demanda esta ${fmtSignedPct(eventImpactPct, 0)} abaixo da referencia. Por isso a Urban AI recomenda um valor mais competitivo para a data.`;
+      body = `O sinal de demanda está ${fmtSignedPct(eventImpactPct, 0)} abaixo da referência. Por isso a Urban AI recomenda um valor mais competitivo para a data.`;
     }
   } else if (isIncrease) {
-    body = "A Urban AI encontrou sinais de procura acima do normal para esta data e sugere capturar essa oportunidade sem ultrapassar a faixa de seguranca.";
+    body = "A Urban AI encontrou sinais de procura acima do normal para esta data e sugere capturar essa oportunidade sem ultrapassar a faixa de segurança.";
   } else if (isDecrease) {
-    body = "A Urban AI entende que a demanda esperada nao sustenta o preco atual. A reducao deixa a diaria mais competitiva para converter reserva.";
+    body = "A Urban AI entende que a demanda esperada não sustenta o preço atual. A redução deixa a diária mais competitiva para converter reserva.";
   } else {
-    body = "A Urban AI nao encontrou pressao suficiente para subir ou baixar a diaria com seguranca nesta data.";
+    body = "A Urban AI não encontrou pressão suficiente para subir ou baixar a diária com segurança nesta data.";
   }
 
   const items: ExplanationItem[] = [
     {
-      label: "Referencia",
+      label: "Referência",
       value: fmtBRL(marketPrice ?? currentPrice),
       detail: marketPrice
-        ? "Preco-base usado para comparar esta diaria com o mercado."
-        : "Ponto de partida usado no calculo da recomendacao.",
+        ? "Preço-base usado para comparar esta diária com o mercado."
+        : "Ponto de partida usado no cálculo da recomendação.",
     },
   ];
 
@@ -241,18 +241,18 @@ function buildExplanation({
       value: fmtSignedPct(eventImpactPct, 0),
       detail:
         eventImpactPct > 0
-          ? "Pressao extra de demanda por causa do evento proximo."
+          ? "Pressão extra de demanda por causa do evento próximo."
           : eventImpactPct < 0
             ? "Sinal de menor demanda para a data analisada."
-            : "Sem impacto relevante de evento no preco final.",
+            : "Sem impacto relevante de evento no preço final.",
     });
   } else {
     items.push({
       label: "Sinal",
-      value: eventTitle ? "Evento proximo" : "Demanda",
+      value: eventTitle ? "Evento próximo" : "Demanda",
       detail: eventTitle
-        ? "O evento e um dos sinais usados para estimar procura na regiao."
-        : "A Urban AI compara demanda esperada, mercado e preco atual.",
+        ? "O evento é um dos sinais usados para estimar procura na região."
+        : "A Urban AI compara demanda esperada, mercado e preço atual.",
     });
   }
 
@@ -261,7 +261,7 @@ function buildExplanation({
     typeof parsed.guardrailUpPct === "number"
   ) {
     items.push({
-      label: "Seguranca",
+      label: "Segurança",
       value: `-${parsed.guardrailDownPct.toFixed(0)}% / +${parsed.guardrailUpPct.toFixed(0)}%`,
       detail: "Limite que evita queda ou alta agressiva demais.",
     });
@@ -271,10 +271,10 @@ function buildExplanation({
     label: "Resultado",
     value: fmtBRL(suggestedPrice),
     detail: isIncrease
-      ? "Preco final sugerido depois do ajuste de demanda."
+      ? "Preço final sugerido depois do ajuste de demanda."
       : isDecrease
-        ? "Preco final sugerido para ganhar competitividade."
-        : "Preco final sugerido para manter estabilidade.",
+        ? "Preço final sugerido para ganhar competitividade."
+        : "Preço final sugerido para manter estabilidade.",
   });
 
   return {
@@ -311,7 +311,7 @@ function RecommendationReason({
 
   return (
     <section
-      aria-label="Explicacao da sugestao"
+      aria-label="Explicacao da sugestão"
       style={{
         display: "flex",
         flexDirection: "column",
@@ -345,7 +345,7 @@ function RecommendationReason({
         </span>
         <div style={{ minWidth: 0 }}>
           <span className="urban-app-eyebrow-muted">
-            Por que este preco?
+            Por que este preço?
           </span>
           <p
             style={{
@@ -447,14 +447,14 @@ function ExplainerBody({
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {drivers && (
         <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <span className="urban-app-eyebrow-muted">Composicao da sugestao</span>
+          <span className="urban-app-eyebrow-muted">Composição da sugestão</span>
           <DriverBar drivers={drivers} />
         </section>
       )}
 
       {historicalComparison && (
         <section style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <span className="urban-app-eyebrow-muted">Referencias historicas</span>
+          <span className="urban-app-eyebrow-muted">Referências historicas</span>
           <div
             style={{
               display: "grid",
@@ -487,7 +487,7 @@ function ExplainerBody({
                   lineHeight: 1.4,
                 }}
               >
-                Diaria {fmtBRL(historicalComparison.similarDatesLastYear.adr)}
+                Diária {fmtBRL(historicalComparison.similarDatesLastYear.adr)}
                 {" · "}
                 Ocup {fmtPct(historicalComparison.similarDatesLastYear.occupancy)}
               </span>
@@ -506,7 +506,7 @@ function ExplainerBody({
               <span
                 style={{ fontSize: 11, color: "var(--app-text-muted)", lineHeight: 1.3 }}
               >
-                Anfitrioes comparaveis (mediana)
+                Anfitriões comparáveis (mediana)
               </span>
               <span
                 style={{
@@ -516,7 +516,7 @@ function ExplainerBody({
                   lineHeight: 1.4,
                 }}
               >
-                Diaria {fmtBRL(historicalComparison.comparableHosts.medianAdr)}
+                Diária {fmtBRL(historicalComparison.comparableHosts.medianAdr)}
                 {" · "}
                 Ocup {fmtPct(historicalComparison.comparableHosts.medianOccupancy)}
               </span>
@@ -527,7 +527,7 @@ function ExplainerBody({
 
       {scenarios && scenarios.length > 0 && (
         <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <span className="urban-app-eyebrow-muted">Cenarios</span>
+          <span className="urban-app-eyebrow-muted">Cenários</span>
           <ScenarioComparison scenarios={scenarios} />
         </section>
       )}
@@ -570,7 +570,7 @@ export function RecommendationCard({
     ? "Aplicado"
     : isAccepted
       ? "Aplicar agora"
-      : "Aplicar sugestao";
+      : "Aplicar sugestão";
 
   const hasExtendedExplainer = Boolean(
     drivers || historicalComparison || (scenarios && scenarios.length > 0),
@@ -590,7 +590,7 @@ export function RecommendationCard({
   );
   const [detailsOpen, setDetailsOpen] = React.useState(false);
 
-  // Trava o scroll body enquanto o modal esta aberto.
+  // Trava o scroll body enquanto o modal está aberto.
   React.useEffect(() => {
     if (!detailsOpen) return;
     const prev = document.body.style.overflow;
@@ -692,7 +692,7 @@ export function RecommendationCard({
         </div>
       </header>
 
-      {/* === Preco sugerido domina === */}
+      {/* === Preço sugerido domina === */}
       <div
         style={{
           display: "grid",
@@ -703,7 +703,7 @@ export function RecommendationCard({
       >
         <div>
           <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
-            Sugestao da IA
+            Sugestão da IA
           </p>
           <p
             className="urban-app-display-md"
@@ -722,8 +722,8 @@ export function RecommendationCard({
               marginTop: 4,
             }}
           >
-            preco atual: <strong style={{ color: "var(--app-text)" }}>{fmtBRL(currentPrice)}</strong>{" "}
-            / diaria
+            preço atual: <strong style={{ color: "var(--app-text)" }}>{fmtBRL(currentPrice)}</strong>{" "}
+            / diária
           </p>
         </div>
         <div
@@ -746,7 +746,7 @@ export function RecommendationCard({
 
       {/* === Resumo compacto: detalhes completos ficam no modal. === */}
       <section
-        aria-label="Resumo da sugestao"
+        aria-label="Resumo da sugestão"
         style={{
           display: "flex",
           gap: 12,
@@ -773,7 +773,7 @@ export function RecommendationCard({
         </span>
         <div style={{ minWidth: 0 }}>
           <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
-            Por que este preco?
+            Por que este preço?
           </p>
           <p
             style={{
@@ -792,7 +792,7 @@ export function RecommendationCard({
         </div>
       </section>
 
-      {/* === Confianca + CTAs === */}
+      {/* === Confiança + CTAs === */}
       <div
         style={{
           display: "flex",
@@ -849,7 +849,7 @@ export function RecommendationCard({
         >
           <button
             type="button"
-            aria-label="Fechar detalhes da sugestao"
+            aria-label="Fechar detalhes da sugestão"
             onClick={() => setDetailsOpen(false)}
             style={{
               position: "absolute",
@@ -888,7 +888,7 @@ export function RecommendationCard({
             >
               <div style={{ minWidth: 0 }}>
                 <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
-                  Detalhes da sugestao
+                  Detalhes da sugestão
                 </p>
                 <h2
                   id="recommendation-detail-title"
@@ -907,7 +907,7 @@ export function RecommendationCard({
               <button
                 type="button"
                 onClick={() => setDetailsOpen(false)}
-                aria-label="Fechar detalhes da sugestao"
+                aria-label="Fechar detalhes da sugestão"
                 className="urban-focus-ring"
                 style={{
                   flex: "0 0 auto",
@@ -946,15 +946,15 @@ export function RecommendationCard({
               >
                 <div style={{ minWidth: 0 }}>
                   <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
-                    Sugestao da IA
+                    Sugestão da IA
                   </p>
                   <p className="urban-app-display-md" style={{ color: "var(--app-accent)" }}>
                     {fmtBRL(suggestedPrice)}
                   </p>
                   <p style={{ fontSize: 12, color: "var(--app-text-muted)", marginTop: 4 }}>
-                    preco atual:{" "}
+                    preço atual:{" "}
                     <strong style={{ color: "var(--app-text)" }}>{fmtBRL(currentPrice)}</strong>{" "}
-                    / diaria
+                    / diária
                   </p>
                 </div>
                 <div

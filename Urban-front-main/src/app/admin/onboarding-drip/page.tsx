@@ -20,18 +20,18 @@ import {
 /**
  * /admin/onboarding-drip — observability + trigger manual do drip D1/D3/D7.
  *
- * Backend (gap H9): `OnboardingDripService` ja existe + endpoint
+ * Backend (gap H9): `OnboardingDripService` já existe + endpoint
  * `POST /admin/onboarding-drip/run-now` retorna `{ d1, d3, d7 }` com
  * `{ eligible, sent, failed, skipped }`.
  *
  * Esta tela:
- *  - Mostra estado do cron (proximo agendamento, ultima execucao)
+ *  - Mostra estado do cron (próximo agendamento, última execução)
  *  - 4 KPIs por dia (eligible/sent/failed/skipped)
  *  - Botao "Disparar agora" — chama o endpoint manual com confirmacao
- *  - Resultado da ultima execucao com expand para detalhes por dia
+ *  - Resultado da última execução com expand para detalhes por dia
  *
  * Cobre gap "observability operacional" do roadmap (operador entende
- * por que e-mails nao saem sem abrir terminal/log).
+ * por que e-mails não saem sem abrir terminal/log).
  */
 
 type DripDayResult = {
@@ -45,7 +45,7 @@ type DripRunResult = {
   d1: DripDayResult;
   d3: DripDayResult;
   d7: DripDayResult;
-  ranAt?: string;
+  ranAt: string;
 };
 
 export default function AdminOnboardingDripPage() {
@@ -57,8 +57,8 @@ export default function AdminOnboardingDripPage() {
   const toast = useAdminToast();
 
   useEffect(() => {
-    // Hoje o backend nao expoe GET de "ultima execucao" — so o trigger manual.
-    // Carregamento inicial so confirma autenticacao admin via /admin/overview.
+    // Hoje o backend não expõe GET de "última execução" — só o trigger manual.
+    // Carregamento inicial só confirma autenticação admin via /admin/overview.
     (async () => {
       try {
         await api.get("/admin/overview");

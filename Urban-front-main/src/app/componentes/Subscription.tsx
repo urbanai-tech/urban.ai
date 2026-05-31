@@ -46,7 +46,7 @@ const statusLabels: Record<string, string> = {
 };
 
 const formatDateNatural = (timestamp?: number) => {
-  if (!timestamp) return "Inicio nao informado";
+  if (!timestamp) return "Inicio não informado";
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "long",
@@ -69,9 +69,9 @@ function getCycleLabel(sub: Subscription) {
 function getQuantityLabel(sub: Subscription) {
   const quantity = Number(sub.metadata?.urbanai_quantity);
   if (Number.isFinite(quantity) && quantity > 0) {
-    return `${Math.floor(quantity)} imoveis contratados`;
+    return `${Math.floor(quantity)} imóveis contratados`;
   }
-  return "1 imovel contratado";
+  return "1 imóvel contratado";
 }
 
 function getPriceLabel(sub: Subscription) {
@@ -86,7 +86,7 @@ function getPriceLabel(sub: Subscription) {
 
   const quantity = sub.metadata?.urbanai_quantity;
   if (sub.metadata?.urbanai_plan === "alpha") {
-    return quantity ? `Cortesia alpha - ${quantity} imoveis` : "Cortesia alpha";
+    return quantity ? `Cortesia alpha - ${quantity} imóveis` : "Cortesia alpha";
   }
 
   return "Assinatura ativa";

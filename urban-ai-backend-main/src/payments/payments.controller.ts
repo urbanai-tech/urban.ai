@@ -31,7 +31,7 @@ export class CreateCheckoutSessionDto {
 
   @ApiProperty({
     example: 'annual',
-    description: 'Ciclo de cobranca (monthly | quarterly | semestral | annual)',
+    description: 'Ciclo de cobrança (monthly | quarterly | semestral | annual)',
     required: false,
   })
   @IsOptional()
@@ -40,7 +40,7 @@ export class CreateCheckoutSessionDto {
 
   @ApiProperty({
     example: 3,
-    description: 'Quantidade de imoveis contratados',
+    description: 'Quantidade de imóveis contratados',
     required: false,
   })
   @IsOptional()
@@ -69,14 +69,14 @@ export class PaymentsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('listings-quota')
-  @ApiOperation({ summary: 'F6.5 - quota de imoveis contratados vs ativos' })
+  @ApiOperation({ summary: 'F6.5 - quota de imóveis contratados vs ativos' })
   async getListingsQuota(@Req() req: any) {
     return this.paymentsService.getListingsQuota(req?.user?.userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('billing-portal-session')
-  @ApiOperation({ summary: 'Cria sessao do Stripe Billing Portal para gerenciar plano/quantity' })
+  @ApiOperation({ summary: 'Cria sessão do Stripe Billing Portal para gerenciar plano/quantity' })
   async createBillingPortalSession(@Req() req: any) {
     return this.paymentsService.createBillingPortalSession(req?.user?.userId);
   }
@@ -89,10 +89,10 @@ export class PaymentsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  @ApiOperation({ summary: 'Lista os pagamentos do usuario autenticado' })
+  @ApiOperation({ summary: 'Lista os pagamentos do usuário autenticado' })
   @ApiResponse({
     status: 200,
-    description: 'Lista de pagamentos do usuario',
+    description: 'Lista de pagamentos do usuário',
     schema: {
       example: [
         {
@@ -109,12 +109,12 @@ export class PaymentsController {
       ],
     },
   })
-  @ApiResponse({ status: 401, description: 'Usuario nao autenticado' })
+  @ApiResponse({ status: 401, description: 'Usuário não autenticado' })
   async getMyPayments(@Req() req: any) {
     const userId = req.user.userId;
 
     if (!userId) {
-      throw new UnauthorizedException('Usuario nao autenticado ou ID nao fornecido');
+      throw new UnauthorizedException('Usuário não autenticado ou ID não fornecido');
     }
 
     return this.paymentsService.findByUserId(userId);

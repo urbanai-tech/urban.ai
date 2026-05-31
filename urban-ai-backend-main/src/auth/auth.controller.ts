@@ -218,13 +218,13 @@ export class AuthController {
 
     const entry = await this.waitlistService.lookupByInviteToken(data.token);
     if (!entry) {
-      throw new BadRequestException('Este convite expirou ou ja foi usado. Solicite um novo acesso.');
+      throw new BadRequestException('Este convite expirou ou já foi usado. Solicite um novo acesso.');
     }
 
     const existingUser = await this.authService.findUserByEmail(entry.email);
     if (existingUser) {
       await this.waitlistService.markConverted(entry.id);
-      throw new ConflictException('Este convite ja foi vinculado a uma conta existente. Faca login para continuar.');
+      throw new ConflictException('Este convite já foi vinculado a uma conta existente. Faça login para continuar.');
     }
 
     const user = await this.authService.register({
@@ -255,7 +255,7 @@ export class AuthController {
     description: 'Credenciais de login do usuário',
     schema: {
       example: {
-        email: 'email@dominio.com',
+        email: 'email@empresa.com',
         password: 'password',
       },
     },
@@ -292,7 +292,7 @@ export class AuthController {
     try {
       const idToken = googleUserData.idToken ?? googleUserData.credential ?? googleUserData.token;
       if (!idToken) {
-        throw new BadRequestException('Token Google nao fornecido.');
+        throw new BadRequestException('Token Google não fornecido.');
       }
       const result = await this.authService.googleLogin({ idToken }, {
         userAgent: req.headers['user-agent'],
@@ -318,7 +318,7 @@ export class AuthController {
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const raw = req.cookies?.[REFRESH_TOKEN_COOKIE];
     if (!raw) {
-      throw new UnauthorizedException('Sua sessao expirou. Faca login novamente para continuar.');
+      throw new UnauthorizedException('Sua sessão expirou. Faça login novamente para continuar.');
     }
     const tokens = await this.authService.rotateRefreshToken(raw, {
       userAgent: req.headers['user-agent'],
@@ -429,7 +429,7 @@ export class AuthController {
   getUser(@Param('id') id: string, @Req() req: any) {
     const requester = req?.user;
     if (requester?.userId !== id && requester?.role !== 'admin') {
-      throw new ForbiddenException('Acesso negado: voce so pode consultar seu proprio usuario.');
+      throw new ForbiddenException('Acesso negado: você só pode consultar seu próprio usuário.');
     }
     return this.authService.findUserById(id);
   }

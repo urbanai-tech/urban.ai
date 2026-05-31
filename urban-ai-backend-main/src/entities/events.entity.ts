@@ -190,7 +190,7 @@ import {
     @Column("text", { nullable: true })
     crawledUrl: string | null;
 
-    @ApiProperty({ description: "Nome canonico escolhido apos merge/dedup", required: false })
+    @ApiProperty({ description: "Nome canônico escolhido após merge/dedup", required: false })
     @Column({ type: "varchar", length: 255, nullable: true })
     canonicalName: string | null;
 
@@ -202,19 +202,19 @@ import {
     @Column({ type: "varchar", length: 255, nullable: true })
     normalizedVenue: string | null;
 
-    @ApiProperty({ description: "ID canonico do venue, quando resolvido", required: false })
+    @ApiProperty({ description: "ID canônico do venue, quando resolvido", required: false })
     @Column({ type: "varchar", length: 36, nullable: true })
     canonicalVenueId: string | null;
 
-    @ApiProperty({ description: "Evento canonico quando este registro for duplicado", required: false })
+    @ApiProperty({ description: "Evento canônico quando este registro for duplicado", required: false })
     @Column({ type: "varchar", length: 36, nullable: true })
     duplicateOfEventId: string | null;
 
-    @ApiProperty({ description: "Status de deduplicacao/canonicidade do evento", required: false })
+    @ApiProperty({ description: "Status de deduplicação/canonicidade do evento", required: false })
     @Column({ type: "varchar", length: 16, default: "canonical" })
     dedupStatus: EventDedupStatus;
 
-    @ApiProperty({ description: "Confianca do matching de identidade", required: false })
+    @ApiProperty({ description: "Confiança do matching de identidade", required: false })
     @Column({ type: "decimal", precision: 5, scale: 4, nullable: true })
     identityConfidence: number | null;
 
@@ -222,7 +222,7 @@ import {
     @Column({ type: "int", default: 0 })
     sourceCount: number;
 
-    @ApiProperty({ description: "Ultima vez em que qualquer fonte viu este evento", required: false })
+    @ApiProperty({ description: "Última vez em que qualquer fonte viu este evento", required: false })
     @Column({ type: "datetime", nullable: true })
     lastSeenAt: Date | null;
 

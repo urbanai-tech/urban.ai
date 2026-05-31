@@ -65,7 +65,7 @@ export function PercentileHero({
         boxShadow: "0 1px 2px rgba(14, 17, 22, 0.04)",
       }}
     >
-      <p className="urban-app-eyebrow">POSICAO NO MERCADO · ULTIMOS 30 DIAS</p>
+      <p className="urban-app-eyebrow">POSIÇÃO NO MERCADO · ÚLTIMOS 30 DIAS</p>
       <div
         style={{
           display: "flex",
@@ -126,12 +126,12 @@ export function PercentileHero({
           margin: 0,
         }}
       >
-        Sua diaria esta acima de{" "}
+        Sua diária está acima de{" "}
         <strong style={{ color: "var(--app-text)" }}>{percentile}%</strong> dos
-        imoveis parecidos em{" "}
+        imóveis parecidos em{" "}
         <strong style={{ color: "var(--app-text)" }}>{neighborhood}</strong> (
-        {comparablesCount} referencia{comparablesCount === 1 ? "" : "s"} · diaria
-        media {formatBRL(medianAdr)})
+        {comparablesCount} referência{comparablesCount === 1 ? "" : "s"} · diária
+        média {formatBRL(medianAdr)})
       </p>
     </section>
   );

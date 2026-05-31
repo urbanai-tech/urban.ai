@@ -101,9 +101,9 @@ export default function AdminJobsPage() {
       ? "warn"
       : "success";
   const geocoderCardDescription = geocoderBlocked
-    ? geocoderStatus?.readiness?.message ?? "Geocoder sem configuracao."
+    ? geocoderStatus?.readiness?.message ?? "Geocoder sem configuração."
     : geocoderLastFailure
-      ? `Ultimo run falhou: ${geocoderLastFailure}`
+      ? `Último run falhou: ${geocoderLastFailure}`
       : "Processa eventos importados sem latitude/longitude usando o geocoder do backend.";
 
   if (loading) return <AdminPageLoading />;
@@ -146,7 +146,7 @@ export default function AdminJobsPage() {
     },
     {
       key: "duration",
-      header: "Duracao",
+      header: "Duração",
       width: 160,
       align: "right",
       render: (r) => (
@@ -185,16 +185,16 @@ export default function AdminJobsPage() {
   const shortcuts = [
     { href: "/admin/events/new", label: "Cadastrar evento manual" },
     { href: "/admin/events/import", label: "Importar CSV de eventos" },
-    { href: "/admin/collectors-health", label: "Ver saude dos coletores" },
+    { href: "/admin/collectors-health", label: "Ver saúde dos coletores" },
     { href: "/admin/dashboard", label: "Ver dashboard executivo" },
   ];
 
   return (
     <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
       <AdminSectionHeader
-        eyebrow="ADMIN · OPERACAO"
+        eyebrow="ADMIN · OPERAÇÃO"
         title="Jobs operacionais"
-        subtitle="Acoes seguras para operar eventos e readiness sem abrir terminal."
+        subtitle="Ações seguras para operar eventos e readiness sem abrir terminal."
         actions={
           <AdminButton
             variant="secondary"
@@ -244,7 +244,7 @@ export default function AdminJobsPage() {
               textTransform: "uppercase",
             }}
           >
-            Geocoder precisa de atencao
+            Geocoder precisa de atenção
           </p>
           <p style={{ margin: "6px 0 0", color: "var(--admin-text-muted)" }}>
             {geocoderBlocked ? geocoderStatus?.readiness?.message : geocoderLastFailure}
@@ -284,7 +284,7 @@ export default function AdminJobsPage() {
             title="Reset enrichment stale"
             status="manual"
             statusKind="neutral"
-            description="Libera eventos presos com relevancia antiga/zerada para nova tentativa de enriquecimento."
+            description="Libera eventos presos com relevância antiga/zerada para nova tentativa de enriquecimento."
             disabled={!!running}
             running={running === "reset-stale-enrichment"}
             actionLabel="Resetar stale"
@@ -295,7 +295,7 @@ export default function AdminJobsPage() {
             title="Snapshot de dataset"
             status={datasetHealth ?? "carregando"}
             statusKind="accent"
-            description="Captura o preco atual dos imoveis cadastrados para alimentar serie temporal e readiness."
+            description="Captura o preço atual dos imóveis cadastrados para alimentar série temporal e readiness."
             disabled={!!running}
             running={running === "dataset-snapshot"}
             actionLabel="Rodar snapshot"
@@ -306,7 +306,7 @@ export default function AdminJobsPage() {
             title="Features de eventos"
             status={datasetHealth ?? "carregando"}
             statusKind="accent"
-            description="Gera snapshots de proximidade a eventos por imovel para alimentar o dataset evolutivo."
+            description="Gera snapshots de proximidade a eventos por imóvel para alimentar o dataset evolutivo."
             disabled={!!running}
             running={running === "event-proximity-snapshot"}
             actionLabel="Gerar features"
@@ -366,7 +366,7 @@ export default function AdminJobsPage() {
         <section style={{ marginBottom: 48 }}>
           <AdminCard variant="subtle">
             <AdminCardHeader
-              eyebrow="ULTIMA EXECUCAO"
+              eyebrow="ÚLTIMA EXECUÇÃO"
               title={result.name}
               actions={
                 <AdminBadge
@@ -423,7 +423,7 @@ export default function AdminJobsPage() {
           }}
         >
           <div>
-            <p className="urban-admin-eyebrow">HISTORICO</p>
+            <p className="urban-admin-eyebrow">HISTÓRICO</p>
             <h2
               style={{
                 fontSize: 20,
@@ -433,7 +433,7 @@ export default function AdminJobsPage() {
                 letterSpacing: -0.3,
               }}
             >
-              Ultimos jobs admin
+              Últimos jobs admin
             </h2>
           </div>
           <AdminButton
@@ -452,7 +452,7 @@ export default function AdminJobsPage() {
           rowKey={(r) => r.id}
           empty={
             <AdminEmptyState
-              title="Nenhuma execucao registrada"
+              title="Nenhuma execução registrada"
               body="Execute um job acima para criar a primeira entrada."
             />
           }
@@ -469,7 +469,7 @@ export default function AdminJobsPage() {
           lineHeight: 1.55,
         }}
       >
-        Jobs destrutivos, billing e Stays ficam fora daqui ate terem confirmacao
+        Jobs destrutivos, billing e Stays ficam fora daqui até terem confirmacao
         operacional dedicada.
       </footer>
     </div>

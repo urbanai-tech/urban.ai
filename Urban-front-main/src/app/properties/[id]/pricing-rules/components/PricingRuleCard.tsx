@@ -153,7 +153,7 @@ const RULE_CONFIG: Record<PricingRuleType, RuleConfig> = {
     controls: [
       {
         key: "percent",
-        label: "Desconto estadia longa",
+        label: "Desconto para estadia longa",
         kind: "slider",
         min: -30,
         max: 0,
@@ -281,10 +281,10 @@ function MiniChart({ deltas }: { deltas: number[] }) {
       width={w}
       height={h}
       role="img"
-      aria-label="Mini-grafico simulado, nao baseado em dados reais"
+      aria-label="Mini-gráfico simulado, não baseado em dados reais"
       style={{ display: "block" }}
     >
-      <title>Mini-grafico simulado</title>
+      <title>Mini-gráfico simulado</title>
       <line
         x1={0}
         x2={w}
@@ -466,7 +466,7 @@ export function PricingRuleCard({
 
         <div
           role="group"
-          aria-label="Mini-grafico simulado da regra"
+          aria-label="Mini-gráfico simulado da regra"
           style={{
             flexShrink: 0,
             opacity: rule.enabled ? 1 : 0.4,

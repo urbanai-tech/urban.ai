@@ -5,12 +5,12 @@ import { TrendingUp, TrendingDown } from "./Icons";
 
 /**
  * KPI card light premium. 3 variantes:
- *  - hero  — Bebas Neue gigante, label uppercase em cima. Para o numero
+ *  - hero  — Bebas Neue gigante, label uppercase em cima. Para o número
  *            mais importante da tela (receita atribuida, margem, etc.).
- *  - md    — grid de 4 colunas padrao. Bebas 36-56px.
+ *  - md    — grid de 4 colunas padrão. Bebas 36-56px.
  *  - sm    — mini stat inline.
  *
- * Substitui o padrao de KPI antigo nas telas do anfitriao:
+ * Substitui o padrão de KPI antigo nas telas do anfitrião:
  *   <Box borderWidth p={4} bg="white" borderRadius="md">
  *     <Text fontSize="xs" color="gray.500">Label</Text>
  *     <Text fontSize="2xl" fontWeight="bold">{value}</Text>
@@ -35,7 +35,7 @@ export function AppMetricCard({
   variant?: AppMetricVariant;
   trend?: "up" | "down";
   trendValue?: string;
-  /** Destaca o numero em accent #E8500A */
+  /** Destaca o número em accent #E8500A */
   accent?: boolean;
   style?: React.CSSProperties;
 }) {
