@@ -4,6 +4,8 @@ Data: 2026-05-22
 
 Esta matriz consolida as variaveis encontradas no codigo e nos `.env.example`. Valores reais devem ficar apenas no provedor de deploy/CI. API keys podem ser configuradas depois, mas as variaveis marcadas como obrigatorias precisam existir antes de operar usuarios reais.
 
+Adendo 2026-07-01: para handoff de novo dev, usar tambem `docs/handoff/ACCESS-SECRETS.md`. Nenhum valor real de secret deve ser copiado para docs, issues, PRs ou chats. Se alguma chave apareceu em chat antigo, tratar como exposta, rotacionar no provedor e compartilhar acesso pelo provedor ou cofre de senhas.
+
 Status 2026-05-22: auto-apply Stays opera em fail-closed. O backend aceita os nomes operacionais `STAYS_AUTO_APPLY_ALLOWED_USER_IDS`/`STAYS_AUTO_APPLY_ALLOWED_LISTING_IDS` e os aliases canonicos `STAYS_AUTO_APPLY_USER_ALLOWLIST`/`STAYS_AUTO_APPLY_LISTING_ALLOWLIST`. Antes de preco real, registrar smoke em `docs/evidence/`.
 
 Adendo 2026-05-26: para subir o roadmap total para 92-95%, tratar staging como ambiente separado e preencher somente chaves sandbox/test. O pacote minimo desta etapa e: `GOOGLE_MAPS_API_KEY`, `GEMINI_API_KEY`, `BREVO_API_KEY`, Stripe test keys/Price IDs, `STAYS_API_BASE_URL`, `STAYS_TOKEN_ENCRYPTION_KEY`, usuarios/JWTs de gate autenticado e evidencia de outcomes/calibracao. Ver `docs/runbooks/integracoes-outcomes-calibracao-2026-05-26.md`.

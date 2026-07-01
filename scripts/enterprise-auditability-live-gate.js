@@ -121,7 +121,19 @@ function parseArgs(argv) {
     else if (arg === '--skip-events-ingest') options.skipEventsIngest = true;
     else if (arg === '--help' || arg === '-h') options.help = true;
     else if (arg.startsWith('--env=')) options.environment = arg.slice('--env='.length);
+    else if (arg === '--env') {
+      const value = argv[index + 1];
+      if (!value || value.startsWith('-')) throw new Error(`${arg} requires an environment.`);
+      options.environment = value;
+      index += 1;
+    }
     else if (arg.startsWith('--env-file=')) options.envFile = arg.slice('--env-file='.length);
+    else if (arg === '--env-file') {
+      const value = argv[index + 1];
+      if (!value || value.startsWith('-')) throw new Error(`${arg} requires a file path.`);
+      options.envFile = value;
+      index += 1;
+    }
     else if (arg === '--output' || arg === '-o') {
       const value = argv[index + 1];
       if (!value || value.startsWith('-')) throw new Error(`${arg} requires a file path.`);

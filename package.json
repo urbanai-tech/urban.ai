@@ -6,7 +6,8 @@
     "release:evidence": "node scripts/release-evidence.js",
     "gate:enterprise": "node scripts/enterprise-auditability-live-gate.js",
     "gate:enterprise:dry": "node scripts/enterprise-auditability-live-gate.js --dry-run",
-    "gate:enterprise:access": "node scripts/enterprise-access-readiness.js"
+    "gate:enterprise:access": "node scripts/enterprise-access-readiness.js",
+    "opensquad:check": "node scripts/opensquad-readiness-check.js"
   },
   "dependencies": {
     "playwright": "^1.58.2"
