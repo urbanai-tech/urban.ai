@@ -56,5 +56,5 @@ pipeline:
 skills_required:
   - image-creator
   - resend
-  - blottato (para integração no painel)
+  - blotato (para integração no painel)
   - run-command (para o Daniel Frontend editar arquivos Next.js)

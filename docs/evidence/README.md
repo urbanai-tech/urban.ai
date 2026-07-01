@@ -2,6 +2,12 @@
 
 This directory can store generated Markdown evidence for release handoffs.
 
+## Current handoff package
+
+For a new developer, start at `docs/handoff/README.md`. Evidence files in this directory prove specific runs; they are not the main onboarding path.
+
+Never store secret values in evidence. Use presence/absence reports and provider access instead.
+
 ## Enterprise auditability controls
 
 Use `docs/evidence/enterprise-auditabilidade-controles-2026-05-22.md` as the control log for:
