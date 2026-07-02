@@ -21,6 +21,12 @@ import {
   @Index(["dataInicio", "dataFim"])
   @Index(["source"])
   @Index(["venueType"])
+  // PERF-3: índices compostos para as queries de radar/pricing (data+escopo,
+  // geo+data, cidade/estado+escopo). Espelhados na migration
+  // 1781600000000-AddEventQueryIndexes.
+  @Index("IDX_events_dataInicio_outOfScope", ["dataInicio", "outOfScope"])
+  @Index("IDX_events_geo_dataInicio", ["latitude", "longitude", "dataInicio"])
+  @Index("IDX_events_cidade_estado_outOfScope", ["cidade", "estado", "outOfScope"])
   export class Event {
     // =====================================
     // 🆔 IDENTIFICAÇÃO
