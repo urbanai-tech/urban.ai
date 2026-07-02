@@ -292,7 +292,7 @@ export default function PrecosPage() {
             />
             <Faq
               q="Pix? Boleto?"
-              a="Sim. Processamento via Stripe — cartão, débito, Pix e boleto (2 dias úteis)."
+              a="Hoje o pagamento é por cartão de crédito ou débito, processado via Stripe. Pix e boleto estão no roadmap."
             />
             <Faq
               q="Nota fiscal?"
