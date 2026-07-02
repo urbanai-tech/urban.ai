@@ -77,6 +77,13 @@ yarn-error.log*
 dump-*.sql
 inserts-*.sql
 
+# ===== Exports com PII (e-mails, PDFs de relatório) — nunca versionar =====
+# Incidente 2026-07: dump de produção estava no histórico. Ver
+# docs/postmortems/incident-git-leak-2026-07.md
+docs/emails_pdf_content.txt
+docs/Emails*.pdf
+*.pdf
+
 # ===== Arquivos temporários / ruído =====
 temp_*/
 temp-*/
