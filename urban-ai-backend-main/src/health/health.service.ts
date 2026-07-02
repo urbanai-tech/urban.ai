@@ -1,6 +1,7 @@
 import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import Redis from 'ioredis';
 
 type HealthStatus = 'ok' | 'degraded' | 'down';
 type CheckStatus = 'ok' | 'degraded' | 'down' | 'skipped';
@@ -30,12 +31,16 @@ export class HealthService {
   ) {}
 
   async getHealth() {
-    const db = await this.checkDatabase();
+    const [db, redis] = await Promise.all([
+      this.checkDatabase(),
+      this.checkRedis(),
+    ]);
     const env = this.buildEnvReadiness();
     const criticalEnvReady = env.database.ready && env.auth.ready && env.server.ready;
     const dbDegraded = db.status === 'down' || db.status === 'degraded';
+    const redisDegraded = redis.status === 'down' || redis.status === 'degraded';
     const status: HealthStatus =
-      dbDegraded || !criticalEnvReady ? 'degraded' : 'ok';
+      dbDegraded || redisDegraded || !criticalEnvReady ? 'degraded' : 'ok';
 
     return {
       status,
@@ -49,6 +54,7 @@ export class HealthService {
       checks: {
         process: { status: 'ok' as const },
         db,
+        redis,
         env,
       },
     };
@@ -92,6 +98,54 @@ export class HealthService {
         status: 'down',
         configured,
       };
+    }
+  }
+
+  private async checkRedis(): Promise<{
+    status: CheckStatus;
+    configured: boolean;
+    latencyMs?: number;
+  }> {
+    // Só checa se o Redis foi configurado (Upstash em prod). Em dev sem Redis,
+    // retorna 'skipped' para não falsear o health.
+    const configured = this.hasEnv('REDIS_HOST') || this.hasEnv('REDIS_PASSWORD');
+    if (!configured) {
+      return { status: 'skipped', configured: false };
+    }
+
+    let client: Redis | undefined;
+    try {
+      client = new Redis({
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT ?? '', 10) || 6379,
+        password: process.env.REDIS_PASSWORD || undefined,
+        tls: process.env.REDIS_TLS === 'true' ? {} : undefined,
+        connectTimeout: 2000,
+        commandTimeout: 2000,
+        maxRetriesPerRequest: 1,
+        lazyConnect: true,
+        retryStrategy: () => null,
+      });
+
+      const startedAt = Date.now();
+      await client.connect();
+      await client.ping();
+      const latencyMs = Date.now() - startedAt;
+
+      return {
+        status: latencyMs > 500 ? 'degraded' : 'ok',
+        configured: true,
+        latencyMs,
+      };
+    } catch (error: any) {
+      this.logger.error('Health check Redis falhou', error?.message);
+      return { status: 'down', configured: true };
+    } finally {
+      try {
+        await client?.quit();
+      } catch {
+        client?.disconnect();
+      }
     }
   }
 
