@@ -18,6 +18,40 @@
 
 ---
 
+## Progresso de execução (branch `fix/audit-remediation-2026-07`)
+
+Atualizado 06/07/2026. Trabalho feito com o backend rodando localmente + MySQL 8 em Docker (nada tocou prod).
+
+**✅ Feito e verificado (tsc/jest/MySQL real):**
+- **DR-1** — banco reconstruível: `CatchupCoreEntities` (11 tabelas core + 60 FKs) testada de ponta a ponta (fresh → 11 core presentes; generate → 0 CREATE TABLE; prod → gate no-op). Corrigiu índice duplicado latente em `events`.
+- **PERF-3** — índices compostos de `events` (aplicam limpo).
+- **IA-1** — feature engineering (geocode/metro/amenities/category), migração de 2 colunas testada, 15 testes unitários (pegaram bug real do `Number(null)`).
+- **LGPD-1** — `payment` FK → CASCADE (testado) + `DELETE /auth/me` self-service.
+- **PERF-1** — import de host paralelizado (concorrência 5, util testado).
+- **OBS-1** (parcial) — Redis no `/health`, alerta fora da Lumina, captura do webhook Stripe no Sentry.
+- **OBS-2** — correlationId por request.
+- **DR-2** (parcial) — integridade de backup no workflow + runbook de DR.
+- **HIG-1/HIG-2** — limpeza de repo + rota morta.
+- **DS-1** (parcial) — `design:audit` como gate de CI + detecção de diálogos nativos.
+- **SEC-1** (contenção segura) — untrack dos arquivos de PII + `.gitignore` + postmortem.
+- **PRD-3** (parcial) — cópia de pagamento alinhada ao checkout.
+- **CI** — consertado o `tsc --noEmit` do backend que estava vermelho no `main`.
+- **HIG-3** — investigado: falso positivo (sem duplicação morta), fechado sem mudança.
+
+**🔒 Owner-only (não executável por mim — acesso a conta/console/decisão):**
+- **SEC-1 núcleo** — repo privado, reset de senhas, rotação Stripe, reescrita de histórico, ANPD.
+- **DR-2 restante** — credencial S3 read-only, versioning/lifecycle do bucket, 1º drill de restore.
+- **PRD-3 restante** — decisão de tom das outras afirmações de marketing.
+
+**⏸️ Bloqueado por runtime/chaves que não tenho aqui:**
+- **IA-1 restante** — validação com Gemini/Maps real (usei mocks a pedido) + ligar `metroDistance` no objeto que o classifier lê.
+- **IA-2** — wiring de `recordAppliedPrice` + import de ocupação (caminho de dados, precisa do app para validar).
+- **PRD-1/PRD-2** — onboarding/mobile (precisam de verificação visual/E2E).
+- **SEC-3** — Fase 2 do auth no front (precisa de E2E; risco de quebrar login se feito às cegas).
+- **SEC-2** — coletor Python → API key (precisa coordenar/validar o lado Python em runtime).
+- **HIG-4** — renomear pastas `-main` (quebra CI/Railway paths; precisa de deploy coordenado).
+- **DS-1 restante / DS-2** — refactor do `window.prompt` para drawer + gate de responsividade (precisam de verificação visual).
+
 ## Ordem de execução (ondas)
 
 | Onda | Foco | Tickets | Pode paralelizar? |
@@ -324,8 +358,13 @@ Remover do versionamento (após SEC-1): dumps `.sql`, PDFs de relatório soltos 
 ## HIG-2 · Remover backups e rotas órfãs do front · **P2 · P · dev front**
 Remover `src/app/maps-bkp/`; decidir entre `/painel` e `/dashboard` (consolidar numa, redirecionar a outra); avaliar `/notificacao` órfã. **Aceite:** sem `-bkp`; sem duas rotas fazendo a mesma coisa.
 
-## HIG-3 · Auditar módulos duplicados no backend · **P2 · M · dev back**
-**Não remover às cegas.** Confirmar qual é o vivo em cada par antes de apagar: `email/` vs `mailer/`, `notifications/` vs `communications/`, `processos/` vs `process/`. Documentar a decisão e remover/consolidar o legado. **Aceite:** cada responsabilidade tem um único módulo dono; nada quebra nos testes.
+## HIG-3 · Auditar módulos duplicados no backend · **✅ INVESTIGADO — falso positivo**
+**Verificado em 06/07 (com o backend rodando): não há duplicação morta.** Os três pares são serviços **complementares** com nomes parecidos, todos ativos e interdependentes:
+- `mailer/` (`MailerService`) = camada de transporte (envio); `email/` (`EmailService`) = camada de domínio/templates construída **sobre** o MailerService. Ambos usados por cron/payments/admin/connect/maps/propriedades.
+- `process/` (`ProcessService`) = tracking de status de processo; `processos/` = módulo da **fila BullMQ** (`@Controller('processos')` + `registerQueue('processos')` + `@Processor('processos')`). Coisas diferentes.
+- `notifications/` = notificações in-app ao usuário; `communications/` = log de auditoria de eventos de comunicação.
+
+**Ação:** NÃO remover/consolidar (quebraria o sistema). Único resíduo real é clareza de nomes (`process`/`processos`), um nit de nomenclatura — não vale o risco de renomear módulos amplamente usados. Ticket fechado sem mudança de código.
 
 ## HIG-4 · Padronizar estrutura dos serviços · **P3 · M · dev**
 Remover sufixo `-main` das 5 pastas de serviço (atualizar scripts/docs/CI que referenciam); mover scripts experimentais do pipeline (`test_*.py`, `debug_*.py`) para `tests/`/`scripts/`; consolidar as 3 pastas de agente (`.agent/`, `.agents/`, `.claude/`) mantendo só `.claude/`; documentar no README que `dashboard/`, `_opensquad/`, `_build/` são ferramenta interna. **Aceite:** estrutura consistente; CI verde após renomeações.
