@@ -47,7 +47,7 @@ Atualizado 06/07/2026. Trabalho feito com o backend rodando localmente + MySQL 8
 - **IA-1 restante** — validação com Gemini/Maps real (usei mocks a pedido) + ligar `metroDistance` no objeto que o classifier lê.
 - **IA-2** — wiring de `recordAppliedPrice` + import de ocupação (caminho de dados, precisa do app para validar).
 - **PRD-1/PRD-2** — onboarding/mobile (precisam de verificação visual/E2E).
-- **SEC-3** — Fase 2 do auth no front (precisa de E2E; risco de quebrar login se feito às cegas).
+- ~~**SEC-3**~~ — **VERIFICADO RESOLVIDO (06/07):** auth já é 100% cookie httpOnly (`withCredentials`), `logout()` já chama `POST /auth/logout`, e **não existe `setItem`/`getItem` de `accessToken`** no front — os `removeItem` remanescentes são só limpeza de legado (benéficos). O risco de XSS da auditoria estava desatualizado. Fechado sem mudança.
 - **SEC-2** — coletor Python → API key (precisa coordenar/validar o lado Python em runtime).
 - **HIG-4** — renomear pastas `-main` (quebra CI/Railway paths; precisa de deploy coordenado).
 - **DS-1 restante / DS-2** — refactor do `window.prompt` para drawer + gate de responsividade (precisam de verificação visual).
