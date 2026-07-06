@@ -48,7 +48,7 @@ Atualizado 06/07/2026. Trabalho feito com o backend rodando localmente + MySQL 8
 - **IA-2** — wiring de `recordAppliedPrice` + import de ocupação (caminho de dados, precisa do app para validar).
 - **PRD-1/PRD-2** — onboarding/mobile (precisam de verificação visual/E2E).
 - ~~**SEC-3**~~ — **VERIFICADO RESOLVIDO (06/07):** auth já é 100% cookie httpOnly (`withCredentials`), `logout()` já chama `POST /auth/logout`, e **não existe `setItem`/`getItem` de `accessToken`** no front — os `removeItem` remanescentes são só limpeza de legado (benéficos). O risco de XSS da auditoria estava desatualizado. Fechado sem mudança.
-- **SEC-2** — coletor Python → API key (precisa coordenar/validar o lado Python em runtime).
+- ~~**SEC-2**~~ — **VERIFICADO: código já pronto (06/07).** `UrbanBackendClient._ingest_headers()` já usa a API key (`x-urban-events-ingest-key`) quando `URBAN_EVENTS_INGEST_API_KEY` está setado; o login email/senha é só fallback quando a key não existe. **Resolução = setar a env var nos coletores** (ação de ops) + opcionalmente remover o fallback legado depois (não removido às cegas: quebraria ingestão se a key não estiver configurada). Sem mudança de código necessária.
 - **HIG-4** — renomear pastas `-main` (quebra CI/Railway paths; precisa de deploy coordenado).
 - **DS-1 restante / DS-2** — refactor do `window.prompt` para drawer + gate de responsividade (precisam de verificação visual).
 
