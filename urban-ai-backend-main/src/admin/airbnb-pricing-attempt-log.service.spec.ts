@@ -35,6 +35,8 @@ describe('AirbnbPricingAttemptLogService', () => {
       dailyPrice: 450.25,
       finalUrl: 'https://www.airbnb.com/rooms/123',
       metadata: { nights: 2 },
+      startedAt: null,
+      finishedAt: null,
     });
 
     expect(repo.create).toHaveBeenCalledWith(
