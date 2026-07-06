@@ -19,7 +19,6 @@ import {
   @Index(["cidade", "estado"])
   @Index(["latitude", "longitude"])
   @Index(["dataInicio", "dataFim"])
-  @Index(["source"])
   @Index(["venueType"])
   // PERF-3: índices compostos para as queries de radar/pricing (data+escopo,
   // geo+data, cidade/estado+escopo). Espelhados na migration
