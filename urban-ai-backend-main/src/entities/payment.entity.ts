@@ -60,7 +60,7 @@ export class Payment {
     @Column({ type: 'varchar', length: 64, nullable: true })
     planName: string;
 
-    @ManyToOne(() => User)
+    @ManyToOne(() => User, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user: User;
 
