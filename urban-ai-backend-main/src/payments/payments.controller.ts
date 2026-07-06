@@ -18,6 +18,7 @@ import {
 import { PaymentsService } from './payments.service';
 import { Request, Response } from 'express';
 import { ApiOperation, ApiProperty, ApiResponse } from '@nestjs/swagger';
+import * as Sentry from '@sentry/nestjs';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
@@ -145,6 +146,12 @@ export class PaymentsController {
 
       if (result.error) {
         this.logger.warn(`Stripe webhook rejected: ${result.error.message}`);
+        // Assinatura inválida / payload malformado: pagamento pode não ser
+        // registrado -> alerta (OBS-1). Não vaza corpo do evento.
+        Sentry.captureMessage('Stripe webhook rejected', {
+          level: 'error',
+          tags: { component: 'stripe-webhook', reason: 'validation' },
+        });
         return res.status(400).send(`Webhook Error: ${result.error.message}`);
       }
 
@@ -154,6 +161,9 @@ export class PaymentsController {
         'Unexpected Stripe webhook error',
         error instanceof Error ? error.stack : String(error),
       );
+      Sentry.captureException(error, {
+        tags: { component: 'stripe-webhook', reason: 'unexpected' },
+      });
       return res.status(500).send('Internal Server Error');
     }
   }
