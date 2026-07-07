@@ -18,6 +18,23 @@
 
 ---
 
+## Auditoria UI/UX rota a rota (06/07 — app rodando, mobile + desktop)
+
+Varredura com medição de DOM (overflowX real, elementos largos estáticos, erros, imagens quebradas), viewports 322px/375px (mobile) e 1265px (desktop). **Resultado: app sólido e responsivo em todas as rotas testadas — zero scroll horizontal, zero erro, zero imagem quebrada.**
+
+| Rota | Área | Mobile | Desktop | Observação |
+|---|---|---|---|---|
+| `/precos` | público | ox=0 ✅ | — | glows decorativos clipados (não causam scroll) |
+| `/` (login) | público | renderiza ✅ | — | |
+| `/painel` | anfitrião | ox=0 ✅ | ox=0 ✅ | dashboard principal |
+| `/properties` | anfitrião | ox=0 ✅ | — | cards responsivos |
+| `/onboarding` | anfitrião | ox=0 ✅ | — | ⚠️ 3 botões < 40px (touch target) |
+| `/admin` | admin | sidebar+breadcrumb ✅ | — | nav categorizada |
+| `/admin/finance` | admin | ox=0, tabela contida ✅ | ox=0 ✅ | tabela larga (1120px) scroll no container — padrão correto |
+| `/admin/events/dedup` | admin | renderiza ✅ | — | DS-1 dialog |
+
+**Único achado real:** 3 botões < 40px no onboarding (abaixo do alvo de 44px) — podem ser botões-ícone legítimos; a confirmar. Fora isso, nada de scroll horizontal, layout quebrado, erro de runtime ou imagem quebrada em nenhuma rota. A auditoria confirma o padrão: **a UI/UX está em forma muito melhor do que os relatórios de 02/07 indicavam.**
+
 ## Validação de UX com o app rodando (06/07 — stack local completo)
 
 Subi o stack inteiro (backend + MySQL Docker + front produção + login real) e validei as telas com medição de DOM (screenshot/click travam neste harness; inspect/snapshot/resize/eval funcionam):
