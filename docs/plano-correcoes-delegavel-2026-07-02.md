@@ -18,6 +18,16 @@
 
 ---
 
+## Validação de UX com o app rodando (06/07 — stack local completo)
+
+Subi o stack inteiro (backend + MySQL Docker + front produção + login real) e validei as telas com medição de DOM (screenshot/click travam neste harness; inspect/snapshot/resize/eval funcionam):
+
+- **PRD-2 (properties mobile)** — a 375px: `scrollWidth == viewport (375)`, **overflowX = 0, zero elementos largos**. Sem scroll horizontal. O gap do audit ("scroll horizontal em 390px") estava errado. ✅
+- **Navegação do admin** — `/admin` já tem `<aside>` sidebar + breadcrumb + 30 links **categorizados** (Painel executivo, Financeiro, Funil, ROI, Eventos, Deduplicação, Cobertura, Coletores...). O gap "23 rotas sem navegação" também estava superestimado. ✅
+- **DS-1** — `/admin/events/dedup` renderiza limpo com o `AdminConfirmDialog` novo. ✅
+
+**Achado real de robustez (não estava nas auditorias):** o interceptor 401 da axios (`api.ts`) **desloga o usuário em QUALQUER 401**, inclusive um que não é de auth. Descobri porque `/payments/getSubscription` deu 401 (chave Stripe dummy no local) → o app expulsou o usuário logado para o login. Em prod isso é mascarado pela chave real, mas é frágil: um hiccup da Stripe (ou de qualquer endpoint) derruba a sessão. **Recomendação:** o interceptor deve só forçar logout em 401 de endpoints de auth (ou após o refresh realmente falhar), não em 401 de aplicação. (Não alterei às cegas — é caminho crítico, precisa de E2E.)
+
 ## Progresso de execução (branch `fix/audit-remediation-2026-07`)
 
 Atualizado 06/07/2026. Trabalho feito com o backend rodando localmente + MySQL 8 em Docker (nada tocou prod).
