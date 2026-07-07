@@ -3,6 +3,21 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import Redis from 'ioredis';
 
+/** Versão do app: APP_VERSION (deploy) → npm_package_version → package.json → unknown. */
+function resolveAppVersion(): string {
+  const fromEnv = process.env.APP_VERSION?.trim() || process.env.npm_package_version?.trim();
+  if (fromEnv) return fromEnv;
+  try {
+    // dist/health/health.service.js → ../../package.json (raiz do backend)
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const pkg = require('../../package.json');
+    if (pkg?.version) return String(pkg.version);
+  } catch {
+    /* ignore */
+  }
+  return 'unknown';
+}
+
 type HealthStatus = 'ok' | 'degraded' | 'down';
 type CheckStatus = 'ok' | 'degraded' | 'down' | 'skipped';
 
@@ -31,9 +46,10 @@ export class HealthService {
   ) {}
 
   async getHealth() {
-    const [db, redis] = await Promise.all([
+    const [db, redis, crons] = await Promise.all([
       this.checkDatabase(),
       this.checkRedis(),
+      this.checkCrons(),
     ]);
     const env = this.buildEnvReadiness();
     const criticalEnvReady = env.database.ready && env.auth.ready && env.server.ready;
@@ -46,7 +62,7 @@ export class HealthService {
       status,
       app: {
         name: 'urban-ai-backend',
-        version: process.env.npm_package_version ?? 'unknown',
+        version: resolveAppVersion(),
         env: process.env.APP_ENV ?? process.env.NODE_ENV ?? 'development',
         uptimeSec: Math.floor(process.uptime()),
         timestamp: new Date().toISOString(),
@@ -55,6 +71,7 @@ export class HealthService {
         process: { status: 'ok' as const },
         db,
         redis,
+        crons,
         env,
       },
     };
@@ -146,6 +163,41 @@ export class HealthService {
       } catch {
         client?.disconnect();
       }
+    }
+  }
+
+  /**
+   * OBS-1 — frescura dos crons (dead-man's switch).
+   *
+   * Expõe a última execução por job registrado em `admin_job_runs` para um
+   * monitor externo alertar quando um cron parar de rodar. INFORMATIVO: não
+   * altera o status geral do /health (cadências diferem — diário/horário/semanal
+   * — então evitamos falso alarme com threshold hardcoded aqui).
+   */
+  private async checkCrons(): Promise<{
+    status: CheckStatus;
+    jobs: Array<{ name: string; lastRunAt: string | null; hoursAgo: number | null }>;
+  }> {
+    if (!this.dataSource) return { status: 'skipped', jobs: [] };
+    try {
+      const rows: Array<{ name: string; lastRunAt: Date | string }> =
+        await this.dataSource.query(
+          'SELECT name, MAX(startedAt) AS lastRunAt FROM admin_job_runs GROUP BY name',
+        );
+      const now = Date.now();
+      const jobs = rows.map((r) => {
+        const t = r.lastRunAt ? new Date(r.lastRunAt).getTime() : NaN;
+        return {
+          name: r.name,
+          lastRunAt: Number.isFinite(t) ? new Date(t).toISOString() : null,
+          hoursAgo: Number.isFinite(t) ? Math.round(((now - t) / 3_600_000) * 10) / 10 : null,
+        };
+      });
+      return { status: 'ok', jobs };
+    } catch (error: any) {
+      // Tabela ausente (base nova) ou erro de query — não quebra o health.
+      this.logger.warn(`Health check crons falhou: ${error?.message}`);
+      return { status: 'skipped', jobs: [] };
     }
   }
 
