@@ -21,6 +21,8 @@ import { XGBoostPricingStrategy } from './strategies/xgboost-pricing.strategy';
 import { AdaptivePricingStrategy } from './strategies/adaptive-pricing.strategy';
 import { EventPricingIntelligenceService } from './event-pricing-intelligence.service';
 import { PricingOutcomeLearningService } from './pricing-outcome-learning.service';
+import { PricingFeedbackService } from './pricing-feedback.service';
+import { AnalisePreco } from '../entities/AnalisePreco';
 
 /**
  * Módulo central do motor de pricing.
@@ -48,6 +50,7 @@ import { PricingOutcomeLearningService } from './pricing-outcome-learning.servic
       Event,
       PricingDecisionSnapshot,
       AdminJobRun,
+      AnalisePreco,
     ]),
   ],
   providers: [
@@ -62,6 +65,7 @@ import { PricingOutcomeLearningService } from './pricing-outcome-learning.servic
     FeatureEngineeringService,
     DatasetCollectorService,
     PricingOutcomeLearningService,
+    PricingFeedbackService,
     // Strategies plugáveis
     RuleBasedPricingStrategy,
     XGBoostPricingStrategy,
