@@ -116,27 +116,33 @@ api.interceptors.response.use(
     const pathname = window.location.pathname || "";
     error.userMessage = getFriendlyApiErrorMessage(error);
 
-    // 401: primeiro tenta renovar via refresh cookie. Se falhar, cai no fluxo
-    // antigo de limpar sessão/redirecionar.
-    if (status === 401) {
-      const canRefresh =
-        originalRequest &&
-        !originalRequest._retry &&
-        !shouldSkipRefresh(requestUrl) &&
-        !isPublicPath(pathname);
+    // 401: distingue sessão expirada (→ logout) de 401 de aplicação (→ deixa o
+    // componente tratar). Só desloga quando o refresh REALMENTE falha ou quando
+    // o próprio endpoint de auth 401. Um 401 de app (ex.: Stripe/pagamentos)
+    // que persiste APÓS um refresh bem-sucedido significa que a sessão está viva
+    // — não deslogar.
+    if (status === 401 && !isPublicPath(pathname)) {
+      const isAuthMeProbe = requestUrl.endsWith("/auth/me");
 
+      // Já repetiu após refresh e ainda deu 401 → 401 de aplicação, sessão viva.
+      if (originalRequest?._retry) {
+        return Promise.reject(error);
+      }
+
+      const canRefresh = originalRequest && !shouldSkipRefresh(requestUrl);
       if (canRefresh) {
         originalRequest._retry = true;
         try {
           await refreshSessionOnce();
           return api(originalRequest);
         } catch {
-          // continua para o redirecionamento abaixo
+          // refresh falhou → sessão morta → cai no logout abaixo.
         }
       }
 
-      const isAuthMeProbe = requestUrl.endsWith("/auth/me");
-      if (!isAuthMeProbe && !isPublicPath(pathname)) {
+      // Chegou aqui: refresh falhou OU é endpoint de auth (refresh/login/...) que
+      // 401. Sessão realmente inválida → logout (exceto o probe /auth/me).
+      if (!isAuthMeProbe) {
         try {
           localStorage.removeItem("accessToken");
         } catch {
