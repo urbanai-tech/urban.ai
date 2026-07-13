@@ -2518,7 +2518,11 @@ export class PropriedadeService {
 
                     const minhaPropParaIA = {
                         id: property.id, lat: address.latitude, lng: address.longitude,
-                        metroDistance: 0.5, amenitiesCount: propertyDetails?.bedrooms ?? 1
+                        // IA-1: usa a feature real quando o FeatureEngineeringService já
+                        // populou (address.metroDistance / list.amenitiesCount); senão cai
+                        // no fallback antigo, sem regressão.
+                        metroDistance: (address as any)?.metroDistance ?? 0.5,
+                        amenitiesCount: (address as any)?.list?.amenitiesCount ?? propertyDetails?.bedrooms ?? 1
                     };
                     const eventoParaIA = {
                         name: evento.nome || "Evento", lat: evento.latitude, lng: evento.longitude
