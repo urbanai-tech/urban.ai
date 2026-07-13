@@ -7,6 +7,9 @@ import { Event } from '../entities/events.entity';
 import { EventHistoricalMultiplier } from '../entities/event-historical-multiplier.entity';
 import { AnalisePreco } from '../entities/AnalisePreco';
 import { EventIdentityService } from '../evento/event-identity.service';
+import { SP_RECURRING_EVENTS } from './data/sp-recurring-events';
+
+const FIRECRAWL_SCRAPE_URL = 'https://api.firecrawl.dev/v1/scrape';
 
 // ============================================================================
 // Funções puras (testáveis sem I/O)
@@ -206,6 +209,96 @@ export class EventHistoricalService {
     return { fetched: rows.length, upserted };
   }
 
+  /**
+   * Semeia âncoras dos grandes eventos recorrentes de SP com público real e
+   * verificável (Wikipedia). Key-free: roda sempre. Não sobrescreve 'feedback'.
+   */
+  async seedCuratedAnchors(): Promise<{ seeded: number }> {
+    let seeded = 0;
+    for (const s of SP_RECURRING_EVENTS) {
+      const existing = await this.anchorRepo.findOne({ where: { canonicalName: s.canonicalName } });
+      if (existing && existing.source === 'feedback') continue;
+      const row = existing ?? this.anchorRepo.create({ canonicalName: s.canonicalName });
+      row.displayName = s.displayName;
+      // Só preenche público se ainda não houver um mais forte (feedback já saiu acima).
+      if (!row.realAttendance) row.realAttendance = s.attendance;
+      row.sampleSize = Math.max(row.sampleSize ?? 0, s.knownEditions?.length ?? 1);
+      row.lastYear = s.knownEditions?.length
+        ? Math.max(...s.knownEditions.map((e) => e.year))
+        : row.lastYear;
+      if (row.source !== 'wikidata') row.source = 'curated';
+      await this.anchorRepo.save(row);
+      seeded += 1;
+    }
+    this.logger.log(`Âncoras curadas semeadas: ${seeded}/${SP_RECURRING_EVENTS.length}.`);
+    return { seeded };
+  }
+
+  /**
+   * Reatualiza o público dos eventos recorrentes raspando as páginas-fonte via
+   * Firecrawl (pega novas edições). Key-guarded: sem FIRECRAWL_API_KEY, no-op.
+   */
+  async refreshFromFirecrawl(): Promise<{ skipped?: boolean; updated: number }> {
+    const key = process.env.FIRECRAWL_API_KEY?.trim();
+    if (!key) {
+      this.logger.log('refreshFromFirecrawl: FIRECRAWL_API_KEY ausente — pulando (seed curado permanece).');
+      return { skipped: true, updated: 0 };
+    }
+
+    let updated = 0;
+    for (const s of SP_RECURRING_EVENTS) {
+      try {
+        const resp = await axios.post(
+          FIRECRAWL_SCRAPE_URL,
+          {
+            url: s.sourceUrl,
+            formats: ['json'],
+            jsonOptions: {
+              prompt:
+                'Extraia o público total por edição deste evento em São Paulo. Some os dias se o texto der público diário. Retorne ano e público (número).',
+              schema: {
+                type: 'object',
+                properties: {
+                  editions: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: { year: { type: 'integer' }, attendance: { type: 'integer' } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          { headers: { Authorization: `Bearer ${key}` }, timeout: 60_000 },
+        );
+        const editions: Array<{ year?: number; attendance?: number }> =
+          resp.data?.data?.json?.editions ?? resp.data?.json?.editions ?? [];
+        const atts = editions
+          .map((e) => Number(e.attendance))
+          .filter((a) => Number.isFinite(a) && a > 0);
+        if (atts.length === 0) continue;
+        const attendance = median(atts);
+        const years = editions.map((e) => Number(e.year)).filter((y) => Number.isFinite(y));
+
+        const existing = await this.anchorRepo.findOne({ where: { canonicalName: s.canonicalName } });
+        if (existing && existing.source === 'feedback') continue;
+        const row = existing ?? this.anchorRepo.create({ canonicalName: s.canonicalName });
+        row.displayName = s.displayName;
+        row.realAttendance = attendance;
+        row.sampleSize = Math.max(row.sampleSize ?? 0, atts.length);
+        if (years.length) row.lastYear = Math.max(...years);
+        row.source = 'news';
+        await this.anchorRepo.save(row);
+        updated += 1;
+      } catch (error: any) {
+        this.logger.warn(`refreshFromFirecrawl(${s.canonicalName}) falhou: ${error?.message}`);
+      }
+    }
+    this.logger.log(`refreshFromFirecrawl: ${updated}/${SP_RECURRING_EVENTS.length} atualizados.`);
+    return { updated };
+  }
+
   /** Âncora para um nome normalizado de evento (via chave de série). */
   async getAnchor(normalizedName?: string | null): Promise<EventHistoricalMultiplier | null> {
     const key = seriesKey(normalizedName);
@@ -325,7 +418,9 @@ export class EventHistoricalService {
 
   @Cron('0 0 6 * * 0', { timeZone: 'America/Sao_Paulo' }) // domingo 06:00
   async scheduledImport(): Promise<void> {
+    await this.seedCuratedAnchors();
     await this.importFromWikidata();
+    await this.refreshFromFirecrawl();
     await this.recomputeFeedbackAnchors();
     await this.applyAnchorsToEvents(500);
   }

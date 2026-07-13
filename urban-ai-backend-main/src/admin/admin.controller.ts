@@ -237,10 +237,12 @@ export class AdminController {
       'event-historical',
       req?.user?.userId ?? null,
       async () => {
+        const seeded = await this.eventHistorical.seedCuratedAnchors();
         const imported = await this.eventHistorical.importFromWikidata();
+        const refreshed = await this.eventHistorical.refreshFromFirecrawl();
         const feedback = await this.eventHistorical.recomputeFeedbackAnchors();
         const applied = await this.eventHistorical.applyAnchorsAll();
-        return { imported, feedback, applied };
+        return { seeded, imported, refreshed, feedback, applied };
       },
     );
   }
