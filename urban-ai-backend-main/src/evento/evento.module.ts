@@ -24,6 +24,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { MapsModule } from 'src/maps/maps.module';
 import { AdminAuditModule } from 'src/admin-audit/admin-audit.module';
 import { EventIdentityService } from './event-identity.service';
+import { CollectorStalenessService } from './collector-staleness.service';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { EventIdentityService } from './event-identity.service';
     EventsCsvImportService,
     CoverageService,
     CoverageSeederService,
+    CollectorStalenessService,
   ],
   exports: [
     EventsIngestService,

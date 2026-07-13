@@ -21,6 +21,14 @@ import { XGBoostPricingStrategy } from './strategies/xgboost-pricing.strategy';
 import { AdaptivePricingStrategy } from './strategies/adaptive-pricing.strategy';
 import { EventPricingIntelligenceService } from './event-pricing-intelligence.service';
 import { PricingOutcomeLearningService } from './pricing-outcome-learning.service';
+import { PricingFeedbackService } from './pricing-feedback.service';
+import { VenueCapacityService } from './venue-capacity.service';
+import { EventHistoricalService } from './event-historical.service';
+import { EventHistoricalMultiplier } from '../entities/event-historical-multiplier.entity';
+import { ExternalListing } from '../entities/external-listing.entity';
+import { InsideAirbnbImportService } from './inside-airbnb-import.service';
+import { EventIdentityService } from '../evento/event-identity.service';
+import { AnalisePreco } from '../entities/AnalisePreco';
 
 /**
  * Módulo central do motor de pricing.
@@ -48,6 +56,9 @@ import { PricingOutcomeLearningService } from './pricing-outcome-learning.servic
       Event,
       PricingDecisionSnapshot,
       AdminJobRun,
+      AnalisePreco,
+      EventHistoricalMultiplier,
+      ExternalListing,
     ]),
   ],
   providers: [
@@ -62,6 +73,12 @@ import { PricingOutcomeLearningService } from './pricing-outcome-learning.servic
     FeatureEngineeringService,
     DatasetCollectorService,
     PricingOutcomeLearningService,
+    PricingFeedbackService,
+    // Enriquecimento de venue (teto de capacidade p/ público)
+    EventIdentityService,
+    VenueCapacityService,
+    EventHistoricalService,
+    InsideAirbnbImportService,
     // Strategies plugáveis
     RuleBasedPricingStrategy,
     XGBoostPricingStrategy,
@@ -79,6 +96,8 @@ import { PricingOutcomeLearningService } from './pricing-outcome-learning.servic
     DatasetCollectorService,
     EventPricingIntelligenceService,
     PricingOutcomeLearningService,
+    VenueCapacityService,
+    EventHistoricalService,
   ],
 })
 export class KnnEngineModule {}

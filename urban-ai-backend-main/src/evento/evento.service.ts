@@ -46,7 +46,10 @@ export class EventoService {
       where: {
         endereco: { id: addressId },
         usuarioProprietario: { id: userId },
-        evento: { dataInicio: MoreThanOrEqual(startOfDay(new Date())) },
+        // 6a: usa dataFim (não dataInicio) para não esconder evento multi-dia
+        // que começou antes de hoje mas ainda está rolando. dataFim é NOT NULL
+        // (default = dataInicio no ingest), então single-day não muda.
+        evento: { dataFim: MoreThanOrEqual(startOfDay(new Date())) },
       },
       relations: ['evento'],
       skip: (safePage - 1) * safeLimit,

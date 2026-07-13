@@ -91,6 +91,13 @@ export class Address {
   longitude: number;
 
   @ApiProperty({
+    description: "Distância (km) até a estação de metrô/CPTM mais próxima. Feature do motor de pricing (F6.1 Tier 1), populada por FeatureEngineeringService.",
+    required: false,
+  })
+  @Column({ type: "float", nullable: true, name: "metro_distance_km" })
+  metroDistance: number | null;
+
+  @ApiProperty({
     description: "Indica se o endereço está ativo",
     example: true,
   })

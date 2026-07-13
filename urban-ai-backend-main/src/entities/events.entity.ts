@@ -19,8 +19,13 @@ import {
   @Index(["cidade", "estado"])
   @Index(["latitude", "longitude"])
   @Index(["dataInicio", "dataFim"])
-  @Index(["source"])
   @Index(["venueType"])
+  // PERF-3: índices compostos para as queries de radar/pricing (data+escopo,
+  // geo+data, cidade/estado+escopo). Espelhados na migration
+  // 1781600000000-AddEventQueryIndexes.
+  @Index("IDX_events_dataInicio_outOfScope", ["dataInicio", "outOfScope"])
+  @Index("IDX_events_geo_dataInicio", ["latitude", "longitude", "dataInicio"])
+  @Index("IDX_events_cidade_estado_outOfScope", ["cidade", "estado", "outOfScope"])
   export class Event {
     // =====================================
     // 🆔 IDENTIFICAÇÃO
@@ -186,6 +191,10 @@ import {
     @ApiProperty({ description: "Público esperado deste evento específico (de bilheteria/inscrição)", required: false })
     @Column({ type: "int", nullable: true })
     expectedAttendance: number | null;
+
+    @ApiProperty({ description: "Público realizado histórico de edições passadas do mesmo evento recorrente (âncora IA-3b)", required: false })
+    @Column({ type: "int", nullable: true })
+    historicalAttendance: number | null;
 
     @ApiProperty({ description: "URL crawlada/fonte original deste evento", required: false })
     @Column("text", { nullable: true })
