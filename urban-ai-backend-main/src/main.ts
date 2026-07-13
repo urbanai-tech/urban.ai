@@ -9,6 +9,7 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { json, urlencoded } from 'express';
+import { requestIdMiddleware } from './common/request-id.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -71,6 +72,9 @@ async function bootstrap() {
   // cookie-parser — necessário para os cookies httpOnly de auth
   // (urbanai_access_token, urbanai_refresh_token).
   app.use(cookieParser());
+
+  // OBS-2 — correlationId por request (x-request-id + tag no Sentry).
+  app.use(requestIdMiddleware);
 
   // ⚠️ Desabilita o body-parser padrão na rota do Stripe Webhook
   app.use(

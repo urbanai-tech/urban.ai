@@ -21,6 +21,8 @@ import { StripeSyncCheckService } from './stripe-sync.service';
 import { DatasetCollectorService } from '../knn-engine/dataset-collector.service';
 import { EventsGeocoderService } from '../evento/events-geocoder.service';
 import { EventsEnrichmentService } from '../evento/events-enrichment.service';
+import { VenueCapacityService } from '../knn-engine/venue-capacity.service';
+import { EventHistoricalService } from '../knn-engine/event-historical.service';
 import { RoiService } from '../roi/roi.service';
 import { AdminAuditService } from '../admin-audit/admin-audit.service';
 import { OnboardingDripService } from '../email/onboarding-drip.service';
@@ -59,6 +61,8 @@ export class AdminController {
     private readonly eventDedup: EventDedupAdminService,
     private readonly eventIntelligence: EventIntelligenceService,
     private readonly airbnbPricingAttempts: AirbnbPricingAttemptLogService,
+    private readonly venueCapacity: VenueCapacityService,
+    private readonly eventHistorical: EventHistoricalService,
   ) {}
 
   // ================== Onboarding drip (gap H9) ==================
@@ -211,6 +215,35 @@ export class AdminController {
       'reset-stale-enrichment',
       req?.user?.userId ?? null,
       () => this.enrichment.resetStaleZeroRelevance(),
+    );
+  }
+
+  @ApiOperation({ summary: 'Backfill de venueCapacity em toda a base de eventos (IA-3c)' })
+  @Throttle({ default: { ttl: 60_000, limit: 2 } })
+  @Post('jobs/venue-capacity/run')
+  async runVenueCapacityBackfill(@Req() req: any) {
+    return this.admin.runTrackedJob(
+      'venue-capacity-backfill',
+      req?.user?.userId ?? null,
+      () => this.venueCapacity.backfillAll(),
+    );
+  }
+
+  @ApiOperation({ summary: 'Importar âncoras históricas (Wikidata) + aplicar aos eventos (IA-3b)' })
+  @Throttle({ default: { ttl: 60_000, limit: 2 } })
+  @Post('jobs/event-historical/run')
+  async runEventHistorical(@Req() req: any) {
+    return this.admin.runTrackedJob(
+      'event-historical',
+      req?.user?.userId ?? null,
+      async () => {
+        const seeded = await this.eventHistorical.seedCuratedAnchors();
+        const imported = await this.eventHistorical.importFromWikidata();
+        const refreshed = await this.eventHistorical.refreshFromFirecrawl();
+        const feedback = await this.eventHistorical.recomputeFeedbackAnchors();
+        const applied = await this.eventHistorical.applyAnchorsAll();
+        return { seeded, imported, refreshed, feedback, applied };
+      },
     );
   }
 

@@ -19,7 +19,6 @@ const PRIVATE_DISALLOW = [
   "/portfolio",
   "/properties",
   "/maps",
-  "/maps-bkp",
   "/event-log",
   "/near-events",
   "/notificacao",

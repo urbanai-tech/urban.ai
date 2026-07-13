@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { seasonalDemandBaseline } from './data/sp-seasonality';
 
 export const EVENT_PRICING_INTELLIGENCE_MODEL_VERSION = 'event-pricing-intelligence-v0';
 export const EVENT_PRICING_INTELLIGENCE_METRIC_VERSION = 'rules-v0.1';
@@ -24,6 +25,8 @@ export type EventDemandScoreInput = {
   relevancia?: number | null;
   expectedAttendance?: number | null;
   capacidadeEstimada?: number | null;
+  /** Público realizado histórico de edições passadas (âncora IA-3b). */
+  historicalAttendance?: number | null;
   venueCapacity?: number | null;
   venueType?: string | null;
   categoria?: string | null;
@@ -155,7 +158,7 @@ export type PriceAbsorptionCurveResult = {
 
 type AttendanceResolution = {
   attendance: number | null;
-  source: 'expectedAttendance' | 'capacidadeEstimada' | 'venueCapacity' | 'missing';
+  source: 'expectedAttendance' | 'capacidadeEstimada' | 'historicalAttendance' | 'venueCapacity' | 'missing';
 };
 
 type ResolvedPriceAbsorptionCalibration = {
@@ -239,6 +242,8 @@ export function eventDemandScore(input: EventDemandScoreInput): EventDemandScore
   const leadTimeScore = leadTimeDemandScore(leadTimeDays);
   const overlapEventsCount = Math.max(0, safeNumber(input.overlapEventsCount, 0));
   const overlapBoost = clamp(overlapEventsCount * 3, 0, 8);
+  // IA-3d: baseline sazonal (feriado/alta temporada) a partir da data do evento.
+  const seasonal = seasonalDemandBaseline(input.startsAt);
 
   if (!relevanceKnown) dataQualityFlags.push('missing_relevance');
   if (attendance.source === 'missing') {
@@ -264,7 +269,8 @@ export function eventDemandScore(input: EventDemandScoreInput): EventDemandScore
     radiusScore * 0.1 +
     leadTimeScore * 0.1 +
     sourceReliabilityScore * 0.1 +
-    overlapBoost;
+    overlapBoost +
+    seasonal.points;
   const eventDemandScoreValue = roundScore(clamp(weightedScore, 0, 100));
   const confidence = eventDemandConfidence({
     relevanceKnown,
@@ -346,6 +352,17 @@ export function eventDemandScore(input: EventDemandScoreInput): EventDemandScore
       score: roundScore(overlapBoost * 12.5),
       value: overlapEventsCount,
       explanation: 'Eventos simultâneos aumentam compressão de demanda na região.',
+    });
+  }
+
+  if (seasonal.points > 0) {
+    drivers.push({
+      key: 'seasonal_baseline',
+      label: 'Sazonalidade',
+      weight: 10,
+      score: roundScore(seasonal.points * 10),
+      value: seasonal.label,
+      explanation: seasonal.reasons.join(' ') || 'Período de alta temporada em São Paulo.',
     });
   }
 
@@ -651,8 +668,20 @@ function resolveAttendance(input: EventDemandScoreInput): AttendanceResolution {
   if (isPositive(input.capacidadeEstimada)) {
     return { attendance: Math.round(Number(input.capacidadeEstimada)), source: 'capacidadeEstimada' };
   }
+  if (isPositive(input.historicalAttendance)) {
+    // Público realizado de edições passadas do mesmo evento recorrente — âncora
+    // forte (melhor que o teto de venue), mas ainda não é ESTE evento.
+    return { attendance: Math.round(Number(input.historicalAttendance)), source: 'historicalAttendance' };
+  }
   if (isPositive(input.venueCapacity)) {
-    return { attendance: Math.round(Number(input.venueCapacity)), source: 'venueCapacity' };
+    // Capacidade do venue é TETO, não público. Um evento médio não lota o local,
+    // então aplicamos um sell-through conservador para não superestimar. Segue
+    // marcado como source 'venueCapacity' (confiança reduzida via dataQualityFlag).
+    const VENUE_SELL_THROUGH = 0.7;
+    return {
+      attendance: Math.round(Number(input.venueCapacity) * VENUE_SELL_THROUGH),
+      source: 'venueCapacity',
+    };
   }
   return { attendance: null, source: 'missing' };
 }

@@ -123,6 +123,14 @@ export class List {
   @Column({ type: "int", nullable: true })
   amenitiesCount: number;
 
+  @ApiProperty({
+    description: "Categoria do imóvel (Economico/Standard/Premium). Feature/label do KNN, derivada por FeatureEngineeringService (F6.1 Tier 1).",
+    example: "Standard",
+    required: false,
+  })
+  @Column({ type: "varchar", length: 16, nullable: true })
+  category: string | null;
+
   @ApiProperty({ description: "Bairro conforme Airbnb", example: "Asa Norte" })
   @Column({ nullable: true })
   neighborhood: string;

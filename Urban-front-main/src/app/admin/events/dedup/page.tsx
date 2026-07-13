@@ -17,6 +17,7 @@ import {
   AdminButton,
   AdminCard,
   AdminCardHeader,
+  AdminConfirmDialog,
   AdminEmptyState,
   AdminInput,
   AdminMetricCard,
@@ -24,6 +25,7 @@ import {
   AdminSectionHeader,
   AdminSelect,
   AdminTable,
+  AdminTextarea,
   Icons,
   type AdminTableColumn,
 } from "../../_components";
@@ -59,6 +61,8 @@ export default function AdminEventDedupPage() {
   const [scanning, setScanning] = useState(false);
   const [lastScan, setLastScan] = useState<EventDedupScanResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
 
   const load = useCallback(async (pageOverride = page) => {
     setLoading(true);
@@ -124,12 +128,20 @@ export default function AdminEventDedupPage() {
     }
   }
 
-  async function reject(id: string) {
-    const reason = window.prompt("Motivo da rejeição", "");
+  function reject(id: string) {
+    // Abre o dialog de motivo (substitui o window.prompt nativo — DS-1).
+    setRejectReason("");
+    setRejectingId(id);
+  }
+
+  async function confirmReject() {
+    if (!rejectingId) return;
+    const id = rejectingId;
     setActionId(id);
     setError(null);
     try {
-      await rejectEventDedupCandidate(id, reason ?? undefined);
+      await rejectEventDedupCandidate(id, rejectReason.trim() || undefined);
+      setRejectingId(null);
       await load();
     } catch (err) {
       setError(errorMessage(err));
@@ -387,6 +399,30 @@ export default function AdminEventDedupPage() {
           </div>
         )}
       </AdminCard>
+
+      <AdminConfirmDialog
+        open={!!rejectingId}
+        onClose={() => setRejectingId(null)}
+        onConfirm={confirmReject}
+        title="Rejeitar candidato de dedup"
+        confirmLabel="Rejeitar"
+        cancelLabel="Cancelar"
+        destructive
+        loading={!!actionId}
+        body={
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <span style={{ fontSize: 13, color: "var(--admin-text-muted)" }}>
+              Motivo da rejeição (opcional):
+            </span>
+            <AdminTextarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Ex.: eventos são de fato distintos"
+              rows={3}
+            />
+          </div>
+        }
+      />
     </div>
   );
 }

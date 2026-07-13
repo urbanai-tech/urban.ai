@@ -13,6 +13,7 @@ import { EmailService } from "src/email/email.service";
 import { CreateNotificationDto } from "src/notifications/tdo/create-notification.dto";
 import { getDiaria } from "src/util";
 import { hasUsableBasePrice } from "src/pricing/base-price.util";
+import { mapWithConcurrency } from "src/common/concurrency";
 
 type Imovel = {
   id: string;
@@ -129,9 +130,10 @@ export class ConnectService {
 
       this.logger.log(`📦 Encontrados ${hostListings.length} room IDs. Enriquecendo dados...`);
 
-      // 2) Para cada room, buscar dados detalhados (título, foto, etc.) via scrapeAirbnbListing
-      const listings: List[] = [];
-      for (const item of hostListings) {
+      // 2) Para cada room, buscar dados detalhados (título, foto, etc.) via scrapeAirbnbListing.
+      //    PERF-1: concorrência limitada (5) em vez de serial — com N imóveis, o
+      //    scraping headless serial estourava o timeout do request (~5s/imóvel).
+      const listings: List[] = await mapWithConcurrency(hostListings, 5, async (item) => {
         try {
           const scraped = await this.propriedadeService.scrapeAirbnbListing(item.roomId);
 
@@ -139,7 +141,7 @@ export class ConnectService {
           // entre o Profile ID de 18 dígitos e o Host ID numérico das propriedades reais.
           // Com a importação restrita ao GraphQL/Extractor seguro, os falsos positivos de fallback não ocorrerão.
 
-          listings.push({
+          return {
             id: scraped.roomId,
             id_do_anuncio: scraped.roomId,
             titulo: scraped.title || item.title || `Imóvel ${item.roomId}`,
@@ -165,20 +167,20 @@ export class ConnectService {
             guests: scraped.guestCapacity,
             latitude: scraped.latitude,
             longitude: scraped.longitude,
-          } as any);
+          } as any;
         } catch (scrapeErr: any) {
           // Se falhar o enriquecimento, usa dados básicos do perfil
           this.logger.warn(`⚠️ Falha ao enriquecer room ${item.roomId}: ${scrapeErr.message}. Usando dados básicos.`);
-          listings.push({
+          return {
             id: item.roomId,
             id_do_anuncio: item.roomId,
             titulo: item.title || `Imóvel ${item.roomId}`,
             pictureUrl: item.pictureUrl || '',
             ativo: false,
             user: { id: userId } as any,
-          } as any);
+          } as any;
         }
-      }
+      });
 
       this.logger.log(`✅ ${listings.length} listagens prontas para o host ${userId}`);
       return listings;

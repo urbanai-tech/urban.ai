@@ -5,7 +5,9 @@ import { EventsIngestService } from './events-ingest.service';
 describe('EventsCsvImportService', () => {
   let service: EventsCsvImportService;
   let ingestMock: { ingestBatch: jest.Mock };
-  const FUTURE_DATE = '2026-06-10';
+  // Data sempre futura relativa ao agora (evita rot: datas fixas viram passado
+  // e a validação "dataInicio passada" quebra os testes com o tempo).
+  const FUTURE_DATE = new Date(Date.now() + 120 * 86_400_000).toISOString().slice(0, 10);
 
   beforeEach(async () => {
     ingestMock = {
@@ -80,8 +82,8 @@ describe('EventsCsvImportService', () => {
     it('parseia e ingere CSV bem formado', async () => {
       const csv = [
         'nome,dataInicio,enderecoCompleto,latitude,longitude,categoria,venueType',
-        '"RD Summit 2026","2026-10-15T08:00:00","São Paulo Expo","-23.6258","-46.6469","conference","convention_center"',
-        '"Palmeiras x Santos","2026-06-10T16:00:00","Allianz Parque","","","esporte","stadium"',
+        `"RD Summit 2026","${FUTURE_DATE}T08:00:00","São Paulo Expo","-23.6258","-46.6469","conference","convention_center"`,
+        `"Palmeiras x Santos","${FUTURE_DATE}T16:00:00","Allianz Parque","","","esporte","stadium"`,
       ].join('\n');
 
       ingestMock.ingestBatch.mockResolvedValue({
@@ -117,7 +119,7 @@ describe('EventsCsvImportService', () => {
     it('marca linhas inválidas com motivo', async () => {
       const csv = [
         'nome,dataInicio',
-        ',2026-10-15', // sem nome
+        `,${FUTURE_DATE}`, // sem nome
         'Show X,', // sem data
         `Show Y,${FUTURE_DATE}`, // OK
       ].join('\n');

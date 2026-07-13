@@ -117,6 +117,8 @@ jobs:
           cache: 'npm'
           cache-dependency-path: Urban-front-main/package-lock.json
       - run: npm ci --legacy-peer-deps
+      - name: Design system audit (blocks forbidden libs/imports)
+        run: npm run design:audit
       - name: TypeScript check
         run: npx tsc --noEmit
       - name: Next.js build
