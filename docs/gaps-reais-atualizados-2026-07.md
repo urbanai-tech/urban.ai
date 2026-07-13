@@ -12,6 +12,29 @@
 
 ---
 
+## Execução 13/07/2026 — fila de gaps de código fechada
+
+Todos os gaps de código que dá para fazer e verificar sozinho (sem chaves/prod)
+foram implementados, testados (tsc + jest + build) e commitados nesta branch:
+
+| Gap | O que foi feito | Verificação |
+|---|---|---|
+| 1. metroDistance no classifier | `minhaPropParaIA` lê `address.metroDistance`/`list.amenitiesCount` com fallback | tsc |
+| 2. GTFS metrô | 101 estações reais Metrô+CPTM via OSM/Overpass (era seed de 31) | jest (bbox/Paulista<0.5km) |
+| 3d. Baseline sazonal | módulo puro de feriados/alta temporada soma 0..10 ao demand score | jest (13 testes) |
+| 4. Ponte tempo-até-valor | `/painel` surfaça card "preparando" reusando setupStatus | tsc (runtime data-cond.) |
+| 5. A11y autenticada/admin | axe estendido + login helper, gated em creds e2e | `playwright --list` (11 testes) |
+| 6a. Multi-dia | leituras casam evento por overlap (dataFim), não só dataInicio | tsc back+front |
+| 6b. Staleness alert | cron diário alerta no Sentry coletor parado >24h | tsc + boot |
+| 6d. FOUT | fontes via next/font (self-host), removido @import do Google | next build + inspect runtime |
+
+**Restam do gap 3 (só o que depende de dado/chave, não de código):** 3b (histórico
+de eventos recorrentes — precisa acumular temporadas), 3c (attendance real — precisa
+das APIs Sympla/Eventbrite). São 📊/🔒, não código "finalizável" agora.
+Itens 🔒 owner (SEC-1, KYC Stripe, drill de restore, UptimeRobot 6c) seguem seus.
+
+---
+
 ## 1. Segurança
 
 | Item | Status real |
