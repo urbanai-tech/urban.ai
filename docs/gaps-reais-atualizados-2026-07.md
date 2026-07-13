@@ -28,9 +28,21 @@ foram implementados, testados (tsc + jest + build) e commitados nesta branch:
 | 6b. Staleness alert | cron diário alerta no Sentry coletor parado >24h | tsc + boot |
 | 6d. FOUT | fontes via next/font (self-host), removido @import do Google | next build + inspect runtime |
 
-**Restam do gap 3 (só o que depende de dado/chave, não de código):** 3b (histórico
-de eventos recorrentes — precisa acumular temporadas), 3c (attendance real — precisa
-das APIs Sympla/Eventbrite). São 📊/🔒, não código "finalizável" agora.
+**Gap 3 — motor de demanda (fechado em código, 13/07):** substituímos "chute do
+Gemini" por triangulação de fontes:
+- **3c teto de venue** — `sp-venues.ts` (~20 venues curados, cruzados c/ Wikidata
+  P1083) + `VenueCapacityService` (match por nome/geo, backfill, cron+trigger).
+  `resolveAttendance` usa como teto com sell-through 0.7.
+- **3b âncora histórica** — entity `EventHistoricalMultiplier` + migração; importer
+  Wikidata (P1110); **seed curado dos festivais** (CCXP/Lolla/The Town) com público
+  real extraído da Wikipedia via Firecrawl; refresh Firecrawl key-guarded; feedback
+  loop idempotente (ocupação/multiplicador reais dominam com o tempo). Flui no score
+  via `events.historicalAttendance`.
+- **3d baseline sazonal** — feriados/alta temporada somam ao score.
+- Triggers: `/admin/jobs/venue-capacity/run` e `/admin/jobs/event-historical/run`
+  rodam sobre TODA a base; crons diários/semanais pegam eventos novos.
+- Falta só ligar `FIRECRAWL_API_KEY` no Railway p/ o refresh (o seed já funciona sem).
+
 Itens 🔒 owner (SEC-1, KYC Stripe, drill de restore, UptimeRobot 6c) seguem seus.
 
 ---
