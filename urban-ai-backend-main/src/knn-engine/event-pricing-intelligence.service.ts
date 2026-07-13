@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { seasonalDemandBaseline } from './data/sp-seasonality';
 
 export const EVENT_PRICING_INTELLIGENCE_MODEL_VERSION = 'event-pricing-intelligence-v0';
 export const EVENT_PRICING_INTELLIGENCE_METRIC_VERSION = 'rules-v0.1';
@@ -239,6 +240,8 @@ export function eventDemandScore(input: EventDemandScoreInput): EventDemandScore
   const leadTimeScore = leadTimeDemandScore(leadTimeDays);
   const overlapEventsCount = Math.max(0, safeNumber(input.overlapEventsCount, 0));
   const overlapBoost = clamp(overlapEventsCount * 3, 0, 8);
+  // IA-3d: baseline sazonal (feriado/alta temporada) a partir da data do evento.
+  const seasonal = seasonalDemandBaseline(input.startsAt);
 
   if (!relevanceKnown) dataQualityFlags.push('missing_relevance');
   if (attendance.source === 'missing') {
@@ -264,7 +267,8 @@ export function eventDemandScore(input: EventDemandScoreInput): EventDemandScore
     radiusScore * 0.1 +
     leadTimeScore * 0.1 +
     sourceReliabilityScore * 0.1 +
-    overlapBoost;
+    overlapBoost +
+    seasonal.points;
   const eventDemandScoreValue = roundScore(clamp(weightedScore, 0, 100));
   const confidence = eventDemandConfidence({
     relevanceKnown,
@@ -346,6 +350,17 @@ export function eventDemandScore(input: EventDemandScoreInput): EventDemandScore
       score: roundScore(overlapBoost * 12.5),
       value: overlapEventsCount,
       explanation: 'Eventos simultâneos aumentam compressão de demanda na região.',
+    });
+  }
+
+  if (seasonal.points > 0) {
+    drivers.push({
+      key: 'seasonal_baseline',
+      label: 'Sazonalidade',
+      weight: 10,
+      score: roundScore(seasonal.points * 10),
+      value: seasonal.label,
+      explanation: seasonal.reasons.join(' ') || 'Período de alta temporada em São Paulo.',
     });
   }
 
