@@ -3,9 +3,19 @@ import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Address } from '../entities/addresses.entity';
+import { ExternalListing } from '../entities/external-listing.entity';
 import { UrbanAIPricingEngine } from './pricing-engine';
 import { AdminJobRun } from '../entities/admin-job-run.entity';
 import { runAdminJobWithTracking } from '../admin-job-runs/admin-job-run-tracker';
+import { nearestStationKm } from './feature-engineering.service';
+
+/** Categoria textual → label numérico do KNN (Economico=0, Standard=1, Premium=2). */
+function categoryToNumber(category?: string | null): number {
+  const c = String(category ?? '').toLowerCase();
+  if (c.startsWith('prem')) return 2;
+  if (c.startsWith('eco')) return 0;
+  return 1;
+}
 
 /**
  * F6.1 Tier 1 — Bootstrap do motor de pricing.
@@ -40,6 +50,9 @@ export class PricingBootstrapService implements OnModuleInit {
     @Optional()
     @InjectRepository(AdminJobRun)
     private readonly jobRunRepo?: Repository<AdminJobRun>,
+    @Optional()
+    @InjectRepository(ExternalListing)
+    private readonly externalRepo?: Repository<ExternalListing>,
   ) {}
 
   async onModuleInit() {
@@ -102,6 +115,32 @@ export class PricingBootstrapService implements OnModuleInit {
         category: Number((a as any).category ?? 1),
       }));
 
+    // Comps externos (Inside Airbnb etc.) — densidade de vizinhos p/ o KNN no
+    // cold-start. metroDistance é computado das estações reais; category vem do
+    // preço/amenidades. Opcional: se a tabela não existir, segue só com a base própria.
+    let externalCount = 0;
+    if (this.externalRepo) {
+      try {
+        const ext = await this.externalRepo.find();
+        for (const e of ext) {
+          const lat = Number(e.latitude);
+          const lng = Number(e.longitude);
+          if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+          properties.push({
+            id: `ext:${e.id}`,
+            lat,
+            lng,
+            metroDistance: nearestStationKm(lat, lng) ?? 0.5,
+            amenitiesCount: Number(e.amenitiesCount ?? e.bedrooms ?? 1),
+            category: categoryToNumber(e.category),
+          });
+          externalCount += 1;
+        }
+      } catch (err) {
+        this.logger.warn(`Comps externos ignorados no treino: ${(err as Error).message}`);
+      }
+    }
+
     if (properties.length === 0) {
       this.logger.warn(
         'Nenhum imóvel com coordenadas para treinar — engine fica no fallback Standard.',
@@ -110,7 +149,9 @@ export class PricingBootstrapService implements OnModuleInit {
     }
 
     this.engine.initialize(properties);
-    this.logger.log(`PricingEngine treinado com ${properties.length} imóveis.`);
+    this.logger.log(
+      `PricingEngine treinado com ${properties.length} imóveis (${externalCount} comps externos).`,
+    );
     return { count: properties.length };
   }
 

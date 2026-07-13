@@ -25,6 +25,8 @@ import { PricingFeedbackService } from './pricing-feedback.service';
 import { VenueCapacityService } from './venue-capacity.service';
 import { EventHistoricalService } from './event-historical.service';
 import { EventHistoricalMultiplier } from '../entities/event-historical-multiplier.entity';
+import { ExternalListing } from '../entities/external-listing.entity';
+import { InsideAirbnbImportService } from './inside-airbnb-import.service';
 import { EventIdentityService } from '../evento/event-identity.service';
 import { AnalisePreco } from '../entities/AnalisePreco';
 
@@ -56,6 +58,7 @@ import { AnalisePreco } from '../entities/AnalisePreco';
       AdminJobRun,
       AnalisePreco,
       EventHistoricalMultiplier,
+      ExternalListing,
     ]),
   ],
   providers: [
@@ -75,6 +78,7 @@ import { AnalisePreco } from '../entities/AnalisePreco';
     EventIdentityService,
     VenueCapacityService,
     EventHistoricalService,
+    InsideAirbnbImportService,
     // Strategies plugáveis
     RuleBasedPricingStrategy,
     XGBoostPricingStrategy,
