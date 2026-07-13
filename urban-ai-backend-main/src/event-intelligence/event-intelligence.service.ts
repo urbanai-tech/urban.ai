@@ -1993,6 +1993,7 @@ export class EventIntelligenceService {
       relevancia: this.numberOrNull(event.relevancia),
       expectedAttendance: this.numberOrNull(event.expectedAttendance),
       capacidadeEstimada: this.numberOrNull(event.capacidadeEstimada),
+      historicalAttendance: this.numberOrNull(event.historicalAttendance),
       venueCapacity: this.numberOrNull(event.venueCapacity),
       venueType: event.venueType ?? null,
       categoria: event.categoria ?? null,

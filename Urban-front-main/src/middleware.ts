@@ -52,7 +52,6 @@ const APP_ONLY_PREFIXES = [
   "/my-plan",
   "/properties",
   "/maps",
-  "/maps-bkp",
   "/event-log",
   "/near-events",
   "/notificacao",

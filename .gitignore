@@ -77,6 +77,13 @@ yarn-error.log*
 dump-*.sql
 inserts-*.sql
 
+# ===== Exports com PII (e-mails, PDFs de relatório) — nunca versionar =====
+# Incidente 2026-07: dump de produção estava no histórico. Ver
+# docs/postmortems/incident-git-leak-2026-07.md
+docs/emails_pdf_content.txt
+docs/Emails*.pdf
+*.pdf
+
 # ===== Arquivos temporários / ruído =====
 temp_*/
 temp-*/
@@ -104,3 +111,11 @@ _browser_profile/
 # ===== Opensquad (build caches, não deve versionar output de runs) =====
 _opensquad/_browser_profile/
 /squads/*/state.json
+
+# ===== Artefatos de teste (relatórios de runs — vão para CI artifact, não git) =====
+# Mantém os .md consolidados em docs/e2e-reports/, ignora só as pastas por timestamp.
+docs/e2e-reports/*T*/
+docs/controlled-flows/
+
+# ===== Lockfile único no front (CI usa package-lock.json) =====
+Urban-front-main/yarn.lock
