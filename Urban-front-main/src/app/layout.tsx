@@ -1,5 +1,28 @@
 import type { Metadata, Viewport } from "next";
+import { Bebas_Neue, Inter, Poppins } from "next/font/google";
 import "./globals.css";
+
+// UX-6d (FOUT): fontes self-hospedadas pelo Next em vez de @import do Google
+// (render-blocking + display=swap = flash do Bebas). O Next injeta preload +
+// fallback com métrica ajustada, então não há mais o "fantasma" no load.
+const bebas = Bebas_Neue({
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+  variable: "--font-bebas",
+});
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  display: "swap",
+  variable: "--font-inter",
+});
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
+  variable: "--font-poppins",
+});
 import { Providers } from "./providers";
 import { StagingBanner } from "./componentes/StagingBanner";
 import { Analytics } from "./componentes/Analytics";
@@ -64,7 +87,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" className="font-press" suppressHydrationWarning>
+    <html
+      lang="pt-BR"
+      className={`font-press ${bebas.variable} ${inter.variable} ${poppins.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <ThemeScript />
       </head>

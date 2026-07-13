@@ -2,6 +2,22 @@ import { Injectable, Logger, Optional, ServiceUnavailableException, Unauthorized
 import { timingSafeEqual } from 'crypto';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import Redis from 'ioredis';
+
+/** Versão do app: APP_VERSION (deploy) → npm_package_version → package.json → unknown. */
+function resolveAppVersion(): string {
+  const fromEnv = process.env.APP_VERSION?.trim() || process.env.npm_package_version?.trim();
+  if (fromEnv) return fromEnv;
+  try {
+    // dist/health/health.service.js → ../../package.json (raiz do backend)
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const pkg = require('../../package.json');
+    if (pkg?.version) return String(pkg.version);
+  } catch {
+    /* ignore */
+  }
+  return 'unknown';
+}
 
 type HealthStatus = 'ok' | 'degraded' | 'down';
 type CheckStatus = 'ok' | 'degraded' | 'down' | 'skipped';
@@ -31,18 +47,23 @@ export class HealthService {
   ) {}
 
   async getHealth() {
-    const db = await this.checkDatabase();
+    const [db, redis, crons] = await Promise.all([
+      this.checkDatabase(),
+      this.checkRedis(),
+      this.checkCrons(),
+    ]);
     const env = this.buildEnvReadiness();
     const criticalEnvReady = env.database.ready && env.auth.ready && env.server.ready;
     const dbDegraded = db.status === 'down' || db.status === 'degraded';
+    const redisDegraded = redis.status === 'down' || redis.status === 'degraded';
     const status: HealthStatus =
-      dbDegraded || !criticalEnvReady ? 'degraded' : 'ok';
+      dbDegraded || redisDegraded || !criticalEnvReady ? 'degraded' : 'ok';
 
     return {
       status,
       app: {
         name: 'urban-ai-backend',
-        version: process.env.npm_package_version ?? 'unknown',
+        version: resolveAppVersion(),
         env: process.env.APP_ENV ?? process.env.NODE_ENV ?? 'development',
         uptimeSec: Math.floor(process.uptime()),
         timestamp: new Date().toISOString(),
@@ -50,6 +71,8 @@ export class HealthService {
       checks: {
         process: { status: 'ok' as const },
         db,
+        redis,
+        crons,
         env,
       },
     };
@@ -112,6 +135,89 @@ export class HealthService {
         status: 'down',
         configured,
       };
+    }
+  }
+
+  private async checkRedis(): Promise<{
+    status: CheckStatus;
+    configured: boolean;
+    latencyMs?: number;
+  }> {
+    // Só checa se o Redis foi configurado (Upstash em prod). Em dev sem Redis,
+    // retorna 'skipped' para não falsear o health.
+    const configured = this.hasEnv('REDIS_HOST') || this.hasEnv('REDIS_PASSWORD');
+    if (!configured) {
+      return { status: 'skipped', configured: false };
+    }
+
+    let client: Redis | undefined;
+    try {
+      client = new Redis({
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT ?? '', 10) || 6379,
+        password: process.env.REDIS_PASSWORD || undefined,
+        tls: process.env.REDIS_TLS === 'true' ? {} : undefined,
+        connectTimeout: 2000,
+        commandTimeout: 2000,
+        maxRetriesPerRequest: 1,
+        lazyConnect: true,
+        retryStrategy: () => null,
+      });
+
+      const startedAt = Date.now();
+      await client.connect();
+      await client.ping();
+      const latencyMs = Date.now() - startedAt;
+
+      return {
+        status: latencyMs > 500 ? 'degraded' : 'ok',
+        configured: true,
+        latencyMs,
+      };
+    } catch (error: any) {
+      this.logger.error('Health check Redis falhou', error?.message);
+      return { status: 'down', configured: true };
+    } finally {
+      try {
+        await client?.quit();
+      } catch {
+        client?.disconnect();
+      }
+    }
+  }
+
+  /**
+   * OBS-1 — frescura dos crons (dead-man's switch).
+   *
+   * Expõe a última execução por job registrado em `admin_job_runs` para um
+   * monitor externo alertar quando um cron parar de rodar. INFORMATIVO: não
+   * altera o status geral do /health (cadências diferem — diário/horário/semanal
+   * — então evitamos falso alarme com threshold hardcoded aqui).
+   */
+  private async checkCrons(): Promise<{
+    status: CheckStatus;
+    jobs: Array<{ name: string; lastRunAt: string | null; hoursAgo: number | null }>;
+  }> {
+    if (!this.dataSource) return { status: 'skipped', jobs: [] };
+    try {
+      const rows: Array<{ name: string; lastRunAt: Date | string }> =
+        await this.dataSource.query(
+          'SELECT name, MAX(startedAt) AS lastRunAt FROM admin_job_runs GROUP BY name',
+        );
+      const now = Date.now();
+      const jobs = rows.map((r) => {
+        const t = r.lastRunAt ? new Date(r.lastRunAt).getTime() : NaN;
+        return {
+          name: r.name,
+          lastRunAt: Number.isFinite(t) ? new Date(t).toISOString() : null,
+          hoursAgo: Number.isFinite(t) ? Math.round(((now - t) / 3_600_000) * 10) / 10 : null,
+        };
+      });
+      return { status: 'ok', jobs };
+    } catch (error: any) {
+      // Tabela ausente (base nova) ou erro de query — não quebra o health.
+      this.logger.warn(`Health check crons falhou: ${error?.message}`);
+      return { status: 'skipped', jobs: [] };
     }
   }
 

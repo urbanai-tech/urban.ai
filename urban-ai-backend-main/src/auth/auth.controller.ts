@@ -348,6 +348,19 @@ export class AuthController {
     description: 'ID do usuário a ser excluído',
     example: '1',
   })
+  @ApiOperation({ summary: 'Excluir a própria conta (self-service LGPD)' })
+  @ApiResponse({ status: 200, description: 'Conta excluída' })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Delete('me')
+  async deleteOwnAccount(@Req() req): Promise<{ deleted: true }> {
+    // Titular apaga a própria conta (direito de eliminação, art. 18 LGPD).
+    // deleteUser -> userRepository.remove -> cascades para dados relacionados.
+    await this.authService.deleteUser(req.user?.userId);
+    return { deleted: true };
+  }
+
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')

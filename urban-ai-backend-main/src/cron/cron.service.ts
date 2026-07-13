@@ -297,8 +297,17 @@ export class CronService {
     }
 
     async enviarNotificacaoCron(subject: string, content: string) {
+        const opsEmail =
+            process.env.OPS_ALERT_EMAIL?.trim() || process.env.EMAIL_SENDER?.trim();
+        if (!opsEmail) {
+            this.logger.warn(
+                'OPS_ALERT_EMAIL/EMAIL_SENDER não configurado — alerta de cron não enviado',
+            );
+            return;
+        }
+
         const resultado = await this.mailerSender.sendTextEmailCron(
-            { email: 'lucas@luminalab.ai', name: 'Dev feedback' },
+            { email: opsEmail, name: 'Urban AI Ops' },
             subject,
             content,
         );

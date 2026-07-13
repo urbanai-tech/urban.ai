@@ -117,6 +117,10 @@ if (badDeps.length) {
 const sourceFiles = existsSync(srcDir) ? walk(srcDir) : [];
 const badImports = [];
 const tailwindLikeClasses = [];
+const nativeDialogs = [];
+// Diálogos nativos do browser — devem usar AdminConfirmDialog / AdminDrawer /
+// useAdminToast. window.confirm/alert/prompt e as formas nuas alert()/prompt().
+const nativeDialogPattern = /(?:window\.(?:alert|confirm|prompt)|(?:^|[^.\w])(?:alert|prompt))\s*\(/gm;
 
 for (const file of sourceFiles) {
   const text = readFileSync(file, "utf8");
@@ -141,6 +145,11 @@ for (const file of sourceFiles) {
       tailwindLikeClasses.push(`${rel}: ${tokens.join(" ")}`);
     }
   }
+
+  for (const match of textWithoutComments.matchAll(nativeDialogPattern)) {
+    const line = textWithoutComments.slice(0, match.index).split("\n").length;
+    nativeDialogs.push(`${rel}:${line}: ${match[0].trim()}`);
+  }
 }
 
 if (badImports.length) {
@@ -151,6 +160,12 @@ if (tailwindLikeClasses.length) {
   console.warn(`\n[design:audit] Tailwind-like class audit: ${tailwindLikeClasses.length} residual match(es).`);
   console.warn("[design:audit] These are warnings while the remaining focus/public-layout cleanup is completed.");
   for (const detail of tailwindLikeClasses.slice(0, 20)) console.warn(`- ${detail}`);
+}
+
+if (nativeDialogs.length) {
+  console.warn(`\n[design:audit] Native browser dialogs found: ${nativeDialogs.length} occurrence(s).`);
+  console.warn("[design:audit] Use AdminConfirmDialog / AdminDrawer / useAdminToast instead of window.alert/confirm/prompt.");
+  for (const detail of nativeDialogs) console.warn(`- ${detail}`);
 }
 
 if (!process.exitCode) {

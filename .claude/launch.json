@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "urban-front",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "Urban-front-main", "run", "start"],
+      "port": 3000
+    }
+  ]
+}
