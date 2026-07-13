@@ -90,6 +90,28 @@ Para incorporar a **cidade X**, o checklist vira mecânico:
 > vira a fonte dominante por cidade. É o caminho do Tier 0 (regras) → Tier 1+
 > (modelo treinado) sem esperar acumular do zero.
 
+## Como rodar o importador Inside Airbnb (já implementado)
+
+```bash
+# 1. Baixar o listings.csv.gz da cidade em https://insideairbnb.com/get-the-data/
+# 2. Rodar a migração (cria external_listing) se ainda não rodou:
+npm run migration:run
+# 3. Importar (idempotente por source+externalId; parametrizável por cidade):
+npx ts-node scripts/import-inside-airbnb.ts --file ./listings.csv.gz --city sao-paulo --snapshot 2026-06-01
+# 4. Re-treinar o motor (o train() já inclui os comps externos):
+#    - automático no próximo cron (domingo 04:00) ou no boot;
+#    - ou POST /admin/... (bootstrap) se exposto.
+```
+
+Conferir:
+```sql
+SELECT city, COUNT(*), AVG(priceCents)/100 AS diaria_media
+  FROM external_listing GROUP BY city;
+-- distribuição de categoria (label do KNN)
+SELECT category, COUNT(*) FROM external_listing GROUP BY category;
+```
+Para outra cidade: repetir com `--city rio-de-janeiro` etc.
+
 ## Ordem de valor sugerida
 
 1. **Inside Airbnb SP** (feito o importador) — maior salto de cold-start.
