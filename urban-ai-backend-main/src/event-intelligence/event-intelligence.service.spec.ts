@@ -125,12 +125,20 @@ function makeService(input: {
 }
 
 describe('EventIntelligenceService contracts', () => {
+  // Datas futuras relativas ao agora (evita rot: uma data fixa vira passado e
+  // derruba a confiança do evento de 'high' p/ 'low', quebrando o contrato).
+  const FUTURE = new Date(Date.now() + 90 * 86_400_000);
+  FUTURE.setUTCHours(20, 0, 0, 0);
+  const FUTURE_START_ISO = FUTURE.toISOString();
+  const FUTURE_END_ISO = new Date(new Date(FUTURE).setUTCHours(23, 0, 0, 0)).toISOString();
+  const FUTURE_DAY = FUTURE_START_ISO.slice(0, 10);
+
   const event = {
     id: 'event-1',
     nome: 'Festival Centro',
     descricao: 'Festival de música',
-    dataInicio: new Date('2026-06-10T20:00:00.000Z'),
-    dataFim: new Date('2026-06-10T23:00:00.000Z'),
+    dataInicio: new Date(FUTURE_START_ISO),
+    dataFim: new Date(FUTURE_END_ISO),
     cidade: 'Sao Paulo',
     estado: 'SP',
     enderecoCompleto: 'Av Paulista, 1000',
@@ -149,7 +157,8 @@ describe('EventIntelligenceService contracts', () => {
     pendingGeocode: false,
     outOfScope: false,
     enrichmentAttempts: 1,
-    dataCrawl: new Date('2026-05-22T10:00:00.000Z'),
+    // Fresco relativo ao agora (dataCrawl velho => stale_source => confiança cai).
+    dataCrawl: new Date(Date.now() - 86_400_000),
   };
 
   it('returns catalog items with the shared v0 shape and explicit derived status', async () => {
@@ -162,7 +171,7 @@ describe('EventIntelligenceService contracts', () => {
     expect(result.items[0]).toMatchObject({
       id: 'event-1',
       name: 'Festival Centro',
-      startsAt: '2026-06-10T20:00:00.000Z',
+      startsAt: FUTURE_START_ISO,
       city: 'Sao Paulo',
       state: 'SP',
       urbanScore: 82,
@@ -291,7 +300,7 @@ describe('EventIntelligenceService contracts', () => {
           }),
           idempotencyVersion: 'pricing-decision-v0',
           idempotencyKey: expect.stringContaining(
-            'pricing-decision-v0:event-1:property-1:list-1:analysis-1:2026-06-10:event_pricing:recommended:',
+            `pricing-decision-v0:event-1:property-1:list-1:analysis-1:${FUTURE_DAY}:event_pricing:recommended:`,
           ),
           signalsHash: expect.stringMatching(/^[a-f0-9]{32}$/),
         }),
@@ -420,7 +429,11 @@ describe('EventIntelligenceService contracts', () => {
     });
 
     const result = await service.backfillFutureEventIntelligence(
-      { from: '2026-06-01', to: '2026-06-30', limit: 10 },
+      {
+        from: new Date(FUTURE.getTime() - 86_400_000).toISOString().slice(0, 10),
+        to: new Date(FUTURE.getTime() + 86_400_000).toISOString().slice(0, 10),
+        limit: 10,
+      },
       'admin-1',
     );
 
