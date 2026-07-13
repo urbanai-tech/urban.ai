@@ -1,9 +1,9 @@
 .font-press {
-  font-family: 'Poppins', sans-serif, cursive !important;
+  font-family: var(--font-poppins), 'Poppins', sans-serif !important;
 }
 
 * {
-  font-family: 'Poppins', sans-serif, cursive !important;
+  font-family: var(--font-poppins), 'Poppins', sans-serif !important;
 }
 
 :root,
@@ -141,12 +141,12 @@
 
 .urban-manifesto,
 .urban-manifesto * {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  font-family: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif !important;
 }
 
 .urban-manifesto .urban-display,
 .urban-manifesto .urban-display * {
-  font-family: 'Bebas Neue', 'Inter', sans-serif !important;
+  font-family: var(--font-bebas), 'Bebas Neue', var(--font-inter), 'Inter', sans-serif !important;
 }
 
 .urban-manifesto details:not([open]) > :not(summary) {
@@ -177,7 +177,7 @@
 }
 
 .urban-eyebrow {
-  font-family: 'Inter', sans-serif !important;
+  font-family: var(--font-inter), 'Inter', sans-serif !important;
   font-weight: 600;
   font-size: 12px;
   letter-spacing: 4px;
@@ -193,12 +193,12 @@
 
 .urban-app,
 .urban-app * {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  font-family: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif !important;
 }
 
 .urban-app .urban-app-display,
 .urban-app .urban-app-display * {
-  font-family: 'Bebas Neue', 'Inter', sans-serif !important;
+  font-family: var(--font-bebas), 'Bebas Neue', var(--font-inter), 'Inter', sans-serif !important;
 }
 
 .urban-app {
@@ -272,7 +272,7 @@
 
 /* Eyebrow padrão (label uppercase, accent, letter-spacing 3) */
 .urban-app .urban-app-eyebrow {
-  font-family: 'Inter', sans-serif !important;
+  font-family: var(--font-inter), 'Inter', sans-serif !important;
   font-weight: 600;
   font-size: 11px;
   letter-spacing: 3px;
@@ -282,7 +282,7 @@
 }
 
 .urban-app .urban-app-eyebrow-muted {
-  font-family: 'Inter', sans-serif !important;
+  font-family: var(--font-inter), 'Inter', sans-serif !important;
   font-weight: 600;
   font-size: 11px;
   letter-spacing: 3px;
@@ -293,7 +293,7 @@
 
 /* Display headings (Bebas Neue) */
 .urban-app .urban-app-display-hero {
-  font-family: 'Bebas Neue', 'Inter', sans-serif !important;
+  font-family: var(--font-bebas), 'Bebas Neue', var(--font-inter), 'Inter', sans-serif !important;
   font-size: clamp(56px, 9vw, 120px);
   line-height: 0.92;
   letter-spacing: -1px;
@@ -303,7 +303,7 @@
 }
 
 .urban-app .urban-app-display-md {
-  font-family: 'Bebas Neue', 'Inter', sans-serif !important;
+  font-family: var(--font-bebas), 'Bebas Neue', var(--font-inter), 'Inter', sans-serif !important;
   font-size: clamp(36px, 5vw, 56px);
   line-height: 1;
   letter-spacing: -0.5px;
@@ -313,7 +313,7 @@
 }
 
 .urban-app .urban-app-display-sm {
-  font-family: 'Bebas Neue', 'Inter', sans-serif !important;
+  font-family: var(--font-bebas), 'Bebas Neue', var(--font-inter), 'Inter', sans-serif !important;
   font-size: 32px;
   line-height: 1;
   letter-spacing: -0.3px;
@@ -405,12 +405,12 @@
 
 .urban-admin,
 .urban-admin * {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  font-family: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif !important;
 }
 
 .urban-admin .urban-admin-display,
 .urban-admin .urban-admin-display * {
-  font-family: 'Bebas Neue', 'Inter', sans-serif !important;
+  font-family: var(--font-bebas), 'Bebas Neue', var(--font-inter), 'Inter', sans-serif !important;
 }
 
 .urban-admin {
@@ -460,7 +460,7 @@
 
 /* Display headings — Bebas Neue */
 .urban-admin .urban-admin-display-hero {
-  font-family: 'Bebas Neue', 'Inter', sans-serif !important;
+  font-family: var(--font-bebas), 'Bebas Neue', var(--font-inter), 'Inter', sans-serif !important;
   font-size: clamp(56px, 7vw, 96px);
   line-height: 0.92;
   letter-spacing: -1px;
@@ -470,7 +470,7 @@
 }
 
 .urban-admin .urban-admin-display-md {
-  font-family: 'Bebas Neue', 'Inter', sans-serif !important;
+  font-family: var(--font-bebas), 'Bebas Neue', var(--font-inter), 'Inter', sans-serif !important;
   font-size: clamp(40px, 5vw, 56px);
   line-height: 1;
   letter-spacing: -0.5px;
@@ -480,7 +480,7 @@
 }
 
 .urban-admin .urban-admin-display-sm {
-  font-family: 'Bebas Neue', 'Inter', sans-serif !important;
+  font-family: var(--font-bebas), 'Bebas Neue', var(--font-inter), 'Inter', sans-serif !important;
   font-size: 32px;
   line-height: 1;
   letter-spacing: -0.3px;
@@ -491,7 +491,7 @@
 
 /* Eyebrow padronizado admin */
 .urban-admin .urban-admin-eyebrow {
-  font-family: 'Inter', sans-serif !important;
+  font-family: var(--font-inter), 'Inter', sans-serif !important;
   font-weight: 600;
   font-size: 11px;
   letter-spacing: 3px;
@@ -501,7 +501,7 @@
 }
 
 .urban-admin .urban-admin-eyebrow-muted {
-  font-family: 'Inter', sans-serif !important;
+  font-family: var(--font-inter), 'Inter', sans-serif !important;
   font-weight: 600;
   font-size: 11px;
   letter-spacing: 3px;
