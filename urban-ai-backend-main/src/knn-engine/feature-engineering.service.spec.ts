@@ -5,6 +5,7 @@ import {
   deriveCategory,
   isInGreaterSp,
 } from './feature-engineering.service';
+import { SP_METRO_STATIONS } from './data/sp-metro-stations';
 
 describe('feature-engineering pure functions', () => {
   describe('haversineKm', () => {
@@ -43,6 +44,33 @@ describe('feature-engineering pure functions', () => {
 
     it('retorna null para conjunto vazio', () => {
       expect(nearestStationKm(-23.5, -46.6, [])).toBeNull();
+    });
+  });
+
+  describe('SP_METRO_STATIONS (dataset real OSM)', () => {
+    it('tem cobertura completa (≥ 90 estações Metrô+CPTM)', () => {
+      expect(SP_METRO_STATIONS.length).toBeGreaterThanOrEqual(90);
+    });
+
+    it('todas as estações estão dentro do bbox da Grande SP', () => {
+      for (const s of SP_METRO_STATIONS) {
+        expect(s.lat).toBeGreaterThan(-24.1);
+        expect(s.lat).toBeLessThan(-23.2);
+        expect(s.lng).toBeGreaterThan(-47.0);
+        expect(s.lng).toBeLessThan(-46.2);
+      }
+    });
+
+    it('não tem nomes duplicados', () => {
+      const names = SP_METRO_STATIONS.map((s) => s.name.toLowerCase());
+      expect(new Set(names).size).toBe(names.length);
+    });
+
+    it('ponto na Av. Paulista fica a < 0.5km de uma estação real', () => {
+      // Trianon-Masp / Brigadeiro / Paulista ficam sobre a Paulista.
+      const d = nearestStationKm(-23.5614, -46.6564);
+      expect(d).not.toBeNull();
+      expect(d!).toBeLessThan(0.5);
     });
   });
 

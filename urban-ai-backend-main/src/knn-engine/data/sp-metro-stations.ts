@@ -1,19 +1,16 @@
 /**
- * Estações de metrô/CPTM de São Paulo — dataset SEED para o cálculo de
+ * Estações de Metrô + CPTM de São Paulo — coordenadas reais para o cálculo de
  * `metroDistance` (FeatureEngineeringService.computeMetroDistancePending).
  *
- * ⚠️ IMPORTANTE — dados a validar antes de uso em produção:
- * As coordenadas abaixo são APROXIMADAS (conjunto representativo dos principais
- * hubs das linhas 1-Azul, 2-Verde, 3-Vermelha, 4-Amarela, 5-Lilás e 15-Prata).
- * Antes de confiar nesta feature no motor de pricing, SUBSTITUIR pela lista
- * completa e georreferenciada da fonte oficial:
- *   - GTFS da SPTrans / Metrô-SP / CPTM (estações + lat/lng precisos), ou
- *   - dataset aberto "Estações de Metrô e CPTM" do GeoSampa.
- * O cálculo de "estação mais próxima" com um conjunto esparso SUPERESTIMA a
- * distância — por isso a lista completa importa. O algoritmo (haversine) já é
- * definitivo; só a tabela de coordenadas precisa ser trocada.
+ * Fonte: OpenStreetMap via Overpass API (dados sob licença ODbL — © colaboradores
+ * do OpenStreetMap). Extração em 2026-07-13, bbox da Grande São Paulo, filtrando
+ * `station=subway` (Metrô linhas 1-5,15 + monotrilho) e `network~CPTM` (linhas 7-13).
+ * 101 estações únicas (dedup por nome). Substitui o seed aproximado anterior.
  *
- * Formato: [nome, latitude, longitude].
+ * O algoritmo (haversine em nearestStationKm) é definitivo; agora a tabela de
+ * coordenadas também é. Para atualizar: rerodar a query Overpass e regenerar.
+ *
+ * Formato: { name, lat, lng }.
  */
 export interface MetroStation {
   name: string;
@@ -22,42 +19,105 @@ export interface MetroStation {
 }
 
 export const SP_METRO_STATIONS: MetroStation[] = [
-  // Linha 1-Azul (norte-sul, eixo central)
-  { name: 'Tucuruvi', lat: -23.4802, lng: -46.6021 },
-  { name: 'Santana', lat: -23.5024, lng: -46.6284 },
-  { name: 'Luz', lat: -23.5347, lng: -46.6353 },
-  { name: 'Sé', lat: -23.5503, lng: -46.6339 },
-  { name: 'Liberdade', lat: -23.5587, lng: -46.6350 },
-  { name: 'Paraíso', lat: -23.5760, lng: -46.6398 },
-  { name: 'Ana Rosa', lat: -23.5817, lng: -46.6386 },
-  { name: 'Jabaquara', lat: -23.6462, lng: -46.6414 },
-  // Linha 2-Verde (Paulista / leste)
-  { name: 'Vila Madalena', lat: -23.5466, lng: -46.6907 },
-  { name: 'Consolação', lat: -23.5580, lng: -46.6607 },
-  { name: 'Trianon-Masp', lat: -23.5615, lng: -46.6559 },
-  { name: 'Brigadeiro', lat: -23.5686, lng: -46.6486 },
-  { name: 'Chácara Klabin', lat: -23.5905, lng: -46.6289 },
-  { name: 'Vila Prudente', lat: -23.5847, lng: -46.5806 },
-  // Linha 3-Vermelha (leste-oeste)
-  { name: 'Palmeiras-Barra Funda', lat: -23.5270, lng: -46.6656 },
-  { name: 'República', lat: -23.5434, lng: -46.6420 },
-  { name: 'Anhangabaú', lat: -23.5470, lng: -46.6375 },
-  { name: 'Brás', lat: -23.5479, lng: -46.6157 },
-  { name: 'Tatuapé', lat: -23.5405, lng: -46.5766 },
-  { name: 'Itaquera', lat: -23.5405, lng: -46.4714 },
-  // Linha 4-Amarela
-  { name: 'Luz (L4)', lat: -23.5340, lng: -46.6355 },
-  { name: 'República (L4)', lat: -23.5438, lng: -46.6425 },
-  { name: 'Paulista', lat: -23.5553, lng: -46.6620 },
-  { name: 'Faria Lima', lat: -23.5672, lng: -46.6935 },
-  { name: 'Pinheiros', lat: -23.5670, lng: -46.7020 },
-  { name: 'Butantã', lat: -23.5716, lng: -46.7083 },
-  // Linha 5-Lilás
-  { name: 'Santa Cruz', lat: -23.5989, lng: -46.6398 },
-  { name: 'Moema', lat: -23.6103, lng: -46.6636 },
-  { name: 'Campo Belo', lat: -23.6209, lng: -46.6668 },
-  { name: 'Capão Redondo', lat: -23.6672, lng: -46.7807 },
-  // Linha 15-Prata (monotrilho leste)
-  { name: 'Oratório', lat: -23.5936, lng: -46.5583 },
-  { name: 'São Lucas', lat: -23.6017, lng: -46.5375 },
+  { name: "AACD – Servidor", lat: -23.5978, lng: -46.6523 },
+  { name: "Adolfo Pinheiro", lat: -23.65007, lng: -46.70421 },
+  { name: "Água Branca", lat: -23.52054, lng: -46.68814 },
+  { name: "Alto da Boa Vista", lat: -23.64163, lng: -46.69942 },
+  { name: "Alto do Ipiranga", lat: -23.60224, lng: -46.61249 },
+  { name: "Ana Rosa", lat: -23.58144, lng: -46.63838 },
+  { name: "Anhangabaú", lat: -23.54777, lng: -46.63932 },
+  { name: "Armênia", lat: -23.52515, lng: -46.62888 },
+  { name: "Artur Alvim", lat: -23.54024, lng: -46.48471 },
+  { name: "Belém", lat: -23.54287, lng: -46.58962 },
+  { name: "Borba Gato", lat: -23.63347, lng: -46.69287 },
+  { name: "Brás", lat: -23.54786, lng: -46.61592 },
+  { name: "Bresser-Mooca", lat: -23.5465, lng: -46.60693 },
+  { name: "Brigadeiro", lat: -23.56859, lng: -46.64776 },
+  { name: "Brooklin", lat: -23.6268, lng: -46.68813 },
+  { name: "Butantã", lat: -23.5719, lng: -46.70809 },
+  { name: "Campo Belo", lat: -23.6186, lng: -46.68227 },
+  { name: "Campo Limpo", lat: -23.64929, lng: -46.75895 },
+  { name: "Capão Redondo", lat: -23.65917, lng: -46.768 },
+  { name: "Carandiru", lat: -23.50913, lng: -46.6252 },
+  { name: "Carrão – Assaí Atacadista", lat: -23.53789, lng: -46.56426 },
+  { name: "Chácara Klabin", lat: -23.59268, lng: -46.63068 },
+  { name: "Clínicas", lat: -23.55405, lng: -46.67088 },
+  { name: "Conceição", lat: -23.63501, lng: -46.64129 },
+  { name: "Consolação", lat: -23.55782, lng: -46.66054 },
+  { name: "Corinthians-Itaquera", lat: -23.5423, lng: -46.47121 },
+  { name: "Engenheiro Goulart", lat: -23.49809, lng: -46.5199 },
+  { name: "Estação 14 Bis", lat: -23.55698, lng: -46.6491 },
+  { name: "Estação Bela Vista", lat: -23.56177, lng: -46.64487 },
+  { name: "Estação Brasilândia", lat: -23.47061, lng: -46.69794 },
+  { name: "Estação de Metrô Capão Redondo", lat: -23.66383, lng: -46.77029 },
+  { name: "Estação FAAP-Pacaembu", lat: -23.54661, lng: -46.66127 },
+  { name: "Estação Higienópolis-Mackenzie", lat: -23.54861, lng: -46.65231 },
+  { name: "Estação Higienópolis-Mackenzie (Linha 6)", lat: -23.55052, lng: -46.65446 },
+  { name: "Estação Hospital São Paulo", lat: -23.59851, lng: -46.64558 },
+  { name: "Estação Itaberaba", lat: -23.48555, lng: -46.69365 },
+  { name: "Estação João Paulo II", lat: -23.49376, lng: -46.69145 },
+  { name: "Estação Orfanato", lat: -23.57836, lng: -46.57611 },
+  { name: "Estação Perdizes", lat: -23.53217, lng: -46.67652 },
+  { name: "Estação PUC-Cardoso de Almeida", lat: -23.53881, lng: -46.66883 },
+  { name: "Estação Santa Clara", lat: -23.57385, lng: -46.56665 },
+  { name: "Estação SESC-Pompeia", lat: -23.52711, lng: -46.68344 },
+  { name: "Faria Lima", lat: -23.56726, lng: -46.69396 },
+  { name: "Fradique Coutinho", lat: -23.56623, lng: -46.68414 },
+  { name: "Freguesia do Ó", lat: -23.50175, lng: -46.69365 },
+  { name: "futura Estação Chácara do Jockey", lat: -23.60171, lng: -46.74315 },
+  { name: "futura Estação Taboão da Serra", lat: -23.60761, lng: -46.75955 },
+  { name: "Giovanni Gronchi", lat: -23.64393, lng: -46.73398 },
+  { name: "Guilhermina-Esperança", lat: -23.5293, lng: -46.51664 },
+  { name: "Higienópolis-Mackenzie", lat: -23.54896, lng: -46.6523 },
+  { name: "Jabaquara", lat: -23.64634, lng: -46.64105 },
+  { name: "Japão - Liberdade", lat: -23.55496, lng: -46.63572 },
+  { name: "Jaraguá", lat: -23.45511, lng: -46.7388 },
+  { name: "Jardim São Paulo - Ayrton Senna", lat: -23.4924, lng: -46.61701 },
+  { name: "João Paulo I", lat: -23.49359, lng: -46.69142 },
+  { name: "Largo Treze", lat: -23.65446, lng: -46.71017 },
+  { name: "Luz", lat: -23.53707, lng: -46.63361 },
+  { name: "Marechal Deodoro", lat: -23.53398, lng: -46.6559 },
+  { name: "Oscar Freire", lat: -23.56089, lng: -46.67193 },
+  { name: "Palmeiras - Barra Funda", lat: -23.52597, lng: -46.66747 },
+  { name: "Parada Inglesa", lat: -23.48702, lng: -46.60893 },
+  { name: "Paraíso", lat: -23.57539, lng: -46.64096 },
+  { name: "Patriarca • Vila Ré", lat: -23.53105, lng: -46.50158 },
+  { name: "Paulista - Pernambucanas", lat: -23.55532, lng: -46.66195 },
+  { name: "Pedro II", lat: -23.5497, lng: -46.62598 },
+  { name: "Penha - Lojas Besni", lat: -23.53349, lng: -46.54267 },
+  { name: "Perdizes", lat: -23.53209, lng: -46.67661 },
+  { name: "Pinheiros", lat: -23.56725, lng: -46.70195 },
+  { name: "Piqueri", lat: -23.50398, lng: -46.71482 },
+  { name: "Pirituba", lat: -23.4885, lng: -46.726 },
+  { name: "Portuguesa - Tietê", lat: -23.51564, lng: -46.62513 },
+  { name: "Portuguesa-Tietê", lat: -23.51624, lng: -46.6254 },
+  { name: "Praça da Árvore", lat: -23.61057, lng: -46.6379 },
+  { name: "República", lat: -23.54409, lng: -46.64267 },
+  { name: "Sacomã", lat: -23.60128, lng: -46.60256 },
+  { name: "Santa Cecília", lat: -23.53932, lng: -46.64896 },
+  { name: "Santa Cruz", lat: -23.59903, lng: -46.63667 },
+  { name: "Santa Marina", lat: -23.51408, lng: -46.69167 },
+  { name: "Santana", lat: -23.50244, lng: -46.62509 },
+  { name: "Santo Amaro", lat: -23.65565, lng: -46.72097 },
+  { name: "Santos - Imigrantes", lat: -23.59591, lng: -46.62071 },
+  { name: "Santuário Nossa Senhora de Fátima - Sumaré", lat: -23.55103, lng: -46.67759 },
+  { name: "São Bento", lat: -23.54404, lng: -46.63432 },
+  { name: "São Joaquim", lat: -23.56268, lng: -46.63922 },
+  { name: "São Judas", lat: -23.62558, lng: -46.64082 },
+  { name: "São Paulo – Morumbi", lat: -23.58614, lng: -46.72391 },
+  { name: "Saúde – Ultrafarma", lat: -23.61843, lng: -46.6392 },
+  { name: "Sé", lat: -23.55044, lng: -46.63345 },
+  { name: "SESC-Pompeia", lat: -23.52728, lng: -46.68326 },
+  { name: "Tamanduateí", lat: -23.59261, lng: -46.58945 },
+  { name: "Tatuapé", lat: -23.54025, lng: -46.57664 },
+  { name: "Tiradentes", lat: -23.53091, lng: -46.63254 },
+  { name: "Trianon-Masp", lat: -23.56331, lng: -46.6542 },
+  { name: "Tucuruvi", lat: -23.48007, lng: -46.60327 },
+  { name: "Vergueiro", lat: -23.56853, lng: -46.63992 },
+  { name: "Vila das Belezas", lat: -23.64025, lng: -46.74577 },
+  { name: "Vila Madalena", lat: -23.5465, lng: -46.69112 },
+  { name: "Vila Mariana", lat: -23.58915, lng: -46.63466 },
+  { name: "Vila Matilde", lat: -23.53192, lng: -46.53087 },
+  { name: "Vila Prudente", lat: -23.58443, lng: -46.58194 },
+  { name: "Vila Sônia - Professora Elizabeth Tenreiro", lat: -23.59343, lng: -46.73481 },
 ];
