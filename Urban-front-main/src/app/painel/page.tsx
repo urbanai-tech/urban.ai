@@ -20,6 +20,19 @@ import { isTodayOrFutureDate } from '../lib/date';
 
 const PropertySelect = dynamic(() => import('../componentes/PropertySelect'), { ssr: false });
 
+// UX-4: mesma regra de prontidão usada em /properties — usa o setupStatus real
+// quando existe, senão cai no analisado === 'completed'.
+function isPropertyReady(prop: PropertyDropdown): boolean {
+  return prop.setupStatus?.state ? prop.setupStatus.state === 'ready' : prop.analisado === 'completed';
+}
+
+const PREPARING_STEPS_FALLBACK = [
+  { id: 'registered', label: 'Imóvel adicionado', status: 'complete' as const },
+  { id: 'location', label: 'Preparar mapa', status: 'active' as const, detail: 'Endereço e raio' },
+  { id: 'events', label: 'Procurar eventos perto', status: 'pending' as const, detail: 'Shows, feiras e jogos' },
+  { id: 'recommendations', label: 'Preparar sugestões', status: 'pending' as const, detail: 'Preços por oportunidade' },
+];
+
 export default function SugestoesAceitas() {
   const [propsInfo, setPropsInfo] = useState<PropertyDropdown[]>([]);
   const [propertyId, setPropertyId] = useState('');
@@ -42,6 +55,14 @@ export default function SugestoesAceitas() {
   const selectedPropertyName = selectedProperty
     ? formatPropertyPrimaryLabel(selectedProperty)
     : "todos os imóveis";
+
+  // UX-4 (ponte tempo-até-valor): host novo cai no painel antes das análises
+  // ficarem prontas. Em vez de mostrar KPIs zerados como estado final, surfaça
+  // o mesmo card "preparando" de /properties enquanto NENHUM imóvel está pronto.
+  const realProperties = propsInfo.filter((property) => property.id !== '');
+  const allPreparing =
+    realProperties.length > 0 && realProperties.every((property) => !isPropertyReady(property));
+  const preparingSetupStatus = realProperties.find((property) => property.setupStatus)?.setupStatus;
 
   useEffect(() => {
     async function fetchProps() {
@@ -162,6 +183,21 @@ export default function SugestoesAceitas() {
       />
 
       <PushNotificationOptIn variant="compact" />
+
+      {allPreparing && (
+        <AppLoadingStatus
+          compact
+          eyebrow="PREPARANDO SUAS RECOMENDAÇÕES"
+          title="Estamos preparando suas recomendações"
+          body={
+            preparingSetupStatus?.publicDescription ??
+            "Mapa, eventos por perto e sugestões de preço aparecem assim que cada imóvel ficar pronto. Na primeira vez isso leva algumas horas — pode fechar e voltar depois."
+          }
+          tone="warn"
+          steps={preparingSetupStatus?.steps ?? PREPARING_STEPS_FALLBACK}
+          style={{ marginBottom: 16 }}
+        />
+      )}
 
       {propsError && (
         <div style={{ marginTop: 18 }}>
