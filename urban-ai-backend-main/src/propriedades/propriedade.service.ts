@@ -2922,7 +2922,12 @@ export class PropriedadeService {
                     usuarioProprietario: { id: userId },
                     endereco: { id: enderecoId },
                     aceito: true, // ✅ filtra apenas aceitos
-                    evento: { dataInicio: Between(inicioPeriodo, fimMes) }
+                    // 6a: overlap de intervalo (não só dataInicio) — pega evento
+                    // multi-dia que cruza o período mesmo tendo começado antes.
+                    evento: {
+                        dataInicio: LessThanOrEqual(fimMes),
+                        dataFim: MoreThanOrEqual(inicioPeriodo),
+                    }
                 },
                 relations: ['evento'],
                 skip: (page - 1) * limit,
@@ -2963,7 +2968,11 @@ export class PropriedadeService {
             const [resultados, total] = await this.analisePrecoRepository.findAndCount({
                 where: {
                     aceito: true, // ✅ filtra apenas aceitos
-                    evento: { dataInicio: Between(inicioPeriodo, fimMes) },
+                    // 6a: overlap de intervalo (ver branch acima).
+                    evento: {
+                        dataInicio: LessThanOrEqual(fimMes),
+                        dataFim: MoreThanOrEqual(inicioPeriodo),
+                    },
                     usuarioProprietario: { id: userId },
                 },
                 relations: ['evento'],

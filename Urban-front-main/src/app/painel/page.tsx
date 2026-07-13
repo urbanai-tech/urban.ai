@@ -101,7 +101,9 @@ export default function SugestoesAceitas() {
       setEventsError(null);
       const result = await getEventosAcompanhando(propertyId || undefined, page, limit);
       const actionableEvents = result.data.filter((event: EventItem) =>
-        isTodayOrFutureDate(event.dataInicio),
+        // 6a: evento multi-dia em andamento (dataFim no futuro) continua
+        // acionável mesmo tendo começado antes de hoje.
+        isTodayOrFutureDate(event.dataFim ?? event.dataInicio),
       );
       setEvents(actionableEvents);
       setTotalPages(Math.max(1, Math.ceil(result.total / limit)));
