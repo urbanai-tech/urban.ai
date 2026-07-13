@@ -667,7 +667,14 @@ function resolveAttendance(input: EventDemandScoreInput): AttendanceResolution {
     return { attendance: Math.round(Number(input.capacidadeEstimada)), source: 'capacidadeEstimada' };
   }
   if (isPositive(input.venueCapacity)) {
-    return { attendance: Math.round(Number(input.venueCapacity)), source: 'venueCapacity' };
+    // Capacidade do venue é TETO, não público. Um evento médio não lota o local,
+    // então aplicamos um sell-through conservador para não superestimar. Segue
+    // marcado como source 'venueCapacity' (confiança reduzida via dataQualityFlag).
+    const VENUE_SELL_THROUGH = 0.7;
+    return {
+      attendance: Math.round(Number(input.venueCapacity) * VENUE_SELL_THROUGH),
+      source: 'venueCapacity',
+    };
   }
   return { attendance: null, source: 'missing' };
 }

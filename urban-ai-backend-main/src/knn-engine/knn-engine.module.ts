@@ -22,6 +22,8 @@ import { AdaptivePricingStrategy } from './strategies/adaptive-pricing.strategy'
 import { EventPricingIntelligenceService } from './event-pricing-intelligence.service';
 import { PricingOutcomeLearningService } from './pricing-outcome-learning.service';
 import { PricingFeedbackService } from './pricing-feedback.service';
+import { VenueCapacityService } from './venue-capacity.service';
+import { EventIdentityService } from '../evento/event-identity.service';
 import { AnalisePreco } from '../entities/AnalisePreco';
 
 /**
@@ -66,6 +68,9 @@ import { AnalisePreco } from '../entities/AnalisePreco';
     DatasetCollectorService,
     PricingOutcomeLearningService,
     PricingFeedbackService,
+    // Enriquecimento de venue (teto de capacidade p/ público)
+    EventIdentityService,
+    VenueCapacityService,
     // Strategies plugáveis
     RuleBasedPricingStrategy,
     XGBoostPricingStrategy,
@@ -83,6 +88,7 @@ import { AnalisePreco } from '../entities/AnalisePreco';
     DatasetCollectorService,
     EventPricingIntelligenceService,
     PricingOutcomeLearningService,
+    VenueCapacityService,
   ],
 })
 export class KnnEngineModule {}
