@@ -7,6 +7,7 @@ import {
 } from './event-historical.service';
 import { eventDemandScore } from './event-pricing-intelligence.service';
 import { EventIdentityService } from '../evento/event-identity.service';
+import { SP_RECURRING_EVENTS } from './data/sp-recurring-events';
 
 describe('event-historical pure helpers (IA-3b)', () => {
   const identity = new EventIdentityService();
@@ -64,6 +65,22 @@ describe('event-historical pure helpers (IA-3b)', () => {
       expect(anchor.realMultiplier).toBeCloseTo(1.5, 5); // média de 1.4 e 1.6 (só booked)
       expect(anchor.sampleSize).toBe(4);
       expect(anchor.lastYear).toBe(2025);
+    });
+  });
+
+  describe('seed curado de eventos recorrentes', () => {
+    it('canonicalName de cada seed já é a própria chave de série (casa com eventos)', () => {
+      for (const s of SP_RECURRING_EVENTS) {
+        expect(seriesKey(normalize(s.displayName))).toBe(s.canonicalName);
+        expect(s.attendance).toBeGreaterThan(0);
+        expect(s.sourceUrl).toMatch(/^https?:\/\//);
+      }
+    });
+
+    it('um evento "CCXP 2026" casaria com a âncora curada ccxp', () => {
+      expect(seriesKey(normalize('CCXP 2026'))).toBe('ccxp');
+      expect(seriesKey(normalize('Lollapalooza Brasil 2026'))).toBe('lollapalooza brasil');
+      expect(seriesKey(normalize('The Town 2025'))).toBe('the town');
     });
   });
 
