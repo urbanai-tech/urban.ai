@@ -25,6 +25,8 @@ export type EventDemandScoreInput = {
   relevancia?: number | null;
   expectedAttendance?: number | null;
   capacidadeEstimada?: number | null;
+  /** Público realizado histórico de edições passadas (âncora IA-3b). */
+  historicalAttendance?: number | null;
   venueCapacity?: number | null;
   venueType?: string | null;
   categoria?: string | null;
@@ -156,7 +158,7 @@ export type PriceAbsorptionCurveResult = {
 
 type AttendanceResolution = {
   attendance: number | null;
-  source: 'expectedAttendance' | 'capacidadeEstimada' | 'venueCapacity' | 'missing';
+  source: 'expectedAttendance' | 'capacidadeEstimada' | 'historicalAttendance' | 'venueCapacity' | 'missing';
 };
 
 type ResolvedPriceAbsorptionCalibration = {
@@ -665,6 +667,11 @@ function resolveAttendance(input: EventDemandScoreInput): AttendanceResolution {
   }
   if (isPositive(input.capacidadeEstimada)) {
     return { attendance: Math.round(Number(input.capacidadeEstimada)), source: 'capacidadeEstimada' };
+  }
+  if (isPositive(input.historicalAttendance)) {
+    // Público realizado de edições passadas do mesmo evento recorrente — âncora
+    // forte (melhor que o teto de venue), mas ainda não é ESTE evento.
+    return { attendance: Math.round(Number(input.historicalAttendance)), source: 'historicalAttendance' };
   }
   if (isPositive(input.venueCapacity)) {
     // Capacidade do venue é TETO, não público. Um evento médio não lota o local,

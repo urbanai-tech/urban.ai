@@ -23,6 +23,8 @@ import { EventPricingIntelligenceService } from './event-pricing-intelligence.se
 import { PricingOutcomeLearningService } from './pricing-outcome-learning.service';
 import { PricingFeedbackService } from './pricing-feedback.service';
 import { VenueCapacityService } from './venue-capacity.service';
+import { EventHistoricalService } from './event-historical.service';
+import { EventHistoricalMultiplier } from '../entities/event-historical-multiplier.entity';
 import { EventIdentityService } from '../evento/event-identity.service';
 import { AnalisePreco } from '../entities/AnalisePreco';
 
@@ -53,6 +55,7 @@ import { AnalisePreco } from '../entities/AnalisePreco';
       PricingDecisionSnapshot,
       AdminJobRun,
       AnalisePreco,
+      EventHistoricalMultiplier,
     ]),
   ],
   providers: [
@@ -71,6 +74,7 @@ import { AnalisePreco } from '../entities/AnalisePreco';
     // Enriquecimento de venue (teto de capacidade p/ público)
     EventIdentityService,
     VenueCapacityService,
+    EventHistoricalService,
     // Strategies plugáveis
     RuleBasedPricingStrategy,
     XGBoostPricingStrategy,
@@ -89,6 +93,7 @@ import { AnalisePreco } from '../entities/AnalisePreco';
     EventPricingIntelligenceService,
     PricingOutcomeLearningService,
     VenueCapacityService,
+    EventHistoricalService,
   ],
 })
 export class KnnEngineModule {}

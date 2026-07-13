@@ -192,6 +192,10 @@ import {
     @Column({ type: "int", nullable: true })
     expectedAttendance: number | null;
 
+    @ApiProperty({ description: "Público realizado histórico de edições passadas do mesmo evento recorrente (âncora IA-3b)", required: false })
+    @Column({ type: "int", nullable: true })
+    historicalAttendance: number | null;
+
     @ApiProperty({ description: "URL crawlada/fonte original deste evento", required: false })
     @Column("text", { nullable: true })
     crawledUrl: string | null;
