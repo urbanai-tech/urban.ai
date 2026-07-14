@@ -10,6 +10,8 @@ export class PaymentUserCascadeOnDelete1783600000000 implements MigrationInterfa
   name = 'PaymentUserCascadeOnDelete1783600000000';
 
   private readonly fallbackFkName = 'FK_payment_user';
+  private readonly cascadeFkName = 'FK_payment_user_cascade';
+  private readonly noActionFkName = 'FK_payment_user_no_action';
 
   private async findFk(
     queryRunner: QueryRunner,
@@ -125,7 +127,7 @@ export class PaymentUserCascadeOnDelete1783600000000 implements MigrationInterfa
       queryRunner,
       `ALTER TABLE \`payment\`
        DROP FOREIGN KEY \`${this.escapeIdentifier(fk.name)}\`,
-       ${this.cascadeConstraint(fk.name)},
+       ${this.cascadeConstraint(this.cascadeFkName)},
        ALGORITHM=INPLACE,
        LOCK=SHARED`,
     );
@@ -139,7 +141,7 @@ export class PaymentUserCascadeOnDelete1783600000000 implements MigrationInterfa
       queryRunner,
       `ALTER TABLE \`payment\`
        DROP FOREIGN KEY \`${this.escapeIdentifier(fk.name)}\`,
-       ${this.noActionConstraint(fk.name)},
+       ${this.noActionConstraint(this.noActionFkName)},
        ALGORITHM=INPLACE,
        LOCK=SHARED`,
     );

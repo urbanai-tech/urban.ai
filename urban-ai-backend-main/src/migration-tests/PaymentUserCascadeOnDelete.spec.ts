@@ -93,7 +93,7 @@ describe('PaymentUserCascadeOnDelete1783600000000', () => {
     const alters = alterQueries(queryRunner);
     expect(alters).toHaveLength(1);
     expect(alters[0]).toContain('DROP FOREIGN KEY `FK_payment_user`');
-    expect(alters[0]).toContain('ADD CONSTRAINT `FK_payment_user`');
+    expect(alters[0]).toContain('ADD CONSTRAINT `FK_payment_user_cascade`');
     expect(alters[0]).toContain('ON DELETE CASCADE ON UPDATE NO ACTION');
     expect(alters[0]).toContain('ALGORITHM=INPLACE');
     expect(alters[0]).toContain('LOCK=SHARED');
@@ -120,7 +120,7 @@ describe('PaymentUserCascadeOnDelete1783600000000', () => {
   it('uses one alter statement when reverting cascade to no action', async () => {
     const migration = new PaymentUserCascadeOnDelete1783600000000();
     const queryRunner = createQueryRunner([
-      [{ name: 'FK_payment_user', rule: 'CASCADE' }],
+      [{ name: 'FK_payment_user_cascade', rule: 'CASCADE' }],
       [{ foreignKeyChecks: 1 }],
       [],
       [],
@@ -131,8 +131,8 @@ describe('PaymentUserCascadeOnDelete1783600000000', () => {
 
     const alters = alterQueries(queryRunner);
     expect(alters).toHaveLength(1);
-    expect(alters[0]).toContain('DROP FOREIGN KEY `FK_payment_user`');
-    expect(alters[0]).toContain('ADD CONSTRAINT `FK_payment_user`');
+    expect(alters[0]).toContain('DROP FOREIGN KEY `FK_payment_user_cascade`');
+    expect(alters[0]).toContain('ADD CONSTRAINT `FK_payment_user_no_action`');
     expect(alters[0]).toContain('ON DELETE NO ACTION ON UPDATE NO ACTION');
     expect(alters[0]).toContain('ALGORITHM=INPLACE');
     expect(alters[0]).toContain('LOCK=SHARED');
