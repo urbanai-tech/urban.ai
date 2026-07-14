@@ -1,4 +1,4 @@
-import { PaymentUserCascadeOnDelete1783600000000 } from './1783600000000-PaymentUserCascadeOnDelete';
+import { PaymentUserCascadeOnDelete1783600000000 } from '../migrations/1783600000000-PaymentUserCascadeOnDelete';
 
 type QueryResponse = Array<Record<string, unknown>>;
 
