@@ -59,6 +59,8 @@ Banco de dados: o backend pode rodar contra um MySQL local ou contra o Railway d
 
 | Onde | O que tem |
 |---|---|
+| `docs/README.md` | **Indice geral atualizado** da documentacao, com entrada recomendada para novo dev |
+| `docs/handoff/` | **Pacote de handoff 2026-07-01**: estado real, acessos/secrets, validacoes, backlog e resumo dos chats |
 | `docs/roadmap-pos-sprint.md` | **Resumo executivo** do roadmap em curso (v2.17) |
 | `docs/roadmap-implementacao-gaps-produto-2026-05-14.md` | **Fonte operacional atual** de fases, gaps, gates e checkpoints pos-auditoria |
 | `docs/go-live-manual-checklist.md` | Lista do que ainda é manual humano vs. automatizável (P0/P1/P2) |

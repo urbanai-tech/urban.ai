@@ -7,7 +7,7 @@ squad: "marketing-agency"
 execution: inline
 skills:
   - resend
-  - blottato
+  - blotato
 ---
 
 # Patricia Publicação

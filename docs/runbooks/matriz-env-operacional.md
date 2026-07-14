@@ -4,7 +4,11 @@ Data: 2026-05-22
 
 Esta matriz consolida as variaveis encontradas no codigo e nos `.env.example`. Valores reais devem ficar apenas no provedor de deploy/CI. API keys podem ser configuradas depois, mas as variaveis marcadas como obrigatorias precisam existir antes de operar usuarios reais.
 
+Adendo 2026-07-01: para handoff de novo dev, usar tambem `docs/handoff/ACCESS-SECRETS.md`. Nenhum valor real de secret deve ser copiado para docs, issues, PRs ou chats. Se alguma chave apareceu em chat antigo, tratar como exposta, rotacionar no provedor e compartilhar acesso pelo provedor ou cofre de senhas.
+
 Status 2026-05-22: auto-apply Stays opera em fail-closed. O backend aceita os nomes operacionais `STAYS_AUTO_APPLY_ALLOWED_USER_IDS`/`STAYS_AUTO_APPLY_ALLOWED_LISTING_IDS` e os aliases canonicos `STAYS_AUTO_APPLY_USER_ALLOWLIST`/`STAYS_AUTO_APPLY_LISTING_ALLOWLIST`. Antes de preco real, registrar smoke em `docs/evidence/`.
+
+Adendo 2026-05-26: para subir o roadmap total para 92-95%, tratar staging como ambiente separado e preencher somente chaves sandbox/test. O pacote minimo desta etapa e: `GOOGLE_MAPS_API_KEY`, `GEMINI_API_KEY`, `BREVO_API_KEY`, Stripe test keys/Price IDs, `STAYS_API_BASE_URL`, `STAYS_TOKEN_ENCRYPTION_KEY`, usuarios/JWTs de gate autenticado e evidencia de outcomes/calibracao. Ver `docs/runbooks/integracoes-outcomes-calibracao-2026-05-26.md`.
 
 ## Backend (`urban-ai-backend-main`)
 
@@ -13,7 +17,8 @@ Status 2026-05-22: auto-apply Stays opera em fail-closed. O backend aceita os no
 | Runtime | `APP_ENV`, `NODE_ENV`, `PORT` | `APP_ENV=production|staging|development` recomendado em todos os ambientes. |
 | Banco | `DATABASE_URL` ou `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Obrigatorio. |
 | Migrations | `DB_SYNCHRONIZE`, `MIGRATIONS_RUN` | Em prod: `DB_SYNCHRONIZE=false`; `MIGRATIONS_RUN=true` somente quando o deploy deve aplicar migrations no boot. |
-| Auth | `JWT_SECRET`, `JWT_EXPIRES_IN`, `COOKIE_DOMAIN`, `CORS_ALLOWED_ORIGINS`, `FRONT_BASE_URL` | Obrigatorio. `JWT_SECRET` nao tem fallback seguro. |
+| Auth | `JWT_SECRET`, `JWT_EXPIRES_IN`, `GOOGLE_CLIENT_ID`, `COOKIE_DOMAIN`, `CORS_ALLOWED_ORIGINS`, `FRONT_BASE_URL` | Obrigatorio. `JWT_SECRET` nao tem fallback seguro. `GOOGLE_CLIENT_ID` e obrigatorio se `/auth/google` estiver ativo. |
+| Health/readiness | `HEALTH_READINESS_TOKEN`, opcional `HEALTH_READINESS_PUBLIC=false` | Obrigatorio em staging/prod para consultar `/health` detalhado. `/health/live` permanece publico. |
 | Redis/filas | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_TLS` | Obrigatorio quando Bull/processos estiver ativo. |
 | Observabilidade | `SENTRY_DSN` | Opcional em dev; recomendado/obrigatorio em staging/prod para operacao. |
 | Stripe | `STRIPE_SECRET_KEY`, `STRIPE_PUBLIC_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUCCESS_URL`, `CANCEL_URL`, price IDs `*_PLAN` e `*_PRICE_*` | Obrigatorio antes de checkout/assinaturas. Validar com `npm run preflight:track3:strict` e `/admin/pricing-config`. |
@@ -24,6 +29,19 @@ Status 2026-05-22: auto-apply Stays opera em fail-closed. O backend aceita os no
 | Stays | `STAYS_API_BASE_URL`, `STAYS_TOKEN_ENCRYPTION_KEY`, `STAYS_AUTO_APPLY_ENABLED`, `STAYS_AUTO_APPLY_DRY_RUN`, `STAYS_AUTO_APPLY_USER_ALLOWLIST`, `STAYS_AUTO_APPLY_LISTING_ALLOWLIST` | `STAYS_TOKEN_ENCRYPTION_KEY` obrigatoria em staging/prod para criptografia em repouso. Auto-apply deve ficar desligado por default e so pode aplicar preco real depois de smoke documentado. |
 | AskUrban | `ASK_URBAN_DAILY_QUOTA`, `ASK_URBAN_DAILY_HARD_CAP` | Recomendado para controlar uso diario. Entitlement de plano deve vir do backend, nao de env publica nem `localStorage`. |
 | Waitlist | `PRELAUNCH_MODE`, `MARKETING_BASE_URL` | Conforme modo de lancamento. |
+
+### Integracoes/outcomes - checklist staging 2026-05-26
+
+| Bloco | Variaveis obrigatorias em staging | Evidencia esperada |
+|---|---|---|
+| Google Maps/Geocoding | `GOOGLE_MAPS_API_KEY` | `backfill:geocoder:dry` e execucao `LIMIT=5` sem `REQUEST_DENIED`. |
+| Gemini | `GEMINI_API_KEY` | Recompute/enrichment controlado em evento fixture ou staging. |
+| Brevo | `BREVO_API_KEY`, `EMAIL_SENDER`, `EMAIL_SENDER_NAME`, `RESET_PASS_URL`; recomendado `FRONT_URL` | E-mail de reset entregue em caixa de teste, sem segredo em log. |
+| Stripe test | `STRIPE_SECRET_KEY`, `STRIPE_PUBLIC_KEY`, `STRIPE_WEBHOOK_SECRET`, `STARTER_PRICE_*`, `PROFISSIONAL_PRICE_*`, `SUCCESS_URL`, `CANCEL_URL` | `preflight:track3:strict` + checkout/webhook/quota/cancelamento em test mode. |
+| Stays sandbox | `STAYS_API_BASE_URL`, `STAYS_TOKEN_ENCRYPTION_KEY`, `STAYS_AUTO_APPLY_DRY_RUN=true`, allowlists quando auto for testado | Connect/sync/push manual/rollback e auto dry-run. |
+| Authenticated gates | `ENTERPRISE_GATE_HEALTH_TOKEN` ou `HEALTH_READINESS_TOKEN`; `E2E_AUTH_EMAIL`, `E2E_AUTH_PASSWORD`, `E2E_HOST_EMAIL`, `E2E_HOST_PASSWORD` ou `ENTERPRISE_GATE_ADMIN_JWT`, `ENTERPRISE_GATE_HOST_JWT` | Release gate autenticado e enterprise read-only sem skip. |
+| Events ingest staging | `ENTERPRISE_GATE_EVENTS_INGEST_KEY` ou `EVENTS_INGEST_API_KEY` | Ingest controlado apenas com `--allow-mutations` em staging. |
+| Outcomes/calibracao | Sem secret novo; exige DB staging, usuarios e dados de `PricingDecisionSnapshot`/`occupancy_history` | Relatorio `pricing-outcome-calibration-report.ts` contra fixture ou DB staging read-only. |
 
 ### Stays auto-apply safety flags
 
@@ -90,4 +108,6 @@ Regras esperadas:
 - `STAYS_AUTO_APPLY_DRY_RUN` deve permanecer `true` durante o primeiro smoke com conta/listing allowlisted.
 - `STAYS_AUTO_APPLY_USER_ALLOWLIST` e `STAYS_AUTO_APPLY_LISTING_ALLOWLIST` devem ser revisados antes de cada ativacao real; nunca usar wildcard em beta privado.
 - API keys externas podem ficar pendentes em dev/staging, desde que os fluxos dependentes nao sejam anunciados como prontos.
+- `/health` detalhado em staging/prod exige `HEALTH_READINESS_TOKEN`; publicar readiness sem token expõe inventario operacional.
+- Em staging Railway sem dominio proprio, usar `COOKIE_DOMAIN=none`; usar `.myurbanai.com` em host `*.railway.app` faz o browser rejeitar cookie e quebra login UI.
 - Para Track 3, rodar `npm run preflight:track3` em `urban-ai-backend-main` antes de smoke manual.

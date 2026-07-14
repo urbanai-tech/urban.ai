@@ -65,14 +65,15 @@ test.describe('My plan billing view', () => {
 
     await page.goto('/my-plan', { waitUntil: 'domcontentloaded' });
 
+    await expect(page.getByTestId('my-plan-page')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole('heading', { name: /Meu plano/i })).toBeVisible();
     await expect(page.getByText(/Plano profissional/i)).toBeVisible();
     await expect(page.getByText('trimestral', { exact: true })).toBeVisible();
-    await expect(page.getByText(/5 imoveis contratados/i)).toBeVisible();
+    await expect(page.getByText(/5 im[oó]veis contratados/i)).toBeVisible();
     await expect(page.getByTestId('quota-contracted-card')).toContainText('Contratados');
     await expect(page.getByTestId('quota-active-card')).toContainText('Ativos');
     await expect(page.getByTestId('quota-available-card')).toContainText('Livres');
-    await expect(page.getByText(/Voce ainda pode cadastrar/i)).toBeVisible();
+    await expect(page.getByText(/Voc[eê] ainda pode cadastrar/i)).toBeVisible();
 
     const essentialCookiesButton = page.getByRole('button', { name: /Apenas essenciais/i });
     if (await essentialCookiesButton.count()) {
@@ -112,9 +113,10 @@ test.describe('My plan billing view', () => {
 
     await page.goto('/my-plan', { waitUntil: 'domcontentloaded' });
 
+    await expect(page.getByTestId('my-plan-page')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText(/Plano Alpha/i)).toBeVisible();
     await expect(page.getByText(/Alpha assistido/i)).toBeVisible();
-    await expect(page.getByText(/Nao foi possivel carregar o limite de imoveis/i)).toBeVisible();
+    await expect(page.getByText(/N[aã]o foi poss[ií]vel carregar o limite de im[oó]veis/i)).toBeVisible();
     await expect(page.getByTestId('manage-billing-button')).toHaveCount(0);
   });
 });

@@ -1,5 +1,5 @@
-// Barrel de compatibilidade — reexporta a API modularizada por dominio.
-// Todo import existente `from '.../service/api'` continua resolvendo identico.
+// Barrel de compatibilidade - reexporta a API modularizada por dominio.
+// Todo import existente `from '.../service/api'` continua resolvendo igual.
 // Implementacao real vive em ./api/*.
 export * from "./api/client";
 export * from "./api/properties";

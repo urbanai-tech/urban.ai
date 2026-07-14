@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode } from '@nestjs/common';
+import { Controller, Get, Headers, HttpCode } from '@nestjs/common';
 import { HealthService } from './health.service';
 
 @Controller()
@@ -6,7 +6,8 @@ export class HealthController {
   constructor(private readonly healthService: HealthService) {}
 
   @Get('health')
-  getHealth() {
+  getHealth(@Headers('authorization') authorization?: string) {
+    this.healthService.assertReadinessAccess(authorization);
     return this.healthService.getHealth();
   }
 

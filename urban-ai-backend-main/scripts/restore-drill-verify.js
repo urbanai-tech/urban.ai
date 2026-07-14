@@ -92,16 +92,20 @@ async function main() {
       return latest;
     });
 
-    await runSqlCheck(checks, 'auditability.tables_nonempty', 'Auditability tables are readable', async () => {
+    await runSqlCheck(checks, 'auditability.tables_nonempty', 'Auditability tables are present and non-empty', async () => {
       const required = ['admin_job_runs', 'admin_audit_logs'];
       const result = {};
       for (const table of required) {
         if (!presentTables.has(table)) {
           result[table] = { present: false, total: null };
-          continue;
+          throw new Error(`${table} is missing; restored audit trail is not verifiable`);
         }
         const [rows] = await connection.query(`SELECT COUNT(*) AS total FROM \`${table}\``);
-        result[table] = { present: true, total: Number(rows[0].total) };
+        const total = Number(rows[0].total);
+        result[table] = { present: true, total };
+        if (total <= 0) {
+          throw new Error(`${table} is empty; restored audit trail is not verifiable`);
+        }
       }
       return result;
     });
@@ -235,7 +239,7 @@ function plannedChecks() {
     { name: 'schema.expected_tables', status: 'planned', description: `Verify ${EXPECTED_TABLES.length} expected tables`, durationMs: 0 },
     { name: 'schema.row_counts', status: 'planned', description: 'Read COUNT(*) from core tables', durationMs: 0 },
     { name: 'schema.latest_timestamps', status: 'planned', description: 'Read latest timestamps where available', durationMs: 0 },
-    { name: 'auditability.tables_nonempty', status: 'planned', description: 'Verify admin_job_runs/admin_audit_logs are readable', durationMs: 0 },
+    { name: 'auditability.tables_nonempty', status: 'planned', description: 'Verify admin_job_runs/admin_audit_logs are present and non-empty', durationMs: 0 },
   ];
 }
 
