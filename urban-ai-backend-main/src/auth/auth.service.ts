@@ -1,4 +1,12 @@
-import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  ServiceUnavailableException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
@@ -8,7 +16,6 @@ import { User } from 'src/entities/user.entity';
 import { RefreshToken } from 'src/entities/refresh-token.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { PaymentsService } from 'src/payments/payments.service';
-import { ConflictException } from '@nestjs/common';
 
 const BCRYPT_ROUNDS = 12;
 const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
@@ -22,6 +29,27 @@ export type TokenPair = {
 };
 
 export type SafeUser = Omit<User, 'password'>;
+
+type GoogleTokenInfo = {
+  aud?: string;
+  iss?: string;
+  exp?: string;
+  email?: string;
+  email_verified?: boolean | string;
+  name?: string;
+  picture?: string;
+  sub?: string;
+};
+
+type VerifiedGoogleUser = {
+  email: string;
+  name: string;
+  picture?: string;
+  subject: string;
+  audience: string;
+  issuer: string;
+  expiresAt: number;
+};
 
 @Injectable()
 export class AuthService {
@@ -298,19 +326,84 @@ export class AuthService {
     return this.issueTokens(user, meta);
   }
 
+  private resolveGoogleClientIds(): string[] {
+    return [
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_OAUTH_CLIENT_ID,
+      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+    ]
+      .filter(Boolean)
+      .flatMap((value) => String(value).split(/[\s,;]+/))
+      .map((value) => value.trim())
+      .filter(Boolean);
+  }
+
+  private async verifyGoogleIdToken(idToken: string): Promise<VerifiedGoogleUser> {
+    const clientIds = this.resolveGoogleClientIds();
+    if (clientIds.length === 0) {
+      throw new ServiceUnavailableException('Google login is not configured.');
+    }
+
+    let payload: GoogleTokenInfo;
+    try {
+      const response = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`,
+      );
+      if (!response.ok) {
+        throw new UnauthorizedException('Google token inválido.');
+      }
+      payload = (await response.json()) as GoogleTokenInfo;
+    } catch (error) {
+      if (error instanceof UnauthorizedException) throw error;
+      throw new UnauthorizedException('Google token inválido.');
+    }
+
+    const expiresAt = Number(payload.exp ?? 0) * 1000;
+    const issuerOk = payload.iss === 'accounts.google.com' || payload.iss === 'https://accounts.google.com';
+    const emailVerified = payload.email_verified === true || payload.email_verified === 'true';
+
+    if (!payload.aud || !clientIds.includes(payload.aud)) {
+      throw new UnauthorizedException('Google token com audiencia invalida.');
+    }
+    if (!issuerOk) {
+      throw new UnauthorizedException('Google token com emissor inválido.');
+    }
+    if (!payload.sub) {
+      throw new UnauthorizedException('Google token sem identificador.');
+    }
+    if (!payload.email || !emailVerified) {
+      throw new UnauthorizedException('Google token sem email verificado.');
+    }
+    if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
+      throw new UnauthorizedException('Google token expirado.');
+    }
+
+    return {
+      email: payload.email.toLowerCase(),
+      name: payload.name || payload.email.split('@')[0],
+      picture: payload.picture,
+      subject: payload.sub,
+      audience: payload.aud,
+      issuer: payload.iss || '',
+      expiresAt,
+    };
+  }
+
   async googleLogin(
-    userData: {
-      token?: string;
-      email: string;
-      name: string;
-      picture?: string;
-    },
+    userData: { idToken?: string; token?: string; credential?: string },
     meta?: { userAgent?: string; ip?: string },
   ) {
     try {
+      const idToken = userData.idToken ?? userData.credential ?? userData.token;
+      if (!idToken) {
+        throw new BadRequestException('Token Google não fornecido.');
+      }
+
+      const verified = await this.verifyGoogleIdToken(idToken);
+
       // Verificar se o usuário já existe
       let user = await this.userRepository.findOne({
-        where: { email: userData.email },
+        where: { email: verified.email },
         select: ['id', 'username', 'email', 'password', 'ativo'],
       });
 
@@ -320,8 +413,8 @@ export class AuthService {
         const googlePassword = `google_${randomUUID}`;
 
         user = this.userRepository.create({
-          username: userData.name,
-          email: userData.email,
+          username: verified.name,
+          email: verified.email,
           password: googlePassword,
         });
 
@@ -332,12 +425,11 @@ export class AuthService {
         if (user.ativo === false) {
           throw new UnauthorizedException('Usuário inativo. Faça login com uma conta ativa.');
         }
-        // Se o usuário existe mas não é conta Google, converte
+        // Conta local existente não é convertida silenciosamente por login social.
         if (!user.password.startsWith('google_')) {
-          const randomUUID = uuidv4();
-          user.password = `google_${randomUUID}`;
-          user = await this.userRepository.save(user);
-          await this.paymentsService.createPayment(user);
+          throw new ConflictException(
+            'Esta conta já existe com senha. Faça login com senha e vincule o Google pelo perfil.',
+          );
         }
       }
 
@@ -352,7 +444,12 @@ export class AuthService {
       };
     } catch (error) {
       console.error('Erro no login com Google:', error);
-      if (error instanceof UnauthorizedException) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof ConflictException ||
+        error instanceof ServiceUnavailableException ||
+        error instanceof UnauthorizedException
+      ) {
         throw error;
       }
       throw new InternalServerErrorException('Falha no login com Google');

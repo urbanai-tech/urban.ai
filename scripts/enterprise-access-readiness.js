@@ -7,8 +7,9 @@ const GROUPS = [
   {
     id: 'live_gate_readonly',
     label: 'Enterprise live gate read-only',
-    required: ['ENTERPRISE_GATE_BACKEND_URL', 'ENTERPRISE_GATE_FRONTEND_URL'],
+    required: ['ENTERPRISE_GATE_BACKEND_URL', 'ENTERPRISE_GATE_FRONTEND_URL', 'ENTERPRISE_GATE_HEALTH_TOKEN'],
     recommended: ['ENTERPRISE_GATE_ADMIN_JWT', 'ENTERPRISE_GATE_HOST_JWT'],
+    aliases: { ENTERPRISE_GATE_HEALTH_TOKEN: ['HEALTH_READINESS_TOKEN'] },
     command:
       'node scripts/enterprise-auditability-live-gate.js --env=staging --strict --skip-events-ingest --output docs/evidence/enterprise-live-gate-staging.md',
   },
@@ -51,6 +52,12 @@ function parseArgs(argv) {
     const arg = argv[index];
     if (arg === '--help' || arg === '-h') options.help = true;
     else if (arg.startsWith('--env-file=')) options.envFile = arg.slice('--env-file='.length);
+    else if (arg === '--env-file') {
+      const value = argv[index + 1];
+      if (!value || value.startsWith('-')) throw new Error(`${arg} requires a file path.`);
+      options.envFile = value;
+      index += 1;
+    }
     else if (arg === '--output' || arg === '-o') {
       const value = argv[index + 1];
       if (!value || value.startsWith('-')) throw new Error(`${arg} requires a file path.`);

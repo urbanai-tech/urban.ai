@@ -2,7 +2,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  Generated,
   Index,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -17,8 +16,8 @@ import {
  *  - Capturar demanda de novos interessados sem expor o sistema
  *  - Construir lista priorizada para o beta fechado da F7
  *
- * `position` é gerado pelo banco via AUTO_INCREMENT — sem race condition entre
- * inscrições simultâneas. Usado para mostrar "você é o #N na fila".
+ * `position` é calculado no service ao inserir a linha. Usado para mostrar
+ * "você é o #N na fila".
  *
  * `referralCode` é gerado no service ao criar a row (8 chars URL-safe).
  * `referredBy` aponta pro `referralCode` de quem indicou (nullable). Quando
@@ -27,15 +26,13 @@ import {
 @Entity('waitlist')
 @Index(['email'], { unique: true })
 @Index(['referralCode'], { unique: true })
-@Index(['position'])
 @Index(['source'])
 export class Waitlist {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  /** Posição na fila — INT autoincrement, gerado pelo banco. */
+  /** Posição na fila, calculada pelo service no cadastro. */
   @Column({ type: 'int', unique: true })
-  @Generated('increment')
   position: number;
 
   @Column({ type: 'varchar', length: 255 })

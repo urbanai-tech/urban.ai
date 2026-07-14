@@ -4,6 +4,44 @@ import { AuthController } from './auth.controller';
 const sha256 = (value: string) => crypto.createHash('sha256').update(value).digest('hex');
 
 describe('AuthController', () => {
+  const originalEnv = process.env;
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  describe('login cookies', () => {
+    it('treats COOKIE_DOMAIN=none as a host-only cookie in staging', async () => {
+      process.env = { ...originalEnv, APP_ENV: 'staging', COOKIE_DOMAIN: 'none' };
+      const authService = {
+        login: jest.fn().mockResolvedValue({
+          accessToken: 'access-token',
+          refreshToken: 'refresh-token',
+          refreshExpiresAt: new Date(Date.now() + 60_000),
+        }),
+      };
+      const controller = new AuthController(authService as any, {} as any);
+      const res = { cookie: jest.fn() };
+
+      await controller.login(
+        { email: 'admin@urbanai.test', password: 'hash' },
+        { headers: { 'user-agent': 'jest' }, ip: '127.0.0.1' } as any,
+        res as any,
+      );
+
+      expect(res.cookie).toHaveBeenCalledWith(
+        'urbanai_access_token',
+        'access-token',
+        expect.not.objectContaining({ domain: expect.any(String) }),
+      );
+      expect(res.cookie).toHaveBeenCalledWith(
+        'urbanai_refresh_token',
+        'refresh-token',
+        expect.not.objectContaining({ domain: expect.any(String) }),
+      );
+    });
+  });
+
   describe('acceptWaitlistInvite', () => {
     let controller: AuthController;
     let authService: {

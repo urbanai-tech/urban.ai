@@ -161,12 +161,15 @@ const Register = () => {
         password: hashedPassword,
       });
 
-      await api.post("/auth/login", {
+      const { data: loginData } = await api.post<{ accessToken?: string }>("/auth/login", {
         email,
         password: hashedPassword,
       });
 
       if (typeof window !== "undefined") {
+        if (loginData?.accessToken) {
+          localStorage.setItem("accessToken", loginData.accessToken);
+        }
         localStorage.setItem("lastRegisterEmail", email);
       }
 

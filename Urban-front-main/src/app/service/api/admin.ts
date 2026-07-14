@@ -1741,6 +1741,10 @@ export interface AdminEventRadarEvent {
   interpretation: string;
   riskFlags: string[];
   dataQualityFlags: string[];
+  dataStatus?: string | null;
+  modelVersion?: string | null;
+  metricVersion?: string | null;
+  jobRunId?: string | null;
   raw?: Record<string, unknown>;
 }
 
@@ -1859,6 +1863,7 @@ export interface AdminEventRadarDetail {
     drivers: Array<{ key: string; label: string; weight: number; explanation: string }>;
     riskFlags: string[];
     dataQualityFlags: string[];
+    dataStatus?: string | null;
     generatedAt: string;
     modelVersion: string;
     metricVersion: string;

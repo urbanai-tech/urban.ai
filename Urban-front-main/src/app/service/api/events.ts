@@ -173,6 +173,8 @@ export type EventIntelligenceDetail = {
     interpretation: string;
     drivers: EventDemandDriver[];
     riskFlags: string[];
+    dataQualityFlags: string[];
+    dataStatus?: string | null;
     generatedAt: string;
     modelVersion: string;
     metricVersion: string;
@@ -210,6 +212,7 @@ export type HostEventRadarItem = EventCatalogItem & {
   demandRadiusKm?: number | null;
   heatLevel?: number | null;
   interpretation?: string | null;
+  dataStatus?: string | null;
 };
 
 export type HostEventCatalogFilters = {

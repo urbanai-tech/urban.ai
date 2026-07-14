@@ -25,8 +25,8 @@ seguindo runbooks especificos.
 ## Pre-requisitos
 
 1. Node e dependencias instaladas em `Urban-front-main`.
-2. Acesso ao app alvo, preferencialmente `https://app.myurbanai.com`.
-3. API alvo, preferencialmente `https://urbanai-production-85fd.up.railway.app`.
+2. Acesso ao app alvo de staging, por exemplo `https://urban-ai-frontend-staging-staging.up.railway.app`.
+3. API alvo de staging, por exemplo `https://urban-ai-backend-staging-staging.up.railway.app`.
 4. Usuario tester/admin autorizado.
 5. Nao salvar senha em `.env`, docs, prints ou mensagens de erro.
 
@@ -35,8 +35,9 @@ seguindo runbooks especificos.
 No PowerShell:
 
 ```powershell
-$env:E2E_BASE_URL="https://app.myurbanai.com"
-$env:E2E_API_URL="https://urbanai-production-85fd.up.railway.app"
+$env:E2E_TARGET_ENV="staging"
+$env:E2E_BASE_URL="https://urban-ai-frontend-staging-staging.up.railway.app"
+$env:E2E_API_URL="https://urban-ai-backend-staging-staging.up.railway.app"
 $env:E2E_EMAIL="<email-do-tester>"
 $env:E2E_PASSWORD="<senha-informada-fora-do-repo>"
 $env:E2E_AUDIT_MODE="all"
@@ -55,6 +56,7 @@ Diretorio:
 
 ```powershell
 cd "C:\Users\gusta\OneDrive\Documentos\GitHub\Urban AI\Urban-front-main"
+node .\scripts\staging-gate-preflight.mjs --gate product-audit
 node .\scripts\e2e-product-audit.js
 ```
 
@@ -75,8 +77,12 @@ cd "C:\Users\gusta\OneDrive\Documentos\GitHub\Urban AI\Urban-front-main"
 npm run test:e2e -- authenticated-smoke.spec.ts authenticated-mobile-smoke.spec.ts pwa-mobile.spec.ts
 ```
 
-Para testar contra build local em vez de producao, iniciar app local primeiro e
+Para testar contra build local em vez de staging, iniciar app local primeiro e
 ajustar `E2E_BASE_URL` para `http://127.0.0.1:3000`.
+
+O script de auditoria nao tem mais fallback para producao. Se `E2E_BASE_URL`
+ou `E2E_API_URL` estiverem ausentes, ele falha antes de abrir o navegador; se
+apontarem para host conhecido de producao, ele bloqueia a execucao por padrao.
 
 ## Checklist manual Admin
 

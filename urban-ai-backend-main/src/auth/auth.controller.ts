@@ -7,6 +7,7 @@ import {
   ForbiddenException,
   forwardRef,
   Get,
+  HttpException,
   HttpCode,
   Inject,
   InternalServerErrorException,
@@ -65,6 +66,20 @@ export class AuthController {
     return process.env.PRELAUNCH_MODE === 'true';
   }
 
+  private resolveCookieDomain(): string | undefined {
+    const env = process.env.APP_ENV || process.env.NODE_ENV;
+    const isProd = env === 'production' || env === 'staging';
+    const configuredCookieDomain = process.env.COOKIE_DOMAIN?.trim();
+
+    if (configuredCookieDomain) {
+      return configuredCookieDomain.toLowerCase() === 'none'
+        ? undefined
+        : configuredCookieDomain;
+    }
+
+    return isProd ? '.myurbanai.com' : undefined;
+  }
+
   /**
    * Configuração comum dos cookies.
    *
@@ -85,13 +100,7 @@ export class AuthController {
   private cookieOpts(maxAgeMs: number, isRefresh = false) {
     const env = process.env.APP_ENV || process.env.NODE_ENV;
     const isProd = env === 'production' || env === 'staging';
-    const configuredCookieDomain = process.env.COOKIE_DOMAIN?.trim();
-    const cookieDomain =
-      configuredCookieDomain && configuredCookieDomain.toLowerCase() !== 'none'
-        ? configuredCookieDomain
-        : isProd
-          ? '.myurbanai.com'
-          : undefined;
+    const cookieDomain = this.resolveCookieDomain();
     const configuredSameSite = process.env.COOKIE_SAME_SITE?.trim().toLowerCase();
     const sameSite: CookieSameSite =
       configuredSameSite === 'none' || configuredSameSite === 'strict' || configuredSameSite === 'lax'
@@ -117,15 +126,7 @@ export class AuthController {
   private clearAuthCookies(res: Response) {
     // Para o browser invalidar o cookie corretamente, os atributos
     // (domain, path) precisam bater com os usados ao setar.
-    const env = process.env.APP_ENV || process.env.NODE_ENV;
-    const isProd = env === 'production' || env === 'staging';
-    const configuredCookieDomain = process.env.COOKIE_DOMAIN?.trim();
-    const cookieDomain =
-      configuredCookieDomain && configuredCookieDomain.toLowerCase() !== 'none'
-        ? configuredCookieDomain
-        : isProd
-          ? '.myurbanai.com'
-          : undefined;
+    const cookieDomain = this.resolveCookieDomain();
 
     res.clearCookie(ACCESS_TOKEN_COOKIE, { path: '/', domain: cookieDomain });
     res.clearCookie(REFRESH_TOKEN_COOKIE, { path: '/auth', domain: cookieDomain });
@@ -281,21 +282,19 @@ export class AuthController {
   async googleLogin(
     @Body()
     googleUserData: {
-      email: string;
-      name: string;
-      picture?: string;
+      idToken?: string;
+      token?: string;
+      credential?: string;
     },
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
     try {
-      if (!googleUserData.email) {
-        throw new BadRequestException('Email não fornecido');
+      const idToken = googleUserData.idToken ?? googleUserData.credential ?? googleUserData.token;
+      if (!idToken) {
+        throw new BadRequestException('Token Google não fornecido.');
       }
-      if (!googleUserData.name) {
-        throw new BadRequestException('Nome não fornecido');
-      }
-      const result = await this.authService.googleLogin(googleUserData, {
+      const result = await this.authService.googleLogin({ idToken }, {
         userAgent: req.headers['user-agent'],
         ip: req.ip,
       });
@@ -304,7 +303,7 @@ export class AuthController {
       return { accessToken: result.accessToken, user: result.user };
     } catch (error) {
       console.error('Erro no controller de login Google:', error);
-      if (error instanceof BadRequestException) {
+      if (error instanceof HttpException) {
         throw error;
       }
       throw new InternalServerErrorException(

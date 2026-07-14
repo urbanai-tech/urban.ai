@@ -37,7 +37,10 @@ Escopo: fluxo minimo para promover mudancas rumo a M1/M2/M3 sem repetir hotfix d
 - Stripe live/test estiver misturado ou sync check apontar Price ID ausente para M3.
 - Stays estiver visivel como automatico pronto sem credenciais, consentimento e rollback.
 - Alteracao depender de env externa sem fallback claro.
-- Enterprise live gate estiver pendente, sem credenciais de staging ou apontando para URLs de producao por fallback.
+- Enterprise live gate ou auditoria autenticada estiver pendente, sem credenciais
+  de staging ou apontando para URLs de producao. Os preflights de staging devem
+  bloquear host de producao conhecido e registrar skip seguro quando faltarem
+  secrets/vars.
 
 ## Rollback minimo
 

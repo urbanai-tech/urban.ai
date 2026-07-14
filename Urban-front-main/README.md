@@ -88,7 +88,7 @@ src/
 Specs em `e2e/`:
 
 - `smoke.spec.ts` — home/landing/plans + waitlist form + staging banner
-- `authenticated-smoke.spec.ts` — login + dashboard/admin/alpha/ROI; pula por padrão sem credenciais
+- `authenticated-smoke.spec.ts` — login host + dashboard e login admin + admin/alpha/ROI; cada bloco pula sem sua credencial
 - `a11y.spec.ts` — axe-core nas 3 rotas públicas, falha em violations critical/serious
 
 Rodar contra dev local:
@@ -107,17 +107,28 @@ Rodar contra staging:
 E2E_BASE_URL=https://staging.myurbanai.com yarn test:e2e
 ```
 
-Smoke autenticado contra staging/prod-like:
+Smoke autenticado contra staging:
 
 ```bash
 E2E_BASE_URL=https://staging.myurbanai.com \
-E2E_AUTH_EMAIL=<admin-email> \
-E2E_AUTH_PASSWORD='senha-real' \
+E2E_API_URL=https://api-staging.myurbanai.com \
+E2E_ADMIN_EMAIL=<admin-email> \
+E2E_ADMIN_PASSWORD='senha-real-admin' \
+E2E_HOST_EMAIL=<host-email> \
+E2E_HOST_PASSWORD='senha-real-host' \
 E2E_ALPHA_EMAIL=<alpha-email> \
+node scripts/staging-gate-preflight.mjs --gate authenticated-smoke
+
+E2E_BASE_URL=https://staging.myurbanai.com \
+E2E_API_URL=https://api-staging.myurbanai.com \
+E2E_ADMIN_EMAIL=<admin-email> \
+E2E_ADMIN_PASSWORD='senha-real-admin' \
+E2E_HOST_EMAIL=<host-email> \
+E2E_HOST_PASSWORD='senha-real-host' \
 yarn test:e2e --grep "Smoke autenticado"
 ```
 
-Sem `E2E_AUTH_EMAIL`/`E2E_AUTH_PASSWORD` (ou aliases `E2E_EMAIL`/`E2E_PASSWORD`), o spec autenticado usa `test.skip` e a suite pública continua rodando normalmente.
+Sem credenciais de host ou admin, os blocos correspondentes usam `test.skip` e a suite pública continua rodando normalmente. O CI também aceita `ENTERPRISE_GATE_ADMIN_EMAIL/PASSWORD` e `ENTERPRISE_GATE_HOST_EMAIL/PASSWORD`; os aliases legados `E2E_AUTH_EMAIL/PASSWORD` ou `E2E_EMAIL/PASSWORD` ficam restritos ao bloco admin.
 
 ## Build production
 

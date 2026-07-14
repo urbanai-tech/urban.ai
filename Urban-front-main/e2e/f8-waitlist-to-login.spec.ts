@@ -70,10 +70,18 @@ test.describe('F8 Happy Path: waitlist -> convite -> aceite -> dashboard', () =>
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          userId: 'user-mock-123',
+          id: 'user-mock-123',
+          username: 'Teste E2E',
           email: 'teste.e2e@urbanai.com.br',
           role: 'host',
         }),
+      });
+    });
+    await page.route('**/payments/getSubscription', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'active', plan: 'alpha' }),
       });
     });
 
@@ -81,7 +89,25 @@ test.describe('F8 Happy Path: waitlist -> convite -> aceite -> dashboard', () =>
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify([]),
+        body: JSON.stringify([
+          {
+            id: 'prop-f8-e2e',
+            propertyName: 'Studio F8',
+            userId: 'user-mock-123',
+            analisado: 'completed',
+            image_url: 'https://example.com/studio-f8.jpg',
+            latitude: -23.56,
+            longitude: -46.65,
+            nome: 'Studio F8',
+          },
+        ]),
+      });
+    });
+    await page.route('**/propriedades/eventos-analisados-com-price**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [] }),
       });
     });
 
@@ -102,6 +128,6 @@ test.describe('F8 Happy Path: waitlist -> convite -> aceite -> dashboard', () =>
     expect(acceptPayload?.password).not.toBe('UrbanE2E@123');
 
     await page.waitForURL('**/dashboard');
-    await expect(page.locator('main h1')).toContainText(/Calend.rio/i);
+    await expect(page.getByRole('heading', { name: /Calend.rio/i })).toBeVisible();
   });
 });
