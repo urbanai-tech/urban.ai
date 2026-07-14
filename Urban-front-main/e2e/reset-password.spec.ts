@@ -21,7 +21,7 @@ test.describe('Reset de senha', () => {
     await page.goto('/request-reset-password');
 
     await expect(page.getByRole('heading', { name: /Redefinir senha/i })).toBeVisible();
-    await page.getByPlaceholder('voce@email.com').fill('host.reset@urbanai.com.br');
+    await page.locator('input[type="email"]').fill('host.reset@urbanai.com.br');
     await page.getByRole('button', { name: /^Enviar link$/i }).click();
 
     await expect.poll(() => payloads.length).toBe(1);

@@ -75,7 +75,7 @@ test.describe('Release gate - public pages', () => {
     await page.getByPlaceholder('Seu nome').fill('Lead Operacional');
     await page.getByPlaceholder('seu@email.com').fill('lead+contato@urbanai.com.br');
     await page.getByPlaceholder('Qual o motivo do contato?').fill('Quero entrar no beta');
-    await page.getByPlaceholder('Descreva como podemos ajudar...').fill('Tenho 4 imoveis em Sao Paulo e quero testar a Urban AI.');
+    await page.locator('textarea[name="message"]').fill('Tenho 4 imoveis em Sao Paulo e quero testar a Urban AI.');
     await page.getByRole('button', { name: /Enviar mensagem/i }).click();
 
     await expect(page.getByRole('status').filter({ hasText: /Mensagem registrada/i })).toBeVisible();

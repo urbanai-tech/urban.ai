@@ -76,7 +76,7 @@ test.describe('Dashboard recommendations', () => {
 
     await expect(page.getByRole('heading', { name: /Calend.rio/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Sem sugest/i })).toBeVisible();
-    await expect(page.getByText(/N.o encontramos evento futuro que combine/i)).toBeVisible();
+    await expect(page.getByText(/N[aã]o encontramos evento futuro que combine/i)).toBeVisible();
   });
 
   test('mostra card de recomendacao com motivo e preco aplicado', async ({ page }) => {
@@ -93,9 +93,9 @@ test.describe('Dashboard recommendations', () => {
     await page.goto('/dashboard');
 
     await expect(page.getByText('Expo Turismo SP')).toBeVisible();
-    await expect(page.getByText(/Sugestao da IA/i)).toBeVisible();
+    await expect(page.getByText(/Sugest[aã]o da IA/i)).toBeVisible();
     await expect(page.getByText('R$ 420').first()).toBeVisible();
-    await expect(page.getByText(/Evento proximo/i).first()).toBeVisible();
+    await expect(page.getByText(/Evento pr[oó]ximo/i).first()).toBeVisible();
     await expect(page.getByRole('button', { name: /Aplicar sugest/i })).toBeVisible();
   });
 
@@ -153,15 +153,15 @@ test.describe('Dashboard recommendations', () => {
     await page.goto('/dashboard');
     await page.getByRole('button', { name: /Aplicar sugest/i }).click();
 
-    expect(acceptPayloads[0]).toEqual({ aceito: true });
+    await expect.poll(() => acceptPayloads[0]).toEqual({ aceito: true });
     await expect(page.getByRole('button', { name: /Desfazer aprova/i })).toBeVisible();
 
     await page.getByRole('button', { name: /Registrar resultado/i }).click();
-    await page.getByLabel(/Preco aplicado/i).fill('450');
+    await page.getByLabel(/Pre[cç]o aplicado/i).fill('450');
     await page.getByLabel(/Resultado da reserva/i).selectOption('booked');
     await page.getByLabel(/Receita real/i).fill('1350');
     await page.getByLabel(/Noites reservadas/i).fill('3');
-    await page.getByLabel(/Observacao/i).fill('Reserva fechada pelo Airbnb');
+    await page.getByLabel(/Observa[cç][aã]o/i).fill('Reserva fechada pelo Airbnb');
     await page.getByRole('button', { name: /Salvar resultado/i }).click();
 
     await expect.poll(() => appliedPayloads.length).toBe(1);
