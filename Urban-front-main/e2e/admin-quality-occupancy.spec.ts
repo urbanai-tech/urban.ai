@@ -84,14 +84,14 @@ test.describe('Admin quality occupancy', () => {
     await page.goto('/admin/quality');
 
     await expect(page.getByRole('heading', { name: /Qualidade da IA/i })).toBeVisible();
-    await expect(page.getByText(/0 imoveis elegiveis/i)).not.toBeVisible();
+    await expect(page.getByText(/0 im[oó]veis eleg[ií]veis/i)).not.toBeVisible();
     await expect(page.getByText('Apto Alpha Copacabana', { exact: true })).toBeVisible();
 
     await page.getByLabel(/Data observada/i).fill('2026-05-15');
     await page.getByLabel(/Status/i).selectOption('booked');
-    await page.getByLabel(/Diaria anunciada/i).fill('150,00');
+    await page.getByLabel(/Di[aá]ria anunciada/i).fill('150,00');
     await page.getByLabel(/Receita real do dia/i).fill('150,00');
-    await page.getByRole('button', { name: /Salvar ocupacao/i }).click();
+    await page.getByRole('button', { name: /Salvar ocupa[cç][aã]o/i }).click();
 
     await expect(page.getByText(/Registro booked salvo/i)).toBeVisible();
     await expect(page.getByText('manual', { exact: true })).toBeVisible();
