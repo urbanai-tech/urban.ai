@@ -122,7 +122,10 @@ jobs:
     if: >-
       ${{
         github.event_name == 'workflow_dispatch' ||
-        github.event_name == 'push' ||
+        (
+          github.event_name == 'push' &&
+          vars.E2E_AUTHENTICATED_SMOKE_ENABLED == 'true'
+        ) ||
         (
           github.event_name == 'pull_request' &&
           vars.E2E_AUTHENTICATED_SMOKE_ENABLED == 'true' &&
@@ -211,7 +214,10 @@ jobs:
     if: >-
       ${{
         github.event_name == 'workflow_dispatch' ||
-        github.event_name == 'push' ||
+        (
+          github.event_name == 'push' &&
+          vars.ENTERPRISE_GATE_ENABLED == 'true'
+        ) ||
         (
           github.event_name == 'pull_request' &&
           vars.ENTERPRISE_GATE_ENABLED == 'true' &&
