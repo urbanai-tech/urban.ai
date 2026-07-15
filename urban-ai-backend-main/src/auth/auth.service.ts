@@ -71,19 +71,27 @@ export class AuthService {
    * como hash; só o valor bruto vai para o cliente (via cookie httpOnly).
    */
   async issueTokens(user: Pick<User, 'id' | 'username'>, meta?: { userAgent?: string; ip?: string }): Promise<TokenPair> {
+    return this.issueTokensWithRepository(this.refreshTokenRepository, user, meta);
+  }
+
+  private async issueTokensWithRepository(
+    repository: Repository<RefreshToken>,
+    user: Pick<User, 'id' | 'username'>,
+    meta?: { userAgent?: string; ip?: string },
+  ): Promise<TokenPair> {
     const accessToken = this.jwtService.sign({ sub: user.id, username: user.username });
 
     const rawRefresh = crypto.randomBytes(REFRESH_TOKEN_BYTES).toString('base64url');
     const refreshExpiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000);
 
-    const record = this.refreshTokenRepository.create({
+    const record = repository.create({
       user: user as User,
       tokenHash: this.hashRefreshToken(rawRefresh),
       expiresAt: refreshExpiresAt,
       userAgent: meta?.userAgent?.slice(0, 255) ?? null,
       ip: meta?.ip?.slice(0, 64) ?? null,
     });
-    await this.refreshTokenRepository.save(record);
+    await repository.save(record);
 
     return { accessToken, refreshToken: rawRefresh, refreshExpiresAt };
   }
@@ -96,38 +104,48 @@ export class AuthService {
   async rotateRefreshToken(rawRefresh: string, meta?: { userAgent?: string; ip?: string }): Promise<TokenPair> {
     if (!rawRefresh) throw new UnauthorizedException('Sua sessão expirou. Faça login novamente para continuar.');
     const hash = this.hashRefreshToken(rawRefresh);
-    const record = await this.refreshTokenRepository.findOne({
-      where: { tokenHash: hash },
-      relations: ['user'],
+    return this.refreshTokenRepository.manager.transaction(async (manager) => {
+      const repository = manager.getRepository(RefreshToken);
+      const record = await repository.findOne({
+        where: { tokenHash: hash },
+        relations: ['user'],
+      });
+      if (!record) throw new UnauthorizedException('Refresh token inválido');
+
+      if (record.user?.ativo === false) {
+        await repository.update(
+          { user: { id: record.user.id }, revokedAt: IsNull() },
+          { revokedAt: new Date() },
+        );
+        throw new UnauthorizedException('Usuário inativo. Faça login com uma conta ativa.');
+      }
+
+      if (record.revokedAt) {
+        await repository.update(
+          { user: { id: record.user.id }, revokedAt: IsNull() },
+          { revokedAt: new Date() },
+        );
+        throw new UnauthorizedException('Refresh token reutilizado — sessão encerrada por segurança');
+      }
+
+      if (record.expiresAt.getTime() <= Date.now()) {
+        throw new UnauthorizedException('Refresh token expirado');
+      }
+
+      const claimed = await repository.update(
+        { id: record.id, revokedAt: IsNull() },
+        { revokedAt: new Date() },
+      );
+      if (claimed.affected !== 1) {
+        await repository.update(
+          { user: { id: record.user.id }, revokedAt: IsNull() },
+          { revokedAt: new Date() },
+        );
+        throw new UnauthorizedException('Refresh token reutilizado — sessão encerrada por segurança');
+      }
+
+      return this.issueTokensWithRepository(repository, record.user, meta);
     });
-    if (!record) throw new UnauthorizedException('Refresh token inválido');
-
-    if (record.user?.ativo === false) {
-      await this.refreshTokenRepository.update(
-        { user: { id: record.user.id }, revokedAt: IsNull() },
-        { revokedAt: new Date() },
-      );
-      throw new UnauthorizedException('Usuário inativo. Faça login com uma conta ativa.');
-    }
-
-    if (record.revokedAt) {
-      // Reuso de token revogado — possível roubo. Derrubar todas as sessões
-      // do mesmo usuário por segurança.
-      await this.refreshTokenRepository.update(
-        { user: { id: record.user.id }, revokedAt: IsNull() },
-        { revokedAt: new Date() },
-      );
-      throw new UnauthorizedException('Refresh token reutilizado — sessão encerrada por segurança');
-    }
-
-    if (record.expiresAt.getTime() <= Date.now()) {
-      throw new UnauthorizedException('Refresh token expirado');
-    }
-
-    record.revokedAt = new Date();
-    await this.refreshTokenRepository.save(record);
-
-    return this.issueTokens(record.user, meta);
   }
 
   /** Revoga um refresh específico (logout de uma sessão). */
@@ -219,7 +237,7 @@ export class AuthService {
 
   /** Remove o campo password do objeto retornado para o cliente. */
   sanitizeUser(user: User): SafeUser {
-    const { password, ...safe } = user as User & { password?: string };
+    const { password: _password, ...safe } = user as User & { password?: string };
     return safe;
   }
 
@@ -235,7 +253,13 @@ export class AuthService {
     const pwdHash = await this.bcryptHash(data.password);
 
     try {
-      const user = this.userRepository.create({ ...data, password: pwdHash });
+      const user = this.userRepository.create({
+        username: data.username,
+        email: data.email,
+        password: pwdHash,
+        role: 'host',
+        ativo: true,
+      });
       const savedUser = await this.userRepository.save(user);
       await this.paymentsService.createPayment(savedUser);
 

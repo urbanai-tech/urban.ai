@@ -1,5 +1,4 @@
-"""
-Database configuration module for raw data pipeline.
+"""Database configuration module for raw data pipeline.
 
 This module provides database connection management, configuration templates,
 and secure integration with Prefect secrets.

@@ -1,8 +1,12 @@
+import { lazy, Suspense } from "react";
 import { useSquadSocket } from "@/hooks/useSquadSocket";
 import { SquadSelector } from "@/components/SquadSelector";
-import { PhaserGame } from "@/office/PhaserGame";
 import { StatusBar } from "@/components/StatusBar";
 import { useTheme } from "@/theme/useTheme";
+
+const PhaserGame = lazy(() =>
+  import("@/office/PhaserGame").then((module) => ({ default: module.PhaserGame })),
+);
 
 export function App() {
   useSquadSocket();
@@ -61,7 +65,26 @@ export function App() {
       {/* Main content */}
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
         <SquadSelector />
-        <PhaserGame theme={theme.resolvedTheme} />
+        <Suspense
+          fallback={
+            <div
+              role="status"
+              aria-live="polite"
+              style={{
+                flex: 1,
+                display: "grid",
+                placeItems: "center",
+                color: "var(--text-secondary)",
+                background: "var(--bg-primary)",
+                fontSize: 12,
+              }}
+            >
+              Carregando ambiente visual…
+            </div>
+          }
+        >
+          <PhaserGame theme={theme.resolvedTheme} />
+        </Suspense>
       </div>
 
       {/* Footer */}

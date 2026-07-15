@@ -60,6 +60,17 @@ export class Payment {
     @Column({ type: 'varchar', length: 64, nullable: true })
     planName: string;
 
+    /**
+     * Stripe sends webhooks at least once and may deliver them out of order.
+     * These fields keep a small per-customer replay window and the newest
+     * event timestamp applied to this local billing projection.
+     */
+    @Column({ type: 'bigint', nullable: true })
+    lastStripeEventCreated: string;
+
+    @Column({ type: 'simple-json', nullable: true })
+    recentStripeEventIds: string[];
+
     @ManyToOne(() => User, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user: User;

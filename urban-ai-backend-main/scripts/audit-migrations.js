@@ -6,15 +6,15 @@ const path = require('path');
 const BASELINE_HISTORICAL_TABLES = new Map([
   [
     'analise_endereco_evento',
-    'present in docs/banco-antigo-schemas.md before Baseline1745500000000',
+    'present in docs/archive/data/banco-antigo-schemas.md before Baseline1745500000000',
   ],
   [
     'email_confirmations',
-    'present in docs/banco-antigo-schemas.md before Baseline1745500000000',
+    'present in docs/archive/data/banco-antigo-schemas.md before Baseline1745500000000',
   ],
   [
     'notifications',
-    'present in docs/banco-antigo-schemas.md before Baseline1745500000000',
+    'present in docs/archive/data/banco-antigo-schemas.md before Baseline1745500000000',
   ],
 ]);
 
@@ -40,7 +40,7 @@ if (errors.length > 0) {
 
 const entities = readEntityMetadata(entitiesDir, projectRoot);
 const migrations = readMigrations(migrationsDir, projectRoot);
-const audit = auditCoverage(entities, migrations);
+const audit = auditMigrations(entities, migrations);
 
 if (options.json) {
   console.log(
@@ -66,7 +66,7 @@ if (options.json) {
   });
 }
 
-if (options.strict && audit.summary.suspected > 0) {
+if (options.strict && (audit.summary.suspected > 0 || audit.summary.structuralIssues > 0)) {
   process.exitCode = 1;
 }
 
@@ -243,9 +243,68 @@ function readMigrations(migrationsDir, projectRoot) {
         baseName: path.basename(file),
         content,
         normalized: normalizeIdentifier(`${relFile}\n${content}`),
+        timestamp: extractFileTimestamp(path.basename(file)),
+        className: /\bexport\s+class\s+([A-Za-z_$][\w$]*)/.exec(content)?.[1] || '',
+        hasUp: /\b(?:public\s+)?async\s+up\s*\(/.test(content),
+        hasDown: /\b(?:public\s+)?async\s+down\s*\(/.test(content),
       };
     })
     .sort((a, b) => a.file.localeCompare(b.file));
+}
+
+function extractFileTimestamp(baseName) {
+  const match = /^(\d{13})-/.exec(baseName);
+  return match ? match[1] : '';
+}
+
+function auditMigrations(entities, migrations) {
+  const coverage = auditCoverage(entities, migrations);
+  const structure = auditMigrationStructure(migrations);
+
+  return {
+    ...coverage,
+    summary: {
+      ...coverage.summary,
+      reversible: migrations.filter((migration) => migration.hasDown).length,
+      structuralIssues: structure.issues.length,
+    },
+    structure,
+  };
+}
+
+function auditMigrationStructure(migrations) {
+  const issues = [];
+  const timestamps = new Map();
+
+  for (const migration of migrations) {
+    if (!migration.timestamp) {
+      issues.push({ code: 'invalid-filename', file: migration.file });
+    } else if (timestamps.has(migration.timestamp)) {
+      issues.push({
+        code: 'duplicate-timestamp',
+        file: migration.file,
+        otherFile: timestamps.get(migration.timestamp),
+      });
+    } else {
+      timestamps.set(migration.timestamp, migration.file);
+    }
+
+    if (!migration.className) {
+      issues.push({ code: 'missing-exported-class', file: migration.file });
+    } else if (migration.timestamp && !migration.className.endsWith(migration.timestamp)) {
+      issues.push({
+        code: 'class-timestamp-mismatch',
+        file: migration.file,
+        className: migration.className,
+        timestamp: migration.timestamp,
+      });
+    }
+
+    if (!migration.hasUp) issues.push({ code: 'missing-up', file: migration.file });
+    if (!migration.hasDown) issues.push({ code: 'missing-down', file: migration.file });
+  }
+
+  return { issues };
 }
 
 function auditCoverage(entities, migrations) {
@@ -341,9 +400,23 @@ function printReport({ projectRoot, entitiesDir, migrationsDir, strict, audit })
   console.log(
     `Summary: ${summary.covered}/${summary.entities} covered, ` +
       `${summary.weak} weak, ${summary.suspected} suspected, ` +
-      `${summary.migrations} migration files scanned`,
+      `${summary.migrations} migration files scanned, ` +
+      `${summary.reversible}/${summary.migrations} with down(), ` +
+      `${summary.structuralIssues} structural issues`,
   );
   console.log('');
+
+  if (audit.structure.issues.length > 0) {
+    console.log('Structural migration issues:');
+    for (const issue of audit.structure.issues) {
+      const details = Object.entries(issue)
+        .filter(([key]) => key !== 'code' && key !== 'file')
+        .map(([key, value]) => `${key}=${value}`)
+        .join(', ');
+      console.log(`  ${issue.code}: ${issue.file}${details ? ` (${details})` : ''}`);
+    }
+    console.log('');
+  }
 
   if (audit.suspected.length > 0) {
     console.log('Suspected entities without migration coverage by table/entity name:');
@@ -393,10 +466,10 @@ function printReport({ projectRoot, entitiesDir, migrationsDir, strict, audit })
   }
   console.log('');
 
-  if (strict && summary.suspected > 0) {
-    console.log('Strict result: failing because suspected uncovered entities were found.');
+  if (strict && (summary.suspected > 0 || summary.structuralIssues > 0)) {
+    console.log('Strict result: failing because migration coverage or structure issues were found.');
   } else if (strict) {
-    console.log('Strict result: pass. No suspected uncovered entities found.');
+    console.log('Strict result: pass. Coverage and migration structure are complete.');
   } else {
     console.log('Result: advisory pass. Use --strict to fail when suspected coverage gaps exist.');
   }

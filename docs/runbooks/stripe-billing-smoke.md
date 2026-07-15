@@ -1,7 +1,32 @@
 # Runbook - smoke Stripe e billing
 
-Data: 2026-05-14
+Data: 2026-07-15
 Escopo: validar o minimo para beta pago controlado: Price IDs, checkout, webhook, quota e cancelamento sem misturar test/live.
+
+## Baseline local sem credenciais
+
+Antes do smoke remoto, o backend executa uma suíte totalmente mockada, sem conexão com Stripe:
+
+```bash
+cd urban-ai-backend-main
+npx jest --runInBand \
+  src/payments/payments.service.spec.ts \
+  src/payments/payments.controller.spec.ts \
+  src/admin/stripe-sync.service.spec.ts
+```
+
+Essa suíte comprova localmente:
+
+- ausência de secret ou assinatura inválida falha antes de qualquer escrita;
+- o `Buffer` bruto e a assinatura chegam intactos ao verificador Stripe;
+- replay sequencial do mesmo `event.id` não repete escrita nem e-mail;
+- evento com `created` anterior ao watermark local não sobrescreve estado mais novo;
+- metadata inválida de ciclo/quantity cai para valores Stripe válidos, sem persistir `NaN` ou ciclo desconhecido;
+- estados `active`, `trialing`, `past_due`, `canceled`, `unpaid`, `incomplete`, `incomplete_expired` e `paused` são espelhados; estado futuro desconhecido preserva o estado local normalizado;
+- checkout envia quantity e metadata, webhook atualiza `listingsContratados`, e quota compara contratados com endereços ativos do titular;
+- reconciliação de Price IDs classifica `ok`, ausente, inativo, moeda/ciclo divergente, não encontrado e erro remoto usando mocks.
+
+O controle de replay usa os 50 IDs mais recentes por `Payment` e um watermark de `event.created`. A migration `1783900000000-AddPaymentStripeWebhookOrdering.ts` precisa ser aplicada antes do novo código em ambientes com migrations desacopladas do deploy.
 
 ## Quando rodar
 
@@ -53,6 +78,22 @@ O smoke passa quando:
 - N+1 e bloqueado com mensagem amigavel e sem dado parcial;
 - cancelamento atualiza Stripe e banco;
 - test/live nao estao misturados em chave, Price ID, webhook ou publishable key.
+
+## Evidência que ainda exige Stripe sandbox/test clock
+
+Os testes locais não certificam entrega real, segredo configurado, retry da Stripe ou concorrência entre réplicas. Antes de 10/10, executar no sandbox/test mode:
+
+1. enviar evento assinado pelo Stripe CLI/Dashboard e confirmar raw body e resposta 2xx;
+2. reenviar o mesmo evento e confirmar uma única alteração/e-mail no banco;
+3. entregar eventos em ordem invertida e confirmar que o estado mais novo permanece;
+4. usar Test Clock para trial → active, `past_due`/retry → active, cancelamento imediato e ao fim do período;
+5. alterar quantity com proration e validar assinatura, invoice, `Payment.listingsContratados` e `/payments/listings-quota`;
+6. rodar `/admin/stripe/sync-check` contra os Price IDs reais de test mode;
+7. executar duas entregas concorrentes em réplicas distintas. A janela por `Payment` protege replay sequencial, mas não substitui um ledger único/lock transacional para garantia exactly-once distribuída.
+
+Também permanece uma limitação legada de contrato: falhas internas de processamento são registradas e o handler conclui a requisição, portanto não há garantia de retry automático da Stripe depois de erro de banco/e-mail. O smoke deve induzir uma falha controlada e provar detecção/reconciliação operacional; a correção definitiva requer ledger transacional, estado `processing/failed/completed` e política de retry/dead-letter, tratada separadamente para não mudar o contrato HTTP nesta rodada.
+
+Não promover a certificação para 10/10 somente com mocks locais.
 
 O smoke bloqueia M3 quando:
 

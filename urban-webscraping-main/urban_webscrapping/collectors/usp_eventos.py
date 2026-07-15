@@ -32,6 +32,7 @@ from urban_webscrapping.collectors.base_collector import (
     BaseCollector,
     CollectorRunResult,
 )
+from urban_webscrapping.utils.urban_backend_client import UrbanBackendClient
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +50,12 @@ class UspEventosCollector(BaseCollector):
     REQUEST_TIMEOUT = 20
     MAX_PAGES = 5  # cap conservador
 
-    def __init__(self, client=None, dry_run=False, max_events: int = 100):
+    def __init__(
+        self,
+        client: UrbanBackendClient | None = None,
+        dry_run: bool = False,
+        max_events: int = 100,
+    ) -> None:
         super().__init__(client=client, dry_run=dry_run)
         self.max_events = max_events
 
@@ -70,7 +76,9 @@ class UspEventosCollector(BaseCollector):
         # Extrai URLs dos cards de evento.
         # Padrão típico: <article><a href="/.../evento-x/">Título</a></article>
         event_urls = self._extract_event_urls(html)
-        logger.info("[usp-eventos] encontrei %d URLs de eventos na listagem", len(event_urls))
+        logger.info(
+            "[usp-eventos] encontrei %d URLs de eventos na listagem", len(event_urls)
+        )
 
         events: list[dict[str, Any]] = []
         for url in event_urls[: self.max_events]:
@@ -95,7 +103,9 @@ class UspEventosCollector(BaseCollector):
 
         ends_on = raw.get("ends_on") or starts_on
 
-        endereco = raw.get("location") or "Cidade Universitária - Butantã - São Paulo - SP"
+        endereco = (
+            raw.get("location") or "Cidade Universitária - Butantã - São Paulo - SP"
+        )
         # Heurística: se aparece "São Paulo" ou "USP" ou "Cidade Universitária", manter.
         # Se aparecer outro campus famoso (Ribeirão, Pirassununga, Bauru, São Carlos,
         # Lorena, Piracicaba, ICMC), descarta — fora da cobertura SP capital.
@@ -185,8 +195,8 @@ class UspEventosCollector(BaseCollector):
             html,
             [
                 r'<meta property="og:title" content="([^"]+)"',
-                r'<h1[^>]*>([^<]+)</h1>',
-                r'<title>([^<]+)</title>',
+                r"<h1[^>]*>([^<]+)</h1>",
+                r"<title>([^<]+)</title>",
             ],
         )
         if title:
@@ -212,7 +222,7 @@ class UspEventosCollector(BaseCollector):
             [
                 r'class="[^"]*event-?location[^"]*"[^>]*>([^<]+)<',
                 r'class="[^"]*venue[^"]*"[^>]*>([^<]+)<',
-                r'(?:Local|Onde):\s*</[^>]+>\s*<[^>]+>([^<]+)',
+                r"(?:Local|Onde):\s*</[^>]+>\s*<[^>]+>([^<]+)",
             ],
         )
         if location:
@@ -238,6 +248,7 @@ class UspEventosCollector(BaseCollector):
     @staticmethod
     def _first_match(html: str, patterns: list[str]) -> str | None:
         import re
+
         for p in patterns:
             m = re.search(p, html, re.IGNORECASE | re.DOTALL)
             if m:
@@ -247,6 +258,7 @@ class UspEventosCollector(BaseCollector):
     @staticmethod
     def _clean_text(s: str) -> str:
         import html as html_lib
+
         return html_lib.unescape(s).strip().replace("\n", " ").replace("  ", " ")
 
     @staticmethod

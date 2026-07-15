@@ -79,6 +79,9 @@ export const AppButton = React.forwardRef<HTMLButtonElement, Props>(function App
     disabled,
     children,
     style,
+    className,
+    "aria-label": ariaLabel,
+    "aria-busy": ariaBusy,
     as,
     href,
     fullWidth = false,
@@ -105,24 +108,54 @@ export const AppButton = React.forwardRef<HTMLButtonElement, Props>(function App
     ...style,
   };
 
+  const contextualLabel =
+    ariaLabel ??
+    (typeof children === "string" || typeof children === "number"
+      ? String(children)
+      : typeof loadingLabel === "string"
+        ? loadingLabel
+        : undefined);
+  const resolvedAriaLabel = loading
+    ? `${contextualLabel ?? "Ação"} — carregando`
+    : ariaLabel;
+  const resolvedClassName = ["urban-canonical-button", "urban-focus-ring", className]
+    .filter(Boolean)
+    .join(" ");
+
   const content = (
     <>
       {leftIcon}
-      <span>{loading ? loadingLabel ?? "…" : children}</span>
+      {loading && <span aria-hidden="true">…</span>}
+      <span>{loading ? loadingLabel ?? children : children}</span>
       {rightIcon}
     </>
   );
 
   if (as === "a" && href) {
     return (
-      <a href={href} style={base}>
+      <a
+        href={href}
+        className={resolvedClassName}
+        style={base}
+        aria-label={resolvedAriaLabel}
+        aria-busy={loading || ariaBusy || undefined}
+        aria-disabled={disabled || loading || undefined}
+      >
         {content}
       </a>
     );
   }
 
   return (
-    <button ref={ref} disabled={disabled || loading} style={base} {...rest}>
+    <button
+      ref={ref}
+      disabled={disabled || loading}
+      className={resolvedClassName}
+      style={base}
+      aria-label={resolvedAriaLabel}
+      aria-busy={loading || ariaBusy || undefined}
+      {...rest}
+    >
       {content}
     </button>
   );

@@ -11,8 +11,6 @@ import { Event } from '../entities/events.entity';
 import { Address } from '../entities/addresses.entity';
 import { AnaliseEnderecoEvento } from '../entities/AnaliseEnderecoEvento.entity';
 import { User } from '../entities/user.entity';
-import { ProcessStatus } from 'src/entities/processStatus.entity';
-import { ProcessService } from 'src/process/process.service';
 import { ProcessModule } from 'src/process/process.module';
 import { EmailModule } from 'src/email/email.module';
 import { PropriedadeModule } from 'src/propriedades/propriedade.module';

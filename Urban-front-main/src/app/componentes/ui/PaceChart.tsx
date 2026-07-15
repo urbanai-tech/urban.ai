@@ -122,6 +122,7 @@ export function PaceChart({
   if (loading) {
     return (
       <div
+        role="status"
         aria-busy="true"
         aria-label="Carregando gráfico de reservas"
         className="urban-app-skeleton"

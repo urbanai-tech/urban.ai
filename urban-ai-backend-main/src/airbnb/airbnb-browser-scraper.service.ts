@@ -377,7 +377,9 @@ export class AirbnbBrowserScraperService {
       try {
         await button.click({ timeout: 1200 });
         return;
-      } catch {}
+      } catch {
+        // Tenta o próximo rótulo disponível.
+      }
     }
   }
 
@@ -402,7 +404,9 @@ export class AirbnbBrowserScraperService {
       try {
         await page.getByRole('button', { name: label }).first().click({ timeout: 1200 });
         return;
-      } catch {}
+      } catch {
+        // Tenta o próximo rótulo disponível.
+      }
     }
 
     const selectors = [
@@ -416,7 +420,9 @@ export class AirbnbBrowserScraperService {
       try {
         await page.locator(selector).first().click({ timeout: 1200 });
         return;
-      } catch {}
+      } catch {
+        // Tenta o próximo seletor disponível.
+      }
     }
   }
 

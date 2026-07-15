@@ -1,6 +1,6 @@
 # Runbook - Stays beta privado
 
-Data: 2026-05-15
+Data: 2026-07-15
 Escopo: validar Stays como beta privado antes de permitir qualquer aplicacao automatica de preco em conta real.
 
 ## Principio de release
@@ -38,6 +38,38 @@ STAYS_AUTO_APPLY_BLOCKED_RISK_FLAGS=low_confidence,past_event,property_unavailab
 So mudar `STAYS_AUTO_APPLY_DRY_RUN=false` depois de aprovacao humana explicita, em staging/sandbox ou conta real assistida, e depois de conferir nos logs que o cron tentaria aplicar apenas o usuario/listing allowlisted e que o audit do cron mostra `decisionSnapshotId`, `confidence`, `bookingProbability`, `recommendedMultiplier`, `riskFlags=[]` e `rollbackReady=true`.
 
 Guardrail P2 para recomendacoes de eventos: o live auto-apply agora exige `PricingDecisionSnapshot` auditavel por `AnalisePreco`, consentimento Stays na conta, baseline de preco anterior para rollback, confidence minima, probabilidade minima, multiplicador dentro do cohort e ausencia de flags criticas. Sem isso, a recomendacao continua visivel para revisao manual, mas nao vira push externo.
+
+## Baseline local sem credenciais
+
+Esta baseline pode ser repetida sem token, sandbox ou chamada de rede. Os testes substituem o cliente HTTP e os repositorios por mocks e usam injecao de falhas para comprovar os controles locais:
+
+```powershell
+cd urban-ai-backend-main
+npx jest --runInBand src/stays/stays-connector.spec.ts src/stays/stays.service.spec.ts src/stays/stays-auto-apply.service.spec.ts src/admin/admin-stays-health.service.spec.ts
+```
+
+Cobertura comprovada localmente em 2026-07-15 (49 testes):
+
+- connect exige aceite, data e versao do consentimento antes de validar ou persistir credenciais;
+- preview sinaliza `consent_missing`, e push falha fechado, quando a conta ativa nao possui consentimento versionado;
+- data e precos invalidos sao rejeitados antes de criar auditoria ou chamar o conector;
+- guardrails de variacao e teto absoluto bloqueiam o push antes da rede;
+- a chave de idempotencia evita repeticao sequencial e recupera corrida concorrente pelo indice unico do banco, sem segundo push externo;
+- timeout/erro de rede, HTTP 408, 425, 429 e 5xx sao repetidos ate tres tentativas; 429 respeita `Retry-After`, limitado a 30 segundos;
+- rejeicao de negocio HTTP 409 nao e repetida e retorna motivo auditavel;
+- falha esgotada fica registrada em `PriceUpdate.status='error'`, sem falso sucesso;
+- rollback exige update original bem-sucedido e pertencente ao usuario, inverte os precos, preserva IP/user-agent e liga `rollbackOf` ao original;
+- kill switch e relido antes de cada push automatico, portanto desligar `STAYS_AUTO_APPLY_ENABLED` durante o lote impede os pushes seguintes;
+- readiness administrativo permanece fail-closed quando base URL, criptografia ou configuracao segura do auto-apply estao ausentes.
+
+Esta baseline prova a logica local, nao a integracao real. Antes de liberar o beta, ainda e obrigatorio validar em sandbox/infra controlada:
+
+- paths, autenticacao, payloads e respostas reais da Open API Stays;
+- comportamento real de timeout, `Retry-After`, rate limit e suporte do provedor a `Idempotency-Key`;
+- concorrencia entre replicas com MySQL real e o indice unico aplicado;
+- ciclo push/rollback completo e expiracao/rotacao do token;
+- alertas operacionais para falha de sync, push e rollback;
+- politica de reprocessamento/dead-letter apos o esgotamento das tentativas, hoje dependente de intervencao operacional.
 
 ## Pre-condicoes
 

@@ -133,7 +133,7 @@ Nao rastreados importantes:
 
 - `docs/product/`
 - `docs/spinoff-plataforma-demanda/`
-- `docs/reavaliacao-360-tecnica-proximos-passos-2026-06-21.md`
+- `docs/archive/audits/reavaliacao-360-tecnica-proximos-passos-2026-06-21.md`
 - `docs/evidence/*2026-05-27*`
 - `docs/runbooks/staging-handoff-2026-05-27.md`
 - `scripts/opensquad-readiness-check.js`

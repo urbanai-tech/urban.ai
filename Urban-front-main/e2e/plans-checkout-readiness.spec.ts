@@ -89,11 +89,6 @@ test.describe('Plans checkout readiness', () => {
 
   test('mostra erro amigavel quando checkout falha', async ({ page }) => {
     await acceptCookieConsent(page);
-    test.skip(
-      !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-      'Este smoke valida especificamente o fail-closed sem publishable key local.',
-    );
-
     await mockPlans(page, [makePlan()]);
 
     let checkoutCalled = false;

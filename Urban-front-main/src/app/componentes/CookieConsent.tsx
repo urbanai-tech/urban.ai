@@ -1,25 +1,66 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useConsent } from "./useConsent";
 
 export function CookieConsent() {
   const { undecided, acceptAll, rejectAll, setPreferences, state } = useConsent();
+  const pathname = usePathname() || "";
+  const bannerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [hasHostBottomNav, setHasHostBottomNav] = useState(false);
   const [analyticsPref, setAnalyticsPref] = useState(state.analytics);
   const [marketingPref, setMarketingPref] = useState(state.marketing);
+  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
+
+  useEffect(() => {
+    if (!undecided) return;
+
+    const root = document.documentElement;
+    const banner = bannerRef.current;
+    const updateLayoutReservation = () => {
+      const hostNavVisible = Boolean(
+        document.querySelector<HTMLElement>("[data-host-bottom-nav]") &&
+          window.matchMedia("(max-width: 767px)").matches,
+      );
+      setHasHostBottomNav(hostNavVisible);
+      const bannerHeight = banner?.getBoundingClientRect().height ?? 0;
+      const navigationOffset = hostNavVisible ? 64 : 0;
+      root.style.setProperty(
+        "--urban-cookie-consent-space",
+        `${Math.ceil(bannerHeight + navigationOffset + 16)}px`,
+      );
+    };
+
+    root.dataset.cookieConsentOpen = "true";
+    updateLayoutReservation();
+    const observer = banner ? new ResizeObserver(updateLayoutReservation) : null;
+    if (banner) observer?.observe(banner);
+    window.addEventListener("resize", updateLayoutReservation);
+
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", updateLayoutReservation);
+      delete root.dataset.cookieConsentOpen;
+      root.style.removeProperty("--urban-cookie-consent-space");
+    };
+  }, [pathname, undecided]);
 
   if (!undecided) return null;
 
   return (
     <>
       <div
+        ref={bannerRef}
+        data-cookie-consent-banner
+        data-cookie-surface={isAdmin ? "admin" : hasHostBottomNav ? "host-mobile" : "default"}
         role="region"
         aria-label="Consentimento de cookies"
         style={{
           position: "fixed",
           right: 24,
-          bottom: 24,
+          bottom: hasHostBottomNav ? "calc(72px + env(safe-area-inset-bottom))" : 24,
           zIndex: 9999,
           maxWidth: 390,
           padding: 16,
@@ -28,6 +69,8 @@ export function CookieConsent() {
           background: "#080A0F",
           color: "#fff",
           boxShadow: "0 18px 50px rgba(0,0,0,0.38)",
+          maxHeight: "calc(100dvh - 32px)",
+          overflowY: "auto",
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -173,14 +216,25 @@ export function CookieConsent() {
       )}
 
       <style>{`
+        html[data-cookie-consent-open="true"] body {
+          padding-bottom: var(--urban-cookie-consent-space, 0px);
+        }
         @media (max-width: 767px) {
-          [aria-label="Consentimento de cookies"] {
+          [data-cookie-consent-banner] {
             left: 0 !important;
             right: 0 !important;
-            bottom: 0 !important;
             max-width: none !important;
             border-radius: 0 !important;
             padding: 12px !important;
+          }
+          [data-cookie-surface="default"] {
+            bottom: env(safe-area-inset-bottom) !important;
+          }
+          [data-cookie-surface="host-mobile"] {
+            bottom: calc(64px + env(safe-area-inset-bottom)) !important;
+          }
+          [data-cookie-surface="admin"] {
+            bottom: env(safe-area-inset-bottom) !important;
           }
         }
       `}</style>

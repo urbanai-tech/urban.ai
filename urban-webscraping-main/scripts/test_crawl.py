@@ -4,7 +4,9 @@ import time
 
 import httpx
 
-URL = os.getenv("SCRAPE_URL", "https://urban-webscraping-production.up.railway.app/crawl.json")
+URL = os.getenv(
+    "SCRAPE_URL", "https://urban-webscraping-production.up.railway.app/crawl.json"
+)
 params = {"spider_name": "eventim", "start_requests": "true"}
 
 timeout = httpx.Timeout(30.0, connect=10.0)

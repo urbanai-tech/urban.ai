@@ -1,5 +1,4 @@
-"""
-Database configuration templates for different environments.
+"""Database configuration templates for different environments.
 
 This module provides pre-configured database settings for development,
 production, and testing environments.
@@ -14,8 +13,7 @@ class DatabaseTemplates:
 
     @staticmethod
     def production_mysql() -> DatabaseConfig:
-        """
-        Production MySQL configuration template.
+        """Production MySQL configuration template.
 
         Features:
         - SQL logging disabled for performance
@@ -41,8 +39,7 @@ class DatabaseTemplates:
 
     @staticmethod
     def testing_mysql() -> DatabaseConfig:
-        """
-        Testing MySQL configuration template.
+        """Testing MySQL configuration template.
 
         Features:
         - Minimal resource usage
@@ -67,8 +64,7 @@ class DatabaseTemplates:
 
     @staticmethod
     def sqlite_memory() -> DatabaseConfig:
-        """
-        In-memory SQLite configuration for fast testing.
+        """In-memory SQLite configuration for fast testing.
 
         Features:
         - No persistent storage

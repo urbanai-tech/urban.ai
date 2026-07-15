@@ -3,6 +3,7 @@ jest.mock('../knn-engine/pricing-engine', () => ({ UrbanAIPricingEngine: class {
 
 import { PropriedadeService } from './propriedade.service';
 import { PricingGuardrailService } from './pricing-guardrail.service';
+import { AirbnbListingMetadataService } from './airbnb-listing-metadata.service';
 
 describe('PropriedadeService public responses', () => {
   const makeService = (overrides: Record<string, any> = {}) => {
@@ -22,6 +23,7 @@ describe('PropriedadeService public responses', () => {
       aiEngine: {},
       datasetCollector: {},
       pricingGuardrailService: new PricingGuardrailService(),
+      airbnbListingMetadataService: new AirbnbListingMetadataService(),
       ...overrides,
     };
 
@@ -41,6 +43,7 @@ describe('PropriedadeService public responses', () => {
       deps.aiEngine as any,
       deps.datasetCollector as any,
       deps.pricingGuardrailService as any,
+      deps.airbnbListingMetadataService as any,
     );
   };
 
@@ -336,5 +339,79 @@ describe('PropriedadeService public responses', () => {
         motivo_ia: expect.stringContaining('perfil moderado (-10%/+20%)'),
       }),
     );
+  });
+
+  it('rejects an external listing id that is not owned by the authenticated tenant', async () => {
+    const propriedades = {
+      findOne: jest.fn().mockResolvedValue(null),
+      save: jest.fn(),
+    };
+    const airbnbService = {
+      getPriceForDateWindow: jest.fn(),
+    };
+    const service = makeService({ propriedades, airbnbService });
+
+    await expect(
+      service.getRoomPrice({
+        roomId: 'listing-from-another-tenant',
+        checkIn: '2026-08-01',
+        checkOut: '2026-08-02',
+        userId: 'user-1',
+      }),
+    ).rejects.toMatchObject({ status: 404 });
+
+    expect(propriedades.findOne).toHaveBeenCalledWith({
+      where: {
+        id_do_anuncio: 'listing-from-another-tenant',
+        user: { id: 'user-1' },
+      },
+    });
+    expect(airbnbService.getPriceForDateWindow).not.toHaveBeenCalled();
+    expect(propriedades.save).not.toHaveBeenCalled();
+  });
+
+  it('persists room pricing only on a listing owned by the authenticated tenant', async () => {
+    const ownedProperty = {
+      id: 'list-1',
+      id_do_anuncio: 'airbnb-1',
+      user: { id: 'user-1' },
+    };
+    const propriedades = {
+      findOne: jest.fn().mockResolvedValue(ownedProperty),
+      save: jest.fn().mockImplementation(async (value) => value),
+    };
+    const airbnbService = {
+      getPriceForDateWindow: jest.fn().mockResolvedValue({
+        price: {
+          data: {
+            accommodationCost: 400,
+            accommodationCostFormatted: 'R$ 400',
+          },
+        },
+        nights: 2,
+        checkIn: '2026-08-01',
+        checkOut: '2026-08-03',
+        source: 'test',
+      }),
+    };
+    const service = makeService({ propriedades, airbnbService });
+
+    const result = await service.getRoomPrice({
+      roomId: 'airbnb-1',
+      checkIn: '2026-08-01',
+      checkOut: '2026-08-03',
+      userId: 'user-1',
+    });
+
+    expect(propriedades.findOne).toHaveBeenCalledWith({
+      where: { id_do_anuncio: 'airbnb-1', user: { id: 'user-1' } },
+    });
+    expect(propriedades.save).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'list-1', dailyPrice: 200 }),
+    );
+    expect(result).toMatchObject({
+      property: { id: 'list-1', dailyPrice: 200 },
+      price: { raw: 400, dailyPrice: 200, numberOfNights: 2 },
+    });
   });
 });

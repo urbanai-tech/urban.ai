@@ -26,15 +26,30 @@ test.describe('Event radar contract-first E2E', () => {
   test('catalogo host mostra eventos mapeados, fonte e link oficial', async ({ page }) => {
     await gotoAppRoute(page, '/events');
 
-    await expect(page.getByRole('heading', { name: /eventos em sao paulo/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /eventos em São Paulo/i })).toBeVisible();
     await expect(page.getByText(primaryEventName)).toBeVisible();
-    await expect(page.getByText(/Autodromo de Interlagos|Interlagos/i)).toBeVisible();
+    await expect(page.getByText('Autodromo de Interlagos', { exact: true })).toBeVisible();
     await expect(page.getByText(/alto impacto/i).first()).toBeVisible();
     await expect(page.getByText(/official site|fonte oficial/i).first()).toBeVisible();
 
     const officialLink = page.getByRole('link', { name: /fonte oficial/i }).first();
     await expect(officialLink).toBeVisible();
     await expect(officialLink).toHaveAttribute('href', /example\.com\/gp-sp/);
+  });
+
+  test('substitui imagens indisponiveis por fallback visual de evento', async ({ page }) => {
+    await page.route('https://example.com/events/gp-sp.jpg', async (route) => {
+      await route.fulfill({ status: 404, contentType: 'text/plain', body: 'not found' });
+    });
+    await page.route('https://example.com/events/expo-tech.jpg', async (route) => {
+      await route.abort('blockedbyclient');
+    });
+
+    await gotoAppRoute(page, '/events');
+
+    await expect(page.getByTestId('event-image-fallback')).toHaveCount(2);
+    await expect(page.getByRole('img', { name: /Imagem indisponível para Grande Premio/i })).toBeVisible();
+    await expect(page.getByTestId('host-events-list').getByTestId('event-image')).toHaveCount(0);
   });
 
   test('detalhe host mostra interpretacao, source e curva de absorcao', async ({ page }) => {

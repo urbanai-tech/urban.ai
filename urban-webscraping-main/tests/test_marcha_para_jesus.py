@@ -44,9 +44,7 @@ def test_heuristic_date_retorna_quinta_de_junho_no_futuro():
 def test_try_fetch_extrai_data_dd_mm_yyyy():
     c = MarchaParaJesusCollector(dry_run=True)
     future = datetime.now() + timedelta(days=60)
-    fake_html = (
-        f"<html>Marcha será no dia {future.strftime('%d/%m/%Y')}</html>"
-    )
+    fake_html = f"<html>Marcha será no dia {future.strftime('%d/%m/%Y')}</html>"
 
     mock_resp = MagicMock()
     mock_resp.text = fake_html
@@ -63,9 +61,7 @@ def test_try_fetch_extrai_data_dd_mm_yyyy():
 def test_try_fetch_descarta_data_passada():
     c = MarchaParaJesusCollector(dry_run=True)
     past = datetime.now() - timedelta(days=60)
-    fake_html = (
-        f"<html>Já aconteceu em {past.strftime('%d/%m/%Y')}</html>"
-    )
+    fake_html = f"<html>Já aconteceu em {past.strftime('%d/%m/%Y')}</html>"
     mock_resp = MagicMock()
     mock_resp.text = fake_html
     mock_resp.raise_for_status = MagicMock()
@@ -96,6 +92,7 @@ def test_try_fetch_extrai_data_por_extenso():
 def test_fetch_raw_quando_site_offline_usa_heuristica():
     c = MarchaParaJesusCollector(dry_run=True)
     import requests
+
     with patch(
         "urban_webscrapping.collectors.marcha_para_jesus.requests.get",
         side_effect=requests.RequestException("offline"),

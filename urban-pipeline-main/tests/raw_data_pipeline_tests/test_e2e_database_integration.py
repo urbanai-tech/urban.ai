@@ -1,5 +1,4 @@
-"""
-Database integration E2E tests for the raw data pipeline.
+"""Database integration E2E tests for the raw data pipeline.
 
 Tests database configuration, connection pooling, and data persistence
 using the existing test infrastructure.
@@ -11,7 +10,7 @@ from unittest.mock import patch
 
 import pandas as pd
 import pytest
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 
 from raw_data_pipeline.config.database import (
     DatabaseConfig,
@@ -201,7 +200,7 @@ class TestDatabaseIntegrationE2E:
         # Should be able to create engine but connection should fail
         engine = invalid_config.get_engine()
 
-        with pytest.raises((ConnectionError, Exception)) as exc_info:
+        with pytest.raises((ConnectionError, Exception)):
             engine.connect()
         # Should fail to connect to invalid host/database
 

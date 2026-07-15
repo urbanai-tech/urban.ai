@@ -412,6 +412,7 @@ export default function MapsPage() {
 function Spinner({ size }: { size: number }) {
   return (
     <span
+      role="status"
       aria-label="Carregando"
       style={{
         width: size,

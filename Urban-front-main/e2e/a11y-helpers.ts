@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 /**
  * Helpers compartilhados de acessibilidade (axe-core) — usados pelas suites
@@ -34,8 +34,8 @@ async function loadAxeBuilder(): Promise<AxeBuilderConstructor | null> {
     const dynamicImport = new Function('specifier', 'return import(specifier)') as (
       specifier: string,
     ) => Promise<{ default?: AxeBuilderConstructor }>;
-    const module = await dynamicImport('@axe-core/playwright');
-    return module.default ?? null;
+    const axeModule = await dynamicImport('@axe-core/playwright');
+    return axeModule.default ?? null;
   } catch (error) {
     if (
       error instanceof Error &&
@@ -49,12 +49,11 @@ async function loadAxeBuilder(): Promise<AxeBuilderConstructor | null> {
 
 export async function expectNoCriticalA11yViolations(page: Page) {
   const AxeBuilder = await loadAxeBuilder();
-  test.skip(
-    AxeBuilder === null,
-    '@axe-core/playwright nao esta instalado no node_modules local; rode npm install para habilitar esta suite.',
-  );
-
-  if (!AxeBuilder) return;
+  expect(
+    AxeBuilder,
+    '@axe-core/playwright nao esta instalado; acessibilidade nao pode ser silenciosamente pulada.',
+  ).not.toBeNull();
+  if (!AxeBuilder) throw new Error('@axe-core/playwright indisponivel');
 
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

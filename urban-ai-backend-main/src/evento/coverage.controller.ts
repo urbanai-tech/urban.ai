@@ -23,6 +23,11 @@ import { CoverageRegion } from '../entities/coverage-region.entity';
 import { CoverageService } from './coverage.service';
 import { EventsEnrichmentService } from './events-enrichment.service';
 import { AdminAuditService } from '../admin-audit/admin-audit.service';
+import {
+  CheckCoverageDto,
+  CreateCoverageRegionDto,
+  UpdateCoverageRegionDto,
+} from './coverage.dto';
 
 /**
  * Controller admin pra gerenciar regiões de cobertura geográfica.
@@ -67,18 +72,7 @@ export class CoverageController {
   @Post()
   async create(
     @Body()
-    body: {
-      name: string;
-      status?: 'active' | 'bootstrap' | 'inactive';
-      centerLat: number | null;
-      centerLng?: number | null;
-      radiusKm?: number | null;
-      minLat: number | null;
-      maxLat: number | null;
-      minLng?: number | null;
-      maxLng?: number | null;
-      notes?: string | null;
-    },
+    body: CreateCoverageRegionDto,
     @Req() req: any,
   ) {
     this.validateGeometry(body);
@@ -115,7 +109,7 @@ export class CoverageController {
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @ApiOperation({ summary: 'Atualiza região existente' })
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() body: Partial<CoverageRegion>, @Req() req: any) {
+  async update(@Param('id') id: string, @Body() body: UpdateCoverageRegionDto, @Req() req: any) {
     const row = await this.regionRepo.findOne({ where: { id } });
     if (!row) throw new NotFoundException('Região não encontrada');
     const before = this.auditCoverage(row);
@@ -157,7 +151,7 @@ export class CoverageController {
   @ApiOperation({ summary: 'Testa se um par (lat,lng) está dentro da cobertura ativa' })
   @Post('check')
   @HttpCode(200)
-  async check(@Body() body: { latitude: number; longitude: number }) {
+  async check(@Body() body: CheckCoverageDto) {
     if (!Number.isFinite(body?.latitude) || !Number.isFinite(body?.longitude)) {
       throw new BadRequestException('latitude/longitude obrigatórios');
     }
@@ -216,7 +210,7 @@ export class CoverageController {
     }
   }
 
-  private pickCoveragePatch(input: Partial<CoverageRegion>): Partial<CoverageRegion> {
+  private pickCoveragePatch(input: UpdateCoverageRegionDto): Partial<CoverageRegion> {
     const patch: Partial<CoverageRegion> = {};
     if (input.name !== undefined) {
       const name = String(input.name).trim();

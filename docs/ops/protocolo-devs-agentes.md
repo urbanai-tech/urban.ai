@@ -5,7 +5,7 @@ Objetivo: permitir varios chats, devs e agentes atuando nos gaps do roadmap sem 
 
 ## Regra rapida
 
-- Nao editar `docs/roadmap-implementacao-gaps-produto-2026-05-14.md` como fonte unica durante execucao paralela. Registrar descobertas em arquivos auxiliares e consolidar depois.
+- Nao editar `docs/archive/roadmaps/roadmap-implementacao-gaps-produto-2026-05-14.md` como fonte unica durante execucao paralela. Registrar descobertas em arquivos auxiliares e consolidar depois.
 - Antes de editar, rodar `git status --short` e verificar se o arquivo ja esta modificado por outra pessoa.
 - Preferir novas paginas, docs e servicos pequenos quando o ganho for operacional e o risco de conflito for menor.
 - Evitar mexer em specs E2E/unitarias quando outro chat estiver focado em testes, salvo combinacao explicita.

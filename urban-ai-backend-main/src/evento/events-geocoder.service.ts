@@ -45,7 +45,11 @@ export class EventsGeocoderService {
     private readonly jobRunRepo?: Repository<AdminJobRun>,
   ) {}
 
-  @Cron(CronExpression.EVERY_30_MINUTES)
+  @Cron(CronExpression.EVERY_30_MINUTES, {
+    name: 'events-geocoder',
+    timeZone: 'America/Sao_Paulo',
+    waitForCompletion: true,
+  })
   async cronTick() {
     if (this.running) {
       this.logger.warn('Geocoder run já em andamento - skipando este tick');

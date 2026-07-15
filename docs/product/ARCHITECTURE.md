@@ -14,10 +14,10 @@
 │  FONTES DE DADO │     │   BACKEND (NestJS)    │     │  FRONTEND (Next) │
 │                 │     │                       │     │                  │
 │ Scrapy spiders  │──┐  │  ~32 módulos          │◀───▶│ myurbanai.com    │
-│ (7 bilheterias) │  │  │  220 endpoints        │     │ (público dark)   │
+│ (7 bilheterias) │  │  │  223 endpoints        │     │ (público dark)   │
 │ APIs (football, │  ├─▶│  MySQL + TypeORM      │     │                  │
 │  sympla, fire-  │  │  │  Redis + Bull (jobs)  │     │ app.myurbanai.com│
-│  crawl, serp...)│  │  │  14 cron jobs         │     │ (host + admin)   │
+│  crawl, serp...)│  │  │  21 jobs agendados    │     │ (host + admin)   │
 └─────────────────┘  │  └──────────┬───────────┘     └─────────────────┘
          ▲           │             │
          │           │             ▼ (preview→push→rollback)
@@ -37,12 +37,12 @@
 ## 2. Backend (NestJS) — configuração global
 
 - **Sem global prefix.** Cada `@Controller('x')` define seu próprio path (`/auth`, `/payments`, `/admin`, etc.). *Atenção ao adicionar módulos: o path é o do controller.*
-- **Tamanho real (varredura exaustiva 21/06):** **34 controllers, 220 endpoints HTTP, 43 entidades, 41 migrations** (contagens conferidas arquivo a arquivo).
+- **Tamanho real (revalidado em 15/07):** **36 controllers, 223 endpoints HTTP, 45 entidades cobertas e 48 migrations** (contagens e auditor estrutural conferidos no repositório).
 - **Swagger** em `/api`.
 - **Auth:** e-mail/senha + **Google** (`POST /auth/google`, verifica idToken via `tokeninfo`, valida `aud` contra `GOOGLE_CLIENT_IDS`; cria usuário com marcador `google_…` se novo). Cookies httpOnly compartilhados em `.myurbanai.com` (subdomínios).
 - **ThrottlerGuard global:** 10 req/s e 100 req/min; rotas sensíveis de auth com `@Throttle` mais restrito (5/min). ⚠️ `/admin/*` ainda sem throttle dedicado.
 - **Segurança:** Helmet + CSP, CORS por whitelist (fail-closed), Sentry. `ValidationPipe` global com `whitelist: true` (mas `forbidNonWhitelisted: false` — endurecer).
-- **Banco:** MySQL via `DATABASE_URL` (Railway) ou vars individuais. `synchronize` controlado por `DB_SYNCHRONIZE` (default false) + ~44 migrations versionadas.
+- **Banco:** MySQL via `DATABASE_URL` (Railway) ou vars individuais. `synchronize` controlado por `DB_SYNCHRONIZE` (default false) + 48 migrations versionadas.
 - **Jobs:** Bull + Redis (fila `processos`).
 - **Webhook único:** `POST /payments/webhook` (Stripe, verificação HMAC SHA-256, raw body — body-parser sobrescrito para essa rota).
 - **Estáticos:** `/uploads` (ServeStaticModule).
@@ -72,18 +72,18 @@
 | **host-panels** | Agregação de dados para telas do anfitrião | propriedades, evento, pricing, roi |
 | **dashboard** | Resumo do dashboard do host | host-panels |
 | **admin / admin-audit / admin-job-runs / admin-properties** | Operação, auditoria, jobs, gestão de imóveis | quase todos |
-| **email / mailer** | E-mail transacional (MailerSend/Brevo) | — |
+| **email / mailer** | E-mail transacional (Brevo) | — |
 | **notifications / push** | Notificações in-app e web-push (PWA) | user |
 | **communications / communication-preferences** | Eventos de comunicação e preferências por canal | user |
 | **contact-submissions** | Formulário público de contato (CRM básico) | — |
 | **sugestao** | Sugestões/recomendações ao host | pricing |
 | **process / processos** | Controle de processos/jobs legados | — |
-| **cron** | Agendador (14 jobs) | dataset/pricing/event/stays services |
+| **cron** | Agendador (21 jobs) | dataset/pricing/event/stays services |
 | **health** | Healthcheck | — |
 | **common** | Utilitários, guards, decorators compartilhados | — |
-| **entities** | Definições TypeORM (43 entidades) | — |
+| **entities** | Definições TypeORM (45 entidades auditadas) | — |
 
-### 3.1 Cron jobs (14) — timezone São Paulo
+### 3.1 Jobs agendados (21) — timezone São Paulo
 Coleta de dataset, bootstrap de pricing, processamento de event-intelligence, auto-apply Stays, digests de recomendação, health de coletores, entre outros. Cada execução registra `AdminJobRun` (status, duração, resultado). **Regra:** todo job novo deve registrar `AdminJobRun` e ser idempotente.
 
 ---
@@ -105,7 +105,7 @@ Coleta de dataset, bootstrap de pricing, processamento de event-intelligence, au
 
 ---
 
-## 5. Modelo de dados (43 entidades)
+## 5. Modelo de dados (45 entidades)
 
 > Agrupadas por domínio. PK = uuid em todas. Relações e cascatas verificadas nas entidades (`src/entities/*.entity.ts`).
 
@@ -113,10 +113,10 @@ Coleta de dataset, bootstrap de pricing, processamento de event-intelligence, au
 `User` (email unique, password select:false, role host/admin/support, pricingStrategy, operationMode, distanceKm) · `RefreshToken` · `PasswordResetToken` · `Notification` · `UserCommunicationPreferences`.
 
 ### 5.2 Propriedades & integração
-`List` (imóvel; id_do_anuncio Airbnb, dailyPrice, manualDailyPrice, rating, amenitiesCount) · `Address` (cep, lat/long, cidade indexada) · `StaysAccount` (accessToken AES-256, consentimento versionado, maxIncreasePercent 25 / maxDecreasePercent 20) · `StaysListing` (operationMode inherit/notifications/auto) · `CoverageRegion` (escopo geográfico, raio).
+`List` (imóvel; id_do_anuncio Airbnb, dailyPrice, manualDailyPrice, rating, amenitiesCount) · `Address` (cep, lat/long, cidade indexada) · `ExternalListing` (referência externa normalizada) · `StaysAccount` (accessToken AES-256, consentimento versionado, maxIncreasePercent 25 / maxDecreasePercent 20) · `StaysListing` (operationMode inherit/notifications/auto) · `CoverageRegion` (escopo geográfico, raio).
 
-### 5.3 Eventos (7 entidades)
-`Event` (dedupHash unique, relevancia, raioImpactoKm, venueCapacity, dedupStatus, outOfScope, pendingGeocode) · `EventSource` (proveniência por fonte) · `EventDedupCandidate` (par canônico↔duplicado, score, banda de confiança) · `EventIntelligenceSnapshot` (eventDemandScore, drivers, riskFlags, versão de métrica/modelo) · `EventPropertyImpact` (impacto por imóvel: distância, captura, preço recomendado, cenários) · `AnaliseEnderecoEvento` (distância endereço↔evento) · `EventProximityFeature` (features agregadas por imóvel: eventos em 7/14/30d).
+### 5.3 Eventos (8 entidades)
+`Event` (dedupHash unique, relevancia, raioImpactoKm, venueCapacity, dedupStatus, outOfScope, pendingGeocode) · `EventSource` (proveniência por fonte) · `EventDedupCandidate` (par canônico↔duplicado, score, banda de confiança) · `EventIntelligenceSnapshot` (eventDemandScore, drivers, riskFlags, versão de métrica/modelo) · `EventPropertyImpact` (impacto por imóvel: distância, captura, preço recomendado, cenários) · `EventHistoricalMultiplier` (multiplicador histórico versionado) · `AnaliseEnderecoEvento` (distância endereço↔evento) · `EventProximityFeature` (features agregadas por imóvel: eventos em 7/14/30d).
 
 ### 5.4 Pricing & planos (11 entidades)
 `Plan` (preços por ciclo, stripePriceIds, propertyLimit, min/maxProperties, selfServiceEnabled) · `Payment` (status, customerId/subscriptionId Stripe, billingCycle, listingsContratados, planName) · `AnalisePreco` (precoSugerido, status suggested→accepted/rejected/applied/expired, verificação, resultado real) · `PriceUpdate` (origin ai_auto/user_accepted/user_manual/rollback, idempotencyKey unique, rollbackOf self-ref) · `PriceSnapshot` (histórico de preço/observação, trainingReady) · `OccupancyHistory` (ocupação/receita por data, trainingReady) · `PricingInputHistory` · `PricingRuleConfig` (regras por imóvel: weekend_uplift, gap_night_filler, event_uplift...) · `PortfolioPropertySetting` (estratégia conservative/balanced/aggressive/ai) · `PricingDecisionSnapshot` (decisão completa auditável) · `PricingRecommendationDigest`.
@@ -131,7 +131,7 @@ Coleta de dataset, bootstrap de pricing, processamento de event-intelligence, au
 `AdminAuditLog` (imutável, sem FK) · `AdminJobRun` · `ProcessStatus` (tabela `process_status`) · `AirbnbPricingAttemptLog` · `PlatformCost`.
 
 ### 5.7b Auth (complemento)
-`EmailConfirmation` (tabela `email_confirmations`, FK→User) — confirmação de e-mail pós-signup. *(Esta e `ProcessStatus` faltavam na contagem v1; total real = 43 entidades.)*
+`EmailConfirmation` (tabela `email_confirmations`, FK→User) — confirmação de e-mail pós-signup. A contagem atual de 45 também incorpora `ExternalListing` e `EventHistoricalMultiplier`, adicionadas após a revisão anterior.
 
 ### 5.8 Hubs do grafo de dados
 - **User** é o centro: 1:N para quase tudo; deleção cascateia (base para LGPD).
@@ -238,7 +238,7 @@ Coleta de dataset, bootstrap de pricing, processamento de event-intelligence, au
 | Stays | Aplicação de preço | `STAYS_API_BASE_URL`, `STAYS_TOKEN_ENCRYPTION_KEY` |
 | Airbnb | Scraping de anúncios/preços | (chave pública do cliente web — mover para env) |
 | Google Maps | Geocoding/distâncias | `GOOGLE_*` (⚠️ Geocoding 403 — billing) |
-| MailerSend/Brevo | E-mail | `BREVO_API_KEY` / MailerSend |
+| Brevo | E-mail | `BREVO_API_KEY` |
 | Gemini | Ask Urban / enrichment | `GEMINI_API_KEY` |
 | Firecrawl/SerpAPI/Tavily/API-Football | Coleta de eventos | chaves por coletor |
 | Sentry | Observabilidade | `SENTRY_DSN` (criar) |
@@ -253,7 +253,7 @@ Coleta de dataset, bootstrap de pricing, processamento de event-intelligence, au
 4. Cores e nome hardcoded fora dos tokens (ver `REBRAND-MAP.md`).
 5. Dependências externas no caminho crítico (Geocoding/Stays) — degradar com elegância (fail-soft já existe no ingest; replicar no pricing).
 
-> Para próximos passos priorizados e estado de go-live, ver `../reavaliacao-360-tecnica-proximos-passos-2026-06-21.md`.
+> Para próximos passos priorizados e estado de go-live, ver `../auditoria-360-arquitetura-produto-ui-ux-2026-07-15.md` e `../plano-mestre-scorecard-10-10-2026-07-15.md`.
 
 ---
 

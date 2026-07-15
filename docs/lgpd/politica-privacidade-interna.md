@@ -31,7 +31,9 @@ Este documento responde, em português estruturado, às exigências da LGPD (Lei
 
 ### 1.1 Dados do anfitrião (titular principal)
 
-| Campo | Fonte | Propósito | Retenção |
+Os prazos abaixo são intenções históricas da política e **não foram validados juridicamente nem automatizados no sistema**. Até existir matriz aprovada e job de descarte, não devem ser apresentados como retenção tecnicamente garantida.
+
+| Campo | Fonte | Propósito | Retenção pretendida (não certificada) |
 |---|---|---|---|
 | `email` | cadastro | identificador + comunicação transacional | vida da conta + 5 anos |
 | `username` | cadastro | exibição no produto | vida da conta |
@@ -79,12 +81,14 @@ Este documento responde, em português estruturado, às exigências da LGPD (Lei
 
 Qualquer anfitrião pode solicitar, por e-mail para `privacidade@myurbanai.com` (a configurar no Brevo), em até **15 dias corridos**:
 
-1. **Acesso aos dados** — export JSON via endpoint administrativo (a implementar no painel F6.3)
+1. **Acesso aos dados** — endpoints autenticados expõem conta/perfil, mas a exportação JSON consolidada ainda não foi implementada
 2. **Correção** — edição via perfil já existe
-3. **Anonimização/portabilidade** — processo manual via SQL (runbook a escrever)
-4. **Exclusão da conta** — endpoint DELETE `/auth/:id` existe. A partir da exclusão, dados pessoais são apagados; metadados necessários para contabilidade/tributário são mantidos por 5 anos de forma anonimizada.
-5. **Revogação de consentimento** — logout + DELETE da conta (consentimentos são atrelados à conta).
+3. **Anonimização/portabilidade** — não automatizadas; não executar SQL ad hoc sem inventário, aprovação e validação em clone
+4. **Exclusão da conta** — `DELETE /auth/me` autenticado remove o próprio usuário; cascatas/`SET NULL` estão mapeados no código, mas a cobertura integral precisa de drill em banco temporário
+5. **Revogação de consentimento** — desconectar Stays zera a credencial; consentimentos gerais versionados e deleção coordenada em subprocessadores ainda são pendências
 6. **Informação sobre compartilhamentos** — a lista da seção 4 abaixo é a fonte oficial.
+
+Estado técnico detalhado e limites: `docs/runbooks/lgpd-data-subject-requests.md`. A política não certifica retenção fiscal, anonimização ou base legal sem validação jurídica.
 
 ### Template de resposta
 
@@ -151,7 +155,7 @@ Enquanto o nome do DPO não estiver fixado, a página pública e o briefing jur�
 
 ## 7. Medidas técnicas e organizacionais
 
-Resumo do que já está em produção (referência: `docs/avaliacao-projeto-2026-04-16.md` + commits F5C.1 e F5C.2).
+Resumo do que já está em produção (referência: `docs/archive/audits/avaliacao-projeto-2026-04-16.md` + commits F5C.1 e F5C.2).
 
 ### Criptografia
 
@@ -196,10 +200,9 @@ Resumo do que já está em produção (referência: `docs/avaliacao-projeto-2026
 
 ## 8. Consentimento — pontos de captura
 
-### No cadastro (implementado)
+### No cadastro (pendente)
 
-Marcação implícita ao aceitar termos. Precisa explicitar nos formulários:
-- "Concordo com os Termos de Uso e a Política de Privacidade" — **a adicionar na landing e no /register** (F5A.1)
+Não há consentimento geral versionado e persistido no servidor. A aceitação não deve ser tratada como implícita; texto, versão, data e finalidade precisam de implementação e revisão jurídica.
 
 ### No onboarding (F5A.2 em curso)
 
@@ -218,7 +221,7 @@ Tela obrigatória com checkbox:
 > Você pode desconectar a qualquer momento pelo painel, e todos os dados
 > vinculados ao Airbnb serão apagados em até 15 dias.
 
-Log: persistir `User.consents = [{ type: 'stays-connect', grantedAt, version: '2026-04-v1' }]`.
+Log atual: `StaysAccount.consentAcceptedAt`, `consentVersion`, `consentIp` e `consentUserAgent`. O servidor recusa conexão sem aceite explícito e versão.
 
 ### E-mail de marketing
 

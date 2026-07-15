@@ -7,9 +7,10 @@ import { ValidationPipe } from '@nestjs/common';
 import * as bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { SwaggerModule } from '@nestjs/swagger';
 import { json, urlencoded } from 'express';
 import { requestIdMiddleware } from './common/request-id.middleware';
+import { buildOpenApiConfig } from './openapi/openapi.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,7 +19,7 @@ async function bootstrap() {
     new ValidationPipe({
       transform: true,
       whitelist: true,
-      forbidNonWhitelisted: false,
+      forbidNonWhitelisted: true,
     }),
   );
 
@@ -92,16 +93,7 @@ async function bootstrap() {
 
   if (shouldEnableSwagger) {
     // Swagger config
-    const config = new DocumentBuilder()
-      .setTitle('API Urban AI')
-      .setDescription(`
-      A API RESTful da plataforma Urban AI — um sistema inteligente que identifica eventos em diferentes regiões e se integra ao Airbnb para sugerir ajustes dinâmicos de preços em hospedagens.
-
-      Essa plataforma permite que anfitriões verifiquem automaticamente se há eventos programados em suas localidades e, com base nisso, otimizem seus anúncios para aumentar a lucratividade.
-    `)
-      .setVersion('1.0')
-      .addBearerAuth()
-      .build();
+    const config = buildOpenApiConfig();
 
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, document);

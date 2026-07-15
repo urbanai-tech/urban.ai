@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
+const assert = require('assert/strict');
 const { spawn } = require('child_process');
 const { pipeline } = require('stream/promises');
 
@@ -10,6 +11,11 @@ const args = parseArgs(process.argv.slice(2));
 
 if (args.help) {
   printHelp();
+  process.exit(0);
+}
+
+if (args.selfTest) {
+  runSelfTest();
   process.exit(0);
 }
 
@@ -71,6 +77,7 @@ function parseArgs(argv) {
     dryRun: false,
     execute: false,
     help: false,
+    selfTest: false,
     envFile: null,
     label: null,
     outDir: null,
@@ -81,6 +88,7 @@ function parseArgs(argv) {
     if (arg === '--dry-run') parsed.dryRun = true;
     else if (arg === '--execute' || arg === '--no-dry-run') parsed.execute = true;
     else if (arg === '--help' || arg === '-h') parsed.help = true;
+    else if (arg === '--self-test') parsed.selfTest = true;
     else if (arg.startsWith('--env=')) parsed.envFile = arg.slice('--env='.length);
     else if (arg.startsWith('--label=')) parsed.label = arg.slice('--label='.length);
     else if (arg.startsWith('--out-dir=')) parsed.outDir = arg.slice('--out-dir='.length);
@@ -396,6 +404,7 @@ Uso:
 
 Opcoes:
   --dry-run          Modo seguro padrao. Nao exige credenciais reais e nao executa comandos.
+  --self-test        Valida guardrails, redacao e plano sem carregar .env nem executar comandos.
   --execute          Gera o dump e envia para S3 ou B2.
   --target=auto      Detecta S3_BUCKET ou B2_BUCKET. Valores: auto, s3, b2.
   --env=.env         Carrega variaveis de um arquivo .env.
@@ -458,7 +467,7 @@ function formatBytes(bytes) {
   return `${size.toFixed(1)} ${unit}`;
 }
 
-function sanitizeMessage(message) {
+function sanitizeMessage(message, secretEnv = env) {
   let sanitized = String(message);
   for (const secretKey of [
     'DATABASE_URL',
@@ -467,8 +476,70 @@ function sanitizeMessage(message) {
     'B2_APPLICATION_KEY',
     'B2_APPLICATION_KEY_ID',
   ]) {
-    const secret = env[secretKey];
+    const secret = secretEnv[secretKey];
     if (secret) sanitized = sanitized.split(secret).join('<redacted>');
   }
   return sanitized;
+}
+
+function runSelfTest() {
+  const checks = [];
+  const check = (name, fn) => {
+    fn();
+    checks.push(name);
+  };
+
+  check('default mode is non-mutating', () => {
+    const parsed = parseArgs([]);
+    assert.equal(parsed.execute, false);
+  });
+
+  check('credential-free dry-run uses placeholders', () => {
+    const result = validateConfig({}, 'auto', true);
+    assert.deepEqual(result.errors, []);
+    assert.equal(result.config.db.source, 'placeholder');
+    assert.equal(result.config.destination.placeholder, true);
+  });
+
+  check('execute mode fails closed without credentials', () => {
+    const result = validateConfig({}, 'auto', false);
+    assert.ok(result.errors.length >= 5);
+    assert.match(result.errors.join('\n'), /DATABASE_URL host|DB_HOST/);
+    assert.match(result.errors.join('\n'), /destino completo/);
+  });
+
+  check('plan is transaction-safe and sanitized', () => {
+    const secret = 'do-not-leak-this-password';
+    const result = validateConfig(
+      {
+        DATABASE_URL: `mysql://backup_user:${secret}@staging-db.internal:3306/urban_restore`,
+        S3_BUCKET: 'urban-backups-test',
+        AWS_ACCESS_KEY_ID: 'test-key-id',
+        AWS_SECRET_ACCESS_KEY: 'test-secret-key',
+      },
+      's3',
+      false,
+    );
+    assert.deepEqual(result.errors, []);
+    const plan = buildPlan(result.config, 'urban-ai-self-test.sql.gz', '/tmp/urban-ai-self-test.sql.gz');
+    assert.ok(plan.dumpArgs.includes('--single-transaction'));
+    assert.ok(plan.dumpArgs.includes('--routines'));
+    assert.ok(plan.dumpArgs.includes('--triggers'));
+    assert.ok(plan.dumpArgs.includes('--events'));
+    assert.ok(plan.sanitizedCommands.every((command) => !command.includes(secret)));
+    assert.ok(plan.sanitizedCommands.every((command) => !command.includes('test-secret-key')));
+  });
+
+  check('labels cannot escape the output filename', () => {
+    assert.equal(sanitizeLabel('../../pre deploy; rm -rf'), '..-..-pre-deploy-rm--rf');
+  });
+
+  check('error messages redact configured secrets', () => {
+    assert.equal(
+      sanitizeMessage('failed: self-test-db-password', { DB_PASSWORD: 'self-test-db-password' }),
+      'failed: <redacted>',
+    );
+  });
+
+  console.log(`MySQL backup self-test passed: ${checks.length}/${checks.length} checks.`);
 }

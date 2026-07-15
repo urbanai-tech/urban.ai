@@ -1,5 +1,4 @@
-"""
-Database credentials management.
+"""Database credentials management.
 
 This module provides secure credential handling and connection string generation
 for database connections.
@@ -21,8 +20,7 @@ class DatabaseCredentials:
     database: str
 
     def get_connection_string(self, driver: str = "mysql+pymysql") -> str:
-        """
-        Generate database connection string.
+        """Generate database connection string.
 
         Args:
             driver: Database driver string (default: mysql+pymysql)

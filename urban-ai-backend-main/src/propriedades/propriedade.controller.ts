@@ -1,10 +1,16 @@
 import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, NotFoundException, Param, Patch, Post, Query, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { PropriedadeService } from './propriedade.service';
 import { Address } from 'src/entities/addresses.entity';
-import { ApiTags, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiOkResponse, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { APITypes } from './types/nearProperties';
 import { PricingCalculateService } from './pricing-calculate.service';
+import {
+  CreateAirbnbAlertDto,
+  UpdatePropertyIdentityDto,
+  UpdatePropertyPricingInputsDto,
+  UpsertPropertyManualOccupancyDto,
+} from './propriedade.dto';
 
 @ApiTags('Propriedades')
 @Controller('propriedades')
@@ -110,15 +116,18 @@ export class PropriedadeController {
   async getPrefetch(
     @Query('propertyId') propertyId: string,
     @Query('checkinDate') checkinDate: string,
-    @Query('checkoutDate') checkoutDate: string
+    @Query('checkoutDate') checkoutDate: string,
+    @Req() req: any,
   ) {
     try {
       return await this.propriedadeService.getRoomPrice({
         roomId: propertyId,      // Corresponde ao parâmetro esperado
         checkIn: checkinDate,    // Corresponde ao parâmetro esperado
-        checkOut: checkoutDate   // Corresponde ao parâmetro esperado
+        checkOut: checkoutDate,  // Corresponde ao parâmetro esperado
+        userId: req.user.userId,
       });
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new HttpException(
         error.response?.data || 'Erro ao buscar checkout prefetch',
         error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR
@@ -139,10 +148,11 @@ export class PropriedadeController {
   @ApiResponse({ status: 200, description: 'Informações da propriedade retornadas com sucesso.' })
   @ApiResponse({ status: 400, description: 'Parâmetro inválido.' })
   @ApiResponse({ status: 500, description: 'Erro interno ao buscar informações da propriedade.' })
-  async getBasicInfo(@Query('roomId') roomId: string) {
+  async getBasicInfo(@Query('roomId') roomId: string, @Req() req: any) {
     try {
-      return await this.propriedadeService.getRoomBasicInfo(roomId);
+      return await this.propriedadeService.getRoomBasicInfo(roomId, req.user.userId);
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new HttpException(
         error.response?.data || 'Erro ao buscar informações da propriedade',
         error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR
@@ -168,15 +178,7 @@ export class PropriedadeController {
       required: ['latitude', 'longitude', 'bedrooms', 'bathrooms', 'accommodates'],
     },
   })
-  async createAlertAiibnb(
-    @Body() body: {
-      latitude: number;
-      longitude: number;
-      bedrooms: number;
-      bathrooms: number;
-      accommodates: number;
-    }
-  ) {
+  async createAlertAiibnb(@Body() body: CreateAirbnbAlertDto) {
     return this.propriedadeService.criarAlertaAirbnb(body);
   }
 
@@ -431,7 +433,7 @@ export class PropriedadeController {
   async updateIdentity(
     @Param('id') id: string,
     @Req() req: any,
-    @Body() body: { internalNickname?: string | null; internalCode?: string | null },
+    @Body() body: UpdatePropertyIdentityDto,
   ) {
     return this.propriedadeService.updateIdentity(id, req.user.userId, body);
   }
@@ -442,7 +444,7 @@ export class PropriedadeController {
   async updatePricingInputs(
     @Param('id') id: string,
     @Req() req: any,
-    @Body() body: { manualDailyPrice?: number | null; averageMonthlyRevenue?: number | null },
+    @Body() body: UpdatePropertyPricingInputsDto,
   ) {
     return this.propriedadeService.updatePricingInputs(id, req.user.userId, body);
   }
@@ -481,13 +483,7 @@ export class PropriedadeController {
   async upsertManualOccupancy(
     @Param('id') id: string,
     @Req() req: any,
-    @Body() body: {
-      date?: string;
-      status?: 'booked' | 'available' | 'blocked' | 'unknown';
-      revenue?: number | null;
-      listedPrice?: number | null;
-      nightsBooked?: number | null;
-    },
+    @Body() body: UpsertPropertyManualOccupancyDto,
   ) {
     return this.propriedadeService.upsertManualOccupancy(id, req.user.userId, body);
   }

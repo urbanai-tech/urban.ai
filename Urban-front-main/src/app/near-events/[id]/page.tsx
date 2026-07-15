@@ -209,6 +209,7 @@ function MetaRow({ icon, children }: { icon: React.ReactNode; children: React.Re
 function Spinner() {
   return (
     <span
+      role="status"
       aria-label="Carregando"
       style={{
         width: 36,

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException, Optional, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as crypto from 'crypto';
 import { CommunicationLogService } from 'src/communications/communication-log.service';
@@ -7,6 +7,7 @@ import { PushSubscription } from 'src/entities/push-subscription.entity';
 import { User } from 'src/entities/user.entity';
 import { IsNull, Repository } from 'typeorm';
 import { RemovePushSubscriptionDto, UpsertPushSubscriptionDto } from './push.dto';
+import { PushEndpointSecurity } from './push-endpoint-security';
 
 export type PwaPushPayload = {
   title: string;
@@ -34,6 +35,7 @@ export class PushNotificationService {
   private readonly vapidSubject = process.env.WEB_PUSH_SUBJECT || 'mailto:contato@myurbanai.com';
   private readonly vapidPublicKey = process.env.WEB_PUSH_PUBLIC_KEY || '';
   private readonly vapidPrivateKey = process.env.WEB_PUSH_PRIVATE_KEY || '';
+  private readonly endpointSecurity: PushEndpointSecurity;
 
   constructor(
     @InjectRepository(PushSubscription)
@@ -43,7 +45,10 @@ export class PushNotificationService {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
     private readonly communicationLog: CommunicationLogService,
-  ) { }
+    @Optional() endpointSecurity?: PushEndpointSecurity,
+  ) {
+    this.endpointSecurity = endpointSecurity ?? new PushEndpointSecurity();
+  }
 
   getPublicConfig() {
     return {
@@ -61,7 +66,7 @@ export class PushNotificationService {
       throw new BadRequestException('Web Push não configurado no backend');
     }
 
-    this.assertValidSubscriptionInput(input);
+    await this.assertValidSubscriptionInput(input);
 
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('Usuário não encontrado');
@@ -260,12 +265,17 @@ export class PushNotificationService {
     return typeof type === 'string' && type.trim() ? type.trim() : 'pwa_push';
   }
 
-  private assertValidSubscriptionInput(input: UpsertPushSubscriptionDto): void {
+  private async assertValidSubscriptionInput(input: UpsertPushSubscriptionDto): Promise<void> {
     if (!input.endpoint || !/^https:\/\//i.test(input.endpoint)) {
       throw new BadRequestException('endpoint push inválido');
     }
     if (!input.keys?.p256dh || !input.keys?.auth) {
       throw new BadRequestException('chaves push ausentes');
+    }
+    try {
+      await this.endpointSecurity.assertSafe(input.endpoint);
+    } catch {
+      throw new BadRequestException('endpoint push invÃ¡lido');
     }
   }
 
@@ -303,10 +313,13 @@ export class PushNotificationService {
   }
 
   private async sendWakePush(subscription: PushSubscription): Promise<void> {
-    const endpointUrl = new URL(subscription.endpoint);
+    // Re-resolve immediately before I/O so persisted subscriptions cannot use
+    // DNS changes after registration to reach an internal address.
+    const endpointUrl = await this.endpointSecurity.assertSafe(subscription.endpoint);
     const token = this.createVapidJwt(endpointUrl.origin);
-    const response = await fetch(subscription.endpoint, {
+    const response = await fetch(endpointUrl.toString(), {
       method: 'POST',
+      redirect: 'manual',
       headers: {
         TTL: '2419200',
         Urgency: 'normal',
@@ -314,6 +327,9 @@ export class PushNotificationService {
       },
     });
 
+    if (response.status >= 300 && response.status < 400) {
+      throw new Error('push_redirect_blocked');
+    }
     if (response.ok || [201, 202].includes(response.status)) return;
 
     const text = await response.text().catch(() => '');

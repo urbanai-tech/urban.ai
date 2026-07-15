@@ -1,7 +1,6 @@
 import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { EventoService } from './evento.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { Event } from 'src/entities/events.entity';
 
 @Controller("event")
 export class EventoController {

@@ -36,6 +36,14 @@ import { ACCESS_TOKEN_COOKIE } from './jwt.strategy';
 import { WaitlistService } from '../waitlist/waitlist.service';
 import { Roles } from './roles.decorator';
 import { RolesGuard } from './roles.guard';
+import { RegisterDto } from './register.dto';
+import {
+  AcceptWaitlistInviteDto,
+  GoogleLoginDto,
+  LoginDto,
+  UpdateProfileDto,
+  UpdateUserDto,
+} from './auth.dto';
 
 const REFRESH_TOKEN_COOKIE = 'urbanai_refresh_token';
 const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
@@ -157,15 +165,7 @@ export class AuthController {
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('register')
   async register(
-    @Body() data: {
-      username: string;
-      email: string;
-      password: string;
-      // F8: campos opcionais quando o front sabe que está em prelaunch e
-      // já chama /auth/register pretendendo virar waitlist.
-      source?: string;
-      referredBy?: string;
-    },
+    @Body() data: RegisterDto,
     @Req() req: Request,
   ) {
     // F8 — modo pré-lançamento.
@@ -201,11 +201,7 @@ export class AuthController {
   @Post('waitlist/accept')
   async acceptWaitlistInvite(
     @Body()
-    data: {
-      token: string;
-      username?: string;
-      password: string;
-    },
+    data: AcceptWaitlistInviteDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
@@ -263,7 +259,7 @@ export class AuthController {
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('login')
   async login(
-    @Body() data: { email: string; password: string },
+    @Body() data: LoginDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
@@ -281,11 +277,7 @@ export class AuthController {
   @Post('google')
   async googleLogin(
     @Body()
-    googleUserData: {
-      idToken?: string;
-      token?: string;
-      credential?: string;
-    },
+    googleUserData: GoogleLoginDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
@@ -328,6 +320,7 @@ export class AuthController {
     return { accessToken: tokens.accessToken };
   }
 
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @Post('logout')
   @HttpCode(204)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
@@ -414,11 +407,7 @@ export class AuthController {
   async updateUser(
     @Param('id') id: string,
     @Body()
-    data: {
-      username?: string;
-      email?: string;
-      password?: string;
-    },
+    data: UpdateUserDto,
   ): Promise<SafeUser> {
     return this.authService.update(id, data);
   }
@@ -483,18 +472,7 @@ export class AuthController {
   @Put('profile')
   async updateProfileById(
     @Body()
-    body: {
-      username?: string;
-      email?: string;
-      phone?: string;
-      company?: string;
-      distanceKm?: number;
-      airbnbHostId?: string;
-      pricingStrategy?: string;
-      operationMode?: string;
-      percentualInicial?: number;
-      percentualFinal?: number;
-    },
+    body: UpdateProfileDto,
     @Req() req,
   ) {
 

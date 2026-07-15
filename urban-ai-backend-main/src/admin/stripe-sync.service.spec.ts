@@ -82,4 +82,71 @@ describe('StripeSyncCheckService', () => {
       ]),
     );
   });
+
+  it('reconciles active, interval, currency and lifecycle metadata from mocked Stripe prices', async () => {
+    process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
+    repo.find!.mockResolvedValue([
+      {
+        name: 'profissional',
+        isCustomPrice: false,
+        stripePriceIdMonthly: 'price_monthly',
+        stripePriceIdQuarterly: 'price_quarterly',
+        stripePriceIdSemestral: 'price_semestral',
+        stripePriceIdAnnualNew: 'price_annual',
+      },
+    ]);
+    mockStripePricesRetrieve.mockImplementation(async (priceId: string) => {
+      const base = { id: priceId, unit_amount: 29700, currency: 'brl', active: true };
+      if (priceId === 'price_monthly') {
+        return { ...base, recurring: { interval: 'month', interval_count: 1 } };
+      }
+      if (priceId === 'price_quarterly') {
+        return { ...base, active: false, recurring: { interval: 'month', interval_count: 3 } };
+      }
+      if (priceId === 'price_semestral') {
+        return { ...base, currency: 'usd', recurring: { interval: 'month', interval_count: 6 } };
+      }
+      return { ...base, recurring: { interval: 'month', interval_count: 12 } };
+    });
+
+    const result = await service.check();
+
+    expect(result.summary).toMatchObject({ total: 4, ok: 1, problems: 3 });
+    expect(result.entries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ cycle: 'monthly', status: 'ok' }),
+        expect.objectContaining({ cycle: 'quarterly', status: 'inactive' }),
+        expect.objectContaining({ cycle: 'semestral', status: 'currency-mismatch' }),
+        expect.objectContaining({ cycle: 'annual', status: 'cycle-mismatch' }),
+      ]),
+    );
+  });
+
+  it('maps mocked remote reconciliation failures without throwing the whole report', async () => {
+    process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
+    repo.find!.mockResolvedValue([
+      {
+        name: 'profissional',
+        isCustomPrice: false,
+        stripePriceIdMonthly: 'price_missing_remote',
+        stripePriceIdAnnualNew: 'price_error_remote',
+      },
+    ]);
+    mockStripePricesRetrieve.mockImplementation(async (priceId: string) => {
+      if (priceId === 'price_missing_remote') {
+        throw { code: 'resource_missing', message: 'No such price' };
+      }
+      throw new Error('temporary network failure');
+    });
+
+    const result = await service.check();
+
+    expect(result.entries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ cycle: 'monthly', status: 'not-found' }),
+        expect.objectContaining({ cycle: 'annual', status: 'check-error' }),
+      ]),
+    );
+    expect(result.summary.problems).toBe(2);
+  });
 });

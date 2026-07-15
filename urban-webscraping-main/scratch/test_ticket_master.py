@@ -14,5 +14,8 @@ data = response.json()
 events = data.get("_embedded", {}).get("events", [])
 for e in events:
     print(e.get("name"))
-    print("State:", e.get("_embedded", {}).get("venues", [{}])[0].get("state", {}).get("stateCode"))
+    print(
+        "State:",
+        e.get("_embedded", {}).get("venues", [{}])[0].get("state", {}).get("stateCode"),
+    )
     print("Source:", e.get("source", {}).get("name"))

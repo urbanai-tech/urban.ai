@@ -30,6 +30,10 @@ import {
 } from '../entities/pricing-rule-config.entity';
 import { Payment } from '../entities/payment.entity';
 import { User } from '../entities/user.entity';
+import {
+  PortfolioActionTargetResolverService,
+  type PortfolioBulkActionInput,
+} from './portfolio-action-target-resolver.service';
 
 type DateRange = { from: string; to: string; dates: string[] };
 
@@ -54,22 +58,6 @@ type AskUsagePayload = {
   canUse: boolean;
   plan: string;
   reason: AskUsageReason;
-};
-
-type PortfolioBulkActionInput = {
-  propertyIds: string[];
-  action: string;
-  payload?: Record<string, unknown>;
-  dates?: string[];
-  from?: string;
-  to?: string;
-};
-
-type PortfolioResolvedTargets = {
-  explicit: boolean;
-  dates: string[];
-  byAddress: Map<string, string[]>;
-  keys: Set<string>;
 };
 
 type PortfolioActionPreviewItem = {
@@ -188,6 +176,7 @@ export class HostPanelsService {
     @InjectRepository(PortfolioActionRun) private readonly portfolioRunRepo: Repository<PortfolioActionRun>,
     @InjectRepository(PortfolioActionItem) private readonly portfolioItemRepo: Repository<PortfolioActionItem>,
     @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly portfolioTargetResolver: PortfolioActionTargetResolverService,
   ) {}
 
   async portfolioCalendar(
@@ -466,7 +455,7 @@ export class HostPanelsService {
       if (!Number.isFinite(price) || price <= 0) {
         throw new BadRequestException('payload.price deve ser um número maior que zero');
       }
-      const targets = this.resolveActionTargets(input, addresses);
+      const targets = this.portfolioTargetResolver.resolve(input, addresses);
       const dates = targets.dates;
       if (!dates.length) throw new BadRequestException('dates e obrigatorio para set-date-price');
       let applied = 0;
@@ -499,7 +488,7 @@ export class HostPanelsService {
     }
 
     if (input.action === 'accept-suggestions') {
-      const targets = this.resolveActionTargets(input, addresses);
+      const targets = this.portfolioTargetResolver.resolve(input, addresses);
       const addressIds = targets.explicit ? Array.from(targets.byAddress.keys()) : addresses.map((address) => address.id);
       const relevantAddresses = targets.explicit ? addresses.filter((address) => targets.byAddress.has(address.id)) : addresses;
       const dates = targets.dates;
@@ -804,7 +793,7 @@ export class HostPanelsService {
       if (!Number.isFinite(price) || price <= 0) {
         throw new BadRequestException('payload.price deve ser um número maior que zero');
       }
-      const targets = this.resolveActionTargets(input, addresses);
+      const targets = this.portfolioTargetResolver.resolve(input, addresses);
       const dates = targets.dates;
       if (!dates.length) throw new BadRequestException('dates e obrigatorio para set-date-price');
       const targetAddressIds = Array.from(targets.byAddress.keys());
@@ -843,7 +832,7 @@ export class HostPanelsService {
     }
 
     if (input.action === 'accept-suggestions') {
-      const targets = this.resolveActionTargets(input, addresses);
+      const targets = this.portfolioTargetResolver.resolve(input, addresses);
       const dates = targets.dates;
       const targetAddressIds = targets.explicit ? Array.from(targets.byAddress.keys()) : addressIds;
       const relevantAddresses = targets.explicit ? addresses.filter((address) => targets.byAddress.has(address.id)) : addresses;
@@ -1000,92 +989,6 @@ export class HostPanelsService {
 
   private previewTargetDates(preview: PortfolioActionPreview) {
     return Array.from(new Set(preview.items.map((item) => item.date).filter(Boolean))) as string[];
-  }
-
-  private resolveActionTargets(input: PortfolioBulkActionInput, addresses: Address[]): PortfolioResolvedTargets {
-    const aliases = new Map<string, string>();
-    for (const address of addresses) {
-      aliases.set(address.id, address.id);
-      if (address.list?.id) aliases.set(address.list.id, address.id);
-    }
-
-    const targetSets = new Map<string, Set<string>>();
-    for (const target of this.targetList(input.payload?.targets)) {
-      const rawPropertyId =
-        target.propertyId ?? target.addressId ?? target.listingId ?? target.listId ?? target.id;
-      const addressId = aliases.get(String(rawPropertyId ?? ''));
-      const date = this.dateOnly(target.date ?? target.targetDate ?? target.data ?? target.day);
-      if (!addressId || !date) continue;
-      if (!targetSets.has(addressId)) targetSets.set(addressId, new Set<string>());
-      targetSets.get(addressId)?.add(date);
-    }
-
-    if (targetSets.size) {
-      return this.materializeTargets(targetSets, true);
-    }
-
-    const dates = this.resolveActionDates(input);
-    const fallback = new Map<string, Set<string>>();
-    for (const address of addresses) {
-      fallback.set(address.id, new Set(dates));
-    }
-    return this.materializeTargets(fallback, false);
-  }
-
-  private resolveActionDates(input: PortfolioBulkActionInput): string[] {
-    const payload = input.payload ?? {};
-    const rawDates = [
-      ...this.dateList(input.dates),
-      ...this.dateList(payload.dates),
-      ...this.dateList(payload.targetDates),
-      ...this.dateList(payload.date),
-      ...this.dateList(payload.targetDate),
-    ];
-    const explicitDates = Array.from(new Set(rawDates.map((date) => this.dateOnly(date)).filter(Boolean))) as string[];
-    if (explicitDates.length) return explicitDates.slice(0, 360).sort();
-    const from = input.from ?? (typeof payload.from === 'string' ? payload.from : undefined);
-    const to = input.to ?? (typeof payload.to === 'string' ? payload.to : undefined);
-    if (!from && !to) return [];
-    return this.resolveRange(from, to, 1, 360).dates;
-  }
-
-  private materializeTargets(targets: Map<string, Set<string>>, explicit: boolean): PortfolioResolvedTargets {
-    const byAddress = new Map<string, string[]>();
-    const keys = new Set<string>();
-    const allDates = new Set<string>();
-    for (const [addressId, dates] of targets.entries()) {
-      const sorted = Array.from(dates).sort().slice(0, 360);
-      if (!sorted.length) continue;
-      byAddress.set(addressId, sorted);
-      for (const date of sorted) {
-        keys.add(`${addressId}:${date}`);
-        allDates.add(date);
-      }
-    }
-    return {
-      explicit,
-      dates: Array.from(allDates).sort().slice(0, 360),
-      byAddress,
-      keys,
-    };
-  }
-
-  private targetList(value: unknown): Array<Record<string, unknown>> {
-    if (Array.isArray(value)) {
-      return value.filter((item): item is Record<string, unknown> => Boolean(item && typeof item === 'object'));
-    }
-    return value && typeof value === 'object' ? [value as Record<string, unknown>] : [];
-  }
-
-  private dateList(value: unknown): string[] {
-    if (Array.isArray(value)) return value.map((item) => String(item));
-    if (typeof value === 'string') {
-      return value
-        .split(',')
-        .map((item) => item.trim())
-        .filter(Boolean);
-    }
-    return value ? [String(value)] : [];
   }
 
   private async portfolioSettingsByAddress(addressIds: string[]) {

@@ -45,6 +45,7 @@ describe('WeeklyEventReportService', () => {
     jest.restoreAllMocks();
     delete process.env.WEEKLY_EVENT_REPORT_LOOKAHEAD_DAYS;
     delete process.env.WEEKLY_EVENT_REPORT_EVENTS_PER_PROPERTY;
+    delete process.env.WEEKLY_EVENT_REPORT_ENABLED;
   });
 
   it('envia um resumo semanal por imóvel para usuários ativos com eventos relevantes', async () => {
@@ -137,5 +138,23 @@ describe('WeeklyEventReportService', () => {
       skipped: 1,
       failed: 0,
     });
+  });
+
+  it('uses a weekly claim before processing cron side effects', async () => {
+    const { service } = makeService();
+    const processSpy = jest.spyOn(service, 'processWeeklyReports');
+    const runner = {
+      runOncePerWindow: jest.fn(async (_name, _window, _handler, duplicateResult) => duplicateResult()),
+    };
+    (service as any).scheduledJobRunner = runner;
+
+    await expect(service.runWeeklyCron()).resolves.toMatchObject({ ok: true, sent: 0 });
+    expect(runner.runOncePerWindow).toHaveBeenCalledWith(
+      'weekly-event-report',
+      expect.any(Date),
+      expect.any(Function),
+      expect.any(Function),
+    );
+    expect(processSpy).not.toHaveBeenCalled();
   });
 });

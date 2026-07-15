@@ -187,15 +187,36 @@ echo "Dump gerado em: $OUT ($(du -h "$OUT" | cut -f1))"
 
 ---
 
-## 5. Aceitação
+## 5. Gate automatizado sem credenciais
+
+O gate local valida os guardrails do workflow, dos scripts e dos runbooks sem abrir conexão, gerar dump ou acessar Railway/S3/B2:
+
+```bash
+# Na raiz do repositório
+npm run audit:resilience-dr:self-test
+npm run audit:resilience-dr
+
+# No backend
+npm run backup:mysql:self-test
+npm run restore:verify:self-test
+npm run backup:mysql:dry
+npm run restore:verify:dry
+npm run audit:migrations:strict
+```
+
+O gate cobre concorrência e timeout do backup, execução agendada/manual, dump transacional, integridade `gzip`, tamanho/tabelas mínimos, checksum, destinos off-site, fail-closed sem credenciais, redação de segredos, bloqueio de alvo aparente de produção, consultas read-only do verificador, RPO/RTO, evidência, rollback e preservação forense.
+
+Esse resultado prova a consistência estática e os guardrails locais. Ele **não** prova que um backup remoto existe, que o dump é restaurável ou que o RTO foi alcançado; essas evidências continuam dependendo do drill trimestral em staging/DB temporário.
+
+## 6. Aceitação
 
 Este runbook é considerado "aprovado" somente depois do **primeiro drill real**. Quando Gustavo executar os passos da seção 2 pela primeira vez (semana 7–8, após staging estar de pé), atualizar:
 
 - [ ] Tempo total observado (vs. RTO 2h)
 - [ ] Ajustes ao runbook
-- [ ] Status ✅ na tabela do `docs/slo.md` § Error budget
+- [ ] Status ✅ na tabela do `docs/ops/slo.md` § Error budget
 - [ ] Evidencia gerada por `node scripts/restore-drill-verify.js` em `docs/evidence/`
 
 ---
 
-*Última atualização: 22/05/2026 · Responsável: Gustavo Macedo*
+*Última atualização: 15/07/2026 · Responsável: Gustavo Macedo*

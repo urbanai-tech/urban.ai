@@ -20,6 +20,9 @@ concurrency:
 jobs:
   dump-and-upload:
     name: Dump MySQL + upload off-site (S3 ou B2)
+    # O cron pertence ao repositório canônico. Forks continuam podendo executar
+    # manualmente quando tiverem seus próprios secrets configurados.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.repository == 'urbanai-tech/urban.ai' }}
     runs-on: ubuntu-latest
 
     # Backup precisa terminar mesmo que demore (default 360min é suficiente).

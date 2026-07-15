@@ -10,7 +10,7 @@ function resolveAppVersion(): string {
   if (fromEnv) return fromEnv;
   try {
     // dist/health/health.service.js → ../../package.json (raiz do backend)
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+
     const pkg = require('../../package.json');
     if (pkg?.version) return String(pkg.version);
   } catch {
@@ -54,7 +54,11 @@ export class HealthService {
     ]);
     const env = this.buildEnvReadiness();
     const criticalEnvReady = env.database.ready && env.auth.ready && env.server.ready;
-    const dbDegraded = db.status === 'down' || db.status === 'degraded';
+    const protectedRuntime = this.isProtectedRuntime();
+    const dbDegraded =
+      db.status === 'down' ||
+      db.status === 'degraded' ||
+      (protectedRuntime && db.status === 'skipped');
     const redisDegraded = redis.status === 'down' || redis.status === 'degraded';
     const status: HealthStatus =
       dbDegraded || redisDegraded || !criticalEnvReady ? 'degraded' : 'ok';
@@ -86,10 +90,9 @@ export class HealthService {
   }
 
   assertReadinessAccess(authorization?: string | string[] | null): void {
-    if (process.env.HEALTH_READINESS_PUBLIC === 'true') return;
+    if (this.isTrue(process.env.HEALTH_READINESS_PUBLIC)) return;
 
-    const env = process.env.APP_ENV ?? process.env.NODE_ENV ?? 'development';
-    const protectedEnv = env === 'production' || env === 'staging';
+    const protectedEnv = this.isProtectedRuntime();
     const expectedToken = (process.env.HEALTH_READINESS_TOKEN || process.env.ENTERPRISE_GATE_HEALTH_TOKEN || '').trim();
 
     if (!expectedToken && !protectedEnv) return;
@@ -102,6 +105,17 @@ export class HealthService {
     if (!match || !this.safeEqual(match[1], expectedToken)) {
       throw new UnauthorizedException('Invalid health readiness token.');
     }
+  }
+
+  private isProtectedRuntime(): boolean {
+    const env = (process.env.APP_ENV ?? process.env.NODE_ENV ?? 'development')
+      .trim()
+      .toLowerCase();
+    return env === 'production' || env === 'staging';
+  }
+
+  private isTrue(value?: string): boolean {
+    return value?.trim().toLowerCase() === 'true';
   }
 
   private async checkDatabase(): Promise<{

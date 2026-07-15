@@ -82,8 +82,7 @@ export class AirbnbService {
     if (!this.apiKey) {
       this.logger.warn('RAPIDAPI_KEY environment variable is not set; Airbnb price lookups will fail');
     } else {
-      const masked = `${this.apiKey.substring(0, 4)}...${this.apiKey.substring(this.apiKey.length - 4)}`;
-      this.logger.log(`RapidAPI key loaded: ${masked}`);
+      this.logger.log('RAPIDAPI_KEY configured');
     }
   }
 

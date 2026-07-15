@@ -1,5 +1,6 @@
 import { test, expect, type Page, type Response as PlaywrightResponse, type Route } from '@playwright/test';
 import { acceptCookieConsent } from './test-helpers';
+import { installLocalAuthFixture, type LocalAuthRole } from './local-auth-fixture';
 
 type Credentials = {
   email: string;
@@ -79,6 +80,15 @@ async function login(page: Page, credentials: Credentials) {
   await page.waitForTimeout(1500);
 
   await expect(page.getByText(/credenciais invalidas|invalid credentials/i)).toHaveCount(0);
+}
+
+async function authenticate(page: Page, credentials: Credentials | null, role: LocalAuthRole) {
+  if (credentials) {
+    await login(page, credentials);
+    return;
+  }
+
+  await installLocalAuthFixture(page, role);
 }
 
 async function persistBrowserSession(page: Page, loginResponse: PlaywrightResponse) {
@@ -165,9 +175,7 @@ async function expectRouteText(page: Page, marker: RegExp) {
 
 test.describe('Smoke autenticado - F3/F4/F7', () => {
   test('host acessa dashboard operacional', async ({ page }) => {
-    test.skip(!hostCredentials, 'Defina E2E_HOST_EMAIL/E2E_HOST_PASSWORD para rodar o smoke host.');
-
-    await login(page, hostCredentials!);
+    await authenticate(page, hostCredentials, 'host');
 
     await gotoAuthenticatedRoute(page, '/dashboard');
     await expectNotBackAtLogin(page);
@@ -175,9 +183,7 @@ test.describe('Smoke autenticado - F3/F4/F7', () => {
   });
 
   test('admin acessa painel, alpha e ROI', async ({ page }) => {
-    test.skip(!adminCredentials, 'Defina E2E_ADMIN_EMAIL/E2E_ADMIN_PASSWORD para rodar o smoke admin.');
-
-    await login(page, adminCredentials!);
+    await authenticate(page, adminCredentials, 'admin');
 
     await gotoAuthenticatedRoute(page, '/admin');
     await expectNotBackAtLogin(page);

@@ -12,8 +12,9 @@ SPIDERS = [
     "ingresse",
     "sympla",
     "ticket_360",
-    "ticket_master"
+    "ticket_master",
 ]
+
 
 def main():
     print("Scheduling all spiders...")
@@ -22,7 +23,7 @@ def main():
         resp = requests.post(
             f"{BASE_URL}/schedule.json",
             headers=HEADERS,
-            data={"project": "urban_webscrapping", "spider": spider}
+            data={"project": "urban_webscrapping", "spider": spider},
         )
         if resp.status_code == 200:
             job_id = resp.json().get("jobid")
@@ -33,7 +34,9 @@ def main():
 
     print("\nWaiting for jobs to finish...")
     while True:
-        resp = requests.get(f"{BASE_URL}/listjobs.json?project=urban_webscrapping", headers=HEADERS)
+        resp = requests.get(
+            f"{BASE_URL}/listjobs.json?project=urban_webscrapping", headers=HEADERS
+        )
         if resp.status_code != 200:
             print(f"Error fetching listjobs: {resp.text}")
             time.sleep(10)
@@ -72,6 +75,7 @@ def main():
                 print(f"Failed to get logs for {spider}: {log_resp.status_code}")
         except Exception as e:
             print(f"Error getting logs for {spider}: {e}")
+
 
 if __name__ == "__main__":
     main()

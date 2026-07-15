@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useRef } from "react";
 import { AdminButton } from "./AdminButton";
+import { useDialogFocus } from "../../componentes/ui/useDialogFocus";
 
 /**
  * Dialog de confirmação admin Urban AI — substitui `confirm()` nativos
@@ -45,18 +46,14 @@ export function AdminConfirmDialog({
   destructive?: boolean;
   loading?: boolean;
 }) {
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handler);
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", handler);
-      document.body.style.overflow = "";
-    };
-  }, [open, onClose]);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const cancelRef = useRef<HTMLButtonElement | null>(null);
+  useDialogFocus({
+    open,
+    containerRef: dialogRef,
+    initialFocusRef: cancelRef,
+    onClose,
+  });
 
   if (!open) return null;
 
@@ -86,6 +83,8 @@ export function AdminConfirmDialog({
         }}
       />
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         className="urban-admin-drawer-panel"
         style={{
           position: "relative",
@@ -129,7 +128,7 @@ export function AdminConfirmDialog({
             justifyContent: "flex-end",
           }}
         >
-          <AdminButton variant="ghost" onClick={onClose} disabled={loading}>
+          <AdminButton ref={cancelRef} variant="ghost" onClick={onClose} disabled={loading}>
             {cancelLabel}
           </AdminButton>
           <AdminButton

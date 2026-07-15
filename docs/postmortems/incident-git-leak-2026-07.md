@@ -25,7 +25,7 @@ residenciais com lat/lng, ~54 pagamentos com `customerId`/`subscriptionId` Strip
 
 - [ ] **Confirmar visibilidade do repo.** Se público, tornar privado imediatamente (GitHub → Settings → Danger Zone).
 - [ ] **Rotacionar credenciais:** forçar reset de senha dos ~80 usuários + invalidar `refresh_token`. As 68 SHA-256 são consideradas comprometidas.
-- [ ] **Rotacionar chave Stripe `sk_live_`** citada em `docs/relatorio-testes-2026-03-18.md` (gerar nova, atualizar `STRIPE_SECRET_KEY` no Railway, revogar antiga).
+- [ ] **Rotacionar chave Stripe `sk_live_`** citada em `docs/archive/reports/relatorio-testes-2026-03-18.md` (gerar nova, atualizar `STRIPE_SECRET_KEY` no Railway, revogar antiga).
 - [ ] **Reescrever histórico** (remove de fato os blobs — o `git rm --cached` acima não faz isso):
   ```
   git filter-repo --path docs/dump-ai_urban-202603131344.sql \
