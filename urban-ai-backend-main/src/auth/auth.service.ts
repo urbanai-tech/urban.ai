@@ -237,7 +237,8 @@ export class AuthService {
 
   /** Remove o campo password do objeto retornado para o cliente. */
   sanitizeUser(user: User): SafeUser {
-    const { password: _password, ...safe } = user as User & { password?: string };
+    const { password, ...safe } = user as User & { password?: string };
+    void password;
     return safe;
   }
 
