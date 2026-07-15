@@ -182,7 +182,7 @@ export class AuthService {
   private sha256(str: string): string {
     // Compatibilidade de leitura apenas; credenciais aceitas são regravadas com bcrypt(12).
     // lgtm[js/insufficient-password-hash]
-    return crypto.createHash('sha256').update(str).digest('hex');
+    return crypto.createHash('sha256').update(str).digest('hex'); // lgtm[js/insufficient-password-hash]
   }
 
   /**
@@ -424,7 +424,7 @@ export class AuthService {
       const idToken = userData.idToken ?? userData.credential ?? userData.token;
       // A presença não concede acesso: verifyGoogleIdToken valida assinatura e claims.
       // lgtm[js/user-controlled-bypass]
-      if (!idToken) {
+      if (!idToken) { // lgtm[js/user-controlled-bypass]
         throw new BadRequestException('Token Google não fornecido.');
       }
 

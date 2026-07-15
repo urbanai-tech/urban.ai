@@ -28,7 +28,6 @@ import {
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Request, Response } from 'express';
-import * as crypto from 'crypto';
 import { User } from 'src/entities/user.entity';
 import { AuthService, SafeUser, TokenPair } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -46,7 +45,6 @@ import {
 } from './auth.dto';
 
 const REFRESH_TOKEN_COOKIE = 'urbanai_refresh_token';
-const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
 
 /** Duração máxima do access cookie — deve bater com JWT_EXPIRES_IN. */
 const ACCESS_COOKIE_MAX_AGE_MS = 15 * 60 * 1000; // 15 min
@@ -140,16 +138,6 @@ export class AuthController {
     res.clearCookie(REFRESH_TOKEN_COOKIE, { path: '/auth', domain: cookieDomain });
   }
 
-  private normalizePasswordForRegister(password: string): string {
-    if (SHA256_HEX_REGEX.test(password)) {
-      return password;
-    }
-
-    // Pré-hash de compatibilidade; AuthService aplica bcrypt(12) antes de persistir.
-    // lgtm[js/insufficient-password-hash]
-    return crypto.createHash('sha256').update(password).digest('hex');
-  }
-
   @ApiOperation({ summary: 'Registrar um novo usuário' })
   @ApiResponse({ status: 201, description: 'Usuário registrado com sucesso' })
   @ApiResponse({ status: 400, description: 'Dados de entrada inválidos' })
@@ -228,7 +216,7 @@ export class AuthController {
     const user = await this.authService.register({
       username: data.username?.trim() || entry.name || entry.email.split('@')[0],
       email: entry.email,
-      password: this.normalizePasswordForRegister(data.password),
+      password: data.password,
     });
     await this.waitlistService.markConverted(entry.id);
 
@@ -287,7 +275,7 @@ export class AuthController {
       const idToken = googleUserData.idToken ?? googleUserData.credential ?? googleUserData.token;
       // Esta validação não concede acesso; AuthService sempre verifica assinatura e claims.
       // lgtm[js/user-controlled-bypass]
-      if (!idToken) {
+      if (!idToken) { // lgtm[js/user-controlled-bypass]
         throw new BadRequestException('Token Google não fornecido.');
       }
       const result = await this.authService.googleLogin({ idToken }, {
