@@ -237,11 +237,14 @@ export async function resolveSafeAirbnbUrl(
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), remainingMs);
     let response: FetchResponseLike;
+    const outboundTarget = currentUrl.toString();
+    if (!/^https:\/\/(?:www\.)?airbnb\.(?:com|com\.br)\//i.test(outboundTarget)) {
+      throw new SafeUrlResolutionError('host_not_allowed', 'Host Airbnb não permitido');
+    }
 
     try {
       // Host, protocol, DNS answers and every redirect are validated above.
-      // lgtm[js/request-forgery]
-      response = await fetchImpl(currentUrl.toString(), {
+      response = await fetchImpl(outboundTarget, { // lgtm[js/request-forgery]
         redirect: 'manual',
         signal: controller.signal,
       });

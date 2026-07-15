@@ -113,7 +113,7 @@ describe('AuthController', () => {
       controller = new AuthController(authService as any, waitlistService as any);
     });
 
-    it('hashes raw invite passwords before registering the user', async () => {
+    it('forwards raw invite passwords for bcrypt hashing in AuthService', async () => {
       const res = { cookie: jest.fn() };
 
       await controller.acceptWaitlistInvite(
@@ -125,7 +125,7 @@ describe('AuthController', () => {
       expect(authService.register).toHaveBeenCalledWith({
         username: 'Ricardo',
         email: entry.email,
-        password: sha256('Senha123!'),
+        password: 'Senha123!',
       });
       expect(waitlistService.markConverted).toHaveBeenCalledWith(entry.id);
     });
