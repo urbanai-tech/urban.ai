@@ -364,7 +364,9 @@ jobs:
     name: Frontend - Playwright public smoke
     runs-on: ubuntu-latest
     needs: [frontend-test]
-    if: ${{ vars.E2E_BASE_URL != '' }}
+    # Em PR, o codigo novo e validado pelo E2E local acima. O smoke remoto
+    # volta a bloquear no push, quando o ambiente pode refletir o SHA publicado.
+    if: ${{ github.event_name != 'pull_request' && vars.E2E_BASE_URL != '' }}
     defaults:
       run:
         working-directory: Urban-front-main

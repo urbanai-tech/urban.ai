@@ -73,20 +73,14 @@ def setup_database_from_prefect(
 
         if test_connection:
             if database_config.test_connection():
-                log.info(
-                    "Database connection successful using secret '%s'.", secret_name
-                )
+                log.info("Database connection successful using Prefect configuration.")
             else:
-                raise ConnectionError(
-                    f"Database connection failed using secret '{secret_name}'"
-                )
+                raise ConnectionError("Database connection failed.")
 
         return database_config
 
     except Exception as e:
-        raise ValueError(
-            f"Failed to setup database from Prefect secret '{secret_name}': {e}"
-        ) from e
+        raise ValueError("Failed to setup database from Prefect configuration.") from e
 
 
 def create_database_config_from_secret(secret_name: str) -> DatabaseConfig:

@@ -262,7 +262,7 @@ describe('AuthController', () => {
     it.each([
       [{ password: 'Senha123!' }, 'token'],
       [{ token: 't', password: 'curta' }, 'password'],
-    ])('rejects malformed invite input', async (data) => {
+    ])('rejects malformed invite input: %s', async (data, _reason) => {
       const { controller } = create();
       await expect(controller.acceptWaitlistInvite(data as any, {} as any, {} as any))
         .rejects.toBeInstanceOf(BadRequestException);

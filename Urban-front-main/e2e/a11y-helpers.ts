@@ -48,6 +48,10 @@ async function loadAxeBuilder(): Promise<AxeBuilderConstructor | null> {
 }
 
 export async function expectNoCriticalA11yViolations(page: Page) {
+  // Audita o estado final e estavel da interface. Durante o fade-in, cores
+  // semitransparentes podem gerar falsos negativos de contraste no axe.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+
   const AxeBuilder = await loadAxeBuilder();
   expect(
     AxeBuilder,

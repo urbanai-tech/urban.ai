@@ -287,7 +287,7 @@ class BaseCollector(ABC):
 
             if self.dry_run or self.client is None:
                 # Modo dry-run: log o que mandaria, não envia
-                logger.debug("[%s] DRY-RUN payload: %s", self.source, payload)
+                logger.debug("[%s] DRY-RUN normalized payload ready", self.source)
                 continue
 
             try:

@@ -653,7 +653,7 @@ describe('AuthService', () => {
       [{ email_verified: false }, 'unverified email'],
       [{ exp: '0' }, 'expiry'],
       [{ exp: 'not-a-number' }, 'invalid expiry'],
-    ])('rejects an invalid Google %s claim', async (overrides) => {
+    ])('rejects an invalid Google %s claim', async (overrides, _reason) => {
       (global as any).fetch = jest.fn().mockResolvedValue({
         ok: true, json: jest.fn().mockResolvedValue({ ...valid(), ...overrides }),
       });

@@ -61,6 +61,8 @@ function isBackendMutation(route: Route) {
   const url = new URL(request.url());
   if (url.pathname.startsWith('/_next/')) return false;
   if (url.pathname.startsWith('/__')) return false;
+  // Relatorios CSP sao telemetria passiva do navegador, nao mutacoes de produto.
+  if (url.pathname === '/csp-report') return false;
   if (/^\/api\/\d+\/envelope\/?$/.test(url.pathname)) return false;
 
   return true;
