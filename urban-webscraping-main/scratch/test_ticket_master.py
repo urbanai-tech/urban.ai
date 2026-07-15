@@ -7,15 +7,14 @@ load_dotenv()
 
 api_key = os.getenv("TICKETMASTER_API_KEY")
 
-url = f"https://app.ticketmaster.com/discovery/v2/events?apikey={api_key}&keyword=jonas&countryCode=BR"
-response = requests.get(url)
+url = "https://app.ticketmaster.com/discovery/v2/events"
+response = requests.get(
+    url,
+    params={"apikey": api_key, "keyword": "jonas", "countryCode": "BR"},
+    timeout=20,
+)
+response.raise_for_status()
 
 data = response.json()
 events = data.get("_embedded", {}).get("events", [])
-for e in events:
-    print(e.get("name"))
-    print(
-        "State:",
-        e.get("_embedded", {}).get("venues", [{}])[0].get("state", {}).get("stateCode"),
-    )
-    print("Source:", e.get("source", {}).get("name"))
+print(f"Fetched {len(events)} Ticketmaster events.")

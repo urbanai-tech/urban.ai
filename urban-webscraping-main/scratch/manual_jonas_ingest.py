@@ -43,7 +43,7 @@ async def main():
         # helper process_event returns a dict like:
         # id, nome, linkSiteOficial, imagem_url, dataInicio, enderecoCompleto, postal_code, latitude, longitude
         e = helper.process_event(raw_event)
-        print(f"Ingesting: {e.get('nome')}")
+        print("Ingesting one validated event.")
 
         payload = {
             "nome": str(e.get("nome")).strip(),

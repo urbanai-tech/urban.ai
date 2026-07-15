@@ -158,7 +158,7 @@ describe('AdminBillingController', () => {
     finance.updatePlanPricing.mockResolvedValue(plan);
 
     await expect(
-      controller.updatePlanPricing('pro', { price: 99 }, { user: { userId: 'admin-1' } }),
+      controller.updatePlanPricing('pro', { price: '99' }, { user: { userId: 'admin-1' } }),
     ).resolves.toBe(plan);
     expect(audit.record).toHaveBeenCalledWith({
       actorUserId: 'admin-1',

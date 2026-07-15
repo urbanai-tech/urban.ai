@@ -78,8 +78,14 @@ describe('RolesGuard', () => {
     return { guard: new RolesGuard(reflector, dataSource as any), findOne };
   };
 
-  it.each([undefined, []])('allows routes without role metadata', async (roles) => {
-    const { guard, findOne } = create(roles);
+  it('allows routes without role metadata', async () => {
+    const { guard, findOne } = create(undefined);
+    await expect(guard.canActivate(context())).resolves.toBe(true);
+    expect(findOne).not.toHaveBeenCalled();
+  });
+
+  it('allows routes with an empty role list', async () => {
+    const { guard, findOne } = create([]);
     await expect(guard.canActivate(context())).resolves.toBe(true);
     expect(findOne).not.toHaveBeenCalled();
   });

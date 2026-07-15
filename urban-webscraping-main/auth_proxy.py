@@ -13,10 +13,22 @@ import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any, NoReturn, TypedDict
 from urllib.error import URLError
-from urllib.parse import urlparse
+from urllib.parse import parse_qsl, urlencode, urlparse
 from urllib.request import Request, urlopen
 
 SCRAPYD_PORT = 6801
+SCRAPYD_ENDPOINTS = {
+    "/addversion.json": "/addversion.json",
+    "/cancel.json": "/cancel.json",
+    "/daemonstatus.json": "/daemonstatus.json",
+    "/delproject.json": "/delproject.json",
+    "/delversion.json": "/delversion.json",
+    "/listjobs.json": "/listjobs.json",
+    "/listprojects.json": "/listprojects.json",
+    "/listspiders.json": "/listspiders.json",
+    "/listversions.json": "/listversions.json",
+    "/schedule.json": "/schedule.json",
+}
 PROXY_PORT = int(os.environ.get("PORT", "8080"))
 API_KEY = os.environ.get("SCRAPYD_API_KEY", "")
 COLLECTOR_CRON_INTERVAL_SECONDS = int(
@@ -53,6 +65,21 @@ cron_state: CronState = {
     "lastError": None,
     "nextRunAt": None,
 }
+
+
+def build_scrapyd_target(request_target: str) -> str:
+    """Return a loopback-only Scrapyd URL for a strictly allowlisted endpoint."""
+    parsed = urlparse(request_target)
+    if parsed.scheme or parsed.netloc or parsed.fragment:
+        raise ValueError("invalid proxy target")
+
+    endpoint = SCRAPYD_ENDPOINTS.get(parsed.path)
+    if endpoint is None:
+        raise ValueError("unsupported Scrapyd endpoint")
+
+    query = urlencode(parse_qsl(parsed.query, keep_blank_values=True))
+    target = f"http://127.0.0.1:{SCRAPYD_PORT}{endpoint}"
+    return f"{target}?{query}" if query else target
 
 
 def utc_iso(ts: float | None = None) -> str:
@@ -211,8 +238,16 @@ class AuthProxyHandler(BaseHTTPRequestHandler):
         content_length = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(content_length) if content_length > 0 else None
 
-        # Build proxied request
-        target_url = f"http://127.0.0.1:{SCRAPYD_PORT}{self.path}"
+        # Build a loopback-only request from an endpoint allowlist. Mapping the
+        # parsed path to a constant prevents absolute-URL and path confusion.
+        try:
+            target_url = build_scrapyd_target(self.path)
+        except ValueError:
+            self._send_json(
+                {"status": "error", "message": "Unsupported Scrapyd endpoint"},
+                status=400,
+            )
+            return
         req = Request(target_url, data=body, method=self.command)
 
         # Forward relevant headers

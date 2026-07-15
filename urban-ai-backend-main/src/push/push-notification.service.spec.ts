@@ -29,7 +29,7 @@ describe('PushNotificationService', () => {
       deliveryRepo as any,
       userRepo as any,
       communicationLog as any,
-      endpointSecurity as PushEndpointSecurity,
+      endpointSecurity as unknown as PushEndpointSecurity,
     );
 
     return { service, subscriptionRepo, deliveryRepo, userRepo, communicationLog, endpointSecurity };

@@ -185,7 +185,7 @@ class UrbanBackendClient:
             raise UrbanBackendError("Login retornou payload JSON invalido")
         token = data.get("accessToken") or data.get("access_token")
         if not isinstance(token, str) or not token:
-            raise UrbanBackendError(f"Login sem accessToken na resposta: {data}")
+            raise UrbanBackendError("Login sem accessToken na resposta")
 
         self._token = token
         self._token_acquired_at = time.time()
@@ -197,7 +197,7 @@ class UrbanBackendClient:
     def add_event(self, event: dict[str, Any]) -> None:
         """Adiciona um evento ao buffer. Auto-flush quando atinge batch_size."""
         if not event or not event.get("nome"):
-            logger.debug("Ignorando evento sem nome: %s", event)
+            logger.debug("Ignorando evento sem o campo nome obrigatorio")
             return
         self._buffer.append(event)
         if len(self._buffer) >= self.batch_size:
