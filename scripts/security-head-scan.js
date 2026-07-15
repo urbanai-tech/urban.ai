@@ -83,27 +83,30 @@ function scan() {
     if (artifact) findings.push({ file: relativePath, rule: artifact });
 
     const absolutePath = path.join(root, relativePath);
-    let stats;
+    let descriptor;
     try {
-      stats = fs.statSync(absolutePath);
+      descriptor = fs.openSync(absolutePath, 'r');
+      const stats = fs.fstatSync(descriptor);
+      if (!stats.isFile() || stats.size > maxBytes) continue;
+      if (binaryExtensions.has(path.extname(relativePath).toLowerCase())) continue;
+
+      const content = fs.readFileSync(descriptor, 'utf8');
+      if (content.includes('\0')) continue;
+      for (const [rule, expression] of contentRules) {
+        expression.lastIndex = 0;
+        const match = expression.exec(content);
+        if (match) {
+          findings.push({
+            file: relativePath,
+            line: lineNumberAt(content, match.index),
+            rule,
+          });
+        }
+      }
     } catch {
       continue;
-    }
-    if (!stats.isFile() || stats.size > maxBytes) continue;
-    if (binaryExtensions.has(path.extname(relativePath).toLowerCase())) continue;
-
-    const content = fs.readFileSync(absolutePath, 'utf8');
-    if (content.includes('\0')) continue;
-    for (const [rule, expression] of contentRules) {
-      expression.lastIndex = 0;
-      const match = expression.exec(content);
-      if (match) {
-        findings.push({
-          file: relativePath,
-          line: lineNumberAt(content, match.index),
-          rule,
-        });
-      }
+    } finally {
+      if (descriptor !== undefined) fs.closeSync(descriptor);
     }
   }
 

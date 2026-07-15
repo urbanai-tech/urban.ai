@@ -117,7 +117,7 @@ export class EventsIngestService {
     }
 
     const results: IngestResult[] = [];
-    const bySource: Record<string, { created: number; updated: number; skipped: number }> = {};
+    const bySource = new Map<string, { created: number; updated: number; skipped: number }>();
     let created = 0;
     let updated = 0;
     let skipped = 0;
@@ -127,16 +127,17 @@ export class EventsIngestService {
       results.push(result);
 
       const sourceKey = input.source ?? 'unknown';
-      if (!bySource[sourceKey]) bySource[sourceKey] = { created: 0, updated: 0, skipped: 0 };
+      const sourceSummary = bySource.get(sourceKey) ?? { created: 0, updated: 0, skipped: 0 };
+      bySource.set(sourceKey, sourceSummary);
       if (result.status === 'created') {
         created++;
-        bySource[sourceKey].created++;
+        sourceSummary.created++;
       } else if (result.status === 'updated') {
         updated++;
-        bySource[sourceKey].updated++;
+        sourceSummary.updated++;
       } else {
         skipped++;
-        bySource[sourceKey].skipped++;
+        sourceSummary.skipped++;
       }
     }
 
@@ -145,7 +146,7 @@ export class EventsIngestService {
       created,
       updated,
       skipped,
-      bySource,
+      bySource: Object.fromEntries(bySource),
       results,
     };
   }

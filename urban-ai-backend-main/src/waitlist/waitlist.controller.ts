@@ -78,8 +78,8 @@ export class WaitlistController {
     summary: 'Consultar posição na fila via referralCode (sem auth, sem expor email)',
   })
   @Get('waitlist/me')
-  async getMyStatus(@Query('code') code: string) {
-    if (!code || code.length < 4) {
+  async getMyStatus(@Query('code') code: string | string[]) {
+    if (typeof code !== 'string' || code.length < 4 || code.length > 128) {
       throw new BadRequestException('referralCode obrigatório');
     }
     const result = await this.waitlist.getStatusByCode(code);

@@ -317,7 +317,10 @@ function markdownTable(headers, rows) {
 }
 
 function markdownCell(value) {
-  return sanitizeText(String(value ?? '')).replace(/\r?\n/g, ' ').replace(/\|/g, '\\|');
+  return sanitizeText(String(value ?? ''))
+    .replace(/\\/g, '\\\\')
+    .replace(/\r?\n/g, ' ')
+    .replace(/\|/g, '\\|');
 }
 
 function writeOrPrint(markdown, output) {

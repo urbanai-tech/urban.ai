@@ -732,8 +732,17 @@ export class EmailService {
 
     private extractPropertyTitle(description?: string): string | null {
         if (!description) return null;
-        const match = description.match(/(?:imóvel|imovel)\s+(.+?)(?:\.|$)/i);
-        return match?.[1]?.trim()?.slice(0, 120) || null;
+        const lower = description.toLocaleLowerCase('pt-BR');
+        const markers = ['imóvel ', 'imovel '];
+        const marker = markers
+            .map((value) => ({ value, index: lower.indexOf(value) }))
+            .filter(({ index }) => index >= 0)
+            .sort((left, right) => left.index - right.index)[0];
+        if (!marker) return null;
+        const remainder = description.slice(marker.index + marker.value.length);
+        const sentenceEnd = remainder.indexOf('.');
+        const title = (sentenceEnd >= 0 ? remainder.slice(0, sentenceEnd) : remainder).trim();
+        return title.slice(0, 120) || null;
     }
 
     private metadataString(value: unknown): string | undefined {
