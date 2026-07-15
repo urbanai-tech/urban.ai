@@ -422,13 +422,7 @@ export class AuthService {
   ) {
     try {
       const idToken = userData.idToken ?? userData.credential ?? userData.token;
-      // A presença não concede acesso: verifyGoogleIdToken valida assinatura e claims.
-      // lgtm[js/user-controlled-bypass]
-      if (!idToken) { // lgtm[js/user-controlled-bypass]
-        throw new BadRequestException('Token Google não fornecido.');
-      }
-
-      const verified = await this.verifyGoogleIdToken(idToken);
+      const verified = await this.verifyGoogleIdToken(idToken ?? '');
 
       // Verificar se o usuário já existe
       let user = await this.userRepository.findOne({
