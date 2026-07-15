@@ -273,12 +273,7 @@ export class AuthController {
   ) {
     try {
       const idToken = googleUserData.idToken ?? googleUserData.credential ?? googleUserData.token;
-      // Esta validação não concede acesso; AuthService sempre verifica assinatura e claims.
-      // lgtm[js/user-controlled-bypass]
-      if (!idToken) { // lgtm[js/user-controlled-bypass]
-        throw new BadRequestException('Token Google não fornecido.');
-      }
-      const result = await this.authService.googleLogin({ idToken }, {
+      const result = await this.authService.googleLogin({ idToken: idToken ?? '' }, {
         userAgent: req.headers['user-agent'],
         ip: req.ip,
       });

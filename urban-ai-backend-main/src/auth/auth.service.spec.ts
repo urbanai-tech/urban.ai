@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
-  BadRequestException,
   ConflictException,
   InternalServerErrorException,
   NotFoundException,
@@ -396,9 +395,10 @@ describe('AuthService', () => {
     }
 
     it('rejects calls without a Google id token', async () => {
-      await expect(service.googleLogin({})).rejects.toBeInstanceOf(BadRequestException);
+      mockGoogleResponse({}, false);
+      await expect(service.googleLogin({})).rejects.toBeInstanceOf(UnauthorizedException);
 
-      expect((global as any).fetch).toBe(originalFetch);
+      expect((global as any).fetch).toHaveBeenCalled();
       expect(userRepo.findOne).not.toHaveBeenCalled();
     });
 

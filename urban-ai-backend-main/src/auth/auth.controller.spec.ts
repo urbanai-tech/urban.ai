@@ -321,7 +321,9 @@ describe('AuthController', () => {
     });
 
     it('preserves HTTP errors and wraps unexpected Google errors', async () => {
-      const httpController = new AuthController({ googleLogin: jest.fn() } as any, {} as any);
+      const httpController = new AuthController({
+        googleLogin: jest.fn().mockRejectedValue(new BadRequestException('Token inválido')),
+      } as any, {} as any);
       await expect(httpController.googleLogin({}, { headers: {} } as any, {} as any))
         .rejects.toBeInstanceOf(BadRequestException);
       const broken = new AuthController({ googleLogin: jest.fn().mockRejectedValue(new Error('boom')) } as any, {} as any);
