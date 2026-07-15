@@ -1,9 +1,13 @@
+"""Environment-backed settings and lazy Prefect secret resolution."""
+
+from importlib import import_module
+from typing import Any, cast
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """
-    Application settings with secure Prefect secret integration.
+    """Application settings with secure Prefect secret integration.
 
     This class provides centralized configuration management with lazy loading
     of Prefect secrets to avoid runtime errors during import.
@@ -45,8 +49,7 @@ class Settings(BaseSettings):
     def load_database_url_from_prefect(
         self, secret_name: str = "mysql-bronze-url"
     ) -> str:
-        """
-        Safely load database URL from Prefect secret.
+        """Safely load database URL from Prefect secret.
 
         Args:
             secret_name: Name of the Prefect secret block
@@ -58,9 +61,9 @@ class Settings(BaseSettings):
             ValueError: If secret cannot be loaded
         """
         try:
-            from prefect.blocks.system import Secret
-
-            database_url = Secret.load(secret_name).get()
+            secret_type = cast(Any, import_module("prefect.blocks.system").Secret)
+            secret_block = cast(Any, secret_type.load(secret_name))
+            database_url = str(secret_block.get())
             self.MYSQL_URL = database_url
             return database_url
 
@@ -73,8 +76,7 @@ class Settings(BaseSettings):
     def create_with_prefect_db(
         cls, secret_name: str = "mysql-bronze-url"
     ) -> "Settings":
-        """
-        Create Settings instance with database URL loaded from Prefect secret.
+        """Create Settings instance with database URL loaded from Prefect secret.
 
         Args:
             secret_name: Name of the Prefect secret block

@@ -1,6 +1,7 @@
 import logging
 import os
 from datetime import datetime
+from typing import Any
 
 import requests
 from dotenv import load_dotenv
@@ -14,34 +15,34 @@ from urban_webscrapping.collectors.base_collector import (
 load_dotenv()
 logger = logging.getLogger(__name__)
 
+
 class ApiFootballCollector(BaseCollector):
-    """Coletor para o API-Football, focado em jogos de futebol em São Paulo.
-    """
+    """Coletor para o API-Football, focado em jogos de futebol em São Paulo."""
+
     source = "api-football"
 
-    def fetch_raw(self) -> list[dict]:
+    def fetch_raw(self) -> list[dict[str, Any]]:
         api_key = os.getenv("API_FOOTBALL_KEY")
         if not api_key:
             raise MissingApiKeyError("API_FOOTBALL_KEY")
 
-        headers = {
-            "x-apisports-key": api_key,
-            "v": "3"
-        }
+        headers = {"x-apisports-key": api_key, "v": "3"}
 
         # IDs dos principais times de SP
         sp_teams = [
-            121, # São Paulo
-            128, # Palmeiras
-            131, # Corinthians
+            121,  # São Paulo
+            128,  # Palmeiras
+            131,  # Corinthians
         ]
 
-        raw_events = []
+        raw_events: list[dict[str, Any]] = []
 
         # Buscar próximos jogos desses times
         for team_id in sp_teams:
             try:
-                url = f"https://v3.football.api-sports.io/fixtures?team={team_id}&next=10"
+                url = (
+                    f"https://v3.football.api-sports.io/fixtures?team={team_id}&next=10"
+                )
                 response = requests.get(url, headers=headers, timeout=15)
                 response.raise_for_status()
                 data = response.json()
@@ -53,7 +54,7 @@ class ApiFootballCollector(BaseCollector):
 
         return raw_events
 
-    def normalize(self, raw: dict) -> dict | None:
+    def normalize(self, raw: dict[str, Any]) -> dict[str, Any] | None:
         fixture = raw.get("fixture", {})
         teams = raw.get("teams", {})
         venue = fixture.get("venue", {})
@@ -84,7 +85,7 @@ class ApiFootballCollector(BaseCollector):
             "dataInicio": formatted_date,
             "categoria": "Esportes",
             "source": self.source,
-            "sourceId": str(fixture.get("id"))
+            "sourceId": str(fixture.get("id")),
         }
 
         venue_name = venue.get("name")
@@ -92,6 +93,7 @@ class ApiFootballCollector(BaseCollector):
             payload["enderecoCompleto"] = f"{venue_name}, {city}, SP"
 
         return payload
+
 
 if __name__ == "__main__":
     setup_logging()

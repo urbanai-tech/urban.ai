@@ -4,10 +4,28 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && npm run bundle:check",
     "start": "next start",
-    "lint": "next lint",
-    "design:audit": "node scripts/design-system-audit.mjs",
+    "lint": "eslint . --max-warnings=0",
+    "design:tokens:generate": "node scripts/design-tokens.mjs",
+    "design:tokens:check": "node scripts/design-tokens.mjs --check",
+    "design:tokens:test": "node --test scripts/design-tokens.test.mjs",
+    "design:debt:check": "node scripts/design-debt-audit.mjs",
+    "design:debt:self-test": "node --test scripts/design-debt-audit.test.mjs",
+    "design:debt:update": "node scripts/design-debt-audit.mjs --update-baseline",
+    "design:catalog:check": "node scripts/design-component-catalog.mjs",
+    "design:audit": "npm run design:tokens:check && node scripts/design-system-audit.mjs && npm run design:debt:check && npm run design:catalog:check",
+    "bundle:report": "node scripts/bundle-budget.mjs",
+    "bundle:check": "node scripts/bundle-budget.mjs --check",
+    "bundle:test": "node --test scripts/bundle-budget.test.mjs",
+    "auth:compat:test": "node --test scripts/next-auth-uuid.test.mjs",
+    "onboarding:unit:test": "node --test scripts/onboarding-domain.test.mjs",
+    "event-radar:unit:test": "node --test scripts/event-radar-domain.test.mjs",
+    "event-radar:api-contract:test": "node --test scripts/event-radar-api-contract.test.mjs",
+    "error-boundary:unit:test": "node --test scripts/error-recovery.test.mjs",
+    "pwa:lifecycle:test": "node --test scripts/pwa-lifecycle.test.mjs",
+    "ui-primitives:unit:test": "node --test scripts/ui-primitives.test.mjs",
+    "test:unit": "npm run design:tokens:test && npm run design:debt:self-test && npm run bundle:test && npm run auth:compat:test && npm run onboarding:unit:test && npm run event-radar:unit:test && npm run event-radar:api-contract:test && npm run error-boundary:unit:test && npm run pwa:lifecycle:test && npm run ui-primitives:unit:test",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
     "test:e2e:event-radar": "node scripts/event-radar-release-gate.mjs",
@@ -56,5 +74,13 @@
     "eslint-config-next": "15.3.1",
     "tailwindcss": "^4",
     "typescript": "^5.9.2"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "8.5.10"
+    },
+    "next-auth": {
+      "uuid": "11.1.1"
+    }
   }
 }

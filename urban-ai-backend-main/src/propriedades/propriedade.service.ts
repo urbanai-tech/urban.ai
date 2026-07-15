@@ -6,7 +6,7 @@ import { Between, LessThanOrEqual, MoreThanOrEqual, Not, Repository } from 'type
 import { AirbnbQuoteResponse } from './types/types';
 import { List } from 'src/entities/list.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import { APITypes, Convert } from './types/nearProperties';
+import { APITypes } from './types/nearProperties';
 import { PricingCalculateService } from './pricing-calculate.service';
 import { calculateDistance, getDiaria } from 'src/util';
 import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity';
@@ -28,6 +28,7 @@ import { PricingInputHistory } from 'src/entities/pricing-input-history.entity';
 import { PricingGuardrailService } from './pricing-guardrail.service';
 import { MailerService } from 'src/mailer/mailer.service';
 import { OccupancyHistory } from 'src/entities/occupancy-history.entity';
+import { AirbnbListingMetadataService } from './airbnb-listing-metadata.service';
 import {
     PublicListResponse,
     PublicAddressResponse,
@@ -123,6 +124,7 @@ export class PropriedadeService {
         private readonly aiEngine: UrbanAIPricingEngine,
         private readonly datasetCollector: DatasetCollectorService,
         private readonly pricingGuardrailService: PricingGuardrailService,
+        private readonly airbnbListingMetadataService: AirbnbListingMetadataService,
     ) { }
 
     async findByUserId(
@@ -506,110 +508,6 @@ export class PropriedadeService {
 
     private nullableNumber(value: unknown): number | null {
         return nullableNumber(value);
-    }
-
-    // --- Mapa de tradução EN → PT-BR para tipos de imóvel ---
-    private static readonly PROPERTY_TYPE_PT: Record<string, string> = {
-        'Entire home': 'Casa inteira',
-        'Entire rental unit': 'Apartamento inteiro',
-        'Rental unit': 'Apartamento',
-        'Entire serviced apartment': 'Apartamento com serviços',
-        'Serviced apartment': 'Apartamento com serviços',
-        'Private room': 'Quarto privado',
-        'Shared room': 'Quarto compartilhado',
-        'Entire villa': 'Villa inteira',
-        'Entire condo': 'Condomínio inteiro',
-        'Condo': 'Condomínio',
-        'Entire loft': 'Loft inteiro',
-        'Loft': 'Loft',
-        'Entire guest suite': 'Suíte completa',
-        'Guest suite': 'Suíte',
-        'Entire place': 'Espaço inteiro',
-        'Entire cottage': 'Chalé inteiro',
-        'Cottage': 'Chalé',
-        'Entire cabin': 'Cabana inteira',
-        'Cabin': 'Cabana',
-        'Entire bungalow': 'Bangalô inteiro',
-        'Bungalow': 'Bangalô',
-        'Tiny home': 'Mini casa',
-        'Treehouse': 'Casa na árvore',
-        'Houseboat': 'Barco-casa',
-        'Home': 'Casa',
-        'Room in a hotel': 'Quarto de hotel',
-        'Room in a bed and breakfast': 'Quarto em pousada',
-        'Room in a boutique hotel': 'Quarto em hotel boutique',
-        'Aparthotel': 'Aparthotel',
-        'Apartment': 'Apartamento',
-        'Studio': 'Estúdio',
-        'Guesthouse': 'Casa de hóspedes',
-        'Farm stay': 'Estadia na fazenda',
-        'Townhouse': 'Sobrado',
-        'Castle': 'Castelo',
-        'Boat': 'Barco',
-        'Camper/RV': 'Trailer',
-        'Tent': 'Barraca',
-        'Yurt': 'Yurt',
-        'Apartamento': 'Apartamento',
-        'Casa': 'Casa',
-    };
-
-    private translatePropertyType(enType: string): string {
-        // Busca exata
-        if (PropriedadeService.PROPERTY_TYPE_PT[enType]) {
-            return PropriedadeService.PROPERTY_TYPE_PT[enType];
-        }
-        // Busca case-insensitive
-        const key = Object.keys(PropriedadeService.PROPERTY_TYPE_PT)
-            .find(k => k.toLowerCase() === enType.toLowerCase());
-        if (key) return PropriedadeService.PROPERTY_TYPE_PT[key];
-        // Se já é PT ou desconhecido, retorna como está
-        return enType;
-    }
-
-    // --- Mapa de estados brasileiros (extenso → sigla) ---
-    private static readonly STATE_ABBR: Record<string, string> = {
-        'Acre': 'AC', 'Alagoas': 'AL', 'Amapá': 'AP', 'Amazonas': 'AM',
-        'Bahia': 'BA', 'Ceará': 'CE', 'Distrito Federal': 'DF',
-        'Espírito Santo': 'ES', 'Goiás': 'GO', 'Maranhão': 'MA',
-        'Mato Grosso': 'MT', 'Mato Grosso do Sul': 'MS', 'Minas Gerais': 'MG',
-        'Pará': 'PA', 'Paraíba': 'PB', 'Paraná': 'PR', 'Pernambuco': 'PE',
-        'Piauí': 'PI', 'Rio de Janeiro': 'RJ', 'Rio Grande do Norte': 'RN',
-        'Rio Grande do Sul': 'RS', 'Rondônia': 'RO', 'Roraima': 'RR',
-        'Santa Catarina': 'SC', 'São Paulo': 'SP', 'Sergipe': 'SE',
-        'Tocantins': 'TO',
-    };
-
-    // --- Reverse Geocoding via Nominatim (OpenStreetMap) ---
-    private async reverseGeocode(lat: number, lng: number): Promise<{
-        street: string;
-        neighborhood: string;
-        city: string;
-        state: string;
-        zipCode: string;
-        fullAddress: string;
-    }> {
-        try {
-            const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1&accept-language=pt-BR`;
-            const { data } = await axios.get(url, {
-                headers: { 'User-Agent': 'UrbanAI/1.0 (contact@myurbanai.com)' },
-                timeout: 10000,
-            });
-
-            const addr = data.address || {};
-            const street = addr.road || addr.pedestrian || addr.footway || '';
-            const neighborhood = addr.suburb || addr.neighbourhood || addr.city_district || '';
-            const city = addr.city || addr.town || addr.municipality || addr.village || '';
-            const stateRaw = addr.state || '';
-            const state = PropriedadeService.STATE_ABBR[stateRaw] || stateRaw;
-            const zipCode = addr.postcode || '';
-            const fullAddress = data.display_name || '';
-
-            console.log(`📍 [geocode] ${lat},${lng} → ${street}, ${neighborhood}, ${city}-${state} ${zipCode}`);
-            return { street, neighborhood, city, state, zipCode, fullAddress };
-        } catch (err: any) {
-            console.warn(`⚠️ [geocode] Falha no reverse geocoding: ${err.message}`);
-            return { street: '', neighborhood: '', city: '', state: '', zipCode: '', fullAddress: '' };
-        }
     }
 
     // Hash do GraphQL lida do .env (AIRBNB_GRAPHQL_HASH) com fallback para o valor padrão conhecido
@@ -1016,7 +914,7 @@ export class PropriedadeService {
             }
 
             // Traduz tipo para PT-BR
-            const propertyType = this.translatePropertyType(propertyTypeRaw);
+            const propertyType = this.airbnbListingMetadataService.translatePropertyType(propertyTypeRaw);
 
             // --- Rating ---
             const ratingSegment = segments.find(s => s.includes('★')) || '';
@@ -1054,7 +952,7 @@ export class PropriedadeService {
             let street = '', neighborhood = '', city = '', state = '', zipCode = '', fullAddress = '';
 
             if (latitude && longitude) {
-                const geo = await this.reverseGeocode(latitude, longitude);
+                const geo = await this.airbnbListingMetadataService.reverseGeocode(latitude, longitude);
                 street = geo.street;
                 neighborhood = geo.neighborhood;
                 city = geo.city;
@@ -1433,15 +1331,20 @@ export class PropriedadeService {
         return extractNumber(text, keyword);
     }
 
-    async updateByIdDoAnuncio(id_do_anuncio: string, updateData: Partial<List>) {
-        // Primeiro, busca o registro pelo id_do_anuncio
+    private async findOwnedPropertyByExternalId(id_do_anuncio: string, userId: string): Promise<List> {
         const propriedade = await this.propriedades.findOne({
-            where: { id_do_anuncio },
+            where: { id_do_anuncio, user: { id: userId } },
         });
 
         if (!propriedade) {
             throw new NotFoundException('Não encontramos esse imóvel na sua conta.');
         }
+
+        return propriedade;
+    }
+
+    async updateByIdDoAnuncio(id_do_anuncio: string, userId: string, updateData: Partial<List>) {
+        const propriedade = await this.findOwnedPropertyByExternalId(id_do_anuncio, userId);
 
         // Atualiza os campos com os dados recebidos
         Object.assign(propriedade, updateData);
@@ -1504,8 +1407,15 @@ export class PropriedadeService {
     async getRoomPrice({
         roomId,
         checkIn,
-        checkOut
+        checkOut,
+        userId,
+    }: {
+        roomId: string;
+        checkIn: string;
+        checkOut: string;
+        userId: string;
     }) {
+        await this.findOwnedPropertyByExternalId(roomId, userId);
         const useAirbnbSearchService = process.env.AIRBNB_PRICE_PROVIDER !== 'legacy-room-price';
         if (useAirbnbSearchService) {
             const quote = await this.airbnbService.getPriceForDateWindow(roomId, checkIn, checkOut);
@@ -1513,7 +1423,7 @@ export class PropriedadeService {
             const numberOfNights = Number(quote.nights ?? 1);
             const dailyPrice = Number((total / Math.max(1, numberOfNights)).toFixed(2));
 
-            const propriedadeAtualizado = await this.updateByIdDoAnuncio(roomId, {
+            const propriedadeAtualizado = await this.updateByIdDoAnuncio(roomId, userId, {
                 raw: total,
                 priceText: quote.price.data.accommodationCostFormatted,
                 currency: 'BRL',
@@ -1565,7 +1475,7 @@ export class PropriedadeService {
 
             const dailyPrice = data.price.raw / numberOfNights;
 
-            const propriedadeAtualizado = await this.updateByIdDoAnuncio(roomId, {
+            await this.updateByIdDoAnuncio(roomId, userId, {
                 raw: data?.price?.raw ?? 0,
                 priceText: data?.price?.priceText ?? "",
                 currency: data?.price?.currency ?? "",
@@ -1606,7 +1516,8 @@ export class PropriedadeService {
         return null;
     }
     // Service
-    async getRoomBasicInfo(roomId: string) {
+    async getRoomBasicInfo(roomId: string, userId: string) {
+        await this.findOwnedPropertyByExternalId(roomId, userId);
         const baseUrl = process.env.AIRBNB_ROOM_INFO_URL?.trim();
         if (!baseUrl) {
             throw new HttpException(
@@ -1622,7 +1533,7 @@ export class PropriedadeService {
             });
 
             // Atualiza o banco com todos os campos da API
-            await this.updateByIdDoAnuncio(roomId, {
+            await this.updateByIdDoAnuncio(roomId, userId, {
                 titulo: data?.info?.titulo ?? "",
                 hospedes: data?.info?.hospedes ?? 0,
                 quartos: data?.info?.quartos ?? 0,
@@ -2676,7 +2587,7 @@ export class PropriedadeService {
     async getQuantidadeEventosByUsuario(usuarioId: string, propertyId: string | null): Promise<number> {
         const hoje = new Date(); // data atual
 
-        let total = null;
+        let total: number;
 
         if (propertyId) {
             total = await this.analisePrecoRepository.count({

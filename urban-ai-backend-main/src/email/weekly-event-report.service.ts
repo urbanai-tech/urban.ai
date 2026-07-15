@@ -11,6 +11,7 @@ import { EmailTemplates } from './templates';
 import { AdminJobRun } from 'src/entities/admin-job-run.entity';
 import { runAdminJobWithTracking } from 'src/admin-job-runs/admin-job-run-tracker';
 import { CommunicationPreferencesService } from 'src/communication-preferences/communication-preferences.service';
+import { ScheduledJobRunnerService } from 'src/admin-job-runs/scheduled-job-runner.service';
 
 type WeeklyEventReportProperty = {
   title: string;
@@ -61,9 +62,15 @@ export class WeeklyEventReportService {
     @Optional()
     @InjectRepository(AdminJobRun)
     private readonly jobRunRepo?: Repository<AdminJobRun>,
+    @Optional()
+    private readonly scheduledJobRunner?: ScheduledJobRunnerService,
   ) { }
 
-  @Cron('0 30 8 * * 1', { name: 'weekly-event-report', timeZone: 'America/Sao_Paulo' })
+  @Cron('0 30 8 * * 1', {
+    name: 'weekly-event-report',
+    timeZone: 'America/Sao_Paulo',
+    waitForCompletion: true,
+  })
   async runWeeklyCron(): Promise<WeeklyEventReportSummary> {
     if (process.env.WEEKLY_EVENT_REPORT_ENABLED === 'false') {
       this.logger.log('[weekly-event-report] skipped by env');
@@ -71,7 +78,15 @@ export class WeeklyEventReportService {
     }
 
     this.logger.log('[weekly-event-report] cron started');
-    const summary = await this.runCronWithTracking('weekly-event-report', () => this.processWeeklyReports());
+    const now = new Date();
+    const summary = this.scheduledJobRunner
+      ? await this.scheduledJobRunner.runOncePerWindow(
+          'weekly-event-report',
+          this.startOfUtcWeek(now),
+          () => this.processWeeklyReports(now),
+          () => this.emptySummary(),
+        )
+      : await this.runCronWithTracking('weekly-event-report', () => this.processWeeklyReports(now));
     this.logger.log(`[weekly-event-report] cron finished: ${JSON.stringify(summary)}`);
     return summary;
   }
@@ -276,6 +291,13 @@ export class WeeklyEventReportService {
   private resolveEventsPerProperty(): number {
     const parsed = Number(process.env.WEEKLY_EVENT_REPORT_EVENTS_PER_PROPERTY);
     return Number.isFinite(parsed) && parsed > 0 ? Math.min(Math.floor(parsed), 10) : 5;
+  }
+
+  private startOfUtcWeek(now: Date): Date {
+    const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const daysSinceMonday = (start.getUTCDay() + 6) % 7;
+    start.setUTCDate(start.getUTCDate() - daysSinceMonday);
+    return start;
   }
 
   private emptySummary(): WeeklyEventReportSummary {

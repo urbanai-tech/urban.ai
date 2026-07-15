@@ -25,7 +25,7 @@ import type { AppBadgeKind } from '../componentes/ui';
 const WINDOWS = [30, 90, 180, 365];
 
 function LoadingSpinner() {
-  return <span className="roi-spinner" aria-label="Carregando" />;
+  return <span className="roi-spinner" role="status" aria-label="Carregando" />;
 }
 
 export default function MyRoiPage() {

@@ -159,41 +159,6 @@ export class StripeSyncCheckService {
     };
   }
 
-  /**
-   * Mesma lógica do `PaymentsService.resolveStripePriceId` — duplicada de
-   * propósito para evitar dependência circular. Mantenha as duas em sincro
-   * (ou refatore para um helper compartilhado em iteração futura).
-   */
-  private resolveExpectedPriceId(
-    plan: Plan,
-    cycle: Cycle,
-  ): { priceId: string | null; source: 'plan-entity' | 'env-fallback' | 'missing' } {
-    const fromEntity = (() => {
-      switch (cycle) {
-        case 'monthly':
-          return plan.stripePriceIdMonthly || plan.stripePriceId;
-        case 'quarterly':
-          return plan.stripePriceIdQuarterly;
-        case 'semestral':
-          return plan.stripePriceIdSemestral;
-        case 'annual':
-          return plan.stripePriceIdAnnualNew || plan.stripePriceIdAnnual;
-      }
-    })();
-
-    if (fromEntity) return { priceId: fromEntity, source: 'plan-entity' };
-
-    // Fallback env (legados)
-    if (cycle === 'monthly' && process.env.MENSAL_PLAN) {
-      return { priceId: process.env.MENSAL_PLAN, source: 'env-fallback' };
-    }
-    if (cycle === 'annual' && process.env.ANUAL_PLAN) {
-      return { priceId: process.env.ANUAL_PLAN, source: 'env-fallback' };
-    }
-
-    return { priceId: null, source: 'missing' };
-  }
-
   private evaluatePrice(
     planName: string,
     cycle: Cycle,

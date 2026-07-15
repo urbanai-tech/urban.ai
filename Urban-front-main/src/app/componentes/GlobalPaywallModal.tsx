@@ -15,7 +15,7 @@ interface GlobalPaywallModalProps {
 }
 
 function LoadingSpinner() {
-  return <span className="global-paywall-spinner" aria-label="Carregando" />;
+  return <span className="global-paywall-spinner" role="status" aria-label="Carregando" />;
 }
 
 export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {

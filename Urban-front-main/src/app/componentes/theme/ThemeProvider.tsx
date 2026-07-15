@@ -20,6 +20,7 @@ import {
 type ThemeContextValue = {
   preference: ThemePreference;
   resolvedTheme: ResolvedTheme;
+  isHydrated: boolean;
   setTheme: (preference: ThemePreference) => void;
 };
 
@@ -73,6 +74,7 @@ function writeTheme(preference: ThemePreference, resolved: ResolvedTheme) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [isHydrated, setIsHydrated] = useState(false);
   const [preference, setPreference] = useState<ThemePreference>(() =>
     getInitialPreference(),
   );
@@ -88,7 +90,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    applyPreference(preference);
+    setIsHydrated(true);
 
     const media = window.matchMedia?.(THEME_MEDIA_QUERY);
     const handleSystemChange = () => {
@@ -120,8 +122,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [applyPreference]);
 
   const value = useMemo(
-    () => ({ preference, resolvedTheme, setTheme }),
-    [preference, resolvedTheme, setTheme],
+    () => ({ preference, resolvedTheme, isHydrated, setTheme }),
+    [preference, resolvedTheme, isHydrated, setTheme],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

@@ -24,6 +24,7 @@ from typing import Any
 import requests
 
 from urban_webscrapping.collectors.base_collector import BaseCollector
+from urban_webscrapping.utils.urban_backend_client import UrbanBackendClient
 from urban_webscrapping.utils.venue_map import VenueInfo, match_venue
 
 logger = logging.getLogger(__name__)
@@ -43,12 +44,12 @@ class HtmlVenueCollector(BaseCollector):
     #: por evento se conseguir detectar.
     DEFAULT_CATEGORY: str = "show"
 
-    USER_AGENT = (
-        "Mozilla/5.0 (compatible; UrbanAI-EventCollector/1.0)"
-    )
+    USER_AGENT = "Mozilla/5.0 (compatible; UrbanAI-EventCollector/1.0)"
     REQUEST_TIMEOUT = 20
 
-    def __init__(self, client=None, dry_run=False):
+    def __init__(
+        self, client: UrbanBackendClient | None = None, dry_run: bool = False
+    ) -> None:
         super().__init__(client=client, dry_run=dry_run)
         if not self.LISTING_URL or not self.VENUE_NAME:
             raise ValueError(
@@ -85,6 +86,7 @@ class HtmlVenueCollector(BaseCollector):
         2. Fallback: h2/h3/h4 + data nos próximos 600 chars
         """
         import re
+
         items: list[dict[str, Any]] = []
         seen: set[str] = set()
 
@@ -108,22 +110,25 @@ class HtmlVenueCollector(BaseCollector):
                 title = (title or "").strip()
                 if not title or len(title) < 3 or title.lower() in seen:
                     continue
-                tail = html[hm.end(): hm.end() + 600]
+                tail = html[hm.end() : hm.end() + 600]
                 d = self._extract_date_loose(tail)
                 if not d:
                     continue
                 seen.add(title.lower())
-                items.append({
-                    "title": title[:255],
-                    "starts_on": d,
-                    "url": url,
-                    "source_id": (url or title)[:128],
-                })
+                items.append(
+                    {
+                        "title": title[:255],
+                        "starts_on": d,
+                        "url": url,
+                        "source_id": (url or title)[:128],
+                    }
+                )
 
         return items
 
     def _extract_card_block(self, block: str) -> dict[str, Any] | None:
         import re
+
         mt = re.search(
             r'<h[1-4][^>]*>(?:<a[^>]*href="([^"]+)"[^>]*>)?([^<]+)(?:</a>)?</h[1-4]>',
             block,
@@ -151,10 +156,13 @@ class HtmlVenueCollector(BaseCollector):
     def _extract_date_loose(text: str) -> str | None:
         """Extrai data PT-BR de um trecho. Cobre 4 padrões comuns."""
         import re
+
         m = re.search(r"(\d{2}/\d{2}/\d{4}(?:\s*(?:às?\s*)?\d{1,2}:\d{2})?)", text)
         if m:
             return m.group(1)
-        m = re.search(r"(\d{1,2}\s*(?:a|–|-)\s*\d{1,2}\s*de\s*\w+\s*(?:de\s*)?\d{4})", text)
+        m = re.search(
+            r"(\d{1,2}\s*(?:a|–|-)\s*\d{1,2}\s*de\s*\w+\s*(?:de\s*)?\d{4})", text
+        )
         if m:
             return m.group(1)
         m = re.search(r"(\d{1,2}\s*de\s*\w+\s*(?:de\s*)?\d{4})", text)
@@ -165,6 +173,7 @@ class HtmlVenueCollector(BaseCollector):
     @staticmethod
     def _clean_html(s: str) -> str:
         import html as html_lib
+
         return html_lib.unescape(s).strip()
 
     # ============== fetch + normalize compartilhados ==============
@@ -197,7 +206,9 @@ class HtmlVenueCollector(BaseCollector):
         if not starts_iso:
             return None
         ends_iso = (
-            self._parse_date_to_iso(raw.get("ends_on")) if raw.get("ends_on") else starts_iso
+            self._parse_date_to_iso(raw.get("ends_on"))
+            if raw.get("ends_on")
+            else starts_iso
         )
 
         payload: dict[str, Any] = {
@@ -247,6 +258,7 @@ class HtmlVenueCollector(BaseCollector):
         # ISO direto (com ou sem hora)
         try:
             from datetime import datetime
+
             dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
             return dt.strftime("%Y-%m-%d %H:%M:%S")
         except (ValueError, TypeError):
@@ -254,11 +266,13 @@ class HtmlVenueCollector(BaseCollector):
 
         # DD/MM/YYYY HH:MM
         import re
+
         m = re.search(r"(\d{2})/(\d{2})/(\d{4})\s*(?:às?\s*)?(\d{1,2}):(\d{2})", s)
         if m:
             d, mo, y, h, mi = m.groups()
             try:
                 from datetime import datetime
+
                 dt = datetime(int(y), int(mo), int(d), int(h), int(mi))
                 return dt.strftime("%Y-%m-%d %H:%M:%S")
             except ValueError:
@@ -270,6 +284,7 @@ class HtmlVenueCollector(BaseCollector):
             d, mo, y = m.groups()
             try:
                 from datetime import datetime
+
                 dt = datetime(int(y), int(mo), int(d), 20, 0)
                 return dt.strftime("%Y-%m-%d %H:%M:%S")
             except ValueError:
@@ -277,9 +292,19 @@ class HtmlVenueCollector(BaseCollector):
 
         # "DD de mês de YYYY"
         meses = {
-            "janeiro": 1, "fevereiro": 2, "março": 3, "marco": 3, "abril": 4,
-            "maio": 5, "junho": 6, "julho": 7, "agosto": 8, "setembro": 9,
-            "outubro": 10, "novembro": 11, "dezembro": 12,
+            "janeiro": 1,
+            "fevereiro": 2,
+            "março": 3,
+            "marco": 3,
+            "abril": 4,
+            "maio": 5,
+            "junho": 6,
+            "julho": 7,
+            "agosto": 8,
+            "setembro": 9,
+            "outubro": 10,
+            "novembro": 11,
+            "dezembro": 12,
         }
         m = re.search(
             r"(\d{1,2})\s*de\s*(janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\s*(?:de\s*)?(\d{4})?",
@@ -294,6 +319,7 @@ class HtmlVenueCollector(BaseCollector):
             if month:
                 try:
                     from datetime import datetime
+
                     dt = datetime(int(y_str), month, int(d_str), 20, 0)
                     return dt.strftime("%Y-%m-%d %H:%M:%S")
                 except ValueError:

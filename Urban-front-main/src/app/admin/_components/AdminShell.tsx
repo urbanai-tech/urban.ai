@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/app/componentes/theme/ThemeToggle";
+import { SkipLink } from "@/app/componentes/ui/SkipLink";
 import {
   Activity,
   AlertCircle,
@@ -157,6 +158,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         color: "var(--admin-text)",
       }}
     >
+      <SkipLink targetId="admin-main-content" />
       {/* Sidebar desktop */}
       <aside
         className="urban-admin-sidebar"
@@ -275,7 +277,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Conteúdo da rota */}
-        <main className="urban-admin-main" style={{ flex: 1, minWidth: 0 }}>{children}</main>
+        <main
+          id="admin-main-content"
+          tabIndex={-1}
+          className="urban-admin-main"
+          style={{ flex: 1, minWidth: 0 }}
+        >
+          {children}
+        </main>
       </div>
 
       {/* Responsividade — mobile vs desktop */}

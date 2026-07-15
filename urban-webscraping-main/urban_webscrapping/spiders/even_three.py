@@ -1,6 +1,8 @@
 """This module contains code for scraping São Paulo's ticket events information from Even3."""
 
-from scrapy.http import Response
+from typing import cast
+
+from scrapy.http import Response, TextResponse
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
 
@@ -52,13 +54,13 @@ class EvenThreeSpider(CrawlSpider):
         Returns:
             EventItem: An item populated with the extracted event details.
         """
-        loader = EventLoader(item=EventItem(), response=response)
+        loader = EventLoader(item=EventItem(), response=cast(TextResponse, response))
         loader = self._parse_name(loader)
         loader = self._parse_image_url(loader)
         loader = self._parse_page_url(response, loader)
         loader = self._parse_date(response, loader)
         loader = self._parse_location(response, loader)
-        return loader.load_item()
+        return cast(EventItem, loader.load_item())
 
     @staticmethod
     def _parse_name(loader: EventLoader) -> EventLoader:

@@ -36,6 +36,7 @@ from urban_webscrapping.collectors.base_collector import (
     BaseCollector,
     CollectorRunResult,
 )
+from urban_webscrapping.utils.urban_backend_client import UrbanBackendClient
 
 logger = logging.getLogger(__name__)
 
@@ -52,20 +53,17 @@ class SpCulturaCollector(BaseCollector):
 
     def __init__(
         self,
-        client=None,
+        client: UrbanBackendClient | None = None,
         dry_run: bool = False,
         api_base: str | None = None,
         lookahead_days: int | None = None,
-    ):
+    ) -> None:
         super().__init__(client=client, dry_run=dry_run)
         self.api_base = (
-            api_base
-            or os.environ.get("SP_CULTURA_API_BASE")
-            or self.DEFAULT_API_BASE
+            api_base or os.environ.get("SP_CULTURA_API_BASE") or self.DEFAULT_API_BASE
         ).rstrip("/")
-        self.lookahead_days = (
-            lookahead_days
-            or int(os.environ.get("SP_CULTURA_LOOKAHEAD_DAYS", self.DEFAULT_LOOKAHEAD_DAYS))
+        self.lookahead_days = lookahead_days or int(
+            os.environ.get("SP_CULTURA_LOOKAHEAD_DAYS", self.DEFAULT_LOOKAHEAD_DAYS)
         )
 
     # ============== fetch ==============
@@ -265,6 +263,7 @@ class SpCulturaCollector(BaseCollector):
 
 
 # ============== CLI ==============
+
 
 def main() -> int:
     """Entry point CLI: `python -m urban_webscrapping.collectors.sp_cultura`.

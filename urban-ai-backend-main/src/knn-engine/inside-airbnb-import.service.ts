@@ -86,7 +86,7 @@ export function countAmenities(raw: string | undefined | null): number | null {
     if (Array.isArray(arr)) return arr.length;
   } catch {
     // fallback: conta por vírgula
-    const inner = String(raw).replace(/^[\[{]|[\]}]$/g, '');
+    const inner = String(raw).replace(/^[[{]|[\]}]$/g, '');
     if (!inner.trim()) return 0;
     return inner.split(',').length;
   }

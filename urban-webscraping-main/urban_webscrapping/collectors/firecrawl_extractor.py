@@ -11,9 +11,11 @@ from urban_webscrapping.collectors.base_collector import (
     setup_logging,
 )
 from urban_webscrapping.utils.llm_extractor import extract_event_from_text
+from urban_webscrapping.utils.urban_backend_client import UrbanBackendClient
 
 load_dotenv()
 logger = logging.getLogger(__name__)
+
 
 class FirecrawlExtractor(BaseCollector):
     """Coletor para Firecrawl API (REST). Faz busca + extração de eventos.
@@ -22,6 +24,7 @@ class FirecrawlExtractor(BaseCollector):
     is_in_scope=true como segundo filtro pra descartar resultados que
     vazaram de outras cidades.
     """
+
     source = "firecrawl"
 
     DEFAULT_QUERIES = [
@@ -30,7 +33,13 @@ class FirecrawlExtractor(BaseCollector):
         "conferências feiras São Paulo Expo Anhembi 2026",
     ]
 
-    def __init__(self, query=None, queries=None, client=None, dry_run=False):
+    def __init__(
+        self,
+        query: str | None = None,
+        queries: list[str] | None = None,
+        client: UrbanBackendClient | None = None,
+        dry_run: bool = False,
+    ) -> None:
         super().__init__(client=client, dry_run=dry_run)
         if query:
             self.queries = [query]
@@ -56,7 +65,7 @@ class FirecrawlExtractor(BaseCollector):
 
         for q in self.queries:
             logger.info(f"Firecrawl query: {q}")
-            payload = {
+            payload: dict[str, Any] = {
                 "query": q,
                 "limit": 5,
                 "scrapeOptions": {"formats": ["markdown"]},
@@ -97,6 +106,7 @@ class FirecrawlExtractor(BaseCollector):
             return payload
 
         return None
+
 
 if __name__ == "__main__":
     setup_logging()

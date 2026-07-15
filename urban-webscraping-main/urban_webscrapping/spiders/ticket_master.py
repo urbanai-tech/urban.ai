@@ -1,12 +1,16 @@
 """This module contains code for scraping São Paulo's ticket events information from Ticketmaster."""
 
 import os
+from collections.abc import Iterator
+from typing import Any, cast
 from urllib.parse import urljoin
 
 import pkg_resources
 from dotenv import load_dotenv
 from omegaconf import OmegaConf
 from scrapy import Request, Spider
+from scrapy.http import Response
+from scrapy.http.response.json import JsonResponse
 
 from urban_webscrapping.utils.ticket_master_spider_helper import TicketMasterHelper
 
@@ -20,9 +24,11 @@ class TicketMasterSpider(Spider):
         "urban_webscrapping", "custom_spider_settings/ticket-master-settings.yaml"
     ) as f:
         custom_conf = OmegaConf.load(f)
-    custom_settings = OmegaConf.to_container(custom_conf, resolve=True)
+    custom_settings = cast(
+        dict[str, Any], OmegaConf.to_container(custom_conf, resolve=True)
+    )
 
-    def start_requests(self):
+    def start_requests(self) -> Iterator[Request]:
         base_url = "https://app.ticketmaster.com/discovery/v2/events?apikey={}&unit=km&locale=*&countryCode=BR&stateCode=SP&size=100"
 
         api_key = os.getenv("TICKETMASTER_API_KEY")
@@ -39,10 +45,10 @@ class TicketMasterSpider(Spider):
             callback=self.parse,
         )
 
-    def parse(self, response):
+    def parse(self, response: Response) -> Iterator[Any]:
         ticket_helper = TicketMasterHelper()
         try:
-            data = response.json()
+            data = cast(JsonResponse, response).json()
         except Exception as e:
             self.logger.error(f"Failed to parse JSON response: {e}")
             return
@@ -63,7 +69,7 @@ class TicketMasterSpider(Spider):
                 next_url += f"&apikey={api_key}"
             yield Request(url=next_url, meta={"playwright": False}, callback=self.parse)
 
-    async def errback(self, failure):
+    async def errback(self, failure: Any) -> None:
         page = failure.request.meta.get("playwright_page")
         if page:
             await page.close()

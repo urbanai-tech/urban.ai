@@ -78,7 +78,11 @@ export class PricingBootstrapService implements OnModuleInit {
    * Mantida fora do `onModuleInit` para que o restart não force retreinamento
    * desnecessário a cada deploy.
    */
-  @Cron('0 4 * * 0', { name: 'pricing-retrain', timeZone: 'America/Sao_Paulo' })
+  @Cron('0 4 * * 0', {
+    name: 'pricing-retrain',
+    timeZone: 'America/Sao_Paulo',
+    waitForCompletion: true,
+  })
   async handleWeeklyRetrain() {
     this.logger.log('Iniciando retreinamento semanal do PricingEngine...');
     try {

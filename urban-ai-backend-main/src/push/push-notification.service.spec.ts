@@ -1,8 +1,11 @@
 import * as crypto from 'crypto';
 import { PushNotificationService } from './push-notification.service';
+import { PushEndpointSecurity } from './push-endpoint-security';
 
 describe('PushNotificationService', () => {
-  const makeService = () => {
+  const makeService = (endpointSecurity = {
+    assertSafe: jest.fn(async (endpoint: string) => new URL(endpoint)),
+  }) => {
     const subscriptionRepo = {
       find: jest.fn(),
       findOne: jest.fn(),
@@ -26,9 +29,10 @@ describe('PushNotificationService', () => {
       deliveryRepo as any,
       userRepo as any,
       communicationLog as any,
+      endpointSecurity as PushEndpointSecurity,
     );
 
-    return { service, subscriptionRepo, deliveryRepo, userRepo, communicationLog };
+    return { service, subscriptionRepo, deliveryRepo, userRepo, communicationLog, endpointSecurity };
   };
 
   afterEach(() => {
@@ -109,5 +113,62 @@ describe('PushNotificationService', () => {
     ]);
     expect(delivery.deliveredAt).toBeInstanceOf(Date);
     expect(deliveryRepo.save).toHaveBeenCalledWith([delivery]);
+  });
+
+  it('validates at registration and revalidates immediately before sending', async () => {
+    process.env.WEB_PUSH_PUBLIC_KEY = 'public-key';
+    process.env.WEB_PUSH_PRIVATE_KEY = 'private-key';
+    const endpointSecurity = { assertSafe: jest.fn(async (endpoint: string) => new URL(endpoint)) };
+    const { service, subscriptionRepo, userRepo } = makeService(endpointSecurity);
+    userRepo.findOne.mockResolvedValue({ id: 'user-1', ativo: true });
+    subscriptionRepo.findOne.mockResolvedValue(null);
+    await service.upsertSubscription('user-1', {
+      endpoint: 'https://fcm.googleapis.com/push/device',
+      keys: { p256dh: 'key', auth: 'auth' },
+    });
+
+    jest.spyOn(service as any, 'createVapidJwt').mockReturnValue('jwt');
+    jest.spyOn(global, 'fetch').mockResolvedValue({ ok: true, status: 201 } as Response);
+    await (service as any).sendWakePush({ endpoint: 'https://fcm.googleapis.com/push/device' });
+
+    expect(endpointSecurity.assertSafe).toHaveBeenCalledTimes(2);
+  });
+
+  it('blocks redirects instead of following a provider-controlled Location', async () => {
+    const { service } = makeService();
+    jest.spyOn(service as any, 'createVapidJwt').mockReturnValue('jwt');
+    const request = jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 307,
+      headers: new Headers({ location: 'http://169.254.169.254/latest/meta-data' }),
+      text: jest.fn().mockResolvedValue(''),
+    } as unknown as Response);
+
+    await expect((service as any).sendWakePush({ endpoint: 'https://push.example.com/device' }))
+      .rejects.toThrow('push_redirect_blocked');
+    expect(request).toHaveBeenCalledWith('https://push.example.com/device', expect.objectContaining({
+      redirect: 'manual',
+    }));
+  });
+
+  it('fails before request when DNS re-resolution becomes unsafe', async () => {
+    process.env.WEB_PUSH_PUBLIC_KEY = 'public-key';
+    process.env.WEB_PUSH_PRIVATE_KEY = 'private-key';
+    const endpointSecurity = {
+      assertSafe: jest.fn()
+        .mockResolvedValueOnce(new URL('https://push.example.com/device'))
+        .mockRejectedValueOnce(new Error('push_endpoint_dns_blocked')),
+    };
+    const { service, subscriptionRepo, userRepo } = makeService(endpointSecurity);
+    userRepo.findOne.mockResolvedValue({ id: 'user-1', ativo: true });
+    subscriptionRepo.findOne.mockResolvedValue(null);
+    await service.upsertSubscription('user-1', {
+      endpoint: 'https://push.example.com/device', keys: { p256dh: 'key', auth: 'auth' },
+    });
+    const request = jest.spyOn(global, 'fetch');
+
+    await expect((service as any).sendWakePush({ endpoint: 'https://push.example.com/device' }))
+      .rejects.toThrow('push_endpoint_dns_blocked');
+    expect(request).not.toHaveBeenCalled();
   });
 });

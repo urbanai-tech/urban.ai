@@ -3,11 +3,11 @@
 import re
 from collections.abc import AsyncIterator
 from pathlib import Path
-from typing import LiteralString
+from typing import Any, LiteralString, cast
 from urllib.parse import urlparse
 
 from scrapy import Request, Spider
-from scrapy.http import Response
+from scrapy.http import Response, TextResponse
 from scrapy.http.response.json import JsonResponse
 from scrapy.linkextractors import LinkExtractor
 from scrapy_playwright.page import PageMethod
@@ -65,7 +65,7 @@ class SymplaSpider(Spider):
         }
         yield Request(url, meta=metadata, callback=self.parse)
 
-    async def errback(self, failure) -> None:
+    async def errback(self, failure: Any) -> None:
         """Handles errors during the request by closing the associated Playwright page.
 
         Args:
@@ -110,7 +110,8 @@ class SymplaSpider(Spider):
         base_api_url = (
             "https://bff-sales-api-cdn.bileto.sympla.com.br/api/v1/events/{event_id}"
         )
-        for link in first_link_extractor.extract_links(response):
+        text_response = cast(TextResponse, response)
+        for link in first_link_extractor.extract_links(text_response):
             self.logger.debug(f"Processing link: {link.url}")
             if match := re.search(r"/event/(\d+)", urlparse(link.url).path):
                 api_url = base_api_url.format(event_id=match.group(1))
@@ -121,16 +122,17 @@ class SymplaSpider(Spider):
 
         second_link_extractor = LinkExtractor("/evento/")
         base_api_url = "https://event-page.svc.sympla.com.br/api/event-bff/recommendation/events?only=name,start_date,end_date,images,event_type,duration_type,location,id,global_score,start_date_formats,end_date_formats,url,company,type&filter_sold_out=1&events_ids=&is_free=0&event_id={event_id}&limit=24&service=%2Fv4%2Frecommender%2Fevents-same-organizer"
-        for link in second_link_extractor.extract_links(response):
+        for link in second_link_extractor.extract_links(text_response):
             self.logger.debug(f"Processing link: {link.url}")
             event_id = Path(urlparse(link.url).path).name
             api_url = base_api_url.format(event_id=event_id)
             self.logger.debug(f"Making API request to: {api_url}")
             yield Request(api_url, callback=self._parse_second_api)
 
-    def _parse_first_api(self, response: JsonResponse) -> EventItem:
-        api_data = response.json()["data"]
-        loader = EventLoader(item=EventItem(), response=response)
+    def _parse_first_api(self, response: Response) -> EventItem:
+        json_response = cast(JsonResponse, response)
+        api_data = json_response.json()["data"]
+        loader = EventLoader(item=EventItem(), response=json_response)
         loader.add_value("nome", api_data["name"])
         loader.add_value("imagem_url", api_data["medias"][1]["url"])
         loader.add_value(
@@ -149,10 +151,11 @@ class SymplaSpider(Spider):
         loader.add_value(
             "linkSiteOficial", f"https://bileto.sympla.com.br/event/{api_data['id']}"
         )
-        return loader.load_item()
+        return cast(EventItem, loader.load_item())
 
-    def _parse_second_api(self, response: JsonResponse) -> EventItem:
-        api_data = next(iter(response.json()["data"]))
+    def _parse_second_api(self, response: Response) -> EventItem:
+        json_response = cast(JsonResponse, response)
+        api_data = next(iter(json_response.json()["data"]))
 
         def parse_location() -> LiteralString:
             core_address = ", ".join(
@@ -170,11 +173,11 @@ class SymplaSpider(Spider):
             ]
             return " - ".join(fragmented_location)
 
-        loader = EventLoader(item=EventItem(), response=response)
+        loader = EventLoader(item=EventItem(), response=json_response)
         loader.add_value("nome", api_data["name"])
         loader.add_value("dataInicio", api_data["start_date"])
         loader.add_value("dataFim", api_data["end_date"])
         loader.add_value("linkSiteOficial", api_data["url"])
         loader.add_value("enderecoCompleto", parse_location())
         loader.add_value("imagem_url", api_data["images"]["original"])
-        return loader.load_item()
+        return cast(EventItem, loader.load_item())

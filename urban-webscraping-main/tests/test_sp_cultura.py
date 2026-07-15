@@ -135,11 +135,18 @@ def test_fetch_raw_pagina_corretamente():
     """Simula 2 páginas (250 + 30 items), garante que paginação funciona."""
     c = SpCulturaCollector(dry_run=True)
     page1 = [{"id": i, "name": f"E{i}", "startsOn": "2026-05-10"} for i in range(100)]
-    page2 = [{"id": i, "name": f"E{i}", "startsOn": "2026-05-10"} for i in range(100, 200)]
-    page3 = [{"id": i, "name": f"E{i}", "startsOn": "2026-05-10"} for i in range(200, 250)]  # < 100, última
+    page2 = [
+        {"id": i, "name": f"E{i}", "startsOn": "2026-05-10"} for i in range(100, 200)
+    ]
+    page3 = [
+        {"id": i, "name": f"E{i}", "startsOn": "2026-05-10"} for i in range(200, 250)
+    ]  # < 100, última
 
     with patch("urban_webscrapping.collectors.sp_cultura.requests.get") as mock_get:
-        responses = [MagicMock(json=lambda items=p: items, raise_for_status=MagicMock()) for p in [page1, page2, page3]]
+        responses = [
+            MagicMock(json=lambda items=p: items, raise_for_status=MagicMock())
+            for p in [page1, page2, page3]
+        ]
         mock_get.side_effect = responses
         items = c.fetch_raw()
 
@@ -150,6 +157,7 @@ def test_fetch_raw_pagina_corretamente():
 def test_fetch_raw_falha_de_rede_retorna_vazio_sem_lançar():
     c = SpCulturaCollector(dry_run=True)
     import requests
+
     with patch("urban_webscrapping.collectors.sp_cultura.requests.get") as mock_get:
         mock_get.side_effect = requests.RequestException("DNS down")
         items = c.fetch_raw()

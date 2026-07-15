@@ -31,7 +31,7 @@ node urban-ai-backend-main/scripts/audit-migrations.js
 - `COVERED`: alguma migration menciona literalmente o nome da tabela.
 - `COVERED` por baseline historica: a tabela nao aparece como SQL literal em
   migration porque a baseline `1745500000000-Baseline` e no-op, mas o auditor
-  reconhece casos legados documentados em `docs/banco-antigo-schemas.md`.
+  reconhece casos legados documentados em `docs/archive/data/banco-antigo-schemas.md`.
 - `WEAK`: alguma migration menciona o nome da entity/tabela por heuristica, mas
   nao encontrou literal exato de tabela.
 - `SUSPECT`: nenhuma migration menciona a entity ou a tabela pelos nomes

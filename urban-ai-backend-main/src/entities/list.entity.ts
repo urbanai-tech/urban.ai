@@ -44,7 +44,7 @@ export class List {
   @Column({ default: true })
   ativo: boolean;
 
-  @ManyToOne(() => User, { eager: true })
+  @ManyToOne(() => User, { eager: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: "user_id" })
   user: User;
 

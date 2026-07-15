@@ -1,3 +1,5 @@
+"""Extract parquet batches from S3 for the raw-data pipeline."""
+
 import pandas as pd
 from prefect import task
 
@@ -8,21 +10,19 @@ log = logging_config.get_logger(__name__)
 
 
 class S3Extractor:
-    """
-    S3 data extractor for raw data pipeline.
+    """S3 data extractor for raw data pipeline.
 
     This class provides methods to extract data from S3 buckets and convert
     it to pandas DataFrames for further processing.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize S3Extractor with S3Helper."""
         self.s3_helper = S3Helper()
         log.info("S3Extractor initialized")
 
     def list_folders(self) -> list[str]:
-        """
-        List all folders in the S3 bucket under the configured path.
+        """List all folders in the S3 bucket under the configured path.
 
         Returns:
             list[str]: List of folder names (without path prefix)
@@ -46,8 +46,7 @@ class S3Extractor:
             return []
 
     def get_dataframes_from_folder(self, folder_name: str) -> list[pd.DataFrame]:
-        """
-        Extract all DataFrames from a specific folder.
+        """Extract all DataFrames from a specific folder.
 
         Args:
             folder_name: Name of the folder to extract data from
@@ -90,8 +89,7 @@ class S3Extractor:
 
 @task(name="Extract Data from S3")
 def extract_from_s3(folder_names: list[str]) -> list[pd.DataFrame] | None:
-    """
-    Legacy function for extracting data from multiple S3 folders.
+    """Legacy function for extracting data from multiple S3 folders.
 
     Args:
         folder_names: List of folder names to extract data from

@@ -1,8 +1,11 @@
 import json
+from collections.abc import AsyncIterator
+from typing import Any, cast
 
 import pkg_resources
 from omegaconf import OmegaConf
 from scrapy import Request, Spider
+from scrapy.http import Response, TextResponse
 from scrapy_playwright.page import PageMethod
 
 
@@ -14,9 +17,11 @@ class EventimSpider(Spider):
     ) as f:
         custom_conf = OmegaConf.load(f)
 
-    custom_settings = OmegaConf.to_container(custom_conf, resolve=True)
+    custom_settings = cast(
+        dict[str, Any], OmegaConf.to_container(custom_conf, resolve=True)
+    )
 
-    async def start(self):
+    async def start(self) -> AsyncIterator[Request]:
         base_url = "https://public-api.eventim.com/websearch/search/api/exploration/v2/productGroups?webId=web__eventim-com-br&language=pt&page={}&retail_partner=BR1&city_ids=943&sort=Recommendation&in_stock=true"
 
         yield Request(
@@ -32,11 +37,12 @@ class EventimSpider(Spider):
             callback=self.parse,
         )
 
-    async def parse(self, response):
+    async def parse(self, response: Response) -> AsyncIterator[Any]:
+        text_response = cast(TextResponse, response)
         try:
-            data = json.loads(response.text)
+            data = json.loads(text_response.text)
         except json.JSONDecodeError:
-            page = response.meta["playwright_page"]
+            page = text_response.meta["playwright_page"]
             data = await page.evaluate("() => JSON.parse(document.body.textContent)")
             await page.close()
 
@@ -53,12 +59,14 @@ class EventimSpider(Spider):
                 "imagem_url": event.get("imageUrl", ""),
             }
 
-        current_page = int(response.url.split("page=")[1].split("&")[0])
+        current_page = int(text_response.url.split("page=")[1].split("&")[0])
         total_pages = data["totalPages"]
 
         if current_page < total_pages:
             next_page = current_page + 1
-            next_url = response.url.replace(f"page={current_page}", f"page={next_page}")
+            next_url = text_response.url.replace(
+                f"page={current_page}", f"page={next_page}"
+            )
 
             yield Request(
                 url=next_url,
@@ -73,7 +81,7 @@ class EventimSpider(Spider):
                 callback=self.parse,
             )
 
-    async def errback(self, failure):
+    async def errback(self, failure: Any) -> None:
         page = failure.request.meta.get("playwright_page")
         if page:
             await page.close()

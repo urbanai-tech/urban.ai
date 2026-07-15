@@ -18,6 +18,7 @@ import { PricingInputHistory } from 'src/entities/pricing-input-history.entity';
 import { PricingGuardrailService } from './pricing-guardrail.service';
 import { MailerModule } from 'src/mailer/mailer.module';
 import { OccupancyHistory } from 'src/entities/occupancy-history.entity';
+import { AirbnbListingMetadataService } from './airbnb-listing-metadata.service';
 
 @Module({
     imports: [
@@ -39,7 +40,7 @@ import { OccupancyHistory } from 'src/entities/occupancy-history.entity';
         KnnEngineModule,
     ],
     controllers: [PropriedadeController],
-    providers: [PropriedadeService, PricingCalculateService, PricingGuardrailService],
+    providers: [PropriedadeService, PricingCalculateService, PricingGuardrailService, AirbnbListingMetadataService],
     exports: [PropriedadeService],
 })
 export class PropriedadeModule { }

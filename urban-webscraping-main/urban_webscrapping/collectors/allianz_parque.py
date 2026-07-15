@@ -80,18 +80,20 @@ class AllianzParqueCollector(HtmlVenueCollector):
                     continue
 
                 # Procura data próxima (até 500 chars depois)
-                tail = html[h_match.end():h_match.end() + 500]
+                tail = html[h_match.end() : h_match.end() + 500]
                 date_match = re.search(r"(\d{2}/\d{2}/\d{4})", tail)
                 if not date_match:
                     continue
 
                 seen_titles.add(title.lower())
-                items.append({
-                    "title": title[:255],
-                    "starts_on": date_match.group(1),
-                    "url": url,
-                    "source_id": (url or title)[:128],
-                })
+                items.append(
+                    {
+                        "title": title[:255],
+                        "starts_on": date_match.group(1),
+                        "url": url,
+                        "source_id": (url or title)[:128],
+                    }
+                )
 
         return items
 
@@ -117,7 +119,9 @@ class AllianzParqueCollector(HtmlVenueCollector):
             re.IGNORECASE,
         )
         if not m_date:
-            m_date = re.search(r"(\d{2}/\d{2}/\d{4}(?:\s*(?:às?\s*)?\d{1,2}:\d{2})?)", block_html)
+            m_date = re.search(
+                r"(\d{2}/\d{2}/\d{4}(?:\s*(?:às?\s*)?\d{1,2}:\d{2})?)", block_html
+            )
         if not m_date:
             return None
         date_str = self._clean_text(m_date.group(1))
@@ -137,6 +141,7 @@ class AllianzParqueCollector(HtmlVenueCollector):
     @staticmethod
     def _clean_text(s: str) -> str:
         import html as html_lib
+
         return html_lib.unescape(s).strip()
 
 

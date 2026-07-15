@@ -11,6 +11,7 @@ import sys
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from typing import Any, NoReturn, TypedDict
 from urllib.error import URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
@@ -18,7 +19,9 @@ from urllib.request import Request, urlopen
 SCRAPYD_PORT = 6801
 PROXY_PORT = int(os.environ.get("PORT", "8080"))
 API_KEY = os.environ.get("SCRAPYD_API_KEY", "")
-COLLECTOR_CRON_INTERVAL_SECONDS = int(os.environ.get("COLLECTOR_CRON_INTERVAL_SECONDS", "21600"))
+COLLECTOR_CRON_INTERVAL_SECONDS = int(
+    os.environ.get("COLLECTOR_CRON_INTERVAL_SECONDS", "21600")
+)
 RUN_COLLECTORS_ON_BOOT = os.environ.get("RUN_COLLECTORS_ON_BOOT", "true").lower() in {
     "1",
     "true",
@@ -27,7 +30,20 @@ RUN_COLLECTORS_ON_BOOT = os.environ.get("RUN_COLLECTORS_ON_BOOT", "true").lower(
 }
 logger = logging.getLogger(__name__)
 cron_state_lock = threading.Lock()
-cron_state = {
+
+
+class CronState(TypedDict):
+    running: bool
+    runs: int
+    lastStartedAt: str | None
+    lastFinishedAt: str | None
+    lastDurationSeconds: float | None
+    lastStatus: str
+    lastError: str | None
+    nextRunAt: str | None
+
+
+cron_state: CronState = {
     "running": False,
     "runs": 0,
     "lastStartedAt": None,
@@ -48,7 +64,7 @@ def set_next_run(delay_seconds: int) -> None:
         cron_state["nextRunAt"] = utc_iso(time.time() + delay_seconds)
 
 
-def build_health_payload(scrapyd_ready: bool | None = None) -> dict:
+def build_health_payload(scrapyd_ready: bool | None = None) -> dict[str, Any]:
     with cron_state_lock:
         state = dict(cron_state)
 
@@ -73,7 +89,7 @@ def build_health_payload(scrapyd_ready: bool | None = None) -> dict:
     }
 
 
-def start_scrapyd():
+def start_scrapyd() -> subprocess.Popen[bytes]:
     """Start scrapyd as a subprocess."""
     proc = subprocess.Popen(
         [sys.executable, "-m", "scrapyd", "--pidfile="],
@@ -83,7 +99,7 @@ def start_scrapyd():
     return proc
 
 
-def cron_worker():
+def cron_worker() -> NoReturn:
     """Executa os coletores periodicamente em background."""
     if not RUN_COLLECTORS_ON_BOOT:
         set_next_run(COLLECTOR_CRON_INTERVAL_SECONDS)
@@ -149,7 +165,7 @@ def cron_worker():
         time.sleep(COLLECTOR_CRON_INTERVAL_SECONDS)
 
 
-def wait_for_scrapyd(timeout=30):
+def wait_for_scrapyd(timeout: float = 30) -> bool:
     """Wait until scrapyd is ready."""
     start = time.time()
     while time.time() - start < timeout:
@@ -163,7 +179,7 @@ def wait_for_scrapyd(timeout=30):
     return False
 
 
-def check_scrapyd_ready(timeout=2) -> bool:
+def check_scrapyd_ready(timeout: float = 2) -> bool:
     try:
         urlopen(f"http://127.0.0.1:{SCRAPYD_PORT}/daemonstatus.json", timeout=timeout)
         return True
@@ -174,19 +190,21 @@ def check_scrapyd_ready(timeout=2) -> bool:
 class AuthProxyHandler(BaseHTTPRequestHandler):
     """Simple reverse proxy with API Key validation."""
 
-    def _check_auth(self):
+    def _check_auth(self) -> bool:
         if not API_KEY:
             # No key configured = no protection (backward compat)
             return True
         key = self.headers.get("X-API-Key", "")
         return key == API_KEY
 
-    def _proxy(self):
+    def _proxy(self) -> None:
         if not self._check_auth():
             self.send_response(401)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(b'{"status": "error", "message": "Invalid or missing API key"}')
+            self.wfile.write(
+                b'{"status": "error", "message": "Invalid or missing API key"}'
+            )
             return
 
         # Read request body
@@ -215,9 +233,11 @@ class AuthProxyHandler(BaseHTTPRequestHandler):
             self.send_response(502)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(f'{{"status": "error", "message": "Scrapyd unavailable: {e}"}}'.encode())
+            self.wfile.write(
+                f'{{"status": "error", "message": "Scrapyd unavailable: {e}"}}'.encode()
+            )
 
-    def _send_json(self, payload: dict, status=200):
+    def _send_json(self, payload: dict[str, Any], status: int = 200) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
@@ -225,25 +245,25 @@ class AuthProxyHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def _handle_health(self):
+    def _handle_health(self) -> None:
         payload = build_health_payload(scrapyd_ready=check_scrapyd_ready())
         status = 200 if payload["status"] == "ok" else 503
         self._send_json(payload, status=status)
 
-    def do_GET(self):
+    def do_GET(self) -> None:
         path = urlparse(self.path).path
         if path in {"/health", "/health.json", "/health/live", "/cron-status.json"}:
             self._handle_health()
             return
         self._proxy()
 
-    def do_POST(self):
+    def do_POST(self) -> None:
         self._proxy()
 
-    def do_HEAD(self):
+    def do_HEAD(self) -> None:
         self._proxy()
 
-    def log_message(self, format, *args):
+    def log_message(self, format: str, *args: object) -> None:
         message = format % args
         if self.command == "HEAD" and '"HEAD / HTTP/1.1" 401' in message:
             logger.debug("[auth-proxy] %s", message)
@@ -251,7 +271,7 @@ class AuthProxyHandler(BaseHTTPRequestHandler):
         logger.info("[auth-proxy] %s", message)
 
 
-def main():
+def main() -> None:
     logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), stream=sys.stdout)
     logger.info("[auth-proxy] Starting Scrapyd on port %s...", SCRAPYD_PORT)
     scrapyd_proc = start_scrapyd()

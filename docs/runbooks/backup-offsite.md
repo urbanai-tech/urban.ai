@@ -101,7 +101,7 @@ mysql -h localhost -u root -p ai_urban < urban-ai-cron-*.sql
 ### Em produção (rollback de incident)
 
 > **Ação destrutiva. NUNCA rodar sem aprovação por escrito do Gustavo.**
-> Procedimento documentado em `docs/runbooks/disaster-recovery.md` (TODO).
+> Procedimento documentado em `docs/runbooks/disaster-recovery.md`.
 
 Resumo:
 1. Pausar tráfego (Railway settings → Disable)

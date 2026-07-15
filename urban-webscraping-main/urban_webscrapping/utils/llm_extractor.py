@@ -1,11 +1,13 @@
 import json
 import logging
 import os
+from typing import Any
 
 from google import genai
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
+
 
 # Pydantic schema para extração
 class EventExtraction(BaseModel):
@@ -21,15 +23,31 @@ class EventExtraction(BaseModel):
             "Eventos fora da Grande SP NÃO devem ser marcados como in_scope mesmo que sejam interessantes."
         ),
     )
-    nome: str | None = Field(None, description="Nome do evento. Ex: 'Jonas Brothers: Greetings From Your Hometown'")
-    dataInicio: str | None = Field(None, description="Data de início do evento no formato YYYY-MM-DD HH:MM:SS. Ex: 2026-05-13 20:00:00")
-    enderecoCompleto: str | None = Field(None, description="Endereço ou local do evento incluindo cidade e UF. Ex: 'Allianz Parque, São Paulo, SP'")
-    cidade: str | None = Field(None, description="Cidade do evento. Ex: 'São Paulo', 'Rio de Janeiro'")
-    estado: str | None = Field(None, description="UF do evento, 2 letras. Ex: 'SP', 'RJ'")
-    categoria: str | None = Field("Outros", description="Categoria do evento: Show, Teatro, Esportes, Conferência, etc.")
+    nome: str | None = Field(
+        None,
+        description="Nome do evento. Ex: 'Jonas Brothers: Greetings From Your Hometown'",
+    )
+    dataInicio: str | None = Field(
+        None,
+        description="Data de início do evento no formato YYYY-MM-DD HH:MM:SS. Ex: 2026-05-13 20:00:00",
+    )
+    enderecoCompleto: str | None = Field(
+        None,
+        description="Endereço ou local do evento incluindo cidade e UF. Ex: 'Allianz Parque, São Paulo, SP'",
+    )
+    cidade: str | None = Field(
+        None, description="Cidade do evento. Ex: 'São Paulo', 'Rio de Janeiro'"
+    )
+    estado: str | None = Field(
+        None, description="UF do evento, 2 letras. Ex: 'SP', 'RJ'"
+    )
+    categoria: str | None = Field(
+        "Outros",
+        description="Categoria do evento: Show, Teatro, Esportes, Conferência, etc.",
+    )
 
 
-def extract_event_from_text(text: str) -> dict | None:
+def extract_event_from_text(text: str) -> dict[str, Any] | None:
     """Usa Gemini Flash para extrair informações de evento a partir de texto cru.
 
     Filtra duplamente:
@@ -49,7 +67,7 @@ def extract_event_from_text(text: str) -> dict | None:
         prompt = f"Extraia os dados do evento do texto a seguir:\n\n{text[:4000]}"
 
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model="gemini-2.5-flash",
             contents=prompt,
             config=genai.types.GenerateContentConfig(
                 response_mime_type="application/json",
@@ -68,7 +86,9 @@ def extract_event_from_text(text: str) -> dict | None:
             ),
         )
 
-        result = json.loads(response.text)
+        if response.text is None:
+            raise ValueError("Gemini retornou resposta sem texto")
+        result: dict[str, Any] = json.loads(response.text)
 
         if not result.get("is_event") or not result.get("nome"):
             return None

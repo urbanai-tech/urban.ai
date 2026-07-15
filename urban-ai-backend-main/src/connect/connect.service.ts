@@ -14,8 +14,12 @@ import { CreateNotificationDto } from "src/notifications/tdo/create-notification
 import { getDiaria } from "src/util";
 import { hasUsableBasePrice } from "src/pricing/base-price.util";
 import { mapWithConcurrency } from "src/common/concurrency";
+import {
+  resolveSafeAirbnbUrl,
+  SafeUrlResolutionError,
+} from "./safe-airbnb-url-resolver";
 
-type Imovel = {
+export type Imovel = {
   id: string;
   titulo: string;
   pictureUrl: string;
@@ -111,8 +115,7 @@ export class ConnectService {
     if (!this.RAPIDAPI_KEY) {
       this.logger.warn("RAPIDAPI_KEY environment variable is not set");
     } else {
-      const maskedKey = `${this.RAPIDAPI_KEY.substring(0, 4)}...${this.RAPIDAPI_KEY.substring(this.RAPIDAPI_KEY.length - 4)}`;
-      this.logger.log(`RapidAPI Key configured: ${maskedKey}`);
+      this.logger.log("RAPIDAPI_KEY configured");
     }
   }
 
@@ -274,7 +277,7 @@ export class ConnectService {
       }
 
       let total = 0;
-      let currency = "BRL";
+      const currency = "BRL";
       let breakdown = {};
 
       if (data?.price_total || data?.data?.price_total) {
@@ -526,7 +529,9 @@ export class ConnectService {
     try {
       const daily = Number(getDiaria(quote));
       if (Number.isFinite(daily) && daily > 0) return Number(daily.toFixed(2));
-    } catch {}
+    } catch {
+      // O formato alternativo é tratado logo abaixo.
+    }
 
     const total = Number(quote?.price?.data?.accommodationCost);
     const nights = Number(quote?.nights);
@@ -726,7 +731,7 @@ export class ConnectService {
       });
     }
 
-    return addressSaved.map(({ user, ...rest }) => {
+    return addressSaved.map(({ user: _user, ...rest }) => {
       const { user: _, ...listWithoutUser } = rest.list || {};
       return {
         ...rest,
@@ -797,8 +802,8 @@ export class ConnectService {
   ): Promise<Address[] | any[]> {
     return this.createMultipleAddressesWithScrapedInputs(addresses, userId);
 
-    let address: Address[] | [] = addresses;
-    let addressSaved: Address[] = [];
+    const address: Address[] | [] = addresses;
+    const addressSaved: Address[] = [];
     const analysisStartedTitles: string[] = [];
     const basePricePendingTitles: string[] = [];
     try {
@@ -917,11 +922,11 @@ export class ConnectService {
         analysisStartedTitles,
         basePricePendingTitles,
       });
-    } catch (error: any) {
+    } catch (_error: any) {
       this.logger.debug(`Ocorreu um erro ao criar um address`);
     }
 
-    const sanitized = addressSaved.map(({ user, ...rest }) => {
+    const sanitized = addressSaved.map(({ user: _user, ...rest }) => {
       const { user: _, ...listWithoutUser } = rest.list || {};
       return {
         ...rest,
@@ -933,10 +938,13 @@ export class ConnectService {
   }
 
   async resolveUrl(shortUrl: string): Promise<string> {
-    const response = await fetch(shortUrl, {
-      redirect: 'follow',
-    });
-
-    return response.url; // já vem com a URL final
+    try {
+      return await resolveSafeAirbnbUrl(shortUrl);
+    } catch (error) {
+      if (error instanceof SafeUrlResolutionError) {
+        throw new BadRequestException(error.message);
+      }
+      throw error;
+    }
   }
 }

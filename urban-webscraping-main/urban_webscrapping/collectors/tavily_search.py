@@ -11,14 +11,17 @@ from urban_webscrapping.collectors.base_collector import (
     setup_logging,
 )
 from urban_webscrapping.utils.llm_extractor import extract_event_from_text
+from urban_webscrapping.utils.urban_backend_client import UrbanBackendClient
 
 load_dotenv()
 logger = logging.getLogger(__name__)
+
 
 class TavilySearchCollector(BaseCollector):
     """Coletor para Tavily API (REST). Múltiplas queries focadas em SP capital.
     O LLM extractor aplica is_in_scope=true como segundo filtro.
     """
+
     source = "tavily"
 
     DEFAULT_QUERIES = [
@@ -27,7 +30,13 @@ class TavilySearchCollector(BaseCollector):
         "feiras congressos São Paulo Expo Anhembi 2026",
     ]
 
-    def __init__(self, query=None, queries=None, client=None, dry_run=False):
+    def __init__(
+        self,
+        query: str | None = None,
+        queries: list[str] | None = None,
+        client: UrbanBackendClient | None = None,
+        dry_run: bool = False,
+    ) -> None:
         super().__init__(client=client, dry_run=dry_run)
         if query:
             self.queries = [query]
@@ -50,7 +59,7 @@ class TavilySearchCollector(BaseCollector):
 
         for q in self.queries:
             logger.info(f"Tavily query: {q}")
-            payload = {
+            payload: dict[str, Any] = {
                 "api_key": api_key,
                 "query": q,
                 "search_depth": "advanced",
@@ -96,6 +105,7 @@ class TavilySearchCollector(BaseCollector):
 
         # Fallback caso falhe ou Gemini não confirme ser evento
         return None
+
 
 if __name__ == "__main__":
     setup_logging()

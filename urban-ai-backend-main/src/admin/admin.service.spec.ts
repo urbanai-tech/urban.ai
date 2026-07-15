@@ -9,6 +9,7 @@ jest.mock('../maps/maps.service', () => ({
 }));
 
 import { AdminService } from './admin.service';
+import { AdminStaysHealthService } from './admin-stays-health.service';
 
 function makeEventRepo(rows: any[]) {
   const qb = {
@@ -57,6 +58,11 @@ function makeService(
     {} as any,
     {} as any,
     { revokeAllRefreshTokensForUser: jest.fn() } as any,
+    new AdminStaysHealthService(
+      overrides.priceUpdateRepo ?? ({} as any),
+      overrides.staysAccountRepo ?? ({} as any),
+      overrides.staysListingRepo ?? ({} as any),
+    ),
   );
 }
 
@@ -301,13 +307,11 @@ describe('AdminService staysHealth', () => {
     const accountQb = rawQuery([{ status: 'active', count: '1' }]);
     const pushQb = rawQuery([{ status: 'success', count: '2' }]);
     const service = makeService(makeEventRepo([]), {
-      staysAccountRepo: { createQueryBuilder: jest.fn().mockReturnValue(accountQb) },
+      staysAccountRepo: {
+        createQueryBuilder: jest.fn().mockReturnValue(accountQb),
+      },
       staysListingRepo: {
-        count: jest
-          .fn()
-          .mockResolvedValueOnce(3)
-          .mockResolvedValueOnce(2)
-          .mockResolvedValueOnce(1),
+        count: jest.fn().mockResolvedValueOnce(3).mockResolvedValueOnce(2).mockResolvedValueOnce(1),
       },
       priceUpdateRepo: {
         createQueryBuilder: jest.fn().mockReturnValue(pushQb),
@@ -361,18 +365,12 @@ describe('AdminService Track 3 readiness', () => {
 
     expect(result.stripe).toMatchObject({
       status: 'blocked',
-      blockers: expect.arrayContaining([
-        'STRIPE_SECRET_KEY ausente',
-        'STRIPE_WEBHOOK_SECRET ausente',
-      ]),
+      blockers: expect.arrayContaining(['STRIPE_SECRET_KEY ausente', 'STRIPE_WEBHOOK_SECRET ausente']),
     });
     expect(result.stripe.blockers).not.toContain('Publishable key Stripe ausente');
     expect(result.email.blockers).toContain('BREVO_API_KEY ausente');
     expect(result.email.blockers).not.toContain('FRONT_URL ausente');
-    expect(result.stays.blockers).toEqual([
-      'STAYS_API_BASE_URL ausente',
-      'STAYS_TOKEN_ENCRYPTION_KEY ausente',
-    ]);
+    expect(result.stays.blockers).toEqual(['STAYS_API_BASE_URL ausente', 'STAYS_TOKEN_ENCRYPTION_KEY ausente']);
     expect(result.support.blockers).toEqual(
       expect.arrayContaining([
         '1 ticket(s) P0 abertos',

@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from "framer-motion";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -22,8 +21,6 @@ import { trackEvent } from "../service/tracking";
  *    do design system .urban-app.
  *  - Primeira impressao do produto = manifesto direto, sem SaaS genérico.
  */
-
-const MotionDiv = motion.div;
 
 async function sha256(message: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -204,11 +201,7 @@ export default function Login() {
           >
             PRECIFICAÇÃO POR EVENTOS
           </p>
-          <MotionDiv
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-          >
+          <div className="urban-enter" style={{ animationDuration: "700ms" }}>
             <h1
               className="urban-display"
               style={{
@@ -228,12 +221,15 @@ export default function Login() {
               <br />
               VOCÊ GANHA.
             </h1>
-          </MotionDiv>
-          <MotionDiv
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: 0.15 }}
-            style={{ marginTop: 40, maxWidth: 480 }}
+          </div>
+          <div
+            className="urban-enter"
+            style={{
+              animationDuration: "700ms",
+              animationDelay: "150ms",
+              marginTop: 40,
+              maxWidth: 480,
+            }}
           >
             <p
               style={{
@@ -247,7 +243,7 @@ export default function Login() {
               A Urban AI monitora 5.000+ eventos na sua região e ajusta o preço
               das suas diárias no momento certo. Você só precisa entrar.
             </p>
-          </MotionDiv>
+          </div>
         </div>
 
         {/* Pull-quote rodapé */}
@@ -286,11 +282,14 @@ export default function Login() {
           background: "var(--app-bg)",
         }}
       >
-        <MotionDiv
-          initial={{ y: 20 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
-          style={{ width: "100%", maxWidth: 420 }}
+        <div
+          className="urban-enter"
+          style={{
+            animationDuration: "500ms",
+            animationDelay: "100ms",
+            width: "100%",
+            maxWidth: 420,
+          }}
         >
           {/* Mobile-only logo */}
           <div
@@ -593,7 +592,7 @@ export default function Login() {
           >
             Beta privado · São Paulo
           </p>
-        </MotionDiv>
+        </div>
       </div>
 
       {/* Responsive — só mostra split em desktop */}

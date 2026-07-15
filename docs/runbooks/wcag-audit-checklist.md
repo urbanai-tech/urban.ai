@@ -92,7 +92,7 @@ Marcar **Passa / Falha / N/A** por rota. As rotas críticas hoje são:
 
 ## 4. Priorização de correções
 
-Usar a matriz do `docs/avaliacao-projeto-2026-04-16.md`:
+Usar a matriz do `docs/archive/audits/avaliacao-projeto-2026-04-16.md`:
 
 - **CRIT**: violation critical que impede uso por pessoa com deficiência (ex.: botão sem label, form sem label)
 - **P1**: serious (ex.: contraste abaixo de 4.5:1, sem skip link)

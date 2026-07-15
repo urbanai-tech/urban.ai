@@ -301,6 +301,7 @@ export default function SugestoesAceitas() {
 function Spinner({ size }: { size: number }) {
   return (
     <span
+      role="status"
       aria-label="Carregando"
       style={{
         width: size,

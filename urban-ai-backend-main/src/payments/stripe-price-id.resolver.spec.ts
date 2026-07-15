@@ -84,4 +84,41 @@ describe('stripe-price-id.resolver', () => {
       source: 'missing',
     });
   });
+
+  it('maps every entity field, including legacy monthly and annual fallbacks', () => {
+    expect(resolveStripePriceId({ stripePriceId: ' price_monthly_legacy ' }, 'monthly')).toEqual({
+      priceId: 'price_monthly_legacy',
+      source: 'plan-entity',
+    });
+    expect(resolveStripePriceId({ stripePriceIdQuarterly: 'price_quarterly' }, 'quarterly')).toEqual({
+      priceId: 'price_quarterly',
+      source: 'plan-entity',
+    });
+    expect(resolveStripePriceId({ stripePriceIdSemestral: 'price_semestral' }, 'semestral')).toEqual({
+      priceId: 'price_semestral',
+      source: 'plan-entity',
+    });
+    expect(resolveStripePriceId({ stripePriceIdAnnual: 'price_annual_legacy' }, 'annual')).toEqual({
+      priceId: 'price_annual_legacy',
+      source: 'plan-entity',
+    });
+  });
+
+  it('builds scoped and legacy key lists for every cycle and blank plan names', () => {
+    expect(getEnvKeys('Starter', 'quarterly')).toEqual(['STARTER_PRICE_QUARTERLY']);
+    expect(getEnvKeys('Starter', 'semestral')).toEqual(['STARTER_PRICE_SEMESTRAL']);
+    expect(getEnvKeys('Starter', 'annual')).toEqual([
+      'STARTER_PRICE_ANNUAL',
+      'STARTER_ANUAL_PLAN',
+      'ANUAL_PLAN',
+    ]);
+    expect(getEnvKeys(' --- ', 'monthly')).toEqual(['MENSAL_PLAN']);
+  });
+
+  it('skips blank environment values before selecting the next configured key', () => {
+    process.env.STARTER_PRICE_ANNUAL = '   ';
+    process.env.STARTER_ANUAL_PLAN = ' price_scoped_annual ';
+
+    expect(getEnvPriceId('starter', 'annual')).toBe('price_scoped_annual');
+  });
 });

@@ -84,7 +84,7 @@ export class DashboardService {
     }
 
     async getQuantidadeEnderecos(usuarioId: string, propertyId: string): Promise<number> {
-        let query = null;
+        let query;
         if (propertyId) {
             query = this.analisePrecoRepositoru
                 .createQueryBuilder('analise')

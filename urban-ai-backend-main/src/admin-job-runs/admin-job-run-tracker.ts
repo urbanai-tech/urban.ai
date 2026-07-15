@@ -104,7 +104,7 @@ export function toAdminJobRunResponse(run: AdminJobRun): AdminJobRunResponse {
     status: run.status,
     triggeredByUserId: run.triggeredByUserId,
     startedAt: run.startedAt.toISOString(),
-    finishedAt: run.finishedAt.toISOString() ?? null,
+    finishedAt: run.finishedAt?.toISOString() ?? null,
     durationMs: run.durationMs,
     result: run.result,
     errorMessage: run.errorMessage,

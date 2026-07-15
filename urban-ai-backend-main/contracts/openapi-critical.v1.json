@@ -1,0 +1,209 @@
+{
+  "compatibility": {
+    "strategy": "stable-unprefixed",
+    "currentContract": "1.0.0",
+    "urlPrefix": null,
+    "compatibility": "backward-compatible-with-current-urls",
+    "deprecationPolicy": "docs/runbooks/api-compatibility.md"
+  },
+  "contractVersion": "1.0.0",
+  "operations": {
+    "GET /health/live": {
+      "operationId": "HealthController_getLive",
+      "parameters": [],
+      "responses": { "200": {} },
+      "tags": ["Health"]
+    },
+    "GET /health": {
+      "operationId": "HealthController_getHealth",
+      "parameters": [
+        {
+          "in": "header",
+          "name": "authorization",
+          "required": true,
+          "schema": { "type": "string" }
+        }
+      ],
+      "responses": { "200": {}, "401": {}, "503": {} },
+      "security": [{ "bearer": [] }],
+      "tags": ["Health"]
+    },
+    "POST /auth/login": {
+      "operationId": "AuthController_login",
+      "parameters": [],
+      "requestBody": {
+        "content": { "application/json": { "schema": {} } },
+        "required": true
+      },
+      "responses": { "201": {}, "401": {}, "500": {} },
+      "tags": ["Auth"]
+    },
+    "POST /auth/refresh": {
+      "operationId": "AuthController_refresh",
+      "parameters": [],
+      "responses": { "200": {} },
+      "tags": ["Auth"]
+    },
+    "GET /auth/me": {
+      "operationId": "AuthController_me",
+      "parameters": [],
+      "responses": { "200": {}, "401": {} },
+      "tags": ["Auth"]
+    },
+    "GET /propriedades/user": {
+      "operationId": "PropriedadeController_getAddressesByUser",
+      "parameters": [
+        { "in": "query", "name": "limit", "required": false, "schema": { "type": "number" } },
+        { "in": "query", "name": "page", "required": false, "schema": { "type": "number" } }
+      ],
+      "responses": { "200": {} },
+      "tags": ["Propriedades"]
+    },
+    "GET /propriedades/{id}": {
+      "operationId": "PropriedadeController_findOne",
+      "parameters": [
+        { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+      ],
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/Address" } }
+          }
+        },
+        "404": {}
+      },
+      "tags": ["Propriedades"]
+    },
+    "POST /payments/create-checkout-session": {
+      "operationId": "PaymentsController_createCheckout",
+      "parameters": [],
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/CreateCheckoutSessionDto" }
+          }
+        },
+        "required": true
+      },
+      "responses": { "201": {} },
+      "tags": ["Payments"]
+    },
+    "GET /payments/me": {
+      "operationId": "PaymentsController_getMyPayments",
+      "parameters": [],
+      "responses": {
+        "200": { "content": { "application/json": { "schema": {} } } },
+        "401": {}
+      },
+      "tags": ["Payments"]
+    },
+    "GET /plans": {
+      "operationId": "PlansController_getPlans",
+      "parameters": [],
+      "responses": { "200": {} },
+      "tags": ["Plans"]
+    },
+    "GET /host/events/radar": {
+      "operationId": "HostEventsController_radar",
+      "parameters": [
+        { "in": "query", "name": "from", "required": true, "schema": { "type": "string" } },
+        { "in": "query", "name": "to", "required": true, "schema": { "type": "string" } },
+        { "in": "query", "name": "propertyId", "required": true, "schema": { "type": "string" } },
+        { "in": "query", "name": "category", "required": true, "schema": { "type": "string" } },
+        { "in": "query", "name": "radiusKm", "required": true, "schema": { "type": "string" } },
+        { "in": "query", "name": "confidence", "required": true, "schema": { "type": "string" } }
+      ],
+      "responses": { "200": {} },
+      "security": [{ "bearer": [] }],
+      "tags": ["host-events"]
+    },
+    "POST /host/events/{eventId}/simulate-pricing": {
+      "operationId": "HostEventsController_simulatePricing",
+      "parameters": [
+        { "in": "path", "name": "eventId", "required": true, "schema": { "type": "string" } }
+      ],
+      "requestBody": {
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/SimulatePricingDto" } }
+        },
+        "required": true
+      },
+      "responses": { "201": {} },
+      "security": [{ "bearer": [] }],
+      "tags": ["host-events"]
+    }
+  },
+  "schemas": {
+    "Address": {
+      "properties": {
+        "ativo": { "type": "boolean" },
+        "bairro": { "type": "string" },
+        "cep": { "maxLength": 9, "minLength": 8, "type": "string" },
+        "cidade": { "type": "string" },
+        "created_at": { "format": "date-time", "type": "string" },
+        "estado": { "type": "string" },
+        "id": { "type": "string" },
+        "latitude": { "type": "number" },
+        "list": { "allOf": [{ "$ref": "#/components/schemas/List" }] },
+        "logradouro": { "type": "string" },
+        "longitude": { "type": "number" },
+        "metroDistance": { "type": "number" },
+        "numero": { "type": "string" },
+        "updated_at": { "format": "date-time", "type": "string" },
+        "user": { "allOf": [{ "$ref": "#/components/schemas/User" }] }
+      },
+      "required": ["id", "cep", "numero", "ativo", "created_at", "updated_at", "list", "user"],
+      "type": "object"
+    },
+    "CreateCheckoutSessionDto": {
+      "properties": {
+        "billingCycle": { "type": "string" },
+        "plan": { "type": "string" },
+        "quantity": { "type": "number" }
+      },
+      "type": "object"
+    },
+    "List": {
+      "properties": {
+        "amenitiesCount": { "type": "number" },
+        "ativo": { "type": "boolean" },
+        "averageMonthlyRevenue": { "type": "number" },
+        "banheiros": { "type": "number" },
+        "camas": { "type": "number" },
+        "category": { "type": "string" },
+        "checkIn": { "type": "string" },
+        "checkOut": { "type": "string" },
+        "currency": { "type": "string" },
+        "dailyPrice": { "type": "number" },
+        "hospedes": { "type": "number" },
+        "id": { "type": "string" },
+        "id_do_anuncio": { "type": "string" },
+        "internalCode": { "type": "string" },
+        "internalNickname": { "type": "string" },
+        "lastScrapedAt": { "format": "date-time", "type": "string" },
+        "manualDailyPrice": { "type": "number" },
+        "neighborhood": { "type": "string" },
+        "pictureUrl": { "type": "string" },
+        "priceText": { "type": "string" },
+        "pricingInputSource": { "type": "string" },
+        "pricingInputsUpdatedAt": { "format": "date-time", "type": "string" },
+        "propertyType": { "type": "string" },
+        "quartos": { "type": "number" },
+        "rating": { "type": "number" },
+        "raw": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "status": { "type": "string" },
+        "titulo": { "type": "string" }
+      },
+      "required": [
+        "id", "titulo", "id_do_anuncio", "internalNickname", "internalCode", "pictureUrl", "ativo",
+        "priceText", "raw", "currency", "checkIn", "checkOut", "status", "dailyPrice", "manualDailyPrice",
+        "averageMonthlyRevenue", "pricingInputSource", "pricingInputsUpdatedAt", "hospedes", "quartos", "camas",
+        "banheiros", "rating", "propertyType", "amenitiesCount", "neighborhood", "reviewCount", "lastScrapedAt"
+      ],
+      "type": "object"
+    },
+    "SimulatePricingDto": { "properties": {}, "type": "object" },
+    "User": { "properties": {}, "type": "object" }
+  }
+}

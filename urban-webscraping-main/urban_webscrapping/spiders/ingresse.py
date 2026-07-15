@@ -1,10 +1,11 @@
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import AsyncIterator
 from pathlib import Path
+from typing import Any, cast
 from urllib.parse import urlparse
 
 from playwright.async_api import Page
 from scrapy import FormRequest, Request, Spider
-from scrapy.http import Response
+from scrapy.http import Response, TextResponse
 from scrapy.http.response.json import JsonResponse
 from scrapy.linkextractors import LinkExtractor
 from scrapy_playwright.page import PageMethod
@@ -65,7 +66,7 @@ class IngresseSpider(Spider):
         }
         yield Request(url, meta=metadata, callback=self.parse)
 
-    async def errback(self, failure) -> None:
+    async def errback(self, failure: Any) -> None:
         """Handles errors during the request by closing the associated Playwright page.
 
         Args:
@@ -94,15 +95,16 @@ class IngresseSpider(Spider):
             "Content-Type": "application/json",
         }
         base_api_url = "https://api-site.ingresse.com/events/{event_name}"
-        for link in self.link_extractor.extract_links(response):
+        for link in self.link_extractor.extract_links(cast(TextResponse, response)):
             self.logger.debug(f"Processing link: {link.url}")
             new_url = base_api_url.format(event_name=urlparse(link.url).path.strip("/"))
             self.logger.debug(f"Making API request to: {new_url}")
             yield FormRequest(new_url, callback=self.parse_api, headers=headers)
 
-    def parse_api(self, response: JsonResponse) -> Iterator[EventItem]:
-        api_data = response.json()
-        loader = EventLoader(item=EventItem(), response=response)
+    def parse_api(self, response: Response) -> EventItem:
+        json_response = cast(JsonResponse, response)
+        api_data = json_response.json()
+        loader = EventLoader(item=EventItem(), response=json_response)
 
         loader.add_value("nome", api_data["title"])
         loader.add_value("imagem_url", api_data["poster"]["medium"])
@@ -124,4 +126,4 @@ class IngresseSpider(Spider):
         )
         loader.add_value("linkSiteOficial", event_url.as_posix())
 
-        return loader.load_item()
+        return cast(EventItem, loader.load_item())

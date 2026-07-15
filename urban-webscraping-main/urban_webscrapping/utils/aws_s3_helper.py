@@ -1,6 +1,7 @@
 import json
 import os
 from io import BytesIO
+from typing import Any
 
 import boto3
 import pyarrow as pa
@@ -13,24 +14,20 @@ load_dotenv()
 ASSUME_ROLE_ARN = os.getenv("ASSUME_ROLE_ARN")
 ASSUME_ROLE_EXTERNAL_ID = os.getenv("ASSUME_ROLE_EXTERNAL_ID")
 
-aws_urban_config = BotoConfig(
-    region_name='sa-east-1',
-    retries={
-        "max_attempts" : 5
-    }
-)
+aws_urban_config = BotoConfig(region_name="sa-east-1", retries={"max_attempts": 5})
 
-def _building_s3_client():
-    session = boto3.Session(region_name='sa-east-1')
+
+def _building_s3_client() -> Any:
+    session = boto3.Session(region_name="sa-east-1")
     if ASSUME_ROLE_ARN:
-        sts = session.client('sts', config=aws_urban_config)
+        sts = session.client("sts", config=aws_urban_config)
         resp = sts.assume_role(
-            RoleArn = ASSUME_ROLE_ARN,
+            RoleArn=ASSUME_ROLE_ARN,
             RoleSessionName="scrappy-dump",
             ExternalId=ASSUME_ROLE_EXTERNAL_ID,
-            DurationSeconds=1800
+            DurationSeconds=1800,
         )
-        creds = resp['Credentials']
+        creds = resp["Credentials"]
 
         return boto3.client(
             "s3",
@@ -38,31 +35,39 @@ def _building_s3_client():
             aws_secret_access_key=creds["SecretAccessKey"],
             aws_session_token=creds["SessionToken"],
             config=aws_urban_config,
-            region_name='sa-east-1',
+            region_name="sa-east-1",
         )
 
     return session.client("s3", config=aws_urban_config)
 
 
 class S3Helper:
-    def __init__(self):
+    def __init__(self) -> None:
         self.client = _building_s3_client()
 
-    def put_object_json(self, bucket_name: str, object_name: str, data: dict, kms_key_id: str | None = None) -> None:
+    def put_object_json(
+        self,
+        bucket_name: str,
+        object_name: str,
+        data: dict[str, Any],
+        kms_key_id: str | None = None,
+    ) -> None:
         body = json.dumps(data, default=str, ensure_ascii=False).encode("utf-8")
 
         self.client.put_object(
             Bucket=bucket_name,
             Key=object_name,
             Body=body,
-            ContentType="application/json"
-            )
+            ContentType="application/json",
+        )
 
-    def put_object_parquet(self, bucket_name: str, object_name: str, data) -> None:
+    def put_object_parquet(
+        self, bucket_name: str, object_name: str, data: dict[str, Any]
+    ) -> None:
         record = data
         table = pa.Table.from_pylist([record])
         buf = BytesIO()
-        pq.write_table(table, buf, compression="snappy")   # write Parquet into memory
+        pq.write_table(table, buf, compression="snappy")  # write Parquet into memory
         buf.seek(0)
         body = buf.getvalue()
 
@@ -70,5 +75,5 @@ class S3Helper:
             Bucket=bucket_name,
             Key=object_name,
             Body=body,
-            ContentType="application/vnd.apache.parquet"
-            )
+            ContentType="application/vnd.apache.parquet",
+        )

@@ -1,5 +1,6 @@
 import { ForbiddenException, HttpException, HttpStatus } from '@nestjs/common';
 import { HostPanelsService } from './host-panels.service';
+import { PortfolioActionTargetResolverService } from './portfolio-action-target-resolver.service';
 
 describe('HostPanelsService AskUrban entitlement', () => {
   const originalEnv = process.env;
@@ -56,6 +57,7 @@ describe('HostPanelsService AskUrban entitlement', () => {
       {} as any,
       {} as any,
       dataSource as any,
+      new PortfolioActionTargetResolverService(),
     );
 
     return { service, askRepo, paymentRepo, userRepo };

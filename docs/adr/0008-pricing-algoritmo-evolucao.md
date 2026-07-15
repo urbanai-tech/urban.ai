@@ -82,4 +82,4 @@ XGBoost em **Node.js** existe (`@dqbd/xgboost` ou via WASM), mas é meio ginást
 - [XGBoost benchmark de pricing](https://xgboost.readthedocs.io/en/stable/) — comunidade
 - [Shadow mode em ML systems](https://martinfowler.com/articles/cd4ml.html) — Martin Fowler
 - ADR 0002 — KNN no backend (parcialmente substituído por este)
-- F6.1 do `docs/roadmap-pos-sprint.md` v2.4
+- F6.1 do `docs/archive/roadmaps/roadmap-pos-sprint.md` v2.4

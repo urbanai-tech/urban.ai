@@ -219,6 +219,13 @@ export class StaysService {
       });
     }
 
+    if (!account.consentAcceptedAt || !account.consentVersion?.trim()) {
+      blockers.push({
+        code: 'consent_missing',
+        message: 'Consentimento Stays versionado e obrigatorio antes de aplicar precos.',
+      });
+    }
+
     const listing = await this.listingRepo.findOne({
       where: { id: input.listingId, account: { id: account.id } },
     });
@@ -320,6 +327,11 @@ export class StaysService {
     if (account.status !== 'active') {
       throw new BadRequestException('Conta Stays não está ativa — reconecte.');
     }
+    if (!account.consentAcceptedAt || !account.consentVersion?.trim()) {
+      throw new BadRequestException(
+        'Consentimento Stays versionado e obrigatorio antes de aplicar precos.',
+      );
+    }
     this.assertStaysReadiness({ requireEncryptionKey: false });
 
     const listing = await this.listingRepo.findOne({
@@ -331,6 +343,7 @@ export class StaysService {
     }
 
     // Guardrails de variação: bloqueia pushes fora do teto.
+    this.assertValidPushInput(input);
     this.enforceVariationCaps(input.previousPriceCents, input.newPriceCents, account);
 
     const idempotencyKey = this.buildIdempotencyKey(listing.staysListingId, input.targetDate, input.newPriceCents);
@@ -361,7 +374,22 @@ export class StaysService {
       ip: input.ip ?? null,
       userAgent: input.userAgent ?? null,
     });
-    await this.priceUpdateRepo.save(record);
+    try {
+      await this.priceUpdateRepo.save(record);
+    } catch (error) {
+      if (!this.isDuplicateKeyError(error)) throw error;
+      const concurrent = await this.priceUpdateRepo.findOne({
+        where: { idempotencyKey },
+        relations: ['analise'],
+      });
+      if (!concurrent) throw error;
+      this.logger.log(
+        `pushPrice concorrente deduplicado listing=${listing.staysListingId} ` +
+          `date=${input.targetDate} update=${concurrent.id}`,
+      );
+      await this.recordPricingDecisionOutcome(concurrent);
+      return concurrent;
+    }
     await this.recordPricingDecisionOutcome(record, {
       acceptedAt: record.createdAt ?? new Date(),
     });
@@ -515,6 +543,27 @@ export class StaysService {
   private buildIdempotencyKey(listingId: string, date: string, priceCents: number): string {
     const raw = `${listingId}|${date}|${priceCents}`;
     return crypto.createHash('sha256').update(raw).digest('hex').slice(0, 48);
+  }
+
+  private assertValidPushInput(input: PushPriceInput): void {
+    if (!this.isValidTargetDate(input.targetDate)) {
+      throw new BadRequestException('targetDate deve estar no formato YYYY-MM-DD.');
+    }
+    if (!Number.isInteger(input.newPriceCents) || input.newPriceCents <= 0) {
+      throw new BadRequestException('newPriceCents deve ser um inteiro positivo.');
+    }
+    if (!Number.isInteger(input.previousPriceCents) || input.previousPriceCents < 0) {
+      throw new BadRequestException('previousPriceCents deve ser um inteiro maior ou igual a zero.');
+    }
+  }
+
+  private isDuplicateKeyError(error: unknown): boolean {
+    const candidate = error as { code?: string; errno?: number; message?: string };
+    return (
+      candidate?.code === 'ER_DUP_ENTRY' ||
+      candidate?.errno === 1062 ||
+      /duplicate entry|unique constraint/i.test(candidate?.message ?? '')
+    );
   }
 
   private isValidTargetDate(date: string): boolean {

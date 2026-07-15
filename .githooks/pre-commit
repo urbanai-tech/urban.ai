@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+
+repository_root="$(git rev-parse --show-toplevel)"
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "pre-commit security gate: Node.js is required." >&2
+  exit 1
+fi
+
+node "$repository_root/scripts/security-head-scan.js"
+

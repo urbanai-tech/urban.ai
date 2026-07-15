@@ -1,11 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
-import { Repository, IsNull, Not } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { Event } from '../entities/events.entity';
 import { EventIdentityService } from '../evento/event-identity.service';
 import { haversineKm } from './feature-engineering.service';
 import { SP_VENUES, VenueCapacity } from './data/sp-venues';
+import { ScheduledJobRunnerService, runScheduledJob } from '../admin-job-runs/scheduled-job-runner.service';
 
 // ============================================================================
 // Funções puras de matching (testáveis sem I/O)
@@ -105,6 +106,7 @@ export class VenueCapacityService {
   constructor(
     @InjectRepository(Event) private readonly eventRepo: Repository<Event>,
     private readonly identity: EventIdentityService,
+    @Optional() private readonly scheduledJobRunner?: ScheduledJobRunnerService,
   ) {}
 
   private getIndex(): VenueIndex {
@@ -169,8 +171,14 @@ export class VenueCapacityService {
     return { processados, resolvidos };
   }
 
-  @Cron('0 30 4 * * *', { timeZone: 'America/Sao_Paulo' })
+  @Cron('0 30 4 * * *', {
+    name: 'venue-capacity-backfill',
+    timeZone: 'America/Sao_Paulo',
+    waitForCompletion: true,
+  })
   async scheduledBackfill(): Promise<void> {
-    await this.backfillPending(300);
+    return runScheduledJob(this.scheduledJobRunner, 'venue-capacity-backfill', async () => {
+      await this.backfillPending(300);
+    });
   }
 }
