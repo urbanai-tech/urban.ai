@@ -1455,12 +1455,13 @@ export class HostPanelsService {
   }
 
   private normalizeParams(params: Record<string, number> | undefined) {
-    const out: Record<string, number> = {};
+    const entries: Array<[string, number]> = [];
     for (const [key, value] of Object.entries(params ?? {})) {
+      if (!/^[a-z][a-zA-Z0-9_]{0,63}$/.test(key)) continue;
       const parsed = Number(value);
-      if (Number.isFinite(parsed)) out[key] = parsed;
+      if (Number.isFinite(parsed)) entries.push([key, parsed]);
     }
-    return out;
+    return Object.fromEntries(entries);
   }
 
   private cloneDefaultRules() {

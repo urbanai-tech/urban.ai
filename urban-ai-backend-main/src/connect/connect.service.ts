@@ -333,11 +333,16 @@ export class ConnectService {
 
 
   async getAddressByCep(cep: string): Promise<any> {
-    const API_URL = `https://brasilapi.com.br/api/cep/v2/${cep.replace(/\D/g, "")}`;
+    const normalizedCep = cep.replace(/\D/g, '');
+    if (!/^\d{8}$/.test(normalizedCep)) {
+      throw new HttpException('CEP inválido.', HttpStatus.BAD_REQUEST);
+    }
+    const apiUrl = new URL('https://brasilapi.com.br/api/cep/v2/');
+    apiUrl.pathname += normalizedCep;
 
     try {
-      this.logger.log(`🔎 Consultando endereço para o CEP ${cep}`);
-      const response = await axios.get(API_URL, {
+      this.logger.log('Consultando endereço na BrasilAPI.');
+      const response = await axios.get(apiUrl.toString(), {
         timeout: 10000,
       });
       const { data, status } = response;

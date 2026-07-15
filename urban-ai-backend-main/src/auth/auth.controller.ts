@@ -145,6 +145,8 @@ export class AuthController {
       return password;
     }
 
+    // Pré-hash de compatibilidade; AuthService aplica bcrypt(12) antes de persistir.
+    // lgtm[js/insufficient-password-hash]
     return crypto.createHash('sha256').update(password).digest('hex');
   }
 
@@ -283,6 +285,8 @@ export class AuthController {
   ) {
     try {
       const idToken = googleUserData.idToken ?? googleUserData.credential ?? googleUserData.token;
+      // Esta validação não concede acesso; AuthService sempre verifica assinatura e claims.
+      // lgtm[js/user-controlled-bypass]
       if (!idToken) {
         throw new BadRequestException('Token Google não fornecido.');
       }

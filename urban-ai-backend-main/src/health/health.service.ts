@@ -100,9 +100,12 @@ export class HealthService {
       throw new ServiceUnavailableException('Health readiness token is not configured.');
     }
 
-    const header = Array.isArray(authorization) ? authorization[0] : authorization;
-    const match = /^Bearer\s+(.+)$/i.exec(String(header || '').trim());
-    if (!match || !this.safeEqual(match[1], expectedToken)) {
+    const header = String(Array.isArray(authorization) ? authorization[0] : authorization ?? '').trim();
+    const prefix = 'bearer ';
+    const suppliedToken = header.slice(0, prefix.length).toLowerCase() === prefix
+      ? header.slice(prefix.length).trim()
+      : '';
+    if (!suppliedToken || !this.safeEqual(suppliedToken, expectedToken)) {
       throw new UnauthorizedException('Invalid health readiness token.');
     }
   }

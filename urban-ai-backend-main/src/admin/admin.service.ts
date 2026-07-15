@@ -2003,7 +2003,7 @@ export class AdminService {
     const senderDomain = emailSender.includes('@') ? emailSender.split('@').pop() || '' : '';
     const brevoApiKeyConfigured = Boolean(process.env.BREVO_API_KEY);
     const emailSenderConfigured = Boolean(process.env.EMAIL_SENDER);
-    const senderUsesUrbanDomain = senderDomain.endsWith('myurbanai.com');
+    const senderUsesUrbanDomain = this.isUrbanEmailDomain(senderDomain);
     const frontUrlConfigured = Boolean(process.env.FRONT_URL);
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim() || '';
     const stripePublishableKey =
@@ -2022,14 +2022,14 @@ export class AdminService {
     const privacyEmail = process.env.PRIVACY_EMAIL?.trim() || 'privacidade@myurbanai.com';
     const supportEmailConfigured = Boolean(process.env.SUPPORT_EMAIL?.trim());
     const privacyEmailConfigured = Boolean(process.env.PRIVACY_EMAIL?.trim());
-    const supportEmailDomainOk = this.emailDomain(supportEmail).endsWith('myurbanai.com');
-    const privacyEmailDomainOk = this.emailDomain(privacyEmail).endsWith('myurbanai.com');
+    const supportEmailDomainOk = this.isUrbanEmailDomain(this.emailDomain(supportEmail));
+    const privacyEmailDomainOk = this.isUrbanEmailDomain(this.emailDomain(privacyEmail));
     const supportOwnerEmail = process.env.SUPPORT_OWNER_EMAIL?.trim() || '';
     const privacyOwnerEmail = process.env.PRIVACY_OWNER_EMAIL?.trim() || '';
     const supportOwnerConfigured = Boolean(supportOwnerEmail);
     const privacyOwnerConfigured = Boolean(privacyOwnerEmail);
-    const supportOwnerDomainOk = !supportOwnerEmail || this.emailDomain(supportOwnerEmail).endsWith('myurbanai.com');
-    const privacyOwnerDomainOk = !privacyOwnerEmail || this.emailDomain(privacyOwnerEmail).endsWith('myurbanai.com');
+    const supportOwnerDomainOk = !supportOwnerEmail || this.isUrbanEmailDomain(this.emailDomain(supportOwnerEmail));
+    const privacyOwnerDomainOk = !privacyOwnerEmail || this.isUrbanEmailDomain(this.emailDomain(privacyOwnerEmail));
 
     const [
       // Eventos
@@ -2573,6 +2573,10 @@ export class AdminService {
 
   private emailDomain(email: string): string {
     return email.includes('@') ? email.split('@').pop()?.toLowerCase() || '' : '';
+  }
+
+  private isUrbanEmailDomain(domain: string): boolean {
+    return domain.trim().toLowerCase() === 'myurbanai.com';
   }
 
   private buildTrack3Readiness(input: {

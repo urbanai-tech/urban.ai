@@ -711,12 +711,21 @@ export class AirbnbBrowserScraperService {
   }
 
   private decodeHtmlEntities(value: string): string {
-    return value
-      .replace(/&quot;/g, '"')
-      .replace(/&#34;/g, '"')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>');
+    return value.replace(/&(?:quot|amp|lt|gt);|&#34;/g, (entity) => {
+      switch (entity) {
+        case '&quot;':
+        case '&#34;':
+          return '"';
+        case '&amp;':
+          return '&';
+        case '&lt;':
+          return '<';
+        case '&gt;':
+          return '>';
+        default:
+          return entity;
+      }
+    });
   }
 
   private extractMoneyValues(text: string): number[] {

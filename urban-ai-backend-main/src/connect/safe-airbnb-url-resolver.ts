@@ -239,6 +239,8 @@ export async function resolveSafeAirbnbUrl(
     let response: FetchResponseLike;
 
     try {
+      // Host, protocol, DNS answers and every redirect are validated above.
+      // lgtm[js/request-forgery]
       response = await fetchImpl(currentUrl.toString(), {
         redirect: 'manual',
         signal: controller.signal,
