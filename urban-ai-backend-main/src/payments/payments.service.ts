@@ -497,6 +497,69 @@ export class PaymentsService {
     return status === 'peding' ? 'pending' : status || 'pending';
   }
 
+  private resolveWebhookQuantity(...candidates: unknown[]): number {
+    for (const candidate of candidates) {
+      const parsed = Number(candidate);
+      if (Number.isFinite(parsed) && parsed > 0) return Math.floor(parsed);
+    }
+    return 1;
+  }
+
+  private resolveWebhookBillingCycle(
+    candidates: unknown[],
+    interval: string | undefined | null,
+  ): BillingCycle {
+    const configured = candidates.find((candidate) => isBillingCycle(candidate));
+    return isBillingCycle(configured) ? configured : this.intervalToCycle(interval);
+  }
+
+  private shouldApplyStripeEvent(payment: Payment, event: Stripe.Event): boolean {
+    const recentIds = Array.isArray(payment.recentStripeEventIds)
+      ? payment.recentStripeEventIds
+      : [];
+    if (event.id && recentIds.includes(event.id)) {
+      console.log(`Stripe webhook duplicado ignorado: ${event.id}`);
+      return false;
+    }
+
+    const incomingCreated = Number(event.created);
+    const lastCreated = Number(payment.lastStripeEventCreated);
+    if (
+      Number.isFinite(incomingCreated) &&
+      Number.isFinite(lastCreated) &&
+      incomingCreated < lastCreated
+    ) {
+      console.log(
+        `Stripe webhook fora de ordem ignorado: ${event.id || event.type} ` +
+          `(created=${incomingCreated}, last=${lastCreated})`,
+      );
+      return false;
+    }
+    return true;
+  }
+
+  private rememberStripeEvent(payment: Payment, event: Stripe.Event): void {
+    const incomingCreated = Number(event.created);
+    const lastCreated = Number(payment.lastStripeEventCreated);
+    if (Number.isFinite(incomingCreated)) {
+      payment.lastStripeEventCreated = String(
+        Number.isFinite(lastCreated) ? Math.max(lastCreated, incomingCreated) : incomingCreated,
+      );
+    }
+
+    if (event.id) {
+      const recentIds = Array.isArray(payment.recentStripeEventIds)
+        ? payment.recentStripeEventIds.filter((id) => id !== event.id)
+        : [];
+      payment.recentStripeEventIds = [...recentIds, event.id].slice(-50);
+    }
+  }
+
+  private async saveStripeProjection(payment: Payment, event: Stripe.Event): Promise<Payment> {
+    this.rememberStripeEvent(payment, event);
+    return this.paymentRepository.save(payment);
+  }
+
   private subscriptionStatusToPaymentStatus(status: string, currentStatus?: string | null): string {
     switch (status) {
       case 'active':
@@ -627,13 +690,14 @@ export class PaymentsService {
             // como fallback se o checkout veio antes desta mudança.
             const meta = (subscription.metadata || {}) as Record<string, string>;
             const sessionMeta = (session.metadata || {}) as Record<string, string>;
-            const urbanCycle =
-              meta.urbanai_billing_cycle ||
-              sessionMeta.urbanai_billing_cycle ||
-              this.intervalToCycle(interval);
-            const urbanQuantity = parseInt(
-              meta.urbanai_quantity || sessionMeta.urbanai_quantity || String(item?.quantity ?? 1),
-              10,
+            const urbanCycle = this.resolveWebhookBillingCycle(
+              [meta.urbanai_billing_cycle, sessionMeta.urbanai_billing_cycle],
+              interval,
+            );
+            const urbanQuantity = this.resolveWebhookQuantity(
+              meta.urbanai_quantity,
+              sessionMeta.urbanai_quantity,
+              item?.quantity,
             );
             const planName = meta.urbanai_plan || sessionMeta.urbanai_plan || null;
 
@@ -660,6 +724,7 @@ export class PaymentsService {
             });
 
             if (payment) {
+              if (!this.shouldApplyStripeEvent(payment, event)) break;
               payment.mode = interval ?? null;
               payment.billingCycle = urbanCycle;
               payment.listingsContratados = Math.max(1, urbanQuantity);
@@ -670,7 +735,7 @@ export class PaymentsService {
 
               payment.status = this.subscriptionStatusToPaymentStatus(status, payment.status);
 
-              await this.paymentRepository.save(payment);
+              await this.saveStripeProjection(payment, event);
               await this.sendBillingEmail(
                 payment,
                 'Urban AI - Assinatura ativada',
@@ -713,8 +778,9 @@ export class PaymentsService {
             });
 
             if (payment) {
+              if (!this.shouldApplyStripeEvent(payment, event)) break;
               payment.status = 'active';
-              await this.paymentRepository.save(payment);
+              await this.saveStripeProjection(payment, event);
               console.log(`✅ Payment ativado para customer ${id}`);
             } else {
               console.warn(`⚠️ Payment não encontrado para customer ${id}`);
@@ -736,6 +802,7 @@ export class PaymentsService {
           });
 
           if (payment) {
+            if (!this.shouldApplyStripeEvent(payment, event)) break;
             payment.status = this.subscriptionStatusToPaymentStatus(subscription.status, payment.status);
 
             const item = subscription.items.data[0];
@@ -746,15 +813,18 @@ export class PaymentsService {
 
             // F6.5: refletir mudança de quantity (upsell de imóveis) no nosso state
             const meta = (subscription.metadata || {}) as Record<string, string>;
-            const newQty = parseInt(meta.urbanai_quantity || String(item?.quantity ?? 1), 10);
-            if (Number.isFinite(newQty) && newQty > 0) {
-              payment.listingsContratados = newQty;
-            }
-            if (meta.urbanai_billing_cycle) {
+            payment.listingsContratados = this.resolveWebhookQuantity(
+              meta.urbanai_quantity,
+              item?.quantity,
+              payment.listingsContratados,
+            );
+            if (isBillingCycle(meta.urbanai_billing_cycle)) {
               payment.billingCycle = meta.urbanai_billing_cycle;
+            } else if (!payment.billingCycle && interval) {
+              payment.billingCycle = this.intervalToCycle(interval);
             }
 
-            await this.paymentRepository.save(payment);
+            await this.saveStripeProjection(payment, event);
             console.log(
               `✅ Subscription atualizada para customer ${id} -> status: ${subscription.status}, qty=${payment.listingsContratados}`,
             );
@@ -776,8 +846,9 @@ export class PaymentsService {
           });
 
           if (payment) {
+            if (!this.shouldApplyStripeEvent(payment, event)) break;
             payment.status = 'canceled';
-            await this.paymentRepository.save(payment);
+            await this.saveStripeProjection(payment, event);
             const accessEndsAt = payment.expireDate instanceof Date
               ? payment.expireDate.toISOString().slice(0, 10)
               : new Date().toISOString().slice(0, 10);
@@ -809,8 +880,9 @@ export class PaymentsService {
           });
 
           if (payment) {
+            if (!this.shouldApplyStripeEvent(payment, event)) break;
             payment.status = 'past_due';
-            await this.paymentRepository.save(payment);
+            await this.saveStripeProjection(payment, event);
             await this.sendBillingEmail(
               payment,
               'Urban AI - Falha no pagamento',

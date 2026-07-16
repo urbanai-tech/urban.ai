@@ -1,15 +1,12 @@
 """Test configuration for the raw data pipeline tests."""
 
 import os
-import sqlite3
 import sys
-import tempfile
 from collections.abc import Generator
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
-import pandas as pd
 import pytest
 
 # Disable Prefect logging during tests

@@ -310,15 +310,6 @@ export class AdminFinanceService {
     const plans = await this.planRepo.find();
     const plansByName = new Map(plans.map((p) => [p.name, p]));
 
-    const cycleMonths: Record<string, number> = {
-      monthly: 1,
-      quarterly: 3,
-      semestral: 6,
-      annual: 12,
-      month: 1,
-      year: 12,
-    };
-
     let total = 0;
     const byPlanAgg = new Map<string, { count: number; monthlyCents: number }>();
 
@@ -327,11 +318,9 @@ export class AdminFinanceService {
       if (!plan) continue;
 
       const cycle = (p.billingCycle ?? p.mode ?? 'monthly').toLowerCase();
-      const months = cycleMonths[cycle] ?? 1;
-
       // Resolver preço por imóvel/mês equivalente da matriz F6.5;
       // se vazio (legado), usa price (mensal) ou priceAnnual.
-      let pricePerListingMonth = 0;
+      let pricePerListingMonth: number;
       if (cycle === 'annual' || cycle === 'year') {
         const raw = plan.priceAnnualNew ?? plan.priceAnnual ?? plan.price ?? '0';
         pricePerListingMonth = Number(String(raw).replace(',', '.'));
@@ -388,7 +377,7 @@ export class AdminFinanceService {
     const byCat = new Map<string, number>();
 
     for (const c of costs) {
-      let monthly = 0;
+      let monthly: number;
       if (c.recurrence === 'percentual' && c.percentOfRevenue != null) {
         monthly = Math.round((Number(c.percentOfRevenue) / 100) * mrrCents);
         percentual += monthly;

@@ -1,22 +1,27 @@
-"""
-Database configuration and connection management.
+"""Database configuration and connection management.
 
 This module provides the main DatabaseConfig class for managing database
 connections, pools, and sessions.
 """
 
+import logging
+from typing import Any
 from urllib.parse import unquote, urlparse
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from ..settings import Settings
 from .credentials import DatabaseCredentials
 
+log = logging.getLogger(__name__)
+
 
 class DatabaseConfig(BaseModel):
     """Database configuration with connection management."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     credentials: DatabaseCredentials
     pool_size: int = Field(default=5, description="Connection pool size")
@@ -32,13 +37,9 @@ class DatabaseConfig(BaseModel):
     _engine: Engine | None = None
     _session_factory: sessionmaker[Session] | None = None
 
-    class Config:
-        arbitrary_types_allowed = True
-
     @classmethod
     def from_settings(cls, settings: Settings) -> "DatabaseConfig":
-        """
-        Create database configuration from application settings.
+        """Create database configuration from application settings.
 
         Args:
             settings: Application settings instance
@@ -81,15 +82,14 @@ class DatabaseConfig(BaseModel):
         return cls(credentials=credentials)
 
     def get_engine(self) -> Engine:
-        """
-        Get or create SQLAlchemy engine instance.
+        """Get or create SQLAlchemy engine instance.
 
         Returns:
             Engine: SQLAlchemy engine for database operations
         """
         if self._engine is None:
             connection_string = self.get_connection_string()
-            engine_kwargs = {"echo": self.echo}
+            engine_kwargs: dict[str, Any] = {"echo": self.echo}
             if not self.driver.startswith("sqlite"):
                 engine_kwargs.update(
                     {
@@ -107,8 +107,7 @@ class DatabaseConfig(BaseModel):
         return self.credentials.get_connection_string(self.driver)
 
     def get_session_factory(self) -> sessionmaker[Session]:
-        """
-        Get or create session factory for database operations.
+        """Get or create session factory for database operations.
 
         Returns:
             sessionmaker: Session factory for creating database sessions
@@ -119,8 +118,7 @@ class DatabaseConfig(BaseModel):
         return self._session_factory
 
     def create_session(self) -> Session:
-        """
-        Create new database session.
+        """Create new database session.
 
         Returns:
             Session: New database session instance
@@ -129,8 +127,7 @@ class DatabaseConfig(BaseModel):
         return session_factory()
 
     def test_connection(self) -> bool:
-        """
-        Test database connection.
+        """Test database connection.
 
         Returns:
             bool: True if connection successful, False otherwise
@@ -140,8 +137,8 @@ class DatabaseConfig(BaseModel):
             with engine.connect() as connection:
                 connection.execute(text("SELECT 1"))
             return True
-        except Exception as e:
-            print(f"Database connection test failed: {e}")
+        except Exception as error:
+            log.error("Database connection test failed: %s", error)
             return False
 
     def close_connections(self) -> None:

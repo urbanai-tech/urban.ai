@@ -53,11 +53,11 @@ Permissões no código (`auth/enuns/PermissionsEnum.ts`): `create.events`, `even
 
 ## 3. Tamanho real do sistema (números verificados)
 
-- **Backend:** 32 módulos, **34 controllers, 220 endpoints HTTP, 43 entidades, 41 migrations**, 52 specs Jest.
+- **Backend:** 32 módulos, **36 controllers, 223 endpoints HTTP, 45 entidades, 48 migrations**, com suíte Jest completa versionada no tracker de execução.
 - **Frontend:** **77 telas (`page.tsx`) + 2 API routes**, 22 componentes de host + 16 de admin, 3 idiomas (pt/en/es), E2E Playwright + axe-core.
 - **Dados:** 7 spiders Scrapy (Blue Ticket, Even3, Eventim, Ingresse, Sympla, Ticket 360, Ticketmaster) + coletores REST (API-Football, Sympla, Firecrawl, SerpAPI, Tavily); pipeline Prefect; AWS S3.
 
-> Números verificados por varredura exaustiva (21/06): 220 endpoints (não "~150"/"215"), 43 entidades (faltavam `EmailConfirmation` e `ProcessStatus`), 77 telas (não "104 rotas").
+> Números revalidados em 15/07: 223 endpoints, 45 entidades cobertas pelo auditor estrutural, 48 migrations e 77 arquivos `page.tsx` (além de 2 API routes). O mapa visual organiza 78 telas de produto e o build atual gera 76 páginas/rotas.
 
 ---
 
@@ -103,7 +103,7 @@ Endpoints `/ask/usage|question|feedback`. **Entitlement por plano** (`ASK_URBAN_
 > ⚠️ Achado honesto: na implementação atual, as respostas são **templates determinísticos sobre métricas calculadas** — não foi encontrada chamada a LLM externo no caminho de resposta, apesar de existir `GEMINI_API_KEY`. Tratar "IA conversacional plena" como roadmap, não como entregue.
 
 ### 4.11 Comunicações + PWA
-E-mail transacional (MailerSend/Brevo), **web push (PWA)**, digest de recomendações, preferências por canal, notificações in-app. PWA: manifest standalone, service worker network-first com `/offline.html`, shortcuts (Dashboard, Calendário), instalável.
+E-mail transacional (Brevo), **web push (PWA)**, digest de recomendações, preferências por canal, notificações in-app. PWA: manifest standalone, service worker network-first com `/offline.html`, shortcuts (Dashboard, Calendário), instalável.
 
 ### 4.12 Admin (cockpit)
 29 telas. Direção V2: separar em **Exec / Ops / Support**, com cada alerta mostrando **impacto financeiro + dono + próxima ação**, e todo relatório ligado a `generatedAt/sampleSize/confidence/metricVersion/jobRunId`.

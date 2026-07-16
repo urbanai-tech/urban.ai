@@ -170,18 +170,21 @@ function MarketIntelContent() {
           }}
         >
           <div
+            role="status"
             aria-busy="true"
             aria-label="Carregando destaque principal"
             className="urban-app-skeleton"
             style={{ height: 200, borderRadius: 16 }}
           />
           <div
+            role="status"
             aria-busy="true"
             aria-label="Carregando resumo"
             className="urban-app-skeleton"
             style={{ height: 120, borderRadius: 12 }}
           />
           <div
+            role="status"
             aria-busy="true"
             aria-label="Carregando gráfico e tabela"
             className="urban-app-skeleton"

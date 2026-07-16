@@ -1,5 +1,4 @@
-"""
-End-to-end test infrastructure for urban pipeline.
+"""End-to-end test infrastructure for urban pipeline.
 
 This module provides comprehensive testing infrastructure for E2E tests,
 including database and S3 mocking capabilities.
@@ -12,10 +11,11 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
 
+import boto3
 import pandas as pd
 import pytest
 from moto import mock_aws
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from testcontainers.mysql import MySqlContainer
 
 from raw_data_pipeline.config.database import (
@@ -25,9 +25,8 @@ from raw_data_pipeline.config.database import (
 
 
 class E2ETestDatabase:
-    """
-    End-to-end test database management.
-    
+    """End-to-end test database management.
+
     Provides database instances for testing with proper lifecycle management.
     """
 
@@ -37,15 +36,14 @@ class E2ETestDatabase:
         self.db_config: DatabaseConfig | None = None
 
     def start(self) -> DatabaseConfig:
-        """
-        Start MySQL container and return database configuration.
-        
+        """Start MySQL container and return database configuration.
+
         Returns:
             DatabaseConfig: Configuration for the test database
         """
         self.container = MySqlContainer("mysql:8.0")
         self.container.start()
-        
+
         # Create database configuration from container
         credentials = DatabaseCredentials(
             host=self.container.get_container_host_ip(),
@@ -54,21 +52,21 @@ class E2ETestDatabase:
             password=self.container.password,
             database=self.container.dbname,
         )
-        
+
         self.db_config = DatabaseConfig(
             credentials=credentials,
             echo=True,  # Enable SQL logging for debugging
             pool_size=2,  # Small pool for testing
             pool_recycle=3600,
         )
-        
+
         self.engine = self.db_config.get_engine()
-        
+
         # Verify connection
         with self.engine.connect() as conn:
             result = conn.execute(text("SELECT 1"))
             assert result.fetchone()[0] == 1
-        
+
         return self.db_config
 
     def stop(self) -> None:
@@ -88,28 +86,28 @@ class E2ETestDatabase:
             engine = self.db_config.get_engine()
         else:
             raise RuntimeError("Database not started")
-        
+
         with engine.connect() as conn:
             # Check if this is SQLite or MySQL and handle accordingly
             try:
                 # Try SQLite approach first
-                result = conn.execute(text(
-                    "SELECT name FROM sqlite_master WHERE type='table'"
-                ))
+                result = conn.execute(
+                    text("SELECT name FROM sqlite_master WHERE type='table'")
+                )
                 tables = [row[0] for row in result.fetchall()]
-                
+
                 # Drop tables for SQLite
                 for table in tables:
-                    if table != 'sqlite_sequence':  # Skip system table
+                    if table != "sqlite_sequence":  # Skip system table
                         conn.execute(text(f"DROP TABLE IF EXISTS {table}"))
                 conn.commit()
-                        
+
             except Exception:
                 # Fall back to MySQL approach
                 try:
                     result = conn.execute(text("SHOW TABLES"))
                     tables = [row[0] for row in result.fetchall()]
-                    
+
                     # Drop tables for MySQL
                     for table in tables:
                         conn.execute(text(f"DROP TABLE IF EXISTS {table}"))
@@ -119,29 +117,26 @@ class E2ETestDatabase:
                     pass
 
     def get_table_data(self, table_name: str) -> pd.DataFrame:
-        """
-        Get all data from a specific table.
-        
+        """Get all data from a specific table.
+
         Args:
             table_name: Name of the table to query
-            
+
         Returns:
             pd.DataFrame: All data from the table
         """
-        engine = (
-            self.engine or 
-            (self.db_config.get_engine() if self.db_config else None)
+        engine = self.engine or (
+            self.db_config.get_engine() if self.db_config else None
         )
         if not engine:
             raise RuntimeError("Database not started")
-        
+
         return pd.read_sql(f"SELECT * FROM {table_name}", engine)
 
     def table_exists(self, table_name: str) -> bool:
         """Return whether a table exists in the configured test database."""
-        engine = (
-            self.engine or
-            (self.db_config.get_engine() if self.db_config else None)
+        engine = self.engine or (
+            self.db_config.get_engine() if self.db_config else None
         )
         if not engine:
             raise RuntimeError("Database not started")
@@ -149,7 +144,9 @@ class E2ETestDatabase:
         with engine.connect() as conn:
             try:
                 result = conn.execute(
-                    text("SELECT name FROM sqlite_master WHERE type='table' AND name=:name"),
+                    text(
+                        "SELECT name FROM sqlite_master WHERE type='table' AND name=:name"
+                    ),
                     {"name": table_name},
                 )
                 return result.fetchone() is not None
@@ -159,9 +156,8 @@ class E2ETestDatabase:
 
 
 class E2ETestS3:
-    """
-    End-to-end S3 testing with moto mock.
-    
+    """End-to-end S3 testing with moto mock.
+
     Provides mock S3 service for testing S3 operations.
     """
 
@@ -174,9 +170,8 @@ class E2ETestS3:
         """Start mock AWS S3 service."""
         self.mock_aws_context = mock_aws()
         self.mock_aws_context.start()
-        
+
         # Create mock S3 bucket
-        import boto3
         s3_client = boto3.client("s3", region_name="us-west-2")
         s3_client.create_bucket(
             Bucket=self.bucket_name,
@@ -189,14 +184,12 @@ class E2ETestS3:
             self.mock_aws_context.stop()
 
     def upload_test_file(self, key: str, content: bytes) -> None:
-        """
-        Upload test file to mock S3.
-        
+        """Upload test file to mock S3.
+
         Args:
             key: S3 object key
             content: File content as bytes
         """
-        import boto3
         s3_client = boto3.client("s3", region_name="us-west-2")
         s3_client.put_object(Bucket=self.bucket_name, Key=key, Body=content)
 
@@ -214,55 +207,54 @@ class E2ETestS3:
     def create_test_folder_structure(
         self, datasets: dict[str, pd.DataFrame]
     ) -> dict[str, list[str]]:
-        """
-        Create test folder structure in S3.
-        
+        """Create test folder structure in S3.
+
         Args:
             datasets: Dictionary mapping folder names to DataFrames
-            
+
         Returns:
             dict: Mapping of folder names to list of uploaded file keys
         """
         uploaded_files = {}
-        
+
         for folder_name, dataset in datasets.items():
             dataframes = dataset if isinstance(dataset, list) else [dataset]
-            uploaded_files[folder_name] = self.upload_test_data(
-                folder_name, dataframes
-            )
-        
+            uploaded_files[folder_name] = self.upload_test_data(folder_name, dataframes)
+
         return uploaded_files
 
 
 class E2ETestDataFactory:
-    """
-    Factory for creating test datasets.
-    
+    """Factory for creating test datasets.
+
     Provides standardized test data for E2E testing scenarios.
     """
 
     def create_valid_dataset(self, size: int = 100) -> pd.DataFrame:
-        """
-        Create a valid test dataset.
-        
+        """Create a valid test dataset.
+
         Args:
             size: Number of rows to generate
-            
+
         Returns:
             pd.DataFrame: Valid test dataset
         """
         categories = (["A", "B", "C"] * ((size + 2) // 3))[:size]
 
-        return pd.DataFrame({
-            "id": range(1, size + 1),
-            "name": [f"Name_{i}" for i in range(1, size + 1)],
-            "value": [i * 10.5 for i in range(1, size + 1)],
-            "category": categories,
-            "created_at": pd.date_range("2024-01-01", periods=size, freq="D"),
-        })
+        return pd.DataFrame(
+            {
+                "id": range(1, size + 1),
+                "name": [f"Name_{i}" for i in range(1, size + 1)],
+                "value": [i * 10.5 for i in range(1, size + 1)],
+                "category": categories,
+                "created_at": pd.date_range("2024-01-01", periods=size, freq="D"),
+            }
+        )
 
     @staticmethod
-    def create_event_dataframe(size: int = 100, source: str = "eventim") -> pd.DataFrame:
+    def create_event_dataframe(
+        size: int = 100, source: str = "eventim"
+    ) -> pd.DataFrame:
         """Create event-shaped data used by the pipeline E2E tests."""
         return pd.DataFrame(
             {
@@ -276,12 +268,11 @@ class E2ETestDataFactory:
         )
 
     def create_dataset_with_nulls(self, size: int = 50) -> pd.DataFrame:
-        """
-        Create dataset with null values for testing.
-        
+        """Create dataset with null values for testing.
+
         Args:
             size: Number of rows to generate
-            
+
         Returns:
             pd.DataFrame: Dataset containing null values
         """
@@ -292,21 +283,19 @@ class E2ETestDataFactory:
         return df
 
     def create_large_dataset(self, size: int = 10000) -> pd.DataFrame:
-        """
-        Create large dataset for performance testing.
-        
+        """Create large dataset for performance testing.
+
         Args:
             size: Number of rows to generate
-            
+
         Returns:
             pd.DataFrame: Large test dataset
         """
         return self.create_valid_dataset(size)
 
     def create_test_datasets(self) -> dict[str, pd.DataFrame]:
-        """
-        Create multiple test datasets for folder structure testing.
-        
+        """Create multiple test datasets for folder structure testing.
+
         Returns:
             dict: Mapping of folder names to DataFrames
         """
@@ -321,41 +310,42 @@ class E2ETestDataFactory:
         }
 
     def create_invalid_dataset(self) -> pd.DataFrame:
-        """
-        Create dataset with various data quality issues.
-        
+        """Create dataset with various data quality issues.
+
         Returns:
             pd.DataFrame: Dataset with data quality issues
         """
-        return pd.DataFrame({
-            "event_id": [None, "", "valid_id", "duplicate_id", "duplicate_id"],
-            "title": ["", None, "Valid Title", "Another Title", "Final Title"],
-            "price": [None, -50.0, 100.0, "invalid_price", float("inf")],
-            "date": [None, "invalid_date", "2024-12-31", "2024-02-30", "2024-01-01"],
-        })
+        return pd.DataFrame(
+            {
+                "event_id": [None, "", "valid_id", "duplicate_id", "duplicate_id"],
+                "title": ["", None, "Valid Title", "Another Title", "Final Title"],
+                "price": [None, -50.0, 100.0, "invalid_price", float("inf")],
+                "date": [
+                    None,
+                    "invalid_date",
+                    "2024-12-31",
+                    "2024-02-30",
+                    "2024-01-01",
+                ],
+            }
+        )
 
 
 @pytest.fixture(scope="session")
 def e2e_database() -> Generator[E2ETestDatabase, None, None]:
-    """
-    Pytest fixture for E2E database testing.
-    
+    """Pytest fixture for E2E database testing.
+
     Provides a database instance for the entire test session.
     Uses SQLite for simplicity in CI/CD environments.
     """
-    from raw_data_pipeline.config.database import (
-        DatabaseConfig,
-        DatabaseCredentials,
-    )
-    
     db = E2ETestDatabase()
     temp_db_path = None
-    
+
     try:
         # Create a temporary SQLite database
         with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as temp_db:
             temp_db_path = temp_db.name
-        
+
         credentials = DatabaseCredentials(
             host="",
             port=0,
@@ -363,12 +353,12 @@ def e2e_database() -> Generator[E2ETestDatabase, None, None]:
             username="",
             password="",
         )
-        
+
         db.db_config = DatabaseConfig(
             credentials=credentials,
             driver="sqlite",
         )
-        
+
         yield db
     finally:
         if temp_db_path:
@@ -378,12 +368,11 @@ def e2e_database() -> Generator[E2ETestDatabase, None, None]:
 
 @pytest.fixture(scope="function")
 def clean_database(e2e_database: E2ETestDatabase) -> E2ETestDatabase:
-    """
-    Pytest fixture that provides a clean database for each test.
-    
+    """Pytest fixture that provides a clean database for each test.
+
     Args:
         e2e_database: Session-scoped database fixture
-        
+
     Returns:
         E2ETestDatabase: Clean database instance
     """
@@ -393,9 +382,8 @@ def clean_database(e2e_database: E2ETestDatabase) -> E2ETestDatabase:
 
 @pytest.fixture(scope="function")
 def e2e_s3() -> Generator[E2ETestS3, None, None]:
-    """
-    Pytest fixture for mock S3 service.
-    
+    """Pytest fixture for mock S3 service.
+
     Provides a mock S3 service for each test function.
     """
     s3 = E2ETestS3()
@@ -416,13 +404,12 @@ def test_data_factory() -> E2ETestDataFactory:
 def populated_s3(
     e2e_s3: E2ETestS3, test_data_factory: E2ETestDataFactory
 ) -> tuple[E2ETestS3, dict[str, list[str]]]:
-    """
-    Pytest fixture that provides S3 with pre-populated test data.
-    
+    """Pytest fixture that provides S3 with pre-populated test data.
+
     Args:
         e2e_s3: Mock S3 service
         test_data_factory: Test data factory
-        
+
     Returns:
         tuple: (S3 service, mapping of folder names to uploaded files)
     """
@@ -433,21 +420,21 @@ def populated_s3(
 
 @pytest.fixture(scope="function")
 def mock_prefect_secrets(clean_database: E2ETestDatabase):
-    """
-    Mock Prefect secrets to use test database configuration.
-    
+    """Mock Prefect secrets to use test database configuration.
+
     Args:
         clean_database: Clean test database instance
     """
+
     def mock_secret_load(secret_name: str):
         """Mock secret loading to return test database URL."""
         mock_secret = MagicMock()
         mock_secret.get.return_value = clean_database.db_config.get_connection_string()
         return mock_secret
-    
+
     with patch(
         "raw_data_pipeline.config.database.prefect_integration.Secret.load",
-        side_effect=mock_secret_load
+        side_effect=mock_secret_load,
     ):
         yield
 

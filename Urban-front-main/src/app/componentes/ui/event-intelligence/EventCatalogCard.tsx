@@ -12,6 +12,7 @@ import {
   formatDateRange,
   formatTime,
 } from "./formatters";
+import { EventImage } from "./EventImage";
 
 export function EventCatalogCard({
   event,
@@ -39,16 +40,7 @@ export function EventCatalogCard({
       }}
     >
       <div style={{ position: "relative", height: 176, background: "var(--app-surface-muted)" }}>
-        {event.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={event.imageUrl}
-            alt={event.name}
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-          />
-        ) : (
-          <ImageFallback />
-        )}
+        <EventImage src={event.imageUrl} alt={event.name} venue={event.venueName} />
         {typeof score === "number" && (
           <div
             style={{
@@ -199,24 +191,5 @@ function MetaRow({ icon, children }: { icon: React.ReactNode; children: React.Re
         {children}
       </span>
     </p>
-  );
-}
-
-function ImageFallback() {
-  return (
-    <div
-      style={{
-        height: "100%",
-        display: "grid",
-        placeItems: "center",
-        color: "var(--app-text-muted)",
-        fontSize: 12,
-        fontWeight: 650,
-        letterSpacing: 1.2,
-        textTransform: "uppercase",
-      }}
-    >
-      Evento monitorado
-    </div>
   );
 }

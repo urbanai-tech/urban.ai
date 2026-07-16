@@ -1,5 +1,6 @@
 import { expect, test, type Page, type Response as PlaywrightResponse, type Route } from '@playwright/test';
 import { acceptCookieConsent } from './test-helpers';
+import { installLocalAuthFixture, type LocalAuthRole } from './local-auth-fixture';
 
 type Credentials = {
   email: string;
@@ -78,6 +79,15 @@ async function login(page: Page, credentials: Credentials) {
   });
   await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(1500);
+}
+
+async function authenticate(page: Page, credentials: Credentials | null, role: LocalAuthRole) {
+  if (credentials) {
+    await login(page, credentials);
+    return;
+  }
+
+  await installLocalAuthFixture(page, role);
 }
 
 async function persistBrowserSession(page: Page, loginResponse: PlaywrightResponse) {
@@ -172,9 +182,7 @@ async function expectMobileRouteContent(page: Page, route: string) {
 
 test.describe('Smoke autenticado mobile', () => {
   test('rotas core do anfitriao carregam no viewport mobile', async ({ page }) => {
-    test.skip(!hostCredentials, 'Defina E2E_HOST_EMAIL/E2E_HOST_PASSWORD para rodar o smoke host mobile.');
-
-    await login(page, hostCredentials!);
+    await authenticate(page, hostCredentials, 'host');
 
     for (const route of ['/dashboard', '/properties', '/my-plan', '/settings/integrations']) {
       await gotoAuthenticatedRoute(page, route);
@@ -185,9 +193,7 @@ test.describe('Smoke autenticado mobile', () => {
   });
 
   test('rota admin de propriedades carrega no viewport mobile', async ({ page }) => {
-    test.skip(!adminCredentials, 'Defina E2E_ADMIN_EMAIL/E2E_ADMIN_PASSWORD para rodar o smoke admin mobile.');
-
-    await login(page, adminCredentials!);
+    await authenticate(page, adminCredentials, 'admin');
 
     await gotoAuthenticatedRoute(page, '/admin/properties');
     await expect(page.locator('body')).toBeVisible();

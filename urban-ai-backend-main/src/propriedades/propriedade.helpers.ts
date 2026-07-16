@@ -135,7 +135,15 @@ export function extractMetaContent(html: string, property: string): string | nul
 }
 
 export function decodeHtmlEntities(str: string): string {
-    return str.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+    return str.replace(/&(?:amp|lt|gt|quot);/g, (entity) => {
+        switch (entity) {
+            case '&amp;': return '&';
+            case '&lt;': return '<';
+            case '&gt;': return '>';
+            case '&quot;': return '"';
+            default: return entity;
+        }
+    });
 }
 
 export function extractHostIdFromAirbnbHtml(html: string): string | null {

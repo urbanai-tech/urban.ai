@@ -19,6 +19,7 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { WaitlistService } from './waitlist.service';
 import { AdminAuditService } from '../admin-audit/admin-audit.service';
+import { UpdateWaitlistNotesDto, WaitlistSignupDto } from './waitlist.dto';
 
 /**
  * Controller da Waitlist (F8.2).
@@ -50,13 +51,7 @@ export class WaitlistController {
   @Post('waitlist')
   async signup(
     @Body()
-    body: {
-      email: string;
-      name?: string;
-      phone?: string;
-      source?: string;
-      referredBy?: string;
-    },
+    body: WaitlistSignupDto,
     @Req() req: Request,
   ) {
     if (!body?.email) {
@@ -83,8 +78,8 @@ export class WaitlistController {
     summary: 'Consultar posição na fila via referralCode (sem auth, sem expor email)',
   })
   @Get('waitlist/me')
-  async getMyStatus(@Query('code') code: string) {
-    if (!code || code.length < 4) {
+  async getMyStatus(@Query('code') code: string | string[]) {
+    if (typeof code !== 'string' || code.length < 4 || code.length > 128) {
       throw new BadRequestException('referralCode obrigatório');
     }
     const result = await this.waitlist.getStatusByCode(code);
@@ -168,7 +163,7 @@ export class WaitlistController {
   @Patch('admin/waitlist/:id/notes')
   async updateNotes(
     @Param('id') id: string,
-    @Body() body: { notes: string | null },
+    @Body() body: UpdateWaitlistNotesDto,
     @Req() req: Request,
   ) {
     const entry = await this.waitlist.updateNotes(id, body.notes);

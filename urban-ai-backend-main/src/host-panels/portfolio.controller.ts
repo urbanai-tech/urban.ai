@@ -2,6 +2,7 @@ import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/comm
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { HostPanelsService } from './host-panels.service';
+import { PortfolioActionDto } from './portfolio-action.dto';
 
 @ApiTags('portfolio')
 @ApiBearerAuth()
@@ -64,14 +65,7 @@ export class PortfolioController {
   async simulateAction(
     @Req() req: any,
     @Body()
-    body: {
-      propertyIds: string[];
-      action: string;
-      payload?: Record<string, unknown>;
-      dates?: string[];
-      from?: string;
-      to?: string;
-    },
+    body: PortfolioActionDto,
   ) {
     return this.hostPanels.simulatePortfolioAction(req.user.userId, body);
   }
@@ -81,14 +75,7 @@ export class PortfolioController {
   async bulkAction(
     @Req() req: any,
     @Body()
-    body: {
-      propertyIds: string[];
-      action: string;
-      payload?: Record<string, unknown>;
-      dates?: string[];
-      from?: string;
-      to?: string;
-    },
+    body: PortfolioActionDto,
   ) {
     return this.hostPanels.portfolioBulkAction(req.user.userId, body);
   }

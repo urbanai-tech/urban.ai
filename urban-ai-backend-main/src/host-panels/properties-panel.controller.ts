@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { PricingRuleConfigItem } from '../entities/pricing-rule-config.entity';
 import { HostPanelsService } from './host-panels.service';
+import { PricingRulesBodyDto } from './host-panel.dto';
 
 @ApiTags('host-properties')
 @ApiBearerAuth()
@@ -37,7 +37,7 @@ export class PropertiesPanelController {
   async savePricingRules(
     @Req() req: any,
     @Param('id') propertyId: string,
-    @Body() body: { rules: PricingRuleConfigItem[] },
+    @Body() body: PricingRulesBodyDto,
   ) {
     return this.hostPanels.savePricingRules(req.user.userId, propertyId, body.rules);
   }
@@ -47,7 +47,7 @@ export class PropertiesPanelController {
   async previewPricingRules(
     @Req() req: any,
     @Param('id') propertyId: string,
-    @Body() body: { rules: PricingRuleConfigItem[] },
+    @Body() body: PricingRulesBodyDto,
   ) {
     return this.hostPanels.previewPricingRules(req.user.userId, propertyId, body.rules);
   }

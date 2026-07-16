@@ -7,7 +7,6 @@ import {
     Param,
     Req,
     UseGuards,
-    UnauthorizedException,
 } from '@nestjs/common';
 import { SugestionService } from './sugestion.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -20,6 +19,12 @@ import {
     ApiResponse,
     ApiTags,
 } from '@nestjs/swagger';
+import {
+    RegisterAppliedPriceDto,
+    RegisterSuggestionResultDto,
+    SetSuggestionAcceptedDto,
+    VerifyPendingSuggestionsDto,
+} from './sugestion.dto';
 
 @ApiTags('Sugestões de Preço')
 @ApiBearerAuth()
@@ -47,7 +52,7 @@ export class SugestionController {
     @Roles('admin')
     @Post('admin/verify-pending')
     @ApiOperation({ summary: 'Verifica em lote sugestões aceitas pendentes com preço aplicado' })
-    async verificarAceitasPendentes(@Body() body: { limit?: number }) {
+    async verificarAceitasPendentes(@Body() body: VerifyPendingSuggestionsDto) {
         return this.sugestionService.verificarAnalisesAceitasPendentes(body?.limit);
     }
 
@@ -86,7 +91,7 @@ export class SugestionController {
     async alterarAceito(
         @Req() req: any,
         @Param('id') id: string,
-        @Body() body: { aceito: boolean },
+        @Body() body: SetSuggestionAcceptedDto,
     ) {
         return this.sugestionService.alterarAceito(id, req.user.userId, body.aceito);
     }
@@ -116,14 +121,7 @@ export class SugestionController {
     async registrarPrecoAplicado(
         @Req() req: any,
         @Param('id') id: string,
-        @Body() body: {
-            precoAplicado: number;
-            origem: 'manual_dashboard' | 'manual_off_platform' | 'stays_auto' | 'stays_user_accepted';
-            reservaStatus?: 'unknown' | 'booked' | 'not_booked' | 'blocked' | null;
-            receitaReal?: number | null;
-            noitesReservadas?: number | null;
-            feedbackObservacao?: string | null;
-        },
+        @Body() body: RegisterAppliedPriceDto,
     ) {
         return this.sugestionService.registrarPrecoAplicado(id, req.user.userId, {
             precoAplicado: body.precoAplicado,
@@ -155,13 +153,7 @@ export class SugestionController {
     async registrarResultado(
         @Req() req: any,
         @Param('id') id: string,
-        @Body() body: {
-            reservaStatus?: 'unknown' | 'booked' | 'not_booked' | 'blocked' | null;
-            receitaReal?: number | null;
-            noitesReservadas?: number | null;
-            precoAplicado?: number | null;
-            feedbackObservacao?: string | null;
-        },
+        @Body() body: RegisterSuggestionResultDto,
     ) {
         return this.sugestionService.registrarResultado(id, req.user.userId, body);
     }

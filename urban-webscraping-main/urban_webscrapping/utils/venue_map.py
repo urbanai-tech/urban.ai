@@ -25,7 +25,9 @@ class VenueInfo:
     lat: float
     lng: float
     capacity: int | None
-    venue_type: str  # 'stadium' | 'convention_center' | 'theater' | 'arena' | 'park' | 'other'
+    venue_type: (
+        str  # 'stadium' | 'convention_center' | 'theater' | 'arena' | 'park' | 'other'
+    )
 
 
 # Lista canônica de venues SP. Ordem: nomes longos primeiro pra match correto
@@ -41,7 +43,13 @@ VENUES: list[tuple[list[str], VenueInfo]] = [
         VenueInfo("Estádio do Morumbi", -23.6004, -46.7203, 67428, "stadium"),
     ),
     (
-        ["neo quimica arena", "neoquimica arena", "arena corinthians", "itaquerao", "itaquera"],
+        [
+            "neo quimica arena",
+            "neoquimica arena",
+            "arena corinthians",
+            "itaquerao",
+            "itaquera",
+        ],
         VenueInfo("Neo Química Arena", -23.5453, -46.4742, 49205, "stadium"),
     ),
     (
@@ -56,7 +64,6 @@ VENUES: list[tuple[list[str], VenueInfo]] = [
         ["arena anhembi", "anhembi arena"],
         VenueInfo("Arena Anhembi", -23.5081, -46.6380, 40000, "arena"),
     ),
-
     # ============ Centros de Convenção ============
     (
         ["sao paulo expo", "sp expo"],
@@ -75,7 +82,11 @@ VENUES: list[tuple[list[str], VenueInfo]] = [
         VenueInfo("Anhembi", -23.5079, -46.6377, 35000, "convention_center"),
     ),
     (
-        ["frei caneca shopping e centro de convencoes", "frei caneca", "shopping frei caneca"],
+        [
+            "frei caneca shopping e centro de convencoes",
+            "frei caneca",
+            "shopping frei caneca",
+        ],
         VenueInfo("Frei Caneca", -23.5538, -46.6492, 5000, "convention_center"),
     ),
     (
@@ -84,9 +95,14 @@ VENUES: list[tuple[list[str], VenueInfo]] = [
     ),
     (
         ["centro de convencoes rebouças", "reboucas"],
-        VenueInfo("Centro de Convenções Rebouças", -23.5666, -46.6707, 3000, "convention_center"),
+        VenueInfo(
+            "Centro de Convenções Rebouças",
+            -23.5666,
+            -46.6707,
+            3000,
+            "convention_center",
+        ),
     ),
-
     # ============ Casas de Show / Arenas Cobertas ============
     (
         ["espaco unimed", "espaco das americas"],
@@ -104,7 +120,6 @@ VENUES: list[tuple[list[str], VenueInfo]] = [
         ["tokio marine hall"],
         VenueInfo("Tokio Marine Hall", -23.5829, -46.6947, 5000, "arena"),
     ),
-
     # ============ Teatros ============
     (
         ["teatro municipal de sao paulo", "theatro municipal"],
@@ -122,7 +137,6 @@ VENUES: list[tuple[list[str], VenueInfo]] = [
         ["teatro renault"],
         VenueInfo("Teatro Renault", -23.5503, -46.6432, 1500, "theater"),
     ),
-
     # ============ Parques / Outdoors ============
     (
         ["parque ibirapuera", "ibirapuera"],
@@ -132,7 +146,6 @@ VENUES: list[tuple[list[str], VenueInfo]] = [
         ["parque villa lobos", "villa lobos"],
         VenueInfo("Parque Villa-Lobos", -23.5455, -46.7244, None, "park"),
     ),
-
     # ============ Universidades / Acadêmicos ============
     (
         ["fgv eaesp", "fgv sao paulo", "fgv-sp"],
@@ -144,7 +157,9 @@ VENUES: list[tuple[list[str], VenueInfo]] = [
     ),
     (
         ["usp", "cidade universitaria"],
-        VenueInfo("USP — Cidade Universitária", -23.5605, -46.7320, 5000, "convention_center"),
+        VenueInfo(
+            "USP — Cidade Universitária", -23.5605, -46.7320, 5000, "convention_center"
+        ),
     ),
 ]
 

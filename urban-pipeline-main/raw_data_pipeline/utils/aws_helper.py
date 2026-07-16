@@ -1,8 +1,5 @@
-"""
-This code serves as a helper for AWS operations.
-"""
+"""This code serves as a helper for AWS operations."""
 
-import os
 from io import BytesIO
 
 import boto3
@@ -13,6 +10,7 @@ from raw_data_pipeline import config
 
 log = config.get_logger(__name__)
 aws_urban_config = BotoConfig(region_name="us-west-2", retries={"max_attempts": 5})
+MAX_PARQUET_FILES = 3
 
 
 def _building_s3_client() -> boto3.client:
@@ -40,12 +38,15 @@ def _building_s3_client() -> boto3.client:
 
 
 class S3Helper:
+    """Read raw parquet objects from the configured Urban AI S3 bucket."""
+
     def __init__(self) -> None:
         self.client = _building_s3_client()
         self.bkt_name = "urban-ai-data"
         self.path_to_folder_data = "raw_data/parquet/"
 
     def list_spiders_folders(self) -> list[str]:
+        """List object prefixes and keys below the raw-data folder."""
         response = self.client.list_objects_v2(
             Bucket=self.bkt_name, Prefix=self.path_to_folder_data, Delimiter="/"
         )
@@ -65,7 +66,7 @@ class S3Helper:
         return folders
 
     def get_data_from_s3(self, folder_event_path: str) -> dict[str, bytes] | None:
-        """Get first 3 Parquet files from a folder in S3 and return their raw bytes"""
+        """Get the first three parquet files from an S3 folder as raw bytes."""
         try:
             folder_path = self.path_to_folder_data + folder_event_path
             response = self.client.list_objects_v2(
@@ -89,7 +90,7 @@ class S3Helper:
                     parquet_files[filename] = file_content
 
                     count += 1
-                    if count == 3:
+                    if count == MAX_PARQUET_FILES:
                         break
 
             return parquet_files if parquet_files else None
@@ -99,8 +100,7 @@ class S3Helper:
             return None
 
     def read_parquet_to_dataframe(self, bucket: str, key: str) -> pd.DataFrame:
-        """
-        Read a parquet file from S3 directly into a pandas DataFrame.
+        """Read a parquet file from S3 directly into a pandas DataFrame.
 
         Args:
             bucket: S3 bucket name
@@ -131,8 +131,7 @@ class S3Helper:
     def read_multiple_parquet_to_dataframe(
         self, bucket: str, prefix: str, max_files: int | None = None
     ) -> list[pd.DataFrame]:
-        """
-        Read multiple parquet files from S3 folder into a list of DataFrames.
+        """Read multiple parquet files from S3 folder into a list of DataFrames.
 
         Args:
             bucket: S3 bucket name

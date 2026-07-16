@@ -9,6 +9,7 @@ import { PricingDecisionSnapshot } from '../entities/pricing-decision-snapshot.e
 import { EventPricingIntelligenceService } from '../knn-engine/event-pricing-intelligence.service';
 import { PricingCalculateService } from '../propriedades/pricing-calculate.service';
 import { EventIntelligenceService } from './event-intelligence.service';
+import { EventHeatmapProjectionService } from './event-heatmap-projection.service';
 
 @Module({
   imports: [
@@ -21,7 +22,12 @@ import { EventIntelligenceService } from './event-intelligence.service';
       PricingDecisionSnapshot,
     ]),
   ],
-  providers: [EventPricingIntelligenceService, PricingCalculateService, EventIntelligenceService],
+  providers: [
+    EventPricingIntelligenceService,
+    PricingCalculateService,
+    EventHeatmapProjectionService,
+    EventIntelligenceService,
+  ],
   exports: [EventIntelligenceService],
 })
 export class EventIntelligenceModule {}

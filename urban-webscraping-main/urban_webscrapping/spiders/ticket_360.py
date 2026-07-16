@@ -1,6 +1,7 @@
 from collections.abc import Iterator
+from typing import cast
 
-from scrapy.http import Response
+from scrapy.http import Response, TextResponse
 from scrapy.link import Link
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
@@ -58,7 +59,7 @@ class Ticket360Spider(CrawlSpider):
         Returns:
             EventItem: The populated event item with extracted details.
         """
-        loader = EventLoader(item=EventItem(), response=response)
+        loader = EventLoader(item=EventItem(), response=cast(TextResponse, response))
         loader = self._parse_name(response, loader)
         loader = self._parse_image_url(response, loader)
         loader = self._parse_page_url(response, loader)

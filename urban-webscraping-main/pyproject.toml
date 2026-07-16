@@ -117,12 +117,19 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_return_any = true
 warn_unreachable = true
-files = ["urban_webscrapping/", "test/"]
+files = ["urban_webscrapping/", "tests/"]
 ignore_missing_imports = true
 follow_imports = "silent"
 show_error_codes = true
 pretty = true
 strict_optional = true
+
+[[tool.mypy.overrides]]
+module = [
+    "urban_webscrapping.items",
+    "urban_webscrapping.collectors.serpapi_events",
+]
+disable_error_code = ["import-untyped"]
 
 [tool.poe.tasks]
 commit = { help = "Commit to current branch and bump version.", sequence = [{ cmd = "cz c" }, { cmd = "cz bump" }] }

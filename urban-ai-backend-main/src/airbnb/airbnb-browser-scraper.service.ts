@@ -377,7 +377,9 @@ export class AirbnbBrowserScraperService {
       try {
         await button.click({ timeout: 1200 });
         return;
-      } catch {}
+      } catch {
+        // Tenta o próximo rótulo disponível.
+      }
     }
   }
 
@@ -402,7 +404,9 @@ export class AirbnbBrowserScraperService {
       try {
         await page.getByRole('button', { name: label }).first().click({ timeout: 1200 });
         return;
-      } catch {}
+      } catch {
+        // Tenta o próximo rótulo disponível.
+      }
     }
 
     const selectors = [
@@ -416,7 +420,9 @@ export class AirbnbBrowserScraperService {
       try {
         await page.locator(selector).first().click({ timeout: 1200 });
         return;
-      } catch {}
+      } catch {
+        // Tenta o próximo seletor disponível.
+      }
     }
   }
 
@@ -705,12 +711,21 @@ export class AirbnbBrowserScraperService {
   }
 
   private decodeHtmlEntities(value: string): string {
-    return value
-      .replace(/&quot;/g, '"')
-      .replace(/&#34;/g, '"')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>');
+    return value.replace(/&(?:quot|amp|lt|gt);|&#34;/g, (entity) => {
+      switch (entity) {
+        case '&quot;':
+        case '&#34;':
+          return '"';
+        case '&amp;':
+          return '&';
+        case '&lt;':
+          return '<';
+        case '&gt;':
+          return '>';
+        default:
+          return entity;
+      }
+    });
   }
 
   private extractMoneyValues(text: string): number[] {

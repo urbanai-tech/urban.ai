@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nest
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { EventIntelligenceService } from '../event-intelligence/event-intelligence.service';
-import { SimulatePricingInput } from '../event-intelligence/event-intelligence.types';
+import { SimulatePricingDto } from './host-panel.dto';
 
 @ApiTags('host-events')
 @ApiBearerAuth()
@@ -106,7 +106,7 @@ export class HostEventsController {
   async simulatePricing(
     @Req() req: any,
     @Param('eventId') eventId: string,
-    @Body() body: SimulatePricingInput,
+    @Body() body: SimulatePricingDto,
   ) {
     return this.eventIntelligence.simulatePricing(req.user.userId, eventId, body ?? {});
   }

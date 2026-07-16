@@ -1,6 +1,8 @@
-const CACHE_VERSION = "urban-ai-pwa-v3";
+const CACHE_PREFIX = "urban-ai-pwa-";
+const CACHE_VERSION = `${CACHE_PREFIX}v4`;
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PUSH_CONFIG_CACHE = `${CACHE_VERSION}-push-config`;
+const ACTIVE_CACHES = new Set([STATIC_CACHE, PUSH_CONFIG_CACHE]);
 const PUSH_CONFIG_REQUEST = "/__urban_ai_push_config";
 const STATIC_ASSETS = [
   "/manifest.webmanifest",
@@ -16,13 +18,14 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(STATIC_CACHE)
-      .then((cache) =>
-        Promise.allSettled(
-          STATIC_ASSETS.map((asset) =>
+      .then(async (cache) => {
+        await cache.add(new Request("/offline.html", { cache: "reload" }));
+        await Promise.allSettled(
+          STATIC_ASSETS.filter((asset) => asset !== "/offline.html").map((asset) =>
             cache.add(new Request(asset, { cache: "reload" }))
           )
-        )
-      )
+        );
+      })
       .then(() => self.skipWaiting())
   );
 });
@@ -33,7 +36,11 @@ self.addEventListener("activate", (event) => {
       caches
         .keys()
         .then((keys) =>
-          Promise.all(keys.filter((key) => !key.startsWith(CACHE_VERSION)).map((key) => caches.delete(key)))
+          Promise.all(
+            keys
+              .filter((key) => key.startsWith(CACHE_PREFIX) && !ACTIVE_CACHES.has(key))
+              .map((key) => caches.delete(key))
+          )
         ),
       "navigationPreload" in self.registration
         ? self.registration.navigationPreload.enable()

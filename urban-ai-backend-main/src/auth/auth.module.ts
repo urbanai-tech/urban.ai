@@ -2,7 +2,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtStrategy } from './jwt.strategy';
@@ -27,10 +27,13 @@ import { WaitlistModule } from 'src/waitlist/waitlist.module';
         if (!secret) {
           throw new Error('JWT_SECRET environment variable is required');
         }
+        const expiresIn = (config.get<string>('JWT_EXPIRES_IN') || '15m') as NonNullable<
+          JwtModuleOptions['signOptions']
+        >['expiresIn'];
         return {
           secret,
           // Access token curto — refresh rotation cobre renovação.
-          signOptions: { expiresIn: config.get<string>('JWT_EXPIRES_IN') || '15m' },
+          signOptions: { expiresIn },
         };
       },
     }),

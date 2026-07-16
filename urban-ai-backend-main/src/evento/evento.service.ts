@@ -96,10 +96,6 @@ export class EventoService {
       },
     });
 
-    for (let prop of props) {
-      console.log(prop)
-    }
-
     return props;
   }
 

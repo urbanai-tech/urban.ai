@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class S3ItemPipelineJson:
-    def __init__(self):
+    def __init__(self) -> None:
         self.s3 = S3Helper()
 
     def process_item(self, item: EventItem, spider: Spider) -> EventItem:
@@ -41,19 +41,19 @@ class S3ItemPipelineJson:
         today = datetime.now().strftime("%Y-%m-%d")
         key = f"raw/json/{spider_name}/{today}.json"
 
-        response = self.s3.put_object_json(
+        self.s3.put_object_json(
             bucket_name="urbanai-data-lake",
             object_name=key,
             data=ItemAdapter(item).asdict(),
         )
 
-        logger.info("S3 JSON upload response: %s", response)
+        logger.info("S3 JSON upload concluido: %s", key)
 
         return item
 
 
 class S3ItemPipelineParquet:
-    def __init__(self):
+    def __init__(self) -> None:
         self.s3 = S3Helper()
 
     def process_item(self, item: EventItem, spider: Spider) -> EventItem:
@@ -62,13 +62,13 @@ class S3ItemPipelineParquet:
         today = datetime.now().strftime("%Y-%m-%d")
         key = f"raw/parquet/{spider_name}/{today}.parquet"
 
-        response = self.s3.put_object_parquet(
+        self.s3.put_object_parquet(
             bucket_name="urbanai-data-lake",
             object_name=key,
             data=ItemAdapter(item).asdict(),
         )
 
-        logger.info("S3 Parquet upload response: %s", response)
+        logger.info("S3 Parquet upload concluido: %s", key)
 
         return item
 
@@ -92,7 +92,7 @@ class UrbanIngestPipeline:
         spider (logado, próximo batch tenta).
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.enabled = bool(
             os.environ.get("URBAN_COLLECTOR_EMAIL")
             and os.environ.get("URBAN_COLLECTOR_PASSWORD")
@@ -194,5 +194,5 @@ class UrbanIngestPipeline:
     def _format_date(value: Any) -> str:
         """ISO 8601. Aceita datetime, date, ou string já ISO."""
         if hasattr(value, "isoformat"):
-            return value.isoformat()
+            return str(value.isoformat())
         return str(value)

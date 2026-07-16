@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "kind": "static-critical-component-catalog",
+  "components": [
+    { "id": "app-button", "domain": "host", "source": "src/app/componentes/ui/AppButton.tsx", "states": ["default", "hover", "focus-visible", "loading", "disabled"], "variants": ["primary", "secondary", "ghost", "danger"] },
+    { "id": "admin-button", "domain": "admin", "source": "src/app/admin/_components/AdminButton.tsx", "states": ["default", "hover", "focus-visible", "loading", "disabled"], "variants": ["primary", "secondary", "ghost", "danger"] },
+    { "id": "app-input", "domain": "host", "source": "src/app/componentes/ui/AppInput.tsx", "states": ["default", "focus", "error", "disabled"] },
+    { "id": "admin-input", "domain": "admin", "source": "src/app/admin/_components/AdminInput.tsx", "states": ["default", "focus", "error", "disabled"] },
+    { "id": "app-confirm-dialog", "domain": "host", "source": "src/app/componentes/ui/AppConfirmDialog.tsx", "states": ["open", "loading", "destructive", "closed"] },
+    { "id": "admin-confirm-dialog", "domain": "admin", "source": "src/app/admin/_components/AdminConfirmDialog.tsx", "states": ["open", "loading", "destructive", "closed"] },
+    { "id": "admin-drawer", "domain": "admin", "source": "src/app/admin/_components/AdminDrawer.tsx", "states": ["open", "with-footer", "without-footer", "closed"] },
+    { "id": "ask-urban-drawer", "domain": "host", "source": "src/app/componentes/ui/AskUrbanDrawer.tsx", "states": ["empty", "loading", "conversation", "quota-blocked", "closed"] },
+    { "id": "app-toast", "domain": "host", "source": "src/app/componentes/ui/AppToast.tsx", "states": ["success", "warning", "error", "dismissed"] },
+    { "id": "admin-toast", "domain": "admin", "source": "src/app/admin/_components/AdminToast.tsx", "states": ["success", "warning", "error", "dismissed"] },
+    { "id": "app-card", "domain": "host", "source": "src/app/componentes/ui/AppCard.tsx", "states": ["default", "elevated", "interactive"] },
+    { "id": "admin-table", "domain": "admin", "source": "src/app/admin/_components/AdminTable.tsx", "states": ["loading", "populated", "empty", "error"] }
+  ]
+}

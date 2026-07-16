@@ -59,7 +59,7 @@ Quando revisitar (sair do Railway Secrets):
 
 ## Referências
 
-- `docs/avaliacao-projeto-2026-04-16.md` §4 — apontamento da ausência de cofre formal
+- `docs/archive/audits/avaliacao-projeto-2026-04-16.md` §4 — apontamento da ausência de cofre formal
 - `docs/runbooks/access-onboarding.md` § Rotação periódica
 - `urban-ai-backend-main/.env.example` — inventário backend
 - `Urban-front-main/.env.example` — inventário frontend

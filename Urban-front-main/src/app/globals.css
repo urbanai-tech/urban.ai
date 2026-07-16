@@ -112,6 +112,20 @@
 }
 
 @media (max-width: 767px) {
+  [data-app-footer] {
+    padding: 24px 16px calc(88px + env(safe-area-inset-bottom)) !important;
+    margin-bottom: 0 !important;
+  }
+
+  [data-app-footer] > div {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+
+  [data-app-footer] nav {
+    gap: 14px !important;
+  }
+
   .urban-step-row {
     grid-template-columns: 1fr !important;
     gap: 24px !important;
@@ -159,4 +173,34 @@
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+/* Entrada leve para telas públicas sem carregar uma runtime de animação. */
+@keyframes urban-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--urban-enter-distance, 20px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.urban-enter {
+  animation: urban-enter 500ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .urban-enter {
+    animation: none;
+  }
+}
+
+/* Mantém controles compactos no desktop e garante alvo tátil WCAG em telas touch/mobile. */
+@media (pointer: coarse), (max-width: 767px) {
+  .urban-canonical-button {
+    min-inline-size: 44px !important;
+    min-block-size: 44px !important;
+  }
 }

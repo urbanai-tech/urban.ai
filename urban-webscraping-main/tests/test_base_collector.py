@@ -165,3 +165,117 @@ def test_run_seta_source_padrao_quando_normalize_esquece():
 
     sent = client.add_event.call_args[0][0]
     assert sent["source"] == "fake-test"  # base preencheu por default
+
+
+def test_run_rejeita_payload_sem_campos_minimos():
+    raw = [{"name": "", "date": ""}]
+
+    def normalize_invalido(_raw):
+        return {"nome": " ", "dataInicio": None, "source": ""}
+
+    client = MagicMock()
+    c = _FakeCollector(raw_items=raw, client=client, normalize_fn=normalize_invalido)
+
+    result = c.run()
+
+    assert result.normalized == 0
+    assert result.sent == 0
+    assert result.skipped_invalid == 1
+    assert result.status == "failed"
+    assert "missing_nome" in result.errors[0]
+    assert "missing_dataInicio" in result.errors[0]
+    client.add_event.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("latitude", "longitude", "expected_error"),
+    [
+        (-23.5, None, "incomplete_coordinates"),
+        ("invalid", -46.6, "invalid_coordinates"),
+        (-123.5, -46.6, "coordinates_out_of_range"),
+        (-23.5, 246.6, "coordinates_out_of_range"),
+    ],
+)
+def test_run_rejeita_coordenadas_invalidas(latitude, longitude, expected_error):
+    raw = [{"name": "Show A", "date": "2026-05-10"}]
+
+    def normalize_com_geo(r):
+        return {
+            "nome": r["name"],
+            "dataInicio": r["date"],
+            "latitude": latitude,
+            "longitude": longitude,
+        }
+
+    client = MagicMock()
+    c = _FakeCollector(raw_items=raw, client=client, normalize_fn=normalize_com_geo)
+
+    result = c.run()
+
+    assert result.skipped_invalid == 1
+    assert any(expected_error in error for error in result.errors)
+    client.add_event.assert_not_called()
+
+
+def test_validate_payload_aceita_contrato_minimo_e_geo_valida():
+    c = _FakeCollector(raw_items=[], dry_run=True)
+
+    errors = c.validate_payload(
+        {
+            "nome": "Show A",
+            "dataInicio": "2026-05-10T20:00:00-03:00",
+            "source": "fake-test",
+            "latitude": -23.55,
+            "longitude": -46.63,
+        }
+    )
+
+    assert errors == []
+
+
+def test_validate_payload_rejeita_source_divergente():
+    c = _FakeCollector(raw_items=[], dry_run=True)
+
+    errors = c.validate_payload(
+        {
+            "nome": "Show A",
+            "dataInicio": "2026-05-10T20:00:00-03:00",
+            "source": "fonte-incorreta",
+        }
+    )
+
+    assert errors == ["invalid_source"]
+
+
+@pytest.mark.parametrize(
+    ("starts_at", "ends_at", "expected_error"),
+    [
+        ("not-a-date", None, "invalid_dataInicio"),
+        ("2026-05-10T20:00:00-03:00", "not-a-date", "invalid_dataFim"),
+        (
+            "2026-05-10T20:00:00-03:00",
+            "2026-05-10T19:00:00-03:00",
+            "invalid_temporal_order",
+        ),
+        (
+            "2026-05-10T20:00:00-03:00",
+            "2026-05-11T01:00:00",
+            "inconsistent_temporal_timezone",
+        ),
+    ],
+)
+def test_validate_payload_rejeita_inconsistencia_temporal(
+    starts_at, ends_at, expected_error
+):
+    c = _FakeCollector(raw_items=[], dry_run=True)
+    payload = {
+        "nome": "Show A",
+        "dataInicio": starts_at,
+        "source": "fake-test",
+    }
+    if ends_at is not None:
+        payload["dataFim"] = ends_at
+
+    errors = c.validate_payload(payload)
+
+    assert expected_error in errors

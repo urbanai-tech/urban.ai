@@ -46,6 +46,7 @@ import { RolesGuard } from './auth/roles.guard';
 import { HealthModule } from './health/health.module';
 import { PushModule } from './push/push.module';
 import { HostPanelsModule } from './host-panels/host-panels.module';
+import { AdminJobRunsModule } from './admin-job-runs/admin-job-runs.module';
 
 dotenv.config();
 
@@ -66,6 +67,7 @@ function envOrLocalDefault(name: string, localDefault: string): string {
 @Module({
   imports: [
     SentryModule.forRoot(),
+    AdminJobRunsModule,
     MailerModule,
     CronModule,
     DashboardModule,

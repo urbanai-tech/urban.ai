@@ -53,7 +53,7 @@ Python foi descartado pela mesma razão do ADR 0001: afinidade de stack + ausên
 
 ## Referências
 
-- `docs/avaliacao-projeto-2026-04-16.md` §3.3 — avaliação do motor KNN
-- `docs/ADENDO_TECNICO_KNN.md` — nota técnica detalhada da Lumina sobre a consolidação
+- `docs/archive/audits/avaliacao-projeto-2026-04-16.md` §3.3 — avaliação do motor KNN
+- `docs/product/data/ADENDO_TECNICO_KNN.md` — nota técnica detalhada da Lumina sobre a consolidação
 - Código: `urban-ai-backend-main/src/knn-engine/`
 - Suite de testes: `pricing-engine.spec.ts`, `knn-classifier.spec.ts`

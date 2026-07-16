@@ -97,9 +97,13 @@ class UrbanBackendClient:
     def from_env(cls, batch_size: int = DEFAULT_BATCH_SIZE) -> UrbanBackendClient:
         """Constrói via env vars. Lança ValueError se faltar configuração."""
         api_base = os.environ.get("URBAN_API_BASE", "http://localhost:10000")
-        ingest_api_key = cls._clean_optional(os.environ.get("URBAN_EVENTS_INGEST_API_KEY"))
+        ingest_api_key = cls._clean_optional(
+            os.environ.get("URBAN_EVENTS_INGEST_API_KEY")
+        )
         collector_name = cls._clean_optional(os.environ.get("URBAN_COLLECTOR_NAME"))
-        collector_version = cls._clean_optional(os.environ.get("URBAN_COLLECTOR_VERSION"))
+        collector_version = cls._clean_optional(
+            os.environ.get("URBAN_COLLECTOR_VERSION")
+        )
         ingest_run_id = cls._clean_optional(os.environ.get("URBAN_INGEST_RUN_ID"))
         email = os.environ.get("URBAN_COLLECTOR_EMAIL")
         password = os.environ.get("URBAN_COLLECTOR_PASSWORD")
@@ -147,7 +151,11 @@ class UrbanBackendClient:
                 "Credenciais legadas ausentes para login JWT. "
                 "Use URBAN_EVENTS_INGEST_API_KEY para /events/ingest."
             )
-        if self._token and (time.time() - self._token_acquired_at) < self.TOKEN_LIFETIME_SAFE_SECONDS:
+        if (
+            self._token
+            and (time.time() - self._token_acquired_at)
+            < self.TOKEN_LIFETIME_SAFE_SECONDS
+        ):
             return self._token
         return self._login()
 
@@ -173,9 +181,11 @@ class UrbanBackendClient:
             )
 
         data = resp.json()
+        if not isinstance(data, dict):
+            raise UrbanBackendError("Login retornou payload JSON invalido")
         token = data.get("accessToken") or data.get("access_token")
-        if not token:
-            raise UrbanBackendError(f"Login sem accessToken na resposta: {data}")
+        if not isinstance(token, str) or not token:
+            raise UrbanBackendError("Login sem accessToken na resposta")
 
         self._token = token
         self._token_acquired_at = time.time()
@@ -187,7 +197,7 @@ class UrbanBackendClient:
     def add_event(self, event: dict[str, Any]) -> None:
         """Adiciona um evento ao buffer. Auto-flush quando atinge batch_size."""
         if not event or not event.get("nome"):
-            logger.debug("Ignorando evento sem nome: %s", event)
+            logger.debug("Ignorando evento sem o campo nome obrigatorio")
             return
         self._buffer.append(event)
         if len(self._buffer) >= self.batch_size:
@@ -239,6 +249,8 @@ class UrbanBackendClient:
             )
 
         data = resp.json()
+        if not isinstance(data, dict):
+            raise UrbanBackendError("Ingest retornou payload JSON invalido")
         logger.info(
             "Ingest OK: total=%s created=%s updated=%s skipped=%s",
             data.get("total"),
@@ -246,7 +258,7 @@ class UrbanBackendClient:
             data.get("updated"),
             data.get("skipped"),
         )
-        return data
+        return dict(data)
 
     def _ingest_headers(self) -> dict[str, str]:
         if self.ingest_api_key:

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
@@ -8,6 +8,7 @@ import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { Payment } from 'src/entities/payment.entity';
 import { MailerService } from 'src/mailer/mailer.service';
 import { EmailTemplates } from './templates';
+import { ScheduledJobRunnerService, runScheduledJob } from '../admin-job-runs/scheduled-job-runner.service';
 
 /**
  * OnboardingDripService — fecha o gap H9 do roadmap.
@@ -42,6 +43,7 @@ export class OnboardingDripService {
     @InjectRepository(Payment)
     private readonly paymentRepo: Repository<Payment>,
     private readonly mailer: MailerService,
+    @Optional() private readonly scheduledJobRunner?: ScheduledJobRunnerService,
   ) {
     this.frontUrl = (process.env.FRONT_URL || 'https://app.myurbanai.com').replace(/\/$/, '');
   }
@@ -51,13 +53,15 @@ export class OnboardingDripService {
    * locais; UTC-3 (Brasil) coloca o disparo em ~7:00 BRT — chega na caixa
    * antes do anfitrião abrir o e-mail no início do dia.
    */
-  @Cron('0 10 * * *')
+  @Cron('0 10 * * *', { name: 'onboarding-drip', timeZone: 'UTC', waitForCompletion: true })
   async runDailyDrip(): Promise<void> {
-    this.logger.log('[onboarding-drip] cron started');
-    const summary = await this.processAll();
-    this.logger.log(
-      `[onboarding-drip] cron finished: ${JSON.stringify(summary)}`,
-    );
+    return runScheduledJob(this.scheduledJobRunner, 'onboarding-drip', async () => {
+      this.logger.log('[onboarding-drip] cron started');
+      const summary = await this.processAll();
+      this.logger.log(
+        `[onboarding-drip] cron finished: ${JSON.stringify(summary)}`,
+      );
+    });
   }
 
   /**
@@ -141,8 +145,8 @@ export class OnboardingDripService {
   private async sendForUser(user: User, day: 1 | 3 | 7): Promise<void> {
     const ctx = await this.gatherContext(user.id);
 
-    let subject = '';
-    let html = '';
+    let subject: string;
+    let html: string;
 
     if (day === 1) {
       subject = ctx.propertiesCount === 0

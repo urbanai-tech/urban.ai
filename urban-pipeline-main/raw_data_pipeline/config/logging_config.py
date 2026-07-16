@@ -1,11 +1,11 @@
-"""
-Logging configuration module for raw data pipeline.
+"""Logging configuration module for raw data pipeline.
 
 This module provides centralized logging setup and configuration
 for the application with support for different environments and
 structured logging formats.
 """
 
+import inspect
 import logging
 import logging.config
 import sys
@@ -16,8 +16,7 @@ from .settings import Settings
 
 
 def get_log_level(level_name: str) -> int:
-    """
-    Convert log level name to logging level constant.
+    """Convert log level name to logging level constant.
 
     Args:
         level_name: Log level name (DEBUG, INFO, WARNING, ERROR, CRITICAL)
@@ -35,8 +34,7 @@ def get_logging_config(
     enable_file: bool = True,
     log_format: str = "detailed",
 ) -> dict[str, Any]:
-    """
-    Generate logging configuration dictionary.
+    """Generate logging configuration dictionary.
 
     Args:
         log_level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
@@ -68,7 +66,22 @@ def get_logging_config(
         log_dir.mkdir(exist_ok=True)
         log_file = str(log_dir / "urban_pipeline.log")
 
-    config = {
+    handlers: dict[str, Any] = {}
+    loggers: dict[str, dict[str, Any]] = {
+        "": {  # Root logger
+            "level": log_level,
+            "handlers": [],
+        },
+        "raw_data_pipeline": {
+            "level": log_level,
+            "handlers": [],
+            "propagate": False,
+        },
+        "prefect": {"level": "WARNING", "handlers": [], "propagate": False},
+        "boto3": {"level": "WARNING", "handlers": [], "propagate": False},
+        "sqlalchemy": {"level": "WARNING", "handlers": [], "propagate": False},
+    }
+    config: dict[str, Any] = {
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {
@@ -76,38 +89,22 @@ def get_logging_config(
             "detailed": {"format": formats["detailed"]},
             "json": {"format": formats["json"]},
         },
-        "handlers": {},
-        "loggers": {
-            "": {  # Root logger
-                "level": log_level,
-                "handlers": [],
-            },
-            "raw_data_pipeline": {
-                "level": log_level,
-                "handlers": [],
-                "propagate": False,
-            },
-            "prefect": {"level": "WARNING", "handlers": [], "propagate": False},
-            "boto3": {"level": "WARNING", "handlers": [], "propagate": False},
-            "sqlalchemy": {"level": "WARNING", "handlers": [], "propagate": False},
-        },
+        "handlers": handlers,
+        "loggers": loggers,
     }
 
     if enable_console:
-        config["handlers"]["console"] = {
+        handlers["console"] = {
             "class": "logging.StreamHandler",
             "level": log_level,
             "formatter": log_format,
             "stream": sys.stdout,
         }
-        config["loggers"][""]["handlers"].append("console")
-        config["loggers"]["raw_data_pipeline"]["handlers"].append("console")
-        config["loggers"]["prefect"]["handlers"].append("console")
-        config["loggers"]["boto3"]["handlers"].append("console")
-        config["loggers"]["sqlalchemy"]["handlers"].append("console")
+        for logger_config in loggers.values():
+            logger_config["handlers"].append("console")
 
     if enable_file:
-        config["handlers"]["file"] = {
+        handlers["file"] = {
             "class": "logging.handlers.RotatingFileHandler",
             "level": log_level,
             "formatter": log_format,
@@ -116,11 +113,8 @@ def get_logging_config(
             "backupCount": 5,
             "encoding": "utf8",
         }
-        config["loggers"][""]["handlers"].append("file")
-        config["loggers"]["raw_data_pipeline"]["handlers"].append("file")
-        config["loggers"]["prefect"]["handlers"].append("file")
-        config["loggers"]["boto3"]["handlers"].append("file")
-        config["loggers"]["sqlalchemy"]["handlers"].append("file")
+        for logger_config in loggers.values():
+            logger_config["handlers"].append("file")
 
     return config
 
@@ -133,8 +127,7 @@ def setup_logging(
     enable_file: bool = True,
     log_format: str = "detailed",
 ) -> None:
-    """
-    Set up logging configuration for the application.
+    """Set up logging configuration for the application.
 
     Args:
         settings: Application settings (optional)
@@ -161,8 +154,7 @@ def setup_logging(
 
 
 def get_logger(name: str | None = None) -> logging.Logger:
-    """
-    Get a logger instance with the specified name.
+    """Get a logger instance with the specified name.
 
     Args:
         name: Logger name (if None, uses calling module name)
@@ -171,9 +163,6 @@ def get_logger(name: str | None = None) -> logging.Logger:
         logging.Logger: Configured logger instance
     """
     if name is None:
-        # Get the calling module name
-        import inspect
-
         frame = inspect.currentframe()
         if frame and frame.f_back:
             caller_module = frame.f_back.f_globals.get("__name__", "unknown")
@@ -221,8 +210,7 @@ class LogLevelContext:
     """Context manager for temporarily changing log levels."""
 
     def __init__(self, logger_name: str, level: str):
-        """
-        Initialize log level context manager.
+        """Initialize log level context manager.
 
         Args:
             logger_name: Name of logger to modify

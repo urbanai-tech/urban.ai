@@ -26,10 +26,12 @@ Escopo: fluxo minimo para promover mudancas rumo a M1/M2/M3 sem repetir hotfix d
 | Beta fechado | Seguir `docs/runbooks/beta-fechado-assistido.md` para recrutar/onboardar 5-10 anfitrioes assistidos | Relatorio semanal com recomendacoes, aceite, preco aplicado, bugs e decisao de manter/ampliar/bloquear. |
 | Suporte/LGPD | Seguir `docs/runbooks/suporte-lgpd-beta-pago.md` antes de beta pago | Canal de suporte/privacidade ativo, P0/P1 com dono, DPAs/consentimentos revisados e evidencia registrada. |
 | Admin/ops | `/admin/dashboard` e `/admin/jobs` carregando sem erro; enterprise live gate read-only em staging com `--strict --skip-events-ingest` | Alertas coerentes, sem falso sucesso/falso alerta conhecido e evidencia em `docs/evidence/enterprise-live-gate-staging.md` ou artifact equivalente. |
+| API critica | `cd urban-ai-backend-main && npm run contract:openapi` conforme `docs/runbooks/api-compatibility.md` | Metadado SemVer preservado, URLs sem prefixo global e snapshot estrutural v1 sem diff nao revisado. |
 
 ## Nao promover se
 
 - Backend build falhar.
+- O contrato OpenAPI critico divergir sem classificacao SemVer, plano de compatibilidade e baseline revisada.
 - Frontend build falhar.
 - Waitlist invite aceitar token expirado ou reutilizado.
 - Recomendacao nova nao puder ser provada em ambiente controlado para M2.

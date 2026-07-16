@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { HostPanelsService } from './host-panels.service';
+import { PortfolioActionTargetResolverService } from './portfolio-action-target-resolver.service';
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -70,6 +71,7 @@ function makeService(input: {
     portfolioRunRepo as any,
     portfolioItemRepo as any,
     {} as any,
+    new PortfolioActionTargetResolverService(),
   );
 
   return {

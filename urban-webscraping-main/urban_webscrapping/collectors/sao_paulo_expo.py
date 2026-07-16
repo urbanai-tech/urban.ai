@@ -61,17 +61,19 @@ class SaoPauloExpoCollector(HtmlVenueCollector):
                 title = (title or "").strip()
                 if not title or len(title) < 3 or title.lower() in seen:
                     continue
-                tail = html[hm.end():hm.end() + 600]
+                tail = html[hm.end() : hm.end() + 600]
                 d = self._extract_date(tail)
                 if not d:
                     continue
                 seen.add(title.lower())
-                items.append({
-                    "title": title[:255],
-                    "starts_on": d,
-                    "url": url,
-                    "source_id": (url or title)[:128],
-                })
+                items.append(
+                    {
+                        "title": title[:255],
+                        "starts_on": d,
+                        "url": url,
+                        "source_id": (url or title)[:128],
+                    }
+                )
 
         return items
 
@@ -125,6 +127,7 @@ class SaoPauloExpoCollector(HtmlVenueCollector):
     @staticmethod
     def _clean(s: str) -> str:
         import html as html_lib
+
         return html_lib.unescape(s).strip()
 
 

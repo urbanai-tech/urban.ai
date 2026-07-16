@@ -10,7 +10,7 @@ import React from "react";
  * radius 2px, letter-spacing 1.5 uppercase em todas as variantes.
  *
  * Variantes:
- *  - primary    — bg #E8500A, texto #080A0F, ação principal
+ *  - primary    — accent com contraste por tema, ação principal
  *  - secondary  — border 1px white/15, texto white/92, ações secundárias
  *  - ghost      — sem border, texto white/65, hover underline accent
  *  - danger     — texto danger, border danger/30, ações destrutivas
@@ -27,6 +27,7 @@ type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   loading?: boolean;
+  loadingLabel?: React.ReactNode;
   as?: "button" | "a";
   href?: string;
 };
@@ -42,7 +43,7 @@ function styleForVariant(variant: AdminButtonVariant): React.CSSProperties {
     case "primary":
       return {
         background: "var(--admin-accent)",
-        color: "var(--admin-accent-contrast, #080A0F)",
+        color: "var(--admin-accent-contrast)",
         border: "1px solid var(--admin-accent)",
       };
     case "secondary":
@@ -74,9 +75,13 @@ export const AdminButton = React.forwardRef<HTMLButtonElement, Props>(
       leftIcon,
       rightIcon,
       loading,
+      loadingLabel,
       disabled,
       children,
       style,
+      className,
+      "aria-label": ariaLabel,
+      "aria-busy": ariaBusy,
       as,
       href,
       ...rest
@@ -102,24 +107,54 @@ export const AdminButton = React.forwardRef<HTMLButtonElement, Props>(
       ...style,
     };
 
+    const contextualLabel =
+      ariaLabel ??
+      (typeof children === "string" || typeof children === "number"
+        ? String(children)
+        : typeof loadingLabel === "string"
+          ? loadingLabel
+          : undefined);
+    const resolvedAriaLabel = loading
+      ? `${contextualLabel ?? "Ação"} — carregando`
+      : ariaLabel;
+    const resolvedClassName = ["urban-canonical-button", "urban-focus-ring", className]
+      .filter(Boolean)
+      .join(" ");
+
     const content = (
       <>
         {leftIcon}
-        <span>{loading ? "…" : children}</span>
+        {loading && <span aria-hidden="true">…</span>}
+        <span>{loading ? loadingLabel ?? children : children}</span>
         {rightIcon}
       </>
     );
 
     if (as === "a" && href) {
       return (
-        <a href={href} style={base}>
+        <a
+          href={href}
+          className={resolvedClassName}
+          style={base}
+          aria-label={resolvedAriaLabel}
+          aria-busy={loading || ariaBusy || undefined}
+          aria-disabled={disabled || loading || undefined}
+        >
           {content}
         </a>
       );
     }
 
     return (
-      <button ref={ref} disabled={disabled || loading} style={base} {...rest}>
+      <button
+        ref={ref}
+        disabled={disabled || loading}
+        className={resolvedClassName}
+        style={base}
+        aria-label={resolvedAriaLabel}
+        aria-busy={loading || ariaBusy || undefined}
+        {...rest}
+      >
         {content}
       </button>
     );

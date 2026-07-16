@@ -229,7 +229,9 @@ def schedule_legacy_spiders(dry_run: bool) -> CollectorRunResult:
             if payload.get("status") != "ok":
                 raise RuntimeError(f"Scrapyd returned {payload}")
             result.sent += 1
-            logger.info("[legacy-spiders] scheduled %s job=%s", spider, payload.get("jobid"))
+            logger.info(
+                "[legacy-spiders] scheduled %s job=%s", spider, payload.get("jobid")
+            )
         except Exception as exc:
             logger.error("[legacy-spiders] failed to schedule %s: %s", spider, exc)
             result.errors.append(f"{spider}: {exc}")
@@ -246,25 +248,39 @@ def schedule_legacy_spiders(dry_run: bool) -> CollectorRunResult:
     return result
 
 
-def _aggregate_status(results: list[tuple[CollectorSpec | None, CollectorRunResult]]) -> str:
+def _aggregate_status(
+    results: list[tuple[CollectorSpec | None, CollectorRunResult]],
+    min_successful_collectors: int = 1,
+) -> str:
     has_optional_failure = False
     has_warning = False
+    successful_collectors = 0
 
     for spec, result in results:
         critical = True if spec is None else spec.critical
+        if result.status == "success":
+            successful_collectors += 1
         if critical and result.status in {"failed", "partial_failure"}:
             return "failed"
-        if critical and result.status == "no_data":
+        if result.status == "no_data":
+            has_warning = True
+        if critical and result.status == "skipped" and result.skip_reason != "dry_run":
             has_warning = True
         if not critical and result.status in {"failed", "partial_failure"}:
             has_optional_failure = True
 
+    if successful_collectors < max(0, min_successful_collectors):
+        return "failed"
     if has_optional_failure or has_warning:
         return "degraded"
     return "success"
 
 
-def _print_summary(results: list[tuple[CollectorSpec | None, CollectorRunResult]], aggregate_status: str) -> None:
+def _print_summary(
+    results: list[tuple[CollectorSpec | None, CollectorRunResult]],
+    aggregate_status: str,
+    min_successful_collectors: int = 1,
+) -> None:
     print("\nCollector run summary:")  # noqa: T201
     print("source,status,critical,fetched,normalized,sent,skip_reason,errors")  # noqa: T201
     for spec, result in results:
@@ -277,6 +293,10 @@ def _print_summary(results: list[tuple[CollectorSpec | None, CollectorRunResult]
 
     machine_summary = {
         "aggregate_status": aggregate_status,
+        "successful_collectors": sum(
+            1 for _spec, result in results if result.status == "success"
+        ),
+        "min_successful_collectors": min_successful_collectors,
         "results": [
             {
                 "critical": True if spec is None else spec.critical,
@@ -298,7 +318,9 @@ def main() -> int:
 
     dry_run = _env_enabled("DRY_RUN", False)
     if not dry_run:
-        missing_backend_env = _missing_env(("URBAN_COLLECTOR_EMAIL", "URBAN_COLLECTOR_PASSWORD"))
+        missing_backend_env = _missing_env(
+            ("URBAN_COLLECTOR_EMAIL", "URBAN_COLLECTOR_PASSWORD")
+        )
         if missing_backend_env:
             logger.error(
                 "Backend ingest credentials missing: %s. Use DRY_RUN=true for local diagnostics.",
@@ -314,13 +336,30 @@ def main() -> int:
 
     results: list[tuple[CollectorSpec | None, CollectorRunResult]] = []
     for spec in REST_COLLECTORS:
-        logger.info("[%s] starting (critical=%s dry_run=%s)", spec.name, spec.critical, dry_run)
+        logger.info(
+            "[%s] starting (critical=%s dry_run=%s)", spec.name, spec.critical, dry_run
+        )
         results.append((spec, run_collector(spec, dry_run=dry_run)))
 
     results.append((None, schedule_legacy_spiders(dry_run=dry_run)))
 
-    aggregate_status = _aggregate_status(results)
-    _print_summary(results, aggregate_status)
+    try:
+        min_successful_collectors = max(
+            0, int(os.environ.get("MIN_SUCCESSFUL_COLLECTORS", "1"))
+        )
+    except ValueError:
+        logger.error("MIN_SUCCESSFUL_COLLECTORS must be an integer")
+        return 1
+
+    aggregate_status = _aggregate_status(
+        results,
+        min_successful_collectors=min_successful_collectors,
+    )
+    _print_summary(
+        results,
+        aggregate_status,
+        min_successful_collectors=min_successful_collectors,
+    )
     return 1 if aggregate_status == "failed" else 0
 
 

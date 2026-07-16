@@ -31,6 +31,8 @@ Antes de beta pago:
 
 ## Solicitacoes LGPD
 
+Os controles técnicos, limitações e comandos seguros estão em `docs/runbooks/lgpd-data-subject-requests.md`. Exportação consolidada, anonimização automatizada e retenção por categoria continuam pendentes; não improvisar SQL destrutivo para cumprir um pedido.
+
 Pedidos de acesso, correcao, exclusao, portabilidade ou revogacao devem ser registrados com:
 
 - data/hora de recebimento;

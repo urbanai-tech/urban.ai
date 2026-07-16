@@ -3,7 +3,7 @@
 import React from "react";
 import SideBar from "./SideBar";
 import PaymentCheckGuard from "../context/PaymentCheckGuard";
-import { AppFooter, AskUrbanProvider } from "./ui";
+import { AppFooter, AskUrbanProvider, SkipLink } from "./ui";
 
 /**
  * HostShell - layout shell unificado para rotas autenticadas do anfitrião.
@@ -36,6 +36,7 @@ export default function HostShell({
           color: "var(--app-text)",
         }}
       >
+        <SkipLink targetId="host-main-content" />
         <SideBar />
 
         <div
@@ -48,6 +49,8 @@ export default function HostShell({
           }}
         >
           <main
+            id="host-main-content"
+            tabIndex={-1}
             className="urban-app"
             style={{
               flex: 1,

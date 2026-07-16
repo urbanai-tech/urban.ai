@@ -10,6 +10,43 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
+  # ===================== Repository safety =====================
+
+  repository-gates:
+    name: Repository - secrets, artifacts and documentation links
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v6.4.0
+        with:
+          node-version: '20'
+      - name: Verify security scanner detectors
+        run: node scripts/security-head-scan.js --self-test
+      - name: Detect secrets and sensitive artifacts in tracked HEAD
+        run: node scripts/security-head-scan.js
+      - name: Audit local documentation links
+        run: node scripts/audit-document-links.js
+      - name: Verify SLO probe and percentile report
+        run: node scripts/slo-probe.js --self-test
+      - name: Verify resilience and DR gate detectors
+        run: npm run audit:resilience-dr:self-test
+      - name: Audit backup, restore, rollback and DR contracts
+        run: npm run audit:resilience-dr
+      - name: Verify KNN legacy dependency detectors
+        run: npm run audit:knn-legacy:self-test
+      - name: Prevent new consumers of the legacy KNN service
+        run: npm run audit:knn-legacy
+      - name: Audit root production dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - name: Gitleaks defense-in-depth scan of HEAD commit
+        uses: docker://ghcr.io/gitleaks/gitleaks:v8.30.1
+        with:
+          args: git /github/workspace --log-opts=HEAD^..HEAD --redact --exit-code=1 --no-banner --max-target-megabytes=5 --timeout=120
+
   # ===================== Backend =====================
 
   backend-test:
@@ -27,14 +64,44 @@ jobs:
           cache-dependency-path: urban-ai-backend-main/package-lock.json
       - name: Install dependencies
         run: npm ci
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=moderate
+      - name: ESLint zero-warning gate
+        run: npm run lint
       - name: TypeScript check
         run: npx tsc --noEmit
+      - name: Audit runtime DTO coverage for request bodies
+        run: npm run audit:body-dtos
       - name: Jest unit + integration
         run: npx jest --passWithNoTests --ci
+      - name: OpenAPI critical compatibility contract
+        run: npm run contract:openapi
+      - name: Enforce 90% coverage on certified critical modules
+        run: npm run test:coverage:certified
+      - name: Verify LGPD control gate detectors
+        run: npm run audit:lgpd:self-test
+      - name: Audit LGPD authorization, consent and cascade contracts
+        run: npm run audit:lgpd
+      - name: Verify observability security gate detectors
+        run: npm run audit:observability:self-test
+      - name: Audit Sentry, correlation and redaction contracts
+        run: npm run audit:observability
+      - name: Verify authorization gate detectors
+        run: npm run audit:authorization:self-test
+      - name: Audit mutable and administrative route authorization
+        run: npm run audit:authorization
+      - name: Verify scheduled-job audit detectors
+        run: npm run audit:cron:self-test
+      - name: Audit cron timezone, overlap, idempotency and AdminJobRun coverage
+        run: npm run audit:cron:strict
       - name: Migration coverage audit
         run: npm run audit:migrations:strict
       - name: MySQL backup dry-run
         run: npm run backup:mysql:dry
+      - name: MySQL backup guardrail self-test
+        run: npm run backup:mysql:self-test
+      - name: Restore verifier guardrail self-test
+        run: npm run restore:verify:self-test
 
   backend-build:
     name: Backend — nest build (prod artifact)
@@ -117,7 +184,15 @@ jobs:
           cache: 'npm'
           cache-dependency-path: Urban-front-main/package-lock.json
       - run: npm ci --legacy-peer-deps
-      - name: Design system audit (blocks forbidden libs/imports)
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=moderate
+      - name: ESLint zero-warning gate
+        run: npm run lint
+      - name: Frontend unit and contract tests
+        run: npm run test:unit
+      - name: Verify design debt non-regression detectors
+        run: npm run design:debt:self-test
+      - name: Design system audit (forbidden libs, debt baseline and catalog)
         run: npm run design:audit
       - name: TypeScript check
         run: npx tsc --noEmit
@@ -149,6 +224,12 @@ jobs:
           cache-dependency-glob: urban-webscraping-main/uv.lock
       - name: Install dependencies
         run: uv sync --all-groups --frozen
+      - name: Ruff lint
+        run: uv run ruff check urban_webscrapping tests auth_proxy.py
+      - name: Ruff formatting gate
+        run: uv run ruff format --check urban_webscrapping tests auth_proxy.py
+      - name: Mypy strict typing gate
+        run: uv run mypy urban_webscrapping auth_proxy.py
       - name: Pytest
         run: uv run pytest -q
 
@@ -169,8 +250,38 @@ jobs:
           cache-dependency-glob: urban-pipeline-main/uv.lock
       - name: Install dependencies
         run: uv sync --all-groups --frozen
+      - name: Ruff and mypy quality gate
+        run: uv run poe lint
       - name: Pytest
         run: uv run pytest tests -q
+
+  # ===================== Auxiliary Node services =====================
+
+  auxiliary-node-services:
+    name: Auxiliary Node - dashboard and KNN
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: actions/setup-node@v6.4.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            dashboard/package-lock.json
+            urban-ai-knn-main/package-lock.json
+      - name: Dashboard clean install, audit, build and bundle budget
+        working-directory: dashboard
+        run: |
+          npm ci --ignore-scripts
+          npm audit --audit-level=moderate
+          npm run build
+      - name: KNN clean install, audit, contracts and syntax smoke
+        working-directory: urban-ai-knn-main
+        run: |
+          npm ci --ignore-scripts
+          npm audit --omit=dev --audit-level=moderate
+          npm test
+          node --check server.js
 
   # ===================== Release evidence =====================
 
@@ -238,23 +349,7 @@ jobs:
           cat /tmp/urban-front-next.log
           exit 1
       - name: Run mocked local E2E tests
-        run: >-
-          npx playwright test
-          onboarding-airbnb-import.spec.ts
-          dashboard-recommendations.spec.ts
-          email-confirmation.spec.ts
-          f8-waitlist-to-login.spec.ts
-          login-post-login.spec.ts
-          logout.spec.ts
-          my-plan-billing.spec.ts
-          plans-checkout-readiness.spec.ts
-          properties-pricing.spec.ts
-          reset-password.spec.ts
-          pwa-mobile.spec.ts
-          prelaunch-waitlist-analytics.spec.ts
-          admin-quality-occupancy.spec.ts
-          stays-integrations.spec.ts
-          --project=chromium
+        run: npx playwright test --project=chromium
       - name: Upload mocked local Playwright report
         if: always()
         uses: actions/upload-artifact@v7.0.1
@@ -269,7 +364,9 @@ jobs:
     name: Frontend - Playwright public smoke
     runs-on: ubuntu-latest
     needs: [frontend-test]
-    if: ${{ vars.E2E_BASE_URL != '' }}
+    # Em PR, o codigo novo e validado pelo E2E local acima. O smoke remoto
+    # volta a bloquear no push, quando o ambiente pode refletir o SHA publicado.
+    if: ${{ github.event_name != 'pull_request' && vars.E2E_BASE_URL != '' }}
     defaults:
       run:
         working-directory: Urban-front-main

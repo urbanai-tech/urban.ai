@@ -73,7 +73,25 @@ export class StaysConnector {
     if (!(err instanceof AxiosError)) return true; // network error, retry
     const status = err.response?.status;
     if (!status) return true; // no response = network
-    return status >= 500 && status < 600;
+    return status === 408 || status === 425 || status === 429 || (status >= 500 && status < 600);
+  }
+
+  private retryAfterMs(err: unknown): number | null {
+    if (!(err instanceof AxiosError) || err.response?.status !== 429) return null;
+    const headers = err.response.headers as any;
+    const raw = typeof headers?.get === 'function'
+      ? headers.get('retry-after')
+      : headers?.['retry-after'];
+    if (raw === undefined || raw === null || raw === '') return null;
+
+    const seconds = Number(raw);
+    if (Number.isFinite(seconds)) {
+      return Math.min(Math.max(seconds * 1000, 0), 30_000);
+    }
+
+    const retryAt = Date.parse(String(raw));
+    if (Number.isNaN(retryAt)) return null;
+    return Math.min(Math.max(retryAt - Date.now(), 0), 30_000);
   }
 
   /**
@@ -89,7 +107,8 @@ export class StaysConnector {
         lastErr = err;
         if (!this.isRetryable(err)) throw err;
         if (attempt === this.maxRetries - 1) break;
-        const delayMs = 250 * 2 ** attempt + Math.random() * 250;
+        const delayMs =
+          this.retryAfterMs(err) ?? 250 * 2 ** attempt + Math.random() * 250;
         this.logger.warn(
           `Stays API retry ${attempt + 1}/${this.maxRetries} em ${Math.round(delayMs)}ms`,
         );

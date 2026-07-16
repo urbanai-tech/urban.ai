@@ -14,7 +14,7 @@ Procedimentos passo-a-passo para os 5 cenários mais prováveis de incidente em 
 
 - **Detectar antes de remediar.** Sempre conferir Sentry + UptimeRobot + logs Railway antes de mexer.
 - **Cortar tráfego antes de mexer em prod.** Se for grave, ativar maintenance mode no Railway.
-- **Anotar a hora.** Cada runbook tem campo "início do incidente" — começa a contar para o RTO de 2h (`docs/slo.md`).
+- **Anotar a hora.** Cada runbook tem campo "início do incidente" — começa a contar para o RTO de 2h (`docs/ops/slo.md`).
 - **Postmortem obrigatório** se o incidente ultrapassar 15 min de impacto ou causar perda de dados.
 
 ## Severidade

@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException, Optional } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { createHash } from 'crypto';
-import { Brackets, DataSource, In, QueryRunner, Repository } from 'typeorm';
+import { Brackets, DataSource, QueryRunner, Repository } from 'typeorm';
 import { Address } from '../entities/addresses.entity';
 import { AnalisePreco } from '../entities/AnalisePreco';
 import {
@@ -33,9 +33,10 @@ import {
   EventCatalogQuery,
   EventIntelligencePayload,
   EventPropertyImpactPayload,
-  HeatmapCellPayload,
   SimulatePricingInput,
 } from './event-intelligence.types';
+import { EventHeatmapProjectionService } from './event-heatmap-projection.service';
+import { ScheduledJobRunnerService, runScheduledJob } from '../admin-job-runs/scheduled-job-runner.service';
 
 const CONTRACT_VERSION = 'event-radar-v0';
 const ENGINE_PENDING_STUB = 'stub_pending_engine';
@@ -118,7 +119,9 @@ export class EventIntelligenceService {
     @InjectRepository(AnalisePreco) private readonly analiseRepo: Repository<AnalisePreco>,
     private readonly pricingIntelligence: EventPricingIntelligenceService,
     private readonly pricingCalculateService: PricingCalculateService,
+    private readonly heatmapProjection: EventHeatmapProjectionService,
     @Optional() @InjectDataSource() private readonly dataSource?: DataSource,
+    @Optional() private readonly scheduledJobRunner?: ScheduledJobRunnerService,
   ) {}
 
   async hostCatalog(userId: string, query: EventCatalogQuery) {
@@ -280,7 +283,7 @@ export class EventIntelligenceService {
       contractVersion: CONTRACT_VERSION,
       generatedAt: new Date().toISOString(),
       filters: { ...query, from: range.from, to: range.to },
-      cells: this.buildHeatmapCells(nearEvents, snapshots, impactCounts, range),
+      cells: this.heatmapProjection.buildCells(nearEvents, snapshots, impactCounts, range),
       stubs: this.engineStubs(['supplyCompressionScore']),
     };
   }
@@ -420,7 +423,7 @@ export class EventIntelligenceService {
       generatedAt: new Date().toISOString(),
       filters: { ...query, from: range.from, to: range.to },
       metric: query.metric ?? 'eventDemandScore',
-      cells: this.buildHeatmapCells(events, snapshots, impactCounts, range),
+      cells: this.heatmapProjection.buildCells(events, snapshots, impactCounts, range),
       stubs: this.engineStubs(['supplyCompressionScore']),
     };
   }
@@ -628,20 +631,29 @@ export class EventIntelligenceService {
     );
   }
 
-  @Cron('20 4 * * *', { name: 'event-intelligence-backfill', timeZone: 'America/Sao_Paulo' })
+  @Cron('20 4 * * *', {
+    name: 'event-intelligence-backfill',
+    timeZone: 'America/Sao_Paulo',
+    waitForCompletion: true,
+  })
   async handleBackfillCron() {
     if (!this.isTrue(process.env.EVENT_INTELLIGENCE_BACKFILL_CRON_ENABLED)) return;
-    try {
-      const result = await this.backfillFutureEventIntelligence({
-        limit: process.env.EVENT_INTELLIGENCE_BACKFILL_CRON_LIMIT ?? 20,
-        lookaheadDays: process.env.EVENT_INTELLIGENCE_BACKFILL_LOOKAHEAD_DAYS ?? 90,
-      });
-      this.logger.log(
-        `event-intelligence-backfill: ${result.summary.eventsProcessed}/${result.summary.eventsAttempted} eventos processados, ${result.summary.eventsFailed} falhas`,
-      );
-    } catch (error: any) {
-      this.logger.error(`event-intelligence-backfill falhou: ${error?.message ?? error}`);
-    }
+    await runScheduledJob(this.scheduledJobRunner, 'event-intelligence-backfill', async () => {
+      try {
+        const result = await this.backfillFutureEventIntelligence({
+          limit: process.env.EVENT_INTELLIGENCE_BACKFILL_CRON_LIMIT ?? 20,
+          lookaheadDays: process.env.EVENT_INTELLIGENCE_BACKFILL_LOOKAHEAD_DAYS ?? 90,
+        });
+        this.logger.log(
+          `event-intelligence-backfill: ${result.summary.eventsProcessed}/${result.summary.eventsAttempted} eventos processados, ${result.summary.eventsFailed} falhas`,
+        );
+        return result;
+      } catch (error: any) {
+        const message = error?.message ?? String(error);
+        this.logger.error(`event-intelligence-backfill falhou: ${message}`);
+        return { ok: false, errorMessage: message };
+      }
+    });
   }
 
   private async recomputeLoadedEvent(event: EventEntity, jobRunId: string) {
@@ -1807,92 +1819,6 @@ export class EventIntelligenceService {
     };
   }
 
-  private buildHeatmapCells(
-    events: EventEntity[],
-    snapshots: Map<string, EventIntelligenceSnapshot>,
-    impactCounts: Map<string, number>,
-    range: DateRange,
-  ): HeatmapCellPayload[] {
-    const cells = new Map<
-      string,
-      {
-        centerLat: number;
-        centerLng: number;
-        events: EventEntity[];
-        demandScores: number[];
-        confidenceScores: number[];
-        revenuePotentialCents: number;
-        affectedPropertiesCount: number;
-        categories: Map<string, number>;
-      }
-    >();
-
-    for (const event of events) {
-      if (!this.hasCoordinates(event)) continue;
-      const lat = this.numberOrNull(event.latitude);
-      const lng = this.numberOrNull(event.longitude);
-      if (lat === null || lng === null) continue;
-      const centerLat = Math.round(lat * 50) / 50;
-      const centerLng = Math.round(lng * 50) / 50;
-      const cellId = `${centerLat.toFixed(2)}:${centerLng.toFixed(2)}`;
-      const snapshot = snapshots.get(event.id);
-      const derivedDemand = snapshot ? null : this.deriveEventDemand(event);
-      const score =
-        this.numberOrNull(snapshot?.eventDemandScore) ??
-        derivedDemand?.eventDemandScore ??
-        this.numberOrNull(event.relevancia);
-      const revenue = this.numberOrNull(snapshot?.eventRevenuePotentialCents) ?? 0;
-      const confidence = snapshot?.confidence ?? derivedDemand?.confidence ?? this.confidenceFromEvent(event);
-      const cell =
-        cells.get(cellId) ??
-        {
-          centerLat,
-          centerLng,
-          events: [],
-          demandScores: [],
-          confidenceScores: [],
-          revenuePotentialCents: 0,
-          affectedPropertiesCount: 0,
-          categories: new Map<string, number>(),
-        };
-      cell.events.push(event);
-      if (score !== null) cell.demandScores.push(score);
-      cell.confidenceScores.push(this.confidenceScore(confidence));
-      cell.revenuePotentialCents += revenue;
-      cell.affectedPropertiesCount += impactCounts.get(event.id) ?? 0;
-      if (event.categoria) cell.categories.set(event.categoria, (cell.categories.get(event.categoria) ?? 0) + 1);
-      cells.set(cellId, cell);
-    }
-
-    return Array.from(cells.entries()).map(([cellId, cell]) => {
-      const avgDemand = this.average(cell.demandScores);
-      return {
-        cellId,
-        bbox: [
-          Math.round((cell.centerLng - 0.01) * 10000) / 10000,
-          Math.round((cell.centerLat - 0.01) * 10000) / 10000,
-          Math.round((cell.centerLng + 0.01) * 10000) / 10000,
-          Math.round((cell.centerLat + 0.01) * 10000) / 10000,
-        ] as [number, number, number, number],
-        centerLat: cell.centerLat,
-        centerLng: cell.centerLng,
-        dateFrom: range.from,
-        dateTo: range.to,
-        eventDemandScore: avgDemand,
-        revenuePotentialCents: cell.revenuePotentialCents || null,
-        eventsCount: cell.events.length,
-        topEventIds: [...cell.events]
-          .sort((a, b) => (this.numberOrNull(b.relevancia) ?? 0) - (this.numberOrNull(a.relevancia) ?? 0))
-          .slice(0, 5)
-          .map((event) => event.id),
-        affectedPropertiesCount: cell.affectedPropertiesCount,
-        averageConfidence: this.confidenceFromScore(this.average(cell.confidenceScores) ?? 0),
-        dominantCategory: this.dominantCategory(cell.categories),
-        supplyCompressionScore: null,
-      };
-    });
-  }
-
   private buildRadarSummary(items: Array<{ impacts: EventPropertyImpactPayload[] }>) {
     const propertyIds = new Set<string>();
     let expectedIncrementalRevenueCents = 0;
@@ -1961,7 +1887,7 @@ export class EventIntelligenceService {
   }
 
   private stripInternalImpactFields<T extends EventPropertyImpactPayload & { eventId?: string }>(impact: T) {
-    const { eventId, ...publicImpact } = impact;
+    const { eventId: _eventId, ...publicImpact } = impact;
     return publicImpact;
   }
 
@@ -2342,14 +2268,6 @@ export class EventIntelligenceService {
 
   private unique(values: string[]) {
     return Array.from(new Set(values.filter(Boolean)));
-  }
-
-  private dominantCategory(categories: Map<string, number>) {
-    let best: { category: string; count: number } | null = null;
-    for (const [category, count] of categories.entries()) {
-      if (!best || count > best.count) best = { category, count };
-    }
-    return best?.category ?? null;
   }
 
   private distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {

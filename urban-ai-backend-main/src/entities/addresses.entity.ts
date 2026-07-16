@@ -129,7 +129,7 @@ export class Address {
     description: "Usuário proprietário do endereço",
     type: () => User,
   })
-  @ManyToOne(() => User, { eager: true })
+  @ManyToOne(() => User, { eager: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: "user_id" })
   user?: User;
 

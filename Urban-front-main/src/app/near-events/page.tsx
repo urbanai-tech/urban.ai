@@ -108,6 +108,7 @@ export default function CasaEventosProximosPage() {
 function Spinner() {
   return (
     <span
+      role="status"
       aria-label="Carregando"
       style={{
         width: 36,

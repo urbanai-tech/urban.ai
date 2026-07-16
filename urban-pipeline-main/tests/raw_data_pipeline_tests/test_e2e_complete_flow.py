@@ -1,6 +1,5 @@
 # ruff: noqa: F811  # pytest fixtures appear as redefinitions
-"""
-End-to-end tests for the complete data pipeline flow.
+"""End-to-end tests for the complete data pipeline flow.
 
 Tests the entire pipeline from S3 extraction through MySQL loading,
 validating data integrity and processing correctness.

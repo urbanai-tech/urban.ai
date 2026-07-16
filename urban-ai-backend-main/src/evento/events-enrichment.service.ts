@@ -57,7 +57,11 @@ export class EventsEnrichmentService {
   }
 
   // Executa de hora em hora
-  @Cron('0 * * * *')
+  @Cron('0 * * * *', {
+    name: 'events-enrichment',
+    timeZone: 'America/Sao_Paulo',
+    waitForCompletion: true,
+  })
   async handleCron() {
     if (this.isProcessing) return;
     this.isProcessing = true;

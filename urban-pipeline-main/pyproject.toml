@@ -34,7 +34,7 @@ dev = [
 commit = { help = "Commit to current branch and bump version.", sequence = [{ cmd = "cz c" }, { cmd = "cz bump" }] }
 push = { help = "Push modifications to remote repo", shell = "git push -u origin $(git branch --show-current) --tags" }
 clean = { help = "Remove cache and temporary files", script = "poethepoet.scripts:rm('.mypy_cache', './**/__pycache__')" }
-lint = { help = "Run linters", sequence = [{ cmd = "ruff check --fix" }, { cmd = "ruff format" }, { cmd = "mypy urban_webscrapping/" }] }
+lint = { help = "Run non-mutating quality checks", sequence = [{ cmd = "ruff check raw_data_pipeline tests" }, { cmd = "ruff format --check raw_data_pipeline tests" }, { cmd = "mypy raw_data_pipeline/" }] }
 run-webscraping-pipeline = { help = "", cmd = "uv run src/urban_pipeline/web_scrapping.py" }
 
 [tool.commitizen]
@@ -66,7 +66,8 @@ lint.pydocstyle.convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = [ "E402", "D100", "D104" ]
-"**/{tests,docs,tools}/*" = [ "E402" ]
+"**/{tests,docs,tools}/*" = [ "E402", "PLR2004" ]
+"raw_data_pipeline/config/logging_config.py" = [ "PLR0913" ]
 
 [tool.mypy]
 strict = true
@@ -79,17 +80,9 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_return_any = true
 warn_unreachable = true
-files = ["urban_webscrapping/", "test/"]
+files = ["raw_data_pipeline/", "tests/"]
 ignore_missing_imports = true
 follow_imports = "silent"
 show_error_codes = true
 pretty = true
 strict_optional = true
-
-[tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "-ra -q --import-mode=importlib"
-testpaths = [
-    "tests"
-]
-pythonpath='.'
