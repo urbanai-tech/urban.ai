@@ -194,10 +194,10 @@ describe('HealthService', () => {
     process.env.JWT_SECRET = 'super-secret';
     process.env.FRONT_BASE_URL = 'https://app.test';
     process.env.CORS_ALLOWED_ORIGINS = 'https://app.test';
-    process.env.REDIS_HOST = 'redis.test';
-    process.env.REDIS_PORT = '6380';
+    process.env.REDIS_HOST = '\tredis.test  ';
+    process.env.REDIS_PORT = ' 6380 ';
     process.env.REDIS_PASSWORD = 'secret';
-    process.env.REDIS_TLS = 'true';
+    process.env.REDIS_TLS = ' TRUE ';
     const dataSource = { query: jest.fn().mockResolvedValue([]) };
 
     const result = await new HealthService(dataSource as any).getHealth();
@@ -211,6 +211,14 @@ describe('HealthService', () => {
     expect(mockRedisClient.connect).toHaveBeenCalledTimes(1);
     expect(mockRedisClient.ping).toHaveBeenCalledTimes(1);
     expect(mockRedisClient.quit).toHaveBeenCalledTimes(1);
+    expect(jest.requireMock('ioredis').default).toHaveBeenCalledWith(
+      expect.objectContaining({
+        host: 'redis.test',
+        port: 6380,
+        password: 'secret',
+        tls: {},
+      }),
+    );
   });
 
   it('degrades when configured Redis is slow', async () => {

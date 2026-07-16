@@ -101,10 +101,10 @@ jobs:
         run: |
           npx playwright test \
             --project=chromium \
-            release-gate-public.spec.ts \
-            smoke.spec.ts \
-            prelaunch-waitlist-analytics.spec.ts \
-            a11y.spec.ts
+            e2e/release-gate-public.spec.ts \
+            e2e/smoke.spec.ts \
+            e2e/prelaunch-waitlist-analytics.spec.ts \
+            e2e/a11y.spec.ts
 
       - name: Upload Playwright report
         if: always()
