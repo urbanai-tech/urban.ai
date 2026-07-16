@@ -170,10 +170,10 @@ export class HealthService {
     let client: Redis | undefined;
     try {
       client = new Redis({
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT ?? '', 10) || 6379,
+        host: process.env.REDIS_HOST?.trim() || 'localhost',
+        port: parseInt(process.env.REDIS_PORT?.trim() ?? '', 10) || 6379,
         password: process.env.REDIS_PASSWORD || undefined,
-        tls: process.env.REDIS_TLS === 'true' ? {} : undefined,
+        tls: this.isTrue(process.env.REDIS_TLS) ? {} : undefined,
         connectTimeout: 2000,
         commandTimeout: 2000,
         maxRetriesPerRequest: 1,
