@@ -7,6 +7,7 @@ from raw_data_pipeline.config.database import (
     DatabaseCredentials,
     DatabaseTemplates,
 )
+from raw_data_pipeline.config.settings import Settings
 
 
 class TestDatabaseCredentials:
@@ -146,8 +147,6 @@ class TestDatabaseConfig:
 
     def test_database_config_from_settings_missing_url(self) -> None:
         """Test database config creation with missing MySQL URL."""
-        from raw_data_pipeline.config.settings import Settings
-
         settings = Settings()
         settings.MYSQL_URL = ""  # Empty URL
 
@@ -156,8 +155,6 @@ class TestDatabaseConfig:
 
     def test_database_config_from_settings_parses_encoded_mysql_url(self) -> None:
         """Test parsing Railway-style MySQL URLs with encoded credentials."""
-        from raw_data_pipeline.config.settings import Settings
-
         settings = Settings()
         settings.MYSQL_URL = (
             "mysql://user%40tenant:p%40ss%21w0rd@db.example.com:3307/urban%20bronze"
@@ -173,8 +170,6 @@ class TestDatabaseConfig:
 
     def test_database_config_from_settings_rejects_unsupported_scheme(self) -> None:
         """Test unsupported MYSQL_URL schemes fail clearly."""
-        from raw_data_pipeline.config.settings import Settings
-
         settings = Settings()
         settings.MYSQL_URL = "postgresql://user:pass@localhost:5432/db"
 

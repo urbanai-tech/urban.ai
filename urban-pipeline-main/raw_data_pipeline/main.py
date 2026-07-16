@@ -1,15 +1,17 @@
+"""Prefect entry point for the S3-to-MySQL raw-data pipeline."""
+
 from prefect import flow
 
 from raw_data_pipeline import config
 from raw_data_pipeline.extractors.s3_extractor import S3Extractor
 from raw_data_pipeline.load.load_on_mysql import load_multiple_dataframes_to_mysql
+from raw_data_pipeline.quality import contract_for_dataframes
 
 log = config.get_logger(__name__)
 
 
 def main() -> None:
-    """
-    Main pipeline flow for processing raw data from S3 to MySQL.
+    """Run the raw-data flow from S3 extraction through guarded MySQL load.
 
     This flow:
     1. Lists all folders in S3
@@ -40,7 +42,12 @@ def main() -> None:
                     table_name = folder.replace("-", "_").replace(" ", "_").lower()
 
                     total_rows = load_multiple_dataframes_to_mysql(
-                        dataframes=dataframes, table_name=table_name, if_exists="append"
+                        dataframes=dataframes,
+                        table_name=table_name,
+                        if_exists="append",
+                        quality_contract=contract_for_dataframes(
+                            dataframes, expected_source=folder
+                        ),
                     )
 
                     log.info(

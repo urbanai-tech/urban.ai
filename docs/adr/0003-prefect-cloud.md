@@ -56,6 +56,6 @@ Razões:
 
 ## Referências
 
-- `docs/avaliacao-projeto-2026-04-16.md` §3.4 — avaliação do pipeline
+- `docs/archive/audits/avaliacao-projeto-2026-04-16.md` §3.4 — avaliação do pipeline
 - Código: `urban-pipeline-main/serve.py`, `urban-pipeline-main/flows/`
 - Workspace Prefect: (nome em posse do Gustavo)

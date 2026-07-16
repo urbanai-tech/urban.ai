@@ -1,5 +1,7 @@
 import json
 
+import pytest
+
 import auth_proxy
 
 
@@ -56,3 +58,27 @@ def test_health_payload_degrades_when_scrapyd_unavailable():
 
     assert payload["status"] == "degraded"
     assert payload["scrapyd"]["status"] == "unavailable"
+
+
+def test_scrapyd_target_uses_loopback_allowlist_and_encoded_query():
+    target = auth_proxy.build_scrapyd_target(
+        "/schedule.json?project=urban+events&spider=ticket_master"
+    )
+
+    assert target == (
+        "http://127.0.0.1:6801/schedule.json?project=urban+events&spider=ticket_master"
+    )
+
+
+@pytest.mark.parametrize(
+    "target",
+    [
+        "https://attacker.example/schedule.json",
+        "//attacker.example/schedule.json",
+        "/unknown.json",
+        "/schedule.json#fragment",
+    ],
+)
+def test_scrapyd_target_rejects_non_allowlisted_destinations(target):
+    with pytest.raises(ValueError):
+        auth_proxy.build_scrapyd_target(target)

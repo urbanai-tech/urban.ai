@@ -27,6 +27,8 @@ import { AirbnbPricingAttemptLogService } from './airbnb-pricing-attempt-log.ser
 import { AdminFinanceService } from './finance.service';
 import { StripeSyncCheckService } from './stripe-sync.service';
 import { AdminController } from './admin.controller';
+import { AdminBillingController } from './admin-billing.controller';
+import { AdminQualityOperationsController } from './admin-quality-operations.controller';
 import { AuthModule } from '../auth/auth.module';
 import { KnnEngineModule } from '../knn-engine/knn-engine.module';
 import { EventoModule } from '../evento/evento.module';
@@ -35,6 +37,7 @@ import { RoiModule } from '../roi/roi.module';
 import { AdminAuditModule } from '../admin-audit/admin-audit.module';
 import { EmailModule } from '../email/email.module';
 import { EventIntelligenceModule } from '../event-intelligence/event-intelligence.module';
+import { AdminStaysHealthService } from './admin-stays-health.service';
 
 @Module({
   imports: [
@@ -69,7 +72,7 @@ import { EventIntelligenceModule } from '../event-intelligence/event-intelligenc
     EmailModule,
     EventIntelligenceModule,
   ],
-  controllers: [AdminController],
+  controllers: [AdminController, AdminBillingController, AdminQualityOperationsController],
   providers: [
     AdminService,
     AdminFinanceService,
@@ -77,6 +80,7 @@ import { EventIntelligenceModule } from '../event-intelligence/event-intelligenc
     EventIdentityService,
     EventDedupAdminService,
     AirbnbPricingAttemptLogService,
+    AdminStaysHealthService,
   ],
   exports: [
     AdminService,

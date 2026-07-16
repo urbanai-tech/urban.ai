@@ -20,7 +20,7 @@ export function ThemeToggle({
   showLabels?: boolean;
   style?: React.CSSProperties;
 }) {
-  const { preference, setTheme, resolvedTheme } = useTheme();
+  const { preference, setTheme, resolvedTheme, isHydrated } = useTheme();
 
   return (
     <div
@@ -51,6 +51,7 @@ export function ThemeToggle({
           <button
             key={option.value}
             type="button"
+            disabled={!isHydrated}
             aria-pressed={active}
             aria-label={`Usar tema ${option.label.toLowerCase()}`}
             title={option.label}
@@ -73,7 +74,8 @@ export function ThemeToggle({
               alignItems: "center",
               justifyContent: "center",
               gap: labelsVisible ? 7 : 0,
-              cursor: "pointer",
+              cursor: isHydrated ? "pointer" : "wait",
+              opacity: isHydrated ? 1 : 0.7,
               fontFamily: "Inter, system-ui, sans-serif",
               fontSize: 11,
               fontWeight: active ? 700 : 600,

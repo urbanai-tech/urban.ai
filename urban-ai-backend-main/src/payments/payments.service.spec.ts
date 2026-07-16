@@ -102,6 +102,101 @@ describe('PaymentsService — handleStripeWebhook', () => {
       expect(result).toEqual({ error: expect.any(Error) });
       expect(paymentRepo.save).not.toHaveBeenCalled();
     });
+
+    it('rejects a missing signature without invoking Stripe', async () => {
+      const result = await service.handleStripeWebhook(Buffer.from('{}'), '');
+
+      expect(result).toEqual({ error: expect.any(Error) });
+      expect(mockStripeConstructEvent).not.toHaveBeenCalled();
+      expect(paymentRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('passes the exact raw body buffer to Stripe signature verification', async () => {
+      const rawBody = Buffer.from('{"amount":100,"nested":{"ok":true}}');
+      const event = { id: 'evt_raw', created: 100, type: 'charge.dispute.created', data: { object: {} } };
+      mockStripeConstructEvent.mockReturnValue(event);
+
+      await service.handleStripeWebhook(rawBody, 'sig_raw');
+
+      expect(mockStripeConstructEvent).toHaveBeenCalledWith(rawBody, 'sig_raw', 'whsec_test');
+    });
+  });
+
+  describe('idempotency and event ordering', () => {
+    it('does not save a duplicated Stripe event twice', async () => {
+      const event = {
+        id: 'evt_duplicate',
+        created: 200,
+        type: 'customer.subscription.updated',
+        data: {
+          object: {
+            customer: 'cus_abc',
+            status: 'active',
+            items: { data: [{ plan: { interval: 'month' }, quantity: 4 }] },
+            metadata: {},
+          },
+        },
+      };
+      const payment: any = { id: 'pay1', customerId: 'cus_abc', status: 'trialing' };
+      mockStripeConstructEvent.mockReturnValue(event);
+      paymentRepo.findOne!.mockResolvedValue(payment);
+
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+      expect(paymentRepo.save).toHaveBeenCalledTimes(1);
+      expect(payment.recentStripeEventIds).toEqual(['evt_duplicate']);
+      expect(payment.lastStripeEventCreated).toBe('200');
+    });
+
+    it('ignores an older event instead of overwriting a newer local projection', async () => {
+      const payment: any = {
+        id: 'pay1',
+        customerId: 'cus_abc',
+        status: 'canceled',
+        lastStripeEventCreated: '300',
+        recentStripeEventIds: ['evt_newer'],
+      };
+      mockStripeConstructEvent.mockReturnValue({
+        id: 'evt_older',
+        created: 200,
+        type: 'payment_intent.succeeded',
+        data: { object: { status: 'succeeded', customer: 'cus_abc' } },
+      });
+      paymentRepo.findOne!.mockResolvedValue(payment);
+
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+      expect(payment.status).toBe('canceled');
+      expect(paymentRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('applies a newer event and advances the ordering watermark', async () => {
+      const payment: any = {
+        id: 'pay1',
+        customerId: 'cus_abc',
+        status: 'past_due',
+        lastStripeEventCreated: '200',
+        recentStripeEventIds: ['evt_older'],
+      };
+      mockStripeConstructEvent.mockReturnValue({
+        id: 'evt_newer',
+        created: 300,
+        type: 'payment_intent.succeeded',
+        data: { object: { status: 'succeeded', customer: 'cus_abc' } },
+      });
+      paymentRepo.findOne!.mockResolvedValue(payment);
+
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+      expect(paymentRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'active',
+          lastStripeEventCreated: '300',
+          recentStripeEventIds: ['evt_older', 'evt_newer'],
+        }),
+      );
+    });
   });
 
   describe('checkout.session.completed', () => {
@@ -173,6 +268,33 @@ describe('PaymentsService — handleStripeWebhook', () => {
         { email: 'host@test.com', name: 'Carla Host' },
         'Urban AI - Assinatura ativada',
         expect.stringContaining('Assinatura ativada'),
+      );
+    });
+
+    it('falls back safely when webhook quantity and billing-cycle metadata are invalid', async () => {
+      mockStripeConstructEvent.mockReturnValue({
+        id: 'evt_bad_metadata',
+        created: 400,
+        type: 'checkout.session.completed',
+        data: { object: { subscription: 'sub_bad_metadata' } },
+      });
+      mockStripeSubscriptionsRetrieve.mockResolvedValue({
+        id: 'sub_bad_metadata',
+        customer: 'cus_abc',
+        status: 'active',
+        billing_cycle_anchor: 1_700_000_000,
+        items: { data: [{ plan: { interval: 'month' }, quantity: 6 }] },
+        metadata: {
+          urbanai_billing_cycle: 'weekly',
+          urbanai_quantity: 'not-a-number',
+        },
+      });
+      paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId: 'cus_abc' });
+
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+      expect(paymentRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ billingCycle: 'monthly', listingsContratados: 6 }),
       );
     });
 
@@ -265,6 +387,57 @@ describe('PaymentsService — handleStripeWebhook', () => {
       expect(paymentRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({ listingsContratados: 8, billingCycle: 'monthly' }),
       );
+    });
+
+    it.each([
+      'active',
+      'trialing',
+      'past_due',
+      'canceled',
+      'unpaid',
+      'incomplete',
+      'incomplete_expired',
+      'paused',
+    ])('maps Stripe subscription status %s without coercion', async (status) => {
+      mockStripeConstructEvent.mockReturnValue({
+        id: `evt_status_${status}`,
+        created: 500,
+        type: 'customer.subscription.updated',
+        data: {
+          object: {
+            customer: 'cus_abc',
+            status,
+            items: { data: [{ plan: { interval: 'month' }, quantity: 1 }] },
+            metadata: {},
+          },
+        },
+      });
+      paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId: 'cus_abc', status: 'pending' });
+
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+      expect(paymentRepo.save).toHaveBeenCalledWith(expect.objectContaining({ status }));
+    });
+
+    it('preserves the current normalized status for an unknown Stripe status', async () => {
+      mockStripeConstructEvent.mockReturnValue({
+        id: 'evt_unknown_status',
+        created: 501,
+        type: 'customer.subscription.updated',
+        data: {
+          object: {
+            customer: 'cus_abc',
+            status: 'future_status',
+            items: { data: [{ plan: { interval: 'month' }, quantity: 1 }] },
+            metadata: {},
+          },
+        },
+      });
+      paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId: 'cus_abc', status: 'peding' });
+
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+      expect(paymentRepo.save).toHaveBeenCalledWith(expect.objectContaining({ status: 'pending' }));
     });
   });
 

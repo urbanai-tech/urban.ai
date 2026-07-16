@@ -188,7 +188,11 @@ export class DatasetCollectorService {
    * Cron diário 03:30 BRT. Roda antes do scraping de eventos (04h) e
    * antes da análise (08h). Constrói série temporal independente de evento.
    */
-  @Cron('30 3 * * *', { name: 'dataset-daily-snapshot', timeZone: 'America/Sao_Paulo' })
+  @Cron('30 3 * * *', {
+    name: 'dataset-daily-snapshot',
+    timeZone: 'America/Sao_Paulo',
+    waitForCompletion: true,
+  })
   async handleDailySnapshot() {
     if (this.isRunning) {
       this.logger.debug('Daily snapshot já em execução; pulando este tick.');
@@ -209,7 +213,11 @@ export class DatasetCollectorService {
     }
   }
 
-  @Cron('45 3 * * *', { name: 'dataset-event-proximity-snapshot', timeZone: 'America/Sao_Paulo' })
+  @Cron('45 3 * * *', {
+    name: 'dataset-event-proximity-snapshot',
+    timeZone: 'America/Sao_Paulo',
+    waitForCompletion: true,
+  })
   async handleDailyEventProximitySnapshot() {
     try {
       const result = await this.runCronWithTracking('dataset-event-proximity-snapshot', () =>
@@ -223,7 +231,11 @@ export class DatasetCollectorService {
     }
   }
 
-  @Cron('5 4 * * *', { name: 'dataset-airbnb-price-observations', timeZone: 'America/Sao_Paulo' })
+  @Cron('5 4 * * *', {
+    name: 'dataset-airbnb-price-observations',
+    timeZone: 'America/Sao_Paulo',
+    waitForCompletion: true,
+  })
   async handleDailyAirbnbPriceObservations() {
     if (this.isAirbnbObservationRunning) {
       this.logger.debug('Airbnb price observations já em execução; pulando este tick.');

@@ -1,9 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
 import { Repository } from 'typeorm';
 import * as Sentry from '@sentry/nestjs';
 import { Event } from '../entities/events.entity';
+import { ScheduledJobRunnerService, runScheduledJob } from '../admin-job-runs/scheduled-job-runner.service';
 
 const STALE_HOURS = 24;
 
@@ -23,10 +24,19 @@ export class CollectorStalenessService {
 
   constructor(
     @InjectRepository(Event) private readonly eventRepo: Repository<Event>,
+    @Optional() private readonly scheduledJobRunner?: ScheduledJobRunnerService,
   ) {}
 
-  @Cron('0 7 * * *', { timeZone: 'America/Sao_Paulo' })
+  @Cron('0 7 * * *', {
+    name: 'collector-staleness',
+    timeZone: 'America/Sao_Paulo',
+    waitForCompletion: true,
+  })
   async check(): Promise<{ checked: number; stale: string[] }> {
+    return runScheduledJob(this.scheduledJobRunner, 'collector-staleness', () => this.checkOnce());
+  }
+
+  private async checkOnce(): Promise<{ checked: number; stale: string[] }> {
     let rows: Array<{ source: string | null; lastAt: Date | string | null }>;
     try {
       rows = await this.eventRepo

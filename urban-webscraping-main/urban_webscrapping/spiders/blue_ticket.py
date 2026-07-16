@@ -3,10 +3,11 @@
 import json
 from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
+from typing import Any, cast
 from urllib.parse import urlparse
 
 from scrapy import FormRequest, Request, Spider
-from scrapy.http import Response
+from scrapy.http import Response, TextResponse
 from scrapy.http.response.json import JsonResponse
 from scrapy.linkextractors import LinkExtractor
 from scrapy_playwright.page import PageMethod
@@ -73,7 +74,7 @@ class BlueTicketSpider(Spider):
         }
         yield Request(url, meta=metadata, callback=self.parse)
 
-    async def errback(self, failure) -> None:
+    async def errback(self, failure: Any) -> None:
         """Handles errors during the request by closing the associated Playwright page.
 
         Args:
@@ -117,7 +118,7 @@ class BlueTicketSpider(Spider):
             "https://soulapi.blueticket.com.br/api/v2/event/detail/{event_id}"
         )
 
-        for link in self.link_extractor.extract_links(response):
+        for link in self.link_extractor.extract_links(cast(TextResponse, response)):
             self.logger.info(f"Processing link: {link.url}")
             event_id = Path(urlparse(link.url).path).parent.name
             new_url = base_api_url.format(event_id=event_id)

@@ -153,12 +153,13 @@ export class EmailTemplates {
     const content = `
         <div class="title">Código de verificação</div>
         <div class="content">
-            <p>Olá!</p>
+            <p>Olá, <b>${escapeHtml(nome)}!</b></p>
             <p>Use o código abaixo para verificar seu e-mail no <b>Urban AI</b>:</p>
             
             <div class="code-box">${code}</div>
             
             <p style="text-align: center; font-size: 14px;">Este código expira em 3 minutos.</p>
+            <p style="text-align: center; font-size: 14px;"><a href="${escapeHtml(frontUrl)}">Acessar Urban AI</a></p>
         </div>
     `;
     return baseLayout(content);
@@ -190,7 +191,7 @@ export class EmailTemplates {
   }
 
   static getAnalysisStartedTemplate(nome: string, dashboardUrl: string): string {
-    let firstName = nome.split(" ")[0];
+    const firstName = nome.split(" ")[0];
     const content = `
         <div class="title">Sua propriedade está em análise</div>
         <div class="content">
@@ -206,7 +207,7 @@ export class EmailTemplates {
   }
 
   static getAnalysisFinishedTemplate(nome: string, dashboardUrl: string): string {
-    let firstName = nome.split(" ")[0];
+    const firstName = nome.split(" ")[0];
     const content = `
         <div class="title">Análise concluída!</div>
         <div class="content">

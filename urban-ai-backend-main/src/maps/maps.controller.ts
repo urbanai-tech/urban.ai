@@ -3,7 +3,9 @@ import {
   Body,
   Controller,
   Logger,
+  Optional,
   Param,
+  ParseArrayPipe,
   Patch,
   Post,
   Query,
@@ -20,18 +22,21 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Cron } from '@nestjs/schedule';
-import { IsString } from 'class-validator';
+import { IsUUID } from 'class-validator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { ProcessService } from 'src/process/process.service';
 import { MapsService } from './maps.service';
+import { ScheduledJobRunnerService, runScheduledJob } from '../admin-job-runs/scheduled-job-runner.service';
 
 export class PropertyDto {
   @ApiProperty({ example: 'ddhddhdhh', description: 'ID da propriedade' })
-  @IsString()
+  @IsUUID()
   id: string;
 }
+
+export class PropertyListDto extends Array<PropertyDto> {}
 
 @ApiTags('maps')
 @Controller('maps')
@@ -41,6 +46,7 @@ export class MapsController {
   constructor(
     private readonly mapsService: MapsService,
     private readonly processService: ProcessService,
+    @Optional() private readonly scheduledJobRunner?: ScheduledJobRunnerService,
   ) {}
 
   @Patch('events/:eventId/location')
@@ -88,10 +94,16 @@ export class MapsController {
     return this.mapsService.updatePendingEventsLatLngBatch(Number(limit), Number(offset));
   }
 
-  @Cron('0 3 * * 4')
+  @Cron('0 3 * * 4', {
+    name: 'weekly-map-processing',
+    timeZone: 'America/Sao_Paulo',
+    waitForCompletion: true,
+  })
   async handleCron() {
-    this.logger.log('Iniciando processamento agendado de quinta as 3h.');
-    await this.iniciarProcessamentoCron();
+    return runScheduledJob(this.scheduledJobRunner, 'weekly-map-processing', async () => {
+      this.logger.log('Iniciando processamento agendado de quinta as 3h.');
+      return this.iniciarProcessamentoCron();
+    });
   }
 
   @Post('processar-lat-long-eventos')
@@ -127,7 +139,11 @@ export class MapsController {
   })
   async processarAnalisesByProperty(
     @Req() req: any,
-    @Body() propertyList: PropertyDto[],
+    @Body(new ParseArrayPipe({
+      items: PropertyDto,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    })) propertyList: PropertyListDto,
   ) {
     return this.iniciarProcessamentoByProperty(req?.user?.userId, propertyList);
   }
@@ -173,6 +189,9 @@ export class MapsController {
     }
     if (!Array.isArray(propertyList) || propertyList.length === 0) {
       throw new BadRequestException('Nenhuma propriedade informada.');
+    }
+    if (propertyList.length > 100) {
+      throw new BadRequestException('MÃ¡ximo de 100 propriedades por processamento.');
     }
 
     const results = [];

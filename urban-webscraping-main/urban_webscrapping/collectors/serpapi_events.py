@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Any
 
 import requests
 from dateutil import parser
@@ -10,9 +11,11 @@ from urban_webscrapping.collectors.base_collector import (
     MissingApiKeyError,
     setup_logging,
 )
+from urban_webscrapping.utils.urban_backend_client import UrbanBackendClient
 
 load_dotenv()
 logger = logging.getLogger(__name__)
+
 
 class SerpApiEventsCollector(BaseCollector):
     """Coletor para Google Events via SerpAPI.
@@ -21,6 +24,7 @@ class SerpApiEventsCollector(BaseCollector):
     do SerpAPI pra forçar viés geográfico ao Google Events. Isso reduz
     drasticamente eventos de outras cidades vazando pro DB.
     """
+
     source = "serpapi_events"
 
     DEFAULT_QUERIES = [
@@ -30,7 +34,13 @@ class SerpApiEventsCollector(BaseCollector):
         "esportes São Paulo Allianz Morumbi Itaquerão",
     ]
 
-    def __init__(self, query=None, queries=None, client=None, dry_run=False):
+    def __init__(
+        self,
+        query: str | None = None,
+        queries: list[str] | None = None,
+        client: UrbanBackendClient | None = None,
+        dry_run: bool = False,
+    ) -> None:
         super().__init__(client=client, dry_run=dry_run)
         if query:
             self.queries = [query]
@@ -39,13 +49,13 @@ class SerpApiEventsCollector(BaseCollector):
         else:
             self.queries = self.DEFAULT_QUERIES
 
-    def fetch_raw(self) -> list[dict]:
+    def fetch_raw(self) -> list[dict[str, Any]]:
         api_key = os.getenv("SERPAPI_KEY")
         if not api_key:
             raise MissingApiKeyError("SERPAPI_KEY")
 
         url = "https://serpapi.com/search.json"
-        all_events: list[dict] = []
+        all_events: list[dict[str, Any]] = []
         seen_titles: set[str] = set()
 
         for query in self.queries:
@@ -76,7 +86,7 @@ class SerpApiEventsCollector(BaseCollector):
         logger.info(f"SerpAPI total: {len(all_events)} eventos únicos.")
         return all_events
 
-    def normalize(self, raw: dict) -> dict | None:
+    def normalize(self, raw: dict[str, Any]) -> dict[str, Any] | None:
         title = raw.get("title")
         if not title:
             return None
@@ -129,6 +139,7 @@ class SerpApiEventsCollector(BaseCollector):
             pass
 
         return payload
+
 
 if __name__ == "__main__":
     setup_logging()

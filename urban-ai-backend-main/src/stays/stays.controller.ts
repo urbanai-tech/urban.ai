@@ -13,6 +13,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { StaysService } from './stays.service';
+import { ConnectStaysDto, PreviewStaysPriceDto, PushStaysPriceDto } from './stays.dto';
 
 type AuthedReq = Request & { user: { userId: string } };
 
@@ -28,7 +29,7 @@ export class StaysController {
   @HttpCode(200)
   async connect(
     @Req() req: AuthedReq,
-    @Body() body: { clientId: string; accessToken: string; consentAccepted?: boolean; consentVersion?: string },
+    @Body() body: ConnectStaysDto,
   ) {
     const account = await this.stays.connectAccount(req.user.userId, {
       ...body,
@@ -72,14 +73,7 @@ export class StaysController {
   async previewPrice(
     @Req() req: AuthedReq,
     @Body()
-    body: {
-      listingId: string;
-      targetDate: string;
-      newPriceCents: number;
-      previousPriceCents?: number | null;
-      currency?: string;
-      analisePrecoId?: string;
-    },
+    body: PreviewStaysPriceDto,
   ) {
     return this.stays.previewPrice(req.user.userId, body);
   }
@@ -89,14 +83,7 @@ export class StaysController {
   async pushPrice(
     @Req() req: AuthedReq,
     @Body()
-    body: {
-      listingId: string;
-      targetDate: string;
-      newPriceCents: number;
-      previousPriceCents: number;
-      currency?: string;
-      analisePrecoId?: string;
-    },
+    body: PushStaysPriceDto,
   ) {
     const record = await this.stays.pushPrice(req.user.userId, {
       ...body,

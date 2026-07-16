@@ -1,28 +1,67 @@
-import * as Sentry from "@sentry/nextjs";
+type SentrySdk = typeof import("@sentry/nextjs");
+type RouterTransitionArgs = Parameters<
+  SentrySdk["captureRouterTransitionStart"]
+>;
 
 const appEnv =
   process.env.NEXT_PUBLIC_APP_ENV || process.env.NODE_ENV || "development";
+const sentryEnabled = appEnv === "production" || appEnv === "staging";
 
-Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+let sentryPromise: Promise<SentrySdk> | undefined;
+const pendingErrors: unknown[] = [];
 
-  // Percentual de sessões com replay gravado (1% em produção)
-  replaysSessionSampleRate: 0.01,
+function initializeSentry(): Promise<SentrySdk> {
+  sentryPromise ??= import("@sentry/nextjs").then((Sentry) => {
+    Sentry.init({
+      dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+      // Traces: 10% em prod, 100% em staging para debug.
+      tracesSampleRate: appEnv === "production" ? 0.1 : 1.0,
+      enabled: sentryEnabled,
+      environment: appEnv,
+    });
 
-  // Quando ocorrer erro, gravar 100% das sessões afetadas
-  replaysOnErrorSampleRate: 1.0,
+    for (const error of pendingErrors.splice(0)) {
+      Sentry.captureException(error);
+    }
+    return Sentry;
+  });
+  return sentryPromise;
+}
 
-  // Traces: 10% em prod, 100% em staging para debug
-  tracesSampleRate: appEnv === "production" ? 0.1 : 1.0,
+if (typeof window !== "undefined" && sentryEnabled) {
+  // O SDK sai do caminho crítico. Até ele carregar, os erros globais ficam em
+  // memória e são enviados imediatamente após a inicialização.
+  const bufferError = (event: ErrorEvent) => {
+    pendingErrors.push(event.error ?? event.message);
+  };
+  const bufferRejection = (event: PromiseRejectionEvent) => {
+    pendingErrors.push(event.reason);
+  };
+  window.addEventListener("error", bufferError);
+  window.addEventListener("unhandledrejection", bufferRejection);
 
-  // Habilitado em production e staging; desabilitado em development para não poluir
-  enabled: appEnv === "production" || appEnv === "staging",
+  const scheduleInitialization = () => {
+    const start = () => {
+      void initializeSentry().finally(() => {
+        window.removeEventListener("error", bufferError);
+        window.removeEventListener("unhandledrejection", bufferRejection);
+      });
+    };
 
-  environment: appEnv,
+    if (typeof window.requestIdleCallback === "function") {
+      window.requestIdleCallback(start, { timeout: 2000 });
+    } else {
+      globalThis.setTimeout(start, 0);
+    }
+  };
 
-  integrations: [
-    Sentry.replayIntegration(),
-  ],
-});
+  if (document.readyState === "complete") scheduleInitialization();
+  else window.addEventListener("load", scheduleInitialization, { once: true });
+}
 
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+export function onRouterTransitionStart(...args: RouterTransitionArgs) {
+  if (!sentryEnabled) return;
+  void initializeSentry().then((Sentry) => {
+    Sentry.captureRouterTransitionStart(...args);
+  });
+}

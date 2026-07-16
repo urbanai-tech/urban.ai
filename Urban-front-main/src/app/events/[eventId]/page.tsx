@@ -29,6 +29,7 @@ import {
   formatTime,
   formatPercent,
 } from "@/app/componentes/ui/event-intelligence";
+import { EventImage } from "@/app/componentes/ui/event-intelligence/EventImage";
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -147,18 +148,7 @@ export default function EventDetailPage() {
       >
         <AppCard variant="default" style={{ padding: 0, overflow: "hidden", minWidth: 0 }}>
           <div className="urban-event-detail-media" style={{ height: 340, background: "var(--app-surface-muted)" }}>
-            {event.imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={event.imageUrl}
-                alt={event.name}
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              />
-            ) : (
-              <div style={{ height: "100%", display: "grid", placeItems: "center", color: "var(--app-text-muted)" }}>
-                Evento monitorado
-              </div>
-            )}
+            <EventImage src={event.imageUrl} alt={event.name} venue={event.venueName} />
           </div>
           <div style={{ padding: 22 }}>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
@@ -389,6 +379,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 function Spinner() {
   return (
     <span
+      role="status"
       aria-label="Carregando"
       style={{
         width: 36,

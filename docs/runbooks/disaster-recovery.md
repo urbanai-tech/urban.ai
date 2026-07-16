@@ -36,7 +36,7 @@ Se algum destes faltar, o restore trava — resolver **agora**, não no incident
 ## Se o dump estiver inutilizável
 
 ⚠️ Hoje **não há caminho de reconstrução só por migrations** — 11 tabelas core não têm
-`CREATE TABLE` em migration (ver `auditorias-consolidadas-2026-07-02.md`, Auditoria 3, e o
+`CREATE TABLE` em migration (ver `../archive/audits/auditorias-consolidadas-2026-07-02.md`, Auditoria 3, e o
 ticket DR-1). Enquanto DR-1 não fechar, um dump inutilizável = **perda de dados**.
 Prioridade: fechar DR-1 e manter ≥2 dumps válidos (versioning no bucket).
 
@@ -45,6 +45,12 @@ Prioridade: fechar DR-1 e manter ≥2 dumps válidos (versioning no bucket).
 - **RPO:** backup diário 03:00 UTC → perda máxima ~24h (dentro do SLO). Depende de o
   dump ser **íntegro** (agora verificado no workflow — DR-2).
 - **RTO 2h:** não crível até o primeiro drill. Estimativa real na 1ª execução: 4–8h+.
+
+## Validação automatizada segura
+
+Antes de release, `npm run audit:resilience-dr` valida de forma determinística o workflow de backup, os guardrails read-only dos scripts e os contratos deste runbook. Os self-tests `npm run backup:mysql:self-test` e `npm run restore:verify:self-test`, executados em `urban-ai-backend-main/`, não carregam `.env`, não conectam a banco e não executam comandos externos.
+
+O gate automatizado não substitui o drill: existência do objeto off-site, restauração integral, permissões, consistência dos dados e RTO só podem ser comprovados em staging ou banco temporário com evidência datada.
 
 ## Pós-incidente
 

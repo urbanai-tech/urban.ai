@@ -95,17 +95,6 @@ export function AskUrbanProvider({ children }: { children: React.ReactNode }) {
 
   const close = useCallback(() => {
     setIsOpen(false);
-    // Restore foco no elemento que abriu.
-    if (previouslyFocused.current && typeof document !== "undefined") {
-      const el = previouslyFocused.current;
-      window.setTimeout(() => {
-        try {
-          el.focus();
-        } catch {
-          /* ignore */
-        }
-      }, 30);
-    }
   }, []);
 
   const closeUpgrade = useCallback(() => {
@@ -163,30 +152,27 @@ export function AskUrbanProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", handler);
   }, [isOpen, upgradeOpen, open, close, closeUpgrade]);
 
-  // ====== Esc fecha (drawer ou upgrade) ======
+  // O drawer gerencia Escape/foco no primitive compartilhado. O upgrade ainda
+  // Ã© um modal independente e permanece sob responsabilidade do provider.
   useEffect(() => {
-    if (!isOpen && !upgradeOpen) return;
+    if (!upgradeOpen) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      if (isOpen) {
-        close();
-      } else if (upgradeOpen) {
-        closeUpgrade();
-      }
+      closeUpgrade();
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [isOpen, upgradeOpen, close, closeUpgrade]);
+  }, [upgradeOpen, closeUpgrade]);
 
-  // ====== Bloqueia scroll do body quando drawer/modal aberto ======
+  // O drawer bloqueia scroll no primitive; este efeito cobre apenas o upgrade.
   useEffect(() => {
-    if (!isOpen && !upgradeOpen) return;
+    if (!upgradeOpen) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
     };
-  }, [isOpen, upgradeOpen]);
+  }, [upgradeOpen]);
 
   const value = useMemo<AskUrbanContextValue>(
     () => ({ open, close, isOpen, isAvailable }),
@@ -207,7 +193,11 @@ export function AskUrbanProvider({ children }: { children: React.ReactNode }) {
       {/* Marca o root do drawer pra detectar Cmd+J dentro dele */}
       {isOpen && (
         <div className="urban-app" data-ask-urban-drawer="true">
-          <AskUrbanDrawer open={isOpen} onClose={close} />
+          <AskUrbanDrawer
+            open={isOpen}
+            onClose={close}
+            restoreFocusTo={previouslyFocused.current}
+          />
         </div>
       )}
 
@@ -244,10 +234,13 @@ function AskUrbanFab({
   onClick: () => void;
   hidden: boolean;
 }) {
-  if (hidden) return null;
   return (
     <>
       <button
+        hidden={hidden}
+        disabled={hidden}
+        aria-hidden={hidden || undefined}
+        tabIndex={hidden ? -1 : undefined}
         onClick={onClick}
         aria-label="Abrir Ask Urban (Ctrl+J)"
         title="Ask Urban · Ctrl+J"
@@ -262,8 +255,10 @@ function AskUrbanFab({
           minWidth: 56,
           height: 56,
           borderRadius: 999,
-          background: "var(--app-accent)",
-          color: "#FFFFFF",
+          // O FAB é irmão do shell `.urban-app`; usa tokens globais de tema,
+          // pois aliases `--app-*` só existem dentro do shell.
+          background: "var(--theme-app-accent)",
+          color: "var(--theme-app-accent-contrast)",
           border: "1px solid rgba(255,255,255,0.18)",
           boxShadow:
             "0 18px 44px var(--app-accent-shadow), 0 4px 12px rgba(0,0,0,0.22)",

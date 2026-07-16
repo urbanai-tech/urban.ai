@@ -3,13 +3,10 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  ManyToOne,
-  JoinColumn,
   OneToMany,
   // …
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Address } from './addresses.entity';
 import { Notification } from './notification.entity';
 
 

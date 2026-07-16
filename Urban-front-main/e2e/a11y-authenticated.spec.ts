@@ -1,5 +1,6 @@
 import { test } from '@playwright/test';
 import { expectNoCriticalA11yViolations } from './a11y-helpers';
+import { installLocalAuthFixture } from './local-auth-fixture';
 import { E2E_AUTH_EMAIL, E2E_AUTH_PASSWORD, loginViaForm } from './test-helpers';
 
 /**
@@ -15,13 +16,12 @@ const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL;
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD;
 
 test.describe('A11y - rotas autenticadas', () => {
-  test.skip(
-    !E2E_AUTH_EMAIL || !E2E_AUTH_PASSWORD,
-    'Defina E2E_AUTH_EMAIL/E2E_AUTH_PASSWORD para rodar a11y autenticada.',
-  );
-
   test.beforeEach(async ({ page }) => {
-    await loginViaForm(page);
+    if (E2E_AUTH_EMAIL && E2E_AUTH_PASSWORD) {
+      await loginViaForm(page);
+    } else {
+      await installLocalAuthFixture(page, 'host');
+    }
   });
 
   const routes: Array<{ label: string; path: string }> = [
@@ -34,22 +34,21 @@ test.describe('A11y - rotas autenticadas', () => {
 
   for (const { label, path } of routes) {
     test(`${label} (${path}) - sem violations criticas`, async ({ page }) => {
-      await page.goto(path);
-      await page.waitForLoadState('networkidle');
+      await page.goto(path, { waitUntil: 'domcontentloaded' });
+      await page.locator('main').first().waitFor({ state: 'visible' });
+      await page.waitForTimeout(500);
       await expectNoCriticalA11yViolations(page);
     });
   }
 });
 
 test.describe('A11y - admin', () => {
-  test.skip(
-    !ADMIN_EMAIL || !ADMIN_PASSWORD,
-    'Defina E2E_ADMIN_EMAIL/E2E_ADMIN_PASSWORD (conta admin) para rodar a11y admin.',
-  );
-
   test.beforeEach(async ({ page }) => {
-    // Reusa o fluxo de login por formulario com as credenciais admin.
-    await loginViaForm(page, ADMIN_EMAIL, ADMIN_PASSWORD);
+    if (ADMIN_EMAIL && ADMIN_PASSWORD) {
+      await loginViaForm(page, ADMIN_EMAIL, ADMIN_PASSWORD);
+    } else {
+      await installLocalAuthFixture(page, 'admin');
+    }
   });
 
   const routes: Array<{ label: string; path: string }> = [
@@ -60,8 +59,9 @@ test.describe('A11y - admin', () => {
 
   for (const { label, path } of routes) {
     test(`${label} (${path}) - sem violations criticas`, async ({ page }) => {
-      await page.goto(path);
-      await page.waitForLoadState('networkidle');
+      await page.goto(path, { waitUntil: 'domcontentloaded' });
+      await page.locator('main').first().waitFor({ state: 'visible' });
+      await page.waitForTimeout(500);
       await expectNoCriticalA11yViolations(page);
     });
   }

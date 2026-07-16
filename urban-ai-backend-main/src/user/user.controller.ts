@@ -1,14 +1,12 @@
 // src/user/user.controller.ts
 import {
-    Body,
     Controller,
     Get,
-    Post,
     Query,
     Req,
     UseGuards,
   } from '@nestjs/common';
-  import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+  import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
   import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
   import { UserService } from './user.service';
 

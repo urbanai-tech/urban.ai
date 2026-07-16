@@ -1,5 +1,4 @@
-"""
-Configuration module for raw data pipeline.
+"""Configuration module for raw data pipeline.
 
 This module provides centralized configuration management including:
 - Application settings

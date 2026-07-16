@@ -7,6 +7,20 @@ import { acceptCookieConsent } from './test-helpers';
  */
 
 test.describe('Smoke - rotas publicas', () => {
+  test('respostas públicas aplicam headers defensivos sem expor o framework', async ({ request }) => {
+    const response = await request.get('/');
+    expect(response.ok()).toBeTruthy();
+    const headers = response.headers();
+
+    expect(headers['x-powered-by']).toBeUndefined();
+    expect(headers['x-content-type-options']).toBe('nosniff');
+    expect(headers['x-frame-options']).toBe('SAMEORIGIN');
+    expect(headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
+    expect(headers['strict-transport-security']).toBe('max-age=31536000');
+    expect(headers['permissions-policy']).toContain('camera=()');
+    expect(headers['content-security-policy-report-only']).toContain("default-src 'self'");
+  });
+
   test.beforeEach(async ({ page }) => {
     await acceptCookieConsent(page);
   });
@@ -59,12 +73,13 @@ test.describe('Smoke - sinalizacoes de ambiente', () => {
     await acceptCookieConsent(page);
   });
 
-  test('banner de STAGING aparece quando NEXT_PUBLIC_APP_ENV=staging', async ({ page, baseURL }) => {
-    test.skip(
-      !baseURL?.includes('staging'),
-      'Sobe so quando rodando contra staging - em prod, banner nao deve aparecer.',
-    );
+  test('banner de STAGING corresponde ao ambiente executado', async ({ page, baseURL }) => {
     await page.goto('/');
-    await expect(page.locator('text=/STAGING/i')).toBeVisible();
+    const banner = page.getByText(/ambiente de staging/i);
+    if (baseURL?.includes('staging')) {
+      await expect(banner).toBeVisible();
+    } else {
+      await expect(banner).toHaveCount(0);
+    }
   });
 });

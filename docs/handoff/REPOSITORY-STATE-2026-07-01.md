@@ -40,7 +40,7 @@ Nao rastreadas:
 - `.env.staging.example`
 - docs/evidence de 2026-05-27
 - `docs/product/`
-- `docs/reavaliacao-360-tecnica-proximos-passos-2026-06-21.md`
+- `docs/archive/audits/reavaliacao-360-tecnica-proximos-passos-2026-06-21.md`
 - `docs/runbooks/staging-handoff-2026-05-27.md`
 - `docs/spinoff-plataforma-demanda/`
 - `scripts/opensquad-readiness-check.js`

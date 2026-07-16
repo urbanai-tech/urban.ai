@@ -35,6 +35,7 @@ from urban_webscrapping.collectors.base_collector import (
     BaseCollector,
     CollectorRunResult,
 )
+from urban_webscrapping.utils.urban_backend_client import UrbanBackendClient
 
 logger = logging.getLogger(__name__)
 
@@ -51,11 +52,11 @@ class MarchaParaJesusCollector(BaseCollector):
 
     OFFICIAL_URL = "https://marchaparajesussp.com"
     REQUEST_TIMEOUT = 10
-    USER_AGENT = (
-        "Mozilla/5.0 (compatible; UrbanAI-EventCollector/1.0)"
-    )
+    USER_AGENT = "Mozilla/5.0 (compatible; UrbanAI-EventCollector/1.0)"
 
-    def __init__(self, client=None, dry_run=False):
+    def __init__(
+        self, client: UrbanBackendClient | None = None, dry_run: bool = False
+    ) -> None:
         super().__init__(client=client, dry_run=dry_run)
 
     def fetch_raw(self) -> list[dict[str, Any]]:
@@ -136,20 +137,30 @@ class MarchaParaJesusCollector(BaseCollector):
 
         # Padrão por extenso: "5 de junho de 2026"
         meses = {
-            "janeiro": 1, "fevereiro": 2, "março": 3, "marco": 3, "abril": 4,
-            "maio": 5, "junho": 6, "julho": 7, "agosto": 8, "setembro": 9,
-            "outubro": 10, "novembro": 11, "dezembro": 12,
+            "janeiro": 1,
+            "fevereiro": 2,
+            "março": 3,
+            "marco": 3,
+            "abril": 4,
+            "maio": 5,
+            "junho": 6,
+            "julho": 7,
+            "agosto": 8,
+            "setembro": 9,
+            "outubro": 10,
+            "novembro": 11,
+            "dezembro": 12,
         }
-        m = re.search(
+        written_date_match = re.search(
             r"(\d{1,2})\s*de\s*(janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\s*de\s*(\d{4})",
             html,
             re.IGNORECASE,
         )
-        if m:
-            day = int(m.group(1))
-            mes_str = m.group(2).lower().replace("ç", "c")
+        if written_date_match:
+            day = int(written_date_match.group(1))
+            mes_str = written_date_match.group(2).lower().replace("ç", "c")
             month = meses.get(mes_str)
-            year = int(m.group(3))
+            year = int(written_date_match.group(3))
             if month:
                 try:
                     dt = datetime(year, month, day, 9, 0)

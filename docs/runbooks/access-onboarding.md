@@ -129,7 +129,7 @@ Acessos concedidos:
 Documentos lidos pelo dev:
 [ ] AGENTS.md
 [ ] CLAUDE.md
-[ ] docs/avaliacao-projeto-2026-04-16.md
+[ ] docs/archive/audits/avaliacao-projeto-2026-04-16.md
 [ ] docs/runbooks/migrations-cutover.md
 [ ] docs/runbooks/staging-provisioning.md
 [ ] docs/runbooks/incident-response/* (todos)

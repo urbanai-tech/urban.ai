@@ -19,6 +19,7 @@ import {
 import { trackEvent } from "@/app/service/tracking";
 import { useAppToast } from "./AppToast";
 import { Close, Sparkles } from "./Icons";
+import { useDialogFocus } from "./useDialogFocus";
 
 /**
  * AskUrbanDrawer — Gap 7 (Track 2, semana 7-8).
@@ -40,6 +41,7 @@ import { Close, Sparkles } from "./Icons";
 type Props = {
   open: boolean;
   onClose: () => void;
+  restoreFocusTo?: HTMLElement | null;
 };
 
 const INITIAL_SUGGESTIONS: string[] = [
@@ -56,7 +58,7 @@ const PLACEHOLDER_ROTATION: string[] = [
   "Ex: minha diária está boa este mês?",
 ];
 
-export function AskUrbanDrawer({ open, onClose }: Props) {
+export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
   const toast = useAppToast();
 
   const [messages, setMessages] = useState<AskMessage[]>([]);
@@ -72,6 +74,14 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const drawerRef = useRef<HTMLDivElement | null>(null);
   const closeBtnRef = useRef<HTMLButtonElement | null>(null);
+
+  useDialogFocus({
+    open,
+    containerRef: drawerRef,
+    initialFocusRef: textareaRef,
+    onClose,
+    restoreFocusTo,
+  });
 
   // Carrega usage quando o drawer abre pela primeira vez.
   useEffect(() => {
@@ -96,15 +106,6 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
     el.scrollTop = el.scrollHeight;
   }, [messages, loading]);
 
-  // Foco inicial no textarea quando abre.
-  useEffect(() => {
-    if (!open) return;
-    const t = window.setTimeout(() => {
-      textareaRef.current?.focus();
-    }, 80);
-    return () => window.clearTimeout(t);
-  }, [open]);
-
   // Rotaciona placeholder a cada 4s enquanto vazio.
   useEffect(() => {
     if (!open || input.length > 0) return;
@@ -113,34 +114,6 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
     }, 4000);
     return () => window.clearInterval(interval);
   }, [open, input.length]);
-
-  // Foco trap basico: prende Tab dentro do drawer.
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key !== "Tab") return;
-      const root = drawerRef.current;
-      if (!root) return;
-      const focusables = root.querySelectorAll<HTMLElement>(
-        'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])',
-      );
-      const visible = Array.from(focusables).filter(
-        (el) => !el.hasAttribute("disabled") && el.tabIndex !== -1,
-      );
-      if (visible.length === 0) return;
-      const first = visible[0];
-      const last = visible[visible.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [open]);
 
   const hardCapReached = usage ? usage.used >= usage.hardCap : false;
   const inputDisabled = loading || hardCapReached;
@@ -295,6 +268,8 @@ export function AskUrbanDrawer({ open, onClose }: Props) {
 
       <div
         ref={drawerRef}
+        tabIndex={-1}
+        data-ask-urban-drawer-panel="true"
         role="dialog"
         aria-modal="true"
         aria-labelledby="ask-urban-title"

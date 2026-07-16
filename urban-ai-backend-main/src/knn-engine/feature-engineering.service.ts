@@ -7,6 +7,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Address } from '../entities/addresses.entity';
 import { List } from '../entities/list.entity';
 import { SP_METRO_STATIONS, MetroStation } from './data/sp-metro-stations';
+import { ScheduledJobRunnerService, runScheduledJob } from '../admin-job-runs/scheduled-job-runner.service';
 
 // ============================================================================
 // Funções puras (testáveis isoladamente, sem I/O)
@@ -101,6 +102,7 @@ export class FeatureEngineeringService {
   constructor(
     @InjectRepository(Address) private readonly addressRepo: Repository<Address>,
     @InjectRepository(List) private readonly listRepo: Repository<List>,
+    @Optional() private readonly scheduledJobRunner?: ScheduledJobRunnerService,
   ) {}
 
   private getMapsClient(): Client | null {
@@ -222,13 +224,19 @@ export class FeatureEngineeringService {
   }
 
   /** Roda os 3 passos em sequência. Cron diário 04:00 BRT (após snapshot 03:30). */
-  @Cron('0 4 * * *', { timeZone: 'America/Sao_Paulo' })
+  @Cron('0 4 * * *', {
+    name: 'feature-engineering',
+    timeZone: 'America/Sao_Paulo',
+    waitForCompletion: true,
+  })
   async runFullPipeline(): Promise<{ geocoded: number; metroDistance: number; amenities: number }> {
-    const geo = await this.geocodePending();
-    const metro = await this.computeMetroDistancePending();
-    const amen = await this.estimateAmenitiesPending();
-    const summary = { geocoded: geo.resolvidos, metroDistance: metro.count, amenities: amen.count };
-    this.logger.log(`FeatureEngineering pipeline: ${JSON.stringify(summary)}`);
-    return summary;
+    return runScheduledJob(this.scheduledJobRunner, 'feature-engineering', async () => {
+      const geo = await this.geocodePending();
+      const metro = await this.computeMetroDistancePending();
+      const amen = await this.estimateAmenitiesPending();
+      const summary = { geocoded: geo.resolvidos, metroDistance: metro.count, amenities: amen.count };
+      this.logger.log(`FeatureEngineering pipeline: ${JSON.stringify(summary)}`);
+      return summary;
+    });
   }
 }

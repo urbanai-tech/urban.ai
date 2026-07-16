@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const assert = require('assert/strict');
 
 const EXPECTED_TABLES = [
   'user',
@@ -28,6 +29,11 @@ async function main() {
   const options = parseArgs(process.argv.slice(2));
   if (options.help) {
     process.stdout.write(`${usage()}\n`);
+    return;
+  }
+
+  if (options.selfTest) {
+    runSelfTest();
     return;
   }
 
@@ -130,6 +136,7 @@ function parseArgs(argv) {
   const options = {
     dryRun: false,
     help: false,
+    selfTest: false,
     output: null,
     envFile: null,
     databaseUrl: null,
@@ -139,6 +146,7 @@ function parseArgs(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === '--dry-run') options.dryRun = true;
+    else if (arg === '--self-test') options.selfTest = true;
     else if (arg === '--allow-production-target') options.allowProductionTarget = true;
     else if (arg === '--help' || arg === '-h') options.help = true;
     else if (arg.startsWith('--env=')) options.envFile = arg.slice('--env='.length);
@@ -162,6 +170,7 @@ function usage() {
   return [
     'Usage:',
     '  node scripts/restore-drill-verify.js --dry-run',
+    '  node scripts/restore-drill-verify.js --self-test',
     '  RESTORE_DATABASE_URL=mysql://... node scripts/restore-drill-verify.js --output ../docs/evidence/restore-drill.md',
     '',
     'This script performs read-only checks against a restored staging/temp database.',
@@ -308,7 +317,10 @@ function markdownTable(headers, rows) {
 }
 
 function markdownCell(value) {
-  return sanitizeText(String(value ?? '')).replace(/\r?\n/g, ' ').replace(/\|/g, '\\|');
+  return sanitizeText(String(value ?? ''))
+    .replace(/\\/g, '\\\\')
+    .replace(/\r?\n/g, ' ')
+    .replace(/\|/g, '\\|');
 }
 
 function writeOrPrint(markdown, output) {
@@ -340,6 +352,76 @@ function sanitizeText(value) {
     .replace(/(mysql2?:\/\/)([^:\s/@]+):([^@\s/]+)@/gi, '$1[redacted]:[redacted]@')
     .replace(/\b(Bearer|Basic)\s+[A-Za-z0-9._~+/-]+=*/gi, '$1 [redacted]')
     .replace(/\b((?:api[_-]?key|access[_-]?token|auth[_-]?token|password|secret)=)[^\s&]+/gi, '$1[redacted]');
+}
+
+function runSelfTest() {
+  const checks = [];
+  const check = (name, fn) => {
+    fn();
+    checks.push(name);
+  };
+
+  check('restore verifier is credential-free in self-test mode', () => {
+    const parsed = parseArgs(['--self-test']);
+    assert.equal(parsed.selfTest, true);
+    assert.equal(parsed.databaseUrl, null);
+  });
+
+  check('dry-run declares every read-only verification', () => {
+    const planned = plannedChecks();
+    assert.equal(planned.length, 5);
+    assert.ok(planned.every((item) => item.status === 'planned'));
+    assert.ok(planned.some((item) => item.name === 'auditability.tables_nonempty'));
+  });
+
+  check('production-looking targets fail closed', () => {
+    assert.throws(
+      () => assertNotProductionTarget('mysql://user:pass@prod-db.internal:3306/urban', {}),
+      /Refusing apparent production database target/,
+    );
+    assert.throws(
+      () => assertNotProductionTarget('mysql://user:pass@db.myurbanai.com:3306/urban', {}),
+      /Refusing apparent production database target/,
+    );
+    assert.doesNotThrow(() =>
+      assertNotProductionTarget('mysql://user:pass@restore-staging.internal:3306/urban_restore', {}),
+    );
+  });
+
+  check('production override must be explicit', () => {
+    assert.doesNotThrow(() =>
+      assertNotProductionTarget('mysql://user:pass@prod-db.internal:3306/urban', {
+        allowProductionTarget: true,
+      }),
+    );
+  });
+
+  check('database evidence redacts credentials and URL extras', () => {
+    const sanitized = sanitizeDatabaseUrl(
+      'mysql://restore_user:restore_password@restore-staging.internal:3306/urban?token=secret#fragment',
+    );
+    assert.ok(!sanitized.includes('restore_user'));
+    assert.ok(!sanitized.includes('restore_password'));
+    assert.ok(!sanitized.includes('token='));
+    assert.ok(!sanitized.includes('fragment'));
+  });
+
+  check('rendered evidence never contains raw credentials', () => {
+    const markdown = renderMarkdown({
+      generatedAt: '2026-01-01T00:00:00.000Z',
+      mode: 'dry-run',
+      database: sanitizeDatabaseUrl(
+        'mysql://restore_user:restore_password@restore-staging.internal:3306/urban_restore',
+      ),
+      checks: plannedChecks(),
+    });
+    assert.match(markdown, /Planned: 5/);
+    assert.ok(!markdown.includes('restore_user'));
+    assert.ok(!markdown.includes('restore_password'));
+    assert.match(markdown, /read-only/);
+  });
+
+  console.log(`Restore verifier self-test passed: ${checks.length}/${checks.length} checks.`);
 }
 
 main().catch((error) => {

@@ -1,6 +1,7 @@
 import { EventPricingIntelligenceService } from '../knn-engine/event-pricing-intelligence.service';
 import { PricingCalculateService } from '../propriedades/pricing-calculate.service';
 import { EventIntelligenceService } from './event-intelligence.service';
+import { EventHeatmapProjectionService } from './event-heatmap-projection.service';
 
 function makeQueryBuilder(result: any) {
   return {
@@ -28,6 +29,7 @@ function makeService(input: {
   impacts?: any[];
   analyses?: any[];
   pricingDecisionSnapshots?: any[];
+  dataSource?: any;
 }) {
   let snapshotId = 0;
   let impactId = 0;
@@ -107,6 +109,7 @@ function makeService(input: {
     createQueryBuilder: jest.fn().mockReturnValue(makeQueryBuilder(input.analyses ?? [])),
   };
 
+  const pricingIntelligence = new EventPricingIntelligenceService();
   const service = new EventIntelligenceService(
     eventRepo as any,
     snapshotRepo as any,
@@ -114,8 +117,10 @@ function makeService(input: {
     pricingDecisionSnapshotRepo as any,
     addressRepo as any,
     analiseRepo as any,
-    new EventPricingIntelligenceService(),
+    pricingIntelligence,
     new PricingCalculateService(),
+    new EventHeatmapProjectionService(pricingIntelligence),
+    input.dataSource,
   );
 
   return {
@@ -378,6 +383,114 @@ describe('EventIntelligenceService contracts', () => {
     expect(result.writes.created.pricingDecisionSnapshots).toBe(1);
   });
 
+  it('uses and releases a MySQL advisory lock around recompute', async () => {
+    const queryRunner = {
+      isReleased: false,
+      connect: jest.fn().mockResolvedValue(undefined),
+      query: jest.fn()
+        .mockResolvedValueOnce([[{ acquired: 1 }]])
+        .mockResolvedValueOnce([{ released: 1 }]),
+      release: jest.fn().mockImplementation(async function (this: any) {
+        queryRunner.isReleased = true;
+      }),
+    };
+    const dataSource = {
+      options: { type: 'mysql' },
+      createQueryRunner: jest.fn(() => queryRunner),
+    };
+    const { service } = makeService({ event, analyses: [], dataSource });
+
+    const result = await service.recomputeEventIntelligence('event-1', 'admin-1');
+
+    expect(result.runtime).toMatchObject({
+      lockKey: 'event-intelligence:event:event-1',
+      lockProvider: 'mysql_advisory_lock',
+      attempts: 1,
+    });
+    expect(queryRunner.query).toHaveBeenNthCalledWith(
+      1,
+      'SELECT GET_LOCK(?, 0) AS acquired',
+      [expect.stringMatching(/^event-intel:[a-f0-9]{24}$/)],
+    );
+    expect(queryRunner.query).toHaveBeenNthCalledWith(
+      2,
+      'SELECT RELEASE_LOCK(?) AS released',
+      [expect.stringMatching(/^event-intel:[a-f0-9]{24}$/)],
+    );
+    expect(queryRunner.release).toHaveBeenCalledTimes(1);
+  });
+
+  it('releases MariaDB connection even when advisory lock release query fails', async () => {
+    const queryRunner = {
+      isReleased: false,
+      connect: jest.fn().mockResolvedValue(undefined),
+      query: jest.fn()
+        .mockResolvedValueOnce([{ 'GET_LOCK(?, 0)': 1 }])
+        .mockRejectedValueOnce(new Error('release failed')),
+      release: jest.fn().mockImplementation(async () => {
+        queryRunner.isReleased = true;
+      }),
+    };
+    const dataSource = {
+      options: { type: 'mariadb' },
+      createQueryRunner: jest.fn(() => queryRunner),
+    };
+    const { service } = makeService({ event, analyses: [], dataSource });
+
+    await expect(service.recomputeEventIntelligence('event-1')).resolves.toMatchObject({
+      status: 'ok',
+      runtime: { lockProvider: 'mysql_advisory_lock' },
+    });
+    expect(queryRunner.release).toHaveBeenCalledTimes(1);
+  });
+
+  it('fails after bounded retries while the MySQL advisory lock remains busy', async () => {
+    const queryRunners: any[] = [];
+    const dataSource = {
+      options: { type: 'mysql' },
+      createQueryRunner: jest.fn(() => {
+        const queryRunner = {
+          isReleased: false,
+          connect: jest.fn().mockResolvedValue(undefined),
+          query: jest.fn().mockResolvedValue([{ acquired: 0 }]),
+          release: jest.fn().mockImplementation(async () => {
+            queryRunner.isReleased = true;
+          }),
+        };
+        queryRunners.push(queryRunner);
+        return queryRunner;
+      }),
+    };
+    const { service, repos } = makeService({ event, analyses: [], dataSource });
+    (service as any).sleep = jest.fn().mockResolvedValue(undefined);
+
+    await expect(service.recomputeEventIntelligence('event-1')).rejects.toThrow(
+      'Recompute lock ocupado: event-intelligence:event:event-1',
+    );
+    expect(dataSource.createQueryRunner).toHaveBeenCalledTimes(3);
+    expect(queryRunners.every((runner) => runner.release.mock.calls.length === 1)).toBe(true);
+    expect(repos.snapshotRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('rejects overlapping in-process recomputes without leaking the local claim', async () => {
+    let releaseLookup: (value: any) => void = () => undefined;
+    const { service, repos } = makeService({ event, analyses: [] });
+    repos.eventRepo.findOne.mockImplementationOnce(
+      () => new Promise((resolve) => { releaseLookup = resolve; }),
+    );
+    (service as any).sleep = jest.fn().mockResolvedValue(undefined);
+
+    const first = service.recomputeEventIntelligence('event-1');
+    await Promise.resolve();
+    await expect(service.recomputeEventIntelligence('event-1')).rejects.toThrow(
+      'Recompute lock ocupado: event-intelligence:event:event-1',
+    );
+    releaseLookup(event);
+    await expect(first).resolves.toMatchObject({ status: 'ok' });
+
+    await expect(service.recomputeEventIntelligence('event-1')).resolves.toMatchObject({ status: 'ok' });
+  });
+
   it('persists snapshots in batch even when no AnalisePreco can become impact', async () => {
     const { service, repos } = makeService({ events: [event], analyses: [] });
 
@@ -462,5 +575,27 @@ describe('EventIntelligenceService contracts', () => {
         pricingDecisionSnapshotsCount: 1,
       },
     });
+  });
+
+  it('adapts a swallowed backfill cron failure to an AdminJobRun error outcome', async () => {
+    const previous = process.env.EVENT_INTELLIGENCE_BACKFILL_CRON_ENABLED;
+    process.env.EVENT_INTELLIGENCE_BACKFILL_CRON_ENABLED = 'true';
+    try {
+      const { service } = makeService({ events: [] });
+      jest.spyOn(service, 'backfillFutureEventIntelligence').mockRejectedValue(new Error('backfill failed'));
+      let trackedResult: unknown;
+      (service as any).scheduledJobRunner = {
+        run: jest.fn(async (_name, handler) => {
+          trackedResult = await handler();
+          return trackedResult;
+        }),
+      };
+
+      await expect(service.handleBackfillCron()).resolves.toBeUndefined();
+      expect(trackedResult).toEqual({ ok: false, errorMessage: 'backfill failed' });
+    } finally {
+      if (previous === undefined) delete process.env.EVENT_INTELLIGENCE_BACKFILL_CRON_ENABLED;
+      else process.env.EVENT_INTELLIGENCE_BACKFILL_CRON_ENABLED = previous;
+    }
   });
 });

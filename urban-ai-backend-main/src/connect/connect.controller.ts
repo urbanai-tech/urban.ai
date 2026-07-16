@@ -9,8 +9,8 @@ import {
   Req,
   UnauthorizedException,
   UseGuards,
-  ValidationPipe,
-  UsePipes,
+  BadRequestException,
+  ParseArrayPipe,
   Query,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiQuery } from "@nestjs/swagger";
@@ -20,6 +20,12 @@ import { Request } from "express";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Address } from "../entities/addresses.entity";
 import { PaymentsService } from "../payments/payments.service";
+import {
+  CreateAddressesDto,
+  CreateAddressInputDto,
+  RegisterPropertiesDto,
+  RegisterPropertyDto,
+} from './connect.dto';
 
 // Interface para tipar Request com user
 export interface AuthenticatedRequest extends Request {
@@ -158,20 +164,21 @@ export class ConnectController {
     description: "Imóveis registrados com sucesso.",
     type: [List],
   })
-  @UsePipes(
-    new ValidationPipe({
-      whitelist: false,
-      transform: true,
-    }),
-  )
   async registerProperties(
-    @Body() properties: List[],
+    @Body(new ParseArrayPipe({
+      items: RegisterPropertyDto,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    })) properties: RegisterPropertiesDto,
     @Req() req: AuthenticatedRequest,
   ): Promise<List[]> {
+    if (properties.length === 0 || properties.length > 100) {
+      throw new BadRequestException('Informe entre 1 e 100 imÃ³veis por requisiÃ§Ã£o.');
+    }
     const userId = req.user.userId;
     const newSlots = await this.connectService.countNewAddressSlotsForProperties(properties, userId);
     const quotaCheck = await this.assertListingsQuota(userId, newSlots);
-    const saved = await this.connectService.saveProperties(properties, userId);
+    const saved = await this.connectService.saveProperties(properties as unknown as List[], userId);
     if (quotaCheck?.crossedWarningThreshold) {
       await this.paymentsService.sendQuotaWarningEmail(userId, quotaCheck.contratados, quotaCheck.totalAposCriacao);
     }
@@ -220,12 +227,19 @@ export class ConnectController {
   })
   //
   async createMultipleAddresses(
-    @Body() addresses: any[],
+    @Body(new ParseArrayPipe({
+      items: CreateAddressInputDto,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    })) addresses: CreateAddressesDto,
     @Req() req: AuthenticatedRequest
   ): Promise<Address[]> {
     const userId = req.user?.userId;
     if (!userId) {
       throw new UnauthorizedException("Usuário não autenticado");
+    }
+    if (addresses.length === 0 || addresses.length > 100) {
+      throw new BadRequestException('Informe entre 1 e 100 endereÃ§os por requisiÃ§Ã£o.');
     }
 
     // F6.5 — bloqueio de quota: usuário com plano N imóveis não pode

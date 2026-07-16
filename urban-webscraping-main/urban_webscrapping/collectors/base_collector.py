@@ -29,6 +29,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any
 
 from urban_webscrapping.utils.urban_backend_client import (
@@ -54,7 +55,9 @@ class CollectorRunResult:
     skipped_invalid: int = 0
     errors: list[str] = field(default_factory=list)
     elapsed_seconds: float = 0.0
-    backend_response: dict[str, Any] | None = None  # Última resposta agregada do backend
+    backend_response: dict[str, Any] | None = (
+        None  # Última resposta agregada do backend
+    )
 
 
 class MissingCollectorDependency(RuntimeError):
@@ -134,7 +137,11 @@ class BaseCollector(ABC):
         """
         if payload.get("latitude") is not None and payload.get("longitude") is not None:
             # Já tem geo do coletor — só completa metadados se vazio
-            search = (payload.get("enderecoCompleto") or "") + " " + (payload.get("nome") or "")
+            search = (
+                (payload.get("enderecoCompleto") or "")
+                + " "
+                + (payload.get("nome") or "")
+            )
             venue = match_venue(search)
             if venue:
                 payload.setdefault("venueType", venue.venue_type)
@@ -143,7 +150,9 @@ class BaseCollector(ABC):
             return payload
 
         # Sem geo do coletor — tenta puxar tudo do venue_map
-        search = (payload.get("enderecoCompleto") or "") + " " + (payload.get("nome") or "")
+        search = (
+            (payload.get("enderecoCompleto") or "") + " " + (payload.get("nome") or "")
+        )
         venue = match_venue(search)
         if venue:
             payload["latitude"] = venue.lat
@@ -153,6 +162,62 @@ class BaseCollector(ABC):
                 payload.setdefault("venueCapacity", venue.capacity)
         # Se ainda não tem, backend marca pendingGeocode (precisa endereço)
         return payload
+
+    def validate_payload(self, payload: dict[str, Any]) -> list[str]:
+        """Valida o contrato mínimo antes de enviar um evento ao backend.
+
+        A validação fica na classe base para que toda fonte nova ou existente
+        tenha o mesmo fail-closed. Retorna todos os erros encontrados para
+        permitir métricas e diagnóstico do coletor sem interromper o lote.
+        """
+        errors: list[str] = []
+        for field_name in ("nome", "dataInicio", "source"):
+            value = payload.get(field_name)
+            if value is None or not str(value).strip():
+                errors.append(f"missing_{field_name}")
+
+        source = payload.get("source")
+        if source and str(source).strip() != self.source:
+            errors.append("invalid_source")
+
+        starts_at = self._parse_datetime(payload.get("dataInicio"))
+        if payload.get("dataInicio") and starts_at is None:
+            errors.append("invalid_dataInicio")
+
+        ends_at = self._parse_datetime(payload.get("dataFim"))
+        if payload.get("dataFim") and ends_at is None:
+            errors.append("invalid_dataFim")
+        if starts_at is not None and ends_at is not None:
+            if (starts_at.tzinfo is None) != (ends_at.tzinfo is None):
+                errors.append("inconsistent_temporal_timezone")
+            elif ends_at < starts_at:
+                errors.append("invalid_temporal_order")
+
+        latitude = payload.get("latitude")
+        longitude = payload.get("longitude")
+        if (latitude is None) != (longitude is None):
+            errors.append("incomplete_coordinates")
+        elif latitude is not None and longitude is not None:
+            try:
+                lat = float(latitude)
+                lng = float(longitude)
+            except (TypeError, ValueError):
+                errors.append("invalid_coordinates")
+            else:
+                if not -90 <= lat <= 90 or not -180 <= lng <= 180:
+                    errors.append("coordinates_out_of_range")
+
+        return errors
+
+    @staticmethod
+    def _parse_datetime(value: Any) -> datetime | None:
+        """Parse the ISO-like timestamp vocabulary accepted by the backend."""
+        if value is None or not str(value).strip():
+            return None
+        try:
+            return datetime.fromisoformat(str(value).strip().replace("Z", "+00:00"))
+        except ValueError:
+            return None
 
     # ============== Orquestração ==============
 
@@ -198,17 +263,31 @@ class BaseCollector(ABC):
                 result.skipped_empty += 1
                 continue
 
-            # Garante source consistente (subclass pode ter esquecido)
-            payload.setdefault("source", self.source)
+            # Garante source consistente (subclass pode ter esquecido ou enviado vazio)
+            if not payload.get("source"):
+                payload["source"] = self.source
 
             # Enrich com venue_map antes de enviar
             payload = self.enrich_with_venue(payload)
+
+            validation_errors = self.validate_payload(payload)
+            if validation_errors:
+                result.skipped_invalid += 1
+                result.errors.append(
+                    "payload_validation: " + ",".join(validation_errors)
+                )
+                logger.warning(
+                    "[%s] invalid payload skipped: %s",
+                    self.source,
+                    ",".join(validation_errors),
+                )
+                continue
 
             result.normalized += 1
 
             if self.dry_run or self.client is None:
                 # Modo dry-run: log o que mandaria, não envia
-                logger.debug("[%s] DRY-RUN payload: %s", self.source, payload)
+                logger.debug("[%s] DRY-RUN normalized payload ready", self.source)
                 continue
 
             try:
@@ -229,7 +308,9 @@ class BaseCollector(ABC):
                 result.errors.append(f"flush: {e}")
 
         if result.errors:
-            result.status = "partial_failure" if result.normalized or result.sent else "failed"
+            result.status = (
+                "partial_failure" if result.normalized or result.sent else "failed"
+            )
         elif result.fetched == 0:
             result.status = "no_data"
         else:

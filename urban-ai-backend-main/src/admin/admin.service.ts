@@ -22,6 +22,7 @@ import { calculateBacktest } from '../knn-engine/backtesting';
 import { MapsService } from '../maps/maps.service';
 import { runAdminJobWithTracking } from '../admin-job-runs/admin-job-run-tracker';
 import { AuthService } from '../auth/auth.service';
+import { AdminStaysHealthService } from './admin-stays-health.service';
 
 /**
  * AdminService — agrega métricas de gestão Urban AI para o painel admin.
@@ -34,24 +35,38 @@ import { AuthService } from '../auth/auth.service';
 export class AdminService {
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
-    @InjectRepository(Address) private readonly addressRepo: Repository<Address>,
+    @InjectRepository(Address)
+    private readonly addressRepo: Repository<Address>,
     @InjectRepository(List) private readonly listRepo: Repository<List>,
-    @InjectRepository(EventEntity) private readonly eventRepo: Repository<EventEntity>,
-    @InjectRepository(Payment) private readonly paymentRepo: Repository<Payment>,
-    @InjectRepository(AnalisePreco) private readonly analiseRepo: Repository<AnalisePreco>,
-    @InjectRepository(PriceSnapshot) private readonly snapshotRepo: Repository<PriceSnapshot>,
-    @InjectRepository(OccupancyHistory) private readonly occupancyRepo: Repository<OccupancyHistory>,
-    @InjectRepository(PriceUpdate) private readonly priceUpdateRepo: Repository<PriceUpdate>,
-    @InjectRepository(StaysAccount) private readonly staysAccountRepo: Repository<StaysAccount>,
-    @InjectRepository(StaysListing) private readonly staysListingRepo: Repository<StaysListing>,
-    @InjectRepository(Waitlist) private readonly waitlistRepo: Repository<Waitlist>,
-    @InjectRepository(CoverageRegion) private readonly coverageRepo: Repository<CoverageRegion>,
-    @InjectRepository(AdminJobRun) private readonly jobRunRepo: Repository<AdminJobRun>,
-    @InjectRepository(ContactSubmission) private readonly contactSubmissionRepo: Repository<ContactSubmission>,
+    @InjectRepository(EventEntity)
+    private readonly eventRepo: Repository<EventEntity>,
+    @InjectRepository(Payment)
+    private readonly paymentRepo: Repository<Payment>,
+    @InjectRepository(AnalisePreco)
+    private readonly analiseRepo: Repository<AnalisePreco>,
+    @InjectRepository(PriceSnapshot)
+    private readonly snapshotRepo: Repository<PriceSnapshot>,
+    @InjectRepository(OccupancyHistory)
+    private readonly occupancyRepo: Repository<OccupancyHistory>,
+    @InjectRepository(PriceUpdate)
+    private readonly priceUpdateRepo: Repository<PriceUpdate>,
+    @InjectRepository(StaysAccount)
+    private readonly staysAccountRepo: Repository<StaysAccount>,
+    @InjectRepository(StaysListing)
+    private readonly staysListingRepo: Repository<StaysListing>,
+    @InjectRepository(Waitlist)
+    private readonly waitlistRepo: Repository<Waitlist>,
+    @InjectRepository(CoverageRegion)
+    private readonly coverageRepo: Repository<CoverageRegion>,
+    @InjectRepository(AdminJobRun)
+    private readonly jobRunRepo: Repository<AdminJobRun>,
+    @InjectRepository(ContactSubmission)
+    private readonly contactSubmissionRepo: Repository<ContactSubmission>,
     private readonly adaptiveStrategy: AdaptivePricingStrategy,
     private readonly collector: DatasetCollectorService,
     private readonly mapsService: MapsService,
     private readonly authService: AuthService,
+    private readonly staysHealthService: AdminStaysHealthService,
   ) {}
 
   private countPt(count: number, singular: string, plural: string) {
@@ -118,7 +133,11 @@ export class AdminService {
         take: 10,
       }),
       this.jobRunRepo.count({
-        where: { name: In(jobNames), status: 'error', startedAt: MoreThanOrEqual(oneDayAgo) },
+        where: {
+          name: In(jobNames),
+          status: 'error',
+          startedAt: MoreThanOrEqual(oneDayAgo),
+        },
       }),
       this.jobRunRepo
         .createQueryBuilder('job')
@@ -131,7 +150,9 @@ export class AdminService {
         where: { name: In(jobNames), status: 'success' },
         order: { startedAt: 'DESC' },
       }),
-      this.jobRunRepo.count({ where: { name: In(jobNames), status: 'running' } }),
+      this.jobRunRepo.count({
+        where: { name: In(jobNames), status: 'running' },
+      }),
       this.jobRunRepo.find({
         where: { name: In(jobNames), startedAt: MoreThanOrEqual(windowStart) },
         order: { startedAt: 'DESC' },
@@ -140,7 +161,10 @@ export class AdminService {
       Promise.all(
         jobNames.map(async (name) => ({
           name,
-          lastRun: await this.jobRunRepo.findOne({ where: { name }, order: { startedAt: 'DESC' } }),
+          lastRun: await this.jobRunRepo.findOne({
+            where: { name },
+            order: { startedAt: 'DESC' },
+          }),
         })),
       ),
       this.collector.priceIntelligenceHealth(safeWindowDays * 24),
@@ -150,13 +174,9 @@ export class AdminService {
     ]);
 
     const observationCoveragePercent =
-      activeAirbnbListings > 0
-        ? Math.round((observations.distinctListingsLast7d / activeAirbnbListings) * 1000) / 10
-        : 0;
+      activeAirbnbListings > 0 ? Math.round((observations.distinctListingsLast7d / activeAirbnbListings) * 1000) / 10 : 0;
     const verifiedPercent =
-      suggestionMetrics.accepted > 0
-        ? Math.round((suggestionMetrics.verified / suggestionMetrics.accepted) * 1000) / 10
-        : 0;
+      suggestionMetrics.accepted > 0 ? Math.round((suggestionMetrics.verified / suggestionMetrics.accepted) * 1000) / 10 : 0;
 
     const failuresByType = this.mergeFailureGroups(
       this.failuresFromJobRuns(recentJobs),
@@ -175,7 +195,10 @@ export class AdminService {
     const recurrentFailures = failuresByType.filter((failure) => failure.count >= 2);
     const endpointGaps = this.priceIntelligenceEndpointGaps(schemaHealth);
 
-    const alerts: Array<{ severity: 'red' | 'amber' | 'info'; message: string }> = [];
+    const alerts: Array<{
+      severity: 'red' | 'amber' | 'info';
+      message: string;
+    }> = [];
     if (schemaHealth.missing.length > 0) {
       alerts.push({
         severity: 'red',
@@ -308,7 +331,8 @@ export class AdminService {
         running: runningJobs,
         queued: 0,
         queueAvailable: false,
-        queueUnavailableReason: 'Nenhuma fila persistente/BullMQ foi implementada para Price Intelligence; queued está sempre indisponível neste painel.',
+        queueUnavailableReason:
+          'Nenhuma fila persistente/BullMQ foi implementada para Price Intelligence; queued está sempre indisponível neste painel.',
         failedLast24h: failedJobsLast24h,
         avgDurationMs:
           avgJobDurationRow?.avgDurationMs === null || avgJobDurationRow?.avgDurationMs === undefined
@@ -323,20 +347,32 @@ export class AdminService {
       problematicProperties,
       schema: schemaHealth,
       shortcuts: [
-        { label: 'Qualidade', href: '/admin/quality', description: 'MAPE, ocupação e ground truth.' },
-        { label: 'Jobs do sistema', href: '/admin/jobs', description: 'Executar snapshots e recomputações.' },
-        { label: 'Config. de preços', href: '/admin/pricing-config', description: 'Regras e parâmetros operacionais.' },
-        { label: 'Radar de demanda', href: '/admin/event-radar', description: 'Eventos que alimentam sugestões.' },
+        {
+          label: 'Qualidade',
+          href: '/admin/quality',
+          description: 'MAPE, ocupação e ground truth.',
+        },
+        {
+          label: 'Jobs do sistema',
+          href: '/admin/jobs',
+          description: 'Executar snapshots e recomputações.',
+        },
+        {
+          label: 'Config. de preços',
+          href: '/admin/pricing-config',
+          description: 'Regras e parâmetros operacionais.',
+        },
+        {
+          label: 'Radar de demanda',
+          href: '/admin/event-radar',
+          description: 'Eventos que alimentam sugestões.',
+        },
       ],
       endpointGaps,
     };
   }
 
-  async runTrackedJob<T>(
-    name: string,
-    triggeredByUserId: string | null,
-    handler: () => Promise<T>,
-  ) {
+  async runTrackedJob<T>(name: string, triggeredByUserId: string | null, handler: () => Promise<T>) {
     return runAdminJobWithTracking(this.jobRunRepo, name, triggeredByUserId, handler);
   }
 
@@ -405,10 +441,7 @@ export class AdminService {
         "SUM(CASE WHEN a.aceito = true AND (a.verificationStatus IS NULL OR a.verificationStatus = 'pending') THEN 1 ELSE 0 END)",
         'pendingVerification',
       )
-      .addSelect(
-        "SUM(CASE WHEN a.verificationStatus IN ('failed', 'mismatch') THEN 1 ELSE 0 END)",
-        'failedVerification',
-      )
+      .addSelect("SUM(CASE WHEN a.verificationStatus IN ('failed', 'mismatch') THEN 1 ELSE 0 END)", 'failedVerification')
       .setParameters({ oneDayAgo, sevenDaysAgo, now })
       .getRawOne();
 
@@ -426,7 +459,11 @@ export class AdminService {
   }
 
   private failuresFromJobRuns(jobs: AdminJobRun[]) {
-    const failures: Array<{ type: string; count: number; lastSeenAt: string | null }> = [];
+    const failures: Array<{
+      type: string;
+      count: number;
+      lastSeenAt: string | null;
+    }> = [];
     for (const job of jobs) {
       const result = job.result as any;
       const jobFailures = Array.isArray(result?.failures) ? result.failures : [];
@@ -469,9 +506,7 @@ export class AdminService {
     }));
   }
 
-  private mergeFailureGroups(
-    ...groups: Array<Array<{ type: string; count: number; lastSeenAt: string | null }>>
-  ) {
+  private mergeFailureGroups(...groups: Array<Array<{ type: string; count: number; lastSeenAt: string | null }>>) {
     const merged = new Map<string, { type: string; count: number; lastSeenAt: string | null }>();
     for (const group of groups) {
       for (const item of group) {
@@ -490,11 +525,7 @@ export class AdminService {
     return [...merged.values()].sort((a, b) => b.count - a.count).slice(0, 12);
   }
 
-  private jobMetricsByName(
-    jobNames: string[],
-    runs: AdminJobRun[],
-    latestByName: Map<string, AdminJobRun | null>,
-  ) {
+  private jobMetricsByName(jobNames: string[], runs: AdminJobRun[], latestByName: Map<string, AdminJobRun | null>) {
     return jobNames.map((name) => {
       const jobRuns = runs.filter((run) => run.name === name);
       const successes = jobRuns.filter((run) => run.status === 'success').length;
@@ -515,9 +546,7 @@ export class AdminService {
         running,
         successRate: jobRuns.length > 0 ? Math.round((successes / jobRuns.length) * 1000) / 10 : null,
         avgDurationMs:
-          durations.length > 0
-            ? Math.round(durations.reduce((sum, duration) => sum + duration, 0) / durations.length)
-            : null,
+          durations.length > 0 ? Math.round(durations.reduce((sum, duration) => sum + duration, 0) / durations.length) : null,
         lastRunAt: lastRun?.startedAt.toISOString?.() ?? null,
         lastStatus: lastRun?.status ?? null,
         lastSuccessAt: lastSuccess?.finishedAt.toISOString?.() ?? null,
@@ -574,7 +603,12 @@ export class AdminService {
         tables,
       );
       const columnsByTable = new Map<string, Set<string>>();
-      for (const row of rows as Array<{ tableName?: string; TABLE_NAME?: string; columnName?: string; COLUMN_NAME?: string }>) {
+      for (const row of rows as Array<{
+        tableName?: string;
+        TABLE_NAME?: string;
+        columnName?: string;
+        COLUMN_NAME?: string;
+      }>) {
         const tableName = row.tableName ?? row.TABLE_NAME;
         const columnName = row.columnName ?? row.COLUMN_NAME;
         if (!tableName || !columnName) continue;
@@ -610,11 +644,7 @@ export class AdminService {
     }
   }
 
-  private priceIntelligenceEndpointGaps(schemaHealth: {
-    ok: boolean;
-    missing: string[];
-    checkError: string | null;
-  }) {
+  private priceIntelligenceEndpointGaps(schemaHealth: { ok: boolean; missing: string[]; checkError: string | null }) {
     const gaps = [
       'POST /admin/dataset/airbnb-observations/run ausente; coleta Airbnb real depende apenas do cron dataset-airbnb-price-observations.',
       'POST /admin/jobs/pricing-retrain/run ausente; pricing-retrain está instrumentado como cron, mas não tem trigger admin dedicado.',
@@ -622,7 +652,9 @@ export class AdminService {
       'GET /admin/price-intelligence/queue ausente; queued não é mensurável porque não há fila persistente implementada.',
     ];
     if (!schemaHealth.ok || schemaHealth.checkError) {
-      gaps.push('Saúde do schema degradada; aplicar migrations de AdminJobRun, verificação de analise_preco e observações Airbnb antes do go-live.');
+      gaps.push(
+        'Saúde do schema degradada; aplicar migrations de AdminJobRun, verificação de analise_preco e observações Airbnb antes do go-live.',
+      );
     }
     return gaps;
   }
@@ -657,7 +689,10 @@ export class AdminService {
           order: { createdAt: 'DESC' },
         }),
         this.snapshotRepo.findOne({
-          where: { externalListingId: listingId, origin: 'airbnb_observation' } as any,
+          where: {
+            externalListingId: listingId,
+            origin: 'airbnb_observation',
+          } as any,
           order: { observedAt: 'DESC' as any },
         }),
         this.analiseRepo
@@ -666,10 +701,7 @@ export class AdminService {
             "SUM(CASE WHEN a.aceito = true AND (a.verificationStatus IS NULL OR a.verificationStatus = 'pending') THEN 1 ELSE 0 END)",
             'pending',
           )
-          .addSelect(
-            "SUM(CASE WHEN a.verificationStatus IN ('failed', 'mismatch') THEN 1 ELSE 0 END)",
-            'failed',
-          )
+          .addSelect("SUM(CASE WHEN a.verificationStatus IN ('failed', 'mismatch') THEN 1 ELSE 0 END)", 'failed')
           .where('a.endereco_id = :addressId', { addressId: address.id })
           .getRawOne(),
       ]);
@@ -718,7 +750,9 @@ export class AdminService {
   }
 
   private compactFailureType(value: unknown): string {
-    const text = String(value ?? 'unknown').replace(/\s+/g, ' ').trim();
+    const text = String(value ?? 'unknown')
+      .replace(/\s+/g, ' ')
+      .trim();
     if (!text) return 'unknown';
     if (/captcha|human|access denied|forbidden/i.test(text)) return 'captcha_or_blocked';
     if (/timeout|timed out|navigation/i.test(text)) return 'timeout';
@@ -735,7 +769,9 @@ export class AdminService {
   }
 
   private requireAlphaEmail(email?: string): string {
-    const normalized = String(email ?? '').trim().toLowerCase();
+    const normalized = String(email ?? '')
+      .trim()
+      .toLowerCase();
     if (!normalized || !normalized.includes('@')) {
       throw new BadRequestException('e-mail do usuário alpha é obrigatório');
     }
@@ -767,20 +803,23 @@ export class AdminService {
       this.eventRepo.count(),
       this.eventRepo
         .createQueryBuilder('e')
-        .where('e.dataInicio >= :cutoff', { cutoff: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) })
+        .where('e.dataInicio >= :cutoff', {
+          cutoff: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        })
         .getCount(),
       this.analiseRepo.count(),
       this.analiseRepo.count({ where: { aceito: true } }),
       this.paymentRepo
         .createQueryBuilder('p')
-        .where('p.status IN (:...statuses)', { statuses: ['active', 'trialing'] })
+        .where('p.status IN (:...statuses)', {
+          statuses: ['active', 'trialing'],
+        })
         .getCount(),
       this.collector.datasetSize(),
       this.adaptiveStrategy.describeCurrentTier(),
     ]);
 
-    const acceptanceRate =
-      totalAnalyses > 0 ? Math.round((analysesAccepted / totalAnalyses) * 1000) / 10 : 0;
+    const acceptanceRate = totalAnalyses > 0 ? Math.round((analysesAccepted / totalAnalyses) * 1000) / 10 : 0;
 
     return {
       users: {
@@ -836,7 +875,10 @@ export class AdminService {
     }
 
     const [addresses, analyses, eventsTotal, upcomingEvents, eventsLast24h] = await Promise.all([
-      this.addressRepo.find({ where: { user: { id: user.id }, ativo: true }, relations: ['list'] }),
+      this.addressRepo.find({
+        where: { user: { id: user.id }, ativo: true },
+        relations: ['list'],
+      }),
       this.analiseRepo.find({
         where: { usuarioProprietario: { id: user.id } },
         relations: ['endereco', 'endereco.list', 'evento'],
@@ -850,7 +892,9 @@ export class AdminService {
         .getCount(),
       this.eventRepo
         .createQueryBuilder('e')
-        .where('e.createdAt >= :cutoff', { cutoff: new Date(Date.now() - 24 * 60 * 60 * 1000) })
+        .where('e.createdAt >= :cutoff', {
+          cutoff: new Date(Date.now() - 24 * 60 * 60 * 1000),
+        })
         .getCount(),
     ]);
 
@@ -868,9 +912,7 @@ export class AdminService {
     const potentialDailyLift = analyses.reduce((sum, analysis) => {
       const suggested = Number(analysis.precoSugerido);
       const current = Number(analysis.seuPrecoAtual);
-      return Number.isFinite(suggested) && Number.isFinite(current)
-        ? sum + Math.max(0, suggested - current)
-        : sum;
+      return Number.isFinite(suggested) && Number.isFinite(current) ? sum + Math.max(0, suggested - current) : sum;
     }, 0);
 
     const qualityFlags = analyses.reduce<Record<string, number>>((acc, analysis) => {
@@ -954,10 +996,7 @@ export class AdminService {
         .addSelect('COUNT(*)', 'count')
         .groupBy('s.origin')
         .getRawMany(),
-      this.snapshotRepo
-        .createQueryBuilder('s')
-        .select('COUNT(DISTINCT s.snapshotDate)', 'days')
-        .getRawOne(),
+      this.snapshotRepo.createQueryBuilder('s').select('COUNT(DISTINCT s.snapshotDate)', 'days').getRawOne(),
       this.snapshotRepo
         .createQueryBuilder('s')
         .select('s.externalListingId', 'listingId')
@@ -970,7 +1009,10 @@ export class AdminService {
     ]);
 
     return {
-      byOrigin: byOrigin.map((r: any) => ({ origin: r.origin, count: Number(r.count) })),
+      byOrigin: byOrigin.map((r: any) => ({
+        origin: r.origin,
+        count: Number(r.count),
+      })),
       daysCovered: Number(daysCovered?.days ?? 0),
       topListings: topListings.map((r: any) => ({
         listingId: r.listingId,
@@ -991,8 +1033,17 @@ export class AdminService {
       take: safeLimit,
       order: { createdAt: 'DESC' },
       select: [
-        'id', 'username', 'email', 'role', 'ativo', 'createdAt',
-        'phone', 'company', 'pricingStrategy', 'operationMode', 'airbnbHostId',
+        'id',
+        'username',
+        'email',
+        'role',
+        'ativo',
+        'createdAt',
+        'phone',
+        'company',
+        'pricingStrategy',
+        'operationMode',
+        'airbnbHostId',
       ],
     });
     return {
@@ -1008,9 +1059,19 @@ export class AdminService {
     const user = await this.userRepo.findOne({
       where: { id: userId },
       select: [
-        'id', 'username', 'email', 'role', 'ativo', 'createdAt',
-        'phone', 'company', 'pricingStrategy', 'operationMode', 'airbnbHostId',
-        'onboardingDripLastDay', 'onboardingDripLastSentAt',
+        'id',
+        'username',
+        'email',
+        'role',
+        'ativo',
+        'createdAt',
+        'phone',
+        'company',
+        'pricingStrategy',
+        'operationMode',
+        'airbnbHostId',
+        'onboardingDripLastDay',
+        'onboardingDripLastSentAt',
       ],
     });
     if (!user) throw new NotFoundException('Usuário não encontrado');
@@ -1020,10 +1081,7 @@ export class AdminService {
   async getUserProperties(userId: string) {
     await this.getUserDetail(userId);
     const addresses = await this.addressRepo.find({
-      where: [
-        { ativo: true, user: { id: userId } } as any,
-        { ativo: true, list: { user: { id: userId } } } as any,
-      ],
+      where: [{ ativo: true, user: { id: userId } } as any, { ativo: true, list: { user: { id: userId } } } as any],
       relations: ['list', 'user', 'list.user'],
       take: 1000,
     });
@@ -1064,10 +1122,7 @@ export class AdminService {
     if (!payment) return null;
 
     const ativos = await this.addressRepo.count({
-      where: [
-        { ativo: true, user: { id: userId } } as any,
-        { ativo: true, list: { user: { id: userId } } } as any,
-      ],
+      where: [{ ativo: true, user: { id: userId } } as any, { ativo: true, list: { user: { id: userId } } } as any],
     });
 
     return {
@@ -1123,14 +1178,8 @@ export class AdminService {
       .leftJoin('analysis.evento', 'evento')
       .select('endereco.id', 'addressId')
       .addSelect('MAX(analysis.criadoEm)', 'lastAnalysisAt')
-      .addSelect(
-        'SUM(CASE WHEN evento.dataInicio >= :now THEN 1 ELSE 0 END)',
-        'futureRecommendationsCount',
-      )
-      .addSelect(
-        'SUM(CASE WHEN analysis.precoAplicado IS NOT NULL THEN 1 ELSE 0 END)',
-        'appliedRecommendationsCount',
-      )
+      .addSelect('SUM(CASE WHEN evento.dataInicio >= :now THEN 1 ELSE 0 END)', 'futureRecommendationsCount')
+      .addSelect('SUM(CASE WHEN analysis.precoAplicado IS NOT NULL THEN 1 ELSE 0 END)', 'appliedRecommendationsCount')
       .where('endereco.id IN (:...addressIds)', { addressIds })
       .setParameter('now', new Date())
       .groupBy('endereco.id')
@@ -1160,11 +1209,7 @@ export class AdminService {
     return Number.isNaN(date.getTime()) ? null : date.toISOString();
   }
 
-  async setUserRole(
-    userId: string,
-    role: 'host' | 'admin' | 'support',
-    actorUserId?: string | null,
-  ): Promise<User> {
+  async setUserRole(userId: string, role: 'host' | 'admin' | 'support', actorUserId?: string | null): Promise<User> {
     if (!['host', 'admin', 'support'].includes(role)) {
       throw new BadRequestException('role inválido');
     }
@@ -1174,7 +1219,9 @@ export class AdminService {
       throw new ForbiddenException('Você não pode remover seu próprio acesso admin.');
     }
     if (user.role === 'admin' && role !== 'admin') {
-      const activeAdmins = await this.userRepo.count({ where: { role: 'admin', ativo: true } });
+      const activeAdmins = await this.userRepo.count({
+        where: { role: 'admin', ativo: true },
+      });
       if (activeAdmins <= 1 && user.ativo) {
         throw new ForbiddenException('Não é possível remover o último admin ativo.');
       }
@@ -1183,11 +1230,7 @@ export class AdminService {
     return this.userRepo.save(user);
   }
 
-  async setUserActive(
-    userId: string,
-    ativo: boolean,
-    actorUserId?: string | null,
-  ): Promise<User> {
+  async setUserActive(userId: string, ativo: boolean, actorUserId?: string | null): Promise<User> {
     if (typeof ativo !== 'boolean') {
       throw new BadRequestException('ativo deve ser booleano');
     }
@@ -1197,7 +1240,9 @@ export class AdminService {
       throw new ForbiddenException('Você não pode desativar seu próprio usuário.');
     }
     if (user.role === 'admin' && ativo === false) {
-      const activeAdmins = await this.userRepo.count({ where: { role: 'admin', ativo: true } });
+      const activeAdmins = await this.userRepo.count({
+        where: { role: 'admin', ativo: true },
+      });
       if (activeAdmins <= 1 && user.ativo) {
         throw new ForbiddenException('Não é possível desativar o último admin ativo.');
       }
@@ -1246,34 +1291,40 @@ export class AdminService {
     ] = await Promise.all([
       this.eventRepo.count(),
       this.eventRepo.count({ where: { ativo: true } }),
+      this.eventRepo.createQueryBuilder('e').where('e.latitude IS NOT NULL AND e.longitude IS NOT NULL').getCount(),
+      this.eventRepo.createQueryBuilder('e').where('e.relevancia IS NOT NULL').getCount(),
       this.eventRepo
         .createQueryBuilder('e')
-        .where('e.latitude IS NOT NULL AND e.longitude IS NOT NULL')
+        .where('e.dataInicio BETWEEN :start AND :end', {
+          start: now,
+          end: in7d,
+        })
         .getCount(),
       this.eventRepo
         .createQueryBuilder('e')
-        .where('e.relevancia IS NOT NULL')
+        .where('e.dataInicio BETWEEN :start AND :end', {
+          start: now,
+          end: in30d,
+        })
         .getCount(),
       this.eventRepo
         .createQueryBuilder('e')
-        .where('e.dataInicio BETWEEN :start AND :end', { start: now, end: in7d })
+        .where('e.dataInicio BETWEEN :start AND :end', {
+          start: now,
+          end: in90d,
+        })
         .getCount(),
       this.eventRepo
         .createQueryBuilder('e')
-        .where('e.dataInicio BETWEEN :start AND :end', { start: now, end: in30d })
-        .getCount(),
-      this.eventRepo
-        .createQueryBuilder('e')
-        .where('e.dataInicio BETWEEN :start AND :end', { start: now, end: in90d })
-        .getCount(),
-      this.eventRepo
-        .createQueryBuilder('e')
-        .where('e.dataInicio BETWEEN :start AND :end', { start: now, end: in30d })
+        .where('e.dataInicio BETWEEN :start AND :end', {
+          start: now,
+          end: in30d,
+        })
         .andWhere('e.relevancia >= 80')
         .getCount(),
       this.eventRepo
         .createQueryBuilder('e')
-        .select('COALESCE(e.categoria, \'sem categoria\')', 'categoria')
+        .select("COALESCE(e.categoria, 'sem categoria')", 'categoria')
         .addSelect('COUNT(*)', 'count')
         .groupBy('categoria')
         .orderBy('count', 'DESC')
@@ -1310,15 +1361,11 @@ export class AdminService {
         .addOrderBy('e.dataInicio', 'ASC')
         .limit(10)
         .getMany(),
-      this.eventRepo
-        .createQueryBuilder('e')
-        .select('MAX(e.dataCrawl)', 'lastCrawl')
-        .getRawOne(),
+      this.eventRepo.createQueryBuilder('e').select('MAX(e.dataCrawl)', 'lastCrawl').getRawOne(),
     ]);
 
     const coveragePercent = total > 0 ? Math.round((withCoords / total) * 1000) / 10 : 0;
-    const enrichmentPercent =
-      total > 0 ? Math.round((withRelevance / total) * 1000) / 10 : 0;
+    const enrichmentPercent = total > 0 ? Math.round((withRelevance / total) * 1000) / 10 : 0;
 
     // Contadores de cobertura geográfica (F6.2 Plus)
     const [inScope, outOfScope] = await Promise.all([
@@ -1382,75 +1429,7 @@ export class AdminService {
    *  - últimos 10 pushes para diagnóstico
    */
   async staysHealth() {
-    const cutoff30d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-
-    const [
-      accountsByStatus,
-      totalListings,
-      activeListings,
-      pushByStatus,
-      autoListings,
-      recentPushes,
-    ] = await Promise.all([
-      this.staysAccountRepo
-        .createQueryBuilder('a')
-        .select('a.status', 'status')
-        .addSelect('COUNT(*)', 'count')
-        .groupBy('a.status')
-        .getRawMany(),
-      this.staysListingRepo.count(),
-      this.staysListingRepo.count({ where: { active: true } }),
-      this.priceUpdateRepo
-        .createQueryBuilder('pu')
-        .select('pu.status', 'status')
-        .addSelect('COUNT(*)', 'count')
-        .where('pu.createdAt >= :cutoff', { cutoff: cutoff30d })
-        .groupBy('pu.status')
-        .getRawMany(),
-      this.staysListingRepo.count({ where: { operationMode: 'auto' as any } }),
-      this.priceUpdateRepo.find({
-        order: { createdAt: 'DESC' },
-        take: 10,
-        relations: ['user', 'listing'],
-      }),
-    ]);
-
-    return {
-      readiness: {
-        apiBaseConfigured: Boolean(process.env.STAYS_API_BASE_URL),
-        tokenEncryptionConfigured: Boolean(process.env.STAYS_TOKEN_ENCRYPTION_KEY),
-        betaPrivate: !process.env.STAYS_API_BASE_URL || !process.env.STAYS_TOKEN_ENCRYPTION_KEY,
-        missingEnv: [
-          !process.env.STAYS_API_BASE_URL ? 'STAYS_API_BASE_URL' : '',
-          !process.env.STAYS_TOKEN_ENCRYPTION_KEY ? 'STAYS_TOKEN_ENCRYPTION_KEY' : '',
-        ].filter(Boolean),
-      },
-      accountsByStatus: accountsByStatus.map((r: any) => ({
-        status: r.status,
-        count: Number(r.count),
-      })),
-      listings: {
-        total: totalListings,
-        active: activeListings,
-        forcedAuto: autoListings,
-      },
-      pushLast30d: pushByStatus.map((r: any) => ({
-        status: r.status,
-        count: Number(r.count),
-      })),
-      recent: recentPushes.map((p) => ({
-        id: p.id,
-        targetDate: p.targetDate,
-        previousPriceCents: p.previousPriceCents,
-        newPriceCents: p.newPriceCents,
-        origin: p.origin,
-        status: p.status,
-        errorMessage: p.errorMessage,
-        createdAt: p.createdAt,
-        userId: p.user?.id,
-        listingId: p.listing?.id,
-      })),
-    };
+    return this.staysHealthService.getHealth();
   }
 
   /**
@@ -1469,7 +1448,7 @@ export class AdminService {
     const [
       signupsLast30d,
       withAirbnbId,
-      withListingsCount,
+      _withListingsCount,
       analysesLast30d,
       acceptedLast30d,
       appliedLast30d,
@@ -1485,10 +1464,7 @@ export class AdminService {
         .getRawOne()
         .then((r: any) => Number(r?.c ?? 0))
         .catch(() => 0),
-      this.analiseRepo
-        .createQueryBuilder('a')
-        .where('a.criadoEm >= :cutoff', { cutoff: cutoff30d })
-        .getCount(),
+      this.analiseRepo.createQueryBuilder('a').where('a.criadoEm >= :cutoff', { cutoff: cutoff30d }).getCount(),
       this.analiseRepo
         .createQueryBuilder('a')
         .where('a.criadoEm >= :cutoff', { cutoff: cutoff30d })
@@ -1501,15 +1477,15 @@ export class AdminService {
         .getCount(),
       this.paymentRepo
         .createQueryBuilder('p')
-        .where('p.status IN (:...statuses)', { statuses: ['active', 'trialing'] })
+        .where('p.status IN (:...statuses)', {
+          statuses: ['active', 'trialing'],
+        })
         .getCount(),
       this.userRepo.count({ where: { operationMode: 'auto' } }),
     ]);
 
-    const acceptanceRate =
-      analysesLast30d > 0 ? Math.round((acceptedLast30d / analysesLast30d) * 1000) / 10 : 0;
-    const applicationRate =
-      acceptedLast30d > 0 ? Math.round((appliedLast30d / acceptedLast30d) * 1000) / 10 : 0;
+    const acceptanceRate = analysesLast30d > 0 ? Math.round((acceptedLast30d / analysesLast30d) * 1000) / 10 : 0;
+    const applicationRate = acceptedLast30d > 0 ? Math.round((appliedLast30d / acceptedLast30d) * 1000) / 10 : 0;
 
     return {
       windowDays: 30,
@@ -1554,17 +1530,14 @@ export class AdminService {
       windowDays: 90,
       sampleSize: result.sampleSize,
       discarded: result.discarded,
-      mapePercent: Number.isFinite(result.mapePercent)
-        ? Math.round(result.mapePercent * 100) / 100
-        : null,
+      mapePercent: Number.isFinite(result.mapePercent) ? Math.round(result.mapePercent * 100) / 100 : null,
       rmse: Number.isFinite(result.rmse) ? Math.round(result.rmse * 100) / 100 : null,
       medianAbsoluteError: Number.isFinite(result.medianAbsoluteError)
         ? Math.round(result.medianAbsoluteError * 100) / 100
         : null,
       qualityGate: {
         threshold: 15,
-        passes:
-          Number.isFinite(result.mapePercent) && result.mapePercent <= 15 && result.sampleSize >= 30,
+        passes: Number.isFinite(result.mapePercent) && result.mapePercent <= 15 && result.sampleSize >= 30,
         meetsMinSample: result.sampleSize >= 30,
       },
     };
@@ -1595,8 +1568,14 @@ export class AdminService {
     ]);
 
     return {
-      byStatus: byStatus.map((r: any) => ({ status: r.status, count: Number(r.count) })),
-      byOrigin: byOrigin.map((r: any) => ({ origin: r.origin, count: Number(r.count) })),
+      byStatus: byStatus.map((r: any) => ({
+        status: r.status,
+        count: Number(r.count),
+      })),
+      byOrigin: byOrigin.map((r: any) => ({
+        origin: r.origin,
+        count: Number(r.count),
+      })),
       distinctListings,
     };
   }
@@ -1648,9 +1627,7 @@ export class AdminService {
     }
 
     const list = await this.listRepo.findOne({
-      where: input.listId
-        ? { id: input.listId }
-        : { id_do_anuncio: input.airbnbListingId ?? '' },
+      where: input.listId ? { id: input.listId } : { id_do_anuncio: input.airbnbListingId ?? '' },
       relations: ['user'],
     });
     if (!list) {
@@ -1712,8 +1689,7 @@ export class AdminService {
     else if (scope === 'out') qb.andWhere('e.outOfScope = :v', { v: true });
 
     if (scope !== 'all') {
-      qb.andWhere('e.duplicateOfEventId IS NULL')
-        .andWhere("(e.dedupStatus IS NULL OR e.dedupStatus = 'canonical')");
+      qb.andWhere('e.duplicateOfEventId IS NULL').andWhere("(e.dedupStatus IS NULL OR e.dedupStatus = 'canonical')");
     }
 
     if (filters.source) qb.andWhere('e.source = :src', { src: filters.source });
@@ -1722,10 +1698,7 @@ export class AdminService {
 
     if (filters.search) {
       const like = `%${filters.search.toLowerCase()}%`;
-      qb.andWhere(
-        '(LOWER(e.nome) LIKE :like OR LOWER(COALESCE(e.cidade, \'\')) LIKE :like)',
-        { like },
-      );
+      qb.andWhere("(LOWER(e.nome) LIKE :like OR LOWER(COALESCE(e.cidade, '')) LIKE :like)", { like });
     }
 
     qb.orderBy('e.dataInicio', 'ASC')
@@ -1791,14 +1764,8 @@ export class AdminService {
     const rows = await this.eventRepo
       .createQueryBuilder('e')
       .select('DATE(e.dataCrawl)', 'day')
-      .addSelect(
-        'SUM(CASE WHEN e.outOfScope = FALSE THEN 1 ELSE 0 END)',
-        'inScope',
-      )
-      .addSelect(
-        'SUM(CASE WHEN e.outOfScope = TRUE THEN 1 ELSE 0 END)',
-        'outOfScope',
-      )
+      .addSelect('SUM(CASE WHEN e.outOfScope = FALSE THEN 1 ELSE 0 END)', 'inScope')
+      .addSelect('SUM(CASE WHEN e.outOfScope = TRUE THEN 1 ELSE 0 END)', 'outOfScope')
       .where('e.dataCrawl >= :since', { since })
       .groupBy('day')
       .orderBy('day', 'ASC')
@@ -1826,11 +1793,11 @@ export class AdminService {
     const totalIn = buckets.reduce((s, b) => s + b.inScope, 0);
     const totalOut = buckets.reduce((s, b) => s + b.outOfScope, 0);
     const peakDay = buckets.reduce(
-      (acc, b) =>
-        b.inScope + b.outOfScope > acc.total
-          ? { day: b.day, total: b.inScope + b.outOfScope }
-          : acc,
-      { day: '', total: 0 },
+      (acc, b) => (b.inScope + b.outOfScope > acc.total ? { day: b.day, total: b.inScope + b.outOfScope } : acc),
+      {
+        day: '',
+        total: 0,
+      },
     );
 
     return {
@@ -1863,36 +1830,15 @@ export class AdminService {
 
     const rows = await this.eventRepo
       .createQueryBuilder('e')
-      .select('COALESCE(e.source, \'(sem source)\')', 'source')
+      .select("COALESCE(e.source, '(sem source)')", 'source')
       .addSelect('COUNT(*)', 'total')
-      .addSelect(
-        'SUM(CASE WHEN e.dataCrawl >= :sevenDaysAgo THEN 1 ELSE 0 END)',
-        'last7d',
-      )
-      .addSelect(
-        'SUM(CASE WHEN e.dataCrawl >= :oneDayAgo THEN 1 ELSE 0 END)',
-        'last24h',
-      )
-      .addSelect(
-        'SUM(CASE WHEN e.outOfScope = TRUE THEN 1 ELSE 0 END)',
-        'outOfScope',
-      )
-      .addSelect(
-        'SUM(CASE WHEN e.pendingGeocode = TRUE THEN 1 ELSE 0 END)',
-        'pendingGeocode',
-      )
-      .addSelect(
-        'SUM(CASE WHEN e.relevancia IS NULL AND e.outOfScope = FALSE THEN 1 ELSE 0 END)',
-        'pendingEnrichment',
-      )
-      .addSelect(
-        'SUM(CASE WHEN e.relevancia IS NOT NULL THEN 1 ELSE 0 END)',
-        'enriched',
-      )
-      .addSelect(
-        'SUM(CASE WHEN e.enrichmentLastError IS NOT NULL THEN 1 ELSE 0 END)',
-        'withErrors',
-      )
+      .addSelect('SUM(CASE WHEN e.dataCrawl >= :sevenDaysAgo THEN 1 ELSE 0 END)', 'last7d')
+      .addSelect('SUM(CASE WHEN e.dataCrawl >= :oneDayAgo THEN 1 ELSE 0 END)', 'last24h')
+      .addSelect('SUM(CASE WHEN e.outOfScope = TRUE THEN 1 ELSE 0 END)', 'outOfScope')
+      .addSelect('SUM(CASE WHEN e.pendingGeocode = TRUE THEN 1 ELSE 0 END)', 'pendingGeocode')
+      .addSelect('SUM(CASE WHEN e.relevancia IS NULL AND e.outOfScope = FALSE THEN 1 ELSE 0 END)', 'pendingEnrichment')
+      .addSelect('SUM(CASE WHEN e.relevancia IS NOT NULL THEN 1 ELSE 0 END)', 'enriched')
+      .addSelect('SUM(CASE WHEN e.enrichmentLastError IS NOT NULL THEN 1 ELSE 0 END)', 'withErrors')
       .addSelect(
         "SUM(CASE WHEN e.duplicateOfEventId IS NOT NULL OR e.dedupStatus IN ('duplicate', 'merged', 'ignored', 'review_pending') THEN 1 ELSE 0 END)",
         'duplicateCount',
@@ -1915,7 +1861,11 @@ export class AdminService {
       requiredEnv: string[];
       aliases?: string[];
     }> = [
-      { source: 'api-football', critical: false, requiredEnv: ['API_FOOTBALL_KEY'] },
+      {
+        source: 'api-football',
+        critical: false,
+        requiredEnv: ['API_FOOTBALL_KEY'],
+      },
       { source: 'sp-cultura', critical: false, requiredEnv: [] },
       { source: 'usp-eventos', critical: false, requiredEnv: [] },
       { source: 'marcha-para-jesus', critical: false, requiredEnv: [] },
@@ -1928,9 +1878,22 @@ export class AdminService {
       { source: 'tokio-marine-hall', critical: false, requiredEnv: [] },
       { source: 'espaco-unimed', critical: false, requiredEnv: [] },
       { source: 'wtc-sao-paulo', critical: false, requiredEnv: [] },
-      { source: 'serpapi-events', critical: false, requiredEnv: ['SERPAPI_KEY'], aliases: ['serpapi_events'] },
-      { source: 'tavily', critical: false, requiredEnv: ['TAVILY_API_KEY', 'GEMINI_API_KEY'] },
-      { source: 'firecrawl', critical: false, requiredEnv: ['FIRECRAWL_API_KEY', 'GEMINI_API_KEY'] },
+      {
+        source: 'serpapi-events',
+        critical: false,
+        requiredEnv: ['SERPAPI_KEY'],
+        aliases: ['serpapi_events'],
+      },
+      {
+        source: 'tavily',
+        critical: false,
+        requiredEnv: ['TAVILY_API_KEY', 'GEMINI_API_KEY'],
+      },
+      {
+        source: 'firecrawl',
+        critical: false,
+        requiredEnv: ['FIRECRAWL_API_KEY', 'GEMINI_API_KEY'],
+      },
       { source: 'legacy-scrapyd-spiders', critical: false, requiredEnv: [] },
     ];
 
@@ -1939,8 +1902,7 @@ export class AdminService {
       const normalizedSource = rawSource.replace(/_/g, '-');
       const known = knownCollectors.find(
         (collector) =>
-          collector.source === normalizedSource ||
-          ('aliases' in collector && collector.aliases?.includes(rawSource)),
+          collector.source === normalizedSource || ('aliases' in collector && collector.aliases?.includes(rawSource)),
       );
       const total = Number(r.total ?? 0);
       const outOfScope = Number(r.outOfScope ?? 0);
@@ -1951,10 +1913,7 @@ export class AdminService {
       const canonicalCount = Number(r.canonicalCount ?? 0);
       const lastSeen = r.lastSeen ?? null;
       const missingEnv = known?.requiredEnv.filter((name) => !process.env[name]) ?? [];
-      const stale = Boolean(
-        lastSeen &&
-          Date.now() - new Date(lastSeen).getTime() > 48 * 60 * 60 * 1000,
-      );
+      const stale = Boolean(lastSeen && Date.now() - new Date(lastSeen).getTime() > 48 * 60 * 60 * 1000);
       return {
         source: known?.source ?? rawSource,
         status: missingEnv.length ? 'missing_key' : stale ? 'stale' : 'has_events',
@@ -1967,27 +1926,20 @@ export class AdminService {
         last7d: Number(r.last7d ?? 0),
         last24h: Number(r.last24h ?? 0),
         outOfScope,
-        outOfScopePercent:
-          total > 0 ? Math.round((outOfScope / total) * 1000) / 10 : 0,
+        outOfScopePercent: total > 0 ? Math.round((outOfScope / total) * 1000) / 10 : 0,
         canonicalCount,
         duplicateCount,
-        duplicateRatePercent:
-          total > 0 ? Math.round((duplicateCount / total) * 1000) / 10 : 0,
+        duplicateRatePercent: total > 0 ? Math.round((duplicateCount / total) * 1000) / 10 : 0,
         sourceLinksCount: Number(r.sourceLinksCount ?? 0),
         pendingGeocode: Number(r.pendingGeocode ?? 0),
         pendingEnrichment,
         enriched,
         withErrors,
-        errorRate:
-          enriched + withErrors > 0
-            ? Math.round((withErrors / (enriched + withErrors)) * 1000) / 10
-            : 0,
+        errorRate: enriched + withErrors > 0 ? Math.round((withErrors / (enriched + withErrors)) * 1000) / 10 : 0,
         lastSeen,
       };
     });
-    const present = new Set(
-      sources.map((source) => String(source.source ?? '').replace(/_/g, '-')),
-    );
+    const present = new Set(sources.map((source) => String(source.source ?? '').replace(/_/g, '-')));
     for (const collector of knownCollectors) {
       if (present.has(collector.source)) {
         continue;
@@ -2051,13 +2003,11 @@ export class AdminService {
     const senderDomain = emailSender.includes('@') ? emailSender.split('@').pop() || '' : '';
     const brevoApiKeyConfigured = Boolean(process.env.BREVO_API_KEY);
     const emailSenderConfigured = Boolean(process.env.EMAIL_SENDER);
-    const senderUsesUrbanDomain = senderDomain.endsWith('myurbanai.com');
+    const senderUsesUrbanDomain = this.isUrbanEmailDomain(senderDomain);
     const frontUrlConfigured = Boolean(process.env.FRONT_URL);
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim() || '';
     const stripePublishableKey =
-      process.env.STRIPE_PUBLIC_KEY?.trim() ||
-      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim() ||
-      '';
+      process.env.STRIPE_PUBLIC_KEY?.trim() || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim() || '';
     const stripeSecretMode = this.resolveStripeKeyMode(stripeSecretKey, 'sk');
     const stripePublishableMode = this.resolveStripeKeyMode(stripePublishableKey, 'pk');
     const stripePublishableConfigured = Boolean(stripePublishableKey);
@@ -2072,14 +2022,14 @@ export class AdminService {
     const privacyEmail = process.env.PRIVACY_EMAIL?.trim() || 'privacidade@myurbanai.com';
     const supportEmailConfigured = Boolean(process.env.SUPPORT_EMAIL?.trim());
     const privacyEmailConfigured = Boolean(process.env.PRIVACY_EMAIL?.trim());
-    const supportEmailDomainOk = this.emailDomain(supportEmail).endsWith('myurbanai.com');
-    const privacyEmailDomainOk = this.emailDomain(privacyEmail).endsWith('myurbanai.com');
+    const supportEmailDomainOk = this.isUrbanEmailDomain(this.emailDomain(supportEmail));
+    const privacyEmailDomainOk = this.isUrbanEmailDomain(this.emailDomain(privacyEmail));
     const supportOwnerEmail = process.env.SUPPORT_OWNER_EMAIL?.trim() || '';
     const privacyOwnerEmail = process.env.PRIVACY_OWNER_EMAIL?.trim() || '';
     const supportOwnerConfigured = Boolean(supportOwnerEmail);
     const privacyOwnerConfigured = Boolean(privacyOwnerEmail);
-    const supportOwnerDomainOk = !supportOwnerEmail || this.emailDomain(supportOwnerEmail).endsWith('myurbanai.com');
-    const privacyOwnerDomainOk = !privacyOwnerEmail || this.emailDomain(privacyOwnerEmail).endsWith('myurbanai.com');
+    const supportOwnerDomainOk = !supportOwnerEmail || this.isUrbanEmailDomain(this.emailDomain(supportOwnerEmail));
+    const privacyOwnerDomainOk = !privacyOwnerEmail || this.isUrbanEmailDomain(this.emailDomain(privacyOwnerEmail));
 
     const [
       // Eventos
@@ -2132,27 +2082,30 @@ export class AdminService {
         .where('e.relevancia IS NULL')
         .andWhere('e.outOfScope = :v', { v: false })
         .getCount(),
+      this.eventRepo.createQueryBuilder('e').where('e.dataCrawl >= :since', { since: oneDayAgo }).getCount(),
+      this.eventRepo.createQueryBuilder('e').where('e.dataCrawl >= :since', { since: sevenDaysAgo }).getCount(),
       this.eventRepo
         .createQueryBuilder('e')
-        .where('e.dataCrawl >= :since', { since: oneDayAgo })
-        .getCount(),
-      this.eventRepo
-        .createQueryBuilder('e')
-        .where('e.dataCrawl >= :since', { since: sevenDaysAgo })
-        .getCount(),
-      this.eventRepo
-        .createQueryBuilder('e')
-        .where('e.dataInicio BETWEEN :start AND :end', { start: now, end: next7d })
+        .where('e.dataInicio BETWEEN :start AND :end', {
+          start: now,
+          end: next7d,
+        })
         .andWhere('e.outOfScope = :v', { v: false })
         .getCount(),
       this.eventRepo
         .createQueryBuilder('e')
-        .where('e.dataInicio BETWEEN :start AND :end', { start: now, end: next30d })
+        .where('e.dataInicio BETWEEN :start AND :end', {
+          start: now,
+          end: next30d,
+        })
         .andWhere('e.outOfScope = :v', { v: false })
         .getCount(),
       this.eventRepo
         .createQueryBuilder('e')
-        .where('e.dataInicio BETWEEN :start AND :end', { start: now, end: next30d })
+        .where('e.dataInicio BETWEEN :start AND :end', {
+          start: now,
+          end: next30d,
+        })
         .andWhere('e.relevancia >= 80')
         .andWhere('e.outOfScope = :v', { v: false })
         .getCount(),
@@ -2199,14 +2152,8 @@ export class AdminService {
           { undefinedCity: 'a definir', undefinedState: 'A' },
         )
         .getCount(),
-      this.analiseRepo
-        .createQueryBuilder('a')
-        .where('a.criadoEm >= :since', { since: oneDayAgo })
-        .getCount(),
-      this.analiseRepo
-        .createQueryBuilder('a')
-        .where('a.criadoEm >= :since', { since: last30d })
-        .getCount(),
+      this.analiseRepo.createQueryBuilder('a').where('a.criadoEm >= :since', { since: oneDayAgo }).getCount(),
+      this.analiseRepo.createQueryBuilder('a').where('a.criadoEm >= :since', { since: last30d }).getCount(),
       this.analiseRepo
         .createQueryBuilder('a')
         .innerJoin('a.evento', 'evento')
@@ -2220,17 +2167,11 @@ export class AdminService {
         .where('evento.dataInicio >= :now', { now })
         .getRawOne()
         .then((r: any) => Number(r?.count ?? 0)),
-      this.analiseRepo
-        .createQueryBuilder('a')
-        .where('a.precoAplicado IS NOT NULL')
-        .getCount(),
+      this.analiseRepo.createQueryBuilder('a').where('a.precoAplicado IS NOT NULL').getCount(),
       this.collector.datasetDiagnostics(),
       this.staysAccountRepo.count(),
       this.staysListingRepo.count(),
-      this.priceUpdateRepo
-        .createQueryBuilder('p')
-        .where('p.createdAt >= :since', { since: last30d })
-        .getCount(),
+      this.priceUpdateRepo.createQueryBuilder('p').where('p.createdAt >= :since', { since: last30d }).getCount(),
       this.contactSubmissionRepo.count({
         where: { status: In(['new', 'in_progress'] as any) },
       }),
@@ -2260,7 +2201,7 @@ export class AdminService {
     // Top sources últimos 7d (top 5)
     const topSources = await this.eventRepo
       .createQueryBuilder('e')
-      .select('COALESCE(e.source, \'(sem source)\')', 'source')
+      .select("COALESCE(e.source, '(sem source)')", 'source')
       .addSelect('COUNT(*)', 'count')
       .where('e.dataCrawl >= :since', { since: sevenDaysAgo })
       .groupBy('source')
@@ -2269,7 +2210,10 @@ export class AdminService {
       .getRawMany();
 
     // Alertas
-    const alerts: Array<{ severity: 'red' | 'amber' | 'info'; message: string }> = [];
+    const alerts: Array<{
+      severity: 'red' | 'amber' | 'info';
+      message: string;
+    }> = [];
 
     if (eventsPendingEnrichment > 100) {
       alerts.push({
@@ -2352,11 +2296,7 @@ export class AdminService {
     if (invalidLocalityAddresses > 0) {
       alerts.push({
         severity: 'amber',
-        message: `${this.countPt(
-          invalidLocalityAddresses,
-          'endereço ativo com cidade/UF inválidos',
-          'endereços ativos com cidade/UF inválidos',
-        )}`,
+        message: `${this.countPt(invalidLocalityAddresses, 'endereço ativo com cidade/UF inválidos', 'endereços ativos com cidade/UF inválidos')}`,
       });
     }
     if (datasetDiagnostics.health === 'red') {
@@ -2459,7 +2399,8 @@ export class AdminService {
     if (!supportOwnerConfigured || !privacyOwnerConfigured) {
       alerts.push({
         severity: 'info',
-        message: 'Donos operacionais de suporte/privacidade não configurados; defina SUPPORT_OWNER_EMAIL e PRIVACY_OWNER_EMAIL',
+        message:
+          'Donos operacionais de suporte/privacidade não configurados; defina SUPPORT_OWNER_EMAIL e PRIVACY_OWNER_EMAIL',
       });
     } else if (!supportOwnerDomainOk || !privacyOwnerDomainOk) {
       alerts.push({
@@ -2522,8 +2463,7 @@ export class AdminService {
         total: eventsTotal,
         inScope: eventsInScope,
         outOfScope: eventsOutOfScope,
-        outOfScopePercent:
-          eventsTotal > 0 ? Math.round((eventsOutOfScope / eventsTotal) * 1000) / 10 : 0,
+        outOfScopePercent: eventsTotal > 0 ? Math.round((eventsOutOfScope / eventsTotal) * 1000) / 10 : 0,
         pendingGeocode: eventsPendingGeocode,
         pendingEnrichment: eventsPendingEnrichment,
         last24h: eventsLast24h,
@@ -2624,10 +2564,7 @@ export class AdminService {
     };
   }
 
-  private resolveStripeKeyMode(
-    key: string,
-    expectedPrefix: 'sk' | 'pk',
-  ): 'test' | 'live' | 'unknown' | 'missing' {
+  private resolveStripeKeyMode(key: string, expectedPrefix: 'sk' | 'pk'): 'test' | 'live' | 'unknown' | 'missing' {
     if (!key) return 'missing';
     if (key.startsWith(`${expectedPrefix}_test_`) || key === `${expectedPrefix}_test`) return 'test';
     if (key.startsWith(`${expectedPrefix}_live_`) || key === `${expectedPrefix}_live`) return 'live';
@@ -2636,6 +2573,10 @@ export class AdminService {
 
   private emailDomain(email: string): string {
     return email.includes('@') ? email.split('@').pop()?.toLowerCase() || '' : '';
+  }
+
+  private isUrbanEmailDomain(domain: string): boolean {
+    return domain.trim().toLowerCase() === 'myurbanai.com';
   }
 
   private buildTrack3Readiness(input: {
@@ -2697,16 +2638,8 @@ export class AdminService {
         stripeBlockers,
         'Configurar chaves test/live coerentes e rodar checkout + webhook em test mode.',
       ),
-      email: this.readinessItem(
-        'Brevo',
-        emailBlockers,
-        'Validar domínio, DKIM/SPF e envio real transacional.',
-      ),
-      stays: this.readinessItem(
-        'Stays',
-        staysBlockers,
-        'Configurar sandbox/API oficial e executar smoke beta privado.',
-      ),
+      email: this.readinessItem('Brevo', emailBlockers, 'Validar domínio, DKIM/SPF e envio real transacional.'),
+      stays: this.readinessItem('Stays', staysBlockers, 'Configurar sandbox/API oficial e executar smoke beta privado.'),
       support: this.readinessItem(
         'Suporte & LGPD',
         supportBlockers,
@@ -2785,7 +2718,8 @@ export class AdminService {
     if (!evento.dataInicio || new Date(evento.dataInicio) < new Date()) flags.push('past_or_missing_date');
     if (!evento.latitude || !evento.longitude) flags.push('missing_coordinates');
 
-    const sourceText = `${evento.source ?? ''} ${evento.categoria ?? ''} ${evento.venueType ?? ''} ${evento.nome ?? ''}`.toLowerCase();
+    const sourceText =
+      `${evento.source ?? ''} ${evento.categoria ?? ''} ${evento.venueType ?? ''} ${evento.nome ?? ''}`.toLowerCase();
     if (sourceText.includes('online') || sourceText.includes('virtual') || sourceText.includes('webinar')) {
       flags.push('online_event');
     }

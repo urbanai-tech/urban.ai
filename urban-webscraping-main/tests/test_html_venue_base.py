@@ -51,6 +51,7 @@ class TestParseDateToIso:
     def test_extenso_sem_ano_usa_atual(self):
         c = _FakeVenueCollector()
         from datetime import datetime
+
         result = c._parse_date_to_iso("5 de junho")
         assert result is not None
         assert result.startswith(f"{datetime.now().year}-06-05")
@@ -120,9 +121,11 @@ class TestNormalize:
 
 class TestFetchAndRun:
     def test_fetch_raw_chama_get_e_parse(self):
-        c = _FakeVenueCollector(items=[
-            {"title": "Show A", "starts_on": "10/05/2026"},
-        ])
+        c = _FakeVenueCollector(
+            items=[
+                {"title": "Show A", "starts_on": "10/05/2026"},
+            ]
+        )
         with patch.object(c, "_get", return_value="<html></html>"):
             items = c.fetch_raw()
         assert len(items) == 1
@@ -163,6 +166,7 @@ class TestVenueDesconhecido:
         """Quando VENUE_NAME não bate em venue_map, normalize segue mas sem
         lat/lng. Backend marca pendingGeocode.
         """
+
         class UnknownVenue(HtmlVenueCollector):
             source = "unknown-venue"
             LISTING_URL = "https://x.com"

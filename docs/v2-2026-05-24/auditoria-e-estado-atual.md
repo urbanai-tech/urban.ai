@@ -20,7 +20,7 @@ Veredito: a Urban AI tem maturidade documental acima do normal para o estagio, m
 | Roadmaps | `roadmap.md`, roadmaps por sprint, roadmaps 4 tracks, status 2026-05-22/23 | Ricos, mas redundantes e com datas/percentuais conflitantes |
 | Arquitetura | README raiz, READMEs por servico, ADRs 0001-0009, docx 07/11 | Boa base, precisa uma arquitetura V2 unica |
 | PRD e produto | DOCX 12, auditorias de lancamento, planos Event Radar | Forte, mas precisa PRD atualizado para V2 |
-| Design system e marca | `docs/design-system.md`, guardrails do front, DOCX 19/20 | Forte no codigo atual, DOCX antigo esta desatualizado |
+| Design system e marca | `docs/product/DESIGN-SYSTEM.md`, guardrails do front, DOCX 19/20 arquivados | Forte no código atual; DOCX e Markdown anteriores são históricos |
 | Operacao e runbooks | `docs/runbooks/`, incident-response, SLO, backups, release gate | Muito forte, precisa indice operacional unico |
 | Legal e LGPD | docs LGPD, termos, privacidade, DPA checklist, briefing v3 | Boa base, revisar donos, DPAs e canal de privacidade |
 | Evidencias e QA | `docs/evidence/`, e2e reports, Playwright, Jest, pytest | Forte localmente, precisa staging/DB real como trilha padrao |
@@ -28,7 +28,7 @@ Veredito: a Urban AI tem maturidade documental acima do normal para o estagio, m
 
 ## Documentos DOCX numerados
 
-A pasta `docs/urban-ai-documentacao/` possui 32 documentos Word cobrindo runbook, servicos externos, variaveis, infraestrutura, acessos, Stripe, arquitetura, ERD, APIs, divida tecnica, fluxo de dados, PRD, jornada, setup, deploy, padroes de codigo, spiders, KNN, design, marca, telas, pricing, KPIs, seguranca, LGPD, backup, incidentes, monitoramento, changelog, termos, privacidade e transferencia de contas.
+O pacote histórico `docs/archive/docx/urban-ai-documentacao/` possui 32 documentos Word cobrindo runbook, servicos externos, variaveis, infraestrutura, acessos, Stripe, arquitetura, ERD, APIs, divida tecnica, fluxo de dados, PRD, jornada, setup, deploy, padroes de codigo, spiders, KNN, design, marca, telas, pricing, KPIs, seguranca, LGPD, backup, incidentes, monitoramento, changelog, termos, privacidade e transferencia de contas. Ele foi substituído pelas fontes canônicas em `docs/product/`, `docs/runbooks/` e pelo plano mestre.
 
 ### Pontos fortes
 
@@ -166,7 +166,7 @@ A Urban AI ajuda anfitrioes e gestores de hospedagem a enxergar eventos relevant
 ## Decisoes recomendadas agora
 
 1. Aprovar este pacote como base V2.
-2. Declarar `docs/roadmap.md` e DOCX numerados como historicos, nao como fonte atual.
+2. Declarar `docs/archive/roadmaps/roadmap.md` e DOCX numerados como historicos, nao como fonte atual.
 3. Usar `prd-roadmap-v2.md` como plano vivo.
 4. Priorizar staging, outcomes, pricing decision snapshot e narrativa executiva.
 5. Gerar depois uma versao PDF/deck para investidores a partir do arquivo executivo.

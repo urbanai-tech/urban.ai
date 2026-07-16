@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useRef } from "react";
 import { Close } from "./Icons";
+import { useDialogFocus } from "../../componentes/ui/useDialogFocus";
 
 /**
  * Drawer admin Urban AI — slide-in da direita 400-520px.
@@ -32,19 +33,14 @@ export function AdminDrawer({
   footer?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  // ESC fecha o drawer
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handler);
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", handler);
-      document.body.style.overflow = "";
-    };
-  }, [open, onClose]);
+  const drawerRef = useRef<HTMLElement | null>(null);
+  const closeRef = useRef<HTMLButtonElement | null>(null);
+  useDialogFocus({
+    open,
+    containerRef: drawerRef,
+    initialFocusRef: closeRef,
+    onClose,
+  });
 
   if (!open) return null;
 
@@ -71,6 +67,8 @@ export function AdminDrawer({
         }}
       />
       <aside
+        ref={drawerRef}
+        tabIndex={-1}
         className="urban-admin-drawer-panel"
         style={{
           position: "relative",
@@ -109,6 +107,7 @@ export function AdminDrawer({
             )}
           </div>
           <button
+            ref={closeRef}
             onClick={onClose}
             aria-label="Fechar"
             style={{
@@ -122,6 +121,8 @@ export function AdminDrawer({
               alignItems: "center",
               justifyContent: "center",
               lineHeight: 0,
+              minWidth: 44,
+              minHeight: 44,
             }}
           >
             <Close size={16} />

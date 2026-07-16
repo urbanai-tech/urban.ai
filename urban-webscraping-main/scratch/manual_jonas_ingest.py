@@ -13,6 +13,7 @@ from urban_webscrapping.utils.urban_backend_client import UrbanBackendClient
 
 load_dotenv()
 
+
 async def main():
     api_key = os.getenv("TICKETMASTER_API_KEY")
     if not api_key:
@@ -42,7 +43,7 @@ async def main():
         # helper process_event returns a dict like:
         # id, nome, linkSiteOficial, imagem_url, dataInicio, enderecoCompleto, postal_code, latitude, longitude
         e = helper.process_event(raw_event)
-        print(f"Ingesting: {e.get('nome')}")
+        print("Ingesting one validated event.")
 
         payload = {
             "nome": str(e.get("nome")).strip(),
@@ -55,12 +56,13 @@ async def main():
             "source": "scraper-ticket_master",
             "crawledUrl": e.get("linkSiteOficial"),
             "latitude": e.get("latitude") or None,
-            "longitude": e.get("longitude") or None
+            "longitude": e.get("longitude") or None,
         }
         client.add_event(payload)
 
     client.flush()
     print("Done flush")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

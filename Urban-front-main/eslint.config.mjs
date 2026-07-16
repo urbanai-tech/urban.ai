@@ -10,6 +10,17 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  {
+    ignores: [
+      ".next/**",
+      "node_modules/**",
+      "out/**",
+      "coverage/**",
+      "playwright-report/**",
+      "test-results/**",
+      "next-env.d.ts",
+    ],
+  },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
 
   // Regras ajustadas para permitir build não-bloqueante durante F5C.2.
@@ -18,11 +29,24 @@ const eslintConfig = [
   {
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
       "react-hooks/exhaustive-deps": "warn",
       "@next/next/no-img-element": "warn",
       "react/no-unescaped-entities": "warn",
       "prefer-const": "warn",
+    },
+  },
+  {
+    files: ["scripts/**/*.{js,cjs,mjs}"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
     },
   },
 ];

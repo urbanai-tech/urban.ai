@@ -58,17 +58,19 @@ class AnhembiCollector(HtmlVenueCollector):
                 title = (title or "").strip()
                 if not title or title.lower() in seen_titles or len(title) < 3:
                     continue
-                tail = html[h_match.end():h_match.end() + 600]
+                tail = html[h_match.end() : h_match.end() + 600]
                 d = self._extract_date_from_text(tail)
                 if not d:
                     continue
                 seen_titles.add(title.lower())
-                items.append({
-                    "title": title[:255],
-                    "starts_on": d,
-                    "url": url,
-                    "source_id": (url or title)[:128],
-                })
+                items.append(
+                    {
+                        "title": title[:255],
+                        "starts_on": d,
+                        "url": url,
+                        "source_id": (url or title)[:128],
+                    }
+                )
 
         return items
 
@@ -129,6 +131,7 @@ class AnhembiCollector(HtmlVenueCollector):
     @staticmethod
     def _clean_text(s: str) -> str:
         import html as html_lib
+
         return html_lib.unescape(s).strip()
 
 

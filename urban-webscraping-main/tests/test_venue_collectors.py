@@ -132,11 +132,13 @@ class TestSpExpo:
 def test_anhembi_normalize_aplica_venue_map():
     """Anhembi está no venue_map (Distrito Anhembi) — payload deve ter lat/lng."""
     c = AnhembiCollector(dry_run=True)
-    p = c.normalize({
-        "title": "CCXP 2026",
-        "starts_on": "05/12/2026",
-        "url": "https://distritoanhembi.com.br/ccxp",
-    })
+    p = c.normalize(
+        {
+            "title": "CCXP 2026",
+            "starts_on": "05/12/2026",
+            "url": "https://distritoanhembi.com.br/ccxp",
+        }
+    )
     assert p is not None
     assert p["latitude"] is not None
     assert p["longitude"] is not None
@@ -146,11 +148,13 @@ def test_anhembi_normalize_aplica_venue_map():
 
 def test_sp_expo_normalize_aplica_venue_map():
     c = SaoPauloExpoCollector(dry_run=True)
-    p = c.normalize({
-        "title": "Hospitalar 2026",
-        "starts_on": "20/05/2026",
-        "url": "https://saopauloexpo.com.br/hospitalar",
-    })
+    p = c.normalize(
+        {
+            "title": "Hospitalar 2026",
+            "starts_on": "20/05/2026",
+            "url": "https://saopauloexpo.com.br/hospitalar",
+        }
+    )
     assert p is not None
     assert p["latitude"] is not None
     assert p["venueType"] == "convention_center"
@@ -159,10 +163,12 @@ def test_sp_expo_normalize_aplica_venue_map():
 
 def test_allianz_normalize_aplica_venue_map():
     c = AllianzParqueCollector(dry_run=True)
-    p = c.normalize({
-        "title": "Coldplay",
-        "starts_on": "15/06/2026 21:00",
-    })
+    p = c.normalize(
+        {
+            "title": "Coldplay",
+            "starts_on": "15/06/2026 21:00",
+        }
+    )
     assert p is not None
     assert p["venueType"] == "stadium"
     assert p["venueCapacity"] == 43713

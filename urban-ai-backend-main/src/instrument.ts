@@ -1,15 +1,18 @@
 // IMPORTANT: instrument.ts must be imported first for Sentry to work properly.
 import * as Sentry from '@sentry/nestjs';
+import { redactObservabilityData, resolveObservabilityRuntime } from './common/observability';
 
 // APP_ENV distinguishes prod/staging even when NODE_ENV=production in both.
-const appEnv = process.env.APP_ENV || process.env.NODE_ENV || 'development';
+const runtime = resolveObservabilityRuntime();
 const sentryDsn = process.env.SENTRY_DSN;
 
 if (sentryDsn) {
   Sentry.init({
     dsn: sentryDsn,
-    sendDefaultPii: true,
-    tracesSampleRate: appEnv === 'production' ? 0.1 : 1.0,
-    environment: appEnv,
+    sendDefaultPii: false,
+    tracesSampleRate: runtime.environment === 'production' ? 0.1 : 1.0,
+    environment: runtime.environment,
+    release: runtime.release === 'unknown' ? undefined : runtime.release,
+    beforeSend: (event) => redactObservabilityData(event),
   });
 }

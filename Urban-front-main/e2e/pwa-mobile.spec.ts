@@ -66,11 +66,15 @@ test.describe('PWA e mobile', () => {
     expect(response.ok()).toBeTruthy();
 
     const source = await response.text();
+    expect(source).toContain('const CACHE_PREFIX = "urban-ai-pwa-"');
+    expect(source).toContain('const CACHE_VERSION = `${CACHE_PREFIX}v4`');
+    expect(source).toContain('const ACTIVE_CACHES = new Set([STATIC_CACHE, PUSH_CONFIG_CACHE])');
     expect(source).toContain('networkFirstNavigation');
     expect(source).toContain('navigationPreload');
     expect(source).toContain('cache.match("/offline.html")');
     expect(source).toContain('url.pathname.startsWith("/api/")');
     expect(source).toContain('request.method !== "GET"');
+    expect(source).toContain('key.startsWith(CACHE_PREFIX) && !ACTIVE_CACHES.has(key)');
   });
 
   test('rotas publicas principais nao criam overflow horizontal no mobile', async ({ page }) => {

@@ -1,10 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
 import { Repository } from 'typeorm';
 import * as Sentry from '@sentry/nestjs';
 import { AnalisePreco } from '../entities/AnalisePreco';
 import { calculateBacktest, meetsQualityGate } from './backtesting';
+import { ScheduledJobRunnerService, runScheduledJob } from '../admin-job-runs/scheduled-job-runner.service';
 
 const WINDOW_DAYS = 90;
 const MAPE_GATE = 15;
@@ -27,10 +28,19 @@ export class PricingFeedbackService {
   constructor(
     @InjectRepository(AnalisePreco)
     private readonly analiseRepo: Repository<AnalisePreco>,
+    @Optional() private readonly scheduledJobRunner?: ScheduledJobRunnerService,
   ) {}
 
-  @Cron('0 5 * * 1', { timeZone: 'America/Sao_Paulo' })
+  @Cron('0 5 * * 1', {
+    name: 'pricing-feedback',
+    timeZone: 'America/Sao_Paulo',
+    waitForCompletion: true,
+  })
   async run(): Promise<{ sampleSize: number; mape: number | null; passes: boolean }> {
+    return runScheduledJob(this.scheduledJobRunner, 'pricing-feedback', () => this.runOnce());
+  }
+
+  private async runOnce(): Promise<{ sampleSize: number; mape: number | null; passes: boolean }> {
     const cutoff = new Date(Date.now() - WINDOW_DAYS * 24 * 60 * 60 * 1000);
     const rows = await this.analiseRepo
       .createQueryBuilder('a')

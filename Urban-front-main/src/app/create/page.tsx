@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -18,8 +17,6 @@ import {
   Icons,
   useToastCompat,
 } from "../componentes/ui";
-
-const MotionDiv = motion.div;
 
 // Função de hash
 async function sha256(message: string): Promise<string> {
@@ -273,14 +270,14 @@ const Register = () => {
         }}
         className="urban-create-form"
       >
-        <MotionDiv
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+        <div
+          className="urban-enter"
           style={{
+            animationDuration: "500ms",
+            "--urban-enter-distance": "30px",
             width: "100%",
             maxWidth: 480,
-          }}
+          } as React.CSSProperties}
         >
           <div
             style={{
@@ -450,7 +447,7 @@ const Register = () => {
               </Link>
             </div>
           </AppCard>
-        </MotionDiv>
+        </div>
       </div>
 
       {/* Responsividade do painel esquerdo via CSS escopado */}

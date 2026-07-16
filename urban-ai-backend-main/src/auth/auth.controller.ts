@@ -28,7 +28,6 @@ import {
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Request, Response } from 'express';
-import * as crypto from 'crypto';
 import { User } from 'src/entities/user.entity';
 import { AuthService, SafeUser, TokenPair } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -36,9 +35,16 @@ import { ACCESS_TOKEN_COOKIE } from './jwt.strategy';
 import { WaitlistService } from '../waitlist/waitlist.service';
 import { Roles } from './roles.decorator';
 import { RolesGuard } from './roles.guard';
+import { RegisterDto } from './register.dto';
+import {
+  AcceptWaitlistInviteDto,
+  GoogleLoginDto,
+  LoginDto,
+  UpdateProfileDto,
+  UpdateUserDto,
+} from './auth.dto';
 
 const REFRESH_TOKEN_COOKIE = 'urbanai_refresh_token';
-const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
 
 /** Duração máxima do access cookie — deve bater com JWT_EXPIRES_IN. */
 const ACCESS_COOKIE_MAX_AGE_MS = 15 * 60 * 1000; // 15 min
@@ -132,14 +138,6 @@ export class AuthController {
     res.clearCookie(REFRESH_TOKEN_COOKIE, { path: '/auth', domain: cookieDomain });
   }
 
-  private normalizePasswordForRegister(password: string): string {
-    if (SHA256_HEX_REGEX.test(password)) {
-      return password;
-    }
-
-    return crypto.createHash('sha256').update(password).digest('hex');
-  }
-
   @ApiOperation({ summary: 'Registrar um novo usuário' })
   @ApiResponse({ status: 201, description: 'Usuário registrado com sucesso' })
   @ApiResponse({ status: 400, description: 'Dados de entrada inválidos' })
@@ -157,15 +155,7 @@ export class AuthController {
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('register')
   async register(
-    @Body() data: {
-      username: string;
-      email: string;
-      password: string;
-      // F8: campos opcionais quando o front sabe que está em prelaunch e
-      // já chama /auth/register pretendendo virar waitlist.
-      source?: string;
-      referredBy?: string;
-    },
+    @Body() data: RegisterDto,
     @Req() req: Request,
   ) {
     // F8 — modo pré-lançamento.
@@ -201,11 +191,7 @@ export class AuthController {
   @Post('waitlist/accept')
   async acceptWaitlistInvite(
     @Body()
-    data: {
-      token: string;
-      username?: string;
-      password: string;
-    },
+    data: AcceptWaitlistInviteDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
@@ -230,7 +216,7 @@ export class AuthController {
     const user = await this.authService.register({
       username: data.username?.trim() || entry.name || entry.email.split('@')[0],
       email: entry.email,
-      password: this.normalizePasswordForRegister(data.password),
+      password: data.password,
     });
     await this.waitlistService.markConverted(entry.id);
 
@@ -263,7 +249,7 @@ export class AuthController {
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('login')
   async login(
-    @Body() data: { email: string; password: string },
+    @Body() data: LoginDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
@@ -281,20 +267,13 @@ export class AuthController {
   @Post('google')
   async googleLogin(
     @Body()
-    googleUserData: {
-      idToken?: string;
-      token?: string;
-      credential?: string;
-    },
+    googleUserData: GoogleLoginDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
     try {
       const idToken = googleUserData.idToken ?? googleUserData.credential ?? googleUserData.token;
-      if (!idToken) {
-        throw new BadRequestException('Token Google não fornecido.');
-      }
-      const result = await this.authService.googleLogin({ idToken }, {
+      const result = await this.authService.googleLogin({ idToken: idToken ?? '' }, {
         userAgent: req.headers['user-agent'],
         ip: req.ip,
       });
@@ -328,6 +307,7 @@ export class AuthController {
     return { accessToken: tokens.accessToken };
   }
 
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @Post('logout')
   @HttpCode(204)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
@@ -414,11 +394,7 @@ export class AuthController {
   async updateUser(
     @Param('id') id: string,
     @Body()
-    data: {
-      username?: string;
-      email?: string;
-      password?: string;
-    },
+    data: UpdateUserDto,
   ): Promise<SafeUser> {
     return this.authService.update(id, data);
   }
@@ -483,18 +459,7 @@ export class AuthController {
   @Put('profile')
   async updateProfileById(
     @Body()
-    body: {
-      username?: string;
-      email?: string;
-      phone?: string;
-      company?: string;
-      distanceKm?: number;
-      airbnbHostId?: string;
-      pricingStrategy?: string;
-      operationMode?: string;
-      percentualInicial?: number;
-      percentualFinal?: number;
-    },
+    body: UpdateProfileDto,
     @Req() req,
   ) {
 

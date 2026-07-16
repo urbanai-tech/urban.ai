@@ -9,12 +9,12 @@ type AirbnbPropertyDetails = {
   bathrooms: number;
 };
 
-type AirbnbResponse = {
+export type AirbnbResponse = {
   price: AirbnbPriceData;
   propertyDetails: AirbnbPropertyDetails;
 };
 
-type MaxObj = {
+export type MaxObj = {
   bedrooms: number;
   bathrooms: number;
 };

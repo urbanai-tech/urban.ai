@@ -1,6 +1,6 @@
 # Runbook — Cutover de `synchronize: true` para migrations versionadas
 
-**Por que existe:** O backend rodava com `synchronize: true` do TypeORM, que altera schema do MySQL automaticamente a cada boot baseado nas entities. Qualquer renomeação/remoção acidental de coluna executa `ALTER TABLE` / `DROP COLUMN` em produção. Ver `docs/avaliacao-projeto-2026-04-16.md` §3.1 CRIT #4.
+**Por que existe:** O backend rodava com `synchronize: true` do TypeORM, que altera schema do MySQL automaticamente a cada boot baseado nas entities. Qualquer renomeação/remoção acidental de coluna executa `ALTER TABLE` / `DROP COLUMN` em produção. Ver `docs/archive/audits/avaliacao-projeto-2026-04-16.md` §3.1 CRIT #4.
 
 **Estado após o patch (CRIT #3, 24/04/2026):**
 - `synchronize` e `migrationsRun` agora são controlados por env vars (`DB_SYNCHRONIZE`, `MIGRATIONS_RUN`).
@@ -98,7 +98,7 @@ Deploy. Volta a aceitar alteração ad-hoc de schema até resolver o problema. *
 ---
 
 ## Dependências removidas ao concluir esse cutover
-- `docs/avaliacao-projeto-2026-04-16.md` §3.1 CRIT #4 resolvido ✅
+- `docs/archive/audits/avaliacao-projeto-2026-04-16.md` §3.1 CRIT #4 resolvido ✅
 - Bloqueio da `F5C.1` item CRIT #3 no roadmap.
 
 *Última atualização: 24/04/2026 — CRIT #3 aplicado no código, cutover manual pendente.*

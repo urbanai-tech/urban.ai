@@ -2,6 +2,7 @@ import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { HostPanelsService } from './host-panels.service';
+import { AskFeedbackDto, AskQuestionDto } from './host-panel.dto';
 
 @ApiTags('ask-urban')
 @ApiBearerAuth()
@@ -20,7 +21,7 @@ export class AskController {
   @Post('question')
   async question(
     @Req() req: any,
-    @Body() body: { question?: string; conversationId?: string },
+    @Body() body: AskQuestionDto,
   ) {
     return this.hostPanels.askQuestion(req.user.userId, body);
   }
@@ -29,7 +30,7 @@ export class AskController {
   @Post('feedback')
   async feedback(
     @Req() req: any,
-    @Body() body: { messageId?: string; vote?: 'up' | 'down' },
+    @Body() body: AskFeedbackDto,
   ) {
     return this.hostPanels.askFeedback(req.user.userId, body);
   }

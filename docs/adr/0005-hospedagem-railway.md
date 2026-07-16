@@ -65,6 +65,6 @@ Razões:
 
 ## Referências
 
-- `docs/avaliacao-projeto-2026-04-16.md` §4 — avaliação da infra atual
-- `docs/roadmap.md` F2 — sprint de migração (D1–D14)
+- `docs/archive/audits/avaliacao-projeto-2026-04-16.md` §4 — avaliação da infra atual
+- `docs/archive/roadmaps/roadmap.md` F2 — sprint de migração (D1–D14)
 - `docs/runbooks/staging-provisioning.md` — como o staging também roda em Railway

@@ -2,12 +2,12 @@ import pymysql
 
 try:
     conn = pymysql.connect(
-        host='switchback.proxy.rlwy.net',
+        host="switchback.proxy.rlwy.net",
         port=56406,
-        user='root',
-        password='jpXtfdmHCyOUzfTdgjadxqkRnXEMNfpr',
-        database='railway',
-        cursorclass=pymysql.cursors.DictCursor
+        user="root",
+        password="jpXtfdmHCyOUzfTdgjadxqkRnXEMNfpr",
+        database="railway",
+        cursorclass=pymysql.cursors.DictCursor,
     )
     with conn.cursor() as cursor:
         cursor.execute("""
@@ -33,6 +33,6 @@ try:
         """)
 
         conn.commit()
-        print('Table created successfully.')
+        print("Table created successfully.")
 except Exception as e:
-    print('Error:', e)
+    print("Error:", e)

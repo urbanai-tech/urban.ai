@@ -46,9 +46,9 @@ Documentos antigos que continuam relevantes:
 - `docs/adr/`
 - `docs/runbooks/`
 - `docs/evidence/`
-- `docs/design-system.md`
+- `docs/product/DESIGN-SYSTEM.md`
 - `Urban-front-main/docs/design-system-guardrails.md`
-- `docs/status-roadmap-analytics-eventos-pricing-2026-05-23.md`
-- `docs/status-entregas-radar-eventos-2026-05-22.md`
-- `docs/auditoria-consolidada-dados-graficos-relatorios-2026-05-22.md`
-- `docs/avaliacao-inteligencia-analytics-relatorios-2026-05-22.md`
+- `docs/archive/reports/status-roadmap-analytics-eventos-pricing-2026-05-23.md`
+- `docs/archive/reports/status-entregas-radar-eventos-2026-05-22.md`
+- `docs/archive/audits/auditoria-consolidada-dados-graficos-relatorios-2026-05-22.md`
+- `docs/archive/audits/avaliacao-inteligencia-analytics-relatorios-2026-05-22.md`

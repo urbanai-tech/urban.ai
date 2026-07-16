@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useRef } from "react";
 import { AppButton } from "./AppButton";
 import { appRadius, appShadow, appVar } from "./styles";
+import { useDialogFocus } from "./useDialogFocus";
 
 /**
  * Dialog de confirmação light premium pro app anfitrião.
@@ -46,18 +47,14 @@ export function AppConfirmDialog({
   destructive?: boolean;
   loading?: boolean;
 }) {
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handler);
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", handler);
-      document.body.style.overflow = "";
-    };
-  }, [open, onClose]);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const cancelRef = useRef<HTMLButtonElement | null>(null);
+  useDialogFocus({
+    open,
+    containerRef: dialogRef,
+    initialFocusRef: cancelRef,
+    onClose,
+  });
 
   if (!open) return null;
 
@@ -87,6 +84,8 @@ export function AppConfirmDialog({
         }}
       />
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         style={{
           position: "relative",
           width: "100%",
@@ -131,7 +130,7 @@ export function AppConfirmDialog({
             justifyContent: "flex-end",
           }}
         >
-          <AppButton variant="ghost" onClick={onClose} disabled={loading}>
+          <AppButton ref={cancelRef} variant="ghost" onClick={onClose} disabled={loading}>
             {cancelLabel}
           </AppButton>
           <AppButton

@@ -20,11 +20,11 @@ import { AdminAuditService } from '../admin-audit/admin-audit.service';
 import {
   EventsIngestService,
   IngestBatchResponse,
-  IngestEventInput,
 } from './events-ingest.service';
 import { EventsGeocoderService } from './events-geocoder.service';
 import { EventsCsvImportService } from './events-csv-import.service';
 import { EventsCollectorRequestContext, EventsIngestApiKeyGuard } from './events-ingest-api-key.guard';
+import { ImportEventsCsvDto, IngestEventsBatchDto } from './events-ingest.dto';
 
 /**
  * Endpoint universal de ingestão de eventos (F6.2 Plus).
@@ -81,7 +81,7 @@ export class EventsIngestController {
   @Post('ingest')
   @HttpCode(200)
   async ingest_(
-    @Body() body: { events: IngestEventInput[] },
+    @Body() body: IngestEventsBatchDto,
     @Req() req: { collector?: EventsCollectorRequestContext },
   ): Promise<IngestBatchResponse> {
     const events = body?.events ?? [];
@@ -161,11 +161,11 @@ export class EventsIngestController {
   )
   async importCsv(
     @UploadedFile() file: { buffer: Buffer; originalname?: string; size: number },
-    @Body('sourceLabel') sourceLabel?: string,
+    @Body() body: ImportEventsCsvDto,
   ) {
     if (!file) {
       throw new Error('arquivo CSV obrigatório (campo "file" no multipart)');
     }
-    return this.csvImport.importFromBuffer(file.buffer, sourceLabel);
+    return this.csvImport.importFromBuffer(file.buffer, body.sourceLabel);
   }
 }

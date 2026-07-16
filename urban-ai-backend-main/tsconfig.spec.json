@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": false,
+    "incremental": false,
+    "isolatedModules": true,
+    "sourceMap": false
+  },
+  "include": ["src/**/*.ts"]
+}

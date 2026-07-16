@@ -515,6 +515,7 @@ export function PortfolioCalendar({
     const skeletonCount = 5;
     return (
       <div
+        role="status"
         aria-busy="true"
         aria-label="Carregando portfólio"
         style={{

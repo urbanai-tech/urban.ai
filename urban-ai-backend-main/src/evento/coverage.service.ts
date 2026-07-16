@@ -107,7 +107,7 @@ export class CoverageService {
     // Pega lat/lng de Address (ou da relação interna). Tolerante: se Address
     // não tem lat/lng diretamente exposto, retorna vazio (cobertura cai no
     // modo "só por regions").
-    let coords: Array<{ lat: number; lng: number }> = [];
+    let coords: Array<{ lat: number; lng: number }>;
     try {
       const rows = await this.addressRepo
         .createQueryBuilder('a')

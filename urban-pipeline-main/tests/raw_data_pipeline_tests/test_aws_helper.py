@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from raw_data_pipeline.utils.aws_helper import S3Helper
+from raw_data_pipeline.utils.aws_helper import S3Helper, _building_s3_client
 
 
 class TestS3Helper:
@@ -163,9 +163,6 @@ class TestS3Helper:
 
     def test_building_s3_client_with_assume_role(self) -> None:
         """Test S3 client creation with role assumption."""
-        # Test that the function exists and can be imported
-        from raw_data_pipeline.utils.aws_helper import _building_s3_client
-
         # Since environment variables are loaded from .env file,
         # just verify the function can be called without error
         # This validates the code structure is correct
@@ -179,9 +176,6 @@ class TestS3Helper:
 
     def test_building_s3_client_without_assume_role(self) -> None:
         """Test S3 client creation without role assumption."""
-        # Test that the function exists and can be imported
-        from raw_data_pipeline.utils.aws_helper import _building_s3_client
-
         # Just verify the function can be called
         # This validates the code structure is correct
         try:

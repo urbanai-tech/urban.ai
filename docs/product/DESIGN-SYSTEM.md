@@ -1,7 +1,7 @@
 # Design System — Urban AI
 
-**Versão:** 1.0 (consolidada do código em 2026-06-21)
-**Fonte de verdade no código:** `Urban-front-main/src/app/componentes/ui/design-tokens.css`
+**Versão:** 1.1 (consolidada e revalidada em 2026-07-15)
+**Fonte de verdade no código:** `Urban-front-main/src/app/componentes/ui/tokens.json`; `design-tokens.css` é gerado e protegido contra drift.
 **Estilo aprovado:** dark editorial (ref. Vinci Society) no público; light premium (ref. Stripe/Linear) no app; dark tool no admin.
 
 > Este documento descreve o sistema **como está** e propõe a **camada de tokens neutros para rebrand** (seção 3). O que é proposta está marcado como tal.
@@ -138,7 +138,7 @@ Depois, os tokens de tema deixam de ter hex e passam a referenciar o primitivo:
 
 ## 5. Acessibilidade (estado + metas)
 - Focus rings consistentes (2px accent) — ✅.
-- Auditoria WCAG 2.1 AA parcial existe (`docs/wcag-audit-track2-2026-05-17.md`); E2E com axe-core no frontend — ✅.
+- Auditoria WCAG 2.1 AA parcial existe (`docs/archive/audits/wcag-audit-track2-2026-05-17.md`); E2E com axe-core no frontend — ✅.
 - **Verificar no rebrand:** contraste do novo accent em fundo claro (por isso existe `--brand-accent-strong`); o laranja atual já usa variante mais escura no light justamente para passar contraste. Qualquer cor nova precisa repetir esse cuidado (texto sobre accent e accent sobre bg).
 
 ---
@@ -150,3 +150,48 @@ Depois, os tokens de tema deixam de ter hex e passam a referenciar o primitivo:
 4. Tipografia: classes `urban-*-display-*` para headline; Inter por padrão no corpo.
 5. Estados: use success/warning/danger tokens; foco já vem dos rings globais.
 6. Marca textual: importe de `siteConfig`, não escreva "Urban AI" no JSX.
+
+---
+
+## 7. Princípios e anti-padrões consolidados
+
+1. Manifesto editorial primeiro: headline forte, corpo legível e accent reservado a ação/destaque.
+2. Três expressões, uma marca: público, host e admin compartilham semântica, mas não a mesma densidade.
+3. Estados nunca dependem somente de cor; sempre combinar texto, ícone, posição ou padrão.
+4. Não usar emoji decorativo como iconografia de produto; preferir SVG acessível.
+5. Não usar `alert()`, `confirm()` ou `prompt()` nativos; usar dialogs do sistema com foco, Escape e retorno ao trigger.
+6. Não criar novo hex, radius, shadow ou breakpoint quando já existir token/variante equivalente.
+7. Não criar um componente paralelo antes de procurar na família `App*`, `Admin*` e `ui/event-intelligence`.
+
+## 8. Catálogo de componentes canônicos
+
+| Necessidade | Componente/padrão | Observação |
+|---|---|---|
+| Ação | `AppButton` / `AdminButton` | variantes, loading, disabled e focus ring |
+| Contêiner | `AppCard` / `AdminCard` | default, elevated e accent |
+| KPI | `AppMetricCard` / `AdminMetricCard` | valor, label, tendência e estado |
+| Seção | `AppSectionHeader` | eyebrow, título, descrição e ação |
+| Formulário | `AppInput` e controles admin | label explícito, erro textual e autocomplete |
+| Recomendação | `RecommendationCard` | drivers, confiança, cenários e ação |
+| Explicabilidade | `DriverBar`, `ScenarioComparison`, `PaceChart` | informação equivalente fora de hover |
+| Feedback | `AppToast`, `AppConfirmDialog` | `role=status/alert`, foco e redução de movimento |
+| Navegação | `HostShell`, `AdminShell`, `AppFooter`, `SkipLink` | desktop/mobile e destino `main-content` |
+| Eventos | `EventImage`, cards/catálogos de event intelligence | fallback de erro/bloqueio/timeout |
+
+## 9. Checklist de aceite de uma tela
+
+- usa a superfície e os tokens corretos;
+- funciona em 390, 430, 767, 1024 e 1440 px sem scroll horizontal não intencional;
+- suporta light/dark/system quando aplicável;
+- teclado, foco visível, Escape, labels, headings e live regions estão corretos;
+- imagens têm alternativa/fallback e estados loading/empty/error/retry;
+- movimento respeita `prefers-reduced-motion`;
+- não aumenta o bundle além do budget;
+- possui teste proporcional ao risco (componente, contrato, visual, axe ou jornada).
+
+## 10. Ownership e mudança
+
+- Design e Produto aprovam semântica, hierarquia e novas variantes.
+- Frontend mantém tokens, gerador, schema, componentes e gates.
+- Mudança de token exige `design:tokens:test`, `design:audit`, typecheck e revisão visual das três superfícies.
+- Mudança incompatível deve registrar ADR ou plano de migração; não manter duas fontes canônicas.

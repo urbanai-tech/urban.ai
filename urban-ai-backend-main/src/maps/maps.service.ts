@@ -1,9 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
-import { In, IsNull, Not, Raw, Repository } from 'typeorm';
+import { In, IsNull, Not, Repository } from 'typeorm';
 
-import { Client, TravelMode } from '@googlemaps/google-maps-services-js';
+import { Client } from '@googlemaps/google-maps-services-js';
 
 import { Event } from '../entities/events.entity';
 import { Address } from '../entities/addresses.entity';
@@ -11,11 +11,11 @@ import { AnaliseEnderecoEvento } from '../entities/AnaliseEnderecoEvento.entity'
 import { User } from 'src/entities/user.entity';
 import pLimit from 'p-limit';
 import { aproximadamenteOuMenor, calculateDistance, calculateDistanceHere } from 'src/util';
-import { ProcessStatus } from 'src/entities/processStatus.entity';
 import { ProcessService } from 'src/process/process.service';
 import { EmailService } from 'src/email/email.service';
 import { PropriedadeService } from 'src/propriedades/propriedade.service';
 import { isGoogleMapsConfigurationError, summarizeGoogleMapsError } from './google-maps-error';
+import { ScheduledJobRunnerService, runScheduledJob } from '../admin-job-runs/scheduled-job-runner.service';
 
 @Injectable()
 export class MapsService {
@@ -35,6 +35,7 @@ export class MapsService {
     private readonly processService: ProcessService,
     private readonly emailService: EmailService,
     private readonly propriedadeService: PropriedadeService,
+    @Optional() private readonly scheduledJobRunner?: ScheduledJobRunnerService,
   ) { }
 
   getGeocodingReadiness() {
@@ -441,12 +442,18 @@ export class MapsService {
     };
   }
 
-  @Cron('0 15 7,15 * * *', { name: 'alpha-pricing-reprocess', timeZone: 'America/Sao_Paulo' })
+  @Cron('0 15 7,15 * * *', {
+    name: 'alpha-pricing-reprocess',
+    timeZone: 'America/Sao_Paulo',
+    waitForCompletion: true,
+  })
   async reprocessAlphaPricingCron() {
-    if (process.env.PRICING_ALPHA_REPROCESS_ENABLED === 'false') {
-      return { ok: true, skipped: true, reason: 'disabled_by_env' };
-    }
-    return this.reprocessAlphaPricing();
+    return runScheduledJob(this.scheduledJobRunner, 'alpha-pricing-reprocess', async () => {
+      if (process.env.PRICING_ALPHA_REPROCESS_ENABLED === 'false') {
+        return { ok: true, skipped: true, reason: 'disabled_by_env' };
+      }
+      return this.reprocessAlphaPricing();
+    });
   }
 
   async reprocessAlphaPricing(email?: string) {
@@ -720,9 +727,9 @@ export class MapsService {
       };
 
       const results = await Promise.all(users.map(user => userLimit(() => processUser(user))));
-      const filtered = results.filter(Boolean);
+      const completedUsers = results.filter(Boolean).length;
 
-      console.log(`🎯 Processamento finalizado. Total de análises realizadas: ${totalAnalises}`);
+      console.log(`🎯 Processamento finalizado. Usuários concluídos: ${completedUsers}; análises: ${totalAnalises}`);
 
       //alterar status da propriedade para completed
  
@@ -782,6 +789,21 @@ export class MapsService {
               .take(10)
               .getMany()
           ]);
+          const addressIds = addresses.map((address) => address.id);
+          const existingAnalyses = addressIds.length
+            ? await this.analysisRepo.find({
+                where: {
+                  endereco: { id: In(addressIds) },
+                  usuarioProprietario: { id: user.id },
+                },
+                relations: ['evento', 'endereco'],
+              })
+            : [];
+          const existingKeys = new Set(
+            existingAnalyses.map(
+              (analysis) => `${analysis.endereco?.id}:${analysis.evento?.id}:${analysis.transportMode}`,
+            ),
+          );
           console.log(`Análise iniciada para o usuário ${user.id}`);
           for (const address of addresses) {
             const transportModes = ['car', 'bus', 'pedestrian'];
@@ -794,6 +816,11 @@ export class MapsService {
 
                   const maxDistance = event.raioImpactoKm || userDistanceKm || 5;
                   if (aproximadamenteOuMenor(maxDistance, distance)) {
+                    const dedupeKey = `${address.id}:${event.id}:${transport}`;
+                    if (existingKeys.has(dedupeKey)) {
+                      totalAnalises++;
+                      continue;
+                    }
                     const result = await calculateDistanceHere(
                       address.latitude,
                       address.longitude,
@@ -813,6 +840,7 @@ export class MapsService {
                     });
 
                     await this.analysisRepo.save(novaAnalise);
+                    existingKeys.add(dedupeKey);
                   } else {
                     console.log("Nenhuma distância fez match. Raio max:", maxDistance, " Distância calculada:", distance);
                   }
@@ -842,9 +870,9 @@ export class MapsService {
       const results = await Promise.all(
         users.map(user => limit(() => processUser(user)))
       );
-      const filtered = results.filter(Boolean); // remove nulls
+      const completedUsers = results.filter(Boolean).length;
 
-      console.log(`Processamento finalizado. Total de análises realizadas: ${totalAnalises}`);
+      console.log(`Processamento finalizado. Usuários concluídos: ${completedUsers}; análises: ${totalAnalises}`);
       const created = await this.processService.updateStatus('completed');
       if (!created) throw new NotFoundException('Não salvou porque o status não foi encontrado para criar');
 

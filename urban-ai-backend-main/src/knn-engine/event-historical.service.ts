@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
 import { Repository, IsNull, Not } from 'typeorm';
@@ -8,6 +8,7 @@ import { EventHistoricalMultiplier } from '../entities/event-historical-multipli
 import { AnalisePreco } from '../entities/AnalisePreco';
 import { EventIdentityService } from '../evento/event-identity.service';
 import { SP_RECURRING_EVENTS } from './data/sp-recurring-events';
+import { ScheduledJobRunnerService, runScheduledJob } from '../admin-job-runs/scheduled-job-runner.service';
 
 const FIRECRAWL_SCRAPE_URL = 'https://api.firecrawl.dev/v1/scrape';
 
@@ -166,6 +167,7 @@ export class EventHistoricalService {
     @InjectRepository(AnalisePreco)
     private readonly analiseRepo: Repository<AnalisePreco>,
     private readonly identity: EventIdentityService,
+    @Optional() private readonly scheduledJobRunner?: ScheduledJobRunnerService,
   ) {}
 
   /** Busca o Wikidata e faz upsert das âncoras. Sem chave; tolerante a falha de rede. */
@@ -416,17 +418,29 @@ export class EventHistoricalService {
     return { analises: rows.length, anchors: anchors.length };
   }
 
-  @Cron('0 0 6 * * 0', { timeZone: 'America/Sao_Paulo' }) // domingo 06:00
+  @Cron('0 0 6 * * 0', {
+    name: 'event-historical-import',
+    timeZone: 'America/Sao_Paulo',
+    waitForCompletion: true,
+  }) // domingo 06:00
   async scheduledImport(): Promise<void> {
-    await this.seedCuratedAnchors();
-    await this.importFromWikidata();
-    await this.refreshFromFirecrawl();
-    await this.recomputeFeedbackAnchors();
-    await this.applyAnchorsToEvents(500);
+    return runScheduledJob(this.scheduledJobRunner, 'event-historical-import', async () => {
+      await this.seedCuratedAnchors();
+      await this.importFromWikidata();
+      await this.refreshFromFirecrawl();
+      await this.recomputeFeedbackAnchors();
+      await this.applyAnchorsToEvents(500);
+    });
   }
 
-  @Cron('0 45 4 * * *', { timeZone: 'America/Sao_Paulo' }) // diário 04:45 (após venues)
+  @Cron('0 45 4 * * *', {
+    name: 'event-historical-apply',
+    timeZone: 'America/Sao_Paulo',
+    waitForCompletion: true,
+  }) // diário 04:45 (após venues)
   async scheduledApply(): Promise<void> {
-    await this.applyAnchorsToEvents(300);
+    return runScheduledJob(this.scheduledJobRunner, 'event-historical-apply', async () => {
+      await this.applyAnchorsToEvents(300);
+    });
   }
 }

@@ -92,7 +92,7 @@ test.describe('Admin jobs operations', () => {
     await expect(page.getByRole('heading', { name: /Jobs operacionais/i })).toBeVisible();
     await expect(page.getByText(/12 pendentes/i)).toBeVisible();
     await expect(page.getByText(/amber \/ collecting/i).first()).toBeVisible();
-    await expect(page.getByRole('heading', { name: /Ultimos jobs admin/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Últimos jobs admin/i })).toBeVisible();
     await expect(page.getByText('dataset-snapshot')).toBeVisible();
 
     await page.getByRole('button', { name: /Rodar geocoder/i }).click();

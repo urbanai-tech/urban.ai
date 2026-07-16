@@ -155,7 +155,7 @@ async function getPushPublicConfig(): Promise<PushPublicConfig> {
 async function ensureServiceWorkerRegistration(): Promise<ServiceWorkerRegistration> {
   const existing = await navigator.serviceWorker.getRegistration("/");
   if (existing) return existing;
-  await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+  await navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" });
   return navigator.serviceWorker.ready;
 }
 

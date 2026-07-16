@@ -20,6 +20,7 @@ import { HostPanelsService } from './host-panels.service';
 import { PaceController } from './pace.controller';
 import { PortfolioController } from './portfolio.controller';
 import { PropertiesPanelController } from './properties-panel.controller';
+import { PortfolioActionTargetResolverService } from './portfolio-action-target-resolver.service';
 
 @Module({
   imports: [
@@ -47,6 +48,6 @@ import { PropertiesPanelController } from './properties-panel.controller';
     PortfolioController,
     PropertiesPanelController,
   ],
-  providers: [HostPanelsService],
+  providers: [PortfolioActionTargetResolverService, HostPanelsService],
 })
 export class HostPanelsModule {}

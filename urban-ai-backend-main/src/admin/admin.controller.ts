@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   Patch,
@@ -16,19 +15,19 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { AdminService } from './admin.service';
-import { AdminFinanceService } from './finance.service';
-import { StripeSyncCheckService } from './stripe-sync.service';
-import { DatasetCollectorService } from '../knn-engine/dataset-collector.service';
-import { EventsGeocoderService } from '../evento/events-geocoder.service';
-import { EventsEnrichmentService } from '../evento/events-enrichment.service';
-import { VenueCapacityService } from '../knn-engine/venue-capacity.service';
-import { EventHistoricalService } from '../knn-engine/event-historical.service';
 import { RoiService } from '../roi/roi.service';
 import { AdminAuditService } from '../admin-audit/admin-audit.service';
 import { OnboardingDripService } from '../email/onboarding-drip.service';
 import { EventDedupAdminService } from './event-dedup-admin.service';
 import { EventIntelligenceService } from '../event-intelligence/event-intelligence.service';
-import { AirbnbPricingAttemptLogService } from './airbnb-pricing-attempt-log.service';
+import {
+  AdminManualOccupancyDto,
+  BackfillEventIntelligenceDto,
+  RejectEventDedupCandidateDto,
+  ScanEventDedupCandidatesDto,
+  SetUserActiveDto,
+  SetUserRoleDto,
+} from './dto/admin-core.dto';
 
 /**
  * Endpoints administrativos da Urban AI.
@@ -50,19 +49,11 @@ import { AirbnbPricingAttemptLogService } from './airbnb-pricing-attempt-log.ser
 export class AdminController {
   constructor(
     private readonly admin: AdminService,
-    private readonly finance: AdminFinanceService,
-    private readonly stripeSync: StripeSyncCheckService,
-    private readonly datasetCollector: DatasetCollectorService,
-    private readonly geocoder: EventsGeocoderService,
-    private readonly enrichment: EventsEnrichmentService,
     private readonly roi: RoiService,
     private readonly audit: AdminAuditService,
     private readonly onboardingDrip: OnboardingDripService,
     private readonly eventDedup: EventDedupAdminService,
     private readonly eventIntelligence: EventIntelligenceService,
-    private readonly airbnbPricingAttempts: AirbnbPricingAttemptLogService,
-    private readonly venueCapacity: VenueCapacityService,
-    private readonly eventHistorical: EventHistoricalService,
   ) {}
 
   // ================== Onboarding drip (gap H9) ==================
@@ -112,141 +103,6 @@ export class AdminController {
     });
   }
 
-  @ApiOperation({ summary: 'Status do motor de pricing (estratégia ativa, tier, dataset)' })
-  @Get('pricing/status')
-  async pricingStatus() {
-    return this.admin.pricingStatus();
-  }
-
-  @ApiOperation({ summary: 'Painel alpha por usuário: KPIs, qualidade de eventos e recomendações recentes' })
-  @Get('alpha/dashboard')
-  async alphaDashboard(@Query('email') email: string) {
-    return this.admin.alphaDashboard(email);
-  }
-
-  @ApiOperation({ summary: 'Export/auditoria das recomendações alpha' })
-  @Get('alpha/recommendations')
-  async alphaRecommendations(
-    @Query('email') email: string,
-    @Query('limit') limit: string = '250',
-  ) {
-    return this.admin.alphaRecommendations(email, parseInt(limit, 10));
-  }
-
-  @ApiOperation({ summary: 'Reprocessar propriedades do usuário alpha' })
-  @Throttle({ default: { ttl: 60_000, limit: 3 } })
-  @Post('alpha/reprocess')
-  async alphaReprocess(@Query('email') email: string, @Req() req: any) {
-    return this.admin.runTrackedJob(
-      'alpha-pricing-reprocess',
-      req?.user?.userId ?? null,
-      () => this.admin.runAlphaReprocess(email),
-    );
-  }
-
-  @ApiOperation({ summary: 'Métricas do dataset proprietário (por origem, top listings)' })
-  @Get('dataset/metrics')
-  async datasetMetrics() {
-    return this.admin.datasetMetrics();
-  }
-
-  @ApiOperation({ summary: 'Diagnóstico completo do dataset proprietário e dependências' })
-  @Get('dataset/diagnostics')
-  async datasetDiagnostics() {
-    return this.datasetCollector.datasetDiagnostics();
-  }
-
-  @ApiOperation({ summary: 'Saúde operacional do pipeline Price Intelligence' })
-  @Get('price-intelligence/health')
-  async priceIntelligenceHealth(@Query('windowDays') windowDays: string = '7') {
-    return this.admin.priceIntelligenceHealth(parseInt(windowDays, 10));
-  }
-
-  @ApiOperation({ summary: 'Saúde das tentativas Airbnb/headless de preço' })
-  @Get('airbnb/pricing-attempts/health')
-  async airbnbPricingAttemptHealth(@Query('windowHours') windowHours: string = '24') {
-    return this.airbnbPricingAttempts.health(parseInt(windowHours, 10));
-  }
-
-  @ApiOperation({ summary: 'Executar snapshot manual dos imóveis cadastrados' })
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
-  @Post('dataset/snapshot/run')
-  async runDatasetSnapshot(@Req() req: any) {
-    return this.admin.runTrackedJob(
-      'dataset-snapshot',
-      req?.user?.userId ?? null,
-      () => this.datasetCollector.recordOwnedListingsSnapshot(),
-    );
-  }
-
-  @ApiOperation({ summary: 'Executar snapshot manual das features de proximidade a eventos' })
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
-  @Post('dataset/event-proximity/run')
-  async runEventProximitySnapshot(@Req() req: any) {
-    return this.admin.runTrackedJob(
-      'event-proximity-snapshot',
-      req?.user?.userId ?? null,
-      () => this.datasetCollector.recordEventProximityFeatures(),
-    );
-  }
-
-  @ApiOperation({ summary: 'Histórico de execução dos jobs admin' })
-  @Get('jobs/runs')
-  async jobRuns(@Query('limit') limit: string = '10', @Query('name') name?: string) {
-    return this.admin.listJobRuns(parseInt(limit, 10), name);
-  }
-
-  @ApiOperation({ summary: 'Executar geocoder de eventos com histórico admin' })
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
-  @Post('jobs/geocoder/run')
-  async runGeocoderJob(@Query('limit') limit: string = '50', @Req() req: any) {
-    return this.admin.runTrackedJob(
-      'geocoder',
-      req?.user?.userId ?? null,
-      () => this.geocoder.runOnce(parseInt(limit, 10)),
-    );
-  }
-
-  @ApiOperation({ summary: 'Resetar enrichment stale com histórico admin' })
-  @Throttle({ default: { ttl: 60_000, limit: 3 } })
-  @Post('jobs/reset-stale-enrichment/run')
-  async runResetStaleEnrichment(@Req() req: any) {
-    return this.admin.runTrackedJob(
-      'reset-stale-enrichment',
-      req?.user?.userId ?? null,
-      () => this.enrichment.resetStaleZeroRelevance(),
-    );
-  }
-
-  @ApiOperation({ summary: 'Backfill de venueCapacity em toda a base de eventos (IA-3c)' })
-  @Throttle({ default: { ttl: 60_000, limit: 2 } })
-  @Post('jobs/venue-capacity/run')
-  async runVenueCapacityBackfill(@Req() req: any) {
-    return this.admin.runTrackedJob(
-      'venue-capacity-backfill',
-      req?.user?.userId ?? null,
-      () => this.venueCapacity.backfillAll(),
-    );
-  }
-
-  @ApiOperation({ summary: 'Importar âncoras históricas (Wikidata) + aplicar aos eventos (IA-3b)' })
-  @Throttle({ default: { ttl: 60_000, limit: 2 } })
-  @Post('jobs/event-historical/run')
-  async runEventHistorical(@Req() req: any) {
-    return this.admin.runTrackedJob(
-      'event-historical',
-      req?.user?.userId ?? null,
-      async () => {
-        const seeded = await this.eventHistorical.seedCuratedAnchors();
-        const imported = await this.eventHistorical.importFromWikidata();
-        const refreshed = await this.eventHistorical.refreshFromFirecrawl();
-        const feedback = await this.eventHistorical.recomputeFeedbackAnchors();
-        const applied = await this.eventHistorical.applyAnchorsAll();
-        return { seeded, imported, refreshed, feedback, applied };
-      },
-    );
-  }
-
   @ApiOperation({ summary: 'Analytics do motor de eventos (cobertura, categorias, top relevância)' })
   @Get('events/analytics')
   async eventsAnalytics() {
@@ -276,7 +132,7 @@ export class AdminController {
   @ApiOperation({ summary: 'Rodar scan admin para encontrar candidatos de deduplicação de eventos' })
   @Throttle({ default: { ttl: 60_000, limit: 3 } })
   @Post('events/dedup/scan')
-  async scanEventDedupCandidates(@Body() body: any = {}) {
+  async scanEventDedupCandidates(@Body() body: ScanEventDedupCandidatesDto = new ScanEventDedupCandidatesDto()) {
     return this.eventDedup.scanEventDedupCandidates({
       from: body?.from,
       to: body?.to,
@@ -302,7 +158,7 @@ export class AdminController {
   @Post('events/dedup/candidates/:id/reject')
   async rejectEventDedupCandidate(
     @Param('id') id: string,
-    @Body() body: { reason?: string } = {},
+    @Body() body: RejectEventDedupCandidateDto = new RejectEventDedupCandidateDto(),
     @Req() req: any,
   ) {
     return this.eventDedup.rejectEventDedupCandidate(id, req?.user?.userId ?? null, body?.reason ?? null);
@@ -449,7 +305,7 @@ export class AdminController {
   @Post('events/intelligence/backfill')
   async backfillFutureEventIntelligence(
     @Req() req: any,
-    @Body() body: any = {},
+    @Body() body: BackfillEventIntelligenceDto = new BackfillEventIntelligenceDto(),
     @Query('from') from?: string,
     @Query('to') to?: string,
     @Query('lookaheadDays') lookaheadDays?: string,
@@ -529,16 +385,7 @@ export class AdminController {
   @ApiOperation({ summary: 'Criar/atualizar ocupação manual de um imóvel por dia' })
   @Post('occupancy/manual')
   async upsertManualOccupancy(
-    @Body()
-    body: {
-      listId?: string;
-      airbnbListingId?: string;
-      date: string;
-      status: 'booked' | 'available' | 'blocked' | 'unknown';
-      revenueCents?: number | null;
-      listedPriceCents?: number | null;
-      currency?: string;
-    },
+    @Body() body: AdminManualOccupancyDto,
     @Req() req: any,
   ) {
     const result = await this.admin.upsertManualOccupancy(body);
@@ -582,7 +429,7 @@ export class AdminController {
   @Patch('users/:id/role')
   async setUserRole(
     @Param('id') userId: string,
-    @Body() body: { role: 'host' | 'admin' | 'support' },
+    @Body() body: SetUserRoleDto,
     @Req() req: any,
   ) {
     const user = await this.admin.setUserRole(userId, body.role, req?.user?.userId ?? null);
@@ -601,7 +448,7 @@ export class AdminController {
   @Patch('users/:id/active')
   async setUserActive(
     @Param('id') userId: string,
-    @Body() body: { ativo: boolean },
+    @Body() body: SetUserActiveDto,
     @Req() req: any,
   ) {
     const user = await this.admin.setUserActive(userId, body.ativo, req?.user?.userId ?? null);
@@ -615,129 +462,4 @@ export class AdminController {
     return { id: user.id, ativo: user.ativo };
   }
 
-  // ================== Finance — custos, receita, margem ==================
-
-  @ApiOperation({ summary: 'Visão consolidada financeira (MRR, custos, margem, por imóvel)' })
-  @Get('finance/overview')
-  async financeOverview() {
-    return this.finance.overview();
-  }
-
-  @ApiOperation({ summary: 'Listar custos cadastrados' })
-  @Get('finance/costs')
-  async listCosts(@Query('includeInactive') inactive: string = 'false') {
-    return this.finance.listCosts(inactive === 'true');
-  }
-
-  @Throttle({ default: { ttl: 60_000, limit: 30 } })
-  @ApiOperation({ summary: 'Criar custo operacional novo' })
-  @Post('finance/costs')
-  async createCost(
-    @Body()
-    body: {
-      name: string;
-      category: string;
-      recurrence: string;
-      monthlyCostCents: number;
-      percentOfRevenue?: number;
-      description?: string;
-      scalesWithListings?: boolean;
-      notes?: string;
-    },
-    @Req() req: any,
-  ) {
-    const cost = await this.finance.createCost(body);
-    await this.audit.record({
-      actorUserId: req?.user?.userId ?? null,
-      action: 'finance.cost_create',
-      entityType: 'platform_cost',
-      entityId: cost.id,
-      after: cost,
-    });
-    return cost;
-  }
-
-  @Throttle({ default: { ttl: 60_000, limit: 30 } })
-  @ApiOperation({ summary: 'Atualizar custo' })
-  @Patch('finance/costs/:id')
-  async updateCost(@Param('id') id: string, @Body() body: any, @Req() req: any) {
-    const cost = await this.finance.updateCost(id, body);
-    await this.audit.record({
-      actorUserId: req?.user?.userId ?? null,
-      action: 'finance.cost_update',
-      entityType: 'platform_cost',
-      entityId: cost.id,
-      after: cost,
-    });
-    return cost;
-  }
-
-  @Throttle({ default: { ttl: 60_000, limit: 30 } })
-  @ApiOperation({ summary: 'Remover custo' })
-  @Delete('finance/costs/:id')
-  async deleteCost(@Param('id') id: string, @Req() req: any) {
-    const result = await this.finance.deleteCost(id);
-    await this.audit.record({
-      actorUserId: req?.user?.userId ?? null,
-      action: 'finance.cost_delete',
-      entityType: 'platform_cost',
-      entityId: id,
-    });
-    return result;
-  }
-
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
-  @ApiOperation({
-    summary:
-      'Popular custos default da Urban AI (idempotente). overwrite=true sobrescreve valores manuais.',
-  })
-  @Post('finance/costs/seed')
-  async seedDefaultCosts(@Query('overwrite') overwrite: string = 'false', @Req() req: any) {
-    const result = await this.finance.seedDefaultCosts(overwrite === 'true');
-    await this.audit.record({
-      actorUserId: req?.user?.userId ?? null,
-      action: 'finance.cost_seed',
-      entityType: 'platform_cost',
-      metadata: { overwrite: overwrite === 'true', summary: result },
-    });
-    return result;
-  }
-
-  // ================== Pricing config (planos) ==================
-
-  @ApiOperation({ summary: 'Listar planos com preços atuais (todos os ciclos)' })
-  @Get('plans-config')
-  async listPlansConfig() {
-    return this.finance.listPlans();
-  }
-
-  @Throttle({ default: { ttl: 60_000, limit: 20 } })
-  @ApiOperation({
-    summary: 'Atualizar preço/features de um plano (NÃO atualiza Stripe Price IDs)',
-  })
-  @Patch('plans-config/:name')
-  async updatePlanPricing(@Param('name') name: string, @Body() body: any, @Req() req: any) {
-    const plan = await this.finance.updatePlanPricing(name, body);
-    await this.audit.record({
-      actorUserId: req?.user?.userId ?? null,
-      action: 'plan.pricing_update',
-      entityType: 'plan',
-      entityId: plan.id,
-      after: plan,
-      metadata: { name },
-    });
-    return plan;
-  }
-
-  // ================== Stripe — sync check ==================
-
-  @Throttle({ default: { ttl: 60_000, limit: 10 } })
-  @ApiOperation({
-    summary:
-      'Validar que os 8 Stripe Price IDs (matriz F6.5) existem e batem com o ciclo esperado',
-  })
-  @Get('stripe/sync-check')
-  async stripeSyncCheck() {
-    return this.stripeSync.check();
-  }
 }

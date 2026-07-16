@@ -219,6 +219,27 @@ Navigate to "Flows" → "Trigger All Spiders Flow" → "Run"
 
 Processes data from S3 storage to MySQL database.
 
+Before any database credentials or engine are requested, the main flow runs an
+offline data-quality gate. It checks consistent columns and semantic types
+across parquet files, required event fields when present, null/blank values,
+duplicate keys and rows, numeric ranges (`price`, latitude and longitude), and
+the `source` provenance when that column exists. A failure raises
+`DataQualityError`, whose `report.to_dict()` is structured and never includes
+row values.
+
+Generic datasets can provide an explicit contract without adopting the event
+schema:
+
+```python
+from raw_data_pipeline.quality import DataQualityContract, NumericRange
+
+contract = DataQualityContract(
+    required_columns=frozenset({"id", "score"}),
+    unique_column_sets=(("id",),),
+    numeric_ranges={"score": NumericRange(minimum=0, maximum=100)},
+)
+```
+
 **Deploy the Data Processing Flow:**
 ```bash
 uv run prefect deploy --name raw-data-pipeline

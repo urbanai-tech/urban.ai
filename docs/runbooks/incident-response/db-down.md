@@ -1,7 +1,7 @@
 # Incidente — MySQL Railway indisponível
 
 **Severidade:** SEV1 (produto inteiro depende do DB).
-**RTO alvo:** 2h (ver `docs/slo.md`).
+**RTO alvo:** 2h (ver `docs/ops/slo.md`).
 
 ## Detecção
 

@@ -108,7 +108,7 @@ Antes do Tier 4 estar pronto, **estamos no Tier 2/3 entregando valor real** — 
 ## Referências
 
 - ADR 0008 — KNN→XGBoost
-- F6.1 do `docs/roadmap-pos-sprint.md` v2.6
+- F6.1 do `docs/archive/roadmaps/roadmap-pos-sprint.md` v2.6
 - `docs/runbooks/dataset-acquisition.md`
 - Implementação: `src/knn-engine/strategies/adaptive-pricing.strategy.ts`
 - Tabela: `src/entities/price-snapshot.entity.ts`
