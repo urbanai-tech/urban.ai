@@ -27,10 +27,10 @@ Não colar tokens, senhas, dumps, dados pessoais ou chaves em chat, issue, commi
 - [x] Autenticar a Railway CLI no workspace/conta corretos e confirmar projeto, ambiente e serviços antes de qualquer alteração. Validado em 2026-07-20.
 - [x] Liberar acesso Cloudflare/DNS para os domínios Urban AI. Leitura/escrita DNS validadas em 2026-07-20; credenciais expostas fora do secret store ainda precisam ser rotacionadas.
 - [ ] Definir um hostname canônico para a API e alinhar Railway, frontend, CORS, documentação e monitores.
-- [ ] Criar/corrigir DNS de `status`, `staging` e `staging-api`; validar resolução pública e TLS. `staging-api` já tem CNAME/TXT propagados, mas aguarda associação/certificado Railway; `staging` e `status` seguem sem destino.
+- [ ] Concluir DNS/TLS de `status`, `staging` e `staging-api`. `status` já resolve e publica a página, mas aguarda o certificado customizado; `staging-api` já tem CNAME/TXT propagados, mas aguarda associação/certificado Railway; `staging` depende do frontend ainda não provisionado.
 - [x] Configurar `HEALTH_READINESS_TOKEN` no backend e o mesmo valor apenas no secret store do monitor/gate. Produção validada com 401 anônimo e 200 autorizado em 2026-07-20.
 - [x] Provisionar Redis de produção persistente, rotacionar a credencial e validar DB/Redis no readiness. Evidência em [`../evidence/production-redis-readiness-2026-07-20.md`](../evidence/production-redis-readiness-2026-07-20.md).
-- [ ] Configurar status page e monitorar home, `/health/live` e `/health` autenticado como sinais distintos.
+- [x] Configurar status page pública para site, app e `/health/live`. O readiness `/health` autenticado permanece em gate privado separado para não expor credenciais.
 
 **Aceite:** DNS resolve; TLS é válido; liveness e readiness retornam 200 nos contextos corretos; o gate enterprise passa 6/6; nenhum valor de secret aparece em log ou evidência.
 
@@ -50,9 +50,11 @@ Não colar tokens, senhas, dumps, dados pessoais ou chaves em chat, issue, commi
 - [ ] Criar usuários de teste host/admin e armazenar credenciais somente no secret store do CI/staging.
 - [ ] Executar os E2E credencial-gated no hostname de staging final.
 - [ ] Rodar smoke responsivo em dispositivos reais ou device farm para Android/iOS, PWA, push, zoom e leitor de tela.
-- [ ] Executar restore de um backup real em banco temporário isolado; nunca sobre produção.
-- [ ] Medir e registrar RPO, RTO, integridade pós-restore, rollback de deploy/migration e descarte seguro do banco temporário.
-- [ ] Confirmar existência, criptografia, retenção e restauração do objeto off-site.
+- [x] Executar restore de um backup real em banco temporário isolado; nunca sobre produção. Run `29746197104` restaurou 18/18 tabelas em MySQL 8.4 efêmero.
+- [x] Medir e registrar RPO, RTO, integridade estrutural e descarte seguro: RPO observado 25.441 s, RTO 27 s e 4/5 checks aprovados.
+- [ ] Corrigir/provar a trilha `admin_audit_logs`, hoje vazia no backup, e repetir o drill até 5/5.
+- [ ] Comprovar rollback de deploy/migration em exercício separado.
+- [ ] Confirmar criptografia e retenção do objeto off-site; existência e restauração já foram comprovadas.
 
 Antes do drill, os gates locais devem continuar verdes:
 
