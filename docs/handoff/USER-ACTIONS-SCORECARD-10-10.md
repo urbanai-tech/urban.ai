@@ -25,9 +25,9 @@ Não colar tokens, senhas, dumps, dados pessoais ou chaves em chat, issue, commi
 ## 2. Acessos e infraestrutura — prioridade P1
 
 - [x] Autenticar a Railway CLI no workspace/conta corretos e confirmar projeto, ambiente e serviços antes de qualquer alteração. Validado em 2026-07-20.
-- [ ] Liberar acesso Cloudflare/DNS para os domínios Urban AI. Credenciais obtidas pelo owner; configuração e validação segura ainda pendentes.
+- [x] Liberar acesso Cloudflare/DNS para os domínios Urban AI. Leitura/escrita DNS validadas em 2026-07-20; credenciais expostas fora do secret store ainda precisam ser rotacionadas.
 - [ ] Definir um hostname canônico para a API e alinhar Railway, frontend, CORS, documentação e monitores.
-- [ ] Criar/corrigir DNS de `status`, `staging` e `staging-api`; validar resolução pública e TLS.
+- [ ] Criar/corrigir DNS de `status`, `staging` e `staging-api`; validar resolução pública e TLS. `staging-api` já tem CNAME/TXT propagados, mas aguarda associação/certificado Railway; `staging` e `status` seguem sem destino.
 - [x] Configurar `HEALTH_READINESS_TOKEN` no backend e o mesmo valor apenas no secret store do monitor/gate. Produção validada com 401 anônimo e 200 autorizado em 2026-07-20.
 - [x] Provisionar Redis de produção persistente, rotacionar a credencial e validar DB/Redis no readiness. Evidência em [`../evidence/production-redis-readiness-2026-07-20.md`](../evidence/production-redis-readiness-2026-07-20.md).
 - [ ] Configurar status page e monitorar home, `/health/live` e `/health` autenticado como sinais distintos.
