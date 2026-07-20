@@ -45,7 +45,7 @@
     .card{background:linear-gradient(160deg,var(--panel-2),var(--panel));border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:0 1px 0 rgba(255,255,255,.02) inset}.card:hover{border-color:var(--line-strong)}
     .metric strong{display:block;font-size:42px;line-height:1;margin-bottom:9px}.metric span{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.12em}.metric.accent strong{color:var(--accent-2)}
     .tag,.status{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:5px 9px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.status::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}.ok{color:var(--green);background:var(--green-soft)}.warn{color:var(--yellow);background:var(--yellow-soft)}.bad{color:var(--red);background:var(--red-soft)}.info{color:var(--blue);background:var(--blue-soft)}
-    .score-list{display:grid;gap:11px}.score-row{display:grid;grid-template-columns:170px minmax(180px,1fr) 55px 55px;gap:12px;align-items:center}.score-label{font-size:13px;font-weight:700}.track{height:11px;border-radius:99px;background:var(--panel-3);overflow:hidden;position:relative}.track::after{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--score);background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:inherit}.score-now{color:var(--accent-2);font-weight:900;font-size:13px;text-align:right}.score-target{color:var(--green);font-weight:900;font-size:13px;text-align:right}
+    .score-list{display:grid;gap:11px}.score-row{display:grid;grid-template-columns:minmax(0,170px) minmax(0,1fr) minmax(0,55px) minmax(0,55px);gap:12px;align-items:center}.score-label{font-size:13px;font-weight:700}.track{height:11px;border-radius:99px;background:var(--panel-3);overflow:hidden;position:relative}.track::after{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--score);background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:inherit}.score-now{color:var(--accent-2);font-weight:900;font-size:13px;text-align:right}.score-target{color:var(--green);font-weight:900;font-size:13px;text-align:right;overflow-wrap:anywhere}
     .architecture{display:grid;grid-template-columns:1fr 54px 1.1fr 54px 1fr;align-items:stretch;gap:8px}.arch-layer{display:grid;gap:10px}.arch-title{color:var(--dim);font-size:10px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;padding-left:4px}.node{border:1px solid var(--line);background:var(--panel);border-radius:13px;padding:14px}.node strong{display:block;margin-bottom:4px}.node small{color:var(--muted)}.node.core{border-color:var(--accent);background:var(--accent-soft)}.arrow{display:grid;place-items:center;color:var(--accent);font-size:30px}
     .service-card{position:relative;overflow:hidden}.service-card::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--service-color,var(--accent))}.service-card ul{padding-left:18px;margin:12px 0 0;color:var(--muted);font-size:13px}
     .entity-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{border:1px solid var(--line);background:var(--panel-3);padding:5px 8px;border-radius:7px;color:var(--muted);font-size:11px}
@@ -90,7 +90,7 @@
         <a href="#roadmap"><span class="nav-index">12</span> Plano 10/10</a>
         <a href="#docs"><span class="nav-index">13</span> Documentação</a>
       </nav>
-      <div class="side-footer">Fotografia: 15/07/2026<br>Código local + testes + probes públicos</div>
+      <div class="side-footer">Fotografia: 15/07/2026<br>Atualização operacional: 20/07/2026</div>
     </aside>
 
     <main class="main">
@@ -107,13 +107,13 @@
       </header>
 
       <section id="overview" class="hero searchable">
-        <div class="eyebrow">Urban AI · sistema completo</div>
+        <div class="eyebrow">Urban AI · sistema completo · atualizado em 20/07/2026</div>
         <h1 class="display">Da cidade ao preço. Do preço ao resultado.</h1>
         <p class="lead">Um mapa navegável de 100% da superfície identificada no repositório: aquisição de dados, inteligência de demanda, pricing, aplicação, ROI, serviços, 78 telas, layouts, jornadas, design system, testes, riscos e evolução para 10/10.</p>
         <div class="notice"><strong>Importante:</strong><span>“100% visual” significa cobertura integral do sistema mapeado. Não significa que a operação já esteja 100% pronta; o score atual e os gates pendentes aparecem explicitamente.</span></div>
         <div class="grid grid-4" style="margin-top:28px">
           <div class="card metric accent searchable"><strong>223</strong><span>endpoints HTTP</span></div><div class="card metric searchable"><strong>78</strong><span>telas Next.js</span></div><div class="card metric searchable"><strong>45</strong><span>entidades TypeORM</span></div><div class="card metric searchable"><strong>21</strong><span>jobs agendados</span></div>
-          <div class="card metric searchable"><strong>896</strong><span>testes backend verdes</span></div><div class="card metric searchable"><strong>164</strong><span>testes Python verdes</span></div><div class="card metric searchable"><strong>97 / 97</strong><span>E2E verdes · zero skips</span></div><div class="card metric searchable"><strong>7,2</strong><span>baseline global; reavaliação só por evidência real</span></div>
+          <div class="card metric searchable"><strong>896</strong><span>testes backend verdes</span></div><div class="card metric searchable"><strong>164</strong><span>testes Python verdes</span></div><div class="card metric searchable"><strong>97 / 97</strong><span>E2E verdes · zero skips</span></div><div class="card metric searchable"><strong>7,3</strong><span>score global atualizado por evidência operacional</span></div>
         </div>
       </section>
 
@@ -128,7 +128,7 @@
           <div class="score-row"><div class="score-label">UX desktop</div><div class="track" style="--score:78%"></div><div class="score-now">7,8</div><div class="score-target">10</div></div>
           <div class="score-row"><div class="score-label">UX mobile</div><div class="track" style="--score:70%"></div><div class="score-now">7,0</div><div class="score-target">10</div></div>
           <div class="score-row"><div class="score-label">Acessibilidade</div><div class="track" style="--score:71%"></div><div class="score-now">7,1</div><div class="score-target">10</div></div>
-          <div class="score-row"><div class="score-label">Operação</div><div class="track" style="--score:58%"></div><div class="score-now">5,8</div><div class="score-target">10</div></div>
+          <div class="score-row"><div class="score-label">Operação</div><div class="track" style="--score:70%"></div><div class="score-now">7,0</div><div class="score-target">10</div></div>
           <div class="score-row"><div class="score-label">Comercial</div><div class="track" style="--score:64%"></div><div class="score-now">6,4</div><div class="score-target">10</div></div>
         </div>
       </section>
@@ -145,10 +145,11 @@
       </section>
 
       <section id="services" class="searchable">
-        <div class="section-head"><div><div class="eyebrow">Serviços e dados</div><h2 class="display">Topologia do produto</h2></div><p>Cinco serviços principais; o KNN externo está deprecado e deve sair após prova de ausência de dependência.</p></div>
+        <div class="section-head"><div><div class="eyebrow">Serviços e dados</div><h2 class="display">Topologia do produto</h2></div><p>Serviços de aplicação e infraestrutura persistente; o KNN externo está deprecado e deve sair após prova de ausência de dependência.</p></div>
         <div class="grid grid-3">
           <article class="card service-card" style="--service-color:var(--blue)"><span class="status ok">build · budget · audit 0</span><h3 style="margin-top:12px">Urban-front-main</h3><p>Next.js 15, React 19, PWA, host e admin.</p><ul><li>76 rotas geradas no build</li><li>onboarding -34% em linhas</li><li>shared JS 106 kB Next / 103,0 KiB gzip</li></ul></article>
           <article class="card service-card" style="--service-color:var(--accent)"><span class="status ok">896 testes · coverage crítico ≥90%</span><h3 style="margin-top:12px">urban-ai-backend-main</h3><p>NestJS, TypeORM, pricing, eventos e billing.</p><ul><li>36 controllers · 223 endpoints</li><li>61/61 bodies com DTO runtime</li><li>45 entidades · 49 migrations</li></ul></article>
+          <article class="card service-card" style="--service-color:var(--red)"><span class="status ok">produção · 1/1 réplica · readiness ok</span><h3 style="margin-top:12px">Redis-P9x7</h3><p>Redis privado para health, filas e coordenação do backend.</p><ul><li>volume persistente de 50 GB</li><li>montagem em /data</li><li>DB e Redis ok no readiness</li></ul></article>
           <article class="card service-card" style="--service-color:var(--violet)"><span class="status ok">55 testes</span><h3 style="margin-top:12px">urban-pipeline-main</h3><p>Prefect ETL, bronze S3 e carga MySQL.</p><ul><li>contrato pré-DB</li><li>ordem temporal</li><li>schema evolution</li></ul></article>
           <article class="card service-card" style="--service-color:var(--green)"><span class="status ok">109 testes</span><h3 style="margin-top:12px">urban-webscraping-main</h3><p>Scrapy/Playwright para fontes de eventos.</p><ul><li>7 spiders</li><li>proveniência + timezone</li><li>canaries pendentes</li></ul></article>
           <article class="card service-card" style="--service-color:var(--red)"><span class="status warn">deprecado · isolado no HEAD</span><h3 style="margin-top:12px">urban-ai-knn-main</h3><p>Microserviço legado; fonte ativa está no backend.</p><ul><li>0 dependência em 854 arquivos</li><li>provar 30 dias sem tráfego</li></ul></article>
@@ -224,7 +225,7 @@
         <div class="filters" id="issueFilters"><button class="filter active" data-sev="all">Todos</button><button class="filter" data-sev="p0">P0</button><button class="filter" data-sev="p1">P1</button><button class="filter" data-sev="p2">P2</button><button class="filter" data-sev="debt">Dívida</button></div>
         <div class="issues" id="issueList">
           <div class="issue" data-sev="p0"><span class="issue-id">SEC-01</span><span class="status bad severity">P0</span><div class="issue-copy"><strong>Blobs sensíveis no histórico Git</strong><br><small>Contenção no HEAD não remove histórico, cache, forks ou credenciais.</small></div><span class="issue-owner">Founder · Segurança · Jurídico</span></div>
-          <div class="issue" data-sev="p1"><span class="issue-id">OPS-01</span><span class="status warn severity">P1</span><div class="issue-copy"><strong>Readiness token ausente</strong><br><small>/health falha fechado com 503; gate externo não prova prontidão.</small></div><span class="issue-owner">DevOps</span></div>
+          <div class="issue" data-sev="p1"><span class="issue-id">OPS-01</span><span class="status ok severity">resolvido</span><div class="issue-copy"><strong>Readiness e Redis de produção</strong><br><small>Liveness 200; readiness anônimo 401 e autorizado 200; MySQL/Redis ok e credencial rotacionada.</small></div><span class="issue-owner">DevOps</span></div>
           <div class="issue" data-sev="p1"><span class="issue-id">OPS-02</span><span class="status warn severity">P1</span><div class="issue-copy"><strong>DNS/status/API com drift</strong><br><small>Status não resolve; staging e URL canônica precisam convergir.</small></div><span class="issue-owner">DevOps · Frontend</span></div>
           <div class="issue" data-sev="p1"><span class="issue-id">BUG-01</span><span class="status ok severity">resolvido</span><div class="issue-copy"><strong>Footer atrás da bottom-nav</strong><br><small>Reserva mobile corrigida e coberta por regressão geométrica.</small></div><span class="issue-owner">Frontend</span></div>
           <div class="issue" data-sev="p1"><span class="issue-id">DATA-01</span><span class="status warn severity">P1</span><div class="issue-copy"><strong>Outcomes insuficientes</strong><br><small>Sem captura ≥80%, IA e ROI não atingem prova estatística.</small></div><span class="issue-owner">Produto · Data</span></div>
@@ -258,7 +259,7 @@
       <section id="roadmap" class="searchable">
         <div class="section-head"><div><div class="eyebrow">24 semanas</div><h2 class="display">Caminho para 10/10</h2></div><p>Sequência orientada a risco: confiança, qualidade, experiência, dados reais e certificação.</p></div>
         <div class="roadmap">
-          <div class="card phase"><span class="phase-no">0</span><span class="tag">Semanas 1–2</span><h3>Contenção</h3><ul><li>incidente Git/LGPD</li><li>readiness e DNS</li><li>footer e E2E</li><li>URLs canônicas</li></ul><span class="phase-score">7,6</span></div>
+          <div class="card phase"><span class="phase-no">0</span><span class="tag">Semanas 1–2</span><h3>Contenção</h3><ul><li>incidente Git/LGPD</li><li>DNS, status e monitor</li><li>readiness/Redis concluídos</li><li>URLs canônicas</li></ul><span class="phase-score">7,6</span></div>
           <div class="card phase"><span class="phase-no">1</span><span class="tag">Semanas 3–6</span><h3>Qualidade</h3><ul><li>CI em camadas</li><li>observabilidade/SLO</li><li>testes críticos</li><li>docs canônicas</li></ul><span class="phase-score">8,2</span></div>
           <div class="card phase"><span class="phase-no">2</span><span class="tag">Semanas 7–12</span><h3>Arquitetura + UX</h3><ul><li>modularização</li><li>bundle e DS</li><li>mobile/a11y</li><li>error taxonomy</li></ul><span class="phase-score">8,8</span></div>
           <div class="card phase"><span class="phase-no">3</span><span class="tag">Semanas 13–18</span><h3>Dados + beta</h3><ul><li>outcomes ≥80%</li><li>backtest e drift</li><li>5–10 hosts</li><li>cases auditados</li></ul><span class="phase-score">9,3</span></div>

@@ -1,6 +1,7 @@
 # Ações do owner para certificar o scorecard 10/10
 
 **Data:** 2026-07-15  
+**Última atualização:** 2026-07-20
 **Status:** handoff das dependências externas; executar depois de revisar as entregas autônomas  
 **Owner primário:** Gustavo  
 **Fonte de escopo:** [`../plano-mestre-scorecard-10-10-2026-07-15.md`](../plano-mestre-scorecard-10-10-2026-07-15.md)
@@ -23,11 +24,12 @@ Não colar tokens, senhas, dumps, dados pessoais ou chaves em chat, issue, commi
 
 ## 2. Acessos e infraestrutura — prioridade P1
 
-- [ ] Autenticar a Railway CLI no workspace/conta corretos e confirmar projeto, ambiente e serviços antes de qualquer alteração.
-- [ ] Liberar acesso Cloudflare/DNS para os domínios Urban AI.
+- [x] Autenticar a Railway CLI no workspace/conta corretos e confirmar projeto, ambiente e serviços antes de qualquer alteração. Validado em 2026-07-20.
+- [ ] Liberar acesso Cloudflare/DNS para os domínios Urban AI. Credenciais obtidas pelo owner; configuração e validação segura ainda pendentes.
 - [ ] Definir um hostname canônico para a API e alinhar Railway, frontend, CORS, documentação e monitores.
 - [ ] Criar/corrigir DNS de `status`, `staging` e `staging-api`; validar resolução pública e TLS.
-- [ ] Configurar `HEALTH_READINESS_TOKEN` no backend e o mesmo valor apenas no secret store do monitor/gate.
+- [x] Configurar `HEALTH_READINESS_TOKEN` no backend e o mesmo valor apenas no secret store do monitor/gate. Produção validada com 401 anônimo e 200 autorizado em 2026-07-20.
+- [x] Provisionar Redis de produção persistente, rotacionar a credencial e validar DB/Redis no readiness. Evidência em [`../evidence/production-redis-readiness-2026-07-20.md`](../evidence/production-redis-readiness-2026-07-20.md).
 - [ ] Configurar status page e monitorar home, `/health/live` e `/health` autenticado como sinais distintos.
 
 **Aceite:** DNS resolve; TLS é válido; liveness e readiness retornam 200 nos contextos corretos; o gate enterprise passa 6/6; nenhum valor de secret aparece em log ou evidência.
@@ -75,11 +77,10 @@ npm run audit:migrations:strict
 
 ## 6. Certificação final
 
-- [ ] Publicar a branch e observar o primeiro CodeQL/Gitleaks/CI completo; corrigir qualquer finding antes de proteger a branch.
+- [x] Publicar a branch e observar CodeQL/CI/release gate completos; checks canônicos verdes no SHA `ca999392` em 2026-07-20.
 - [ ] Tornar checks críticos obrigatórios e exigir revisão para mudanças de produção.
 - [ ] Acumular pelo menos 14 dias de observação com SLO aprovado, sem P0/P1 aberto.
 - [ ] Revisar o scorecard com Produto, Engenharia, Operação, Segurança e Jurídico usando apenas evidência datada.
 - [ ] Aprovar go-live, SLA e comunicação aos clientes em reunião registrada.
 
 **10/10 só é certificado quando:** zero P0/P1; readiness/status/DNS operacionais; DR real exercitado; billing e Stays reais validados; outcome ≥80%; SLO ≥99,9% na janela aprovada; jurídico e segurança formalmente aceitos.
-
