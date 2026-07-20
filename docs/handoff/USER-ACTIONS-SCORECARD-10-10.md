@@ -27,7 +27,7 @@ Não colar tokens, senhas, dumps, dados pessoais ou chaves em chat, issue, commi
 - [x] Autenticar a Railway CLI no workspace/conta corretos e confirmar projeto, ambiente e serviços antes de qualquer alteração. Validado em 2026-07-20.
 - [x] Liberar acesso Cloudflare/DNS para os domínios Urban AI. Leitura/escrita DNS validadas em 2026-07-20; credenciais expostas fora do secret store ainda precisam ser rotacionadas.
 - [ ] Definir um hostname canônico para a API e alinhar Railway, frontend, CORS, documentação e monitores.
-- [ ] Concluir DNS/TLS de `status`, `staging` e `staging-api`. `status` já resolve e publica a página, mas aguarda o certificado customizado; `staging-api` já tem CNAME/TXT propagados, mas aguarda associação/certificado Railway; o frontend Railway de `staging` já responde 200 e exibe o banner correto, restando associar o hostname customizado.
+- [ ] Concluir TLS de `status`, `staging` e `staging-api`. `status` já resolve e publica a página; `staging-api` tem CNAME/TXT corretos; `staging.myurbanai.com` já está associado ao frontend e recebeu CNAME/TXT DNS-only. Os três aguardam emissão/verificação externa antes da validação estrita.
 - [x] Configurar `HEALTH_READINESS_TOKEN` no backend e o mesmo valor apenas no secret store do monitor/gate. Produção validada com 401 anônimo e 200 autorizado em 2026-07-20.
 - [x] Provisionar Redis de produção persistente, rotacionar a credencial e validar DB/Redis no readiness. Evidência em [`../evidence/production-redis-readiness-2026-07-20.md`](../evidence/production-redis-readiness-2026-07-20.md).
 - [x] Configurar status page pública para site, app e `/health/live`. O readiness `/health` autenticado permanece em gate privado separado para não expor credenciais.

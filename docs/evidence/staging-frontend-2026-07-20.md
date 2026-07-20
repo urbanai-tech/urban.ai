@@ -19,10 +19,21 @@ Validações observadas em 2026-07-20:
 
 O serviço usa o `Dockerfile` de `Urban-front-main`, com build Next.js standalone em Node 20 Alpine. Variáveis `NEXT_PUBLIC_*` são fornecidas no build e o runtime executa `node server.js`, usando `PORT` injetada pelo Railway e `HOSTNAME=0.0.0.0`.
 
-## Pendência do domínio canônico
+## Domínio canônico
 
-O serviço Railway está provisionado; a pendência é somente associar `staging.myurbanai.com` como domínio customizado do serviço e então criar/validar o DNS correspondente. Essa associação exige sessão autenticada no Railway. Não se deve apontar o CNAME customizado antes de o Railway fornecer/aceitar o destino, para evitar falha de Host/TLS.
+Em 2026-07-20, a sessão autenticada do Railway confirmou:
+
+- projeto `Front`, ambiente `staging`;
+- serviço `urban-ai-frontend-staging`, online, uma réplica em US West;
+- `staging.myurbanai.com` já associado ao serviço na porta 8080;
+- CNAME e TXT de verificação fornecidos pelo Railway e criados de forma idempotente no Cloudflare;
+- CNAME publicado em DNS-only e observado no nameserver autoritativo e em `1.1.1.1`;
+- TXT observado no nameserver autoritativo, ainda sujeito ao cache negativo dos resolvedores públicos consultados logo após a criação.
+
+O Railway ainda mostrava `Waiting for DNS update`; portanto, certificado e HTTPS estrito permanecem pendentes. O heartbeat continuará as checagens sem recriar registros nem habilitar proxy antes da validação.
 
 ## Segurança
 
 Nenhuma variável secreta foi copiada para esta evidência. Valores de NextAuth, OAuth, Sentry e Stripe devem permanecer no secret store do Railway/GitHub e nunca no repositório.
+
+O valor do TXT de verificação não é reproduzido nesta evidência.
