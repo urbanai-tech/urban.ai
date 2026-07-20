@@ -66,3 +66,17 @@ O serviço de auditoria administrativa foi endurecido no PR operacional de 2026-
 - depois das tentativas, registra erro sanitizado e devolve 503 com orientação para confirmar o estado antes de repetir a mutação.
 
 Risco residual: as chamadas atuais ocorrem depois de algumas mutações administrativas e não compartilham a mesma transação. O erro deixa de ser silencioso, mas a garantia atômica completa exige outbox transacional ou gravação na mesma unidade de trabalho. Esse débito permanece aberto e não autoriza criar auditoria artificial.
+
+## Segunda execução — workflow reforçado
+
+O run `29774531966`, no SHA `f72afdb2`, repetiu o restore em MySQL 8.4 efêmero e isolado:
+
+- 18/18 tabelas e 4/5 checks aprovados;
+- RPO observado: 49.323 s (13 h 42 min 03 s), dentro do limite de 24h;
+- RTO observado: 32 s;
+- criptografia server-side do backup: `AES256`, aprovada pelo novo gate;
+- versionamento do bucket: não habilitado;
+- regras de lifecycle detectadas: zero;
+- falha final: somente `admin_audit_logs` vazio, sem criação de registro artificial.
+
+Conclusão adicional: existência, integridade, criptografia e restauração do backup estão comprovadas. Proteção contra sobrescrita/exclusão e retenção automatizada continuam incompletas até habilitar versionamento e uma política de lifecycle aprovada.

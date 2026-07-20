@@ -56,7 +56,8 @@ Não colar tokens, senhas, dumps, dados pessoais ou chaves em chat, issue, commi
 - [ ] Publicar o writer reforçado e provar a trilha `admin_audit_logs` com uma operação administrativa real autorizada; depois de um novo backup, repetir o drill até 5/5. Não gerar auditoria artificial.
 - [ ] Decidir e implementar outbox transacional (ou mesma unidade de trabalho) para eliminar o risco residual de a mutação concluir e a auditoria falhar depois.
 - [ ] Comprovar rollback de deploy/migration em exercício separado.
-- [ ] Rodar novamente o workflow atualizado: ele exige criptografia server-side e registra versionamento/lifecycle; aprovar e configurar a política de retenção caso o novo relatório aponte lacuna.
+- [x] Confirmar criptografia server-side no workflow atualizado: run `29774531966` aprovou `AES256`.
+- [ ] Habilitar versionamento do bucket e aprovar/configurar uma política de lifecycle; o run `29774531966` confirmou ambos ausentes.
 
 Antes do drill, os gates locais devem continuar verdes:
 
