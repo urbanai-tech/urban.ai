@@ -12,6 +12,7 @@ Never store secret values in evidence. Use presence/absence reports and provider
 
 - `production-redis-readiness-2026-07-20.md`: production Redis provisioning and authenticated readiness.
 - `staging-api-dns-2026-07-20.md`: staging API custom-domain propagation and certificate state.
+- `staging-frontend-2026-07-20.md`: Railway staging frontend, HTTP/DOM checks and remaining custom-domain step.
 - `status-page-2026-07-20.md`: public status page, monitors, DNS, publication and TLS state.
 - `restore-drill-2026-07-20.md`: real off-site backup restore into disposable MySQL, measured RPO/RTO and auditability finding.
 
