@@ -1,0 +1,155 @@
+name: Restore Drill MySQL
+
+on:
+  workflow_dispatch:
+    inputs:
+      object_key:
+        description: 'Objeto S3 opcional (ex: mysql/urban-ai-cron-....sql.gz). Vazio usa o mais recente.'
+        required: false
+        default: ''
+
+concurrency:
+  group: restore-drill-mysql
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  restore-and-verify:
+    name: Restore e verificacao em MySQL efemero
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: restore-only
+          MYSQL_DATABASE: urban_restore
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -prestore-only"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+      S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      MYSQL_PWD: restore-only
+      RESTORE_DATABASE_URL: mysql://root:restore-only@127.0.0.1:3306/urban_restore
+      REQUESTED_OBJECT_KEY: ${{ inputs.object_key }}
+      MAX_BACKUP_AGE_HOURS: ${{ vars.RESTORE_MAX_BACKUP_AGE_HOURS || '36' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate configuration
+        run: |
+          set -euo pipefail
+          if [ -z "$S3_BUCKET" ]; then
+            echo "::error::S3_BUCKET secret nao configurado."
+            exit 1
+          fi
+
+      - name: Install MySQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mysql-client
+
+      - name: Select and download off-site backup
+        run: |
+          set -euo pipefail
+          echo "DRILL_STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
+          echo "DRILL_STARTED_EPOCH=$(date +%s)" >> "$GITHUB_ENV"
+
+          OBJECT_KEY="$REQUESTED_OBJECT_KEY"
+          if [ -z "$OBJECT_KEY" ]; then
+            OBJECT_KEY=$(aws s3api list-objects-v2 \
+              --bucket "$S3_BUCKET" \
+              --prefix "mysql/" \
+              --query 'reverse(sort_by(Contents,&LastModified))[0].Key' \
+              --output text)
+          fi
+          if [ -z "$OBJECT_KEY" ] || [ "$OBJECT_KEY" = "None" ]; then
+            echo "::error::Nenhum backup encontrado em s3://$S3_BUCKET/mysql/."
+            exit 1
+          fi
+
+          META=$(aws s3api head-object --bucket "$S3_BUCKET" --key "$OBJECT_KEY")
+          LAST_MODIFIED=$(jq -r '.LastModified' <<< "$META")
+          SIZE_BYTES=$(jq -r '.ContentLength' <<< "$META")
+          BACKUP_AGE_SECONDS=$(python - "$LAST_MODIFIED" <<'PY'
+          import datetime
+          import sys
+          modified = datetime.datetime.fromisoformat(sys.argv[1].replace("Z", "+00:00"))
+          now = datetime.datetime.now(datetime.timezone.utc)
+          print(max(0, int((now - modified).total_seconds())))
+          PY
+          )
+          MAX_AGE_SECONDS=$((MAX_BACKUP_AGE_HOURS * 3600))
+          if [ "$BACKUP_AGE_SECONDS" -gt "$MAX_AGE_SECONDS" ]; then
+            echo "::error::Backup mais recente excede o RPO operacional: ${BACKUP_AGE_SECONDS}s > ${MAX_AGE_SECONDS}s."
+            exit 1
+          fi
+
+          FILE_NAME=$(basename "$OBJECT_KEY")
+          LOCAL_FILE="$RUNNER_TEMP/$FILE_NAME"
+          aws s3 cp "s3://$S3_BUCKET/$OBJECT_KEY" "$LOCAL_FILE"
+          gzip -t "$LOCAL_FILE"
+          SHA256=$(sha256sum "$LOCAL_FILE" | awk '{print $1}')
+
+          echo "::add-mask::$OBJECT_KEY"
+          {
+            echo "RESTORE_OBJECT_KEY=$OBJECT_KEY"
+            echo "RESTORE_LOCAL_FILE=$LOCAL_FILE"
+            echo "BACKUP_LAST_MODIFIED=$LAST_MODIFIED"
+            echo "BACKUP_AGE_SECONDS=$BACKUP_AGE_SECONDS"
+            echo "BACKUP_SIZE_BYTES=$SIZE_BYTES"
+            echo "BACKUP_SHA256=$SHA256"
+          } >> "$GITHUB_ENV"
+
+      - name: Restore into isolated MySQL
+        run: |
+          set -euo pipefail
+          gzip -dc "$RESTORE_LOCAL_FILE" |
+            mysql --host=127.0.0.1 --port=3306 --user=root urban_restore
+
+      - name: Verify restored database
+        working-directory: urban-ai-backend-main
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          mkdir -p ../docs/evidence/runtime
+          EVIDENCE="../docs/evidence/runtime/restore-drill-${GITHUB_RUN_ID}.md"
+          node scripts/restore-drill-verify.js --output "$EVIDENCE"
+
+          FINISHED_EPOCH=$(date +%s)
+          RTO_SECONDS=$((FINISHED_EPOCH - DRILL_STARTED_EPOCH))
+          {
+            echo
+            echo "## Recovery objectives observed"
+            echo
+            echo "- Drill started: `$DRILL_STARTED_AT`"
+            echo "- Backup timestamp: `$BACKUP_LAST_MODIFIED`"
+            echo "- Backup age at drill start (observed RPO): `${BACKUP_AGE_SECONDS}s`"
+            echo "- Restore and verification RTO: `${RTO_SECONDS}s`"
+            echo "- Compressed backup size: `${BACKUP_SIZE_BYTES} bytes`"
+            echo "- Backup SHA-256: `$BACKUP_SHA256`"
+            echo "- Source: latest off-site S3 backup under `mysql/`."
+            echo "- Isolation: disposable MySQL 8.4 service container; destroyed with the runner."
+          } >> "$EVIDENCE"
+
+      - name: Upload restore evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: restore-drill-evidence-${{ github.run_id }}
+          path: docs/evidence/runtime/restore-drill-${{ github.run_id }}.md
+          if-no-files-found: error
+          retention-days: 30
