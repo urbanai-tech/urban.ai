@@ -40,3 +40,7 @@
 3. reativar o proxy Cloudflare somente depois da associação e repetir o smoke;
 4. manter `staging.myurbanai.com` bloqueado até existir um frontend de staging como destino;
 5. manter `status.myurbanai.com` bloqueado até a escolha/provisão da status page.
+
+## Revalidação read-only — 2026-07-20 17h (BRT)
+
+O Railway continua exibindo `Waiting for DNS update` para `staging-api.myurbanai.com`, embora o serviço e o CNAME estejam online/públicos. HTTPS estrito ainda falha e a chamada com verificação TLS desativada retorna 404 no hostname customizado. Nenhum CNAME/TXT foi recriado e o proxy permaneceu inalterado.

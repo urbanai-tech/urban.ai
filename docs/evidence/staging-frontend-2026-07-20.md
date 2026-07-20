@@ -37,3 +37,7 @@ O Railway ainda mostrava `Waiting for DNS update`; portanto, certificado e HTTPS
 Nenhuma variável secreta foi copiada para esta evidência. Valores de NextAuth, OAuth, Sentry e Stripe devem permanecer no secret store do Railway/GitHub e nunca no repositório.
 
 O valor do TXT de verificação não é reproduzido nesta evidência.
+
+## Revalidação read-only — 2026-07-20 17h (BRT)
+
+O Railway continua exibindo `Waiting for DNS update` para `staging.myurbanai.com`. O CNAME permanece público; HTTPS estrito ainda falha e a chamada com verificação TLS desativada retorna 404 no hostname customizado. O serviço nativo continua sendo a referência aprovada enquanto o certificado não for emitido. Nenhum registro foi recriado e o domínio permaneceu DNS-only.

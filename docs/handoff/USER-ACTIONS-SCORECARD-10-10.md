@@ -28,6 +28,7 @@ Não colar tokens, senhas, dumps, dados pessoais ou chaves em chat, issue, commi
 - [x] Liberar acesso Cloudflare/DNS para os domínios Urban AI. Leitura/escrita DNS validadas em 2026-07-20; credenciais expostas fora do secret store ainda precisam ser rotacionadas.
 - [ ] Definir um hostname canônico para a API e alinhar Railway, frontend, CORS, documentação e monitores.
 - [ ] Concluir TLS de `status`, `staging` e `staging-api`. `status` já resolve e publica a página; `staging-api` tem CNAME/TXT corretos; `staging.myurbanai.com` já está associado ao frontend e recebeu CNAME/TXT DNS-only. Os três aguardam emissão/verificação externa antes da validação estrita.
+- [ ] Revisar as duas mudanças pendentes de `Service Domain` no frontend de produção. Elas provocam redeploy e os valores completos não puderam ser comprovados na inspeção read-only; nada foi aplicado ou descartado. Evidência: [`../evidence/railway-production-staged-changes-2026-07-20.md`](../evidence/railway-production-staged-changes-2026-07-20.md).
 - [x] Configurar `HEALTH_READINESS_TOKEN` no backend e o mesmo valor apenas no secret store do monitor/gate. Produção validada com 401 anônimo e 200 autorizado em 2026-07-20.
 - [x] Provisionar Redis de produção persistente, rotacionar a credencial e validar DB/Redis no readiness. Evidência em [`../evidence/production-redis-readiness-2026-07-20.md`](../evidence/production-redis-readiness-2026-07-20.md).
 - [x] Configurar status page pública para site, app e `/health/live`. O readiness `/health` autenticado permanece em gate privado separado para não expor credenciais.
@@ -52,9 +53,10 @@ Não colar tokens, senhas, dumps, dados pessoais ou chaves em chat, issue, commi
 - [ ] Rodar smoke responsivo em dispositivos reais ou device farm para Android/iOS, PWA, push, zoom e leitor de tela.
 - [x] Executar restore de um backup real em banco temporário isolado; nunca sobre produção. Run `29746197104` restaurou 18/18 tabelas em MySQL 8.4 efêmero.
 - [x] Medir e registrar RPO, RTO, integridade estrutural e descarte seguro: RPO observado 25.441 s, RTO 27 s e 4/5 checks aprovados.
-- [ ] Corrigir/provar a trilha `admin_audit_logs`, hoje vazia no backup, e repetir o drill até 5/5.
+- [ ] Publicar o writer reforçado e provar a trilha `admin_audit_logs` com uma operação administrativa real autorizada; depois de um novo backup, repetir o drill até 5/5. Não gerar auditoria artificial.
+- [ ] Decidir e implementar outbox transacional (ou mesma unidade de trabalho) para eliminar o risco residual de a mutação concluir e a auditoria falhar depois.
 - [ ] Comprovar rollback de deploy/migration em exercício separado.
-- [ ] Confirmar criptografia e retenção do objeto off-site; existência e restauração já foram comprovadas.
+- [ ] Rodar novamente o workflow atualizado: ele exige criptografia server-side e registra versionamento/lifecycle; aprovar e configurar a política de retenção caso o novo relatório aponte lacuna.
 
 Antes do drill, os gates locais devem continuar verdes:
 

@@ -46,3 +46,7 @@ Risco residual em 2026-07-20: emissão do certificado do domínio customizado pe
 - upgrades do template são deliberadamente manuais e pinados;
 - o domínio de status permanece DNS-only durante a emissão do certificado;
 - após o TLS estrito responder 200, o monitor deve registrar a conclusão e manter `https_enforced=true`.
+
+## Revalidação read-only — 2026-07-20 17h (BRT)
+
+O GitHub Pages permanece em `built`, com `https_enforced=false`. O CNAME continua público; HTTPS estrito ainda falha, enquanto a resposta com verificação TLS desativada permanece HTTP 200. O certificado ainda não está disponível, portanto o enforcement não foi antecipado e o DNS não foi alterado.

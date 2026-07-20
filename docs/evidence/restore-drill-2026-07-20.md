@@ -45,13 +45,24 @@ Para fechar o gate sem adulterar evidência:
 
 1. executar uma mutação administrativa inofensiva e autorizada em staging;
 2. confirmar que um registro real aparece em `admin_audit_logs` com ator, ação, entidade e timestamp;
-3. verificar logs de warning do `AdminAuditService` e alertar falhas de persistência;
+3. publicar o reforço do `AdminAuditService`, que redige segredos, tenta persistir três vezes e retorna erro explícito em vez de engolir a falha;
 4. após uma operação administrativa real autorizada em produção, confirmar inclusão no próximo backup;
 5. repetir o restore drill e exigir 5/5 checks verdes.
 
 ## Riscos residuais
 
-- RPO observado de pouco mais de sete horas precisa ser comparado ao objetivo de recuperação aprovado pelo negócio;
-- criptografia e retenção do bucket não foram certificadas por este workflow;
+- o RPO observado de pouco mais de sete horas atende ao objetivo documentado de 24 horas; o workflow agora usa 24 horas como limite padrão;
+- o workflow passou a exigir criptografia server-side suportada e registrar, sem segredos, o estado de versionamento e a quantidade de regras de lifecycle; esses controles ainda precisam ser observados em uma nova execução;
 - rollback de deploy/migration continua sendo um exercício separado;
 - até existir trilha administrativa real no backup, o scorecard de DR/auditabilidade não pode receber 10/10.
+
+## Correção preventiva preparada
+
+O serviço de auditoria administrativa foi endurecido no PR operacional de 2026-07-20:
+
+- remove chaves sensíveis de `before`, `after` e `metadata` de forma recursiva;
+- normaliza campos e suporta `BigInt`/referências circulares sem perder a gravação;
+- repete falhas transitórias por até três tentativas com espera limitada;
+- depois das tentativas, registra erro sanitizado e devolve 503 com orientação para confirmar o estado antes de repetir a mutação.
+
+Risco residual: as chamadas atuais ocorrem depois de algumas mutações administrativas e não compartilham a mesma transação. O erro deixa de ser silencioso, mas a garantia atômica completa exige outbox transacional ou gravação na mesma unidade de trabalho. Esse débito permanece aberto e não autoriza criar auditoria artificial.

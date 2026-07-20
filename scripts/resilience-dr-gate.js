@@ -35,6 +35,19 @@ const contracts = [
     ],
   },
   {
+    file: '.github/workflows/restore-drill.yml',
+    checks: [
+      ['restore drill uses the declared 24-hour RPO by default', /MAX_BACKUP_AGE_HOURS:[^\n]*'24'/i],
+      ['off-site encryption is verified', /get-bucket-encryption/i],
+      ['supported server-side encryption is enforced', /AES256[\s\S]*aws:kms/i],
+      ['off-site versioning is observed', /get-bucket-versioning/i],
+      ['off-site lifecycle is observed', /get-bucket-lifecycle-configuration/i],
+      ['restore evidence records encryption', /Off-site server-side encryption/i],
+      ['restore evidence records versioning', /Off-site bucket versioning/i],
+      ['restore evidence records lifecycle controls', /Off-site lifecycle rules detected/i],
+    ],
+  },
+  {
     file: 'urban-ai-backend-main/scripts/mysql-backup.js',
     checks: [
       ['safe mode is default', /const dryRun = !args\.execute/],
