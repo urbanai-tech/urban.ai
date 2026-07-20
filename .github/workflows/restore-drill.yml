@@ -48,7 +48,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Validate configuration
         run: |
@@ -93,7 +93,11 @@ jobs:
           fi
 
           VERSIONING=$(aws s3api get-bucket-versioning --bucket "$S3_BUCKET" --output json)
-          VERSIONING_STATUS=$(jq -r 'if (.Status // "") == "" then "not-enabled" else .Status end' <<< "$VERSIONING")
+          if [ -n "$VERSIONING" ]; then
+            VERSIONING_STATUS=$(jq -r '.Status // "not-enabled"' <<< "$VERSIONING")
+          else
+            VERSIONING_STATUS="not-enabled"
+          fi
           if [ "$VERSIONING_STATUS" != "Enabled" ]; then
             echo "::warning::Versionamento do bucket off-site nao esta habilitado; revisar protecao contra sobrescrita/exclusao."
           fi
@@ -182,7 +186,7 @@ jobs:
 
       - name: Upload restore evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: restore-drill-evidence-${{ github.run_id }}
           path: docs/evidence/runtime/restore-drill-${{ github.run_id }}.md
