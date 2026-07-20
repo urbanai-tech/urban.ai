@@ -41,6 +41,7 @@ const contracts = [
       ['off-site encryption is verified', /get-bucket-encryption/i],
       ['supported server-side encryption is enforced', /AES256[\s\S]*aws:kms/i],
       ['off-site versioning is observed', /get-bucket-versioning/i],
+      ['empty versioning status is normalized', /then\s+"not-enabled"\s+else\s+\.Status\s+end/i],
       ['off-site lifecycle is observed', /get-bucket-lifecycle-configuration/i],
       ['restore evidence records encryption', /Off-site server-side encryption/i],
       ['restore evidence records versioning', /Off-site bucket versioning/i],

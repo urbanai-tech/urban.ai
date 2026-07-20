@@ -93,7 +93,7 @@ jobs:
           fi
 
           VERSIONING=$(aws s3api get-bucket-versioning --bucket "$S3_BUCKET" --output json)
-          VERSIONING_STATUS=$(jq -r '.Status // "not-enabled"' <<< "$VERSIONING")
+          VERSIONING_STATUS=$(jq -r 'if (.Status // "") == "" then "not-enabled" else .Status end' <<< "$VERSIONING")
           if [ "$VERSIONING_STATUS" != "Enabled" ]; then
             echo "::warning::Versionamento do bucket off-site nao esta habilitado; revisar protecao contra sobrescrita/exclusao."
           fi
