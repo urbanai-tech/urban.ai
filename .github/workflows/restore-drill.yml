@@ -128,7 +128,10 @@ jobs:
           npm ci --ignore-scripts
           mkdir -p ../docs/evidence/runtime
           EVIDENCE="../docs/evidence/runtime/restore-drill-${GITHUB_RUN_ID}.md"
+          set +e
           node scripts/restore-drill-verify.js --output "$EVIDENCE"
+          VERIFY_EXIT=$?
+          set -e
 
           FINISHED_EPOCH=$(date +%s)
           RTO_SECONDS=$((FINISHED_EPOCH - DRILL_STARTED_EPOCH))
@@ -136,20 +139,31 @@ jobs:
             echo
             echo "## Recovery objectives observed"
             echo
-            echo "- Drill started: `$DRILL_STARTED_AT`"
-            echo "- Backup timestamp: `$BACKUP_LAST_MODIFIED`"
-            echo "- Backup age at drill start (observed RPO): `${BACKUP_AGE_SECONDS}s`"
-            echo "- Restore and verification RTO: `${RTO_SECONDS}s`"
-            echo "- Compressed backup size: `${BACKUP_SIZE_BYTES} bytes`"
-            echo "- Backup SHA-256: `$BACKUP_SHA256`"
-            echo "- Source: latest off-site S3 backup under `mysql/`."
+            printf -- '- Drill started: `%s`\n' "$DRILL_STARTED_AT"
+            printf -- '- Backup timestamp: `%s`\n' "$BACKUP_LAST_MODIFIED"
+            printf -- '- Backup age at drill start (observed RPO): `%ss`\n' "$BACKUP_AGE_SECONDS"
+            printf -- '- Restore and verification RTO: `%ss`\n' "$RTO_SECONDS"
+            printf -- '- Compressed backup size: `%s bytes`\n' "$BACKUP_SIZE_BYTES"
+            printf -- '- Backup SHA-256: `%s`\n' "$BACKUP_SHA256"
+            echo '- Source: latest off-site S3 backup under `mysql/`.'
             echo "- Isolation: disposable MySQL 8.4 service container; destroyed with the runner."
           } >> "$EVIDENCE"
+          cat "$EVIDENCE" >> "$GITHUB_STEP_SUMMARY"
+          echo "RESTORE_VERIFY_EXIT=$VERIFY_EXIT" >> "$GITHUB_ENV"
 
       - name: Upload restore evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: restore-drill-evidence-${{ github.run_id }}
           path: docs/evidence/runtime/restore-drill-${{ github.run_id }}.md
           if-no-files-found: error
           retention-days: 30
+
+      - name: Enforce restore verification gate
+        if: always()
+        run: |
+          if [ "${RESTORE_VERIFY_EXIT:-1}" -ne 0 ]; then
+            echo "::error::Restore concluido, mas a verificacao pos-restore encontrou falhas."
+            exit 1
+          fi
