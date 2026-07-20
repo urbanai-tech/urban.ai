@@ -69,13 +69,13 @@ Risco residual: as chamadas atuais ocorrem depois de algumas mutações administ
 
 ## Segunda execução — workflow reforçado
 
-O run `29774531966`, no SHA `f72afdb2`, repetiu o restore em MySQL 8.4 efêmero e isolado:
+O run final `29774937156`, no SHA `83b280b0`, repetiu o restore em MySQL 8.4 efêmero e isolado:
 
 - 18/18 tabelas e 4/5 checks aprovados;
-- RPO observado: 49.323 s (13 h 42 min 03 s), dentro do limite de 24h;
-- RTO observado: 32 s;
+- RPO observado: 49.680 s (13 h 48 min), dentro do limite de 24h;
+- RTO observado: 42 s;
 - criptografia server-side do backup: `AES256`, aprovada pelo novo gate;
-- versionamento do bucket: não habilitado;
+- versionamento do bucket: `not-enabled`;
 - regras de lifecycle detectadas: zero;
 - falha final: somente `admin_audit_logs` vazio, sem criação de registro artificial.
 
