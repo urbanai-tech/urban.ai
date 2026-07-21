@@ -43,6 +43,7 @@
   background: var(--theme-public-bg);
   color: var(--theme-public-text);
   min-height: 100vh;
+  overflow-x: clip;
 }
 
 .urban-public-section {
