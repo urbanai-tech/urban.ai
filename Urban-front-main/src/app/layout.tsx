@@ -31,6 +31,8 @@ import { PwaInstaller } from "./componentes/PwaInstaller";
 import { ThemeScript } from "./componentes/theme";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://myurbanai.com";
+const APP_ENV = process.env.NEXT_PUBLIC_APP_ENV;
+const HAS_ENVIRONMENT_BANNER = Boolean(APP_ENV && APP_ENV !== "production");
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -89,7 +91,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`font-press ${bebas.variable} ${inter.variable} ${poppins.variable}`}
+      className={`font-press ${bebas.variable} ${inter.variable} ${poppins.variable}${HAS_ENVIRONMENT_BANNER ? " has-environment-banner" : ""}`}
       suppressHydrationWarning
     >
       <head>
