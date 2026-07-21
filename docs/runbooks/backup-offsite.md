@@ -137,4 +137,4 @@ GitHub → Actions → Backup MySQL DB → Run workflow → setar label opcional
 
 ---
 
-*Última atualização: 25/04/2026.*
+*Última atualização: 21/07/2026. Política 90/30/7 aplicada e comprovada pelo run `29828809180`.*

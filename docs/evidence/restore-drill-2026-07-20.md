@@ -80,3 +80,22 @@ O run final `29774937156`, no SHA `83b280b0`, repetiu o restore em MySQL 8.4 ef�
 - falha final: somente `admin_audit_logs` vazio, sem criação de registro artificial.
 
 Conclusão adicional: existência, integridade, criptografia e restauração do backup estão comprovadas. Proteção contra sobrescrita/exclusão e retenção automatizada continuam incompletas até habilitar versionamento e uma política de lifecycle aprovada.
+
+## Política de retenção aplicada — 2026-07-21
+
+Com autorização explícita do owner, o run `29828580872` aplicou e verificou a política canônica no bucket off-site. Uma falha de ordenação no workflow interrompeu esse primeiro run depois da configuração, sem reverter a política externa; o YAML foi corrigido no commit `caf48bb3`.
+
+O run final `29828809180` executou sem reaplicar a política e comprovou o estado persistente do bucket durante um novo restore isolado:
+
+- criptografia server-side: `AES256`;
+- versionamento: `Enabled`;
+- regra de lifecycle canônica detectada: 1;
+- backups atuais: 90 dias;
+- versões não atuais: 30 dias;
+- uploads multipart incompletos: abortados após 7 dias;
+- RPO observado: 22.391 s (6 h 13 min 11 s), dentro do limite de 24h;
+- RTO observado: 33 s;
+- restore técnico: 18/18 tabelas e 4/5 checks aprovados;
+- bloqueio restante: somente `admin_audit_logs` vazio.
+
+Classificação atualizada: **proteção off-site e restore técnico aprovados; auditabilidade ainda reprovada**. Nenhum registro artificial foi criado.
