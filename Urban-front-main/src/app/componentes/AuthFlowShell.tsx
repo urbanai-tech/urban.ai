@@ -136,7 +136,7 @@ export function AuthFlowShell({
               textTransform: "uppercase",
             }}
           >
-            <span>Beta privado</span>
+            <span>Acesso seguro</span>
             <span>São Paulo</span>
           </div>
         </div>

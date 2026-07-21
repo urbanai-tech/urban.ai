@@ -278,7 +278,7 @@ export default function AdminStaysPage() {
                 }}
               >
                 {data.readiness.betaPrivate
-                  ? "Stays bloqueado em beta privado"
+                  ? "Stays aguardando habilitação operacional"
                   : "Stays pronto para smoke controlado"}
               </p>
               <p

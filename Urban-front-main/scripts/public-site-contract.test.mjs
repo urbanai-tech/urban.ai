@@ -58,6 +58,18 @@ test('public funnel uses an explicit login route on staging and production', asy
   assert.match(middleware, /"\/login"/);
 });
 
+test('customer-facing authentication copy no longer presents the product as beta', async () => {
+  const sources = await Promise.all([
+    readFile(new URL('../src/app/(home)/page.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../src/app/componentes/AuthFlowShell.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../src/app/onboarding/page.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../src/app/waitlist/aceitar/page.tsx', import.meta.url), 'utf8'),
+  ]);
+  for (const content of sources) {
+    assert.doesNotMatch(content, /beta privado|voltar ao pré-lançamento/i);
+  }
+});
+
 test('rota de lançamento não importa nem renderiza waitlist', async () => {
   const content = await source('launch');
   assert.doesNotMatch(content, /Waitlist(Form|Signup)|lista de espera|acesso antecipado/i);
