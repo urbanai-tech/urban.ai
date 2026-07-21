@@ -24,10 +24,12 @@ Actions roda mesmo assim.
 
 1. AWS Console → S3 → criar bucket `urban-ai-backups` (us-east-1 recomendado, mais barato)
 2. Bucket → Properties → habilitar **Versioning** (proteção contra delete)
-3. Bucket → Management → criar **Lifecycle rule**:
-   - Transição para `STANDARD_IA` em 30 dias
-   - Transição para `GLACIER` em 90 dias
-   - Expiração em 365 dias
+3. Bucket → Management → criar **Lifecycle rule** para o prefixo `mysql/`:
+   - expiração dos backups atuais após 90 dias;
+   - expiração das versões não atuais após 30 dias;
+   - abortar uploads multipart incompletos após 7 dias.
+
+A política canônica pode ser aplicada de forma auditável pelo workflow `Restore Drill MySQL`, usando o input manual `apply_backup_policy=true`. O input é `false` por padrão e a mutação só executa no repositório canônico `urbanai-tech/urban.ai`.
 4. IAM → criar usuário `urban-ai-backup-bot` com policy:
    ```json
    {
