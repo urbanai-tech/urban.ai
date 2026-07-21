@@ -1357,7 +1357,7 @@ function OnboardingWizardContent() {
                             <Badge colorScheme="orange" fontSize="0.6rem">Em breve</Badge>
                           </Flex>
                           <Text fontSize="xs" color="gray.500" lineHeight="short">
-                            Beta privado via Stays. Só é liberado depois de conectar a conta, aceitar a autorização e testar mudanças antes de aplicar.
+                            Automação controlada via Stays. Só é liberada depois de conectar a conta, aceitar a autorização e testar mudanças antes de aplicar.
                           </Text>
                         </VStack>
                       </Box>
