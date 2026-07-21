@@ -54,3 +54,7 @@ O GitHub Pages permanece em `built`, com `https_enforced=false`. O CNAME continu
 ## Revalidação read-only — 2026-07-21 09h18 (BRT)
 
 O GitHub Pages continua `built`, o CNAME público resolve e HTTP sem TLS responde 200. A API ainda informa `https_enforced=false`, sem certificado customizado disponível, e HTTPS estrito falha por incompatibilidade do certificado. O enforcement não foi habilitado e o DNS permaneceu inalterado.
+
+## Revalidação read-only — 2026-07-21 10h19 (BRT)
+
+Estado inalterado: Pages `built`, CNAME público, HTTP 200, `https_enforced=false` e nenhum certificado customizado disponível. HTTPS estrito continua falhando; nenhuma configuração foi alterada.

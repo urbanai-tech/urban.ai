@@ -45,3 +45,7 @@ O Railway continua exibindo `Waiting for DNS update` para `staging.myurbanai.com
 ## Revalidação read-only — 2026-07-21 09h18 (BRT)
 
 O origin nativo continua respondendo HTTP 200, com o título esperado e banner `STAGING`, e o CNAME público permanece apontando para o destino anteriormente fornecido pelo Railway. Entretanto, o serviço `urban-ai-frontend-staging` no projeto/ambiente canônicos agora aparece sem domínio público associado e com a região `us-west2` marcada como inválida, bloqueando deployments. O TLS estrito de `staging.myurbanai.com` continua falhando. Essa divergência invalida a afirmação anterior de associação ativa até nova confirmação; nenhum domínio ou DNS foi recriado.
+
+## Revalidação read-only — 2026-07-21 10h19 (BRT)
+
+O serviço voltou a aparecer `Online`, associado a `staging.myurbanai.com` na porta 8080 e com uma réplica em US West. O Railway ainda mostra `Waiting for DNS update` e o TLS estrito permanece inválido; portanto, a associação recuperada ainda não fecha o gate. O origin segue em HTTP 200 com banner `STAGING`. Nenhum domínio ou DNS foi recriado.
