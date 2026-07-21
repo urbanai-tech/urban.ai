@@ -57,6 +57,7 @@ const APP_ONLY_PREFIXES = [
   "/notificacao",
   "/price",
   "/post-login",
+  "/login",
   "/create",
   "/waitlist",
   "/request-reset-password",

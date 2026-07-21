@@ -15,6 +15,7 @@ import {
 
 export const PUBLIC_APP_URL =
   process.env.NEXT_PUBLIC_APP_URL || "https://app.myurbanai.com";
+export const PUBLIC_LOGIN_URL = `${PUBLIC_APP_URL.replace(/\/$/, "")}/login`;
 export const PUBLIC_SIGNUP_URL = `${PUBLIC_APP_URL.replace(/\/$/, "")}/create`;
 
 export function PublicButton({
