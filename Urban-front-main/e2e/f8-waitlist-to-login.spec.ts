@@ -1,40 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { acceptCookieConsent } from './test-helpers';
 
-test.describe('F8 Happy Path: waitlist -> convite -> aceite -> dashboard', () => {
-  test('fluxo completo F8 simulado via API mocks atuais', async ({ page }) => {
+test.describe('F8 legado: convite emitido -> aceite -> dashboard', () => {
+  test('preserva a conversao de convites existentes sem reabrir waitlist publica', async ({ page }) => {
     await acceptCookieConsent(page);
-    await page.route('**/waitlist', async (route) => {
-      if (route.request().method() !== 'POST') {
-        await route.continue();
-        return;
-      }
-
-      await route.fulfill({
-        status: 201,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          position: 42,
-          referralCode: 'abc123xy',
-          aheadOfYou: 41,
-          totalSignups: 42,
-        }),
-      });
-    });
-
-    await page.goto('/lancamento');
-
-    await expect(page.getByRole('heading', { name: /ESGOTAR R.PIDO/i })).toBeVisible();
-
-    const emailInput = page.locator('input[type="email"][id="waitlist-email"]').first();
-    await expect(emailInput).toBeVisible();
-    await emailInput.fill('teste.e2e@urbanai.com.br');
-
-    await page.getByRole('button', { name: /Quero acesso antecipado/i }).click();
-
-    await expect(page.getByText(/Voce esta na lista|Voc. est. na lista/i)).toBeVisible();
-    await expect(page.getByText('42')).toBeVisible();
-
     await page.route('**/waitlist/invite?token=MOCK_TOKEN_123', async (route) => {
       await route.fulfill({
         status: 200,

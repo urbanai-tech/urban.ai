@@ -494,6 +494,8 @@
 .public-contact-aside p, .public-contact-aside a { margin: 0; color: var(--theme-public-muted); font-size: 14px; line-height: 1.65; text-decoration: none; }
 
 .public-legal-shell { max-width: 900px; }
+.public-legal-document,
+.public-legal-document * { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
 .public-legal-document > h1 {
   max-width: 760px !important;
   font-size: clamp(52px, 9vw, 96px) !important;
@@ -551,7 +553,7 @@
   .public-page-hero__grid, .public-article-hero__grid, .public-contact-shell { grid-template-columns: 1fr; gap: 44px; }
   .public-pricing-grid { gap: 14px; }
   .public-comparison { min-width: 660px; }
-  .public-comparison-wrap { overflow-x: auto; margin-inline: -18px; padding-inline: 18px; }
+  .public-comparison-wrap { max-width: 100%; overflow-x: auto; margin-inline: 0; padding-inline: 0; }
   .public-final-cta__inner, .public-footer__lead { grid-template-columns: 1fr; align-items: start; gap: 34px; }
   .public-final-cta__actions { width: 100%; }
   .public-footer { padding-top: 66px; }
