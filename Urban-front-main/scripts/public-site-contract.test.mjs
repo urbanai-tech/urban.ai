@@ -31,6 +31,18 @@ test('staging serves the commercial landing at root without indexing', async () 
   assert.match(content, /isStagingHost\(host\)[\s\S]*withNoIndex/);
 });
 
+test('environment banner reserves space without covering public navigation', async () => {
+  const [layout, marketingStyles, banner] = await Promise.all([
+    readFile(new URL('../src/app/layout.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../src/app/globals.css', import.meta.url), 'utf8'),
+    readFile(new URL('../src/app/componentes/StagingBanner.tsx', import.meta.url), 'utf8'),
+  ]);
+  assert.match(layout, /has-environment-banner/);
+  assert.match(marketingStyles, /--environment-banner-height/);
+  assert.match(marketingStyles, /public-header[\s\S]*inset-block-start: var\(--environment-banner-height/);
+  assert.match(banner, /whiteSpace: "nowrap"/);
+});
+
 test('rota de lançamento não importa nem renderiza waitlist', async () => {
   const content = await source('launch');
   assert.doesNotMatch(content, /Waitlist(Form|Signup)|lista de espera|acesso antecipado/i);
