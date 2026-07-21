@@ -89,7 +89,10 @@ test.describe('PWA e mobile', () => {
         clientWidth: Math.max(document.documentElement.clientWidth, document.body.clientWidth),
       }));
 
-      expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
+      expect(
+        metrics.scrollWidth,
+        `${route} criou overflow: ${metrics.scrollWidth}px para ${metrics.clientWidth}px`,
+      ).toBeLessThanOrEqual(metrics.clientWidth + 1);
     }
   });
 });

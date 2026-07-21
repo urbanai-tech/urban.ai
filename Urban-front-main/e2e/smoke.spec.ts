@@ -34,7 +34,7 @@ test.describe('Smoke - rotas publicas', () => {
   test('rota de lancamento apresenta o produto disponivel e cadastro real', async ({ page }) => {
     await page.goto('/lancamento');
     await expect(page.getByRole('heading', { name: /Comece com um im.vel/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Criar minha conta' })).toHaveAttribute('href', /\/create$/);
+    await expect(page.getByRole('link', { name: 'Criar minha conta' }).first()).toHaveAttribute('href', /\/create$/);
   });
 
   test('rota de lancamento nao reintroduz lista de espera', async ({ page }) => {
