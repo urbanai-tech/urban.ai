@@ -44,3 +44,7 @@
 ## Revalidação read-only — 2026-07-20 17h (BRT)
 
 O Railway continua exibindo `Waiting for DNS update` para `staging-api.myurbanai.com`, embora o serviço e o CNAME estejam online/públicos. HTTPS estrito ainda falha e a chamada com verificação TLS desativada retorna 404 no hostname customizado. Nenhum CNAME/TXT foi recriado e o proxy permaneceu inalterado.
+
+## Revalidação read-only — 2026-07-21 09h18 (BRT)
+
+O CNAME público continua apontando para o destino Railway já provisionado e o serviço aparece `Online`. O origin Railway responde `GET /health/live` com HTTP 200, porém o painel ainda mostra `Waiting for DNS update` para o hostname customizado e o TLS estrito falha por incompatibilidade do certificado. Nenhum registro foi recriado, o proxy não foi habilitado e o gate permanece aberto.

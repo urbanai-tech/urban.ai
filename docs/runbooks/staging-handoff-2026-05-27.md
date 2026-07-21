@@ -1,66 +1,37 @@
-# Handoff de Staging - 2026-05-27
+# Handoff de staging
 
-Este documento separa o que ja ficou pronto localmente do que depende de acesso humano, conta externa ou segredo.
+**Origem:** 2026-05-27
 
-## Ja pronto localmente
+**Atualizado em:** 2026-07-21
 
-- Estrutura Opensquad validada por `scripts/opensquad-readiness-check.js`.
-- Skills faltantes do runner cobertas por wrappers locais.
-- CSVs de participantes padronizados para `id,name,role,path`.
-- Template local criado em `.env.staging.example`.
-- `.env.staging` local criado com URLs Railway de staging ja confirmadas e secrets em branco.
-- Evidencias novas geradas em `docs/evidence/`.
-- Typecheck local verde para backend, frontend e dashboard.
+Este documento preserva o handoff histórico sem reproduzir valores TXT, tokens ou credenciais. Para o estado atual, consulte as evidências de staging em `docs/evidence/`.
 
-## Ordem recomendada para o Gustavo
+## Base disponível
 
-1. Confirmar se os dominios customizados serao usados agora ou manter os dominios Railway:
-   - backend atual: `https://urban-ai-backend-staging-staging.up.railway.app`
-   - frontend atual: `https://urban-ai-frontend-staging-staging.up.railway.app`
-2. Configurar DNS no Cloudflare para `staging.myurbanai.com` e `staging-api.myurbanai.com`.
-3. Criar usuario admin staging e usuario host staging.
-4. Configurar credenciais/JWTs de gate:
-   - `ENTERPRISE_GATE_ADMIN_JWT`
-   - `ENTERPRISE_GATE_HOST_JWT`
-   - ou credenciais E2E equivalentes nos secrets de CI.
-5. Definir `RESTORE_DATABASE_URL` apontando para banco restaurado/nao-producao.
-6. Configurar integracoes sandbox/test:
-   - Google Maps/Geocoding: `GOOGLE_MAPS_API_KEY`
-   - Gemini: `GEMINI_API_KEY`
-   - Stripe test keys e Price IDs
-   - Brevo test/remetente validado
-   - Stays sandbox: `STAYS_API_BASE_URL`, `STAYS_TOKEN_ENCRYPTION_KEY`, dry-run e allowlists.
+- backend e frontend possuem origins Railway de staging que respondem HTTP 200;
+- configuração local usa `.env.staging`, ignorado pelo Git;
+- health/readiness, Redis, MySQL, testes e gates possuem runbooks próprios;
+- integrações externas devem usar sandbox/test e secrets armazenados no Railway/GitHub.
 
-## Ja configurado no backend staging
+## Ordem operacional segura
 
-- `HEALTH_READINESS_TOKEN`
-- `HEALTH_READINESS_PUBLIC=false`
-- `EVENTS_INGEST_API_KEY`
-- `STAYS_TOKEN_ENCRYPTION_KEY`
-- `STAYS_AUTO_APPLY_ENABLED=false`
-- `STAYS_AUTO_APPLY_DRY_RUN=true`
+1. Corrigir a região inválida do serviço canônico de frontend e confirmar que o deployment está saudável.
+2. Reconfirmar no Railway a associação de `staging.myurbanai.com` sem criar um segundo domínio.
+3. Aguardar a verificação e o certificado de `staging-api.myurbanai.com`.
+4. Manter os registros existentes em DNS-only enquanto os certificados estiverem pendentes.
+5. Validar TLS estrito, liveness, readiness autenticado, banner `STAGING` e E2E.
+6. Configurar usuários admin/host e integrações sandbox por secret store.
+7. Executar os gates enterprise e anexar evidências sem dados sensíveis.
 
-## DNS pendente no Cloudflare
+## Estado em 2026-07-21
 
-| Tipo | Nome | Conteudo | Proxy |
-|---|---|---|---|
-| CNAME | `staging` | `7swvlwmb.up.railway.app` | DNS only recomendado ate Railway validar SSL |
-| TXT | `_railway-verify.staging` | `railway-verify=railway-verify=974341afdc8db5df7ca62971dc3ac59ffa0b02cd829b89d74f789b3b30da21f8` | N/A |
-| CNAME | `staging-api` | `ywnfzddg.up.railway.app` | DNS only recomendado ate Railway validar SSL |
-| TXT | `_railway-verify.staging-api` | `railway-verify=railway-verify=970f2a3796e95f7a94897232d457ba0c0c01d758703af41c6567456d4927190b` | N/A |
+- `staging-api.myurbanai.com`: CNAME público, origin saudável, Railway ainda em `Waiting for DNS update` e TLS estrito inválido.
+- `staging.myurbanai.com`: CNAME público e origin com banner `STAGING`, porém o serviço canônico aparece sem domínio público e com região `us-west2` inválida bloqueando deployments; TLS estrito inválido.
+- `status.myurbanai.com`: GitHub Pages `built`, HTTP 200, sem certificado customizado e `https_enforced=false`.
 
-### Status de acesso Cloudflare
+Nenhum DNS deve ser recriado ou duplicado durante esse estado.
 
-O Codex encontrou uma credencial OAuth local antiga do plugin Cloudflare, mas ela esta vencida/revogada. O refresh retornou `invalid_grant`, entao nao foi possivel aplicar os registros diretamente nesta sessao.
-
-Para eu concluir sozinho depois, use uma das opcoes abaixo sem colar segredo no chat:
-
-- Reautenticar o plugin Cloudflare no Codex/app e pedir para eu tentar novamente.
-- Ou definir localmente `CLOUDFLARE_API_TOKEN` com permissoes `Zone:Read` e `DNS:Edit` para `myurbanai.com`; se possivel, definir tambem `CLOUDFLARE_ZONE_ID` para evitar autodiscovery.
-
-## Comandos para rodar depois dos secrets
-
-Rodar na raiz do repo:
+## Comandos após configurar secrets
 
 ```powershell
 node scripts/opensquad-readiness-check.js
@@ -68,26 +39,10 @@ node scripts/enterprise-access-readiness.js --env-file .env.staging --output doc
 node scripts/enterprise-auditability-live-gate.js --env-file .env.staging --env=staging --strict --skip-events-ingest --output docs/evidence/enterprise-live-gate-staging.md
 ```
 
-Rodar no backend depois de configurar Stripe/staging:
+## Regras
 
-```powershell
-cd urban-ai-backend-main
-npm run preflight:track3:strict
-npm run restore:verify:dry
-```
-
-## Regras de seguranca
-
-- Nao colar segredos em chat, docs ou evidencias.
-- Usar apenas chaves test/sandbox em staging.
-- Manter `STAYS_AUTO_APPLY_DRY_RUN=true` ate smoke assistido e rollback aprovados.
-- Nao rodar gates com mutacao em producao.
-- Qualquer push real de preco exige aprovacao humana e rollback testado.
-
-## Criterio para seguir para beta assistido
-
-- Staging front/backend respondendo.
-- Enterprise read-only gate verde.
-- Authenticated smoke admin/host sem skip.
-- Stripe test, Brevo, Google/Gemini e Stays sandbox com evidencia.
-- Pelo menos um ciclo de recomendacao -> aceite/rejeicao -> preco aplicado -> outcome registrado em staging.
+- não copiar segredos ou valores de verificação para docs/logs;
+- usar apenas chaves test/sandbox em staging;
+- manter Stays em dry-run até smoke e rollback aprovados;
+- não executar mutações em produção;
+- qualquer aplicação real de preço exige aprovação humana e rollback testado.

@@ -50,3 +50,7 @@ Risco residual em 2026-07-20: emissão do certificado do domínio customizado pe
 ## Revalidação read-only — 2026-07-20 17h (BRT)
 
 O GitHub Pages permanece em `built`, com `https_enforced=false`. O CNAME continua público; HTTPS estrito ainda falha, enquanto a resposta com verificação TLS desativada permanece HTTP 200. O certificado ainda não está disponível, portanto o enforcement não foi antecipado e o DNS não foi alterado.
+
+## Revalidação read-only — 2026-07-21 09h18 (BRT)
+
+O GitHub Pages continua `built`, o CNAME público resolve e HTTP sem TLS responde 200. A API ainda informa `https_enforced=false`, sem certificado customizado disponível, e HTTPS estrito falha por incompatibilidade do certificado. O enforcement não foi habilitado e o DNS permaneceu inalterado.

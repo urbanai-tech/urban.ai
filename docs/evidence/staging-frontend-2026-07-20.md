@@ -41,3 +41,7 @@ O valor do TXT de verificação não é reproduzido nesta evidência.
 ## Revalidação read-only — 2026-07-20 17h (BRT)
 
 O Railway continua exibindo `Waiting for DNS update` para `staging.myurbanai.com`. O CNAME permanece público; HTTPS estrito ainda falha e a chamada com verificação TLS desativada retorna 404 no hostname customizado. O serviço nativo continua sendo a referência aprovada enquanto o certificado não for emitido. Nenhum registro foi recriado e o domínio permaneceu DNS-only.
+
+## Revalidação read-only — 2026-07-21 09h18 (BRT)
+
+O origin nativo continua respondendo HTTP 200, com o título esperado e banner `STAGING`, e o CNAME público permanece apontando para o destino anteriormente fornecido pelo Railway. Entretanto, o serviço `urban-ai-frontend-staging` no projeto/ambiente canônicos agora aparece sem domínio público associado e com a região `us-west2` marcada como inválida, bloqueando deployments. O TLS estrito de `staging.myurbanai.com` continua falhando. Essa divergência invalida a afirmação anterior de associação ativa até nova confirmação; nenhum domínio ou DNS foi recriado.
