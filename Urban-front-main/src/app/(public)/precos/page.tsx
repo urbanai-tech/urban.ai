@@ -1,599 +1,183 @@
-import NextLink from "next/link";
 import type { Metadata } from "next";
+import { Check, Minus } from "lucide-react";
+import { JsonLd, buildSeoMetadata, faqPageJsonLd, offerJsonLd } from "../../lib/seo";
 import {
-  JsonLd,
-  buildSeoMetadata,
-  faqPageJsonLd,
-  offerJsonLd,
-} from "../../lib/seo";
+  CheckList,
+  FinalCommercialCta,
+  PublicButton,
+  PUBLIC_SIGNUP_URL,
+  SectionHeading,
+} from "../../componentes/PublicMarketing";
 
-/**
- * /precos — pricing pública (visão resumida).
- *
- * Estilo manifesto editorial Urban AI: Bebas Neue gigante, Inter body,
- * fundo var(--theme-public-bg), accent var(--theme-public-accent) (única cor), zero rounded cards coloridos.
- * Vide globals.css → .urban-manifesto, .urban-grain, .urban-pull, .urban-eyebrow
- *
- * Checkout vive em app.myurbanai.com/plans — aqui é vitrine pública.
- */
 export const metadata: Metadata = buildSeoMetadata({
-  title: "Preços - Urban AI",
-  description:
-    "Planos da Urban AI por imóvel, com ciclos mensais, trimestrais, semestrais e anuais para anfitriões e gestoras.",
+  title: "Preços | Urban AI",
+  description: "Planos por imóvel para anfitriões e gestoras, sem comissão sobre receita e com ciclos flexíveis.",
   path: "/precos",
 });
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.myurbanai.com";
-const SIGNUP_URL = `${APP_URL.replace(/\/$/, "")}/create`;
-const WAITLIST_URL = "/lancamento";
-
-const STARTER_TIERS = [
-  { cycle: "Mensal", price: "149", note: null },
-  { cycle: "Trimestral", price: "129", note: "−13%" },
-  { cycle: "Semestral", price: "109", note: "−27%" },
-  { cycle: "Anual", price: "97", note: "−35%" },
+const FAQ = [
+  { question: "Como funciona a cobrança por imóvel?", answer: "O valor considera o plano, a quantidade de imóveis e o ciclo escolhido. A faixa aplicável é mostrada antes da contratação." },
+  { question: "Posso mudar de plano?", answer: "Sim. A operação pode evoluir de Starter para Profissional quando precisar de mais imóveis, integração ou automação." },
+  { question: "A Urban AI cobra comissão sobre as reservas?", answer: "Não. A cobrança é por imóvel no ciclo contratado; a Urban AI não recebe percentual da sua receita." },
+  { question: "Preciso contratar a integração Stays?", answer: "Não. O modo de recomendação funciona sem integração. A automação via Stays faz parte do plano Profissional." },
+  { question: "Tenho mais de 500 imóveis. Como funciona?", answer: "Operações maiores recebem uma proposta adequada a volume, contas, integração e necessidades de atendimento." },
 ];
 
-const PROFISSIONAL_TIERS = [
-  { cycle: "Mensal", price: "99", note: null },
-  { cycle: "Trimestral", price: "85", note: "−14%" },
-  { cycle: "Semestral", price: "72", note: "−27%" },
-  { cycle: "Anual", price: "67", note: "−32%" },
-];
-
-const PRICING_FAQ_SCHEMA = [
+const plans = [
   {
-    question: "Como funciona a cobrança por imóvel?",
-    answer:
-      "Você escolhe um plano e ciclo. O valor é calculado por preço, quantidade de imóveis e duração do ciclo.",
+    name: "Starter",
+    audience: "Para anfitriões com 1 a 3 imóveis.",
+    price: "149",
+    note: "por imóvel/mês no ciclo mensal",
+    features: [
+      "Painel e recomendações por data",
+      "Leitura de eventos e contexto local",
+      "Histórico de recomendações",
+      "Aplicação manual com controle total",
+      "Suporte por e-mail",
+    ],
   },
   {
-    question: "Posso cancelar?",
-    answer:
-      "Sim. Não há fidelidade, e o acesso fica ativo até o fim do ciclo já pago.",
+    name: "Profissional",
+    audience: "Para operações com 4 a 500 imóveis.",
+    price: "99",
+    note: "por imóvel/mês no ciclo mensal",
+    featured: true,
+    features: [
+      "Tudo do Starter",
+      "Integração com Stays",
+      "Automação com limites configuráveis",
+      "Visão consolidada da operação",
+      "Suporte prioritário",
+    ],
   },
   {
-    question: "Tem teste gratuito?",
-    answer:
-      "No pré-lançamento, trials são liberados por convite. No go-live oficial, a previsão é oferecer teste gratuito sem cartão.",
+    name: "Escala",
+    audience: "Para gestoras com mais de 500 imóveis.",
+    price: "Sob medida",
+    note: "proposta conforme operação e integração",
+    features: [
+      "Onboarding e desenho operacional",
+      "Integrações e requisitos específicos",
+      "Governança para múltiplas contas",
+      "Acompanhamento comercial dedicado",
+      "Condições por volume",
+    ],
   },
 ];
 
 export default function PrecosPage() {
   return (
-    <div
-      className="urban-manifesto"
-      style={{ background: "var(--theme-public-bg)", color: "var(--theme-public-text)", minHeight: "100vh" }}
-    >
-      <JsonLd
-        id="pricing-jsonld"
-        data={[
-          offerJsonLd("Starter", "149", "/precos"),
-          offerJsonLd("Profissional", "99", "/precos"),
-          faqPageJsonLd(PRICING_FAQ_SCHEMA, "/precos"),
-        ]}
-      />
-      {/* ============== HERO ============== */}
-      <section
-        className="urban-grain"
-        style={{ position: "relative", padding: "140px 24px 100px", overflow: "hidden" }}
-      >
-        <div
-          className="urban-glow"
-          style={{ width: 700, height: 700, top: -200, left: "50%", transform: "translateX(-50%)" }}
-        />
-        <div style={{ position: "relative", zIndex: 2, maxWidth: 1280, margin: "0 auto" }}>
-          <p className="urban-eyebrow" style={{ marginBottom: 32 }}>
-            PRICING — TRANSPARENTE
-          </p>
-          <h1
-            className="urban-display"
-            style={{
-              fontSize: "clamp(48px, 13vw, 140px)",
-              lineHeight: 0.88,
-              letterSpacing: 0,
-              fontWeight: 400,
-              margin: 0,
-              textTransform: "uppercase",
-              textWrap: "balance",
-            }}
-          >
-            VOCÊ PAGA
-            <br />
-            POR IMÓVEL.
-            <br />
-            <span style={{ color: "var(--theme-public-accent)" }}>NADA MAIS.</span>
-          </h1>
-          <p
-            style={{
-              fontSize: 20,
-              fontWeight: 300,
-              lineHeight: 1.75,
-              color: "var(--theme-public-muted)",
-              maxWidth: 680,
-              marginTop: 48,
-            }}
-          >
-            Sem comissão sobre receita. Sem taxa de implantação. Sem fidelidade.
-            Quanto mais longo o ciclo, menor o preço por unidade.
-          </p>
-        </div>
-      </section>
+    <main className="urban-manifesto urban-public-page">
+      <JsonLd id="pricing-jsonld" data={[
+        offerJsonLd("Starter", "149", "/precos"),
+        offerJsonLd("Profissional", "99", "/precos"),
+        faqPageJsonLd(FAQ, "/precos"),
+      ]} />
 
-      {/* Divider */}
-      <div style={{ height: 1, background: "var(--theme-public-soft)" }} />
-
-      {/* ============== STARTER ============== */}
-      <section style={{ padding: "100px 24px" }}>
-        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <PlanBlock
-            eyebrow="01 — STARTER"
-            tagline="1 a 3 imóveis"
-            description="Comece a usar o motor de eventos sem complicação. Recomendações chegam por e-mail e painel. Você aplica manualmente no Airbnb."
-            tiers={STARTER_TIERS}
-            features={[
-              "Análises ilimitadas em imóveis cadastrados",
-              "Recomendações por evento próximo",
-              "Painel de imóvel + cálculo de uplift",
-              "E-mail de oportunidade quando demanda muda",
-              "Histórico completo de recomendações",
-              "Suporte por e-mail",
-            ]}
-          />
-        </div>
-      </section>
-
-      <div style={{ height: 1, background: "var(--theme-public-soft)" }} />
-
-      {/* ============== PROFISSIONAL — destaque ============== */}
-      <section style={{ padding: "100px 24px", position: "relative" }}>
-        <div style={{ maxWidth: 1280, margin: "0 auto", position: "relative" }}>
-          {/* Vertical accent bar */}
-          <div
-            style={{
-              position: "absolute",
-              left: -2,
-              top: 0,
-              width: 2,
-              height: 80,
-              background: "var(--theme-public-accent)",
-            }}
-          />
-          <PlanBlock
-            eyebrow="02 — PROFISSIONAL"
-            tagline="4 a 500 imóveis · self-service"
-            description="Desbloqueia o modo Automático via Stays — a Urban AI aplica o preço sem você abrir nada. Para quem leva como negócio."
-            tiers={PROFISSIONAL_TIERS}
-            highlight
-            features={[
-              "Tudo do Starter, e mais —",
-              "Integração Stays (push automático de preço)",
-              "Modo Automático com tetos de variação",
-              "Webhooks e API para integrações próprias",
-              "Suporte prioritário (resposta em 4h úteis)",
-              "Relatório mensal consolidado",
-            ]}
-          />
-        </div>
-      </section>
-
-      <div style={{ height: 1, background: "var(--theme-public-soft)" }} />
-
-      {/* ============== ESCALA ============== */}
-      <section style={{ padding: "100px 24px" }}>
-        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <p className="urban-eyebrow" style={{ marginBottom: 24 }}>
-            03 — ESCALA
-          </p>
-          <h2
-            className="urban-display"
-            style={{
-              fontSize: "clamp(44px, 9vw, 140px)",
-              lineHeight: 0.9,
-              letterSpacing: 0,
-              fontWeight: 400,
-              margin: 0,
-              textTransform: "uppercase",
-              textWrap: "balance",
-            }}
-          >
-            501+ IMÓVEIS,
-            <br />
-            <span style={{ color: "var(--theme-public-accent)" }}>FALA COM A GENTE.</span>
-          </h2>
-          <p
-            style={{
-              fontSize: 20,
-              fontWeight: 300,
-              lineHeight: 1.75,
-              color: "var(--theme-public-muted)",
-              maxWidth: 680,
-              marginTop: 40,
-            }}
-          >
-            Para redes, gestoras multi-conta e operações com integração customizada.
-            Onboarding dedicado, SLA contratual, atendimento dedicado, relatórios
-            executivos personalizados.
-          </p>
-          <div style={{ marginTop: 56 }}>
-            <a
-              href="mailto:comercial@myurbanai.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: "inline-block",
-                padding: "18px 24px",
-                background: "var(--theme-public-accent)",
-                color: "var(--theme-public-bg)",
-                fontWeight: 700,
-                fontSize: 14,
-                letterSpacing: 1.5,
-                textTransform: "uppercase",
-                textDecoration: "none",
-                maxWidth: "100%",
-                textAlign: "center",
-                whiteSpace: "normal",
-              }}
-            >
-              Falar com consultor →
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <div style={{ height: 1, background: "var(--theme-public-soft)" }} />
-
-      {/* ============== FAQ ============== */}
-      <section style={{ padding: "120px 24px" }}>
-        <div style={{ maxWidth: 880, margin: "0 auto" }}>
-          <p className="urban-eyebrow" style={{ marginBottom: 24 }}>
-            DÚVIDAS DE COBRANÇA
-          </p>
-          <h2
-            className="urban-display"
-            style={{
-              fontSize: "clamp(44px, 10vw, 140px)",
-              lineHeight: 0.9,
-              letterSpacing: 0,
-              fontWeight: 400,
-              margin: "0 0 80px",
-              textTransform: "uppercase",
-              textWrap: "balance",
-            }}
-          >
-            RESPOSTAS
-            <br />
-            <span style={{ color: "var(--theme-public-accent)" }}>CURTAS.</span>
-          </h2>
+      <section className="public-page-hero">
+        <div className="public-container public-page-hero__grid">
           <div>
-            <Faq
-              q="Como funciona a cobrança por imóvel?"
-              a="Você escolhe quantidade e ciclo. A faixa entra automaticamente. Profissional anual com 50 imóveis = R$ 67 × 50 × 12 = R$ 40.200 cobrados de uma vez (32% off vs. mensal)."
-            />
-            <Faq
-              q="E se eu adicionar imóveis no meio do ciclo?"
-              a="Atualiza no painel. Cobrança proporcional automática para o restante do ciclo. Sem reiniciar assinatura."
-            />
-            <Faq
-              q="E se eu remover imóveis?"
-              a="Mantém a quota até o fim do ciclo. Sem crédito retroativo. No próximo ciclo a cobrança ajusta para o número atual."
-            />
-            <Faq
-              q="Posso pagar mensal e mudar para anual?"
-              a="Sim. Troca de ciclo a qualquer momento. O valor já pago vira crédito proporcional no novo ciclo."
-            />
-            <Faq
-              q="Posso cancelar?"
-              a="Sim, sem fidelidade. Cancela direto no painel. Acesso mantido até o fim do ciclo já pago. Sem reembolso proporcional para ciclo iniciado, exceto onde a lei exigir."
-            />
-            <Faq
-              q="Tem teste gratuito?"
-              a="No pré-lançamento, trials individuais por convite. No go-live oficial: 7 a 14 dias gratuitos sem cartão."
-            />
-            <Faq
-              q="Pix? Boleto?"
-              a="Hoje o pagamento é por cartão de crédito ou débito, processado via Stripe. Pix e boleto estão no roadmap."
-            />
-            <Faq
-              q="Nota fiscal?"
-              a="Emitida automaticamente após cada cobrança. Você baixa pelo painel."
-            />
+            <p className="public-kicker">Preços transparentes</p>
+            <h1>Um plano para cada fase da sua <em>operação.</em></h1>
+            <p className="public-page-hero__lead">Cobrança por imóvel, sem comissão sobre receita. Comece com recomendações e avance para integração e automação quando fizer sentido.</p>
+            <div className="public-page-hero__actions">
+              <PublicButton href={PUBLIC_SIGNUP_URL}>Criar minha conta</PublicButton>
+              <PublicButton href="#comparar" variant="secondary">Comparar recursos</PublicButton>
+            </div>
+          </div>
+          <aside className="public-page-hero__aside">
+            <p><strong style={{ color: "var(--theme-public-text)" }}>Ciclos disponíveis</strong><br />Mensal, trimestral, semestral e anual. O valor por imóvel diminui nos ciclos mais longos.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section className="public-section public-pricing-section">
+        <div className="public-container">
+          <div className="public-pricing-grid">
+            {plans.map((plan) => (
+              <article className={`public-price-card ${plan.featured ? "is-featured" : ""}`} key={plan.name}>
+                {plan.featured ? <span className="public-price-card__tag">Mais escolhido</span> : null}
+                <h2>{plan.name}</h2>
+                <p className="public-price-card__audience">{plan.audience}</p>
+                <p className="public-price-card__price">
+                  {plan.price === "Sob medida" ? <strong style={{ fontSize: 48 }}>{plan.price}</strong> : <><span>R$</span><strong>{plan.price}</strong></>}
+                </p>
+                <p className="public-price-card__billing">{plan.note}</p>
+                <PublicButton href={plan.name === "Escala" ? "mailto:comercial@myurbanai.com" : PUBLIC_SIGNUP_URL} variant={plan.featured ? "primary" : "secondary"}>
+                  {plan.name === "Escala" ? "Falar com comercial" : "Escolher plano"}
+                </PublicButton>
+                <CheckList items={plan.features} />
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      <div style={{ height: 1, background: "var(--theme-public-soft)" }} />
-
-      {/* ============== FINAL CTA ============== */}
-      <section
-        className="urban-grain"
-        style={{ position: "relative", padding: "140px 24px", overflow: "hidden" }}
-      >
-        <div
-          className="urban-glow"
-          style={{ width: 600, height: 600, top: -100, right: -100 }}
-        />
-        <div style={{ position: "relative", zIndex: 2, maxWidth: 1280, margin: "0 auto" }}>
-          <h2
-            className="urban-display"
-            style={{
-              fontSize: "clamp(46px, 12vw, 140px)",
-              lineHeight: 0.88,
-              letterSpacing: 0,
-              fontWeight: 400,
-              margin: 0,
-              textTransform: "uppercase",
-              textWrap: "balance",
-            }}
-          >
-            COMEÇAR
-            <br />
-            <span style={{ color: "var(--theme-public-accent)" }}>É RÁPIDO.</span>
-          </h2>
-          <p
-            style={{
-              fontSize: 20,
-              fontWeight: 300,
-              lineHeight: 1.75,
-              color: "var(--theme-public-muted)",
-              maxWidth: 580,
-              marginTop: 48,
-              marginBottom: 56,
-            }}
-          >
-            No pré-lançamento o acesso é por convite. Entre na lista e libere
-            antes da abertura geral.
-          </p>
-          <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "center" }}>
-            <NextLink
-              href={WAITLIST_URL}
-              style={{
-                display: "inline-block",
-                padding: "18px 24px",
-                background: "var(--theme-public-accent)",
-                color: "var(--theme-public-bg)",
-                fontWeight: 700,
-                fontSize: 14,
-                letterSpacing: 1.5,
-                textTransform: "uppercase",
-                textDecoration: "none",
-                maxWidth: "100%",
-                textAlign: "center",
-                whiteSpace: "normal",
-              }}
-            >
-              Garantir meu acesso →
-            </NextLink>
-            <a
-              href={SIGNUP_URL}
-              style={{
-                color: "var(--theme-public-muted)",
-                fontSize: 13,
-                letterSpacing: 2,
-                textTransform: "uppercase",
-                fontWeight: 500,
-                textDecoration: "none",
-                borderBottom: "1px solid var(--theme-public-strong)",
-                paddingBottom: 4,
-              }}
-            >
-              Já tem convite? Entrar
-            </a>
+      <section id="comparar" className="public-section public-section--soft">
+        <div className="public-container">
+          <SectionHeading
+            eyebrow="Comparação"
+            title={<>Veja o que entra em <em>cada plano.</em></>}
+            description="Escolha pelo tamanho da operação e pelo nível de integração — não por uma lista artificial de limitações."
+          />
+          <div className="public-comparison-wrap">
+            <table className="public-comparison">
+              <thead><tr><th>Recurso</th><th>Starter</th><th>Profissional</th><th>Escala</th></tr></thead>
+              <tbody>
+                <ComparisonRow name="Recomendações explicadas" values={[true, true, true]} />
+                <ComparisonRow name="Eventos e contexto local" values={[true, true, true]} />
+                <ComparisonRow name="Histórico de decisões" values={[true, true, true]} />
+                <ComparisonRow name="Integração Stays" values={[false, true, true]} />
+                <ComparisonRow name="Automação com limites" values={[false, true, true]} />
+                <ComparisonRow name="Operação multi-conta" values={[false, false, true]} />
+                <ComparisonRow name="Integração customizada" values={[false, false, true]} />
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
-    </div>
+
+      <section className="public-section">
+        <div className="public-container public-split">
+          <div>
+            <SectionHeading
+              eyebrow="Ciclos de contratação"
+              title={<>Quanto maior o ciclo, menor o <em>valor mensal.</em></>}
+              description="Os descontos são aplicados por ciclo e exibidos na contratação antes da confirmação."
+            />
+          </div>
+          <div className="public-content-card">
+            <h3>Referência do plano Profissional</h3>
+            <CheckList items={[
+              "Mensal: R$ 99 por imóvel/mês",
+              "Trimestral: R$ 85 por imóvel/mês",
+              "Semestral: R$ 72 por imóvel/mês",
+              "Anual: R$ 67 por imóvel/mês",
+            ]} />
+          </div>
+        </div>
+      </section>
+
+      <section className="public-section public-section--soft">
+        <div className="public-container">
+          <SectionHeading eyebrow="Dúvidas de contratação" title={<>Respostas <em>diretas.</em></>} />
+          <div className="public-faq">
+            {FAQ.map((item) => <details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>)}
+          </div>
+        </div>
+      </section>
+
+      <FinalCommercialCta title={<>Escolha o plano e comece a ler seu calendário com <em style={{ color: "var(--theme-public-accent)" }}>mais contexto.</em></>} />
+    </main>
   );
 }
 
-// =================== Subcomponents ===================
-
-function PlanBlock({
-  eyebrow,
-  tagline,
-  description,
-  tiers,
-  features,
-  highlight = false,
-}: {
-  eyebrow: string;
-  tagline: string;
-  description: string;
-  tiers: { cycle: string; price: string; note: string | null }[];
-  features: string[];
-  highlight?: boolean;
-}) {
+function ComparisonRow({ name, values }: { name: string; values: boolean[] }) {
   return (
-    <div>
-      <p className="urban-eyebrow" style={{ marginBottom: 24 }}>
-        {eyebrow}
-      </p>
-      <h2
-        className="urban-display"
-        style={{
-          fontSize: "clamp(44px, 9vw, 140px)",
-          lineHeight: 0.9,
-          letterSpacing: 0,
-          fontWeight: 400,
-          margin: 0,
-          textTransform: "uppercase",
-          textWrap: "balance",
-        }}
-      >
-        {tagline.split(" · ").map((part, i) =>
-          i === 0 ? (
-            <span key={i}>{part}</span>
-          ) : (
-            <span
-              key={i}
-              style={{
-                display: "block",
-                color: "var(--theme-public-accent)",
-                fontSize: "clamp(28px, 4vw, 56px)",
-                lineHeight: 1,
-                marginTop: 12,
-              }}
-            >
-              {" · "}
-              {part}
-            </span>
-          ),
-        )}
-      </h2>
-      <p
-        style={{
-          fontSize: 20,
-          fontWeight: 300,
-          lineHeight: 1.75,
-          color: "var(--theme-public-muted)",
-          maxWidth: 680,
-          marginTop: 40,
-        }}
-      >
-        {description}
-      </p>
-
-      {/* Tiers row — sem rounded cards. Linhas finas. */}
-      <div
-        style={{
-          marginTop: 64,
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          borderTop: "1px solid var(--theme-public-soft)",
-          borderBottom: "1px solid var(--theme-public-soft)",
-        }}
-      >
-        {tiers.map((t, i) => (
-          <div
-            key={t.cycle}
-            style={{
-              padding: "32px 24px",
-              borderRight:
-                i < tiers.length - 1 ? "1px solid var(--theme-public-soft)" : "none",
-            }}
-          >
-            <p
-              style={{
-                fontSize: 11,
-                letterSpacing: 3,
-                textTransform: "uppercase",
-                color: "var(--theme-public-muted)",
-                fontWeight: 600,
-                margin: 0,
-              }}
-            >
-              {t.cycle}
-            </p>
-            <p
-              className="urban-display"
-              style={{
-                fontSize: 56,
-                lineHeight: 1,
-                fontWeight: 400,
-                margin: "16px 0 4px",
-                color: highlight ? "var(--theme-public-text)" : "var(--theme-public-text)",
-              }}
-            >
-              R${t.price}
-            </p>
-            <p style={{ fontSize: 12, color: "var(--theme-public-muted)", margin: 0 }}>
-              /imóvel/mês
-            </p>
-            {t.note && (
-              <p
-                style={{
-                  marginTop: 12,
-                  fontSize: 11,
-                  letterSpacing: 2,
-                  textTransform: "uppercase",
-                  color: "var(--theme-public-accent)",
-                  fontWeight: 600,
-                }}
-              >
-                {t.note}
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Features */}
-      <div
-        style={{
-          marginTop: 56,
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: "20px 48px",
-        }}
-      >
-        {features.map((f) => (
-          <div
-            key={f}
-            style={{
-              display: "flex",
-              gap: 16,
-              alignItems: "baseline",
-              fontSize: 16,
-              fontWeight: 300,
-              lineHeight: 1.6,
-              color: "var(--theme-public-text)",
-            }}
-          >
-            <span style={{ color: "var(--theme-public-accent)", fontWeight: 600, fontSize: 12 }}>—</span>
-            <span>{f}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function Faq({ q, a }: { q: string; a: string }) {
-  return (
-    <details
-      style={{
-        borderTop: "1px solid var(--theme-public-soft)",
-        padding: "28px 0",
-      }}
-    >
-      <summary
-        style={{
-          cursor: "pointer",
-          listStyle: "none",
-          fontSize: 22,
-          fontWeight: 500,
-          letterSpacing: 0,
-          color: "var(--theme-public-text)",
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 24,
-        }}
-      >
-        <span style={{ minWidth: 0, flex: 1, overflowWrap: "anywhere" }}>{q}</span>
-        <span
-          style={{
-            color: "var(--theme-public-accent)",
-            fontWeight: 400,
-            fontSize: 28,
-            lineHeight: 1,
-            flexShrink: 0,
-          }}
-        >
-          +
-        </span>
-      </summary>
-      <div
-        style={{
-          marginTop: 20,
-          fontSize: 17,
-          fontWeight: 300,
-          lineHeight: 1.75,
-          color: "var(--theme-public-muted)",
-          maxWidth: 720,
-        }}
-      >
-        {a}
-      </div>
-    </details>
+    <tr>
+      <td>{name}</td>
+      {values.map((value, index) => <td key={`${name}-${index}`} aria-label={value ? "Incluído" : "Não incluído"}>{value ? <Check aria-hidden size={18} /> : <Minus aria-hidden size={18} />}</td>)}
+    </tr>
   );
 }

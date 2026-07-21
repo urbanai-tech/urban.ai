@@ -108,7 +108,7 @@ export const dynamicPricingAirbnb: SeoContent = {
       summary:
         "Slot para documentar uma recomendação gerada a partir de evento, revisão humana e decisão de preço do anfitrião.",
       source:
-        "Beta fechado assistido, AnalisePreco e PriceSnapshot, somente quando houver consentimento e vínculo entre recomendação e imóvel.",
+        "Operação assistida, AnalisePreco e PriceSnapshot, somente quando houver consentimento e vínculo entre recomendação e imóvel.",
       sample:
         "Amostra em formação: imóveis com recomendação, preço aplicado e snapshot associado.",
       validationNote:
