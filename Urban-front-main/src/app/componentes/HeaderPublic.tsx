@@ -3,7 +3,7 @@
 import NextLink from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Menu, X } from "lucide-react";
-import { PUBLIC_APP_URL, PUBLIC_SIGNUP_URL } from "./PublicMarketing";
+import { PUBLIC_LOGIN_URL, PUBLIC_SIGNUP_URL } from "./PublicMarketing";
 
 const NAV = [
   { label: "Produto", href: "/#produto" },
@@ -49,7 +49,7 @@ export default function HeaderPublic() {
         </nav>
 
         <div className="public-header__actions">
-          <a href={PUBLIC_APP_URL}>Entrar</a>
+          <a href={PUBLIC_LOGIN_URL}>Entrar</a>
           <a href={PUBLIC_SIGNUP_URL} className="public-header__cta">
             Começar agora <ArrowRight aria-hidden size={16} />
           </a>
@@ -87,7 +87,7 @@ export default function HeaderPublic() {
           ))}
         </nav>
         <div className="public-mobile-menu__actions">
-          <a tabIndex={open ? 0 : -1} href={PUBLIC_APP_URL}>Entrar</a>
+          <a tabIndex={open ? 0 : -1} href={PUBLIC_LOGIN_URL}>Entrar</a>
           <a tabIndex={open ? 0 : -1} href={PUBLIC_SIGNUP_URL} className="public-header__cta">
             Começar agora <ArrowRight aria-hidden size={16} />
           </a>
