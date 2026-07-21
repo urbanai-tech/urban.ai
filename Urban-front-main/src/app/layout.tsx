@@ -60,13 +60,13 @@ export const metadata: Metadata = {
     siteName: "Urban AI",
     title: "Urban AI | Precificação dinâmica para Airbnb",
     description: "Precificação dinâmica para anfitriões com IA, calendário urbano e operação assistida.",
-    images: [{ url: "/pwa-icon-512.png", width: 512, height: 512, alt: "Urban AI" }],
+    images: [{ url: "/og-public-launch.png", width: 1536, height: 1024, alt: "Urban AI — A cidade muda. O preço também." }],
   },
   twitter: {
-    card: "summary",
-    title: "Urban AI",
-    description: "Precificação dinâmica para anfitriões com IA, calendário urbano e operação assistida.",
-    images: ["/pwa-icon-512.png"],
+    card: "summary_large_image",
+    title: "Urban AI | Precificação inteligente para aluguel por temporada",
+    description: "Transforme eventos, sazonalidade e sinais do bairro em recomendações de preço explicáveis.",
+    images: ["/og-public-launch.png"],
   },
 };
 
