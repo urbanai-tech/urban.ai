@@ -9,6 +9,7 @@ const files = {
   header: 'src/app/componentes/HeaderPublic.tsx',
   seo: 'src/app/(public)/seoContent.tsx',
   marketing: 'src/app/componentes/PublicMarketing.tsx',
+  middleware: 'src/middleware.ts',
 };
 
 async function source(name) {
@@ -20,6 +21,14 @@ test('landing pública comunica produto comercial e mostra uma prévia concreta'
   assert.doesNotMatch(content, /pré-lançamento|lista de espera|beta privado|acesso por convite/i);
   assert.match(content, /ProductPreview/);
   assert.match(content, /PUBLIC_SIGNUP_URL/);
+});
+
+test('staging serves the commercial landing at root without indexing', async () => {
+  const content = await source('middleware');
+  assert.match(content, /staging\.myurbanai\.com/);
+  assert.match(content, /urban-ai-frontend-staging-staging\.up\.railway\.app/);
+  assert.match(content, /isStagingHost\(host\)[\s\S]*NextResponse\.rewrite\(new URL\("\/landing"/);
+  assert.match(content, /isStagingHost\(host\)[\s\S]*withNoIndex/);
 });
 
 test('rota de lançamento não importa nem renderiza waitlist', async () => {
