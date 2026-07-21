@@ -170,7 +170,7 @@ async function loginViaUi(page) {
       version: 1,
     }));
   });
-  await page.goto(APP_URL, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${APP_URL}/login`, { waitUntil: 'domcontentloaded' });
   await page.locator('input[type="email"]').first().fill(EMAIL);
   await page.locator('input[type="password"]').first().fill(PASSWORD);
   await page.getByRole('button', { name: /entrar/i }).first().click();

@@ -25,8 +25,8 @@ test('landing pública comunica produto comercial e mostra uma prévia concreta'
 
 test('staging serves the commercial landing at root without indexing', async () => {
   const content = await source('middleware');
-  assert.match(content, /staging\.myurbanai\.com/);
-  assert.match(content, /urban-ai-frontend-staging-staging\.up\.railway\.app/);
+  assert.ok(content.includes('"staging.myurbanai.com"'));
+  assert.ok(content.includes('"urban-ai-frontend-staging-staging.up.railway.app"'));
   assert.match(content, /isStagingHost\(host\)[\s\S]*NextResponse\.rewrite\(new URL\("\/landing"/);
   assert.match(content, /isStagingHost\(host\)[\s\S]*withNoIndex/);
 });
