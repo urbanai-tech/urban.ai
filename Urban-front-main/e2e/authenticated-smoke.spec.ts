@@ -55,7 +55,7 @@ function isPostLoginRoute(url: URL) {
 
 async function login(page: Page, credentials: Credentials) {
   await acceptCookieConsent(page);
-  await page.goto('/');
+  await page.goto('/login');
 
   await page.locator('input[type="email"]').fill(credentials.email);
   await page.locator('input[type="password"]').fill(credentials.password);

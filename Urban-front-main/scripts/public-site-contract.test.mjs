@@ -44,18 +44,22 @@ test('environment banner reserves space without covering public navigation', asy
 });
 
 test('public funnel uses an explicit login route on staging and production', async () => {
-  const [marketing, header, create, login, middleware] = await Promise.all([
+  const [marketing, header, create, login, middleware, authenticatedSmoke, authenticatedMobileSmoke] = await Promise.all([
     source('marketing'),
     source('header'),
     source('create'),
     readFile(new URL('../src/app/login/page.tsx', import.meta.url), 'utf8'),
     source('middleware'),
+    readFile(new URL('../e2e/authenticated-smoke.spec.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../e2e/authenticated-mobile-smoke.spec.ts', import.meta.url), 'utf8'),
   ]);
   assert.match(marketing, /PUBLIC_LOGIN_URL/);
   assert.match(header, /href=\{PUBLIC_LOGIN_URL\}/);
   assert.match(create, /href="\/login"/);
   assert.match(login, /export \{ default \} from "\.\.\/\(home\)\/page"/);
   assert.match(middleware, /"\/login"/);
+  assert.match(authenticatedSmoke, /page\.goto\('\/login'\)/);
+  assert.match(authenticatedMobileSmoke, /page\.goto\('\/login'\)/);
 });
 
 test('customer-facing authentication copy no longer presents the product as beta', async () => {
