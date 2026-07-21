@@ -68,35 +68,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mysql-client
 
-      - name: Select and download off-site backup
-        run: |
-          set -euo pipefail
-          echo "DRILL_STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
-          echo "DRILL_STARTED_EPOCH=$(date +%s)" >> "$GITHUB_ENV"
-
-          OBJECT_KEY="$REQUESTED_OBJECT_KEY"
-          if [ -z "$OBJECT_KEY" ]; then
-            OBJECT_KEY=$(aws s3api list-objects-v2 \
-              --bucket "$S3_BUCKET" \
-              --prefix "mysql/" \
-              --query 'reverse(sort_by(Contents,&LastModified))[0].Key' \
-              --output text)
-          fi
-          if [ -z "$OBJECT_KEY" ] || [ "$OBJECT_KEY" = "None" ]; then
-            echo "::error::Nenhum backup encontrado em s3://$S3_BUCKET/mysql/."
-            exit 1
-          fi
-
-          META=$(aws s3api head-object --bucket "$S3_BUCKET" --key "$OBJECT_KEY")
-          LAST_MODIFIED=$(jq -r '.LastModified' <<< "$META")
-          SIZE_BYTES=$(jq -r '.ContentLength' <<< "$META")
-          ENCRYPTION=$(aws s3api get-bucket-encryption --bucket "$S3_BUCKET")
-          ENCRYPTION_ALGORITHM=$(jq -r '.ServerSideEncryptionConfiguration.Rules[0].ApplyServerSideEncryptionByDefault.SSEAlgorithm // "unknown"' <<< "$ENCRYPTION")
-          if [ "$ENCRYPTION_ALGORITHM" != "AES256" ] && [ "$ENCRYPTION_ALGORITHM" != "aws:kms" ]; then
-            echo "::error::O bucket off-site nao confirmou criptografia server-side suportada."
-            exit 1
-          fi
-
       - name: Configure authorized off-site backup policy
         if: ${{ github.repository == 'urbanai-tech/urban.ai' && inputs.apply_backup_policy }}
         run: |
@@ -137,6 +108,35 @@ jobs:
           test "$(jq -r '.NoncurrentVersionExpiration.NoncurrentDays' <<< "$RULE")" = "30"
           test "$(jq -r '.AbortIncompleteMultipartUpload.DaysAfterInitiation' <<< "$RULE")" = "7"
           echo "Politica off-site autorizada aplicada e verificada sem expor identificadores do bucket."
+
+      - name: Select and download off-site backup
+        run: |
+          set -euo pipefail
+          echo "DRILL_STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
+          echo "DRILL_STARTED_EPOCH=$(date +%s)" >> "$GITHUB_ENV"
+
+          OBJECT_KEY="$REQUESTED_OBJECT_KEY"
+          if [ -z "$OBJECT_KEY" ]; then
+            OBJECT_KEY=$(aws s3api list-objects-v2 \
+              --bucket "$S3_BUCKET" \
+              --prefix "mysql/" \
+              --query 'reverse(sort_by(Contents,&LastModified))[0].Key' \
+              --output text)
+          fi
+          if [ -z "$OBJECT_KEY" ] || [ "$OBJECT_KEY" = "None" ]; then
+            echo "::error::Nenhum backup encontrado em s3://$S3_BUCKET/mysql/."
+            exit 1
+          fi
+
+          META=$(aws s3api head-object --bucket "$S3_BUCKET" --key "$OBJECT_KEY")
+          LAST_MODIFIED=$(jq -r '.LastModified' <<< "$META")
+          SIZE_BYTES=$(jq -r '.ContentLength' <<< "$META")
+          ENCRYPTION=$(aws s3api get-bucket-encryption --bucket "$S3_BUCKET")
+          ENCRYPTION_ALGORITHM=$(jq -r '.ServerSideEncryptionConfiguration.Rules[0].ApplyServerSideEncryptionByDefault.SSEAlgorithm // "unknown"' <<< "$ENCRYPTION")
+          if [ "$ENCRYPTION_ALGORITHM" != "AES256" ] && [ "$ENCRYPTION_ALGORITHM" != "aws:kms" ]; then
+            echo "::error::O bucket off-site nao confirmou criptografia server-side suportada."
+            exit 1
+          fi
 
           VERSIONING=$(aws s3api get-bucket-versioning --bucket "$S3_BUCKET" --output json)
           if [ -n "$VERSIONING" ]; then
