@@ -489,7 +489,7 @@ const Register = () => {
               }}
             >
               <Link
-                href="/"
+                href="/login"
                 style={{
                   fontSize: 13,
                   color: "var(--app-accent)",

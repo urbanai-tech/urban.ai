@@ -43,6 +43,21 @@ test('environment banner reserves space without covering public navigation', asy
   assert.match(banner, /whiteSpace: "nowrap"/);
 });
 
+test('public funnel uses an explicit login route on staging and production', async () => {
+  const [marketing, header, create, login, middleware] = await Promise.all([
+    source('marketing'),
+    source('header'),
+    source('create'),
+    readFile(new URL('../src/app/login/page.tsx', import.meta.url), 'utf8'),
+    source('middleware'),
+  ]);
+  assert.match(marketing, /PUBLIC_LOGIN_URL/);
+  assert.match(header, /href=\{PUBLIC_LOGIN_URL\}/);
+  assert.match(create, /href="\/login"/);
+  assert.match(login, /export \{ default \} from "\.\.\/\(home\)\/page"/);
+  assert.match(middleware, /"\/login"/);
+});
+
 test('rota de lançamento não importa nem renderiza waitlist', async () => {
   const content = await source('launch');
   assert.doesNotMatch(content, /Waitlist(Form|Signup)|lista de espera|acesso antecipado/i);
