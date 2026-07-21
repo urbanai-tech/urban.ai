@@ -6,12 +6,13 @@ import { TERMS_UPDATED_AT, termsBlocks } from "../legalContent";
 export default function Termos() {
   return (
     <main className="urban-manifesto urban-public-page">
-      <section className="urban-public-section">
-        <div className="urban-public-container">
-          <article className="urban-legal-panel">
+      <section className="public-section">
+        <div className="public-container public-legal-shell">
+          <article className="urban-legal-panel public-legal-document">
+            <p className="public-kicker">Documentos legais</p>
             <h1>Termos de Uso</h1>
             <p style={{ margin: "0 0 32px", fontSize: 14 }}>
-              Última atualizacao: {TERMS_UPDATED_AT}
+              Última atualização: {TERMS_UPDATED_AT}
             </p>
             <LegalDocument blocks={termsBlocks} />
           </article>

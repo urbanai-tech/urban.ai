@@ -12,6 +12,11 @@ import { usePrelaunch } from "../componentes/usePrelaunch";
 import { WaitlistSignup } from "../componentes/WaitlistSignup";
 import { AuthFlowShell } from "../componentes/AuthFlowShell";
 import {
+  attributionEventParams,
+  captureAttribution,
+  trackAnalyticsEvent,
+} from "../componentes/Analytics";
+import {
   AppButton,
   AppCard,
   AppInput,
@@ -155,13 +160,17 @@ const Register = () => {
       setLoading(true);
       const hashedPassword = await sha256(password);
 
-      await api.post("/auth/register", {
+      const { data: registerData } = await api.post<{ mode?: string }>("/auth/register", {
         email,
         username,
         password: hashedPassword,
         termsAccepted: true,
         termsVersion: TERMS_VERSION,
       });
+
+      if (registerData?.mode && registerData.mode !== "registered") {
+        throw new Error("Novos cadastros estão temporariamente indisponíveis. Fale com o suporte da Urban AI.");
+      }
 
       const { data: loginData } = await api.post<{ accessToken?: string }>("/auth/login", {
         email,
@@ -178,6 +187,11 @@ const Register = () => {
       toast("Conta criada! Falta confirmar seu e-mail para continuar.", {
         type: "success",
       });
+      trackAnalyticsEvent(
+        "sign_up",
+        { method: "email", ...attributionEventParams(captureAttribution()) },
+        { metaEventName: "CompleteRegistration" },
+      );
 
       // E-mail precisa ser verificado antes do onboarding.
       setTimeout(() => {
@@ -303,12 +317,18 @@ const Register = () => {
           </div>
 
           <AppSectionHeader
-            eyebrow="CADASTRO · ANFITRIÃO"
+            eyebrow="CADASTRO · URBAN AI"
             title="Criar conta"
             subtitle="Preencha seus dados para começar a usar a Urban AI."
             size="sm"
           />
 
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleRegister();
+            }}
+          >
           <AppCard variant="elevated" style={{ padding: 28 }}>
             <div
               style={{
@@ -449,12 +469,12 @@ const Register = () => {
             </label>
 
             <AppButton
+              type="submit"
               variant="primary"
               size="lg"
               fullWidth
               disabled={!canSubmit}
               loading={loading}
-              onClick={handleRegister}
               rightIcon={<Icons.ArrowRight size={14} />}
               style={{ marginTop: 20 }}
             >
@@ -482,6 +502,7 @@ const Register = () => {
               </Link>
             </div>
           </AppCard>
+          </form>
         </div>
       </div>
 

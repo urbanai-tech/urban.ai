@@ -1,20 +1,14 @@
 import NextLink from "next/link";
 import type { Metadata } from "next";
-import {
-  JsonLd,
-  buildCanonical,
-  buildSeoMetadata,
-  faqPageJsonLd,
-  type JsonLdSchema,
-  webPageJsonLd,
-} from "../lib/seo";
+import { Check, Minus } from "lucide-react";
+import { JsonLd, buildSeoMetadata, faqPageJsonLd, webPageJsonLd } from "../lib/seo";
+import { FinalCommercialCta, ProductPreview, PublicButton, SectionHeading } from "../componentes/PublicMarketing";
 import { SeoOrganicCtaSection } from "./SeoOrganicCtaSection";
 
 type SeoQa = { question: string; answer: string };
 type SeoBlock = { title: string; body: string };
 type SeoInternalCta = { href: string; label: string; description: string };
 export type SeoEvidenceStatus = "em_validacao" | "validado_interno" | "aprovado_publicacao" | "arquivado";
-
 export type SeoCaseStudy = {
   title: string;
   summary: string;
@@ -42,465 +36,176 @@ export type SeoContent = {
   faq: SeoQa[];
 };
 
-const caseStatusLabels: Record<SeoEvidenceStatus, string> = {
-  em_validacao: "em validação",
-  validado_interno: "validado internamente",
-  aprovado_publicacao: "aprovado para publicação",
-  arquivado: "arquivado",
-};
-
 export function contentMetadata(content: SeoContent): Metadata {
-  return buildSeoMetadata({
-    title: content.title,
-    description: content.description,
-    path: content.path,
-  });
+  return buildSeoMetadata({ title: content.title, description: content.description, path: content.path });
 }
 
 export function SeoContentPage({ content }: { content: SeoContent }) {
   const faqItems = [...content.directAnswers, ...content.faq];
+  const isComparison = content.path === "/urban-ai-vs-planilha-de-precificacao";
 
   return (
-    <main
-      className="urban-manifesto urban-public-page"
-      style={{ background: "var(--theme-public-bg)", color: "var(--theme-public-text)" }}
-    >
+    <main className="urban-manifesto urban-public-page">
       <JsonLd
         id={`${content.path.replace(/\W+/g, "-")}-jsonld`}
         data={[
-          webPageJsonLd({
-            path: content.path,
-            name: content.title,
-            description: content.description,
-          }),
+          webPageJsonLd({ path: content.path, name: content.title, description: content.description }),
           faqPageJsonLd(faqItems, content.path),
-          itemListJsonLd(content, "evidence", "Evidências rastreáveis", content.evidence),
-          itemListJsonLd(content, "methodology", "Metodologia de leitura", content.methodology),
-          caseStudyItemListJsonLd(content),
         ]}
       />
 
-      <section className="urban-grain urban-public-section" style={{ position: "relative", overflow: "hidden" }}>
-        <div className="urban-glow" style={{ width: 720, height: 720, top: -220, right: -180 }} />
-        <div className="urban-public-container" style={{ position: "relative", zIndex: 2 }}>
-          <p className="urban-eyebrow" style={{ marginBottom: 32 }}>
-            {content.eyebrow}
-          </p>
-          <h1
-            className="urban-display"
-            style={{
-              fontSize: "clamp(46px, 11vw, 130px)",
-              lineHeight: 0.9,
-              margin: 0,
-              textTransform: "uppercase",
-              overflowWrap: "break-word",
-              hyphens: "auto",
-              textWrap: "balance",
-            }}
-          >
-            {content.h1}
-          </h1>
-          <p className="urban-public-copy" style={{ maxWidth: 820, marginTop: 48 }}>
-            {content.lead}
-          </p>
+      <section className="public-article-hero">
+        <div className="public-container public-article-hero__grid">
+          <div>
+            <p className="public-kicker">{content.eyebrow}</p>
+            <h1>{content.h1}</h1>
+            <p className="public-article-hero__lead">{content.lead}</p>
+          </div>
+          <nav className="public-article-nav" aria-label="Nesta página">
+            <p>Nesta página</p>
+            <a href="#resposta-direta">Resposta direta</a>
+            <a href="#pontos-chave">Pontos-chave</a>
+            <a href="#metodologia">Como avaliar</a>
+            {isComparison ? <a href="#comparacao">Comparação</a> : null}
+            <a href="#perguntas">Perguntas frequentes</a>
+          </nav>
         </div>
       </section>
 
-      <section className="urban-public-section" style={{ borderTop: "1px solid var(--theme-public-soft)" }}>
-        <div className="urban-public-container">
-          <div className="urban-pull" style={{ maxWidth: 920 }}>
-            <p style={{ margin: 0, fontSize: "clamp(24px, 3vw, 38px)", lineHeight: 1.35, color: "var(--theme-public-text)" }}>
-              {content.answer}
-            </p>
-          </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))",
-              gap: 28,
-              marginTop: 56,
-            }}
-          >
+      <section id="resposta-direta" className="public-section">
+        <div className="public-container">
+          <blockquote className="public-quote" style={{ maxWidth: 980 }}>{content.answer}</blockquote>
+          <div className="public-article-grid" style={{ marginTop: 54 }}>
             {content.directAnswers.map((item) => (
-              <article
-                key={item.question}
-                style={{
-                  borderLeft: "3px solid var(--theme-public-accent)",
-                  paddingLeft: 22,
-                }}
-              >
-                <h2 style={{ margin: 0, fontSize: 22, lineHeight: 1.25, color: "var(--theme-public-text)" }}>
-                  {item.question}
-                </h2>
-                <p className="urban-public-copy" style={{ marginTop: 14, fontSize: 16 }}>
-                  {item.answer}
-                </p>
-              </article>
-            ))}
-          </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))",
-              gap: 32,
-              marginTop: 72,
-            }}
-          >
-            {content.sections.map((section) => (
-              <article
-                key={section.title}
-                style={{
-                  borderTop: "1px solid var(--theme-public-soft)",
-                  paddingTop: 24,
-                }}
-              >
-                <h2 style={{ margin: 0, fontSize: 24, lineHeight: 1.25, color: "var(--theme-public-text)" }}>
-                  {section.title}
-                </h2>
-                <p className="urban-public-copy" style={{ marginTop: 16, fontSize: 16 }}>
-                  {section.body}
-                </p>
+              <article className="public-content-card" key={item.question}>
+                <h2>{item.question}</h2>
+                <p>{item.answer}</p>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section
-        id="evidências-métodologia"
-        className="urban-public-section"
-        style={{ borderTop: "1px solid var(--theme-public-soft)" }}
-      >
-        <div
-          className="urban-public-container"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
-            gap: 48,
-          }}
-        >
+      <section id="pontos-chave" className="public-section public-section--soft">
+        <div className="public-container">
+          <SectionHeading
+            eyebrow="Pontos-chave"
+            title={<>O que você precisa <em>considerar.</em></>}
+            description="Conceitos práticos para transformar o tema em uma decisão de preço mais consistente."
+          />
+          <div className="public-article-grid">
+            {content.sections.map((section) => <ContentCard key={section.title} item={section} />)}
+          </div>
+        </div>
+      </section>
+
+      <section id="metodologia" className="public-section">
+        <div className="public-container public-split">
           <div>
-            <p className="urban-eyebrow" style={{ marginBottom: 24 }}>
-              Evidências rastreáveis
-            </p>
-            {content.evidence.map((item) => (
-              <article
-                key={item.title}
-                style={{
-                  borderTop: "1px solid var(--theme-public-soft)",
-                  padding: "24px 0",
-                }}
-              >
-                <h2 style={{ margin: 0, fontSize: 22, lineHeight: 1.25, color: "var(--theme-public-text)" }}>
-                  {item.title}
-                </h2>
-                <p className="urban-public-copy" style={{ marginTop: 14, fontSize: 16 }}>
-                  {item.body}
-                </p>
-              </article>
-            ))}
+            <SectionHeading
+              eyebrow="Como avaliar"
+              title={<>Use sinais verificáveis, não <em>promessas prontas.</em></>}
+              description="A boa decisão combina contexto externo, regra comercial e acompanhamento do que foi aplicado."
+            />
+            <div className="public-article-grid" style={{ gridTemplateColumns: "1fr" }}>
+              {content.evidence.map((item) => <ContentCard key={item.title} item={item} />)}
+            </div>
           </div>
-
           <div>
-            <p className="urban-eyebrow" style={{ marginBottom: 24 }}>
-              Metodologia
-            </p>
-            {content.methodology.map((item) => (
-              <article
-                key={item.title}
-                style={{
-                  borderTop: "1px solid var(--theme-public-soft)",
-                  padding: "24px 0",
-                }}
-              >
-                <h2 style={{ margin: 0, fontSize: 22, lineHeight: 1.25, color: "var(--theme-public-text)" }}>
-                  {item.title}
-                </h2>
-                <p className="urban-public-copy" style={{ marginTop: 14, fontSize: 16 }}>
-                  {item.body}
-                </p>
-              </article>
-            ))}
+            <p className="public-kicker">Método recomendado</p>
+            <div className="public-process" style={{ gridTemplateColumns: "1fr" }}>
+              {content.methodology.map((item, index) => (
+                <article key={item.title} style={{ minHeight: 0 }}>
+                  <span style={{ fontSize: 44 }}>{String(index + 1).padStart(2, "0")}</span>
+                  <h3 style={{ marginTop: 30 }}>{item.title.replace(/^\d+\.\s*/, "")}</h3>
+                  <p>{item.body}</p>
+                </article>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      <section
-        id="estudos-de-caso"
-        className="urban-public-section"
-        style={{ borderTop: "1px solid var(--theme-public-soft)" }}
-      >
-        <div className="urban-public-container">
-          <p className="urban-eyebrow" style={{ marginBottom: 24 }}>
-            Estudos de caso
-          </p>
-          <div style={{ maxWidth: 920 }}>
-            <h2
-              style={{
-                margin: 0,
-                color: "var(--theme-public-text)",
-                fontSize: "clamp(30px, 5vw, 72px)",
-                lineHeight: 1,
-                textTransform: "uppercase",
-                overflowWrap: "break-word",
-                textWrap: "balance",
-              }}
-            >
-              Evidencias em validação
-            </h2>
-            <p className="urban-public-copy" style={{ marginTop: 22, fontSize: 18 }}>
-              Estudos públicos só recebem métricas quando houver fonte, período, amostra e revisão
-              registrados. Até la, a Urban AI trata cada caso como em validação.
-            </p>
+      {isComparison ? <ComparisonSection /> : (
+        <section className="public-section public-section--soft">
+          <div className="public-container public-split">
+            <div>
+              <SectionHeading
+                eyebrow="Na prática"
+                title={<>Transforme contexto em uma recomendação <em>explicável.</em></>}
+                description="A Urban AI reúne o sinal, a data afetada, o preço atual e o recomendado na mesma decisão."
+              />
+              <PublicButton href="/precos">Conhecer os planos</PublicButton>
+            </div>
+            <ProductPreview compact />
           </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))",
-              gap: 24,
-              marginTop: 48,
-            }}
-          >
-            {content.caseStudies.map((study) => (
-              <article
-                key={study.title}
-                style={{
-                  border: "1px solid var(--theme-public-strong)",
-                  padding: 24,
-                }}
-              >
-                <span
-                  style={{
-                    display: "inline-block",
-                    color: "var(--theme-public-accent)",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    letterSpacing: 2,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Status: {caseStatusLabels[study.status]}
-                </span>
-                <h3 style={{ margin: "18px 0 0", fontSize: 24, lineHeight: 1.2, color: "var(--theme-public-text)" }}>
-                  {study.title}
-                </h3>
-                <p className="urban-public-copy" style={{ marginTop: 14, fontSize: 16 }}>
-                  {study.summary}
-                </p>
-                <dl
-                  style={{
-                    display: "grid",
-                    gap: 14,
-                    margin: "24px 0 0",
-                  }}
-                >
-                  {[
-                    ["Fonte", study.source],
-                    ["Período", study.period],
-                    ["Amostra", study.sample],
-                  ].map(([label, value]) => (
-                    <div key={label}>
-                      <dt
-                        style={{
-                          color: "var(--theme-public-muted)",
-                          fontSize: 11,
-                          fontWeight: 700,
-                          letterSpacing: 2,
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {label}
-                      </dt>
-                      <dd className="urban-public-copy" style={{ margin: "6px 0 0", fontSize: 15 }}>
-                        {value}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-                <p
-                  className="urban-public-copy"
-                  style={{
-                    borderTop: "1px solid var(--theme-public-soft)",
-                    marginTop: 24,
-                    paddingTop: 18,
-                    fontSize: 15,
-                  }}
-                >
-                  {study.validationNote}
-                </p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <SeoOrganicCtaSection
-        id="links-internos"
-        className="urban-public-section"
+        id="proximos-passos"
+        className="public-section"
         ctaContext="seo_internal_hub"
         ctaCount={content.internalCtas.length}
         pagePath={content.path}
         pageTitle={content.title}
-        style={{ borderTop: "1px solid var(--theme-public-soft)" }}
       >
-        <div className="urban-public-container">
-          <p className="urban-eyebrow" style={{ marginBottom: 24 }}>
-            Próximos passos
-          </p>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
-              gap: 18,
-            }}
-          >
+        <div className="public-container">
+          <SectionHeading eyebrow="Continue explorando" title={<>Próximos <em>passos.</em></>} />
+          <div className="public-article-grid">
             {content.internalCtas.map((cta, index) => (
               <NextLink
+                className="public-content-card"
+                style={{ textDecoration: "none" }}
                 key={cta.href}
                 href={cta.href}
                 data-urban-analytics="hub-cta"
                 data-analytics-href={cta.href}
                 data-analytics-label={cta.label}
                 data-analytics-position={index + 1}
-                style={{
-                  display: "block",
-                  minHeight: 150,
-                  border: "1px solid var(--theme-public-strong)",
-                  padding: 24,
-                  color: "var(--theme-public-text)",
-                  textDecoration: "none",
-                }}
               >
-                <span
-                  style={{
-                    display: "block",
-                    color: "var(--theme-public-accent)",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    letterSpacing: 2,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {cta.label}
-                </span>
-                <span
-                  className="urban-public-copy"
-                  style={{ display: "block", marginTop: 16, fontSize: 16 }}
-                >
-                  {cta.description}
-                </span>
+                <h3>{cta.label}</h3><p>{cta.description}</p>
               </NextLink>
             ))}
           </div>
         </div>
       </SeoOrganicCtaSection>
 
-      <section className="urban-public-section" style={{ borderTop: "1px solid var(--theme-public-soft)" }}>
-        <div className="urban-public-container" style={{ maxWidth: 980 }}>
-          <p className="urban-eyebrow" style={{ marginBottom: 24 }}>
-            Perguntas frequentes
-          </p>
-          {content.faq.map((item) => (
-            <details
-              key={item.question}
-              style={{
-                borderTop: "1px solid var(--theme-public-soft)",
-                padding: "28px 0",
-              }}
-            >
-              <summary
-                style={{
-                  cursor: "pointer",
-                  color: "var(--theme-public-text)",
-                  fontSize: 22,
-                  fontWeight: 600,
-                  overflowWrap: "anywhere",
-                }}
-              >
-                {item.question}
-              </summary>
-              <p className="urban-public-copy" style={{ maxWidth: 760, marginTop: 18 }}>
-                {item.answer}
-              </p>
-            </details>
-          ))}
-
-          <div style={{ display: "flex", gap: 18, flexWrap: "wrap", marginTop: 56 }}>
-            <NextLink
-              href="/precos"
-              style={{
-                padding: "16px 22px",
-                background: "var(--theme-public-accent)",
-                color: "var(--theme-public-bg)",
-                textDecoration: "none",
-                fontWeight: 700,
-                letterSpacing: 1.5,
-                textTransform: "uppercase",
-                fontSize: 12,
-                textAlign: "center",
-                whiteSpace: "normal",
-              }}
-            >
-              Ver preços
-            </NextLink>
-            <NextLink
-              href="/contato"
-              style={{
-                padding: "16px 22px",
-                border: "1px solid var(--theme-public-strong)",
-                color: "var(--theme-public-text)",
-                textDecoration: "none",
-                fontWeight: 600,
-                letterSpacing: 1.5,
-                textTransform: "uppercase",
-                fontSize: 12,
-                textAlign: "center",
-                whiteSpace: "normal",
-              }}
-            >
-              Falar com a Urban
-            </NextLink>
+      <section id="perguntas" className="public-section public-section--soft">
+        <div className="public-container">
+          <SectionHeading eyebrow="Perguntas frequentes" title={<>Respostas para decidir com <em>clareza.</em></>} />
+          <div className="public-faq">
+            {content.faq.map((item) => <details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>)}
           </div>
         </div>
       </section>
+
+      <FinalCommercialCta />
     </main>
   );
 }
 
-function itemListJsonLd(
-  content: SeoContent,
-  slug: string,
-  name: string,
-  items: SeoBlock[],
-): JsonLdSchema {
-  return {
-    "@type": "ItemList",
-    "@id": `${buildCanonical(content.path)}#${slug}`,
-    name: `${name} - ${content.title}`,
-    itemListElement: items.map((item, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      name: item.title,
-      description: item.body,
-      url: `${buildCanonical(content.path)}#evidências-métodologia`,
-    })),
-  };
+function ContentCard({ item }: { item: SeoBlock }) {
+  return <article className="public-content-card"><h2>{item.title}</h2><p>{item.body}</p></article>;
 }
 
-function caseStudyItemListJsonLd(content: SeoContent): JsonLdSchema {
-  return {
-    "@type": "ItemList",
-    "@id": `${buildCanonical(content.path)}#estudos-de-caso`,
-    name: `Estudos de caso - ${content.title}`,
-    itemListElement: content.caseStudies.map((study, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      name: study.title,
-      description: `${study.summary} Status: ${caseStatusLabels[study.status]}. Fonte: ${study.source}. Período: ${study.period}. Amostra: ${study.sample}.`,
-      url: `${buildCanonical(content.path)}#estudos-de-caso`,
-    })),
-  };
+function ComparisonSection() {
+  const rows = [
+    ["Custos e metas internas", true, true],
+    ["Atualização manual", true, false],
+    ["Eventos e contexto local", false, true],
+    ["Recomendação por data", false, true],
+    ["Motivo da recomendação", false, true],
+    ["Histórico operacional", "Parcial", true],
+  ] as const;
+  return (
+    <section id="comparacao" className="public-section public-section--soft">
+      <div className="public-container">
+        <SectionHeading eyebrow="Comparação direta" title={<>Planilha e Urban AI cumprem <em>papéis diferentes.</em></>} description="A planilha continua útil para regras financeiras. A Urban AI adiciona leitura contínua de contexto e exceções." />
+        <div className="public-comparison-wrap"><table className="public-comparison"><thead><tr><th>Capacidade</th><th>Planilha</th><th>Urban AI</th></tr></thead><tbody>
+          {rows.map(([name, sheet, urban]) => <tr key={name}><td>{name}</td><td>{typeof sheet === "string" ? sheet : sheet ? <Check aria-hidden size={18} /> : <Minus aria-hidden size={18} />}</td><td>{urban ? <Check aria-hidden size={18} /> : <Minus aria-hidden size={18} />}</td></tr>)}
+        </tbody></table></div>
+      </div>
+    </section>
+  );
 }

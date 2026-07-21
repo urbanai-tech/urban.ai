@@ -23,7 +23,7 @@ export class AppController {
         ? configuredLaunchMode
         : process.env.PRELAUNCH_MODE === 'true'
           ? 'prelaunch'
-          : 'closed_beta';
+          : 'public';
 
     return {
       launchMode,

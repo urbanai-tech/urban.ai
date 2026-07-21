@@ -10,8 +10,8 @@ function toBlocks(items: string[]): LegalBlock[] {
   });
 }
 
-export const PRIVACY_UPDATED_AT = '11 de maio de 2026';
-export const TERMS_UPDATED_AT = '11 de maio de 2026';
+export const PRIVACY_UPDATED_AT = '21 de julho de 2026';
+export const TERMS_UPDATED_AT = '21 de julho de 2026';
 
 const privacyItems = [
   "POLÍTICA DE PRIVACIDADE - PLATAFORMA URBAN AI",
@@ -36,7 +36,7 @@ const privacyItems = [
   "Com esse identificador, buscamos dados públicos do seu anúncio (como avaliações e tipo de propriedade) para deixar as sugestões de preço mais precisas. As fotos não ficam armazenadas em nossos servidores, usamos apenas o link público que já existe no Airbnb.",
   "Quando você usa a plataforma, registramos automaticamente algumas informações técnicas, como o endereço IP do seu acesso, o tipo de navegador e dispositivo que você está usando e os horários de entrada e saída. Essas informações são usadas para garantir a segurança da sua conta. Por exemplo, para detectar acessos suspeitos.",
   "Quando você assina um plano pago, o pagamento é processado pelo Stripe, uma empresa especializada em pagamentos. Nós não temos acesso ao número do seu cartão de crédito. O Stripe cuida dessas informações com alto padrão de segurança.",
-  "Se você se inscreveu na lista de espera antes do lançamento, guardamos apenas seu e-mail e sua posição na fila.",
+  "Se você pediu comunicações comerciais antes de criar uma conta, guardamos apenas os dados de contato e consentimento necessários para atender ou encerrar esse pedido.",
   "Não coletamos dados sensíveis como informações de saúde, origem racial, religião, orientação sexual ou dados biométricos. Também não coletamos documentos de identidade.",
   "4. Para que usamos suas informações?",
   "Usamos seus dados exclusivamente para fazer a plataforma funcionar para você. Em termos práticos, isso significa:",
@@ -57,7 +57,7 @@ const privacyItems = [
   "Geolocalização e login por conta de terceiro: o endereço do seu imóvel é enviado a um serviço de mapas para conversão em coordenadas geográficas, dado necessário para o cálculo de preços. Se você optar pelo login social, seus dados de autenticação são verificados pelo respectivo provedor de identidade. Para análise de eventos públicos da região, não enviamos nenhum dado seu a serviços externos.",
   "Consulta de dados públicos do anúncio: para enriquecer as sugestões de preço, enviamos o identificador público do seu anúncio a um serviço de dados, o mesmo código que qualquer pessoa pode ver na URL do Airbnb. Nenhum dado pessoal identificador é compartilhado nessa etapa.",
   "Monitoramento de erros técnicos: quando ocorre uma falha na plataforma, dados técnicos, como endereço IP e identificador de sessão, são enviados automaticamente ao nosso sistema de rastreamento de erros para que a equipe possa corrigir o problema. Esse serviço possui filtros automáticos para minimizar a captura de dados pessoais.",
-  "Envio automático de preços ao canal de distribuição: quando essa funcionalidade estiver disponível, as sugestões de preço geradas pelo nosso motor de IA serão enviadas diretamente ao channel manager que você utilizar. Nenhum dado pessoal adicional será compartilhado além do necessário para a autenticação da integração, e ela só será ativada com a sua autorização expressa.",
+  "Envio automático de preços ao canal de distribuição: quando você ativa essa funcionalidade, as sugestões de preço geradas pelo nosso motor de IA podem ser enviadas diretamente ao channel manager utilizado. Nenhum dado pessoal adicional é compartilhado além do necessário para a autenticação da integração, e ela só é ativada com a sua autorização expressa.",
   "Não vendemos, alugamos nem comercializamos seus dados pessoais com nenhuma outra empresa ou pessoa, em nenhuma circunstância.",
   "Além dos listados acima, podemos compartilhar seus dados se formos obrigados por lei ou ordem judicial, ou para nos defender em processos legais.",
   "6. Seus dados saem do Brasil?",
@@ -65,7 +65,7 @@ const privacyItems = [
   "Isso é permitido pela lei brasileira de proteção de dados (LGPD), desde que esses parceiros ofereçam um nível de proteção equivalente ao nosso. Todos os nossos parceiros internacionais assinaram acordos específicos de proteção de dados que garantem que suas informações serão tratadas com o mesmo cuidado que teríamos aqui no Brasil.",
   "7. O que acontece com dados de hóspedes?",
   "A Urban AI não se comunica diretamente com os hóspedes dos anfitriões em nenhuma situação. Os hóspedes não têm conta na plataforma e não são afetados pelo uso que você faz dela.",
-  "No futuro, com a integração com o channel manager Stays, poderemos receber, com a sua autorização, o histórico de reservas do seu imóvel. Esse histórico pode conter informações básicas sobre reservas passadas, como datas e valores.",
+  "Com a integração com o channel manager Stays, podemos receber, com a sua autorização, o histórico de reservas do seu imóvel. Esse histórico pode conter informações básicas sobre reservas passadas, como datas e valores.",
   "Esses dados serão usados única e exclusivamente para deixar as sugestões de preço mais precisas. Eles não serão compartilhados com ninguém, não serão usados para entrar em contato com os hóspedes e passarão por um processo de anonimização antes de qualquer análise.",
   "Você só poderá ativar essa integração depois de concordar expressamente com ela em uma tela dedicada, que explicará exatamente o que será recebido e para que será usado.",
   "8. Cookies: o que são e como usamos?",
@@ -82,7 +82,7 @@ const privacyItems = [
   "Registros de acesso (endereço IP, tipo de navegador): ficam guardados por 90 dias, para garantir a segurança da sua conta.",
   "Dados de erros técnicos (Sentry): ficam guardados por 30 a 90 dias, dependendo do plano do serviço.",
   "Dados anonimizados de preços: esses dados não identificam você e são usados para melhorar o motor de IA. Eles ficam guardados por tempo indeterminado, pois não são mais dados pessoais depois da anonimização.",
-  "Se você participou da lista de espera antes do lançamento, seus dados ficam guardados até você se tornar cliente ou pedir para ser removido da lista.",
+  "Se você pediu contato comercial antes de criar uma conta, seus dados ficam guardados até o atendimento do pedido, a criação da conta ou a solicitação de remoção.",
   "10. Como protegemos suas informações?",
   "Levamos a segurança dos seus dados muito a sério. Aqui estão as principais medidas que adotamos:",
   "Sua senha é criptografada antes de ser salva, nem nós conseguimos ver qual é. Toda a comunicação entre o seu navegador e a plataforma é protegida por criptografia (o cadeado que aparece na barra de endereços). Os dados armazenados nos nossos servidores também ficam criptografados.",
@@ -179,7 +179,7 @@ const termsItems = [
   "5.1. O cadastro na Plataforma pode ser realizado por:",
   "I. Cadastro manual com e-mail e senha; ou",
   "II. Login social via conta Google (OAuth).",
-  "5.2. Durante o período de pré-lançamento, os novos cadastros serão integrados à lista de espera (waitlist) da Plataforma. Usuários da waitlist receberão comunicações sobre o lançamento e sua posição na fila, podendo convidar outros usuários para avançar em sua posição.",
+  "5.2. Novos cadastros podem criar uma conta diretamente na Plataforma, sujeitos à disponibilidade dos planos, às verificações de segurança e aos requisitos operacionais aplicáveis.",
   "5.3. O Usuário é inteiramente responsável pela guarda e confidencialidade de suas credenciais de acesso (login e senha). É vedado compartilhar credenciais com terceiros não autorizados. Toda ação realizada a partir das credenciais do Usuário será presumida como de sua autoria.",
   "5.4. Em caso de suspeita de acesso não autorizado ou comprometimento de credenciais, o Usuário deve comunicar imediatamente a Urban AI pelo e-mail suporte@myurbanai.com.",
   "5.5. A Urban AI adota medidas técnicas de segurança como: armazenamento de senhas com criptografia bcrypt, tokens JWT em cookies HttpOnly com detecção de reutilização, criptografia em trânsito (HTTPS/TLS 1.3) e em repouso (AES-256), além de rate limiting nas rotas de autenticação.",
