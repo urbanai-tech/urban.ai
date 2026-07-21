@@ -50,6 +50,6 @@ test('guias públicos não renderizam placeholders de estudos de caso', async ()
 test('prévia de produto inclui preço, contexto e controle', async () => {
   const content = await source('marketing');
   for (const expected of ['Preço atual', 'Recomendado', 'Por que este valor?', 'Você mantém a decisão final']) {
-    assert.match(content, new RegExp(expected.replace(/[?]/g, '\\?')));
+    assert.ok(content.includes(expected), `conteúdo ausente: ${expected}`);
   }
 });
