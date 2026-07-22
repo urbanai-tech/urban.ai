@@ -57,7 +57,7 @@ export async function loginViaForm(
   password: string | undefined = E2E_AUTH_PASSWORD,
 ) {
   await acceptCookieConsent(page);
-  await page.goto('/');
+  await page.goto('/login');
 
   await page.locator('input[type="email"]').fill(email!);
   await page.locator('input[type="password"]').fill(password!);
