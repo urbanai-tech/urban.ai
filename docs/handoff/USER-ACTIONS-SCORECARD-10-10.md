@@ -1,7 +1,7 @@
 # Ações do owner para certificar o scorecard 10/10
 
 **Data:** 2026-07-15  
-**Última atualização:** 2026-07-20
+**Última atualização:** 2026-07-22
 **Status:** handoff das dependências externas; executar depois de revisar as entregas autônomas  
 **Owner primário:** Gustavo  
 **Fonte de escopo:** [`../plano-mestre-scorecard-10-10-2026-07-15.md`](../plano-mestre-scorecard-10-10-2026-07-15.md)
@@ -27,7 +27,7 @@ Não colar tokens, senhas, dumps, dados pessoais ou chaves em chat, issue, commi
 - [x] Autenticar a Railway CLI no workspace/conta corretos e confirmar projeto, ambiente e serviços antes de qualquer alteração. Validado em 2026-07-20.
 - [x] Liberar acesso Cloudflare/DNS para os domínios Urban AI. Leitura/escrita DNS validadas em 2026-07-20; credenciais expostas fora do secret store ainda precisam ser rotacionadas.
 - [ ] Definir um hostname canônico para a API e alinhar Railway, frontend, CORS, documentação e monitores.
-- [ ] Concluir TLS de `status`, `staging` e `staging-api`. Na revalidação das 10h19, os três ainda falhavam em TLS estrito; o frontend havia recuperado associação/porta/região, mas continuava em `Waiting for DNS update`; o backend aparecia sem domínio público e com região `us-west2` inválida bloqueando deploys; a status page seguia `built`, sem certificado e com `https_enforced=false`. Corrigir a região do backend e reconfirmar a associação existente sem duplicar DNS.
+- [ ] Concluir TLS de `status`, `staging` e `staging-api`. Na revalidação de 2026-07-22, os três ainda falhavam em TLS estrito; os hostnames Railway customizados retornavam 404, e a CLI Railway estava sem sessão. A status page está `built`, com domínio válido, sem erro CAA e elegível para HTTPS, mas o certificado ainda não existe; nova build foi solicitada sem alterar DNS. Corrigir a região do backend e reconfirmar as associações existentes sem duplicar DNS; depois habilitar `https_enforced` no Pages.
 - [ ] Revisar as duas mudanças pendentes de `Service Domain` no frontend de produção. Elas provocam redeploy e os valores completos não puderam ser comprovados na inspeção read-only; nada foi aplicado ou descartado. Evidência: [`../evidence/railway-production-staged-changes-2026-07-20.md`](../evidence/railway-production-staged-changes-2026-07-20.md).
 - [x] Configurar `HEALTH_READINESS_TOKEN` no backend e o mesmo valor apenas no secret store do monitor/gate. Produção validada com 401 anônimo e 200 autorizado em 2026-07-20.
 - [x] Provisionar Redis de produção persistente, rotacionar a credencial e validar DB/Redis no readiness. Evidência em [`../evidence/production-redis-readiness-2026-07-20.md`](../evidence/production-redis-readiness-2026-07-20.md).

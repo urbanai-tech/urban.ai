@@ -1,7 +1,7 @@
 # Execução do scorecard 10/10
 
 **Início:** 2026-07-15  
-**Última validação operacional:** 2026-07-20
+**Última validação operacional:** 2026-07-22
 **Fonte de escopo:** `plano-mestre-scorecard-10-10-2026-07-15.md`  
 **Estado:** gates locais e publicação canônica concluídos; produção com liveness/readiness, MySQL e Redis saudáveis; status page pública provisionada e em emissão de TLS; restore real recuperou o banco em 27 s, mas revelou trilha administrativa vazia; certificação 10/10 ainda depende de DNS de staging, fechamento de DR/auditabilidade, integrações reais, beta, SLO e aprovações humanas.
 
@@ -32,7 +32,7 @@
 | DOC-01 | concluído | governança aplicada; raiz reduzida de 35 para 5 entrypoints Markdown; 9 documentos ativos redistribuídos; 21 snapshots preservados com banner `SUPERSEDED`; design system consolidado; 40 DOCX arquivados e 3 jurídicos/LGPD ativos; consumidores recalculados e gate de links verde | revisão visual dos DOCX depende de LibreOffice; manter o gate documental no CI |
 | DATA-Q01 | concluído | `BaseCollector` valida nome, data, fonte e coordenadas; rejeita proveniência divergente, datas inválidas, timezone inconsistente e intervalos invertidos; runner exige mínimo de fontes e degrada `no_data`; 109 testes verdes | expandir schema/proveniência até o backend e fontes reais |
 | OPS-01 | concluído em produção | readiness protegido configurado; chamada anônima falha com 401 e chamada autorizada retorna 200 com DB/Redis `ok`; nenhuma credencial foi registrada na evidência | conectar monitor externo ao secret store e acumular janela de SLO |
-| OPS-03 | em validação externa | Upptime/GitHub Pages publicado, três sinais públicos em 200, CNAME público correto e zero incidentes; certificado do domínio customizado ainda em emissão | habilitar `https_enforced` e validar TLS estrito/HTTP 200 quando o certificado existir |
+| OPS-03 | em validação externa | Upptime/GitHub Pages publicado, três sinais públicos em 200 e CNAME correto; diagnóstico confirma domínio válido, servido pelo Pages, sem erro CAA e elegível para HTTPS; nova build solicitada em 2026-07-22 | aguardar o certificado existir, habilitar `https_enforced` e validar TLS estrito/HTTP 200 |
 | OPS-04 | bloqueado por Railway/DNS | origins nativos de backend e frontend respondem 200; o frontend recuperou associação pública e região, mas continua em `Waiting for DNS update`; o backend perdeu a associação pública visível e possui região inválida bloqueando deploys; status page ainda não possui certificado customizado | corrigir a região do backend e confirmar a associação existente sem duplicar domínio/DNS; depois validar TLS, health e E2E; só habilitar proxy onde previsto após certificado válido |
 | OPS-05 | concluído | Railway autenticado no workspace correto; projeto, ambiente e serviços validados antes do provisionamento | manter procedimento de acesso no cofre/handoff e revisar permissões periodicamente |
 | OPS-06 | bloqueado por confirmação | duas mudanças pendentes de `Service Domain` foram inspecionadas em produção; a aplicação redeployaria o frontend e os valores completos não ficaram verificáveis na UI; nada foi aplicado ou descartado | reconciliar hostnames completos com a matriz canônica e executar smoke/rollback em janela controlada; ver [`evidence/railway-production-staged-changes-2026-07-20.md`](evidence/railway-production-staged-changes-2026-07-20.md) |

@@ -58,3 +58,9 @@ O GitHub Pages continua `built`, o CNAME público resolve e HTTP sem TLS respond
 ## Revalidação read-only — 2026-07-21 10h19 (BRT)
 
 Estado inalterado: Pages `built`, CNAME público, HTTP 200, `https_enforced=false` e nenhum certificado customizado disponível. HTTPS estrito continua falhando; nenhuma configuração foi alterada.
+
+## Revalidação e nova solicitação de build — 2026-07-22 18h39 (BRT)
+
+A API de diagnóstico do GitHub Pages confirmou DNS resolvido, domínio válido, CNAME servido pelo Pages, ausência de erro CAA e elegibilidade para HTTPS. O certificado customizado ainda não existe e o teste TLS estrito continua falhando; por isso, a tentativa autorizada de habilitar `https_enforced` foi recusada pelo próprio GitHub e não alterou a configuração.
+
+Foi solicitada uma nova build do Pages para reprocessar o domínio sem alterar ou recriar o CNAME. A build entrou em fila e iniciou sem erro. O DNS permaneceu DNS-only e nenhum segredo foi lido ou registrado.
