@@ -24,7 +24,7 @@ Não colar tokens, senhas, dumps, dados pessoais ou chaves em chat, issue, commi
 
 ## 2. Acessos e infraestrutura — prioridade P1
 
-- [x] Autenticar a Railway CLI no workspace/conta corretos e confirmar projeto, ambiente e serviços antes de qualquer alteração. Validado em 2026-07-20.
+- [ ] Reautenticar a Railway CLI no workspace/conta corretos. O acesso foi validado em 2026-07-20, mas a sessão estava expirada na CLI e no conector em 2026-07-22; executar `railway login` sem compartilhar credenciais e então reconfirmar projeto, ambiente e serviços.
 - [x] Liberar acesso Cloudflare/DNS para os domínios Urban AI. Leitura/escrita DNS validadas em 2026-07-20; credenciais expostas fora do secret store ainda precisam ser rotacionadas.
 - [ ] Definir um hostname canônico para a API e alinhar Railway, frontend, CORS, documentação e monitores.
 - [ ] Concluir TLS de `status`, `staging` e `staging-api`. Na revalidação de 2026-07-22, os três ainda falhavam em TLS estrito; os hostnames Railway customizados retornavam 404, e a CLI Railway estava sem sessão. A status page está `built`, com domínio válido, sem erro CAA e elegível para HTTPS, mas o certificado ainda não existe; nova build foi solicitada sem alterar DNS. Corrigir a região do backend e reconfirmar as associações existentes sem duplicar DNS; depois habilitar `https_enforced` no Pages.
@@ -82,7 +82,7 @@ npm run audit:migrations:strict
 
 ## 6. Certificação final
 
-- [x] Publicar a branch e observar CodeQL/CI/release gate completos; checks canônicos verdes no SHA `ca999392` em 2026-07-20.
+- [x] Publicar a branch e observar CodeQL/CI/release gate completos; todos os checks do PR canônico #19 ficaram verdes no SHA `a1991a1` em 2026-07-22, inclusive E2E público, autenticado, produto e enterprise.
 - [ ] Tornar checks críticos obrigatórios e exigir revisão para mudanças de produção.
 - [ ] Acumular pelo menos 14 dias de observação com SLO aprovado, sem P0/P1 aberto.
 - [ ] Revisar o scorecard com Produto, Engenharia, Operação, Segurança e Jurídico usando apenas evidência datada.

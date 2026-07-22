@@ -64,3 +64,7 @@ Estado inalterado: Pages `built`, CNAME público, HTTP 200, `https_enforced=fals
 A API de diagnóstico do GitHub Pages confirmou DNS resolvido, domínio válido, CNAME servido pelo Pages, ausência de erro CAA e elegibilidade para HTTPS. O certificado customizado ainda não existe e o teste TLS estrito continua falhando; por isso, a tentativa autorizada de habilitar `https_enforced` foi recusada pelo próprio GitHub e não alterou a configuração.
 
 Foi solicitada uma nova build do Pages para reprocessar o domínio sem alterar ou recriar o CNAME. A build entrou em fila e iniciou sem erro. O DNS permaneceu DNS-only e nenhum segredo foi lido ou registrado.
+
+## Revalidação read-only — 2026-07-22 20h10 (BRT)
+
+O GitHub Pages permanece `built`, com `status.myurbanai.com` configurado como CNAME e `https_enforced=false`. HTTPS estrito ainda não conclui o handshake; a consulta diagnóstica sem validação do certificado retorna HTTP 200. Como o certificado customizado ainda não existe, HTTPS obrigatório não foi habilitado e o CNAME não foi recriado.

@@ -49,3 +49,7 @@ O origin nativo continua respondendo HTTP 200, com o título esperado e banner `
 ## Revalidação read-only — 2026-07-21 10h19 (BRT)
 
 O serviço voltou a aparecer `Online`, associado a `staging.myurbanai.com` na porta 8080 e com uma réplica em US West. O Railway ainda mostra `Waiting for DNS update` e o TLS estrito permanece inválido; portanto, a associação recuperada ainda não fecha o gate. O origin segue em HTTP 200 com banner `STAGING`. Nenhum domínio ou DNS foi recriado.
+
+## Revalidação read-only — 2026-07-22 20h10 (BRT)
+
+`https://staging.myurbanai.com/` continua sem handshake TLS válido; a consulta diagnóstica sem validação do certificado retorna HTTP 404. A sessão Railway expirou na CLI e no conector, e a conexão do navegador local não ficou disponível; por isso, nenhuma associação foi recriada ou alterada por inferência. O gate de TLS, HTTP 200 no hostname customizado, banner `STAGING` e E2E pelo domínio final permanece aberto.

@@ -52,3 +52,7 @@ O CNAME público continua apontando para o destino Railway já provisionado e o 
 ## Revalidação read-only — 2026-07-21 10h19 (BRT)
 
 O origin Railway permanece saudável com `GET /health/live` em HTTP 200 e o CNAME continua público. Entretanto, o serviço canônico do backend agora aparece sem domínio público associado e com a região `us-west2` marcada como inválida, bloqueando deployments. O TLS estrito do hostname customizado continua falhando. Nenhum domínio ou DNS foi recriado e o proxy permaneceu inalterado.
+
+## Revalidação read-only — 2026-07-22 20h10 (BRT)
+
+`https://staging-api.myurbanai.com/health/live` continua sem handshake TLS válido; a consulta diagnóstica sem validação do certificado retorna HTTP 404. A sessão do Railway expirou tanto na CLI quanto no conector, impedindo confirmar o estado interno do domínio e do certificado nesta rodada. Nenhum CNAME/TXT foi recriado, o proxy não foi alterado e produção permaneceu fora do escopo.
