@@ -45,9 +45,9 @@ test.describe('Release gate - public pages', () => {
   test('/lancamento keeps legal/support links reachable', async ({ page }) => {
     await page.goto('/lancamento');
 
-    await expect(page.getByRole('link', { name: /Contato/i }).first()).toHaveAttribute('href', /\/contato$/);
-    await expect(page.getByRole('link', { name: /Privacidade/i }).first()).toHaveAttribute('href', /\/privacidade$/);
-    await expect(page.getByRole('link', { name: /Termos/i }).first()).toHaveAttribute('href', /\/termos$/);
+    await expect(page.getByRole('link', { name: 'Contato', exact: true })).toHaveAttribute('href', /\/contato$/);
+    await expect(page.getByRole('link', { name: 'Privacidade', exact: true })).toHaveAttribute('href', /\/privacidade$/);
+    await expect(page.getByRole('link', { name: 'Termos de uso', exact: true })).toHaveAttribute('href', /\/termos$/);
   });
 
   test('/contato submits public lead to triage API', async ({ page }) => {
@@ -74,16 +74,16 @@ test.describe('Release gate - public pages', () => {
     await page.goto('/contato');
     await page.getByPlaceholder('Seu nome').fill('Lead Operacional');
     await page.getByPlaceholder('seu@email.com').fill('lead+contato@urbanai.com.br');
-    await page.getByPlaceholder('Qual o motivo do contato?').fill('Quero entrar no beta');
-    await page.locator('textarea[name="message"]').fill('Tenho 4 imoveis em Sao Paulo e quero testar a Urban AI.');
+    await page.locator('select[name="subject"]').selectOption({ label: 'Planos para minha operação' });
+    await page.locator('textarea[name="message"]').fill('Tenho 4 imoveis em Sao Paulo e quero conhecer a Urban AI.');
     await page.getByRole('button', { name: /Enviar mensagem/i }).click();
 
     await expect(page.getByRole('status').filter({ hasText: /Mensagem registrada/i })).toBeVisible();
     expect(payload).toMatchObject({
       name: 'Lead Operacional',
       email: 'lead+contato@urbanai.com.br',
-      subject: 'Quero entrar no beta',
-      message: 'Tenho 4 imoveis em Sao Paulo e quero testar a Urban AI.',
+      subject: 'Planos para minha operação',
+      message: 'Tenho 4 imoveis em Sao Paulo e quero conhecer a Urban AI.',
       source: 'public-contact',
     });
   });

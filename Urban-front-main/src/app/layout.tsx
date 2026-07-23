@@ -31,6 +31,8 @@ import { PwaInstaller } from "./componentes/PwaInstaller";
 import { ThemeScript } from "./componentes/theme";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://myurbanai.com";
+const APP_ENV = process.env.NEXT_PUBLIC_APP_ENV;
+const HAS_ENVIRONMENT_BANNER = Boolean(APP_ENV && APP_ENV !== "production");
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -60,13 +62,13 @@ export const metadata: Metadata = {
     siteName: "Urban AI",
     title: "Urban AI | Precificação dinâmica para Airbnb",
     description: "Precificação dinâmica para anfitriões com IA, calendário urbano e operação assistida.",
-    images: [{ url: "/pwa-icon-512.png", width: 512, height: 512, alt: "Urban AI" }],
+    images: [{ url: "/og-public-launch.png", width: 1536, height: 1024, alt: "Urban AI — A cidade muda. O preço também." }],
   },
   twitter: {
-    card: "summary",
-    title: "Urban AI",
-    description: "Precificação dinâmica para anfitriões com IA, calendário urbano e operação assistida.",
-    images: ["/pwa-icon-512.png"],
+    card: "summary_large_image",
+    title: "Urban AI | Precificação inteligente para aluguel por temporada",
+    description: "Transforme eventos, sazonalidade e sinais do bairro em recomendações de preço explicáveis.",
+    images: ["/og-public-launch.png"],
   },
 };
 
@@ -89,7 +91,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`font-press ${bebas.variable} ${inter.variable} ${poppins.variable}`}
+      className={`font-press ${bebas.variable} ${inter.variable} ${poppins.variable}${HAS_ENVIRONMENT_BANNER ? " has-environment-banner" : ""}`}
       suppressHydrationWarning
     >
       <head>

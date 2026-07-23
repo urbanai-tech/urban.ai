@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import "../../../i18n";
 import { api } from "../service/api";
-import { usePrelaunch } from "../componentes/usePrelaunch";
-import { WaitlistSignup } from "../componentes/WaitlistSignup";
-import { AuthFlowShell } from "../componentes/AuthFlowShell";
+import {
+  attributionEventParams,
+  captureAttribution,
+  trackAnalyticsEvent,
+} from "../componentes/Analytics";
 import {
   AppButton,
   AppCard,
@@ -58,7 +60,6 @@ type PasswordChecks = {
 const Register = () => {
   const router = useRouter();
   const toast = useToastCompat();
-  const { loading: prelaunchLoading, prelaunchMode } = usePrelaunch();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [username, setUserName] = useState("");
@@ -100,63 +101,21 @@ const Register = () => {
     return !loading && allRulesOk && match && !!email && !!username;
   }, [checks, match, email, username, loading]);
 
-  // F8: durante prelaunch, /create vira waitlist em vez de signup tradicional.
-  if (prelaunchLoading) {
-    return (
-      <div
-        className="urban-app"
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "var(--app-bg)",
-        }}
-      >
-        <p style={{ color: "var(--app-text-muted)", fontSize: 14 }}>
-          Carregando…
-        </p>
-      </div>
-    );
-  }
-  if (prelaunchMode) {
-    return (
-      <AuthFlowShell
-        eyebrow="WAITLIST"
-        title={
-          <>
-            Entre na
-            <br />
-            lista.
-          </>
-        }
-        subtitle="A Urban AI ainda está em acesso antecipado. Cadastre seu e-mail para receber um convite quando sua vez chegar."
-        asideEyebrow="PRÉ-LANÇAMENTO"
-        asideTitle={
-          <>
-            Abertura
-            <br />
-            controlada.
-          </>
-        }
-        asideSubtitle="Estamos liberando novos anfitriões em pequenos grupos para acompanhar tudo de perto e manter a qualidade das recomendações."
-      >
-        <WaitlistSignup source="create-signup" />
-      </AuthFlowShell>
-    );
-  }
-
   const handleRegister = async () => {
     if (!canSubmit) return;
     try {
       setLoading(true);
       const hashedPassword = await sha256(password);
 
-      await api.post("/auth/register", {
+      const { data: registerData } = await api.post<{ mode?: string }>("/auth/register", {
         email,
         username,
         password: hashedPassword,
       });
+
+      if (registerData?.mode && registerData.mode !== "registered") {
+        throw new Error("Novos cadastros estão temporariamente indisponíveis. Fale com o suporte da Urban AI.");
+      }
 
       const { data: loginData } = await api.post<{ accessToken?: string }>("/auth/login", {
         email,
@@ -173,6 +132,11 @@ const Register = () => {
       toast("Conta criada com sucesso! Carregando seu painel…", {
         type: "success",
       });
+      trackAnalyticsEvent(
+        "sign_up",
+        { method: "email", ...attributionEventParams(captureAttribution()) },
+        { metaEventName: "CompleteRegistration" },
+      );
 
       setTimeout(() => {
         router.push("/post-login");
@@ -297,12 +261,18 @@ const Register = () => {
           </div>
 
           <AppSectionHeader
-            eyebrow="CADASTRO · ANFITRIÃO"
+            eyebrow="CADASTRO · URBAN AI"
             title="Criar conta"
             subtitle="Preencha seus dados para começar a usar a Urban AI."
             size="sm"
           />
 
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleRegister();
+            }}
+          >
           <AppCard variant="elevated" style={{ padding: 28 }}>
             <div
               style={{
@@ -414,12 +384,12 @@ const Register = () => {
             </div>
 
             <AppButton
+              type="submit"
               variant="primary"
               size="lg"
               fullWidth
               disabled={!canSubmit}
               loading={loading}
-              onClick={handleRegister}
               rightIcon={<Icons.ArrowRight size={14} />}
               style={{ marginTop: 20 }}
             >
@@ -434,7 +404,7 @@ const Register = () => {
               }}
             >
               <Link
-                href="/"
+                href="/login"
                 style={{
                   fontSize: 13,
                   color: "var(--app-accent)",
@@ -447,6 +417,7 @@ const Register = () => {
               </Link>
             </div>
           </AppCard>
+          </form>
         </div>
       </div>
 

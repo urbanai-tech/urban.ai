@@ -25,7 +25,8 @@
     "error-boundary:unit:test": "node --test scripts/error-recovery.test.mjs",
     "pwa:lifecycle:test": "node --test scripts/pwa-lifecycle.test.mjs",
     "ui-primitives:unit:test": "node --test scripts/ui-primitives.test.mjs",
-    "test:unit": "npm run design:tokens:test && npm run design:debt:self-test && npm run bundle:test && npm run auth:compat:test && npm run onboarding:unit:test && npm run event-radar:unit:test && npm run event-radar:api-contract:test && npm run error-boundary:unit:test && npm run pwa:lifecycle:test && npm run ui-primitives:unit:test",
+    "public-site:contract:test": "node --test scripts/public-site-contract.test.mjs",
+    "test:unit": "npm run design:tokens:test && npm run design:debt:self-test && npm run bundle:test && npm run auth:compat:test && npm run onboarding:unit:test && npm run event-radar:unit:test && npm run event-radar:api-contract:test && npm run error-boundary:unit:test && npm run pwa:lifecycle:test && npm run ui-primitives:unit:test && npm run public-site:contract:test",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
     "test:e2e:event-radar": "node scripts/event-radar-release-gate.mjs",
@@ -49,7 +50,7 @@
     "i18next": "^25.0.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.542.0",
-    "next": "^15.4.10",
+    "next": "15.5.21",
     "next-auth": "^4.24.11",
     "next-i18next": "^15.4.2",
     "react": "^19.0.0",
@@ -58,7 +59,8 @@
     "react-i18next": "^15.5.1",
     "react-leaflet": "5",
     "react-player": "^3.3.3",
-    "react-select": "^5.10.2"
+    "react-select": "^5.10.2",
+    "sharp": "0.35.3"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.2",
@@ -76,6 +78,7 @@
     "typescript": "^5.9.2"
   },
   "overrides": {
+    "sharp": "$sharp",
     "next": {
       "postcss": "8.5.10"
     },

@@ -3,7 +3,7 @@ import { acceptCookieConsent } from './test-helpers';
 
 /**
  * Smoke tests - public production-safe checks.
- * Authenticated E2E needs a real beta tester credential or a staging seed user.
+ * Authenticated E2E needs a staging seed user.
  */
 
 test.describe('Smoke - rotas publicas', () => {
@@ -31,18 +31,17 @@ test.describe('Smoke - rotas publicas', () => {
     await expect(page).toHaveTitle(/urban ai/i);
   });
 
-  test('landing de lancamento tem hero e CTA de acesso antecipado', async ({ page }) => {
+  test('rota de lancamento apresenta o produto disponivel e cadastro real', async ({ page }) => {
     await page.goto('/lancamento');
-    await expect(page.getByRole('heading', { name: /ESGOTAR R.PIDO/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /LISTA DE ACESSO ANTECIPADO/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Comece com um im.vel/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Criar minha conta' }).first()).toHaveAttribute('href', /\/create$/);
   });
 
-  test('landing tem formulario de waitlist e aceita entrada de e-mail', async ({ page }) => {
-    await page.goto('/lancamento#waitlist');
-    const input = page.locator('input[type="email"][id="waitlist-email"]').first();
-    await expect(input).toBeVisible();
-    await input.fill('teste+smoke@urbanai.com.br');
-    await expect(page.locator('button[type="submit"]').first()).toBeEnabled();
+  test('rota de lancamento nao reintroduz lista de espera', async ({ page }) => {
+    await page.goto('/lancamento');
+    await expect(page.locator('#waitlist-email')).toHaveCount(0);
+    await expect(page.getByText(/lista de acesso antecipado/i)).toHaveCount(0);
+    await expect(page.getByText(/produto est. dispon.vel para cadastro/i)).toBeVisible();
   });
 
   test('link criar conta do header aponta para o app com barra correta', async ({ page }) => {

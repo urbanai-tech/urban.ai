@@ -57,6 +57,7 @@ const APP_ONLY_PREFIXES = [
   "/notificacao",
   "/price",
   "/post-login",
+  "/login",
   "/create",
   "/waitlist",
   "/request-reset-password",
@@ -81,6 +82,14 @@ function isLocalDev(host: string | null): boolean {
 function isPreviewHost(host: string): boolean {
   const clean = host.split(":")[0];
   return clean.endsWith(".vercel.app");
+}
+
+function isStagingHost(host: string): boolean {
+  const clean = host.split(":")[0];
+  return (
+    clean === "staging.myurbanai.com" ||
+    clean === "urban-ai-frontend-staging-staging.up.railway.app"
+  );
 }
 
 function isPublicHost(host: string): boolean {
@@ -150,6 +159,16 @@ export function middleware(request: NextRequest) {
 
   // Preview fica aberto para QA, mas nunca indexavel.
   if (isPreviewHost(host)) {
+    return withNoIndex(NextResponse.next());
+  }
+
+  // Staging espelha a vitrine pública na raiz para revisão e E2E, mas nunca
+  // deve competir com o domínio canônico nos mecanismos de busca. As rotas do
+  // app continuam acessíveis diretamente para validar cadastro e autenticação.
+  if (isStagingHost(host)) {
+    if (pathname === "/") {
+      return withNoIndex(NextResponse.rewrite(new URL("/landing", request.url)));
+    }
     return withNoIndex(NextResponse.next());
   }
 

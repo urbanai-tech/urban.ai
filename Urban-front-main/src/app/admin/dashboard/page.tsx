@@ -534,7 +534,7 @@ export default function AdminDashboardPage() {
         <DataBlock title="Stays" icon={<Icons.Layers size={14} />} href="/admin/stays">
           <SmallStat
             label="Modo"
-            value={data.stays.betaPrivate ? "beta privado" : "configurado"}
+            value={data.stays.betaPrivate ? "restrito" : "configurado"}
             status={data.stays.betaPrivate ? "warn" : "success"}
           />
           <SmallStat label="Contas" value={data.stays.accounts} />

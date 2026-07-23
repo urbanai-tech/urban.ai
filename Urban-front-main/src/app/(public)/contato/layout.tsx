@@ -5,7 +5,7 @@ import { JsonLd, buildSeoMetadata, contactPageJsonLd } from "../../lib/seo";
 export const metadata: Metadata = buildSeoMetadata({
   title: "Contato - Urban AI",
   description:
-    "Fale com a Urban AI sobre acesso antecipado, suporte, parcerias, privacidade ou duvidas comerciais.",
+    "Fale com a Urban AI sobre produto, planos, integrações, suporte, parcerias ou privacidade.",
   path: "/contato",
 });
 

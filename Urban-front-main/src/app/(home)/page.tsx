@@ -265,8 +265,8 @@ export default function Login() {
             fontWeight: 500,
           }}
         >
-          <span>SÃO PAULO · BETA PRIVADO</span>
-          <span>v.2026.05</span>
+          <span>PRECIFICAÇÃO INTELIGENTE · BRASIL</span>
+          <span>PRODUTO DISPONÍVEL</span>
         </div>
       </div>
 
@@ -590,7 +590,7 @@ export default function Login() {
               textAlign: "center",
             }}
           >
-            Beta privado · São Paulo
+            Acesso seguro · Urban AI
           </p>
         </div>
       </div>
