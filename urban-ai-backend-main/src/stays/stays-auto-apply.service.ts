@@ -281,6 +281,7 @@ export class StaysAutoApplyService {
         }
 
         await this.staysService.pushPrice(userId, {
+          requestId: analise.id,
           listingId: listing.id,
           targetDate,
           newPriceCents,

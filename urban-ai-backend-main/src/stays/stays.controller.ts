@@ -24,6 +24,13 @@ type AuthedReq = Request & { user: { userId: string } };
 export class StaysController {
   constructor(private readonly stays: StaysService) {}
 
+  @ApiOperation({ summary: 'Consultar o estado salvo da conta Stays' })
+  @Get('account')
+  async account(@Req() req: AuthedReq) {
+    const account = await this.stays.getAccount(req.user.userId);
+    return account ? this.publicAccount(account) : null;
+  }
+
   @ApiOperation({ summary: 'Conectar conta Stays (Open API)' })
   @Post('connect')
   @HttpCode(200)
@@ -37,10 +44,15 @@ export class StaysController {
       userAgent: req.headers['user-agent'],
     });
     // Nunca retornamos o token — só os dados públicos da conta.
+    return this.publicAccount(account);
+  }
+
+  private publicAccount(account: any) {
     return {
       id: account.id,
       status: account.status,
       clientId: account.clientId,
+      apiBaseUrl: account.apiBaseUrl,
       lastSyncAt: account.lastSyncAt,
       consentVersion: account.consentVersion,
       consentAcceptedAt: account.consentAcceptedAt,
@@ -111,6 +123,7 @@ export class StaysController {
       title: l.title,
       shortAddress: l.shortAddress,
       basePriceCents: l.basePriceCents,
+      providerMetadata: l.providerMetadata ?? null,
       active: l.active,
       operationMode: l.operationMode,
       propriedadeId: l.propriedade?.id ?? null,

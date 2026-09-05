@@ -2,6 +2,7 @@
 
 **Produto:** Urban AI  
 **Data da auditoria:** 2026-07-15  
+**Última atualização operacional:** 2026-07-20
 **Escopo:** repositório completo, build local de produção, testes automatizados e probes públicos somente leitura  
 **Status:** fotografia verificável do código atual; não substitui métricas reais de produção
 
@@ -18,8 +19,8 @@ O Urban AI está em **beta operacional avançado**. A engenharia local está sub
 - **Força central:** combinação de radar de demanda, recomendação explicável, guardrails, aplicação auditável e ROI.
 - **Maior lacuna de produto:** provar repetidamente a cadeia `sinal → decisão → aplicação → reserva/receita` com dados reais.
 - **Maior risco imediato:** artefatos com dados sensíveis continuam presentes no histórico Git; a contenção no HEAD não remove os blobs históricos.
-- **Maior risco operacional:** health de readiness inutilizável sem token configurado e domínio de status referenciado na UI sem DNS.
-- **Maior bug de UI confirmado:** conteúdo do rodapé autenticado fica parcialmente atrás da bottom-nav no mobile.
+- **Maior risco operacional:** readiness/Redis já estão saudáveis; domínio de status, DNS de staging, monitor externo e restore real continuam pendentes.
+- **Maior bug de UI confirmado na auditoria:** sobreposição do rodapé autenticado foi corrigida e coberta por regressão; não há P1 de UI equivalente aberto na validação de 2026-07-20.
 - **Maior dívida de frontend:** telas grandes, 3.132 estilos inline, 55 blocos `<style>` e breakpoints fragmentados; o design system existe, mas a governança visual ainda não é uma fonte única completa.
 - **Direção recomendada:** interromper expansão lateral por 60–90 dias e operar um beta assistido focado em cobertura, tempo até primeira recomendação, taxa de aplicação e captura de outcome.
 
@@ -35,9 +36,9 @@ O Urban AI está em **beta operacional avançado**. A engenharia local está sub
 | UX desktop | 7,8/10 | Navegação e hierarquia fortes; densidade do admin e estados operacionais exigem refinamento. |
 | UX mobile | 7,0/10 | Shell, top bar e bottom-nav funcionam; rodapé sobreposto e tabelas/fluxos densos merecem gate recorrente. |
 | Acessibilidade | 7,1/10 | Axe público passou; 8 cenários autenticados/admin foram pulados por falta de credenciais E2E. |
-| Operação/observabilidade | 5,8/10 | Liveness responde; readiness e status público estão mal configurados, drill real e ações de owner continuam pendentes. |
+| Operação/observabilidade | 7,0/10 | Liveness/readiness, MySQL e Redis estão saudáveis em produção; status/DNS, monitor externo, DR real e janela de SLO continuam pendentes. |
 | Prontidão comercial | 6,4/10 | Produto demonstrável; cobrança, integrações, dados e cases auditados ainda definem a prontidão do beta pago. |
-| **Geral** | **7,2/10** | **Bom beta técnico; ainda não é operação comercial autônoma comprovada.** |
+| **Geral** | **7,3/10** | **Bom beta técnico com produção saudável; ainda não é operação comercial autônoma comprovada.** |
 
 ---
 
@@ -585,28 +586,28 @@ Não há telemetria de tempo humano em produção suficiente para afirmar “mé
 | ID | Sev. | Evidência | Diagnóstico | Ação |
 |---|---|---|---|---|
 | AUD-001 | P0 | blobs `dump`, `inserts` e e-mails permanecem em `git rev-list --objects --all` | remover do HEAD não apaga histórico/forks/cache | reset/rotação, avaliação LGPD, `git-filter-repo`, force push coordenado e validação |
-| AUD-002 | P1 | `/health` = 503; mensagem “Health readiness token is not configured” | env `HEALTH_READINESS_TOKEN`/equivalente ausente em ambiente protegido | configurar token, atualizar gates e monitor |
+| AUD-002 | resolvido | em 2026-07-20, `/health` anônimo = 401 e autorizado = 200, com DB/Redis `ok` | token e Redis configurados; contrato permanece fail-closed | conectar monitor externo e acumular janela de SLO |
 | AUD-003 | P1 | `status.myurbanai.com` não resolve | `AppFooter` aponta para serviço inexistente | criar status page/DNS ou remover link temporariamente |
 | AUD-004 | P1 | build local aponta para host de API cujo `/health/live` retorna 404, enquanto outro host conhecido responde 200 | drift entre URLs de ambiente | definir domínio canônico `api.*`, alinhar Railway/front e eliminar URLs antigas |
-| AUD-005 | P1 | footer content bottom 816,39 px; bottom-nav top 780 px | conteúdo do rodapé invade ~35,4 px sob nav fixa | aumentar espaço útil/reorganizar links e criar regressão visual |
-| AUD-006 | P2 | cards de `/events` mostram texto alternativo em imagens indisponíveis | `<img>` sem fallback visual de domínio | componente `EventImage` com `onError`, placeholder e aspect ratio |
-| AUD-007 | P2 | cookie banner ocupa canto inferior direito sobre admin | modal persistente compete com ações | reduzir, mover para sheet e aceitar consentimento antes do app |
-| AUD-008 | P2 | onboarding build warnings em linhas 224, 225 e 593 | imports/aliases mortos | remover ou prefixar somente se intencional |
-| AUD-009 | P2 | First Load JS compartilhado 230 kB; onboarding 386 kB, create 380 kB | shell e dependências pesadas no bundle comum | bundle analyzer, dynamic import e redução de dependências compartilhadas |
+| AUD-005 | resolvido | reserva mobile e regressão geométrica aprovadas | sobreposição eliminada | manter screenshot gate na matriz de dispositivos |
+| AUD-006 | resolvido | fallback reutilizável cobre erro HTTP, bloqueio e timeout | estado de erro visual padronizado | manter componente e E2E |
+| AUD-007 | resolvido | altura do banner é medida e reservada no layout host/admin | ações deixam de ser encobertas | manter regressão visual |
+| AUD-008 | resolvido | imports mortos removidos; lint sem warnings | dívida local eliminada | manter lint obrigatório |
+| AUD-009 | resolvido | shared caiu para 103,0 KiB gzip, abaixo do teto de 180 KiB | lazy loading e budget automatizado | monitorar Web Vitals e chunks por rota |
 | AUD-010 | P2 | 3.132 estilos inline e 23 media queries distintas | sistema visual distribuído | tokens/layout primitives/CSS modules e breakpoints canônicos |
 
 ### 12.2 Falhas de teste — separar produto de suíte
 
 | Teste | Resultado | Classificação |
 |---|---|---|
-| Admin Jobs procura `/Ultimos jobs admin/i` | UI renderiza “Últimos jobs admin” corretamente | bug do teste: regex sem acento não casa com texto acessível |
-| Event Radar procura `/eventos em sao paulo/i` | UI renderiza “Eventos em São Paulo” corretamente | bug do teste: regex sem acento |
-| Tema admin | navegação sem sessão cai em `Network Error` | setup de teste incompleto; mockar `auth/me` e subscription |
-| Footer mobile | métrica falha e screenshot confirma sobreposição | bug real de layout |
+| Admin Jobs | assert Unicode corrigido e cenário aprovado | resolvido |
+| Event Radar | assert Unicode corrigido e cenário aprovado | resolvido |
+| Tema admin | sessão mockada; persistência light/dark/system e reload aprovados | resolvido |
+| Footer mobile | reserva mobile e regressão geométrica aprovadas | resolvido |
 
 ### 12.3 Cobertura pulada
 
-13 cenários foram pulados: 8 Axe autenticados/admin, 2 smoke mobile autenticados, 2 smoke autenticados e 1 banner de staging. A suíte não deve ser considerada verde enquanto os jobs autenticados não tiverem fixtures/credenciais seguras no CI.
+Na validação consolidada de 2026-07-15, a suíte passou 97/97 cenários Chromium, sem `skip` ou `fixme`, incluindo público, host, admin, tema, PWA, responsividade e Axe. Permanecem necessários Firefox/WebKit, dispositivos reais, zoom 200% e leitor de tela antes da certificação 10/10.
 
 ---
 
@@ -733,12 +734,12 @@ Essa métrica evita otimizar vaidade: não basta evento coletado, recomendação
 ### 0–7 dias — confiança e operação
 
 1. Concluir ações do incidente Git/LGPD.
-2. Configurar token de readiness e monitor autenticado.
-3. Publicar `status.myurbanai.com` ou remover o link.
+2. ~~Configurar token de readiness e validar produção.~~ Concluído em 2026-07-20; monitor externo ainda pendente.
+3. Publicar `status.myurbanai.com` e os DNS de staging.
 4. Corrigir drift de URL da API.
-5. Corrigir rodapé mobile.
-6. Corrigir 3 setups/assertions E2E para eliminar falsos vermelhos.
-7. Remover warnings de build.
+5. ~~Corrigir rodapé mobile.~~ Concluído e coberto por regressão.
+6. ~~Corrigir 3 setups/assertions E2E para eliminar falsos vermelhos.~~ Concluído; 97/97 sem skips.
+7. ~~Remover warnings de build.~~ Concluído.
 
 ### 8–30 dias — medir o loop
 

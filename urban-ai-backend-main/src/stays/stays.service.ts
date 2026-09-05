@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
@@ -9,9 +9,10 @@ import { User } from '../entities/user.entity';
 import { PricingDecisionSnapshot } from '../entities/pricing-decision-snapshot.entity';
 import { AnalisePreco } from '../entities/AnalisePreco';
 import { PricingCalculateService } from '../propriedades/pricing-calculate.service';
-import { StaysConnector } from './stays-connector';
+import { StaysConnector, StaysCredentials } from './stays-connector';
 
 export interface ConnectInput {
+  apiBaseUrl?: string;
   clientId: string;
   accessToken: string;
   consentAccepted?: boolean;
@@ -21,6 +22,7 @@ export interface ConnectInput {
 }
 
 export interface PushPriceInput {
+  requestId?: string;
   listingId: string;
   targetDate: string;     // YYYY-MM-DD
   newPriceCents: number;
@@ -33,6 +35,7 @@ export interface PushPriceInput {
 }
 
 export interface PreviewPriceInput {
+  requestId?: string;
   listingId: string;
   targetDate: string;     // YYYY-MM-DD
   newPriceCents: number;
@@ -95,10 +98,11 @@ export class StaysService {
     if (input.consentAccepted !== true || !consentVersion) {
       throw new BadRequestException('Consentimento Stays obrigatorio para conectar a conta.');
     }
-    this.assertStaysReadiness();
+    const apiBaseUrl = input.apiBaseUrl?.trim() || process.env.STAYS_API_BASE_URL || null;
+    this.assertStaysReadiness({ apiBaseUrl });
 
     // Valida o token antes de persistir — previne guardar credencial quebrada.
-    const ok = await this.connector.ping(input.accessToken);
+    const ok = await this.connector.ping({ clientId: input.clientId, clientSecret: input.accessToken, apiBaseUrl });
     if (!ok) {
       throw new BadRequestException(
         'Não foi possível autenticar com a Stays usando as credenciais fornecidas.',
@@ -107,7 +111,12 @@ export class StaysService {
 
     let account = await this.accountRepo.findOne({ where: { user: { id: userId } } });
     if (account) {
+      const previousUrl = account.apiBaseUrl || process.env.STAYS_API_BASE_URL;
+      if (previousUrl && apiBaseUrl && new URL(previousUrl).origin !== new URL(apiBaseUrl).origin) {
+        throw new BadRequestException('A troca de domínio exige migrar os vínculos dos imóveis e o histórico da integração. Reconecte usando o domínio já cadastrado.');
+      }
       account.clientId = input.clientId;
+      account.apiBaseUrl = apiBaseUrl;
       account.accessToken = input.accessToken;
       account.consentAcceptedAt = new Date();
       account.consentVersion = consentVersion;
@@ -120,6 +129,7 @@ export class StaysService {
       account = this.accountRepo.create({
         user,
         clientId: input.clientId,
+        apiBaseUrl,
         accessToken: input.accessToken,
         consentAcceptedAt: new Date(),
         consentVersion,
@@ -156,11 +166,9 @@ export class StaysService {
     if (!account || account.status !== 'active') {
       throw new BadRequestException('Conta Stays não conectada.');
     }
-    this.assertStaysReadiness({ requireEncryptionKey: false });
+    this.assertStaysReadiness({ requireEncryptionKey: false, apiBaseUrl: account.apiBaseUrl });
 
-    const remote = await this.connector.listListings(account.accessToken);
-    account.lastSyncAt = new Date();
-    await this.accountRepo.save(account);
+    const remote = await this.connector.listListings(this.accountCredentials(account));
 
     const existing = await this.listingRepo.find({
       where: { account: { id: account.id } },
@@ -179,15 +187,28 @@ export class StaysService {
           shortAddress: item.address,
           basePriceCents: item.basePriceCents,
           active: item.active,
+          providerMetadata: item.providerMetadata,
         });
       } else {
         row.title = item.title;
         row.shortAddress = item.address;
         row.basePriceCents = item.basePriceCents;
         row.active = item.active;
+        row.providerMetadata = item.providerMetadata;
       }
       updated.push(await this.listingRepo.save(row));
     }
+    // A successful complete inventory is authoritative. Preserve history and mapping,
+    // but prevent removed listings from remaining eligible for automatic pricing.
+    const remoteIds = new Set(remote.map((item) => item.listingId));
+    for (const row of existing) {
+      if (row.active && !remoteIds.has(row.staysListingId)) {
+        row.active = false;
+        await this.listingRepo.save(row);
+      }
+    }
+    account.lastSyncAt = new Date();
+    await this.accountRepo.save(account);
     return updated;
   }
 
@@ -228,8 +249,10 @@ export class StaysService {
 
     const listing = await this.listingRepo.findOne({
       where: { id: input.listingId, account: { id: account.id } },
+      relations: ['propriedade'],
     });
     if (!listing) throw new NotFoundException('Listing Stays não encontrado para este usuário.');
+    await this.assertAnalysisOwnership(userId, listing, input.analisePrecoId);
     if (!listing.active) {
       blockers.push({
         code: 'listing_inactive',
@@ -253,6 +276,7 @@ export class StaysService {
 
     const previousPriceCents = input.previousPriceCents ?? listing.basePriceCents ?? 0;
     if (previousPriceCents <= 0) {
+      blockers.push({ code: 'missing_previous_price', message: 'Informe um preço anterior válido antes de publicar.' });
       warnings.push({
         code: 'missing_previous_price',
         message: 'Sem preço anterior confiável; a variação percentual não será limitada por baseline.',
@@ -262,10 +286,17 @@ export class StaysService {
     const variation = this.evaluateVariationCaps(previousPriceCents, input.newPriceCents, account);
     blockers.push(...variation.blockers);
 
-    if (!process.env.STAYS_API_BASE_URL) {
+    if (!account.apiBaseUrl && !process.env.STAYS_API_BASE_URL) {
       warnings.push({
         code: 'stays_api_base_url_missing',
         message: 'STAYS_API_BASE_URL não está configurada; preview liberado, push real bloqueado.',
+      });
+    }
+
+    if (process.env.STAYS_PRICE_WRITES_ENABLED !== 'true') {
+      blockers.push({
+        code: 'stays_price_writes_disabled',
+        message: 'Publicação Stays aguardando validação do piloto; prévia disponível.',
       });
     }
 
@@ -276,9 +307,10 @@ export class StaysService {
       input.newPriceCents > 0
     ) {
       const idempotencyKey = this.buildIdempotencyKey(
-        listing.staysListingId,
+        listing.id,
         input.targetDate,
         input.newPriceCents,
+        input.requestId ? { id: input.requestId, accountId: account.id, origin: 'user_accepted' } : undefined,
       );
       existing = await this.priceUpdateRepo.findOne({ where: { idempotencyKey } });
     }
@@ -299,7 +331,7 @@ export class StaysService {
       maxIncreasePercent: account.maxIncreasePercent,
       maxDecreasePercent: account.maxDecreasePercent,
       withinGuardrails,
-      readyForPush: blockers.length === 0 && Boolean(process.env.STAYS_API_BASE_URL),
+      readyForPush: blockers.length === 0 && Boolean(account.apiBaseUrl || process.env.STAYS_API_BASE_URL),
       blockers,
       warnings,
       existingPriceUpdateId: existing?.id ?? null,
@@ -332,12 +364,18 @@ export class StaysService {
         'Consentimento Stays versionado e obrigatorio antes de aplicar precos.',
       );
     }
-    this.assertStaysReadiness({ requireEncryptionKey: false });
+    this.assertStaysReadiness({ requireEncryptionKey: false, apiBaseUrl: account.apiBaseUrl });
+
+    if (process.env.STAYS_PRICE_WRITES_ENABLED !== 'true') {
+      throw new BadRequestException('Publicação Stays desabilitada até validar o piloto.');
+    }
 
     const listing = await this.listingRepo.findOne({
       where: { id: input.listingId, account: { id: account.id } },
+      relations: ['propriedade'],
     });
     if (!listing) throw new NotFoundException('Listing Stays não encontrado para este usuário.');
+    await this.assertAnalysisOwnership(userId, listing, input.analisePrecoId);
     if (!listing.active) {
       throw new BadRequestException('Listing Stays está inativo.');
     }
@@ -346,13 +384,15 @@ export class StaysService {
     this.assertValidPushInput(input);
     this.enforceVariationCaps(input.previousPriceCents, input.newPriceCents, account);
 
-    const idempotencyKey = this.buildIdempotencyKey(listing.staysListingId, input.targetDate, input.newPriceCents);
+    const idempotencyKey = this.buildIdempotencyKey(listing.id, input.targetDate, input.newPriceCents,
+      input.requestId ? { id: input.requestId, accountId: account.id, origin: input.origin } : undefined);
 
     const existing = await this.priceUpdateRepo.findOne({
       where: { idempotencyKey },
-      relations: ['analise'],
+      relations: ['analise', 'listing'],
     });
     if (existing) {
+      this.assertSameOperation(existing, listing, input, currency);
       this.logger.log(
         `pushPrice idempotente listing=${listing.staysListingId} date=${input.targetDate} — reaproveitando update=${existing.id}`,
       );
@@ -380,9 +420,10 @@ export class StaysService {
       if (!this.isDuplicateKeyError(error)) throw error;
       const concurrent = await this.priceUpdateRepo.findOne({
         where: { idempotencyKey },
-        relations: ['analise'],
+        relations: ['analise', 'listing'],
       });
       if (!concurrent) throw error;
+      this.assertSameOperation(concurrent, listing, input, currency);
       this.logger.log(
         `pushPrice concorrente deduplicado listing=${listing.staysListingId} ` +
           `date=${input.targetDate} update=${concurrent.id}`,
@@ -395,10 +436,11 @@ export class StaysService {
     });
 
     try {
-      const result = await this.connector.pushPrice(account.accessToken, {
+      const result = await this.connector.pushPrice(this.accountCredentials(account), {
         listingId: listing.staysListingId,
         date: input.targetDate,
         priceCents: input.newPriceCents,
+        previousPriceCents: input.previousPriceCents,
         currency,
         idempotencyKey,
       });
@@ -447,6 +489,7 @@ export class StaysService {
     }
 
     const rollback = await this.pushPrice(userId, {
+      requestId: original.id,
       listingId: original.listing.id,
       targetDate: original.targetDate,
       newPriceCents: original.previousPriceCents,
@@ -519,10 +562,30 @@ export class StaysService {
     return entity?.id ?? null;
   }
 
-  private assertStaysReadiness(options: { requireEncryptionKey?: boolean } = {}) {
+  private accountCredentials(account: StaysAccount): StaysCredentials {
+    return { clientId: account.clientId, clientSecret: account.accessToken,
+      apiBaseUrl: account.apiBaseUrl || process.env.STAYS_API_BASE_URL || null };
+  }
+
+  private async assertAnalysisOwnership(userId: string, listing: StaysListing, analysisId?: string): Promise<void> {
+    if (!analysisId) return;
+    const propertyId = listing.propriedade?.id;
+    if (!propertyId || !this.analiseRepo) {
+      throw new BadRequestException('Vincule o imóvel Urban antes de aplicar uma análise de preço.');
+    }
+    const analysis = await this.analiseRepo.findOne({
+      where: { id: analysisId, usuarioProprietario: { id: userId }, endereco: { list: { id: propertyId } } },
+      relations: ['usuarioProprietario', 'endereco', 'endereco.list'],
+    });
+    if (!analysis || analysis.usuarioProprietario?.id !== userId || analysis.endereco?.list?.id !== propertyId) {
+      throw new NotFoundException('Análise não encontrada para este usuário e imóvel.');
+    }
+  }
+
+  private assertStaysReadiness(options: { requireEncryptionKey?: boolean; apiBaseUrl?: string | null } = {}) {
     const requireEncryptionKey = options.requireEncryptionKey ?? true;
     const missing = [
-      !process.env.STAYS_API_BASE_URL ? 'STAYS_API_BASE_URL' : '',
+      !options.apiBaseUrl && !process.env.STAYS_API_BASE_URL ? 'STAYS_API_BASE_URL' : '',
       requireEncryptionKey && !process.env.STAYS_TOKEN_ENCRYPTION_KEY
         ? 'STAYS_TOKEN_ENCRYPTION_KEY'
         : '',
@@ -540,9 +603,22 @@ export class StaysService {
     return raw?.slice(0, 255) ?? null;
   }
 
-  private buildIdempotencyKey(listingId: string, date: string, priceCents: number): string {
-    const raw = `${listingId}|${date}|${priceCents}`;
+  private buildIdempotencyKey(listingId: string, date: string, priceCents: number,
+    operation?: { id: string; accountId: string; origin: string }): string {
+    // Legacy callers retain receipt replay. New decisions must send a new requestId.
+    // The internal listing UUID and account namespace prevent cross-account collisions.
+    const raw = operation ? `${operation.accountId}|${operation.origin}|${operation.id}` : `${listingId}|${date}|${priceCents}`;
     return crypto.createHash('sha256').update(raw).digest('hex').slice(0, 48);
+  }
+
+  private assertSameOperation(record: PriceUpdate, listing: StaysListing, input: PushPriceInput, currency: string): void {
+    if (!input.requestId) return;
+    if (record.listing?.id !== listing.id || record.targetDate !== input.targetDate ||
+        record.newPriceCents !== input.newPriceCents || record.previousPriceCents !== input.previousPriceCents ||
+        record.currency !== currency || record.origin !== input.origin ||
+        (record.analise?.id ?? null) !== (input.analisePrecoId ?? null)) {
+      throw new ConflictException('requestId já utilizado para uma operação diferente.');
+    }
   }
 
   private assertValidPushInput(input: PushPriceInput): void {
@@ -552,8 +628,8 @@ export class StaysService {
     if (!Number.isInteger(input.newPriceCents) || input.newPriceCents <= 0) {
       throw new BadRequestException('newPriceCents deve ser um inteiro positivo.');
     }
-    if (!Number.isInteger(input.previousPriceCents) || input.previousPriceCents < 0) {
-      throw new BadRequestException('previousPriceCents deve ser um inteiro maior ou igual a zero.');
+    if (!Number.isInteger(input.previousPriceCents) || input.previousPriceCents <= 0) {
+      throw new BadRequestException('previousPriceCents deve ser um inteiro positivo.');
     }
   }
 

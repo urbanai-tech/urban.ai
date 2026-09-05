@@ -22,7 +22,7 @@
     > backup-prod-$(date +%Y%m%d-%H%M).sql
   gzip backup-prod-*.sql
   ```
-- Armazenar no S3 com bucket separado (sugestão: `urbanai-db-backups`, ciclo de vida 90 dias, KMS encrypted):
+- Armazenar no S3 com bucket separado (sugestão: `urbanai-db-backups`, criptografia server-side, versionamento habilitado, backups atuais por 90 dias, versões não atuais por 30 dias e multipart incompleto por 7 dias):
   ```bash
   aws s3 cp backup-prod-*.sql.gz \
     s3://urbanai-db-backups/manual/$(date +%Y/%m)/ \

@@ -7,6 +7,11 @@ on:
         description: 'Objeto S3 opcional (ex: mysql/urban-ai-cron-....sql.gz). Vazio usa o mais recente.'
         required: false
         default: ''
+      apply_backup_policy:
+        description: 'Aplica a politica autorizada: versioning, 90d atuais, 30d nao atuais e multipart 7d.'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: restore-drill-mysql
@@ -44,11 +49,11 @@ jobs:
       MYSQL_PWD: restore-only
       RESTORE_DATABASE_URL: mysql://root:restore-only@127.0.0.1:3306/urban_restore
       REQUESTED_OBJECT_KEY: ${{ inputs.object_key }}
-      MAX_BACKUP_AGE_HOURS: ${{ vars.RESTORE_MAX_BACKUP_AGE_HOURS || '36' }}
+      MAX_BACKUP_AGE_HOURS: ${{ vars.RESTORE_MAX_BACKUP_AGE_HOURS || '24' }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Validate configuration
         run: |
@@ -62,6 +67,47 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y mysql-client
+
+      - name: Configure authorized off-site backup policy
+        if: ${{ github.repository == 'urbanai-tech/urban.ai' && inputs.apply_backup_policy }}
+        run: |
+          set -euo pipefail
+          POLICY_FILE="$RUNNER_TEMP/urban-ai-backup-lifecycle.json"
+
+          jq -n '{
+            Rules: [{
+              ID: "urban-ai-mysql-backup-retention",
+              Status: "Enabled",
+              Filter: {Prefix: "mysql/"},
+              Expiration: {Days: 90},
+              NoncurrentVersionExpiration: {NoncurrentDays: 30},
+              AbortIncompleteMultipartUpload: {DaysAfterInitiation: 7}
+            }]
+          }' > "$POLICY_FILE"
+
+          aws s3api put-bucket-versioning \
+            --bucket "$S3_BUCKET" \
+            --versioning-configuration Status=Enabled
+          aws s3api put-bucket-lifecycle-configuration \
+            --bucket "$S3_BUCKET" \
+            --lifecycle-configuration "file://$POLICY_FILE"
+
+          VERSIONING_STATUS=$(aws s3api get-bucket-versioning \
+            --bucket "$S3_BUCKET" \
+            --query Status \
+            --output text)
+          LIFECYCLE=$(aws s3api get-bucket-lifecycle-configuration \
+            --bucket "$S3_BUCKET" \
+            --output json)
+          RULE=$(jq -c '.Rules[] | select(.ID == "urban-ai-mysql-backup-retention")' <<< "$LIFECYCLE")
+
+          test "$VERSIONING_STATUS" = "Enabled"
+          test "$(jq -r '.Status' <<< "$RULE")" = "Enabled"
+          test "$(jq -r '.Filter.Prefix' <<< "$RULE")" = "mysql/"
+          test "$(jq -r '.Expiration.Days' <<< "$RULE")" = "90"
+          test "$(jq -r '.NoncurrentVersionExpiration.NoncurrentDays' <<< "$RULE")" = "30"
+          test "$(jq -r '.AbortIncompleteMultipartUpload.DaysAfterInitiation' <<< "$RULE")" = "7"
+          echo "Politica off-site autorizada aplicada e verificada sem expor identificadores do bucket."
 
       - name: Select and download off-site backup
         run: |
@@ -85,6 +131,40 @@ jobs:
           META=$(aws s3api head-object --bucket "$S3_BUCKET" --key "$OBJECT_KEY")
           LAST_MODIFIED=$(jq -r '.LastModified' <<< "$META")
           SIZE_BYTES=$(jq -r '.ContentLength' <<< "$META")
+          ENCRYPTION=$(aws s3api get-bucket-encryption --bucket "$S3_BUCKET")
+          ENCRYPTION_ALGORITHM=$(jq -r '.ServerSideEncryptionConfiguration.Rules[0].ApplyServerSideEncryptionByDefault.SSEAlgorithm // "unknown"' <<< "$ENCRYPTION")
+          if [ "$ENCRYPTION_ALGORITHM" != "AES256" ] && [ "$ENCRYPTION_ALGORITHM" != "aws:kms" ]; then
+            echo "::error::O bucket off-site nao confirmou criptografia server-side suportada."
+            exit 1
+          fi
+
+          VERSIONING=$(aws s3api get-bucket-versioning --bucket "$S3_BUCKET" --output json)
+          if [ -n "$VERSIONING" ]; then
+            VERSIONING_STATUS=$(jq -r '.Status // "not-enabled"' <<< "$VERSIONING")
+          else
+            VERSIONING_STATUS="not-enabled"
+          fi
+          if [ "$VERSIONING_STATUS" != "Enabled" ]; then
+            echo "::error::Versionamento do bucket off-site nao esta habilitado."
+            exit 1
+          fi
+
+          LIFECYCLE=$(aws s3api get-bucket-lifecycle-configuration --bucket "$S3_BUCKET" --output json)
+          LIFECYCLE_RULES=$(jq -r '.Rules | length' <<< "$LIFECYCLE")
+          RETENTION_RULE=$(jq -c '.Rules[] | select(.ID == "urban-ai-mysql-backup-retention")' <<< "$LIFECYCLE")
+          if [ -z "$RETENTION_RULE" ]; then
+            echo "::error::Regra canonica de lifecycle nao encontrada no bucket off-site."
+            exit 1
+          fi
+          CURRENT_RETENTION_DAYS=$(jq -r '.Expiration.Days // 0' <<< "$RETENTION_RULE")
+          NONCURRENT_RETENTION_DAYS=$(jq -r '.NoncurrentVersionExpiration.NoncurrentDays // 0' <<< "$RETENTION_RULE")
+          ABORT_MULTIPART_DAYS=$(jq -r '.AbortIncompleteMultipartUpload.DaysAfterInitiation // 0' <<< "$RETENTION_RULE")
+          if [ "$CURRENT_RETENTION_DAYS" != "90" ] || \
+             [ "$NONCURRENT_RETENTION_DAYS" != "30" ] || \
+             [ "$ABORT_MULTIPART_DAYS" != "7" ]; then
+            echo "::error::Regra canonica de lifecycle diverge da politica autorizada."
+            exit 1
+          fi
           BACKUP_AGE_SECONDS=$(python - "$LAST_MODIFIED" <<'PY'
           import datetime
           import sys
@@ -113,6 +193,12 @@ jobs:
             echo "BACKUP_AGE_SECONDS=$BACKUP_AGE_SECONDS"
             echo "BACKUP_SIZE_BYTES=$SIZE_BYTES"
             echo "BACKUP_SHA256=$SHA256"
+            echo "BACKUP_ENCRYPTION=$ENCRYPTION_ALGORITHM"
+            echo "BACKUP_VERSIONING=$VERSIONING_STATUS"
+            echo "BACKUP_LIFECYCLE_RULES=$LIFECYCLE_RULES"
+            echo "BACKUP_CURRENT_RETENTION_DAYS=$CURRENT_RETENTION_DAYS"
+            echo "BACKUP_NONCURRENT_RETENTION_DAYS=$NONCURRENT_RETENTION_DAYS"
+            echo "BACKUP_ABORT_MULTIPART_DAYS=$ABORT_MULTIPART_DAYS"
           } >> "$GITHUB_ENV"
 
       - name: Restore into isolated MySQL
@@ -145,6 +231,12 @@ jobs:
             printf -- '- Restore and verification RTO: `%ss`\n' "$RTO_SECONDS"
             printf -- '- Compressed backup size: `%s bytes`\n' "$BACKUP_SIZE_BYTES"
             printf -- '- Backup SHA-256: `%s`\n' "$BACKUP_SHA256"
+            printf -- '- Off-site server-side encryption: `%s`\n' "$BACKUP_ENCRYPTION"
+            printf -- '- Off-site bucket versioning: `%s`\n' "$BACKUP_VERSIONING"
+            printf -- '- Off-site lifecycle rules detected: `%s`\n' "$BACKUP_LIFECYCLE_RULES"
+            printf -- '- Current backup retention: `%s days`\n' "$BACKUP_CURRENT_RETENTION_DAYS"
+            printf -- '- Noncurrent version retention: `%s days`\n' "$BACKUP_NONCURRENT_RETENTION_DAYS"
+            printf -- '- Abort incomplete multipart uploads: `%s days`\n' "$BACKUP_ABORT_MULTIPART_DAYS"
             echo '- Source: latest off-site S3 backup under `mysql/`.'
             echo "- Isolation: disposable MySQL 8.4 service container; destroyed with the runner."
           } >> "$EVIDENCE"
@@ -153,7 +245,7 @@ jobs:
 
       - name: Upload restore evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: restore-drill-evidence-${{ github.run_id }}
           path: docs/evidence/runtime/restore-drill-${{ github.run_id }}.md

@@ -358,6 +358,7 @@ export const fetchAdminAuditLogs = (params?: {
 // ================== Stays integration (F6.4) ==================
 
 export interface StaysAccountPublic {
+  apiBaseUrl?: string | null;
   id: string;
   status: 'pending' | 'active' | 'error' | 'disconnected';
   clientId: string;
@@ -417,10 +418,11 @@ export interface StaysPricePreview {
 export async function staysConnect(
   clientId: string,
   accessToken: string,
-  consent: { consentAccepted: boolean; consentVersion: string },
+  consent: { consentAccepted: boolean; consentVersion: string; apiBaseUrl?: string },
 ): Promise<StaysAccountPublic> {
   const { data } = await api.post<StaysAccountPublic>('/stays/connect', {
     clientId,
+    apiBaseUrl: consent.apiBaseUrl || undefined,
     accessToken,
     consentAccepted: consent.consentAccepted,
     consentVersion: consent.consentVersion,
@@ -430,6 +432,11 @@ export async function staysConnect(
 
 export async function staysDisconnect(): Promise<void> {
   await api.delete('/stays/connect');
+}
+
+export async function staysGetAccount(): Promise<StaysAccountPublic | null> {
+  const { data } = await api.get<StaysAccountPublic | null>('/stays/account');
+  return data;
 }
 
 export async function staysSyncListings(): Promise<{ count: number; listings: StaysListingPublic[] }> {
@@ -443,6 +450,7 @@ export async function staysListListings(): Promise<StaysListingPublic[]> {
 }
 
 export async function staysPreviewPrice(input: {
+  requestId?: string;
   listingId: string;
   targetDate: string;
   newPriceCents: number;
@@ -455,6 +463,7 @@ export async function staysPreviewPrice(input: {
 }
 
 export async function staysPushPrice(input: {
+  requestId?: string;
   listingId: string;
   targetDate: string;
   newPriceCents: number;
@@ -462,7 +471,9 @@ export async function staysPushPrice(input: {
   currency?: string;
   analisePrecoId?: string;
 }): Promise<PriceUpdatePublic> {
-  const { data } = await api.post<PriceUpdatePublic>('/stays/price/push', input);
+  const { data } = await api.post<PriceUpdatePublic>('/stays/price/push', {
+    ...input, requestId: input.requestId ?? crypto.randomUUID(),
+  });
   return data;
 }
 

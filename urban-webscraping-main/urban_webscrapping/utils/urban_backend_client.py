@@ -10,14 +10,17 @@ Características:
   - Buffer interno de eventos: bufferiza até `batch_size` antes de enviar
     (default 100), reduz overhead HTTP
   - Retry exponencial em erro de rede / 5xx / 429
-  - Fail-soft: se backend offline, escreve no log + segura buffer pra
-    próximo flush (não perde eventos do dia)
+  - from_env usa fila SQLite: eventos não confirmados sobrevivem a reinícios
+    quando o arquivo está em armazenamento persistente.
+  - Entrega pelo menos uma vez: timeout após gravação remota pode causar replay;
+    o backend continua responsável pela deduplicação.
 
 Variáveis de ambiente esperadas:
   URBAN_API_BASE       — ex: https://api.myurbanai.com (default localhost:10000)
   URBAN_EVENTS_INGEST_API_KEY — chave escopada para POST /events/ingest
   URBAN_COLLECTOR_EMAIL — login legado do user admin técnico
   URBAN_COLLECTOR_PASSWORD — senha legada
+  URBAN_INGEST_OUTBOX_PATH — arquivo SQLite em volume persistente na produção
 """
 
 from __future__ import annotations
@@ -30,6 +33,8 @@ from typing import Any
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+
+from urban_webscrapping.utils.ingest_outbox import IngestOutbox
 
 logger = logging.getLogger(__name__)
 HTTP_BAD_REQUEST = 400
@@ -75,6 +80,7 @@ class UrbanBackendClient:
         collector_name: str | None = None,
         collector_version: str | None = None,
         ingest_run_id: str | None = None,
+        outbox_path: str | None = None,
     ):
         self.api_base = api_base.rstrip("/")
         self.email = email
@@ -90,6 +96,13 @@ class UrbanBackendClient:
         self._token_acquired_at: float = 0.0
 
         self._buffer: list[dict[str, Any]] = []
+        if (
+            not isinstance(batch_size, int)
+            or isinstance(batch_size, bool)
+            or batch_size <= 0
+        ):
+            raise ValueError("batch_size deve ser inteiro positivo")
+        self._outbox = IngestOutbox(outbox_path, self.api_base) if outbox_path else None
 
         self._session = self._build_session()
 
@@ -122,6 +135,8 @@ class UrbanBackendClient:
             collector_version=collector_version,
             ingest_run_id=ingest_run_id,
             batch_size=batch_size,
+            outbox_path=os.environ.get("URBAN_INGEST_OUTBOX_PATH")
+            or ".urban-ingest/outbox.sqlite3",
         )
 
     def _build_session(self) -> requests.Session:
@@ -199,26 +214,47 @@ class UrbanBackendClient:
         if not event or not event.get("nome"):
             logger.debug("Ignorando evento sem o campo nome obrigatorio")
             return
-        self._buffer.append(event)
-        if len(self._buffer) >= self.batch_size:
+        if self._outbox:
+            self._outbox.enqueue(event)
+        else:
+            self._buffer.append(event)
+        if self.buffer_size() >= self.batch_size:
             self.flush()
 
     def flush(self) -> dict[str, Any] | None:
         """Envia todos os eventos do buffer pro backend. Retorna response do
         backend (com agregados) ou None se buffer vazio.
         """
-        if not self._buffer:
+        if not self.buffer_size():
             return None
 
-        events_to_send = self._buffer[: self.batch_size]
-        self._buffer = self._buffer[self.batch_size :]
+        owner = None
+        if self._outbox:
+            owner, events_to_send = self._outbox.claim(self.batch_size)
+            if not events_to_send:
+                return None
+        else:
+            events_to_send = self._buffer[: self.batch_size]
 
         try:
-            return self._post_ingest(events_to_send)
+            result = self._post_ingest(events_to_send)
         except UrbanBackendError:
-            # Re-coloca no buffer pra retry no próximo flush
-            self._buffer = events_to_send + self._buffer
+            if self._outbox and owner:
+                self._outbox.release(owner)
+            # Keep the original buffer until a valid acknowledgment is available.
             raise
+        except Exception:
+            if self._outbox and owner:
+                self._outbox.release(owner)
+            # JSON decoding and a failed JWT refresh must not discard this batch.
+            raise UrbanBackendError(
+                "Ingest não confirmado; lote preservado no buffer"
+            ) from None
+        if self._outbox and owner:
+            self._outbox.acknowledge(owner, result.get("results"))
+        else:
+            self._buffer = self._buffer[len(events_to_send) :]
+        return result
 
     def _post_ingest(self, events: list[dict[str, Any]]) -> dict[str, Any]:
         url = f"{self.api_base}/events/ingest"
@@ -251,6 +287,34 @@ class UrbanBackendClient:
         data = resp.json()
         if not isinstance(data, dict):
             raise UrbanBackendError("Ingest retornou payload JSON invalido")
+        counts = [
+            data.get(field) for field in ("total", "created", "updated", "skipped")
+        ]
+        if (
+            any(type(value) is not int or value < 0 for value in counts)
+            or counts[0] != len(events)
+            or sum(counts[1:]) != counts[0]
+        ):
+            raise UrbanBackendError(
+                "Ingest retornou confirmação incompatível com o lote enviado"
+            )
+        outcomes = data.get("results")
+        if outcomes is not None or data["skipped"]:
+            if not isinstance(outcomes, list) or len(outcomes) != len(events):
+                raise UrbanBackendError(
+                    "Ingest não detalhou o resultado de cada evento"
+                )
+            for status in ("created", "updated", "skipped"):
+                if (
+                    sum(
+                        isinstance(item, dict) and item.get("status") == status
+                        for item in outcomes
+                    )
+                    != data[status]
+                ):
+                    raise UrbanBackendError(
+                        "Resultados individuais divergem das contagens de ingestão"
+                    )
         logger.info(
             "Ingest OK: total=%s created=%s updated=%s skipped=%s",
             data.get("total"),
@@ -275,12 +339,15 @@ class UrbanBackendClient:
         return {"Authorization": f"Bearer {token}"}
 
     def buffer_size(self) -> int:
-        return len(self._buffer)
+        return self._outbox.count() if self._outbox else len(self._buffer)
 
     def close(self) -> None:
         """Faz flush final e fecha conexão."""
         try:
-            while self._buffer:
-                self.flush()
+            while self.buffer_size():
+                if self.flush() is None:
+                    raise UrbanBackendError(
+                        "Eventos persistidos aguardam liberação de outro envio"
+                    )
         finally:
             self._session.close()

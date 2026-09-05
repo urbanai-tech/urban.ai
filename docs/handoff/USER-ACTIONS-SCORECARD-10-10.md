@@ -1,6 +1,7 @@
 # Ações do owner para certificar o scorecard 10/10
 
 **Data:** 2026-07-15  
+**Última atualização:** 2026-07-22
 **Status:** handoff das dependências externas; executar depois de revisar as entregas autônomas  
 **Owner primário:** Gustavo  
 **Fonte de escopo:** [`../plano-mestre-scorecard-10-10-2026-07-15.md`](../plano-mestre-scorecard-10-10-2026-07-15.md)
@@ -23,12 +24,14 @@ Não colar tokens, senhas, dumps, dados pessoais ou chaves em chat, issue, commi
 
 ## 2. Acessos e infraestrutura — prioridade P1
 
-- [ ] Autenticar a Railway CLI no workspace/conta corretos e confirmar projeto, ambiente e serviços antes de qualquer alteração.
-- [ ] Liberar acesso Cloudflare/DNS para os domínios Urban AI.
+- [ ] Reautenticar a Railway CLI no workspace/conta corretos. O acesso foi validado em 2026-07-20, mas a sessão estava expirada na CLI e no conector em 2026-07-22; executar `railway login` sem compartilhar credenciais e então reconfirmar projeto, ambiente e serviços.
+- [x] Liberar acesso Cloudflare/DNS para os domínios Urban AI. Leitura/escrita DNS validadas em 2026-07-20; credenciais expostas fora do secret store ainda precisam ser rotacionadas.
 - [ ] Definir um hostname canônico para a API e alinhar Railway, frontend, CORS, documentação e monitores.
-- [ ] Criar/corrigir DNS de `status`, `staging` e `staging-api`; validar resolução pública e TLS.
-- [ ] Configurar `HEALTH_READINESS_TOKEN` no backend e o mesmo valor apenas no secret store do monitor/gate.
-- [ ] Configurar status page e monitorar home, `/health/live` e `/health` autenticado como sinais distintos.
+- [ ] Concluir TLS de `status`, `staging` e `staging-api`. Na revalidação de 2026-07-22, os três ainda falhavam em TLS estrito; os hostnames Railway e os próprios destinos atualmente referenciados pelos CNAMEs de staging retornavam 404, enquanto o domínio nativo canônico do frontend permanecia em 200. A CLI Railway estava sem sessão. A status page está `built`, com domínio válido, sem erro CAA e elegível para HTTPS, mas o certificado ainda não existe; nova build foi solicitada sem alterar DNS. Reautenticar, obter do Railway os destinos atuais exatos e reconciliar as associações existentes sem duplicar DNS; depois habilitar `https_enforced` no Pages quando o certificado existir.
+- [ ] Revisar as duas mudanças pendentes de `Service Domain` no frontend de produção. Elas provocam redeploy e os valores completos não puderam ser comprovados na inspeção read-only; nada foi aplicado ou descartado. Evidência: [`../evidence/railway-production-staged-changes-2026-07-20.md`](../evidence/railway-production-staged-changes-2026-07-20.md).
+- [x] Configurar `HEALTH_READINESS_TOKEN` no backend e o mesmo valor apenas no secret store do monitor/gate. Produção validada com 401 anônimo e 200 autorizado em 2026-07-20.
+- [x] Provisionar Redis de produção persistente, rotacionar a credencial e validar DB/Redis no readiness. Evidência em [`../evidence/production-redis-readiness-2026-07-20.md`](../evidence/production-redis-readiness-2026-07-20.md).
+- [x] Configurar status page pública para site, app e `/health/live`. O readiness `/health` autenticado permanece em gate privado separado para não expor credenciais.
 
 **Aceite:** DNS resolve; TLS é válido; liveness e readiness retornam 200 nos contextos corretos; o gate enterprise passa 6/6; nenhum valor de secret aparece em log ou evidência.
 
@@ -48,9 +51,13 @@ Não colar tokens, senhas, dumps, dados pessoais ou chaves em chat, issue, commi
 - [ ] Criar usuários de teste host/admin e armazenar credenciais somente no secret store do CI/staging.
 - [ ] Executar os E2E credencial-gated no hostname de staging final.
 - [ ] Rodar smoke responsivo em dispositivos reais ou device farm para Android/iOS, PWA, push, zoom e leitor de tela.
-- [ ] Executar restore de um backup real em banco temporário isolado; nunca sobre produção.
-- [ ] Medir e registrar RPO, RTO, integridade pós-restore, rollback de deploy/migration e descarte seguro do banco temporário.
-- [ ] Confirmar existência, criptografia, retenção e restauração do objeto off-site.
+- [x] Executar restore de um backup real em banco temporário isolado; nunca sobre produção. Run `29746197104` restaurou 18/18 tabelas em MySQL 8.4 efêmero.
+- [x] Medir e registrar RPO, RTO, integridade estrutural e descarte seguro: RPO observado 25.441 s, RTO 27 s e 4/5 checks aprovados.
+- [ ] Publicar o writer reforçado e provar a trilha `admin_audit_logs` com uma operação administrativa real autorizada; depois de um novo backup, repetir o drill até 5/5. Não gerar auditoria artificial.
+- [ ] Decidir e implementar outbox transacional (ou mesma unidade de trabalho) para eliminar o risco residual de a mutação concluir e a auditoria falhar depois.
+- [ ] Comprovar rollback de deploy/migration em exercício separado.
+- [x] Confirmar criptografia server-side no workflow atualizado: run `29828809180` aprovou `AES256`.
+- [x] Habilitar versionamento e lifecycle: run `29828809180` confirmou `Enabled`, 90 dias atuais, 30 dias não atuais e multipart 7 dias.
 
 Antes do drill, os gates locais devem continuar verdes:
 
@@ -75,11 +82,10 @@ npm run audit:migrations:strict
 
 ## 6. Certificação final
 
-- [ ] Publicar a branch e observar o primeiro CodeQL/Gitleaks/CI completo; corrigir qualquer finding antes de proteger a branch.
+- [x] Publicar a branch e observar CodeQL/CI/release gate completos; todos os checks do PR canônico #19 ficaram verdes no SHA `a1991a1` em 2026-07-22, inclusive E2E público, autenticado, produto e enterprise.
 - [ ] Tornar checks críticos obrigatórios e exigir revisão para mudanças de produção.
 - [ ] Acumular pelo menos 14 dias de observação com SLO aprovado, sem P0/P1 aberto.
 - [ ] Revisar o scorecard com Produto, Engenharia, Operação, Segurança e Jurídico usando apenas evidência datada.
 - [ ] Aprovar go-live, SLA e comunicação aos clientes em reunião registrada.
 
 **10/10 só é certificado quando:** zero P0/P1; readiness/status/DNS operacionais; DR real exercitado; billing e Stays reais validados; outcome ≥80%; SLO ≥99,9% na janela aprovada; jurídico e segurança formalmente aceitos.
-
