@@ -158,6 +158,6 @@ if __name__ == "__main__":
     options = parser.parse_args()
     if not Path(options.path).expanduser().is_file():
         parser.error("Outbox file does not exist")
-    print(
+    print(  # noqa: T201 - CLI emits only operational counts as JSON.
         json.dumps(IngestOutbox(options.path, options.destination.rstrip("/")).status())
     )

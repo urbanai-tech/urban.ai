@@ -287,6 +287,7 @@ export class StaysConnector {
         return { ok: false, rejectedReason: reason };
       }
       // Axios errors contain request credentials. Do not propagate them to exception telemetry.
+      // eslint-disable-next-line preserve-caught-error -- Axios causes retain authentication headers.
       throw new Error('Stays price operation failed; reconcile calendar before retrying');
     }
   }
