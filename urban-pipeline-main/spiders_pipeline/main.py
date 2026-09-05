@@ -1,21 +1,21 @@
-"""
-Main entry point for the Urban Pipeline application.
+"""Main entry point for the Urban Pipeline application.
 
 This module contains the main Prefect flow for triggering web scraping spiders.
 """
 
+from urllib.parse import urlsplit
+
 from prefect import flow, get_run_logger, task
 from prefect.variables import Variable
 
+from .config.settings import settings
 from .spiders_triggers.spiders_triggers import SpiderTriggers
 from .utils.check_service import check_scrapyd_service
-from .config.settings import settings
 
 
 @task(name="Check Scrapyd Service", retries=3, retry_delay_seconds=10)
 def check_service_task(url: str) -> bool:
-    """
-    Checks if the Scrapyd service is available.
+    """Checks if the Scrapyd service is available.
 
     This task will retry up to 3 times with a 10-second delay between retries.
 
@@ -30,15 +30,14 @@ def check_service_task(url: str) -> bool:
     if result:
         logger.info("Scrapyd service is available")
     else:
-        logger.warning("Scrapyd service is not available")
+        raise RuntimeError("Scrapyd service is not available")
 
     return result
 
 
 @flow(name="Trigger All Spiders Flow")
-async def trigger_all_spiders(scrapyd_url: str = None) -> None:
-    """
-    A Prefect flow that triggers all web scraping spiders.
+async def trigger_all_spiders(scrapyd_url: str | None = None) -> None:
+    """A Prefect flow that triggers all web scraping spiders.
 
     This flow first checks if the Scrapyd service is available. If it is,
     it retrieves the Scrapyd URL from a Prefect variable and then triggers
@@ -51,8 +50,8 @@ async def trigger_all_spiders(scrapyd_url: str = None) -> None:
     logger.info("Starting spider triggering flow")
 
     # Use parameter if provided, otherwise fetch from variable
-    if scrapyd_url:
-        logger.info(f"Using Scrapyd URL from parameter: {scrapyd_url}")
+    if scrapyd_url is not None:
+        logger.info("Using Scrapyd URL from parameter")
     else:
         logger.info("Fetching Scrapyd URL from Prefect variable")
         scrapyd_url_data = await Variable.aget("urban_webscraping_scrapyd_url")
@@ -63,14 +62,29 @@ async def trigger_all_spiders(scrapyd_url: str = None) -> None:
             logger.error(
                 "Scrapyd URL is not configured correctly in Prefect variables."
             )
-            return
+            raise ValueError("Scrapyd URL is missing from Prefect variables")
 
         scrapyd_url = scrapyd_url_data["WEBSCRAPPING_API_URL"]
-        logger.info(f"Retrieved Scrapyd URL from variable: {scrapyd_url}")
+        logger.info("Retrieved Scrapyd URL from variable")
+
+    if not isinstance(scrapyd_url, str) or not scrapyd_url.strip():
+        raise ValueError("Scrapyd URL must be a nonempty string")
+    parts = urlsplit(scrapyd_url)
+    if (
+        parts.scheme not in {"http", "https"}
+        or not parts.hostname
+        or parts.username
+        or parts.password
+        or parts.query
+        or parts.fragment
+    ):
+        raise ValueError(
+            "Scrapyd URL must be an HTTP(S) service URL without embedded credentials"
+        )
+    scrapyd_url = scrapyd_url.rstrip("/")
 
     if not check_service_task(url=scrapyd_url):
-        logger.error("Scrapyd service is not available. Exiting.")
-        return
+        raise RuntimeError("Scrapyd service is not available")
 
     spiders = SpiderTriggers(url=scrapyd_url, api_key=settings.SCRAPYD_API_KEY)
     try:

@@ -1,6 +1,8 @@
 """This code serves as a helper for AWS operations."""
 
+from collections.abc import Iterator
 from io import BytesIO
+from typing import Any
 
 import boto3
 import pandas as pd
@@ -47,23 +49,66 @@ class S3Helper:
 
     def list_spiders_folders(self) -> list[str]:
         """List object prefixes and keys below the raw-data folder."""
-        response = self.client.list_objects_v2(
-            Bucket=self.bkt_name, Prefix=self.path_to_folder_data, Delimiter="/"
-        )
-
         folders = []
+        for response in self._list_pages(self.path_to_folder_data, delimiter="/"):
+            for prefix in response.get("CommonPrefixes", []):
+                folder_path = prefix.get("Prefix")
+                if folder_path:
+                    folders.append(folder_path)
+            for content in response.get("Contents", []):
+                folder_path = content.get("Key")
+                if folder_path:
+                    folders.append(folder_path)
+        return list(dict.fromkeys(folders))
 
-        for prefix in response.get("CommonPrefixes", []):
-            folder_path = prefix.get("Prefix")
-            if folder_path:
-                folders.append(folder_path)
+    def _list_pages(
+        self, prefix: str, delimiter: str | None = None
+    ) -> Iterator[dict[str, Any]]:
+        """Read every S3 page, failing if continuation cannot make progress."""
+        params = {"Bucket": self.bkt_name, "Prefix": prefix}
+        if delimiter:
+            params["Delimiter"] = delimiter
+        seen_tokens: set[str] = set()
+        while True:
+            response = self.client.list_objects_v2(**params)
+            yield response
+            if not response.get("IsTruncated", False):
+                return
+            token = response.get("NextContinuationToken")
+            if not isinstance(token, str) or not token or token in seen_tokens:
+                raise RuntimeError(
+                    "S3 listing is truncated without a valid new continuation token"
+                )
+            seen_tokens.add(token)
+            params["ContinuationToken"] = token
 
-        for content in response.get("Contents", []):
-            folder_path = content.get("Key")
-            if folder_path:
-                folders.append(folder_path)
+    def iter_parquet_objects(self, folder_name: str) -> Iterator[tuple[str, bytes]]:
+        """Stream complete object keys and bytes without truncation or basename collisions.
 
-        return folders
+        Consumers must commit an ingestion receipt together with database rows
+        before using this iterator to replace the legacy append-only loader.
+        """
+        clean = folder_name.strip("/")
+        if not clean or "/" in clean or clean in {".", ".."}:
+            raise ValueError("Expected one spider folder name")
+        prefix = f"{self.path_to_folder_data}{clean}/"
+        seen_keys: set[str] = set()
+        for page in self._list_pages(prefix):
+            for item in page.get("Contents", []):
+                key = item.get("Key")
+                if not isinstance(key, str) or not key.startswith(prefix):
+                    raise RuntimeError("S3 listing returned an invalid object key")
+                if not key.endswith(".parquet"):
+                    continue
+                if key in seen_keys:
+                    raise RuntimeError("S3 listing repeated an object key")
+                seen_keys.add(key)
+                body = self.client.get_object(Bucket=self.bkt_name, Key=key)["Body"]
+                try:
+                    content = body.read()
+                finally:
+                    body.close()
+                yield key, content
 
     def get_data_from_s3(self, folder_event_path: str) -> dict[str, bytes] | None:
         """Get the first three parquet files from an S3 folder as raw bytes."""
@@ -97,7 +142,7 @@ class S3Helper:
 
         except Exception as e:
             log.error(f"Error reading folder {folder_path}: {e}")
-            return None
+            raise
 
     def read_parquet_to_dataframe(self, bucket: str, key: str) -> pd.DataFrame:
         """Read a parquet file from S3 directly into a pandas DataFrame.

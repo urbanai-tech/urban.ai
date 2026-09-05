@@ -43,7 +43,7 @@ class S3Extractor:
 
         except Exception as e:
             log.error(f"Failed to list folders: {e}")
-            return []
+            raise
 
     def get_dataframes_from_folder(self, folder_name: str) -> list[pd.DataFrame]:
         """Extract all DataFrames from a specific folder.
@@ -65,6 +65,7 @@ class S3Extractor:
                 return []
 
             dataframes = []
+            failed_files = []
             for filename, byte_content in data.items():
                 try:
                     # Convert bytes to DataFrame
@@ -74,7 +75,12 @@ class S3Extractor:
 
                 except Exception as file_error:
                     log.error(f"Failed to read {filename}: {file_error}")
-                    continue
+                    failed_files.append(filename)
+
+            if failed_files:
+                raise RuntimeError(
+                    f"Invalid parquet input: {len(failed_files)} file(s) failed in {folder_name}"
+                )
 
             log.info(
                 f"Successfully extracted {len(dataframes)} DataFrames "
@@ -84,7 +90,7 @@ class S3Extractor:
 
         except Exception as e:
             log.error(f"Failed to extract data from folder {folder_name}: {e}")
-            return []
+            raise
 
 
 @task(name="Extract Data from S3")
@@ -113,4 +119,4 @@ def extract_from_s3(folder_names: list[str]) -> list[pd.DataFrame] | None:
 
     except Exception as e:
         log.error(f"Error during extraction: {e}")
-        return None
+        raise
