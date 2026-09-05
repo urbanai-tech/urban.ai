@@ -155,4 +155,7 @@ data/
 *.json
 *.xml
 *.parquet
-
+.urban-ingest/
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
