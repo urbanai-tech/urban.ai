@@ -32,10 +32,12 @@ describe("StaysService", () => {
   };
   const originalStaysApiBaseUrl = process.env.STAYS_API_BASE_URL;
   const originalStaysTokenKey = process.env.STAYS_TOKEN_ENCRYPTION_KEY;
+  const originalStaysWrites = process.env.STAYS_PRICE_WRITES_ENABLED;
 
   beforeEach(async () => {
     process.env.STAYS_API_BASE_URL = "https://stays.test";
     process.env.STAYS_TOKEN_ENCRYPTION_KEY = "test-encryption-key";
+    process.env.STAYS_PRICE_WRITES_ENABLED = "true";
 
     accountRepo = {
       findOne: jest.fn(),
@@ -86,6 +88,8 @@ describe("StaysService", () => {
   });
 
   afterAll(() => {
+    if (originalStaysWrites === undefined) delete process.env.STAYS_PRICE_WRITES_ENABLED;
+    else process.env.STAYS_PRICE_WRITES_ENABLED = originalStaysWrites;
     if (originalStaysApiBaseUrl === undefined) {
       delete process.env.STAYS_API_BASE_URL;
     } else {
@@ -97,6 +101,115 @@ describe("StaysService", () => {
     } else {
       process.env.STAYS_TOKEN_ENCRYPTION_KEY = originalStaysTokenKey;
     }
+  });
+
+  describe("operation lifecycle and account isolation", () => {
+    it.each([
+      ['missing analysis', null, { id: 'property-1' }, 404],
+      ['another owner', { usuarioProprietario: { id: 'u2' }, endereco: { list: { id: 'property-1' } } }, { id: 'property-1' }, 404],
+      ['another property', { usuarioProprietario: { id: 'u1' }, endereco: { list: { id: 'property-2' } } }, { id: 'property-1' }, 404],
+      ['unmapped listing', null, null, 400],
+    ])('rejects %s in preview and push before saving or publishing', async (_name, analysis, property, status) => {
+      setupLedger();
+      listingRepo.findOne!.mockResolvedValue({ id: 'listing-account-u1', active: true, propriedade: property });
+      analiseRepo.findOne!.mockResolvedValue(analysis);
+      const request = { ...operation, analisePrecoId: 'analysis-1' };
+      await expect(service.previewPrice('u1', request)).rejects.toMatchObject({ status });
+      await expect(service.pushPrice('u1', request)).rejects.toMatchObject({ status });
+      expect(priceUpdateRepo.save).not.toHaveBeenCalled();
+      expect(pricingDecisionSnapshotRepo.save).not.toHaveBeenCalled();
+      expect(connector.pushPrice).not.toHaveBeenCalled();
+    });
+
+    it('scopes analysis lookup to the owner and mapped Urban property', async () => {
+      setupLedger();
+      listingRepo.findOne!.mockResolvedValue({ id: 'listing-account-u1', active: true, propriedade: { id: 'property-1' } });
+      analiseRepo.findOne!.mockResolvedValue({ id: 'analysis-1', usuarioProprietario: { id: 'u1' }, endereco: { list: { id: 'property-1' } } });
+      const response = await service.pushPrice('u1', { ...operation, analisePrecoId: 'analysis-1' });
+      expect(response.status).toBe('success');
+      expect(analiseRepo.findOne).toHaveBeenCalledWith(expect.objectContaining({
+        where: { id: 'analysis-1', usuarioProprietario: { id: 'u1' }, endereco: { list: { id: 'property-1' } } },
+      }));
+    });
+
+    function setupLedger() {
+      const records = new Map<string, any>();
+      const prices = new Map<string, number>();
+      let sequence = 0;
+      accountRepo.findOne!.mockImplementation(async ({ where }) => ({
+        id: `account-${where.user.id}`, user: { id: where.user.id },
+        clientId: where.user.id, accessToken: 'test-secret',
+        apiBaseUrl: `https://${where.user.id}.stays.net`, status: 'active',
+        consentAcceptedAt: new Date(), consentVersion: 'stays-connect-v1',
+        maxIncreasePercent: 25, maxDecreasePercent: 20,
+      }));
+      listingRepo.findOne!.mockImplementation(async ({ where }) =>
+        where.id === `listing-${where.account.id}` ? {
+          id: where.id, staysListingId: 'same-provider-id', active: true,
+          account: { id: where.account.id },
+        } : null);
+      priceUpdateRepo.create!.mockImplementation((data) => ({ id: `update-${++sequence}`, ...data }));
+      priceUpdateRepo.save!.mockImplementation(async (record) => {
+        records.set(record.id, record);
+        return record;
+      });
+      priceUpdateRepo.findOne!.mockImplementation(async ({ where }) =>
+        [...records.values()].find((record) => where.idempotencyKey
+          ? record.idempotencyKey === where.idempotencyKey
+          : record.id === where.id && record.user.id === where.user.id) ?? null);
+      connector.pushPrice.mockImplementation(async (credentials, input) => {
+        const previous = prices.get(credentials.clientId) ?? 10000;
+        if (previous !== input.previousPriceCents) throw new Error('provider baseline mismatch');
+        prices.set(credentials.clientId, input.priceCents);
+        return { ok: true };
+      });
+      return { records, prices };
+    }
+
+    const operation = {
+      requestId: 'c32e0d3e-4025-4a1e-8656-22354247f579',
+      listingId: 'listing-account-u1', targetDate: '2026-09-15',
+      previousPriceCents: 10000, newPriceCents: 11000,
+      currency: 'BRL', origin: 'user_manual' as const,
+    };
+
+    it('applies, rolls back, reapplies with a new decision and deduplicates retries', async () => {
+      const { prices, records } = setupLedger();
+      const first = await service.pushPrice('u1', operation);
+      const inverse = await service.rollback('u1', first.id);
+      expect(prices.get('u1')).toBe(10000);
+      expect(inverse.rollbackOf.id).toBe(first.id);
+      await service.rollback('u1', first.id);
+      const next = { ...operation, requestId: '606c2aad-ed1c-4a19-92f7-a645174c2252' };
+      const second = await service.pushPrice('u1', next);
+      expect(second.id).not.toBe(first.id);
+      expect(await service.pushPrice('u1', next)).toBe(second);
+      expect(prices.get('u1')).toBe(11000);
+      expect(records.size).toBe(3);
+      expect(connector.pushPrice).toHaveBeenCalledTimes(3);
+    });
+
+    it('rejects reuse of an operation identifier with a different payload', async () => {
+      setupLedger();
+      await service.pushPrice('u1', operation);
+      await expect(service.pushPrice('u1', { ...operation, newPriceCents: 12000 }))
+        .rejects.toMatchObject({ status: 409 });
+      expect(connector.pushPrice).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps matching remote IDs and request IDs isolated between accounts', async () => {
+      const { prices } = setupLedger();
+      delete process.env.STAYS_API_BASE_URL;
+      const first = await service.pushPrice('u1', operation);
+      const second = await service.pushPrice('u2', { ...operation, listingId: 'listing-account-u2' });
+      expect(first.idempotencyKey).not.toBe(second.idempotencyKey);
+      expect(second.user.id).toBe('u2');
+      expect(prices.size).toBe(2);
+      expect(connector.pushPrice.mock.calls.map(([credentials]) => credentials.apiBaseUrl))
+        .toEqual(['https://u1.stays.net', 'https://u2.stays.net']);
+      await expect(service.pushPrice('u2', operation)).rejects.toMatchObject({ status: 404 });
+      expect(connector.pushPrice).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe("connectAccount", () => {
@@ -319,6 +432,56 @@ describe("StaysService", () => {
     });
   });
 
+  it('reports the disabled publication gate in preview without contacting Stays', async () => {
+    delete process.env.STAYS_PRICE_WRITES_ENABLED;
+    accountRepo.findOne!.mockResolvedValue({
+      id: 'acc', status: 'active', consentAcceptedAt: new Date(), consentVersion: 'v1',
+      maxIncreasePercent: 25, maxDecreasePercent: 20,
+    });
+    listingRepo.findOne!.mockResolvedValue({ id: 'l1', staysListingId: 'remote', active: true });
+    priceUpdateRepo.findOne!.mockResolvedValue(null);
+    const preview = await service.previewPrice('u1', {
+      listingId: 'l1', targetDate: '2026-09-15', newPriceCents: 11000, previousPriceCents: 10000,
+    });
+    expect(preview.readyForPush).toBe(false);
+    expect(preview.blockers.map((blocker) => blocker.code)).toContain('stays_price_writes_disabled');
+    expect(connector.pushPrice).not.toHaveBeenCalled();
+  });
+
+  it('blocks manual publication before persistence while the pilot is disabled', async () => {
+    delete process.env.STAYS_PRICE_WRITES_ENABLED;
+    accountRepo.findOne!.mockResolvedValue({
+      status: 'active', consentAcceptedAt: new Date(), consentVersion: 'v1',
+    });
+    await expect(service.pushPrice('u1', {
+      listingId: 'l1', targetDate: '2026-09-15', newPriceCents: 11000,
+      previousPriceCents: 10000, origin: 'user_manual',
+    })).rejects.toThrow('Publicação Stays desabilitada');
+    expect(priceUpdateRepo.save).not.toHaveBeenCalled();
+    expect(connector.pushPrice).not.toHaveBeenCalled();
+  });
+
+  it('does not mark a sync complete when provider payload validation fails', async () => {
+    accountRepo.findOne!.mockResolvedValue({ status: 'active', clientId: 'local-id', accessToken: 'local-secret' });
+    connector.listListings.mockRejectedValue(new Error('Invalid Stays listings response'));
+    await expect(service.syncListings('u1')).rejects.toThrow('Invalid Stays');
+    expect(connector.listListings).toHaveBeenCalledWith({ clientId: 'local-id', clientSecret: 'local-secret', apiBaseUrl: 'https://stays.test' });
+    expect(accountRepo.save).not.toHaveBeenCalled();
+    expect(listingRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('deactivates disappeared listings after a successful empty inventory while preserving their mappings', async () => {
+    const account = { id: 'acc-1', status: 'active', clientId: 'local-id', accessToken: 'local-secret' };
+    const mapping = { id: 'property-1' };
+    const oldListing = { id: 'listing-1', staysListingId: 'removed', active: true, propriedade: mapping };
+    accountRepo.findOne!.mockResolvedValue(account);
+    listingRepo.find!.mockResolvedValue([oldListing]);
+    connector.listListings.mockResolvedValue([]);
+    expect(await service.syncListings('u1')).toEqual([]);
+    expect(listingRepo.save).toHaveBeenCalledWith(expect.objectContaining({ active: false, propriedade: mapping }));
+    expect(accountRepo.save).toHaveBeenCalledWith(expect.objectContaining({ lastSyncAt: expect.any(Date) }));
+  });
+
   describe("pushPrice — guardrails de variação", () => {
     function withActiveAccount(overrides: Partial<StaysAccount> = {}) {
       const user = { id: "u1" };
@@ -404,7 +567,7 @@ describe("StaysService", () => {
 
     it("persists PriceUpdate lifecycle as pricing decision outcome", async () => {
       withActiveAccount();
-      withListing();
+      listingRepo.findOne!.mockResolvedValue({ ...withListing(), propriedade: { id: 'property-1' } });
       priceUpdateRepo.findOne!.mockResolvedValue(null);
       connector.pushPrice.mockResolvedValue({
         ok: true,
@@ -412,6 +575,8 @@ describe("StaysService", () => {
       });
       analiseRepo.findOne!.mockResolvedValue({
         id: "analysis-1",
+        usuarioProprietario: { id: 'u1' },
+        endereco: { list: { id: 'property-1' } },
         status: "applied_stays",
         aceito: true,
         reservaStatus: "booked",
@@ -505,22 +670,21 @@ describe("StaysService", () => {
       expect(result.status).toBe("success");
     });
 
-    it("skips the caps when previousPriceCents is zero (no baseline)", async () => {
+    it("rejects a zero previous price because the baseline cannot be verified", async () => {
       withActiveAccount();
       withListing("l-1", 0);
       priceUpdateRepo.findOne!.mockResolvedValue(null);
       connector.pushPrice.mockResolvedValue({ ok: true });
 
-      // Não temos preço anterior para comparar — aceita qualquer valor novo.
-      const result = await service.pushPrice("u1", {
+      await expect(service.pushPrice("u1", {
         listingId: "l-1",
         targetDate: "2026-05-01",
         previousPriceCents: 0,
         newPriceCents: 50000,
         origin: "user_manual",
-      });
+      })).rejects.toThrow('previousPriceCents deve ser um inteiro positivo');
 
-      expect(result.status).toBe("success");
+      expect(connector.pushPrice).not.toHaveBeenCalled();
     });
   });
 
@@ -849,6 +1013,7 @@ describe("StaysService", () => {
         previousPriceCents: 11500,
         currency: "BRL",
         origin: "rollback",
+        requestId: "pu-original",
         ip: "127.0.0.1",
         userAgent: "jest",
       });

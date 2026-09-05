@@ -1,21 +1,20 @@
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { StaysAccount } from './stays-account.entity';
 import { List } from './list.entity';
+import type { StaysProviderMetadata } from '../stays/stays-connector';
 
 /**
- * Ligação 1:1 entre uma `List` (imóvel interno Urban AI) e um listing Stays.
+ * Cadastro externo Stays com vínculo opcional a um imóvel interno.
  *
- * Um mesmo usuário pode ter N imóveis, e cada imóvel mapeia para 1 listing
- * Stays (o Stays pode, por sua vez, espelhar para Airbnb + Booking + Vrbo,
- * mas para nós isso é transparente — pushamos preço para o listing Stays
- * e ele replica).
+ * O mapeamento deve considerar inventário, masters de preço e canais;
+ * a entidade não impõe cardinalidade 1:1 com o imóvel físico.
  *
  * Se o anfitrião tiver imóveis na Urban AI que NÃO têm listing Stays
  * correspondente, simplesmente não criamos linha aqui — o modo autônomo
  * é desativado por imóvel, não por conta.
  */
 @Entity('stays_listings')
-@Index(['staysListingId'], { unique: true })
+@Index('IDX_stays_listings_account_remote', ['account', 'staysListingId'], { unique: true })
 @Index(['account', 'propriedade'])
 export class StaysListing {
   @PrimaryGeneratedColumn('uuid')
@@ -52,6 +51,9 @@ export class StaysListing {
 
   @Column({ type: 'int', nullable: true })
   basePriceCents: number | null;
+
+  @Column({ type: 'json', nullable: true })
+  providerMetadata: StaysProviderMetadata | null;
 
   /**
    * Flag por listing — o anfitrião pode escolher quais imóveis usam o modo
