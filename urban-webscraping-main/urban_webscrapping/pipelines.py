@@ -95,8 +95,10 @@ class UrbanIngestPipeline:
     def __init__(self) -> None:
         self.enabled = bool(
             (os.environ.get("URBAN_EVENTS_INGEST_API_KEY") or "").strip()
-            or (os.environ.get("URBAN_COLLECTOR_EMAIL")
-                and os.environ.get("URBAN_COLLECTOR_PASSWORD"))
+            or (
+                os.environ.get("URBAN_COLLECTOR_EMAIL")
+                and os.environ.get("URBAN_COLLECTOR_PASSWORD")
+            )
         )
         self.client: UrbanBackendClient | None = None
         if self.enabled:
