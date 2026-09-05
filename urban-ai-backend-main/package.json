@@ -61,7 +61,6 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "@googlemaps/google-maps-services-js": "^3.4.2",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/bull": "^11.0.3",
     "@nestjs/common": "^11.1.28",
@@ -127,9 +126,9 @@
     "typescript-eslint": "8.64.0"
   },
   "overrides": {
-    "js-yaml": "4.3.0",
+    "js-yaml": "4.3.2",
     "lodash": "4.18.1",
-    "qs": "6.15.3",
+    "qs": "6.16.0",
     "uuid": "$uuid"
   },
   "jest": {

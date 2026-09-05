@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
 import { In, IsNull, Not, Repository } from 'typeorm';
 
-import { Client } from '@googlemaps/google-maps-services-js';
+import { GeocodingClient } from './geocoding-client';
 
 import { Event } from '../entities/events.entity';
 import { Address } from '../entities/addresses.entity';
@@ -21,7 +21,7 @@ import { ScheduledJobRunnerService, runScheduledJob } from '../admin-job-runs/sc
 export class MapsService {
   private readonly logger = new Logger(MapsService.name);
   private readonly apiKey = process.env.GOOGLE_MAPS_API_KEY;
-  private readonly client = new Client({});
+  private readonly client = new GeocodingClient();
 
   constructor(
     @InjectRepository(Event)
