@@ -110,6 +110,10 @@ export class StaysAccount {
   @Column({ type: 'varchar', length: 128 })
   clientId: string;
 
+  /** Domínio validado desta conta; null usa a configuração legada do ambiente. */
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  apiBaseUrl: string | null;
+
   /**
    * Access token / client secret para chamar a Open API.
    * ⚠️ Conteúdo sensível — nunca logar.

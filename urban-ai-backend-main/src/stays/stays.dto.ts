@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  IsUrl,
   Matches,
   Max,
   MaxLength,
@@ -15,10 +16,14 @@ import {
 const DATE_ONLY = /^\d{4}-(0[1-9]|1[0-2])-([0-2]\d|3[01])$/;
 
 export class ConnectStaysDto {
-  @IsString() @MinLength(1) @MaxLength(255)
+  @IsOptional() @IsUrl({ protocols: ['https'], require_protocol: true }) @MaxLength(255)
+  apiBaseUrl?: string;
+
+  @IsString() @MinLength(1) @MaxLength(128)
   clientId!: string;
 
-  @IsString() @MinLength(8) @MaxLength(8192)
+  // Historical API field name; holds the Stays Client Secret, encrypted at rest.
+  @IsString() @MinLength(8) @MaxLength(1024)
   accessToken!: string;
 
   @Equals(true)
@@ -29,6 +34,9 @@ export class ConnectStaysDto {
 }
 
 export class PreviewStaysPriceDto {
+  @IsOptional() @IsUUID()
+  requestId?: string;
+
   @IsUUID()
   listingId!: string;
 
@@ -49,6 +57,9 @@ export class PreviewStaysPriceDto {
 }
 
 export class PushStaysPriceDto {
+  @IsOptional() @IsUUID()
+  requestId?: string;
+
   @IsUUID()
   listingId!: string;
 

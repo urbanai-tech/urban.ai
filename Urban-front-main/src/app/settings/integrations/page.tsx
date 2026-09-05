@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   staysConnect,
   staysDisconnect,
+  staysGetAccount,
   staysListListings,
   staysPreviewPrice,
   staysSyncListings,
@@ -71,6 +72,7 @@ export default function IntegrationsPage() {
   const [listings, setListings] = useState<StaysListingPublic[]>([]);
   const [loading, setLoading] = useState(true);
   const [clientId, setClientId] = useState("");
+  const [apiBaseUrl, setApiBaseUrl] = useState("");
   const [accessToken, setAccessToken] = useState("");
   const [consent, setConsent] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -87,22 +89,18 @@ export default function IntegrationsPage() {
   useEffect(() => {
     (async () => {
       try {
-        const items = await staysListListings();
+        const [savedAccount, items] = await Promise.all([staysGetAccount(), staysListListings()]);
+        setAccount(savedAccount);
+        setApiBaseUrl(savedAccount?.apiBaseUrl ?? '');
+        setClientId(savedAccount?.clientId ?? '');
         setListings(items);
         if (items.length > 0) {
           const firstActive = items.find((item) => item.active) ?? items[0];
           setPreviewListingId(firstActive.id);
           setPreviewPrice(firstActive.basePriceCents ? String(firstActive.basePriceCents / 100) : "");
-          setAccount({
-            id: "unknown",
-            status: "active",
-            clientId: "",
-            lastSyncAt: null,
-            consentAcceptedAt: null,
-          });
         }
       } catch {
-        /* sem conta ainda — ok */
+        setSubmitError('Não foi possível consultar o estado da integração. Atualize a página para tentar novamente.');
       } finally {
         setLoading(false);
       }
@@ -125,6 +123,7 @@ export default function IntegrationsPage() {
       const acc = await staysConnect(clientId.trim(), accessToken.trim(), {
         consentAccepted: consent,
         consentVersion: STAYS_CONSENT_VERSION,
+        apiBaseUrl: apiBaseUrl.trim() || undefined,
       });
       setAccount(acc);
       setAccessToken("");
@@ -245,6 +244,16 @@ export default function IntegrationsPage() {
           />
           <form onSubmit={handleConnect} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <AppInput
+              label="Endereço da sua conta Stays"
+              type="url"
+              value={apiBaseUrl}
+              onChange={(e) => setApiBaseUrl(e.target.value)}
+              disabled={submitBusy}
+              autoComplete="off"
+              placeholder="https://sua-conta.stays.net"
+              helper="Use o endereço que você acessa na Stays. Se o piloto já foi configurado pela Urban, pode deixar em branco."
+            />
+            <AppInput
               label="Código da conta Stays"
               type="text"
               value={clientId}
@@ -262,7 +271,7 @@ export default function IntegrationsPage() {
               disabled={submitBusy}
               autoComplete="off"
               placeholder="Cole a chave gerada"
-              helper="Na Stays, esse campo aparece como Access Token. Ele é enviado por conexão segura para ativar a integração."
+              helper="Informe o Client Secret da API Stays. Ele é enviado por conexão segura para validar o acesso."
             />
 
             <div

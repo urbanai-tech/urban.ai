@@ -40,6 +40,7 @@
     "migration:run": "npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert",
     "migration:show": "npm run typeorm -- migration:show",
+    "test:migrations:stays": "node scripts/test-stays-migrations.cjs",
     "backfill:geocoder": "ts-node -r tsconfig-paths/register scripts/backfill-geocoder.ts",
     "backfill:geocoder:dry": "ts-node -r tsconfig-paths/register scripts/backfill-geocoder.ts --dry-run",
     "preflight:track3": "node scripts/track3-preflight.js",

@@ -90,9 +90,11 @@ export class PriceUpdate {
   rollbackOf: PriceUpdate | null;
 
   /**
-   * Idempotency key — constituída por (listingId, targetDate, hash do body).
+   * Idempotency key — conta + origem + requestId da decisão. Clientes legados
+   * sem requestId usam UUID interno do listing/data/valor (replay do recibo).
    * Duas chamadas com a mesma key não resultam em 2 pushes: a segunda
-   * retorna o resultado da primeira. Evita retry duplicando atualização.
+   * retorna o resultado da primeira, com conflito se mudar o corpo. Uma nova
+   * decisão, inclusive reaplicar após rollback, precisa de outro requestId.
    */
   @Column({ type: 'varchar', length: 128, unique: true })
   idempotencyKey: string;
