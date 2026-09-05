@@ -33,6 +33,7 @@ def main() -> None:
         log.info(f"Found {len(folders)} folders to process: {folders}")
 
         total_processed = 0
+        failed_folders = []
         for folder in folders:
             try:
                 log.info(f"Processing folder: {folder}")
@@ -61,7 +62,13 @@ def main() -> None:
 
             except Exception as folder_error:
                 log.error(f"Failed to process folder {folder}: {folder_error}")
-                continue
+                failed_folders.append(folder)
+
+        if failed_folders:
+            raise RuntimeError(
+                f"Raw data pipeline incomplete: {len(failed_folders)}/{len(folders)} "
+                f"folders failed; {total_processed} succeeded"
+            )
 
         log.info(
             f"Pipeline completed. Successfully processed "

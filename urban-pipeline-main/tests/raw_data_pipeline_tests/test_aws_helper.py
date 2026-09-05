@@ -137,9 +137,8 @@ class TestS3Helper:
         s3_helper.client.list_objects_v2.side_effect = Exception("S3 error")
 
         with patch("raw_data_pipeline.utils.aws_helper.log.error") as mock_log_error:
-            result = s3_helper.get_data_from_s3("events/")
-
-            assert result is None
+            with pytest.raises(Exception, match="S3 error"):
+                s3_helper.get_data_from_s3("events/")
             mock_log_error.assert_called_with(
                 "Error reading folder raw_data/parquet/events/: S3 error"
             )

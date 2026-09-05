@@ -1,3 +1,5 @@
+"""Schedule spiders and require an explicit Scrapyd job acknowledgement."""
+
 from typing import Any, cast
 
 import httpx
@@ -16,30 +18,37 @@ class SpiderTriggers(ISpiderTrigger):
 
     @task(name="Crawl Eventim")
     def crawl_eventim(self) -> dict[str, str]:
+        """Schedule Eventim collection."""
         return self._trigger_spider("eventim")
 
     @task(name="Crawl Ticketmaster")
     def crawl_ticketmaster(self) -> dict[str, str]:
+        """Schedule Ticketmaster collection."""
         return self._trigger_spider("ticket_master")
 
     @task(name="Crawl Blue Ticket")
     def crawl_blue_ticket(self) -> dict[str, str]:
+        """Schedule Blue Ticket collection."""
         return self._trigger_spider("blue_ticket")
 
     @task(name="Crawl Even3")
     def crawl_even3(self) -> dict[str, str]:
+        """Schedule Even3 collection."""
         return self._trigger_spider("even3")
 
     @task(name="Crawl Ingresse")
     def crawl_ingresse(self) -> dict[str, str]:
+        """Schedule Ingresse collection."""
         return self._trigger_spider("ingresse")
 
     @task(name="Crawl Sympla")
     def crawl_sympla(self) -> dict[str, str]:
+        """Schedule Sympla collection."""
         return self._trigger_spider("sympla")
 
     @task(name="Crawl Ticket 360")
     def crawl_ticket_360(self) -> dict[str, str]:
+        """Schedule Ticket 360 collection."""
         return self._trigger_spider("ticket_360")
 
     def _trigger_spider(self, spider_name: str) -> dict[str, Any]:
@@ -67,7 +76,16 @@ class SpiderTriggers(ISpiderTrigger):
             response.raise_for_status()
 
             result = cast(dict[str, Any], response.json())
-            job_id = result.get("jobid", "unknown")
+            if (
+                not isinstance(result, dict)
+                or result.get("status") != "ok"
+                or not isinstance(result.get("jobid"), str)
+                or not result["jobid"].strip()
+            ):
+                raise RuntimeError(
+                    f"Scrapyd did not confirm scheduling for {spider_name}"
+                )
+            job_id = result["jobid"]
             logger.info(
                 f"Spider {spider_name} triggered successfully. Job ID: {job_id}"
             )
