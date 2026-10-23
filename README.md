@@ -28,8 +28,9 @@ Promessas quantitativas de ROI ficam bloqueadas até existirem ground truth, pre
 | [`Urban-front-main/`](Urban-front-main/) | Next.js 15 (App Router) + React 19 + Tailwind 4 + NextAuth | Site de marketing (`myurbanai.com`) e app (`app.myurbanai.com`) |
 | [`urban-webscraping-main/`](urban-webscraping-main/) | Scrapy + Scrapyd + Playwright + coletores HTTP | 7 spiders e coletores de eventos; envia para `POST /events/ingest`; cron interno a cada 6 h |
 | [`urban-pipeline-main/`](urban-pipeline-main/) | Prefect 3 (Python) | Dispara os spiders às 03:00 UTC; flow S3 → MySQL legado (inativo) |
-| [`urban-ai-knn-main/`](urban-ai-knn-main/) | Python | **Aposentado** ([ADR 0007](docs/adr/0007-aposentar-knn-microservice.md)); ainda compila, sem tráfego |
 | [`load-tests/`](load-tests/) | k6 | Cenários de carga |
+
+O microserviço KNN legado foi removido do repositório em 2026-10 ([ADR 0007](docs/adr/0007-aposentar-knn-microservice.md)); o motor ativo é `urban-ai-backend-main/src/knn-engine/`.
 
 ## Setup local
 

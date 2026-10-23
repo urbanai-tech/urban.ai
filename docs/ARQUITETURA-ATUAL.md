@@ -18,7 +18,7 @@
 | Fila / cache | — | Redis (Upstash) usado pelo Bull (fila `processos`) | Upstash | `REDIS_*` no backend |
 | Webscraping | `urban-webscraping-main/` | Python 3.12, Scrapy + Scrapyd + Playwright, coletores HTTP próprios, `auth_proxy.py` na frente do Scrapyd | Railway (Dockerfile) | Domínio de serviço Railway; protegido por `SCRAPYD_API_KEY` |
 | Pipeline | `urban-pipeline-main/` | Python 3.12, Prefect 3 (`serve.py`), Pandas/SQLAlchemy/boto3 | Container próprio (Dockerfile → `serve.py`) conectado ao Prefect via `PREFECT_API_URL`/`PREFECT_API_KEY` | Prefect (workspace sob responsabilidade do responsável operacional) |
-| KNN legado | `urban-ai-knn-main/` | Python | **Aposentado** ([ADR 0007](./adr/0007-aposentar-knn-microservice.md)); ainda compila, sem tráfego | — |
+| KNN legado | `urban-ai-knn-main` (removido em 2026-10) | Node/Express | **Aposentado** ([ADR 0007](./adr/0007-aposentar-knn-microservice.md)); código só no histórico | — |
 | Load tests | `load-tests/` | k6 | Local/CI manual | — |
 
 Contagem de referência (2026-10-23, apenas para ordem de grandeza): backend com 36 controllers, 21 jobs `@Cron` e ~90 arquivos `*.spec.ts`. Não use esses números como meta; recalcule quando precisar.

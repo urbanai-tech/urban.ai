@@ -93,9 +93,9 @@ Na ordem abaixo. Tudo vai puxar de `github.com/urbanai-tech/urban.ai` (branch a 
   - `NEXT_PUBLIC_CHAINLIT_URL=<deixar vazio se não tiver chainlit em staging, ou URL do staging>`
 - **Custom domain:** `staging.myurbanai.com` → CNAME no Hostinger.
 
-### 2.5 KNN standalone staging (só se decidirem manter)
+### 2.5 KNN standalone staging
 
-Ver F5C.3: decisão pendente sobre aposentar ou reativar `urban-ai-knn-main/`. Se aposentar: **não provisionar em staging**. Se reativar: mesmo fluxo do backend, env vars `API_KEY` (nova, gerar com `crypto`) e `MAPBOX_TOKEN`.
+Não se aplica: o microserviço `urban-ai-knn-main` foi aposentado e removido do repositório em 2026-10 ([ADR 0007](../adr/0007-aposentar-knn-microservice.md)). Não provisionar em staging; o motor KNN roda embarcado no backend.
 
 ### 2.6 Pipeline Prefect staging
 

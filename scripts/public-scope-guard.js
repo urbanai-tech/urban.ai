@@ -27,10 +27,6 @@ const ROOT_FILES = new Set([
   'vercel.json',
 ]);
 
-// O nome da pasta do serviço legado é montado por partes para não acionar o
-// gate de dependência do KNN legado, que proíbe a referência literal em scripts.
-const KNN_FOLDER = `${['urban', 'ai', 'knn', 'main'].join('-')}/`;
-
 // Pastas permitidas na raiz (prefixo completo).
 const ROOT_DIRECTORIES = [
   '.githooks/',
@@ -38,7 +34,6 @@ const ROOT_DIRECTORIES = [
   'Urban-front-main/',
   'load-tests/',
   'urban-ai-backend-main/',
-  KNN_FOLDER,
   'urban-pipeline-main/',
   'urban-webscraping-main/',
 ];
