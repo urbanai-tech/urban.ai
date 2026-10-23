@@ -15,8 +15,6 @@ import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
 import * as dotenv from 'dotenv';
 
 import { UserModule } from './user/user.module';
@@ -166,12 +164,6 @@ function envOrLocalDefault(name: string, localDefault: string): string {
     CommunicationsModule,
     HealthModule,
     HostPanelsModule,
-
-    // 4) Static file serving
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'),
-      serveRoot: '/uploads',
-    }),
   ],
   controllers: [
     ProcessoController, AppController],

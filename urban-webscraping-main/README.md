@@ -121,7 +121,7 @@ This project is set up to be deployed to a Scrapyd server, which allows for sche
 ## Project Structure
 
 ```
-├── Dockerfile.scrapyd          # Dockerfile for building the Scrapyd image
+├── Dockerfile                  # Dockerfile for building the service image
 ├── pyproject.toml              # Project metadata and dependencies
 ├── scrapy.cfg                  # Scrapy configuration file
 ├── scrapyd.conf                # Scrapyd configuration file
@@ -133,7 +133,7 @@ This project is set up to be deployed to a Scrapyd server, which allows for sche
 │   ├── custom_spider_settings/ # Custom settings for individual spiders
 │   └── spiders/                # Contains all the spider implementations
 └── scripts/
-    └── test_crawl.py           # Script for testing spider crawls
+    └── run_all_collectors.sh   # Runs all collectors
 ```
 
 ## Configuration
