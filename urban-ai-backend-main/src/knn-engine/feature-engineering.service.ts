@@ -2,7 +2,7 @@ import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
 import { Repository, IsNull, Not } from 'typeorm';
-import { Client } from '@googlemaps/google-maps-services-js';
+import { GeocodingClient } from '../maps/geocoding-client';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Address } from '../entities/addresses.entity';
 import { List } from '../entities/list.entity';
@@ -96,7 +96,7 @@ export function isInGreaterSp(lat: number, lng: number): boolean {
 @Injectable()
 export class FeatureEngineeringService {
   private readonly logger = new Logger(FeatureEngineeringService.name);
-  private mapsClient: Client | null = null;
+  private mapsClient: GeocodingClient | null = null;
   private genAI: GoogleGenerativeAI | null = null;
 
   constructor(
@@ -105,9 +105,9 @@ export class FeatureEngineeringService {
     @Optional() private readonly scheduledJobRunner?: ScheduledJobRunnerService,
   ) {}
 
-  private getMapsClient(): Client | null {
+  private getMapsClient(): GeocodingClient | null {
     if (!process.env.GOOGLE_MAPS_API_KEY?.trim()) return null;
-    if (!this.mapsClient) this.mapsClient = new Client({});
+    if (!this.mapsClient) this.mapsClient = new GeocodingClient();
     return this.mapsClient;
   }
 
