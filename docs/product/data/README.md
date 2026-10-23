@@ -6,4 +6,3 @@ Documentos ativos sobre datasets, fontes, qualidade e motores analíticos. Para 
 - [Datasets de treino multicidade](./datasets-treino-multicidade-2026-07.md)
 - [Mapeamento de fontes de eventos](./event-sources-mapping.md)
 
-Snapshots e estratégias substituídas ficam em [`../../archive/data/`](../../archive/data/).

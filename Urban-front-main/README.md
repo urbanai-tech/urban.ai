@@ -1,13 +1,15 @@
 # Urban AI — Frontend (Next.js 15)
 
-UI completa do produto Urban AI: home/login, landing de lançamento, onboarding, dashboard, planos, integrações.
+UI do produto Urban AI: site de marketing (`myurbanai.com`) e app autenticado (`app.myurbanai.com`), separados por host em `src/middleware.ts`. Produção roda no Railway atrás do Cloudflare.
+
+> Estado de infra e ambientes: [`../docs/ARQUITETURA-ATUAL.md`](../docs/ARQUITETURA-ATUAL.md). Variáveis: [`../docs/runbooks/matriz-env-operacional.md`](../docs/runbooks/matriz-env-operacional.md). Revisado em 2026-10-23.
 
 ## Stack
 
 | Tecnologia | Uso |
 |---|---|
 | Next.js 15 (App Router, output standalone) | framework SSR/SSG |
-| Chakra UI 2 + Tailwind 4 | UI (coexistem; Chakra herdado, Tailwind nas páginas novas) |
+| React 19 + Tailwind 4 + tokens do design system | UI (Chakra UI foi removido; ver `../docs/product/DESIGN-SYSTEM.md`) |
 | NextAuth + JWT do backend | auth (cookie httpOnly desde F5C.2 #10, fase 2 do front pendente) |
 | Stripe Elements | checkout |
 | Sentry NextJS | observabilidade |
@@ -17,18 +19,20 @@ UI completa do produto Urban AI: home/login, landing de lançamento, onboarding,
 
 ## Porta
 
-`3000` em dev (`yarn dev`).
+`3000` em dev (`npm run dev`).
 
 ## Setup local
 
 ```bash
-yarn install
+npm ci --legacy-peer-deps
 cp .env.example .env.local
 # preencha NEXT_PUBLIC_API_URL, GOOGLE_CLIENT_ID/SECRET, NEXTAUTH_SECRET, etc.
-yarn dev
+npm run dev
 ```
 
-Backend precisa estar de pé em `http://localhost:10000` ou apontar `NEXT_PUBLIC_API_URL` para staging/prod.
+O projeto usa **npm** (`package-lock.json`), igual ao CI.
+
+Backend local em `http://localhost:10000` (porta do `.env.example` do backend) ou `NEXT_PUBLIC_API_URL` apontando para o backend de **staging** no Railway. As `NEXT_PUBLIC_*` são embutidas no build: mudar exige rebuild.
 
 ## Variáveis de ambiente críticas
 
@@ -51,12 +55,14 @@ Ver `.env.example`. As principais:
 ## Comandos úteis
 
 ```bash
-yarn dev              # next dev
-yarn build            # next build
-yarn start            # next start (depois de build)
-yarn lint             # eslint
-yarn test:e2e         # playwright (smoke + a11y)
-yarn test:e2e:ui      # playwright UI mode
+npm run dev              # next dev
+npm run build            # next build
+npm run start            # next start (depois de build)
+npm run lint             # eslint
+npm run typecheck        # tsc
+npm run test:unit        # testes unitários e de contrato
+npm run test:e2e         # playwright (smoke + a11y)
+npm run test:e2e:ui      # playwright UI mode
 ```
 
 ## Estrutura
@@ -80,7 +86,7 @@ src/
     ├── service/api.ts           # axios + helpers tipados (auth, plans, stays, ...)
     ├── globals.css
     ├── layout.tsx               # root: monta StagingBanner, Analytics, Providers
-    └── providers.tsx            # NextAuth + Chakra + i18n providers
+    └── providers.tsx            # NextAuth + i18n providers
 ```
 
 ## E2E + a11y tests
@@ -95,23 +101,23 @@ Rodar contra dev local:
 
 ```bash
 # terminal 1
-yarn dev
+npm run dev
 
 # terminal 2
-yarn test:e2e
+npm run test:e2e
 ```
 
-Rodar contra staging:
+Rodar contra staging (use o domínio de serviço Railway do front de staging; `staging.myurbanai.com` falha em TLS hoje):
 
 ```bash
-E2E_BASE_URL=https://staging.myurbanai.com yarn test:e2e
+E2E_BASE_URL=<url-railway-do-front-staging> npm run test:e2e
 ```
 
 Smoke autenticado contra staging:
 
 ```bash
-E2E_BASE_URL=https://staging.myurbanai.com \
-E2E_API_URL=https://api-staging.myurbanai.com \
+E2E_BASE_URL=<url-railway-do-front-staging> \
+E2E_API_URL=<url-railway-do-backend-staging> \
 E2E_ADMIN_EMAIL=<admin-email> \
 E2E_ADMIN_PASSWORD='senha-real-admin' \
 E2E_HOST_EMAIL=<host-email> \
@@ -119,27 +125,27 @@ E2E_HOST_PASSWORD='senha-real-host' \
 E2E_ALPHA_EMAIL=<alpha-email> \
 node scripts/staging-gate-preflight.mjs --gate authenticated-smoke
 
-E2E_BASE_URL=https://staging.myurbanai.com \
-E2E_API_URL=https://api-staging.myurbanai.com \
+E2E_BASE_URL=<url-railway-do-front-staging> \
+E2E_API_URL=<url-railway-do-backend-staging> \
 E2E_ADMIN_EMAIL=<admin-email> \
 E2E_ADMIN_PASSWORD='senha-real-admin' \
 E2E_HOST_EMAIL=<host-email> \
 E2E_HOST_PASSWORD='senha-real-host' \
-yarn test:e2e --grep "Smoke autenticado"
+npm run test:e2e -- --grep "Smoke autenticado"
 ```
 
 Sem credenciais de host ou admin, os blocos correspondentes usam `test.skip` e a suite pública continua rodando normalmente. O CI também aceita `ENTERPRISE_GATE_ADMIN_EMAIL/PASSWORD` e `ENTERPRISE_GATE_HOST_EMAIL/PASSWORD`; os aliases legados `E2E_AUTH_EMAIL/PASSWORD` ou `E2E_EMAIL/PASSWORD` ficam restritos ao bloco admin.
 
 ## Build production
 
-`yarn build` gera `.next/standalone/`. O Dockerfile do Railway empacota apenas isso.
+`npm run build` gera `.next/standalone/`. O Dockerfile do Railway empacota apenas isso.
 
 ESLint roda no build (desde F5C.2 #13). Se quebrar, ver `../docs/runbooks/eslint-debt.md` para a estratégia de redução gradual.
 
 ## Rotas que precisam ser limpas
 
 A auditoria flagrou rotas duplicadas ou órfãs:
-- `/maps` + `/maps-bkp` (a remover)
+- `/maps-bkp` (já removida)
 - `/painel` coexistindo com `/dashboard`
 - backups e configurações que sobraram do tempo Lumina
 
@@ -150,7 +156,7 @@ Não removidas ainda — fila para next sprint.
 - **Banner amarelo aparecendo em prod**: setar `NEXT_PUBLIC_APP_ENV=production` no Railway. Banner só some quando o valor for exatamente `production`.
 - **CORS na chamada à API**: backend precisa ter `CORS_ALLOWED_ORIGINS` incluindo a URL do front (com protocolo, sem barra final).
 - **Sentry não captura nada em dev**: por design — `instrumentation-client.ts` exige `APP_ENV=production` ou `staging` para habilitar.
-- **`@axe-core/playwright` falha**: rodar `yarn playwright install --with-deps chromium` na primeira vez.
+- **`@axe-core/playwright` falha**: rodar `npx playwright install --with-deps chromium` na primeira vez.
 
 ## Documentação relacionada
 

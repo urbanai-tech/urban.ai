@@ -68,7 +68,7 @@ export class User {
   /**
    * Papel do usuário na plataforma.
    *  - 'host' (default): anfitrião comum
-   *  - 'admin': operador Urban AI (Gustavo, sócios, contractor)
+   *  - 'admin': operador Urban AI (equipe interna, contractor)
    *  - 'support': leitura ampla mas sem mutação destrutiva
    *
    * Usado pelo `RolesGuard` para proteger endpoints administrativos.

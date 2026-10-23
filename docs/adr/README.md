@@ -21,11 +21,11 @@ Estrutura sugerida:
 
 | # | Título | Status | Data |
 |---|---|---|---|
-| 0001 | [Backend NestJS monolito](./0001-backend-nestjs-monolito.md) | Aceito | 24/04/2026 (retroativo) |
+| 0001 | [Backend NestJS monolito](./0001-backend-nestjs-monolito.md) | Aceito (adendo 2026-10-23) | 24/04/2026 (retroativo) |
 | 0002 | [KNN em Node.js no backend vs microserviço Python](./0002-knn-node-no-backend.md) | Aceito | 24/04/2026 (retroativo) |
-| 0003 | [Prefect Cloud como orquestrador vs Airflow](./0003-prefect-cloud.md) | Aceito | 24/04/2026 (retroativo) |
+| 0003 | [Prefect Cloud como orquestrador vs Airflow](./0003-prefect-cloud.md) | Aceito (adendo 2026-10-23: bronze S3 inativo) | 24/04/2026 (retroativo) |
 | 0004 | [MySQL gerenciado no Railway vs PostgreSQL](./0004-mysql-railway.md) | Aceito | 24/04/2026 (retroativo) |
-| 0005 | [Hospedagem em Railway vs AWS/GCP direto](./0005-hospedagem-railway.md) | Aceito | 24/04/2026 (retroativo) |
+| 0005 | [Hospedagem em Railway vs AWS/GCP direto](./0005-hospedagem-railway.md) | Aceito (adendo 2026-10-23: Cloudflare, Vercel) | 24/04/2026 (retroativo) |
 | 0006 | [Estratégia de cofre de secrets (Railway Secrets)](./0006-secrets-vault-strategy.md) | Aceito | 24/04/2026 |
 | 0007 | [Aposentar repo urban-ai-knn-main](./0007-aposentar-knn-microservice.md) | Aceito | 24/04/2026 |
 | 0008 | [Algoritmo de pricing — KNN baseline → XGBoost moat](./0008-pricing-algoritmo-evolucao.md) | Aceito | 24/04/2026 |

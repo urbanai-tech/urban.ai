@@ -1,50 +1,55 @@
 # Urban AI Docs
 
-Ultima revisao operacional: 2026-07-15.
+Última revisão do índice: 2026-10-23 (sincronização docs × realidade).
 
-Este diretorio mistura documentos canonicos de produto, runbooks, evidencias de release, auditorias antigas e saidas do Opensquad. Para onboarding de um novo dev, comece pelo pacote de handoff abaixo.
+## Comece aqui
 
-## Entrada Recomendada
+| Passo | Documento | Para quê |
+|---|---|---|
+| 1 | [`../README.md`](../README.md) | Visão geral do monorepo e setup local. |
+| 2 | [`ARQUITETURA-ATUAL.md`](./ARQUITETURA-ATUAL.md) | **Fonte única do estado atual**: topologia, fluxos, integrações, ambientes, deploy, repositório canônico e pendências. |
+| 3 | [`ACESSOS-E-FERRAMENTAS.md`](./ACESSOS-E-FERRAMENTAS.md) | Acessos por provedor, escopo mínimo e canal (MCP/CLI/API). |
+| 4 | [`runbooks/matriz-env-operacional.md`](./runbooks/matriz-env-operacional.md) | Variáveis de ambiente lidas no código, por serviço (somente nomes). |
+| 5 | [`runbooks/README.md`](./runbooks/README.md) | Procedimentos operacionais. |
 
-| Documento | Uso |
+## Documentos canônicos
+
+| Área | Documento |
 |---|---|
-| [`handoff/README.md`](./handoff/README.md) | Indice do pacote para novo dev. |
-| [`handoff/DEV-HANDOFF-2026-07-01.md`](./handoff/DEV-HANDOFF-2026-07-01.md) | Visao executiva, estado tecnico e ordem de trabalho. |
-| [`handoff/ACCESS-SECRETS.md`](./handoff/ACCESS-SECRETS.md) | Mapa de acessos e secrets sem expor valores. |
-| [`handoff/VALIDATION-CHECKLIST.md`](./handoff/VALIDATION-CHECKLIST.md) | Como provar que o ambiente esta funcionando. |
-| [`handoff/BACKLOG-100.md`](./handoff/BACKLOG-100.md) | Pendencias para chegar no 100% operacional. |
-| [`handoff/USER-ACTIONS-SCORECARD-10-10.md`](./handoff/USER-ACTIONS-SCORECARD-10-10.md) | Acoes externas do owner para certificar o 10/10 sem expor secrets. |
-| [`handoff/CHAT-CONTEXT-SUMMARY.md`](./handoff/CHAT-CONTEXT-SUMMARY.md) | Resumo dos chats recentes que viraram decisao tecnica. |
-
-## Documentos Canonicos
-
-| Area | Documento |
-|---|---|
-| Auditoria 360 atual | [`auditoria-360-arquitetura-produto-ui-ux-2026-07-15.md`](./auditoria-360-arquitetura-produto-ui-ux-2026-07-15.md) |
+| Estado atual de infra e integrações | [`ARQUITETURA-ATUAL.md`](./ARQUITETURA-ATUAL.md) |
+| Acessos e ferramentas | [`ACESSOS-E-FERRAMENTAS.md`](./ACESSOS-E-FERRAMENTAS.md) |
+| Arquitetura interna (módulos, entidades, fluxos de negócio) | [`product/ARCHITECTURE.md`](./product/ARCHITECTURE.md) |
+| Decisões arquiteturais | [`adr/README.md`](./adr/README.md) |
+| Auditoria 360 | [`auditoria-360-arquitetura-produto-ui-ux-2026-07-15.md`](./auditoria-360-arquitetura-produto-ui-ux-2026-07-15.md) |
 | Plano mestre 10/10 | [`plano-mestre-scorecard-10-10-2026-07-15.md`](./plano-mestre-scorecard-10-10-2026-07-15.md) |
 | Execução do scorecard | [`scorecard-10-10-execution-status.md`](./scorecard-10-10-execution-status.md) |
-| Mapa visual do sistema | [`urban-ai-system-map-2026-07-15.html`](./urban-ai-system-map-2026-07-15.html) |
-| Governanca documental | [`DOCUMENTATION-GOVERNANCE.md`](./DOCUMENTATION-GOVERNANCE.md) |
-| Produto | [`product/README.md`](./product/README.md) |
-| PRD | [`product/PRD.md`](./product/PRD.md) |
-| Arquitetura | [`product/ARCHITECTURE.md`](./product/ARCHITECTURE.md) |
-| Jornadas | [`product/USER-JOURNEYS.md`](./product/USER-JOURNEYS.md) |
-| Design system | [`product/DESIGN-SYSTEM.md`](./product/DESIGN-SYSTEM.md) |
-| Rebrand | [`product/REBRAND-MAP.md`](./product/REBRAND-MAP.md) |
+| Mapa visual do sistema (2026-07-15) | [`urban-ai-system-map-2026-07-15.html`](./urban-ai-system-map-2026-07-15.html) |
+| Governança documental | [`DOCUMENTATION-GOVERNANCE.md`](./DOCUMENTATION-GOVERNANCE.md) |
+| Produto | [`product/README.md`](./product/README.md) · [`PRD`](./product/PRD.md) · [`Jornadas`](./product/USER-JOURNEYS.md) · [`Design system`](./product/DESIGN-SYSTEM.md) · [`Rebrand`](./product/REBRAND-MAP.md) |
 | Dados e IA | [`product/data/README.md`](./product/data/README.md) |
-| Negócio e sócios | [`product/business/README.md`](./product/business/README.md) |
 | Operações e SLO | [`ops/README.md`](./ops/README.md) |
 | Runbooks | [`runbooks/README.md`](./runbooks/README.md) |
-| Matriz de envs | [`runbooks/matriz-env-operacional.md`](./runbooks/matriz-env-operacional.md) |
+| Contratos de release | [`contracts/`](./contracts/event-radar-contract-v0.md) |
+| LGPD | [`lgpd/dpa-checklist.md`](./lgpd/dpa-checklist.md) |
+| Postmortems | [`postmortems/_template.md`](./postmortems/_template.md) |
+| Evidências (append-only) | [`evidence/README.md`](./evidence/README.md) |
 
-## Historico
+## Handoff 2026-07-01 (registro histórico com partes ainda úteis)
 
-Auditorias, planos, roadmaps e releases substituidos ficam em [`archive/`](./archive/README.md). Eles preservam contexto e evidencias, mas nao devem ser usados como fonte do estado atual sem conferir a auditoria 360 e o plano mestre.
+| Documento | Uso hoje |
+|---|---|
+| [`handoff/README.md`](./handoff/README.md) | Índice do pacote de handoff. |
+| [`handoff/DEV-HANDOFF-2026-07-01.md`](./handoff/DEV-HANDOFF-2026-07-01.md) | Contexto de julho; estado atual de infra está em `ARQUITETURA-ATUAL.md`. |
+| [`handoff/VALIDATION-CHECKLIST.md`](./handoff/VALIDATION-CHECKLIST.md) | Como provar que o ambiente funciona. |
 
-O pacote Word legado foi triado em [`archive/docx/`](./archive/docx/README.md): 40 DOCX historicos foram arquivados e apenas 3 originais juridicos/LGPD permanecem ativos.
+Acessos por provedor: [`ACESSOS-E-FERRAMENTAS.md`](./ACESSOS-E-FERRAMENTAS.md).
 
-## Regra de Secrets
+## Histórico
 
-Nao colocar tokens, senhas, JWTs, private keys ou URLs de banco com credenciais em docs, issues, commits ou chats. Este repo deve conter apenas nomes de variaveis, status de presenca, origem do segredo e procedimento de acesso.
+Documentos ativos que ficaram desatualizados levam um banner "⚠️ Desatualizado" no topo apontando para a fonte atual. Auditorias, planos e roadmaps substituídos não fazem parte deste repositório.
 
-Se alguma chave foi colada em chat antigo, trate como exposta: rotacione no provedor e substitua por segredo novo no Railway, GitHub, Cloudflare, Stripe, Google Cloud, Brevo ou no cofre de senhas.
+## Regra de secrets
+
+Não colocar tokens, senhas, JWTs, private keys, IPs ou URLs de banco com credenciais em docs, issues, commits ou chats. O repositório `urbanai-tech/urban.ai` é **público**. Este repositório contém apenas nomes de variáveis, origem do segredo e procedimento de acesso.
+
+Se alguma chave foi colada em chat antigo, trate como exposta: rotacione no provedor e substitua no Railway, GitHub, Prefect, Cloudflare, Stripe, Google Cloud, Brevo ou no cofre de senhas.

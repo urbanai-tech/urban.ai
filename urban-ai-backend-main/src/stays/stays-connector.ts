@@ -4,8 +4,8 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 /**
  * REST client para a Open API da Stays (stays.net).
  *
- * Documentação oficial: a confirmar na reunião inicial (ver
- * docs/outreach/stays-contato-comercial.md). Enquanto isso, o shape das
+ * Documentação oficial: a confirmar com a Stays (ver
+ * docs/runbooks/stays-integration-setup.md). Enquanto isso, o shape das
  * chamadas aqui segue o padrão comum de APIs de channel manager:
  *   - POST /prices (push de preço por date range)
  *   - GET /listings

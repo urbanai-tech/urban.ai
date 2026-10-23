@@ -1,5 +1,14 @@
 # Urban Web Scraping
 
+> **Estado atual (2026-10-23, em português).** Fonte canônica: [`../docs/ARQUITETURA-ATUAL.md`](../docs/ARQUITETURA-ATUAL.md) §3; variáveis em [`../docs/runbooks/matriz-env-operacional.md`](../docs/runbooks/matriz-env-operacional.md) §3.
+>
+> - **Destino dos dados:** os eventos vão para o backend via `POST /events/ingest` com o header `x-urban-events-ingest-key` (`URBAN_EVENTS_INGEST_API_KEY`, igual a `EVENTS_INGEST_API_KEY` do backend). As pipelines S3 (JSON/Parquet "bronze") estão **comentadas** em `urban_webscrapping/settings.py`; nada é gravado em S3 hoje.
+> - **Dois tipos de fonte:** coletores HTTP em `urban_webscrapping/collectors/` e spiders Scrapy em `urban_webscrapping/spiders/`.
+> - **Container:** o `Dockerfile` (raiz desta pasta) sobe o Scrapyd atrás do `auth_proxy.py`, que exige `SCRAPYD_API_KEY`, expõe health (`/health`, `/cron-status.json`) e roda os coletores a cada `COLLECTOR_CRON_INTERVAL_SECONDS` (padrão 6 h) além do disparo do Prefect às 03:00 UTC. Deploy no Railway.
+> - **Problema conhecido:** a `UrbanIngestPipeline` dos spiders só é habilitada com `URBAN_COLLECTOR_EMAIL` e `URBAN_COLLECTOR_PASSWORD` preenchidas, embora o envio use a API key e o backend só aceite a API key. Até a correção, configure as três. Coletores HTTP funcionam só com a API key.
+> - Não existe `Dockerfile.scrapyd`; as instruções em inglês abaixo que o citam são históricas.
+
+
 This project contains a collection of Scrapy spiders designed to extract event information from various ticketing websites. The extracted data is intended for use by the Urban project.
 
 # Tech Stack
@@ -27,7 +36,7 @@ This project contains a collection of Scrapy spiders designed to extract event i
 
 The primary goal of this project is to provide a reliable and efficient way to scrape event data from multiple sources. It uses Scrapy, a powerful and flexible web scraping framework. The project is configured to run spiders both locally for development and testing, and via Scrapyd for production deployments.
 
-Data is saved to an S3 bucket in both JSON and Parquet formats.
+Scraped items are sent to the Urban AI backend (`POST /events/ingest`). The S3 JSON/Parquet pipelines are currently disabled in `settings.py`.
 
 ## Spiders
 
@@ -137,4 +146,4 @@ This project is set up to be deployed to a Scrapyd server, which allows for sche
 
 The `Dockerfile.scrapyd` is designed to create a production-ready image that packages the project as an egg and installs it into the Scrapyd environment.
 
-The image is deployed on **Railway**, and spider runs are triggered via HTTP requests from the [_urban-pipeline_](https://github.com/local-hq/urban-pipeline) app, which is managed by `Prefect`.
+The image (root `Dockerfile`) is deployed on **Railway**. Spider runs are triggered by the Prefect flow in `../urban-pipeline-main/` and by the internal collector cron in `auth_proxy.py`.

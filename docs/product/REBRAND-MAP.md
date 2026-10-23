@@ -85,7 +85,7 @@ Substituir os arquivos em `Urban-front-main/public/` (manter os mesmos nomes evi
 | Title/description | `layout.tsx`, `seo.tsx` (`buildSeoMetadata`) | Reescrever com novo nome |
 | 7 páginas SEO | `src/app/(public)/*` + `seoPagesData.ts` | Trocar nome no copy; URLs (slugs) podem permanecer |
 | Slug "urban-ai-vs-planilha-de-precificacao" | rota pública | Decidir se renomeia (afeta SEO/links) |
-| Páginas legais | `(public)/termos`, `(public)/privacidade`, `legalContent.ts` | Trocar nome; **CNPJs e razão social permanecem** (MP IA Tecnologia 62.497.936/0001-27 controladora; Guilds 44.361.255/0001-55 operadora) |
+| Páginas legais | `(public)/termos`, `(public)/privacidade`, `legalContent.ts` | Trocar nome; **CNPJs e razão social permanecem** (controladora MP IA Tecnologia, CNPJ 62.497.936/0001-27, e a operadora técnica, conforme as páginas legais publicadas) |
 | JSON-LD / structured data | `lib/seo.tsx` (JsonLd) | Atualizar `name`, `url`, `logo` |
 | sitemap/robots | `Projects/UrbanAi/sitemap.xml`, `robots.txt` | Atualizar domínio |
 

@@ -207,7 +207,7 @@ export class AdminFinanceService {
         category: 'people',
         recurrence: 'monthly',
         monthlyCostCents: 0,
-        description: 'Sócios fundadores — equity, sem pró-labore inicial',
+        description: 'Fundadores — equity, sem pró-labore inicial',
         notes: 'Não é despesa contábil; rastrear custo de oportunidade aqui se desejado',
       },
 

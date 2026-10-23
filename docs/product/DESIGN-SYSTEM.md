@@ -138,7 +138,7 @@ Depois, os tokens de tema deixam de ter hex e passam a referenciar o primitivo:
 
 ## 5. Acessibilidade (estado + metas)
 - Focus rings consistentes (2px accent) — ✅.
-- Auditoria WCAG 2.1 AA parcial existe (`docs/archive/audits/wcag-audit-track2-2026-05-17.md`); E2E com axe-core no frontend — ✅.
+- Auditoria WCAG 2.1 AA parcial existe; E2E com axe-core no frontend — ✅.
 - **Verificar no rebrand:** contraste do novo accent em fundo claro (por isso existe `--brand-accent-strong`); o laranja atual já usa variante mais escura no light justamente para passar contraste. Qualquer cor nova precisa repetir esse cuidado (texto sobre accent e accent sobre bg).
 
 ---

@@ -1,10 +1,10 @@
 # PRD — Urban AI
 
-**Versão:** 2.0 (consolidada do código + pacote V2 em 2026-06-21)
+**Versão:** 2.0 (consolidada do código em 2026-06-21)
 **Status do produto:** beta operacional avançado, pré-go-live. Base técnica forte; falta dado real, outcomes e cases.
 **Marca:** "Urban AI" (sujeita a rebrand — ver `REBRAND-MAP.md`).
 
-> Esta versão corrige o enquadramento da v1 (que tratava o produto só como pricing de Airbnb) e incorpora o pacote `docs/v2-2026-05-24/`. **Escopo deste doc = produto core (hospedagem).** A expansão para outros setores é um **produto separado (spinoff)** e está em `../spinoff-plataforma-demanda/PRODUTO-MULTIVERTICAL.md` — não a misture aqui. Jornadas em `USER-JOURNEYS.md`.
+> Esta versão corrige o enquadramento da v1 (que tratava o produto só como pricing de Airbnb). **Escopo deste doc = produto core (hospedagem).** Jornadas em `USER-JOURNEYS.md`.
 
 ---
 
@@ -15,9 +15,9 @@
 A frase da visão (do PRD v2):
 > A Urban AI mapeia a cidade, identifica oportunidades de demanda e transforma isso em **decisões de preço explicáveis** para cada imóvel.
 
-> **O radar de demanda é core.** O motor de eventos/demanda que alimenta o pricing dos imóveis faz parte do produto principal (já existe no código). O que é spinoff é **generalizar esse motor para outros setores** (mídia, staffing, food, estética) — produto à parte.
+> **O radar de demanda é core.** O motor de eventos/demanda que alimenta o pricing dos imóveis faz parte do produto principal (já existe no código).
 
-### Evolução do core (não confundir com spinoff)
+### Evolução do core
 | Estágio | O que é |
 |---------|---------|
 | **Hoje** | Pricing + radar de eventos para anfitriões |
@@ -30,7 +30,6 @@ O ativo defensável (moat) é o **dataset proprietário**: `evento → região �
 - Não é OTA nem intermedia reservas.
 - Não promete % fixo de ganho antes de cases auditados (não-objetivo explícito do PRD v2).
 - Não libera auto-apply amplo sem allowlist, consentimento, dry-run e rollback.
-- **Não é a plataforma multi-vertical** — isso é spinoff (doc à parte).
 
 ---
 
@@ -45,7 +44,6 @@ O ativo defensável (moat) é o **dataset proprietário**: `evento → região �
 | **Administradora (20–150)** | host | "Operar muitos imóveis com consistência + relatório ao dono" | portfolio bulk-action, settings/integrations (Stays) |
 | **Fundador/operação** | admin | "Saber onde o motor falha e onde há dinheiro na mesa" | /admin/* (29 telas) |
 | **Suporte** | support | "Atender contatos e pendências (LGPD, billing)" | /admin/contacts, /admin/communications |
-| **Investidor** | — | "Entender defensabilidade e execução" | material executivo (ver spinoff doc) |
 
 Permissões no código (`auth/enuns/PermissionsEnum.ts`): `create.events`, `events.read`, `admin.access`, `superuser.access`. Role reavaliado contra o banco a cada request.
 
@@ -148,8 +146,6 @@ O ponto de morte silenciosa do onboarding é o **empty state da primeira semana*
 
 Cadeia recomendada pelo PRD v2: `staging real → recompute real → pricing_decision_snapshot → explicabilidade host → outcome capture → beta assistido`.
 Fases: F0 governança docs → F1 ambiente real/release seguro → F2 decision snapshot/explicabilidade → F3 beta fechado (5–10 hosts) → F4 beta pago → F5 público controlado (calibração + auto-apply seguro).
-
-> A expansão para outros setores (spinoff) tem roadmap próprio em `../spinoff-plataforma-demanda/PRODUTO-MULTIVERTICAL.md`.
 
 ## 9. Pontos de marca neste produto
 Nome em 88+ arquivos, e-mails, domínios, feature "AskUrban", classes `urban-*`, copy SEO. Mapa e estratégia mecânica em `REBRAND-MAP.md`.

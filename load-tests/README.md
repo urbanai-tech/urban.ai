@@ -30,7 +30,7 @@ Definidos em `docs/slo.md`:
 Validação rápida de que o backend staging está respondendo. Rodar **antes** de qualquer carga maior.
 
 ```bash
-k6 run --env BASE_URL=https://staging-api.myurbanai.com load-tests/smoke.js
+k6 run --env BASE_URL=<url-railway-do-backend-staging> load-tests/smoke.js
 ```
 
 Critério de aceitação: 0 erros, todos os endpoints respondendo < 2s.
@@ -41,7 +41,7 @@ Simula 50 usuários simultâneos fazendo login e acessando dashboard. Testa cami
 
 ```bash
 k6 run \
-  --env BASE_URL=https://staging-api.myurbanai.com \
+  --env BASE_URL=<url-railway-do-backend-staging> \
   --env TEST_EMAIL_PREFIX=loadtest+ \
   --env TEST_PASSWORD=senha-forte-de-teste-123 \
   load-tests/login-flow.js
@@ -53,7 +53,7 @@ Cenário **crítico** do SLO: 100 anfitriões simultâneos pedindo recomendaçã
 
 ```bash
 k6 run \
-  --env BASE_URL=https://staging-api.myurbanai.com \
+  --env BASE_URL=<url-railway-do-backend-staging> \
   --env TEST_EMAIL_PREFIX=loadtest+ \
   --env TEST_PASSWORD=senha-forte-de-teste-123 \
   load-tests/pricing-recommendation.js

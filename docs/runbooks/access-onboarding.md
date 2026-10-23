@@ -1,8 +1,11 @@
 # Runbook — Onboarding de acessos para novo dev/op
 
-**Contexto:** F5C.3 do roadmap. Quando um novo dev (ou um sócio operando alguma área) entra na Urban AI, este runbook lista todos os acessos que precisa receber, em qual papel, e como cada um é formalizado.
+> ⚠️ **Parcialmente desatualizado — ver [`../ACESSOS-E-FERRAMENTAS.md`](../ACESSOS-E-FERRAMENTAS.md)** (escopo mínimo e canal MCP/CLI por provedor). DNS não está mais na Hostinger: é no Cloudflare. O checklist de concessão abaixo continua útil. (marcado em 2026-10-23)
 
-Sempre rodar este checklist com o **Gustavo** (DPO atual) presente — alguns acessos exigem 2FA do owner para serem concedidos.
+
+**Contexto:** F5C.3 do roadmap. Quando um novo dev (ou outro mantenedor operando alguma área) entra na Urban AI, este runbook lista todos os acessos que precisa receber, em qual papel, e como cada um é formalizado.
+
+Sempre rodar este checklist com o **responsável técnico** (DPO atual) presente — alguns acessos exigem 2FA do administrador para serem concedidos.
 
 ---
 
@@ -11,9 +14,9 @@ Sempre rodar este checklist com o **Gustavo** (DPO atual) presente — alguns ac
 ### Railway (hosting prod + staging)
 
 - **Onde:** https://railway.app/team/urban-ai
-- **Quem:** owner (Gustavo) → Settings → Members → Invite
+- **Quem:** administrador do time → Settings → Members → Invite
 - **Roles disponíveis:**
-  - `Admin` — pode editar serviços, env vars, billing. **Apenas Gustavo + 1 backup (sócio).**
+  - `Admin` — pode editar serviços, env vars, billing. **Apenas o responsável técnico + 1 backup.**
   - `Member` — pode ler logs, ver status; **não** consegue editar env vars de prod.
 - **Default para novo dev contractor:** `Member` em prod, `Admin` em staging.
 - **2FA obrigatório** no Railway antes da concessão.
@@ -22,9 +25,9 @@ Sempre rodar este checklist com o **Gustavo** (DPO atual) presente — alguns ac
 
 - **Org:** `urbanai-ff` em https://urbanai-ff.sentry.io
 - **Roles:**
-  - `Owner/Manager` — apenas Gustavo
+  - `Owner/Manager` — apenas o responsável técnico
   - `Member` — vê issues, edita alertas
-  - `Billing` — apenas para sócios que precisam ver custos
+  - `Billing` — apenas para quem precisa ver custos
 - **Default novo dev:** `Member`.
 - 2FA recomendado.
 
@@ -40,7 +43,7 @@ Sempre rodar este checklist com o **Gustavo** (DPO atual) presente — alguns ac
 - **Conta:** Urban AI (post-KYC).
 - **Acesso via:** Dashboard → Settings → Team → Add user.
 - **Roles:**
-  - `Administrator` — apenas o owner e um sócio
+  - `Administrator` — apenas o responsável técnico + 1 backup
   - `Developer` — vê chaves, webhooks, edita Price IDs (test mode)
   - `Analyst` — só leitura (relatórios, customers)
 - **Default novo dev:** `Developer` em test mode; **nunca** acesso a Live mode até fechamento explícito.
@@ -62,15 +65,14 @@ Sempre rodar este checklist com o **Gustavo** (DPO atual) presente — alguns ac
 - **Roles:** Owner / Member.
 - **Default novo dev:** `Member`. Geralmente nem precisa entrar — basta a `REDIS_URL` no Railway.
 
-### GitHub (monorepo `Gustavogm9/urban.ai`)
+### GitHub (monorepo `urbanai-tech/urban.ai`)
 
-- **Repo privado** desde 24/04/2026.
 - **Roles a conceder:**
   - `Read` — só clone/PR review
   - `Triage` — pode comentar issues
   - `Write` — pode mergear PRs
   - `Maintain` — pode editar workflows e branch protection
-  - `Admin` — apenas Gustavo
+  - `Admin` — apenas o responsável técnico
 - **Default novo dev contractor:** `Write`.
 - **Branch protection** em `main` (a configurar quando 2+ devs):
   - Exigir PR review (1 aprovador)
@@ -112,7 +114,7 @@ Nome:                          ____________________________
 E-mail corporativo (Gmail Workspace ou pessoal):  __________________
 Cargo/Função:                  ____________________________
 Data de início:                ____________________________
-Sponsor (sócio/Gustavo):       ____________________________
+Sponsor:       ____________________________
 
 Acessos concedidos:
 [ ] Railway (role: ________)
@@ -127,13 +129,10 @@ Acessos concedidos:
 [ ] UptimeRobot
 
 Documentos lidos pelo dev:
-[ ] AGENTS.md
-[ ] CLAUDE.md
-[ ] docs/archive/audits/avaliacao-projeto-2026-04-16.md
 [ ] docs/runbooks/migrations-cutover.md
 [ ] docs/runbooks/staging-provisioning.md
 [ ] docs/runbooks/incident-response/* (todos)
-[ ] docs/lgpd/politica-privacidade-interna.md (mesmo se for dev — entender o tratamento de dados)
+[ ] Política interna de privacidade (mesmo se for dev — entender o tratamento de dados)
 
 NDA assinado:  Sim / Não — link: ________________________
 

@@ -39,7 +39,7 @@ Sintoma: e-mails saem mas chegam em spam ou são rejeitados.
 
 **Ação:**
 - Painel Brevo → Senders & IP → Domains → verificar `myurbanai.com` está com status verificado.
-- Se não, refazer DNS no Hostinger (TXT records SPF + DKIM).
+- Se não, refazer os registros no **Cloudflare** (DNS de `myurbanai.com`): DKIM `brevo1`/`brevo2`, SPF e DMARC.
 - Aguardar 30min de propagação.
 
 ### Caso 4 — Conta suspensa por abuse

@@ -139,7 +139,7 @@ Cada um desses é um arquivo `e2e/<fluxo>.spec.ts` separado — facilita retry i
 
 ### Fase 3 (S8+) — Integração backend
 
-1. **supertest contra instância real de staging.** Rodar `jest-e2e.json` (já configurado) apontando para `staging-api.myurbanai.com`, validar auth + endpoints críticos.
+1. **supertest contra instância real de staging.** Rodar `jest-e2e.json` (já configurado) apontando para o domínio de serviço Railway do backend de staging (`staging-api.myurbanai.com` não está em uso), validar auth + endpoints críticos.
 2. **Contract tests.** Se expusermos Swagger, validar com `dredd` ou `schemathesis` que a spec OpenAPI bate com o runtime.
 
 ### Fase 4 (S10+) — Load + a11y

@@ -56,6 +56,14 @@ Razões:
 
 ## Referências
 
-- `docs/archive/audits/avaliacao-projeto-2026-04-16.md` §3.4 — avaliação do pipeline
 - Código: `urban-pipeline-main/serve.py`, `urban-pipeline-main/flows/`
 - Workspace Prefect: (nome em posse do Gustavo)
+
+---
+
+## Adendo 2026-10-23 — estado atual
+
+- O Prefect continua agendando `trigger_all_spiders` às 03:00 UTC. O cliente lê `PREFECT_API_URL` e `PREFECT_API_KEY` (não `PREFECT_SERVER_URL`).
+- O caminho S3 "bronze" → `raw_data_extraction_and_dump` → MySQL descrito acima **não está ativo**: as pipelines S3 estão comentadas no webscraping e bucket/prefixo de escrita e leitura divergem. O caminho vivo é coletores/spiders → `POST /events/ingest` no backend (header `x-urban-events-ingest-key`).
+- Há também um cron interno no container de webscraping (a cada 6 h, `COLLECTOR_CRON_INTERVAL_SECONDS`), além do Prefect.
+- Decisão pendente: reativar o bronze com bucket alinhado ou remover o flow. Ver [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md) §3.

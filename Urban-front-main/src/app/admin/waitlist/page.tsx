@@ -605,7 +605,7 @@ export default function AdminWaitlistPage() {
           rows={8}
           value={notesValue}
           onChange={(e) => setNotesValue(e.target.value)}
-          placeholder="Ex: indicado por um parceiro, pediu desconto, espera follow-up em 2 semanas…"
+          placeholder="Ex: indicado por parceiro, pediu desconto, espera follow-up em 2 semanas…"
         />
       </AdminDrawer>
     </div>

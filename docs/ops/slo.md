@@ -108,7 +108,7 @@ Isso **não** é regra dura no dia 1 — é aspiracional para quando o time cres
 
 Localização planejada: **Grafana hospedado no Railway** (F9.3) ou **PostHog free tier** para métricas de produto.
 
-Até existir, o status semanal é compilado manualmente pelo Gustavo a partir das 4 fontes acima e anexado ao relatório quinzenal ao cliente (ver `docs/archive/roadmaps/roadmap-pos-sprint.md` § "Estrutura de Relatórios ao Cliente").
+Até existir, o status semanal é compilado manualmente pelo Gustavo a partir das 4 fontes acima e anexado ao relatório quinzenal ao cliente.
 
 ---
 

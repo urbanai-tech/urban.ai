@@ -13,7 +13,7 @@
 Se algum destes faltar, o restore trava — resolver **agora**, não no incidente:
 
 - [ ] **Credencial AWS read-only** (`s3:GetObject`, `s3:ListBucket` no bucket de backup),
-      guardada fora do GitHub Secrets (cofre dos sócios). A credencial do workflow de
+      guardada fora do GitHub Secrets (cofre de senhas da organização). A credencial do workflow de
       backup é **write-only** (`s3:PutObject`) — não serve para baixar.
 - [ ] **Acesso ao console AWS** (ou credencial) para localizar o último dump em `s3://<bucket>/mysql/`.
 - [ ] **Acesso ao Railway** com permissão de provisionar banco e editar variáveis.
@@ -36,8 +36,7 @@ Se algum destes faltar, o restore trava — resolver **agora**, não no incident
 ## Se o dump estiver inutilizável
 
 ⚠️ Hoje **não há caminho de reconstrução só por migrations** — 11 tabelas core não têm
-`CREATE TABLE` em migration (ver `../archive/audits/auditorias-consolidadas-2026-07-02.md`, Auditoria 3, e o
-ticket DR-1). Enquanto DR-1 não fechar, um dump inutilizável = **perda de dados**.
+`CREATE TABLE` em migration (ticket DR-1). Enquanto DR-1 não fechar, um dump inutilizável = **perda de dados**.
 Prioridade: fechar DR-1 e manter ≥2 dumps válidos (versioning no bucket).
 
 ## RPO/RTO

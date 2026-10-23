@@ -70,5 +70,4 @@ Critério de remoção: **zero consumidor estático + zero configuração depend
 ## Referências
 
 - ADR 0002 — KNN no backend
-- `docs/archive/audits/avaliacao-projeto-2026-04-16.md` §3.3
 - `docs/product/data/ADENDO_TECNICO_KNN.md` (Lumina, mar/2026)
