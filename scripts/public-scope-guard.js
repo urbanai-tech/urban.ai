@@ -86,7 +86,6 @@ const DOCS_FILES = new Set([
   'docs/handoff/VALIDATION-CHECKLIST.md',
   'docs/lgpd/dpa-checklist.md',
   'docs/ops/README.md',
-  'docs/ops/protocolo-devs-agentes.md',
   'docs/ops/slo.md',
   'docs/product/ARCHITECTURE.md',
   'docs/product/DESIGN-SYSTEM.md',
@@ -109,6 +108,8 @@ function classify(rawFile) {
   // e não fazem parte do escopo público.
   if (/(^|\/)\.gitlab-ci\.yml$/.test(file)) return 'ci-de-outra-plataforma';
   if (/\/\.github\/workflows\//.test(file)) return 'workflow-aninhado';
+  // Instruções de assistentes/prompts em .github de subpastas também ficam de fora.
+  if (!file.startsWith('.github/') && /(^|\/)\.github\//.test(file)) return 'github-aninhado';
 
   if (!file.includes('/')) {
     return ROOT_FILES.has(file) ? null : 'arquivo-de-raiz-fora-da-allowlist';
@@ -167,7 +168,7 @@ function selfTest() {
     'docs/handoff/README.md',
     'docs/v2-2026-05-24/mapa-funcional-tecnico.md',
     'urban-ai-backend-main/src/main.ts',
-    'urban-pipeline-main/.github/instructions/python.instructions.md',
+    'urban-pipeline-main/serve.py',
     'Urban-front-main/src/app/page.tsx',
   ].forEach(expectAllowed);
 
@@ -182,6 +183,7 @@ function selfTest() {
     'docs/v2-2026-05-24/zz-sem-lista.md',
     'urban-pipeline-main/.gitlab-ci.yml',
     'urban-ai-backend-main/.github/workflows/zz.yml',
+    'urban-pipeline-main/.github/instructions/zz.md',
   ].forEach(expectBlocked);
 
   // Normalização de separadores do Windows.

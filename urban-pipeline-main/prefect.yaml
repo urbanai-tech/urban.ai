@@ -8,12 +8,14 @@ build: null
 # push section allows you to manage if and how this project is uploaded to remote locations
 push: null
 
-# pull section allows you to provide instructions for cloning this project in remote locations
+# pull section: o caminho de deploy em produção é `serve.py` (Dockerfile), que não usa estes passos.
+# Eles só valem para `prefect deploy`; o repositório é público, então não há token.
 pull:
 - prefect.deployments.steps.git_clone:
-    repository: https://github.com/local-hq/urban-pipeline.git
+    repository: https://github.com/urbanai-tech/urban.ai.git
     branch: main
-    access_token: '{{ prefect.blocks.secret.deployment-urban-webscraping-trigger-all-spiders-flow-repo-token }}'
+- prefect.deployments.steps.set_working_directory:
+    directory: urban-pipeline-main
 
 # the deployments section allows you to provide configuration for deploying flows
 deployments:

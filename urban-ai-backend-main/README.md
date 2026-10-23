@@ -33,7 +33,7 @@ cp .env.example .env
 npm run start:dev
 ```
 
-O projeto usa **npm** (`package-lock.json`, igual ao CI e ao Dockerfile). Os `yarn.lock`/`pnpm-lock.yaml` presentes na pasta são resíduos e não são usados no build.
+O projeto usa **npm** (`package-lock.json`, igual ao CI e ao Dockerfile).
 
 Para gerar um `JWT_SECRET` seguro:
 
