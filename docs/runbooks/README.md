@@ -1,24 +1,46 @@
 # Runbooks
 
-Procedimentos executáveis de operação, validação, release, dados, integrações e resposta a incidentes. Cada runbook deve registrar owner, última validação e próximo prazo de revisão conforme a [governança documental](../DOCUMENTATION-GOVERNANCE.md).
+Procedimentos executáveis de operação, validação, release, dados, integrações e resposta a incidentes. Cada runbook deve registrar owner e data de revisão ([governança](../DOCUMENTATION-GOVERNANCE.md)).
 
-Antes de qualquer runbook, leia [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md) (estado atual de hosts, ambientes e deploy) e [`../ACESSOS-E-FERRAMENTAS.md`](../ACESSOS-E-FERRAMENTAS.md) (acessos e canais MCP/CLI). Runbooks com fatos que ficaram errados levam banner "⚠️ Desatualizado" no topo.
+Antes de qualquer runbook, leia [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md) (hosts, ambientes e deploy) e [`../ACESSOS-E-FERRAMENTAS.md`](../ACESSOS-E-FERRAMENTAS.md) (acessos e canais). Runbooks com fatos errados levam o banner "Desatualizado" no topo.
 
-Entradas recomendadas:
+## Ambientes, release e go-live
 
-- [Matriz operacional de ambientes](./matriz-env-operacional.md)
-- [Release gate](./release-gate.md)
-- [Compatibilidade e depreciação da API](./api-compatibility.md)
-- [Controles LGPD e solicitações de titulares](./lgpd-data-subject-requests.md)
-- [Observabilidade segura](./observability-security.md)
-- [Autorização de rotas mutáveis e administrativas](./authorization-security.md)
-- [Smoke tests operacionais](./smoke-tests-operacionais.md)
-- [Go-live manual](./go-live-manual-checklist.md)
+- [Matriz operacional de variáveis de ambiente](./matriz-env-operacional.md)
+- [Go-live: checklist único](./go-live-checklist.md)
+- [Release gate](./release-gate.md) · [Event Radar release gate](./event-radar-release-gate.md)
+- [Provisionamento de staging](./staging-provisioning.md) (inclui contas técnicas de smoke) · [Staging release drill](./staging-release-drill.md)
+- [Modo pré-lançamento](./prelaunch-mode.md) · [Beta fechado assistido](./beta-fechado-assistido.md)
+- [Smoke tests operacionais](./smoke-tests-operacionais.md) · [Estratégia de testes](./testing-strategy.md)
+
+## Banco, backup e recuperação
+
+- [Backup e restore](./backup-restore.md) · [Backup MySQL](./mysql-backup.md) · [Backup off-site](./backup-offsite.md) (pendência operacional aberta)
 - [Disaster recovery](./disaster-recovery.md)
-- [Backup off-site](./backup-offsite.md) (pendência operacional aberta)
-- [Ingest de eventos via service account](./events-ingest-service-account-2026-05-22.md)
-- [Saúde do cron do webscraping](./webscraping-cron-health.md)
-- [Motor de demanda](./runbook-motor-demanda-2026-07.md)
-- [SEO/GEO](./seo-geo-operacionalizacao-2026-05-19.md)
+- [Cutover para migrations versionadas](./migrations-cutover.md) · [Auditor de migrations](./migrations-audit.md)
+- [Incidentes](./incident-response/README.md): banco fora do ar, flow Prefect falhando, Scrapyd travado, rate limit do Brevo, Price ID do Stripe alterado
 
-Para SLOs e referências do operador, consulte [`../ops/`](../ops/README.md).
+## Segurança, API e conformidade
+
+- [Autorização de rotas](./authorization-security.md) · [Observabilidade segura](./observability-security.md)
+- [Compatibilidade e depreciação da API](./api-compatibility.md) · [Migração de JWT para cookie](./jwt-cookie-migration.md)
+- [Controles LGPD e solicitações de titulares](./lgpd-data-subject-requests.md) · [Suporte e LGPD no beta pago](./suporte-lgpd-beta-pago.md)
+- [Onboarding de acessos](./access-onboarding.md) · [Assunção operacional](./assuncao-operacional.md)
+
+## Eventos, dados e pricing
+
+- [Ingest de eventos (API key e coletores)](./events-ingest-service-account.md) · [Saúde do cron do webscraping](./webscraping-cron-health.md)
+- [Identidade e deduplicação de eventos](./event-dedup-identity.md) · [Recompute idempotente da inteligência de eventos](./event-intelligence-recompute-idempotency.md) · [Fallback manual de eventos](./eventos-fallback-manual.md) · [Backfill do geocoder](./backfill-geocoder.md)
+- [Evolução do motor de eventos](./event-engine-evolution.md) · [Motor de demanda](./motor-demanda.md)
+- [Aquisição de dataset](./dataset-acquisition.md) · [Ground truth do dataset](./dataset-ground-truth-smoke.md) · [Feature engineering](./feature-engineering.md) · [Smoke de recomendação](./recomendacao-nova-smoke.md)
+- [Integrações, outcomes e calibração](./integracoes-outcomes-calibracao.md) · [Contrato do Portfolio Cockpit](./portfolio-cockpit-contract.md)
+
+## Integrações, cobrança e admin
+
+- [Smoke Stripe e billing](./stripe-billing-smoke.md) · [Cobrança por imóvel](./f65-pricing-100pc.md) · [Smoke Brevo](./brevo-transactional-smoke.md)
+- [Setup da integração Stays](./stays-integration-setup.md) · [Stays beta privado](./stays-beta-private-smoke.md)
+- [Enterprise auditability live gate](./enterprise-auditability-live-gate.md) · [E2E admin + host](./e2e-admin-host-tester-completo.md) · [Evolução do painel admin](./admin-evolution.md)
+- [SEO/GEO](./seo-geo-operacionalizacao.md) · [Framework de evidências de cases](./seo-case-evidence-framework.md)
+- [Auditoria WCAG](./wcag-audit-checklist.md) · [Dívida de ESLint](./eslint-debt.md)
+
+SLOs e referências do operador: [`../ops/slo.md`](../ops/slo.md).

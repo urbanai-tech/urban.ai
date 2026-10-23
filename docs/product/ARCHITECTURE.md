@@ -255,7 +255,7 @@ Coleta de dataset, bootstrap de pricing, processamento de event-intelligence, au
 4. Cores e nome hardcoded fora dos tokens (ver `REBRAND-MAP.md`).
 5. Dependências externas no caminho crítico (Geocoding/Stays) — degradar com elegância (fail-soft já existe no ingest; replicar no pricing).
 
-> Para próximos passos priorizados e estado de go-live, ver `../auditoria-360-arquitetura-produto-ui-ux-2026-07-15.md` e `../plano-mestre-scorecard-10-10-2026-07-15.md`.
+> Para o estado atual de infraestrutura e as pendências conhecidas, ver [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md); para o go-live, [`../runbooks/go-live-checklist.md`](../runbooks/go-live-checklist.md).
 
 ---
 
