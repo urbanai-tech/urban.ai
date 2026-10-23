@@ -1,15 +1,17 @@
 # Urban AI — Backend (NestJS)
 
-API REST do produto. 21 módulos, motor KNN embedado, integração Stripe + Stays + Brevo + Sentry.
+API REST do produto: módulos de domínio NestJS, motor de pricing (KNN embarcado), inteligência de eventos, integração Stripe + Stays + Brevo + Sentry.
+
+> Estado de infra, ambientes e integrações: [`../docs/ARQUITETURA-ATUAL.md`](../docs/ARQUITETURA-ATUAL.md). Variáveis: [`../docs/runbooks/matriz-env-operacional.md`](../docs/runbooks/matriz-env-operacional.md). Revisado em 2026-10-23.
 
 ## Stack
 
 | Tecnologia | Uso |
 |---|---|
-| NestJS 10 | framework HTTP + DI |
+| NestJS 11 | framework HTTP + DI |
 | TypeORM 0.3 + mysql2 | persistência relacional |
 | MySQL gerenciado pelo Railway | DB primário |
-| BullMQ + Upstash Redis | filas (futuro: jobs assíncronos pesados) |
+| Bull v3 (`@nestjs/bull` + `bull`) + Upstash Redis | fila `processos` |
 | Stripe SDK 18 | pagamentos + webhook assinado |
 | Brevo | e-mail transacional |
 | Sentry NestJS | observabilidade |
@@ -20,16 +22,18 @@ API REST do produto. 21 módulos, motor KNN embedado, integração Stripe + Stay
 
 ## Porta
 
-`process.env.PORT` (default 10000 em dev).
+`process.env.PORT` (sem valor, o padrão é 8080; o `.env.example` usa `PORT=10000` para dev local).
 
 ## Setup local
 
 ```bash
-yarn install
+npm ci
 cp .env.example .env
-# preencha JWT_SECRET, DATABASE_URL ou DB_*, STRIPE_SECRET_KEY, etc.
-yarn start:dev
+# preencha JWT_SECRET, DATABASE_URL ou DB_*, REDIS_*, STRIPE_SECRET_KEY, etc.
+npm run start:dev
 ```
+
+O projeto usa **npm** (`package-lock.json`, igual ao CI e ao Dockerfile). Os `yarn.lock`/`pnpm-lock.yaml` presentes na pasta são resíduos e não são usados no build.
 
 Para gerar um `JWT_SECRET` seguro:
 
@@ -39,10 +43,11 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 
 ## Banco de dados
 
-Por default (`DB_SYNCHRONIZE=true`) o TypeORM cria o schema sozinho a partir das entities — útil em dev, **não use em prod**. Em prod (futuro):
+`DB_SYNCHRONIZE` e `MIGRATIONS_RUN` são `false` por padrão (só ativam com o valor `true`). O schema é versionado por migrations em `src/migrations/`. `DB_SYNCHRONIZE=true` só em dev descartável, **nunca em prod**.
 
 ```bash
-DB_SYNCHRONIZE=false MIGRATIONS_RUN=true yarn start:prod
+MIGRATIONS_RUN=true npm run start:prod   # aplica migrations no boot
+npm run migration:run                    # ou aplica pela CLI
 ```
 
 Ver `../docs/runbooks/migrations-cutover.md` para o cutover seguro.
@@ -50,18 +55,18 @@ Ver `../docs/runbooks/migrations-cutover.md` para o cutover seguro.
 ## Comandos úteis
 
 ```bash
-yarn start:dev          # watch mode
-yarn build              # nest build → dist/
-yarn start:prod         # roda dist/main.js
-yarn test               # jest unit (67 testes)
-yarn test --coverage    # com coverage report
-yarn lint               # eslint --fix
+npm run start:dev          # watch mode
+npm run build              # nest build → dist/
+npm run start:prod         # roda dist/main.js
+npm test                   # jest
+npm run test:cov           # com coverage report
+npm run lint               # eslint
 
-# migrations (após cutover)
-yarn migration:generate --name=AddCampoXNaTabelaY
-yarn migration:run
-yarn migration:revert
-yarn migration:show
+# migrations
+npm run migration:generate -- --name=AddCampoXNaTabelaY
+npm run migration:run
+npm run migration:revert
+npm run migration:show
 ```
 
 ## Estrutura
@@ -82,7 +87,7 @@ src/
 ├── knn-engine/         # motor de precificação
 ├── cron/               # jobs agendados (08:00 BRT, hourly enrichment)
 ├── email/ + mailer/    # Brevo transacional
-├── entities/           # 14 entities TypeORM
+├── entities/           # entities TypeORM
 ├── migrations/         # baseline + futuras migrations
 ├── data-source.ts      # CLI TypeORM
 ├── instrument.ts       # bootstrap Sentry (deve ser o primeiro import)
@@ -92,7 +97,7 @@ src/
 
 ## API e Swagger
 
-Swagger documentation em `/api`. Autenticação Bearer obrigatória nas rotas protegidas (também aceita cookie `urbanai_access_token` desde F5C.2 item #10).
+Swagger em `/api` (desligado quando `APP_ENV=production`, salvo `ENABLE_SWAGGER=true`). Autenticação Bearer obrigatória nas rotas protegidas (também aceita cookie `urbanai_access_token` desde F5C.2 item #10).
 
 Endpoints novos relevantes:
 
@@ -122,26 +127,26 @@ Ver `.env.example` para a lista completa. As essenciais:
 
 ## Testes
 
-67 testes unitários hoje. Stack: Jest + ts-jest. Cobertura ~10.6% global mas **fluxos críticos** (auth, payments, KNN, plans, stays) bem cobertos.
+Stack: Jest + ts-jest, specs ao lado do código (`*.spec.ts`). O CI exige 90% de cobertura nos módulos críticos certificados (`npm run test:coverage:certified`). Não fixe contagem de testes em docs; ela muda a cada PR.
 
 ```bash
-yarn test                                                       # todos
-yarn test --testPathPatterns="auth.service|stays.service"      # filtro
-yarn test --coverage                                            # com relatório
+npm test                                                        # todos
+npm test -- --testPathPatterns="auth.service|stays.service"     # filtro
+npm run test:cov                                                # com relatório
 ```
 
 Plano de expansão em `../docs/runbooks/testing-strategy.md`.
 
 ## Deploy
 
-Watch automático do Railway na branch `main`. Mudanças sobem em ~2min após push.
+Railway faz build pelo `Dockerfile` (Node 20) a partir da `main` (produção) e da branch de staging. Produção responde no domínio de serviço Railway; ainda não existe `api.myurbanai.com` (ver pendências em `../docs/ARQUITETURA-ATUAL.md`).
 
-Health check: `GET /health` (a criar/verificar — usado pelo UptimeRobot).
+Health: `GET /health/live` (liveness público) e `GET /health` (detalhado, exige `HEALTH_READINESS_TOKEN` fora de dev).
 
 ## Troubleshooting
 
 - **Backend não sobe + erro JWT_SECRET**: setar a env var no Railway / .env. Antes do F5C.2 item #10 caía no fallback `mysecretkey`; agora é fail-fast por segurança.
-- **CORS bloqueia chamadas do front**: setar `CORS_ALLOWED_ORIGINS=https://app.myurbanai.com,https://urbanai.com.br` (separado por vírgula).
+- **CORS bloqueia chamadas do front**: setar `CORS_ALLOWED_ORIGINS=https://app.myurbanai.com,https://myurbanai.com` (separado por vírgula; incluir os hosts de staging no ambiente de staging).
 - **Stripe webhook 401**: o `STRIPE_WEBHOOK_SECRET` precisa ser exatamente o do endpoint configurado no Dashboard, não outro.
 - **`@turf/turf` quebra teste com `Unexpected token 'export'`**: precisa `jest.mock('@turf/turf', () => ({ ... }))` no topo do spec — ver `pricing-engine.spec.ts` como referência.
 
@@ -153,4 +158,4 @@ Health check: `GET /health` (a criar/verificar — usado pelo UptimeRobot).
 - `../docs/runbooks/stripe-billing-smoke.md`
 - `../docs/runbooks/stays-integration-setup.md`
 - `../docs/adr/` — ADRs sobre as decisões arquiteturais
-- `../docs/slo.md` — alvos operacionais
+- `../docs/ops/slo.md` — alvos operacionais

@@ -8,7 +8,7 @@ Base: `83ec7df` (`feat: unify property pricing self-service`)
 
 - Branch de trabalho criada para organizar higiene/readiness fora da `main`.
 - Branch `codex/portfolio-cockpit` removida localmente e dos remotes `origin` e `urbanai-tech` por ja estar mergeada em `main`.
-- `.gitignore` atualizado para ignorar caches TypeScript (`*.tsbuildinfo`) e estados vivos de squads (`/squads/*/state.json`).
+- `.gitignore` atualizado para ignorar caches TypeScript (`*.tsbuildinfo`).
 - `Urban-front-main/tsconfig.tsbuildinfo` removido do indice do Git; o arquivo local passa a ser tratado como cache.
 - Evidencia de readiness atual gerada em `docs/evidence/enterprise-access-readiness-2026-05-25.md`.
 - Evidencia de enterprise gate dry-run gerada em `docs/evidence/enterprise-live-gate-dry-run-2026-05-25.md`.
@@ -37,7 +37,7 @@ Observacao: o build local do Next.js falhou inicialmente por `ENOSPC` quando o d
 
 Observacao: o smoke Playwright encontrou um falso positivo em `/precos`: o regex antigo interpretava o texto comercial `500 imoveis` como erro HTTP 500. O teste foi ajustado para procurar mensagens reais de erro runtime/servidor.
 
-Observacao: GitHub Actions no fork `Gustavogm9/urban.ai` disparou para o PR, mas os jobs nao iniciaram por bloqueio de billing/spending limit da conta. Mensagem do GitHub CLI: `The job was not started because recent account payments have failed or your spending limit needs to be increased.`
+Observacao: GitHub Actions no fork de trabalho disparou para o PR, mas os jobs nao iniciaram por bloqueio de billing/spending limit da conta. Mensagem do GitHub CLI: `The job was not started because recent account payments have failed or your spending limit needs to be increased.`
 
 Observacao: foi aberto o draft PR Urban https://github.com/urbanai-tech/urban.ai/pull/5 para obter sinal de CI no repositorio correto. No commit `0ac476f`, passaram `Backend -- typecheck + jest`, `Backend -- nest build`, `Backend -- migrations dry-run against MySQL`, `Frontend -- typecheck + build`, `Frontend - Playwright public smoke`, `Frontend - Playwright mocked local E2E`, `Pipeline - pytest`, `Webscraping - pytest`, `Release - evidence dry-run`, `Frontend - tsc + next build` e `Playwright - public smoke`. Os checks `Enterprise live gate - staging/prod evidence`, `Playwright - authenticated smoke` e `Produto - E2E audit admin/host` ficaram skipped conforme condicoes/segredos.
 

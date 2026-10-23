@@ -21,6 +21,7 @@ const contentRules = [
   ['openai-api-key', /\bsk-(?:proj-)?[A-Za-z0-9_-]{32,255}\b/g],
   ['slack-token', /\bxox[baprs]-[0-9A-Za-z-]{20,255}\b/g],
   ['stripe-live-secret', /\bsk_live_[0-9A-Za-z]{20,255}\b/g],
+  ['inline-ssh-password', /\bsshpass\s+-p\s*['"]?[^\s'"$]{4,}/g],
 ];
 
 function repositoryFiles() {
@@ -123,6 +124,7 @@ function selfTest() {
     ['openai-api-key', ['sk-proj-', 'A'.repeat(40)].join('')],
     ['slack-token', ['xoxb-', 'A'.repeat(24)].join('')],
     ['stripe-live-secret', ['sk_live_', 'A'.repeat(24)].join('')],
+    ['inline-ssh-password', ['sshpass -p ', "'", 'Example123', "'"].join('')],
   ]);
   const failures = [];
   for (const [rule, expression] of contentRules) {

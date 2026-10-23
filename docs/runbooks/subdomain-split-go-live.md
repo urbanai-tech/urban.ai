@@ -1,5 +1,8 @@
 # Runbook — Go-live do subdomain split (F8.3)
 
+> ⚠️ **Desatualizado — ver [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md).** O split `myurbanai.com` / `app.myurbanai.com` está no ar e o DNS fica no **Cloudflare**, não na Hostinger. `api.myurbanai.com` não existe; o backend responde no domínio de serviço Railway. Mantido como registro. (marcado em 2026-10-23)
+
+
 **Owner:** Gustavo · **Status:** Código pronto, aguardando você fazer o
 manual · **Origem:** Opção B do plano de subdomain split
 

@@ -1,6 +1,8 @@
 # Runbook — Backup off-site MySQL
 
-**Owner:** Gustavo · **Status:** Implementado · **Workflow:** `.github/workflows/backup-db.yml`
+**Owner:** Gustavo · **Status:** Implementado, **com falha aberta** · **Workflow:** `.github/workflows/backup-db.yml` (roda no repo canônico `urbanai-tech/urban.ai`)
+
+> ⚠️ **Pendência operacional (2026-10-23):** o workflow está falhando porque as credenciais do provedor de armazenamento ficaram inválidas. Ação: gerar novo par de chaves para o usuário IAM de backup (escopo mínimo em [`../ACESSOS-E-FERRAMENTAS.md`](../ACESSOS-E-FERRAMENTAS.md)), atualizar os GitHub Secrets do repo canônico, disparar o workflow manualmente e validar com `restore-drill.yml`.
 
 ---
 
@@ -129,7 +131,7 @@ GitHub → Actions → Backup MySQL DB → Run workflow → setar label opcional
 
 - **Backup de R2/S3 de uploads de usuário** — Urban AI não tem upload de arquivos
   (fotos vêm do Airbnb por URL). Quando isso mudar, criar workflow paralelo.
-- **Backup de Redis/Upstash** — fila BullMQ é efêmera, não precisa backup.
+- **Backup de Redis/Upstash** — fila Bull é efêmera, não precisa backup.
 - **Backup de Stripe** — Stripe é fonte da verdade, não backupamos seu dado.
 - **Backup de logs** — logs ficam no Sentry e no Railway, retention configurada lá.
 

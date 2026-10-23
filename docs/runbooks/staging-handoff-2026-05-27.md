@@ -1,16 +1,16 @@
 # Handoff de Staging - 2026-05-27
 
+> ⚠️ **Desatualizado — ver [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md) §6.** Registros DNS e hosts de staging abaixo não refletem o estado atual (staging usa domínios de serviço Railway; `staging.myurbanai.com` falha em TLS). Mantido como registro. (marcado em 2026-10-23)
+
+
 Este documento separa o que ja ficou pronto localmente do que depende de acesso humano, conta externa ou segredo.
 
 ## Ja pronto localmente
 
-- Estrutura Opensquad validada por `scripts/opensquad-readiness-check.js`.
-- Skills faltantes do runner cobertas por wrappers locais.
-- CSVs de participantes padronizados para `id,name,role,path`.
 - Template local criado em `.env.staging.example`.
 - `.env.staging` local criado com URLs Railway de staging ja confirmadas e secrets em branco.
 - Evidencias novas geradas em `docs/evidence/`.
-- Typecheck local verde para backend, frontend e dashboard.
+- Typecheck local verde para backend e frontend.
 
 ## Ordem recomendada para o Gustavo
 
@@ -63,7 +63,6 @@ Para eu concluir sozinho depois, use uma das opcoes abaixo sem colar segredo no 
 Rodar na raiz do repo:
 
 ```powershell
-node scripts/opensquad-readiness-check.js
 node scripts/enterprise-access-readiness.js --env-file .env.staging --output docs/evidence/enterprise-access-readiness-staging.md
 node scripts/enterprise-auditability-live-gate.js --env-file .env.staging --env=staging --strict --skip-events-ingest --output docs/evidence/enterprise-live-gate-staging.md
 ```

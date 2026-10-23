@@ -1,5 +1,8 @@
 # Runbook — Provisionamento de Staging no Railway
 
+> ⚠️ **Desatualizado — ver [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md) §6.** Staging hoje responde nos domínios de serviço Railway (`*-staging-staging.up.railway.app`). `staging.myurbanai.com` falha em TLS e `staging-api.myurbanai.com` não está em uso; o DNS é no Cloudflare, não na Hostinger; o KNN está aposentado. Os passos de criação de projeto/variáveis ainda servem como referência. (marcado em 2026-10-23)
+
+
 **Objetivo:** ter uma cópia funcional da produção para testar mudanças arriscadas (migrations, hardening F5C, integração F6.4 Stays, repricing F6.5) antes de tocar prod. Sem staging, qualquer deploy é um experimento em cliente real.
 
 **Escopo:** 5 serviços do monorepo — backend, frontend, KNN (se for manter), pipeline Prefect, webscraping Scrapyd. Mais banco MySQL separado e Redis Upstash separado.
@@ -24,7 +27,7 @@
 
 ## Passo 2 — Provisionar os 5 serviços + 2 dependências
 
-Na ordem abaixo. Tudo vai puxar de `github.com/Gustavogm9/urban.ai` (branch a escolher — ver Passo 7).
+Na ordem abaixo. Tudo vai puxar de `github.com/urbanai-tech/urban.ai` (branch a escolher — ver Passo 7).
 
 ### 2.1 MySQL staging
 
@@ -40,7 +43,7 @@ Na ordem abaixo. Tudo vai puxar de `github.com/Gustavogm9/urban.ai` (branch a es
 
 ### 2.3 Backend staging
 
-- **New → Deploy from GitHub repo → Gustavogm9/urban.ai**.
+- **New → Deploy from GitHub repo → urbanai-tech/urban.ai**.
 - **Root directory:** `urban-ai-backend-main/`
 - **Build command:** deixar o default (Nixpacks detecta `nest build`).
 - **Start command:** `node dist/main`
@@ -73,7 +76,7 @@ Na ordem abaixo. Tudo vai puxar de `github.com/Gustavogm9/urban.ai` (branch a es
 
 ### 2.4 Frontend staging
 
-- **New → Deploy from GitHub repo → Gustavogm9/urban.ai**.
+- **New → Deploy from GitHub repo → urbanai-tech/urban.ai**.
 - **Root directory:** `Urban-front-main/`
 - **Build command:** `npm run build`
 - **Start command:** `node server.js` (output standalone do Next.js)

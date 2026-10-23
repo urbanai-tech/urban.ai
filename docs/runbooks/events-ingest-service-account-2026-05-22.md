@@ -1,6 +1,8 @@
 # Events ingest service account
 
-Data: 2026-05-22
+Data: 2026-05-22 · Revisado: 2026-10-23
+
+> **Problema conhecido (2026-10-23):** coletores HTTP funcionam so com `URBAN_EVENTS_INGEST_API_KEY`. Ja a `UrbanIngestPipeline` dos spiders Scrapy (`urban_webscrapping/pipelines.py`) so e habilitada quando `URBAN_COLLECTOR_EMAIL` e `URBAN_COLLECTOR_PASSWORD` estao preenchidas, mesmo enviando com a API key. Ate a correcao em codigo, o servico de webscraping precisa da API key **e** das duas variaveis legadas nao vazias. Ver [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md) §3.
 
 Este runbook substitui o trecho antigo de `docs/runbooks/events-ingest-camada1.md`
 que recomendava JWT de usuario tecnico admin para coletores.
@@ -16,7 +18,7 @@ EVENTS_INGEST_API_KEY=<valor longo gerado no provedor de segredos>
 Coletores:
 
 ```bash
-URBAN_API_BASE=https://api.myurbanai.com
+URBAN_API_BASE=<dominio-de-servico-railway-do-backend>   # api.myurbanai.com ainda nao existe
 URBAN_EVENTS_INGEST_API_KEY=<mesmo valor configurado no backend>
 URBAN_COLLECTOR_NAME=sp-cultura
 URBAN_COLLECTOR_VERSION=<versao ou commit sha>
@@ -35,7 +37,7 @@ O backend grava `AdminAuditLog` por batch com totais, fonte, coletor, versao e
 ## Smoke manual
 
 ```bash
-curl -X POST https://api.myurbanai.com/events/ingest \
+curl -X POST <dominio-de-servico-railway-do-backend>/events/ingest \
   -H "x-urban-events-ingest-key: $URBAN_EVENTS_INGEST_API_KEY" \
   -H "x-urban-collector: smoke-manual" \
   -H "x-urban-collector-version: 2026-05-22" \

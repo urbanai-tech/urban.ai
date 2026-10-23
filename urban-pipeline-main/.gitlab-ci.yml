@@ -1,8 +1,0 @@
-include:
-  - project: 'infra/templates'
-    file: 'deploy-master.yml'
-
-variables:
-  USE_GPU: "false"
-  USE_HTTPS: "false"
-  K8S_ENV_INJECT: "AWS_ACCESS_KEY_ID AWS_DEFAULT_REGION AWS_SECRET_ACCESS_KEY WEBSCRAPPING_API_URL PREFECT_SERVER_URL"

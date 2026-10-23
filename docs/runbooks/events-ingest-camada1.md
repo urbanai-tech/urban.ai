@@ -1,5 +1,8 @@
 # Runbook — F6.2 Plus Camada 1: ingestão de eventos via APIs oficiais
 
+> ⚠️ **Desatualizado — ver [`./events-ingest-service-account-2026-05-22.md`](./events-ingest-service-account-2026-05-22.md) e [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md) §3.** O backend só aceita a API key (`x-urban-events-ingest-key`); o login JWT com `URBAN_COLLECTOR_*` é legado. `api.myurbanai.com` não existe. Exceção conhecida: a pipeline dos spiders Scrapy ainda exige `URBAN_COLLECTOR_EMAIL/PASSWORD` preenchidas para ser habilitada. (marcado em 2026-10-23)
+
+
 **Owner:** Gustavo (manual de credenciais) + Claude (código dos coletores)
 **Status:** Backend pronto · **Fase A (spiders Scrapy) também pronta** ·
 Coletores de API novos (api-football/Sympla/Eventbrite) pendentes de credencial

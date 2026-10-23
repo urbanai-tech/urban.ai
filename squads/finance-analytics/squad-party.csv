@@ -1,6 +1,0 @@
-id,name,role,path
-rita-pesquisa,Rita Referência,Pesquisadora de Mercado,./agents/rita-pesquisa.agent.md
-beatriz-dados,Beatriz BI,Analista de Dados Financeiros,./agents/beatriz-dados.agent.md
-paula-pricing,Paula Precificação,Estrategista de Pricing,./agents/paula-pricing.agent.md
-marcelo-relatorios,Marcelo Métricas,Formatador de Relatórios e Alertas,./agents/marcelo-relatorios.agent.md
-vera-revisao,Vera Veredito,Revisora de Qualidade e Segurança,./agents/vera-revisao.agent.md

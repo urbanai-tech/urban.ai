@@ -1,5 +1,8 @@
 # Runbook — Migração do DNS do `myurbanai.com` para Cloudflare
 
+> ⚠️ **Desatualizado — ver [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md) §6.** A migração foi concluída: os nameservers de `myurbanai.com` já são do Cloudflare. Mantido como registro do procedimento (útil para rollback). `api.myurbanai.com` citado abaixo **não existe**. (marcado em 2026-10-23)
+
+
 **Owner:** Gustavo · **Status:** Aberto · **Tempo total:** ~1h ativa + 1–24h de propagação
 
 ---

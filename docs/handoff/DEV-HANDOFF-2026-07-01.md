@@ -1,5 +1,8 @@
 # Dev Handoff - Urban AI
 
+> ⚠️ **Parcialmente desatualizado — ver [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md) e [`../ACESSOS-E-FERRAMENTAS.md`](../ACESSOS-E-FERRAMENTAS.md).** Fotografia de 2026-07-01. Hosts de staging, DNS e resultados de checks abaixo não refletem o estado atual. (marcado em 2026-10-23)
+
+
 Data: 2026-07-01
 Responsavel pelo handoff: Gustavo + Codex
 Objetivo: permitir que outro dev assuma trabalho no projeto sem depender dos chats antigos.
@@ -14,8 +17,6 @@ Estado honesto:
 - Staging basico responde em Railway.
 - Frontend typecheck passou.
 - Backend build passou depois de instalar dependencias.
-- Opensquad readiness passou.
-- Dashboard build passou.
 - O 100% real depende de ambiente, secrets, gates autenticados, testes verdes, integracoes externas e evidencia de dados reais.
 
 ## Arquitetura Rapida
@@ -27,16 +28,13 @@ Estado honesto:
 | Pipeline | `urban-pipeline-main/` | Prefect/Python para pipeline de dados. |
 | Webscraping | `urban-webscraping-main/` | Scrapy/Playwright e coletores de eventos. |
 | KNN legado | `urban-ai-knn-main/` | Legado/deprecated; a fonte de verdade e o backend. |
-| Opensquad | `_opensquad/`, `squads/` | Ferramenta interna de squads/agentes, auditoria e handoffs. |
 
 ## Estado Validado em 2026-07-01
 
 Comandos executados:
 
 ```powershell
-npm run opensquad:check
 npm --prefix Urban-front-main run typecheck
-npm --prefix dashboard run build
 npm --prefix urban-ai-backend-main ci
 npm --prefix urban-ai-backend-main run build
 npm --prefix urban-ai-backend-main test -- --runInBand
@@ -50,9 +48,7 @@ Resultados:
 
 | Check | Resultado |
 |---|---|
-| Opensquad readiness | PASS |
 | Frontend typecheck | PASS |
-| Dashboard build | PASS, com aviso de chunk grande |
 | Backend install | PASS, mas reportou vulnerabilidades |
 | Backend build | PASS |
 | Backend Jest completo | FAIL |
@@ -102,7 +98,6 @@ Status:
 
 Remotes:
 
-- `origin`: `https://github.com/Gustavogm9/urban.ai.git`
 - `urbanai-tech`: `https://github.com/urbanai-tech/urban.ai`
 
 Branches relevantes:
@@ -125,20 +120,12 @@ Alteracoes rastreadas:
 - `package.json`
 - `scripts/enterprise-access-readiness.js`
 - `scripts/enterprise-auditability-live-gate.js`
-- CSVs de squads
-- memoria de `event-demand-pricing-radar`
-- ajustes do squad `marketing-agency`
 
 Nao rastreados importantes:
 
 - `docs/product/`
-- `docs/spinoff-plataforma-demanda/`
-- `docs/archive/audits/reavaliacao-360-tecnica-proximos-passos-2026-06-21.md`
 - `docs/evidence/*2026-05-27*`
 - `docs/runbooks/staging-handoff-2026-05-27.md`
-- `scripts/opensquad-readiness-check.js`
-- `skills/mcp_railway/`, `skills/read_files/`, `skills/run_command/`
-- outputs de squads
 
 Recomendacao: fazer um commit de documentacao/handoff separado de qualquer commit de codigo.
 

@@ -54,6 +54,4 @@ Razões:
 
 ## Referências
 
-- `docs/archive/audits/avaliacao-projeto-2026-04-16.md` §4 — avaliação de infra
-- `docs/archive/data/banco-antigo-analise.md` + `docs/archive/data/banco-antigo-schemas.md` — contexto do DB legado
 - Runbook: `docs/runbooks/migrations-cutover.md`

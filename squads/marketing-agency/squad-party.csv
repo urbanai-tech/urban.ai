@@ -1,9 +1,0 @@
-id,name,role,path
-aline-analise,Aline Análise,Pesquisadora de Mercado e ICP,./agents/aline-analise.agent.md
-samanta-seo,Samanta SEO,Estrategista de Conteúdo e SEO,./agents/samanta-seo.agent.md
-carlos-copy,Carlos Copy,Redator Publicitário Master,./agents/carlos-copy.agent.md
-diogo-design,Diogo Design,Head de Identidade Visual,./agents/diogo-design.agent.md
-daniel-desenvolvedor,Daniel Desenvolvedor,Engenheiro Frontend de Marketing,./agents/daniel-desenvolvedor.agent.md
-patricia-publicacao,Patricia Publicação,Operadora de Hub,./agents/patricia-publicacao.agent.md
-bruno-bi,Bruno BI,Engenheiro de Growth e Monitoramento,./agents/bruno-bi.agent.md
-renata-revisao,Renata Revisão,Quality Assurance QA,./agents/renata-revisao.agent.md

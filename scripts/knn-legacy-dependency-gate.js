@@ -17,7 +17,7 @@ const ROOT_CONFIGS = new Set([
   'compose.yaml', 'compose.yml', 'docker-compose.yaml', 'docker-compose.yml',
 ]);
 const EXECUTABLE_ROOTS = [
-  '.github/', 'scripts/', 'Urban-front-main/', 'dashboard/',
+  '.github/', 'scripts/', 'Urban-front-main/',
   'urban-ai-backend-main/', 'urban-pipeline-main/', 'urban-webscraping-main/',
 ];
 const RULES = [

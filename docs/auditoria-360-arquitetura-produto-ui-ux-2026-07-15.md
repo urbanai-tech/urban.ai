@@ -112,12 +112,9 @@ Urban AI/
 ├── urban-pipeline-main/       Prefect: S3 → transformação → MySQL
 ├── urban-webscraping-main/    Scrapy/Playwright: fontes de eventos
 ├── urban-ai-knn-main/         microserviço legado, marcado como deprecado
-├── dashboard/                 dashboard do Opensquad, não o produto Urban AI
 ├── docs/                      produto, arquitetura, auditorias, runbooks e evidências
 ├── load-tests/                k6/smokes de carga
-├── scripts/                   gates e evidências de release
-├── squads/                    equipes e memória do Opensquad
-└── _opensquad/                runtime/configuração do Opensquad
+└── scripts/                   gates e evidências de release
 ```
 
 ### 3.2 Dívida de organização
@@ -771,7 +768,6 @@ Essa métrica evita otimizar vaidade: não basta evento coletado, recomendação
 - Auto-apply mais amplo, ainda com kill-switch.
 - Market intel e pace como drivers calibrados.
 - AskUrban com LLM somente se respostas continuarem auditáveis e citadas.
-- Avaliar spinoff multi-vertical separadamente.
 
 ---
 
@@ -854,7 +850,6 @@ python -m pytest -q
 - `docs/product/DESIGN-SYSTEM.md`
 - `docs/product/USER-JOURNEYS.md`
 - `docs/product/PRD.md`
-- `docs/archive/audits/gaps-reais-atualizados-2026-07.md`
 - `docs/postmortems/incident-git-leak-2026-07.md`
 - `docs/product/DESIGN-SYSTEM.md`
 - `docs/evidence/`

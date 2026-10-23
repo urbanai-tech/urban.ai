@@ -26,15 +26,7 @@ git worktree list
 
 Nao usar `git reset --hard` sem confirmar com Gustavo.
 
-## 2. Opensquad
-
-```powershell
-npm run opensquad:check
-```
-
-Esperado: `Opensquad readiness check passed.`
-
-## 3. Frontend
+## 2. Frontend
 
 ```powershell
 npm --prefix Urban-front-main ci --legacy-peer-deps
@@ -49,7 +41,7 @@ Status em 2026-07-01:
 
 Depois de liberar espaco, rerodar build.
 
-## 4. Backend
+## 3. Backend
 
 ```powershell
 npm --prefix urban-ai-backend-main ci
@@ -73,15 +65,7 @@ Falhas conhecidas para atacar:
 - `airbnb-pricing-attempt-log.service.spec.ts` input sem `startedAt`/`finishedAt`.
 - `ENOSPC` em cache Jest.
 
-## 5. Dashboard Opensquad
-
-```powershell
-npm --prefix dashboard run build
-```
-
-Status em 2026-07-01: passou com warning de bundle grande.
-
-## 6. Enterprise Access
+## 4. Enterprise Access
 
 Sem carregar `.env.staging`, o readiness parece bloqueado. Carregue via argumento suportado pelos scripts:
 
@@ -96,7 +80,7 @@ Com `.env.staging` atual em 2026-07-01:
 - Restore drill verifier: BLOCKED por falta de `RESTORE_DATABASE_URL`.
 - Stays sandbox: BLOCKED por falta de `STAYS_API_BASE_URL`.
 
-## 7. Staging Read-only Gate
+## 5. Staging Read-only Gate
 
 ```powershell
 node scripts/enterprise-auditability-live-gate.js `
@@ -116,7 +100,7 @@ Status em 2026-07-01:
 
 Proximo passo: configurar `ENTERPRISE_GATE_ADMIN_JWT` e `ENTERPRISE_GATE_HOST_JWT`.
 
-## 8. Track 3 Backend Preflight
+## 6. Track 3 Backend Preflight
 
 ```powershell
 npm --prefix urban-ai-backend-main run preflight:track3
@@ -131,7 +115,7 @@ Bloqueios:
 - Suporte/LGPD sem owners.
 - Admin/ops sem CORS/Sentry/Admin alert.
 
-## 9. Depois dos Fixes
+## 7. Depois dos Fixes
 
 Quando tudo estiver pronto, gerar evidencia:
 

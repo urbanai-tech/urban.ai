@@ -52,5 +52,10 @@ BaaS (Supabase) foi descartado por dois motivos: lock-in grande (trocar depois �
 
 ## Referências
 
-- `docs/archive/audits/avaliacao-projeto-2026-04-16.md` §3.1 — avaliação inicial do backend
 - Commit inicial do NestJS: anterior a `f7b3a47` (pre-sprint)
+
+---
+
+## Adendo 2026-10-23 — estado atual
+
+A decisão (monólito NestJS) continua válida. Fatos que mudaram desde a escrita: o backend usa **NestJS 11** (não 10) e filas com **Bull v3** (`@nestjs/bull` + `bull`), não BullMQ. Estado atual de infraestrutura em [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md).

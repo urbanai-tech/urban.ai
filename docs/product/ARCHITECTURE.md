@@ -3,6 +3,8 @@
 **Versão:** 1.0 (mapeada do código em 2026-06-21)
 **Fontes:** `urban-ai-backend-main/` (NestJS), `Urban-front-main/` (Next.js 15), `urban-pipeline-main/` (Prefect/Python), `urban-webscraping-main/` (Scrapy/Python).
 
+> **Escopo (2026-10-23):** este arquivo cobre a arquitetura **interna** (módulos, entidades, fluxos de negócio, regras do motor). Topologia, hosts, ambientes, deploy, integrações externas e pendências de infraestrutura estão em [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md), que prevalece em caso de conflito. Correções de 2026-10-23 nesta página: estilo (Chakra removido), `ValidationPipe`, fluxo de coleta (bronze S3 inativo) e hospedagem.
+
 > Este documento é o contrato de integração. Antes de implementar qualquer feature que cruze módulos, leia a seção 4 (grafo de integração) e a seção 6 (fluxos críticos). Quebrar essas regras quebra a confiança do produto.
 
 ---
@@ -30,7 +32,7 @@
    AWS S3 (bronze layer parquet)
 ```
 
-**Hospedagem:** Railway (backend, frontend, pipeline, webscraping como serviços separados). Timezone dos crons: `America/Sao_Paulo`.
+**Hospedagem:** Railway (backend, frontend, MySQL e webscraping como serviços separados), Cloudflare na frente do frontend; pipeline Prefect em container próprio. O ramo "Pipeline Prefect S3→MySQL" e o "AWS S3 (bronze)" do desenho acima estão **inativos**: hoje coletores e spiders enviam direto para `POST /events/ingest`. Ver [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md). Timezone dos crons do backend: `America/Sao_Paulo`.
 
 ---
 
@@ -39,11 +41,11 @@
 - **Sem global prefix.** Cada `@Controller('x')` define seu próprio path (`/auth`, `/payments`, `/admin`, etc.). *Atenção ao adicionar módulos: o path é o do controller.*
 - **Tamanho real (revalidado em 15/07):** **36 controllers, 223 endpoints HTTP, 45 entidades cobertas e 48 migrations** (contagens e auditor estrutural conferidos no repositório).
 - **Swagger** em `/api`.
-- **Auth:** e-mail/senha + **Google** (`POST /auth/google`, verifica idToken via `tokeninfo`, valida `aud` contra `GOOGLE_CLIENT_IDS`; cria usuário com marcador `google_…` se novo). Cookies httpOnly compartilhados em `.myurbanai.com` (subdomínios).
+- **Auth:** e-mail/senha + **Google** (`POST /auth/google`, verifica idToken via `tokeninfo`, valida `aud` contra `GOOGLE_CLIENT_ID` (aceita também `GOOGLE_OAUTH_CLIENT_ID`/`NEXT_PUBLIC_GOOGLE_CLIENT_ID`, com lista separada por vírgula); cria usuário com marcador `google_…` se novo). Cookies httpOnly compartilhados em `.myurbanai.com` (subdomínios).
 - **ThrottlerGuard global:** 10 req/s e 100 req/min; rotas sensíveis de auth com `@Throttle` mais restrito (5/min). ⚠️ `/admin/*` ainda sem throttle dedicado.
-- **Segurança:** Helmet + CSP, CORS por whitelist (fail-closed), Sentry. `ValidationPipe` global com `whitelist: true` (mas `forbidNonWhitelisted: false` — endurecer).
+- **Segurança:** Helmet + CSP, CORS por whitelist (fail-closed), Sentry. `ValidationPipe` global com `whitelist: true` e `forbidNonWhitelisted: true`.
 - **Banco:** MySQL via `DATABASE_URL` (Railway) ou vars individuais. `synchronize` controlado por `DB_SYNCHRONIZE` (default false) + 48 migrations versionadas.
-- **Jobs:** Bull + Redis (fila `processos`).
+- **Jobs:** Bull v3 (`@nestjs/bull`) + Redis Upstash (fila `processos`); agendamentos via `@nestjs/schedule`.
 - **Webhook único:** `POST /payments/webhook` (Stripe, verificação HMAC SHA-256, raw body — body-parser sobrescrito para essa rota).
 - **Estáticos:** `/uploads` (ServeStaticModule).
 
@@ -149,8 +151,8 @@ Coleta de dataset, bootstrap de pricing, processamento de event-intelligence, au
 ## 6. Fluxos críticos (passo a passo + contrato)
 
 ### 6.1 Coleta → Evento canônico
-1. Spiders Scrapy (7 bilheterias) e coletores REST (API-Football, Sympla, Firecrawl, SerpAPI, Tavily) gravam bruto no S3 e/ou postam em `POST /events/ingest` (com `URBAN_EVENTS_INGEST_API_KEY`).
-2. Pipeline Prefect faz ETL S3 → MySQL.
+1. Spiders Scrapy (7 bilheterias) e coletores HTTP (API-Football, SP Cultura, venues, Firecrawl, SerpAPI, Tavily) postam em `POST /events/ingest` com o header `x-urban-events-ingest-key` (`URBAN_EVENTS_INGEST_API_KEY` no coletor = `EVENTS_INGEST_API_KEY` no backend).
+2. (Inativo) O ETL Prefect S3 → MySQL não recebe dados novos: as pipelines S3 do webscraping estão desligadas.
 3. Backend deduplica (`dedupHash` + `EventDedupCandidate`), geocodifica (`pendingGeocode`), aplica escopo (`outOfScope` via `CoverageRegion`) e enriquece.
 4. **Contrato:** nada vira sinal de preço sem estar `dedupStatus=canonical`, geocodificado e in-scope.
 
@@ -201,7 +203,7 @@ Coleta de dataset, bootstrap de pricing, processamento de event-intelligence, au
 
 ## 8. Frontend (Next.js 15) — arquitetura de rotas
 
-- **App Router**, output standalone, TS strict, Chakra UI 2 (legado) + Tailwind 4 (novo), NextAuth 4, Stripe Elements, Sentry, Leaflet, i18next (pt/en/es).
+- **App Router**, output standalone, TS strict, React 19 + Tailwind 4 com tokens do design system (Chakra UI removido), NextAuth 4, Stripe.js, Sentry, Leaflet, i18next (pt/en/es).
 - **Roteamento por subdomínio** (`src/middleware.ts`):
   - `myurbanai.com` → site público (rewrite de `/` → `/landing`); `www` e `.com.br` → 301 para apex.
   - `app.myurbanai.com` → app autenticado (login na raiz, dashboard, admin).
@@ -225,8 +227,8 @@ Coleta de dataset, bootstrap de pricing, processamento de event-intelligence, au
 ## 9. Pipeline & Webscraping (Python)
 
 - **Webscraping (Scrapy 2.11 + Playwright):** 7 spiders (eventim, ticketmaster, sympla, ingresse, even3, blue_ticket, ticket_360); `ROBOTSTXT_OBEY=True`, AutoThrottle, retry exponencial; cliente de ingest com buffer fail-soft e refresh de JWT; 11 arquivos de teste; deploy via Scrapyd.
-- **Pipeline (Prefect 3.4 + Pandas + SQLAlchemy + boto3):** ETL S3→MySQL e trigger de spiders; credenciais escapadas; 12+ testes E2E (moto/testcontainers); ruff + mypy strict.
-- **Agendamento:** Prefect flows (`spider-triggers`, `raw-data-pipeline`), com health-check do Scrapyd antes de disparar.
+- **Pipeline (Prefect 3.4 + Pandas + SQLAlchemy + boto3):** trigger de spiders (ativo) e ETL S3→MySQL (legado, inativo); testes E2E (moto/testcontainers); ruff + mypy strict. Cliente Prefect lê `PREFECT_API_URL`/`PREFECT_API_KEY`.
+- **Agendamento:** Prefect `trigger_all_spiders` às 03:00 UTC (com health-check do Scrapyd antes de disparar) + cron interno do container de webscraping a cada 6 h (`COLLECTOR_CRON_INTERVAL_SECONDS`).
 
 ---
 
@@ -241,7 +243,7 @@ Coleta de dataset, bootstrap de pricing, processamento de event-intelligence, au
 | Brevo | E-mail | `BREVO_API_KEY` |
 | Gemini | Ask Urban / enrichment | `GEMINI_API_KEY` |
 | Firecrawl/SerpAPI/Tavily/API-Football | Coleta de eventos | chaves por coletor |
-| Sentry | Observabilidade | `SENTRY_DSN` (criar) |
+| Sentry | Observabilidade | `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` |
 
 ---
 

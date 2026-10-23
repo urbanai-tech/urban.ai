@@ -116,7 +116,7 @@ Alvo: fazer em staging, medir tempo total, validar que o dump restaurado sobe um
 
 **Quando usar:** banco corrompido, migration que destruiu dados, incident com perda de dados.
 
-**Critério de decisão:** só fazer se for claramente mais rápido que tentar recuperar in-place. Na dúvida, chamar todos os sócios antes de iniciar.
+**Critério de decisão:** só fazer se for claramente mais rápido que tentar recuperar in-place. Na dúvida, chamar todos os responsáveis antes de iniciar.
 
 ### Passo a passo
 

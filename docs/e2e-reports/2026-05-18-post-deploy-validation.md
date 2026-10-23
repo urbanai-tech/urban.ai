@@ -164,4 +164,4 @@ bruto do Railway. Nao foi executado backfill real.
 | Stays | falta `STAYS_API_BASE_URL` e credencial sandbox/oficial |
 | Geocoding | precisa validar `DATABASE_URL` mascarado/seguro e rodar backfill `LIMIT=5`; producao ainda mostra pendencias |
 | Dados/cases | falta occupancy history, MAPE/cases e coletores stale |
-| GitHub pessoal | repo `Gustavogm9` segue com Actions bloqueadas por billing/spending |
+| Fork pessoal | fork de trabalho segue com Actions bloqueadas por billing/spending |

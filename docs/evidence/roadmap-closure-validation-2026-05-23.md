@@ -97,7 +97,7 @@ Status: **validacoes locais verdes; release remoto condicionado a staging/DB rea
 
 O Railway foi mapeado em modo seguro:
 
-- Conta: `urbanai.admin@gmail.com`.
+- Conta: `u***@gmail.com` (mascarada).
 - Backend: projeto `backend`, servico `urban.ai`, ambiente `production`, commit ativo `9b853f5`.
 - Frontend: projeto `Front`, servico `Frontend`, ambiente `production`, commit ativo `9b853f5`.
 - MySQL: projeto `mysql`, servico `MySQL`, ambiente `production`.

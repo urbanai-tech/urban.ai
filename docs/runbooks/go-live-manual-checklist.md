@@ -195,7 +195,7 @@ em ~1500 req/dia (Gemini) ou 28.500 maps/mês.
 1. analytics.google.com → criar property `urban.ai`
 2. Copiar Measurement ID `G-XXXX`
 3. business.facebook.com → criar Pixel Urban AI
-4. Setar env do Next.js (Vercel/Railway):
+4. Setar env do Next.js no serviço de frontend do Railway (o produto não usa Vercel):
    ```
    NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXX
    NEXT_PUBLIC_META_PIXEL_ID=...
@@ -257,15 +257,15 @@ no Stripe pessoal ou em modo test.
 
 ### 15. GitHub — branch protection + CI
 
-**Por quê:** Hoje qualquer commit vai direto pra `main`. Para sócios virem
-contribuir, precisa de PR review.
+**Por quê:** Hoje qualquer commit vai direto pra `main`. Para outros mantenedores
+contribuírem, precisa de PR review.
 
 **Como:**
 1. Settings → Branches → Add rule `main`:
    - Require pull request before merging (1 approval)
    - Require status checks (CI verde)
    - Require linear history
-2. Convidar Fabrício e Rogério como Maintainers
+2. Convidar os mantenedores adicionais como Maintainers
 3. CI workflow GitHub Actions (Claude pode escrever — ver "O que ainda posso
    fazer" abaixo)
 
@@ -290,6 +290,8 @@ tudo. Off-site = S3/B2/Drive.
 ---
 
 ### 17. Domínio + DNS + SSL
+
+> ⚠️ **Desatualizado (2026-10-23):** o domínio em uso é `myurbanai.com`, DNS no Cloudflare, front e back no Railway. Ver [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md) §6. Pendentes reais: hostname canônico da API e MX do domínio.
 
 **Como:**
 1. Confirmar registro `urban.ai` ativo (já comprado?)
@@ -317,7 +319,7 @@ tudo. Off-site = S3/B2/Drive.
 
 ---
 
-### 19. Approve ADRs com sócios
+### 19. Aprovar ADRs com a equipe
 
 **Por quê:** Decisões arquiteturais (KNN→XGBoost, AdaptivePricingStrategy,
 captura passiva de dataset, etc.) estão documentadas mas não formalmente
@@ -325,20 +327,10 @@ aprovadas.
 
 **Como:**
 1. Imprimir/compartilhar ADRs em `docs/adrs/` (ADR-0008, 0009, etc.)
-2. Reunião 1h com Fabrício + Rogério
+2. Reunião 1h com a equipe de decisão
 3. Assinar (ou comentar dúvidas) → status `approved`
 
 **Tempo:** 1 reunião
-
----
-
-### 20. Apresentação aos sócios — abril/2026
-
-Documento `docs/Relatorio Socios Abril 2026.pdf` está pronto. Falta:
-- [ ] Marcar reunião 90min
-- [ ] Apresentar
-- [ ] Validar próximas fases (F7 Premium, F9 Stays Pro, etc.)
-- [ ] Definir próximas 4 sprints
 
 ---
 

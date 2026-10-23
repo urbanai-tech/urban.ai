@@ -1,5 +1,8 @@
 # Mini-checklist final — Go-live subdomain split (DNS via Cloudflare)
 
+> ⚠️ **Desatualizado — ver [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md).** Checklist de abril/2026 do go-live do DNS. O DNS já está ativo no Cloudflare; `api.myurbanai.com` não existe; a fila usa Bull v3 com Redis Upstash (`REDIS_*`, não `UPSTASH_REDIS_URL`). Mantido como registro. (marcado em 2026-10-23)
+
+
 **Owner:** Gustavo · **Status:** DNS em propagação · **Data:** 25/04/2026
 
 > Versão consolidada. Ao terminar este checklist, `myurbanai.com` serve a

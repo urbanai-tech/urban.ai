@@ -1,3 +1,5 @@
+> ⚠️ **Aposentado — ver [ADR 0007](../docs/adr/0007-aposentar-knn-microservice.md).** O motor de pricing ativo está em `urban-ai-backend-main/src/knn-engine/`. Esta pasta ainda compila, mas não recebe tráfego nem deve ganhar novos consumidores (gate `npm run audit:knn-legacy` no CI). Revisado em 2026-10-23.
+
 # Urban AI Backend - Lógica de Precificação Inteligente (API RESTful)
 
 Este projeto contém a implementação da lógica de inteligência artificial para a plataforma Urban AI, focada em precificação dinâmica de imóveis no Airbnb na cidade de São Paulo. A solução considera não apenas as características do imóvel, mas também eventos na cidade e a facilidade de acesso a esses eventos, utilizando inteligência geoespacial.

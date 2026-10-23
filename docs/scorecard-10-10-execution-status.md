@@ -10,7 +10,7 @@
 |---|---|---|
 | Repositório | execução isolada em `codex/scorecard-10-10-20260715`, criada a partir de `main` em `303d71a8`; worktree contém as entregas ainda não publicadas | `git status --short --branch`; `git branch --show-current`; `git log -1` |
 | CI canônico | CI, release gate e backup mais recentes verdes em `urbanai-tech/urban.ai` | `gh run list --repo urbanai-tech/urban.ai --branch main` em 2026-07-15 |
-| CI fork | CI e release gate verdes; backup agendado falha porque o fork não possui os secrets operacionais | run `29391895557` em `Gustavogm9/urban.ai` |
+| CI fork | CI e release gate verdes; backup agendado falha porque o fork não possui os secrets operacionais | run `29391895557` no fork de trabalho |
 | Produção web | `myurbanai.com` e `app.myurbanai.com` respondem | smoke HTTP em 2026-07-15 |
 | Liveness | `/health/live` responde 200 | smoke HTTP em 2026-07-15 |
 | Readiness | `/health` responde 503: readiness token não configurado | smoke HTTP em 2026-07-15 |

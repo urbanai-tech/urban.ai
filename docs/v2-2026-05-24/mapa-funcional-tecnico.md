@@ -1,5 +1,7 @@
 # Mapa Funcional e Tecnico da Urban AI
 
+> ⚠️ **Desatualizado — ver [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md).** Pacote v2 de 2026-05-24; stack e infraestrutura mudaram (NestJS 11, Bull v3, DNS no Cloudflare, bronze S3 inativo). (marcado em 2026-10-23)
+
 Data: 2026-05-24  
 Base: leitura dos READMEs, documentos recentes e varredura local do codigo.
 
@@ -33,7 +35,6 @@ flowchart LR
 | Pipeline | `urban-pipeline-main/` | Python, Prefect, pandas, SQLAlchemy | Orquestracao de spiders e processamento S3/MySQL |
 | Webscraping | `urban-webscraping-main/` | Python, Scrapy, Scrapyd, Playwright | Coleta de eventos em fontes externas |
 | KNN legado | `urban-ai-knn-main/` | Node/Express | Aposentado. Logica viva foi migrada para o backend |
-| Opensquad interno | `_opensquad/`, `squads/`, `dashboard/` | Agentes, Vite/React | Ferramenta operacional interna, nao parte do produto cliente |
 
 ## Mapa de funcionalidades
 

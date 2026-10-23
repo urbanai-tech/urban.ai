@@ -57,7 +57,7 @@ async def extract_hash_via_playwright() -> str:
         page.on("request", handle_request)
         
         # Navigate to a public host profile that we know exists and has listings
-        # We use a random profile (or Fabricio's, but it's public) to trigger the query
+        # We use a random profile (any public profile works) to trigger the query
         print("Navigating to Airbnb profile to generate GraphQL queries...")
         try:
             await page.goto("https://www.airbnb.com.br/users/show/1462996042612541438", wait_until="networkidle", timeout=30000)
