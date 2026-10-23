@@ -117,6 +117,6 @@ Esta secao define o fechamento objetivo do release gate do Event Radar.
 - [ ] Confirmar exit code 0.
 - [ ] Confirmar 4/4 testes Playwright passando em browser real.
 - [ ] Registrar base URL, porta e caminho dos artefatos.
-- [ ] Anexar ou referenciar evidencia final no documento `docs/evidence/event-radar-playwright-fix-2026-05-22.md`.
+- [ ] Anexar ou referenciar a evidencia final (artefato de CI ou relatorio do gate) no registro do release.
 
 Enquanto esses cinco itens obrigatorios nao forem concluídos, o status correto e "pronto para execucao final", nao 100%.

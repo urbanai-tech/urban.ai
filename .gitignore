@@ -115,6 +115,10 @@ _opensquad/_browser_profile/
 # ===== Artefatos de teste (relatórios de runs — vão para CI artifact, não git) =====
 # Mantém os .md consolidados em docs/e2e-reports/, ignora só as pastas por timestamp.
 docs/e2e-reports/*T*/
+
+# Evidências são artefatos de CI; só o README é versionado.
+docs/evidence/*
+!docs/evidence/README.md
 docs/controlled-flows/
 
 # ===== Lockfile único no front (CI usa package-lock.json) =====

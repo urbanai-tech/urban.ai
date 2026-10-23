@@ -21,7 +21,7 @@ Ja implementado:
 - Contrato tipado do painel em `admin-seo-panel.ts`, com fonte, cadencia, status de integracao e ultima atualizacao por indicador.
 - Eventos publicos instrumentados para CTAs dos hubs GEO: `urban_geo_cta_view` e `urban_hub_cta_click`.
 - API interna segura `GET /api/admin/seo/connectors` para readiness de Search Console, GA4, logs de bots e AI Monitor, sem retornar segredos e sem tentar fetch externo.
-- Framework de evidencias/cases em `docs/evidence/seo-case-evidence-framework-2026-05-19.md`.
+- Framework de evidencias/cases em `docs/runbooks/seo-case-evidence-framework.md`.
 - Slots publicos de estudos de caso nos hubs GEO, com fonte, periodo, amostra e status `em validacao` enquanto nao houver dado aprovado.
 
 Lacunas para 100%:
@@ -32,7 +32,7 @@ Lacunas para 100%:
 
 ## Governanca de evidencias e cases
 
-Fonte de verdade: `docs/evidence/seo-case-evidence-framework-2026-05-19.md`.
+Fonte de verdade: `docs/runbooks/seo-case-evidence-framework.md`.
 
 Regras publicas:
 

@@ -166,4 +166,4 @@ O backup off-site está **falhando** hoje por credenciais inválidas no provedor
 - `EVENTS_INGEST_API_KEY` (backend) e `URBAN_EVENTS_INGEST_API_KEY` (webscraping) giram juntas.
 - Ao adicionar variável no código, atualizar esta matriz e o `.env.example` do serviço no mesmo PR.
 - Para Track 3, rodar `npm run preflight:track3` em `urban-ai-backend-main` antes de smoke manual.
-- Checklist histórico de integrações em staging: [`integracoes-outcomes-calibracao-2026-05-26.md`](./integracoes-outcomes-calibracao-2026-05-26.md).
+- Checklist histórico de integrações em staging: [`integracoes-outcomes-calibracao.md`](./integracoes-outcomes-calibracao.md).

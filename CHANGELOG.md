@@ -7,6 +7,43 @@ primeiro.
 
 ---
 
+## [Limpeza] — 2026-10 — Enxugamento do repositório público
+
+### Removido
+
+- **Serviço KNN aposentado** (`urban-ai-knn-main/`) e o job `auxiliary-node-services` do CI;
+  o gate `scripts/knn-legacy-dependency-gate.js` fica como guarda contra reintrodução
+  ([ADR 0007](docs/adr/0007-aposentar-knn-microservice.md)).
+- Resquícios do fornecedor anterior: `.github/` de assistentes em `urban-pipeline-main/` e
+  `urban-webscraping-main/`, autores `@luminalab.ai`, passo de `git_clone` do `prefect.yaml`
+  apontando para o repositório antigo.
+- Arquivos sem uso: imagens órfãs do frontend (~5 MB), `runtime.txt`, `yarn.lock`/`pnpm-lock.yaml`
+  do backend, utilitários soltos de banco, `ServeStatic('/uploads')`, scripts de depuração do
+  pipeline, `scratch/` e `docker_legacy/` do webscraping.
+- Documentação histórica: evidências datadas (`docs/evidence/`, agora artefatos de CI),
+  relatórios E2E, handoff de 2026-07, auditoria 360, plano mestre e scorecard 10/10, mapa
+  visual, `docs/v2-2026-05-24/`, protocolo de devs/agentes e runbooks pontuais de migração de
+  DNS/subdomínios, staging e track 3.
+
+### Alterado
+
+- Runbooks consolidados: `go-live-checklist.md` (checklist único), `events-ingest-service-account.md`
+  (absorve a Camada 1), `staging-provisioning.md` (absorve as auth fixtures); runbooks sem data no
+  nome; `event-radar-release-gate.md` movido de `docs/release/`.
+- `docs/README.md` e `DOCUMENTATION-GOVERNANCE.md` reescritos como índice enxuto;
+  `public-scope-guard.js` bloqueia `.github/` aninhado e lista só caminhos existentes.
+
+### Histórico dos CHANGELOGs por serviço (removidos)
+
+- **urban-pipeline** — 0.3.0 (2025-09-11): orquestração com Prefect, configuração via variáveis
+  Prefect, classe única `SpiderTrigger`; 0.2.0 (2025-08-14): pipeline de disparo das APIs de
+  webscraping.
+- **urban-webscraping** — 0.2.0 a 0.11.1 (2025-06 a 2025-08): spiders Sympla, Even3, Ticketmaster,
+  Blue Ticket, Ingresse e Ticket 360; pipelines de itens e dump em banco; disparo dos spiders como
+  API REST e orquestrador agendado.
+
+---
+
 ## [Docs] — 2026-10-23 — Sincronização documentação × realidade
 
 ### Adicionado
