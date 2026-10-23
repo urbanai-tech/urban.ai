@@ -260,36 +260,6 @@ jobs:
       - name: Pytest
         run: uv run pytest tests -q
 
-  # ===================== Auxiliary Node services =====================
-
-  auxiliary-node-services:
-    name: Auxiliary Node - dashboard and KNN
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: actions/setup-node@v6.4.0
-        with:
-          node-version: '20'
-          cache: 'npm'
-          # Padrões sem arquivo correspondente são ignorados; basta o lockfile do KNN existir.
-          cache-dependency-path: |
-            dashboard/package-lock.json
-            urban-ai-knn-main/package-lock.json
-      - name: Dashboard clean install, audit, build and bundle budget
-        if: ${{ hashFiles('dashboard/package.json') != '' }}
-        working-directory: dashboard
-        run: |
-          npm ci --ignore-scripts
-          npm audit --audit-level=moderate
-          npm run build
-      - name: KNN clean install, audit, contracts and syntax smoke
-        working-directory: urban-ai-knn-main
-        run: |
-          npm ci --ignore-scripts
-          npm audit --omit=dev --audit-level=moderate
-          npm test
-          node --check server.js
-
   # ===================== Release evidence =====================
 
   release-evidence:

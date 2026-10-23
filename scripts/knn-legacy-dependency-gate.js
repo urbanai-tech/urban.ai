@@ -7,7 +7,6 @@ const { execFileSync, spawnSync } = require('node:child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 const SELF = 'scripts/knn-legacy-dependency-gate.js';
-const LEGACY_ROOT = 'urban-ai-knn-main/';
 const TEXT_EXTENSIONS = new Set([
   '.cjs', '.js', '.json', '.jsx', '.mjs', '.py', '.sh', '.ts', '.tsx',
   '.yaml', '.yml', '.toml', '.ini', '.env', '.example', '.dockerfile',
@@ -59,7 +58,7 @@ function normalize(file) {
 
 function isExecutableSurface(file) {
   const normalized = normalize(file);
-  if (normalized === SELF || normalized.startsWith(LEGACY_ROOT)) return false;
+  if (normalized === SELF) return false;
   if (/(?:^|\/)(?:package-lock\.json|yarn\.lock|pnpm-lock\.yaml|uv\.lock)$/.test(normalized)) return false;
   if (!EXECUTABLE_ROOTS.some((prefix) => normalized.startsWith(prefix)) && !ROOT_CONFIGS.has(normalized)) {
     return false;
@@ -69,20 +68,12 @@ function isExecutableSurface(file) {
   return TEXT_EXTENSIONS.has(path.posix.extname(normalized).toLowerCase());
 }
 
-function isAllowedMaintenanceReference(file, line, ruleId) {
-  if (!['legacy-service-path', 'legacy-deploy-target'].includes(ruleId)
-      || file !== '.github/workflows/ci.yml') return false;
-  const trimmed = line.trim();
-  return trimmed === 'urban-ai-knn-main/package-lock.json'
-    || trimmed === 'working-directory: urban-ai-knn-main';
-}
-
 function scanFile(file, content) {
   if (!isExecutableSurface(file)) return [];
   const findings = [];
   for (const [index, line] of content.split(/\r?\n/).entries()) {
     for (const rule of RULES) {
-      if (rule.pattern.test(line) && !isAllowedMaintenanceReference(file, line, rule.id)) {
+      if (rule.pattern.test(line)) {
         findings.push({ file, line: index + 1, rule: rule.id, reason: rule.reason });
       }
     }
@@ -173,10 +164,9 @@ function runSelfTest() {
     ['legacy endpoint is blocked', 'Urban-front-main/src/api.ts', "fetch('/api/pricing/suggest')", 1],
     ['legacy service env is blocked', 'urban-ai-backend-main/src/config.ts', 'process.env.KNN_SERVICE_URL', 1],
     ['legacy package dependency is blocked', 'urban-ai-backend-main/package.json', '"urban-ai-knn": "1.0.0"', 1],
-    ['CI maintenance working directory is allowed', '.github/workflows/ci.yml', 'working-directory: urban-ai-knn-main', 0],
+    ['CI working directory on the removed service is blocked', '.github/workflows/ci.yml', 'working-directory: urban-ai-knn-main', 2],
     ['CI deployment command is blocked', '.github/workflows/deploy.yml', 'railway up --service urban-ai-knn-main', 2],
     ['alternate deployment target is blocked', '.github/workflows/deploy.yml', 'railway deploy --service knn-legacy', 1],
-    ['legacy source itself is outside the consumer boundary', 'urban-ai-knn-main/server.js', "app.post('/api/pricing/suggest')", 0],
   ];
   let passed = 0;
   for (const [name, file, content, expected] of cases) {

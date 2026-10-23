@@ -23,7 +23,7 @@ A Lumina Lab já tinha começado a migração para o segundo caminho no relatór
 
 ## Decisão
 
-**Motor embedado no backend NestJS** (`src/knn-engine/`). O microserviço standalone (`urban-ai-knn-main/`) fica como referência arquivada; decisão formal de aposentar em F5C.3.
+**Motor embedado no backend NestJS** (`src/knn-engine/`). O microserviço standalone (`urban-ai-knn-main`, removido do repositório em 2026-10) ficou como referência arquivada; decisão formal de aposentar em F5C.3.
 
 Razões:
 

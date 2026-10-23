@@ -197,7 +197,7 @@ Coleta de dataset, bootstrap de pricing, processamento de event-intelligence, au
 | Features KNN | lat, long, distância metrô, amenidades | `knn-classifier` |
 | Categorias | Econômico(0)/Standard(1)/Premium(2) | `knn-classifier` |
 
-> ⚠️ A engine **ativa** está em `urban-ai-backend-main/src/knn-engine/`. O microserviço `urban-ai-knn-main/` está **DEPRECADO** (arquivar e remover) — não é fonte da verdade.
+> ⚠️ A engine **ativa** está em `urban-ai-backend-main/src/knn-engine/`. O microserviço `urban-ai-knn-main` foi **removido do repositório em 2026-10** — não é fonte da verdade.
 
 ---
 
@@ -249,7 +249,7 @@ Coleta de dataset, bootstrap de pricing, processamento de event-intelligence, au
 
 ## 11. Riscos arquiteturais conhecidos (resumo)
 
-1. KNN legado duplicado (`urban-ai-knn-main`) — arquivar.
+1. ~~KNN legado duplicado (`urban-ai-knn-main`)~~ — removido do repositório em 2026-10.
 2. `forbidNonWhitelisted: false` e `/admin/*` sem throttle dedicado.
 3. Cobertura de testes fina no caminho crítico (`propriedades/`, engine KNN ativa).
 4. Cores e nome hardcoded fora dos tokens (ver `REBRAND-MAP.md`).

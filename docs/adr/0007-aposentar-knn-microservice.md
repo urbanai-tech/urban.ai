@@ -50,7 +50,7 @@ Razões:
 
 1. ✅ `urban-ai-knn-main/DEPRECATED.md` criado.
 2. ✅ README.md original do diretório anota o status.
-3. ✅ Gate `scripts/knn-legacy-dependency-gate.js` bloqueia novos consumidores em código/configuração; self-test 9/9 e CI integrados.
+3. ✅ Gate `scripts/knn-legacy-dependency-gate.js` bloqueia novos consumidores em código/configuração; self-test e CI integrados.
 4. ⬜ **Owner executa após a prova de tráfego**: criar a tag arquivística e remover/desprovisionar o serviço de forma coordenada.
 5. ⬜ Em 6 meses: revisão. Se telemetria e Railway confirmarem ausência de uso, considerar `git rm -r urban-ai-knn-main/` + manter só a tag.
 
@@ -71,3 +71,7 @@ Critério de remoção: **zero consumidor estático + zero configuração depend
 
 - ADR 0002 — KNN no backend
 - `docs/product/data/ADENDO_TECNICO_KNN.md` (Lumina, mar/2026)
+
+## Adendo (2026-10)
+
+Removido do repositório em 2026-10: a pasta `urban-ai-knn-main/` e o job de CI que a mantinha foram excluídos; o gate `scripts/knn-legacy-dependency-gate.js` permanece como guarda contra reintrodução. O histórico preserva o código.
