@@ -8,6 +8,26 @@ describe('PricingCalculateService pricing decision audit', () => {
     service = new PricingCalculateService();
   });
 
+  it('deriva a data-alvo no calendário de São Paulo para evento das 21:30 BRT (00:30Z do dia seguinte)', () => {
+    const base = {
+      user: { id: 'user-1' } as any,
+      property: { id: 'property-1', list: { id: 'list-1' } } as any,
+      analisePreco: { id: 'analysis-1' } as any,
+      generatedAt,
+      priceInput: { basePriceCents: 30000, currentPriceCents: 30000, affectedNights: 1 },
+    } as any;
+
+    const evening = service.criarSnapshotDecisaoPricingEvento({
+      ...base,
+      event: { id: 'event-1', dataInicio: new Date('2026-06-11T00:30:00.000Z') } as any,
+    });
+    expect(evening.targetDate).toBe('2026-06-10');
+
+    // data pura informada pelo chamador passa direto, sem deslocar o dia
+    const explicit = service.criarSnapshotDecisaoPricingEvento({ ...base, targetDate: '2026-06-10' });
+    expect(explicit.targetDate).toBe('2026-06-10');
+  });
+
   it('builds an auditable pricing decision snapshot from event pricing inputs', () => {
     const draft = service.criarSnapshotDecisaoPricingEvento({
       user: { id: 'user-1' } as any,

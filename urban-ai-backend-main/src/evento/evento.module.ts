@@ -25,6 +25,8 @@ import { MapsModule } from 'src/maps/maps.module';
 import { AdminAuditModule } from 'src/admin-audit/admin-audit.module';
 import { EventIdentityService } from './event-identity.service';
 import { CollectorStalenessService } from './collector-staleness.service';
+import { CollectorZeroYieldService } from './collector-zero-yield.service';
+import { MailerModule } from 'src/mailer/mailer.module';
 
 @Module({
   imports: [
@@ -42,6 +44,7 @@ import { CollectorStalenessService } from './collector-staleness.service';
     AuthModule,
     MapsModule,
     AdminAuditModule,
+    MailerModule,
   ],
   controllers: [EventoController, EventsIngestController, CoverageController],
   providers: [
@@ -55,6 +58,7 @@ import { CollectorStalenessService } from './collector-staleness.service';
     CoverageService,
     CoverageSeederService,
     CollectorStalenessService,
+    CollectorZeroYieldService,
   ],
   exports: [
     EventsIngestService,
@@ -63,6 +67,7 @@ import { CollectorStalenessService } from './collector-staleness.service';
     EventsGeocoderService,
     EventsCsvImportService,
     CoverageService,
+    CollectorZeroYieldService,
   ],
 })
 export class EventoModule implements OnModuleInit {

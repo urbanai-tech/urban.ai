@@ -1,7 +1,8 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual, IsNull, Not, In, LessThan } from 'typeorm';
 import { User } from '../entities/user.entity';
+import { CollectorZeroYieldService, ZeroYieldFinding } from '../evento/collector-zero-yield.service';
 import { Address } from '../entities/addresses.entity';
 import { List } from '../entities/list.entity';
 import { Event as EventEntity } from '../entities/events.entity';
@@ -67,6 +68,7 @@ export class AdminService {
     private readonly mapsService: MapsService,
     private readonly authService: AuthService,
     private readonly staysHealthService: AdminStaysHealthService,
+    @Optional() private readonly zeroYieldService?: CollectorZeroYieldService,
   ) {}
 
   private countPt(count: number, singular: string, plural: string) {
@@ -1968,10 +1970,45 @@ export class AdminService {
       });
     }
 
+    // D2 — fontes normalmente ativas que pararam de enviar qualquer item.
+    const zeroYield = await this.zeroYieldSummary();
+    const zeroBySource = new Map(zeroYield.alerts.map((alert) => [alert.source, alert]));
+    for (const row of sources) {
+      const alert = zeroBySource.get(String(row.source ?? '').replace(/_/g, '-').toLowerCase());
+      if (!alert) continue;
+      row.zeroYield = alert;
+      row.signals = [...(row.signals ?? []), 'zero_yield'];
+      if (row.status !== 'missing_key') row.status = 'zero_yield';
+    }
+
     return {
       generatedAt: new Date().toISOString(),
+      zeroYield,
       sources: sources.sort((a, b) => b.total - a.total || a.source.localeCompare(b.source)),
     };
+  }
+
+  private async zeroYieldSummary(): Promise<{
+    enabled: boolean;
+    windowHours: number | null;
+    baselineDays: number | null;
+    minBaselineItems: number | null;
+    alerts: ZeroYieldFinding[];
+  }> {
+    const empty = { enabled: false, windowHours: null, baselineDays: null, minBaselineItems: null, alerts: [] };
+    if (!this.zeroYieldService) return empty;
+    try {
+      const { config, findings } = await this.zeroYieldService.currentFindings();
+      return {
+        enabled: config.enabled,
+        windowHours: config.windowHours,
+        baselineDays: config.baselineDays,
+        minBaselineItems: config.minBaselineItems,
+        alerts: findings,
+      };
+    } catch {
+      return empty; // painel de saúde não pode cair por causa do detector
+    }
   }
 
   // ========================================================================

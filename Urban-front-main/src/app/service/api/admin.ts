@@ -1330,8 +1330,25 @@ export interface CollectorSourceStats {
   lastSeen: string | null;
 }
 
+/** Fonte normalmente ativa que parou de enviar qualquer item (detector zero-yield do backend). */
+export interface CollectorZeroYieldAlert {
+  source: string;
+  windowHours: number;
+  hoursSinceLastItem: number | null;
+  baselineItems: number;
+  recentItems: number;
+  lastSeenAt: string | null;
+}
+
 export interface CollectorsHealthResponse {
   generatedAt: string;
+  zeroYield?: {
+    enabled: boolean;
+    windowHours: number | null;
+    baselineDays: number | null;
+    minBaselineItems: number | null;
+    alerts: CollectorZeroYieldAlert[];
+  };
   sources: CollectorSourceStats[];
 }
 

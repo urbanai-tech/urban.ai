@@ -34,7 +34,8 @@ class TestParseDateToIso:
 
     def test_iso_com_z(self):
         c = _FakeVenueCollector()
-        assert c._parse_date_to_iso("2026-05-10T20:00:00Z") == "2026-05-10 20:00:00"
+        # 20:00Z = 17:00 em São Paulo (antes o offset era descartado)
+        assert c._parse_date_to_iso("2026-05-10T20:00:00Z") == "2026-05-10 17:00:00"
 
     def test_dd_mm_yyyy_com_hora(self):
         c = _FakeVenueCollector()
@@ -82,7 +83,7 @@ class TestNormalize:
         p = c.normalize(raw)
         assert p is not None
         assert p["nome"] == "Coldplay World Tour"
-        assert p["dataInicio"] == "2026-05-10 20:00:00"
+        assert p["dataInicio"] == "2026-05-10T20:00:00-03:00"
         assert p["latitude"] == -23.5275
         assert p["longitude"] == -46.6783
         assert p["venueType"] == "stadium"

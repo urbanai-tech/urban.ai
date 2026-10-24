@@ -27,7 +27,7 @@ def test_normalize_basico():
     payload = c.normalize(raw)
     assert payload is not None
     assert payload["nome"] == "Show ABC"
-    assert payload["dataInicio"] == "2026-05-10T20:00:00"
+    assert payload["dataInicio"] == "2026-05-10T20:00:00-03:00"
     assert payload["enderecoCompleto"] == "Av. X, 100"
     assert payload["cidade"] == "São Paulo"
     assert payload["estado"] == "SP"

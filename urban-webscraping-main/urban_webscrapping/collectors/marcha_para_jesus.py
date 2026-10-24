@@ -35,6 +35,7 @@ from urban_webscrapping.collectors.base_collector import (
     BaseCollector,
     CollectorRunResult,
 )
+from urban_webscrapping.utils.event_datetime import to_sp_iso
 from urban_webscrapping.utils.urban_backend_client import UrbanBackendClient
 
 logger = logging.getLogger(__name__)
@@ -83,8 +84,8 @@ class MarchaParaJesusCollector(BaseCollector):
     def normalize(self, raw: dict[str, Any]) -> dict[str, Any] | None:
         return {
             "nome": raw["title"],
-            "dataInicio": raw["starts_on"],
-            "dataFim": raw["ends_on"],
+            "dataInicio": to_sp_iso(raw["starts_on"]),
+            "dataFim": to_sp_iso(raw["ends_on"]),
             "enderecoCompleto": self.EVENT_VENUE,
             "cidade": "São Paulo",
             "estado": "SP",

@@ -13,6 +13,7 @@ import { Event } from '../entities/events.entity';
 import { AdminJobRun } from '../entities/admin-job-run.entity';
 import { runAdminJobWithTracking } from '../admin-job-runs/admin-job-run-tracker';
 import type { FirstAvailablePriceResult } from '../airbnb/types';
+import { addDaysToDateKey, todaySaoPauloDateKey } from '../common/sp-date';
 
 type AirbnbPriceLookup = {
   getPriceForDateWindow: (
@@ -257,7 +258,7 @@ export class DatasetCollectorService {
   }
 
   async recordEventProximityFeatures(radiusKm = 5): Promise<EventProximityCollectionResult> {
-    const snapshotDate = new Date().toISOString().slice(0, 10);
+    const snapshotDate = todaySaoPauloDateKey();
     const now = new Date();
     const in30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
@@ -359,7 +360,7 @@ export class DatasetCollectorService {
 
   async recordAirbnbPriceObservations(): Promise<AirbnbPriceObservationResult> {
     const observedAt = new Date();
-    const snapshotDate = observedAt.toISOString().slice(0, 10);
+    const snapshotDate = todaySaoPauloDateKey(observedAt);
     const windows = this.priceObservationWindows();
     const warnings: string[] = [];
     const failures: AirbnbPriceObservationResult['failures'] = [];
@@ -545,7 +546,7 @@ export class DatasetCollectorService {
   async recordOwnedListingsSnapshot(
     priceCentsResolver?: (list: List) => Promise<number | null>,
   ): Promise<DatasetCollectionResult> {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todaySaoPauloDateKey();
 
     const lists = await this.listRepo.find({ take: 5000 }); // soft cap p/ batch
     let captured = 0;
@@ -654,7 +655,7 @@ export class DatasetCollectorService {
       bairro?: string;
     }>,
   ): Promise<{ saved: number; duplicates: number }> {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todaySaoPauloDateKey();
     let saved = 0;
     let duplicates = 0;
 
@@ -872,13 +873,10 @@ export class DatasetCollectorService {
     const nightsOptions = [2, 3];
     return offsets.flatMap((offsetDays) =>
       nightsOptions.map((nights) => {
-        const checkInDate = new Date();
-        checkInDate.setUTCDate(checkInDate.getUTCDate() + offsetDays);
-        const checkOutDate = new Date(checkInDate);
-        checkOutDate.setUTCDate(checkOutDate.getUTCDate() + nights);
+        const checkIn = addDaysToDateKey(todaySaoPauloDateKey(), offsetDays);
         return {
-          checkIn: checkInDate.toISOString().slice(0, 10),
-          checkOut: checkOutDate.toISOString().slice(0, 10),
+          checkIn,
+          checkOut: addDaysToDateKey(checkIn, nights),
           nights,
         };
       }),

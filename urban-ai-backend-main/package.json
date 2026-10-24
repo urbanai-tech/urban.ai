@@ -42,6 +42,7 @@
     "migration:show": "npm run typeorm -- migration:show",
     "backfill:geocoder": "ts-node -r tsconfig-paths/register scripts/backfill-geocoder.ts",
     "backfill:geocoder:dry": "ts-node -r tsconfig-paths/register scripts/backfill-geocoder.ts --dry-run",
+    "backfill:event-dates": "ts-node -r tsconfig-paths/register scripts/backfill-event-dates-sp.ts",
     "preflight:track3": "node scripts/track3-preflight.js",
     "preflight:track3:strict": "node scripts/track3-preflight.js --strict",
     "audit:migrations": "node scripts/audit-migrations.js",

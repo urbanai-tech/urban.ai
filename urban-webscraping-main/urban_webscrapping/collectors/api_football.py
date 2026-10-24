@@ -1,6 +1,5 @@
 import logging
 import os
-from datetime import datetime
 from typing import Any
 
 import requests
@@ -11,6 +10,7 @@ from urban_webscrapping.collectors.base_collector import (
     MissingApiKeyError,
     setup_logging,
 )
+from urban_webscrapping.utils.event_datetime import to_sp_iso
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -73,12 +73,13 @@ class ApiFootballCollector(BaseCollector):
         if not date_str:
             return None
 
-        # Convertendo "2026-05-10T20:00:00+00:00" para "YYYY-MM-DD HH:MM:SS" ou apenas manter ISO
-        try:
-            dt = datetime.fromisoformat(date_str)
-            formatted_date = dt.strftime("%Y-%m-%d %H:%M:%S")
-        except ValueError:
-            formatted_date = date_str
+        # API-Football devolve UTC ("2026-05-11T00:30:00+00:00"). Convertemos para
+        # o horário de São Paulo MANTENDO o offset ("2026-05-10T21:30:00-03:00");
+        # antes o offset era descartado e um jogo das 21:30 BRT era gravado como
+        # 00:30 do dia seguinte (D3).
+        formatted_date = to_sp_iso(date_str)
+        if not formatted_date:
+            return None
 
         payload = {
             "nome": name,

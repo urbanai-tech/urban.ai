@@ -117,6 +117,13 @@ describe("StaysAutoApplyService", () => {
     return decision;
   }
 
+  it("usa o dia de São Paulo como data-alvo (evento 21:30 BRT = 00:30Z do dia seguinte)", () => {
+    const toDateStr = (service as any).toDateStr.bind(service);
+    expect(toDateStr(new Date("2026-06-11T00:30:00.000Z"))).toBe("2026-06-10");
+    expect(toDateStr("2026-06-11T00:30:00.000Z")).toBe("2026-06-10");
+    expect(toDateStr(new Date("2026-06-10T03:00:00.000Z"))).toBe("2026-06-10");
+  });
+
   it("does not process or push when STAYS_AUTO_APPLY_ENABLED is absent", async () => {
     const result = await service.processBatch();
 

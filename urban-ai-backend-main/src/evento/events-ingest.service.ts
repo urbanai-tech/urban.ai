@@ -7,6 +7,7 @@ import { EventDedupCandidate } from '../entities/event-dedup-candidate.entity';
 import { EventSource } from '../entities/event-source.entity';
 import { CoverageService } from './coverage.service';
 import { EventIdentityScore, EventIdentityService } from './event-identity.service';
+import { normalizeEventDates, parseEventDateTime, saoPauloDayBounds, toSaoPauloDateKey } from '../common/sp-date';
 
 /**
  * EventsIngestService — F6.2 Plus.
@@ -33,7 +34,11 @@ import { EventIdentityScore, EventIdentityService } from './event-identity.servi
 export interface IngestEventInput {
   // Obrigatórios
   nome: string;
-  dataInicio: string | Date;     // ISO ou Date — data/hora de início
+  // Data/hora de início. Política de fuso (D3, ver docs/runbooks/datas-e-fuso-horario.md):
+  //  - ISO com offset ("...-03:00" / "...Z") → instante absoluto;
+  //  - ISO sem offset ("2026-05-10 21:30:00") → relógio de America/Sao_Paulo;
+  //  - "YYYY-MM-DD" → evento de dia inteiro em America/Sao_Paulo.
+  dataInicio: string | Date;
 
   // Geocoding: SE você não tiver lat/lng, mande `enderecoCompleto` que o
   // backend marca pendingGeocode=true e cron resolve depois. Mande lat/lng
@@ -83,6 +88,8 @@ export class EventsIngestService {
   private readonly logger = new Logger(EventsIngestService.name);
   private readonly AUTO_MATCH_THRESHOLD = 0.86;
   private readonly REVIEW_MATCH_THRESHOLD = 0.74;
+  /** input normalizado (datas como Date) → payload original recebido, para event_sources.rawPayload. */
+  private readonly rawByInput = new WeakMap<IngestEventInput, IngestEventInput>();
 
   constructor(
     @InjectRepository(Event) private readonly eventRepo: Repository<Event>,
@@ -152,13 +159,22 @@ export class EventsIngestService {
   }
 
   /** Ingere um único evento. Exposto separadamente para testes. */
-  async ingestOne(input: IngestEventInput): Promise<IngestResult> {
-    const validation = this.validate(input);
+  async ingestOne(originalInput: IngestEventInput): Promise<IngestResult> {
+    const validation = this.validate(originalInput);
     if (validation) {
       return { status: 'skipped', reason: validation };
     }
 
-    const dataInicio = new Date(input.dataInicio);
+    // Normaliza datas (D3): daqui em diante `input.dataInicio/dataFim` são
+    // `Date` (instante UTC). O payload original fica em `rawInput` para a
+    // trilha de procedência (event_sources.rawPayload).
+    const normalizedDates = normalizeEventDates(originalInput.dataInicio, originalInput.dataFim)!;
+    if (normalizedDates.dataFimInvalid) {
+      this.logger.warn(`dataFim inválida ignorada (source=${originalInput.source}); usando dataInicio.`);
+    }
+    const { dataInicio, dataFim } = normalizedDates;
+    const input: IngestEventInput = { ...originalInput, dataInicio, dataFim };
+    this.rawByInput.set(input, originalInput);
     const hasGeo = this.hasValidGeo(input);
     const lat = hasGeo ? Number(input.latitude) : 0;  // só pra hash; placeholder se sem geo
     const lng = hasGeo ? Number(input.longitude) : 0;
@@ -231,7 +247,7 @@ export class EventsIngestService {
       nome: input.nome.trim().slice(0, 255),
       descricao: input.descricao ?? null,
       dataInicio,
-      dataFim: input.dataFim ? new Date(input.dataFim) : dataInicio,
+      dataFim,
       enderecoCompleto: input.enderecoCompleto ?? '',
       cidade: input.cidade ?? '',
       estado: (input.estado ?? 'SP').slice(0, 2).toUpperCase(),
@@ -284,13 +300,14 @@ export class EventsIngestService {
   }
 
   /**
-   * Calcula `sha256(lower(nome) | YYYY-MM-DD | lat~3 | lng~3)`.
+   * Calcula `sha256(lower(nome) | YYYY-MM-DD | lat~3 | lng~3)`, onde `YYYY-MM-DD`
+   * é o dia de calendário em America/Sao_Paulo (não o dia UTC).
    * Lat/lng arredondadas a 3 casas (~110m de precisão) absorvem variações
    * pequenas entre fontes que reportam o mesmo evento.
    */
   computeDedupHash(nome: string, dataInicio: Date, lat: number, lng: number): string {
     const cleanName = nome.trim().toLowerCase().replace(/\s+/g, ' ');
-    const dateStr = dataInicio.toISOString().slice(0, 10);
+    const dateStr = toSaoPauloDateKey(dataInicio);
     const roundedLat = Math.round(lat * 1000) / 1000;
     const roundedLng = Math.round(lng * 1000) / 1000;
     const key = `${cleanName}|${dateStr}|${roundedLat},${roundedLng}`;
@@ -307,7 +324,7 @@ export class EventsIngestService {
   computeDedupHashByAddress(nome: string, dataInicio: Date, endereco: string): string {
     const cleanName = nome.trim().toLowerCase().replace(/\s+/g, ' ');
     const cleanAddr = endereco.trim().toLowerCase().replace(/\s+/g, ' ').slice(0, 200);
-    const dateStr = dataInicio.toISOString().slice(0, 10);
+    const dateStr = toSaoPauloDateKey(dataInicio);
     const key = `${cleanName}|${dateStr}|addr:${cleanAddr}`;
     return createHash('sha256').update(key).digest('hex');
   }
@@ -329,8 +346,7 @@ export class EventsIngestService {
       return 'nome ausente ou muito curto';
     }
     if (!input.dataInicio) return 'dataInicio ausente';
-    const date = new Date(input.dataInicio);
-    if (Number.isNaN(date.getTime())) return 'dataInicio inválida';
+    if (!parseEventDateTime(input.dataInicio)) return 'dataInicio inválida';
 
     const hasGeo = this.hasValidGeo(input);
 
@@ -417,10 +433,8 @@ export class EventsIngestService {
     input: IngestEventInput,
   ): Promise<{ event: Event; score: EventIdentityScore } | null> {
     const dataInicio = new Date(input.dataInicio);
-    const start = new Date(dataInicio);
-    start.setUTCHours(0, 0, 0, 0);
-    const end = new Date(dataInicio);
-    end.setUTCHours(23, 59, 59, 999);
+    // Janela = dia de calendário de São Paulo do evento (não o dia UTC).
+    const { start, end } = saoPauloDayBounds(toSaoPauloDateKey(dataInicio));
 
     const qb = this.eventRepo
       .createQueryBuilder('event')
@@ -514,7 +528,7 @@ export class EventsIngestService {
           seenCount: Number(existing.seenCount ?? 0) + 1,
           confidenceScore: match.score,
           matchReason: match.reason,
-          rawPayload: input as any,
+          rawPayload: (this.rawByInput.get(input) ?? input) as any,
         } as Partial<EventSource>,
       );
     } else {
@@ -527,11 +541,11 @@ export class EventsIngestService {
           rawVenue: (input.enderecoCompleto ?? '').slice(0, 255) || null,
           rawAddress: input.enderecoCompleto ?? null,
           rawStartDate: new Date(input.dataInicio),
-          rawEndDate: input.dataFim ? new Date(input.dataFim) : null,
+          rawEndDate: input.dataFim ? new Date(input.dataFim) : null, // já normalizados (Date) por ingestOne
           url: input.linkSiteOficial ?? input.crawledUrl ?? null,
           canonicalUrl,
           crawledUrl: input.crawledUrl ?? null,
-          rawPayload: input,
+          rawPayload: this.rawByInput.get(input) ?? input,
           confidenceScore: match.score,
           matchReason: match.reason,
           firstSeenAt: now,

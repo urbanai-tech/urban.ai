@@ -15,6 +15,7 @@ import {
   AirbnbHeadlessScrapeError,
   AirbnbRenderedHostListing,
 } from './airbnb-browser-scraper.service';
+import { addDaysToDateKey, todaySaoPauloDateKey } from '../common/sp-date';
 
 type AirbnbPriceStrategy = 'browser-first' | 'api-first' | 'browser-only' | 'api-only';
 type AirbnbPriceSource = 'airbnb-search' | 'airbnb-browser' | 'headless' | string;
@@ -708,14 +709,9 @@ export class AirbnbService {
   }
 
   private buildDateWindow(offsetDays: number, nights: number) {
-    const checkInDate = new Date();
-    checkInDate.setUTCDate(checkInDate.getUTCDate() + offsetDays);
-    const checkOutDate = new Date(checkInDate);
-    checkOutDate.setUTCDate(checkOutDate.getUTCDate() + nights);
-    return {
-      checkIn: checkInDate.toISOString().slice(0, 10),
-      checkOut: checkOutDate.toISOString().slice(0, 10),
-    };
+    // "Hoje" é o dia de São Paulo (D3): após 21:00 BRT o dia UTC já virou.
+    const checkIn = addDaysToDateKey(todaySaoPauloDateKey(), offsetDays);
+    return { checkIn, checkOut: addDaysToDateKey(checkIn, nights) };
   }
 
   private isBookableCheckInDay(day: AirbnbAvailabilityCalendarDay): boolean {
@@ -760,7 +756,7 @@ export class AirbnbService {
   }
 
   private todayIso(): string {
-    return new Date().toISOString().slice(0, 10);
+    return todaySaoPauloDateKey();
   }
 
   private addDaysIso(date: string, days: number): string {

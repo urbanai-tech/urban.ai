@@ -21,6 +21,8 @@ const baseOptions: Partial<DataSourceOptions> = {
   migrationsTableName: 'migrations',
   synchronize: false,
   migrationsRun: false,
+  // D3 — espelha app.module (opt-in; ver docs/runbooks/datas-e-fuso-horario.md).
+  ...(process.env.DB_TIMEZONE?.trim() ? { timezone: process.env.DB_TIMEZONE.trim() } : {}),
 };
 
 export const AppDataSource = new DataSource(

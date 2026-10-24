@@ -20,6 +20,7 @@
 | `APP_ENV`, `NODE_ENV`, `PORT`, `APP_VERSION` | `APP_ENV` Obr. em staging/prod | `APP_ENV` define ambiente (Sentry, regras de produção). `PORT` é injetada pelo Railway. |
 | `DATABASE_URL` **ou** `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Obr. | Fora de dev local, `DB_*` sem valor derruba o boot. |
 | `DB_SYNCHRONIZE`, `MIGRATIONS_RUN`, `TYPEORM_SCHEMA_LOGGING` | Opc. | Padrão `false`. Em produção manter `DB_SYNCHRONIZE=false`. |
+| `DB_TIMEZONE` | Opc. | Fuso da conexão MySQL (opção `timezone` do driver). Sem valor = default do driver (TZ do processo). Recomendado `Z` depois de confirmar que o processo roda em UTC; ver [datas e fuso horário](./datas-e-fuso-horario.md). |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_TLS` | Obr. fora de dev | Upstash. Bull v3 (`@nestjs/bull`), fila `processos`. |
 | `INTERNAL_HTTP_BASE_URL` | Opc. | Base do `HttpModule`; cai em `FRONT_BASE_URL`. |
 | `ENABLE_SWAGGER` | Opc. | Swagger em `/api` fica desligado em produção salvo `true`. |
@@ -71,6 +72,7 @@
 | Variáveis | Req. | Notas |
 |---|---|---|
 | `EVENTS_INGEST_API_KEY` | Obr. se houver coleta | Valida o header `x-urban-events-ingest-key` em `POST /events/ingest`. Mesmo valor de `URBAN_EVENTS_INGEST_API_KEY` no webscraping. |
+| `COLLECTOR_ZERO_YIELD_ENABLED`, `COLLECTOR_ZERO_YIELD_WINDOW_HOURS`, `COLLECTOR_ZERO_YIELD_BASELINE_DAYS`, `COLLECTOR_ZERO_YIELD_MIN_BASELINE_ITEMS`, `COLLECTOR_ZERO_YIELD_IGNORE_SOURCES`, `COLLECTOR_ZERO_YIELD_SOURCE_WINDOWS`, `COLLECTOR_ZERO_YIELD_REALERT_HOURS` | Opc. | Detector de fonte de eventos que caiu a zero (cron `collector-zero-yield`, a cada 6 h). Padrões: ligado, janela 36 h, baseline 14 dias / mín. 5 itens, ignora `admin-*` e `marcha-para-jesus`, re-alerta a cada 24 h. Alerta no painel `/admin/collectors-health`, Sentry e e-mail (`ADMIN_ALERT_EMAIL`/`OPS_ALERT_EMAIL`). Detalhes em [coletores sem dados](./coletores-zero-yield.md). |
 | `EVENT_INTELLIGENCE_BACKFILL_CRON_ENABLED`, `EVENT_INTELLIGENCE_BACKFILL_CRON_LIMIT`, `EVENT_INTELLIGENCE_BACKFILL_LOOKAHEAD_DAYS` | Opc. | |
 | `WEEKLY_EVENT_REPORT_ENABLED`, `WEEKLY_EVENT_REPORT_EVENTS_PER_PROPERTY`, `WEEKLY_EVENT_REPORT_LOOKAHEAD_DAYS` | Opc. | |
 | `PRICING_STRATEGY`, `PRICING_BOOTSTRAP_ON_BOOT`, `PRICING_ALPHA_REPROCESS_ENABLED`, `PRICING_DIGEST_SWEEP_ENABLED`, `PRICING_DIGEST_SWEEP_LIMIT`, `PRICING_DIGEST_EMAIL_DELAY_MS`, `PRICING_FALLBACK_WARN_INTERVAL_MS`, `PRICING_SHADOW_WARN_INTERVAL_MS` | Recomendado explícito em prod | `PRICING_STRATEGY` padrão `adaptive`. |

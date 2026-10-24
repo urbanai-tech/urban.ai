@@ -13,6 +13,7 @@ import {
   AdminTable,
   type AdminTableColumn,
   AdminBadge,
+  AdminCard,
   AdminStatusDot,
   AdminDrawer,
   AdminEmptyState,
@@ -26,6 +27,7 @@ type CollectorHealthStatus =
   | "missing_key"
   | "no_events"
   | "stale"
+  | "zero_yield"
   | (string & {});
 
 type CollectorHealthRow = CollectorSourceStats & {
@@ -281,8 +283,27 @@ export default function CollectorsHealthPage() {
         }
       />
 
-      {/* === KPIs agregados === */}
+      {/* === KPIs agregados (com alerta de zero-yield no topo) === */}
       <section style={{ marginBottom: 56 }}>
+        {data?.zeroYield && data.zeroYield.alerts.length > 0 && (
+          <div role="alert">
+            <AdminCard variant="accent">
+              <p className="urban-admin-eyebrow">
+                <AdminBadge kind="error">zero-yield</AdminBadge> FONTES SEM DADOS
+              </p>
+              <ul>
+                {data.zeroYield.alerts.map((a) => (
+                  <li key={a.source}>
+                    <code>{a.source}</code> — nenhum item há{" "}
+                    {a.hoursSinceLastItem ?? "?"}h (janela {a.windowHours}h; baseline{" "}
+                    {a.baselineItems} itens). Provável mudança no site/API de origem.
+                  </li>
+                ))}
+              </ul>
+            </AdminCard>
+            <br />
+          </div>
+        )}
         <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
           TOTAIS AGREGADOS
         </p>
@@ -631,6 +652,7 @@ function statusKind(
   critical?: boolean | null,
 ): AdminBadgeKind {
   if (status === "missing_key") return critical ? "error" : "warn";
+  if (status === "zero_yield") return "error";
   if (status === "no_events" || status === "stale") return "warn";
   if (status === "has_events") return "success";
   return "neutral";
@@ -673,6 +695,8 @@ function formatStatus(status: CollectorHealthStatus) {
       return "sem eventos";
     case "stale":
       return "stale";
+    case "zero_yield":
+      return "sem dados (zero-yield)";
     default:
       return status.replace(/_/g, " ");
   }

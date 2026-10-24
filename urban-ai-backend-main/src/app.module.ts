@@ -62,6 +62,11 @@ function envOrLocalDefault(name: string, localDefault: string): string {
   throw new Error(`${name} is required outside local development`);
 }
 
+// D3 — fuso da conexão MySQL. Opt-in: sem DB_TIMEZONE mantém o default do driver
+// ('local' = TZ do processo). Recomendado 'Z' (UTC) após conferir que o processo
+// de produção roda em UTC; ver docs/runbooks/datas-e-fuso-horario.md.
+const dbTimezoneOption = process.env.DB_TIMEZONE?.trim() ? { timezone: process.env.DB_TIMEZONE.trim() } : {};
+
 @Module({
   imports: [
     SentryModule.forRoot(),
@@ -126,6 +131,7 @@ function envOrLocalDefault(name: string, localDefault: string): string {
             connectorPackage: 'mysql2',
             url: process.env.DATABASE_URL,
             autoLoadEntities: true,
+            ...dbTimezoneOption,
             synchronize: process.env.DB_SYNCHRONIZE === 'true',
             migrationsRun: process.env.MIGRATIONS_RUN === 'true',
             entities: [__dirname + '/**/*.entity{.ts,.js}'],
@@ -141,6 +147,7 @@ function envOrLocalDefault(name: string, localDefault: string): string {
             password: isLocalRuntime ? (process.env.DB_PASSWORD ?? '') : envOrLocalDefault('DB_PASSWORD', ''),
             database: envOrLocalDefault('DB_NAME', 'ai_urban'),
             autoLoadEntities: true,
+            ...dbTimezoneOption,
             synchronize: process.env.DB_SYNCHRONIZE === 'true',
             migrationsRun: process.env.MIGRATIONS_RUN === 'true',
             entities: [__dirname + '/**/*.entity{.ts,.js}'],

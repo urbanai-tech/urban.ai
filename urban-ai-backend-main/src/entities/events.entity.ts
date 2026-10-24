@@ -162,7 +162,7 @@ import {
 
     /**
      * Hash SHA-256 para dedup. Calculado em ingest:
-     *   sha256(lower(nome) + '|' + dataInicio.toISOString().slice(0,10)
+     *   sha256(lower(nome) + '|' + toSaoPauloDateKey(dataInicio)  // dia de calendário em America/Sao_Paulo
      *          + '|' + round(lat,3) + ',' + round(lng,3))
      *
      * Permite Sympla + Eventbrite + Firecrawl reportarem o mesmo evento sem duplicar.

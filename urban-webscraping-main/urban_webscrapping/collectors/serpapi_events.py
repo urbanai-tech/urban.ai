@@ -11,6 +11,7 @@ from urban_webscrapping.collectors.base_collector import (
     MissingApiKeyError,
     setup_logging,
 )
+from urban_webscrapping.utils.event_datetime import to_sp_iso
 from urban_webscrapping.utils.urban_backend_client import UrbanBackendClient
 
 load_dotenv()
@@ -106,7 +107,7 @@ class SerpApiEventsCollector(BaseCollector):
             # "Apr 25", "May 13" -> precisamos adicionar o ano atual se não tiver
             # Mas o dateutil costuma ser inteligente
             dt = parser.parse(start_date_str, fuzzy=True)
-            formatted_date = dt.strftime("%Y-%m-%d %H:%M:%S")
+            formatted_date = to_sp_iso(dt) or start_date_str
         except Exception:
             # Se falhar o parse, usa string bruta (backend pode lidar ou dropar)
             formatted_date = start_date_str
