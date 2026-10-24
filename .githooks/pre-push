@@ -20,6 +20,13 @@ if ! command -v node >/dev/null 2>&1; then
   exit 1
 fi
 
+# O guarda usado é o do próprio commit enviado (não o do checkout atual), para que
+# um push de branch antiga não seja bloqueado por regras novas, nem um push de
+# branch mais estrita passe por um guarda frouxo no checkout local.
+git_dir="$(git rev-parse --absolute-git-dir)"
+guard_file="$(mktemp)"
+trap 'rm -f "$guard_file"' EXIT INT TERM
+
 zero="0000000000000000000000000000000000000000"
 status=0
 
@@ -29,7 +36,15 @@ while read -r local_ref local_sha remote_ref remote_sha; do
   case "$local_sha" in
     "$zero"|00000000*) continue ;;
   esac
-  if ! node "$repository_root/scripts/public-scope-guard.js" --tree "$local_sha"; then
+  if git show "$local_sha:scripts/public-scope-guard.js" > "$guard_file" 2>/dev/null; then
+    guard_script="$guard_file"
+  else
+    echo "pre-push: aviso: $local_sha não contém scripts/public-scope-guard.js; usando o guarda do checkout atual." >&2
+    guard_script="$repository_root/scripts/public-scope-guard.js"
+  fi
+  # GIT_DIR aponta o git para o repositório certo mesmo quando o guarda temporário
+  # roda fora do checkout (ele resolve a raiz pelo próprio __dirname).
+  if ! (cd "$repository_root" && GIT_DIR="$git_dir" node "$guard_script" --tree "$local_sha"); then
     echo "pre-push: push de '$local_ref' para $remote_name ($remote_url) bloqueado pelo guarda de escopo público." >&2
     status=1
   fi
