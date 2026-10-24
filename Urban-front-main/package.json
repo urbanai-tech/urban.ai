@@ -56,7 +56,7 @@
     "i18next": "^25.0.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.542.0",
-    "next": "15.5.21",
+    "next": "^15.4.10",
     "next-auth": "^4.24.11",
     "next-i18next": "^15.4.2",
     "react": "^19.0.0",
@@ -65,8 +65,7 @@
     "react-i18next": "^15.5.1",
     "react-leaflet": "5",
     "react-player": "^3.3.3",
-    "react-select": "^5.10.2",
-    "sharp": "0.35.3"
+    "react-select": "^5.10.2"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.2",
@@ -84,7 +83,6 @@
     "typescript": "^5.9.2"
   },
   "overrides": {
-    "sharp": "$sharp",
     "next": {
       "postcss": "8.5.31"
     },

@@ -9,7 +9,7 @@ const acceptedConsent = {
 };
 
 test.describe('Cadastro comercial', () => {
-  test('mantém o cadastro real mesmo se uma configuração legada indicar pré-lançamento', async ({ page }) => {
+  test('cadastro real em modo público: exige termos, não envia PII ao analytics e vai para a confirmação de e-mail', async ({ page }) => {
     let registerPayload: Record<string, unknown> | null = null;
 
     await page.addInitScript((state) => {
@@ -27,7 +27,7 @@ test.describe('Cadastro comercial', () => {
     await page.route('**/public-config', (route) => route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ launchMode: 'prelaunch', prelaunchMode: true }),
+      body: JSON.stringify({ launchMode: 'public', prelaunchMode: false }),
     }));
     await page.route('**/auth/register', async (route) => {
       registerPayload = route.request().postDataJSON() as Record<string, unknown>;
@@ -47,13 +47,27 @@ test.describe('Cadastro comercial', () => {
     await page.getByLabel('E-mail').fill('lead+public@urbanai.com.br');
     await page.getByLabel('Senha', { exact: true }).fill('SenhaForte1!');
     await page.getByLabel('Confirmar senha').fill('SenhaForte1!');
+    await page.getByRole('checkbox', { name: /Termos de Uso/i }).check();
     await page.getByRole('button', { name: 'Criar conta' }).click();
 
-    await expect(page.getByText(/Conta criada com sucesso/i)).toBeVisible();
-    expect(registerPayload).toMatchObject({ email: 'lead+public@urbanai.com.br', username: 'Lead Comercial' });
+    await expect(page).toHaveURL(/\/confirm-email\//);
+    expect(registerPayload).toMatchObject({ email: 'lead+public@urbanai.com.br', username: 'Lead Comercial', termsAccepted: true });
 
     const events = await page.evaluate(() => (window as unknown as { __urbanAiEvents: Array<{ vendor: string; args: unknown[] }> }).__urbanAiEvents);
     expect(events.some((event) => event.vendor === 'gtag' && event.args[1] === 'sign_up')).toBe(true);
     expect(events.some((event) => event.vendor === 'fbq' && event.args[1] === 'CompleteRegistration')).toBe(true);
+    // Privacidade: nenhum evento carrega e-mail, nome ou senha.
+    expect(JSON.stringify(events)).not.toMatch(/lead\+public|Lead Comercial|SenhaForte/);
+  });
+
+  test('em pré-lançamento o /create continua sendo a lista de espera', async ({ page }) => {
+    await page.route('**/public-config', (route) => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ launchMode: 'prelaunch', prelaunchMode: true }),
+    }));
+    await page.goto('/create');
+    await expect(page.getByText(/lista/i).first()).toBeVisible();
+    await expect(page.getByLabel('Confirmar senha')).toHaveCount(0);
   });
 });

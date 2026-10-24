@@ -35,7 +35,7 @@ export function usePrelaunch() {
           // está fora do ar.
           const buildFlag = process.env.NEXT_PUBLIC_PRELAUNCH_MODE === "true";
           setConfig({
-            launchMode: buildFlag ? "prelaunch" : "public",
+            launchMode: buildFlag ? "prelaunch" : "closed_beta",
             prelaunchMode: buildFlag,
             appEnv: process.env.NEXT_PUBLIC_APP_ENV ?? "development",
             version: "fallback",
@@ -54,7 +54,7 @@ export function usePrelaunch() {
     loading,
     error,
     prelaunchMode: config?.prelaunchMode ?? false,
-    launchMode: config?.launchMode ?? "public",
+    launchMode: config?.launchMode ?? "closed_beta",
     appEnv: config?.appEnv ?? "development",
     version: config?.version ?? "unknown",
   };

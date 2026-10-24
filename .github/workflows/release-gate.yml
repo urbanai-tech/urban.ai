@@ -104,6 +104,7 @@ jobs:
             e2e/release-gate-public.spec.ts \
             e2e/smoke.spec.ts \
             e2e/public-marketing-redesign.spec.ts \
+            e2e/prelaunch-waitlist-analytics.spec.ts \
             e2e/commercial-signup-analytics.spec.ts \
             e2e/a11y.spec.ts
 
