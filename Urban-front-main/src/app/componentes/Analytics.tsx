@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import Script from "next/script";
+import { usePathname } from "next/navigation";
+import { isAnalyticsAllowedPath, scrubPath, scrubUrl } from "../lib/privacy-scrub";
 import { readConsentSync, useConsent } from "./useConsent";
 
 declare global {
@@ -9,7 +11,22 @@ declare global {
     dataLayer?: unknown[];
     gtag?: (...args: unknown[]) => void;
     fbq?: (...args: unknown[]) => void;
+    __urbanGaReady?: boolean;
+    __urbanFbqReady?: boolean;
   }
+}
+
+const GA_READY_EVENT = "urban-ga-ready";
+const FBQ_READY_EVENT = "urban-fbq-ready";
+
+/** URL/path atuais já sem token/e-mail/fragmento — única forma que sai para GA4/Pixel. */
+function scrubbedLocation() {
+  return {
+    page_location: scrubUrl(
+      window.location.origin + window.location.pathname + window.location.search,
+    ),
+    page_path: scrubPath(window.location.pathname),
+  };
 }
 
 type AnalyticsValue = string | number | boolean | null | undefined;
@@ -161,11 +178,14 @@ export function trackAnalyticsEvent(
 ) {
   if (typeof window === "undefined") return;
 
+  // GA4/Pixel só em rotas públicas de marketing (nunca em auth/app).
+  if (!isAnalyticsAllowedPath(window.location.pathname)) return;
+
   const consent = readConsentSync();
   const cleanParams = sanitizeParams(params);
 
   if (consent.analytics) {
-    window.gtag?.("event", eventName, cleanParams);
+    window.gtag?.("event", eventName, { ...cleanParams, ...scrubbedLocation() });
   }
 
   if (consent.marketing && options.metaEventName) {
@@ -195,6 +215,12 @@ export function trackWaitlistSignup(params: AnalyticsParams = {}) {
  * Antes do user consentir, NENHUM script de telemetria opcional é injetado
  * — alinhado à LGPD art. 7º (consentimento explícito para tratamento não
  * essencial).
+ *
+ * Gating de rota: GA4/Pixel só carregam e só enviam page_view em rotas públicas
+ * de marketing (`isAnalyticsAllowedPath`). Rotas de auth/app (ex.:
+ * `/reset-password/<token>`, `/confirm-email/<email>`) nunca são enviadas, e o
+ * `page_location`/`page_path` do GA4 passam por `scrubUrl`/`scrubPath`.
+ * Os page_views são manuais (`send_page_view: false`) para controlar a URL.
  */
 export function Analytics() {
   const appEnv =
@@ -205,16 +231,62 @@ export function Analytics() {
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
   const { state, loaded } = useConsent();
+  const pathname = usePathname();
+  const routeAllowed = isAnalyticsAllowedPath(pathname);
 
   useEffect(() => {
     if (!loaded) return;
     captureAttribution();
   }, [loaded]);
 
+  // Liga/desliga GA4 e Pixel conforme a rota (scripts carregados numa rota
+  // pública continuam vivos após navegação client-side para rotas privadas).
+  useEffect(() => {
+    if (!isProd || !loaded) return;
+
+    if (gaId) {
+      (window as unknown as Record<string, unknown>)[`ga-disable-${gaId}`] = !routeAllowed;
+    }
+
+    const sendGaPageView = () => {
+      if (!routeAllowed || !state.analytics) return;
+      window.gtag?.("event", "page_view", {
+        ...scrubbedLocation(),
+        page_title: document.title,
+      });
+    };
+    const sendPixelPageView = () => {
+      if (!routeAllowed || !state.marketing) return;
+      // O Pixel lê a URL sozinho: se há algo sensível na URL, não envia.
+      const href = window.location.origin + window.location.pathname + window.location.search;
+      if (scrubUrl(href) !== href) return;
+      window.fbq?.("track", "PageView");
+    };
+
+    const cleanups: Array<() => void> = [];
+    if (gaId && state.analytics) {
+      if (window.__urbanGaReady) sendGaPageView();
+      else {
+        window.addEventListener(GA_READY_EVENT, sendGaPageView, { once: true });
+        cleanups.push(() => window.removeEventListener(GA_READY_EVENT, sendGaPageView));
+      }
+    }
+    if (pixelId && state.marketing) {
+      if (window.__urbanFbqReady) sendPixelPageView();
+      else {
+        window.addEventListener(FBQ_READY_EVENT, sendPixelPageView, { once: true });
+        cleanups.push(() => window.removeEventListener(FBQ_READY_EVENT, sendPixelPageView));
+      }
+    }
+    return () => cleanups.forEach((cleanup) => cleanup());
+  }, [isProd, loaded, routeAllowed, pathname, gaId, pixelId, state.analytics, state.marketing]);
+
   // Em dev/staging, ou enquanto consent ainda não carregou do localStorage,
   // não carrega nada. Após `loaded=true`, o gating por categoria toma efeito.
   if (!isProd) return null;
   if (!loaded) return null;
+  // Nunca injeta os scripts a partir de uma rota privada/de auth.
+  if (!routeAllowed) return null;
 
   return (
     <>
@@ -229,7 +301,9 @@ export function Analytics() {
               window.dataLayer = window.dataLayer || [];
               window.gtag = window.gtag || function(){window.dataLayer.push(arguments);}
               window.gtag('js', new Date());
-              window.gtag('config', '${gaId}', { anonymize_ip: true });
+              window.gtag('config', '${gaId}', { anonymize_ip: true, send_page_view: false });
+              window.__urbanGaReady = true;
+              window.dispatchEvent(new Event('${GA_READY_EVENT}'));
             `}
           </Script>
         </>
@@ -247,8 +321,10 @@ export function Analytics() {
               t.src=v;s=b.getElementsByTagName(e)[0];
               s.parentNode.insertBefore(t,s)}(window, document,'script',
               'https://connect.facebook.net/en_US/fbevents.js');
+              fbq.disablePushState = true;
               fbq('init', '${pixelId}');
-              fbq('track', 'PageView');
+              window.__urbanFbqReady = true;
+              window.dispatchEvent(new Event('${FBQ_READY_EVENT}'));
             `}
           </Script>
           <noscript>
