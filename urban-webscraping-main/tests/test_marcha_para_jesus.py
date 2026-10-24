@@ -17,7 +17,7 @@ def test_normalize_payload_completo():
     p = c.normalize(raw)
     assert p is not None
     assert p["nome"] == "Marcha para Jesus São Paulo"
-    assert p["dataInicio"] == "2026-06-04 09:00:00"
+    assert p["dataInicio"] == "2026-06-04T09:00:00-03:00"
     assert p["latitude"] == -23.5278
     assert p["longitude"] == -46.6359
     assert p["venueType"] == "outdoor"

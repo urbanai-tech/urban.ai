@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Event } from '../entities/events.entity';
+import { parseEventDateTime, tryToSaoPauloDateKey } from '../common/sp-date';
 
 export type EventIdentityMatchKind = 'exact_source' | 'exact_url' | 'strong' | 'review' | 'new';
 
@@ -161,9 +162,10 @@ export class EventIdentityService {
 
   eventDateKey(date?: string | Date | null): string | null {
     if (!date) return null;
-    const parsed = date instanceof Date ? date : new Date(date);
-    if (Number.isNaN(parsed.getTime())) return null;
-    return parsed.toISOString().slice(0, 10);
+    // Dia de calendário em America/Sao_Paulo (D3): fontes que reportam o mesmo
+    // jogo em UTC e em horário local precisam cair na mesma chave.
+    const parsed = date instanceof Date ? date : (parseEventDateTime(date)?.instant ?? new Date(date));
+    return tryToSaoPauloDateKey(parsed);
   }
 
   buildFingerprint(input: EventIdentityInput): EventIdentityFingerprint {

@@ -282,7 +282,9 @@ describe('AirbnbService price extraction', () => {
       );
 
     beforeEach(() => {
-      jest.useFakeTimers().setSystemTime(new Date(`${baseDate}T00:00:00.000Z`));
+      // 12:00Z = 09:00 em São Paulo: "hoje" (dia de SP) coincide com baseDate.
+      // À meia-noite UTC seria 21:00 do dia anterior em SP (D3).
+      jest.useFakeTimers().setSystemTime(new Date(`${baseDate}T12:00:00.000Z`));
     });
 
     afterEach(() => {

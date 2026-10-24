@@ -32,6 +32,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+from urban_webscrapping.utils.event_datetime import SP_TZ, to_sp_iso
 from urban_webscrapping.utils.urban_backend_client import (
     UrbanBackendClient,
     UrbanBackendError,
@@ -187,7 +188,21 @@ class BaseCollector(ABC):
         ends_at = self._parse_datetime(payload.get("dataFim"))
         if payload.get("dataFim") and ends_at is None:
             errors.append("invalid_dataFim")
-        if starts_at is not None and ends_at is not None:
+        start_all_day = self._is_date_only(payload.get("dataInicio"))
+        end_all_day = self._is_date_only(payload.get("dataFim"))
+        if (
+            starts_at is not None
+            and ends_at is not None
+            and (start_all_day or end_all_day)
+        ):
+            # Data pura = dia inteiro em São Paulo: início 00:00, fim 23:59:59.
+            # Compara na mesma régua para não acusar falso "timezone
+            # inconsistente" entre `2026-05-10T20:00:00-03:00` e `2026-05-10`.
+            s_cmp = self._as_sp_bound(starts_at, start_all_day, end_of_day=False)
+            e_cmp = self._as_sp_bound(ends_at, end_all_day, end_of_day=True)
+            if e_cmp < s_cmp:
+                errors.append("invalid_temporal_order")
+        elif starts_at is not None and ends_at is not None:
             if (starts_at.tzinfo is None) != (ends_at.tzinfo is None):
                 errors.append("inconsistent_temporal_timezone")
             elif ends_at < starts_at:
@@ -208,6 +223,23 @@ class BaseCollector(ABC):
                     errors.append("coordinates_out_of_range")
 
         return errors
+
+    @staticmethod
+    def _is_date_only(value: Any) -> bool:
+        return bool(value) and len(str(value).strip()) == 10
+
+    @staticmethod
+    def _as_sp_bound(value: datetime, date_only: bool, *, end_of_day: bool) -> datetime:
+        if date_only:
+            value = value.replace(
+                hour=23 if end_of_day else 0,
+                minute=59 if end_of_day else 0,
+                second=59 if end_of_day else 0,
+                tzinfo=SP_TZ,
+            )
+        elif value.tzinfo is None:
+            value = value.replace(tzinfo=SP_TZ)
+        return value
 
     @staticmethod
     def _parse_datetime(value: Any) -> datetime | None:
@@ -249,6 +281,13 @@ class BaseCollector(ABC):
 
         result.fetched = len(raw_items)
         logger.info("[%s] fetched %d items", self.source, result.fetched)
+        if result.fetched == 0:
+            # D2 — "sucesso silencioso": o site mudou e a fonte devolve vazio.
+            logger.warning(
+                "[%s] ZERO_ITEMS: fetch_raw devolveu 0 itens — provável mudança "
+                "no site/API de origem (verificar seletores/credenciais)",
+                self.source,
+            )
 
         for raw in raw_items:
             try:
@@ -266,6 +305,15 @@ class BaseCollector(ABC):
             # Garante source consistente (subclass pode ter esquecido ou enviado vazio)
             if not payload.get("source"):
                 payload["source"] = self.source
+
+            # D3 — datas sempre com offset de São Paulo (rede de segurança para
+            # qualquer coletor, inclusive novos): UTC -> SP, naive -> SP,
+            # data pura permanece data pura.
+            for date_key in ("dataInicio", "dataFim"):
+                if payload.get(date_key):
+                    payload[date_key] = (
+                        to_sp_iso(payload[date_key]) or payload[date_key]
+                    )
 
             # Enrich com venue_map antes de enviar
             payload = self.enrich_with_venue(payload)
@@ -317,6 +365,13 @@ class BaseCollector(ABC):
             result.status = "success"
 
         result.elapsed_seconds = round(time.time() - start, 2)
+        if result.fetched > 0 and result.normalized == 0 and not result.errors:
+            logger.warning(
+                "[%s] ZERO_ITEMS: %d itens brutos, mas nenhum utilizável após normalize "
+                "— provável mudança de formato na fonte",
+                self.source,
+                result.fetched,
+            )
         logger.info(
             "[%s] DONE — status=%s fetched=%d normalized=%d sent=%d skipped_empty=%d skipped_invalid=%d errors=%d in %.1fs",
             self.source,

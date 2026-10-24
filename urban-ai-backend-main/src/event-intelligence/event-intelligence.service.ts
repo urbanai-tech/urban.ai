@@ -37,6 +37,7 @@ import {
 } from './event-intelligence.types';
 import { EventHeatmapProjectionService } from './event-heatmap-projection.service';
 import { ScheduledJobRunnerService, runScheduledJob } from '../admin-job-runs/scheduled-job-runner.service';
+import { toDayKey, todaySaoPauloDateKey } from '../common/sp-date';
 
 const CONTRACT_VERSION = 'event-radar-v0';
 const ENGINE_PENDING_STUB = 'stub_pending_engine';
@@ -1876,8 +1877,8 @@ export class EventIntelligenceService {
       .andWhere("(event.dedupStatus IS NULL OR event.dedupStatus = 'canonical')")
       .andWhere('event.cidade = :city', { city: event.cidade })
       .andWhere('event.dataInicio BETWEEN :from AND :to', {
-        from: this.startDate(this.dateOnly(event.dataInicio) ?? this.today()),
-        to: this.endDate(this.addDays(this.dateOnly(event.dataInicio) ?? this.today(), 14)),
+        from: this.startDate(toDayKey(event.dataInicio) ?? this.today()),
+        to: this.endDate(this.addDays(toDayKey(event.dataInicio) ?? this.today(), 14)),
       })
       .orderBy('event.relevancia', 'DESC')
       .take(6)
@@ -2124,7 +2125,7 @@ export class EventIntelligenceService {
   }
 
   private today() {
-    return this.dateOnly(new Date());
+    return todaySaoPauloDateKey();
   }
 
   private addDays(value: string, days: number) {

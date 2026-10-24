@@ -369,4 +369,95 @@ describe('EventsIngestService', () => {
       expect(r.results).toHaveLength(0);
     });
   });
+
+  describe('fuso horário (D3) — America/Sao_Paulo', () => {
+    const base = {
+      nome: 'Palmeiras x Santos',
+      latitude: -23.5275,
+      longitude: -46.6783,
+    };
+
+    async function ingestAndGetSaved(dataInicio: string, extra: Record<string, unknown> = {}) {
+      repo.findOne!.mockResolvedValue(null);
+      repo.save!.mockClear();
+      await service.ingestOne({ ...base, dataInicio, source: 'teste', ...extra } as any);
+      return repo.save!.mock.calls[0][0];
+    }
+
+    it('offset explícito: guarda o instante absoluto (21:30 BRT = 00:30Z)', async () => {
+      const saved = await ingestAndGetSaved('2026-05-10T21:30:00-03:00');
+      expect(saved.dataInicio.toISOString()).toBe('2026-05-11T00:30:00.000Z');
+      expect(saved.dataFim.toISOString()).toBe('2026-05-11T00:30:00.000Z');
+    });
+
+    it('UTC com Z: mesmo instante', async () => {
+      const saved = await ingestAndGetSaved('2026-05-11T00:30:00Z');
+      expect(saved.dataInicio.toISOString()).toBe('2026-05-11T00:30:00.000Z');
+    });
+
+    it('sem offset: interpreta como horário de São Paulo', async () => {
+      const saved = await ingestAndGetSaved('2026-05-10 21:30:00');
+      expect(saved.dataInicio.toISOString()).toBe('2026-05-11T00:30:00.000Z');
+    });
+
+    it('sem offset não depende do TZ do processo', async () => {
+      const original = process.env.TZ;
+      process.env.TZ = 'Pacific/Auckland';
+      try {
+        const saved = await ingestAndGetSaved('2026-05-10T21:30:00');
+        expect(saved.dataInicio.toISOString()).toBe('2026-05-11T00:30:00.000Z');
+      } finally {
+        if (original === undefined) delete process.env.TZ;
+        else process.env.TZ = original;
+      }
+    });
+
+    it('somente data: dia inteiro em São Paulo (00:00 a 23:59:59.999 BRT)', async () => {
+      const saved = await ingestAndGetSaved('2026-05-10');
+      expect(saved.dataInicio.toISOString()).toBe('2026-05-10T03:00:00.000Z');
+      expect(saved.dataFim.toISOString()).toBe('2026-05-11T02:59:59.999Z');
+    });
+
+    it('somente data + dataFim data: fim vira fim do dia de São Paulo', async () => {
+      const saved = await ingestAndGetSaved('2026-05-10', { dataFim: '2026-05-12' });
+      expect(saved.dataFim.toISOString()).toBe('2026-05-13T02:59:59.999Z');
+    });
+
+    it('dataFim inválida cai para dataInicio sem derrubar o evento', async () => {
+      const saved = await ingestAndGetSaved('2026-05-10T21:30:00-03:00', { dataFim: 'lixo' });
+      expect(saved.dataFim.toISOString()).toBe(saved.dataInicio.toISOString());
+    });
+
+    it('rawPayload preserva o texto original recebido da fonte', async () => {
+      repo.findOne!.mockResolvedValue(null);
+      await service.ingestOne({ ...base, dataInicio: '2026-05-10 21:30:00', source: 'teste', sourceId: 's1' } as any);
+      const evidence = sourceRepo.save!.mock.calls[0][0];
+      expect(evidence.rawPayload.dataInicio).toBe('2026-05-10 21:30:00');
+      expect(evidence.rawStartDate.toISOString()).toBe('2026-05-11T00:30:00.000Z');
+    });
+
+    it('dedupHash igual entre fontes: UTC (api-football), offset BRT e local naive', async () => {
+      const hashes: string[] = [];
+      for (const dataInicio of ['2026-05-11T00:30:00Z', '2026-05-10T21:30:00-03:00', '2026-05-10 21:30:00']) {
+        repo.findOne!.mockResolvedValue(null);
+        const r = await service.ingestOne({ ...base, dataInicio, source: 'teste' } as any);
+        hashes.push(r.dedupHash!);
+      }
+      expect(new Set(hashes).size).toBe(1);
+      // E bate com o hash calculado pelo dia de São Paulo (10/05), não pelo dia UTC (11/05).
+      expect(hashes[0]).toBe(service.computeDedupHash(base.nome, new Date('2026-05-10T15:00:00Z'), base.latitude, base.longitude));
+      expect(hashes[0]).not.toBe(service.computeDedupHash(base.nome, new Date('2026-05-11T15:00:00Z'), base.latitude, base.longitude));
+    });
+
+    it('hash por endereço (sem geo) também usa o dia de São Paulo', () => {
+      const a = service.computeDedupHashByAddress('Show', new Date('2026-05-11T00:30:00Z'), 'Rua A, 1');
+      const b = service.computeDedupHashByAddress('Show', new Date('2026-05-10T18:00:00Z'), 'Rua A, 1');
+      expect(a).toBe(b);
+    });
+
+    it('rejeita data impossível', async () => {
+      const r = await service.ingestOne({ ...base, dataInicio: '2026-02-31', source: 'teste' } as any);
+      expect(r).toEqual({ status: 'skipped', reason: 'dataInicio inválida' });
+    });
+  });
 });

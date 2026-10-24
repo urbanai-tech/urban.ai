@@ -5,6 +5,7 @@ import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { PriceUpdate } from 'src/entities/price-update.entity';
 import { DatasetCollectorService } from 'src/knn-engine/dataset-collector.service';
 import { Repository } from 'typeorm';
+import { todaySaoPauloDateKey, toSaoPauloDateKey } from '../common/sp-date';
 
 type AppliedPriceInput = {
   precoAplicado: number;
@@ -434,8 +435,8 @@ export class SugestionService {
     precoAplicado: number,
   ): Promise<void> {
     const targetDate = registro.evento?.dataInicio
-      ? new Date(registro.evento.dataInicio).toISOString().slice(0, 10)
-      : new Date().toISOString().slice(0, 10);
+      ? toSaoPauloDateKey(new Date(registro.evento.dataInicio))
+      : todaySaoPauloDateKey();
     const list = registro.endereco?.list;
     const listingId = list?.id_do_anuncio || (list?.id ? `urban-list:${list.id}` : null);
 
@@ -592,7 +593,7 @@ export class SugestionService {
 
   private resolveTargetDate(registro: AnalisePreco): string {
     const date = registro.evento?.dataInicio ?? registro.aplicadoEm ?? registro.aceitoEm ?? new Date();
-    return new Date(date).toISOString().slice(0, 10);
+    return toSaoPauloDateKey(new Date(date));
   }
 
   private addDays(date: string, days: number): string {

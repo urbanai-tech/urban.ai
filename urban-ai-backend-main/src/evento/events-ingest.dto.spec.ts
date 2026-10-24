@@ -29,4 +29,16 @@ describe('events ingestion runtime DTOs', () => {
   ])('rejects nested extras, malformed formats and oversized batches', async (input) => {
     await expect(validate(IngestEventsBatchDto, input)).rejects.toBeInstanceOf(BadRequestException);
   });
+
+  it.each([
+    '2026-12-31', // somente data: dia inteiro em São Paulo
+    '2026-12-31 21:30:00', // sem offset: horário de São Paulo
+    '2026-12-31T21:30:00', // sem offset (T)
+    '2026-12-31T21:30:00-03:00', // offset BRT
+    '2027-01-01T00:30:00Z', // UTC
+  ])('aceita dataInicio nos formatos suportados pela política de fuso: %s', async (dataInicio) => {
+    await expect(validate(IngestEventsBatchDto, { events: [{ ...event, dataInicio }] })).resolves.toBeInstanceOf(
+      IngestEventsBatchDto,
+    );
+  });
 });

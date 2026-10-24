@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from typing import Any
 from urllib.parse import urlencode
 
@@ -36,6 +36,7 @@ from urban_webscrapping.collectors.base_collector import (
     BaseCollector,
     CollectorRunResult,
 )
+from urban_webscrapping.utils.event_datetime import SP_TZ, to_sp_iso
 from urban_webscrapping.utils.urban_backend_client import UrbanBackendClient
 
 logger = logging.getLogger(__name__)
@@ -69,7 +70,8 @@ class SpCulturaCollector(BaseCollector):
     # ============== fetch ==============
 
     def fetch_raw(self) -> list[dict[str, Any]]:
-        today = datetime.now(UTC).date()
+        # "hoje" é o dia de São Paulo (após 21:00 BRT o dia UTC já virou)
+        today = datetime.now(SP_TZ).date()
         end = today + timedelta(days=self.lookahead_days)
 
         # API usa filtros tipo `startsOn=GTE(YYYY-MM-DD)`. Campos retornados:
@@ -185,8 +187,8 @@ class SpCulturaCollector(BaseCollector):
 
         payload: dict[str, Any] = {
             "nome": nome[:255],
-            "dataInicio": str(starts_on),
-            "dataFim": str(ends_on),
+            "dataInicio": to_sp_iso(str(starts_on)),
+            "dataFim": to_sp_iso(str(ends_on)),
             "enderecoCompleto": str(endereco)[:500],
             "cidade": "São Paulo",
             "estado": "SP",

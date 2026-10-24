@@ -12,6 +12,7 @@ import {
   PricingDecisionStatus,
 } from "../entities/pricing-decision-snapshot.entity";
 import { EventIntelligenceConfidence } from "../entities/event-intelligence-snapshot.entity";
+import { toSaoPauloDateKey } from "../common/sp-date";
 
 interface StaysAutoApplyConfig {
   enabled: boolean;
@@ -704,8 +705,9 @@ export class StaysAutoApplyService {
   }
 
   private toDateStr(d: Date | string): string {
-    const date = typeof d === "string" ? new Date(d) : d;
-    return date.toISOString().slice(0, 10);
+    // Dia de calendário em America/Sao_Paulo (D3): um evento às 21:30 BRT é
+    // 00:30Z do dia seguinte e não pode mudar de dia-alvo.
+    return toSaoPauloDateKey(typeof d === "string" ? new Date(d) : d);
   }
 
   private isValidTargetDate(date: string): boolean {

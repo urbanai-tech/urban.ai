@@ -17,6 +17,7 @@ from itemadapter import ItemAdapter
 from scrapy import Spider
 
 from urban_webscrapping.utils.aws_s3_helper import S3Helper
+from urban_webscrapping.utils.event_datetime import to_sp_iso
 from urban_webscrapping.utils.urban_backend_client import (
     UrbanBackendClient,
     UrbanBackendError,
@@ -98,6 +99,8 @@ class UrbanIngestPipeline:
             and os.environ.get("URBAN_COLLECTOR_PASSWORD")
         )
         self.client: UrbanBackendClient | None = None
+        # D2 — itens vistos neste run; 0 no fechamento = site mudou/quebrou.
+        self.items_seen = 0
         if self.enabled:
             try:
                 self.client = UrbanBackendClient.from_env()
@@ -116,6 +119,7 @@ class UrbanIngestPipeline:
             )
 
     def process_item(self, item: EventItem, spider: Spider) -> EventItem:
+        self.items_seen += 1
         if not self.enabled or not self.client:
             return item
 
@@ -135,6 +139,15 @@ class UrbanIngestPipeline:
 
     def close_spider(self, spider: Spider) -> None:
         """Flush final ao terminar o spider."""
+        if self.items_seen == 0:
+            # Spider terminou "OK" sem nenhum item: tipicamente o HTML/API do site
+            # mudou. O backend também alerta (collector-zero-yield), mas este log
+            # deixa o sinal no próprio run do scheduler.
+            logger.warning(
+                "[scraper-%s] ZERO_ITEMS: spider terminou sem nenhum item — "
+                "provável mudança no site/API de origem",
+                spider.name,
+            )
         if self.client:
             try:
                 self.client.close()
@@ -192,7 +205,11 @@ class UrbanIngestPipeline:
 
     @staticmethod
     def _format_date(value: Any) -> str:
-        """ISO 8601. Aceita datetime, date, ou string já ISO."""
-        if hasattr(value, "isoformat"):
-            return str(value.isoformat())
-        return str(value)
+        """ISO 8601 com offset de São Paulo (D3). Aceita datetime, date ou string.
+
+        datetime sem fuso (horário de parede do site) -> São Paulo; datetime
+        com fuso (ex.: UTC do Ticketmaster) -> convertido para São Paulo;
+        date pura permanece data pura.
+        """
+        iso = to_sp_iso(value)
+        return iso if iso is not None else str(value)

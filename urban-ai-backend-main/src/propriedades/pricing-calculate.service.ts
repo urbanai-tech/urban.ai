@@ -14,6 +14,7 @@ import {
   PricingDecisionStatus,
 } from '../entities/pricing-decision-snapshot.entity';
 import { PriceAbsorptionScenario } from '../entities/event-property-impact.entity';
+import { toDayKey } from '../common/sp-date';
 
 type AjustePrecoParams = {
   precoReferencia: number;
@@ -635,8 +636,9 @@ export class PricingCalculateService {
   }
 
   private normalizeTargetDate(value?: string | Date | null): string | null {
-    const date = this.toDate(value);
-    if (date) return date.toISOString().slice(0, 10);
+    // 'YYYY-MM-DD' passa direto; instantes (ex.: event.dataInicio) viram o dia de São Paulo.
+    const key = toDayKey(value);
+    if (key) return key;
     return typeof value === 'string' && value ? value.slice(0, 10) : null;
   }
 

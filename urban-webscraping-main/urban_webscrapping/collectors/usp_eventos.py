@@ -32,6 +32,7 @@ from urban_webscrapping.collectors.base_collector import (
     BaseCollector,
     CollectorRunResult,
 )
+from urban_webscrapping.utils.event_datetime import to_sp_iso
 from urban_webscrapping.utils.urban_backend_client import UrbanBackendClient
 
 logger = logging.getLogger(__name__)
@@ -130,8 +131,8 @@ class UspEventosCollector(BaseCollector):
 
         payload: dict[str, Any] = {
             "nome": nome[:255],
-            "dataInicio": starts_on,
-            "dataFim": ends_on,
+            "dataInicio": to_sp_iso(starts_on),
+            "dataFim": to_sp_iso(ends_on),
             "enderecoCompleto": endereco[:500],
             "cidade": "São Paulo",
             "estado": "SP",

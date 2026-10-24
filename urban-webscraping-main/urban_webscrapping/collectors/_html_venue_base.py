@@ -24,6 +24,7 @@ from typing import Any
 import requests
 
 from urban_webscrapping.collectors.base_collector import BaseCollector
+from urban_webscrapping.utils.event_datetime import SP_TZ, to_sp_iso
 from urban_webscrapping.utils.urban_backend_client import UrbanBackendClient
 from urban_webscrapping.utils.venue_map import VenueInfo, match_venue
 
@@ -213,8 +214,8 @@ class HtmlVenueCollector(BaseCollector):
 
         payload: dict[str, Any] = {
             "nome": title[:255],
-            "dataInicio": starts_iso,
-            "dataFim": ends_iso,
+            "dataInicio": to_sp_iso(starts_iso),
+            "dataFim": to_sp_iso(ends_iso),
             "enderecoCompleto": self.VENUE_NAME,
             "cidade": "São Paulo",
             "estado": "SP",
@@ -260,6 +261,10 @@ class HtmlVenueCollector(BaseCollector):
             from datetime import datetime
 
             dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+            if dt.tzinfo is not None:
+                # Instante com offset/UTC -> relógio de São Paulo (antes o
+                # offset era simplesmente descartado: 20:00Z virava 20:00 BRT).
+                dt = dt.astimezone(SP_TZ).replace(tzinfo=None)
             return dt.strftime("%Y-%m-%d %H:%M:%S")
         except (ValueError, TypeError):
             pass

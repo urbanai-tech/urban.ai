@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { EventsIngestService, IngestEventInput, IngestBatchResponse } from './events-ingest.service';
+import { parseEventDateTime, saoPauloDayBounds, todaySaoPauloDateKey } from '../common/sp-date';
 
 /**
  * EventsCsvImportService — Camada 3 (curadoria humana).
@@ -287,14 +288,14 @@ export class EventsCsvImportService {
   }
 
   private validateFallbackPayload(payload: IngestEventInput): string | null {
-    const date = new Date(payload.dataInicio);
-    if (Number.isNaN(date.getTime())) {
+    const parsed = parseEventDateTime(payload.dataInicio);
+    if (!parsed) {
       return 'dataInicio inválida';
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (date < today) {
+    // "Hoje" = início do dia de calendário em America/Sao_Paulo (D3).
+    const today = saoPauloDayBounds(todaySaoPauloDateKey()).start;
+    if (parsed.instant < today) {
       return 'dataInicio passada';
     }
 

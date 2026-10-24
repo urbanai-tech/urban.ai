@@ -118,6 +118,24 @@ This project is set up to be deployed to a Scrapyd server, which allows for sche
 
     This will schedule the `eventim` spider to run and return a job ID.
 
+## Event date/time convention (timezone)
+
+Every event sent to the backend (`dataInicio` / `dataFim`) follows one convention
+(implemented in `urban_webscrapping/utils/event_datetime.py`, enforced for all
+collectors in `BaseCollector.run()` and for spiders in `UrbanIngestPipeline`):
+
+| Source gives | We send | Example |
+|---|---|---|
+| UTC / any offset (API-Football, Ticketmaster `dateTime`) | ISO-8601 converted to **America/Sao_Paulo**, offset kept | `2026-05-11T00:30:00+00:00` -> `2026-05-10T21:30:00-03:00` |
+| Wall-clock time without timezone (HTML sites, Sympla local dates, LLM extraction) | Interpreted as **America/Sao_Paulo**, offset added | `2026-05-10 21:30:00` -> `2026-05-10T21:30:00-03:00` |
+| Date only | Stays **date-only** (all-day event in Sao Paulo) | `2026-05-10` |
+
+Why Sao Paulo offset instead of `Z`: the calendar day in the payload is the day
+the user sees, and the backend accepts any offset as an absolute instant. Never
+strip the offset (e.g. with `strftime`): that is what turned a 21:30 BRT match into
+00:30 of the next day. New collectors only need to return what the source gives;
+`BaseCollector.run()` normalizes it. See `docs/runbooks/datas-e-fuso-horario.md`.
+
 ## Project Structure
 
 ```

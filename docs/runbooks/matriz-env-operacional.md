@@ -20,6 +20,7 @@
 | `APP_ENV`, `NODE_ENV`, `PORT`, `APP_VERSION` | `APP_ENV` Obr. em staging/prod | `APP_ENV` define ambiente (Sentry, regras de produção). `PORT` é injetada pelo Railway. |
 | `DATABASE_URL` **ou** `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Obr. | Fora de dev local, `DB_*` sem valor derruba o boot. |
 | `DB_SYNCHRONIZE`, `MIGRATIONS_RUN`, `TYPEORM_SCHEMA_LOGGING` | Opc. | Padrão `false`. Em produção manter `DB_SYNCHRONIZE=false`. |
+| `DB_TIMEZONE` | Opc. | Fuso da conexão MySQL (opção `timezone` do driver). Sem valor = default do driver (TZ do processo). Recomendado `Z` depois de confirmar que o processo roda em UTC; ver [datas e fuso horário](./datas-e-fuso-horario.md). |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_TLS` | Obr. fora de dev | Upstash. Bull v3 (`@nestjs/bull`), fila `processos`. |
 | `INTERNAL_HTTP_BASE_URL` | Opc. | Base do `HttpModule`; cai em `FRONT_BASE_URL`. |
 | `ENABLE_SWAGGER` | Opc. | Swagger em `/api` fica desligado em produção salvo `true`. |

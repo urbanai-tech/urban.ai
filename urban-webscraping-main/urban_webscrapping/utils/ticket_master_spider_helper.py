@@ -1,6 +1,8 @@
 import logging
 from typing import Any
 
+from urban_webscrapping.utils.event_datetime import to_sp_iso
+
 logger = logging.getLogger(__name__)
 
 
@@ -35,7 +37,9 @@ class TicketMasterHelper:
             "nome": name,
             "linkSiteOficial": event_url,
             "imagem_url": image_url,
-            "dataInicio": datetime_utc or date_start,
+            # dateTime vem em UTC ("...Z"): converte p/ São Paulo com offset (D3);
+            # localDate é data pura e permanece assim.
+            "dataInicio": to_sp_iso(datetime_utc) if datetime_utc else date_start,
             "enderecoCompleto": location,
             "postal_code": postal_code,
             "latitude": latitude,
