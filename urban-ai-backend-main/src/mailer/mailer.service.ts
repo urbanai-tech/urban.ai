@@ -1,6 +1,10 @@
 import { Injectable, Logger, Optional } from '@nestjs/common';
 import axios from 'axios';
 import { CommunicationLogService } from 'src/communications/communication-log.service';
+import { buildListUnsubscribeHeaders, UnsubscribeCategory } from 'src/communication-preferences/unsubscribe-token';
+
+/** Só e-mails NÃO transacionais passam `unsubscribe`; reset, confirmação e cobrança nunca. */
+export type NonTransactionalMailOptions = { unsubscribe?: { userId: string; category: UnsubscribeCategory } };
 
 @Injectable()
 export class MailerService {
@@ -48,8 +52,12 @@ export class MailerService {
     to: { email: string; name?: string },
     subject: string,
     html: string,
+    options?: NonTransactionalMailOptions,
   ) {
-    return this.sendBrevoEmail({ to, subject, htmlContent: html, type: 'HTML' });
+    const headers = options?.unsubscribe
+      ? buildListUnsubscribeHeaders(options.unsubscribe.userId, options.unsubscribe.category) ?? undefined
+      : undefined;
+    return this.sendBrevoEmail({ to, subject, htmlContent: html, type: 'HTML', headers });
   }
 
   async sendTextEmailCron(
@@ -68,6 +76,7 @@ export class MailerService {
     templateId?: number;
     params?: Record<string, any>;
     type?: string;
+    headers?: Record<string, string>;
   }): Promise<{ enviado: boolean; status: number; message?: string; messageId?: string }> {
     if (!this.apiKey) {
       const message = 'BREVO_API_KEY is not configured';
@@ -91,6 +100,8 @@ export class MailerService {
       ],
       subject: input.subject,
     };
+
+    if (input.headers) payload.headers = input.headers;
 
     if (input.templateId !== undefined) {
       payload.templateId = input.templateId;

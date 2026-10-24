@@ -26,6 +26,7 @@ const PUBLIC_MUTATION_ALLOWLIST = new Map([
   ['POST /email/forgot-password', 'password-reset delivery; strict per-route throttle'],
   ['POST /email/update-password', 'password-reset token exchange; strict per-route throttle'],
   ['POST /payments/webhook', 'Stripe-signed webhook; signature verified fail-closed'],
+  ['POST /unsubscribe', 'signed one-click unsubscribe token (HMAC); idempotent; strict per-route throttle'],
   ['POST /waitlist', 'public prelaunch signup; strict per-route throttle'],
 ]);
 

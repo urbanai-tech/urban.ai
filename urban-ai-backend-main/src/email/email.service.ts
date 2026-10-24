@@ -9,7 +9,7 @@ import { EmailConfirmation } from 'src/entities/EmailConfirmation';
 import { PasswordResetToken } from 'src/entities/password-reset-token.entity';
 import { CreateNotificationDto } from 'src/notifications/tdo/create-notification.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
-import { MailerService } from 'src/mailer/mailer.service';
+import { MailerService, NonTransactionalMailOptions } from 'src/mailer/mailer.service';
 import { EmailTemplates } from './templates';
 import * as crypto from 'crypto';
 import { PushNotificationService } from 'src/push/push-notification.service';
@@ -129,8 +129,13 @@ export class EmailService {
         return `${local.slice(0, 2)}***@${domain}`;
     }
 
-    private async sendHtmlEmailOrThrow(to: { email: string; name?: string }, subject: string, htmlContent: string) {
-        const result = await this.mailerService.sendHtmlEmail(to, subject, htmlContent);
+    private async sendHtmlEmailOrThrow(
+        to: { email: string; name?: string },
+        subject: string,
+        htmlContent: string,
+        options?: NonTransactionalMailOptions,
+    ) {
+        const result = await this.mailerService.sendHtmlEmail(to, subject, htmlContent, options);
         if (!result?.enviado) {
             throw new Error(
                 result?.message || `Transactional email rejected with status=${result?.status ?? 'unknown'}`,
@@ -672,7 +677,9 @@ export class EmailService {
                     dashboardUrl,
                     items,
                 });
-                await this.sendHtmlEmailOrThrow({ email: digest.email, name: digest.name }, subject, html);
+                await this.sendHtmlEmailOrThrow({ email: digest.email, name: digest.name }, subject, html, {
+                    unsubscribe: { userId: digest.userId, category: 'pricing' },
+                });
             }
 
             if (wantsPush) {
