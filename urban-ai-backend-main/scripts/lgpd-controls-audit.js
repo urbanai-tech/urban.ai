@@ -20,7 +20,7 @@ const contracts = [
       ['self-delete derives id from principal', /deleteOwnAccount\(req\.user\?\.userId,/],
       ['self-export requires JWT', /@UseGuards\(JwtAuthGuard\)\s*@Get\('me\/export'\)/],
       ['self-export derives id from principal', /exportUserData\(req\.user\?\.userId\)/],
-      ['admin delete requires JWT and RBAC', /@UseGuards\(JwtAuthGuard, RolesGuard\)\s*@Roles\('admin'\)\s*@Delete\(':id'\)/],
+      ['admin delete requires JWT and RBAC', /@UseGuards\(JwtAuthGuard, RolesGuard\)\s*@Roles\('admin'\)\s*(?:@AdminAuditedInHandler\(\)\s*)?@Delete\(':id'\)/],
       ['cross-user lookup checks owner or admin', /requester\?\.userId !== id && requester\?\.role !== 'admin'/],
     ],
   },

@@ -429,7 +429,13 @@ export class AuthService {
     }
 
     if (data.username) user.username = data.username;
-    if (data.email) user.email = data.email;
+    if (data.email && data.email.trim().toLowerCase() !== String(user.email).trim().toLowerCase()) {
+      // Troca de e-mail por admin: o endereço novo ainda não foi provado pelo titular.
+      user.email = data.email;
+      user.emailVerifiedAt = null;
+    } else if (data.email) {
+      user.email = data.email;
+    }
 
     if (data.password) {
       // Toda atualização de senha passa por bcrypt(12), independente de

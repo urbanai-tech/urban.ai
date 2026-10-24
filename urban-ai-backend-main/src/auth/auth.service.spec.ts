@@ -777,6 +777,19 @@ describe('AuthService', () => {
       expect(await bcrypt.compare('Senha123!', user.password)).toBe(true);
     });
 
+    it('reseta a verificação de e-mail quando o admin troca o e-mail, mas não quando ele é igual', async () => {
+      const user: any = { id: 'u1', username: 'Old', email: 'old@test.com', password: 'old', emailVerifiedAt: new Date() };
+      userRepo.findOne!.mockResolvedValue(user);
+      userRepo.save!.mockImplementation(async (value) => value);
+
+      await service.update('u1', { email: 'OLD@test.com' });
+      expect(user.emailVerifiedAt).toBeInstanceOf(Date);
+
+      await service.update('u1', { email: 'new@test.com' });
+      expect(user.email).toBe('new@test.com');
+      expect(user.emailVerifiedAt).toBeNull();
+    });
+
     it('updates every supported profile field including zero values', async () => {
       const user: any = { id: 'u1', password: 'secret' };
       userRepo.findOne!.mockResolvedValue(user);

@@ -12,6 +12,7 @@ import {
   UpdatePlanPricingDto,
   UpdatePlatformCostDto,
 } from './dto/admin-billing.dto';
+import { AdminAuditedInHandler } from '../admin-audit/admin-audit.decorator';
 
 /**
  * Contexto administrativo de billing e finanças.
@@ -43,6 +44,7 @@ export class AdminBillingController {
     return this.finance.listCosts(inactive === 'true');
   }
 
+  @AdminAuditedInHandler()
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @ApiOperation({ summary: 'Criar custo operacional novo' })
   @Post('finance/costs')
@@ -58,6 +60,7 @@ export class AdminBillingController {
     return cost;
   }
 
+  @AdminAuditedInHandler()
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @ApiOperation({ summary: 'Atualizar custo' })
   @Patch('finance/costs/:id')
@@ -73,6 +76,7 @@ export class AdminBillingController {
     return cost;
   }
 
+  @AdminAuditedInHandler()
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @ApiOperation({ summary: 'Remover custo' })
   @Delete('finance/costs/:id')
@@ -87,6 +91,7 @@ export class AdminBillingController {
     return result;
   }
 
+  @AdminAuditedInHandler()
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @ApiOperation({
     summary:
@@ -111,6 +116,7 @@ export class AdminBillingController {
     return this.finance.listPlans();
   }
 
+  @AdminAuditedInHandler()
   @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @ApiOperation({
     summary: 'Atualizar preço/features de um plano (NÃO atualiza Stripe Price IDs)',

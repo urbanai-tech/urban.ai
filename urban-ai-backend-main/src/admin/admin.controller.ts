@@ -28,6 +28,7 @@ import {
   SetUserActiveDto,
   SetUserRoleDto,
 } from './dto/admin-core.dto';
+import { AdminAuditedInHandler } from '../admin-audit/admin-audit.decorator';
 
 /**
  * Endpoints administrativos da Urban AI.
@@ -381,6 +382,7 @@ export class AdminController {
     });
   }
 
+  @AdminAuditedInHandler()
   @Throttle({ default: { ttl: 60_000, limit: 60 } })
   @ApiOperation({ summary: 'Criar/atualizar ocupação manual de um imóvel por dia' })
   @Post('occupancy/manual')
@@ -424,6 +426,7 @@ export class AdminController {
     return this.admin.getUserSubscription(userId);
   }
 
+  @AdminAuditedInHandler()
   @ApiOperation({ summary: 'Atualizar role do usuário' })
   @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @Patch('users/:id/role')
@@ -443,6 +446,7 @@ export class AdminController {
     return { id: user.id, role: user.role };
   }
 
+  @AdminAuditedInHandler()
   @ApiOperation({ summary: 'Ativar/desativar usuário' })
   @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @Patch('users/:id/active')

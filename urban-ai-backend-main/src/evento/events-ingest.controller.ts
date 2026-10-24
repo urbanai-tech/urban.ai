@@ -25,6 +25,7 @@ import { EventsGeocoderService } from './events-geocoder.service';
 import { EventsCsvImportService } from './events-csv-import.service';
 import { EventsCollectorRequestContext, EventsIngestApiKeyGuard } from './events-ingest-api-key.guard';
 import { ImportEventsCsvDto, IngestEventsBatchDto } from './events-ingest.dto';
+import { AdminAuditedInHandler } from '../admin-audit/admin-audit.decorator';
 
 /**
  * Endpoint universal de ingestão de eventos (F6.2 Plus).
@@ -52,6 +53,7 @@ export class EventsIngestController {
     private readonly audit: AdminAuditService,
   ) {}
 
+  @AdminAuditedInHandler()
   @Throttle({ default: { ttl: 60_000, limit: 60 } })
   @UseGuards(EventsIngestApiKeyGuard)
   @ApiHeader({
