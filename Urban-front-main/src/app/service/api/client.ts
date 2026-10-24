@@ -1,4 +1,8 @@
 ﻿import axios from "axios";
+import {
+  EMAIL_NOT_VERIFIED_REDIRECT_PATH,
+  getBusinessForbiddenCode,
+} from "./forbidden-policy";
 // Base URL configurada via variável de ambiente
 const url = process.env.NEXT_PUBLIC_API_URL;
 export const enableContractFallback = process.env.NEXT_PUBLIC_ENABLE_CONTRACT_FALLBACK === "true";
@@ -56,7 +60,9 @@ api.interceptors.request.use(
  *   /termos, /privacidade, /create, /forbidden, /post-login, /request-reset-password,
  *   /reset-password/*, /confirm-email/*) NÃO redirecionam — login não eh
  *   necessario nelas e o componente que disparou o 401 lida com o erro.
- * - 403 (sem permissão): redireciona pra `/forbidden` page premium.
+ * - 403 (sem permissão): redireciona pra `/forbidden` page premium. 403 com `code`
+ *   de negócio conhecido (LISTINGS_QUOTA_EXCEEDED, EMAIL_NOT_VERIFIED) não
+ *   redireciona para /forbidden — ver forbidden-policy.ts.
  * - Outros erros: passa adiante.
  *
  * O endpoint `/auth/me` é exceção — 401 nele é esperado (componente decide).
@@ -135,8 +141,20 @@ api.interceptors.response.use(
       }
     }
 
-    // 403: usuário logado mas sem permissão — manda pra página 403 amigável.
-    if (status === 403) {
+    // 403 de negócio (code conhecido, ex.: LISTINGS_QUOTA_EXCEEDED): NÃO é falta
+    // de permissão. A tela que fez a chamada trata (upsell de plano etc.).
+    // EMAIL_NOT_VERIFIED é resolvido pelo /post-login, que encaminha para a
+    // confirmação de e-mail.
+    const businessCode = getBusinessForbiddenCode(error);
+    if (businessCode === "EMAIL_NOT_VERIFIED") {
+      if (
+        !pathname.startsWith(EMAIL_NOT_VERIFIED_REDIRECT_PATH) &&
+        !pathname.startsWith("/confirm-email")
+      ) {
+        window.location.href = EMAIL_NOT_VERIFIED_REDIRECT_PATH;
+      }
+    } else if (status === 403 && !businessCode) {
+      // 403 de autorização real: usuário logado mas sem permissão.
       const isAuthProbe =
         requestUrl.endsWith("/auth/me") || requestUrl.endsWith("/auth/logout");
       const alreadyOnForbidden = pathname.startsWith("/forbidden");

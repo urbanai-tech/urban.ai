@@ -59,7 +59,9 @@ import {
   extractAirbnbUserId,
   getOnboardingLoadingStatus,
   parseMoneyInput,
+  isQuotaExceededError,
   quotaErrorMessage,
+  QUOTA_UPSELL_PATH,
   type OnboardingLoadStage,
   type OperationMode,
   type PendingPricingProperty,
@@ -595,7 +597,13 @@ function OnboardingWizardContent() {
 
     } catch (error) {
       console.error('Erro ao registrar propriedades:', error);
-      toast(quotaErrorMessage(error, "Falha ao configurar propriedades. Tente novamente."), { type: "error" });
+      if (isQuotaExceededError(error)) {
+        // Limite do plano: leva o anfitrião ao upsell em vez de um erro seco.
+        toast(quotaErrorMessage(error, "Você atingiu o limite de imóveis do seu plano."), { type: "warning" });
+        setTimeout(() => router.push(QUOTA_UPSELL_PATH), 1800);
+      } else {
+        toast(quotaErrorMessage(error, "Falha ao configurar propriedades. Tente novamente."), { type: "error" });
+      }
     } finally {
       setIsLoading(false);
       if (!keepManualPriceStage) {
