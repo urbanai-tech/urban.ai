@@ -107,3 +107,20 @@ Para validar ingestao de eventos em staging, rode com `--allow-mutations` e `ENT
 - Conferir logs do backend sem senha/hash/token em payload.
 - Conferir status dos webhooks Stripe.
 - Conferir metricas de erro e latencia apos smoke.
+
+## 11. Validação inicial do ambiente (novo dev)
+
+Antes de mexer em feature, prove que o ambiente local está bom (mínimo de 5 GB livres em disco; `ENOSPC` derruba builds e cache do Jest):
+
+```bash
+npm --prefix Urban-front-main ci --legacy-peer-deps
+npm --prefix Urban-front-main run typecheck
+npm --prefix Urban-front-main run build
+npm --prefix urban-ai-backend-main ci
+npm --prefix urban-ai-backend-main run build
+npm --prefix urban-ai-backend-main test -- --runInBand
+npm --prefix urban-ai-backend-main audit --audit-level=high
+npm run gate:repository
+```
+
+Com `.env.staging` carregado (sem versionar), rode `node scripts/enterprise-access-readiness.js --env-file .env.staging` para ver quais acessos faltam e o gate read-only: `node scripts/enterprise-auditability-live-gate.js --env-file .env.staging --env=staging --strict --skip-events-ingest`. Os checks de admin e Ask são pulados sem `ENTERPRISE_GATE_ADMIN_JWT`/`ENTERPRISE_GATE_HOST_JWT` (ou credenciais de login de staging; ver [`staging-provisioning.md`](./staging-provisioning.md)). Nunca escreva valores de segredos na evidência.

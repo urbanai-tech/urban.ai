@@ -24,7 +24,7 @@ import { AuthModule } from "src/auth/auth.module";
     TypeOrmModule.forFeature([List, Address, Event, User]),
     MapsModule,
     AirbnbModule,
-    PaymentsModule, // F6.5: ListingsQuotaGuard precisa do getListingsQuota
+    PaymentsModule, // ConnectController injeta PaymentsService (cota de imóveis)
     AuthModule,
   ],
   controllers: [ConnectController],

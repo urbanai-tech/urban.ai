@@ -526,4 +526,4 @@ For support and questions:
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for detailed release notes and version history.
+Release notes are consolidated in the repository root [CHANGELOG.md](../CHANGELOG.md) (the per-service changelog was removed in 2026-10).

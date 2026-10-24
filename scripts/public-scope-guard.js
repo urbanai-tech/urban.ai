@@ -27,10 +27,6 @@ const ROOT_FILES = new Set([
   'vercel.json',
 ]);
 
-// O nome da pasta do serviço legado é montado por partes para não acionar o
-// gate de dependência do KNN legado, que proíbe a referência literal em scripts.
-const KNN_FOLDER = `${['urban', 'ai', 'knn', 'main'].join('-')}/`;
-
 // Pastas permitidas na raiz (prefixo completo).
 const ROOT_DIRECTORIES = [
   '.githooks/',
@@ -38,7 +34,6 @@ const ROOT_DIRECTORIES = [
   'Urban-front-main/',
   'load-tests/',
   'urban-ai-backend-main/',
-  KNN_FOLDER,
   'urban-pipeline-main/',
   'urban-webscraping-main/',
 ];
@@ -62,12 +57,9 @@ const SCRIPT_FILES = new Set([
 const DOCS_DIRECTORIES = [
   'docs/adr/',
   'docs/contracts/',
-  'docs/e2e-reports/',
-  'docs/evidence/',
   'docs/legal/',
   'docs/postmortems/',
   'docs/product/data/',
-  'docs/release/',
   'docs/runbooks/',
 ];
 
@@ -77,16 +69,9 @@ const DOCS_FILES = new Set([
   'docs/ARQUITETURA-ATUAL.md',
   'docs/DOCUMENTATION-GOVERNANCE.md',
   'docs/README.md',
-  'docs/auditoria-360-arquitetura-produto-ui-ux-2026-07-15.md',
-  'docs/plano-mestre-scorecard-10-10-2026-07-15.md',
-  'docs/scorecard-10-10-execution-status.md',
-  'docs/urban-ai-system-map-2026-07-15.html',
-  'docs/handoff/DEV-HANDOFF-2026-07-01.md',
-  'docs/handoff/README.md',
-  'docs/handoff/VALIDATION-CHECKLIST.md',
+  'docs/e2e-reports/README.md',
+  'docs/evidence/README.md',
   'docs/lgpd/dpa-checklist.md',
-  'docs/ops/README.md',
-  'docs/ops/protocolo-devs-agentes.md',
   'docs/ops/slo.md',
   'docs/product/ARCHITECTURE.md',
   'docs/product/DESIGN-SYSTEM.md',
@@ -94,7 +79,6 @@ const DOCS_FILES = new Set([
   'docs/product/README.md',
   'docs/product/REBRAND-MAP.md',
   'docs/product/USER-JOURNEYS.md',
-  'docs/v2-2026-05-24/mapa-funcional-tecnico.md',
 ]);
 
 function normalize(file) {
@@ -109,6 +93,8 @@ function classify(rawFile) {
   // e não fazem parte do escopo público.
   if (/(^|\/)\.gitlab-ci\.yml$/.test(file)) return 'ci-de-outra-plataforma';
   if (/\/\.github\/workflows\//.test(file)) return 'workflow-aninhado';
+  // Instruções de assistentes/prompts em .github de subpastas também ficam de fora.
+  if (!file.startsWith('.github/') && /(^|\/)\.github\//.test(file)) return 'github-aninhado';
 
   if (!file.includes('/')) {
     return ROOT_FILES.has(file) ? null : 'arquivo-de-raiz-fora-da-allowlist';
@@ -164,10 +150,11 @@ function selfTest() {
     'docs/README.md',
     'docs/runbooks/backup-restore.md',
     'docs/product/data/README.md',
-    'docs/handoff/README.md',
-    'docs/v2-2026-05-24/mapa-funcional-tecnico.md',
+    'docs/ops/slo.md',
+    'docs/evidence/README.md',
+    'docs/runbooks/incident-response/db-down.md',
     'urban-ai-backend-main/src/main.ts',
-    'urban-pipeline-main/.github/instructions/python.instructions.md',
+    'urban-pipeline-main/serve.py',
     'Urban-front-main/src/app/page.tsx',
   ].forEach(expectAllowed);
 
@@ -177,11 +164,14 @@ function selfTest() {
     'scripts/zz-sem-lista.js',
     'docs/zz-sem-lista.md',
     'docs/zz-sem-lista/arquivo.md',
-    'docs/handoff/zz-sem-lista.md',
+    'docs/handoff/README.md',
+    'docs/release/runbooks/zz.md',
+    'docs/evidence/zz-sem-lista.md',
+    'docs/e2e-reports/zz-sem-lista.md',
     'docs/product/zz-sem-lista.md',
-    'docs/v2-2026-05-24/zz-sem-lista.md',
     'urban-pipeline-main/.gitlab-ci.yml',
     'urban-ai-backend-main/.github/workflows/zz.yml',
+    'urban-pipeline-main/.github/instructions/zz.md',
   ].forEach(expectBlocked);
 
   // Normalização de separadores do Windows.

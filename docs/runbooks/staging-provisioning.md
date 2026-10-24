@@ -93,9 +93,9 @@ Na ordem abaixo. Tudo vai puxar de `github.com/urbanai-tech/urban.ai` (branch a 
   - `NEXT_PUBLIC_CHAINLIT_URL=<deixar vazio se não tiver chainlit em staging, ou URL do staging>`
 - **Custom domain:** `staging.myurbanai.com` → CNAME no Hostinger.
 
-### 2.5 KNN standalone staging (só se decidirem manter)
+### 2.5 KNN standalone staging
 
-Ver F5C.3: decisão pendente sobre aposentar ou reativar `urban-ai-knn-main/`. Se aposentar: **não provisionar em staging**. Se reativar: mesmo fluxo do backend, env vars `API_KEY` (nova, gerar com `crypto`) e `MAPBOX_TOKEN`.
+Não se aplica: o microserviço `urban-ai-knn-main` foi aposentado e removido do repositório em 2026-10 ([ADR 0007](../adr/0007-aposentar-knn-microservice.md)). Não provisionar em staging; o motor KNN roda embarcado no backend.
 
 ### 2.6 Pipeline Prefect staging
 
@@ -188,6 +188,27 @@ Para adotar B: no Railway staging, na config do serviço, **Settings → Source 
 **Recomendação:** começar com A (rápido, zero config extra). Migrar para B quando o volume de mudanças justificar (daqui a 2–4 semanas provavelmente).
 
 ---
+
+## Contas técnicas de smoke em staging (auth fixtures)
+
+Cria ou corrige, de forma idempotente, contas `admin` e `host` no banco de **staging** para smoke autenticado, auditoria admin/host e enterprise live gate. Não executar em produção; o script não imprime senha nem JWT.
+
+- Script: `urban-ai-backend-main/scripts/staging-auth-fixtures.js`. No boot do container Railway, `scripts/provision-staging-smoke-users.js` cria/atualiza as mesmas contas quando `APP_ENV=staging` e `STAGING_SMOKE_USERS_ENABLED=true` (ou `STAGING_AUTH_FIXTURES_ENABLED=true`); sem a flag, não derruba o app.
+- Guardas do script: exige `APP_ENV`/`NODE_ENV=staging` e `STAGING_AUTH_FIXTURES_ENABLED=true`; recusa banco com marcador aparente de produção; grava a senha como `bcrypt(12)` sobre o SHA-256 da senha em texto puro (formato enviado pelo front); reativa o usuário (`ativo=true`) e ajusta `role`.
+- Variáveis: `STAGING_AUTH_ADMIN_EMAIL`/`_PASSWORD`, `STAGING_AUTH_HOST_EMAIL`/`_PASSWORD` (aliases `STAGING_SMOKE_*` no boot e `ENTERPRISE_GATE_{ADMIN,HOST}_{EMAIL,PASSWORD}` para o release gate), mais `DATABASE_URL` ou `DB_HOST`/`DB_PORT`/`DB_USER`/`DB_PASSWORD`/`DB_NAME`.
+
+```bash
+cd urban-ai-backend-main
+node scripts/staging-auth-fixtures.js --check-config   # valida configuração sem conectar
+node scripts/staging-auth-fixtures.js --dry-run        # informa would_create | would_update | unchanged
+node scripts/staging-auth-fixtures.js                  # aplica
+```
+
+Para um gate que precise de JWT pronto, use TTL curto (`STAGING_AUTH_EMIT_TOKENS=true`, `STAGING_AUTH_JWT_TTL_SECONDS=900`, `--emit-tokens`). Os tokens vão para `GITHUB_OUTPUT` ou para um arquivo efêmero fora do repositório (`STAGING_AUTH_TOKEN_OUTPUT`); o script nunca os imprime.
+
+Depois de aplicar, configurar os GitHub Secrets `E2E_AUTH_EMAIL`/`E2E_AUTH_PASSWORD` e `ENTERPRISE_GATE_{ADMIN,HOST}_{EMAIL,PASSWORD}`. Com isso o smoke autenticado do Playwright deixa de ser pulado, a auditoria E2E admin/host pode ser ativada com `E2E_PRODUCT_AUDIT_ENABLED=true` e o enterprise live gate autentica dinamicamente.
+
+Segurança: não usar banco restaurado de produção sem mascaramento e aprovação explícita; não salvar senhas nem tokens no repositório, em evidência, issue ou PR; rotacionar as senhas técnicas se algum log externo expuser valor sensível.
 
 ## Custos estimados
 

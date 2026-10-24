@@ -9,8 +9,7 @@ description = "Webscrapping from events websites fro Urban"
 requires-python = ">=3.12"
 readme = "README.md"
 authors = [
-    { name = "Marcos Gabriel", email = "marcos@luminalab.ai" },
-    { name = "Humphry Torres", email = "humphry@luminalab.ai" }
+    { name = "Urban AI" }
 ]
 
 classifiers = [
@@ -53,7 +52,7 @@ name = "cz_conventional_commits"
 tag_format = "$version"
 version_scheme = "pep440"
 version_provider = "pep621"
-update_changelog_on_bump = true
+update_changelog_on_bump = false
 
 [tool.ruff]
 target-version = "py312"
@@ -94,9 +93,7 @@ lint.pydocstyle.convention = "google"
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = [ "E402", "D100", "D104" ]
 "**/{tests,docs,tools}/*" = [ "E402", "PLR2004", "PLC0415", "PLC2401" ]
-"scratch/*" = [ "T201", "F841" ]
 "scripts/*" = [ "T201" ]
-"test_spiders.py" = [ "B007", "C901", "F841", "PLR0912", "PLR2004", "T201" ]
 "urban_webscrapping/collectors/*.py" = [
     "C901",
     "PLC0415",
