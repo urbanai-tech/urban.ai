@@ -31,7 +31,7 @@ function controllerFiles(dir: string): string[] {
   });
 }
 
-type AdminMutation = { id: string; handler: Function; explicit: boolean; skipped: boolean };
+type AdminMutation = { id: string; handler: (...args: unknown[]) => unknown; explicit: boolean; skipped: boolean };
 
 function collectAdminMutations(): AdminMutation[] {
   const found: AdminMutation[] = [];
