@@ -1,286 +1,98 @@
 "use client";
 
-import React, { useState } from "react";
 import NextLink from "next/link";
-
-/**
- * Header do site PÚBLICO (myurbanai.com).
- *
- * Estilo manifesto editorial: dark var(--theme-public-bg), Inter minimalista, accent var(--theme-public-accent)
- * apenas no CTA. Sem logo grande — Urban AI é a tipografia.
- *
- * Os CTAs apontam pro subdomain do app (`app.myurbanai.com/`).
- */
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.myurbanai.com/";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight, Menu, X } from "lucide-react";
+import { PUBLIC_LOGIN_URL, PUBLIC_SIGNUP_URL } from "./PublicMarketing";
 
 const NAV = [
-  { label: "Manifesto", href: "/" },
+  { label: "Produto", href: "/#produto" },
+  { label: "Como funciona", href: "/#como-funciona" },
   { label: "Preços", href: "/precos" },
-  { label: "Lançamento", href: "/lancamento" },
-  { label: "Guias", href: "/precificacao-dinamica-airbnb" },
-  { label: "Contato", href: "/contato" },
+  { label: "Conteúdo", href: "/precificacao-dinamica-airbnb" },
+  { label: "Empresa", href: "/sobre" },
 ];
-
-function appHref(path = "") {
-  if (!path) return APP_URL;
-  return `${APP_URL.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
-}
 
 export default function HeaderPublic() {
   const [open, setOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const firstLinkRef = useRef<HTMLAnchorElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    firstLinkRef.current?.focus();
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        requestAnimationFrame(() => toggleRef.current?.focus());
+      }
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open]);
 
   return (
-    <header
-      className="urban-manifesto"
-      style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 50,
-        background: "color-mix(in srgb, var(--theme-public-bg) 85%, transparent)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        borderBottom: "1px solid var(--theme-public-soft)",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1280,
-          margin: "0 auto",
-          padding: "0 24px",
-          height: 72,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 32,
-        }}
-      >
-        {/* Logo — Bebas Neue tipo wordmark */}
-        <NextLink
-          href="/"
-          style={{
-            textDecoration: "none",
-            display: "flex",
-            alignItems: "baseline",
-            gap: 8,
-          }}
-        >
-          <span
-            className="urban-display"
-            style={{
-              fontSize: 28,
-              letterSpacing: 0,
-              fontWeight: 400,
-              color: "var(--theme-public-text)",
-              textTransform: "uppercase",
-              lineHeight: 1,
-            }}
-          >
-            URBAN
-          </span>
-          <span
-            className="urban-display"
-            style={{
-              fontSize: 28,
-              letterSpacing: 0,
-              fontWeight: 400,
-              color: "var(--theme-public-accent)",
-              textTransform: "uppercase",
-              lineHeight: 1,
-            }}
-          >
-            AI
-          </span>
+    <header className="public-header">
+      <div className="public-header__inner">
+        <NextLink href="/" className="public-wordmark" aria-label="Urban AI — página inicial">
+          <span>URBAN</span><i>AI</i>
         </NextLink>
 
-        {/* Nav desktop */}
-        <nav
-          style={{
-            display: "none",
-            alignItems: "center",
-            gap: 24,
-          }}
-          className="urban-nav-desktop"
-        >
-          {NAV.map((item) => (
-            <NextLink
-              key={item.href}
-              href={item.href}
-              style={{
-                fontSize: 12,
-                letterSpacing: 2,
-                textTransform: "uppercase",
-                fontWeight: 500,
-                color: "var(--theme-public-muted)",
-                textDecoration: "none",
-                transition: "color 150ms",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.color = "var(--theme-public-text)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.color = "var(--theme-public-muted)";
-              }}
-            >
-              {item.label}
-            </NextLink>
-          ))}
+        <nav className="public-header__nav" aria-label="Navegação principal">
+          {NAV.map((item) => <NextLink key={item.href} href={item.href}>{item.label}</NextLink>)}
         </nav>
 
-        {/* CTAs desktop */}
-        <div style={{ display: "none", alignItems: "center", gap: 16 }} className="urban-cta-desktop">
-          <a
-            href={APP_URL}
-            style={{
-              fontSize: 12,
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              fontWeight: 500,
-              color: "var(--theme-public-muted)",
-              textDecoration: "none",
-              padding: "8px 4px",
-            }}
-          >
-            Entrar
-          </a>
-          <a
-            href={appHref("/create")}
-            style={{
-              fontSize: 12,
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              fontWeight: 700,
-              color: "var(--theme-public-bg)",
-              background: "var(--theme-public-accent)",
-              padding: "12px 22px",
-              textDecoration: "none",
-            }}
-          >
-            Criar conta
+        <div className="public-header__actions">
+          <a href={PUBLIC_LOGIN_URL}>Entrar</a>
+          <a href={PUBLIC_SIGNUP_URL} className="public-header__cta">
+            Começar agora <ArrowRight aria-hidden size={16} />
           </a>
         </div>
 
-        {/* Mobile toggle */}
         <button
-          onClick={() => setOpen((v) => !v)}
-          aria-label="Abrir menu"
-          className="urban-mobile-toggle"
-          style={{
-            display: "flex",
-            height: 40,
-            width: 40,
-            alignItems: "center",
-            justifyContent: "center",
-            background: "transparent",
-            border: "1px solid var(--theme-public-strong)",
-            color: "var(--theme-public-text)",
-            cursor: "pointer",
-          }}
+          ref={toggleRef}
+          type="button"
+          className="public-header__toggle"
+          aria-label={open ? "Fechar menu" : "Abrir menu"}
+          aria-expanded={open}
+          aria-controls="public-mobile-menu"
+          onClick={() => setOpen((value) => !value)}
         >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-            {open ? (
-              <path
-                d="M5 5L15 15M5 15L15 5"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            ) : (
-              <>
-                <path d="M3 7H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                <path d="M3 13H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </>
-            )}
-          </svg>
+          {open ? <X aria-hidden size={22} /> : <Menu aria-hidden size={22} />}
         </button>
       </div>
 
-      {/* Mobile menu */}
-      {open && (
-        <div
-          style={{
-            position: "fixed",
-            top: 72,
-            left: 0,
-            right: 0,
-            zIndex: 60,
-            maxHeight: "calc(100dvh - 72px)",
-            overflowY: "auto",
-            background: "var(--theme-public-bg)",
-            borderBottom: "1px solid var(--theme-public-soft)",
-            padding: "24px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-          }}
-        >
-          {NAV.map((item) => (
+      <div
+        id="public-mobile-menu"
+        className={`public-mobile-menu ${open ? "is-open" : ""}`}
+        aria-hidden={!open}
+      >
+        <nav aria-label="Navegação móvel">
+          {NAV.map((item, index) => (
             <NextLink
+              ref={index === 0 ? firstLinkRef : undefined}
+              tabIndex={open ? 0 : -1}
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
-              style={{
-                padding: "16px 0",
-                fontSize: 14,
-                letterSpacing: 2,
-                textTransform: "uppercase",
-                fontWeight: 500,
-                color: "var(--theme-public-text)",
-                textDecoration: "none",
-                borderBottom: "1px solid var(--theme-public-soft)",
-              }}
             >
-              {item.label}
+              <span>{String(index + 1).padStart(2, "0")}</span>{item.label}
             </NextLink>
           ))}
-          <a
-            href={APP_URL}
-            style={{
-              marginTop: 16,
-              padding: "16px 0",
-              fontSize: 14,
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              fontWeight: 500,
-              color: "var(--theme-public-muted)",
-              textDecoration: "none",
-            }}
-          >
-            Entrar
-          </a>
-          <a
-            href={appHref("/create")}
-            style={{
-              marginTop: 12,
-              padding: "16px 24px",
-              fontSize: 14,
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              fontWeight: 700,
-              textAlign: "center",
-              background: "var(--theme-public-accent)",
-              color: "var(--theme-public-bg)",
-              textDecoration: "none",
-            }}
-          >
-            Criar conta
+        </nav>
+        <div className="public-mobile-menu__actions">
+          <a tabIndex={open ? 0 : -1} href={PUBLIC_LOGIN_URL}>Entrar</a>
+          <a tabIndex={open ? 0 : -1} href={PUBLIC_SIGNUP_URL} className="public-header__cta">
+            Começar agora <ArrowRight aria-hidden size={16} />
           </a>
         </div>
-      )}
-
-      {/* Responsive helpers — usa media query inline via <style> */}
-      <style jsx>{`
-        @media (min-width: 1024px) {
-          :global(.urban-nav-desktop) {
-            display: flex !important;
-          }
-          :global(.urban-cta-desktop) {
-            display: flex !important;
-          }
-          :global(.urban-mobile-toggle) {
-            display: none !important;
-          }
-        }
-      `}</style>
+      </div>
     </header>
   );
 }
