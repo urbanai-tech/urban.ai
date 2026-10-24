@@ -131,3 +131,35 @@ describe('PropertyClassifier', () => {
     });
   });
 });
+
+describe('PropertyClassifier — modelo v2 serializável', () => {
+  const rows = [
+    { lat: -23.60, lng: -46.70, metroDistance: 2.0, amenitiesCount: 1, category: 1, derivedCategory: 0 },
+    { lat: -23.59, lng: -46.71, metroDistance: 1.8, amenitiesCount: 1, category: 1, derivedCategory: 0 },
+    { lat: -23.57, lng: -46.67, metroDistance: 0.2, amenitiesCount: 8, category: 1, derivedCategory: 2 },
+    { lat: -23.58, lng: -46.68, metroDistance: 0.3, amenitiesCount: 9, category: 1, derivedCategory: 2 },
+  ];
+
+  it('v2 usa derivedCategory; legado continua usando category', () => {
+    const classifier = new PropertyClassifier();
+    classifier.train(rows);
+    const q = { lat: -23.575, lng: -46.675, metroDistance: 0.25, amenitiesCount: 9 };
+    expect(classifier.classify(q).categoryId).toBe(2);
+    expect(classifier.classifyLegacy(q).categoryId).toBe(1);
+  });
+
+  it('exporta scaler + pontos e reimporta com a mesma predição', () => {
+    const a = new PropertyClassifier();
+    a.train(rows);
+    const model = a.exportModel()!;
+    expect(model.version).toBe('knn-model-v2');
+    expect(model.scaler.mean).toHaveLength(4);
+    expect(model.k).toBe(4); // min(K default 5, n=4)
+
+    const b = new PropertyClassifier();
+    b.importModel(JSON.parse(JSON.stringify(model)));
+    const q = { lat: -23.595, lng: -46.705, metroDistance: 1.9, amenitiesCount: 1 };
+    expect(b.classify(q)).toEqual(a.classify(q));
+    expect(() => b.importModel({ ...model, version: 'x' } as any)).toThrow();
+  });
+});

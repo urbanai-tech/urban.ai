@@ -10,6 +10,8 @@ import { Address } from 'src/entities/addresses.entity';
 import { KnnEngineModule } from 'src/knn-engine/knn-engine.module';
 import { PriceUpdate } from 'src/entities/price-update.entity';
 import { AirbnbModule } from 'src/airbnb/airbnb.module';
+import { PricingDecisionSnapshot } from 'src/entities/pricing-decision-snapshot.entity';
+import { PricingCalculateService } from 'src/propriedades/pricing-calculate.service';
 
 @Module({
   imports: [
@@ -19,6 +21,7 @@ import { AirbnbModule } from 'src/airbnb/airbnb.module';
       AnalisePreco,
       Address,
       PriceUpdate,
+      PricingDecisionSnapshot,
     ]),
     KnnEngineModule,
     AirbnbModule,
@@ -26,6 +29,7 @@ import { AirbnbModule } from 'src/airbnb/airbnb.module';
     controllers: [
         SugestionController,],
     providers: [
-        SugestionService,],
+        SugestionService,
+        PricingCalculateService,],
 })
 export class SugestionModule { }

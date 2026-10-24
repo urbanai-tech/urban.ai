@@ -3,9 +3,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AirbnbService } from 'src/airbnb/airbnb.service';
 import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { PriceUpdate } from 'src/entities/price-update.entity';
+import { PricingDecisionSnapshot } from 'src/entities/pricing-decision-snapshot.entity';
 import { DatasetCollectorService } from 'src/knn-engine/dataset-collector.service';
+import { PricingCalculateService } from '../propriedades/pricing-calculate.service';
 import { Repository } from 'typeorm';
 import { todaySaoPauloDateKey, toSaoPauloDateKey } from '../common/sp-date';
+
+/**
+ * Faixa de sanidade do preço que o anfitrião diz ter aplicado, relativa aos
+ * preços de referência da própria análise (preço sugerido e preço atual).
+ * Pega erro de digitação (R$ 4.500 em vez de R$ 450) sem impedir ajustes reais.
+ */
+export const APPLIED_PRICE_MIN_FACTOR = 0.2;
+export const APPLIED_PRICE_MAX_FACTOR = 5;
 
 type AppliedPriceInput = {
   precoAplicado: number;
@@ -100,6 +110,11 @@ export class SugestionService {
     private readonly priceUpdateRepository?: Repository<PriceUpdate>,
     @Optional()
     private readonly airbnbService?: AirbnbService,
+    @Optional()
+    @InjectRepository(PricingDecisionSnapshot)
+    private readonly pricingDecisionSnapshotRepository?: Repository<PricingDecisionSnapshot>,
+    @Optional()
+    private readonly pricingCalculateService?: PricingCalculateService,
   ) {}
 
   async alterarAceito(id: string, userId: string, aceito: boolean): Promise<SuggestionPublicResponse> {
@@ -149,6 +164,7 @@ export class SugestionService {
     }
     this.assertOwnedByUser(registro, userId);
     this.assertReadyForAcceptance(registro);
+    this.assertAppliedPriceWithinBounds(registro, input.precoAplicado);
 
     registro.aceito = true;
     registro.precoAplicado = input.precoAplicado;
@@ -162,6 +178,7 @@ export class SugestionService {
     this.applyOutcomeFeedback(registro, input);
     const saved = await this.analisePrecoRepository.save(registro);
     await this.tryRecordAppliedPriceSnapshot(saved, input.precoAplicado);
+    await this.tryRecordDecisionOutcome(saved, input.origem);
     return this.toPublicResponse(saved);
   }
 
@@ -183,6 +200,7 @@ export class SugestionService {
       this.assertReadyForAcceptance(registro);
       const precoAplicado = Number(input.precoAplicado);
       if (Number.isFinite(precoAplicado) && precoAplicado > 0) {
+        this.assertAppliedPriceWithinBounds(registro, precoAplicado);
         registro.precoAplicado = precoAplicado;
         registro.aplicadoEm = registro.aplicadoEm ?? new Date();
         registro.origemAplicacao = registro.origemAplicacao ?? 'manual_dashboard';
@@ -197,6 +215,7 @@ export class SugestionService {
     const saved = await this.analisePrecoRepository.save(registro);
     if (saved.precoAplicado) {
       await this.tryRecordAppliedPriceSnapshot(saved, Number(saved.precoAplicado));
+      await this.tryRecordDecisionOutcome(saved, saved.origemAplicacao ?? 'manual_dashboard');
     }
     return this.toPublicResponse(saved);
   }
@@ -363,6 +382,73 @@ export class SugestionService {
     }
     if (!registro.evento?.id) {
       throw new BadRequestException('Sugestão sem evento associado não pode ser aceita');
+    }
+  }
+
+  /**
+   * Rejeita preço aplicado fora de 0,2x–5x dos preços de referência da análise
+   * (o menor e o maior entre sugerido e atual). O teto absoluto fica no DTO.
+   */
+  private assertAppliedPriceWithinBounds(registro: AnalisePreco, precoAplicado: number): void {
+    if (!Number.isFinite(precoAplicado) || precoAplicado <= 0) {
+      throw new BadRequestException('O preço aplicado precisa ser maior que zero');
+    }
+    const references = [registro.precoSugerido, registro.seuPrecoAtual]
+      .map((value) => this.nullableNumber(value))
+      .filter((value): value is number => value !== null && value > 0);
+    if (references.length === 0) return;
+
+    const min = Math.min(...references) * APPLIED_PRICE_MIN_FACTOR;
+    const max = Math.max(...references) * APPLIED_PRICE_MAX_FACTOR;
+    if (precoAplicado < min || precoAplicado > max) {
+      throw new BadRequestException(
+        `Preço aplicado fora da faixa plausível (R$ ${min.toFixed(2)} a R$ ${max.toFixed(2)}). Confira o valor digitado.`,
+      );
+    }
+  }
+
+  /**
+   * Alimenta o outcome do PricingDecisionSnapshot (ground truth do aprendizado)
+   * com o preço que o anfitrião declarou ter aplicado. Best-effort: falha aqui
+   * nunca derruba o registro da análise.
+   */
+  private async tryRecordDecisionOutcome(registro: AnalisePreco, origem: string): Promise<void> {
+    if (!this.pricingDecisionSnapshotRepository || !this.pricingCalculateService) return;
+    try {
+      const candidates = await this.pricingDecisionSnapshotRepository.find({
+        where: { analisePreco: { id: registro.id } } as any,
+        relations: ['analisePreco', 'priceUpdate'],
+        order: { createdAt: 'DESC' },
+        take: 25,
+      });
+      const targetDate = registro.evento?.dataInicio
+        ? toSaoPauloDateKey(new Date(registro.evento.dataInicio))
+        : null;
+      const snapshot =
+        candidates.find((candidate) => targetDate && candidate.targetDate === targetDate) ??
+        candidates[0] ??
+        null;
+      if (!snapshot) return;
+
+      const recordedAt = new Date();
+      const patch = this.pricingCalculateService.criarPatchOutcomeSnapshotDecisao({
+        snapshot,
+        analisePreco: registro,
+        decisionStatus: 'applied',
+        appliedPriceCents: Math.round(Number(registro.precoAplicado) * 100),
+        acceptedAt: registro.aceitoEm ?? recordedAt,
+        rejectedAt: null,
+        appliedAt: registro.aplicadoEm ?? recordedAt,
+        recordedAt,
+        source: origem.startsWith('stays') ? 'price_update' : 'manual',
+        sourceDetail: origem,
+      });
+      Object.assign(snapshot, patch);
+      await this.pricingDecisionSnapshotRepository.save(snapshot);
+    } catch (error) {
+      this.logger.warn(
+        `Falha ao registrar outcome em PricingDecisionSnapshot para AnalisePreco ${registro.id}: ${(error as Error).message}`,
+      );
     }
   }
 

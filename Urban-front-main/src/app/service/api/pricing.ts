@@ -19,9 +19,7 @@ export const registrarPrecoAplicadoSugestao = async (
   precoAplicado: number,
   origem:
     | 'manual_dashboard'
-    | 'manual_off_platform'
-    | 'stays_auto'
-    | 'stays_user_accepted' = 'manual_dashboard',
+    | 'manual_off_platform' = 'manual_dashboard',
   feedback?: {
     reservaStatus?: 'unknown' | 'booked' | 'not_booked' | 'blocked' | null;
     receitaReal?: number | null;
