@@ -274,7 +274,7 @@ Coleta de dataset, bootstrap de pricing, processamento de event-intelligence, au
 Ritmo de reservas: ocupação real vs. esperada por dia da semana (histórico 90d → expectativa por weekday → % por data no range, default 60d, até 180d). Hoje é **diagnóstico**; candidato a input de `propertyCapture` no pricing.
 
 ### 12.3 Market Intel (`/properties/:id/market-intel`)
-Retorna percentil de ADR, mediana de ADR/ocupação, **comp set** (raio 3 km via haversine; fallback cidade+estado; até 10 comparáveis anonimizados Comp-01…), reatividade a eventos, série diária. Freshness: build no momento da query (sem cache explícito), lookback 30–90d sobre `OccupancyHistory`/`PriceSnapshot`.
+Retorna percentil de ADR, mediana/P25/P75 de ADR e ocupação, reatividade a eventos e série diária. **Somente agregados**: nunca devolve dados por imóvel de outros clientes (`comparables` é sempre `[]`, `aggregatedOnly: true`). O comp set (bounding box de 3 km filtrado no SQL; fallback cidade+estado sem coordenadas; só imóveis de outros anfitriões) precisa ter ao menos `MARKET_INTEL_MIN_GROUP_SIZE` anfitriões distintos (default 5, piso 3); abaixo disso devolve `insufficientData: true` com mensagem "dados insuficientes". Freshness: build no momento da query, lookback 30–90d sobre `OccupancyHistory`/`PriceSnapshot`.
 
 ### 12.4 Host Event Radar + Admin Intelligence
 - Host (`host-events.controller.ts`): `/host/events/catalog|radar|heatmap|:eventId|:eventId/intelligence|:eventId/property-impact|:eventId/simulate-pricing`.

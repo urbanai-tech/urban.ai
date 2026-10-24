@@ -20,7 +20,6 @@ import { dateAtLocalOffset, formatLocalDate } from "../../../lib/date";
 import { trackEvent } from "../../../service/tracking";
 import { PercentileHero } from "./components/PercentileHero";
 import { AdrComparisonChart } from "./components/AdrComparisonChart";
-import { ComparablesTable, type SortColumn } from "./components/ComparablesTable";
 
 /**
  * /properties/:id/market — Market Intel dashboard (Gap 3 — Track 2, semana 5-6).
@@ -29,8 +28,8 @@ import { ComparablesTable, type SortColumn } from "./components/ComparablesTable
  *  1) PercentileHero (full-width)
  *  2) 4 KPI cards
  *  3) Gráfico ADR diário (sua propriedade vs comp set)
- *  4) Tabela 10 comparáveis anônimos (sortable, mobile vira cards)
- *  5) Empty state quando `comparables.length < 5`
+ *  4) Faixas agregadas (P25/mediana/P75) — nunca dados por imóvel de terceiros
+ *  5) Empty state "dados insuficientes" quando o backend sinaliza grupo < mínimo
  */
 
 const PERIOD_OPTIONS: ReadonlyArray<{ id: string; label: string; days: number }> = [
@@ -39,7 +38,7 @@ const PERIOD_OPTIONS: ReadonlyArray<{ id: string; label: string; days: number }>
   { id: "90d", label: "Últimos 90 dias", days: 90 },
 ];
 
-const MIN_COMPARABLES = 5;
+const DEFAULT_MIN_COMPARABLES = 5;
 
 function isoOffset(daysAhead: number): string {
   return formatLocalDate(dateAtLocalOffset(daysAhead));
@@ -135,16 +134,6 @@ function MarketIntelContent() {
     [propertyId],
   );
 
-  const handleSort = useCallback(
-    (column: SortColumn) => {
-      trackEvent("comparable_sorted", {
-        propertyId,
-        column,
-      });
-    },
-    [propertyId],
-  );
-
   const handleRetry = useCallback(() => {
     setReloadCount((c) => c + 1);
   }, []);
@@ -223,7 +212,8 @@ function MarketIntelContent() {
     return null;
   }
 
-  const insufficient = data.comparables.length < MIN_COMPARABLES;
+  const minGroupSize = data.minGroupSize ?? DEFAULT_MIN_COMPARABLES;
+  const insufficient = data.insufficientData ?? data.comparablesCount < minGroupSize;
   const deltaAdr = data.yourAdr - data.medianAdr;
   const deltaPct =
     data.medianAdr > 0 ? Math.round((deltaAdr / data.medianAdr) * 100) : 0;
@@ -259,7 +249,7 @@ function MarketIntelContent() {
         <AppEmptyState
           eyebrow="POUCOS IMÓVEIS PARECIDOS"
           title="Ainda precisamos de mais referências"
-          body={`Precisamos de pelo menos ${MIN_COMPARABLES} imóveis parecidos no seu bairro para comparar com segurança. Vamos buscar mais nos próximos 7 dias.`}
+          body={`Dados insuficientes: precisamos de pelo menos ${minGroupSize} anfitriões com imóveis parecidos na região para comparar sem expor ninguém. Vamos buscar mais nos próximos 7 dias.`}
           icon={<Icons.MapPin size={32} />}
           action={
             <AppButton
@@ -356,34 +346,55 @@ function MarketIntelContent() {
             <AdrComparisonChart data={data.daily} />
           </section>
 
-          {/* ZONA 4 — Tabela de comparáveis */}
-          <section aria-label="Imóveis comparáveis">
-            <header style={{ marginBottom: 16 }}>
-              <p className="urban-app-eyebrow-muted">IMÓVEIS PARECIDOS ANÔNIMOS</p>
-              <h2
-                style={{
-                  fontSize: 18,
-                  fontWeight: 600,
-                  color: "var(--app-text)",
-                  margin: "6px 0 4px",
-                  letterSpacing: -0.2,
-                }}
-              >
-                {data.comparables.length} imóveis parecidos na região
-              </h2>
-              <p
-                style={{
-                  fontSize: 13,
-                  color: "var(--app-text-muted)",
-                  margin: 0,
-                  lineHeight: 1.55,
-                }}
-              >
-                Mostramos apenas numeros anonimos, sem identificar imóveis reais. Você pode ordenar por qualquer coluna.
-              </p>
-            </header>
-            <ComparablesTable comparables={data.comparables} onSort={handleSort} />
-          </section>
+          {/* ZONA 4 — Faixas agregadas (sem dados por imóvel) */}
+          {data.adrPercentiles || data.occupancyPercentiles ? (
+            <section aria-label="Faixas de mercado">
+              <header style={{ marginBottom: 16 }}>
+                <p className="urban-app-eyebrow-muted">FAIXAS DO MERCADO</p>
+                <h2
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 600,
+                    color: "var(--app-text)",
+                    margin: "6px 0 4px",
+                    letterSpacing: -0.2,
+                  }}
+                >
+                  Onde a maioria dos {data.comparablesCount} imóveis parecidos se concentra
+                </h2>
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: "var(--app-text-muted)",
+                    margin: 0,
+                    lineHeight: 1.55,
+                  }}
+                >
+                  Mostramos apenas faixas agregadas (25% abaixo, mediana e 25% acima). Nunca exibimos dados de um imóvel específico de outro anfitrião.
+                </p>
+              </header>
+              <div className="market-intel-kpi-grid">
+                {data.adrPercentiles ? (
+                  <KpiCardWrap>
+                    <AppMetricCard
+                      label="Diária · faixa central"
+                      value={formatBRL(data.adrPercentiles.p50)}
+                      sub={`${formatBRL(data.adrPercentiles.p25)} a ${formatBRL(data.adrPercentiles.p75)}`}
+                    />
+                  </KpiCardWrap>
+                ) : null}
+                {data.occupancyPercentiles ? (
+                  <KpiCardWrap>
+                    <AppMetricCard
+                      label="Ocupação · faixa central"
+                      value={formatPct(data.occupancyPercentiles.p50)}
+                      sub={`${formatPct(data.occupancyPercentiles.p25)} a ${formatPct(data.occupancyPercentiles.p75)}`}
+                    />
+                  </KpiCardWrap>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
         </div>
       )}
 

@@ -104,6 +104,11 @@ const PRICING_RULE_TYPES: PricingRuleType[] = [
 // DEFAULT_PRICING_RULES agora vem de knn-engine/pricing-rules.ts (fonte única
 // para o preview do painel e para o motor de pricing v2).
 
+const MARKET_INTEL_RADIUS_KM = 3;
+const MARKET_INTEL_DEFAULT_MIN_GROUP_SIZE = 5;
+const MARKET_INTEL_FLOOR_MIN_GROUP_SIZE = 3;
+const MARKET_INTEL_CANDIDATE_LIMIT = 5000;
+
 @Injectable()
 export class HostPanelsService {
   constructor(
@@ -579,29 +584,65 @@ export class HostPanelsService {
     const address = await this.getOwnedAddress(userId, propertyId);
     const range = this.resolveRange(input.from, input.to, 30, 90);
     const ownAdr = this.resolveBasePrice(address.list);
-    const comparables = (await this.getComparableAddresses(userId, address)).slice(0, 10);
-    const comparableRows = await this.buildComparableRows(address, comparables, range.from, range.to);
-    const daily = await this.buildMarketDaily(address, comparables, range);
-    const medianAdr = this.median(comparableRows.map((row) => row.medianAdr)) || 0;
+    const minGroupSize = this.marketIntelMinGroupSize();
+    const comparables = await this.getComparableAddresses(userId, address);
+    const ownerCount = this.countDistinctOwners(comparables);
+    const neighborhood = address.bairro ?? address.list?.neighborhood ?? address.cidade ?? 'Não informado';
     const ownOccupancy = await this.occupancyRate([address.list?.id].filter(Boolean), range.from, range.to);
-    const medianOccupancy = this.median(comparableRows.map((row) => row.occupancy)) || 0;
-    const percentile = comparableRows.length
-      ? Math.round((comparableRows.filter((row) => row.medianAdr <= ownAdr).length / comparableRows.length) * 100)
-      : 0;
+
+    // Privacidade (LGPD / segredo comercial): dados de imóveis de outros clientes
+    // só saem agregados e apenas quando o grupo tem >= minGroupSize anfitriões distintos.
+    if (ownerCount < minGroupSize) {
+      return {
+        propertyId: address.id,
+        neighborhood,
+        percentile: 0,
+        percentileTrend30d: 0,
+        comparablesCount: 0,
+        medianAdr: 0,
+        medianOccupancy: 0,
+        yourAdr: ownAdr,
+        yourOccupancy: ownOccupancy,
+        eventReactivity: await this.eventReactivity(userId, address.id, range.from, range.to),
+        daily: [],
+        comparables: [],
+        aggregatedOnly: true,
+        insufficientData: true,
+        minGroupSize,
+        radiusKm: MARKET_INTEL_RADIUS_KM,
+        adrPercentiles: null,
+        occupancyPercentiles: null,
+        message: 'Dados insuficientes: ainda não há imóveis parecidos suficientes na região para comparar com segurança.',
+        updatedAt: new Date().toISOString(),
+      };
+    }
+
+    const aggregates = await this.buildComparableAggregates(comparables, range.from, range.to);
+    const daily = await this.buildMarketDaily(address, comparables, range, minGroupSize);
+    const medianAdr = this.median(aggregates.map((row) => row.medianAdr)) || 0;
+    const medianOccupancy = this.median(aggregates.map((row) => row.occupancy)) || 0;
+    const percentile = Math.round((aggregates.filter((row) => row.medianAdr <= ownAdr).length / aggregates.length) * 100);
 
     return {
       propertyId: address.id,
-      neighborhood: address.bairro ?? address.list?.neighborhood ?? address.cidade ?? 'Não informado',
+      neighborhood,
       percentile,
       percentileTrend30d: 0,
-      comparablesCount: comparableRows.length,
+      comparablesCount: aggregates.length,
       medianAdr,
       medianOccupancy,
       yourAdr: ownAdr,
       yourOccupancy: ownOccupancy,
       eventReactivity: await this.eventReactivity(userId, address.id, range.from, range.to),
       daily,
-      comparables: comparableRows,
+      /** @deprecated lista por imóvel removida por privacidade; use os agregados. */
+      comparables: [],
+      aggregatedOnly: true,
+      insufficientData: false,
+      minGroupSize,
+      radiusKm: MARKET_INTEL_RADIUS_KM,
+      adrPercentiles: this.percentiles(aggregates.map((row) => row.medianAdr)),
+      occupancyPercentiles: this.percentiles(aggregates.map((row) => row.occupancy), 2),
       updatedAt: new Date().toISOString(),
     };
   }
@@ -1059,55 +1100,96 @@ export class HostPanelsService {
     return address;
   }
 
+  private marketIntelMinGroupSize() {
+    const parsed = Number.parseInt(process.env.MARKET_INTEL_MIN_GROUP_SIZE ?? '', 10);
+    if (!Number.isFinite(parsed)) return MARKET_INTEL_DEFAULT_MIN_GROUP_SIZE;
+    return Math.max(MARKET_INTEL_FLOOR_MIN_GROUP_SIZE, parsed);
+  }
+
+  private ownerKey(address: Address) {
+    return address.user?.id ?? address.list?.user?.id ?? `address:${address.id}`;
+  }
+
+  private countDistinctOwners(addresses: Address[]) {
+    return new Set(addresses.map((address) => this.ownerKey(address))).size;
+  }
+
+  /**
+   * Imóveis de OUTROS clientes na região. Filtro geográfico feito no SQL
+   * (bounding box de 3 km; fallback cidade+estado quando o alvo não tem coordenadas),
+   * sem varrer a base inteira.
+   */
   private async getComparableAddresses(userId: string, target: Address) {
-    const addresses = await this.addressRepo.find({
-      where: { ativo: true },
-      relations: ['list', 'user', 'list.user'],
-      take: 1000,
-    });
     const targetLat = this.num(target.latitude);
     const targetLng = this.num(target.longitude);
-    return addresses
-      .filter((address) => address.id !== target.id && address.list?.id)
-      .map((address) => {
-        const distanceKm =
-          targetLat != null && targetLng != null && this.num(address.latitude) != null && this.num(address.longitude) != null
-            ? this.distanceKm(targetLat, targetLng, this.num(address.latitude), this.num(address.longitude))
-            : null;
-        return { address, distanceKm };
-      })
-      .filter(({ address, distanceKm }) => {
-        if (distanceKm != null) return distanceKm <= 3;
-        return (
-          this.normalize(address.cidade) === this.normalize(target.cidade) &&
-          this.normalize(address.estado) === this.normalize(target.estado)
-        );
-      })
-      .sort((a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999))
-      .map((item) => item.address);
+    const qb = this.addressRepo
+      .createQueryBuilder('address')
+      .innerJoinAndSelect('address.list', 'list')
+      .leftJoinAndSelect('address.user', 'user')
+      .leftJoinAndSelect('list.user', 'listUser')
+      .where('address.ativo = :ativo', { ativo: true })
+      .andWhere('address.id != :targetId', { targetId: target.id });
+
+    if (targetLat != null && targetLng != null) {
+      const dLat = MARKET_INTEL_RADIUS_KM / 111.32;
+      const cosLat = Math.max(0.01, Math.cos((targetLat * Math.PI) / 180));
+      const dLng = MARKET_INTEL_RADIUS_KM / (111.32 * cosLat);
+      qb.andWhere('address.latitude BETWEEN :minLat AND :maxLat', {
+        minLat: targetLat - dLat,
+        maxLat: targetLat + dLat,
+      }).andWhere('address.longitude BETWEEN :minLng AND :maxLng', {
+        minLng: targetLng - dLng,
+        maxLng: targetLng + dLng,
+      });
+    } else if (target.cidade && target.estado) {
+      qb.andWhere('LOWER(address.cidade) = :cidade', { cidade: this.normalize(target.cidade) }).andWhere(
+        'LOWER(address.estado) = :estado',
+        { estado: this.normalize(target.estado) },
+      );
+    } else {
+      return [];
+    }
+
+    const candidates = await qb.take(MARKET_INTEL_CANDIDATE_LIMIT).getMany();
+    return candidates.filter((address) => {
+      if (!address.list?.id || address.id === target.id) return false;
+      if (this.ownerKey(address) === userId) return false; // só outros clientes
+      if (targetLat != null && targetLng != null) {
+        const lat = this.num(address.latitude);
+        const lng = this.num(address.longitude);
+        if (lat == null || lng == null) return false;
+        return this.distanceKm(targetLat, targetLng, lat, lng) <= MARKET_INTEL_RADIUS_KM;
+      }
+      return true;
+    });
   }
 
-  private async buildComparableRows(target: Address, comparables: Address[], from: string, to: string) {
-    const rows = [];
-    for (let i = 0; i < comparables.length; i++) {
-      const address = comparables[i];
-      const medianAdr = await this.medianAdrForList(address.list?.id, from, to, this.resolveBasePrice(address.list));
-      const occupancy = await this.occupancyRate([address.list?.id].filter(Boolean), from, to);
-      const distance = this.addressDistanceKm(target, address);
+  /** Valores individuais ficam só em memória, para calcular agregados; nunca são devolvidos. */
+  private async buildComparableAggregates(comparables: Address[], from: string, to: string) {
+    const rows: Array<{ medianAdr: number; occupancy: number }> = [];
+    for (const address of comparables) {
       rows.push({
-        anonymousId: this.anonymousId(i),
-        type: this.propertyType(address.list),
-        bedrooms: Number(address.list?.quartos ?? 0),
-        medianAdr,
-        occupancy,
-        distanceKm: Number((distance ?? 0).toFixed(2)),
-        similarityScore: this.similarityScore(target, address, distance),
+        medianAdr: await this.medianAdrForList(address.list?.id, from, to, this.resolveBasePrice(address.list)),
+        occupancy: await this.occupancyRate([address.list?.id].filter(Boolean), from, to),
       });
     }
-    return rows.sort((a, b) => b.similarityScore - a.similarityScore);
+    return rows;
   }
 
-  private async buildMarketDaily(target: Address, comparables: Address[], range: DateRange) {
+  private percentiles(values: number[], digits = 0) {
+    const nums = values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b);
+    if (!nums.length) return null;
+    const at = (q: number) => {
+      const pos = (nums.length - 1) * q;
+      const lo = Math.floor(pos);
+      const hi = Math.ceil(pos);
+      const value = nums[lo] + (nums[hi] - nums[lo]) * (pos - lo);
+      return Number(value.toFixed(digits));
+    };
+    return { p25: at(0.25), p50: at(0.5), p75: at(0.75) };
+  }
+
+  private async buildMarketDaily(target: Address, comparables: Address[], range: DateRange, minGroupSize: number) {
     const ids = [target.list?.id, ...comparables.map((address) => address.list?.id)].filter(Boolean);
     const snapshots = ids.length
       ? await this.snapshotRepo
@@ -1128,7 +1210,7 @@ export class HostPanelsService {
       return {
         date,
         yourAdr: own ? Math.round(Number(own.priceCents) / 100) : this.resolveBasePrice(target.list),
-        medianAdr: this.median(comps) || this.median(comparables.map((address) => this.resolveBasePrice(address.list))) || 0,
+        medianAdr: (comps.length >= minGroupSize ? this.median(comps) : 0) || this.median(comparables.map((address) => this.resolveBasePrice(address.list))) || 0,
       };
     });
   }
@@ -1467,29 +1549,6 @@ export class HostPanelsService {
     return map[normalized] ?? null;
   }
 
-  private propertyType(list?: List | null) {
-    const raw = this.normalize(list?.propertyType);
-    if (raw.includes('studio')) return 'studio';
-    if (raw.includes('loft')) return 'loft';
-    if (raw.includes('casa') || raw.includes('house')) return 'casa';
-    return 'apartamento';
-  }
-
-  private similarityScore(target: Address, other: Address, distanceKm: number | null) {
-    const distancePenalty = distanceKm == null ? 0.15 : Math.min(0.4, distanceKm / 8);
-    const bedroomPenalty = Math.min(0.2, Math.abs(Number(target.list?.quartos ?? 0) - Number(other.list?.quartos ?? 0)) * 0.05);
-    return Number(Math.max(0.45, Math.min(0.98, 0.96 - distancePenalty - bedroomPenalty)).toFixed(2));
-  }
-
-  private addressDistanceKm(a: Address, b: Address) {
-    const lat1 = this.num(a.latitude);
-    const lng1 = this.num(a.longitude);
-    const lat2 = this.num(b.latitude);
-    const lng2 = this.num(b.longitude);
-    if (lat1 == null || lng1 == null || lat2 == null || lng2 == null) return null;
-    return this.distanceKm(lat1, lng1, lat2, lng2);
-  }
-
   private distanceKm(lat1: number, lng1: number, lat2: number, lng2: number) {
     const toRad = (value: number) => (value * Math.PI) / 180;
     const earthKm = 6371;
@@ -1554,12 +1613,6 @@ export class HostPanelsService {
       .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase()
       .trim();
-  }
-
-  private anonymousId(index: number) {
-    const letter = String.fromCharCode(65 + (index % 26));
-    const suffix = index >= 26 ? String(Math.floor(index / 26) + 1) : '';
-    return `${letter}${suffix}`;
   }
 
   private async resolveAskEntitlement(userId: string): Promise<AskEntitlement> {
