@@ -244,7 +244,14 @@ export class AuthService {
     return safe;
   }
 
-  async register(data: { username: string; email: string; password: string }): Promise<SafeUser> {
+  async register(
+    data: { username: string; email: string; password: string },
+    /**
+     * Opções do servidor (nunca lidas do body): emailVerified = true quando o
+     * e-mail já foi comprovado por outro canal (convite da waitlist).
+     */
+    options?: { emailVerified?: boolean },
+  ): Promise<SafeUser> {
     // Verifica se e-mail já existe
     const existingUser = await this.userRepository.findOne({ where: { email: data.email } });
     if (existingUser) {
@@ -262,6 +269,7 @@ export class AuthService {
         password: pwdHash,
         role: 'host',
         ativo: true,
+        emailVerifiedAt: options?.emailVerified ? new Date() : null,
       });
       const savedUser = await this.userRepository.save(user);
       await this.paymentsService.createPayment(savedUser);
@@ -439,6 +447,8 @@ export class AuthService {
           username: verified.name,
           email: verified.email,
           password: googlePassword,
+          // Google só chega aqui com email_verified=true.
+          emailVerifiedAt: new Date(),
         });
 
         user = await this.userRepository.save(user);

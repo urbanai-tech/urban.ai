@@ -122,11 +122,14 @@ describe('AuthController', () => {
         res as any,
       );
 
-      expect(authService.register).toHaveBeenCalledWith({
-        username: 'Ricardo',
-        email: entry.email,
-        password: 'Senha123!',
-      });
+      expect(authService.register).toHaveBeenCalledWith(
+        {
+          username: 'Ricardo',
+          email: entry.email,
+          password: 'Senha123!',
+        },
+        { emailVerified: true },
+      );
       expect(waitlistService.markConverted).toHaveBeenCalledWith(entry.id);
     });
 
@@ -140,11 +143,14 @@ describe('AuthController', () => {
         res as any,
       );
 
-      expect(authService.register).toHaveBeenCalledWith({
-        username: 'Ricardo',
-        email: entry.email,
-        password: preHashedPassword,
-      });
+      expect(authService.register).toHaveBeenCalledWith(
+        {
+          username: 'Ricardo',
+          email: entry.email,
+          password: preHashedPassword,
+        },
+        { emailVerified: true },
+      );
     });
   });
 
@@ -298,7 +304,10 @@ describe('AuthController', () => {
         { headers: {} } as any,
         { cookie: jest.fn() } as any,
       );
-      expect(authService.register).toHaveBeenCalledWith(expect.objectContaining({ username: expectedUsername }));
+      expect(authService.register).toHaveBeenCalledWith(
+        expect.objectContaining({ username: expectedUsername }),
+        { emailVerified: true },
+      );
     });
   });
 

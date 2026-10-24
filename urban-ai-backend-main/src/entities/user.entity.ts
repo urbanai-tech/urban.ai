@@ -90,4 +90,13 @@ export class User {
 
   @Column({ type: 'timestamp', nullable: true, default: null })
   onboardingDripLastSentAt: Date | null;
+
+  /**
+   * Quando o e-mail foi comprovado (código de confirmação, convite da waitlist
+   * ou login Google com e-mail verificado). null = ainda não verificado.
+   * Diferente de `ativo` (bloqueio administrativo): contas anteriores a esta
+   * coluna foram preenchidas pela migration AddUserEmailVerifiedAt.
+   */
+  @Column({ type: 'timestamp', name: 'email_verified_at', nullable: true, default: null })
+  emailVerifiedAt: Date | null;
 }

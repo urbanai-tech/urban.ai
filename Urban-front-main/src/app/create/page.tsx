@@ -170,13 +170,14 @@ const Register = () => {
         localStorage.setItem("lastRegisterEmail", email);
       }
 
-      toast("Conta criada com sucesso! Carregando seu painel…", {
+      toast("Conta criada! Falta confirmar seu e-mail para continuar.", {
         type: "success",
       });
 
+      // E-mail precisa ser verificado antes do onboarding.
       setTimeout(() => {
-        router.push("/post-login");
-      }, 1500);
+        router.push(`/confirm-email/${encodeURIComponent(email)}`);
+      }, 1200);
     } catch (err: any) {
       toast.error(
         err.response?.data?.message || err.message || "Erro desconhecido.",

@@ -13,6 +13,7 @@ import {
   getPropriedadesDropdownList, getPlans, Plan, registerProcess
 } from '../service/api';
 import { Bell, Home, Users, Zap } from 'lucide-react';
+import { getProfile } from '../service/api';
 import { AppLoadingStatus, useToastCompat } from '../componentes/ui';
 import { describeBasePriceReadiness } from '../lib/pricingInputs';
 import { PricingSelfServiceCalculator } from '../componentes/PricingCalculatorV2';
@@ -130,6 +131,24 @@ function OnboardingWizardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isAddOnly = searchParams.get('addOnly') === 'true';
+
+  // Onboarding exige e-mail verificado: quem chegou aqui sem confirmar volta ao
+  // fluxo de confirmação (o backend também barra o cadastro de imóveis).
+  useEffect(() => {
+    let cancelled = false;
+    getProfile()
+      .then(({ data }) => {
+        if (!cancelled && data?.emailVerifiedAt === null && data?.email) {
+          router.replace(`/confirm-email/${encodeURIComponent(data.email)}`);
+        }
+      })
+      .catch(() => {
+        /* sem perfil: segue; o backend é a barreira definitiva */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   const [step, setStep] = useState(1);
 

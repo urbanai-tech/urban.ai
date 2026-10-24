@@ -36,6 +36,20 @@ export default function PostLoginPage() {
       try {
         console.log('[post-login] baseURL =>', (api.defaults as any).baseURL);
 
+        // E-mail ainda não verificado: confirma antes de qualquer onboarding.
+        // Falha ao ler o perfil não bloqueia o fluxo (o backend também barra).
+        try {
+          const { data: profile } = await api.get<{ email?: string; emailVerifiedAt?: string | null }>('/auth/profile');
+          if (cancelled) return;
+          if (profile?.emailVerifiedAt === null && profile.email) {
+            finished = true;
+            router.replace(`/confirm-email/${encodeURIComponent(profile.email)}`);
+            return;
+          }
+        } catch (profileError: any) {
+          if (profileError?.response?.status === 401) throw profileError;
+        }
+
         const { data } = await api.get<HasAddressResult>('/users/me/has-address', {
           params: { onlyActive: true },
         });

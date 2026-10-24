@@ -110,6 +110,51 @@ describe('AuthService', () => {
       );
     });
 
+    it('starts password sign-ups with an unverified e-mail', async () => {
+      userRepo.findOne!.mockResolvedValue(null);
+      userRepo.create!.mockImplementation((data) => data);
+      userRepo.save!.mockImplementation(async (data) => ({ id: 'new-id', ...data }));
+
+      await service.register({ username: 'u', email: 'new@test.com', password: 'minhasenha' });
+
+      expect(userRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ emailVerifiedAt: null }),
+      );
+    });
+
+    it('marks the e-mail as verified only when the server says so (waitlist invite)', async () => {
+      userRepo.findOne!.mockResolvedValue(null);
+      userRepo.create!.mockImplementation((data) => data);
+      userRepo.save!.mockImplementation(async (data) => ({ id: 'new-id', ...data }));
+
+      await service.register(
+        { username: 'u', email: 'invited@test.com', password: 'minhasenha' },
+        { emailVerified: true },
+      );
+
+      expect(userRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ emailVerifiedAt: expect.any(Date) }),
+      );
+    });
+
+    it('ignores an emailVerified flag smuggled into the request body', async () => {
+      userRepo.findOne!.mockResolvedValue(null);
+      userRepo.create!.mockImplementation((data) => data);
+      userRepo.save!.mockImplementation(async (data) => ({ id: 'new-id', ...data }));
+
+      await service.register({
+        username: 'u',
+        email: 'evil@test.com',
+        password: 'minhasenha',
+        emailVerified: true,
+        emailVerifiedAt: new Date(),
+      } as any);
+
+      expect(userRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ emailVerifiedAt: null }),
+      );
+    });
+
     it('bcrypts the pre-hashed (hex-64) password from the legacy frontend', async () => {
       userRepo.findOne!.mockResolvedValue(null);
       userRepo.create!.mockImplementation((data) => data);
@@ -443,6 +488,7 @@ describe('AuthService', () => {
         username: 'Owner Test',
         email: 'owner@test.com',
         password: expect.stringMatching(/^google_/),
+        emailVerifiedAt: expect.any(Date),
       });
       expect(payments.createPayment).toHaveBeenCalledWith(expect.objectContaining({ id: 'u-google' }));
       expect(result).toMatchObject({

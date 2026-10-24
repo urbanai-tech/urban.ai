@@ -213,11 +213,14 @@ export class AuthController {
       throw new ConflictException('Este convite já foi vinculado a uma conta existente. Faça login para continuar.');
     }
 
-    const user = await this.authService.register({
-      username: data.username?.trim() || entry.name || entry.email.split('@')[0],
-      email: entry.email,
-      password: data.password,
-    });
+    const user = await this.authService.register(
+      {
+        username: data.username?.trim() || entry.name || entry.email.split('@')[0],
+        email: entry.email,
+        password: data.password,
+      },
+      { emailVerified: true }, // o convite foi entregue no próprio e-mail
+    );
     await this.waitlistService.markConverted(entry.id);
 
     const tokens = await this.authService.issueTokens(user, {
