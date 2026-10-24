@@ -13,6 +13,7 @@ import {
   AdminTable,
   type AdminTableColumn,
   AdminBadge,
+  AdminCard,
   AdminStatusDot,
   AdminDrawer,
   AdminEmptyState,
@@ -282,45 +283,27 @@ export default function CollectorsHealthPage() {
         }
       />
 
-      {/* === Zero-yield: fonte normalmente ativa que parou de enviar === */}
-      {data?.zeroYield && data.zeroYield.alerts.length > 0 && (
-        <section
-          role="alert"
-          style={{
-            marginBottom: 40,
-            padding: "16px 20px",
-            border: "1px solid var(--admin-danger)",
-            borderRadius: 8,
-          }}
-        >
-          <p className="urban-admin-eyebrow" style={{ marginBottom: 12 }}>
-            FONTES SEM DADOS (ZERO-YIELD)
-          </p>
-          <ul
-            style={{
-              listStyle: "none",
-              margin: 0,
-              padding: 0,
-              display: "flex",
-              flexDirection: "column",
-              gap: 6,
-              fontSize: 13,
-              color: "var(--admin-text)",
-            }}
-          >
-            {data.zeroYield.alerts.map((a) => (
-              <li key={a.source}>
-                <code>{a.source}</code> — nenhum item há{" "}
-                {a.hoursSinceLastItem ?? "?"}h (janela {a.windowHours}h; baseline{" "}
-                {a.baselineItems} itens). Provável mudança no site/API de origem.
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {/* === KPIs agregados === */}
+      {/* === KPIs agregados (com alerta de zero-yield no topo) === */}
       <section style={{ marginBottom: 56 }}>
+        {data?.zeroYield && data.zeroYield.alerts.length > 0 && (
+          <div role="alert">
+            <AdminCard variant="accent">
+              <p className="urban-admin-eyebrow">
+                <AdminBadge kind="error">zero-yield</AdminBadge> FONTES SEM DADOS
+              </p>
+              <ul>
+                {data.zeroYield.alerts.map((a) => (
+                  <li key={a.source}>
+                    <code>{a.source}</code> — nenhum item há{" "}
+                    {a.hoursSinceLastItem ?? "?"}h (janela {a.windowHours}h; baseline{" "}
+                    {a.baselineItems} itens). Provável mudança no site/API de origem.
+                  </li>
+                ))}
+              </ul>
+            </AdminCard>
+            <br />
+          </div>
+        )}
         <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
           TOTAIS AGREGADOS
         </p>
