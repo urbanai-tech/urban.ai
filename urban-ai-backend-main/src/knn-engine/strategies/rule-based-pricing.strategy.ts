@@ -30,10 +30,12 @@ export class RuleBasedPricingStrategy implements PricingStrategy {
       input.property,
       input.event,
       input.basePrice,
+      input.context ?? {},
     );
 
     return {
       ...result,
+      eventName: result.eventName ?? '',
       details: {
         ...result.details,
         strategy: this.name,

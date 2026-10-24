@@ -26,12 +26,14 @@ describe('UrbanAIPricingEngine — suggestPrice', () => {
     travelTime?: number;
     attractivityLevel?: string;
   }) {
+    const classification = {
+      categoryId: overrides.categoryId ?? 1,
+      categoryName: ['Econômico', 'Standard', 'Premium'][overrides.categoryId ?? 1],
+    };
     const classifier = {
       train: jest.fn(),
-      classify: jest.fn().mockReturnValue({
-        categoryId: overrides.categoryId ?? 1,
-        categoryName: ['Econômico', 'Standard', 'Premium'][overrides.categoryId ?? 1],
-      }),
+      classify: jest.fn().mockReturnValue(classification),
+      classifyLegacy: jest.fn().mockReturnValue(classification),
       getCategoryName: jest.fn(),
     } as unknown as PropertyClassifier;
 

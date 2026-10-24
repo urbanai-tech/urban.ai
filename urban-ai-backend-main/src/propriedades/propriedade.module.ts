@@ -18,6 +18,7 @@ import { PricingInputHistory } from 'src/entities/pricing-input-history.entity';
 import { PricingGuardrailService } from './pricing-guardrail.service';
 import { MailerModule } from 'src/mailer/mailer.module';
 import { OccupancyHistory } from 'src/entities/occupancy-history.entity';
+import { PricingRuleConfig } from 'src/entities/pricing-rule-config.entity';
 import { AirbnbListingMetadataService } from './airbnb-listing-metadata.service';
 
 @Module({
@@ -31,6 +32,7 @@ import { AirbnbListingMetadataService } from './airbnb-listing-metadata.service'
             User,
             PricingInputHistory,
             OccupancyHistory,
+            PricingRuleConfig,
         ]),
         forwardRef(() => AirbnbModule),
         EmailModule,

@@ -8,6 +8,8 @@ import { UrbanAIPricingEngine } from './pricing-engine';
 import { AdminJobRun } from '../entities/admin-job-run.entity';
 import { runAdminJobWithTracking } from '../admin-job-runs/admin-job-run-tracker';
 import { nearestStationKm } from './feature-engineering.service';
+import { deriveKnnLabels, KnnLabelStats } from './knn-labels';
+import { resolveUsableBaseDailyPrice } from '../pricing/base-price.util';
 
 /** Categoria textual → label numérico do KNN (Economico=0, Standard=1, Premium=2). */
 function categoryToNumber(category?: string | null): number {
@@ -103,9 +105,9 @@ export class PricingBootstrapService implements OnModuleInit {
    *  - Address.latitude e longitude presentes (pulamos os ainda não geocodificados;
    *    o pipeline de feature engineering resolve em paralelo)
    */
-  async train(): Promise<{ count: number }> {
+  async train(): Promise<{ count: number; labelStats?: KnnLabelStats }> {
     const rows = await this.addressRepo.find({ relations: ['list'] });
-    const properties = rows
+    const properties: Array<Record<string, any>> = rows
       .filter((a: any) => a.latitude != null && a.longitude != null)
       .map((a: any) => ({
         id: a.id,
@@ -116,7 +118,11 @@ export class PricingBootstrapService implements OnModuleInit {
         // pelo pipeline de feature engineering.
         metroDistance: Number((a as any).metroDistance ?? 0.5),
         amenitiesCount: Number((a as any).amenitiesCount ?? 1),
+        // Rótulo legado (modelo v1): mantido idêntico para o v1 não mudar.
         category: Number((a as any).category ?? 1),
+        // Insumos do rótulo v2 (derivado de dado observável — ver knn-labels.ts).
+        adr: resolveUsableBaseDailyPrice(a.list),
+        neighborhoodKey: a.bairro ?? null,
       }));
 
     // Comps externos (Inside Airbnb etc.) — densidade de vizinhos p/ o KNN no
@@ -137,6 +143,8 @@ export class PricingBootstrapService implements OnModuleInit {
             metroDistance: nearestStationKm(lat, lng) ?? 0.5,
             amenitiesCount: Number(e.amenitiesCount ?? e.bedrooms ?? 1),
             category: categoryToNumber(e.category),
+            adr: Number(e.priceCents) > 0 ? Number(e.priceCents) / 100 : null,
+            neighborhoodKey: null,
           });
           externalCount += 1;
         }
@@ -152,11 +160,27 @@ export class PricingBootstrapService implements OnModuleInit {
       return { count: 0 };
     }
 
+    // Rótulo v2: percentil de ADR no bairro/célula (ou na cidade). Fallback
+    // documentado: categoria explícita → Standard. O modelo legado segue com `category`.
+    const { labels, stats } = deriveKnnLabels(
+      properties.map((p) => ({
+        lat: p.lat,
+        lng: p.lng,
+        adr: p.adr,
+        neighborhoodKey: p.neighborhoodKey,
+        category: p.category,
+      })),
+    );
+    properties.forEach((p, i) => {
+      p.derivedCategory = labels[i].category;
+    });
+
     this.engine.initialize(properties);
     this.logger.log(
-      `PricingEngine treinado com ${properties.length} imóveis (${externalCount} comps externos).`,
+      `PricingEngine treinado com ${properties.length} imóveis (${externalCount} comps externos). ` +
+        `Rótulos v2: ${JSON.stringify(stats.bySource)} / categorias ${JSON.stringify(stats.byCategory)}.`,
     );
-    return { count: properties.length };
+    return { count: properties.length, labelStats: stats };
   }
 
   private async runCronWithTracking<T>(name: string, handler: () => Promise<T>): Promise<T> {

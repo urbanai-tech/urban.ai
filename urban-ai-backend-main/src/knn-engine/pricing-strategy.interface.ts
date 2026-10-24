@@ -11,6 +11,8 @@
  * trocada via env var `PRICING_STRATEGY`.
  */
 
+import type { PricingContextV2, PricingDriver } from './pricing-engine-v2';
+
 export interface PricingInput {
   property: {
     id: string;
@@ -32,6 +34,8 @@ export interface PricingInput {
     [key: string]: unknown;
   };
   basePrice: number;
+  /** Contexto da noite (data, regras, ocupação, guardrail) — usado pelo motor v2. */
+  context?: PricingContextV2;
 }
 
 export interface PriceSuggestion {
@@ -48,6 +52,16 @@ export interface PriceSuggestion {
     reasoning: string;
     /** Tag da estratégia que produziu este resultado — útil para A/B logging */
     strategy?: string;
+    /** Versão do motor que gerou o número ('pricing-engine-v1' | 'pricing-engine-v2.x'). */
+    engineVersion?: string;
+    /** Multiplicador final aplicado sobre basePrice. */
+    multiplier?: number;
+    /** O que aplicou, quanto e por quê — compatível com PricingDecisionSnapshot.drivers. */
+    drivers?: PricingDriver[];
+    guardrail?: Record<string, unknown>;
+    /** Resultado do v2 calculado em sombra quando PRICING_ENGINE_V2=shadow. */
+    shadowV2?: Record<string, unknown>;
+    [key: string]: unknown;
   };
 }
 

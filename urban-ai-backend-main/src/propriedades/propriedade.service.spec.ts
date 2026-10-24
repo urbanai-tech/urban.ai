@@ -341,6 +341,84 @@ describe('PropriedadeService public responses', () => {
     );
   });
 
+  it('with PRICING_ENGINE_V2=true averages math and v2 (no Math.max) and keeps the shared model untouched', async () => {
+    const previous = process.env.PRICING_ENGINE_V2;
+    process.env.PRICING_ENGINE_V2 = 'true';
+    try {
+      const save = jest.fn().mockImplementation(async (payload) => ({ id: 'analysis-2', ...payload }));
+      const aiEngine = {
+        initialize: jest.fn(),
+        suggestPrice: jest.fn().mockResolvedValue({
+          suggestedPrice: 90,
+          increasePercentage: -10,
+          details: { reasoning: 'Motor v2: -10%' },
+        }),
+      };
+      const service = makeService({
+        pricingCalculateService: {
+          calcular: jest.fn().mockReturnValue({
+            precoSugerido: 100,
+            seuPrecoAtual: 100,
+            diferencaPercentual: 0,
+            recomendacao: 'Manter',
+            motivo: 'math',
+          }),
+        },
+        eventoRepository: {
+          findOne: jest.fn().mockResolvedValue({
+            id: 'event-1', nome: 'Feira', latitude: -23.5, longitude: -46.6, relevancia: 20, dataInicio: '2026-11-04',
+          }),
+        },
+        propriedades: {
+          findOne: jest.fn().mockResolvedValue({
+            id: 'list-1',
+            id_do_anuncio: 'airbnb-1',
+            user: { id: 'user-1', ativo: true, pricingStrategy: 'moderate', percentualInicial: -10, percentualFinal: 20 },
+          }),
+        },
+        addressRepository: {
+          findOne: jest.fn().mockResolvedValue({ id: 'addr-1', latitude: -23.51, longitude: -46.61, list: { id: 'list-1' } }),
+        },
+        occupancyHistoryRepository: { find: jest.fn().mockResolvedValue([]) },
+        analisePrecoRepository: { findOne: jest.fn().mockResolvedValue(null), save },
+        aiEngine,
+        datasetCollector: { recordCompsFromAnalysis: jest.fn().mockResolvedValue(undefined) },
+      });
+
+      const result = await service.getPricingPropriedadeByEventAndByProperty(
+        'alert-1',
+        'list-1',
+        'event-1',
+        {
+          price: { data: { accommodationCost: 100, accommodationCostTitle: '1 night' } },
+          propertyDetails: { bedrooms: 1, bathrooms: 1 },
+        } as any,
+        { price: { data: { accommodationCost: 120, accommodationCostTitle: '1 night' } } } as any,
+        {
+          comps: [
+            { listingID: 'comp-1', latitude: -23.52, longitude: -46.62, bedrooms: 1, bathrooms: 1, avg_booked_daily_rate_ltm: 120, similarity_score: 0.9 },
+          ],
+        } as any,
+      );
+
+      expect(aiEngine.initialize).not.toHaveBeenCalled();
+      expect(aiEngine.suggestPrice).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ lat: -23.5, lng: -46.6 }),
+        100,
+        expect.objectContaining({
+          guardrail: { maxDecreasePercent: 10, maxIncreasePercent: 20 },
+          occupancy: { prevNightBooked: false, targetNightBooked: false, nextNightBooked: false },
+          eventV2: expect.objectContaining({ relevancia: 20 }),
+        }),
+      );
+      expect(result).toMatchObject({ ok: true, precoSugerido: 95, diferencaPercentual: -5 });
+    } finally {
+      if (previous === undefined) delete process.env.PRICING_ENGINE_V2;
+      else process.env.PRICING_ENGINE_V2 = previous;
+    }
+  });
+
   it('rejects an external listing id that is not owned by the authenticated tenant', async () => {
     const propriedades = {
       findOne: jest.fn().mockResolvedValue(null),
