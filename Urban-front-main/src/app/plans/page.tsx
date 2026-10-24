@@ -13,9 +13,11 @@
 
 import { useEffect, useState } from "react";
 import { getPlans, type Plan } from "../service/api";
+import { useCheckoutReturnNotice } from "../componentes/useCheckoutReturnNotice";
 import { PricingSelfServiceCalculator } from "../componentes/PricingCalculatorV2";
 
 export default function PlansPage() {
+  useCheckoutReturnNotice("canceled");
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
 

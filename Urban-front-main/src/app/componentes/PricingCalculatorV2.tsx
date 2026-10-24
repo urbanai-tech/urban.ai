@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type CSSProperties } from "react";
 import { loadStripe } from "@stripe/stripe-js";
+import { pickCheckoutRedirect } from "../lib/checkout";
 import type { BillingCycle, Plan } from "../service/api";
 import { createCheckoutSession, getFriendlyApiErrorMessage } from "../service/api";
 import {
@@ -131,16 +132,28 @@ export function PricingSelfServiceCalculator({
     setBusy(true);
     setError(null);
     try {
-      if (!stripePromise) {
-        throw new Error("Checkout indisponível: chave pública Stripe não configurada.");
+      const session = await createCheckoutSession("auto", cycle, quantity);
+      const redirect = pickCheckoutRedirect(session);
+
+      if (redirect?.mode === "url") {
+        // Caminho atual: redirect hospedado do Stripe (redirectToCheckout está deprecado).
+        window.location.assign(redirect.url);
+        return; // mantém "busy" até a navegação acontecer
       }
 
-      const { sessionId } = await createCheckoutSession("auto", cycle, quantity);
-      const stripe = await stripePromise;
-      if (!stripe) throw new Error("Checkout indisponível: Stripe.js não carregou.");
+      // Fallback para respostas antigas do backend, sem `url`.
+      if (redirect?.mode === "sessionId") {
+        if (!stripePromise) {
+          throw new Error("Checkout indisponível: chave pública Stripe não configurada.");
+        }
+        const stripe = await stripePromise;
+        if (!stripe) throw new Error("Checkout indisponível: Stripe.js não carregou.");
+        const result = await stripe.redirectToCheckout({ sessionId: redirect.sessionId });
+        if (result.error) throw new Error("Não foi possível abrir o checkout agora.");
+        return;
+      }
 
-      const result = await stripe.redirectToCheckout({ sessionId });
-      if (result.error) throw new Error("Não foi possível abrir o checkout agora.");
+      throw new Error("Não foi possível abrir o checkout agora.");
     } catch (err) {
       setError(
         getFriendlyApiErrorMessage(
