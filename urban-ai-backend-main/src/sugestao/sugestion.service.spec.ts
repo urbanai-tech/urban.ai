@@ -9,6 +9,8 @@ import { AnalisePreco } from '../entities/AnalisePreco';
 import { DatasetCollectorService } from '../knn-engine/dataset-collector.service';
 import { PriceUpdate } from '../entities/price-update.entity';
 import { AirbnbService } from 'src/airbnb/airbnb.service';
+import { PricingDecisionSnapshot } from '../entities/pricing-decision-snapshot.entity';
+import { PricingCalculateService } from '../propriedades/pricing-calculate.service';
 
 describe('SugestionService', () => {
   let service: SugestionService;
@@ -16,6 +18,7 @@ describe('SugestionService', () => {
   let datasetCollector: { recordAppliedPrice: jest.Mock };
   let priceUpdateRepo: { findOne: jest.Mock };
   let airbnbService: { getPriceForDateWindow: jest.Mock };
+  let snapshotRepo: { find: jest.Mock; save: jest.Mock };
 
   const baseRegistro = () => ({
     id: 'rec-1',
@@ -82,6 +85,7 @@ describe('SugestionService', () => {
     datasetCollector = { recordAppliedPrice: jest.fn().mockResolvedValue(undefined) };
     priceUpdateRepo = { findOne: jest.fn() };
     airbnbService = { getPriceForDateWindow: jest.fn() };
+    snapshotRepo = { find: jest.fn().mockResolvedValue([]), save: jest.fn().mockImplementation(async (e) => e) };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -90,6 +94,8 @@ describe('SugestionService', () => {
         { provide: DatasetCollectorService, useValue: datasetCollector },
         { provide: getRepositoryToken(PriceUpdate), useValue: priceUpdateRepo },
         { provide: AirbnbService, useValue: airbnbService },
+        { provide: getRepositoryToken(PricingDecisionSnapshot), useValue: snapshotRepo },
+        PricingCalculateService,
       ],
     }).compile();
 
@@ -149,6 +155,90 @@ describe('SugestionService', () => {
       }),
     );
     expect(JSON.stringify(result)).not.toContain('hashed-secret');
+  });
+
+  describe('preço aplicado informado pelo anfitrião (outcome capture)', () => {
+    const apply = (precoAplicado: number, userId = 'user-1') =>
+      service.registrarPrecoAplicado('rec-1', userId, { precoAplicado, origem: 'manual_dashboard' });
+
+    it('rejeita preço aplicado de outro usuário sem gravar nada', async () => {
+      repo.findOne.mockResolvedValue(baseRegistro());
+
+      await expect(apply(171, 'user-intruso')).rejects.toThrow('Registro não pertence ao usuário autenticado');
+      expect(repo.save).not.toHaveBeenCalled();
+      expect(datasetCollector.recordAppliedPrice).not.toHaveBeenCalled();
+      expect(snapshotRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('404 quando a análise não existe', async () => {
+      repo.findOne.mockResolvedValue(null);
+      await expect(apply(171)).rejects.toThrow('Registro não encontrado');
+    });
+
+    it.each([0, -10, Number.NaN])('rejeita preço não positivo (%p)', async (price) => {
+      repo.findOne.mockResolvedValue(baseRegistro());
+      await expect(apply(price)).rejects.toThrow('maior que zero');
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+
+    it('rejeita preço fora de 0,2x–5x das referências (sugerido 171, atual 150)', async () => {
+      repo.findOne.mockResolvedValue(baseRegistro());
+      // faixa: 30 (0,2 x 150) a 855 (5 x 171)
+      await expect(apply(29.99)).rejects.toThrow('fora da faixa plausível');
+      await expect(apply(855.01)).rejects.toThrow('fora da faixa plausível');
+      await expect(apply(4500)).rejects.toThrow('fora da faixa plausível');
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+
+    it('aceita os limites da faixa e preços ajustados pelo anfitrião', async () => {
+      repo.findOne.mockResolvedValue(baseRegistro());
+      await expect(apply(30)).resolves.toMatchObject({ lifecycle: { appliedPrice: 30 } });
+      repo.findOne.mockResolvedValue(baseRegistro());
+      await expect(apply(855)).resolves.toMatchObject({ lifecycle: { appliedPrice: 855 } });
+      repo.findOne.mockResolvedValue(baseRegistro());
+      await expect(apply(160)).resolves.toMatchObject({
+        lifecycle: { appliedPrice: 160, status: 'applied_manual', applicationOrigin: 'manual_dashboard' },
+      });
+    });
+
+    it('aplica a mesma faixa ao registrar resultado com preço', async () => {
+      repo.findOne.mockResolvedValue(baseRegistro());
+      await expect(
+        service.registrarResultado('rec-1', 'user-1', { precoAplicado: 9999, reservaStatus: 'booked' }),
+      ).rejects.toThrow('fora da faixa plausível');
+    });
+
+    it('alimenta o outcome do PricingDecisionSnapshot com o preço aplicado', async () => {
+      repo.findOne.mockResolvedValue(baseRegistro());
+      const snapshot = {
+        id: 'snap-1',
+        targetDate: '2026-06-09',
+        status: 'suggested',
+        selectedPriceCents: 17100,
+        inputSignals: { auditTrailVersion: 'v0', generatedFrom: 'test' },
+        riskFlags: [],
+      };
+      snapshotRepo.find.mockResolvedValue([snapshot]);
+
+      await apply(160);
+
+      expect(snapshotRepo.save).toHaveBeenCalledTimes(1);
+      const saved = snapshotRepo.save.mock.calls[0][0];
+      expect(saved.appliedPriceCents).toBe(16000);
+      expect(saved.status).toBe('applied');
+      expect(saved.inputSignals.outcome).toMatchObject({
+        appliedPriceCents: 16000,
+        source: 'manual',
+        sourceDetail: 'manual_dashboard',
+      });
+    });
+
+    it('falha ao gravar o outcome do snapshot não derruba o registro', async () => {
+      repo.findOne.mockResolvedValue(baseRegistro());
+      snapshotRepo.find.mockRejectedValue(new Error('db fora'));
+      await expect(apply(160)).resolves.toMatchObject({ lifecycle: { appliedPrice: 160 } });
+      expect(repo.save).toHaveBeenCalled();
+    });
   });
 
   it('bloqueia preço aplicado quando a sugestão está incompleta', async () => {
