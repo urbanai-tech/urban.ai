@@ -80,10 +80,14 @@ test('rota de lançamento não importa nem renderiza waitlist', async () => {
   assert.match(content, /Urban AI disponível/);
 });
 
-test('cadastro real não é substituído pelo modo de pré-lançamento', async () => {
+test('cadastro respeita o modo de lançamento e mantém termos, confirmação de e-mail e analytics sem PII', async () => {
   const content = await source('create');
-  assert.doesNotMatch(content, /usePrelaunch|WaitlistSignup|AuthFlowShell/);
+  assert.match(content, /usePrelaunch/);
   assert.match(content, /mode !== "registered"/);
+  assert.match(content, /termsVersion: TERMS_VERSION/);
+  assert.match(content, /\/confirm-email\//);
+  const track = content.match(/trackAnalyticsEvent\([\s\S]*?\);/)?.[0] ?? '';
+  assert.doesNotMatch(track, /b(username|password|lastRegisterEmail)b|[(,{ ]email[,} ]/);
 });
 
 test('menu público comunica estado e relação com o painel móvel', async () => {
