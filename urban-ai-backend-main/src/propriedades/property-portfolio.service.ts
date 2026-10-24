@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Address } from 'src/entities/addresses.entity';
 import { Between, Repository } from 'typeorm';
 import { List } from 'src/entities/list.entity';
+import { clampPagination } from '../common/pagination';
 import { User } from 'src/entities/user.entity';
 import { addDays } from 'date-fns';
 import { PricingInputHistory } from 'src/entities/pricing-input-history.entity';
@@ -50,6 +51,7 @@ export class PropertyPortfolioService {
         page = 1,
         limit = 10
     ): Promise<{ data: PublicAddressResponse[]; total: number; page: number; limit: number }> {
+        ({ page, limit } = clampPagination(page, limit));
         const [data, total] = await this.addressRepository.findAndCount({
             where: { user: { id: userId }, ativo: true, list: { ativo: true } },
             relations: ['list'],

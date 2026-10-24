@@ -7,6 +7,9 @@ import { PropertyScrapingService } from './property-scraping.service';
 import { Address } from 'src/entities/addresses.entity';
 import { ApiTags, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/roles.decorator';
+import { clampPagination } from '../common/pagination';
 import { APITypes } from './types/nearProperties';
 import { PricingCalculateService } from './pricing-calculate.service';
 import { HostBaselineService } from './host-baseline.service';
@@ -82,7 +85,8 @@ export class PropriedadeController {
   }
 
   @Get('getPropertyDetails/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin') // dispara scraping sem checagem de dono; o front não usa
   @ApiOperation({ summary: 'Obtém detalhes de uma propriedade pelo ID' })
   @ApiParam({
     name: 'id',
@@ -173,7 +177,8 @@ export class PropriedadeController {
   }
 
   @Post('airbnb/create-alert')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin') // chama RapidAPI pago sem checagem de dono; o front não usa
   @ApiOperation({ summary: 'Retorna lalerta de propriedades próxima a uma localização' })
   @ApiResponse({ status: 200, description: 'Listagens retornadas com sucesso.' })
   @ApiResponse({ status: 500, description: 'Erro ao buscar listagens.' })
@@ -291,7 +296,8 @@ export class PropriedadeController {
   }
 
   @Get('get-alert')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin') // chama RapidAPI pago com id arbitrário; o front não usa
   @ApiOperation({ summary: 'Retorna dados de previsão de renda de uma propriedade pelo ID' })
   @ApiResponse({ status: 500, description: 'Erro ao buscar dados da propriedade.' })
   @ApiQuery({ name: 'id', required: true, type: 'string', example: '8a2999b68e85e90928bddeb0' })
@@ -366,7 +372,8 @@ export class PropriedadeController {
   }
 
   @Get(':propertyId/coordinates')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin') // dispara scraping sem checagem de dono; o front não usa
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Obtém a latitude e longitude de uma propriedade do Airbnb.'
@@ -436,7 +443,8 @@ export class PropriedadeController {
     @Query('page') page = 1,
     @Query('limit') limit = 10
   ): Promise<any> {
-    return this.portfolio.findByUserId(req?.user?.userId, page, limit);
+    const pagination = clampPagination(page, limit);
+    return this.portfolio.findByUserId(req?.user?.userId, pagination.page, pagination.limit);
   }
 
   @Patch(':id/identity')

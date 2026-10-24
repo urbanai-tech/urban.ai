@@ -1,6 +1,7 @@
 import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { EventoService } from './evento.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { clampPagination } from '../common/pagination';
 
 @Controller("event")
 export class EventoController {
@@ -14,11 +15,12 @@ export class EventoController {
     @Query('page') page = 1,
     @Query('limit') limit = 10
   ) {
+    const pagination = clampPagination(page, limit);
     return await this.eventoService.findEventosPorEnderecoPaginado(
       propriedadeId,
       req.user.userId,
-      Number(page),
-      Number(limit),
+      pagination.page,
+      pagination.limit,
     );
   }
 
