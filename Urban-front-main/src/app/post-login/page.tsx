@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import UrbanAiLoader from '../componentes/loading';
 import { api } from '../service/api';
+import { useToastCompat } from '../componentes/ui';
 
 function toBool(v: unknown): boolean {
   if (typeof v === 'boolean') return v;
@@ -16,6 +17,9 @@ type HasAddressResult = { hasAddress: boolean | string | number; count: number }
 
 export default function PostLoginPage() {
   const router = useRouter();
+  const toast = useToastCompat();
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
 
   useEffect(() => {
     let cancelled = false;
@@ -49,7 +53,14 @@ export default function PostLoginPage() {
 
         const status = err?.response?.status;
         console.error('[post-login] erro:', status, err?.response?.data || err);
-        router.replace(status === 401 ? '/login' : '/app');
+        if (status === 401) {
+          router.replace('/login');
+        } else {
+          // Falha de rede/5xx: o /app não existe (404). Segue para o painel, que tem
+          // seus próprios estados de erro/retry, e avisa o usuário.
+          toastRef.current('Não conseguimos carregar seus dados agora. Mostrando seu painel; atualize a página se algo parecer faltando.', { type: 'warning' });
+          router.replace('/dashboard');
+        }
       } finally {
         clearTimeout(timeout);
       }

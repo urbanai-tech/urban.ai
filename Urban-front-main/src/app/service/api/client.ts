@@ -68,7 +68,7 @@ api.interceptors.request.use(
  * O endpoint `/auth/me` é exceção — 401 nele é esperado (componente decide).
  */
 const PUBLIC_PATH_REGEX =
-  /^\/(lancamento|landing|precos|sobre|contato|termos|privacidade|create|forbidden|post-login|request-reset-password|reset-password|confirm-email|waitlist|robots|sitemap)/;
+  /^\/(lancamento|landing|precos|sobre|contato|termos|privacidade|create|forbidden|post-login|request-reset-password|reset-password|confirm-email|auth|waitlist|robots|sitemap)/;
 
 function isPublicPath(pathname: string): boolean {
   if (pathname === "/" || pathname === "") return true;
