@@ -26,6 +26,7 @@ type CollectorHealthStatus =
   | "missing_key"
   | "no_events"
   | "stale"
+  | "zero_yield"
   | (string & {});
 
 type CollectorHealthRow = CollectorSourceStats & {
@@ -281,7 +282,44 @@ export default function CollectorsHealthPage() {
         }
       />
 
-      {/* === KPIs agregados === */}
+      {/* === Zero-yield: fonte normalmente ativa que parou de enviar === */}
+      {data?.zeroYield && data.zeroYield.alerts.length > 0 && (
+        <section
+          role="alert"
+          style={{
+            marginBottom: 40,
+            padding: "16px 20px",
+            border: "1px solid var(--admin-danger)",
+            borderRadius: 8,
+          }}
+        >
+          <p className="urban-admin-eyebrow" style={{ marginBottom: 12 }}>
+            FONTES SEM DADOS (ZERO-YIELD)
+          </p>
+          <ul
+            style={{
+              listStyle: "none",
+              margin: 0,
+              padding: 0,
+              display: "flex",
+              flexDirection: "column",
+              gap: 6,
+              fontSize: 13,
+              color: "var(--admin-text)",
+            }}
+          >
+            {data.zeroYield.alerts.map((a) => (
+              <li key={a.source}>
+                <code>{a.source}</code> — nenhum item há{" "}
+                {a.hoursSinceLastItem ?? "?"}h (janela {a.windowHours}h; baseline{" "}
+                {a.baselineItems} itens). Provável mudança no site/API de origem.
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* === KPIs agregados === */
       <section style={{ marginBottom: 56 }}>
         <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
           TOTAIS AGREGADOS
@@ -631,6 +669,7 @@ function statusKind(
   critical?: boolean | null,
 ): AdminBadgeKind {
   if (status === "missing_key") return critical ? "error" : "warn";
+  if (status === "zero_yield") return "error";
   if (status === "no_events" || status === "stale") return "warn";
   if (status === "has_events") return "success";
   return "neutral";
@@ -673,6 +712,8 @@ function formatStatus(status: CollectorHealthStatus) {
       return "sem eventos";
     case "stale":
       return "stale";
+    case "zero_yield":
+      return "sem dados (zero-yield)";
     default:
       return status.replace(/_/g, " ");
   }

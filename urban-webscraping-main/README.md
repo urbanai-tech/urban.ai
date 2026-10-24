@@ -136,6 +136,14 @@ strip the offset (e.g. with `strftime`): that is what turned a 21:30 BRT match i
 00:30 of the next day. New collectors only need to return what the source gives;
 `BaseCollector.run()` normalizes it. See `docs/runbooks/datas-e-fuso-horario.md`.
 
+## Silent-breakage signals (zero items)
+
+A collector whose `fetch_raw()` returns 0 items (or whose items all fail `normalize`)
+logs `WARNING [<source>] ZERO_ITEMS ...`; a Scrapy spider that closes without any item
+logs `WARNING [scraper-<spider>] ZERO_ITEMS ...`. The authoritative alert is on the
+backend (`collector-zero-yield`, see `docs/runbooks/coletores-zero-yield.md`) because
+the scheduler (Prefect or the internal cron) reports green either way.
+
 ## Project Structure
 
 ```

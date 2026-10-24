@@ -36,6 +36,7 @@ function makeService(
     staysListingRepo?: any;
     jobRunRepo?: any;
     contactSubmissionRepo?: any;
+    zeroYieldService?: any;
   } = {},
 ) {
   return new AdminService(
@@ -63,6 +64,7 @@ function makeService(
       overrides.staysAccountRepo ?? ({} as any),
       overrides.staysListingRepo ?? ({} as any),
     ),
+    overrides.zeroYieldService,
   );
 }
 
@@ -477,5 +479,44 @@ describe('AdminService Track 3 readiness', () => {
 
     expect(result.stripe).toMatchObject({ status: 'ready', blockers: [] });
     expect(result.email).toMatchObject({ status: 'ready', blockers: [] });
+  });
+
+  it('marca zero-yield no status/sinais e expõe o resumo quando uma fonte ativa silencia (D2)', async () => {
+    const now = new Date().toISOString();
+    const eventRepo = makeEventRepo([
+      { source: 'sp-cultura', total: '40', last7d: '40', last24h: '0', outOfScope: '0', pendingGeocode: '0',
+        pendingEnrichment: '0', enriched: '40', withErrors: '0', lastSeen: now },
+      { source: 'usp-eventos', total: '10', last7d: '10', last24h: '10', outOfScope: '0', pendingGeocode: '0',
+        pendingEnrichment: '0', enriched: '10', withErrors: '0', lastSeen: now },
+    ]);
+    const finding = {
+      source: 'sp-cultura', windowHours: 36, hoursSinceLastItem: 50, baselineItems: 40, recentItems: 0, lastSeenAt: now,
+    };
+    const zeroYieldService = {
+      currentFindings: jest.fn().mockResolvedValue({
+        config: { enabled: true, windowHours: 36, baselineDays: 14, minBaselineItems: 5 },
+        findings: [finding],
+      }),
+    };
+    const service = makeService(eventRepo, { zeroYieldService });
+
+    const result = await service.collectorsHealth();
+
+    expect(result.zeroYield).toMatchObject({ enabled: true, windowHours: 36, alerts: [finding] });
+    expect(result.sources.find((s: any) => s.source === 'sp-cultura')).toMatchObject({
+      status: 'zero_yield',
+      signals: ['zero_yield'],
+      zeroYield: finding,
+    });
+    expect(result.sources.find((s: any) => s.source === 'usp-eventos')).toMatchObject({ status: 'has_events' });
+  });
+
+  it('falha do detector zero-yield não derruba o painel de saúde', async () => {
+    const eventRepo = makeEventRepo([]);
+    const zeroYieldService = { currentFindings: jest.fn().mockRejectedValue(new Error('boom')) };
+    const service = makeService(eventRepo, { zeroYieldService });
+    const result = await service.collectorsHealth();
+    expect(result.zeroYield).toMatchObject({ enabled: false, alerts: [] });
+    expect(result.sources.length).toBeGreaterThan(0);
   });
 });

@@ -30,7 +30,7 @@ Antes de qualquer runbook, leia [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL
 ## Eventos, dados e pricing
 
 - [Ingest de eventos (API key e coletores)](./events-ingest-service-account.md) · [Saúde do cron do webscraping](./webscraping-cron-health.md)
-- [Identidade e deduplicação de eventos](./event-dedup-identity.md) · [Recompute idempotente da inteligência de eventos](./event-intelligence-recompute-idempotency.md) · [Fallback manual de eventos](./eventos-fallback-manual.md) · [Backfill do geocoder](./backfill-geocoder.md) · [Datas de eventos e fuso horário](./datas-e-fuso-horario.md) (inclui backfill de datas)
+- [Identidade e deduplicação de eventos](./event-dedup-identity.md) · [Recompute idempotente da inteligência de eventos](./event-intelligence-recompute-idempotency.md) · [Fallback manual de eventos](./eventos-fallback-manual.md) · [Backfill do geocoder](./backfill-geocoder.md) · [Datas de eventos e fuso horário](./datas-e-fuso-horario.md) (inclui backfill de datas) · [Coletores sem dados (zero-yield) e duplo agendamento](./coletores-zero-yield.md)
 - [Evolução do motor de eventos](./event-engine-evolution.md) · [Motor de demanda](./motor-demanda.md)
 - [Aquisição de dataset](./dataset-acquisition.md) · [Ground truth do dataset](./dataset-ground-truth-smoke.md) · [Feature engineering](./feature-engineering.md) · [Smoke de recomendação](./recomendacao-nova-smoke.md)
 - [Integrações, outcomes e calibração](./integracoes-outcomes-calibracao.md) · [Contrato do Portfolio Cockpit](./portfolio-cockpit-contract.md)
