@@ -6,12 +6,13 @@ import { PRIVACY_UPDATED_AT, privacyBlocks } from "../legalContent";
 export default function Privacidade() {
   return (
     <main className="urban-manifesto urban-public-page">
-      <section className="urban-public-section">
-        <div className="urban-public-container">
-          <article className="urban-legal-panel">
+      <section className="public-section">
+        <div className="public-container public-legal-shell">
+          <article className="urban-legal-panel public-legal-document">
+            <p className="public-kicker">Privacidade e dados</p>
             <h1>Política de Privacidade</h1>
             <p style={{ margin: "0 0 32px", fontSize: 14 }}>
-              Última atualizacao: {PRIVACY_UPDATED_AT}
+              Última atualização: {PRIVACY_UPDATED_AT}
             </p>
             <LegalDocument blocks={privacyBlocks} />
           </article>

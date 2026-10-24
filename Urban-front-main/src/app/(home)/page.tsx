@@ -240,8 +240,8 @@ export default function Login() {
                 margin: 0,
               }}
             >
-              A Urban AI monitora 5.000+ eventos na sua região e ajusta o preço
-              das suas diárias no momento certo. Você só precisa entrar.
+              A Urban AI acompanha eventos na sua região e recomenda quando revisar o preço
+              das suas diárias. Você só precisa entrar.
             </p>
           </div>
         </div>
@@ -265,8 +265,8 @@ export default function Login() {
             fontWeight: 500,
           }}
         >
-          <span>SÃO PAULO · BETA PRIVADO</span>
-          <span>v.2026.05</span>
+          <span>PRECIFICAÇÃO INTELIGENTE · BRASIL</span>
+          <span>PRODUTO DISPONÍVEL</span>
         </div>
       </div>
 
@@ -590,7 +590,7 @@ export default function Login() {
               textAlign: "center",
             }}
           >
-            Beta privado · São Paulo
+            Acesso seguro · Urban AI
           </p>
         </div>
       </div>

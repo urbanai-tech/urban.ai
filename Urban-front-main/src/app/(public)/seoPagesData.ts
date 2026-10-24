@@ -108,7 +108,7 @@ export const dynamicPricingAirbnb: SeoContent = {
       summary:
         "Slot para documentar uma recomendação gerada a partir de evento, revisão humana e decisão de preço do anfitrião.",
       source:
-        "Beta fechado assistido, AnalisePreco e PriceSnapshot, somente quando houver consentimento e vínculo entre recomendação e imóvel.",
+        "Operação assistida, AnalisePreco e PriceSnapshot, somente quando houver consentimento e vínculo entre recomendação e imóvel.",
       sample:
         "Amostra em formação: imóveis com recomendação, preço aplicado e snapshot associado.",
       validationNote:
@@ -135,9 +135,9 @@ export const dynamicPricingAirbnb: SeoContent = {
     },
     {
       href: "/integracao-stays-precificacao-automatica",
-      label: "Automação com Stays",
+      label: "Integração Stays (beta fechado)",
       description:
-        "Entenda quando a recomendação vira aplicação automática com consentimento, limites e histórico.",
+        "Entenda como a integração Stays, em beta fechado, aplica preços com consentimento, limites e histórico.",
     },
     {
       href: "/urban-ai-vs-planilha-de-precificacao",
@@ -155,7 +155,7 @@ export const dynamicPricingAirbnb: SeoContent = {
     {
       question: "A Urban AI altera meu Airbnb sozinha?",
       answer:
-        "No modo recomendação, não. O anfitrião recebe a sugestão e decide. A automação via Stays exige consentimento e limites configurados.",
+        "No modo recomendação, não. O anfitrião recebe a sugestão e decide. A aplicação via Stays (beta fechado, sob convite) exige consentimento e limites configurados.",
     },
     {
       question: "Qual o diferencial da Urban AI?",
@@ -471,20 +471,20 @@ export const saoPauloEventsPricing: SeoContent = {
 
 export const staysIntegrationPricing: SeoContent = {
   path: "/integracao-stays-precificacao-automatica",
-  title: "Integração Stays para precificação automática - Urban AI",
+  title: "Integração com Stays (beta fechado) - Urban AI",
   description:
-    "Entenda como a Urban AI usa integração Stays para aplicar preços sugeridos com consentimento, limites e histórico.",
+    "A integração da Urban AI com a Stays está em beta fechado, sob convite. Entenda consentimento, limites e histórico de aplicação.",
   eyebrow: "Integração Stays",
-  h1: "Precificação automática com Stays",
+  h1: "Integração com Stays em beta fechado",
   lead:
-    "A integração com Stays permite que recomendações aprovadas sejam aplicadas no canal de distribuição respeitando limites definidos pelo anfitrião.",
+    "A integração com Stays está em beta fechado, sob convite. Nela, recomendações aprovadas podem ser aplicadas no canal respeitando limites definidos pelo anfitrião.",
   answer:
-    "A Urban AI separa recomendação de automação. Primeiro, o sistema explica o preço sugerido. Depois, quando o anfitrião ativa a integração, os ajustes podem ser enviados via Stays com tetos, consentimento e rastreabilidade.",
+    "A Urban AI separa recomendação de automação. Primeiro, o sistema explica o preço sugerido. Depois, para contas com acesso ao beta e quando o anfitrião ativa a integração, os ajustes podem ser enviados via Stays com tetos, consentimento e rastreabilidade.",
   directAnswers: [
     {
       question: "O que a integração Stays permite na Urban AI?",
       answer:
-        "A integração Stays permite enviar preços aprovados ou automatizados para a operação, respeitando consentimento, limites configurados e histórico de aplicação.",
+        "No beta fechado, a integração Stays permite enviar preços aprovados para a operação, respeitando consentimento, limites configurados e histórico de aplicação.",
     },
     {
       question: "A automação deve aplicar qualquer sugestão de IA?",
@@ -499,9 +499,9 @@ export const staysIntegrationPricing: SeoContent = {
         "O anfitrião vê a sugestão no painel e decide se aplica manualmente. É o fluxo ideal para começar com controle total.",
     },
     {
-      title: "Modo automático",
+      title: "Aplicação automática (beta fechado)",
       body:
-        "Quando ativado, o envio respeita regras de segurança, como tetos de variação e possibilidade de pausar a automação.",
+        "Para contas com acesso ao beta, quando ativado, o envio respeita regras de segurança, como tetos de variação e possibilidade de pausar a automação.",
     },
     {
       title: "Histórico e auditoria",
@@ -599,9 +599,9 @@ export const staysIntegrationPricing: SeoContent = {
         "Sim. A automação deve ser ativada, pausada ou desconectada pelo próprio usuário.",
     },
     {
-      question: "A Urban AI faz scraping para aplicar preço?",
+      question: "Como a Urban AI aplica preços na Stays?",
       answer:
-        "A estratégia correta é integração nativa quando disponível, evitando hacks e fluxos frágeis.",
+        "Por meio de uma conexão autorizada pelo próprio anfitrião, com credenciais fornecidas por ele. Esse recurso está em beta fechado, sob convite.",
     },
     {
       question: "O que acontece se eu pausar a integração?",

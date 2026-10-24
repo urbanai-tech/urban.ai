@@ -156,7 +156,7 @@ function AceitarConvite() {
             leftIcon={<Icons.ArrowLeft size={14} />}
             style={{ marginTop: 20 }}
           >
-            Voltar ao pré-lançamento
+            Voltar para o site
           </AppButton>
         </AppCard>
       </InviteShell>
