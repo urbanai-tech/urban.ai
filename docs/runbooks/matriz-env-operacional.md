@@ -34,6 +34,7 @@
 | `GOOGLE_CLIENT_ID` (aliases aceitos: `GOOGLE_OAUTH_CLIENT_ID`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID`) | Cond. (login Google) | Usado para validar o `aud` do idToken. |
 | `COOKIE_DOMAIN`, `COOKIE_SAME_SITE` | Obr. em prod | Em host `*.railway.app` (staging) usar `COOKIE_DOMAIN=none`. |
 | `CORS_ALLOWED_ORIGINS` | Obr. | Whitelist separada por vírgula; sem fallback `*`. |
+| `TRUST_PROXY_HOPS` | Opc. | Nº de proxies confiáveis para `req.ip`/rate limit (default: `1` em produção/Railway, desligado fora dela). `0`/`false` desliga; lista de IPs/CIDRs aceita; `true` é rejeitado. Sem isso o throttler agrupa todos os clientes no IP do proxy. |
 | `FRONT_BASE_URL`, `FRONT_URL` | Obr. | Links em e-mails e redirects. |
 | `HEALTH_READINESS_TOKEN`, `HEALTH_READINESS_PUBLIC`, `ENTERPRISE_GATE_HEALTH_TOKEN` | Obr. em staging/prod | `/health` detalhado exige token; `/health/live` é público. |
 | `EMAIL_CONFIRMATION_CODE_SECRET`, `EMAIL_CONFIRMATION_MAX_ATTEMPTS`, `EMAIL_CONFIRMATION_LOCKOUT_MINUTES`, `EMAIL_PUBLIC_RESPONSE_MIN_MS`, `EMAIL_PUBLIC_RESPONSE_JITTER_MS` | Secret Obr. em produção | Demais são tuning. |

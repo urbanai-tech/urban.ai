@@ -11,9 +11,16 @@ import { SwaggerModule } from '@nestjs/swagger';
 import { json, urlencoded } from 'express';
 import { requestIdMiddleware } from './common/request-id.middleware';
 import { buildOpenApiConfig } from './openapi/openapi.config';
+import { resolveTrustProxy } from './common/trust-proxy';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Atrás do proxy da Railway o IP real vem em X-Forwarded-For. Sem isso o
+  // ThrottlerGuard (req.ip) enxerga só o IP do proxy e throttla todos juntos.
+  // TRUST_PROXY_HOPS (default: 1 em produção). Ver matriz-env-operacional.md.
+  app.set('trust proxy', resolveTrustProxy());
 
   app.useGlobalPipes(
     new ValidationPipe({
