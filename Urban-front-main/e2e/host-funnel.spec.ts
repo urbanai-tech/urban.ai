@@ -34,9 +34,10 @@ test.describe('Funil do anfitrião', () => {
       });
     });
 
-    let registerPayload: Record<string, unknown> | null = null;
+    // Objeto-recipiente: o TS não estreita propriedades atribuídas dentro de callbacks.
+    const captured: { register: Record<string, unknown> | null } = { register: null };
     await page.route('**/auth/register', async (route) => {
-      registerPayload = route.request().postDataJSON();
+      captured.register = route.request().postDataJSON();
       await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ mode: 'registered' }) });
     });
     await page.route('**/auth/login', async (route) => {
@@ -63,8 +64,8 @@ test.describe('Funil do anfitrião', () => {
     await expect(submit).toBeEnabled();
     await submit.click();
 
-    await expect.poll(() => registerPayload?.termsAccepted).toBe(true);
-    expect(registerPayload?.termsVersion).toBe('2026-05-11');
+    await expect.poll(() => captured.register?.termsAccepted).toBe(true);
+    expect(captured.register?.termsVersion).toBe('2026-05-11');
     await expect(page).toHaveURL(/\/confirm-email\/ana\.host%40urbanai\.invalid/, { timeout: 10_000 });
   });
 
