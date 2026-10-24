@@ -4,6 +4,7 @@ const FREE_TEXT_KEY = /^(html|body|content|conteudo|message|mensagem|text|texto)
 const MAX_STRING = 200;
 const MAX_ITEMS = 20;
 const MAX_DEPTH = 4;
+const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 
 export function maskEmail(value: string): string {
   const [local, domain] = String(value).split('@');
@@ -31,9 +32,12 @@ export function redactForAudit(value: unknown, key = '', depth = 0): unknown {
     return value.length > MAX_ITEMS ? [...items, `[+${value.length - MAX_ITEMS} items]`] : items;
   }
   if (value instanceof Date) return value.toISOString();
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
-    out[k] = redactForAudit(v, k, depth + 1);
-  }
-  return out;
+  // Chaves vêm do corpo da requisição: descarta as que alteram protótipo e monta o
+  // resultado com Object.fromEntries (define propriedades próprias, sem acionar o
+  // setter de __proto__), evitando injeção de propriedade/poluição de protótipo.
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>)
+      .filter(([k]) => !UNSAFE_KEYS.has(k))
+      .map(([k, v]) => [k, redactForAudit(v, k, depth + 1)]),
+  );
 }
