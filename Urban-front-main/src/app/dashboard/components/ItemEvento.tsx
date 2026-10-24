@@ -15,6 +15,9 @@ import {
   Icons,
   useToastCompat,
 } from "@/app/componentes/ui";
+import { AplicarPrecoDialog } from "./AplicarPrecoDialog";
+import { formatBrl } from "./aplicar-preco-domain";
+import { useStaysAutoMode } from "./useStaysAutoMode";
 
 /**
  * EventCard do /dashboard (calendário) — REFATORADO (Sprint 3 redesign).
@@ -27,8 +30,11 @@ import {
  *
  * Agora:
  *  - RecommendationCard (Pilar D do plano) com sugestão Bebas accent
- *    dominando, atual como referencia menor, CTA primary #E8500A
- *    "Aplicar sugestão" inconfundivel.
+ *    dominando, atual como referencia menor, CTA primary #E8500A.
+ *  - CTA honesto: "Vou aplicar este preço" abre o dialog com valor, data e
+ *    passo a passo; a Urban AI NÃO muda o preço no Airbnb. Só a confirmação
+ *    do preço que o anfitrião aplicou grava o resultado (precoAplicado).
+ *    No modo automático (Stays) o fluxo antigo de aceite é mantido.
  *  - "Registrar resultado" vira Drawer slide-in (campos respiram, nada
  *    cortado).
  *  - Cores semanticas via design system (success/warn/danger sutis).
@@ -77,6 +83,8 @@ interface EventCardProps {
   propertyId: string;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
   onChange?: (updated: EventItem) => void;
+  /** Força o modo automático (Stays). Sem valor, vem do perfil do usuário. */
+  staysAuto?: boolean;
 }
 
 const toNumber = (v: string | number | undefined): number => {
@@ -91,20 +99,17 @@ const formatBRL = (value: string | number | undefined): string => {
   if (value === undefined || value === null) return "";
   const n = typeof value === "string" ? toNumber(value) : value;
   if (!Number.isFinite(n)) return "";
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-    minimumFractionDigits: 0,
-  }).format(n as number);
+  return formatBrl(n as number);
 };
 
 export const EventCard: React.FC<EventCardProps> = ({
   ev,
   setIsLoading,
   onChange,
+  staysAuto,
 }) => {
   const toast = useToastCompat();
+  const isStaysAuto = useStaysAutoMode(staysAuto);
   const sugNum = toNumber(ev.precoSugerido);
   const atualNum = toNumber(ev.seuPrecoAtual);
 
@@ -112,6 +117,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   const [loadingSaving, setLoadingSaving] = useState(false);
   const [loadingAppliedPrice, setLoadingAppliedPrice] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [applyDialogOpen, setApplyDialogOpen] = useState(false);
 
   const [appliedPriceInput, setAppliedPriceInput] = useState(
     ev.precoAplicado ? String(ev.precoAplicado).replace(".", ",") : "",
@@ -183,6 +189,39 @@ export const EventCard: React.FC<EventCardProps> = ({
     }
   }
 
+  /** Ignorar: rejeita a sugestão (não é aplicação nem resultado). */
+  async function handleIgnore() {
+    setLoadingSaving(true);
+    setIsLoading(true);
+    try {
+      await alterarAceitoSugestao(ev.idAnalise, false);
+      onChange?.({ ...ev, aceito: false, status: "rejected" as const });
+      setAccepted(false);
+      toast("Sugestão ignorada.", { type: "info" });
+    } catch {
+      toast("Não foi possível ignorar a sugestão.", { type: "error" });
+    } finally {
+      setLoadingSaving(false);
+      setIsLoading(false);
+    }
+  }
+
+  /** Confirmação do dialog: grava o preço que o anfitrião diz ter aplicado. */
+  async function handleConfirmApplied(appliedPrice: number) {
+    await registrarPrecoAplicadoSugestao(ev.idAnalise, appliedPrice, "manual_dashboard");
+    setAccepted(true);
+    setApplyDialogOpen(false);
+    onChange?.({
+      ...ev,
+      aceito: true,
+      precoAplicado: appliedPrice,
+      aplicadoEm: new Date().toISOString(),
+      origemAplicacao: "manual_dashboard",
+      status: "applied_manual",
+    });
+    toast(`Preço aplicado registrado: ${formatBRL(appliedPrice)}`, { type: "success" });
+  }
+
   async function handleRegisterAppliedPrice() {
     const appliedPrice = toNumber(appliedPriceInput);
     if (!Number.isFinite(appliedPrice) || appliedPrice <= 0) {
@@ -246,6 +285,32 @@ export const EventCard: React.FC<EventCardProps> = ({
           ? "rejected"
           : "pending";
 
+  const hasApplied = cardStatus === "applied";
+  // Modo automático (Stays): mantém aceite/desfazer como antes. Fluxo manual:
+  // o anfitrião aplica no Airbnb e confirma o preço; "Ignorar" rejeita.
+  const primaryAction = isStaysAuto
+    ? accepted
+      ? handleCancel
+      : handleAccept
+    : () => setApplyDialogOpen(true);
+  const primaryLabel = isStaysAuto
+    ? accepted
+      ? "Desfazer aprovação"
+      : "Aplicar sugestão"
+    : accepted
+      ? "Informar preço aplicado"
+      : "Vou aplicar este preço";
+  const secondaryAction = isStaysAuto
+    ? accepted
+      ? () => setDrawerOpen(true)
+      : undefined
+    : hasApplied
+      ? () => setDrawerOpen(true)
+      : ev.status === "rejected"
+        ? undefined
+        : handleIgnore;
+  const secondaryLabel = !isStaysAuto && !hasApplied ? "Ignorar" : "Registrar resultado";
+
   return (
     <>
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -258,10 +323,10 @@ export const EventCard: React.FC<EventCardProps> = ({
           suggestedPrice={Number.isFinite(sugNum) ? sugNum : 0}
           reason={ev.motivo_ia ?? ev.recomendacao ?? undefined}
           status={cardStatus}
-          onPrimary={accepted ? handleCancel : handleAccept}
-          primaryLabel={accepted ? "Desfazer aprovação" : "Aplicar sugestão"}
-          onSecondary={accepted ? () => setDrawerOpen(true) : undefined}
-          secondaryLabel="Registrar resultado"
+          onPrimary={primaryAction}
+          primaryLabel={primaryLabel}
+          onSecondary={secondaryAction}
+          secondaryLabel={secondaryLabel}
           loading={loadingSaving}
           density="compact"
         />
@@ -284,6 +349,7 @@ export const EventCard: React.FC<EventCardProps> = ({
             }}
           >
             <Icons.Check size={12} /> Aplicado {formatBRL(ev.precoAplicado)}
+            {ev.origemAplicacao?.startsWith("manual") ? " (informado por você)" : ""}
           </div>
         )}
 
@@ -299,6 +365,20 @@ export const EventCard: React.FC<EventCardProps> = ({
           </div>
         )}
       </div>
+
+      {!isStaysAuto && (
+        <AplicarPrecoDialog
+          open={applyDialogOpen}
+          onClose={() => setApplyDialogOpen(false)}
+          onConfirm={handleConfirmApplied}
+          eventName={ev.nome}
+          eventStart={ev.dataInicio}
+          eventEnd={ev.dataFim}
+          suggestedPrice={Number.isFinite(sugNum) ? sugNum : 0}
+          currentPrice={Number.isFinite(atualNum) ? atualNum : undefined}
+          appliedPrice={ev.precoAplicado ? toNumber(ev.precoAplicado) : null}
+        />
+      )}
 
       {/* Drawer "Registrar resultado" — substitui o form inline cortado */}
       {drawerOpen && (

@@ -91,6 +91,7 @@ function fmtDate(value: string): string {
     const d = new Date(value);
     if (Number.isFinite(d.getTime())) {
       return d.toLocaleDateString("pt-BR", {
+        timeZone: "America/Sao_Paulo",
         day: "2-digit",
         month: "short",
         year: "numeric",
