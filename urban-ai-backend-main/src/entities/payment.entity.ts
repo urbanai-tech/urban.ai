@@ -65,6 +65,13 @@ export class Payment {
      * These fields keep a small per-customer replay window and the newest
      * event timestamp applied to this local billing projection.
      */
+    /**
+     * Momento em que o trial gratuito foi consumido por este usuário. Impede
+     * novo trial (checkout `plan: 'trial'`) após o primeiro.
+     */
+    @Column({ type: 'timestamp', nullable: true })
+    trialUsedAt: Date | null;
+
     @Column({ type: 'bigint', nullable: true })
     lastStripeEventCreated: string;
 
