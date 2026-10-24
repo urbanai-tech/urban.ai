@@ -2,6 +2,11 @@ import type { AppLoadingStep } from '../componentes/ui';
 
 export const TOTAL_STEPS = 5;
 
+export const QUOTA_UPSELL_PATH = '/plans?upsell=quota';
+
+export const isQuotaExceededError = (error: unknown) =>
+  (error as any)?.response?.data?.code === 'LISTINGS_QUOTA_EXCEEDED';
+
 export const quotaErrorMessage = (error: unknown, fallback: string) => {
   const data = (error as any)?.response?.data;
   if (data?.code === 'LISTINGS_QUOTA_EXCEEDED') {

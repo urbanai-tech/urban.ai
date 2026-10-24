@@ -8,9 +8,9 @@ export async function createCheckoutSession(
   planId: string,
   billingCycle: BillingCycle = 'monthly',
   quantity: number = 1,
-): Promise<{ sessionId: string }> {
+): Promise<{ sessionId: string; url?: string | null }> {
   try {
-    const { data } = await api.post<{ sessionId: string }>("/payments/create-checkout-session", {
+    const { data } = await api.post<{ sessionId: string; url?: string | null }>("/payments/create-checkout-session", {
       plan: planId,
       billingCycle,
       quantity,

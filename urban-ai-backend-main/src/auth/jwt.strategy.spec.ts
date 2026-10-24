@@ -80,14 +80,25 @@ describe('JwtStrategy', () => {
 
       expect(repo.findOne).toHaveBeenCalledWith({
         where: { id: 'user-id-1' },
-        select: ['id', 'username', 'role', 'ativo'],
+        select: ['id', 'username', 'role', 'ativo', 'emailVerifiedAt'],
       });
       expect(user).toEqual({
         userId: 'user-id-1',
         username: 'alice',
         role: 'host',
+        emailVerified: false,
         profile: { role: 'anfitriao' },
       });
+    });
+
+    it('exposes emailVerified=true when the user confirmed the e-mail', async () => {
+      const config = { get: jest.fn().mockReturnValue('secret') } as unknown as ConfigService;
+      const strategy = new JwtStrategy(
+        config,
+        userRepo({ id: 'u2', username: 'bob', role: 'host', ativo: true, emailVerifiedAt: new Date() }) as any,
+      );
+
+      await expect(strategy.validate({ sub: 'u2' })).resolves.toMatchObject({ emailVerified: true });
     });
 
     it('rejects inactive or missing users', async () => {

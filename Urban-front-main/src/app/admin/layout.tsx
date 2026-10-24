@@ -1,5 +1,6 @@
 import React from "react";
 import type { Metadata } from "next";
+import { AdminGate } from "./_components/AdminGate";
 import { AdminShell } from "./_components/AdminShell";
 import { AdminToastProvider } from "./_components/AdminToast";
 
@@ -19,6 +20,8 @@ export const metadata: Metadata = {
  * Layout admin — aplicado a TODAS as rotas /admin/*.
  *
  * Envolve com:
+ *  - AdminGate (confirma role=admin em /auth/me antes de montar o shell;
+ *    não-admin vai para /forbidden)
  *  - AdminShell (sidebar fixa + topbar + breadcrumb + busca seções + badge env)
  *  - AdminToastProvider (toast manager dark, substitui alert() nativo)
  *
@@ -35,7 +38,9 @@ export default function AdminLayout({
 }) {
   return (
     <AdminToastProvider>
-      <AdminShell>{children}</AdminShell>
+      <AdminGate>
+        <AdminShell>{children}</AdminShell>
+      </AdminGate>
     </AdminToastProvider>
   );
 }

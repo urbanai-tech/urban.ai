@@ -289,6 +289,25 @@ describe('EmailService public confirmation security', () => {
     expect(mailer.sendHtmlEmail).not.toHaveBeenCalled();
   });
 
+  it('verificarUserEmail só devolve ativo=true com conta ativa e e-mail verificado', async () => {
+    const { service, userRepository } = makeSecurityService();
+
+    userRepository.findOne.mockResolvedValue({ id: 'u1', ativo: true, emailVerifiedAt: null });
+    await expect(service.verificarUserEmail('u1', 'ana@example.com')).resolves.toEqual({
+      ativo: false,
+      emailVerified: false,
+    });
+
+    userRepository.findOne.mockResolvedValue({ id: 'u1', ativo: true, emailVerifiedAt: new Date() });
+    await expect(service.verificarUserEmail('u1', 'ana@example.com')).resolves.toEqual({
+      ativo: true,
+      emailVerified: true,
+    });
+
+    userRepository.findOne.mockResolvedValue({ id: 'u1', ativo: false, emailVerifiedAt: new Date() });
+    await expect(service.verificarUserEmail('u1', 'ana@example.com')).resolves.toMatchObject({ ativo: false });
+  });
+
   it('supports one-time verification of legacy plaintext and activates via the loaded owner', async () => {
     const { service, userRepository, confirmationRepository } = makeSecurityService();
     const user = { id: 'user-1', email: 'ana@example.com', ativo: false };
@@ -306,7 +325,7 @@ describe('EmailService public confirmation security', () => {
 
     await expect(service.confirmarEmail(user.email, '123456')).resolves.toEqual({ ok: true });
     expect(confirmation.confirmed).toBe(true);
-    expect(user).toMatchObject({ ativo: true });
+    expect(user).toMatchObject({ ativo: true, emailVerifiedAt: expect.any(Date) });
     expect(userRepository.save).toHaveBeenCalledWith(user);
   });
 

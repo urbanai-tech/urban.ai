@@ -4,6 +4,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  Optional,
   ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -16,6 +17,8 @@ import { User } from 'src/entities/user.entity';
 import { RefreshToken } from 'src/entities/refresh-token.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { PaymentsService } from 'src/payments/payments.service';
+import { StaysService } from 'src/stays/stays.service';
+import { TERMS_VERSION } from './terms.constants';
 
 const BCRYPT_ROUNDS = 12;
 const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
@@ -57,7 +60,8 @@ export class AuthService {
     private jwtService: JwtService,
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(RefreshToken) private refreshTokenRepository: Repository<RefreshToken>,
-    private readonly paymentsService: PaymentsService
+    private readonly paymentsService: PaymentsService,
+    @Optional() private readonly staysService?: StaysService,
   ) { }
 
   // ============ Tokens ============
@@ -244,7 +248,20 @@ export class AuthService {
     return safe;
   }
 
-  async register(data: { username: string; email: string; password: string }): Promise<SafeUser> {
+  async register(
+    data: {
+      username: string;
+      email: string;
+      password: string;
+      termsAccepted?: boolean;
+      termsVersion?: string;
+    },
+    /**
+     * Opções do servidor (nunca lidas do body): emailVerified = true quando o
+     * e-mail já foi comprovado por outro canal (convite da waitlist).
+     */
+    options?: { emailVerified?: boolean },
+  ): Promise<SafeUser> {
     // Verifica se e-mail já existe
     const existingUser = await this.userRepository.findOne({ where: { email: data.email } });
     if (existingUser) {
@@ -262,6 +279,13 @@ export class AuthService {
         password: pwdHash,
         role: 'host',
         ativo: true,
+        emailVerifiedAt: options?.emailVerified ? new Date() : null,
+        // Só registra aceite quando o cliente declarou E a versão é a vigente
+        // (o DTO já valida; aqui é defesa para chamadas internas).
+        termsAcceptedAt:
+          data.termsAccepted === true && data.termsVersion === TERMS_VERSION ? new Date() : null,
+        termsVersion:
+          data.termsAccepted === true && data.termsVersion === TERMS_VERSION ? TERMS_VERSION : null,
       });
       const savedUser = await this.userRepository.save(user);
       await this.paymentsService.createPayment(savedUser);
@@ -270,6 +294,96 @@ export class AuthService {
     } catch (error) {
       console.error('Erro ao registrar usuário:', error);
       throw new InternalServerErrorException('Falha no registro do usuário. Verifique com o suporte.');
+    }
+  }
+
+  /**
+   * Exclusão da própria conta (LGPD art. 18, VI). Ordem deliberada:
+   *  1. re-autentica (senha atual; conta Google confirma o próprio e-mail);
+   *  2. cancela assinatura Stripe ativa — se falhar, ABORTA (senão o titular
+   *     seria cobrado por uma conta que não existe mais);
+   *  3. desconecta a Stays (melhor esforço: o token também some no cascade);
+   *  4. revoga sessões e remove o usuário (cascades existentes, sem mudança).
+   */
+  async deleteOwnAccount(
+    userId: string,
+    credentials: { password?: string; confirmEmail?: string },
+  ): Promise<void> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      select: ['id', 'email', 'password', 'ativo'],
+    });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    await this.assertReauthentication(user, credentials);
+    await this.cancelActiveSubscriptionOrFail(userId);
+
+    try {
+      await this.staysService?.disconnectAccount(userId);
+    } catch (error) {
+      console.warn('Falha ao desconectar Stays na exclusão de conta (segue para o cascade):', error);
+    }
+
+    await this.revokeAllRefreshTokensForUser(userId);
+    await this.deleteUser(userId);
+  }
+
+  private async assertReauthentication(
+    user: Pick<User, 'email' | 'password'>,
+    credentials: { password?: string; confirmEmail?: string },
+  ): Promise<void> {
+    // 400 (e não 401/403) de propósito: o front trata 401/403 como sessão
+    // expirada/sem permissão e redirecionaria em vez de mostrar "senha incorreta".
+    if (user.password?.startsWith('google_')) {
+      const typed = credentials.confirmEmail?.trim().toLowerCase();
+      if (!typed || typed !== user.email.toLowerCase()) {
+        throw new BadRequestException({
+          code: 'INVALID_CONFIRMATION',
+          message: 'Digite o e-mail da conta para confirmar a exclusão.',
+        });
+      }
+      return;
+    }
+
+    if (!credentials.password) {
+      throw new BadRequestException({
+        code: 'PASSWORD_REQUIRED',
+        message: 'Informe sua senha atual para excluir a conta.',
+      });
+    }
+    const { ok } = await this.verifyPassword(credentials.password, user.password);
+    if (!ok) {
+      throw new BadRequestException({ code: 'INVALID_PASSWORD', message: 'Senha incorreta.' });
+    }
+  }
+
+  private async cancelActiveSubscriptionOrFail(userId: string): Promise<void> {
+    let subscription: { id?: string; status?: string } | null;
+    try {
+      subscription = await this.paymentsService.getSubscription(userId);
+    } catch (error) {
+      console.error('Falha ao consultar assinatura antes de excluir a conta:', error);
+      throw new ServiceUnavailableException({
+        code: 'SUBSCRIPTION_CHECK_FAILED',
+        message: 'Não conseguimos verificar sua assinatura agora. Tente novamente em instantes.',
+      });
+    }
+
+    const cancellable = ['active', 'trialing', 'past_due', 'unpaid', 'incomplete'];
+    const isLocalAlpha = String(subscription?.id ?? '').startsWith('alpha-');
+    if (!subscription || isLocalAlpha || !cancellable.includes(String(subscription.status))) return;
+
+    try {
+      await this.paymentsService.cancelSubscription(userId);
+    } catch (error) {
+      console.error('Falha ao cancelar assinatura antes de excluir a conta:', error);
+      throw new ServiceUnavailableException({
+        code: 'SUBSCRIPTION_CANCEL_FAILED',
+        message:
+          'Não conseguimos cancelar sua assinatura agora, então a conta não foi excluída. Tente novamente ou fale com o suporte.',
+      });
     }
   }
 
@@ -439,6 +553,8 @@ export class AuthService {
           username: verified.name,
           email: verified.email,
           password: googlePassword,
+          // Google só chega aqui com email_verified=true.
+          emailVerifiedAt: new Date(),
         });
 
         user = await this.userRepository.save(user);

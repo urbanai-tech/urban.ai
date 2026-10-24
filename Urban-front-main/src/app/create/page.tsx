@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import "../../../i18n";
 import { api } from "../service/api";
+import { marketingUrl } from "../lib/marketing-url";
+import { TERMS_VERSION } from "../lib/terms";
 import { usePrelaunch } from "../componentes/usePrelaunch";
 import { WaitlistSignup } from "../componentes/WaitlistSignup";
 import { AuthFlowShell } from "../componentes/AuthFlowShell";
@@ -66,6 +68,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   // Hooks SEMPRE no topo. Gating depois.
   const checks: PasswordChecks = useMemo(
@@ -97,8 +100,8 @@ const Register = () => {
 
   const canSubmit = useMemo(() => {
     const allRulesOk = Object.values(checks).every(Boolean);
-    return !loading && allRulesOk && match && !!email && !!username;
-  }, [checks, match, email, username, loading]);
+    return !loading && allRulesOk && match && !!email && !!username && acceptedTerms;
+  }, [checks, match, email, username, loading, acceptedTerms]);
 
   // F8: durante prelaunch, /create vira waitlist em vez de signup tradicional.
   if (prelaunchLoading) {
@@ -156,6 +159,8 @@ const Register = () => {
         email,
         username,
         password: hashedPassword,
+        termsAccepted: true,
+        termsVersion: TERMS_VERSION,
       });
 
       const { data: loginData } = await api.post<{ accessToken?: string }>("/auth/login", {
@@ -170,13 +175,14 @@ const Register = () => {
         localStorage.setItem("lastRegisterEmail", email);
       }
 
-      toast("Conta criada com sucesso! Carregando seu painel…", {
+      toast("Conta criada! Falta confirmar seu e-mail para continuar.", {
         type: "success",
       });
 
+      // E-mail precisa ser verificado antes do onboarding.
       setTimeout(() => {
-        router.push("/post-login");
-      }, 1500);
+        router.push(`/confirm-email/${encodeURIComponent(email)}`);
+      }, 1200);
     } catch (err: any) {
       toast.error(
         err.response?.data?.message || err.message || "Erro desconhecido.",
@@ -412,6 +418,35 @@ const Register = () => {
                 </strong>
               </p>
             </div>
+
+            <label className="funnel-terms">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                required
+                aria-required="true"
+              />
+              <span>
+                Li e aceito os{" "}
+                <a
+                  href={marketingUrl("/termos")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Termos de Uso
+                </a>{" "}
+                e a{" "}
+                <a
+                  href={marketingUrl("/privacidade")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Política de Privacidade
+                </a>
+                .
+              </span>
+            </label>
 
             <AppButton
               variant="primary"

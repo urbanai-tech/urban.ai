@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
+  BadRequestException,
   ConflictException,
   InternalServerErrorException,
   NotFoundException,
@@ -12,9 +13,11 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { AuthService } from './auth.service';
+import { TERMS_VERSION } from './terms.constants';
 import { User } from '../entities/user.entity';
 import { RefreshToken } from '../entities/refresh-token.entity';
 import { PaymentsService } from '../payments/payments.service';
+import { StaysService } from '../stays/stays.service';
 
 type Repo<T> = Partial<Record<keyof Repository<T>, jest.Mock>>;
 
@@ -23,7 +26,8 @@ describe('AuthService', () => {
   let userRepo: Repo<User>;
   let refreshRepo: Repo<RefreshToken>;
   let jwt: { sign: jest.Mock };
-  let payments: { createPayment: jest.Mock };
+  let payments: { createPayment: jest.Mock; getSubscription: jest.Mock; cancelSubscription: jest.Mock };
+  let stays: { disconnectAccount: jest.Mock };
 
   const sha256 = (s: string) => crypto.createHash('sha256').update(s).digest('hex');
 
@@ -46,7 +50,12 @@ describe('AuthService', () => {
       ),
     };
     jwt = { sign: jest.fn().mockReturnValue('signed.jwt.token') };
-    payments = { createPayment: jest.fn().mockResolvedValue(undefined) };
+    payments = {
+      createPayment: jest.fn().mockResolvedValue(undefined),
+      getSubscription: jest.fn().mockResolvedValue(null),
+      cancelSubscription: jest.fn().mockResolvedValue({ status: 'canceled' }),
+    };
+    stays = { disconnectAccount: jest.fn().mockResolvedValue(undefined) };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -55,6 +64,7 @@ describe('AuthService', () => {
         { provide: getRepositoryToken(User), useValue: userRepo },
         { provide: getRepositoryToken(RefreshToken), useValue: refreshRepo },
         { provide: PaymentsService, useValue: payments },
+        { provide: StaysService, useValue: stays },
       ],
     }).compile();
 
@@ -107,6 +117,82 @@ describe('AuthService', () => {
       );
       expect(userRepo.create).not.toHaveBeenCalledWith(
         expect.objectContaining({ arbitrary: expect.anything() }),
+      );
+    });
+
+    it('persiste termsAcceptedAt e termsVersion quando o aceite vigente é enviado', async () => {
+      userRepo.findOne!.mockResolvedValue(null);
+      userRepo.create!.mockImplementation((data) => data);
+      userRepo.save!.mockImplementation(async (data) => ({ id: 'new-id', ...data }));
+
+      await service.register({
+        username: 'u', email: 'new@test.com', password: 'minhasenha',
+        termsAccepted: true, termsVersion: TERMS_VERSION,
+      });
+
+      expect(userRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ termsAcceptedAt: expect.any(Date), termsVersion: TERMS_VERSION }),
+      );
+    });
+
+    it('não registra aceite sem declaração ou com versão diferente da vigente', async () => {
+      userRepo.findOne!.mockResolvedValue(null);
+      userRepo.create!.mockImplementation((data) => data);
+      userRepo.save!.mockImplementation(async (data) => ({ id: 'new-id', ...data }));
+
+      await service.register({ username: 'u', email: 'a@test.com', password: 'minhasenha' });
+      await service.register({
+        username: 'u', email: 'b@test.com', password: 'minhasenha',
+        termsAccepted: true, termsVersion: '1999-01-01',
+      });
+
+      for (const [created] of userRepo.create!.mock.calls) {
+        expect(created).toMatchObject({ termsAcceptedAt: null, termsVersion: null });
+      }
+    });
+
+    it('starts password sign-ups with an unverified e-mail', async () => {
+      userRepo.findOne!.mockResolvedValue(null);
+      userRepo.create!.mockImplementation((data) => data);
+      userRepo.save!.mockImplementation(async (data) => ({ id: 'new-id', ...data }));
+
+      await service.register({ username: 'u', email: 'new@test.com', password: 'minhasenha' });
+
+      expect(userRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ emailVerifiedAt: null }),
+      );
+    });
+
+    it('marks the e-mail as verified only when the server says so (waitlist invite)', async () => {
+      userRepo.findOne!.mockResolvedValue(null);
+      userRepo.create!.mockImplementation((data) => data);
+      userRepo.save!.mockImplementation(async (data) => ({ id: 'new-id', ...data }));
+
+      await service.register(
+        { username: 'u', email: 'invited@test.com', password: 'minhasenha' },
+        { emailVerified: true },
+      );
+
+      expect(userRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ emailVerifiedAt: expect.any(Date) }),
+      );
+    });
+
+    it('ignores an emailVerified flag smuggled into the request body', async () => {
+      userRepo.findOne!.mockResolvedValue(null);
+      userRepo.create!.mockImplementation((data) => data);
+      userRepo.save!.mockImplementation(async (data) => ({ id: 'new-id', ...data }));
+
+      await service.register({
+        username: 'u',
+        email: 'evil@test.com',
+        password: 'minhasenha',
+        emailVerified: true,
+        emailVerifiedAt: new Date(),
+      } as any);
+
+      expect(userRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ emailVerifiedAt: null }),
       );
     });
 
@@ -351,6 +437,116 @@ describe('AuthService', () => {
     });
   });
 
+  describe('deleteOwnAccount', () => {
+    const bcryptUser = async (extra: Record<string, unknown> = {}) => ({
+      id: 'owner-1',
+      email: 'owner@test.com',
+      password: await bcrypt.hash(sha256('Senha123!'), 4),
+      ativo: true,
+      ...extra,
+    });
+
+    it('rejects a wrong password before touching Stripe, Stays or the user row', async () => {
+      userRepo.findOne!.mockResolvedValue(await bcryptUser());
+
+      const error = await service.deleteOwnAccount('owner-1', { password: sha256('errada') }).catch((e) => e);
+
+      expect(error).toBeInstanceOf(BadRequestException);
+      expect(error.getResponse()).toMatchObject({ code: 'INVALID_PASSWORD' });
+      expect(payments.getSubscription).not.toHaveBeenCalled();
+      expect(payments.cancelSubscription).not.toHaveBeenCalled();
+      expect(stays.disconnectAccount).not.toHaveBeenCalled();
+      expect(userRepo.remove).not.toHaveBeenCalled();
+    });
+
+    it('requires a password for password accounts', async () => {
+      userRepo.findOne!.mockResolvedValue(await bcryptUser());
+
+      await expect(service.deleteOwnAccount('owner-1', {})).rejects.toBeInstanceOf(BadRequestException);
+      expect(userRepo.remove).not.toHaveBeenCalled();
+    });
+
+    it('cancels the active Stripe subscription, disconnects Stays and only then removes the user', async () => {
+      const user = await bcryptUser();
+      const order: string[] = [];
+      userRepo.findOne!
+        .mockResolvedValueOnce(user) // reautenticação
+        .mockResolvedValueOnce({ id: 'owner-1' }); // deleteUser
+      payments.getSubscription.mockResolvedValue({ id: 'sub_123', status: 'active' });
+      payments.cancelSubscription.mockImplementation(async () => { order.push('stripe'); });
+      stays.disconnectAccount.mockImplementation(async () => { order.push('stays'); });
+      userRepo.remove!.mockImplementation(async () => { order.push('remove'); });
+
+      await service.deleteOwnAccount('owner-1', { password: sha256('Senha123!') });
+
+      expect(payments.cancelSubscription).toHaveBeenCalledWith('owner-1');
+      expect(stays.disconnectAccount).toHaveBeenCalledWith('owner-1');
+      expect(refreshRepo.update).toHaveBeenCalled(); // sessões revogadas
+      expect(order).toEqual(['stripe', 'stays', 'remove']);
+    });
+
+    it('does not call Stripe when there is no subscription, it is already canceled, or it is a local alpha grant', async () => {
+      for (const subscription of [null, { id: 'sub_1', status: 'canceled' }, { id: 'alpha-owner-1', status: 'trialing' }]) {
+        jest.clearAllMocks();
+        userRepo.findOne!.mockResolvedValueOnce(await bcryptUser()).mockResolvedValueOnce({ id: 'owner-1' });
+        payments.getSubscription.mockResolvedValue(subscription);
+
+        await service.deleteOwnAccount('owner-1', { password: sha256('Senha123!') });
+
+        expect(payments.cancelSubscription).not.toHaveBeenCalled();
+        expect(userRepo.remove).toHaveBeenCalledTimes(1);
+      }
+    });
+
+    it('aborts without deleting when the Stripe cancellation fails (no billing for a deleted account)', async () => {
+      userRepo.findOne!.mockResolvedValue(await bcryptUser());
+      payments.getSubscription.mockResolvedValue({ id: 'sub_123', status: 'active' });
+      payments.cancelSubscription.mockRejectedValue(new Error('stripe down'));
+
+      const error = await service.deleteOwnAccount('owner-1', { password: sha256('Senha123!') }).catch((e) => e);
+
+      expect(error).toBeInstanceOf(ServiceUnavailableException);
+      expect(error.getResponse()).toMatchObject({ code: 'SUBSCRIPTION_CANCEL_FAILED' });
+      expect(userRepo.remove).not.toHaveBeenCalled();
+    });
+
+    it('aborts without deleting when the subscription cannot be checked', async () => {
+      userRepo.findOne!.mockResolvedValue(await bcryptUser());
+      payments.getSubscription.mockRejectedValue(new Error('network'));
+
+      await expect(service.deleteOwnAccount('owner-1', { password: sha256('Senha123!') }))
+        .rejects.toBeInstanceOf(ServiceUnavailableException);
+      expect(userRepo.remove).not.toHaveBeenCalled();
+    });
+
+    it('still deletes when the Stays disconnect fails (token is removed by the cascade)', async () => {
+      userRepo.findOne!.mockResolvedValueOnce(await bcryptUser()).mockResolvedValueOnce({ id: 'owner-1' });
+      stays.disconnectAccount.mockRejectedValue(new Error('stays down'));
+      jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      await service.deleteOwnAccount('owner-1', { password: sha256('Senha123!') });
+
+      expect(userRepo.remove).toHaveBeenCalledTimes(1);
+    });
+
+    it('lets Google-only accounts confirm by retyping their own e-mail', async () => {
+      const googleUser = { id: 'g-1', email: 'Owner@Test.com', password: 'google_abc', ativo: true };
+      userRepo.findOne!.mockResolvedValue(googleUser);
+
+      await expect(service.deleteOwnAccount('g-1', { confirmEmail: 'outro@test.com' }))
+        .rejects.toBeInstanceOf(BadRequestException);
+      expect(userRepo.remove).not.toHaveBeenCalled();
+
+      await service.deleteOwnAccount('g-1', { confirmEmail: ' owner@test.com ' });
+      expect(userRepo.remove).toHaveBeenCalledTimes(1);
+    });
+
+    it('fails closed when the user does not exist', async () => {
+      userRepo.findOne!.mockResolvedValue(null);
+      await expect(service.deleteOwnAccount('ghost', { password: 'x' })).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
   describe('googleLogin', () => {
     const originalGoogleClientId = process.env.GOOGLE_CLIENT_ID;
     const originalGoogleOauthClientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
@@ -443,7 +639,10 @@ describe('AuthService', () => {
         username: 'Owner Test',
         email: 'owner@test.com',
         password: expect.stringMatching(/^google_/),
+        emailVerifiedAt: expect.any(Date),
       });
+      // Login Google não passa por tela de aceite: termos ficam sem registro (null).
+      expect((userRepo.create as jest.Mock).mock.calls[0][0]).not.toHaveProperty('termsAcceptedAt');
       expect(payments.createPayment).toHaveBeenCalledWith(expect.objectContaining({ id: 'u-google' }));
       expect(result).toMatchObject({
         accessToken: 'signed.jwt.token',

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, HttpException, HttpStatus, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, Logger, HttpException, HttpStatus, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -377,7 +377,25 @@ export class ConnectService {
     }
   }
 
+  /**
+   * Exige e-mail verificado para cadastrar imóveis (onboarding). 403 com
+   * code EMAIL_NOT_VERIFIED: o front trata como negócio e leva à confirmação.
+   */
+  async assertEmailVerified(userId: string): Promise<void> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      select: ['id', 'emailVerifiedAt'],
+    });
+    if (!user?.emailVerifiedAt) {
+      throw new ForbiddenException({
+        code: 'EMAIL_NOT_VERIFIED',
+        message: 'Confirme seu e-mail para cadastrar imóveis.',
+      });
+    }
+  }
+
   async saveProperties(properties: List[], userId: string): Promise<List[]> {
+    await this.assertEmailVerified(userId);
     this.logger.debug(`saveProperties received count=${properties.length} for user=${userId}`);
     try {
       this.logger.log(
@@ -805,6 +823,7 @@ export class ConnectService {
     addresses: any[],
     userId: string
   ): Promise<Address[] | any[]> {
+    await this.assertEmailVerified(userId);
     return this.createMultipleAddressesWithScrapedInputs(addresses, userId);
 
     const address: Address[] | [] = addresses;

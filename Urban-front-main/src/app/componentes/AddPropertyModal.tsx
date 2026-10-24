@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { AppButton, AppLoadingStatus, useToastCompat, type AppLoadingStep } from './ui';
 import {
   getUserManagedListings,
@@ -73,6 +74,11 @@ type PendingPricingProperty = {
   provisionalDailyPrice?: number | null;
 };
 
+const QUOTA_UPSELL_PATH = '/plans?upsell=quota';
+
+const isQuotaExceededError = (error: unknown) =>
+  (error as any)?.response?.data?.code === 'LISTINGS_QUOTA_EXCEEDED';
+
 const quotaErrorMessage = (error: unknown, fallback: string) => {
   const data = (error as any)?.response?.data;
   if (data?.code === 'LISTINGS_QUOTA_EXCEEDED') {
@@ -89,6 +95,7 @@ const foundPropertiesLabel = (count: number) =>
 
 export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModalProps) {
   const toast = useToastCompat();
+  const router = useRouter();
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadStage, setLoadStage] = useState<PropertyLoadStage>('idle');
@@ -425,7 +432,13 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
     } catch (error) {
       console.error(error);
       setLoadStage('ready');
-      toast(quotaErrorMessage(error, "Não conseguimos registrar as propriedades agora. Tente novamente em alguns instantes."), { type: "error" });
+      if (isQuotaExceededError(error)) {
+        // Limite do plano: leva ao upsell em vez de tratar como erro genérico.
+        toast(quotaErrorMessage(error, "Você atingiu o limite de imóveis do seu plano."), { type: "warning" });
+        setTimeout(() => router.push(QUOTA_UPSELL_PATH), 1800);
+      } else {
+        toast(quotaErrorMessage(error, "Não conseguimos registrar as propriedades agora. Tente novamente em alguns instantes."), { type: "error" });
+      }
     } finally {
       setIsLoading(false);
     }

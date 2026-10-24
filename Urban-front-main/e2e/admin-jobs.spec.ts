@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { installLocalAuthFixture } from './local-auth-fixture';
 
 const now = '2026-05-15T12:00:00.000Z';
 
@@ -16,6 +17,9 @@ const historyRun = {
 
 test.describe('Admin jobs operations', () => {
   test('mostra readiness e executa geocoder com API mockada', async ({ page }) => {
+    // /admin agora exige role=admin em /auth/me (AdminGate). Rotas registradas
+    // depois desta têm precedência sobre as do fixture.
+    await installLocalAuthFixture(page, 'admin');
     let geocoderRunRequested = false;
 
     await page.route('**/events/geocoder/status', async (route) => {
