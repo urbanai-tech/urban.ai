@@ -319,7 +319,7 @@ export default function CollectorsHealthPage() {
         </section>
       )}
 
-      {/* === KPIs agregados === */
+      {/* === KPIs agregados === */}
       <section style={{ marginBottom: 56 }}>
         <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
           TOTAIS AGREGADOS
