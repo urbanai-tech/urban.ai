@@ -89,7 +89,7 @@
     "helmet": "^8.1.0",
     "ioredis": "^5.7.0",
     "ml-knn": "^3.0.0",
-    "multer": "^2.2.0",
+    "multer": "^2.5.0",
     "mysql2": "^3.19.1",
     "p-limit": "^6.2.0",
     "passport": "^0.7.0",
@@ -128,7 +128,8 @@
     "js-yaml": "4.3.2",
     "lodash": "4.18.1",
     "qs": "6.16.1",
-    "uuid": "$uuid"
+    "uuid": "$uuid",
+    "multer": "$multer"
   },
   "jest": {
     "moduleFileExtensions": [
