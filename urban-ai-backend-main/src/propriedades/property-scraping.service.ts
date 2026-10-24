@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { HTTP_TIMEOUT_MS } from '../common/http-timeouts';
 import { isEmptyScrapeSnapshot } from './scrape-snapshot.util';
+import { escapeHtml } from '../common/escape-html';
 import { Address } from 'src/entities/addresses.entity';
 import { Repository } from 'typeorm';
 import { List } from 'src/entities/list.entity';
@@ -328,7 +329,7 @@ export class PropertyScrapingService {
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                     <h2 style="color: #e74c3c;">⚠️ Ação Necessária: Hash do Airbnb Expirada</h2>
                     <p>O sistema My Urban detectou que a <strong>hash do GraphQL do Airbnb</strong> expirou
-                    (<code>${expiredHash?.substring(0, 16)}...</code>). A importação de imóveis por host está
+                    (<code>${escapeHtml(expiredHash?.substring(0, 16))}...</code>). A importação de imóveis por host está
                     temporariamente desabilitada.</p>
 
                     <h3>📋 Como Corrigir (30 segundos):</h3>

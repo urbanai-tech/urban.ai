@@ -115,3 +115,56 @@ describe('EmailTemplates - billing lifecycle', () => {
     expect(html).not.toContain('Eventos futuros e demanda local perto do imóvel');
   });
 });
+
+describe('EmailTemplates - escape de HTML em valores controlados pelo usuário', () => {
+  const evil = '<script>alert(1)</script>"\'';
+  const expectSafe = (html: string) => {
+    expect(html).not.toContain('<script>alert(1)</script>');
+    expect(html).toContain('&lt;script&gt;');
+  };
+
+  it('escapa nome/links em reset de senha, confirmação, boas-vindas e análise', () => {
+    expectSafe(EmailTemplates.getForgotPasswordTemplate(evil, 'https://x.test/a"><script>alert(1)</script>'));
+    expectSafe(EmailTemplates.getConfirmEmailTemplate(evil, '123456', 'https://x.test'));
+    expectSafe(EmailTemplates.getWelcomeTemplate(evil, 'https://x.test'));
+    expectSafe(EmailTemplates.getAnalysisStartedTemplate(evil, 'https://x.test'));
+    expectSafe(EmailTemplates.getAnalysisFinishedTemplate(evil, 'https://x.test'));
+  });
+
+  it('escapa nome nos e-mails de ciclo de vida e onboarding', () => {
+    expectSafe(
+      EmailTemplates.getQuotaWarningTemplate({ nome: evil, contratados: 5, ativos: 4, upgradeUrl: 'https://x.test' }),
+    );
+    expectSafe(
+      EmailTemplates.getOnboardingDay1Template({
+        nome: evil,
+        propertiesCount: 0,
+        dashboardUrl: 'https://x.test',
+        propertiesUrl: 'https://x.test',
+      }),
+    );
+    expectSafe(
+      EmailTemplates.getSubscriptionActiveTemplate({
+        nome: 'Ana',
+        planName: evil,
+        billingCycle: 'monthly',
+        listingsContratados: 1,
+        totalAmountCents: 1000,
+        nextBillingDate: '2026-01-01',
+        dashboardUrl: 'https://x.test',
+      }),
+    );
+  });
+
+  it('escapa título, nome, descrição e url da notificação de sistema', () => {
+    const html = EmailTemplates.getSystemNotificationTemplate(
+      evil,
+      evil,
+      `${evil}\nlinha 2`,
+      'https://x.test/?a="><script>',
+    );
+    expectSafe(html);
+    expect(html).toContain('<br/>');
+    expect(html).not.toContain('"><script>');
+  });
+});

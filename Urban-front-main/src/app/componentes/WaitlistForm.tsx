@@ -89,11 +89,13 @@ export function WaitlistForm({
           throw new Error(`HTTP ${res.status}`);
         }
       } else {
-        signupResult = await signupWaitlist({
+        const response = await signupWaitlist({
           email: trimmed,
           source: waitlistSource,
           referredBy,
         });
+        // E-mail já cadastrado: resposta genérica, sem posição.
+        signupResult = response.alreadyRegistered ? null : response;
       }
 
       setResult(signupResult);

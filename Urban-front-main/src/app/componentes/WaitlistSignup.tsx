@@ -99,6 +99,13 @@ export function WaitlistSignup({
         referredBy: referralCode ?? undefined,
       });
 
+      if (r.alreadyRegistered) {
+        setErrorMessage(
+          "Este e-mail já está na lista. Procure o e-mail de confirmação que enviamos: ele traz sua posição e seu link de indicação.",
+        );
+        return;
+      }
+
       setResult(r);
       if (typeof window !== "undefined") {
         window.localStorage.setItem(STORAGE_KEY, r.referralCode);

@@ -993,9 +993,20 @@ export const fetchPublicConfig = () =>
   api.get<PublicConfig>('/public-config').then((r) => r.data);
 
 export interface WaitlistSignupResult {
+  alreadyRegistered?: false;
   position: number;
   referralCode: string;
   aheadOfYou: number;
+  totalSignups: number;
+}
+
+/**
+ * Resposta genérica quando o e-mail já estava na lista: o backend NÃO devolve
+ * position/referralCode (evita vazar dados de terceiros). O dono encontra esses
+ * dados no e-mail de confirmação original.
+ */
+export interface WaitlistAlreadyRegistered {
+  alreadyRegistered: true;
   totalSignups: number;
 }
 
@@ -1014,7 +1025,7 @@ export const signupWaitlist = (input: {
   source?: string;
   referredBy?: string;
 }) =>
-  api.post<WaitlistSignupResult>('/waitlist', input).then((r) => r.data);
+  api.post<WaitlistSignupResult | WaitlistAlreadyRegistered>('/waitlist', input).then((r) => r.data);
 
 export const fetchWaitlistStatus = (referralCode: string) =>
   api
