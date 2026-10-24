@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import SubscriptionCards, { Subscription } from "../componentes/Subscription";
+import { useCheckoutReturnNotice } from "../componentes/useCheckoutReturnNotice";
 import {
   AppPageShell,
   AppSectionHeader,
@@ -27,6 +28,7 @@ function remainingQuota(quota: ListingsQuota) {
 export default function SubscriptionsPage() {
   const toast = useToastCompat();
   const router = useRouter();
+  useCheckoutReturnNotice("success");
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [quota, setQuota] = useState<ListingsQuota | null>(null);
   const [quotaError, setQuotaError] = useState<string | null>(null);

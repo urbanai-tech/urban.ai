@@ -8,6 +8,7 @@ import { AuthModule } from './auth.module';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { LocalAuthGuard } from './local-auth.guard';
 import { RegisterDto } from './register.dto';
+import { TERMS_VERSION } from './terms.constants';
 import { RolesGuard } from './roles.guard';
 import { PermissionsEnum } from './enuns/PermissionsEnum';
 import { situacoesEnum } from './enuns/situacoesEnum';
@@ -15,7 +16,7 @@ import { situacoesEnum } from './enuns/situacoesEnum';
 describe('Auth module and supporting contracts', () => {
   it('registers the expected controller, providers and exports', () => {
     expect(Reflect.getMetadata(MODULE_METADATA.CONTROLLERS, AuthModule)).toHaveLength(1);
-    expect(Reflect.getMetadata(MODULE_METADATA.PROVIDERS, AuthModule)).toHaveLength(4);
+    expect(Reflect.getMetadata(MODULE_METADATA.PROVIDERS, AuthModule)).toHaveLength(5);
     expect(Reflect.getMetadata(MODULE_METADATA.EXPORTS, AuthModule)).toHaveLength(2);
   });
 
@@ -117,15 +118,28 @@ describe('RegisterDto runtime validation', () => {
   it('accepts bounded optional acquisition fields', async () => {
     await expect(pipe.transform({
       username: 'Ana Maria', email: 'ana@test.com', password: 'Senha123!',
+      termsAccepted: true, termsVersion: TERMS_VERSION,
       source: 'landing', referredBy: 'friend-1',
     }, { type: 'body', metatype: RegisterDto })).resolves.toBeInstanceOf(RegisterDto);
   });
 
+  const valid = { username: 'Ana', email: 'ana@test.com', password: 'Senha123!' };
+
   it.each([
-    { username: 'A', email: 'ana@test.com', password: 'Senha123!' },
-    { username: 'Ana', email: 'invalid', password: 'Senha123!' },
-    { username: 'Ana', email: 'ana@test.com', password: 'short' },
-    { username: 'Ana', email: 'ana@test.com', password: 'Senha123!', source: 2 },
+    ['sem aceite', { ...valid, termsVersion: TERMS_VERSION }],
+    ['aceite false', { ...valid, termsAccepted: false, termsVersion: TERMS_VERSION }],
+    ['aceite como string', { ...valid, termsAccepted: 'true', termsVersion: TERMS_VERSION }],
+    ['sem versão', { ...valid, termsAccepted: true }],
+    ['versão antiga', { ...valid, termsAccepted: true, termsVersion: '2020-01-01' }],
+  ])('exige aceite dos termos na versão vigente (%s)', async (_label, input) => {
+    await expect(pipe.transform(input, { type: 'body', metatype: RegisterDto })).rejects.toBeDefined();
+  });
+
+  it.each([
+    { username: 'A', email: 'ana@test.com', password: 'Senha123!', termsAccepted: true, termsVersion: TERMS_VERSION },
+    { username: 'Ana', email: 'invalid', password: 'Senha123!', termsAccepted: true, termsVersion: TERMS_VERSION },
+    { username: 'Ana', email: 'ana@test.com', password: 'short', termsAccepted: true, termsVersion: TERMS_VERSION },
+    { username: 'Ana', email: 'ana@test.com', password: 'Senha123!', termsAccepted: true, termsVersion: TERMS_VERSION, source: 2 },
   ])('rejects malformed registration values', async (input) => {
     await expect(pipe.transform(input, { type: 'body', metatype: RegisterDto })).rejects.toBeDefined();
   });

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { Building2, Mail, MapPin, Phone, Save, ShieldCheck, UserRound } from 'lucide-react';
 import {
   AppBadge,
@@ -253,6 +254,19 @@ export default function ProfilePage() {
             onChange={(event) => setField('distanceKm', event.target.value.replace(/[^0-9,.]/g, ''))}
             helper="Distância em quilômetros para procurar eventos próximos quando a tela permitir filtro automático."
           />
+        </div>
+      </AppCard>
+
+      <AppCard variant="default">
+        <div className="profile-card-title">
+          <ShieldCheck size={20} />
+          <div>
+            <h2>Privacidade e dados</h2>
+            <p>
+              Exporte uma cópia dos seus dados ou exclua sua conta.{' '}
+              <Link href="/settings/privacy">Abrir privacidade e dados</Link>
+            </p>
+          </div>
         </div>
       </AppCard>
 

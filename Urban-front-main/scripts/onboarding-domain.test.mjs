@@ -78,6 +78,13 @@ test("mensagem de quota usa detalhe da API e preserva fallback genérico", () =>
   assert.equal(domain.quotaErrorMessage(new Error("offline"), "Falha genérica"), "Falha genérica");
 });
 
+test("isQuotaExceededError identifica somente o code de quota", () => {
+  assert.equal(domain.isQuotaExceededError({ response: { data: { code: "LISTINGS_QUOTA_EXCEEDED" } } }), true);
+  assert.equal(domain.isQuotaExceededError({ response: { data: { code: "OUTRO" } } }), false);
+  assert.equal(domain.isQuotaExceededError(new Error("offline")), false);
+  assert.equal(domain.QUOTA_UPSELL_PATH, "/plans?upsell=quota");
+});
+
 test("presets preservam estratégia recomendada e modo autônomo sem teto", () => {
   assert.deepEqual(
     { inicial: domain.PRICING_PRESETS.balanced.inicial, final: domain.PRICING_PRESETS.balanced.final },

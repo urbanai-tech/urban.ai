@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Mail, RefreshCw } from 'lucide-react';
 import { AuthFlowShell } from '@/app/componentes/AuthFlowShell';
 import { AppButton, AppCard, Icons, useToastCompat } from '@/app/componentes/ui';
+import { marketingUrl } from '@/app/lib/marketing-url';
 import { confirmarEmail, enviarCodigo, getProfile } from '@/app/service/api';
 
 const CODE_LENGTH = 6;
@@ -270,7 +271,7 @@ export default function EmailConfirmation() {
             Não recebeu o código? Verifique sua pasta de spam ou{" "}
             <button
               type="button"
-              onClick={() => router.push('/suporte')}
+              onClick={() => window.location.assign(marketingUrl('/contato'))}
               style={{
                 border: "none",
                 background: "transparent",

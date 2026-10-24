@@ -1,7 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { installLocalAuthFixture } from './local-auth-fixture';
 
 test.describe('Admin quality occupancy', () => {
   test('registra ocupacao manual com API mockada', async ({ page }) => {
+    // /admin agora exige role=admin em /auth/me (AdminGate).
+    await installLocalAuthFixture(page, 'admin');
     let manualPayload: any = null;
     let coverageCalls = 0;
 

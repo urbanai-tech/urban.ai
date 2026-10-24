@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { api } from '../service/api'
+import { invalidateAuthCache, invalidateSubscriptionCache } from './subscription-status'
 
 declare module "next-auth" {
   interface Session {
@@ -98,6 +99,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error('Erro ao encerrar sessão no backend:', error)
     }
     localStorage.removeItem('accessToken')
+    invalidateAuthCache()
+    invalidateSubscriptionCache()
     setIsAuthenticated(false)
 
     signOut({ redirect: false }).then(() => {

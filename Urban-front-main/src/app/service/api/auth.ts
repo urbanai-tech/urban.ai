@@ -1,4 +1,19 @@
 import { api } from "./client";
+import { sha256Hex } from "../../lib/account-privacy";
+
+/** LGPD: pacote JSON com os dados do próprio titular (GET /auth/me/export). */
+export async function exportMyData(): Promise<Record<string, unknown>> {
+  const { data } = await api.get<Record<string, unknown>>("/auth/me/export");
+  return data;
+}
+
+/**
+ * LGPD: exclui a própria conta (DELETE /auth/me). Exige a senha atual, no mesmo
+ * formato do login (SHA-256 hex). O backend cancela a assinatura Stripe antes.
+ */
+export async function deleteMyAccount(password: string): Promise<void> {
+  await api.delete("/auth/me", { data: { password: await sha256Hex(password) } });
+}
 
 
 export const forgotPassword = async (email: string) => {

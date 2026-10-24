@@ -209,8 +209,11 @@ export class EmailService {
             });
 
             //console.log(usuario)
-            const ativo = usuario?.ativo;
-            return { ativo: Boolean(ativo) };
+            // O login usa `ativo` deste retorno para decidir entre /post-login e a
+            // confirmação de e-mail: só segue quando conta ativa E e-mail verificado.
+            const verificado = Boolean(usuario?.emailVerifiedAt);
+            const ativo = Boolean(usuario?.ativo) && verificado;
+            return { ativo, emailVerified: verificado };
         } catch (error) {
             console.error('Erro ao processar forgotPassword:', error);
             if (error.response && error.response.body) {
@@ -359,6 +362,7 @@ export class EmailService {
             await this.emailConfirmationRepository.save(confirmation);
 
             usuario.ativo = true;
+            usuario.emailVerifiedAt = usuario.emailVerifiedAt ?? new Date();
             await this.userRepository.save(usuario);
 
             this.logger.log(`E-mail confirmado com sucesso para ${this.maskEmail(email)}`);

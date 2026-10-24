@@ -17,7 +17,9 @@ const contracts = [
     file: 'src/auth/auth.controller.ts',
     checks: [
       ['self-delete requires JWT', /@UseGuards\(JwtAuthGuard\)\s*@Delete\('me'\)/],
-      ['self-delete derives id from principal', /deleteUser\(req\.user\?\.userId\)/],
+      ['self-delete derives id from principal', /deleteOwnAccount\(req\.user\?\.userId,/],
+      ['self-export requires JWT', /@UseGuards\(JwtAuthGuard\)\s*@Get\('me\/export'\)/],
+      ['self-export derives id from principal', /exportUserData\(req\.user\?\.userId\)/],
       ['admin delete requires JWT and RBAC', /@UseGuards\(JwtAuthGuard, RolesGuard\)\s*@Roles\('admin'\)\s*@Delete\(':id'\)/],
       ['cross-user lookup checks owner or admin', /requester\?\.userId !== id && requester\?\.role !== 'admin'/],
     ],
@@ -25,6 +27,7 @@ const contracts = [
   {
     file: 'src/auth/auth.service.ts',
     checks: [
+      ['self-delete re-authenticates before any destructive step', /assertReauthentication\(user, credentials\);\s*await this\.cancelActiveSubscriptionOrFail\(userId\);[\s\S]{0,600}await this\.deleteUser\(userId\)/],
       ['delete loads exact user id', /findOne\(\{ where: \{ id: userId \} \}\)/],
       ['missing user fails closed', /if \(!user\)[\s\S]{0,100}NotFoundException/],
       ['delete delegates to repository remove', /userRepository\.remove\(user\)/],

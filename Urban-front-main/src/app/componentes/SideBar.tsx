@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../service/api';
+import { invalidateAuthCache, invalidateSubscriptionCache } from '../context/subscription-status';
 import { setSentryUser, clearSentryUser, trackEvent } from '../service/tracking';
 import { ThemeToggle } from './theme/ThemeToggle';
 import '../../../i18n';
@@ -115,6 +116,8 @@ export default function SideBar() {
       /* never block logout */
     }
     localStorage.removeItem('accessToken');
+    invalidateAuthCache();
+    invalidateSubscriptionCache();
     router.push('/');
   }
 
