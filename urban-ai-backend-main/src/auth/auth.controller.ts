@@ -218,6 +218,8 @@ export class AuthController {
         username: data.username?.trim() || entry.name || entry.email.split('@')[0],
         email: entry.email,
         password: data.password,
+        termsAccepted: data.termsAccepted,
+        termsVersion: data.termsVersion,
       },
       { emailVerified: true }, // o convite foi entregue no próprio e-mail
     );

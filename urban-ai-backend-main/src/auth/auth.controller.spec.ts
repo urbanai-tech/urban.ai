@@ -11,6 +11,7 @@ import { GUARDS_METADATA } from '@nestjs/common/constants';
 import { AuthController } from './auth.controller';
 import { ROLES_KEY } from './roles.decorator';
 import { RegisterDto } from './register.dto';
+import { TERMS_VERSION } from './terms.constants';
 
 const sha256 = (value: string) => crypto.createHash('sha256').update(value).digest('hex');
 
@@ -221,7 +222,7 @@ describe('AuthController', () => {
 
       await expect(
         controller.register(
-          { username: 'Ana', email: 'ana@test.com', password: 'Senha123!' },
+          { username: 'Ana', email: 'ana@test.com', password: 'Senha123!', termsAccepted: true, termsVersion: TERMS_VERSION },
           { headers: {} } as any,
         ),
       ).resolves.toEqual({ mode: 'registered', user: { id: 'u1' } });
@@ -241,7 +242,7 @@ describe('AuthController', () => {
 
       await expect(
         controller.register(
-          { username: 'Ana', email: 'ana@test.com', password: 'Senha123!' },
+          { username: 'Ana', email: 'ana@test.com', password: 'Senha123!', termsAccepted: true, termsVersion: TERMS_VERSION },
           { headers, ip: '127.0.0.1' } as any,
         ),
       ).resolves.toEqual({ mode: 'waitlist', position: 2 });

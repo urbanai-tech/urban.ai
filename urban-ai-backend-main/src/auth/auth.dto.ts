@@ -1,5 +1,7 @@
 import { Type } from 'class-transformer';
 import {
+  Equals,
+  IsBoolean,
   IsEmail,
   IsIn,
   IsNumber,
@@ -12,6 +14,7 @@ import {
   MinLength,
   ValidateIf,
 } from 'class-validator';
+import { TERMS_VERSION } from './terms.constants';
 
 export class AcceptWaitlistInviteDto {
   @IsString() @Matches(/^[a-f0-9]{64}$/i)
@@ -22,6 +25,13 @@ export class AcceptWaitlistInviteDto {
 
   @IsString() @MinLength(8) @MaxLength(128)
   password!: string;
+
+  /** Aceite dos Termos na tela de convite (opcional enquanto o front não envia). */
+  @IsOptional() @IsBoolean() @Equals(true)
+  termsAccepted?: boolean;
+
+  @IsOptional() @IsString() @Equals(TERMS_VERSION)
+  termsVersion?: string;
 }
 
 export class LoginDto {

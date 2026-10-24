@@ -12,6 +12,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { AuthService } from './auth.service';
+import { TERMS_VERSION } from './terms.constants';
 import { User } from '../entities/user.entity';
 import { RefreshToken } from '../entities/refresh-token.entity';
 import { PaymentsService } from '../payments/payments.service';
@@ -108,6 +109,37 @@ describe('AuthService', () => {
       expect(userRepo.create).not.toHaveBeenCalledWith(
         expect.objectContaining({ arbitrary: expect.anything() }),
       );
+    });
+
+    it('persiste termsAcceptedAt e termsVersion quando o aceite vigente é enviado', async () => {
+      userRepo.findOne!.mockResolvedValue(null);
+      userRepo.create!.mockImplementation((data) => data);
+      userRepo.save!.mockImplementation(async (data) => ({ id: 'new-id', ...data }));
+
+      await service.register({
+        username: 'u', email: 'new@test.com', password: 'minhasenha',
+        termsAccepted: true, termsVersion: TERMS_VERSION,
+      });
+
+      expect(userRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ termsAcceptedAt: expect.any(Date), termsVersion: TERMS_VERSION }),
+      );
+    });
+
+    it('não registra aceite sem declaração ou com versão diferente da vigente', async () => {
+      userRepo.findOne!.mockResolvedValue(null);
+      userRepo.create!.mockImplementation((data) => data);
+      userRepo.save!.mockImplementation(async (data) => ({ id: 'new-id', ...data }));
+
+      await service.register({ username: 'u', email: 'a@test.com', password: 'minhasenha' });
+      await service.register({
+        username: 'u', email: 'b@test.com', password: 'minhasenha',
+        termsAccepted: true, termsVersion: '1999-01-01',
+      });
+
+      for (const [created] of userRepo.create!.mock.calls) {
+        expect(created).toMatchObject({ termsAcceptedAt: null, termsVersion: null });
+      }
     });
 
     it('starts password sign-ups with an unverified e-mail', async () => {
@@ -490,6 +522,8 @@ describe('AuthService', () => {
         password: expect.stringMatching(/^google_/),
         emailVerifiedAt: expect.any(Date),
       });
+      // Login Google não passa por tela de aceite: termos ficam sem registro (null).
+      expect((userRepo.create as jest.Mock).mock.calls[0][0]).not.toHaveProperty('termsAcceptedAt');
       expect(payments.createPayment).toHaveBeenCalledWith(expect.objectContaining({ id: 'u-google' }));
       expect(result).toMatchObject({
         accessToken: 'signed.jwt.token',

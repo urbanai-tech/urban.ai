@@ -99,4 +99,15 @@ export class User {
    */
   @Column({ type: 'timestamp', name: 'email_verified_at', nullable: true, default: null })
   emailVerifiedAt: Date | null;
+
+  /**
+   * Aceite dos Termos de Uso/Privacidade no cadastro (prova de consentimento).
+   * null = não registrado (contas anteriores ao campo e logins Google, que
+   * ainda não passam por tela de aceite).
+   */
+  @Column({ type: 'timestamp', name: 'terms_accepted_at', nullable: true, default: null })
+  termsAcceptedAt: Date | null;
+
+  @Column({ type: 'varchar', length: 32, name: 'terms_version', nullable: true, default: null })
+  termsVersion: string | null;
 }

@@ -16,6 +16,7 @@ import { User } from 'src/entities/user.entity';
 import { RefreshToken } from 'src/entities/refresh-token.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { PaymentsService } from 'src/payments/payments.service';
+import { TERMS_VERSION } from './terms.constants';
 
 const BCRYPT_ROUNDS = 12;
 const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
@@ -245,7 +246,13 @@ export class AuthService {
   }
 
   async register(
-    data: { username: string; email: string; password: string },
+    data: {
+      username: string;
+      email: string;
+      password: string;
+      termsAccepted?: boolean;
+      termsVersion?: string;
+    },
     /**
      * Opções do servidor (nunca lidas do body): emailVerified = true quando o
      * e-mail já foi comprovado por outro canal (convite da waitlist).
@@ -270,6 +277,12 @@ export class AuthService {
         role: 'host',
         ativo: true,
         emailVerifiedAt: options?.emailVerified ? new Date() : null,
+        // Só registra aceite quando o cliente declarou E a versão é a vigente
+        // (o DTO já valida; aqui é defesa para chamadas internas).
+        termsAcceptedAt:
+          data.termsAccepted === true && data.termsVersion === TERMS_VERSION ? new Date() : null,
+        termsVersion:
+          data.termsAccepted === true && data.termsVersion === TERMS_VERSION ? TERMS_VERSION : null,
       });
       const savedUser = await this.userRepository.save(user);
       await this.paymentsService.createPayment(savedUser);
