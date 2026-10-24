@@ -28,6 +28,7 @@ import {
   PricingRuleConfigItem,
   PricingRuleType,
 } from '../entities/pricing-rule-config.entity';
+import { DEFAULT_PRICING_RULES } from '../knn-engine/pricing-rules';
 import { Payment } from '../entities/payment.entity';
 import { User } from '../entities/user.entity';
 import {
@@ -100,64 +101,8 @@ const PRICING_RULE_TYPES: PricingRuleType[] = [
   'event_uplift',
 ];
 
-const DEFAULT_PRICING_RULES: PricingRuleConfigItem[] = [
-  {
-    type: 'weekend_uplift',
-    enabled: true,
-    params: { percent: 15 },
-    label: 'Uplift de fim de semana',
-    description: 'Aumenta o preço base em sexta e sábado, quando a demanda costuma ser maior.',
-  },
-  {
-    type: 'weekday_discount',
-    enabled: true,
-    params: { percent: -8 },
-    label: 'Desconto em dias úteis lentos',
-    description: 'Aplica desconto suave em segunda, terça e quarta para puxar reservas.',
-  },
-  {
-    type: 'gap_night_filler',
-    enabled: true,
-    params: { percent: -20, maxNights: 2 },
-    label: 'Preenchimento de lacunas',
-    description: 'Reduz o preço quando há lacunas curtas entre noites reservadas.',
-  },
-  {
-    type: 'last_minute',
-    enabled: true,
-    params: { percent: -12, daysBefore: 3 },
-    label: 'Última hora',
-    description: 'Baixa o preço quando a data está muito próxima e ainda sem reserva registrada.',
-  },
-  {
-    type: 'length_of_stay',
-    enabled: false,
-    params: { percent: -10, minNights: 7 },
-    label: 'Desconto para estadia longa',
-    description: 'Regra por reserva; não altera o preview diário isolado.',
-  },
-  {
-    type: 'min_stay_dynamic',
-    enabled: false,
-    params: { baseMinNights: 2, highMinNights: 3, occupancyThreshold: 70 },
-    label: 'Estadia mínima dinâmica',
-    description: 'Regra operacional de mínimo de noites; não altera preço no preview.',
-  },
-  {
-    type: 'occupancy_floor',
-    enabled: true,
-    params: { minPrice: 180 },
-    label: 'Piso de preço',
-    description: 'Impede que regras combinadas baixem o preço abaixo do piso definido.',
-  },
-  {
-    type: 'event_uplift',
-    enabled: true,
-    params: { percent: 25, radiusKm: 3 },
-    label: 'Uplift por evento de alto impacto',
-    description: 'Aumenta o preço quando há evento relevante perto do imóvel.',
-  },
-];
+// DEFAULT_PRICING_RULES agora vem de knn-engine/pricing-rules.ts (fonte única
+// para o preview do painel e para o motor de pricing v2).
 
 @Injectable()
 export class HostPanelsService {

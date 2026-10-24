@@ -1,4 +1,4 @@
-import { BadRequestException, forwardRef, HttpException, HttpStatus, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, forwardRef, HttpException, HttpStatus, Inject, Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { Address } from 'src/entities/addresses.entity';
@@ -23,11 +23,17 @@ import dayjs from 'dayjs';
 import { addDays, startOfDay, startOfMonth } from 'date-fns';
 import { CreateNotificationDto } from 'src/notifications/tdo/create-notification.dto';
 import { UrbanAIPricingEngine } from '../knn-engine/pricing-engine';
+import { PropertyClassifier } from '../knn-engine/knn-classifier';
+import { deriveKnnLabels } from '../knn-engine/knn-labels';
+import { resolvePricingEngineMode } from '../knn-engine/pricing-engine-v2';
 import { DatasetCollectorService } from '../knn-engine/dataset-collector.service';
 import { PricingInputHistory } from 'src/entities/pricing-input-history.entity';
 import { PricingGuardrailService } from './pricing-guardrail.service';
 import { MailerService } from 'src/mailer/mailer.service';
 import { OccupancyHistory } from 'src/entities/occupancy-history.entity';
+import { PricingRuleConfig } from 'src/entities/pricing-rule-config.entity';
+import { addDaysToDateKey, toDayKey } from '../common/sp-date';
+import type { PricingContextV2 } from '../knn-engine/pricing-engine-v2';
 import { AirbnbListingMetadataService } from './airbnb-listing-metadata.service';
 import {
     PublicListResponse,
@@ -125,6 +131,9 @@ export class PropriedadeService {
         private readonly datasetCollector: DatasetCollectorService,
         private readonly pricingGuardrailService: PricingGuardrailService,
         private readonly airbnbListingMetadataService: AirbnbListingMetadataService,
+        @Optional()
+        @InjectRepository(PricingRuleConfig)
+        private readonly pricingRuleConfigRepository?: Repository<PricingRuleConfig>,
     ) { }
 
     async findByUserId(
@@ -2104,9 +2113,21 @@ export class PropriedadeService {
                         metroDistance: 0.8, // Estimativa fixa caso não haja Map API instanciada
                         amenitiesCount: c.bedrooms || 1,
                         // Label: Se é muito parecido (score alto), é premium(2), senao standard(1) ou economico(0)
-                        category: c.similarity_score >= 0.8 ? 2 : (c.similarity_score >= 0.5 ? 1 : 0)
+                        category: c.similarity_score >= 0.8 ? 2 : (c.similarity_score >= 0.5 ? 1 : 0),
+                        // Insumo do rótulo v2 (ADR relativo aos comps — ver knn-engine/knn-labels.ts).
+                        adr: Number(c.avg_booked_daily_rate_ltm) > 0 ? Number(c.avg_booked_daily_rate_ltm) : null,
                     }));
-                    this.aiEngine.initialize(treinamentoLocal);
+                    const { labels: rotulosV2 } = deriveKnnLabels(treinamentoLocal);
+                    treinamentoLocal.forEach((row: any, i: number) => {
+                        row.derivedCategory = rotulosV2[i].category;
+                    });
+                    // Classificador LOCAL por análise: antes este treino sobrescrevia o
+                    // modelo compartilhado do motor (singleton), apagando o treino do
+                    // bootstrap e criando corrida entre análises simultâneas. O modelo
+                    // legado treinado aqui é idêntico ao anterior, então o v1 não muda.
+                    const classificadorLocal = new PropertyClassifier();
+                    classificadorLocal.train(treinamentoLocal);
+                    const pricingMode = resolvePricingEngineMode();
 
                     const minhaPropParaIA = {
                         id: property.id, lat: address.latitude, lng: address.longitude,
@@ -2120,12 +2141,39 @@ export class PropriedadeService {
                         name: evento.nome || "Evento", lat: evento.latitude, lng: evento.longitude
                     };
 
-                    const prediCaaaoIA = await this.aiEngine.suggestPrice(minhaPropParaIA, eventoParaIA, Number(minhaPropriedadePricePerDay));
+                    const contextoV2 = pricingMode === 'v1'
+                        ? {}
+                        : await this.loadPricingContextV2(address, evento.dataInicio);
+                    const prediCaaaoIA = await this.aiEngine.suggestPrice(minhaPropParaIA, eventoParaIA, Number(minhaPropriedadePricePerDay), {
+                        ...contextoV2,
+                        classifier: classificadorLocal,
+                        eventV2: {
+                            ...eventoParaIA,
+                            relevancia: evento.relevancia,
+                            venueCapacity: evento.venueCapacity,
+                            expectedAttendance: evento.expectedAttendance,
+                            dataInicio: evento.dataInicio,
+                        },
+                        targetDate: evento.dataInicio,
+                        distanceKm: Number(distanceFromMyPropertyToEvent),
+                        guardrail: {
+                            maxDecreasePercent: pricingGuardrail.maxReducaoPercent,
+                            maxIncreasePercent: pricingGuardrail.maxAumentoPercent,
+                        },
+                    });
 
                     if(prediCaaaoIA && prediCaaaoIA.suggestedPrice) {
-                        precoFinalSugerido = Math.max(prediCaaaoIA.suggestedPrice, result.precoSugerido); // Mantém o melhor dos dois mundos pro cliente (maior lucro)
+                        precoFinalSugerido = pricingMode === 'v2'
+                            // v2: média do cálculo ancorado no mercado com o motor v2 — ambos podem
+                            // ficar abaixo da base; o antigo Math.max impedia qualquer redução.
+                            ? Number(((prediCaaaoIA.suggestedPrice + result.precoSugerido) / 2).toFixed(2))
+                            : Math.max(prediCaaaoIA.suggestedPrice, result.precoSugerido); // v1: maior dos dois (só sobe)
                         percentualFinal = Number((((precoFinalSugerido - result.seuPrecoAtual) / result.seuPrecoAtual) * 100).toFixed(1));
-                        recomendacaoFinal = (percentualFinal > 0) ? "Aumento de Receita Sugerido (IA)" : "Manutenção de Fator de Ocupação (IA)";
+                        recomendacaoFinal = (percentualFinal > 0)
+                            ? "Aumento de Receita Sugerido (IA)"
+                            : (pricingMode === 'v2' && percentualFinal < -5)
+                                ? "Redução Sugerida para Ocupação (IA)"
+                                : "Manutenção de Fator de Ocupação (IA)";
                         motivoDaIA = prediCaaaoIA.details.reasoning;
                         console.log(`🤖 IA KNN Ativada! Predição original KNN: R$${prediCaaaoIA.suggestedPrice} (+${percentualFinal}%). Motivo: ${motivoDaIA}`);
                     }
@@ -2231,6 +2279,43 @@ export class PropriedadeService {
                 reason: err instanceof Error ? err.message : String(err),
             };
         }
+    }
+
+    /**
+     * Contexto do motor v2: regras do imóvel (`PricingRuleConfig`; sem config →
+     * defaults do painel) e ocupação da noite e vizinhas (`OccupancyHistory`).
+     * Best-effort: qualquer falha devolve contexto vazio (v2 usa defaults).
+     */
+    private async loadPricingContextV2(address: Address, targetDate: unknown): Promise<PricingContextV2> {
+        const context: PricingContextV2 = {};
+        try {
+            const config = await this.pricingRuleConfigRepository?.findOne({ where: { address: { id: address.id } } });
+            if (Array.isArray(config?.rules)) context.rules = config.rules;
+        } catch (err) {
+            this.logger.warn(`Regras de pricing indisponíveis para address=${address.id}: ${(err as Error).message}`);
+        }
+        const dateKey = toDayKey(targetDate as any);
+        const listId = address.list?.id;
+        if (dateKey && listId && this.occupancyHistoryRepository) {
+            try {
+                const rows = await this.occupancyHistoryRepository.find({
+                    where: {
+                        list: { id: listId },
+                        date: Between(addDaysToDateKey(dateKey, -1), addDaysToDateKey(dateKey, 1)),
+                    } as any,
+                });
+                const booked = (key: string) =>
+                    rows.some((r) => String(r.date).slice(0, 10) === key && r.status === 'booked');
+                context.occupancy = {
+                    prevNightBooked: booked(addDaysToDateKey(dateKey, -1)),
+                    targetNightBooked: booked(dateKey),
+                    nextNightBooked: booked(addDaysToDateKey(dateKey, 1)),
+                };
+            } catch (err) {
+                this.logger.warn(`Ocupação indisponível para list=${listId}: ${(err as Error).message}`);
+            }
+        }
+        return context;
     }
 
     private async buildDirectScrapingComps(
