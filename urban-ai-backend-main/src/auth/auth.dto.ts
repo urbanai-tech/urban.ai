@@ -34,6 +34,16 @@ export class AcceptWaitlistInviteDto {
   termsVersion?: string;
 }
 
+export class DeleteAccountDto {
+  /** Senha atual (re-autenticação). Mesmo formato aceito no login. */
+  @IsOptional() @IsString() @MinLength(1) @MaxLength(128)
+  password?: string;
+
+  /** Só para contas sem senha (login Google): o titular redigita o próprio e-mail. */
+  @IsOptional() @IsEmail() @MaxLength(254)
+  confirmEmail?: string;
+}
+
 export class LoginDto {
   @IsEmail() @MaxLength(254)
   email!: string;

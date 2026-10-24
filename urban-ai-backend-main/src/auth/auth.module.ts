@@ -12,13 +12,31 @@ import { User } from 'src/entities/user.entity';
 import { RefreshToken } from 'src/entities/refresh-token.entity';
 import { PaymentsModule } from 'src/payments/payments.module';
 import { WaitlistModule } from 'src/waitlist/waitlist.module';
+import { StaysModule } from 'src/stays/stays.module';
+import { AccountDataService } from './account-data.service';
+import { List } from 'src/entities/list.entity';
+import { Address } from 'src/entities/addresses.entity';
+import { AnalisePreco } from 'src/entities/AnalisePreco';
+import { Payment } from 'src/entities/payment.entity';
+import { StaysAccount } from 'src/entities/stays-account.entity';
+import { UserCommunicationPreferences } from 'src/entities/user-communication-preferences.entity';
 
 @Module({
   imports: [
     PaymentsModule,
+    StaysModule,
     forwardRef(() => WaitlistModule),
     PassportModule,
-    TypeOrmModule.forFeature([User, RefreshToken]),
+    TypeOrmModule.forFeature([
+      User,
+      RefreshToken,
+      List,
+      Address,
+      AnalisePreco,
+      Payment,
+      StaysAccount,
+      UserCommunicationPreferences,
+    ]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -39,7 +57,7 @@ import { WaitlistModule } from 'src/waitlist/waitlist.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, LocalAuthGuard, RolesGuard],
+  providers: [AuthService, AccountDataService, JwtStrategy, LocalAuthGuard, RolesGuard],
   exports: [AuthService, RolesGuard],
 })
 export class AuthModule {}

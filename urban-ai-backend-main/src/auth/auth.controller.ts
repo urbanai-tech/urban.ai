@@ -30,6 +30,7 @@ import { Throttle } from '@nestjs/throttler';
 import { Request, Response } from 'express';
 import { User } from 'src/entities/user.entity';
 import { AuthService, SafeUser, TokenPair } from './auth.service';
+import { AccountDataService } from './account-data.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ACCESS_TOKEN_COOKIE } from './jwt.strategy';
 import { WaitlistService } from '../waitlist/waitlist.service';
@@ -38,6 +39,7 @@ import { RolesGuard } from './roles.guard';
 import { RegisterDto } from './register.dto';
 import {
   AcceptWaitlistInviteDto,
+  DeleteAccountDto,
   GoogleLoginDto,
   LoginDto,
   UpdateProfileDto,
@@ -56,6 +58,7 @@ export class AuthController {
     private readonly authService: AuthService,
     @Inject(forwardRef(() => WaitlistService))
     private readonly waitlistService: WaitlistService,
+    private readonly accountDataService: AccountDataService,
   ) {}
 
   /**
@@ -334,15 +337,25 @@ export class AuthController {
     example: '1',
   })
   @ApiOperation({ summary: 'Excluir a própria conta (self-service LGPD)' })
+  @ApiBody({ type: DeleteAccountDto })
   @ApiResponse({ status: 200, description: 'Conta excluída' })
+  @ApiResponse({ status: 400, description: 'Senha incorreta ou ausente' })
   @ApiResponse({ status: 401, description: 'Não autorizado' })
+  @ApiResponse({ status: 503, description: 'Não foi possível cancelar a assinatura; conta preservada' })
   @ApiBearerAuth()
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @UseGuards(JwtAuthGuard)
   @Delete('me')
-  async deleteOwnAccount(@Req() req): Promise<{ deleted: true }> {
+  async deleteOwnAccount(
+    @Req() req,
+    @Body() body: DeleteAccountDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ deleted: true }> {
     // Titular apaga a própria conta (direito de eliminação, art. 18 LGPD).
-    // deleteUser -> userRepository.remove -> cascades para dados relacionados.
-    await this.authService.deleteUser(req.user?.userId);
+    // Exige a senha atual, cancela a assinatura Stripe e desconecta a Stays;
+    // depois deleteUser -> userRepository.remove -> cascades existentes.
+    await this.authService.deleteOwnAccount(req.user?.userId, body ?? {});
+    this.clearAuthCookies(res);
     return { deleted: true };
   }
 
@@ -364,6 +377,21 @@ export class AuthController {
   @Get('me')
   me(@Req() req) {
     return req.user;
+  }
+
+  @ApiOperation({ summary: 'Exportar meus dados pessoais em JSON (self-service LGPD)' })
+  @ApiResponse({ status: 200, description: 'Pacote JSON com os dados do próprio titular' })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
+  @ApiBearerAuth()
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @UseGuards(JwtAuthGuard)
+  @Get('me/export')
+  async exportMyData(@Req() req, @Res({ passthrough: true }) res: Response) {
+    const data = await this.accountDataService.exportUserData(req.user?.userId);
+    const day = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Disposition', `attachment; filename="urbanai-meus-dados-${day}.json"`);
+    res.setHeader('Cache-Control', 'no-store');
+    return data;
   }
 
   @ApiOperation({ summary: 'Atualizar informações de um usuário pelo ID' })

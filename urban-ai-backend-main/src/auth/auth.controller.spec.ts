@@ -53,7 +53,7 @@ describe('AuthController', () => {
           refreshExpiresAt: new Date(Date.now() + 60_000),
         }),
       };
-      const controller = new AuthController(authService as any, {} as any);
+      const controller = new AuthController(authService as any, {} as any, {} as any);
       const res = { cookie: jest.fn() };
 
       await controller.login(
@@ -111,7 +111,7 @@ describe('AuthController', () => {
         lookupByInviteToken: jest.fn().mockResolvedValue(entry),
         markConverted: jest.fn().mockResolvedValue(undefined),
       };
-      controller = new AuthController(authService as any, waitlistService as any);
+      controller = new AuthController(authService as any, waitlistService as any, {} as any);
     });
 
     it('forwards raw invite passwords for bcrypt hashing in AuthService', async () => {
@@ -156,20 +156,51 @@ describe('AuthController', () => {
   });
 
   describe('LGPD self-service authorization contracts', () => {
-    it('deletes only the user id from the authenticated principal', async () => {
-      const authService = { deleteUser: jest.fn().mockResolvedValue(undefined) };
-      const controller = new AuthController(authService as any, {} as any);
+    it('deletes only the user id from the authenticated principal, re-authenticating with the body', async () => {
+      const authService = { deleteOwnAccount: jest.fn().mockResolvedValue(undefined) };
+      const controller = new AuthController(authService as any, {} as any, {} as any);
+      const res = { clearCookie: jest.fn() };
 
       await expect(
-        controller.deleteOwnAccount({ user: { userId: 'owner-1' } } as any),
+        controller.deleteOwnAccount({ user: { userId: 'owner-1' } } as any, { password: 'hash' }, res as any),
       ).resolves.toEqual({ deleted: true });
 
-      expect(authService.deleteUser).toHaveBeenCalledWith('owner-1');
+      expect(authService.deleteOwnAccount).toHaveBeenCalledWith('owner-1', { password: 'hash' });
+      expect(res.clearCookie).toHaveBeenCalledTimes(2); // access + refresh
+    });
+
+    it('does not clear the session when the deletion is refused (wrong password, Stripe failure)', async () => {
+      const authService = { deleteOwnAccount: jest.fn().mockRejectedValue(new BadRequestException('Senha incorreta.')) };
+      const controller = new AuthController(authService as any, {} as any, {} as any);
+      const res = { clearCookie: jest.fn() };
+
+      await expect(
+        controller.deleteOwnAccount({ user: { userId: 'owner-1' } } as any, { password: 'x' }, res as any),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(res.clearCookie).not.toHaveBeenCalled();
+    });
+
+    it('exports only the principal data as a downloadable, non-cacheable JSON', async () => {
+      const bundle = { format: 'urban-ai-data-export/v1' };
+      const accountData = { exportUserData: jest.fn().mockResolvedValue(bundle) };
+      const controller = new AuthController({} as any, {} as any, accountData as any);
+      const res = { setHeader: jest.fn() };
+
+      await expect(controller.exportMyData({ user: { userId: 'owner-1' } } as any, res as any)).resolves.toBe(bundle);
+
+      expect(accountData.exportUserData).toHaveBeenCalledWith('owner-1');
+      expect(res.setHeader).toHaveBeenCalledWith('Content-Disposition', expect.stringMatching(/^attachment; filename="urbanai-meus-dados-\d{4}-\d{2}-\d{2}\.json"$/));
+      expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'no-store');
+    });
+
+    it('protects export with JwtAuthGuard', () => {
+      const guards = Reflect.getMetadata(GUARDS_METADATA, AuthController.prototype.exportMyData) ?? [];
+      expect(guards.map((g: any) => g.name)).toContain('JwtAuthGuard');
     });
 
     it('refuses reading another user unless the principal is admin', async () => {
       const authService = { findUserById: jest.fn() };
-      const controller = new AuthController(authService as any, {} as any);
+      const controller = new AuthController(authService as any, {} as any, {} as any);
 
       expect(() =>
         controller.getUser('other-user', { user: { userId: 'owner-1', role: 'host' } }),
@@ -181,7 +212,7 @@ describe('AuthController', () => {
       const authService = {
         findUserById: jest.fn().mockImplementation(async (id) => ({ id })),
       };
-      const controller = new AuthController(authService as any, {} as any);
+      const controller = new AuthController(authService as any, {} as any, {} as any);
 
       await expect(
         controller.getUser('owner-1', { user: { userId: 'owner-1', role: 'host' } }),
@@ -192,7 +223,7 @@ describe('AuthController', () => {
     });
 
     it('fails closed when the request has no principal', () => {
-      const controller = new AuthController({ findUserById: jest.fn() } as any, {} as any);
+      const controller = new AuthController({ findUserById: jest.fn() } as any, {} as any, {} as any);
       expect(() => controller.getUser('u1', undefined as any)).toThrow(ForbiddenException);
     });
 
@@ -218,7 +249,7 @@ describe('AuthController', () => {
       process.env = { ...originalEnv, LAUNCH_MODE: 'production', PRELAUNCH_MODE: 'true' };
       const authService = { register: jest.fn().mockResolvedValue({ id: 'u1' }) };
       const waitlistService = { signup: jest.fn() };
-      const controller = new AuthController(authService as any, waitlistService as any);
+      const controller = new AuthController(authService as any, waitlistService as any, {} as any);
 
       await expect(
         controller.register(
@@ -238,7 +269,7 @@ describe('AuthController', () => {
       Object.assign(process.env, env);
       const authService = { register: jest.fn() };
       const waitlistService = { signup: jest.fn().mockResolvedValue({ position: 2 }) };
-      const controller = new AuthController(authService as any, waitlistService as any);
+      const controller = new AuthController(authService as any, waitlistService as any, {} as any);
 
       await expect(
         controller.register(
@@ -263,7 +294,7 @@ describe('AuthController', () => {
         lookupByInviteToken: jest.fn().mockResolvedValue(entry),
         markConverted: jest.fn().mockResolvedValue(undefined),
       };
-      return { controller: new AuthController(authService as any, waitlistService as any), authService, waitlistService };
+      return { controller: new AuthController(authService as any, waitlistService as any, {} as any), authService, waitlistService };
     };
 
     it.each([
@@ -323,7 +354,7 @@ describe('AuthController', () => {
       [{ token: 'legacy-token' }, 'legacy-token'],
     ])('accepts every supported Google token alias', async (body, expected) => {
       const authService = { googleLogin: jest.fn().mockResolvedValue({ ...tokens, user: { id: 'u1' } }) };
-      const controller = new AuthController(authService as any, {} as any);
+      const controller = new AuthController(authService as any, {} as any, {} as any);
       const res = { cookie: jest.fn() };
       await expect(controller.googleLogin(body, { headers: {}, ip: 'ip' } as any, res as any))
         .resolves.toEqual({ accessToken: 'access', user: { id: 'u1' } });
@@ -333,17 +364,17 @@ describe('AuthController', () => {
     it('preserves HTTP errors and wraps unexpected Google errors', async () => {
       const httpController = new AuthController({
         googleLogin: jest.fn().mockRejectedValue(new BadRequestException('Token inválido')),
-      } as any, {} as any);
+      } as any, {} as any, {} as any);
       await expect(httpController.googleLogin({}, { headers: {} } as any, {} as any))
         .rejects.toBeInstanceOf(BadRequestException);
-      const broken = new AuthController({ googleLogin: jest.fn().mockRejectedValue(new Error('boom')) } as any, {} as any);
+      const broken = new AuthController({ googleLogin: jest.fn().mockRejectedValue(new Error('boom')) } as any, {} as any, {} as any);
       await expect(broken.googleLogin({ idToken: 't' }, { headers: {} } as any, {} as any))
         .rejects.toBeInstanceOf(InternalServerErrorException);
     });
 
     it('requires a refresh cookie and rotates a present token', async () => {
       const authService = { rotateRefreshToken: jest.fn().mockResolvedValue(tokens) };
-      const controller = new AuthController(authService as any, {} as any);
+      const controller = new AuthController(authService as any, {} as any, {} as any);
       await expect(controller.refresh({ cookies: {}, headers: {} } as any, {} as any))
         .rejects.toBeInstanceOf(UnauthorizedException);
       const res = { cookie: jest.fn() };
@@ -357,7 +388,7 @@ describe('AuthController', () => {
     it.each([true, false])('clears cookies on logout (refresh present: %s)', async (present) => {
       process.env = { ...originalEnv, NODE_ENV: 'production' };
       const authService = { revokeRefreshToken: jest.fn() };
-      const controller = new AuthController(authService as any, {} as any);
+      const controller = new AuthController(authService as any, {} as any, {} as any);
       const res = { clearCookie: jest.fn() };
       await controller.logout(
         { cookies: present ? { urbanai_refresh_token: 'raw' } : {} } as any,
@@ -375,7 +406,7 @@ describe('AuthController', () => {
         getProfileById: jest.fn().mockResolvedValue({ id: 'u1' }),
         updateProfileById: jest.fn().mockResolvedValue({ id: 'u1', username: 'New' }),
       };
-      const controller = new AuthController(authService as any, {} as any);
+      const controller = new AuthController(authService as any, {} as any, {} as any);
       await controller.deleteUser('u2');
       expect(controller.me({ user: { userId: 'u1' } })).toEqual({ userId: 'u1' });
       await expect(controller.updateUser('u1', { username: 'New' })).resolves.toEqual({ id: 'u1' });
@@ -396,7 +427,7 @@ describe('AuthController', () => {
       process.env = { ...originalEnv, APP_ENV: env };
       if (domain) process.env.COOKIE_DOMAIN = domain; else delete process.env.COOKIE_DOMAIN;
       if (sameSite) process.env.COOKIE_SAME_SITE = sameSite; else delete process.env.COOKIE_SAME_SITE;
-      const controller = new AuthController({} as any, {} as any);
+      const controller = new AuthController({} as any, {} as any, {} as any);
       expect((controller as any).cookieOpts(100, true)).toEqual(expect.objectContaining({
         domain: expectedDomain, sameSite: expectedSameSite, secure, path: '/auth', maxAge: 100,
       }));

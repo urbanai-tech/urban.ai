@@ -16,7 +16,7 @@ import { situacoesEnum } from './enuns/situacoesEnum';
 describe('Auth module and supporting contracts', () => {
   it('registers the expected controller, providers and exports', () => {
     expect(Reflect.getMetadata(MODULE_METADATA.CONTROLLERS, AuthModule)).toHaveLength(1);
-    expect(Reflect.getMetadata(MODULE_METADATA.PROVIDERS, AuthModule)).toHaveLength(4);
+    expect(Reflect.getMetadata(MODULE_METADATA.PROVIDERS, AuthModule)).toHaveLength(5);
     expect(Reflect.getMetadata(MODULE_METADATA.EXPORTS, AuthModule)).toHaveLength(2);
   });
 
