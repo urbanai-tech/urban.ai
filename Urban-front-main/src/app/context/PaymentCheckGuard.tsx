@@ -84,20 +84,7 @@ const PaymentCheckGuard = ({ children }: PaymentCheckGuardProps) => {
         <div
           role="status"
           data-testid="subscription-check-error"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 12,
-            flexWrap: 'wrap',
-            padding: '10px 14px',
-            marginBottom: 16,
-            border: '1px solid var(--app-warning)',
-            borderRadius: 10,
-            background: 'var(--app-surface-muted)',
-            color: 'var(--app-text)',
-            fontSize: 13,
-          }}
+          className="funnel-banner"
         >
           <span>
             Não conseguimos confirmar seu plano agora. Você pode continuar usando a Urban AI normalmente.

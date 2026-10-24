@@ -40,26 +40,11 @@ function AuthErrorContent() {
       }
       subtitle={message}
     >
-      <div style={{ display: "grid", gap: 12 }} role="alert">
-        <Link
-          href="/login"
-          style={{
-            display: "inline-flex",
-            justifyContent: "center",
-            padding: "12px 18px",
-            borderRadius: 10,
-            background: "var(--app-accent)",
-            color: "#fff",
-            fontWeight: 650,
-            textDecoration: "none",
-          }}
-        >
+      <div className="funnel-stack" role="alert">
+        <Link href="/login" className="funnel-cta">
           Voltar para o login
         </Link>
-        <a
-          href={marketingUrl("/contato")}
-          style={{ textAlign: "center", color: "var(--app-accent)", fontWeight: 600 }}
-        >
+        <a href={marketingUrl("/contato")} className="funnel-link funnel-link--center">
           Falar com o suporte
         </a>
       </div>

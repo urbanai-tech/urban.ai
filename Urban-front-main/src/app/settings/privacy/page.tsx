@@ -83,9 +83,9 @@ export default function PrivacySettingsPage() {
       />
 
       <AppCard variant="default">
-        <div style={{ display: "grid", gap: 12 }}>
-          <h2 style={{ margin: 0, fontSize: 18, color: "var(--app-text)" }}>Exportar meus dados</h2>
-          <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 14, lineHeight: 1.55 }}>
+        <div className="funnel-stack">
+          <h2>Exportar meus dados</h2>
+          <p>
             Gera um arquivo JSON com seu perfil, imóveis e endereços, análises e recomendações, metadados de
             cobrança, da integração Stays e de comunicações, e seus registros de consentimento. Senhas, tokens
             e dados de cartão nunca entram no arquivo.
@@ -105,12 +105,12 @@ export default function PrivacySettingsPage() {
       </AppCard>
 
       <AppCard variant="default">
-        <div style={{ display: "grid", gap: 12 }}>
-          <h2 style={{ margin: 0, fontSize: 18, color: "var(--app-text)" }}>Excluir minha conta</h2>
-          <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 14, lineHeight: 1.55 }}>
+        <div className="funnel-stack">
+          <h2>Excluir minha conta</h2>
+          <p>
             A exclusão cancela sua assinatura, desconecta a Stays e remove sua conta e os dados associados.
             Isso não pode ser desfeito. Alguns registros podem ser mantidos quando a lei exigir; veja a{" "}
-            <a href={marketingUrl("/privacidade")} target="_blank" rel="noopener noreferrer">
+            <a href={marketingUrl("/privacidade")} target="_blank" rel="noopener noreferrer" className="funnel-link">
               Política de Privacidade
             </a>
             .
@@ -141,7 +141,7 @@ export default function PrivacySettingsPage() {
         loading={deleting}
         confirmLabel="Excluir definitivamente"
         body={
-          <div style={{ display: "grid", gap: 12 }}>
+          <div className="funnel-stack">
             <span>Para confirmar, digite sua senha atual. Sua assinatura será cancelada.</span>
             <AppInput
               label="Senha atual"

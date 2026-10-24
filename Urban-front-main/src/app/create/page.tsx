@@ -419,25 +419,13 @@ const Register = () => {
               </p>
             </div>
 
-            <label
-              style={{
-                marginTop: 18,
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 10,
-                fontSize: 13,
-                lineHeight: 1.5,
-                color: "var(--app-text)",
-                cursor: "pointer",
-              }}
-            >
+            <label className="funnel-terms">
               <input
                 type="checkbox"
                 checked={acceptedTerms}
                 onChange={(e) => setAcceptedTerms(e.target.checked)}
                 required
                 aria-required="true"
-                style={{ marginTop: 3, width: 16, height: 16, flexShrink: 0 }}
               />
               <span>
                 Li e aceito os{" "}
@@ -445,7 +433,6 @@ const Register = () => {
                   href={marketingUrl("/termos")}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ color: "var(--app-accent)", fontWeight: 600 }}
                 >
                   Termos de Uso
                 </a>{" "}
@@ -454,7 +441,6 @@ const Register = () => {
                   href={marketingUrl("/privacidade")}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ color: "var(--app-accent)", fontWeight: 600 }}
                 >
                   Política de Privacidade
                 </a>

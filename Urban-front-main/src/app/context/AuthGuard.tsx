@@ -64,12 +64,9 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
 
   if (state === 'unreachable') {
     return (
-      <div
-        role="alert"
-        style={{ minHeight: '60vh', display: 'grid', placeItems: 'center', padding: 24, textAlign: 'center' }}
-      >
+      <div role="alert" className="funnel-gate funnel-gate--inline">
         <div>
-          <p style={{ marginBottom: 12 }}>
+          <p>
             Não conseguimos confirmar sua sessão agora. Verifique sua conexão e tente novamente.
           </p>
           <button
@@ -87,11 +84,7 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
   }
 
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      style={{ minHeight: '60vh', display: 'grid', placeItems: 'center', padding: 24 }}
-    >
+    <div role="status" aria-live="polite" className="funnel-gate funnel-gate--inline">
       <span>Carregando…</span>
     </div>
   )

@@ -46,12 +46,9 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
 
   if (state === "retry") {
     return (
-      <div
-        role="alert"
-        style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, textAlign: "center", background: "#080A0F", color: "#fff" }}
-      >
+      <div role="alert" className="funnel-gate">
         <div>
-          <p style={{ marginBottom: 12 }}>Não conseguimos confirmar seu acesso agora. Tente novamente.</p>
+          <p>Não conseguimos confirmar seu acesso agora. Tente novamente.</p>
           <button type="button" onClick={() => void check()}>
             Tentar de novo
           </button>
@@ -61,11 +58,7 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "#080A0F", color: "rgba(255,255,255,0.6)" }}
-    >
+    <div role="status" aria-live="polite" className="funnel-gate">
       Verificando acesso…
     </div>
   );
