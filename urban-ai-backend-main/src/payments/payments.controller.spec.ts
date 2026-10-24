@@ -57,4 +57,33 @@ describe('PaymentsController - Stripe webhook raw-body contract', () => {
       expect.objectContaining({ tags: expect.objectContaining({ component: 'stripe-webhook' }) }),
     );
   });
+
+  it('returns 500 (so Stripe retries) when webhook processing throws', async () => {
+    const paymentsService = {
+      handleStripeWebhook: jest.fn().mockRejectedValue(new Error('db down')),
+    };
+    const controller = new PaymentsController(paymentsService as any);
+    const response = {
+      send: jest.fn().mockReturnThis(),
+      status: jest.fn().mockReturnThis(),
+    };
+
+    await controller.handleWebhook({ body: Buffer.from('{}') } as any, response as any, 'sig');
+
+    expect(response.status).toHaveBeenCalledWith(500);
+    expect(captureException).toHaveBeenCalled();
+  });
+});
+
+describe('PaymentsController - create-checkout-session response', () => {
+  it('returns sessionId (compat) and the hosted checkout url', async () => {
+    const paymentsService = {
+      createCheckoutSession: jest.fn().mockResolvedValue({ id: 'cs_1', url: 'https://checkout.stripe.com/c/pay/cs_1' }),
+    };
+    const controller = new PaymentsController(paymentsService as any);
+
+    const result = await controller.createCheckout({ plan: 'profissional' } as any, { user: { userId: 'u1' } });
+
+    expect(result).toEqual({ sessionId: 'cs_1', url: 'https://checkout.stripe.com/c/pay/cs_1' });
+  });
 });

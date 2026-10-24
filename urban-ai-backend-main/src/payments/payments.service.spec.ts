@@ -28,6 +28,7 @@ jest.mock('stripe', () => {
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { BadRequestException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { PaymentsService } from './payments.service';
 import { Payment } from '../entities/payment.entity';
@@ -659,10 +660,13 @@ describe('PaymentsService — createCheckoutSession', () => {
     process.env.SUCCESS_URL = 'https://urban.test/success';
     process.env.CANCEL_URL = 'https://urban.test/cancel';
     paymentRepo = {
+      find: jest.fn().mockResolvedValue([]),
       findOne: jest.fn(),
       save: jest.fn().mockImplementation(async (x) => x),
     };
     userRepo = { findOne: jest.fn() };
+    mockStripeSubscriptionsList.mockReset();
+    mockStripeSubscriptionsList.mockResolvedValue({ data: [] });
     plansService = { getPlanByName: jest.fn(), getSelfServicePlanForQuantity: jest.fn().mockResolvedValue(null) };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -1045,5 +1049,408 @@ describe('PaymentsService — quota billing emails', () => {
       'Urban AI - Limite de imóveis atingido',
       expect.stringContaining('11'),
     );
+  });
+});
+
+describe('PaymentsService — billing reliability (webhook retries, renewals, ordering)', () => {
+  let service: PaymentsService;
+  let paymentRepo: Repo<Payment>;
+  let db: any;
+
+  const subscriptionWith = (overrides: Record<string, any> = {}) => ({
+    id: 'sub_1',
+    customer: 'cus_abc',
+    status: 'active',
+    billing_cycle_anchor: 1_700_000_000,
+    items: { data: [{ plan: { interval: 'month' }, quantity: 3, current_period_end: 1_705_000_000 }] },
+    metadata: { urbanai_plan: 'profissional', urbanai_billing_cycle: 'monthly', urbanai_quantity: '3' },
+    ...overrides,
+  });
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    mockStripeConstructEvent.mockReset();
+    mockStripeSubscriptionsRetrieve.mockReset();
+    process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
+    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+
+    // "Banco" em memória: findOne devolve cópia nova (como o TypeORM) e só um
+    // save bem-sucedido persiste — assim falhas de save não "vazam" estado.
+    db = { id: 'pay1', customerId: 'cus_abc', status: 'pending', user: { email: 'h@test.com', username: 'H' } };
+    paymentRepo = {
+      find: jest.fn().mockResolvedValue([]),
+      findOne: jest.fn().mockImplementation(async () => ({ ...db })),
+      save: jest.fn().mockImplementation(async (x) => {
+        db = { ...x };
+        return x;
+      }),
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        PaymentsService,
+        { provide: getRepositoryToken(Payment), useValue: paymentRepo },
+        { provide: getRepositoryToken(User), useValue: { findOne: jest.fn() } },
+        { provide: getRepositoryToken(Address), useValue: stubAddressRepo() },
+        { provide: PlansService, useValue: { getPlanByName: jest.fn(), getSelfServicePlanForQuantity: jest.fn() } },
+        { provide: MailerService, useValue: { sendHtmlEmail: jest.fn().mockResolvedValue({ enviado: true }) } },
+      ],
+    }).compile();
+    service = module.get<PaymentsService>(PaymentsService);
+  });
+
+  describe('failures surface so Stripe retries', () => {
+    it('rejects (-> HTTP 500) when the DB save fails while processing subscription.updated', async () => {
+      mockStripeConstructEvent.mockReturnValue({
+        id: 'evt_fail',
+        created: 100,
+        type: 'customer.subscription.updated',
+        data: { object: subscriptionWith() },
+      });
+      paymentRepo.save!.mockRejectedValueOnce(new Error('db down'));
+
+      await expect(service.handleStripeWebhook(Buffer.from('{}'), 'sig')).rejects.toThrow('db down');
+    });
+
+    it('rejects when the Stripe subscription lookup fails on checkout.session.completed', async () => {
+      mockStripeConstructEvent.mockReturnValue({
+        id: 'evt_fail2',
+        created: 100,
+        type: 'checkout.session.completed',
+        data: { object: { subscription: 'sub_1' } },
+      });
+      mockStripeSubscriptionsRetrieve.mockRejectedValue(new Error('stripe 503'));
+
+      await expect(service.handleStripeWebhook(Buffer.from('{}'), 'sig')).rejects.toThrow('stripe 503');
+      expect(paymentRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('rejects when the payment lookup fails on invoice.payment_failed and customer.subscription.deleted', async () => {
+      paymentRepo.findOne!.mockRejectedValue(new Error('db timeout'));
+      for (const type of ['invoice.payment_failed', 'customer.subscription.deleted', 'payment_intent.succeeded']) {
+        mockStripeConstructEvent.mockReturnValue({
+          id: `evt_${type}`,
+          created: 100,
+          type,
+          data: { object: { customer: 'cus_abc', status: 'succeeded' } },
+        });
+        await expect(service.handleStripeWebhook(Buffer.from('{}'), 'sig')).rejects.toThrow('db timeout');
+      }
+    });
+
+    it('still returns { error } (400) for an invalid signature and { event } (200) for unknown events', async () => {
+      mockStripeConstructEvent.mockImplementationOnce(() => {
+        throw new Error('bad sig');
+      });
+      await expect(service.handleStripeWebhook(Buffer.from('{}'), 'bad')).resolves.toEqual({
+        error: expect.any(Error),
+      });
+
+      const event = { id: 'evt_x', created: 1, type: 'charge.refunded', data: { object: {} } };
+      mockStripeConstructEvent.mockReturnValue(event);
+      await expect(service.handleStripeWebhook(Buffer.from('{}'), 'sig')).resolves.toEqual({ event });
+    });
+  });
+
+  describe('idempotent retries', () => {
+    it('applies the event on retry after a failed save and ignores the next duplicate', async () => {
+      mockStripeConstructEvent.mockReturnValue({
+        id: 'evt_retry',
+        created: 100,
+        type: 'customer.subscription.updated',
+        data: { object: subscriptionWith({ status: 'active' }) },
+      });
+      paymentRepo.save!.mockRejectedValueOnce(new Error('transient'));
+
+      await expect(service.handleStripeWebhook(Buffer.from('{}'), 'sig')).rejects.toThrow('transient');
+      expect(db.status).toBe('pending');
+
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig'); // retry do Stripe
+      expect(db.status).toBe('active');
+      expect(db.listingsContratados).toBe(3);
+      expect(db.recentStripeEventIds).toEqual(['evt_retry']);
+
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig'); // duplicado
+      expect(paymentRepo.save).toHaveBeenCalledTimes(2); // 1 falha + 1 sucesso, duplicado não grava
+    });
+  });
+
+  describe('invoice.paid (renewals)', () => {
+    it('extends expireDate from the subscription current period end (basil: parent.subscription_details)', async () => {
+      db.expireDate = new Date(1_700_000_000 * 1000);
+      db.status = 'active';
+      mockStripeConstructEvent.mockReturnValue({
+        id: 'evt_paid',
+        created: 200,
+        type: 'invoice.paid',
+        data: {
+          object: { customer: 'cus_abc', parent: { subscription_details: { subscription: 'sub_1' } } },
+        },
+      });
+      mockStripeSubscriptionsRetrieve.mockResolvedValue(
+        subscriptionWith({
+          items: { data: [{ plan: { interval: 'month' }, quantity: 3, current_period_end: 1_707_000_000 }] },
+        }),
+      );
+
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+      expect(mockStripeSubscriptionsRetrieve).toHaveBeenCalledWith('sub_1');
+      expect(db.expireDate).toEqual(new Date(1_707_000_000 * 1000));
+      expect(db.status).toBe('active');
+    });
+
+    it('re-activates a past_due payment and supports legacy invoice.subscription + subscription.current_period_end', async () => {
+      db.status = 'past_due';
+      mockStripeConstructEvent.mockReturnValue({
+        id: 'evt_paid2',
+        created: 200,
+        type: 'invoice.paid',
+        data: { object: { customer: 'cus_abc', subscription: 'sub_1' } },
+      });
+      mockStripeSubscriptionsRetrieve.mockResolvedValue(
+        subscriptionWith({
+          current_period_end: 1_708_000_000,
+          items: { data: [{ plan: { interval: 'month' }, quantity: 3 }] },
+        }),
+      );
+
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+      expect(db.status).toBe('active');
+      expect(db.expireDate).toEqual(new Date(1_708_000_000 * 1000));
+    });
+
+    it('ignores invoices without a subscription', async () => {
+      mockStripeConstructEvent.mockReturnValue({
+        id: 'evt_paid3',
+        created: 200,
+        type: 'invoice.paid',
+        data: { object: { customer: 'cus_abc' } },
+      });
+
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+      expect(mockStripeSubscriptionsRetrieve).not.toHaveBeenCalled();
+      expect(paymentRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('customer.subscription.updated also refreshes expireDate and past_due/canceled/unpaid status', async () => {
+      for (const status of ['past_due', 'canceled', 'unpaid']) {
+        mockStripeConstructEvent.mockReturnValue({
+          id: `evt_${status}`,
+          created: 300,
+          type: 'customer.subscription.updated',
+          data: { object: subscriptionWith({ status }) },
+        });
+        await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+        expect(db.status).toBe(status);
+        expect(db.expireDate).toEqual(new Date(1_705_000_000 * 1000));
+      }
+    });
+  });
+
+  describe('out-of-order events', () => {
+    it('does not drop an older checkout.session.completed after a newer subscription.updated', async () => {
+      db.lastStripeEventCreated = '500';
+      db.recentStripeEventIds = ['evt_sub_updated'];
+      db.status = 'active';
+      mockStripeConstructEvent.mockReturnValue({
+        id: 'evt_checkout_old',
+        created: 100,
+        type: 'checkout.session.completed',
+        data: { object: { subscription: 'sub_1', metadata: {} } },
+      });
+      mockStripeSubscriptionsRetrieve.mockResolvedValue(subscriptionWith());
+
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+      expect(db.planName).toBe('profissional');
+      expect(db.subscriptionId).toBe('sub_1');
+      expect(db.expireDate).toEqual(new Date(1_705_000_000 * 1000));
+      expect(db.lastStripeEventCreated).toBe('500'); // watermark nunca regride
+      expect(db.recentStripeEventIds).toEqual(['evt_sub_updated', 'evt_checkout_old']);
+    });
+
+    it('rebuilds state from Stripe for a stale subscription.updated instead of dropping it', async () => {
+      db.lastStripeEventCreated = '500';
+      mockStripeConstructEvent.mockReturnValue({
+        id: 'evt_sub_stale',
+        created: 100,
+        type: 'customer.subscription.updated',
+        data: { object: subscriptionWith({ items: { data: [{ plan: { interval: 'month' }, quantity: 2 }] }, metadata: {} }) },
+      });
+      mockStripeSubscriptionsRetrieve.mockResolvedValue(
+        subscriptionWith({ items: { data: [{ plan: { interval: 'month' }, quantity: 7, current_period_end: 1_709_000_000 }] }, metadata: {} }),
+      );
+
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+      expect(mockStripeSubscriptionsRetrieve).toHaveBeenCalledWith('sub_1');
+      expect(db.listingsContratados).toBe(7);
+      expect(db.expireDate).toEqual(new Date(1_709_000_000 * 1000));
+    });
+
+    it('still drops stale payload-only events (payment_failed older than the watermark)', async () => {
+      db.lastStripeEventCreated = '500';
+      db.status = 'active';
+      mockStripeConstructEvent.mockReturnValue({
+        id: 'evt_failed_old',
+        created: 100,
+        type: 'invoice.payment_failed',
+        data: { object: { customer: 'cus_abc' } },
+      });
+
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+      expect(paymentRepo.save).not.toHaveBeenCalled();
+      expect(db.status).toBe('active');
+    });
+
+    it('ignores subscription.deleted for an old subscription when a newer one is stored', async () => {
+      db.status = 'active';
+      db.subscriptionId = 'sub_new';
+      mockStripeConstructEvent.mockReturnValue({
+        id: 'evt_del_old',
+        created: 600,
+        type: 'customer.subscription.deleted',
+        data: { object: { id: 'sub_old', customer: 'cus_abc' } },
+      });
+
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+      expect(db.status).toBe('active');
+    });
+  });
+
+  describe('trial bookkeeping', () => {
+    it('stamps trialUsedAt when a trialing subscription is projected', async () => {
+      mockStripeConstructEvent.mockReturnValue({
+        id: 'evt_trial',
+        created: 100,
+        type: 'checkout.session.completed',
+        data: { object: { subscription: 'sub_1' } },
+      });
+      mockStripeSubscriptionsRetrieve.mockResolvedValue(subscriptionWith({ status: 'trialing', trial_start: 1_700_000_000 }));
+
+      await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+      expect(db.trialUsedAt).toBeInstanceOf(Date);
+      expect(db.status).toBe('trialing');
+    });
+  });
+});
+
+describe('PaymentsService — createCheckoutSession trial rules', () => {
+  let service: PaymentsService;
+  let paymentRepo: Repo<Payment>;
+  let plansService: { getPlanByName: jest.Mock; getSelfServicePlanForQuantity: jest.Mock };
+
+  const proPlan = (extra: Record<string, any> = {}) => ({
+    name: 'profissional',
+    stripePriceId: 'price_m_pro',
+    minProperties: 1,
+    maxProperties: 10,
+    maxCheckoutQuantity: 10,
+    ...extra,
+  });
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
+    process.env.SUCCESS_URL = 'https://urban.test/success';
+    process.env.CANCEL_URL = 'https://urban.test/cancel';
+    process.env.TRIAL_PERIOD_DAYS = '14';
+    paymentRepo = {
+      find: jest.fn().mockResolvedValue([]),
+      findOne: jest.fn().mockResolvedValue({ id: 'pay1', customerId: null }),
+      save: jest.fn().mockImplementation(async (x) => x),
+    };
+    const userRepo = { findOne: jest.fn().mockResolvedValue({ id: 'u1', email: 'u@test.com', username: 'U' }) };
+    plansService = {
+      getPlanByName: jest.fn().mockResolvedValue(proPlan()),
+      getSelfServicePlanForQuantity: jest.fn().mockResolvedValue(null),
+    };
+    mockStripeCustomersList.mockResolvedValue({ data: [{ id: 'cus_abc' }] });
+    mockStripeSubscriptionsList.mockReset();
+    mockStripeSubscriptionsList.mockResolvedValue({ data: [] });
+    mockStripeCheckoutSessionsCreate.mockReset();
+    mockStripeCheckoutSessionsCreate.mockResolvedValue({ id: 'cs_1', url: 'https://checkout.stripe.test/cs_1' });
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        PaymentsService,
+        { provide: getRepositoryToken(Payment), useValue: paymentRepo },
+        { provide: getRepositoryToken(User), useValue: userRepo },
+        { provide: getRepositoryToken(Address), useValue: stubAddressRepo() },
+        { provide: PlansService, useValue: plansService },
+      ],
+    }).compile();
+    service = module.get<PaymentsService>(PaymentsService);
+  });
+
+  afterAll(() => {
+    delete process.env.TRIAL_PERIOD_DAYS;
+  });
+
+  it('returns the Stripe session including the hosted checkout url', async () => {
+    const session = await service.createCheckoutSession({ plan: 'trial' }, 'u1');
+    expect(session.url).toBe('https://checkout.stripe.test/cs_1');
+    expect(mockStripeCheckoutSessionsCreate.mock.calls[0][0].subscription_data.trial_period_days).toBe(14);
+  });
+
+  it.each([undefined, '', '   ', 'abc', '0', '-3', '1.5', '9999'])(
+    'disables trial with a 400 when TRIAL_PERIOD_DAYS=%p (never sends NaN to Stripe)',
+    async (value) => {
+      if (value === undefined) delete process.env.TRIAL_PERIOD_DAYS;
+      else process.env.TRIAL_PERIOD_DAYS = value;
+
+      await expect(service.createCheckoutSession({ plan: 'trial' }, 'u1')).rejects.toBeInstanceOf(BadRequestException);
+      expect(mockStripeCheckoutSessionsCreate).not.toHaveBeenCalled();
+      expect(mockStripeCustomersList).not.toHaveBeenCalled();
+    },
+  );
+
+  it('does not affect paid checkout when TRIAL_PERIOD_DAYS is unset', async () => {
+    delete process.env.TRIAL_PERIOD_DAYS;
+    await service.createCheckoutSession({ plan: 'profissional' }, 'u1');
+    const args = mockStripeCheckoutSessionsCreate.mock.calls[0][0];
+    expect(args.subscription_data.trial_period_days).toBeUndefined();
+  });
+
+  it('rejects trial when the user already used one (trialUsedAt)', async () => {
+    paymentRepo.find!.mockResolvedValue([{ id: 'pay1', status: 'canceled', trialUsedAt: new Date() }]);
+    await expect(service.createCheckoutSession({ plan: 'trial' }, 'u1')).rejects.toThrow(/já foi utilizado/);
+    expect(mockStripeCheckoutSessionsCreate).not.toHaveBeenCalled();
+  });
+
+  it('rejects trial when Stripe shows a previous trial on the customer', async () => {
+    mockStripeSubscriptionsList.mockResolvedValue({ data: [{ id: 'sub_old', status: 'canceled', trial_start: 1_600_000_000 }] });
+    await expect(service.createCheckoutSession({ plan: 'trial' }, 'u1')).rejects.toThrow(/já foi utilizado/);
+    expect(mockStripeCheckoutSessionsCreate).not.toHaveBeenCalled();
+  });
+
+  it('rejects trial when there is already an active/trialing subscription (local or Stripe)', async () => {
+    paymentRepo.find!.mockResolvedValue([{ id: 'pay1', status: 'active', subscriptionId: 'sub_1' }]);
+    await expect(service.createCheckoutSession({ plan: 'trial' }, 'u1')).rejects.toThrow(/assinatura ativa/);
+
+    paymentRepo.find!.mockResolvedValue([]);
+    mockStripeSubscriptionsList.mockResolvedValue({ data: [{ id: 'sub_2', status: 'active' }] });
+    await expect(service.createCheckoutSession({ plan: 'trial' }, 'u1')).rejects.toThrow(/assinatura ativa/);
+    expect(mockStripeCheckoutSessionsCreate).not.toHaveBeenCalled();
+  });
+
+  it('caps trial quantity by the same self-service rules as paid checkout', async () => {
+    await expect(service.createCheckoutSession({ plan: 'trial', quantity: 11 }, 'u1')).rejects.toThrow(/11 imóveis/);
+    expect(mockStripeCheckoutSessionsCreate).not.toHaveBeenCalled();
+
+    await service.createCheckoutSession({ plan: 'trial', quantity: 10 }, 'u1');
+    expect(mockStripeCheckoutSessionsCreate.mock.calls[0][0].line_items[0].quantity).toBe(10);
+  });
+
+  it('rejects trial when the profissional plan is not self-service', async () => {
+    plansService.getPlanByName.mockResolvedValue(proPlan({ selfServiceEnabled: false }));
+    await expect(service.createCheckoutSession({ plan: 'trial' }, 'u1')).rejects.toBeInstanceOf(BadRequestException);
+    expect(mockStripeCheckoutSessionsCreate).not.toHaveBeenCalled();
   });
 });
