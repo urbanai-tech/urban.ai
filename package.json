@@ -1,5 +1,5 @@
 {
-  "name": "opensquad-project",
+  "name": "urban-ai-monorepo",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -15,14 +15,15 @@
     "audit:knn-legacy:head": "node scripts/knn-legacy-dependency-gate.js --head",
     "audit:knn-legacy:self-test": "node scripts/knn-legacy-dependency-gate.js --self-test",
     "gate:repository": "npm run audit:security-head && npm run audit:docs-links && npm run audit:resilience-dr && npm run audit:knn-legacy",
+    "gate:public-scope": "node scripts/public-scope-guard.js",
+    "gate:public-scope:self-test": "node scripts/public-scope-guard.js --self-test",
     "hooks:install": "node scripts/install-git-hooks.js",
     "slo:probe": "node scripts/slo-probe.js",
     "slo:probe:self-test": "node scripts/slo-probe.js --self-test",
     "release:evidence": "node scripts/release-evidence.js",
     "gate:enterprise": "node scripts/enterprise-auditability-live-gate.js",
     "gate:enterprise:dry": "node scripts/enterprise-auditability-live-gate.js --dry-run",
-    "gate:enterprise:access": "node scripts/enterprise-access-readiness.js",
-    "opensquad:check": "node scripts/opensquad-readiness-check.js"
+    "gate:enterprise:access": "node scripts/enterprise-access-readiness.js"
   },
   "dependencies": {
     "playwright": "^1.58.2"

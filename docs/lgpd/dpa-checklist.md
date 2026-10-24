@@ -12,7 +12,7 @@ Cada DPA garante que o operador trata os dados com as mesmas proteções que a U
 2. Revisar os pontos críticos (seção abaixo de cada um).
 3. Aceitar online OU baixar, preencher, assinar (digitalmente) e devolver pelo canal indicado.
 4. Salvar PDF em `docs/lgpd/dpa/<operador>.pdf` no repo.
-5. Atualizar a tabela em `docs/lgpd/politica-privacidade-interna.md` §5 com status ✅.
+5. Atualizar o registro interno de operadores com status ✅.
 
 ---
 
@@ -84,7 +84,7 @@ Cada DPA garante que o operador trata os dados com as mesmas proteções que a U
   - Fluxo bidirecional — Stays repassa dados de reservas para Urban AI e Urban AI empurra preços de volta.
   - Limitação de uso: dados de clientes Stays não podem ser usados para treinar modelo "público" da Urban AI sem consentimento explícito do titular.
   - Retenção: enquanto a conta Urban AI estiver ativa + 90 dias após cancelamento.
-- **Após assinar:** salvar + atualizar `docs/lgpd/politica-privacidade-interna.md` §4.
+- **Após assinar:** salvar + atualizar o registro interno de operadores.
 
 ---
 

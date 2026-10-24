@@ -58,7 +58,7 @@ Status Docs/Evidence: **parcial**. A leitura estatica confirma que ja existe ent
 
 Restrito por `User.role='admin'` via `RolesGuard`. Primeiro admin via SQL:
 ```sql
-UPDATE user SET role='admin' WHERE email='owner@example.invalid';
+UPDATE user SET role='admin' WHERE email='<ADMIN_EMAIL>';
 ```
 
 ---
@@ -137,7 +137,7 @@ UPDATE user SET role='admin' WHERE email='owner@example.invalid';
 
 ### Sprint 1 — Esta sprint pós-go-live (S15+)
 
-1. **Receita / Financeiro** (2.1) — sócios pedem semanalmente; ROI direto
+1. **Receita / Financeiro** (2.1) — a direção pede semanalmente; ROI direto
 2. **Saúde técnica do pipeline** (2.2) — sem isso debugar incidente é vasculhar Sentry/Railway separados
 3. **Auditoria / Compliance** (2.6) — exigência LGPD antes de qualquer ANPD vir
 
@@ -171,7 +171,7 @@ O painel Urban AI fica responsável por:
 ### 4.2 Dashboard executivo separado
 
 À medida que o negócio crescer, vale pensar em:
-- `/admin/exec` — visão de 1 página com 5–8 KPIs financeiros (sócios)
+- `/admin/exec` — visão de 1 página com 5–8 KPIs financeiros (direção)
 - `/admin/ops` — visão técnica completa (Gustavo + dev contractor)
 - `/admin/support` — visão de atendimento (suporte futuro)
 
@@ -191,7 +191,7 @@ Aceitável manter on-mount por enquanto — volume de admins é pequeno.
 
 Quando ele estiver "completo" o suficiente:
 
-- ✅ Sócios conseguem responder em 30 segundos: "como estamos vs mês passado?"
+- ✅ A direção consegue responder em 30 segundos: "como estamos vs mês passado?"
 - ✅ Suporte resolve dúvida de anfitrião sem precisar abrir SQL
 - ✅ Time técnico identifica regressão de IA antes do anfitrião reclamar
 - ✅ DPO atende solicitação LGPD em ≤ 15 dias rastreando aqui

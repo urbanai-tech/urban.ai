@@ -7,9 +7,15 @@ const { execFileSync } = require('child_process');
 const root = path.resolve(__dirname, '..');
 const hooksDirectory = path.join(root, '.githooks');
 const preCommitHook = path.join(hooksDirectory, 'pre-commit');
+const prePushHook = path.join(hooksDirectory, 'pre-push');
 
 if (!fs.existsSync(preCommitHook)) {
   process.stderr.write('Cannot install Git hooks: .githooks/pre-commit is missing.\n');
+  process.exit(1);
+}
+
+if (!fs.existsSync(prePushHook)) {
+  process.stderr.write('Cannot install Git hooks: .githooks/pre-push is missing.\n');
   process.exit(1);
 }
 
@@ -20,6 +26,7 @@ execFileSync('git', ['config', '--local', 'core.hooksPath', '.githooks'], {
 
 if (process.platform !== 'win32') {
   fs.chmodSync(preCommitHook, 0o755);
+  fs.chmodSync(prePushHook, 0o755);
 }
 
 const configuredPath = execFileSync('git', ['config', '--local', '--get', 'core.hooksPath'], {

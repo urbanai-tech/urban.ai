@@ -65,6 +65,13 @@ Razões:
 
 ## Referências
 
-- `docs/archive/audits/avaliacao-projeto-2026-04-16.md` §4 — avaliação da infra atual
-- `docs/archive/roadmaps/roadmap.md` F2 — sprint de migração (D1–D14)
 - `docs/runbooks/staging-provisioning.md` — como o staging também roda em Railway
+
+---
+
+## Adendo 2026-10-23 — estado atual
+
+- O produto continua no Railway (frontend, backend, MySQL, webscraping). O DNS de `myurbanai.com` agora está no **Cloudflare** (proxy na frente do front), como previsto em "Negativas".
+- O Upstash Redis é usado com **Bull v3**, não BullMQ.
+- O `vercel.json` da raiz desliga deploys automáticos por push. Isso não muda esta decisão para o produto; se alguma peça auxiliar passar a ser publicada via Vercel, registrar em ADR novo.
+- O data lake S3 citado acima está inativo; o S3 em uso é o do backup off-site via GitHub Actions. Ver [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md).

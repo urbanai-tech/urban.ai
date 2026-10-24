@@ -83,7 +83,7 @@ A premissa anterior do roadmap era que **InsideAirbnb** (`insideairbnb.com`) cob
 | **FOHB Panorama Hotelaria 2025** | Benchmark ADR/RevPAR hotelaria nacional | https://fohb.com.br/wp-content/uploads/2024/05/Panorama-da-Hotelaria-Brasileira-2025-HotelInvest-FOHB.pdf |
 | **Kaggle datasets SP-Airbnb** | POC inicial barato (datasets soltos) | Buscar "São Paulo Airbnb" no Kaggle |
 | **Comunidade Superhost SP** | Dataset proprietário em troca de acesso ao Urban AI | grupos de Facebook + WhatsApp + Airbnb Community SP |
-| **Stays Modelo 1 (trade)** | Dataset agregado anonimizado por bairro × mês | parceria comercial — `docs/outreach/stays-one-pager.md` |
+| **Stays Modelo 1 (trade)** | Dataset agregado anonimizado por bairro × mês | parceria comercial com a Stays (tratada fora deste repositório) |
 
 ## ❌ Fontes a evitar
 
@@ -101,7 +101,7 @@ A premissa anterior do roadmap era que **InsideAirbnb** (`insideairbnb.com`) cob
 | **6** | Pipeline Prefect novo `import-external-airbnb-sp` (semanal) que mantém o cache fresco |
 | **6–7** | Treinar XGBoost shadow contra esse dataset; medir MAPE inicial |
 | **7–8** | Avaliar se Airbtics pago acelera; decidir |
-| **7–8** | Continuar conversa Stays para Modelo 1 trade (ver `docs/outreach/stays-contato-comercial.md`) |
+| **7–8** | Continuar conversa com a Stays para o Modelo 1 trade (parceria comercial tratada fora deste repositório) |
 | **8–9** | Recrutar 20–30 voluntários Superhost SP via comunidade |
 
 ---

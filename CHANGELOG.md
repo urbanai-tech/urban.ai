@@ -7,6 +7,39 @@ primeiro.
 
 ---
 
+## [Docs] — 2026-10-23 — Sincronização documentação × realidade
+
+### Adicionado
+
+- **`docs/ARQUITETURA-ATUAL.md`** — fonte única do estado atual: topologia, diagrama
+  mermaid, fluxo de eventos (coletores/spiders → `POST /events/ingest`), fluxo
+  host → front → API, integrações, ambientes, deploy, repositório canônico
+  (`urbanai-tech/urban.ai`) e
+  pendências conhecidas em termos genéricos.
+- **`docs/ACESSOS-E-FERRAMENTAS.md`** — acesso necessário, escopo mínimo e canal
+  (MCP oficial / CLI / API) por provedor.
+
+### Alterado
+
+- `docs/runbooks/matriz-env-operacional.md` refeita a partir das variáveis lidas no
+  código, por serviço e provedor, com obrigatoriedade e onde configurar.
+- README raiz e `docs/README.md` com trilha "comece aqui"; READMEs dos serviços
+  alinhados (NestJS 11, Bull v3, npm, sem Chakra, `PREFECT_API_URL`/`PREFECT_API_KEY`,
+  bronze S3 inativo, KNN aposentado).
+- Adendos nos ADRs 0001, 0003 e 0005; banner "⚠️ Desatualizado" em runbooks e
+  handoffs com DNS na Hostinger, hosts `api.`/`staging.` inexistentes ou fluxo antigo.
+- Governança documental registra a Onda E e o estado "Desatualizado (banner)".
+
+### Pendências registradas (sem mudança de código)
+
+- `UrbanIngestPipeline` dos spiders depende de `URBAN_COLLECTOR_EMAIL/PASSWORD` para
+  ser habilitada; backend só aceita a API key.
+- `PREFECT_SERVER_URL` ainda citado em `.env.example` do pipeline.
+- Backup off-site falhando por credenciais inválidas no provedor; sem MX no domínio;
+  hostname canônico da API inexistente; TLS de `staging.myurbanai.com`.
+
+---
+
 ## [2.16] — 2026-05-06
 
 ### Adicionado
@@ -31,8 +64,7 @@ primeiro.
   scraping leve do site oficial; fallback heurístico (primeira quinta de junho,
   Corpus Christi). venueCapacity=3M, venueType=outdoor. 6 testes.
 - **`run_all_collectors.sh`** atualizado com USP + Marcha pra Jesus no cron 24h.
-- **Documentos:** `documento interno de status` v2.0 com estado atual, `docs/roadmap-pos-sprint.md`
-  v2.16 com changelog completo.
+- **Documentos:** roadmap pós-sprint v2.16 com changelog completo.
 
 ### Métricas
 - 196 testes verdes (141 backend + 55 Python).
@@ -238,7 +270,7 @@ primeiro.
   `/admin/funnel`, `/admin/quality`).
 - **F6.2 Plus** — motor de eventos com cobertura total (Sympla, Eventbrite,
   prefeituras, mega-eventos), persistência de relevância, top-N por bairro.
-- **Doc `relatorio-status-semanas3-4.md`** + base de apresentação para sócios.
+- **Doc `relatorio-status-semanas3-4.md`** com o status das semanas 3–4.
 
 ---
 

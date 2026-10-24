@@ -30,6 +30,11 @@ jobs:
         run: node scripts/security-head-scan.js
       - name: Audit local documentation links
         run: node scripts/audit-document-links.js
+      - name: Verify public scope guard detectors
+        run: npm run gate:public-scope:self-test
+      - name: Enforce public repository scope
+        if: github.repository == 'urbanai-tech/urban.ai'
+        run: npm run gate:public-scope
       - name: Verify SLO probe and percentile report
         run: node scripts/slo-probe.js --self-test
       - name: Verify resilience and DR gate detectors
@@ -266,10 +271,12 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          # Padrões sem arquivo correspondente são ignorados; basta o lockfile do KNN existir.
           cache-dependency-path: |
             dashboard/package-lock.json
             urban-ai-knn-main/package-lock.json
       - name: Dashboard clean install, audit, build and bundle budget
+        if: ${{ hashFiles('dashboard/package.json') != '' }}
         working-directory: dashboard
         run: |
           npm ci --ignore-scripts

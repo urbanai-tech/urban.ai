@@ -1,5 +1,14 @@
 # Urban Pipeline
 
+> **Estado atual (2026-10-23, em português).** Fonte canônica: [`../docs/ARQUITETURA-ATUAL.md`](../docs/ARQUITETURA-ATUAL.md); variáveis em [`../docs/runbooks/matriz-env-operacional.md`](../docs/runbooks/matriz-env-operacional.md) §4.
+>
+> - **Flow ativo:** `trigger_all_spiders` (deployment `urban_webscraping`), 03:00 UTC, dispara os spiders no Scrapyd protegido por `SCRAPYD_API_KEY`. O container roda `serve.py` (Dockerfile).
+> - **Conexão com o Prefect:** o cliente lê `PREFECT_API_URL` e `PREFECT_API_KEY`. `PREFECT_SERVER_URL` (ainda citado em `.env.example`) **não é lido** — corrigir esse arquivo.
+> - **Flow legado inativo:** `raw_data_extraction_and_dump` (04:00 UTC, S3 → MySQL). O webscraping não grava mais em S3 (pipelines comentadas) e o bucket/prefixo lidos aqui não batem com os que o webscraping usava. Decisão pendente: reativar alinhado ou remover.
+> - **Caminho vivo dos eventos:** spiders e coletores enviam direto para o backend (`POST /events/ingest`), sem passar por este pipeline.
+> - `prefect.yaml` referencia repositório e host antigos; o deploy efetivo usa `serve.py`. O texto em inglês abaixo descreve o desenho original.
+
+
 Urban Pipeline is a comprehensive data orchestration platform designed for urban AI projects. It provides automated data pipelines for web scraping, data extraction from S3, and database operations using the Prefect orchestration engine. The platform ensures reliable and efficient data processing from various sources including ticketing websites and cloud storage.
 
 ## Tech Stack

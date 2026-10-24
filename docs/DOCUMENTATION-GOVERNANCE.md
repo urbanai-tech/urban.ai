@@ -6,20 +6,21 @@
 
 ## 1. Regra principal
 
-Cada assunto possui **um documento canônico atual**. Auditorias, planos e relatórios datados são registros históricos; quando substituídos, vão para `docs/archive/` e apontam para a fonte atual.
+Cada assunto possui **um documento canônico atual**. Auditorias, planos e relatórios datados são registros históricos; quando substituídos, recebem banner `SUPERSEDED` e apontam para a fonte atual.
 
 ## 2. Estrutura-alvo
 
 ```text
 docs/
 ├── README.md                          índice principal
+├── ARQUITETURA-ATUAL.md               estado atual de infra, deploy e integrações
+├── ACESSOS-E-FERRAMENTAS.md           acessos por provedor e canal MCP/CLI
 ├── auditoria-360-*.md                fotografia atual do sistema
 ├── plano-mestre-scorecard-10-10-*.md plano de evolução vigente
 ├── scorecard-10-10-execution-status.md execução e evidências
 ├── urban-ai-system-map-*.html        mapa visual navegável
 ├── product/                           PRD, arquitetura, jornadas e design system
-│   ├── data/                          datasets, fontes e motores analíticos
-│   └── business/                      contexto empresarial e stakeholders
+│   └── data/                          datasets, fontes e motores analíticos
 ├── ops/                               SLOs e referências do operador
 ├── adr/                               decisões arquiteturais imutáveis
 ├── handoff/                           onboarding e transferência operacional
@@ -27,16 +28,7 @@ docs/
 ├── evidence/                          provas de execução, nunca requisitos
 ├── contracts/                         contratos e gates de release
 ├── legal/ e lgpd/                     documentos jurídicos e privacidade
-├── postmortems/                       incidentes e aprendizados
-└── archive/
-    ├── audits/                        auditorias substituídas
-    ├── plans/                         planos concluídos ou substituídos
-    ├── roadmaps/                      roadmaps históricos
-    ├── reports/                       relatórios e status históricos
-    ├── data/                          snapshots e estratégias de dados
-    ├── design/                        design systems substituídos
-    ├── docx/                          pacote Word legado inventariado
-    └── releases/                      release notes históricas
+└── postmortems/                       incidentes e aprendizados
 ```
 
 ## 3. Fontes canônicas atuais
@@ -47,11 +39,14 @@ docs/
 | Plano de evolução | `plano-mestre-scorecard-10-10-2026-07-15.md` |
 | Visão visual | `urban-ai-system-map-2026-07-15.html` |
 | Produto | `product/PRD.md` |
-| Arquitetura | `product/ARCHITECTURE.md` + `adr/` |
+| Estado atual de infra, ambientes, deploy e integrações | `ARQUITETURA-ATUAL.md` |
+| Acessos e ferramentas por provedor | `ACESSOS-E-FERRAMENTAS.md` |
+| Variáveis de ambiente | `runbooks/matriz-env-operacional.md` |
+| Arquitetura interna (módulos, entidades, fluxos) | `product/ARCHITECTURE.md` + `adr/` |
 | Jornadas | `product/USER-JOURNEYS.md` |
 | Design system | `product/DESIGN-SYSTEM.md` |
-| Estado dos gaps | plano 10/10; snapshot anterior em `archive/audits/gaps-reais-atualizados-2026-07.md` |
-| Operação | `handoff/` + `ops/` + `runbooks/` |
+| Estado dos gaps | plano 10/10 |
+| Operação | `runbooks/` + `ops/` (`handoff/` é registro de 2026-07-01) |
 | Evidência | `evidence/` e relatórios E2E datados |
 
 ## 4. Ciclo de vida
@@ -59,7 +54,8 @@ docs/
 1. **Draft:** documento em construção, com owner e data.
 2. **Canonical:** listado em `docs/README.md`.
 3. **Superseded:** substituído, com indicação explícita da nova fonte.
-4. **Archived:** movido para `docs/archive/`; conteúdo preservado.
+3a. **Desatualizado (banner):** documento ativo com fatos errados recebe no topo `> ⚠️ Desatualizado — ver X` até ser corrigido ou arquivado.
+4. **Archived:** retirado do caminho principal do repositório; o histórico Git preserva o conteúdo.
 5. **Deleted:** somente duplicata binária comprovada, segredo ou dado pessoal, após aprovação.
 
 ## 5. Metadados mínimos
@@ -82,21 +78,13 @@ Todo documento novo deve informar data, owner, status e relação com a fonte ca
 
 ## 8. Migração
 
-### Onda A — aplicada em 2026-07-15
+### Ondas A–D — aplicadas em 2026-07-15
 
-Arquivar documentos datados com zero referências internas, agrupados por auditorias, planos, roadmaps e releases.
+Documentos datados superados foram retirados da raiz de `docs/` ou receberam banner `SUPERSEDED`, o design system foi consolidado em `product/DESIGN-SYSTEM.md` e o pacote Word legado foi inventariado por hash e conteúdo (sem duplicatas binárias exatas). A raiz passou de 35 para 5 entrypoints Markdown, com consumidores recalculados.
 
-### Onda B — em execução desde 2026-07-15
+### Onda E — aplicada em 2026-10-23
 
-Sete snapshots adicionais de auditoria, plano e status foram movidos após atualização dos consumidores e inclusão do banner `SUPERSEDED`. Continuar em lotes pequenos, sempre com o gate de links verde.
-
-### Onda C — aplicada em 2026-07-15
-
-Os 43 DOCX reais foram inventariados por hash e conteúdo. Quarenta documentos técnicos, relatórios, planos e material de revisão restrita foram movidos para `archive/docx/`; três originais jurídicos/LGPD permanecem ativos. Não havia duplicatas binárias exatas. A renderização visual em lote ficou indisponível por ausência do LibreOffice, registrada no inventário.
-
-### Onda D — aplicada em 2026-07-15
-
-O design system foi consolidado em `product/DESIGN-SYSTEM.md`; 21 auditorias, planos, roadmaps, relatórios e snapshots foram preservados com banner `SUPERSEDED`; 9 documentos ativos foram redistribuídos entre `product/{data,business}/`, `ops/` e `runbooks/`. A raiz passou de 35 para 5 entrypoints Markdown, com consumidores recalculados para os novos caminhos.
+Sincronização docs × realidade: criados `ARQUITETURA-ATUAL.md` e `ACESSOS-E-FERRAMENTAS.md` (canônicos, sem data no nome por serem documentos vivos), matriz de envs refeita a partir do código, adendos nos ADRs 0001/0003/0005 e banner "⚠️ Desatualizado" em runbooks e handoffs que ficaram errados. Nada foi apagado ou movido nesta onda.
 
 ## 9. Critério de limpeza concluída
 
@@ -104,5 +92,5 @@ O design system foi consolidado em `product/DESIGN-SYSTEM.md`; 21 auditorias, pl
 - Uma fonte canônica por assunto.
 - Zero links internos quebrados.
 - Zero dados pessoais, dumps ou secrets no HEAD e no histórico publicado.
-- Histórico preservado e pesquisável em `archive/`.
+- Histórico preservado e pesquisável no Git.
 - Gate automatizado no CI.
