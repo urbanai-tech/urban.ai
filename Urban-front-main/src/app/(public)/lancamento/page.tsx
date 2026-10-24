@@ -31,7 +31,7 @@ export default function ComeceAgoraPage() {
           <div>
             <p className="public-kicker">Urban AI disponível</p>
             <h1>Comece com um imóvel. Evolua com a sua <em>operação.</em></h1>
-            <p className="public-page-hero__lead">Crie sua conta, configure o primeiro imóvel e use a Urban AI no modo que fizer sentido: recomendação manual ou automação com limites.</p>
+            <p className="public-page-hero__lead">Crie sua conta, configure o primeiro imóvel e use a Urban AI no modo de recomendação, com controle manual de cada preço.</p>
             <div className="public-page-hero__actions">
               <PublicButton href={PUBLIC_SIGNUP_URL}>Criar minha conta</PublicButton>
               <PublicButton href="/precos" variant="secondary">Ver planos</PublicButton>
@@ -57,10 +57,10 @@ export default function ComeceAgoraPage() {
           <div>
             <SectionHeading
               eyebrow="Você escolhe o ritmo"
-              title={<>Comece no controle. Automatize <em>quando quiser.</em></>}
-              description="A experiência não exige integração para gerar valor. Primeiro entenda as recomendações; depois conecte o fluxo se isso simplificar sua operação."
+              title={<>Comece no controle. Evolua <em>no seu ritmo.</em></>}
+              description="A experiência não exige integração para gerar valor. Primeiro entenda as recomendações; depois, se fizer sentido, peça acesso ao beta fechado da integração Stays."
             />
-            <CheckList items={["Modo de recomendação manual", "Motivo de cada sugestão", "Limites por operação", "Integração Stays no plano Profissional"]} />
+            <CheckList items={["Modo de recomendação manual", "Motivo de cada sugestão", "Limites por operação", "Integração Stays (beta fechado, sob convite)"]} />
           </div>
           <ProductPreview compact />
         </div>

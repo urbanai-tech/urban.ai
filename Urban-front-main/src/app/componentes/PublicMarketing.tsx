@@ -79,7 +79,7 @@ export function ProductPreview({ compact = false }: { compact?: boolean }) {
           <span className="product-preview__mark">U</span>
           <span>URBAN AI</span>
         </div>
-        <span className="product-preview__status"><i /> Monitoramento ativo</span>
+        <span className="product-preview__status"><i /> Exemplo ilustrativo</span>
       </div>
 
       <div className="product-preview__body">
@@ -157,7 +157,7 @@ export const productPillars = [
   {
     icon: SlidersHorizontal,
     title: "Controle operacional",
-    body: "Aplique manualmente ou defina limites para automação. A estratégia continua sendo sua.",
+    body: "Aplique manualmente; a integração Stays (beta fechado, sob convite) respeita os limites que você define. A estratégia continua sendo sua.",
   },
 ];
 
@@ -183,7 +183,7 @@ export function TrustBar() {
     <div className="public-trust-bar" aria-label="Princípios do produto">
       <TrustItem icon={ShieldCheck} text="Controle humano" />
       <TrustItem icon={Sparkles} text="Recomendações explicadas" />
-      <TrustItem icon={SlidersHorizontal} text="Automação opcional" />
+      <TrustItem icon={SlidersHorizontal} text="Integração Stays em beta fechado" />
       <TrustItem icon={Building2} text="Feito para anfitriões e gestoras" />
     </div>
   );

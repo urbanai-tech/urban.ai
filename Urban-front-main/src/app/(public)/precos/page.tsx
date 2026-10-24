@@ -17,9 +17,9 @@ export const metadata: Metadata = buildSeoMetadata({
 
 const FAQ = [
   { question: "Como funciona a cobrança por imóvel?", answer: "O valor considera o plano, a quantidade de imóveis e o ciclo escolhido. A faixa aplicável é mostrada antes da contratação." },
-  { question: "Posso mudar de plano?", answer: "Sim. A operação pode evoluir de Starter para Profissional quando precisar de mais imóveis, integração ou automação." },
+  { question: "Posso mudar de plano?", answer: "Sim. A operação pode evoluir de Starter para Profissional quando precisar de mais imóveis ou de recursos adicionais." },
   { question: "A Urban AI cobra comissão sobre as reservas?", answer: "Não. A cobrança é por imóvel no ciclo contratado; a Urban AI não recebe percentual da sua receita." },
-  { question: "Preciso contratar a integração Stays?", answer: "Não. O modo de recomendação funciona sem integração. A automação via Stays faz parte do plano Profissional." },
+  { question: "Preciso contratar a integração Stays?", answer: "Não. O modo de recomendação funciona sem integração. A integração Stays está em beta fechado, sob convite, e é incluída no plano Profissional quando liberada para a sua conta." },
   { question: "Tenho mais de 500 imóveis. Como funciona?", answer: "Operações maiores recebem uma proposta adequada a volume, contas, integração e necessidades de atendimento." },
 ];
 
@@ -45,8 +45,8 @@ const plans = [
     featured: true,
     features: [
       "Tudo do Starter",
-      "Integração com Stays",
-      "Automação com limites configuráveis",
+      "Integração Stays (beta fechado, sob convite)",
+      "Regras e limites por imóvel",
       "Visão consolidada da operação",
       "Suporte prioritário",
     ],
@@ -55,10 +55,10 @@ const plans = [
     name: "Escala",
     audience: "Para gestoras com mais de 500 imóveis.",
     price: "Sob medida",
-    note: "proposta conforme operação e integração",
+    note: "proposta conforme a operação",
     features: [
       "Onboarding e desenho operacional",
-      "Integrações e requisitos específicos",
+      "Requisitos operacionais específicos",
       "Governança para múltiplas contas",
       "Acompanhamento comercial dedicado",
       "Condições por volume",
@@ -80,7 +80,7 @@ export default function PrecosPage() {
           <div>
             <p className="public-kicker">Preços transparentes</p>
             <h1>Um plano para cada fase da sua <em>operação.</em></h1>
-            <p className="public-page-hero__lead">Cobrança por imóvel, sem comissão sobre receita. Comece com recomendações e avance para integração e automação quando fizer sentido.</p>
+            <p className="public-page-hero__lead">Cobrança por imóvel, sem comissão sobre receita. Comece com recomendações; a integração Stays está em beta fechado, sob convite.</p>
             <div className="public-page-hero__actions">
               <PublicButton href={PUBLIC_SIGNUP_URL}>Criar minha conta</PublicButton>
               <PublicButton href="#comparar" variant="secondary">Comparar recursos</PublicButton>
@@ -119,7 +119,7 @@ export default function PrecosPage() {
           <SectionHeading
             eyebrow="Comparação"
             title={<>Veja o que entra em <em>cada plano.</em></>}
-            description="Escolha pelo tamanho da operação e pelo nível de integração — não por uma lista artificial de limitações."
+            description="Escolha pelo tamanho da operação — não por uma lista artificial de limitações."
           />
           <div className="public-comparison-wrap">
             <table className="public-comparison">
@@ -128,10 +128,10 @@ export default function PrecosPage() {
                 <ComparisonRow name="Recomendações explicadas" values={[true, true, true]} />
                 <ComparisonRow name="Eventos e contexto local" values={[true, true, true]} />
                 <ComparisonRow name="Histórico de decisões" values={[true, true, true]} />
-                <ComparisonRow name="Integração Stays" values={[false, true, true]} />
-                <ComparisonRow name="Automação com limites" values={[false, true, true]} />
+                <ComparisonRow name="Integração Stays (beta fechado, sob convite)" values={[false, true, true]} />
+                <ComparisonRow name="Regras e limites por imóvel" values={[false, true, true]} />
                 <ComparisonRow name="Operação multi-conta" values={[false, false, true]} />
-                <ComparisonRow name="Integração customizada" values={[false, false, true]} />
+                <ComparisonRow name="Requisitos específicos (sob proposta)" values={[false, false, true]} />
               </tbody>
             </table>
           </div>

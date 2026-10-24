@@ -26,11 +26,11 @@ const FAQ = [
   },
   {
     question: "A plataforma altera preços sem minha autorização?",
-    answer: "Não. Você pode começar no modo de recomendação e aplicar cada sugestão manualmente. A automação é opcional e respeita os limites configurados.",
+    answer: "Não. O modo de recomendação é o padrão: você aplica cada sugestão manualmente. A aplicação automática via Stays está em beta fechado, sob convite, e só ocorre com seu consentimento e limites configurados.",
   },
   {
     question: "Preciso usar a integração Stays?",
-    answer: "Não. O painel e as recomendações podem ser usados sem automação. A integração Stays atende operações que querem enviar preços para o canal com regras de controle.",
+    answer: "Não. O painel e as recomendações funcionam sem integração. A integração Stays está em beta fechado, sob convite, para operações que queiram enviar preços ao canal com regras de controle.",
   },
   {
     question: "Para quem a Urban AI foi criada?",
@@ -60,7 +60,7 @@ export default function LandingPage() {
               <PublicButton href={PUBLIC_SIGNUP_URL}>Criar minha conta</PublicButton>
               <PublicButton href="#como-funciona" variant="secondary">Ver como funciona</PublicButton>
             </div>
-            <p className="public-hero__microcopy">Cadastro direto · Controle por imóvel · Automação opcional</p>
+            <p className="public-hero__microcopy">Cadastro direto · Controle por imóvel · Integração Stays em beta fechado</p>
           </div>
           <div className="public-hero__visual">
             <ProductPreview />
@@ -102,7 +102,7 @@ export default function LandingPage() {
             <article>
               <span>03</span>
               <h3>Você decide como aplicar</h3>
-              <p>Revise o motivo, aceite, ajuste ou ignore. Se quiser automação, configure limites antes de ativar.</p>
+              <p>Revise o motivo, aceite, ajuste ou ignore. A integração Stays (beta fechado, sob convite) exige consentimento e limites antes de ativar.</p>
             </article>
           </div>
         </div>
@@ -131,7 +131,7 @@ export default function LandingPage() {
           <SectionHeading
             eyebrow="Para diferentes operações"
             title={<>Do primeiro imóvel à <em>gestão em escala.</em></>}
-            description="A mesma clareza de decisão, adaptada ao volume e ao nível de automação que sua operação precisa."
+            description="A mesma clareza de decisão, adaptada ao volume da sua operação."
           />
           <div className="public-article-grid">
             <article className="public-content-card">
@@ -164,7 +164,7 @@ export default function LandingPage() {
             <SectionHeading
               eyebrow="Preço sem comissão"
               title={<>Planos por imóvel, <em>sem percentual sobre receita.</em></>}
-              description="Escolha o nível de operação que faz sentido agora e evolua quando precisar de mais imóveis ou automação."
+              description="Escolha o nível de operação que faz sentido agora e evolua quando precisar de mais imóveis."
             />
             <CheckList items={[
               "Plano Starter para 1 a 3 imóveis",
@@ -178,7 +178,7 @@ export default function LandingPage() {
           <div className="public-price-card is-featured">
             <span className="public-price-card__tag">Mais escolhido</span>
             <h2>Profissional</h2>
-            <p className="public-price-card__audience">Para quem opera múltiplos imóveis e quer integrar o fluxo de preços.</p>
+            <p className="public-price-card__audience">Para quem opera múltiplos imóveis e quer acesso à integração Stays (beta fechado, sob convite).</p>
             <p className="public-price-card__price"><strong>R$ 99</strong><span>/ imóvel / mês</span></p>
             <p className="public-price-card__billing">No ciclo mensal. Ciclos mais longos têm valor reduzido por imóvel.</p>
             <PublicButton href={PUBLIC_SIGNUP_URL}>Começar agora</PublicButton>

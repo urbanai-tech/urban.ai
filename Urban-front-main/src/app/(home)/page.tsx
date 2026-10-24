@@ -240,8 +240,8 @@ export default function Login() {
                 margin: 0,
               }}
             >
-              A Urban AI monitora 5.000+ eventos na sua região e ajusta o preço
-              das suas diárias no momento certo. Você só precisa entrar.
+              A Urban AI acompanha eventos na sua região e recomenda quando revisar o preço
+              das suas diárias. Você só precisa entrar.
             </p>
           </div>
         </div>

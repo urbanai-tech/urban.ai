@@ -57,7 +57,7 @@ export default function SobrePage() {
           <div className="public-process">
             <article><span>01</span><h3>Observamos a cidade</h3><p>Eventos, calendário e sinais geográficos entram como contexto para datas relevantes.</p></article>
             <article><span>02</span><h3>Explicamos a recomendação</h3><p>Preço e motivo aparecem juntos para permitir julgamento comercial.</p></article>
-            <article><span>03</span><h3>Aprendemos com a operação</h3><p>Histórico, aplicação e limites ajudam a manter decisões consistentes ao longo do tempo.</p></article>
+            <article><span>03</span><h3>Registramos a operação</h3><p>Histórico, aplicação e limites ficam registrados para revisão. A qualidade das recomendações melhora conforme os preços aplicados são registrados.</p></article>
           </div>
         </div>
       </section>
