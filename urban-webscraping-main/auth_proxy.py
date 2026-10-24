@@ -3,6 +3,7 @@
 This runs on $PORT (Railway) and proxies to Scrapyd on localhost:6800.
 """
 
+import hmac
 import json
 import logging
 import os
@@ -40,6 +41,11 @@ RUN_COLLECTORS_ON_BOOT = os.environ.get("RUN_COLLECTORS_ON_BOOT", "true").lower(
     "yes",
     "on",
 }
+# Opt-in explicito para desenvolvimento local sem chave. Em producao (Railway)
+# NAO defina: sem SCRAPYD_API_KEY o proxy recusa subir.
+ALLOW_INSECURE_NO_AUTH = os.environ.get(
+    "SCRAPYD_ALLOW_INSECURE_NO_AUTH", ""
+).lower() in {"1", "true", "yes", "on"}
 logger = logging.getLogger(__name__)
 cron_state_lock = threading.Lock()
 
@@ -214,17 +220,35 @@ def check_scrapyd_ready(timeout: float = 2) -> bool:
         return False
 
 
+def is_authorized(provided_key: str) -> bool:
+    """Valida o X-API-Key em tempo constante. Sem chave configurada, so passa
+    quando o opt-in local explicito (SCRAPYD_ALLOW_INSECURE_NO_AUTH) esta ativo.
+    """
+    if not API_KEY:
+        return ALLOW_INSECURE_NO_AUTH
+    return hmac.compare_digest(
+        (provided_key or "").encode("utf-8"), API_KEY.encode("utf-8")
+    )
+
+
 class AuthProxyHandler(BaseHTTPRequestHandler):
     """Simple reverse proxy with API Key validation."""
 
     def _check_auth(self) -> bool:
-        if not API_KEY:
-            # No key configured = no protection (backward compat)
-            return True
-        key = self.headers.get("X-API-Key", "")
-        return key == API_KEY
+        return is_authorized(self.headers.get("X-API-Key", ""))
 
     def _proxy(self) -> None:
+        if not API_KEY and not ALLOW_INSECURE_NO_AUTH:
+            # Fail-closed: sem SCRAPYD_API_KEY nada alem de health e atendido
+            # (defesa em profundidade; main() ja recusa subir nessa condicao).
+            self._send_json(
+                {
+                    "status": "error",
+                    "message": "Auth proxy misconfigured: SCRAPYD_API_KEY is not set",
+                },
+                status=503,
+            )
+            return
         if not self._check_auth():
             self.send_response(401)
             self.send_header("Content-Type", "application/json")
@@ -308,13 +332,24 @@ class AuthProxyHandler(BaseHTTPRequestHandler):
 
 def main() -> None:
     logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), stream=sys.stdout)
+    if not API_KEY and not ALLOW_INSECURE_NO_AUTH:
+        logger.critical(
+            "[auth-proxy] SCRAPYD_API_KEY nao definido. Recusando iniciar: o Scrapyd "
+            "(incluindo /addversion.json) ficaria aberto. Defina SCRAPYD_API_KEY ou, "
+            "apenas em desenvolvimento local, SCRAPYD_ALLOW_INSECURE_NO_AUTH=true."
+        )
+        sys.exit(1)
     logger.info("[auth-proxy] Starting Scrapyd on port %s...", SCRAPYD_PORT)
     scrapyd_proc = start_scrapyd()
 
     logger.info("[auth-proxy] Waiting for Scrapyd...")
     wait_for_scrapyd()
 
-    auth_status = "ENABLED" if API_KEY else "DISABLED (no SCRAPYD_API_KEY set)"
+    auth_status = (
+        "ENABLED"
+        if API_KEY
+        else "DISABLED (SCRAPYD_ALLOW_INSECURE_NO_AUTH=true, apenas dev local)"
+    )
     logger.info(
         "[auth-proxy] Auth proxy listening on port %s (auth: %s)",
         PROXY_PORT,
