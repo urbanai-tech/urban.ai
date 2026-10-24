@@ -20,6 +20,12 @@ export const SUGGESTION_APPLICATION_SOURCES = [
 ] as const;
 export type SuggestionApplicationSource = (typeof SUGGESTION_APPLICATION_SOURCES)[number];
 
+export const USER_DECLARABLE_APPLICATION_SOURCES = [
+  'manual_dashboard',
+  'manual_off_platform',
+] as const satisfies readonly SuggestionApplicationSource[];
+export type UserDeclarableApplicationSource = (typeof USER_DECLARABLE_APPLICATION_SOURCES)[number];
+
 export const SUGGESTION_RESERVATION_STATUSES = [
   'unknown',
   'booked',
@@ -81,9 +87,12 @@ export class RegisterAppliedPriceDto extends SuggestionOutcomeDto {
   @Max(99_999_999.99)
   precoAplicado!: number;
 
-  @ApiProperty({ enum: SUGGESTION_APPLICATION_SOURCES })
-  @IsIn(SUGGESTION_APPLICATION_SOURCES)
-  origem!: SuggestionApplicationSource;
+  // O anfitrião só pode declarar aplicação manual. Origens `stays_*` são gravadas
+  // pelo fluxo interno da Stays; aceitá-las aqui deixaria um usuário marcar como
+  // aplicado pela Stays um preço que ele informou à mão, contaminando os outcomes.
+  @ApiProperty({ enum: USER_DECLARABLE_APPLICATION_SOURCES })
+  @IsIn(USER_DECLARABLE_APPLICATION_SOURCES)
+  origem!: UserDeclarableApplicationSource;
 }
 
 export class RegisterSuggestionResultDto extends SuggestionOutcomeDto {
