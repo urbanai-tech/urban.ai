@@ -268,8 +268,12 @@ export class PaymentsService {
     const quantity = this.resolveCheckoutQuantity(data.quantity);
     const requestedPlan = String(data.plan ?? '').trim();
     const isTrialCheckout = requestedPlan === 'trial';
+    // Trial desabilitado (variável ausente/inválida) falha antes de qualquer chamada ao Stripe.
+    const trialPeriodDays = isTrialCheckout ? this.resolveTrialPeriodDays() : null;
+    // Trial usa o plano profissional, mas obedece às mesmas faixas self-service
+    // (min/max/maxCheckoutQuantity) do checkout pago.
     const planEntity = isTrialCheckout
-      ? await this.plansService.getPlanByName('profissional')
+      ? await this.resolveTrialPlan(quantity)
       : await this.resolveCheckoutPlan(requestedPlan, quantity);
 
     if (!planEntity) {
@@ -278,7 +282,7 @@ export class PaymentsService {
       );
     }
 
-    if (!isTrialCheckout && (planEntity.isCustomPrice || planEntity.selfServiceEnabled === false)) {
+    if (planEntity.isCustomPrice || planEntity.selfServiceEnabled === false) {
       throw new BadRequestException(
         `A faixa ${planEntity.title || planEntity.name} exige atendimento comercial.`,
       );
@@ -296,7 +300,9 @@ export class PaymentsService {
     // 3) Quantidade — número de imóveis contratados. Sempre ≥ 1.
     const customerId = await this.ensureStripeCustomer(user);
 
-    const TRIAL_PERIOD_DAYS = process.env.TRIAL_PERIOD_DAYS;
+    if (isTrialCheckout) {
+      await this.assertTrialEligible(user.id, customerId);
+    }
 
     // Metadata viaja no webhook, permite reconstruir o ciclo + quantity
     // mesmo que o Stripe não exponha exatamente nossos 4 ciclos.
@@ -309,7 +315,7 @@ export class PaymentsService {
     const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData = {
       metadata: urbanaiMeta,
       ...(isTrialCheckout && {
-        trial_period_days: Number(TRIAL_PERIOD_DAYS),
+        trial_period_days: trialPeriodDays as number,
       }),
     };
 
@@ -331,6 +337,64 @@ export class PaymentsService {
       billing_address_collection: 'auto',
     });
     return session;
+  }
+
+  /**
+   * Dias de trial a partir de TRIAL_PERIOD_DAYS. Sem valor inteiro positivo
+   * (<= 730, limite do Stripe) o trial fica desabilitado, em vez de enviar NaN.
+   */
+  private resolveTrialPeriodDays(): number {
+    const raw = process.env.TRIAL_PERIOD_DAYS?.trim();
+    const days = raw ? Number(raw) : NaN;
+    if (!Number.isInteger(days) || days < 1 || days > 730) {
+      throw new BadRequestException('O período de teste gratuito não está disponível no momento.');
+    }
+    return days;
+  }
+
+  private async resolveTrialPlan(quantity: number) {
+    const plan = await this.plansService.getPlanByName('profissional');
+    if (!plan) return null;
+    if (plan.isCustomPrice || plan.selfServiceEnabled === false) {
+      throw new BadRequestException('O teste gratuito não está disponível para este plano.');
+    }
+    const min = plan.minProperties ?? 1;
+    const max = plan.maxProperties ?? plan.propertyLimit ?? null;
+    const checkoutMax = plan.maxCheckoutQuantity ?? max ?? null;
+    const inRange =
+      quantity >= min &&
+      (max === null || quantity <= max) &&
+      (checkoutMax === null || quantity <= checkoutMax);
+    if (!inRange) {
+      throw new BadRequestException(
+        `O teste gratuito não está disponível para ${quantity} imóveis.`,
+      );
+    }
+    return plan;
+  }
+
+  /**
+   * Rejeita o trial se o usuário já usou um (trialUsedAt local ou trial_start em
+   * qualquer subscription do customer no Stripe) ou se já tem assinatura
+   * vigente (evita assinaturas paralelas).
+   */
+  private async assertTrialEligible(userId: string, customerId: string): Promise<void> {
+    const payments = (await this.paymentRepository.find({ where: { user: { id: userId } } })) ?? [];
+    if (payments.some((p) => p.trialUsedAt)) {
+      throw new BadRequestException('O teste gratuito já foi utilizado nesta conta.');
+    }
+    if (payments.some((p) => p.subscriptionId && ['active', 'trialing', 'past_due'].includes(p.status))) {
+      throw new BadRequestException('Você já possui uma assinatura ativa.');
+    }
+
+    const subs = await this.stripe.subscriptions.list({ customer: customerId, status: 'all', limit: 100 });
+    const items = subs?.data ?? [];
+    if (items.some((s) => s.trial_start || s.trial_end)) {
+      throw new BadRequestException('O teste gratuito já foi utilizado nesta conta.');
+    }
+    if (items.some((s) => ['active', 'trialing', 'past_due', 'unpaid', 'incomplete', 'paused'].includes(s.status))) {
+      throw new BadRequestException('Você já possui uma assinatura ativa.');
+    }
   }
 
   async createBillingPortalSession(userId: string): Promise<{ url: string }> {
@@ -513,7 +577,27 @@ export class PaymentsService {
     return isBillingCycle(configured) ? configured : this.intervalToCycle(interval);
   }
 
-  private shouldApplyStripeEvent(payment: Payment, event: Stripe.Event): boolean {
+  private isStaleStripeEvent(payment: Payment, event: Stripe.Event): boolean {
+    const incomingCreated = Number(event.created);
+    const lastCreated = Number(payment.lastStripeEventCreated);
+    return (
+      Number.isFinite(incomingCreated) &&
+      Number.isFinite(lastCreated) &&
+      incomingCreated < lastCreated
+    );
+  }
+
+  /**
+   * Duplicados (mesmo event.id) são sempre descartados. A regra de ordem
+   * (evento mais antigo que o último aplicado) só vale para eventos cujo payload
+   * é o próprio estado; eventos que releem a subscription no Stripe
+   * (`enforceOrdering: false`) nunca são descartados por ordem.
+   */
+  private shouldApplyStripeEvent(
+    payment: Payment,
+    event: Stripe.Event,
+    opts: { enforceOrdering?: boolean } = {},
+  ): boolean {
     const recentIds = Array.isArray(payment.recentStripeEventIds)
       ? payment.recentStripeEventIds
       : [];
@@ -522,16 +606,10 @@ export class PaymentsService {
       return false;
     }
 
-    const incomingCreated = Number(event.created);
-    const lastCreated = Number(payment.lastStripeEventCreated);
-    if (
-      Number.isFinite(incomingCreated) &&
-      Number.isFinite(lastCreated) &&
-      incomingCreated < lastCreated
-    ) {
+    if (opts.enforceOrdering !== false && this.isStaleStripeEvent(payment, event)) {
       console.log(
         `Stripe webhook fora de ordem ignorado: ${event.id || event.type} ` +
-          `(created=${incomingCreated}, last=${lastCreated})`,
+          `(created=${Number(event.created)}, last=${Number(payment.lastStripeEventCreated)})`,
       );
       return false;
     }
@@ -648,6 +726,17 @@ export class PaymentsService {
     );
   }
 
+  /**
+   * Processa um webhook do Stripe.
+   *
+   * Contrato de status HTTP (ver PaymentsController.handleWebhook):
+   * - assinatura ausente/inválida/segredo ausente -> `{ error }` -> 400;
+   * - evento ignorado/desconhecido, duplicado ou sem Payment local -> 200;
+   * - falha de processamento (DB, Stripe API) -> a exceção PROPAGA -> 500, para
+   *   o Stripe reenviar o evento. Os handlers são idempotentes: o id do evento só
+   *   é gravado junto com a projeção (saveStripeProjection) e o estado é sempre
+   *   atribuído (nunca incrementado), então reprocessar é seguro.
+   */
   async handleStripeWebhook(rawBody: Buffer, signature: string) {
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -674,91 +763,45 @@ export class PaymentsService {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         if (session.subscription && typeof session.subscription === 'string') {
-          try {
-            const subscription = (await this.stripe.subscriptions.retrieve(
-              session.subscription,
-            )) as Stripe.Subscription;
-            const subscriptionId = subscription?.id;
-            const customerId = subscription?.customer;
-            const item = subscription?.items.data[0];
-            const interval = item?.plan?.interval;
-            const startCycle = new Date(subscription?.billing_cycle_anchor * 1000);
-            const status = subscription.status;
+          // Estado vem da subscription atual no Stripe (não do payload do evento),
+          // por isso este evento não é descartado por ordem: só por duplicidade.
+          const subscription = (await this.stripe.subscriptions.retrieve(
+            session.subscription,
+          )) as Stripe.Subscription;
+          const id = this.customerIdOf(subscription?.customer);
+          const payment = await this.paymentRepository.findOne({
+            where: { customerId: id },
+            relations: ['user'],
+          });
 
-            // F6.5: extrair billingCycle e quantity. Preferimos os metadados que
-            // setamos no createCheckoutSession; caímos para o `interval` do Stripe
-            // como fallback se o checkout veio antes desta mudança.
-            const meta = (subscription.metadata || {}) as Record<string, string>;
-            const sessionMeta = (session.metadata || {}) as Record<string, string>;
-            const urbanCycle = this.resolveWebhookBillingCycle(
-              [meta.urbanai_billing_cycle, sessionMeta.urbanai_billing_cycle],
-              interval,
-            );
-            const urbanQuantity = this.resolveWebhookQuantity(
-              meta.urbanai_quantity,
-              sessionMeta.urbanai_quantity,
-              item?.quantity,
-            );
-            const planName = meta.urbanai_plan || sessionMeta.urbanai_plan || null;
-
-            const cycleEnd = new Date(startCycle);
-            switch (urbanCycle) {
-              case 'monthly':
-                cycleEnd.setMonth(cycleEnd.getMonth() + 1);
-                break;
-              case 'quarterly':
-                cycleEnd.setMonth(cycleEnd.getMonth() + 3);
-                break;
-              case 'semestral':
-                cycleEnd.setMonth(cycleEnd.getMonth() + 6);
-                break;
-              case 'annual':
-                cycleEnd.setFullYear(cycleEnd.getFullYear() + 1);
-                break;
-            }
-
-            const id = typeof customerId === 'string' ? customerId : customerId.id;
-            const payment = await this.paymentRepository.findOne({
-              where: { customerId: id },
-              relations: ['user'],
+          if (payment) {
+            if (!this.shouldApplyStripeEvent(payment, event, { enforceOrdering: false })) break;
+            const projection = this.applySubscriptionState(payment, subscription, {
+              session,
+              isCheckout: true,
             });
-
-            if (payment) {
-              if (!this.shouldApplyStripeEvent(payment, event)) break;
-              payment.mode = interval ?? null;
-              payment.billingCycle = urbanCycle;
-              payment.listingsContratados = Math.max(1, urbanQuantity);
-              if (planName) payment.planName = planName;
-              payment.expireDate = cycleEnd;
-              payment.subscriptionId = subscriptionId;
-              payment.startDate = startCycle;
-
-              payment.status = this.subscriptionStatusToPaymentStatus(status, payment.status);
-
-              await this.saveStripeProjection(payment, event);
-              await this.sendBillingEmail(
-                payment,
-                'Urban AI - Assinatura ativada',
-                EmailTemplates.getSubscriptionActiveTemplate({
-                  nome: payment.user?.username || payment.user?.email || 'Usuário',
-                  planName: planName || payment.planName || 'Urban AI',
-                  billingCycle: urbanCycle as BillingCycle,
-                  listingsContratados: Math.max(1, urbanQuantity),
-                  totalAmountCents: this.resolveSubscriptionAmountCents(item, urbanQuantity, session.amount_total),
-                  nextBillingDate: cycleEnd.toISOString().slice(0, 10),
-                  invoiceUrl: this.resolveHostedInvoiceUrl(session.invoice),
-                  dashboardUrl: `${this.getFrontBaseUrl()}/dashboard`,
-                }),
-              );
-              console.log(
-                `✅ checkout.session.completed processado para customer ${id} ` +
-                  `(cycle=${urbanCycle}, qty=${urbanQuantity})`,
-              );
-            } else {
-              console.warn(`⚠️ Payment não encontrado para customer ${id}`);
-            }
-          } catch (err) {
-            console.error('❌ Erro ao processar checkout.session.completed:', err.message);
+            await this.saveStripeProjection(payment, event);
+            const item = subscription.items?.data?.[0];
+            await this.sendBillingEmail(
+              payment,
+              'Urban AI - Assinatura ativada',
+              EmailTemplates.getSubscriptionActiveTemplate({
+                nome: payment.user?.username || payment.user?.email || 'Usuário',
+                planName: projection.planName || payment.planName || 'Urban AI',
+                billingCycle: projection.billingCycle as BillingCycle,
+                listingsContratados: Math.max(1, projection.quantity),
+                totalAmountCents: this.resolveSubscriptionAmountCents(item, projection.quantity, session.amount_total),
+                nextBillingDate: (payment.expireDate ?? new Date()).toISOString().slice(0, 10),
+                invoiceUrl: this.resolveHostedInvoiceUrl(session.invoice),
+                dashboardUrl: `${this.getFrontBaseUrl()}/dashboard`,
+              }),
+            );
+            console.log(
+              `✅ checkout.session.completed processado para customer ${id} ` +
+                `(cycle=${projection.billingCycle}, qty=${projection.quantity})`,
+            );
+          } else {
+            console.warn(`⚠️ Payment não encontrado para customer ${id}`);
           }
         } else {
           console.log('ℹ️ Subscription não disponível ou já populada');
@@ -766,139 +809,140 @@ export class PaymentsService {
         break;
       }
 
+      case 'invoice.paid': {
+        // Renovações: estende expireDate a partir do fim do período vigente.
+        const invoice = event.data.object as Stripe.Invoice;
+        const subscriptionId = this.invoiceSubscriptionId(invoice);
+        if (!subscriptionId) {
+          console.log('ℹ️ invoice.paid sem subscription (cobrança avulsa) ignorado');
+          break;
+        }
+        const id = this.customerIdOf(invoice.customer);
+        const payment = await this.paymentRepository.findOne({
+          where: { customerId: id },
+        });
+        if (!payment) {
+          console.warn(`⚠️ Payment não encontrado para customer ${id}`);
+          break;
+        }
+        if (!this.shouldApplyStripeEvent(payment, event, { enforceOrdering: false })) break;
+        const subscription = (await this.stripe.subscriptions.retrieve(
+          subscriptionId,
+        )) as Stripe.Subscription;
+        this.applySubscriptionState(payment, subscription, {});
+        await this.saveStripeProjection(payment, event);
+        console.log(
+          `✅ invoice.paid processado para customer ${id} (expireDate=${payment.expireDate?.toISOString?.()})`,
+        );
+        break;
+      }
+
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         console.log('💰 PAYMENT_INTENT.SUCCEEDED');
         if (paymentIntent?.status === 'succeeded' && paymentIntent?.customer) {
-          try {
-            const customerId = paymentIntent.customer;
-            const id = typeof customerId === 'string' ? customerId : customerId.id;
-            const payment = await this.paymentRepository.findOne({
-              where: { customerId: id },
-            });
+          const id = this.customerIdOf(paymentIntent.customer);
+          const payment = await this.paymentRepository.findOne({
+            where: { customerId: id },
+          });
 
-            if (payment) {
-              if (!this.shouldApplyStripeEvent(payment, event)) break;
-              payment.status = 'active';
-              await this.saveStripeProjection(payment, event);
-              console.log(`✅ Payment ativado para customer ${id}`);
-            } else {
-              console.warn(`⚠️ Payment não encontrado para customer ${id}`);
-            }
-          } catch (err) {
-            console.error('❌ Erro ao processar payment_intent.succeeded:', err.message);
+          if (payment) {
+            if (!this.shouldApplyStripeEvent(payment, event)) break;
+            payment.status = 'active';
+            await this.saveStripeProjection(payment, event);
+            console.log(`✅ Payment ativado para customer ${id}`);
+          } else {
+            console.warn(`⚠️ Payment não encontrado para customer ${id}`);
           }
         }
         break;
       }
 
       case 'customer.subscription.updated': {
-        const subscription = event.data.object as Stripe.Subscription;
-        try {
-          const customerId = subscription.customer;
-          const id = typeof customerId === 'string' ? customerId : customerId.id;
-          const payment = await this.paymentRepository.findOne({
-            where: { customerId: id },
-          });
+        let subscription = event.data.object as Stripe.Subscription;
+        const id = this.customerIdOf(subscription.customer);
+        const payment = await this.paymentRepository.findOne({
+          where: { customerId: id },
+        });
 
-          if (payment) {
-            if (!this.shouldApplyStripeEvent(payment, event)) break;
-            payment.status = this.subscriptionStatusToPaymentStatus(subscription.status, payment.status);
-
-            const item = subscription.items.data[0];
-            const interval = item?.plan?.interval;
-            if (interval) {
-              payment.mode = interval;
-            }
-
-            // F6.5: refletir mudança de quantity (upsell de imóveis) no nosso state
-            const meta = (subscription.metadata || {}) as Record<string, string>;
-            payment.listingsContratados = this.resolveWebhookQuantity(
-              meta.urbanai_quantity,
-              item?.quantity,
-              payment.listingsContratados,
-            );
-            if (isBillingCycle(meta.urbanai_billing_cycle)) {
-              payment.billingCycle = meta.urbanai_billing_cycle;
-            } else if (!payment.billingCycle && interval) {
-              payment.billingCycle = this.intervalToCycle(interval);
-            }
-
-            await this.saveStripeProjection(payment, event);
-            console.log(
-              `✅ Subscription atualizada para customer ${id} -> status: ${subscription.status}, qty=${payment.listingsContratados}`,
-            );
+        if (payment) {
+          if (!this.shouldApplyStripeEvent(payment, event, { enforceOrdering: false })) break;
+          if (this.isStaleStripeEvent(payment, event) && subscription.id) {
+            // Evento antigo chegou depois de um mais novo: em vez de descartar (e
+            // perder plano/quantidade/expireDate), reconstrói o estado atual.
+            subscription = (await this.stripe.subscriptions.retrieve(
+              subscription.id,
+            )) as Stripe.Subscription;
           }
-        } catch (err) {
-          console.error('❌ Erro ao processar subscription.updated:', err.message);
+          this.applySubscriptionState(payment, subscription, {});
+          await this.saveStripeProjection(payment, event);
+          console.log(
+            `✅ Subscription atualizada para customer ${id} -> status: ${subscription.status}, qty=${payment.listingsContratados}`,
+          );
         }
         break;
       }
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
-        try {
-          const customerId = subscription.customer;
-          const id = typeof customerId === 'string' ? customerId : customerId.id;
-          const payment = await this.paymentRepository.findOne({
-            where: { customerId: id },
-            relations: ['user'],
-          });
+        const id = this.customerIdOf(subscription.customer);
+        const payment = await this.paymentRepository.findOne({
+          where: { customerId: id },
+          relations: ['user'],
+        });
 
-          if (payment) {
-            if (!this.shouldApplyStripeEvent(payment, event)) break;
-            payment.status = 'canceled';
-            await this.saveStripeProjection(payment, event);
-            const accessEndsAt = payment.expireDate instanceof Date
-              ? payment.expireDate.toISOString().slice(0, 10)
-              : new Date().toISOString().slice(0, 10);
-            await this.sendBillingEmail(
-              payment,
-              'Urban AI - Cancelamento confirmado',
-              EmailTemplates.getSubscriptionCancelledTemplate({
-                nome: payment.user?.username || payment.user?.email || 'Usuário',
-                accessEndsAt,
-                reactivateUrl: `${this.getFrontBaseUrl()}/plans?reactivate=1`,
-              }),
+        if (payment) {
+          if (!this.shouldApplyStripeEvent(payment, event)) break;
+          if (payment.subscriptionId && subscription.id && payment.subscriptionId !== subscription.id) {
+            console.log(
+              `Stripe subscription.deleted de assinatura antiga ignorado (${subscription.id} != ${payment.subscriptionId})`,
             );
-            console.log(`🚫 Subscription cancelada para customer ${id}`);
+            break;
           }
-        } catch (err) {
-          console.error('❌ Erro ao processar subscription.deleted:', err.message);
+          payment.status = 'canceled';
+          await this.saveStripeProjection(payment, event);
+          const accessEndsAt = payment.expireDate instanceof Date
+            ? payment.expireDate.toISOString().slice(0, 10)
+            : new Date().toISOString().slice(0, 10);
+          await this.sendBillingEmail(
+            payment,
+            'Urban AI - Cancelamento confirmado',
+            EmailTemplates.getSubscriptionCancelledTemplate({
+              nome: payment.user?.username || payment.user?.email || 'Usuário',
+              accessEndsAt,
+              reactivateUrl: `${this.getFrontBaseUrl()}/plans?reactivate=1`,
+            }),
+          );
+          console.log(`🚫 Subscription cancelada para customer ${id}`);
         }
         break;
       }
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
-        try {
-          const customerId = invoice.customer;
-          const id = typeof customerId === 'string' ? customerId : customerId.id;
-          const payment = await this.paymentRepository.findOne({
-            where: { customerId: id },
-            relations: ['user'],
-          });
+        const id = this.customerIdOf(invoice.customer);
+        const payment = await this.paymentRepository.findOne({
+          where: { customerId: id },
+          relations: ['user'],
+        });
 
-          if (payment) {
-            if (!this.shouldApplyStripeEvent(payment, event)) break;
-            payment.status = 'past_due';
-            await this.saveStripeProjection(payment, event);
-            await this.sendBillingEmail(
-              payment,
-              'Urban AI - Falha no pagamento',
-              EmailTemplates.getPaymentFailedTemplate({
-                nome: payment.user?.username || payment.user?.email || 'Usuário',
-                amountCents: invoice.amount_due || 0,
-                nextRetryDate: invoice.next_payment_attempt
-                  ? new Date(invoice.next_payment_attempt * 1000).toISOString().slice(0, 10)
-                  : 'em breve',
-                updatePaymentUrl: `${this.getFrontBaseUrl()}/plans?billing=payment_failed`,
-              }),
-            );
-            console.log(`⚠️ Pagamento falhou para customer ${id}`);
-          }
-        } catch (err) {
-          console.error('❌ Erro ao processar invoice.payment_failed:', err.message);
+        if (payment) {
+          if (!this.shouldApplyStripeEvent(payment, event)) break;
+          payment.status = 'past_due';
+          await this.saveStripeProjection(payment, event);
+          await this.sendBillingEmail(
+            payment,
+            'Urban AI - Falha no pagamento',
+            EmailTemplates.getPaymentFailedTemplate({
+              nome: payment.user?.username || payment.user?.email || 'Usuário',
+              amountCents: invoice.amount_due || 0,
+              nextRetryDate: invoice.next_payment_attempt
+                ? new Date(invoice.next_payment_attempt * 1000).toISOString().slice(0, 10)
+                : 'em breve',
+              updatePaymentUrl: `${this.getFrontBaseUrl()}/plans?billing=payment_failed`,
+            }),
+          );
+          console.log(`⚠️ Pagamento falhou para customer ${id}`);
         }
         break;
       }
@@ -908,6 +952,105 @@ export class PaymentsService {
     }
 
     return { event };
+  }
+
+  private customerIdOf(customer: string | { id: string } | null | undefined): string {
+    return typeof customer === 'string' ? customer : customer?.id;
+  }
+
+  /** Stripe basil moveu `invoice.subscription` para `invoice.parent.subscription_details.subscription`. */
+  private invoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+    const legacy = (invoice as any)?.subscription;
+    const parent = (invoice as any)?.parent?.subscription_details?.subscription;
+    const raw = legacy ?? parent;
+    if (!raw) return null;
+    return typeof raw === 'string' ? raw : raw.id ?? null;
+  }
+
+  /** Fim do período vigente (basil: no item; versões antigas: na subscription). */
+  private resolveSubscriptionPeriodEnd(subscription: Stripe.Subscription): Date | null {
+    const sub = subscription as any;
+    const item = sub?.items?.data?.[0];
+    const candidates = [sub?.current_period_end, item?.current_period_end];
+    if (sub?.status === 'trialing') candidates.push(sub?.trial_end);
+    for (const candidate of candidates) {
+      const parsed = Number(candidate);
+      if (Number.isFinite(parsed) && parsed > 0) return new Date(parsed * 1000);
+    }
+    return null;
+  }
+
+  /**
+   * Projeta o estado da subscription Stripe no Payment local. Sempre atribui
+   * (nunca incrementa), logo é idempotente. Usado por checkout.session.completed,
+   * invoice.paid e customer.subscription.updated.
+   */
+  private applySubscriptionState(
+    payment: Payment,
+    subscription: Stripe.Subscription,
+    opts: { session?: Stripe.Checkout.Session; isCheckout?: boolean },
+  ): { quantity: number; billingCycle: BillingCycle; planName: string | null } {
+    const item = subscription.items?.data?.[0];
+    const interval = item?.plan?.interval;
+    const meta = (subscription.metadata || {}) as Record<string, string>;
+    const sessionMeta = (opts.session?.metadata || {}) as Record<string, string>;
+
+    payment.status = this.subscriptionStatusToPaymentStatus(subscription.status, payment.status);
+    if (interval) payment.mode = interval;
+    if (subscription.id) payment.subscriptionId = subscription.id;
+
+    const quantity = this.resolveWebhookQuantity(
+      meta.urbanai_quantity,
+      sessionMeta.urbanai_quantity,
+      item?.quantity,
+      payment.listingsContratados,
+    );
+    payment.listingsContratados = Math.max(1, quantity);
+
+    const metaCycle = [meta.urbanai_billing_cycle, sessionMeta.urbanai_billing_cycle].find((c) =>
+      isBillingCycle(c),
+    );
+    if (isBillingCycle(metaCycle)) {
+      payment.billingCycle = metaCycle;
+    } else if (opts.isCheckout || (!payment.billingCycle && interval)) {
+      payment.billingCycle = this.intervalToCycle(interval);
+    }
+    const billingCycle = (payment.billingCycle || 'monthly') as BillingCycle;
+
+    const planName = meta.urbanai_plan || sessionMeta.urbanai_plan || null;
+    if (planName) payment.planName = planName;
+
+    const anchor = Number(subscription.billing_cycle_anchor);
+    const startCycle = Number.isFinite(anchor) && anchor > 0 ? new Date(anchor * 1000) : null;
+    if (startCycle && (opts.isCheckout || !payment.startDate)) payment.startDate = startCycle;
+
+    const periodEnd = this.resolveSubscriptionPeriodEnd(subscription);
+    if (periodEnd) {
+      payment.expireDate = periodEnd;
+    } else if (opts.isCheckout && startCycle) {
+      // Fallback para payloads sem current_period_end: âncora + ciclo contratado.
+      const cycleEnd = new Date(startCycle);
+      switch (billingCycle) {
+        case 'quarterly':
+          cycleEnd.setMonth(cycleEnd.getMonth() + 3);
+          break;
+        case 'semestral':
+          cycleEnd.setMonth(cycleEnd.getMonth() + 6);
+          break;
+        case 'annual':
+          cycleEnd.setFullYear(cycleEnd.getFullYear() + 1);
+          break;
+        default:
+          cycleEnd.setMonth(cycleEnd.getMonth() + 1);
+      }
+      payment.expireDate = cycleEnd;
+    }
+
+    if (!payment.trialUsedAt && (subscription.status === 'trialing' || subscription.trial_start || planName === 'trial')) {
+      payment.trialUsedAt = new Date();
+    }
+
+    return { quantity: payment.listingsContratados, billingCycle, planName };
   }
 
   private resolveSubscriptionAmountCents(

@@ -65,7 +65,9 @@ export class PaymentsController {
       `Creating checkout session for user=${req?.user?.userId} plan=${body.plan} cycle=${body.billingCycle || 'monthly'} quantity=${body.quantity ?? 1}`,
     );
     const session = await this.paymentsService.createCheckoutSession(body, req?.user?.userId);
-    return { sessionId: session.id };
+    // `url` é o redirect hospedado do Stripe (stripe.redirectToCheckout está
+    // deprecado); `sessionId` permanece por compatibilidade com o frontend atual.
+    return { sessionId: session.id, url: session.url ?? null };
   }
 
   @UseGuards(JwtAuthGuard)
