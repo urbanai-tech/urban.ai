@@ -1,9 +1,9 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { BadRequestException } from "@nestjs/common";
+import { BadRequestException, ServiceUnavailableException } from "@nestjs/common";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { StaysService } from "./stays.service";
-import { StaysConnector } from "./stays-connector";
+import { StaysConnector, StaysConnectorError } from "./stays-connector";
 import {
   StaysAccount,
   staysTokenTransformer,
@@ -29,13 +29,17 @@ describe("StaysService", () => {
     ping: jest.Mock;
     listListings: jest.Mock;
     pushPrice: jest.Mock;
+    readCurrentPriceCents: jest.Mock;
+    invalidateInventory: jest.Mock;
   };
   const originalStaysApiBaseUrl = process.env.STAYS_API_BASE_URL;
   const originalStaysTokenKey = process.env.STAYS_TOKEN_ENCRYPTION_KEY;
+  const originalStaysWrites = process.env.STAYS_PRICE_WRITES_ENABLED;
 
   beforeEach(async () => {
     process.env.STAYS_API_BASE_URL = "https://stays.test";
     process.env.STAYS_TOKEN_ENCRYPTION_KEY = "test-encryption-key";
+    process.env.STAYS_PRICE_WRITES_ENABLED = "true";
 
     accountRepo = {
       findOne: jest.fn(),
@@ -50,6 +54,7 @@ describe("StaysService", () => {
     };
     priceUpdateRepo = {
       findOne: jest.fn(),
+      find: jest.fn().mockResolvedValue([]),
       create: jest.fn().mockImplementation((d) => ({ id: "pu-1", ...d })),
       save: jest.fn().mockImplementation(async (d) => d),
     };
@@ -63,6 +68,8 @@ describe("StaysService", () => {
       ping: jest.fn(),
       listListings: jest.fn(),
       pushPrice: jest.fn(),
+      readCurrentPriceCents: jest.fn().mockResolvedValue(null),
+      invalidateInventory: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -86,6 +93,8 @@ describe("StaysService", () => {
   });
 
   afterAll(() => {
+    if (originalStaysWrites === undefined) delete process.env.STAYS_PRICE_WRITES_ENABLED;
+    else process.env.STAYS_PRICE_WRITES_ENABLED = originalStaysWrites;
     if (originalStaysApiBaseUrl === undefined) {
       delete process.env.STAYS_API_BASE_URL;
     } else {
@@ -276,9 +285,10 @@ describe("StaysService", () => {
       expect(priceUpdateRepo.save).not.toHaveBeenCalled();
     });
 
-    it("uses the listing base price as baseline and flags idempotent replay", async () => {
+    it("uses the live Stays calendar price as baseline (not the cached base price) and flags idempotent replay", async () => {
       withActiveAccount();
-      withListing("l-1", 10000);
+      withListing("l-1", 99999);
+      connector.readCurrentPriceCents.mockResolvedValue(10000);
       priceUpdateRepo.findOne!.mockResolvedValue({ id: "pu-existing" });
 
       const result = await service.previewPrice("u1", {
@@ -289,12 +299,17 @@ describe("StaysService", () => {
 
       expect(result).toMatchObject({
         previousPriceCents: 10000,
+        previousPriceSource: "stays_calendar",
         diffCents: 1500,
         diffPercent: 15,
         readyForPush: true,
+        priceWritesEnabled: true,
         existingPriceUpdateId: "pu-existing",
         idempotentReplay: true,
       });
+      expect(connector.readCurrentPriceCents).toHaveBeenCalledWith(
+        expect.objectContaining({ clientSecret: "t" }), "stays-l-1", "2026-06-01", "BRL",
+      );
       expect(connector.pushPrice).not.toHaveBeenCalled();
     });
 
@@ -307,9 +322,11 @@ describe("StaysService", () => {
       const result = await service.previewPrice("u1", {
         listingId: "l-1",
         targetDate: "2026-06-01",
+        previousPriceCents: 10000,
         newPriceCents: 11000,
       });
 
+      expect(connector.readCurrentPriceCents).not.toHaveBeenCalled();
       expect(result.blockers).toHaveLength(0);
       expect(result.readyForPush).toBe(false);
       expect(result.warnings.map((w) => w.code)).toContain(
@@ -404,7 +421,7 @@ describe("StaysService", () => {
 
     it("persists PriceUpdate lifecycle as pricing decision outcome", async () => {
       withActiveAccount();
-      withListing();
+      listingRepo.findOne!.mockResolvedValue({ ...withListing(), propriedade: { id: "property-1" } });
       priceUpdateRepo.findOne!.mockResolvedValue(null);
       connector.pushPrice.mockResolvedValue({
         ok: true,
@@ -412,6 +429,8 @@ describe("StaysService", () => {
       });
       analiseRepo.findOne!.mockResolvedValue({
         id: "analysis-1",
+        usuarioProprietario: { id: "u1" },
+        endereco: { list: { id: "property-1" } },
         status: "applied_stays",
         aceito: true,
         reservaStatus: "booked",
@@ -505,22 +524,21 @@ describe("StaysService", () => {
       expect(result.status).toBe("success");
     });
 
-    it("skips the caps when previousPriceCents is zero (no baseline)", async () => {
+    it("rejects a zero previous price because the baseline cannot be verified", async () => {
       withActiveAccount();
       withListing("l-1", 0);
       priceUpdateRepo.findOne!.mockResolvedValue(null);
       connector.pushPrice.mockResolvedValue({ ok: true });
 
-      // Não temos preço anterior para comparar — aceita qualquer valor novo.
-      const result = await service.pushPrice("u1", {
+      await expect(service.pushPrice("u1", {
         listingId: "l-1",
         targetDate: "2026-05-01",
         previousPriceCents: 0,
         newPriceCents: 50000,
         origin: "user_manual",
-      });
+      })).rejects.toThrow("previousPriceCents deve ser um inteiro positivo");
 
-      expect(result.status).toBe("success");
+      expect(connector.pushPrice).not.toHaveBeenCalled();
     });
   });
 
@@ -601,48 +619,110 @@ describe("StaysService", () => {
       expect(result.errorMessage).toBe("listing inactive");
     });
 
-    it("marks account as error when connector throws (network/5xx)", async () => {
-      const account = {
-        id: "acc-1",
-        user: { id: "u1" },
-        accessToken: "t",
-        status: "active",
-        consentAcceptedAt: new Date("2026-05-01T00:00:00.000Z"),
-        consentVersion: "stays-connect-v1",
-        maxIncreasePercent: 25,
-        maxDecreasePercent: 20,
-        lastErrorAt: null,
-        lastErrorMessage: null,
-      };
-      accountRepo.findOne!.mockResolvedValue(account);
-      listingRepo.findOne!.mockResolvedValue({
-        id: "l-1",
-        staysListingId: "stays-l-1",
-        account: { id: "acc-1" },
-        active: true,
-      });
-      priceUpdateRepo.findOne!.mockResolvedValue(null);
-      connector.pushPrice.mockRejectedValue(new Error("ECONNRESET"));
-
-      await expect(
+    describe("account status after provider failures (auth vs transient)", () => {
+      function failingAccount(overrides: Record<string, unknown> = {}) {
+        const account = {
+          id: "acc-1",
+          user: { id: "u1" },
+          clientId: "client",
+          accessToken: "t",
+          status: "active",
+          consentAcceptedAt: new Date("2026-05-01T00:00:00.000Z"),
+          consentVersion: "stays-connect-v1",
+          maxIncreasePercent: 25,
+          maxDecreasePercent: 20,
+          lastErrorAt: null,
+          lastErrorMessage: null,
+          consecutiveFailures: 0,
+          ...overrides,
+        };
+        accountRepo.findOne!.mockResolvedValue(account);
+        listingRepo.findOne!.mockResolvedValue({
+          id: "l-1",
+          staysListingId: "stays-l-1",
+          account: { id: "acc-1" },
+          active: true,
+        });
+        priceUpdateRepo.findOne!.mockResolvedValue(null);
+        return account;
+      }
+      const push = () =>
         service.pushPrice("u1", {
           listingId: "l-1",
           targetDate: "2026-05-01",
           previousPriceCents: 10000,
           newPriceCents: 11500,
           origin: "ai_auto",
-        }),
-      ).rejects.toThrow();
+        });
 
-      // A conta foi marcada como error
-      const accountSaves = accountRepo.save!.mock.calls.map((c) => c[0]);
-      expect(accountSaves.some((a) => a.status === "error")).toBe(true);
-      expect(priceUpdateRepo.save).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          status: "error",
-          errorMessage: "ECONNRESET",
-        }),
-      );
+      it.each([
+        ["timeout", new StaysConnectorError("Stays price operation failed; reconcile calendar before retrying", "transient")],
+        ["5xx", new StaysConnectorError("Stays read failed (HTTP 503)", "transient", 503)],
+        ["unknown network error", new Error("ECONNRESET")],
+      ])("keeps the account active on %s and records the PriceUpdate as error", async (_label, error) => {
+        const account = failingAccount();
+        connector.pushPrice.mockRejectedValue(error);
+        await expect(push()).rejects.toBeDefined();
+        expect(account.status).toBe("active");
+        expect(account.consecutiveFailures).toBe(0);
+        expect(account.lastErrorAt).toBeInstanceOf(Date);
+        expect(accountRepo.save!.mock.calls.some(([a]) => a.status === "error")).toBe(false);
+        expect(priceUpdateRepo.save).toHaveBeenLastCalledWith(expect.objectContaining({ status: "error" }));
+      });
+
+      it("maps a transient failure to 503 so the caller retries later", async () => {
+        failingAccount();
+        connector.pushPrice.mockRejectedValue(new StaysConnectorError("x", "transient"));
+        await expect(push()).rejects.toBeInstanceOf(ServiceUnavailableException);
+      });
+
+      it.each([401, 403])("marks the account as error on authentication failure (HTTP %s)", async (status) => {
+        const account = failingAccount();
+        connector.pushPrice.mockRejectedValue(new StaysConnectorError(`Stays authentication failed (HTTP ${status})`, "auth", status));
+        await expect(push()).rejects.toBeInstanceOf(BadRequestException);
+        expect(account.status).toBe("error");
+        expect(account.lastErrorMessage).toBe(`Stays authentication failed (HTTP ${status})`);
+      });
+
+      it("only marks the account as error after repeated hard (contract) failures", async () => {
+        const account = failingAccount();
+        connector.pushPrice.mockRejectedValue(new StaysConnectorError("Stays write could not be reconciled", "contract"));
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          await expect(push()).rejects.toBeDefined();
+          expect(account.status).toBe("active");
+          expect(account.consecutiveFailures).toBe(attempt);
+        }
+        await expect(push()).rejects.toBeDefined();
+        expect(account.status).toBe("error");
+      });
+
+      it("resets the hard-failure counter after a successful call", async () => {
+        const account = failingAccount({ consecutiveFailures: 2 });
+        connector.pushPrice.mockResolvedValue({ ok: true });
+        await push();
+        expect(account.consecutiveFailures).toBe(0);
+        expect(account.status).toBe("active");
+      });
+
+      it("keeps the account active when a live calendar read times out, but not on 401", async () => {
+        const account = failingAccount();
+        connector.readCurrentPriceCents.mockRejectedValueOnce(new StaysConnectorError("Stays read failed", "transient"));
+        await expect(service.readCurrentPriceCents("u1", "l-1", "2026-05-01")).rejects.toBeDefined();
+        expect(account.status).toBe("active");
+        connector.readCurrentPriceCents.mockRejectedValueOnce(new StaysConnectorError("Stays authentication failed (HTTP 401)", "auth", 401));
+        await expect(service.readCurrentPriceCents("u1", "l-1", "2026-05-01")).rejects.toBeDefined();
+        expect(account.status).toBe("error");
+      });
+
+      it("preview degrades to a warning (not a 500) when the live read fails transiently", async () => {
+        const account = failingAccount();
+        connector.readCurrentPriceCents.mockRejectedValue(new StaysConnectorError("Stays read failed", "transient"));
+        const preview = await service.previewPrice("u1", { listingId: "l-1", targetDate: "2026-05-01", newPriceCents: 11000 });
+        expect(preview.warnings.map((w) => w.code)).toContain("live_price_unavailable");
+        expect(preview.blockers.map((b) => b.code)).toContain("missing_previous_price");
+        expect(preview.readyForPush).toBe(false);
+        expect(account.status).toBe("active");
+      });
     });
 
     it("rejects when listing is inactive", async () => {
@@ -813,10 +893,11 @@ describe("StaysService", () => {
       expect(connector.pushPrice).not.toHaveBeenCalled();
     });
 
-    it("creates an inverse, owner-scoped rollback with audit metadata", async () => {
+    it("creates an inverse, owner-scoped rollback attempt with audit metadata", async () => {
       const original = {
         id: "pu-original",
         status: "success",
+        origin: "user_accepted",
         targetDate: "2026-08-01",
         previousPriceCents: 10000,
         newPriceCents: 11500,
@@ -836,13 +917,18 @@ describe("StaysService", () => {
           ip: "127.0.0.1",
           userAgent: "jest",
         }),
-      ).resolves.toEqual(expect.objectContaining({ rollbackOf: original }));
+      ).resolves.toBe(rollback);
 
       expect(priceUpdateRepo.findOne).toHaveBeenCalledWith({
         where: { id: "pu-original", user: { id: "u1" } },
         relations: ["listing", "listing.account"],
       });
+      expect(priceUpdateRepo.find).toHaveBeenCalledWith(expect.objectContaining({
+        where: { rollbackOf: { id: "pu-original" }, user: { id: "u1" } },
+      }));
       expect(push).toHaveBeenCalledWith("u1", {
+        requestId: "rollback:pu-original:1",
+        rollbackOfId: "pu-original",
         listingId: "l-1",
         targetDate: "2026-08-01",
         newPriceCents: 10000,
@@ -852,9 +938,6 @@ describe("StaysService", () => {
         ip: "127.0.0.1",
         userAgent: "jest",
       });
-      expect(priceUpdateRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ id: "pu-rollback", rollbackOf: original }),
-      );
     });
 
     it("rejects rollback of a push that was not successful", async () => {
@@ -1052,11 +1135,10 @@ describe("StaysService", () => {
           "listing_inactive",
           "invalid_target_date",
           "invalid_new_price",
+          "missing_previous_price",
         ]),
       );
-      expect(result.warnings).toContainEqual(
-        expect.objectContaining({ code: "missing_previous_price" }),
-      );
+      expect(connector.readCurrentPriceCents).not.toHaveBeenCalled();
       expect(priceUpdateRepo.findOne).not.toHaveBeenCalled();
     });
 
