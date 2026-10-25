@@ -13,6 +13,7 @@ import {
 } from "../entities/pricing-decision-snapshot.entity";
 import { EventIntelligenceConfidence } from "../entities/event-intelligence-snapshot.entity";
 import { toSaoPauloDateKey } from "../common/sp-date";
+import { EntitlementService } from "../subscription/entitlement.service";
 
 interface StaysAutoApplyConfig {
   enabled: boolean;
@@ -124,6 +125,7 @@ export class StaysAutoApplyService {
     @InjectRepository(AnalisePreco)
     private readonly analiseRepo: Repository<AnalisePreco>,
     private readonly staysService: StaysService,
+    private readonly entitlement: EntitlementService,
     @Optional()
     @InjectRepository(PricingDecisionSnapshot)
     private readonly pricingDecisionSnapshotRepo?: Repository<PricingDecisionSnapshot>,
@@ -416,13 +418,26 @@ export class StaysAutoApplyService {
       where: { active: true },
       relations: ["account", "account.user", "propriedade"],
     });
-    return all.filter((l) => {
+    const autoMode = all.filter((l) => {
       if (l.account?.status !== "active") return false;
       if (l.operationMode === "auto") return true;
       if (l.operationMode === "inherit") {
         return (l.account as any)?.user?.operationMode === "auto";
       }
       return false;
+    });
+
+    // Aplicar preço automaticamente é o recurso pago por excelência: só para donos
+    // com assinatura/trial/alpha/admin. Sem direito de uso, o listing é pulado.
+    const entitled = await this.entitlement.filterEntitledUserIds(
+      autoMode
+        .map((l) => (l.account as any)?.user?.id as string | undefined)
+        .filter((id): id is string => Boolean(id)),
+    );
+    return autoMode.filter((l) => {
+      const ownerId = (l.account as any)?.user?.id;
+      // sem dono: segue para o laço, que já registra "sem userId" e pula
+      return !ownerId || entitled.has(ownerId);
     });
   }
 
@@ -445,6 +460,8 @@ export class StaysAutoApplyService {
         { success: "success" },
       )
       .where("addr.list_id = :listId", { listId: listing.propriedade.id })
+      // imóvel pausado por cota/downgrade (ativo = false) não recebe preço automático
+      .andWhere("addr.ativo = :addrActive", { addrActive: true })
       .andWhere("ap.criado_em >= :cutoff", { cutoff })
       .andWhere("ap.aceito = :aceito", { aceito: true })
       .andWhere("pu.id IS NULL")

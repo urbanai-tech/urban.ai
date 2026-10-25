@@ -1,3 +1,4 @@
+import { entitlementDouble } from 'src/subscription/entitlement.testing';
 jest.mock('src/airbnb/airbnb.service', () => ({
   AirbnbService: class AirbnbService { },
 }));
@@ -15,7 +16,7 @@ import { Logger } from '@nestjs/common';
 import { CronService } from './cron.service';
 
 describe('CronService', () => {
-  const makeService = (analises: any[]) => {
+  const makeService = (analises: any[], entitlement: any = entitlementDouble()) => {
     const analisePrecoRepository = {
       find: jest.fn().mockResolvedValue(analises),
     };
@@ -38,6 +39,7 @@ describe('CronService', () => {
       emailService as any,
       mailerSender as any,
       propriedadeService as any,
+      entitlement as any,
     );
 
     jest.spyOn(service as any, 'waitBetweenCronItems').mockResolvedValue(undefined);
@@ -276,5 +278,60 @@ describe('CronService', () => {
         reason: 'Airbnb indisponível',
       },
     ]);
+  });
+
+  describe('assinatura (crons só processam quem tem direito de uso)', () => {
+    const analysis = (id: string, ownerId: string, enderecoExtra: Record<string, unknown> = {}) => ({
+      id,
+      endereco: {
+        id: 'address-' + id,
+        cep: '05001-000',
+        numero: '100',
+        list: { id: 'list-' + id, id_do_anuncio: 'airbnb-' + id, titulo: 'Imóvel ' + id },
+        ...enderecoExtra,
+      },
+      evento: { nome: 'Show', dataInicio: new Date('2026-06-10T20:00:00.000Z') },
+      usuarioProprietario: { id: ownerId },
+      diferencaPercentual: 0,
+      precoSugerido: 100,
+    });
+
+    it('pula análises de dono sem assinatura: sem chamada paga ao Airbnb e sem notificação', async () => {
+      const entitlement = entitlementDouble({ entitled: (userId) => userId === 'user-pagante' });
+      const { service, airbnbService, emailService } = makeService(
+        [analysis('a1', 'user-gratis'), analysis('a2', 'user-pagante')],
+        entitlement,
+      );
+      airbnbService.getFirstAvailablePrice.mockResolvedValue({
+        price: { data: { accommodationCost: 100, accommodationCostTitle: '1 night x R$100' } },
+      });
+
+      const result = await service.buscarAnalisesAceitas();
+
+      expect(result).toMatchObject({ total: 2, processed: 1, skipped: 1, failed: 0 });
+      expect(airbnbService.getFirstAvailablePrice).toHaveBeenCalledTimes(1);
+      expect(airbnbService.getFirstAvailablePrice).toHaveBeenCalledWith('airbnb-a2');
+      expect(emailService.enviarNotification).not.toHaveBeenCalled();
+    });
+
+    it('pula imóvel pausado por cota (endereço inativo) mesmo de dono com assinatura', async () => {
+      const { service, airbnbService } = makeService([analysis('a1', 'user-pagante', { ativo: false })]);
+
+      const result = await service.buscarAnalisesAceitas();
+
+      expect(result).toMatchObject({ total: 1, processed: 0, skipped: 1 });
+      expect(airbnbService.getFirstAvailablePrice).not.toHaveBeenCalled();
+    });
+
+    it('consulta o direito de uso em lote (uma vez para todos os donos)', async () => {
+      const entitlement = entitlementDouble({ entitled: false });
+      const spy = jest.spyOn(entitlement, 'filterEntitledUserIds');
+      const { service } = makeService([analysis('a1', 'u1'), analysis('a2', 'u1'), analysis('a3', 'u2')], entitlement);
+
+      await service.buscarAnalisesAceitas();
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy.mock.calls[0][0]).toEqual(['u1', 'u1', 'u2']);
+    });
   });
 });

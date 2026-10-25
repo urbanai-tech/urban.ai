@@ -24,6 +24,7 @@ import {
   Icons,
   useToastCompat,
 } from "../componentes/ui";
+import { stashPendingEmail } from "@/app/lib/auth-links";
 
 // Função de hash
 async function sha256(message: string): Promise<string> {
@@ -195,7 +196,8 @@ const Register = () => {
 
       // E-mail precisa ser verificado antes do onboarding.
       setTimeout(() => {
-        router.push(`/confirm-email/${encodeURIComponent(email)}`);
+        stashPendingEmail(email);
+        router.push("/confirm-email");
       }, 1200);
     } catch (err: any) {
       toast.error(

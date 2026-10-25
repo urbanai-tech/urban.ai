@@ -4,7 +4,9 @@ import { Payment } from 'src/entities/payment.entity';
 import { User } from 'src/entities/user.entity';
 import { Address } from 'src/entities/addresses.entity';
 import Stripe from 'stripe';
-import { In, Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
+import { SubscriptionQuotaService } from '../subscription/subscription-quota.service';
+import { resolveAlphaQuota } from '../subscription/entitlement';
 import { PlansService } from '../plans/plans.service';
 import { BillingCycle } from '../entities/plan.entity';
 import { isBillingCycle, resolveStripePriceId } from './stripe-price-id.resolver';
@@ -23,6 +25,7 @@ export class PaymentsService {
     @InjectRepository(Address) private addressRepository: Repository<Address>,
     private plansService: PlansService,
     @Optional() private readonly mailerService?: MailerService,
+    @Optional() private readonly quotaService?: SubscriptionQuotaService,
   ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_not_configured', {
       apiVersion: '2025-08-27.basil',
@@ -42,9 +45,7 @@ export class PaymentsService {
   ): Promise<{ contratados: number; ativos: number; podeAdicionar: boolean }> {
     const alphaQuota = await this.getAlphaQuota(userId);
     if (alphaQuota) {
-      const ativos = await this.addressRepository.count({
-        where: { user: { id: userId } },
-      });
+      const ativos = await this.countUnpausedAddresses(userId);
 
       return {
         contratados: alphaQuota,
@@ -61,16 +62,24 @@ export class PaymentsService {
       order: { updatedAt: 'DESC' },
     });
 
+    // `contratados` mínimo 1 é só o piso do onboarding (cadastrar o 1º imóvel antes
+    // de pagar). NÃO libera uso do produto: o acesso pago é decidido pelo
+    // SubscriptionGuard / EntitlementService (src/subscription).
     const contratados = Math.max(1, payment?.listingsContratados ?? 1);
-    const ativos = await this.addressRepository.count({
-      where: { user: { id: userId } },
-    });
+    const ativos = await this.countUnpausedAddresses(userId);
 
     return {
       contratados,
       ativos,
       podeAdicionar: ativos < contratados,
     };
+  }
+
+  /** Imóveis que contam na cota: os pausados por cota (downgrade) ficam de fora. */
+  private async countUnpausedAddresses(userId: string): Promise<number> {
+    return this.addressRepository.count({
+      where: { user: { id: userId }, quotaPausedAt: IsNull() },
+    });
   }
 
   async findByUserId(userId: string): Promise<any> {
@@ -184,21 +193,8 @@ export class PaymentsService {
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
-    const keys = new Set([
-      userId.toLowerCase(),
-      user?.email?.toLowerCase(),
-    ].filter(Boolean));
-
-    for (const entry of raw.split(',')) {
-      const [rawKey, rawQuota] = entry.split(':').map((part) => part?.trim());
-      if (!rawKey || !rawQuota) continue;
-      if (!keys.has(rawKey.toLowerCase())) continue;
-
-      const quota = Number(rawQuota);
-      return Number.isFinite(quota) && quota > 0 ? Math.floor(quota) : null;
-    }
-
-    return null;
+    // Mesma regra do EntitlementService (src/subscription/entitlement.ts).
+    return resolveAlphaQuota(raw, userId, user?.email);
   }
 
   async cancelSubscription(userId: string) {
@@ -635,7 +631,32 @@ export class PaymentsService {
 
   private async saveStripeProjection(payment: Payment, event: Stripe.Event): Promise<Payment> {
     this.rememberStripeEvent(payment, event);
-    return this.paymentRepository.save(payment);
+    const saved = await this.paymentRepository.save(payment);
+    await this.syncPropertyQuota(payment);
+    return saved;
+  }
+
+  /**
+   * Após qualquer mudança de estado da cobrança (quantidade menor no
+   * subscription.updated, cancelamento, falha de pagamento, upgrade...), pausa
+   * os imóveis acima da cota — ou reativa os pausados se a cota subiu. Uma falha
+   * aqui NUNCA derruba o webhook (o cron diário subscription-quota-reconcile cobre).
+   */
+  private async syncPropertyQuota(payment: Payment): Promise<void> {
+    if (!this.quotaService) return;
+    try {
+      let userId = payment?.user?.id;
+      if (!userId && payment?.id) {
+        const full = await this.paymentRepository.findOne({
+          where: { id: payment.id },
+          relations: ['user'],
+        });
+        userId = full?.user?.id;
+      }
+      if (userId) await this.quotaService.reconcileUser(userId, { kickoffPendingAnalyses: true });
+    } catch (error: any) {
+      console.warn(`Reconciliação de cota após webhook falhou: ${error?.message || error}`);
+    }
   }
 
   private subscriptionStatusToPaymentStatus(status: string, currentStatus?: string | null): string {

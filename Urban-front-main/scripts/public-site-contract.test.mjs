@@ -85,7 +85,8 @@ test('cadastro respeita o modo de lançamento e mantém termos, confirmação de
   assert.match(content, /usePrelaunch/);
   assert.match(content, /mode !== "registered"/);
   assert.match(content, /termsVersion: TERMS_VERSION/);
-  assert.match(content, /\/confirm-email\//);
+  assert.match(content, /router\.push\("\/confirm-email"\)/);
+  assert.doesNotMatch(content, /confirm-email\/[`"$+]/);
   const track = content.match(/trackAnalyticsEvent\([\s\S]*?\);/)?.[0] ?? '';
   assert.doesNotMatch(track, /b(username|password|lastRegisterEmail)b|[(,{ ]email[,} ]/);
 });

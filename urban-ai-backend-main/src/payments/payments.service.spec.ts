@@ -36,6 +36,7 @@ import { User } from '../entities/user.entity';
 import { Address } from '../entities/addresses.entity';
 import { PlansService } from '../plans/plans.service';
 import { MailerService } from '../mailer/mailer.service';
+import { SubscriptionQuotaService } from '../subscription/subscription-quota.service';
 
 const stubAddressRepo = () => ({ count: jest.fn().mockResolvedValue(0) });
 
@@ -1452,5 +1453,126 @@ describe('PaymentsService — createCheckoutSession trial rules', () => {
     plansService.getPlanByName.mockResolvedValue(proPlan({ selfServiceEnabled: false }));
     await expect(service.createCheckoutSession({ plan: 'trial' }, 'u1')).rejects.toBeInstanceOf(BadRequestException);
     expect(mockStripeCheckoutSessionsCreate).not.toHaveBeenCalled();
+  });
+});
+
+describe('PaymentsService — downgrade/cancelamento pausa imóveis acima da cota', () => {
+  let service: PaymentsService;
+  let paymentRepo: Repo<Payment>;
+  let quotaService: { reconcileUser: jest.Mock };
+  let addressRepo: { count: jest.Mock };
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
+    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+    paymentRepo = {
+      find: jest.fn(),
+      findOne: jest.fn(),
+      save: jest.fn().mockImplementation(async (x) => x),
+      create: jest.fn(),
+    };
+    addressRepo = { count: jest.fn().mockResolvedValue(2) };
+    quotaService = { reconcileUser: jest.fn().mockResolvedValue({ paused: [], reactivated: [] }) };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        PaymentsService,
+        { provide: getRepositoryToken(Payment), useValue: paymentRepo },
+        { provide: getRepositoryToken(User), useValue: { findOne: jest.fn() } },
+        { provide: getRepositoryToken(Address), useValue: addressRepo },
+        { provide: PlansService, useValue: { getPlanByName: jest.fn() } },
+        { provide: MailerService, useValue: { sendHtmlEmail: jest.fn().mockResolvedValue({ enviado: true }) } },
+        { provide: SubscriptionQuotaService, useValue: quotaService },
+      ],
+    }).compile();
+    service = module.get<PaymentsService>(PaymentsService);
+  });
+
+  const updatedEvent = (quantity: number) => ({
+    id: 'evt_down',
+    created: 1_900_000_000,
+    type: 'customer.subscription.updated',
+    data: {
+      object: {
+        id: 'sub_1',
+        customer: 'cus_abc',
+        status: 'active',
+        items: { data: [{ plan: { interval: 'month' }, quantity }] },
+        metadata: { urbanai_quantity: String(quantity), urbanai_billing_cycle: 'monthly' },
+      },
+    },
+  });
+
+  it('subscription.updated com quantidade menor reduz a cota e reconcilia o usuário DEPOIS de salvar', async () => {
+    mockStripeConstructEvent.mockReturnValue(updatedEvent(2));
+    paymentRepo.findOne!.mockResolvedValue({
+      id: 'pay1',
+      customerId: 'cus_abc',
+      listingsContratados: 5,
+      user: { id: 'user-1' },
+    });
+
+    await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+    expect(paymentRepo.save).toHaveBeenCalledWith(expect.objectContaining({ listingsContratados: 2 }));
+    expect(quotaService.reconcileUser).toHaveBeenCalledWith('user-1', { kickoffPendingAnalyses: true });
+    expect(paymentRepo.save.mock.invocationCallOrder[0]).toBeLessThan(
+      quotaService.reconcileUser.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('resolve o dono do Payment quando a relação não veio carregada', async () => {
+    mockStripeConstructEvent.mockReturnValue(updatedEvent(2));
+    paymentRepo.findOne!
+      .mockResolvedValueOnce({ id: 'pay1', customerId: 'cus_abc', listingsContratados: 5 })
+      .mockResolvedValueOnce({ id: 'pay1', user: { id: 'user-9' } });
+
+    await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+    expect(quotaService.reconcileUser).toHaveBeenCalledWith('user-9', { kickoffPendingAnalyses: true });
+  });
+
+  it('customer.subscription.deleted (cancelamento) também reconcilia', async () => {
+    mockStripeConstructEvent.mockReturnValue({
+      id: 'evt_del',
+      created: 1_900_000_100,
+      type: 'customer.subscription.deleted',
+      data: { object: { id: 'sub_1', customer: 'cus_abc' } },
+    });
+    paymentRepo.findOne!.mockResolvedValue({
+      id: 'pay1',
+      customerId: 'cus_abc',
+      subscriptionId: 'sub_1',
+      status: 'active',
+      user: { id: 'user-1', email: 'a@b.com' },
+    });
+
+    await service.handleStripeWebhook(Buffer.from('{}'), 'sig');
+
+    expect(paymentRepo.save).toHaveBeenCalledWith(expect.objectContaining({ status: 'canceled' }));
+    expect(quotaService.reconcileUser).toHaveBeenCalledWith('user-1', { kickoffPendingAnalyses: true });
+  });
+
+  it('falha do reconciliador NÃO derruba o webhook (o cron diário cobre)', async () => {
+    jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    quotaService.reconcileUser.mockRejectedValue(new Error('db fora'));
+    mockStripeConstructEvent.mockReturnValue(updatedEvent(2));
+    paymentRepo.findOne!.mockResolvedValue({ id: 'pay1', customerId: 'cus_abc', user: { id: 'user-1' } });
+
+    await expect(service.handleStripeWebhook(Buffer.from('{}'), 'sig')).resolves.toMatchObject({
+      event: expect.any(Object),
+    });
+  });
+
+  it('getListingsQuota conta só imóveis não pausados por cota', async () => {
+    paymentRepo.findOne!.mockResolvedValue({ listingsContratados: 3 });
+    addressRepo.count.mockResolvedValue(3);
+
+    await service.getListingsQuota('user-1');
+
+    expect(addressRepo.count).toHaveBeenCalledWith({
+      where: { user: { id: 'user-1' }, quotaPausedAt: expect.objectContaining({ _type: 'isNull' }) },
+    });
   });
 });

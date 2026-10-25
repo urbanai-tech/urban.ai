@@ -104,6 +104,13 @@ export class Address {
   @Column({ default: true })
   ativo: boolean;
 
+  // Interno (sem @ApiProperty de propósito: não altera o contrato OpenAPI).
+  // Quando o imóvel foi pausado por exceder a cota do plano (downgrade/fim de
+  // assinatura). Pausado = ativo=false + este campo; nunca é apagado e volta quando
+  // a cota sobe.
+  @Column({ type: "timestamp", name: "quota_paused_at", nullable: true })
+  quotaPausedAt: Date | null;
+
   @ApiProperty({
     description: "Data de criação do registro",
   })

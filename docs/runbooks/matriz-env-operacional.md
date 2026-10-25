@@ -44,6 +44,7 @@
 |---|---|---|
 | `STRIPE_SECRET_KEY`, `STRIPE_PUBLIC_KEY`, `STRIPE_WEBHOOK_SECRET` | Obr. para cobrança | Webhook em `POST /payments/webhook`. |
 | `SUCCESS_URL`, `CANCEL_URL`, `BILLING_PORTAL_RETURN_URL`, `TRIAL_PERIOD_DAYS` | Obr. / Opc. | URLs obrigatórias com checkout ativo. |
+| `SUBSCRIPTION_GRACE_DAYS` (padrão `3`), `ALPHA_USER_QUOTAS` | Opc. | Acesso pago no backend (`SubscriptionGuard`, 402 `SUBSCRIPTION_REQUIRED`): `SUBSCRIPTION_GRACE_DAYS` = carência para `past_due`/webhook atrasado; `ALPHA_USER_QUOTAS` (`email_ou_id:cota,...`) = gratuidade explícita. Política por rota em `src/subscription/subscription-policy.ts`. |
 | `STARTER_PRICE_MONTHLY`, `STARTER_PRICE_QUARTERLY`, `STARTER_PRICE_SEMESTRAL`, `STARTER_PRICE_ANNUAL`, `PROFISSIONAL_PRICE_MONTHLY`, `PROFISSIONAL_PRICE_QUARTERLY`, `PROFISSIONAL_PRICE_SEMESTRAL`, `PROFISSIONAL_PRICE_ANNUAL`, `PROFISSIONAL_PLUS_PRICE_MONTHLY` | Obr. para cobrança | Price IDs da matriz por ciclo. Validar com `npm run preflight:track3:strict`. |
 | Legados: `MENSAL_PLAN`, `ANUAL_PLAN`, `STARTER_MENSAL_PLAN`, `STARTER_ANUAL_PLAN`, `PROFISSIONAL_MENSAL_PLAN`, `PROFISSIONAL_ANUAL_PLAN` | Opc. | Fallback do resolver de Price IDs. |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Opc. | Lida também pelo backend em diagnóstico. |

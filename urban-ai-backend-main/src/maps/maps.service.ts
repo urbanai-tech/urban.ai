@@ -16,6 +16,7 @@ import { EmailService } from 'src/email/email.service';
 import { PropriedadeService } from 'src/propriedades/propriedade.service';
 import { isGoogleMapsConfigurationError, summarizeGoogleMapsError } from './google-maps-error';
 import { ScheduledJobRunnerService, runScheduledJob } from '../admin-job-runs/scheduled-job-runner.service';
+import { EntitlementService } from '../subscription/entitlement.service';
 
 @Injectable()
 export class MapsService {
@@ -35,6 +36,7 @@ export class MapsService {
     private readonly processService: ProcessService,
     private readonly emailService: EmailService,
     private readonly propriedadeService: PropriedadeService,
+    private readonly entitlement: EntitlementService,
     @Optional() private readonly scheduledJobRunner?: ScheduledJobRunnerService,
   ) { }
 
@@ -538,6 +540,14 @@ export class MapsService {
 
 
   async processarAnalisesByProperty(userId: string, propertyAdressId: string) {
+    // Processar análises custa API paga (RapidAPI/HERE/scraping): só para quem
+    // tem direito de uso. O imóvel fica 'pending' e é retomado quando o plano ativa.
+    if (!(await this.entitlement.isEntitled(userId))) {
+      this.logger.warn(
+        `Processamento ignorado: user=${userId} sem assinatura ativa (property=${propertyAdressId}).`,
+      );
+      return { ok: true, skipped: 'subscription_required' as const };
+    }
 
     try {
       await this.updatePropertyAnalysisStatus(propertyAdressId, userId, 'running');
@@ -750,7 +760,13 @@ export class MapsService {
   }
   async processarAnalisesTodosUsuarios() {
     try {
-      const users = await this.userRepo.find({ where: { distanceKm: Not(IsNull()) } });
+      const candidates = await this.userRepo.find({ where: { distanceKm: Not(IsNull()) } });
+      // Só processa quem tem direito de uso (assinatura/trial/alpha/admin).
+      const entitledIds = await this.entitlement.filterEntitledUserIds(candidates.map((candidate) => candidate.id));
+      const users = candidates.filter((candidate) => entitledIds.has(candidate.id));
+      if (users.length < candidates.length) {
+        this.logger.log(`Processamento global: ${candidates.length - users.length} usuário(s) sem assinatura ignorado(s).`);
+      }
       let totalAnalises = 0;
       console.log(`Encontrados ${users.length} usuários com distância definida.`);
       const processStart = await this.processService.tryMarkRunning();

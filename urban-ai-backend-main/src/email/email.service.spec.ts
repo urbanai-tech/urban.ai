@@ -1,7 +1,8 @@
+import { entitlementDouble } from 'src/subscription/entitlement.testing';
 import { EmailService } from './email.service';
 
 describe('EmailService pricing digest', () => {
-  function makeService() {
+  function makeService(entitlement: any = entitlementDouble()) {
     const mailer = {
       sendHtmlEmail: jest.fn().mockResolvedValue({ enviado: true, status: 202 }),
     };
@@ -16,7 +17,7 @@ describe('EmailService pricing digest', () => {
     const communicationPreferences = {
       getForUser: jest.fn().mockResolvedValue({ emailPricing: false, pushPricing: false }),
     };
-    const service = new EmailService({} as any, {} as any, {} as any, {} as any, {} as any, mailer as any, push as any, pricingDigest as any, communicationPreferences as any);
+    const service = new EmailService({} as any, {} as any, {} as any, {} as any, {} as any, mailer as any, push as any, pricingDigest as any, communicationPreferences as any, entitlement);
     return { service, mailer, push, pricingDigest, communicationPreferences };
   }
 
@@ -49,6 +50,36 @@ describe('EmailService pricing digest', () => {
     expect(pricingDigest.markSent).not.toHaveBeenCalled();
   });
 
+  it('não envia nem retenta o digest de preço de usuário sem assinatura (marca como ignorado)', async () => {
+    const { service, mailer, push, pricingDigest, communicationPreferences } = makeService(
+      entitlementDouble({ entitled: false }),
+    );
+
+    await (service as any).sendClaimedPricingRecommendationDigest({
+      id: 'digest-2',
+      userId: 'user-gratis',
+      email: 'gratis@example.com',
+      name: 'Gratis',
+      wantsEmail: true,
+      wantsPush: true,
+      items: [
+        {
+          title: 'Sugestão pronta',
+          description: 'Ajuste recomendado',
+          redirectTo: '/dashboard',
+          propertyTitle: 'Studio Paulista',
+          reasons: [],
+          createdAt: '2026-05-23T12:00:00Z',
+        },
+      ],
+    });
+
+    expect(pricingDigest.markSkipped).toHaveBeenCalledWith('digest-2', 'subscription_required');
+    expect(communicationPreferences.getForUser).not.toHaveBeenCalled();
+    expect(mailer.sendHtmlEmail).not.toHaveBeenCalled();
+    expect(push.sendToUser).not.toHaveBeenCalled();
+    expect(pricingDigest.markSent).not.toHaveBeenCalled();
+  });
   it('hydrates pricing digest items with property identity metadata', () => {
     const { service } = makeService();
 
@@ -109,7 +140,7 @@ describe('EmailService public confirmation security', () => {
     const mailer = {
       sendHtmlEmail: jest.fn().mockResolvedValue({ enviado: true, status: 202 }),
     };
-    const service = new EmailService({} as any, userRepository as any, confirmationRepository as any, passwordResetRepository as any, {} as any, mailer as any, {} as any, {} as any, {} as any);
+    const service = new EmailService({} as any, userRepository as any, confirmationRepository as any, passwordResetRepository as any, {} as any, mailer as any, {} as any, {} as any, {} as any, entitlementDouble() as any);
     return {
       service,
       userRepository,
@@ -327,6 +358,28 @@ describe('EmailService public confirmation security', () => {
     expect(confirmation.confirmed).toBe(true);
     expect(user).toMatchObject({ ativo: true, emailVerifiedAt: expect.any(Date) });
     expect(userRepository.save).toHaveBeenCalledWith(user);
+  });
+
+  it('monta o link de reset com o token no fragmento (#token=), nunca no path nem na query', async () => {
+    const { service, userRepository, passwordResetRepository, mailer } = makeSecurityService();
+    const user = { id: 'user-1', email: 'ana@example.com', username: 'Ana' };
+    userRepository.findOne.mockResolvedValueOnce(user);
+    passwordResetRepository.save.mockImplementation(async (value) => value);
+    jest.spyOn(service as any, 'padPublicResponse').mockResolvedValue(undefined);
+    const previous = process.env.RESET_PASS_URL;
+    process.env.RESET_PASS_URL = 'https://app.exemplo.test/reset-password/';
+
+    try {
+      await service.forgotPassword(user.email);
+    } finally {
+      if (previous === undefined) delete process.env.RESET_PASS_URL;
+      else process.env.RESET_PASS_URL = previous;
+    }
+
+    const html = mailer.sendHtmlEmail.mock.calls[0][2] as string;
+    expect(html).toMatch(/https:\/\/app\.exemplo\.test\/reset-password#token=[A-Za-z0-9_-]{43}/);
+    expect(html).not.toMatch(/reset-password\/[A-Za-z0-9_-]{20,}/);
+    expect(html).not.toMatch(/reset-password\?/);
   });
 
   it('keeps forgot-password responses uniform when the provider fails or the account is absent', async () => {

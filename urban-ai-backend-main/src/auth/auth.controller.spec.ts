@@ -420,6 +420,22 @@ describe('AuthController', () => {
     });
   });
 
+  describe('PUT /auth/profile — troca de e-mail', () => {
+    it('envia o código de confirmação ao NOVO e-mail só quando a verificação ficou pendente', async () => {
+      const authService = {
+        updateProfileById: jest.fn()
+          .mockResolvedValueOnce({ id: 'u1', email: 'novo@test.com', emailVerificationPending: true })
+          .mockResolvedValueOnce({ id: 'u1', email: 'novo@test.com' }),
+      };
+      const emailService = { enviarCodigo: jest.fn().mockResolvedValue({}) };
+      const controller = new AuthController(authService as any, {} as any, {} as any, {} as any, emailService as any);
+      await controller.updateProfileById({ email: 'novo@test.com', currentPassword: 'x' } as any, { user: { userId: 'u1' } });
+      expect(emailService.enviarCodigo).toHaveBeenCalledWith('novo@test.com');
+      await controller.updateProfileById({ username: 'Ana' } as any, { user: { userId: 'u1' } });
+      expect(emailService.enviarCodigo).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('cookie policy', () => {
     it.each([
       ['production', undefined, undefined, '.myurbanai.com', 'lax', true],
