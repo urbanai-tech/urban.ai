@@ -18,10 +18,14 @@ const root = path.resolve(__dirname, '..');
 
 // Arquivos permitidos na raiz.
 const ROOT_FILES = new Set([
+  '.env.example',
+  '.gitattributes',
   '.env.staging.example',
   '.gitignore',
   'CHANGELOG.md',
+  'CONTRIBUTING.md',
   'README.md',
+  'docker-compose.yml',
   'package-lock.json',
   'package.json',
   'vercel.json',
@@ -51,6 +55,7 @@ const SCRIPT_FILES = new Set([
   'scripts/resilience-dr-gate.js',
   'scripts/security-head-scan.js',
   'scripts/slo-probe.js',
+  'scripts/validate-local.sh',
 ]);
 
 // docs/: diretórios inteiramente públicos (prefixo) ...
@@ -144,6 +149,10 @@ function selfTest() {
 
   [
     'README.md',
+    '.gitattributes',
+    'CONTRIBUTING.md',
+    'docker-compose.yml',
+    'scripts/validate-local.sh',
     'package.json',
     '.github/workflows/ci.yml',
     '.githooks/pre-push',

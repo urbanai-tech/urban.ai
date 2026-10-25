@@ -1,0 +1,153 @@
+# Ambiente de desenvolvimento LOCAL do Urban AI.
+#
+#   docker compose up                       # mysql + redis + backend + front
+#   docker compose --profile scraping up    # inclui o scrapyd (build pesado, opcional)
+#   docker compose down -v                  # derruba e apaga volumes (banco incluso)
+#
+# Todos os valores abaixo são fictícios e só servem para uso local. Para trocar
+# algum, copie `.env.example` para `.env` na raiz (o Compose lê esse arquivo).
+# Nunca coloque segredos reais aqui nem em `.env.example`.
+#
+# O código-fonte é montado por bind mount e as dependências ficam em volumes
+# nomeados (o primeiro `up` roda `npm ci` e demora alguns minutos).
+# Migrations: o backend roda `npm run migration:run` antes de subir; o schema
+# NUNCA é criado por `synchronize` (DB_SYNCHRONIZE=false).
+
+name: urban-ai
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-urban_local_root}
+      MYSQL_DATABASE: ${DB_NAME:-ai_urban}
+    ports:
+      - "${MYSQL_HOST_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "${REDIS_HOST_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    image: node:20-bookworm-slim
+    working_dir: /app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      APP_ENV: development
+      NODE_ENV: development
+      PORT: "10000"
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USER: root
+      DB_PASSWORD: ${DB_PASSWORD:-urban_local_root}
+      DB_NAME: ${DB_NAME:-ai_urban}
+      DB_SYNCHRONIZE: "false"
+      MIGRATIONS_RUN: "false"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      JWT_SECRET: ${JWT_SECRET:-local_dev_jwt_secret_nao_usar_em_producao}
+      JWT_EXPIRES_IN: 15m
+      API_URL: http://localhost:${BACKEND_HOST_PORT:-10000}
+      FRONT_BASE_URL: http://localhost:${FRONT_HOST_PORT:-3000}
+      CORS_ALLOWED_ORIGINS: http://localhost:${FRONT_HOST_PORT:-3000}
+      HEALTH_READINESS_TOKEN: ${HEALTH_READINESS_TOKEN:-local_health_token}
+      ENABLE_SWAGGER: "true"
+      STAYS_AUTO_APPLY_ENABLED: "false"
+      STAYS_AUTO_APPLY_DRY_RUN: "true"
+      EVENTS_INGEST_API_KEY: ${EVENTS_INGEST_API_KEY:-local_ingest_key}
+      STRIPE_SECRET_KEY: sk_test_local_dummy
+      STRIPE_WEBHOOK_SECRET: whsec_local_dummy
+    ports:
+      - "${BACKEND_HOST_PORT:-10000}:10000"
+    volumes:
+      - ./urban-ai-backend-main:/app
+      - backend-node-modules:/app/node_modules
+    command: >
+      sh -c "(cmp -s package-lock.json node_modules/.lock-stamp || (npm ci && cp package-lock.json node_modules/.lock-stamp)) &&
+             npm run migration:run &&
+             npm run start:dev"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:10000/health/live').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 60s
+
+  frontend:
+    image: node:20-bookworm-slim
+    working_dir: /app
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    environment:
+      NODE_ENV: development
+      NEXT_TELEMETRY_DISABLED: "1"
+      WATCHPACK_POLLING: "true"
+      NEXT_PUBLIC_APP_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:${BACKEND_HOST_PORT:-10000}
+      NEXT_PUBLIC_APP_URL: http://localhost:${FRONT_HOST_PORT:-3000}
+      NEXT_PUBLIC_MARKETING_URL: http://localhost:${FRONT_HOST_PORT:-3000}
+      NEXTAUTH_URL: http://localhost:${FRONT_HOST_PORT:-3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-local_dev_nextauth_secret_nao_usar_em_producao}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_local_dummy
+    ports:
+      - "${FRONT_HOST_PORT:-3000}:3000"
+    volumes:
+      - ./Urban-front-main:/app
+      - front-node-modules:/app/node_modules
+      - front-next-cache:/app/.next
+    command: >
+      sh -c "(cmp -s package-lock.json node_modules/.lock-stamp || (npm ci --legacy-peer-deps && cp package-lock.json node_modules/.lock-stamp)) &&
+             npm run dev -- --hostname 0.0.0.0 --port 3000"
+
+  # Opcional: coletores de eventos (Scrapyd atrás do auth_proxy).
+  # Build pesado (imagem Playwright). Ative com `--profile scraping`.
+  scrapyd:
+    profiles: ["scraping"]
+    build:
+      context: ./urban-webscraping-main
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      PORT: "8080"
+      SCRAPYD_API_KEY: ${SCRAPYD_API_KEY:-local_scrapyd_key}
+      URBAN_API_BASE: http://backend:10000
+      URBAN_EVENTS_INGEST_API_KEY: ${EVENTS_INGEST_API_KEY:-local_ingest_key}
+      URBAN_INGEST_OUTBOX_PATH: /var/lib/scrapyd/ingest-outbox.sqlite
+      RUN_COLLECTORS_ON_BOOT: "false"
+      RUN_LEGACY_SPIDERS: "false"
+      DRY_RUN: "true"
+    ports:
+      - "${SCRAPYD_HOST_PORT:-8080}:8080"
+    volumes:
+      - scrapyd-data:/var/lib/scrapyd
+
+volumes:
+  mysql-data:
+  backend-node-modules:
+  front-node-modules:
+  front-next-cache:
+  scrapyd-data:
