@@ -72,11 +72,13 @@ npm run test:e2e:event-radar:direct -- --base-url https://staging.myurbanai.com
 
 ## Smoke direto Playwright
 
-O script `scripts/event-radar-direct-smoke.mjs` usa Playwright como biblioteca Node, sem acionar o runner `@playwright/test`. Ele nao sobe servidor, nao limpa `.next`, nao toca `Urban-front-main/test-results` e grava relatorio por padrao em:
+O script `scripts/event-radar-direct-smoke.mjs` usa Playwright como biblioteca Node, sem acionar o runner `@playwright/test`. Ele nao sobe servidor, nao limpa `.next`, nao toca `Urban-front-main/test-results` e grava relatorio por padrao em um diretorio temporario privado criado a cada execucao (o caminho exato e impresso no fim: `[direct-smoke] OK. Evidencia: ...`):
 
 ```text
-C:\tmp\urban-ai-event-radar-direct-smoke
+<tmpdir>\urban-ai-event-radar-direct-smoke-XXXXXX
 ```
+
+Use `--output <dir>` para um destino fixo.
 
 Ele valida:
 

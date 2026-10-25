@@ -546,7 +546,7 @@ function compact(value: string): string {
 }
 
 function markdownCell(value: string | number): string {
-  return String(value).replace(/\|/g, '\\|');
+  return String(value).replace(/[\\|]/g, '\\$&');
 }
 
 function csvCell(value: string): string {

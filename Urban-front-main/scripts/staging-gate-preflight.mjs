@@ -316,7 +316,7 @@ function singleLine(value) {
 }
 
 function markdownCell(value) {
-  return String(value ?? '').replace(/\r?\n/g, ' ').replace(/\|/g, '\\|');
+  return String(value ?? '').replace(/\r?\n/g, ' ').replace(/[\\|]/g, '\\$&');
 }
 
 try {

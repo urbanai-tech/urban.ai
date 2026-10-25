@@ -1,6 +1,7 @@
 "use client";
 
 import { api } from "./api";
+import { parseStoredDevice, toPersistedDeviceRef, type PushDeviceRef } from "./pwaPushStorage";
 
 const STORAGE_KEY = "urban_ai_push_device";
 
@@ -17,11 +18,9 @@ type PushPublicConfig = {
   publicKey: string | null;
 };
 
-type StoredPushDeviceConfig = {
-  apiBaseUrl: string;
-  deviceId: string;
-  secret: string;
-};
+type StoredPushDeviceConfig = PushDeviceRef;
+
+type PushDeviceConfigWithSecret = PushDeviceRef & { secret: string };
 
 type BackendSubscriptionResponse = {
   ok: true;
@@ -59,7 +58,7 @@ export async function getPwaPushSnapshot(): Promise<PwaPushSnapshot> {
     supported: true,
     enabled: Boolean(config.enabled && config.publicKey),
     permission: Notification.permission,
-    subscribed: Boolean(subscription && stored?.deviceId && stored?.secret),
+    subscribed: Boolean(subscription && stored?.deviceId),
     reason: config.enabled ? undefined : "backend_disabled",
   };
 }
@@ -103,12 +102,13 @@ export async function subscribeToPwaPush(): Promise<PwaPushSnapshot> {
     platform: navigator.platform || undefined,
   });
 
-  const deviceConfig: StoredPushDeviceConfig = {
+  const deviceConfig: PushDeviceConfigWithSecret = {
     apiBaseUrl: process.env.NEXT_PUBLIC_API_URL || "",
     deviceId: response.data.deviceId,
     secret: response.data.secret,
   };
-  storeConfig(deviceConfig);
+  // O secret vai só para o Service Worker; o localStorage guarda apenas a referência.
+  storeConfig({ apiBaseUrl: deviceConfig.apiBaseUrl, deviceId: deviceConfig.deviceId });
   await postConfigToServiceWorker(deviceConfig);
 
   return getPwaPushSnapshot();
@@ -141,10 +141,14 @@ export async function sendPwaPushTest() {
 
 export async function syncStoredPushConfigWithServiceWorker(): Promise<void> {
   if (!isPwaPushSupported()) return;
-  const stored = readStoredConfig();
-  if (!stored) return;
+  const { ref, legacySecret } = parseStoredDevice(readRawStoredConfig());
+  if (!ref) return;
   await ensureServiceWorkerRegistration();
-  await postConfigToServiceWorker(stored);
+  if (legacySecret) {
+    // Migração: versões antigas guardavam o secret em localStorage. Passa para o SW e apaga de lá.
+    await postConfigToServiceWorker({ ...ref, secret: legacySecret });
+    window.localStorage.setItem(STORAGE_KEY, toPersistedDeviceRef(ref));
+  }
 }
 
 async function getPushPublicConfig(): Promise<PushPublicConfig> {
@@ -159,7 +163,7 @@ async function ensureServiceWorkerRegistration(): Promise<ServiceWorkerRegistrat
   return navigator.serviceWorker.ready;
 }
 
-async function postConfigToServiceWorker(config: StoredPushDeviceConfig | null): Promise<void> {
+async function postConfigToServiceWorker(config: PushDeviceConfigWithSecret | null): Promise<void> {
   const registration = await navigator.serviceWorker.ready;
   const message = config
     ? { type: "URBAN_PUSH_CONFIG", config }
@@ -168,20 +172,20 @@ async function postConfigToServiceWorker(config: StoredPushDeviceConfig | null):
   navigator.serviceWorker.controller?.postMessage(message);
 }
 
-function readStoredConfig(): StoredPushDeviceConfig | null {
+function readRawStoredConfig(): string | null {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as StoredPushDeviceConfig;
-    if (!parsed.deviceId || !parsed.secret) return null;
-    return parsed;
+    return window.localStorage.getItem(STORAGE_KEY);
   } catch {
     return null;
   }
 }
 
-function storeConfig(config: StoredPushDeviceConfig): void {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+function readStoredConfig(): StoredPushDeviceConfig | null {
+  return parseStoredDevice(readRawStoredConfig()).ref;
+}
+
+function storeConfig(config: PushDeviceRef): void {
+  window.localStorage.setItem(STORAGE_KEY, toPersistedDeviceRef(config));
 }
 
 function clearStoredConfig(): void {

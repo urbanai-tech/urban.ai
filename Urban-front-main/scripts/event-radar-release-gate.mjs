@@ -185,12 +185,12 @@ async function selectPort() {
 
 function assertTraceWritable() {
   const tracePath = join(appDir, '.next', 'trace');
-  if (!existsSync(tracePath)) return;
-
+  // Sem existsSync antes (race check/use): abre direto e trata ENOENT como "nada a verificar".
   try {
-    const fd = openSync(tracePath, 'a');
+    const fd = openSync(tracePath, 'r+'); // nao cria o arquivo se ele nao existir
     closeSync(fd);
   } catch (error) {
+    if (error.code === 'ENOENT') return;
     console.error(`[gate] .next/trace nao esta gravavel: ${error.code || error.message}`);
     console.error('[gate] Feche outros processos Next nesta workspace ou rode em CI limpo.');
     process.exit(3);
@@ -211,7 +211,8 @@ function assertWritableDirectory(path, label) {
   try {
     mkdirSync(path, { recursive: true });
     const probePath = join(path, `.gate-write-test-${process.pid}`);
-    const fd = openSync(probePath, 'w');
+    rmSync(probePath, { force: true });
+    const fd = openSync(probePath, 'wx', 0o600); // 'wx': falha se o arquivo (ou symlink) ja existir
     closeSync(fd);
     rmSync(probePath, { force: true });
   } catch (error) {
