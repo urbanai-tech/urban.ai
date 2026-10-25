@@ -10,6 +10,7 @@ This module provides Scrapy pipelines for:
 
 import logging
 import os
+import sqlite3
 from datetime import datetime
 from typing import Any
 
@@ -21,6 +22,7 @@ from urban_webscrapping.utils.event_datetime import to_sp_iso
 from urban_webscrapping.utils.urban_backend_client import (
     UrbanBackendClient,
     UrbanBackendError,
+    is_production,
 )
 from urban_webscrapping.utils.venue_map import match_venue
 
@@ -81,22 +83,24 @@ class UrbanIngestPipeline:
     """Envia cada item para o backend Urban AI via `POST /events/ingest`.
 
     Comportamento:
-      - Se `URBAN_COLLECTOR_EMAIL`/`URBAN_COLLECTOR_PASSWORD` não estiverem
-        setados, a pipeline é DESABILITADA silenciosamente (mantém S3 OK).
-        Útil pra dev local sem backend rodando.
+      - Habilitada SOMENTE com `URBAN_EVENTS_INGEST_API_KEY` (o backend só
+        aceita essa chave; o caminho de login por e-mail/senha foi removido).
+      - Sem a chave: em dev local fica desabilitada com aviso (S3 segue OK); em
+        produção (Railway/ENVIRONMENT=production) é erro ALTO — log ERROR e
+        stat `urban_ingest/misconfigured=1` — para não perder dados em silêncio.
       - Cada item vira um payload de `/events/ingest` com:
           source = `scraper-<spider_name>`
           venueType / venueCapacity / lat / lng = via venue_map quando reconhece
         senão lat/lng=null e backend marca pendingGeocode (cron resolve).
-      - Buffer batch_size=100 — flush automático ao encher e ao fechar spider.
-      - Retry exponencial gerenciado pelo client; falha de batch não derruba
-        spider (logado, próximo batch tenta).
+      - Eventos vão para o outbox SQLite (`URBAN_INGEST_OUTBOX_PATH`) e só saem
+        de lá depois de confirmados; o que falhar no flush final é reenviado
+        na próxima execução (com backoff), nunca descartado.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, stats: Any = None) -> None:
+        self.stats = stats
         self.enabled = bool(
-            os.environ.get("URBAN_COLLECTOR_EMAIL")
-            and os.environ.get("URBAN_COLLECTOR_PASSWORD")
+            (os.environ.get("URBAN_EVENTS_INGEST_API_KEY") or "").strip()
         )
         self.client: UrbanBackendClient | None = None
         # D2 — itens vistos neste run; 0 no fechamento = site mudou/quebrou.
@@ -105,18 +109,35 @@ class UrbanIngestPipeline:
             try:
                 self.client = UrbanBackendClient.from_env()
                 logger.info("UrbanIngestPipeline ATIVA")
+                if self.client.outbox_degraded:
+                    self._stat_set("urban_ingest/outbox_degraded", 1)
             except Exception as e:
-                logger.warning(
+                logger.error(
                     "UrbanIngestPipeline desabilitada (falha ao inicializar client): %s",
                     e,
                 )
+                self._stat_set("urban_ingest/misconfigured", 1)
                 self.enabled = False
-        else:
-            logger.info(
-                "UrbanIngestPipeline DESABILITADA "
-                "(URBAN_COLLECTOR_EMAIL/PASSWORD não setadas) — "
-                "S3 bronze segue funcionando normalmente"
+        elif is_production():
+            logger.error(
+                "UrbanIngestPipeline NÃO configurada em produção: "
+                "URBAN_EVENTS_INGEST_API_KEY ausente. Nenhum evento será enviado "
+                "ao backend — configure a chave no serviço de webscraping."
             )
+            self._stat_set("urban_ingest/misconfigured", 1)
+        else:
+            logger.warning(
+                "UrbanIngestPipeline DESABILITADA (URBAN_EVENTS_INGEST_API_KEY "
+                "não setada) — nenhum envio ao backend nesta execução"
+            )
+
+    @classmethod
+    def from_crawler(cls, crawler: Any) -> "UrbanIngestPipeline":
+        return cls(stats=crawler.stats)
+
+    def _stat_set(self, key: str, value: Any) -> None:
+        if self.stats is not None:
+            self.stats.set_value(key, value)
 
     def process_item(self, item: EventItem, spider: Spider) -> EventItem:
         self.items_seen += 1
@@ -131,8 +152,9 @@ class UrbanIngestPipeline:
 
         try:
             self.client.add_event(payload)
-        except UrbanBackendError as e:
-            # Não derruba o spider — só loga. Próximo flush tenta de novo.
+        except (UrbanBackendError, sqlite3.Error) as e:
+            # Não derruba o spider — só loga. O lote fica no outbox (se houve
+            # falha só no flush) e o próximo flush tenta de novo.
             logger.warning("UrbanIngestPipeline add_event falhou: %s", e)
 
         return item
@@ -153,9 +175,30 @@ class UrbanIngestPipeline:
                 self.client.close()
             except UrbanBackendError as e:
                 logger.error(
-                    "UrbanIngestPipeline close falhou — eventos no buffer NÃO foram enviados: %s",
+                    "UrbanIngestPipeline close falhou — lote NÃO confirmado; os "
+                    "eventos seguem no outbox para a próxima execução: %s",
                     e,
                 )
+                self._stat_set("urban_ingest/delivery_failed", 1)
+            self._report_delivery(spider)
+
+    def _report_delivery(self, spider: Spider) -> None:
+        """Publica contadores de entrega e alerta se sobrou fila."""
+        client = self.client
+        if client is None:
+            return
+        for key, value in client.stats.items():
+            self._stat_set(f"urban_ingest/{key}", value)
+        pending = client.buffer_size()
+        self._stat_set("urban_ingest/pending_after_close", pending)
+        if pending:
+            logger.error(
+                "[scraper-%s] %d evento(s) NÃO confirmados pelo backend; "
+                "permanecem no outbox (%s) e serão reenviados",
+                spider.name,
+                pending,
+                client.outbox_status() or "buffer em memória: serão PERDIDOS",
+            )
 
     # ============================ Helpers ============================
 

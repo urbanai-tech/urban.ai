@@ -66,12 +66,13 @@ def test_run_envia_via_client():
         {"name": "Show B", "date": "2026-05-11", "address": "Morumbi"},
     ]
     client = MagicMock()
+    client.buffer_size.return_value = 0
     c = _FakeCollector(raw_items=raw, client=client)
     result = c.run()
     assert result.fetched == 2
     assert result.sent == 2
     assert client.add_event.call_count == 2
-    client.flush.assert_called_once()
+    client.drain.assert_called_once()
 
 
 def test_run_filtra_normalize_none():
@@ -81,6 +82,7 @@ def test_run_filtra_normalize_none():
         {"name": None, "date": "2026-05-12"},  # filtrado
     ]
     client = MagicMock()
+    client.buffer_size.return_value = 0
     c = _FakeCollector(raw_items=raw, client=client)
     result = c.run()
     assert result.fetched == 3
@@ -100,6 +102,7 @@ def test_run_captura_excecao_em_normalize():
         return {"nome": r["name"], "dataInicio": r["date"]}
 
     client = MagicMock()
+    client.buffer_size.return_value = 0
     c = _FakeCollector(raw_items=raw, client=client, normalize_fn=normalize)
     result = c.run()
     assert result.normalized == 1
@@ -160,6 +163,7 @@ def test_run_seta_source_padrao_quando_normalize_esquece():
         return {"nome": r["name"], "dataInicio": r["date"]}  # sem 'source'!
 
     client = MagicMock()
+    client.buffer_size.return_value = 0
     c = _FakeCollector(raw_items=raw, client=client, normalize_fn=normalize_sem_source)
     c.run()
 
@@ -174,6 +178,7 @@ def test_run_rejeita_payload_sem_campos_minimos():
         return {"nome": " ", "dataInicio": None, "source": ""}
 
     client = MagicMock()
+    client.buffer_size.return_value = 0
     c = _FakeCollector(raw_items=raw, client=client, normalize_fn=normalize_invalido)
 
     result = c.run()
@@ -208,6 +213,7 @@ def test_run_rejeita_coordenadas_invalidas(latitude, longitude, expected_error):
         }
 
     client = MagicMock()
+    client.buffer_size.return_value = 0
     c = _FakeCollector(raw_items=raw, client=client, normalize_fn=normalize_com_geo)
 
     result = c.run()
@@ -279,3 +285,13 @@ def test_validate_payload_rejeita_inconsistencia_temporal(
     errors = c.validate_payload(payload)
 
     assert expected_error in errors
+
+
+def test_run_drena_todo_o_outbox_e_sinaliza_pendencias():
+    raw = [{"name": "Show A", "date": "2026-05-10", "address": "Allianz Parque"}]
+    client = MagicMock()
+    client.buffer_size.return_value = 3  # sobrou fila (ex.: backend fora do ar)
+    result = _FakeCollector(raw_items=raw, client=client).run()
+    client.drain.assert_called_once()
+    assert "outbox_pending: 3" in result.errors
+    assert result.status == "partial_failure"

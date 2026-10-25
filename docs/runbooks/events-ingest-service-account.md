@@ -2,7 +2,7 @@
 
 Revisado: 2026-10-23
 
-> **Problema conhecido (2026-10-23):** coletores HTTP funcionam só com `URBAN_EVENTS_INGEST_API_KEY`. Já a `UrbanIngestPipeline` dos spiders Scrapy (`urban_webscrapping/pipelines.py`) só é habilitada quando `URBAN_COLLECTOR_EMAIL` e `URBAN_COLLECTOR_PASSWORD` estão preenchidas, mesmo enviando com a API key. Até a correção em código, o serviço de webscraping precisa da API key **e** das duas variáveis legadas não vazias. Ver [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL.md) §3.
+> **Corrigido (2026-10-25):** spiders e coletores habilitam o envio **somente** com `URBAN_EVENTS_INGEST_API_KEY`; o login por `URBAN_COLLECTOR_EMAIL/PASSWORD` foi removido. A entrega passa por uma fila SQLite persistente com quarentena e retry — ver [`ingest-outbox-entrega.md`](./ingest-outbox-entrega.md) (inclui o volume persistente exigido no Railway e `URBAN_INGEST_OUTBOX_PATH`).
 
 Este runbook cobre como coletores autenticam no `POST /events/ingest` do backend e como obter as credenciais das fontes externas. A automação de coletores **não** usa JWT de usuário admin: o backend aceita apenas a API key escopada (`x-urban-events-ingest-key`).
 
@@ -19,6 +19,7 @@ Coletores:
 ```bash
 URBAN_API_BASE=<dominio-de-servico-railway-do-backend>   # api.myurbanai.com ainda nao existe
 URBAN_EVENTS_INGEST_API_KEY=<mesmo valor configurado no backend>
+URBAN_INGEST_OUTBOX_PATH=<arquivo-sqlite-em-volume-persistente>   # ver ingest-outbox-entrega.md
 URBAN_COLLECTOR_NAME=sp-cultura
 URBAN_COLLECTOR_VERSION=<versao ou commit sha>
 ```

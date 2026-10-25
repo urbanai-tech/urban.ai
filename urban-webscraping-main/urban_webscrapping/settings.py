@@ -64,7 +64,7 @@ ITEM_PIPELINES = {
     # "urban_webscrapping.pipelines.S3ItemPipelineJson": 300,
     # "urban_webscrapping.pipelines.S3ItemPipelineParquet": 400,
     # F6.2 Plus — envia eventos pro backend Urban AI (dedup + geocoding lazy)
-    # Auto-desabilita se URBAN_COLLECTOR_EMAIL/PASSWORD não setadas (dev local).
+    # Habilita só com URBAN_EVENTS_INGEST_API_KEY; sem ela, erro em produção e aviso em dev.
     "urban_webscrapping.pipelines.UrbanIngestPipeline": 500,
 }
 

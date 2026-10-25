@@ -271,7 +271,7 @@ def main() -> int:
     """Entry point CLI: `python -m urban_webscrapping.collectors.sp_cultura`.
 
     Variáveis de ambiente:
-      URBAN_API_BASE / URBAN_COLLECTOR_EMAIL / URBAN_COLLECTOR_PASSWORD
+      URBAN_API_BASE / URBAN_EVENTS_INGEST_API_KEY
         → necessárias se não for dry-run.
       SP_CULTURA_LOOKAHEAD_DAYS → janela em dias (default 60)
       DRY_RUN=true → só loga, não envia
