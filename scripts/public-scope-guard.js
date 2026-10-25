@@ -19,6 +19,7 @@ const root = path.resolve(__dirname, '..');
 // Arquivos permitidos na raiz.
 const ROOT_FILES = new Set([
   '.env.example',
+  '.gitattributes',
   '.env.staging.example',
   '.gitignore',
   'CHANGELOG.md',
@@ -147,6 +148,7 @@ function selfTest() {
 
   [
     'README.md',
+    '.gitattributes',
     'CONTRIBUTING.md',
     'docker-compose.yml',
     'scripts/validate-local.sh',

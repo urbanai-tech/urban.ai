@@ -86,7 +86,7 @@ Gitleaks, que rodam só no CI.
 - Decisões arquiteturais: [`docs/adr/`](./docs/adr/README.md).
 - Links locais de docs são verificados: `node scripts/audit-document-links.js`.
 
-## 6. Repositório canônico e sincronização
+## 6. Repositório canônico e escopo
 
 - O repositório público **`urbanai-tech/urban.ai`** é o canônico para o código.
   CI, CodeQL e os gates rodam nele.
@@ -96,9 +96,7 @@ Gitleaks, que rodam só no CI.
   fora das pastas já permitidas exige atualizar essa lista de forma consciente.
   Um hook de `pre-push` (`npm run hooks:install`) aplica o guarda antes de
   enviar para o repositório público.
-- As mudanças de código feitas aqui são levadas para o repositório privado
-  completo por patch, com `scripts/sync-public.js` (mantido no repositório
-  privado). Por isso, mantenha cada PR pequeno, sem arquivos gerados e sem
-  depender de pastas que não estejam neste repositório.
+- Mantenha cada PR pequeno, sem arquivos gerados e sem depender de pastas que
+  não estejam neste repositório.
 - Antes de publicar: `npm run gate:repository` e `gitleaks git --no-banner`
   (ver [`docs/ARQUITETURA-ATUAL.md`](./docs/ARQUITETURA-ATUAL.md), seção 8).
