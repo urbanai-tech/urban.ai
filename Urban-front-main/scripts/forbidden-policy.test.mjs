@@ -48,3 +48,33 @@ test("o interceptor usa a política e não redireciona 403 de negócio", () => {
   assert.match(client, /getBusinessForbiddenCode\(error\)/);
   assert.match(client, /status === 403 && !businessCode/);
 });
+
+test("402 SUBSCRIPTION_REQUIRED é reconhecido; 402 sem code, ou outro status, não", () => {
+  assert.equal(policy.SUBSCRIPTION_REQUIRED_CODE, "SUBSCRIPTION_REQUIRED");
+  assert.equal(policy.isSubscriptionRequiredError(err(402, "SUBSCRIPTION_REQUIRED")), true);
+  assert.equal(policy.isSubscriptionRequiredError(err(402)), false);
+  assert.equal(policy.isSubscriptionRequiredError(err(403, "SUBSCRIPTION_REQUIRED")), false);
+  assert.equal(policy.isSubscriptionRequiredError(null), false);
+});
+
+test("402 nunca é tratado como 403 (não vai para /forbidden)", () => {
+  assert.equal(policy.isBusinessForbidden(err(402, "SUBSCRIPTION_REQUIRED")), false);
+  const client = readFileSync(resolve(process.cwd(), "src/app/service/api/client.ts"), "utf8");
+  // o ramo do 402 retorna antes do bloco que redireciona 403 para /forbidden
+  const idx402 = client.indexOf("isSubscriptionRequiredError(error)");
+  const idxForbidden = client.indexOf("/forbidden?from=");
+  assert.ok(idx402 > 0 && idxForbidden > idx402);
+  assert.match(client, /SUBSCRIPTION_REQUIRED_EVENT/);
+});
+
+test("PaymentCheckGuard abre o paywall ao ouvir o evento de 402", () => {
+  const guard = readFileSync(resolve(process.cwd(), "src/app/context/PaymentCheckGuard.tsx"), "utf8");
+  assert.match(guard, /addEventListener\(SUBSCRIPTION_REQUIRED_EVENT/);
+  assert.match(guard, /setVerdict\('inactive'\)/);
+});
+
+test("registerProcess adia a análise (não falha o onboarding) quando o plano ainda não está ativo", () => {
+  const properties = readFileSync(resolve(process.cwd(), "src/app/service/api/properties.ts"), "utf8");
+  assert.match(properties, /isSubscriptionRequiredError\(error\)/);
+  assert.match(properties, /deferred_until_subscription/);
+});

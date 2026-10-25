@@ -79,3 +79,14 @@ test("guards não devolvem null enquanto carregam e só abrem paywall com veredi
   const auth = readFileSync(resolve(process.cwd(), "src/app/context/AuthGuard.tsx"), "utf8");
   assert.doesNotMatch(auth, /return null/);
 });
+
+test("402 do backend vira veredito definitivo inactive no cache e tem evento próprio", () => {
+  mod.invalidateSubscriptionCache();
+  mod.setCachedSubscriptionVerdict("active");
+  assert.equal(mod.getCachedSubscriptionVerdict(), "active");
+
+  mod.markSubscriptionRequired();
+  assert.equal(mod.getCachedSubscriptionVerdict(), "inactive");
+  assert.equal(mod.SUBSCRIPTION_REQUIRED_EVENT, "urbanai:subscription-required");
+  mod.invalidateSubscriptionCache();
+});

@@ -1,4 +1,5 @@
 import { api } from "./client";
+import { isSubscriptionRequiredError } from "./forbidden-policy";
 import { Connect, CreateAddressDto, List, Address } from "../../types/connect";
 
 export async function getUserManagedListings(
@@ -324,8 +325,14 @@ interface ProcessResponse {
   status: string;
 }
 
+/**
+ * Inicia a análise dos imóveis. No onboarding o anfitrião cadastra os imóveis
+ * (passos 1-4) ANTES de assinar (passo 5); o backend responde 402
+ * SUBSCRIPTION_REQUIRED a esse POST, e isso NÃO é erro de fluxo: a análise fica
+ * adiada e começa sozinha quando o plano é ativado.
+ */
 export async function registerProcess(list:any[]
-) {
+): Promise<ProcessResponse> {
 
   const body = {
     listIds: list
@@ -337,6 +344,9 @@ export async function registerProcess(list:any[]
     );
     return data;
   } catch (error) {
+    if (isSubscriptionRequiredError(error)) {
+      return { status: "deferred_until_subscription" };
+    }
     console.error("Erro ao registrar processo:", error);
     throw error;
   }
