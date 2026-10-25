@@ -7,6 +7,7 @@ import { MailerService } from 'src/mailer/mailer.service';
 import { CreateNotificationDto } from 'src/notifications/tdo/create-notification.dto';
 import { PropriedadeService } from 'src/propriedades/propriedade.service';
 import { getDiariaForCron } from 'src/util';
+import { EntitlementService } from 'src/subscription/entitlement.service';
 import { Raw, Repository } from 'typeorm';
 
 type CronProcessingFailure = {
@@ -32,6 +33,7 @@ export class CronService {
         private readonly emailService: EmailService,
         private readonly mailerSender: MailerService,
         private readonly propriedadeService: PropriedadeService,
+        private readonly entitlement: EntitlementService,
     ) { }
 
     private readonly logger = new Logger(CronService.name);
@@ -201,6 +203,12 @@ export class CronService {
             failures: [],
         };
 
+        // Cada item gasta chamada paga ao Airbnb e gera notificação/digest: só para
+        // donos com direito de uso. Resolvido em lote (2 queries) antes do laço.
+        const entitledOwners = await this.entitlement.filterEntitledUserIds(
+            aceites.map((element) => this.getOwnerId(element)).filter((id): id is string => Boolean(id)),
+        );
+
         for (const element of aceites) {
             const context = this.getAnalysisContext(element);
             const listingId = this.getAirbnbListingId(element);
@@ -215,6 +223,18 @@ export class CronService {
             if (!ownerId) {
                 result.skipped += 1;
                 this.logger.warn(`${context} ignorada no cron diário: usuário proprietário ausente.`);
+                continue;
+            }
+
+            if (!entitledOwners.has(ownerId)) {
+                result.skipped += 1;
+                this.logger.log(`${context} ignorada no cron diário: usuário sem assinatura ativa.`);
+                continue;
+            }
+
+            if (element.endereco?.ativo === false) {
+                result.skipped += 1;
+                this.logger.log(`${context} ignorada no cron diário: imóvel pausado/inativo.`);
                 continue;
             }
 
@@ -412,7 +432,9 @@ export class CronService {
     async refreshPropertyMetadata(): Promise<any> {
         this.logger.log('[cron] Iniciando re-scraping mensal de metadados...');
         try {
-            const result = await this.propriedadeService.refreshAllPropertyMetadata();
+            const result = await this.propriedadeService.refreshAllPropertyMetadata({
+                filterOwners: (ownerIds) => this.entitlement.filterEntitledUserIds(ownerIds),
+            });
             this.logger.log(`[cron] Re-scraping concluido: ${result.updated}/${result.total} atualizados, ${result.errors} erros`);
 
             await this.enviarNotificacaoCron(

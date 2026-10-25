@@ -30,6 +30,18 @@ export function isBusinessForbidden(error: unknown): boolean {
 }
 
 /**
+ * 402 Payment Required: o backend exige assinatura ativa para a rota
+ * (code SUBSCRIPTION_REQUIRED). NÃO é falta de permissão, então jamais vai para
+ * /forbidden: o interceptor avisa o PaymentCheckGuard, que abre o paywall existente.
+ */
+export const SUBSCRIPTION_REQUIRED_CODE = "SUBSCRIPTION_REQUIRED";
+
+export function isSubscriptionRequiredError(error: unknown): boolean {
+  const response = (error as ErrorLike | null | undefined)?.response;
+  return response?.status === 402 && response.data?.code === SUBSCRIPTION_REQUIRED_CODE;
+}
+
+/**
  * Rota de resolução para EMAIL_NOT_VERIFIED: o /post-login lê o perfil e
  * encaminha quem ainda não verificou o e-mail para /confirm-email/{email}.
  */

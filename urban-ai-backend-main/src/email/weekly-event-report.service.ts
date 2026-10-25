@@ -12,6 +12,7 @@ import { AdminJobRun } from 'src/entities/admin-job-run.entity';
 import { runAdminJobWithTracking } from 'src/admin-job-runs/admin-job-run-tracker';
 import { CommunicationPreferencesService } from 'src/communication-preferences/communication-preferences.service';
 import { ScheduledJobRunnerService } from 'src/admin-job-runs/scheduled-job-runner.service';
+import { EntitlementService } from 'src/subscription/entitlement.service';
 
 type WeeklyEventReportProperty = {
   title: string;
@@ -59,6 +60,7 @@ export class WeeklyEventReportService {
     private readonly mailer: MailerService,
     private readonly pushNotificationService: PushNotificationService,
     private readonly communicationPreferences: CommunicationPreferencesService,
+    private readonly entitlement: EntitlementService,
     @Optional()
     @InjectRepository(AdminJobRun)
     private readonly jobRunRepo?: Repository<AdminJobRun>,
@@ -94,9 +96,13 @@ export class WeeklyEventReportService {
   async processWeeklyReports(now = new Date()): Promise<WeeklyEventReportSummary> {
     const lookaheadDays = this.resolveLookaheadDays();
     const end = new Date(now.getTime() + lookaheadDays * 24 * 60 * 60 * 1000);
-    const users = await this.userRepo.find({
+    const activeUsers = await this.userRepo.find({
       where: { ativo: true },
     });
+    // Radar semanal é entrega do plano pago: usuários sem assinatura/trial/alpha/admin
+    // não recebem (nem consomem a consulta de eventos por imóvel).
+    const entitledIds = await this.entitlement.filterEntitledUserIds(activeUsers.map((user) => user.id));
+    const users = activeUsers.filter((user) => entitledIds.has(user.id));
 
     const summary: WeeklyEventReportSummary = {
       ok: true,

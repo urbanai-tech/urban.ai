@@ -13,6 +13,7 @@ import { MailerService, NonTransactionalMailOptions } from 'src/mailer/mailer.se
 import { EmailTemplates } from './templates';
 import * as crypto from 'crypto';
 import { PushNotificationService } from 'src/push/push-notification.service';
+import { EntitlementService } from 'src/subscription/entitlement.service';
 import {
     ClaimedPricingDigest,
     PricingDigestItem,
@@ -48,6 +49,7 @@ export class EmailService {
         private readonly pushNotificationService: PushNotificationService,
         private readonly pricingDigestService: PricingRecommendationDigestService,
         private readonly communicationPreferences: CommunicationPreferencesService,
+        private readonly entitlement: EntitlementService,
     ) {}
 
     async getProfileById(userId: string) {
@@ -655,6 +657,13 @@ export class EmailService {
     private async sendClaimedPricingRecommendationDigest(digest: ClaimedPricingDigest): Promise<void> {
         const items = digest.items;
         if (!items.length) return;
+
+        // Recomendação de preço é o produto pago: sem assinatura/trial/alpha não sai
+        // e-mail nem push (o digest é marcado como ignorado, não fica retentando).
+        if (!(await this.entitlement.isEntitled(digest.userId))) {
+            await this.pricingDigestService.markSkipped(digest.id, 'subscription_required');
+            return;
+        }
 
         const preferences = await this.communicationPreferences.getForUser(digest.userId);
         const wantsEmail = Boolean(digest.wantsEmail && preferences.emailPricing);

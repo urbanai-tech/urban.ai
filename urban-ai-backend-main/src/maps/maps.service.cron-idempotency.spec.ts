@@ -1,3 +1,4 @@
+import { entitlementDouble } from 'src/subscription/entitlement.testing';
 jest.mock('p-limit', () => ({
   __esModule: true,
   default: () => (handler: () => unknown) => handler(),
@@ -51,6 +52,7 @@ describe('MapsService cron idempotency', () => {
       processService as any,
       {} as any,
       {} as any,
+      entitlementDouble() as any,
     );
 
     await expect(service.processarAnalisesTodosUsuarios()).resolves.toEqual({ ok: true });

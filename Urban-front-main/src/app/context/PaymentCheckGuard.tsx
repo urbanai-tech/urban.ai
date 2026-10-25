@@ -5,6 +5,7 @@ import { fetchSubscription } from '../service/api'
 import { GlobalPaywallModal } from '../componentes/GlobalPaywallModal'
 import { AppButton } from '../componentes/ui'
 import {
+  SUBSCRIPTION_REQUIRED_EVENT,
   classifySubscription,
   classifySubscriptionError,
   getCachedSubscriptionVerdict,
@@ -71,6 +72,17 @@ const PaymentCheckGuard = ({ children }: PaymentCheckGuardProps) => {
       mounted.current = false
     }
   }, [check])
+
+  // O backend passou a exigir assinatura (402 SUBSCRIPTION_REQUIRED): qualquer
+  // chamada paga que volte 402 abre o paywall, mesmo que o veredito em cache
+  // ainda diga "active" (ex.: assinatura venceu há instantes).
+  useEffect(() => {
+    const onSubscriptionRequired = () => {
+      if (mounted.current) setVerdict('inactive')
+    }
+    window.addEventListener(SUBSCRIPTION_REQUIRED_EVENT, onSubscriptionRequired)
+    return () => window.removeEventListener(SUBSCRIPTION_REQUIRED_EVENT, onSubscriptionRequired)
+  }, [])
 
   const handleRetry = async () => {
     setRetrying(true)

@@ -2,7 +2,12 @@
 import {
   EMAIL_NOT_VERIFIED_REDIRECT_PATH,
   getBusinessForbiddenCode,
+  isSubscriptionRequiredError,
 } from "./forbidden-policy";
+import {
+  SUBSCRIPTION_REQUIRED_EVENT,
+  markSubscriptionRequired,
+} from "../../context/subscription-status";
 // Base URL configurada via variável de ambiente
 const url = process.env.NEXT_PUBLIC_API_URL;
 export const enableContractFallback = process.env.NEXT_PUBLIC_ENABLE_CONTRACT_FALLBACK === "true";
@@ -16,6 +21,10 @@ export function getFriendlyApiErrorMessage(error: unknown, fallback?: string): s
 
   if (code === "LISTINGS_QUOTA_EXCEEDED") {
     return "Você atingiu o limite de imóveis do seu plano. Ajuste seu plano para cadastrar mais imóveis.";
+  }
+
+  if (status === 402 && code === "SUBSCRIPTION_REQUIRED") {
+    return "Você precisa de um plano ativo para acessar este recurso. Escolha um plano para continuar.";
   }
 
   if (status === 400) return fallback ?? "Revise os dados informados e tente novamente.";
@@ -139,6 +148,15 @@ api.interceptors.response.use(
         const redirect = encodeURIComponent(pathname + window.location.search);
         window.location.href = `/?next=${redirect}`;
       }
+    }
+
+    // 402 SUBSCRIPTION_REQUIRED: sem assinatura ativa. Não é 401 (sessão) nem 403
+    // (permissão) — nunca redireciona para /forbidden. Marca o veredito como
+    // "inactive" e avisa o PaymentCheckGuard, que abre o paywall já existente.
+    if (isSubscriptionRequiredError(error)) {
+      markSubscriptionRequired();
+      window.dispatchEvent(new CustomEvent(SUBSCRIPTION_REQUIRED_EVENT));
+      return Promise.reject(error);
     }
 
     // 403 de negócio (code conhecido, ex.: LISTINGS_QUOTA_EXCEEDED): NÃO é falta

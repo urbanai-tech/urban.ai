@@ -7,6 +7,23 @@ primeiro.
 
 ---
 
+## [Assinatura] — 2026-10-25 — Acesso pago imposto no backend
+
+### Adicionado
+
+- `SubscriptionGuard` global: rotas que entregam o valor pago respondem **402
+  `SUBSCRIPTION_REQUIRED`** sem assinatura `active`/`trialing`, `past_due` dentro da carência
+  (`SUBSCRIPTION_GRACE_DAYS`, padrão 3), alpha explícito ou admin. Política por rota em
+  `urban-ai-backend-main/src/subscription/subscription-policy.ts` (teste de cobertura reprova rota
+  sem classificação). Identidade/LGPD/cobrança/planos e o onboarding pré-pagamento seguem livres.
+- Downgrade/cancelamento: imóveis acima da cota são **pausados** (`addresses.quota_paused_at`,
+  nunca apagados), o dono é avisado e eles voltam sozinhos quando a cota sobe. Crons de análise,
+  re-scraping, digest de preço, radar semanal e auto-apply só processam quem tem direito de uso.
+- Frontend: 402 abre o paywall existente (não vai para `/forbidden`); no onboarding a análise é
+  adiada até o plano ser ativado.
+
+---
+
 ## [Limpeza] — 2026-10 — Enxugamento do repositório público
 
 ### Removido

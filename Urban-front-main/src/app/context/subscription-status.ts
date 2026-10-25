@@ -55,6 +55,17 @@ export function setCachedSubscriptionVerdict(
   subscriptionCache = { verdict, at: now };
 }
 
+/**
+ * Evento do window disparado pelo interceptor quando o backend responde 402
+ * SUBSCRIPTION_REQUIRED. O PaymentCheckGuard escuta e abre o paywall.
+ */
+export const SUBSCRIPTION_REQUIRED_EVENT = "urbanai:subscription-required";
+
+/** O backend disse (402) que não há assinatura: vale como veredito definitivo "inactive". */
+export function markSubscriptionRequired(now: number = Date.now()): void {
+  subscriptionCache = { verdict: "inactive", at: now };
+}
+
 /** Chamar após checkout/cancelamento/logout para forçar nova consulta. */
 export function invalidateSubscriptionCache(): void {
   subscriptionCache = null;
