@@ -86,8 +86,7 @@ primeiro.
 
 ### Pendências registradas (sem mudança de código)
 
-- `UrbanIngestPipeline` dos spiders depende de `URBAN_COLLECTOR_EMAIL/PASSWORD` para
-  ser habilitada; backend só aceita a API key.
+- ~~`UrbanIngestPipeline` dependia de `URBAN_COLLECTOR_EMAIL/PASSWORD`~~ — corrigido: envio habilitado só pela API key, com outbox persistente.
 - `PREFECT_SERVER_URL` ainda citado em `.env.example` do pipeline.
 - Backup off-site falhando por credenciais inválidas no provedor; sem MX no domínio;
   hostname canônico da API inexistente; TLS de `staging.myurbanai.com`.

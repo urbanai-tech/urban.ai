@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity';
+import { toSaoPauloDateKey } from 'src/common/sp-date';
 import { IsNull, Not, Repository } from 'typeorm';
 import { User } from 'src/entities/user.entity';
 import * as bcrypt from 'bcrypt';
@@ -704,7 +705,7 @@ export class EmailService {
                             ? 'A Urban AI preparou uma recomendação nova para revisar.'
                             : `A Urban AI preparou ${items.length} recomendações para revisar em um só lugar.`,
                     url: '/dashboard?source=pwa_push_pricing_digest',
-                    tag: `pricing-digest-${new Date().toISOString().slice(0, 10)}`,
+                    tag: `pricing-digest-${toSaoPauloDateKey(new Date())}`,
                     data: {
                         type: 'pricing_recommendation_digest',
                         count: items.length,

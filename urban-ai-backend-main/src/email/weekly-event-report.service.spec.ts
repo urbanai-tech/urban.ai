@@ -121,6 +121,30 @@ describe('WeeklyEventReportService', () => {
     });
   });
 
+  it('a tag do push semanal usa o dia de São Paulo (21:30 BRT = 00:30Z ainda é o dia anterior)', async () => {
+    const { service, userRepo, addressRepo, analisePrecoRepo, pushNotificationService } = makeService();
+    userRepo.find.mockResolvedValue([{ id: 'user-1', username: 'Ana', email: 'ana@example.com', ativo: true }]);
+    addressRepo.find.mockResolvedValue([{ id: 'address-1', ativo: true, list: { id: 'list-1', titulo: 'Studio' } }]);
+    analisePrecoRepo.find.mockResolvedValue([
+      {
+        id: 'analysis-1',
+        criadoEm: new Date('2026-05-20T12:00:00Z'),
+        endereco: { id: 'address-1', list: { id: 'list-1', titulo: 'Studio' } },
+        evento: { id: 'event-1', nome: 'Show', dataInicio: new Date('2026-05-25T12:00:00Z'), cidade: 'SP', estado: 'SP' },
+        seuPrecoAtual: '200.00',
+        precoSugerido: '260.00',
+        diferencaPercentual: '30.00',
+      },
+    ]);
+
+    await service.processWeeklyReports(new Date('2026-05-22T00:30:00Z'));
+
+    expect(pushNotificationService.sendToUser).toHaveBeenCalledWith(
+      'user-1',
+      expect.objectContaining({ tag: 'weekly-event-report-2026-05-21' }),
+    );
+  });
+
   it('não envia e-mail quando o usuário ativo não tem imóvel com evento futuro', async () => {
     const { service, userRepo, addressRepo, analisePrecoRepo, mailer, pushNotificationService } = makeService();
     userRepo.find.mockResolvedValue([

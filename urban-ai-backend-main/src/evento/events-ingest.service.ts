@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { createHash } from 'crypto';
+import { dedupHashByAddress, dedupHashByGeo } from './event-dedup-hash';
 import { Event } from '../entities/events.entity';
 import { EventDedupCandidate } from '../entities/event-dedup-candidate.entity';
 import { EventSource } from '../entities/event-source.entity';
@@ -306,12 +306,7 @@ export class EventsIngestService {
    * pequenas entre fontes que reportam o mesmo evento.
    */
   computeDedupHash(nome: string, dataInicio: Date, lat: number, lng: number): string {
-    const cleanName = nome.trim().toLowerCase().replace(/\s+/g, ' ');
-    const dateStr = toSaoPauloDateKey(dataInicio);
-    const roundedLat = Math.round(lat * 1000) / 1000;
-    const roundedLng = Math.round(lng * 1000) / 1000;
-    const key = `${cleanName}|${dateStr}|${roundedLat},${roundedLng}`;
-    return createHash('sha256').update(key).digest('hex');
+    return dedupHashByGeo(nome, toSaoPauloDateKey(dataInicio), lat, lng);
   }
 
   /**
@@ -322,11 +317,7 @@ export class EventsIngestService {
    * caiam na mesma row.
    */
   computeDedupHashByAddress(nome: string, dataInicio: Date, endereco: string): string {
-    const cleanName = nome.trim().toLowerCase().replace(/\s+/g, ' ');
-    const cleanAddr = endereco.trim().toLowerCase().replace(/\s+/g, ' ').slice(0, 200);
-    const dateStr = toSaoPauloDateKey(dataInicio);
-    const key = `${cleanName}|${dateStr}|addr:${cleanAddr}`;
-    return createHash('sha256').update(key).digest('hex');
+    return dedupHashByAddress(nome, toSaoPauloDateKey(dataInicio), endereco);
   }
 
   /** True se input tem lat E lng numéricos válidos (não null/undefined/NaN). */

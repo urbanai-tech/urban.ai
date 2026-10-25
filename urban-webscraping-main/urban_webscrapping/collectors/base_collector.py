@@ -345,15 +345,25 @@ class BaseCollector(ABC):
                 logger.warning("[%s] add_event failed: %s", self.source, e)
                 result.errors.append(f"add_event: {e}")
 
-        # Flush final
+        # Flush final: drena TODOS os lotes elegíveis (inclusive backlog de
+        # execuções anteriores no outbox), não só o primeiro.
         if not self.dry_run and self.client:
             try:
-                response = self.client.flush()
+                response = self.client.drain()
                 if response:
                     result.backend_response = response
             except UrbanBackendError as e:
                 logger.error("[%s] flush final falhou: %s", self.source, e)
                 result.errors.append(f"flush: {e}")
+            pending = self.client.buffer_size()
+            if pending:
+                logger.error(
+                    "[%s] %d evento(s) não confirmados permanecem na fila de entrega",
+                    self.source,
+                    pending,
+                )
+                if not any(err.startswith("flush:") for err in result.errors):
+                    result.errors.append(f"outbox_pending: {pending}")
 
         if result.errors:
             result.status = (
