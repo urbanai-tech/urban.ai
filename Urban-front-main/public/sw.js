@@ -1,7 +1,9 @@
 const CACHE_PREFIX = "urban-ai-pwa-";
 const CACHE_VERSION = `${CACHE_PREFIX}v4`;
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
-const PUSH_CONFIG_CACHE = `${CACHE_VERSION}-push-config`;
+// Nome fixo, fora do versionamento: o secret do push só existe aqui (a página não
+// guarda cópia), então trocar CACHE_VERSION não pode apagar este cache.
+const PUSH_CONFIG_CACHE = `${CACHE_PREFIX}v4-push-config`;
 const ACTIVE_CACHES = new Set([STATIC_CACHE, PUSH_CONFIG_CACHE]);
 const PUSH_CONFIG_REQUEST = "/__urban_ai_push_config";
 const STATIC_ASSETS = [

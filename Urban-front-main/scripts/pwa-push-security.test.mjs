@@ -103,3 +103,13 @@ test("sw.js aceita mensagem da própria origem", async () => {
   });
   assert.equal(cachePuts.length, 1);
 });
+
+test("sw.js mantém o cache do secret quando CACHE_VERSION muda", () => {
+  const source = readFileSync(resolve(process.cwd(), "public/sw.js"), "utf8");
+  const bumped = source.replace(/const CACHE_VERSION = `\$\{CACHE_PREFIX\}v\d+`;/, "const CACHE_VERSION = `${CACHE_PREFIX}v999`;");
+  assert.notEqual(bumped, source);
+  const header = bumped.split("\nself.addEventListener")[0];
+  const names = vm.runInNewContext(`${header}\n({ push: PUSH_CONFIG_CACHE, active: [...ACTIVE_CACHES] })`, {});
+  assert.equal(names.push, "urban-ai-pwa-v4-push-config");
+  assert.ok(names.active.includes(names.push));
+});
