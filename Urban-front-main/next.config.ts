@@ -1,11 +1,6 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
-// URL base do Chainlit Copilot — nunca deve vir hardcoded.
-// Em dev/local: http://localhost:8000 (ou o que estiver no .env.local)
-// Em staging/prod: configurar NEXT_PUBLIC_CHAINLIT_URL no Railway.
-const COPILOT_URL = process.env.NEXT_PUBLIC_CHAINLIT_URL;
-
 const contentSecurityPolicyReportOnly = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -55,26 +50,6 @@ const nextConfig: NextConfig = {
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
         ],
       },
-    ];
-  },
-  async rewrites() {
-    if (!COPILOT_URL) {
-      // Sem copilot configurado, o rewrite é omitido — 404 natural em vez de crash.
-      return [];
-    }
-    return [
-      {
-        source: '/copilot/:path*',
-        destination: `${COPILOT_URL}/copilot/:path*`,
-      },
-      {
-        source: '/ws/:path*',
-        destination: `${COPILOT_URL}/ws/:path*`,
-      },
-      {
-        source: '/assets/:path*',
-        destination: `${COPILOT_URL}/assets/:path*`,
-      }
     ];
   },
 };
