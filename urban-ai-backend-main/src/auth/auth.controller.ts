@@ -521,6 +521,7 @@ export class AuthController {
       example: {
         username: 'João Silva',
         email: 'joao@email.com',
+        currentPassword: '(obrigatória se o e-mail mudar)',
         phone: '+55 11 99999-9999',
         company: 'JS Hospedagem',
         distanceKm: 25,
@@ -539,7 +540,11 @@ export class AuthController {
     body: UpdateProfileDto,
     @Req() req,
   ) {
-
-    return this.authService.updateProfileById(req.user?.userId, body);
+    const updated = await this.authService.updateProfileById(req.user?.userId, body);
+    if ((updated as any)?.emailVerificationPending) {
+      // Código de confirmação vai para o NOVO endereço (enviarCodigo não propaga erro).
+      void this.emailService.enviarCodigo((updated as any).email);
+    }
+    return updated;
   }
 }

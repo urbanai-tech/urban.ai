@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Building2, Mail, MapPin, Phone, Save, ShieldCheck, UserRound } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Building2, KeyRound, Mail, MapPin, Phone, Save, ShieldCheck, UserRound } from 'lucide-react';
 import {
   AppBadge,
   AppButton,
@@ -15,6 +16,8 @@ import {
 } from '@/app/componentes/ui';
 import { getProfileById, updateProfileById } from '@/app/service/api';
 import type { ProfileResponse } from '@/app/service/api';
+import { sha256Hex } from '@/app/lib/account-privacy';
+import { emailChangeErrorMessage, isEmailChange, stashPendingEmail } from '@/app/lib/auth-links';
 
 type ProfileForm = {
   username: string;
@@ -48,6 +51,9 @@ function normalizeDistance(value: string) {
 
 export default function ProfilePage() {
   const toast = useToastCompat();
+  const router = useRouter();
+  const [currentPassword, setCurrentPassword] = React.useState('');
+  const [pendingEmail, setPendingEmail] = React.useState<string | null>(null);
   const [profile, setProfile] = React.useState<ProfileResponse | null>(null);
   const [form, setForm] = React.useState<ProfileForm>({
     username: '',
@@ -81,6 +87,14 @@ export default function ProfilePage() {
       .finally(() => setLoading(false));
   }, [toast]);
 
+  const emailChanged = isEmailChange(profile?.email, form.email);
+
+  function goConfirmNewEmail() {
+    if (!pendingEmail) return;
+    stashPendingEmail(pendingEmail);
+    router.push('/confirm-email');
+  }
+
   function setField(field: keyof ProfileForm, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
   }
@@ -94,11 +108,17 @@ export default function ProfilePage() {
       return;
     }
 
+    if (emailChanged && !currentPassword) {
+      toast('Informe sua senha atual para alterar o e-mail.', { type: 'warning' });
+      return;
+    }
+
     setSaving(true);
     try {
       const updated = await updateProfileById(profile.id, {
         username: form.username.trim(),
         email: form.email.trim(),
+        ...(emailChanged ? { currentPassword: await sha256Hex(currentPassword) } : {}),
         phone: form.phone.trim(),
         company: form.company.trim(),
         airbnbHostId: form.airbnbHostId.trim(),
@@ -110,10 +130,16 @@ export default function ProfilePage() {
         role: updated.role ?? current?.role,
         createdAt: updated.createdAt ?? current?.createdAt,
       }));
-      toast('Perfil atualizado.', { type: 'success' });
+      setCurrentPassword('');
+      if (updated.emailVerificationPending) {
+        setPendingEmail(updated.email);
+        toast('Perfil atualizado. Confirme seu novo e-mail com o código que enviamos.', { type: 'success' });
+      } else {
+        toast('Perfil atualizado.', { type: 'success' });
+      }
     } catch (error) {
       console.error(error);
-      toast('Não foi possível salvar seu perfil.', { type: 'error' });
+      toast(emailChangeErrorMessage(error), { type: 'error' });
     } finally {
       setSaving(false);
     }
@@ -154,6 +180,24 @@ export default function ProfilePage() {
         }
       />
 
+      {pendingEmail && (
+        <AppCard variant="default">
+          <div className="profile-card-title">
+            <Mail size={20} />
+            <div>
+              <h2>Confirme seu novo e-mail</h2>
+              <p>
+                Enviamos um código de 6 dígitos para o novo endereço. Até confirmar, alguns recursos
+                ficam bloqueados.
+              </p>
+            </div>
+          </div>
+          <AppButton type="button" variant="primary" onClick={goConfirmNewEmail}>
+            Confirmar agora
+          </AppButton>
+        </AppCard>
+      )}
+
       <div className="profile-layout">
         <AppCard variant="default">
           <div className="profile-card-title">
@@ -177,7 +221,19 @@ export default function ProfilePage() {
               value={form.email}
               onChange={(event) => setField('email', event.target.value)}
               leftAddon={<Mail size={15} />}
+              helper={emailChanged ? 'Você precisará confirmar o novo endereço com um código.' : undefined}
             />
+            {emailChanged && (
+              <AppInput
+                label="Senha atual"
+                type="password"
+                value={currentPassword}
+                onChange={(event) => setCurrentPassword(event.target.value)}
+                leftAddon={<KeyRound size={15} />}
+                autoComplete="current-password"
+                helper="Necessária para trocar o e-mail da conta."
+              />
+            )}
             <AppInput
               label="Telefone"
               value={form.phone}
