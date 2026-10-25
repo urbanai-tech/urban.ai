@@ -361,6 +361,8 @@ export interface StaysAccountPublic {
   id: string;
   status: 'pending' | 'active' | 'error' | 'disconnected';
   clientId: string;
+  /** Identificador da conta (subdomínio de <conta>.stays.net). */
+  accountSlug?: string | null;
   lastSyncAt: string | null;
   consentVersion?: string | null;
   consentAcceptedAt: string | null;
@@ -379,6 +381,8 @@ export interface StaysListingPublic {
 
 export interface PriceUpdatePublic {
   id: string;
+  listingId?: string | null;
+  rollbackOfId?: string | null;
   targetDate: string;
   previousPriceCents: number;
   newPriceCents: number;
@@ -400,6 +404,7 @@ export interface StaysPricePreview {
   title: string | null;
   targetDate: string;
   previousPriceCents: number;
+  previousPriceSource?: 'stays_calendar' | 'input' | 'unavailable';
   newPriceCents: number;
   currency: string;
   diffCents: number;
@@ -408,6 +413,7 @@ export interface StaysPricePreview {
   maxDecreasePercent: number;
   withinGuardrails: boolean;
   readyForPush: boolean;
+  priceWritesEnabled?: boolean;
   blockers: StaysPricePreviewIssue[];
   warnings: StaysPricePreviewIssue[];
   existingPriceUpdateId: string | null;
@@ -417,10 +423,11 @@ export interface StaysPricePreview {
 export async function staysConnect(
   clientId: string,
   accessToken: string,
-  consent: { consentAccepted: boolean; consentVersion: string },
+  consent: { consentAccepted: boolean; consentVersion: string; accountSlug?: string },
 ): Promise<StaysAccountPublic> {
   const { data } = await api.post<StaysAccountPublic>('/stays/connect', {
     clientId,
+    accountSlug: consent.accountSlug || undefined,
     accessToken,
     consentAccepted: consent.consentAccepted,
     consentVersion: consent.consentVersion,
@@ -430,6 +437,75 @@ export async function staysConnect(
 
 export async function staysDisconnect(): Promise<void> {
   await api.delete('/stays/connect');
+}
+
+export interface StaysCapabilities {
+  priceWritesEnabled: boolean;
+  autoApplyEnabled: boolean;
+  autoApplyDryRun: boolean;
+}
+
+export interface StaysMatchSuggestion {
+  listingId: string;
+  propriedadeId: string;
+  propriedadeTitulo: string;
+  score: number;
+  reason: 'name_address_similarity';
+}
+
+export interface StaysLinkableProperty {
+  id: string;
+  titulo: string;
+  internalNickname: string | null;
+}
+
+export interface StaysRecommendation {
+  analisePrecoId: string;
+  targetDate: string;
+  recommendedPriceCents: number;
+  eventName: string | null;
+}
+
+export async function staysGetAccount(): Promise<StaysAccountPublic | null> {
+  const { data } = await api.get<StaysAccountPublic | null>('/stays/account');
+  return data || null;
+}
+
+export async function staysGetCapabilities(): Promise<StaysCapabilities> {
+  const { data } = await api.get<StaysCapabilities>('/stays/capabilities');
+  return data;
+}
+
+export async function staysListLinkableProperties(): Promise<StaysLinkableProperty[]> {
+  const { data } = await api.get<StaysLinkableProperty[]>('/stays/properties');
+  return data;
+}
+
+export async function staysMatchSuggestions(): Promise<StaysMatchSuggestion[]> {
+  const { data } = await api.get<StaysMatchSuggestion[]>('/stays/listings/match-suggestions');
+  return data;
+}
+
+export async function staysLinkListing(listingId: string, propriedadeId: string): Promise<StaysListingPublic> {
+  const { data } = await api.put<StaysListingPublic>(`/stays/listings/${listingId}/property`, { propriedadeId });
+  return data;
+}
+
+export async function staysUnlinkListing(listingId: string): Promise<StaysListingPublic> {
+  const { data } = await api.delete<StaysListingPublic>(`/stays/listings/${listingId}/property`);
+  return data;
+}
+
+export async function staysGetRecommendation(listingId: string): Promise<StaysRecommendation | null> {
+  const { data } = await api.get<StaysRecommendation | null>(`/stays/listings/${listingId}/recommendation`);
+  return data || null;
+}
+
+export async function staysListPriceUpdates(listingId?: string, limit = 5): Promise<PriceUpdatePublic[]> {
+  const { data } = await api.get<PriceUpdatePublic[]>('/stays/price-updates', {
+    params: { ...(listingId ? { listingId } : {}), limit },
+  });
+  return data;
 }
 
 export async function staysSyncListings(): Promise<{ count: number; listings: StaysListingPublic[] }> {
@@ -443,6 +519,7 @@ export async function staysListListings(): Promise<StaysListingPublic[]> {
 }
 
 export async function staysPreviewPrice(input: {
+  requestId?: string;
   listingId: string;
   targetDate: string;
   newPriceCents: number;
@@ -455,6 +532,8 @@ export async function staysPreviewPrice(input: {
 }
 
 export async function staysPushPrice(input: {
+  /** Identificador da decisão: o mesmo valor deduplica, um novo é outra operação. */
+  requestId: string;
   listingId: string;
   targetDate: string;
   newPriceCents: number;

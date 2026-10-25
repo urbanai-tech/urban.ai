@@ -2,7 +2,8 @@ import { Injectable, Logger, Optional } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { StaysService } from "./stays.service";
+import { AutoApplyOperationState, StaysService } from "./stays.service";
+import { StaysConnector } from "./stays-connector";
 import { StaysListing } from "../entities/stays-listing.entity";
 import { AnalisePreco } from "../entities/AnalisePreco";
 import { AdminJobRun } from "../entities/admin-job-run.entity";
@@ -21,6 +22,7 @@ interface StaysAutoApplyConfig {
   allowedUserIds: Set<string>;
   allowedListingIds: Set<string>;
   cohort: string;
+  maxAttempts: number;
   requirePricingDecision: boolean;
   requireLiveAllowlists: boolean;
   minConfidence: EventIntelligenceConfidence;
@@ -94,6 +96,9 @@ export class StaysAutoApplyService {
   private static readonly listingAllowlistAliasEnv =
     "STAYS_AUTO_APPLY_LISTING_ALLOWLIST";
   private static readonly cohortEnv = "STAYS_AUTO_APPLY_COHORT";
+  private static readonly maxAttemptsEnv = "STAYS_AUTO_APPLY_MAX_ATTEMPTS";
+  private static readonly retryBaseMs = 15 * 60_000;
+  private static readonly retryMaxMs = 6 * 60 * 60_000;
   private static readonly requirePricingDecisionEnv =
     "STAYS_AUTO_APPLY_REQUIRE_PRICING_DECISION";
   private static readonly requireLiveAllowlistsEnv =
@@ -214,12 +219,8 @@ export class StaysAutoApplyService {
           continue;
         }
 
-        const previousPriceCents =
-          this.moneyToCents(analise.seuPrecoAtual) ??
-          this.toIntegerCents(listing.basePriceCents) ??
-          0;
         const newPriceCents = this.moneyToCents(analise.precoSugerido) ?? 0;
-        if (newPriceCents <= 0 || previousPriceCents <= 0) {
+        if (newPriceCents <= 0) {
           blocked++;
           this.logBlockedAutoApply(
             listing,
@@ -238,6 +239,59 @@ export class StaysAutoApplyService {
         const targetDate = this.toDateStr(
           analise.evento?.dataInicio ?? new Date(),
         );
+
+        // Estado das tentativas desta análise: geração de rollback, falhas e
+        // backoff. Entra no requestId para que um retry ou um re-push após
+        // rollback sejam operações NOVAS (e não o recibo deduplicado da antiga).
+        const decision = await this.findLatestPricingDecisionSnapshot(analise);
+        const state = await this.staysService.getAutoApplyState(analise.id);
+        if (state.activeSuccess) continue;
+        const stateBlockers = this.operationStateBlockers(state, decision, config);
+        if (stateBlockers.length > 0) {
+          blocked++;
+          this.logBlockedAutoApply(listing, analise, stateBlockers, []);
+          continue;
+        }
+
+        // Baseline = preço vigente no calendário Stays (não o preço raspado do
+        // Airbnb em `seuPrecoAtual`): o conector exige igualdade com o
+        // calendário ao vivo antes de escrever.
+        let previousPriceCents: number | null;
+        try {
+          previousPriceCents = await this.staysService.readCurrentPriceCents(
+            userId,
+            listing.id,
+            targetDate,
+            "BRL",
+          );
+        } catch (err) {
+          errors++;
+          this.logger.warn(
+            `Stays auto-apply não leu o calendário listing=${listing.id} analise=${analise.id}: ${(err as Error).message}`,
+          );
+          continue;
+        }
+        if (!previousPriceCents || previousPriceCents <= 0) {
+          blocked++;
+          this.logBlockedAutoApply(
+            listing,
+            analise,
+            ["missing_live_calendar_price"],
+            [],
+          );
+          continue;
+        }
+        if (previousPriceCents === newPriceCents) {
+          blocked++;
+          this.logBlockedAutoApply(
+            listing,
+            analise,
+            ["price_already_at_target"],
+            [],
+          );
+          continue;
+        }
+
         const eligibility = await this.evaluateEligibility({
           listing,
           analise,
@@ -245,6 +299,7 @@ export class StaysAutoApplyService {
           previousPriceCents,
           newPriceCents,
           config,
+          decision,
         });
 
         if (!eligibility.eligible) {
@@ -261,10 +316,12 @@ export class StaysAutoApplyService {
 
         eligible++;
 
-        if (config.dryRun) {
+        // Escrita desligada no ambiente (STAYS_PRICE_WRITES_ENABLED != true)
+        // também é dry-run: nada sai para a Stays.
+        if (config.dryRun || !StaysConnector.writesEnabled()) {
           dryRun++;
           this.logger.log(
-            `Stays auto-apply dry-run: would push user=${userId} listing=${listing.id} staysListing=${listing.staysListingId} targetDate=${targetDate} previousPriceCents=${previousPriceCents} newPriceCents=${newPriceCents} analise=${analise.id} audit=${this.safeAuditJson(eligibility.audit)}.`,
+            `Stays auto-apply dry-run${config.dryRun ? "" : " (escrita desligada)"}: would push user=${userId} listing=${listing.id} staysListing=${listing.staysListingId} targetDate=${targetDate} previousPriceCents=${previousPriceCents} newPriceCents=${newPriceCents} analise=${analise.id} audit=${this.safeAuditJson(eligibility.audit)}.`,
           );
           continue;
         }
@@ -284,6 +341,7 @@ export class StaysAutoApplyService {
         }
 
         await this.staysService.pushPrice(userId, {
+          requestId: this.buildRequestId(analise.id, decision, state),
           listingId: listing.id,
           targetDate,
           newPriceCents,
@@ -332,6 +390,9 @@ export class StaysAutoApplyService {
       cohort:
         process.env[StaysAutoApplyService.cohortEnv]?.trim() ||
         "event-safe-beta",
+      maxAttempts: Math.round(
+        this.parseNumberEnv(StaysAutoApplyService.maxAttemptsEnv, 3, 1, 10),
+      ),
       requirePricingDecision: this.parseBooleanEnvDefault(
         StaysAutoApplyService.requirePricingDecisionEnv,
         true,
@@ -456,7 +517,10 @@ export class StaysAutoApplyService {
       .leftJoin(
         "price_updates",
         "pu",
-        "pu.analise_preco_id = ap.id AND pu.status = :success",
+        // push com sucesso que NÃO foi revertido bloqueia; revertido libera a
+        // análise para uma decisão nova (ver operationStateBlockers).
+        "pu.analise_preco_id = ap.id AND pu.status = :success AND NOT EXISTS (" +
+          "SELECT 1 FROM price_updates rb WHERE rb.rollback_of_id = pu.id AND rb.status = :success)",
         { success: "success" },
       )
       .where("addr.list_id = :listId", { listId: listing.propriedade.id })
@@ -478,6 +542,7 @@ export class StaysAutoApplyService {
     previousPriceCents: number;
     newPriceCents: number;
     config: StaysAutoApplyConfig;
+    decision?: PricingDecisionSnapshot | null;
   }): Promise<StaysAutoApplyEligibility> {
     const {
       listing,
@@ -489,7 +554,10 @@ export class StaysAutoApplyService {
     } = input;
     const blockers: string[] = [];
     const warnings: string[] = [];
-    const decision = await this.findLatestPricingDecisionSnapshot(analise);
+    const decision =
+      input.decision !== undefined
+        ? input.decision
+        : await this.findLatestPricingDecisionSnapshot(analise);
     const riskFlags = this.riskFlagsFromDecision(decision);
     const selectedScenario = decision?.inputSignals?.selectedScenario ?? null;
     const bookingProbability =
@@ -634,6 +702,47 @@ export class StaysAutoApplyService {
       );
       return null;
     }
+  }
+
+  /**
+   * requestId versionado: decisão + geração de rollback + tentativa. Um retry
+   * após falha ou um re-push após rollback viram operações novas.
+   */
+  private buildRequestId(
+    analiseId: string,
+    decision: PricingDecisionSnapshot | null,
+    state: AutoApplyOperationState,
+  ): string {
+    return `ai_auto:${analiseId}:${decision?.id ?? "none"}:g${state.rollbackGeneration}:a${state.failedAttempts}`;
+  }
+
+  private operationStateBlockers(
+    state: AutoApplyOperationState,
+    decision: PricingDecisionSnapshot | null,
+    config: StaysAutoApplyConfig,
+    now = Date.now(),
+  ): string[] {
+    const blockers: string[] = [];
+    if (state.lastRollbackAt) {
+      // Depois de um rollback, só reaplica com uma decisão mais nova que ele —
+      // nunca "briga" com a reversão do anfitrião usando a mesma decisão.
+      const generatedAt = decision?.generatedAt
+        ? new Date(decision.generatedAt as any).getTime()
+        : NaN;
+      if (!Number.isFinite(generatedAt) || generatedAt <= state.lastRollbackAt.getTime()) {
+        blockers.push("rolled_back_awaiting_new_decision");
+      }
+    }
+    if (state.failedAttempts >= config.maxAttempts) {
+      blockers.push("max_attempts_reached");
+    } else if (state.lastFailureAt && state.failedAttempts > 0) {
+      const backoff = Math.min(
+        StaysAutoApplyService.retryBaseMs * 2 ** (state.failedAttempts - 1),
+        StaysAutoApplyService.retryMaxMs,
+      );
+      if (now - state.lastFailureAt.getTime() < backoff) blockers.push("retry_backoff");
+    }
+    return blockers;
   }
 
   private logBlockedAutoApply(

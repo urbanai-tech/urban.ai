@@ -111,6 +111,14 @@ export class StaysAccount {
   clientId: string;
 
   /**
+   * Identificador da conta na Stays (subdomínio `<slug>.stays.net`), validado
+   * por `^[a-z0-9-]{1,63}$`. Nunca guardamos URL livre (SSRF). null = usa a
+   * configuração legada do ambiente (STAYS_API_BASE_URL).
+   */
+  @Column({ type: 'varchar', length: 63, nullable: true })
+  apiAccountSlug: string | null;
+
+  /**
    * Access token / client secret para chamar a Open API.
    * ⚠️ Conteúdo sensível — nunca logar.
    */
@@ -136,7 +144,7 @@ export class StaysAccount {
    * Estado operacional da conta:
    * - pending: anfitrião iniciou o connect, aguardando validação
    * - active: validada, já houve pelo menos 1 listagem importada com sucesso
-   * - error: última tentativa de chamada falhou (ver lastErrorAt)
+   * - error: credencial recusada (401/403) ou falhas duras repetidas (ver lastErrorAt)
    * - disconnected: usuário desconectou voluntariamente
    */
   @Column({ type: 'varchar', length: 32, default: 'pending' })
@@ -150,6 +158,14 @@ export class StaysAccount {
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   lastErrorMessage: string | null;
+
+  /**
+   * Falhas duras consecutivas (não-auth). Timeouts e 5xx não derrubam a conta;
+   * só 401/403 ou N falhas seguidas (STAYS_ACCOUNT_ERROR_THRESHOLD) viram `error`.
+   * Zera a cada chamada bem-sucedida.
+   */
+  @Column({ type: 'int', default: 0 })
+  consecutiveFailures: number;
 
   /**
    * Teto de variação % aplicado no modo autônomo. Default: 25% para cima
