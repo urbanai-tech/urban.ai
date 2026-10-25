@@ -6,7 +6,7 @@ jest.mock('src/auth/jwt-auth.guard', () => ({ JwtAuthGuard: class {} }));
 import { DashboardController } from './dashboard.controller';
 
 describe('DashboardController.getDashboard', () => {
-  it('não loga quebras de linha vindas do query param (log injection)', async () => {
+  it('não loga o query param (evita log injection) e repassa o valor intacto', async () => {
     const dashboardService = { getDashBoard: jest.fn().mockResolvedValue({ ok: true }) };
     const controller = new DashboardController(dashboardService as any, {} as any);
     const spy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
@@ -16,8 +16,7 @@ describe('DashboardController.getDashboard', () => {
 
     const logged = spy.mock.calls.flat().join(' ');
     spy.mockRestore();
-    expect(logged).not.toMatch(/[\r\n]/);
-    expect(logged).toContain('abc');
+    expect(logged).not.toContain('abc');
     // o valor original segue intacto para o service
     expect(dashboardService.getDashBoard).toHaveBeenCalledWith('u1', evil);
     expect(result).toEqual({ ok: true });

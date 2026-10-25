@@ -3,7 +3,6 @@ import { DashboardService } from './dashboard.service';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RoiService } from 'src/roi/roi.service';
-import { sanitizeForLog } from 'src/common/log-sanitize';
 
 @Controller()
 export class DashboardController {
@@ -119,7 +118,6 @@ async quantidadeEnderecos(@Param('usuarioId') usuarioId: string, @Req() req: any
     },
   })
   async getDashboard(@Req() req: any, @Query('propertyId') propertyId: string) {
-    console.log('parâmetro:', sanitizeForLog(propertyId));
     return this.dashboardService.getDashBoard(req.user.userId, propertyId);
   }
 
