@@ -318,12 +318,10 @@ def main() -> int:
 
     dry_run = _env_enabled("DRY_RUN", False)
     if not dry_run:
-        missing_backend_env = _missing_env(
-            ("URBAN_COLLECTOR_EMAIL", "URBAN_COLLECTOR_PASSWORD")
-        )
+        missing_backend_env = _missing_env(("URBAN_EVENTS_INGEST_API_KEY",))
         if missing_backend_env:
             logger.error(
-                "Backend ingest credentials missing: %s. Use DRY_RUN=true for local diagnostics.",
+                "Backend ingest key missing: %s. Use DRY_RUN=true for local diagnostics.",
                 ", ".join(missing_backend_env),
             )
             result = CollectorRunResult(
