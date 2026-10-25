@@ -5,6 +5,8 @@ import { StaysListing } from '../entities/stays-listing.entity';
 import { PriceUpdate } from '../entities/price-update.entity';
 import { AnalisePreco } from '../entities/AnalisePreco';
 import { User } from '../entities/user.entity';
+import { List } from '../entities/list.entity';
+import { Address } from '../entities/addresses.entity';
 import { AdminJobRun } from '../entities/admin-job-run.entity';
 import { PricingDecisionSnapshot } from '../entities/pricing-decision-snapshot.entity';
 import { PricingCalculateService } from '../propriedades/pricing-calculate.service';
@@ -21,6 +23,8 @@ import { StaysAutoApplyService } from './stays-auto-apply.service';
       PriceUpdate,
       AnalisePreco,
       User,
+      List,
+      Address,
       PricingDecisionSnapshot,
       AdminJobRun,
     ]),

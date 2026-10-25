@@ -15,10 +15,19 @@ import {
 const DATE_ONLY = /^\d{4}-(0[1-9]|1[0-2])-([0-2]\d|3[01])$/;
 
 export class ConnectStaysDto {
-  @IsString() @MinLength(1) @MaxLength(255)
+  /**
+   * Identificador da conta Stays (subdomínio de `<conta>.stays.net`). Nunca URL:
+   * o destino é montado no servidor (SSRF). Opcional enquanto o piloto usa
+   * STAYS_API_BASE_URL do ambiente.
+   */
+  @IsOptional() @IsString() @Matches(/^[a-z0-9-]{1,63}$/)
+  accountSlug?: string;
+
+  @IsString() @MinLength(1) @MaxLength(128)
   clientId!: string;
 
-  @IsString() @MinLength(8) @MaxLength(8192)
+  // Nome histórico do campo; contém o Client Secret da API Stays, cifrado em repouso.
+  @IsString() @MinLength(8) @MaxLength(1024)
   accessToken!: string;
 
   @Equals(true)
@@ -29,6 +38,9 @@ export class ConnectStaysDto {
 }
 
 export class PreviewStaysPriceDto {
+  @IsOptional() @IsUUID()
+  requestId?: string;
+
   @IsUUID()
   listingId!: string;
 
@@ -49,6 +61,9 @@ export class PreviewStaysPriceDto {
 }
 
 export class PushStaysPriceDto {
+  @IsOptional() @IsUUID()
+  requestId?: string;
+
   @IsUUID()
   listingId!: string;
 
@@ -66,4 +81,18 @@ export class PushStaysPriceDto {
 
   @IsOptional() @IsUUID()
   analisePrecoId?: string;
+}
+
+export class LinkStaysListingDto {
+  /** Imóvel Urban (List) do próprio usuário. Desvincular é DELETE. */
+  @IsUUID()
+  propriedadeId!: string;
+}
+
+export class ListPriceUpdatesQueryDto {
+  @IsOptional() @IsUUID()
+  listingId?: string;
+
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100)
+  limit?: number;
 }

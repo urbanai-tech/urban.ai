@@ -8,6 +8,7 @@ module.exports = {
     '<rootDir>/stays/stays.service.spec.ts',
     '<rootDir>/stays/stays-connector.spec.ts',
     '<rootDir>/stays/stays-auto-apply.service.spec.ts',
+    '<rootDir>/stays/stays.service.lifecycle.spec.ts',
   ],
   collectCoverage: true,
   coverageProvider: 'v8',

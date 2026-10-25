@@ -89,7 +89,13 @@ export const CONTROLLER_POLICIES: Record<string, ControllerPolicy> = {
   PortfolioController: { default: 'paid' },
   PropertiesPanelController: { default: 'paid' }, // pace, regras de preço, market-intel
   AskController: { default: 'paid' },
-  StaysController: { default: 'paid' },
+  // Stays aplica preço no PMS: pago. Livre só o que nunca entrega valor e não pode
+  // ficar refém do paywall: ver o estado salvo, saber se a escrita está ligada e
+  // DESCONECTAR (revogar a credencial guardada — LGPD).
+  StaysController: {
+    default: 'paid',
+    routes: { account: 'free', capabilities: 'free', disconnect: 'free' },
+  },
   SugestionController: { default: 'paid' }, // aceitar/aplicar/resultado
   MapsController: { default: 'paid' }, // processar-analises-by-property
   ProcessoController: { default: 'paid' }, // POST /processos
