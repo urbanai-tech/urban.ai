@@ -198,7 +198,7 @@ function markdownTable(headers, rows) {
 }
 
 function markdownCell(value) {
-  return sanitizeText(value).replace(/\r?\n/g, ' ').replace(/\|/g, '\\|');
+  return sanitizeText(value).replace(/\r?\n/g, ' ').replace(/[\\|]/g, '\\$&');
 }
 
 function renderMarkdown(evidence) {

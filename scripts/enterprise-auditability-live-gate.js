@@ -457,6 +457,11 @@ async function requestText(url, options = {}) {
 }
 
 async function request(url, options = {}) {
+  // A URL vem do arquivo/env de configuracao do operador: aceita so http(s).
+  const { protocol } = new URL(url);
+  if (protocol !== 'https:' && protocol !== 'http:') {
+    throw new Error(`Unsupported URL protocol for ${sanitizeUrl(url)}`);
+  }
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
   try {
@@ -566,7 +571,7 @@ function markdownTable(headers, rows) {
 }
 
 function markdownCell(value) {
-  return sanitizeText(String(value ?? '')).replace(/\r?\n/g, ' ').replace(/\|/g, '\\|');
+  return sanitizeText(String(value ?? '')).replace(/\r?\n/g, ' ').replace(/[\\|]/g, '\\$&');
 }
 
 function writeOrPrint(markdown, output) {

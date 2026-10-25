@@ -77,6 +77,11 @@ function readEnvFile(filePath) {
   return parsed;
 }
 
+function isOwnDomain(domain) {
+  const host = String(domain).trim().toLowerCase();
+  return host === 'myurbanai.com' || host.endsWith('.myurbanai.com');
+}
+
 function value(env, key) {
   return String(env[key] || '').trim();
 }
@@ -151,7 +156,7 @@ function emailReadiness(env) {
   optionalEnv(env, warnings, 'RESET_PASS_URL');
 
   const senderDomain = value(env, 'EMAIL_SENDER').split('@').pop() || '';
-  if (senderDomain && !senderDomain.endsWith('myurbanai.com')) {
+  if (senderDomain && !isOwnDomain(senderDomain)) {
     warnings.push(`EMAIL_SENDER domain is ${senderDomain}; confirm SPF/DKIM before paid beta`);
   }
 
@@ -203,7 +208,7 @@ function supportReadiness(env) {
 
   for (const [key, email] of Object.entries(emailValues)) {
     const domain = email.split('@').pop() || '';
-    if (domain && !domain.endsWith('myurbanai.com')) {
+    if (domain && !isOwnDomain(domain)) {
       warnings.push(`${key} domain is ${domain}; confirm this is intentional`);
     }
   }

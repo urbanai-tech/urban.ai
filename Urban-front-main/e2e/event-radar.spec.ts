@@ -34,7 +34,7 @@ test.describe('Event radar contract-first E2E', () => {
 
     const officialLink = page.getByRole('link', { name: /fonte oficial/i }).first();
     await expect(officialLink).toBeVisible();
-    await expect(officialLink).toHaveAttribute('href', /example\.com\/gp-sp/);
+    await expect(officialLink).toHaveAttribute('href', /^https:\/\/example\.com\/gp-sp(?:[/?#].*)?$/);
   });
 
   test('substitui imagens indisponiveis por fallback visual de evento', async ({ page }) => {
