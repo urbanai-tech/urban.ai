@@ -29,7 +29,7 @@
 
 **Aquisição** (`waitlist`, `contact_submissions`). Lista de espera com convite e indicação, e formulário de contato comercial/suporte. Não estava na lista de domínios pedida, mas contém dados pessoais e por isso consta aqui.
 
-**LGPD (transversal)**. Não há tabelas dedicadas à LGPD: o tema atravessa o schema. A exportação de dados do titular é montada por `src/auth/account-data.service.ts` (formato `urban-ai-data-export/v1`) a partir de `user`, `list`, `addresses`, `analise_preco`, `payment`, `stays_accounts` e `user_communication_preferences`, sem hash de senha, tokens, dados de cartão ou IDs internos do Stripe. Exclusão/anonimização de conta e política de retenção por tabela: **a confirmar** (não verificado neste levantamento; ver `docs/lgpd/` e `npm run audit:lgpd`).
+**LGPD (transversal)**. Não há tabelas dedicadas à LGPD: o tema atravessa o schema. A exportação de dados do titular é montada por `src/auth/account-data.service.ts` (formato `urban-ai-data-export/v1`) a partir de `user`, `list`, `addresses`, `analise_preco`, `payment`, `stays_accounts` e `user_communication_preferences`, sem hash de senha, tokens, dados de cartão ou IDs internos do Stripe. A exclusão da própria conta existe (`AuthService.deleteOwnAccount`, LGPD art. 18, VI): re-autentica, cancela a assinatura no Stripe (aborta se falhar), desconecta a Stays, revoga as sessões e apaga o usuário, levando por cascade as tabelas ligadas a `user`. Ficam para trás nesse fluxo: `waitlist` e `contact_submissions` (sem FK para `user`, ligados só pelo e-mail) e `communication_events` (FK com `SET NULL`: a linha fica, com `recipient_email` preservado). `pricing_recommendation_digests` sai junto (FK com `CASCADE`). Anonimização em vez de exclusão e política de retenção por tabela: **a confirmar** (decisão jurídica pendente; ver `docs/lgpd/` e `npm run audit:lgpd`).
 
 ## Colunas sensíveis (resumo)
 
@@ -52,7 +52,7 @@ Categorias presentes no schema (detalhe coluna a coluna na seção gerada "Colun
 ## Resumo
 
 - Tabelas (entidades TypeORM): **45**
-- Colunas: **736**
+- Colunas: **739**
 - Chaves estrangeiras: **70**
 - Tabela de controle de migrations (`migrations`) não é entidade e não consta aqui.
 
@@ -1268,7 +1268,7 @@ Relações:
 | `errorMessage` | `errorMessage` | varchar(255) | sim |  |  |  |
 | `ip` | `ip` | varchar(64) | sim |  |  | IP de quem iniciou (se user_accepted ou user_manual) — auditoria. |
 | `userAgent` | `userAgent` | varchar(255) | sim |  |  |  |
-| `idempotencyKey` | `idempotencyKey` | varchar(128) | não |  | UNIQUE | Idempotency key — constituída por (listingId, targetDate, hash do body). Duas chamadas com a mesma key não resultam em 2 pushes: a segunda retorna o resultado da primeira. Evita retry duplicando atualização. |
+| `idempotencyKey` | `idempotencyKey` | varchar(128) | não |  | UNIQUE | Idempotency key — conta + origem + requestId da decisão. Clientes legados sem requestId usam UUID interno do listing/data/valor (replay do recibo). Duas chamadas com a mesma key não resultam em 2 pushes: a segunda retorna o resultado da primeira, com conflito se mudar o corpo. Uma nova decisão, uma nova tentativa de rollback ou reaplicar após rollback usam outro requestId (contador de tentativa / geração de rollback). |
 | `createdAt` | `createdAt` | datetime | não | CURRENT_TIMESTAMP(6) | IDX |  |
 | `user_id` | `user` | varchar(36) | não |  | IDX, FK |  |
 | `stays_listing_id` | `listing` | varchar(36) | não |  | IDX, FK |  |
@@ -1565,16 +1565,18 @@ Relações:
 | --- | --- | --- | --- | --- | --- | --- |
 | `id` | `id` | varchar(36) | não |  | PK, uuid auto |  |
 | `clientId` | `clientId` | varchar(128) | não |  |  | Identificador do cliente Stays (clientId ou equivalente). Não é segredo, mas também não precisa aparecer em logs. |
+| `apiAccountSlug` | `apiAccountSlug` | varchar(63) | sim |  |  | Identificador da conta na Stays (subdomínio `<slug>.stays.net`), validado por `^[a-z0-9-]{1,63}$`. Nunca guardamos URL livre (SSRF). null = usa a configuração legada do ambiente (STAYS_API_BASE_URL). |
 | `accessToken` | `accessToken` | varchar(2048) | não |  |  | Access token / client secret para chamar a Open API. ⚠️ Conteúdo sensível — nunca logar. |
 | `tokenExpiresAt` | `tokenExpiresAt` | datetime | sim |  |  |  |
 | `consentAcceptedAt` | `consentAcceptedAt` | datetime | sim |  |  |  |
 | `consentVersion` | `consentVersion` | varchar(64) | sim |  |  |  |
 | `consentIp` | `consentIp` | varchar(64) | sim |  |  |  |
 | `consentUserAgent` | `consentUserAgent` | varchar(255) | sim |  |  |  |
-| `status` | `status` | varchar(32) | não | pending |  | Estado operacional da conta: - pending: anfitrião iniciou o connect, aguardando validação - active: validada, já houve pelo menos 1 listagem importada com sucesso - error: última tentativa de chamada falhou (ver lastErrorAt) - disconnected: usuário desconectou voluntariamente |
+| `status` | `status` | varchar(32) | não | pending |  | Estado operacional da conta: - pending: anfitrião iniciou o connect, aguardando validação - active: validada, já houve pelo menos 1 listagem importada com sucesso - error: credencial recusada (401/403) ou falhas duras repetidas (ver lastErrorAt) - disconnected: usuário desconectou voluntariamente |
 | `lastSyncAt` | `lastSyncAt` | datetime | sim |  |  |  |
 | `lastErrorAt` | `lastErrorAt` | datetime | sim |  |  |  |
 | `lastErrorMessage` | `lastErrorMessage` | varchar(255) | sim |  |  |  |
+| `consecutiveFailures` | `consecutiveFailures` | int | não | 0 |  | Falhas duras consecutivas (não-auth). Timeouts e 5xx não derrubam a conta; só 401/403 ou N falhas seguidas (STAYS_ACCOUNT_ERROR_THRESHOLD) viram `error`. Zera a cada chamada bem-sucedida. |
 | `maxIncreasePercent` | `maxIncreasePercent` | int | não | 25 |  | Teto de variação % aplicado no modo autônomo. Default: 25% para cima e 20% para baixo — evita que um erro no KNN cause movimento grotesco. Usuário pode ajustar na UI. |
 | `maxDecreasePercent` | `maxDecreasePercent` | int | não | 20 |  |  |
 | `createdAt` | `createdAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
@@ -1597,20 +1599,21 @@ Relações:
 
 - Entidade: `StaysListing` (`src/entities/stays-listing.entity.ts`)
 - Domínio: Imóveis, anúncios e Stays
-- Descrição: Ligação 1:1 entre uma `List` (imóvel interno Urban AI) e um listing Stays. Um mesmo usuário pode ter N imóveis, e cada imóvel mapeia para 1 listing Stays (o Stays pode, por sua vez, espelhar para Airbnb + Booking + Vrbo, mas para nós isso é transparente — pushamos preço para o listing Stays e ele replica). Se o anfitrião tiver imóveis na Urban AI que NÃO têm listing Stays correspondente, simplesmente não criamos linha aqui — o modo autônomo é desativado por imóvel, não por conta.
+- Descrição: Cadastro externo Stays com vínculo opcional a um imóvel interno (`List`). O vínculo é feito pelo anfitrião (PUT /stays/listings/:id/property), com sugestões automáticas que ele confirma. Um imóvel Urban fica ligado a no máximo um listing da mesma conta (evita dois pushes para o mesmo imóvel). Se o anfitrião tiver imóveis na Urban AI que NÃO têm listing Stays correspondente, simplesmente não criamos linha aqui — o modo autônomo é desativado por imóvel, não por conta.
 
 | Coluna | Propriedade | Tipo | Nulo | Padrão | Chaves | Observação |
 | --- | --- | --- | --- | --- | --- | --- |
 | `id` | `id` | varchar(36) | não |  | PK, uuid auto |  |
-| `staysListingId` | `staysListingId` | varchar(64) | não |  | UNIQUE | ID do listing no Stays (formato Stays — string alfanumérica). |
+| `staysListingId` | `staysListingId` | varchar(64) | não |  | UNIQUE (composto) | ID do listing no Stays (formato Stays — string alfanumérica). |
 | `title` | `title` | varchar(255) | sim |  |  | Dados cacheados da última sync — título, endereço curto, etc. Útil para exibir no painel sem bater na API Stays a cada render. |
 | `shortAddress` | `shortAddress` | varchar(255) | sim |  |  |  |
 | `basePriceCents` | `basePriceCents` | int | sim |  |  |  |
+| `providerMetadata` | `providerMetadata` | json | sim |  |  |  |
 | `operationMode` | `operationMode` | varchar(32) | não | inherit |  | Flag por listing — o anfitrião pode escolher quais imóveis usam o modo autônomo e quais ficam em recomendação manual, independente do `user.operationMode` global (que vira default). |
 | `active` | `active` | tinyint | não | true |  |  |
 | `createdAt` | `createdAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
 | `updatedAt` | `updatedAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
-| `stays_account_id` | `account` | varchar(36) | não |  | IDX, FK |  |
+| `stays_account_id` | `account` | varchar(36) | não |  | UNIQUE (composto), IDX, FK |  |
 | `propriedade_id` | `propriedade` | varchar(36) | sim |  | IDX, FK | Imóvel interno Urban AI (entidade List). Nullable = listing Stays que ainda não foi casado com nenhum imóvel Urban AI (pode acontecer se o anfitrião conectou mas ainda não cadastrou o imóvel na Urban AI). |
 
 Relações:
@@ -1623,7 +1626,7 @@ Relações:
 Índices e unicidades:
 
 - `IDX_317422d753b6177634bb34ce10`: `stays_account_id`, `propriedade_id`
-- `IDX_82a08b0e6839f884710c5a2ec3` (UNIQUE): `staysListingId`
+- `IDX_stays_listings_account_remote` (UNIQUE): `stays_account_id`, `staysListingId`
 
 ### `user`
 
