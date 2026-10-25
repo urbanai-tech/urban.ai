@@ -7,9 +7,11 @@
  *
  * Para cada evento, recalcula início/fim a partir do payload ORIGINAL em
  * `event_sources.rawPayload` (a fonte do evento, ou a primeira vista) e compara
- * com o gravado em `events`. Só atualiza `dataInicio`/`dataFim`; NÃO recalcula
- * `dedupHash` (hash antigo continua único; o casamento fuzzy por identidade
- * cobre reingestões).
+ * com o gravado em `events`. Atualiza `dataInicio`/`dataFim` e, quando o DIA de
+ * São Paulo muda, recalcula o `dedupHash` com a mesma fórmula do ingest. Se o
+ * hash novo já pertence a outro evento (colisão), o hash NÃO é sobrescrito: as
+ * datas são corrigidas e um `EventDedupCandidate` é registrado para revisão do
+ * admin (no dry-run só é contado).
  */
 import 'reflect-metadata';
 import * as fs from 'fs';
@@ -17,7 +19,15 @@ import * as path from 'path';
 import { AppDataSource } from '../src/data-source';
 import { Event } from '../src/entities/events.entity';
 import { EventSource } from '../src/entities/event-source.entity';
-import { classifyEventDateBackfill, DateBackfillClass } from '../src/evento/event-date-backfill';
+import { EventDedupCandidate } from '../src/entities/event-dedup-candidate.entity';
+import {
+  classifyEventDateBackfill,
+  DateBackfillClass,
+  HashRecomputeAction,
+  HashRecomputeDecision,
+  planDedupHashRecompute,
+  recordBackfillHashCollision,
+} from '../src/evento/event-date-backfill';
 import { saoPauloDayBounds, todaySaoPauloDateKey, addDaysToDateKey } from '../src/common/sp-date';
 
 type Scope = 'day' | 'instant';
@@ -75,6 +85,29 @@ function parseArgs(argv: string[]): CliOptions {
   return o;
 }
 
+interface PlannedChange {
+  event: Event;
+  classification: DateBackfillClass;
+  expectedStart: Date;
+  expectedEnd: Date;
+  storedDay: string;
+  expectedDay: string;
+  apply: boolean;
+  hash?: HashRecomputeDecision;
+}
+
+function toHashEvent(event: Event) {
+  return {
+    id: event.id,
+    nome: event.nome ?? '',
+    enderecoCompleto: event.enderecoCompleto ?? null,
+    latitude: event.latitude as unknown as number | string | null,
+    longitude: event.longitude as unknown as number | string | null,
+    dedupHash: event.dedupHash ?? null,
+    storedStart: event.dataInicio,
+  };
+}
+
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
   if (options.help) {
@@ -86,6 +119,7 @@ async function main(): Promise<void> {
   try {
     const eventRepo = AppDataSource.getRepository(Event);
     const sourceRepo = AppDataSource.getRepository(EventSource);
+    const candidateRepo = AppDataSource.getRepository(EventDedupCandidate);
 
     const qb = eventRepo.createQueryBuilder('e').orderBy('e.dataInicio', 'ASC').take(options.limit);
     if (!options.includePast) {
@@ -101,9 +135,7 @@ async function main(): Promise<void> {
       no_raw_payload: 0,
       unparseable: 0,
     };
-    const rows: string[] = ['id,source,nome,classification,storedStart,expectedStart,storedDay,expectedDay'];
-    const toApply: Array<{ id: string; start: Date; end: Date }> = [];
-    const sample: string[] = [];
+    const changes: PlannedChange[] = [];
 
     for (const event of events) {
       const sources = await sourceRepo.find({ where: { eventId: event.id }, order: { firstSeenAt: 'ASC' } });
@@ -120,30 +152,80 @@ async function main(): Promise<void> {
       });
       counts[decision.classification]++;
 
-      const changes = decision.classification === 'day_shift' || decision.classification === 'instant_shift';
-      if (!changes) continue;
+      if (decision.classification !== 'day_shift' && decision.classification !== 'instant_shift') continue;
+      changes.push({
+        event,
+        classification: decision.classification,
+        expectedStart: decision.expectedStart!,
+        expectedEnd: decision.expectedEnd!,
+        storedDay: decision.storedDayKey!,
+        expectedDay: decision.expectedDayKey!,
+        apply: decision.classification === 'day_shift' || options.scope === 'instant',
+      });
+    }
 
+    // dedupHash: planejado por evento a corrigir (só muda quando o dia de SP muda).
+    const plannedHashes = new Map<string, string>();
+    const hashCounts: Record<HashRecomputeAction, number> = {
+      no_hash: 0,
+      day_unchanged: 0,
+      already_current: 0,
+      update: 0,
+      collision: 0,
+    };
+    for (const change of changes) {
+      if (!change.apply) continue;
+      const hashEvent = toHashEvent(change.event);
+      const probe = planDedupHashRecompute({ event: hashEvent, expectedStart: change.expectedStart });
+      let holderEventId: string | null = null;
+      if (probe.action === 'update') {
+        const holder = await eventRepo.findOne({ where: { dedupHash: probe.newHash }, select: ['id'] });
+        holderEventId = holder?.id ?? null;
+      }
+      change.hash = planDedupHashRecompute({
+        event: hashEvent,
+        expectedStart: change.expectedStart,
+        holderEventId,
+        plannedHashes,
+      });
+      hashCounts[change.hash.action]++;
+      if (change.hash.action === 'update') plannedHashes.set(change.hash.newHash!, change.event.id);
+    }
+
+    const rows: string[] = [
+      'id,source,nome,classification,storedStart,expectedStart,storedDay,expectedDay,hashAction,oldHash,newHash,collidesWithEventId',
+    ];
+    const sample: string[] = [];
+    for (const change of changes) {
+      const h = change.hash;
       const line = [
-        event.id,
-        event.source ?? '',
-        JSON.stringify(event.nome ?? ''),
-        decision.classification,
-        event.dataInicio.toISOString(),
-        decision.expectedStart!.toISOString(),
-        decision.storedDayKey,
-        decision.expectedDayKey,
+        change.event.id,
+        change.event.source ?? '',
+        JSON.stringify(change.event.nome ?? ''),
+        change.classification,
+        change.event.dataInicio.toISOString(),
+        change.expectedStart.toISOString(),
+        change.storedDay,
+        change.expectedDay,
+        h?.action ?? (change.apply ? '' : 'fora_do_escopo'),
+        h?.oldHash ?? '',
+        h?.newHash ?? '',
+        h?.holderEventId ?? '',
       ].join(',');
       rows.push(line);
       if (sample.length < 25) sample.push(line);
-
-      if (decision.classification === 'day_shift' || options.scope === 'instant') {
-        toApply.push({ id: event.id, start: decision.expectedStart!, end: decision.expectedEnd! });
-      }
     }
+    const toApply = changes.filter((c) => c.apply);
 
     process.stdout.write(`Eventos examinados: ${events.length}\n`);
     for (const [name, n] of Object.entries(counts)) process.stdout.write(`  ${name.padEnd(15)} ${n}\n`);
     process.stdout.write(`Candidatos à correção (scope=${options.scope}): ${toApply.length}\n`);
+    process.stdout.write('dedupHash dos candidatos:\n');
+    process.stdout.write(`  ${'a recalcular'.padEnd(15)} ${hashCounts.update}\n`);
+    process.stdout.write(`  ${'colisões'.padEnd(15)} ${hashCounts.collision}  (hash NÃO sobrescrito; vira EventDedupCandidate p/ revisão)\n`);
+    process.stdout.write(`  ${'já correto'.padEnd(15)} ${hashCounts.already_current}\n`);
+    process.stdout.write(`  ${'dia não muda'.padEnd(15)} ${hashCounts.day_unchanged}\n`);
+    process.stdout.write(`  ${'sem hash'.padEnd(15)} ${hashCounts.no_hash}\n`);
     if (sample.length) {
       process.stdout.write(`\nAmostra (${sample.length}):\n${rows[0]}\n${sample.join('\n')}\n`);
     }
@@ -153,22 +235,40 @@ async function main(): Promise<void> {
     }
 
     if (!options.apply) {
-      process.stdout.write('\nDRY-RUN: nada foi gravado. Use --apply para aplicar (faça backup antes).\n');
+      process.stdout.write(
+        `\nDRY-RUN: nada foi gravado. Com --apply: ${toApply.length} eventos corrigidos, ${hashCounts.update} dedupHash recalculados, ` +
+          `${hashCounts.collision} candidatos de dedup registrados para revisão. Faça backup antes.\n`,
+      );
       return;
     }
 
     let updated = 0;
+    let hashesUpdated = 0;
     for (let i = 0; i < toApply.length; i += options.batchSize) {
       const batch = toApply.slice(i, i + options.batchSize);
       await AppDataSource.transaction(async (manager) => {
         for (const item of batch) {
-          await manager.update(Event, { id: item.id }, { dataInicio: item.start, dataFim: item.end });
+          const patch: Partial<Event> = { dataInicio: item.expectedStart, dataFim: item.expectedEnd };
+          if (item.hash?.action === 'update') patch.dedupHash = item.hash.newHash!;
+          await manager.update(Event, { id: item.event.id }, patch);
+          if (item.hash?.action === 'update') hashesUpdated++;
         }
       });
       updated += batch.length;
       process.stdout.write(`  aplicados ${updated}/${toApply.length}\n`);
     }
-    process.stdout.write(`\nAPLICADO: ${updated} eventos atualizados (dataInicio/dataFim). dedupHash não foi alterado.\n`);
+    let candidatesCreated = 0;
+    let candidatesExisting = 0;
+    for (const item of toApply) {
+      if (item.hash?.action !== 'collision' || !item.hash.holderEventId) continue;
+      const result = await recordBackfillHashCollision(candidateRepo, item.hash.holderEventId, item.event.id);
+      if (result === 'created') candidatesCreated++;
+      else candidatesExisting++;
+    }
+    process.stdout.write(
+      `\nAPLICADO: ${updated} eventos com dataInicio/dataFim atualizados; ${hashesUpdated} dedupHash recalculados; ` +
+        `${hashCounts.collision} colisões de hash (hash preservado): ${candidatesCreated} candidatos criados, ${candidatesExisting} já existiam.\n`,
+    );
   } finally {
     await AppDataSource.destroy();
   }
