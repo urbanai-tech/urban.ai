@@ -33,10 +33,15 @@ test.describe('Confirmacao de e-mail', () => {
       });
     });
 
-    await page.goto('/confirm-email/host.confirm%40urbanai.com.br');
+    // O e-mail chega por sessionStorage (gravado antes de navegar), nunca pela URL.
+    await page.addInitScript(() => {
+      window.sessionStorage.setItem('urbanai:confirm-email', 'host.confirm@urbanai.com.br');
+    });
+    await page.goto('/confirm-email');
 
     await expect(page.getByRole('heading', { name: /Confirme seu e-mail/i })).toBeVisible();
-    await expect(page.getByText('host.confirm@urbanai.com.br')).toBeVisible();
+    await expect(page.getByText('ho***@urbanai.com.br')).toBeVisible();
+    expect(page.url()).not.toContain('host.confirm');
     await expect.poll(() => sentCodes[0]).toEqual({ email: 'host.confirm@urbanai.com.br' });
 
     const confirmButton = page.getByRole('button', { name: /Confirmar E-mail/i });
@@ -56,5 +61,37 @@ test.describe('Confirmacao de e-mail', () => {
       codigo: '123456',
     });
     await page.waitForURL(/\/dashboard$/);
+  });
+
+  test('sem e-mail guardado, pede o endereço e só então envia o código', async ({ page }) => {
+    await acceptCookieConsent(page);
+    const sentCodes: Array<{ email?: string }> = [];
+    await page.route('**/email/enviar-codigo', async (route) => {
+      sentCodes.push(route.request().postDataJSON());
+      await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ enviado: true }) });
+    });
+
+    await page.goto('/confirm-email');
+    await expect(page.getByLabel('E-mail da conta')).toBeVisible();
+    expect(sentCodes).toHaveLength(0);
+
+    await page.getByLabel('E-mail da conta').fill('digitado@urbanai.com.br');
+    await page.getByRole('button', { name: /Enviar código/i }).click();
+    await expect.poll(() => sentCodes[0]).toEqual({ email: 'digitado@urbanai.com.br' });
+    await expect(page.getByText('di***@urbanai.com.br')).toBeVisible();
+  });
+
+  test('rota legada /confirm-email/<e-mail> guarda o e-mail e vai para /confirm-email', async ({ page }) => {
+    await acceptCookieConsent(page);
+    const sentCodes: Array<{ email?: string }> = [];
+    await page.route('**/email/enviar-codigo', async (route) => {
+      sentCodes.push(route.request().postDataJSON());
+      await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ enviado: true }) });
+    });
+
+    await page.goto('/confirm-email/antigo%40urbanai.com.br');
+    await expect(page).toHaveURL(/\/confirm-email$/);
+    expect(page.url()).not.toMatch(/antigo|%40/);
+    await expect.poll(() => sentCodes[0]).toEqual({ email: 'antigo@urbanai.com.br' });
   });
 });

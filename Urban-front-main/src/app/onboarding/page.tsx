@@ -72,6 +72,7 @@ import {
   type SelectedPropertiesState,
   type StrategyIconKey,
 } from './onboarding-domain';
+import { stashPendingEmail } from "@/app/lib/auth-links";
 
 
 const MotionBox = motion(Box);
@@ -139,7 +140,8 @@ function OnboardingWizardContent() {
     getProfile()
       .then(({ data }) => {
         if (!cancelled && data?.emailVerifiedAt === null && data?.email) {
-          router.replace(`/confirm-email/${encodeURIComponent(data.email)}`);
+          stashPendingEmail(data.email);
+          router.replace("/confirm-email");
         }
       })
       .catch(() => {

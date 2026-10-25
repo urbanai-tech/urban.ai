@@ -58,7 +58,7 @@ api.interceptors.request.use(
  * - 401 (não autenticado): limpa token, redireciona pra login `/`.
  *   Exceção: rotas públicas (/lancamento, /landing, /precos, /sobre, /contato,
  *   /termos, /privacidade, /create, /forbidden, /post-login, /request-reset-password,
- *   /reset-password/*, /confirm-email/*) NÃO redirecionam — login não eh
+ *   /reset-password/*, /confirm-email) NÃO redirecionam — login não eh
  *   necessario nelas e o componente que disparou o 401 lida com o erro.
  * - 403 (sem permissão): redireciona pra `/forbidden` page premium. 403 com `code`
  *   de negócio conhecido (LISTINGS_QUOTA_EXCEEDED, EMAIL_NOT_VERIFIED) não
