@@ -67,6 +67,7 @@ const DOCS_DIRECTORIES = [
 const DOCS_FILES = new Set([
   'docs/ACESSOS-E-FERRAMENTAS.md',
   'docs/ARQUITETURA-ATUAL.md',
+  'docs/DICIONARIO-DE-DADOS.md',
   'docs/DOCUMENTATION-GOVERNANCE.md',
   'docs/README.md',
   'docs/e2e-reports/README.md',

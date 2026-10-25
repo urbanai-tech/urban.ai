@@ -24,6 +24,8 @@
     "test:coverage:certified": "npm run test:coverage:critical && npm run test:coverage:auth && npm run test:coverage:stays && npm run test:coverage:health-cron",
     "test:contracts": "jest --runInBand --testPathPatterns=contract.spec.ts",
     "contract:openapi": "jest --runInBand src/openapi/openapi-compatibility.contract.spec.ts",
+    "docs:data-dictionary": "ts-node -r tsconfig-paths/register scripts/generate-data-dictionary.ts",
+    "docs:data-dictionary:check": "ts-node -r tsconfig-paths/register scripts/generate-data-dictionary.ts --check",
     "audit:lgpd": "node scripts/lgpd-controls-audit.js",
     "audit:lgpd:self-test": "node scripts/lgpd-controls-audit.js --self-test",
     "audit:observability": "node scripts/observability-controls-audit.js",
