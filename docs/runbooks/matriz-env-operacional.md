@@ -130,8 +130,10 @@ Removidas desta matriz por não serem lidas no código do backend: `MAPBOX_TOKEN
 | `PORT`, `SCRAPYD_API_KEY` | Obr. | `auth_proxy.py` exige a chave para disparar crawls. |
 | `COLLECTOR_CRON_INTERVAL_SECONDS` (padrão 21600 = 6 h), `RUN_COLLECTORS_ON_BOOT` (padrão `true`), `RUN_LEGACY_SPIDERS`, `MIN_SUCCESSFUL_COLLECTORS`, `SCRAPYD_URL`, `SCRAPYD_PROJECT` | Opc. | Cron interno dos coletores e runner agregado. |
 | `URBAN_API_BASE` | Obr. | Base do backend (hoje o domínio de serviço Railway). |
-| `URBAN_EVENTS_INGEST_API_KEY` | Obr. | Enviada em `x-urban-events-ingest-key`; igual a `EVENTS_INGEST_API_KEY` do backend. |
-| `URBAN_COLLECTOR_EMAIL`, `URBAN_COLLECTOR_PASSWORD` | **Obr. hoje para os spiders** (problema conhecido) | A `UrbanIngestPipeline` dos spiders só é habilitada se ambas estiverem preenchidas, embora o backend aceite apenas a API key. Coletores HTTP não precisam delas. Correção pendente em código. |
+| `URBAN_EVENTS_INGEST_API_KEY` | Obr. | Enviada em `x-urban-events-ingest-key`; igual a `EVENTS_INGEST_API_KEY` do backend. É a ÚNICA credencial que habilita a `UrbanIngestPipeline` (spiders) e os coletores. Em produção, sem ela a pipeline loga ERROR e marca a stat `urban_ingest/misconfigured`; `run_all` sai com código 1. |
+| `URBAN_INGEST_OUTBOX_PATH` | Obr. em produção | Arquivo SQLite da fila de entrega (WAL). **O Railway precisa de um volume persistente montado neste caminho** (ex.: volume em `/var/lib/scrapyd` e `URBAN_INGEST_OUTBOX_PATH=/var/lib/scrapyd/dbs/ingest-outbox.sqlite3`); sem volume, eventos pendentes se perdem no redeploy. Padrão: `/var/lib/scrapyd/dbs/ingest-outbox.sqlite3` se o diretório existir, senão `.urban-ingest/outbox.sqlite3`. Não compartilhar entre hosts (NFS). |
+| `URBAN_INGEST_OUTBOX_MAX_EVENTS` | Opc. | Teto de eventos pendentes (padrão 50000). Ao estourar, os mais antigos vão para a quarentena com motivo `outbox_cap_exceeded` e há log ERROR. |
+| `URBAN_COLLECTOR_EMAIL`, `URBAN_COLLECTOR_PASSWORD` | **Removidas** | O login JWT legado foi removido do webscraping em 2026-10-25; podem ser apagadas do serviço. Não têm mais efeito. |
 | `URBAN_COLLECTOR_NAME`, `URBAN_COLLECTOR_VERSION`, `URBAN_INGEST_RUN_ID` | Opc. | Metadados de auditoria. |
 | `TICKETMASTER_API_KEY`, `API_FOOTBALL_KEY`, `SERPAPI_KEY`, `FIRECRAWL_API_KEY`, `TAVILY_API_KEY`, `GEMINI_API_KEY` | Cond. | Uma por coletor; Firecrawl/Tavily também precisam de `GEMINI_API_KEY`. |
 | `SP_CULTURA_API_BASE`, `SP_CULTURA_LOOKAHEAD_DAYS`, `SERPAPI_QUERY`, `FIRECRAWL_QUERY`, `TAVILY_QUERY` | Opc. | Tuning de coletores. |
