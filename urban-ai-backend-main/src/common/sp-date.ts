@@ -152,6 +152,24 @@ export function addDaysToDateKey(dateKey: string, days: number): string {
   return new Date(base + days * 86_400_000).toISOString().slice(0, 10);
 }
 
+/**
+ * Expressão SQL (MySQL) que devolve o DIA de São Paulo de uma coluna temporal,
+ * para `GROUP BY`/`SELECT`. Casa com `toSaoPauloDateKey` do lado JS. Devolve
+ * TEXTO `YYYY-MM-DD` (DATE_FORMAT) para o driver não converter um DATE em
+ * `Date` no fuso da conexão e deslocar o dia.
+ *
+ * `CONVERT_TZ(col, @@session.time_zone, '-03:00')`: converte do fuso da SESSÃO
+ * (em que o MySQL exibe colunas `timestamp`) para o offset fixo de São Paulo.
+ * Offset fixo é correto desde 2019 (fim do horário de verão) e dispensa as
+ * tabelas de fuso nomeadas (`mysql_tzinfo_to_sql`), que podem não estar
+ * carregadas. Não usar em dados anteriores a 2019. Para colunas `datetime`
+ * (sem fuso) o valor é o gravado pelo driver em UTC; a sessão em UTC é o
+ * caso de produção — para filtros por faixa prefira `saoPauloDayBounds`.
+ */
+export function saoPauloDaySql(column: string): string {
+  return `DATE_FORMAT(CONVERT_TZ(${column}, @@session.time_zone, '-03:00'), '%Y-%m-%d')`;
+}
+
 export interface ParsedEventDateTime {
   /** Instante absoluto (armazenado em UTC). */
   instant: Date;

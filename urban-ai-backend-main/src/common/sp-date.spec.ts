@@ -1,4 +1,5 @@
 import {
+  saoPauloDaySql,
   addDaysToDateKey,
   parseEventDateTime,
   saoPauloDayBounds,
@@ -8,6 +9,14 @@ import {
   toSaoPauloDateKey,
   tryToSaoPauloDateKey,
 } from './sp-date';
+
+describe('saoPauloDaySql', () => {
+  it('converte do fuso da sessão para -03:00 e devolve texto YYYY-MM-DD (sem DATE solto)', () => {
+    const sql = saoPauloDaySql('e.dataCrawl');
+    expect(sql).toBe("DATE_FORMAT(CONVERT_TZ(e.dataCrawl, @@session.time_zone, '-03:00'), '%Y-%m-%d')");
+    expect(sql).not.toMatch(/^DATE\(/);
+  });
+});
 
 describe('sp-date', () => {
   describe('toSaoPauloDateKey', () => {

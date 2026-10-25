@@ -118,13 +118,45 @@ describe('PricingRecommendationDigestService', () => {
     });
 
     const saved = repo.save.mock.calls[0][0];
-    expect(saved.scheduledFor).toEqual(new Date(2026, 4, 24));
+    // 00:00 BRT de 24/05 = 03:00Z (independe do TZ do processo)
+    expect(saved.scheduledFor).toEqual(new Date('2026-05-24T03:00:00Z'));
     expect(repo.create).toHaveBeenCalledWith(
       expect.objectContaining({
         status: 'pending',
-        scheduledFor: new Date(2026, 4, 24),
+        scheduledFor: new Date('2026-05-24T03:00:00Z'),
       }),
     );
+    jest.useRealTimers();
+  });
+
+  it('usa o dia de São Paulo: 21:30 BRT (00:30Z) ainda é "hoje" e adia para 00:00 BRT do dia seguinte', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-05-24T00:30:00Z')); // 23/05 21:30 BRT
+    const { repo, service } = makeService();
+    repo.findOne.mockResolvedValueOnce({ id: 'sent-digest-1' }).mockResolvedValueOnce(null);
+
+    await service.appendPendingDigest({ user, item, wantsEmail: true, wantsPush: false, delayMs: 120000 });
+
+    // início do "hoje" consultado = 00:00 BRT de 23/05 (03:00Z), não 00:00Z de 24/05
+    const sentWhere = repo.findOne.mock.calls[0][0].where.sentAt;
+    expect(sentWhere.value).toEqual(new Date('2026-05-23T03:00:00Z'));
+    expect(repo.save.mock.calls[0][0].scheduledFor).toEqual(new Date('2026-05-24T03:00:00Z'));
+    jest.useRealTimers();
+  });
+
+  it('agrupa itens sem notificationId pelo dia de SP (21:30 BRT e 10:00 BRT do mesmo dia são o mesmo item)', () => {
+    const { service } = makeService();
+    const key = (createdAt: string) =>
+      (service as any).digestItemKey({ ...item, notificationId: undefined, createdAt });
+    expect(key('2026-05-24T00:30:00Z')).toBe(key('2026-05-23T13:00:00Z')); // ambos 23/05 em SP
+    expect(key('2026-05-24T00:30:00Z')).toContain(':2026-05-23');
+    expect(key('2026-05-24T03:00:00Z')).toContain(':2026-05-24'); // 00:00 BRT já é o dia seguinte
+  });
+
+  it('itemDay cai no dia de hoje em SP quando createdAt é ausente ou inválido', () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-05-24T00:30:00Z'));
+    const { service } = makeService();
+    expect((service as any).itemDay(undefined)).toBe('2026-05-23');
+    expect((service as any).itemDay('lixo')).toBe('2026-05-23');
     jest.useRealTimers();
   });
 });
