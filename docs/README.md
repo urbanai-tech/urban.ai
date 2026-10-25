@@ -11,6 +11,7 @@
 | 3 | [`ACESSOS-E-FERRAMENTAS.md`](./ACESSOS-E-FERRAMENTAS.md) | Acessos por provedor, escopo mínimo e canal (MCP/CLI/API). |
 | 4 | [`runbooks/matriz-env-operacional.md`](./runbooks/matriz-env-operacional.md) | Variáveis de ambiente lidas no código, por serviço (somente nomes). |
 | 5 | [`runbooks/smoke-tests-operacionais.md`](./runbooks/smoke-tests-operacionais.md) | Como provar que o ambiente funciona (seção 11: validação inicial). |
+| 6 | [`../CONTRIBUTING.md`](../CONTRIBUTING.md) | Ambiente local (Docker Compose), validação (`scripts/validate-local.sh`), PRs, migrations e repositório canônico. |
 
 ## Mapa
 
