@@ -118,7 +118,6 @@ async quantidadeEnderecos(@Param('usuarioId') usuarioId: string, @Req() req: any
     },
   })
   async getDashboard(@Req() req: any, @Query('propertyId') propertyId: string) {
-    console.log("parâmetro:", propertyId)
     return this.dashboardService.getDashBoard(req.user.userId, propertyId);
   }
 

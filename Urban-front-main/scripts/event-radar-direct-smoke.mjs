@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,10 +12,6 @@ const appDir = resolve(scriptDir, '..');
 const workspaceRoot = resolve(appDir, '..');
 const fixturePath = resolve(workspaceRoot, 'docs', 'contracts', 'event-radar-fixtures-v0.json');
 const specPath = resolve(appDir, 'e2e', 'event-radar.spec.ts');
-const defaultOutputDir =
-  process.platform === 'win32'
-    ? 'C:\\tmp\\urban-ai-event-radar-direct-smoke'
-    : join(tmpdir(), 'urban-ai-event-radar-direct-smoke');
 
 const rawArgs = process.argv.slice(2);
 const hasArg = (name) => rawArgs.includes(name) || rawArgs.some((arg) => arg.startsWith(`${name}=`));
@@ -48,7 +44,11 @@ const getIntegerArg = (name, fallback, { min = 1, max = Number.MAX_SAFE_INTEGER 
 };
 
 const baseURL = getArg('--base-url', process.env.E2E_BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
-const outputDir = resolve(getArg('--output', process.env.E2E_OUTPUT_DIR || defaultOutputDir));
+const explicitOutputDir = getArg('--output', process.env.E2E_OUTPUT_DIR || '');
+// Sem diretorio explicito, cria um temporario privado (0700) em vez de um caminho previsivel em /tmp.
+const outputDir = explicitOutputDir
+  ? resolve(explicitOutputDir)
+  : mkdtempSync(join(tmpdir(), 'urban-ai-event-radar-direct-smoke-'));
 const navigationTimeoutMs = getIntegerArg('--navigation-timeout-ms', process.env.E2E_NAVIGATION_TIMEOUT_MS || '45000');
 const assertionTimeoutMs = getIntegerArg('--assertion-timeout-ms', process.env.E2E_ASSERTION_TIMEOUT_MS || '20000');
 const viewportMode = getArg('--viewport', process.env.E2E_VIEWPORT || 'all');
