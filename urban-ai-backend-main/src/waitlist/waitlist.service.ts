@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not } from 'typeorm';
-import { randomBytes } from 'crypto';
+import { randomBytes, randomInt } from 'crypto';
 import { Waitlist } from '../entities/waitlist.entity';
 import { MailerService } from '../mailer/mailer.service';
 
@@ -301,10 +301,10 @@ export class WaitlistService {
     // 8 chars URL-safe, alfabeto sem ambiguidades (sem 0/O/I/l).
     const alphabet = 'abcdefghijkmnpqrstuvwxyz23456789';
     for (let attempt = 0; attempt < 5; attempt++) {
-      const bytes = randomBytes(8);
       let code = '';
       for (let i = 0; i < 8; i++) {
-        code += alphabet[bytes[i] % alphabet.length];
+        // randomInt faz rejection sampling internamente: sem viés de módulo.
+        code += alphabet[randomInt(alphabet.length)];
       }
       const exists = await this.repo.findOne({ where: { referralCode: code } });
       if (!exists) return code;

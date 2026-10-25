@@ -73,6 +73,8 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("message", (event) => {
+  // Só aceita mensagens de páginas da própria origem (o payload carrega o secret do push).
+  if (event.origin !== self.location.origin) return;
   const message = event.data || {};
   if (message.type === "URBAN_PUSH_CONFIG") {
     event.waitUntil(storePushConfig(message.config));
