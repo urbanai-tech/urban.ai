@@ -247,10 +247,10 @@ class UrbanBackendClient:
                 self._outbox.enqueue(event)
             except (TypeError, ValueError) as exc:
                 self.stats["rejected"] += 1
+                # Só o tipo do erro: campos do evento podem carregar dado sensível.
                 logger.error(
-                    "Evento descartado por não ser serializável (source=%s): %s",
-                    event.get("source"),
-                    exc,
+                    "Evento descartado por não ser serializável: %s",
+                    type(exc).__name__,
                 )
                 return
         else:
@@ -341,13 +341,15 @@ class UrbanBackendClient:
         self.stats["created"] += data["created"]
         self.stats["updated"] += data["updated"]
         self.stats["rejected"] += data["skipped"]
-        for event, outcome in zip(events, data.get("results") or [], strict=False):
+        # Campos do evento ficam fora do log (podem carregar dado sensível);
+        # com outbox, o evento inteiro fica na quarentena para revisão.
+        for index, outcome in enumerate(data.get("results") or []):
             if isinstance(outcome, dict) and outcome.get("status") == "skipped":
                 logger.warning(
-                    "Ingest REJEITOU evento: source=%s nome=%r reason=%s%s",
-                    event.get("source"),
-                    str(event.get("nome"))[:80],
-                    outcome.get("reason") or "unspecified",
+                    "Ingest REJEITOU evento %d/%d do lote: reason=%s%s",
+                    index + 1,
+                    len(events),
+                    str(outcome.get("reason") or "unspecified")[:200],
                     " (em quarentena)" if self._outbox else "",
                 )
 
@@ -397,12 +399,9 @@ class UrbanBackendClient:
     @staticmethod
     def _validate_response(data: dict[str, Any], sent: int) -> None:
         """Só reconhece o lote se received/created/updated/rejected fecharem."""
-        counts = [data.get(f) for f in ("total", "created", "updated", "skipped")]
-        if (
-            any(type(value) is not int or value < 0 for value in counts)
-            or counts[0] != sent
-            or sum(counts[1:]) != counts[0]
-        ):
+        raw = [data.get(f) for f in ("total", "created", "updated", "skipped")]
+        counts = [value for value in raw if type(value) is int and value >= 0]
+        if len(counts) != len(raw) or counts[0] != sent or sum(counts[1:]) != counts[0]:
             raise UrbanBackendError(
                 "Ingest retornou confirmação incompatível com o lote enviado"
             )

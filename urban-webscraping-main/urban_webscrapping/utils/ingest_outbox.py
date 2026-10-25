@@ -21,6 +21,7 @@ import sqlite3
 import time
 from contextlib import closing
 from pathlib import Path
+from typing import Any
 from uuid import uuid4
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,9 @@ REASON_MAX_CHARS = 1000
 
 def backoff_seconds(attempts: int) -> int:
     """Espera antes da próxima tentativa: 30s, 60s, 120s ... até 1h."""
-    return min(BACKOFF_BASE_SECONDS * (2 ** max(attempts - 1, 0)), BACKOFF_MAX_SECONDS)
+    return int(
+        min(BACKOFF_BASE_SECONDS * (2 ** max(attempts - 1, 0)), BACKOFF_MAX_SECONDS)
+    )
 
 
 class IngestOutbox:
@@ -74,7 +77,7 @@ class IngestOutbox:
                 "requeued INTEGER NOT NULL DEFAULT 0)"
             )
 
-    def _connect(self):
+    def _connect(self) -> sqlite3.Connection:
         return sqlite3.connect(str(self.path), timeout=30, isolation_level=None)
 
     @staticmethod
@@ -85,7 +88,9 @@ class IngestOutbox:
             return None
         return str(value)[:200] if value else None
 
-    def _quarantine(self, connection, payload: str, reason: str) -> None:
+    def _quarantine(
+        self, connection: sqlite3.Connection, payload: str, reason: str
+    ) -> None:
         connection.execute(
             "INSERT INTO rejected_events"
             "(namespace, payload, reason, source, rejected_at) VALUES (?, ?, ?, ?, ?)",
@@ -98,7 +103,7 @@ class IngestOutbox:
             ),
         )
 
-    def _trim_rejected(self, connection) -> None:
+    def _trim_rejected(self, connection: sqlite3.Connection) -> None:
         connection.execute(
             "DELETE FROM rejected_events WHERE namespace = ? AND id NOT IN ("
             "SELECT id FROM rejected_events WHERE namespace = ? "
@@ -106,7 +111,7 @@ class IngestOutbox:
             (self.namespace, self.namespace, self.max_rejected),
         )
 
-    def enqueue(self, event: dict) -> int:
+    def enqueue(self, event: dict[str, Any]) -> int:
         """Persiste antes de confirmar ao coletor.
 
         Retorna quantos eventos antigos foram rotacionados para a quarentena
@@ -155,7 +160,9 @@ class IngestOutbox:
             )
         return evicted
 
-    def claim(self, limit: int, lease_seconds: int = 600) -> tuple[str, list[dict]]:
+    def claim(
+        self, limit: int, lease_seconds: int = 600
+    ) -> tuple[str, list[dict[str, Any]]]:
         """Reserva um lote limitado; leases abandonados voltam a ser elegíveis."""
         owner = uuid4().hex
         with closing(self._connect()) as connection:
@@ -177,7 +184,9 @@ class IngestOutbox:
                 raise
         return owner, [json.loads(row[1]) for row in rows]
 
-    def acknowledge(self, owner: str, outcomes: list[dict] | None = None) -> int:
+    def acknowledge(
+        self, owner: str, outcomes: list[dict[str, Any]] | None = None
+    ) -> int:
         """Remove o lote confirmado; itens ``skipped`` vão para a quarentena.
 
         Retorna quantos itens foram para a quarentena. Se ``outcomes`` não
@@ -267,7 +276,7 @@ class IngestOutbox:
             "rejected": rejected,
         }
 
-    def rejections(self, limit: int = 50) -> list[dict]:
+    def rejections(self, limit: int = 50) -> list[dict[str, Any]]:
         """Itens em quarentena (mais recentes primeiro) para revisão humana."""
         with closing(self._connect()) as connection:
             rows = connection.execute(
@@ -309,10 +318,11 @@ class IngestOutbox:
     def count(self) -> int:
         """Eventos na fila (em lease, em backoff ou prontos) deste destino."""
         with closing(self._connect()) as connection:
-            return connection.execute(
+            row = connection.execute(
                 "SELECT COUNT(*) FROM pending_events WHERE namespace = ?",
                 (self.namespace,),
-            ).fetchone()[0]
+            ).fetchone()
+            return int(row[0])
 
 
 if __name__ == "__main__":

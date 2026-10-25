@@ -192,7 +192,7 @@ def test_skipped_count_requires_consistent_per_event_results(results):
 # ------------------------------------------------- rejeições e quarentena
 
 
-def test_partial_rejection_is_quarantined_and_logged_with_source_and_reason(
+def test_partial_rejection_is_quarantined_and_logged_without_event_fields(
     tmp_path, caplog
 ):
     client = UrbanBackendClient(
@@ -210,7 +210,9 @@ def test_partial_rejection_is_quarantined_and_logged_with_source_and_reason(
         "deferred": 0,
         "rejected": 1,
     }
-    assert "source=scraper-sympla" in caplog.text
+    assert "evento 1/1 do lote" in caplog.text
+    assert "scraper-sympla" not in caplog.text
+    assert client._outbox.rejections()[0]["source"] == "scraper-sympla"
     assert "reason=invalid date" in caplog.text
     assert client.stats["rejected"] == 1
     assert client.stats["received"] == 1
