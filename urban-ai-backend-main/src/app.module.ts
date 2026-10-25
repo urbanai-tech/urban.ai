@@ -46,6 +46,7 @@ import { HealthModule } from './health/health.module';
 import { PushModule } from './push/push.module';
 import { HostPanelsModule } from './host-panels/host-panels.module';
 import { AdminJobRunsModule } from './admin-job-runs/admin-job-runs.module';
+import { SubscriptionModule } from './subscription/subscription.module';
 
 dotenv.config();
 
@@ -72,6 +73,7 @@ const dbTimezoneOption = process.env.DB_TIMEZONE?.trim() ? { timezone: process.e
   imports: [
     SentryModule.forRoot(),
     AdminJobRunsModule,
+    SubscriptionModule,
     AdminAuditModule,
     MailerModule,
     CronModule,

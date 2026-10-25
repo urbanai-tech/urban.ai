@@ -1,7 +1,8 @@
+import { entitlementDouble } from 'src/subscription/entitlement.testing';
 import { WeeklyEventReportService } from './weekly-event-report.service';
 
 describe('WeeklyEventReportService', () => {
-  const makeService = () => {
+  const makeService = (entitlement: any = entitlementDouble()) => {
     const userRepo = {
       find: jest.fn(),
     };
@@ -28,6 +29,7 @@ describe('WeeklyEventReportService', () => {
       mailer as any,
       pushNotificationService as any,
       communicationPreferences as any,
+      entitlement as any,
     );
 
     return {
@@ -157,5 +159,23 @@ describe('WeeklyEventReportService', () => {
       expect.any(Function),
     );
     expect(processSpy).not.toHaveBeenCalled();
+  });
+
+  it('não envia o radar semanal (nem consulta eventos) para usuário sem assinatura', async () => {
+    const entitlement = entitlementDouble({ entitled: (userId) => userId === 'user-pagante' });
+    const { service, userRepo, addressRepo, analisePrecoRepo, mailer, pushNotificationService } = makeService(entitlement);
+    userRepo.find.mockResolvedValue([
+      { id: 'user-gratis', username: 'Gratis', email: 'gratis@example.com', ativo: true },
+    ]);
+    addressRepo.find.mockResolvedValue([]);
+    analisePrecoRepo.find.mockResolvedValue([]);
+
+    const result = await service.processWeeklyReports(new Date('2026-05-21T12:00:00Z'));
+
+    expect(addressRepo.find).not.toHaveBeenCalled();
+    expect(analisePrecoRepo.find).not.toHaveBeenCalled();
+    expect(mailer.sendHtmlEmail).not.toHaveBeenCalled();
+    expect(pushNotificationService.sendToUser).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ ok: true, users: 0, sent: 0, failed: 0 });
   });
 });

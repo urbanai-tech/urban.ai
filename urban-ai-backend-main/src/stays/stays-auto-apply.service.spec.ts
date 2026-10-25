@@ -1,3 +1,4 @@
+import { entitlementDouble } from 'src/subscription/entitlement.testing';
 import { StaysAutoApplyService } from "./stays-auto-apply.service";
 
 describe("StaysAutoApplyService", () => {
@@ -34,6 +35,7 @@ describe("StaysAutoApplyService", () => {
       listingRepo as any,
       analiseRepo as any,
       staysService as any,
+      entitlementDouble() as any,
       pricingDecisionRepo as any,
     );
   });
@@ -755,5 +757,49 @@ describe("StaysAutoApplyService", () => {
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining("warnings=review"),
     );
+  });
+
+  it("só aplica preço automático para donos com assinatura (listings de plano vencido/free são pulados)", async () => {
+    const gated = new StaysAutoApplyService(
+      listingRepo as any,
+      analiseRepo as any,
+      staysService as any,
+      entitlementDouble({ entitled: (userId) => userId === "user-1" }) as any,
+      pricingDecisionRepo as any,
+    );
+    listingRepo.find.mockResolvedValue([
+      autoListing({ id: "pagante" }),
+      autoListing({
+        id: "sem-plano",
+        account: { id: "a2", status: "active", user: { id: "user-2", operationMode: "auto" } },
+      }),
+      autoListing({
+        id: "sem-dono",
+        account: { id: "a3", status: "active", user: null },
+      }),
+    ]);
+
+    // o listing sem dono segue para o laço (que já o registra e pula); o sem plano sai.
+    await expect((gated as any).findAutoModeListings()).resolves.toEqual([
+      expect.objectContaining({ id: "pagante" }),
+      expect.objectContaining({ id: "sem-dono" }),
+    ]);
+  });
+
+  it("não busca análise de imóvel pausado por cota (endereço inativo)", async () => {
+    const qb: any = {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      leftJoin: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      getOne: jest.fn().mockResolvedValue(null),
+    };
+    analiseRepo.createQueryBuilder.mockReturnValue(qb);
+
+    await (service as any).findPendingAnalise(autoListing());
+
+    expect(qb.andWhere).toHaveBeenCalledWith("addr.ativo = :addrActive", { addrActive: true });
   });
 });

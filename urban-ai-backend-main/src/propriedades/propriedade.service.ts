@@ -1067,8 +1067,25 @@ export class PropriedadeService {
      * Cron mensal noturno: re-scraping de TODOS os imóveis ativos.
      * Espaçado ao longo de 8h (~8s por imóvel para 1000+ imóveis).
      */
-    async refreshAllPropertyMetadata(): Promise<{ total: number; updated: number; errors: number }> {
-        const allProperties = await this.propriedades.find({ where: { ativo: true } });
+    async refreshAllPropertyMetadata(
+        options: { filterOwners?: (ownerIds: string[]) => Promise<Set<string>> } = {},
+    ): Promise<{ total: number; updated: number; errors: number }> {
+        let allProperties = await this.propriedades.find({ where: { ativo: true } });
+        if (options.filterOwners) {
+            // Re-scraping custa API: só imóveis de donos com direito de uso E que ainda
+            // têm um endereço ativo (os pausados por cota/downgrade ficam de fora).
+            const ownerIds = [...new Set(allProperties.map((p) => p.user?.id).filter(Boolean))] as string[];
+            const allowedOwners = await options.filterOwners(ownerIds);
+            const activeRows = await this.addressRepository
+                .createQueryBuilder('address')
+                .select('DISTINCT address.list_id', 'listId')
+                .where('address.ativo = :active', { active: true })
+                .getRawMany<{ listId: string }>();
+            const listsWithActiveAddress = new Set(activeRows.map((row) => row.listId));
+            allProperties = allProperties.filter(
+                (p) => p.user?.id && allowedOwners.has(p.user.id) && listsWithActiveAddress.has(p.id),
+            );
+        }
         const total = allProperties.length;
         let updated = 0;
         let errors = 0;
