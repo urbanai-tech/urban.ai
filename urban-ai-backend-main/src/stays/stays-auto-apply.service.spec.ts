@@ -6,7 +6,11 @@ describe("StaysAutoApplyService", () => {
   let listingRepo: { find: jest.Mock };
   let analiseRepo: { createQueryBuilder: jest.Mock };
   let pricingDecisionRepo: { find: jest.Mock };
-  let staysService: { pushPrice: jest.Mock };
+  let staysService: {
+    pushPrice: jest.Mock;
+    readCurrentPriceCents: jest.Mock;
+    getAutoApplyState: jest.Mock;
+  };
   const originalEnv = process.env;
 
   beforeEach(() => {
@@ -25,11 +29,25 @@ describe("StaysAutoApplyService", () => {
     delete process.env.STAYS_AUTO_APPLY_MIN_RECOMMENDED_MULTIPLIER;
     delete process.env.STAYS_AUTO_APPLY_MAX_RECOMMENDED_MULTIPLIER;
     delete process.env.STAYS_AUTO_APPLY_BLOCKED_RISK_FLAGS;
+    delete process.env.STAYS_AUTO_APPLY_MAX_ATTEMPTS;
+    // Os cenários "live" exigem a escrita ligada; o default (desligada) tem teste próprio.
+    process.env.STAYS_PRICE_WRITES_ENABLED = "true";
 
     listingRepo = { find: jest.fn() };
     analiseRepo = { createQueryBuilder: jest.fn() };
     pricingDecisionRepo = { find: jest.fn() };
-    staysService = { pushPrice: jest.fn().mockResolvedValue({ id: "pu-1" }) };
+    staysService = {
+      pushPrice: jest.fn().mockResolvedValue({ id: "pu-1" }),
+      // preço vigente no calendário Stays (baseline real)
+      readCurrentPriceCents: jest.fn().mockResolvedValue(10000),
+      getAutoApplyState: jest.fn().mockResolvedValue({
+        activeSuccess: false,
+        rollbackGeneration: 0,
+        lastRollbackAt: null,
+        failedAttempts: 0,
+        lastFailureAt: null,
+      }),
+    };
 
     service = new StaysAutoApplyService(
       listingRepo as any,
@@ -801,5 +819,147 @@ describe("StaysAutoApplyService", () => {
     await (service as any).findPendingAnalise(autoListing());
 
     expect(qb.andWhere).toHaveBeenCalledWith("addr.ativo = :addrActive", { addrActive: true });
+  });
+
+  describe("baseline do calendário, requestId versionado e retries", () => {
+    function liveSetup() {
+      process.env.STAYS_AUTO_APPLY_ENABLED = "true";
+      process.env.STAYS_AUTO_APPLY_ALLOWED_USER_IDS = "user-1";
+      process.env.STAYS_AUTO_APPLY_ALLOWED_LISTING_IDS = "listing-1";
+      listingRepo.find.mockResolvedValue([autoListing()]);
+    }
+    const state = (overrides: Record<string, unknown> = {}) => ({
+      activeSuccess: false,
+      rollbackGeneration: 0,
+      lastRollbackAt: null,
+      failedAttempts: 0,
+      lastFailureAt: null,
+      ...overrides,
+    });
+
+    it("usa o preço ao vivo do calendário Stays como baseline (ignora seuPrecoAtual raspado do Airbnb)", async () => {
+      liveSetup();
+      // Airbnb raspado diz R$ 80; a Stays diz R$ 100 — vale a Stays.
+      mockPendingAnalise({ seuPrecoAtual: 80, precoSugerido: 115 });
+      mockEligibleDecision();
+      staysService.readCurrentPriceCents.mockResolvedValue(10000);
+
+      const result = await service.processBatch();
+
+      expect(result.applied).toBe(1);
+      expect(staysService.readCurrentPriceCents).toHaveBeenCalledWith("user-1", "listing-1", "2026-06-01", "BRL");
+      expect(staysService.pushPrice).toHaveBeenCalledWith(
+        "user-1",
+        expect.objectContaining({ previousPriceCents: 10000, newPriceCents: 11500 }),
+      );
+    });
+
+    it("bloqueia quando o calendário não tem tarifa única e conta erro quando a leitura falha", async () => {
+      liveSetup();
+      mockPendingAnalise();
+      mockEligibleDecision();
+      staysService.readCurrentPriceCents.mockResolvedValueOnce(null);
+      expect(await service.processBatch()).toMatchObject({ blocked: 1, applied: 0 });
+
+      staysService.readCurrentPriceCents.mockRejectedValueOnce(new Error("Stays read failed"));
+      expect(await service.processBatch()).toMatchObject({ errors: 1, applied: 0 });
+      expect(staysService.pushPrice).not.toHaveBeenCalled();
+    });
+
+    it("não reenvia quando a Stays já está no preço sugerido", async () => {
+      liveSetup();
+      mockPendingAnalise({ precoSugerido: 100 });
+      mockEligibleDecision({ selectedPriceCents: 10000, recommendedPriceCents: 10000, recommendedMultiplier: 1 });
+      staysService.readCurrentPriceCents.mockResolvedValue(10000);
+      expect(await service.processBatch()).toMatchObject({ blocked: 1, applied: 0 });
+      expect(staysService.pushPrice).not.toHaveBeenCalled();
+    });
+
+    it("monta o requestId com decisão, geração de rollback e tentativa", async () => {
+      liveSetup();
+      mockPendingAnalise();
+      mockEligibleDecision({ id: "decision-9", generatedAt: new Date("2026-05-02T00:00:00Z") });
+      staysService.getAutoApplyState.mockResolvedValue(
+        state({ rollbackGeneration: 2, lastRollbackAt: new Date("2026-05-01T00:00:00Z") }),
+      );
+      await service.processBatch();
+      expect(staysService.pushPrice).toHaveBeenCalledWith(
+        "user-1",
+        expect.objectContaining({ requestId: "ai_auto:analise-1:decision-9:g2:a0" }),
+      );
+    });
+
+    it("após rollback, só reaplica com uma decisão mais nova que o rollback", async () => {
+      liveSetup();
+      mockPendingAnalise();
+      mockEligibleDecision({ generatedAt: new Date("2026-05-01T00:00:00Z") });
+      staysService.getAutoApplyState.mockResolvedValue(
+        state({ rollbackGeneration: 1, lastRollbackAt: new Date("2026-05-02T00:00:00Z") }),
+      );
+      expect(await service.processBatch()).toMatchObject({ blocked: 1, applied: 0 });
+      expect(staysService.pushPrice).not.toHaveBeenCalled();
+      expect(staysService.readCurrentPriceCents).not.toHaveBeenCalled();
+    });
+
+    it("pula análises já aplicadas e não revertidas", async () => {
+      liveSetup();
+      mockPendingAnalise();
+      mockEligibleDecision();
+      staysService.getAutoApplyState.mockResolvedValue(state({ activeSuccess: true }));
+      expect(await service.processBatch()).toMatchObject({ applied: 0, blocked: 0, errors: 0 });
+      expect(staysService.pushPrice).not.toHaveBeenCalled();
+    });
+
+    it("refaz falhas transitórias com backoff exponencial e para no limite de tentativas", async () => {
+      liveSetup();
+      mockPendingAnalise();
+      mockEligibleDecision();
+      const now = Date.now();
+      // 1 falha há 5 min: backoff de 15 min ainda não passou
+      staysService.getAutoApplyState.mockResolvedValueOnce(
+        state({ failedAttempts: 1, lastFailureAt: new Date(now - 5 * 60_000) }),
+      );
+      expect(await service.processBatch()).toMatchObject({ blocked: 1, applied: 0 });
+      // 1 falha há 20 min: tenta de novo com requestId da tentativa 1
+      staysService.getAutoApplyState.mockResolvedValueOnce(
+        state({ failedAttempts: 1, lastFailureAt: new Date(now - 20 * 60_000) }),
+      );
+      expect(await service.processBatch()).toMatchObject({ applied: 1 });
+      expect(staysService.pushPrice).toHaveBeenLastCalledWith(
+        "user-1",
+        expect.objectContaining({ requestId: "ai_auto:analise-1:decision-1:g0:a1" }),
+      );
+      // 2 falhas há 20 min: backoff agora é 30 min
+      staysService.getAutoApplyState.mockResolvedValueOnce(
+        state({ failedAttempts: 2, lastFailureAt: new Date(now - 20 * 60_000) }),
+      );
+      expect(await service.processBatch()).toMatchObject({ blocked: 1 });
+      // limite (3) atingido
+      staysService.getAutoApplyState.mockResolvedValueOnce(
+        state({ failedAttempts: 3, lastFailureAt: new Date(now - 24 * 60 * 60_000) }),
+      );
+      expect(await service.processBatch()).toMatchObject({ blocked: 1 });
+      expect(staysService.pushPrice).toHaveBeenCalledTimes(1);
+    });
+
+    it("com STAYS_PRICE_WRITES_ENABLED desligado vira dry-run (nenhum push)", async () => {
+      liveSetup();
+      delete process.env.STAYS_PRICE_WRITES_ENABLED;
+      mockPendingAnalise();
+      mockEligibleDecision();
+      expect(await service.processBatch()).toMatchObject({ dryRun: 1, applied: 0 });
+      expect(staysService.pushPrice).not.toHaveBeenCalled();
+    });
+
+    it("a consulta de análises pendentes libera push revertido (NOT EXISTS rollback com sucesso)", async () => {
+      const { builder } = mockPendingAnalise();
+      await (service as any).findPendingAnalise(autoListing());
+      expect(builder.leftJoin).toHaveBeenCalledWith(
+        "price_updates",
+        "pu",
+        expect.stringContaining("NOT EXISTS (SELECT 1 FROM price_updates rb WHERE rb.rollback_of_id = pu.id"),
+        { success: "success" },
+      );
+    });
   });
 });

@@ -19,6 +19,7 @@
     "test:coverage:critical": "jest --config jest.critical-coverage.config.cjs --runInBand --coverage knn-engine/backtesting.spec.ts payments/stripe-price-id.resolver.spec.ts",
     "test:coverage:auth": "jest --config src/auth/jest.coverage.config.cjs --runInBand --silent",
     "test:coverage:stays": "jest --config src/stays/jest.coverage.config.cjs --runInBand --silent",
+    "test:stays-migrations": "node scripts/test-stays-migrations.cjs --full-schema",
     "test:coverage:health-cron": "jest --config src/health/jest.coverage.config.cjs --runInBand --silent",
     "test:coverage:certified": "npm run test:coverage:critical && npm run test:coverage:auth && npm run test:coverage:stays && npm run test:coverage:health-cron",
     "test:contracts": "jest --runInBand --testPathPatterns=contract.spec.ts",

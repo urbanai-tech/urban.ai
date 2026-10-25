@@ -103,6 +103,15 @@ describe('cobertura da política de assinatura nas rotas', () => {
       'StaysController.pushPrice',
       'StaysController.connect',
       'StaysController.listListings',
+      'StaysController.syncListings',
+      'StaysController.previewPrice',
+      'StaysController.rollback',
+      'StaysController.linkProperty',
+      'StaysController.unlinkProperty',
+      'StaysController.matchSuggestions',
+      'StaysController.recommendation',
+      'StaysController.priceUpdates',
+      'StaysController.linkableProperties',
       // ROI / dashboard
       'DashboardController.myRoi',
       'DashboardController.getDashboard',
@@ -159,6 +168,10 @@ describe('cobertura da política de assinatura nas rotas', () => {
       'UserController.hasMyAddress',
       'PushController.upsertSubscription',
       'NotificationController.findAllByUser',
+      // Stays: revogar credencial e ler o próprio estado nunca ficam atrás do paywall
+      'StaysController.disconnect',
+      'StaysController.account',
+      'StaysController.capabilities',
       // onboarding passos 1-4 (importar Airbnb, cadastrar imóveis, estratégia) antes da cobrança
       'PropriedadeController.getPropertyHostId',
       'PropriedadeController.getPropertyQuickInfo',
