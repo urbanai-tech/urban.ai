@@ -28,6 +28,7 @@ import {
   CreateCoverageRegionDto,
   UpdateCoverageRegionDto,
 } from './coverage.dto';
+import { AdminAuditedInHandler } from '../admin-audit/admin-audit.decorator';
 
 /**
  * Controller admin pra gerenciar regiões de cobertura geográfica.
@@ -67,6 +68,7 @@ export class CoverageController {
     return this.coverage.stats();
   }
 
+  @AdminAuditedInHandler()
   @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @ApiOperation({ summary: 'Cria nova região de cobertura' })
   @Post()
@@ -106,6 +108,7 @@ export class CoverageController {
     return saved;
   }
 
+  @AdminAuditedInHandler()
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @ApiOperation({ summary: 'Atualiza região existente' })
   @Patch(':id')
@@ -129,6 +132,7 @@ export class CoverageController {
     return saved;
   }
 
+  @AdminAuditedInHandler()
   @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @ApiOperation({ summary: 'Remove região' })
   @Delete(':id')

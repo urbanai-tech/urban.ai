@@ -209,6 +209,7 @@ export type CommunicationPreferences = {
   emailPricing: boolean;
   pushPricing: boolean;
   weeklyReport: boolean;
+  onboardingEmails: boolean;
   marketing: boolean;
   staysAlerts: boolean;
   billingAlerts: boolean;
@@ -222,6 +223,7 @@ export type UpdateCommunicationPreferencesPayload = Partial<
     | "emailPricing"
     | "pushPricing"
     | "weeklyReport"
+    | "onboardingEmails"
     | "marketing"
     | "staysAlerts"
     | "billingAlerts"

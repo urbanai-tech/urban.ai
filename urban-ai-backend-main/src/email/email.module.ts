@@ -3,7 +3,7 @@ import { EmailController } from './email.controller';
 import { EmailService } from './email.service';
 import { OnboardingDripService } from './onboarding-drip.service';
 import { WeeklyEventReportService } from './weekly-event-report.service';
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity';
 import { AnalisePreco } from 'src/entities/AnalisePreco';
@@ -24,7 +24,7 @@ import { CommunicationPreferencesModule } from 'src/communication-preferences/co
 
 @Module({
     imports: [ProcessModule,
-        AuthModule,
+        forwardRef(() => AuthModule),
         MailerModule,
         NotificationsModule,
         PushModule,

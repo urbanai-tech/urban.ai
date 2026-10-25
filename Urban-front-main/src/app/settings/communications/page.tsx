@@ -42,6 +42,11 @@ const ITEMS: Array<{
     body: "Relatório semanal com eventos futuros relevantes para os seus imóveis.",
   },
   {
+    key: "onboardingEmails",
+    title: "Dicas de primeiros passos",
+    body: "Série curta de e-mails nos primeiros dias para configurar seus imóveis e entender as sugestões.",
+  },
+  {
     key: "staysAlerts",
     title: "Alertas da Stays",
     body: "Conexão, sincronização, falhas de aplicação, bloqueios de guardrail e rollback.",

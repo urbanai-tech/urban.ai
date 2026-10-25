@@ -99,6 +99,7 @@ describe('WeeklyEventReportService', () => {
       { email: 'ana@example.com', name: 'Ana Host' },
       'Radar semanal de eventos - Urban AI',
       expect.stringContaining('Sao Paulo Tech Week'),
+      { unsubscribe: { userId: 'user-1', category: 'weekly_report' } },
     );
     expect(mailer.sendHtmlEmail.mock.calls[0][2]).toContain('Studio Paulista');
     expect(pushNotificationService.sendToUser).toHaveBeenCalledWith(

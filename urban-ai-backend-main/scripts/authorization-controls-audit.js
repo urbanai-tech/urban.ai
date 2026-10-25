@@ -26,8 +26,13 @@ const PUBLIC_MUTATION_ALLOWLIST = new Map([
   ['POST /email/forgot-password', 'password-reset delivery; strict per-route throttle'],
   ['POST /email/update-password', 'password-reset token exchange; strict per-route throttle'],
   ['POST /payments/webhook', 'Stripe-signed webhook; signature verified fail-closed'],
+  ['POST /unsubscribe', 'signed one-click unsubscribe token (HMAC); idempotent; strict per-route throttle'],
   ['POST /waitlist', 'public prelaunch signup; strict per-route throttle'],
 ]);
+
+// Admin mutations are audited by the global AdminAuditInterceptor unless the handler
+// opts out with @SkipAdminAudit. Opt-outs are exceptional: exact "VERB /route" keys only.
+const ADMIN_AUDIT_SKIP_ALLOWLIST = new Map([]);
 
 const SIGNED_PUBLIC_ENDPOINTS = new Set(['POST /payments/webhook']);
 const MACHINE_GUARDS = new Set(['EventsIngestApiKeyGuard']);
@@ -128,6 +133,9 @@ function collectRoutes(sourceFiles) {
           hasResourceInput:
             /:[A-Za-z][A-Za-z0-9_]*/.test(route) ||
             /@Body\s*\(/.test(member.getText(sourceFile)),
+          auditExplicit: methodDecorators.some((item) => item.name === 'AdminAuditedInHandler'),
+          auditSkipped: methodDecorators.some((item) => item.name === 'SkipAdminAudit'),
+          auditInBody: /\.audit\.record\(/.test(methodBody),
           handler: member.name.getText(sourceFile),
           file,
           line: sourceFile.getLineAndCharacterOfPosition(member.getStart(sourceFile)).line + 1,
@@ -138,10 +146,23 @@ function collectRoutes(sourceFiles) {
   return routes;
 }
 
+function hasGlobalAdminAudit(auxiliarySources) {
+  const moduleSource = auxiliarySources.adminAuditModule || '';
+  const interceptorSource = auxiliarySources.adminAuditInterceptor || '';
+  const appModule = auxiliarySources.appModule || '';
+  return (
+    /provide:\s*APP_INTERCEPTOR[\s\S]{0,120}useClass:\s*AdminAuditInterceptor/.test(moduleSource) &&
+    /ROLES_KEY/.test(interceptorSource) &&
+    /MUTATING_METHODS/.test(interceptorSource) &&
+    /AdminAuditModule/.test(appModule)
+  );
+}
+
 function audit(sourceFiles, auxiliarySources = {}) {
   const routes = collectRoutes(sourceFiles);
   const findings = [];
   const keys = new Set(routes.map((route) => route.key));
+  const globalAuditActive = hasGlobalAdminAudit(auxiliarySources);
 
   for (const route of routes) {
     const hasJwt = route.guards.some((guard) => /\bJwtAuthGuard\b/.test(guard));
@@ -156,6 +177,18 @@ function audit(sourceFiles, auxiliarySources = {}) {
       if (!hasRolesGuard) findings.push(`${route.key}: administrative route lacks RolesGuard`);
       if (!route.roles.some((role) => role === 'admin' || role === 'support')) {
         findings.push(`${route.key}: administrative route lacks explicit admin/support role`);
+      }
+    }
+
+    if (route.admin && route.mutable) {
+      if (route.auditSkipped && !ADMIN_AUDIT_SKIP_ALLOWLIST.has(route.key)) {
+        findings.push(`${route.key}: administrative mutation opts out of audit (@SkipAdminAudit) without a reviewed exception`);
+      }
+      if (route.auditExplicit && !route.auditInBody) {
+        findings.push(`${route.key}: @AdminAuditedInHandler declared but handler never calls audit.record`);
+      }
+      if (!route.auditExplicit && !route.auditInBody && !globalAuditActive) {
+        findings.push(`${route.key}: administrative mutation has no audit trail (global AdminAuditInterceptor not active)`);
       }
     }
 
@@ -248,13 +281,18 @@ function fixture(source) {
 }
 
 function runSelfTest() {
-  const appModule = 'provide: APP_GUARD, useClass: ThrottlerGuard';
+  const appModule = 'provide: APP_GUARD, useClass: ThrottlerGuard AdminAuditModule';
   const paymentsService = [
     'STRIPE_WEBHOOK_SECRET not configured',
     'stripe-signature header missing',
     'webhooks.constructEvent(rawBody, signature, endpointSecret)',
   ].join('\n');
-  const auxiliary = { appModule, paymentsService };
+  const auxiliary = {
+    appModule,
+    paymentsService,
+    adminAuditModule: '{ provide: APP_INTERCEPTOR, useClass: AdminAuditInterceptor }',
+    adminAuditInterceptor: 'ROLES_KEY MUTATING_METHODS',
+  };
   const cases = [
     {
       name: 'accepts JWT owner-bound mutation',
@@ -294,11 +332,40 @@ function runSelfTest() {
       }`,
       expected: 'lacks an explicit @Throttle',
     },
+    {
+      name: 'accepts admin mutation covered by the global audit interceptor',
+      source: `@Controller('admin/jobs') class JobsController {
+        @UseGuards(JwtAuthGuard, RolesGuard) @Roles('admin') @Post('run') run() {}
+      }`,
+      expected: null,
+    },
+    {
+      name: 'rejects admin mutation that opts out of audit',
+      source: `@Controller('admin/jobs') class JobsController {
+        @UseGuards(JwtAuthGuard, RolesGuard) @Roles('admin') @SkipAdminAudit('x') @Post('run') run() {}
+      }`,
+      expected: 'opts out of audit',
+    },
+    {
+      name: 'rejects explicit audit marker without audit.record',
+      source: `@Controller('admin/jobs') class JobsController {
+        @UseGuards(JwtAuthGuard, RolesGuard) @Roles('admin') @AdminAuditedInHandler() @Post('run') run() {}
+      }`,
+      expected: 'never calls audit.record',
+    },
+    {
+      name: 'rejects admin mutation when the global interceptor is not active',
+      source: `@Controller('admin/jobs') class JobsController {
+        @UseGuards(JwtAuthGuard, RolesGuard) @Roles('admin') @Post('run') run() {}
+      }`,
+      auxiliary: { adminAuditModule: '', adminAuditInterceptor: '' },
+      expected: 'no audit trail',
+    },
   ];
 
   let passed = 0;
   for (const item of cases) {
-    const result = audit(fixture(item.source), auxiliary);
+    const result = audit(fixture(item.source), { ...auxiliary, ...(item.auxiliary || {}) });
     const relevant = result.findings.filter(
       (finding) => !finding.includes('stale public allowlist') && !finding.includes('stale authenticated'),
     );
@@ -328,6 +395,8 @@ function main() {
   const sourceFiles = controllerFiles.map((file) => [file, fs.readFileSync(file, 'utf8')]);
   const result = audit(sourceFiles, {
     appModule: fs.readFileSync(path.join(SRC, 'app.module.ts'), 'utf8'),
+    adminAuditModule: fs.readFileSync(path.join(SRC, 'admin-audit', 'admin-audit.module.ts'), 'utf8'),
+    adminAuditInterceptor: fs.readFileSync(path.join(SRC, 'admin-audit', 'admin-audit.interceptor.ts'), 'utf8'),
     paymentsService: fs.readFileSync(path.join(SRC, 'payments', 'payments.service.ts'), 'utf8'),
     ownershipSources: {
       notifications: fs.readFileSync(path.join(SRC, 'notifications', 'notifications.service.ts'), 'utf8'),

@@ -36,6 +36,10 @@ import { ACCESS_TOKEN_COOKIE } from './jwt.strategy';
 import { WaitlistService } from '../waitlist/waitlist.service';
 import { Roles } from './roles.decorator';
 import { RolesGuard } from './roles.guard';
+import { AdminAuditService } from '../admin-audit/admin-audit.service';
+import { AdminAuditedInHandler } from '../admin-audit/admin-audit.decorator';
+import { maskEmail } from '../admin-audit/admin-audit.redact';
+import { EmailService } from '../email/email.service';
 import { RegisterDto } from './register.dto';
 import {
   AcceptWaitlistInviteDto,
@@ -59,6 +63,9 @@ export class AuthController {
     @Inject(forwardRef(() => WaitlistService))
     private readonly waitlistService: WaitlistService,
     private readonly accountDataService: AccountDataService,
+    private readonly audit: AdminAuditService,
+    @Inject(forwardRef(() => EmailService))
+    private readonly emailService: EmailService,
   ) {}
 
   /**
@@ -362,9 +369,19 @@ export class AuthController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
+  @AdminAuditedInHandler()
   @Delete(':id')
-  async deleteUser(@Param('id') id: string): Promise<void> {
-    return this.authService.deleteUser(id);
+  async deleteUser(@Param('id') id: string, @Req() req?: any): Promise<void> {
+    const target = await this.authService.findUserById(id);
+    await this.authService.deleteUser(id);
+    await this.audit.record({
+      actorUserId: req?.user?.userId ?? null,
+      action: 'user.delete',
+      entityType: 'user',
+      entityId: id,
+      before: { username: target.username, email: maskEmail(target.email), role: target.role },
+      after: null,
+    });
   }
 
   @ApiOperation({ summary: 'Obter informações do usuário autenticado' })
@@ -423,13 +440,40 @@ export class AuthController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
+  @AdminAuditedInHandler()
   @Put(':id/update')
   async updateUser(
     @Param('id') id: string,
     @Body()
     data: UpdateUserDto,
+    @Req() req?: any,
   ): Promise<SafeUser> {
-    return this.authService.update(id, data);
+    const before = await this.authService.findUserById(id);
+    const updated = await this.authService.update(id, data);
+    const emailChanged = String(before.email).trim().toLowerCase() !== String(updated.email).trim().toLowerCase();
+    if (emailChanged) {
+      // O novo e-mail volta a "não verificado" (auth.service.update) e recebe o
+      // código de confirmação pelo fluxo normal. enviarCodigo não propaga erro.
+      void this.emailService.enviarCodigo(updated.email);
+    }
+    await this.audit.record({
+      actorUserId: req?.user?.userId ?? null,
+      action: 'user.update',
+      entityType: 'user',
+      entityId: id,
+      before: { username: before.username, email: maskEmail(before.email) },
+      after: { username: updated.username, email: maskEmail(updated.email) },
+      metadata: {
+        changedFields: [
+          data?.username && data.username !== before.username ? 'username' : null,
+          emailChanged ? 'email' : null,
+          data?.password ? 'password' : null,
+        ].filter(Boolean),
+        passwordChanged: Boolean(data?.password),
+        emailVerificationReset: emailChanged,
+      },
+    });
+    return updated;
   }
 
   @ApiOperation({ summary: 'Obter informações de um usuário pelo ID' })

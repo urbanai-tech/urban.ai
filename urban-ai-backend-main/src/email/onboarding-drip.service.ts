@@ -7,6 +7,7 @@ import { Address } from 'src/entities/addresses.entity';
 import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { Payment } from 'src/entities/payment.entity';
 import { MailerService } from 'src/mailer/mailer.service';
+import { CommunicationPreferencesService } from 'src/communication-preferences/communication-preferences.service';
 import { EmailTemplates } from './templates';
 import { ScheduledJobRunnerService, runScheduledJob } from '../admin-job-runs/scheduled-job-runner.service';
 
@@ -43,6 +44,7 @@ export class OnboardingDripService {
     @InjectRepository(Payment)
     private readonly paymentRepo: Repository<Payment>,
     private readonly mailer: MailerService,
+    private readonly communicationPreferences: CommunicationPreferencesService,
     @Optional() private readonly scheduledJobRunner?: ScheduledJobRunnerService,
   ) {
     this.frontUrl = (process.env.FRONT_URL || 'https://app.myurbanai.com').replace(/\/$/, '');
@@ -123,6 +125,12 @@ export class OnboardingDripService {
       }
 
       try {
+        // Opt-out de onboarding/marketing é respeitado (LGPD / Marco Civil): não envia.
+        const preferences = await this.communicationPreferences.getForUser(user.id);
+        if (preferences.onboardingEmails === false) {
+          skipped++;
+          continue;
+        }
         await this.sendForUser(user, targetDay);
         user.onboardingDripLastDay = targetDay;
         user.onboardingDripLastSentAt = new Date();
@@ -185,6 +193,7 @@ export class OnboardingDripService {
       { email: user.email, name: user.username },
       subject,
       html,
+      { unsubscribe: { userId: user.id, category: 'onboarding' } },
     );
 
     if (!result?.enviado) {

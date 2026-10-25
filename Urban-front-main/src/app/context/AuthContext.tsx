@@ -5,6 +5,8 @@ import { usePathname, useRouter } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { api } from '../service/api'
 import { invalidateAuthCache, invalidateSubscriptionCache } from './subscription-status'
+import { unsubscribeFromPwaPush } from '../service/pwaPush'
+import { cancelPushOnLogout } from './logout-push-cleanup'
 
 declare module "next-auth" {
   interface Session {
@@ -93,6 +95,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const logout = async () => {
+    // Aparelho compartilhado: cancela o Web Push antes de perder a sessão (DELETE é autenticado).
+    await cancelPushOnLogout(unsubscribeFromPwaPush)
     try {
       await api.post('/auth/logout')
     } catch (error) {

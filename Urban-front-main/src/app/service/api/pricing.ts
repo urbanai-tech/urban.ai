@@ -324,6 +324,10 @@ export async function copyPricingRulesFromProperty(
  *   → MarketIntelResponse
  *
  */
+/**
+ * @deprecated O backend não devolve mais dados por imóvel de outros clientes
+ * (privacidade). `comparables` vem sempre vazio; use os agregados da resposta.
+ */
 export type ComparableProperty = {
   anonymousId: string;
   type: 'apartamento' | 'casa' | 'loft' | 'studio';
@@ -340,6 +344,12 @@ export type MarketIntelDailyPoint = {
   medianAdr: number;
 };
 
+export type MarketIntelPercentiles = {
+  p25: number;
+  p50: number;
+  p75: number;
+};
+
 export type MarketIntelResponse = {
   propertyId: string;
   neighborhood: string;
@@ -352,7 +362,16 @@ export type MarketIntelResponse = {
   yourOccupancy: number;
   eventReactivity: number;
   daily: MarketIntelDailyPoint[];
+  /** @deprecated sempre vazio; só agregados saem do backend. */
   comparables: ComparableProperty[];
+  aggregatedOnly?: boolean;
+  /** true quando há menos anfitriões distintos que `minGroupSize` na região. */
+  insufficientData?: boolean;
+  minGroupSize?: number;
+  radiusKm?: number;
+  adrPercentiles?: MarketIntelPercentiles | null;
+  occupancyPercentiles?: MarketIntelPercentiles | null;
+  message?: string;
   updatedAt: string;
 };
 

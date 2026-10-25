@@ -4,10 +4,11 @@ import { AuthModule } from '../auth/auth.module';
 import { UserCommunicationPreferences } from '../entities/user-communication-preferences.entity';
 import { CommunicationPreferencesController } from './communication-preferences.controller';
 import { CommunicationPreferencesService } from './communication-preferences.service';
+import { UnsubscribeController } from './unsubscribe.controller';
 
 @Module({
   imports: [AuthModule, TypeOrmModule.forFeature([UserCommunicationPreferences])],
-  controllers: [CommunicationPreferencesController],
+  controllers: [CommunicationPreferencesController, UnsubscribeController],
   providers: [CommunicationPreferencesService],
   exports: [CommunicationPreferencesService],
 })

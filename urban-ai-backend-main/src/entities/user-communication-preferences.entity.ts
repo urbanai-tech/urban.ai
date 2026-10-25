@@ -30,6 +30,9 @@ export class UserCommunicationPreferences {
   @Column({ name: 'weekly_report', type: 'boolean', default: true })
   weeklyReport: boolean;
 
+  @Column({ name: 'onboarding_emails', type: 'boolean', default: true })
+  onboardingEmails: boolean;
+
   @Column({ type: 'boolean', default: false })
   marketing: boolean;
 

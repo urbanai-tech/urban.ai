@@ -137,6 +137,7 @@ export class WeeklyEventReportService {
           { email: user.email, name: user.username || undefined },
           'Radar semanal de eventos - Urban AI',
           html,
+          { unsubscribe: { userId: user.id, category: 'weekly_report' } },
         );
 
         if (!result?.enviado) {

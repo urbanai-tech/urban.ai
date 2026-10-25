@@ -15,6 +15,10 @@ export class UpdateCommunicationPreferencesDto {
 
   @IsOptional()
   @IsBoolean()
+  onboardingEmails?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
   marketing?: boolean;
 
   @IsOptional()

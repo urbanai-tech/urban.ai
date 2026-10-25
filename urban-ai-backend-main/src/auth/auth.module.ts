@@ -19,6 +19,8 @@ import { Address } from 'src/entities/addresses.entity';
 import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { Payment } from 'src/entities/payment.entity';
 import { StaysAccount } from 'src/entities/stays-account.entity';
+import { AdminAuditModule } from 'src/admin-audit/admin-audit.module';
+import { EmailModule } from 'src/email/email.module';
 import { UserCommunicationPreferences } from 'src/entities/user-communication-preferences.entity';
 
 @Module({
@@ -26,6 +28,8 @@ import { UserCommunicationPreferences } from 'src/entities/user-communication-pr
     PaymentsModule,
     StaysModule,
     forwardRef(() => WaitlistModule),
+    forwardRef(() => EmailModule),
+    AdminAuditModule,
     PassportModule,
     TypeOrmModule.forFeature([
       User,

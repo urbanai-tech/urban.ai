@@ -1,3 +1,4 @@
+import { AdminAuditModule } from './admin-audit/admin-audit.module';
 
 import { MailerModule } from './mailer/mailer.module';
 import { CronModule } from './cron/cron.module';
@@ -71,6 +72,7 @@ const dbTimezoneOption = process.env.DB_TIMEZONE?.trim() ? { timezone: process.e
   imports: [
     SentryModule.forRoot(),
     AdminJobRunsModule,
+    AdminAuditModule,
     MailerModule,
     CronModule,
     DashboardModule,

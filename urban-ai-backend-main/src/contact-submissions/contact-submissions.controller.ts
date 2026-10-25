@@ -10,6 +10,7 @@ import { ContactSubmissionStatus } from '../entities/contact-submission.entity';
 import { ContactSubmissionsService } from './contact-submissions.service';
 import { CreateContactSubmissionDto } from './dto/create-contact-submission.dto';
 import { UpdateContactSubmissionDto } from './dto/update-contact-submission.dto';
+import { AdminAuditedInHandler } from '../admin-audit/admin-audit.decorator';
 
 @ApiTags('contact-submissions')
 @Controller()
@@ -50,6 +51,7 @@ export class ContactSubmissionsController {
     });
   }
 
+  @AdminAuditedInHandler()
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'support')
