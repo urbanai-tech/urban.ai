@@ -13,7 +13,7 @@ jest.mock('src/propriedades/propriedade.service', () => ({
 }));
 
 import { Logger } from '@nestjs/common';
-import { CronService } from './cron.service';
+import { CronService, diaDeHojeSaoPaulo } from './cron.service';
 
 describe('CronService', () => {
   const makeService = (analises: any[], entitlement: any = entitlementDouble()) => {
@@ -332,6 +332,37 @@ describe('CronService', () => {
 
       expect(spy).toHaveBeenCalledTimes(1);
       expect(spy.mock.calls[0][0]).toEqual(['u1', 'u1', 'u2']);
+    });
+  });
+  describe('filtro de eventos por dia de São Paulo', () => {
+    it('diaDeHojeSaoPaulo: 21:30 BRT (00:30Z do dia seguinte) ainda é "hoje" e começa em 00:00 BRT (03:00Z)', () => {
+      const r = diaDeHojeSaoPaulo(new Date('2026-05-11T00:30:00Z'));
+      expect(r.dataHoje).toBe('2026-05-10');
+      expect(r.inicioHoje.toISOString()).toBe('2026-05-10T03:00:00.000Z');
+    });
+
+    it('diaDeHojeSaoPaulo: 02:00Z já é 23:00 BRT do dia anterior; 03:00Z vira o novo dia', () => {
+      expect(diaDeHojeSaoPaulo(new Date('2026-05-11T02:59:59Z')).dataHoje).toBe('2026-05-10');
+      expect(diaDeHojeSaoPaulo(new Date('2026-05-11T03:00:00Z')).dataHoje).toBe('2026-05-11');
+    });
+
+    it.each([
+      ['buscarAnalisesAceitas'],
+      ['buscarAnalisesAceitasTeste'],
+    ] as const)('%s filtra dataInicio >= 00:00 BRT de hoje direto na coluna (sem DATE(), sem depender do fuso do banco)', async (method) => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-05-11T00:30:00Z')); // 10/05 21:30 BRT
+      try {
+        const { service, analisePrecoRepository } = makeService([]);
+        await (service as any)[method]();
+
+        const where = analisePrecoRepository.find.mock.calls[0][0].where;
+        const filtro = where.evento.dataInicio;
+        expect(filtro.type).toBe('moreThanOrEqual');
+        expect(filtro.value).toEqual(new Date('2026-05-10T03:00:00.000Z'));
+        expect(filtro.sql).toBeUndefined(); // não é mais Raw('DATE(col) ...')
+      } finally {
+        jest.useRealTimers();
+      }
     });
   });
 });

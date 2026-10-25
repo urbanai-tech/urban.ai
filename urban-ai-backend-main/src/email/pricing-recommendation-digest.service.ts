@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PricingRecommendationDigest } from 'src/entities/pricing-recommendation-digest.entity';
 import { User } from 'src/entities/user.entity';
+import { addDaysToDateKey, saoPauloDayBounds, toDayKey, toSaoPauloDateKey } from 'src/common/sp-date';
 import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 
 export type PricingDigestItem = {
@@ -198,9 +199,8 @@ export class PricingRecommendationDigestService {
   }
 
   private itemDay(value?: string): string {
-    const parsed = value ? new Date(value) : null;
-    if (!parsed || Number.isNaN(parsed.getTime())) return new Date().toISOString().slice(0, 10);
-    return parsed.toISOString().slice(0, 10);
+    // Dia de calendário de São Paulo (21:30 BRT = 00:30Z não pode virar "amanhã").
+    return toDayKey(value) ?? toSaoPauloDateKey(new Date());
   }
 
   private normalizeKeyPart(value?: string | null): string {
@@ -212,12 +212,11 @@ export class PricingRecommendationDigestService {
   }
 
   private startOfDay(value: Date): Date {
-    return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+    // 00:00 BRT do dia de São Paulo de `value` (independe do TZ do processo).
+    return saoPauloDayBounds(toSaoPauloDateKey(value)).start;
   }
 
   private startOfNextDay(value: Date): Date {
-    const start = this.startOfDay(value);
-    start.setDate(start.getDate() + 1);
-    return start;
+    return saoPauloDayBounds(addDaysToDateKey(toSaoPauloDateKey(value), 1)).start;
   }
 }

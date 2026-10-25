@@ -8,7 +8,8 @@ import { CreateNotificationDto } from 'src/notifications/tdo/create-notification
 import { PropriedadeService } from 'src/propriedades/propriedade.service';
 import { getDiariaForCron } from 'src/util';
 import { EntitlementService } from 'src/subscription/entitlement.service';
-import { Raw, Repository } from 'typeorm';
+import { MoreThanOrEqual, Repository } from 'typeorm';
+import { saoPauloDayBounds, todaySaoPauloDateKey } from 'src/common/sp-date';
 
 type CronProcessingFailure = {
     analiseId: string;
@@ -23,6 +24,17 @@ type CronProcessingResult = {
     failed: number;
     failures: CronProcessingFailure[];
 };
+
+/**
+ * "Hoje" no calendário de São Paulo e o instante em que ele começa (00:00 BRT).
+ * O filtro de eventos usa `dataInicio >= inicioHoje` direto na coluna datetime
+ * (instante UTC): não depende do fuso da sessão do MySQL nem do TZ do processo,
+ * e continua usando o índice de `dataInicio` (antes: `DATE(col)` = dia UTC).
+ */
+export function diaDeHojeSaoPaulo(now: Date = new Date()): { dataHoje: string; inicioHoje: Date } {
+    const dataHoje = todaySaoPauloDateKey(now);
+    return { dataHoje, inicioHoje: saoPauloDayBounds(dataHoje).start };
+}
 
 @Injectable()
 export class CronService {
@@ -173,9 +185,7 @@ export class CronService {
     }
 
     async buscarAnalisesAceitas(): Promise<CronProcessingResult> {
-        const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0);
-        const dataHoje = hoje.toISOString().split('T')[0];
+        const { dataHoje, inicioHoje } = diaDeHojeSaoPaulo();
 
         this.logger.log(`Buscando análises aceitas a partir de ${dataHoje}`);
 
@@ -183,10 +193,7 @@ export class CronService {
             where: {
                 aceito: true,
                 evento: {
-                    dataInicio: Raw(
-                        (alias) => `DATE(${alias}) >= :dataHoje`,
-                        { dataHoje },
-                    ),
+                    dataInicio: MoreThanOrEqual(inicioHoje),
                 },
             },
             relations: ['endereco', 'endereco.list', 'evento', 'usuarioProprietario'],
@@ -340,9 +347,7 @@ export class CronService {
     }
 
     async buscarAnalisesAceitasTeste(): Promise<CronProcessingResult> {
-        const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0);
-        const dataHoje = hoje.toISOString().split('T')[0];
+        const { dataHoje, inicioHoje } = diaDeHojeSaoPaulo();
 
         console.log(`Buscando análises aceitas a partir de ${dataHoje}...`);
 
@@ -350,10 +355,7 @@ export class CronService {
             where: {
                 aceito: true,
                 evento: {
-                    dataInicio: Raw(
-                        (alias) => `DATE(${alias}) >= :dataHoje`,
-                        { dataHoje },
-                    ),
+                    dataInicio: MoreThanOrEqual(inicioHoje),
                 },
             },
             relations: ['endereco', 'endereco.list', 'evento', 'usuarioProprietario'],

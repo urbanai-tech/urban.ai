@@ -6,6 +6,7 @@ import { Address } from 'src/entities/addresses.entity';
 import { User } from 'src/entities/user.entity';
 import { MailerService } from 'src/mailer/mailer.service';
 import { PushNotificationService } from 'src/push/push-notification.service';
+import { toSaoPauloDateKey } from 'src/common/sp-date';
 import { Between, In, Repository } from 'typeorm';
 import { EmailTemplates } from './templates';
 import { AdminJobRun } from 'src/entities/admin-job-run.entity';
@@ -154,7 +155,7 @@ export class WeeklyEventReportService {
           title: 'Radar semanal de eventos',
           body: this.buildPushSummary(properties, lookaheadDays),
           url: '/painel?source=pwa_push_weekly_report',
-          tag: `weekly-event-report-${now.toISOString().slice(0, 10)}`,
+          tag: `weekly-event-report-${toSaoPauloDateKey(now)}`,
           data: {
             type: 'weekly_event_report',
             lookaheadDays,

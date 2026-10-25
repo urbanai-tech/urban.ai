@@ -1,5 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { addDaysToDateKey, saoPauloDayBounds, saoPauloDaySql, todaySaoPauloDateKey } from '../common/sp-date';
 import { Repository, MoreThanOrEqual, IsNull, Not, In, LessThan } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { CollectorZeroYieldService, ZeroYieldFinding } from '../evento/collector-zero-yield.service';
@@ -1760,12 +1761,15 @@ export class AdminService {
    */
   async eventsTimeline(days: number = 30) {
     const safeDays = Math.max(1, Math.min(90, days));
-    const since = new Date(Date.now() - safeDays * 24 * 60 * 60 * 1000);
-    since.setHours(0, 0, 0, 0);
+    // Dias de calendário de São Paulo (não UTC): uma coleta às 22h BRT é 01h UTC
+    // do dia seguinte e não pode cair no bucket errado.
+    const todayKey = todaySaoPauloDateKey();
+    const firstKey = addDaysToDateKey(todayKey, -(safeDays - 1));
+    const since = saoPauloDayBounds(firstKey).start;
 
     const rows = await this.eventRepo
       .createQueryBuilder('e')
-      .select('DATE(e.dataCrawl)', 'day')
+      .select(saoPauloDaySql('e.dataCrawl'), 'day')
       .addSelect('SUM(CASE WHEN e.outOfScope = FALSE THEN 1 ELSE 0 END)', 'inScope')
       .addSelect('SUM(CASE WHEN e.outOfScope = TRUE THEN 1 ELSE 0 END)', 'outOfScope')
       .where('e.dataCrawl >= :since', { since })
@@ -1784,10 +1788,7 @@ export class AdminService {
     }
     const buckets: Array<{ day: string; inScope: number; outOfScope: number }> = [];
     for (let i = safeDays - 1; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      d.setHours(0, 0, 0, 0);
-      const key = d.toISOString().slice(0, 10);
+      const key = addDaysToDateKey(todayKey, -i);
       const entry = map.get(key) ?? { in: 0, out: 0 };
       buckets.push({ day: key, inScope: entry.in, outOfScope: entry.out });
     }
