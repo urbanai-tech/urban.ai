@@ -63,7 +63,6 @@ export default function CasaEventosProximosPage() {
       setLoadingPropriedade(true);
       const data = await getPropertyById(enderecoId);
       setEndereco(data);
-      console.log(data);
       setLoadingPropriedade(false);
     };
 

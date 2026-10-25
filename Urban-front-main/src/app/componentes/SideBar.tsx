@@ -2,9 +2,10 @@
 
 import NextLink from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../service/api';
+import { shouldRedirectToLogin } from '../lib/sidebar-auth';
 import { invalidateAuthCache, invalidateSubscriptionCache } from '../context/subscription-status';
 import { setSentryUser, clearSentryUser, trackEvent } from '../service/tracking';
 import { ThemeToggle } from './theme/ThemeToggle';
@@ -63,6 +64,7 @@ export default function SideBar() {
   const router = useRouter();
   const pathname = usePathname() || '';
   const [me, setMe] = useState<Me | null>(null);
+  const [authRetry, setAuthRetry] = useState(false);
 
   useEffect(() => {
     try {
@@ -77,7 +79,8 @@ export default function SideBar() {
     }
   }, []);
 
-  useEffect(() => {
+  const loadMe = useCallback(() => {
+    setAuthRetry(false);
     api
       .get('/auth/me')
       .then((res) => {
@@ -93,11 +96,21 @@ export default function SideBar() {
           });
         }
       })
-      .catch(() => {
-        localStorage.removeItem('accessToken');
-        router.push('/');
+      .catch((error: { response?: { status?: number } }) => {
+        if (shouldRedirectToLogin(error?.response?.status)) {
+          // Sessão inválida (401): volta ao login.
+          localStorage.removeItem('accessToken');
+          router.push('/');
+          return;
+        }
+        // Rede/5xx: a pessoa segue na página e pode tentar de novo.
+        setAuthRetry(true);
       });
   }, [router]);
+
+  useEffect(() => {
+    loadMe();
+  }, [loadMe]);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -140,6 +153,16 @@ export default function SideBar() {
 
   return (
     <>
+      {authRetry && (
+        <div role="alert" className="funnel-gate funnel-gate--inline">
+          <div>
+            <p>Não conseguimos carregar sua conta agora.</p>
+            <button type="button" onClick={() => loadMe()}>
+              Tentar de novo
+            </button>
+          </div>
+        </div>
+      )}
       {/* ============================ DESKTOP SIDEBAR ============================ */}
       <aside
         data-host-sidebar

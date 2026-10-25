@@ -50,7 +50,6 @@ Ver `.env.example`. As principais:
 | `SEO_GSC_SITE_URL` + `SEO_GA4_PROPERTY_ID` + `SEO_GOOGLE_CLIENT_EMAIL` + `SEO_GOOGLE_PRIVATE_KEY` | conectores server-side SEO/GEO para Search Console e GA4 Data API |
 | `SEO_BOT_LOG_*` + `SEO_AI_MONITOR_*` | readiness server-side para logs de bots e monitoramento de respostas de IA |
 | `NEXT_PUBLIC_WAITLIST_ENDPOINT` | URL onde o `WaitlistForm` posta (Formspark, Formspree, ou backend próprio) |
-| `NEXT_PUBLIC_CHAINLIT_URL` | rewrites do copilot (vazio = rewrites omitidos) |
 
 ## Comandos úteis
 
@@ -75,7 +74,7 @@ src/
     ├── (marketing)/lancamento/  # /lancamento — landing pública
     ├── api/                     # NextAuth + handlers
     ├── componentes/             # Analytics, StagingBanner, WaitlistForm,
-    │                            # GlobalPaywallModal, ChainlitCopilot, ...
+    │                            # GlobalPaywallModal, ...
     ├── context/                 # AuthContext, LanguageContext, PaymentCheckGuard
     ├── confirm-email/, reset-password/, request-reset-password/
     ├── onboarding/              # wizard 5 passos
