@@ -48,26 +48,22 @@
     "build:watch": "chokidar \"pages/**/*.{js,jsx,ts,tsx}\" \"components/**/*.{js,jsx,ts,tsx}\" \"lib/**/*.{js,jsx,ts,tsx}\" \"next.config.js\" --ignore \"**/node_modules/**\" --ignore \"**/.next/**\" -c \"next build\""
   },
   "dependencies": {
-    "@fontsource/inter": "^5.2.5",
     "@sentry/nextjs": "^10.43.0",
     "@stripe/stripe-js": "^7.8.0",
     "axios": "^1.9.0",
     "chokidar": "^4.0.3",
     "date-fns": "^4.1.0",
-    "dayjs": "^1.11.14",
     "framer-motion": "^12.9.4",
     "i18next": "^25.0.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.542.0",
     "next": "^15.4.10",
     "next-auth": "^4.24.11",
-    "next-i18next": "^15.4.2",
     "react": "^19.0.0",
     "react-day-picker": "^9.7.0",
     "react-dom": "^19.0.0",
     "react-i18next": "^15.5.1",
     "react-leaflet": "5",
-    "react-player": "^3.3.3",
     "react-select": "^5.10.2"
   },
   "devDependencies": {
