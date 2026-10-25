@@ -4,13 +4,22 @@ import { useEffect, useState } from "react";
 import {
   staysConnect,
   staysDisconnect,
+  staysGetAccount,
+  staysGetCapabilities,
+  staysListLinkableProperties,
   staysListListings,
+  staysMatchSuggestions,
   staysPreviewPrice,
   staysSyncListings,
   type StaysAccountPublic,
+  type StaysCapabilities,
+  type StaysLinkableProperty,
   type StaysListingPublic,
+  type StaysMatchSuggestion,
   type StaysPricePreview,
 } from "../../service/api";
+import { StaysListingsEmpty, StaysListingsPanel } from "./StaysListingsPanel";
+import { STAYS_WRITES_DISABLED_MESSAGE, normalizeStaysAccountSlug } from "./stays-integration-domain";
 import { formatLocalDate } from "../../lib/date";
 import {
   AppPageShell,
@@ -22,17 +31,11 @@ import {
   AppMetricCard,
   AppInput,
   AppSelect,
-  AppEmptyState,
+  AppHStack,
   Icons,
 } from "../../componentes/ui";
 
 const STAYS_CONSENT_VERSION = "stays-connect-v1";
-
-const operationModeLabels: Record<StaysListingPublic["operationMode"], string> = {
-  inherit: "Usar padrão da conta",
-  notifications: "Recomendação manual",
-  auto: "Automático em beta",
-};
 
 function formatStaysDate(value?: string | null) {
   if (!value) return "Não registrado";
@@ -70,7 +73,11 @@ export default function IntegrationsPage() {
   const [account, setAccount] = useState<StaysAccountPublic | null>(null);
   const [listings, setListings] = useState<StaysListingPublic[]>([]);
   const [loading, setLoading] = useState(true);
+  const [accountSlug, setAccountSlug] = useState("");
   const [clientId, setClientId] = useState("");
+  const [capabilities, setCapabilities] = useState<StaysCapabilities | null>(null);
+  const [properties, setProperties] = useState<StaysLinkableProperty[]>([]);
+  const [suggestions, setSuggestions] = useState<StaysMatchSuggestion[]>([]);
   const [accessToken, setAccessToken] = useState("");
   const [consent, setConsent] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -84,30 +91,46 @@ export default function IntegrationsPage() {
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [previewResult, setPreviewResult] = useState<StaysPricePreview | null>(null);
 
+  async function loadLinkingData() {
+    // Vínculo e sugestões são complementares: falha aqui não derruba a tela.
+    const [props, matches] = await Promise.all([
+      staysListLinkableProperties().catch(() => [] as StaysLinkableProperty[]),
+      staysMatchSuggestions().catch(() => [] as StaysMatchSuggestion[]),
+    ]);
+    setProperties(props);
+    setSuggestions(matches);
+  }
+
   useEffect(() => {
     (async () => {
       try {
-        const items = await staysListListings();
+        const [savedAccount, items, caps] = await Promise.all([
+          staysGetAccount(),
+          staysListListings(),
+          staysGetCapabilities().catch(() => null),
+        ]);
+        setAccount(savedAccount);
+        setCapabilities(caps);
+        setAccountSlug(savedAccount?.accountSlug ?? "");
+        setClientId(savedAccount?.clientId ?? "");
         setListings(items);
         if (items.length > 0) {
           const firstActive = items.find((item) => item.active) ?? items[0];
           setPreviewListingId(firstActive.id);
-          setPreviewPrice(firstActive.basePriceCents ? String(firstActive.basePriceCents / 100) : "");
-          setAccount({
-            id: "unknown",
-            status: "active",
-            clientId: "",
-            lastSyncAt: null,
-            consentAcceptedAt: null,
-          });
         }
+        if (savedAccount && savedAccount.status !== "disconnected") await loadLinkingData();
       } catch {
-        /* sem conta ainda — ok */
+        setSubmitError("Não foi possível consultar o estado da integração. Atualize a página para tentar novamente.");
       } finally {
         setLoading(false);
       }
     })();
   }, []);
+
+  function handleListingChanged(updated: StaysListingPublic) {
+    setListings((current) => current.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)));
+    setSuggestions((current) => current.filter((item) => item.listingId !== updated.id));
+  }
 
   async function handleConnect(e: React.FormEvent) {
     e.preventDefault();
@@ -120,21 +143,25 @@ export default function IntegrationsPage() {
       setSubmitError("Preencha os dois códigos gerados na Stays.");
       return;
     }
+    const slug = normalizeStaysAccountSlug(accountSlug);
+    if (accountSlug.trim() && !slug) {
+      setSubmitError("Informe só o nome da sua conta Stays (ex.: minhaconta, de minhaconta.stays.net).");
+      return;
+    }
     setSubmitBusy(true);
     try {
       const acc = await staysConnect(clientId.trim(), accessToken.trim(), {
         consentAccepted: consent,
         consentVersion: STAYS_CONSENT_VERSION,
+        accountSlug: slug ?? undefined,
       });
       setAccount(acc);
       setAccessToken("");
       const sync = await staysSyncListings();
       setListings(sync.listings);
       const firstActive = sync.listings.find((item) => item.active) ?? sync.listings[0];
-      if (firstActive) {
-        setPreviewListingId(firstActive.id);
-        setPreviewPrice(firstActive.basePriceCents ? String(firstActive.basePriceCents / 100) : "");
-      }
+      if (firstActive) setPreviewListingId(firstActive.id);
+      await loadLinkingData();
     } catch (err) {
       const msg = (err as Error)?.message || "Erro ao conectar.";
       setSubmitError(msg);
@@ -159,8 +186,8 @@ export default function IntegrationsPage() {
       if (!selectedStillExists) {
         const firstActive = sync.listings.find((item) => item.active) ?? sync.listings[0];
         setPreviewListingId(firstActive?.id ?? "");
-        setPreviewPrice(firstActive?.basePriceCents ? String(firstActive.basePriceCents / 100) : "");
       }
+      await loadLinkingData();
     } finally {
       setResyncBusy(false);
     }
@@ -188,10 +215,10 @@ export default function IntegrationsPage() {
 
     setPreviewBusy(true);
     try {
+      // Sem previousPriceCents: o servidor lê o preço vigente no calendário Stays.
       const result = await staysPreviewPrice({
         listingId: listing.id,
         targetDate: previewDate,
-        previousPriceCents: listing.basePriceCents ?? null,
         newPriceCents: Math.round(priceReais * 100),
         currency: "BRL",
       });
@@ -207,7 +234,6 @@ export default function IntegrationsPage() {
   const activeListings = listings.filter((l) => l.active).length;
   const autoListings = listings.filter((l) => l.operationMode === "auto").length;
   const linkedListings = listings.filter((l) => Boolean(l.propriedadeId)).length;
-  const previewListing = listings.find((item) => item.id === previewListingId) ?? null;
 
   const isConnected = account && account.status !== "disconnected";
 
@@ -226,6 +252,12 @@ export default function IntegrationsPage() {
         title="Conexão com a Stays"
         subtitle="Conecte sua conta Stays para trazer seus anúncios e receber sugestões de preço. O modo automático ainda é beta e só muda preços quando estiver liberado para sua conta."
       />
+      {capabilities && !capabilities.priceWritesEnabled && (
+        <AppHStack gap="sm" align="center" wrap>
+          <AppBadge kind="warn">{STAYS_WRITES_DISABLED_MESSAGE}</AppBadge>
+          <span className="urban-app-eyebrow-muted">Leituras e prévias funcionam; nenhum preço é alterado na Stays.</span>
+        </AppHStack>
+      )}
 
       {!isConnected ? (
         // ====================== Não conectado: form de conexão ======================
@@ -245,6 +277,16 @@ export default function IntegrationsPage() {
           />
           <form onSubmit={handleConnect} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <AppInput
+              label="Conta Stays"
+              type="text"
+              value={accountSlug}
+              onChange={(e) => setAccountSlug(e.target.value)}
+              disabled={submitBusy}
+              autoComplete="off"
+              placeholder="minhaconta"
+              helper="Só o nome da conta, como aparece em minhaconta.stays.net. Se o piloto já foi configurado pela Urban, pode deixar em branco."
+            />
+            <AppInput
               label="Código da conta Stays"
               type="text"
               value={clientId}
@@ -262,7 +304,7 @@ export default function IntegrationsPage() {
               disabled={submitBusy}
               autoComplete="off"
               placeholder="Cole a chave gerada"
-              helper="Na Stays, esse campo aparece como Access Token. Ele é enviado por conexão segura para ativar a integração."
+              helper="Informe o Client Secret da API Stays. Ele é enviado por conexão segura e guardado cifrado."
             />
 
             <div
@@ -449,8 +491,7 @@ export default function IntegrationsPage() {
                 value={previewListingId}
                 onChange={(e) => {
                   const next = listings.find((item) => item.id === e.target.value);
-                  setPreviewListingId(e.target.value);
-                  setPreviewPrice(next?.basePriceCents ? String(next.basePriceCents / 100) : "");
+                  setPreviewListingId(next?.id ?? e.target.value);
                   setPreviewResult(null);
                 }}
                 shellStyle={{ minWidth: 0, maxWidth: 340 }}
@@ -480,7 +521,7 @@ export default function IntegrationsPage() {
                   setPreviewPrice(e.target.value);
                   setPreviewResult(null);
                 }}
-                helper={previewListing ? `Base: ${formatCurrency(previewListing.basePriceCents)}` : undefined}
+                helper="O preço atual é lido ao vivo na Stays."
               />
               <AppButton type="submit" variant="primary" loading={previewBusy} disabled={!previewListingId}>
                 Simular
@@ -573,62 +614,15 @@ export default function IntegrationsPage() {
             </header>
 
             {listings.length === 0 ? (
-              <AppEmptyState
-                title="Nenhum anúncio sincronizado"
-                body="Clique em Sincronizar agora para puxar os anúncios da sua conta Stays."
-                action={
-                  <AppButton variant="primary" onClick={handleResync} loading={resyncBusy} leftIcon={<Icons.Zap size={14} />}>
-                    Sincronizar agora
-                  </AppButton>
-                }
-              />
+              <StaysListingsEmpty onSync={handleResync} busy={resyncBusy} />
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {listings.map((l) => (
-                  <AppCard key={l.id} variant="default" style={{ padding: "16px 20px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <p
-                          style={{
-                            fontSize: 14,
-                            fontWeight: 600,
-                            color: "var(--app-text)",
-                            margin: 0,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {l.title || "(sem título)"}
-                        </p>
-                        <p
-                          style={{
-                            fontSize: 12,
-                            color: "var(--app-text-muted)",
-                            margin: "4px 0 0",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {l.shortAddress || "Sem endereço"} ·{" "}
-                          <span style={{ color: "var(--app-text-dim)" }}>Código na Stays: {l.staysListingId}</span>
-                        </p>
-                        <p style={{ fontSize: 11, color: "var(--app-text-muted)", margin: "4px 0 0" }}>
-                          {l.propriedadeId ? "Vinculado a imóvel Urban AI" : "Não vinculado ainda"} ·{" "}
-                          Modo: {operationModeLabels[l.operationMode] || l.operationMode}
-                        </p>
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-                        <AppBadge kind={l.active ? "success" : "neutral"}>
-                          {l.active ? "Ativo" : "Inativo"}
-                        </AppBadge>
-                        {l.operationMode === "auto" && <AppBadge kind="accent">Beta automático</AppBadge>}
-                      </div>
-                    </div>
-                  </AppCard>
-                ))}
-              </div>
+              <StaysListingsPanel
+                listings={listings}
+                properties={properties}
+                suggestions={suggestions}
+                capabilities={capabilities}
+                onListingChanged={handleListingChanged}
+              />
             )}
           </section>
 
