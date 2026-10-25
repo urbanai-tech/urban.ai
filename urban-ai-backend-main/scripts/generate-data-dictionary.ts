@@ -226,7 +226,17 @@ async function loadMetadata(): Promise<{ ds: DataSource; tables: EntityMetadata[
 }
 
 function esc(s: unknown): string {
-  return String(s ?? '').replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
+  return String(s ?? '').replace(/[\\|]/g, '\\$&').replace(/\r?\n/g, ' ');
+}
+
+/** Lê o doc atual sem checar existência antes (evita corrida entre checar e ler). */
+function readDocIfPresent(): string {
+  try {
+    return fs.readFileSync(DOC_PATH, 'utf8').replace(/\r\n/g, '\n');
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return '';
+    throw err;
+  }
 }
 
 function renderDefault(col: ColumnMetadata): string {
@@ -434,7 +444,7 @@ async function main(): Promise<number> {
   }
   if (args.includes('--compare-db')) return compareDb(tables);
 
-  const existing = fs.existsSync(DOC_PATH) ? fs.readFileSync(DOC_PATH, 'utf8').replace(/\r\n/g, '\n') : '';
+  const existing = readDocIfPresent();
   const next = spliceGenerated(existing, markdown);
   if (args.includes('--check')) {
     if (existing !== next) {
