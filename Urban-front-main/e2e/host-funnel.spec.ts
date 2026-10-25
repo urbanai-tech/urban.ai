@@ -66,7 +66,9 @@ test.describe('Funil do anfitrião', () => {
 
     await expect.poll(() => captured.register?.termsAccepted).toBe(true);
     expect(captured.register?.termsVersion).toBe('2026-05-11');
-    await expect(page).toHaveURL(/\/confirm-email\/ana\.host%40urbanai\.invalid/, { timeout: 10_000 });
+    await expect(page).toHaveURL(/\/confirm-email$/, { timeout: 10_000 });
+    expect(page.url()).not.toMatch(/ana\.host|%40|@/);
+    await expect(page.getByText('an***@urbanai.invalid')).toBeVisible();
   });
 
   test('admin: host comum é enviado para /forbidden sem montar o shell', async ({ page }) => {

@@ -122,7 +122,9 @@ export class EmailService {
     private buildResetLink(token: string): string {
         const base =
             process.env.RESET_PASS_URL || `${process.env.FRONT_BASE_URL || 'https://app.myurbanai.com'}/reset-password`;
-        return `${base.replace(/\/$/, '')}/${encodeURIComponent(token)}`;
+        // Token no FRAGMENTO (#token=...): nunca chega a servidor/CDN/Referer/Sentry/analytics.
+        // O formato antigo (/reset-password/<token>) segue aceito no front só para links já enviados.
+        return `${base.replace(/\/$/, '')}#token=${encodeURIComponent(token)}`;
     }
 
     private maskEmail(email?: string): string {

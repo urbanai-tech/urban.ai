@@ -43,6 +43,6 @@ export function isSubscriptionRequiredError(error: unknown): boolean {
 
 /**
  * Rota de resolução para EMAIL_NOT_VERIFIED: o /post-login lê o perfil e
- * encaminha quem ainda não verificou o e-mail para /confirm-email/{email}.
+ * encaminha quem ainda não verificou o e-mail para /confirm-email (e-mail em sessionStorage, nunca na URL).
  */
 export const EMAIL_NOT_VERIFIED_REDIRECT_PATH = "/post-login";

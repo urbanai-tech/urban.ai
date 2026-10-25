@@ -8,6 +8,7 @@ import "../../../i18n";
 import { useToastCompat } from "../componentes/ui";
 import { api, verificarUsuarioState } from "../service/api";
 import { trackEvent } from "../service/tracking";
+import { stashPendingEmail } from "@/app/lib/auth-links";
 
 /**
  * /(home) — Tela de login.
@@ -72,7 +73,10 @@ export default function Login() {
           user_active: !!data?.ativo,
         });
         if (data.ativo) router.replace("/post-login");
-        else router.replace("/confirm-email/" + email);
+        else {
+          stashPendingEmail(email);
+          router.replace("/confirm-email");
+        }
       } catch (err) {
         toast("Não foi possível concluir a autenticação.", { type: "error" });
         console.error("Erro ao verificar usuário:", err);

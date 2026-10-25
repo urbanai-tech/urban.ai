@@ -82,6 +82,10 @@ export class UpdateProfileDto {
   @IsOptional() @IsEmail() @MaxLength(254)
   email?: string;
 
+  /** Senha atual (mesmo formato do login): obrigatória só quando o e-mail muda. */
+  @IsOptional() @IsString() @MinLength(1) @MaxLength(128)
+  currentPassword?: string;
+
   @IsOptional() @IsString() @MaxLength(32)
   phone?: string;
 

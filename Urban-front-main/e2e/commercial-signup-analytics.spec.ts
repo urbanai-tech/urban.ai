@@ -50,7 +50,9 @@ test.describe('Cadastro comercial', () => {
     await page.getByRole('checkbox', { name: /Termos de Uso/i }).check();
     await page.getByRole('button', { name: 'Criar conta' }).click();
 
-    await expect(page).toHaveURL(/\/confirm-email\//, { timeout: 15_000 });
+    // E-mail NÃO vai na URL (PII em histórico/logs/Referer): fica em sessionStorage.
+    await expect(page).toHaveURL(/\/confirm-email$/, { timeout: 15_000 });
+    expect(page.url()).not.toMatch(/lead|%40|@/);
     expect(registerPayload).toMatchObject({ email: 'lead+public@urbanai.com.br', username: 'Lead Comercial', termsAccepted: true });
 
     const events = await page.evaluate(() => (window as unknown as { __urbanAiEvents: Array<{ vendor: string; args: unknown[] }> }).__urbanAiEvents);

@@ -137,6 +137,8 @@ export const updatePassword = async (
 export type UpdateProfilePayload = {
   username?: string;
   email?: string;
+  /** Senha atual (SHA-256 hex, igual ao login): obrigatória só quando o e-mail muda. */
+  currentPassword?: string;
   phone?: string;
   company?: string;
   distanceKm?: number;
@@ -159,6 +161,8 @@ export type ProfileResponse = {
   operationMode?: string;
   percentualInicial?: number | null;
   percentualFinal?: number | null;
+  /** Presente (true) quando o e-mail mudou e o novo endereço precisa ser confirmado. */
+  emailVerificationPending?: boolean;
   createdAt: string;
   profile: {
     phone: string | null;

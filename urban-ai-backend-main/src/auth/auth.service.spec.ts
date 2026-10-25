@@ -791,7 +791,7 @@ describe('AuthService', () => {
     });
 
     it('updates every supported profile field including zero values', async () => {
-      const user: any = { id: 'u1', password: 'secret' };
+      const user: any = { id: 'u1', email: 'ana@test.com', password: 'secret' };
       userRepo.findOne!.mockResolvedValue(user);
       userRepo.save!.mockImplementation(async (value) => value);
       const data = {
@@ -801,6 +801,70 @@ describe('AuthService', () => {
       };
       await expect(service.updateProfileById('u1', data)).resolves.toEqual({ id: 'u1', ...data });
       expect(userRepo.save).toHaveBeenCalledWith(expect.objectContaining(data));
+    });
+
+    describe('troca de e-mail pelo perfil (F5)', () => {
+      const hash = () => bcrypt.hash('Senha123!', 4);
+
+      it('exige a senha atual e não altera nada sem ela', async () => {
+        const user: any = { id: 'u1', email: 'old@test.com', emailVerifiedAt: new Date() };
+        userRepo.findOne!.mockResolvedValue({ ...user, password: await hash() });
+        await expect(service.updateProfileById('u1', { email: 'new@test.com' }))
+          .rejects.toMatchObject({ response: { code: 'PASSWORD_REQUIRED' } });
+        expect(userRepo.save).not.toHaveBeenCalled();
+      });
+
+      it('rejeita senha incorreta', async () => {
+        userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'old@test.com', password: await hash() });
+        await expect(service.updateProfileById('u1', { email: 'new@test.com', currentPassword: 'errada' }))
+          .rejects.toMatchObject({ response: { code: 'INVALID_PASSWORD' } });
+        expect(userRepo.save).not.toHaveBeenCalled();
+      });
+
+      it('rejeita conta Google e e-mail já em uso', async () => {
+        userRepo.findOne!.mockResolvedValue({ id: 'u1', email: 'old@test.com', password: 'google_x' });
+        await expect(service.updateProfileById('u1', { email: 'new@test.com', currentPassword: 'x' }))
+          .rejects.toMatchObject({ response: { code: 'EMAIL_CHANGE_NOT_ALLOWED' } });
+
+        const stored = await hash();
+        userRepo.findOne!.mockReset();
+        userRepo.findOne!
+          .mockResolvedValueOnce({ id: 'u1', email: 'old@test.com' })
+          .mockResolvedValueOnce({ id: 'u1', password: stored })
+          .mockResolvedValueOnce({ id: 'u2', email: 'new@test.com' });
+        await expect(service.updateProfileById('u1', { email: 'new@test.com', currentPassword: 'Senha123!' }))
+          .rejects.toBeInstanceOf(ConflictException);
+        expect(userRepo.save).not.toHaveBeenCalled();
+      });
+
+      it('com a senha certa troca o e-mail, zera emailVerifiedAt e sinaliza a verificação pendente', async () => {
+        const stored = await hash();
+        const user: any = { id: 'u1', email: 'old@test.com', emailVerifiedAt: new Date() };
+        userRepo.findOne!.mockReset();
+        userRepo.findOne!
+          .mockResolvedValueOnce(user)
+          .mockResolvedValueOnce({ id: 'u1', password: stored })
+          .mockResolvedValueOnce(null);
+        userRepo.save!.mockImplementation(async (value) => value);
+        const result: any = await service.updateProfileById('u1', {
+          email: 'new@test.com', currentPassword: 'Senha123!',
+        });
+        expect(user.email).toBe('new@test.com');
+        expect(user.emailVerifiedAt).toBeNull();
+        expect(result.emailVerificationPending).toBe(true);
+        expect(result.password).toBeUndefined();
+        expect(user.currentPassword).toBeUndefined();
+      });
+
+      it('mesmo e-mail (outra caixa) não pede senha nem zera a verificação', async () => {
+        const verified = new Date();
+        const user: any = { id: 'u1', email: 'old@test.com', emailVerifiedAt: verified };
+        userRepo.findOne!.mockResolvedValue(user);
+        userRepo.save!.mockImplementation(async (value) => value);
+        const result: any = await service.updateProfileById('u1', { email: 'OLD@test.com', username: 'Ana' });
+        expect(user.emailVerifiedAt).toBe(verified);
+        expect(result.emailVerificationPending).toBeUndefined();
+      });
     });
   });
 

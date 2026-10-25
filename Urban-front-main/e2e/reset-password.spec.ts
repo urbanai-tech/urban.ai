@@ -54,7 +54,7 @@ test.describe('Reset de senha', () => {
       });
     });
 
-    await page.goto('/reset-password/TOKEN_RESET_E2E');
+    await page.goto('/reset-password#token=TOKEN_RESET_E2E');
 
     await expect(page.getByRole('heading', { name: /Crie uma senha segura/i })).toBeVisible();
     const submit = page.getByRole('button', { name: /Confirmar nova senha/i });
@@ -73,5 +73,40 @@ test.describe('Reset de senha', () => {
     expect(submittedPayload.pass).not.toBe('Urban@123');
     await expect(page.getByText(/Senha atualizada/i)).toBeVisible();
     await expect(page.getByRole('button', { name: /Ir para login/i })).toBeVisible();
+  });
+
+  test('o token sai do fragmento da URL assim que a página carrega', async ({ page }) => {
+    await page.goto('/reset-password#token=TOKEN_RESET_E2E');
+    await expect(page.getByRole('heading', { name: /Crie uma senha segura/i })).toBeVisible();
+    await expect.poll(() => new URL(page.url()).hash).toBe('');
+    expect(page.url()).not.toContain('TOKEN_RESET_E2E');
+  });
+
+  test('link legado /reset-password/<token> ainda funciona, mas tira o token do path', async ({ page }) => {
+    const payloads: Array<{ token?: string; pass?: string }> = [];
+    await page.route('**/email/update-password', async (route) => {
+      payloads.push(route.request().postDataJSON());
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({ enviado: true }),
+      });
+    });
+
+    await page.goto('/reset-password/TOKEN_LEGADO_E2E');
+    await expect(page).toHaveURL(/\/reset-password$/);
+    expect(page.url()).not.toContain('TOKEN_LEGADO_E2E');
+
+    await page.getByLabel('Nova senha').fill('Urban@123');
+    await page.getByLabel('Confirmar senha').fill('Urban@123');
+    await page.getByRole('button', { name: /Confirmar nova senha/i }).click();
+    await expect.poll(() => payloads.length).toBe(1);
+    expect(payloads[0].token).toBe('TOKEN_LEGADO_E2E');
+  });
+
+  test('sem token mostra link incompleto e não permite enviar', async ({ page }) => {
+    await page.goto('/reset-password');
+    await expect(page.getByText(/Link de redefinicao incompleto/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /Confirmar nova senha/i })).toBeDisabled();
   });
 });

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import UrbanAiLoader from '../componentes/loading';
 import { api } from '../service/api';
 import { useToastCompat } from '../componentes/ui';
+import { stashPendingEmail } from "@/app/lib/auth-links";
 
 function toBool(v: unknown): boolean {
   if (typeof v === 'boolean') return v;
@@ -43,7 +44,8 @@ export default function PostLoginPage() {
           if (cancelled) return;
           if (profile?.emailVerifiedAt === null && profile.email) {
             finished = true;
-            router.replace(`/confirm-email/${encodeURIComponent(profile.email)}`);
+            stashPendingEmail(profile.email);
+            router.replace("/confirm-email");
             return;
           }
         } catch (profileError: any) {

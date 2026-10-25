@@ -620,13 +620,48 @@ export class AuthService {
    */
   async updateProfileById(
     userId: string,
-    data: { username?: string; email?: string; phone?: string; company?: string; distanceKm?: number; airbnbHostId?: string; pricingStrategy?: string; operationMode?: string; percentualInicial?: number; percentualFinal?: number; }
+    data: { username?: string; email?: string; phone?: string; company?: string; distanceKm?: number; airbnbHostId?: string; pricingStrategy?: string; operationMode?: string; percentualInicial?: number; percentualFinal?: number; currentPassword?: string; }
   ) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
 
+    const newEmail = data.email?.trim();
+    const emailChanged =
+      newEmail !== undefined && newEmail !== '' && newEmail.toLowerCase() !== String(user.email ?? '').trim().toLowerCase();
+
+    if (emailChanged) {
+      // Trocar o e-mail muda a identidade de login e o destino de recuperação de senha:
+      // exige a senha atual (400 e não 401/403 para o front não tratar como sessão expirada).
+      const withPassword = await this.userRepository.findOne({
+        where: { id: userId },
+        select: ['id', 'password'],
+      });
+      if (withPassword?.password?.startsWith('google_')) {
+        throw new BadRequestException({
+          code: 'EMAIL_CHANGE_NOT_ALLOWED',
+          message: 'Contas conectadas pelo Google não podem trocar o e-mail por aqui.',
+        });
+      }
+      if (!data.currentPassword) {
+        throw new BadRequestException({
+          code: 'PASSWORD_REQUIRED',
+          message: 'Informe sua senha atual para alterar o e-mail.',
+        });
+      }
+      const { ok } = await this.verifyPassword(data.currentPassword, withPassword?.password ?? '');
+      if (!ok) {
+        throw new BadRequestException({ code: 'INVALID_PASSWORD', message: 'Senha incorreta.' });
+      }
+      const taken = await this.userRepository.findOne({ where: { email: newEmail } });
+      if (taken && taken.id !== userId) {
+        throw new ConflictException('O e-mail informado já está em uso.');
+      }
+      // O endereço novo ainda não foi provado pelo titular: volta a "não verificado".
+      user.email = newEmail;
+      user.emailVerifiedAt = null;
+    }
+
     if (data.username !== undefined) user.username = data.username;
-    if (data.email !== undefined) user.email = data.email;
     if (data.phone !== undefined) (user as any).phone = data.phone;       
     if (data.company !== undefined) (user as any).company = data.company; 
     if (data.distanceKm !== undefined) user.distanceKm = data.distanceKm;
@@ -637,6 +672,7 @@ export class AuthService {
     if (data.percentualFinal !== undefined) user.percentualFinal = data.percentualFinal;
 
     const saved = await this.userRepository.save(user);
-    return this.sanitizeUser(saved);
+    const safe = this.sanitizeUser(saved);
+    return emailChanged ? { ...safe, emailVerificationPending: true } : safe;
   }
 }
