@@ -154,7 +154,7 @@ export default function SideBar() {
   return (
     <>
       {authRetry && (
-        <div role="alert" className="funnel-gate funnel-gate--inline" style={{ margin: 12 }}>
+        <div role="alert" className="funnel-gate funnel-gate--inline">
           <div>
             <p>Não conseguimos carregar sua conta agora.</p>
             <button type="button" onClick={() => loadMe()}>
