@@ -66,7 +66,7 @@ O motor v2 (`urban-ai-backend-main/src/knn-engine/pricing-engine-v2.ts`) corrige
 
 Por que o default é `shadow` e não `true`: o v2 muda números de forma material (≈50%
 das noites ficam abaixo da base no backtest) e a única evidência é sintética. Em
-`shadow` nada muda para o anfitrião e passamos a ter v1 × v2 lado a lado nos logs.
+`shadow` nada muda para o anfitrião; o v2 é gravado em `analise_preco.shadow_v2_preco` e comparado com v1, preço aplicado e resultado em `/admin/outcomes` (desde o #48).
 Ligar é trocar uma variável no Railway e reiniciar; desligar é o mesmo caminho.
 
 Com `PRICING_ENGINE_V2=true` em `property-pricing-analysis.service`, a sugestão final passa a ser a

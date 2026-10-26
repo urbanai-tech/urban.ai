@@ -54,6 +54,8 @@ Thumbs.db
 **/jest-coverage/
 **/.nyc_output/
 /coverage/
+urban-ai-backend-main/coverage/
+Urban-front-main/coverage/
 **/test-coverage/
 
 # ===== Logs (nunca commitar — podem conter tokens, PII, API keys) =====

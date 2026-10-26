@@ -6,8 +6,9 @@ import { PriceUpdate } from 'src/entities/price-update.entity';
 import { PricingDecisionSnapshot } from 'src/entities/pricing-decision-snapshot.entity';
 import { DatasetCollectorService } from 'src/knn-engine/dataset-collector.service';
 import { PricingCalculateService } from '../propriedades/pricing-calculate.service';
-import { Repository } from 'typeorm';
-import { todaySaoPauloDateKey, toSaoPauloDateKey } from '../common/sp-date';
+import { IsNull, LessThan, Not, Repository } from 'typeorm';
+import { saoPauloDayBounds, todaySaoPauloDateKey, toSaoPauloDateKey } from '../common/sp-date';
+import { isOutcomePending } from '../email/weekly-host-report';
 
 /**
  * Faixa de sanidade do preço que o anfitrião diz ter aplicado, relativa aos
@@ -218,6 +219,57 @@ export class SugestionService {
       await this.tryRecordDecisionOutcome(saved, saved.origemAplicacao ?? 'manual_dashboard');
     }
     return this.toPublicResponse(saved);
+  }
+
+  /**
+   * V4 — preços que o anfitrião aplicou, cujo evento já passou (dia de São Paulo) e que ainda
+   * não têm resultado registrado. O dashboard só lista eventos de hoje em diante, então sem
+   * este endpoint não existe caminho no app para informar o resultado DEPOIS do evento.
+   * O formato é o mesmo de `eventos-analisados-com-price` para o front reaproveitar o EventCard.
+   */
+  async listarResultadosPendentes(userId: string, now = new Date(), limit = 30) {
+    const todayKey = todaySaoPauloDateKey(now);
+    const { start: startOfToday } = saoPauloDayBounds(todayKey);
+    const rows = await this.analisePrecoRepository.find({
+      where: {
+        usuarioProprietario: { id: userId },
+        aplicadoEm: Not(IsNull()),
+        resultadoRegistradoEm: IsNull(),
+        evento: { dataInicio: LessThan(startOfToday) },
+      },
+      relations: ['evento', 'endereco', 'endereco.list'],
+      order: { aplicadoEm: 'DESC' },
+      take: Math.min(Math.max(Math.floor(limit) || 30, 1), 100),
+    });
+
+    const pending = rows.filter((row) => isOutcomePending(row, todayKey));
+    return {
+      total: pending.length,
+      data: pending.map((analise) => ({
+        ...analise.evento,
+        propertyId: analise.endereco?.id ?? null,
+        propertyTitle: analise.endereco?.list?.titulo ?? null,
+        distancia_metros: analise.distanciaSuaPropriedade,
+        precoSugerido: analise.precoSugerido,
+        seuPrecoAtual: analise.seuPrecoAtual,
+        diferencaPercentual: analise.diferencaPercentual,
+        recomendacao: analise.recomendacao,
+        motivo_ia: analise.motivo_ia,
+        criadoEm: analise.criadoEm,
+        precoAplicado: analise.precoAplicado,
+        aplicadoEm: analise.aplicadoEm,
+        origemAplicacao: analise.origemAplicacao,
+        status: analise.status,
+        aceitoEm: analise.aceitoEm,
+        reservaStatus: analise.reservaStatus,
+        receitaReal: analise.receitaReal,
+        noitesReservadas: analise.noitesReservadas,
+        resultadoRegistradoEm: analise.resultadoRegistradoEm,
+        feedbackObservacao: analise.feedbackObservacao,
+        idAnalise: analise.id,
+        aceito: analise.aceito,
+      })),
+    };
   }
 
   async expirarAntigas(daysValid = 30): Promise<{ expired: number }> {

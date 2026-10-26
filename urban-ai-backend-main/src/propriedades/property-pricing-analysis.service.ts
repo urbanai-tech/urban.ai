@@ -40,6 +40,7 @@ import {
     getUniqueAnalysesByEvent,
     getPricingEventQualityFlags,
     isSamePricingAnalysis,
+    extractV2Suggestion,
     buildPricingNotificationDescription,
     selectPrimaryPricingHighlight,
     buildPricingDigestReasons,
@@ -660,6 +661,10 @@ export class PropertyPricingAnalysisService {
             let percentualFinal = result.diferencaPercentual;
             let recomendacaoFinal = result.recomendacao;
             let motivoDaIA = result.motivo;
+            // Sugestão do motor v2 para esta mesma noite (sombra ou ligado), guardada ao lado do
+            // v1 para a comparação interna v1 x v2 x aplicado x resultado.
+            let shadowV2Preco: number | null = null;
+            let shadowV2Versao: string | null = null;
 
             try {
                 // Treinar a IA dinamicamente usando os comparáveis (Comps) da vizinhança!
@@ -738,6 +743,10 @@ export class PropertyPricingAnalysisService {
                         },
                     });
 
+                    const v2Capturado = extractV2Suggestion(prediCaaaoIA as any, pricingMode);
+                    shadowV2Preco = v2Capturado?.price ?? null;
+                    shadowV2Versao = v2Capturado?.version ?? null;
+
                     if(prediCaaaoIA && prediCaaaoIA.suggestedPrice) {
                         precoFinalSugerido = pricingMode === 'v2'
                             // v2: média do cálculo ancorado no mercado com o motor v2 — ambos podem
@@ -797,10 +806,16 @@ export class PropertyPricingAnalysisService {
                 diferencaPercentual: percentualFinal,
                 recomendacao: recomendacaoFinal,
                 motivo_ia: motivoDaIA,
+                shadowV2Preco,
+                shadowV2Versao,
             };
 
             if (existingAnalise && this.isSamePricingAnalysis(existingAnalise, nextAnalise)) {
                 console.log("Análise de preço já estava atualizada");
+                // Análises anteriores à coluna do v2 em sombra: preenche só o v2, sem mexer no resto.
+                if (shadowV2Preco !== null && (existingAnalise.shadowV2Preco === null || existingAnalise.shadowV2Preco === undefined)) {
+                    await this.analisePrecoRepository.update(existingAnalise.id, { shadowV2Preco, shadowV2Versao });
+                }
                 return {
                     ok: true,
                     id: existingAnalise.id,
