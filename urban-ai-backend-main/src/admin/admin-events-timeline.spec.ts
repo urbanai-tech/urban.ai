@@ -8,8 +8,7 @@ jest.mock('../maps/maps.service', () => ({
   MapsService: class MapsService {},
 }));
 
-import { AdminService } from './admin.service';
-import { AdminStaysHealthService } from './admin-stays-health.service';
+import { AdminEventsService } from './admin-events.service';
 
 function makeTimelineRepo(rows: any[]) {
   const qb: any = {
@@ -24,31 +23,10 @@ function makeTimelineRepo(rows: any[]) {
 }
 
 function makeService(eventRepo: any) {
-  return new AdminService(
-    {} as any,
-    {} as any,
-    {} as any,
-    eventRepo as any,
-    {} as any,
-    {} as any,
-    {} as any,
-    {} as any,
-    {} as any,
-    {} as any,
-    {} as any,
-    {} as any,
-    {} as any,
-    {} as any,
-    {} as any,
-    {} as any,
-    {} as any,
-    {} as any,
-    { revokeAllRefreshTokensForUser: jest.fn() } as any,
-    new AdminStaysHealthService({} as any, {} as any, {} as any),
-  );
+  return new AdminEventsService(eventRepo as any);
 }
 
-describe('AdminService.eventsTimeline (dia de calendário de São Paulo)', () => {
+describe('AdminEventsService.eventsTimeline (dia de calendário de São Paulo)', () => {
   afterEach(() => jest.useRealTimers());
 
   it('agrupa por dia de SP via CONVERT_TZ (não DATE() cru) e filtra desde 00:00 BRT do primeiro dia', async () => {

@@ -57,13 +57,11 @@ export default function Login() {
     setLoading(true);
     try {
       const hashedPassword = await sha256(password);
-      const { data: loginData } = await api.post<{ accessToken?: string }>("/auth/login", {
+      // A sessão fica só nos cookies httpOnly definidos pela resposta.
+      await api.post("/auth/login", {
         email,
         password: hashedPassword,
       });
-      if (loginData?.accessToken) {
-        localStorage.setItem("accessToken", loginData.accessToken);
-      }
 
       try {
         const { data } = await verificarUsuarioState(email);

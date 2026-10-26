@@ -53,18 +53,10 @@ export const api = axios.create({
   withCredentials: true,
 });
 
-// Interceptor para incluir o token de autorização em todas as requisições
-api.interceptors.request.use(
-  (config) => {
-    return config;
-  },
-  (error) => Promise.reject(error),
-);
-
 /**
  * Interceptor global de resposta — sprint design premium 2026-05-17.
  *
- * - 401 (não autenticado): limpa token, redireciona pra login `/`.
+ * - 401 (não autenticado): redireciona pra login `/`.
  *   Exceção: rotas públicas (/lancamento, /landing, /precos, /sobre, /contato,
  *   /termos, /privacidade, /create, /forbidden, /post-login, /request-reset-password,
  *   /reset-password/*, /confirm-email) NÃO redirecionam — login não eh
@@ -140,11 +132,6 @@ api.interceptors.response.use(
 
       const isAuthMeProbe = requestUrl.endsWith("/auth/me");
       if (!isAuthMeProbe && !isPublicPath(pathname)) {
-        try {
-          localStorage.removeItem("accessToken");
-        } catch {
-          /* ignore storage errors */
-        }
         const redirect = encodeURIComponent(pathname + window.location.search);
         window.location.href = `/?next=${redirect}`;
       }

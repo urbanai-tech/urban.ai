@@ -36,7 +36,7 @@ test.describe('Cadastro comercial', () => {
     await page.route('**/auth/login', (route) => route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ accessToken: 'e2e-token' }),
+      body: JSON.stringify({ authenticated: true }),
     }));
 
     await page.goto('/create?utm_source=meta&utm_medium=cpc&utm_campaign=public-launch');
@@ -54,6 +54,13 @@ test.describe('Cadastro comercial', () => {
     await expect(page).toHaveURL(/\/confirm-email$/, { timeout: 15_000 });
     expect(page.url()).not.toMatch(/lead|%40|@/);
     expect(registerPayload).toMatchObject({ email: 'lead+public@urbanai.com.br', username: 'Lead Comercial', termsAccepted: true });
+
+    // Sessão só por cookie httpOnly: nenhum token fica legível por JS no navegador.
+    const storedAuth = await page.evaluate(() => ({
+      local: Object.keys(window.localStorage).filter((key) => /token/i.test(key)),
+      session: Object.keys(window.sessionStorage).filter((key) => /token/i.test(key)),
+    }));
+    expect(storedAuth).toEqual({ local: [], session: [] });
 
     const events = await page.evaluate(() => (window as unknown as { __urbanAiEvents: Array<{ vendor: string; args: unknown[] }> }).__urbanAiEvents);
     expect(events.some((event) => event.vendor === 'gtag' && event.args[1] === 'sign_up')).toBe(true);

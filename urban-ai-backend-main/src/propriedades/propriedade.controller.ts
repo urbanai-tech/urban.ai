@@ -1,5 +1,9 @@
 import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, NotFoundException, Param, Patch, Post, Put, Query, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
-import { PropriedadeService } from './propriedade.service';
+import { PropertyEventAnalysesService } from './property-event-analyses.service';
+import { PropertyListingQuoteService } from './property-listing-quote.service';
+import { PropertyPortfolioService } from './property-portfolio.service';
+import { PropertyPricingAnalysisService } from './property-pricing-analysis.service';
+import { PropertyScrapingService } from './property-scraping.service';
 import { Address } from 'src/entities/addresses.entity';
 import { ApiTags, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -17,7 +21,12 @@ import {
 @ApiTags('Propriedades')
 @Controller('propriedades')
 export class PropriedadeController {
-  constructor(private readonly propriedadeService: PropriedadeService,
+  constructor(
+    private readonly portfolio: PropertyPortfolioService,
+    private readonly scraping: PropertyScrapingService,
+    private readonly listingQuote: PropertyListingQuoteService,
+    private readonly pricingAnalysis: PropertyPricingAnalysisService,
+    private readonly eventAnalyses: PropertyEventAnalysesService,
     private readonly pricingCalculateService: PricingCalculateService,
     private readonly hostBaselineService: HostBaselineService,
   ) { }
@@ -33,7 +42,7 @@ export class PropriedadeController {
       throw new HttpException('Property ID is required', HttpStatus.BAD_REQUEST);
     }
     try {
-      const result = await this.propriedadeService.getPropertyHostId(propertyId);
+      const result = await this.scraping.getPropertyHostId(propertyId);
       return { result };
     } catch (error) {
       throw new HttpException(error.message || 'Error fetching hostId', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -51,7 +60,7 @@ export class PropriedadeController {
       throw new HttpException('Property ID is required', HttpStatus.BAD_REQUEST);
     }
     try {
-      return await this.propriedadeService.getPropertyQuickInfo(propertyId);
+      return await this.scraping.getPropertyQuickInfo(propertyId);
     } catch (error) {
       if (error instanceof HttpException) throw error;
       throw new HttpException(error.message || 'Error fetching property info', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -69,7 +78,7 @@ export class PropriedadeController {
     @Query('checkinDate') checkinDate: string,
     @Query('checkoutDate') checkoutDate: string,
   ) {
-    return this.propriedadeService.getAccommodationAndFee(propertyId, checkinDate, checkoutDate);
+    return this.listingQuote.getAccommodationAndFee(propertyId, checkinDate, checkoutDate);
   }
 
   @Get('getPropertyDetails/:id')
@@ -89,7 +98,7 @@ export class PropriedadeController {
     description: 'Propriedade não encontrada'
   })
   async getPropertyDetails(@Param('id') id: string) {
-    return this.propriedadeService.getPropertyDetails(id);
+    return this.scraping.getPropertyDetails(id);
   }
 
   @Get('airbnb/room-info')
@@ -123,7 +132,7 @@ export class PropriedadeController {
     @Req() req: any,
   ) {
     try {
-      return await this.propriedadeService.getRoomPrice({
+      return await this.listingQuote.getRoomPrice({
         roomId: propertyId,      // Corresponde ao parâmetro esperado
         checkIn: checkinDate,    // Corresponde ao parâmetro esperado
         checkOut: checkoutDate,  // Corresponde ao parâmetro esperado
@@ -153,7 +162,7 @@ export class PropriedadeController {
   @ApiResponse({ status: 500, description: 'Erro interno ao buscar informações da propriedade.' })
   async getBasicInfo(@Query('roomId') roomId: string, @Req() req: any) {
     try {
-      return await this.propriedadeService.getRoomBasicInfo(roomId, req.user.userId);
+      return await this.listingQuote.getRoomBasicInfo(roomId, req.user.userId);
     } catch (error) {
       if (error instanceof HttpException) throw error;
       throw new HttpException(
@@ -182,7 +191,7 @@ export class PropriedadeController {
     },
   })
   async createAlertAiibnb(@Body() body: CreateAirbnbAlertDto) {
-    return this.propriedadeService.criarAlertaAirbnb(body);
+    return this.pricingAnalysis.criarAlertaAirbnb(body);
   }
 
   @Get('eventos-analisados-com-price')
@@ -197,7 +206,7 @@ export class PropriedadeController {
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
   ) {
-    return this.propriedadeService.getEventosByEndereco(
+    return this.eventAnalyses.getEventosByEndereco(
       propriedadeId,
       req.user.userId,
       dataInicial,
@@ -225,7 +234,7 @@ export class PropriedadeController {
     if (req.user.userId !== usuarioId) {
       throw new UnauthorizedException("Usuário não autorizado para este recurso");
     }
-    const total = await this.propriedadeService.getQuantidadeEventosByUsuario(usuarioId, "");
+    const total = await this.eventAnalyses.getQuantidadeEventosByUsuario(usuarioId, "");
     return { quantidadeEventos: total };
   }
 
@@ -245,7 +254,7 @@ export class PropriedadeController {
     if (!targetUserId) {
       throw new UnauthorizedException("Token jwt necessário!")
     }
-    return this.propriedadeService.getEventosAcompanhando(
+    return this.eventAnalyses.getEventosAcompanhando(
       propriedadeId,
       Number(page),
       Number(limit),
@@ -270,7 +279,7 @@ export class PropriedadeController {
     @Query('raio') raio: number = 50,
     @Query('limit') limit: number = 10,
   ) {
-    return this.propriedadeService.getEventosByEnderecoForMap(
+    return this.eventAnalyses.getEventosByEnderecoForMap(
       propriedadeId,
       req.user.userId,
       Number(page),
@@ -287,7 +296,7 @@ export class PropriedadeController {
   @ApiResponse({ status: 500, description: 'Erro ao buscar dados da propriedade.' })
   @ApiQuery({ name: 'id', required: true, type: 'string', example: '8a2999b68e85e90928bddeb0' })
   async getAlertById(@Query('id') id: string): Promise<APITypes> {
-    const alerts = await this.propriedadeService.buscarAlertPorId(id);
+    const alerts = await this.pricingAnalysis.buscarAlertPorId(id);
 
     alerts?.comps.forEach(element => {
       console.log(element.similarity_score)
@@ -388,7 +397,7 @@ export class PropriedadeController {
     description: 'Erro interno do servidor.'
   })
   async getPropertyCoordinates(@Param('propertyId') propertyId: string) {
-    const coordinates = await this.propriedadeService.getPropertyCoordinates(propertyId);
+    const coordinates = await this.scraping.getPropertyCoordinates(propertyId);
 
     if (!coordinates) {
       throw new NotFoundException('Propriedade não encontrada ou coordenadas não disponíveis.');
@@ -401,7 +410,7 @@ export class PropriedadeController {
   @ApiOperation({ summary: 'Remove um endereço e o imóvel associado (list)' })
   @UseGuards(JwtAuthGuard)
   async deleteAddressAndList(@Param('id') id: string, @Req() req: any) {
-    await this.propriedadeService.deleteAddressAndList(id, req.user.userId);
+    await this.portfolio.deleteAddressAndList(id, req.user.userId);
     return { message: 'Endereço e list removidos com sucesso (quando aplicável)' };
   }
 
@@ -415,7 +424,7 @@ export class PropriedadeController {
   ) {
     // Use userId específico se fornecido, senão use o usuário autenticado
     const targetUserId = req.user.userId;
-    return this.propriedadeService.findPropertiesForDropdown(targetUserId);
+    return this.portfolio.findPropertiesForDropdown(targetUserId);
   }
   @Get('user/')
   @ApiOperation({ summary: 'Buscar endereços por ID de usuário (com paginação)' })
@@ -427,7 +436,7 @@ export class PropriedadeController {
     @Query('page') page = 1,
     @Query('limit') limit = 10
   ): Promise<any> {
-    return this.propriedadeService.findByUserId(req?.user?.userId, page, limit);
+    return this.portfolio.findByUserId(req?.user?.userId, page, limit);
   }
 
   @Patch(':id/identity')
@@ -438,7 +447,7 @@ export class PropriedadeController {
     @Req() req: any,
     @Body() body: UpdatePropertyIdentityDto,
   ) {
-    return this.propriedadeService.updateIdentity(id, req.user.userId, body);
+    return this.portfolio.updateIdentity(id, req.user.userId, body);
   }
 
   @Patch(':id/pricing-inputs')
@@ -449,7 +458,7 @@ export class PropriedadeController {
     @Req() req: any,
     @Body() body: UpdatePropertyPricingInputsDto,
   ) {
-    return this.propriedadeService.updatePricingInputs(id, req.user.userId, body);
+    return this.portfolio.updatePricingInputs(id, req.user.userId, body);
   }
 
   @Get(':id/baseline')
@@ -478,7 +487,7 @@ export class PropriedadeController {
     @Req() req: any,
     @Query('limit') limit = 20,
   ) {
-    return this.propriedadeService.getPricingInputHistory(id, req.user.userId, Number(limit));
+    return this.portfolio.getPricingInputHistory(id, req.user.userId, Number(limit));
   }
 
   @Get(':id/occupancy')
@@ -491,7 +500,7 @@ export class PropriedadeController {
     @Query('to') to?: string,
     @Query('limit') limit?: string,
   ) {
-    return this.propriedadeService.getOccupancyHistory(id, req.user.userId, {
+    return this.portfolio.getOccupancyHistory(id, req.user.userId, {
       from,
       to,
       limit: limit ? Number(limit) : undefined,
@@ -506,7 +515,7 @@ export class PropriedadeController {
     @Req() req: any,
     @Body() body: UpsertPropertyManualOccupancyDto,
   ) {
-    return this.propriedadeService.upsertManualOccupancy(id, req.user.userId, body);
+    return this.portfolio.upsertManualOccupancy(id, req.user.userId, body);
   }
 
   @Get(':id')
@@ -524,7 +533,7 @@ export class PropriedadeController {
   @ApiResponse({ status: 404, description: 'Endereço não encontrado' })
   @UseGuards(JwtAuthGuard)
   async findOne(@Param('id') id: string, @Req() req: any): Promise<any> {
-    const address = await this.propriedadeService.findAddressById(id, req.user.userId);
+    const address = await this.portfolio.findAddressById(id, req.user.userId);
     if (!address) {
       throw new NotFoundException('Endereço não encontrado');
     }

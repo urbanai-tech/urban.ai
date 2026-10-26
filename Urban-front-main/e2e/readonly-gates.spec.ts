@@ -49,9 +49,6 @@ async function mockSession(page: Page) {
     });
   });
 
-  await page.addInitScript(() => {
-    window.localStorage.setItem('accessToken', 'e2e-readonly-token');
-  });
 }
 
 function isBackendMutation(route: Route) {

@@ -173,17 +173,11 @@ const Register = () => {
         throw new Error("Novos cadastros estão temporariamente indisponíveis. Fale com o suporte da Urban AI.");
       }
 
-      const { data: loginData } = await api.post<{ accessToken?: string }>("/auth/login", {
+      // A sessão fica só nos cookies httpOnly definidos pela resposta.
+      await api.post("/auth/login", {
         email,
         password: hashedPassword,
       });
-
-      if (typeof window !== "undefined") {
-        if (loginData?.accessToken) {
-          localStorage.setItem("accessToken", loginData.accessToken);
-        }
-        localStorage.setItem("lastRegisterEmail", email);
-      }
 
       toast("Conta criada! Falta confirmar seu e-mail para continuar.", {
         type: "success",

@@ -58,7 +58,8 @@ export default function () {
     sleep(2);
     return;
   }
-  const token = loginRes.json('accessToken');
+  const tokenCookie = (loginRes.cookies.urbanai_access_token || [])[0];
+  const token = tokenCookie ? tokenCookie.value : '';
   const headers = {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,

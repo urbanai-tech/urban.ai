@@ -3,8 +3,20 @@ import { join } from 'path';
 
 jest.mock('../auth/auth.service', () => ({ AuthService: class AuthService {} }));
 jest.mock('../waitlist/waitlist.service', () => ({ WaitlistService: class WaitlistService {} }));
-jest.mock('../propriedades/propriedade.service', () => ({
-  PropriedadeService: class PropriedadeService {},
+jest.mock('../propriedades/property-portfolio.service', () => ({
+  PropertyPortfolioService: class PropertyPortfolioService {},
+}));
+jest.mock('../propriedades/property-scraping.service', () => ({
+  PropertyScrapingService: class PropertyScrapingService {},
+}));
+jest.mock('../propriedades/property-listing-quote.service', () => ({
+  PropertyListingQuoteService: class PropertyListingQuoteService {},
+}));
+jest.mock('../propriedades/property-pricing-analysis.service', () => ({
+  PropertyPricingAnalysisService: class PropertyPricingAnalysisService {},
+}));
+jest.mock('../propriedades/property-event-analyses.service', () => ({
+  PropertyEventAnalysesService: class PropertyEventAnalysesService {},
 }));
 jest.mock('../propriedades/pricing-calculate.service', () => ({
   PricingCalculateService: class PricingCalculateService {},

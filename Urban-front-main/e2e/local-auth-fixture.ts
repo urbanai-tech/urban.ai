@@ -23,9 +23,6 @@ const subscriptionFixture = {
  */
 export async function installLocalAuthFixture(page: Page, role: LocalAuthRole) {
   await acceptCookieConsent(page);
-  await page.addInitScript(() => {
-    window.localStorage.setItem('accessToken', 'e2e-local-auth-token');
-  });
 
   await page.route('**/auth/me', async (route) => {
     await route.fulfill({

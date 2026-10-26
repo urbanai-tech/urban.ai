@@ -142,7 +142,6 @@ export default function SideBar() {
       .catch((error: { response?: { status?: number } }) => {
         if (shouldRedirectToLogin(error?.response?.status)) {
           // Sessão inválida (401): volta ao login.
-          localStorage.removeItem('accessToken');
           router.push('/');
           return;
         }
@@ -180,7 +179,6 @@ export default function SideBar() {
     } catch {
       /* never block logout */
     }
-    localStorage.removeItem('accessToken');
     invalidateAuthCache();
     invalidateSubscriptionCache();
     router.push('/');

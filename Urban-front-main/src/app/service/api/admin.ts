@@ -1040,7 +1040,7 @@ export const acceptWaitlistInvite = (input: {
   password: string;
 }) =>
   api
-    .post<{ mode: 'registered'; accessToken: string; user: unknown }>(
+    .post<{ mode: 'registered'; user: unknown }>(
       '/auth/waitlist/accept',
       input,
     )

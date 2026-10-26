@@ -23,4 +23,4 @@ Instantes são gravados em UTC. Um jogo às 21:30 em São Paulo é `00:30Z` do d
 
 - (+) O "dia" que o anfitrião vê é o mesmo em tela, e-mail, agrupamento e auto-aplicação.
 - (−) O `-03:00` fixo no SQL quebra para datas anteriores a 2019 ou se o Brasil voltar ao horário de verão; o lado JS (`Intl`) continua correto nesses casos.
-- (−) A adoção é parcial: `saoPauloDaySql` só é usado em `admin/admin.service.ts`, e `HostPanelsService.startOfToday()` (cota diária do Ask Urban) usa `setHours(0,0,0,0)` no fuso do servidor. Auditar os demais usos de "hoje" é trabalho aberto.
+- (−) A adoção é parcial: `saoPauloDaySql` só é usado em `admin/admin-events.service.ts` (antes `admin.service.ts`), e `HostPanelsService.startOfToday()` (cota diária do Ask Urban) usa `setHours(0,0,0,0)` no fuso do servidor. Auditar os demais usos de "hoje" é trabalho aberto.
