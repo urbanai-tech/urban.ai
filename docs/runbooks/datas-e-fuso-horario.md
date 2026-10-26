@@ -40,7 +40,8 @@ por `new Date('YYYY-MM-DDT00:00:00Z')` (aritmética de calendário, validação 
 | `email/pricing-recommendation-digest.service.ts` (`itemDay`, `startOfDay`, `startOfNextDay`) | dia do item / "1 e-mail por dia" (dia de SP) | **Corrigido**: `toDayKey` / `saoPauloDayBounds` (antes: dia UTC e TZ do processo) |
 | `email/weekly-event-report.service.ts` e `email.service.ts` (tag do push) | dia de calendário usado para agrupar/substituir push | **Corrigido**: `toSaoPauloDateKey` |
 | `admin/admin.service.ts` `eventsTimeline` | bucket diário de coleta (dia de SP) | **Corrigido**: SQL `DATE_FORMAT(CONVERT_TZ(col, @@session.time_zone, '-03:00'), '%Y-%m-%d')` (`saoPauloDaySql`) + chaves JS por `addDaysToDateKey(todaySaoPauloDateKey(), -i)` |
-| `email/weekly-event-report.service.ts` `startOfUtcWeek`, `email.service.ts` demais carimbos | chave de claim do job / log | **Mantido UTC** (carimbo técnico, não dia de negócio) |
+| `email/weekly-event-report.service.ts` (`currentSaoPauloWeekStart`, `lastFullSaoPauloWeek` em `weekly-host-report.ts`) | semana do resumo semanal e chave "uma vez por semana" | **Corrigido**: semana = segunda 00:00 a domingo 23:59 BRT (antes: segunda UTC) |
+| `email.service.ts` demais carimbos | chave de claim do job / log | **Mantido UTC** (carimbo técnico, não dia de negócio) |
 | Aritmética de `YYYY-MM-DD` (`addDaysToDateKey`, validação) | dia puro, sem fuso | **Mantido** (`toISOString().slice(0, 10)` sobre `Date.UTC`) |
 
 Por que `CONVERT_TZ(col, @@session.time_zone, '-03:00')` em vez de `'+00:00'` fixo: `dataCrawl` é

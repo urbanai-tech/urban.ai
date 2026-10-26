@@ -86,6 +86,8 @@ const NAV: NavSection[] = [
       { href: "/admin/jobs", label: "Tarefas do sistema", icon: <Server size={16} /> },
       { href: "/admin/stays", label: "Stays", icon: <Database size={16} /> },
       { href: "/admin/users", label: "Usuários", icon: <Users size={16} /> },
+      { href: "/admin/billing-hosts", label: "Cobrança dos anfitriões", icon: <DollarSign size={16} /> },
+      { href: "/admin/outcomes", label: "Resultados v1 × v2", icon: <TrendingUp size={16} /> },
     ],
   },
   {
