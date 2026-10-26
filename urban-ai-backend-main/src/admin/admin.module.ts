@@ -21,7 +21,13 @@ import { EventDedupCandidate } from '../entities/event-dedup-candidate.entity';
 import { EventSource } from '../entities/event-source.entity';
 import { AirbnbPricingAttemptLog } from '../entities/airbnb-pricing-attempt-log.entity';
 import { EventIdentityService } from '../evento/event-identity.service';
-import { AdminService } from './admin.service';
+import { AdminDashboardService } from './admin-dashboard.service';
+import { AdminEventsService } from './admin-events.service';
+import { AdminJobRunsService } from './admin-job-runs.service';
+import { AdminOperationsService } from './admin-operations.service';
+import { AdminPriceIntelligenceService } from './admin-price-intelligence.service';
+import { AdminPricingOpsService } from './admin-pricing-ops.service';
+import { AdminUsersService } from './admin-users.service';
 import { EventDedupAdminService } from './event-dedup-admin.service';
 import { AirbnbPricingAttemptLogService } from './airbnb-pricing-attempt-log.service';
 import { AdminFinanceService } from './finance.service';
@@ -74,7 +80,13 @@ import { AdminStaysHealthService } from './admin-stays-health.service';
   ],
   controllers: [AdminController, AdminBillingController, AdminQualityOperationsController],
   providers: [
-    AdminService,
+    AdminDashboardService,
+    AdminEventsService,
+    AdminJobRunsService,
+    AdminOperationsService,
+    AdminPriceIntelligenceService,
+    AdminPricingOpsService,
+    AdminUsersService,
     AdminFinanceService,
     StripeSyncCheckService,
     EventIdentityService,
@@ -83,7 +95,6 @@ import { AdminStaysHealthService } from './admin-stays-health.service';
     AdminStaysHealthService,
   ],
   exports: [
-    AdminService,
     AdminFinanceService,
     StripeSyncCheckService,
     EventDedupAdminService,

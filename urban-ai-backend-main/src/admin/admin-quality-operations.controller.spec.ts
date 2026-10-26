@@ -10,7 +10,11 @@ jest.mock('p-limit', () => ({
   __esModule: true,
   default: () => async (work: () => unknown) => work(),
 }));
-jest.mock('./admin.service', () => ({ AdminService: class AdminService {} }));
+jest.mock('./admin-pricing-ops.service', () => ({ AdminPricingOpsService: class AdminPricingOpsService {} }));
+jest.mock('./admin-price-intelligence.service', () => ({
+  AdminPriceIntelligenceService: class AdminPriceIntelligenceService {},
+}));
+jest.mock('./admin-job-runs.service', () => ({ AdminJobRunsService: class AdminJobRunsService {} }));
 jest.mock('./airbnb-pricing-attempt-log.service', () => ({
   AirbnbPricingAttemptLogService: class AirbnbPricingAttemptLogService {},
 }));
@@ -85,6 +89,8 @@ describe('AdminQualityOperationsController', () => {
       async (_name: string, _actor: string | null, work: () => unknown) => work(),
     );
     controller = new AdminQualityOperationsController(
+      admin as any,
+      admin as any,
       admin as any,
       datasetCollector as any,
       geocoder as any,

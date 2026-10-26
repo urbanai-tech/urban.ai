@@ -9,7 +9,9 @@ import { EventsGeocoderService } from '../evento/events-geocoder.service';
 import { DatasetCollectorService } from '../knn-engine/dataset-collector.service';
 import { EventHistoricalService } from '../knn-engine/event-historical.service';
 import { VenueCapacityService } from '../knn-engine/venue-capacity.service';
-import { AdminService } from './admin.service';
+import { AdminJobRunsService } from './admin-job-runs.service';
+import { AdminPriceIntelligenceService } from './admin-price-intelligence.service';
+import { AdminPricingOpsService } from './admin-pricing-ops.service';
 import { AirbnbPricingAttemptLogService } from './airbnb-pricing-attempt-log.service';
 
 /**
@@ -25,7 +27,9 @@ import { AirbnbPricingAttemptLogService } from './airbnb-pricing-attempt-log.ser
 @Controller('admin')
 export class AdminQualityOperationsController {
   constructor(
-    private readonly admin: AdminService,
+    private readonly pricingOps: AdminPricingOpsService,
+    private readonly priceIntelligence: AdminPriceIntelligenceService,
+    private readonly adminJobRuns: AdminJobRunsService,
     private readonly datasetCollector: DatasetCollectorService,
     private readonly geocoder: EventsGeocoderService,
     private readonly enrichment: EventsEnrichmentService,
@@ -37,13 +41,13 @@ export class AdminQualityOperationsController {
   @ApiOperation({ summary: 'Status do motor de pricing (estratégia ativa, tier, dataset)' })
   @Get('pricing/status')
   async pricingStatus() {
-    return this.admin.pricingStatus();
+    return this.pricingOps.pricingStatus();
   }
 
   @ApiOperation({ summary: 'Painel alpha por usuário: KPIs, qualidade de eventos e recomendações recentes' })
   @Get('alpha/dashboard')
   async alphaDashboard(@Query('email') email: string) {
-    return this.admin.alphaDashboard(email);
+    return this.pricingOps.alphaDashboard(email);
   }
 
   @ApiOperation({ summary: 'Export/auditoria das recomendações alpha' })
@@ -52,24 +56,24 @@ export class AdminQualityOperationsController {
     @Query('email') email: string,
     @Query('limit') limit: string = '250',
   ) {
-    return this.admin.alphaRecommendations(email, parseInt(limit, 10));
+    return this.pricingOps.alphaRecommendations(email, parseInt(limit, 10));
   }
 
   @ApiOperation({ summary: 'Reprocessar propriedades do usuário alpha' })
   @Throttle({ default: { ttl: 60_000, limit: 3 } })
   @Post('alpha/reprocess')
   async alphaReprocess(@Query('email') email: string, @Req() req: any) {
-    return this.admin.runTrackedJob(
+    return this.adminJobRuns.runTrackedJob(
       'alpha-pricing-reprocess',
       req?.user?.userId ?? null,
-      () => this.admin.runAlphaReprocess(email),
+      () => this.pricingOps.runAlphaReprocess(email),
     );
   }
 
   @ApiOperation({ summary: 'Métricas do dataset proprietário (por origem, top listings)' })
   @Get('dataset/metrics')
   async datasetMetrics() {
-    return this.admin.datasetMetrics();
+    return this.pricingOps.datasetMetrics();
   }
 
   @ApiOperation({ summary: 'Diagnóstico completo do dataset proprietário e dependências' })
@@ -81,7 +85,7 @@ export class AdminQualityOperationsController {
   @ApiOperation({ summary: 'Saúde operacional do pipeline Price Intelligence' })
   @Get('price-intelligence/health')
   async priceIntelligenceHealth(@Query('windowDays') windowDays: string = '7') {
-    return this.admin.priceIntelligenceHealth(parseInt(windowDays, 10));
+    return this.priceIntelligence.priceIntelligenceHealth(parseInt(windowDays, 10));
   }
 
   @ApiOperation({ summary: 'Saúde das tentativas Airbnb/headless de preço' })
@@ -94,7 +98,7 @@ export class AdminQualityOperationsController {
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('dataset/snapshot/run')
   async runDatasetSnapshot(@Req() req: any) {
-    return this.admin.runTrackedJob(
+    return this.adminJobRuns.runTrackedJob(
       'dataset-snapshot',
       req?.user?.userId ?? null,
       () => this.datasetCollector.recordOwnedListingsSnapshot(),
@@ -105,7 +109,7 @@ export class AdminQualityOperationsController {
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('dataset/event-proximity/run')
   async runEventProximitySnapshot(@Req() req: any) {
-    return this.admin.runTrackedJob(
+    return this.adminJobRuns.runTrackedJob(
       'event-proximity-snapshot',
       req?.user?.userId ?? null,
       () => this.datasetCollector.recordEventProximityFeatures(),
@@ -115,14 +119,14 @@ export class AdminQualityOperationsController {
   @ApiOperation({ summary: 'Histórico de execução dos jobs admin' })
   @Get('jobs/runs')
   async jobRuns(@Query('limit') limit: string = '10', @Query('name') name?: string) {
-    return this.admin.listJobRuns(parseInt(limit, 10), name);
+    return this.adminJobRuns.listJobRuns(parseInt(limit, 10), name);
   }
 
   @ApiOperation({ summary: 'Executar geocoder de eventos com histórico admin' })
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('jobs/geocoder/run')
   async runGeocoderJob(@Query('limit') limit: string = '50', @Req() req: any) {
-    return this.admin.runTrackedJob(
+    return this.adminJobRuns.runTrackedJob(
       'geocoder',
       req?.user?.userId ?? null,
       () => this.geocoder.runOnce(parseInt(limit, 10)),
@@ -133,7 +137,7 @@ export class AdminQualityOperationsController {
   @Throttle({ default: { ttl: 60_000, limit: 3 } })
   @Post('jobs/reset-stale-enrichment/run')
   async runResetStaleEnrichment(@Req() req: any) {
-    return this.admin.runTrackedJob(
+    return this.adminJobRuns.runTrackedJob(
       'reset-stale-enrichment',
       req?.user?.userId ?? null,
       () => this.enrichment.resetStaleZeroRelevance(),
@@ -144,7 +148,7 @@ export class AdminQualityOperationsController {
   @Throttle({ default: { ttl: 60_000, limit: 2 } })
   @Post('jobs/venue-capacity/run')
   async runVenueCapacityBackfill(@Req() req: any) {
-    return this.admin.runTrackedJob(
+    return this.adminJobRuns.runTrackedJob(
       'venue-capacity-backfill',
       req?.user?.userId ?? null,
       () => this.venueCapacity.backfillAll(),
@@ -155,7 +159,7 @@ export class AdminQualityOperationsController {
   @Throttle({ default: { ttl: 60_000, limit: 2 } })
   @Post('jobs/event-historical/run')
   async runEventHistorical(@Req() req: any) {
-    return this.admin.runTrackedJob(
+    return this.adminJobRuns.runTrackedJob(
       'event-historical',
       req?.user?.userId ?? null,
       async () => {
