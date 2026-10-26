@@ -74,7 +74,8 @@ const NAV: NavSection[] = [
       { href: "/admin/events/dedup", label: "Deduplicação", icon: <Shield size={16} /> },
       { href: "/admin/events/new", label: "Cadastrar evento", icon: <Plus size={16} /> },
       { href: "/admin/events/import", label: "Importar CSV", icon: <Upload size={16} /> },
-      { href: "/admin/coverage", label: "Cobertura", icon: <MapPin size={16} /> },
+      { href: "/admin/event-coverage", label: "Cobertura de eventos", icon: <Calendar size={16} /> },
+      { href: "/admin/coverage", label: "Regiões de cobertura", icon: <MapPin size={16} /> },
       { href: "/admin/collectors-health", label: "Coletores", icon: <Activity size={16} /> },
     ],
   },
@@ -85,6 +86,8 @@ const NAV: NavSection[] = [
       { href: "/admin/jobs", label: "Tarefas do sistema", icon: <Server size={16} /> },
       { href: "/admin/stays", label: "Stays", icon: <Database size={16} /> },
       { href: "/admin/users", label: "Usuários", icon: <Users size={16} /> },
+      { href: "/admin/billing-hosts", label: "Cobrança dos anfitriões", icon: <DollarSign size={16} /> },
+      { href: "/admin/outcomes", label: "Resultados v1 × v2", icon: <TrendingUp size={16} /> },
     ],
   },
   {

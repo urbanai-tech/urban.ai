@@ -9,5 +9,6 @@ export * from "./api/notifications";
 export * from "./api/events";
 export * from "./api/pricing";
 export * from "./api/admin";
+export * from "./api/event-coverage";
 export * from "./api/portfolio";
 export * from "./api/ask";

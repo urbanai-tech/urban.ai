@@ -26,6 +26,8 @@ import { AdminAuditModule } from 'src/admin-audit/admin-audit.module';
 import { EventIdentityService } from './event-identity.service';
 import { CollectorStalenessService } from './collector-staleness.service';
 import { CollectorZeroYieldService } from './collector-zero-yield.service';
+import { EventCoverageReportService } from './event-coverage-report.service';
+import { EventCoverageReportController } from './event-coverage-report.controller';
 import { MailerModule } from 'src/mailer/mailer.module';
 
 @Module({
@@ -46,7 +48,7 @@ import { MailerModule } from 'src/mailer/mailer.module';
     AdminAuditModule,
     MailerModule,
   ],
-  controllers: [EventoController, EventsIngestController, CoverageController],
+  controllers: [EventoController, EventsIngestController, CoverageController, EventCoverageReportController],
   providers: [
     EventoService,
     EventsEnrichmentService,
@@ -59,6 +61,7 @@ import { MailerModule } from 'src/mailer/mailer.module';
     CoverageSeederService,
     CollectorStalenessService,
     CollectorZeroYieldService,
+    EventCoverageReportService,
   ],
   exports: [
     EventsIngestService,

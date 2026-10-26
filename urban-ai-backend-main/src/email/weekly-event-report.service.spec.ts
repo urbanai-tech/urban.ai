@@ -99,7 +99,7 @@ describe('WeeklyEventReportService', () => {
     );
     expect(mailer.sendHtmlEmail).toHaveBeenCalledWith(
       { email: 'ana@example.com', name: 'Ana Host' },
-      'Radar semanal de eventos - Urban AI',
+      'Seu resumo semanal - Urban AI',
       expect.stringContaining('Sao Paulo Tech Week'),
       { unsubscribe: { userId: 'user-1', category: 'weekly_report' } },
     );
@@ -107,7 +107,7 @@ describe('WeeklyEventReportService', () => {
     expect(pushNotificationService.sendToUser).toHaveBeenCalledWith(
       'user-1',
       expect.objectContaining({
-        title: 'Radar semanal de eventos',
+        title: 'Seu resumo semanal',
         url: '/painel?source=pwa_push_weekly_report',
       }),
     );

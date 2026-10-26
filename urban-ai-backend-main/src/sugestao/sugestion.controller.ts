@@ -97,6 +97,19 @@ export class SugestionController {
     }
 
     /**
+     * V4 — preços aplicados cujo evento já passou e que ainda não têm resultado registrado
+     * (alimenta o aviso "Como foi?" do painel). Escopo: só o usuário autenticado.
+     */
+    @UseGuards(JwtAuthGuard)
+    @Get('resultados-pendentes')
+    @ApiOperation({
+        summary: 'Preços aplicados com evento já passado e sem resultado registrado',
+    })
+    async resultadosPendentes(@Req() req: any) {
+        return this.sugestionService.listarResultadosPendentes(req.user.userId);
+    }
+
+    /**
      * F6.1 Tier 3 — registrar o preço REAL aplicado após a sugestão.
      * Constrói o ground truth para medir MAPE.
      */
