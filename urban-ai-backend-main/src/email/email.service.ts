@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity';
-import { toSaoPauloDateKey } from 'src/common/sp-date';
 import { IsNull, Not, Repository } from 'typeorm';
 import { User } from 'src/entities/user.entity';
 import * as bcrypt from 'bcrypt';
@@ -14,6 +13,7 @@ import { MailerService, NonTransactionalMailOptions } from 'src/mailer/mailer.se
 import { EmailTemplates } from './templates';
 import * as crypto from 'crypto';
 import { PushNotificationService } from 'src/push/push-notification.service';
+import { buildPricingDigestPayload, buildSystemNotificationPayload } from 'src/push/push-payload.builder';
 import { EntitlementService } from 'src/subscription/entitlement.service';
 import {
     ClaimedPricingDigest,
@@ -564,16 +564,17 @@ export class EmailService {
             }
             const shouldSendPush = notificationContent?.sendPush ?? notificationContent?.sendEmail ?? false;
             if (shouldSendPush) {
-                const pushResult = await this.pushNotificationService.sendToUser(userId, {
-                    title: notificationContent.title || 'Urban AI',
-                    body: notificationContent.description || '',
-                    url: notificationContent.redirectTo || '/notificacao',
-                    tag: notificationContent.pushTag || `notification-${notification?.id ?? Date.now()}`,
-                    data: {
+                const pushResult = await this.pushNotificationService.sendToUser(
+                    userId,
+                    buildSystemNotificationPayload({
+                        title: notificationContent.title || 'Urban AI',
+                        body: notificationContent.description || '',
+                        url: notificationContent.redirectTo || '/notificacao',
+                        tag: notificationContent.pushTag || `notification-${notification?.id ?? Date.now()}`,
                         type: notificationContent.pushType || 'system_notification',
                         notificationId: notification?.id,
-                    },
-                });
+                    }),
+                );
                 this.logger.debug(`Push PWA para user=${userId}: ${JSON.stringify(pushResult)}`);
             }
             return { enviado: true };
@@ -695,23 +696,10 @@ export class EmailService {
             }
 
             if (wantsPush) {
-                await this.pushNotificationService.sendToUser(digest.userId, {
-                    title:
-                        items.length === 1
-                            ? 'Recomendação de preço para revisar'
-                            : 'Recomendações de preço para revisar',
-                    body:
-                        items.length === 1
-                            ? 'A Urban AI preparou uma recomendação nova para revisar.'
-                            : `A Urban AI preparou ${items.length} recomendações para revisar em um só lugar.`,
-                    url: '/dashboard?source=pwa_push_pricing_digest',
-                    tag: `pricing-digest-${toSaoPauloDateKey(new Date())}`,
-                    data: {
-                        type: 'pricing_recommendation_digest',
-                        count: items.length,
-                        digestId: digest.id,
-                    },
-                });
+                await this.pushNotificationService.sendToUser(
+                    digest.userId,
+                    buildPricingDigestPayload({ count: items.length, digestId: digest.id }),
+                );
             }
 
             await this.pricingDigestService.markSent(digest.id);

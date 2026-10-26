@@ -6,6 +6,7 @@ import { Address } from 'src/entities/addresses.entity';
 import { User } from 'src/entities/user.entity';
 import { MailerService } from 'src/mailer/mailer.service';
 import { PushNotificationService } from 'src/push/push-notification.service';
+import { buildWeeklySummaryPayload } from 'src/push/push-payload.builder';
 import { addDaysToDateKey, toSaoPauloDateKey, tryToSaoPauloDateKey } from 'src/common/sp-date';
 import { Between, In, IsNull, Not, Repository } from 'typeorm';
 import {
@@ -160,17 +161,15 @@ export class WeeklyEventReportService {
           throw new Error(result?.message || `Email provider rejected with status=${result?.status ?? 'unknown'}`);
         }
 
-        await this.pushNotificationService.sendToUser(user.id, {
-          title: 'Seu resumo semanal',
-          body: this.buildPushSummary(properties, lookaheadDays),
-          url: '/painel?source=pwa_push_weekly_report',
-          tag: `weekly-event-report-${toSaoPauloDateKey(now)}`,
-          data: {
-            type: 'weekly_event_report',
+        await this.pushNotificationService.sendToUser(
+          user.id,
+          buildWeeklySummaryPayload({
+            body: this.buildPushSummary(properties, lookaheadDays),
             lookaheadDays,
             properties: properties.length,
-          },
-        });
+            now,
+          }),
+        );
 
         summary.sent += 1;
       } catch (error) {

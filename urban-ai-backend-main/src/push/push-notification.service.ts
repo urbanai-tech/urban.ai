@@ -5,22 +5,23 @@ import { CommunicationLogService } from 'src/communications/communication-log.se
 import { PushDelivery } from 'src/entities/push-delivery.entity';
 import { PushSubscription } from 'src/entities/push-subscription.entity';
 import { User } from 'src/entities/user.entity';
-import { IsNull, Repository } from 'typeorm';
+import { UserCommunicationPreferences } from 'src/entities/user-communication-preferences.entity';
+import { IsNull, MoreThan, Repository } from 'typeorm';
 import { RemovePushSubscriptionDto, UpsertPushSubscriptionDto } from './push.dto';
 import { PushEndpointSecurity } from './push-endpoint-security';
 import { HTTP_TIMEOUT_MS, fetchWithTimeout } from '../common/http-timeouts';
+import {
+  decidePushPolicy,
+  normalizePushPayload,
+  parseQuietHours,
+  pushCategoryFromType,
+  type PwaPushPayload,
+} from './push-payload.builder';
 
-export type PwaPushPayload = {
-  title: string;
-  body?: string;
-  url?: string;
-  tag?: string;
-  icon?: string;
-  badge?: string;
-  requireInteraction?: boolean;
-  data?: Record<string, unknown>;
-  actions?: { action: string; title: string }[];
-};
+export type { PwaPushPayload } from './push-payload.builder';
+
+/** Teto de avisos por usuário em 24h (por dispositivo ativo). `PUSH_MAX_PER_DAY` sobrescreve. */
+const DEFAULT_MAX_PUSH_PER_DAY = 6;
 
 export type PushSendResult = {
   enabled: boolean;
@@ -47,6 +48,9 @@ export class PushNotificationService {
     private readonly userRepo: Repository<User>,
     private readonly communicationLog: CommunicationLogService,
     @Optional() endpointSecurity?: PushEndpointSecurity,
+    @Optional()
+    @InjectRepository(UserCommunicationPreferences)
+    private readonly preferencesRepo?: Repository<UserCommunicationPreferences>,
   ) {
     this.endpointSecurity = endpointSecurity ?? new PushEndpointSecurity();
   }
@@ -146,6 +150,19 @@ export class PushNotificationService {
         failureReason: 'no_active_subscriptions',
       });
       return { enabled: true, attempted: 0, sent: 0, failed: 0, skippedReason: 'no_active_subscriptions' };
+    }
+
+    const skippedByPolicy = await this.evaluatePolicy(userId, payload, subscriptions.length);
+    if (skippedByPolicy) {
+      await this.communicationLog.record({
+        userId,
+        channel: 'push',
+        status: 'skipped',
+        kind: this.pushKind(payload),
+        title: payload.title,
+        failureReason: skippedByPolicy,
+      });
+      return { enabled: true, attempted: 0, sent: 0, failed: 0, skippedReason: skippedByPolicy };
     }
 
     let sent = 0;
@@ -257,6 +274,35 @@ export class PushNotificationService {
     return { notifications };
   }
 
+  /**
+   * Opt-out por categoria, horário de silêncio (São Paulo) e teto diário. Devolve o motivo do
+   * bloqueio ou null. Falha ao ler preferências/contagem não bloqueia (fail-open só para a
+   * leitura; o opt-out explícito `false` sempre vale).
+   */
+  private async evaluatePolicy(userId: string, payload: PwaPushPayload, deviceCount: number): Promise<string | null> {
+    const category = pushCategoryFromType(payload.data?.type);
+    const preferences = await this.preferencesRepo?.findOne({ where: { userId } }).catch(() => null);
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const deliveriesLast24h = category === 'test'
+      ? 0
+      : await this.deliveryRepo.count({ where: { userId, createdAt: MoreThan(since) } }).catch(() => 0);
+    const decision = decidePushPolicy({
+      category,
+      payload,
+      preferences: preferences ?? null,
+      now: new Date(),
+      quietHours: parseQuietHours(process.env.PUSH_QUIET_HOURS),
+      deliveriesLast24h,
+      maxPerDay: this.maxPushPerDay() * Math.max(1, deviceCount),
+    });
+    return decision.allowed === false ? decision.reason : null;
+  }
+
+  private maxPushPerDay(): number {
+    const configured = Number(process.env.PUSH_MAX_PER_DAY);
+    return Number.isFinite(configured) && configured > 0 ? Math.floor(configured) : DEFAULT_MAX_PUSH_PER_DAY;
+  }
+
   private isConfigured(): boolean {
     return Boolean(this.vapidPublicKey && this.vapidPrivateKey);
   }
@@ -281,28 +327,7 @@ export class PushNotificationService {
   }
 
   private normalizePayload(payload: PwaPushPayload): PwaPushPayload {
-    return {
-      title: String(payload.title || 'Urban AI').slice(0, 120),
-      body: payload.body ? String(payload.body).slice(0, 240) : undefined,
-      url: this.normalizeUrl(payload.url),
-      tag: payload.tag ? String(payload.tag).slice(0, 120) : undefined,
-      icon: payload.icon || '/pwa-icon-192.png',
-      badge: payload.badge || '/maskable-icon-512.png',
-      requireInteraction: Boolean(payload.requireInteraction),
-      data: payload.data || {},
-      actions: (payload.actions || [{ action: 'open', title: 'Ver' }]).slice(0, 2),
-    };
-  }
-
-  private normalizeUrl(url?: string): string {
-    if (!url) return '/notificacao';
-    if (url.startsWith('/')) return url;
-    try {
-      const parsed = new URL(url);
-      return `${parsed.pathname}${parsed.search}${parsed.hash}` || '/notificacao';
-    } catch {
-      return '/notificacao';
-    }
+    return normalizePushPayload(payload);
   }
 
   private parsePayload(payloadJson: string): PwaPushPayload {

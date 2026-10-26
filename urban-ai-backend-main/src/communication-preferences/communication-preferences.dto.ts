@@ -11,6 +11,10 @@ export class UpdateCommunicationPreferencesDto {
 
   @IsOptional()
   @IsBoolean()
+  pushEvents?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
   weeklyReport?: boolean;
 
   @IsOptional()
