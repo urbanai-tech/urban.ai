@@ -159,6 +159,15 @@ export default function SideBar() {
     setMobileOpen(false);
   }, [pathname]);
 
+  // O sheet vive dentro do shell (contexto de empilhamento próprio) e o FAB do
+  // Ask Urban é irmão do shell: com o sheet aberto, o FAB sai de cena.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (mobileOpen) root.setAttribute('data-sheet-open', '');
+    else root.removeAttribute('data-sheet-open');
+    return () => root.removeAttribute('data-sheet-open');
+  }, [mobileOpen]);
+
   async function handleLogout() {
     try {
       await api.post('/auth/logout');

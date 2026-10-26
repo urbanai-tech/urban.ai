@@ -290,7 +290,7 @@ function AskUrbanFab({
         }
         @media (max-width: 767px) {
           [data-ask-urban-fab] {
-            bottom: calc(64px + 18px + env(safe-área-inset-bottom, 0px)) !important;
+            bottom: calc(64px + 18px + env(safe-area-inset-bottom, 0px)) !important;
             right: 16px !important;
             width: 52px !important;
             min-width: 52px !important;

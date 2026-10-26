@@ -76,6 +76,9 @@ test.describe('Shell mobile do anfitrião', () => {
     await expect(more).toHaveAttribute('aria-expanded', 'true');
     await expect.poll(() => sheet.evaluate((node) => node.contains(document.activeElement))).toBe(true);
     await expect(sheet.getByRole('link', { name: 'Imóveis' })).toBeVisible();
+    // O FAB do Ask Urban não pode cobrir o sheet.
+    const fab = page.locator('[data-ask-urban-fab]');
+    if (await fab.count()) await expect(fab).toBeHidden();
 
     await page.keyboard.press('Escape');
     await expect(sheet).toBeHidden();

@@ -477,6 +477,11 @@
   }
 }
 
+/* Com o sheet "Mais" aberto, o FAB do Ask Urban (fora do shell) não pode ficar por cima. */
+html[data-sheet-open] [data-ask-urban-fab] {
+  visibility: hidden;
+}
+
 .urban-sheet-root {
   position: fixed;
   inset: 0;
