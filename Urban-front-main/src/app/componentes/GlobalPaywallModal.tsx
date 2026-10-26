@@ -1,18 +1,21 @@
 'use client';
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   getPlans,
   getPropriedadesDropdownList,
   Plan,
 } from "../service/api";
 import { Icons } from "./ui";
+import { useDialogFocus } from "./ui/useDialogFocus";
 import { PricingSelfServiceCalculator } from "./PricingCalculatorV2";
 import { selectPlanForQuantity } from "../lib/pricingSelfService";
 
 interface GlobalPaywallModalProps {
   isOpen: boolean;
 }
+
+const noop = () => {};
 
 function LoadingSpinner() {
   return <span className="global-paywall-spinner" role="status" aria-label="Carregando" />;
@@ -23,6 +26,10 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
   const [loading, setLoading] = useState(true);
   const [propertyCount, setPropertyCount] = useState<number>(0);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const modalRef = useRef<HTMLElement | null>(null);
+
+  // Paywall bloqueante: o foco fica preso e o Escape nao o dispensa.
+  useDialogFocus({ open: isOpen, containerRef: modalRef, onClose: noop });
 
   useEffect(() => {
     if (!isOpen) return;
@@ -53,9 +60,16 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
   const recommendedLabel = recommendedPlan?.title ?? "a faixa correta";
 
   return (
-    <div className="global-paywall-overlay" role="dialog" aria-modal="true">
-      <section className="global-paywall-modal">
-        <h2>Escolha seu plano para continuar</h2>
+    <div className="global-paywall-overlay">
+      <section
+        ref={modalRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="global-paywall-title"
+        className="global-paywall-modal"
+      >
+        <h2 id="global-paywall-title">Escolha seu plano para continuar</h2>
 
         {checkoutError && (
           <div className="global-paywall-error" role="alert">

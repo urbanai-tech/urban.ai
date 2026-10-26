@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useConsent } from "./useConsent";
+import { DialogSurface } from "./ui/DialogSurface";
 
 export function CookieConsent() {
   const { undecided, acceptAll, rejectAll, setPreferences, state } = useConsent();
@@ -128,9 +129,8 @@ export function CookieConsent() {
             if (event.target === event.currentTarget) setIsOpen(false);
           }}
         >
-          <section
-            role="dialog"
-            aria-modal="true"
+          <DialogSurface
+            onClose={() => setIsOpen(false)}
             aria-labelledby="cookie-preferences-title"
             style={{
               width: "100%",
@@ -211,7 +211,7 @@ export function CookieConsent() {
                 Salvar preferencias
               </CookieButton>
             </footer>
-          </section>
+          </DialogSurface>
         </div>
       )}
 

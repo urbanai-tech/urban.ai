@@ -13,6 +13,7 @@ import {
   Icons,
   PortfolioCalendar,
   useAppToast,
+  DialogSurface,
 } from "../componentes/ui";
 import { dateAtLocalOffset, formatLocalDate } from "../lib/date";
 import {
@@ -811,29 +812,14 @@ function PortfolioDayDetailDialog({
   detail: PortfolioDayDetail | null;
   onClose: () => void;
 }) {
-  React.useEffect(() => {
-    if (!detail) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = previous;
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [detail, onClose]);
-
   if (!detail) return null;
 
   const suggested = detail.suggestedPrice ?? detail.currentPrice;
   const delta = suggested - detail.currentPrice;
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
+    <DialogSurface
+      onClose={onClose}
       aria-labelledby="portfolio-day-detail-title"
       style={{
         position: "fixed",
@@ -970,7 +956,7 @@ function PortfolioDayDetailDialog({
           </div>
         </div>
       </AppCard>
-    </div>
+    </DialogSurface>
   );
 }
 

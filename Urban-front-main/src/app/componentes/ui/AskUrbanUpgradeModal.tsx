@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useRef } from "react";
 import { AppButton } from "./AppButton";
 import { Close, Sparkles } from "./Icons";
+import { useDialogFocus } from "./useDialogFocus";
 
 /**
  * Modal de upgrade para usuários no plano `starter` que tentam abrir o
@@ -23,19 +24,8 @@ export function AskUrbanUpgradeModal({
   onClose: () => void;
   onUpgrade: () => void;
 }) {
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handler);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", handler);
-      document.body.style.overflow = prev;
-    };
-  }, [open, onClose]);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  useDialogFocus({ open, containerRef: panelRef, onClose });
 
   if (!open) return null;
 
@@ -65,6 +55,8 @@ export function AskUrbanUpgradeModal({
         }}
       />
       <div
+        ref={panelRef}
+        tabIndex={-1}
         style={{
           position: "relative",
           width: "100%",

@@ -9,6 +9,7 @@ import { shouldRedirectToLogin } from '../lib/sidebar-auth';
 import { invalidateAuthCache, invalidateSubscriptionCache } from '../context/subscription-status';
 import { setSentryUser, clearSentryUser, trackEvent } from '../service/tracking';
 import { ThemeToggle } from './theme/ThemeToggle';
+import { DialogSurface } from './ui/DialogSurface';
 import '../../../i18n';
 
 /**
@@ -555,9 +556,9 @@ export default function SideBar() {
 
       {/* ============================ MOBILE DRAWER MAIS ============================ */}
       {mobileOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
+        <DialogSurface
+          onClose={() => setMobileOpen(false)}
+          aria-label="Menu de navegação"
           style={{
             position: 'fixed',
             inset: 0,
@@ -766,7 +767,7 @@ export default function SideBar() {
               </button>
             </div>
           </aside>
-        </div>
+        </DialogSurface>
       )}
 
       <style jsx global>{`

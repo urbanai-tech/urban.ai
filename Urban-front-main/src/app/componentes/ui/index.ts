@@ -71,6 +71,7 @@ export {
 } from "./styles";
 export { AppFooter } from "./AppFooter";
 export { AppConfirmDialog } from "./AppConfirmDialog";
+export { DialogSurface } from "./DialogSurface";
 export { SkipLink } from "./SkipLink";
 export { AskUrbanDrawer } from "./AskUrbanDrawer";
 export { AskUrbanProvider, useAskUrban } from "./AskUrbanProvider";

@@ -3,6 +3,7 @@
 import React from "react";
 import { AppButton } from "./AppButton";
 import { AppBadge } from "./AppBadge";
+import { DialogSurface } from "./DialogSurface";
 import { DriverBar } from "./DriverBar";
 import { ScenarioComparison } from "./ScenarioComparison";
 import {
@@ -591,26 +592,6 @@ export function RecommendationCard({
   );
   const [detailsOpen, setDetailsOpen] = React.useState(false);
 
-  // Trava o scroll body enquanto o modal está aberto.
-  React.useEffect(() => {
-    if (!detailsOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [detailsOpen]);
-
-  // ESC fecha os detalhes.
-  React.useEffect(() => {
-    if (!detailsOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setDetailsOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [detailsOpen]);
-
   return (
     <div
       className="urban-app-card-accent"
@@ -834,9 +815,8 @@ export function RecommendationCard({
       </div>
 
       {detailsOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
+        <DialogSurface
+          onClose={() => setDetailsOpen(false)}
           aria-labelledby="recommendation-detail-title"
           style={{
             position: "fixed",
@@ -994,7 +974,7 @@ export function RecommendationCard({
               )}
             </div>
           </div>
-        </div>
+        </DialogSurface>
       )}
     </div>
   );

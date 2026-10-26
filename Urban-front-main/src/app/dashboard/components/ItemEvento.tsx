@@ -16,6 +16,7 @@ import {
   useToastCompat,
 } from "@/app/componentes/ui";
 import { AplicarPrecoDialog } from "./AplicarPrecoDialog";
+import { DialogSurface } from "@/app/componentes/ui/DialogSurface";
 import { formatBrl } from "./aplicar-preco-domain";
 import { useStaysAutoMode } from "./useStaysAutoMode";
 
@@ -382,9 +383,9 @@ export const EventCard: React.FC<EventCardProps> = ({
 
       {/* Drawer "Registrar resultado" — substitui o form inline cortado */}
       {drawerOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
+        <DialogSurface
+          onClose={() => setDrawerOpen(false)}
+          aria-labelledby="registrar-resultado-title"
           style={{
             position: "fixed",
             inset: 0,
@@ -428,6 +429,7 @@ export const EventCard: React.FC<EventCardProps> = ({
               <div>
                 <p className="urban-app-eyebrow">RESULTADO DA SUGESTÃO</p>
                 <h2
+                  id="registrar-resultado-title"
                   style={{
                     fontSize: 18,
                     fontWeight: 600,
@@ -546,7 +548,7 @@ export const EventCard: React.FC<EventCardProps> = ({
               }
             }
           `}</style>
-        </div>
+        </DialogSurface>
       )}
     </>
   );
