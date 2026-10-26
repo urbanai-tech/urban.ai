@@ -41,6 +41,13 @@ describe('AdminBetaOpsController', () => {
     expect(billingHosts.list).toHaveBeenLastCalledWith({ status: 'all', search: undefined });
   });
 
+  it('ignora query params repetidos (array) em vez de confiar no tipo', async () => {
+    await controller.listBillingHosts(['past_due', 'active'], ['ana', 'bia']);
+    expect(billingHosts.list).toHaveBeenLastCalledWith({ status: 'all', search: undefined });
+    await controller.outcomesComparison(['10', '20']);
+    expect(outcomes.comparison).toHaveBeenLastCalledWith({ limit: undefined });
+  });
+
   it('send-link usa "auto" por padrão', async () => {
     await controller.sendBillingLink('11111111-1111-4111-8111-111111111111', {} as any);
     expect(billingHosts.sendLink).toHaveBeenCalledWith('11111111-1111-4111-8111-111111111111', 'auto');

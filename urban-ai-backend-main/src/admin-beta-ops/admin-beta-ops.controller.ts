@@ -42,9 +42,12 @@ export class AdminBetaOpsController {
   @ApiOperation({ summary: 'Anfitriões do beta com estado da assinatura (trial, ativo, pagamento falhou, cancelado)' })
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @Get('billing/hosts')
-  async listBillingHosts(@Query('status') status?: string, @Query('search') search?: string) {
-    const safeStatus = status && STATUS_FILTERS.has(status) ? (status as BillingHostStatus | 'attention' | 'all') : 'all';
-    return this.billingHosts.list({ status: safeStatus, search: search?.slice(0, 120) });
+  async listBillingHosts(@Query('status') status?: unknown, @Query('search') search?: unknown) {
+    // Query string pode chegar como array (?status=a&status=b): só aceita string simples.
+    const safeStatus =
+      typeof status === 'string' && STATUS_FILTERS.has(status) ? (status as BillingHostStatus | 'attention' | 'all') : 'all';
+    const safeSearch = typeof search === 'string' ? search.slice(0, 120) : undefined;
+    return this.billingHosts.list({ status: safeStatus, search: safeSearch });
   }
 
   @ApiOperation({ summary: 'Reenvia ao anfitrião, por e-mail, o link de checkout/portal já gerado pelo Stripe' })
@@ -57,7 +60,7 @@ export class AdminBetaOpsController {
   @ApiOperation({ summary: 'v1 x v2 (sombra) x preço aplicado x resultado registrado' })
   @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @Get('outcomes/comparison')
-  async outcomesComparison(@Query('limit') limit?: string) {
-    return this.outcomes.comparison({ limit: Number(limit) || undefined });
+  async outcomesComparison(@Query('limit') limit?: unknown) {
+    return this.outcomes.comparison({ limit: typeof limit === 'string' ? Number(limit) || undefined : undefined });
   }
 }

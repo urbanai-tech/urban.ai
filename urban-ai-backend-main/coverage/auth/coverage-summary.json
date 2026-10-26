@@ -1,3 +1,0 @@
-{"total": {"lines":{"total":681,"covered":662,"skipped":0,"pct":97.2},"statements":{"total":681,"covered":662,"skipped":0,"pct":97.2},"functions":{"total":35,"covered":33,"skipped":0,"pct":94.28},"branches":{"total":193,"covered":181,"skipped":0,"pct":93.78},"branchesTrue":{"total":0,"covered":0,"skipped":0,"pct":"Unknown"}}
-,"C:\\Users\\Acer\\Documents\\GitHub\\urban.ai\\.claude\\worktrees\\agent-a0ddc3cac8c323aac\\urban-ai-backend-main\\src\\auth\\auth.service.ts": {"lines":{"total":681,"covered":662,"skipped":0,"pct":97.2},"functions":{"total":35,"covered":33,"skipped":0,"pct":94.28},"statements":{"total":681,"covered":662,"skipped":0,"pct":97.2},"branches":{"total":193,"covered":181,"skipped":0,"pct":93.78}}
-}
