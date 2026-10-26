@@ -11,16 +11,19 @@ test.describe('PWA e mobile', () => {
     expect(manifest.id).toBe('/?source=pwa');
     expect(manifest.scope).toBe('/');
     expect(manifest.display).toBe('standalone');
-    expect(manifest.background_color).toBe('#080A0F');
-    expect(manifest.theme_color).toBe('#E8500A');
-    expect(manifest.orientation).toBe('portrait');
+    expect(manifest.background_color).toBe('#1C1E3D');
+    expect(manifest.theme_color).toBe('#080A0F');
+    expect(manifest.display_override).toEqual(['standalone', 'minimal-ui']);
+    expect(manifest.orientation).toBe('any');
     expect(manifest.lang).toBe('pt-BR');
     expect(manifest.categories).toEqual(expect.arrayContaining(['business', 'productivity']));
     expect(manifest.start_url).toContain('/dashboard');
     expect(manifest.shortcuts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name: 'Dashboard', url: expect.stringContaining('/dashboard') }),
-        expect.objectContaining({ name: 'Calendario', url: expect.stringContaining('/portfolio') }),
+        expect.objectContaining({ name: 'Imóveis', url: expect.stringContaining('/properties') }),
+        expect.objectContaining({ name: 'Notificações', url: expect.stringContaining('/notificacao') }),
+        expect.objectContaining({ name: 'Calendário', url: expect.stringContaining('/portfolio') }),
       ]),
     );
     expect(manifest.icons).toEqual(
@@ -28,6 +31,7 @@ test.describe('PWA e mobile', () => {
         expect.objectContaining({ src: '/pwa-icon-192.png', sizes: '192x192' }),
         expect.objectContaining({ src: '/pwa-icon-512.png', sizes: '512x512' }),
         expect.objectContaining({ src: '/maskable-icon-512.png', purpose: 'maskable' }),
+        expect.objectContaining({ src: '/pwa-monochrome-512.png', purpose: 'monochrome' }),
       ]),
     );
 
@@ -67,11 +71,13 @@ test.describe('PWA e mobile', () => {
 
     const source = await response.text();
     expect(source).toContain('const CACHE_PREFIX = "urban-ai-pwa-"');
-    expect(source).toContain('const CACHE_VERSION = `${CACHE_PREFIX}v4`');
-    expect(source).toContain('const ACTIVE_CACHES = new Set([STATIC_CACHE, PUSH_CONFIG_CACHE])');
+    expect(source).toContain('const CACHE_VERSION = `${CACHE_PREFIX}v5`');
+    expect(source).toContain('const ACTIVE_CACHES = new Set([STATIC_CACHE, RUNTIME_CACHE, PUSH_CONFIG_CACHE])');
     expect(source).toContain('networkFirstNavigation');
     expect(source).toContain('navigationPreload');
     expect(source).toContain('cache.match("/offline.html")');
+    expect(source).toContain('staleWhileRevalidate');
+    expect(source).toContain('URBAN_SKIP_WAITING');
     expect(source).toContain('url.pathname.startsWith("/api/")');
     expect(source).toContain('request.method !== "GET"');
     expect(source).toContain('key.startsWith(CACHE_PREFIX) && !ACTIVE_CACHES.has(key)');
