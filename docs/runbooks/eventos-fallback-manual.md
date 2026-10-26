@@ -7,7 +7,7 @@ Escopo: popular eventos futuros de Sao Paulo/Grande SP quando coletores automati
 
 Ative este fallback quando qualquer condicao abaixo acontecer:
 
-- `/admin/dashboard` mostrar menos de 100 eventos futuros nos proximos 30 dias.
+- `/admin/event-coverage` estiver `insufficient` (ou `/admin/dashboard` mostrar menos de 100 eventos futuros nos proximos 30 dias).
 - `/admin/collectors-health` mostrar fontes criticas degradadas ou sem `lastSeen < 48h`.
 - O beta fechado precisa iniciar antes das chaves externas estarem aprovadas.
 - Um operador identificar eventos relevantes que os coletores ainda nao capturam.
@@ -59,7 +59,7 @@ Campos fortemente recomendados:
 
 ## Passo a passo
 
-1. Abra `/admin/dashboard` e confirme `events.next30d`.
+1. Abra `/admin/event-coverage` (painel "Cobertura de eventos") e confirme o número dos próximos 30 dias, o status (`ok` / `at_risk` / `insufficient`) e as dicas "O que fazer". O `/admin/dashboard` continua mostrando `events.next30d`.
 2. Se `next30d < 100`, abra `/admin/events/import`.
 3. Baixe o template CSV.
 4. Preencha eventos futuros, priorizando os proximos 30 dias.
@@ -67,7 +67,7 @@ Campos fortemente recomendados:
 6. Importe o CSV.
 7. Revise `invalidRows` e corrija linhas rejeitadas.
 8. Se houver eventos sem latitude/longitude, abra `/admin/jobs` e rode o geocoder.
-9. Volte ao `/admin/dashboard` e confirme se o alerta de fallback reduziu.
+9. Volte ao `/admin/event-coverage` (e ao `/admin/dashboard`) e confirme que o status saiu de `insufficient`.
 10. Registre evidencia no release gate: data, sourceLabel, linhas importadas, criados, atualizados e `events.next30d` final.
 
 ## Criterios para aceitar o lote
@@ -117,3 +117,20 @@ O fallback manual nao substitui coletores. Depois que o beta estiver rodando:
 - promover fontes recorrentes para coletor dedicado;
 - remover duplicatas;
 - acompanhar `created24h`, `lastSeen` e `next30d` por 7 dias.
+
+## Painel de cobertura (D6)
+
+`GET /admin/event-coverage` (admin) alimenta a pagina `/admin/event-coverage`. Contagens em dias de Sao Paulo
+(do instante atual ate o fim do dia hoje + N - 1), apenas eventos canonicos, ativos, `estado = 'SP'` e dentro da
+cobertura (`outOfScope = false`, calculado a partir de `coverage_regions`).
+
+| Campo | Significado |
+|---|---|
+| `counts.next7d/30d/90d` | Eventos futuros nas janelas. `next30dFromHealthySources` exclui fontes paradas. |
+| `status` | `insufficient`: `next30d` abaixo da meta. `at_risk`: meta atingida, mas as fontes saudaveis somam menos que a meta ou o geocoding esta abaixo do minimo. `ok`: demais casos. |
+| `sources[]` | Por fonte: eventos em 30 dias, ultimo ingest (`event_sources.lastSeenAt`/`events.dataCrawl`), saude (`healthy`, `stale`, `zero_yield`, `unmonitored` para `admin-*` etc.). Reusa as regras de [coletores sem dados](./coletores-zero-yield.md). |
+| `histogram[]` | Eventos por dia nos proximos 30 dias (zeros incluidos). |
+| `quality` | % com lat/lng e % com categoria nos proximos 30 dias. |
+| `duplicatesPendingReview` | Candidatos `pending` em `event_dedup_candidates`. |
+
+Variaveis (opcionais): `EVENT_COVERAGE_TARGET_30D` (padrao `100`) e `EVENT_COVERAGE_MIN_GEOCODED_PCT` (padrao `80`).
