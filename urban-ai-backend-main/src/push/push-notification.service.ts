@@ -8,6 +8,7 @@ import { User } from 'src/entities/user.entity';
 import { IsNull, Repository } from 'typeorm';
 import { RemovePushSubscriptionDto, UpsertPushSubscriptionDto } from './push.dto';
 import { PushEndpointSecurity } from './push-endpoint-security';
+import { HTTP_TIMEOUT_MS, fetchWithTimeout } from '../common/http-timeouts';
 
 export type PwaPushPayload = {
   title: string;
@@ -317,15 +318,19 @@ export class PushNotificationService {
     // DNS changes after registration to reach an internal address.
     const endpointUrl = await this.endpointSecurity.assertSafe(subscription.endpoint);
     const token = this.createVapidJwt(endpointUrl.origin);
-    const response = await fetch(endpointUrl.toString(), {
-      method: 'POST',
-      redirect: 'manual',
-      headers: {
-        TTL: '2419200',
-        Urgency: 'normal',
-        Authorization: `vapid t=${token}, k=${this.vapidPublicKey}`,
+    const response = await fetchWithTimeout(
+      endpointUrl.toString(),
+      {
+        method: 'POST',
+        redirect: 'manual',
+        headers: {
+          TTL: '2419200',
+          Urgency: 'normal',
+          Authorization: `vapid t=${token}, k=${this.vapidPublicKey}`,
+        },
       },
-    });
+      HTTP_TIMEOUT_MS.fast,
+    );
 
     if (response.status >= 300 && response.status < 400) {
       throw new Error('push_redirect_blocked');

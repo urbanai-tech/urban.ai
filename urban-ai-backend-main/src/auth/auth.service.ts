@@ -19,6 +19,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { PaymentsService } from 'src/payments/payments.service';
 import { StaysService } from 'src/stays/stays.service';
 import { TERMS_VERSION } from './terms.constants';
+import { HTTP_TIMEOUT_MS, fetchWithTimeout } from '../common/http-timeouts';
 
 const BCRYPT_ROUNDS = 12;
 const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
@@ -493,8 +494,10 @@ export class AuthService {
 
     let payload: GoogleTokenInfo;
     try {
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`,
+        {},
+        HTTP_TIMEOUT_MS.fast,
       );
       if (!response.ok) {
         throw new UnauthorizedException('Google token inválido.');

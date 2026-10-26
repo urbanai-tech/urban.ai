@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+import { HTTP_TIMEOUT_MS } from '../common/http-timeouts';
 type GeocodingResult = { geometry: { location: { lat: number; lng: number } } };
 
 class GeocodingError extends Error {
@@ -18,7 +19,7 @@ export class GeocodingClient {
     let response;
     try {
       response = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
-        params, timeout: 15_000, maxRedirects: 0, maxContentLength: 2_000_000,
+        params, timeout: HTTP_TIMEOUT_MS.default, maxRedirects: 0, maxContentLength: 2_000_000,
       });
     } catch (error: unknown) {
       const status = axios.isAxiosError(error) ? error.response?.status : undefined;

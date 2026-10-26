@@ -7,6 +7,7 @@ import { ExternalListing } from '../entities/external-listing.entity';
 import { UrbanAIPricingEngine } from './pricing-engine';
 import { AdminJobRun } from '../entities/admin-job-run.entity';
 import { runAdminJobWithTracking } from '../admin-job-runs/admin-job-run-tracker';
+import { RedisLockService, runExclusiveJob } from '../common/redis-lock';
 import { nearestStationKm } from './feature-engineering.service';
 import { deriveKnnLabels, KnnLabelStats } from './knn-labels';
 import { resolveUsableBaseDailyPrice } from '../pricing/base-price.util';
@@ -55,6 +56,8 @@ export class PricingBootstrapService implements OnModuleInit {
     @Optional()
     @InjectRepository(ExternalListing)
     private readonly externalRepo?: Repository<ExternalListing>,
+    @Optional()
+    private readonly redisLock?: RedisLockService,
   ) {}
 
   async onModuleInit() {
@@ -184,8 +187,11 @@ export class PricingBootstrapService implements OnModuleInit {
   }
 
   private async runCronWithTracking<T>(name: string, handler: () => Promise<T>): Promise<T> {
-    if (!this.jobRunRepo) return handler();
-    const run = await runAdminJobWithTracking(this.jobRunRepo, name, null, handler);
-    return run.result as T;
+    // Lock distribuído (TD3): só uma réplica roda o tick; lock tomado/Redis fora => pula (undefined).
+    return runExclusiveJob(this.redisLock, name, async () => {
+      if (!this.jobRunRepo) return handler();
+      const run = await runAdminJobWithTracking(this.jobRunRepo, name, null, handler);
+      return run.result as T;
+    }) as Promise<T>;
   }
 }

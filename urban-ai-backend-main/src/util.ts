@@ -1,3 +1,4 @@
+import { HTTP_TIMEOUT_MS, fetchWithTimeout } from './common/http-timeouts';
 export async function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): Promise<number> {
   const R = 6371; 
   const toRad = (value: number) => value * Math.PI / 180;
@@ -55,15 +56,19 @@ export async function calculateDistanceHere(
     routingPreference: travelMode === 'DRIVE' ? 'TRAFFIC_AWARE' : undefined,
   };
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Goog-Api-Key': apiKey,
-      'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters',
+  const response = await fetchWithTimeout(
+    url,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters',
+      },
+      body: JSON.stringify(body),
     },
-    body: JSON.stringify(body),
-  });
+    HTTP_TIMEOUT_MS.fast,
+  );
 
   if (!response.ok) {
     const distanceKm = await calculateDistance(originLat, originLng, destinationLat, destinationLng);

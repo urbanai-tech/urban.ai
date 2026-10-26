@@ -7,6 +7,8 @@ import { Event } from 'src/entities/events.entity';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { AdminJobRun } from 'src/entities/admin-job-run.entity';
 import { runAdminJobWithTracking } from 'src/admin-job-runs/admin-job-run-tracker';
+import { RedisLockService, runExclusiveJob } from '../common/redis-lock';
+import { HTTP_TIMEOUT_MS } from '../common/http-timeouts';
 
 /**
  * Enriquecimento via Gemini (relevancia + raioImpactoKm + capacidadeEstimada).
@@ -46,6 +48,8 @@ export class EventsEnrichmentService {
     @Optional()
     @InjectRepository(AdminJobRun)
     private readonly jobRunRepo?: Repository<AdminJobRun>,
+    @Optional()
+    private readonly redisLock?: RedisLockService,
   ) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (apiKey) {
@@ -108,7 +112,7 @@ export class EventsEnrichmentService {
     }
 
     this.logger.log(`Enriquecendo ${pendingEvents.length} eventos via Gemini AI...`);
-    const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' }, { timeout: HTTP_TIMEOUT_MS.heavy });
 
     for (const event of pendingEvents) {
       const now = new Date();
@@ -186,9 +190,12 @@ Responda APENAS com um Dicionário objeto JSON puro. Sem formatação markdown d
   }
 
   private async runCronWithTracking<T>(name: string, handler: () => Promise<T>): Promise<T> {
-    if (!this.jobRunRepo) return handler();
-    const run = await runAdminJobWithTracking(this.jobRunRepo, name, null, handler);
-    return run.result as T;
+    // Lock distribuído (TD3): só uma réplica roda o tick; lock tomado/Redis fora => pula (undefined).
+    return runExclusiveJob(this.redisLock, name, async () => {
+      if (!this.jobRunRepo) return handler();
+      const run = await runAdminJobWithTracking(this.jobRunRepo, name, null, handler);
+      return run.result as T;
+    }) as Promise<T>;
   }
 
   /**

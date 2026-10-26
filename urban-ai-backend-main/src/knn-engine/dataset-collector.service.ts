@@ -12,6 +12,7 @@ import { List } from '../entities/list.entity';
 import { Event } from '../entities/events.entity';
 import { AdminJobRun } from '../entities/admin-job-run.entity';
 import { runAdminJobWithTracking } from '../admin-job-runs/admin-job-run-tracker';
+import { RedisLockService, runExclusiveJob } from '../common/redis-lock';
 import type { FirstAvailablePriceResult } from '../airbnb/types';
 import { addDaysToDateKey, todaySaoPauloDateKey } from '../common/sp-date';
 
@@ -181,6 +182,8 @@ export class DatasetCollectorService {
     private readonly jobRunRepo?: Repository<AdminJobRun>,
     @Optional()
     private readonly airbnbServiceOverride?: AirbnbPriceLookup,
+    @Optional()
+    private readonly redisLock?: RedisLockService,
   ) {}
 
   // ============ Frente 1: snapshot diário dos imóveis cadastrados ============
@@ -204,6 +207,7 @@ export class DatasetCollectorService {
       const result = await this.runCronWithTracking('dataset-daily-snapshot', () =>
         this.recordOwnedListingsSnapshot(),
       );
+      if (!result) return; // lock com outra réplica / Redis fora (fail-closed)
       this.logger.log(
         `Daily snapshot: capturados=${result.captured} pulados=${result.skipped} duplicados=${result.duplicates}`,
       );
@@ -224,6 +228,7 @@ export class DatasetCollectorService {
       const result = await this.runCronWithTracking('dataset-event-proximity-snapshot', () =>
         this.recordEventProximityFeatures(),
       );
+      if (!result) return; // lock com outra réplica / Redis fora (fail-closed)
       this.logger.log(
         `Event proximity snapshot: capturados=${result.captured} pulados=${result.skipped} duplicados=${result.duplicates}`,
       );
@@ -247,6 +252,7 @@ export class DatasetCollectorService {
       const result = await this.runCronWithTracking('dataset-airbnb-price-observations', () =>
         this.recordAirbnbPriceObservations(),
       );
+      if (!result) return; // lock com outra réplica / Redis fora (fail-closed)
       this.logger.log(
         `Airbnb price observations: sucesso=${result.succeeded} falhas=${result.failed} duplicados=${result.duplicates}`,
       );
@@ -353,9 +359,12 @@ export class DatasetCollectorService {
   }
 
   private async runCronWithTracking<T>(name: string, handler: () => Promise<T>): Promise<T> {
-    if (!this.jobRunRepo) return handler();
-    const run = await runAdminJobWithTracking(this.jobRunRepo, name, null, handler);
-    return run.result as T;
+    // Lock distribuído (TD3): só uma réplica roda o tick; lock tomado/Redis fora => pula (undefined).
+    return runExclusiveJob(this.redisLock, name, async () => {
+      if (!this.jobRunRepo) return handler();
+      const run = await runAdminJobWithTracking(this.jobRunRepo, name, null, handler);
+      return run.result as T;
+    }) as Promise<T>;
   }
 
   async recordAirbnbPriceObservations(): Promise<AirbnbPriceObservationResult> {
