@@ -7,6 +7,9 @@ import { AppFooter, AskUrbanProvider, SkipLink } from "./ui";
 
 /**
  * HostShell - layout shell unificado para rotas autenticadas do anfitrião.
+ *
+ * Mobile: top bar + tab bar de vidro (SideBar), `100dvh`, safe areas.
+ * Desktop (>767px): sidebar fixa à esquerda. Estilos em `ui/host-mobile.css`.
  */
 export default function HostShell({
   children,
@@ -25,56 +28,21 @@ export default function HostShell({
 
   return (
     <AskUrbanProvider>
-      <div
-        data-host-shell
-        className="urban-app"
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          background: "var(--app-bg)",
-          color: "var(--app-text)",
-        }}
-      >
+      <div data-host-shell className="urban-app urban-host-shell">
         <SkipLink targetId="host-main-content" />
         <SideBar />
 
-        <div
-          style={{
-            minWidth: 0,
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            background: "var(--app-bg)",
-          }}
-        >
+        <div className="urban-host-shell__column">
           <main
             id="host-main-content"
             tabIndex={-1}
-            className="urban-app"
-            style={{
-              flex: 1,
-              minHeight: 0,
-              padding: noPadding ? 0 : "24px 16px 96px",
-              background: "var(--app-bg)",
-            }}
+            className={`urban-app urban-host-shell__main${noPadding ? " urban-host-shell__main--flush" : ""}`}
           >
             {content}
           </main>
           <AppFooter />
         </div>
       </div>
-
-      <style>{`
-        @media (min-width: 768px) {
-          [data-host-shell] {
-            flex-direction: row !important;
-          }
-          [data-host-shell] > div:last-of-type > main {
-            padding: ${noPadding ? "0" : "32px 32px 80px"} !important;
-          }
-        }
-      `}</style>
     </AskUrbanProvider>
   );
 }

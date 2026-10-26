@@ -44,7 +44,7 @@ function styleForVariant(variant: AppButtonVariant): React.CSSProperties {
     case "primary":
       return {
         background: appVar.accent,
-        color: appVar.white,
+        color: "var(--app-accent-contrast)",
         border: `1px solid ${appVar.accent}`,
       };
     case "secondary":

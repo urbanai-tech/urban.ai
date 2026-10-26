@@ -2,13 +2,15 @@
 
 import NextLink from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../service/api';
 import { shouldRedirectToLogin } from '../lib/sidebar-auth';
 import { invalidateAuthCache, invalidateSubscriptionCache } from '../context/subscription-status';
 import { setSentryUser, clearSentryUser, trackEvent } from '../service/tracking';
 import { ThemeToggle } from './theme/ThemeToggle';
+import { useDialogFocus } from './ui/useDialogFocus';
+import { BrandLogo } from './ui/BrandLogo';
 import '../../../i18n';
 
 /**
@@ -22,7 +24,9 @@ import '../../../i18n';
  *  - Microinteracoes: hover slide accent, active border-left orange.
  *  - Switch admin↔host na sidebar quando user.role === 'admin' (item #2 do
  *    requerimento).
- *  - Mobile: top bar + bottom-nav 4 itens + drawer "Mais".
+ *  - Mobile (2026-10-26): top bar de vidro compacta (título colapsa ao rolar),
+ *    tab bar de vidro com 4 abas + "Mais" em bottom sheet, safe areas e
+ *    alvos de 44px. Estilo em `ui/host-mobile.css`, só tokens.
  *  - O wrapper Flex/Box do layout `app/<rota>/layout.tsx` continua sendo
  *    quem segura o conteúdo da página.
  */
@@ -54,17 +58,56 @@ const SECONDARY_NAV = [
 
 const MOBILE_PRIMARY_NAV = PRIMARY_NAV.slice(0, 4);
 const MOBILE_MORE_NAV = [...PRIMARY_NAV.slice(4), ...SECONDARY_NAV];
+const ALL_NAV = [...PRIMARY_NAV, ...SECONDARY_NAV];
 
 const HOST_SIDEBAR_COLLAPSED_KEY = 'urban-host-sidebar-collapsed';
+const TOPBAR_COLLAPSE_OFFSET = 24;
+
+/** Micro-feedback tátil no Android (iOS ignora). Respeita reduced-motion. */
+function tapFeedback() {
+  try {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    navigator.vibrate?.(8);
+  } catch {
+    /* feedback é opcional */
+  }
+}
 
 export default function SideBar() {
   const { t: _t } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname() || '';
   const [me, setMe] = useState<Me | null>(null);
   const [authRetry, setAuthRetry] = useState(false);
+  const closeMore = useCallback(() => setMobileOpen(false), []);
+
+  useDialogFocus({
+    open: mobileOpen,
+    containerRef: sheetRef,
+    onClose: closeMore,
+  });
+
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      setScrolled(window.scrollY > TOPBAR_COLLAPSE_OFFSET);
+    };
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -138,6 +181,8 @@ export default function SideBar() {
   const isAdmin = (me?.role || '').toLowerCase() === 'admin';
   const displayName = me?.username || 'Anfitrião';
   const initial = displayName.charAt(0).toUpperCase();
+  const currentTitle = ALL_NAV.find((item) => isActive(item.path))?.label ?? 'My Urban';
+  const moreActive = MOBILE_MORE_NAV.some((item) => isActive(item.path));
 
   function handleSidebarToggle() {
     setCollapsed((current) => {
@@ -166,8 +211,8 @@ export default function SideBar() {
       {/* ============================ DESKTOP SIDEBAR ============================ */}
       <aside
         data-host-sidebar
+        className="urban-host-sidebar"
         style={{
-          display: 'none',
           width: collapsed ? 76 : 248,
           flexShrink: 0,
           height: '100vh',
@@ -195,34 +240,10 @@ export default function SideBar() {
           {!collapsed && (
             <NextLink
               href="/painel"
-              style={{ display: 'flex', alignItems: 'baseline', gap: 6, textDecoration: 'none' }}
+              className="urban-sidebar-brand"
+              aria-label="My Urban, ir para o painel"
             >
-              <span
-                style={{
-                  fontFamily: "'Bebas Neue', Inter, sans-serif",
-                  fontSize: 22,
-                  fontWeight: 400,
-                  textTransform: 'uppercase',
-                  color: 'var(--app-nav-text)',
-                  lineHeight: 1,
-                  letterSpacing: 0,
-                }}
-              >
-                URBAN
-              </span>
-              <span
-                style={{
-                  fontFamily: "'Bebas Neue', Inter, sans-serif",
-                  fontSize: 22,
-                  fontWeight: 400,
-                  textTransform: 'uppercase',
-                  color: 'var(--app-accent)',
-                  lineHeight: 1,
-                  letterSpacing: 0,
-                }}
-              >
-                AI
-              </span>
+              <BrandLogo variant="wordmark" priority />
             </NextLink>
           )}
           <button
@@ -449,357 +470,165 @@ export default function SideBar() {
       {/* ============================ MOBILE TOP BAR ============================ */}
       <header
         data-host-mobile-topbar
-        style={{
-          display: 'flex',
-          position: 'sticky',
-          top: 0,
-          zIndex: 40,
-          height: 56,
-          padding: '0 16px',
-          background: 'var(--app-nav-bg)',
-          borderBottom: '1px solid var(--app-nav-border)',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          fontFamily: 'Inter, system-ui, sans-serif',
-        }}
+        data-scrolled={scrolled ? 'true' : 'false'}
+        className="urban-topbar urban-glass"
       >
-        <NextLink
-          href="/painel"
-          style={{ display: 'flex', alignItems: 'baseline', gap: 6, textDecoration: 'none' }}
-        >
-          <span
-            style={{
-              fontFamily: "'Bebas Neue', Inter, sans-serif",
-              fontSize: 20,
-              fontWeight: 400,
-              textTransform: 'uppercase',
-              color: 'var(--app-nav-text)',
-              lineHeight: 1,
-            }}
-          >
-            URBAN
-          </span>
-          <span
-            style={{
-              fontFamily: "'Bebas Neue', Inter, sans-serif",
-              fontSize: 20,
-              fontWeight: 400,
-              textTransform: 'uppercase',
-              color: 'var(--app-accent)',
-              lineHeight: 1,
-            }}
-          >
-            AI
-          </span>
-        </NextLink>
-        <button
-          type="button"
-          onClick={() => setMobileOpen(true)}
-          aria-label="Abrir menu"
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 8,
-            border: '1px solid var(--app-nav-border)',
-            background: 'transparent',
-            color: 'var(--app-nav-text)',
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <MenuIcon />
-        </button>
+        <div className="urban-topbar__inner">
+          <NextLink href="/painel" className="urban-topbar__brand" aria-label="My Urban, ir para o painel">
+            <BrandLogo variant="wordmark" priority />
+          </NextLink>
+          <p className="urban-topbar__title" aria-hidden="true">
+            {currentTitle}
+          </p>
+          <div className="urban-topbar__actions">
+            <NextLink
+              href="/notificacao"
+              className="urban-icon-btn"
+              aria-label="Notificações"
+              aria-current={isActive('/notificacao') ? 'page' : undefined}
+            >
+              <NavIcon name="bell" />
+            </NextLink>
+          </div>
+        </div>
       </header>
 
-      {/* ============================ MOBILE BOTTOM NAV ============================ */}
-      <nav
-        data-host-bottom-nav
-        style={{
-          display: 'flex',
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 40,
-          height: 64,
-          background: 'var(--app-nav-bg)',
-          borderTop: '1px solid var(--app-nav-border)',
-          justifyContent: 'space-around',
-          alignItems: 'stretch',
-          fontFamily: 'Inter, system-ui, sans-serif',
-        }}
-      >
-        {MOBILE_PRIMARY_NAV.map((item) => (
-          <BottomNavItem
-            key={item.path}
-            path={item.path}
-            icon={item.icon}
-            label={item.label}
-            active={isActive(item.path)}
-            onSelect={() => router.push(item.path)}
-          />
-        ))}
-        <BottomNavItem
-          path="__more"
-          icon="more"
-          label="Mais"
-          active={mobileOpen}
-          onSelect={() => setMobileOpen(true)}
-        />
-      </nav>
-
-      {/* Spacer */}
-      <div data-host-bottom-spacer style={{ height: 64 }} />
-
-      {/* ============================ MOBILE DRAWER MAIS ============================ */}
-      {mobileOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 100,
-            display: 'flex',
-            justifyContent: 'flex-end',
-            fontFamily: 'Inter, system-ui, sans-serif',
-          }}
-        >
-          <div
-            onClick={() => setMobileOpen(false)}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'var(--app-backdrop)',
-              backdropFilter: 'blur(4px)',
-            }}
-          />
-          <aside
-            style={{
-              position: 'relative',
-              width: '85%',
-              maxWidth: 320,
-              height: '100%',
-              background: 'var(--app-nav-bg)',
-              borderLeft: '1px solid var(--app-nav-border)',
-              display: 'flex',
-              flexDirection: 'column',
-              color: 'var(--app-nav-text)',
-              animation: 'urban-app-drawer-in 220ms cubic-bezier(0.16, 1, 0.3, 1)',
-            }}
-          >
-            <header
-              style={{
-                padding: 16,
-                borderBottom: '1px solid var(--app-nav-border)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
+      {/* ============================ MOBILE TAB BAR ============================ */}
+      <nav data-host-bottom-nav aria-label="Navegação principal" className="urban-tabbar urban-glass">
+        <ul className="urban-tabbar__list">
+          {MOBILE_PRIMARY_NAV.map((item) => (
+            <li key={item.path} className="urban-tabbar__item">
+              <NextLink
+                href={item.path}
+                className="urban-tabbar__link"
+                aria-current={isActive(item.path) ? 'page' : undefined}
+                onClick={tapFeedback}
+              >
+                <span className="urban-tabbar__icon">
+                  <NavIcon name={item.icon} />
+                </span>
+                <span className="urban-tabbar__label">{item.label}</span>
+              </NextLink>
+            </li>
+          ))}
+          <li className="urban-tabbar__item">
+            <button
+              ref={moreButtonRef}
+              type="button"
+              className="urban-tabbar__link"
+              aria-haspopup="dialog"
+              aria-expanded={mobileOpen}
+              aria-controls="host-more-sheet"
+              data-section-active={moreActive ? 'true' : undefined}
+              onClick={() => {
+                tapFeedback();
+                setMobileOpen(true);
               }}
             >
-              <p
-                style={{
-                  fontSize: 11,
-                  letterSpacing: 2,
-                  textTransform: 'uppercase',
-                  color: 'var(--app-nav-dim)',
-                  fontWeight: 600,
-                  margin: 0,
-                }}
-              >
-                Mais opções
-              </p>
+              <span className="urban-tabbar__icon">
+                <NavIcon name="more" />
+              </span>
+              <span className="urban-tabbar__label">Mais</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      {/* ============================ MOBILE SHEET "MAIS" ============================ */}
+      {mobileOpen && (
+        <div className="urban-sheet-root">
+          <button
+            type="button"
+            className="urban-sheet-scrim"
+            aria-label="Fechar menu"
+            tabIndex={-1}
+            onClick={closeMore}
+          />
+          <div
+            ref={sheetRef}
+            id="host-more-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="host-more-sheet-title"
+            tabIndex={-1}
+            className="urban-sheet"
+          >
+            <div className="urban-sheet__grabber" aria-hidden="true" />
+            <div className="urban-sheet__header">
+              <h2 id="host-more-sheet-title" className="urban-sheet__title">
+                Mais
+              </h2>
               <button
                 type="button"
-                onClick={() => setMobileOpen(false)}
+                onClick={closeMore}
                 aria-label="Fechar"
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 8,
-                  border: '1px solid var(--app-nav-border)',
-                  background: 'transparent',
-                  color: 'var(--app-nav-text)',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+                className="urban-icon-btn"
               >
                 <CloseIcon />
               </button>
-            </header>
-
-            {isAdmin && (
-              <button
-                type="button"
-                onClick={() => {
-                  router.push('/admin/dashboard');
-                  setMobileOpen(false);
-                }}
-                style={{
-                  margin: '16px',
-                  padding: '12px 16px',
-                  background: 'var(--app-accent-soft)',
-                  border: '1px solid var(--app-accent)',
-                  borderRadius: 10,
-                  color: 'var(--app-accent)',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  letterSpacing: 1,
-                  textTransform: 'uppercase',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 8,
-                }}
-              >
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  <ShieldIcon /> Painel admin
-                </span>
-                <ArrowRightIcon size={12} />
-              </button>
-            )}
-
-            <div
-              style={{
-                padding: '0 16px 12px',
-                borderBottom: '1px solid var(--app-nav-border)',
-              }}
-            >
-              <ThemeToggle style={{ width: '100%', justifyContent: 'center' }} />
             </div>
 
-            <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
-              <SectionLabel label="Menu" />
-              {MOBILE_MORE_NAV.map((item) => (
-                <NavLink
-                  key={item.path}
-                  path={item.path}
-                  icon={item.icon}
-                  label={item.label}
-                  active={isActive(item.path)}
-                  onSelect={() => {
-                    router.push(item.path);
-                    setMobileOpen(false);
-                  }}
-                />
-              ))}
-            </div>
-
-            <div
-              style={{
-                padding: 16,
-                borderTop: '1px solid var(--app-nav-border)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-              }}
-            >
-              <div
-                aria-hidden
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: '50%',
-                  background: 'var(--app-nav-hover)',
-                  border: '1px solid var(--app-nav-border)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 600,
-                  color: 'var(--app-nav-text)',
-                  fontSize: 14,
-                  flexShrink: 0,
-                }}
-              >
-                {initial}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: 'var(--app-nav-text)',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
+            <div className="urban-sheet__body">
+              {isAdmin && (
+                <button
+                  type="button"
+                  className="urban-sheet__admin"
+                  onClick={() => {
+                    router.push('/admin/dashboard');
+                    closeMore();
                   }}
                 >
-                  {displayName}
-                </p>
-                <p
-                  style={{
-                    margin: '2px 0 0',
-                    fontSize: 11,
-                    letterSpacing: 1.5,
-                    textTransform: 'uppercase',
-                    color: 'var(--app-nav-dim)',
-                    fontWeight: 500,
-                  }}
-                >
-                  {isAdmin ? 'Admin' : 'Anfitrião'}
-                </p>
+                  <span className="urban-sheet__admin-label">
+                    <ShieldIcon /> Painel admin
+                  </span>
+                  <ArrowRightIcon size={12} />
+                </button>
+              )}
+
+              <p className="urban-sheet__section-label">Menu</p>
+              <ul className="urban-sheet__grid">
+                {MOBILE_MORE_NAV.map((item) => (
+                  <li key={item.path}>
+                    <NextLink
+                      href={item.path}
+                      className="urban-sheet__tile"
+                      aria-current={isActive(item.path) ? 'page' : undefined}
+                      onClick={closeMore}
+                    >
+                      <NavIcon name={item.icon} />
+                      <span>{item.label}</span>
+                    </NextLink>
+                  </li>
+                ))}
+              </ul>
+
+              <p className="urban-sheet__section-label">Aparência</p>
+              <div className="urban-sheet__theme">
+                <ThemeToggle />
               </div>
-              <button
-                type="button"
-                onClick={handleLogout}
-                aria-label="Sair"
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 8,
-                  border: '1px solid var(--app-nav-border)',
-                  background: 'transparent',
-                  color: 'var(--app-nav-muted)',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <LogoutIcon />
-              </button>
+
+              <p className="urban-sheet__section-label">Conta</p>
+              <div className="urban-sheet__row">
+                <div aria-hidden="true" className="urban-avatar">
+                  {initial}
+                </div>
+                <div className="urban-account">
+                  <p className="urban-account__name">{displayName}</p>
+                  <p className="urban-account__role">{isAdmin ? 'Admin' : 'Anfitrião'}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  aria-label="Sair"
+                  className="urban-icon-btn urban-icon-btn--bordered"
+                >
+                  <LogoutIcon />
+                </button>
+              </div>
             </div>
-          </aside>
+          </div>
         </div>
       )}
-
-      <style jsx global>{`
-        @keyframes urban-app-drawer-in {
-          from {
-            transform: translateX(100%);
-          }
-          to {
-            transform: translateX(0);
-          }
-        }
-        @media (min-width: 768px) {
-          [data-host-sidebar] {
-            display: flex !important;
-          }
-          [data-host-mobile-topbar],
-          [data-host-bottom-nav],
-          [data-host-bottom-spacer] {
-            display: none !important;
-          }
-        }
-        @media (max-width: 767px) {
-          [data-host-mobile-topbar] {
-            display: flex !important;
-          }
-          [data-host-bottom-nav] {
-            display: flex !important;
-          }
-          [data-host-bottom-spacer] {
-            display: block !important;
-          }
-        }
-      `}</style>
     </>
   );
 }
@@ -897,75 +726,6 @@ function NavLink({
         <NavIcon name={icon} />
       </span>
       {!collapsed && <span>{label}</span>}
-    </button>
-  );
-}
-
-function BottomNavItem({
-  path: _path,
-  icon,
-  label,
-  active,
-  onSelect,
-}: {
-  path: string;
-  icon: IconKey;
-  label: string;
-  active: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      style={{
-        flex: 1,
-        background: 'transparent',
-        border: 'none',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 4,
-        padding: '8px 0 6px',
-        color: active ? 'var(--app-accent)' : 'var(--app-nav-muted)',
-        fontSize: 10,
-        fontWeight: active ? 600 : 500,
-        letterSpacing: 0.5,
-        cursor: 'pointer',
-        transition: 'color 120ms',
-        fontFamily: 'Inter, system-ui, sans-serif',
-        position: 'relative',
-        minWidth: 0,
-      }}
-    >
-      {active && (
-        <span
-          aria-hidden
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 24,
-            height: 2,
-            background: 'var(--app-accent)',
-            borderRadius: '0 0 4px 4px',
-          }}
-        />
-      )}
-      <NavIcon name={icon} />
-      <span
-        style={{
-          maxWidth: '100%',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          padding: '0 2px',
-        }}
-      >
-        {label}
-      </span>
     </button>
   );
 }

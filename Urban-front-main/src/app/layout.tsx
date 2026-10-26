@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Bebas_Neue, Inter, Poppins } from "next/font/google";
+import { Archivo, Bebas_Neue, Inter, Poppins } from "next/font/google";
 import "./globals.css";
 
 // UX-6d (FOUT): fontes self-hospedadas pelo Next em vez de @import do Google
@@ -17,6 +17,17 @@ const inter = Inter({
   display: "swap",
   variable: "--font-inter",
 });
+// Marca (2026-10-26): Archivo (OFL) com eixo de largura é o substituto livre
+// da Artegra Sans Extended (licença comercial, sem uso web confirmado). Os
+// tokens --font-brand/--font-display apontam para a Artegra primeiro; ela só
+// existe se NEXT_PUBLIC_BRAND_FONTS_URL carregar um CSS de host licenciado.
+const archivo = Archivo({
+  subsets: ["latin"],
+  axes: ["wdth"],
+  display: "swap",
+  variable: "--font-archivo",
+});
+const BRAND_FONTS_URL = process.env.NEXT_PUBLIC_BRAND_FONTS_URL;
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
@@ -78,8 +89,8 @@ export const viewport: Viewport = {
   viewportFit: "cover",
   colorScheme: "light dark",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#FAFAFB" },
-    { media: "(prefers-color-scheme: dark)", color: "#080A0F" },
+    { media: "(prefers-color-scheme: light)", color: "#F4F8F5" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
   ],
 };
 
@@ -91,11 +102,12 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`font-press ${bebas.variable} ${inter.variable} ${poppins.variable}${HAS_ENVIRONMENT_BANNER ? " has-environment-banner" : ""}`}
+      className={`font-press ${bebas.variable} ${inter.variable} ${poppins.variable} ${archivo.variable}${HAS_ENVIRONMENT_BANNER ? " has-environment-banner" : ""}`}
       suppressHydrationWarning
     >
       <head>
         <ThemeScript />
+        {BRAND_FONTS_URL ? <link rel="stylesheet" href={BRAND_FONTS_URL} /> : null}
       </head>
       <body cz-shortcut-listen="true">
         <StagingBanner />

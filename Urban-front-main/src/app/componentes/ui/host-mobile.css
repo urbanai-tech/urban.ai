@@ -1,0 +1,1504 @@
+/* ========================================================================== */
+/* Urban AI — camada mobile premium do app do anfitrião                       */
+/*                                                                            */
+/* Regras:                                                                    */
+/*  - Só consome tokens (var(--app-*) / var(--theme-*)). Nenhuma cor crua:    */
+/*    trocar a marca = trocar tokens.json + npm run design:tokens:generate.   */
+/*  - Vidro (backdrop-filter) apenas em barras de navegação e no scrim de     */
+/*    sheets. Listas longas rolam sobre superfícies sólidas.                  */
+/*  - Fallback sólido quando backdrop-filter não existe, ou quando o usuário  */
+/*    pede menos transparência / mais contraste.                              */
+/*  - Motion 150–250ms; prefers-reduced-motion zera animações.                */
+/*  - Breakpoints canônicos: 767px (mobile) e "not (max-width: 767px)".       */
+/* ========================================================================== */
+
+:root {
+  /* Safe areas centralizadas: e2e consegue simular um notch sobrescrevendo
+     estas variáveis no <html>. */
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-right: env(safe-area-inset-right, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --app-safe-left: env(safe-area-inset-left, 0px);
+
+  /* Paleta oficial (Brandbook My Urban 2026) — valores em tokens.json. */
+  --brand-deep: var(--theme-brand-deep);
+  --brand-teal: var(--theme-brand-teal);
+  --brand-mint: var(--theme-brand-mint);
+  --brand-lime: var(--theme-brand-lime);
+  --brand-black: var(--theme-brand-black);
+  --brand-white: var(--theme-brand-white);
+
+  /* Tipografia da marca. Artegra Sans Extended / Muring são comerciais: só
+     resolvem se NEXT_PUBLIC_BRAND_FONTS_URL carregar um CSS licenciado.
+     Sem isso, Archivo (OFL, eixo wdth) faz o papel com largura estendida. */
+  --font-brand: "Artegra Sans Extended", var(--font-archivo), system-ui, -apple-system, sans-serif;
+  --font-display: "Artegra Sans Extended", var(--font-archivo), system-ui, -apple-system, sans-serif;
+  --font-highlight: "Muring", var(--font-archivo), system-ui, sans-serif;
+  --font-brand-stretch: 106%;
+  --font-display-stretch: 118%;
+
+  /* Fundos oficiais otimizados (public/brand). */
+  --brand-bg-gradient: image-set(url("/brand/bg-gradient-1280.webp") 1x, url("/brand/bg-gradient-2560.webp") 2x);
+  --brand-bg-glow: image-set(url("/brand/bg-glow-1280.webp") 1x, url("/brand/bg-glow-2560.webp") 2x);
+}
+
+.urban-app {
+  font-stretch: var(--font-brand-stretch);
+}
+
+.urban-app {
+  /* Aliases curtos do vidro (contrato pedido pelo design system). */
+  --glass-bg: var(--app-glass-bg);
+  --glass-bg-solid: var(--app-glass-bg-solid);
+  --glass-border: var(--app-glass-border);
+  --glass-blur: var(--app-glass-filter);
+  --glass-shadow: var(--app-glass-shadow);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Superfície de vidro                                                        */
+/* -------------------------------------------------------------------------- */
+
+.urban-glass {
+  background: var(--app-glass-bg-solid);
+  border-color: var(--app-glass-border);
+  box-shadow: var(--app-glass-shadow);
+}
+
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .urban-glass {
+    background: var(--app-glass-bg);
+    -webkit-backdrop-filter: var(--app-glass-filter);
+    backdrop-filter: var(--app-glass-filter);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .urban-glass {
+    background: var(--app-glass-bg-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Shell                                                                      */
+/* -------------------------------------------------------------------------- */
+
+.urban-host-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--app-bg);
+  color: var(--app-text);
+}
+
+.urban-host-shell__column {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--app-bg);
+}
+
+.urban-host-shell__main {
+  flex: 1;
+  min-height: 0;
+  padding: 16px max(16px, var(--app-safe-right)) 32px max(16px, var(--app-safe-left));
+  background: var(--app-bg);
+}
+
+.urban-host-shell__main--flush {
+  padding: 0;
+}
+
+.urban-host-sidebar {
+  display: none;
+}
+
+.urban-topbar,
+.urban-tabbar {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .urban-topbar,
+  .urban-tabbar {
+    display: block;
+  }
+
+  html:has(.urban-host-shell) {
+    overscroll-behavior-x: none;
+  }
+}
+
+@media not all and (max-width: 767px) {
+  .urban-host-shell {
+    flex-direction: row;
+  }
+
+  .urban-host-shell__main {
+    padding: 32px 32px 80px;
+  }
+
+  .urban-host-shell__main--flush {
+    padding: 0;
+  }
+
+  .urban-host-sidebar {
+    display: flex;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Top bar compacta (large title colapsa: o h1 da página é o título grande;   */
+/* ao rolar, o título compacto aparece centralizado na barra de vidro).       */
+/* -------------------------------------------------------------------------- */
+
+.urban-topbar {
+  position: sticky;
+  top: var(--environment-banner-height, 0px);
+  z-index: 40;
+  padding-top: var(--app-safe-top);
+  border-bottom: 1px solid transparent;
+  box-shadow: none;
+  transition:
+    border-color var(--app-motion-duration-base) var(--app-motion-ease-standard),
+    box-shadow var(--app-motion-duration-base) var(--app-motion-ease-standard);
+}
+
+.urban-topbar[data-scrolled="true"] {
+  border-bottom-color: var(--app-glass-border);
+  box-shadow: var(--app-glass-shadow);
+}
+
+.urban-topbar__inner {
+  position: relative;
+  height: var(--app-topbar-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 max(8px, var(--app-safe-right)) 0 max(16px, var(--app-safe-left));
+}
+
+.urban-topbar__brand {
+  --brand-logo-height: 16px;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--app-touch-target);
+  text-decoration: none;
+  transition: opacity var(--app-motion-duration-base) var(--app-motion-ease-standard);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Logo da marca                                                              */
+/* Regras do manual: nunca blur, sombra, contorno, recolorir ou distorcer.     */
+/* Área de proteção = altura do "O" (≈ altura do logotipo sem ícone); quem    */
+/* posiciona o logo garante esse respiro com padding/margem.                  */
+/* -------------------------------------------------------------------------- */
+
+.urban-brand-logo {
+  display: block;
+  width: auto;
+  height: var(--brand-logo-height, 16px);
+  max-width: none;
+  filter: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.urban-brand-logo--on-dark {
+  display: none;
+}
+
+:root[data-theme="dark"] .urban-brand-logo--on-light {
+  display: none;
+}
+
+:root[data-theme="dark"] .urban-brand-logo--on-dark {
+  display: block;
+}
+
+/* Faixa com o fundo oficial da marca (Backgrounds_05 no claro, 04 no escuro)
+   atrás das superfícies de vidro. O scrim tokenizado garante AA para o
+   texto (ver design:contrast:check, pares band-*). */
+.urban-brand-band {
+  background-color: var(--app-bg);
+  background-image:
+    linear-gradient(180deg, var(--app-brand-band-scrim) 0%, var(--app-brand-band-scrim) 55%, var(--app-bg) 100%),
+    var(--brand-bg-gradient);
+  background-repeat: no-repeat;
+  background-size: 100% var(--brand-band-height, 360px);
+  background-position: top center;
+}
+
+.urban-brand-band > .urban-app {
+  background: transparent;
+}
+
+:root[data-theme="dark"] .urban-brand-band {
+  background-image:
+    linear-gradient(180deg, var(--app-brand-band-scrim) 0%, var(--app-brand-band-scrim) 55%, var(--app-bg) 100%),
+    var(--brand-bg-glow);
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .urban-brand-band,
+  :root[data-theme="dark"] .urban-brand-band {
+    background-image: none;
+  }
+}
+
+.urban-topbar__title {
+  position: absolute;
+  left: 64px;
+  right: 64px;
+  margin: 0;
+  text-align: center;
+  font-size: var(--app-type-headline);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--app-glass-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition:
+    opacity var(--app-motion-duration-base) var(--app-motion-ease-standard),
+    transform var(--app-motion-duration-base) var(--app-motion-ease-standard);
+}
+
+.urban-topbar[data-scrolled="true"] .urban-topbar__title {
+  opacity: 1;
+  transform: none;
+}
+
+.urban-topbar[data-scrolled="true"] .urban-topbar__brand {
+  opacity: 0;
+}
+
+.urban-topbar__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Botão de ícone 44×44 (barras e sheets)                                     */
+/* -------------------------------------------------------------------------- */
+
+.urban-icon-btn {
+  position: relative;
+  width: var(--app-touch-target);
+  height: var(--app-touch-target);
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--app-radius-pill);
+  background: transparent;
+  color: var(--app-glass-text-muted);
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--app-motion-duration-fast) var(--app-motion-ease-standard),
+    color var(--app-motion-duration-fast) var(--app-motion-ease-standard),
+    transform var(--app-motion-duration-fast) var(--app-motion-ease-standard);
+}
+
+.urban-icon-btn:hover {
+  color: var(--app-glass-text);
+  background: var(--app-nav-hover);
+}
+
+.urban-icon-btn:active {
+  transform: scale(0.92);
+}
+
+.urban-icon-btn--bordered {
+  border: 1px solid var(--app-divider-strong);
+  background: var(--app-surface-muted);
+  color: var(--app-text);
+}
+
+.urban-icon-btn__dot {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--app-radius-pill);
+  background: var(--app-tab-active);
+  box-shadow: 0 0 0 2px var(--app-glass-bg-solid);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tab bar inferior                                                           */
+/* -------------------------------------------------------------------------- */
+
+.urban-tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  padding: 0 var(--app-safe-right) var(--app-safe-bottom) var(--app-safe-left);
+  border-top: 1px solid var(--app-glass-border);
+}
+
+.urban-tabbar__list {
+  display: flex;
+  align-items: stretch;
+  height: var(--app-tabbar-height);
+  margin: 0 auto;
+  padding: 0 4px;
+  max-width: 560px;
+  list-style: none;
+}
+
+.urban-tabbar__item {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+}
+
+.urban-tabbar__link {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--app-touch-target);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px 0 2px;
+  border: 0;
+  background: transparent;
+  color: var(--app-glass-text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: color var(--app-motion-duration-fast) var(--app-motion-ease-standard);
+}
+
+.urban-tabbar__icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 30px;
+  transition: transform var(--app-motion-duration-fast) var(--app-motion-ease-standard);
+}
+
+.urban-tabbar__icon::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--app-radius-pill);
+  background: var(--app-tab-indicator);
+  opacity: 0;
+  transform: scaleX(0.5);
+  transition:
+    opacity var(--app-motion-duration-base) var(--app-motion-ease-emphasized),
+    transform var(--app-motion-duration-slow) var(--app-motion-ease-emphasized);
+}
+
+.urban-tabbar__icon svg {
+  position: relative;
+}
+
+.urban-tabbar__label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 2px;
+}
+
+.urban-tabbar__link[aria-current="page"],
+.urban-tabbar__link[aria-expanded="true"] {
+  color: var(--app-glass-text);
+  font-weight: 600;
+}
+
+.urban-tabbar__link[aria-current="page"] .urban-tabbar__icon,
+.urban-tabbar__link[aria-expanded="true"] .urban-tabbar__icon {
+  color: var(--app-tab-active);
+}
+
+.urban-tabbar__link[aria-current="page"] .urban-tabbar__icon::before,
+.urban-tabbar__link[aria-expanded="true"] .urban-tabbar__icon::before {
+  opacity: 1;
+  transform: none;
+}
+
+/* Micro-interação "háptica": a pílula afunda ao toque e volta com mola. */
+.urban-tabbar__link:active .urban-tabbar__icon {
+  transform: scale(0.88);
+}
+
+.urban-tabbar__link:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: -4px;
+  border-radius: var(--app-radius-control);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Bottom sheet                                                               */
+/* -------------------------------------------------------------------------- */
+
+@keyframes urban-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes urban-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.urban-sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.urban-sheet-scrim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: var(--app-backdrop);
+  cursor: default;
+  animation: urban-fade-in var(--app-motion-duration-base) var(--app-motion-ease-standard);
+}
+
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .urban-sheet-scrim {
+    -webkit-backdrop-filter: var(--app-scrim-filter);
+    backdrop-filter: var(--app-scrim-filter);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .urban-sheet-scrim {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+.urban-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100dvh - var(--app-safe-top) - 24px);
+  display: flex;
+  flex-direction: column;
+  background: var(--app-sheet-bg);
+  color: var(--app-text);
+  border: 1px solid var(--app-divider);
+  border-bottom: 0;
+  border-radius: var(--app-radius-sheet) var(--app-radius-sheet) 0 0;
+  box-shadow: var(--app-sheet-shadow);
+  padding-bottom: var(--app-safe-bottom);
+  overscroll-behavior: contain;
+  animation: urban-sheet-in var(--app-motion-duration-slow) var(--app-motion-ease-emphasized);
+}
+
+.urban-sheet:focus {
+  outline: none;
+}
+
+.urban-sheet__grabber {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 5px;
+  margin: 8px auto 0;
+  border-radius: var(--app-radius-pill);
+  background: var(--app-divider-strong);
+}
+
+.urban-sheet__header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 8px 4px 20px;
+}
+
+.urban-sheet__title {
+  margin: 0;
+  font-size: var(--app-type-title-3);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--app-text);
+}
+
+.urban-sheet__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 16px 16px;
+}
+
+.urban-sheet__section-label {
+  margin: 16px 4px 8px;
+  font-size: var(--app-type-caption);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--app-text-muted);
+}
+
+.urban-sheet__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.urban-sheet__tile {
+  width: 100%;
+  min-height: 76px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 6px;
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-lg);
+  background: var(--app-surface-muted);
+  color: var(--app-text);
+  font-size: var(--app-type-caption);
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--app-motion-duration-fast) var(--app-motion-ease-standard),
+    border-color var(--app-motion-duration-fast) var(--app-motion-ease-standard);
+}
+
+.urban-sheet__tile svg {
+  color: var(--app-text-muted);
+}
+
+.urban-sheet__tile:active {
+  transform: scale(0.96);
+}
+
+.urban-sheet__tile[aria-current="page"] {
+  border-color: var(--app-accent-border);
+  background: var(--app-accent-soft);
+}
+
+.urban-sheet__tile[aria-current="page"] svg {
+  color: var(--app-accent);
+}
+
+.urban-sheet__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 4px;
+}
+
+.urban-sheet__row + .urban-sheet__row {
+  border-top: 1px solid var(--app-divider);
+}
+
+.urban-sheet__admin {
+  width: 100%;
+  min-height: var(--app-touch-target);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 0 16px;
+  border: 1px solid var(--app-accent-border);
+  border-radius: var(--app-radius-control);
+  background: var(--app-accent-soft);
+  color: var(--app-accent);
+  font-size: var(--app-type-footnote);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.urban-sheet__admin-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.urban-sheet__theme {
+  display: flex;
+}
+
+.urban-sheet__theme > [role="group"] {
+  width: 100%;
+  justify-content: center;
+}
+
+.urban-avatar {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--app-radius-pill);
+  border: 1px solid var(--app-divider);
+  background: var(--app-surface-muted);
+  color: var(--app-text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.urban-account {
+  flex: 1;
+  min-width: 0;
+}
+
+.urban-account__name {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--app-type-footnote);
+  font-weight: 600;
+  color: var(--app-text);
+}
+
+.urban-account__role {
+  margin: 2px 0 0;
+  font-size: var(--app-type-caption);
+  color: var(--app-text-muted);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Densidade, alvos de toque e escala tipográfica no mobile                   */
+/* -------------------------------------------------------------------------- */
+
+@media (max-width: 767px), (pointer: coarse) {
+  .urban-app .urban-canonical-button {
+    min-height: var(--app-touch-target);
+  }
+}
+
+@media (max-width: 767px) {
+  .urban-app .urban-app-display-md {
+    font-size: var(--app-type-title-1);
+    line-height: 1.04;
+  }
+
+  .urban-app .urban-section-header {
+    padding-bottom: 16px !important;
+    margin-bottom: 20px !important;
+    gap: 16px !important;
+  }
+
+  .urban-app .urban-section-header__actions {
+    width: 100%;
+    justify-content: flex-start !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Skeleton                                                                   */
+/* -------------------------------------------------------------------------- */
+
+@keyframes urban-skeleton-wave {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+.urban-skeleton {
+  display: block;
+  border-radius: var(--app-radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--app-skeleton-base) 0%,
+    var(--app-skeleton-shine) 50%,
+    var(--app-skeleton-base) 100%
+  );
+  background-size: 200% 100%;
+  animation: urban-skeleton-wave 1.4s ease-in-out infinite;
+}
+
+.urban-skeleton-card {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-lg);
+  background: var(--app-surface);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Notificações                                                               */
+/* -------------------------------------------------------------------------- */
+
+.urban-notif-actions,
+.urban-notif-topline,
+.urban-notif-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.urban-notif-actions {
+  justify-content: flex-end;
+}
+
+.urban-notif-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.urban-notif-metrics > div {
+  min-width: 0;
+  padding: 14px 16px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-card);
+}
+
+.urban-notif-metrics strong {
+  display: block;
+  color: var(--app-text);
+  font-size: 24px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.urban-notif-metrics span {
+  display: block;
+  margin-top: 7px;
+  color: var(--app-text-muted);
+  font-size: var(--app-type-caption);
+}
+
+.urban-notif-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.urban-notif-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 18px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-card);
+  box-shadow: var(--app-shadow-card);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color var(--app-motion-duration-fast) var(--app-motion-ease-standard),
+    transform var(--app-motion-duration-fast) var(--app-motion-ease-standard);
+}
+
+.urban-notif-card:hover {
+  border-color: var(--app-divider-strong);
+}
+
+.urban-notif-card:active {
+  transform: scale(0.99);
+}
+
+.urban-notif-card.is-unread {
+  background: linear-gradient(90deg, var(--app-accent-soft), var(--app-surface) 42%);
+  border-left: 3px solid var(--app-accent);
+}
+
+.urban-notif-card.is-opened .urban-notif-body h3 {
+  font-weight: 500;
+}
+
+.urban-notif-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  color: var(--app-accent);
+  background: var(--app-accent-soft);
+  border: 1px solid var(--app-accent-border);
+  border-radius: var(--app-radius-control);
+}
+
+.urban-notif-card.is-opened .urban-notif-icon {
+  color: var(--app-text-muted);
+  background: var(--app-surface-muted);
+  border-color: var(--app-divider);
+}
+
+.urban-notif-body {
+  min-width: 0;
+}
+
+.urban-notif-topline span {
+  color: var(--app-text-muted);
+  font-size: var(--app-type-caption);
+}
+
+.urban-notif-body h3 {
+  margin: 8px 0 0;
+  color: var(--app-text);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.urban-notif-body p {
+  margin: 6px 0 0;
+  color: var(--app-text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.urban-notif-action {
+  justify-content: flex-end;
+  color: var(--app-text-muted);
+  font-size: var(--app-type-footnote);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .urban-notif-actions {
+    justify-content: flex-start;
+  }
+
+  .urban-notif-metrics {
+    display: flex;
+    gap: 8px;
+    margin: 0 -16px 16px;
+    padding: 0 16px 2px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .urban-notif-metrics > div {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: var(--app-radius-pill);
+    scroll-snap-align: start;
+  }
+
+  .urban-notif-metrics strong {
+    font-size: 17px;
+  }
+
+  .urban-notif-metrics span {
+    margin-top: 0;
+    white-space: nowrap;
+  }
+
+  .urban-notif-list {
+    gap: 8px;
+  }
+
+  .urban-notif-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 12px;
+    padding: 14px 14px 12px;
+    border-radius: var(--app-radius-lg);
+  }
+
+  .urban-notif-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .urban-notif-body h3 {
+    margin-top: 6px;
+    font-size: 15px;
+  }
+
+  .urban-notif-body p {
+    font-size: var(--app-type-footnote);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .urban-notif-action {
+    grid-column: 2;
+    justify-content: flex-start;
+    color: var(--app-accent);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Recomendação de preço                                                      */
+/* -------------------------------------------------------------------------- */
+
+.urban-rec {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  overflow: hidden;
+  padding: 24px 28px;
+}
+
+.urban-rec--compact {
+  gap: 14px;
+  padding: 18px 20px;
+}
+
+.urban-rec__eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.urban-rec__category {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--app-accent);
+  font-weight: 700;
+}
+
+.urban-rec__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--app-text);
+  overflow-wrap: anywhere;
+}
+
+.urban-rec--compact .urban-rec__title {
+  font-size: 16px;
+}
+
+.urban-rec__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 8px;
+  font-size: var(--app-type-caption);
+  color: var(--app-text-muted);
+}
+
+.urban-rec__meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.urban-rec__price {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 16px;
+}
+
+/* Preço sugerido em --app-highlight (teal no claro: 3.77:1, só texto grande;
+   lime no escuro). Nunca reduzir abaixo de 24px. */
+.urban-rec__price-value {
+  color: var(--app-highlight) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.urban-rec--compact .urban-rec__price-value {
+  font-size: 44px !important;
+  line-height: 0.95 !important;
+}
+
+.urban-rec__current {
+  margin: 4px 0 0;
+  font-size: var(--app-type-caption);
+  color: var(--app-text-muted);
+}
+
+.urban-rec__current strong {
+  color: var(--app-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.urban-rec__delta {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 6px 12px;
+  border-radius: var(--app-radius-control);
+  background: var(--app-accent-soft);
+  color: var(--app-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.urban-rec__delta[data-direction="down"] {
+  background: var(--app-surface-muted);
+  color: var(--app-danger);
+}
+
+.urban-rec__delta-pct {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.urban-rec__delta-abs {
+  font-size: var(--app-type-caption);
+  font-weight: 600;
+}
+
+.urban-rec__why {
+  display: flex;
+  gap: 12px;
+  min-width: 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--app-divider);
+}
+
+.urban-rec__why-icon {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--app-radius-pill);
+  background: var(--app-accent-soft);
+  color: var(--app-accent);
+}
+
+.urban-rec__why-text {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.urban-rec--compact .urban-rec__why-text {
+  font-size: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.urban-rec__approval-note {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--app-radius-control);
+  background: var(--app-accent-soft);
+  color: var(--app-text);
+  font-size: var(--app-type-footnote);
+  font-weight: 600;
+}
+
+.urban-rec__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.urban-rec__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@media (max-width: 767px) {
+  .urban-rec,
+  .urban-rec--compact {
+    gap: 16px;
+    padding: 18px 16px 16px;
+    border-radius: var(--app-radius-lg) !important;
+  }
+
+  .urban-rec__price {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .urban-rec__delta {
+    flex-direction: row;
+    align-items: center;
+    justify-self: start;
+    gap: 8px;
+    border-radius: var(--app-radius-pill);
+  }
+
+  .urban-rec__actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .urban-rec__actions > :last-child {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+
+  .urban-rec__actions > :only-child {
+    grid-column: 1 / -1;
+  }
+
+  .urban-rec__actions .urban-canonical-button {
+    width: 100%;
+  }
+}
+
+/* Detalhes da recomendação: modal centralizado no desktop, bottom sheet no
+   mobile. A semântica (role=dialog, aria-*) fica no componente. */
+
+.urban-rec-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.urban-rec-dialog__panel {
+  position: relative;
+  width: min(720px, 100%);
+  max-height: calc(100dvh - 40px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--app-divider-strong);
+  border-radius: var(--app-radius-lg);
+  background: var(--app-sheet-bg);
+  box-shadow: var(--app-shadow-overlay);
+  animation: urban-fade-in var(--app-motion-duration-base) var(--app-motion-ease-standard);
+}
+
+.urban-rec-dialog__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--app-divider);
+}
+
+.urban-rec-dialog__title {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.urban-rec-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 767px) {
+  .urban-rec-dialog {
+    place-items: end stretch;
+    padding: 0;
+  }
+
+  .urban-rec-dialog__panel {
+    width: 100%;
+    max-height: calc(100dvh - var(--app-safe-top) - 24px);
+    border-bottom: 0;
+    border-radius: var(--app-radius-sheet) var(--app-radius-sheet) 0 0;
+    box-shadow: var(--app-sheet-shadow);
+    padding-bottom: var(--app-safe-bottom);
+    animation: urban-sheet-in var(--app-motion-duration-slow) var(--app-motion-ease-emphasized);
+  }
+
+  .urban-rec-dialog__panel::before {
+    content: "";
+    display: block;
+    flex: 0 0 auto;
+    width: 36px;
+    height: 5px;
+    margin: 8px auto 0;
+    border-radius: var(--app-radius-pill);
+    background: var(--app-divider-strong);
+  }
+
+  .urban-rec-dialog__header {
+    padding: 8px 12px 12px 20px;
+  }
+
+  .urban-rec-dialog__title {
+    font-size: var(--app-type-title-3);
+  }
+
+  .urban-rec-dialog__body {
+    padding: 16px;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Onboarding                                                                 */
+/* -------------------------------------------------------------------------- */
+
+.urban-onboarding-layout {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--app-bg);
+  color: var(--app-text);
+}
+
+.urban-onboarding-layout__main {
+  flex: 1;
+  padding: calc(24px + var(--app-safe-top)) max(0px, var(--app-safe-right)) calc(32px + var(--app-safe-bottom)) max(0px, var(--app-safe-left));
+}
+
+/* -------------------------------------------------------------------------- */
+/* Motion reduzido                                                            */
+/* -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .urban-app *,
+  .urban-app *::before,
+  .urban-app *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .urban-skeleton {
+    animation: none;
+  }
+}
+
+.urban-sidebar-brand {
+  --brand-logo-height: 18px;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--app-touch-target);
+  text-decoration: none;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Auth (AuthFlowShell)                                                       */
+/* -------------------------------------------------------------------------- */
+
+.urban-brand-logo--force-dark.urban-brand-logo--on-light {
+  display: none;
+}
+
+.urban-brand-logo--force-dark.urban-brand-logo--on-dark {
+  display: block;
+}
+
+.urban-auth {
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+  background: var(--app-bg);
+}
+
+/* Painel sempre escuro: fundo oficial 04 + scrim preto (AA para texto
+   branco/mint mesmo sobre o brilho teal: >= 9:1). */
+.urban-auth__aside {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  color: var(--brand-white);
+  background-color: var(--brand-black);
+  background-image:
+    linear-gradient(180deg, color-mix(in srgb, var(--brand-black) 40%, transparent) 0%, color-mix(in srgb, var(--brand-black) 70%, transparent) 100%),
+    var(--brand-bg-glow);
+  background-size: cover;
+  background-position: center;
+}
+
+.urban-auth__aside-inner {
+  position: relative;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 40px 48px 44px;
+}
+
+.urban-auth__aside-logo {
+  --brand-logo-height: 56px;
+}
+
+.urban-auth__aside-eyebrow {
+  margin: 0 0 18px;
+  color: var(--brand-mint);
+  font-size: var(--app-type-caption);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.urban-auth__aside-title {
+  margin: 0;
+  max-width: 560px;
+  color: var(--brand-white);
+  font-family: var(--font-display) !important;
+  font-stretch: var(--font-display-stretch);
+  font-size: clamp(36px, 3.6vw, 56px);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+}
+
+.urban-auth__aside-subtitle {
+  margin: 24px 0 0;
+  max-width: 440px;
+  color: color-mix(in srgb, var(--brand-white) 82%, transparent);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.urban-auth__aside-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding-top: 20px;
+  border-top: 1px solid color-mix(in srgb, var(--brand-white) 18%, transparent);
+  color: color-mix(in srgb, var(--brand-white) 78%, transparent);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.urban-auth__content {
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.urban-auth__column {
+  width: 100%;
+  max-width: 520px;
+}
+
+.urban-auth__mobile-brand {
+  --brand-logo-height: 20px;
+  display: none;
+  margin-bottom: 32px;
+}
+
+.urban-auth__eyebrow {
+  margin-bottom: 12px !important;
+}
+
+.urban-auth__title {
+  max-width: 520px;
+}
+
+.urban-auth__subtitle {
+  margin: 14px 0 28px;
+  max-width: 480px;
+  color: var(--app-text-muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+@media (max-width: 1180px) {
+  .urban-auth {
+    grid-template-columns: 1fr;
+  }
+
+  .urban-auth__aside {
+    display: none;
+  }
+
+  .urban-auth__mobile-brand {
+    display: flex;
+  }
+}
+
+@media (max-width: 767px) {
+  .urban-auth__content {
+    align-items: flex-start;
+    padding: calc(24px + var(--app-safe-top)) 16px calc(32px + var(--app-safe-bottom));
+  }
+}
+
+/* Onboarding: logo oficial sobre a faixa da marca. */
+.urban-onboarding-layout__brand {
+  --brand-logo-height: 22px;
+  display: flex;
+  justify-content: center;
+  padding: 22px 0;
+  margin-bottom: 8px;
+}
