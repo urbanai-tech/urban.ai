@@ -169,7 +169,7 @@ Coleta de dataset, bootstrap de pricing, processamento de event-intelligence, au
 
 ### 6.4 Aplicação via Stays
 1. `preview` valida guardrails da conta (`maxIncreasePercent`/`maxDecreasePercent`) → retorna `withinGuardrails`, `readyForPush`, blockers/warnings.
-2. `push` (idempotente, Idempotency-Key) → `POST /listings/{id}/prices` no Stays, retry exponencial só em 5xx/rede → grava `PriceUpdate`.
+2. `push` (idempotente, Idempotency-Key) → `POST /listings/{id}/prices` no Stays → grava `PriceUpdate`. Escritas ficam desligadas sem `STAYS_PRICE_WRITES_ENABLED=true` e **nunca** são repetidas automaticamente; só leituras têm retry ([ADR 0016](../adr/0016-conector-stays-slug-escrita-desligada-rollback.md)).
 3. `rollback` referencia o `PriceUpdate` anterior (self-ref).
 4. **Contrato:** nunca pular o preview; nunca aplicar fora do guardrail; modo `auto` só dentro do guardrail.
 
