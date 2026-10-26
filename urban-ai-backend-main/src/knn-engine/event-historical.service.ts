@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
 import { Repository, IsNull, Not } from 'typeorm';
 import axios from 'axios';
+import { HTTP_TIMEOUT_MS } from '../common/http-timeouts';
 import { Event } from '../entities/events.entity';
 import { EventHistoricalMultiplier } from '../entities/event-historical-multiplier.entity';
 import { AnalisePreco } from '../entities/AnalisePreco';
@@ -177,7 +178,7 @@ export class EventHistoricalService {
       const resp = await axios.get(WIKIDATA_SPARQL, {
         params: { query: WIKIDATA_QUERY, format: 'json' },
         headers: { Accept: 'application/sparql-results+json', 'User-Agent': 'urbanai/1.0' },
-        timeout: 45_000,
+        timeout: HTTP_TIMEOUT_MS.heavy,
       });
       const bindings: any[] = resp.data?.results?.bindings ?? [];
       rows = bindings
@@ -272,7 +273,7 @@ export class EventHistoricalService {
               },
             },
           },
-          { headers: { Authorization: `Bearer ${key}` }, timeout: 60_000 },
+          { headers: { Authorization: `Bearer ${key}` }, timeout: HTTP_TIMEOUT_MS.scrape },
         );
         const editions: Array<{ year?: number; attendance?: number }> =
           resp.data?.data?.json?.editions ?? resp.data?.json?.editions ?? [];

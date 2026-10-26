@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
+import { HTTP_TIMEOUT_MS } from '../common/http-timeouts';
 
 export type ReverseGeocodeResult = {
     street: string;
@@ -92,7 +93,7 @@ export class AirbnbListingMetadataService {
             const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1&accept-language=pt-BR`;
             const { data } = await axios.get(url, {
                 headers: { 'User-Agent': 'UrbanAI/1.0 (contact@myurbanai.com)' },
-                timeout: 10000,
+                timeout: HTTP_TIMEOUT_MS.fast,
             });
 
             const address = data.address || {};

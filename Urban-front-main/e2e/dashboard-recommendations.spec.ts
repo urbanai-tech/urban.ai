@@ -163,7 +163,9 @@ test.describe('Dashboard recommendations', () => {
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText(/n[aã]o altera o pre[cç]o no Airbnb/i)).toBeVisible();
     await expect(dialog.getByText('R$ 420').first()).toBeVisible();
-    await expect(dialog.getByText(/Calend[aá]rio/i)).toBeVisible();
+    // Passo do roteiro manual. Específico de propósito: entre 22h e 0h (SP) o evento de 2h
+    // cruza o dia e o aviso de vários dias também menciona o calendário.
+    await expect(dialog.getByText(/entre em Calend[aá]rio/i)).toBeVisible();
     // Abrir o dialog nao grava nada: aceite e aplicacao so acontecem na confirmacao.
     expect(acceptPayloads).toHaveLength(0);
     expect(appliedPayloads).toHaveLength(0);

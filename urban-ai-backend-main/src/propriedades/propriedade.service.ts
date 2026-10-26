@@ -1,6 +1,7 @@
 import { BadRequestException, forwardRef, HttpException, HttpStatus, Inject, Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
+import { HTTP_TIMEOUT_MS, fetchWithTimeout } from '../common/http-timeouts';
 import { Address } from 'src/entities/addresses.entity';
 import { Between, LessThanOrEqual, MoreThanOrEqual, Not, Repository } from 'typeorm';
 import { AirbnbQuoteResponse } from './types/types';
@@ -585,7 +586,7 @@ export class PropriedadeService {
                     variables: JSON.stringify(variables),
                     extensions: JSON.stringify(extensions),
                 },
-                timeout: 20000,
+                timeout: HTTP_TIMEOUT_MS.slow,
             });
 
             if (response.status !== 200) {
@@ -717,7 +718,7 @@ export class PropriedadeService {
                     variables: JSON.stringify(variables),
                     extensions: JSON.stringify(extensions),
                 },
-                timeout: 20000,
+                timeout: HTTP_TIMEOUT_MS.slow,
             });
 
             const data = response.data;
@@ -846,7 +847,7 @@ export class PropriedadeService {
         try {
             // O identificador é estritamente numérico e o host é constante.
             // lgtm[js/request-forgery]
-            const response = await axios.get(url, { headers, timeout: 20000 });
+            const response = await axios.get(url, { headers, timeout: HTTP_TIMEOUT_MS.slow });
             return this.extractHostIdFromAirbnbHtml(String(response.data || ''));
         } catch (_err: any) {
             console.warn('[getPropertyHostId] Falha no scrape HTML do host.');
@@ -893,7 +894,7 @@ export class PropriedadeService {
             console.log('[scrape] Extraindo dados do Airbnb.');
             // O identificador é estritamente numérico e o host é constante.
             // lgtm[js/request-forgery]
-            const response = await axios.get(url, { headers, timeout: 20000 });
+            const response = await axios.get(url, { headers, timeout: HTTP_TIMEOUT_MS.slow });
             const html: string = response.data;
 
             // --- Meta Tags OG ---
@@ -1295,6 +1296,7 @@ export class PropriedadeService {
                     'x-rapidapi-host': apiHost,
                     'x-rapidapi-key': apiKey,
                 },
+                timeout: HTTP_TIMEOUT_MS.default,
             });
             this.logger.debug(`Quote response received for property=${propertyId}`);
             // Se houver mensagem de erro no metadata
@@ -1405,6 +1407,7 @@ export class PropriedadeService {
                     'x-rapidapi-host': RAPIDAPI_HOST,
                     'x-rapidapi-key': RAPIDAPI_KEY,
                 },
+                timeout: HTTP_TIMEOUT_MS.default,
             });
 
             return response.data;
@@ -1427,6 +1430,7 @@ export class PropriedadeService {
                     'x-rapidapi-host': RAPIDAPI_HOST,
                     'x-rapidapi-key': RAPIDAPI_KEY,
                 },
+                timeout: HTTP_TIMEOUT_MS.default,
             });
 
             return response.data;
@@ -1494,7 +1498,7 @@ export class PropriedadeService {
             requestUrl.searchParams.set('roomId', roomId);
             requestUrl.searchParams.set('checkIn', checkIn);
             requestUrl.searchParams.set('checkOut', checkOut);
-            const response = await fetch(requestUrl.toString(), { method: 'GET' });
+            const response = await fetchWithTimeout(requestUrl.toString(), { method: 'GET' }, HTTP_TIMEOUT_MS.default);
 
             if (!response.ok) {
                 throw new Error(`Erro HTTP: ${response.status}`);
@@ -1563,7 +1567,8 @@ export class PropriedadeService {
         try {
             // Faz a requisição com axios usando params para query string
             const { data } = await axios.get(baseUrl, {
-                params: { roomId }
+                params: { roomId },
+                timeout: HTTP_TIMEOUT_MS.default,
             });
 
             // Atualiza o banco com todos os campos da API

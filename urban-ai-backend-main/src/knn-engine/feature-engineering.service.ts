@@ -8,6 +8,7 @@ import { Address } from '../entities/addresses.entity';
 import { List } from '../entities/list.entity';
 import { SP_METRO_STATIONS, MetroStation } from './data/sp-metro-stations';
 import { ScheduledJobRunnerService, runScheduledJob } from '../admin-job-runs/scheduled-job-runner.service';
+import { HTTP_TIMEOUT_MS } from '../common/http-timeouts';
 
 // ============================================================================
 // Funções puras (testáveis isoladamente, sem I/O)
@@ -196,7 +197,7 @@ export class FeatureEngineeringService {
     if (rows.length === 0) return { count: 0 };
 
     const genAI = this.getGenAI();
-    const model = genAI?.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI?.getGenerativeModel({ model: 'gemini-2.5-flash' }, { timeout: HTTP_TIMEOUT_MS.heavy });
 
     let count = 0;
     for (const list of rows) {

@@ -3,6 +3,7 @@ import { timingSafeEqual } from 'crypto';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import Redis from 'ioredis';
+import { getQueueFailureSnapshot } from '../processos/queue-failure-stats';
 
 /** Versão do app: APP_VERSION (deploy) → npm_package_version → package.json → unknown. */
 function resolveAppVersion(): string {
@@ -77,6 +78,8 @@ export class HealthService {
         db,
         redis,
         crons,
+        // Contadores em memória desta réplica das filas Bull (retries, falhas definitivas, travadas).
+        queues: getQueueFailureSnapshot(),
         env,
       },
     };
