@@ -38,8 +38,8 @@ const ITEMS: Array<{
   },
   {
     key: "weeklyReport",
-    title: "Radar semanal de eventos",
-    body: "Relatório semanal com eventos futuros relevantes para os seus imóveis.",
+    title: "Resumo semanal",
+    body: "Toda segunda: o que aconteceu com as suas recomendações na semana passada, os eventos relevantes das próximas semanas e o lembrete de registrar resultados.",
   },
   {
     key: "onboardingEmails",

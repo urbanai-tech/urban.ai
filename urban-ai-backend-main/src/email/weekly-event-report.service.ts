@@ -6,8 +6,15 @@ import { Address } from 'src/entities/addresses.entity';
 import { User } from 'src/entities/user.entity';
 import { MailerService } from 'src/mailer/mailer.service';
 import { PushNotificationService } from 'src/push/push-notification.service';
-import { toSaoPauloDateKey } from 'src/common/sp-date';
-import { Between, In, Repository } from 'typeorm';
+import { addDaysToDateKey, toSaoPauloDateKey, tryToSaoPauloDateKey } from 'src/common/sp-date';
+import { Between, In, IsNull, Not, Repository } from 'typeorm';
+import {
+  aggregateWeeklyPerformance,
+  currentSaoPauloWeekStart,
+  lastFullSaoPauloWeek,
+  ReportWeek,
+  WeeklyPropertyPerformance,
+} from './weekly-host-report';
 import { EmailTemplates } from './templates';
 import { AdminJobRun } from 'src/entities/admin-job-run.entity';
 import { runAdminJobWithTracking } from 'src/admin-job-runs/admin-job-run-tracker';
@@ -18,6 +25,8 @@ import { EntitlementService } from 'src/subscription/entitlement.service';
 type WeeklyEventReportProperty = {
   title: string;
   totalEvents: number;
+  upcomingTwoWeeks: number | null;
+  week: WeeklyPropertyPerformance | null;
   events: WeeklyEventReportEvent[];
 };
 
@@ -85,7 +94,7 @@ export class WeeklyEventReportService {
     const summary = this.scheduledJobRunner
       ? await this.scheduledJobRunner.runOncePerWindow(
           'weekly-event-report',
-          this.startOfUtcWeek(now),
+          currentSaoPauloWeekStart(now),
           () => this.processWeeklyReports(now),
           () => this.emptySummary(),
         )
@@ -142,7 +151,7 @@ export class WeeklyEventReportService {
 
         const result = await this.mailer.sendHtmlEmail(
           { email: user.email, name: user.username || undefined },
-          'Radar semanal de eventos - Urban AI',
+          'Seu resumo semanal - Urban AI',
           html,
           { unsubscribe: { userId: user.id, category: 'weekly_report' } },
         );
@@ -152,7 +161,7 @@ export class WeeklyEventReportService {
         }
 
         await this.pushNotificationService.sendToUser(user.id, {
-          title: 'Radar semanal de eventos',
+          title: 'Seu resumo semanal',
           body: this.buildPushSummary(properties, lookaheadDays),
           url: '/painel?source=pwa_push_weekly_report',
           tag: `weekly-event-report-${toSaoPauloDateKey(now)}`,
@@ -222,23 +231,64 @@ export class WeeklyEventReportService {
       if (!latestByPropertyEvent.has(key)) latestByPropertyEvent.set(key, analysis);
     }
 
+    const week = lastFullSaoPauloWeek(start);
+    const performanceRows = await this.loadPerformanceRows(
+      user.id,
+      usableAddresses.map((address) => address.id),
+      week,
+    );
+    const performance = aggregateWeeklyPerformance(performanceRows, week, start);
+    const upcomingLimitKey = addDaysToDateKey(toSaoPauloDateKey(start), 14);
+
     return usableAddresses
       .map((address) => {
         const propertyAnalyses = Array.from(latestByPropertyEvent.values())
           .filter((analysis) => analysis.endereco?.id === address.id)
           .sort((left, right) => this.compareAnalysesForReport(left, right));
+        const propertyWeek = performance.get(address.id) ?? null;
 
-        if (!propertyAnalyses.length) return null;
+        if (!propertyAnalyses.length && !propertyWeek) return null;
+
+        const upcomingTwoWeeks = propertyAnalyses.filter((analysis) => {
+          const dayKey = tryToSaoPauloDateKey(analysis.evento?.dataInicio ?? null);
+          return dayKey !== null && dayKey <= upcomingLimitKey;
+        }).length;
 
         return {
           title: address.list?.titulo || address.getEnderecoCompleto?.() || 'Imóvel',
           totalEvents: propertyAnalyses.length,
+          upcomingTwoWeeks: upcomingTwoWeeks || null,
+          week: propertyWeek,
           events: propertyAnalyses
             .slice(0, this.resolveEventsPerProperty())
             .map((analysis) => this.toReportEvent(analysis)),
         };
       })
       .filter((property): property is WeeklyEventReportProperty => Boolean(property));
+  }
+
+  /**
+   * Recomendações do anfitrião com atividade na semana reportada (geradas, aceitas, aplicadas
+   * ou com resultado registrado) OU aplicadas e ainda sem resultado (lembrete). A agregação
+   * refiltra por janela em JS, então a consulta pode ser larga sem inflar os números.
+   */
+  private async loadPerformanceRows(userId: string, addressIds: string[], week: ReportWeek): Promise<AnalisePreco[]> {
+    if (!addressIds.length) return [];
+    const base = { usuarioProprietario: { id: userId }, endereco: { id: In(addressIds) } };
+    const inWeek = Between(week.start, new Date(week.endExclusive.getTime() - 1));
+    const rows = await this.analisePrecoRepo.find({
+      where: [
+        { ...base, criadoEm: inWeek },
+        { ...base, aceitoEm: inWeek },
+        { ...base, aplicadoEm: inWeek },
+        { ...base, resultadoRegistradoEm: inWeek },
+        { ...base, aplicadoEm: Not(IsNull()), resultadoRegistradoEm: IsNull() },
+      ],
+      relations: ['endereco', 'evento'],
+      order: { criadoEm: 'DESC' },
+      take: 500,
+    });
+    return rows ?? [];
   }
 
   private compareAnalysesForReport(left: AnalisePreco, right: AnalisePreco): number {
@@ -281,6 +331,12 @@ export class WeeklyEventReportService {
 
   private buildPushSummary(properties: WeeklyEventReportProperty[], lookaheadDays: number): string {
     const totalEvents = properties.reduce((sum, property) => sum + property.totalEvents, 0);
+    const pending = properties.reduce((sum, property) => sum + (property.week?.pendingOutcomesTotal ?? 0), 0);
+    if (!totalEvents) {
+      return pending
+        ? `Falta registrar o resultado de ${pending} ${pending === 1 ? 'preço aplicado' : 'preços aplicados'}.`
+        : 'Seu resumo da semana está no e-mail e no painel.';
+    }
     const propertyLabel = properties.length === 1 ? '1 imóvel' : `${properties.length} imóveis`;
     const eventLabel = totalEvents === 1 ? '1 evento relevante' : `${totalEvents} eventos relevantes`;
     return `${eventLabel} para ${propertyLabel} nos próximos ${lookaheadDays} dias.`;
@@ -299,13 +355,6 @@ export class WeeklyEventReportService {
   private resolveEventsPerProperty(): number {
     const parsed = Number(process.env.WEEKLY_EVENT_REPORT_EVENTS_PER_PROPERTY);
     return Number.isFinite(parsed) && parsed > 0 ? Math.min(Math.floor(parsed), 10) : 5;
-  }
-
-  private startOfUtcWeek(now: Date): Date {
-    const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    const daysSinceMonday = (start.getUTCDay() + 6) % 7;
-    start.setUTCDate(start.getUTCDate() - daysSinceMonday);
-    return start;
   }
 
   private emptySummary(): WeeklyEventReportSummary {

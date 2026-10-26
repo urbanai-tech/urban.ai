@@ -17,6 +17,28 @@ primeiro.
   passam a ler o token do `Set-Cookie`. `Authorization: Bearer` segue aceito no backend (JWTs de serviço).
 - Cota diária do Ask Urban passa a contar pelo dia de São Paulo (antes, fuso do servidor).
 
+## [Beta medido] — 2026-10-26 — Resumo semanal, cobrança assistida e resultados v1 × v2
+
+### Adicionado
+
+- **Resumo semanal por anfitrião** (extensão do radar semanal, ainda 1 e-mail/semana): semana passada
+  (segunda a domingo, BRT) com recomendações novas, aceitas, preços aplicados (sugerido x aplicado), resultados
+  que o anfitrião registrou e lembrete dos pendentes; eventos das próximas 2 semanas. "Sem dados" no lugar de
+  zero e nenhuma receita estimada. Respeita o opt-out; janela "uma vez por semana" agora é a segunda 00:00 BRT.
+- **Resultados depois do evento**: `GET /sugestoes-preco/resultados-pendentes` e bloco "Como foi?" no painel
+  (o calendário só mostrava eventos futuros, então não havia como registrar o resultado depois).
+- **v1 × v2**: o preço do motor v2 em sombra passa a ser guardado em `analise_preco.shadow_v2_preco` /
+  `shadow_v2_versao` (migration `1793100000000-AddShadowV2ToAnalisePreco`). `/admin/outcomes` compara v1, v2,
+  aplicado e resultado; abaixo de 30 casos mostra só n e contagens.
+- **Cobrança assistida** (admin): `/admin/billing-hosts` com o estado da assinatura de cada anfitrião e envio, por
+  e-mail, do link de portal/checkout que o Stripe já gera (`POST /admin/billing/hosts/:userId/send-link`).
+- Runbook [beta-relatorio-e-resultados](docs/runbooks/beta-relatorio-e-resultados.md).
+
+### Alterado
+
+- Assunto do e-mail semanal: "Seu resumo semanal - Urban AI" (antes "Radar semanal de eventos"); preferência
+  em Configurações renomeada para "Resumo semanal".
+
 ---
 
 ## [Plano B do scraping] — 2026-10-26 — Anfitrião informa os dados quando o Airbnb falha

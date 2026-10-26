@@ -22,6 +22,13 @@ export const AIRBNB_STEPS: readonly string[] = [
   "Volte aqui e confirme o preço que você aplicou.",
 ];
 
+/** Título do bloco "Como foi?" (resultados pendentes depois do evento). */
+export function pendingOutcomesHeading(count: number): string {
+  const n = Math.max(0, Math.floor(Number(count) || 0));
+  if (n === 1) return "1 preço que você aplicou está sem resultado";
+  return `${n} preços que você aplicou estão sem resultado`;
+}
+
 /** Converte "R$ 1.350,50", "1350,5" ou "450.5" em número. NaN se não der. */
 export function parseBrlInput(value: string | number | null | undefined): number {
   if (value === null || value === undefined) return Number.NaN;

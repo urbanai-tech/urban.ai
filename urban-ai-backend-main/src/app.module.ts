@@ -36,6 +36,7 @@ import { PlansModule } from './plans/plans.module';
 import { StaysModule } from './stays/stays.module';
 import { AdminModule } from './admin/admin.module';
 import { AdminPropertiesModule } from './admin-properties/admin-properties.module';
+import { AdminBetaOpsModule } from './admin-beta-ops/admin-beta-ops.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { ContactSubmissionsModule } from './contact-submissions/contact-submissions.module';
 import { CommunicationsModule } from './communications/communications.module';
@@ -180,6 +181,7 @@ const dbTimezoneOption = process.env.DB_TIMEZONE?.trim() ? { timezone: process.e
     StaysModule,
     AdminModule,
     AdminPropertiesModule,
+    AdminBetaOpsModule,
     WaitlistModule,
     ContactSubmissionsModule,
     CommunicationPreferencesModule,

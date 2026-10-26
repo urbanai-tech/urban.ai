@@ -23,6 +23,7 @@ import {
 } from '../../app/service/api';
 import dynamic from 'next/dynamic';
 import { EventCard } from './components/ItemEvento';
+import { PendingOutcomes } from './components/PendingOutcomes';
 
 import { SuggestionInfoPopover } from '../componentes/SuggestionInfoPopover';
 import { PushNotificationOptIn } from '../componentes/PushNotificationOptIn';
@@ -399,6 +400,8 @@ export default function DashboardPage() {
       />
 
       <PushNotificationOptIn variant="compact" />
+
+      <PendingOutcomes />
 
       {loadingPropsInfo || isLoading ? (
         <AppLoadingStatus
