@@ -3,7 +3,40 @@ import { timingSafeEqual } from 'crypto';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import Redis from 'ioredis';
+import { promises as dnsPromises } from 'dns';
+import { isIP } from 'net';
 import { getQueueFailureSnapshot } from '../processos/queue-failure-stats';
+
+/**
+ * Resolve o host via c-ares (`dns.resolve4`), fora do threadpool do libuv.
+ * O `dns.lookup` padrão do Node usa esse threadpool (4 threads): com o MySQL
+ * fora do ar, lookups que falham devagar (~3,6 s cada no Docker) ocupam as
+ * threads e o lookup do Redis fica na fila até estourar o connectTimeout,
+ * marcando `redis: down` com o Redis saudável. Sem resposta a tempo (ou para
+ * nomes que só existem em /etc/hosts, como `localhost`), devolve o próprio
+ * host e o ioredis resolve como antes.
+ */
+export async function resolveHostOffThreadpool(
+  host: string,
+  timeoutMs = 1500,
+  resolve4: (hostname: string) => Promise<string[]> = (hostname) => dnsPromises.resolve4(hostname),
+): Promise<string> {
+  if (isIP(host)) return host;
+  let timer: NodeJS.Timeout | undefined;
+  try {
+    const addresses = await Promise.race([
+      resolve4(host),
+      new Promise<string[]>((_, reject) => {
+        timer = setTimeout(() => reject(new Error('dns timeout')), timeoutMs);
+      }),
+    ]);
+    return addresses[0] || host;
+  } catch {
+    return host;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
 
 /** Versão do app: APP_VERSION (deploy) → npm_package_version → package.json → unknown. */
 function resolveAppVersion(): string {
@@ -172,11 +205,15 @@ export class HealthService {
 
     let client: Redis | undefined;
     try {
+      const hostname = process.env.REDIS_HOST?.trim() || 'localhost';
+      const address = await resolveHostOffThreadpool(hostname);
+      const useTls = this.isTrue(process.env.REDIS_TLS);
       client = new Redis({
-        host: process.env.REDIS_HOST?.trim() || 'localhost',
+        host: address,
         port: parseInt(process.env.REDIS_PORT?.trim() ?? '', 10) || 6379,
         password: process.env.REDIS_PASSWORD || undefined,
-        tls: this.isTrue(process.env.REDIS_TLS) ? {} : undefined,
+        // Conectando por IP, o certificado (Upstash) continua validado pelo nome original.
+        tls: useTls ? (address !== hostname ? { servername: hostname } : {}) : undefined,
         connectTimeout: 2000,
         commandTimeout: 2000,
         maxRetriesPerRequest: 1,

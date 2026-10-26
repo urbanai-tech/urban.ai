@@ -1,5 +1,12 @@
 import { ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
-import { HealthService } from './health.service';
+import { HealthService, resolveHostOffThreadpool } from './health.service';
+
+const mockResolve4 = jest.fn();
+
+jest.mock('dns', () => {
+  const actual = jest.requireActual('dns');
+  return { ...actual, promises: { ...actual.promises, resolve4: (host: string) => mockResolve4(host) } };
+});
 
 const mockRedisClient = {
   connect: jest.fn(),
@@ -21,6 +28,8 @@ describe('HealthService', () => {
     mockRedisClient.connect.mockResolvedValue(undefined);
     mockRedisClient.ping.mockResolvedValue('PONG');
     mockRedisClient.quit.mockResolvedValue('OK');
+    // Padrão: DNS sem resposta → o check usa o próprio host (comportamento anterior).
+    mockResolve4.mockRejectedValue(Object.assign(new Error('not found'), { code: 'ENOTFOUND' }));
     process.env = {
       npm_package_version: '0.0.1',
       APP_ENV: 'test',
@@ -219,6 +228,48 @@ describe('HealthService', () => {
         tls: {},
       }),
     );
+  });
+
+  it('connects to Redis by the c-ares address and keeps TLS servername as the hostname', async () => {
+    process.env.REDIS_HOST = 'redis.upstash.test';
+    process.env.REDIS_TLS = 'true';
+    mockResolve4.mockResolvedValueOnce(['10.0.0.7']);
+
+    const result = await new HealthService(undefined as any).getHealth();
+
+    expect(mockResolve4).toHaveBeenCalledWith('redis.upstash.test');
+    expect(result.checks.redis).toMatchObject({ status: 'ok' });
+    expect(jest.requireMock('ioredis').default).toHaveBeenCalledWith(
+      expect.objectContaining({ host: '10.0.0.7', tls: { servername: 'redis.upstash.test' } }),
+    );
+  });
+
+  describe('resolveHostOffThreadpool', () => {
+    it('returns IP literals without resolving', async () => {
+      const resolve4 = jest.fn();
+      await expect(resolveHostOffThreadpool('127.0.0.1', 50, resolve4)).resolves.toBe('127.0.0.1');
+      expect(resolve4).not.toHaveBeenCalled();
+    });
+
+    it('returns the first IPv4 address', async () => {
+      await expect(
+        resolveHostOffThreadpool('redis', 50, async () => ['172.18.0.3', '172.18.0.4']),
+      ).resolves.toBe('172.18.0.3');
+    });
+
+    it('falls back to the hostname when DNS fails (e.g. names only in /etc/hosts)', async () => {
+      await expect(
+        resolveHostOffThreadpool('localhost', 50, async () => {
+          throw Object.assign(new Error('nf'), { code: 'ENOTFOUND' });
+        }),
+      ).resolves.toBe('localhost');
+    });
+
+    it('falls back to the hostname when DNS does not answer in time', async () => {
+      await expect(
+        resolveHostOffThreadpool('redis', 20, () => new Promise<string[]>(() => undefined)),
+      ).resolves.toBe('redis');
+    });
   });
 
   it('degrades when configured Redis is slow', async () => {
