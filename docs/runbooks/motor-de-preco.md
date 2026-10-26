@@ -36,7 +36,7 @@ O motor v2 (`urban-ai-backend-main/src/knn-engine/pricing-engine-v2.ts`) corrige
   explícita → Standard (contado em `labelStats.bySource.fallback` no log do treino).
 - O modelo legado (features cruas, K=3, `category`) continua treinado só para o v1
   não mudar de número enquanto o v2 não estiver ligado.
-- A análise por evento (`propriedade.service`) agora treina um classificador **local**
+- A análise por evento (`property-pricing-analysis.service`) agora treina um classificador **local**
   com os comps; antes sobrescrevia o modelo compartilhado do bootstrap a cada análise.
 
 ### Gemini / injeção de prompt
@@ -69,14 +69,14 @@ das noites ficam abaixo da base no backtest) e a única evidência é sintética
 `shadow` nada muda para o anfitrião e passamos a ter v1 × v2 lado a lado nos logs.
 Ligar é trocar uma variável no Railway e reiniciar; desligar é o mesmo caminho.
 
-Com `PRICING_ENGINE_V2=true` em `propriedade.service`, a sugestão final passa a ser a
+Com `PRICING_ENGINE_V2=true` em `property-pricing-analysis.service`, a sugestão final passa a ser a
 **média** do cálculo ancorado no mercado (`PricingCalculateService.calcular`) e do v2,
 em vez de `Math.max` — e continua limitada pelo guardrail do perfil do usuário.
 
 `PRICING_STRATEGY` (adaptive/rules/xgboost/shadow) continua funcionando e é ortogonal:
 `RuleBasedPricingStrategy` repassa `input.context` para o motor. Observação: hoje
 nenhum fluxo de sugestão em produção passa pela `PricingStrategyFactory`; ela só é
-usada no diagnóstico de tier do admin. O fluxo real é `propriedade.service` →
+usada no diagnóstico de tier do admin. O fluxo real é `property-pricing-analysis.service` →
 `UrbanAIPricingEngine.suggestPrice`.
 
 ## Backtest offline (sintético)
@@ -129,7 +129,7 @@ Leitura honesta:
    `STAYS_AUTO_APPLY_MIN_RECOMMENDED_MULTIPLIER` default **1,00**: reduções nunca são
    auto-aplicadas. Isso não foi alterado nesta mudança (fora do escopo) e é o
    comportamento seguro até haver evidência real; baixar esse piso é decisão separada.
-4. `propriedade.service` passa ao v2 as regras salvas do imóvel (sem config → defaults
+4. `property-pricing-analysis.service` passa ao v2 as regras salvas do imóvel (sem config → defaults
    do painel) e a ocupação de `OccupancyHistory` (noite anterior, alvo e seguinte). Sem
    histórico de ocupação, `gap_night_filler` não dispara e `last_minute` trata a noite
    como não reservada. A análise é por evento, então a noite precificada é a do
@@ -149,5 +149,5 @@ Leitura honesta:
 ## Próximos passos
 
 - Persistir a confiança do Gemini (coluna nova + migration) em vez de exigir corroboração.
-- Passar ocupação real (calendário Stays) para o v2 em `propriedade.service`.
+- Passar ocupação real (calendário Stays) para o v2 em `property-pricing-analysis.service`.
 - Calibrar os percentuais com outcomes reais antes de liberar reduções na auto-aplicação.

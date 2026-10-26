@@ -21,6 +21,11 @@ import { OccupancyHistory } from 'src/entities/occupancy-history.entity';
 import { PricingRuleConfig } from 'src/entities/pricing-rule-config.entity';
 import { HostBaselineService } from './host-baseline.service';
 import { AirbnbListingMetadataService } from './airbnb-listing-metadata.service';
+import { PropertyEventAnalysesService } from './property-event-analyses.service';
+import { PropertyListingQuoteService } from './property-listing-quote.service';
+import { PropertyPortfolioService } from './property-portfolio.service';
+import { PropertyPricingAnalysisService } from './property-pricing-analysis.service';
+import { PropertyScrapingService } from './property-scraping.service';
 
 @Module({
     imports: [
@@ -43,7 +48,18 @@ import { AirbnbListingMetadataService } from './airbnb-listing-metadata.service'
         KnnEngineModule,
     ],
     controllers: [PropriedadeController],
-    providers: [PropriedadeService, PricingCalculateService, PricingGuardrailService, AirbnbListingMetadataService, HostBaselineService],
+    providers: [
+        PropriedadeService,
+        PropertyPortfolioService,
+        PropertyScrapingService,
+        PropertyListingQuoteService,
+        PropertyPricingAnalysisService,
+        PropertyEventAnalysesService,
+        PricingCalculateService,
+        PricingGuardrailService,
+        AirbnbListingMetadataService,
+        HostBaselineService,
+    ],
     exports: [PropriedadeService],
 })
 export class PropriedadeModule { }
