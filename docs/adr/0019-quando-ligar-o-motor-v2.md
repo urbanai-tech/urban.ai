@@ -4,7 +4,7 @@
 
 ## Contexto
 
-O v2 corrige o viés do v1 (que só sobe), mas ao ligar, preços **caem** para anfitriões existentes: dias úteis, noites sem evento, última hora e lacunas, até −20% (ou o guardrail do perfil), e eventos sobem menos que no v1 (riscos 1–2 em [`runbooks/motor-de-preco.md`](../runbooks/motor-de-preco.md)). A única evidência de que o v2 acerta mais é um backtest **sintético**, cujo gerador compartilha hipóteses com o motor. Hoje o modo é `shadow`, mas o resultado do v2 **não é persistido** (só log debug), então não há dado real para decidir.
+O v2 corrige o viés do v1 (que só sobe), mas ao ligar, preços **caem** para anfitriões existentes: dias úteis, noites sem evento, última hora e lacunas, até −20% (ou o guardrail do perfil), e eventos sobem menos que no v1 (riscos 1–2 em [`runbooks/motor-de-preco.md`](../runbooks/motor-de-preco.md)). A única evidência de que o v2 acerta mais é um backtest **sintético**, cujo gerador compartilha hipóteses com o motor. Hoje o modo é `shadow`. Desde o #48 o resultado do v2 é persistido por recomendação (`analise_preco.shadow_v2_preco`/`shadow_v2_versao`) e comparado em `/admin/outcomes`, mas os dados só começam a acumular a partir do deploy do #48: ainda não há amostra real para decidir.
 
 ## Opções consideradas
 
@@ -23,7 +23,7 @@ Todos medidos sobre recomendações com v1 e v2 persistidos e com outcome conhec
 
 ## Recomendação
 
-1. **Pré-requisito**: persistir `shadowV2` por recomendação (campo/tabela nova e migration) e a versão do motor.
+1. **Pré-requisito** (feito no #48): `shadowV2` e a versão do motor persistidos por recomendação; comparação em `/admin/outcomes`.
 2. Acumular dados em `shadow` até os critérios acima; revisar semanalmente.
 3. Ligar primeiro para uma **coorte pequena** (allowlist de usuários) e só depois geral; manter o piso de auto-aplicação em 1,0× ([ADR 0023](./0023-stays-automatico-abaixo-de-1x.md)) durante essa fase, para que reduções sejam sempre decisão humana.
 4. Comunicar a mudança aos anfitriões antes de ligar (sugestões vão baixar em dias fracos).
@@ -31,5 +31,5 @@ Todos medidos sobre recomendações com v1 e v2 persistidos e com outcome conhec
 ## Consequências
 
 - (+) A decisão passa a ser baseada em dado real e reversível (mesma variável, sem migration de dados).
-- (−) Atrasa o ganho do v2 em semanas; exige trabalho de engenharia (persistência) antes de qualquer decisão.
+- (−) Atrasa o ganho do v2 em semanas; depende de acumular amostra real depois do deploy do #48.
 - (−) Com poucos usuários, os critérios podem demorar a ser atingidos; aceitar um intervalo de confiança maior ou estender a janela é uma escolha do decisor.

@@ -21,6 +21,6 @@ O motor v1 só sobe preço (nunca fica abaixo da base) e exige um evento. O v2 (
 ## Consequências
 
 - (+) Reversível e sem impacto no anfitrião; permite comparar v1 × v2 com tráfego real.
-- (−) **O que o runbook chama de comparação "lado a lado" hoje não é persistido.** `details.shadowV2` vive só na resposta em memória do motor; em `propriedade.service.ts` a `AnalisePreco` é salva sem esse campo, e o único rastro é o log debug (que costuma estar desligado em produção). Sem persistir o v2 por recomendação (coluna ou tabela nova, com migration), não há como cruzar v2 com os outcomes reais. É pré-requisito do [ADR 0019](./0019-quando-ligar-o-motor-v2.md).
+- (+) **Desde o #48, o v2 em sombra é persistido por recomendação**: `analise_preco.shadow_v2_preco` e `shadow_v2_versao` (migration `1793100000000-AddShadowV2ToAnalisePreco`), preenchidos em `propriedade.service.ts` via `extractV2Suggestion`. Análises anteriores ganham o v2 na próxima reanálise sem mudança de preço. A comparação v1 × v2 × preço aplicado × resultado fica em `/admin/outcomes`; abaixo de `OUTCOMES_COMPARISON_MIN_SAMPLE` (padrão 30) ela só mostra contagens. Só há dado do v2 a partir do deploy do #48. Pré-requisito do [ADR 0019](./0019-quando-ligar-o-motor-v2.md) atendido.
 - (−) Dois motores a manter enquanto o v1 não é aposentado (`knn-classifier.ts` guarda compatibilidade com o v1).
 - (−) `PRICING_STRATEGY` (adaptive/rules/xgboost/shadow) é um mecanismo de "sombra" diferente e ortogonal; hoje o fluxo de sugestão não passa pela `PricingStrategyFactory`. Não confundir os dois.
