@@ -1,22 +1,41 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createHash } from 'crypto';
 import { MoreThanOrEqual, Repository } from 'typeorm';
 import { AdminJobRun } from '../entities/admin-job-run.entity';
 import { runAdminJobWithTracking } from './admin-job-run-tracker';
+import { LockOptions, RedisLockService } from '../common/redis-lock';
 
 @Injectable()
 export class ScheduledJobRunnerService {
+  private readonly logger = new Logger(ScheduledJobRunnerService.name);
   private readonly activeWindowClaims = new Set<string>();
 
   constructor(
     @InjectRepository(AdminJobRun)
     private readonly jobRunRepo: Repository<AdminJobRun>,
+    @Optional()
+    private readonly redisLock?: RedisLockService,
   ) {}
 
-  async run<T>(name: string, handler: () => Promise<T>): Promise<T> {
-    const run = await runAdminJobWithTracking(this.jobRunRepo, name, null, handler);
-    return run.result as T;
+  /**
+   * Roda o job com lock distribuído em Redis (uma réplica por tick). Se o lock
+   * está com outra réplica, ou o Redis falha (fail-closed), o job é PULADO e o
+   * retorno é `undefined` — nenhuma linha em admin_job_runs é criada.
+   * Sem RedisLockService (testes isolados) roda direto.
+   */
+  async run<T>(name: string, handler: () => Promise<T>, lockOptions?: LockOptions): Promise<T> {
+    const tracked = async () => {
+      const run = await runAdminJobWithTracking(this.jobRunRepo, name, null, handler);
+      return run.result as T;
+    };
+    if (!this.redisLock) return tracked();
+    const outcome = await this.redisLock.withLock(`job:${name}`, tracked, lockOptions);
+    if (outcome.status === 'skipped') {
+      this.logger.log(`[${name}] não executado neste tick (${outcome.reason}).`);
+      return undefined as T;
+    }
+    return outcome.value;
   }
 
   async runOncePerWindow<T>(

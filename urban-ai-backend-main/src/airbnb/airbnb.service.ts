@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as Sentry from '@sentry/nestjs';
 import axios from 'axios';
+import { HTTP_TIMEOUT_MS } from '../common/http-timeouts';
 import { Repository } from 'typeorm';
 import { AirbnbPricingAttemptLog, AirbnbPricingAttemptStatus } from 'src/entities/airbnb-pricing-attempt-log.entity';
 import { PropriedadeService } from 'src/propriedades/propriedade.service';
@@ -100,7 +101,7 @@ export class AirbnbService {
     try {
       await sleep(5000);
 
-      const { data } = await axios.get(url, { params, headers });
+      const { data } = await axios.get(url, { params, headers, timeout: HTTP_TIMEOUT_MS.default });
       return data;
     } catch (error: any) {
       console.error('Erro ao consultar disponibilidade Airbnb:', error.response?.data || error.message);
@@ -127,7 +128,7 @@ export class AirbnbService {
     };
 
     try {
-      const { data } = await axios.get(url, { params, headers });
+      const { data } = await axios.get(url, { params, headers, timeout: HTTP_TIMEOUT_MS.default });
       return data;
     } catch (error: any) {
       console.error('Erro ao consultar preço Airbnb:', error.response?.data || error.message);
@@ -493,7 +494,7 @@ export class AirbnbService {
           locale: 'PT-BR',
           currency: 'BRL',
         },
-        timeout: 15000,
+        timeout: HTTP_TIMEOUT_MS.default,
       });
       data = response.data;
     } catch (error) {

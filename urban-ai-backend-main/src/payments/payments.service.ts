@@ -12,6 +12,7 @@ import { BillingCycle } from '../entities/plan.entity';
 import { isBillingCycle, resolveStripePriceId } from './stripe-price-id.resolver';
 import { MailerService } from '../mailer/mailer.service';
 import { EmailTemplates } from '../email/templates';
+import { HTTP_TIMEOUT_MS } from '../common/http-timeouts';
 
 const LOCAL_ACCESS_STATUSES = ['active', 'trialing', 'alpha'];
 
@@ -29,6 +30,8 @@ export class PaymentsService {
   ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_not_configured', {
       apiVersion: '2025-08-27.basil',
+      timeout: HTTP_TIMEOUT_MS.stripe,
+      maxNetworkRetries: 2,
     });
   }
   /**

@@ -342,4 +342,34 @@ describe('ScheduledJobRunnerService', () => {
       'window-job', windowStart, handler, duplicateResult,
     );
   });
+
+  describe('distributed lock (TD3)', () => {
+    const makeRepo = () => ({
+      create: jest.fn((value) => ({ id: 'run-lock', ...value })),
+      save: jest.fn(async (value) => ({ ...value })),
+    });
+
+    it('skips the job and does not create an AdminJobRun when another replica holds the lock', async () => {
+      const repo = makeRepo();
+      const lock = { withLock: jest.fn(async () => ({ status: 'skipped', reason: 'lock_held' })) };
+      const service = new ScheduledJobRunnerService(repo as any, lock as any);
+      const handler = jest.fn(async () => 'x');
+
+      await expect(service.run('email-job', handler)).resolves.toBeUndefined();
+      expect(lock.withLock).toHaveBeenCalledWith('job:email-job', expect.any(Function), undefined);
+      expect(handler).not.toHaveBeenCalled();
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+
+    it('runs tracked inside the lock and returns the handler result', async () => {
+      const repo = makeRepo();
+      const lock = {
+        withLock: jest.fn(async (_name: string, fn: () => Promise<unknown>) => ({ status: 'ran', value: await fn() })),
+      };
+      const service = new ScheduledJobRunnerService(repo as any, lock as any);
+
+      await expect(service.run('email-job', async () => ({ sent: 2 }))).resolves.toEqual({ sent: 2 });
+      expect(repo.save).toHaveBeenCalledTimes(2);
+    });
+  });
 });

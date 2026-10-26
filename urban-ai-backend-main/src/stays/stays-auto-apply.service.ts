@@ -8,6 +8,7 @@ import { StaysListing } from "../entities/stays-listing.entity";
 import { AnalisePreco } from "../entities/AnalisePreco";
 import { AdminJobRun } from "../entities/admin-job-run.entity";
 import { runAdminJobWithTracking } from "../admin-job-runs/admin-job-run-tracker";
+import { RedisLockService, runExclusiveJob } from "../common/redis-lock";
 import {
   PricingDecisionSnapshot,
   PricingDecisionStatus,
@@ -137,6 +138,8 @@ export class StaysAutoApplyService {
     @Optional()
     @InjectRepository(AdminJobRun)
     private readonly jobRunRepo?: Repository<AdminJobRun>,
+    @Optional()
+    private readonly redisLock?: RedisLockService,
   ) {}
 
   @Cron("5 * * * *", {
@@ -439,14 +442,18 @@ export class StaysAutoApplyService {
     name: string,
     handler: () => Promise<T>,
   ): Promise<T> {
-    if (!this.jobRunRepo) return handler();
-    const run = await runAdminJobWithTracking(
-      this.jobRunRepo,
-      name,
-      null,
-      handler,
-    );
-    return run.result as T;
+    // Lock distribuído (TD3): escreve preços na Stays, então só uma réplica por tick.
+    // Fail-closed: lock tomado ou Redis fora => pula o tick (undefined), nunca duplica.
+    return runExclusiveJob(this.redisLock, name, async () => {
+      if (!this.jobRunRepo) return handler();
+      const run = await runAdminJobWithTracking(
+        this.jobRunRepo,
+        name,
+        null,
+        handler,
+      );
+      return run.result as T;
+    }) as Promise<T>;
   }
 
   private allowlistDecision(

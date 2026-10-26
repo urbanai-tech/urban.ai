@@ -1,5 +1,6 @@
 import { Injectable, Logger, Optional } from '@nestjs/common';
 import axios from 'axios';
+import { HTTP_TIMEOUT_MS } from '../common/http-timeouts';
 import { CommunicationLogService } from 'src/communications/communication-log.service';
 import { buildListUnsubscribeHeaders, UnsubscribeCategory } from 'src/communication-preferences/unsubscribe-token';
 
@@ -119,7 +120,7 @@ export class MailerService {
           'api-key': this.apiKey,
           'content-type': 'application/json',
         },
-        timeout: 15_000,
+        timeout: HTTP_TIMEOUT_MS.default,
       });
 
       if (response.status >= 200 && response.status < 300) {

@@ -630,6 +630,8 @@ describe('AuthService', () => {
 
       expect((global as any).fetch).toHaveBeenCalledWith(
         'https://oauth2.googleapis.com/tokeninfo?id_token=verified-token',
+        // fetchWithTimeout: sempre com AbortSignal (TD3)
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
       );
       expect(userRepo.findOne).toHaveBeenCalledWith({
         where: { email: 'owner@test.com' },

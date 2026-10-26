@@ -4,6 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { List } from "../entities/list.entity";
 import axios, { AxiosError } from "axios";
+import { HTTP_TIMEOUT_MS } from '../common/http-timeouts';
 import { User } from "../entities/user.entity";
 import { Address } from "../entities/addresses.entity";
 import { Event } from "../entities/events.entity";
@@ -266,7 +267,7 @@ export class ConnectService {
           "X-RapidAPI-Key": this.RAPIDAPI_KEY,
         },
         params,
-        timeout: 15000,
+        timeout: HTTP_TIMEOUT_MS.default,
       });
 
       const { data, status } = response;
@@ -343,7 +344,7 @@ export class ConnectService {
     try {
       this.logger.log('Consultando endereço na BrasilAPI.');
       const response = await axios.get(apiUrl.toString(), {
-        timeout: 10000,
+        timeout: HTTP_TIMEOUT_MS.fast,
       });
       const { data, status } = response;
 

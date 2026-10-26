@@ -46,6 +46,7 @@ import { HealthModule } from './health/health.module';
 import { PushModule } from './push/push.module';
 import { HostPanelsModule } from './host-panels/host-panels.module';
 import { AdminJobRunsModule } from './admin-job-runs/admin-job-runs.module';
+import { RedisLockModule } from './common/redis-lock';
 import { SubscriptionModule } from './subscription/subscription.module';
 
 dotenv.config();
@@ -72,6 +73,7 @@ const dbTimezoneOption = process.env.DB_TIMEZONE?.trim() ? { timezone: process.e
 @Module({
   imports: [
     SentryModule.forRoot(),
+    RedisLockModule,
     AdminJobRunsModule,
     SubscriptionModule,
     AdminAuditModule,
@@ -94,6 +96,15 @@ const dbTimezoneOption = process.env.DB_TIMEZONE?.trim() ? { timezone: process.e
         tls: process.env.REDIS_TLS === 'true' ? {} : undefined,
         maxRetriesPerRequest: 1,
         connectTimeout: 5000,
+      },
+      // TD3 — todo job nasce com retry + backoff exponencial (5s, 10s) antes de falhar de vez;
+      // falha definitiva é logada/contada/enviada ao Sentry em ProcessosConsumer.onFailed.
+      // `removeOnFail: false` mantém o job falho no Redis para inspeção/retry manual.
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5000 },
+        removeOnComplete: true,
+        removeOnFail: false,
       },
     }),
     BullModule.registerQueue({

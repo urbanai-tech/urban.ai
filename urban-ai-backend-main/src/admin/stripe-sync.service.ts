@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import Stripe from 'stripe';
 import { Plan } from '../entities/plan.entity';
 import { BILLING_CYCLES, resolveStripePriceId } from '../payments/stripe-price-id.resolver';
+import { HTTP_TIMEOUT_MS } from '../common/http-timeouts';
 
 /**
  * StripeSyncCheckService — valida que os Stripe Price IDs configurados
@@ -50,6 +51,8 @@ export class StripeSyncCheckService {
   constructor(@InjectRepository(Plan) private readonly planRepo: Repository<Plan>) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', {
       apiVersion: '2025-08-27.basil',
+      timeout: HTTP_TIMEOUT_MS.stripe,
+      maxNetworkRetries: 2,
     });
   }
 
