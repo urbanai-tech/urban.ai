@@ -29,6 +29,7 @@ import { Analytics } from "./componentes/Analytics";
 import { CookieConsent } from "./componentes/CookieConsent";
 import { PwaInstaller } from "./componentes/PwaInstaller";
 import { ThemeScript } from "./componentes/theme";
+import { APPLE_STARTUP_IMAGES } from "./lib/pwaSplashScreens.generated";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://myurbanai.com";
 const APP_ENV = process.env.NEXT_PUBLIC_APP_ENV;
@@ -46,12 +47,22 @@ export const metadata: Metadata = {
       { url: "/pwa-icon-192.png", type: "image/png", sizes: "192x192" },
       { url: "/pwa-icon-512.png", type: "image/png", sizes: "512x512" },
     ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/apple-touch-icon-167.png", sizes: "167x167", type: "image/png" },
+      { url: "/apple-touch-icon-152.png", sizes: "152x152", type: "image/png" },
+      { url: "/apple-touch-icon-120.png", sizes: "120x120", type: "image/png" },
+    ],
   },
   appleWebApp: {
     capable: true,
     title: "Urban AI",
     statusBarStyle: "black-translucent",
+    startupImage: APPLE_STARTUP_IMAGES.map(({ url, media }) => ({ url, media })),
+  },
+  other: {
+    // Chrome/Android: a meta antiga apple-mobile-web-app-capable está depreciada.
+    "mobile-web-app-capable": "yes",
   },
   formatDetection: {
     telephone: false,
