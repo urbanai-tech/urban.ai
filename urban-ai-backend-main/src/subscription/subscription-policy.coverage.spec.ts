@@ -183,6 +183,8 @@ describe('cobertura da política de assinatura nas rotas', () => {
       'PropriedadeController.deleteAddressAndList',
       'PropriedadeController.updateIdentity',
       'PropriedadeController.updatePricingInputs',
+      'PropriedadeController.getBaseline',
+      'PropriedadeController.updateHostBaseline',
       'ConnectController.resolve',
       'ConnectController.registerProperties',
       'ConnectController.createMultipleAddresses',

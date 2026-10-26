@@ -93,6 +93,27 @@ export class List {
   @Column({ type: "timestamp", nullable: true })
   pricingInputsUpdatedAt: Date;
 
+  // ===== PLANO B DO SCRAPING (ADR 0010): dados informados pelo anfitrião =====
+  @ApiProperty({ description: "Diária mínima informada pelo anfitrião (piso das sugestões)", example: 250 })
+  @Column({ type: "float", nullable: true })
+  minDailyPrice: number | null;
+
+  @ApiProperty({ description: "Diária de fim de semana informada pelo anfitrião (informativa)", example: 450 })
+  @Column({ type: "float", nullable: true })
+  weekendDailyPrice: number | null;
+
+  @ApiProperty({ description: "Quando o anfitrião informou a diária base pela última vez" })
+  @Column({ type: "timestamp", nullable: true })
+  hostInputUpdatedAt: Date | null;
+
+  @ApiProperty({ description: "Origem dos dados essenciais (quartos, camas, banheiros, hóspedes, tipo): airbnb | host_input", example: "host_input" })
+  @Column({ type: "varchar", length: 16, nullable: true })
+  essentialsSource: string | null;
+
+  @ApiProperty({ description: "Quando os dados essenciais foram atualizados pela última vez" })
+  @Column({ type: "timestamp", nullable: true })
+  essentialsUpdatedAt: Date | null;
+
   // ===== CAMPOS ADICIONAIS DO RETORNO DA API =====
   @ApiProperty({ description: "Número de hóspedes", example: 2 })
   @Column({ type: "int", nullable: true })

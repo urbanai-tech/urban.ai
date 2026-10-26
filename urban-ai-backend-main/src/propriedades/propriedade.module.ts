@@ -19,6 +19,7 @@ import { PricingGuardrailService } from './pricing-guardrail.service';
 import { MailerModule } from 'src/mailer/mailer.module';
 import { OccupancyHistory } from 'src/entities/occupancy-history.entity';
 import { PricingRuleConfig } from 'src/entities/pricing-rule-config.entity';
+import { HostBaselineService } from './host-baseline.service';
 import { AirbnbListingMetadataService } from './airbnb-listing-metadata.service';
 
 @Module({
@@ -42,7 +43,7 @@ import { AirbnbListingMetadataService } from './airbnb-listing-metadata.service'
         KnnEngineModule,
     ],
     controllers: [PropriedadeController],
-    providers: [PropriedadeService, PricingCalculateService, PricingGuardrailService, AirbnbListingMetadataService],
+    providers: [PropriedadeService, PricingCalculateService, PricingGuardrailService, AirbnbListingMetadataService, HostBaselineService],
     exports: [PropriedadeService],
 })
 export class PropriedadeModule { }

@@ -54,6 +54,36 @@ export class UpdatePropertyPricingInputsDto {
   averageMonthlyRevenue?: number | null;
 }
 
+/**
+ * Plano B do scraping (ADR 0010): o anfitrião informa a diária base (obrigatória) e,
+ * se quiser, piso, fim de semana e dados essenciais do imóvel.
+ */
+export class UpdateHostBaselineDto {
+  @Transform(safeNumber) @IsNumber() @Min(1) @Max(100_000)
+  manualDailyPrice!: number;
+
+  @IsOptional() @Transform(safeNumber) @IsNumber() @Min(1) @Max(100_000)
+  minDailyPrice?: number | null;
+
+  @IsOptional() @Transform(safeNumber) @IsNumber() @Min(1) @Max(100_000)
+  weekendDailyPrice?: number | null;
+
+  @IsOptional() @Transform(safeNumber) @IsInt() @Min(0) @Max(100)
+  quartos?: number | null;
+
+  @IsOptional() @Transform(safeNumber) @IsInt() @Min(0) @Max(100)
+  camas?: number | null;
+
+  @IsOptional() @Transform(safeNumber) @IsNumber() @Min(0) @Max(100)
+  banheiros?: number | null;
+
+  @IsOptional() @Transform(safeNumber) @IsInt() @Min(1) @Max(100)
+  hospedes?: number | null;
+
+  @IsOptional() @IsString() @MaxLength(60)
+  propertyType?: string | null;
+}
+
 export class UpsertPropertyManualOccupancyDto {
   @IsString() @Matches(DATE_ONLY) @IsDateString({ strict: true })
   date!: string;

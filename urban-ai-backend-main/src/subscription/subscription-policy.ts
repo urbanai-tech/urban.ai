@@ -78,6 +78,8 @@ export const CONTROLLER_POLICIES: Record<string, ControllerPolicy> = {
       updateIdentity: 'free',
       updatePricingInputs: 'free',
       getPricingInputHistory: 'free',
+      getBaseline: 'free',
+      updateHostBaseline: 'free',
     },
   },
 

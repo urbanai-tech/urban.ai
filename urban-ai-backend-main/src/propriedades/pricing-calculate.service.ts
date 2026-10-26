@@ -30,6 +30,8 @@ type AjustePrecoParams = {
   publicoEsperado?: number | null;
   maxAumentoPercent?: number;
   maxReducaoPercent?: number;
+  /** Piso absoluto (R$) informado pelo anfitrião; a sugestão nunca fica abaixo dele. */
+  precoMinimo?: number | null;
 };
 
 type AjustePrecoResultado = {
@@ -290,6 +292,7 @@ export class PricingCalculateService {
     publicoEsperado,
     maxAumentoPercent = 45,
     maxReducaoPercent = 25,
+    precoMinimo = null,
   }: AjustePrecoParams): AjustePrecoResultado {
     if (!this.isPositive(seuPrecoAtual) || !this.isPositive(precoReferencia)) {
       return {
@@ -329,8 +332,9 @@ export class PricingCalculateService {
     const precoBase = seuPrecoAtual * 0.65 + precoMercado * 0.35;
     const precoSemGuardrail = precoBase * fatorEvento;
 
-    const minPrice = seuPrecoAtual * (1 - maxReducaoPercent / 100);
-    const maxPrice = seuPrecoAtual * (1 + maxAumentoPercent / 100);
+    const hostFloor = this.isPositive(precoMinimo) ? Number(precoMinimo) : 0;
+    const minPrice = Math.max(seuPrecoAtual * (1 - maxReducaoPercent / 100), hostFloor);
+    const maxPrice = Math.max(seuPrecoAtual * (1 + maxAumentoPercent / 100), minPrice);
     const precoSugerido = this.clamp(precoSemGuardrail, minPrice, maxPrice);
 
     const diferenca = ((precoSugerido - seuPrecoAtual) / seuPrecoAtual) * 100;

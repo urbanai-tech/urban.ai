@@ -1,12 +1,14 @@
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, NotFoundException, Param, Patch, Post, Query, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, NotFoundException, Param, Patch, Post, Put, Query, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { PropriedadeService } from './propriedade.service';
 import { Address } from 'src/entities/addresses.entity';
 import { ApiTags, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { APITypes } from './types/nearProperties';
 import { PricingCalculateService } from './pricing-calculate.service';
+import { HostBaselineService } from './host-baseline.service';
 import {
   CreateAirbnbAlertDto,
+  UpdateHostBaselineDto,
   UpdatePropertyIdentityDto,
   UpdatePropertyPricingInputsDto,
   UpsertPropertyManualOccupancyDto,
@@ -16,7 +18,8 @@ import {
 @Controller('propriedades')
 export class PropriedadeController {
   constructor(private readonly propriedadeService: PropriedadeService,
-    private readonly pricingCalculateService: PricingCalculateService
+    private readonly pricingCalculateService: PricingCalculateService,
+    private readonly hostBaselineService: HostBaselineService,
   ) { }
 
   @Get('hostId')
@@ -447,6 +450,24 @@ export class PropriedadeController {
     @Body() body: UpdatePropertyPricingInputsDto,
   ) {
     return this.propriedadeService.updatePricingInputs(id, req.user.userId, body);
+  }
+
+  @Get(':id/baseline')
+  @ApiOperation({ summary: 'Diária base em uso (Airbnb ou informada pelo anfitrião) e dados essenciais' })
+  @UseGuards(JwtAuthGuard)
+  async getBaseline(@Param('id') id: string, @Req() req: any) {
+    return this.hostBaselineService.getBaseline(id, req.user.userId);
+  }
+
+  @Put(':id/host-baseline')
+  @ApiOperation({ summary: 'Plano B do scraping: anfitrião informa diária base, piso, fim de semana e dados essenciais' })
+  @UseGuards(JwtAuthGuard)
+  async updateHostBaseline(
+    @Param('id') id: string,
+    @Req() req: any,
+    @Body() body: UpdateHostBaselineDto,
+  ) {
+    return this.hostBaselineService.saveHostInput(id, req.user.userId, body);
   }
 
   @Get(':id/pricing-inputs/history')
