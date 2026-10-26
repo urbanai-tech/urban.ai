@@ -4,7 +4,7 @@ Procedimentos passo-a-passo para os 5 cenários mais prováveis de incidente em 
 
 ## Cenários cobertos
 
-1. [`db-down.md`](./db-down.md) — MySQL Railway indisponível
+1. [`db-down.md`](./db-down.md) — MySQL Railway indisponível (inclui o Caso 5, Redis/Upstash indisponível)
 2. [`scrapyd-travado.md`](./scrapyd-travado.md) — Scrapyd não responde / spiders travados
 3. [`prefect-flow-falhando.md`](./prefect-flow-falhando.md) — flow Prefect falha por 2+ dias
 4. [`brevo-rate-limit.md`](./brevo-rate-limit.md) — Brevo rate-limited / e-mails não saem
@@ -33,7 +33,7 @@ Procedimentos passo-a-passo para os 5 cenários mais prováveis de incidente em 
 
 ## Postmortem
 
-Salvar em `docs/postmortems/<YYYY-MM-DD>-<titulo-curto>.md` usando template em `docs/postmortems/_template.md` (a criar). Estrutura mínima:
+Salvar em `docs/postmortems/<YYYY-MM-DD>-<titulo-curto>.md` usando template em `docs/postmortems/_template.md` (já existe). Estrutura mínima:
 
 - Linha do tempo
 - Root cause

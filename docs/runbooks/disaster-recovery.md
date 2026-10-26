@@ -28,16 +28,15 @@ Se algum destes faltar, o restore trava — resolver **agora**, não no incident
 | 3 | **Fallback off-site:** baixar o último dump de `s3://<bucket>/mysql/` com a credencial read-only | Sem credencial de leitura → travado (ver pré-requisitos) |
 | 4 | Validar o dump baixado: `gzip -t arquivo.sql.gz` e conferir o `sha256` contra o registrado na notificação do backup | Dump corrompido → tentar o dump do dia anterior |
 | 5 | Provisionar MySQL novo no Railway (~10 min) | — |
-| 6 | `gunzip -c arquivo.sql.gz \| mysql -h HOST -u USER -p DBNAME` | `DEFINER` de routines/triggers pode falhar por privilégio; tempo de import desconhecido |
+| 6 | `gunzip -c arquivo.sql.gz \| MYSQL_PWD=<senha> mysql -h HOST -P PORT -u USER DBNAME` (o banco `DBNAME` precisa existir e estar vazio; o dump não traz `CREATE DATABASE`; mantenha o backend parado até terminar) | `DEFINER` de routines/triggers pode falhar por privilégio; tempo de import desconhecido |
 | 7 | Atualizar `DATABASE_URL` no backend (Railway) **e** no GitHub Secret do backup; redeploy com **`MIGRATIONS_RUN=false`** na primeira subida | — |
-| 8 | Validar: `node scripts/restore-drill-verify.js` (precisa `RESTORE_DATABASE_URL`) + smoke manual (login, listar imóveis, criar análise, `/my-plan`) | Verificador bloqueado se `RESTORE_DATABASE_URL` não setado |
+| 8 | Validar: `cd urban-ai-backend-main && npm ci && node scripts/restore-drill-verify.js` (precisa `RESTORE_DATABASE_URL`; a URL não pode conter `prod`/`production`/`myurbanai.com`, ou o script recusa) + smoke manual (login, listar imóveis, criar análise, `/my-plan`) | Verificador bloqueado se `RESTORE_DATABASE_URL` não setado; falha se `admin_job_runs`/`admin_audit_logs` restaurarem vazias |
 | 9 | Reabrir deploys, comunicar resolução | — |
 
 ## Se o dump estiver inutilizável
 
-⚠️ Hoje **não há caminho de reconstrução só por migrations** — 11 tabelas core não têm
-`CREATE TABLE` em migration (ticket DR-1). Enquanto DR-1 não fechar, um dump inutilizável = **perda de dados**.
-Prioridade: fechar DR-1 e manter ≥2 dumps válidos (versioning no bucket).
+O **schema** pode ser reconstruído só por migrations: no ensaio de 25/10/2026, um MySQL vazio + `npm run migration:run` criaram 46 tabelas e registraram 57 migrations (as tabelas core nascem em `1783400000000-CatchupCoreEntities` e `1745800000000-CatchupFeatureEntities`; `npm run audit:migrations:strict` passa). O antigo bloqueio "DR-1" (11 tabelas core sem `CREATE TABLE`) não se aplica mais.
+Isso recupera a **estrutura**, não os **dados**: sem dump válido, usuários, imóveis, pagamentos e histórico são perdidos (só `plans`, `coverage_regions` e demais seeds de boot voltam). Mantenha ≥2 dumps válidos (versioning no bucket).
 
 ## RPO/RTO
 
@@ -55,3 +54,27 @@ O gate automatizado não substitui o drill: existência do objeto off-site, rest
 
 - Registrar `docs/postmortems/incident-db-loss-<data>.md` com timeline e tempo real vs RTO.
 - Se algum passo travou por pré-requisito ausente, criar tarefa para resolvê-lo.
+
+## Ensaio local (25/10/2026)
+
+Executado por quem não escreveu o runbook, no stack local (`docker-compose.yml`, MySQL 8.4). Só a parte local foi ensaiada; o resto está listado abaixo.
+
+**Perda do volume simulada.** Para não apagar o volume de `node_modules` (custa ~10 min de `npm ci`): `docker compose stop backend mysql`, `docker compose rm -f mysql backend` e `docker volume rm urban-ai_mysql-data`. Depois `docker compose up -d mysql redis`: o MySQL ficou `healthy` em ~2 min e `information_schema` mostrava **0 tabelas** em `ai_urban`.
+
+**Passos 4 e 6 (validar e importar o dump).** O dump usado foi o gerado por `scripts/mysql-backup.js` no ensaio de `backup-restore.md` (`urban-ai-ensaio-20261026T003959Z.sql.gz`, 14,7 KB, sha256 `d6c98df1...ef5c` igual antes e depois de copiar). `gzip -t` ok; `gunzip -c ... | mysql -uroot ... ai_urban` em ~60 s, exit 0. Contagens iguais às do banco original (user 3, payment 3, plans 3, migrations 57, admin_audit_logs 1, admin_job_runs 1, coverage_regions 1, process_status 1); a única diferença foi `refresh_tokens 1`, do login feito antes do dump.
+
+**Passos 7 e 8 (subir o backend e validar).** `docker compose up -d backend`: o boot rodou `migration:run` ("No migrations are pending") e `GET /health/live` = 200 (uptime do processo 33 s; a primeira compilação do `nest start --watch` domina o tempo). `node scripts/restore-drill-verify.js` com `RESTORE_DATABASE_URL` apontando para o MySQL local: `Pass: 5, Fail: 0`. `GET /health` com Bearer: `status ok`, `db ok`, `redis ok`.
+
+**Migrations a partir do zero (fallback "dump inutilizável").** No primeiro `up` (volume virgem), o `migration:run` do boot criou o schema inteiro: 57 migrations aplicadas e 46 tabelas, sem `synchronize` (`DB_SYNCHRONIZE=false`). O texto antigo do runbook ("11 tabelas core sem CREATE TABLE, ticket DR-1") estava desatualizado e foi corrigido. Ressalva: o schema volta, os dados não.
+
+**Armadilha encontrada.** Se o backend for iniciado com o banco vazio e antes do import, o `migration:run` do boot cria as tabelas e o import do dump colide. No ensaio isso exigiu parar o backend, recriar o banco e importar de novo. O passo 6 agora manda manter o backend parado.
+
+**Correções feitas neste ensaio:** passo 6 (`-p DBNAME` ambíguo; banco precisa existir e estar vazio; backend parado); passo 8 (`npm ci`, bloqueio de URL com "prod", falha se `admin_*` voltarem vazias); seção "Se o dump estiver inutilizável" (DR-1 não procede mais).
+
+**Não ensaiável localmente (e o acesso necessário):**
+
+- Passos 1-3: detecção em Sentry/health de produção, restore nativo do Railway e download do objeto em `s3://<bucket>/mysql/` com a credencial read-only. Precisa de Railway Admin e de credencial AWS de leitura (e do nome real do bucket, ainda não unificado).
+- Passo 4, conferência do `sha256` contra a notificação do workflow de backup: precisa de um backup real gerado pelo workflow de GitHub Actions.
+- Passo 5: provisionar MySQL novo no Railway (~10 min) e `DEFINER` de routines/triggers com os privilégios do Railway; localmente o usuário é `root`, então o risco de privilégio não foi exercitado.
+- Passo 7: trocar `DATABASE_URL` no Railway e no GitHub Secret do backup e redeploy com `MIGRATIONS_RUN=false`.
+- RTO de 2h e import de um dump do tamanho real: não mensuráveis com 14 KB.

@@ -74,6 +74,7 @@ yarn-error.log*
 
 # ===== DB dumps (usar S3/drive, não git) =====
 *.sql
+*.sql.gz
 dump-*.sql
 inserts-*.sql
 
