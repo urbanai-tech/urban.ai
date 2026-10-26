@@ -51,6 +51,7 @@ Fontes que nunca tiveram volume (baseline baixo) e fontes ignoradas não alertam
 
 ## Triagem quando o alerta dispara
 
+0. O painel `/admin/event-coverage` mostra o impacto no negócio: quantos eventos dos próximos 30 dias vêm de fontes paradas (`next30dFromHealthySources`) e se a meta de 100 eventos ainda se sustenta.
 1. Abra `/admin/collectors-health`: confira `Último crawl` e `status` da fonte.
 2. Rode a fonte à mão com `DRY_RUN=true python -m urban_webscrapping.collectors.<nome>` (ou o
    spider via Scrapyd) e veja o log `ZERO_ITEMS`/erros HTTP.
