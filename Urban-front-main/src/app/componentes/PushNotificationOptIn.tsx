@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { BellOff, BellRing, Send, X } from "lucide-react";
+import { BellOff, BellRing, Send, Smartphone, X } from "lucide-react";
 import { AppBadge, AppButton } from "./ui";
 import {
   getPwaPushSnapshot,
@@ -10,6 +10,9 @@ import {
   subscribeToPwaPush,
   unsubscribeFromPwaPush,
 } from "../service/pwaPush";
+import { getClientPushEligibility } from "../service/pwaClient";
+import { OPEN_INSTALL_SHEET_EVENT, type PushEligibility } from "../service/pwaInstall";
+import { PushCategoryPreferences } from "./PushCategoryPreferences";
 
 const DISMISS_KEY = "urban_ai_push_invite_dismissed";
 
@@ -38,6 +41,7 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
   const [busy, setBusy] = React.useState<"subscribe" | "unsubscribe" | "test" | null>(null);
   const [message, setMessage] = React.useState<string | null>(null);
   const [dismissed, setDismissed] = React.useState(false);
+  const [eligibility, setEligibility] = React.useState<PushEligibility | null>(null);
   const isCompact = variant === "compact";
 
   const refresh = React.useCallback(async () => {
@@ -46,6 +50,7 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
   }, []);
 
   React.useEffect(() => {
+    setEligibility(getClientPushEligibility());
     refresh().catch(() => {
       setSnapshot({
         supported: false,
@@ -107,14 +112,78 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
     }
   };
 
-  if (!snapshot) return null;
-  if (!snapshot.supported) return null;
-  if (isCompact && (snapshot.subscribed || dismissed || snapshot.permission === "denied")) return null;
-
   const dismissCompact = () => {
     saveDismissedInvite();
     setDismissed(true);
   };
+
+  if (!snapshot || !eligibility) return null;
+  if (eligibility === "needs-install" || eligibility === "ios-too-old") {
+    // iOS só entrega push para o app instalado na Tela de Início (iOS 16.4+): explica antes de pedir permissão.
+    if (isCompact && (dismissed || eligibility === "ios-too-old")) return null;
+    return (
+      <section
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          flexWrap: "wrap",
+          padding: isCompact ? "14px 16px" : "16px 18px",
+          marginBottom: isCompact ? 24 : 20,
+          border: "1px solid var(--app-divider)",
+          borderRadius: "var(--app-radius-card)",
+          background: isCompact ? "var(--app-accent-soft)" : "var(--app-surface)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 220, flex: 1 }}>
+          <div
+            aria-hidden
+            style={{
+              width: 36,
+              height: 36,
+              flex: "none",
+              borderRadius: 8,
+              display: "grid",
+              placeItems: "center",
+              color: "var(--app-accent)",
+              background: isCompact ? "var(--app-surface)" : "var(--app-accent-soft)",
+            }}
+          >
+            <Smartphone size={18} />
+          </div>
+          <div>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--app-text)" }}>
+              {eligibility === "ios-too-old" ? "Avisos precisam do iOS 16.4 ou mais novo" : "Instale o app para receber avisos"}
+            </p>
+            <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--app-text-muted)", lineHeight: 1.45 }}>
+              {eligibility === "ios-too-old"
+                ? "Atualize o iPhone para receber avisos de preço no celular. Enquanto isso, as recomendações continuam aqui no painel."
+                : "No iPhone, o iOS só entrega avisos para apps adicionados à Tela de Início. Adicione a Urban AI e volte aqui para ativá-los."}
+            </p>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {eligibility === "needs-install" && (
+            <AppButton
+              size="sm"
+              variant="primary"
+              onClick={() => window.dispatchEvent(new Event(OPEN_INSTALL_SHEET_EVENT))}
+            >
+              Como instalar
+            </AppButton>
+          )}
+          {isCompact && (
+            <AppButton size="sm" variant="ghost" leftIcon={<X size={14} />} onClick={dismissCompact}>
+              Agora não
+            </AppButton>
+          )}
+        </div>
+      </section>
+    );
+  }
+  if (!snapshot.supported) return null;
+  if (isCompact && (snapshot.subscribed || dismissed || snapshot.permission === "denied")) return null;
 
   const badge = snapshot.subscribed
     ? <AppBadge kind="success">ATIVO</AppBadge>
@@ -130,7 +199,7 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
     snapshot.permission === "denied"
       ? "Os avisos estão bloqueados no navegador. Clique no cadeado ao lado do endereço do site para liberar."
       : snapshot.enabled
-        ? "A Urban AI avisa quando houver nova sugestão de preço ou evento importante. Quando o navegador perguntar, toque em Permitir."
+        ? "Avisamos só o que importa: recomendação de preço nova, evento relevante e o resumo da semana. Você escolhe depois. Quando o navegador perguntar, toque em Permitir."
         : "Avisos ainda não estão liberados neste ambiente.";
 
   return (
@@ -224,6 +293,7 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
           </AppButton>
         )}
       </div>
+      {snapshot.subscribed && !isCompact && <PushCategoryPreferences />}
     </section>
   );
 }

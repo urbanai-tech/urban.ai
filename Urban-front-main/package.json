@@ -23,7 +23,7 @@
     "event-radar:unit:test": "node --test scripts/event-radar-domain.test.mjs",
     "event-radar:api-contract:test": "node --test scripts/event-radar-api-contract.test.mjs",
     "error-boundary:unit:test": "node --test scripts/error-recovery.test.mjs",
-    "pwa:lifecycle:test": "node --test scripts/pwa-lifecycle.test.mjs",
+    "pwa:lifecycle:test": "node --test scripts/pwa-lifecycle.test.mjs scripts/pwa-sw-routing.test.mjs scripts/pwa-install.test.mjs",
     "ui-primitives:unit:test": "node --test scripts/ui-primitives.test.mjs",
     "host-baseline:unit:test": "node --test scripts/host-baseline.test.mjs",
     "public-site:contract:test": "node --test scripts/public-site-contract.test.mjs",
