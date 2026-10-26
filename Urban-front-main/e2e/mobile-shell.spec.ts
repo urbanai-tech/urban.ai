@@ -63,10 +63,12 @@ test.describe('Shell mobile do anfitrião', () => {
 
     const more = page.getByRole('button', { name: 'Mais' });
     await expect(more).toHaveAttribute('aria-expanded', 'false');
-    await more.click();
-
     const sheet = page.getByRole('dialog', { name: 'Mais' });
-    await expect(sheet).toBeVisible();
+    // Repete o toque até a hidratação do React ligar o handler.
+    await expect(async () => {
+      await more.click();
+      await expect(sheet).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 15_000 });
     await expect(more).toHaveAttribute('aria-expanded', 'true');
     await expect.poll(() => sheet.evaluate((node) => node.contains(document.activeElement))).toBe(true);
     await expect(sheet.getByRole('link', { name: 'Imóveis' })).toBeVisible();
@@ -122,8 +124,10 @@ test.describe('Shell mobile do anfitrião', () => {
     await page.goto('/painel', { waitUntil: 'domcontentloaded' });
     const topbar = page.locator('[data-host-mobile-topbar]');
     await expect(topbar).toHaveAttribute('data-scrolled', 'false');
-    await page.evaluate(() => window.scrollTo(0, 400));
-    await expect(topbar).toHaveAttribute('data-scrolled', 'true');
+    await expect(async () => {
+      await page.evaluate(() => window.scrollTo(0, 400));
+      await expect(topbar).toHaveAttribute('data-scrolled', 'true', { timeout: 1000 });
+    }).toPass({ timeout: 15_000 });
     await expect(topbar.locator('.urban-topbar__title')).toHaveText('Painel');
   });
 

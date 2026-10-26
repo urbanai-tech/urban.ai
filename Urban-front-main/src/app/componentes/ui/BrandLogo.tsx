@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 /**
  * Logo oficial My Urban (Brandbook 2026), sempre o arquivo do manual:
  *  - wordmark: Logotipo_06 (deep, fundo claro) / Logotipo_17 (branco, fundo escuro)
@@ -35,22 +33,25 @@ export function BrandLogo({
   const base = ["urban-brand-logo", `urban-brand-logo--${variant}`, className].filter(Boolean).join(" ");
   return (
     <>
-      <Image
+      {/* SVG estático: next/image não otimiza SVG e custaria ~5 KB gzip por rota. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
         src={file.light}
         alt={alt}
         width={file.width}
         height={file.height}
-        unoptimized
-        priority={priority}
+        decoding="async"
+        fetchPriority={priority ? "high" : undefined}
         className={`${base} urban-brand-logo--on-light`}
       />
-      <Image
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
         src={file.dark}
         alt={alt}
         width={file.width}
         height={file.height}
-        unoptimized
-        priority={priority}
+        decoding="async"
+        fetchPriority={priority ? "high" : undefined}
         className={`${base} urban-brand-logo--on-dark`}
       />
     </>

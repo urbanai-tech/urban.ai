@@ -479,6 +479,12 @@
     flex-direction: column;
   }
 
+  /* Em coluna, flex-basis vira altura: sem isso sobrava ~400px vazios. */
+  .properties-identity,
+  .properties-pricing {
+    flex: 0 0 auto;
+  }
+
   .properties-pricing {
     justify-content: flex-start;
   }
