@@ -7,6 +7,18 @@ primeiro.
 
 ---
 
+## [Sessão só por cookie, fase 2] — 2026-10-26 — Nenhum token legível por JavaScript
+
+### Alterado
+
+- `/auth/login`, `/auth/google`, `/auth/refresh` e `/auth/waitlist/accept` deixam de devolver `accessToken` no corpo;
+  a sessão vive só nos cookies httpOnly. O front não grava mais token em `localStorage` e remove o legado
+  (`accessToken`) na primeira carga, sem deslogar ninguém. Smoke E2E real, k6, product-audit e release-gate
+  passam a ler o token do `Set-Cookie`. `Authorization: Bearer` segue aceito no backend (JWTs de serviço).
+- Cota diária do Ask Urban passa a contar pelo dia de São Paulo (antes, fuso do servidor).
+
+---
+
 ## [Plano B do scraping] — 2026-10-26 — Anfitrião informa os dados quando o Airbnb falha
 
 ### Adicionado

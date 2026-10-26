@@ -111,11 +111,13 @@ async function apiLogin(request) {
   const response = await request.post(`${API_URL}/auth/login`, {
     data: { email: EMAIL, password: sha256(PASSWORD) },
   });
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok() || !body.accessToken) {
+  // O token vem só no cookie httpOnly (Set-Cookie); o corpo não o carrega mais.
+  const setCookie = response.headers()['set-cookie'] || '';
+  const match = /(?:^|\n)urbanai_access_token=([^;\n]+)/.exec(setCookie);
+  if (!response.ok() || !match) {
     throw new Error(`Login failed with status ${response.status()}`);
   }
-  return body.accessToken;
+  return match[1];
 }
 
 async function probeApi(request, token, endpoint) {
