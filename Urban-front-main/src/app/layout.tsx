@@ -44,6 +44,8 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-16.png", type: "image/png", sizes: "16x16" },
       { url: "/pwa-icon-192.png", type: "image/png", sizes: "192x192" },
       { url: "/pwa-icon-512.png", type: "image/png", sizes: "512x512" },
     ],
@@ -56,7 +58,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "Urban AI",
+    title: "My Urban",
     statusBarStyle: "black-translucent",
     startupImage: APPLE_STARTUP_IMAGES.map(({ url, media }) => ({ url, media })),
   },
@@ -90,7 +92,7 @@ export const viewport: Viewport = {
   colorScheme: "light dark",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#FAFAFB" },
-    { media: "(prefers-color-scheme: dark)", color: "#080A0F" },
+    { media: "(prefers-color-scheme: dark)", color: "#103134" },
   ],
 };
 

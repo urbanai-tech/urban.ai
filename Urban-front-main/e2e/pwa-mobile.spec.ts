@@ -6,13 +6,13 @@ test.describe('PWA e mobile', () => {
     expect(manifestResponse.ok()).toBeTruthy();
 
     const manifest = await manifestResponse.json();
-    expect(manifest.name).toBe('Urban AI');
-    expect(manifest.short_name).toBe('Urban AI');
+    expect(manifest.name).toBe('My Urban AI');
+    expect(manifest.short_name).toBe('My Urban');
     expect(manifest.id).toBe('/?source=pwa');
     expect(manifest.scope).toBe('/');
     expect(manifest.display).toBe('standalone');
-    expect(manifest.background_color).toBe('#1C1E3D');
-    expect(manifest.theme_color).toBe('#080A0F');
+    expect(manifest.background_color).toBe('#103134');
+    expect(manifest.theme_color).toBe('#103134');
     expect(manifest.display_override).toEqual(['standalone', 'minimal-ui']);
     expect(manifest.orientation).toBe('any');
     expect(manifest.lang).toBe('pt-BR');
@@ -50,11 +50,11 @@ test.describe('PWA e mobile', () => {
     );
     await expect(page.locator('meta[name="theme-color"][media="(prefers-color-scheme: dark)"]')).toHaveAttribute(
       'content',
-      '#080A0F',
+      '#103134',
     );
     await expect(page.locator('meta[name="theme-color"][data-urban-runtime-theme="true"]')).toHaveAttribute(
       'content',
-      /#(?:FAFAFB|080A0F)/,
+      /#(?:FAFAFB|103134)/,
     );
     await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute(
       'href',
