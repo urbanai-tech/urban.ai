@@ -65,6 +65,7 @@
   --theme-app-warning: #C8810E;
   --theme-app-warning-border: rgba(200, 129, 14, 0.25);
   --theme-app-warning-soft: rgba(200, 129, 14, 0.10);
+  --theme-app-warning-text: #7A4F05;
 
   /* page */
   --theme-page-bg: #FAFAFB;
@@ -141,6 +142,7 @@
   --theme-app-warning: #F5B547;
   --theme-app-warning-border: rgba(245, 181, 71, 0.28);
   --theme-app-warning-soft: rgba(245, 181, 71, 0.14);
+  --theme-app-warning-text: #F5B547;
 
   /* page */
   --theme-page-bg: #080A0F;
@@ -264,6 +266,7 @@
   --app-warning: var(--theme-app-warning);
   --app-warning-border: var(--theme-app-warning-border);
   --app-warning-soft: var(--theme-app-warning-soft);
+  --app-warning-text: var(--theme-app-warning-text);
 /* design-tokens:generated app-aliases:end */
 
   background: var(--app-bg);

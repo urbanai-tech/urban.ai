@@ -27,6 +27,7 @@ export const appVar = {
   successSoft: "var(--app-success-soft)",
   successBorder: "var(--app-success-border)",
   warning: "var(--app-warning)",
+  warningText: "var(--app-warning-text)",
   warningSoft: "var(--app-warning-soft)",
   warningBorder: "var(--app-warning-border)",
   danger: "var(--app-danger)",
@@ -65,7 +66,7 @@ export const appTone = {
     borderColor: appVar.successBorder,
   },
   warn: {
-    color: appVar.warning,
+    color: appVar.warningText,
     background: appVar.warningSoft,
     borderColor: appVar.warningBorder,
   },
