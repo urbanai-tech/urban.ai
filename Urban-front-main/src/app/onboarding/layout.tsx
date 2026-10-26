@@ -1,19 +1,19 @@
 "use client"
 import React from 'react'
-import Image from 'next/image'
+import { BrandLogo } from '../componentes/ui/BrandLogo'
 
+/**
+ * Casca do onboarding: faixa com o fundo oficial da marca no topo (scrim
+ * tokenizado garante AA), logo oficial com área de proteção, `100dvh` e
+ * safe areas. Estilos em `componentes/ui/host-mobile.css`.
+ */
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--app-bg)', color: 'var(--app-text)', display: 'flex', flexDirection: 'column' }}>
-      <main style={{ flex: 1, padding: '32px 0' }} className="urban-app">
-        <Image
-          src="/urban-logo-transparent-soft.png"
-          alt="Urban AI Logo"
-          width={160}
-          height={40}
-          priority
-          style={{ display: 'block', height: 40, width: 'auto', margin: '0 auto 16px' }}
-        />
+    <div className="urban-app urban-onboarding-layout urban-brand-band">
+      <main className="urban-app urban-onboarding-layout__main">
+        <div className="urban-onboarding-layout__brand">
+          <BrandLogo variant="wordmark" priority />
+        </div>
         {children}
       </main>
     </div>
