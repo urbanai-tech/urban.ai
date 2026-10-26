@@ -144,6 +144,17 @@ export class AnalisePreco {
   @Column({ name: 'verification_error', type: 'text', nullable: true })
   verificationError: string | null;
 
+  /**
+   * Preço que o motor v2 calculou em sombra (`PRICING_ENGINE_V2=shadow`) para esta mesma
+   * noite/evento, ao lado do v1 em `precoSugerido`. NULL quando o v2 não rodou. Só para
+   * comparação interna (view admin v1 x v2); nunca é mostrado ao anfitrião.
+   */
+  @Column({ name: 'shadow_v2_preco', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  shadowV2Preco: number | null;
+
+  @Column({ name: 'shadow_v2_versao', type: 'varchar', length: 32, nullable: true })
+  shadowV2Versao: string | null;
+
   // --- IA Reasoning ---
   @Column({ name: 'motivo_ia', type: 'text', nullable: true })
   motivo_ia: string;

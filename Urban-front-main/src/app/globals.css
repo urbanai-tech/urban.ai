@@ -828,3 +828,20 @@ body {
   font-weight: 650;
   text-decoration: none;
 }
+
+/* Telas admin do beta (cobrança dos anfitriões e resultados v1 x v2). */
+.beta-ops-page { max-width: 1280px; margin: 0 auto; padding: 40px 32px; }
+.beta-ops-muted { color: var(--admin-text-muted); }
+.beta-ops-warn { color: var(--admin-warning); }
+.beta-ops-strong { color: var(--admin-text); }
+.beta-ops-note { margin-top: 24px; color: var(--admin-text-muted); }
+.beta-ops-note-tight { margin: 16px 0; color: var(--admin-warning); }
+.beta-ops-stack { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.beta-ops-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; margin: 40px 0; }
+.beta-ops-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
+.beta-ops-callout-gap { margin-top: 8px; color: var(--admin-text-muted); }
+@media (max-width: 767px) {
+  .beta-ops-page { padding: 24px 16px; }
+  .beta-ops-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .beta-ops-filters { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1793025848669" clover="3.2.0">
+  <project timestamp="1793025848672" name="All files">
+    <metrics statements="67" coveredstatements="67" conditionals="45" coveredconditionals="45" methods="11" coveredmethods="11" elements="123" coveredelements="123" complexity="0" loc="67" ncloc="67" packages="2" files="2" classes="2"/>
+    <package name="knn-engine">
+      <metrics statements="26" coveredstatements="26" conditionals="11" coveredconditionals="11" methods="3" coveredmethods="3"/>
+      <file name="backtesting.ts" path="C:\Users\Acer\Documents\GitHub\urban.ai\.claude\worktrees\agent-a0ddc3cac8c323aac\urban-ai-backend-main\src\knn-engine\backtesting.ts">
+        <metrics statements="26" coveredstatements="26" conditionals="11" coveredconditionals="11" methods="3" coveredmethods="3"/>
+        <line num="15" count="1" type="stmt"/>
+        <line num="16" count="1" type="stmt"/>
+        <line num="17" count="1" type="stmt"/>
+        <line num="23" count="10" type="stmt"/>
+        <line num="24" count="10" type="stmt"/>
+        <line num="25" count="10" type="stmt"/>
+        <line num="26" count="10" type="stmt"/>
+        <line num="27" count="10" type="stmt"/>
+        <line num="28" count="10" type="stmt"/>
+        <line num="29" count="26" type="cond" truecount="4" falsecount="0"/>
+        <line num="30" count="5" type="stmt"/>
+        <line num="31" count="5" type="stmt"/>
+        <line num="33" count="21" type="stmt"/>
+        <line num="34" count="21" type="stmt"/>
+        <line num="35" count="21" type="stmt"/>
+        <line num="36" count="21" type="stmt"/>
+        <line num="37" count="21" type="stmt"/>
+        <line num="38" count="21" type="stmt"/>
+        <line num="40" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="41" count="2" type="stmt"/>
+        <line num="49" count="15" type="stmt"/>
+        <line num="50" count="8" type="stmt"/>
+        <line num="51" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="52" count="8" type="stmt"/>
+        <line num="67" count="5" type="stmt"/>
+        <line num="68" count="5" type="stmt"/>
+      </file>
+    </package>
+    <package name="payments">
+      <metrics statements="41" coveredstatements="41" conditionals="34" coveredconditionals="34" methods="8" coveredmethods="8"/>
+      <file name="stripe-price-id.resolver.ts" path="C:\Users\Acer\Documents\GitHub\urban.ai\.claude\worktrees\agent-a0ddc3cac8c323aac\urban-ai-backend-main\src\payments\stripe-price-id.resolver.ts">
+        <metrics statements="41" coveredstatements="41" conditionals="34" coveredconditionals="34" methods="8" coveredmethods="8"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="8" count="1" type="stmt"/>
+        <line num="10" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="13" count="9" type="stmt"/>
+        <line num="14" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="15" count="5" type="stmt"/>
+        <line num="16" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="17" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="18" count="3" type="stmt"/>
+        <line num="19" count="1" type="stmt"/>
+        <line num="22" count="6" type="stmt"/>
+        <line num="23" count="6" type="stmt"/>
+        <line num="24" count="7" type="stmt"/>
+        <line num="25" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="26" count="5" type="stmt"/>
+        <line num="28" count="1" type="stmt"/>
+        <line num="31" count="11" type="stmt"/>
+        <line num="32" count="11" type="cond" truecount="2" falsecount="0"/>
+        <line num="33" count="11" type="cond" truecount="4" falsecount="0"/>
+        <line num="34" count="11" type="stmt"/>
+        <line num="37" count="11" type="stmt"/>
+        <line num="41" count="11" type="cond" truecount="2" falsecount="0"/>
+        <line num="44" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="45" count="2" type="stmt"/>
+        <line num="46" count="7" type="stmt"/>
+        <line num="47" count="7" type="cond" truecount="4" falsecount="0"/>
+        <line num="49" count="1" type="cond" truecount="2" falsecount="0"/>
+        <line num="51" count="3" type="stmt"/>
+        <line num="53" count="2" type="stmt"/>
+        <line num="55" count="1" type="cond" truecount="2" falsecount="0"/>
+        <line num="58" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="61" count="8" type="cond" truecount="4" falsecount="0"/>
+        <line num="63" count="2" type="stmt"/>
+        <line num="65" count="2" type="stmt"/>
+        <line num="67" count="2" type="stmt"/>
+        <line num="69" count="2" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>
