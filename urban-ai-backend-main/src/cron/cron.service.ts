@@ -257,10 +257,10 @@ export class CronService {
                     this.logger.debug(`Dados Airbnb recebidos para listing=${listingId}`);
                     diaria = getDiariaForCron(dadosProperty);
                 } catch (liveError) {
-                    // Plano B do scraping (ADR 0010): sem leitura ao vivo, usa a diária base com que
-                    // a própria sugestão foi calculada (Airbnb anterior ou informada pelo anfitrião)
-                    // em vez de descartar a recomendação.
-                    const storedDiaria = Number(element.seuPrecoAtual);
+                    // Plano B do scraping (ADR 0010): sem leitura ao vivo, usa o preço que o anfitrião
+                    // registrou ter aplicado (evita cobrar de novo quem já aplicou); sem esse registro,
+                    // a diária base com que a sugestão foi calculada. Não descarta a recomendação.
+                    const storedDiaria = Number(element.precoAplicado ?? element.seuPrecoAtual);
                     if (!Number.isFinite(storedDiaria) || storedDiaria <= 0) throw liveError;
                     this.logger.warn(
                         `Leitura ao vivo do Airbnb falhou para listing=${listingId}; usando a diária base registrada (R$${storedDiaria}): ${
