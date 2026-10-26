@@ -2,9 +2,6 @@ import { expect, test, type Page } from '@playwright/test';
 import { acceptCookieConsent } from './test-helpers';
 
 async function mockAdminSession(page: Page) {
-  await page.addInitScript(() => {
-    window.localStorage.setItem('accessToken', 'e2e-theme-admin-token');
-  });
 
   await page.route('**/auth/me', async (route) => {
     await route.fulfill({

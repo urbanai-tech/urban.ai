@@ -21,9 +21,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new Error('JWT_SECRET environment variable is required');
     }
     super({
-      // Aceita token tanto via Authorization Bearer (cliente legado com
-      // localStorage) quanto via cookie httpOnly (novo caminho, mais seguro).
-      // Ordem: cookie primeiro; header como fallback retrocompat.
+      // Navegador: só o cookie httpOnly (o front não guarda nem envia token).
+      // O header Authorization: Bearer segue aceito para clientes que não são
+      // navegador: JWTs de serviço/fixtures de staging (staging-auth-fixtures.js,
+      // release-gate), k6 e o smoke E2E, que leem o cookie do Set-Cookie.
+      // Ordem: cookie primeiro.
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req: Request) => req?.cookies?.[ACCESS_TOKEN_COOKIE] || null,
         ExtractJwt.fromAuthHeaderAsBearerToken(),

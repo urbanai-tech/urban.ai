@@ -10,7 +10,6 @@ import { cancelPushOnLogout } from './logout-push-cleanup'
 
 declare module "next-auth" {
   interface Session {
-    accessToken?: string;
     user?: {
       name?: string | null;
       email?: string | null;
@@ -102,7 +101,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error('Erro ao encerrar sessão no backend:', error)
     }
-    localStorage.removeItem('accessToken')
     invalidateAuthCache()
     invalidateSubscriptionCache()
     setIsAuthenticated(false)

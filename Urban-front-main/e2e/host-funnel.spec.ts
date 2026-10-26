@@ -41,7 +41,7 @@ test.describe('Funil do anfitrião', () => {
       await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ mode: 'registered' }) });
     });
     await page.route('**/auth/login', async (route) => {
-      await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ accessToken: 'e2e-token' }) });
+      await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ authenticated: true }) });
     });
     await page.route('**/email/enviar-codigo', async (route) => {
       await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ enviado: true }) });

@@ -91,9 +91,14 @@ async function authenticate(page: Page, credentials: Credentials | null, role: L
   await installLocalAuthFixture(page, role);
 }
 
+function accessTokenFromSetCookie(header: string | null): string {
+  const match = /(?:^|\n|,\s*)urbanai_access_token=([^;\n]+)/.exec(header ?? '');
+  return match ? match[1] : '';
+}
+
 async function persistBrowserSession(page: Page, loginResponse: PlaywrightResponse) {
-  const body = await loginResponse.json().catch(() => ({}));
-  const accessToken = typeof body?.accessToken === 'string' ? body.accessToken : '';
+  // O login não devolve token no corpo: a sessão vem no Set-Cookie httpOnly.
+  const accessToken = accessTokenFromSetCookie(await loginResponse.headerValue('set-cookie'));
   if (!accessToken) return;
 
   const apiUrl = new URL(process.env.E2E_API_URL || loginResponse.url());
@@ -107,10 +112,6 @@ async function persistBrowserSession(page: Page, loginResponse: PlaywrightRespon
       },
     });
   });
-
-  await page.evaluate((token) => {
-    window.localStorage.setItem('accessToken', token);
-  }, accessToken);
 
   await page.context().addCookies([
     {
