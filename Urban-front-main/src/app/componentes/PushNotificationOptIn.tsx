@@ -13,6 +13,7 @@ import {
 import { getClientPushEligibility } from "../service/pwaClient";
 import { OPEN_INSTALL_SHEET_EVENT, type PushEligibility } from "../service/pwaInstall";
 import { PushCategoryPreferences } from "./PushCategoryPreferences";
+import styles from "./Pwa.module.css";
 
 const DISMISS_KEY = "urban_ai_push_invite_dismissed";
 
@@ -122,48 +123,23 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
     // iOS só entrega push para o app instalado na Tela de Início (iOS 16.4+): explica antes de pedir permissão.
     if (isCompact && (dismissed || eligibility === "ios-too-old")) return null;
     return (
-      <section
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 16,
-          flexWrap: "wrap",
-          padding: isCompact ? "14px 16px" : "16px 18px",
-          marginBottom: isCompact ? 24 : 20,
-          border: "1px solid var(--app-divider)",
-          borderRadius: "var(--app-radius-card)",
-          background: isCompact ? "var(--app-accent-soft)" : "var(--app-surface)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 220, flex: 1 }}>
-          <div
-            aria-hidden
-            style={{
-              width: 36,
-              height: 36,
-              flex: "none",
-              borderRadius: 8,
-              display: "grid",
-              placeItems: "center",
-              color: "var(--app-accent)",
-              background: isCompact ? "var(--app-surface)" : "var(--app-accent-soft)",
-            }}
-          >
+      <section className={`${styles.optInCard} ${isCompact ? styles.optInCardCompact : ""}`}>
+        <div className={styles.optInInfo}>
+          <div aria-hidden className={styles.optInIcon}>
             <Smartphone size={18} />
           </div>
           <div>
-            <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--app-text)" }}>
+            <p className={styles.optInTitle}>
               {eligibility === "ios-too-old" ? "Avisos precisam do iOS 16.4 ou mais novo" : "Instale o app para receber avisos"}
             </p>
-            <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--app-text-muted)", lineHeight: 1.45 }}>
+            <p className={styles.optInText}>
               {eligibility === "ios-too-old"
                 ? "Atualize o iPhone para receber avisos de preço no celular. Enquanto isso, as recomendações continuam aqui no painel."
-                : "No iPhone, o iOS só entrega avisos para apps adicionados à Tela de Início. Adicione a Urban AI e volte aqui para ativá-los."}
+                : "No iPhone, o iOS só entrega avisos para apps adicionados à Tela de Início. Adicione o My Urban AI e volte aqui para ativá-los."}
             </p>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div className={styles.optInActions}>
           {eligibility === "needs-install" && (
             <AppButton
               size="sm"

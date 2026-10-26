@@ -4,6 +4,7 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import { Download, Share, SquarePlus, X } from "lucide-react";
 import { AppButton } from "./ui";
+import styles from "./Pwa.module.css";
 import {
   decideInstallPrompt,
   INSTALL_STORAGE_KEY,
@@ -39,24 +40,6 @@ function writeState(state: InstallState): void {
     // Navegador bloqueou o armazenamento: o convite só reaparece na próxima visita.
   }
 }
-
-const cardStyle: React.CSSProperties = {
-  position: "fixed",
-  left: 16,
-  right: 16,
-  maxWidth: 440,
-  marginInline: "auto",
-  zIndex: 9000,
-  display: "flex",
-  alignItems: "center",
-  gap: 12,
-  padding: "12px 14px",
-  border: "1px solid var(--app-divider)",
-  borderRadius: "var(--app-radius-card)",
-  background: "var(--app-surface)",
-  color: "var(--app-text)",
-  boxShadow: "0 8px 28px rgba(0, 0, 0, 0.28)",
-};
 
 /**
  * Convite para instalar o app. Android/desktop: usa o prompt nativo guardado de
@@ -154,35 +137,24 @@ export function PwaInstallPrompt() {
     }
   };
 
-  const bottom = hasBottomNav ? "calc(72px + env(safe-area-inset-bottom))" : "calc(16px + env(safe-area-inset-bottom))";
   const iosSheet = platform === "ios-safari" || platform === "ios-other-browser";
 
   return (
     <>
       {decision.kind !== "hidden" && !sheetOpen && (
-        <section role="region" aria-label="Instalar o aplicativo Urban AI" style={{ ...cardStyle, bottom }}>
-          <div
-            aria-hidden
-            style={{
-              width: 36,
-              height: 36,
-              flex: "none",
-              borderRadius: 8,
-              display: "grid",
-              placeItems: "center",
-              color: "var(--app-accent)",
-              background: "var(--app-accent-soft)",
-            }}
-          >
+        <section
+          role="region"
+          aria-label="Instalar o aplicativo My Urban AI"
+          className={`${styles.floatingCard} ${hasBottomNav ? styles.floatingCardWithNav : ""}`}
+        >
+          <div aria-hidden className={styles.iconBox}>
             <Download size={18} />
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: 14, fontWeight: 700 }}>Tenha a Urban AI na tela inicial</p>
-            <p style={{ margin: "2px 0 0", fontSize: 13, color: "var(--app-text-muted)", lineHeight: 1.4 }}>
-              Abre em tela cheia e avisa quando houver preço novo para revisar.
-            </p>
+          <div className={styles.grow}>
+            <p className={styles.title}>Tenha o My Urban AI na tela inicial</p>
+            <p className={styles.muted}>Abre em tela cheia e avisa quando houver preço novo para revisar.</p>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <div className={styles.column}>
             {decision.kind === "native-prompt" ? (
               <AppButton size="sm" variant="primary" onClick={install}>
                 Instalar
@@ -200,40 +172,21 @@ export function PwaInstallPrompt() {
       )}
 
       {sheetOpen && iosSheet && (
-        <div
-          role="presentation"
-          onClick={() => setSheetOpen(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 9500,
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "center",
-            background: "rgba(0, 0, 0, 0.55)",
-          }}
-        >
+        <div role="presentation" onClick={() => setSheetOpen(false)} className={styles.sheetBackdrop}>
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="pwa-install-sheet-title"
             onClick={(event) => event.stopPropagation()}
-            style={{
-              width: "100%",
-              maxWidth: 480,
-              padding: "20px 20px calc(24px + env(safe-area-inset-bottom))",
-              borderRadius: "20px 20px 0 0",
-              background: "var(--app-surface)",
-              color: "var(--app-text)",
-            }}
+            className={styles.sheet}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+            <div className={styles.sheetHeader}>
               <div>
-                <h2 id="pwa-install-sheet-title" style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>
+                <h2 id="pwa-install-sheet-title" className={styles.sheetTitle}>
                   Adicionar à Tela de Início
                 </h2>
-                <p style={{ margin: "6px 0 0", fontSize: 14, color: "var(--app-text-muted)", lineHeight: 1.5 }}>
-                  No iPhone, é assim que a Urban AI vira um app. Depois de instalado, você também pode ativar os
+                <p className={styles.sheetText}>
+                  No iPhone, é assim que o My Urban AI vira um app. Depois de instalado, você também pode ativar os
                   avisos de preço.
                 </p>
               </div>
@@ -242,50 +195,40 @@ export function PwaInstallPrompt() {
                 type="button"
                 aria-label="Fechar instruções"
                 onClick={() => setSheetOpen(false)}
-                style={{
-                  flex: "none",
-                  minWidth: 44,
-                  minHeight: 44,
-                  display: "grid",
-                  placeItems: "center",
-                  border: 0,
-                  background: "transparent",
-                  color: "var(--app-text-muted)",
-                  cursor: "pointer",
-                }}
+                className={styles.closeButton}
               >
                 <X size={20} aria-hidden />
               </button>
             </div>
 
             {platform === "ios-other-browser" && (
-              <p style={{ margin: "12px 0 0", fontSize: 13, color: "var(--app-text-muted)" }}>
+              <p className={styles.sheetNote}>
                 Abra esta página no Safari para ver a opção de adicionar à Tela de Início.
               </p>
             )}
 
-            <ol style={{ margin: "16px 0 0", padding: 0, listStyle: "none", display: "grid", gap: 12 }}>
-              <li style={{ display: "flex", gap: 12, alignItems: "center", fontSize: 14 }}>
-                <Share size={22} aria-hidden style={{ color: "var(--app-accent)", flex: "none" }} />
+            <ol className={styles.steps}>
+              <li className={styles.step}>
+                <Share size={22} aria-hidden className={styles.stepIcon} />
                 <span>
                   1. Toque em <strong>Compartilhar</strong> na barra do Safari.
                 </span>
               </li>
-              <li style={{ display: "flex", gap: 12, alignItems: "center", fontSize: 14 }}>
-                <SquarePlus size={22} aria-hidden style={{ color: "var(--app-accent)", flex: "none" }} />
+              <li className={styles.step}>
+                <SquarePlus size={22} aria-hidden className={styles.stepIcon} />
                 <span>
                   2. Role e escolha <strong>Adicionar à Tela de Início</strong>.
                 </span>
               </li>
-              <li style={{ display: "flex", gap: 12, alignItems: "center", fontSize: 14 }}>
-                <Download size={22} aria-hidden style={{ color: "var(--app-accent)", flex: "none" }} />
+              <li className={styles.step}>
+                <Download size={22} aria-hidden className={styles.stepIcon} />
                 <span>
-                  3. Toque em <strong>Adicionar</strong> e abra a Urban AI pelo novo ícone.
+                  3. Toque em <strong>Adicionar</strong> e abra o My Urban AI pelo novo ícone.
                 </span>
               </li>
             </ol>
 
-            <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
+            <div className={styles.sheetActions}>
               <AppButton size="md" variant="primary" onClick={() => setSheetOpen(false)}>
                 Entendi
               </AppButton>

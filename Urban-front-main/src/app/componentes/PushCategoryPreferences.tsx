@@ -8,6 +8,7 @@ import {
   type PushCategoryKey,
   type PushCategoryPrefs,
 } from "../service/pwaPreferences";
+import styles from "./Pwa.module.css";
 
 /**
  * Escolha de quais avisos o anfitrião quer receber neste app. Cada opção é um interruptor
@@ -48,88 +49,44 @@ export function PushCategoryPreferences() {
   if (!prefs && !message) return null;
 
   return (
-    <div
-      role="group"
-      aria-labelledby="push-categories-title"
-      style={{ flexBasis: "100%", borderTop: "1px solid var(--app-divider)", paddingTop: 14, marginTop: 4 }}
-    >
-      <p id="push-categories-title" style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--app-text)" }}>
+    <div role="group" aria-labelledby="push-categories-title" className={styles.prefs}>
+      <p id="push-categories-title" className={styles.prefsTitle}>
         O que você quer receber
       </p>
       {prefs && (
-        <ul style={{ listStyle: "none", margin: "8px 0 0", padding: 0, display: "grid", gap: 4 }}>
+        <ul className={styles.prefsList}>
           {PUSH_CATEGORIES.map(({ key, label, description }) => {
-            const on = prefs[key];
             const labelId = `push-category-${key}`;
             return (
-              <li
-                key={key}
-                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, minHeight: 44 }}
-              >
-                <div style={{ minWidth: 0 }}>
-                  <p id={labelId} style={{ margin: 0, fontSize: 14, color: "var(--app-text)" }}>
+              <li key={key} className={styles.prefsItem}>
+                <div>
+                  <p id={labelId} className={styles.prefsLabel}>
                     {label}
                   </p>
-                  <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--app-text-muted)", lineHeight: 1.4 }}>
-                    {description}
-                  </p>
+                  <p className={styles.prefsDescription}>{description}</p>
                 </div>
                 <button
                   type="button"
                   role="switch"
-                  aria-checked={on}
+                  aria-checked={prefs[key]}
                   aria-labelledby={labelId}
                   disabled={pending !== null}
                   onClick={() => toggle(key)}
-                  style={{
-                    flex: "none",
-                    position: "relative",
-                    width: 48,
-                    minHeight: 44,
-                    border: 0,
-                    padding: 0,
-                    background: "transparent",
-                    cursor: pending ? "progress" : "pointer",
-                  }}
+                  className={styles.switch}
                 >
-                  <span
-                    aria-hidden
-                    style={{
-                      position: "absolute",
-                      top: "50%",
-                      left: 0,
-                      width: 44,
-                      height: 24,
-                      marginTop: -12,
-                      borderRadius: 12,
-                      background: on ? "var(--app-accent)" : "var(--app-divider)",
-                      transition: "background 0.15s",
-                    }}
-                  />
-                  <span
-                    aria-hidden
-                    style={{
-                      position: "absolute",
-                      top: "50%",
-                      left: on ? 22 : 2,
-                      width: 20,
-                      height: 20,
-                      marginTop: -10,
-                      borderRadius: 10,
-                      background: "#fff",
-                      transition: "left 0.15s",
-                    }}
-                  />
+                  <span aria-hidden className={styles.switchTrack} />
+                  <span aria-hidden className={styles.switchKnob} />
                 </button>
               </li>
             );
           })}
         </ul>
       )}
-      <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--app-text-muted)" }}>
-        Entre 22h e 8h (horário de São Paulo) não enviamos avisos ao celular; o que chegar continua na sua central de notificações.
+      <p className={styles.prefsNote}>
+        Entre 22h e 8h (horário de São Paulo) não enviamos avisos ao celular; o que chegar continua na sua central de
+        notificações.
       </p>
-      <p aria-live="polite" style={{ margin: message ? "6px 0 0" : 0, fontSize: 12, color: "var(--app-text-muted)" }}>
+      <p aria-live="polite" className={styles.prefsMessage}>
         {message}
       </p>
     </div>

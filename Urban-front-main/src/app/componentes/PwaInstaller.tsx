@@ -7,6 +7,7 @@ import { setupPwaLifecycle } from "../service/pwaLifecycle";
 import { clearAppBadge } from "../service/pwaClient";
 import { AppButton } from "./ui";
 import { PwaInstallPrompt } from "./PwaInstallPrompt";
+import styles from "./Pwa.module.css";
 
 // Telas em que o usuário está vendo o que o selo do ícone conta (recomendações pendentes).
 const BADGE_CLEARING_ROUTES = ["/dashboard", "/painel", "/notificacao"];
@@ -45,32 +46,9 @@ export function PwaInstaller() {
     <>
       <PwaInstallPrompt />
       {applyUpdate && (
-        <div
-          role="status"
-          aria-live="polite"
-          style={{
-            position: "fixed",
-            top: "calc(12px + env(safe-area-inset-top))",
-            left: 16,
-            right: 16,
-            maxWidth: 420,
-            marginInline: "auto",
-            zIndex: 10001,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-            padding: "10px 12px 10px 16px",
-            border: "1px solid var(--app-divider)",
-            borderRadius: "var(--app-radius-card)",
-            background: "var(--app-surface)",
-            color: "var(--app-text)",
-            boxShadow: "0 8px 28px rgba(0, 0, 0, 0.28)",
-            fontSize: 14,
-          }}
-        >
+        <div role="status" aria-live="polite" className={styles.updateToast}>
           <span>Nova versão disponível.</span>
-          <div style={{ display: "flex", gap: 4 }}>
+          <div className={styles.row}>
             <AppButton size="sm" variant="primary" onClick={() => applyUpdate()}>
               Atualizar
             </AppButton>
