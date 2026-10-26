@@ -8,8 +8,10 @@ Antes de começar, rode o preflight do backend e o release gate ([`release-gate.
 
 ```bash
 cd urban-ai-backend-main
-npm run preflight:track3:strict
+npm run preflight:track3:strict -- --env=<arquivo .env do ambiente alvo, fora do repositório>
 ```
+
+Sem `--env=` o preflight lê só o ambiente do shell e sai com código 1 (no ensaio local de 25/10/2026: `Summary: 0/6 ready`, 22 blockers, 11 warnings, por falta de `GOOGLE_MAPS_API_KEY`, `GEMINI_API_KEY` etc.). Isso é esperado fora de produção; o comando é somente leitura.
 
 ## P0 — bloqueia produção
 
@@ -24,7 +26,7 @@ npm run preflight:track3:strict
 - [ ] **Brevo.** Verificar o domínio, publicar DKIM/SPF/DMARC no DNS, definir `BREVO_API_KEY`, `EMAIL_SENDER` e `EMAIL_SENDER_NAME`. Smoke: [`brevo-transactional-smoke.md`](./brevo-transactional-smoke.md). Pendência: sem MX, caixas como `suporte@` não recebem e-mail.
 - [ ] **Google Cloud.** Billing ativo; APIs Geocoding/Places/Generative Language; chaves distintas com restrição; alerta de orçamento. Variáveis `GOOGLE_MAPS_API_KEY` e `GEMINI_API_KEY`.
 - [ ] **Sentry.** DSN do backend (`SENTRY_DSN`) e do front (`NEXT_PUBLIC_SENTRY_DSN`); domínios permitidos `*.myurbanai.com`.
-- [ ] **Monitoramento.** Monitores HTTP em `GET /health/live` do backend e na raiz do front; alerta por e-mail/canal de operação. SLOs: [`../ops/slo.md`](../ops/slo.md).
+- [ ] **Monitoramento.** Monitores HTTP em `GET /health/live` do backend e na raiz do front; alerta por e-mail/canal de operação. `/health/live` só prova que o processo está de pé e **continua 200 com o MySQL fora do ar**; para detectar banco/Redis fora, adicione um monitor em `GET /health` com o header `Authorization: Bearer <HEALTH_READINESS_TOKEN>` (devolve 503 quando `db` ou `redis` estão `down`; ver [`incident-response/db-down.md`](./incident-response/db-down.md)). SLOs: [`../ops/slo.md`](../ops/slo.md).
 - [ ] **Analytics.** `NEXT_PUBLIC_GA4_ID` e `NEXT_PUBLIC_META_PIXEL_ID` no serviço de frontend do Railway.
 - [ ] **Stays.** Credenciais Preferred+ e OAuth por conta cliente; teste de push de preço em listing de teste. Ver [`stays-integration-setup.md`](./stays-integration-setup.md) e [`stays-beta-private-smoke.md`](./stays-beta-private-smoke.md).
 
@@ -32,7 +34,7 @@ npm run preflight:track3:strict
 
 - [ ] SSL/TLS do Cloudflare em **Full (Strict)**; registros em **DNS only** (cinza) até haver decisão de proxy; MX/TXT (SPF/DKIM/DMARC) preservados.
 - [ ] Railway, frontend: domínios `myurbanai.com`, `www.myurbanai.com` e `app.myurbanai.com` ativos com SSL. Variáveis `NEXT_PUBLIC_APP_URL=https://app.myurbanai.com`, `NEXT_PUBLIC_MARKETING_URL=https://myurbanai.com`, `NEXTAUTH_URL=https://app.myurbanai.com` (mudar `NEXT_PUBLIC_*` exige rebuild).
-- [ ] Railway, backend: `CORS_ALLOWED_ORIGINS` com os três hosts, `COOKIE_DOMAIN=.myurbanai.com` (com ponto inicial, para compartilhar sessão) e `MARKETING_BASE_URL=https://myurbanai.com`.
+- [ ] Railway, backend: `CORS_ALLOWED_ORIGINS` com os três hosts, `COOKIE_DOMAIN=.myurbanai.com` (com ponto inicial, para compartilhar sessão). (`MARKETING_BASE_URL` constava aqui, mas o backend não lê essa variável; ver `matriz-env-operacional.md`. Quem define a URL do marketing é o front, via `NEXT_PUBLIC_MARKETING_URL`.)
 - [ ] Callbacks externos: Customer Portal do Stripe apontando para `https://app.myurbanai.com/my-plan`; redirect URIs do Google OAuth; domínios permitidos no Sentry.
 - [ ] Hostname canônico da API (`api.myurbanai.com` ainda não existe; ver pendência 3 de `ARQUITETURA-ATUAL.md`).
 
@@ -73,3 +75,19 @@ npm run preflight:track3:strict
 ## Como usar
 
 Marque `[x]` ao concluir. Com todo o P0 e o smoke final verdes, rode o [release gate](./release-gate.md) e os [smoke tests operacionais](./smoke-tests-operacionais.md) antes de considerar produção pronta.
+
+## Ensaio local (25/10/2026)
+
+Só conferência de referências; nenhum passo de produção foi executado (todos dependem de Railway, Stripe, Cloudflare, Brevo, Google, Sentry ou GitHub reais).
+
+**Conferido e correto:**
+
+- `npm run preflight:track3:strict` existe em `urban-ai-backend-main/package.json` (`scripts/track3-preflight.js`) e roda; aceita `--env=<arquivo>`.
+- Rota do webhook: `POST /payments/webhook` (`@Controller('payments')` + `@Post('webhook')`). Páginas admin `/admin/pricing-config` e `/admin/finance` existem no front, e o botão "Popular default" está em `admin/finance/page.tsx`.
+- Variáveis citadas e lidas no código: `COOKIE_DOMAIN`, `STRIPE_WEBHOOK_SECRET`, `SENTRY_DSN`, `GOOGLE_MAPS_API_KEY`, `GEMINI_API_KEY`, `EMAIL_SENDER_NAME`, `PRELAUNCH_MODE` (backend); `NEXT_PUBLIC_GA4_ID`, `NEXT_PUBLIC_META_PIXEL_ID`, `NEXT_PUBLIC_SENTRY_DSN`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_MARKETING_URL`, `NEXTAUTH_SECRET` (front). `NEXTAUTH_URL` é lida pela própria biblioteca NextAuth (documentada em `Urban-front-main/README.md`). Os nomes `*_PRICE_*` batem com `matriz-env-operacional.md`.
+- Rotas públicas do smoke final existem em `Urban-front-main/src/app/(public)/`: `precos`, `sobre`, `termos`, `privacidade`, `contato`; `robots.ts` e `sitemap.ts` existem.
+- Links relativos (`ARQUITETURA-ATUAL`, `matriz-env-operacional`, `release-gate`, `migrations-cutover`, `stripe-billing-smoke`, `brevo-transactional-smoke`, `stays-*`, `ops/slo`, `legal/`, `adr/README`, `lgpd-*`, `backup-*`, `prelaunch-mode`) existem e passam em `node scripts/audit-document-links.js`.
+
+**Corrigido:** o comando do preflight (agora com `--env=`, e a explicação do exit 1 fora de produção: `0/6 ready`, 22 blockers no ambiente local); `MARKETING_BASE_URL` removida da lista de variáveis do backend (não é lida no código; a matriz já a tinha removido); o item Monitoramento agora avisa que `/health/live` não detecta MySQL/Redis fora do ar e pede um monitor em `/health` com Bearer.
+
+**Não ensaiável localmente:** todos os itens P0/P1/P2 e o smoke final (Stripe live/teste, migrations em produção, Brevo/DNS, Cloudflare/SSL, Railway, Sentry, GA4/Pixel, Stays, LGPD/jurídico, proteção da `main`). Precisam de acesso Admin ao respectivo provedor e de decisão de negócio.

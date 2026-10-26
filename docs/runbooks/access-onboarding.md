@@ -93,9 +93,9 @@ Sempre rodar este checklist com o **responsável técnico** (DPO atual) presente
 - **Roles:** Workspace Owner / Member / Restricted.
 - **Default novo dev:** `Restricted` (vê runs, não edita flows).
 
-### Hostinger (DNS)
+### Cloudflare (DNS; antes Hostinger)
 
-- **Conta:** Urban AI.
+- **Conta:** Urban AI (zona `myurbanai.com`).
 - **Acesso:** apenas Gustavo. Mudança de DNS é evento crítico — fazer em mob com Gustavo presente.
 
 ### UptimeRobot (monitoramento)
@@ -107,7 +107,7 @@ Sempre rodar este checklist com o **responsável técnico** (DPO atual) presente
 
 ## 2. Checklist de onboarding (rodar uma vez por dev)
 
-Salvar uma cópia preenchida em `docs/onboarding/<nome-dev>-<data>.md` para auditoria.
+Salvar uma cópia preenchida em `docs/onboarding/<nome-dev>-<data>.md` para auditoria (a pasta ainda não existe; crie-a no primeiro uso. Atenção: não registrar segredos nem dados pessoais além do necessário, pois o repositório é versionado).
 
 ```
 Nome:                          ____________________________
@@ -125,7 +125,7 @@ Acessos concedidos:
 [ ] GitHub (role: ________)
 [ ] Google Cloud (role: ________)
 [ ] Prefect Cloud (role: ________)
-[ ] Hostinger ___ NÃO (apenas Gustavo)
+[ ] Cloudflare (DNS) ___ NÃO (apenas Gustavo)
 [ ] UptimeRobot
 
 Documentos lidos pelo dev:
@@ -138,9 +138,11 @@ NDA assinado:  Sim / Não — link: ________________________
 
 Setup local validado:
 [ ] Clone do repo + branch staging (ou main)
-[ ] `cd urban-ai-backend-main && yarn install && yarn start:dev` sobe sem erro
-[ ] `cd Urban-front-main && yarn install && yarn dev` sobe sem erro
-[ ] `npm test` no backend passa (67 testes)
+[ ] `docker compose up` na raiz sobe MySQL, Redis, backend e front (ver `CONTRIBUTING.md` §1); `GET http://localhost:10000/health/live` responde 200
+    (o primeiro `up` leva ~10 min por causa do `npm ci` e da compilação; não há `yarn.lock`, o gerenciador é npm; comandos do front copiados do `docker-compose.yml`)
+[ ] Alternativa sem Docker: `cd urban-ai-backend-main && npm ci && npm run start:dev` e `cd Urban-front-main && npm ci --legacy-peer-deps && npm run dev`
+[ ] `cd urban-ai-backend-main && npm test` passa (a contagem de testes mudou; vale o resultado verde, não um número fixo)
+[ ] `scripts/validate-local.sh` passa (mesmas verificações do CI)
 [ ] Login no Sentry, Railway, GitHub validado pelo dev mesmo
 ```
 
@@ -176,3 +178,15 @@ Rodar **trimestralmente** mesmo sem mudança de pessoal:
 ---
 
 *Última atualização: 24/04/2026 · F5C.3 item #1*
+
+## Ensaio local (25/10/2026)
+
+Só conferência de caminhos e comandos; nenhum acesso foi concedido ou testado.
+
+**Conferido e correto:** `.github/workflows/ci.yml` existe (e roda em `main` e `staging`); `docs/runbooks/migrations-cutover.md`, `staging-provisioning.md`, `jwt-cookie-migration.md` e `incident-response/` existem; `docs/lgpd/dpa-checklist.md` existe; `../ACESSOS-E-FERRAMENTAS.md` existe; a rotação trimestral cita `JWT_SECRET` e `STRIPE_WEBHOOK_SECRET`, ambos lidos pelo código.
+
+**Corrigido:** "Hostinger (DNS)" virou Cloudflare, também na checklist; o "Setup local validado" mandava `yarn install`/`yarn start:dev`, mas o repositório só tem `package-lock.json` (npm) e o caminho oficial hoje é `docker compose up` (`CONTRIBUTING.md`), que foi usado de verdade neste ensaio para backend, MySQL e Redis (`/health/live` = 200); a contagem fixa "67 testes" foi trocada por "passa"; a pasta `docs/onboarding/` citada não existe e agora isso está dito, com aviso para não versionar segredos/dados pessoais.
+
+**Não ensaiado:** o front (`Urban-front-main`) não foi subido (o escopo do ensaio era MySQL, Redis e backend); o comando `npm ci --legacy-peer-deps` do front foi copiado do `docker-compose.yml`, e a pendência 13 de `ARQUITETURA-ATUAL.md` registra lockfile do front fora de sincronia. `npm test` e `scripts/validate-local.sh` não foram executados aqui.
+
+**Não ensaiável localmente (e o acesso necessário):** todas as concessões da seção 1 e o offboarding da seção 3 (Railway, Sentry, Brevo, Stripe, AWS IAM, Upstash, GitHub, Google Cloud, Prefect, Cloudflare, UptimeRobot) exigem Admin/Owner de cada provedor com 2FA; os nomes de conta/org/bucket citados (`urbanai-ff`, `urban-ai-prod`, `urbanai-data-lake`, `urban-ai-scrapy`, `urbanai-prod` do Prefect) não puderam ser confirmados sem login.

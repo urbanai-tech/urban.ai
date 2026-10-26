@@ -17,11 +17,13 @@
 - Executado pelo time em momentos críticos: antes de migration destrutiva, antes de mudança de infra, pré-incidente que vá exigir downtime prolongado.
 - Comando:
   ```bash
-  mysqldump --single-transaction --routines --triggers --events \
+  mysqldump --single-transaction --routines --triggers --events --no-tablespaces \
     -h <host> -P <port> -u <user> -p<pass> railway \
     > backup-prod-$(date +%Y%m%d-%H%M).sql
   gzip backup-prod-*.sql
   ```
+  Requer o cliente MySQL (`mysqldump`) instalado na máquina; sem ele, rode o mesmo comando dentro de um container `mysql:8.4`. `--no-tablespaces` evita o erro de privilégio `PROCESS` com usuários não-root.
+- Alternativa com o script do repositório (mesmas flags, mais checksum/validação de destino): `cd urban-ai-backend-main && node scripts/mysql-backup.js --execute --label=pre-migration --out-dir=<pasta fora do repositório>`. **Exige destino remoto** (`S3_BUCKET` + `AWS_*` ou `B2_BUCKET` + `B2_*`; não há destino só-local) e `mysqldump` + `aws`/`b2` no PATH. Use sempre `--out-dir` fora do repositório: o padrão é o diretório atual e o dump contém dados reais.
 - Armazenar no S3 com bucket separado (sugestão: `urbanai-db-backups`, ciclo de vida 90 dias, KMS encrypted):
   ```bash
   aws s3 cp backup-prod-*.sql.gz \
@@ -64,20 +66,23 @@ Alvo: fazer em staging, medir tempo total, validar que o dump restaurado sobe um
        mysql -h <staging-host> -P <staging-port> \
        -u <staging-user> -p<staging-pass> railway
      ```
+   - O dump de um único banco não traz `CREATE DATABASE`: o banco de destino precisa existir e estar **vazio**. Mantenha o backend parado/pausado durante o import; se ele subir antes, o `migration:run` do boot cria o schema do zero e o import colide com tabelas já existentes.
 
 5. **Validar schema:**
    ```sql
    -- Contagem por tabela esperada (ajustar com números da prod do dia)
    SELECT 'user' AS tabela, COUNT(*) FROM user
-   UNION ALL SELECT 'address', COUNT(*) FROM address
+   UNION ALL SELECT 'addresses', COUNT(*) FROM addresses
    UNION ALL SELECT 'list', COUNT(*) FROM list
-   UNION ALL SELECT 'event', COUNT(*) FROM event
+   UNION ALL SELECT 'events', COUNT(*) FROM events
    UNION ALL SELECT 'payment', COUNT(*) FROM payment
-   UNION ALL SELECT 'plan', COUNT(*) FROM plan
+   UNION ALL SELECT 'plans', COUNT(*) FROM plans
    UNION ALL SELECT 'analise_preco', COUNT(*) FROM analise_preco;
    ```
 
-   Tambem rode o verificador automatizado read-only contra o banco restaurado:
+   (Os nomes de tabela são os reais do schema: `addresses`, `events` e `plans` no plural. A versão anterior deste runbook usava `address`, `event` e `plan` e a query falhava.)
+
+   Tambem rode o verificador automatizado read-only contra o banco restaurado (requer `npm ci` em `urban-ai-backend-main/`, pois usa `mysql2`; a URL não pode conter `prod`, `production` ou `myurbanai.com`, senão o script recusa o alvo):
 
    ```bash
    cd urban-ai-backend-main
@@ -86,7 +91,7 @@ Alvo: fazer em staging, medir tempo total, validar que o dump restaurado sobe um
        --output ../docs/evidence/restore-drill-YYYY-QX.md
    ```
 
-   O script valida conexao, tabelas operacionais esperadas, contagens, timestamps recentes e leitura das tabelas de auditabilidade (`admin_job_runs` e `admin_audit_logs`). Ele redige a URL do banco no markdown e nao executa escrita.
+   O script valida conexao, tabelas operacionais esperadas, contagens, timestamps recentes e leitura das tabelas de auditabilidade (`admin_job_runs` e `admin_audit_logs`). Ele redige a URL do banco no markdown e nao executa escrita. **Atenção:** a checagem `auditability.tables_nonempty` falha (exit 1) se `admin_job_runs` ou `admin_audit_logs` estiverem vazias; num banco local recém-criado, insira uma linha em cada uma antes (ver "Ensaio local" no fim).
 
 6. **Subir backend staging apontando pro DB restaurado:**
    - Atualizar `DATABASE_URL` do serviço backend staging temporariamente.
@@ -159,7 +164,7 @@ Alvo: fazer em staging, medir tempo total, validar que o dump restaurado sobe um
 
 ## 4. Script pronto para download completo (export de tudo)
 
-`scripts/db-full-export.sh` (a criar quando necessário):
+`scripts/db-full-export.sh` (**não existe no repositório**; crie quando necessário. O conteúdo abaixo foi executado no ensaio de 25/10/2026 contra um MySQL 8.4 local e gerou o `.sql.gz` corretamente):
 
 ```bash
 #!/usr/bin/env bash
@@ -220,3 +225,40 @@ Este runbook é considerado "aprovado" somente depois do **primeiro drill real**
 ---
 
 *Última atualização: 15/07/2026 · Responsável: Gustavo Macedo*
+
+---
+
+## Ensaio local (25/10/2026)
+
+Executado por quem não escreveu o runbook, contra o stack local do `docker-compose.yml` (MySQL 8.4, banco `ai_urban`, senha fictícia de dev). Nada de produção, staging, Railway ou AWS real foi tocado.
+
+**Ambiente.** O host Windows não tem `mysqldump`, `mysql` nem `aws`; por isso os comandos do MySQL foram rodados com `docker compose exec -T mysql ...` (mesmos binários e flags do runbook). `docker compose up -d mysql redis backend` levou ~2 min até o MySQL ficar `healthy` e ~10 min até `/health/live` responder 200 na primeira subida (`npm ci` + compilação); o `migration:run` do boot criou o schema do zero (57 migrations, 46 tabelas).
+
+**Dados semeados.** 3 usuários via `POST /auth/register` (o corpo exige `termsAccepted: true` e `termsVersion` igual a `TERMS_VERSION` de `src/auth/terms.constants.ts`; sem eles a API devolve 400) e 1 linha em cada uma de `admin_audit_logs` e `admin_job_runs` por SQL.
+
+**1. Backup manual (seção 1).** `mysqldump --single-transaction --routines --triggers --events -h 127.0.0.1 -P 3306 -u root -p... ai_urban | gzip` gerou `backup-local-manual.sql.gz` (14,7 KB, `gzip -t` ok, 46 `CREATE TABLE`, 8 tabelas com `INSERT`).
+
+**2. Drop + restore (seção 2, opção B).** Backend parado; `DROP DATABASE ai_urban; CREATE DATABASE ai_urban;` (0 tabelas depois); `gunzip -c ... | mysql ... ai_urban` (exit 0). Contagens de linhas antes x depois, idênticas:
+
+```
+admin_audit_logs 1 | admin_job_runs 1 | coverage_regions 1 | migrations 57
+payment 3 | plans 3 | process_status 1 | user 3
+```
+
+**3. Verificador.** Com o backend de volta (o boot rodou `migration:run`: "No migrations are pending"), `node scripts/restore-drill-verify.js` com `RESTORE_DATABASE_URL=mysql://root:***@mysql:3306/ai_urban` (executado dentro do container do backend, que tem `node_modules`): `Pass: 5, Fail: 0` (connection, schema.expected_tables 18/18, row_counts, latest_timestamps, auditability.tables_nonempty). `GET /health/live` = 200 `{"status":"ok"}`; `GET /health` com o Bearer de readiness = 200 com `db: ok`, `redis: ok`; login do usuário restaurado = 201 com cookie.
+
+**4. Script `mysql-backup.js` (seção 5).** `npm run backup:mysql:dry` imprime o plano e não grava nada. `--execute` **não tem destino local**: sem `S3_BUCKET`+`AWS_*` ou `B2_BUCKET`+`B2_*` ele aborta. Para exercitar o fluxo inteiro (dump, gzip, nome do arquivo, upload) rodei dentro do container do backend com `mariadb-client` instalado (shim `mysqldump` que descarta `--set-gtid-purged`, flag que o `mariadb-dump` não conhece) e um shim `aws` que copia para `/tmp/fake-s3`. Resultado: "Backup gerado: .../urban-ai-ensaio-20261026T003959Z.sql.gz (14.3 KB)", upload simulado, exit 0. Esse dump foi depois restaurado no ensaio do `disaster-recovery.md`.
+
+**5. Gates estáticos.** `node scripts/resilience-dr-gate.js` (65/65 contratos), `mysql-backup.js --self-test` (6/6), `restore-drill-verify.js --self-test` (6/6) e `--dry-run` passaram.
+
+**6. Snippet da seção 4 (`db-full-export.sh`).** Executado com `DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME` apontando para o MySQL local: "Dump gerado em: /tmp/out.sql.gz (16K)".
+
+**Correções feitas neste ensaio:** nomes de tabela da query de validação (`address`/`event`/`plan` → `addresses`/`events`/`plans`); `--no-tablespaces` no comando manual; pré-requisitos do verificador (`npm ci`, bloqueio de URL com "prod", exigência de linhas em `admin_*`); aviso de que o script de backup exige destino remoto e de usar `--out-dir` fora do repositório; aviso de manter o backend parado durante o import; nota de que `db-full-export.sh` não existe no repo.
+
+**Não ensaiável localmente (e o acesso necessário):**
+
+- Snapshot automático e "Restore to..." do Railway (seções 1, 2.4 opção A e 3.5): precisa de acesso Admin ao projeto Railway.
+- `aws s3 cp --sse aws:kms` para `urbanai-db-backups` e upload/`b2` reais do script: precisa de credencial AWS/B2 de escrita (e a de leitura para o DR). O shim só prova a orquestração do script, não permissões, KMS nem retenção.
+- Passos 6 e 7 completos (Sentry recebendo evento, listar imóveis, criar `analise_preco`, `/my-plan`) e o `stripe trigger` da seção 3: só foram checados `/health/live`, `/health`, login e o verificador; o restante exige staging com Sentry/Stripe de teste e dados de imóvel.
+- Tempo real contra o RTO de 2h: o tempo local (restore de 14 KB em ~60 s numa VM lenta) não é representativo do volume de produção.
+- Seção 3 (restore de emergência em prod, maintenance mode no Railway): por definição só em produção.
