@@ -52,7 +52,7 @@ Categorias presentes no schema (detalhe coluna a coluna na seção gerada "Colun
 ## Resumo
 
 - Tabelas (entidades TypeORM): **45**
-- Colunas: **746**
+- Colunas: **747**
 - Chaves estrangeiras: **70**
 - Tabela de controle de migrations (`migrations`) não é entidade e não consta aqui.
 
@@ -1684,6 +1684,7 @@ Relações:
 | `user_id` | `userId` | varchar(36) | não |  | UNIQUE, FK |  |
 | `email_pricing` | `emailPricing` | tinyint | não | true |  |  |
 | `push_pricing` | `pushPricing` | tinyint | não | true |  |  |
+| `push_events` | `pushEvents` | tinyint | não | true |  |  |
 | `weekly_report` | `weeklyReport` | tinyint | não | true |  |  |
 | `onboarding_emails` | `onboardingEmails` | tinyint | não | true |  |  |
 | `marketing` | `marketing` | tinyint | não | false |  |  |
