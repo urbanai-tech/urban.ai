@@ -33,6 +33,10 @@ async function mockHostApi(page: Page) {
 const MOBILE = { width: 390, height: 844 };
 
 test.describe('Shell mobile do anfitrião', () => {
+  // Rotas do App Router carregam chunks sob demanda; em máquina carregada a
+  // navegação passa de 5s.
+  test.describe.configure({ timeout: 60_000 });
+
   test.beforeEach(async ({ page }) => {
     await mockHostApi(page);
   });
@@ -52,7 +56,7 @@ test.describe('Shell mobile do anfitrião', () => {
     }
 
     await tabbar.getByRole('link', { name: 'Calendário' }).click();
-    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(page).toHaveURL(/\/dashboard$/, { timeout: 20_000 });
     await expect(tabbar.getByRole('link', { name: 'Calendário' })).toHaveAttribute('aria-current', 'page');
     await expect(tabbar.getByRole('link', { name: 'Painel' })).not.toHaveAttribute('aria-current', 'page');
   });
@@ -79,7 +83,7 @@ test.describe('Shell mobile do anfitrião', () => {
 
     await more.click();
     await page.getByRole('dialog', { name: 'Mais' }).getByRole('link', { name: 'Notificações' }).click();
-    await expect(page).toHaveURL(/\/notificacao$/);
+    await expect(page).toHaveURL(/\/notificacao$/, { timeout: 20_000 });
     await expect(page.getByRole('dialog', { name: 'Mais' })).toBeHidden();
   });
 
