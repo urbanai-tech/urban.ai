@@ -77,6 +77,14 @@ export function contrast(a, b) {
 
 const PHOTO_EXTREMES = { "foto-branca": "#FFFFFF", "foto-preta": "#000000" };
 
+/** Cores dos fundos oficiais: claro usa Backgrounds_05 (mint->teal->deep), escuro usa Backgrounds_04 (preto + brilho teal). */
+const BRAND_IMAGE_EXTREMES_BY_THEME = { light: {
+  "fundo-preto": "#000000",
+  "fundo-deep": "#103134",
+  "fundo-teal": "#2A928A",
+  "fundo-mint": "#C7E2CE",
+}, dark: { "fundo-preto": "#000000", "fundo-deep": "#103134", "fundo-teal": "#2A928A" } };
+
 /**
  * Pares avaliados. `layers` são camadas aplicadas, em ordem, sobre cada
  * fundo possível; `text` é a cor do primeiro plano. Pares sem glass são
@@ -92,7 +100,12 @@ export const pairs = [
   { id: "sheet-muted", text: "app.text-muted", layers: ["app.sheet-bg"], min: 4.5, note: "texto secundario no sheet" },
   { id: "card-muted", text: "app.text-muted", layers: ["app.surface"], min: 4.5, note: "texto secundario em cards" },
   { id: "primary-button", text: "app.accent-contrast", layers: ["app.accent"], min: 4.5, note: "texto do botao primario" },
-  { id: "price-suggested", text: "app.accent", layers: ["app.surface"], min: 3, note: "preco sugerido (texto grande)" },
+  { id: "price-suggested", text: "app.highlight", layers: ["app.surface"], min: 3, note: "preco sugerido (texto grande, >=24px)" },
+  { id: "accent-small-text", text: "app.accent", layers: ["app.surface"], min: 4.5, note: "links/rotulos pequenos em accent" },
+  { id: "accent-soft-chip", text: "app.accent", layers: ["app.surface", "app.accent-soft"], min: 4.5, note: "chip de delta (accent sobre accent-soft)" },
+  { id: "band-title", text: "app.text", layers: ["app.brand-band-scrim"], min: 4.5, note: "titulo sobre a faixa com fundo da marca" },
+  { id: "band-muted", text: "app.text-muted", layers: ["app.brand-band-scrim"], min: 4.5, note: "texto secundario sobre a faixa da marca" },
+  { id: "body-on-canvas", text: "app.text-muted", layers: ["app.bg"], min: 4.5, note: "texto secundario no canvas" },
 ];
 
 export function evaluate(tokens) {
@@ -108,7 +121,8 @@ export function evaluate(tokens) {
     for (const pair of pairs) {
       const text = parseColor(resolveSemantic(tokens, theme, pair.text));
       const isGlass = pair.layers.includes("app.glass-bg");
-      const candidates = isGlass ? backdrops : { solido: "#000000" };
+      const isBand = pair.layers.includes("app.brand-band-scrim");
+      const candidates = isBand ? BRAND_IMAGE_EXTREMES_BY_THEME[theme] : isGlass ? backdrops : { solido: "#000000" };
       let worst = { ratio: Infinity, backdrop: "" };
       for (const [backdropName, backdropValue] of Object.entries(candidates)) {
         let color = parseColor(backdropValue);
