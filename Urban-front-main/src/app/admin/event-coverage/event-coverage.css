@@ -1,0 +1,224 @@
+/* /admin/event-coverage — só tokens --admin-* (claro/escuro), sem cores cruas. */
+
+.urban-admin .ec-page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 40px 32px;
+}
+
+.urban-admin .ec-section {
+  margin-bottom: 48px;
+}
+
+.urban-admin .ec-section-title {
+  margin: 0 0 16px;
+}
+
+.urban-admin .ec-headline {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: 32px;
+  align-items: start;
+}
+
+.urban-admin .ec-headline-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.urban-admin .ec-headline-value {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.urban-admin .ec-headline-number {
+  font-size: clamp(56px, 9vw, 88px);
+  line-height: 1;
+  font-weight: 700;
+  color: var(--admin-text);
+}
+
+.urban-admin .ec-headline-target {
+  font-size: 16px;
+  color: var(--admin-text-muted);
+}
+
+.urban-admin .ec-muted {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--admin-text-muted);
+}
+
+.urban-admin .ec-progress {
+  width: 100%;
+  height: 8px;
+  border: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  appearance: none;
+  background: var(--admin-divider);
+}
+
+.urban-admin .ec-progress::-webkit-progress-bar {
+  background: var(--admin-divider);
+}
+
+.urban-admin .ec-progress::-webkit-progress-value {
+  background: var(--admin-accent);
+}
+
+.urban-admin .ec-progress::-moz-progress-bar {
+  background: var(--admin-accent);
+}
+
+.urban-admin .ec-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 24px;
+  border-top: 1px solid var(--admin-divider);
+  border-bottom: 1px solid var(--admin-divider);
+}
+
+.urban-admin .ec-chart-wrap {
+  overflow-x: auto;
+}
+
+.urban-admin .ec-chart {
+  display: block;
+  width: 100%;
+  min-width: 520px;
+  height: auto;
+}
+
+.urban-admin .ec-bar {
+  fill: var(--admin-accent);
+}
+
+.urban-admin .ec-bar-empty {
+  fill: var(--admin-divider-strong);
+}
+
+.urban-admin .ec-axis-label {
+  fill: var(--admin-text-muted);
+  font-size: 9px;
+}
+
+.urban-admin .ec-quality {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+}
+
+.urban-admin .ec-quality-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.urban-admin .ec-quality-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.urban-admin .ec-mono {
+  font-family: monospace;
+  color: var(--admin-text);
+}
+
+.urban-admin .ec-source-name {
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--admin-text);
+  word-break: break-word;
+}
+
+.urban-admin .ec-num {
+  font-family: monospace;
+  color: var(--admin-text);
+}
+
+.urban-admin .ec-hints {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.urban-admin .ec-hint {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.urban-admin .ec-hint-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.urban-admin .ec-hint-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.urban-admin .ec-hint-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.urban-admin .ec-link {
+  color: var(--admin-accent);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.urban-admin .ec-link:hover {
+  text-decoration: underline;
+}
+
+.urban-admin .ec-code {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--admin-text-muted);
+  word-break: break-all;
+}
+
+.urban-admin .ec-followups {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.urban-admin .ec-error {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 40px 32px;
+}
+
+@media (max-width: 1180px) {
+  .urban-admin .ec-headline {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .urban-admin .ec-page,
+  .urban-admin .ec-error {
+    padding: 24px 16px;
+  }
+
+  .urban-admin .ec-section {
+    margin-bottom: 36px;
+  }
+}
