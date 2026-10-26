@@ -8,7 +8,10 @@ jest.mock('../maps/maps.service', () => ({
   MapsService: class MapsService {},
 }));
 
-import { AdminService } from './admin.service';
+import { AdminDashboardService } from './admin-dashboard.service';
+import { AdminEventsService } from './admin-events.service';
+import { AdminJobRunsService } from './admin-job-runs.service';
+import { AdminOperationsService } from './admin-operations.service';
 import { AdminStaysHealthService } from './admin-stays-health.service';
 
 function makeEventRepo(rows: any[]) {
@@ -27,7 +30,7 @@ function makeEventRepo(rows: any[]) {
   };
 }
 
-function makeService(
+function makeServices(
   eventRepo: any,
   overrides: {
     addressRepo?: any;
@@ -39,36 +42,45 @@ function makeService(
     zeroYieldService?: any;
   } = {},
 ) {
-  return new AdminService(
-    {} as any,
-    overrides.addressRepo ?? ({} as any),
-    {} as any,
-    eventRepo as any,
-    {} as any,
-    {} as any,
-    {} as any,
-    {} as any,
+  const staysHealth = new AdminStaysHealthService(
     overrides.priceUpdateRepo ?? ({} as any),
     overrides.staysAccountRepo ?? ({} as any),
     overrides.staysListingRepo ?? ({} as any),
-    {} as any,
-    {} as any,
-    overrides.jobRunRepo ?? ({} as any),
-    overrides.contactSubmissionRepo ?? ({} as any),
-    {} as any,
-    {} as any,
-    {} as any,
-    { revokeAllRefreshTokensForUser: jest.fn() } as any,
-    new AdminStaysHealthService(
+  );
+  const events = new AdminEventsService(eventRepo as any, overrides.zeroYieldService);
+  return {
+    events,
+    jobRuns: new AdminJobRunsService(overrides.jobRunRepo ?? ({} as any)),
+    operations: new AdminOperationsService(
+      {} as any,
+      overrides.addressRepo ?? ({} as any),
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      staysHealth,
+    ),
+    dashboard: new AdminDashboardService(
+      {} as any,
+      overrides.addressRepo ?? ({} as any),
+      {} as any,
+      eventRepo as any,
+      {} as any,
+      {} as any,
       overrides.priceUpdateRepo ?? ({} as any),
       overrides.staysAccountRepo ?? ({} as any),
       overrides.staysListingRepo ?? ({} as any),
+      {} as any,
+      {} as any,
+      overrides.contactSubmissionRepo ?? ({} as any),
+      {} as any,
+      {} as any,
+      events,
     ),
-    overrides.zeroYieldService,
-  );
+  };
 }
 
-describe('AdminService occupancyProperties', () => {
+describe('AdminOperationsService occupancyProperties', () => {
   it('returns active listings ordered with admin-safe fields', async () => {
     const addressRepo = {
       find: jest.fn().mockResolvedValue([
@@ -105,7 +117,7 @@ describe('AdminService occupancyProperties', () => {
         { id: 'address-without-list', list: null },
       ]),
     };
-    const service = makeService(makeEventRepo([]), { addressRepo });
+    const service = makeServices(makeEventRepo([]), { addressRepo }).operations;
 
     const result = await service.occupancyProperties();
 
@@ -133,7 +145,7 @@ describe('AdminService occupancyProperties', () => {
   });
 });
 
-describe('AdminService runTrackedJob', () => {
+describe('AdminJobRunsService runTrackedJob', () => {
   function makeJobRunRepo() {
     let seq = 0;
     return {
@@ -144,7 +156,7 @@ describe('AdminService runTrackedJob', () => {
 
   it('marks a job as error when every attempted item fails', async () => {
     const jobRunRepo = makeJobRunRepo();
-    const service = makeService(makeEventRepo([]), { jobRunRepo });
+    const service = makeServices(makeEventRepo([]), { jobRunRepo }).jobRuns;
 
     const result = await service.runTrackedJob('geocoder', 'admin-user', async () => ({
       attempted: 100,
@@ -165,7 +177,7 @@ describe('AdminService runTrackedJob', () => {
 
   it('keeps a partial job successful when at least one item succeeds', async () => {
     const jobRunRepo = makeJobRunRepo();
-    const service = makeService(makeEventRepo([]), { jobRunRepo });
+    const service = makeServices(makeEventRepo([]), { jobRunRepo }).jobRuns;
 
     const result = await service.runTrackedJob('geocoder', 'admin-user', async () => ({
       attempted: 10,
@@ -180,7 +192,7 @@ describe('AdminService runTrackedJob', () => {
 
   it('marks blocked result statuses as error', async () => {
     const jobRunRepo = makeJobRunRepo();
-    const service = makeService(makeEventRepo([]), { jobRunRepo });
+    const service = makeServices(makeEventRepo([]), { jobRunRepo }).jobRuns;
 
     const result = await service.runTrackedJob('dataset-snapshot', 'admin-user', async () => ({
       status: 'blocked_missing_price_source',
@@ -193,7 +205,7 @@ describe('AdminService runTrackedJob', () => {
   });
 });
 
-describe('AdminService collectorsHealth', () => {
+describe('AdminEventsService collectorsHealth', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
@@ -224,7 +236,7 @@ describe('AdminService collectorsHealth', () => {
         lastSeen: now,
       },
     ]);
-    const service = makeService(eventRepo);
+    const service = makeServices(eventRepo).events;
 
     const result = await service.collectorsHealth();
 
@@ -261,7 +273,7 @@ describe('AdminService collectorsHealth', () => {
         lastSeen: staleLastSeen,
       },
     ]);
-    const service = makeService(eventRepo);
+    const service = makeServices(eventRepo).events;
 
     const result = await service.collectorsHealth();
 
@@ -281,7 +293,7 @@ describe('AdminService collectorsHealth', () => {
   });
 });
 
-describe('AdminService staysHealth', () => {
+describe('AdminOperationsService staysHealth', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
@@ -308,7 +320,7 @@ describe('AdminService staysHealth', () => {
   it('exposes Stays readiness and missing envs for the admin page', async () => {
     const accountQb = rawQuery([{ status: 'active', count: '1' }]);
     const pushQb = rawQuery([{ status: 'success', count: '2' }]);
-    const service = makeService(makeEventRepo([]), {
+    const service = makeServices(makeEventRepo([]), {
       staysAccountRepo: {
         createQueryBuilder: jest.fn().mockReturnValue(accountQb),
       },
@@ -319,7 +331,7 @@ describe('AdminService staysHealth', () => {
         createQueryBuilder: jest.fn().mockReturnValue(pushQb),
         find: jest.fn().mockResolvedValue([]),
       },
-    });
+    }).operations;
 
     const result = await service.staysHealth();
 
@@ -335,9 +347,9 @@ describe('AdminService staysHealth', () => {
   });
 });
 
-describe('AdminService Track 3 readiness', () => {
+describe('AdminDashboardService Track 3 readiness', () => {
   it('lists blockers for missing credentials and support gaps', () => {
-    const service = makeService(makeEventRepo([])) as any;
+    const service = makeServices(makeEventRepo([])).dashboard as any;
 
     const result = service.buildTrack3Readiness({
       stripeSecretMode: 'missing',
@@ -385,7 +397,7 @@ describe('AdminService Track 3 readiness', () => {
   });
 
   it('marks integrations ready when no blockers remain', () => {
-    const service = makeService(makeEventRepo([])) as any;
+    const service = makeServices(makeEventRepo([])).dashboard as any;
 
     const result = service.buildTrack3Readiness({
       stripeSecretMode: 'test',
@@ -417,7 +429,7 @@ describe('AdminService Track 3 readiness', () => {
   });
 
   it('allows operational owners outside the public support domain', () => {
-    const service = makeService(makeEventRepo([])) as any;
+    const service = makeServices(makeEventRepo([])).dashboard as any;
 
     const result = service.buildTrack3Readiness({
       stripeSecretMode: 'test',
@@ -449,7 +461,7 @@ describe('AdminService Track 3 readiness', () => {
   });
 
   it('does not block admin readiness when frontend-only Stripe key and FRONT_URL are not visible to backend', () => {
-    const service = makeService(makeEventRepo([])) as any;
+    const service = makeServices(makeEventRepo([])).dashboard as any;
 
     const result = service.buildTrack3Readiness({
       stripeSecretMode: 'test',
@@ -498,7 +510,7 @@ describe('AdminService Track 3 readiness', () => {
         findings: [finding],
       }),
     };
-    const service = makeService(eventRepo, { zeroYieldService });
+    const service = makeServices(eventRepo, { zeroYieldService }).events;
 
     const result = await service.collectorsHealth();
 
@@ -514,7 +526,7 @@ describe('AdminService Track 3 readiness', () => {
   it('falha do detector zero-yield não derruba o painel de saúde', async () => {
     const eventRepo = makeEventRepo([]);
     const zeroYieldService = { currentFindings: jest.fn().mockRejectedValue(new Error('boom')) };
-    const service = makeService(eventRepo, { zeroYieldService });
+    const service = makeServices(eventRepo, { zeroYieldService }).events;
     const result = await service.collectorsHealth();
     expect(result.zeroYield).toMatchObject({ enabled: false, alerts: [] });
     expect(result.sources.length).toBeGreaterThan(0);

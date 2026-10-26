@@ -14,7 +14,11 @@ import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { AdminService } from './admin.service';
+import { AdminDashboardService } from './admin-dashboard.service';
+import { AdminEventsService } from './admin-events.service';
+import { AdminJobRunsService } from './admin-job-runs.service';
+import { AdminOperationsService } from './admin-operations.service';
+import { AdminUsersService } from './admin-users.service';
 import { RoiService } from '../roi/roi.service';
 import { AdminAuditService } from '../admin-audit/admin-audit.service';
 import { OnboardingDripService } from '../email/onboarding-drip.service';
@@ -49,7 +53,11 @@ import { AdminAuditedInHandler } from '../admin-audit/admin-audit.decorator';
 @Controller('admin')
 export class AdminController {
   constructor(
-    private readonly admin: AdminService,
+    private readonly adminDashboard: AdminDashboardService,
+    private readonly adminEvents: AdminEventsService,
+    private readonly adminOperations: AdminOperationsService,
+    private readonly adminUsers: AdminUsersService,
+    private readonly adminJobRuns: AdminJobRunsService,
     private readonly roi: RoiService,
     private readonly audit: AdminAuditService,
     private readonly onboardingDrip: OnboardingDripService,
@@ -72,7 +80,7 @@ export class AdminController {
   @ApiOperation({ summary: 'Visão geral do painel admin (KPIs)' })
   @Get('overview')
   async overview() {
-    return this.admin.overview();
+    return this.adminDashboard.overview();
   }
 
   @ApiOperation({
@@ -81,7 +89,7 @@ export class AdminController {
   })
   @Get('dashboard-summary')
   async dashboardSummary() {
-    return this.admin.dashboardSummary();
+    return this.adminDashboard.dashboardSummary();
   }
 
   @ApiOperation({ summary: 'Logs de auditoria das mutacoes administrativas' })
@@ -107,7 +115,7 @@ export class AdminController {
   @ApiOperation({ summary: 'Analytics do motor de eventos (cobertura, categorias, top relevância)' })
   @Get('events/analytics')
   async eventsAnalytics() {
-    return this.admin.eventsAnalytics();
+    return this.adminEvents.eventsAnalytics();
   }
 
   @ApiOperation({ summary: 'Listar candidatos de deduplicação de eventos para revisão admin' })
@@ -178,7 +186,7 @@ export class AdminController {
     @Query('search') search?: string,
     @Query('upcoming') upcoming?: string,
   ) {
-    return this.admin.eventsListing({
+    return this.adminEvents.eventsListing({
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
       scope: (scope === 'out' || scope === 'all' ? scope : 'in') as 'in' | 'out' | 'all',
@@ -193,7 +201,7 @@ export class AdminController {
   })
   @Get('events/collectors-health')
   async collectorsHealth() {
-    return this.admin.collectorsHealth();
+    return this.adminEvents.collectorsHealth();
   }
 
   @ApiOperation({
@@ -202,7 +210,7 @@ export class AdminController {
   })
   @Get('events/timeline')
   async eventsTimeline(@Query('days') days: string = '30') {
-    return this.admin.eventsTimeline(parseInt(days, 10));
+    return this.adminEvents.eventsTimeline(parseInt(days, 10));
   }
 
   private dedupStatus(status: string): any {
@@ -318,7 +326,7 @@ export class AdminController {
     @Query('scope') scope: 'in' | 'out' | 'all' = 'in',
     @Query('force') force?: string,
   ) {
-    return this.admin.runTrackedJob(
+    return this.adminJobRuns.runTrackedJob(
       'event-intelligence-backfill',
       req?.user?.userId ?? null,
       () =>
@@ -343,31 +351,31 @@ export class AdminController {
   @ApiOperation({ summary: 'Saúde da integração Stays (contas, listings, push history)' })
   @Get('stays/health')
   async staysHealth() {
-    return this.admin.staysHealth();
+    return this.adminOperations.staysHealth();
   }
 
   @ApiOperation({ summary: 'Funnel de produto (signup → analyses → applied)' })
   @Get('funnel')
   async productFunnel() {
-    return this.admin.productFunnel();
+    return this.adminOperations.productFunnel();
   }
 
   @ApiOperation({ summary: 'Qualidade do motor (MAPE sobre preço aplicado real)' })
   @Get('pricing/quality')
   async pricingQuality() {
-    return this.admin.pricingQuality();
+    return this.adminOperations.pricingQuality();
   }
 
   @ApiOperation({ summary: 'Cobertura de ocupação (status, origem, listings distintos)' })
   @Get('occupancy/coverage')
   async occupancyCoverage() {
-    return this.admin.occupancyCoverage();
+    return this.adminOperations.occupancyCoverage();
   }
 
   @ApiOperation({ summary: 'Imóveis elegíveis para apontamento manual de ocupação' })
   @Get('occupancy/properties')
   async occupancyProperties() {
-    return this.admin.occupancyProperties();
+    return this.adminOperations.occupancyProperties();
   }
 
   @ApiOperation({ summary: 'ROI dos anfitriões: dinheiro atribuído à Urban AI por usuário' })
@@ -390,7 +398,7 @@ export class AdminController {
     @Body() body: AdminManualOccupancyDto,
     @Req() req: any,
   ) {
-    const result = await this.admin.upsertManualOccupancy(body);
+    const result = await this.adminOperations.upsertManualOccupancy(body);
     await this.audit.record({
       actorUserId: req?.user?.userId ?? null,
       action: 'occupancy.manual_upsert',
@@ -405,25 +413,25 @@ export class AdminController {
   @ApiOperation({ summary: 'Listar usuários (paginado)' })
   @Get('users')
   async listUsers(@Query('page') page: string = '1', @Query('limit') limit: string = '20') {
-    return this.admin.listUsers(parseInt(page, 10), parseInt(limit, 10));
+    return this.adminUsers.listUsers(parseInt(page, 10), parseInt(limit, 10));
   }
 
   @ApiOperation({ summary: 'Detalhe de usuário para painel admin' })
   @Get('users/:id')
   async getUser(@Param('id') userId: string) {
-    return this.admin.getUserDetail(userId);
+    return this.adminUsers.getUserDetail(userId);
   }
 
   @ApiOperation({ summary: 'Imóveis de um usuário para painel admin' })
   @Get('users/:id/properties')
   async getUserProperties(@Param('id') userId: string) {
-    return this.admin.getUserProperties(userId);
+    return this.adminUsers.getUserProperties(userId);
   }
 
   @ApiOperation({ summary: 'Assinatura ativa/recente de um usuário para painel admin' })
   @Get('users/:id/subscription')
   async getUserSubscription(@Param('id') userId: string) {
-    return this.admin.getUserSubscription(userId);
+    return this.adminUsers.getUserSubscription(userId);
   }
 
   @AdminAuditedInHandler()
@@ -435,7 +443,7 @@ export class AdminController {
     @Body() body: SetUserRoleDto,
     @Req() req: any,
   ) {
-    const user = await this.admin.setUserRole(userId, body.role, req?.user?.userId ?? null);
+    const user = await this.adminUsers.setUserRole(userId, body.role, req?.user?.userId ?? null);
     await this.audit.record({
       actorUserId: req?.user?.userId ?? null,
       action: 'user.role_update',
@@ -455,7 +463,7 @@ export class AdminController {
     @Body() body: SetUserActiveDto,
     @Req() req: any,
   ) {
-    const user = await this.admin.setUserActive(userId, body.ativo, req?.user?.userId ?? null);
+    const user = await this.adminUsers.setUserActive(userId, body.ativo, req?.user?.userId ?? null);
     await this.audit.record({
       actorUserId: req?.user?.userId ?? null,
       action: 'user.active_update',
