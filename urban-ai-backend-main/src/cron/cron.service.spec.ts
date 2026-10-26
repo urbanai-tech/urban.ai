@@ -280,6 +280,63 @@ describe('CronService', () => {
     ]);
   });
 
+  it('sem leitura ao vivo do Airbnb, usa a diária base registrada na análise (plano B)', async () => {
+    const { service, airbnbService, emailService } = makeService([
+      {
+        id: 'analysis-fallback',
+        endereco: { id: 'address-1', list: { id: 'list-1', id_do_anuncio: 'airbnb-123', titulo: 'Apto' } },
+        evento: {
+          nome: 'Show',
+          dataInicio: new Date('2026-06-10T20:00:00.000Z'),
+          cidade: 'Sao Paulo',
+          estado: 'SP',
+        },
+        usuarioProprietario: { id: 'user-1' },
+        distanciaSuaPropriedade: 1,
+        recomendacao: 'Aumentar',
+        diferencaPercentual: 20,
+        seuPrecoAtual: 100,
+        precoSugerido: 120,
+      },
+    ]);
+    airbnbService.getFirstAvailablePrice.mockRejectedValue(new Error('RapidAPI fora do ar'));
+
+    const result = await service.buscarAnalisesAceitas();
+
+    expect(emailService.enviarNotification).toHaveBeenCalledTimes(1);
+    expect(result.processed).toBe(1);
+    expect(result.failed).toBe(0);
+  });
+
+  it('sem leitura ao vivo, não notifica quem já registrou ter aplicado o preço sugerido (plano B)', async () => {
+    const { service, airbnbService, emailService } = makeService([
+      {
+        id: 'analysis-applied',
+        endereco: { id: 'address-1', list: { id: 'list-1', id_do_anuncio: 'airbnb-123', titulo: 'Apto' } },
+        evento: {
+          nome: 'Show',
+          dataInicio: new Date('2026-06-10T20:00:00.000Z'),
+          cidade: 'Sao Paulo',
+          estado: 'SP',
+        },
+        usuarioProprietario: { id: 'user-1' },
+        distanciaSuaPropriedade: 1,
+        recomendacao: 'Aumentar',
+        diferencaPercentual: 20,
+        seuPrecoAtual: 100,
+        precoSugerido: 120,
+        precoAplicado: 120,
+      },
+    ]);
+    airbnbService.getFirstAvailablePrice.mockRejectedValue(new Error('RapidAPI fora do ar'));
+
+    const result = await service.buscarAnalisesAceitas();
+
+    expect(emailService.enviarNotification).not.toHaveBeenCalled();
+    expect(result.processed).toBe(1);
+    expect(result.failed).toBe(0);
+  });
+
   describe('assinatura (crons só processam quem tem direito de uso)', () => {
     const analysis = (id: string, ownerId: string, enderecoExtra: Record<string, unknown> = {}) => ({
       id,

@@ -7,6 +7,32 @@ primeiro.
 
 ---
 
+## [Plano B do scraping] — 2026-10-26 — Anfitrião informa os dados quando o Airbnb falha
+
+### Adicionado
+
+- `PUT /propriedades/:id/host-baseline` e `GET /propriedades/:id/baseline`: o anfitrião informa diária
+  base (obrigatória), mínima (piso das sugestões), fim de semana (só registrada) e dados essenciais
+  (quartos, camas, banheiros, hóspedes, tipo). Guarda origem (`host_input`) e data; histórico em
+  `pricing_input_history`. Migration aditiva `1793000000000-AddHostInputBaselineToList`.
+- `selectBaselinePrice`: escolhe entre a diária lida do Airbnb e a informada (leitura velha nunca derruba
+  o valor do anfitrião). Tela do imóvel mostra a origem e o formulário "Preencher manualmente".
+- ADR 0010 com o mapa de tudo que depende do Airbnb e o que acontece quando falha.
+
+### Corrigido
+
+- Leitura vazia do Airbnb (snapshot de falha) não grava mais zeros por cima dos dados no onboarding nem
+  no re-scraping mensal; dados essenciais informados pelo anfitrião não são sobrescritos por releitura.
+- Cron diário não descarta mais a recomendação quando a leitura ao vivo do Airbnb falha.
+
+### Segurança
+
+- Chave pública do cliente web do Airbnb saiu do código: nova variável `AIRBNB_WEB_API_KEY`
+  (sem ela, o GraphQL do perfil é pulado e o fallback por navegador é usado). **Ação de deploy:**
+  definir a variável nos ambientes que importam por perfil.
+
+---
+
 ## [Assinatura] — 2026-10-25 — Acesso pago imposto no backend
 
 ### Adicionado

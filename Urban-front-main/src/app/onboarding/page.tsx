@@ -1044,7 +1044,7 @@ function OnboardingWizardContent() {
                         <Box>
                           <Text fontWeight="bold" color="gray.800">Informar diária base</Text>
                           <Text fontSize="sm" color="gray.600" mt={1}>
-                            O Airbnb não retornou uma diária confirmada para estes imóveis, ou retornou apenas uma fonte provisória. Informe a diária atual para concluir a configuração e iniciar a análise.
+                            Não conseguimos ler uma diária confirmada no Airbnb para estes imóveis agora (pode ser uma falha ou bloqueio temporário). Preencha manualmente a diária atual para concluir a configuração e iniciar a análise. Depois, na tela do imóvel, você pode informar também diária mínima, fim de semana e dados do imóvel.
                           </Text>
                         </Box>
                         {pendingPricingProperties.map((property) => (

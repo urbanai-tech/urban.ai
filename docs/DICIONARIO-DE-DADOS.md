@@ -52,7 +52,7 @@ Categorias presentes no schema (detalhe coluna a coluna na seção gerada "Colun
 ## Resumo
 
 - Tabelas (entidades TypeORM): **45**
-- Colunas: **739**
+- Colunas: **744**
 - Chaves estrangeiras: **70**
 - Tabela de controle de migrations (`migrations`) não é entidade e não consta aqui.
 
@@ -862,6 +862,11 @@ Relações:
 | `averageMonthlyRevenue` | `averageMonthlyRevenue` | float | sim |  |  |  |
 | `pricingInputSource` | `pricingInputSource` | varchar(255) | sim |  |  |  |
 | `pricingInputsUpdatedAt` | `pricingInputsUpdatedAt` | timestamp | sim |  |  |  |
+| `minDailyPrice` | `minDailyPrice` | float | sim |  |  | ===== PLANO B DO SCRAPING (ADR 0010): dados informados pelo anfitrião ===== |
+| `weekendDailyPrice` | `weekendDailyPrice` | float | sim |  |  |  |
+| `hostInputUpdatedAt` | `hostInputUpdatedAt` | timestamp | sim |  |  |  |
+| `essentialsSource` | `essentialsSource` | varchar(16) | sim |  |  |  |
+| `essentialsUpdatedAt` | `essentialsUpdatedAt` | timestamp | sim |  |  |  |
 | `hospedes` | `hospedes` | int | sim |  |  | ===== CAMPOS ADICIONAIS DO RETORNO DA API ===== |
 | `quartos` | `quartos` | int | sim |  |  |  |
 | `camas` | `camas` | int | sim |  |  |  |

@@ -14,6 +14,7 @@ import { EmailService } from "src/email/email.service";
 import { CreateNotificationDto } from "src/notifications/tdo/create-notification.dto";
 import { getDiaria } from "src/util";
 import { hasUsableBasePrice } from "src/pricing/base-price.util";
+import { isEmptyScrapeSnapshot } from "src/propriedades/scrape-snapshot.util";
 import { mapWithConcurrency } from "src/common/concurrency";
 import {
   resolveSafeAirbnbUrl,
@@ -659,21 +660,40 @@ export class ConnectService {
           );
         }
 
-        const listPatch: Partial<List> = {
-          titulo: scraped.title || list.titulo,
-          pictureUrl: scraped.pictureUrl || list.pictureUrl,
-          quartos: scraped.bedrooms,
-          camas: scraped.beds,
-          banheiros: scraped.bathrooms,
-          hospedes: scraped.guestCapacity,
-          rating: scraped.rating,
-          propertyType: scraped.propertyType,
-          amenitiesCount: scraped.amenitiesCount,
-          neighborhood: scraped.neighborhood,
-          reviewCount: scraped.reviewCount,
-          lastScrapedAt: new Date(),
-          ...pricePatch,
-        };
+        // Plano B (ADR 0010): dados essenciais informados pelo anfitrião não são
+        // sobrescritos por uma releitura do Airbnb.
+        const hostOwnsEssentials = list.essentialsSource === 'host_input';
+        const essentialsPatch: Partial<List> = hostOwnsEssentials
+          ? {}
+          : {
+              quartos: scraped.bedrooms,
+              camas: scraped.beds,
+              banheiros: scraped.bathrooms,
+              hospedes: scraped.guestCapacity,
+              propertyType: scraped.propertyType,
+              essentialsSource: 'airbnb',
+              essentialsUpdatedAt: new Date(),
+            };
+
+        // A leitura que falha devolve um snapshot vazio (zeros): não grava por cima do que já existe.
+        const scrapeFailed = isEmptyScrapeSnapshot(scraped);
+        if (scrapeFailed) {
+          this.logger.warn(`[onboarding] Leitura do Airbnb vazia para ${list.id_do_anuncio}; dados atuais preservados.`);
+        }
+
+        const listPatch: Partial<List> = scrapeFailed
+          ? { ...pricePatch }
+          : {
+              titulo: scraped.title || list.titulo,
+              pictureUrl: scraped.pictureUrl || list.pictureUrl,
+              ...essentialsPatch,
+              rating: scraped.rating,
+              amenitiesCount: scraped.amenitiesCount,
+              neighborhood: scraped.neighborhood,
+              reviewCount: scraped.reviewCount,
+              lastScrapedAt: new Date(),
+              ...pricePatch,
+            };
 
         await this.listRepo.update(list.id, listPatch);
         Object.assign(list, listPatch);
@@ -865,16 +885,23 @@ export class ConnectService {
           const scraped = await this.propriedadeService.scrapeAirbnbListing(list?.id_do_anuncio);
 
           // Persistir dados enriquecidos na entity List
-          if (list) {
+          if (list && !isEmptyScrapeSnapshot(scraped)) {
+            const hostOwnsEssentials = list.essentialsSource === 'host_input';
             await this.listRepo.update(list.id, {
               titulo: scraped.title || list.titulo,
               pictureUrl: scraped.pictureUrl || list.pictureUrl,
-              quartos: scraped.bedrooms,
-              camas: scraped.beds,
-              banheiros: scraped.bathrooms,
-              hospedes: scraped.guestCapacity,
+              ...(hostOwnsEssentials
+                ? {}
+                : {
+                    quartos: scraped.bedrooms,
+                    camas: scraped.beds,
+                    banheiros: scraped.bathrooms,
+                    hospedes: scraped.guestCapacity,
+                    propertyType: scraped.propertyType,
+                    essentialsSource: 'airbnb',
+                    essentialsUpdatedAt: new Date(),
+                  }),
               rating: scraped.rating,
-              propertyType: scraped.propertyType,
               amenitiesCount: scraped.amenitiesCount,
               neighborhood: scraped.neighborhood,
               reviewCount: scraped.reviewCount,

@@ -34,20 +34,31 @@ import {
   fetchPace,
   getEventosAcompanhando,
   getEventosPorPropriedade,
+  getPropertyBaseline,
   getPropertyById,
   getPropertyOccupancyHistory,
   getPropertyPricingInputHistory,
   registrarResultadoSugestao,
+  saveHostBaseline,
   updatePropertyPricingInputs,
   upsertPropertyOccupancy,
   type PaceApiPoint,
   type PricingInputHistory,
+  type PropertyBaseline,
   type PropertyDetail,
   type PropertyOccupancyRecord,
   type PropertyOccupancyStatus,
   type RoiSummary,
 } from "../../service/api";
 import { dateAtLocalOffset, formatLocalDate } from "../../lib/date";
+import {
+  EMPTY_HOST_BASELINE_DRAFT,
+  describeBaselineSource,
+  describeEssentialsSource,
+  draftFromBaseline,
+  parseHostBaselineDraft,
+  type HostBaselineDraft,
+} from "../../lib/hostBaseline";
 
 type SuggestionItem = {
   id?: string;
@@ -186,7 +197,7 @@ function statusLabel(status?: string | null): string {
 }
 
 function priceSourceLabel(property: PropertyDetail | null): string {
-  if (property?.list?.pricingInputSource === "manual") return "Referência manual";
+  if (property?.list?.pricingInputSource === "manual" || property?.list?.pricingInputSource === "host_input") return "Referência manual";
   if (property?.list?.dailyPrice) return "Leitura direta";
   return "Sem diária base";
 }
@@ -216,6 +227,10 @@ function PropertyDetailContent() {
   const [savingOccupancy, setSavingOccupancy] = useState(false);
   const [savingOutcome, setSavingOutcome] = useState(false);
   const [pricingDraft, setPricingDraft] = useState<PricingDraft>({ manualDailyPrice: "", averageMonthlyRevenue: "" });
+  const [baseline, setBaseline] = useState<PropertyBaseline | null>(null);
+  const [manualFormOpen, setManualFormOpen] = useState(false);
+  const [baselineDraft, setBaselineDraft] = useState<HostBaselineDraft>(EMPTY_HOST_BASELINE_DRAFT);
+  const [savingBaseline, setSavingBaseline] = useState(false);
   const [occupancyDraft, setOccupancyDraft] = useState<OccupancyDraft>({
     date: todayIso(),
     status: "booked",
@@ -246,6 +261,7 @@ function PropertyDetailContent() {
       roiResult,
       paceResult,
       occupancyResult,
+      baselineResult,
     ] = await Promise.allSettled([
       getPropertyById(propertyId),
       getPropertyPricingInputHistory(propertyId, 8),
@@ -254,10 +270,16 @@ function PropertyDetailContent() {
       fetchMyRoi({ windowDays: 60, propertyId }),
       fetchPace(propertyId, { days: 60 }),
       getPropertyOccupancyHistory(propertyId, { from: isoFromDaysAhead(-30), to, limit: 120 }),
+      getPropertyBaseline(propertyId),
     ]);
+
+    setBaseline(baselineResult.status === "fulfilled" ? baselineResult.value : null);
 
     if (propertyResult.status === "fulfilled") {
       setProperty(propertyResult.value);
+      setBaselineDraft(draftFromBaseline(propertyResult.value.list));
+      // Sem diária confirmada, o formulário manual já abre: é o caminho para destravar as sugestões.
+      if (baselineResult.status === "fulfilled" && baselineResult.value.source === null) setManualFormOpen(true);
       setPricingDraft({
         manualDailyPrice: propertyResult.value.list?.manualDailyPrice ? String(propertyResult.value.list.manualDailyPrice) : "",
         averageMonthlyRevenue: propertyResult.value.list?.averageMonthlyRevenue ? String(propertyResult.value.list.averageMonthlyRevenue) : "",
@@ -325,6 +347,30 @@ function PropertyDetailContent() {
       toast("Não foi possível salvar a referência.", { type: "error" });
     } finally {
       setSavingPricing(false);
+    }
+  }
+
+  const baselineCopy = describeBaselineSource(baseline);
+  const baselineTone = baselineCopy.tone;
+
+  async function saveManualBaseline() {
+    const parsed = parseHostBaselineDraft(baselineDraft);
+    if (!parsed.ok) {
+      toast(parsed.error, { type: "warning" });
+      return;
+    }
+
+    setSavingBaseline(true);
+    try {
+      await saveHostBaseline(propertyId, parsed.payload);
+      toast("Dados salvos. Vamos usar o que você informou como base.", { type: "success" });
+      setManualFormOpen(false);
+      await load();
+    } catch (error) {
+      console.error("Erro ao salvar dados informados pelo anfitrião:", error);
+      toast("Não foi possível salvar agora. Tente novamente.", { type: "error" });
+    } finally {
+      setSavingBaseline(false);
     }
   }
 
@@ -475,6 +521,93 @@ function PropertyDetailContent() {
         <Metric label="Preço aplicado" value={metrics.applied} sub="sugestões conferidas" />
         <Metric label="Ocupação declarada" value={metrics.occupancyRate == null ? "-" : `${metrics.occupancyRate}%`} sub={`${metrics.booked} alugou / ${metrics.available} disponível`} />
       </div>
+
+      <AppCard variant="default">
+        <AppCardHeader
+          eyebrow="DADOS DO IMÓVEL"
+          title="Origem da diária base"
+          subtitle="A leitura do Airbnb pode falhar (bloqueio, limite do serviço ou instabilidade). Se isso acontecer, você pode informar os dados e a Urban AI passa a usá-los como base."
+          actions={
+            <AppButton variant="ghost" size="sm" onClick={() => setManualFormOpen((open) => !open)}>
+              {manualFormOpen ? "Fechar" : "Preencher manualmente"}
+            </AppButton>
+          }
+        />
+        <div className="property-chip-row">
+          <AppBadge kind={baselineTone === "success" ? "success" : baselineTone === "warning" ? "warn" : "neutral"}>
+            {baselineCopy.label}
+          </AppBadge>
+          <AppBadge kind="neutral">{describeEssentialsSource(baseline?.essentialsSource ?? list?.essentialsSource)}</AppBadge>
+        </div>
+        <p>{baselineCopy.detail}</p>
+        {manualFormOpen && (
+          <>
+            <div className="property-form-grid modal">
+              <AppInput
+                label="Diária base atual (obrigatória)"
+                leftAddon="R$"
+                value={baselineDraft.manualDailyPrice}
+                inputMode="decimal"
+                onChange={(event) => setBaselineDraft((prev) => ({ ...prev, manualDailyPrice: event.target.value }))}
+              />
+              <AppInput
+                label="Diária mínima (opcional)"
+                leftAddon="R$"
+                value={baselineDraft.minDailyPrice}
+                inputMode="decimal"
+                onChange={(event) => setBaselineDraft((prev) => ({ ...prev, minDailyPrice: event.target.value }))}
+              />
+              <AppInput
+                label="Diária de fim de semana (opcional)"
+                leftAddon="R$"
+                value={baselineDraft.weekendDailyPrice}
+                inputMode="decimal"
+                onChange={(event) => setBaselineDraft((prev) => ({ ...prev, weekendDailyPrice: event.target.value }))}
+              />
+              <AppInput
+                label="Tipo do imóvel (opcional)"
+                value={baselineDraft.propertyType}
+                onChange={(event) => setBaselineDraft((prev) => ({ ...prev, propertyType: event.target.value }))}
+              />
+              <AppInput
+                label="Quartos"
+                inputMode="numeric"
+                value={baselineDraft.quartos}
+                onChange={(event) => setBaselineDraft((prev) => ({ ...prev, quartos: event.target.value }))}
+              />
+              <AppInput
+                label="Camas"
+                inputMode="numeric"
+                value={baselineDraft.camas}
+                onChange={(event) => setBaselineDraft((prev) => ({ ...prev, camas: event.target.value }))}
+              />
+              <AppInput
+                label="Banheiros"
+                inputMode="decimal"
+                value={baselineDraft.banheiros}
+                onChange={(event) => setBaselineDraft((prev) => ({ ...prev, banheiros: event.target.value }))}
+              />
+              <AppInput
+                label="Hóspedes"
+                inputMode="numeric"
+                value={baselineDraft.hospedes}
+                onChange={(event) => setBaselineDraft((prev) => ({ ...prev, hospedes: event.target.value }))}
+              />
+            </div>
+            <p>
+              Usamos a diária base como ponto de partida das sugestões e a mínima como piso. A diária de fim de semana
+              fica registrada, mas ainda não muda as sugestões. Estes valores valem até você atualizá-los ou até uma
+              leitura nova e recente do Airbnb.
+            </p>
+            <div className="property-modal-actions">
+              <AppButton variant="ghost" onClick={() => setManualFormOpen(false)}>Cancelar</AppButton>
+              <AppButton leftIcon={<Save size={14} />} loading={savingBaseline} onClick={saveManualBaseline}>
+                Salvar dados
+              </AppButton>
+            </div>
+          </>
+        )}
+      </AppCard>
 
       <div className="property-grid two">
         <AppCard variant="default">

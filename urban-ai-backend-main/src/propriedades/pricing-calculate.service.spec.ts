@@ -309,4 +309,44 @@ describe('PricingCalculateService pricing decision audit', () => {
     });
     expect(patch.riskFlags).toEqual(['decision_rejected', 'no_booking_after_decision']);
   });
+
+  it('nunca sugere abaixo do piso informado pelo anfitrião (precoMinimo)', () => {
+    const base = {
+      precoReferencia: 100,
+      seuPrecoAtual: 400,
+      capacidadeReferencia: 2,
+      suaCapacidade: 2,
+      banheiroReferencia: 1,
+      seuBanheiro: 1,
+      maxReducaoPercent: 25,
+      maxAumentoPercent: 45,
+    };
+
+    // sem piso: referência baixa puxa a sugestão para o limite de -25% (300)
+    expect(service.calcular(base).precoSugerido).toBe(300);
+    // com piso 350 a sugestão para em 350
+    expect(service.calcular({ ...base, precoMinimo: 350 }).precoSugerido).toBe(350);
+    // piso acima do teto do guardrail ainda vence (anfitrião manda)
+    expect(service.calcular({ ...base, precoMinimo: 700 }).precoSugerido).toBe(700);
+  });
+
+  it('nunca sugere abaixo do piso informado pelo anfitrião (precoMinimo)', () => {
+    const base = {
+      precoReferencia: 100,
+      seuPrecoAtual: 400,
+      capacidadeReferencia: 2,
+      suaCapacidade: 2,
+      banheiroReferencia: 1,
+      seuBanheiro: 1,
+      maxReducaoPercent: 25,
+      maxAumentoPercent: 45,
+    };
+
+    // sem piso: referência baixa puxa a sugestão para o limite de -25% (300)
+    expect(service.calcular(base).precoSugerido).toBe(300);
+    // com piso 350 a sugestão para em 350
+    expect(service.calcular({ ...base, precoMinimo: 350 }).precoSugerido).toBe(350);
+    // piso acima do teto do guardrail ainda vence (anfitrião manda)
+    expect(service.calcular({ ...base, precoMinimo: 700 }).precoSugerido).toBe(700);
+  });
 });

@@ -175,13 +175,17 @@
         "checkOut": { "type": "string" },
         "currency": { "type": "string" },
         "dailyPrice": { "type": "number" },
+        "essentialsSource": { "type": "string" },
+        "essentialsUpdatedAt": { "format": "date-time", "type": "string" },
         "hospedes": { "type": "number" },
+        "hostInputUpdatedAt": { "format": "date-time", "type": "string" },
         "id": { "type": "string" },
         "id_do_anuncio": { "type": "string" },
         "internalCode": { "type": "string" },
         "internalNickname": { "type": "string" },
         "lastScrapedAt": { "format": "date-time", "type": "string" },
         "manualDailyPrice": { "type": "number" },
+        "minDailyPrice": { "type": "number" },
         "neighborhood": { "type": "string" },
         "pictureUrl": { "type": "string" },
         "priceText": { "type": "string" },
@@ -193,12 +197,14 @@
         "raw": { "type": "number" },
         "reviewCount": { "type": "number" },
         "status": { "type": "string" },
-        "titulo": { "type": "string" }
+        "titulo": { "type": "string" },
+        "weekendDailyPrice": { "type": "number" }
       },
       "required": [
         "id", "titulo", "id_do_anuncio", "internalNickname", "internalCode", "pictureUrl", "ativo",
         "priceText", "raw", "currency", "checkIn", "checkOut", "status", "dailyPrice", "manualDailyPrice",
-        "averageMonthlyRevenue", "pricingInputSource", "pricingInputsUpdatedAt", "hospedes", "quartos", "camas",
+        "averageMonthlyRevenue", "pricingInputSource", "pricingInputsUpdatedAt", "minDailyPrice", "weekendDailyPrice",
+        "hostInputUpdatedAt", "essentialsSource", "essentialsUpdatedAt", "hospedes", "quartos", "camas",
         "banheiros", "rating", "propertyType", "amenitiesCount", "neighborhood", "reviewCount", "lastScrapedAt"
       ],
       "type": "object"

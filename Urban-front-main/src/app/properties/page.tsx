@@ -52,7 +52,7 @@ function getAddressLabel(prop: PropertyDropdown): string {
 }
 
 function getPriceSourceLabel(prop: PropertyDropdown): string {
-  if (prop.pricingInputSource === 'manual') return 'Referência manual';
+  if (prop.pricingInputSource === 'manual' || prop.pricingInputSource === 'host_input') return 'Referência manual';
   if (prop.dailyPrice) return 'Leitura direta';
   return 'Sem diária base';
 }

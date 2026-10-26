@@ -1,3 +1,5 @@
+import { selectBaselinePrice } from './baseline-price.util';
+
 const PROVISIONAL_PRICING_SOURCES = new Set([
   'snapshot_self_cron',
   'self_cron',
@@ -10,6 +12,7 @@ const PROVISIONAL_PRICING_SOURCES = new Set([
 
 const TRUSTED_EXACT_PRICING_SOURCES = new Set([
   'manual',
+  'host_input',
   'manual_backfill',
   'portfolio_bulk_action',
   'stays_sync',
@@ -38,7 +41,11 @@ export function hasUsableBasePrice(list: any): boolean {
   return isTrustedBasePriceSource(list?.pricingInputSource);
 }
 
-export function resolveUsableBaseDailyPrice(list: any): number | null {
+export function resolveUsableBaseDailyPrice(list: any, now: Date = new Date()): number | null {
+  // Com valor do anfitrião e/ou leitura do Airbnb, quem decide é selectBaselinePrice.
+  const baseline = selectBaselinePrice(list, now);
+  if (baseline.dailyPrice !== null) return baseline.dailyPrice;
+
   const manualDailyPrice = Number(list?.manualDailyPrice);
   if (Number.isFinite(manualDailyPrice) && manualDailyPrice > 0) {
     return Number(manualDailyPrice.toFixed(2));

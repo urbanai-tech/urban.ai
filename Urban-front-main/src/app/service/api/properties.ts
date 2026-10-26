@@ -1,6 +1,7 @@
 import { api } from "./client";
 import { isSubscriptionRequiredError } from "./forbidden-policy";
 import { Connect, CreateAddressDto, List, Address } from "../../types/connect";
+import type { HostBaselinePayload, PropertyBaselineView } from "../../lib/hostBaseline";
 
 export async function getUserManagedListings(
   userId: string,
@@ -133,6 +134,11 @@ export type PropertyDetail = {
     averageMonthlyRevenue?: number | null;
     pricingInputSource?: string | null;
     pricingInputsUpdatedAt: string | null;
+    minDailyPrice?: number | null;
+    weekendDailyPrice?: number | null;
+    hostInputUpdatedAt?: string | null;
+    essentialsSource?: string | null;
+    essentialsUpdatedAt?: string | null;
     hospedes?: number | null;
     quartos?: number | null;
     camas?: number | null;
@@ -223,6 +229,31 @@ export async function updatePropertyPricingInputs(
   payload: { manualDailyPrice?: number | null; averageMonthlyRevenue?: number | null },
 ): Promise<PropertyDropdown> {
   const { data } = await api.patch(`/propriedades/${addressId}/pricing-inputs`, payload);
+  return data;
+}
+
+export type PropertyBaseline = PropertyBaselineView & {
+  addressId: string;
+  listId: string;
+  reason: string;
+  minDailyPrice: number | null;
+  weekendDailyPrice: number | null;
+  essentialsSource: string | null;
+  essentialsUpdatedAt: string | null;
+};
+
+/** Diária base em uso, com a origem (Airbnb ou informada pelo anfitrião) e se está desatualizada. */
+export async function getPropertyBaseline(addressId: string): Promise<PropertyBaseline> {
+  const { data } = await api.get<PropertyBaseline>(`/propriedades/${addressId}/baseline`);
+  return data;
+}
+
+/** Plano B do scraping: o anfitrião informa diária base, piso, fim de semana e dados essenciais. */
+export async function saveHostBaseline(
+  addressId: string,
+  payload: HostBaselinePayload,
+): Promise<PropertyBaseline> {
+  const { data } = await api.put<PropertyBaseline>(`/propriedades/${addressId}/host-baseline`, payload);
   return data;
 }
 

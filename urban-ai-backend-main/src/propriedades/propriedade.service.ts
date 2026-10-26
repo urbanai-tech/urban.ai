@@ -2,6 +2,7 @@ import { BadRequestException, forwardRef, HttpException, HttpStatus, Inject, Inj
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { HTTP_TIMEOUT_MS, fetchWithTimeout } from '../common/http-timeouts';
+import { isEmptyScrapeSnapshot } from './scrape-snapshot.util';
 import { Address } from 'src/entities/addresses.entity';
 import { Between, LessThanOrEqual, MoreThanOrEqual, Not, Repository } from 'typeorm';
 import { AirbnbQuoteResponse } from './types/types';
@@ -307,6 +308,7 @@ export class PropriedadeService {
         address.list.averageMonthlyRevenue = averageMonthlyRevenue;
         address.list.pricingInputSource = manualDailyPrice ? 'manual' : null;
         address.list.pricingInputsUpdatedAt = new Date();
+        if (manualDailyPrice) address.list.hostInputUpdatedAt = address.list.pricingInputsUpdatedAt;
 
         if (manualDailyPrice) {
             address.list.dailyPrice = manualDailyPrice;
@@ -545,7 +547,12 @@ export class PropriedadeService {
 
         // Hash lido do .env a cada chamada (permite hot-reload sem redeploy se o Railway atualizar)
         const queryHash = this.graphqlActiveHash;
-        const apiKey = 'd306zoyjsyarp7ifhu67rjxn52tv0t20';
+        // Chave do cliente web do Airbnb: vem do ambiente (AIRBNB_WEB_API_KEY), nunca do código.
+        const apiKey = process.env.AIRBNB_WEB_API_KEY?.trim();
+        if (!apiKey) {
+            console.error('🚨 [scrapeHost] AIRBNB_WEB_API_KEY não configurada: a consulta GraphQL do perfil foi pulada. Defina a variável (ver .env.example); usando o fallback por navegador.');
+            return this.scrapeHostListingsWithBrowserFallback(userId, 'missing-airbnb-web-api-key');
+        }
 
         // Variables corretos conforme interceptação real do browser
         const variables = {
@@ -1099,15 +1106,27 @@ export class PropriedadeService {
             const prop = allProperties[i];
             try {
                 const scraped = await this.scrapeAirbnbListing(prop.id_do_anuncio);
+                if (isEmptyScrapeSnapshot(scraped)) {
+                    // Leitura bloqueada/vazia: preserva o que já existe em vez de gravar zeros.
+                    throw new Error('Leitura do Airbnb vazia');
+                }
+                // Plano B (ADR 0010): essenciais informados pelo anfitrião não são sobrescritos.
+                const hostOwnsEssentials = prop.essentialsSource === 'host_input';
                 await this.propriedades.update(prop.id, {
                     titulo: scraped.title,
                     pictureUrl: scraped.pictureUrl,
-                    quartos: scraped.bedrooms,
-                    camas: scraped.beds,
-                    banheiros: scraped.bathrooms,
-                    hospedes: scraped.guestCapacity,
+                    ...(hostOwnsEssentials
+                        ? {}
+                        : {
+                            quartos: scraped.bedrooms,
+                            camas: scraped.beds,
+                            banheiros: scraped.bathrooms,
+                            hospedes: scraped.guestCapacity,
+                            propertyType: scraped.propertyType,
+                            essentialsSource: 'airbnb',
+                            essentialsUpdatedAt: new Date(),
+                        }),
                     rating: scraped.rating,
-                    propertyType: scraped.propertyType,
                     amenitiesCount: scraped.amenitiesCount,
                     neighborhood: scraped.neighborhood,
                     reviewCount: scraped.reviewCount,
@@ -2087,6 +2106,8 @@ export class PropriedadeService {
                 publicoEsperado,
                 maxReducaoPercent: pricingGuardrail.maxReducaoPercent,
                 maxAumentoPercent: pricingGuardrail.maxAumentoPercent,
+                // Piso informado pelo anfitrião (plano B do scraping, ADR 0010).
+                precoMinimo: this.nullableNumber(property.minDailyPrice),
             });
 
 

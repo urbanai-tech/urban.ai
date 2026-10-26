@@ -1,6 +1,7 @@
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import {
   CreateAirbnbAlertDto,
+  UpdateHostBaselineDto,
   UpdatePropertyIdentityDto,
   UpdatePropertyPricingInputsDto,
   UpsertPropertyManualOccupancyDto,
@@ -39,6 +40,38 @@ describe('property runtime DTOs', () => {
     ).resolves.toEqual(expect.objectContaining({ revenue: 1000.25, nightsBooked: 2 }));
   });
 
+  it('UpdateHostBaselineDto aceita diária base com opcionais e coage vírgula decimal', async () => {
+    await expect(
+      validate(UpdateHostBaselineDto, {
+        manualDailyPrice: '380,50',
+        minDailyPrice: 250,
+        weekendDailyPrice: '450',
+        quartos: '2',
+        banheiros: '1.5',
+        hospedes: 4,
+        propertyType: 'Apartamento',
+      }),
+    ).resolves.toEqual(
+      expect.objectContaining({ manualDailyPrice: 380.5, weekendDailyPrice: 450, quartos: 2, banheiros: 1.5 }),
+    );
+  });
+
+  it('UpdateHostBaselineDto aceita diária base com opcionais e coage vírgula decimal', async () => {
+    await expect(
+      validate(UpdateHostBaselineDto, {
+        manualDailyPrice: '380,50',
+        minDailyPrice: 250,
+        weekendDailyPrice: '450',
+        quartos: '2',
+        banheiros: '1.5',
+        hospedes: 4,
+        propertyType: 'Apartamento',
+      }),
+    ).resolves.toEqual(
+      expect.objectContaining({ manualDailyPrice: 380.5, weekendDailyPrice: 450, quartos: 2, banheiros: 1.5 }),
+    );
+  });
+
   it.each([
     [CreateAirbnbAlertDto, { latitude: true, longitude: 0, bedrooms: 1, bathrooms: 1, accommodates: 2 }],
     [CreateAirbnbAlertDto, { latitude: -91, longitude: 0, bedrooms: 1, bathrooms: 1, accommodates: 2 }],
@@ -46,6 +79,16 @@ describe('property runtime DTOs', () => {
     [UpdatePropertyIdentityDto, { internalCode: 'x'.repeat(33) }],
     [UpdatePropertyPricingInputsDto, { manualDailyPrice: '' }],
     [UpdatePropertyPricingInputsDto, { averageMonthlyRevenue: -1 }],
+    [UpdateHostBaselineDto, {}],
+    [UpdateHostBaselineDto, { manualDailyPrice: 0 }],
+    [UpdateHostBaselineDto, { manualDailyPrice: 300, minDailyPrice: -5 }],
+    [UpdateHostBaselineDto, { manualDailyPrice: 300, quartos: 1.5 }],
+    [UpdateHostBaselineDto, { manualDailyPrice: 300, pricingInputSource: 'airbnb' }],
+    [UpdateHostBaselineDto, {}],
+    [UpdateHostBaselineDto, { manualDailyPrice: 0 }],
+    [UpdateHostBaselineDto, { manualDailyPrice: 300, minDailyPrice: -5 }],
+    [UpdateHostBaselineDto, { manualDailyPrice: 300, quartos: 1.5 }],
+    [UpdateHostBaselineDto, { manualDailyPrice: 300, pricingInputSource: 'airbnb' }],
     [UpsertPropertyManualOccupancyDto, { date: '31/12/2026', status: 'booked' }],
     [UpsertPropertyManualOccupancyDto, { date: '2026-12-31', status: 'reserved' }],
     [UpsertPropertyManualOccupancyDto, { date: '2026-12-31', nightsBooked: 1.5 }],

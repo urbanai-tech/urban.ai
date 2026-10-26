@@ -17,6 +17,7 @@ const PROVISIONAL_PRICING_SOURCES = new Set([
 
 const TRUSTED_EXACT_PRICING_SOURCES = new Set([
   'manual',
+  'host_input',
   'manual_backfill',
   'portfolio_bulk_action',
   'stays_sync',
@@ -81,7 +82,7 @@ export function isTrustedBasePriceSource(value: unknown): boolean {
 export function formatPricingSourceLabel(value: unknown): string {
   const source = normalizeSource(value);
   if (!source) return 'fonte não informada';
-  if (source === 'manual' || source === 'manual_backfill' || source === 'admin_manual') return 'diária manual';
+  if (source === 'manual' || source === 'manual_backfill' || source === 'admin_manual' || source === 'host_input') return 'diária manual';
   if (source.startsWith('airbnb_')) return 'Airbnb checkout';
   if (source === 'portfolio_bulk_action') return 'ação em lote';
   if (source === 'stays_sync' || source === 'stays_auto') return 'Stays';

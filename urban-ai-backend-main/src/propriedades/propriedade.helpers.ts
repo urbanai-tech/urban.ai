@@ -33,6 +33,11 @@ export type PublicListResponse = {
     averageMonthlyRevenue: number | null;
     pricingInputSource: string | null;
     pricingInputsUpdatedAt: Date | null;
+    minDailyPrice: number | null;
+    weekendDailyPrice: number | null;
+    hostInputUpdatedAt: Date | null;
+    essentialsSource: string | null;
+    essentialsUpdatedAt: Date | null;
     hospedes: number | null;
     quartos: number | null;
     camas: number | null;
@@ -314,6 +319,11 @@ export function toPublicList(list: List): PublicListResponse {
         averageMonthlyRevenue: nullableNumber(list.averageMonthlyRevenue),
         pricingInputSource: list.pricingInputSource ?? null,
         pricingInputsUpdatedAt: list.pricingInputsUpdatedAt ?? null,
+        minDailyPrice: nullableNumber(list.minDailyPrice),
+        weekendDailyPrice: nullableNumber(list.weekendDailyPrice),
+        hostInputUpdatedAt: list.hostInputUpdatedAt ?? null,
+        essentialsSource: list.essentialsSource ?? null,
+        essentialsUpdatedAt: list.essentialsUpdatedAt ?? null,
         hospedes: list.hospedes ?? null,
         quartos: list.quartos ?? null,
         camas: list.camas ?? null,
