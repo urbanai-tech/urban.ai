@@ -19,7 +19,7 @@ primeiro.
 - **Horário de silêncio 22h–8h (São Paulo) sem perda**: pushes gerados nesse intervalo são **adiados** para as 08:00 BRT
   (`push_deliveries.deliverAfter`) e enviados pelo job `push-deferred-drain` (08h–12h, com lock Redis e reivindicação
   atômica por entrega, sem duplicar entre réplicas). Antes de enviar: colapsa por `tag` no mesmo dispositivo (fica o
-  mais recente), descarta vencidos (evento que já começou, mais de 24h) e relê a preferência da categoria e o teto do
+  mais recente), descarta vencidos (o evento já começou, ou seja, passou do `dataInicio`; se só há a data, vale até 23:59:59 BRT do dia; e mais de 24h) e relê a preferência da categoria e o teto do
   dia. O push de teste do usuário ignora o silêncio. Migrations aditivas `1793200000000` e `1793300000000`.
 
 ---

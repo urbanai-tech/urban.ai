@@ -1,7 +1,7 @@
 import { PushNotificationService } from './push-notification.service';
 import { PushEndpointSecurity } from './push-endpoint-security';
 import { PushDeferredDrainService } from './push-deferred-drain.service';
-import { nextQuietEnd, DEFAULT_QUIET_HOURS, planDeferredDrain, buildEventAlertPayload } from './push-payload.builder';
+import { nextQuietEnd, DEFAULT_QUIET_HOURS, planDeferredDrain, buildEventAlertPayload, buildPricingDigestPayload, eventExpiryIso } from './push-payload.builder';
 
 type Row = Record<string, any>;
 
@@ -159,14 +159,29 @@ describe('push adiado pelo horário de silêncio', () => {
   it('descarta vencidos: evento que já começou e itens com mais de 24h', async () => {
     at('2026-10-27T02:00:00Z');
     const { service, deliveryRepo, wake } = setup();
-    // Evento no dia 27/10 (00:00 BRT = 03:00Z): já começou às 08:00.
-    await service.sendToUser('user-1', buildEventAlertPayload({ eventName: 'Show', startsOn: '2026-10-27', propertyId: 'p1' }));
-    // Evento em 28/10: ainda vale.
-    await service.sendToUser('user-1', buildEventAlertPayload({ eventName: 'Feira', startsOn: '2026-10-28', propertyId: 'p1' }));
+    // Evento hoje às 20:00 BRT (23:00Z): às 08:00 ainda não começou, então é entregue.
+    await service.sendToUser('user-1', buildEventAlertPayload({
+      eventName: 'Show', startsOn: '2026-10-27', startsAt: '2026-10-27T23:00:00Z', propertyId: 'p1',
+    }));
+    // Evento hoje às 07:00 BRT (10:00Z): já começou às 08:00, expira.
+    await service.sendToUser('user-1', buildEventAlertPayload({
+      eventName: 'Corrida', startsOn: '2026-10-27', startsAt: '2026-10-27T10:00:00Z', propertyId: 'p1',
+    }));
+    // Só a data (sem hora): vale até 23:59:59 BRT do dia, então hoje às 08:00 ainda é entregue.
+    await service.sendToUser('user-1', buildEventAlertPayload({ eventName: 'Feira', startsOn: '2026-10-27', propertyId: 'p1' }));
+    // Evento de ontem (só data): expirado.
+    await service.sendToUser('user-1', buildEventAlertPayload({ eventName: 'Antigo', startsOn: '2026-10-26', propertyId: 'p1' }));
+    // Resumo de preços ligado a um evento que começa às 07:00: também expira.
+    await service.sendToUser('user-1', {
+      ...buildPricingDigestPayload({ count: 2, event: { startsAt: '2026-10-27T10:00:00Z' } }),
+      tag: 'digest-evento',
+    });
     jest.setSystemTime(iso('2026-10-27T11:00:00Z'));
-    expect(await service.drainDeferred()).toMatchObject({ due: 2, sent: 1, expired: 1 });
-    expect(deliveryRepo.rows[0].failureReason).toBe('deferred_expired');
-    expect(wake).toHaveBeenCalledTimes(1);
+    expect(await service.drainDeferred()).toMatchObject({ due: 5, sent: 2, expired: 3 });
+    expect(deliveryRepo.rows.map((r) => r.failureReason ?? 'enviado')).toEqual([
+      'enviado', 'deferred_expired', 'enviado', 'deferred_expired', 'deferred_expired',
+    ]);
+    expect(wake).toHaveBeenCalledTimes(2);
 
     // Mais de 24h (ex.: job ficou parado): vence mesmo sem expiresAt próprio.
     const old = setup();
@@ -174,6 +189,13 @@ describe('push adiado pelo horário de silêncio', () => {
     await old.service.sendToUser('user-1', digest('velho'));
     jest.setSystemTime(iso('2026-10-28T12:00:00Z'));
     expect(await old.service.drainDeferred()).toMatchObject({ due: 1, sent: 0, expired: 1 });
+  });
+
+  it('eventExpiryIso: início do evento, fim do dia (23:59:59 BRT) ou nada', () => {
+    expect(eventExpiryIso({ startsAt: '2026-10-27T23:00:00Z', startsOn: '2026-10-27' })).toBe('2026-10-27T23:00:00.000Z');
+    expect(eventExpiryIso({ startsOn: '2026-10-27' })).toBe('2026-10-28T02:59:59.999Z');
+    expect(eventExpiryIso({})).toBeUndefined();
+    expect(eventExpiryIso(null)).toBeUndefined();
   });
 
   it('preferência desligada depois do adiamento: não envia', async () => {

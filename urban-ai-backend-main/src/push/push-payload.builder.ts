@@ -197,7 +197,13 @@ export function decidePushPolicy(input: {
 
 const plural = (count: number, one: string, many: string) => (count === 1 ? one : many);
 
-export function buildPricingDigestPayload(input: { count: number; digestId?: string; now?: Date }): PwaPushPayload {
+export function buildPricingDigestPayload(input: {
+  count: number;
+  digestId?: string;
+  now?: Date;
+  /** Evento mais próximo ligado às recomendações: o aviso adiado expira no início dele. */
+  event?: PushEventRef | null;
+}): PwaPushPayload {
   const count = Math.max(1, Math.floor(input.count));
   const day = toSaoPauloDateKey(input.now ?? new Date());
   return {
@@ -210,6 +216,7 @@ export function buildPricingDigestPayload(input: { count: number; digestId?: str
     tag: `pricing-digest-${day}`,
     renotify: true,
     badgeCount: count,
+    expiresAt: eventExpiryIso(input.event),
     actions: [
       { action: 'view', title: 'Ver recomendação', url: '/dashboard?source=pwa_push_pricing_digest&action=view' },
       { action: 'later', title: 'Aplicar depois' },
@@ -242,6 +249,7 @@ export function buildSystemNotificationPayload(input: {
   tag: string;
   type: string;
   notificationId?: string;
+  event?: PushEventRef | null;
 }): PwaPushPayload {
   const pricing = pushCategoryFromType(input.type) === 'pricing';
   return {
@@ -249,6 +257,7 @@ export function buildSystemNotificationPayload(input: {
     body: input.body,
     url: input.url,
     tag: input.tag,
+    expiresAt: eventExpiryIso(input.event),
     ...(pricing
       ? {
           renotify: true,
@@ -268,6 +277,8 @@ export function buildEventAlertPayload(input: {
   neighborhood?: string | null;
   /** Dia do evento, `YYYY-MM-DD` (calendário de São Paulo). */
   startsOn: string;
+  /** Início do evento (`dataInicio`, ISO). Sem ele, o aviso vale até o fim do dia `startsOn`. */
+  startsAt?: string | Date | null;
   propertyId?: string;
   propertyName?: string | null;
   imageUrl?: string | null;
@@ -289,8 +300,8 @@ export function buildEventAlertPayload(input: {
     url: target,
     tag: `event-${input.propertyId ?? 'all'}-${input.startsOn}-${slug(input.eventName)}`,
     image: input.imageUrl ?? undefined,
-    // Se o aviso ficar adiado pelo silêncio, não vale mais depois que o dia do evento começa.
-    expiresAt: eventStartInstant(input.startsOn),
+    // Adiado pelo silêncio: vale até o início do evento (ou o fim do dia, se só há a data).
+    expiresAt: eventExpiryIso({ startsAt: input.startsAt, startsOn: input.startsOn }),
     actions: [
       { action: 'view', title: 'Ver recomendação', url: target },
       { action: 'later', title: 'Aplicar depois' },
@@ -347,10 +358,23 @@ function normalizeImageUrl(url?: string): string | undefined {
   return /^https:\/\//i.test(url) ? url : undefined;
 }
 
-function eventStartInstant(startsOn: string): string | undefined {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(startsOn);
+/** Evento ao qual um aviso está ligado: instante de início (`startsAt`, ISO) e/ou só o dia (`startsOn`). */
+export type PushEventRef = { startsAt?: string | Date | null; startsOn?: string | null };
+
+/**
+ * Quando um aviso adiado ligado a um evento deixa de valer: no INÍCIO do evento (`startsAt`); se só há
+ * o dia, no fim desse dia em São Paulo (23:59:59.999 BRT). Sem referência de evento, undefined
+ * (vale só a idade máxima de 24h).
+ */
+export function eventExpiryIso(event?: PushEventRef | null): string | undefined {
+  if (!event) return undefined;
+  if (event.startsAt) {
+    const ms = event.startsAt instanceof Date ? event.startsAt.getTime() : Date.parse(event.startsAt);
+    if (Number.isFinite(ms)) return new Date(ms).toISOString();
+  }
+  const match = event.startsOn ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(event.startsOn) : null;
   if (!match) return undefined;
-  return saoPauloLocalToInstant(Number(match[1]), Number(match[2]), Number(match[3]), 0, 0, 0, 0).toISOString();
+  return saoPauloLocalToInstant(Number(match[1]), Number(match[2]), Number(match[3]), 23, 59, 59, 999).toISOString();
 }
 
 function truncate(value: string, max: number): string {
