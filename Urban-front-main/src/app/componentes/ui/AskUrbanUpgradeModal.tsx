@@ -66,7 +66,7 @@ export function AskUrbanUpgradeModal({
           borderRadius: 14,
           padding: "28px 28px 24px",
           boxShadow: "var(--app-shadow-overlay)",
-          fontFamily: "Inter, system-ui, sans-serif",
+          fontFamily: "var(--font-brand)",
         }}
       >
         <button

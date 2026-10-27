@@ -41,7 +41,7 @@ const statusOptions: Array<{ value: OccupancyStatus; label: string }> = [
  * /admin/quality — MAPE + cobertura de ocupação.
  *
  * Migrado para o design system admin (.urban-admin):
- *  - Hero KPI: MAPE atual em Bebas Neue gigante com cor por threshold.
+ *  - Hero KPI: MAPE atual em Archivo (display) gigante com cor por threshold.
  *  - Sub-stats em grid (RMSE, mediana, amostras).
  *  - Gate de qualidade com AdminStatusDot.
  *  - BarList branco/orange para por status e por origem.
@@ -211,7 +211,7 @@ export default function AdminQualityPage() {
               style={{
                 padding: "20px 24px",
                 borderLeft: "2px solid var(--admin-warning)",
-                background: "rgba(245, 181, 71, 0.06)",
+                background: "color-mix(in srgb, var(--admin-warning) 6%, transparent)",
                 fontSize: 14,
                 color: "var(--admin-text-muted)",
                 lineHeight: 1.55,

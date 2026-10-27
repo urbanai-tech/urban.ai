@@ -9,6 +9,7 @@ import {
 } from '../entities/contact-submission.entity';
 import { CreateContactSubmissionDto } from './dto/create-contact-submission.dto';
 import { UpdateContactSubmissionDto } from './dto/update-contact-submission.dto';
+import { clampInt } from '../common/clamp-int';
 
 @Injectable()
 export class ContactSubmissionsService {
@@ -62,8 +63,8 @@ export class ContactSubmissionsService {
     status?: ContactSubmissionStatus | 'all';
     search?: string;
   }) {
-    const page = Math.max(1, input.page ?? 1);
-    const limit = Math.min(100, Math.max(1, input.limit ?? 30));
+    const page = clampInt(input.page, { min: 1, max: 1_000_000, fallback: 1 });
+    const limit = clampInt(input.limit, { min: 1, max: 100, fallback: 30 });
 
     const search = input.search?.trim().toLowerCase();
 

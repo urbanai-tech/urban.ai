@@ -377,6 +377,25 @@ export function eventExpiryIso(event?: PushEventRef | null): string | undefined 
   return saoPauloLocalToInstant(Number(match[1]), Number(match[2]), Number(match[3]), 23, 59, 59, 999).toISOString();
 }
 
+/**
+ * Evento de referência de um aviso que cobre vários eventos (ex.: resumo de preços): o que começa
+ * primeiro entre os que ainda não começaram, para o aviso adiado expirar naquele instante. Sem nenhum
+ * início válido e futuro, undefined (vale só a idade máxima de 24h).
+ */
+export function nearestUpcomingEventRef(
+  startsAt: Array<string | Date | null | undefined>,
+  now: Date = new Date(),
+): PushEventRef | undefined {
+  let best: number | null = null;
+  for (const value of startsAt) {
+    if (!value) continue;
+    const ms = value instanceof Date ? value.getTime() : Date.parse(value);
+    if (!Number.isFinite(ms) || ms <= now.getTime()) continue;
+    if (best === null || ms < best) best = ms;
+  }
+  return best === null ? undefined : { startsAt: new Date(best).toISOString() };
+}
+
 function truncate(value: string, max: number): string {
   return value.length > max ? `${value.slice(0, max - 1)}…` : value;
 }

@@ -3,7 +3,7 @@ import NextLink from "next/link";
 /**
  * 404 — página não encontrada.
  *
- * Manifesto editorial dark, consistente com /landing/lancamento/precos.
+ * Editorial, segue o tema (claro/escuro), consistente com /landing/lancamento/precos.
  * Sem header/footer — tela full-bleed.
  */
 export default function NotFound() {
@@ -12,8 +12,8 @@ export default function NotFound() {
       className="urban-manifesto"
       style={{
         minHeight: "100vh",
-        background: "#080A0F",
-        color: "#FFFFFF",
+        background: "var(--theme-public-bg)",
+        color: "var(--theme-public-text)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -40,7 +40,7 @@ export default function NotFound() {
             fontSize: 12,
             letterSpacing: 4,
             textTransform: "uppercase",
-            color: "#E8500A",
+            color: "var(--theme-public-accent)",
             fontWeight: 600,
             margin: 0,
             marginBottom: 32,
@@ -51,17 +51,17 @@ export default function NotFound() {
         <h1
           className="urban-display"
           style={{
-            fontSize: "clamp(72px, 16vw, 200px)",
-            lineHeight: 0.88,
+            fontSize: "clamp(36px, 9vw, 112px)",
+            lineHeight: 0.98,
             letterSpacing: "-2px",
-            fontWeight: 400,
+            fontWeight: 700,
             margin: 0,
             textTransform: "uppercase",
           }}
         >
           ESSA ROTA
           <br />
-          <span style={{ color: "#E8500A" }}>NÃO EXISTE.</span>
+          <span style={{ color: "var(--theme-public-accent)" }}>NÃO EXISTE.</span>
         </h1>
         <p
           style={{
@@ -69,7 +69,7 @@ export default function NotFound() {
             fontSize: 18,
             fontWeight: 300,
             lineHeight: 1.7,
-            color: "rgba(255,255,255,0.65)",
+            color: "var(--theme-public-muted)",
           }}
         >
           O endereço que você tentou abrir não existe ou foi movido. Sem stress —
@@ -88,8 +88,8 @@ export default function NotFound() {
             href="/"
             style={{
               padding: "18px 32px",
-              background: "#E8500A",
-              color: "#080A0F",
+              background: "var(--theme-public-accent)",
+              color: "var(--theme-public-accent-contrast)",
               fontWeight: 700,
               fontSize: 13,
               letterSpacing: 3,
@@ -104,8 +104,8 @@ export default function NotFound() {
             href="/painel"
             style={{
               padding: "18px 32px",
-              border: "1px solid rgba(255,255,255,0.20)",
-              color: "#FFFFFF",
+              border: "1px solid var(--theme-public-strong)",
+              color: "var(--theme-public-text)",
               fontWeight: 600,
               fontSize: 13,
               letterSpacing: 3,

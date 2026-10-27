@@ -9,7 +9,7 @@ const ts = require('typescript');
 const ROOT = path.resolve(__dirname, '..');
 const SRC = path.join(ROOT, 'src');
 const TRACKER = path.join(__dirname, 'scheduled-jobs-tracker.json');
-const EXPECTED_JOB_COUNT = 24;
+const EXPECTED_JOB_COUNT = 25;
 const IDEMPOTENCY_STATUSES = new Set(['protected', 'read-only', 'review-required']);
 const TRACKING_STATUSES = new Set(['tracked', 'gap-reviewed']);
 

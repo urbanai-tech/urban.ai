@@ -27,7 +27,7 @@ import type {
  * Pilar D do plano de redesign do anfitrião (docs/plano-redesign-2026-05-16.md):
  * a recomendação de preço era card operacional com hierarquia INVERTIDA
  * (ATUAL em verde dominante + SUG em azul discreto). Agora o preço SUGERIDO
- * domina visualmente (Bebas Neue 56-72px), o preço atual aparece como
+ * domina visualmente (Archivo (display) 56-72px), o preço atual aparece como
  * referência menor, o delta % vira badge accent, o motivo é pull-quote e
  * o CTA primário "Aplicar sugestão" é impossível de perder.
  *

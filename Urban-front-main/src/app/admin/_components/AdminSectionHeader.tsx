@@ -5,9 +5,9 @@
  * usado em todas as 19 telas admin antigas — sempre genérico, sem hierarquia editorial.
  *
  * Estrutura:
- *  - eyebrow uppercase letter-spacing 3 #E8500A (opcional, identifica área)
- *  - display Bebas Neue clamp(40px, 5vw, 56px) — md size por default
- *  - subtitle Inter 400 14px rgba(255,255,255,0.55) (opcional)
+ *  - eyebrow uppercase letter-spacing 3 accent da marca (opcional, identifica área)
+ *  - display Archivo (display) clamp(40px, 5vw, 56px) — md size por default
+ *  - subtitle Inter 400 14px text-muted (opcional)
  *  - slot direito pra actions (botões, links, switches)
  */
 import React from "react";

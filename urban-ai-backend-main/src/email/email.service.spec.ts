@@ -80,6 +80,50 @@ describe('EmailService pricing digest', () => {
     expect(push.sendToUser).not.toHaveBeenCalled();
     expect(pricingDigest.markSent).not.toHaveBeenCalled();
   });
+  describe('validade do push do digest ligada ao evento mais próximo', () => {
+    const item = (eventStartsAt?: string | null) => ({
+      title: 'Sugestão pronta',
+      description: 'Ajuste recomendado',
+      redirectTo: '/dashboard',
+      propertyTitle: 'Studio Paulista',
+      reasons: [],
+      eventStartsAt,
+      createdAt: '2026-05-23T12:00:00Z',
+    });
+    const flush = async (items: any[]) => {
+      const ctx = makeService();
+      ctx.communicationPreferences.getForUser.mockResolvedValue({ emailPricing: false, pushPricing: true });
+      await (ctx.service as any).sendClaimedPricingRecommendationDigest({
+        id: 'digest-9', userId: 'user-1', email: 'ana@example.com', name: 'Ana',
+        wantsEmail: false, wantsPush: true, items,
+      });
+      return ctx;
+    };
+
+    it('o push expira no início do evento que começa primeiro entre os ainda futuros', async () => {
+      const soon = new Date(Date.now() + 3 * 24 * 3600 * 1000).toISOString();
+      const later = new Date(Date.now() + 9 * 24 * 3600 * 1000).toISOString();
+      const past = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+      const { push } = await flush([item(later), item(past), item(soon), item(null)]);
+      expect(push.sendToUser).toHaveBeenCalledWith('user-1', expect.objectContaining({ expiresAt: soon }));
+    });
+
+    it('sem evento (ou todos já começaram) o push não ganha expiresAt próprio', async () => {
+      const past = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+      const { push } = await flush([item(null), item(past)]);
+      expect(push.sendToUser.mock.calls[0][1].expiresAt).toBeUndefined();
+    });
+
+    it('toPricingDigestItem guarda o início do evento em ISO e ignora valor inválido', () => {
+      const { service } = makeService();
+      const base = { title: 'Sugestões de preço disponíveis', description: 'x', redirectTo: '/dashboard' };
+      expect((service as any).toPricingDigestItem({ ...base, metadata: { eventStartsAt: '2026-11-01T23:00:00Z' } }).eventStartsAt)
+        .toBe('2026-11-01T23:00:00.000Z');
+      expect((service as any).toPricingDigestItem({ ...base, metadata: { eventStartsAt: 'lixo' } }).eventStartsAt).toBeNull();
+      expect((service as any).toPricingDigestItem({ ...base, metadata: {} }).eventStartsAt).toBeNull();
+    });
+  });
+
   it('hydrates pricing digest items with property identity metadata', () => {
     const { service } = makeService();
 

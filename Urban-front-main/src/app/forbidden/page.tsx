@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
  * /forbidden — página 403 amigável.
  *
  * Usada quando guards (admin/PaymentCheck/AuthGuard) decidem que o usuário
- * não tem permissão. Manifesto editorial dark, consistente com 404/erro.
+ * não tem permissão. Editorial, segue o tema (claro/escuro), consistente com 404/erro.
  */
 export default function ForbiddenPage() {
   const router = useRouter();
@@ -17,8 +17,8 @@ export default function ForbiddenPage() {
       className="urban-manifesto"
       style={{
         minHeight: "100vh",
-        background: "#080A0F",
-        color: "#FFFFFF",
+        background: "var(--theme-public-bg)",
+        color: "var(--theme-public-text)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -45,7 +45,7 @@ export default function ForbiddenPage() {
             fontSize: 12,
             letterSpacing: 4,
             textTransform: "uppercase",
-            color: "#E8500A",
+            color: "var(--theme-public-accent)",
             fontWeight: 600,
             margin: 0,
             marginBottom: 32,
@@ -56,17 +56,17 @@ export default function ForbiddenPage() {
         <h1
           className="urban-display"
           style={{
-            fontSize: "clamp(64px, 14vw, 180px)",
+            fontSize: "clamp(36px, 9vw, 104px)",
             lineHeight: 0.9,
             letterSpacing: "-1.5px",
-            fontWeight: 400,
+            fontWeight: 700,
             margin: 0,
             textTransform: "uppercase",
           }}
         >
           VOCÊ NÃO TEM
           <br />
-          <span style={{ color: "#E8500A" }}>PERMISSÃO AQUI.</span>
+          <span style={{ color: "var(--theme-public-accent)" }}>PERMISSÃO AQUI.</span>
         </h1>
         <p
           style={{
@@ -74,7 +74,7 @@ export default function ForbiddenPage() {
             fontSize: 18,
             fontWeight: 300,
             lineHeight: 1.7,
-            color: "rgba(255,255,255,0.65)",
+            color: "var(--theme-public-muted)",
           }}
         >
           Essa área é restrita. Se você acredita que deveria ter acesso, fale
@@ -94,8 +94,8 @@ export default function ForbiddenPage() {
             onClick={() => router.back()}
             style={{
               padding: "18px 32px",
-              background: "#E8500A",
-              color: "#080A0F",
+              background: "var(--theme-public-accent)",
+              color: "var(--theme-public-accent-contrast)",
               fontWeight: 700,
               fontSize: 13,
               letterSpacing: 3,
@@ -111,8 +111,8 @@ export default function ForbiddenPage() {
             href="/painel"
             style={{
               padding: "18px 32px",
-              border: "1px solid rgba(255,255,255,0.20)",
-              color: "#FFFFFF",
+              border: "1px solid var(--theme-public-strong)",
+              color: "var(--theme-public-text)",
               fontWeight: 600,
               fontSize: 13,
               letterSpacing: 3,

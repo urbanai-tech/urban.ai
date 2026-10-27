@@ -99,7 +99,7 @@ function Inner({
               bottom: -18,
               height: 1,
               background:
-                'linear-gradient(90deg, transparent, rgba(232,80,10,0.72), transparent)',
+                'linear-gradient(90deg, transparent, color-mix(in srgb, var(--theme-app-accent) 72%, transparent), transparent)',
               animation: 'urban-loader-line 1.4s ease-in-out infinite',
             }}
           />
@@ -154,8 +154,8 @@ const UrbanAiLoader = memo(function UrbanAiLoader({
   alt = 'My Urban',
   width = 360,
   height = 120,
-  overlayBg = 'rgba(8,10,15,0.94)',
-  orbitColor = 'rgba(232,80,10,0.62)',
+  overlayBg = 'color-mix(in srgb, var(--theme-app-bg) 94%, transparent)',
+  orbitColor = 'color-mix(in srgb, var(--theme-app-accent) 62%, transparent)',
   title = 'Entrando no My Urban',
   subtitle = 'Preparando seu painel',
 }: Props) {

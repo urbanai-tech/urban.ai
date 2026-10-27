@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test';
 
+// Este spec testa o próprio service worker; o padrão do config é bloqueá-lo.
+test.use({ serviceWorkers: 'allow' });
+
 test.describe('PWA e mobile', () => {
   test('expoe manifest, icons, service worker e offline fallback', async ({ page, request }) => {
     const manifestResponse = await request.get('/manifest.webmanifest');
@@ -7,7 +10,7 @@ test.describe('PWA e mobile', () => {
 
     const manifest = await manifestResponse.json();
     expect(manifest.name).toBe('My Urban AI');
-    expect(manifest.short_name).toBe('My Urban AI');
+    expect(manifest.short_name).toBe('My Urban');
     expect(manifest.id).toBe('/?source=pwa');
     expect(manifest.scope).toBe('/');
     expect(manifest.display).toBe('standalone');

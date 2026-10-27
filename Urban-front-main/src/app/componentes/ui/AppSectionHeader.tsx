@@ -8,8 +8,8 @@ import React from "react";
  * Substitui `<Heading size="2xl" fontWeight="extrabold">` chakra default
  * usado em todas as telas autenticadas, sem hierarquia editorial.
  *
- *  - eyebrow uppercase letter-spacing 3 #E8500A (opcional)
- *  - display Bebas Neue clamp(36px, 5vw, 56px) — md size por default
+ *  - eyebrow uppercase letter-spacing 3 accent da marca (opcional)
+ *  - display Archivo (display) clamp(36px, 5vw, 56px) — md size por default
  *  - subtitle Inter 400 14px muted (opcional)
  *  - slot direito pra actions
  */

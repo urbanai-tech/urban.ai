@@ -388,7 +388,7 @@ function SmallStat({
           fontWeight: 600,
           color,
           margin: "4px 0 0",
-          fontFamily: "'Bebas Neue', Inter, sans-serif",
+          fontFamily: "var(--font-display)",
           letterSpacing: -0.3,
         }}
       >

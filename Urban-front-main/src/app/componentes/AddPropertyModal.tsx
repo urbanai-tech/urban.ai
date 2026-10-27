@@ -500,7 +500,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
         display: "grid",
         placeItems: "center",
         padding: 16,
-        background: "rgba(8,10,15,0.56)",
+        background: "var(--theme-app-backdrop)",
       }}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) handleClose();
@@ -700,9 +700,9 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                           alignItems: "center",
                           gap: 16,
                           padding: 12,
-                          border: `1px solid ${selected ? "rgba(232,80,10,0.35)" : "rgba(14,17,22,0.12)"}`,
+                          border: `1px solid ${selected ? "color-mix(in srgb, var(--theme-app-accent) 35%, transparent)" : "var(--theme-app-divider-strong)"}`,
                           borderRadius: 10,
-                          background: selected ? "rgba(232,80,10,0.08)" : "#fff",
+                          background: selected ? "color-mix(in srgb, var(--theme-app-accent) 8%, transparent)" : "var(--theme-app-surface)",
                           cursor: "pointer",
                         }}
                       >

@@ -284,7 +284,7 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
         }
 
         .global-paywall-plan.is-highlighted {
-          background: linear-gradient(180deg, var(--app-accent), rgba(232, 80, 10, 0.32));
+          background: linear-gradient(180deg, var(--app-accent), color-mix(in srgb, var(--theme-app-accent) 32%, transparent));
         }
 
         .global-paywall-plan-body {
@@ -308,7 +308,7 @@ export function GlobalPaywallModal({ isOpen }: GlobalPaywallModalProps) {
           background: var(--app-accent);
           border: 2px solid #ffffff;
           border-radius: 999px;
-          box-shadow: 0 8px 18px rgba(232, 80, 10, 0.22);
+          box-shadow: 0 8px 18px color-mix(in srgb, var(--theme-app-accent) 22%, transparent);
           font-size: 12px;
           font-weight: 800;
           line-height: 1.2;

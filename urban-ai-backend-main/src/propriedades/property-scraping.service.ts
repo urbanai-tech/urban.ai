@@ -10,6 +10,7 @@ import { AirbnbService } from 'src/airbnb/airbnb.service';
 import { PropertyCoordinatesDto } from './tdo/property-coordinates.dto';
 import { MailerService } from 'src/mailer/mailer.service';
 import { AirbnbListingMetadataService } from './airbnb-listing-metadata.service';
+import { parseCoordinates } from 'src/common/coordinates';
 import {
     extractNumber,
     extractMetaContent,
@@ -433,8 +434,13 @@ export class PropertyScrapingService {
             // --- Coordenadas (JSON embeddado) ---
             const latMatch = html.match(/"lat"\s*:\s*([-\d.]+)/);
             const lngMatch = html.match(/"lng"\s*:\s*([-\d.]+)/);
-            const latitude = latMatch ? parseFloat(latMatch[1]) : null;
-            const longitude = lngMatch ? parseFloat(lngMatch[1]) : null;
+            // Par inválido (fora de faixa, 0,0, NaN) vira "sem coordenadas": nunca gravamos lixo.
+            const parsedCoordinates = parseCoordinates(
+                latMatch ? latMatch[1] : null,
+                lngMatch ? lngMatch[1] : null,
+            );
+            const latitude = parsedCoordinates?.latitude ?? null;
+            const longitude = parsedCoordinates?.longitude ?? null;
 
             // --- Parse do título OG via split por "·" ---
             // EN: "Serviced apartment in São Paulo · ★4.65 · 1 bedroom · 1 bed · 1 bath"

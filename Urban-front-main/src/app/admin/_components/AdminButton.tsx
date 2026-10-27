@@ -6,7 +6,7 @@ import React from "react";
  * Botão admin Urban AI.
  *
  * Substitui o padrão `bg-emerald-500 text-slate-900 font-bold rounded` repetido
- * 40+ vezes nas telas admin antigas. Sempre usa accent #E8500A como primary,
+ * 40+ vezes nas telas admin antigas. Sempre usa accent accent da marca como primary,
  * radius 2px, letter-spacing 1.5 uppercase em todas as variantes.
  *
  * Variantes:

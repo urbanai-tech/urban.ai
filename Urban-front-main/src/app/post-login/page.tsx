@@ -95,8 +95,8 @@ export default function PostLoginPage() {
       alt="My Urban"
       width={360}
       height={120}
-      overlayBg="rgba(8,10,15,0.94)"
-      orbitColor="rgba(232,80,10,0.62)"
+      overlayBg="color-mix(in srgb, var(--theme-app-bg) 94%, transparent)"
+      orbitColor="color-mix(in srgb, var(--theme-app-accent) 62%, transparent)"
     />
   );
 }
