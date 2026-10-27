@@ -4,9 +4,13 @@
 # Sai com codigo diferente de zero se qualquer etapa falhar.
 #
 # Uso:
-#   scripts/validate-local.sh [--root] [--backend] [--front] [--webscraping] [--pipeline] [--all]
+#   scripts/validate-local.sh [--root] [--backend] [--front] [--webscraping] [--pipeline] [--all] [--skip-install]
 #
 # Sem flags equivale a --all. As flags se combinam (ex.: --backend --front).
+# --skip-install: pula `npm ci` / `uv sync` quando as dependencias ja estao
+# instaladas e o lockfile nao mudou (hash gravado em node_modules/.validate-lock-stamp
+# ou .venv/.validate-lock-stamp). Se o lockfile mudou, instala normalmente. Sem a
+# flag o comportamento e o do CI: sempre reinstala (e regrava o stamp).
 # Roda em Git Bash (Windows) e Linux. Requer node 20+ e npm; para os servicos
 # Python, `uv` (ou `python -m uv`).
 #
@@ -18,8 +22,13 @@ set -u
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-RUN_ROOT=0 RUN_BACKEND=0 RUN_FRONT=0 RUN_WEBSCRAPING=0 RUN_PIPELINE=0
-if [ "$#" -eq 0 ]; then set -- --all; fi
+RUN_ROOT=0 RUN_BACKEND=0 RUN_FRONT=0 RUN_WEBSCRAPING=0 RUN_PIPELINE=0 SKIP_INSTALL=0
+# Sem nenhuma flag de escopo (so --skip-install ou nada) equivale a --all.
+HAS_SCOPE=0
+for arg in "$@"; do
+  case "$arg" in -h|--help|--skip-install) ;; *) HAS_SCOPE=1 ;; esac
+done
+if [ "$HAS_SCOPE" -eq 0 ]; then set -- "$@" --all; fi
 for arg in "$@"; do
   case "$arg" in
     --root) RUN_ROOT=1 ;;
@@ -27,9 +36,10 @@ for arg in "$@"; do
     --front) RUN_FRONT=1 ;;
     --webscraping) RUN_WEBSCRAPING=1 ;;
     --pipeline) RUN_PIPELINE=1 ;;
+    --skip-install) SKIP_INSTALL=1 ;;
     --all) RUN_ROOT=1 RUN_BACKEND=1 RUN_FRONT=1 RUN_WEBSCRAPING=1 RUN_PIPELINE=1 ;;
-    -h|--help) sed -n '2,15p' "$0"; exit 0 ;;
-    *) echo "Flag desconhecida: $arg (use --root, --backend, --front, --webscraping, --pipeline, --all)" >&2; exit 2 ;;
+    -h|--help) sed -n '2,20p' "$0"; exit 0 ;;
+    *) echo "Flag desconhecida: $arg (use --root, --backend, --front, --webscraping, --pipeline, --all, --skip-install)" >&2; exit 2 ;;
   esac
 done
 
@@ -47,6 +57,30 @@ step() {
   echo "$name=$code"
   NAMES+=("$name")
   CODES+=("$code")
+}
+
+# install_step <nome> <diretorio> <lockfile> <dir-das-deps> <comando...>
+# Roda o comando de instalacao e grava o hash do lockfile em <dir-das-deps>/.validate-lock-stamp.
+# Com --skip-install, pula se <dir-das-deps> existe e o hash bate com o stamp.
+lock_hash() { cksum < "$1" | tr -d ' 
+'; }
+install_step() {
+  local name="$1" dir="$2" lock="$3" deps="$4"
+  shift 4
+  local stamp="$REPO_ROOT/$dir/$deps/.validate-lock-stamp" now
+  now="$(lock_hash "$REPO_ROOT/$dir/$lock" 2>/dev/null)"
+  if [ "$SKIP_INSTALL" -eq 1 ] && [ -d "$REPO_ROOT/$dir/$deps" ]      && [ -f "$stamp" ] && [ "$(cat "$stamp")" = "$now" ]; then
+    echo
+    echo "==> $name  ($dir)  [pulado: $lock inalterado desde a ultima instalacao; --skip-install]"
+    echo "$name=0"
+    NAMES+=("$name")
+    CODES+=(0)
+    return
+  fi
+  step "$name" "$dir" "$@"
+  if [ "${CODES[$((${#CODES[@]} - 1))]}" -eq 0 ] && [ -d "$REPO_ROOT/$dir/$deps" ]; then
+    echo "$now" > "$stamp"
+  fi
 }
 
 # Escolhe como invocar o uv.
@@ -80,7 +114,7 @@ if [ "$RUN_ROOT" -eq 1 ]; then
   step root:resilience-dr . npm run audit:resilience-dr
   step root:knn-legacy-self-test . npm run audit:knn-legacy:self-test
   step root:knn-legacy . npm run audit:knn-legacy
-  step root:npm-ci . npm ci
+  install_step root:npm-ci . package-lock.json node_modules npm ci
   step root:npm-audit . npm audit --omit=dev --audit-level=high
   step root:release-evidence-dry . node scripts/release-evidence.js --dry-run
   step root:enterprise-gate-dry . node scripts/enterprise-auditability-live-gate.js --dry-run
@@ -89,7 +123,7 @@ fi
 # ------------------------------------------------------------- backend
 if [ "$RUN_BACKEND" -eq 1 ]; then
   B=urban-ai-backend-main
-  step backend:npm-ci $B npm ci
+  install_step backend:npm-ci $B package-lock.json node_modules npm ci
   step backend:npm-audit $B npm audit --omit=dev --audit-level=moderate
   step backend:lint $B npm run lint
   step backend:tsc $B npx tsc --noEmit
@@ -116,7 +150,7 @@ fi
 # ------------------------------------------------------------ frontend
 if [ "$RUN_FRONT" -eq 1 ]; then
   F=Urban-front-main
-  step front:npm-ci $F npm ci --legacy-peer-deps
+  install_step front:npm-ci $F package-lock.json node_modules npm ci --legacy-peer-deps
   step front:npm-audit $F npm audit --omit=dev --audit-level=moderate
   step front:lint $F npm run lint
   step front:test-unit $F npm run test:unit
@@ -139,7 +173,7 @@ if [ "$RUN_WEBSCRAPING" -eq 1 ]; then
   if [ "${#UV[@]}" -eq 0 ]; then
     skip_python webscraping:uv-sync
   else
-    step webscraping:uv-sync $W "${UV[@]}" sync --all-groups --frozen
+    install_step webscraping:uv-sync $W uv.lock .venv "${UV[@]}" sync --all-groups --frozen
     step webscraping:ruff-check $W "${UV[@]}" run ruff check urban_webscrapping tests auth_proxy.py
     step webscraping:ruff-format $W "${UV[@]}" run ruff format --check urban_webscrapping tests auth_proxy.py
     step webscraping:mypy $W "${UV[@]}" run mypy urban_webscrapping auth_proxy.py
@@ -153,7 +187,7 @@ if [ "$RUN_PIPELINE" -eq 1 ]; then
   if [ "${#UV[@]}" -eq 0 ]; then
     skip_python pipeline:uv-sync
   else
-    step pipeline:uv-sync $P "${UV[@]}" sync --all-groups --frozen
+    install_step pipeline:uv-sync $P uv.lock .venv "${UV[@]}" sync --all-groups --frozen
     step pipeline:lint $P "${UV[@]}" run poe lint
     step pipeline:pytest $P "${UV[@]}" run pytest tests -q
   fi

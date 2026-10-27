@@ -18,8 +18,9 @@ arquitetura: [`README.md`](./README.md) e [`docs/ARQUITETURA-ATUAL.md`](./docs/A
 
 Requisitos para **rodar**: Docker com Compose v2 (dê ao Docker pelo menos ~8 GB de
 RAM). Para **validar** (seção 2) o host também precisa de Node 20 e npm, e de `uv`
-para os serviços Python; o CI e os containers usam Node 20 e o repositório não
-tem `.nvmrc`/`engines`, então confira com `npm run doctor`.
+para os serviços Python. A versão está fixada em [`.nvmrc`](./.nvmrc) (`20`, a major
+do CI e dos containers; `nvm use` / `fnm use` a seleciona) e nos `engines` dos
+`package.json` (`>=20`); `npm run doctor` confere o Node contra o `.nvmrc`.
 
 Antes do primeiro `up`, rode `npm run doctor` (`scripts/doctor.sh`): confere Node,
 Docker, portas livres, `.env` e ferramentas opcionais, sem alterar nada.
@@ -35,7 +36,14 @@ docker compose down -v                  # derruba tudo e apaga o banco local
   responder `/health/live` (MySQL ~2 min; `npm ci`, 59 migrations e a primeira
   compilação do `nest start --watch` o resto) e a primeira requisição à home do
   front ~6 min a mais (Next compila sob demanda). Em Linux costuma ser bem menos.
-  Subidas seguintes reaproveitam os volumes e levam poucos minutos.
+  Subidas seguintes reaproveitam os volumes e levam poucos minutos. Reensaio de
+  2026-10-27 (mesmo Windows, com outros ~20 containers de outros projetos rodando,
+  Compose ANTES das mudanças desta seção): MySQL saudável em ~3 min, `npm ci` +
+  59 migrations até ~34 min, e a compilação do `nest start --watch` ainda não tinha
+  terminado aos 63 min (bind mount no Windows é limitado por I/O). O `frontend` agora
+  só inicia quando o backend está `healthy` (não disputam CPU), as migrations/seed
+  rodam com `TS_NODE_TRANSPILE_ONLY` e o cache do npm fica em volume próprio; a
+  medição do boot com essas mudanças ainda não foi feita (ver docs/ENSAIO-DE-PASSAGEM.md).
 - Para acompanhar sem adivinhar: `docker compose ps` (o backend fica
   `health: starting` até estar pronto) e `docker compose logs -f backend`
   (as linhas `Migration ... has been executed successfully` e depois
@@ -60,12 +68,53 @@ docker compose down -v                  # derruba tudo e apaga o banco local
   as funcionalidades que dependem delas ficam inativas.
 - Rodar migrations manualmente: `docker compose exec backend npm run migration:run`.
 
+### Logar localmente (usuário de desenvolvimento)
+
+O banco do Compose nasce vazio (só migrations). Para ter um login e telas
+populadas, rode o seed de desenvolvimento, **idempotente** (pode repetir):
+
+```bash
+docker compose exec backend npm run seed:dev     # com o Compose no ar
+SEED_DEV_ON_BOOT=true docker compose up -d       # ou semeia sozinho a cada boot (após as migrations)
+```
+
+Cria: um **anfitrião** e um **admin**, a assinatura ativa do anfitrião (sem ela as
+rotas pagas respondem 402), 1 imóvel em Pinheiros (SP) com diária base R$ 320,
+mínima R$ 250 e fim de semana R$ 420, 5 eventos futuros ao redor (de 3 a 33 dias
+a partir de hoje; as datas são renovadas a cada execução), 3 sugestões de preço
+(2 pendentes, 1 aceita) e 3 avisos. Com isso Hoje, Calendário, Imóveis, Eventos e
+Avisos aparecem preenchidos.
+
+| Papel | E-mail | Senha |
+|---|---|---|
+| Anfitrião | `host@urban.local` | `UrbanLocal#2026` |
+| Admin | `admin@urban.local` | `UrbanLocal#2026` |
+
+São valores **fictícios, só para o ambiente local**. O seed **recusa rodar** se `APP_ENV`/`NODE_ENV` não for
+`development`/`dev`/`local`, se houver marcador de hospedagem (Railway, Vercel…)
+ou se o banco não for `localhost`/`mysql`; nunca roda em produção ou staging.
+A senha é tratada como no fluxo real: o front envia o SHA-256 dela e o servidor
+guarda o bcrypt desse hash. Para logar por `curl` (o login limita 5 tentativas por minuto):
+
+```bash
+HASH=$(printf '%s' 'UrbanLocal#2026' | sha256sum | cut -d' ' -f1)
+curl -i -X POST http://localhost:10000/auth/login -H 'Content-Type: application/json'   -d "{\"email\":\"host@urban.local\",\"password\":\"$HASH\"}"   # 200/201 + Set-Cookie
+```
+
 ## 2. Validar antes de abrir PR
 
 ```bash
 scripts/validate-local.sh              # tudo (padrão: --all)
 scripts/validate-local.sh --backend    # ou --front, --webscraping, --pipeline, --root
+scripts/validate-local.sh --backend --skip-install   # sem reinstalar dependências
 ```
+
+Por padrão o script reinstala tudo (`npm ci`, `uv sync`), como o CI. Com
+`--skip-install` ele pula essas etapas quando `node_modules` (ou `.venv`) já existe
+e o hash do lockfile bate com o gravado na última instalação feita pelo script
+(`.validate-lock-stamp`); se o lockfile mudou, ou na primeira vez, instala
+normalmente. Para rodar um único teste do backend:
+`cd urban-ai-backend-main && npx jest src/caminho/arquivo.spec.ts`.
 
 O script roda, em sequência, as mesmas verificações do CI
 ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml)), imprime `nome=codigo`

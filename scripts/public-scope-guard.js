@@ -22,6 +22,7 @@ const ROOT_FILES = new Set([
   '.gitattributes',
   '.env.staging.example',
   '.gitignore',
+  '.nvmrc',
   'CHANGELOG.md',
   'CONTRIBUTING.md',
   'README.md',
@@ -152,6 +153,7 @@ function selfTest() {
   [
     'README.md',
     '.gitattributes',
+    '.nvmrc',
     'CONTRIBUTING.md',
     'docker-compose.yml',
     'scripts/validate-local.sh',
