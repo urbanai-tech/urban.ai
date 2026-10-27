@@ -39,11 +39,11 @@ const baseLayout = (content: string) => `
 <body>
     <div class="container">
         <div class="logo-container">
-            <img src="${LOGO_URL}" alt="Urban AI Logo" class="logo" />
+            <img src="${LOGO_URL}" alt="My Urban Logo" class="logo" />
         </div>
         ${content}
         <div class="footer">
-            © ${new Date().getFullYear()} Urban AI • E-mail automático — não responda.
+            © ${new Date().getFullYear()} My Urban AI • E-mail automático — não responda.
         </div>
     </div>
 </body>
@@ -61,7 +61,7 @@ export class EmailTemplates {
         <div class="title">${safeTitle}</div>
         <div class="content">
             <p>Olá, <b>${safeName}</b>.</p>
-            <p>Encontramos <b>${safeQuantidade}</b> ${plural} para acompanhar na sua operação Urban AI.</p>
+            <p>Encontramos <b>${safeQuantidade}</b> ${plural} para acompanhar na sua operação My Urban.</p>
             <p>Acesse a plataforma para revisar as análises e oportunidades associadas aos seus imóveis.</p>
         </div>
     `;
@@ -224,12 +224,12 @@ export class EmailTemplates {
         <div class="title">Código de verificação</div>
         <div class="content">
             <p>Olá, <b>${escapeHtml(nome)}!</b></p>
-            <p>Use o código abaixo para verificar seu e-mail no <b>Urban AI</b>:</p>
+            <p>Use o código abaixo para verificar seu e-mail no <b>My Urban</b>:</p>
             
             <div class="code-box">${code}</div>
             
             <p style="text-align: center; font-size: 14px;">Este código expira em 3 minutos.</p>
-            <p style="text-align: center; font-size: 14px;"><a href="${escapeHtml(frontUrl)}">Acessar Urban AI</a></p>
+            <p style="text-align: center; font-size: 14px;"><a href="${escapeHtml(frontUrl)}">Acessar My Urban</a></p>
         </div>
     `;
     return baseLayout(content);
@@ -240,7 +240,7 @@ export class EmailTemplates {
         <div class="title">Redefinir sua senha</div>
         <div class="content">
             <p>Olá, <b>${nome}!</b></p>
-            <p>Recebemos uma solicitação para redefinir a senha da sua conta no <b>Urban AI</b>.<br/>
+            <p>Recebemos uma solicitação para redefinir a senha da sua conta no <b>My Urban</b>.<br/>
             Se você fez essa solicitação, clique no link abaixo para criar uma nova senha.</p>
             
             <div style="text-align: center; margin: 30px 0;">
@@ -266,7 +266,7 @@ export class EmailTemplates {
         <div class="title">Sua propriedade está em análise</div>
         <div class="content">
             <p>Olá ${firstName},</p>
-            <p>A sua propriedade cadastrada no <b>Urban AI</b> está sendo processada.</p>
+            <p>A sua propriedade cadastrada no <b>My Urban</b> está sendo processada.</p>
             <p>Em breve você receberá um e-mail com sugestões de preço personalizadas.</p>
             <br/>
             <p>Você pode acompanhar o status acessando:</p>
@@ -282,7 +282,7 @@ export class EmailTemplates {
         <div class="title">Análise concluída!</div>
         <div class="content">
             <p>Olá ${firstName},</p>
-            <p>A análise da sua propriedade no <b>Urban AI</b> foi concluída com sucesso!</p>
+            <p>A análise da sua propriedade no <b>My Urban</b> foi concluída com sucesso!</p>
             <p>Agora você já pode acessar os resultados e conferir as <b>recomendações de preço personalizadas</b> para o seu imóvel.</p>
             <br/>
             <p>Acesse aqui os resultados:</p>
@@ -303,8 +303,8 @@ export class EmailTemplates {
     const content = `
         <div class="title">Bem-vindo(a), ${firstName}!</div>
         <div class="content">
-            <p>Que bom ter você na <b>Urban AI</b>.</p>
-            <p>A Urban AI cruza dados de mercado, eventos próximos e padrões históricos
+            <p>Que bom ter você no <b>My Urban</b>.</p>
+            <p>O My Urban cruza dados de mercado, eventos próximos e padrões históricos
             para ajudar você a escolher preços melhores para seus imóveis. O resultado:
             decisões mais claras, menos achismo e mais controle sobre a diária.</p>
 
@@ -353,7 +353,7 @@ export class EmailTemplates {
         <div class="title">Assinatura ativada ✓</div>
         <div class="content">
             <p>Olá, ${firstName}!</p>
-            <p>Sua assinatura no <b>Urban AI</b> foi ativada com sucesso. Resumo:</p>
+            <p>Sua assinatura no <b>My Urban</b> foi ativada com sucesso. Resumo:</p>
 
             <table style="width: 100%; margin: 20px 0; border-collapse: collapse; font-size: 15px;">
                 <tr><td style="padding: 8px 0; color: #6b7280;">Plano</td><td style="padding: 8px 0; text-align: right; font-weight: bold;">${input.planName}</td></tr>
@@ -434,7 +434,7 @@ export class EmailTemplates {
         <div class="content">
             <p>Olá, ${firstName}.</p>
             <p>Tentamos processar a cobrança de <b>${total}</b> da sua assinatura no
-            Urban AI mas o cartão recusou.</p>
+            My Urban mas o cartão recusou.</p>
 
             <p>Vamos tentar novamente em <b>${input.nextRetryDate}</b>. Para evitar
             qualquer interrupção, é melhor atualizar o método de pagamento agora:</p>
@@ -479,7 +479,7 @@ export class EmailTemplates {
                 </a>
             </div>
 
-            <p style="font-size: 14px;">Lembrete: a Urban AI cobra <b>por imóvel</b>, então
+            <p style="font-size: 14px;">Lembrete: o My Urban cobra <b>por imóvel</b>, então
             você só paga pelo que de fato usa.</p>
         </div>
     `;
@@ -566,7 +566,7 @@ export class EmailTemplates {
     const content = `
         <div class="title">Bem-vindo, ${firstName}!</div>
         <div class="content">
-            <p>Você está dentro da Urban AI. Nas próximas 24h vamos começar a:</p>
+            <p>Você está dentro do My Urban. Nas próximas 24h vamos começar a:</p>
             <ul style="line-height: 1.8;">
                 <li>Mapear eventos relevantes a até <b>8km</b> dos seus imóveis</li>
                 <li>Cruzar com calendário do Airbnb / Stays</li>
@@ -671,7 +671,7 @@ export class EmailTemplates {
   }): string {
     const firstName = input.nome.split(' ')[0];
     const content = `
-        <div class="title">Uma semana com a Urban AI</div>
+        <div class="title">Uma semana com o My Urban</div>
         <div class="content">
             <p>Olá, ${firstName}!</p>
             <p>Faz uma semana que você entrou. Hora de transformar as sugestões em rotina.</p>
@@ -679,7 +679,7 @@ export class EmailTemplates {
             ${
               input.suggestedAppliedCount > 0
                 ? `
-            <p><b>Até agora você aplicou ${input.suggestedAppliedCount} ${input.suggestedAppliedCount === 1 ? 'sugestão' : 'sugestões'}.</b> Continue assim: cada resposta ajuda a Urban AI a entender melhor seus imóveis.</p>
+            <p><b>Até agora você aplicou ${input.suggestedAppliedCount} ${input.suggestedAppliedCount === 1 ? 'sugestão' : 'sugestões'}.</b> Continue assim: cada resposta ajuda o My Urban a entender melhor seus imóveis.</p>
             `
                 : `
             <p>Você ainda não aplicou nenhuma sugestão. Aceite ou recuse cada recomendação: em 1 clique você nos diz se vamos na direção certa.</p>
@@ -814,7 +814,7 @@ export class EmailTemplates {
             Abrir painel completo
           </a>
         </div>
-        <p style="font-size:13px;color:#6b7280;">Dica: se você conectar a Stays, a Urban AI consegue transformar recomendações aprovadas em alterações operacionais com guardrails e rollback.</p>
+        <p style="font-size:13px;color:#6b7280;">Dica: se você conectar a Stays, o My Urban consegue transformar recomendações aprovadas em alterações operacionais com guardrails e rollback.</p>
         <p style="font-size:12px;color:#6b7280;">Você recebe este e-mail porque os alertas de preço estão ativos nas suas preferências. Para pausar ou trocar canais, acesse <a href="${EmailTemplates.escapeHtml(settingsUrl)}" class="link">Preferências de comunicação</a>.</p>
       </div>
     `;
@@ -829,8 +829,8 @@ export class EmailTemplates {
     const firstName = escapeHtml((input.nome || "Usuário").split(" ")[0]);
     const isPortal = input.kind === 'portal';
     const intro = isPortal
-      ? "Aqui está o link para gerenciar a sua assinatura da Urban AI (atualizar cartão, conferir faturas e o plano)."
-      : "Aqui está o link para concluir a sua assinatura da Urban AI.";
+      ? "Aqui está o link para gerenciar a sua assinatura do My Urban (atualizar cartão, conferir faturas e o plano)."
+      : "Aqui está o link para concluir a sua assinatura do My Urban.";
     const button = isPortal ? "Gerenciar assinatura" : "Concluir assinatura";
     const content = `
         <div class="title">${isPortal ? "Gerencie a sua assinatura" : "Conclua a sua assinatura"}</div>

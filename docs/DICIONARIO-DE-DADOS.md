@@ -51,9 +51,9 @@ Categorias presentes no schema (detalhe coluna a coluna na seção gerada "Colun
 
 ## Resumo
 
-- Tabelas (entidades TypeORM): **45**
-- Colunas: **746**
-- Chaves estrangeiras: **70**
+- Tabelas (entidades TypeORM): **46**
+- Colunas: **756**
+- Chaves estrangeiras: **72**
 - Tabela de controle de migrations (`migrations`) não é entidade e não consta aqui.
 
 ## Tabelas por domínio
@@ -65,7 +65,7 @@ Categorias presentes no schema (detalhe coluna a coluna na seção gerada "Colun
 | Imóveis, anúncios e Stays | `list`, `addresses`, `stays_accounts`, `stays_listings`, `pricing_input_history`, `portfolio_property_settings`, `portfolio_action_runs`, `portfolio_action_items`, `portfolio_daily_price_overrides`, `airbnb_pricing_attempt_logs` |
 | Eventos, ingestão e deduplicação | `events`, `event_sources`, `event_dedup_candidates`, `event_historical_multiplier`, `coverage_regions`, `external_listing`, `process_status` |
 | Precificação e análises | `analise_preco`, `analise_endereco_evento`, `pricing_rule_configs`, `pricing_decision_snapshots`, `price_updates`, `price_snapshots`, `occupancy_history`, `event_intelligence_snapshots`, `event_property_impacts`, `event_proximity_features`, `ask_urban_messages` |
-| Notificações e comunicação | `notifications`, `push_subscriptions`, `push_deliveries`, `communication_events`, `user_communication_preferences`, `pricing_recommendation_digests` |
+| Notificações e comunicação | `notifications`, `push_subscriptions`, `push_deliveries`, `event_alert_dispatches`, `communication_events`, `user_communication_preferences`, `pricing_recommendation_digests` |
 | Administração e auditoria | `admin_audit_logs`, `admin_job_runs`, `platform_costs` |
 | Aquisição (waitlist e contato) | `waitlist`, `contact_submissions` |
 
@@ -486,6 +486,34 @@ Relações:
 | Tipo | Propriedade | Alvo | Coluna(s) FK | onDelete | onUpdate |
 | --- | --- | --- | --- | --- | --- |
 | many-to-one | `user` | `user` | userId | CASCADE | NO ACTION |
+
+### `event_alert_dispatches`
+
+- Entidade: `EventAlertDispatch` (`src/entities/event-alert-dispatch.entity.ts`)
+- Domínio: Notificações e comunicação
+- Descrição: Registro de "este anfitrião já foi avisado deste evento" (push de evento relevante). A chave única (user_id, event_id) é a idempotência: duas réplicas ou duas execuções do job nunca avisam o mesmo anfitrião duas vezes. `sent_on` (dia de São Paulo) e `property_id` sustentam os limites diários por imóvel e por anfitrião.
+
+| Coluna | Propriedade | Tipo | Nulo | Padrão | Chaves | Observação |
+| --- | --- | --- | --- | --- | --- | --- |
+| `id` | `id` | varchar(36) | não |  | PK, uuid auto |  |
+| `user_id` | `userId` | varchar(36) | não |  | UNIQUE (composto), IDX, FK |  |
+| `event_id` | `eventId` | varchar(36) | não |  | UNIQUE (composto), FK |  |
+| `property_id` | `propertyId` | varchar(36) | não |  | IDX | Imóvel (addresses.id) pelo qual o anfitrião foi avisado: o mais próximo do evento. |
+| `sent_on` | `sentOn` | varchar(10) | não |  | IDX | Dia (São Paulo, `YYYY-MM-DD`) em que o aviso foi gerado; base dos limites diários. |
+| `createdAt` | `createdAt` | datetime | não | CURRENT_TIMESTAMP(6) |  |  |
+
+Relações:
+
+| Tipo | Propriedade | Alvo | Coluna(s) FK | onDelete | onUpdate |
+| --- | --- | --- | --- | --- | --- |
+| many-to-one | `user` | `user` | user_id | CASCADE | NO ACTION |
+| many-to-one | `event` | `events` | event_id | CASCADE | NO ACTION |
+
+Índices e unicidades:
+
+- `IDX_event_alert_dispatches_property_day`: `property_id`, `sent_on`
+- `IDX_event_alert_dispatches_user_day`: `user_id`, `sent_on`
+- `UQ_event_alert_dispatches_user_event` (UNIQUE): `user_id`, `event_id`
 
 ### `event_dedup_candidates`
 
@@ -1478,6 +1506,9 @@ Relações:
 | `subscription_id` | `subscriptionId` | varchar(36) | não |  | IDX, FK |  |
 | `user_id` | `userId` | varchar(36) | não |  | IDX, FK |  |
 | `payloadJson` | `payloadJson` | text | não |  |  |  |
+| `deliverAfter` | `deliverAfter` | datetime | sim |  | IDX | Push adiado pelo horário de silêncio: só é enviado (e só aparece para o service worker) depois deste instante. Nulo = fluxo normal. O envio zera a coluna de forma atômica. |
+| `expiresAt` | `expiresAt` | datetime | sim |  |  | Depois disto o push adiado perde o sentido (ex.: evento já começou) e é descartado. |
+| `tag` | `tag` | varchar(120) | sim |  |  | Tag do payload; push adiados com a mesma tag no mesmo dispositivo são colapsados no envio. |
 | `pushedAt` | `pushedAt` | datetime | sim |  |  |  |
 | `deliveredAt` | `deliveredAt` | datetime | sim |  | IDX |  |
 | `failedAt` | `failedAt` | datetime | sim |  |  |  |
@@ -1493,6 +1524,7 @@ Relações:
 
 Índices e unicidades:
 
+- `IDX_push_deliveries_deferred`: `deliverAfter`
 - `IDX_push_deliveries_subscription_pending`: `subscription_id`, `deliveredAt`
 - `IDX_push_deliveries_user_created`: `user_id`, `createdAt`
 
@@ -1684,6 +1716,7 @@ Relações:
 | `user_id` | `userId` | varchar(36) | não |  | UNIQUE, FK |  |
 | `email_pricing` | `emailPricing` | tinyint | não | true |  |  |
 | `push_pricing` | `pushPricing` | tinyint | não | true |  |  |
+| `push_events` | `pushEvents` | tinyint | não | true |  |  |
 | `weekly_report` | `weeklyReport` | tinyint | não | true |  |  |
 | `onboarding_emails` | `onboardingEmails` | tinyint | não | true |  |  |
 | `marketing` | `marketing` | tinyint | não | false |  |  |

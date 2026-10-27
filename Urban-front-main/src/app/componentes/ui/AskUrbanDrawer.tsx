@@ -251,7 +251,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
         position: "fixed",
         inset: 0,
         zIndex: 1300,
-        fontFamily: "Inter, system-ui, sans-serif",
+        fontFamily: "var(--font-brand)",
       }}
     >
       <div
@@ -279,7 +279,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
           right: 0,
           bottom: 0,
           width: "min(480px, 100vw)",
-          background: "var(--app-bg, var(--theme-app-bg, #080A0F))",
+          background: "var(--app-bg, var(--theme-app-bg))",
           borderLeft: "1px solid var(--app-divider-strong)",
           boxShadow: "var(--app-shadow-overlay), -18px 0 44px rgba(0,0,0,0.28)",
           display: "flex",
@@ -378,7 +378,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
             display: "flex",
             flexDirection: "column",
             gap: 16,
-            background: "var(--app-bg, var(--theme-app-bg, #080A0F))",
+            background: "var(--app-bg, var(--theme-app-bg))",
           }}
         >
           {messages.length === 0 && !loading && (
@@ -432,7 +432,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
               border: "1px solid var(--app-divider-strong)",
               borderRadius: 12,
               padding: "8px 8px 8px 12px",
-              background: "var(--app-bg, var(--theme-app-bg, #080A0F))",
+              background: "var(--app-bg, var(--theme-app-bg))",
               boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)",
             }}
           >
@@ -452,7 +452,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
                 outline: "none",
                 background: "transparent",
                 color: "var(--app-text)",
-                fontFamily: "Inter, system-ui, sans-serif",
+                fontFamily: "var(--font-brand)",
                 fontSize: 14,
                 lineHeight: 1.5,
                 minHeight: 24,
@@ -613,7 +613,7 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
               borderRadius: 10,
               padding: "12px 14px",
               minHeight: 44,
-              fontFamily: "Inter, system-ui, sans-serif",
+              fontFamily: "var(--font-brand)",
               fontSize: 12.5,
               lineHeight: 1.4,
               color: "var(--app-text)",
@@ -734,7 +734,7 @@ function MessageBubble({
                   background: "transparent",
                   color: "var(--app-text-muted)",
                   cursor: c.url ? "pointer" : "default",
-                  fontFamily: "Inter, system-ui, sans-serif",
+                  fontFamily: "var(--font-brand)",
                   transition: "border-color 120ms, color 120ms",
                 }}
                 onMouseEnter={(e) => {

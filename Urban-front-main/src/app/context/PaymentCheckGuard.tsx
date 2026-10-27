@@ -99,7 +99,7 @@ const PaymentCheckGuard = ({ children }: PaymentCheckGuardProps) => {
           className="funnel-banner"
         >
           <span>
-            Não conseguimos confirmar seu plano agora. Você pode continuar usando a Urban AI normalmente.
+            Não conseguimos confirmar seu plano agora. Você pode continuar usando o My Urban normalmente.
           </span>
           <AppButton size="sm" variant="secondary" onClick={handleRetry} disabled={retrying}>
             {retrying ? 'Verificando…' : 'Tentar de novo'}

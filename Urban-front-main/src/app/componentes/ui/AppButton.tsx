@@ -8,11 +8,11 @@ import { appDisabledStyle, appRadius, appTransition, appVar } from "./styles";
  *
  * Substitui colorScheme={blue|teal|green|orange} chakra default + bg hex bruto
  * (`#ff5a5f`, `#1C1D3B`, `#E46E2E`, `#3FCF19`) que existia espalhado nas telas
- * antigas do anfitrião. Sempre accent #E8500A como primary, radius 10px,
+ * antigas do anfitrião. Sempre accent accent da marca como primary, radius 10px,
  * letter-spacing 0.5, sem uppercase forcado.
  *
  * Variantes:
- *  - primary    — bg accent #E8500A, texto branco
+ *  - primary    — bg accent accent da marca, texto branco
  *  - secondary  — border 1px divider-strong, texto primary
  *  - ghost      — sem border, texto muted, hover underline accent
  *  - danger     — texto danger, border danger soft

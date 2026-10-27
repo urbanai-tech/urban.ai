@@ -268,7 +268,7 @@ describe('PaymentsService — handleStripeWebhook', () => {
       expect(saved.planName).toBe('profissional');
       expect(mailerService.sendHtmlEmail).toHaveBeenCalledWith(
         { email: 'host@test.com', name: 'Carla Host' },
-        'Urban AI - Assinatura ativada',
+        'My Urban - Assinatura ativada',
         expect.stringContaining('Assinatura ativada'),
       );
     });
@@ -464,7 +464,7 @@ describe('PaymentsService — handleStripeWebhook', () => {
       );
       expect(mailerService.sendHtmlEmail).toHaveBeenCalledWith(
         { email: 'host@test.com', name: 'Carla Host' },
-        'Urban AI - Cancelamento confirmado',
+        'My Urban - Cancelamento confirmado',
         expect.stringContaining('2026-06-15'),
       );
     });
@@ -490,7 +490,7 @@ describe('PaymentsService — handleStripeWebhook', () => {
       );
       expect(mailerService.sendHtmlEmail).toHaveBeenCalledWith(
         { email: 'host@test.com', name: 'Carla Host' },
-        'Urban AI - Falha no pagamento',
+        'My Urban - Falha no pagamento',
         expect.stringContaining('R$ 97,00'),
       );
     });
@@ -1035,7 +1035,7 @@ describe('PaymentsService — quota billing emails', () => {
 
     expect(mailerService.sendHtmlEmail).toHaveBeenCalledWith(
       { email: 'host@test.com', name: 'Carla Host' },
-      'Urban AI - Você está perto do limite de imóveis',
+      'My Urban - Você está perto do limite de imóveis',
       expect.stringContaining('https://app.myurbanai.com/plans?upsell=quota'),
     );
   });
@@ -1047,7 +1047,7 @@ describe('PaymentsService — quota billing emails', () => {
 
     expect(mailerService.sendHtmlEmail).toHaveBeenCalledWith(
       { email: 'host@test.com', name: 'Carla Host' },
-      'Urban AI - Limite de imóveis atingido',
+      'My Urban - Limite de imóveis atingido',
       expect.stringContaining('11'),
     );
   });

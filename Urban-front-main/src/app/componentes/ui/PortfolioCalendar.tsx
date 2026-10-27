@@ -23,7 +23,7 @@ import { Calendar, Check } from "./Icons";
  *  - Empty state via <AppEmptyState>, loading com 5 skeleton rows usando
  *    .urban-app-skeleton (definido em globals.css).
  *
- * Tokens via CSS variables (--app-*). Bebas Neue só nos preços (14px).
+ * Tokens via CSS variables (--app-*). Archivo (display) só nos preços (14px).
  * Zero dependências novas — DOM nativo + CSS sticky + um pequeno cálculo
  * de virtualização.
  */

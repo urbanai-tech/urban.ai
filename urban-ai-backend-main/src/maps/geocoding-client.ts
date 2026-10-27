@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+import { hasValidCoordinates } from '../common/coordinates';
 import { HTTP_TIMEOUT_MS } from '../common/http-timeouts';
 type GeocodingResult = { geometry: { location: { lat: number; lng: number } } };
 
@@ -39,8 +40,8 @@ export class GeocodingClient {
       (data.status === 'ZERO_RESULTS' && data.results.length !== 0) ||
       data.results.some((result: GeocodingResult) => {
         const point = result?.geometry?.location;
-        return !point || !Number.isFinite(point.lat) || !Number.isFinite(point.lng) ||
-          Math.abs(point.lat) > 90 || Math.abs(point.lng) > 180;
+        return !point || typeof point.lat !== 'number' || typeof point.lng !== 'number' ||
+          !hasValidCoordinates(point.lat, point.lng);
       })) {
       throw new GeocodingError({ status: response.status, data: { status: 'INVALID_RESPONSE' } });
     }

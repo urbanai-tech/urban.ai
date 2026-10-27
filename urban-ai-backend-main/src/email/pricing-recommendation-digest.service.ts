@@ -18,6 +18,8 @@ export type PricingDigestItem = {
   suggestedPrice?: number | null;
   liftPercent?: number | null;
   reasons: string[];
+  /** Início (ISO) do evento que motivou a recomendação; limita a validade do push adiado. */
+  eventStartsAt?: string | null;
   createdAt: string;
 };
 

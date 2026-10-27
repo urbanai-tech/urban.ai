@@ -12,8 +12,8 @@ import React from "react";
  *  - <select> nativo sem skin
  *  - <input> nativo sem skin
  *
- * Estilo: bg rgba(255,255,255,0.03), border rgba(255,255,255,0.08),
- * focus border #E8500A + glow accent-soft, radius 2px, fonte Inter 13px.
+ * Estilo: bg e borda por tokens,
+ * focus border accent da marca + glow accent-soft, radius 2px, fonte da marca 13px.
  */
 
 const baseFieldStyle: React.CSSProperties = {
@@ -30,7 +30,7 @@ const baseFieldStyle: React.CSSProperties = {
   fontWeight: 400,
   outline: "none",
   transition: "border-color 120ms, background 120ms",
-  fontFamily: "Inter, system-ui, sans-serif",
+  fontFamily: "var(--font-brand)",
 };
 
 const labelStyle: React.CSSProperties = {
@@ -192,7 +192,7 @@ export const AdminTextarea = React.forwardRef<HTMLTextAreaElement, TextareaProps
             padding: "10px 12px",
             lineHeight: 1.55,
             resize: "vertical",
-            fontFamily: "Inter, system-ui, sans-serif",
+            fontFamily: "var(--font-brand)",
             ...style,
           }}
           {...rest}

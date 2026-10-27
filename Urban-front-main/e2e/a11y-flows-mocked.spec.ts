@@ -238,6 +238,27 @@ test.describe('A11y mockada - fluxos publicos', () => {
       page.getByRole('button', { name: /entrar/i }).click(),
     ]);
     await page.waitForTimeout(500);
+    // O erro também fica inline (não só no toast), ligado aos dois campos.
+    const inlineError = page.locator('#login-error');
+    await expect(inlineError).toBeVisible();
+    await expect(inlineError).toHaveAttribute('role', 'alert');
+    await expect(inlineError).toHaveText('E-mail ou senha incorretos.');
+    for (const field of [page.locator('input[type="email"]'), page.locator('input[type="password"]')]) {
+      await expect(field).toHaveAttribute('aria-invalid', 'true');
+      await expect(field).toHaveAttribute('aria-describedby', 'login-error');
+    }
+    await expectNoCriticalA11yViolations(page);
+  });
+
+  test('login com campos vazios mostra o erro inline e marca só o que falta', async ({ page }) => {
+    await page.goto('/login');
+    await settle(page);
+    await page.locator('input[type="email"]').fill('host@urbanai.com.br');
+    await page.getByRole('button', { name: /entrar/i }).click();
+    await expect(page.locator('#login-error')).toHaveText('Preencha e-mail e senha.');
+    await expect(page.locator('input[type="password"]')).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.locator('input[type="email"]')).not.toHaveAttribute('aria-invalid', 'true');
+    await expect(page.locator('input[type="password"]')).toHaveAttribute('aria-describedby', 'login-error');
     await expectNoCriticalA11yViolations(page);
   });
 
@@ -314,7 +335,7 @@ test.describe('A11y mockada - onboarding', () => {
     );
 
     await page.goto('/onboarding');
-    await page.getByRole('heading', { name: /Bem-vindo ao Urban AI/i }).waitFor();
+    await page.getByRole('heading', { name: /Bem-vindo ao My Urban/i }).waitFor();
     await page.waitForTimeout(400);
     await expectNoCriticalA11yViolations(page);
 

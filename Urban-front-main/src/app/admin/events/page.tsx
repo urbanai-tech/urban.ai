@@ -29,7 +29,7 @@ import type { AdminBadgeKind } from "../_components";
  * /admin/events — analytics do motor de eventos (F6.2).
  *
  * Migrado para o design system admin (.urban-admin):
- *  - Hero: cobertura % em Bebas Neue (KPI estratégico).
+ *  - Hero: cobertura % em Archivo (display) (KPI estratégico).
  *  - 8 KPIs com hierarquia (3 médios + 4 pequenos), não todos iguais.
  *  - Toggle scope (in/out/all) vira segmented control com underline orange.
  *  - Relevância: número monocromático + barra horizontal (sem badge rosa/amber).

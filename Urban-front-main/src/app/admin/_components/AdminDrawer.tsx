@@ -62,7 +62,7 @@ export function AdminDrawer({
         style={{
           position: "absolute",
           inset: 0,
-          background: "var(--admin-backdrop, rgba(0, 0, 0, 0.6))",
+          background: "var(--admin-backdrop)",
           backdropFilter: "blur(2px)",
         }}
       />

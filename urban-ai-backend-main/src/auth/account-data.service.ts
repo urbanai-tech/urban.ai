@@ -87,7 +87,7 @@ export class AccountDataService {
       },
       communicationPreferences: preferences
         ? pick(preferences, [
-            'emailPricing', 'pushPricing', 'weeklyReport', 'onboardingEmails', 'marketing', 'staysAlerts',
+            'emailPricing', 'pushPricing', 'pushEvents', 'weeklyReport', 'onboardingEmails', 'marketing', 'staysAlerts',
             'billingAlerts', 'createdAt', 'updatedAt',
           ])
         : null,

@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity';
-import { toSaoPauloDateKey } from 'src/common/sp-date';
 import { IsNull, Not, Repository } from 'typeorm';
 import { User } from 'src/entities/user.entity';
 import * as bcrypt from 'bcrypt';
@@ -14,6 +13,7 @@ import { MailerService, NonTransactionalMailOptions } from 'src/mailer/mailer.se
 import { EmailTemplates } from './templates';
 import * as crypto from 'crypto';
 import { PushNotificationService } from 'src/push/push-notification.service';
+import { buildPricingDigestPayload, buildSystemNotificationPayload, nearestUpcomingEventRef } from 'src/push/push-payload.builder';
 import { EntitlementService } from 'src/subscription/entitlement.service';
 import {
     ClaimedPricingDigest,
@@ -168,7 +168,7 @@ export class EmailService {
 
             const result = await this.sendHtmlEmailOrThrow(
                 { email: to, name: name || undefined },
-                `${title} - Urban AI`,
+                `${title} - My Urban`,
                 htmlContent,
             );
             return { enviado: true, status: result.status };
@@ -410,7 +410,7 @@ export class EmailService {
 
             await this.sendHtmlEmailOrThrow(
                 { email: usuario?.email, name: nome },
-                'Urban AI - Análise de propriedades',
+                'My Urban - Análise de propriedades',
                 htmlContent,
             );
 
@@ -449,7 +449,7 @@ export class EmailService {
 
             await this.sendHtmlEmailOrThrow(
                 { email: usuario?.email, name: nome },
-                'Urban AI - Análise concluída',
+                'My Urban - Análise concluída',
                 htmlContent,
             );
 
@@ -502,7 +502,7 @@ export class EmailService {
 
             await this.sendHtmlEmailOrThrow(
                 { email: usuario?.email, name: nome },
-                'Recuperação de Senha - Urban AI',
+                'Recuperação de Senha - My Urban',
                 htmlContent,
             );
 
@@ -564,16 +564,18 @@ export class EmailService {
             }
             const shouldSendPush = notificationContent?.sendPush ?? notificationContent?.sendEmail ?? false;
             if (shouldSendPush) {
-                const pushResult = await this.pushNotificationService.sendToUser(userId, {
-                    title: notificationContent.title || 'Urban AI',
-                    body: notificationContent.description || '',
-                    url: notificationContent.redirectTo || '/notificacao',
-                    tag: notificationContent.pushTag || `notification-${notification?.id ?? Date.now()}`,
-                    data: {
+                const pushResult = await this.pushNotificationService.sendToUser(
+                    userId,
+                    buildSystemNotificationPayload({
+                        title: notificationContent.title || 'My Urban',
+                        body: notificationContent.description || '',
+                        url: notificationContent.redirectTo || '/notificacao',
+                        tag: notificationContent.pushTag || `notification-${notification?.id ?? Date.now()}`,
                         type: notificationContent.pushType || 'system_notification',
                         notificationId: notification?.id,
-                    },
-                });
+                        event: nearestUpcomingEventRef([notificationContent.metadata?.eventStartsAt]),
+                    }),
+                );
                 this.logger.debug(`Push PWA para user=${userId}: ${JSON.stringify(pushResult)}`);
             }
             return { enviado: true };
@@ -679,8 +681,8 @@ export class EmailService {
         const dashboardUrl = `${(process.env.FRONT_BASE_URL || 'https://app.myurbanai.com').replace(/\/$/, '')}/dashboard?source=pricing_digest_email`;
         const subject =
             items.length === 1
-                ? '1 recomendação de preço para revisar - Urban AI'
-                : `${items.length} recomendações de preço para revisar - Urban AI`;
+                ? '1 recomendação de preço para revisar - My Urban'
+                : `${items.length} recomendações de preço para revisar - My Urban`;
 
         try {
             if (wantsEmail) {
@@ -695,23 +697,14 @@ export class EmailService {
             }
 
             if (wantsPush) {
-                await this.pushNotificationService.sendToUser(digest.userId, {
-                    title:
-                        items.length === 1
-                            ? 'Recomendação de preço para revisar'
-                            : 'Recomendações de preço para revisar',
-                    body:
-                        items.length === 1
-                            ? 'A Urban AI preparou uma recomendação nova para revisar.'
-                            : `A Urban AI preparou ${items.length} recomendações para revisar em um só lugar.`,
-                    url: '/dashboard?source=pwa_push_pricing_digest',
-                    tag: `pricing-digest-${toSaoPauloDateKey(new Date())}`,
-                    data: {
-                        type: 'pricing_recommendation_digest',
+                await this.pushNotificationService.sendToUser(
+                    digest.userId,
+                    buildPricingDigestPayload({
                         count: items.length,
                         digestId: digest.id,
-                    },
-                });
+                        event: nearestUpcomingEventRef(items.map((item) => item.eventStartsAt)),
+                    }),
+                );
             }
 
             await this.pricingDigestService.markSent(digest.id);
@@ -749,6 +742,7 @@ export class EmailService {
             suggestedPrice: this.metadataNumber(metadata.suggestedPrice ?? metadata.precoSugerido),
             liftPercent: this.metadataNumber(metadata.liftPercent ?? metadata.diferencaPercentual),
             reasons,
+            eventStartsAt: this.metadataIso(metadata.eventStartsAt),
             createdAt: new Date().toISOString(),
         };
     }
@@ -771,6 +765,12 @@ export class EmailService {
     private metadataString(value: unknown): string | undefined {
         const text = String(value ?? '').trim();
         return text.length ? text.slice(0, 240) : undefined;
+    }
+
+    private metadataIso(value: unknown): string | null {
+        if (typeof value !== 'string' && !(value instanceof Date)) return null;
+        const ms = new Date(value).getTime();
+        return Number.isFinite(ms) ? new Date(ms).toISOString() : null;
     }
 
     private metadataNumber(value: unknown): number | null {

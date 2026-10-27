@@ -10,6 +10,7 @@ import { AirbnbService } from 'src/airbnb/airbnb.service';
 import { PropertyCoordinatesDto } from './tdo/property-coordinates.dto';
 import { MailerService } from 'src/mailer/mailer.service';
 import { AirbnbListingMetadataService } from './airbnb-listing-metadata.service';
+import { parseCoordinates } from 'src/common/coordinates';
 import {
     extractNumber,
     extractMetaContent,
@@ -316,11 +317,11 @@ export class PropertyScrapingService {
         }
 
         try {
-            const subject = '🚨 Urban AI — Hash do Airbnb GraphQL Expirada';
+            const subject = '🚨 My Urban — Hash do Airbnb GraphQL Expirada';
             const htmlContent = `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                     <h2 style="color: #e74c3c;">⚠️ Ação Necessária: Hash do Airbnb Expirada</h2>
-                    <p>O sistema Urban AI detectou que a <strong>hash do GraphQL do Airbnb</strong> expirou
+                    <p>O sistema My Urban detectou que a <strong>hash do GraphQL do Airbnb</strong> expirou
                     (<code>${expiredHash?.substring(0, 16)}...</code>). A importação de imóveis por host está
                     temporariamente desabilitada.</p>
 
@@ -433,8 +434,13 @@ export class PropertyScrapingService {
             // --- Coordenadas (JSON embeddado) ---
             const latMatch = html.match(/"lat"\s*:\s*([-\d.]+)/);
             const lngMatch = html.match(/"lng"\s*:\s*([-\d.]+)/);
-            const latitude = latMatch ? parseFloat(latMatch[1]) : null;
-            const longitude = lngMatch ? parseFloat(lngMatch[1]) : null;
+            // Par inválido (fora de faixa, 0,0, NaN) vira "sem coordenadas": nunca gravamos lixo.
+            const parsedCoordinates = parseCoordinates(
+                latMatch ? latMatch[1] : null,
+                lngMatch ? lngMatch[1] : null,
+            );
+            const latitude = parsedCoordinates?.latitude ?? null;
+            const longitude = parsedCoordinates?.longitude ?? null;
 
             // --- Parse do título OG via split por "·" ---
             // EN: "Serviced apartment in São Paulo · ★4.65 · 1 bedroom · 1 bed · 1 bath"

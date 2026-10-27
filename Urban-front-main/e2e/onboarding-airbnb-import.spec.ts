@@ -160,7 +160,7 @@ test.describe('Onboarding Airbnb import', () => {
 
     await page.goto('/onboarding');
 
-    await expect(page.getByRole('heading', { name: /Bem-vindo ao Urban AI/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Bem-vindo ao My Urban/i })).toBeVisible();
     await page.getByRole('button', { name: /Come.*configura/i }).click();
 
     await expect(page.getByRole('heading', { name: /Conecte seus Im/i })).toBeVisible();

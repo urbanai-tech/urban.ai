@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+﻿import { test, expect } from '@playwright/test';
 import { acceptCookieConsent } from './test-helpers';
 
 /**
@@ -28,7 +28,7 @@ test.describe('Smoke - rotas publicas', () => {
   test('home responde e nao explode', async ({ page }) => {
     const response = await page.goto('/');
     expect(response?.status(), 'home should respond 200-ish').toBeLessThan(400);
-    await expect(page).toHaveTitle(/urban ai/i);
+    await expect(page).toHaveTitle(/my urban/i);
   });
 
   test('rota de lancamento apresenta o produto disponivel e cadastro real', async ({ page }) => {

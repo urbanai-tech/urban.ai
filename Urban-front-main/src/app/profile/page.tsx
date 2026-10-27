@@ -265,7 +265,7 @@ export default function ProfilePage() {
               {(form.username || form.email || 'U').charAt(0).toUpperCase()}
             </div>
             <div>
-              <strong>{form.username || 'Usuário Urban AI'}</strong>
+              <strong>{form.username || 'Usuário My Urban'}</strong>
               <span>{form.email || 'E-mail não informado'}</span>
             </div>
             <AppBadge kind="accent">{roleLabel(profile?.role)}</AppBadge>

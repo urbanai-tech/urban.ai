@@ -217,7 +217,7 @@ export default function EventDetailPage() {
 
         <AppCard variant="accent" style={{ minWidth: 0 }}>
           <AppCardHeader
-            eyebrow="LEITURA URBAN AI"
+            eyebrow="LEITURA MY URBAN"
             title="O que fazer com este evento"
             subtitle="Estimativa explicável. Use a faixa de preço como simulação, não como promessa de reserva."
           />

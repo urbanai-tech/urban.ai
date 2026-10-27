@@ -7,7 +7,7 @@ export const DEFAULT_OG_IMAGE = "/opengraph-image";
 export const DEFAULT_TWITTER_IMAGE = "/twitter-image";
 
 export const siteConfig = {
-  name: "Urban AI",
+  name: "My Urban AI",
   legalName: "MP IA Tecnologia Ltda",
   url: normalizeUrl(process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL),
   appUrl: normalizeUrl(process.env.NEXT_PUBLIC_APP_URL || DEFAULT_APP_URL),
@@ -42,7 +42,7 @@ export function buildSeoMetadata({
   path = "/",
   image = DEFAULT_OG_IMAGE,
   twitterImage = DEFAULT_TWITTER_IMAGE,
-  imageAlt = "Urban AI - Precificação dinâmica para Airbnb",
+  imageAlt = "My Urban AI - Precificação dinâmica para Airbnb",
   type = "website",
   noIndex = false,
 }: SeoMetadataInput): Metadata {
@@ -188,7 +188,7 @@ export function contactPageJsonLd(path = "/contato"): JsonLdSchema {
     "@type": "ContactPage",
     "@id": `${buildCanonical(path)}#contact`,
     url: buildCanonical(path),
-    name: "Contato Urban AI",
+    name: "Contato My Urban",
     about: { "@id": `${siteConfig.url}#organization` },
   };
 }
@@ -198,7 +198,7 @@ export function aboutPageJsonLd(path = "/sobre"): JsonLdSchema {
     "@type": "AboutPage",
     "@id": `${buildCanonical(path)}#about`,
     url: buildCanonical(path),
-    name: "Sobre a Urban AI",
+    name: "Sobre o My Urban",
     about: { "@id": `${siteConfig.url}#organization` },
   };
 }

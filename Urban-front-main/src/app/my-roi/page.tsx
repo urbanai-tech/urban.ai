@@ -115,7 +115,7 @@ export default function MyRoiPage() {
   return (
     <AppPageShell maxWidth={1280}>
       <AppSectionHeader
-        eyebrow="GANHOS · IMPACTO DA URBAN AI"
+        eyebrow="GANHOS · IMPACTO DO MY URBAN"
         title="Impacto atribuído às sugestões"
         subtitle="Soma estimada das diárias em que a sugestão foi aceita ou aplicada. Separar confirmado de acompanhamento evita tratar potencial como dinheiro já recebido."
         actions={
@@ -159,7 +159,7 @@ export default function MyRoiPage() {
       <AppCard variant="accent" style={{ padding: '40px 40px 36px', marginBottom: 32 }}>
         <div className="roi-hero">
           <div>
-            <p className="urban-app-eyebrow">IMPACTO ATRIBUÍDO À URBAN AI</p>
+            <p className="urban-app-eyebrow">IMPACTO ATRIBUÍDO AO MY URBAN</p>
             <p className="urban-app-display-hero" style={{ marginTop: 12, color: 'var(--app-accent)' }}>
               {fmt(data.money.totalAttributedCents)}
             </p>
@@ -183,7 +183,7 @@ export default function MyRoiPage() {
 
       <div className="roi-kpis">
         <AppMetricCard
-          label="Custo da Urban AI"
+          label="Custo do My Urban"
           value={fmt(data.subscription.monthlyCostCents)}
           sub={`${data.subscription.activePayments} assinatura(s) ativa(s)`}
         />
@@ -215,7 +215,7 @@ export default function MyRoiPage() {
           {data.perProperty.length === 0 ? (
             <AppEmptyState
             title="Nada aplicado neste período"
-            body="Quando você aceitar, aplicar ou confirmar uma sugestão da Urban AI, os ganhos aparecem aqui."
+            body="Quando você aceitar, aplicar ou confirmar uma sugestão do My Urban, os ganhos aparecem aqui."
             />
           ) : (
             <div className="roi-table-wrap">

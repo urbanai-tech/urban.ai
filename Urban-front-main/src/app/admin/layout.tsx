@@ -5,7 +5,7 @@ import { AdminShell } from "./_components/AdminShell";
 import { AdminToastProvider } from "./_components/AdminToast";
 
 export const metadata: Metadata = {
-  title: "Admin - Urban AI",
+  title: "Admin - My Urban AI",
   robots: {
     index: false,
     follow: false,
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
  *  - AdminToastProvider (toast manager dark, substitui alert() nativo)
  *
  * Classe `.urban-admin` está no AdminShell — ativa os tokens CSS definidos em
- * globals.css (bg #080A0F, accent #E8500A, divider rgba(255,255,255,0.08)).
+ * globals.css (bg da marca, accent da marca, divider por token).
  *
  * Páginas filhas (`/admin/page.tsx`, `/admin/dashboard/page.tsx` etc.) recebem
  * o conteúdo dentro do <main> do shell — não precisam mais de `<main className="min-h-screen bg-slate-950">`.

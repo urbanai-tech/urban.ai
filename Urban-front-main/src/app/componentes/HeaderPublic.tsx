@@ -40,7 +40,7 @@ export default function HeaderPublic() {
   return (
     <header className="public-header">
       <div className="public-header__inner">
-        <NextLink href="/" className="public-wordmark" aria-label="Urban AI — página inicial">
+        <NextLink href="/" className="public-wordmark" aria-label="My Urban — página inicial">
           <span>URBAN</span><i>AI</i>
         </NextLink>
 

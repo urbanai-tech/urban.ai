@@ -466,7 +466,7 @@ function StickySaveFooter({
               letterSpacing: 1,
               textTransform: "uppercase",
               border: "1px solid",
-              borderColor: dirty ? "rgba(232, 80, 10, 0.25)" : "var(--app-divider-strong)",
+              borderColor: dirty ? "color-mix(in srgb, var(--app-accent, var(--admin-accent)) 25%, transparent)" : "var(--app-divider-strong)",
               color: dirty ? "var(--app-accent)" : "var(--app-text-muted)",
               background: dirty ? "var(--app-accent-soft)" : "var(--app-surface-muted)",
             }}

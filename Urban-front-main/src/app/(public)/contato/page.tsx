@@ -37,7 +37,7 @@ export default function ContatoPage() {
           <div>
             <p className="public-kicker">Contato</p>
             <h1>Vamos entender sua <em>operação.</em></h1>
-            <p className="public-page-hero__lead">Fale com a Urban AI sobre planos, integração, parceria, suporte ou uma operação em escala.</p>
+            <p className="public-page-hero__lead">Fale com o My Urban sobre planos, integração, parceria, suporte ou uma operação em escala.</p>
           </div>
           <aside className="public-page-hero__aside"><p><strong style={{ color: "var(--theme-public-text)" }}>Direcionamento rápido.</strong><br />Conte quantos imóveis você administra e qual problema quer resolver. Isso ajuda a levar a conversa para o canal certo.</p></aside>
         </div>

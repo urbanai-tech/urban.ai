@@ -25,7 +25,7 @@ import type { AdminStatusKind } from "../_components";
  * Migrado para o design system admin (.urban-admin):
  *  - Emojis 🟢🟡🔴🚨⚠️ℹ️ substituídos por AdminStatusDot + ícones SVG.
  *  - Cards Block (8x) viram AdminCard + AdminMetricCard com hierarquia (KPI
- *    principal grande Bebas, sub-KPIs menores).
+ *    principal grande Archivo, sub-KPIs menores).
  *  - "Saúde geral" vira faixa horizontal com border-left de 4px na cor do estado.
  *  - MiniTimeline com paleta branco/orange (não verde/vermelho saturado).
  *  - Auto-refresh checkbox cru vira AdminSwitch.
@@ -811,7 +811,7 @@ function SmallStat({
                 : "var(--admin-text)",
           margin: 0,
           letterSpacing: -0.3,
-          fontFamily: typeof value === "number" ? "'Bebas Neue', Inter, sans-serif" : "Inter, sans-serif",
+          fontFamily: typeof value === "number" ? "var(--font-display)" : "var(--font-brand)",
         }}
       >
         {typeof value === "number" ? value.toLocaleString("pt-BR") : value}

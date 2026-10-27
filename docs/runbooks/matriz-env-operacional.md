@@ -90,6 +90,12 @@
 | Variáveis | Req. | Notas |
 |---|---|---|
 | `WEB_PUSH_PUBLIC_KEY`, `WEB_PUSH_PRIVATE_KEY`, `WEB_PUSH_SUBJECT` | Cond. | Sem elas, web push fica desativado. |
+| `PUSH_QUIET_HOURS` | Não | Horário de silêncio do push em horas de São Paulo (padrão `22-8`; `off` desliga). Pushes gerados nesse intervalo ficam ADIADOS e saem às 08:00 BRT pelo job `push-deferred-drain` (não são descartados; vencem em 24h ou antes, se o payload tiver `expiresAt`). |
+| `PUSH_MAX_PER_DAY` | Não | Teto de pushes por usuário em 24h, por dispositivo ativo (padrão `6`). |
+| `PUSH_EVENT_ALERT_ENABLED` | Não | `false` desliga o job `push-event-alert` (push de evento relevante perto do imóvel; de hora em hora, minuto 20). |
+| `PUSH_EVENT_ALERT_MIN_RELEVANCE` | Não | Relevância mínima (0-100, `events.relevancia`) para avisar o anfitrião (padrão `60`; mega-eventos são 80+). |
+| `PUSH_EVENT_ALERT_WINDOW_DAYS`, `PUSH_EVENT_ALERT_LOOKBACK_HOURS` | Não | Só avisa eventos que começam em até N dias (padrão `14`) e varre análises criadas/eventos atualizados nas últimas N horas (padrão `36`, máx. 168). |
+| `PUSH_EVENT_ALERT_MAX_PER_PROPERTY_PER_DAY`, `PUSH_EVENT_ALERT_MAX_PER_HOST_PER_DAY` | Não | Limites diários (dia de São Paulo) do alerta de evento, por imóvel (padrão `1`) e por anfitrião (padrão `3`), além do `PUSH_MAX_PER_DAY`. |
 
 ### Stays
 

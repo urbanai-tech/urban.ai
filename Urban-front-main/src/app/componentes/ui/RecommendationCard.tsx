@@ -27,7 +27,7 @@ import type {
  * Pilar D do plano de redesign do anfitrião (docs/plano-redesign-2026-05-16.md):
  * a recomendação de preço era card operacional com hierarquia INVERTIDA
  * (ATUAL em verde dominante + SUG em azul discreto). Agora o preço SUGERIDO
- * domina visualmente (Bebas Neue 56-72px), o preço atual aparece como
+ * domina visualmente (Archivo (display) 56-72px), o preço atual aparece como
  * referência menor, o delta % vira badge accent, o motivo é pull-quote e
  * o CTA primário "Aplicar sugestão" é impossível de perder.
  *
@@ -215,16 +215,16 @@ function buildExplanation({
   let body: string;
   if (typeof eventImpactPct === "number" && Math.abs(eventImpactPct) >= 0.5) {
     if (eventImpactPct > 0) {
-      body = `O evento adiciona ${fmtSignedPct(eventImpactPct, 0)} de demanda estimada. Por isso a Urban AI parte da referência e sobe a diária para ${fmtBRL(suggestedPrice)}.`;
+      body = `O evento adiciona ${fmtSignedPct(eventImpactPct, 0)} de demanda estimada. Por isso o My Urban parte da referência e sobe a diária para ${fmtBRL(suggestedPrice)}.`;
     } else {
-      body = `O sinal de demanda está ${fmtSignedPct(eventImpactPct, 0)} abaixo da referência. Por isso a Urban AI recomenda um valor mais competitivo para a data.`;
+      body = `O sinal de demanda está ${fmtSignedPct(eventImpactPct, 0)} abaixo da referência. Por isso o My Urban recomenda um valor mais competitivo para a data.`;
     }
   } else if (isIncrease) {
-    body = "A Urban AI encontrou sinais de procura acima do normal para esta data e sugere capturar essa oportunidade sem ultrapassar a faixa de segurança.";
+    body = "O My Urban encontrou sinais de procura acima do normal para esta data e sugere capturar essa oportunidade sem ultrapassar a faixa de segurança.";
   } else if (isDecrease) {
-    body = "A Urban AI entende que a demanda esperada não sustenta o preço atual. A redução deixa a diária mais competitiva para converter reserva.";
+    body = "O My Urban entende que a demanda esperada não sustenta o preço atual. A redução deixa a diária mais competitiva para converter reserva.";
   } else {
-    body = "A Urban AI não encontrou pressão suficiente para subir ou baixar a diária com segurança nesta data.";
+    body = "O My Urban não encontrou pressão suficiente para subir ou baixar a diária com segurança nesta data.";
   }
 
   const items: ExplanationItem[] = [
@@ -254,7 +254,7 @@ function buildExplanation({
       value: eventTitle ? "Evento próximo" : "Demanda",
       detail: eventTitle
         ? "O evento é um dos sinais usados para estimar procura na região."
-        : "A Urban AI compara demanda esperada, mercado e preço atual.",
+        : "O My Urban compara demanda esperada, mercado e preço atual.",
     });
   }
 

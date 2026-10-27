@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ArrowRight, Bell, CheckCheck, RefreshCcw } from 'lucide-react';
+import { ArrowRight, Bell, Check, CheckCheck, RefreshCcw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import {
   getNotificacoesPorUsuario,
@@ -24,6 +24,8 @@ import {
   useToastCompat,
 } from '../componentes/ui';
 import { PushNotificationOptIn } from '../componentes/PushNotificationOptIn';
+import { groupNotificationsByDay } from '../lib/host-today-domain';
+import '../componentes/host-pages.css';
 
 interface NotificationItem {
   id: string;
@@ -39,7 +41,7 @@ type NotificationKind = 'pricing' | 'analysis' | 'account' | 'general';
 
 function notificationKind(notif: NotificationItem): NotificationKind {
   const text = `${notif.title} ${notif.description ?? ''}`.toLowerCase();
-  if (text.includes('preço') || text.includes('preço') || text.includes('sugest')) return 'pricing';
+  if (text.includes('preço') || text.includes('preco') || text.includes('sugest')) return 'pricing';
   if (text.includes('análise') || text.includes('analise') || text.includes('evento')) return 'analysis';
   if (text.includes('plano') || text.includes('pagamento') || text.includes('conta')) return 'account';
   return 'general';
@@ -60,7 +62,7 @@ function kindBadge(kind: NotificationKind): 'accent' | 'success' | 'warn' | 'neu
 }
 
 function normalizeDescription(notif: NotificationItem): string {
-  const description = notif.description?.trim() || 'Abra para ver os detalhes no painel.';
+  const description = notif.description?.trim() || 'Abra para ver os detalhes.';
   if (/^\s*(Atualizamos|Geramos)\s+\d+\s+sugest/i.test(description)) {
     return description
       .replace(/^Atualizamos/i, 'Neste lote de monitoramento, atualizamos')
@@ -73,65 +75,72 @@ function normalizeDescription(notif: NotificationItem): string {
 function resolveTarget(notif: NotificationItem): string | null {
   const raw = notif.redirectTo?.trim();
   if (raw?.startsWith('/')) return raw;
-
   const kind = notificationKind(notif);
   if (kind === 'pricing' || kind === 'analysis') return '/dashboard';
   if (kind === 'account') return '/my-plan';
   return null;
 }
 
+function relativeTime(createdAt: string): string {
+  const date = new Date(createdAt);
+  if (!Number.isFinite(date.getTime())) return '';
+  return formatDistanceToNow(date, { addSuffix: true, locale: ptBR });
+}
+
 function NotificationRow({
   notif,
   onOpen,
+  onMarkRead,
 }: {
   notif: NotificationItem;
   onOpen: (notif: NotificationItem) => void;
+  onMarkRead: (notif: NotificationItem) => void;
 }) {
   const kind = notificationKind(notif);
   const target = resolveTarget(notif);
-  const clickable = Boolean(target);
+  const unread = !notif.opened;
+  const titleId = `notif-${notif.id}-title`;
 
   return (
-    <article
-      className={`urban-notif-card ${notif.opened ? 'is-opened' : 'is-unread'}`}
-      role={clickable ? 'button' : undefined}
-      tabIndex={clickable ? 0 : -1}
-      onClick={() => onOpen(notif)}
-      onKeyDown={(event) => {
-        if (clickable && (event.key === 'Enter' || event.key === ' ')) {
-          event.preventDefault();
-          onOpen(notif);
-        }
-      }}
-    >
-      <div className="urban-notif-icon">
-        <Bell size={17} />
-      </div>
-      <div className="urban-notif-body">
-        <div className="urban-notif-topline">
-          <AppBadge kind={kindBadge(kind)}>{kindLabel(kind)}</AppBadge>
-          {!notif.opened && <AppBadge kind="accent">Novo</AppBadge>}
-          <span>
-            {formatDistanceToNow(new Date(notif.createdAt), {
-              addSuffix: true,
-              locale: ptBR,
-            })}
-          </span>
+    <li className="urban-notif-item" data-unread={unread || undefined} data-notification-id={notif.id}>
+      <article className="urban-notif-row" aria-labelledby={titleId}>
+        <span className="urban-notif-icon" aria-hidden="true">
+          <Bell size={17} />
+        </span>
+        <div className="urban-notif-body">
+          <div className="urban-notif-topline">
+            <AppBadge kind={kindBadge(kind)}>{kindLabel(kind)}</AppBadge>
+            <span>{relativeTime(notif.createdAt)}</span>
+          </div>
+          <h3 id={titleId}>
+            {unread && <span className="urban-notif-unread-dot" aria-hidden="true" />}
+            {unread && <span className="urban-visually-hidden">Não lido: </span>}
+            {notif.title}
+          </h3>
+          <p>{normalizeDescription(notif)}</p>
+          {/* Ações explícitas de 44px, sem gesto de deslizar. */}
+          {(target || unread) && (
+            <div className="urban-notif-row-actions">
+              {target && (
+                <button type="button" className="urban-notif-btn urban-notif-btn--primary urban-focus-ring" onClick={() => onOpen(notif)}>
+                  {notif.titleButton || 'Abrir'} <ArrowRight size={15} aria-hidden="true" />
+                </button>
+              )}
+              {unread && (
+                <button
+                  type="button"
+                  className="urban-notif-btn urban-focus-ring"
+                  onClick={() => onMarkRead(notif)}
+                  aria-label={`Marcar como lido: ${notif.title}`}
+                >
+                  <Check size={16} aria-hidden="true" /> Marcar como lido
+                </button>
+              )}
+            </div>
+          )}
         </div>
-        <h3>{notif.title}</h3>
-        <p>{normalizeDescription(notif)}</p>
-      </div>
-      <div className="urban-notif-action">
-        {target ? (
-          <>
-            <span>{notif.titleButton || 'Abrir'}</span>
-            <ArrowRight size={15} />
-          </>
-        ) : (
-          <span>Sem destino</span>
-        )}
-      </div>
-    </article>
+      </article>
+    </li>
   );
 }
 
@@ -151,10 +160,7 @@ export default function NotificationCenter() {
   async function fetchData(page: number) {
     try {
       setLoading(true);
-      const [res, unread] = await Promise.all([
-        getNotificacoesPorUsuario(page, limit),
-        getUnreadNotificationsCount(),
-      ]);
+      const [res, unread] = await Promise.all([getNotificacoesPorUsuario(page, limit), getUnreadNotificationsCount()]);
       setNotifications(res.data ?? []);
       setPaginaAtual(res.page ?? page);
       setTotalPaginas(Math.max(1, res.lastPage ?? 1));
@@ -162,7 +168,7 @@ export default function NotificationCenter() {
       setUnreadTotal(unread.unread ?? 0);
     } catch (error) {
       console.error('Erro ao carregar notificações:', error);
-      toast('Não foi possível carregar suas notificações.', { type: 'error' });
+      toast('Não foi possível carregar seus avisos.', { type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -173,25 +179,22 @@ export default function NotificationCenter() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paginaAtual]);
 
-  const stats = useMemo(() => {
-    const pricing = notifications.filter((notif) => notificationKind(notif) === 'pricing').length;
-    return { pricing };
-  }, [notifications]);
-  const unreadLabel = unreadTotal === 1
-    ? '1 notificação não lida'
-    : `${unreadTotal} notificações não lidas`;
+  const groups = useMemo(() => groupNotificationsByDay(notifications), [notifications]);
+
+  async function markRead(notif: NotificationItem) {
+    if (notif.opened) return;
+    setNotifications((prev) => prev.map((item) => (item.id === notif.id ? { ...item, opened: true } : item)));
+    setUnreadTotal((prev) => Math.max(0, prev - 1));
+    try {
+      await marcarNotificacaoComoAberta(notif.id);
+    } catch (error) {
+      console.error('Erro ao marcar notificação como lida:', error);
+    }
+  }
 
   async function openNotification(notif: NotificationItem) {
+    await markRead(notif);
     const target = resolveTarget(notif);
-    if (!notif.opened) {
-      setNotifications((prev) => prev.map((item) => item.id === notif.id ? { ...item, opened: true } : item));
-      setUnreadTotal((prev) => Math.max(0, prev - 1));
-      try {
-        await marcarNotificacaoComoAberta(notif.id);
-      } catch (error) {
-        console.error('Erro ao marcar notificação como lida:', error);
-      }
-    }
     if (target) router.push(target);
   }
 
@@ -202,10 +205,10 @@ export default function NotificationCenter() {
       await marcarTodasNotificacoesComoAbertas();
       setNotifications((prev) => prev.map((item) => ({ ...item, opened: true })));
       setUnreadTotal(0);
-      toast('Todas as notificações foram marcadas como lidas.', { type: 'success' });
+      toast('Todos os avisos foram marcados como lidos.', { type: 'success' });
     } catch (error) {
       console.error('Erro ao marcar todas como lidas:', error);
-      toast('Não foi possível marcar todas como lidas.', { type: 'error' });
+      toast('Não foi possível marcar todos como lidos.', { type: 'error' });
     } finally {
       setMarkingAll(false);
     }
@@ -213,91 +216,94 @@ export default function NotificationCenter() {
 
   return (
     <AppPageShell maxWidth={1040}>
-      <AppSectionHeader
-        eyebrow="NOTIFICAÇÕES - ATIVIDADE RECENTE"
-        title="Central de notificações"
-        subtitle={
-          unreadTotal > 0
-            ? `Você tem ${unreadLabel} em toda a conta.`
-            : 'Tudo em dia. Avisos importantes da Urban AI aparecem aqui.'
-        }
-        actions={
-          <div className="urban-notif-actions">
-            <AppButton
-              variant="secondary"
-              size="sm"
-              leftIcon={<RefreshCcw size={14} />}
-              onClick={() => fetchData(paginaAtual)}
-              loading={loading}
-            >
-              Atualizar
-            </AppButton>
-            <AppButton
-              variant="primary"
-              size="sm"
-              leftIcon={<CheckCheck size={14} />}
-              onClick={markAllAsRead}
-              loading={markingAll}
-              disabled={unreadTotal === 0}
-            >
-              Marcar todas como lidas
-            </AppButton>
-          </div>
-        }
-      />
-
-      <div className="urban-notif-metrics">
-        <div>
-          <strong>{unreadTotal}</strong>
-          <span>não lidas</span>
-        </div>
-        <div>
-          <strong>{total}</strong>
-          <span>notificações no histórico</span>
-        </div>
-        <div>
-          <strong>{stats.pricing}</strong>
-          <span>avisos de preço nesta página</span>
-        </div>
-      </div>
-
-      <PushNotificationOptIn />
-
-      {loading ? (
-        <AppLoadingStatus
-          compact
-          eyebrow="NOTIFICAÇÕES"
-          title="Carregando atividade recente"
-          body="Estamos buscando avisos, recomendações e atualizações de conta."
-          steps={[
-            { id: 'list', label: 'Buscar histórico', status: 'active' },
-            { id: 'unread', label: 'Contar não lidas', status: 'pending' },
-          ]}
+      <div className="urban-host-page">
+        <AppSectionHeader
+          title="Avisos"
+          subtitle={
+            unreadTotal > 0
+              ? unreadTotal === 1
+                ? '1 aviso não lido.'
+                : `${unreadTotal} avisos não lidos.`
+              : 'Tudo em dia por aqui.'
+          }
+          actions={
+            <div className="urban-notif-actions urban-notif-header-actions">
+              <button
+                type="button"
+                className="urban-cal-nav-btn urban-focus-ring"
+                onClick={() => fetchData(paginaAtual)}
+                disabled={loading}
+                aria-label="Atualizar avisos"
+                title="Atualizar"
+              >
+                <RefreshCcw size={16} aria-hidden="true" />
+              </button>
+              <AppButton
+                variant="primary"
+                size="md"
+                leftIcon={<CheckCheck size={14} />}
+                onClick={markAllAsRead}
+                loading={markingAll}
+                disabled={unreadTotal === 0}
+              >
+                Marcar todos como lidos
+              </AppButton>
+            </div>
+          }
         />
-      ) : notifications.length === 0 ? (
-        <AppCard variant="default">
-          <AppEmptyState
-            icon={<Icons.Info size={32} />}
-            title="Sem notificações"
-            body="Quando a Urban AI gerar avisos ou recomendações importantes, eles aparecem aqui."
-          />
-        </AppCard>
-      ) : (
-        <>
-          <div className="urban-notif-list">
-            {notifications.map((notif) => (
-              <NotificationRow key={notif.id} notif={notif} onOpen={openNotification} />
-            ))}
-          </div>
 
-          <Pagination
-            paginaAtual={paginaAtual}
-            totalPaginas={totalPaginas}
-            onPageChange={(novaPagina: number) => setPaginaAtual(novaPagina)}
-          />
-        </>
-      )}
+        <PushNotificationOptIn variant="compact" />
 
+        {loading ? (
+          <AppLoadingStatus
+            compact
+            eyebrow="AVISOS"
+            title="Carregando avisos"
+            steps={[
+              { id: 'list', label: 'Buscar histórico', status: 'active' },
+              { id: 'unread', label: 'Contar não lidos', status: 'pending' },
+            ]}
+          />
+        ) : notifications.length === 0 ? (
+          <AppCard variant="default">
+            <AppEmptyState
+              icon={<Icons.Info size={32} />}
+              title="Nenhum aviso ainda"
+              body="Quando surgir uma sugestão de preço, um evento perto dos seus imóveis ou algo da sua conta, avisamos aqui."
+            />
+          </AppCard>
+        ) : (
+          <>
+            <div className="urban-notif-groups" data-notification-groups>
+              {groups.map((group) => (
+                <section
+                  key={group.bucket}
+                  className="urban-notif-group"
+                  aria-labelledby={`avisos-${group.bucket}`}
+                  data-notification-group={group.bucket}
+                >
+                  <h2 id={`avisos-${group.bucket}`} className="urban-notif-group__label">
+                    {group.label}
+                    <span>{group.items.length === 1 ? '1 aviso' : `${group.items.length} avisos`}</span>
+                  </h2>
+                  <ul className="urban-notif-list">
+                    {group.items.map((notif) => (
+                      <NotificationRow key={notif.id} notif={notif} onOpen={openNotification} onMarkRead={markRead} />
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </div>
+            {total > limit && (
+              <Pagination
+                paginaAtual={paginaAtual}
+                totalPaginas={totalPaginas}
+                onPageChange={(novaPagina: number) => setPaginaAtual(novaPagina)}
+              />
+            )}
+          </>
+        )}
+      </div>
     </AppPageShell>
   );
 }

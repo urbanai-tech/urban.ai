@@ -102,6 +102,12 @@ export class CronService {
         return local || evento?.enderecoCompleto || cityState || null;
     }
 
+    private toIsoOrNull(value: Date | string | null | undefined): string | null {
+        if (!value) return null;
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? null : date.toISOString();
+    }
+
     private formatMoney(value: number): string {
         return `R$ ${Math.round(value).toLocaleString('pt-BR')}`;
     }
@@ -151,7 +157,7 @@ export class CronService {
 
         return {
             title,
-            description: `A Urban AI recomenda ${action} o preço de ${propertyTitle} de ${this.formatMoney(currentPrice)} para ${this.formatMoney(suggestedPrice)} (${liftPercent > 0 ? '+' : ''}${this.formatNumber(liftPercent)}%).`,
+            description: `O My Urban recomenda ${action} o preço de ${propertyTitle} de ${this.formatMoney(currentPrice)} para ${this.formatMoney(suggestedPrice)} (${liftPercent > 0 ? '+' : ''}${this.formatNumber(liftPercent)}%).`,
             titleButton: 'Revisar recomendação',
             redirectTo: propertyId
                 ? `/dashboard?propertyId=${encodeURIComponent(propertyId)}&source=cron_pricing_digest`
@@ -170,6 +176,8 @@ export class CronService {
                 liftPercent,
                 eventName,
                 eventDate,
+                // Instante ISO do início: o push de preço adiado pelo silêncio expira quando o evento começa.
+                eventStartsAt: this.toIsoOrNull(element.evento?.dataInicio),
                 eventLocation,
                 distanceKm: Number.isFinite(distanceKm) ? distanceKm : null,
                 expectedAttendance: Number.isFinite(expectedAttendance) ? expectedAttendance : null,
@@ -348,7 +356,7 @@ export class CronService {
         }
 
         const resultado = await this.mailerSender.sendTextEmailCron(
-            { email: opsEmail, name: 'Urban AI Ops' },
+            { email: opsEmail, name: 'My Urban Ops' },
             subject,
             content,
         );

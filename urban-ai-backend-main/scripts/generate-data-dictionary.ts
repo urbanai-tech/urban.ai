@@ -79,7 +79,7 @@ export const DOMAINS: Array<{ id: string; title: string; tables: string[] }> = [
   {
     id: 'notifications',
     title: 'Notificações e comunicação',
-    tables: ['notifications', 'push_subscriptions', 'push_deliveries', 'communication_events', 'user_communication_preferences', 'pricing_recommendation_digests'],
+    tables: ['notifications', 'push_subscriptions', 'push_deliveries', 'event_alert_dispatches', 'communication_events', 'user_communication_preferences', 'pricing_recommendation_digests'],
   },
   { id: 'admin', title: 'Administração e auditoria', tables: ['admin_audit_logs', 'admin_job_runs', 'platform_costs'] },
   { id: 'acquisition', title: 'Aquisição (waitlist e contato)', tables: ['waitlist', 'contact_submissions'] },

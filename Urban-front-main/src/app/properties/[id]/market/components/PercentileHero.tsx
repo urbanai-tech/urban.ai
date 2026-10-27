@@ -4,7 +4,7 @@ import React from "react";
 import { TrendingUp, TrendingDown } from "../../../../componentes/ui/Icons";
 
 /**
- * <PercentileHero> — Bebas Neue gigante "PERCENTIL X" + subtitle contextual
+ * <PercentileHero> — Archivo (display) gigante "PERCENTIL X" + subtitle contextual
  * + chip lateral de tendência últimos 30d.
  *
  * Hero metric do dashboard `/properties/:id/market`. Comunica de cara onde o
@@ -100,7 +100,7 @@ export function PercentileHero({
             padding: "10px 16px",
             background: trendBackground,
             border: `1px solid ${
-              isUp ? "rgba(232, 80, 10, 0.25)" : "var(--app-divider-strong)"
+              isUp ? "color-mix(in srgb, var(--app-accent, var(--admin-accent)) 25%, transparent)" : "var(--app-divider-strong)"
             }`,
             borderRadius: 999,
             color: trendColor,

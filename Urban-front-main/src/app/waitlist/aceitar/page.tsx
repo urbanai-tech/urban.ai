@@ -168,7 +168,7 @@ function AceitarConvite() {
     ? `Bem-vindo, ${firstName}.`
     : validation.email
       ? `Bem-vindo, ${validation.email.split("@")[0]}.`
-      : "Bem-vindo a Urban AI.";
+      : "Bem-vindo ao My Urban.";
   const positionLabel = validation.position
     ? `Sua posição na fila: #${validation.position}.`
     : "Você foi convidado.";
@@ -244,7 +244,7 @@ function InviteShell({
       eyebrow="WAITLIST"
       title={title}
       subtitle={subtitle}
-      asideEyebrow="CONVITE URBAN AI"
+      asideEyebrow="CONVITE MY URBAN"
       asideTitle={
         <>
           Acesso{" "}
@@ -252,7 +252,7 @@ function InviteShell({
           antecipado.
         </>
       }
-      asideSubtitle="Uma ativação simples e segura para acessar o beta da Urban AI."
+      asideSubtitle="Uma ativação simples e segura para acessar o beta do My Urban."
     >
       {children}
     </AuthFlowShell>

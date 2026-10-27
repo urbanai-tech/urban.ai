@@ -30,7 +30,7 @@ function validationCaseStudy({
 
 export const dynamicPricingAirbnb: SeoContent = {
   path: "/precificacao-dinamica-airbnb",
-  title: "Precificação dinâmica para Airbnb - Urban AI",
+  title: "Precificação dinâmica para Airbnb - My Urban AI",
   description:
     "Entenda como precificação dinâmica para Airbnb usa eventos, demanda local e dados do imóvel para orientar diárias.",
   eyebrow: "Guia - Airbnb pricing",
@@ -38,7 +38,7 @@ export const dynamicPricingAirbnb: SeoContent = {
   lead:
     "Precificação dinâmica para Airbnb é o processo de ajustar diárias conforme demanda, antecedência, eventos, sazonalidade e desempenho do imóvel.",
   answer:
-    "A Urban AI ajuda anfitriões a precificar com mais contexto: ela cruza eventos urbanos, localização, janela de antecedência e sinais de mercado para sugerir quando uma diária pode subir, cair ou permanecer estável.",
+    "O My Urban ajuda anfitriões a precificar com mais contexto: ele cruza eventos urbanos, localização, janela de antecedência e sinais de mercado para sugerir quando uma diária pode subir, cair ou permanecer estável.",
   directAnswers: [
     {
       question: "O que é precificação dinâmica para Airbnb?",
@@ -153,12 +153,12 @@ export const dynamicPricingAirbnb: SeoContent = {
         "Não há garantia automática. Ela apoia a tomada de decisão ao mostrar datas com maior chance de demanda e riscos de subprecificação.",
     },
     {
-      question: "A Urban AI altera meu Airbnb sozinha?",
+      question: "O My Urban altera meu Airbnb sozinho?",
       answer:
         "No modo recomendação, não. O anfitrião recebe a sugestão e decide. A aplicação via Stays (beta fechado, sob convite) exige consentimento e limites configurados.",
     },
     {
-      question: "Qual o diferencial da Urban AI?",
+      question: "Qual o diferencial do My Urban?",
       answer:
         "O foco é precificação por eventos urbanos no Brasil, com prioridade inicial em São Paulo e Grande SP.",
     },
@@ -177,7 +177,7 @@ export const dynamicPricingAirbnb: SeoContent = {
 
 export const eventPricingGuide: SeoContent = {
   path: "/como-precificar-airbnb-em-dias-de-eventos",
-  title: "Como precificar Airbnb em dias de eventos - Urban AI",
+  title: "Como precificar Airbnb em dias de eventos - My Urban AI",
   description:
     "Guia prático para ajustar diárias de Airbnb em shows, congressos, jogos, feriados e eventos perto do imóvel.",
   eyebrow: "Guia prático",
@@ -185,7 +185,7 @@ export const eventPricingGuide: SeoContent = {
   lead:
     "Dias de evento mudam a procura por bairro. A diária ideal depende de distância real, antecedência, tipo de evento e comparáveis.",
   answer:
-    "Para precificar Airbnb em dias de eventos, identifique o evento, estime a demanda local, compare imóveis similares, defina um teto de aumento e revise a ocupação até a data. A Urban AI automatiza essa leitura e transforma o contexto em recomendação.",
+    "Para precificar Airbnb em dias de eventos, identifique o evento, estime a demanda local, compare imóveis similares, defina um teto de aumento e revise a ocupação até a data. O My Urban automatiza essa leitura e transforma o contexto em recomendação.",
   directAnswers: [
     {
       question: "Como precificar Airbnb em dia de evento?",
@@ -290,7 +290,7 @@ export const eventPricingGuide: SeoContent = {
       href: "/precos",
       label: "Planos",
       description:
-        "Conheça os planos públicos da Urban AI para anfitriões e gestoras.",
+        "Conheça os planos públicos do My Urban para anfitriões e gestoras.",
     },
   ],
   faq: [
@@ -305,7 +305,7 @@ export const eventPricingGuide: SeoContent = {
         "Não existe percentual único. Um bom ponto de partida é comparar o imóvel com similares e aplicar tetos por perfil de demanda.",
     },
     {
-      question: "A Urban AI mostra o motivo da sugestão?",
+      question: "O My Urban mostra o motivo da sugestão?",
       answer:
         "Sim. A recomendação deve ser explicável: evento, proximidade, janela e potenciais impactos no preço.",
     },
@@ -324,7 +324,7 @@ export const eventPricingGuide: SeoContent = {
 
 export const saoPauloEventsPricing: SeoContent = {
   path: "/precificacao-por-eventos-sao-paulo",
-  title: "Precificação por eventos em São Paulo - Urban AI",
+  title: "Precificação por eventos em São Paulo - My Urban AI",
   description:
     "Como eventos em São Paulo e Grande SP podem influenciar diárias de aluguel por temporada e Airbnb.",
   eyebrow: "São Paulo - Eventos",
@@ -332,7 +332,7 @@ export const saoPauloEventsPricing: SeoContent = {
   lead:
     "São Paulo concentra shows, feiras, congressos, jogos e festivais que deslocam demanda entre bairros e datas.",
   answer:
-    "A Urban AI prioriza São Paulo e Grande SP porque a densidade de eventos torna a precificação manual difícil. O sistema observa o calendário urbano e sinaliza datas em que a procura pode fugir do padrão.",
+    "O My Urban prioriza São Paulo e Grande SP porque a densidade de eventos torna a precificação manual difícil. O sistema observa o calendário urbano e sinaliza datas em que a procura pode fugir do padrão.",
   directAnswers: [
     {
       question: "Por que eventos em São Paulo afetam o Airbnb?",
@@ -340,9 +340,9 @@ export const saoPauloEventsPricing: SeoContent = {
         "Eventos em São Paulo afetam o Airbnb porque deslocam demanda por bairro, transporte e datas específicas, especialmente quando o hóspede quer ficar perto do local ou de uma rota simples.",
     },
     {
-      question: "Como a Urban AI avalia eventos em São Paulo?",
+      question: "Como o My Urban avalia eventos em São Paulo?",
       answer:
-        "A Urban AI cruza agenda urbana, localização do imóvel, acesso, antecedência e sinais de mercado para indicar se uma data merece atenção de preço.",
+        "O My Urban cruza agenda urbana, localização do imóvel, acesso, antecedência e sinais de mercado para indicar se uma data merece atenção de preço.",
     },
   ],
   sections: [
@@ -437,12 +437,12 @@ export const saoPauloEventsPricing: SeoContent = {
       href: "/contato",
       label: "Contato",
       description:
-        "Fale com a Urban AI sobre cobertura, integrações e leitura de eventos para sua operação.",
+        "Fale com o My Urban sobre cobertura, integrações e leitura de eventos para sua operação.",
     },
   ],
   faq: [
     {
-      question: "A cobertura da Urban AI já é nacional?",
+      question: "A cobertura do My Urban já é nacional?",
       answer:
         "A cobertura mais profunda começa por São Paulo e Grande SP. Outras capitais entram conforme o pipeline de eventos amadurece.",
     },
@@ -452,7 +452,7 @@ export const saoPauloEventsPricing: SeoContent = {
         "Alguns importam, especialmente se estão perto do imóvel e atingem um público com baixa oferta de hospedagem próxima.",
     },
     {
-      question: "A Urban AI usa dados públicos de eventos?",
+      question: "O My Urban usa dados públicos de eventos?",
       answer:
         "Sim. O motor combina fontes públicas de eventos com dados do imóvel e sinais de mercado.",
     },
@@ -471,18 +471,18 @@ export const saoPauloEventsPricing: SeoContent = {
 
 export const staysIntegrationPricing: SeoContent = {
   path: "/integracao-stays-precificacao-automatica",
-  title: "Integração com Stays (beta fechado) - Urban AI",
+  title: "Integração com Stays (beta fechado) - My Urban AI",
   description:
-    "A integração da Urban AI com a Stays está em beta fechado, sob convite. Entenda consentimento, limites e histórico de aplicação.",
+    "A integração do My Urban com a Stays está em beta fechado, sob convite. Entenda consentimento, limites e histórico de aplicação.",
   eyebrow: "Integração Stays",
   h1: "Integração com Stays em beta fechado",
   lead:
     "A integração com Stays está em beta fechado, sob convite. Nela, recomendações aprovadas podem ser aplicadas no canal respeitando limites definidos pelo anfitrião.",
   answer:
-    "A Urban AI separa recomendação de automação. Primeiro, o sistema explica o preço sugerido. Depois, para contas com acesso ao beta e quando o anfitrião ativa a integração, os ajustes podem ser enviados via Stays com tetos, consentimento e rastreabilidade.",
+    "O My Urban separa recomendação de automação. Primeiro, o sistema explica o preço sugerido. Depois, para contas com acesso ao beta e quando o anfitrião ativa a integração, os ajustes podem ser enviados via Stays com tetos, consentimento e rastreabilidade.",
   directAnswers: [
     {
-      question: "O que a integração Stays permite na Urban AI?",
+      question: "O que a integração Stays permite no My Urban?",
       answer:
         "No beta fechado, a integração Stays permite enviar preços aprovados para a operação, respeitando consentimento, limites configurados e histórico de aplicação.",
     },
@@ -513,7 +513,7 @@ export const staysIntegrationPricing: SeoContent = {
     {
       title: "Consentimento explícito",
       body:
-        "A automação depende de ativação do usuário. Sem consentimento, a Urban AI deve permanecer no modo recomendação.",
+        "A automação depende de ativação do usuário. Sem consentimento, o My Urban deve permanecer no modo recomendação.",
     },
     {
       title: "Limites configuráveis",
@@ -572,7 +572,7 @@ export const staysIntegrationPricing: SeoContent = {
       href: "/seguranca-lgpd-ia-precificacao",
       label: "Segurança e LGPD",
       description:
-        "Veja os princípios de privacidade, controle do usuário e rastreabilidade da Urban AI.",
+        "Veja os princípios de privacidade, controle do usuário e rastreabilidade do My Urban.",
     },
     {
       href: "/precificacao-dinamica-airbnb",
@@ -589,7 +589,7 @@ export const staysIntegrationPricing: SeoContent = {
   ],
   faq: [
     {
-      question: "Preciso usar Stays para usar a Urban AI?",
+      question: "Preciso usar Stays para usar o My Urban?",
       answer:
         "Não. Stays é necessário apenas para fluxos de automação. O modo recomendação funciona sem integração automática.",
     },
@@ -599,7 +599,7 @@ export const staysIntegrationPricing: SeoContent = {
         "Sim. A automação deve ser ativada, pausada ou desconectada pelo próprio usuário.",
     },
     {
-      question: "Como a Urban AI aplica preços na Stays?",
+      question: "Como o My Urban aplica preços na Stays?",
       answer:
         "Por meio de uma conexão autorizada pelo próprio anfitrião, com credenciais fornecidas por ele. Esse recurso está em beta fechado, sob convite.",
     },
@@ -618,15 +618,15 @@ export const staysIntegrationPricing: SeoContent = {
 
 export const spreadsheetComparison: SeoContent = {
   path: "/urban-ai-vs-planilha-de-precificacao",
-  title: "Urban AI vs planilha de precificação - Urban AI",
+  title: "My Urban vs planilha de precificação - My Urban AI",
   description:
     "Comparativo entre usar planilha para precificar Airbnb e usar IA com eventos, dados locais e recomendações explicáveis.",
   eyebrow: "Comparativo",
-  h1: "Urban AI vs planilha de precificação",
+  h1: "My Urban vs planilha de precificação",
   lead:
     "Planilhas ajudam a organizar regras, mas ficam defasadas quando eventos, ocupação e concorrência mudam com velocidade.",
   answer:
-    "A Urban AI não substitui o raciocínio financeiro do anfitrião; ela substitui a parte repetitiva de observar calendário urbano, comparar sinais e transformar mudanças de demanda em recomendações acionáveis.",
+    "O My Urban não substitui o raciocínio financeiro do anfitrião; ele substitui a parte repetitiva de observar calendário urbano, comparar sinais e transformar mudanças de demanda em recomendações acionáveis.",
   directAnswers: [
     {
       question: "Quando uma planilha de precificação deixa de bastar?",
@@ -653,7 +653,7 @@ export const spreadsheetComparison: SeoContent = {
     {
       title: "Melhor uso combinado",
       body:
-        "A planilha continua útil para metas. A Urban AI entra para alertar oportunidades e riscos que exigem atualização constante.",
+        "A planilha continua útil para metas. O My Urban entra para alertar oportunidades e riscos que exigem atualização constante.",
     },
   ],
   evidence: [
@@ -696,7 +696,7 @@ export const spreadsheetComparison: SeoContent = {
       summary:
         "Slot para documentar como uma decisão antes feita em planilha foi revisada com apoio de contexto urbano e evento.",
       source:
-        "Planilha ou regra operacional informada pelo anfitrião, recomendação Urban AI e decisão aplicada.",
+        "Planilha ou regra operacional informada pelo anfitrião, recomendação My Urban e decisão aplicada.",
       sample:
         "Amostra em formação: datas revisadas com regra original, sinal observado e decisão final.",
       validationNote:
@@ -719,7 +719,7 @@ export const spreadsheetComparison: SeoContent = {
       href: "/precificacao-dinamica-airbnb",
       label: "IA de preço",
       description:
-        "Veja como a Urban AI transforma contexto urbano em recomendações de diária.",
+        "Veja como o My Urban transforma contexto urbano em recomendações de diária.",
     },
     {
       href: "/como-precificar-airbnb-em-dias-de-eventos",
@@ -731,17 +731,17 @@ export const spreadsheetComparison: SeoContent = {
       href: "/precos",
       label: "Preços",
       description:
-        "Compare os planos públicos da Urban AI com o custo operacional de manter regras manuais.",
+        "Compare os planos públicos do My Urban com o custo operacional de manter regras manuais.",
     },
   ],
   faq: [
     {
       question: "Posso continuar usando minha planilha?",
       answer:
-        "Sim. A Urban AI pode complementar a planilha, oferecendo alertas e recomendações para datas específicas.",
+        "Sim. O My Urban pode complementar a planilha, oferecendo alertas e recomendações para datas específicas.",
     },
     {
-      question: "A Urban AI calcula custo operacional?",
+      question: "O My Urban calcula custo operacional?",
       answer:
         "O foco principal é recomendação de diária com base em demanda e eventos. Custos internos continuam sendo referência do anfitrião.",
     },
@@ -751,9 +751,9 @@ export const spreadsheetComparison: SeoContent = {
         "Quando há muitos imóveis, muitas datas especiais ou mercado local mudando rápido demais para atualizar manualmente.",
     },
     {
-      question: "A Urban AI substitui meu controle financeiro?",
+      question: "O My Urban substitui meu controle financeiro?",
       answer:
-        "Não. O controle financeiro interno continua sendo referência do anfitrião. A Urban AI adiciona leitura de demanda e eventos.",
+        "Não. O controle financeiro interno continua sendo referência do anfitrião. O My Urban adiciona leitura de demanda e eventos.",
     },
     {
       question: "Planilha e IA podem discordar?",
@@ -765,23 +765,23 @@ export const spreadsheetComparison: SeoContent = {
 
 export const lgpdSecurityPricing: SeoContent = {
   path: "/seguranca-lgpd-ia-precificacao",
-  title: "Segurança, LGPD e IA na precificação - Urban AI",
+  title: "Segurança, LGPD e IA na precificação - My Urban AI",
   description:
-    "Como a Urban AI trata privacidade, segurança, dados de imóveis e limites de IA para precificação de aluguel por temporada.",
+    "Como o My Urban trata privacidade, segurança, dados de imóveis e limites de IA para precificação de aluguel por temporada.",
   eyebrow: "Segurança e LGPD",
   h1: "IA de precificação precisa de confiança",
   lead:
     "Ferramentas de precificação lidam com dados de conta, imóveis, integrações e decisões comerciais. A proteção desses dados precisa ser clara.",
   answer:
-    "A Urban AI trata IA como apoio à decisão. O usuário mantém controle sobre aplicação de preço, consentimento de integrações e solicitações de privacidade.",
+    "O My Urban trata IA como apoio à decisão. O usuário mantém controle sobre aplicação de preço, consentimento de integrações e solicitações de privacidade.",
   directAnswers: [
     {
-      question: "Como a Urban AI posiciona IA na precificação?",
+      question: "Como o My Urban posiciona IA na precificação?",
       answer:
-        "A Urban AI posiciona IA como apoio à decisão, com recomendações explicáveis, controle humano e limites configuráveis para automação.",
+        "O My Urban posiciona IA como apoio à decisão, com recomendações explicáveis, controle humano e limites configuráveis para automação.",
     },
     {
-      question: "Qual canal de privacidade da Urban AI?",
+      question: "Qual canal de privacidade do My Urban?",
       answer:
         "O canal informado para solicitações de privacidade é privacidade@myurbanai.com, conforme a política publicada no site.",
     },
@@ -812,7 +812,7 @@ export const lgpdSecurityPricing: SeoContent = {
     {
       title: "Controle humano declarado",
       body:
-        "A Urban AI descreve a IA como apoio à decisão, não como decisor irreversível de preço ou integração.",
+        "O My Urban descreve a IA como apoio à decisão, não como decisor irreversível de preço ou integração.",
     },
     {
       title: "Dados relacionados à operação",
@@ -878,12 +878,12 @@ export const lgpdSecurityPricing: SeoContent = {
       href: "/contato",
       label: "Contato",
       description:
-        "Fale com a Urban AI sobre segurança, privacidade e governança de integrações.",
+        "Fale com o My Urban sobre segurança, privacidade e governança de integrações.",
     },
   ],
   faq: [
     {
-      question: "A Urban AI vende meus dados?",
+      question: "O My Urban vende meus dados?",
       answer:
         "A política publicada informa que dados pessoais não são vendidos. O uso é voltado à operação da plataforma e melhoria das recomendações.",
     },
@@ -895,7 +895,7 @@ export const lgpdSecurityPricing: SeoContent = {
     {
       question: "A IA toma decisões irreversíveis?",
       answer:
-        "Não deve. A Urban AI posiciona a IA como apoio à decisão, com controle humano e limites configuráveis.",
+        "Não deve. O My Urban posiciona a IA como apoio à decisão, com controle humano e limites configuráveis.",
     },
     {
       question: "Que dados são relevantes para precificação?",

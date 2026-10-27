@@ -10,7 +10,7 @@ import {
 } from "../../componentes/PublicMarketing";
 
 export const metadata: Metadata = buildSeoMetadata({
-  title: "Preços | Urban AI",
+  title: "Preços | My Urban AI",
   description: "Planos por imóvel para anfitriões e gestoras, sem comissão sobre receita e com ciclos flexíveis.",
   path: "/precos",
 });
@@ -18,7 +18,7 @@ export const metadata: Metadata = buildSeoMetadata({
 const FAQ = [
   { question: "Como funciona a cobrança por imóvel?", answer: "O valor considera o plano, a quantidade de imóveis e o ciclo escolhido. A faixa aplicável é mostrada antes da contratação." },
   { question: "Posso mudar de plano?", answer: "Sim. A operação pode evoluir de Starter para Profissional quando precisar de mais imóveis ou de recursos adicionais." },
-  { question: "A Urban AI cobra comissão sobre as reservas?", answer: "Não. A cobrança é por imóvel no ciclo contratado; a Urban AI não recebe percentual da sua receita." },
+  { question: "O My Urban cobra comissão sobre as reservas?", answer: "Não. A cobrança é por imóvel no ciclo contratado; o My Urban não recebe percentual da sua receita." },
   { question: "Preciso contratar a integração Stays?", answer: "Não. O modo de recomendação funciona sem integração. A integração Stays está em beta fechado, sob convite, e é incluída no plano Profissional quando liberada para a sua conta." },
   { question: "Tenho mais de 500 imóveis. Como funciona?", answer: "Operações maiores recebem uma proposta adequada a volume, contas, integração e necessidades de atendimento." },
 ];

@@ -239,7 +239,7 @@ export class WaitlistService {
     try {
       const result = await this.mailer.sendHtmlEmail(
         { email: entry.email, name: entry.name ?? '' },
-        'Seu convite para a Urban AI chegou!',
+        'Seu convite para o My Urban chegou!',
         this.buildInviteEmail({
           name: entry.name,
           inviteUrl,
@@ -359,7 +359,7 @@ export class WaitlistService {
     const firstName = input.name?.split(' ')[0] ?? 'pessoal';
     return `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;color:#374151;max-width:600px;margin:0 auto;padding:32px;">
       <div style="text-align:center;margin-bottom:32px;">
-        <img src="https://app.myurbanai.com/urban-logo.png" alt="Urban AI" style="height:40px;" />
+        <img src="https://app.myurbanai.com/urban-logo.png" alt="My Urban" style="height:40px;" />
       </div>
       <h2 style="color:#0ea5e9;text-align:center;">Seu acesso antecipado chegou, ${firstName}! 🎉</h2>
       <p>Você estava na posição <strong>#${input.position}</strong> da nossa lista de espera, e agora liberamos seu acesso à plataforma.</p>
@@ -373,7 +373,7 @@ export class WaitlistService {
       <p style="font-size:13px;word-break:break-all;color:#2563eb;">${input.inviteUrl}</p>
       <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0;" />
       <p style="font-size:12px;color:#9ca3af;text-align:center;">
-        © ${new Date().getFullYear()} Urban AI · E-mail automático.
+        © ${new Date().getFullYear()} My Urban AI · E-mail automático.
       </p>
     </body></html>`;
   }
@@ -383,7 +383,7 @@ export class WaitlistService {
     try {
       const result = await this.mailer.sendHtmlEmail(
         { email: entry.email, name: entry.name ?? '' },
-        'Você entrou na lista da Urban AI',
+        'Você entrou na lista do My Urban',
         this.buildSignupConfirmationEmail({
           name: entry.name,
           position: entry.position,
@@ -413,7 +413,7 @@ export class WaitlistService {
     const launchUrl = (process.env.FRONT_BASE_URL || 'https://urban.ai').replace(/\/$/, '');
     const referralUrl = `${launchUrl}/lancamento?ref=${encodeURIComponent(input.referralCode)}`;
     return `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;color:#374151;max-width:600px;margin:0 auto;padding:32px;">
-      <h2 style="color:#0ea5e9;text-align:center;">Você entrou na lista da Urban AI, ${firstName}.</h2>
+      <h2 style="color:#0ea5e9;text-align:center;">Você entrou na lista do My Urban, ${firstName}.</h2>
       <p>Seu cadastro no pré-lançamento foi confirmado.</p>
       <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:20px;margin:24px 0;text-align:center;">
         <p style="margin:0;color:#0369a1;font-size:14px;">Sua posição atual</p>

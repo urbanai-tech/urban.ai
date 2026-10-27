@@ -272,7 +272,7 @@ export default function IntegrationsPage() {
                 <strong style={{ color: "var(--app-text)" }}>
                   App Center → Open API → Generate credentials
                 </strong>{" "}
-                e cole os dois códigos abaixo. A Urban AI nunca vê sua senha da Stays.
+                e cole os dois códigos abaixo. O My Urban nunca vê sua senha da Stays.
               </>
             }
           />
@@ -327,7 +327,7 @@ export default function IntegrationsPage() {
                 style={{ marginTop: 3, accentColor: "var(--app-accent)", width: 18, height: 18 }}
               />
               <label htmlFor="stays-consent" style={{ fontSize: 13, color: "var(--app-text)", lineHeight: 1.55, cursor: "pointer" }}>
-                <strong>Ao conectar minha conta Stays, autorizo a Urban AI a:</strong>
+                <strong>Ao conectar minha conta Stays, autorizo o My Urban a:</strong>
                 <ul style={{ margin: "8px 0 0", paddingLeft: 18, color: "var(--app-text-muted)" }}>
                   <li>Ler meus anúncios, calendário e histórico de reservas</li>
                   <li>Mostrar sugestões de preço e, se eu ativar o beta automático, aplicar mudanças permitidas nos meus anúncios</li>
@@ -447,7 +447,7 @@ export default function IntegrationsPage() {
               sub="anúncios vindos da Stays"
             />
             <AppMetricCard
-              label="Ligados à Urban AI"
+              label="Ligados ao My Urban"
               value={linkedListings}
               sub={
                 linkedListings === listings.length
@@ -655,7 +655,7 @@ export default function IntegrationsPage() {
                   Desconectar conta Stays
                 </p>
                 <p style={{ fontSize: 12, color: "var(--app-text-muted)", margin: "4px 0 0", maxWidth: 480 }}>
-                  Desativa o modo automático em todos os imóveis. A Urban AI deixa de alterar preços pela Stays.
+                  Desativa o modo automático em todos os imóveis. O My Urban deixa de alterar preços pela Stays.
                   Os dados Stays serão apagados em até 15 dias.
                 </p>
               </div>

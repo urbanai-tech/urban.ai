@@ -25,7 +25,7 @@ const WINDOWS = [30, 90, 180, 365] as const;
  * /admin/roi — ROI agregado dos anfitriões (admin).
  *
  * Migrado para o design system admin (.urban-admin):
- *  - Hero KPI: "Receita atribuida a IA" em Bebas Neue gigante.
+ *  - Hero KPI: "Receita atribuida a IA" em Archivo (display) gigante.
  *  - KPIs em grid plano (sem cards coloridos verde/azul/amber).
  *  - Janela 30/90/180/365 vira SegmentedControl.
  *  - Tabela top anfitriões com AdminTable + confiança via AdminBadge.
@@ -230,7 +230,7 @@ export default function AdminRoiPage() {
       <AdminSectionHeader
         eyebrow="ADMIN · ROI"
         title="ROI dos anfitriões"
-        subtitle="Dinheiro atribuído a Urban AI, custo da assinatura e retorno por usuário."
+        subtitle="Dinheiro atribuído ao My Urban, custo da assinatura e retorno por usuário."
         actions={
           <AdminButton
             variant="secondary"

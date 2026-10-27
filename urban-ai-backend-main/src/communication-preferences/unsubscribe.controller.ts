@@ -6,7 +6,7 @@ import { verifyUnsubscribeToken } from './unsubscribe-token';
 const TOKEN_SHAPE = /^[A-Za-z0-9._-]{1,256}$/;
 
 const PAGE = (body: string) =>
-  `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Urban AI</title></head>` +
+  `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>My Urban</title></head>` +
   `<body style="font-family:system-ui,sans-serif;max-width:480px;margin:48px auto;padding:0 16px;color:#111">${body}</body></html>`;
 
 /**
@@ -27,7 +27,7 @@ export class UnsubscribeController {
       return PAGE('<h1>Link inválido</h1><p>Este link de descadastro é inválido. Ajuste suas preferências em Configurações &gt; Comunicações no app.</p>');
     }
     return PAGE(
-      `<h1>Cancelar estes e-mails?</h1><p>Você deixará de receber este tipo de e-mail da Urban AI. E-mails essenciais da conta (confirmação, senha, cobrança) continuam sendo enviados.</p>` +
+      `<h1>Cancelar estes e-mails?</h1><p>Você deixará de receber este tipo de e-mail do My Urban. E-mails essenciais da conta (confirmação, senha, cobrança) continuam sendo enviados.</p>` +
         `<form method="post" action="?token=${token}"><button type="submit" style="padding:10px 18px;font-size:16px">Confirmar descadastro</button></form>`,
     );
   }

@@ -7,6 +7,31 @@ primeiro.
 
 ---
 
+## [PWA premium] — 2026-10-26 — App instalável, avisos por categoria e silêncio sem perda
+
+### Adicionado
+
+- **App instalável com a marca My Urban AI**: ícones (any, maskable, monochrome), splash do iOS, atalhos e convite de
+  instalação (prompt nativo no Android/desktop, instruções "Adicionar à Tela de Início" no iOS Safari); aviso de nova
+  versão do app; push no iOS só depois de instalar.
+- **Avisos por categoria** (preço, eventos, resumo semanal) ligados às preferências de comunicação (`push_events` é novo),
+  teto diário por dispositivo e payloads ricos (ações com link direto, selo do app).
+- **Horário de silêncio 22h–8h (São Paulo) sem perda**: pushes gerados nesse intervalo são **adiados** para as 08:00 BRT
+  (`push_deliveries.deliverAfter`) e enviados pelo job `push-deferred-drain` (08h–12h, com lock Redis e reivindicação
+  atômica por entrega, sem duplicar entre réplicas). Antes de enviar: colapsa por `tag` no mesmo dispositivo (fica o
+  mais recente), descarta vencidos (o evento já começou, ou seja, passou do `dataInicio`; se só há a data, vale até 23:59:59 BRT do dia; e mais de 24h) e relê a preferência da categoria e o teto do
+  dia. O push de teste do usuário ignora o silêncio. Migrations aditivas `1793200000000` e `1793300000000`.
+- **Push de evento relevante perto do imóvel** (categoria "eventos", `push_events`): job `push-event-alert` (de hora em
+  hora, lock Redis) avisa o anfitrião sobre evento canônico que começa em até 14 dias, com relevância >= 60
+  (`PUSH_EVENT_ALERT_MIN_RELEVANCE`), a partir do vínculo imóvel x evento da `analise_preco` (análise nova ou evento
+  recém-enriquecido). No máximo 1 aviso por imóvel e 3 por anfitrião por dia (dia de São Paulo, além do teto global do
+  push), nunca repete host+evento (tabela `event_alert_dispatches`, chave única; migration aditiva `1793400000000`),
+  só plano pago/trial, respeita `push_events` e o silêncio 22h–8h (adiado e expira no `dataInicio`). Motivos de skip
+  vão para o log de comunicação (`kind=event_alert`). O resumo de preços (digest) também passa o início do evento mais
+  próximo, então o push adiado expira quando esse evento começa.
+
+---
+
 ## [Sessão só por cookie, fase 2] — 2026-10-26 — Nenhum token legível por JavaScript
 
 ### Alterado
