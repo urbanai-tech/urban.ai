@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import styles from "./onboarding-primitives.module.css";
 
 type PrimitiveProps = Record<string, any> & {
   as?: React.ElementType;
@@ -106,7 +107,7 @@ function cssValue(prop: string, value: any): any {
   if (typeof resolved !== 'string') return resolved;
   if (prop.toLowerCase().includes('color') || prop === 'background' || prop === 'bg') {
     if (resolved === 'white') {
-      return prop.toLowerCase().includes('color') ? '#FFFFFF' : 'var(--app-surface)';
+      return prop.toLowerCase().includes('color') ? 'var(--theme-app-legacy-white)' : 'var(--app-surface)';
     }
     return colorMap[resolved] ?? resolved;
   }
@@ -297,7 +298,7 @@ function Button({
         gap: 8,
         minHeight: props.size === 'lg' ? 48 : props.size === 'sm' ? 32 : 40,
         padding: props.size === 'sm' ? '0 14px' : '0 20px',
-        color: isGhost ? 'var(--app-text-muted)' : isOutline ? 'var(--app-accent)' : '#FFFFFF',
+        color: isGhost ? 'var(--app-text-muted)' : isOutline ? 'var(--app-accent)' : 'var(--theme-app-legacy-white)',
         background: isGhost || isOutline ? 'transparent' : 'var(--app-accent)',
         border: isGhost ? '1px solid transparent' : isOutline ? '1px solid var(--app-accent)' : '1px solid var(--app-accent)',
         borderRadius: 10,
@@ -399,7 +400,7 @@ function Spinner({ color = 'var(--app-accent)', thickness = '3px', ...props }: P
 }
 
 function Tooltip({ label, children }: PrimitiveProps) {
-  return <span title={label} style={{ display: 'inline-flex', alignItems: 'center' }}>{children}</span>;
+  return <span title={label} className={styles.s1}>{children}</span>;
 }
 
 const TabsContext = React.createContext<{ index: number; onChange?: (index: number) => void } | null>(null);
@@ -475,7 +476,7 @@ function TabPanel({ children, panelIndexValue, ...props }: PrimitiveProps) {
 
 function Switch({ isChecked, onChange, id, 'aria-label': ariaLabel, ...props }: PrimitiveProps) {
   return (
-    <label style={{ position: 'relative', display: 'inline-flex', width: props.size === 'lg' ? 48 : 42, height: props.size === 'lg' ? 26 : 24, cursor: 'pointer' }}>
+    <label className={`${styles.s2} ${props.size === 'lg' ? styles.s3 : styles.s4}`}>
       <input
         id={id}
         type="checkbox"
@@ -483,16 +484,10 @@ function Switch({ isChecked, onChange, id, 'aria-label': ariaLabel, ...props }: 
         aria-label={ariaLabel}
         checked={Boolean(isChecked)}
         onChange={onChange}
-        style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
+        className={styles.s5}
       />
       <span
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: isChecked ? 'var(--app-accent)' : 'var(--app-divider-strong)',
-          borderRadius: 999,
-          transition: 'background 140ms ease',
-        }}
+        className={`${styles.s6} ${isChecked ? styles.s7 : styles.s8}`}
       />
       <span
         style={{
