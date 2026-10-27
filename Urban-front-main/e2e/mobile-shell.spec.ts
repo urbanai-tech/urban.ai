@@ -47,7 +47,10 @@ test.describe('Shell mobile do anfitrião', () => {
 
     const tabbar = page.getByRole('navigation', { name: 'Navegação principal' });
     await expect(tabbar).toBeVisible();
-    await expect(tabbar.getByRole('link', { name: 'Painel' })).toHaveAttribute('aria-current', 'page');
+    // Hoje (/painel), Calendário, Imóveis, Avisos + Mais, nessa ordem.
+    await expect(tabbar.getByRole('link')).toHaveText(['Hoje', 'Calendário', 'Imóveis', 'Avisos']);
+    await expect(tabbar.getByRole('button', { name: 'Mais' })).toBeVisible();
+    await expect(tabbar.getByRole('link', { name: 'Hoje' })).toHaveAttribute('aria-current', 'page');
 
     for (const link of await tabbar.getByRole('link').all()) {
       const box = await link.boundingBox();
@@ -58,7 +61,11 @@ test.describe('Shell mobile do anfitrião', () => {
     await tabbar.getByRole('link', { name: 'Calendário' }).click();
     await expect(page).toHaveURL(/\/dashboard$/, { timeout: 20_000 });
     await expect(tabbar.getByRole('link', { name: 'Calendário' })).toHaveAttribute('aria-current', 'page');
-    await expect(tabbar.getByRole('link', { name: 'Painel' })).not.toHaveAttribute('aria-current', 'page');
+    await expect(tabbar.getByRole('link', { name: 'Hoje' })).not.toHaveAttribute('aria-current', 'page');
+
+    await tabbar.getByRole('link', { name: 'Avisos' }).click();
+    await expect(page).toHaveURL(/\/notificacao$/, { timeout: 20_000 });
+    await expect(tabbar.getByRole('link', { name: 'Avisos' })).toHaveAttribute('aria-current', 'page');
   });
 
   test('"Mais" abre bottom sheet com foco preso e fecha com Esc devolvendo o foco', async ({ page }) => {
@@ -75,7 +82,12 @@ test.describe('Shell mobile do anfitrião', () => {
     }).toPass({ timeout: 15_000 });
     await expect(more).toHaveAttribute('aria-expanded', 'true');
     await expect.poll(() => sheet.evaluate((node) => node.contains(document.activeElement))).toBe(true);
-    await expect(sheet.getByRole('link', { name: 'Imóveis' })).toBeVisible();
+    // Radar, Portfólio, Ganhos, Plano, Perfil, Integrações, Comunicações, Precificação e Mapa.
+    for (const name of ['Radar', 'Portfólio', 'Ganhos', 'Meu plano', 'Perfil', 'Integrações', 'Comunicações', 'Precificação', 'Mapa']) {
+      await expect(sheet.getByRole('link', { name })).toBeVisible();
+    }
+    // As quatro abas principais não se repetem no sheet.
+    await expect(sheet.getByRole('link', { name: 'Imóveis' })).toHaveCount(0);
     // O FAB do Ask Urban não pode cobrir o sheet.
     const fab = page.locator('[data-ask-urban-fab]');
     if (await fab.count()) await expect(fab).toBeHidden();
@@ -85,8 +97,8 @@ test.describe('Shell mobile do anfitrião', () => {
     await expect(more).toBeFocused();
 
     await more.click();
-    await page.getByRole('dialog', { name: 'Mais' }).getByRole('link', { name: 'Notificações' }).click();
-    await expect(page).toHaveURL(/\/notificacao$/, { timeout: 20_000 });
+    await page.getByRole('dialog', { name: 'Mais' }).getByRole('link', { name: 'Perfil' }).click();
+    await expect(page).toHaveURL(/\/profile$/, { timeout: 20_000 });
     await expect(page.getByRole('dialog', { name: 'Mais' })).toBeHidden();
   });
 
@@ -135,7 +147,7 @@ test.describe('Shell mobile do anfitrião', () => {
       await page.evaluate(() => window.scrollTo(0, 400));
       await expect(topbar).toHaveAttribute('data-scrolled', 'true', { timeout: 1000 });
     }).toPass({ timeout: 15_000 });
-    await expect(topbar.locator('.urban-topbar__title')).toHaveText('Painel');
+    await expect(topbar.locator('.urban-topbar__title')).toHaveText('Hoje');
   });
 
   test('desktop mantém a sidebar e esconde tab bar e top bar', async ({ page }) => {
