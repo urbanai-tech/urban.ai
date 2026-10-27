@@ -3,6 +3,7 @@
 import React, { useMemo } from "react";
 import { parseLocalDate } from "@/app/lib/date";
 import type { PricingRulesPreviewResponse } from "../../../../service/api";
+import styles from "./PreviewStrip.module.css";
 
 /**
  * PreviewStrip — strip horizontal de 14 dias mostrando preço base vs preço com
@@ -63,17 +64,7 @@ export function PreviewStrip({
   if (loading) {
     return (
       <div
-        style={{
-          height: 180,
-          borderRadius: 12,
-          background: "var(--app-surface-muted)",
-          border: "1px dashed var(--app-divider-strong)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "var(--app-text-muted)",
-          fontSize: 13,
-        }}
+        className={styles.s1}
       >
         Calculando preview…
       </div>
@@ -83,17 +74,7 @@ export function PreviewStrip({
   if (!data || !summary) {
     return (
       <div
-        style={{
-          height: 180,
-          borderRadius: 12,
-          background: "var(--app-surface-muted)",
-          border: "1px dashed var(--app-divider-strong)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "var(--app-text-muted)",
-          fontSize: 13,
-        }}
+        className={styles.s1}
       >
         Ative pelo menos uma regra pra ver o impacto nos próximos 14 dias.
       </div>
@@ -104,99 +85,45 @@ export function PreviewStrip({
 
   return (
     <div
-      style={{
-        background: "var(--app-surface)",
-        border: "1px solid var(--app-divider)",
-        borderRadius: 12,
-        padding: "20px 20px 16px",
-        position: "relative",
-      }}
+      className={styles.s2}
     >
       <header
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          gap: 16,
-          flexWrap: "wrap",
-          marginBottom: 18,
-        }}
+        className={styles.s3}
       >
-        <div style={{ minWidth: 0 }}>
+        <div className={styles.s4}>
           <p
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: 1.5,
-              textTransform: "uppercase",
-              color: "var(--app-text-muted)",
-              margin: 0,
-            }}
+            className={styles.s5}
           >
             Preview · próximos 14 dias
           </p>
           <h3
-            style={{
-              margin: "6px 0 0",
-              fontSize: 16,
-              fontWeight: 600,
-              color: "var(--app-text)",
-              letterSpacing: -0.2,
-            }}
+            className={styles.s6}
           >
             {formatCurrency(summary.rules)} <span
-              style={{ color: "var(--app-text-muted)", fontWeight: 400, fontSize: 14 }}
+              className={styles.s7}
             >
               vs {formatCurrency(summary.base)} sem regras
             </span>
           </h3>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div className={styles.s8}>
           {loadingPreview && (
             <span
               aria-live="polite"
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: 1,
-                textTransform: "uppercase",
-                color: "var(--app-text-muted)",
-              }}
+              className={styles.s9}
             >
               Atualizando…
             </span>
           )}
           {!loadingPreview && staleSeconds !== null && (
             <span
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: 1,
-                textTransform: "uppercase",
-                color: "var(--app-text-muted)",
-              }}
+              className={styles.s9}
             >
               Atualizado há {staleSeconds}s
             </span>
           )}
           <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "4px 10px",
-              borderRadius: 999,
-              fontSize: 12,
-              fontWeight: 600,
-              border: "1px solid",
-              borderColor: deltaPositive
-                ? "color-mix(in srgb, var(--app-accent, var(--admin-accent)) 25%, transparent)"
-                : "var(--app-divider-strong)",
-              color: deltaPositive ? "var(--app-accent)" : "var(--app-text)",
-              background: deltaPositive
-                ? "var(--app-accent-soft)"
-                : "var(--app-surface-muted)",
-            }}
+            className={`${styles.s10} ${deltaPositive ? styles.s11 : styles.s12}`}
           >
             {deltaPositive ? "+" : ""}
             {summary.deltaPct.toFixed(1)}%
@@ -225,13 +152,7 @@ export function PreviewStrip({
           return (
             <div
               key={day.date}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 4,
-                minWidth: 0,
-              }}
+              className={styles.s13}
               title={`${label.weekday} ${label.day} • base ${formatCurrency(day.basePrice)} • com regras ${formatCurrency(day.rulesPrice)} (${up ? "+" : ""}${deltaPct.toFixed(1)}%)`}
             >
               <svg
@@ -263,18 +184,11 @@ export function PreviewStrip({
                 />
               </svg>
               <span
-                style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: 0.4,
-                  color: label.isWeekend ? "var(--app-accent)" : "var(--app-text-muted)",
-                  lineHeight: 1.2,
-                  textAlign: "center",
-                }}
+                className={`${styles.s14} ${label.isWeekend ? styles.s15 : styles.s16}`}
               >
                 {label.weekday}
                 <br />
-                <span style={{ color: "var(--app-text)", fontSize: 11 }}>{label.day}</span>
+                <span className={styles.s17}>{label.day}</span>
               </span>
             </div>
           );
@@ -282,15 +196,7 @@ export function PreviewStrip({
       </div>
 
       <footer
-        style={{
-          marginTop: 14,
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
-          flexWrap: "wrap",
-          fontSize: 11,
-          color: "var(--app-text-muted)",
-        }}
+        className={styles.s18}
       >
         <LegendDot color="var(--app-divider-strong)" label="Preço base (sem regras)" />
         <LegendDot color="var(--app-accent)" label="Preço com regras ativas" />
@@ -301,7 +207,7 @@ export function PreviewStrip({
 
 function LegendDot({ color, label }: { color: string; label: string }) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+    <span className={styles.s19}>
       <span
         style={{
           width: 10,
@@ -311,7 +217,7 @@ function LegendDot({ color, label }: { color: string; label: string }) {
           display: "inline-block",
         }}
       />
-      <span style={{ letterSpacing: 0.4 }}>{label}</span>
+      <span className={styles.s20}>{label}</span>
     </span>
   );
 }

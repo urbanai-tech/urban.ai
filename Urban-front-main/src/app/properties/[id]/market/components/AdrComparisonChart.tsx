@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react";
 import { parseLocalDate } from "@/app/lib/date";
 import type { MarketIntelDailyPoint } from "../../../../service/api";
 import { visuallyHiddenStyle } from "../../../../componentes/ui/styles";
+import styles from "./AdrComparisonChart.module.css";
 
 /**
  * <AdrComparisonChart> — SVG inline 2 séries (sua ADR vs mediana comp set).
@@ -129,14 +130,7 @@ export function AdrComparisonChart({
   if (!data || data.length === 0) {
     return (
       <div
-        style={{
-          padding: "48px 24px",
-          textAlign: "center",
-          color: "var(--app-text-muted)",
-          fontSize: 13,
-          border: "1px dashed var(--app-divider-strong)",
-          borderRadius: 12,
-        }}
+        className={styles.s1}
       >
         Sem dados diarios para o período selecionado.
       </div>
@@ -163,7 +157,7 @@ export function AdrComparisonChart({
         : `Sua diária média ficou estável em torno de ${formatBRL(last.yourAdr)} no período.`;
 
   return (
-    <div style={{ position: "relative", width: "100%" }}>
+    <div className={styles.s2}>
       <p style={visuallyHiddenStyle}>{trendText}</p>
       <svg
         role="img"
@@ -195,7 +189,7 @@ export function AdrComparisonChart({
                 textAnchor="end"
                 fontSize={10}
                 fill="var(--app-text-muted)"
-                style={{ fontFamily: "var(--font-brand)" }}
+                className={styles.s3}
               >
                 {formatAxisK(t)}
               </text>
@@ -236,7 +230,7 @@ export function AdrComparisonChart({
             textAnchor="middle"
             fontSize={10}
             fill="var(--app-text-muted)"
-            style={{ fontFamily: "var(--font-brand)" }}
+            className={styles.s3}
           >
             {formatDateShort(p.date)}
           </text>
@@ -295,7 +289,7 @@ export function AdrComparisonChart({
               onFocus={() => setHoverIdx(i)}
               onBlur={() => setHoverIdx(null)}
               tabIndex={0}
-              style={{ cursor: "crosshair", outline: "none" }}
+              className={styles.s4}
               aria-label={`${formatDateLong(p.date)} — sua diária média ${formatBRL(p.yourAdr)}, média dos parecidos ${formatBRL(p.medianAdr)}`}
             />
           );
@@ -323,25 +317,21 @@ export function AdrComparisonChart({
             fontFamily: "var(--font-brand)",
           }}
         >
-          <div style={{ fontWeight: 600, marginBottom: 4 }}>
+          <div className={styles.s5}>
             {formatDateLong(hovered.date)}
           </div>
           <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 2,
-            }}
+            className={styles.s6}
           >
             <span>
-              <span style={{ color: "var(--app-accent)", fontWeight: 600 }}>
+              <span className={styles.s7}>
                 Sua diária
               </span>{" "}
-              <span style={{ color: "var(--app-text)" }}>
+              <span className={styles.s8}>
                 {formatBRL(hovered.yourAdr)}
               </span>
             </span>
-            <span style={{ color: "var(--app-text-muted)" }}>
+            <span className={styles.s9}>
               Média dos parecidos {formatBRL(hovered.medianAdr)}
             </span>
           </div>
@@ -350,36 +340,17 @@ export function AdrComparisonChart({
 
       {/* Legenda */}
       <div
-        style={{
-          display: "flex",
-          gap: 20,
-          marginTop: 12,
-          flexWrap: "wrap",
-          fontSize: 12,
-          color: "var(--app-text-muted)",
-          fontFamily: "var(--font-brand)",
-        }}
+        className={styles.s10}
       >
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+        <span className={styles.s11}>
           <span
-            style={{
-              display: "inline-block",
-              width: 14,
-              height: 3,
-              background: "var(--app-accent)",
-              borderRadius: 2,
-            }}
+            className={styles.s12}
           />
           Sua diária
         </span>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+        <span className={styles.s11}>
           <span
-            style={{
-              display: "inline-block",
-              width: 14,
-              height: 0,
-              borderTop: "2px dashed var(--app-text-muted)",
-            }}
+            className={styles.s13}
           />
           Média dos parecidos
         </span>

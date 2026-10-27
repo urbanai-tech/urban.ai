@@ -1,0 +1,121 @@
+.s1.s1 {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.s2.s2 {
+  padding: 22px 24px 16px;
+  border-bottom: 1px solid var(--app-divider);
+  position: relative;
+}
+
+.s3.s3 {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: var(--app-text-muted);
+  padding: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  border-radius: 6px;
+  font-size: 18px;
+}
+
+.s4.s4 {
+  cursor: not-allowed;
+}
+
+.s5.s5 {
+  cursor: pointer;
+}
+
+.s6.s6 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--app-text-muted);
+}
+
+.s7.s7 {
+  margin: 6px 0 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--app-text);
+  letter-spacing: -0.2px;
+  line-height: 1.3;
+}
+
+.s8.s8 {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--app-text-muted);
+  line-height: 1.5;
+}
+
+.s9.s9 {
+  padding: 16px 24px 20px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.s10.s10 {
+  padding: 24px 0;
+  text-align: center;
+  color: var(--app-text-muted);
+  font-size: 13px;
+}
+
+.s11.s11 {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--app-text-muted);
+  font-size: 13px;
+  background: var(--app-surface-muted);
+  border-radius: 10px;
+  border: 1px dashed var(--app-divider-strong);
+}
+
+.s12.s12 {
+  margin: 10px 0 0;
+}
+
+.s13.s13 {
+  display: grid;
+  gap: 10px;
+}
+
+.s14.s14 {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--app-surface-muted);
+  border: 1px solid var(--app-divider);
+  color: var(--app-text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.s15.s15 {
+  color: var(--app-text);
+}
+
+.s16.s16 {
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--app-divider);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}

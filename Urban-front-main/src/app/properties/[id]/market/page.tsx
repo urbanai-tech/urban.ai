@@ -20,6 +20,7 @@ import { dateAtLocalOffset, formatLocalDate } from "../../../lib/date";
 import { trackEvent } from "../../../service/tracking";
 import { PercentileHero } from "./components/PercentileHero";
 import { AdrComparisonChart } from "./components/AdrComparisonChart";
+import styles from "./page.module.css";
 
 /**
  * /properties/:id/market — Market Intel dashboard (Gap 3 — Track 2, semana 5-6).
@@ -152,32 +153,25 @@ function MarketIntelContent() {
           subtitle="Comparacao com imóveis parecidos em até 3 km · atualizado a cada 24h"
         />
         <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 24,
-          }}
+          className={styles.s1}
         >
           <div
             role="status"
             aria-busy="true"
             aria-label="Carregando destaque principal"
-            className="urban-app-skeleton"
-            style={{ height: 200, borderRadius: 16 }}
+            className={`urban-app-skeleton ${styles.s2}`}
           />
           <div
             role="status"
             aria-busy="true"
             aria-label="Carregando resumo"
-            className="urban-app-skeleton"
-            style={{ height: 120, borderRadius: 12 }}
+            className={`urban-app-skeleton ${styles.s3}`}
           />
           <div
             role="status"
             aria-busy="true"
             aria-label="Carregando gráfico e tabela"
-            className="urban-app-skeleton"
-            style={{ height: 360, borderRadius: 12 }}
+            className={`urban-app-skeleton ${styles.s4}`}
           />
         </div>
       </AppPageShell>
@@ -229,7 +223,7 @@ function MarketIntelContent() {
             : ""
         }`}
         actions={
-          <div style={{ flex: "0 0 220px", maxWidth: 220, minWidth: 0 }}>
+          <div className={styles.s5}>
             <AppSelect
               label="Período"
               value={periodId}
@@ -262,7 +256,7 @@ function MarketIntelContent() {
           }
         />
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+        <div className={styles.s6}>
           {/* ZONA 1 — Hero metric */}
           <PercentileHero
             percentile={data.percentile}
@@ -319,26 +313,15 @@ function MarketIntelContent() {
               boxShadow: "0 1px 2px rgba(14, 17, 22, 0.04)",
             }}
           >
-            <header style={{ marginBottom: 16 }}>
+            <header className={styles.s7}>
               <p className="urban-app-eyebrow-muted">DIÁRIA MÉDIA · {period.label.toUpperCase()}</p>
               <h2
-                style={{
-                  fontSize: 18,
-                  fontWeight: 600,
-                  color: "var(--app-text)",
-                  margin: "6px 0 4px",
-                  letterSpacing: -0.2,
-                }}
+                className={styles.s8}
               >
                 Sua diária comparada com imóveis parecidos
               </h2>
               <p
-                style={{
-                  fontSize: 13,
-                  color: "var(--app-text-muted)",
-                  margin: 0,
-                  lineHeight: 1.55,
-                }}
+                className={styles.s9}
               >
                 Linha solida e o seu imóvel · tracejada e a média dos {data.comparablesCount} imóveis parecidos.
               </p>
@@ -349,26 +332,15 @@ function MarketIntelContent() {
           {/* ZONA 4 — Faixas agregadas (sem dados por imóvel) */}
           {data.adrPercentiles || data.occupancyPercentiles ? (
             <section aria-label="Faixas de mercado">
-              <header style={{ marginBottom: 16 }}>
+              <header className={styles.s7}>
                 <p className="urban-app-eyebrow-muted">FAIXAS DO MERCADO</p>
                 <h2
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 600,
-                    color: "var(--app-text)",
-                    margin: "6px 0 4px",
-                    letterSpacing: -0.2,
-                  }}
+                  className={styles.s8}
                 >
                   Onde a maioria dos {data.comparablesCount} imóveis parecidos se concentra
                 </h2>
                 <p
-                  style={{
-                    fontSize: 13,
-                    color: "var(--app-text-muted)",
-                    margin: 0,
-                    lineHeight: 1.55,
-                  }}
+                  className={styles.s9}
                 >
                   Mostramos apenas faixas agregadas (25% abaixo, mediana e 25% acima). Nunca exibimos dados de um imóvel específico de outro anfitrião.
                 </p>

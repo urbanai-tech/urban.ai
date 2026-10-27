@@ -9,6 +9,7 @@ import {
   getPropriedadesDropdownList,
   type PropertyDropdown,
 } from "../../../../service/api";
+import styles from "./CopyRulesModal.module.css";
 
 export function CopyRulesModal({
   open,
@@ -79,15 +80,7 @@ export function CopyRulesModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="copy-rules-title"
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1100,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-      }}
+      className={styles.s1}
     >
       <div
         onClick={onClose}
@@ -118,95 +111,44 @@ export function CopyRulesModal({
         }}
       >
         <header
-          style={{
-            padding: "22px 24px 16px",
-            borderBottom: "1px solid var(--app-divider)",
-            position: "relative",
-          }}
+          className={styles.s2}
         >
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
             aria-label="Fechar modal"
-            className="urban-focus-ring"
-            style={{
-              position: "absolute",
-              top: 14,
-              right: 14,
-              background: "transparent",
-              border: "none",
-              color: "var(--app-text-muted)",
-              cursor: loading ? "not-allowed" : "pointer",
-              padding: 8,
-              minWidth: 44,
-              minHeight: 44,
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              lineHeight: 0,
-              borderRadius: 6,
-              fontSize: 18,
-            }}
+            className={`urban-focus-ring ${styles.s3} ${loading ? styles.s4 : styles.s5}`}
           >
             <span aria-hidden="true">x</span>
           </button>
 
           <p
-            style={{
-              margin: 0,
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: 1.5,
-              textTransform: "uppercase",
-              color: "var(--app-text-muted)",
-            }}
+            className={styles.s6}
           >
             Copiar regras
           </p>
           <h2
             id="copy-rules-title"
-            style={{
-              margin: "6px 0 0",
-              fontSize: 18,
-              fontWeight: 600,
-              color: "var(--app-text)",
-              letterSpacing: -0.2,
-              lineHeight: 1.3,
-            }}
+            className={styles.s7}
           >
             De qual imóvel você quer copiar?
           </h2>
           <p
-            style={{
-              margin: "8px 0 0",
-              fontSize: 13,
-              color: "var(--app-text-muted)",
-              lineHeight: 1.5,
-            }}
+            className={styles.s8}
           >
             Você pode ajustar depois. As regras vao substituir as deste imóvel quando clicar em copiar.
           </p>
         </header>
 
         <div
-          style={{
-            padding: "16px 24px 20px",
-            overflowY: "auto",
-            flex: 1,
-            minHeight: 0,
-          }}
+          className={styles.s9}
         >
           {fetching && (
             <div
               role="status"
               aria-live="polite"
-              style={{
-                padding: "24px 0",
-                textAlign: "center",
-                color: "var(--app-text-muted)",
-                fontSize: 13,
-              }}
+              className={styles.s10}
             >
               Carregando seus imóveis…
             </div>
@@ -231,25 +173,17 @@ export function CopyRulesModal({
 
           {!fetching && !fetchError && otherProperties.length === 0 && (
             <div
-              style={{
-                padding: "24px 16px",
-                textAlign: "center",
-                color: "var(--app-text-muted)",
-                fontSize: 13,
-                background: "var(--app-surface-muted)",
-                borderRadius: 10,
-                border: "1px dashed var(--app-divider-strong)",
-              }}
+              className={styles.s11}
             >
               <Icons.Layers size={20} />
-              <p style={{ margin: "10px 0 0" }}>
+              <p className={styles.s12}>
                 Você não tem outros imóveis para copiar regras ainda. Quando adicionar um segundo imóvel, ele aparecera aqui.
               </p>
             </div>
           )}
 
           {otherProperties.length > 0 && (
-            <div style={{ display: "grid", gap: 10 }}>
+            <div className={styles.s13}>
               <PropertySelect
                 value={selectedId ?? ""}
                 propsInfo={otherProperties}
@@ -260,17 +194,9 @@ export function CopyRulesModal({
 
               {selectedSource && (
                 <div
-                  style={{
-                    padding: "10px 12px",
-                    borderRadius: 8,
-                    background: "var(--app-surface-muted)",
-                    border: "1px solid var(--app-divider)",
-                    color: "var(--app-text-muted)",
-                    fontSize: 12,
-                    lineHeight: 1.45,
-                  }}
+                  className={styles.s14}
                 >
-                  <strong style={{ color: "var(--app-text)" }}>
+                  <strong className={styles.s15}>
                     {formatPropertyIdentityLabel(selectedSource)}
                   </strong>
                   {selectedSource.dailyPrice != null && (
@@ -286,13 +212,7 @@ export function CopyRulesModal({
         </div>
 
         <footer
-          style={{
-            padding: "16px 24px 20px",
-            borderTop: "1px solid var(--app-divider)",
-            display: "flex",
-            gap: 10,
-            justifyContent: "flex-end",
-          }}
+          className={styles.s16}
         >
           <AppButton variant="ghost" onClick={onClose} disabled={loading}>
             Cancelar

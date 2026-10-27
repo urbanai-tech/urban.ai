@@ -24,6 +24,7 @@ import { trackEvent } from "../../../service/tracking";
 import { PricingRuleCard } from "./components/PricingRuleCard";
 import { CopyRulesModal } from "./components/CopyRulesModal";
 import { PreviewStrip } from "./components/PreviewStrip";
+import styles from "./page.module.css";
 
 /**
  * Página `/properties/:id/pricing-rules` (Gap 2 — Track 2, semana 5-6).
@@ -262,7 +263,7 @@ function PricingRulesPageContent() {
         loadingPreview={previewLoading}
       />
 
-      <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 12 }}>
+      <div className={styles.s1}>
         {loading ? (
           <PricingRulesSkeleton />
         ) : (
@@ -281,32 +282,15 @@ function PricingRulesPageContent() {
 
       {!loading && (
         <p
-          style={{
-            marginTop: 16,
-            fontSize: 12,
-            color: "var(--app-text-muted)",
-            lineHeight: 1.5,
-          }}
+          className={styles.s2}
         >
           {enabledCount} de {rules.length} regras ativas. Mudanças se aplicam só após salvar.
           Use <kbd
-            style={{
-              padding: "1px 6px",
-              border: "1px solid var(--app-divider-strong)",
-              borderRadius: 4,
-              fontSize: 11,
-              background: "var(--app-surface-muted)",
-            }}
+            className={styles.s3}
           >Ctrl</kbd>
           {" + "}
           <kbd
-            style={{
-              padding: "1px 6px",
-              border: "1px solid var(--app-divider-strong)",
-              borderRadius: 4,
-              fontSize: 11,
-              background: "var(--app-surface-muted)",
-            }}
+            className={styles.s3}
           >S</kbd> pra salvar rapidamente.
         </p>
       )}
@@ -347,53 +331,26 @@ function PricingRulesSkeleton() {
       role="status"
       aria-busy="true"
       aria-label="Carregando regras de preço"
-      style={{ display: "flex", flexDirection: "column", gap: 12 }}
+      className={styles.s4}
     >
       {Array.from({ length: 8 }).map((_, i) => (
         <AppCard key={i} style={{ padding: "18px 20px" }}>
           <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-            }}
+            className={styles.s5}
           >
             <div
-              style={{
-                width: 40,
-                height: 22,
-                background: "var(--app-surface-muted)",
-                borderRadius: 999,
-                flexShrink: 0,
-              }}
+              className={styles.s6}
             />
-            <div style={{ flex: 1 }}>
+            <div className={styles.s7}>
               <div
-                style={{
-                  height: 14,
-                  width: "55%",
-                  background: "var(--app-surface-muted)",
-                  borderRadius: 4,
-                }}
+                className={styles.s8}
               />
               <div
-                style={{
-                  marginTop: 8,
-                  height: 10,
-                  width: "85%",
-                  background: "var(--app-surface-muted)",
-                  borderRadius: 4,
-                  opacity: 0.7,
-                }}
+                className={styles.s9}
               />
             </div>
             <div
-              style={{
-                width: 120,
-                height: 40,
-                background: "var(--app-surface-muted)",
-                borderRadius: 6,
-              }}
+              className={styles.s10}
             />
           </div>
         </AppCard>
@@ -434,52 +391,18 @@ function StickySaveFooter({
       }}
     >
       <div
-        style={{
-          maxWidth: 1200,
-          margin: "0 auto",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-          flexWrap: "wrap",
-        }}
+        className={styles.s11}
       >
         <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            minWidth: 0,
-            color: "var(--app-text-muted)",
-            fontSize: 12,
-          }}
+          className={styles.s12}
         >
           <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "4px 10px",
-              borderRadius: 999,
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: 1,
-              textTransform: "uppercase",
-              border: "1px solid",
-              borderColor: dirty ? "color-mix(in srgb, var(--app-accent, var(--admin-accent)) 25%, transparent)" : "var(--app-divider-strong)",
-              color: dirty ? "var(--app-accent)" : "var(--app-text-muted)",
-              background: dirty ? "var(--app-accent-soft)" : "var(--app-surface-muted)",
-            }}
+            className={`${styles.s13} ${dirty ? styles.s14 : styles.s15}`}
           >
             {dirty ? "Mudanças não salvas" : "Tudo salvo"}
           </span>
           <span
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: 1,
-              textTransform: "uppercase",
-            }}
+            className={styles.s16}
           >
             {previewLoading
               ? "Preview atualizando…"
@@ -488,7 +411,7 @@ function StickySaveFooter({
                 : "Preview ainda não calculado"}
           </span>
         </div>
-        <div style={{ display: "flex", gap: 10, flexShrink: 0 }}>
+        <div className={styles.s17}>
           <AppButton
             variant="ghost"
             onClick={onDiscard}
