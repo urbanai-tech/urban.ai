@@ -1,4 +1,5 @@
 // app/(interno)/layout.tsx
+import "../app.css";
 import Footer from '../componentes/Footer'
 
 export default function InternoLayout({ children }: { children: React.ReactNode }) {

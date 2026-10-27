@@ -1,0 +1,38 @@
+/* ========================================================================== */
+/* Urban AI — tokens de marca globais (site público + app)                    */
+/*                                                                            */
+/* Ficam no CSS global porque o site público também usa --font-brand /        */
+/* --font-display (.urban-manifesto, .urban-eyebrow). O resto da camada do    */
+/* app vive em host-mobile.css, que só as rotas do app carregam (ver          */
+/* src/app/app.css).                                                          */
+/* ========================================================================== */
+
+:root {
+  /* Safe areas centralizadas: e2e consegue simular um notch sobrescrevendo
+     estas variáveis no <html>. */
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-right: env(safe-area-inset-right, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --app-safe-left: env(safe-area-inset-left, 0px);
+
+  /* Paleta oficial (Brandbook My Urban 2026) — valores em tokens.json. */
+  --brand-deep: var(--theme-brand-deep);
+  --brand-teal: var(--theme-brand-teal);
+  --brand-mint: var(--theme-brand-mint);
+  --brand-lime: var(--theme-brand-lime);
+  --brand-black: var(--theme-brand-black);
+  --brand-white: var(--theme-brand-white);
+
+  /* Tipografia da marca. Artegra Sans Extended / Muring são comerciais: só
+     resolvem se NEXT_PUBLIC_BRAND_FONTS_URL carregar um CSS licenciado.
+     Sem isso, Archivo (OFL, eixo wdth) faz o papel com largura estendida. */
+  --font-brand: "Artegra Sans Extended", var(--font-archivo), system-ui, -apple-system, sans-serif;
+  --font-display: "Artegra Sans Extended", var(--font-archivo), system-ui, -apple-system, sans-serif;
+  --font-highlight: "Muring", var(--font-archivo), system-ui, sans-serif;
+  --font-brand-stretch: 106%;
+  --font-display-stretch: 118%;
+
+  /* Fundos oficiais otimizados (public/brand). */
+  --brand-bg-gradient: image-set(url("/brand/bg-gradient-1280.webp") 1x, url("/brand/bg-gradient-2560.webp") 2x);
+  --brand-bg-glow: image-set(url("/brand/bg-glow-1280.webp") 1x, url("/brand/bg-glow-2560.webp") 2x);
+}

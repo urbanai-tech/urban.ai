@@ -1,3 +1,4 @@
+import "../app.css";
 import Footer from "../componentes/Footer";
 
 export default function AddressVerificationLayout({

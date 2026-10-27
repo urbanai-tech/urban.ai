@@ -1,3 +1,4 @@
+import "../app.css";
 import HostShell from "../componentes/HostShell";
 
 export default function PropertiesLayout({ children }: { children: React.ReactNode }) {

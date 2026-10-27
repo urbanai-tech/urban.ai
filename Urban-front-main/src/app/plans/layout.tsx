@@ -1,5 +1,6 @@
 "use client";
 
+import "../app.css";
 import AuthGuard from "../context/AuthGuard";
 
 /**

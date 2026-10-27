@@ -61,6 +61,8 @@ function isBackendMutation(route: Route) {
   // Relatorios CSP sao telemetria passiva do navegador, nao mutacoes de produto.
   if (url.pathname === '/csp-report') return false;
   if (/^\/api\/\d+\/envelope\/?$/.test(url.pathname)) return false;
+  // Telemetria do Stripe.js (beacon em r.stripe.com) não toca o backend.
+  if (url.hostname === 'r.stripe.com') return false;
 
   return true;
 }

@@ -13,6 +13,10 @@ export function CookieConsent() {
   const [hasHostBottomNav, setHasHostBottomNav] = useState(false);
   const [analyticsPref, setAnalyticsPref] = useState(state.analytics);
   const [marketingPref, setMarketingPref] = useState(state.marketing);
+  // O banner nasce invisível e só aparece quando as fontes que ele usa já
+  // carregaram: a troca de fonte (swap) mudava a altura do banner fixo e virava
+  // layout shift (CLS) nas páginas públicas.
+  const [fontsSettled, setFontsSettled] = useState(false);
   const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
 
   useEffect(() => {
@@ -48,6 +52,24 @@ export function CookieConsent() {
     };
   }, [pathname, undecided]);
 
+  useEffect(() => {
+    if (!undecided || fontsSettled) return;
+    let cancelled = false;
+    const show = () => {
+      if (!cancelled) setFontsSettled(true);
+    };
+    const timer = window.setTimeout(show, 3000);
+    // Medir força o layout do texto do banner, o que dispara o download dos
+    // pesos que ele usa; document.fonts.ready resolve quando todos chegarem.
+    bannerRef.current?.getBoundingClientRect();
+    if (document.fonts?.ready) document.fonts.ready.then(show, show);
+    else show();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [undecided, fontsSettled]);
+
   if (!undecided) return null;
 
   return (
@@ -63,6 +85,7 @@ export function CookieConsent() {
           right: 24,
           bottom: hasHostBottomNav ? "calc(72px + env(safe-area-inset-bottom))" : 24,
           zIndex: 9999,
+          visibility: fontsSettled ? "visible" : "hidden",
           maxWidth: 390,
           padding: 16,
           borderRadius: 8,
