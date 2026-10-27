@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile, readdir, stat } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import test from 'node:test';
 
 const appDir = new URL('../src/app/', import.meta.url);
@@ -16,13 +16,11 @@ function listFrom(source, name) {
 const NOT_APP_ROUTES = new Set(['(public)', '(home)', 'api', 'componentes', 'context', 'lib', 'service', 'types']);
 
 async function appRouteSegments() {
-  const names = await readdir(appDir);
+  const entries = await readdir(appDir, { withFileTypes: true });
   const segments = [];
-  for (const name of names) {
-    if (NOT_APP_ROUTES.has(name)) continue;
-    const info = await stat(new URL(`${name}/`, appDir));
-    if (!info.isDirectory()) continue;
-    segments.push(`/${name}`);
+  for (const entry of entries) {
+    if (!entry.isDirectory() || NOT_APP_ROUTES.has(entry.name)) continue;
+    segments.push(`/${entry.name}`);
   }
   return segments.sort();
 }
