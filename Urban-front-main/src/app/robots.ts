@@ -31,6 +31,13 @@ const PRIVATE_DISALLOW = [
   "/confirm-email",
   "/address-verification",
   "/settings",
+  "/my-roi",
+  "/profile",
+  "/event-radar",
+  "/events",
+  "/forbidden",
+  "/auth",
+  "/login",
   "/api",
 ];
 
