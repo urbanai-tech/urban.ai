@@ -92,7 +92,7 @@ export default function PostLoginPage() {
     <UrbanAiLoader
       fullscreen
       src="/urban-logo-transparent-soft.png"
-      alt="UrbanAI"
+      alt="My Urban"
       width={360}
       height={120}
       overlayBg="rgba(8,10,15,0.94)"

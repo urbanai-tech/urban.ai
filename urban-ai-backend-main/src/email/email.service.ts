@@ -168,7 +168,7 @@ export class EmailService {
 
             const result = await this.sendHtmlEmailOrThrow(
                 { email: to, name: name || undefined },
-                `${title} - Urban AI`,
+                `${title} - My Urban`,
                 htmlContent,
             );
             return { enviado: true, status: result.status };
@@ -410,7 +410,7 @@ export class EmailService {
 
             await this.sendHtmlEmailOrThrow(
                 { email: usuario?.email, name: nome },
-                'Urban AI - Análise de propriedades',
+                'My Urban - Análise de propriedades',
                 htmlContent,
             );
 
@@ -449,7 +449,7 @@ export class EmailService {
 
             await this.sendHtmlEmailOrThrow(
                 { email: usuario?.email, name: nome },
-                'Urban AI - Análise concluída',
+                'My Urban - Análise concluída',
                 htmlContent,
             );
 
@@ -502,7 +502,7 @@ export class EmailService {
 
             await this.sendHtmlEmailOrThrow(
                 { email: usuario?.email, name: nome },
-                'Recuperação de Senha - Urban AI',
+                'Recuperação de Senha - My Urban',
                 htmlContent,
             );
 
@@ -567,7 +567,7 @@ export class EmailService {
                 const pushResult = await this.pushNotificationService.sendToUser(
                     userId,
                     buildSystemNotificationPayload({
-                        title: notificationContent.title || 'Urban AI',
+                        title: notificationContent.title || 'My Urban',
                         body: notificationContent.description || '',
                         url: notificationContent.redirectTo || '/notificacao',
                         tag: notificationContent.pushTag || `notification-${notification?.id ?? Date.now()}`,
@@ -681,8 +681,8 @@ export class EmailService {
         const dashboardUrl = `${(process.env.FRONT_BASE_URL || 'https://app.myurbanai.com').replace(/\/$/, '')}/dashboard?source=pricing_digest_email`;
         const subject =
             items.length === 1
-                ? '1 recomendação de preço para revisar - Urban AI'
-                : `${items.length} recomendações de preço para revisar - Urban AI`;
+                ? '1 recomendação de preço para revisar - My Urban'
+                : `${items.length} recomendações de preço para revisar - My Urban`;
 
         try {
             if (wantsEmail) {

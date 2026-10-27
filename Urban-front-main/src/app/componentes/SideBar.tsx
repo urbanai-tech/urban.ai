@@ -36,18 +36,26 @@ type Me = {
   role?: string;
 };
 
+// Prioridade de navegação (marca My Urban, 26/10): Hoje, Calendário, Imóveis e
+// Avisos são as quatro abas da tab bar mobile e o topo da sidebar desktop.
+// As rotas não mudam; só os rótulos (Hoje = /painel, Avisos = /notificacao).
 const PRIMARY_NAV = [
-  { path: '/painel', label: 'Painel', icon: 'bar-chart' as const },
+  { path: '/painel', label: 'Hoje', icon: 'bar-chart' as const },
   { path: '/dashboard', label: 'Calendário', icon: 'calendar' as const },
-  { path: '/portfolio', label: 'Portfólio', icon: 'layers' as const },
-  { path: '/event-radar', label: 'Radar', icon: 'trending-up' as const },
-  { path: '/events', label: 'Eventos', icon: 'calendar' as const },
-  { path: '/maps', label: 'Mapa', icon: 'map-pin' as const },
   { path: '/properties', label: 'Imóveis', icon: 'home' as const },
+  { path: '/notificacao', label: 'Avisos', icon: 'bell' as const },
 ];
 
-const SECONDARY_NAV = [
-  { path: '/notificacao', label: 'Notificações', icon: 'bell' as const },
+// Desktop: grupo "Explorar" logo abaixo do principal.
+const EXPLORE_NAV = [
+  { path: '/event-radar', label: 'Radar', icon: 'trending-up' as const },
+  { path: '/events', label: 'Eventos', icon: 'calendar' as const },
+  { path: '/portfolio', label: 'Portfólio', icon: 'layers' as const },
+  { path: '/maps', label: 'Mapa', icon: 'map-pin' as const },
+];
+
+// Desktop: grupo "Conta".
+const ACCOUNT_NAV = [
   { path: '/my-roi', label: 'Ganhos', icon: 'trending-up' as const },
   { path: '/my-plan', label: 'Meu plano', icon: 'dollar' as const },
   { path: '/profile', label: 'Perfil', icon: 'user' as const },
@@ -56,9 +64,15 @@ const SECONDARY_NAV = [
   { path: '/settings/pricing', label: 'Precificação', icon: 'settings' as const },
 ];
 
-const MOBILE_PRIMARY_NAV = PRIMARY_NAV.slice(0, 4);
-const MOBILE_MORE_NAV = [...PRIMARY_NAV.slice(4), ...SECONDARY_NAV];
-const ALL_NAV = [...PRIMARY_NAV, ...SECONDARY_NAV];
+const MOBILE_PRIMARY_NAV = PRIMARY_NAV;
+// Sheet "Mais": Radar/Eventos, Portfólio, Ganhos, Plano, Perfil, Integrações,
+// Comunicações, Precificação e, por último, Mapa.
+const MOBILE_MORE_NAV = [
+  ...EXPLORE_NAV.filter((item) => item.path !== '/maps'),
+  ...ACCOUNT_NAV,
+  ...EXPLORE_NAV.filter((item) => item.path === '/maps'),
+];
+const ALL_NAV = [...PRIMARY_NAV, ...EXPLORE_NAV, ...ACCOUNT_NAV];
 
 const HOST_SIDEBAR_COLLAPSED_KEY = 'urban-host-sidebar-collapsed';
 const TOPBAR_COLLAPSE_OFFSET = 24;
@@ -345,8 +359,24 @@ export default function SideBar() {
             />
           ))}
 
+          {!collapsed && <SectionLabel label="Explorar" />}
+          {EXPLORE_NAV.map((item) => (
+            <NavLink
+              key={item.path}
+              path={item.path}
+              icon={item.icon}
+              label={item.label}
+              active={isActive(item.path)}
+              collapsed={collapsed}
+              onSelect={() => {
+                router.push(item.path);
+                setMobileOpen(false);
+              }}
+            />
+          ))}
+
           {!collapsed && <SectionLabel label="Conta" />}
-          {SECONDARY_NAV.map((item) => (
+          {ACCOUNT_NAV.map((item) => (
             <NavLink
               key={item.path}
               path={item.path}
@@ -487,16 +517,6 @@ export default function SideBar() {
           <p className="urban-topbar__title" aria-hidden="true">
             {currentTitle}
           </p>
-          <div className="urban-topbar__actions">
-            <NextLink
-              href="/notificacao"
-              className="urban-icon-btn"
-              aria-label="Notificações"
-              aria-current={isActive('/notificacao') ? 'page' : undefined}
-            >
-              <NavIcon name="bell" />
-            </NextLink>
-          </div>
         </div>
       </header>
 

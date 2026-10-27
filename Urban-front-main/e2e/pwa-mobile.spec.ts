@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test';
 
+// Este spec testa o próprio service worker; o padrão do config é bloqueá-lo.
+test.use({ serviceWorkers: 'allow' });
+
 test.describe('PWA e mobile', () => {
   test('expoe manifest, icons, service worker e offline fallback', async ({ page, request }) => {
     const manifestResponse = await request.get('/manifest.webmanifest');
@@ -17,13 +20,13 @@ test.describe('PWA e mobile', () => {
     expect(manifest.orientation).toBe('any');
     expect(manifest.lang).toBe('pt-BR');
     expect(manifest.categories).toEqual(expect.arrayContaining(['business', 'productivity']));
-    expect(manifest.start_url).toContain('/dashboard');
+    expect(manifest.start_url).toContain('/painel');
     expect(manifest.shortcuts).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: 'Dashboard', url: expect.stringContaining('/dashboard') }),
+        expect.objectContaining({ name: 'Hoje', url: expect.stringContaining('/painel') }),
+        expect.objectContaining({ name: 'Calendário', url: expect.stringContaining('/dashboard') }),
         expect.objectContaining({ name: 'Imóveis', url: expect.stringContaining('/properties') }),
-        expect.objectContaining({ name: 'Notificações', url: expect.stringContaining('/notificacao') }),
-        expect.objectContaining({ name: 'Calendário', url: expect.stringContaining('/portfolio') }),
+        expect.objectContaining({ name: 'Avisos', url: expect.stringContaining('/notificacao') }),
       ]),
     );
     expect(manifest.icons).toEqual(
@@ -56,10 +59,12 @@ test.describe('PWA e mobile', () => {
       'content',
       /#(?:F4F8F5|000000)/,
     );
-    await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute(
+    // iOS escolhe o tamanho certo entre os declarados; o de 180px é o principal.
+    await expect(page.locator('link[rel="apple-touch-icon"][sizes="180x180"]')).toHaveAttribute(
       'href',
       '/apple-touch-icon.png',
     );
+    await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveCount(4);
 
     const swAvailable = await page.evaluate(() => 'serviceWorker' in navigator);
     expect(swAvailable).toBeTruthy();

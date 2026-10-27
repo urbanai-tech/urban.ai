@@ -92,12 +92,12 @@ export default function EventsPage() {
       <AppSectionHeader
         eyebrow="EVENTOS NA CIDADE"
         title={`Eventos em ${city || "sua cidade"}`}
-        subtitle="Catálogo de eventos mapeados pela Urban AI com sinais de demanda, fonte e proximidade dos seus imóveis."
+        subtitle="Catálogo de eventos mapeados pelo My Urban com sinais de demanda, fonte e proximidade dos seus imóveis."
         actions={
           response?.mock ? (
             <AppBadge kind="warn">Mock contratual</AppBadge>
           ) : (
-            <AppBadge kind="success">Dados Urban AI</AppBadge>
+            <AppBadge kind="success">Dados My Urban</AppBadge>
           )
         }
       />
@@ -726,7 +726,7 @@ function LoadingBlock() {
       <div style={{ minHeight: 160, display: "grid", placeItems: "center", gap: 12, textAlign: "center" }}>
         <Spinner />
         <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 13 }}>
-          Carregando eventos mapeados pela Urban AI…
+          Carregando eventos mapeados pelo My Urban…
         </p>
       </div>
       <div

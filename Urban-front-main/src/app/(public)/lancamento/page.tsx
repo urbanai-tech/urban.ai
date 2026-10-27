@@ -10,8 +10,8 @@ import {
 } from "../../componentes/PublicMarketing";
 
 export const metadata: Metadata = buildSeoMetadata({
-  title: "Comece agora | Urban AI",
-  description: "Crie sua conta Urban AI, cadastre seu imóvel e comece a receber recomendações de preço com contexto urbano.",
+  title: "Comece agora | My Urban AI",
+  description: "Crie sua conta My Urban, cadastre seu imóvel e comece a receber recomendações de preço com contexto urbano.",
   path: "/lancamento",
 });
 
@@ -29,9 +29,9 @@ export default function ComeceAgoraPage() {
       <section className="public-page-hero">
         <div className="public-container public-page-hero__grid">
           <div>
-            <p className="public-kicker">Urban AI disponível</p>
+            <p className="public-kicker">My Urban disponível</p>
             <h1>Comece com um imóvel. Evolua com a sua <em>operação.</em></h1>
-            <p className="public-page-hero__lead">Crie sua conta, configure o primeiro imóvel e use a Urban AI no modo de recomendação, com controle manual de cada preço.</p>
+            <p className="public-page-hero__lead">Crie sua conta, configure o primeiro imóvel e use o My Urban no modo de recomendação, com controle manual de cada preço.</p>
             <div className="public-page-hero__actions">
               <PublicButton href={PUBLIC_SIGNUP_URL}>Criar minha conta</PublicButton>
               <PublicButton href="/precos" variant="secondary">Ver planos</PublicButton>
@@ -45,7 +45,7 @@ export default function ComeceAgoraPage() {
         <div className="public-container">
           <SectionHeading eyebrow="Primeiros passos" title={<>Do cadastro à primeira recomendação, <em>sem rodeios.</em></>} />
           <div className="public-process">
-            <article><span>01</span><h3>Crie sua conta</h3><p>Cadastre seus dados e acesse o onboarding da Urban AI.</p></article>
+            <article><span>01</span><h3>Crie sua conta</h3><p>Cadastre seus dados e acesse o onboarding do My Urban.</p></article>
             <article><span>02</span><h3>Configure a operação</h3><p>Informe o perfil da sua operação e cadastre o imóvel que será acompanhado.</p></article>
             <article><span>03</span><h3>Revise com contexto</h3><p>Acompanhe datas, motivos e preços recomendados no painel.</p></article>
           </div>

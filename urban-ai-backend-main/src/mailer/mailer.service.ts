@@ -22,7 +22,7 @@ export class MailerService {
     this.apiKey = process.env.BREVO_API_KEY || '';
     this.apiBaseUrl = (process.env.BREVO_API_BASE_URL || 'https://api.brevo.com/v3').replace(/\/$/, '');
     this.senderEmail = process.env.EMAIL_SENDER || 'noreply@myurbanai.com';
-    this.senderName = process.env.EMAIL_SENDER_NAME || 'Urban AI';
+    this.senderName = process.env.EMAIL_SENDER_NAME || 'My Urban AI';
   }
 
   async sendTemplateEmail(

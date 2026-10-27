@@ -705,7 +705,7 @@ export default function MyProperties() {
           <div className="properties-dialog">
             <h2 id="properties-delete-title">Excluir propriedade?</h2>
             <p>
-              A Urban AI não atualizará mais os preços desta unidade. Esta ação não pode ser desfeita.
+              O My Urban não atualizará mais os preços desta unidade. Esta ação não pode ser desfeita.
             </p>
             <div className="properties-dialog-actions">
               <AppButton variant="ghost" onClick={closeDeleteDialog}>

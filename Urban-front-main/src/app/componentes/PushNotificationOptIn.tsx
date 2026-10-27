@@ -135,7 +135,7 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
             <p className={styles.optInText}>
               {eligibility === "ios-too-old"
                 ? "Atualize o iPhone para receber avisos de preço no celular. Enquanto isso, as recomendações continuam aqui no painel."
-                : "No iPhone, o iOS só entrega avisos para apps adicionados à Tela de Início. Adicione o My Urban AI e volte aqui para ativá-los."}
+                : "No iPhone, o iOS só entrega avisos para apps adicionados à Tela de Início. Adicione o My Urban e volte aqui para ativá-los."}
             </p>
           </div>
         </div>

@@ -390,7 +390,7 @@ export default function DashboardPage() {
       <AppSectionHeader
         eyebrow="CALENDÁRIO · EVENTOS POR DIA"
         title="Calendário"
-        subtitle="Visualize os eventos com sugestões de preço da Urban AI para o imóvel selecionado. Clique em um dia para ver detalhes."
+        subtitle="Visualize os eventos com sugestões de preço do My Urban para o imóvel selecionado. Clique em um dia para ver detalhes."
         actions={
           <div className="dashboard-property-filter">
             <label>Filtrar imóvel</label>
@@ -598,7 +598,7 @@ export default function DashboardPage() {
                       ? selectedPropertyInfo.setupStatus?.publicDescription ?? 'Este imóvel ainda está sendo preparado. As sugestões aparecem quando mapa, eventos e valor de referência estiverem prontos.'
                       : !selectedDay && nextMonthWithEvents
                         ? `Esta janela (${windowSummaryLabel}) está vazia, mas existem ${futureEventsOutsideWindow.length} sugestões em meses futuros. Use a faixa de meses ou avance para ${format(nextMonthWithEvents.date, 'MMMM', { locale: ptBR })}.`
-                        : 'Não encontramos evento futuro que combine com este imóvel no período. A Urban AI continuará verificando novos eventos e mostrará sugestões quando encontrar uma oportunidade.'
+                        : 'Não encontramos evento futuro que combine com este imóvel no período. O My Urban continuará verificando novos eventos e mostrará sugestões quando encontrar uma oportunidade.'
                   }
                   icon={<Icons.Calendar size={28} />}
                   action={

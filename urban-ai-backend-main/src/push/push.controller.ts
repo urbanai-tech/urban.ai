@@ -44,7 +44,7 @@ export class PushController {
   @ApiOperation({ summary: 'Envia uma notificação PWA de teste para o usuário autenticado' })
   async sendTest(@Req() req: any) {
     return this.pushService.sendToUser(req.user.userId, {
-      title: 'Urban AI',
+      title: 'My Urban',
       body: 'Push PWA ativo neste dispositivo.',
       url: '/notificacao',
       tag: 'urban-ai-pwa-test',

@@ -122,7 +122,7 @@ test("retorno à aba e reconexão procuram atualização sem chamadas concorrent
   assert.equal(harness.calls.reload, 0);
 });
 
-test("service worker versiona caches e remove apenas versões antigas da Urban AI", () => {
+test("service worker versiona caches e remove apenas versões antigas do My Urban", () => {
   const source = readFileSync(resolve(process.cwd(), "public/sw.js"), "utf8");
   assert.match(source, /const CACHE_PREFIX = ["']urban-ai-pwa-["']/);
   assert.match(source, /const CACHE_VERSION = `\$\{CACHE_PREFIX\}v5`/);

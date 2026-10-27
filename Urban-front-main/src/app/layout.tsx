@@ -48,8 +48,8 @@ const HAS_ENVIRONMENT_BANNER = Boolean(APP_ENV && APP_ENV !== "production");
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  applicationName: "Urban AI",
-  title: "Urban AI | Precificação dinâmica para Airbnb e aluguel por temporada",
+  applicationName: "My Urban AI",
+  title: "My Urban AI | Precificação dinâmica para Airbnb e aluguel por temporada",
   description: "Precificação dinâmica para anfitriões com IA, calendário urbano e operação assistida.",
   manifest: "/manifest.webmanifest",
   icons: {
@@ -83,14 +83,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: SITE_URL,
-    siteName: "Urban AI",
-    title: "Urban AI | Precificação dinâmica para Airbnb",
+    siteName: "My Urban AI",
+    title: "My Urban AI | Precificação dinâmica para Airbnb",
     description: "Precificação dinâmica para anfitriões com IA, calendário urbano e operação assistida.",
-    images: [{ url: "/og-public-launch.png", width: 1536, height: 1024, alt: "Urban AI — A cidade muda. O preço também." }],
+    images: [{ url: "/og-public-launch.png", width: 1536, height: 1024, alt: "My Urban AI — A cidade muda. O preço também." }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Urban AI | Precificação inteligente para aluguel por temporada",
+    title: "My Urban AI | Precificação inteligente para aluguel por temporada",
     description: "Transforme eventos, sazonalidade e sinais do bairro em recomendações de preço explicáveis.",
     images: ["/og-public-launch.png"],
   },

@@ -30,6 +30,9 @@ export default defineConfig({
     trace: 'on-first-retry',
     video: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    // Com o service worker controlando a página, page.route() não intercepta as chamadas
+    // de API (limitação do Playwright) e os mocks somem. Só os specs de PWA liberam o SW.
+    serviceWorkers: 'block',
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },

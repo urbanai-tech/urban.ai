@@ -152,7 +152,7 @@ export class WeeklyEventReportService {
 
         const result = await this.mailer.sendHtmlEmail(
           { email: user.email, name: user.username || undefined },
-          'Seu resumo semanal - Urban AI',
+          'Seu resumo semanal - My Urban',
           html,
           { unsubscribe: { userId: user.id, category: 'weekly_report' } },
         );

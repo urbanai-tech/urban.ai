@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 import { buildSeoMetadata } from "../../lib/seo";
 
 export const metadata: Metadata = buildSeoMetadata({
-  title: "Termos de Uso - Urban AI",
+  title: "Termos de Uso - My Urban AI",
   description:
-    "Termos de Uso da Urban AI para acesso e uso da plataforma de inteligência de mercado e precificação dinâmica.",
+    "Termos de Uso do My Urban para acesso e uso da plataforma de inteligência de mercado e precificação dinâmica.",
   path: "/termos",
 });
 

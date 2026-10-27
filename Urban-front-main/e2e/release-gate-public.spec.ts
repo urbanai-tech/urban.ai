@@ -75,7 +75,7 @@ test.describe('Release gate - public pages', () => {
     await page.getByPlaceholder('Seu nome').fill('Lead Operacional');
     await page.getByPlaceholder('seu@email.com').fill('lead+contato@urbanai.com.br');
     await page.locator('select[name="subject"]').selectOption({ label: 'Planos para minha operação' });
-    await page.locator('textarea[name="message"]').fill('Tenho 4 imoveis em Sao Paulo e quero conhecer a Urban AI.');
+    await page.locator('textarea[name="message"]').fill('Tenho 4 imoveis em Sao Paulo e quero conhecer o My Urban.');
     await page.getByRole('button', { name: /Enviar mensagem/i }).click();
 
     await expect(page.getByRole('status').filter({ hasText: /Mensagem registrada/i })).toBeVisible();
@@ -83,7 +83,7 @@ test.describe('Release gate - public pages', () => {
       name: 'Lead Operacional',
       email: 'lead+contato@urbanai.com.br',
       subject: 'Planos para minha operação',
-      message: 'Tenho 4 imoveis em Sao Paulo e quero conhecer a Urban AI.',
+      message: 'Tenho 4 imoveis em Sao Paulo e quero conhecer o My Urban.',
       source: 'public-contact',
     });
   });

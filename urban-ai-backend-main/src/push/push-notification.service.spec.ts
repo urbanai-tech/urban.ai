@@ -54,7 +54,7 @@ describe('PushNotificationService', () => {
   it('skips sends when VAPID keys are not configured', async () => {
     const { service, communicationLog } = makeService();
 
-    await expect(service.sendToUser('user-1', { title: 'Urban AI' })).resolves.toMatchObject({
+    await expect(service.sendToUser('user-1', { title: 'My Urban' })).resolves.toMatchObject({
       enabled: false,
       attempted: 0,
       skippedReason: 'missing_vapid_keys',

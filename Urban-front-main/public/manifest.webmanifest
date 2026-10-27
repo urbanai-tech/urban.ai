@@ -3,61 +3,150 @@
   "short_name": "My Urban",
   "description": "Precificacao dinamica para anfitrioes com IA, calendario urbano e operacao assistida.",
   "id": "/?source=pwa",
-  "start_url": "/dashboard?source=pwa",
+  "start_url": "/painel?source=pwa",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "any",
   "background_color": "#103134",
   "theme_color": "#103134",
-  "categories": ["business", "productivity", "travel"],
+  "categories": [
+    "business",
+    "productivity",
+    "travel"
+  ],
   "lang": "pt-BR",
   "dir": "ltr",
   "prefer_related_applications": false,
   "launch_handler": {
-    "client_mode": ["navigate-existing", "auto"]
+    "client_mode": [
+      "navigate-existing",
+      "auto"
+    ]
   },
   "icons": [
-    { "src": "/pwa-icon-48.png", "sizes": "48x48", "type": "image/png", "purpose": "any" },
-    { "src": "/pwa-icon-72.png", "sizes": "72x72", "type": "image/png", "purpose": "any" },
-    { "src": "/pwa-icon-96.png", "sizes": "96x96", "type": "image/png", "purpose": "any" },
-    { "src": "/pwa-icon-144.png", "sizes": "144x144", "type": "image/png", "purpose": "any" },
-    { "src": "/pwa-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/pwa-icon-256.png", "sizes": "256x256", "type": "image/png", "purpose": "any" },
-    { "src": "/pwa-icon-384.png", "sizes": "384x384", "type": "image/png", "purpose": "any" },
-    { "src": "/pwa-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/maskable-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-    { "src": "/maskable-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
-    { "src": "/pwa-monochrome-512.png", "sizes": "512x512", "type": "image/png", "purpose": "monochrome" }
+    {
+      "src": "/pwa-icon-48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icon-256.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/maskable-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/maskable-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/pwa-monochrome-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "monochrome"
+    }
   ],
   "shortcuts": [
     {
-      "name": "Dashboard",
-      "short_name": "Dashboard",
-      "description": "Ver as recomendacoes de preco de hoje",
-      "url": "/dashboard?source=pwa-shortcut",
-      "icons": [{ "src": "/pwa-icon-96.png", "sizes": "96x96", "type": "image/png" }]
-    },
-    {
-      "name": "Imóveis",
-      "short_name": "Imóveis",
-      "description": "Abrir a lista de imoveis",
-      "url": "/properties?source=pwa-shortcut",
-      "icons": [{ "src": "/pwa-icon-96.png", "sizes": "96x96", "type": "image/png" }]
-    },
-    {
-      "name": "Notificações",
-      "short_name": "Avisos",
-      "description": "Ver avisos e sugestoes pendentes",
-      "url": "/notificacao?source=pwa-shortcut",
-      "icons": [{ "src": "/pwa-icon-96.png", "sizes": "96x96", "type": "image/png" }]
+      "name": "Hoje",
+      "short_name": "Hoje",
+      "description": "Oportunidades e sugestões de preço de hoje",
+      "url": "/painel?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/pwa-icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "Calendário",
       "short_name": "Calendário",
-      "description": "Ver calendario de precos e eventos",
-      "url": "/portfolio?source=pwa-shortcut",
-      "icons": [{ "src": "/pwa-icon-96.png", "sizes": "96x96", "type": "image/png" }]
+      "description": "Sugestões de preço por data",
+      "url": "/dashboard?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/pwa-icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Imóveis",
+      "short_name": "Imóveis",
+      "description": "Seus imóveis e a diária base",
+      "url": "/properties?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/pwa-icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Avisos",
+      "short_name": "Avisos",
+      "description": "Notificações e avisos",
+      "url": "/notificacao?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/pwa-icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }

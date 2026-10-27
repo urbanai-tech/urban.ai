@@ -144,14 +144,14 @@ export function PwaInstallPrompt() {
       {decision.kind !== "hidden" && !sheetOpen && (
         <section
           role="region"
-          aria-label="Instalar o aplicativo My Urban AI"
+          aria-label="Instalar o aplicativo My Urban"
           className={`${styles.floatingCard} ${hasBottomNav ? styles.floatingCardWithNav : ""}`}
         >
           <div aria-hidden className={styles.iconBox}>
             <Download size={18} />
           </div>
           <div className={styles.grow}>
-            <p className={styles.title}>Tenha o My Urban AI na tela inicial</p>
+            <p className={styles.title}>Tenha o My Urban na tela inicial</p>
             <p className={styles.muted}>Abre em tela cheia e avisa quando houver preço novo para revisar.</p>
           </div>
           <div className={styles.column}>
@@ -186,7 +186,7 @@ export function PwaInstallPrompt() {
                   Adicionar à Tela de Início
                 </h2>
                 <p className={styles.sheetText}>
-                  No iPhone, é assim que o My Urban AI vira um app. Depois de instalado, você também pode ativar os
+                  No iPhone, é assim que o My Urban vira um app. Depois de instalado, você também pode ativar os
                   avisos de preço.
                 </p>
               </div>
@@ -223,7 +223,7 @@ export function PwaInstallPrompt() {
               <li className={styles.step}>
                 <Download size={22} aria-hidden className={styles.stepIcon} />
                 <span>
-                  3. Toque em <strong>Adicionar</strong> e abra o My Urban AI pelo novo ícone.
+                  3. Toque em <strong>Adicionar</strong> e abra o My Urban pelo novo ícone.
                 </span>
               </li>
             </ol>

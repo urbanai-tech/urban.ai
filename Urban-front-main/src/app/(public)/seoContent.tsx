@@ -133,7 +133,7 @@ export function SeoContentPage({ content }: { content: SeoContent }) {
               <SectionHeading
                 eyebrow="Na prática"
                 title={<>Transforme contexto em uma recomendação <em>explicável.</em></>}
-                description="A Urban AI reúne o sinal, a data afetada, o preço atual e o recomendado na mesma decisão."
+                description="O My Urban reúne o sinal, a data afetada, o preço atual e o recomendado na mesma decisão."
               />
               <PublicButton href="/precos">Conhecer os planos</PublicButton>
             </div>
@@ -201,8 +201,8 @@ function ComparisonSection() {
   return (
     <section id="comparacao" className="public-section public-section--soft">
       <div className="public-container">
-        <SectionHeading eyebrow="Comparação direta" title={<>Planilha e Urban AI cumprem <em>papéis diferentes.</em></>} description="A planilha continua útil para regras financeiras. A Urban AI adiciona leitura contínua de contexto e exceções." />
-        <div className="public-comparison-wrap"><table className="public-comparison"><thead><tr><th>Capacidade</th><th>Planilha</th><th>Urban AI</th></tr></thead><tbody>
+        <SectionHeading eyebrow="Comparação direta" title={<>Planilha e My Urban cumprem <em>papéis diferentes.</em></>} description="A planilha continua útil para regras financeiras. O My Urban adiciona leitura contínua de contexto e exceções." />
+        <div className="public-comparison-wrap"><table className="public-comparison"><thead><tr><th>Capacidade</th><th>Planilha</th><th>My Urban</th></tr></thead><tbody>
           {rows.map(([name, sheet, urban]) => <tr key={name}><td>{name}</td><td>{typeof sheet === "string" ? sheet : sheet ? <Check aria-hidden size={18} /> : <Minus aria-hidden size={18} />}</td><td>{urban ? <Check aria-hidden size={18} /> : <Minus aria-hidden size={18} />}</td></tr>)}
         </tbody></table></div>
       </div>

@@ -159,7 +159,7 @@ export default function EmailConfirmation() {
         </>
       }
       subtitle="Digite o código de 6 dígitos enviado para concluir a ativação da sua conta."
-      asideEyebrow="ACESSO URBAN AI"
+      asideEyebrow="ACESSO MY URBAN"
       asideTitle={
         <>
           Ative sua{" "}
