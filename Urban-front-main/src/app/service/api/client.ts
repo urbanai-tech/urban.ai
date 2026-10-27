@@ -69,7 +69,7 @@ export const api = axios.create({
  * O endpoint `/auth/me` é exceção — 401 nele é esperado (componente decide).
  */
 const PUBLIC_PATH_REGEX =
-  /^\/(lancamento|landing|precos|sobre|contato|termos|privacidade|create|forbidden|post-login|request-reset-password|reset-password|confirm-email|auth|waitlist|robots|sitemap)/;
+  /^\/(login|lancamento|landing|precos|sobre|contato|termos|privacidade|create|forbidden|post-login|request-reset-password|reset-password|confirm-email|auth|waitlist|robots|sitemap)/;
 
 function isPublicPath(pathname: string): boolean {
   if (pathname === "/" || pathname === "") return true;
@@ -131,7 +131,9 @@ api.interceptors.response.use(
       }
 
       const isAuthMeProbe = requestUrl.endsWith("/auth/me");
-      if (!isAuthMeProbe && !isPublicPath(pathname)) {
+      // Falha das próprias rotas de autenticação (senha errada, refresh expirado) é tratada
+      // por quem chamou; redirecionar aqui recarregaria a página e apagaria o erro do login.
+      if (!isAuthMeProbe && !shouldSkipRefresh(requestUrl) && !isPublicPath(pathname)) {
         const redirect = encodeURIComponent(pathname + window.location.search);
         window.location.href = `/?next=${redirect}`;
       }
