@@ -7,6 +7,23 @@ primeiro.
 
 ---
 
+## [PWA premium] — 2026-10-26 — App instalável, avisos por categoria e silêncio sem perda
+
+### Adicionado
+
+- **App instalável com a marca My Urban AI**: ícones (any, maskable, monochrome), splash do iOS, atalhos e convite de
+  instalação (prompt nativo no Android/desktop, instruções "Adicionar à Tela de Início" no iOS Safari); aviso de nova
+  versão do app; push no iOS só depois de instalar.
+- **Avisos por categoria** (preço, eventos, resumo semanal) ligados às preferências de comunicação (`push_events` é novo),
+  teto diário por dispositivo e payloads ricos (ações com link direto, selo do app).
+- **Horário de silêncio 22h–8h (São Paulo) sem perda**: pushes gerados nesse intervalo são **adiados** para as 08:00 BRT
+  (`push_deliveries.deliverAfter`) e enviados pelo job `push-deferred-drain` (08h–12h, com lock Redis e reivindicação
+  atômica por entrega, sem duplicar entre réplicas). Antes de enviar: colapsa por `tag` no mesmo dispositivo (fica o
+  mais recente), descarta vencidos (evento que já começou, mais de 24h) e relê a preferência da categoria e o teto do
+  dia. O push de teste do usuário ignora o silêncio. Migrations aditivas `1793200000000` e `1793300000000`.
+
+---
+
 ## [Beta medido] — 2026-10-26 — Resumo semanal, cobrança assistida e resultados v1 × v2
 
 ### Adicionado

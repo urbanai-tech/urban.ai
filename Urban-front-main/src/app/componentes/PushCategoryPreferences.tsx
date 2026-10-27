@@ -83,8 +83,7 @@ export function PushCategoryPreferences() {
         </ul>
       )}
       <p className={styles.prefsNote}>
-        Entre 22h e 8h (horário de São Paulo) não enviamos avisos ao celular; o que chegar continua na sua central de
-        notificações.
+        Avisos gerados entre 22h e 8h (horário de São Paulo) não tocam de madrugada: chegam às 8h.
       </p>
       <p aria-live="polite" className={styles.prefsMessage}>
         {message}
