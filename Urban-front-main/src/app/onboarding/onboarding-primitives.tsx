@@ -473,12 +473,14 @@ function TabPanel({ children, panelIndexValue, ...props }: PrimitiveProps) {
   return <Component {...props}>{children}</Component>;
 }
 
-function Switch({ isChecked, onChange, id, ...props }: PrimitiveProps) {
+function Switch({ isChecked, onChange, id, 'aria-label': ariaLabel, ...props }: PrimitiveProps) {
   return (
     <label style={{ position: 'relative', display: 'inline-flex', width: props.size === 'lg' ? 48 : 42, height: props.size === 'lg' ? 26 : 24, cursor: 'pointer' }}>
       <input
         id={id}
         type="checkbox"
+        role="switch"
+        aria-label={ariaLabel}
         checked={Boolean(isChecked)}
         onChange={onChange}
         style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}

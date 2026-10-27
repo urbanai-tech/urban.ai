@@ -27,6 +27,7 @@ import {
   AppPageShell,
   AppSectionHeader,
   useToastCompat,
+  DialogSurface,
 } from '../componentes/ui';
 import './properties.css';
 
@@ -700,9 +701,9 @@ export default function MyProperties() {
       </AppCard>
 
       {propertyToDelete && (
-        <div className="properties-dialog-overlay" role="dialog" aria-modal="true">
+        <DialogSurface className="properties-dialog-overlay" onClose={closeDeleteDialog} aria-labelledby="properties-delete-title">
           <div className="properties-dialog">
-            <h2>Excluir propriedade?</h2>
+            <h2 id="properties-delete-title">Excluir propriedade?</h2>
             <p>
               A Urban AI não atualizará mais os preços desta unidade. Esta ação não pode ser desfeita.
             </p>
@@ -715,7 +716,7 @@ export default function MyProperties() {
               </AppButton>
             </div>
           </div>
-        </div>
+        </DialogSurface>
       )}
 
       <AddPropertyModal

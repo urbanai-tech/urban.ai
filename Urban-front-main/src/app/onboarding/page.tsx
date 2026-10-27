@@ -879,6 +879,7 @@ function OnboardingWizardContent() {
                             <HStack key={index}>
                               <Input
                                 size="lg" type="url"
+                                aria-label={`Link do imóvel ${index + 1} no Airbnb`}
                                 placeholder="https://www.airbnb.com.br/rooms/12345678"
                                 value={link}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleIndividualLinkChange(index, e.target.value)}
@@ -946,6 +947,7 @@ function OnboardingWizardContent() {
                           <FormControl>
                             <Input
                               size="lg" type="url"
+                              aria-label="Link do perfil de anfitrião ou de um anúncio no Airbnb"
                               placeholder="https://www.airbnb.com.br/users/show/123456789"
                               value={airbnbLink}
                               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAirbnbLink(e.target.value)}
@@ -1061,7 +1063,7 @@ function OnboardingWizardContent() {
                               {property.airbnbId && (
                                 <Text fontSize="2xs" color="gray.500" fontFamily="mono">{property.airbnbId}</Text>
                               )}
-                              <Text fontSize="2xs" color="var(--app-warning)" lineHeight="short" mt={1}>
+                              <Text fontSize="2xs" color="var(--app-warning-text)" lineHeight="short" mt={1}>
                                 {property.fallbackMessage}
                                 {property.provisionalDailyPrice
                                   ? ` Valor encontrado: R$ ${property.provisionalDailyPrice.toFixed(2)} (${property.sourceLabel ?? 'fonte não informada'}).`
@@ -1070,6 +1072,7 @@ function OnboardingWizardContent() {
                             </Box>
                             <Box w="160px">
                               <Input
+                                aria-label={`Diária base de ${property.propertyName}`}
                                 placeholder="R$ 350"
                                 value={manualPriceDrafts[property.addressId] ?? ''}
                                 onChange={(event: any) =>
@@ -1094,6 +1097,7 @@ function OnboardingWizardContent() {
                       </FormLabel>
                       <Switch
                         size="lg"
+                        aria-label="Ativar todos os imóveis"
                         isChecked={selectAll}
                         onChange={handleSelectAllToggle}
                       />
@@ -1175,6 +1179,7 @@ function OnboardingWizardContent() {
                             </Flex>
                             <Switch
                               size="md"
+                              aria-label={`Monitorar ${property.titulo || property.propertyType || property.id_do_anuncio}`}
                               isChecked={selectedProperties[property.id_do_anuncio] || false}
                               onChange={() => handlePropertyToggle(property.id_do_anuncio)} />
                           </Flex>

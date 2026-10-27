@@ -249,7 +249,7 @@ function EventRadarContent() {
               </p>
             )}
             {propertyOptionsError && (
-              <p style={{ margin: "6px 0 0", color: "var(--app-warning)", fontSize: 11, lineHeight: 1.35 }}>
+              <p style={{ margin: "6px 0 0", color: "var(--app-warning-text)", fontSize: 11, lineHeight: 1.35 }}>
                 {propertyOptionsError}
               </p>
             )}
@@ -493,7 +493,7 @@ function EventDetailPanel({
         </p>
       )}
       {(dataStatus !== "persisted" || !jobRunId) && (
-        <p style={{ margin: "10px 0 0", color: "var(--app-warning)", fontSize: 12, lineHeight: 1.5 }}>
+        <p style={{ margin: "10px 0 0", color: "var(--app-warning-text)", fontSize: 12, lineHeight: 1.5 }}>
           Leitura derivada: ainda não há snapshot persistido com jobRunId para auditoria completa.
         </p>
       )}

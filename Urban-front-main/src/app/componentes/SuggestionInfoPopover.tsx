@@ -18,11 +18,23 @@ export const SuggestionInfoPopover: React.FC<SuggestionInfoPopoverProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
   const resolvedBorder = borderColor.includes(".") ? "#FACC15" : borderColor;
 
   return (
-    <div ref={wrapperRef} style={{ position: "relative", display: "inline-flex" }}>
+    <div
+      ref={wrapperRef}
+      style={{ position: "relative", display: "inline-flex" }}
+      onKeyDown={(event) => {
+        if (open && event.key === "Escape") {
+          event.stopPropagation();
+          setOpen(false);
+          triggerRef.current?.focus();
+        }
+      }}
+    >
       <button
+        ref={triggerRef}
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
@@ -48,6 +60,7 @@ export const SuggestionInfoPopover: React.FC<SuggestionInfoPopoverProps> = ({
       {open && (
         <div
           role="dialog"
+          aria-label={title}
           style={{
             position: "absolute",
             zIndex: 50,

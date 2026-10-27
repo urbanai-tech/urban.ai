@@ -3,6 +3,7 @@
 import React from "react";
 import { AppButton } from "./AppButton";
 import { AppBadge } from "./AppBadge";
+import { DialogSurface } from "./DialogSurface";
 import { DriverBar } from "./DriverBar";
 import { ScenarioComparison } from "./ScenarioComparison";
 import {
@@ -601,16 +602,6 @@ export function RecommendationCard({
     };
   }, [detailsOpen]);
 
-  // ESC fecha os detalhes.
-  React.useEffect(() => {
-    if (!detailsOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setDetailsOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [detailsOpen]);
-
   const deltaDirection = deltaAbs < 0 ? "down" : "up";
   const deltaAbsLabel = `${deltaAbs > 0 ? "+" : deltaAbs < 0 ? "−" : ""}${fmtBRL(Math.abs(deltaAbs))}`;
 
@@ -715,9 +706,8 @@ export function RecommendationCard({
       </div>
 
       {detailsOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
+        <DialogSurface
+          onClose={() => setDetailsOpen(false)}
           aria-labelledby="recommendation-detail-title"
           className="urban-rec-dialog"
         >
@@ -773,7 +763,7 @@ export function RecommendationCard({
               </p>
             </div>
           </div>
-        </div>
+        </DialogSurface>
       )}
     </div>
   );
