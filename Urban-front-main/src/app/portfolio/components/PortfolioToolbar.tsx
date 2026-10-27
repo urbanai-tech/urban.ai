@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { AppButton, AppInput, Icons } from "../../componentes/ui";
+import styles from "./PortfolioToolbar.module.css";
 
 export type PortfolioToolbarAction =
   | { type: "apply-strategy"; strategy: string }
@@ -108,15 +109,7 @@ export function PortfolioToolbar({
       >
         {!hasSelection ? (
           <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 10,
-              color: "var(--app-text-muted)",
-              fontSize: 13,
-              fontWeight: 500,
-              flexWrap: "wrap",
-            }}
+            className={styles.s1}
           >
             <Icons.Info size={14} />
             <span>Selecione imóveis ou datas recomendadas para agir.</span>
@@ -129,15 +122,7 @@ export function PortfolioToolbar({
         ) : (
           <>
             <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                color: "var(--app-text)",
-                fontSize: 14,
-                fontWeight: 600,
-                flexWrap: "wrap",
-              }}
+              className={styles.s2}
             >
               <span
                 aria-hidden
@@ -163,11 +148,7 @@ export function PortfolioToolbar({
               </span>
               {selectedDatesCount > 0 && (
                 <span
-                  style={{
-                    color: "var(--app-text-muted)",
-                    fontSize: 12,
-                    fontWeight: 500,
-                  }}
+                  className={styles.s3}
                 >
                   {selectedDatesCount} data{selectedDatesCount > 1 ? "s" : ""} marcada
                   {selectedDatesCount > 1 ? "s" : ""}
@@ -179,28 +160,13 @@ export function PortfolioToolbar({
                   onClick={onClearSelection}
                   disabled={loading}
                   aria-label="Limpar selecao"
-                  className="urban-focus-ring"
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    color: "var(--app-text-muted)",
-                    cursor: "pointer",
-                    fontSize: 12,
-                    textDecoration: "underline",
-                    padding: "4px 6px",
-                    borderRadius: 4,
-                  }}
+                  className={`urban-focus-ring ${styles.s4}`}
                 >
                   limpar
                 </button>
               )}
               <span
-                style={{
-                  width: "100%",
-                  color: "var(--app-text-muted)",
-                  fontSize: 12,
-                  fontWeight: 500,
-                }}
+                className={styles.s5}
               >
                 Toda ação abre uma prévia antes de confirmar.
               </span>
@@ -208,15 +174,10 @@ export function PortfolioToolbar({
 
             <div
               data-portfolio-actions
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                flexWrap: "wrap",
-              }}
+              className={styles.s6}
             >
               {priceMode ? (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <div className={styles.s6}>
                   <AppInput
                     leftAddon="R$"
                     placeholder={priceMode === "base" ? "320" : "420"}
@@ -247,7 +208,7 @@ export function PortfolioToolbar({
                 </div>
               ) : (
                 <>
-                  <div style={{ position: "relative" }}>
+                  <div className={styles.s7}>
                     <AppButton
                       size="sm"
                       variant="primary"
@@ -264,15 +225,9 @@ export function PortfolioToolbar({
                             key={strategy.id}
                             onClick={() => handleStrategy(strategy.id)}
                           >
-                            <span style={{ fontWeight: 600 }}>{strategy.label}</span>
+                            <span className={styles.s8}>{strategy.label}</span>
                             <span
-                              style={{
-                                display: "block",
-                                fontSize: 12,
-                                color: "var(--app-text-muted)",
-                                fontWeight: 400,
-                                marginTop: 2,
-                              }}
+                              className={styles.s9}
                             >
                               {strategy.helper}
                             </span>
@@ -368,7 +323,7 @@ function Dropdown({
     <>
       <div
         onClick={onClose}
-        style={{ position: "fixed", inset: 0, zIndex: 40 }}
+        className={styles.s10}
         aria-hidden
       />
       <div
@@ -407,19 +362,7 @@ function DropdownItem({
       type="button"
       role="menuitem"
       onClick={onClick}
-      className="urban-focus-ring"
-      style={{
-        background: "transparent",
-        border: "none",
-        textAlign: "left",
-        padding: "10px 12px",
-        borderRadius: 8,
-        color: "var(--app-text)",
-        fontSize: 13,
-        fontWeight: 500,
-        cursor: "pointer",
-        transition: "background 100ms",
-      }}
+      className={`urban-focus-ring ${styles.s11}`}
       onMouseEnter={(e) => {
         e.currentTarget.style.background = "var(--app-surface-muted, #F4F5F7)";
       }}

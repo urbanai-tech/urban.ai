@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { AppEmptyState } from "./AppEmptyState";
 import { Calendar, Check } from "./Icons";
+import styles from "./PortfolioCalendar.module.css";
 
 /**
  * <PortfolioCalendar> — grid horizontal/vertical para o `/portfolio` (Gap 1).
@@ -261,42 +262,16 @@ function StyledCheckbox({
   return (
     <label
       htmlFor={id}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 0,
-        cursor: "pointer",
-        flexShrink: 0,
-      }}
+      className={styles.s1}
     >
       <span
         aria-hidden="true"
-        style={{
-          width: 18,
-          height: 18,
-          borderRadius: 4,
-          border: visualChecked
-            ? "1.5px solid var(--app-accent)"
-            : "1.5px solid var(--app-divider-strong)",
-          background: visualChecked
-            ? "var(--app-accent)"
-            : "var(--app-surface)",
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "var(--app-bg)",
-          transition: "background 120ms ease, border-color 120ms ease",
-        }}
+        className={`${styles.s2} ${visualChecked ? styles.s3 : styles.s4}`}
       >
         {checked && <Check size={12} />}
         {!checked && indeterminate && (
           <span
-            style={{
-              width: 8,
-              height: 2,
-              background: "var(--app-bg)",
-              borderRadius: 1,
-            }}
+            className={styles.s5}
           />
         )}
       </span>
@@ -307,13 +282,7 @@ function StyledCheckbox({
         checked={checked}
         onChange={onChange}
         aria-label={label}
-        style={{
-          position: "absolute",
-          opacity: 0,
-          pointerEvents: "none",
-          width: 0,
-          height: 0,
-        }}
+        className={styles.s6}
       />
     </label>
   );
@@ -336,22 +305,18 @@ function SkeletonRow({ top }: { top: number }) {
       }}
     >
       <div
-        className="urban-app-skeleton"
-        style={{ width: 32, height: 32, borderRadius: "50%" }}
+        className={`urban-app-skeleton ${styles.s7}`}
       />
-      <div style={{ display: "flex", flexDirection: "column", gap: 6, flex: 1 }}>
+      <div className={styles.s8}>
         <div
-          className="urban-app-skeleton"
-          style={{ width: "60%", height: 12, borderRadius: 4 }}
+          className={`urban-app-skeleton ${styles.s9}`}
         />
         <div
-          className="urban-app-skeleton"
-          style={{ width: "30%", height: 10, borderRadius: 4 }}
+          className={`urban-app-skeleton ${styles.s10}`}
         />
       </div>
       <div
-        className="urban-app-skeleton"
-        style={{ flex: 2, height: 56, borderRadius: 6 }}
+        className={`urban-app-skeleton ${styles.s11}`}
       />
     </div>
   );
@@ -518,12 +483,7 @@ export function PortfolioCalendar({
         role="status"
         aria-busy="true"
         aria-label="Carregando portfólio"
-        style={{
-          background: "var(--app-surface)",
-          border: "1px solid var(--app-divider)",
-          borderRadius: 12,
-          overflow: "hidden",
-        }}
+        className={styles.s12}
       >
         <div
           style={{
@@ -536,8 +496,7 @@ export function PortfolioCalendar({
           }}
         >
           <div
-            className="urban-app-skeleton"
-            style={{ width: 180, height: 14, borderRadius: 4 }}
+            className={`urban-app-skeleton ${styles.s13}`}
           />
         </div>
         <div
@@ -591,20 +550,12 @@ export function PortfolioCalendar({
   // ============================================================
   if (isMobile) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div className={styles.s14}>
         {/* Topbar com select-all */}
         <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "10px 14px",
-            background: "var(--app-surface)",
-            border: "1px solid var(--app-divider)",
-            borderRadius: 10,
-          }}
+          className={styles.s15}
         >
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+          <div className={styles.s16}>
             <StyledCheckbox
               id="portfolio-select-all-mobile"
               checked={allSelected}
@@ -613,12 +564,7 @@ export function PortfolioCalendar({
               label="Selecionar todos os imóveis"
             />
             <span
-              style={{
-                fontSize: 13,
-                color: "var(--app-text)",
-                fontFamily: "'Inter', sans-serif",
-                fontWeight: 500,
-              }}
+              className={styles.s17}
             >
               {selectedPropertyIds.size} de {data.length} imóveis
             </span>
@@ -631,25 +577,10 @@ export function PortfolioCalendar({
           return (
             <article
               key={prop.propertyId}
-              style={{
-                background: "var(--app-surface)",
-                border: isActiveRow
-                  ? "2px solid var(--app-accent)"
-                  : "1px solid var(--app-divider)",
-                borderRadius: 12,
-                overflow: "hidden",
-                display: "flex",
-                flexDirection: "column",
-              }}
+              className={`${styles.s18} ${isActiveRow ? styles.s19 : styles.s20}`}
             >
               <header
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: "12px 14px",
-                  borderBottom: "1px solid var(--app-divider)",
-                }}
+                className={styles.s21}
               >
                 <StyledCheckbox
                   id={`portfolio-mobile-${prop.propertyId}`}
@@ -658,27 +589,14 @@ export function PortfolioCalendar({
                   label={`Selecionar ${prop.name}`}
                 />
                 <PropertyThumb thumbnail={prop.thumbnail} name={prop.name} />
-                <div style={{ minWidth: 0, flex: 1 }}>
+                <div className={styles.s22}>
                   <div
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 600,
-                      color: "var(--app-text)",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      fontFamily: "'Inter', sans-serif",
-                    }}
+                    className={styles.s23}
                   >
                     {prop.name}
                   </div>
                   <div
-                    style={{
-                      fontSize: 12,
-                      color: "var(--app-text-muted)",
-                      marginTop: 2,
-                      fontFamily: "'Inter', sans-serif",
-                    }}
+                    className={styles.s24}
                   >
                     {prop.days.length} dias na janela
                   </div>
@@ -687,14 +605,7 @@ export function PortfolioCalendar({
 
               <div
                 role="list"
-                style={{
-                  display: "flex",
-                  overflowX: "auto",
-                  scrollSnapType: "x mandatory",
-                  WebkitOverflowScrolling: "touch",
-                  padding: "12px 8px",
-                  gap: 6,
-                }}
+                className={styles.s25}
               >
                 {prop.days.map((day) => {
                   const isActive =
@@ -754,12 +665,7 @@ export function PortfolioCalendar({
                       {isSelectedDay && (
                         <span
                           aria-hidden="true"
-                          style={{
-                            position: "absolute",
-                            top: 6,
-                            left: 6,
-                            color: "var(--app-accent)",
-                          }}
+                          className={styles.s26}
                         >
                           <Check size={10} />
                         </span>
@@ -767,43 +673,16 @@ export function PortfolioCalendar({
                       {day.evento && (
                         <span
                           aria-hidden="true"
-                          style={{
-                            position: "absolute",
-                            top: 6,
-                            right: 6,
-                            width: 6,
-                            height: 6,
-                            borderRadius: "50%",
-                            background:
-                              day.evento.impacto === "alta"
-                                ? "var(--app-accent)"
-                                : "var(--app-text-muted)",
-                          }}
+                          className={`${styles.s27} ${day.evento.impacto === "alta" ? styles.s28 : styles.s29}`}
                         />
                       )}
                       <span
-                        style={{
-                          fontSize: 10,
-                          textTransform: "uppercase",
-                          letterSpacing: 0.5,
-                          color: "var(--app-text-muted)",
-                          fontFamily: "'Inter', sans-serif",
-                          fontWeight: 600,
-                        }}
+                        className={styles.s30}
                       >
                         {fmtWeekday(day.date)} {fmtDayMonth(day.date)}
                       </span>
                       <span
-                        className="urban-app-display"
-                        style={{
-                          fontSize: 14,
-                          color:
-                            day.sugestao !== null
-                              ? "var(--app-accent)"
-                              : "var(--app-text-muted)",
-                          letterSpacing: 0.5,
-                          lineHeight: 1,
-                        }}
+                        className={`urban-app-display ${styles.s31} ${day.sugestao !== null ? styles.s32 : styles.s33}`}
                       >
                         {day.sugestao !== null
                           ? fmtBRLShort(day.sugestao)
@@ -811,15 +690,7 @@ export function PortfolioCalendar({
                       </span>
                       {day.evento && (
                         <span
-                          style={{
-                            fontSize: 9,
-                            color: "var(--app-text-dim)",
-                            textOverflow: "ellipsis",
-                            overflow: "hidden",
-                            whiteSpace: "nowrap",
-                            maxWidth: "100%",
-                            fontFamily: "'Inter', sans-serif",
-                          }}
+                          className={styles.s34}
                         >
                           {day.evento.nome}
                         </span>
@@ -844,14 +715,7 @@ export function PortfolioCalendar({
 
   return (
     <div
-      style={{
-        background: "var(--app-surface)",
-        border: "1px solid var(--app-divider)",
-        borderRadius: 12,
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-      }}
+      className={styles.s35}
     >
       {/* ===== HEADER STICKY ===== */}
       <div
@@ -886,13 +750,7 @@ export function PortfolioCalendar({
             label="Selecionar todos os imóveis"
           />
           <span
-            style={{
-              fontSize: 12,
-              color: "var(--app-text-muted)",
-              fontFamily: "'Inter', sans-serif",
-              fontWeight: 600,
-              letterSpacing: 0.3,
-            }}
+            className={styles.s36}
           >
             {selectedPropertyIds.size} de {data.length} imóveis
           </span>
@@ -901,11 +759,7 @@ export function PortfolioCalendar({
         {/* Header direito scrollável (datas) */}
         <div
           ref={headerScrollRef}
-          style={{
-            flex: 1,
-            overflowX: "hidden",
-            overflowY: "hidden",
-          }}
+          className={styles.s37}
         >
           <div
             style={{
@@ -941,14 +795,11 @@ export function PortfolioCalendar({
                     letterSpacing: 0.3,
                   }}
                 >
-                  <span style={{ fontSize: 10, textTransform: "uppercase" }}>
+                  <span className={styles.s38}>
                     {fmtWeekday(d)}
                   </span>
                   <span
-                    style={{
-                      fontSize: 12,
-                      color: isActiveCol ? "var(--app-accent)" : "var(--app-text)",
-                    }}
+                    className={`${styles.s39} ${isActiveCol ? styles.s32 : styles.s40}`}
                   >
                     {fmtDayMonth(d)}
                   </span>
@@ -963,11 +814,7 @@ export function PortfolioCalendar({
       <div
         ref={bodyScrollRef}
         onScroll={handleBodyScroll}
-        style={{
-          maxHeight: 640,
-          overflow: "auto",
-          position: "relative",
-        }}
+        className={styles.s41}
       >
         <div
           style={{
@@ -1029,29 +876,15 @@ export function PortfolioCalendar({
                     label={`Selecionar ${prop.name}`}
                   />
                   <PropertyThumb thumbnail={prop.thumbnail} name={prop.name} />
-                  <div style={{ minWidth: 0, flex: 1 }}>
+                  <div className={styles.s22}>
                     <div
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 700,
-                        color: "var(--app-text)",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        fontFamily: "'Inter', sans-serif",
-                        lineHeight: 1.3,
-                      }}
+                      className={styles.s42}
                       title={prop.name}
                     >
                       {prop.name}
                     </div>
                     <div
-                      style={{
-                        fontSize: 11,
-                        color: "var(--app-text-muted)",
-                        marginTop: 2,
-                        fontFamily: "'Inter', sans-serif",
-                      }}
+                      className={styles.s43}
                     >
                       {prop.days[0]
                         ? `${fmtBRLFull(prop.days[0].atual)} / diária`
@@ -1118,12 +951,7 @@ export function PortfolioCalendar({
                       {isSelectedDay && (
                         <span
                           aria-hidden="true"
-                          style={{
-                            position: "absolute",
-                            bottom: 6,
-                            right: 6,
-                            color: "var(--app-accent)",
-                          }}
+                          className={styles.s44}
                         >
                           <Check size={10} />
                         </span>
@@ -1132,18 +960,7 @@ export function PortfolioCalendar({
                         <>
                           <span
                             aria-hidden="true"
-                            style={{
-                              position: "absolute",
-                              top: 6,
-                              right: 6,
-                              width: 6,
-                              height: 6,
-                              borderRadius: "50%",
-                              background:
-                                day.evento!.impacto === "alta"
-                                  ? "var(--app-accent)"
-                                  : "var(--app-text-muted)",
-                            }}
+                            className={`${styles.s27} ${day.evento!.impacto === "alta" ? styles.s28 : styles.s29}`}
                           />
                           <span
                             aria-hidden="true"
@@ -1181,36 +998,20 @@ export function PortfolioCalendar({
                       )}
                       {day.sugestao !== null ? (
                         <span
-                          className="urban-app-display"
-                          style={{
-                            fontSize: 14,
-                            color: "var(--app-accent)",
-                            lineHeight: 1,
-                            letterSpacing: 0.5,
-                          }}
+                          className={`urban-app-display ${styles.s45}`}
                         >
                           {fmtBRLShort(day.sugestao)}
                         </span>
                       ) : day.atual > 0 ? (
                         <span
-                          className="urban-app-display"
-                          style={{
-                            fontSize: 14,
-                            color: "var(--app-text-muted)",
-                            lineHeight: 1,
-                            letterSpacing: 0.5,
-                          }}
+                          className={`urban-app-display ${styles.s46}`}
                         >
                           {fmtBRLShort(day.atual)}
                         </span>
                       ) : (
                         <span
                           aria-label="sem preço"
-                          style={{
-                            fontSize: 14,
-                            color: "var(--app-text-muted)",
-                            fontFamily: "'Inter', sans-serif",
-                          }}
+                          className={styles.s47}
                         >
                           —
                         </span>

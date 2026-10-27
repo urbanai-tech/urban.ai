@@ -8,6 +8,7 @@ import {
   AppCardHeader,
   Icons,
 } from "../../componentes/ui";
+import styles from "./OpportunityRanking.module.css";
 
 export type PortfolioOpportunityRankingItem = {
   id: string;
@@ -79,14 +80,7 @@ export function OpportunityRanking({
 
       {items.length === 0 ? (
         <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "14px 0 2px",
-            color: "var(--app-text-muted)",
-            fontSize: 13,
-          }}
+          className={styles.s1}
         >
           <Icons.Check size={16} />
           <span>Nenhuma oportunidade clara nesta janela.</span>
@@ -94,11 +88,7 @@ export function OpportunityRanking({
       ) : (
         <div
           role="list"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            borderTop: "1px solid var(--app-divider)",
-          }}
+          className={styles.s2}
         >
           {items.slice(0, 8).map((item, index) => {
             const selected = item.dates.some((date) =>
@@ -108,43 +98,20 @@ export function OpportunityRanking({
               <div
                 role="listitem"
                 key={item.id}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "44px minmax(0, 1fr) auto",
-                  gap: 14,
-                  alignItems: "center",
-                  padding: "16px 0",
-                  borderBottom: "1px solid var(--app-divider)",
-                }}
+                className={styles.s3}
               >
                 <div
-                  className="urban-app-display"
-                  style={{
-                    color: selected ? "var(--app-accent)" : "var(--app-text-muted)",
-                    fontSize: 28,
-                    lineHeight: 1,
-                    textAlign: "center",
-                  }}
+                  className={`urban-app-display ${styles.s4} ${selected ? styles.s5 : styles.s6}`}
                 >
                   {index + 1}
                 </div>
 
-                <div style={{ minWidth: 0 }}>
+                <div className={styles.s7}>
                   <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      flexWrap: "wrap",
-                      marginBottom: 6,
-                    }}
+                    className={styles.s8}
                   >
                     <strong
-                      style={{
-                        color: "var(--app-text)",
-                        fontSize: 14,
-                        lineHeight: 1.3,
-                      }}
+                      className={styles.s9}
                     >
                       {item.title}
                     </strong>
@@ -155,30 +122,18 @@ export function OpportunityRanking({
                   </div>
 
                   <p
-                    style={{
-                      margin: 0,
-                      color: "var(--app-text-muted)",
-                      fontSize: 13,
-                      lineHeight: 1.45,
-                    }}
+                    className={styles.s10}
                   >
                     {item.propertyName} · {formatDates(item.dates)}
                     {item.reason ? ` · ${item.reason}` : ""}
                   </p>
 
                   <div
-                    style={{
-                      display: "flex",
-                      gap: 14,
-                      flexWrap: "wrap",
-                      marginTop: 10,
-                      color: "var(--app-text-muted)",
-                      fontSize: 12,
-                    }}
+                    className={styles.s11}
                   >
                     <span>
                       Lift:{" "}
-                      <strong style={{ color: "var(--app-text)" }}>
+                      <strong className={styles.s12}>
                         {item.liftAmount != null
                           ? formatCurrency(item.liftAmount)
                           : formatPercent(item.liftPercent)}
@@ -186,19 +141,19 @@ export function OpportunityRanking({
                     </span>
                     <span>
                       Atual:{" "}
-                      <strong style={{ color: "var(--app-text)" }}>
+                      <strong className={styles.s12}>
                         {formatCurrency(item.currentPrice)}
                       </strong>
                     </span>
                     <span>
                       Sugerido:{" "}
-                      <strong style={{ color: "var(--app-text)" }}>
+                      <strong className={styles.s12}>
                         {formatCurrency(item.suggestedPrice)}
                       </strong>
                     </span>
                     <span>
                       Risco/conf.:{" "}
-                      <strong style={{ color: "var(--app-text)" }}>
+                      <strong className={styles.s12}>
                         {formatPercent(item.risk)} / {formatPercent(item.confidence)}
                       </strong>
                     </span>

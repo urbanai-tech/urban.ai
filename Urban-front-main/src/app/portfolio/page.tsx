@@ -35,6 +35,7 @@ import { PortfolioActionRuns } from "./components/PortfolioActionRuns";
 import { PortfolioCockpit, type PortfolioCockpitMetrics } from "./components/PortfolioCockpit";
 import { PortfolioToolbar, type PortfolioToolbarAction } from "./components/PortfolioToolbar";
 import { usePortfolioKeyboard } from "./usePortfolioKeyboard";
+import styles from "./page.module.css";
 
 const STRATEGY_OPTIONS: ReadonlyArray<{ id: string; label: string }> = [
   { id: "todas", label: "Todos os modos" },
@@ -693,10 +694,10 @@ function PortfolioPageContent() {
         title="Cockpit do portfólio"
         subtitle="Priorize oportunidades, simule mudanças e aplique ações rastreáveis por imóvel e data."
         actions={
-          <div style={{ display: "inline-flex", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
+          <div className={styles.s1}>
             <DateRangeField label="De" value={from} max={to} onChange={handleFromChange} />
             <DateRangeField label="Até" value={to} min={from} onChange={handleToChange} />
-            <div style={{ flex: "0 0 150px", maxWidth: 150, minWidth: 0 }}>
+            <div className={styles.s2}>
               <AppSelect
                 label="Janela"
                 value={String(rangeDays)}
@@ -709,7 +710,7 @@ function PortfolioPageContent() {
                 ))}
               </AppSelect>
             </div>
-            <div style={{ flex: "0 0 220px", maxWidth: 220, minWidth: 0 }}>
+            <div className={styles.s3}>
               <AppSelect
                 label="Modo de preço"
                 value={strategy}
@@ -842,31 +843,19 @@ function PortfolioDayDetailDialog({
         onClick={(event) => event.stopPropagation()}
       >
         <header
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: 16,
-            padding: "22px 24px 18px",
-            borderBottom: "1px solid var(--app-divider)",
-          }}
+          className={styles.s4}
         >
-          <div style={{ minWidth: 0 }}>
-            <p className="urban-app-eyebrow-muted" style={{ marginBottom: 8 }}>
+          <div className={styles.s5}>
+            <p className={`urban-app-eyebrow-muted ${styles.s6}`}>
               Detalhe da data
             </p>
             <h2
               id="portfolio-day-detail-title"
-              style={{
-                margin: 0,
-                color: "var(--app-text)",
-                fontSize: 22,
-                lineHeight: 1.2,
-              }}
+              className={styles.s7}
             >
               {detail.propertyName}
             </h2>
-            <p style={{ margin: "6px 0 0", color: "var(--app-text-muted)", fontSize: 13 }}>
+            <p className={styles.s8}>
               {formatLongDate(detail.date)}
             </p>
           </div>
@@ -874,26 +863,14 @@ function PortfolioDayDetailDialog({
             type="button"
             aria-label="Fechar detalhes"
             onClick={onClose}
-            className="urban-focus-ring"
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: 999,
-              border: "1px solid var(--app-divider)",
-              background: "var(--app-surface)",
-              color: "var(--app-text-muted)",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-            }}
+            className={`urban-focus-ring ${styles.s9}`}
           >
             <Icons.Close size={15} />
           </button>
         </header>
 
-        <div style={{ padding: 24, display: "grid", gap: 18 }}>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div className={styles.s10}>
+          <div className={styles.s11}>
             {detail.selected && <AppBadge kind="accent">Data marcada</AppBadge>}
             {detail.event && (
               <AppBadge kind={detail.event.impacto === "alta" ? "warn" : "neutral"}>
@@ -905,31 +882,22 @@ function PortfolioDayDetailDialog({
 
           {detail.event && (
             <section
-              style={{
-                border: "1px solid var(--app-divider)",
-                borderRadius: 10,
-                padding: "14px 16px",
-                background: "var(--app-surface-muted)",
-              }}
+              className={styles.s12}
             >
-              <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
+              <p className={`urban-app-eyebrow-muted ${styles.s13}`}>
                 Evento que influencia a diária
               </p>
-              <strong style={{ display: "block", color: "var(--app-text)", fontSize: 16, lineHeight: 1.35 }}>
+              <strong className={styles.s14}>
                 {detail.event.nome}
               </strong>
-              <p style={{ margin: "8px 0 0", color: "var(--app-text-muted)", fontSize: 13, lineHeight: 1.45 }}>
+              <p className={styles.s15}>
                 O nome completo fica aqui, fora da célula apertada. A grade passa a mostrar apenas o sinal do evento.
               </p>
             </section>
           )}
 
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-              gap: 10,
-            }}
+            className={styles.s16}
           >
             <DetailMetric label="Preço atual" value={formatCurrency(detail.currentPrice)} />
             <DetailMetric label="Sugestão" value={formatCurrency(suggested)} accent />
@@ -949,7 +917,7 @@ function PortfolioDayDetailDialog({
             />
           </div>
 
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, flexWrap: "wrap" }}>
+          <div className={styles.s17}>
             <AppButton variant="secondary" onClick={onClose}>
               Voltar para a grade
             </AppButton>
@@ -971,25 +939,13 @@ function DetailMetric({
 }) {
   return (
     <div
-      style={{
-        border: "1px solid var(--app-divider)",
-        borderRadius: 8,
-        padding: "12px 14px",
-        background: "var(--app-surface)",
-        minWidth: 0,
-      }}
+      className={styles.s18}
     >
-      <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
+      <p className={`urban-app-eyebrow-muted ${styles.s13}`}>
         {label}
       </p>
       <strong
-        style={{
-          display: "block",
-          color: accent ? "var(--app-accent)" : "var(--app-text)",
-          fontSize: 18,
-          lineHeight: 1.2,
-          overflowWrap: "anywhere",
-        }}
+        className={`${styles.s19} ${accent ? styles.s20 : styles.s21}`}
       >
         {value}
       </strong>
@@ -1030,17 +986,9 @@ function DateRangeField({
   max?: string;
 }) {
   return (
-    <label style={{ display: "block" }}>
+    <label className={styles.s22}>
       <span
-        style={{
-          display: "block",
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: 1.5,
-          textTransform: "uppercase",
-          color: "var(--app-text-muted)",
-          marginBottom: 6,
-        }}
+        className={styles.s23}
       >
         {label}
       </span>
@@ -1050,18 +998,7 @@ function DateRangeField({
         min={min}
         max={max}
         onChange={(event) => onChange(event.target.value)}
-        className="urban-focus-ring"
-        style={{
-          height: 40,
-          padding: "0 14px",
-          background: "var(--app-surface)",
-          border: "1px solid var(--app-divider-strong)",
-          borderRadius: 10,
-          color: "var(--app-text)",
-          fontSize: 14,
-          fontWeight: 400,
-          fontFamily: "Inter, system-ui, sans-serif",
-        }}
+        className={`urban-focus-ring ${styles.s24}`}
       />
     </label>
   );

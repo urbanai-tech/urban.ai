@@ -7,6 +7,7 @@ import type {
   PortfolioBulkActionFailure,
 } from "../../service/api";
 import type { PortfolioToolbarAction } from "./PortfolioToolbar";
+import styles from "./ActionSimulationDialog.module.css";
 
 function formatCurrency(value: unknown): string {
   const num = typeof value === "number" ? value : null;
@@ -134,45 +135,32 @@ export function ActionSimulationDialog({
       cancelLabel="Revisar"
       loading={loading}
       body={
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div className={styles.s1}>
           <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 10,
-            }}
+            className={styles.s2}
           >
-            <strong style={{ color: "var(--app-text)" }}>{actionLabel(action)}</strong>
+            <strong className={styles.s3}>{actionLabel(action)}</strong>
             <AppBadge kind={simulated ? "success" : "warn"}>
               {simulated ? "Simulado" : "Previa local"}
             </AppBadge>
           </div>
 
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 10,
-            }}
+            className={styles.s4}
           >
             <SnapshotBox label="Antes" value={formatCurrency(beforeValue)} />
             <SnapshotBox label="Depois" value={formatCurrency(afterValue)} />
           </div>
 
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 10,
-            }}
+            className={styles.s4}
           >
             <SnapshotBox label="Aplicáveis" value={String(applied)} />
             <SnapshotBox label="Falhas" value={String(failed.length)} tone={failed.length > 0 ? "warn" : "neutral"} />
           </div>
 
           {failed.length > 0 && (
-            <ul style={{ margin: 0, paddingLeft: 18 }}>
+            <ul className={styles.s5}>
               {failed.slice(0, 4).map((failure, index) => (
                 <li key={`${failure.propertyId}-${index}`}>
                   {failure.propertyId}: {failure.reason}
@@ -182,7 +170,7 @@ export function ActionSimulationDialog({
           )}
 
           {!simulated && (
-            <p style={{ margin: 0 }}>
+            <p className={styles.s6}>
               O endpoint de simulação ainda não respondeu. Esta prévia usa os
               dados carregados no calendário; a ação real só roda se você confirmar.
             </p>
@@ -213,17 +201,11 @@ function SnapshotBox({
       }}
     >
       <div
-        style={{
-          fontSize: 11,
-          color: "var(--app-text-muted)",
-          textTransform: "uppercase",
-          letterSpacing: 1,
-          marginBottom: 4,
-        }}
+        className={styles.s7}
       >
         {label}
       </div>
-      <div style={{ color: "var(--app-text)", fontWeight: 700, fontSize: 15 }}>
+      <div className={styles.s8}>
         {value}
       </div>
     </div>
