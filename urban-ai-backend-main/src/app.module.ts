@@ -49,8 +49,11 @@ import { HostPanelsModule } from './host-panels/host-panels.module';
 import { AdminJobRunsModule } from './admin-job-runs/admin-job-runs.module';
 import { RedisLockModule } from './common/redis-lock';
 import { SubscriptionModule } from './subscription/subscription.module';
+import { assertSafeProductionConfig } from './common/production-config-guard';
 
 dotenv.config();
+// Falha no boot com configuração ativamente perigosa em production/staging.
+assertSafeProductionConfig();
 
 const runtimeEnv = process.env.APP_ENV || process.env.NODE_ENV || 'development';
 const isLocalRuntime = ['development', 'dev', 'test', 'local'].includes(runtimeEnv);
