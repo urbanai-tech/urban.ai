@@ -1,4 +1,9 @@
-import { saoPauloParts, toSaoPauloDateKey } from 'src/common/sp-date';
+import {
+  addDaysToDateKey,
+  saoPauloLocalToInstant,
+  saoPauloParts,
+  toSaoPauloDateKey,
+} from 'src/common/sp-date';
 
 /**
  * Montagem dos payloads de Web Push (puro, sem I/O) + política de categoria/horário.
@@ -30,6 +35,11 @@ export type PwaPushPayload = {
   /** Selo do ícone do app (pendentes). 0 limpa. */
   badgeCount?: number;
   requireInteraction?: boolean;
+  /**
+   * Instante (ISO) depois do qual o aviso perde o sentido (ex.: evento já começou). Só importa quando o
+   * push é adiado pelo horário de silêncio: ao enviar, itens vencidos são descartados.
+   */
+  expiresAt?: string;
   /** Ignora o horário de silêncio (uso restrito: teste do usuário, alertas de cobrança). */
   urgent?: boolean;
   data?: Record<string, unknown>;
@@ -89,6 +99,69 @@ export function isWithinQuietHours(now: Date, quiet: QuietHours): boolean {
   const { hour } = saoPauloParts(now);
   const { startHour, endHour } = quiet;
   return startHour < endHour ? hour >= startHour && hour < endHour : hour >= startHour || hour < endHour;
+}
+
+/** Próximo fim do silêncio (ex.: 08:00 BRT) estritamente depois de `now`. */
+export function nextQuietEnd(now: Date, quiet: QuietHours): Date {
+  const endHour = quiet ? quiet.endHour : 8;
+  const today = toSaoPauloDateKey(now);
+  const at = (key: string) => {
+    const [y, m, d] = key.split('-').map(Number);
+    return saoPauloLocalToInstant(y, m, d, endHour, 0, 0, 0);
+  };
+  const candidate = at(today);
+  return candidate.getTime() > now.getTime() ? candidate : at(addDaysToDateKey(today, 1));
+}
+
+/** Validade máxima de um push adiado (24h), reduzida pelo `expiresAt` do payload quando houver. */
+export const DEFERRED_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
+export function deferralExpiry(createdAt: Date, payloadExpiresAt?: string): Date {
+  const cap = createdAt.getTime() + DEFERRED_MAX_AGE_MS;
+  const own = payloadExpiresAt ? Date.parse(payloadExpiresAt) : NaN;
+  return new Date(Number.isFinite(own) ? Math.min(cap, own) : cap);
+}
+
+export type DeferredRow = {
+  id: string;
+  subscriptionId: string;
+  tag?: string | null;
+  createdAt: Date;
+  expiresAt?: Date | null;
+};
+
+/**
+ * Antes de enviar os adiados: descarta vencidos (expiresAt ou mais de 24h) e, para a mesma
+ * `tag` no mesmo dispositivo, mantém só o mais recente (ex.: o último resumo de preços).
+ * Itens sem tag nunca colapsam.
+ */
+export function planDeferredDrain(
+  rows: DeferredRow[],
+  now: Date,
+): { send: DeferredRow[]; expired: DeferredRow[]; superseded: DeferredRow[] } {
+  const expired: DeferredRow[] = [];
+  const live: DeferredRow[] = [];
+  for (const row of rows) {
+    const limit = row.expiresAt ? row.expiresAt.getTime() : row.createdAt.getTime() + DEFERRED_MAX_AGE_MS;
+    const hardLimit = row.createdAt.getTime() + DEFERRED_MAX_AGE_MS;
+    if (now.getTime() >= Math.min(limit, hardLimit)) expired.push(row);
+    else live.push(row);
+  }
+  const latestByKey = new Map<string, DeferredRow>();
+  for (const row of live) {
+    if (!row.tag) continue;
+    const key = `${row.subscriptionId}|${row.tag}`;
+    const current = latestByKey.get(key);
+    if (!current || row.createdAt.getTime() >= current.createdAt.getTime()) latestByKey.set(key, row);
+  }
+  const send: DeferredRow[] = [];
+  const superseded: DeferredRow[] = [];
+  for (const row of live) {
+    if (row.tag && latestByKey.get(`${row.subscriptionId}|${row.tag}`) !== row) superseded.push(row);
+    else send.push(row);
+  }
+  send.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  return { send, expired, superseded };
 }
 
 /** Categorias que respeitam o horário de silêncio; teste e `urgent` passam direto. */
@@ -216,6 +289,8 @@ export function buildEventAlertPayload(input: {
     url: target,
     tag: `event-${input.propertyId ?? 'all'}-${input.startsOn}-${slug(input.eventName)}`,
     image: input.imageUrl ?? undefined,
+    // Se o aviso ficar adiado pelo silêncio, não vale mais depois que o dia do evento começa.
+    expiresAt: eventStartInstant(input.startsOn),
     actions: [
       { action: 'view', title: 'Ver recomendação', url: target },
       { action: 'later', title: 'Aplicar depois' },
@@ -247,6 +322,7 @@ export function normalizePushPayload(payload: PwaPushPayload): PwaPushPayload {
     badgeCount: Number.isFinite(badgeCount) && badgeCount >= 0 ? Math.min(Math.floor(badgeCount), 99) : undefined,
     requireInteraction: Boolean(payload.requireInteraction),
     urgent: payload.urgent ? true : undefined,
+    expiresAt: payload.expiresAt && Number.isFinite(Date.parse(payload.expiresAt)) ? payload.expiresAt : undefined,
     data: payload.data || {},
     actions,
   };
@@ -269,6 +345,12 @@ function normalizeImageUrl(url?: string): string | undefined {
   if (!url) return undefined;
   if (url.startsWith('/') && !url.startsWith('//')) return url;
   return /^https:\/\//i.test(url) ? url : undefined;
+}
+
+function eventStartInstant(startsOn: string): string | undefined {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(startsOn);
+  if (!match) return undefined;
+  return saoPauloLocalToInstant(Number(match[1]), Number(match[2]), Number(match[3]), 0, 0, 0, 0).toISOString();
 }
 
 function truncate(value: string, max: number): string {
