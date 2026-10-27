@@ -101,3 +101,13 @@ O que falta para "sim":
 4. Pequenas deriva de datas e contagens entre documentos (item 11) e um runbook antigo (item 10).
 
 Repetir este ensaio quando os itens 1 a 3 forem resolvidos, e idealmente com uma pessoa de fora, em Linux, para comparar os tempos.
+
+## 7. Fechamento de lacunas (2026-10-27)
+
+| Item | Estado |
+|---|---|
+| 7 (login local) | **Feito**: `npm run seed:dev` (idempotente, recusa fora de ambiente local) e `SEED_DEV_ON_BOOT=true`; credenciais fictícias no CONTRIBUTING. Verificado no MySQL do Compose: 2 usuários com bcrypt do SHA-256 conferindo, assinatura ativa, 1 imóvel, 5 eventos, 3 sugestões, 3 avisos, 2 execuções seguidas sem duplicar. O `curl` em `/auth/login` **não foi feito**: o `nest start --watch` não terminou de compilar na janela do reensaio. |
+| 3 (Node fixado) | **Feito**: `.nvmrc` (20), `engines` `>=20` nos três `package.json`, `doctor` lê o `.nvmrc`. |
+| 5 (validar sem reinstalar) | **Feito**: `validate-local.sh --skip-install`. |
+| 2 (boot) | **Parcial**: `frontend` espera o backend `healthy` (e `start_period` de 45 min para o backend não virar `unhealthy` antes), cache do npm em volume, migrations/seed sem checagem de tipos. **Sem medição "depois"**: o "antes" nesta máquina carregada passou de 63 min sem o backend responder. |
+| 13 (flaky) | **Feito**: self-test do `slo-probe` deterministico. |
