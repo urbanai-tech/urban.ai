@@ -32,6 +32,9 @@ export class PropertyResponseDto {
  */
 @Injectable()
 export class PropertyScrapingService {
+    /** Evita repetir o aviso de chave ausente a cada chamada. */
+    private static missingWebApiKeyLogged = false;
+
     constructor(
         @InjectRepository(Address)
         private readonly addressRepository: Repository<Address>,
@@ -71,7 +74,13 @@ export class PropertyScrapingService {
         // Chave do cliente web do Airbnb: vem do ambiente (AIRBNB_WEB_API_KEY), nunca do código.
         const apiKey = process.env.AIRBNB_WEB_API_KEY?.trim();
         if (!apiKey) {
-            console.error('🚨 [scrapeHost] AIRBNB_WEB_API_KEY não configurada: a consulta GraphQL do perfil foi pulada. Defina a variável (ver .env.example); usando o fallback por navegador.');
+            if (!PropertyScrapingService.missingWebApiKeyLogged) {
+                PropertyScrapingService.missingWebApiKeyLogged = true;
+                if (!PropertyScrapingService.missingWebApiKeyLogged) {
+                PropertyScrapingService.missingWebApiKeyLogged = true;
+                console.error('🚨 [scrapeHost] AIRBNB_WEB_API_KEY não configurada: a consulta GraphQL do perfil foi pulada. Defina a variável (ver .env.example); usando o fallback por navegador.');
+            }
+            }
             return this.scrapeHostListingsWithBrowserFallback(userId, 'missing-airbnb-web-api-key');
         }
 
