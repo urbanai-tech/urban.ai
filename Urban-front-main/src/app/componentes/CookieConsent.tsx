@@ -229,9 +229,12 @@ export function CookieConsent() {
           }
           [data-cookie-surface="default"] {
             bottom: env(safe-area-inset-bottom) !important;
+            max-height: calc(100dvh - env(safe-area-inset-bottom) - 16px) !important;
           }
           [data-cookie-surface="host-mobile"] {
             bottom: calc(64px + env(safe-area-inset-bottom)) !important;
+            /* Nunca passa do topo da tela: rola por dentro quando a tela é baixa. */
+            max-height: calc(100dvh - 64px - env(safe-area-inset-bottom) - 16px) !important;
           }
           [data-cookie-surface="admin"] {
             bottom: env(safe-area-inset-bottom) !important;
