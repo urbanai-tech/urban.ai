@@ -196,7 +196,7 @@ async function handlePushEvent(event) {
 
   if (payloads.length === 0) {
     payloads.push({
-      title: "Urban AI",
+      title: "My Urban",
       body: "Voce tem uma nova notificacao.",
       url: "/notificacao",
       tag: "urban-ai-generic",
@@ -211,7 +211,7 @@ function parsePushPayload(data) {
     return data.json();
   } catch {
     try {
-      return { title: "Urban AI", body: data.text(), url: "/notificacao" };
+      return { title: "My Urban", body: data.text(), url: "/notificacao" };
     } catch {
       return null;
     }
@@ -283,7 +283,7 @@ function buildNotificationOptions(payload, maxActions) {
   };
   const image = normalizeImageUrl(payload.image);
   if (image) options.image = image;
-  return { title: payload.title || "Urban AI", options };
+  return { title: payload.title || "My Urban", options };
 }
 
 function normalizeImageUrl(value) {

@@ -77,7 +77,7 @@ test('customer-facing authentication copy no longer presents the product as beta
 test('rota de lançamento não importa nem renderiza waitlist', async () => {
   const content = await source('launch');
   assert.doesNotMatch(content, /Waitlist(Form|Signup)|lista de espera|acesso antecipado/i);
-  assert.match(content, /Urban AI disponível/);
+  assert.match(content, /My Urban disponível/);
 });
 
 test('cadastro respeita o modo de lançamento e mantém termos, confirmação de e-mail e analytics sem PII', async () => {

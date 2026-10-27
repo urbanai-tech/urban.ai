@@ -34,14 +34,14 @@ export function getFriendlyApiErrorMessage(error: unknown, fallback?: string): s
   if (status === 409) return fallback ?? "Essa ação entrou em conflito com uma informação já salva.";
   if (status === 422) return fallback ?? "Algum dado precisa ser corrigido antes de continuar.";
   if (status === 429) return "Muitas tentativas em pouco tempo. Aguarde um instante e tente de novo.";
-  if (status >= 500) return "A Urban AI encontrou uma instabilidade. Tente novamente em alguns instantes.";
+  if (status >= 500) return "O My Urban encontrou uma instabilidade. Tente novamente em alguns instantes.";
 
   if ((error as any)?.code === "ECONNABORTED") {
     return "A conexão demorou mais que o esperado. Tente novamente.";
   }
 
   if ((error as any)?.message === "Network Error") {
-    return "Não foi possível conectar com a Urban AI. Verifique sua internet e tente novamente.";
+    return "Não foi possível conectar com o My Urban. Verifique sua internet e tente novamente.";
   }
 
   return fallback ?? "Não conseguimos concluir agora. Tente novamente em alguns instantes.";

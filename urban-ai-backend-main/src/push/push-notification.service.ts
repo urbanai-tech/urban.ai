@@ -525,7 +525,7 @@ export class PushNotificationService {
     try {
       return this.normalizePayload(JSON.parse(payloadJson));
     } catch {
-      return this.normalizePayload({ title: 'Urban AI', body: 'Você tem uma nova notificação.', url: '/notificacao' });
+      return this.normalizePayload({ title: 'My Urban', body: 'Você tem uma nova notificação.', url: '/notificacao' });
     }
   }
 

@@ -210,8 +210,8 @@ export function buildPricingDigestPayload(input: {
     title: plural(count, 'Recomendação de preço para revisar', 'Recomendações de preço para revisar'),
     body:
       count === 1
-        ? 'A Urban AI preparou uma recomendação nova para revisar.'
-        : `A Urban AI preparou ${count} recomendações para revisar em um só lugar.`,
+        ? 'O My Urban preparou uma recomendação nova para revisar.'
+        : `O My Urban preparou ${count} recomendações para revisar em um só lugar.`,
     url: '/dashboard?source=pwa_push_pricing_digest',
     tag: `pricing-digest-${day}`,
     renotify: true,
@@ -322,7 +322,7 @@ export function normalizePushPayload(payload: PwaPushPayload): PwaPushPayload {
     }));
   const badgeCount = Number(payload.badgeCount);
   return {
-    title: String(payload.title || 'Urban AI').slice(0, MAX_TITLE),
+    title: String(payload.title || 'My Urban').slice(0, MAX_TITLE),
     body: payload.body ? String(payload.body).slice(0, MAX_BODY) : undefined,
     url: normalizeInternalUrl(payload.url),
     tag: payload.tag ? String(payload.tag).slice(0, 120) : undefined,

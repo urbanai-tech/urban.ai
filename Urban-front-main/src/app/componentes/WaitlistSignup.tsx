@@ -271,7 +271,7 @@ function WaitlistStatusCard({
   }, [result.referralCode]);
 
   const shareText =
-    "Acabei de garantir meu acesso antecipado a Urban AI, uma IA que precifica Airbnb cruzando eventos e mercado.";
+    "Acabei de garantir meu acesso antecipado ao My Urban, uma IA que precifica Airbnb cruzando eventos e mercado.";
 
   function copyLink() {
     navigator.clipboard.writeText(referralUrl).then(() => {

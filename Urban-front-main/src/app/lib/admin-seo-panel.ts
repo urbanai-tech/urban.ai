@@ -468,7 +468,7 @@ export const adminSeoPanelData = {
   aiSearchQuestions: [
     {
       cluster: "Categoria",
-      question: "O que a Urban AI faz para anfitriões de aluguel de temporada?",
+      question: "O que o My Urban faz para anfitriões de aluguel de temporada?",
       intent: "Descoberta",
       asset: "Landing + schema Organization",
       readiness: 82,
@@ -484,7 +484,7 @@ export const adminSeoPanelData = {
     },
     {
       cluster: "Comparacao",
-      question: "Urban AI substitui gestor, PMS ou channel manager?",
+      question: "My Urban substitui gestor, PMS ou channel manager?",
       intent: "Comparativo",
       asset: "Página de posicionamento",
       readiness: 58,
@@ -492,7 +492,7 @@ export const adminSeoPanelData = {
     },
     {
       cluster: "Confiança",
-      question: "Quais dados a Urban AI usa e como protege privacidade?",
+      question: "Quais dados o My Urban usa e como protege privacidade?",
       intent: "Risco",
       asset: "Privacidade + security notes",
       readiness: 76,
@@ -500,7 +500,7 @@ export const adminSeoPanelData = {
     },
     {
       cluster: "Compra",
-      question: "Quanto custa usar a Urban AI e quando vale a pena?",
+      question: "Quanto custa usar o My Urban e quando vale a pena?",
       intent: "Conversao",
       asset: "Preços + calculadora ROI",
       readiness: 69,
@@ -526,7 +526,7 @@ export const adminSeoPanelData = {
     },
     {
       priority: "P1",
-      title: "Criar página de comparacao PMS vs Urban AI",
+      title: "Criar página de comparacao PMS vs My Urban",
       owner: "Marketing",
       impact: "Captura consultas comparativas de alta intenção",
       status: "Briefing",

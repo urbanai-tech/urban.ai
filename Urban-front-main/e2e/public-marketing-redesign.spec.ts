@@ -8,7 +8,7 @@ test.describe('Site público comercial', () => {
     await page.goto('/landing', { waitUntil: 'domcontentloaded' });
 
     await expect(page.getByRole('heading', { level: 1, name: /cidade muda/i })).toBeVisible();
-    await expect(page.getByLabel('Prévia principal do painel de recomendação da Urban AI')).toBeVisible();
+    await expect(page.getByLabel('Prévia principal do painel de recomendação do My Urban')).toBeVisible();
     await expect(page.locator('.public-hero').getByRole('link', { name: /Criar minha conta/i })).toHaveAttribute('href', /\/create$/);
     await expect(page.locator('body')).not.toContainText(/pré-lançamento|lista de espera|beta privado|acesso por convite/i);
   });

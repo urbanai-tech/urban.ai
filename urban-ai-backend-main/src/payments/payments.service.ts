@@ -726,7 +726,7 @@ export class PaymentsService {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     await this.sendBillingEmailToUser(
       user,
-      'Urban AI - Você está perto do limite de imóveis',
+      'My Urban - Você está perto do limite de imóveis',
       EmailTemplates.getQuotaWarningTemplate({
         nome: user?.username || user?.email || 'Usuário',
         contratados,
@@ -740,7 +740,7 @@ export class PaymentsService {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     await this.sendBillingEmailToUser(
       user,
-      'Urban AI - Limite de imóveis atingido',
+      'My Urban - Limite de imóveis atingido',
       EmailTemplates.getQuotaExceededTemplate({
         nome: user?.username || user?.email || 'Usuário',
         contratados,
@@ -808,10 +808,10 @@ export class PaymentsService {
             const item = subscription.items?.data?.[0];
             await this.sendBillingEmail(
               payment,
-              'Urban AI - Assinatura ativada',
+              'My Urban - Assinatura ativada',
               EmailTemplates.getSubscriptionActiveTemplate({
                 nome: payment.user?.username || payment.user?.email || 'Usuário',
-                planName: projection.planName || payment.planName || 'Urban AI',
+                planName: projection.planName || payment.planName || 'My Urban',
                 billingCycle: projection.billingCycle as BillingCycle,
                 listingsContratados: Math.max(1, projection.quantity),
                 totalAmountCents: this.resolveSubscriptionAmountCents(item, projection.quantity, session.amount_total),
@@ -930,7 +930,7 @@ export class PaymentsService {
             : new Date().toISOString().slice(0, 10);
           await this.sendBillingEmail(
             payment,
-            'Urban AI - Cancelamento confirmado',
+            'My Urban - Cancelamento confirmado',
             EmailTemplates.getSubscriptionCancelledTemplate({
               nome: payment.user?.username || payment.user?.email || 'Usuário',
               accessEndsAt,
@@ -956,7 +956,7 @@ export class PaymentsService {
           await this.saveStripeProjection(payment, event);
           await this.sendBillingEmail(
             payment,
-            'Urban AI - Falha no pagamento',
+            'My Urban - Falha no pagamento',
             EmailTemplates.getPaymentFailedTemplate({
               nome: payment.user?.username || payment.user?.email || 'Usuário',
               amountCents: invoice.amount_due || 0,

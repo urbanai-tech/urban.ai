@@ -7,7 +7,7 @@ test.describe('PWA e mobile', () => {
 
     const manifest = await manifestResponse.json();
     expect(manifest.name).toBe('My Urban AI');
-    expect(manifest.short_name).toBe('My Urban');
+    expect(manifest.short_name).toBe('My Urban AI');
     expect(manifest.id).toBe('/?source=pwa');
     expect(manifest.scope).toBe('/');
     expect(manifest.display).toBe('standalone');

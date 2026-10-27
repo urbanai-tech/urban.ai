@@ -1,4 +1,4 @@
-import { test, expect, type Page, type Response as PlaywrightResponse, type Route } from '@playwright/test';
+﻿import { test, expect, type Page, type Response as PlaywrightResponse, type Route } from '@playwright/test';
 import { acceptCookieConsent } from './test-helpers';
 import { installLocalAuthFixture, type LocalAuthRole } from './local-auth-fixture';
 
@@ -189,7 +189,7 @@ test.describe('Smoke autenticado - F3/F4/F7', () => {
 
     await gotoAuthenticatedRoute(page, '/admin');
     await expectNotBackAtLogin(page);
-    await expectRouteText(page, /painel urban ai|painel/i);
+    await expectRouteText(page, /painel|hoje/i);
     await expect(page.getByText(/acesso negado/i)).toHaveCount(0);
 
     await gotoAuthenticatedRoute(page, '/admin/alpha');

@@ -192,7 +192,7 @@ export default function PricingSettingsPage() {
       <AppSectionHeader
         eyebrow="PRECIFICAÇÃO - CONFIGURAÇÕES"
         title="Limites de preço"
-        subtitle="Defina até onde a Urban AI pode sugerir queda ou alta. Estes limites são guardrails: eles protegem sua diária base e deixam cada recomendação mais previsível."
+        subtitle="Defina até onde o My Urban pode sugerir queda ou alta. Estes limites são guardrails: eles protegem sua diária base e deixam cada recomendação mais previsível."
         actions={
           <AppButton
             type="button"
@@ -229,7 +229,7 @@ export default function PricingSettingsPage() {
               <strong>Como isso afeta as sugestões?</strong>
               <p>
                 Se a diária base é R$ 150 e o limite de alta é 20%, a sugestão normal não passa de R$ 180.
-                Se o limite de queda é 10%, a Urban AI não sugere abaixo de R$ 135 sem um guardrail especial.
+                Se o limite de queda é 10%, o My Urban não sugere abaixo de R$ 135 sem um guardrail especial.
               </p>
             </div>
           </div>

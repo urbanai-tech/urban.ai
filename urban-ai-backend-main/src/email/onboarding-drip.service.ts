@@ -159,7 +159,7 @@ export class OnboardingDripService {
     if (day === 1) {
       subject = ctx.propertiesCount === 0
         ? '👋 Bem-vindo! Cadastre seu primeiro imóvel'
-        : 'Bem-vindo à Urban AI — suas sugestões estão sendo preparadas';
+        : 'Bem-vindo ao My Urban — suas sugestões estão sendo preparadas';
       html = EmailTemplates.getOnboardingDay1Template({
         nome: user.username,
         propertiesCount: ctx.propertiesCount,
@@ -178,8 +178,8 @@ export class OnboardingDripService {
       });
     } else {
       subject = ctx.hasActiveSubscription
-        ? 'Uma semana com a Urban AI — extraia o máximo'
-        : 'Uma semana com a Urban AI — escolha seu plano';
+        ? 'Uma semana com o My Urban — extraia o máximo'
+        : 'Uma semana com o My Urban — escolha seu plano';
       html = EmailTemplates.getOnboardingDay7Template({
         nome: user.username,
         hasActiveSubscription: ctx.hasActiveSubscription,

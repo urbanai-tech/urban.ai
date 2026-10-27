@@ -17,7 +17,7 @@ const groups = [
     links: [
       ["Precificação dinâmica", "/precificacao-dinamica-airbnb"],
       ["Preços em dias de eventos", "/como-precificar-airbnb-em-dias-de-eventos"],
-      ["Urban AI vs. planilha", "/urban-ai-vs-planilha-de-precificacao"],
+      ["My Urban vs. planilha", "/urban-ai-vs-planilha-de-precificacao"],
       ["Segurança e LGPD", "/seguranca-lgpd-ia-precificacao"],
     ],
   },
@@ -46,7 +46,7 @@ export default function FooterPublic() {
 
         <div className="public-footer__grid">
           <div className="public-footer__brand">
-            <NextLink href="/" className="public-wordmark" aria-label="Urban AI — página inicial">
+            <NextLink href="/" className="public-wordmark" aria-label="My Urban — página inicial">
               <span>URBAN</span><i>AI</i>
             </NextLink>
             <p>Inteligência de preço para anfitriões e gestoras de aluguel por temporada.</p>
@@ -65,7 +65,7 @@ export default function FooterPublic() {
         </div>
 
         <div className="public-footer__bottom">
-          <span>© {new Date().getFullYear()} Urban AI. Todos os direitos reservados.</span>
+          <span>© {new Date().getFullYear()} My Urban AI. Todos os direitos reservados.</span>
           <span>Feito em São Paulo.</span>
         </div>
       </div>

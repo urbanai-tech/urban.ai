@@ -151,7 +151,7 @@ export class CronService {
 
         return {
             title,
-            description: `A Urban AI recomenda ${action} o preço de ${propertyTitle} de ${this.formatMoney(currentPrice)} para ${this.formatMoney(suggestedPrice)} (${liftPercent > 0 ? '+' : ''}${this.formatNumber(liftPercent)}%).`,
+            description: `O My Urban recomenda ${action} o preço de ${propertyTitle} de ${this.formatMoney(currentPrice)} para ${this.formatMoney(suggestedPrice)} (${liftPercent > 0 ? '+' : ''}${this.formatNumber(liftPercent)}%).`,
             titleButton: 'Revisar recomendação',
             redirectTo: propertyId
                 ? `/dashboard?propertyId=${encodeURIComponent(propertyId)}&source=cron_pricing_digest`
@@ -348,7 +348,7 @@ export class CronService {
         }
 
         const resultado = await this.mailerSender.sendTextEmailCron(
-            { email: opsEmail, name: 'Urban AI Ops' },
+            { email: opsEmail, name: 'My Urban Ops' },
             subject,
             content,
         );

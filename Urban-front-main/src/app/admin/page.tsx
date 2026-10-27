@@ -85,7 +85,7 @@ export default function AdminPage() {
       <AdminSectionHeader
         eyebrow="OPERAÇÃO · RESUMO"
         title="Painel"
-        subtitle="Visão consolidada da operação Urban AI. Acesso restrito à equipe autorizada."
+        subtitle="Visão consolidada da operação My Urban. Acesso restrito à equipe autorizada."
         actions={
           <AdminButton
             variant="primary"

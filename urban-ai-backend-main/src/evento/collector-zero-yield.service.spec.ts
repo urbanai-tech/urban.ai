@@ -206,7 +206,7 @@ describe('CollectorZeroYieldService', () => {
       expect.objectContaining({ level: 'error', tags: { component: 'collector-zero-yield' } }),
     );
     expect(mailer.sendTextEmailCron).toHaveBeenCalledWith(
-      { email: 'admin@example.com', name: 'Urban AI Admin' },
+      { email: 'admin@example.com', name: 'My Urban Admin' },
       expect.stringContaining('sp-cultura'),
       expect.stringContaining('sp-cultura'),
     );

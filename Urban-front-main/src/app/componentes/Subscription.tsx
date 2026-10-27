@@ -58,7 +58,7 @@ function getPlanName(sub: Subscription) {
   const plan = sub.metadata?.urbanai_plan || sub.plan?.id;
   if (plan === "alpha") return "Plano Alpha";
   if (plan) return `Plano ${plan}`;
-  return "Plano Urban AI";
+  return "Plano My Urban";
 }
 
 function getCycleLabel(sub: Subscription) {

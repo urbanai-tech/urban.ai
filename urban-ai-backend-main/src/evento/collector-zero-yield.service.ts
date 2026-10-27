@@ -291,8 +291,8 @@ export class CollectorZeroYieldService {
     ].join('\n');
     try {
       const result = await this.mailer.sendTextEmailCron(
-        { email: to, name: 'Urban AI Admin' },
-        `Urban AI — fonte de eventos sem dados (${findings.map((f) => f.source).join(', ')})`.slice(0, 200),
+        { email: to, name: 'My Urban Admin' },
+        `My Urban — fonte de eventos sem dados (${findings.map((f) => f.source).join(', ')})`.slice(0, 200),
         body,
       );
       if (!result.enviado) this.logger.warn(`E-mail zero-yield não enviado: ${result.message ?? result.status}`);
