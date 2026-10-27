@@ -65,6 +65,13 @@ const APP_ONLY_PREFIXES = [
   "/confirm-email",
   "/address-verification",
   "/settings",
+  "/my-roi",
+  "/portfolio",
+  "/profile",
+  "/event-radar",
+  "/events",
+  "/forbidden",
+  "/auth",
 ];
 
 // ===== Helpers =====

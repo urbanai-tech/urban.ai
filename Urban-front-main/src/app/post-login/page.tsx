@@ -35,8 +35,6 @@ export default function PostLoginPage() {
 
     (async () => {
       try {
-        console.log('[post-login] baseURL =>', (api.defaults as any).baseURL);
-
         // E-mail ainda não verificado: confirma antes de qualquer onboarding.
         // Falha ao ler o perfil não bloqueia o fluxo (o backend também barra).
         try {
@@ -58,7 +56,6 @@ export default function PostLoginPage() {
 
         if (cancelled) return;
 
-        console.log('[post-login] payload =>', data);
         const hasAddress = toBool(data.hasAddress) || data.count > 0;
 
         finished = true;

@@ -17,6 +17,9 @@ concurrency:
   group: backup-mysql
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   dump-and-upload:
     name: Dump MySQL + upload off-site (S3 ou B2)
