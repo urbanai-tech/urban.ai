@@ -13,7 +13,7 @@ import { MailerService, NonTransactionalMailOptions } from 'src/mailer/mailer.se
 import { EmailTemplates } from './templates';
 import * as crypto from 'crypto';
 import { PushNotificationService } from 'src/push/push-notification.service';
-import { buildPricingDigestPayload, buildSystemNotificationPayload } from 'src/push/push-payload.builder';
+import { buildPricingDigestPayload, buildSystemNotificationPayload, nearestUpcomingEventRef } from 'src/push/push-payload.builder';
 import { EntitlementService } from 'src/subscription/entitlement.service';
 import {
     ClaimedPricingDigest,
@@ -573,6 +573,7 @@ export class EmailService {
                         tag: notificationContent.pushTag || `notification-${notification?.id ?? Date.now()}`,
                         type: notificationContent.pushType || 'system_notification',
                         notificationId: notification?.id,
+                        event: nearestUpcomingEventRef([notificationContent.metadata?.eventStartsAt]),
                     }),
                 );
                 this.logger.debug(`Push PWA para user=${userId}: ${JSON.stringify(pushResult)}`);
@@ -698,7 +699,11 @@ export class EmailService {
             if (wantsPush) {
                 await this.pushNotificationService.sendToUser(
                     digest.userId,
-                    buildPricingDigestPayload({ count: items.length, digestId: digest.id }),
+                    buildPricingDigestPayload({
+                        count: items.length,
+                        digestId: digest.id,
+                        event: nearestUpcomingEventRef(items.map((item) => item.eventStartsAt)),
+                    }),
                 );
             }
 
@@ -737,6 +742,7 @@ export class EmailService {
             suggestedPrice: this.metadataNumber(metadata.suggestedPrice ?? metadata.precoSugerido),
             liftPercent: this.metadataNumber(metadata.liftPercent ?? metadata.diferencaPercentual),
             reasons,
+            eventStartsAt: this.metadataIso(metadata.eventStartsAt),
             createdAt: new Date().toISOString(),
         };
     }
@@ -759,6 +765,12 @@ export class EmailService {
     private metadataString(value: unknown): string | undefined {
         const text = String(value ?? '').trim();
         return text.length ? text.slice(0, 240) : undefined;
+    }
+
+    private metadataIso(value: unknown): string | null {
+        if (typeof value !== 'string' && !(value instanceof Date)) return null;
+        const ms = new Date(value).getTime();
+        return Number.isFinite(ms) ? new Date(ms).toISOString() : null;
     }
 
     private metadataNumber(value: unknown): number | null {
