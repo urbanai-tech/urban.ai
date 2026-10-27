@@ -56,10 +56,12 @@ test.describe('PWA e mobile', () => {
       'content',
       /#(?:F4F8F5|000000)/,
     );
-    await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute(
+    // iOS escolhe o tamanho certo entre os declarados; o de 180px é o principal.
+    await expect(page.locator('link[rel="apple-touch-icon"][sizes="180x180"]')).toHaveAttribute(
       'href',
       '/apple-touch-icon.png',
     );
+    await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveCount(4);
 
     const swAvailable = await page.evaluate(() => 'serviceWorker' in navigator);
     expect(swAvailable).toBeTruthy();
