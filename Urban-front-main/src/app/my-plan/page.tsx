@@ -20,6 +20,7 @@ import {
   fetchSubscription,
   type ListingsQuota,
 } from "../service/api";
+import styles from "./page.module.css";
 
 function remainingQuota(quota: ListingsQuota) {
   return Math.max(0, quota.contratados - quota.ativos);
@@ -98,12 +99,7 @@ export default function SubscriptionsPage() {
     return (
       <AppPageShell>
         <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: "60vh",
-          }}
+          className={styles.s1}
         >
           <Spinner />
         </div>
@@ -115,9 +111,9 @@ export default function SubscriptionsPage() {
     return (
       <AppPageShell>
         <AppCard variant="accent">
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div className={styles.s2}>
             <Icons.AlertCircle size={18} />
-            <span style={{ color: "var(--app-danger)", fontWeight: 500 }}>{error}</span>
+            <span className={styles.s3}>{error}</span>
           </div>
         </AppCard>
       </AppPageShell>
@@ -128,7 +124,7 @@ export default function SubscriptionsPage() {
     return (
       <AppPageShell>
         <AppCard variant="accent">
-          <div style={{ display: "grid", gap: 12 }}>
+          <div className={styles.s4}>
             <AppSectionHeader
               eyebrow="ASSINATURA"
               title="Nenhuma assinatura encontrada"
@@ -137,17 +133,7 @@ export default function SubscriptionsPage() {
             <button
               type="button"
               onClick={() => router.push("/plans?source=my-plan")}
-              style={{
-                width: "fit-content",
-                minHeight: 42,
-                padding: "0 16px",
-                borderRadius: 8,
-                border: "1px solid var(--app-accent)",
-                background: "var(--app-accent)",
-                color: "var(--app-accent-contrast)",
-                fontWeight: 800,
-                cursor: "pointer",
-              }}
+              className={styles.s5}
             >
               Escolher quantidade e período
             </button>
@@ -172,18 +158,7 @@ export default function SubscriptionsPage() {
 
         {quotaError && (
           <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              padding: "14px 16px",
-              background: "var(--app-warning-soft)",
-              border: "1px solid var(--app-warning-border)",
-              borderRadius: 10,
-              color: "var(--app-warning-text)",
-              fontSize: 14,
-              marginBottom: 24,
-            }}
+            className={styles.s6}
           >
             <Icons.AlertCircle size={18} />
             <span>{quotaError}</span>
@@ -192,12 +167,7 @@ export default function SubscriptionsPage() {
 
         {quota && (
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-              gap: 16,
-              marginBottom: 32,
-            }}
+            className={styles.s7}
           >
             <AppCard>
               <div data-testid="quota-contracted-card">
@@ -231,28 +201,19 @@ export default function SubscriptionsPage() {
         )}
 
         <AppCard style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+          <div className={styles.s8}>
             <div>
-              <h3 style={{ margin: 0, fontSize: 18, color: "var(--app-text)" }}>
+              <h3 className={styles.s9}>
                 Precisa mudar a quantidade?
               </h3>
-              <p style={{ margin: "6px 0 0", color: "var(--app-text-muted)", fontSize: 14 }}>
+              <p className={styles.s10}>
                 Abra o seletor self-service para contratar mais imóveis ou mudar o período.
               </p>
             </div>
             <button
               type="button"
               onClick={() => router.push("/plans?source=my-plan")}
-              style={{
-                minHeight: 42,
-                padding: "0 16px",
-                borderRadius: 8,
-                border: "1px solid var(--app-accent)",
-                background: "var(--app-accent)",
-                color: "var(--app-accent-contrast)",
-                fontWeight: 800,
-                cursor: "pointer",
-              }}
+              className={styles.s11}
             >
               Ajustar assinatura
             </button>
@@ -278,14 +239,7 @@ export default function SubscriptionsPage() {
 function Spinner() {
   return (
     <div
-      style={{
-        width: 36,
-        height: 36,
-        borderRadius: "50%",
-        border: "3px solid color-mix(in srgb, var(--theme-app-accent) 15%, transparent)",
-        borderTopColor: "var(--app-accent)",
-        animation: "urban-app-spin 0.9s linear infinite",
-      }}
+      className={styles.s12}
     >
       <style>{`@keyframes urban-app-spin { to { transform: rotate(360deg); } }`}</style>
     </div>

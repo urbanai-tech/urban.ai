@@ -1,0 +1,45 @@
+.s1.s1 {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.s2.s2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.s3.s3 {
+  color: var(--app-text);
+}
+
+.s4.s4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.s5.s5 {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.s6.s6 {
+  margin: 0;
+}
+
+.s7.s7 {
+  font-size: 11px;
+  color: var(--app-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.s8.s8 {
+  color: var(--app-text);
+  font-weight: 700;
+  font-size: 15px;
+}

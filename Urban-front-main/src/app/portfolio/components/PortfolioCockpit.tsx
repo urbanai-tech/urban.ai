@@ -8,6 +8,7 @@ import {
   AppMetricCard,
   Icons,
 } from "../../componentes/ui";
+import styles from "./PortfolioCockpit.module.css";
 
 export type PortfolioCockpitMetrics = {
   currentRevenue: number;
@@ -58,12 +59,7 @@ export function PortfolioCockpit({ metrics }: { metrics: PortfolioCockpitMetrics
 
       <div
         data-portfolio-cockpit-grid
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
-          gap: 12,
-          alignItems: "stretch",
-        }}
+        className={styles.s1}
       >
         <MetricShell accent>
           <AppMetricCard
@@ -135,15 +131,7 @@ export function PortfolioCockpit({ metrics }: { metrics: PortfolioCockpitMetrics
       </div>
 
       <div
-        style={{
-          marginTop: 18,
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          color: "var(--app-text-muted)",
-          fontSize: 12,
-          lineHeight: 1.5,
-        }}
+        className={styles.s2}
       >
         <Icons.Info size={14} />
         <span>
@@ -177,13 +165,7 @@ function MetricShell({
 }) {
   return (
     <div
-      style={{
-        minWidth: 0,
-        border: "1px solid var(--app-divider)",
-        borderRadius: 8,
-        padding: 14,
-        background: accent ? "var(--app-accent-soft)" : "var(--app-surface-muted)",
-      }}
+      className={`${styles.s3} ${accent ? styles.s4 : styles.s5}`}
     >
       {children}
     </div>

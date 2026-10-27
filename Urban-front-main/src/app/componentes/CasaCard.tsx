@@ -2,6 +2,7 @@
 'use client';
 
 import { AlertTriangle, CheckCircle } from 'lucide-react';
+import styles from "./CasaCard.module.css";
 
 interface Casa {
   id: string;
@@ -31,48 +32,27 @@ export default function CasaCard({ casa, onClick }: CasaCardProps) {
   return (
     <article
       onClick={onClick}
-      style={{
-        width: "100%",
-        overflow: "hidden",
-        border: "1px solid rgba(14,17,22,0.06)",
-        borderRadius: 12,
-        background: "#fff",
-        boxShadow: "0 1px 2px rgba(14,17,22,0.04)",
-        cursor: onClick ? "pointer" : "default",
-      }}
+      className={`${styles.s1} ${onClick ? styles.s2 : styles.s3}`}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 24, padding: 24 }}>
+      <div className={styles.s4}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="https://a0.muscache.com/im/pictures/042cca29-c44c-4370-8c99-f0f5eb74baac.jpg?im_w=960"
           alt={title}
-          style={{
-            width: 120,
-            height: 120,
-            borderRadius: 10,
-            objectFit: "cover",
-            flexShrink: 0,
-          }}
+          className={styles.s5}
         />
 
-        <div style={{ minWidth: 0, flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-          <h3 style={{ margin: 0, color: "#0E1116", fontSize: 18, lineHeight: 1.25, fontWeight: 700 }}>
+        <div className={styles.s6}>
+          <h3 className={styles.s7}>
             {title}
           </h3>
-          <p style={{ margin: 0, color: "rgba(14,17,22,0.62)", fontSize: 14, lineHeight: 1.5 }}>
+          <p className={styles.s8}>
             {address}
           </p>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <div className={styles.s9}>
             <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-                color: casa.ativo ? "#16A06B" : "#C2342E",
-                fontSize: 13,
-                fontWeight: 650,
-              }}
+              className={`${styles.s10} ${casa.ativo ? styles.s11 : styles.s12}`}
             >
               {casa.ativo ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
               {casa.ativo ? "Ativo" : "Inativo"}

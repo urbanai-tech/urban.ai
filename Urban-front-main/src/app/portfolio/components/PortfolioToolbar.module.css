@@ -1,0 +1,101 @@
+.s1.s1 {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--app-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  flex-wrap: wrap;
+}
+
+.s2.s2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--app-text);
+  font-size: 14px;
+  font-weight: 600;
+  flex-wrap: wrap;
+}
+
+.s3.s3 {
+  color: var(--app-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.s4.s4 {
+  background: transparent;
+  border: none;
+  color: var(--app-text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  text-decoration: underline;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.s5.s5 {
+  width: 100%;
+  color: var(--app-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.s6.s6 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.s7.s7 {
+  position: relative;
+}
+
+.s8.s8 {
+  font-weight: 600;
+}
+
+.s9.s9 {
+  display: block;
+  font-size: 12px;
+  color: var(--app-text-muted);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.s10.s10 {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.s11.s11 {
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--app-text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 100ms;
+}
+
+.s15.s15 {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 41;
+  min-width: 260px;
+  background: var(--app-surface-elevated, var(--theme-app-legacy-white));
+  border: 1px solid var(--app-divider-strong);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 12px 32px var(--theme-app-legacy-ink-12);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}

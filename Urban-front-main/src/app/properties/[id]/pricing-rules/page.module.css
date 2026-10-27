@@ -1,0 +1,125 @@
+.s1.s1 {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.s2.s2 {
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--app-text-muted);
+  line-height: 1.5;
+}
+
+.s3.s3 {
+  padding: 1px 6px;
+  border: 1px solid var(--app-divider-strong);
+  border-radius: 4px;
+  font-size: 11px;
+  background: var(--app-surface-muted);
+}
+
+.s4.s4 {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.s5.s5 {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.s6.s6 {
+  width: 40px;
+  height: 22px;
+  background: var(--app-surface-muted);
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.s7.s7 {
+  flex: 1;
+}
+
+.s8.s8 {
+  height: 14px;
+  width: 55%;
+  background: var(--app-surface-muted);
+  border-radius: 4px;
+}
+
+.s9.s9 {
+  margin-top: 8px;
+  height: 10px;
+  width: 85%;
+  background: var(--app-surface-muted);
+  border-radius: 4px;
+  opacity: 0.7;
+}
+
+.s10.s10 {
+  width: 120px;
+  height: 40px;
+  background: var(--app-surface-muted);
+  border-radius: 6px;
+}
+
+.s11.s11 {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.s12.s12 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  color: var(--app-text-muted);
+  font-size: 12px;
+}
+
+.s13.s13 {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+
+.s14.s14 {
+  border-color: color-mix(in srgb, var(--app-accent, var(--admin-accent)) 25%, transparent);
+  color: var(--app-accent);
+  background: var(--app-accent-soft);
+}
+
+.s15.s15 {
+  border-color: var(--app-divider-strong);
+  color: var(--app-text-muted);
+  background: var(--app-surface-muted);
+}
+
+.s16.s16 {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.s17.s17 {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}

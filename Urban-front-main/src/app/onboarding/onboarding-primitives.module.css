@@ -1,0 +1,41 @@
+.s1.s1 {
+  display: inline-flex;
+  align-items: center;
+}
+
+.s2.s2 {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.s3.s3 {
+  width: 48px;
+  height: 26px;
+}
+
+.s4.s4 {
+  width: 42px;
+  height: 24px;
+}
+
+.s5.s5 {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.s6.s6 {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  transition: background 140ms ease;
+}
+
+.s7.s7 {
+  background: var(--app-accent);
+}
+
+.s8.s8 {
+  background: var(--app-divider-strong);
+}

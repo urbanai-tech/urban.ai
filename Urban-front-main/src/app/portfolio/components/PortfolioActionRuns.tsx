@@ -9,6 +9,7 @@ import {
   Icons,
 } from "../../componentes/ui";
 import type { PortfolioActionRun } from "../../service/api";
+import styles from "./PortfolioActionRuns.module.css";
 
 function formatDateTime(value?: string | null): string {
   if (!value) return "sem data";
@@ -89,7 +90,7 @@ export function PortfolioActionRuns({
             : "Registro operacional das simulações confirmadas e aplicações realizadas no portfólio."
         }
         actions={
-          <div style={{ display: "inline-flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <div className={styles.s1}>
             {viewAllHref && (
               <AppButton size="sm" variant="secondary" as="a" href={viewAllHref}>
                 Ver histórico
@@ -112,33 +113,22 @@ export function PortfolioActionRuns({
 
       {error ? (
         <div
-          style={{
-            color: "var(--app-danger)",
-            fontSize: 13,
-            padding: "6px 0 2px",
-          }}
+          className={styles.s2}
         >
           {error}
         </div>
       ) : loading ? (
-        <div style={{ display: "grid", gap: 10 }}>
+        <div className={styles.s3}>
           {Array.from({ length: 3 }).map((_, index) => (
             <div
               key={index}
-              className="urban-app-skeleton"
-              style={{ height: 52, borderRadius: 8 }}
+              className={`urban-app-skeleton ${styles.s4}`}
             />
           ))}
         </div>
       ) : visibleRuns.length === 0 ? (
         <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            color: "var(--app-text-muted)",
-            fontSize: 13,
-          }}
+          className={styles.s5}
         >
           <Icons.Info size={14} />
           <span>Nenhuma ação registrada para exibir ainda.</span>
@@ -146,47 +136,26 @@ export function PortfolioActionRuns({
       ) : (
         <div
           role="list"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            borderTop: "1px solid var(--app-divider)",
-          }}
+          className={styles.s6}
         >
           {visibleRuns.map((run) => (
             <div
               role="listitem"
               key={run.id}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "minmax(0, 1fr) auto",
-                gap: 12,
-                padding: "13px 0",
-                borderBottom: "1px solid var(--app-divider)",
-              }}
+              className={styles.s7}
             >
-              <div style={{ minWidth: 0 }}>
+              <div className={styles.s8}>
                 <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    flexWrap: "wrap",
-                    marginBottom: 5,
-                  }}
+                  className={styles.s9}
                 >
-                  <strong style={{ color: "var(--app-text)", fontSize: 14 }}>
+                  <strong className={styles.s10}>
                     {actionLabel(run.action)}
                   </strong>
                   <AppBadge kind={statusKind(run.status)}>{run.status ?? "registrado"}</AppBadge>
                   {run.auditLogId && <AppBadge kind="neutral">audit {run.auditLogId}</AppBadge>}
                 </div>
                 <p
-                  style={{
-                    margin: 0,
-                    color: "var(--app-text-muted)",
-                    fontSize: 12,
-                    lineHeight: 1.45,
-                  }}
+                  className={styles.s11}
                 >
                   {formatDateTime(run.createdAt)} - {appliedCount(run)} aplicado(s) -{" "}
                   {failedCount(run)} falha(s)
@@ -194,19 +163,7 @@ export function PortfolioActionRuns({
                 </p>
               </div>
               <code
-                style={{
-                  alignSelf: "center",
-                  color: "var(--app-text-muted)",
-                  fontSize: 11,
-                  background: "var(--app-surface-muted)",
-                  border: "1px solid var(--app-divider)",
-                  borderRadius: 6,
-                  padding: "4px 7px",
-                  maxWidth: 150,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
+                className={styles.s12}
                 title={run.id}
               >
                 {run.id}

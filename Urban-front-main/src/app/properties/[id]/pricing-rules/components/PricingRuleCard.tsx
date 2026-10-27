@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import { dateAtLocalOffset } from "@/app/lib/date";
 import { AppCard } from "../../../../componentes/ui";
 import type { PricingRule, PricingRuleType } from "../../../../service/api";
+import styles from "./PricingRuleCard.module.css";
 
 /**
  * Card de regra individual — usado dentro do accordion.
@@ -282,7 +283,7 @@ function MiniChart({ deltas }: { deltas: number[] }) {
       height={h}
       role="img"
       aria-label="Mini-gráfico simulado, não baseado em dados reais"
-      style={{ display: "block" }}
+      className={styles.s1}
     >
       <title>Mini-gráfico simulado</title>
       <line
@@ -335,21 +336,7 @@ function Switch({
       aria-label={label}
       onClick={() => !disabled && onChange(!checked)}
       disabled={disabled}
-      className="urban-focus-ring"
-      style={{
-        width: 40,
-        height: 22,
-        borderRadius: 999,
-        border: "1px solid",
-        borderColor: checked ? "var(--app-accent)" : "var(--app-divider-strong)",
-        background: checked ? "var(--app-accent)" : "var(--app-surface)",
-        position: "relative",
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.5 : 1,
-        transition: "background 140ms, border-color 140ms",
-        flexShrink: 0,
-        padding: 0,
-      }}
+      className={`urban-focus-ring ${styles.s2} ${checked ? styles.s3 : styles.s4} ${disabled ? styles.s5 : styles.s6}`}
     >
       <span
         style={{
@@ -359,8 +346,8 @@ function Switch({
           width: 16,
           height: 16,
           borderRadius: "50%",
-          background: "#FFFFFF",
-          boxShadow: "0 1px 2px rgba(14, 17, 22, 0.20)",
+          background: "var(--theme-app-legacy-white)",
+          boxShadow: "0 1px 2px var(--theme-app-legacy-ink-20)",
           transition: "left 140ms",
         }}
       />
@@ -416,21 +403,12 @@ export function PricingRuleCard({
             onToggleExpanded();
           }
         }}
-        className="urban-focus-ring"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
-          padding: "18px 20px",
-          minHeight: 44,
-          cursor: "pointer",
-          flexWrap: "wrap",
-        }}
+        className={`urban-focus-ring ${styles.s7}`}
       >
         <div
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
-          style={{ display: "flex", alignItems: "center" }}
+          className={styles.s8}
         >
           <Switch
             checked={rule.enabled}
@@ -440,25 +418,14 @@ export function PricingRuleCard({
           />
         </div>
 
-        <div style={{ flex: "1 1 220px", minWidth: 0 }}>
+        <div className={styles.s9}>
           <h3
-            style={{
-              margin: 0,
-              fontSize: 15,
-              fontWeight: 600,
-              color: "var(--app-text)",
-              letterSpacing: -0.1,
-            }}
+            className={styles.s10}
           >
             {rule.label}
           </h3>
           <p
-            style={{
-              margin: "4px 0 0",
-              fontSize: 13,
-              color: "var(--app-text-muted)",
-              lineHeight: 1.45,
-            }}
+            className={styles.s11}
           >
             {rule.description}
           </p>
@@ -467,28 +434,10 @@ export function PricingRuleCard({
         <div
           role="group"
           aria-label="Mini-gráfico simulado da regra"
-          style={{
-            flexShrink: 0,
-            opacity: rule.enabled ? 1 : 0.4,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 4,
-          }}
+          className={`${styles.s12} ${rule.enabled ? styles.s13 : styles.s14}`}
         >
           <span
-            style={{
-              alignSelf: "flex-end",
-              padding: "2px 6px",
-              borderRadius: 999,
-              border: "1px solid var(--app-divider-strong)",
-              color: "var(--app-text-muted)",
-              fontSize: 9,
-              fontWeight: 700,
-              letterSpacing: 0,
-              lineHeight: 1.2,
-              textTransform: "uppercase",
-            }}
+            className={styles.s15}
           >
             Simulado
           </span>
@@ -497,17 +446,7 @@ export function PricingRuleCard({
 
         <span
           aria-hidden="true"
-          style={{
-            display: "inline-flex",
-            width: 28,
-            height: 28,
-            alignItems: "center",
-            justifyContent: "center",
-            color: "var(--app-text-muted)",
-            transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-            transition: "transform 160ms",
-            flexShrink: 0,
-          }}
+          className={`${styles.s16} ${expanded ? styles.s17 : styles.s18}`}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <polyline
@@ -523,18 +462,10 @@ export function PricingRuleCard({
 
       {expanded && (
         <div
-          style={{
-            padding: "8px 20px 22px",
-            borderTop: "1px solid var(--app-divider)",
-          }}
+          className={styles.s19}
         >
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-              gap: 18,
-              marginTop: 14,
-            }}
+            className={styles.s20}
           >
             {cfg.controls.map((control) => (
               <ParamControl
@@ -547,8 +478,9 @@ export function PricingRuleCard({
             ))}
           </div>
 
-          <details style={{ marginTop: 18 }}>
+          <details className={styles.s21}>
             <summary
+              // outline:none inline de propósito (ver AdrComparisonChart): classe perde para :focus-visible.
               style={{
                 cursor: "pointer",
                 fontSize: 12,
@@ -562,13 +494,7 @@ export function PricingRuleCard({
               Por que usar isso?
             </summary>
             <p
-              style={{
-                marginTop: 10,
-                fontSize: 13,
-                lineHeight: 1.55,
-                color: "var(--app-text-muted)",
-                maxWidth: 680,
-              }}
+              className={styles.s23}
             >
               {cfg.example}
             </p>
@@ -594,32 +520,15 @@ function ParamControl({
   return (
     <div>
       <div
-        style={{
-          display: "flex",
-          alignItems: "baseline",
-          justifyContent: "space-between",
-          gap: 8,
-          marginBottom: 8,
-        }}
+        className={styles.s24}
       >
         <label
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: 1.2,
-            textTransform: "uppercase",
-            color: "var(--app-text-muted)",
-          }}
+          className={styles.s25}
         >
           {control.label}
         </label>
         <strong
-          style={{
-            fontSize: 15,
-            fontWeight: 600,
-            color: "var(--app-text)",
-            fontVariantNumeric: "tabular-nums",
-          }}
+          className={styles.s26}
         >
           {formattedValue}
         </strong>
@@ -634,12 +543,7 @@ function ParamControl({
           disabled={disabled}
           onChange={(e) => onChange(Number(e.target.value))}
           aria-label={control.label}
-          style={{
-            width: "100%",
-            accentColor: "var(--app-accent)",
-            cursor: disabled ? "not-allowed" : "pointer",
-            opacity: disabled ? 0.5 : 1,
-          }}
+          className={`${styles.s27} ${disabled ? styles.s5 : styles.s6}`}
         />
       ) : (
         <input
@@ -651,6 +555,7 @@ function ParamControl({
           disabled={disabled}
           onChange={(e) => onChange(Number(e.target.value))}
           aria-label={control.label}
+          className={disabled ? styles.s29 : styles.s13}
           style={{
             width: "100%",
             height: 36,
@@ -663,18 +568,12 @@ function ParamControl({
             fontWeight: 400,
             outline: "none",
             fontFamily: "var(--font-brand)",
-            opacity: disabled ? 0.5 : 1,
           }}
         />
       )}
       {control.helper && (
         <p
-          style={{
-            margin: "6px 0 0",
-            fontSize: 11,
-            color: "var(--app-text-muted)",
-            lineHeight: 1.45,
-          }}
+          className={styles.s30}
         >
           {control.helper}
         </p>

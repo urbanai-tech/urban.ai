@@ -2,6 +2,7 @@
 
 import React from "react";
 import { TrendingUp, TrendingDown } from "../../../../componentes/ui/Icons";
+import styles from "./PercentileHero.module.css";
 
 /**
  * <PercentileHero> — Archivo (display) gigante "PERCENTIL X" + subtitle contextual
@@ -62,31 +63,18 @@ export function PercentileHero({
         background: "var(--app-surface)",
         border: "1px solid var(--app-divider)",
         borderRadius: 16,
-        boxShadow: "0 1px 2px rgba(14, 17, 22, 0.04)",
+        boxShadow: "0 1px 2px var(--theme-app-legacy-ink-04)",
       }}
     >
       <p className="urban-app-eyebrow">POSIÇÃO NO MERCADO · ÚLTIMOS 30 DIAS</p>
       <div
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          gap: 24,
-          flexWrap: "wrap",
-        }}
+        className={styles.s1}
       >
         <h2
-          className="urban-app-display-hero"
-          style={{
-            fontSize: "clamp(64px, 9vw, 96px)",
-            lineHeight: 0.95,
-            color: "var(--app-text)",
-            margin: 0,
-            letterSpacing: -1,
-          }}
+          className={`urban-app-display-hero ${styles.s2}`}
         >
           MELHOR QUE{" "}
-          <span style={{ color: "var(--app-accent)" }}>{percentile}</span>
+          <span className={styles.s3}>{percentile}</span>
           %
         </h2>
 
@@ -118,18 +106,12 @@ export function PercentileHero({
         </span>
       </div>
       <p
-        style={{
-          fontSize: 16,
-          lineHeight: 1.55,
-          color: "var(--app-text-muted)",
-          maxWidth: 720,
-          margin: 0,
-        }}
+        className={styles.s4}
       >
         Sua diária está acima de{" "}
-        <strong style={{ color: "var(--app-text)" }}>{percentile}%</strong> dos
+        <strong className={styles.s5}>{percentile}%</strong> dos
         imóveis parecidos em{" "}
-        <strong style={{ color: "var(--app-text)" }}>{neighborhood}</strong> (
+        <strong className={styles.s5}>{neighborhood}</strong> (
         {comparablesCount} referência{comparablesCount === 1 ? "" : "s"} · diária
         média {formatBRL(medianAdr)})
       </p>

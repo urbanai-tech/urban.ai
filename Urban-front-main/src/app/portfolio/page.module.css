@@ -1,0 +1,160 @@
+.s1.s1 {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.s2.s2 {
+  flex: 0 0 150px;
+  max-width: 150px;
+  min-width: 0;
+}
+
+.s3.s3 {
+  flex: 0 0 220px;
+  max-width: 220px;
+  min-width: 0;
+}
+
+.s4.s4 {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--app-divider);
+}
+
+.s5.s5 {
+  min-width: 0;
+}
+
+.s6.s6 {
+  margin-bottom: 8px;
+}
+
+.s7.s7 {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.s8.s8 {
+  margin: 6px 0 0;
+  color: var(--app-text-muted);
+  font-size: 13px;
+}
+
+.s9.s9 {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid var(--app-divider);
+  background: var(--app-surface);
+  color: var(--app-text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.s10.s10 {
+  padding: 24px;
+  display: grid;
+  gap: 18px;
+}
+
+.s11.s11 {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.s12.s12 {
+  border: 1px solid var(--app-divider);
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: var(--app-surface-muted);
+}
+
+.s13.s13 {
+  margin-bottom: 6px;
+}
+
+.s14.s14 {
+  display: block;
+  color: var(--app-text);
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.s15.s15 {
+  margin: 8px 0 0;
+  color: var(--app-text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.s16.s16 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.s17.s17 {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.s18.s18 {
+  border: 1px solid var(--app-divider);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: var(--app-surface);
+  min-width: 0;
+}
+
+.s19.s19 {
+  display: block;
+  font-size: 18px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.s20.s20 {
+  color: var(--app-accent);
+}
+
+.s21.s21 {
+  color: var(--app-text);
+}
+
+.s22.s22 {
+  display: block;
+}
+
+.s23.s23 {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--app-text-muted);
+  margin-bottom: 6px;
+}
+
+.s24.s24 {
+  height: 40px;
+  padding: 0 14px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider-strong);
+  border-radius: 10px;
+  color: var(--app-text);
+  font-size: 14px;
+  font-weight: 400;
+  font-family: Inter, system-ui, sans-serif;
+}

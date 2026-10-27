@@ -20,6 +20,7 @@ import type {
   HistoricalComparison,
   Scenario,
 } from "@/app/types/recommendation";
+import styles from "./RecommendationCard.module.css";
 
 /**
  * RecommendationCard — o objeto central da Urban AI.
@@ -314,59 +315,28 @@ function RecommendationReason({
   return (
     <section
       aria-label="Explicação da sugestão"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 12,
-        paddingTop: 14,
-        borderTop: "1px solid var(--app-divider)",
-      }}
+      className={styles.s1}
     >
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "auto minmax(0, 1fr)",
-          gap: 10,
-          alignItems: "start",
-        }}
+        className={styles.s2}
       >
         <span
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: 999,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "var(--app-accent-soft)",
-            color: "var(--app-accent)",
-            flexShrink: 0,
-          }}
+          className={styles.s3}
         >
           <Sparkles size={14} />
         </span>
-        <div style={{ minWidth: 0 }}>
+        <div className={styles.s4}>
           <span className="urban-app-eyebrow-muted">
             Por que este preço?
           </span>
           <p
-            style={{
-              fontSize: 13,
-              color: "var(--app-text)",
-              lineHeight: 1.55,
-              margin: "6px 0 0",
-            }}
+            className={styles.s5}
           >
             <strong>{explanation.lead}</strong> {explanation.body}
           </p>
           {explanation.humanReason && (
             <p
-              style={{
-                fontSize: 12,
-                color: "var(--app-text-muted)",
-                lineHeight: 1.5,
-                margin: "6px 0 0",
-              }}
+              className={styles.s6}
             >
               Motivo informado: {explanation.humanReason}
             </p>
@@ -375,57 +345,25 @@ function RecommendationReason({
       </div>
 
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 136px), 1fr))",
-          borderTop: "1px solid var(--app-divider)",
-          borderBottom: "1px solid var(--app-divider)",
-        }}
+        className={styles.s7}
       >
         {explanation.items.map((item, index) => (
           <div
             key={`${item.label}-${index}`}
-            style={{
-              padding: "10px 12px",
-              borderRight:
-                index === explanation.items.length - 1
-                  ? "none"
-                  : "1px solid var(--app-divider)",
-              minWidth: 0,
-            }}
+            className={`${styles.s8} ${index === explanation.items.length - 1 ? styles.s9 : styles.s10}`}
           >
             <span
-              style={{
-                display: "block",
-                fontSize: 10,
-                letterSpacing: 1.2,
-                textTransform: "uppercase",
-                color: "var(--app-text-dim)",
-                fontWeight: 700,
-                lineHeight: 1.2,
-              }}
+              className={styles.s11}
             >
               {item.label}
             </span>
             <strong
-              style={{
-                display: "block",
-                color: "var(--app-text)",
-                fontSize: 13,
-                lineHeight: 1.35,
-                marginTop: 4,
-              }}
+              className={styles.s12}
             >
               {item.value}
             </strong>
             <span
-              style={{
-                display: "block",
-                color: "var(--app-text-muted)",
-                fontSize: 11,
-                lineHeight: 1.35,
-                marginTop: 3,
-              }}
+              className={styles.s13}
             >
               {item.detail}
             </span>
@@ -446,48 +384,31 @@ function ExplainerBody({
   scenarios?: Scenario[];
 }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <div className={styles.s14}>
       {drivers && (
-        <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <section className={styles.s15}>
           <span className="urban-app-eyebrow-muted">Composição da sugestão</span>
           <DriverBar drivers={drivers} />
         </section>
       )}
 
       {historicalComparison && (
-        <section style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <section className={styles.s16}>
           <span className="urban-app-eyebrow-muted">Referências históricas</span>
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 200px), 1fr))",
-              gap: 12,
-            }}
+            className={styles.s17}
           >
             <div
-              style={{
-                background: "var(--app-surface-muted)",
-                border: "1px solid var(--app-divider)",
-                borderRadius: 8,
-                padding: "12px 14px",
-                display: "flex",
-                flexDirection: "column",
-                gap: 4,
-              }}
+              className={styles.s18}
             >
               <span
-                style={{ fontSize: 11, color: "var(--app-text-muted)", lineHeight: 1.3 }}
+                className={styles.s19}
               >
                 Datas similares (ano passado, n=
                 {historicalComparison.similarDatesLastYear.n})
               </span>
               <span
-                style={{
-                  fontSize: 13,
-                  color: "var(--app-text)",
-                  fontWeight: 600,
-                  lineHeight: 1.4,
-                }}
+                className={styles.s20}
               >
                 Diária {fmtBRL(historicalComparison.similarDatesLastYear.adr)}
                 {" · "}
@@ -495,28 +416,15 @@ function ExplainerBody({
               </span>
             </div>
             <div
-              style={{
-                background: "var(--app-surface-muted)",
-                border: "1px solid var(--app-divider)",
-                borderRadius: 8,
-                padding: "12px 14px",
-                display: "flex",
-                flexDirection: "column",
-                gap: 4,
-              }}
+              className={styles.s18}
             >
               <span
-                style={{ fontSize: 11, color: "var(--app-text-muted)", lineHeight: 1.3 }}
+                className={styles.s19}
               >
                 Anfitriões comparáveis (mediana)
               </span>
               <span
-                style={{
-                  fontSize: 13,
-                  color: "var(--app-text)",
-                  fontWeight: 600,
-                  lineHeight: 1.4,
-                }}
+                className={styles.s20}
               >
                 Diária {fmtBRL(historicalComparison.comparableHosts.medianAdr)}
                 {" · "}
@@ -528,7 +436,7 @@ function ExplainerBody({
       )}
 
       {scenarios && scenarios.length > 0 && (
-        <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <section className={styles.s15}>
           <span className="urban-app-eyebrow-muted">Cenários</span>
           <ScenarioComparison scenarios={scenarios} />
         </section>
@@ -607,8 +515,8 @@ export function RecommendationCard({
 
   const priceBlock = (
     <div className="urban-rec__price">
-      <div style={{ minWidth: 0 }}>
-        <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
+      <div className={styles.s4}>
+        <p className={`urban-app-eyebrow-muted ${styles.s21}`}>
           Sugestão da IA
         </p>
         <p className="urban-app-display-md urban-rec__price-value">{fmtBRL(suggestedPrice)}</p>
@@ -663,8 +571,8 @@ export function RecommendationCard({
         <span aria-hidden className="urban-rec__why-icon">
           <Sparkles size={15} />
         </span>
-        <div style={{ minWidth: 0 }}>
-          <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
+        <div className={styles.s4}>
+          <p className={`urban-app-eyebrow-muted ${styles.s21}`}>
             Por que este preço?
           </p>
           <p className="urban-rec__why-text">
@@ -720,8 +628,8 @@ export function RecommendationCard({
 
           <div className="urban-app urban-rec-dialog__panel">
             <div className="urban-rec-dialog__header">
-              <div style={{ minWidth: 0 }}>
-                <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
+              <div className={styles.s4}>
+                <p className={`urban-app-eyebrow-muted ${styles.s21}`}>
                   Detalhes da sugestão
                 </p>
                 <h2 id="recommendation-detail-title" className="urban-rec-dialog__title">

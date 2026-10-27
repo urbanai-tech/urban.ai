@@ -1,0 +1,31 @@
+.s1.s1 {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.s2.s2 {
+  font-size: clamp(64px, 9vw, 96px);
+  line-height: 0.95;
+  color: var(--app-text);
+  margin: 0;
+  letter-spacing: -1px;
+}
+
+.s3.s3 {
+  color: var(--app-accent);
+}
+
+.s4.s4 {
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--app-text-muted);
+  max-width: 720px;
+  margin: 0;
+}
+
+.s5.s5 {
+  color: var(--app-text);
+}
