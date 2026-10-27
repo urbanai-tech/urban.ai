@@ -143,7 +143,7 @@ export function GeoOpsHeatmapPanel({
           style={{
             width: 96,
             height: 8,
-            background: "linear-gradient(90deg, rgba(232,80,10,0.06), rgba(232,80,10,0.36))",
+            background: "linear-gradient(90deg, color-mix(in srgb, var(--app-accent, var(--admin-accent)) 6%, transparent), color-mix(in srgb, var(--app-accent, var(--admin-accent)) 36%, transparent))",
             border: "1px solid var(--admin-divider)",
           }}
         />
@@ -243,9 +243,9 @@ export function GeoOpsHeatmapPanel({
                 minHeight: 158,
                 padding: 14,
                 border: "1px solid var(--admin-divider)",
-                borderTop: `3px solid rgba(232, 80, 10, ${Math.max(0.3, item.intensity)})`,
+                borderTop: `3px solid color-mix(in srgb, var(--app-accent, var(--admin-accent)) ${Math.round((Math.max(0.3, item.intensity))*100)}%, transparent)`,
                 borderRadius: 2,
-                background: `rgba(232, 80, 10, ${item.intensity * 0.24})`,
+                background: `color-mix(in srgb, var(--app-accent, var(--admin-accent)) ${Math.round((item.intensity * 0.24)*100)}%, transparent)`,
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
@@ -332,7 +332,7 @@ function GeoOpsRadarMap({
           minHeight: 300,
           position: "relative",
           background:
-            "linear-gradient(0deg, rgba(14,17,22,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(14,17,22,0.035) 1px, transparent 1px), var(--admin-surface-muted)",
+            "linear-gradient(0deg, var(--admin-divider) 1px, transparent 1px), linear-gradient(90deg, var(--admin-divider) 1px, transparent 1px), var(--admin-surface-muted)",
           backgroundSize: "32px 32px",
         }}
       >
@@ -377,14 +377,14 @@ function GeoOpsRadarMap({
                   height: size,
                   transform: "translate(-50%, -50%)",
                   borderRadius: "50%",
-                  border: `1px solid rgba(232, 80, 10, ${Math.max(0.28, item.intensity)})`,
-                  background: `rgba(232, 80, 10, ${Math.max(0.10, item.intensity * 0.26)})`,
+                  border: `1px solid color-mix(in srgb, var(--app-accent, var(--admin-accent)) ${Math.round((Math.max(0.28, item.intensity))*100)}%, transparent)`,
+                  background: `color-mix(in srgb, var(--app-accent, var(--admin-accent)) ${Math.round((Math.max(0.10, item.intensity * 0.26))*100)}%, transparent)`,
                   color: "var(--admin-accent)",
                   display: "grid",
                   placeItems: "center",
                   textAlign: "center",
                   padding: 8,
-                  boxShadow: "0 14px 30px rgba(14, 17, 22, 0.14)",
+                  boxShadow: "0 14px 30px var(--admin-backdrop)",
                 }}
               >
                 <span style={{ fontFamily: "monospace", fontSize: 17, fontWeight: 800, lineHeight: 1 }}>
@@ -593,7 +593,7 @@ function HeatmapLegend({ metric }: { metric: AdminEventRadarHeatmapMetric }) {
         style={{
           flex: 1,
           height: 6,
-          background: "linear-gradient(90deg, rgba(232,80,10,0.06), rgba(232,80,10,0.18), rgba(232,80,10,0.42))",
+          background: "linear-gradient(90deg, color-mix(in srgb, var(--app-accent, var(--admin-accent)) 6%, transparent), color-mix(in srgb, var(--app-accent, var(--admin-accent)) 18%, transparent), color-mix(in srgb, var(--app-accent, var(--admin-accent)) 42%, transparent))",
           border: "1px solid var(--admin-divider)",
         }}
       />

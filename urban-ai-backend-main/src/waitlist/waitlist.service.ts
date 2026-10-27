@@ -10,6 +10,7 @@ import { Repository, Not } from 'typeorm';
 import { randomBytes, randomInt } from 'crypto';
 import { Waitlist } from '../entities/waitlist.entity';
 import { MailerService } from '../mailer/mailer.service';
+import { clampInt } from '../common/clamp-int';
 
 /**
  * WaitlistService — F8.2 pré-lançamento.
@@ -141,8 +142,8 @@ export class WaitlistService {
     search?: string;
     status?: string;
   }) {
-    const page = Math.max(1, input.page ?? 1);
-    const limit = Math.min(100, Math.max(1, input.limit ?? 20));
+    const page = clampInt(input.page, { min: 1, max: 1_000_000, fallback: 1 });
+    const limit = clampInt(input.limit, { min: 1, max: 100, fallback: 20 });
 
     const qb = this.repo
       .createQueryBuilder('w')

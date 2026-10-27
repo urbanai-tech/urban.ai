@@ -9,7 +9,7 @@ import { appCardVariantStyle, appVar } from "./styles";
  * Variantes:
  *  - default   — fundo branco, border divider, shadow-sm
  *  - elevated  — shadow maior, mais destaque
- *  - accent    — border-left 3px #E8500A, fundo branco (call-out)
+ *  - accent    — border-left 3px accent da marca, fundo branco (call-out)
  *  - subtle    — fundo cinza claro, sem shadow
  */
 

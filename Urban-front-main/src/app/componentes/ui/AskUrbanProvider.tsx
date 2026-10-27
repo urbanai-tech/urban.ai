@@ -268,7 +268,7 @@ function AskUrbanFab({
           justifyContent: "center",
           gap: 10,
           padding: "0 18px",
-          fontFamily: "Inter, system-ui, sans-serif",
+          fontFamily: "var(--font-brand)",
           fontSize: 13,
           fontWeight: 800,
           letterSpacing: 0,

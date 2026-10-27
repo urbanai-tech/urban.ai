@@ -1,9 +1,9 @@
 /**
  * Card de KPI admin Urban AI. 3 variantes:
  *
- *  - hero  → label uppercase + número Bebas Neue gigante (clamp 56-96px). Para
+ *  - hero  → label uppercase + número Archivo (display) gigante (clamp 56-96px). Para
  *            o número mais importante da tela (margem por imóvel, ROI, etc).
- *  - md    → padrão grid de 4 colunas. Bebas Neue 40-48px.
+ *  - md    → padrão grid de 4 colunas. Archivo (display) 40-48px.
  *  - sm    → mini-stat inline. Inter 600 20px.
  *
  * Substitui o `<div className="border border-slate-800 rounded-xl bg-slate-900/40 p-4">`
@@ -35,7 +35,7 @@ export function AdminMetricCard({
   status?: AdminStatusKind;
   trend?: "up" | "down";
   trendValue?: string;
-  /** Destaca o número em accent #E8500A */
+  /** Destaca o número em accent accent da marca */
   accent?: boolean;
   style?: React.CSSProperties;
 }) {

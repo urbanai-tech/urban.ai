@@ -2,157 +2,91 @@
 
 import React, { useEffect, useState } from 'react';
 import { getPropertyData } from '@/app/service/api';
-import { AppCard, Icons } from '@/app/componentes/ui';
 
-type DashboardCardsProps = {
+type MetricStripProps = {
   propertyId: string | undefined;
 };
 
-const StatCard = ({
-  title,
-  value,
-  subtitle,
-  help,
-  isLoading,
-}: {
-  title: string;
-  value?: string | number;
-  subtitle?: string;
-  help?: string;
-  isLoading?: boolean;
-}) => {
-  return (
-    <AppCard
-      as="article"
-      variant="default"
-      style={{
-        minWidth: 220,
-        flex: 1,
-        padding: 22,
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-        minHeight: 150,
-      }}
-    >
-      {isLoading ? (
-        <div style={{ height: 3, marginBottom: 16, overflow: "hidden", borderRadius: 999, background: "rgba(232,80,10,0.12)" }}>
-          <span
-            style={{
-              display: "block",
-              width: "35%",
-              height: "100%",
-              borderRadius: 999,
-              background: "var(--app-accent)",
-              animation: "stat-card-progress 1s ease-in-out infinite",
-            }}
-          />
-        </div>
-      ) : null}
-      <p className="urban-app-eyebrow-muted" style={{ margin: 0 }}>
-        {title}
-      </p>
-      <h3 style={{ margin: 0, color: "var(--app-text)", fontSize: 30, lineHeight: 1.05, fontWeight: 750 }}>
-        {value ?? '--'}
-      </h3>
-      {subtitle && (
-        <p style={{ margin: 0, color: "var(--app-success)", fontSize: 13, fontWeight: 650 }}>
-          {subtitle}
-        </p>
-      )}
-      {help && (
-        <p style={{ margin: "auto 0 0", color: "var(--app-text-muted)", fontSize: 12, lineHeight: 1.35 }}>
-          {help}
-        </p>
-      )}
-    </AppCard>
-  );
-};
+type PropertyData = Awaited<ReturnType<typeof getPropertyData>>;
 
-export default function DashboardCards({ propertyId }: DashboardCardsProps) {
-  const [data, setData] = useState<null | {
-    quantidadePropriedadesAtivas: number;
-    lucroProjetadoGeradoPeloUrban: number;
-    receitaProjetada: {
-      receitaProjetada: number;
-      diferencaPercentual: number;
-    };
-    quantidadeEventos: number;
-  }>(null);
+const formatCurrency = (value: number) =>
+  value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
 
+/**
+ * Faixa compacta de métricas do Hoje (chips). Antes eram 4 cards altos no topo
+ * da página; agora os números vêm depois da decisão e cabem numa linha (rolagem
+ * horizontal no celular). Cada chip tem um `title` com a explicação completa.
+ */
+export default function MetricStrip({ propertyId }: MetricStripProps) {
+  const [data, setData] = useState<PropertyData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     async function fetchData() {
       try {
         setLoading(true);
+        setFailed(false);
         const result = await getPropertyData(propertyId);
-        setData(result);
+        if (!cancelled) setData(result);
       } catch (err) {
-        console.error('Erro ao carregar dados do dashboard:', err);
+        console.error('Erro ao carregar dados do painel:', err);
+        if (!cancelled) setFailed(true);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
-
     fetchData();
+    return () => {
+      cancelled = true;
+    };
   }, [propertyId]);
 
-  const formatCurrency = (value: number) =>
-    value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const month = new Intl.DateTimeFormat('pt-BR', { month: 'long', timeZone: 'America/Sao_Paulo' }).format(new Date());
+  const value = (render: (d: PropertyData) => string) => (loading ? '…' : data ? render(data) : '--');
+  const pct = data?.receitaProjetada?.diferencaPercentual;
+
+  const chips = [
+    {
+      id: 'opportunities',
+      label: 'oportunidades futuras',
+      value: value((d) => String(d.quantidadeEventos ?? 0)),
+      help: 'Linhas de recomendação futuras (não eventos únicos).',
+    },
+    {
+      id: 'lift',
+      label: `a mais aceito em ${month}`,
+      value: value((d) =>
+        `${formatCurrency(d.lucroProjetadoGeradoPeloUrban ?? 0)}${typeof pct === 'number' && pct > 0 ? ` (+${pct.toFixed(0)}%)` : ''}`,
+      ),
+      help: 'Diferença entre o seu preço e as sugestões que você aceitou neste mês.',
+    },
+    {
+      id: 'revenue',
+      label: `em diárias aceitas em ${month}`,
+      value: value((d) => formatCurrency(d.receitaProjetada?.receitaProjetada ?? 0)),
+      help: 'Soma das diárias sugeridas que você aceitou no mês atual.',
+    },
+    {
+      id: 'properties',
+      label: 'imóveis com aceite',
+      value: value((d) => String(d.quantidadePropriedadesAtivas ?? 0)),
+      help: 'Imóveis que já tiveram pelo menos uma sugestão aceita.',
+    },
+  ];
 
   return (
-    <section style={{ marginTop: 32 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-        <Icons.Info size={14} style={{ color: "var(--app-text-muted)" }} />
-        <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 12, lineHeight: 1.4 }}>
-          Estes indicadores usam sugestões e eventos futuros já calculados para os seus imóveis.
-        </p>
-      </div>
-      <div className="painel-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 14 }}>
-        <StatCard
-          title="Imóveis com aceite"
-          value={data?.quantidadePropriedadesAtivas}
-          help="Imóveis que já tiveram pelo menos uma sugestão aceita."
-          isLoading={loading}
-        />
-        <StatCard
-          title="Oportunidades futuras"
-          value={data?.quantidadeEventos}
-          help="Linhas de recomendação futuras, não eventos unicos."
-          isLoading={loading}
-        />
-        <StatCard
-          title="Receita sugerida aceita"
-          value={data ? formatCurrency(data.receitaProjetada.receitaProjetada) : undefined}
-          subtitle={new Intl.DateTimeFormat('pt-BR', { month: 'short', year: 'numeric' }).format(new Date())}
-          help="Soma das diárias sugeridas aceitas no mês atual."
-          isLoading={loading}
-        />
-        <StatCard
-          title="Lift aceito no mês"
-          value={data ? formatCurrency(data.lucroProjetadoGeradoPeloUrban) : undefined}
-          subtitle={data ? `+${data.receitaProjetada.diferencaPercentual.toFixed(2)}%` : undefined}
-          help="Diferenca entre preço atual e sugestão aceita."
-          isLoading={loading}
-        />
-      </div>
-      <style>{`
-        @media (max-width: 1100px) {
-          .painel-kpi-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-          }
-        }
-        @media (max-width: 620px) {
-          .painel-kpi-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-        @keyframes stat-card-progress {
-          0% { transform: translateX(-120%); }
-          100% { transform: translateX(320%); }
-        }
-      `}</style>
-    </section>
+    <>
+      <ul className="urban-metric-strip" aria-label="Indicadores" aria-busy={loading || undefined}>
+        {chips.map((chip) => (
+          <li key={chip.id} className="urban-metric-chip" title={chip.help} data-loading={loading || undefined} data-metric={chip.id}>
+            <strong>{chip.value}</strong>
+            <span>{chip.label}</span>
+          </li>
+        ))}
+      </ul>
+      {failed && <p className="urban-metric-strip__note">Não foi possível carregar os números agora.</p>}
+    </>
   );
 }

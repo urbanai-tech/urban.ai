@@ -4,6 +4,7 @@ import { addDaysToDateKey, saoPauloDayBounds, saoPauloDaySql, todaySaoPauloDateK
 import { Repository } from 'typeorm';
 import { CollectorZeroYieldService, ZeroYieldFinding } from '../evento/collector-zero-yield.service';
 import { Event as EventEntity } from '../entities/events.entity';
+import { clampInt } from '../common/clamp-int';
 
 /**
  * AdminEventsService — analytics, listagem, timeline e saúde dos coletores do
@@ -278,7 +279,7 @@ export class AdminEventsService {
    * @param days janela em dias (default 30, max 90)
    */
   async eventsTimeline(days: number = 30) {
-    const safeDays = Math.max(1, Math.min(90, days));
+    const safeDays = clampInt(days, { min: 1, max: 90, fallback: 30 });
     // Dias de calendário de São Paulo (não UTC): uma coleta às 22h BRT é 01h UTC
     // do dia seguinte e não pode cair no bucket errado.
     const todayKey = todaySaoPauloDateKey();

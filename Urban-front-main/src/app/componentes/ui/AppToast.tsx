@@ -146,7 +146,7 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
                 color: "var(--app-text)",
                 boxShadow: "var(--app-shadow-overlay)",
                 animation: "urban-app-toast-in 220ms cubic-bezier(0.16, 1, 0.3, 1)",
-                fontFamily: "Inter, system-ui, sans-serif",
+                fontFamily: "var(--font-brand)",
               }}
             >
               <span

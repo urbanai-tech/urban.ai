@@ -453,7 +453,7 @@ function FileField({
           borderRadius: 2,
           color: "var(--admin-text)",
           fontSize: 13,
-          fontFamily: "Inter, system-ui, sans-serif",
+          fontFamily: "var(--font-brand)",
         }}
       />
       {file && (

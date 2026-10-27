@@ -1,0 +1,655 @@
+/* ========================================================================== */
+/* Abas do anfitrião: Hoje (/painel), Calendário (/dashboard), Avisos         */
+/* (/notificacao). Só tokens (var(--app-*)), breakpoint canônico 767px.       */
+/* Superfícies sólidas: o vidro fica nas barras e no sheet (host-mobile.css). */
+/* ========================================================================== */
+
+/* Folga para o FAB do Ask Urban + tab bar: o último item da lista rola para   */
+/* cima do botão flutuante em vez de ficar escondido atrás dele.              */
+.urban-host-page {
+  --urban-fab-clearance: 0px;
+  padding-bottom: var(--urban-fab-clearance);
+}
+
+@media (max-width: 767px) {
+  .urban-host-page {
+    /* tab bar + home indicator + FAB (52px) + respiro do FAB (18px) + 16px */
+    --urban-fab-clearance: calc(var(--app-tabbar-height) + var(--app-safe-bottom) + 52px + 18px + 16px);
+  }
+
+  /* Com o sheet "Mais" aberto o FAB some; a folga não muda o layout. */
+}
+
+@media not all and (max-width: 767px) {
+  .urban-host-page {
+    /* FAB 56px a 28px da borda */
+    --urban-fab-clearance: calc(56px + 28px + 16px);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Cabeçalho curto (uma linha no celular)                                     */
+/* -------------------------------------------------------------------------- */
+
+.urban-host-filter {
+  display: block;
+  width: min(320px, 100%);
+}
+
+.urban-host-filter__label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--app-text-muted);
+  font-size: var(--app-type-caption);
+  font-weight: 650;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 767px) {
+  /* AppSectionHeader usa estilo inline: no celular o filtro desce para baixo do
+     título e o subtítulo fica em uma linha. */
+  .urban-host-page > header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding-bottom: 16px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .urban-host-page > header > div:last-child:not(:first-child) {
+    justify-content: flex-start !important;
+    width: 100%;
+  }
+
+  .urban-host-page > header p:not(.urban-app-eyebrow) {
+    margin-top: 6px !important;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .urban-host-filter {
+    width: 100%;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Seções                                                                     */
+/* -------------------------------------------------------------------------- */
+
+.urban-host-section {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.urban-host-section:empty {
+  display: none;
+}
+
+.urban-host-section__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.urban-host-section__title {
+  margin: 0;
+  color: var(--app-text);
+  font-size: var(--app-type-title-3);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.urban-host-section__meta {
+  color: var(--app-text-muted);
+  font-size: var(--app-type-footnote);
+}
+
+.urban-host-notice {
+  padding: 14px 16px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-danger-border);
+  border-radius: var(--app-radius-card);
+}
+
+.urban-host-notice .urban-host-section__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--app-danger);
+  font-weight: 650;
+}
+
+.urban-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.urban-host-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--app-touch-target);
+  color: var(--app-text);
+  font-size: var(--app-type-footnote);
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Hoje: oportunidades                                                        */
+/* -------------------------------------------------------------------------- */
+
+.urban-today-list {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.urban-today-item {
+  display: grid;
+  gap: 8px;
+}
+
+.urban-today-item__when {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--app-text-muted);
+  font-size: var(--app-type-footnote);
+  font-weight: 650;
+}
+
+.urban-today-item__when strong {
+  color: var(--app-text);
+  font-weight: 700;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Hoje: faixa compacta de métricas (chips)                                   */
+/* -------------------------------------------------------------------------- */
+
+.urban-metric-strip {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  flex-wrap: wrap;
+}
+
+.urban-metric-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  min-height: var(--app-touch-target);
+  padding: 10px 14px;
+  color: var(--app-text-muted);
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-pill);
+  font-size: var(--app-type-footnote);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+a.urban-metric-chip:hover {
+  border-color: var(--app-divider-strong);
+}
+
+.urban-metric-chip strong {
+  color: var(--app-text);
+  font-size: 15px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+.urban-metric-chip[data-loading="true"] strong {
+  color: var(--app-text-muted);
+}
+
+.urban-metric-strip__note {
+  margin: 0;
+  color: var(--app-text-muted);
+  font-size: var(--app-type-caption);
+}
+
+@media (max-width: 767px) {
+  .urban-metric-strip {
+    flex-wrap: nowrap;
+    margin: 0 -16px;
+    padding: 0 16px 2px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .urban-metric-chip {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Calendário: seletor de período compacto + agenda                           */
+/* -------------------------------------------------------------------------- */
+
+.urban-cal-period {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.urban-cal-period__nav {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.urban-cal-period__title {
+  margin: 0;
+  color: var(--app-text);
+  font-size: var(--app-type-title-3);
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.urban-cal-period__count {
+  display: block;
+  margin-top: 2px;
+  color: var(--app-text-muted);
+  font-size: var(--app-type-caption);
+  font-weight: 500;
+  text-transform: none;
+}
+
+.urban-cal-nav-btn {
+  display: inline-grid;
+  place-items: center;
+  width: var(--app-touch-target);
+  height: var(--app-touch-target);
+  padding: 0;
+  color: var(--app-text);
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider-strong);
+  border-radius: var(--app-radius-control);
+  cursor: pointer;
+}
+
+.urban-cal-nav-btn:disabled {
+  color: var(--app-text-muted);
+  border-color: var(--app-divider);
+  cursor: not-allowed;
+}
+
+.urban-cal-months {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0 0 2px;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.urban-cal-month {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--app-touch-target);
+  padding: 0 12px;
+  color: var(--app-text);
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-pill);
+  font-size: var(--app-type-footnote);
+  font-weight: 650;
+  text-transform: capitalize;
+  white-space: nowrap;
+  cursor: pointer;
+  scroll-snap-align: start;
+}
+
+.urban-cal-month[aria-pressed="true"] {
+  background: var(--app-accent-soft);
+  border-color: var(--app-accent);
+}
+
+.urban-cal-month__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  color: var(--app-text);
+  background: var(--app-surface-muted);
+  border-radius: var(--app-radius-pill);
+  font-size: var(--app-type-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.urban-cal-month[data-empty="true"] .urban-cal-month__count {
+  color: var(--app-text-muted);
+}
+
+.urban-cal-layout {
+  display: grid;
+  gap: 24px;
+}
+
+@media not all and (max-width: 767px) {
+  .urban-cal-layout {
+    grid-template-columns: minmax(0, 3fr) minmax(340px, 2fr);
+    align-items: start;
+  }
+}
+
+.urban-cal-grid-card {
+  padding: 16px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-card);
+  box-shadow: var(--app-shadow-card);
+}
+
+.urban-cal-weekdays,
+.urban-cal-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.urban-cal-weekdays {
+  margin-bottom: 6px;
+  color: var(--app-text-muted);
+  font-size: var(--app-type-caption);
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.urban-cal-day,
+.urban-cal-day-spacer {
+  aspect-ratio: 1 / 1;
+  min-width: 0;
+  border-radius: var(--app-radius-sm);
+}
+
+.urban-cal-day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 6px;
+  color: var(--app-text);
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.urban-cal-day:hover {
+  border-color: var(--app-divider-strong);
+}
+
+.urban-cal-day[data-today="true"] {
+  font-weight: 750;
+  background: var(--app-surface-muted);
+}
+
+.urban-cal-day[aria-pressed="true"] {
+  border-color: var(--app-accent);
+  box-shadow: inset 0 0 0 1px var(--app-accent);
+}
+
+.urban-cal-day:disabled {
+  color: var(--app-text-muted);
+  background: var(--app-surface-muted);
+  cursor: not-allowed;
+}
+
+.urban-cal-day__dot {
+  align-self: center;
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  color: var(--app-accent-contrast);
+  background: var(--app-accent);
+  border-radius: var(--app-radius-pill);
+  font-size: var(--app-type-caption);
+  font-weight: 750;
+}
+
+.urban-cal-panel {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.urban-cal-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.urban-cal-agenda {
+  display: grid;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.urban-cal-agenda__day {
+  display: grid;
+  gap: 10px;
+}
+
+.urban-cal-agenda__day-label {
+  position: sticky;
+  top: calc(var(--environment-banner-height, 0px) + var(--app-safe-top) + var(--app-topbar-height));
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 0;
+  color: var(--app-text);
+  background: var(--app-bg);
+  font-size: var(--app-type-footnote);
+  font-weight: 750;
+}
+
+.urban-cal-agenda__day-label span {
+  color: var(--app-text-muted);
+  font-weight: 500;
+  text-transform: none;
+}
+
+.urban-cal-agenda__items {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media not all and (max-width: 767px) {
+  .urban-cal-agenda__day-label {
+    position: static;
+    background: transparent;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Avisos: grupos por dia, não lidas sem perder contraste, ações de 44px      */
+/* -------------------------------------------------------------------------- */
+
+.urban-notif-header-actions {
+  flex-wrap: nowrap !important;
+}
+
+.urban-notif-header-actions .urban-canonical-button {
+  min-height: var(--app-touch-target);
+}
+
+.urban-notif-groups {
+  display: grid;
+  gap: 24px;
+  margin-top: 18px;
+}
+
+.urban-notif-group {
+  display: grid;
+  gap: 10px;
+}
+
+.urban-notif-group__label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  color: var(--app-text);
+  font-size: var(--app-type-footnote);
+  font-weight: 750;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.urban-notif-group__label span {
+  color: var(--app-text-muted);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.urban-notif-group .urban-notif-list {
+  margin-top: 0;
+}
+
+.urban-notif-item {
+  list-style: none;
+}
+
+.urban-notif-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 16px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-card);
+  box-shadow: var(--app-shadow-card);
+}
+
+/* Não lido: barra lateral + título mais forte. O texto mantém as mesmas
+   cores dos lidos (nada de cinza mais claro para "lido"). */
+.urban-notif-item[data-unread="true"] .urban-notif-row {
+  border-color: var(--app-accent-border);
+  box-shadow: inset 4px 0 0 var(--app-accent), var(--app-shadow-card);
+}
+
+.urban-notif-row .urban-notif-body h3 {
+  font-weight: 600;
+}
+
+.urban-notif-item[data-unread="true"] .urban-notif-body h3 {
+  font-weight: 750;
+}
+
+.urban-notif-item:not([data-unread="true"]) .urban-notif-icon {
+  color: var(--app-text-muted);
+  background: var(--app-surface-muted);
+  border-color: var(--app-divider);
+}
+
+.urban-notif-unread-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  background: var(--app-accent);
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.urban-notif-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.urban-notif-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--app-touch-target);
+  padding: 0 14px;
+  color: var(--app-text);
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider-strong);
+  border-radius: var(--app-radius-control);
+  font: inherit;
+  font-size: var(--app-type-footnote);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.urban-notif-btn:hover {
+  background: var(--app-surface-muted);
+}
+
+.urban-notif-item[data-unread="true"] .urban-notif-btn--primary {
+  color: var(--app-accent-contrast);
+  background: var(--app-accent);
+  border-color: var(--app-accent);
+}
+
+.urban-notif-item[data-unread="true"] .urban-notif-btn--primary:hover {
+  background: var(--app-accent);
+  filter: brightness(1.08);
+}
+
+@media (max-width: 767px) {
+  .urban-notif-row {
+    gap: 10px;
+    padding: 14px;
+    border-radius: var(--app-radius-lg);
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .urban-cal-months,
+  .urban-metric-strip {
+    scroll-behavior: auto;
+  }
+}

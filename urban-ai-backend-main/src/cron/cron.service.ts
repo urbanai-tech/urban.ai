@@ -102,6 +102,12 @@ export class CronService {
         return local || evento?.enderecoCompleto || cityState || null;
     }
 
+    private toIsoOrNull(value: Date | string | null | undefined): string | null {
+        if (!value) return null;
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? null : date.toISOString();
+    }
+
     private formatMoney(value: number): string {
         return `R$ ${Math.round(value).toLocaleString('pt-BR')}`;
     }
@@ -170,6 +176,8 @@ export class CronService {
                 liftPercent,
                 eventName,
                 eventDate,
+                // Instante ISO do início: o push de preço adiado pelo silêncio expira quando o evento começa.
+                eventStartsAt: this.toIsoOrNull(element.evento?.dataInicio),
                 eventLocation,
                 distanceKm: Number.isFinite(distanceKm) ? distanceKm : null,
                 expectedAttendance: Number.isFinite(expectedAttendance) ? expectedAttendance : null,

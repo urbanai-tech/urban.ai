@@ -20,6 +20,7 @@
 | Estado atual de infra e integrações | [`ARQUITETURA-ATUAL.md`](./ARQUITETURA-ATUAL.md) |
 | Acessos e ferramentas | [`ACESSOS-E-FERRAMENTAS.md`](./ACESSOS-E-FERRAMENTAS.md) |
 | Governança da documentação | [`DOCUMENTATION-GOVERNANCE.md`](./DOCUMENTATION-GOVERNANCE.md) |
+| Ensaio de passagem (um time novo consegue assumir?) | [`ENSAIO-DE-PASSAGEM.md`](./ENSAIO-DE-PASSAGEM.md) |
 | Decisões arquiteturais | [`adr/`](./adr/README.md) |
 | Produto: PRD, arquitetura interna, jornadas, design system | [`product/`](./product/README.md) |
 | Dados e IA (datasets, fontes de eventos) | [`product/data/`](./product/data/README.md) |

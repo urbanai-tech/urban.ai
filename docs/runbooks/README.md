@@ -30,7 +30,7 @@ Antes de qualquer runbook, leia [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL
 ## Eventos, dados e pricing
 
 - [Ingest de eventos (API key e coletores)](./events-ingest-service-account.md) · [Saúde do cron do webscraping](./webscraping-cron-health.md) · [Entrega confiável (outbox) dos scrapers](./ingest-outbox-entrega.md)
-- [Identidade e deduplicação de eventos](./event-dedup-identity.md) · [Recompute idempotente da inteligência de eventos](./event-intelligence-recompute-idempotency.md) · [Fallback manual de eventos](./eventos-fallback-manual.md) · [Backfill do geocoder](./backfill-geocoder.md) · [Datas de eventos e fuso horário](./datas-e-fuso-horario.md) (inclui backfill de datas) · [Coletores sem dados (zero-yield) e duplo agendamento](./coletores-zero-yield.md)
+- [Identidade e deduplicação de eventos](./event-dedup-identity.md) · [Recompute idempotente da inteligência de eventos](./event-intelligence-recompute-idempotency.md) · [Fallback manual de eventos](./eventos-fallback-manual.md) · [Backfill do geocoder](./backfill-geocoder.md) · [Endereços em 0,0](./enderecos-coordenadas-zero.md) · [Datas de eventos e fuso horário](./datas-e-fuso-horario.md) (inclui backfill de datas) · [Coletores sem dados (zero-yield) e duplo agendamento](./coletores-zero-yield.md)
 - [Evolução do motor de eventos](./event-engine-evolution.md) · [Motor de demanda](./motor-demanda.md) · [Motor de preço v1/v2 (flags, backtest, riscos)](./motor-de-preco.md)
 - [Aquisição de dataset](./dataset-acquisition.md) · [Ground truth do dataset](./dataset-ground-truth-smoke.md) · [Feature engineering](./feature-engineering.md) · [Smoke de recomendação](./recomendacao-nova-smoke.md)
 - [Integrações, outcomes e calibração](./integracoes-outcomes-calibracao.md) · [Contrato do Portfolio Cockpit](./portfolio-cockpit-contract.md)
@@ -46,5 +46,6 @@ Antes de qualquer runbook, leia [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL
 ## Ensaios
 
 - [Ensaios de runbooks](./ENSAIOS.md): quais runbooks já foram executados por quem não os escreveu, com status, data e achados.
+- [Ensaio de passagem (H10)](../ENSAIO-DE-PASSAGEM.md): onboarding só pelos docs, subida local, tarefas de ponta a ponta e veredito.
 
 SLOs e referências do operador: [`../ops/slo.md`](../ops/slo.md).

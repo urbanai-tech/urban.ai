@@ -9,7 +9,7 @@ export function ContractBanner({ endpointGaps }: { endpointGaps: string[] }) {
       style={{
         marginBottom: 28,
         padding: "14px 16px",
-        border: "1px solid rgba(245, 181, 71, 0.3)",
+        border: "1px solid color-mix(in srgb, var(--admin-warning) 30%, transparent)",
         borderRadius: 2,
         display: "grid",
         gridTemplateColumns: "auto minmax(0, 1fr)",

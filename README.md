@@ -36,6 +36,15 @@ O microserviço KNN legado foi removido do repositório em 2026-10 ([ADR 0007](d
 
 Cada serviço tem README próprio: [backend](urban-ai-backend-main/README.md), [frontend](Urban-front-main/README.md), [pipeline](urban-pipeline-main/README.md), [webscraping](urban-webscraping-main/README.md). Os serviços Node usam **npm** (`package-lock.json`, igual ao CI).
 
+**Caminho recomendado: Docker Compose** (MySQL, Redis, backend e front, com migrations aplicadas e valores fictícios; nada além de Docker é necessário). Passo a passo, tempos esperados e como saber que subiu: [`CONTRIBUTING.md`](CONTRIBUTING.md#1-subir-o-ambiente-local). Antes, `npm run doctor` confere os pré-requisitos.
+
+```bash
+docker compose up -d mysql redis backend frontend
+curl http://localhost:10000/health/live   # {"status":"ok",...}; o front fica em http://localhost:3000
+```
+
+**Alternativa sem Docker** (serviços direto no host; exige MySQL e Redis próprios e `.env` preenchido):
+
 ```bash
 # 1) Backend
 cd urban-ai-backend-main
@@ -52,7 +61,7 @@ npm run dev                  # :3000
 # 3) (opcional) Webscraping / pipeline: ver os READMEs Python (uv)
 ```
 
-Banco: use MySQL local ou o ambiente de **staging** do Railway. Não desenvolva contra produção.
+Banco (caminho sem Docker): use MySQL local ou o ambiente de **staging** do Railway. Não desenvolva contra produção. Para validar uma mudança antes do PR: `scripts/validate-local.sh` ([`CONTRIBUTING.md`](CONTRIBUTING.md#2-validar-antes-de-abrir-pr)).
 
 ## Repositório canônico
 
