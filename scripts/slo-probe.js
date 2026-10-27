@@ -157,19 +157,28 @@ async function selfTest() {
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   try {
     const address = server.address();
-    const { report, passed } = await runProbe({
+    const base = {
       baseUrl: `http://127.0.0.1:${address.port}`,
       path: '/health/live',
       requests: 12,
       concurrency: 3,
       timeoutMs: 1000,
-      maxP95Ms: 500,
       minAvailability: 100,
-    });
+    };
+    // Deterministico: o self-test valida a LOGICA (formato do relatorio e o
+    // veredito do limite de p95), nao a velocidade da maquina. Antes ele exigia
+    // p95 <= 500 ms reais e falhava em maquina carregada (fricção 13).
+    // 1) limite folgado (60 s): sempre passa, desde que as 12 requisicoes deem 200.
+    const { report, passed } = await runProbe({ ...base, maxP95Ms: 60000 });
     if (!passed || report.successful !== 12 || requestCount !== 12 || report.latencyMs.p95 === null) {
       throw new Error(`Self-test falhou: ${JSON.stringify(report)}`);
     }
-    console.log('SLO probe self-test passed: 12/12 requests and percentile report validated.');
+    // 2) limite impossivel (-1 ms): a sonda tem de reprovar, provando que o limite e aplicado.
+    const strict = await runProbe({ ...base, maxP95Ms: -1 });
+    if (strict.passed || requestCount !== 24) {
+      throw new Error(`Self-test falhou: limite de p95 nao foi aplicado: ${JSON.stringify(strict.report)}`);
+    }
+    console.log('SLO probe self-test passed: 12/12 requests, percentile report and p95 verdict validated.');
   } finally {
     await new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
   }
