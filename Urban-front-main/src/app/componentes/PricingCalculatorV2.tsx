@@ -42,15 +42,18 @@ const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 function theme(surface: PricingSurface) {
   const dark = surface === "dark";
   return {
-    cardBg: dark ? "rgba(15,23,42,0.42)" : "#FFFFFF",
+    cardBg: dark ? "rgba(15,23,42,0.42)" : "var(--app-surface)",
     cardBorder: dark ? "rgba(255,255,255,0.12)" : "rgba(15,23,42,0.12)",
     panelBg: dark ? "rgba(2,6,23,0.50)" : "rgba(248,250,252,0.82)",
     text: dark ? "#F8FAFC" : "var(--app-text, #111827)",
     muted: dark ? "rgba(248,250,252,0.68)" : "var(--app-text-muted, #64748B)",
-    faint: dark ? "rgba(248,250,252,0.42)" : "#94A3B8",
-    accent: "#E8500A",
+    faint: dark ? "rgba(248,250,252,0.66)" : "var(--app-text-muted)",
+    accent: dark ? "#E8500A" : "var(--app-accent)",
+    accentText: dark ? "#FF8A50" : "var(--app-accent)",
+    onAccent: dark ? "#080A0F" : "var(--app-accent-contrast)",
+    danger: dark ? "#FCA5A5" : "var(--app-danger)",
     accentSoft: dark ? "rgba(232,80,10,0.14)" : "rgba(232,80,10,0.10)",
-    optionBg: dark ? "rgba(15,23,42,0.54)" : "#FFFFFF",
+    optionBg: dark ? "rgba(15,23,42,0.54)" : "var(--app-surface)",
     optionBorder: dark ? "rgba(148,163,184,0.28)" : "rgba(15,23,42,0.14)",
   };
 }
@@ -75,7 +78,7 @@ function optionButtonStyle(selected: boolean, surface: PricingSurface): CSSPrope
     borderRadius: 8,
     border: selected ? "1px solid rgba(232,80,10,0.78)" : `1px solid ${t.optionBorder}`,
     background: selected ? t.accentSoft : t.optionBg,
-    color: selected ? t.accent : t.text,
+    color: selected ? t.accentText : t.text,
     fontSize: 14,
     fontWeight: 700,
     cursor: "pointer",
@@ -261,7 +264,7 @@ export function PricingSelfServiceCalculator({
                     style={{ ...optionButtonStyle(selected, surface), display: "grid", gap: 2 }}
                   >
                     <span>{BILLING_CYCLE_META[value].label}</span>
-                    <span style={{ color: selected ? t.accent : t.faint, fontSize: 12 }}>
+                    <span style={{ color: selected ? t.accentText : t.faint, fontSize: 12 }}>
                       {discount > 0 ? `-${discount}%` : "base"}
                     </span>
                   </button>
@@ -308,7 +311,7 @@ export function PricingSelfServiceCalculator({
                 <p style={{ margin: 0, color: t.faint, fontSize: 12 }}>
                   Total no ciclo {BILLING_CYCLE_META[cycle].shortLabel}
                 </p>
-                <p style={{ margin: "2px 0 0", color: t.accent, fontSize: 30, fontWeight: 900, lineHeight: 1 }}>
+                <p style={{ margin: "2px 0 0", color: t.accentText, fontSize: 30, fontWeight: 900, lineHeight: 1 }}>
                   {formatMoney(quote.cycleTotal)}
                 </p>
               </div>
@@ -320,7 +323,7 @@ export function PricingSelfServiceCalculator({
           )}
 
           {error && (
-            <p role="alert" style={{ margin: 0, color: "#C2342E", fontSize: 13, lineHeight: 1.45 }}>
+            <p role="alert" style={{ margin: 0, color: t.danger, fontSize: 13, lineHeight: 1.45 }}>
               {error}
             </p>
           )}
@@ -335,7 +338,7 @@ export function PricingSelfServiceCalculator({
               borderRadius: 8,
               border: `1px solid ${t.accent}`,
               background: t.accent,
-              color: "#FFFFFF",
+              color: t.onAccent,
               fontWeight: 900,
               cursor: busy ? "not-allowed" : "pointer",
               opacity: busy ? 0.58 : 1,
@@ -350,7 +353,7 @@ export function PricingSelfServiceCalculator({
         <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 8, color: t.muted, fontSize: 14 }}>
           {activePlan.features.map((feature) => (
             <li key={feature} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-              <span style={{ color: t.accent, display: "inline-flex", marginTop: 2 }}>
+              <span style={{ color: t.accentText, display: "inline-flex", marginTop: 2 }}>
                 <Check size={14} />
               </span>
               <span>{feature}</span>

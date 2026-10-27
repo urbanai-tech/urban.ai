@@ -24,6 +24,7 @@ type AxeResult = {
 
 type AxeBuilderInstance = {
   withTags(tags: string[]): AxeBuilderInstance;
+  include(selector: string): AxeBuilderInstance;
   analyze(): Promise<AxeResult>;
 };
 
@@ -47,7 +48,7 @@ async function loadAxeBuilder(): Promise<AxeBuilderConstructor | null> {
   }
 }
 
-export async function expectNoCriticalA11yViolations(page: Page) {
+export async function findBlockingA11yViolations(page: Page, include?: string) {
   // Audita o estado final e estavel da interface. Durante o fade-in, cores
   // semitransparentes podem gerar falsos negativos de contraste no axe.
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -59,13 +60,30 @@ export async function expectNoCriticalA11yViolations(page: Page) {
   ).not.toBeNull();
   if (!AxeBuilder) throw new Error('@axe-core/playwright indisponivel');
 
-  const results = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-    .analyze();
+  let builder = new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']);
+  if (include) builder = builder.include(include);
+  const results = await builder.analyze();
 
   // Permitimos incidents minor/moderate; bloqueamos critical/serious.
-  const blockers = results.violations.filter(
+  return results.violations.filter(
     (violation) => violation.impact === 'critical' || violation.impact === 'serious',
   );
-  expect(blockers, JSON.stringify(blockers, null, 2)).toEqual([]);
+}
+
+/** Resumo curto (regra, impacto e alvos) para a mensagem de falha. */
+export function summarizeA11yViolations(violations: AxeViolation[]) {
+  return violations.map((violation) => ({
+    id: violation.id,
+    impact: violation.impact,
+    help: violation.help,
+    targets: (violation.nodes ?? []).map((node) => {
+      const { target, html } = node as { target?: unknown; html?: string };
+      return { target, html: html?.slice(0, 200) };
+    }),
+  }));
+}
+
+export async function expectNoCriticalA11yViolations(page: Page, include?: string) {
+  const blockers = await findBlockingA11yViolations(page, include);
+  expect(blockers.length, JSON.stringify(summarizeA11yViolations(blockers), null, 2)).toBe(0);
 }

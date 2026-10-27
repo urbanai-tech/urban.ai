@@ -180,7 +180,7 @@ export default function SubscriptionsPage() {
               background: "rgba(200, 129, 14, 0.10)",
               border: "1px solid rgba(200, 129, 14, 0.25)",
               borderRadius: 10,
-              color: "var(--app-warning)",
+              color: "var(--app-warning-text)",
               fontSize: 14,
               marginBottom: 24,
             }}

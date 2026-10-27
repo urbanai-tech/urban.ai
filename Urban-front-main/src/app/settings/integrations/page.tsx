@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DialogSurface } from "../../componentes/ui/DialogSurface";
 import {
   staysConnect,
   staysDisconnect,
@@ -666,9 +667,9 @@ export default function IntegrationsPage() {
 
           {/* Inline confirm modal */}
           {confirmDisconnect && (
-            <div
-              role="dialog"
-              aria-modal="true"
+            <DialogSurface
+              onClose={() => setConfirmDisconnect(false)}
+              aria-labelledby="disconnect-stays-title"
               style={{
                 position: "fixed",
                 inset: 0,
@@ -686,7 +687,7 @@ export default function IntegrationsPage() {
                 style={{ maxWidth: 440, width: "100%", padding: "24px 24px 20px" }}
                 onClick={undefined}
               >
-                <h3 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: "var(--app-text)" }}>
+                <h3 id="disconnect-stays-title" style={{ fontSize: 18, fontWeight: 600, margin: 0, color: "var(--app-text)" }}>
                   Desconectar Stays?
                 </h3>
                 <p
@@ -708,7 +709,7 @@ export default function IntegrationsPage() {
                   </AppButton>
                 </div>
               </AppCard>
-            </div>
+            </DialogSurface>
           )}
         </>
       )}
@@ -729,7 +730,7 @@ function PreviewStat({
     tone === "success"
       ? "var(--app-success)"
       : tone === "warning"
-        ? "var(--app-warning)"
+        ? "var(--app-warning-text)"
         : tone === "danger"
           ? "var(--app-danger)"
           : "var(--app-text)";
@@ -766,7 +767,7 @@ function PreviewIssue({
       style={{
         border: `1px solid ${tone === "danger" ? "rgba(194, 52, 46, 0.22)" : "rgba(200, 129, 14, 0.24)"}`,
         background: tone === "danger" ? "rgba(194, 52, 46, 0.06)" : "rgba(200, 129, 14, 0.08)",
-        color: tone === "danger" ? "var(--app-danger)" : "var(--app-warning)",
+        color: tone === "danger" ? "var(--app-danger)" : "var(--app-warning-text)",
         borderRadius: 8,
         padding: "10px 12px",
         fontSize: 13,

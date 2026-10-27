@@ -49,14 +49,8 @@ export default function () {
 
   const loginOk = check(loginRes, {
     'login 201': (r) => r.status === 201 || r.status === 200,
-    'login tem accessToken': (r) => {
-      try {
-        const body = r.json();
-        return !!body.accessToken;
-      } catch {
-        return false;
-      }
-    },
+    // O token vem só no cookie httpOnly (o corpo não o carrega mais).
+    'login define cookie de sessão': (r) => !!(r.cookies.urbanai_access_token || [])[0],
   });
 
   if (!loginOk) {
@@ -64,7 +58,7 @@ export default function () {
     return;
   }
 
-  const token = loginRes.json('accessToken');
+  const token = loginRes.cookies.urbanai_access_token[0].value;
   const authHeaders = {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,

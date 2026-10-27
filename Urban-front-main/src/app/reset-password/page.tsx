@@ -321,7 +321,7 @@ function PasswordRulesPanel({
               strength === "Forte"
                 ? "var(--app-success)"
                 : strength === "Media"
-                  ? "var(--app-warning)"
+                  ? "var(--app-warning-text)"
                   : "var(--app-danger)",
             fontSize: 12,
           }}

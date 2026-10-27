@@ -1,7 +1,7 @@
 import { THEME_MEDIA_QUERY, THEME_STORAGE_KEY } from "./constants";
 
-const LIGHT_THEME_COLOR = "#FAFAFB";
-const DARK_THEME_COLOR = "#080A0F";
+const LIGHT_THEME_COLOR = "#F4F8F5";
+const DARK_THEME_COLOR = "#000000";
 
 const script = `
 (function () {

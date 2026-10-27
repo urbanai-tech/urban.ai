@@ -17,13 +17,44 @@ import {
  * Label persistente em cima (uppercase 2xs).
  */
 
+/** Liga label, ajuda e erro ao campo: id estavel, aria-describedby e aria-invalid. */
+function useFieldA11y({
+  id,
+  helper,
+  error,
+  describedBy,
+}: {
+  id?: string;
+  helper?: string;
+  error?: string;
+  describedBy?: string;
+}) {
+  const generated = React.useId();
+  const fieldId = id ?? `field-${generated}`;
+  const messageId = error || helper ? `${fieldId}-message` : undefined;
+  const ids = [describedBy, messageId].filter(Boolean).join(" ") || undefined;
+  return {
+    fieldId,
+    messageId,
+    fieldProps: {
+      id: fieldId,
+      "aria-describedby": ids,
+      "aria-invalid": error ? (true as const) : undefined,
+    },
+  };
+}
+
 function FieldShell({
+  fieldId,
+  messageId,
   label,
   helper,
   error,
   children,
   style,
 }: {
+  fieldId: string;
+  messageId?: string;
   label?: string;
   helper?: string;
   error?: string;
@@ -31,11 +62,23 @@ function FieldShell({
   style?: React.CSSProperties;
 }) {
   return (
-    <label style={{ display: "block", maxWidth: "100%", minWidth: 0, ...style }}>
-      {label && <span style={appLabelStyle}>{label}</span>}
+    <div style={{ display: "block", maxWidth: "100%", minWidth: 0, ...style }}>
+      {label && (
+        <label htmlFor={fieldId} style={appLabelStyle}>
+          {label}
+        </label>
+      )}
       {children}
-      {error ? <p style={appErrorTextStyle}>{error}</p> : helper ? <p style={appHelperTextStyle}>{helper}</p> : null}
-    </label>
+      {error ? (
+        <p id={messageId} role="alert" style={appErrorTextStyle}>
+          {error}
+        </p>
+      ) : helper ? (
+        <p id={messageId} style={appHelperTextStyle}>
+          {helper}
+        </p>
+      ) : null}
+    </div>
   );
 }
 
@@ -48,12 +91,14 @@ type InputProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, "prefix"> & 
 };
 
 export const AppInput = React.forwardRef<HTMLInputElement, InputProps>(function AppInput(
-  { label, helper, error, leftAddon, style, shellStyle, ...rest },
+  { label, helper, error, leftAddon, style, shellStyle, id, "aria-describedby": describedBy, ...rest },
   ref,
 ) {
+  const { fieldId, messageId, fieldProps } = useFieldA11y({ id, helper, error, describedBy });
   const input = (
     <input
       ref={ref}
+      {...fieldProps}
       style={{
         ...appFieldBaseStyle,
         paddingLeft: leftAddon ? 38 : 14,
@@ -64,7 +109,7 @@ export const AppInput = React.forwardRef<HTMLInputElement, InputProps>(function 
     />
   );
   return (
-    <FieldShell label={label} helper={helper} error={error} style={shellStyle}>
+    <FieldShell fieldId={fieldId} messageId={messageId} label={label} helper={helper} error={error} style={shellStyle}>
       {leftAddon ? (
         <div style={{ position: "relative" }}>
           <span
@@ -100,13 +145,15 @@ type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
 };
 
 export const AppSelect = React.forwardRef<HTMLSelectElement, SelectProps>(function AppSelect(
-  { label, helper, error, style, shellStyle, children, ...rest },
+  { label, helper, error, style, shellStyle, children, id, "aria-describedby": describedBy, ...rest },
   ref,
 ) {
+  const { fieldId, messageId, fieldProps } = useFieldA11y({ id, helper, error, describedBy });
   return (
-    <FieldShell label={label} helper={helper} error={error} style={shellStyle}>
+    <FieldShell fieldId={fieldId} messageId={messageId} label={label} helper={helper} error={error} style={shellStyle}>
       <select
         ref={ref}
+        {...fieldProps}
         style={{
           ...appFieldBaseStyle,
           appearance: "none",
@@ -136,13 +183,15 @@ type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
 };
 
 export const AppTextarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(function AppTextarea(
-  { label, helper, error, style, shellStyle, rows = 4, ...rest },
+  { label, helper, error, style, shellStyle, rows = 4, id, "aria-describedby": describedBy, ...rest },
   ref,
 ) {
+  const { fieldId, messageId, fieldProps } = useFieldA11y({ id, helper, error, describedBy });
   return (
-    <FieldShell label={label} helper={helper} error={error} style={shellStyle}>
+    <FieldShell fieldId={fieldId} messageId={messageId} label={label} helper={helper} error={error} style={shellStyle}>
       <textarea
         ref={ref}
+        {...fieldProps}
         rows={rows}
         style={{
           ...appFieldBaseStyle,

@@ -27,6 +27,7 @@ import {
   AppSelect,
   AppTextarea,
   AppToastProvider,
+  DialogSurface,
   useToastCompat,
 } from "../../componentes/ui";
 import {
@@ -807,12 +808,12 @@ function PropertyDetailContent() {
       </div>
 
       {outcomeSuggestion && (
-        <div className="property-modal-overlay" role="dialog" aria-modal="true">
+        <DialogSurface className="property-modal-overlay" onClose={() => setOutcomeSuggestion(null)} aria-labelledby="property-outcome-title">
           <div className="property-modal">
             <div className="property-modal-header">
               <div>
                 <span>CONFERIR SUGESTÃO</span>
-                <h2>{outcomeSuggestion.nome || "Sugestão"}</h2>
+                <h2 id="property-outcome-title">{outcomeSuggestion.nome || "Sugestão"}</h2>
               </div>
               <button type="button" onClick={() => setOutcomeSuggestion(null)}>x</button>
             </div>
@@ -859,7 +860,7 @@ function PropertyDetailContent() {
               <AppButton loading={savingOutcome} onClick={saveOutcome}>Salvar conferência</AppButton>
             </div>
           </div>
-        </div>
+        </DialogSurface>
       )}
 
       <style jsx>{styles}</style>

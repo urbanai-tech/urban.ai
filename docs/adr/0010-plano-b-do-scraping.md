@@ -43,7 +43,7 @@ Objetivo: quando a fonte falha, o anfitrião ainda recebe valor — informando e
 - **Piso**: `minDailyPrice` entra como limite inferior da sugestão (`PricingCalculateService.calcular`, parâmetro `precoMinimo`).
 - **Cron diário**: sem leitura ao vivo, usa a diária com que a própria sugestão foi calculada (`seuPrecoAtual`) em vez de descartar a recomendação.
 - **Front**: tela do imóvel ganha o cartão "Origem da diária base" com selo (informada por você / lida do Airbnb / desatualizada / sem diária) e o formulário "Preencher manualmente"; abre sozinho quando não há diária. Cópia honesta: o que é usado hoje (diária e piso) e o que só é registrado (fim de semana).
-- **Chave do Airbnb fora do código**: a chave pública do cliente web do Airbnb (`x-airbnb-api-key`, usada na consulta GraphQL do perfil) estava literal em `propriedade.service.ts`. Passou a vir de `AIRBNB_WEB_API_KEY`; sem ela, o backend registra erro claro e usa o fallback por navegador. Não restam chaves de RapidAPI ou similares no código (backend, front, webscraping, pipeline). A chave antiga continua no histórico do git — é uma chave pública do site, não um segredo da Urban AI.
+- **Chave do Airbnb fora do código**: a chave pública do cliente web do Airbnb (`x-airbnb-api-key`, usada na consulta GraphQL do perfil) estava literal em `propriedade.service.ts` (hoje `property-scraping.service.ts`). Passou a vir de `AIRBNB_WEB_API_KEY`; sem ela, o backend registra erro claro e usa o fallback por navegador. Não restam chaves de RapidAPI ou similares no código (backend, front, webscraping, pipeline). A chave antiga continua no histórico do git — é uma chave pública do site, não um segredo da Urban AI.
 
 ## Consequências
 

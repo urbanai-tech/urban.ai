@@ -268,7 +268,8 @@ test.describe('Dashboard recommendations', () => {
 
     await page.goto('/dashboard');
     await page.getByRole('button', { name: /Registrar resultado/i }).click();
-    await page.getByLabel(/Pre[cç]o aplicado/i).fill('450');
+    const drawer = page.getByRole('dialog', { name: /Registrar pre/i });
+    await drawer.getByRole('textbox', { name: /^Pre[cç]o aplicado/i }).fill('450');
     await page.getByLabel(/Resultado da reserva/i).selectOption('booked');
     await page.getByLabel(/Receita real/i).fill('1350');
     await page.getByLabel(/Noites reservadas/i).fill('3');

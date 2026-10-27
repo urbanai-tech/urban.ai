@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import PropertySelect from "../../../../componentes/PropertySelect";
 import { AppButton, Icons } from "../../../../componentes/ui";
+import { useDialogFocus } from "../../../../componentes/ui/useDialogFocus";
 import {
   formatPropertyIdentityLabel,
   getPropriedadesDropdownList,
@@ -58,19 +59,8 @@ export function CopyRulesModal({
     };
   }, [open, currentPropertyId]);
 
-  useEffect(() => {
-    if (!open) return;
-    const handler = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-
-    window.addEventListener("keydown", handler);
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", handler);
-      document.body.style.overflow = "";
-    };
-  }, [open, onClose]);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  useDialogFocus({ open, containerRef: panelRef, onClose });
 
   const otherProperties = useMemo(
     () => (properties ?? []).filter((property) => property.id !== currentPropertyId),
@@ -111,6 +101,8 @@ export function CopyRulesModal({
       />
 
       <div
+        ref={panelRef}
+        tabIndex={-1}
         style={{
           position: "relative",
           width: "100%",

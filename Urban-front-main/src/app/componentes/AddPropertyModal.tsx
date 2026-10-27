@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AppButton, AppLoadingStatus, useToastCompat, type AppLoadingStep } from './ui';
+import { AppButton, AppLoadingStatus, DialogSurface, useToastCompat, type AppLoadingStep } from './ui';
 import {
   getUserManagedListings,
   getPropriedadesDropdownList,
@@ -506,9 +506,8 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
         if (event.target === event.currentTarget) handleClose();
       }}
     >
-      <section
-        role="dialog"
-        aria-modal="true"
+      <DialogSurface
+        onClose={handleClose}
         aria-labelledby="add-property-title"
         style={{
           width: "100%",
@@ -555,6 +554,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
               </p>
 
               <input
+                aria-label="Link do imóvel ou do perfil no Airbnb"
                 placeholder="Exemplo: https://www.airbnb.com/rooms/12345678"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
@@ -649,6 +649,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                     </p>
                   </div>
                   <input
+                    aria-label={`Diária base de ${property.propertyName}`}
                     placeholder="R$ 350"
                     inputMode="decimal"
                     value={manualPriceDrafts[property.addressId] ?? ''}
@@ -708,7 +709,9 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                         <input
                           type="checkbox"
                           checked={selected}
-                          readOnly
+                          aria-label={`Monitorar ${prop.titulo || `anúncio ${prop.id_do_anuncio}`}`}
+                          onClick={(event) => event.stopPropagation()}
+                          onChange={(event) => handleToggleProperty(prop.id_do_anuncio, event.target.checked)}
                           style={{ width: 18, height: 18, accentColor: "#E8500A", pointerEvents: "none" }}
                         />
 
@@ -795,7 +798,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
             </AppButton>
           )}
         </footer>
-      </section>
+      </DialogSurface>
     </div>
   );
 }

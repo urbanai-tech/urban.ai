@@ -288,9 +288,13 @@ jobs:
             });
             if (!response.ok) throw new Error(`${label} login failed with HTTP ${response.status}`);
 
-            const body = await response.json().catch(() => ({}));
-            if (!body.accessToken) throw new Error(`${label} login did not return accessToken.`);
-            return body.accessToken;
+            // O login não devolve token no corpo: a sessão vem no cookie httpOnly (Set-Cookie).
+            const setCookies = typeof response.headers.getSetCookie === 'function'
+              ? response.headers.getSetCookie()
+              : [response.headers.get('set-cookie') || ''];
+            const match = setCookies.join('\n').match(/(?:^|\n)urbanai_access_token=([^;\n]+)/);
+            if (!match) throw new Error(`${label} login did not set the urbanai_access_token cookie.`);
+            return match[1];
           }
 
           async function main() {

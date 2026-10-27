@@ -23,6 +23,7 @@ import {
   PortfolioPropertySetting,
 } from '../entities/portfolio-property-setting.entity';
 import { PriceSnapshot } from '../entities/price-snapshot.entity';
+import { saoPauloDayBounds, todaySaoPauloDateKey } from '../common/sp-date';
 import {
   PricingRuleConfig,
   PricingRuleConfigItem,
@@ -1601,10 +1602,9 @@ export class HostPanelsService {
     return Number.isNaN(date.getTime()) ? null : date.toISOString();
   }
 
-  private startOfToday() {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    return now;
+  /** Início do dia de São Paulo (00:00 BRT) — a cota diária do Ask Urban não depende do fuso do servidor. */
+  private startOfToday(now: Date = new Date()): Date {
+    return saoPauloDayBounds(todaySaoPauloDateKey(now)).start;
   }
 
   private normalize(value: unknown): string {

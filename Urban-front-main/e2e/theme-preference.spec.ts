@@ -2,9 +2,6 @@ import { expect, test, type Page } from '@playwright/test';
 import { acceptCookieConsent } from './test-helpers';
 
 async function mockAdminSession(page: Page) {
-  await page.addInitScript(() => {
-    window.localStorage.setItem('accessToken', 'e2e-theme-admin-token');
-  });
 
   await page.route('**/auth/me', async (route) => {
     await route.fulfill({
@@ -86,7 +83,7 @@ test.describe('Theme preference', () => {
 
     await expect(page.locator('html')).toHaveAttribute('data-theme-preference', 'dark');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-    await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(8, 10, 15)');
+    await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(0, 0, 0)');
   });
 
   test('applies persisted light theme before page interaction', async ({ page }) => {
@@ -98,7 +95,7 @@ test.describe('Theme preference', () => {
 
     await expect(page.locator('html')).toHaveAttribute('data-theme-preference', 'light');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-    await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(250, 250, 251)');
+    await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(244, 248, 245)');
   });
 
   test('system mode follows browser color scheme', async ({ page }) => {

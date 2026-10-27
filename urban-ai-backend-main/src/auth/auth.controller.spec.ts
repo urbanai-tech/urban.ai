@@ -43,6 +43,53 @@ describe('AuthController', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
+  describe('corpo das respostas de sessão (fase 2)', () => {
+    const tokens = {
+      accessToken: 'secret-access-jwt',
+      refreshToken: 'secret-refresh-raw',
+      refreshExpiresAt: new Date(Date.now() + 60_000),
+    };
+
+    function expectNoTokens(body: unknown) {
+      const json = JSON.stringify(body);
+      expect(json).not.toContain('secret-access-jwt');
+      expect(json).not.toContain('secret-refresh-raw');
+      expect(json).not.toMatch(/accessToken|refreshToken/i);
+    }
+
+    it('login entrega o token só por cookie httpOnly', async () => {
+      const authService = { login: jest.fn().mockResolvedValue(tokens) };
+      const controller = new AuthController(authService as any, {} as any, {} as any, {} as any, {} as any);
+      const res = { cookie: jest.fn() };
+      const body = await controller.login({ email: 'a@b.c', password: 'x' }, { headers: {}, ip: 'ip' } as any, res as any);
+      expectNoTokens(body);
+      expect(res.cookie).toHaveBeenCalledWith('urbanai_access_token', 'secret-access-jwt', expect.objectContaining({ httpOnly: true }));
+    });
+
+    it('google, refresh e waitlist/accept também não devolvem token no corpo', async () => {
+      const user = { id: 'u1', username: 'u', email: 'u@x.y' };
+      const authService = {
+        googleLogin: jest.fn().mockResolvedValue({ ...tokens, user }),
+        rotateRefreshToken: jest.fn().mockResolvedValue(tokens),
+        findUserByEmail: jest.fn().mockResolvedValue(null),
+        register: jest.fn().mockResolvedValue(user),
+        issueTokens: jest.fn().mockResolvedValue(tokens),
+      };
+      const waitlist = {
+        lookupByInviteToken: jest.fn().mockResolvedValue({ id: 'w1', email: 'u@x.y', name: 'U' }),
+        markConverted: jest.fn(),
+      };
+      const controller = new AuthController(authService as any, waitlist as any, {} as any, {} as any, {} as any);
+      const res = { cookie: jest.fn() };
+      const req = { headers: {}, ip: 'ip', cookies: { urbanai_refresh_token: 'raw' } } as any;
+      expectNoTokens(await controller.googleLogin({ idToken: 't' }, req, res as any));
+      expectNoTokens(await controller.refresh(req, res as any));
+      expectNoTokens(await controller.acceptWaitlistInvite(
+        { token: 'invite', password: 'senha-forte-123' } as any, req, res as any,
+      ));
+    });
+  });
+
   describe('login cookies', () => {
     it('treats COOKIE_DOMAIN=none as a host-only cookie in staging', async () => {
       process.env = { ...originalEnv, APP_ENV: 'staging', COOKIE_DOMAIN: 'none' };
@@ -357,7 +404,7 @@ describe('AuthController', () => {
       const controller = new AuthController(authService as any, {} as any, {} as any, {} as any, {} as any);
       const res = { cookie: jest.fn() };
       await expect(controller.googleLogin(body, { headers: {}, ip: 'ip' } as any, res as any))
-        .resolves.toEqual({ accessToken: 'access', user: { id: 'u1' } });
+        .resolves.toEqual({ authenticated: true, user: { id: 'u1' } });
       expect(authService.googleLogin).toHaveBeenCalledWith({ idToken: expected }, expect.any(Object));
     });
 
@@ -381,7 +428,8 @@ describe('AuthController', () => {
       await expect(controller.refresh(
         { cookies: { urbanai_refresh_token: 'raw' }, headers: {}, ip: 'ip' } as any,
         res as any,
-      )).resolves.toEqual({ accessToken: 'access' });
+      )).resolves.toEqual({ refreshed: true });
+      expect(res.cookie).toHaveBeenCalledWith('urbanai_access_token', 'access', expect.objectContaining({ httpOnly: true }));
       expect(authService.rotateRefreshToken).toHaveBeenCalledWith('raw', expect.any(Object));
     });
 

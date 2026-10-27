@@ -3,6 +3,7 @@
 import React from "react";
 import { AppButton } from "./AppButton";
 import { AppBadge } from "./AppBadge";
+import { DialogSurface } from "./DialogSurface";
 import { DriverBar } from "./DriverBar";
 import { ScenarioComparison } from "./ScenarioComparison";
 import {
@@ -601,89 +602,50 @@ export function RecommendationCard({
     };
   }, [detailsOpen]);
 
-  // ESC fecha os detalhes.
-  React.useEffect(() => {
-    if (!detailsOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setDetailsOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [detailsOpen]);
+  const deltaDirection = deltaAbs < 0 ? "down" : "up";
+  const deltaAbsLabel = `${deltaAbs > 0 ? "+" : deltaAbs < 0 ? "−" : ""}${fmtBRL(Math.abs(deltaAbs))}`;
+
+  const priceBlock = (
+    <div className="urban-rec__price">
+      <div style={{ minWidth: 0 }}>
+        <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
+          Sugestão da IA
+        </p>
+        <p className="urban-app-display-md urban-rec__price-value">{fmtBRL(suggestedPrice)}</p>
+        <p className="urban-rec__current">
+          preço atual: <strong>{fmtBRL(currentPrice)}</strong> / diária
+        </p>
+      </div>
+      <div className="urban-rec__delta" data-direction={deltaDirection}>
+        <span className="urban-rec__delta-pct">
+          <DeltaIcon size={12} />
+          {deltaLabel}
+        </span>
+        <span className="urban-rec__delta-abs">{deltaAbsLabel} por noite</span>
+      </div>
+    </div>
+  );
 
   return (
-    <div
-      className="urban-app-card-accent"
-      style={{
-        padding: compact ? "18px 20px" : "24px 28px",
-        display: "flex",
-        flexDirection: "column",
-        gap: compact ? 14 : 20,
-        minWidth: 0,
-        overflow: "hidden",
-      }}
-    >
+    <div className={`urban-app-card-accent urban-rec${compact ? " urban-rec--compact" : ""}`}>
       {/* === Header: evento + categoria + meta === */}
       <header>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-          {eventCategory && (
-            <span
-              style={{
-                fontSize: 10,
-                letterSpacing: 2,
-                textTransform: "uppercase",
-                color: "var(--app-accent)",
-                fontWeight: 700,
-              }}
-            >
-              {eventCategory}
-            </span>
-          )}
+        <div className="urban-rec__eyebrow-row">
+          {eventCategory && <span className="urban-rec__category">{eventCategory}</span>}
           {status === "applied" && <AppBadge kind="success">Aplicado</AppBadge>}
           {status === "accepted" && <AppBadge kind="accent">Aceito</AppBadge>}
           {status === "rejected" && <AppBadge kind="neutral">Recusado</AppBadge>}
         </div>
-        <h3
-          style={{
-            fontSize: compact ? 16 : 18,
-            fontWeight: 600,
-            color: "var(--app-text)",
-            letterSpacing: -0.2,
-            margin: 0,
-            lineHeight: 1.3,
-            overflowWrap: "anywhere",
-          }}
-        >
-          {eventTitle}
-        </h3>
-        <div
-          style={{
-            marginTop: 8,
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            flexWrap: "wrap",
-            fontSize: 12,
-            color: "var(--app-text-muted)",
-          }}
-        >
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, minWidth: 0 }}>
+        <h3 className="urban-rec__title">{eventTitle}</h3>
+        <div className="urban-rec__meta">
+          <span>
             <Calendar size={12} /> {fmtDate(eventDate)}
           </span>
           {eventLocation && (
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-                minWidth: 0,
-                maxWidth: "100%",
-                overflowWrap: "anywhere",
-              }}
-            >
+            <span>
               <MapPin size={12} /> {eventLocation}
               {typeof distanceKm === "number" && (
-                <span style={{ color: "var(--app-text-dim)" }}>
+                <span>
                   {" · "}
                   {distanceKm.toFixed(1)} km
                 </span>
@@ -693,116 +655,26 @@ export function RecommendationCard({
         </div>
       </header>
 
-      {/* === Preço sugerido domina === */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) auto",
-          gap: 16,
-          alignItems: "end",
-        }}
-      >
-        <div>
-          <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
-            Sugestão da IA
-          </p>
-          <p
-            className="urban-app-display-md"
-            style={{
-              color: "var(--app-accent)",
-              fontSize: compact ? 44 : undefined,
-              lineHeight: compact ? 0.95 : undefined,
-            }}
-          >
-            {fmtBRL(suggestedPrice)}
-          </p>
-          <p
-            style={{
-              fontSize: 12,
-              color: "var(--app-text-muted)",
-              marginTop: 4,
-            }}
-          >
-            preço atual: <strong style={{ color: "var(--app-text)" }}>{fmtBRL(currentPrice)}</strong>{" "}
-            / diária
-          </p>
-        </div>
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 5,
-            padding: "6px 12px",
-            background: deltaAbs >= 0 ? "var(--app-accent-soft)" : "var(--app-surface-muted)",
-            color: deltaAbs >= 0 ? "var(--app-accent)" : "var(--app-danger)",
-            borderRadius: 999,
-            fontSize: 13,
-            fontWeight: 600,
-          }}
-        >
-          <DeltaIcon size={12} />
-          {deltaLabel}
-        </div>
-      </div>
+      {/* === Preço sugerido domina; delta em % e em R$ === */}
+      {priceBlock}
 
       {/* === Resumo compacto: detalhes completos ficam no modal. === */}
-      <section
-        aria-label="Resumo da sugestão"
-        style={{
-          display: "flex",
-          gap: 12,
-          paddingTop: 14,
-          borderTop: "1px solid var(--app-divider)",
-          minWidth: 0,
-        }}
-      >
-        <span
-          aria-hidden
-          style={{
-            flex: "0 0 auto",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 34,
-            height: 34,
-            borderRadius: 999,
-            background: "var(--app-accent-soft)",
-            color: "var(--app-accent)",
-          }}
-        >
+      <section aria-label="Resumo da sugestão" className="urban-rec__why">
+        <span aria-hidden className="urban-rec__why-icon">
           <Sparkles size={15} />
         </span>
         <div style={{ minWidth: 0 }}>
           <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
             Por que este preço?
           </p>
-          <p
-            style={{
-              margin: 0,
-              color: "var(--app-text)",
-              fontSize: compact ? 12 : 13,
-              lineHeight: 1.5,
-              overflowWrap: "anywhere",
-              maxHeight: compact ? 72 : undefined,
-              overflow: compact ? "hidden" : undefined,
-            }}
-          >
-            <strong>{explanation.lead}</strong>{" "}
-            {explanation.humanReason ?? explanation.body}
+          <p className="urban-rec__why-text">
+            <strong>{explanation.lead}</strong> {explanation.humanReason ?? explanation.body}
           </p>
         </div>
       </section>
 
       {/* === Confiança + CTAs === */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-          flexWrap: "wrap",
-        }}
-      >
+      <div className="urban-rec__footer">
         <div>
           {confidence && (
             <AppBadge kind={CONFIDENCE_KIND[confidence]}>
@@ -810,7 +682,7 @@ export function RecommendationCard({
             </AppBadge>
           )}
         </div>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
+        <div className="urban-rec__actions">
           <AppButton variant="secondary" size={compact ? "sm" : "md"} onClick={() => setDetailsOpen(true)}>
             Ver detalhes
           </AppButton>
@@ -834,74 +706,25 @@ export function RecommendationCard({
       </div>
 
       {detailsOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
+        <DialogSurface
+          onClose={() => setDetailsOpen(false)}
           aria-labelledby="recommendation-detail-title"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 1500,
-            display: "grid",
-            placeItems: "center",
-            padding: 20,
-            background: "rgba(0, 0, 0, 0.58)",
-          }}
+          className="urban-rec-dialog"
         >
           <button
             type="button"
             aria-label="Fechar detalhes da sugestão"
             onClick={() => setDetailsOpen(false)}
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              border: 0,
-              background: "transparent",
-              cursor: "default",
-            }}
+            className="urban-sheet-scrim"
           />
 
-          <div
-            className="urban-app"
-            style={{
-              position: "relative",
-              width: "min(720px, 100%)",
-              maxHeight: "calc(100vh - 40px)",
-              overflow: "hidden",
-              border: "1px solid var(--app-divider-strong)",
-              borderRadius: 10,
-              background: "var(--app-surface)",
-              boxShadow: "0 24px 80px rgba(0,0,0,0.35)",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 16,
-                padding: "18px 20px",
-                borderBottom: "1px solid var(--app-divider)",
-              }}
-            >
+          <div className="urban-app urban-rec-dialog__panel">
+            <div className="urban-rec-dialog__header">
               <div style={{ minWidth: 0 }}>
                 <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
                   Detalhes da sugestão
                 </p>
-                <h2
-                  id="recommendation-detail-title"
-                  style={{
-                    margin: 0,
-                    color: "var(--app-text)",
-                    fontSize: 20,
-                    lineHeight: 1.25,
-                    fontWeight: 700,
-                    overflowWrap: "anywhere",
-                  }}
-                >
+                <h2 id="recommendation-detail-title" className="urban-rec-dialog__title">
                   {eventTitle}
                 </h2>
               </div>
@@ -909,72 +732,14 @@ export function RecommendationCard({
                 type="button"
                 onClick={() => setDetailsOpen(false)}
                 aria-label="Fechar detalhes da sugestão"
-                className="urban-focus-ring"
-                style={{
-                  flex: "0 0 auto",
-                  width: 40,
-                  height: 40,
-                  borderRadius: 8,
-                  border: "1px solid var(--app-divider-strong)",
-                  background: "var(--app-surface-muted)",
-                  color: "var(--app-text)",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                }}
+                className="urban-focus-ring urban-icon-btn urban-icon-btn--bordered"
               >
                 <Close size={17} />
               </button>
             </div>
 
-            <div
-              style={{
-                padding: 20,
-                overflowY: "auto",
-                display: "flex",
-                flexDirection: "column",
-                gap: 22,
-              }}
-            >
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "minmax(0, 1fr) auto",
-                  gap: 16,
-                  alignItems: "end",
-                }}
-              >
-                <div style={{ minWidth: 0 }}>
-                  <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
-                    Sugestão da IA
-                  </p>
-                  <p className="urban-app-display-md" style={{ color: "var(--app-accent)" }}>
-                    {fmtBRL(suggestedPrice)}
-                  </p>
-                  <p style={{ fontSize: 12, color: "var(--app-text-muted)", marginTop: 4 }}>
-                    preço atual:{" "}
-                    <strong style={{ color: "var(--app-text)" }}>{fmtBRL(currentPrice)}</strong>{" "}
-                    / diária
-                  </p>
-                </div>
-                <div
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 5,
-                    padding: "6px 12px",
-                    background: deltaAbs >= 0 ? "var(--app-accent-soft)" : "var(--app-surface-muted)",
-                    color: deltaAbs >= 0 ? "var(--app-accent)" : "var(--app-danger)",
-                    borderRadius: 999,
-                    fontSize: 13,
-                    fontWeight: 600,
-                  }}
-                >
-                  <DeltaIcon size={12} />
-                  {deltaLabel}
-                </div>
-              </div>
+            <div className="urban-rec-dialog__body">
+              {priceBlock}
 
               <RecommendationReason
                 currentPrice={currentPrice}
@@ -992,9 +757,13 @@ export function RecommendationCard({
                   scenarios={scenarios}
                 />
               )}
+
+              <p className="urban-rec__approval-note">
+                Você decide se aceita. Nada muda sem a sua aprovação.
+              </p>
             </div>
           </div>
-        </div>
+        </DialogSurface>
       )}
     </div>
   );

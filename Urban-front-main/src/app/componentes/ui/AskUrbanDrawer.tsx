@@ -901,7 +901,7 @@ function UsageChip({
     },
     amber: {
       bg: "var(--app-surface-muted)",
-      color: "var(--app-warning)",
+      color: "var(--app-warning-text)",
       border: "var(--app-warning)",
     },
     accent: {

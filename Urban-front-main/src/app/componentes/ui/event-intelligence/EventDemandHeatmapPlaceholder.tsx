@@ -1091,7 +1091,7 @@ function heatColor(score: number): { background: string; border: string; text: s
     return {
       background: "var(--app-surface-muted)",
       border: "var(--app-warning)",
-      text: "var(--app-warning)",
+      text: "var(--app-warning-text)",
     };
   }
   return {

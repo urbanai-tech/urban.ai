@@ -16,6 +16,9 @@ import { getPlans, type Plan } from "../service/api";
 import { useCheckoutReturnNotice } from "../componentes/useCheckoutReturnNotice";
 import { PricingSelfServiceCalculator } from "../componentes/PricingCalculatorV2";
 
+// Laranja da marca sobre o fundo escuro fixo desta pagina (nao segue o tema claro/escuro).
+const PLANS_ACCENT = "#E8500A";
+
 export default function PlansPage() {
   useCheckoutReturnNotice("canceled");
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -29,7 +32,8 @@ export default function PlansPage() {
 
   if (loading) {
     return (
-      <div
+      <main
+        id="main-content"
         className="urban-manifesto"
         style={{
           background: "#080A0F",
@@ -52,14 +56,15 @@ export default function PlansPage() {
         >
           Carregando planos…
         </p>
-      </div>
+      </main>
     );
   }
 
   const activePlans = plans.filter((p) => p.isActive);
 
   return (
-    <div
+    <main
+      id="main-content"
       className="urban-manifesto"
       style={{ background: "#080A0F", color: "#FFFFFF", minHeight: "100vh" }}
     >
@@ -111,7 +116,7 @@ export default function PlansPage() {
             <br />
             POR IMÓVEL.
             <br />
-            <span style={{ color: "#E8500A" }}>NADA MAIS.</span>
+            <span style={{ color: PLANS_ACCENT }}>NADA MAIS.</span>
           </h1>
           <p
             style={{
@@ -142,12 +147,12 @@ export default function PlansPage() {
                 top: 0,
                 width: 2,
                 height: 56,
-                background: "#E8500A",
+                background: PLANS_ACCENT,
               }}
             />
             <p
               className="urban-eyebrow"
-              style={{ marginBottom: 16 }}
+              style={{ marginBottom: 16, color: PLANS_ACCENT }}
             >
               CALCULE O SEU
             </p>
@@ -164,7 +169,7 @@ export default function PlansPage() {
             >
               Selecione plano,
               <br />
-              <span style={{ color: "#E8500A" }}>
+              <span style={{ color: PLANS_ACCENT }}>
                 ciclo e quantidade.
               </span>
             </h2>
@@ -229,6 +234,6 @@ export default function PlansPage() {
           </p>
         </div>
       </section>
-    </div>
+    </main>
   );
 }
