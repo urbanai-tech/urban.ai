@@ -482,6 +482,15 @@
   border-radius: 6px;
 }
 
+/* Mensagem de erro inline de formulário (ligada ao campo por aria-describedby). */
+.urban-form-error {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
+  color: var(--app-danger);
+}
+
 /* === Design System Urban AI — ADMIN (dark premium tool) === */
 /* Aplicado dentro de .urban-admin (todas as rotas /admin/* via admin/layout.tsx) */
 
