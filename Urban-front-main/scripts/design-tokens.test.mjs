@@ -20,8 +20,8 @@ test("tokens possuem temas, aliases e breakpoints canonicos validos", () => {
 
 test("renderizacao resolve primitivos e preserva aliases CSS publicos", () => {
   const regions = renderRegions(tokens);
-  assert.match(regions.themes, /--theme-app-bg: #FAFAFB;/);
-  assert.match(regions.themes, /--theme-admin-accent: #E8500A;/);
+  assert.match(regions.themes, /--theme-app-bg: #F4F8F5;/);
+  assert.match(regions.themes, /--theme-admin-accent: #C7E2CE;/);
   assert.match(regions["app-aliases"], /--app-bg: var\(--theme-app-bg\);/);
   assert.match(regions["admin-aliases"], /--admin-text: var\(--theme-admin-text\);/);
 });

@@ -4,6 +4,7 @@
    Roboto (só no embed do Google Maps) e Press Start/Pixelify (mortas) saíram. */
 @import "tailwindcss";
 @import "./componentes/ui/design-tokens.css";
+@import "./componentes/ui/host-mobile.css";
 
 @media (min-width: 1024px) {
   .urban-nav-desktop,
@@ -635,7 +636,8 @@ html.has-environment-banner body {
 
 @media (max-width: 767px) {
   [data-app-footer] {
-    padding: 24px 16px calc(88px + env(safe-area-inset-bottom)) !important;
+    /* Reserva a tab bar (altura token + home indicator) + respiro. */
+    padding: 24px 16px calc(var(--app-tabbar-height, 58px) + var(--app-safe-bottom, 0px) + 30px) !important;
     margin-bottom: 0 !important;
   }
 
