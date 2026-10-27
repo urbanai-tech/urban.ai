@@ -17,13 +17,13 @@ test.describe('PWA e mobile', () => {
     expect(manifest.orientation).toBe('any');
     expect(manifest.lang).toBe('pt-BR');
     expect(manifest.categories).toEqual(expect.arrayContaining(['business', 'productivity']));
-    expect(manifest.start_url).toContain('/dashboard');
+    expect(manifest.start_url).toContain('/painel');
     expect(manifest.shortcuts).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: 'Dashboard', url: expect.stringContaining('/dashboard') }),
+        expect.objectContaining({ name: 'Hoje', url: expect.stringContaining('/painel') }),
+        expect.objectContaining({ name: 'Calendário', url: expect.stringContaining('/dashboard') }),
         expect.objectContaining({ name: 'Imóveis', url: expect.stringContaining('/properties') }),
-        expect.objectContaining({ name: 'Notificações', url: expect.stringContaining('/notificacao') }),
-        expect.objectContaining({ name: 'Calendário', url: expect.stringContaining('/portfolio') }),
+        expect.objectContaining({ name: 'Avisos', url: expect.stringContaining('/notificacao') }),
       ]),
     );
     expect(manifest.icons).toEqual(
