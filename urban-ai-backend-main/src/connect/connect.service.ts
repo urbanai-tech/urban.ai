@@ -15,6 +15,7 @@ import { CreateNotificationDto } from "src/notifications/tdo/create-notification
 import { getDiaria } from "src/util";
 import { hasUsableBasePrice } from "src/pricing/base-price.util";
 import { isEmptyScrapeSnapshot } from "src/propriedades/scrape-snapshot.util";
+import { parseCoordinates } from "src/common/coordinates";
 import { mapWithConcurrency } from "src/common/concurrency";
 import {
   resolveSafeAirbnbUrl,
@@ -709,8 +710,7 @@ export class ConnectService {
 
         const city = this.getUsableAddressField(addr.cidade) ?? this.getUsableAddressField(scraped.city);
         const state = this.normalizeBrazilianState(addr.estado) ?? this.normalizeBrazilianState(scraped.state);
-        const latitude = Number(scraped.latitude);
-        const longitude = Number(scraped.longitude);
+        const coordinates = parseCoordinates(scraped.latitude, scraped.longitude);
 
         if (!city || !state) {
           throw new BadRequestException(
@@ -718,7 +718,7 @@ export class ConnectService {
           );
         }
 
-        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+        if (!coordinates) {
           throw new BadRequestException(
             `Não foi possível obter latitude/longitude do imóvel ${list.id_do_anuncio}. Sem isso não conseguimos encontrar eventos próximos.`,
           );
@@ -731,8 +731,8 @@ export class ConnectService {
           bairro: this.getUsableAddressField(addr.bairro) ?? this.getUsableAddressField(scraped.neighborhood),
           cidade: city,
           estado: state,
-          latitude,
-          longitude,
+          latitude: coordinates.latitude,
+          longitude: coordinates.longitude,
           list,
           user: { id: userId } as User,
           ativo: true,
@@ -846,147 +846,6 @@ export class ConnectService {
   ): Promise<Address[] | any[]> {
     await this.assertEmailVerified(userId);
     return this.createMultipleAddressesWithScrapedInputs(addresses, userId);
-
-    const address: Address[] | [] = addresses;
-    const addressSaved: Address[] = [];
-    const analysisStartedTitles: string[] = [];
-    const basePricePendingTitles: string[] = [];
-    try {
-      this.logger.log(
-        `📍 Salvando ${addresses.length} endereço(s) para o usuário ${userId}`
-      );
-
-      this.logger.debug(`createMultipleAddresses received count=${address.length}`);
-
-      for (const addr of addresses) {
-        try {
-          const list = await this.listRepo.findOne({
-            where: {
-              id_do_anuncio: addr.list.id,
-              user: { id: userId },
-            },
-          });
-
-          if (!list) {
-            throw new NotFoundException('Não encontramos esse imóvel na sua conta. Confira o link do Airbnb e tente novamente.');
-          }
-
-          const userData = await this.userRepository.findOne({
-            where: {
-              id: userId
-            }
-          });
-          if (!userData) {
-            throw new NotFoundException('Sua sessão expirou. Faça login novamente para continuar.');
-          }
-
-          // ===== SCRAPING DIRETO (substitui RapidAPI) =====
-          this.logger.log(`🕷️ [onboarding] Scraping room ${list?.id_do_anuncio}...`);
-          const scraped = await this.propriedadeService.scrapeAirbnbListing(list?.id_do_anuncio);
-
-          // Persistir dados enriquecidos na entity List
-          if (list && !isEmptyScrapeSnapshot(scraped)) {
-            const hostOwnsEssentials = list.essentialsSource === 'host_input';
-            await this.listRepo.update(list.id, {
-              titulo: scraped.title || list.titulo,
-              pictureUrl: scraped.pictureUrl || list.pictureUrl,
-              ...(hostOwnsEssentials
-                ? {}
-                : {
-                    quartos: scraped.bedrooms,
-                    camas: scraped.beds,
-                    banheiros: scraped.bathrooms,
-                    hospedes: scraped.guestCapacity,
-                    propertyType: scraped.propertyType,
-                    essentialsSource: 'airbnb',
-                    essentialsUpdatedAt: new Date(),
-                  }),
-              rating: scraped.rating,
-              amenitiesCount: scraped.amenitiesCount,
-              neighborhood: scraped.neighborhood,
-              reviewCount: scraped.reviewCount,
-              lastScrapedAt: new Date(),
-            });
-            this.logger.log(`✅ [onboarding] Dados enriquecidos salvos para ${list.id_do_anuncio}`);
-          }
-
-          this.logger.debug(`Address linked to listing=${list?.id_do_anuncio}`);
-
-          const existingAddress = await this.addressRepo.findOne({
-            where: {
-              list: { id: list.id },
-              user: { id: userId },
-            },
-            relations: ['list', 'user'],
-          });
-
-          const isUsableAddressField = (value: unknown) =>
-            typeof value === 'string' &&
-            value.trim().length > 0 &&
-            value.trim().toLowerCase() !== 'a definir';
-          const city = isUsableAddressField(addr.cidade) ? addr.cidade.trim() : scraped.city?.trim();
-          const stateRaw = isUsableAddressField(addr.estado) ? addr.estado.trim() : scraped.state?.trim();
-          const state = stateRaw ? stateRaw.slice(0, 2).toUpperCase() : '';
-
-          if (!city || !state) {
-            throw new BadRequestException(
-              `Não foi possível validar cidade/UF do imóvel ${list.id_do_anuncio}. Confira o link do Airbnb ou complete o endereço antes de gerar recomendações.`,
-            );
-          }
-
-          const addressPayload = {
-            cep: isUsableAddressField(addr.cep) ? addr.cep : scraped.zipCode || '00000-000',
-            numero: isUsableAddressField(addr.numero) ? addr.numero : 'S/N',
-            logradouro: isUsableAddressField(addr.logradouro) ? addr.logradouro : scraped.street || null,
-            bairro: isUsableAddressField(addr.bairro) ? addr.bairro : scraped.neighborhood || null,
-            cidade: city,
-            estado: state,
-            latitude: scraped.latitude,
-            longitude: scraped.longitude,
-            list: list,
-            user: { id: userId } as User,
-            ativo: true,
-            idAlertAirb: 'scraping_direct',
-          };
-
-          const addressEntity = existingAddress
-            ? await this.addressRepo.save({ ...existingAddress, ...addressPayload })
-            : await this.addressRepo.save(addressPayload);
-
-          addressSaved.push(addressEntity);
-
-          const hasBasePrice =
-            Number(list.manualDailyPrice) > 0 || Number(list.dailyPrice) > 0;
-          const title = scraped.title || list?.titulo || list?.id_do_anuncio;
-          if (hasBasePrice) analysisStartedTitles.push(title);
-          else basePricePendingTitles.push(title);
-
-
-        } catch (error: any) {
-          this.logger.error(
-            'Erro ao criar endereço no onboarding',
-            error instanceof Error ? error.stack : String(error),
-          );
-        }
-      }
-
-      await this.sendAddressBatchNotifications(userId, {
-        analysisStartedTitles,
-        basePricePendingTitles,
-      });
-    } catch (_error: any) {
-      this.logger.debug(`Ocorreu um erro ao criar um address`);
-    }
-
-    const sanitized = addressSaved.map(({ user: _user, ...rest }) => {
-      const { user: _, ...listWithoutUser } = rest.list || {};
-      return {
-        ...rest,
-        list: listWithoutUser,
-      };
-    });
-
-    return sanitized;
   }
 
   async resolveUrl(shortUrl: string): Promise<string> {

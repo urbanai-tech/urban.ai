@@ -7,6 +7,7 @@ import { AnalisePreco } from 'src/entities/AnalisePreco';
 import { Event as EventEntity } from 'src/entities/events.entity';
 import { FirstAvailablePriceResult } from 'src/airbnb/types';
 import { hasUsableBasePrice, resolveUsableBaseDailyPrice } from 'src/pricing/base-price.util';
+import { hasValidCoordinates } from 'src/common/coordinates';
 
 // ===================================================================
 // Tipos públicos de resposta (extraídos de PropriedadeService)
@@ -256,7 +257,7 @@ export function normalizeOccupancyStatus(value: unknown): 'booked' | 'available'
 export function hasUsableCoordinates(address: Address): boolean {
     const latitude = Number(address?.latitude);
     const longitude = Number(address?.longitude);
-    return Number.isFinite(latitude) && Number.isFinite(longitude) && latitude !== 0 && longitude !== 0;
+    return hasValidCoordinates(address?.latitude, address?.longitude) && latitude !== 0 && longitude !== 0;
 }
 
 export function formatLocationLabel(address: Address): string | null {

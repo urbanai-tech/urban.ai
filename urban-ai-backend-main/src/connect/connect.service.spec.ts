@@ -458,6 +458,24 @@ describe('ConnectService.createMultipleAddresses', () => {
     expect(deps.addressRepo.save).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ['null', { latitude: null, longitude: null }],
+    ['0,0', { latitude: 0, longitude: 0 }],
+    ['strings vazias', { latitude: '', longitude: '' }],
+    ['fora de faixa', { latitude: 91, longitude: -46.65 }],
+  ])('nunca grava o endereço em 0,0 nem fora de faixa quando o scrape traz coordenadas inválidas (%s)', async (_label, coords) => {
+    const deps = onboardingDeps(coords);
+    const service = makeService(deps);
+
+    const error = await service
+      .createMultipleAddresses([{ list: { id: 'room-1' }, cidade: 'São Paulo', estado: 'SP' }], 'u1')
+      .catch((e) => e);
+
+    expect(error).toBeInstanceOf(BadRequestException);
+    expect(error.getResponse().failures[0].reason).toContain('latitude/longitude');
+    expect(deps.addressRepo.save).not.toHaveBeenCalled();
+  });
+
   it('rejects a listing that is not owned by the user', async () => {
     const deps = onboardingDeps({});
     deps.listRepo.findOne.mockResolvedValue(null);
