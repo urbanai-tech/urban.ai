@@ -16,7 +16,10 @@ arquitetura: [`README.md`](./README.md) e [`docs/ARQUITETURA-ATUAL.md`](./docs/A
 
 ## 1. Subir o ambiente local
 
-Requisitos: Docker com Compose v2. Nada além disso é necessário para rodar.
+Requisitos para **rodar**: Docker com Compose v2 (dê ao Docker pelo menos ~8 GB de
+RAM). Para **validar** (seção 2) o host também precisa de Node 20 e npm, e de `uv`
+para os serviços Python; o CI e os containers usam Node 20 e o repositório não
+tem `.nvmrc`/`engines`, então confira com `npm run doctor`.
 
 Antes do primeiro `up`, rode `npm run doctor` (`scripts/doctor.sh`): confere Node,
 Docker, portas livres, `.env` e ferramentas opcionais, sem alterar nada.
@@ -27,7 +30,25 @@ docker compose --profile scraping up    # inclui o scrapyd (opcional, build pesa
 docker compose down -v                  # derruba tudo e apaga o banco local
 ```
 
-- O primeiro `up` roda `npm ci` dentro dos containers e demora alguns minutos.
+- O primeiro `up` roda `npm ci` dentro dos containers e é **lento**: medido em
+  Windows 11 com Docker Desktop (VM de ~7 GB), o backend levou ~31 min para
+  responder `/health/live` (MySQL ~2 min; `npm ci`, 59 migrations e a primeira
+  compilação do `nest start --watch` o resto) e a primeira requisição à home do
+  front ~6 min a mais (Next compila sob demanda). Em Linux costuma ser bem menos.
+  Subidas seguintes reaproveitam os volumes e levam poucos minutos.
+- Para acompanhar sem adivinhar: `docker compose ps` (o backend fica
+  `health: starting` até estar pronto) e `docker compose logs -f backend`
+  (as linhas `Migration ... has been executed successfully` e depois
+  `Starting compilation in watch mode` indicam as etapas). Pronto =
+  `curl http://localhost:10000/health/live` retornando `{"status":"ok",...}`.
+- Os serviços do Compose se chamam `mysql`, `redis`, `backend` e `frontend`
+  (o `scrapyd` só com `--profile scraping`). Para subir só o essencial, em
+  segundo plano: `docker compose up -d mysql redis backend frontend`.
+- Não rode `nest build` (nem `scripts/validate-local.sh --backend`) no host com o
+  Compose no ar: o código é um bind mount e ambos gravam `urban-ai-backend-main/dist`.
+  Faça `docker compose down` antes. O comando `down -v` apaga também o banco local
+  e os volumes de `node_modules`, e a próxima subida repete o `npm ci` demorado;
+  use `docker compose down` (sem `-v`) para só parar.
 - O backend roda `npm run migration:run` antes de iniciar (`synchronize` fica
   desligado) e depois `npm run start:dev` com hot reload.
 - Backend: <http://localhost:10000> (`/health/live`; Swagger em `/api`).
