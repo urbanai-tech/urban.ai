@@ -69,7 +69,7 @@ function writeTheme(preference: ThemePreference, resolved: ResolvedTheme) {
     document.querySelector<HTMLMetaElement>('meta[name="theme-color"][data-urban-runtime-theme]') ??
     document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
   if (meta) {
-    meta.content = resolved === "dark" ? "#080A0F" : "#FAFAFB";
+    meta.content = resolved === "dark" ? "#000000" : "#F4F8F5";
   }
 }
 
