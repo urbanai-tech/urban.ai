@@ -10,7 +10,7 @@ import React from "react";
  *
  * Features:
  *  - Sticky header
- *  - Row hover com border-bottom #E8500A (via .urban-admin-row em globals.css)
+ *  - Row hover com border-bottom accent da marca (via .urban-admin-row em globals.css)
  *  - Scroll indicator (sombra lateral quando overflow horizontal)
  *  - Slot empty state
  */

@@ -116,7 +116,7 @@
   --theme-admin-accent-contrast: #103134;
   --theme-admin-accent-soft: rgba(199, 226, 206, 0.14);
   --theme-admin-backdrop: rgba(0, 0, 0, 0.70);
-  --theme-admin-bg: #080A0F;
+  --theme-admin-bg: #071314;
   --theme-admin-danger: #F87171;
   --theme-admin-divider: rgba(255, 255, 255, 0.08);
   --theme-admin-divider-strong: rgba(255, 255, 255, 0.12);
@@ -124,7 +124,7 @@
   --theme-admin-success: #4ADE80;
   --theme-admin-surface: rgba(255, 255, 255, 0.02);
   --theme-admin-surface-elevated: rgba(255, 255, 255, 0.04);
-  --theme-admin-surface-sidebar: #0E1117;
+  --theme-admin-surface-sidebar: #0C1B1D;
   --theme-admin-text: rgba(255, 255, 255, 0.92);
   --theme-admin-text-dim: rgba(255, 255, 255, 0.46);
   --theme-admin-text-muted: rgba(255, 255, 255, 0.55);
@@ -215,12 +215,13 @@
 
 .urban-manifesto,
 .urban-manifesto * {
-  font-family: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif !important;
+  font-family: var(--font-brand) !important;
 }
 
 .urban-manifesto .urban-display,
 .urban-manifesto .urban-display * {
-  font-family: var(--font-bebas), 'Bebas Neue', var(--font-inter), 'Inter', sans-serif !important;
+  font-family: var(--font-display) !important;
+  font-stretch: var(--font-display-stretch);
 }
 
 .urban-manifesto details:not([open]) > :not(summary) {
@@ -241,17 +242,17 @@
 .urban-glow {
   position: absolute;
   pointer-events: none;
-  background: radial-gradient(circle, rgba(232, 80, 10, 0.10) 0%, transparent 62%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--theme-public-accent) 10%, transparent) 0%, transparent 62%);
   filter: blur(40px);
 }
 
 .urban-pull {
-  border-left: 2px solid #E8500A;
+  border-left: 2px solid var(--theme-public-accent);
   padding-left: 28px;
 }
 
 .urban-eyebrow {
-  font-family: var(--font-inter), 'Inter', sans-serif !important;
+  font-family: var(--font-brand) !important;
   font-weight: 600;
   font-size: 12px;
   letter-spacing: 4px;
@@ -397,7 +398,7 @@
   margin: 0;
 }
 
-/* Display headings (Bebas Neue) */
+/* Display headings (font-display) */
 .urban-app .urban-app-display-hero {
   font-family: var(--font-display) !important;
   font-size: var(--app-type-large-title);
@@ -523,12 +524,13 @@
 
 .urban-admin,
 .urban-admin * {
-  font-family: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif !important;
+  font-family: var(--font-brand) !important;
 }
 
 .urban-admin .urban-admin-display,
 .urban-admin .urban-admin-display * {
-  font-family: var(--font-bebas), 'Bebas Neue', var(--font-inter), 'Inter', sans-serif !important;
+  font-family: var(--font-display) !important;
+  font-stretch: var(--font-display-stretch);
 }
 
 .urban-admin {
@@ -572,40 +574,43 @@
   color: var(--admin-text-dim);
 }
 
-/* Display headings — Bebas Neue */
+/* Display headings — Archivo (font-display) */
 .urban-admin .urban-admin-display-hero {
-  font-family: var(--font-bebas), 'Bebas Neue', var(--font-inter), 'Inter', sans-serif !important;
-  font-size: clamp(56px, 7vw, 96px);
-  line-height: 0.92;
+  font-family: var(--font-display) !important;
+  font-stretch: var(--font-display-stretch);
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 1;
   letter-spacing: -1px;
-  font-weight: 400;
+  font-weight: 700;
   color: var(--admin-text);
   margin: 0;
 }
 
 .urban-admin .urban-admin-display-md {
-  font-family: var(--font-bebas), 'Bebas Neue', var(--font-inter), 'Inter', sans-serif !important;
-  font-size: clamp(40px, 5vw, 56px);
-  line-height: 1;
+  font-family: var(--font-display) !important;
+  font-stretch: var(--font-display-stretch);
+  font-size: clamp(30px, 4vw, 44px);
+  line-height: 1.05;
   letter-spacing: -0.5px;
-  font-weight: 400;
+  font-weight: 700;
   color: var(--admin-text);
   margin: 0;
 }
 
 .urban-admin .urban-admin-display-sm {
-  font-family: var(--font-bebas), 'Bebas Neue', var(--font-inter), 'Inter', sans-serif !important;
-  font-size: 32px;
-  line-height: 1;
+  font-family: var(--font-display) !important;
+  font-stretch: var(--font-display-stretch);
+  font-size: 26px;
+  line-height: 1.1;
   letter-spacing: -0.3px;
-  font-weight: 400;
+  font-weight: 700;
   color: var(--admin-text);
   margin: 0;
 }
 
 /* Eyebrow padronizado admin */
 .urban-admin .urban-admin-eyebrow {
-  font-family: var(--font-inter), 'Inter', sans-serif !important;
+  font-family: var(--font-brand) !important;
   font-weight: 600;
   font-size: 11px;
   letter-spacing: 3px;
@@ -615,7 +620,7 @@
 }
 
 .urban-admin .urban-admin-eyebrow-muted {
-  font-family: var(--font-inter), 'Inter', sans-serif !important;
+  font-family: var(--font-brand) !important;
   font-weight: 600;
   font-size: 11px;
   letter-spacing: 3px;
@@ -624,12 +629,12 @@
   margin: 0;
 }
 
-/* Tabela admin — row hover orange */
+/* Tabela admin — row hover accent */
 .urban-admin .urban-admin-row {
   transition: background 120ms, box-shadow 120ms;
 }
 .urban-admin .urban-admin-row:hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--admin-accent-soft);
   box-shadow: inset 0 -1px 0 var(--admin-accent);
 }
 
@@ -641,9 +646,9 @@
 .urban-admin .urban-admin-skeleton {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.03) 0%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.03) 100%
+    var(--admin-divider) 0%,
+    var(--admin-divider-strong) 50%,
+    var(--admin-divider) 100%
   );
   background-size: 800px 100%;
   animation: urban-admin-shimmer 1.4s ease-in-out infinite;
@@ -724,6 +729,11 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
+/* Logo da marca na sidebar (só a altura muda) */
+.urban-admin .urban-admin-logo {
+  --brand-logo-height: 20px;
+}
+
 /* Sidebar admin */
 .urban-admin .urban-admin-sidebar {
   background: var(--admin-surface-sidebar);
@@ -744,11 +754,11 @@
 }
 .urban-admin .urban-admin-sidebar-item:hover {
   color: var(--admin-text);
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--admin-accent-soft);
 }
 .urban-admin .urban-admin-sidebar-item[data-active="true"] {
   color: var(--admin-text);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--admin-accent-soft);
   border-left-color: var(--admin-accent);
 }
 

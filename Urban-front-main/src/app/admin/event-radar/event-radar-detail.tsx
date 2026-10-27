@@ -112,7 +112,7 @@ export function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
         <div
           style={{
             padding: "12px 14px",
-            border: "1px solid rgba(245, 181, 71, 0.3)",
+            border: "1px solid color-mix(in srgb, var(--admin-warning) 30%, transparent)",
             borderRadius: 2,
             color: "var(--admin-warning)",
             fontSize: 12,

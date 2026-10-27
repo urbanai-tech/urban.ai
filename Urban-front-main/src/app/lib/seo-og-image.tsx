@@ -10,8 +10,8 @@ type UrbanSeoImageOptions = {
 };
 
 const colors = {
-  bg: "#080A0F",
-  panel: "#10151C",
+  bg: "#071314",
+  panel: "#0C1B1D",
   panelSoft: "rgba(255,255,255,0.05)",
   text: "#FFFFFF",
   muted: "rgba(255,255,255,0.66)",

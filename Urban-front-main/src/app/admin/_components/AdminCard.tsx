@@ -4,8 +4,8 @@
  *
  * Variantes:
  *  - default     — sem fundo, apenas border sutil
- *  - subtle      — fundo rgba(255,255,255,0.02), border divider
- *  - accent      — pull-quote style: border-left 2px #E8500A
+ *  - subtle      — fundo superfície sutil, border divider
+ *  - accent      — pull-quote style: border-left 2px accent da marca
  */
 import React from "react";
 

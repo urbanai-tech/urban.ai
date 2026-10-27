@@ -149,7 +149,7 @@ export function PortfolioToolbar({
                   height: 24,
                   padding: "0 8px",
                   borderRadius: 999,
-                  background: "var(--app-accent-soft, rgba(232, 80, 10, 0.12))",
+                  background: "var(--app-accent-soft)",
                   color: "var(--app-accent, #2A928A)",
                   fontSize: 12,
                   fontWeight: 700,

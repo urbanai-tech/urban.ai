@@ -65,10 +65,10 @@ export function ThemeToggle({
               border: "none",
               borderRadius: 999,
               background: active
-                ? "var(--theme-toggle-active-bg, var(--app-accent-soft, var(--admin-accent-soft, rgba(232, 80, 10, 0.14))))"
+                ? "var(--theme-toggle-active-bg, var(--app-accent-soft, var(--admin-accent-soft, color-mix(in srgb, var(--app-accent, var(--admin-accent)) 14%, transparent))))"
                 : "transparent",
               color: active
-                ? "var(--theme-toggle-active-text, var(--app-accent, var(--admin-accent, #E8500A)))"
+                ? "var(--theme-toggle-active-text, var(--app-accent, var(--admin-accent)))"
                 : "inherit",
               display: "inline-flex",
               alignItems: "center",
@@ -76,7 +76,7 @@ export function ThemeToggle({
               gap: labelsVisible ? 7 : 0,
               cursor: isHydrated ? "pointer" : "wait",
               opacity: isHydrated ? 1 : 0.7,
-              fontFamily: "Inter, system-ui, sans-serif",
+              fontFamily: "var(--font-brand)",
               fontSize: 11,
               fontWeight: active ? 700 : 600,
               letterSpacing: 0,

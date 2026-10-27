@@ -25,7 +25,7 @@ const WINDOWS = [30, 90, 180, 365] as const;
  * /admin/roi — ROI agregado dos anfitriões (admin).
  *
  * Migrado para o design system admin (.urban-admin):
- *  - Hero KPI: "Receita atribuida a IA" em Bebas Neue gigante.
+ *  - Hero KPI: "Receita atribuida a IA" em Archivo (display) gigante.
  *  - KPIs em grid plano (sem cards coloridos verde/azul/amber).
  *  - Janela 30/90/180/365 vira SegmentedControl.
  *  - Tabela top anfitriões com AdminTable + confiança via AdminBadge.

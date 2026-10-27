@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "doctor": "bash scripts/doctor.sh",
     "audit:docs-links": "node scripts/audit-document-links.js",
     "audit:docs-links:report": "node scripts/audit-document-links.js --report-only",
     "audit:security-head": "node scripts/security-head-scan.js",

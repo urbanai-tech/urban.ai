@@ -254,8 +254,8 @@ export default function AdminStaysPage() {
               data.readiness.betaPrivate ? "var(--admin-warning)" : "var(--admin-success)"
             }`,
             background: data.readiness.betaPrivate
-              ? "rgba(245, 181, 71, 0.06)"
-              : "rgba(74, 222, 128, 0.05)",
+              ? "color-mix(in srgb, var(--admin-warning) 6%, transparent)"
+              : "color-mix(in srgb, var(--admin-success) 5%, transparent)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -303,7 +303,7 @@ export default function AdminStaysPage() {
                     fontSize: 10,
                     fontFamily: "monospace",
                     color: "var(--admin-warning)",
-                    border: "1px solid rgba(245, 181, 71, 0.3)",
+                    border: "1px solid color-mix(in srgb, var(--admin-warning) 30%, transparent)",
                     padding: "3px 6px",
                     borderRadius: 2,
                   }}

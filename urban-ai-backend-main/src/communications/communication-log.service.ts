@@ -6,6 +6,7 @@ import {
   CommunicationEvent,
   CommunicationStatus,
 } from '../entities/communication-event.entity';
+import { clampInt } from '../common/clamp-int';
 
 type RecordCommunicationInput = {
   userId?: string | null;
@@ -68,8 +69,8 @@ export class CommunicationLogService {
     kind?: string;
     search?: string;
   }) {
-    const page = Math.max(1, input.page ?? 1);
-    const limit = Math.min(100, Math.max(1, input.limit ?? 30));
+    const page = clampInt(input.page, { min: 1, max: 1_000_000, fallback: 1 });
+    const limit = clampInt(input.limit, { min: 1, max: 100, fallback: 30 });
     const qb = this.repo
       .createQueryBuilder('event')
       .orderBy('event.createdAt', 'DESC')
