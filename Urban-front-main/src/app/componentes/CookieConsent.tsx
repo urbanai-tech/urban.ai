@@ -66,17 +66,17 @@ export function CookieConsent() {
           maxWidth: 390,
           padding: 16,
           borderRadius: 8,
-          border: "1px solid rgba(255,255,255,0.16)",
-          background: "#080A0F",
-          color: "#fff",
-          boxShadow: "0 18px 50px rgba(0,0,0,0.38)",
+          border: "1px solid var(--theme-app-divider-strong)",
+          background: "var(--theme-app-sheet-bg)",
+          color: "var(--theme-app-text)",
+          boxShadow: "var(--theme-app-shadow-overlay)",
           maxHeight: "calc(100dvh - 32px)",
           overflowY: "auto",
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div style={{ flex: 1, color: "rgba(255,255,255,0.70)", fontSize: 12 }}>
-            <p style={{ margin: "0 0 4px", color: "#fff", fontWeight: 700 }}>
+          <div style={{ flex: 1, color: "var(--theme-app-text-muted)", fontSize: 12 }}>
+            <p style={{ margin: "0 0 4px", color: "var(--theme-app-text)", fontWeight: 700 }}>
               Privacidade e cookies
             </p>
             <p style={{ margin: 0, lineHeight: 1.55 }}>
@@ -85,7 +85,7 @@ export function CookieConsent() {
               uso e melhorar o produto. Veja detalhes na{" "}
               <a
                 href="/privacidade"
-                style={{ color: "#FF8A4C", textDecoration: "underline", textUnderlineOffset: 2 }}
+                style={{ color: "var(--theme-app-accent)", textDecoration: "underline", textUnderlineOffset: 2 }}
               >
                 Politica de Privacidade
               </a>.
@@ -123,7 +123,7 @@ export function CookieConsent() {
             display: "grid",
             placeItems: "center",
             padding: 16,
-            background: "rgba(8,10,15,0.52)",
+            background: "var(--theme-app-backdrop)",
           }}
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setIsOpen(false);
@@ -136,9 +136,9 @@ export function CookieConsent() {
               width: "100%",
               maxWidth: 520,
               borderRadius: 12,
-              background: "#fff",
-              color: "#0E1116",
-              boxShadow: "0 24px 80px rgba(0,0,0,0.28)",
+              background: "var(--theme-app-sheet-bg)",
+              color: "var(--theme-app-text)",
+              boxShadow: "var(--theme-app-shadow-overlay)",
               overflow: "hidden",
             }}
           >
@@ -149,7 +149,7 @@ export function CookieConsent() {
                 justifyContent: "space-between",
                 gap: 16,
                 padding: "20px 22px",
-                borderBottom: "1px solid rgba(14,17,22,0.10)",
+                borderBottom: "1px solid var(--theme-app-divider)",
               }}
             >
               <h2 id="cookie-preferences-title" style={{ margin: 0, fontSize: 18 }}>
@@ -192,7 +192,7 @@ export function CookieConsent() {
                 justifyContent: "flex-end",
                 gap: 8,
                 padding: "16px 22px",
-                borderTop: "1px solid rgba(14,17,22,0.10)",
+                borderTop: "1px solid var(--theme-app-divider)",
               }}
             >
               <CookieButton variant="light" onClick={() => setIsOpen(false)}>
@@ -288,10 +288,10 @@ function CookieToggle({
           checked={checked}
           disabled={disabled}
           onChange={(event) => onChange?.(event.target.checked)}
-          style={{ width: 18, height: 18, accentColor: "#E8500A" }}
+          style={{ width: 18, height: 18, accentColor: "var(--brand-teal)" }}
         />
       </label>
-      <p style={{ margin: "6px 0 0", color: "rgba(14,17,22,0.62)", fontSize: 13, lineHeight: 1.5 }}>
+      <p style={{ margin: "6px 0 0", color: "var(--theme-app-text-muted)", fontSize: 13, lineHeight: 1.5 }}>
         {description}
       </p>
     </div>
@@ -309,36 +309,36 @@ function buttonStyle(variant: "ghost" | "outline" | "primary" | "light" | "save"
   };
 
   if (variant === "primary") {
-    return { ...base, background: "#E8500A", color: "#080A0F", border: "1px solid #E8500A" };
+    return { ...base, background: "var(--theme-app-accent)", color: "var(--theme-app-accent-contrast)", border: "1px solid var(--theme-app-accent)" };
   }
   if (variant === "outline") {
     return {
       ...base,
       background: "transparent",
-      color: "#fff",
-      border: "1px solid rgba(255,255,255,0.24)",
+      color: "var(--theme-app-text)",
+      border: "1px solid var(--theme-app-divider-strong)",
     };
   }
   if (variant === "ghost") {
     return {
       ...base,
       background: "transparent",
-      color: "rgba(255,255,255,0.82)",
+      color: "var(--theme-app-text-muted)",
       border: "1px solid transparent",
     };
   }
   if (variant === "save") {
-    return { ...base, background: "#0E1116", color: "#fff", border: "1px solid #0E1116" };
+    return { ...base, background: "var(--theme-app-accent)", color: "var(--theme-app-accent-contrast)", border: "1px solid var(--theme-app-accent)" };
   }
-  return { ...base, background: "transparent", color: "#0E1116", border: "1px solid transparent" };
+  return { ...base, background: "transparent", color: "var(--theme-app-text)", border: "1px solid transparent" };
 }
 
 const iconButtonStyle: React.CSSProperties = {
   width: 32,
   height: 32,
-  border: "1px solid rgba(14,17,22,0.12)",
+  border: "1px solid var(--theme-app-divider-strong)",
   borderRadius: 8,
-  background: "#fff",
-  color: "#0E1116",
+  background: "transparent",
+  color: "var(--theme-app-text)",
   cursor: "pointer",
 };

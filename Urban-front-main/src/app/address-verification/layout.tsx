@@ -6,7 +6,7 @@ export default function AddressVerificationLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ minHeight: "100vh", background: "#FAFAFB" }}>
+    <div style={{ minHeight: "100vh", background: "var(--theme-page-bg)", color: "var(--theme-page-text)" }}>
       {children}
       <Footer />
     </div>

@@ -195,7 +195,7 @@ export function AdrComparisonChart({
                 textAnchor="end"
                 fontSize={10}
                 fill="var(--app-text-muted)"
-                style={{ fontFamily: "Inter, sans-serif" }}
+                style={{ fontFamily: "var(--font-brand)" }}
               >
                 {formatAxisK(t)}
               </text>
@@ -236,7 +236,7 @@ export function AdrComparisonChart({
             textAnchor="middle"
             fontSize={10}
             fill="var(--app-text-muted)"
-            style={{ fontFamily: "Inter, sans-serif" }}
+            style={{ fontFamily: "var(--font-brand)" }}
           >
             {formatDateShort(p.date)}
           </text>
@@ -320,7 +320,7 @@ export function AdrComparisonChart({
             pointerEvents: "none",
             whiteSpace: "nowrap",
             zIndex: 2,
-            fontFamily: "Inter, sans-serif",
+            fontFamily: "var(--font-brand)",
           }}
         >
           <div style={{ fontWeight: 600, marginBottom: 4 }}>
@@ -357,7 +357,7 @@ export function AdrComparisonChart({
           flexWrap: "wrap",
           fontSize: 12,
           color: "var(--app-text-muted)",
-          fontFamily: "Inter, sans-serif",
+          fontFamily: "var(--font-brand)",
         }}
       >
         <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>

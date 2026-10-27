@@ -13,7 +13,7 @@ import {
  * Input/Select/Textarea light premium do app autenticado.
  * Substitui `Input size="sm"` chakra default + variantes filled cinza.
  *
- * Estilo: bg branco, border divider, focus border accent #E8500A + ring soft.
+ * Estilo: bg branco, border divider, focus border accent accent da marca + ring soft.
  * Label persistente em cima (uppercase 2xs).
  */
 
@@ -199,7 +199,7 @@ export const AppTextarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           padding: "10px 14px",
           lineHeight: 1.55,
           resize: "vertical",
-          fontFamily: "Inter, system-ui, sans-serif",
+          fontFamily: "var(--font-brand)",
           ...style,
         }}
         {...rest}

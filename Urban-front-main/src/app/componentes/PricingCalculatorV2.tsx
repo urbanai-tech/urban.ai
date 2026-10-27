@@ -39,44 +39,46 @@ const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
   : null;
 
-function theme(surface: PricingSurface) {
-  const dark = surface === "dark";
+// Cores 100% por token: a calculadora segue o tema (claro/escuro) em qualquer
+// superfície. `surface` só muda o raio do cartão.
+function theme() {
   return {
-    cardBg: dark ? "rgba(15,23,42,0.42)" : "var(--app-surface)",
-    cardBorder: dark ? "rgba(255,255,255,0.12)" : "rgba(15,23,42,0.12)",
-    panelBg: dark ? "rgba(2,6,23,0.50)" : "rgba(248,250,252,0.82)",
-    text: dark ? "#F8FAFC" : "var(--app-text, #111827)",
-    muted: dark ? "rgba(248,250,252,0.68)" : "var(--app-text-muted, #64748B)",
-    faint: dark ? "rgba(248,250,252,0.66)" : "var(--app-text-muted)",
-    accent: dark ? "#E8500A" : "var(--app-accent)",
-    accentText: dark ? "#FF8A50" : "var(--app-accent)",
-    onAccent: dark ? "#080A0F" : "var(--app-accent-contrast)",
-    danger: dark ? "#FCA5A5" : "var(--app-danger)",
-    accentSoft: dark ? "rgba(232,80,10,0.14)" : "rgba(232,80,10,0.10)",
-    optionBg: dark ? "rgba(15,23,42,0.54)" : "var(--app-surface)",
-    optionBorder: dark ? "rgba(148,163,184,0.28)" : "rgba(15,23,42,0.14)",
+    cardBg: "var(--theme-app-surface)",
+    cardBorder: "var(--theme-app-divider-strong)",
+    panelBg: "var(--theme-app-surface-muted)",
+    text: "var(--theme-app-text)",
+    muted: "var(--theme-app-text-muted)",
+    faint: "var(--theme-app-text-muted)",
+    accent: "var(--theme-app-accent)",
+    accentText: "var(--theme-app-accent)",
+    onAccent: "var(--theme-app-accent-contrast)",
+    danger: "var(--theme-app-danger)",
+    accentSoft: "var(--theme-app-accent-soft)",
+    optionBg: "var(--theme-app-surface)",
+    optionBorder: "var(--theme-app-divider-strong)",
+    optionSelectedBorder: "var(--theme-app-accent)",
   };
 }
 
 function cardStyle(surface: PricingSurface, compact?: boolean): CSSProperties {
-  const t = theme(surface);
+  const t = theme();
   return {
     padding: compact ? 20 : 24,
     border: `1px solid ${t.cardBorder}`,
     borderRadius: surface === "dark" ? 12 : 8,
     background: t.cardBg,
-    boxShadow: surface === "dark" ? "0 18px 45px rgba(0,0,0,0.24)" : "0 18px 40px rgba(15,23,42,0.08)",
+    boxShadow: "var(--theme-app-shadow-card)",
     color: t.text,
   };
 }
 
-function optionButtonStyle(selected: boolean, surface: PricingSurface): CSSProperties {
-  const t = theme(surface);
+function optionButtonStyle(selected: boolean): CSSProperties {
+  const t = theme();
   return {
     minHeight: 44,
     padding: "8px 12px",
     borderRadius: 8,
-    border: selected ? "1px solid rgba(232,80,10,0.78)" : `1px solid ${t.optionBorder}`,
+    border: selected ? `1px solid ${t.optionSelectedBorder}` : `1px solid ${t.optionBorder}`,
     background: selected ? t.accentSoft : t.optionBg,
     color: selected ? t.accentText : t.text,
     fontSize: 14,
@@ -124,7 +126,7 @@ export function PricingSelfServiceCalculator({
   const activePlan = selectedPlan ?? consultPlan;
   const quote = selectedPlan ? calculatePricingQuote(selectedPlan, quantity, cycle) : null;
   const presets = DEFAULT_PRESETS.filter((value) => value <= maxQuantity);
-  const t = theme(surface);
+  const t = theme();
 
   async function handleCheckout() {
     if (!selectedPlan || !quote) {
@@ -200,7 +202,7 @@ export function PricingSelfServiceCalculator({
                 type="button"
                 aria-label="Diminuir quantidade"
                 onClick={() => setQuantity((value) => clampQuantity(value - 1, maxQuantity))}
-                style={{ ...optionButtonStyle(false, surface), width: 44, minHeight: 44, fontSize: 20 }}
+                style={{ ...optionButtonStyle(false), width: 44, minHeight: 44, fontSize: 20 }}
               >
                 -
               </button>
@@ -227,7 +229,7 @@ export function PricingSelfServiceCalculator({
                 type="button"
                 aria-label="Aumentar quantidade"
                 onClick={() => setQuantity((value) => clampQuantity(value + 1, maxQuantity))}
-                style={{ ...optionButtonStyle(false, surface), width: 44, minHeight: 44, fontSize: 20 }}
+                style={{ ...optionButtonStyle(false), width: 44, minHeight: 44, fontSize: 20 }}
               >
                 +
               </button>
@@ -240,7 +242,7 @@ export function PricingSelfServiceCalculator({
                   key={preset}
                   type="button"
                   onClick={() => setQuantity(preset)}
-                  style={optionButtonStyle(quantity === preset, surface)}
+                  style={optionButtonStyle(quantity === preset)}
                 >
                   {preset}
                 </button>
@@ -261,7 +263,7 @@ export function PricingSelfServiceCalculator({
                     key={value}
                     type="button"
                     onClick={() => setCycle(value)}
-                    style={{ ...optionButtonStyle(selected, surface), display: "grid", gap: 2 }}
+                    style={{ ...optionButtonStyle(selected), display: "grid", gap: 2 }}
                   >
                     <span>{BILLING_CYCLE_META[value].label}</span>
                     <span style={{ color: selected ? t.accentText : t.faint, fontSize: 12 }}>

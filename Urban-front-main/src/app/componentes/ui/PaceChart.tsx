@@ -282,7 +282,7 @@ export function PaceChart({
                 textAnchor="end"
                 fontSize={10}
                 fill="var(--app-text-muted)"
-                style={{ fontFamily: "Inter, sans-serif" }}
+                style={{ fontFamily: "var(--font-brand)" }}
               >
                 {t}%
               </text>
@@ -343,7 +343,7 @@ export function PaceChart({
             textAnchor="middle"
             fontSize={10}
             fill="var(--app-text-muted)"
-            style={{ fontFamily: "Inter, sans-serif" }}
+            style={{ fontFamily: "var(--font-brand)" }}
           >
             {formatDateShortPtBR(p.date)}
           </text>
@@ -415,7 +415,7 @@ export function PaceChart({
             pointerEvents: "none",
             whiteSpace: "nowrap",
             zIndex: 2,
-            fontFamily: "Inter, sans-serif",
+            fontFamily: "var(--font-brand)",
           }}
         >
           <div style={{ fontWeight: 600, marginBottom: 2 }}>
@@ -456,7 +456,7 @@ export function PaceChart({
           flexWrap: "wrap",
           fontSize: 12,
           color: "var(--app-text-muted)",
-          fontFamily: "Inter, sans-serif",
+          fontFamily: "var(--font-brand)",
         }}
       >
         <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>

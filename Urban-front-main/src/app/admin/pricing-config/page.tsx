@@ -117,7 +117,7 @@ export default function PricingConfigPage() {
           marginBottom: 32,
           padding: "14px 18px",
           borderLeft: "2px solid var(--admin-warning)",
-          background: "rgba(245, 181, 71, 0.06)",
+          background: "color-mix(in srgb, var(--admin-warning) 6%, transparent)",
           fontSize: 13,
           color: "var(--admin-text-muted)",
           lineHeight: 1.55,

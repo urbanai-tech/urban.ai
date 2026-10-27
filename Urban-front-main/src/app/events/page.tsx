@@ -311,8 +311,8 @@ function QuickFilter({
         height: 32,
         padding: "0 12px",
         borderRadius: 999,
-        border: active ? "1px solid rgba(232, 80, 10, 0.35)" : "1px solid var(--app-divider-strong)",
-        background: active ? "rgba(232, 80, 10, 0.10)" : "var(--app-surface)",
+        border: active ? "1px solid color-mix(in srgb, var(--theme-app-accent) 35%, transparent)" : "1px solid var(--app-divider-strong)",
+        background: active ? "color-mix(in srgb, var(--theme-app-accent) 10%, transparent)" : "var(--app-surface)",
         color: active ? "var(--app-accent)" : "var(--app-text-muted)",
         fontSize: 12,
         fontWeight: 700,
@@ -705,7 +705,7 @@ function eventScore(event: EventCatalogItem): number {
 
 function eventHeatColor(score: number): { background: string; border: string; text: string } {
   if (score >= 84) {
-    return { background: "rgba(232, 80, 10, 0.16)", border: "rgba(232, 80, 10, 0.44)", text: "#A33A07" };
+    return { background: "color-mix(in srgb, var(--theme-app-accent) 16%, transparent)", border: "color-mix(in srgb, var(--theme-app-accent) 44%, transparent)", text: "var(--app-text)" };
   }
   if (score >= 74) {
     return { background: "rgba(200, 129, 14, 0.16)", border: "rgba(200, 129, 14, 0.38)", text: "#8A5A0A" };

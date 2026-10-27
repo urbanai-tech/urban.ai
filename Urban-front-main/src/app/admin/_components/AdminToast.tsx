@@ -89,7 +89,7 @@ export function AdminToastProvider({ children }: { children: React.ReactNode }) 
               gap: 12,
               fontSize: 13,
               color: "var(--admin-text)",
-              boxShadow: "0 8px 24px var(--admin-shadow, rgba(0, 0, 0, 0.32))",
+              boxShadow: "0 8px 24px var(--admin-backdrop)",
             }}
           >
             <AdminStatusDot kind={t.kind} size={8} />

@@ -16,7 +16,7 @@ import {
  * /admin/funnel — funil de produto Urban AI.
  *
  * REESCRITO do zero (era lista vertical de cards — agora é SVG funil real
- * com trapézios decrescentes, número Bebas Neue dentro de cada estágio,
+ * com trapézios decrescentes, número Archivo (display) dentro de cada estágio,
  * % drop-off entre eles).
  *
  * Estágios:
