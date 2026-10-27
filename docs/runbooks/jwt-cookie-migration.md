@@ -2,7 +2,28 @@
 
 **Contexto:** F5C.2 item #10 (auditoria `avaliacao-projeto-2026-04-16.md`). Até 24/04/2026 o backend assinava JWT com segredo hardcoded `"mysecretkey"` e o front armazenava em `localStorage`. Em paralelo, a auditoria mencionou rotação do JWT_SECRET via Railway MCP (128 chars), mas o código nunca leu essa env — qualquer um que visse o repo podia assinar JWTs válidos.
 
-A Fase 1 (backend) está entregue. A Fase 2 (frontend) depende de staging e fica adiada.
+A Fase 1 (backend) e a Fase 2 (frontend + corpo das respostas) estão entregues. **Hoje nenhum access/refresh token é legível por JS**: só existem nos cookies httpOnly.
+
+## Fase 2 — estado final (✅ entregue em 26/10/2026)
+
+| Onde | Antes | Depois |
+| --- | --- | --- |
+| `POST /auth/login` (corpo) | `{ accessToken }` | `{ authenticated: true }` |
+| `POST /auth/google` (corpo) | `{ accessToken, user }` | `{ authenticated: true, user }` |
+| `POST /auth/refresh` (corpo) | `{ accessToken }` | `{ refreshed: true }` |
+| `POST /auth/waitlist/accept` (corpo) | `{ mode, accessToken, user }` | `{ mode, user }` |
+| Front `(home)/page.tsx`, `create/page.tsx` | `localStorage.setItem('accessToken', …)` | nada: cookie definido pela resposta |
+| Front `SideBar`, `AuthContext`, `client.ts`, `settings/privacy` | `localStorage.removeItem('accessToken')` | removido; a limpeza é única (abaixo) |
+| Front `AuthContext` (`next-auth` Session) | tipo com `accessToken` | campo removido (NextAuth nunca o preenchia) |
+| `lastRegisterEmail` no localStorage | gravado no cadastro (PII, nunca lido) | não é mais gravado |
+
+- **Limpeza de sessões antigas:** `src/app/lib/legacy-session-cleanup.ts` roda no `Providers` a cada carga e remove `accessToken`, `refreshToken` e `lastRegisterEmail` do localStorage. O cookie httpOnly continua valendo, então ninguém é deslogado.
+- **Axios** (`service/api/client.ts`): `withCredentials: true`, sem interceptor de requisição, refresh em fila única no 401. Proteção contra CSRF inalterada: cookie `SameSite=lax` + CORS com whitelist de origens (não existe token CSRF separado no repo).
+- **Clientes que não são navegador** já não leem o corpo; extraem `urbanai_access_token` do `Set-Cookie`: smoke E2E real (`authenticated-*smoke.spec.ts`), `scripts/e2e-product-audit.js`, `load-tests/*.js` (k6: `res.cookies`) e o gate `release-gate.yml`. Não houve necessidade de opt-in para token no corpo.
+- **`Authorization: Bearer` continua aceito** no `JwtStrategy` (sem cookie): é o que usam JWTs de serviço/fixtures de staging (`staging-auth-fixtures.js`, `ENTERPRISE_GATE_*_JWT`) e ferramentas. O front não envia mais esse cabeçalho. O corte do Bearer é uma decisão separada, só depois de migrar esses clientes para cookie.
+- **Testes:** `auth.controller.spec.ts` (corpos sem token), `scripts/session-no-js-token.test.mjs` (varredura estática: nada grava/lê token em storage nem monta `Authorization`; a limpeza), e2e mockados sem `localStorage.accessToken`.
+
+O texto abaixo é o plano original da Fase 2, mantido como histórico e roteiro de smoke em staging.
 
 ---
 
@@ -36,7 +57,7 @@ JWT_EXPIRES_IN=15m   # opcional; default 15m
 
 ---
 
-## Fase 2 — Frontend (pendente, ~4–6h, exige staging)
+## Fase 2 — Frontend (plano original; entregue, ver acima)
 
 ### Objetivo
 
@@ -90,7 +111,7 @@ Fase 1 já é compatível com o front atual (que continua mandando Bearer). Quan
 
 ## Acompanhar
 
-- Chamadas a `localStorage.getItem('accessToken')` no front — meta: zero.
+- Chamadas a `localStorage.getItem('accessToken')` no front — meta: zero.  (atingido; coberto por `scripts/session-no-js-token.test.mjs`)
   ```bash
   grep -rn "localStorage.*accessToken" Urban-front-main/src | wc -l
   ```
@@ -98,4 +119,4 @@ Fase 1 já é compatível com o front atual (que continua mandando Bearer). Quan
 
 ---
 
-*Última atualização: 24/04/2026 — Fase 1 entregue, Fase 2 aguarda staging provisionado.*
+*Última atualização: 26/10/2026 — Fases 1 e 2 entregues; smoke em staging (cookie HttpOnly+Secure, refresh, logout) segue como checklist de rollout.*

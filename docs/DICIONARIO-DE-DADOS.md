@@ -52,7 +52,7 @@ Categorias presentes no schema (detalhe coluna a coluna na seção gerada "Colun
 ## Resumo
 
 - Tabelas (entidades TypeORM): **45**
-- Colunas: **744**
+- Colunas: **746**
 - Chaves estrangeiras: **70**
 - Tabela de controle de migrations (`migrations`) não é entidade e não consta aqui.
 
@@ -327,6 +327,8 @@ Relações:
 | `observed_price` | `observedPrice` | decimal(10,2) | sim |  |  |  |
 | `verification_source` | `verificationSource` | varchar(48) | sim |  |  |  |
 | `verification_error` | `verificationError` | text | sim |  |  |  |
+| `shadow_v2_preco` | `shadowV2Preco` | decimal(10,2) | sim |  |  | Preço que o motor v2 calculou em sombra (`PRICING_ENGINE_V2=shadow`) para esta mesma noite/evento, ao lado do v1 em `precoSugerido`. NULL quando o v2 não rodou. Só para comparação interna (view admin v1 x v2); nunca é mostrado ao anfitrião. |
+| `shadow_v2_versao` | `shadowV2Versao` | varchar(32) | sim |  |  |  |
 | `motivo_ia` | `motivo_ia` | text | sim |  |  | --- IA Reasoning --- |
 | `criado_em` | `criadoEm` | datetime | não | CURRENT_TIMESTAMP(6) |  | --- Auditoria --- |
 | `endereco_id` | `endereco` | varchar(36) | não |  | FK | 📌 Endereço principal (sua propriedade) |

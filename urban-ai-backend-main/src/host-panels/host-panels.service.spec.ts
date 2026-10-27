@@ -63,6 +63,32 @@ describe('HostPanelsService AskUrban entitlement', () => {
     return { service, askRepo, paymentRepo, userRepo };
   }
 
+  describe('dia da cota do Ask Urban (São Paulo)', () => {
+    afterEach(() => jest.useRealTimers());
+
+    it('21:30 BRT (00:30Z do dia seguinte) continua no mesmo dia de São Paulo', () => {
+      const { service } = makeService();
+      const start = (service as any).startOfToday(new Date('2026-10-27T00:30:00.000Z'));
+      expect(start.toISOString()).toBe('2026-10-26T03:00:00.000Z');
+    });
+
+    it('00:10 BRT já pertence ao novo dia de São Paulo', () => {
+      const { service } = makeService();
+      const start = (service as any).startOfToday(new Date('2026-10-27T03:10:00.000Z'));
+      expect(start.toISOString()).toBe('2026-10-27T03:00:00.000Z');
+    });
+
+    it('askUsage conta mensagens desde o início do dia de São Paulo', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-10-27T00:30:00.000Z'));
+      const { service, askRepo } = makeService({
+        payments: [{ status: 'active', planName: 'profissional', expireDate: null }],
+      });
+      await service.askUsage('user-1');
+      const where = askRepo.count.mock.calls[0][0].where;
+      expect((where.createdAt as any).value.toISOString()).toBe('2026-10-26T03:00:00.000Z');
+    });
+  });
+
   it('permite AskUrban para plano profissional ativo e retorna entitlement no usage', async () => {
     const { service } = makeService({
       used: 7,

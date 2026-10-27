@@ -56,11 +56,6 @@ export default function PrivacySettingsPage() {
     setDeleteError(null);
     try {
       await deleteMyAccount(password);
-      try {
-        localStorage.removeItem("accessToken");
-      } catch {
-        /* ignore storage errors */
-      }
       invalidateAuthCache();
       invalidateSubscriptionCache();
       setConfirmOpen(false);

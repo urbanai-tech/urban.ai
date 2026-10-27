@@ -93,7 +93,7 @@ function NotificationRow({
 
   return (
     <article
-      className={`notification-card ${notif.opened ? 'is-opened' : 'is-unread'}`}
+      className={`urban-notif-card ${notif.opened ? 'is-opened' : 'is-unread'}`}
       role={clickable ? 'button' : undefined}
       tabIndex={clickable ? 0 : -1}
       onClick={() => onOpen(notif)}
@@ -104,11 +104,11 @@ function NotificationRow({
         }
       }}
     >
-      <div className="notification-icon">
+      <div className="urban-notif-icon">
         <Bell size={17} />
       </div>
-      <div className="notification-body">
-        <div className="notification-topline">
+      <div className="urban-notif-body">
+        <div className="urban-notif-topline">
           <AppBadge kind={kindBadge(kind)}>{kindLabel(kind)}</AppBadge>
           {!notif.opened && <AppBadge kind="accent">Novo</AppBadge>}
           <span>
@@ -121,7 +121,7 @@ function NotificationRow({
         <h3>{notif.title}</h3>
         <p>{normalizeDescription(notif)}</p>
       </div>
-      <div className="notification-action">
+      <div className="urban-notif-action">
         {target ? (
           <>
             <span>{notif.titleButton || 'Abrir'}</span>
@@ -222,7 +222,7 @@ export default function NotificationCenter() {
             : 'Tudo em dia. Avisos importantes da Urban AI aparecem aqui.'
         }
         actions={
-          <div className="notification-actions">
+          <div className="urban-notif-actions">
             <AppButton
               variant="secondary"
               size="sm"
@@ -246,7 +246,7 @@ export default function NotificationCenter() {
         }
       />
 
-      <div className="notification-metrics">
+      <div className="urban-notif-metrics">
         <div>
           <strong>{unreadTotal}</strong>
           <span>não lidas</span>
@@ -284,7 +284,7 @@ export default function NotificationCenter() {
         </AppCard>
       ) : (
         <>
-          <div className="notification-list">
+          <div className="urban-notif-list">
             {notifications.map((notif) => (
               <NotificationRow key={notif.id} notif={notif} onOpen={openNotification} />
             ))}
@@ -298,142 +298,6 @@ export default function NotificationCenter() {
         </>
       )}
 
-      <style jsx>{styles}</style>
     </AppPageShell>
   );
 }
-
-const styles = `
-  .notification-actions,
-  .notification-topline,
-  .notification-action {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .notification-actions {
-    justify-content: flex-end;
-  }
-
-  .notification-metrics {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-    margin-bottom: 18px;
-  }
-
-  .notification-metrics > div {
-    min-width: 0;
-    padding: 14px 16px;
-    background: var(--app-surface);
-    border: 1px solid var(--app-divider);
-    border-radius: 12px;
-  }
-
-  .notification-metrics strong {
-    display: block;
-    color: var(--app-text);
-    font-size: 24px;
-    line-height: 1;
-  }
-
-  .notification-metrics span {
-    display: block;
-    margin-top: 7px;
-    color: var(--app-text-muted);
-    font-size: 12px;
-  }
-
-  .notification-list {
-    display: grid;
-    gap: 12px;
-    margin-top: 18px;
-  }
-
-  .notification-card {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: 14px;
-    align-items: center;
-    padding: 18px;
-    background: var(--app-surface);
-    border: 1px solid var(--app-divider);
-    border-radius: 12px;
-    box-shadow: 0 1px 2px rgba(14, 17, 22, 0.04);
-    cursor: pointer;
-    transition: border-color 120ms ease, background 120ms ease, transform 120ms ease;
-  }
-
-  .notification-card:hover {
-    border-color: var(--app-divider-strong);
-    transform: translateY(-1px);
-  }
-
-  .notification-card.is-unread {
-    background: linear-gradient(90deg, var(--app-accent-soft), var(--app-surface) 42%);
-    border-left: 3px solid var(--app-accent);
-  }
-
-  .notification-card.is-opened {
-    opacity: 0.82;
-  }
-
-  .notification-icon {
-    display: grid;
-    place-items: center;
-    width: 38px;
-    height: 38px;
-    color: var(--app-accent);
-    background: var(--app-accent-soft);
-    border: 1px solid var(--app-accent-border);
-    border-radius: 10px;
-  }
-
-  .notification-body {
-    min-width: 0;
-  }
-
-  .notification-topline span {
-    color: var(--app-text-subtle);
-    font-size: 12px;
-  }
-
-  .notification-body h3 {
-    margin: 8px 0 0;
-    color: var(--app-text);
-    font-size: 16px;
-    line-height: 1.3;
-  }
-
-  .notification-body p {
-    margin: 6px 0 0;
-    color: var(--app-text-muted);
-    font-size: 14px;
-    line-height: 1.5;
-  }
-
-  .notification-action {
-    justify-content: flex-end;
-    color: var(--app-text-muted);
-    font-size: 13px;
-    font-weight: 650;
-    white-space: nowrap;
-  }
-
-  @media (max-width: 820px) {
-    .notification-metrics,
-    .notification-card {
-      grid-template-columns: 1fr;
-    }
-
-    .notification-icon {
-      display: none;
-    }
-
-    .notification-action {
-      justify-content: flex-start;
-    }
-  }
-`;

@@ -476,6 +476,32 @@ export function getPricingEventQualityFlags(evento: EventEntity | null | undefin
     return flags;
 }
 
+/**
+ * Preço do motor v2 para a noite, a ser guardado ao lado do v1 (comparação interna).
+ *  - `shadow`: o v1 responde e o v2 vem em `details.shadowV2`;
+ *  - `v2`: a resposta do motor já é o v2 (`details.engineVersion`);
+ *  - `v1`: o v2 não rodou.
+ * Devolve null quando não há preço v2 válido (> 0).
+ */
+export function extractV2Suggestion(
+    prediction: { suggestedPrice?: unknown; details?: any } | null | undefined,
+    mode: string,
+): { price: number; version: string } | null {
+    if (!prediction) return null;
+    let price: unknown = null;
+    let version: unknown = null;
+    if (mode === 'shadow') {
+        price = prediction.details?.shadowV2?.suggestedPrice;
+        version = prediction.details?.shadowV2?.engineVersion;
+    } else if (mode === 'v2') {
+        price = prediction.suggestedPrice;
+        version = prediction.details?.engineVersion;
+    }
+    const numeric = Number(price);
+    if (!Number.isFinite(numeric) || numeric <= 0) return null;
+    return { price: Number(numeric.toFixed(2)), version: String(version || 'pricing-engine-v2').slice(0, 32) };
+}
+
 export function isSamePricingAnalysis(
     existing: AnalisePreco,
     next: {

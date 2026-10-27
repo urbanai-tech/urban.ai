@@ -400,7 +400,7 @@ function main() {
     paymentsService: fs.readFileSync(path.join(SRC, 'payments', 'payments.service.ts'), 'utf8'),
     ownershipSources: {
       notifications: fs.readFileSync(path.join(SRC, 'notifications', 'notifications.service.ts'), 'utf8'),
-      properties: fs.readFileSync(path.join(SRC, 'propriedades', 'propriedade.service.ts'), 'utf8'),
+      properties: fs.readFileSync(path.join(SRC, 'propriedades', 'property-portfolio.service.ts'), 'utf8'),
       hostPanels: fs.readFileSync(path.join(SRC, 'host-panels', 'host-panels.service.ts'), 'utf8'),
       suggestions: fs.readFileSync(path.join(SRC, 'sugestao', 'sugestion.service.ts'), 'utf8'),
       stays: fs.readFileSync(path.join(SRC, 'stays', 'stays.service.ts'), 'utf8'),

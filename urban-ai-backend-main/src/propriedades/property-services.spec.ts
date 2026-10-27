@@ -1,12 +1,14 @@
 jest.mock('p-limit', () => () => (fn: () => unknown) => fn());
 jest.mock('../knn-engine/pricing-engine', () => ({ UrbanAIPricingEngine: class {} }));
 
-import { PropriedadeService } from './propriedade.service';
+import { PropertyListingQuoteService } from './property-listing-quote.service';
+import { PropertyPortfolioService } from './property-portfolio.service';
+import { PropertyPricingAnalysisService } from './property-pricing-analysis.service';
 import { PricingGuardrailService } from './pricing-guardrail.service';
 import { AirbnbListingMetadataService } from './airbnb-listing-metadata.service';
 
-describe('PropriedadeService public responses', () => {
-  const makeService = (overrides: Record<string, any> = {}) => {
+describe('Property services (ex-PropriedadeService) public responses', () => {
+  const makeServices = (overrides: Record<string, any> = {}) => {
     const deps = {
       addressRepository: {},
       propriedades: {},
@@ -27,24 +29,30 @@ describe('PropriedadeService public responses', () => {
       ...overrides,
     };
 
-    return new PropriedadeService(
-      deps.addressRepository as any,
-      deps.propriedades as any,
-      deps.pricingCalculateService as any,
-      deps.analiseEnderecoEventoRepository as any,
-      deps.userRepository as any,
-      deps.eventoRepository as any,
-      deps.analisePrecoRepository as any,
-      deps.pricingInputHistoryRepository as any,
-      deps.occupancyHistoryRepository as any,
-      deps.airbnbService as any,
-      deps.emailService as any,
-      deps.mailerService as any,
-      deps.aiEngine as any,
-      deps.datasetCollector as any,
-      deps.pricingGuardrailService as any,
-      deps.airbnbListingMetadataService as any,
-    );
+    return {
+      portfolio: new PropertyPortfolioService(
+        deps.addressRepository as any,
+        deps.propriedades as any,
+        deps.pricingInputHistoryRepository as any,
+        deps.occupancyHistoryRepository as any,
+      ),
+      listingQuote: new PropertyListingQuoteService(deps.propriedades as any, deps.airbnbService as any),
+      pricingAnalysis: new PropertyPricingAnalysisService(
+        deps.addressRepository as any,
+        deps.propriedades as any,
+        deps.pricingCalculateService as any,
+        deps.analiseEnderecoEventoRepository as any,
+        deps.userRepository as any,
+        deps.eventoRepository as any,
+        deps.analisePrecoRepository as any,
+        deps.occupancyHistoryRepository as any,
+        deps.airbnbService as any,
+        deps.emailService as any,
+        deps.aiEngine as any,
+        deps.datasetCollector as any,
+        deps.pricingGuardrailService as any,
+      ),
+    };
   };
 
   it('does not leak nested user entities when listing host properties', async () => {
@@ -84,7 +92,7 @@ describe('PropriedadeService public responses', () => {
         1,
       ]),
     };
-    const service = makeService({ addressRepository });
+    const service = makeServices({ addressRepository }).portfolio;
 
     const result = await service.findByUserId('user-1', 1, 10);
 
@@ -138,13 +146,13 @@ describe('PropriedadeService public responses', () => {
     const emailService = {
       enviarNotification: jest.fn().mockResolvedValue({ enviado: true }),
     };
-    const service = makeService({
+    const service = makeServices({
       addressRepository: { findOne: jest.fn().mockResolvedValue(address) },
       propriedades,
       analiseEnderecoEventoRepository,
       airbnbService: { getFirstAvailablePrice: jest.fn().mockResolvedValue({}) },
       emailService,
-    });
+    }).pricingAnalysis;
 
     jest.spyOn(service as any, 'getPricingBaseQuote').mockResolvedValue({
       price: { status: true },
@@ -190,7 +198,7 @@ describe('PropriedadeService public responses', () => {
     const emailService = {
       enviarNotification: jest.fn().mockResolvedValue({ enviado: true }),
     };
-    const service = makeService({
+    const service = makeServices({
       addressRepository: {
         findOne: jest.fn().mockResolvedValue({
           id: 'addr-1',
@@ -212,7 +220,7 @@ describe('PropriedadeService public responses', () => {
       },
       airbnbService: { getFirstAvailablePrice: jest.fn().mockResolvedValue({}) },
       emailService,
-    });
+    }).pricingAnalysis;
 
     jest.spyOn(service as any, 'getPricingBaseQuote').mockResolvedValue({
       price: { status: true },
@@ -246,7 +254,7 @@ describe('PropriedadeService public responses', () => {
       }),
     };
     const save = jest.fn().mockImplementation(async (payload) => ({ id: 'analysis-1', ...payload }));
-    const service = makeService({
+    const service = makeServices({
       pricingCalculateService,
       eventoRepository: {
         findOne: jest.fn().mockResolvedValue({
@@ -293,7 +301,7 @@ describe('PropriedadeService public responses', () => {
       datasetCollector: {
         recordCompsFromAnalysis: jest.fn().mockResolvedValue(undefined),
       },
-    });
+    }).pricingAnalysis;
 
     const result = await service.getPricingPropriedadeByEventAndByProperty(
       'alert-1',
@@ -354,7 +362,7 @@ describe('PropriedadeService public responses', () => {
           details: { reasoning: 'Motor v2: -10%' },
         }),
       };
-      const service = makeService({
+      const service = makeServices({
         pricingCalculateService: {
           calcular: jest.fn().mockReturnValue({
             precoSugerido: 100,
@@ -383,7 +391,7 @@ describe('PropriedadeService public responses', () => {
         analisePrecoRepository: { findOne: jest.fn().mockResolvedValue(null), save },
         aiEngine,
         datasetCollector: { recordCompsFromAnalysis: jest.fn().mockResolvedValue(undefined) },
-      });
+      }).pricingAnalysis;
 
       const result = await service.getPricingPropriedadeByEventAndByProperty(
         'alert-1',
@@ -427,7 +435,7 @@ describe('PropriedadeService public responses', () => {
     const airbnbService = {
       getPriceForDateWindow: jest.fn(),
     };
-    const service = makeService({ propriedades, airbnbService });
+    const service = makeServices({ propriedades, airbnbService }).listingQuote;
 
     await expect(
       service.getRoomPrice({
@@ -472,7 +480,7 @@ describe('PropriedadeService public responses', () => {
         source: 'test',
       }),
     };
-    const service = makeService({ propriedades, airbnbService });
+    const service = makeServices({ propriedades, airbnbService }).listingQuote;
 
     const result = await service.getRoomPrice({
       roomId: 'airbnb-1',

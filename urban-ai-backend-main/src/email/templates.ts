@@ -1,5 +1,7 @@
 // src/email/templates.ts
 
+import type { WeeklyPropertyPerformance } from "./weekly-host-report";
+
 const LOGO_URL = "https://app.myurbanai.com/urban-logo.png";
 const PRIMARY_COLOR = "#0ea5e9"; // Cyan for codes
 const TEXT_COLOR = "#374151"; // Dark grey
@@ -73,6 +75,10 @@ export class EmailTemplates {
     properties: {
       title: string;
       totalEvents: number;
+      /** Eventos relevantes que começam nas próximas 2 semanas (null = sem dados). */
+      upcomingTwoWeeks?: number | null;
+      /** Bloco "sua semana": o que foi gerado/aplicado/registrado. Ausente = sem dados. */
+      week?: WeeklyPropertyPerformance | null;
       events: {
         name: string;
         dateLabel: string;
@@ -89,6 +95,7 @@ export class EmailTemplates {
     const firstName = safeName.split(" ")[0];
     const windowDays = Math.max(1, Number(input.windowDays) || 30);
     const totalEvents = input.properties.reduce((sum, property) => sum + property.totalEvents, 0);
+    const totalPending = input.properties.reduce((sum, property) => sum + (property.week?.pendingOutcomesTotal ?? 0), 0);
     const propertyBlocks = input.properties
       .map((property) => {
         const safeTitle = escapeHtml(property.title || "Imóvel");
@@ -116,22 +123,40 @@ export class EmailTemplates {
           })
           .join("");
 
+        const upcoming =
+          property.upcomingTwoWeeks && property.upcomingTwoWeeks > 0
+            ? `${property.upcomingTwoWeeks} ${property.upcomingTwoWeeks === 1 ? "evento relevante começa" : "eventos relevantes começam"} nas próximas 2 semanas.`
+            : "Próximas 2 semanas: sem dados de eventos relevantes.";
+        const eventsSummary = property.totalEvents
+          ? `${property.totalEvents} ${property.totalEvents === 1 ? "evento relevante" : "eventos relevantes"} nos próximos ${windowDays} dias.`
+          : `Eventos nos próximos ${windowDays} dias: sem dados.`;
+
         return `
           <div style="border-top:1px solid #e5e7eb; padding-top:22px; margin-top:22px;">
             <p style="margin:0 0 8px 0; font-weight:bold;">${safeTitle}</p>
-            <p style="margin:0 0 12px 0; color:#6b7280;">${property.totalEvents} ${property.totalEvents === 1 ? "evento relevante" : "eventos relevantes"} nos próximos ${windowDays} dias.</p>
-            <ol style="padding-left:20px; margin:0;">${eventRows}</ol>
+            ${EmailTemplates.renderWeeklyPerformance(property.week ?? null, input.dashboardUrl)}
+            <p style="margin:12px 0 4px 0; color:#6b7280;">${escapeHtml(upcoming)}</p>
+            <p style="margin:0 0 12px 0; color:#6b7280;">${escapeHtml(eventsSummary)}</p>
+            ${eventRows ? `<ol style="padding-left:20px; margin:0;">${eventRows}</ol>` : ""}
           </div>
         `;
       })
       .join("");
 
+    const eventsIntro = totalEvents
+      ? `Encontramos <b>${totalEvents}</b> ${totalEvents === 1 ? "evento relevante" : "eventos relevantes"} para os seus imóveis nos próximos <b>${windowDays} dias</b>.`
+      : `Não há eventos relevantes mapeados para os seus imóveis nos próximos <b>${windowDays} dias</b>.`;
+    const pendingIntro = totalPending
+      ? `<p><b>Falta o resultado de ${totalPending} ${totalPending === 1 ? "preço que você aplicou" : "preços que você aplicou"}.</b> Leva menos de um minuto e é o que nos deixa medir se a recomendação funcionou para você.</p>`
+      : "";
+
     const content = `
-        <div class="title">Radar semanal de eventos</div>
+        <div class="title">Seu resumo semanal</div>
         <div class="content">
             <p>Olá, <b>${firstName}</b>.</p>
-            <p>Encontramos <b>${totalEvents}</b> ${totalEvents === 1 ? "evento relevante" : "eventos relevantes"} para os seus imóveis nos próximos <b>${windowDays} dias</b>.</p>
-            <p>Este é um resumo do que a Urban AI está monitorando por você. As sugestões completas ficam no painel.</p>
+            <p>${eventsIntro}</p>
+            <p>Abaixo, por imóvel, o que aconteceu na semana passada e o que vem pela frente. Só mostramos o que está registrado: onde não há informação, escrevemos &ldquo;sem dados&rdquo;, e não estimamos receita por você.</p>
+            ${pendingIntro}
             ${propertyBlocks}
             <div style="text-align:center; margin:32px 0 8px;">
               <a href="${escapeHtml(input.dashboardUrl)}" class="link" style="display:inline-block; padding:12px 28px; background:${PRIMARY_COLOR}; color:white; border-radius:8px; font-weight:bold;">
@@ -141,6 +166,51 @@ export class EmailTemplates {
         </div>
     `;
     return baseLayout(content);
+  }
+
+  private static renderWeeklyPerformance(week: WeeklyPropertyPerformance | null, dashboardUrl: string): string {
+    if (!week) {
+      return `<p style="margin:0; color:#6b7280;">Semana passada: sem dados de recomendações.</p>`;
+    }
+    const count = (value: number | null, singular: string, plural: string) =>
+      value === null ? "sem dados" : `${value} ${value === 1 ? singular : plural}`;
+    const lines: string[] = [
+      escapeHtml(`Recomendações novas: ${count(week.generated, "nova", "novas")}`),
+      escapeHtml(`Aceitas por você: ${count(week.accepted, "aceita", "aceitas")}`),
+      escapeHtml(`Preços aplicados: ${count(week.applied, "aplicado", "aplicados")}`),
+    ];
+    for (const item of week.appliedItems) {
+      const suggested = item.suggestedPrice !== null ? `sugerido ${EmailTemplates.formatMoney(item.suggestedPrice)}` : "sugestão sem dados";
+      const applied = item.appliedPrice !== null ? `você aplicou ${EmailTemplates.formatMoney(item.appliedPrice)}` : "preço aplicado sem dados";
+      lines.push(`&nbsp;&nbsp;&bull; ${escapeHtml(item.eventName)} (${escapeHtml(item.dateLabel)}): ${escapeHtml(suggested)}, ${escapeHtml(applied)}`);
+    }
+    if (week.outcomesRecorded === null) {
+      lines.push("Resultados registrados por você: sem dados");
+    } else {
+      const parts = [count(week.outcomesRecorded, "resultado", "resultados")];
+      if (week.recordedRevenue !== null) parts.push(`receita que você registrou ${EmailTemplates.formatMoney(week.recordedRevenue)}`);
+      if (week.recordedNights !== null) parts.push(`${week.recordedNights} ${week.recordedNights === 1 ? "noite" : "noites"}`);
+      lines.push(escapeHtml(`Resultados registrados por você: ${parts.join(", ")}`));
+    }
+    const pending = week.pendingOutcomes
+      .map(
+        (item) =>
+          `<li>${escapeHtml(item.eventName)} (${escapeHtml(item.dateLabel)})${
+            item.appliedPrice !== null ? escapeHtml(`, você aplicou ${EmailTemplates.formatMoney(item.appliedPrice)}`) : ""
+          }</li>`,
+      )
+      .join("");
+    const more = week.pendingOutcomesTotal - week.pendingOutcomes.length;
+    const pendingBlock = week.pendingOutcomesTotal
+      ? `<p style="margin:8px 0 0 0;"><b>Registre o resultado</b> (reservou? quanto entrou? quantas noites?):</p>
+         <ul style="padding-left:20px; margin:4px 0 0 0;">${pending}</ul>
+         ${more > 0 ? `<p style="margin:4px 0 0 0; color:#6b7280;">e mais ${more} no painel.</p>` : ""}
+         <p style="margin:4px 0 0 0;"><a href="${escapeHtml(dashboardUrl)}" class="link">Registrar no painel</a></p>`
+      : "";
+    return `
+      <p style="margin:0 0 4px 0; color:#6b7280;">Semana passada (${escapeHtml(week.weekLabel)}):</p>
+      <ul style="padding-left:20px; margin:0;">${lines.map((line) => `<li>${line}</li>`).join("")}</ul>
+      ${pendingBlock}`;
   }
 
   private static formatMoney(value: number): string {
@@ -747,6 +817,33 @@ export class EmailTemplates {
         <p style="font-size:13px;color:#6b7280;">Dica: se você conectar a Stays, a Urban AI consegue transformar recomendações aprovadas em alterações operacionais com guardrails e rollback.</p>
         <p style="font-size:12px;color:#6b7280;">Você recebe este e-mail porque os alertas de preço estão ativos nas suas preferências. Para pausar ou trocar canais, acesse <a href="${EmailTemplates.escapeHtml(settingsUrl)}" class="link">Preferências de comunicação</a>.</p>
       </div>
+    `;
+    return baseLayout(content);
+  }
+
+  /**
+   * Link de cobrança reenviado por um admin a pedido do anfitrião (beta assistido).
+   * `portal`: gerenciar cartão/plano; `checkout`: concluir a assinatura (ou iniciar o trial).
+   */
+  static getBillingLinkTemplate(input: { nome: string; kind: 'portal' | 'checkout'; url: string }): string {
+    const firstName = escapeHtml((input.nome || "Usuário").split(" ")[0]);
+    const isPortal = input.kind === 'portal';
+    const intro = isPortal
+      ? "Aqui está o link para gerenciar a sua assinatura da Urban AI (atualizar cartão, conferir faturas e o plano)."
+      : "Aqui está o link para concluir a sua assinatura da Urban AI.";
+    const button = isPortal ? "Gerenciar assinatura" : "Concluir assinatura";
+    const content = `
+        <div class="title">${isPortal ? "Gerencie a sua assinatura" : "Conclua a sua assinatura"}</div>
+        <div class="content">
+            <p>Olá, <b>${firstName}</b>.</p>
+            <p>${intro}</p>
+            <div style="text-align:center; margin:32px 0;">
+              <a href="${escapeHtml(input.url)}" class="link" style="display:inline-block; padding:12px 28px; background:${PRIMARY_COLOR}; color:white; border-radius:8px; font-weight:bold;">
+                ${button}
+              </a>
+            </div>
+            <p style="font-size:14px; color:#6b7280;">O link é pessoal e expira em algumas horas. Se ele expirar ou você não pediu este e-mail, é só nos avisar que enviamos outro.</p>
+        </div>
     `;
     return baseLayout(content);
   }

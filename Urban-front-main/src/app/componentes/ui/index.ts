@@ -87,3 +87,4 @@ export * as Icons from "./Icons";
 
 export { AppStack, AppHStack, AppVStack, AppGrid } from "./AppLayout";
 export type { GapToken } from "./AppLayout";
+export { BrandLogo } from "./BrandLogo";

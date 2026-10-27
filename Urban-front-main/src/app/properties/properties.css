@@ -1,0 +1,604 @@
+/* Lista de imóveis do anfitrião. Só tokens; breakpoints canônicos
+   (1180px tablet, 767px mobile). Migrado do <style jsx> da página. */
+
+.properties-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 18px;
+}
+
+.properties-summary-grid > div {
+  min-width: 0;
+  padding: 14px 16px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-card);
+}
+
+.properties-summary-grid span {
+  display: block;
+  color: var(--app-text);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.properties-summary-grid p {
+  margin: 7px 0 0;
+  color: var(--app-text-muted);
+  font-size: var(--app-type-caption);
+  line-height: 1.35;
+}
+
+.properties-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--app-divider);
+  background: var(--app-surface);
+}
+
+.properties-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(520px, 100%);
+  min-height: 40px;
+  padding: 0 12px;
+  color: var(--app-text-muted);
+  border: 1px solid var(--app-divider-strong);
+  border-radius: var(--app-radius-control);
+  background: var(--app-surface);
+}
+
+.properties-search:focus-within {
+  border-color: var(--app-accent);
+  box-shadow: 0 0 0 3px var(--app-accent-soft);
+}
+
+.properties-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  color: var(--app-text);
+  background: transparent;
+  font: inherit;
+  font-size: 16px;
+}
+
+.properties-count {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  color: var(--app-text-muted);
+  font-size: var(--app-type-footnote);
+  white-space: nowrap;
+}
+
+.properties-icon-button,
+.properties-delete-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--app-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--app-radius-sm);
+  cursor: pointer;
+  transition:
+    color var(--app-motion-duration-fast) var(--app-motion-ease-standard),
+    background-color var(--app-motion-duration-fast) var(--app-motion-ease-standard),
+    border-color var(--app-motion-duration-fast) var(--app-motion-ease-standard);
+}
+
+/* Área de toque de 44×44 sem inflar o desenho do ícone. */
+.properties-icon-button::after,
+.properties-delete-button::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--app-touch-target);
+  height: var(--app-touch-target);
+  transform: translate(-50%, -50%);
+}
+
+.properties-icon-button:hover {
+  color: var(--app-text);
+  background: var(--app-surface-muted);
+  border-color: var(--app-divider);
+}
+
+.properties-delete-button {
+  color: var(--app-danger);
+}
+
+.properties-delete-button:hover {
+  background: var(--app-danger-soft);
+  border-color: var(--app-danger-border);
+}
+
+.properties-list {
+  display: grid;
+}
+
+.properties-row {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--app-divider);
+}
+
+.properties-row:last-child {
+  border-bottom: 0;
+}
+
+.properties-row-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.properties-identity {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1 1 420px;
+  gap: 14px;
+}
+
+.properties-thumb,
+.properties-thumb-fallback {
+  width: 60px;
+  height: 60px;
+  flex: 0 0 auto;
+  border-radius: var(--app-radius-control);
+}
+
+.properties-thumb {
+  object-fit: cover;
+}
+
+.properties-thumb-fallback {
+  display: grid;
+  place-items: center;
+  color: var(--app-text-muted);
+  background: var(--app-surface-muted);
+  border: 1px solid var(--app-divider);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.properties-title-block {
+  min-width: 0;
+  flex: 1;
+}
+
+.properties-name-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.properties-name-line p {
+  max-width: min(460px, 100%);
+  margin: 0;
+  overflow: hidden;
+  color: var(--app-text);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.properties-name-line span {
+  padding: 3px 8px;
+  color: var(--app-text-muted);
+  background: var(--app-surface-muted);
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-sm);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Texto em --app-text (contraste AA garantido); o tom de aviso fica no
+   fundo e na borda. */
+.properties-name-line span.properties-status-pill {
+  color: var(--app-text);
+  background: var(--app-warning-soft);
+  border-color: var(--app-warning-border);
+}
+
+.properties-secondary,
+.properties-detail {
+  max-width: 520px;
+  margin: 4px 0 0;
+  overflow: hidden;
+  color: var(--app-text-muted);
+  font-size: var(--app-type-footnote);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.properties-detail {
+  font-size: var(--app-type-caption);
+}
+
+.properties-meta-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.properties-meta-line span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 4px 8px;
+  overflow: hidden;
+  color: var(--app-text-muted);
+  background: var(--app-surface-muted);
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.properties-meta-line span.is-muted {
+  color: var(--app-text);
+  background: var(--app-warning-soft);
+  border-color: var(--app-warning-border);
+}
+
+.properties-edit-box {
+  display: grid;
+  gap: 8px;
+  max-width: 520px;
+}
+
+.properties-identity-inputs,
+.properties-inline-actions,
+.properties-actions,
+.properties-pricing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.properties-pricing {
+  justify-content: flex-end;
+  flex: 0 1 auto;
+}
+
+.properties-link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 14px;
+  color: var(--app-text-muted);
+  border: 1px solid transparent;
+  border-radius: var(--app-radius-control);
+  font-size: var(--app-type-footnote);
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.properties-link-button:hover {
+  color: var(--app-text);
+  background: var(--app-surface-muted);
+}
+
+.properties-link-button.disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.properties-signal-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.properties-signal {
+  min-width: 0;
+  padding: 11px 12px;
+  background: var(--app-surface-muted);
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-control);
+}
+
+.properties-signal span,
+.properties-signal small {
+  display: block;
+  overflow: hidden;
+  color: var(--app-text-muted);
+  font-size: 11px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.properties-signal span {
+  margin-bottom: 5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.properties-signal strong {
+  display: block;
+  overflow: hidden;
+  color: var(--app-text);
+  font-size: var(--app-type-footnote);
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.properties-signal small {
+  margin-top: 4px;
+}
+
+.properties-details {
+  margin-top: 10px;
+  color: var(--app-text-muted);
+}
+
+.properties-details summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--app-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.properties-details p {
+  margin: 6px 0 0;
+  color: var(--app-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: var(--app-type-caption);
+}
+
+.properties-history {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--app-surface-muted);
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-control);
+}
+
+.properties-history-title,
+.properties-empty-note {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.properties-empty-note {
+  color: var(--app-text-muted);
+  font-weight: 400;
+}
+
+.properties-history-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.properties-history-row {
+  display: grid;
+  grid-template-columns: 160px 1fr 1fr;
+  gap: 12px;
+  color: var(--app-text-muted);
+  font-size: var(--app-type-footnote);
+  font-variant-numeric: tabular-nums;
+}
+
+.properties-empty-filter {
+  padding: 32px;
+}
+
+.properties-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: var(--app-backdrop);
+}
+
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .properties-dialog-overlay {
+    -webkit-backdrop-filter: var(--app-scrim-filter);
+    backdrop-filter: var(--app-scrim-filter);
+  }
+}
+
+.properties-dialog {
+  width: min(420px, 100%);
+  padding: 24px;
+  background: var(--app-sheet-bg);
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-overlay);
+}
+
+.properties-dialog h2 {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.properties-dialog p {
+  margin: 12px 0 0;
+  color: var(--app-text-muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.properties-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+@media (max-width: 1180px) {
+  .properties-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .properties-row-main {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  /* Em coluna, flex-basis vira altura: sem isso sobrava ~400px vazios. */
+  .properties-identity,
+  .properties-pricing {
+    flex: 0 0 auto;
+  }
+
+  .properties-pricing {
+    justify-content: flex-start;
+  }
+
+  .properties-signal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Resumo vira faixa de chips roláveis: o anfitrião vê os imóveis antes. */
+  .properties-summary-grid {
+    display: flex;
+    gap: 8px;
+    margin: 0 -16px 16px;
+    padding: 0 16px 2px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .properties-summary-grid > div {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: var(--app-radius-pill);
+    scroll-snap-align: start;
+  }
+
+  .properties-summary-grid span {
+    font-size: 17px;
+  }
+
+  .properties-summary-grid p {
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  .properties-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+
+  .properties-search {
+    width: 100%;
+    min-height: var(--app-touch-target);
+  }
+
+  .properties-count {
+    justify-content: space-between;
+  }
+
+  .properties-row {
+    padding: 16px;
+  }
+
+  .properties-identity {
+    align-items: flex-start;
+  }
+
+  .properties-thumb,
+  .properties-thumb-fallback {
+    width: 52px;
+    height: 52px;
+  }
+
+  .properties-identity-inputs,
+  .properties-pricing,
+  .properties-actions {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .properties-inline-actions {
+    align-items: stretch;
+  }
+
+  .properties-link-button {
+    min-height: var(--app-touch-target);
+    border-color: var(--app-divider-strong);
+    color: var(--app-text);
+  }
+
+  .properties-icon-button,
+  .properties-delete-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .properties-history-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .properties-dialog-overlay {
+    place-items: end stretch;
+    padding: 0;
+  }
+
+  .properties-dialog {
+    width: 100%;
+    padding: 20px 20px calc(20px + var(--app-safe-bottom));
+    border-bottom: 0;
+    border-radius: var(--app-radius-sheet) var(--app-radius-sheet) 0 0;
+    box-shadow: var(--app-sheet-shadow);
+    animation: urban-sheet-in var(--app-motion-duration-slow) var(--app-motion-ease-emphasized);
+  }
+
+  .properties-dialog-actions {
+    flex-direction: column-reverse;
+  }
+}

@@ -241,9 +241,9 @@ export class AuthController {
     });
     this.setAuthCookies(res, tokens);
 
+    // Sessão só por cookie httpOnly: nenhum token no corpo (fase 2 da migração).
     return {
       mode: 'registered',
-      accessToken: tokens.accessToken,
       user,
     };
   }
@@ -273,9 +273,8 @@ export class AuthController {
       ip: req.ip,
     });
     this.setAuthCookies(res, tokens);
-    // Retrocompat: ainda devolve o accessToken no body para clientes que
-    // continuam usando localStorage. A Fase 2 do runbook remove isso.
-    return { accessToken: tokens.accessToken };
+    // Fase 2: o token vive só nos cookies httpOnly; o corpo não o carrega.
+    return { authenticated: true };
   }
 
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
@@ -293,8 +292,7 @@ export class AuthController {
         ip: req.ip,
       });
       this.setAuthCookies(res, result);
-      // Retrocompat: accessToken no body (Fase 2 remove).
-      return { accessToken: result.accessToken, user: result.user };
+      return { authenticated: true, user: result.user };
     } catch (error) {
       console.error('Erro no controller de login Google:', error);
       if (error instanceof HttpException) {
@@ -319,7 +317,7 @@ export class AuthController {
       ip: req.ip,
     });
     this.setAuthCookies(res, tokens);
-    return { accessToken: tokens.accessToken };
+    return { refreshed: true };
   }
 
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
