@@ -73,8 +73,12 @@ export class PushStaysPriceDto {
   @Type(() => Number) @IsInt() @Min(1) @Max(2_147_483_647)
   newPriceCents!: number;
 
-  @Type(() => Number) @IsInt() @Min(1) @Max(2_147_483_647)
-  previousPriceCents!: number;
+  /**
+   * Opcional e NÃO confiável: o servidor lê o preço vigente na Stays. Se enviado e
+   * diferente do vigente, o push é recusado com 409 (a tela estava desatualizada).
+   */
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(2_147_483_647)
+  previousPriceCents?: number;
 
   @IsOptional() @IsString() @Matches(/^[A-Z]{3}$/)
   currency?: string;
