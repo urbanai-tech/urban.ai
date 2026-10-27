@@ -76,10 +76,7 @@ export class PropertyScrapingService {
         if (!apiKey) {
             if (!PropertyScrapingService.missingWebApiKeyLogged) {
                 PropertyScrapingService.missingWebApiKeyLogged = true;
-                if (!PropertyScrapingService.missingWebApiKeyLogged) {
-                PropertyScrapingService.missingWebApiKeyLogged = true;
                 console.error('🚨 [scrapeHost] AIRBNB_WEB_API_KEY não configurada: a consulta GraphQL do perfil foi pulada. Defina a variável (ver .env.example); usando o fallback por navegador.');
-            }
             }
             return this.scrapeHostListingsWithBrowserFallback(userId, 'missing-airbnb-web-api-key');
         }
