@@ -2,7 +2,7 @@
 
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import "../../../i18n";
 import { useToastCompat } from "../componentes/ui";
@@ -33,7 +33,7 @@ async function sha256(message: string): Promise<string> {
 
 export default function Login() {
   const router = useRouter();
-  const { t, ready } = useTranslation();
+  const { t } = useTranslation();
   const toast = useToastCompat();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -48,10 +48,6 @@ export default function Login() {
     email: boolean;
     password: boolean;
   } | null>(null);
-
-  useEffect(() => {
-    console.log(t("not_member"), ready);
-  }, [t, ready]);
 
   async function handleLogin(e?: React.FormEvent) {
     e?.preventDefault();

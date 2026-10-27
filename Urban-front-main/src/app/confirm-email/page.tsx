@@ -40,7 +40,6 @@ export default function EmailConfirmation() {
     if (!email) return;
 
     enviarCodigo(email)
-      .then((result) => console.log('Código enviado com sucesso:', result))
       .catch((err) => console.error('Erro ao enviar código:', err));
   }, [email]);
 
@@ -137,9 +136,8 @@ export default function EmailConfirmation() {
       setResendDisabled(true);
       setCountdown(60);
 
-      const result = await enviarCodigo(email);
+      await enviarCodigo(email);
       toast("Verifique seu e-mail para obter o novo código.", { type: "success" });
-      console.log('Código enviado com sucesso:', result);
     } catch (err) {
       console.error('Erro ao enviar código:', err);
       toast.error('Erro ao reenviar código. Tente novamente mais tarde.');
