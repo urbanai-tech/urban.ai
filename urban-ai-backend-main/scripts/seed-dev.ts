@@ -16,7 +16,8 @@
  * (e-mail, id_do_anuncio `seed-dev-*`, dedupHash de `seed-dev-event-*`).
  *
  * Senha: igual ao fluxo real. O front envia SHA-256 hex da senha; o servidor
- * guarda bcrypt(12) desse hex (AuthService.register -> bcryptHash). Por isso o
+ * guarda bcrypt(12) desse hex (AuthService.register -> bcryptHash). O seed ja
+ * parte desse SHA-256 (constante abaixo), entao nao calcula hash de senha. O
  * login por curl usa o SHA-256 da senha (ver CONTRIBUTING.md).
  *
  * Uso:
@@ -42,10 +43,11 @@ import { Payment } from '../src/entities/payment.entity';
 const BCRYPT_ROUNDS = 12; // mesmo custo do AuthService
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Valores ficticios, so para uso local. Podem ser trocados por SEED_DEV_PASSWORD.
+// Valores ficticios, so para uso local (senha documentada: UrbanLocal#2026).
 const HOST_EMAIL = 'host@urban.local';
 const ADMIN_EMAIL = 'admin@urban.local';
-const DEFAULT_PASSWORD = 'UrbanLocal#2026';
+// SHA-256 hex de 'UrbanLocal#2026', que e o que o front envia no login.
+const DEV_LOGIN_PREHASH = 'df646be6e34c6a07edeae42a9f48a82ac01fa24f52a9e0b8e219c6f0cbbfaa38';
 
 const LISTING_KEY = 'seed-dev-0001';
 const BASE_NIGHTLY = 320;
@@ -107,10 +109,6 @@ async function main(): Promise<void> {
     return;
   }
 
-  const password = process.env.SEED_DEV_PASSWORD?.trim() || DEFAULT_PASSWORD;
-  // Igual ao fluxo real: o cliente envia sha256(senha); o servidor guarda bcrypt(12) desse hex.
-  const clientHash = sha256(password);
-
   await AppDataSource.initialize();
   const now = new Date();
   try {
@@ -120,7 +118,7 @@ async function main(): Promise<void> {
       // ---------------------------------------------------------- usuarios
       async function upsertUser(email: string, username: string, role: 'host' | 'admin', extra: Partial<User>) {
         const existing = await users.findOne({ where: { email }, select: ['id', 'email', 'password'] });
-        const passwordHash = await bcrypt.hash(clientHash, BCRYPT_ROUNDS);
+        const passwordHash = await bcrypt.hash(DEV_LOGIN_PREHASH, BCRYPT_ROUNDS);
         if (existing) {
           await users.update(existing.id, {
             username, role, ativo: true, password: passwordHash,

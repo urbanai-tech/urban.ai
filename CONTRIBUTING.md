@@ -90,8 +90,7 @@ Avisos aparecem preenchidos.
 | Anfitrião | `host@urban.local` | `UrbanLocal#2026` |
 | Admin | `admin@urban.local` | `UrbanLocal#2026` |
 
-São valores **fictícios, só para o ambiente local** (troque a senha com
-`SEED_DEV_PASSWORD`). O seed **recusa rodar** se `APP_ENV`/`NODE_ENV` não for
+São valores **fictícios, só para o ambiente local**. O seed **recusa rodar** se `APP_ENV`/`NODE_ENV` não for
 `development`/`dev`/`local`, se houver marcador de hospedagem (Railway, Vercel…)
 ou se o banco não for `localhost`/`mysql`; nunca roda em produção ou staging.
 A senha é tratada como no fluxo real: o front envia o SHA-256 dela e o servidor
