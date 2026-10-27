@@ -13,7 +13,7 @@ import {
 } from "../../componentes/PublicMarketing";
 
 export const metadata: Metadata = buildSeoMetadata({
-  title: "My Urban AI | Precificação inteligente para aluguel por temporada",
+  title: "My Urban AI | Precificação para aluguel por temporada",
   description:
     "Transforme eventos, sazonalidade e sinais do bairro em recomendações de preço explicáveis para seus imóveis de temporada.",
   path: "/",
