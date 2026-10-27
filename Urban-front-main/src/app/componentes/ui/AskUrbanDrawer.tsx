@@ -20,6 +20,7 @@ import { trackEvent } from "@/app/service/tracking";
 import { useAppToast } from "./AppToast";
 import { Close, Sparkles } from "./Icons";
 import { useDialogFocus } from "./useDialogFocus";
+import styles from "./AskUrbanDrawer.module.css";
 
 /**
  * AskUrbanDrawer — Gap 7 (Track 2, semana 7-8).
@@ -247,12 +248,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
 
   return (
     <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1300,
-        fontFamily: "var(--font-brand)",
-      }}
+      className={styles.s1}
     >
       <div
         onClick={onClose}
@@ -273,20 +269,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="ask-urban-title"
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: "min(480px, 100vw)",
-          background: "var(--app-bg, var(--theme-app-bg))",
-          borderLeft: "1px solid var(--app-divider-strong)",
-          boxShadow: "var(--app-shadow-overlay), -18px 0 44px rgba(0,0,0,0.28)",
-          display: "flex",
-          flexDirection: "column",
-          animation: "ask-slide-in 260ms cubic-bezier(0.16, 1, 0.3, 1)",
-          isolation: "isolate",
-        }}
+        className={styles.s2}
       >
         {/* ============================ HEADER ============================ */}
         <header
@@ -301,45 +284,19 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
           }}
         >
           <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 10,
-              background: "var(--app-accent-soft)",
-              border: "1px solid var(--app-accent)",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "var(--app-accent)",
-              flexShrink: 0,
-            }}
+            className={styles.s3}
           >
             <Sparkles size={16} />
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
+          <div className={styles.s4}>
             <h2
               id="ask-urban-title"
-              style={{
-                margin: 0,
-                fontSize: 16,
-                fontWeight: 600,
-                letterSpacing: -0.1,
-                color: "var(--app-text)",
-              }}
+              className={styles.s5}
             >
               Ask Urban
             </h2>
             <span
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: 0.6,
-                padding: "3px 7px",
-                borderRadius: 4,
-                background: "var(--app-accent-soft)",
-                color: "var(--app-accent)",
-                lineHeight: 1,
-              }}
+              className={styles.s6}
             >
               BETA
             </span>
@@ -348,21 +305,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
             ref={closeBtnRef}
             onClick={onClose}
             aria-label="Fechar Ask Urban"
-            className="urban-focus-ring"
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "var(--app-text-muted)",
-              cursor: "pointer",
-              padding: 8,
-              borderRadius: 8,
-              lineHeight: 0,
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              minWidth: 44,
-              minHeight: 44,
-            }}
+            className={`urban-focus-ring ${styles.s7}`}
           >
             <Close size={18} />
           </button>
@@ -371,15 +314,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
         {/* ============================ LISTA / EMPTY ============================ */}
         <div
           ref={listRef}
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            padding: "20px 20px 12px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 16,
-            background: "var(--app-bg, var(--theme-app-bg))",
-          }}
+          className={styles.s8}
         >
           {messages.length === 0 && !loading && (
             <EmptyState onPick={handleSuggestionClick} />
@@ -410,16 +345,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
           {hardCapReached && (
             <p
               role="status"
-              style={{
-                margin: "0 0 10px",
-                padding: "8px 12px",
-                fontSize: 12,
-                lineHeight: 1.5,
-                color: "var(--app-accent)",
-                background: "var(--app-accent-soft)",
-                border: "1px solid var(--app-accent)",
-                borderRadius: 8,
-              }}
+              className={styles.s9}
             >
               Limite diario atingido. O contador reseta amanha.
             </p>
@@ -464,26 +390,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
               onClick={() => void sendQuestion(input)}
               disabled={inputDisabled || input.trim().length === 0}
               aria-label="Enviar pergunta"
-              className="urban-focus-ring"
-              style={{
-                background: "var(--app-accent)",
-                color: "var(--app-bg)",
-                border: "none",
-                borderRadius: 8,
-                width: 44,
-                height: 44,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor:
-                  inputDisabled || input.trim().length === 0
-                    ? "not-allowed"
-                    : "pointer",
-                opacity:
-                  inputDisabled || input.trim().length === 0 ? 0.5 : 1,
-                transition: "opacity 120ms, transform 80ms",
-                flexShrink: 0,
-              }}
+              className={`urban-focus-ring ${styles.s10} ${inputDisabled || input.trim().length === 0 ? styles.s11 : styles.s12}`}
             >
               <SendIcon />
             </button>
@@ -491,18 +398,10 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
 
           {usage && (
             <div
-              style={{
-                marginTop: 10,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 8,
-                fontSize: 12,
-                color: "var(--app-text-muted)",
-              }}
+              className={styles.s13}
             >
               <UsageChip kind={usageChipKind} usage={usage} />
-              <span style={{ fontSize: 11, color: "var(--app-text-muted)" }}>
+              <span className={styles.s14}>
                 Enter envia · Shift+Enter quebra linha
               </span>
             </div>
@@ -563,43 +462,23 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
 function EmptyState({ onPick }: { onPick: (q: string) => void }) {
   return (
     <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
-        padding: "8px 0 0",
-      }}
+      className={styles.s15}
     >
       <div>
         <p
-          style={{
-            margin: 0,
-            fontSize: 15,
-            fontWeight: 600,
-            color: "var(--app-text)",
-            lineHeight: 1.4,
-          }}
+          className={styles.s16}
         >
           Como posso ajudar com seu portfólio?
         </p>
         <p
-          style={{
-            margin: "6px 0 0",
-            fontSize: 13,
-            color: "var(--app-text-muted)",
-            lineHeight: 1.5,
-          }}
+          className={styles.s17}
         >
           Pergunte em linguagem natural. Respondo com dados do seu portfólio,
           imóveis parecidos e eventos próximos.
         </p>
       </div>
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)",
-          gap: 10,
-        }}
+        className={styles.s18}
       >
         {INITIAL_SUGGESTIONS.map((s) => (
           <button
@@ -653,7 +532,7 @@ function MessageBubble({
 
   if (isUser) {
     return (
-      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+      <div className={styles.s19}>
         <div
           style={{
             maxWidth: "85%",
@@ -675,26 +554,14 @@ function MessageBubble({
   }
 
   return (
-    <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+    <div className={styles.s20}>
       <div
         aria-hidden="true"
-        style={{
-          width: 28,
-          height: 28,
-          borderRadius: 8,
-          background: "var(--app-accent-soft)",
-          border: "1px solid var(--app-accent)",
-          color: "var(--app-accent)",
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-          marginTop: 2,
-        }}
+        className={styles.s21}
       >
         <Sparkles size={14} />
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div className={styles.s22}>
         <div
           style={{
             background: "var(--app-surface-elevated, var(--theme-app-surface-elevated, #171C24))",
@@ -713,30 +580,14 @@ function MessageBubble({
 
         {message.citations && message.citations.length > 0 && (
           <div
-            style={{
-              marginTop: 8,
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 6,
-            }}
+            className={styles.s23}
           >
             {message.citations.map((c) => (
               <button
                 key={c.id}
                 onClick={() => onCitationClick(c)}
                 aria-label={c.url ? `Abrir fonte: ${c.label}` : c.label}
-                className="urban-focus-ring"
-                style={{
-                  fontSize: 11,
-                  padding: "4px 10px",
-                  border: "1px solid var(--app-divider-strong)",
-                  borderRadius: 999,
-                  background: "transparent",
-                  color: "var(--app-text-muted)",
-                  cursor: c.url ? "pointer" : "default",
-                  fontFamily: "var(--font-brand)",
-                  transition: "border-color 120ms, color 120ms",
-                }}
+                className={`urban-focus-ring ${styles.s24} ${c.url ? styles.s25 : styles.s26}`}
                 onMouseEnter={(e) => {
                   if (!c.url) return;
                   e.currentTarget.style.borderColor = "var(--app-accent)";
@@ -755,12 +606,7 @@ function MessageBubble({
         )}
 
         <div
-          style={{
-            marginTop: 8,
-            display: "flex",
-            gap: 4,
-            alignItems: "center",
-          }}
+          className={styles.s27}
         >
           <FeedbackButton
             vote="up"
@@ -828,23 +674,11 @@ function ThinkingDots() {
       role="status"
       aria-live="polite"
       aria-label="Pensando"
-      style={{ display: "flex", gap: 10, alignItems: "flex-start" }}
+      className={styles.s20}
     >
       <div
         aria-hidden="true"
-        style={{
-          width: 28,
-          height: 28,
-          borderRadius: 8,
-          background: "var(--app-accent-soft)",
-          border: "1px solid var(--app-accent)",
-          color: "var(--app-accent)",
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-          marginTop: 2,
-        }}
+        className={styles.s21}
       >
         <Sparkles size={14} />
       </div>
@@ -873,11 +707,7 @@ function ThinkingDots() {
           />
         ))}
         <span
-          style={{
-            marginLeft: 6,
-            fontSize: 12,
-            color: "var(--app-text-muted)",
-          }}
+          className={styles.s28}
         >
           Pensando…
         </span>

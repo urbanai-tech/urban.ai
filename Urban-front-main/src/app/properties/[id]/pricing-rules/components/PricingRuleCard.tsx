@@ -480,7 +480,16 @@ export function PricingRuleCard({
 
           <details className={styles.s21}>
             <summary
-              className={styles.s22}
+              // outline:none inline de propósito (ver AdrComparisonChart): classe perde para :focus-visible.
+              style={{
+                cursor: "pointer",
+                fontSize: 12,
+                fontWeight: 600,
+                color: "var(--app-accent)",
+                letterSpacing: 0.4,
+                textTransform: "uppercase",
+                outline: "none",
+              }}
             >
               Por que usar isso?
             </summary>
@@ -546,7 +555,20 @@ function ParamControl({
           disabled={disabled}
           onChange={(e) => onChange(Number(e.target.value))}
           aria-label={control.label}
-          className={`${styles.s28} ${disabled ? styles.s29 : styles.s13}`}
+          className={disabled ? styles.s29 : styles.s13}
+          style={{
+            width: "100%",
+            height: 36,
+            padding: "0 12px",
+            background: "var(--app-surface)",
+            border: "1px solid var(--app-divider-strong)",
+            borderRadius: 8,
+            color: "var(--app-text)",
+            fontSize: 14,
+            fontWeight: 400,
+            outline: "none",
+            fontFamily: "var(--font-brand)",
+          }}
         />
       )}
       {control.helper && (

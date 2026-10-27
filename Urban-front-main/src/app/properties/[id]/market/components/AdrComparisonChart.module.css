@@ -16,11 +16,6 @@
   font-family: var(--font-brand);
 }
 
-.s4.s4 {
-  cursor: crosshair;
-  outline: none;
-}
-
 .s5.s5 {
   font-weight: 600;
   margin-bottom: 4px;

@@ -289,7 +289,9 @@ export function AdrComparisonChart({
               onFocus={() => setHoverIdx(i)}
               onBlur={() => setHoverIdx(null)}
               tabIndex={0}
-              className={styles.s4}
+              // outline:none inline de propósito: a regra global :focus-visible tem mais
+              // especificidade que uma classe e faria o anel de foco aparecer.
+              style={{ cursor: "crosshair", outline: "none" }}
               aria-label={`${formatDateLong(p.date)} — sua diária média ${formatBRL(p.yourAdr)}, média dos parecidos ${formatBRL(p.medianAdr)}`}
             />
           );
