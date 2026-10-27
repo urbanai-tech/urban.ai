@@ -7,6 +7,7 @@ import {
   formatPropertySearchLabel,
   PropertyDropdown,
 } from "../service/api";
+import styles from "./PropertySelect.module.css";
 
 type Option = {
   value: string;
@@ -36,17 +37,17 @@ interface Props {
 const DEFAULT_MAX_WIDTH = 320;
 
 const uiVar = {
-  surface: "var(--app-surface, var(--admin-surface-elevated, #FFFFFF))",
-  surfaceElevated: "var(--app-surface-elevated, var(--admin-surface-elevated, #FFFFFF))",
+  surface: "var(--app-surface, var(--admin-surface-elevated, var(--theme-app-legacy-white)))",
+  surfaceElevated: "var(--app-surface-elevated, var(--admin-surface-elevated, var(--theme-app-legacy-white)))",
   surfaceMuted: "var(--app-surface-muted, var(--admin-surface-muted, rgba(255,255,255,0.04)))",
-  text: "var(--app-text, var(--admin-text, #0E1116))",
-  textMuted: "var(--app-text-muted, var(--admin-text-muted, rgba(14,17,22,0.62)))",
-  divider: "var(--app-divider, var(--admin-divider, rgba(14,17,22,0.08)))",
+  text: "var(--app-text, var(--admin-text, var(--theme-app-legacy-ink)))",
+  textMuted: "var(--app-text-muted, var(--admin-text-muted, var(--theme-app-legacy-ink-62)))",
+  divider: "var(--app-divider, var(--admin-divider, var(--theme-app-legacy-ink-08)))",
   dividerStrong: "var(--app-divider-strong, var(--admin-divider-strong, rgba(14,17,22,0.14)))",
   accent: "var(--app-accent, var(--admin-accent))",
   accentSoft: "var(--app-accent-soft, var(--admin-accent-soft))",
-  success: "var(--app-success, var(--admin-success, #16A06B))",
-  successSoft: "var(--app-success-soft, rgba(22,160,107,0.12))",
+  success: "var(--app-success, var(--admin-success, var(--theme-app-legacy-success)))",
+  successSoft: "var(--app-success-soft, var(--theme-app-legacy-success-12))",
   warning: "var(--app-warning, var(--admin-warning, #C8810E))",
   warningSoft: "var(--app-warning-soft, rgba(200,129,14,0.12))",
   shadowOverlay: "var(--app-shadow-overlay, var(--admin-shadow-overlay, 0 18px 48px rgba(0,0,0,0.18)))",
@@ -216,7 +217,7 @@ function PropertyValue({ option }: { option: Option }) {
   return (
     <span style={valueShellStyle}>
       <PropertyThumb option={option} size={30} />
-      <span style={{ minWidth: 0, display: "grid", gap: 1 }}>
+      <span className={styles.s1}>
         <span title={option.primary} style={valuePrimaryStyle}>
           {option.primary}
         </span>
@@ -234,7 +235,7 @@ function PropertyMenuOption({ option }: { option: Option }) {
   return (
     <div style={menuOptionStyle}>
       <PropertyThumb option={option} size={44} />
-      <span style={{ minWidth: 0, flex: 1 }}>
+      <span className={styles.s2}>
         <span title={option.primary} style={menuPrimaryStyle}>
           {option.primary}
         </span>

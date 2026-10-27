@@ -385,9 +385,9 @@ function StickySaveFooter({
         bottom: 0,
         zIndex: 50,
         padding: "12px 20px",
-        background: "var(--app-surface, #FFFFFF)",
+        background: "var(--app-surface, var(--theme-app-legacy-white))",
         borderTop: "1px solid var(--app-divider-strong)",
-        boxShadow: "0 -8px 24px rgba(14, 17, 22, 0.08)",
+        boxShadow: "0 -8px 24px var(--theme-app-legacy-ink-08)",
       }}
     >
       <div

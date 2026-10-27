@@ -336,19 +336,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         {/* Estado: já aplicado */}
         {ev.precoAplicado && (
           <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              alignSelf: "flex-start",
-              padding: "6px 12px",
-              borderRadius: 999,
-              border: "1px solid rgba(22, 160, 107, 0.25)",
-              background: "rgba(22, 160, 107, 0.08)",
-              color: "var(--app-success)",
-              fontSize: 12,
-              fontWeight: 600,
-            }}
+            className={styles.s10}
           >
             <Icons.Check size={12} /> Aplicado {formatBRL(ev.precoAplicado)}
             {ev.origemAplicacao?.startsWith("manual") ? " (informado por você)" : ""}
@@ -397,11 +385,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         >
           <div
             onClick={() => setDrawerOpen(false)}
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "rgba(0,0,0,0.45)",
-            }}
+            className={styles.s11}
           />
           <aside
             className={`urban-app ${styles.s3}`}

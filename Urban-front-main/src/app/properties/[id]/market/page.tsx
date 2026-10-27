@@ -310,7 +310,7 @@ function MarketIntelContent() {
               background: "var(--app-surface)",
               border: "1px solid var(--app-divider)",
               borderRadius: 12,
-              boxShadow: "0 1px 2px rgba(14, 17, 22, 0.04)",
+              boxShadow: "0 1px 2px var(--theme-app-legacy-ink-04)",
             }}
           >
             <header className={styles.s7}>
@@ -392,7 +392,7 @@ function KpiCardWrap({ children }: { children: React.ReactNode }) {
         background: "var(--app-surface)",
         border: "1px solid var(--app-divider)",
         borderRadius: 12,
-        boxShadow: "0 1px 2px rgba(14, 17, 22, 0.04)",
+        boxShadow: "0 1px 2px var(--theme-app-legacy-ink-04)",
       }}
     >
       {children}

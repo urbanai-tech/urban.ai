@@ -308,7 +308,7 @@ export function AdrComparisonChart({
             border: "1px solid var(--app-divider-strong)",
             borderRadius: 8,
             padding: "10px 14px",
-            boxShadow: "0 4px 16px rgba(14, 17, 22, 0.10)",
+            boxShadow: "0 4px 16px var(--theme-app-legacy-ink-10)",
             fontSize: 12,
             color: "var(--app-text)",
             pointerEvents: "none",

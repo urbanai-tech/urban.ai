@@ -68,3 +68,23 @@
   justify-content: flex-end;
   gap: 10px;
 }
+
+.s10.s10 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--theme-app-legacy-success-25);
+  background: var(--theme-app-legacy-success-08);
+  color: var(--app-success);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.s11.s11 {
+  position: absolute;
+  inset: 0;
+  background: var(--theme-app-legacy-black-45);
+}

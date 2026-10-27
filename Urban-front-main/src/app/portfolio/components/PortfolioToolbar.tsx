@@ -91,11 +91,14 @@ export function PortfolioToolbar({
     <>
       <div
         data-portfolio-toolbar
+        // Estilo inline mantido de propósito: o @media do <style> abaixo (barra inferior no
+        // celular) tem a mesma especificidade de uma classe e, se este bloco virasse classe,
+        // passaria a valer e mudaria o layout atual. Inline preserva o comportamento visível.
         style={{
           position: "sticky",
           top: 64,
           zIndex: 30,
-          background: "var(--app-surface-elevated, #FFFFFF)",
+          background: "var(--app-surface-elevated, var(--theme-app-legacy-white))",
           border: "1px solid var(--app-divider)",
           padding: "16px 18px",
           display: "grid",
@@ -103,7 +106,7 @@ export function PortfolioToolbar({
           alignItems: "start",
           gap: "14px 20px",
           borderRadius: 12,
-          boxShadow: "0 10px 28px rgba(14, 17, 22, 0.08)",
+          boxShadow: "0 10px 28px var(--theme-app-legacy-ink-08)",
           marginBottom: 20,
         }}
       >
@@ -298,7 +301,7 @@ export function PortfolioToolbar({
             margin: 0;
             border-radius: ${hasSelection ? "12px 12px 0 0" : "12px"};
             border-top: ${hasSelection ? "1px solid var(--app-divider-strong)" : "none"};
-            box-shadow: ${hasSelection ? "0 -8px 24px rgba(14, 17, 22, 0.08)" : "none"};
+            box-shadow: ${hasSelection ? "0 -8px 24px var(--theme-app-legacy-ink-08)" : "none"};
             padding: 12px 16px;
             z-index: 50;
           }
@@ -328,21 +331,7 @@ function Dropdown({
       />
       <div
         role="menu"
-        style={{
-          position: "absolute",
-          top: "calc(100% + 6px)",
-          right: 0,
-          zIndex: 41,
-          minWidth: 260,
-          background: "var(--app-surface-elevated, #FFFFFF)",
-          border: "1px solid var(--app-divider-strong)",
-          borderRadius: 10,
-          padding: 6,
-          boxShadow: "0 12px 32px rgba(14, 17, 22, 0.12)",
-          display: "flex",
-          flexDirection: "column",
-          gap: 2,
-        }}
+        className={styles.s15}
       >
         {children}
       </div>

@@ -15,6 +15,7 @@ import {
   updatePropertyPricingInputs,
 } from '../service/api';
 import { describeBasePriceReadiness } from '../lib/pricingInputs';
+import styles from "./AddPropertyModal.module.css";
 
 export interface Property {
   id: number;
@@ -493,15 +494,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
   return (
     <div
       role="presentation"
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 10000,
-        display: "grid",
-        placeItems: "center",
-        padding: 16,
-        background: "var(--theme-app-backdrop)",
-      }}
+      className={styles.s1}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) handleClose();
       }}
@@ -516,23 +509,16 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
           display: "flex",
           flexDirection: "column",
           borderRadius: 12,
-          background: "#fff",
-          color: "#0E1116",
-          boxShadow: "0 24px 80px rgba(0,0,0,0.28)",
+          background: "var(--theme-app-legacy-white)",
+          color: "var(--theme-app-legacy-ink)",
+          boxShadow: "0 24px 80px var(--theme-app-legacy-black-28)",
           overflow: "hidden",
         }}
       >
         <header
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 16,
-            padding: "20px 24px",
-            borderBottom: "1px solid rgba(14,17,22,0.10)",
-          }}
+          className={styles.s2}
         >
-          <h2 id="add-property-title" style={{ margin: 0, fontSize: 20 }}>
+          <h2 id="add-property-title" className={styles.s3}>
             Adicionar imóvel
           </h2>
           <button
@@ -545,10 +531,10 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
           </button>
         </header>
 
-        <div style={{ padding: 24, overflowY: "auto" }}>
+        <div className={styles.s4}>
           {fetchedProperties.length === 0 ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <p style={{ margin: 0, color: "rgba(14,17,22,0.68)", lineHeight: 1.6 }}>
+            <div className={styles.s5}>
+              <p className={styles.s6}>
                 Para adicionar imóveis a sua conta, cole abaixo o <strong>link do Airbnb</strong> do seu imóvel
                 ou o <strong>link do seu perfil de anfitrião</strong> para importar automaticamente todos os imóveis.
               </p>
@@ -585,7 +571,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
               </AppButton>
             </div>
           ) : pendingPricingProperties.length > 0 ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div className={styles.s5}>
               <AppLoadingStatus
                 compact
                 eyebrow={loadingStatus.eyebrow}
@@ -601,11 +587,11 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                   border: "1px solid #FDBA74",
                   borderRadius: 8,
                   background: "#FFF7ED",
-                  color: "#0E1116",
+                  color: "var(--theme-app-legacy-ink)",
                 }}
               >
-                <p style={{ margin: 0, fontWeight: 700 }}>Informe a diária base</p>
-                <p style={{ margin: "6px 0 0", color: "rgba(14,17,22,0.68)", lineHeight: 1.5 }}>
+                <p className={styles.s7}>Informe a diária base</p>
+                <p className={styles.s8}>
                   O Airbnb não retornou uma diária confirmada para estes imóveis, ou retornou apenas uma fonte provisória. Informe a diária atual para concluir o cadastro e iniciar a análise.
                 </p>
               </div>
@@ -613,31 +599,24 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
               {pendingPricingProperties.map((property) => (
                 <div
                   key={property.addressId}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 14,
-                    padding: 12,
-                    border: "1px solid rgba(14,17,22,0.12)",
-                    borderRadius: 8,
-                  }}
+                  className={styles.s9}
                 >
                   {property.pictureUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={property.pictureUrl}
                       alt="Capa"
-                      style={{ width: 64, height: 52, objectFit: "cover", borderRadius: 8, flexShrink: 0 }}
+                      className={styles.s10}
                     />
                   ) : (
                     <div style={{ width: 64, height: 52, borderRadius: 8, background: "#F3F4F6", flexShrink: 0 }} />
                   )}
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <p style={{ margin: 0, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <div className={styles.s11}>
+                    <p className={styles.s12}>
                       {property.propertyName}
                     </p>
                     {property.airbnbId && (
-                      <p style={{ margin: "4px 0 0", color: "rgba(14,17,22,0.58)", fontSize: 12 }}>
+                      <p className={styles.s13}>
                         {property.airbnbId}
                       </p>
                     )}
@@ -663,8 +642,8 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
               ))}
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <p style={{ margin: 0, fontWeight: 650 }}>
+            <div className={styles.s5}>
+              <p className={styles.s14}>
                 Encontramos {propertyCountLabel(fetchedProperties.length)} para acompanhar. Selecione os que deseja monitorar e atualizar:
               </p>
 
@@ -680,15 +659,9 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
               )}
 
               <div
-                style={{
-                  maxHeight: 400,
-                  overflowY: "auto",
-                  padding: 8,
-                  border: "1px solid rgba(14,17,22,0.12)",
-                  borderRadius: 8,
-                }}
+                className={styles.s15}
               >
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div className={styles.s16}>
                   {fetchedProperties.map((prop) => {
                     const selected = selectedProperties[prop.id_do_anuncio] || false;
                     return (
@@ -712,7 +685,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                           aria-label={`Monitorar ${prop.titulo || `anúncio ${prop.id_do_anuncio}`}`}
                           onClick={(event) => event.stopPropagation()}
                           onChange={(event) => handleToggleProperty(prop.id_do_anuncio, event.target.checked)}
-                          style={{ width: 18, height: 18, accentColor: "var(--app-accent)", pointerEvents: "none" }}
+                          className={styles.s17}
                         />
 
                         {prop.pictureUrl ? (
@@ -720,7 +693,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                           <img
                             src={prop.pictureUrl}
                             alt="Capa"
-                            style={{ width: 70, height: 70, objectFit: "cover", borderRadius: 8, flexShrink: 0 }}
+                            className={styles.s18}
                           />
                         ) : (
                           <div
@@ -740,11 +713,11 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                           </div>
                         )}
 
-                        <div style={{ minWidth: 0, flex: 1 }}>
-                          <p style={{ margin: 0, color: "#0E1116", fontSize: 15, fontWeight: 650, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <div className={styles.s11}>
+                          <p className={styles.s19}>
                             {prop.titulo || `Anúncio #${prop.id_do_anuncio}`}
                           </p>
-                          <p style={{ margin: "4px 0 0", color: "rgba(14,17,22,0.62)", fontSize: 13, lineHeight: 1.45 }}>
+                          <p className={styles.s20}>
                             {prop.propertyType || 'Inteiro'} - {prop.guests} hóspedes
                             {prop.bedrooms ? ` - ${prop.bedrooms} quartos` : ''}
                             {prop.beds ? ` - ${prop.beds} leitos` : ''}
@@ -765,13 +738,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
         </div>
 
         <footer
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: 12,
-            padding: "16px 24px",
-            borderTop: "1px solid rgba(14,17,22,0.10)",
-          }}
+          className={styles.s21}
         >
           <AppButton
             type="button"
@@ -947,9 +914,9 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   height: 48,
   padding: "0 14px",
-  border: "1px solid rgba(14,17,22,0.12)",
+  border: "1px solid var(--theme-app-legacy-ink-12)",
   borderRadius: 10,
-  color: "#0E1116",
+  color: "var(--theme-app-legacy-ink)",
   fontSize: 15,
   outline: "none",
 };
@@ -957,10 +924,10 @@ const inputStyle: React.CSSProperties = {
 const iconButtonStyle: React.CSSProperties = {
   width: 32,
   height: 32,
-  border: "1px solid rgba(14,17,22,0.12)",
+  border: "1px solid var(--theme-app-legacy-ink-12)",
   borderRadius: 8,
-  background: "#fff",
-  color: "#0E1116",
+  background: "var(--theme-app-legacy-white)",
+  color: "var(--theme-app-legacy-ink)",
   cursor: "pointer",
 };
 
@@ -969,8 +936,8 @@ const ratingStyle: React.CSSProperties = {
   alignItems: "center",
   padding: "4px 8px",
   borderRadius: 999,
-  background: "rgba(22,160,107,0.10)",
-  color: "#16A06B",
+  background: "var(--theme-app-legacy-success-10)",
+  color: "var(--theme-app-legacy-success)",
   fontSize: 12,
   fontWeight: 750,
 };

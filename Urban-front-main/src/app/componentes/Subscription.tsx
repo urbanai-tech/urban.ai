@@ -1,6 +1,7 @@
 import React from "react";
 import { ExternalLink } from "lucide-react";
 import { AppButton, AppCard } from "./ui";
+import styles from "./Subscription.module.css";
 
 export type Subscription = {
   id: string;
@@ -106,8 +107,8 @@ export default function SubscriptionCards({
   manageBillingLoading = false,
 }: Props) {
   return (
-    <div style={{ width: "100%", maxWidth: 768, margin: "0 auto", padding: "40px 0" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 32 }}>
+    <div className={styles.s1}>
+      <div className={styles.s2}>
         {subscriptions.map((sub) => {
           const isCanceled = sub.status === "canceled";
           const canCancel = onCancel && sub.status === "active" && !sub.id.startsWith("alpha-");
@@ -128,53 +129,35 @@ export default function SubscriptionCards({
               }}
             >
               <span
-                style={{
-                  position: "absolute",
-                  top: 16,
-                  right: 16,
-                  padding: "4px 12px",
-                  borderRadius: 999,
-                  background: isCanceled ? "rgba(194,52,46,0.10)" : "rgba(22,160,107,0.10)",
-                  color: isCanceled ? "var(--app-danger)" : "var(--app-success)",
-                  fontSize: 12,
-                  fontWeight: 750,
-                  letterSpacing: 1,
-                  textTransform: "uppercase",
-                }}
+                className={`${styles.s3} ${isCanceled ? styles.s4 : styles.s5}`}
               >
                 {statusLabels[sub.status] || sub.status}
               </span>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                <h2 style={{ margin: 0, paddingRight: 110, color: "var(--app-text)", fontSize: 24 }}>
+              <div className={styles.s6}>
+                <h2 className={styles.s7}>
                   {getPlanName(sub)}
                 </h2>
 
                 <p
-                  style={{
-                    margin: 0,
-                    color: isCanceled ? "var(--app-text-muted)" : "var(--app-accent)",
-                    fontSize: 20,
-                    fontWeight: 750,
-                    textDecoration: isCanceled ? "line-through" : "none",
-                  }}
+                  className={`${styles.s8} ${isCanceled ? styles.s9 : styles.s10}`}
                 >
                   {getPriceLabel(sub)}
                 </p>
 
-                <hr style={{ width: "100%", border: 0, borderTop: "1px solid var(--app-divider)" }} />
+                <hr className={styles.s11} />
 
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+                <div className={styles.s12}>
                   <InfoTile label="Ciclo" value={getCycleLabel(sub)} />
                   <InfoTile label="Quota" value={getQuantityLabel(sub)} />
                 </div>
 
-                <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 15 }}>
+                <p className={styles.s13}>
                   {getDateLabel(sub)}
                 </p>
 
                 {(canManageBilling || canCancel) && (
-                  <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, flexWrap: "wrap" }}>
+                  <div className={styles.s14}>
                     {canManageBilling && (
                       <AppButton
                         data-testid="manage-billing-button"
@@ -214,16 +197,12 @@ export default function SubscriptionCards({
 function InfoTile({ label, value }: { label: string; value: string }) {
   return (
     <div
-      style={{
-        padding: 12,
-        borderRadius: 8,
-        background: "var(--app-surface-muted)",
-      }}
+      className={styles.s15}
     >
-      <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
+      <p className={`urban-app-eyebrow-muted ${styles.s16}`}>
         {label}
       </p>
-      <p style={{ margin: 0, color: "var(--app-text)", fontWeight: 650 }}>
+      <p className={styles.s17}>
         {value}
       </p>
     </div>

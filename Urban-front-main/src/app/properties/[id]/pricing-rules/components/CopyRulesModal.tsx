@@ -88,7 +88,7 @@ export function CopyRulesModal({
         style={{
           position: "absolute",
           inset: 0,
-          background: "rgba(14, 17, 22, 0.45)",
+          background: "var(--theme-app-legacy-ink-45)",
           backdropFilter: "blur(4px)",
         }}
       />
@@ -103,10 +103,10 @@ export function CopyRulesModal({
           maxHeight: "85vh",
           display: "flex",
           flexDirection: "column",
-          background: "var(--app-surface-elevated, #FFFFFF)",
+          background: "var(--app-surface-elevated, var(--theme-app-legacy-white))",
           border: "1px solid var(--app-divider-strong)",
           borderRadius: 14,
-          boxShadow: "0 18px 48px rgba(14, 17, 22, 0.12)",
+          boxShadow: "0 18px 48px var(--theme-app-legacy-ink-12)",
           overflow: "hidden",
         }}
       >
@@ -160,8 +160,8 @@ export function CopyRulesModal({
               aria-live="assertive"
               style={{
                 padding: "16px",
-                border: "1px solid rgba(194, 52, 46, 0.25)",
-                background: "rgba(194, 52, 46, 0.06)",
+                border: "1px solid var(--theme-app-legacy-danger-25)",
+                background: "var(--theme-app-legacy-danger-06)",
                 borderRadius: 10,
                 color: "var(--app-danger)",
                 fontSize: 13,

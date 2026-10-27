@@ -346,8 +346,8 @@ function Switch({
           width: 16,
           height: 16,
           borderRadius: "50%",
-          background: "#FFFFFF",
-          boxShadow: "0 1px 2px rgba(14, 17, 22, 0.20)",
+          background: "var(--theme-app-legacy-white)",
+          boxShadow: "0 1px 2px var(--theme-app-legacy-ink-20)",
           transition: "left 140ms",
         }}
       />

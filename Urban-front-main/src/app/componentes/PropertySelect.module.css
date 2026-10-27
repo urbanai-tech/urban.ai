@@ -1,0 +1,10 @@
+.s1.s1 {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.s2.s2 {
+  min-width: 0;
+  flex: 1;
+}
