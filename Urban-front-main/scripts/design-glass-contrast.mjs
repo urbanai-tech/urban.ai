@@ -91,13 +91,16 @@ const BRAND_IMAGE_EXTREMES_BY_THEME = { light: {
  * opacos (o fundo possível não interfere).
  */
 export const pairs = [
-  { id: "tabbar-label-active", text: "app.glass-text", layers: ["app.glass-bg", "app.tab-indicator"], min: 4.5, note: "rotulo 11px da aba ativa" },
-  { id: "tabbar-icon-active", text: "app.tab-active", layers: ["app.glass-bg", "app.tab-indicator"], min: 3, note: "icone da aba ativa (UI 3:1)" },
-  { id: "tabbar-label", text: "app.glass-text-muted", layers: ["app.glass-bg"], min: 4.5, note: "rotulo 11px das abas inativas" },
-  { id: "topbar-title", text: "app.glass-text", layers: ["app.glass-bg"], min: 4.5, note: "titulo compacto da top bar" },
-  { id: "glass-icon", text: "app.glass-text-muted", layers: ["app.glass-bg"], min: 3, note: "icones/controles no vidro (UI 3:1)" },
+  { id: "tabbar-label-active", text: "app.glass-text", layers: ["app.glass-premium-bar-bg", "app.tab-indicator"], min: 4.5, note: "rotulo 11px da aba ativa" },
+  { id: "tabbar-icon-active", text: "app.tab-active", layers: ["app.glass-premium-bar-bg", "app.tab-indicator"], min: 3, note: "icone da aba ativa (UI 3:1)" },
+  { id: "tabbar-label", text: "app.glass-premium-bar-text-muted", layers: ["app.glass-premium-bar-bg"], min: 4.5, note: "rotulo 11px das abas inativas" },
+  { id: "topbar-title", text: "app.glass-text", layers: ["app.glass-premium-bar-bg"], min: 4.5, note: "titulo compacto da top bar" },
+  { id: "glass-icon", text: "app.glass-premium-bar-text-muted", layers: ["app.glass-premium-bar-bg"], min: 3, note: "icones/controles no vidro (UI 3:1)" },
   { id: "sheet-body", text: "app.text", layers: ["app.sheet-bg"], min: 4.5, note: "texto no bottom sheet (solido)" },
   { id: "sheet-muted", text: "app.text-muted", layers: ["app.sheet-bg"], min: 4.5, note: "texto secundario no sheet" },
+  // Vidro do bottom sheet (translucido so com backdrop-filter e sem reduced-transparency).
+  { id: "sheet-glass-body", text: "app.text", layers: ["app.glass-premium-sheet-bg"], min: 4.5, note: "texto no bottom sheet de vidro" },
+  { id: "sheet-glass-muted", text: "app.text-muted", layers: ["app.glass-premium-sheet-bg"], min: 4.5, note: "texto secundario no sheet de vidro" },
   { id: "card-muted", text: "app.text-muted", layers: ["app.surface"], min: 4.5, note: "texto secundario em cards" },
   { id: "primary-button", text: "app.accent-contrast", layers: ["app.accent"], min: 4.5, note: "texto do botao primario" },
   { id: "price-suggested", text: "app.highlight", layers: ["app.surface"], min: 3, note: "preco sugerido (texto grande, >=24px)" },
@@ -120,7 +123,7 @@ export function evaluate(tokens) {
     };
     for (const pair of pairs) {
       const text = parseColor(resolveSemantic(tokens, theme, pair.text));
-      const isGlass = pair.layers.includes("app.glass-bg");
+      const isGlass = pair.layers.some((layer) => layer === "app.glass-bg" || layer.startsWith("app.glass-premium-"));
       const isBand = pair.layers.includes("app.brand-band-scrim");
       const candidates = isBand ? BRAND_IMAGE_EXTREMES_BY_THEME[theme] : isGlass ? backdrops : { solido: "#000000" };
       let worst = { ratio: Infinity, backdrop: "" };

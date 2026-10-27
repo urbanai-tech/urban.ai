@@ -67,7 +67,8 @@
 
 @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   .urban-glass {
-    background: var(--app-glass-bg);
+    /* Vidro premium (mais presente) so nas barras; pares AA no gate design:contrast. */
+    background: var(--app-glass-premium-bar-bg);
     -webkit-backdrop-filter: var(--app-glass-filter);
     backdrop-filter: var(--app-glass-filter);
   }
@@ -303,7 +304,7 @@
   border: 0;
   border-radius: var(--app-radius-pill);
   background: transparent;
-  color: var(--app-glass-text-muted);
+  color: var(--app-glass-premium-bar-text-muted);
   text-decoration: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -381,7 +382,7 @@
   padding: 4px 0 2px;
   border: 0;
   background: transparent;
-  color: var(--app-glass-text-muted);
+  color: var(--app-glass-premium-bar-text-muted);
   font-size: 11px;
   font-weight: 500;
   line-height: 1.2;
@@ -534,6 +535,24 @@ html[data-sheet-open] [data-ask-urban-fab] {
   padding-bottom: var(--app-safe-bottom);
   overscroll-behavior: contain;
   animation: urban-sheet-in var(--app-motion-duration-slow) var(--app-motion-ease-emphasized);
+}
+
+/* Sheet de vidro: translúcido só com backdrop-filter e sem pedido de menos
+   transparência/mais contraste. Listas longas seguem em superfícies sólidas. */
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .urban-sheet {
+    background: var(--app-glass-premium-sheet-bg);
+    -webkit-backdrop-filter: var(--app-glass-filter);
+    backdrop-filter: var(--app-glass-filter);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .urban-sheet {
+    background: var(--app-sheet-bg);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 
 .urban-sheet:focus {
