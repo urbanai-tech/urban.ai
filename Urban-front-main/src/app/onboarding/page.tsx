@@ -643,7 +643,7 @@ function OnboardingWizardContent() {
 
     const invalid = parsedByAddress.find((item) => !item.manualDailyPrice);
     if (invalid) {
-      toast("Informe uma diária base válida para todos os imóveis. Sem esse valor, a Urban AI não inicia a análise.", { type: "warning" });
+      toast("Informe uma diária base válida para todos os imóveis. Sem esse valor, o My Urban não inicia a análise.", { type: "warning" });
       return;
     }
 
@@ -787,10 +787,10 @@ function OnboardingWizardContent() {
                 variants={pageVariants} transition={{ duration: 0.4 }}>
                 <VStack spacing={6} align="center" textAlign="center">
                   <Heading size="xl" color="gray.800" lineHeight="shorter" mt={4}>
-                    Bem-vindo ao Urban AI
+                    Bem-vindo ao My Urban
                   </Heading>
                   <Text fontSize="lg" color="gray.500" maxW="440px" lineHeight="tall">
-                    A Urban AI analisa seu mercado local, eventos próximos e anúncios parecidos
+                    O My Urban analisa seu mercado local, eventos próximos e anúncios parecidos
                     para sugerir preços melhores para seus imóveis do Airbnb. No começo, você
                     acompanha as recomendações antes de qualquer automação.
                   </Text>
@@ -1013,7 +1013,7 @@ function OnboardingWizardContent() {
                     <Heading size="lg" mb={2} color="gray.800">Selecionar Imóveis</Heading>
                     <Text color="gray.500">
                       Encontramos <strong>{properties.length}</strong> {properties.length === 1 ? 'imóvel' : 'imóveis'}.
-                      Ative os que deseja monitorar com a inteligência do Urban AI.
+                      Ative os que deseja monitorar com a inteligência do My Urban.
                     </Text>
                     {hostUserId && (
                       <Link
@@ -1272,7 +1272,7 @@ function OnboardingWizardContent() {
                       <Text fontWeight="bold" color="gray.800" fontSize="md">
                         Estilo das sugestões de preço
                       </Text>
-                      <Tooltip label="Define o quanto a Urban AI pode sugerir subir ou baixar preços em relação ao mercado."
+                      <Tooltip label="Define o quanto o My Urban pode sugerir subir ou baixar preços em relação ao mercado."
                         hasArrow placement="top">
                         <InfoIcon color="gray.400" boxSize={3.5} />
                       </Tooltip>

@@ -219,7 +219,7 @@ export default function NotificationCenter() {
         subtitle={
           unreadTotal > 0
             ? `Você tem ${unreadLabel} em toda a conta.`
-            : 'Tudo em dia. Avisos importantes da Urban AI aparecem aqui.'
+            : 'Tudo em dia. Avisos importantes do My Urban aparecem aqui.'
         }
         actions={
           <div className="urban-notif-actions">
@@ -279,7 +279,7 @@ export default function NotificationCenter() {
           <AppEmptyState
             icon={<Icons.Info size={32} />}
             title="Sem notificações"
-            body="Quando a Urban AI gerar avisos ou recomendações importantes, eles aparecem aqui."
+            body="Quando o My Urban gerar avisos ou recomendações importantes, eles aparecem aqui."
           />
         </AppCard>
       ) : (

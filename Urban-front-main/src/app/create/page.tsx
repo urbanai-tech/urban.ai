@@ -39,7 +39,7 @@ async function sha256(message: string): Promise<string> {
  * /create — tela de signup do anfitrião Urban AI.
  *
  * MIGRADA no Sprint 3 do redesign anfitrião:
- *  - bg="#1C1D3B" (azul escuro hex) -> AppButton primary (accent #E8500A).
+ *  - bg="#1C1D3B" (azul escuro hex) -> AppButton primary (accent da marca).
  *  - color="blue.500" link -> AppButton ghost com cor accent.
  *  - Card de regras de senha bg="gray.50" + CheckCircleIcon green.500 ->
  *    CheckList custom com Icons.Check + var(--app-success).
@@ -139,7 +139,7 @@ const Register = () => {
             lista.
           </>
         }
-        subtitle="A Urban AI ainda está em acesso antecipado. Cadastre seu e-mail para receber um convite quando sua vez chegar."
+        subtitle="O My Urban ainda está em acesso antecipado. Cadastre seu e-mail para receber um convite quando sua vez chegar."
         asideEyebrow="PRÉ-LANÇAMENTO"
         asideTitle={
           <>
@@ -170,7 +170,7 @@ const Register = () => {
       });
 
       if (registerData?.mode && registerData.mode !== "registered") {
-        throw new Error("Novos cadastros estão temporariamente indisponíveis. Fale com o suporte da Urban AI.");
+        throw new Error("Novos cadastros estão temporariamente indisponíveis. Fale com o suporte do My Urban.");
       }
 
       // A sessão fica só nos cookies httpOnly definidos pela resposta.
@@ -226,7 +226,7 @@ const Register = () => {
       >
         <Image
           src="/urbanai_only.png"
-          alt="Urban AI"
+          alt="My Urban"
           fill
           priority
           style={{ objectFit: "cover" }}
@@ -255,7 +255,7 @@ const Register = () => {
             className="urban-app-eyebrow"
             style={{ color: "#fff", opacity: 0.85, marginBottom: 12 }}
           >
-            BEM-VINDO À URBAN AI
+            BEM-VINDO AO MY URBAN
           </p>
           <p
             style={{
@@ -303,7 +303,7 @@ const Register = () => {
             }}
           >
             <Image
-              alt="Urban AI"
+              alt="My Urban"
               src="/urban-logo-transparent-soft.png"
               width={180}
               height={56}
@@ -313,9 +313,9 @@ const Register = () => {
           </div>
 
           <AppSectionHeader
-            eyebrow="CADASTRO · URBAN AI"
+            eyebrow="CADASTRO · MY URBAN"
             title="Criar conta"
-            subtitle="Preencha seus dados para começar a usar a Urban AI."
+            subtitle="Preencha seus dados para começar a usar o My Urban."
             size="sm"
           />
 
@@ -426,7 +426,7 @@ const Register = () => {
                       strength === "Forte"
                         ? "var(--app-success)"
                         : strength === "Média"
-                          ? "var(--app-warning)"
+                          ? "var(--app-warning-text)"
                           : "var(--app-danger)",
                   }}
                 >

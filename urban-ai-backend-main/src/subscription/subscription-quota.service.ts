@@ -235,7 +235,7 @@ export class SubscriptionQuotaService {
           `<p><a href="${escapeHtml(this.frontUrl())}/plans?upsell=quota">Ver planos</a></p>`;
         const result = await this.mailer.sendHtmlEmail(
           { email: user.email, name: user.username || user.email },
-          `Urban AI - ${title}`,
+          `My Urban - ${title}`,
           html,
         );
         if (!result?.enviado) {

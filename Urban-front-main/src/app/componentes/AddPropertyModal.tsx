@@ -452,7 +452,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
 
     const invalid = parsedByAddress.find((item) => !item.manualDailyPrice);
     if (invalid) {
-      toast("Informe uma diária base válida para todos os imóveis. Sem esse valor, a Urban AI não inicia a análise.", { type: "warning" });
+      toast("Informe uma diária base válida para todos os imóveis. Sem esse valor, o My Urban não inicia a análise.", { type: "warning" });
       return;
     }
 
@@ -712,7 +712,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                           aria-label={`Monitorar ${prop.titulo || `anúncio ${prop.id_do_anuncio}`}`}
                           onClick={(event) => event.stopPropagation()}
                           onChange={(event) => handleToggleProperty(prop.id_do_anuncio, event.target.checked)}
-                          style={{ width: 18, height: 18, accentColor: "#E8500A", pointerEvents: "none" }}
+                          style={{ width: 18, height: 18, accentColor: "var(--app-accent)", pointerEvents: "none" }}
                         />
 
                         {prop.pictureUrl ? (
@@ -857,7 +857,7 @@ function getPropertyLoadingStatus(stage: PropertyLoadStage, foundCount: number):
     },
     ready: {
       title: foundPropertiesLabel(foundCount),
-      body: "Marque os que você quer acompanhar na Urban AI.",
+      body: "Marque os que você quer acompanhar no My Urban.",
       buttonLabel: "Preparando…",
     },
     registering: {

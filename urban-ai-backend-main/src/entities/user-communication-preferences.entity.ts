@@ -27,6 +27,9 @@ export class UserCommunicationPreferences {
   @Column({ name: 'push_pricing', type: 'boolean', default: true })
   pushPricing: boolean;
 
+  @Column({ name: 'push_events', type: 'boolean', default: true })
+  pushEvents: boolean;
+
   @Column({ name: 'weekly_report', type: 'boolean', default: true })
   weeklyReport: boolean;
 

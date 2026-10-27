@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { BellOff, BellRing, Send, X } from "lucide-react";
+import { BellOff, BellRing, Send, Smartphone, X } from "lucide-react";
 import { AppBadge, AppButton } from "./ui";
 import {
   getPwaPushSnapshot,
@@ -10,6 +10,10 @@ import {
   subscribeToPwaPush,
   unsubscribeFromPwaPush,
 } from "../service/pwaPush";
+import { getClientPushEligibility } from "../service/pwaClient";
+import { OPEN_INSTALL_SHEET_EVENT, type PushEligibility } from "../service/pwaInstall";
+import { PushCategoryPreferences } from "./PushCategoryPreferences";
+import styles from "./Pwa.module.css";
 
 const DISMISS_KEY = "urban_ai_push_invite_dismissed";
 
@@ -38,6 +42,7 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
   const [busy, setBusy] = React.useState<"subscribe" | "unsubscribe" | "test" | null>(null);
   const [message, setMessage] = React.useState<string | null>(null);
   const [dismissed, setDismissed] = React.useState(false);
+  const [eligibility, setEligibility] = React.useState<PushEligibility | null>(null);
   const isCompact = variant === "compact";
 
   const refresh = React.useCallback(async () => {
@@ -46,6 +51,7 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
   }, []);
 
   React.useEffect(() => {
+    setEligibility(getClientPushEligibility());
     refresh().catch(() => {
       setSnapshot({
         supported: false,
@@ -107,14 +113,53 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
     }
   };
 
-  if (!snapshot) return null;
-  if (!snapshot.supported) return null;
-  if (isCompact && (snapshot.subscribed || dismissed || snapshot.permission === "denied")) return null;
-
   const dismissCompact = () => {
     saveDismissedInvite();
     setDismissed(true);
   };
+
+  if (!snapshot || !eligibility) return null;
+  if (eligibility === "needs-install" || eligibility === "ios-too-old") {
+    // iOS só entrega push para o app instalado na Tela de Início (iOS 16.4+): explica antes de pedir permissão.
+    if (isCompact && (dismissed || eligibility === "ios-too-old")) return null;
+    return (
+      <section className={`${styles.optInCard} ${isCompact ? styles.optInCardCompact : ""}`}>
+        <div className={styles.optInInfo}>
+          <div aria-hidden className={styles.optInIcon}>
+            <Smartphone size={18} />
+          </div>
+          <div>
+            <p className={styles.optInTitle}>
+              {eligibility === "ios-too-old" ? "Avisos precisam do iOS 16.4 ou mais novo" : "Instale o app para receber avisos"}
+            </p>
+            <p className={styles.optInText}>
+              {eligibility === "ios-too-old"
+                ? "Atualize o iPhone para receber avisos de preço no celular. Enquanto isso, as recomendações continuam aqui no painel."
+                : "No iPhone, o iOS só entrega avisos para apps adicionados à Tela de Início. Adicione o My Urban e volte aqui para ativá-los."}
+            </p>
+          </div>
+        </div>
+        <div className={styles.optInActions}>
+          {eligibility === "needs-install" && (
+            <AppButton
+              size="sm"
+              variant="primary"
+              onClick={() => window.dispatchEvent(new Event(OPEN_INSTALL_SHEET_EVENT))}
+            >
+              Como instalar
+            </AppButton>
+          )}
+          {isCompact && (
+            <AppButton size="sm" variant="ghost" leftIcon={<X size={14} />} onClick={dismissCompact}>
+              Agora não
+            </AppButton>
+          )}
+        </div>
+      </section>
+    );
+  }
+  if (!snapshot.supported) return null;
+  if (isCompact && (snapshot.subscribed || dismissed || snapshot.permission === "denied")) return null;
 
   const badge = snapshot.subscribed
     ? <AppBadge kind="success">ATIVO</AppBadge>
@@ -130,7 +175,7 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
     snapshot.permission === "denied"
       ? "Os avisos estão bloqueados no navegador. Clique no cadeado ao lado do endereço do site para liberar."
       : snapshot.enabled
-        ? "A Urban AI avisa quando houver nova sugestão de preço ou evento importante. Quando o navegador perguntar, toque em Permitir."
+        ? "Avisamos só o que importa: recomendação de preço nova, evento relevante e o resumo da semana. Você escolhe depois. Quando o navegador perguntar, toque em Permitir."
         : "Avisos ainda não estão liberados neste ambiente.";
 
   return (
@@ -224,6 +269,7 @@ export function PushNotificationOptIn({ variant = "full" }: PushNotificationOptI
           </AppButton>
         )}
       </div>
+      {snapshot.subscribed && !isCompact && <PushCategoryPreferences />}
     </section>
   );
 }

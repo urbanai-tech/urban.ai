@@ -527,7 +527,7 @@ function PropertyDetailContent() {
         <AppCardHeader
           eyebrow="DADOS DO IMÓVEL"
           title="Origem da diária base"
-          subtitle="A leitura do Airbnb pode falhar (bloqueio, limite do serviço ou instabilidade). Se isso acontecer, você pode informar os dados e a Urban AI passa a usá-los como base."
+          subtitle="A leitura do Airbnb pode falhar (bloqueio, limite do serviço ou instabilidade). Se isso acontecer, você pode informar os dados e o My Urban passa a usá-los como base."
           actions={
             <AppButton variant="ghost" size="sm" onClick={() => setManualFormOpen((open) => !open)}>
               {manualFormOpen ? "Fechar" : "Preencher manualmente"}
@@ -614,7 +614,7 @@ function PropertyDetailContent() {
         <AppCard variant="default">
           <AppCardHeader
             eyebrow="PREÇO BASE"
-            title="Referência usada pela Urban AI"
+            title="Referência usada pelo My Urban"
             subtitle="Hoje a sugestão usa a referência manual quando existe. A leitura direta fica visível para comparar, sem esconder a fonte."
           />
           <div className="property-price-panel">

@@ -90,6 +90,8 @@
 | Variáveis | Req. | Notas |
 |---|---|---|
 | `WEB_PUSH_PUBLIC_KEY`, `WEB_PUSH_PRIVATE_KEY`, `WEB_PUSH_SUBJECT` | Cond. | Sem elas, web push fica desativado. |
+| `PUSH_QUIET_HOURS` | Não | Horário de silêncio do push em horas de São Paulo (padrão `22-8`; `off` desliga). Pushes gerados nesse intervalo ficam ADIADOS e saem às 08:00 BRT pelo job `push-deferred-drain` (não são descartados; vencem em 24h ou antes, se o payload tiver `expiresAt`). |
+| `PUSH_MAX_PER_DAY` | Não | Teto de pushes por usuário em 24h, por dispositivo ativo (padrão `6`). |
 
 ### Stays
 

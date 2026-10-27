@@ -72,12 +72,12 @@ export function ProductPreview({ compact = false }: { compact?: boolean }) {
   return (
     <div
       className={`product-preview ${compact ? "product-preview--compact" : ""}`}
-      aria-label={compact ? "Prévia compacta do painel de recomendação da Urban AI" : "Prévia principal do painel de recomendação da Urban AI"}
+      aria-label={compact ? "Prévia compacta do painel de recomendação do My Urban" : "Prévia principal do painel de recomendação do My Urban"}
     >
       <div className="product-preview__chrome">
         <div className="product-preview__brand">
           <span className="product-preview__mark">U</span>
-          <span>URBAN AI</span>
+          <span>MY URBAN</span>
         </div>
         <span className="product-preview__status"><i /> Exemplo ilustrativo</span>
       </div>
@@ -204,7 +204,7 @@ export function CheckList({ items }: { items: string[] }) {
 export function FinalCommercialCta({
   eyebrow = "Comece agora",
   title = "Sua próxima decisão de preço pode ter mais contexto.",
-  body = "Crie sua conta, cadastre seu primeiro imóvel e acompanhe recomendações no painel da Urban AI.",
+  body = "Crie sua conta, cadastre seu primeiro imóvel e acompanhe recomendações no painel do My Urban.",
 }: {
   eyebrow?: string;
   title?: ReactNode;

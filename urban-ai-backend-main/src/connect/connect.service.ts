@@ -802,8 +802,8 @@ export class ConnectService {
       await send({
         title: count === 1 ? 'Análise iniciada' : `Análise iniciada para ${count} imóveis`,
         description: count === 1
-          ? `A Urban AI está analisando eventos perto de ${input.analysisStartedTitles[0]}.`
-          : `A Urban AI está analisando eventos perto de ${count} imóveis: ${this.humanList(input.analysisStartedTitles)}.`,
+          ? `O My Urban está analisando eventos perto de ${input.analysisStartedTitles[0]}.`
+          : `O My Urban está analisando eventos perto de ${count} imóveis: ${this.humanList(input.analysisStartedTitles)}.`,
         redirectTo: '/dashboard',
         sendEmail: false,
         sendPush: true,
@@ -820,8 +820,8 @@ export class ConnectService {
       await send({
         title: count === 1 ? 'Diária base pendente' : `Diária base pendente em ${count} imóveis`,
         description: count === 1
-          ? `Informe a diária base de ${input.basePricePendingTitles[0]} para iniciar a análise da Urban AI.`
-          : `Informe a diária base destes imóveis para iniciar a análise da Urban AI: ${this.humanList(input.basePricePendingTitles)}.`,
+          ? `Informe a diária base de ${input.basePricePendingTitles[0]} para iniciar a análise do My Urban.`
+          : `Informe a diária base destes imóveis para iniciar a análise do My Urban: ${this.humanList(input.basePricePendingTitles)}.`,
         redirectTo: '/properties',
         sendEmail: true,
         sendPush: false,

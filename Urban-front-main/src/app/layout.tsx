@@ -40,6 +40,7 @@ import { Analytics } from "./componentes/Analytics";
 import { CookieConsent } from "./componentes/CookieConsent";
 import { PwaInstaller } from "./componentes/PwaInstaller";
 import { ThemeScript } from "./componentes/theme";
+import { APPLE_STARTUP_IMAGES } from "./lib/pwaSplashScreens.generated";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://myurbanai.com";
 const APP_ENV = process.env.NEXT_PUBLIC_APP_ENV;
@@ -47,22 +48,34 @@ const HAS_ENVIRONMENT_BANNER = Boolean(APP_ENV && APP_ENV !== "production");
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  applicationName: "Urban AI",
-  title: "Urban AI | Precificação dinâmica para Airbnb e aluguel por temporada",
+  applicationName: "My Urban AI",
+  title: "My Urban AI | Precificação dinâmica para Airbnb e aluguel por temporada",
   description: "Precificação dinâmica para anfitriões com IA, calendário urbano e operação assistida.",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-16.png", type: "image/png", sizes: "16x16" },
       { url: "/pwa-icon-192.png", type: "image/png", sizes: "192x192" },
       { url: "/pwa-icon-512.png", type: "image/png", sizes: "512x512" },
     ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/apple-touch-icon-167.png", sizes: "167x167", type: "image/png" },
+      { url: "/apple-touch-icon-152.png", sizes: "152x152", type: "image/png" },
+      { url: "/apple-touch-icon-120.png", sizes: "120x120", type: "image/png" },
+    ],
   },
   appleWebApp: {
     capable: true,
-    title: "Urban AI",
+    title: "My Urban",
     statusBarStyle: "black-translucent",
+    startupImage: APPLE_STARTUP_IMAGES.map(({ url, media }) => ({ url, media })),
+  },
+  other: {
+    // Chrome/Android: a meta antiga apple-mobile-web-app-capable está depreciada.
+    "mobile-web-app-capable": "yes",
   },
   formatDetection: {
     telephone: false,
@@ -70,14 +83,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: SITE_URL,
-    siteName: "Urban AI",
-    title: "Urban AI | Precificação dinâmica para Airbnb",
+    siteName: "My Urban AI",
+    title: "My Urban AI | Precificação dinâmica para Airbnb",
     description: "Precificação dinâmica para anfitriões com IA, calendário urbano e operação assistida.",
-    images: [{ url: "/og-public-launch.png", width: 1536, height: 1024, alt: "Urban AI — A cidade muda. O preço também." }],
+    images: [{ url: "/og-public-launch.png", width: 1536, height: 1024, alt: "My Urban AI — A cidade muda. O preço também." }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Urban AI | Precificação inteligente para aluguel por temporada",
+    title: "My Urban AI | Precificação inteligente para aluguel por temporada",
     description: "Transforme eventos, sazonalidade e sinais do bairro em recomendações de preço explicáveis.",
     images: ["/og-public-launch.png"],
   },

@@ -8,6 +8,7 @@ import { UnsubscribeCategory } from './unsubscribe-token';
 const DEFAULT_PREFERENCES = {
   emailPricing: true,
   pushPricing: true,
+  pushEvents: true,
   weeklyReport: true,
   onboardingEmails: true,
   marketing: false,

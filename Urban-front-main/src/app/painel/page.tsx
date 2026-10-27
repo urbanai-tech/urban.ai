@@ -150,7 +150,7 @@ export default function SugestoesAceitas() {
       <AppSectionHeader
         eyebrow="PAINEL - HOJE NA SUA OPERAÇÃO"
         title="Painel de controle"
-        subtitle="Eventos com sugestão da Urban AI que merecem sua atenção agora. Filtre por imóvel pra focar onde tem mais oportunidade."
+        subtitle="Eventos com sugestão do My Urban que merecem sua atenção agora. Filtre por imóvel pra focar onde tem mais oportunidade."
         actions={
           loadingProps ? (
             <Spinner size={18} />
@@ -269,7 +269,7 @@ export default function SugestoesAceitas() {
           <AppEmptyState
             eyebrow="SEM SUGESTÕES PENDENTES"
             title="Tudo certo por aqui"
-            body="Quando a Urban AI detectar uma nova oportunidade de evento, ela aparece aqui. Você também recebe por e-mail."
+            body="Quando o My Urban detectar uma nova oportunidade de evento, ela aparece aqui. Você também recebe por e-mail."
             icon={<Icons.Sparkles size={32} />}
           />
         ) : (

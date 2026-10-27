@@ -14,6 +14,7 @@ describe('PushNotificationService', () => {
     };
     const deliveryRepo = {
       find: jest.fn(),
+      count: jest.fn().mockResolvedValue(0),
       create: jest.fn((entity) => entity),
       save: jest.fn(async (entity) => entity),
     };
@@ -24,28 +25,36 @@ describe('PushNotificationService', () => {
       record: jest.fn().mockResolvedValue(undefined),
     };
 
+    const preferencesRepo = {
+      findOne: jest.fn().mockResolvedValue(null),
+    };
+
     const service = new PushNotificationService(
       subscriptionRepo as any,
       deliveryRepo as any,
       userRepo as any,
       communicationLog as any,
       endpointSecurity as unknown as PushEndpointSecurity,
+      preferencesRepo as any,
     );
 
-    return { service, subscriptionRepo, deliveryRepo, userRepo, communicationLog, endpointSecurity };
+    return { service, subscriptionRepo, deliveryRepo, userRepo, communicationLog, endpointSecurity, preferencesRepo };
   };
 
   afterEach(() => {
     delete process.env.WEB_PUSH_PUBLIC_KEY;
     delete process.env.WEB_PUSH_PRIVATE_KEY;
     delete process.env.WEB_PUSH_SUBJECT;
+    delete process.env.PUSH_QUIET_HOURS;
+    delete process.env.PUSH_MAX_PER_DAY;
+    jest.useRealTimers();
     jest.restoreAllMocks();
   });
 
   it('skips sends when VAPID keys are not configured', async () => {
     const { service, communicationLog } = makeService();
 
-    await expect(service.sendToUser('user-1', { title: 'Urban AI' })).resolves.toMatchObject({
+    await expect(service.sendToUser('user-1', { title: 'My Urban' })).resolves.toMatchObject({
       enabled: false,
       attempted: 0,
       skippedReason: 'missing_vapid_keys',
@@ -170,5 +179,77 @@ describe('PushNotificationService', () => {
     await expect((service as any).sendWakePush({ endpoint: 'https://push.example.com/device' }))
       .rejects.toThrow('push_endpoint_dns_blocked');
     expect(request).not.toHaveBeenCalled();
+  });
+
+  describe('política de envio (opt-out, silêncio, teto)', () => {
+    const setup = (at: string) => {
+      process.env.WEB_PUSH_PUBLIC_KEY = 'public-key';
+      process.env.WEB_PUSH_PRIVATE_KEY = 'private-key';
+      jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate', 'setTimeout'] }).setSystemTime(new Date(at));
+      const ctx = makeService();
+      ctx.subscriptionRepo.find.mockResolvedValue([{ id: 'sub-1', deviceId: 'dev-1', endpoint: 'https://push.example.test/d' }]);
+      jest.spyOn(ctx.service as any, 'sendWakePush').mockResolvedValue(undefined);
+      return ctx;
+    };
+    const pricing = { title: 'Preço', data: { type: 'pricing_recommendation_digest' } };
+
+    it('envia fora do silêncio e registra a entrega', async () => {
+      const { service, deliveryRepo } = setup('2026-10-26T15:00:00Z'); // 12:00 BRT
+      await expect(service.sendToUser('user-1', pricing)).resolves.toMatchObject({ attempted: 1, sent: 1 });
+      expect(deliveryRepo.save).toHaveBeenCalled();
+    });
+
+    it('não envia categoria desligada pelo usuário e registra o motivo', async () => {
+      const { service, preferencesRepo, deliveryRepo, communicationLog } = setup('2026-10-26T15:00:00Z');
+      preferencesRepo.findOne.mockResolvedValue({ userId: 'user-1', pushPricing: false });
+      await expect(service.sendToUser('user-1', pricing)).resolves.toMatchObject({
+        attempted: 0,
+        skippedReason: 'category_disabled',
+      });
+      expect(deliveryRepo.save).not.toHaveBeenCalled();
+      expect(communicationLog.record).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'skipped', failureReason: 'category_disabled' }),
+      );
+    });
+
+    it('resumo semanal obedece a weeklyReport; eventos obedecem a pushEvents', async () => {
+      const { service, preferencesRepo } = setup('2026-10-26T15:00:00Z');
+      preferencesRepo.findOne.mockResolvedValue({ weeklyReport: false, pushEvents: false, pushPricing: true });
+      await expect(
+        service.sendToUser('user-1', { title: 'x', data: { type: 'weekly_event_report' } }),
+      ).resolves.toMatchObject({ skippedReason: 'category_disabled' });
+      await expect(
+        service.sendToUser('user-1', { title: 'x', data: { type: 'event_alert' } }),
+      ).resolves.toMatchObject({ skippedReason: 'category_disabled' });
+      await expect(service.sendToUser('user-1', pricing)).resolves.toMatchObject({ sent: 1 });
+    });
+
+    it('respeita o silêncio 22h-8h de São Paulo, mas deixa o teste passar', async () => {
+      const { service } = setup('2026-10-27T02:00:00Z'); // 23:00 BRT
+      await expect(service.sendToUser('user-1', pricing)).resolves.toMatchObject({
+        attempted: 0,
+        skippedReason: 'quiet_hours',
+      });
+      await expect(
+        service.sendToUser('user-1', { title: 'Teste', data: { type: 'test' } }),
+      ).resolves.toMatchObject({ sent: 1 });
+    });
+
+    it('PUSH_QUIET_HOURS=off desliga o silêncio', async () => {
+      process.env.PUSH_QUIET_HOURS = 'off';
+      const { service } = setup('2026-10-27T02:00:00Z');
+      await expect(service.sendToUser('user-1', pricing)).resolves.toMatchObject({ sent: 1 });
+    });
+
+    it('aplica o teto diário por dispositivo', async () => {
+      const { service, deliveryRepo } = setup('2026-10-26T15:00:00Z');
+      deliveryRepo.count.mockResolvedValue(6);
+      await expect(service.sendToUser('user-1', pricing)).resolves.toMatchObject({
+        attempted: 0,
+        skippedReason: 'rate_limited',
+      });
+      process.env.PUSH_MAX_PER_DAY = '7';
+      await expect(service.sendToUser('user-1', pricing)).resolves.toMatchObject({ sent: 1 });
+    });
   });
 });

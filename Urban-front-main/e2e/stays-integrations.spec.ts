@@ -223,7 +223,7 @@ test.describe('Stays integrations settings', () => {
     await expect(page.getByText('todos vinculados')).toBeVisible();
 
     // desvincular pelo seletor
-    await page.getByLabel(/Imóvel Urban AI de Loft Centro/).selectOption('');
+    await page.getByLabel(/Imóvel My Urban de Loft Centro/).selectOption('');
     await expect.poll(() => state.calls.filter((call) => call.method === 'DELETE').length).toBe(1);
 
     // aplicar o preço recomendado: prévia lê o preço atual da Stays

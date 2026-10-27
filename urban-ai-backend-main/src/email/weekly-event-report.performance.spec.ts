@@ -73,7 +73,7 @@ describe('relatório semanal por anfitrião (resumo + resultados)', () => {
     expect(summary).toMatchObject({ users: 1, sent: 1, failed: 0, skipped: 0 });
     expect(mailer.sendHtmlEmail).toHaveBeenCalledTimes(1);
     const [, subject, html, options] = mailer.sendHtmlEmail.mock.calls[0];
-    expect(subject).toBe('Seu resumo semanal - Urban AI');
+    expect(subject).toBe('Seu resumo semanal - My Urban');
     expect(options).toEqual({ unsubscribe: { userId: 'user-1', category: 'weekly_report' } });
     expect(html).toContain('Semana passada (11/05 a 17/05)');
     expect(html).toContain('Recomendações novas: 1 nova');

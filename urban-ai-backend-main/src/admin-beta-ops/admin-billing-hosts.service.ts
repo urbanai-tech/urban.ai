@@ -148,7 +148,7 @@ export class AdminBillingHostsService {
     const html = EmailTemplates.getBillingLinkTemplate({ nome: user.username || 'Usuário', kind, url });
     const result = await this.mailer.sendHtmlEmail(
       { email: user.email, name: user.username || undefined },
-      kind === 'portal' ? 'Gerencie a sua assinatura - Urban AI' : 'Conclua a sua assinatura - Urban AI',
+      kind === 'portal' ? 'Gerencie a sua assinatura - My Urban' : 'Conclua a sua assinatura - My Urban',
       html,
     );
     if (!result?.enviado) {

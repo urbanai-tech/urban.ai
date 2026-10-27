@@ -17,7 +17,7 @@ const colors = {
   muted: "rgba(255,255,255,0.66)",
   dim: "rgba(255,255,255,0.30)",
   border: "rgba(255,255,255,0.12)",
-  accent: "#E8500A",
+  accent: "#2A928A",
 };
 
 const baseFont =
@@ -28,7 +28,7 @@ export function createUrbanSeoImage({
   height,
   title = "Precificação dinâmica para Airbnb",
   subtitle = "Eventos urbanos, demanda local e IA explicável para orientar diárias.",
-  eyebrow = "Urban AI",
+  eyebrow = "My Urban",
 }: UrbanSeoImageOptions) {
   const compact = height <= 480;
   const titleSize = compact ? 78 : 96;

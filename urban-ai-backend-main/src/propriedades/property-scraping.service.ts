@@ -316,11 +316,11 @@ export class PropertyScrapingService {
         }
 
         try {
-            const subject = '🚨 Urban AI — Hash do Airbnb GraphQL Expirada';
+            const subject = '🚨 My Urban — Hash do Airbnb GraphQL Expirada';
             const htmlContent = `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                     <h2 style="color: #e74c3c;">⚠️ Ação Necessária: Hash do Airbnb Expirada</h2>
-                    <p>O sistema Urban AI detectou que a <strong>hash do GraphQL do Airbnb</strong> expirou
+                    <p>O sistema My Urban detectou que a <strong>hash do GraphQL do Airbnb</strong> expirou
                     (<code>${expiredHash?.substring(0, 16)}...</code>). A importação de imóveis por host está
                     temporariamente desabilitada.</p>
 

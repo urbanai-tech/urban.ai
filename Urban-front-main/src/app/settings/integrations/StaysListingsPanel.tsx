@@ -277,7 +277,7 @@ function StaysListingRow({
 
         <AppGrid minColWidth={220} gap="sm">
           <AppSelect
-            label={`Imóvel Urban AI de ${listing.title || listing.staysListingId}`}
+            label={`Imóvel My Urban de ${listing.title || listing.staysListingId}`}
             value={listing.propriedadeId ?? ""}
             onChange={(e) => void changeLink(e.target.value)}
             disabled={linkBusy}

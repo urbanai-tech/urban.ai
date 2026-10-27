@@ -13,7 +13,7 @@ import {
 } from "../../componentes/PublicMarketing";
 
 export const metadata: Metadata = buildSeoMetadata({
-  title: "Urban AI | Precificação inteligente para aluguel por temporada",
+  title: "My Urban AI | Precificação inteligente para aluguel por temporada",
   description:
     "Transforme eventos, sazonalidade e sinais do bairro em recomendações de preço explicáveis para seus imóveis de temporada.",
   path: "/",
@@ -21,8 +21,8 @@ export const metadata: Metadata = buildSeoMetadata({
 
 const FAQ = [
   {
-    question: "O que a Urban AI analisa?",
-    answer: "A Urban AI combina eventos, calendário, localização, sazonalidade e informações operacionais do imóvel para destacar datas que merecem revisão de preço.",
+    question: "O que o My Urban analisa?",
+    answer: "O My Urban combina eventos, calendário, localização, sazonalidade e informações operacionais do imóvel para destacar datas que merecem revisão de preço.",
   },
   {
     question: "A plataforma altera preços sem minha autorização?",
@@ -33,12 +33,12 @@ const FAQ = [
     answer: "Não. O painel e as recomendações funcionam sem integração. A integração Stays está em beta fechado, sob convite, para operações que queiram enviar preços ao canal com regras de controle.",
   },
   {
-    question: "Para quem a Urban AI foi criada?",
+    question: "Para quem o My Urban foi criado?",
     answer: "Para anfitriões profissionais, investidores e gestoras de aluguel por temporada que precisam revisar muitas datas com mais contexto e menos trabalho manual.",
   },
   {
-    question: "A Urban AI garante aumento de receita?",
-    answer: "Não. Resultado depende do imóvel, do mercado e da decisão comercial. A Urban AI melhora a leitura de contexto e a rastreabilidade da decisão, sem prometer retorno fixo.",
+    question: "O My Urban garante aumento de receita?",
+    answer: "Não. Resultado depende do imóvel, do mercado e da decisão comercial. O My Urban melhora a leitura de contexto e a rastreabilidade da decisão, sem prometer retorno fixo.",
   },
 ];
 
@@ -53,7 +53,7 @@ export default function LandingPage() {
             <p className="public-kicker">Precificação inteligente para aluguel por temporada</p>
             <h1>Quando a cidade muda, seu <em>preço acompanha.</em></h1>
             <p className="public-hero__lead">
-              A Urban AI conecta eventos, sazonalidade e contexto do bairro para recomendar
+              O My Urban conecta eventos, sazonalidade e contexto do bairro para recomendar
               preços explicáveis. Você entende o motivo, define os limites e mantém o controle.
             </p>
             <div className="public-hero__actions">
@@ -75,7 +75,7 @@ export default function LandingPage() {
           <SectionHeading
             eyebrow="O produto"
             title={<>Uma leitura de preço que começa <em>fora da planilha.</em></>}
-            description="O calendário urbano muda antes da sua ocupação. A Urban AI organiza esses sinais e mostra onde vale revisar a estratégia."
+            description="O calendário urbano muda antes da sua ocupação. O My Urban organiza esses sinais e mostra onde vale revisar a estratégia."
           />
           <PillarGrid />
         </div>
@@ -96,7 +96,7 @@ export default function LandingPage() {
             </article>
             <article>
               <span>02</span>
-              <h3>A Urban AI mapeia os sinais</h3>
+              <h3>O My Urban mapeia os sinais</h3>
               <p>Eventos, sazonalidade, proximidade e janelas de antecedência entram na análise de cada data.</p>
             </article>
             <article>
@@ -152,7 +152,7 @@ export default function LandingPage() {
             <article className="public-content-card">
               <Check aria-hidden size={22} />
               <h3 style={{ marginTop: 28 }}>Quem já usa planilha</h3>
-              <p>Preserve metas e custos internos, enquanto a Urban AI monitora exceções e contexto externo.</p>
+              <p>Preserve metas e custos internos, enquanto o My Urban monitora exceções e contexto externo.</p>
             </article>
           </div>
         </div>

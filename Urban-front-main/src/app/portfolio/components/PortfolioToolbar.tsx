@@ -39,7 +39,7 @@ const STRATEGIES: ReadonlyArray<{ id: string; label: string; helper: string }> =
   {
     id: "autonomous",
     label: "Automático",
-    helper: "A Urban AI escolhe o melhor caminho caso a caso.",
+    helper: "O My Urban escolhe o melhor caminho caso a caso.",
   },
 ];
 
@@ -150,7 +150,7 @@ export function PortfolioToolbar({
                   padding: "0 8px",
                   borderRadius: 999,
                   background: "var(--app-accent-soft, rgba(232, 80, 10, 0.12))",
-                  color: "var(--app-accent, #E8500A)",
+                  color: "var(--app-accent, #2A928A)",
                   fontSize: 12,
                   fontWeight: 700,
                 }}

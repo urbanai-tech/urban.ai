@@ -436,7 +436,7 @@ export class PropertyPricingAnalysisService {
 
             const notificationContent: CreateNotificationDto = {
                 title: "Análise concluída",
-                description: `A Urban AI analisou os eventos para a propriedade ${list?.titulo || 'sem título'}.`,
+                description: `O My Urban analisou os eventos para a propriedade ${list?.titulo || 'sem título'}.`,
                 redirectTo: "/dashboard",
                 sendEmail: false,
                 sendPush: true,

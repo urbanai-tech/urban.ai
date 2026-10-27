@@ -4,8 +4,8 @@ import { JsonLd, aboutPageJsonLd, buildSeoMetadata } from "../../lib/seo";
 import { FinalCommercialCta, SectionHeading } from "../../componentes/PublicMarketing";
 
 export const metadata: Metadata = buildSeoMetadata({
-  title: "Sobre a Urban AI",
-  description: "Conheça a visão, o produto e os princípios da Urban AI para decisões de preço em aluguel por temporada.",
+  title: "Sobre o My Urban",
+  description: "Conheça a visão, o produto e os princípios do My Urban para decisões de preço em aluguel por temporada.",
   path: "/sobre",
 });
 
@@ -16,9 +16,9 @@ export default function SobrePage() {
       <section className="public-page-hero">
         <div className="public-container public-page-hero__grid">
           <div>
-            <p className="public-kicker">Sobre a Urban AI</p>
+            <p className="public-kicker">Sobre o My Urban</p>
             <h1>A cidade muda. A estratégia de preço precisa <em>acompanhar.</em></h1>
-            <p className="public-page-hero__lead">A Urban AI transforma sinais urbanos dispersos em recomendações de preço compreensíveis para quem administra aluguel por temporada como negócio.</p>
+            <p className="public-page-hero__lead">O My Urban transforma sinais urbanos dispersos em recomendações de preço compreensíveis para quem administra aluguel por temporada como negócio.</p>
           </div>
           <aside className="public-page-hero__aside"><p><strong style={{ color: "var(--theme-public-text)" }}>Feita em São Paulo.</strong><br />Uma plataforma brasileira, criada a partir da complexidade real das cidades e das operações de temporada.</p></aside>
         </div>
@@ -29,7 +29,7 @@ export default function SobrePage() {
           <SectionHeading
             eyebrow="Por que existimos"
             title={<>Tirar a decisão de preço do <em>piloto automático.</em></>}
-            description="Planilhas e regras fixas continuam úteis para custos e metas, mas não acompanham sozinhas eventos, mudanças de bairro e janelas de demanda. A Urban AI existe para organizar esse contexto e colocá-lo na rotina de decisão."
+            description="Planilhas e regras fixas continuam úteis para custos e metas, mas não acompanham sozinhas eventos, mudanças de bairro e janelas de demanda. O My Urban existe para organizar esse contexto e colocá-lo na rotina de decisão."
           />
           <blockquote className="public-quote">Tecnologia de preço só cria confiança quando explica o sinal, respeita os limites e deixa a decisão rastreável.</blockquote>
         </div>
@@ -52,7 +52,7 @@ export default function SobrePage() {
           <SectionHeading
             eyebrow="Como construímos"
             title={<>Produto, dados e operação no <em>mesmo sistema.</em></>}
-            description="A Urban AI combina uma camada de leitura urbana, um motor de recomendação e uma experiência operacional para revisar, aplicar e acompanhar decisões."
+            description="O My Urban combina uma camada de leitura urbana, um motor de recomendação e uma experiência operacional para revisar, aplicar e acompanhar decisões."
           />
           <div className="public-process">
             <article><span>01</span><h3>Observamos a cidade</h3><p>Eventos, calendário e sinais geográficos entram como contexto para datas relevantes.</p></article>
@@ -62,7 +62,7 @@ export default function SobrePage() {
         </div>
       </section>
 
-      <FinalCommercialCta eyebrow="Conheça na prática" title={<>Veja como a Urban AI organiza a próxima decisão do seu <em style={{ color: "var(--theme-public-accent)" }}>calendário.</em></>} />
+      <FinalCommercialCta eyebrow="Conheça na prática" title={<>Veja como o My Urban organiza a próxima decisão do seu <em style={{ color: "var(--theme-public-accent)" }}>calendário.</em></>} />
     </main>
   );
 }

@@ -5,22 +5,27 @@ import { CommunicationLogService } from 'src/communications/communication-log.se
 import { PushDelivery } from 'src/entities/push-delivery.entity';
 import { PushSubscription } from 'src/entities/push-subscription.entity';
 import { User } from 'src/entities/user.entity';
-import { IsNull, Repository } from 'typeorm';
+import { UserCommunicationPreferences } from 'src/entities/user-communication-preferences.entity';
+import { IsNull, LessThanOrEqual, MoreThan, Not, Repository } from 'typeorm';
 import { RemovePushSubscriptionDto, UpsertPushSubscriptionDto } from './push.dto';
 import { PushEndpointSecurity } from './push-endpoint-security';
 import { HTTP_TIMEOUT_MS, fetchWithTimeout } from '../common/http-timeouts';
+import {
+  decidePushPolicy,
+  deferralExpiry,
+  isWithinQuietHours,
+  nextQuietEnd,
+  normalizePushPayload,
+  parseQuietHours,
+  planDeferredDrain,
+  pushCategoryFromType,
+  type PwaPushPayload,
+} from './push-payload.builder';
 
-export type PwaPushPayload = {
-  title: string;
-  body?: string;
-  url?: string;
-  tag?: string;
-  icon?: string;
-  badge?: string;
-  requireInteraction?: boolean;
-  data?: Record<string, unknown>;
-  actions?: { action: string; title: string }[];
-};
+export type { PwaPushPayload } from './push-payload.builder';
+
+/** Teto de avisos por usuário em 24h (por dispositivo ativo). `PUSH_MAX_PER_DAY` sobrescreve. */
+const DEFAULT_MAX_PUSH_PER_DAY = 6;
 
 export type PushSendResult = {
   enabled: boolean;
@@ -28,6 +33,18 @@ export type PushSendResult = {
   sent: number;
   failed: number;
   skippedReason?: string;
+  /** Quantos envios ficaram adiados (horário de silêncio) para as 08:00 de São Paulo. */
+  deferred?: number;
+};
+
+export type DeferredDrainResult = {
+  due: number;
+  sent: number;
+  failed: number;
+  expired: number;
+  superseded: number;
+  dropped: number;
+  skippedClaim: number;
 };
 
 @Injectable()
@@ -47,6 +64,9 @@ export class PushNotificationService {
     private readonly userRepo: Repository<User>,
     private readonly communicationLog: CommunicationLogService,
     @Optional() endpointSecurity?: PushEndpointSecurity,
+    @Optional()
+    @InjectRepository(UserCommunicationPreferences)
+    private readonly preferencesRepo?: Repository<UserCommunicationPreferences>,
   ) {
     this.endpointSecurity = endpointSecurity ?? new PushEndpointSecurity();
   }
@@ -148,6 +168,32 @@ export class PushNotificationService {
       return { enabled: true, attempted: 0, sent: 0, failed: 0, skippedReason: 'no_active_subscriptions' };
     }
 
+    const skippedByPolicy = await this.evaluatePolicy(userId, payload, subscriptions.length);
+    if (skippedByPolicy === 'quiet_hours') {
+      const deferred = await this.deferDeliveries(userId, payload, subscriptions);
+      await this.communicationLog.record({
+        userId,
+        channel: 'push',
+        status: 'skipped',
+        kind: this.pushKind(payload),
+        title: payload.title,
+        failureReason: 'quiet_hours_deferred',
+        metadata: { tag: payload.tag, deferred },
+      });
+      return { enabled: true, attempted: 0, sent: 0, failed: 0, skippedReason: 'quiet_hours', deferred };
+    }
+    if (skippedByPolicy) {
+      await this.communicationLog.record({
+        userId,
+        channel: 'push',
+        status: 'skipped',
+        kind: this.pushKind(payload),
+        title: payload.title,
+        failureReason: skippedByPolicy,
+      });
+      return { enabled: true, attempted: 0, sent: 0, failed: 0, skippedReason: skippedByPolicy };
+    }
+
     let sent = 0;
     let failed = 0;
 
@@ -160,63 +206,219 @@ export class PushNotificationService {
         }),
       );
 
-      try {
-        subscription.lastPushAttemptAt = new Date();
-        await this.sendWakePush(subscription);
-        subscription.failedAttempts = 0;
-        subscription.lastPushSuccessAt = new Date();
-        subscription.lastPushFailureAt = null;
-        subscription.failureReason = null;
-        delivery.pushedAt = new Date();
-        sent += 1;
-        await this.communicationLog.record({
-          userId,
-          channel: 'push',
-          status: 'sent',
-          kind: this.pushKind(payload),
-          recipientDeviceId: subscription.deviceId,
-          title: payload.title,
-          provider: 'web_push',
-          providerMessageId: delivery.id,
-          metadata: {
-            tag: payload.tag,
-            url: payload.url,
-          },
-        });
-      } catch (error) {
-        failed += 1;
-        const reason = error instanceof Error ? error.message : String(error);
-        subscription.failedAttempts = Number(subscription.failedAttempts || 0) + 1;
-        subscription.lastPushFailureAt = new Date();
-        subscription.failureReason = reason.slice(0, 255);
-        delivery.failedAt = new Date();
-        delivery.failureReason = reason.slice(0, 255);
-        if (this.isGonePushError(reason)) subscription.active = false;
-        this.logger.warn(`Falha ao enviar wake push subscription=${subscription.id}: ${reason}`);
-        await this.communicationLog.record({
-          userId,
-          channel: 'push',
-          status: 'failed',
-          kind: this.pushKind(payload),
-          recipientDeviceId: subscription.deviceId,
-          title: payload.title,
-          provider: 'web_push',
-          providerMessageId: delivery.id,
-          failureReason: reason,
-          metadata: {
-            tag: payload.tag,
-            url: payload.url,
-          },
-        });
-      }
-
-      await Promise.all([
-        this.subscriptionRepo.save(subscription),
-        this.deliveryRepo.save(delivery),
-      ]);
+      const outcome = await this.dispatchWake(subscription, delivery, userId, payload);
+      if (outcome === 'sent') sent += 1;
+      else failed += 1;
     }
 
     return { enabled: true, attempted: subscriptions.length, sent, failed };
+  }
+
+  /** Envia o wake push de uma entrega já gravada e atualiza assinatura, entrega e log. */
+  private async dispatchWake(
+    subscription: PushSubscription,
+    delivery: PushDelivery,
+    userId: string,
+    payload: PwaPushPayload,
+  ): Promise<'sent' | 'failed'> {
+    let outcome: 'sent' | 'failed' = 'sent';
+    try {
+      subscription.lastPushAttemptAt = new Date();
+      await this.sendWakePush(subscription);
+      subscription.failedAttempts = 0;
+      subscription.lastPushSuccessAt = new Date();
+      subscription.lastPushFailureAt = null;
+      subscription.failureReason = null;
+      delivery.pushedAt = new Date();
+      await this.communicationLog.record({
+        userId,
+        channel: 'push',
+        status: 'sent',
+        kind: this.pushKind(payload),
+        recipientDeviceId: subscription.deviceId,
+        title: payload.title,
+        provider: 'web_push',
+        providerMessageId: delivery.id,
+        metadata: {
+          tag: payload.tag,
+          url: payload.url,
+        },
+      });
+    } catch (error) {
+      outcome = 'failed';
+      const reason = error instanceof Error ? error.message : String(error);
+      subscription.failedAttempts = Number(subscription.failedAttempts || 0) + 1;
+      subscription.lastPushFailureAt = new Date();
+      subscription.failureReason = reason.slice(0, 255);
+      delivery.failedAt = new Date();
+      delivery.failureReason = reason.slice(0, 255);
+      if (this.isGonePushError(reason)) subscription.active = false;
+      this.logger.warn(`Falha ao enviar wake push subscription=${subscription.id}: ${reason}`);
+      await this.communicationLog.record({
+        userId,
+        channel: 'push',
+        status: 'failed',
+        kind: this.pushKind(payload),
+        recipientDeviceId: subscription.deviceId,
+        title: payload.title,
+        provider: 'web_push',
+        providerMessageId: delivery.id,
+        failureReason: reason,
+        metadata: {
+          tag: payload.tag,
+          url: payload.url,
+        },
+      });
+    }
+
+    await Promise.all([this.subscriptionRepo.save(subscription), this.deliveryRepo.save(delivery)]);
+    return outcome;
+  }
+
+  /** Grava uma entrega por dispositivo com `deliverAfter` = próximo fim do silêncio. Não envia nada. */
+  private async deferDeliveries(
+    userId: string,
+    payload: PwaPushPayload,
+    subscriptions: PushSubscription[],
+  ): Promise<number> {
+    const now = new Date();
+    const normalized = this.normalizePayload(payload);
+    const deliverAfter = nextQuietEnd(now, parseQuietHours(process.env.PUSH_QUIET_HOURS));
+    const expiresAt = deferralExpiry(now, normalized.expiresAt);
+    for (const subscription of subscriptions) {
+      await this.deliveryRepo.save(
+        this.deliveryRepo.create({
+          subscriptionId: subscription.id,
+          userId,
+          payloadJson: JSON.stringify(normalized),
+          tag: normalized.tag ?? null,
+          deliverAfter,
+          expiresAt,
+        }),
+      );
+    }
+    return subscriptions.length;
+  }
+
+  /**
+   * Envia os pushes adiados que já venceram o silêncio. Seguro para rodar várias vezes e em
+   * várias réplicas: cada entrega é "reivindicada" por um UPDATE condicional (deliverAfter vira
+   * nulo), então só uma execução envia. Antes de enviar: colapsa por tag/dispositivo (fica o mais
+   * recente), descarta vencidos e repassa pela mesma política (preferência da categoria relida
+   * agora e teto diário do dia do envio).
+   */
+  async drainDeferred(now: Date = new Date()): Promise<DeferredDrainResult> {
+    const result: DeferredDrainResult = {
+      due: 0, sent: 0, failed: 0, expired: 0, superseded: 0, dropped: 0, skippedClaim: 0,
+    };
+    if (!this.isConfigured()) return result;
+    // Ainda dentro do silêncio: nada a enviar (o cron das 08:00 BRT e os seguintes cuidam disso).
+    if (isWithinQuietHours(now, parseQuietHours(process.env.PUSH_QUIET_HOURS))) return result;
+
+    const rows = await this.deliveryRepo.find({
+      where: {
+        deliverAfter: LessThanOrEqual(now),
+        pushedAt: IsNull(),
+        deliveredAt: IsNull(),
+        failedAt: IsNull(),
+      },
+      order: { createdAt: 'ASC' },
+      take: 1000,
+    });
+    const due = rows.filter((row) => row.deliverAfter !== null);
+    result.due = due.length;
+    if (!due.length) return result;
+
+    const plan = planDeferredDrain(due, now);
+    const byId = new Map(due.map((row) => [row.id, row]));
+    for (const row of plan.expired) {
+      if (await this.discardDeferred(byId.get(row.id) as PushDelivery, 'deferred_expired', now)) result.expired += 1;
+    }
+    for (const row of plan.superseded) {
+      if (await this.discardDeferred(byId.get(row.id) as PushDelivery, 'deferred_superseded', now)) result.superseded += 1;
+    }
+
+    const sentToday = new Map<string, number>();
+    const prefsByUser = new Map<string, Partial<UserCommunicationPreferences> | null>();
+    for (const planned of plan.send) {
+      const row = byId.get(planned.id) as PushDelivery;
+      const payload = this.parsePayload(row.payloadJson);
+      const category = pushCategoryFromType(payload.data?.type);
+
+      if (!prefsByUser.has(row.userId)) {
+        prefsByUser.set(row.userId, (await this.preferencesRepo?.findOne({ where: { userId: row.userId } }).catch(() => null)) ?? null);
+      }
+      if (!sentToday.has(row.userId)) sentToday.set(row.userId, await this.countSentSince(row.userId, now));
+      const subscription = await this.subscriptionRepo.findOne({
+        where: { id: row.subscriptionId, active: true, user: { ativo: true } },
+        relations: ['user'],
+      });
+      if (!subscription) {
+        if (await this.discardDeferred(row, 'deferred_subscription_inactive', now)) result.dropped += 1;
+        continue;
+      }
+
+      const decision = decidePushPolicy({
+        category,
+        payload,
+        preferences: prefsByUser.get(row.userId) ?? null,
+        now,
+        // Já passou o silêncio; o que resta é preferência atual e teto do dia.
+        quietHours: null,
+        deliveriesLast24h: sentToday.get(row.userId) ?? 0,
+        maxPerDay: this.maxPushPerDay(),
+      });
+      if (decision.allowed === false) {
+        if (await this.discardDeferred(row, `deferred_${decision.reason}`, now)) result.dropped += 1;
+        continue;
+      }
+
+      const claimed = await this.claimDeferred(row.id);
+      if (!claimed) {
+        result.skippedClaim += 1;
+        continue;
+      }
+      row.deliverAfter = null;
+      sentToday.set(row.userId, (sentToday.get(row.userId) ?? 0) + 1);
+      const outcome = await this.dispatchWake(subscription, row, row.userId, payload);
+      if (outcome === 'sent') result.sent += 1;
+      else result.failed += 1;
+    }
+    return result;
+  }
+
+  /** UPDATE condicional: só uma execução consegue tirar a entrega do estado "adiada". */
+  private async claimDeferred(id: string): Promise<boolean> {
+    const res = await this.deliveryRepo.update({ id, deliverAfter: Not(IsNull()) }, { deliverAfter: null });
+    return Number(res?.affected ?? 0) === 1;
+  }
+
+  private async discardDeferred(row: PushDelivery, reason: string, now: Date): Promise<boolean> {
+    const res = await this.deliveryRepo.update(
+      { id: row.id, deliverAfter: Not(IsNull()) },
+      { deliverAfter: null, failedAt: now, failureReason: reason.slice(0, 255) },
+    );
+    if (Number(res?.affected ?? 0) !== 1) return false;
+    await this.communicationLog.record({
+      userId: row.userId,
+      channel: 'push',
+      status: 'skipped',
+      kind: this.pushKind(this.parsePayload(row.payloadJson)),
+      failureReason: reason,
+      providerMessageId: row.id,
+    });
+    return true;
+  }
+
+  /** Envios do usuário nas últimas 24h contados a partir do instante do envio (não da criação do adiado). */
+  private async countSentSince(userId: string, now: Date): Promise<number> {
+    const since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    return this.deliveryRepo
+      .count({ where: [
+        { userId, deliverAfter: IsNull(), pushedAt: MoreThan(since) },
+        { userId, deliverAfter: IsNull(), pushedAt: IsNull(), failedAt: IsNull(), createdAt: MoreThan(since) },
+      ] })
+      .catch(() => 0);
   }
 
   async getPendingDeliveries(
@@ -239,6 +441,7 @@ export class PushNotificationService {
         subscriptionId: subscription.id,
         deliveredAt: IsNull(),
         failedAt: IsNull(),
+        deliverAfter: IsNull(),
       },
       order: { createdAt: 'ASC' },
       take: 5,
@@ -255,6 +458,40 @@ export class PushNotificationService {
 
     if (deliveries.length) await this.deliveryRepo.save(deliveries);
     return { notifications };
+  }
+
+  /**
+   * Opt-out por categoria, horário de silêncio (São Paulo) e teto diário. Devolve o motivo do
+   * bloqueio ou null. Falha ao ler preferências/contagem não bloqueia (fail-open só para a
+   * leitura; o opt-out explícito `false` sempre vale).
+   */
+  private async evaluatePolicy(userId: string, payload: PwaPushPayload, deviceCount: number): Promise<string | null> {
+    const category = pushCategoryFromType(payload.data?.type);
+    const preferences = await this.preferencesRepo?.findOne({ where: { userId } }).catch(() => null);
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const deliveriesLast24h = category === 'test'
+      ? 0
+      : await this.deliveryRepo
+          .count({ where: [
+            { userId, deliverAfter: IsNull(), pushedAt: MoreThan(since) },
+            { userId, deliverAfter: IsNull(), pushedAt: IsNull(), failedAt: IsNull(), createdAt: MoreThan(since) },
+          ] })
+          .catch(() => 0);
+    const decision = decidePushPolicy({
+      category,
+      payload,
+      preferences: preferences ?? null,
+      now: new Date(),
+      quietHours: parseQuietHours(process.env.PUSH_QUIET_HOURS),
+      deliveriesLast24h,
+      maxPerDay: this.maxPushPerDay() * Math.max(1, deviceCount),
+    });
+    return decision.allowed === false ? decision.reason : null;
+  }
+
+  private maxPushPerDay(): number {
+    const configured = Number(process.env.PUSH_MAX_PER_DAY);
+    return Number.isFinite(configured) && configured > 0 ? Math.floor(configured) : DEFAULT_MAX_PUSH_PER_DAY;
   }
 
   private isConfigured(): boolean {
@@ -281,35 +518,14 @@ export class PushNotificationService {
   }
 
   private normalizePayload(payload: PwaPushPayload): PwaPushPayload {
-    return {
-      title: String(payload.title || 'Urban AI').slice(0, 120),
-      body: payload.body ? String(payload.body).slice(0, 240) : undefined,
-      url: this.normalizeUrl(payload.url),
-      tag: payload.tag ? String(payload.tag).slice(0, 120) : undefined,
-      icon: payload.icon || '/pwa-icon-192.png',
-      badge: payload.badge || '/maskable-icon-512.png',
-      requireInteraction: Boolean(payload.requireInteraction),
-      data: payload.data || {},
-      actions: (payload.actions || [{ action: 'open', title: 'Ver' }]).slice(0, 2),
-    };
-  }
-
-  private normalizeUrl(url?: string): string {
-    if (!url) return '/notificacao';
-    if (url.startsWith('/')) return url;
-    try {
-      const parsed = new URL(url);
-      return `${parsed.pathname}${parsed.search}${parsed.hash}` || '/notificacao';
-    } catch {
-      return '/notificacao';
-    }
+    return normalizePushPayload(payload);
   }
 
   private parsePayload(payloadJson: string): PwaPushPayload {
     try {
       return this.normalizePayload(JSON.parse(payloadJson));
     } catch {
-      return this.normalizePayload({ title: 'Urban AI', body: 'Você tem uma nova notificação.', url: '/notificacao' });
+      return this.normalizePayload({ title: 'My Urban', body: 'Você tem uma nova notificação.', url: '/notificacao' });
     }
   }
 

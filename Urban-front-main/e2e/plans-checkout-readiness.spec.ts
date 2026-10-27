@@ -100,7 +100,7 @@ test.describe('Plans checkout readiness', () => {
     await page.goto('/plans');
     await page.getByRole('button', { name: /Continuar para pagamento/i }).click();
 
-    await expect(page.getByText(/A Urban AI encontrou uma instabilidade/i)).toBeVisible();
+    await expect(page.getByText(/O My Urban encontrou uma instabilidade/i)).toBeVisible();
     expect(checkoutCalled).toBe(true);
   });
 

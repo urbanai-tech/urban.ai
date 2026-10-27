@@ -105,7 +105,7 @@ export function AplicarPrecoDialog({
           Vou aplicar este preço
         </h2>
         <p className="aplicar-lead">
-          A Urban AI não altera o preço no Airbnb por você. Aplique o valor abaixo e depois confirme aqui o que
+          O My Urban não altera o preço no Airbnb por você. Aplique o valor abaixo e depois confirme aqui o que
           você realmente aplicou.
         </p>
 

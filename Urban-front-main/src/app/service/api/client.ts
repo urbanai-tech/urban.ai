@@ -34,14 +34,14 @@ export function getFriendlyApiErrorMessage(error: unknown, fallback?: string): s
   if (status === 409) return fallback ?? "Essa ação entrou em conflito com uma informação já salva.";
   if (status === 422) return fallback ?? "Algum dado precisa ser corrigido antes de continuar.";
   if (status === 429) return "Muitas tentativas em pouco tempo. Aguarde um instante e tente de novo.";
-  if (status >= 500) return "A Urban AI encontrou uma instabilidade. Tente novamente em alguns instantes.";
+  if (status >= 500) return "O My Urban encontrou uma instabilidade. Tente novamente em alguns instantes.";
 
   if ((error as any)?.code === "ECONNABORTED") {
     return "A conexão demorou mais que o esperado. Tente novamente.";
   }
 
   if ((error as any)?.message === "Network Error") {
-    return "Não foi possível conectar com a Urban AI. Verifique sua internet e tente novamente.";
+    return "Não foi possível conectar com o My Urban. Verifique sua internet e tente novamente.";
   }
 
   return fallback ?? "Não conseguimos concluir agora. Tente novamente em alguns instantes.";
@@ -69,7 +69,7 @@ export const api = axios.create({
  * O endpoint `/auth/me` é exceção — 401 nele é esperado (componente decide).
  */
 const PUBLIC_PATH_REGEX =
-  /^\/(lancamento|landing|precos|sobre|contato|termos|privacidade|create|forbidden|post-login|request-reset-password|reset-password|confirm-email|auth|waitlist|robots|sitemap)/;
+  /^\/(login|lancamento|landing|precos|sobre|contato|termos|privacidade|create|forbidden|post-login|request-reset-password|reset-password|confirm-email|auth|waitlist|robots|sitemap)/;
 
 function isPublicPath(pathname: string): boolean {
   if (pathname === "/" || pathname === "") return true;
@@ -131,7 +131,9 @@ api.interceptors.response.use(
       }
 
       const isAuthMeProbe = requestUrl.endsWith("/auth/me");
-      if (!isAuthMeProbe && !isPublicPath(pathname)) {
+      // Falha das próprias rotas de autenticação (senha errada, refresh expirado) é tratada
+      // por quem chamou; redirecionar aqui recarregaria a página e apagaria o erro do login.
+      if (!isAuthMeProbe && !shouldSkipRefresh(requestUrl) && !isPublicPath(pathname)) {
         const redirect = encodeURIComponent(pathname + window.location.search);
         window.location.href = `/?next=${redirect}`;
       }

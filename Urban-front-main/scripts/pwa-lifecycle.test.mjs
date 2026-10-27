@@ -122,11 +122,66 @@ test("retorno à aba e reconexão procuram atualização sem chamadas concorrent
   assert.equal(harness.calls.reload, 0);
 });
 
-test("service worker versiona caches e remove apenas versões antigas da Urban AI", () => {
+test("service worker versiona caches e remove apenas versões antigas do My Urban", () => {
   const source = readFileSync(resolve(process.cwd(), "public/sw.js"), "utf8");
   assert.match(source, /const CACHE_PREFIX = ["']urban-ai-pwa-["']/);
-  assert.match(source, /const CACHE_VERSION = `\$\{CACHE_PREFIX\}v4`/);
-  assert.match(source, /const ACTIVE_CACHES = new Set\(\[STATIC_CACHE, PUSH_CONFIG_CACHE\]\)/);
+  assert.match(source, /const CACHE_VERSION = `\$\{CACHE_PREFIX\}v5`/);
+  assert.match(source, /const ACTIVE_CACHES = new Set\(\[STATIC_CACHE, RUNTIME_CACHE, PUSH_CONFIG_CACHE\]\)/);
   assert.match(source, /key\.startsWith\(CACHE_PREFIX\) && !ACTIVE_CACHES\.has\(key\)/);
   assert.match(source, /cache\.add\(new Request\(["']\/offline\.html["'], \{ cache: ["']reload["'] \}\)\)/);
+});
+
+function createUpdateHarness({ controller }) {
+  const harness = createHarness({ controller });
+  const posted = [];
+  const installing = Object.assign(new EventHub(), { state: "installing", postMessage: (m) => posted.push(m) });
+  const registration = Object.assign(new EventHub(), {
+    update: async () => undefined,
+    waiting: null,
+    installing: null,
+  });
+  harness.serviceWorker.register = async () => registration;
+  return { harness, registration, installing, posted };
+}
+
+test("aviso de atualização: versão já esperando dispara onUpdateReady e apply pede skipWaiting", async () => {
+  const { harness, registration, installing, posted } = createUpdateHarness({ controller: {} });
+  registration.waiting = installing;
+  const ready = [];
+  lifecycle.setupPwaLifecycle({ ...harness, onUpdateReady: (apply) => ready.push(apply) });
+  await flushPromises();
+  assert.equal(ready.length, 1);
+  assert.deepEqual(posted, []);
+  ready[0]();
+  assert.deepEqual(posted, [{ type: "URBAN_SKIP_WAITING" }]);
+});
+
+test("aviso de atualização: updatefound + installed anuncia a versão nova", async () => {
+  const { harness, registration, installing, posted } = createUpdateHarness({ controller: {} });
+  const ready = [];
+  lifecycle.setupPwaLifecycle({ ...harness, onUpdateReady: (apply) => ready.push(apply) });
+  await flushPromises();
+  assert.equal(ready.length, 0);
+
+  registration.installing = installing;
+  registration.emit("updatefound");
+  installing.state = "installed";
+  registration.waiting = installing;
+  installing.emit("statechange");
+  assert.equal(ready.length, 1);
+  ready[0]();
+  assert.deepEqual(posted, [{ type: "URBAN_SKIP_WAITING" }]);
+});
+
+test("aviso de atualização: primeira instalação (sem controller) nunca avisa", async () => {
+  const { harness, registration, installing } = createUpdateHarness({ controller: null });
+  registration.waiting = installing;
+  const ready = [];
+  lifecycle.setupPwaLifecycle({ ...harness, onUpdateReady: (apply) => ready.push(apply) });
+  await flushPromises();
+  registration.installing = installing;
+  registration.emit("updatefound");
+  installing.state = "installed";
+  installing.emit("statechange");
+  assert.equal(ready.length, 0);
 });

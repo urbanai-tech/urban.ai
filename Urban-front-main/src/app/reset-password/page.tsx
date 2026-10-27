@@ -132,7 +132,7 @@ export default function PasswordConfirmation() {
           senha segura.
         </>
       }
-      subtitle="Escolha uma senha forte para concluir a redefinicao da sua conta Urban AI."
+      subtitle="Escolha uma senha forte para concluir a redefinicao da sua conta My Urban."
       asideEyebrow="ACESSO SEGURO"
       asideTitle={
         <>
@@ -172,7 +172,7 @@ export default function PasswordConfirmation() {
                   lineHeight: 1.65,
                 }}
               >
-                Agora você já pode acessar a Urban AI com sua nova senha.
+                Agora você já pode acessar o My Urban com sua nova senha.
               </p>
             </div>
             <AppButton

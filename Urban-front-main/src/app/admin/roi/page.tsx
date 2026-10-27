@@ -230,7 +230,7 @@ export default function AdminRoiPage() {
       <AdminSectionHeader
         eyebrow="ADMIN · ROI"
         title="ROI dos anfitriões"
-        subtitle="Dinheiro atribuído a Urban AI, custo da assinatura e retorno por usuário."
+        subtitle="Dinheiro atribuído ao My Urban, custo da assinatura e retorno por usuário."
         actions={
           <AdminButton
             variant="secondary"

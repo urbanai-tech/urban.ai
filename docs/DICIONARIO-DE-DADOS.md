@@ -52,7 +52,7 @@ Categorias presentes no schema (detalhe coluna a coluna na seção gerada "Colun
 ## Resumo
 
 - Tabelas (entidades TypeORM): **45**
-- Colunas: **746**
+- Colunas: **750**
 - Chaves estrangeiras: **70**
 - Tabela de controle de migrations (`migrations`) não é entidade e não consta aqui.
 
@@ -1478,6 +1478,9 @@ Relações:
 | `subscription_id` | `subscriptionId` | varchar(36) | não |  | IDX, FK |  |
 | `user_id` | `userId` | varchar(36) | não |  | IDX, FK |  |
 | `payloadJson` | `payloadJson` | text | não |  |  |  |
+| `deliverAfter` | `deliverAfter` | datetime | sim |  | IDX | Push adiado pelo horário de silêncio: só é enviado (e só aparece para o service worker) depois deste instante. Nulo = fluxo normal. O envio zera a coluna de forma atômica. |
+| `expiresAt` | `expiresAt` | datetime | sim |  |  | Depois disto o push adiado perde o sentido (ex.: evento já começou) e é descartado. |
+| `tag` | `tag` | varchar(120) | sim |  |  | Tag do payload; push adiados com a mesma tag no mesmo dispositivo são colapsados no envio. |
 | `pushedAt` | `pushedAt` | datetime | sim |  |  |  |
 | `deliveredAt` | `deliveredAt` | datetime | sim |  | IDX |  |
 | `failedAt` | `failedAt` | datetime | sim |  |  |  |
@@ -1493,6 +1496,7 @@ Relações:
 
 Índices e unicidades:
 
+- `IDX_push_deliveries_deferred`: `deliverAfter`
 - `IDX_push_deliveries_subscription_pending`: `subscription_id`, `deliveredAt`
 - `IDX_push_deliveries_user_created`: `user_id`, `createdAt`
 
@@ -1684,6 +1688,7 @@ Relações:
 | `user_id` | `userId` | varchar(36) | não |  | UNIQUE, FK |  |
 | `email_pricing` | `emailPricing` | tinyint | não | true |  |  |
 | `push_pricing` | `pushPricing` | tinyint | não | true |  |  |
+| `push_events` | `pushEvents` | tinyint | não | true |  |  |
 | `weekly_report` | `weeklyReport` | tinyint | não | true |  |  |
 | `onboarding_emails` | `onboardingEmails` | tinyint | não | true |  |  |
 | `marketing` | `marketing` | tinyint | não | false |  |  |

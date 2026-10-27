@@ -41,6 +41,13 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [focusEmail, setFocusEmail] = useState(false);
   const [focusPwd, setFocusPwd] = useState(false);
+  // Erro de login também inline (o toast some sozinho): ligado aos campos por
+  // aria-describedby; aria-invalid só nos campos que o erro realmente envolve.
+  const [loginError, setLoginError] = useState<{
+    message: string;
+    email: boolean;
+    password: boolean;
+  } | null>(null);
 
   useEffect(() => {
     console.log(t("not_member"), ready);
@@ -49,8 +56,11 @@ export default function Login() {
   async function handleLogin(e?: React.FormEvent) {
     e?.preventDefault();
     if (loading) return;
+    setLoginError(null);
     if (!email.trim() || !password) {
-      toast("Preencha e-mail e senha.", { type: "warning" });
+      const message = "Preencha e-mail e senha.";
+      setLoginError({ message, email: !email.trim(), password: !password });
+      toast(message, { type: "warning" });
       return;
     }
 
@@ -76,14 +86,20 @@ export default function Login() {
           router.replace("/confirm-email");
         }
       } catch (err) {
-        toast("Não foi possível concluir a autenticação.", { type: "error" });
+        const message = "Não foi possível concluir a autenticação.";
+        setLoginError({ message, email: false, password: false });
+        toast(message, { type: "error" });
         console.error("Erro ao verificar usuário:", err);
       }
     } catch (err: any) {
       if (err?.response?.status === 401) {
-        toast.error(t("error.invalidCredentials"));
+        const message = t("error.invalidCredentials");
+        setLoginError({ message, email: true, password: true });
+        toast.error(message);
       } else {
-        toast.error(t("error.unknown"));
+        const message = t("error.unknown");
+        setLoginError({ message, email: false, password: false });
+        toast.error(message);
       }
     } finally {
       setLoading(false);
@@ -242,7 +258,7 @@ export default function Login() {
                 margin: 0,
               }}
             >
-              A Urban AI acompanha eventos na sua região e recomenda quando revisar o preço
+              O My Urban acompanha eventos na sua região e recomenda quando revisar o preço
               das suas diárias. Você só precisa entrar.
             </p>
           </div>
@@ -385,7 +401,12 @@ export default function Login() {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (loginError?.email) setLoginError(null);
+                }}
+                aria-invalid={loginError?.email ? true : undefined}
+                aria-describedby={loginError ? "login-error" : undefined}
                 onFocus={() => setFocusEmail(true)}
                 onBlur={() => setFocusEmail(false)}
                 placeholder="você@email.com"
@@ -431,7 +452,12 @@ export default function Login() {
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (loginError?.password) setLoginError(null);
+                  }}
+                  aria-invalid={loginError?.password ? true : undefined}
+                  aria-describedby={loginError ? "login-error" : undefined}
                   onFocus={() => setFocusPwd(true)}
                   onBlur={() => setFocusPwd(false)}
                   placeholder="••••••••"
@@ -474,6 +500,16 @@ export default function Login() {
                 </button>
               </div>
             </label>
+
+            {loginError && (
+              <p
+                id="login-error"
+                role="alert"
+                className="urban-form-error"
+              >
+                {loginError.message}
+              </p>
+            )}
 
             {/* Forgot + create */}
             <div
@@ -592,7 +628,7 @@ export default function Login() {
               textAlign: "center",
             }}
           >
-            Acesso seguro · Urban AI
+            Acesso seguro · My Urban
           </p>
         </div>
       </div>
