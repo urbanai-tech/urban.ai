@@ -19,6 +19,7 @@ import { AplicarPrecoDialog } from "./AplicarPrecoDialog";
 import { DialogSurface } from "@/app/componentes/ui/DialogSurface";
 import { formatBrl } from "./aplicar-preco-domain";
 import { useStaysAutoMode } from "./useStaysAutoMode";
+import styles from "./ItemEvento.module.css";
 
 /**
  * EventCard do /dashboard (calendário) — REFATORADO (Sprint 3 redesign).
@@ -314,7 +315,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 
   return (
     <>
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div className={styles.s1}>
         <RecommendationCard
           eventTitle={ev.nome}
           eventCategory={eventCategory}
@@ -355,13 +356,13 @@ export const EventCard: React.FC<EventCardProps> = ({
         )}
 
         {ev.status === "rejected" && (
-          <div style={{ alignSelf: "flex-start" }}>
+          <div className={styles.s2}>
             <AppBadge kind="error">Rejeitada</AppBadge>
           </div>
         )}
 
         {ev.status === "expired" && (
-          <div style={{ alignSelf: "flex-start" }}>
+          <div className={styles.s2}>
             <AppBadge kind="neutral">Expirada</AppBadge>
           </div>
         )}
@@ -403,40 +404,16 @@ export const EventCard: React.FC<EventCardProps> = ({
             }}
           />
           <aside
-            className="urban-app"
-            style={{
-              position: "relative",
-              width: "100%",
-              maxWidth: 480,
-              background: "var(--app-surface)",
-              borderLeft: "1px solid var(--app-divider)",
-              display: "flex",
-              flexDirection: "column",
-              height: "100%",
-              animation: "urban-app-drawer-in 220ms cubic-bezier(0.16, 1, 0.3, 1)",
-            }}
+            className={`urban-app ${styles.s3}`}
           >
             <header
-              style={{
-                padding: "20px 24px",
-                borderBottom: "1px solid var(--app-divider)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                gap: 16,
-              }}
+              className={styles.s4}
             >
               <div>
                 <p className="urban-app-eyebrow">RESULTADO DA SUGESTÃO</p>
                 <h2
                   id="registrar-resultado-title"
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 600,
-                    color: "var(--app-text)",
-                    margin: "6px 0 0",
-                    letterSpacing: -0.2,
-                  }}
+                  className={styles.s5}
                 >
                   Registrar preço aplicado
                 </h2>
@@ -444,33 +421,17 @@ export const EventCard: React.FC<EventCardProps> = ({
               <button
                 onClick={() => setDrawerOpen(false)}
                 aria-label="Fechar"
-                style={{
-                  background: "transparent",
-                  border: "1px solid var(--app-divider-strong)",
-                  borderRadius: 6,
-                  color: "var(--app-text-muted)",
-                  padding: 6,
-                  cursor: "pointer",
-                  display: "inline-flex",
-                  lineHeight: 0,
-                }}
+                className={styles.s6}
               >
                 <Icons.Close size={16} />
               </button>
             </header>
             <div
-              style={{
-                flex: 1,
-                overflowY: "auto",
-                padding: "24px",
-                display: "flex",
-                flexDirection: "column",
-                gap: 16,
-              }}
+              className={styles.s7}
             >
               <AppInput
                 label="Preço aplicado"
-                leftAddon={<span style={{ fontSize: 13 }}>R$</span>}
+                leftAddon={<span className={styles.s8}>R$</span>}
                 value={appliedPriceInput}
                 onChange={(e) => setAppliedPriceInput(e.target.value)}
                 inputMode="decimal"
@@ -492,7 +453,7 @@ export const EventCard: React.FC<EventCardProps> = ({
               </AppSelect>
               <AppInput
                 label="Receita real (opcional)"
-                leftAddon={<span style={{ fontSize: 13 }}>R$</span>}
+                leftAddon={<span className={styles.s8}>R$</span>}
                 value={realRevenueInput}
                 onChange={(e) => setRealRevenueInput(e.target.value)}
                 inputMode="decimal"
@@ -514,13 +475,7 @@ export const EventCard: React.FC<EventCardProps> = ({
               />
             </div>
             <div
-              style={{
-                padding: "16px 24px",
-                borderTop: "1px solid var(--app-divider)",
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 10,
-              }}
+              className={styles.s9}
             >
               <AppButton
                 variant="ghost"
