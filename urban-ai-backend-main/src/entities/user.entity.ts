@@ -104,8 +104,9 @@ export class User {
    * Corte de sessões: access tokens (JWT) emitidos antes deste instante são
    * recusados pelo JwtStrategy. Atualizado quando a senha é redefinida/trocada,
    * junto da revogação dos refresh tokens. null = nenhum corte.
+   * Só lida/escrita por common/session-cutoff.ts (tolera migration pendente).
    */
-  @Column({ type: 'datetime', name: 'sessions_valid_after', nullable: true, default: null, select: false })
+  @Column({ type: 'datetime', name: 'sessions_valid_after', nullable: true, default: null, select: false, insert: false, update: false })
   sessionsValidAfter: Date | null;
 
   /**

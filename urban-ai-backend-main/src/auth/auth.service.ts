@@ -18,6 +18,7 @@ import { RefreshToken } from 'src/entities/refresh-token.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { PaymentsService } from 'src/payments/payments.service';
 import { StaysService } from 'src/stays/stays.service';
+import { markSessionsCutoff } from '../common/session-cutoff';
 import { TERMS_VERSION } from './terms.constants';
 import { HTTP_TIMEOUT_MS, fetchWithTimeout } from '../common/http-timeouts';
 
@@ -444,12 +445,12 @@ export class AuthService {
       // Toda atualização de senha passa por bcrypt(12), independente de
       // o input ser texto-puro ou pré-hash SHA-256 vindo do frontend legado.
       user.password = await this.bcryptHash(data.password);
-      // Senha trocada: access tokens antigos deixam de valer.
-      user.sessionsValidAfter = new Date();
     }
 
     const saved = await this.userRepository.save(user);
     if (data.password) {
+      // Senha trocada: access tokens antigos deixam de valer (tolera migration pendente).
+      await markSessionsCutoff(this.userRepository, userId);
       await this.revokeAllRefreshTokensForUser(userId);
     }
     return this.sanitizeUser(saved);

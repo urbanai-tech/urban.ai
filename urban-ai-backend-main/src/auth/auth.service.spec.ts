@@ -37,6 +37,7 @@ describe('AuthService', () => {
       create: jest.fn(),
       save: jest.fn(),
       remove: jest.fn(),
+      query: jest.fn().mockResolvedValue(undefined),
     };
     refreshRepo = {
       findOne: jest.fn(),
@@ -333,11 +334,22 @@ describe('AuthService', () => {
 
       await service.update('u1', { password: 'NovaSenha#123' });
 
-      expect(user.sessionsValidAfter).toBeInstanceOf(Date);
+      expect(userRepo.query).toHaveBeenCalledWith(expect.stringContaining('sessions_valid_after'), [expect.any(Date), 'u1']);
       expect(refreshRepo.update).toHaveBeenCalledWith(
         { user: { id: 'u1' }, revokedAt: expect.anything() },
         { revokedAt: expect.any(Date) },
       );
+    });
+
+    it('still revokes refresh tokens when the sessions_valid_after column is missing (migration pending)', async () => {
+      const user: any = { id: 'u1', username: 'u', email: 'u@test.com', password: 'old' };
+      userRepo.findOne!.mockResolvedValue(user);
+      userRepo.save!.mockImplementation(async (value: any) => value);
+      (userRepo as any).query.mockRejectedValue(Object.assign(new Error('Unknown column'), { code: 'ER_BAD_FIELD_ERROR' }));
+
+      await expect(service.update('u1', { password: 'NovaSenha#123' })).resolves.toBeDefined();
+
+      expect(refreshRepo.update).toHaveBeenCalled();
     });
 
     it('keeps sessions when only the username changes', async () => {
@@ -347,7 +359,7 @@ describe('AuthService', () => {
 
       await service.update('u1', { username: 'novo' });
 
-      expect(user.sessionsValidAfter).toBeUndefined();
+      expect(userRepo.query).not.toHaveBeenCalled();
       expect(refreshRepo.update).not.toHaveBeenCalled();
     });
   });

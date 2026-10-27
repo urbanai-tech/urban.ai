@@ -5,7 +5,10 @@
  * comportamento atual de cada módulo (a maioria já falha fechado). Em
  * development/test/local não recusa nada, para não atrapalhar dev e testes.
  *
- * Recusa quando APP_ENV (ou, na falta, NODE_ENV) é production/staging e:
+ * Por padrão NÃO derruba o boot: os erros viram avisos altos. Com CONFIG_GUARD_STRICT=true
+ * (fail-closed) os erros lançam no boot.
+ *
+ * Considera perigoso quando APP_ENV (ou, na falta, NODE_ENV) é production/staging e:
  *  - DB_SYNCHRONIZE=true (o TypeORM altera/apaga colunas sozinho; schema é só via migration);
  *  - JWT_SECRET é placeholder conhecido ou tem menos de 16 caracteres (HS256 força-bruta).
  * Avisa (sem recusar), para não derrubar um deploy legítimo:
@@ -71,13 +74,19 @@ export function evaluateProductionConfig(env: NodeJS.ProcessEnv): ProductionConf
   return { protectedRuntime, errors, warnings };
 }
 
-/** Lança no boot se houver configuração perigosa; devolve avisos para o log. */
+/** Avisa alto sobre configuração perigosa; lança no boot só com CONFIG_GUARD_STRICT=true. */
 export function assertSafeProductionConfig(env: NodeJS.ProcessEnv = process.env): ProductionConfigReport {
   const report = evaluateProductionConfig(env);
   for (const warning of report.warnings) {
     console.warn(`[config] ${warning}`);
   }
   if (report.errors.length > 0) {
+    if (norm(env.CONFIG_GUARD_STRICT) !== 'true') {
+      for (const error of report.errors) {
+        console.warn(`[config] ATENÇÃO (defina CONFIG_GUARD_STRICT=true para falhar o boot): ${error}`);
+      }
+      return report;
+    }
     throw new Error(`Configuração insegura para ${env.APP_ENV || env.NODE_ENV}:\n- ${report.errors.join('\n- ')}`);
   }
   return report;

@@ -11,6 +11,7 @@ import { PasswordResetToken } from 'src/entities/password-reset-token.entity';
 import { CreateNotificationDto } from 'src/notifications/tdo/create-notification.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { MailerService, NonTransactionalMailOptions } from 'src/mailer/mailer.service';
+import { markSessionsCutoff } from 'src/common/session-cutoff';
 import { EmailTemplates } from './templates';
 import * as crypto from 'crypto';
 import { PushNotificationService } from 'src/push/push-notification.service';
@@ -214,9 +215,9 @@ export class EmailService {
             usuario.password = await this.bcryptHash(password);
             // Todas as sessões anteriores deixam de valer: access tokens (corte por data)
             // e refresh tokens (revogados).
-            usuario.sessionsValidAfter = new Date();
 
             const user = await this.userRepository.save(usuario);
+            await markSessionsCutoff(this.userRepository, usuario.id);
             await this.refreshTokenRepository.update(
                 { user: { id: usuario.id }, revokedAt: IsNull() },
                 { revokedAt: new Date() },

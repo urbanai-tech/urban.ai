@@ -6,6 +6,7 @@ import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
+import { readSessionsCutoff } from '../common/session-cutoff';
 
 /** Nome do cookie que guarda o access token httpOnly. */
 export const ACCESS_TOKEN_COOKIE = 'urbanai_access_token';
@@ -38,7 +39,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: any) {
     const user = await this.userRepository.findOne({
       where: { id: payload.sub },
-      select: ['id', 'username', 'role', 'ativo', 'emailVerifiedAt', 'sessionsValidAfter'],
+      select: ['id', 'username', 'role', 'ativo', 'emailVerifiedAt'],
     });
 
     if (!user || !user.ativo) {
@@ -46,8 +47,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     // Troca/redefinição de senha corta os access tokens emitidos antes do evento.
-    if (user.sessionsValidAfter) {
-      const cutoffSeconds = Math.floor(new Date(user.sessionsValidAfter).getTime() / 1000);
+    const cutoff = await readSessionsCutoff(this.userRepository, user.id);
+    if (cutoff) {
+      const cutoffSeconds = Math.floor(cutoff.getTime() / 1000);
       const issuedAt = typeof payload.iat === 'number' ? payload.iat : 0;
       if (issuedAt < cutoffSeconds) {
         throw new UnauthorizedException('Sessão encerrada. Faça login novamente.');

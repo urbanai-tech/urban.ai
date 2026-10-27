@@ -163,6 +163,7 @@ describe('EmailService public confirmation security', () => {
     const userRepository = {
       findOne: jest.fn(),
       save: jest.fn().mockImplementation(async (value) => value),
+      query: jest.fn().mockResolvedValue(undefined),
     };
     const confirmationRepository = {
       findOne: jest.fn(),
@@ -229,13 +230,31 @@ describe('EmailService public confirmation security', () => {
     const result = await service.confirmPassword('token', 'NovaSenha#123');
 
     expect(result.enviado).toBe(true);
-    expect(user.sessionsValidAfter).toBeInstanceOf(Date);
+    expect(userRepository.query).toHaveBeenCalledWith(expect.stringContaining('sessions_valid_after'), [expect.any(Date), 'user-1']);
     expect(user.password).not.toBe('old');
     expect(userRepository.save).toHaveBeenCalledWith(user);
     expect(refreshTokenRepository.update).toHaveBeenCalledWith(
       { user: { id: 'user-1' }, revokedAt: expect.anything() },
       { revokedAt: expect.any(Date) },
     );
+  });
+
+  it('confirmPassword still resets the password and revokes refresh tokens when the cutoff column is missing', async () => {
+    const { service, userRepository, passwordResetRepository, refreshTokenRepository } = makeSecurityService();
+    const user: any = { id: 'user-1', email: 'ana@example.com', password: 'old' };
+    passwordResetRepository.findOne.mockResolvedValue({
+      id: 'reset-1',
+      user,
+      usedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    passwordResetRepository.createQueryBuilder().execute.mockResolvedValue({ affected: 1 });
+    userRepository.query.mockRejectedValue(Object.assign(new Error('Unknown column'), { code: 'ER_BAD_FIELD_ERROR' }));
+
+    const result = await service.confirmPassword('token', 'NovaSenha#123');
+
+    expect(result.enviado).toBe(true);
+    expect(refreshTokenRepository.update).toHaveBeenCalled();
   });
 
   it('confirmPassword rejects a reset token already consumed by a concurrent request', async () => {
