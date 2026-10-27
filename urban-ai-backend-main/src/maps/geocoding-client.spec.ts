@@ -28,6 +28,7 @@ describe('GeocodingClient', () => {
     { status: 'OK', results: [] },
     { status: 'OK', results: [{}] },
     { status: 'OK', results: [{ geometry: { location: { lat: 91, lng: 0 } } }] },
+    { status: 'OK', results: [{ geometry: { location: { lat: 0, lng: 0 } } }] },
     { status: 'OK', results: [{ geometry: { location: { lat: '1', lng: 0 } } }] },
     { status: 'ZERO_RESULTS', results: [{}] },
   ])('rejects malformed provider data %#', async (data) => {
