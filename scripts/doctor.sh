@@ -24,17 +24,24 @@ echo "Urban AI doctor ($REPO_ROOT)"
 echo
 
 # ---------------------------------------------------------------- Node / npm
-# O CI e os containers usam Node 20. Outras versoes costumam funcionar para
-# lint/jest, mas o `npm ci` e o `nest build` do CI sao validados so no 20.
+# A versao esperada esta em .nvmrc (a mesma major do CI e dos containers).
+# Outras versoes costumam funcionar para lint/jest, mas o `npm ci` e o
+# `nest build` do CI sao validados so nessa major.
+WANT_MAJOR=20
+if [ -f "$REPO_ROOT/.nvmrc" ]; then
+  nvmrc_v="$(tr -d '[:space:]vV' < "$REPO_ROOT/.nvmrc")"
+  nvmrc_v="${nvmrc_v%%.*}"
+  case "$nvmrc_v" in ''|*[!0-9]*) ;; *) WANT_MAJOR="$nvmrc_v" ;; esac
+fi
 if has node; then
   NODE_V="$(node -v)"
   NODE_MAJOR="${NODE_V#v}"; NODE_MAJOR="${NODE_MAJOR%%.*}"
-  if [ "$NODE_MAJOR" -eq 20 ]; then
-    ok "node $NODE_V (mesma major do CI e dos containers)"
-  elif [ "$NODE_MAJOR" -gt 20 ]; then
-    warn "node $NODE_V: o CI e os containers usam Node 20; para o validate-local equivalente ao CI, prefira o 20 (nvm/fnm)"
+  if [ "$NODE_MAJOR" -eq "$WANT_MAJOR" ]; then
+    ok "node $NODE_V (mesma major do .nvmrc, do CI e dos containers)"
+  elif [ "$NODE_MAJOR" -gt "$WANT_MAJOR" ]; then
+    warn "node $NODE_V: o .nvmrc (e o CI) fixam o Node $WANT_MAJOR; para um validate-local equivalente ao CI use 'nvm use' / 'fnm use'"
   else
-    fail "node $NODE_V: e preciso Node 20 ou superior (o CI usa 20)"
+    fail "node $NODE_V: e preciso Node $WANT_MAJOR ou superior (.nvmrc; o CI usa $WANT_MAJOR) - 'nvm use' / 'fnm use'"
   fi
 else
   fail "node nao encontrado (necessario para scripts/*.js e para validate-local.sh)"
