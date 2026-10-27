@@ -1,3 +1,5 @@
+import { isLightPath, runOnFirstInteraction } from "./src/app/lib/publicPaths";
+
 type SentrySdk = typeof import("@sentry/nextjs");
 type RouterTransitionArgs = Parameters<
   SentrySdk["captureRouterTransitionStart"]
@@ -48,7 +50,18 @@ if (typeof window !== "undefined" && sentryEnabled) {
       });
     };
 
-    if (typeof window.requestIdleCallback === "function") {
+    if (isLightPath(window.location.pathname)) {
+      // Site público: o SDK (~110 KB gzip) só entra na primeira interação, em
+      // um erro capturado ou após 15 s. Erros anteriores ficam em buffer.
+      const early = () => {
+        window.removeEventListener("error", early);
+        window.removeEventListener("unhandledrejection", early);
+        start();
+      };
+      window.addEventListener("error", early, { once: true });
+      window.addEventListener("unhandledrejection", early, { once: true });
+      runOnFirstInteraction(early);
+    } else if (typeof window.requestIdleCallback === "function") {
       window.requestIdleCallback(start, { timeout: 2000 });
     } else {
       globalThis.setTimeout(start, 0);

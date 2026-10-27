@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Bebas_Neue, Inter, Poppins } from "next/font/google";
+import { Bebas_Neue, Inter, Poppins } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 // UX-6d (FOUT): fontes self-hospedadas pelo Next em vez de @import do Google
@@ -21,9 +22,11 @@ const inter = Inter({
 // da Artegra Sans Extended (licença comercial, sem uso web confirmado). Os
 // tokens --font-brand/--font-display apontam para a Artegra primeiro; ela só
 // existe se NEXT_PUBLIC_BRAND_FONTS_URL carregar um CSS de host licenciado.
-const archivo = Archivo({
-  subsets: ["latin"],
-  axes: ["wdth"],
+// Auto-hospedada (OFL, src/fonts/archivo): o build não depende mais do download
+// do Google Fonts e o navegador não faz request de terceiros para ela.
+const archivo = localFont({
+  src: [{ path: "../fonts/archivo/archivo-latin-wdth-normal.woff2", weight: "100 900", style: "normal" }],
+  declarations: [{ prop: "font-stretch", value: "62% 125%" }],
   display: "swap",
   variable: "--font-archivo",
 });
@@ -34,11 +37,8 @@ const poppins = Poppins({
   display: "swap",
   variable: "--font-poppins",
 });
-import { Providers } from "./providers";
+import { RootShell } from "./RootShell";
 import { StagingBanner } from "./componentes/StagingBanner";
-import { Analytics } from "./componentes/Analytics";
-import { CookieConsent } from "./componentes/CookieConsent";
-import { PwaInstaller } from "./componentes/PwaInstaller";
 import { ThemeScript } from "./componentes/theme";
 import { APPLE_STARTUP_IMAGES } from "./lib/pwaSplashScreens.generated";
 
@@ -49,7 +49,7 @@ const HAS_ENVIRONMENT_BANNER = Boolean(APP_ENV && APP_ENV !== "production");
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   applicationName: "My Urban AI",
-  title: "My Urban AI | Precificação dinâmica para Airbnb e aluguel por temporada",
+  title: "My Urban AI | Precificação dinâmica para Airbnb",
   description: "Precificação dinâmica para anfitriões com IA, calendário urbano e operação assistida.",
   manifest: "/manifest.webmanifest",
   icons: {
@@ -90,7 +90,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "My Urban AI | Precificação inteligente para aluguel por temporada",
+    title: "My Urban AI | Precificação dinâmica para Airbnb",
     description: "Transforme eventos, sazonalidade e sinais do bairro em recomendações de preço explicáveis.",
     images: ["/og-public-launch.png"],
   },
@@ -124,12 +124,7 @@ export default function RootLayout({
       </head>
       <body cz-shortcut-listen="true">
         <StagingBanner />
-        <Providers>
-          {children}
-          <Analytics />
-          <CookieConsent />
-          <PwaInstaller />
-        </Providers>
+        <RootShell>{children}</RootShell>
       </body>
     </html>
   );

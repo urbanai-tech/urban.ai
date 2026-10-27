@@ -4,7 +4,7 @@ import { JsonLd, aboutPageJsonLd, buildSeoMetadata } from "../../lib/seo";
 import { FinalCommercialCta, SectionHeading } from "../../componentes/PublicMarketing";
 
 export const metadata: Metadata = buildSeoMetadata({
-  title: "Sobre o My Urban",
+  title: "Sobre | My Urban AI",
   description: "Conheça a visão, o produto e os princípios do My Urban para decisões de preço em aluguel por temporada.",
   path: "/sobre",
 });
