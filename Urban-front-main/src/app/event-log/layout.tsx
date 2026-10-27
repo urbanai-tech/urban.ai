@@ -1,3 +1,4 @@
+import "../app.css";
 import HostShell from "../componentes/HostShell";
 
 export default function EventLogLayout({ children }: { children: React.ReactNode }) {

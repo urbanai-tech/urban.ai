@@ -1,4 +1,5 @@
 "use client"
+import "../app.css";
 import React from 'react'
 import { BrandLogo } from '../componentes/ui/BrandLogo'
 

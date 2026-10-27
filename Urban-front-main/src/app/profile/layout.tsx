@@ -1,3 +1,4 @@
+import "../app.css";
 import HostShell from "../componentes/HostShell";
 
 export default function ProfileLayout({ children }: { children: React.ReactNode }) {

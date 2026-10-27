@@ -1,3 +1,4 @@
+import "../app.css";
 import HostShell from "../componentes/HostShell";
 
 export default function NearEventsLayout({ children }: { children: React.ReactNode }) {

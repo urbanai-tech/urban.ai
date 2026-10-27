@@ -1,5 +1,6 @@
 "use client";
 
+import "../app.css";
 import React from "react";
 import HostShell from "../componentes/HostShell";
 

@@ -110,3 +110,45 @@ test('prévia de produto inclui preço, contexto e controle', async () => {
     assert.ok(content.includes(expected), `conteúdo ausente: ${expected}`);
   }
 });
+
+test('CSS exclusivo do app fica fora do bundle global e entra em toda rota do app', async () => {
+  const { readdir, stat } = await import('node:fs/promises');
+  const appDir = new URL('../src/app/', import.meta.url);
+  const [globals, rootLayout, publicLayout, appCss] = await Promise.all([
+    readFile(new URL('globals.css', appDir), 'utf8'),
+    readFile(new URL('layout.tsx', appDir), 'utf8'),
+    readFile(new URL('(public)/layout.tsx', appDir), 'utf8'),
+    readFile(new URL('app.css', appDir), 'utf8'),
+  ]);
+  // O site público não pode carregar a camada do app (render-blocking).
+  assert.doesNotMatch(globals, /@import\s+["'][^"']*(host-mobile|app-flows)\.css/);
+  assert.doesNotMatch(rootLayout + publicLayout, /app\.css/);
+  assert.match(appCss, /host-mobile\.css/);
+  assert.match(appCss, /app-flows\.css/);
+
+  // Toda rota do app (pasta de primeiro nível com page.tsx) precisa de um
+  // layout que importe app.css, senão a tela fica sem o CSS do app.
+  async function hasPage(dir) {
+    for (const entry of await readdir(dir, { withFileTypes: true })) {
+      if (entry.isFile() && entry.name === 'page.tsx') return true;
+      if (entry.isDirectory() && (await hasPage(new URL(`${entry.name}/`, dir)))) return true;
+    }
+    return false;
+  }
+  const missing = [];
+  for (const entry of await readdir(appDir, { withFileTypes: true })) {
+    if (!entry.isDirectory() || entry.name === '(public)') continue;
+    const dir = new URL(`${entry.name}/`, appDir);
+    if (!(await hasPage(dir))) continue;
+    const layoutUrl = new URL('layout.tsx', dir);
+    const layout = await stat(layoutUrl).then(() => readFile(layoutUrl, 'utf8'), () => '');
+    if (!/import ["']\.\.\/app\.css["']/.test(layout)) missing.push(entry.name);
+  }
+  assert.deepEqual(missing, []);
+});
+
+test('fontes são auto-hospedadas (o build não baixa do Google Fonts)', async () => {
+  const layout = await readFile(new URL('../src/app/layout.tsx', import.meta.url), 'utf8');
+  assert.doesNotMatch(layout, /next\/font\/google/);
+  assert.match(layout, /next\/font\/local/);
+});

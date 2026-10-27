@@ -1,0 +1,11 @@
+/* CSS exclusivo do app logado (anfitrião, admin, auth e onboarding).
+
+   Não entra no layout raiz: o site público não usa essas regras e CSS é
+   render-blocking. Cada segmento de rota do app importa este arquivo no seu
+   layout, então ele continua carregando antes do CSS de página
+   (properties.css, host-pages.css...) e a cascata fica igual à de antes.
+   Os @import passam pelo Tailwind/Lightning CSS (mesmos prefixos e fallbacks
+   de color-mix que o globals.css). scripts/public-site-contract.test.mjs
+   garante que toda rota do app importa este arquivo. */
+@import "./componentes/ui/host-mobile.css";
+@import "./componentes/ui/app-flows.css";

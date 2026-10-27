@@ -1,3 +1,4 @@
+import "../app.css";
 import { Providers } from "../providers";
 
 // "/" é leve no RootShell (porque no domínio público é a landing reescrita).
