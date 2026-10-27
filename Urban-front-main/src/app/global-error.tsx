@@ -1,6 +1,5 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 import { DomainErrorState } from "./componentes/errors/DomainErrorState";
 
@@ -12,7 +11,9 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    Sentry.captureException(error);
+    // Import dinâmico: o global-error entra no JS de todas as páginas, e o SDK
+    // estático colocava ~15 KB gzip do Sentry no caminho crítico do site público.
+    void import("@sentry/nextjs").then((Sentry) => Sentry.captureException(error));
   }, [error]);
 
   return (
