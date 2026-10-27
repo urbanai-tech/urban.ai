@@ -300,6 +300,56 @@ describe('AuthService', () => {
       );
       expect(refreshRepo.save).not.toHaveBeenCalled();
     });
+
+    it('does not reveal an inactive account to someone who does not know the password', async () => {
+      userRepo.findOne!.mockResolvedValue({
+        id: 'u-inactive',
+        email: 'inactive@test.com',
+        password: await bcrypt.hash('correct', 12),
+        username: 'inactive',
+        ativo: false,
+      });
+
+      await expect(service.login('inactive@test.com', 'wrong')).rejects.toThrow('Credenciais inválidas');
+      await expect(service.login('inactive@test.com', 'correct')).rejects.toThrow('Usuário inativo');
+    });
+
+    it('spends bcrypt time for unknown e-mails (no timing oracle for account existence)', async () => {
+      userRepo.findOne!.mockResolvedValue(null);
+
+      const started = Date.now();
+      await expect(service.login('nobody@test.com', 'pw')).rejects.toThrow('Credenciais inválidas');
+
+      // bcrypt(12) leva centenas de ms; sem o equalizador a resposta seria quase instantânea.
+      expect(Date.now() - started).toBeGreaterThanOrEqual(40);
+    });
+  });
+
+  describe('update (troca de senha)', () => {
+    it('cuts access tokens and revokes refresh tokens when the password changes', async () => {
+      const user: any = { id: 'u1', username: 'u', email: 'u@test.com', password: 'old' };
+      userRepo.findOne!.mockResolvedValue(user);
+      userRepo.save!.mockImplementation(async (value: any) => value);
+
+      await service.update('u1', { password: 'NovaSenha#123' });
+
+      expect(user.sessionsValidAfter).toBeInstanceOf(Date);
+      expect(refreshRepo.update).toHaveBeenCalledWith(
+        { user: { id: 'u1' }, revokedAt: expect.anything() },
+        { revokedAt: expect.any(Date) },
+      );
+    });
+
+    it('keeps sessions when only the username changes', async () => {
+      const user: any = { id: 'u1', username: 'u', email: 'u@test.com', password: 'old' };
+      userRepo.findOne!.mockResolvedValue(user);
+      userRepo.save!.mockImplementation(async (value: any) => value);
+
+      await service.update('u1', { username: 'novo' });
+
+      expect(user.sessionsValidAfter).toBeUndefined();
+      expect(refreshRepo.update).not.toHaveBeenCalled();
+    });
   });
 
   describe('rotateRefreshToken', () => {

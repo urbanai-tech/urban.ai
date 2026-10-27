@@ -25,6 +25,8 @@ const BCRYPT_ROUNDS = 12;
 const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
 const REFRESH_TOKEN_BYTES = 48;
 const REFRESH_TOKEN_TTL_DAYS = 7;
+/** Hash bcrypt(12) descartável: iguala o tempo de login para e-mail inexistente / conta sem senha. */
+const TIMING_EQUALIZER_HASH = '$2b$12$fhfkOV4RMQJ0sjZrv44MOu3uau8nzh4O6j/ny7QzlO8DScmvJ.YI.';
 
 export type TokenPair = {
   accessToken: string;
@@ -442,9 +444,14 @@ export class AuthService {
       // Toda atualização de senha passa por bcrypt(12), independente de
       // o input ser texto-puro ou pré-hash SHA-256 vindo do frontend legado.
       user.password = await this.bcryptHash(data.password);
+      // Senha trocada: access tokens antigos deixam de valer.
+      user.sessionsValidAfter = new Date();
     }
 
     const saved = await this.userRepository.save(user);
+    if (data.password) {
+      await this.revokeAllRefreshTokensForUser(userId);
+    }
     return this.sanitizeUser(saved);
   }
 
@@ -453,11 +460,20 @@ export class AuthService {
       where: { email },
       select: ['id', 'username', 'email', 'password', 'ativo'],
     });
-    if (!user) throw new UnauthorizedException('Credenciais inválidas');
-    if (user.ativo === false) throw new UnauthorizedException('Usuário inativo. Faça login com uma conta ativa.');
+    if (!user) {
+      // Mesmo custo de um login real: não revela, pelo tempo, se o e-mail existe.
+      await bcrypt.compare(password, TIMING_EQUALIZER_HASH);
+      throw new UnauthorizedException('Credenciais inválidas');
+    }
+    if (!this.isBcryptHash(user.password)) {
+      await bcrypt.compare(password, TIMING_EQUALIZER_HASH);
+    }
 
+    // Senha ANTES do status: "Usuário inativo" só aparece para quem prova a senha,
+    // senão qualquer pessoa descobriria quais e-mails têm conta bloqueada.
     const { ok, needsRehash } = await this.verifyPassword(password, user.password);
     if (!ok) throw new UnauthorizedException('Credenciais inválidas');
+    if (user.ativo === false) throw new UnauthorizedException('Usuário inativo. Faça login com uma conta ativa.');
 
     if (needsRehash) {
       // Lazy migration: usuário autenticou com SHA-256 legado. Re-hash para
