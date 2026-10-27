@@ -190,7 +190,7 @@ export function PreviewStrip({
               fontWeight: 600,
               border: "1px solid",
               borderColor: deltaPositive
-                ? "rgba(232, 80, 10, 0.25)"
+                ? "color-mix(in srgb, var(--app-accent, var(--admin-accent)) 25%, transparent)"
                 : "var(--app-divider-strong)",
               color: deltaPositive ? "var(--app-accent)" : "var(--app-text)",
               background: deltaPositive

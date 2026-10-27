@@ -3,9 +3,9 @@
 /**
  * /plans — página oficial de planos da Urban AI (checkout pós-login).
  *
- * Mesma estética do manifesto editorial em `/(public)/precos/page.tsx`:
- * Bebas Neue gigante, fundo #080A0F, accent #E8500A, vertical accent bar.
- * Esta tela é a continuação direta do que o anfitrião viu na landing.
+ * Segue o tema (claro/escuro) com os tokens da marca My Urban: fundo, texto
+ * e acento vêm de `--app-*`; títulos em Archivo (fonte de marca). Continua a
+ * landing pública (`/precos`) sem fundo fixo.
  *
  * Renderiza PricingCalculatorV2 (matriz F6.5: cobrança por imóvel x 4 ciclos
  * com desconto progressivo) — usuários pré-migração mantêm grandfathering.
@@ -16,8 +16,10 @@ import { getPlans, type Plan } from "../service/api";
 import { useCheckoutReturnNotice } from "../componentes/useCheckoutReturnNotice";
 import { PricingSelfServiceCalculator } from "../componentes/PricingCalculatorV2";
 
-// Laranja da marca sobre o fundo escuro fixo desta pagina (nao segue o tema claro/escuro).
-const PLANS_ACCENT = "#E8500A";
+// Destaque da marca: deep no claro, mint no escuro (token do tema).
+const PLANS_ACCENT = "var(--app-accent)";
+// Só para títulos grandes (teal no claro tem 3,8:1; lima no escuro).
+const PLANS_HIGHLIGHT = "var(--app-highlight)";
 
 export default function PlansPage() {
   useCheckoutReturnNotice("canceled");
@@ -34,10 +36,10 @@ export default function PlansPage() {
     return (
       <main
         id="main-content"
-        className="urban-manifesto"
+        className="urban-app"
         style={{
-          background: "#080A0F",
-          color: "#FFFFFF",
+          background: "var(--app-bg)",
+          color: "var(--app-text)",
           minHeight: "100vh",
           display: "flex",
           alignItems: "center",
@@ -49,7 +51,7 @@ export default function PlansPage() {
             fontSize: 11,
             letterSpacing: 3,
             textTransform: "uppercase",
-            color: "rgba(255,255,255,0.45)",
+            color: "var(--app-text-muted)",
             fontWeight: 600,
             margin: 0,
           }}
@@ -65,8 +67,8 @@ export default function PlansPage() {
   return (
     <main
       id="main-content"
-      className="urban-manifesto"
-      style={{ background: "#080A0F", color: "#FFFFFF", minHeight: "100vh" }}
+      className="urban-app"
+      style={{ background: "var(--app-bg)", color: "var(--app-text)", minHeight: "100vh" }}
     >
       {/* ============== HERO ============== */}
       <section
@@ -97,17 +99,17 @@ export default function PlansPage() {
         >
           <p
             className="urban-eyebrow"
-            style={{ marginBottom: 32 }}
+            style={{ marginBottom: 32, color: "var(--app-text-muted)" }}
           >
             CHECKOUT — ESCOLHA SEU PLANO
           </p>
           <h1
-            className="urban-display"
+            className="urban-app-display"
             style={{
-              fontSize: "clamp(64px, 11vw, 160px)",
-              lineHeight: 0.9,
-              letterSpacing: "-2px",
-              fontWeight: 400,
+              fontSize: "clamp(36px, 7.5vw, 96px)",
+              lineHeight: 0.98,
+              letterSpacing: "-1.5px",
+              fontWeight: 700,
               margin: 0,
               textTransform: "uppercase",
             }}
@@ -116,14 +118,14 @@ export default function PlansPage() {
             <br />
             POR IMÓVEL.
             <br />
-            <span style={{ color: PLANS_ACCENT }}>NADA MAIS.</span>
+            <span style={{ color: PLANS_HIGHLIGHT }}>NADA MAIS.</span>
           </h1>
           <p
             style={{
               fontSize: 18,
-              fontWeight: 300,
+              fontWeight: 400,
               lineHeight: 1.75,
-              color: "rgba(255,255,255,0.65)",
+              color: "var(--app-text-muted)",
               maxWidth: 680,
               marginTop: 40,
             }}
@@ -134,7 +136,7 @@ export default function PlansPage() {
         </div>
       </section>
 
-      <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+      <div style={{ height: 1, background: "var(--app-divider)" }} />
 
       {/* ============== PLANOS ============== */}
       <section style={{ padding: "80px 24px" }}>
@@ -147,7 +149,7 @@ export default function PlansPage() {
                 top: 0,
                 width: 2,
                 height: 56,
-                background: PLANS_ACCENT,
+                background: PLANS_HIGHLIGHT,
               }}
             />
             <p
@@ -157,19 +159,19 @@ export default function PlansPage() {
               CALCULE O SEU
             </p>
             <h2
-              className="urban-display"
+              className="urban-app-display"
               style={{
-                fontSize: "clamp(40px, 6vw, 72px)",
-                lineHeight: 0.95,
+                fontSize: "clamp(28px, 4.5vw, 52px)",
+                lineHeight: 1,
                 letterSpacing: "-1px",
-                fontWeight: 400,
+                fontWeight: 700,
                 margin: 0,
                 textTransform: "uppercase",
               }}
             >
               Selecione plano,
               <br />
-              <span style={{ color: PLANS_ACCENT }}>
+              <span style={{ color: PLANS_HIGHLIGHT }}>
                 ciclo e quantidade.
               </span>
             </h2>
@@ -179,7 +181,7 @@ export default function PlansPage() {
             <p
               style={{
                 fontSize: 16,
-                color: "rgba(255,255,255,0.55)",
+                color: "var(--app-text-muted)",
                 maxWidth: 580,
               }}
             >
@@ -197,7 +199,7 @@ export default function PlansPage() {
             >
               <PricingSelfServiceCalculator
                 plans={activePlans}
-                surface="dark"
+                surface="light"
                 initialQuantity={5}
                 title="Monte sua assinatura"
                 subtitle="Escolha quantos imóveis quer contratar. A Urban aplica automaticamente a faixa correta e o desconto do período."
@@ -207,7 +209,7 @@ export default function PlansPage() {
         </div>
       </section>
 
-      <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+      <div style={{ height: 1, background: "var(--app-divider)" }} />
 
       {/* ============== FOOTER ============== */}
       <section style={{ padding: "60px 24px 100px" }}>
@@ -221,9 +223,9 @@ export default function PlansPage() {
           <p
             style={{
               fontSize: 14,
-              fontWeight: 300,
+              fontWeight: 400,
               lineHeight: 1.75,
-              color: "rgba(255,255,255,0.55)",
+              color: "var(--app-text-muted)",
               maxWidth: 640,
               margin: "0 auto",
             }}

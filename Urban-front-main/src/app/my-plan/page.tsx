@@ -144,7 +144,7 @@ export default function SubscriptionsPage() {
                 borderRadius: 8,
                 border: "1px solid var(--app-accent)",
                 background: "var(--app-accent)",
-                color: "#fff",
+                color: "var(--app-accent-contrast)",
                 fontWeight: 800,
                 cursor: "pointer",
               }}
@@ -177,8 +177,8 @@ export default function SubscriptionsPage() {
               alignItems: "center",
               gap: 12,
               padding: "14px 16px",
-              background: "rgba(200, 129, 14, 0.10)",
-              border: "1px solid rgba(200, 129, 14, 0.25)",
+              background: "var(--app-warning-soft)",
+              border: "1px solid var(--app-warning-border)",
               borderRadius: 10,
               color: "var(--app-warning-text)",
               fontSize: 14,
@@ -249,7 +249,7 @@ export default function SubscriptionsPage() {
                 borderRadius: 8,
                 border: "1px solid var(--app-accent)",
                 background: "var(--app-accent)",
-                color: "#fff",
+                color: "var(--app-accent-contrast)",
                 fontWeight: 800,
                 cursor: "pointer",
               }}
@@ -282,7 +282,7 @@ function Spinner() {
         width: 36,
         height: 36,
         borderRadius: "50%",
-        border: "3px solid rgba(232, 80, 10, 0.15)",
+        border: "3px solid color-mix(in srgb, var(--theme-app-accent) 15%, transparent)",
         borderTopColor: "var(--app-accent)",
         animation: "urban-app-spin 0.9s linear infinite",
       }}

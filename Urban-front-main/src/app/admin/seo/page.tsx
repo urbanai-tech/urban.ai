@@ -292,7 +292,7 @@ export default function AdminSeoPage() {
                     style={{
                       width: 34,
                       height: 34,
-                      border: "1px solid rgba(232, 80, 10, 0.35)",
+                      border: "1px solid color-mix(in srgb, var(--app-accent, var(--admin-accent)) 35%, transparent)",
                       borderRadius: 2,
                       color: "var(--admin-accent)",
                       display: "inline-flex",

@@ -51,7 +51,7 @@ export const appShadow = {
 } as const;
 
 export const appFont = {
-  sans: "Inter, system-ui, sans-serif",
+  sans: "var(--font-brand)",
 } as const;
 
 export const appTransition = {

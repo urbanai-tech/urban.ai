@@ -404,7 +404,7 @@ function HealthCheck({
         padding: "12px 14px",
         border: "1px solid var(--admin-divider)",
         borderRadius: 2,
-        background: ok ? "rgba(74, 222, 128, 0.04)" : "rgba(245, 181, 71, 0.04)",
+        background: ok ? "color-mix(in srgb, var(--admin-success) 4%, transparent)" : "color-mix(in srgb, var(--admin-warning) 4%, transparent)",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

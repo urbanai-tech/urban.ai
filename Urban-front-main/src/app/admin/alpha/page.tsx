@@ -29,7 +29,7 @@ const DEFAULT_EMAIL = process.env.NEXT_PUBLIC_ADMIN_ALPHA_DEFAULT_EMAIL?.trim() 
  * /admin/alpha — painel alpha (KPIs reais + auditoria + reprocesso).
  *
  * Migrado pro design system admin (.urban-admin):
- *  - Hero KPI "Receita real" em Bebas Neue (decisão central da operação alpha).
+ *  - Hero KPI "Receita real" em Archivo (display) (decisão central da operação alpha).
  *  - Toolbar com hierarquia: Reprocessar=primary, Export=secondary, Atualizar=ghost.
  *  - Tabela com AdminTable + hover orange.
  *  - Cards "Qualidade" / "Operação" viram AdminCard variant="subtle".

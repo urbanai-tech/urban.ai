@@ -5,6 +5,7 @@ import NextLink from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/app/componentes/theme/ThemeToggle";
 import { SkipLink } from "@/app/componentes/ui/SkipLink";
+import { BrandLogo } from "@/app/componentes/ui/BrandLogo";
 import {
   Activity,
   AlertCircle,
@@ -204,7 +205,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             style={{
               position: "absolute",
               inset: 0,
-              background: "var(--admin-backdrop, rgba(0, 0, 0, 0.7))",
+              background: "var(--admin-backdrop)",
               backdropFilter: "blur(2px)",
             }}
           />
@@ -329,36 +330,11 @@ function SidebarContent({
           padding: "20px 16px",
           borderBottom: "1px solid var(--admin-divider)",
           display: "flex",
-          alignItems: "baseline",
+          alignItems: "center",
           gap: 6,
         }}
       >
-        <span
-          className="urban-admin-display"
-          style={{
-            fontSize: 22,
-            fontWeight: 400,
-            lineHeight: 1,
-            letterSpacing: 0,
-            color: "var(--admin-text)",
-            textTransform: "uppercase",
-          }}
-        >
-          URBAN
-        </span>
-        <span
-          className="urban-admin-display"
-          style={{
-            fontSize: 22,
-            fontWeight: 400,
-            lineHeight: 1,
-            letterSpacing: 0,
-            color: "var(--admin-accent)",
-            textTransform: "uppercase",
-          }}
-        >
-          AI
-        </span>
+        <BrandLogo variant="wordmark" alt="My Urban" className="urban-admin-logo" />
         <span
           style={{
             marginLeft: 8,
@@ -467,7 +443,7 @@ function SidebarContent({
               color: "var(--admin-text)",
               fontSize: 12,
               outline: "none",
-              fontFamily: "Inter, system-ui, sans-serif",
+              fontFamily: "var(--font-brand)",
             }}
           />
         </div>

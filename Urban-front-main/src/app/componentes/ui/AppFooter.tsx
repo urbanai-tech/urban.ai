@@ -34,7 +34,7 @@ export function AppFooter() {
         background: "var(--app-bg)",
         color: "var(--app-text-muted)",
         fontSize: 12,
-        fontFamily: "Inter, system-ui, sans-serif",
+        fontFamily: "var(--font-brand)",
         minHeight: 0,
       }}
     >

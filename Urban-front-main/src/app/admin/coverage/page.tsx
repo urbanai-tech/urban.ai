@@ -225,7 +225,7 @@ export default function CoverageAdminPage() {
           title="Remover"
           style={{
             background: "transparent",
-            border: "1px solid rgba(248, 113, 113, 0.3)",
+            border: "1px solid color-mix(in srgb, var(--admin-danger) 30%, transparent)",
             borderRadius: 2,
             color: "var(--admin-danger)",
             padding: 6,
@@ -481,7 +481,7 @@ function CheckPointForm() {
           style={{
             marginTop: 8,
             padding: "14px 16px",
-            border: `1px solid ${result ? "rgba(74, 222, 128, 0.3)" : "rgba(248, 113, 113, 0.3)"}`,
+            border: `1px solid ${result ? "color-mix(in srgb, var(--admin-success) 30%, transparent)" : "color-mix(in srgb, var(--admin-danger) 30%, transparent)"}`,
             borderRadius: 2,
             display: "inline-flex",
             alignItems: "center",

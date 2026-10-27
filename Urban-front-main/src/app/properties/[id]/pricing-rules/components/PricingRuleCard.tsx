@@ -662,7 +662,7 @@ function ParamControl({
             fontSize: 14,
             fontWeight: 400,
             outline: "none",
-            fontFamily: "Inter, system-ui, sans-serif",
+            fontFamily: "var(--font-brand)",
             opacity: disabled ? 0.5 : 1,
           }}
         />

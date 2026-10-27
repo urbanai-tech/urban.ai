@@ -35,7 +35,7 @@ import {
  * /admin/finance — gestão financeira da plataforma.
  *
  * Migrado para o design system admin (.urban-admin):
- *  - Hero: Margem por imóvel em Bebas Neue gigante (KPI estratégico).
+ *  - Hero: Margem por imóvel em Archivo (display) gigante (KPI estratégico).
  *  - KPIs em grid plano (sem cards arredondados verdes).
  *  - Barras de custo em laranja (não verde — custo ≠ receita).
  *  - NewCostForm vira AdminDrawer lateral.
@@ -729,7 +729,7 @@ function CostActions({ cost, onChange }: { cost: AdminCost; onChange: () => void
         aria-label="Remover custo"
         style={{
           background: "transparent",
-          border: "1px solid rgba(248, 113, 113, 0.3)",
+          border: "1px solid color-mix(in srgb, var(--admin-danger) 30%, transparent)",
           borderRadius: 2,
           color: "var(--admin-danger)",
           padding: 6,
