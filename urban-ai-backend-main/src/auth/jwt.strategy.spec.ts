@@ -80,7 +80,7 @@ describe('JwtStrategy', () => {
 
       expect(repo.findOne).toHaveBeenCalledWith({
         where: { id: 'user-id-1' },
-        select: ['id', 'username', 'role', 'ativo', 'emailVerifiedAt'],
+        select: ['id', 'username', 'role', 'ativo', 'emailVerifiedAt', 'sessionsValidAfter'],
       });
       expect(user).toEqual({
         userId: 'user-id-1',
@@ -108,6 +108,30 @@ describe('JwtStrategy', () => {
       const strategy = new JwtStrategy(config, userRepo({ id: 'u1', ativo: false }) as any);
 
       await expect(strategy.validate({ sub: 'u1' })).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+  });
+
+  describe('sessionsValidAfter (corte de sessões)', () => {
+    const strategy = (user: any) =>
+      new JwtStrategy({ get: jest.fn().mockReturnValue('a-very-strong-secret-abc') } as any, userRepo(user) as any);
+    const cutoff = new Date('2026-10-27T12:00:00Z');
+    const base = { id: 'u1', username: 'alice', role: 'host', ativo: true, sessionsValidAfter: cutoff };
+
+    it('recusa access token emitido antes do corte', async () => {
+      const iat = Math.floor(cutoff.getTime() / 1000) - 60;
+      await expect(strategy(base).validate({ sub: 'u1', iat })).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+
+    it('recusa token sem iat quando há corte', async () => {
+      await expect(strategy(base).validate({ sub: 'u1' })).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+
+    it('aceita token emitido depois do corte e usuários sem corte', async () => {
+      const iat = Math.floor(cutoff.getTime() / 1000) + 5;
+      await expect(strategy(base).validate({ sub: 'u1', iat })).resolves.toMatchObject({ userId: 'u1' });
+      await expect(
+        strategy({ ...base, sessionsValidAfter: null }).validate({ sub: 'u1', iat: 1 }),
+      ).resolves.toMatchObject({ userId: 'u1' });
     });
   });
 });

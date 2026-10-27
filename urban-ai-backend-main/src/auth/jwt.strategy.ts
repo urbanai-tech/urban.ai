@@ -38,11 +38,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: any) {
     const user = await this.userRepository.findOne({
       where: { id: payload.sub },
-      select: ['id', 'username', 'role', 'ativo', 'emailVerifiedAt'],
+      select: ['id', 'username', 'role', 'ativo', 'emailVerifiedAt', 'sessionsValidAfter'],
     });
 
     if (!user || !user.ativo) {
       throw new UnauthorizedException('Usuário inativo ou inexistente.');
+    }
+
+    // Troca/redefinição de senha corta os access tokens emitidos antes do evento.
+    if (user.sessionsValidAfter) {
+      const cutoffSeconds = Math.floor(new Date(user.sessionsValidAfter).getTime() / 1000);
+      const issuedAt = typeof payload.iat === 'number' ? payload.iat : 0;
+      if (issuedAt < cutoffSeconds) {
+        throw new UnauthorizedException('Sessão encerrada. Faça login novamente.');
+      }
     }
 
     return {

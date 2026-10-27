@@ -101,6 +101,14 @@ export class User {
   emailVerifiedAt: Date | null;
 
   /**
+   * Corte de sessões: access tokens (JWT) emitidos antes deste instante são
+   * recusados pelo JwtStrategy. Atualizado quando a senha é redefinida/trocada,
+   * junto da revogação dos refresh tokens. null = nenhum corte.
+   */
+  @Column({ type: 'datetime', name: 'sessions_valid_after', nullable: true, default: null, select: false })
+  sessionsValidAfter: Date | null;
+
+  /**
    * Aceite dos Termos de Uso/Privacidade no cadastro (prova de consentimento).
    * null = não registrado (contas anteriores ao campo e logins Google, que
    * ainda não passam por tela de aceite).

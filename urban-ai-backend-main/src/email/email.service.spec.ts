@@ -17,7 +17,7 @@ describe('EmailService pricing digest', () => {
     const communicationPreferences = {
       getForUser: jest.fn().mockResolvedValue({ emailPricing: false, pushPricing: false }),
     };
-    const service = new EmailService({} as any, {} as any, {} as any, {} as any, {} as any, mailer as any, push as any, pricingDigest as any, communicationPreferences as any, entitlement);
+    const service = new EmailService({} as any, {} as any, {} as any, {} as any, {} as any, mailer as any, push as any, pricingDigest as any, communicationPreferences as any, entitlement, {} as any);
     return { service, mailer, push, pricingDigest, communicationPreferences };
   }
 
@@ -181,15 +181,17 @@ describe('EmailService public confirmation security', () => {
         execute: jest.fn().mockResolvedValue({ affected: 0 }),
       }),
     };
+    const refreshTokenRepository = { update: jest.fn().mockResolvedValue({ affected: 2 }) };
     const mailer = {
       sendHtmlEmail: jest.fn().mockResolvedValue({ enviado: true, status: 202 }),
     };
-    const service = new EmailService({} as any, userRepository as any, confirmationRepository as any, passwordResetRepository as any, {} as any, mailer as any, {} as any, {} as any, {} as any, entitlementDouble() as any);
+    const service = new EmailService({} as any, userRepository as any, confirmationRepository as any, passwordResetRepository as any, {} as any, mailer as any, {} as any, {} as any, {} as any, entitlementDouble() as any, refreshTokenRepository as any);
     return {
       service,
       userRepository,
       confirmationRepository,
       passwordResetRepository,
+      refreshTokenRepository,
       mailer,
     };
   }
@@ -210,6 +212,47 @@ describe('EmailService public confirmation security', () => {
   afterEach(() => {
     process.env = originalEnv;
     jest.restoreAllMocks();
+  });
+
+  it('confirmPassword revokes refresh tokens and cuts older access tokens after a reset', async () => {
+    const { service, userRepository, passwordResetRepository, refreshTokenRepository } = makeSecurityService();
+    const user: any = { id: 'user-1', email: 'ana@example.com', password: 'old' };
+    passwordResetRepository.findOne.mockResolvedValue({
+      id: 'reset-1',
+      user,
+      usedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    const qb = passwordResetRepository.createQueryBuilder();
+    qb.execute.mockResolvedValue({ affected: 1 });
+
+    const result = await service.confirmPassword('token', 'NovaSenha#123');
+
+    expect(result.enviado).toBe(true);
+    expect(user.sessionsValidAfter).toBeInstanceOf(Date);
+    expect(user.password).not.toBe('old');
+    expect(userRepository.save).toHaveBeenCalledWith(user);
+    expect(refreshTokenRepository.update).toHaveBeenCalledWith(
+      { user: { id: 'user-1' }, revokedAt: expect.anything() },
+      { revokedAt: expect.any(Date) },
+    );
+  });
+
+  it('confirmPassword rejects a reset token already consumed by a concurrent request', async () => {
+    const { service, userRepository, passwordResetRepository, refreshTokenRepository } = makeSecurityService();
+    passwordResetRepository.findOne.mockResolvedValue({
+      id: 'reset-1',
+      user: { id: 'user-1' },
+      usedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    passwordResetRepository.createQueryBuilder().execute.mockResolvedValue({ affected: 0 });
+
+    const result = await service.confirmPassword('token', 'NovaSenha#123');
+
+    expect(result.enviado).toBe(false);
+    expect(userRepository.save).not.toHaveBeenCalled();
+    expect(refreshTokenRepository.update).not.toHaveBeenCalled();
   });
 
   it('returns the same public send response and padding path for existing and unknown accounts', async () => {
