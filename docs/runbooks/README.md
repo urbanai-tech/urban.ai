@@ -46,5 +46,6 @@ Antes de qualquer runbook, leia [`../ARQUITETURA-ATUAL.md`](../ARQUITETURA-ATUAL
 ## Ensaios
 
 - [Ensaios de runbooks](./ENSAIOS.md): quais runbooks já foram executados por quem não os escreveu, com status, data e achados.
+- [Ensaio de passagem (H10)](../ENSAIO-DE-PASSAGEM.md): onboarding só pelos docs, subida local, tarefas de ponta a ponta e veredito.
 
 SLOs e referências do operador: [`../ops/slo.md`](../ops/slo.md).
