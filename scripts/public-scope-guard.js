@@ -46,6 +46,7 @@ const ROOT_DIRECTORIES = [
 const SCRIPT_FILES = new Set([
   'scripts/audit-document-links.js',
   'scripts/audit-sensitive-history.js',
+  'scripts/doctor.sh',
   'scripts/enterprise-access-readiness.js',
   'scripts/enterprise-auditability-live-gate.js',
   'scripts/install-git-hooks.js',
@@ -157,6 +158,7 @@ function selfTest() {
     '.github/workflows/ci.yml',
     '.githooks/pre-push',
     'scripts/security-head-scan.js',
+    'scripts/doctor.sh',
     'docs/README.md',
     'docs/runbooks/backup-restore.md',
     'docs/product/data/README.md',

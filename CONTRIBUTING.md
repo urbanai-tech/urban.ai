@@ -18,6 +18,9 @@ arquitetura: [`README.md`](./README.md) e [`docs/ARQUITETURA-ATUAL.md`](./docs/A
 
 Requisitos: Docker com Compose v2. Nada além disso é necessário para rodar.
 
+Antes do primeiro `up`, rode `npm run doctor` (`scripts/doctor.sh`): confere Node,
+Docker, portas livres, `.env` e ferramentas opcionais, sem alterar nada.
+
 ```bash
 docker compose up                       # MySQL 8.4, Redis 7, backend e front
 docker compose --profile scraping up    # inclui o scrapyd (opcional, build pesado)
