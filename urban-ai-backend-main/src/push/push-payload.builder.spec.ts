@@ -6,6 +6,7 @@ import {
   decidePushPolicy,
   DEFAULT_QUIET_HOURS,
   isWithinQuietHours,
+  nearestUpcomingEventRef,
   normalizeInternalUrl,
   normalizePushPayload,
   parseQuietHours,
@@ -234,6 +235,20 @@ describe('push-payload.builder', () => {
       expect(normalizeInternalUrl('/\\evil.example')).toBe('/notificacao');
       expect(normalizeInternalUrl('javascript:alert(1)')).toBe('/notificacao');
       expect(normalizeInternalUrl(undefined)).toBe('/notificacao');
+    });
+  });
+  describe('nearestUpcomingEventRef', () => {
+    const now = new Date('2026-10-27T12:00:00Z');
+    it('escolhe o início mais próximo entre os que ainda não começaram', () => {
+      expect(
+        nearestUpcomingEventRef(['2026-11-05T20:00:00Z', null, '2026-10-30T22:00:00Z', '2026-10-26T20:00:00Z', 'lixo'], now),
+      ).toEqual({ startsAt: '2026-10-30T22:00:00.000Z' });
+      expect(nearestUpcomingEventRef([new Date('2026-10-28T01:00:00Z')], now)).toEqual({ startsAt: '2026-10-28T01:00:00.000Z' });
+    });
+    it('sem início futuro válido devolve undefined (vale só a idade máxima)', () => {
+      expect(nearestUpcomingEventRef([], now)).toBeUndefined();
+      expect(nearestUpcomingEventRef([null, undefined, '2026-10-01T00:00:00Z'], now)).toBeUndefined();
+      expect(buildPricingDigestPayload({ count: 1, event: nearestUpcomingEventRef([], now) }).expiresAt).toBeUndefined();
     });
   });
 });

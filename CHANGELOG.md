@@ -21,6 +21,14 @@ primeiro.
   atômica por entrega, sem duplicar entre réplicas). Antes de enviar: colapsa por `tag` no mesmo dispositivo (fica o
   mais recente), descarta vencidos (o evento já começou, ou seja, passou do `dataInicio`; se só há a data, vale até 23:59:59 BRT do dia; e mais de 24h) e relê a preferência da categoria e o teto do
   dia. O push de teste do usuário ignora o silêncio. Migrations aditivas `1793200000000` e `1793300000000`.
+- **Push de evento relevante perto do imóvel** (categoria "eventos", `push_events`): job `push-event-alert` (de hora em
+  hora, lock Redis) avisa o anfitrião sobre evento canônico que começa em até 14 dias, com relevância >= 60
+  (`PUSH_EVENT_ALERT_MIN_RELEVANCE`), a partir do vínculo imóvel x evento da `analise_preco` (análise nova ou evento
+  recém-enriquecido). No máximo 1 aviso por imóvel e 3 por anfitrião por dia (dia de São Paulo, além do teto global do
+  push), nunca repete host+evento (tabela `event_alert_dispatches`, chave única; migration aditiva `1793400000000`),
+  só plano pago/trial, respeita `push_events` e o silêncio 22h–8h (adiado e expira no `dataInicio`). Motivos de skip
+  vão para o log de comunicação (`kind=event_alert`). O resumo de preços (digest) também passa o início do evento mais
+  próximo, então o push adiado expira quando esse evento começa.
 
 ---
 
