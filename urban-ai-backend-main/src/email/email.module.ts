@@ -1,3 +1,4 @@
+import { RefreshToken } from 'src/entities/refresh-token.entity';
 import { ProcessModule } from 'src/process/process.module';
 import { EmailController } from './email.controller';
 import { EmailService } from './email.service';
@@ -37,6 +38,7 @@ import { CommunicationPreferencesModule } from 'src/communication-preferences/co
             AnaliseEnderecoEvento,
             EmailConfirmation,
             PasswordResetToken,
+            RefreshToken,
             PricingRecommendationDigest,
             Payment,
             AdminJobRun,

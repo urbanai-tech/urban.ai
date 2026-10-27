@@ -7,6 +7,7 @@ import { Request } from 'express';
 describe('JwtStrategy', () => {
   const userRepo = (user: any = { id: 'user-id-1', username: 'alice', role: 'host', ativo: true }) => ({
     findOne: jest.fn().mockResolvedValue(user),
+    query: jest.fn().mockResolvedValue([{ cutoff: null }]),
   });
 
   describe('construction', () => {
@@ -108,6 +109,49 @@ describe('JwtStrategy', () => {
       const strategy = new JwtStrategy(config, userRepo({ id: 'u1', ativo: false }) as any);
 
       await expect(strategy.validate({ sub: 'u1' })).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+  });
+
+  describe('sessions_valid_after (corte de sessões)', () => {
+    const cutoff = new Date('2026-10-27T12:00:00Z');
+    const base = { id: 'u1', username: 'alice', role: 'host', ativo: true };
+    const strategy = (query: jest.Mock) =>
+      new JwtStrategy(
+        { get: jest.fn().mockReturnValue('a-very-strong-secret-abc') } as any,
+        { findOne: jest.fn().mockResolvedValue(base), query } as any,
+      );
+    const iatBefore = Math.floor(cutoff.getTime() / 1000) - 60;
+    const iatAfter = Math.floor(cutoff.getTime() / 1000) + 5;
+
+    it('recusa access token emitido antes do corte', async () => {
+      const query = jest.fn().mockResolvedValue([{ cutoff }]);
+      await expect(strategy(query).validate({ sub: 'u1', iat: iatBefore })).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+
+    it('recusa token sem iat quando há corte', async () => {
+      const query = jest.fn().mockResolvedValue([{ cutoff }]);
+      await expect(strategy(query).validate({ sub: 'u1' })).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+
+    it('aceita token emitido depois do corte e usuários sem corte', async () => {
+      await expect(
+        strategy(jest.fn().mockResolvedValue([{ cutoff }])).validate({ sub: 'u1', iat: iatAfter }),
+      ).resolves.toMatchObject({ userId: 'u1' });
+      await expect(
+        strategy(jest.fn().mockResolvedValue([{ cutoff: null }])).validate({ sub: 'u1', iat: 1 }),
+      ).resolves.toMatchObject({ userId: 'u1' });
+    });
+
+    it('migration pendente (coluna ausente): não quebra a autenticação e ignora o corte', async () => {
+      const query = jest
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("Unknown column 'sessions_valid_after'"), { code: 'ER_BAD_FIELD_ERROR' }));
+      await expect(strategy(query).validate({ sub: 'u1', iat: 1 })).resolves.toMatchObject({ userId: 'u1' });
+    });
+
+    it('outros erros do banco continuam falhando (não viram acesso liberado em silêncio)', async () => {
+      const query = jest.fn().mockRejectedValue(new Error('connection lost'));
+      await expect(strategy(query).validate({ sub: 'u1', iat: 1 })).rejects.toThrow('connection lost');
     });
   });
 });

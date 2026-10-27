@@ -6,10 +6,12 @@ import { IsNull, Not, Repository } from 'typeorm';
 import { User } from 'src/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { EmailConfirmation } from 'src/entities/EmailConfirmation';
+import { RefreshToken } from 'src/entities/refresh-token.entity';
 import { PasswordResetToken } from 'src/entities/password-reset-token.entity';
 import { CreateNotificationDto } from 'src/notifications/tdo/create-notification.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { MailerService, NonTransactionalMailOptions } from 'src/mailer/mailer.service';
+import { markSessionsCutoff } from 'src/common/session-cutoff';
 import { EmailTemplates } from './templates';
 import * as crypto from 'crypto';
 import { PushNotificationService } from 'src/push/push-notification.service';
@@ -51,6 +53,8 @@ export class EmailService {
         private readonly pricingDigestService: PricingRecommendationDigestService,
         private readonly communicationPreferences: CommunicationPreferencesService,
         private readonly entitlement: EntitlementService,
+        @InjectRepository(RefreshToken)
+        private readonly refreshTokenRepository: Repository<RefreshToken>,
     ) {}
 
     async getProfileById(userId: string) {
@@ -193,14 +197,31 @@ export class EmailService {
                 return { enviado: false, motivo: 'Token inválido ou expirado' };
             }
 
+            // Consome o token de forma atômica: dois usos simultâneos não passam juntos.
+            const consumed = await this.passwordResetTokenRepository
+                .createQueryBuilder()
+                .update(PasswordResetToken)
+                .set({ usedAt: new Date() })
+                .where('id = :id', { id: resetToken.id })
+                .andWhere('usedAt IS NULL')
+                .execute();
+            if (consumed.affected !== 1) {
+                return { enviado: false, motivo: 'Token inválido ou expirado' };
+            }
+
             // Reset de senha sempre grava bcrypt(12), seja o input texto-puro
             // ou pré-hash SHA-256 do frontend legado.
             const usuario = resetToken.user;
             usuario.password = await this.bcryptHash(password);
-            resetToken.usedAt = new Date();
+            // Todas as sessões anteriores deixam de valer: access tokens (corte por data)
+            // e refresh tokens (revogados).
 
-            await this.passwordResetTokenRepository.save(resetToken);
             const user = await this.userRepository.save(usuario);
+            await markSessionsCutoff(this.userRepository, usuario.id);
+            await this.refreshTokenRepository.update(
+                { user: { id: usuario.id }, revokedAt: IsNull() },
+                { revokedAt: new Date() },
+            );
 
             return { enviado: true, user: { ...user, password: null } };
         } catch (error) {

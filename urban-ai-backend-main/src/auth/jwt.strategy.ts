@@ -6,6 +6,7 @@ import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
+import { readSessionsCutoff } from '../common/session-cutoff';
 
 /** Nome do cookie que guarda o access token httpOnly. */
 export const ACCESS_TOKEN_COOKIE = 'urbanai_access_token';
@@ -43,6 +44,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     if (!user || !user.ativo) {
       throw new UnauthorizedException('Usuário inativo ou inexistente.');
+    }
+
+    // Troca/redefinição de senha corta os access tokens emitidos antes do evento.
+    const cutoff = await readSessionsCutoff(this.userRepository, user.id);
+    if (cutoff) {
+      const cutoffSeconds = Math.floor(cutoff.getTime() / 1000);
+      const issuedAt = typeof payload.iat === 'number' ? payload.iat : 0;
+      if (issuedAt < cutoffSeconds) {
+        throw new UnauthorizedException('Sessão encerrada. Faça login novamente.');
+      }
     }
 
     return {

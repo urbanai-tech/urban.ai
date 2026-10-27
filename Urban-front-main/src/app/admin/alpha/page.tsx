@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { csvCell } from "@/app/lib/csv-safe";
 import {
   fetchAdminAlphaDashboard,
   fetchAdminAlphaRecommendations,
@@ -583,7 +584,3 @@ function formatBRL(value: number | string | null | undefined) {
   }).format(n);
 }
 
-function csvCell(value: unknown) {
-  const text = value === null || value === undefined ? "" : String(value);
-  return `"${text.replace(/"/g, '""')}"`;
-}

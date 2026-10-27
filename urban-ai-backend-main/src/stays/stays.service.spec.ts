@@ -1,5 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { BadRequestException, ServiceUnavailableException } from "@nestjs/common";
+import { BadRequestException, ConflictException, ServiceUnavailableException } from "@nestjs/common";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { StaysService } from "./stays.service";
@@ -267,6 +267,7 @@ describe("StaysService", () => {
     it("returns guardrail blockers without calling the external connector", async () => {
       withActiveAccount();
       withListing();
+      connector.readCurrentPriceCents.mockResolvedValue(10000);
       priceUpdateRepo.findOne!.mockResolvedValue(null);
 
       const result = await service.previewPrice("u1", {
@@ -419,6 +420,68 @@ describe("StaysService", () => {
       expect(result.status).toBe("success");
     });
 
+    describe("baseline do servidor (previousPriceCents do cliente não é confiável)", () => {
+      it("grava e envia ao conector o preço vigente lido na Stays, ignorando o valor do cliente", async () => {
+        withActiveAccount();
+        withListing();
+        priceUpdateRepo.findOne!.mockResolvedValue(null);
+        connector.readCurrentPriceCents.mockResolvedValue(10000);
+        connector.pushPrice.mockResolvedValue({ ok: true });
+
+        await service.pushPrice("u1", {
+          listingId: "l-1",
+          targetDate: "2026-05-01",
+          newPriceCents: 11500,
+          origin: "user_accepted",
+        });
+
+        expect(connector.pushPrice).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({ previousPriceCents: 10000, priceCents: 11500 }),
+        );
+        expect(priceUpdateRepo.create).toHaveBeenCalledWith(
+          expect.objectContaining({ previousPriceCents: 10000 }),
+        );
+      });
+
+      it("recusa com 409 quando o cliente informa um baseline diferente do vigente (tela desatualizada ou mentira)", async () => {
+        withActiveAccount();
+        withListing();
+        priceUpdateRepo.findOne!.mockResolvedValue(null);
+        connector.readCurrentPriceCents.mockResolvedValue(10000);
+
+        await expect(service.pushPrice("u1", {
+          listingId: "l-1",
+          targetDate: "2026-05-01",
+          // Baseline falso de 20000 faria +15% parecer uma redução de 42% dentro do teto.
+          previousPriceCents: 20000,
+          newPriceCents: 11500,
+          origin: "user_accepted",
+        })).rejects.toBeInstanceOf(ConflictException);
+
+        expect(priceUpdateRepo.save).not.toHaveBeenCalled();
+        expect(connector.pushPrice).not.toHaveBeenCalled();
+      });
+
+      it("falha fechado quando não há preço vigente confiável", async () => {
+        withActiveAccount();
+        withListing();
+        priceUpdateRepo.findOne!.mockResolvedValue(null);
+        connector.readCurrentPriceCents.mockResolvedValue(null);
+
+        await expect(service.pushPrice("u1", {
+          listingId: "l-1",
+          targetDate: "2026-05-01",
+          previousPriceCents: 10000,
+          newPriceCents: 11500,
+          origin: "user_manual",
+        })).rejects.toBeInstanceOf(BadRequestException);
+
+        expect(priceUpdateRepo.save).not.toHaveBeenCalled();
+        expect(connector.pushPrice).not.toHaveBeenCalled();
+      });
+    });
+
     it("persists PriceUpdate lifecycle as pricing decision outcome", async () => {
       withActiveAccount();
       listingRepo.findOne!.mockResolvedValue({ ...withListing(), propriedade: { id: "property-1" } });
@@ -535,7 +598,7 @@ describe("StaysService", () => {
         targetDate: "2026-05-01",
         previousPriceCents: 0,
         newPriceCents: 50000,
-        origin: "user_manual",
+        origin: "ai_auto",
       })).rejects.toThrow("previousPriceCents deve ser um inteiro positivo");
 
       expect(connector.pushPrice).not.toHaveBeenCalled();
@@ -1188,6 +1251,7 @@ describe("StaysService", () => {
         newPriceCents: 11000,
         origin: "user_manual" as const,
       };
+      connector.readCurrentPriceCents.mockResolvedValue(10000);
       accountRepo.findOne!.mockResolvedValue(account());
       listingRepo.findOne!.mockResolvedValue(listing());
       priceUpdateRepo.findOne!.mockResolvedValue(null);
@@ -1195,6 +1259,7 @@ describe("StaysService", () => {
       await expect(service.pushPrice("u1", input)).rejects.toThrow("disk full");
 
       jest.clearAllMocks();
+      connector.readCurrentPriceCents.mockResolvedValue(10000);
       accountRepo.findOne!.mockResolvedValue(account());
       listingRepo.findOne!.mockResolvedValue(listing());
       priceUpdateRepo.findOne!.mockResolvedValue(null);

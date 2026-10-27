@@ -47,7 +47,13 @@ export interface PushPriceInput {
   listingId: string;
   targetDate: string;     // YYYY-MM-DD
   newPriceCents: number;
-  previousPriceCents: number;
+  /**
+   * Origens iniciadas pelo usuário (`user_accepted`/`user_manual`) IGNORAM o valor
+   * como verdade: o servidor lê o preço vigente no calendário Stays. Se informado
+   * e diferente do vigente, o push é recusado (tela desatualizada). Origens internas
+   * (`ai_auto`, `rollback`) trazem o valor do próprio banco e o exigem.
+   */
+  previousPriceCents?: number;
   currency?: string;
   origin: 'ai_auto' | 'user_accepted' | 'user_manual' | 'rollback';
   analisePrecoId?: string;
@@ -551,10 +557,11 @@ export class StaysService {
     // Baseline: preço vigente no calendário Stays (o push exige igualdade com ele).
     let previousPriceCents = 0;
     let previousPriceSource: PreviousPriceSource = 'unavailable';
-    if (input.previousPriceCents !== undefined && input.previousPriceCents !== null) {
-      previousPriceCents = input.previousPriceCents;
-      previousPriceSource = 'input';
-    } else if (validDate && account.status === 'active' && this.targetFor(account.apiAccountSlug ?? null)) {
+    let liveAttempted = false;
+    if (validDate && account.status === 'active' && this.targetFor(account.apiAccountSlug ?? null)) {
+      // O calendário Stays é a fonte de verdade; o valor do cliente só vale como
+      // fallback de exibição quando a leitura não está disponível (o push relê tudo).
+      liveAttempted = true;
       try {
         const live = await this.connector.readCurrentPriceCents(
           this.accountCredentials(account), listing.staysListingId, input.targetDate, currency,
@@ -562,6 +569,12 @@ export class StaysService {
         if (live && live > 0) {
           previousPriceCents = live;
           previousPriceSource = 'stays_calendar';
+          if (input.previousPriceCents != null && input.previousPriceCents !== live) {
+            warnings.push({
+              code: 'previous_price_changed',
+              message: 'O preço atual na Stays é diferente do exibido na tela; usamos o valor da Stays.',
+            });
+          }
         } else {
           warnings.push({
             code: 'calendar_requires_pricing_mapping',
@@ -575,6 +588,10 @@ export class StaysService {
           message: 'Não foi possível ler o preço atual na Stays agora. Tente novamente em instantes.',
         });
       }
+    }
+    if (previousPriceSource === 'unavailable' && input.previousPriceCents != null && !liveAttempted) {
+      previousPriceCents = input.previousPriceCents;
+      previousPriceSource = 'input';
     }
     if (previousPriceCents <= 0) {
       blockers.push({ code: 'missing_previous_price', message: 'Sem preço atual confiável da Stays para esta data.' });
@@ -684,13 +701,10 @@ export class StaysService {
       throw new BadRequestException('Listing Stays está inativo.');
     }
 
-    // Guardrails de variação: bloqueia pushes fora do teto.
-    this.assertValidPushInput(input);
-    this.enforceVariationCaps(input.previousPriceCents, input.newPriceCents, account);
-
     const idempotencyKey = this.buildIdempotencyKey(listing.id, input.targetDate, input.newPriceCents,
       input.requestId ? { id: input.requestId, accountId: account.id, origin: input.origin } : undefined);
 
+    // Replay idempotente antes de qualquer leitura externa: devolve a decisão original.
     const existing = await this.priceUpdateRepo.findOne({
       where: { idempotencyKey },
       relations: ['analise', 'listing'],
@@ -704,13 +718,27 @@ export class StaysService {
       return existing;
     }
 
+    // Baseline vem do servidor para pushes iniciados pelo usuário: o valor do cliente
+    // nunca alimenta guardrails, auditoria nem a chamada ao conector.
+    if (input.origin === 'user_accepted' || input.origin === 'user_manual') {
+      input = {
+        ...input,
+        previousPriceCents: await this.resolveServerPreviousPrice(account, listing, input, currency),
+      };
+    }
+
+    // Guardrails de variação: bloqueia pushes fora do teto.
+    this.assertValidPushInput(input);
+    const previousPriceCents = input.previousPriceCents as number;
+    this.enforceVariationCaps(previousPriceCents, input.newPriceCents, account);
+
     const record = this.priceUpdateRepo.create({
       user: account.user,
       listing,
       analise: input.analisePrecoId ? ({ id: input.analisePrecoId } as any) : null,
       rollbackOf: input.rollbackOfId ? ({ id: input.rollbackOfId } as any) : null,
       targetDate: input.targetDate,
-      previousPriceCents: input.previousPriceCents,
+      previousPriceCents,
       newPriceCents: input.newPriceCents,
       currency,
       origin: input.origin,
@@ -745,7 +773,7 @@ export class StaysService {
         listingId: listing.staysListingId,
         date: input.targetDate,
         priceCents: input.newPriceCents,
-        previousPriceCents: input.previousPriceCents,
+        previousPriceCents,
         currency,
         idempotencyKey,
       });
@@ -1034,11 +1062,42 @@ export class StaysService {
   private assertSameOperation(record: PriceUpdate, listing: StaysListing, input: PushPriceInput, currency: string): void {
     if (!input.requestId) return;
     if (record.listing?.id !== listing.id || record.targetDate !== input.targetDate ||
-        record.newPriceCents !== input.newPriceCents || record.previousPriceCents !== input.previousPriceCents ||
+        record.newPriceCents !== input.newPriceCents ||
+        (input.previousPriceCents != null && record.previousPriceCents !== input.previousPriceCents) ||
         record.currency !== currency || record.origin !== input.origin ||
         (record.analise?.id ?? null) !== (input.analisePrecoId ?? null)) {
       throw new ConflictException('requestId já utilizado para uma operação diferente.');
     }
+  }
+
+  /**
+   * Preço vigente no calendário Stays (fonte de verdade) para pushes iniciados pelo
+   * usuário. Falha fechada: sem leitura confiável não há push.
+   */
+  private async resolveServerPreviousPrice(
+    account: StaysAccount,
+    listing: StaysListing,
+    input: PushPriceInput,
+    currency: string,
+  ): Promise<number> {
+    let live: number | null;
+    try {
+      live = await this.connector.readCurrentPriceCents(
+        this.accountCredentials(account), listing.staysListingId, input.targetDate, currency,
+      );
+    } catch (err) {
+      await this.registerProviderFailure(account, err);
+      throw this.toHttpError(err);
+    }
+    if (!live || live <= 0) {
+      throw new BadRequestException(
+        'Sem preço atual confiável da Stays para esta data (exige mapeamento manual no calendário).',
+      );
+    }
+    if (input.previousPriceCents != null && input.previousPriceCents !== live) {
+      throw new ConflictException('O preço atual na Stays mudou desde a prévia. Atualize e confirme de novo.');
+    }
+    return live;
   }
 
   private assertValidPushInput(input: PushPriceInput): void {
@@ -1048,7 +1107,7 @@ export class StaysService {
     if (!Number.isInteger(input.newPriceCents) || input.newPriceCents <= 0) {
       throw new BadRequestException('newPriceCents deve ser um inteiro positivo.');
     }
-    if (!Number.isInteger(input.previousPriceCents) || input.previousPriceCents <= 0) {
+    if (!Number.isInteger(input.previousPriceCents) || (input.previousPriceCents as number) <= 0) {
       throw new BadRequestException('previousPriceCents deve ser um inteiro positivo.');
     }
   }

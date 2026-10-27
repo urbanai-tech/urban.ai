@@ -52,7 +52,7 @@ Categorias presentes no schema (detalhe coluna a coluna na seção gerada "Colun
 ## Resumo
 
 - Tabelas (entidades TypeORM): **46**
-- Colunas: **756**
+- Colunas: **757**
 - Chaves estrangeiras: **72**
 - Tabela de controle de migrations (`migrations`) não é entidade e não consta aqui.
 
@@ -1692,6 +1692,7 @@ Relações:
 | `onboardingDripLastDay` | `onboardingDripLastDay` | int | sim | NULL |  | Tracking do drip de onboarding (gap H9 do roadmap). `onboardingDripLastDay` = último dia D{N} enviado (1, 3, 7); null se nenhum. `onboardingDripLastSentAt` = timestamp do último envio bem-sucedido. Usado pelo `OnboardingDripService` para garantir idempotência entre execuções diárias do cron e dar observability no admin. |
 | `onboardingDripLastSentAt` | `onboardingDripLastSentAt` | timestamp | sim | NULL |  |  |
 | `email_verified_at` | `emailVerifiedAt` | timestamp | sim | NULL |  | Quando o e-mail foi comprovado (código de confirmação, convite da waitlist ou login Google com e-mail verificado). null = ainda não verificado. Diferente de `ativo` (bloqueio administrativo): contas anteriores a esta coluna foram preenchidas pela migration AddUserEmailVerifiedAt. |
+| `sessions_valid_after` | `sessionsValidAfter` | datetime | sim | NULL |  | Corte de sessões: access tokens (JWT) emitidos antes deste instante são recusados pelo JwtStrategy. Atualizado quando a senha é redefinida/trocada, junto da revogação dos refresh tokens. null = nenhum corte. Só lida/escrita por common/session-cutoff.ts (tolera migration pendente). |
 | `terms_accepted_at` | `termsAcceptedAt` | timestamp | sim | NULL |  | Aceite dos Termos de Uso/Privacidade no cadastro (prova de consentimento). null = não registrado (contas anteriores ao campo e logins Google, que ainda não passam por tela de aceite). |
 | `terms_version` | `termsVersion` | varchar(32) | sim | NULL |  |  |
 
