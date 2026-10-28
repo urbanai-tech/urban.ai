@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class UpdatePass {
   @ApiProperty({
@@ -11,10 +11,14 @@ export class UpdatePass {
   token: string;
 
   @ApiProperty({
-    example: '9b74c9897bac770ffc029102a200c5de9f3a0e326e4d4a0f86d5f2a7bc01db57',
-    description: 'Senha válida',
+    minLength: 8,
+    maxLength: 128,
+    example: 'NovaSenha#2026',
+    description: 'Nova senha em texto puro (trafega só sob TLS; o hash é feito no servidor).',
   })
   @IsString()
   @IsNotEmpty()
+  @MinLength(8)
+  @MaxLength(128)
   pass: string;
 }

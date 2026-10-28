@@ -13,6 +13,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { AuthService } from './auth.service';
+import { PASSWORD_V2_PREFIX, hashPasswordV2, verifyPassword } from './password-hashing';
 import { TERMS_VERSION } from './terms.constants';
 import { User } from '../entities/user.entity';
 import { RefreshToken } from '../entities/refresh-token.entity';
@@ -84,7 +85,7 @@ describe('AuthService', () => {
       expect(payments.createPayment).not.toHaveBeenCalled();
     });
 
-    it('persists a bcrypt hash (not the plaintext) for a new registration', async () => {
+    it('persists a v2 bcrypt hash (not the plaintext) for a new registration', async () => {
       userRepo.findOne!.mockResolvedValue(null);
       userRepo.create!.mockImplementation((data) => data);
       userRepo.save!.mockImplementation(async (data) => ({ id: 'new-id', ...data }));
@@ -92,9 +93,9 @@ describe('AuthService', () => {
       const registered = await service.register({ username: 'u', email: 'new@test.com', password: 'minhasenha' });
 
       const saved = userRepo.save!.mock.calls[0][0];
-      expect(saved.password).toMatch(/^\$2[aby]\$12\$/);
-      expect(saved.password).not.toBe('minhasenha');
-      expect(await bcrypt.compare('minhasenha', saved.password)).toBe(true);
+      expect(saved.password.startsWith(`${PASSWORD_V2_PREFIX}$2b$12$`)).toBe(true);
+      expect(saved.password).not.toContain('minhasenha');
+      await expect(verifyPassword('minhasenha', saved.password)).resolves.toMatchObject({ ok: true });
       expect((registered as any).password).toBeUndefined();
       expect(payments.createPayment).toHaveBeenCalled();
     });
@@ -197,18 +198,50 @@ describe('AuthService', () => {
       );
     });
 
-    it('bcrypts the pre-hashed (hex-64) password from the legacy frontend', async () => {
+    it('stores a new sign-up in the v2 scheme: plain password verifies, its sha256 digest does not', async () => {
       userRepo.findOne!.mockResolvedValue(null);
       userRepo.create!.mockImplementation((data) => data);
       userRepo.save!.mockImplementation(async (data) => ({ id: 'new-id', ...data }));
 
-      const preHashed = sha256('whatever');
-      await service.register({ username: 'u', email: 'new@test.com', password: preHashed });
+      await service.register({ username: 'u', email: 'new@test.com', password: 'Senha123!' });
 
       const saved = userRepo.save!.mock.calls[0][0];
-      expect(saved.password).toMatch(/^\$2[aby]\$12\$/);
-      // O caller pode depois logar mandando a mesma forma pré-hashada:
-      expect(await bcrypt.compare(preHashed, saved.password)).toBe(true);
+      expect(saved.password.startsWith(PASSWORD_V2_PREFIX)).toBe(true);
+      expect(saved.password).not.toContain('Senha123!');
+      await expect(verifyPassword('Senha123!', saved.password)).resolves.toEqual({ ok: true, needsRehash: false });
+      await expect(verifyPassword(sha256('Senha123!'), saved.password)).resolves.toMatchObject({ ok: false });
+    });
+
+    describe('cadastro vindo do bundle antigo (sha256 hex)', () => {
+      const oldEnv = process.env.AUTH_LEGACY_CLIENT_HASH_UNTIL;
+      afterEach(() => {
+        if (oldEnv === undefined) delete process.env.AUTH_LEGACY_CLIENT_HASH_UNTIL;
+        else process.env.AUTH_LEGACY_CLIENT_HASH_UNTIL = oldEnv;
+      });
+
+      it('within the window keeps the legacy format, so the next plain login works and upgrades', async () => {
+        process.env.AUTH_LEGACY_CLIENT_HASH_UNTIL = '2999-01-01T00:00:00Z';
+        userRepo.findOne!.mockResolvedValue(null);
+        userRepo.create!.mockImplementation((data) => data);
+        userRepo.save!.mockImplementation(async (data) => ({ id: 'new-id', ...data }));
+
+        await service.register({ username: 'u', email: 'new@test.com', password: sha256('Senha123!') });
+
+        const saved = userRepo.save!.mock.calls[0][0];
+        expect(saved.password).toMatch(/^\$2[aby]\$12\$/);
+        await expect(verifyPassword('Senha123!', saved.password)).resolves.toEqual({ ok: true, needsRehash: true });
+      });
+
+      it('after the window treats the 64-hex value as an ordinary password (v2)', async () => {
+        process.env.AUTH_LEGACY_CLIENT_HASH_UNTIL = 'off';
+        userRepo.findOne!.mockResolvedValue(null);
+        userRepo.create!.mockImplementation((data) => data);
+        userRepo.save!.mockImplementation(async (data) => ({ id: 'new-id', ...data }));
+
+        await service.register({ username: 'u', email: 'new@test.com', password: sha256('Senha123!') });
+
+        expect(userRepo.save!.mock.calls[0][0].password.startsWith(PASSWORD_V2_PREFIX)).toBe(true);
+      });
     });
   });
 
@@ -234,11 +267,11 @@ describe('AuthService', () => {
       );
     });
 
-    it('returns a token pair on correct password for a bcrypt-stored user (no rehash)', async () => {
+    it('returns a token pair on correct password for a v2-stored user (no rehash)', async () => {
       const user = {
         id: 'u1',
         email: 'u@test.com',
-        password: await bcrypt.hash('correct', 12),
+        password: await hashPasswordV2('correct', 4),
         username: 'u',
       };
       userRepo.findOne!.mockResolvedValue(user);
@@ -249,13 +282,13 @@ describe('AuthService', () => {
       expect(result.refreshToken).toMatch(/^[A-Za-z0-9_-]+$/);
       expect(result.refreshExpiresAt).toBeInstanceOf(Date);
       expect(jwt.sign).toHaveBeenCalledWith({ sub: 'u1', username: 'u' });
-      // A única gravação no user repo deve ser ausente (bcrypt já está no banco).
+      // Nenhuma gravação no user repo (a linha já está no esquema v2).
       expect(userRepo.save).not.toHaveBeenCalled();
       // Refresh token persistido.
       expect(refreshRepo.save).toHaveBeenCalledTimes(1);
     });
 
-    it('accepts a legacy SHA-256 password and transparently rehashes to bcrypt', async () => {
+    it('accepts a legacy raw SHA-256 row with the plain password and upgrades it to v2', async () => {
       const legacyUser = {
         id: 'u-legacy',
         email: 'legacy@test.com',
@@ -270,8 +303,8 @@ describe('AuthService', () => {
       expect(result.accessToken).toBe('signed.jwt.token');
       expect(userRepo.save).toHaveBeenCalledTimes(1);
       const savedUser = userRepo.save!.mock.calls[0][0];
-      expect(savedUser.password).toMatch(/^\$2[aby]\$12\$/);
-      expect(await bcrypt.compare('minhasenha', savedUser.password)).toBe(true);
+      expect(savedUser.password.startsWith(PASSWORD_V2_PREFIX)).toBe(true);
+      await expect(verifyPassword('minhasenha', savedUser.password)).resolves.toEqual({ ok: true, needsRehash: false });
     });
 
     it('rejects login for google_* accounts (no password auth)', async () => {
@@ -511,7 +544,7 @@ describe('AuthService', () => {
     it('rejects a wrong password before touching Stripe, Stays or the user row', async () => {
       userRepo.findOne!.mockResolvedValue(await bcryptUser());
 
-      const error = await service.deleteOwnAccount('owner-1', { password: sha256('errada') }).catch((e) => e);
+      const error = await service.deleteOwnAccount('owner-1', { password: 'errada' }).catch((e) => e);
 
       expect(error).toBeInstanceOf(BadRequestException);
       expect(error.getResponse()).toMatchObject({ code: 'INVALID_PASSWORD' });
@@ -539,7 +572,7 @@ describe('AuthService', () => {
       stays.disconnectAccount.mockImplementation(async () => { order.push('stays'); });
       userRepo.remove!.mockImplementation(async () => { order.push('remove'); });
 
-      await service.deleteOwnAccount('owner-1', { password: sha256('Senha123!') });
+      await service.deleteOwnAccount('owner-1', { password: 'Senha123!' });
 
       expect(payments.cancelSubscription).toHaveBeenCalledWith('owner-1');
       expect(stays.disconnectAccount).toHaveBeenCalledWith('owner-1');
@@ -553,7 +586,7 @@ describe('AuthService', () => {
         userRepo.findOne!.mockResolvedValueOnce(await bcryptUser()).mockResolvedValueOnce({ id: 'owner-1' });
         payments.getSubscription.mockResolvedValue(subscription);
 
-        await service.deleteOwnAccount('owner-1', { password: sha256('Senha123!') });
+        await service.deleteOwnAccount('owner-1', { password: 'Senha123!' });
 
         expect(payments.cancelSubscription).not.toHaveBeenCalled();
         expect(userRepo.remove).toHaveBeenCalledTimes(1);
@@ -565,7 +598,7 @@ describe('AuthService', () => {
       payments.getSubscription.mockResolvedValue({ id: 'sub_123', status: 'active' });
       payments.cancelSubscription.mockRejectedValue(new Error('stripe down'));
 
-      const error = await service.deleteOwnAccount('owner-1', { password: sha256('Senha123!') }).catch((e) => e);
+      const error = await service.deleteOwnAccount('owner-1', { password: 'Senha123!' }).catch((e) => e);
 
       expect(error).toBeInstanceOf(ServiceUnavailableException);
       expect(error.getResponse()).toMatchObject({ code: 'SUBSCRIPTION_CANCEL_FAILED' });
@@ -576,7 +609,7 @@ describe('AuthService', () => {
       userRepo.findOne!.mockResolvedValue(await bcryptUser());
       payments.getSubscription.mockRejectedValue(new Error('network'));
 
-      await expect(service.deleteOwnAccount('owner-1', { password: sha256('Senha123!') }))
+      await expect(service.deleteOwnAccount('owner-1', { password: 'Senha123!' }))
         .rejects.toBeInstanceOf(ServiceUnavailableException);
       expect(userRepo.remove).not.toHaveBeenCalled();
     });
@@ -586,7 +619,7 @@ describe('AuthService', () => {
       stays.disconnectAccount.mockRejectedValue(new Error('stays down'));
       jest.spyOn(console, 'warn').mockImplementation(() => undefined);
 
-      await service.deleteOwnAccount('owner-1', { password: sha256('Senha123!') });
+      await service.deleteOwnAccount('owner-1', { password: 'Senha123!' });
 
       expect(userRepo.remove).toHaveBeenCalledTimes(1);
     });
@@ -838,7 +871,9 @@ describe('AuthService', () => {
       });
       expect(result).toEqual(expect.objectContaining({ username: 'New', email: 'new@test.com' }));
       expect((result as any).password).toBeUndefined();
-      expect(await bcrypt.compare('Senha123!', user.password)).toBe(true);
+      // Senha definida pelo admin também entra no esquema v2.
+      expect(user.password.startsWith(PASSWORD_V2_PREFIX)).toBe(true);
+      await expect(verifyPassword('Senha123!', user.password)).resolves.toEqual({ ok: true, needsRehash: false });
     });
 
     it('reseta a verificação de e-mail quando o admin troca o e-mail, mas não quando ele é igual', async () => {
@@ -941,14 +976,67 @@ describe('AuthService', () => {
         .rejects.toBeInstanceOf(InternalServerErrorException);
     });
 
-    it('accepts plaintext against a bcrypt of the legacy sha256 value', async () => {
-      const stored = await bcrypt.hash(sha256('Senha123!'), 12);
+    it('logs a legacy bcrypt(sha256hex) user in with the plain password and upgrades the row to v2', async () => {
+      const stored = await bcrypt.hash(sha256('Senha123!'), 4);
       userRepo.findOne!.mockResolvedValue({
         id: 'u1', username: 'Ana', email: 'a@test.com', password: stored, ativo: true,
       });
+      userRepo.save!.mockImplementation(async (u) => u);
       await expect(service.login('a@test.com', 'Senha123!')).resolves.toEqual(expect.objectContaining({
         accessToken: 'signed.jwt.token',
       }));
+      expect(userRepo.save).toHaveBeenCalledTimes(1);
+      const upgraded = userRepo.save!.mock.calls[0][0].password;
+      expect(upgraded.startsWith(PASSWORD_V2_PREFIX)).toBe(true);
+      await expect(verifyPassword('Senha123!', upgraded)).resolves.toEqual({ ok: true, needsRehash: false });
+      // Depois da migração, o digest do front antigo não abre mais essa conta.
+      await expect(verifyPassword(sha256('Senha123!'), upgraded)).resolves.toMatchObject({ ok: false });
+    });
+
+    it('rejects a wrong plain password for both legacy and v2 rows', async () => {
+      userRepo.findOne!
+        .mockResolvedValueOnce({ id: 'u1', username: 'Ana', email: 'a@test.com', password: await bcrypt.hash(sha256('Senha123!'), 4), ativo: true })
+        .mockResolvedValueOnce({ id: 'u1', username: 'Ana', email: 'a@test.com', password: await hashPasswordV2('Senha123!', 4), ativo: true });
+      await expect(service.login('a@test.com', 'Errada123!')).rejects.toBeInstanceOf(UnauthorizedException);
+      await expect(service.login('a@test.com', 'Errada123!')).rejects.toBeInstanceOf(UnauthorizedException);
+      expect(userRepo.save).not.toHaveBeenCalled();
+    });
+
+    describe('bundle antigo em cache mandando sha256 hex', () => {
+      const oldEnv = process.env.AUTH_LEGACY_CLIENT_HASH_UNTIL;
+      afterEach(() => {
+        if (oldEnv === undefined) delete process.env.AUTH_LEGACY_CLIENT_HASH_UNTIL;
+        else process.env.AUTH_LEGACY_CLIENT_HASH_UNTIL = oldEnv;
+      });
+      const legacyRow = async () => ({
+        id: 'u1', username: 'Ana', email: 'a@test.com', password: await bcrypt.hash(sha256('Senha123!'), 4), ativo: true,
+      });
+
+      it('within the window logs a legacy row in without upgrading it (no plaintext to rehash)', async () => {
+        process.env.AUTH_LEGACY_CLIENT_HASH_UNTIL = '2999-01-01T00:00:00Z';
+        userRepo.findOne!.mockResolvedValue(await legacyRow());
+        await expect(service.login('a@test.com', sha256('Senha123!'))).resolves.toEqual(
+          expect.objectContaining({ accessToken: 'signed.jwt.token' }),
+        );
+        expect(userRepo.save).not.toHaveBeenCalled();
+      });
+
+      it('never accepts the hex for a v2 row, even within the window', async () => {
+        process.env.AUTH_LEGACY_CLIENT_HASH_UNTIL = '2999-01-01T00:00:00Z';
+        userRepo.findOne!.mockResolvedValue({
+          id: 'u1', username: 'Ana', email: 'a@test.com', password: await hashPasswordV2('Senha123!', 4), ativo: true,
+        });
+        await expect(service.login('a@test.com', sha256('Senha123!'))).rejects.toBeInstanceOf(UnauthorizedException);
+      });
+
+      it('after the window rejects the hex for legacy rows too (pass-the-hash closed)', async () => {
+        process.env.AUTH_LEGACY_CLIENT_HASH_UNTIL = 'off';
+        userRepo.findOne!.mockResolvedValue(await legacyRow());
+        await expect(service.login('a@test.com', sha256('Senha123!'))).rejects.toBeInstanceOf(UnauthorizedException);
+        // A senha em claro continua entrando (e migra).
+        userRepo.save!.mockImplementation(async (u) => u);
+        await expect(service.login('a@test.com', 'Senha123!')).resolves.toBeDefined();
+      });
     });
 
     it('rejects unknown password formats and a wrong submitted legacy hash', async () => {

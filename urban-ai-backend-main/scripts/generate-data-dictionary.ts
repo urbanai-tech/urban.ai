@@ -97,7 +97,7 @@ export interface PiiEntry {
 }
 export const PII_COLUMNS: PiiEntry[] = [
   { table: 'user', column: 'email', kind: 'e-mail', protection: 'Texto puro no banco (índice único). Mascarado (`maskEmail`) no log de auditoria admin e no log de comunicações; incluído na exportação LGPD do titular. Criptografia em repouso: a confirmar (nível do provedor de banco).' },
-  { table: 'user', column: 'password', kind: 'hash de senha', protection: 'bcrypt (12 rounds); hashes legados SHA-256 são migrados para bcrypt no login. `select: false` + `@Exclude()`; nunca na exportação LGPD.' },
+  { table: 'user', column: 'password', kind: 'hash de senha', protection: 'Esquema v2 (`pw:v2:` + bcrypt 12 rounds de HMAC-SHA256 da senha, calculado só no servidor; ADR 0025). Hashes legados (bcrypt do SHA-256 que o front antigo enviava) são migrados para v2 no login com a senha em claro. `select: false` + `@Exclude()`; nunca na exportação LGPD.' },
   { table: 'user', column: 'username', kind: 'nome', protection: 'Texto puro. Incluído na exportação LGPD (campos exatos em `account-data.service.ts`). Proteção adicional: a confirmar.' },
   { table: 'user', column: 'phone', kind: 'telefone', protection: 'Texto puro, opcional. Proteção adicional: a confirmar.' },
   { table: 'user', column: 'company', kind: 'nome de empresa', protection: 'Texto puro, opcional. Proteção adicional: a confirmar.' },

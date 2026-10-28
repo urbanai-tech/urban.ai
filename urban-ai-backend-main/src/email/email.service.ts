@@ -4,7 +4,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AnaliseEnderecoEvento } from 'src/entities/AnaliseEnderecoEvento.entity';
 import { IsNull, Not, Repository } from 'typeorm';
 import { User } from 'src/entities/user.entity';
-import * as bcrypt from 'bcrypt';
 import { EmailConfirmation } from 'src/entities/EmailConfirmation';
 import { RefreshToken } from 'src/entities/refresh-token.entity';
 import { PasswordResetToken } from 'src/entities/password-reset-token.entity';
@@ -12,6 +11,7 @@ import { CreateNotificationDto } from 'src/notifications/tdo/create-notification
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { MailerService, NonTransactionalMailOptions } from 'src/mailer/mailer.service';
 import { markSessionsCutoff } from 'src/common/session-cutoff';
+import { hashPasswordForStorage } from 'src/auth/password-hashing';
 import { EmailTemplates } from './templates';
 import * as crypto from 'crypto';
 import { PushNotificationService } from 'src/push/push-notification.service';
@@ -61,12 +61,6 @@ export class EmailService {
         const user = await this.userRepository.findOne({ where: { id: userId } });
         return user;
     }
-    private async bcryptHash(passwordOrSha256: string): Promise<string> {
-        // O input pode ser texto-puro OU pré-hash SHA-256 vindo do frontend legado.
-        // Em ambos os casos, o valor entrada é tratado como "senha" e vira bcrypt.
-        return bcrypt.hash(passwordOrSha256, 12);
-    }
-
     private hashResetToken(token: string): string {
         return crypto.createHash('sha256').update(token).digest('hex');
     }
@@ -209,10 +203,9 @@ export class EmailService {
                 return { enviado: false, motivo: 'Token inválido ou expirado' };
             }
 
-            // Reset de senha sempre grava bcrypt(12), seja o input texto-puro
-            // ou pré-hash SHA-256 do frontend legado.
+            // Reset grava no esquema v2 (senha em claro sob TLS; hash só no servidor).
             const usuario = resetToken.user;
-            usuario.password = await this.bcryptHash(password);
+            usuario.password = await hashPasswordForStorage(password);
             // Todas as sessões anteriores deixam de valer: access tokens (corte por data)
             // e refresh tokens (revogados).
 
@@ -225,10 +218,8 @@ export class EmailService {
 
             return { enviado: true, user: { ...user, password: null } };
         } catch (error) {
-            console.error('Erro ao alterar senha:', error);
-            if (error.response && error.response.body) {
-                console.error('Detalhes do erro:', error.response.body);
-            }
+            // Só a mensagem: o erro do driver pode carregar os parâmetros do UPDATE (hash da senha).
+            console.error('Erro ao alterar senha:', error instanceof Error ? error.message : 'erro desconhecido');
             return { enviado: false, motivo: 'Erro interno ao alterar senha' };
         }
     }

@@ -3,7 +3,7 @@ const { jest: baseConfig } = require('../../package.json');
 module.exports = {
   ...baseConfig,
   rootDir: '..',
-  testMatch: ['<rootDir>/auth/auth.service.spec.ts'],
+  testMatch: ['<rootDir>/auth/auth.service.spec.ts', '<rootDir>/auth/password-hashing.spec.ts'],
   testRegex: undefined,
   transform: {
     '^.+\\.(t|j)s$': [
@@ -21,6 +21,7 @@ module.exports = {
   coverageProvider: 'v8',
   collectCoverageFrom: [
     '<rootDir>/auth/auth.service.ts',
+    '<rootDir>/auth/password-hashing.ts',
   ],
   coverageDirectory: '<rootDir>/../coverage/auth',
   coverageReporters: ['text', 'json', 'json-summary'],

@@ -1,5 +1,7 @@
 import { entitlementDouble } from 'src/subscription/entitlement.testing';
 import { EmailService } from './email.service';
+import * as crypto from 'crypto';
+import { PASSWORD_V2_PREFIX, verifyPassword } from 'src/auth/password-hashing';
 
 describe('EmailService pricing digest', () => {
   function makeService(entitlement: any = entitlementDouble()) {
@@ -232,6 +234,11 @@ describe('EmailService public confirmation security', () => {
     expect(result.enviado).toBe(true);
     expect(userRepository.query).toHaveBeenCalledWith(expect.stringContaining('sessions_valid_after'), [expect.any(Date), 'user-1']);
     expect(user.password).not.toBe('old');
+    // Reset grava no esquema v2: a senha em claro confere; o sha256hex dela, não.
+    expect(user.password.startsWith(PASSWORD_V2_PREFIX)).toBe(true);
+    await expect(verifyPassword('NovaSenha#123', user.password)).resolves.toEqual({ ok: true, needsRehash: false });
+    const digest = crypto.createHash('sha256').update('NovaSenha#123').digest('hex');
+    await expect(verifyPassword(digest, user.password)).resolves.toMatchObject({ ok: false });
     expect(userRepository.save).toHaveBeenCalledWith(user);
     expect(refreshTokenRepository.update).toHaveBeenCalledWith(
       { user: { id: 'user-1' }, revokedAt: expect.anything() },

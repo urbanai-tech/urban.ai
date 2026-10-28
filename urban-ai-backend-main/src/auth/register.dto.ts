@@ -27,7 +27,7 @@ export class RegisterDto {
   @ApiProperty({
     minLength: 8,
     maxLength: 128,
-    description: 'Senha em texto puro ou pre-hash SHA-256 legado.',
+    description: 'Senha em texto puro (trafega so sob TLS; o hash e feito no servidor).',
   })
   @IsString()
   @MinLength(8)

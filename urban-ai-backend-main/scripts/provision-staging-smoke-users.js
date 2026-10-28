@@ -1,9 +1,6 @@
 const crypto = require('crypto');
 const mysql = require('mysql2/promise');
-const bcrypt = require('bcrypt');
-
-const BCRYPT_ROUNDS = 12;
-const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
+const { hashPasswordV2, isCurrentPasswordHash } = require('./password-hash-v2');
 
 function enabled(value) {
   return String(value || '').trim().toLowerCase() === 'true';
@@ -64,12 +61,6 @@ function maskedEmail(email) {
   return `${name.slice(0, 2)}***@${domain}`;
 }
 
-function normalizePassword(password) {
-  const value = String(password || '');
-  if (SHA256_HEX_REGEX.test(value)) return value;
-  return crypto.createHash('sha256').update(value).digest('hex');
-}
-
 function loadUsers() {
   const users = [
     {
@@ -121,7 +112,8 @@ function loadUsers() {
   return enabledUsers.map((user) => ({
     ...user,
     email: String(user.email).trim().toLowerCase(),
-    password: normalizePassword(user.password),
+    // Senha em claro: o front envia assim e o hash é feito só no servidor (v2).
+    password: String(user.password),
   }));
 }
 
@@ -138,32 +130,13 @@ async function tableExists(connection, tableName) {
   return Number(rows?.[0]?.count || 0) > 0;
 }
 
-async function passwordMatches(submitted, storedHash) {
-  if (!storedHash) return false;
-  if (/^\$2[aby]\$/.test(storedHash)) {
-    if (await bcrypt.compare(submitted, storedHash)) return true;
-    if (!SHA256_HEX_REGEX.test(submitted)) {
-      const asSha = crypto.createHash('sha256').update(submitted).digest('hex');
-      return bcrypt.compare(asSha, storedHash);
-    }
-    return false;
-  }
-  if (SHA256_HEX_REGEX.test(storedHash)) {
-    const submittedSha = SHA256_HEX_REGEX.test(submitted)
-      ? submitted
-      : crypto.createHash('sha256').update(submitted).digest('hex');
-    return submittedSha === storedHash;
-  }
-  return false;
-}
-
 async function upsertUser(connection, user) {
   const [rows] = await connection.execute(
     'SELECT id, email, password, role, ativo FROM `user` WHERE email = ? LIMIT 1',
     [user.email],
   );
 
-  const passwordHash = await bcrypt.hash(user.password, BCRYPT_ROUNDS);
+  const passwordHash = await hashPasswordV2(user.password);
   const existing = rows?.[0];
   if (!existing) {
     await connection.execute(
@@ -178,7 +151,8 @@ async function upsertUser(connection, user) {
     return 'created';
   }
 
-  const shouldUpdatePassword = !(await passwordMatches(user.password, existing.password));
+  // Linha legada (ou senha trocada no env): regrava em v2.
+  const shouldUpdatePassword = !(await isCurrentPasswordHash(user.password, existing.password));
   if (shouldUpdatePassword) {
     await connection.execute(
       'UPDATE `user` SET username = ?, password = ?, role = ?, ativo = true WHERE id = ?',
