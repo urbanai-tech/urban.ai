@@ -26,7 +26,7 @@ import {
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
+import { PerMinuteThrottle } from '../common/throttle-config';
 import { Request, Response } from 'express';
 import { User } from 'src/entities/user.entity';
 import { AuthService, SafeUser, TokenPair } from './auth.service';
@@ -162,7 +162,7 @@ export class AuthController {
       },
     },
   })
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @PerMinuteThrottle(5)
   @Post('register')
   async register(
     @Body() data: RegisterDto,
@@ -197,7 +197,7 @@ export class AuthController {
     return { mode: 'registered', user };
   }
 
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @PerMinuteThrottle(5)
   @Post('waitlist/accept')
   async acceptWaitlistInvite(
     @Body()
@@ -261,7 +261,7 @@ export class AuthController {
       },
     },
   })
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @PerMinuteThrottle(5)
   @Post('login')
   async login(
     @Body() data: LoginDto,
@@ -277,7 +277,7 @@ export class AuthController {
     return { authenticated: true };
   }
 
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @PerMinuteThrottle(5)
   @Post('google')
   async googleLogin(
     @Body()
@@ -304,7 +304,7 @@ export class AuthController {
     }
   }
 
-  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @PerMinuteThrottle(20)
   @Post('refresh')
   @HttpCode(200)
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
@@ -320,7 +320,7 @@ export class AuthController {
     return { refreshed: true };
   }
 
-  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @PerMinuteThrottle(30)
   @Post('logout')
   @HttpCode(204)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
@@ -348,7 +348,7 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Não autorizado' })
   @ApiResponse({ status: 503, description: 'Não foi possível cancelar a assinatura; conta preservada' })
   @ApiBearerAuth()
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @PerMinuteThrottle(5)
   @UseGuards(JwtAuthGuard)
   @Delete('me')
   async deleteOwnAccount(
@@ -398,7 +398,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Pacote JSON com os dados do próprio titular' })
   @ApiResponse({ status: 401, description: 'Não autorizado' })
   @ApiBearerAuth()
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @PerMinuteThrottle(5)
   @UseGuards(JwtAuthGuard)
   @Get('me/export')
   async exportMyData(@Req() req, @Res({ passthrough: true }) res: Response) {

@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
+import { PerMinuteThrottle } from '../common/throttle-config';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -67,7 +67,7 @@ export class AdminController {
 
   // ================== Onboarding drip (gap H9) ==================
 
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @PerMinuteThrottle(5)
   @ApiOperation({
     summary:
       'Dispara manualmente o drip de onboarding (D+1/D+3/D+7) — útil pra smoke e debug.',
@@ -139,7 +139,7 @@ export class AdminController {
   }
 
   @ApiOperation({ summary: 'Rodar scan admin para encontrar candidatos de deduplicação de eventos' })
-  @Throttle({ default: { ttl: 60_000, limit: 3 } })
+  @PerMinuteThrottle(3)
   @Post('events/dedup/scan')
   async scanEventDedupCandidates(@Body() body: ScanEventDedupCandidatesDto = new ScanEventDedupCandidatesDto()) {
     return this.eventDedup.scanEventDedupCandidates({
@@ -156,14 +156,14 @@ export class AdminController {
   }
 
   @ApiOperation({ summary: 'Aprovar merge de um candidato de deduplicação' })
-  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @PerMinuteThrottle(20)
   @Post('events/dedup/candidates/:id/approve')
   async approveEventDedupCandidate(@Param('id') id: string, @Req() req: any) {
     return this.eventDedup.approveEventDedupCandidate(id, req?.user?.userId ?? null);
   }
 
   @ApiOperation({ summary: 'Rejeitar candidato de deduplicação' })
-  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @PerMinuteThrottle(20)
   @Post('events/dedup/candidates/:id/reject')
   async rejectEventDedupCandidate(
     @Param('id') id: string,
@@ -286,14 +286,14 @@ export class AdminController {
   }
 
   @ApiOperation({ summary: 'Reprocessar inteligência de um evento (contrato P0)' })
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @PerMinuteThrottle(5)
   @Post('events/:eventId/recompute-intelligence')
   async recomputeEventIntelligence(@Param('eventId') eventId: string, @Req() req: any) {
     return this.eventIntelligence.recomputeEventIntelligence(eventId, req?.user?.userId ?? null);
   }
 
   @ApiOperation({ summary: 'Reprocessar inteligência de eventos em lote (contrato P0)' })
-  @Throttle({ default: { ttl: 60_000, limit: 3 } })
+  @PerMinuteThrottle(3)
   @Post('events/intelligence/recompute')
   async recomputeEventsIntelligence(
     @Req() req: any,
@@ -310,7 +310,7 @@ export class AdminController {
   }
 
   @ApiOperation({ summary: 'Backfill controlado da inteligência de eventos futuros sem snapshot' })
-  @Throttle({ default: { ttl: 60_000, limit: 2 } })
+  @PerMinuteThrottle(2)
   @Post('events/intelligence/backfill')
   async backfillFutureEventIntelligence(
     @Req() req: any,
@@ -391,7 +391,7 @@ export class AdminController {
   }
 
   @AdminAuditedInHandler()
-  @Throttle({ default: { ttl: 60_000, limit: 60 } })
+  @PerMinuteThrottle(60)
   @ApiOperation({ summary: 'Criar/atualizar ocupação manual de um imóvel por dia' })
   @Post('occupancy/manual')
   async upsertManualOccupancy(
@@ -436,7 +436,7 @@ export class AdminController {
 
   @AdminAuditedInHandler()
   @ApiOperation({ summary: 'Atualizar role do usuário' })
-  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @PerMinuteThrottle(20)
   @Patch('users/:id/role')
   async setUserRole(
     @Param('id') userId: string,
@@ -456,7 +456,7 @@ export class AdminController {
 
   @AdminAuditedInHandler()
   @ApiOperation({ summary: 'Ativar/desativar usuário' })
-  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @PerMinuteThrottle(20)
   @Patch('users/:id/active')
   async setUserActive(
     @Param('id') userId: string,

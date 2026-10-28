@@ -9,6 +9,8 @@ const ROOT = path.resolve(__dirname, '..');
 const SRC = path.join(ROOT, 'src');
 const HTTP_DECORATORS = new Set(['Get', 'Post', 'Put', 'Patch', 'Delete']);
 const MUTATING_DECORATORS = new Set(['Post', 'Put', 'Patch', 'Delete']);
+// PerMinuteThrottle (common/throttle-config) é o wrapper de @Throttle que mira o throttler registrado.
+const THROTTLE_DECORATORS = new Set(['Throttle', 'PerMinuteThrottle']);
 
 // Public mutation is exceptional. Every entry is exact, reviewed and must remain
 // present in the source tree. Wildcards and prefix matching are intentionally absent.
@@ -95,7 +97,7 @@ function collectRoutes(sourceFiles) {
       const classRoles = classDecorators
         .filter((item) => item.name === 'Roles')
         .flatMap((item) => item.args.map(literalValue));
-      const classThrottle = classDecorators.some((item) => item.name === 'Throttle');
+      const classThrottle = classDecorators.some((item) => THROTTLE_DECORATORS.has(item.name));
 
       for (const member of statement.members) {
         if (!ts.isMethodDeclaration(member)) continue;
@@ -126,7 +128,7 @@ function collectRoutes(sourceFiles) {
             roles.length > 0,
           guards,
           roles,
-          throttled: classThrottle || methodDecorators.some((item) => item.name === 'Throttle'),
+          throttled: classThrottle || methodDecorators.some((item) => THROTTLE_DECORATORS.has(item.name)),
           ownerBound:
             /\b(?:req|request)\??\.user\??\.(?:userId|id)\b/.test(methodBody) ||
             /\brequester\??\.(?:userId|id)\b/.test(methodBody),

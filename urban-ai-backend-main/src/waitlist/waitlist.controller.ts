@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
+import { PerMinuteThrottle } from '../common/throttle-config';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -47,7 +47,7 @@ export class WaitlistController {
 
   // ================== PÚBLICO ==================
 
-  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @PerMinuteThrottle(10)
   @ApiOperation({ summary: 'Inscrever um e-mail na lista de espera (pré-lançamento)' })
   @Post('waitlist')
   async signup(
@@ -73,7 +73,7 @@ export class WaitlistController {
     });
   }
 
-  @Throttle({ default: { ttl: 60_000, limit: 60 } })
+  @PerMinuteThrottle(60)
   @ApiOperation({
     summary: 'Consultar posição na fila via referralCode (sem auth, sem expor email)',
   })
@@ -89,7 +89,7 @@ export class WaitlistController {
     return result;
   }
 
-  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @PerMinuteThrottle(30)
   @ApiOperation({ summary: 'Validar token de convite (página de aceite)' })
   @Get('waitlist/invite')
   async validateInvite(@Query('token') token: string) {
@@ -140,7 +140,7 @@ export class WaitlistController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @PerMinuteThrottle(30)
   @ApiOperation({ summary: 'Convidar uma entry (gera magic link + envia email)' })
   @Post('admin/waitlist/:id/invite')
   async invite(@Param('id') id: string, @Req() req: Request) {
@@ -160,7 +160,7 @@ export class WaitlistController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @Throttle({ default: { ttl: 60_000, limit: 60 } })
+  @PerMinuteThrottle(60)
   @ApiOperation({ summary: 'Atualizar notas internas de uma entry' })
   @Patch('admin/waitlist/:id/notes')
   async updateNotes(
@@ -183,7 +183,7 @@ export class WaitlistController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @PerMinuteThrottle(20)
   @ApiOperation({ summary: 'Remover uma entry da lista' })
   @Delete('admin/waitlist/:id')
   async remove(@Param('id') id: string, @Req() req: Request) {

@@ -1,6 +1,7 @@
 import { RequestMethod } from '@nestjs/common';
 import { GUARDS_METADATA, METHOD_METADATA, PATH_METADATA } from '@nestjs/common/constants';
 import { THROTTLER_LIMIT, THROTTLER_TTL } from '@nestjs/throttler/dist/throttler.constants';
+import { PER_MINUTE_THROTTLER } from '../common/throttle-config';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ROLES_KEY } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
@@ -49,8 +50,8 @@ function routeMetadata(method: ControllerMethod) {
 
 function throttleMetadata(method: ControllerMethod) {
   return {
-    ttl: Reflect.getMetadata(`${THROTTLER_TTL}default`, handler(method)),
-    limit: Reflect.getMetadata(`${THROTTLER_LIMIT}default`, handler(method)),
+    ttl: Reflect.getMetadata(`${THROTTLER_TTL}${PER_MINUTE_THROTTLER}`, handler(method)),
+    limit: Reflect.getMetadata(`${THROTTLER_LIMIT}${PER_MINUTE_THROTTLER}`, handler(method)),
   };
 }
 

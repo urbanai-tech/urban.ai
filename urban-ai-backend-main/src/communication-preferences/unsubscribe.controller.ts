@@ -1,5 +1,5 @@
 import { BadRequestException, Controller, Get, Header, HttpCode, Post, Query } from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
+import { PerMinuteThrottle } from '../common/throttle-config';
 import { CommunicationPreferencesService } from './communication-preferences.service';
 import { verifyUnsubscribeToken } from './unsubscribe-token';
 
@@ -18,7 +18,7 @@ const PAGE = (body: string) =>
 export class UnsubscribeController {
   constructor(private readonly preferences: CommunicationPreferencesService) {}
 
-  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @PerMinuteThrottle(20)
   @Get()
   @Header('Content-Type', 'text/html; charset=utf-8')
   @Header('Cache-Control', 'no-store')
@@ -32,7 +32,7 @@ export class UnsubscribeController {
     );
   }
 
-  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @PerMinuteThrottle(20)
   @Post()
   @HttpCode(200)
   @Header('Cache-Control', 'no-store')

@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
+import { PerMinuteThrottle } from '../common/throttle-config';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
@@ -30,7 +30,7 @@ export class AdminPropertiesController {
   }
 
   @ApiOperation({ summary: 'Reprocessar recomendações de pricing de um imóvel' })
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @PerMinuteThrottle(5)
   @Post(':id/reprocess')
   async reprocess(@Param('id') id: string) {
     return this.properties.reprocess(id);
