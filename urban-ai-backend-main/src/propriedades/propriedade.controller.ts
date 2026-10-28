@@ -10,6 +10,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { clampPagination } from '../common/pagination';
+import { PerMinuteThrottle } from '../common/throttle-config';
 import { APITypes } from './types/nearProperties';
 import { PricingCalculateService } from './pricing-calculate.service';
 import { HostBaselineService } from './host-baseline.service';
@@ -36,6 +37,7 @@ export class PropriedadeController {
 
   @Get('hostId')
   @UseGuards(JwtAuthGuard)
+  @PerMinuteThrottle(20) // scraping do Airbnb por chamada; resultado também fica em cache curto
   @ApiOperation({ summary: 'Obter o hostId de uma propriedade' })
   @ApiQuery({ name: 'propertyId', type: String, required: true, description: 'ID da propriedade' })
   @ApiResponse({ status: 200, description: 'Host ID retornado com sucesso' })
@@ -54,6 +56,7 @@ export class PropriedadeController {
 
   @Get('quick-info')
   @UseGuards(JwtAuthGuard)
+  @PerMinuteThrottle(20) // scraping headless por chamada; resultado também fica em cache curto
   @ApiOperation({ summary: 'Busca info rápida de um imóvel individual (título, imagem, hostId)' })
   @ApiQuery({ name: 'propertyId', type: String, required: true, description: 'ID do listing no Airbnb' })
   @ApiResponse({ status: 200, description: 'Info do imóvel retornada com sucesso' })
@@ -72,6 +75,7 @@ export class PropriedadeController {
 
   @Get('checkout-prices')
   @UseGuards(JwtAuthGuard)
+  @PerMinuteThrottle(30) // pode cair na RapidAPI paga; resultado também fica em cache curto
   @ApiOperation({ summary: 'Get Airbnb checkout price in BRL via airbnb-search' })
   @ApiQuery({ name: 'propertyId', type: String, required: true })
   @ApiQuery({ name: 'checkinDate', type: String, required: true, example: '2025-09-17' })
@@ -107,6 +111,7 @@ export class PropriedadeController {
 
   @Get('airbnb/room-info')
   @UseGuards(JwtAuthGuard)
+  @PerMinuteThrottle(30) // cotação de preço (scraping/RapidAPI); a cotação fica em cache curto
   @ApiOperation({ summary: 'Busca dados de checkout prefetch para uma propriedade' })
   @ApiQuery({
     name: 'propertyId',

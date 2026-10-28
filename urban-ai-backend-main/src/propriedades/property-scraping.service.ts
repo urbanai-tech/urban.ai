@@ -4,6 +4,7 @@ import axios from 'axios';
 import { HTTP_TIMEOUT_MS } from '../common/http-timeouts';
 import { isEmptyScrapeSnapshot } from './scrape-snapshot.util';
 import { escapeHtml } from '../common/escape-html';
+import { TtlCache } from '../common/ttl-cache';
 import { Address } from 'src/entities/addresses.entity';
 import { Repository } from 'typeorm';
 import { List } from 'src/entities/list.entity';
@@ -35,6 +36,10 @@ export class PropertyResponseDto {
 export class PropertyScrapingService {
     /** Evita repetir o aviso de chave ausente a cada chamada. */
     private static missingWebApiKeyLogged = false;
+
+    /** Onboarding repete a mesma consulta (retry, F5): cache curto evita scraping duplicado. */
+    private readonly quickInfoCache = new TtlCache<Awaited<ReturnType<PropertyScrapingService['fetchPropertyQuickInfo']>>>(10 * 60_000);
+    private readonly hostIdCache = new TtlCache<{ hostId: any | null; hostName: any | null }>(10 * 60_000);
 
     constructor(
         @InjectRepository(Address)
@@ -720,7 +725,11 @@ export class PropertyScrapingService {
      * Usado pelo wizard de onboarding (modo individual).
      * REFATORADO: usa scraping direto ao invés de airbnb45.
      */
-    async getPropertyQuickInfo(propertyId: string): Promise<{
+    getPropertyQuickInfo(propertyId: string) {
+        return this.quickInfoCache.getOrLoad(String(propertyId), () => this.fetchPropertyQuickInfo(propertyId));
+    }
+
+    private async fetchPropertyQuickInfo(propertyId: string): Promise<{
         propertyId: string;
         title: string;
         pictureUrl: string;
@@ -778,7 +787,11 @@ export class PropertyScrapingService {
      * Resolve o hostId a partir de um anúncio. Primeiro tenta o HTML público
      * e usa o navegador headless como fallback para páginas renderizadas.
      */
-    async getPropertyHostId(propertyId: string): Promise<{ hostId: any | null, hostName: any | null }> {
+    getPropertyHostId(propertyId: string): Promise<{ hostId: any | null, hostName: any | null }> {
+        return this.hostIdCache.getOrLoad(String(propertyId), () => this.fetchPropertyHostId(propertyId));
+    }
+
+    private async fetchPropertyHostId(propertyId: string): Promise<{ hostId: any | null, hostName: any | null }> {
         console.log('[getPropertyHostId] Buscando host do Airbnb.');
         const htmlHostId = await this.scrapeAirbnbListingHostId(propertyId);
         if (htmlHostId) return { hostId: htmlHostId, hostName: null };

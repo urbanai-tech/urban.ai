@@ -2,6 +2,7 @@ import { forwardRef, HttpException, HttpStatus, Inject, Injectable, Logger, NotF
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { HTTP_TIMEOUT_MS, fetchWithTimeout } from '../common/http-timeouts';
+import { TtlCache } from '../common/ttl-cache';
 import { Repository } from 'typeorm';
 import { AirbnbQuoteResponse } from './types/types';
 import { List } from 'src/entities/list.entity';
@@ -16,6 +17,9 @@ export class PropertyListingQuoteService {
     // Mantém o contexto de log original para não quebrar buscas/alertas existentes.
     private readonly logger = new Logger('PropriedadeService');
 
+    /** Cotações de preço (dado público do anúncio, não do usuário): cache curto contém o custo upstream. */
+    private readonly quoteCache = new TtlCache<any>(5 * 60_000);
+
     constructor(
         @InjectRepository(List)
         private readonly propriedades: Repository<List>,
@@ -23,7 +27,18 @@ export class PropertyListingQuoteService {
         private readonly airbnbService: AirbnbService,
     ) {}
 
-    async getAccommodationAndFee(
+    getAccommodationAndFee(
+        propertyId: string,
+        checkinDate: string,
+        checkoutDate: string
+    ): Promise<any> {
+        return this.quoteCache.getOrLoad(
+            `fee|${propertyId}|${checkinDate}|${checkoutDate}`,
+            () => this.fetchAccommodationAndFee(propertyId, checkinDate, checkoutDate),
+        );
+    }
+
+    private async fetchAccommodationAndFee(
         propertyId: string,
         checkinDate: string,
         checkoutDate: string
@@ -172,7 +187,10 @@ export class PropertyListingQuoteService {
         await this.findOwnedPropertyByExternalId(roomId, userId);
         const useAirbnbSearchService = process.env.AIRBNB_PRICE_PROVIDER !== 'legacy-room-price';
         if (useAirbnbSearchService) {
-            const quote = await this.airbnbService.getPriceForDateWindow(roomId, checkIn, checkOut);
+            const quote = await this.quoteCache.getOrLoad(
+                `room|${roomId}|${checkIn}|${checkOut}`,
+                () => this.airbnbService.getPriceForDateWindow(roomId, checkIn, checkOut),
+            );
             const total = Number(quote.price.data.accommodationCost);
             const numberOfNights = Number(quote.nights ?? 1);
             const dailyPrice = Number((total / Math.max(1, numberOfNights)).toFixed(2));

@@ -4,11 +4,13 @@ import { DataSource } from 'typeorm';
 import request from 'supertest';
 
 jest.mock('../connect/connect.service', () => ({ ConnectService: class {} }));
-jest.mock('../propriedades/propriedade.service', () => ({ PropriedadeService: class {} }));
+jest.mock('p-limit', () => ({ __esModule: true, default: () => (fn: () => unknown) => fn() }));
+jest.mock('@turf/turf', () => ({}));
 jest.mock('../payments/payments.service', () => ({ PaymentsService: class {} }));
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
+import { PER_MINUTE_THROTTLER } from './throttle-config';
 import { ConnectController } from '../connect/connect.controller';
 import { ConnectService } from '../connect/connect.service';
 import { EventoController } from '../evento/evento.controller';
@@ -16,7 +18,12 @@ import { EventoService } from '../evento/evento.service';
 import { PaymentsService } from '../payments/payments.service';
 import { PricingCalculateService } from '../propriedades/pricing-calculate.service';
 import { PropriedadeController } from '../propriedades/propriedade.controller';
-import { PropriedadeService } from '../propriedades/propriedade.service';
+import { HostBaselineService } from '../propriedades/host-baseline.service';
+import { PropertyEventAnalysesService } from '../propriedades/property-event-analyses.service';
+import { PropertyListingQuoteService } from '../propriedades/property-listing-quote.service';
+import { PropertyPortfolioService } from '../propriedades/property-portfolio.service';
+import { PropertyPricingAnalysisService } from '../propriedades/property-pricing-analysis.service';
+import { PropertyScrapingService } from '../propriedades/property-scraping.service';
 
 /** Autentica via header `x-test-user` (simula o JWT já validado). */
 class FakeJwtGuard implements CanActivate {
@@ -36,12 +43,23 @@ const ROLES: Record<string, { id: string; role: string; ativo: boolean }> = {
 
 describe('endpoints que disparam RapidAPI/scraping pago', () => {
   let app: INestApplication;
-  const propriedadeService = {
+  const scraping = {
     getPropertyDetails: jest.fn().mockResolvedValue({ bedrooms: 1 }),
     getPropertyCoordinates: jest.fn().mockResolvedValue({ latitude: 1, longitude: 2 }),
+  };
+  const pricingAnalysis = {
     buscarAlertPorId: jest.fn().mockResolvedValue({ comps: [] }),
     criarAlertaAirbnb: jest.fn().mockResolvedValue({ ok: true }),
+  };
+  const portfolio = {
     findByUserId: jest.fn().mockResolvedValue({ data: [], total: 0, page: 1, limit: 10 }),
+  };
+  // Alvo de cada método pago, para provar que o provedor não foi chamado.
+  const targets: Record<string, any> = {
+    getPropertyDetails: scraping,
+    getPropertyCoordinates: scraping,
+    buscarAlertPorId: pricingAnalysis,
+    criarAlertaAirbnb: pricingAnalysis,
   };
   const connectService = {
     getUserManagedListings: jest.fn().mockResolvedValue([]),
@@ -57,7 +75,12 @@ describe('endpoints que disparam RapidAPI/scraping pago', () => {
       controllers: [PropriedadeController, ConnectController, EventoController],
       providers: [
         RolesGuard,
-        { provide: PropriedadeService, useValue: propriedadeService },
+        { provide: PropertyPortfolioService, useValue: portfolio },
+        { provide: PropertyScrapingService, useValue: scraping },
+        { provide: PropertyListingQuoteService, useValue: {} },
+        { provide: PropertyPricingAnalysisService, useValue: pricingAnalysis },
+        { provide: PropertyEventAnalysesService, useValue: {} },
+        { provide: HostBaselineService, useValue: {} },
         { provide: PricingCalculateService, useValue: {} },
         { provide: ConnectService, useValue: connectService },
         { provide: PaymentsService, useValue: {} },
@@ -95,7 +118,7 @@ describe('endpoints que disparam RapidAPI/scraping pago', () => {
   ];
 
   it.each(adminOnly)('%s %s nega usuário comum (403) sem chamar o provedor pago', async (method, url, fn) => {
-    const target = fn === 'getListingTotalPriceBRLForNext3Days' ? connectService : propriedadeService;
+    const target = fn === 'getListingTotalPriceBRLForNext3Days' ? connectService : targets[fn];
     const req = method === 'GET' ? request(app.getHttpServer()).get(url) : request(app.getHttpServer()).post(url).send({
       latitude: 1, longitude: 1, bedrooms: 1, bathrooms: 1, accommodates: 1,
     });
@@ -118,7 +141,7 @@ describe('endpoints que disparam RapidAPI/scraping pago', () => {
       .get('/connect/listing-price/123')
       .set('x-test-user', 'admin-1')
       .expect(200);
-    expect(propriedadeService.getPropertyDetails).toHaveBeenCalledWith('123');
+    expect(scraping.getPropertyDetails).toHaveBeenCalledWith('123');
   });
 
   it('user-managed-listings exige ID numérico do host do Airbnb', async () => {
@@ -148,13 +171,27 @@ describe('endpoints que disparam RapidAPI/scraping pago', () => {
       .get('/propriedades/user/?page=1&limit=99999')
       .set('x-test-user', 'user-a')
       .expect(200);
-    expect(propriedadeService.findByUserId).toHaveBeenCalledWith('user-a', 1, 200);
+    expect(portfolio.findByUserId).toHaveBeenCalledWith('user-a', 1, 200);
 
     await request(app.getHttpServer())
       .get('/event?propriedadeId=p1&limit=99999')
       .set('x-test-user', 'user-a')
       .expect(200);
     expect(eventoService.findEventosPorEnderecoPaginado).toHaveBeenCalledWith('p1', 'user-a', 1, 200);
+  });
+});
+
+describe('throttle por IP nos endpoints de onboarding que custam dinheiro a montante', () => {
+  it.each([
+    [PropriedadeController, 'getPropertyHostId', 20],
+    [PropriedadeController, 'getPropertyQuickInfo', 20],
+    [PropriedadeController, 'getCheckoutPrices', 30],
+    [PropriedadeController, 'getPrefetch', 30],
+    [ConnectController, 'userListings', 10],
+  ] as const)('%p.%s limita a %i req/min no throttler "medium" (o que existe em produção)', (controller, name, limit) => {
+    const handler = (controller.prototype as any)[name];
+    expect(Reflect.getMetadata('THROTTLER:LIMIT' + PER_MINUTE_THROTTLER, handler)).toBe(limit);
+    expect(Reflect.getMetadata('THROTTLER:TTL' + PER_MINUTE_THROTTLER, handler)).toBe(60_000);
   });
 });
 
