@@ -6,6 +6,7 @@ import { Event } from 'src/entities/events.entity';
 import { List } from 'src/entities/list.entity';
 import { MoreThanOrEqual, Repository } from 'typeorm';
 import { startOfDay } from 'date-fns';
+import { clampPagination } from '../common/pagination';
 
 @Injectable()
 export class EventoService {
@@ -119,7 +120,8 @@ export class EventoService {
       .getMany();
   }
 
-  async findAllEventosPaginado(page: number, limit: number) {
+  async findAllEventosPaginado(pageInput: number, limitInput: number) {
+    const { page, limit } = clampPagination(pageInput, limitInput);
     const [results, total] = await this.eventRepository.findAndCount({
       skip: (page - 1) * limit,
       take: limit,

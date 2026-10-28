@@ -15,6 +15,7 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_THROTTLERS } from './common/throttle-config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
 
@@ -133,10 +134,7 @@ const dbTimezoneOption = process.env.DB_TIMEZONE?.trim() ? { timezone: process.e
     //   - rotas sensíveis (/auth/login, /auth/register, /auth/google) usam throttler
     //     mais agressivo via @Throttle() nos controllers (5/min). O ThrottlerGuard
     //     abaixo é aplicado globalmente via APP_GUARD.
-    ThrottlerModule.forRoot([
-      { name: 'short', ttl: 1000, limit: 10 },
-      { name: 'medium', ttl: 60_000, limit: 100 },
-    ]),
+    ThrottlerModule.forRoot(APP_THROTTLERS),
 
     // 2) Database connection — MySQL
     // Suporta DATABASE_URL (Railway) ou variáveis individuais.

@@ -500,4 +500,30 @@ describe('Property services (ex-PropriedadeService) public responses', () => {
       price: { raw: 400, dailyPrice: 200, numberOfNights: 2 },
     });
   });
+
+  it('caps findByUserId page size at 200', async () => {
+    const addressRepository = { findAndCount: jest.fn().mockResolvedValue([[], 0]) };
+    const { portfolio } = makeServices({ addressRepository });
+
+    const result = await portfolio.findByUserId('user-1', 3, 100000);
+
+    expect(addressRepository.findAndCount).toHaveBeenCalledWith(
+      expect.objectContaining({ skip: 400, take: 200 }),
+    );
+    expect(result.limit).toBe(200);
+  });
+
+  it('URL-encodes the id sent to the RapidAPI income-prediction endpoint', async () => {
+    const axios = jest.requireActual('axios');
+    const getSpy = jest.spyOn(axios, 'get').mockResolvedValue({ data: { comps: [] } });
+    const { pricingAnalysis } = makeServices();
+
+    await pricingAnalysis.buscarAlertPorId('abc&host=evil#x y');
+
+    const calledUrl = getSpy.mock.calls[0][0] as string;
+    expect(calledUrl).toBe(
+      'https://airbnb-income-prediction.p.rapidapi.com/?id=abc%26host%3Devil%23x%20y',
+    );
+    getSpy.mockRestore();
+  });
 });

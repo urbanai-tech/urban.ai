@@ -11,6 +11,17 @@ import { randomBytes, randomInt } from 'crypto';
 import { Waitlist } from '../entities/waitlist.entity';
 import { MailerService } from '../mailer/mailer.service';
 import { clampInt } from '../common/clamp-int';
+import { escapeHtml } from '../common/escape-html';
+
+export type WaitlistSignupOutcome =
+  | {
+      alreadyRegistered: false;
+      position: number;
+      referralCode: string;
+      aheadOfYou: number;
+      totalSignups: number;
+    }
+  | { alreadyRegistered: true; totalSignups: number };
 
 /**
  * WaitlistService — F8.2 pré-lançamento.
@@ -51,12 +62,7 @@ export class WaitlistService {
     referredBy?: string;
     signupIp?: string;
     userAgent?: string;
-  }): Promise<{
-    position: number;
-    referralCode: string;
-    aheadOfYou: number;
-    totalSignups: number;
-  }> {
+  }): Promise<WaitlistSignupOutcome> {
     const email = input.email?.trim().toLowerCase();
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       throw new BadRequestException('E-mail inválido');
@@ -64,16 +70,12 @@ export class WaitlistService {
 
     const exists = await this.repo.findOne({ where: { email } });
     if (exists) {
-      // Idempotente: retorna a posição atual em vez de erro. Mais amigável
-      // pro usuário que se cadastrou duas vezes (não vai imaginar que estava
-      // na lista).
+      // Resposta genérica: NÃO devolve position/referralCode de um e-mail já
+      // cadastrado (quem digitou o e-mail de terceiro não pode ler a posição
+      // nem o código de indicação dele). Quem já se cadastrou encontra esses
+      // dados no e-mail de confirmação original.
       const totalSignups = await this.repo.count();
-      return {
-        position: exists.position,
-        referralCode: exists.referralCode,
-        aheadOfYou: Math.max(0, exists.position - 1),
-        totalSignups,
-      };
+      return { alreadyRegistered: true, totalSignups };
     }
 
     let referredEntry: Waitlist | null = null;
@@ -107,6 +109,7 @@ export class WaitlistService {
     await this.trySendSignupConfirmation(saved, totalSignups);
 
     return {
+      alreadyRegistered: false,
       position: saved.position,
       referralCode: saved.referralCode,
       aheadOfYou: Math.max(0, saved.position - 1),
@@ -356,21 +359,21 @@ export class WaitlistService {
     inviteUrl: string;
     position: number;
   }): string {
-    const firstName = input.name?.split(' ')[0] ?? 'pessoal';
+    const firstName = escapeHtml(input.name?.split(' ')[0] || 'pessoal');
     return `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;color:#374151;max-width:600px;margin:0 auto;padding:32px;">
       <div style="text-align:center;margin-bottom:32px;">
         <img src="https://app.myurbanai.com/urban-logo.png" alt="My Urban" style="height:40px;" />
       </div>
       <h2 style="color:#0ea5e9;text-align:center;">Seu acesso antecipado chegou, ${firstName}! 🎉</h2>
-      <p>Você estava na posição <strong>#${input.position}</strong> da nossa lista de espera, e agora liberamos seu acesso à plataforma.</p>
+      <p>Você estava na posição <strong>#${Number(input.position)}</strong> da nossa lista de espera, e agora liberamos seu acesso à plataforma.</p>
       <p>Crie sua senha e conheça o sistema clicando no link abaixo. <strong>O link expira em 7 dias.</strong></p>
       <div style="text-align:center;margin:32px 0;">
-        <a href="${input.inviteUrl}" style="display:inline-block;padding:14px 32px;background:#0ea5e9;color:#fff;border-radius:8px;font-weight:bold;text-decoration:none;">
+        <a href="${escapeHtml(input.inviteUrl)}" style="display:inline-block;padding:14px 32px;background:#0ea5e9;color:#fff;border-radius:8px;font-weight:bold;text-decoration:none;">
           Ativar minha conta
         </a>
       </div>
       <p style="font-size:14px;">Se o botão não funcionar, copie e cole no navegador:</p>
-      <p style="font-size:13px;word-break:break-all;color:#2563eb;">${input.inviteUrl}</p>
+      <p style="font-size:13px;word-break:break-all;color:#2563eb;">${escapeHtml(input.inviteUrl)}</p>
       <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0;" />
       <p style="font-size:12px;color:#9ca3af;text-align:center;">
         © ${new Date().getFullYear()} My Urban AI · E-mail automático.
@@ -409,7 +412,7 @@ export class WaitlistService {
     referralCode: string;
     totalSignups: number;
   }): string {
-    const firstName = input.name?.split(' ')[0] ?? 'pessoal';
+    const firstName = escapeHtml(input.name?.split(' ')[0] || 'pessoal');
     const launchUrl = (process.env.FRONT_BASE_URL || 'https://urban.ai').replace(/\/$/, '');
     const referralUrl = `${launchUrl}/lancamento?ref=${encodeURIComponent(input.referralCode)}`;
     return `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;color:#374151;max-width:600px;margin:0 auto;padding:32px;">
@@ -417,11 +420,11 @@ export class WaitlistService {
       <p>Seu cadastro no pré-lançamento foi confirmado.</p>
       <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:20px;margin:24px 0;text-align:center;">
         <p style="margin:0;color:#0369a1;font-size:14px;">Sua posição atual</p>
-        <p style="font-size:36px;font-weight:bold;margin:8px 0;color:#0f172a;">#${input.position}</p>
-        <p style="margin:0;color:#64748b;font-size:13px;">Total na lista: ${input.totalSignups}</p>
+        <p style="font-size:36px;font-weight:bold;margin:8px 0;color:#0f172a;">#${Number(input.position)}</p>
+        <p style="margin:0;color:#64748b;font-size:13px;">Total na lista: ${Number(input.totalSignups)}</p>
       </div>
       <p>Quer melhorar sua prioridade? Compartilhe seu link:</p>
-      <p style="font-size:13px;word-break:break-all;color:#2563eb;">${referralUrl}</p>
+      <p style="font-size:13px;word-break:break-all;color:#2563eb;">${escapeHtml(referralUrl)}</p>
       <p>Quando sua vez chegar, você receberá um convite com acesso antecipado.</p>
       <p style="font-size:12px;color:#6b7280;">Se você não se cadastrou, ignore este e-mail.</p>
     </body></html>`;

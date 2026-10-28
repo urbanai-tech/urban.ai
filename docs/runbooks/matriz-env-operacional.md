@@ -34,6 +34,7 @@
 | `GOOGLE_CLIENT_ID` (aliases aceitos: `GOOGLE_OAUTH_CLIENT_ID`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID`) | Cond. (login Google) | Usado para validar o `aud` do idToken. |
 | `COOKIE_DOMAIN`, `COOKIE_SAME_SITE` | Obr. em prod | Em host `*.railway.app` (staging) usar `COOKIE_DOMAIN=none`. |
 | `CORS_ALLOWED_ORIGINS` | Obr. | Whitelist separada por vírgula; sem fallback `*`. |
+| `TRUST_PROXY_HOPS` | Opc. | Nº de proxies confiáveis para `req.ip`/rate limit (default: `1` em produção/Railway, desligado fora dela). `0`/`false` desliga; lista de IPs/CIDRs aceita; `true` é rejeitado. Sem isso o throttler agrupa todos os clientes no IP do proxy. |
 | `FRONT_BASE_URL`, `FRONT_URL` | Obr. | Links em e-mails e redirects. |
 | `HEALTH_READINESS_TOKEN`, `HEALTH_READINESS_PUBLIC`, `ENTERPRISE_GATE_HEALTH_TOKEN` | Obr. em staging/prod | `/health` detalhado exige token; `/health/live` é público. |
 | `EMAIL_CONFIRMATION_CODE_SECRET`, `EMAIL_CONFIRMATION_MAX_ATTEMPTS`, `EMAIL_CONFIRMATION_LOCKOUT_MINUTES`, `EMAIL_PUBLIC_RESPONSE_MIN_MS`, `EMAIL_PUBLIC_RESPONSE_JITTER_MS` | Secret Obr. em produção | Demais são tuning. |
@@ -135,7 +136,8 @@ Removidas desta matriz por não serem lidas no código do backend: `MAPBOX_TOKEN
 
 | Variáveis | Req. | Notas |
 |---|---|---|
-| `PORT`, `SCRAPYD_API_KEY` | Obr. | `auth_proxy.py` exige a chave para disparar crawls. |
+| `PORT`, `SCRAPYD_API_KEY` | Obr. | `auth_proxy.py` exige a chave para disparar crawls (comparação em tempo constante). Sem a chave o serviço sobe ABERTO com erro alto no log, a menos que `SCRAPYD_REQUIRE_API_KEY=true`. |
+| `SCRAPYD_REQUIRE_API_KEY` | Recomendada | `true` = sem `SCRAPYD_API_KEY` o `auth_proxy` recusa subir (fail-closed). Ligar só depois de confirmar a chave no Railway (webscraping, pipeline e backend). Default desligado. `SCRAPYD_ALLOW_INSECURE_NO_AUTH=true` (só dev local) sobrepõe. |
 | `COLLECTOR_CRON_INTERVAL_SECONDS` (padrão 21600 = 6 h), `RUN_COLLECTORS_ON_BOOT` (padrão `true`), `RUN_LEGACY_SPIDERS`, `MIN_SUCCESSFUL_COLLECTORS`, `SCRAPYD_URL`, `SCRAPYD_PROJECT` | Opc. | Cron interno dos coletores e runner agregado. |
 | `URBAN_API_BASE` | Obr. | Base do backend (hoje o domínio de serviço Railway). |
 | `URBAN_EVENTS_INGEST_API_KEY` | Obr. | Enviada em `x-urban-events-ingest-key`; igual a `EVENTS_INGEST_API_KEY` do backend. É a ÚNICA credencial que habilita a `UrbanIngestPipeline` (spiders) e os coletores. Em produção, sem ela a pipeline loga ERROR e marca a stat `urban_ingest/misconfigured`; `run_all` sai com código 1. |

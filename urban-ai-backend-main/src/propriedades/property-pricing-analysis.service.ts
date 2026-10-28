@@ -120,7 +120,7 @@ export class PropertyPricingAnalysisService {
     }
 
     async buscarAlertPorId(id: string): Promise<APITypes> {
-        const BASE_URL = `https://airbnb-income-prediction.p.rapidapi.com/?id=${id}`;
+        const BASE_URL = `https://airbnb-income-prediction.p.rapidapi.com/?id=${encodeURIComponent(id)}`;
         const RAPIDAPI_HOST = 'airbnb-income-prediction.p.rapidapi.com';
         const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY as string;
 

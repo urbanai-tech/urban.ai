@@ -20,6 +20,7 @@ import { Roles } from '../auth/roles.decorator';
 import { WaitlistService } from './waitlist.service';
 import { AdminAuditService } from '../admin-audit/admin-audit.service';
 import { UpdateWaitlistNotesDto, WaitlistSignupDto } from './waitlist.dto';
+import { AdminAuditedInHandler } from '../admin-audit/admin-audit.decorator';
 
 /**
  * Controller da Waitlist (F8.2).
@@ -57,10 +58,9 @@ export class WaitlistController {
     if (!body?.email) {
       throw new BadRequestException('email é obrigatório');
     }
-    const ip =
-      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
-      req.ip ||
-      null;
+    // IP real do cliente: `req.ip` já considera o `trust proxy` (TRUST_PROXY_HOPS).
+    // Ler X-Forwarded-For cru deixava qualquer cliente forjar o IP gravado.
+    const ip = req.ip || null;
     const ua = (req.headers['user-agent'] as string) ?? null;
     return this.waitlist.signup({
       email: body.email,
@@ -136,6 +136,7 @@ export class WaitlistController {
     return this.waitlist.stats();
   }
 
+  @AdminAuditedInHandler()
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -155,6 +156,7 @@ export class WaitlistController {
     return result;
   }
 
+  @AdminAuditedInHandler()
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -177,6 +179,7 @@ export class WaitlistController {
     return entry;
   }
 
+  @AdminAuditedInHandler()
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')

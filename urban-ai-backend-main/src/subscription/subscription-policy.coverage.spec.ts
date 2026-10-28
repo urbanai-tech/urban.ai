@@ -122,13 +122,22 @@ describe('cobertura da política de assinatura nas rotas', () => {
       'PropriedadeController.getEventosAcompanhando',
       'PropriedadeController.getEventosForMaps',
       'PropriedadeController.calcularAjuste',
-      'PropriedadeController.createAlertAiibnb',
-      'PropriedadeController.getAlertById',
       'PropriedadeController.upsertManualOccupancy',
-      'ConnectController.getListingPrice',
     ];
     const notPaid = mustBePaid.filter((id) => policyOf(id) !== 'paid');
     expect(notPaid).toEqual([]);
+  });
+
+  it('rotas que disparam provedor pago sem checagem de dono são admin-only (RolesGuard, nunca 402)', () => {
+    const adminOnly = [
+      'PropriedadeController.getPropertyDetails',
+      'PropriedadeController.getPropertyCoordinates',
+      'PropriedadeController.createAlertAiibnb',
+      'PropriedadeController.getAlertById',
+      'ConnectController.getListingPrice',
+    ];
+    expect(adminOnly.filter((id) => !byId.has(id))).toEqual([]);
+    expect(adminOnly.filter((id) => policyOf(id) !== 'role')).toEqual([]);
   });
 
   it('rotas de identidade, LGPD, cobrança e onboarding pré-pagamento ficam livres', () => {

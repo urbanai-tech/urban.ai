@@ -40,7 +40,7 @@ const MACHINE_GUARDS = new Set(['EventsIngestApiKeyGuard']);
 // Authenticated computations that do not select or mutate a persisted resource
 // belonging to a user. This is not a public allowlist.
 const AUTHENTICATED_NON_RESOURCE_ALLOWLIST = new Map([
-  ['POST /propriedades/airbnb/create-alert', 'authenticated geospatial calculation without target resource id'],
+  // POST /propriedades/airbnb/create-alert deixou de ser exceção: chama RapidAPI pago e agora é admin-only.
 ]);
 
 function walk(directory) {

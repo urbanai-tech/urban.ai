@@ -17,7 +17,10 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiQuery } from 
 import { ConnectService } from "../connect/connect.service";
 import { List } from "../entities/list.entity";
 import { Request } from "express";
+import { PerMinuteThrottle } from "../common/throttle-config";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { RolesGuard } from "../auth/roles.guard";
+import { Roles } from "../auth/roles.decorator";
 import { Address } from "../entities/addresses.entity";
 import { PaymentsService } from "../payments/payments.service";
 import {
@@ -89,12 +92,21 @@ export class ConnectController {
     type: List,
     isArray: true,
   })
+  // `:userId` é o ID do host no Airbnb (o onboarding importa imóveis que o usuário
+  // ainda não possui na Urban AI), então não dá para exigir "dono = JWT". Em vez
+  // disso: formato numérico estrito + throttle agressivo (cada chamada dispara
+  // scraping headless de N imóveis).
+  @PerMinuteThrottle(10)
   async userListings(@Param("userId") userId: string): Promise<List[]> {
+    if (!/^\d{1,24}$/.test(userId ?? "")) {
+      throw new BadRequestException("userId deve ser o ID numérico do host no Airbnb.");
+    }
     return this.connectService.getUserManagedListings(userId);
   }
 
   @Get("listing-price/:id")
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("admin") // dispara RapidAPI pago com id arbitrário; o front não usa
   @ApiOperation({
     summary:
       "Retorna o valor total em reais para um imóvel do Airbnb de hoje até 3 dias após hoje.",

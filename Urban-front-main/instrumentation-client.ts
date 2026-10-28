@@ -1,4 +1,8 @@
 import { isLightPath, runOnFirstInteraction } from "./src/app/lib/publicPaths";
+import {
+  scrubBreadcrumb,
+  scrubSentryEvent,
+} from "./src/app/lib/privacy-scrub";
 
 type SentrySdk = typeof import("@sentry/nextjs");
 type RouterTransitionArgs = Parameters<
@@ -20,6 +24,12 @@ function initializeSentry(): Promise<SentrySdk> {
       tracesSampleRate: appEnv === "production" ? 0.1 : 1.0,
       enabled: sentryEnabled,
       environment: appEnv,
+      // URLs como /reset-password/<token> e /confirm-email/<email> não podem
+      // chegar ao Sentry (request.url, breadcrumbs de navegação/fetch, transaction).
+      sendDefaultPii: false,
+      beforeSend: (event) => scrubSentryEvent(event),
+      beforeSendTransaction: (event) => scrubSentryEvent(event),
+      beforeBreadcrumb: (breadcrumb) => scrubBreadcrumb(breadcrumb),
     });
 
     for (const error of pendingErrors.splice(0)) {

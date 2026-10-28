@@ -1,4 +1,5 @@
 // src/email/templates.ts
+import { escapeHtml } from "../common/escape-html";
 
 import type { WeeklyPropertyPerformance } from "./weekly-host-report";
 
@@ -7,14 +8,6 @@ const PRIMARY_COLOR = "#0ea5e9"; // Cyan for codes
 const TEXT_COLOR = "#374151"; // Dark grey
 const TITLE_COLOR = "#9ca3af"; // Gray for centered titles
 const LINK_COLOR = "#2563eb"; // Standard blue
-
-const escapeHtml = (value: string) =>
-  value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
 
 const baseLayout = (content: string) => `
 <!DOCTYPE html>
@@ -226,7 +219,7 @@ export class EmailTemplates {
             <p>Olá, <b>${escapeHtml(nome)}!</b></p>
             <p>Use o código abaixo para verificar seu e-mail no <b>My Urban</b>:</p>
             
-            <div class="code-box">${code}</div>
+            <div class="code-box">${escapeHtml(code)}</div>
             
             <p style="text-align: center; font-size: 14px;">Este código expira em 3 minutos.</p>
             <p style="text-align: center; font-size: 14px;"><a href="${escapeHtml(frontUrl)}">Acessar My Urban</a></p>
@@ -239,20 +232,20 @@ export class EmailTemplates {
     const content = `
         <div class="title">Redefinir sua senha</div>
         <div class="content">
-            <p>Olá, <b>${nome}!</b></p>
+            <p>Olá, <b>${escapeHtml(nome)}!</b></p>
             <p>Recebemos uma solicitação para redefinir a senha da sua conta no <b>My Urban</b>.<br/>
             Se você fez essa solicitação, clique no link abaixo para criar uma nova senha.</p>
             
             <div style="text-align: center; margin: 30px 0;">
                 <p>Para redefinir sua senha, clique no link abaixo:</p>
-                <a href="${resetLink}" class="link">${resetLink}</a>
+                <a href="${escapeHtml(resetLink)}" class="link">${escapeHtml(resetLink)}</a>
                 <p style="margin-top: 15px;">Este link expira em <b>30</b> minutos por motivos de segurança.</p>
             </div>
             
             <hr />
             
             <p>Se o link acima não funcionar, copie e cole esta URL no seu navegador:</p>
-            <p><a href="${resetLink}" class="link" style="font-size: 14px;">${resetLink}</a></p>
+            <p><a href="${escapeHtml(resetLink)}" class="link" style="font-size: 14px;">${escapeHtml(resetLink)}</a></p>
             
             <p style="margin-top: 30px;">Não reconhece esta solicitação? Ignore este e-mail e sua senha permanecerá a mesma.</p>
         </div>
@@ -261,7 +254,7 @@ export class EmailTemplates {
   }
 
   static getAnalysisStartedTemplate(nome: string, dashboardUrl: string): string {
-    const firstName = nome.split(" ")[0];
+    const firstName = escapeHtml((nome || "Usuário").split(" ")[0]);
     const content = `
         <div class="title">Sua propriedade está em análise</div>
         <div class="content">
@@ -270,14 +263,14 @@ export class EmailTemplates {
             <p>Em breve você receberá um e-mail com sugestões de preço personalizadas.</p>
             <br/>
             <p>Você pode acompanhar o status acessando:</p>
-            <p><a href="${dashboardUrl}" class="link">${dashboardUrl}</a></p>
+            <p><a href="${escapeHtml(dashboardUrl)}" class="link">${escapeHtml(dashboardUrl)}</a></p>
         </div>
     `;
     return baseLayout(content);
   }
 
   static getAnalysisFinishedTemplate(nome: string, dashboardUrl: string): string {
-    const firstName = nome.split(" ")[0];
+    const firstName = escapeHtml((nome || "Usuário").split(" ")[0]);
     const content = `
         <div class="title">Análise concluída!</div>
         <div class="content">
@@ -286,7 +279,7 @@ export class EmailTemplates {
             <p>Agora você já pode acessar os resultados e conferir as <b>recomendações de preço personalizadas</b> para o seu imóvel.</p>
             <br/>
             <p>Acesse aqui os resultados:</p>
-            <p><a href="${dashboardUrl}" class="link">${dashboardUrl}</a></p>
+            <p><a href="${escapeHtml(dashboardUrl)}" class="link">${escapeHtml(dashboardUrl)}</a></p>
         </div>
     `;
     return baseLayout(content);
@@ -299,7 +292,7 @@ export class EmailTemplates {
    * Não menciona plano ainda — esse e-mail é antes do checkout.
    */
   static getWelcomeTemplate(nome: string, dashboardUrl: string): string {
-    const firstName = nome.split(' ')[0];
+    const firstName = escapeHtml((nome || 'Usuário').split(' ')[0]);
     const content = `
         <div class="title">Bem-vindo(a), ${firstName}!</div>
         <div class="content">
@@ -316,7 +309,7 @@ export class EmailTemplates {
             </ol>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${dashboardUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                <a href="${escapeHtml(dashboardUrl)}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
                     Acessar painel
                 </a>
             </div>
@@ -341,7 +334,7 @@ export class EmailTemplates {
     invoiceUrl?: string;
     dashboardUrl: string;
   }): string {
-    const firstName = input.nome.split(' ')[0];
+    const firstName = escapeHtml((input.nome || 'Usuário').split(' ')[0]);
     const cycleLabel: Record<string, string> = {
       monthly: 'mensal',
       quarterly: 'trimestral',
@@ -356,14 +349,14 @@ export class EmailTemplates {
             <p>Sua assinatura no <b>My Urban</b> foi ativada com sucesso. Resumo:</p>
 
             <table style="width: 100%; margin: 20px 0; border-collapse: collapse; font-size: 15px;">
-                <tr><td style="padding: 8px 0; color: #6b7280;">Plano</td><td style="padding: 8px 0; text-align: right; font-weight: bold;">${input.planName}</td></tr>
-                <tr><td style="padding: 8px 0; color: #6b7280;">Ciclo</td><td style="padding: 8px 0; text-align: right;">${cycleLabel[input.billingCycle] ?? input.billingCycle}</td></tr>
+                <tr><td style="padding: 8px 0; color: #6b7280;">Plano</td><td style="padding: 8px 0; text-align: right; font-weight: bold;">${escapeHtml(input.planName)}</td></tr>
+                <tr><td style="padding: 8px 0; color: #6b7280;">Ciclo</td><td style="padding: 8px 0; text-align: right;">${escapeHtml(cycleLabel[input.billingCycle] ?? input.billingCycle)}</td></tr>
                 <tr><td style="padding: 8px 0; color: #6b7280;">Imóveis contratados</td><td style="padding: 8px 0; text-align: right;">${input.listingsContratados}</td></tr>
                 <tr style="border-top: 1px solid #e5e7eb;"><td style="padding: 12px 0; color: #6b7280;">Valor total cobrado</td><td style="padding: 12px 0; text-align: right; font-weight: bold; color: ${PRIMARY_COLOR};">${total}</td></tr>
-                <tr><td style="padding: 8px 0; color: #6b7280;">Próxima cobrança</td><td style="padding: 8px 0; text-align: right;">${input.nextBillingDate}</td></tr>
+                <tr><td style="padding: 8px 0; color: #6b7280;">Próxima cobrança</td><td style="padding: 8px 0; text-align: right;">${escapeHtml(input.nextBillingDate)}</td></tr>
             </table>
 
-            ${input.invoiceUrl ? `<p style="text-align: center;"><a href="${input.invoiceUrl}" class="link">Ver recibo Stripe</a></p>` : ''}
+            ${input.invoiceUrl ? `<p style="text-align: center;"><a href="${escapeHtml(input.invoiceUrl)}" class="link">Ver recibo Stripe</a></p>` : ''}
 
             <hr />
 
@@ -375,7 +368,7 @@ export class EmailTemplates {
             </ul>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${input.dashboardUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                <a href="${escapeHtml(input.dashboardUrl)}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
                     Ir para o painel
                 </a>
             </div>
@@ -392,18 +385,18 @@ export class EmailTemplates {
     accessEndsAt: string;
     reactivateUrl: string;
   }): string {
-    const firstName = input.nome.split(' ')[0];
+    const firstName = escapeHtml((input.nome || 'Usuário').split(' ')[0]);
     const content = `
         <div class="title">Cancelamento confirmado</div>
         <div class="content">
             <p>Olá, ${firstName}.</p>
             <p>Confirmamos o cancelamento da sua assinatura. <b>Você continua com acesso
-            completo até ${input.accessEndsAt}</b>; depois disso a conta vira read-only.</p>
+            completo até ${escapeHtml(input.accessEndsAt)}</b>; depois disso a conta vira read-only.</p>
 
             <p>Caso queira voltar antes da virada, é um clique:</p>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${input.reactivateUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                <a href="${escapeHtml(input.reactivateUrl)}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
                     Reativar assinatura
                 </a>
             </div>
@@ -427,7 +420,7 @@ export class EmailTemplates {
     nextRetryDate: string;
     updatePaymentUrl: string;
   }): string {
-    const firstName = input.nome.split(' ')[0];
+    const firstName = escapeHtml((input.nome || 'Usuário').split(' ')[0]);
     const total = `R$ ${(input.amountCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
     const content = `
         <div class="title" style="color: #b45309;">Pagamento não foi processado</div>
@@ -436,11 +429,11 @@ export class EmailTemplates {
             <p>Tentamos processar a cobrança de <b>${total}</b> da sua assinatura no
             My Urban mas o cartão recusou.</p>
 
-            <p>Vamos tentar novamente em <b>${input.nextRetryDate}</b>. Para evitar
+            <p>Vamos tentar novamente em <b>${escapeHtml(input.nextRetryDate)}</b>. Para evitar
             qualquer interrupção, é melhor atualizar o método de pagamento agora:</p>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${input.updatePaymentUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: #b45309; color: white; border-radius: 8px; font-weight: bold;">
+                <a href="${escapeHtml(input.updatePaymentUrl)}" class="link" style="display: inline-block; padding: 12px 28px; background: #b45309; color: white; border-radius: 8px; font-weight: bold;">
                     Atualizar cartão
                 </a>
             </div>
@@ -461,7 +454,7 @@ export class EmailTemplates {
     ativos: number;
     upgradeUrl: string;
   }): string {
-    const firstName = input.nome.split(' ')[0];
+    const firstName = escapeHtml((input.nome || 'Usuário').split(' ')[0]);
     const percent = Math.round((input.ativos / input.contratados) * 100);
     const content = `
         <div class="title">Você está usando ${percent}% do limite do seu plano</div>
@@ -474,7 +467,7 @@ export class EmailTemplates {
             Para ampliar agora sem fricção:</p>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${input.upgradeUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                <a href="${escapeHtml(input.upgradeUrl)}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
                     Ajustar meu plano
                 </a>
             </div>
@@ -496,7 +489,7 @@ export class EmailTemplates {
     tentando: number;
     upgradeUrl: string;
   }): string {
-    const firstName = input.nome.split(' ')[0];
+    const firstName = escapeHtml((input.nome || 'Usuário').split(' ')[0]);
     const content = `
         <div class="title" style="color: #b91c1c;">Limite de imóveis atingido</div>
         <div class="content">
@@ -507,7 +500,7 @@ export class EmailTemplates {
             <p>Para destravar, basta aumentar a quantidade de imóveis no seu plano:</p>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${input.upgradeUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: #b91c1c; color: white; border-radius: 8px; font-weight: bold;">
+                <a href="${escapeHtml(input.upgradeUrl)}" class="link" style="display: inline-block; padding: 12px 28px; background: #b91c1c; color: white; border-radius: 8px; font-weight: bold;">
                     Ajustar meu plano agora
                 </a>
             </div>
@@ -527,7 +520,7 @@ export class EmailTemplates {
     listingsImported: number;
     settingsUrl: string;
   }): string {
-    const firstName = input.nome.split(' ')[0];
+    const firstName = escapeHtml((input.nome || 'Usuário').split(' ')[0]);
     const content = `
         <div class="title">Stays conectada ✓</div>
         <div class="content">
@@ -540,7 +533,7 @@ export class EmailTemplates {
             imóvel individualmente.</p>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${input.settingsUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                <a href="${escapeHtml(input.settingsUrl)}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
                     Configurar modo automático
                 </a>
             </div>
@@ -561,7 +554,7 @@ export class EmailTemplates {
     dashboardUrl: string;
     propertiesUrl: string;
   }): string {
-    const firstName = input.nome.split(' ')[0];
+    const firstName = escapeHtml((input.nome || 'Usuário').split(' ')[0]);
     const hasNoProperty = input.propertiesCount === 0;
     const content = `
         <div class="title">Bem-vindo, ${firstName}!</div>
@@ -578,7 +571,7 @@ export class EmailTemplates {
             <hr />
             <p><b>Você ainda não cadastrou imóveis.</b> As sugestões começam depois do primeiro cadastro:</p>
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${input.propertiesUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                <a href="${escapeHtml(input.propertiesUrl)}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
                     Cadastrar primeiro imóvel
                 </a>
             </div>
@@ -586,7 +579,7 @@ export class EmailTemplates {
                 : `
             <p>Seus <b>${input.propertiesCount} ${input.propertiesCount === 1 ? 'imóvel está' : 'imóveis estão'}</b> sendo processados. Confira no painel:</p>
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${input.dashboardUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                <a href="${escapeHtml(input.dashboardUrl)}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
                     Ver painel
                 </a>
             </div>
@@ -608,7 +601,7 @@ export class EmailTemplates {
     dashboardUrl: string;
     staysUrl: string;
   }): string {
-    const firstName = input.nome.split(' ')[0];
+    const firstName = escapeHtml((input.nome || 'Usuário').split(' ')[0]);
     const hasRecs = input.recommendationsCount > 0;
     const content = `
         <div class="title">${hasRecs ? 'Suas primeiras recomendações' : 'Atualização sobre suas recomendações'}</div>
@@ -626,14 +619,14 @@ export class EmailTemplates {
             </ul>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${input.dashboardUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                <a href="${escapeHtml(input.dashboardUrl)}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
                     Ver recomendações
                 </a>
             </div>
 
             <p><b>Dica:</b> conecte sua conta Stays pra aplicar sugestões automaticamente. Custa 30 segundos.</p>
             <p style="text-align: center;">
-                <a href="${input.staysUrl}" class="link">Conectar Stays →</a>
+                <a href="${escapeHtml(input.staysUrl)}" class="link">Conectar Stays →</a>
             </p>
             `
                 : `
@@ -645,7 +638,7 @@ export class EmailTemplates {
             </ul>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${input.dashboardUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                <a href="${escapeHtml(input.dashboardUrl)}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
                     Ver detalhes
                 </a>
             </div>
@@ -669,7 +662,7 @@ export class EmailTemplates {
     dashboardUrl: string;
     suggestedAppliedCount: number;
   }): string {
-    const firstName = input.nome.split(' ')[0];
+    const firstName = escapeHtml((input.nome || 'Usuário').split(' ')[0]);
     const content = `
         <div class="title">Uma semana com o My Urban</div>
         <div class="content">
@@ -698,7 +691,7 @@ export class EmailTemplates {
             </ol>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${input.dashboardUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                <a href="${escapeHtml(input.dashboardUrl)}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
                     Ir pro painel
                 </a>
             </div>
@@ -711,7 +704,7 @@ export class EmailTemplates {
             escolha um plano. Cobramos por imóvel — sem fidelidade, cancela quando quiser.</p>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${input.plansUrl}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
+                <a href="${escapeHtml(input.plansUrl)}" class="link" style="display: inline-block; padding: 12px 28px; background: ${PRIMARY_COLOR}; color: white; border-radius: 8px; font-weight: bold;">
                     Ver planos
                 </a>
             </div>
@@ -741,7 +734,7 @@ export class EmailTemplates {
       reasons?: string[];
     }>;
   }): string {
-    const firstName = EmailTemplates.escapeHtml((input.nome || 'Usuário').split(' ')[0]);
+    const firstName = escapeHtml((input.nome || 'Usuário').split(' ')[0]);
     const total = input.items.length;
     const settingsUrl = EmailTemplates.absoluteUrl(
       input.dashboardUrl,
@@ -775,30 +768,30 @@ export class EmailTemplates {
       return `
         <div style="border:1px solid #e5e7eb;border-radius:12px;padding:18px 20px;margin:0 0 16px;background:#ffffff;">
           <p style="margin:0 0 6px;color:#6b7280;font-size:12px;letter-spacing:1px;text-transform:uppercase;">Recomendação ${index + 1}</p>
-          <h3 style="margin:0;color:#111827;font-size:18px;">${EmailTemplates.escapeHtml(item.propertyTitle)}</h3>
+          <h3 style="margin:0;color:#111827;font-size:18px;">${escapeHtml(item.propertyTitle)}</h3>
           ${
             propertyRows.length
               ? `<table style="width:100%;border-collapse:collapse;margin:12px 0 14px;font-size:14px;">
                   ${propertyRows.map(([label, value]) => `
                     <tr>
-                      <td style="padding:4px 12px 4px 0;color:#6b7280;width:120px;vertical-align:top;">${EmailTemplates.escapeHtml(String(label))}</td>
-                      <td style="padding:4px 0;color:#111827;vertical-align:top;">${EmailTemplates.escapeHtml(String(value))}</td>
+                      <td style="padding:4px 12px 4px 0;color:#6b7280;width:120px;vertical-align:top;">${escapeHtml(String(label))}</td>
+                      <td style="padding:4px 0;color:#111827;vertical-align:top;">${escapeHtml(String(value))}</td>
                     </tr>
                   `).join('')}
                 </table>`
               : ''
           }
-          <p style="margin:10px 0 10px;color:#374151;line-height:1.55;">${EmailTemplates.escapeHtml(item.description)}</p>
+          <p style="margin:10px 0 10px;color:#374151;line-height:1.55;">${escapeHtml(item.description)}</p>
           ${
             priceParts.length
-              ? `<p style="margin:0 0 14px;color:#111827;font-weight:700;">${EmailTemplates.escapeHtml(`Preço: ${priceParts.join(' | ')}`)}</p>`
+              ? `<p style="margin:0 0 14px;color:#111827;font-weight:700;">${escapeHtml(`Preço: ${priceParts.join(' | ')}`)}</p>`
               : ''
           }
           <p style="margin:0 0 8px;color:#111827;font-weight:700;">Por que vale olhar este imóvel:</p>
           <ul style="margin:0 0 16px;padding-left:18px;color:#4b5563;line-height:1.6;">
-            ${reasons.map((reason) => `<li>${EmailTemplates.escapeHtml(reason)}</li>`).join('')}
+            ${reasons.map((reason) => `<li>${escapeHtml(reason)}</li>`).join('')}
           </ul>
-          <a href="${EmailTemplates.escapeHtml(EmailTemplates.absoluteUrl(input.dashboardUrl, item.redirectTo))}" class="link" style="display:inline-block;padding:10px 18px;background:${PRIMARY_COLOR};color:#fff;border-radius:8px;font-weight:bold;">Revisar recomendação</a>
+          <a href="${escapeHtml(EmailTemplates.absoluteUrl(input.dashboardUrl, item.redirectTo))}" class="link" style="display:inline-block;padding:10px 18px;background:${PRIMARY_COLOR};color:#fff;border-radius:8px;font-weight:bold;">Revisar recomendação</a>
         </div>
       `;
     }).join('');
@@ -810,12 +803,12 @@ export class EmailTemplates {
         <p>Este e-mail chega quando há sugestão acionável de preço. Agrupamos tudo em um resumo único para você identificar o imóvel, entender o motivo e decidir o que revisar primeiro.</p>
         ${cards}
         <div style="text-align:center;margin:28px 0;">
-          <a href="${EmailTemplates.escapeHtml(input.dashboardUrl)}" class="link" style="display:inline-block;padding:12px 28px;background:${PRIMARY_COLOR};color:white;border-radius:8px;font-weight:bold;">
+          <a href="${escapeHtml(input.dashboardUrl)}" class="link" style="display:inline-block;padding:12px 28px;background:${PRIMARY_COLOR};color:white;border-radius:8px;font-weight:bold;">
             Abrir painel completo
           </a>
         </div>
         <p style="font-size:13px;color:#6b7280;">Dica: se você conectar a Stays, o My Urban consegue transformar recomendações aprovadas em alterações operacionais com guardrails e rollback.</p>
-        <p style="font-size:12px;color:#6b7280;">Você recebe este e-mail porque os alertas de preço estão ativos nas suas preferências. Para pausar ou trocar canais, acesse <a href="${EmailTemplates.escapeHtml(settingsUrl)}" class="link">Preferências de comunicação</a>.</p>
+        <p style="font-size:12px;color:#6b7280;">Você recebe este e-mail porque os alertas de preço estão ativos nas suas preferências. Para pausar ou trocar canais, acesse <a href="${escapeHtml(settingsUrl)}" class="link">Preferências de comunicação</a>.</p>
       </div>
     `;
     return baseLayout(content);
@@ -848,15 +841,6 @@ export class EmailTemplates {
     return baseLayout(content);
   }
 
-  private static escapeHtml(value: string): string {
-    return String(value)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
   private static absoluteUrl(baseUrl: string, value?: string): string {
     if (!value) return baseUrl;
     if (/^https?:\/\//i.test(value)) return value;
@@ -877,16 +861,16 @@ export class EmailTemplates {
 
   static getSystemNotificationTemplate(nome: string, title: string, description: string, url: string): string {
     const content = `
-        <h2 style="font-size: 20px; font-weight: bold; color: #111827; margin-bottom: 20px;">${title}</h2>
+        <h2 style="font-size: 20px; font-weight: bold; color: #111827; margin-bottom: 20px;">${escapeHtml(title)}</h2>
         <div class="content">
-            <p>Olá, <b>${nome}!</b></p>
+            <p>Olá, <b>${escapeHtml(nome)}!</b></p>
             
             <!-- Descrição (que pode conter parágrafos, então evitamos envolver num único <p>) -->
             <div style="margin-bottom: 20px;">
-                ${description.replace(/\n/g, '<br/>')}
+                ${escapeHtml(description).replace(/\n/g, '<br/>')}
             </div>
 
-            ${url ? `<p><a href="${url}" class="link">${url}</a></p>` : ''}
+            ${url ? `<p><a href="${escapeHtml(url)}" class="link">${escapeHtml(url)}</a></p>` : ''}
         </div>
     `;
     // For System notification, we don't use the centered grey title layout, 
