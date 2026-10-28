@@ -6,6 +6,9 @@ from prefect import get_run_logger, task
 from .interface.spider_crawl_interface import ISpiderTrigger
 
 
+SCHEDULE_TIMEOUT_SECONDS = 30.0
+
+
 class SpiderTriggers(ISpiderTrigger):
     """Triggers spiders for the web scraping project."""
 
@@ -63,11 +66,18 @@ class SpiderTriggers(ISpiderTrigger):
                 f"{self.url}/schedule.json",
                 data={"project": "urban_webscrapping", "spider": spider_name},
                 headers=headers,
+                timeout=SCHEDULE_TIMEOUT_SECONDS,
             )
             response.raise_for_status()
 
             result = cast(dict[str, Any], response.json())
-            job_id = result.get("jobid", "unknown")
+            # O Scrapyd pode responder 200 com {"status": "error", ...}: isso não é
+            # um agendamento. Sem esta checagem o run terminaria "Completed" sem job.
+            if result.get("status") != "ok" or not result.get("jobid"):
+                raise RuntimeError(
+                    f"Scrapyd não agendou o spider {spider_name}: {result}"
+                )
+            job_id = result["jobid"]
             logger.info(
                 f"Spider {spider_name} triggered successfully. Job ID: {job_id}"
             )

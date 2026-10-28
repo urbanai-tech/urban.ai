@@ -152,3 +152,14 @@ test('fontes são auto-hospedadas (o build não baixa do Google Fonts)', async (
   assert.doesNotMatch(layout, /next\/font\/google/);
   assert.match(layout, /next\/font\/local/);
 });
+
+test('links para o host do app nunca usam <Link> do Next (sem prefetch/RSC cross-origin para anônimos)', async () => {
+  const [marketing, header, footer] = await Promise.all([source('marketing'), source('header'), readFile(new URL('../src/app/componentes/FooterPublic.tsx', import.meta.url), 'utf8')]);
+  for (const [name, content] of Object.entries({ marketing, header, footer })) {
+    assert.doesNotMatch(content, /<NextLink[^>]*href=\{PUBLIC_(LOGIN|SIGNUP|APP)_URL\}/, `${name}: link do app via NextLink`);
+    assert.doesNotMatch(content, /<NextLink[^>]*href="\/(login|create|dashboard|onboarding)\b/, `${name}: rota exclusiva do app via NextLink`);
+  }
+  // URLs absolutas (host do app) caem no ramo de <a> simples.
+  assert.match(marketing, /href\.startsWith\("http"\)[\s\S]{0,80}<a href=\{href\}/);
+  assert.match(footer, /href\.startsWith\("http"\) \? \(\s*<a /);
+});
