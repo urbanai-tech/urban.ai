@@ -1,90 +1,90 @@
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.pageContainer.pageContainer {
   max-width: 1280px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.labelTextFs12.labelTextFs12 {
+.pushPriceCell.pushPriceCell {
   font-family: monospace;
   font-size: 12px;
   color: var(--admin-text);
 }
 
-.labelTextMutedFs12.labelTextMutedFs12 {
+.pushPreviousPrice.pushPreviousPrice {
   font-family: monospace;
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.codeTextDimFs11.codeTextDimFs11 {
+.pushOrigin.pushOrigin {
   font-size: 11px;
   color: var(--admin-text-dim);
 }
 
-.labelTextMutedFs122.labelTextMutedFs122 {
+.pushCreatedAt.pushCreatedAt {
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.sectionMb32.sectionMb32 {
+.heroSection.heroSection {
   margin-bottom: 32px;
 }
 
-.gridColsGap32.gridColsGap32 {
+.heroGrid.heroGrid {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
   gap: 32px;
   align-items: end;
 }
 
-.textTextMutedFs14.textTextMutedFs14 {
+.heroDescription.heroDescription {
   margin-top: 12px;
   font-size: 14px;
   color: var(--admin-text-muted);
   line-height: 1.55;
 }
 
-.boxBordered.boxBordered {
+.statCard.statCard {
   border-left: 1px solid var(--admin-divider);
   padding-left: 32px;
 }
 
-.displayMdMt12.displayMdMt12 {
+.statValue.statValue {
   margin-top: 12px;
 }
 
-.textTextMutedFs12.textTextMutedFs12 {
+.statCaption.statCaption {
   margin-top: 6px;
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.rowCenteredGap12.rowCenteredGap12 {
+.readinessInfo.readinessInfo {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.textTextFs13.textTextFs13 {
+.readinessTitle.readinessTitle {
   margin: 0;
   font-size: 13px;
   font-weight: 600;
   color: var(--admin-text);
 }
 
-.textTextMutedFs12M4x0x0.textTextMutedFs12M4x0x0 {
+.readinessDetail.readinessDetail {
   margin: 4px 0 0;
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.rowWrapGap6.rowWrapGap6 {
+.missingEnvList.missingEnvList {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.codeWarningFs10.codeWarningFs10 {
+.missingEnvTag.missingEnvTag {
   font-size: 10px;
   font-family: monospace;
   color: var(--admin-warning);
@@ -93,21 +93,21 @@
   border-radius: 2px;
 }
 
-.sectionMb56.sectionMb56 {
+.section.section {
   margin-bottom: 56px;
 }
 
-.eyebrowMb24.eyebrowMb24 {
+.sectionEyebrow.sectionEyebrow {
   margin-bottom: 24px;
 }
 
-.textTextMutedFs13.textTextMutedFs13 {
+.emptyHint.emptyHint {
   font-size: 13px;
   color: var(--admin-text-muted);
   margin: 0;
 }
 
-.rowBgSurfaceMb24.rowBgSurfaceMb24 {
+.statusBar.statusBar {
   display: flex;
   height: 8px;
   margin-bottom: 24px;
@@ -117,7 +117,7 @@
   background: var(--admin-surface);
 }
 
-.gridColsAuto160Gap32.gridColsAuto160Gap32 {
+.statusGrid.statusGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 32px;
@@ -125,7 +125,7 @@
   border-bottom: 1px solid var(--admin-divider);
 }
 
-.stackGap10M0.stackGap10M0 {
+.accountList.accountList {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -134,7 +134,7 @@
   gap: 10px;
 }
 
-.rowBetweenCentered.rowBetweenCentered {
+.accountRow.accountRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -143,17 +143,17 @@
   font-size: 13px;
 }
 
-.codeText.codeText {
+.accountStatus.accountStatus {
   color: var(--admin-text);
 }
 
-.labelAccentW600.labelAccentW600 {
+.accountCount.accountCount {
   font-family: monospace;
   color: var(--admin-accent);
   font-weight: 600;
 }
 
-.rowBetweenCenteredWrapGap16Mb20.rowBetweenCenteredWrapGap16Mb20 {
+.pushesHeader.pushesHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -162,7 +162,7 @@
   flex-wrap: wrap;
 }
 
-.headingTextFs20.headingTextFs20 {
+.pushesTitle.pushesTitle {
   font-size: 20px;
   font-weight: 600;
   color: var(--admin-text);
@@ -170,7 +170,7 @@
   letter-spacing: -0.3px;
 }
 
-.rowScrollBordered.rowScrollBordered {
+.statusFilter.statusFilter {
   display: inline-flex;
   border: 1px solid var(--admin-divider);
   border-radius: 2px;

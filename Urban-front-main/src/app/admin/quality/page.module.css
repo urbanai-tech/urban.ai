@@ -1,14 +1,14 @@
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.pageContainer.pageContainer {
   max-width: 1280px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.sectionMb56.sectionMb56 {
+.section.section {
   margin-bottom: 56px;
 }
 
-.boxTextMutedBgWarning.boxTextMutedBgWarning {
+.emptyNotice.emptyNotice {
   padding: 20px 24px;
   border-left: 2px solid var(--admin-warning);
   background: color-mix(in srgb, var(--admin-warning) 6%, transparent);
@@ -17,7 +17,7 @@
   line-height: 1.55;
 }
 
-.textWarningFs11.textWarningFs11 {
+.emptyNoticeTitle.emptyNoticeTitle {
   margin: 0;
   font-size: 11px;
   font-weight: 600;
@@ -26,25 +26,25 @@
   color: var(--admin-warning);
 }
 
-.textM6x0x0.textM6x0x0 {
+.emptyNoticeBody.emptyNoticeBody {
   margin: 6px 0 0;
 }
 
-.gridColsGap32.gridColsGap32 {
+.heroGrid.heroGrid {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   gap: 32px;
   align-items: end;
 }
 
-.textTextMutedFs14.textTextMutedFs14 {
+.heroDescription.heroDescription {
   margin-top: 12px;
   font-size: 14px;
   color: var(--admin-text-muted);
   line-height: 1.55;
 }
 
-.stackGap16Bordered.stackGap16Bordered {
+.heroStats.heroStats {
   border-left: 1px solid var(--admin-divider);
   padding-left: 32px;
   display: flex;
@@ -52,7 +52,7 @@
   gap: 16px;
 }
 
-.rowCenteredBgSurface.rowCenteredBgSurface {
+.gateBar.gateBar {
   margin-top: 16px;
   display: flex;
   align-items: center;
@@ -63,24 +63,24 @@
   background: var(--admin-surface);
 }
 
-.boxFlex1.boxFlex1 {
+.gateContent.gateContent {
   flex: 1;
 }
 
-.textTextFs13.textTextFs13 {
+.gateTitle.gateTitle {
   margin: 0;
   font-size: 13px;
   font-weight: 600;
   color: var(--admin-text);
 }
 
-.textTextMutedFs12.textTextMutedFs12 {
+.gateDescription.gateDescription {
   margin: 4px 0 0;
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.rowBetweenCentered.rowBetweenCentered {
+.breakdownHeader.breakdownHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -89,7 +89,7 @@
   flex-wrap: wrap;
 }
 
-.headingTextFs20.headingTextFs20 {
+.breakdownTitle.breakdownTitle {
   font-size: 20px;
   font-weight: 600;
   color: var(--admin-text);
@@ -97,23 +97,23 @@
   letter-spacing: -0.3px;
 }
 
-.gridColsAutoGap24.gridColsAutoGap24 {
+.breakdownGrid.breakdownGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 24px;
 }
 
-.textTextMutedFs13.textTextMutedFs13 {
+.emptyHint.emptyHint {
   font-size: 13px;
   color: var(--admin-text-muted);
   margin: 0;
 }
 
-.eyebrowMb12.eyebrowMb12 {
+.formEyebrow.formEyebrow {
   margin-bottom: 12px;
 }
 
-.headingTextFs20W600M0x0x8Lsneg0_3.headingTextFs20W600M0x0x8Lsneg0_3 {
+.formTitle.formTitle {
   font-size: 20px;
   font-weight: 600;
   color: var(--admin-text);
@@ -121,7 +121,7 @@
   letter-spacing: -0.3px;
 }
 
-.textTextMutedFs13M0x0x24Maxw720Lh1_55.textTextMutedFs13M0x0x24Maxw720Lh1_55 {
+.formIntro.formIntro {
   font-size: 13px;
   color: var(--admin-text-muted);
   margin: 0 0 24px;
@@ -129,18 +129,18 @@
   max-width: 720px;
 }
 
-.stackGap18.stackGap18 {
+.occupancyForm.occupancyForm {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-.boxMaxw360Minw0.boxMaxw360Minw0 {
+.propertyField.propertyField {
   min-width: 0;
   max-width: 360px;
 }
 
-.labelTextMutedFs11.labelTextMutedFs11 {
+.fieldLabel.fieldLabel {
   display: block;
   font-size: 11px;
   font-weight: 600;
@@ -150,13 +150,13 @@
   margin-bottom: 8px;
 }
 
-.gridColsAuto180Gap14.gridColsAuto180Gap14 {
+.formFields.formFields {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;
 }
 
-.boxTextMutedBgSurface.boxTextMutedBgSurface {
+.propertyInfo.propertyInfo {
   padding: 12px 16px;
   border: 1px solid var(--admin-divider);
   border-radius: 2px;
@@ -170,16 +170,16 @@
   color: var(--admin-text);
 }
 
-.labelMl12.labelMl12 {
+.propertyMeta.propertyMeta {
   margin-left: 12px;
 }
 
-.rowEnd.rowEnd {
+.formActions.formActions {
   display: flex;
   justify-content: flex-end;
 }
 
-.textTextFs20.textTextFs20 {
+.statValue.statValue {
   font-size: 20px;
   font-weight: 600;
   color: var(--admin-text);
@@ -188,19 +188,19 @@
   letter-spacing: -0.3px;
 }
 
-.textTextMutedFs11.textTextMutedFs11 {
+.statSub.statSub {
   font-size: 11px;
   color: var(--admin-text-muted);
   margin: 2px 0 0;
 }
 
-.textTextMutedFs12M0.textTextMutedFs12M0 {
+.barListEmpty.barListEmpty {
   font-size: 12px;
   color: var(--admin-text-muted);
   margin: 0;
 }
 
-.stackGap12M0.stackGap12M0 {
+.barList.barList {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -209,20 +209,20 @@
   gap: 12px;
 }
 
-.rowBetweenFs12.rowBetweenFs12 {
+.barRow.barRow {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
   margin-bottom: 5px;
 }
 
-.labelAccentW600.labelAccentW600 {
+.barValue.barValue {
   color: var(--admin-accent);
   font-weight: 600;
   font-family: monospace;
 }
 
-.boxBgDividerH2.boxBgDividerH2 {
+.barTrack.barTrack {
   height: 2px;
   background: var(--admin-divider);
 }

@@ -83,7 +83,7 @@ export default function AdminFinancePage() {
 
   if (error || !overview) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.pageContainer}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar"
@@ -111,12 +111,12 @@ export default function AdminFinancePage() {
       header: "Nome",
       render: (c) => (
         <div>
-          <p className={styles.textTextW600}>
+          <p className={styles.costName}>
             {c.name}
           </p>
           {c.description && (
             <p
-              className={styles.textTextMutedFs11}
+              className={styles.costDescription}
             >
               {c.description}
             </p>
@@ -137,7 +137,7 @@ export default function AdminFinancePage() {
       header: "Recorrência",
       width: 110,
       render: (c) => (
-        <span className={styles.labelTextMutedFs12}>
+        <span className={styles.costCategoryCell}>
           {c.recurrence}
         </span>
       ),
@@ -148,7 +148,7 @@ export default function AdminFinancePage() {
       width: 120,
       align: "right",
       render: (c) => (
-        <span className={styles.labelTextMono}>
+        <span className={styles.costAmountCell}>
           R$ {(c.monthlyCostCents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
         </span>
       ),
@@ -160,11 +160,11 @@ export default function AdminFinancePage() {
       align: "center",
       render: (c) =>
         c.percentOfRevenue != null ? (
-          <span className={styles.labelAccentMono}>
+          <span className={styles.costMonthlyCell}>
             {c.percentOfRevenue}%
           </span>
         ) : (
-          <span className={styles.labelTextDim}>—</span>
+          <span className={styles.emptyCell}>—</span>
         ),
     },
     {
@@ -176,7 +176,7 @@ export default function AdminFinancePage() {
         c.scalesWithListings ? (
           <Icons.Check size={14} className={styles.okIcon} />
         ) : (
-          <span className={styles.labelTextDim}>—</span>
+          <span className={styles.emptyCell}>—</span>
         ),
     },
     {
@@ -199,7 +199,7 @@ export default function AdminFinancePage() {
   ];
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · FINANCEIRO"
         title="Resumo financeiro"
@@ -217,10 +217,10 @@ export default function AdminFinancePage() {
       />
 
       {/* === Hero — Margem por imóvel === */}
-      <section className={styles.sectionMb56}>
+      <section className={styles.heroSection}>
         <AdminCard variant="accent" className={styles.heroCard}>
           <div
-            className={styles.gridColsGap32}
+            className={styles.heroGrid}
           >
             <div>
               <p className="urban-admin-eyebrow">MARGEM POR IMÓVEL ATIVO</p>
@@ -239,14 +239,14 @@ export default function AdminFinancePage() {
                 {fmt(overview.perListing.marginCents)}
               </p>
               <p
-                className={styles.textTextMutedFs14}
+                className={styles.heroDescription}
               >
                 {perListingMargin.toFixed(1)}% sobre receita por imóvel · Use
                 como teto/piso para decisões de pricing.
               </p>
             </div>
             <div
-              className={styles.gridColsGap16}
+              className={styles.heroStats}
             >
               <SmallInline label="Receita por imóvel" value={fmt(overview.perListing.revenueCents)} />
               <SmallInline label="Custo por imóvel" value={fmt(overview.perListing.costCents)} />
@@ -256,12 +256,12 @@ export default function AdminFinancePage() {
       </section>
 
       {/* === KPIs financeiros === */}
-      <section className={styles.sectionMb64}>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
+      <section className={styles.metricsSection}>
+        <p className={`urban-admin-eyebrow ${styles.sectionEyebrow}`}>
           INDICADORES MENSAIS
         </p>
         <div
-          className={styles.gridColsAuto200Gap32}
+          className={styles.metricsGrid}
         >
           <AdminMetricCard
             label="MRR estimado"
@@ -290,29 +290,29 @@ export default function AdminFinancePage() {
 
       {/* === Receita por plano + Custos por categoria === */}
       <section
-        className={styles.gridColsAutoGap24}
+        className={styles.breakdownGrid}
       >
         <AdminCard variant="subtle">
           <AdminCardHeader title="Receita por plano" />
           {overview.revenue.byPlan.length === 0 ? (
-            <p className={styles.textTextMutedFs13}>
+            <p className={styles.emptyHint}>
               Sem assinaturas ativas ainda.
             </p>
           ) : (
-            <ul className={styles.listM0P0}>
+            <ul className={styles.planList}>
               {overview.revenue.byPlan.map((p) => (
                 <li
                   key={p.planName}
-                  className={styles.gridBaselineCols}
+                  className={styles.planRow}
                 >
-                  <span className={styles.labelTextW500}>
+                  <span className={styles.planName}>
                     {p.planName}
                   </span>
-                  <span className={styles.labelTextMutedFs122}>
+                  <span className={styles.planCount}>
                     {p.count} assinaturas
                   </span>
                   <span
-                    className={styles.labelAccentW600}
+                    className={styles.planRevenue}
                   >
                     {fmt(p.monthlyCents)}
                   </span>
@@ -325,11 +325,11 @@ export default function AdminFinancePage() {
         <AdminCard variant="subtle">
           <AdminCardHeader title="Custos por categoria" />
           {overview.costs.byCategory.length === 0 ? (
-            <p className={styles.textTextMutedFs13}>
+            <p className={styles.emptyHint}>
               Cadastre custos abaixo.
             </p>
           ) : (
-            <div className={styles.stackGap14}>
+            <div className={styles.categoryList}>
               {overview.costs.byCategory.map((c) => {
                 const max = Math.max(
                   ...overview.costs.byCategory.map((x) => x.cents),
@@ -338,17 +338,17 @@ export default function AdminFinancePage() {
                 return (
                   <div key={c.category}>
                     <div
-                      className={styles.rowBetweenFs12}
+                      className={styles.categoryRow}
                     >
-                      <span className={styles.labelText}>{c.category}</span>
+                      <span className={styles.categoryName}>{c.category}</span>
                       <span
-                        className={styles.labelTextW600}
+                        className={styles.categoryAmount}
                       >
                         {fmt(c.cents)}
                       </span>
                     </div>
                     <div
-                      className={styles.boxBgDividerH2}
+                      className={styles.categoryBarTrack}
                     >
                       <div
                         style={{
@@ -369,17 +369,17 @@ export default function AdminFinancePage() {
       {/* === Custos cadastrados (CRUD) === */}
       <section>
         <header
-          className={styles.rowBetweenCentered}
+          className={styles.costsHeader}
         >
           <div>
             <p className="urban-admin-eyebrow">CUSTOS CADASTRADOS</p>
             <h2
-              className={styles.headingTextFs20}
+              className={styles.costsTitle}
             >
               Todos os custos operacionais
             </h2>
           </div>
-          <div className={styles.rowCenteredWrap}>
+          <div className={styles.costsActions}>
             <AdminSwitch
               checked={showInactive}
               onChange={setShowInactive}
@@ -475,7 +475,7 @@ function SmallInline({ label, value }: { label: string; value: string }) {
     <div>
       <p className="urban-admin-eyebrow-muted">{label}</p>
       <p
-        className={styles.textTextFs22}
+        className={styles.statValue}
       >
         {value}
       </p>
@@ -517,7 +517,7 @@ function NewCostForm({ onCreated, onCancel }: { onCreated: () => void; onCancel:
   return (
     <form
       onSubmit={submit}
-      className={styles.stackGap18}
+      className={styles.costForm}
     >
       <AdminInput
         label="Nome do custo"
@@ -527,7 +527,7 @@ function NewCostForm({ onCreated, onCancel }: { onCreated: () => void; onCancel:
         required
       />
 
-      <div className={styles.gridColsGap14}>
+      <div className={styles.costFormRow}>
         <AdminSelect
           label="Categoria"
           value={category}
@@ -558,7 +558,7 @@ function NewCostForm({ onCreated, onCancel }: { onCreated: () => void; onCancel:
 
       <AdminInput
         label="Valor mensal"
-        leftAddon={<span className={styles.labelFs12W600}>R$</span>}
+        leftAddon={<span className={styles.currencyPrefix}>R$</span>}
         placeholder="0,00"
         value={valueReais}
         onChange={(e) => setValueReais(e.target.value)}
@@ -580,7 +580,7 @@ function NewCostForm({ onCreated, onCancel }: { onCreated: () => void; onCancel:
         />
       )}
 
-      <div className={styles.rowEndGap10}>
+      <div className={styles.formActions}>
         <AdminButton variant="ghost" onClick={onCancel} type="button" disabled={busy}>
           Cancelar
         </AdminButton>
@@ -627,7 +627,7 @@ function CostActions({ cost, onChange }: { cost: AdminCost; onChange: () => void
   }
 
   return (
-    <div className={styles.rowGap6}>
+    <div className={styles.rowActions}>
       <button
         type="button"
         onClick={toggle}

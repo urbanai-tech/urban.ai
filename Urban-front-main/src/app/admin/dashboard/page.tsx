@@ -68,7 +68,7 @@ export default function AdminDashboardPage() {
 
   if (error) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.errorContainer}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Não foi possível carregar"
@@ -112,20 +112,20 @@ export default function AdminDashboardPage() {
   const emailProviderConfigured = data.email?.brevoApiKeyConfigured ?? false;
 
   return (
-    <div className={styles.boxM0xautoP40x32Maxw1400}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · DASHBOARD EXECUTIVO"
         title="Snapshot da operação"
         subtitle={
           <span>
             Atualiza a cada 60s · Última leitura:{" "}
-            <strong className={styles.strongText}>
+            <strong className={styles.inlineStrong}>
               {new Date(data.generatedAt).toLocaleTimeString("pt-BR")}
             </strong>
           </span>
         }
         actions={
-          <div className={styles.rowCenteredWrap}>
+          <div className={styles.headerActions}>
             <AdminSwitch
               id="auto-refresh"
               checked={autoRefresh}
@@ -153,14 +153,14 @@ export default function AdminDashboardPage() {
         }}
       >
         <div
-          className={styles.rowBetweenCentered}
+          className={styles.healthHeader}
         >
-          <div className={styles.rowCenteredGap14}>
+          <div className={styles.healthTitle}>
             <AdminStatusDot kind={healthKind} size={14} pulse={data.health !== "green"} />
             <div>
               <p className="urban-admin-eyebrow-muted">SAÚDE GERAL DO SISTEMA</p>
               <p
-                className={styles.textTextFs20}
+                className={styles.healthLabel}
               >
                 {healthLabel}
               </p>
@@ -173,7 +173,7 @@ export default function AdminDashboardPage() {
 
         {data.alerts.length > 0 && (
           <ul
-            className={styles.stackGap10M16x0x0}
+            className={styles.alertList}
           >
             {data.alerts.map((a, i) => {
               const aKind: AdminStatusKind =
@@ -185,12 +185,12 @@ export default function AdminDashboardPage() {
               return (
                 <li
                   key={i}
-                  className={styles.rowStartText}
+                  className={styles.alertItem}
                 >
-                  <span className={styles.label}>
+                  <span className={styles.alertDotWrap}>
                     <AdminStatusDot kind={aKind} size={7} />
                   </span>
-                  <span className={styles.labelLh1_55}>{a.message}</span>
+                  <span className={styles.alertMessage}>{a.message}</span>
                 </li>
               );
             })}
@@ -200,14 +200,14 @@ export default function AdminDashboardPage() {
 
       {/* === Fallback de eventos — só se cobertura abaixo do gate === */}
       {data.integrationsReadiness && (
-        <section className={styles.sectionMb32}>
+        <section className={styles.section}>
           <AdminCard variant="subtle">
             <AdminCardHeader
               title="Go-live Track 3"
               actions={<AdminBadge kind="neutral">sem chamadas externas</AdminBadge>}
             />
             <div
-              className={styles.gridColsAuto220Gap16}
+              className={styles.readinessGrid}
             >
               {Object.values(data.integrationsReadiness).map((item) => (
                 <ReadinessTile key={item.label} item={item} />
@@ -218,20 +218,20 @@ export default function AdminDashboardPage() {
       )}
 
       {data.events.next30d < 100 && (
-        <section className={styles.sectionMb32}>
+        <section className={styles.section}>
           <AdminCard variant="accent" className={styles.featuredCard}>
             <div
-              className={styles.rowBetweenStart}
+              className={styles.fallbackHeader}
             >
-              <div className={styles.boxMinw0Flex1}>
+              <div className={styles.fallbackBody}>
                 <p className="urban-admin-eyebrow">FALLBACK MANUAL DE EVENTOS</p>
                 <h3
-                  className={styles.subheadingTextFs16}
+                  className={styles.fallbackTitle}
                 >
                   Cobertura futura abaixo do gate beta
                 </h3>
                 <p
-                  className={styles.textTextMutedFs13}
+                  className={styles.fallbackText}
                 >
                   Existem {data.events.next30d.toLocaleString("pt-BR")} eventos
                   nos próximos 30 dias. Para liberar beta assistido, complete o
@@ -239,7 +239,7 @@ export default function AdminDashboardPage() {
                   enquanto os coletores amadurecem.
                 </p>
               </div>
-              <div className={styles.rowWrapGap10}>
+              <div className={styles.fallbackActions}>
                 <AdminButton variant="primary" as="a" href="/admin/events/new" leftIcon={<Icons.Plus size={12} />}>
                   Cadastrar evento
                 </AdminButton>
@@ -257,7 +257,7 @@ export default function AdminDashboardPage() {
 
       {/* === 8 blocos — 2 rows × 4 cols === */}
       <section
-        className={styles.gridColsAuto280Gap24}
+        className={styles.blockGrid}
       >
         <DataBlock title="Motor de eventos" icon={<Icons.Calendar size={14} />} href="/admin/events">
           <SmallStat label="Total" value={data.events.total} />
@@ -324,7 +324,7 @@ export default function AdminDashboardPage() {
       </section>
 
       <section
-        className={styles.gridColsAuto280Gap24}
+        className={styles.blockGrid}
       >
         <DataBlock title="Recomendações" icon={<Icons.Activity size={14} />} href="/admin/funnel">
           <SmallStat
@@ -489,10 +489,10 @@ export default function AdminDashboardPage() {
 
       {/* === Bloqueios dataset (opcional) === */}
       {data.dataset.blockers.length > 0 && (
-        <section className={styles.sectionMb32}>
+        <section className={styles.section}>
           <AdminCard variant="default">
             <AdminCardHeader title="Bloqueios de dataset e qualidade" />
-            <ul className={styles.listM0P0}>
+            <ul className={styles.plainList}>
               {data.dataset.blockers.map((blocker) => {
                 const kind: AdminStatusKind =
                   blocker.severity === "red"
@@ -503,23 +503,23 @@ export default function AdminDashboardPage() {
                 return (
                   <li
                     key={blocker.code}
-                    className={styles.rowStartGap12}
+                    className={styles.blockerItem}
                   >
-                    <span className={styles.label2}>
+                    <span className={styles.blockerDotWrap}>
                       <AdminStatusDot kind={kind} size={7} />
                     </span>
-                    <div className={styles.boxMinw0Flex12}>
+                    <div className={styles.blockerBody}>
                       <p
-                        className={styles.textTextFs13}
+                        className={styles.blockerMessage}
                       >
-                        <code className={styles.codeAccentW600}>
+                        <code className={styles.accentCode}>
                           {blocker.code}
                         </code>
                         {": "}
                         {blocker.message}
                       </p>
                       <p
-                        className={styles.textTextMutedFs12}
+                        className={styles.blockerNextAction}
                       >
                         {blocker.nextAction}
                       </p>
@@ -534,7 +534,7 @@ export default function AdminDashboardPage() {
 
       {/* === Mini-timeline + Top sources === */}
       <section
-        className={styles.gridColsGap24}
+        className={styles.timelineSourcesGrid}
       >
         <AdminCard variant="subtle">
           <AdminCardHeader
@@ -571,33 +571,33 @@ export default function AdminDashboardPage() {
           />
           {data.topSources.length === 0 ? (
             <p
-              className={styles.textTextMutedFs13M0}
+              className={styles.emptySources}
             >
               Sem dados nos últimos 7 dias.
             </p>
           ) : (
-            <ul className={styles.listM0P0}>
+            <ul className={styles.plainList}>
               {data.topSources.map((s, i) => {
                 const max = Math.max(...data.topSources.map((x) => x.count), 1);
                 const pct = (s.count / max) * 100;
                 return (
-                  <li key={s.source} className={styles.itemMb14}>
+                  <li key={s.source} className={styles.sourceItem}>
                     <div
-                      className={styles.rowBetweenFs12}
+                      className={styles.sourceHeader}
                     >
                       <code
-                        className={styles.codeTextMono}
+                        className={styles.sourceName}
                       >
                         {String(i + 1).padStart(2, "0")} · {s.source}
                       </code>
                       <span
-                        className={styles.codeAccentW600}
+                        className={styles.accentCode}
                       >
                         {s.count.toLocaleString("pt-BR")}
                       </span>
                     </div>
                     <div
-                      className={styles.boxBgDividerH2}
+                      className={styles.sourceBarTrack}
                     >
                       <div
                         style={{
@@ -616,10 +616,10 @@ export default function AdminDashboardPage() {
       </section>
 
       <footer
-        className={styles.footerTextMutedFs12}
+        className={styles.pageFooter}
       >
-        <p className={styles.textM0}>
-          <strong className={styles.strongText}>Como ler:</strong> dot
+        <p className={styles.footerText}>
+          <strong className={styles.inlineStrong}>Como ler:</strong> dot
           verde = sem alertas; amarelo = atenção em algum ponto; vermelho =
           problema crítico (coletor caído, cobertura zero, etc.). Auto-refresh
           60s pode ser desligado no header acima.
@@ -644,8 +644,8 @@ function DataBlock({
     <AdminCard variant="subtle" className={styles.sectionCard}>
       <AdminCardHeader
         title={
-          <span className={styles.rowCenteredGap8}>
-            <span className={styles.labelTextMuted}>{icon}</span>
+          <span className={styles.blockTitle}>
+            <span className={styles.blockIcon}>{icon}</span>
             {title}
           </span>
         }
@@ -663,7 +663,7 @@ function DataBlock({
           )
         }
       />
-      <div className={styles.stackGap16}>
+      <div className={styles.blockContent}>
         {children}
       </div>
     </AdminCard>
@@ -683,10 +683,10 @@ function SmallStat({
 }) {
   return (
     <div>
-      <div className={styles.rowCenteredGap6}>
+      <div className={styles.statLabelRow}>
         {status && <AdminStatusDot kind={status} size={6} />}
         <p
-          className={styles.textTextMutedFs10}
+          className={styles.statLabel}
         >
           {label}
         </p>
@@ -710,7 +710,7 @@ function SmallStat({
       </p>
       {sub && (
         <p
-          className={styles.textTextMutedFs11}
+          className={styles.statSub}
         >
           {sub}
         </p>
@@ -723,7 +723,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   return (
     <a
       href={href}
-      className={styles.rowCenteredTextMuted}
+      className={styles.navLink}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLAnchorElement).style.color = "var(--admin-accent)";
         (e.currentTarget as HTMLAnchorElement).style.borderBottomColor = "var(--admin-accent)";
@@ -756,24 +756,24 @@ function ReadinessTile({
 
   return (
     <div
-      className={styles.stackGap10P14x16}
+      className={styles.readinessTile}
     >
       <div
-        className={styles.rowBetweenCenteredGap10}
+        className={styles.readinessTileHeader}
       >
-        <span className={styles.rowCenteredGap8Minw0}>
+        <span className={styles.readinessTileTitle}>
           <AdminStatusDot kind={kind} size={7} />
-          <strong className={styles.strongTextFs13}>{item.label}</strong>
+          <strong className={styles.readinessTileLabel}>{item.label}</strong>
         </span>
         <AdminBadge kind={item.status === "ready" ? "success" : "warn"}>
           {item.status === "ready" ? "ready" : "bloqueado"}
         </AdminBadge>
       </div>
-      <p className={styles.textTextMutedFs12M0Lh1_55}>
+      <p className={styles.readinessTileBlockers}>
         {blockerText}
         {item.blockers.length > 2 ? ` +${item.blockers.length - 2}` : ""}
       </p>
-      <p className={styles.textTextDimFs11}>
+      <p className={styles.readinessTileNext}>
         {item.nextAction}
       </p>
     </div>
@@ -789,7 +789,7 @@ function MiniTimeline({
   return (
     <div>
       <div
-        className={styles.rowAlignEndGap3}
+        className={styles.timelineBars}
       >
         {buckets.map((b) => {
           const inHeight = (b.inScope / max) * 100;
@@ -798,7 +798,7 @@ function MiniTimeline({
             <div
               key={b.day}
               title={`${new Date(b.day).toLocaleDateString("pt-BR")} — in: ${b.inScope}, out: ${b.outOfScope}`}
-              className={styles.stackEndCursorDefault}
+              className={styles.timelineBar}
             >
               {b.outOfScope > 0 && (
                 <div
@@ -823,10 +823,10 @@ function MiniTimeline({
         })}
       </div>
       <div
-        className={styles.rowTextDimFs9}
+        className={styles.timelineAxis}
       >
         {buckets.map((b, i) => (
-          <div key={b.day} className={styles.boxCenterAlignedFlex1}>
+          <div key={b.day} className={styles.timelineAxisLabel}>
             {i % Math.ceil(buckets.length / 7) === 0
               ? new Date(b.day).toLocaleDateString("pt-BR", {
                   day: "2-digit",
@@ -837,17 +837,17 @@ function MiniTimeline({
         ))}
       </div>
       <div
-        className={styles.rowTextMutedFs11}
+        className={styles.timelineLegend}
       >
-        <span className={styles.rowCenteredGap62}>
+        <span className={styles.legendItem}>
           <span
-            className={styles.labelBgTextW10}
+            className={styles.legendSwatchInScope}
           />
           in-scope
         </span>
-        <span className={styles.rowCenteredGap62}>
+        <span className={styles.legendItem}>
           <span
-            className={styles.labelBgAccentW10}
+            className={styles.legendSwatchOutScope}
           />
           out-of-scope
         </span>

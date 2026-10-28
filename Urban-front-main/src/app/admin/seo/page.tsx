@@ -46,7 +46,7 @@ const actionIconMap: Record<AdminSeoActionIcon, typeof Icons.FileText> = {
 
 export default function AdminSeoPage() {
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN - SEO / SGO / GEO"
         title="Governança de busca e AI Search"
@@ -58,36 +58,36 @@ export default function AdminSeoPage() {
         }
       />
 
-      <section className={styles.sectionMb56}>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
+      <section className={styles.section}>
+        <p className={`urban-admin-eyebrow ${styles.sectionEyebrow}`}>
           OPERAÇÃO DE MEDIÇÃO
         </p>
 
         <div
-          className={styles.gridColsAutoGap24}
+          className={styles.scoreGrid}
         >
           <AdminCard variant="accent">
-            <div className={styles.rowBetweenStart}>
-              <div className={styles.boxMinw0}>
-                <div className={styles.rowCenteredWrap}>
+            <div className={styles.scoreHeader}>
+              <div className={styles.contentColumn}>
+                <div className={styles.scoreTitleRow}>
                   <p className="urban-admin-eyebrow">{completion.label}</p>
                   <AdminBadge kind="accent">{completion.status}</AdminBadge>
                 </div>
-                <p className={styles.textTextMutedFs13}>
+                <p className={styles.scoreDetail}>
                   {completion.detail}
                 </p>
               </div>
-              <div className={styles.boxRightAlignedNoShrink}>
-                <strong className={styles.strongTextFs56}>
+              <div className={styles.scoreValueBox}>
+                <strong className={styles.scoreValue}>
                   {completion.value}%
                 </strong>
-                <span className={styles.labelTextMutedFs11}>
+                <span className={styles.scoreValueLabel}>
                   geral
                 </span>
               </div>
             </div>
 
-            <div className={styles.boxBgSurfaceElevatedMt22}>
+            <div className={styles.progressTrack}>
               <div
                 style={{
                   width: `${completion.value}%`,
@@ -97,14 +97,14 @@ export default function AdminSeoPage() {
               />
             </div>
 
-            <div className={styles.gridColsAuto180Gap14}>
+            <div className={styles.scoreMetaGrid}>
               <ScoreMeta label="Formula" value={completion.formula} />
               <ScoreMeta label="Fonte atual" value={completion.trace.source} />
               <ScoreMeta label="Cadencia" value={completion.trace.cadence} />
               <ScoreMeta label="Atualizado" value={completion.trace.lastUpdatedLabel} />
             </div>
 
-            <div className={styles.gridColsAuto170Gap12}>
+            <div className={styles.scoreBreakdownGrid}>
               {scoreBreakdown.map((item) => (
                 <ScoreBreakdown key={item.label} {...item} />
               ))}
@@ -117,7 +117,7 @@ export default function AdminSeoPage() {
               title="Da estimativa manual para dado real"
               actions={<AdminBadge kind="warn">Instrumentar</AdminBadge>}
             />
-            <div className={styles.stackGap14}>
+            <div className={styles.itemList}>
               {integrationRoadmap.map((integration) => (
                 <IntegrationRow key={integration.name} {...integration} />
               ))}
@@ -126,14 +126,14 @@ export default function AdminSeoPage() {
         </div>
 
         <AdminCard variant="subtle" className={styles.flushCard}>
-          <div className={styles.boxP20x20x0}>
+          <div className={styles.tableCardHeader}>
             <AdminCardHeader
               eyebrow="INDICADORES OPERACIONAIS"
               title="Fonte, status e cadência por medição"
             />
           </div>
-          <div className={styles.boxScroll}>
-            <table className={styles.tableW100pctMinw980}>
+          <div className={styles.tableScroll}>
+            <table className={styles.metricsTable}>
               <thead>
                 <tr>
                   {["Indicador", "Valor", "Fonte atual", "Cadencia", "Status integração", "Atualizado / próxima"].map((header) => (
@@ -154,14 +154,14 @@ export default function AdminSeoPage() {
       </section>
 
       <section
-        className={styles.gridColsAutoGap24Mb56}
+        className={styles.statusPolicyGrid}
       >
         <AdminCard variant="subtle">
           <AdminCardHeader
             eyebrow="STATUS TÉCNICO"
             title="Fundacao de rastreamento"
           />
-          <div className={styles.gridColsAuto220Gap14}>
+          <div className={styles.statusTileGrid}>
             {technicalStatus.map((item) => (
               <StatusTile key={item.label} {...item} />
             ))}
@@ -173,7 +173,7 @@ export default function AdminSeoPage() {
             eyebrow="CRAWLER POLICY"
             title="Politica operacional"
           />
-          <div className={styles.stackGap14}>
+          <div className={styles.itemList}>
             {crawlerPolicy.map((policy) => (
               <PolicyRow key={policy.agent} {...policy} />
             ))}
@@ -181,17 +181,17 @@ export default function AdminSeoPage() {
         </AdminCard>
       </section>
 
-      <section className={styles.sectionMb56}>
-        <header className={styles.headerMb20}>
+      <section className={styles.section}>
+        <header className={styles.sectionHeader}>
           <p className="urban-admin-eyebrow">READINESS 100%</p>
-          <h2 className={styles.headingTextFs20}>
+          <h2 className={styles.sectionTitle}>
             Conectores prontos para dados reais
           </h2>
         </header>
 
         <AdminCard variant="subtle" className={styles.flushCard}>
-          <div className={styles.boxScroll}>
-            <table className={styles.tableW100pctMinw960}>
+          <div className={styles.tableScroll}>
+            <table className={styles.connectorsTable}>
               <thead>
                 <tr>
                   {["Conector", "Readiness", "Variaveis", "Endpoint seguro", "Nota"].map((header) => (
@@ -211,17 +211,17 @@ export default function AdminSeoPage() {
         </AdminCard>
       </section>
 
-      <section className={styles.sectionMb56}>
-        <header className={styles.headerMb20}>
+      <section className={styles.section}>
+        <header className={styles.sectionHeader}>
           <p className="urban-admin-eyebrow">MATRIZ AI SEARCH</p>
-          <h2 className={styles.headingTextFs20}>
+          <h2 className={styles.sectionTitle}>
             Perguntas que a Urban precisa responder melhor que o mercado
           </h2>
         </header>
 
         <AdminCard variant="subtle" className={styles.flushCard}>
-          <div className={styles.boxScroll}>
-            <table className={styles.tableW100pctMinw860}>
+          <div className={styles.tableScroll}>
+            <table className={styles.aiSearchTable}>
               <thead>
                 <tr>
                   {["Cluster", "Pergunta", "Intenção", "Ativo fonte", "Readiness"].map((header) => (
@@ -254,37 +254,37 @@ export default function AdminSeoPage() {
       </section>
 
       <section
-        className={styles.gridColsAutoGap242}
+        className={styles.backlogGrid}
       >
         <AdminCard variant="subtle">
           <AdminCardHeader
             eyebrow="BACKLOG P0 / P1 / P2"
             title="Fila priorizada"
           />
-          <div className={styles.stackGap12}>
+          <div className={styles.backlogList}>
             {backlog.map((item) => (
               <BacklogRow key={item.title} {...item} />
             ))}
           </div>
         </AdminCard>
 
-        <div className={styles.gridGap16}>
+        <div className={styles.actionCardList}>
           {actionCards.map((card) => {
             const Icon = actionIconMap[card.icon];
 
             return (
               <AdminCard key={card.title} variant="default">
-                <div className={styles.rowStartGap14}>
+                <div className={styles.actionCardRow}>
                   <div
-                    className={styles.rowJustifyCenterCentered}
+                    className={styles.actionIcon}
                   >
                     <Icon size={18} />
                   </div>
-                  <div className={styles.boxMinw0Flex1}>
-                    <h3 className={styles.subheadingTextFs15}>
+                  <div className={styles.actionCardBody}>
+                    <h3 className={styles.actionCardTitle}>
                       {card.title}
                     </h3>
-                    <p className={styles.textTextMutedFs13M8x0x16Lh1_55}>
+                    <p className={styles.actionCardText}>
                       {card.body}
                     </p>
                     <AdminButton variant="secondary" size="sm" rightIcon={<Icons.ArrowRight size={12} />}>
@@ -298,7 +298,7 @@ export default function AdminSeoPage() {
         </div>
       </section>
 
-      <section className={styles.sectionMt56}>
+      <section className={styles.checkpointsSection}>
         <AdminCard variant="accent">
           <AdminCardHeader
             eyebrow="CHECKPOINTS PARA 100%"
@@ -306,11 +306,11 @@ export default function AdminSeoPage() {
             actions={<AdminBadge kind="warn">{completion.remaining.length} pendencias</AdminBadge>}
           />
 
-          <div className={styles.gridColsAuto220Gap12}>
+          <div className={styles.checkpointGrid}>
             {completion.remaining.map((item) => (
-              <div key={item} className={styles.rowStartGap8}>
+              <div key={item} className={styles.checkpointItem}>
                 <AdminStatusDot kind="warn" size={7} />
-                <span className={styles.labelTextMutedFs12}>
+                <span className={styles.checkpointText}>
                   {item}
                 </span>
               </div>
@@ -325,10 +325,10 @@ export default function AdminSeoPage() {
 function ScoreMeta({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb6}`}>
+      <p className={`urban-admin-eyebrow-muted ${styles.scoreMetaLabel}`}>
         {label}
       </p>
-      <p className={styles.textTextFs12}>
+      <p className={styles.scoreMetaValue}>
         {value}
       </p>
     </div>
@@ -342,15 +342,15 @@ function ScoreBreakdown({
 }: AdminSeoScoreBreakdownItem) {
   return (
     <div
-      className={styles.boxBgSurfaceP12}
+      className={styles.breakdownTile}
     >
-      <div className={styles.rowCenteredGap8}>
+      <div className={styles.statusRow}>
         <AdminStatusDot kind={status} size={7} />
-        <span className={styles.labelTextMutedFs11Lh1_35}>
+        <span className={styles.breakdownLabel}>
           {label}
         </span>
       </div>
-      <strong className={styles.strongTextFs20}>
+      <strong className={styles.breakdownValue}>
         {value}
       </strong>
     </div>
@@ -366,24 +366,24 @@ function IntegrationRow({
 }: AdminSeoIntegrationRoadmapItem) {
   return (
     <div
-      className={styles.gridColsGap14}
+      className={styles.integrationRow}
     >
       <div>
-        <div className={styles.rowCenteredGap8}>
+        <div className={styles.statusRow}>
           <AdminStatusDot kind={statusKind} size={8} />
-          <span className={styles.labelTextFs13}>
+          <span className={styles.integrationName}>
             {name}
           </span>
         </div>
-        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMt8}`}>
+        <p className={`urban-admin-eyebrow-muted ${styles.integrationCadence}`}>
           {trace.cadence}
         </p>
-        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMt6}`}>
+        <p className={`urban-admin-eyebrow-muted ${styles.integrationUpdated}`}>
           {trace.lastUpdatedLabel}
         </p>
       </div>
       <div>
-        <p className={styles.textTextMutedFs12}>
+        <p className={styles.detailText}>
           {purpose}
         </p>
         <AdminBadge kind={integrationBadgeKind(trace.integrationStatus)} className={styles.traceBadge}>
@@ -406,11 +406,11 @@ function ConnectorReadinessRow({
   return (
     <tr>
       <td style={{ ...tdStyle, color: "var(--admin-text)", fontWeight: 600 }}>
-        <div className={styles.rowCenteredGap8}>
+        <div className={styles.statusRow}>
           <AdminStatusDot kind={status} size={8} />
           <span>{name}</span>
         </div>
-        <p className={styles.textTextMutedFs12W400M6x0x0Lh1_45}>
+        <p className={styles.cellSubtext}>
           {provider}
         </p>
       </td>
@@ -418,7 +418,7 @@ function ConnectorReadinessRow({
         <AdminBadge kind={status}>{readiness}</AdminBadge>
       </td>
       <td style={tdStyle}>
-        <div className={styles.rowWrapGap6}>
+        <div className={styles.envKeyList}>
           {envKeys.map((envKey) => (
             <AdminBadge key={envKey} kind="neutral">
               {envKey}
@@ -443,16 +443,16 @@ function OperationalMetricRow({
   return (
     <tr>
       <td style={{ ...tdStyle, color: "var(--admin-text)", fontWeight: 600 }}>
-        <div className={styles.rowCenteredGap8}>
+        <div className={styles.statusRow}>
           <AdminStatusDot kind={status} size={8} />
           <span>{label}</span>
         </div>
-        <p className={styles.textTextMutedFs12W400M6x0x0Lh1_45}>
+        <p className={styles.cellSubtext}>
           {detail}
         </p>
       </td>
       <td style={tdStyle}>
-        <strong className={styles.strongTextFs18}>
+        <strong className={styles.metricValue}>
           {typeof value === "number" ? value.toLocaleString("pt-BR") : value}
         </strong>
       </td>
@@ -462,12 +462,12 @@ function OperationalMetricRow({
       <td style={tdStyle}>{trace.cadence}</td>
       <td style={tdStyle}>
         <AdminBadge kind={integrationBadgeKind(trace.integrationStatus)}>{trace.integrationStatusLabel}</AdminBadge>
-        <p className={styles.textTextMutedFs11}>
+        <p className={styles.metricStatusLabel}>
           {statusLabel}
         </p>
       </td>
       <td style={tdStyle}>
-        <span className={styles.labelMb8}>{trace.lastUpdatedLabel}</span>
+        <span className={styles.lastUpdatedLabel}>{trace.lastUpdatedLabel}</span>
         {trace.nextIntegrationLabel && (
           <AdminBadge kind={status === "success" ? "accent" : "warn"}>
             {trace.nextIntegrationLabel}
@@ -486,16 +486,16 @@ function StatusTile({
 }: AdminSeoTechnicalStatusItem) {
   return (
     <div
-      className={styles.boxBgSurfaceP16}
+      className={styles.statusTile}
     >
-      <div className={styles.rowCenteredGap8}>
+      <div className={styles.statusRow}>
         <AdminStatusDot kind={status} size={8} />
         <p className="urban-admin-eyebrow-muted">{label}</p>
       </div>
-      <p className={styles.textTextFs15}>
+      <p className={styles.statusTileValue}>
         {value}
       </p>
-      <p className={styles.textTextMutedFs12}>
+      <p className={styles.detailText}>
         {detail}
       </p>
     </div>
@@ -509,18 +509,18 @@ function PolicyRow({
   status,
 }: AdminSeoCrawlerPolicy) {
   return (
-    <div className={styles.gridColsGap142}>
-      <div className={styles.rowCenteredGap8}>
+    <div className={styles.policyRow}>
+      <div className={styles.statusRow}>
         <AdminStatusDot kind={status} size={8} />
-        <span className={styles.labelTextFs12}>
+        <span className={styles.policyAgent}>
           {agent}
         </span>
       </div>
       <div>
-        <p className={styles.textTextFs13}>
+        <p className={styles.policyText}>
           {policy}
         </p>
-        <p className={styles.textTextMutedFs12M4x0x0Lh1_5}>
+        <p className={styles.policyScope}>
           {scope}
         </p>
       </div>
@@ -531,8 +531,8 @@ function PolicyRow({
 function Readiness({ value }: { value: number }) {
   const kind: AdminSeoStatusKind = value >= 75 ? "success" : value >= 60 ? "warn" : "error";
   return (
-    <div className={styles.rowCenteredGap10}>
-      <div className={styles.boxBgDividerH3}>
+    <div className={styles.readinessRow}>
+      <div className={styles.readinessTrack}>
         <div
           style={{
             width: `${value}%`,
@@ -546,7 +546,7 @@ function Readiness({ value }: { value: number }) {
           }}
         />
       </div>
-      <span className={styles.labelTextFs12W600Mono}>
+      <span className={styles.readinessValue}>
         {value}
       </span>
     </div>
@@ -563,22 +563,22 @@ function BacklogRow({
   const badgeKind = priority === "P0" ? "error" : priority === "P1" ? "warn" : "neutral";
   return (
     <div
-      className={styles.gridColsGap14P14x0Bordered}
+      className={styles.backlogRow}
     >
       <AdminBadge kind={badgeKind}>{priority}</AdminBadge>
-      <div className={styles.boxMinw0}>
-        <p className={styles.textTextFs14}>
+      <div className={styles.contentColumn}>
+        <p className={styles.backlogTitle}>
           {title}
         </p>
-        <p className={styles.textTextMutedFs12M5x0x0Lh1_5}>
+        <p className={styles.backlogImpact}>
           {impact}
         </p>
       </div>
-      <div className={styles.boxRightAligned}>
-        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb5}`}>
+      <div className={styles.backlogMeta}>
+        <p className={`urban-admin-eyebrow-muted ${styles.backlogOwner}`}>
           {owner}
         </p>
-        <span className={styles.labelTextMutedFs112}>
+        <span className={styles.backlogStatus}>
           {status}
         </span>
       </div>

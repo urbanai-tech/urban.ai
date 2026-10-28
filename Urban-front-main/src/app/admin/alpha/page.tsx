@@ -154,7 +154,7 @@ export default function AdminAlphaPage() {
       key: "property",
       header: "Imóvel",
       render: (r) => (
-        <span className={styles.labelTextW500}>
+        <span className={styles.propertyTitle}>
           {r.property.title || r.property.listId}
         </span>
       ),
@@ -164,11 +164,11 @@ export default function AdminAlphaPage() {
       header: "Evento",
       render: (r) => (
         <div>
-          <p className={styles.textTextW500}>
+          <p className={styles.eventName}>
             {r.event.name}
           </p>
           <p
-            className={styles.textTextDimFs11}
+            className={styles.eventDate}
           >
             {r.event.startsAt
               ? new Date(r.event.startsAt).toLocaleDateString("pt-BR")
@@ -183,7 +183,7 @@ export default function AdminAlphaPage() {
       width: 100,
       align: "right",
       render: (r) => (
-        <span className={styles.labelTextMono}>
+        <span className={styles.priceCurrent}>
           {formatBRL(r.pricing.current)}
         </span>
       ),
@@ -195,7 +195,7 @@ export default function AdminAlphaPage() {
       align: "right",
       render: (r) => (
         <span
-          className={styles.labelAccentW600}
+          className={styles.priceSuggested}
         >
           {formatBRL(r.pricing.suggested)}
         </span>
@@ -207,7 +207,7 @@ export default function AdminAlphaPage() {
       width: 100,
       align: "right",
       render: (r) => (
-        <span className={styles.labelTextMutedMono}>
+        <span className={styles.priceLift}>
           {r.pricing.lift === null ? "—" : formatBRL(r.pricing.lift)}
         </span>
       ),
@@ -217,7 +217,7 @@ export default function AdminAlphaPage() {
       header: "Status",
       width: 120,
       render: (r) => (
-        <code className={styles.codeTextMutedFs11}>
+        <code className={styles.statusCode}>
           {r.lifecycle.status}
         </code>
       ),
@@ -226,7 +226,7 @@ export default function AdminAlphaPage() {
       key: "outcome",
       header: "Resultado",
       render: (r) => (
-        <span className={styles.labelTextMutedFs12}>
+        <span className={styles.outcomeCell}>
           {r.outcome.reservationStatus || "pendente"}
           {r.outcome.realRevenue ? ` · ${formatBRL(r.outcome.realRevenue)}` : ""}
         </span>
@@ -237,23 +237,23 @@ export default function AdminAlphaPage() {
       header: "Flags",
       render: (r) =>
         r.qualityFlags.length ? (
-          <span className={styles.labelWarningFs11}>
+          <span className={styles.flagsWarning}>
             {r.qualityFlags.join(", ")}
           </span>
         ) : (
-          <span className={styles.labelSuccessFs11}>ok</span>
+          <span className={styles.flagsOk}>ok</span>
         ),
     },
   ];
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · ALPHA"
         title="Painel Alpha"
         subtitle="KPIs reais, auditoria de recomendações e rotina de reprocessamento."
         actions={
-          <div className={styles.rowCenteredWrap}>
+          <div className={styles.headerActions}>
             <AdminInput
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -293,7 +293,7 @@ export default function AdminAlphaPage() {
       />
 
       {error && (
-        <div className={styles.boxMb32}>
+        <div className={styles.stateBlock}>
           <AdminEmptyState
             eyebrow="Erro"
             title="Falha no painel alpha"
@@ -304,7 +304,7 @@ export default function AdminAlphaPage() {
       )}
 
       {!error && !dashboard && (
-        <div className={styles.boxMb32}>
+        <div className={styles.stateBlock}>
           <AdminEmptyState
             eyebrow="ALPHA"
             title="Informe um usuário"
@@ -317,30 +317,30 @@ export default function AdminAlphaPage() {
       {dashboard && (
         <>
           {/* === Hero KPI: Receita real === */}
-          <section className={styles.sectionMb56}>
+          <section className={styles.heroSection}>
             <AdminCard variant="accent" className={styles.heroCard}>
               <div
-                className={styles.gridColsGap32}
+                className={styles.heroGrid}
               >
                 <div>
                   <p className="urban-admin-eyebrow">RECEITA REAL (ALPHA)</p>
                   <p
-                    className={`urban-admin-display-hero ${styles.displayHeroAccentMt12}`}
+                    className={`urban-admin-display-hero ${styles.heroValue}`}
                   >
                     {formatBRL(dashboard.recommendations.realRevenue)}
                   </p>
                   <p
-                    className={styles.textTextMutedFs14}
+                    className={styles.heroDescription}
                   >
                     Receita captada a partir de recomendações aplicadas ·{" "}
                     Lift diário potencial:{" "}
-                    <span className={styles.labelAccentW6002}>
+                    <span className={styles.heroHighlight}>
                       {formatBRL(dashboard.recommendations.potentialDailyLift)}
                     </span>
                   </p>
                 </div>
                 <div
-                  className={styles.gridColsGap16}
+                  className={styles.heroStats}
                 >
                   <InlineStat
                     label="Aplicados"
@@ -360,12 +360,12 @@ export default function AdminAlphaPage() {
           </section>
 
           {/* === KPIs principais === */}
-          <section className={styles.sectionMb64}>
-            <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
+          <section className={styles.metricsSection}>
+            <p className={`urban-admin-eyebrow ${styles.sectionEyebrow}`}>
               INDICADORES OPERACIONAIS
             </p>
             <div
-              className={styles.gridColsAuto200Gap32}
+              className={styles.metricsGrid}
             >
               <AdminMetricCard
                 label="Imóveis alpha"
@@ -398,26 +398,26 @@ export default function AdminAlphaPage() {
 
           {/* === Qualidade + Operação === */}
           <section
-            className={styles.gridColsGap24}
+            className={styles.breakdownGrid}
           >
             <AdminCard variant="subtle">
               <AdminCardHeader title="Qualidade de eventos" />
               {qualityFlags.length ? (
-                <ul className={styles.listM0P0}>
+                <ul className={styles.flagList}>
                   {qualityFlags.map(([flag, count]) => (
                     <li
                       key={flag}
-                      className={styles.rowBetweenFs13}
+                      className={styles.flagRow}
                     >
-                      <code className={styles.codeText}>{flag}</code>
-                      <span className={styles.labelWarningW600}>
+                      <code className={styles.flagName}>{flag}</code>
+                      <span className={styles.flagCount}>
                         {count.toLocaleString("pt-BR")}
                       </span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className={styles.textSuccessFs13}>
+                <p className={styles.flagsEmptyHint}>
                   Sem flags nas recomendações atuais.
                 </p>
               )}
@@ -426,7 +426,7 @@ export default function AdminAlphaPage() {
             <AdminCard variant="subtle">
               <AdminCardHeader title="Operação" />
               <div
-                className={styles.gridColsAuto180Gap16}
+                className={styles.operationGrid}
               >
                 <SmallStat label="Tester" value={dashboard.user.email} />
                 <SmallStat
@@ -444,17 +444,17 @@ export default function AdminAlphaPage() {
           {/* === Auditoria de recomendações === */}
           <section>
             <header
-              className={styles.rowBetweenCentered}
+              className={styles.auditHeader}
             >
               <div>
                 <p className="urban-admin-eyebrow">AUDITORIA</p>
                 <h2
-                  className={styles.headingTextFs20}
+                  className={styles.auditTitle}
                 >
                   Recomendações
                 </h2>
               </div>
-              <span className={styles.labelTextDimFs11}>
+              <span className={styles.auditRowCount}>
                 {rows.length.toLocaleString("pt-BR")} linhas · mostrando até 100
               </span>
             </header>
@@ -482,7 +482,7 @@ function InlineStat({ label, value }: { label: string; value: string }) {
     <div>
       <p className="urban-admin-eyebrow-muted">{label}</p>
       <p
-        className={styles.textTextFs22}
+        className={styles.statValue}
       >
         {value}
       </p>
@@ -495,7 +495,7 @@ function SmallStat({ label, value }: { label: string; value: string }) {
     <div>
       <p className="urban-admin-eyebrow-muted">{label}</p>
       <p
-        className={styles.textTextFs13}
+        className={styles.smallStatValue}
       >
         {value}
       </p>

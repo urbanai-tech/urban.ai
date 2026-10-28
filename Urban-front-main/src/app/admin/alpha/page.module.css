@@ -1,103 +1,103 @@
-.labelTextW500.labelTextW500 {
+.propertyTitle.propertyTitle {
   color: var(--admin-text);
   font-weight: 500;
 }
 
-.textTextW500.textTextW500 {
+.eventName.eventName {
   font-weight: 500;
   color: var(--admin-text);
   margin: 0;
 }
 
-.textTextDimFs11.textTextDimFs11 {
+.eventDate.eventDate {
   font-size: 11px;
   color: var(--admin-text-dim);
   margin: 2px 0 0;
   font-family: monospace;
 }
 
-.labelTextMono.labelTextMono {
+.priceCurrent.priceCurrent {
   font-family: monospace;
   color: var(--admin-text);
 }
 
-.labelAccentW600.labelAccentW600 {
+.priceSuggested.priceSuggested {
   font-family: monospace;
   color: var(--admin-accent);
   font-weight: 600;
 }
 
-.labelTextMutedMono.labelTextMutedMono {
+.priceLift.priceLift {
   font-family: monospace;
   color: var(--admin-text-muted);
 }
 
-.codeTextMutedFs11.codeTextMutedFs11 {
+.statusCode.statusCode {
   font-size: 11px;
   color: var(--admin-text-muted);
 }
 
-.labelTextMutedFs12.labelTextMutedFs12 {
+.outcomeCell.outcomeCell {
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.labelWarningFs11.labelWarningFs11 {
+.flagsWarning.flagsWarning {
   font-size: 11px;
   color: var(--admin-warning);
 }
 
-.labelSuccessFs11.labelSuccessFs11 {
+.flagsOk.flagsOk {
   font-size: 11px;
   color: var(--admin-success);
 }
 
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.pageContainer.pageContainer {
   max-width: 1400px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.rowCenteredWrap.rowCenteredWrap {
+.headerActions.headerActions {
   display: flex;
   gap: 10px;
   align-items: center;
   flex-wrap: wrap;
 }
 
-.boxMb32.boxMb32 {
+.stateBlock.stateBlock {
   margin-bottom: 32px;
 }
 
-.sectionMb56.sectionMb56 {
+.heroSection.heroSection {
   margin-bottom: 56px;
 }
 
-.gridColsGap32.gridColsGap32 {
+.heroGrid.heroGrid {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   gap: 32px;
   align-items: end;
 }
 
-.displayHeroAccentMt12.displayHeroAccentMt12 {
+.heroValue.heroValue {
   margin-top: 12px;
   color: var(--admin-accent);
 }
 
-.textTextMutedFs14.textTextMutedFs14 {
+.heroDescription.heroDescription {
   margin-top: 12px;
   font-size: 14px;
   color: var(--admin-text-muted);
   line-height: 1.55;
 }
 
-.labelAccentW6002.labelAccentW6002 {
+.heroHighlight.heroHighlight {
   color: var(--admin-accent);
   font-weight: 600;
 }
 
-.gridColsGap16.gridColsGap16 {
+.heroStats.heroStats {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
@@ -105,15 +105,15 @@
   padding-left: 32px;
 }
 
-.sectionMb64.sectionMb64 {
+.metricsSection.metricsSection {
   margin-bottom: 64px;
 }
 
-.eyebrowMb24.eyebrowMb24 {
+.sectionEyebrow.sectionEyebrow {
   margin-bottom: 24px;
 }
 
-.gridColsAuto200Gap32.gridColsAuto200Gap32 {
+.metricsGrid.metricsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 32px;
@@ -121,20 +121,20 @@
   border-bottom: 1px solid var(--admin-divider);
 }
 
-.gridColsGap24.gridColsGap24 {
+.breakdownGrid.breakdownGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   gap: 24px;
   margin-bottom: 56px;
 }
 
-.listM0P0.listM0P0 {
+.flagList.flagList {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.rowBetweenFs13.rowBetweenFs13 {
+.flagRow.flagRow {
   display: flex;
   justify-content: space-between;
   padding: 10px 0;
@@ -142,28 +142,28 @@
   font-size: 13px;
 }
 
-.codeText.codeText {
+.flagName.flagName {
   color: var(--admin-text);
 }
 
-.labelWarningW600.labelWarningW600 {
+.flagCount.flagCount {
   color: var(--admin-warning);
   font-weight: 600;
 }
 
-.textSuccessFs13.textSuccessFs13 {
+.flagsEmptyHint.flagsEmptyHint {
   font-size: 13px;
   color: var(--admin-success);
   margin: 0;
 }
 
-.gridColsAuto180Gap16.gridColsAuto180Gap16 {
+.operationGrid.operationGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 16px;
 }
 
-.rowBetweenCentered.rowBetweenCentered {
+.auditHeader.auditHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -171,7 +171,7 @@
   margin-bottom: 20px;
 }
 
-.headingTextFs20.headingTextFs20 {
+.auditTitle.auditTitle {
   font-size: 20px;
   font-weight: 600;
   color: var(--admin-text);
@@ -179,14 +179,14 @@
   letter-spacing: -0.3px;
 }
 
-.labelTextDimFs11.labelTextDimFs11 {
+.auditRowCount.auditRowCount {
   font-size: 11px;
   color: var(--admin-text-dim);
   letter-spacing: 1.5px;
   text-transform: uppercase;
 }
 
-.textTextFs22.textTextFs22 {
+.statValue.statValue {
   font-size: 22px;
   font-weight: 600;
   color: var(--admin-text);
@@ -195,7 +195,7 @@
   letter-spacing: -0.3px;
 }
 
-.textTextFs13.textTextFs13 {
+.smallStatValue.smallStatValue {
   font-size: 13px;
   color: var(--admin-text);
   margin: 6px 0 0;
