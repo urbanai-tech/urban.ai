@@ -29,6 +29,7 @@ import {
   Icons,
   type AdminTableColumn,
 } from "../../_components";
+import styles from "./page.module.css";
 
 type StatusFilter = EventDedupCandidateStatus | "all";
 type ConfidenceFilter = EventDedupConfidenceBand | "all";
@@ -156,8 +157,8 @@ export default function AdminEventDedupPage() {
       header: "Score",
       width: 105,
       render: (candidate) => (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <span style={{ fontFamily: "monospace", fontSize: 15, color: "var(--admin-text)" }}>
+        <div className={styles.stackGap6}>
+          <span className={styles.labelTextFs15}>
             {Math.round(candidate.score * 100)}%
           </span>
           <AdminBadge kind={candidate.confidenceBand === "high" ? "accent" : "warn"}>
@@ -190,7 +191,7 @@ export default function AdminEventDedupPage() {
       align: "right",
       render: (candidate) =>
         candidate.status === "pending" ? (
-          <div style={{ display: "inline-flex", gap: 8 }}>
+          <div className={styles.rowGap8}>
             <AdminButton
               size="sm"
               variant="primary"
@@ -224,13 +225,13 @@ export default function AdminEventDedupPage() {
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
   return (
-    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "32px 28px 56px" }}>
+    <div className={styles.boxM0xautoP32x28x56}>
       <AdminSectionHeader
         eyebrow="Motor de eventos"
         title="Deduplicação"
         subtitle="Fila operacional de revisão e merge de eventos encontrados por múltiplas fontes."
         actions={
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <div className={styles.rowCenteredGap8}>
             <AdminInput
               aria-label="Limite do scan"
               type="number"
@@ -260,12 +261,7 @@ export default function AdminEventDedupPage() {
       )}
 
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-          gap: 18,
-          marginBottom: 22,
-        }}
+        className={styles.gridCols4Gap18}
       >
         <AdminMetricCard label="Fila filtrada" value={total} variant="sm" accent />
         <AdminMetricCard label="Pendentes visíveis" value={pending} variant="sm" status={pending ? "warn" : "success"} />
@@ -276,11 +272,7 @@ export default function AdminEventDedupPage() {
       {lastScan && (
         <AdminCard variant="subtle" style={{ marginBottom: 22 }}>
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
-              gap: 16,
-            }}
+            className={styles.gridCols5Gap16}
           >
             <ScanStat label="Eventos" value={lastScan.scannedEvents} />
             <ScanStat label="Review pending" value={lastScan.reviewPendingEvents} />
@@ -296,7 +288,7 @@ export default function AdminEventDedupPage() {
           eyebrow="Revisão"
           title="Candidatos"
           actions={
-            <div style={{ display: "flex", gap: 10 }}>
+            <div className={styles.rowGap10}>
               <AdminSelect
                 aria-label="Status"
                 value={status}
@@ -363,20 +355,12 @@ export default function AdminEventDedupPage() {
 
         {total > limit && (
           <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 12,
-              marginTop: 14,
-              fontSize: 12,
-              color: "var(--admin-text-muted)",
-            }}
+            className={styles.rowBetweenCentered}
           >
             <span>
               Página {page} de {totalPages} · {total.toLocaleString("pt-BR")} candidato(s)
             </span>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div className={styles.rowGap82}>
               <AdminButton
                 size="sm"
                 variant="ghost"
@@ -410,8 +394,8 @@ export default function AdminEventDedupPage() {
         destructive
         loading={!!actionId}
         body={
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <span style={{ fontSize: 13, color: "var(--admin-text-muted)" }}>
+          <div className={styles.stackGap8}>
+            <span className={styles.labelTextMutedFs13}>
               Motivo da rejeição (opcional):
             </span>
             <AdminTextarea
@@ -428,38 +412,25 @@ export default function AdminEventDedupPage() {
 }
 
 function EventCell({ event }: { event: EventDedupEventSummary | null }) {
-  if (!event) return <span style={{ color: "var(--admin-text-muted)" }}>-</span>;
+  if (!event) return <span className={styles.labelTextMuted}>-</span>;
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
+    <div className={styles.stackGap6Minw0}>
       <span
-        style={{
-          fontSize: 13,
-          fontWeight: 600,
-          color: "var(--admin-text)",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}
+        className={styles.labelTextFs13}
         title={event.nome}
       >
         {event.nome}
       </span>
-      <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+      <span className={styles.labelTextMutedFs12}>
         {event.cidade || "-"} / {event.estado || "-"} · {formatDate(event.dataInicio)}
       </span>
       <span
-        style={{
-          fontSize: 11,
-          color: "var(--admin-text-muted)",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}
+        className={styles.labelTextMutedFs11}
         title={event.enderecoCompleto ?? ""}
       >
         {event.enderecoCompleto || "Endereço não informado"}
       </span>
-      <span style={{ fontSize: 11, color: "var(--admin-text-muted)", fontFamily: "monospace" }}>
+      <span className={styles.labelTextMutedFs11Mono}>
         {event.source || "sem-source"} · fontes {event.sourceCount ?? 0}
       </span>
     </div>
@@ -475,19 +446,13 @@ function SignalCell({ candidate }: { candidate: EventDedupCandidate }) {
     ["URL", signalValue(candidate.signals, "url")],
   ];
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-      <span style={{ fontSize: 12, color: "var(--admin-text)" }}>{candidate.reason}</span>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+    <div className={styles.stackGap8}>
+      <span className={styles.labelTextFs12}>{candidate.reason}</span>
+      <div className={styles.rowWrapGap6}>
         {entries.map(([label, value]) => (
           <span
             key={label}
-            style={{
-              border: "1px solid var(--admin-divider)",
-              padding: "3px 6px",
-              fontSize: 10,
-              color: "var(--admin-text-muted)",
-              fontFamily: "monospace",
-            }}
+            className={styles.labelTextMutedFs10}
           >
             {label}:{typeof value === "number" ? value.toFixed(2) : "-"}
           </span>
@@ -516,10 +481,10 @@ function signalValue(signals: EventDedupCandidate["signals"], key: string): numb
 function ScanStat({ label, value }: { label: string; value: number }) {
   return (
     <div>
-      <p className="urban-admin-eyebrow-muted" style={{ marginBottom: 6 }}>
+      <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb6}`}>
         {label}
       </p>
-      <p style={{ margin: 0, fontSize: 24, fontWeight: 600, color: "var(--admin-text)" }}>
+      <p className={styles.textTextFs24}>
         {value.toLocaleString("pt-BR")}
       </p>
     </div>

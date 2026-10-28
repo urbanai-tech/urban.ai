@@ -18,6 +18,7 @@ import {
   Icons,
 } from "../_components";
 import type { AdminStatusKind } from "../_components";
+import styles from "./page.module.css";
 
 /**
  * /admin/dashboard — overview executivo agregado em 1 chamada de API.
@@ -67,7 +68,7 @@ export default function AdminDashboardPage() {
 
   if (error) {
     return (
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Não foi possível carregar"
@@ -111,20 +112,20 @@ export default function AdminDashboardPage() {
   const emailProviderConfigured = data.email?.brevoApiKeyConfigured ?? false;
 
   return (
-    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32Maxw1400}>
       <AdminSectionHeader
         eyebrow="ADMIN · DASHBOARD EXECUTIVO"
         title="Snapshot da operação"
         subtitle={
           <span>
             Atualiza a cada 60s · Última leitura:{" "}
-            <strong style={{ color: "var(--admin-text)" }}>
+            <strong className={styles.strongText}>
               {new Date(data.generatedAt).toLocaleTimeString("pt-BR")}
             </strong>
           </span>
         }
         actions={
-          <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+          <div className={styles.rowCenteredWrap}>
             <AdminSwitch
               id="auto-refresh"
               checked={autoRefresh}
@@ -152,26 +153,14 @@ export default function AdminDashboardPage() {
         }}
       >
         <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 16,
-            flexWrap: "wrap",
-          }}
+          className={styles.rowBetweenCentered}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div className={styles.rowCenteredGap14}>
             <AdminStatusDot kind={healthKind} size={14} pulse={data.health !== "green"} />
             <div>
               <p className="urban-admin-eyebrow-muted">SAÚDE GERAL DO SISTEMA</p>
               <p
-                style={{
-                  fontSize: 20,
-                  fontWeight: 600,
-                  color: "var(--admin-text)",
-                  margin: "4px 0 0",
-                  letterSpacing: -0.3,
-                }}
+                className={styles.textTextFs20}
               >
                 {healthLabel}
               </p>
@@ -184,14 +173,7 @@ export default function AdminDashboardPage() {
 
         {data.alerts.length > 0 && (
           <ul
-            style={{
-              listStyle: "none",
-              padding: 0,
-              margin: "16px 0 0",
-              display: "flex",
-              flexDirection: "column",
-              gap: 10,
-            }}
+            className={styles.stackGap10M16x0x0}
           >
             {data.alerts.map((a, i) => {
               const aKind: AdminStatusKind =
@@ -203,18 +185,12 @@ export default function AdminDashboardPage() {
               return (
                 <li
                   key={i}
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: 12,
-                    fontSize: 13,
-                    color: "var(--admin-text)",
-                  }}
+                  className={styles.rowStartText}
                 >
-                  <span style={{ paddingTop: 5 }}>
+                  <span className={styles.label}>
                     <AdminStatusDot kind={aKind} size={7} />
                   </span>
-                  <span style={{ lineHeight: 1.55 }}>{a.message}</span>
+                  <span className={styles.labelLh1_55}>{a.message}</span>
                 </li>
               );
             })}
@@ -224,18 +200,14 @@ export default function AdminDashboardPage() {
 
       {/* === Fallback de eventos — só se cobertura abaixo do gate === */}
       {data.integrationsReadiness && (
-        <section style={{ marginBottom: 32 }}>
+        <section className={styles.sectionMb32}>
           <AdminCard variant="subtle">
             <AdminCardHeader
               title="Go-live Track 3"
               actions={<AdminBadge kind="neutral">sem chamadas externas</AdminBadge>}
             />
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: 16,
-              }}
+              className={styles.gridColsAuto220Gap16}
             >
               {Object.values(data.integrationsReadiness).map((item) => (
                 <ReadinessTile key={item.label} item={item} />
@@ -246,38 +218,20 @@ export default function AdminDashboardPage() {
       )}
 
       {data.events.next30d < 100 && (
-        <section style={{ marginBottom: 32 }}>
+        <section className={styles.sectionMb32}>
           <AdminCard variant="accent" style={{ padding: "20px 24px" }}>
             <div
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                justifyContent: "space-between",
-                gap: 24,
-                flexWrap: "wrap",
-              }}
+              className={styles.rowBetweenStart}
             >
-              <div style={{ minWidth: 0, flex: 1 }}>
+              <div className={styles.boxMinw0Flex1}>
                 <p className="urban-admin-eyebrow">FALLBACK MANUAL DE EVENTOS</p>
                 <h3
-                  style={{
-                    fontSize: 16,
-                    fontWeight: 600,
-                    color: "var(--admin-text)",
-                    margin: "8px 0 8px",
-                    letterSpacing: -0.2,
-                  }}
+                  className={styles.subheadingTextFs16}
                 >
                   Cobertura futura abaixo do gate beta
                 </h3>
                 <p
-                  style={{
-                    fontSize: 13,
-                    color: "var(--admin-text-muted)",
-                    lineHeight: 1.55,
-                    margin: 0,
-                    maxWidth: 720,
-                  }}
+                  className={styles.textTextMutedFs13}
                 >
                   Existem {data.events.next30d.toLocaleString("pt-BR")} eventos
                   nos próximos 30 dias. Para liberar beta assistido, complete o
@@ -285,7 +239,7 @@ export default function AdminDashboardPage() {
                   enquanto os coletores amadurecem.
                 </p>
               </div>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <div className={styles.rowWrapGap10}>
                 <AdminButton variant="primary" as="a" href="/admin/events/new" leftIcon={<Icons.Plus size={12} />}>
                   Cadastrar evento
                 </AdminButton>
@@ -303,12 +257,7 @@ export default function AdminDashboardPage() {
 
       {/* === 8 blocos — 2 rows × 4 cols === */}
       <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: 24,
-          marginBottom: 32,
-        }}
+        className={styles.gridColsAuto280Gap24}
       >
         <DataBlock title="Motor de eventos" icon={<Icons.Calendar size={14} />} href="/admin/events">
           <SmallStat label="Total" value={data.events.total} />
@@ -375,12 +324,7 @@ export default function AdminDashboardPage() {
       </section>
 
       <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: 24,
-          marginBottom: 32,
-        }}
+        className={styles.gridColsAuto280Gap24}
       >
         <DataBlock title="Recomendações" icon={<Icons.Activity size={14} />} href="/admin/funnel">
           <SmallStat
@@ -545,10 +489,10 @@ export default function AdminDashboardPage() {
 
       {/* === Bloqueios dataset (opcional) === */}
       {data.dataset.blockers.length > 0 && (
-        <section style={{ marginBottom: 32 }}>
+        <section className={styles.sectionMb32}>
           <AdminCard variant="default">
             <AdminCardHeader title="Bloqueios de dataset e qualidade" />
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            <ul className={styles.listM0P0}>
               {data.dataset.blockers.map((blocker) => {
                 const kind: AdminStatusKind =
                   blocker.severity === "red"
@@ -559,38 +503,23 @@ export default function AdminDashboardPage() {
                 return (
                   <li
                     key={blocker.code}
-                    style={{
-                      padding: "12px 0",
-                      borderBottom: "1px solid var(--admin-divider)",
-                      display: "flex",
-                      gap: 12,
-                      alignItems: "flex-start",
-                    }}
+                    className={styles.rowStartGap12}
                   >
-                    <span style={{ paddingTop: 6 }}>
+                    <span className={styles.label2}>
                       <AdminStatusDot kind={kind} size={7} />
                     </span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className={styles.boxMinw0Flex12}>
                       <p
-                        style={{
-                          fontSize: 13,
-                          color: "var(--admin-text)",
-                          margin: 0,
-                          fontWeight: 500,
-                        }}
+                        className={styles.textTextFs13}
                       >
-                        <code style={{ color: "var(--admin-accent)", fontWeight: 600 }}>
+                        <code className={styles.codeAccentW600}>
                           {blocker.code}
                         </code>
                         {": "}
                         {blocker.message}
                       </p>
                       <p
-                        style={{
-                          fontSize: 12,
-                          color: "var(--admin-text-muted)",
-                          margin: "4px 0 0",
-                        }}
+                        className={styles.textTextMutedFs12}
                       >
                         {blocker.nextAction}
                       </p>
@@ -605,12 +534,7 @@ export default function AdminDashboardPage() {
 
       {/* === Mini-timeline + Top sources === */}
       <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)",
-          gap: 24,
-          marginBottom: 32,
-        }}
+        className={styles.gridColsGap24}
       >
         <AdminCard variant="subtle">
           <AdminCardHeader
@@ -647,52 +571,33 @@ export default function AdminDashboardPage() {
           />
           {data.topSources.length === 0 ? (
             <p
-              style={{
-                fontSize: 13,
-                color: "var(--admin-text-muted)",
-                margin: 0,
-              }}
+              className={styles.textTextMutedFs13M0}
             >
               Sem dados nos últimos 7 dias.
             </p>
           ) : (
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            <ul className={styles.listM0P0}>
               {data.topSources.map((s, i) => {
                 const max = Math.max(...data.topSources.map((x) => x.count), 1);
                 const pct = (s.count / max) * 100;
                 return (
-                  <li key={s.source} style={{ marginBottom: 14 }}>
+                  <li key={s.source} className={styles.itemMb14}>
                     <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: 12,
-                        marginBottom: 6,
-                      }}
+                      className={styles.rowBetweenFs12}
                     >
                       <code
-                        style={{
-                          color: "var(--admin-text)",
-                          fontFamily: "monospace",
-                        }}
+                        className={styles.codeTextMono}
                       >
                         {String(i + 1).padStart(2, "0")} · {s.source}
                       </code>
                       <span
-                        style={{
-                          color: "var(--admin-accent)",
-                          fontWeight: 600,
-                        }}
+                        className={styles.codeAccentW600}
                       >
                         {s.count.toLocaleString("pt-BR")}
                       </span>
                     </div>
                     <div
-                      style={{
-                        height: 2,
-                        background: "var(--admin-divider)",
-                        overflow: "hidden",
-                      }}
+                      className={styles.boxBgDividerH2}
                     >
                       <div
                         style={{
@@ -711,16 +616,10 @@ export default function AdminDashboardPage() {
       </section>
 
       <footer
-        style={{
-          paddingTop: 24,
-          borderTop: "1px solid var(--admin-divider)",
-          fontSize: 12,
-          color: "var(--admin-text-muted)",
-          lineHeight: 1.55,
-        }}
+        className={styles.footerTextMutedFs12}
       >
-        <p style={{ margin: 0 }}>
-          <strong style={{ color: "var(--admin-text)" }}>Como ler:</strong> dot
+        <p className={styles.textM0}>
+          <strong className={styles.strongText}>Como ler:</strong> dot
           verde = sem alertas; amarelo = atenção em algum ponto; vermelho =
           problema crítico (coletor caído, cobertura zero, etc.). Auto-refresh
           60s pode ser desligado no header acima.
@@ -745,8 +644,8 @@ function DataBlock({
     <AdminCard variant="subtle" style={{ display: "flex", flexDirection: "column" }}>
       <AdminCardHeader
         title={
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-            <span style={{ color: "var(--admin-text-muted)" }}>{icon}</span>
+          <span className={styles.rowCenteredGap8}>
+            <span className={styles.labelTextMuted}>{icon}</span>
             {title}
           </span>
         }
@@ -764,7 +663,7 @@ function DataBlock({
           )
         }
       />
-      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div className={styles.stackGap16}>
         {children}
       </div>
     </AdminCard>
@@ -784,17 +683,10 @@ function SmallStat({
 }) {
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+      <div className={styles.rowCenteredGap6}>
         {status && <AdminStatusDot kind={status} size={6} />}
         <p
-          style={{
-            fontSize: 10,
-            letterSpacing: 2,
-            textTransform: "uppercase",
-            color: "var(--admin-text-muted)",
-            fontWeight: 600,
-            margin: 0,
-          }}
+          className={styles.textTextMutedFs10}
         >
           {label}
         </p>
@@ -818,11 +710,7 @@ function SmallStat({
       </p>
       {sub && (
         <p
-          style={{
-            fontSize: 11,
-            color: "var(--admin-text-muted)",
-            margin: "2px 0 0",
-          }}
+          className={styles.textTextMutedFs11}
         >
           {sub}
         </p>
@@ -835,18 +723,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   return (
     <a
       href={href}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        fontSize: 12,
-        color: "var(--admin-text-muted)",
-        textDecoration: "none",
-        padding: "4px 0",
-        borderBottom: "1px solid transparent",
-        width: "fit-content",
-        transition: "color 120ms, border-color 120ms",
-      }}
+      className={styles.rowCenteredTextMuted}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLAnchorElement).style.color = "var(--admin-accent)";
         (e.currentTarget as HTMLAnchorElement).style.borderBottomColor = "var(--admin-accent)";
@@ -879,36 +756,24 @@ function ReadinessTile({
 
   return (
     <div
-      style={{
-        border: "1px solid var(--admin-divider)",
-        padding: "14px 16px",
-        minHeight: 150,
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-      }}
+      className={styles.stackGap10P14x16}
     >
       <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 10,
-        }}
+        className={styles.rowBetweenCenteredGap10}
       >
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+        <span className={styles.rowCenteredGap8Minw0}>
           <AdminStatusDot kind={kind} size={7} />
-          <strong style={{ fontSize: 13, color: "var(--admin-text)" }}>{item.label}</strong>
+          <strong className={styles.strongTextFs13}>{item.label}</strong>
         </span>
         <AdminBadge kind={item.status === "ready" ? "success" : "warn"}>
           {item.status === "ready" ? "ready" : "bloqueado"}
         </AdminBadge>
       </div>
-      <p style={{ margin: 0, fontSize: 12, color: "var(--admin-text-muted)", lineHeight: 1.55 }}>
+      <p className={styles.textTextMutedFs12M0Lh1_55}>
         {blockerText}
         {item.blockers.length > 2 ? ` +${item.blockers.length - 2}` : ""}
       </p>
-      <p style={{ margin: "auto 0 0", fontSize: 11, color: "var(--admin-text-dim)", lineHeight: 1.5 }}>
+      <p className={styles.textTextDimFs11}>
         {item.nextAction}
       </p>
     </div>
@@ -924,14 +789,7 @@ function MiniTimeline({
   return (
     <div>
       <div
-        style={{
-          display: "flex",
-          alignItems: "flex-end",
-          gap: 3,
-          height: 120,
-          paddingBottom: 4,
-          borderBottom: "1px solid var(--admin-divider)",
-        }}
+        className={styles.rowAlignEndGap3}
       >
         {buckets.map((b) => {
           const inHeight = (b.inScope / max) * 100;
@@ -940,14 +798,7 @@ function MiniTimeline({
             <div
               key={b.day}
               title={`${new Date(b.day).toLocaleDateString("pt-BR")} — in: ${b.inScope}, out: ${b.outOfScope}`}
-              style={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "flex-end",
-                position: "relative",
-                cursor: "default",
-              }}
+              className={styles.stackEndCursorDefault}
             >
               {b.outOfScope > 0 && (
                 <div
@@ -972,16 +823,10 @@ function MiniTimeline({
         })}
       </div>
       <div
-        style={{
-          display: "flex",
-          gap: 3,
-          marginTop: 6,
-          fontSize: 9,
-          color: "var(--admin-text-dim)",
-        }}
+        className={styles.rowTextDimFs9}
       >
         {buckets.map((b, i) => (
-          <div key={b.day} style={{ flex: 1, textAlign: "center" }}>
+          <div key={b.day} className={styles.boxCenterAlignedFlex1}>
             {i % Math.ceil(buckets.length / 7) === 0
               ? new Date(b.day).toLocaleDateString("pt-BR", {
                   day: "2-digit",
@@ -992,33 +837,17 @@ function MiniTimeline({
         ))}
       </div>
       <div
-        style={{
-          display: "flex",
-          gap: 16,
-          marginTop: 12,
-          fontSize: 11,
-          color: "var(--admin-text-muted)",
-        }}
+        className={styles.rowTextMutedFs11}
       >
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+        <span className={styles.rowCenteredGap62}>
           <span
-            style={{
-              width: 10,
-              height: 6,
-              background: "var(--admin-text)",
-              opacity: 0.85,
-            }}
+            className={styles.labelBgTextW10}
           />
           in-scope
         </span>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+        <span className={styles.rowCenteredGap62}>
           <span
-            style={{
-              width: 10,
-              height: 6,
-              background: "var(--admin-accent)",
-              opacity: 0.35,
-            }}
+            className={styles.labelBgAccentW10}
           />
           out-of-scope
         </span>

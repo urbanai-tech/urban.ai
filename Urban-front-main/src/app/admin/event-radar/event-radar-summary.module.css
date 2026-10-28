@@ -1,0 +1,131 @@
+.gridColsTextMuted.gridColsTextMuted {
+  margin-bottom: 28px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--admin-warning) 30%, transparent);
+  border-radius: 2px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  color: var(--admin-text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.textWarningW600.textWarningW600 {
+  margin: 0;
+  color: var(--admin-warning);
+  font-weight: 600;
+}
+
+.textM4x0x0.textM4x0x0 {
+  margin: 4px 0 0;
+}
+
+.textFs11M8x0x0.textFs11M8x0x0 {
+  margin: 8px 0 0;
+  font-family: monospace;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.gridCols4Gap12.gridCols4Gap12 {
+  display: grid;
+  grid-template-columns: var(--event-radar-command-grid, repeat(4, minmax(0, 1fr)));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.gridColsGap12.gridColsGap12 {
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--admin-divider);
+  border-radius: 2px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.boxMinw0.boxMinw0 {
+  min-width: 0;
+}
+
+.eyebrowMutedMb8.eyebrowMutedMb8 {
+  margin-bottom: 8px;
+}
+
+.textTextFs16.textTextFs16 {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 16px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.boxMt8.boxMt8 {
+  margin-top: 8px;
+}
+
+.gridCols4Gap12Mt16.gridCols4Gap12Mt16 {
+  display: grid;
+  grid-template-columns: var(--event-radar-health-grid, repeat(4, minmax(0, 1fr)));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.boxP12Minw0.boxP12Minw0 {
+  min-width: 0;
+  border: 1px solid var(--admin-divider);
+  border-radius: 2px;
+  padding: 12px;
+}
+
+.rowBetweenBaseline.rowBetweenBaseline {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.labelTextFs13.labelTextFs13 {
+  color: var(--admin-text);
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.boxBgDividerMt10.boxBgDividerMt10 {
+  height: 4px;
+  margin-top: 10px;
+  background: var(--admin-divider);
+  overflow: hidden;
+}
+
+.boxMt10.boxMt10 {
+  margin-top: 10px;
+}
+
+.textTextFs18.textTextFs18 {
+  margin: 9px 0 8px;
+  color: var(--admin-text);
+  font-family: monospace;
+  font-size: 18px;
+}
+
+.rowBetweenCentered.rowBetweenCentered {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+  border-top: 1px solid var(--admin-divider);
+  color: var(--admin-text-muted);
+  font-size: 12px;
+}
+
+.label.label {
+  overflow-wrap: anywhere;
+}

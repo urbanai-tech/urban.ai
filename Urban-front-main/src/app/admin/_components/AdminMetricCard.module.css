@@ -1,0 +1,14 @@
+.rowCenteredGap8.rowCenteredGap8 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rowCenteredTextMuted.rowCenteredTextMuted {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--admin-text-muted);
+  font-weight: 400;
+}

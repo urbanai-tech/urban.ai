@@ -21,6 +21,7 @@ import {
   AdminStatusDot,
   Icons,
 } from "./_components";
+import styles from "./page.module.css";
 
 /**
  * /admin — overview Urban AI.
@@ -69,7 +70,7 @@ export default function AdminPage() {
 
   if (error) {
     return (
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="Acesso negado"
           title="Erro de autenticação"
@@ -81,7 +82,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       <AdminSectionHeader
         eyebrow="OPERAÇÃO · RESUMO"
         title="Painel"
@@ -100,18 +101,12 @@ export default function AdminPage() {
 
       {/* === Overview KPIs === */}
       {overview && (
-        <section style={{ marginBottom: 64 }}>
-          <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
+        <section className={styles.sectionMb64}>
+          <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
             VISÃO GERAL
           </p>
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-              gap: 32,
-              borderTop: "1px solid var(--admin-divider)",
-              borderBottom: "1px solid var(--admin-divider)",
-            }}
+            className={styles.gridColsAuto180Gap32}
           >
             <KpiCell
               label="Usuários ativos"
@@ -147,14 +142,14 @@ export default function AdminPage() {
 
       {/* === Motor IA === */}
       {overview && pricing && (
-        <section style={{ marginBottom: 64 }}>
+        <section className={styles.sectionMb64}>
           <AdminCard variant="accent" style={{ padding: "32px 32px 28px" }}>
             <AdminCardHeader
               eyebrow="MOTOR DE IA — ESTADO ATUAL"
               title={
-                <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span className={styles.rowCenteredGap12}>
                   Estratégia ativa:{" "}
-                  <strong style={{ color: "var(--admin-accent)" }}>
+                  <strong className={styles.strongAccent}>
                     {pricing.activeStrategy}
                   </strong>
                 </span>
@@ -162,42 +157,24 @@ export default function AdminPage() {
               actions={<AdminBadge kind="accent">{overview.ai.currentTier}</AdminBadge>}
             />
             <p
-              style={{
-                fontSize: 14,
-                color: "var(--admin-text-muted)",
-                lineHeight: 1.6,
-                margin: 0,
-                marginBottom: 8,
-              }}
+              className={styles.textTextMutedFs14}
             >
               {overview.ai.reason}
             </p>
             <p
-              style={{
-                fontSize: 12,
-                color: "var(--admin-text-dim)",
-                lineHeight: 1.5,
-                margin: 0,
-                marginBottom: 24,
-              }}
+              className={styles.textTextDimFs12}
             >
               Default por env (PRICING_STRATEGY):{" "}
-              <code style={{ color: "var(--admin-text)" }}>
+              <code className={styles.codeText}>
                 {pricing.strategyEnvDefault}
               </code>{" "}
               · Bootstrap on boot:{" "}
-              <strong style={{ color: "var(--admin-text)" }}>
+              <strong className={styles.codeText}>
                 {pricing.bootstrapOnBoot ? "sim" : "não"}
               </strong>
             </p>
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-                gap: 32,
-                borderTop: "1px solid var(--admin-divider)",
-                paddingTop: 24,
-              }}
+              className={styles.gridColsAuto160Gap32}
             >
               <KpiCell
                 label="Snapshots no dataset"
@@ -230,17 +207,7 @@ export default function AdminPage() {
               />
             </div>
             <div
-              style={{
-                marginTop: 24,
-                paddingTop: 20,
-                borderTop: "1px solid var(--admin-divider)",
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: 14,
-                fontSize: 12,
-                color: "var(--admin-text-muted)",
-                lineHeight: 1.55,
-              }}
+              className={styles.gridColsAuto220TextMuted}
             >
               <TierTip
                 tier="Tier 0"
@@ -272,45 +239,31 @@ export default function AdminPage() {
 
       {/* === Dataset proprietário === */}
       {dataset && (
-        <section style={{ marginBottom: 32 }}>
-          <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
+        <section className={styles.sectionMb32}>
+          <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
             DATASET PROPRIETÁRIO
           </p>
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
-              gap: 24,
-            }}
+            className={styles.gridColsAutoGap24}
           >
             <AdminCard variant="subtle">
               <AdminCardHeader title="Por origem" />
               {dataset.byOrigin.length === 0 ? (
                 <p
-                  style={{
-                    fontSize: 13,
-                    color: "var(--admin-text-muted)",
-                    margin: 0,
-                  }}
+                  className={styles.textTextMutedFs13}
                 >
                   Sem snapshots ainda. O cron diário começa a popular após o
                   próximo deploy.
                 </p>
               ) : (
-                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                <ul className={styles.listM0P0}>
                   {dataset.byOrigin.map((row) => (
                     <li
                       key={row.origin}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        padding: "10px 0",
-                        borderBottom: "1px solid var(--admin-divider)",
-                        fontSize: 13,
-                      }}
+                      className={styles.rowBetweenFs13}
                     >
-                      <code style={{ color: "var(--admin-text)" }}>{row.origin}</code>
-                      <span style={{ color: "var(--admin-accent)", fontWeight: 600 }}>
+                      <code className={styles.codeText}>{row.origin}</code>
+                      <span className={styles.labelAccentW600}>
                         {row.count.toLocaleString("pt-BR")}
                       </span>
                     </li>
@@ -318,13 +271,7 @@ export default function AdminPage() {
                 </ul>
               )}
               <p
-                style={{
-                  fontSize: 11,
-                  color: "var(--admin-text-dim)",
-                  marginTop: 16,
-                  letterSpacing: 1.5,
-                  textTransform: "uppercase",
-                }}
+                className={styles.textTextDimFs11}
               >
                 Dias cobertos: {dataset.daysCovered.toLocaleString("pt-BR")}
               </p>
@@ -334,40 +281,23 @@ export default function AdminPage() {
               <AdminCardHeader title="Top listings (por volume de snapshots)" />
               {dataset.topListings.length === 0 ? (
                 <p
-                  style={{
-                    fontSize: 13,
-                    color: "var(--admin-text-muted)",
-                    margin: 0,
-                  }}
+                  className={styles.textTextMutedFs13}
                 >
                   Aguardando primeiro batch.
                 </p>
               ) : (
-                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                <ul className={styles.listM0P0}>
                   {dataset.topListings.map((row) => (
                     <li
                       key={row.listingId}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        padding: "8px 0",
-                        borderBottom: "1px solid var(--admin-divider)",
-                        fontSize: 13,
-                        fontFamily: "monospace",
-                      }}
+                      className={styles.rowBetweenFs13P8x0BorderedMono}
                     >
                       <span
-                        style={{
-                          color: "var(--admin-text-muted)",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          maxWidth: "70%",
-                        }}
+                        className={styles.labelTextMutedMaxw70pct}
                       >
                         {row.listingId}
                       </span>
-                      <span style={{ color: "var(--admin-accent)", fontWeight: 600 }}>
+                      <span className={styles.labelAccentW600}>
                         {row.snapshots}
                       </span>
                     </li>
@@ -413,7 +343,7 @@ function TierTip({
   active: boolean;
 }) {
   return (
-    <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+    <div className={styles.rowStartGap8}>
       <AdminStatusDot
         kind={active ? "accent" : "neutral"}
         size={6}
@@ -429,7 +359,7 @@ function TierTip({
         >
           {tier}:
         </strong>{" "}
-        <span style={{ fontSize: 12 }}>{desc}</span>
+        <span className={styles.labelFs12}>{desc}</span>
       </div>
     </div>
   );

@@ -24,6 +24,7 @@ import {
   type AdminStatusKind,
   type AdminTableColumn,
 } from "../_components";
+import styles from "./page.module.css";
 
 const integer = new Intl.NumberFormat("pt-BR");
 
@@ -77,11 +78,11 @@ export default function AdminPriceIntelligencePage() {
         key: "property",
         header: "Imóvel",
         render: (row) => (
-          <div style={{ minWidth: 0 }}>
-            <p style={{ margin: 0, fontWeight: 600, color: "var(--admin-text)" }}>
+          <div className={styles.boxMinw0}>
+            <p className={styles.textTextW600}>
               {row.title || row.listId || row.addressId || "Sem identificação"}
             </p>
-            <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--admin-text-muted)" }}>
+            <p className={styles.textTextMutedFs12}>
               {[row.city, row.state].filter(Boolean).join(", ") || row.userEmail || "Localidade não informada"}
             </p>
           </div>
@@ -101,7 +102,7 @@ export default function AdminPriceIntelligencePage() {
         key: "issue",
         header: "Problema",
         render: (row) => (
-          <span style={{ color: "var(--admin-text-muted)", lineHeight: 1.5 }}>
+          <span className={styles.labelTextMutedLh1_5}>
             {row.issue}
           </span>
         ),
@@ -111,7 +112,7 @@ export default function AdminPriceIntelligencePage() {
         header: "Sinais",
         width: 220,
         render: (row) => (
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <div className={styles.stackGap4}>
             <SmallMuted>Snapshot: {formatDate(row.lastSnapshotAt)}</SmallMuted>
             <SmallMuted>Obs.: {formatDate(row.lastObservationAt)}</SmallMuted>
             <SmallMuted>
@@ -131,7 +132,7 @@ export default function AdminPriceIntelligencePage() {
         key: "name",
         header: "Job",
         render: (row) => (
-          <code style={{ fontSize: 12, color: "var(--admin-text)" }}>{row.name}</code>
+          <code className={styles.codeTextFs12}>{row.name}</code>
         ),
       },
       {
@@ -167,7 +168,7 @@ export default function AdminPriceIntelligencePage() {
 
   if (error || !data) {
     return (
-      <div style={{ maxWidth: 1320, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar Price Intelligence"
@@ -195,14 +196,14 @@ export default function AdminPriceIntelligencePage() {
   const airbnbAttemptStatus = airbnbAttempts ? statusFromHealth(airbnbAttempts.health) : "warn";
 
   return (
-    <div style={{ maxWidth: 1320, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       <AdminSectionHeader
         eyebrow="ADMIN / PRICE INTELLIGENCE"
         title="Saúde do motor de preços"
         subtitle={
           <span>
             Janela de {data.windowDays} dias / última leitura:{" "}
-            <strong style={{ color: "var(--admin-text)" }}>
+            <strong className={styles.strongText}>
               {formatDate(data.generatedAt)}
             </strong>
           </span>
@@ -222,12 +223,12 @@ export default function AdminPriceIntelligencePage() {
           marginBottom: 32,
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <div className={styles.rowBetweenWrap}>
+          <div className={styles.rowCenteredGap14}>
             <AdminStatusDot kind={healthKind} size={14} pulse={data.health !== "green"} />
             <div>
               <p className="urban-admin-eyebrow-muted">SAÚDE GERAL</p>
-              <p style={{ margin: "4px 0 0", fontSize: 20, fontWeight: 600 }}>
+              <p className={styles.textFs20W600}>
                 {healthLabel(data.health)}
               </p>
             </div>
@@ -236,13 +237,13 @@ export default function AdminPriceIntelligencePage() {
         </div>
 
         {alerts.length > 0 && (
-          <ul style={{ listStyle: "none", padding: 0, margin: "16px 0 0", display: "grid", gap: 10 }}>
+          <ul className={styles.gridGap10M16x0x0}>
             {alerts.map((alert, index) => (
-              <li key={`${alert.message}-${index}`} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                <span style={{ paddingTop: 6 }}>
+              <li key={`${alert.message}-${index}`} className={styles.rowStartGap10}>
+                <span className={styles.label}>
                   <AdminStatusDot kind={statusFromSeverity(alert.severity)} size={7} />
                 </span>
-                <span style={{ fontSize: 13, color: "var(--admin-text-muted)", lineHeight: 1.55 }}>
+                <span className={styles.labelTextMutedFs13}>
                   {alert.message}
                 </span>
               </li>
@@ -252,12 +253,7 @@ export default function AdminPriceIntelligencePage() {
       </section>
 
       <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 24,
-          marginBottom: 48,
-        }}
+        className={styles.gridColsAuto220Gap24}
       >
         <AdminMetricCard
           label="Snapshots"
@@ -297,16 +293,11 @@ export default function AdminPriceIntelligencePage() {
       </section>
 
       <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1.2fr) minmax(320px, 0.8fr)",
-          gap: 24,
-          marginBottom: 48,
-        }}
+        className={styles.gridColsGap24}
       >
         <AdminCard variant="subtle">
           <AdminCardHeader eyebrow="SUGESTÕES" title="Verificação e aplicação" />
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 16 }}>
+          <div className={styles.gridCols4Gap16}>
             <InlineStat label="Futuras" value={integer.format(data.suggestions.future)} />
             <InlineStat label="Aceitas" value={integer.format(data.suggestions.accepted)} />
             <InlineStat label="Aplicadas" value={integer.format(data.suggestions.applied)} />
@@ -316,7 +307,7 @@ export default function AdminPriceIntelligencePage() {
 
         <AdminCard variant="subtle">
           <AdminCardHeader eyebrow="JOBS" title="Fila operacional" />
-          <div style={{ display: "grid", gap: 12 }}>
+          <div className={styles.gridGap12}>
             <StatusLine label="Rodando" value={integer.format(data.jobs.running)} kind={data.jobs.running > 0 ? "accent" : "neutral"} />
             <StatusLine
               label="Na fila"
@@ -326,7 +317,7 @@ export default function AdminPriceIntelligencePage() {
             <StatusLine label="Último sucesso" value={formatDate(data.jobs.lastSuccessAt)} kind={data.jobs.lastSuccessAt ? "success" : "warn"} />
             <StatusLine label="Último run" value={data.jobs.lastRun ? `${data.jobs.lastRun.name} / ${data.jobs.lastRun.status}` : "Sem execuções"} kind={data.jobs.lastRun?.status === "error" ? "error" : "neutral"} />
             {data.jobs.queueAvailable === false && (
-              <p style={{ margin: 0, fontSize: 12, color: "var(--admin-text-muted)", lineHeight: 1.5 }}>
+              <p className={styles.textTextMutedFs12M0Lh1_5}>
                 {data.jobs.queueUnavailableReason || "Fila real ainda não implementada para este pipeline."}
               </p>
             )}
@@ -334,7 +325,7 @@ export default function AdminPriceIntelligencePage() {
         </AdminCard>
       </section>
 
-      <section style={{ marginBottom: 48 }}>
+      <section className={styles.sectionMb48}>
         <AdminCard variant={airbnbAttempts?.health === "green" ? "subtle" : "accent"}>
           <AdminCardHeader eyebrow="AIRBNB" title="Saúde das cotações headless" />
           {airbnbAttemptsError ? (
@@ -342,8 +333,8 @@ export default function AdminPriceIntelligencePage() {
           ) : !airbnbAttempts ? (
             <QuietEmpty>Nenhuma leitura de tentativa retornada.</QuietEmpty>
           ) : (
-            <div style={{ display: "grid", gap: 24 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 }}>
+            <div className={styles.gridGap24}>
+              <div className={styles.gridColsAuto160Gap16}>
                 <InlineStat label="Tentativas 24h" value={integer.format(airbnbAttempts.summary.total)} />
                 <InlineStat label="Sucessos" value={integer.format(airbnbAttempts.summary.successes)} />
                 <InlineStat label="Falhas" value={integer.format(airbnbAttempts.summary.failures)} />
@@ -351,8 +342,8 @@ export default function AdminPriceIntelligencePage() {
                 <InlineStat label="Tempo médio" value={formatDuration(airbnbAttempts.summary.avgDurationMs)} />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "minmax(260px, 0.8fr) minmax(0, 1.2fr)", gap: 24 }}>
-                <div style={{ display: "grid", gap: 14 }}>
+              <div className={styles.gridColsGap242}>
+                <div className={styles.gridGap14}>
                   <StatusLine
                     label="Schema"
                     value={airbnbAttempts.schema.available ? "Disponível" : "Indisponível"}
@@ -371,7 +362,7 @@ export default function AdminPriceIntelligencePage() {
                   {airbnbAttempts.schema.error && <QuietEmpty>{airbnbAttempts.schema.error}</QuietEmpty>}
                 </div>
 
-                <div style={{ display: "grid", gap: 14 }}>
+                <div className={styles.gridGap14}>
                   {airbnbAttempts.sources.length === 0 ? (
                     <QuietEmpty>Sem tentativas por fonte na janela.</QuietEmpty>
                   ) : (
@@ -389,8 +380,8 @@ export default function AdminPriceIntelligencePage() {
               </div>
 
               {airbnbAttempts.failuresByReason.length > 0 && (
-                <div style={{ display: "grid", gap: 14 }}>
-                  <p className="urban-admin-eyebrow-muted" style={{ margin: 0 }}>FALHAS AIRBNB POR MOTIVO</p>
+                <div className={styles.gridGap14}>
+                  <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedM0}`}>FALHAS AIRBNB POR MOTIVO</p>
                   {airbnbAttempts.failuresByReason.slice(0, 5).map((failure) => (
                     <BarRow
                       key={failure.reason}
@@ -408,19 +399,14 @@ export default function AdminPriceIntelligencePage() {
       </section>
 
       <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1.3fr) minmax(300px, 0.7fr)",
-          gap: 24,
-          marginBottom: 48,
-        }}
+        className={styles.gridColsGap24Mb48}
       >
         <AdminCard>
           <AdminCardHeader eyebrow="JOBS" title="Métricas por nome" />
           {jobMetrics.length === 0 ? (
             <QuietEmpty>Nenhuma métrica por job retornada.</QuietEmpty>
           ) : (
-            <div style={{ display: "grid", gap: 12 }}>
+            <div className={styles.gridGap12}>
               {jobMetrics.map((job) => (
                 <JobMetricRow key={job.name} job={job} />
               ))}
@@ -431,7 +417,7 @@ export default function AdminPriceIntelligencePage() {
         <AdminCard variant={data.schema?.ok ? "subtle" : "accent"}>
           <AdminCardHeader eyebrow="SCHEMA" title="Migrations operacionais" />
           {data.schema ? (
-            <div style={{ display: "grid", gap: 12 }}>
+            <div className={styles.gridGap12}>
               <StatusLine
                 label="Status"
                 value={data.schema.ok ? "Completo" : "Ação necessária"}
@@ -442,7 +428,7 @@ export default function AdminPriceIntelligencePage() {
                 <QuietEmpty>{data.schema.checkError}</QuietEmpty>
               )}
               {data.schema.missing.length > 0 && (
-                <ul style={{ margin: 0, paddingLeft: 18, color: "var(--admin-text-muted)", fontSize: 12, lineHeight: 1.7 }}>
+                <ul className={styles.listTextMutedFs12}>
                   {data.schema.missing.slice(0, 8).map((item) => (
                     <li key={item}>{item}</li>
                   ))}
@@ -456,19 +442,14 @@ export default function AdminPriceIntelligencePage() {
       </section>
 
       <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(320px, 0.8fr) minmax(0, 1.2fr)",
-          gap: 24,
-          marginBottom: 48,
-        }}
+        className={styles.gridColsGap243}
       >
         <AdminCard>
           <AdminCardHeader eyebrow="FALHAS" title="Falhas por tipo" />
           {failures.length === 0 ? (
             <QuietEmpty>Nenhuma falha agrupada na janela.</QuietEmpty>
           ) : (
-            <div style={{ display: "grid", gap: 14 }}>
+            <div className={styles.gridGap14}>
               {failures.map((failure) => (
                 <BarRow
                   key={failure.type}
@@ -484,28 +465,19 @@ export default function AdminPriceIntelligencePage() {
 
         <AdminCard>
           <AdminCardHeader eyebrow="ATALHOS" title="Ações rápidas" />
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 12 }}>
+          <div className={styles.gridColsAuto210Gap12}>
             {shortcuts.map((shortcut) => (
               <a
                 key={`${shortcut.href}-${shortcut.label}`}
                 href={shortcut.href}
-                style={{
-                  border: "1px solid var(--admin-divider)",
-                  borderRadius: 2,
-                  padding: 16,
-                  color: "var(--admin-text)",
-                  textDecoration: "none",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 12,
-                }}
+                className={styles.rowBetweenText}
               >
                 <span>
-                  <span style={{ display: "block", fontSize: 13, fontWeight: 600 }}>
+                  <span className={styles.labelFs13W600}>
                     {shortcut.label}
                   </span>
                   {shortcut.description && (
-                    <span style={{ display: "block", marginTop: 6, fontSize: 12, color: "var(--admin-text-muted)", lineHeight: 1.45 }}>
+                    <span className={styles.labelTextMutedFs12}>
                       {shortcut.description}
                     </span>
                   )}
@@ -517,7 +489,7 @@ export default function AdminPriceIntelligencePage() {
         </AdminCard>
       </section>
 
-      <section style={{ marginBottom: 48 }}>
+      <section className={styles.sectionMb48}>
         <AdminCardHeader eyebrow="IMÓVEIS" title="Imóveis problemáticos" />
         <AdminTable
           columns={propertyColumns}
@@ -540,10 +512,10 @@ export default function AdminPriceIntelligencePage() {
       </section>
 
       {(data.endpointGaps?.length ?? 0) > 0 && (
-        <section style={{ marginTop: 32 }}>
+        <section className={styles.sectionMt32}>
           <AdminCard variant="accent">
             <AdminCardHeader eyebrow="CONTRATO" title="Gaps reportados pelo backend" />
-            <ul style={{ margin: 0, paddingLeft: 18, color: "var(--admin-text-muted)", fontSize: 13, lineHeight: 1.7 }}>
+            <ul className={styles.listTextMutedFs13}>
               {data.endpointGaps?.map((gap) => <li key={gap}>{gap}</li>)}
             </ul>
           </AdminCard>
@@ -564,9 +536,9 @@ const defaultShortcuts: AdminPriceIntelligenceHealth["shortcuts"] = [
 
 function InlineStat({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ borderTop: "1px solid var(--admin-divider)", paddingTop: 14 }}>
+    <div className={styles.boxBordered}>
       <p className="urban-admin-eyebrow-muted">{label}</p>
-      <p style={{ margin: "8px 0 0", fontSize: 24, fontWeight: 600, color: "var(--admin-text)" }}>
+      <p className={styles.textTextFs24}>
         {value}
       </p>
     </div>
@@ -575,12 +547,12 @@ function InlineStat({ label, value }: { label: string; value: string }) {
 
 function StatusLine({ label, value, kind }: { label: string; value: string; kind: AdminStatusKind }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-      <span style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "var(--admin-text-muted)", fontSize: 13 }}>
+    <div className={styles.rowBetweenCentered}>
+      <span className={styles.rowCenteredTextMuted}>
         <AdminStatusDot kind={kind} size={7} />
         {label}
       </span>
-      <span style={{ color: "var(--admin-text)", fontSize: 13, fontWeight: 600, textAlign: "right" }}>{value}</span>
+      <span className={styles.labelTextFs13}>{value}</span>
     </div>
   );
 }
@@ -589,14 +561,14 @@ function BarRow({ label, value, max, sub }: { label: string; value: number; max:
   const width = `${Math.max(6, Math.round((value / max) * 100))}%`;
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 8 }}>
-        <span style={{ fontSize: 13, color: "var(--admin-text)" }}>{label}</span>
-        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>{integer.format(value)}</span>
+      <div className={styles.rowBetweenGap12}>
+        <span className={styles.labelTextFs132}>{label}</span>
+        <span className={styles.labelTextMutedFs122}>{integer.format(value)}</span>
       </div>
-      <div style={{ height: 6, background: "var(--admin-surface-elevated)", borderRadius: 2, overflow: "hidden" }}>
+      <div className={styles.boxBgSurfaceElevatedH6}>
         <div style={{ width, height: "100%", background: "var(--admin-accent)" }} />
       </div>
-      <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--admin-text-dim)" }}>{sub}</p>
+      <p className={styles.textTextDimFs11}>{sub}</p>
     </div>
   );
 }
@@ -617,23 +589,15 @@ function JobMetricRow({
 
   return (
     <div
-      style={{
-        border: "1px solid var(--admin-divider)",
-        borderRadius: 2,
-        padding: 14,
-        display: "grid",
-        gridTemplateColumns: "minmax(180px, 1fr) repeat(4, minmax(72px, auto))",
-        gap: 12,
-        alignItems: "center",
-      }}
+      className={styles.gridCenteredCols472}
     >
-      <div style={{ minWidth: 0 }}>
-        <code style={{ fontSize: 12, color: "var(--admin-text)" }}>{job.name}</code>
-        <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--admin-text-dim)" }}>
+      <div className={styles.boxMinw0}>
+        <code className={styles.codeTextFs12}>{job.name}</code>
+        <p className={styles.textTextDimFs11}>
           Último: {formatDate(job.lastRunAt)}
         </p>
         {job.lastErrorMessage && (
-          <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--admin-danger)", lineHeight: 1.4 }}>
+          <p className={styles.textDangerFs11}>
             {job.lastErrorMessage}
           </p>
         )}
@@ -650,12 +614,12 @@ function JobMetricRow({
 }
 
 function SmallMuted({ children }: { children: React.ReactNode }) {
-  return <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>{children}</span>;
+  return <span className={styles.labelTextMutedFs122}>{children}</span>;
 }
 
 function QuietEmpty({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ color: "var(--admin-text-muted)", fontSize: 13, lineHeight: 1.55 }}>
+    <div className={styles.boxTextMutedFs13}>
       {children}
     </div>
   );

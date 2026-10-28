@@ -20,6 +20,7 @@ import {
   useAdminToast,
   Icons,
 } from "../_components";
+import styles from "./page.module.css";
 
 type UserRole = "host" | "admin" | "support";
 
@@ -109,7 +110,7 @@ export default function AdminUsersPage() {
 
   if (error) {
     return (
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar usuários"
@@ -131,16 +132,12 @@ export default function AdminUsersPage() {
       header: "Usuário",
       render: (u) => (
         <div>
-          <p style={{ fontWeight: 600, color: "var(--admin-text)", margin: 0 }}>
+          <p className={styles.textTextW600}>
             {u.username}
           </p>
           {u.company && (
             <p
-              style={{
-                fontSize: 11,
-                color: "var(--admin-text-dim)",
-                margin: "2px 0 0",
-              }}
+              className={styles.textTextDimFs11}
             >
               {u.company}
             </p>
@@ -152,7 +149,7 @@ export default function AdminUsersPage() {
       key: "email",
       header: "E-mail",
       render: (u) => (
-        <span style={{ color: "var(--admin-text-muted)", fontSize: 13 }}>
+        <span className={styles.labelTextMutedFs13}>
           {u.email}
         </span>
       ),
@@ -180,10 +177,10 @@ export default function AdminUsersPage() {
       key: "mode",
       header: "Modo",
       render: (u) => (
-        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+        <span className={styles.labelTextMutedFs12}>
           {u.operationMode || "—"}
           {u.pricingStrategy && (
-            <span style={{ color: "var(--admin-text-dim)" }}>
+            <span className={styles.labelTextDim}>
               {" · "}
               {u.pricingStrategy}
             </span>
@@ -222,11 +219,7 @@ export default function AdminUsersPage() {
       width: 110,
       render: (u) => (
         <span
-          style={{
-            fontSize: 12,
-            color: "var(--admin-text-muted)",
-            fontFamily: "monospace",
-          }}
+          className={styles.labelTextMutedFs12Mono}
         >
           {new Date(u.createdAt).toLocaleDateString("pt-BR")}
         </span>
@@ -235,7 +228,7 @@ export default function AdminUsersPage() {
   ];
 
   return (
-    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       <AdminSectionHeader
         eyebrow="ADMIN · USUÁRIOS"
         title="Usuários"
@@ -257,19 +250,12 @@ export default function AdminUsersPage() {
 
       {/* === Paginação === */}
       <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginTop: 16,
-          fontSize: 12,
-          color: "var(--admin-text-muted)",
-        }}
+        className={styles.rowBetweenCentered}
       >
         <span>
           Página {page} de {totalPages}
         </span>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className={styles.rowGap8}>
           <AdminButton
             variant="ghost"
             size="sm"

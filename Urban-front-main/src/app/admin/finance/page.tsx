@@ -30,6 +30,7 @@ import {
   useAdminToast,
   Icons,
 } from "../_components";
+import styles from "./page.module.css";
 
 /**
  * /admin/finance — gestão financeira da plataforma.
@@ -82,7 +83,7 @@ export default function AdminFinancePage() {
 
   if (error || !overview) {
     return (
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar"
@@ -110,16 +111,12 @@ export default function AdminFinancePage() {
       header: "Nome",
       render: (c) => (
         <div>
-          <p style={{ fontWeight: 600, color: "var(--admin-text)", margin: 0 }}>
+          <p className={styles.textTextW600}>
             {c.name}
           </p>
           {c.description && (
             <p
-              style={{
-                fontSize: 11,
-                color: "var(--admin-text-muted)",
-                margin: "2px 0 0",
-              }}
+              className={styles.textTextMutedFs11}
             >
               {c.description}
             </p>
@@ -140,7 +137,7 @@ export default function AdminFinancePage() {
       header: "Recorrência",
       width: 110,
       render: (c) => (
-        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+        <span className={styles.labelTextMutedFs12}>
           {c.recurrence}
         </span>
       ),
@@ -151,7 +148,7 @@ export default function AdminFinancePage() {
       width: 120,
       align: "right",
       render: (c) => (
-        <span style={{ fontFamily: "monospace", color: "var(--admin-text)" }}>
+        <span className={styles.labelTextMono}>
           R$ {(c.monthlyCostCents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
         </span>
       ),
@@ -163,11 +160,11 @@ export default function AdminFinancePage() {
       align: "center",
       render: (c) =>
         c.percentOfRevenue != null ? (
-          <span style={{ fontFamily: "monospace", color: "var(--admin-accent)" }}>
+          <span className={styles.labelAccentMono}>
             {c.percentOfRevenue}%
           </span>
         ) : (
-          <span style={{ color: "var(--admin-text-dim)" }}>—</span>
+          <span className={styles.labelTextDim}>—</span>
         ),
     },
     {
@@ -179,7 +176,7 @@ export default function AdminFinancePage() {
         c.scalesWithListings ? (
           <Icons.Check size={14} style={{ color: "var(--admin-success)" }} />
         ) : (
-          <span style={{ color: "var(--admin-text-dim)" }}>—</span>
+          <span className={styles.labelTextDim}>—</span>
         ),
     },
     {
@@ -202,7 +199,7 @@ export default function AdminFinancePage() {
   ];
 
   return (
-    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       <AdminSectionHeader
         eyebrow="ADMIN · FINANCEIRO"
         title="Resumo financeiro"
@@ -220,15 +217,10 @@ export default function AdminFinancePage() {
       />
 
       {/* === Hero — Margem por imóvel === */}
-      <section style={{ marginBottom: 56 }}>
+      <section className={styles.sectionMb56}>
         <AdminCard variant="accent" style={{ padding: "40px 40px 36px" }}>
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)",
-              gap: 32,
-              alignItems: "end",
-            }}
+            className={styles.gridColsGap32}
           >
             <div>
               <p className="urban-admin-eyebrow">MARGEM POR IMÓVEL ATIVO</p>
@@ -247,25 +239,14 @@ export default function AdminFinancePage() {
                 {fmt(overview.perListing.marginCents)}
               </p>
               <p
-                style={{
-                  marginTop: 12,
-                  fontSize: 14,
-                  color: "var(--admin-text-muted)",
-                  lineHeight: 1.55,
-                }}
+                className={styles.textTextMutedFs14}
               >
                 {perListingMargin.toFixed(1)}% sobre receita por imóvel · Use
                 como teto/piso para decisões de pricing.
               </p>
             </div>
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr",
-                gap: 16,
-                borderLeft: "1px solid var(--admin-divider)",
-                paddingLeft: 32,
-              }}
+              className={styles.gridColsGap16}
             >
               <SmallInline label="Receita por imóvel" value={fmt(overview.perListing.revenueCents)} />
               <SmallInline label="Custo por imóvel" value={fmt(overview.perListing.costCents)} />
@@ -275,18 +256,12 @@ export default function AdminFinancePage() {
       </section>
 
       {/* === KPIs financeiros === */}
-      <section style={{ marginBottom: 64 }}>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
+      <section className={styles.sectionMb64}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
           INDICADORES MENSAIS
         </p>
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: 32,
-            borderTop: "1px solid var(--admin-divider)",
-            borderBottom: "1px solid var(--admin-divider)",
-          }}
+          className={styles.gridColsAuto200Gap32}
         >
           <AdminMetricCard
             label="MRR estimado"
@@ -315,46 +290,29 @@ export default function AdminFinancePage() {
 
       {/* === Receita por plano + Custos por categoria === */}
       <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
-          gap: 24,
-          marginBottom: 64,
-        }}
+        className={styles.gridColsAutoGap24}
       >
         <AdminCard variant="subtle">
           <AdminCardHeader title="Receita por plano" />
           {overview.revenue.byPlan.length === 0 ? (
-            <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
+            <p className={styles.textTextMutedFs13}>
               Sem assinaturas ativas ainda.
             </p>
           ) : (
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            <ul className={styles.listM0P0}>
               {overview.revenue.byPlan.map((p) => (
                 <li
                   key={p.planName}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr auto auto",
-                    gap: 16,
-                    padding: "10px 0",
-                    borderBottom: "1px solid var(--admin-divider)",
-                    fontSize: 13,
-                    alignItems: "baseline",
-                  }}
+                  className={styles.gridBaselineCols}
                 >
-                  <span style={{ color: "var(--admin-text)", fontWeight: 500 }}>
+                  <span className={styles.labelTextW500}>
                     {p.planName}
                   </span>
-                  <span style={{ color: "var(--admin-text-muted)", fontSize: 12 }}>
+                  <span className={styles.labelTextMutedFs122}>
                     {p.count} assinaturas
                   </span>
                   <span
-                    style={{
-                      color: "var(--admin-accent)",
-                      fontFamily: "monospace",
-                      fontWeight: 600,
-                    }}
+                    className={styles.labelAccentW600}
                   >
                     {fmt(p.monthlyCents)}
                   </span>
@@ -367,11 +325,11 @@ export default function AdminFinancePage() {
         <AdminCard variant="subtle">
           <AdminCardHeader title="Custos por categoria" />
           {overview.costs.byCategory.length === 0 ? (
-            <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
+            <p className={styles.textTextMutedFs13}>
               Cadastre custos abaixo.
             </p>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div className={styles.stackGap14}>
               {overview.costs.byCategory.map((c) => {
                 const max = Math.max(
                   ...overview.costs.byCategory.map((x) => x.cents),
@@ -380,29 +338,17 @@ export default function AdminFinancePage() {
                 return (
                   <div key={c.category}>
                     <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: 12,
-                        marginBottom: 6,
-                      }}
+                      className={styles.rowBetweenFs12}
                     >
-                      <span style={{ color: "var(--admin-text)" }}>{c.category}</span>
+                      <span className={styles.labelText}>{c.category}</span>
                       <span
-                        style={{
-                          color: "var(--admin-text)",
-                          fontFamily: "monospace",
-                          fontWeight: 600,
-                        }}
+                        className={styles.labelTextW600}
                       >
                         {fmt(c.cents)}
                       </span>
                     </div>
                     <div
-                      style={{
-                        height: 2,
-                        background: "var(--admin-divider)",
-                      }}
+                      className={styles.boxBgDividerH2}
                     >
                       <div
                         style={{
@@ -423,30 +369,17 @@ export default function AdminFinancePage() {
       {/* === Custos cadastrados (CRUD) === */}
       <section>
         <header
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 16,
-            flexWrap: "wrap",
-            marginBottom: 20,
-          }}
+          className={styles.rowBetweenCentered}
         >
           <div>
             <p className="urban-admin-eyebrow">CUSTOS CADASTRADOS</p>
             <h2
-              style={{
-                fontSize: 20,
-                fontWeight: 600,
-                color: "var(--admin-text)",
-                margin: "8px 0 0",
-                letterSpacing: -0.3,
-              }}
+              className={styles.headingTextFs20}
             >
               Todos os custos operacionais
             </h2>
           </div>
-          <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <div className={styles.rowCenteredWrap}>
             <AdminSwitch
               checked={showInactive}
               onChange={setShowInactive}
@@ -542,14 +475,7 @@ function SmallInline({ label, value }: { label: string; value: string }) {
     <div>
       <p className="urban-admin-eyebrow-muted">{label}</p>
       <p
-        style={{
-          fontSize: 22,
-          fontWeight: 600,
-          color: "var(--admin-text)",
-          margin: "6px 0 0",
-          fontFamily: "monospace",
-          letterSpacing: -0.3,
-        }}
+        className={styles.textTextFs22}
       >
         {value}
       </p>
@@ -591,7 +517,7 @@ function NewCostForm({ onCreated, onCancel }: { onCreated: () => void; onCancel:
   return (
     <form
       onSubmit={submit}
-      style={{ display: "flex", flexDirection: "column", gap: 18 }}
+      className={styles.stackGap18}
     >
       <AdminInput
         label="Nome do custo"
@@ -601,7 +527,7 @@ function NewCostForm({ onCreated, onCancel }: { onCreated: () => void; onCancel:
         required
       />
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+      <div className={styles.gridColsGap14}>
         <AdminSelect
           label="Categoria"
           value={category}
@@ -632,7 +558,7 @@ function NewCostForm({ onCreated, onCancel }: { onCreated: () => void; onCancel:
 
       <AdminInput
         label="Valor mensal"
-        leftAddon={<span style={{ fontSize: 12, fontWeight: 600 }}>R$</span>}
+        leftAddon={<span className={styles.labelFs12W600}>R$</span>}
         placeholder="0,00"
         value={valueReais}
         onChange={(e) => setValueReais(e.target.value)}
@@ -654,7 +580,7 @@ function NewCostForm({ onCreated, onCancel }: { onCreated: () => void; onCancel:
         />
       )}
 
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8 }}>
+      <div className={styles.rowEndGap10}>
         <AdminButton variant="ghost" onClick={onCancel} type="button" disabled={busy}>
           Cancelar
         </AdminButton>
@@ -701,7 +627,7 @@ function CostActions({ cost, onChange }: { cost: AdminCost; onChange: () => void
   }
 
   return (
-    <div style={{ display: "inline-flex", gap: 6 }}>
+    <div className={styles.rowGap6}>
       <button
         type="button"
         onClick={toggle}

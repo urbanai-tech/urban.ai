@@ -1,0 +1,309 @@
+.stackGap12.stackGap12 {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gridCols4Gap10.gridCols4Gap10 {
+  display: grid;
+  grid-template-columns: var(--event-radar-geo-ops-grid, repeat(4, minmax(0, 1fr)));
+  gap: 10px;
+}
+
+.gridCenteredCols.gridCenteredCols {
+  padding: 12px 14px;
+  border: 1px solid var(--admin-divider);
+  border-radius: 2px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.boxMinw0.boxMinw0 {
+  min-width: 0;
+}
+
+.textTextFs13.textTextFs13 {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.textTextMutedFs12.textTextMutedFs12 {
+  margin: 5px 0 0;
+  color: var(--admin-text-muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.boxBgAccentW96.boxBgAccentW96 {
+  width: 96px;
+  height: 8px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--app-accent, var(--admin-accent)) 6%, transparent), color-mix(in srgb, var(--app-accent, var(--admin-accent)) 36%, transparent));
+  border: 1px solid var(--admin-divider);
+}
+
+.gridCols3Gap10.gridCols3Gap10 {
+  display: grid;
+  grid-template-columns: var(--event-radar-hotspots-grid, repeat(3, minmax(0, 1fr)));
+  gap: 10px;
+}
+
+.boxP10x12Minw0.boxP10x12Minw0 {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--admin-divider);
+  border-radius: 2px;
+}
+
+.eyebrowMutedMb7.eyebrowMutedMb7 {
+  margin-bottom: 7px;
+}
+
+.textTextFs13W700M0Scroll.textTextFs13W700M0Scroll {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 13px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.textTextMutedFs11.textTextMutedFs11 {
+  margin: 6px 0 0;
+  color: var(--admin-text-muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.gridCols2Gap10.gridCols2Gap10 {
+  display: grid;
+  grid-template-columns: var(--event-radar-geo-lists-grid, repeat(2, minmax(0, 1fr)));
+  gap: 10px;
+}
+
+.heatmapGridColsAuto150Gap10.heatmapGridColsAuto150Gap10 {
+  display: grid;
+  grid-template-columns: var(--event-radar-heatmap-grid, repeat(auto-fit, minmax(150px, 1fr)));
+  gap: 10px;
+}
+
+.rowBetweenBaseline.rowBetweenBaseline {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.labelAccentFs12.labelAccentFs12 {
+  color: var(--admin-accent);
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.textTextFs13W600M10x0x0Scroll.textTextFs13W600M10x0x0Scroll {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--admin-text);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.textTextMutedFs11M5x0x0.textTextMutedFs11M5x0x0 {
+  margin: 5px 0 0;
+  font-size: 11px;
+  color: var(--admin-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.rowWrapGap6.rowWrapGap6 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.gridColsFs11.gridColsFs11 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.boxScrollBordered.boxScrollBordered {
+  border: 1px solid var(--admin-divider);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.geoOpsRadarMapCanvasBgDivider.geoOpsRadarMapCanvasBgDivider {
+  min-height: 300px;
+  position: relative;
+  background: linear-gradient(0deg, var(--admin-divider) 1px, transparent 1px), linear-gradient(90deg, var(--admin-divider) 1px, transparent 1px), var(--admin-surface-muted);
+  background-size: 32px 32px;
+}
+
+.rowAbsoluteWrap.rowAbsoluteWrap {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-width: calc(100% - 24px);
+}
+
+.gridAbsoluteTextMuted.gridAbsoluteTextMuted {
+  position: absolute;
+  inset: 58px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: var(--admin-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.labelFs17W800.labelFs17W800 {
+  font-family: monospace;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.labelFs9W700.labelFs9W700 {
+  margin-top: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.gridColsAuto170Gap10.gridColsAuto170Gap10 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+  padding: 12px;
+  border-top: 1px solid var(--admin-divider);
+}
+
+.textTextFs12.textTextFs12 {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 12px;
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.textTextMutedFs11M4x0x0.textTextMutedFs11M4x0x0 {
+  margin: 4px 0 0;
+  color: var(--admin-text-muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.labelAbsoluteBgDivider.labelAbsoluteBgDivider {
+  position: absolute;
+  left: 38px;
+  right: 38px;
+  top: 50%;
+  height: 1px;
+  background: var(--admin-divider);
+}
+
+.labelAbsoluteBgDividerW1.labelAbsoluteBgDividerW1 {
+  position: absolute;
+  top: 38px;
+  bottom: 38px;
+  left: 50%;
+  width: 1px;
+  background: var(--admin-divider);
+}
+
+.labelW700Upper.labelW700Upper {
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.labelMono.labelMono {
+  font-family: monospace;
+}
+
+.boxP12Minw0.boxP12Minw0 {
+  min-width: 0;
+  border: 1px solid var(--admin-divider);
+  border-radius: 2px;
+  padding: 12px;
+}
+
+.textTextFs18.textTextFs18 {
+  margin: 9px 0 8px;
+  color: var(--admin-text);
+  font-family: monospace;
+  font-size: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.labelScroll.labelScroll {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eyebrowMutedMb10.eyebrowMutedMb10 {
+  margin-bottom: 10px;
+}
+
+.textTextMutedFs12M0.textTextMutedFs12M0 {
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-size: 12px;
+}
+
+.stackGap9.stackGap9 {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.textTextFs12W600M0Scroll.textTextFs12W600M0Scroll {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 12px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gridCols4Gap10Mb14.gridCols4Gap10Mb14 {
+  display: grid;
+  grid-template-columns: var(--event-radar-geo-ops-grid, repeat(4, minmax(0, 1fr)));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.rowBetweenCentered.rowBetweenCentered {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  color: var(--admin-text-muted);
+  font-size: 11px;
+  border-top: 1px solid var(--admin-divider);
+  padding-top: 10px;
+}
+
+.boxBgAccentH6.boxBgAccentH6 {
+  flex: 1;
+  height: 6px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--app-accent, var(--admin-accent)) 6%, transparent), color-mix(in srgb, var(--app-accent, var(--admin-accent)) 18%, transparent), color-mix(in srgb, var(--app-accent, var(--admin-accent)) 42%, transparent));
+  border: 1px solid var(--admin-divider);
+}

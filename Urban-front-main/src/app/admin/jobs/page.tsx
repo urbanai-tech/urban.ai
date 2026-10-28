@@ -25,6 +25,7 @@ import {
   AdminPageLoading,
   Icons,
 } from "../_components";
+import styles from "./page.module.css";
 
 /**
  * /admin/jobs — Jobs operacionais admin (geocoder, snapshot, reset stale).
@@ -113,7 +114,7 @@ export default function AdminJobsPage() {
       key: "name",
       header: "Job",
       render: (r) => (
-        <code style={{ fontSize: 12, color: "var(--admin-text)" }}>{r.name}</code>
+        <code className={styles.codeTextFs12}>{r.name}</code>
       ),
     },
     {
@@ -139,7 +140,7 @@ export default function AdminJobsPage() {
       header: "Inicio",
       width: 180,
       render: (r) => (
-        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+        <span className={styles.labelTextMutedFs12}>
           {new Date(r.startedAt).toLocaleString("pt-BR")}
         </span>
       ),
@@ -150,30 +151,16 @@ export default function AdminJobsPage() {
       width: 160,
       align: "right",
       render: (r) => (
-        <div style={{ display: "inline-flex", gap: 12, alignItems: "center" }}>
+        <div className={styles.rowCenteredGap12}>
           <button
             type="button"
             onClick={() => setResult(r)}
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "var(--admin-accent)",
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: 1.5,
-              textTransform: "uppercase",
-              cursor: "pointer",
-              padding: 0,
-            }}
+            className={styles.buttonAccentBg}
           >
             Ver resultado
           </button>
           <span
-            style={{
-              fontFamily: "monospace",
-              fontSize: 12,
-              color: "var(--admin-text-muted)",
-            }}
+            className={styles.labelTextMutedFs12Mono}
           >
             {typeof r.durationMs === "number" ? `${r.durationMs}ms` : "—"}
           </span>
@@ -190,7 +177,7 @@ export default function AdminJobsPage() {
   ];
 
   return (
-    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       <AdminSectionHeader
         eyebrow="ADMIN · OPERAÇÃO"
         title="Jobs operacionais"
@@ -208,15 +195,7 @@ export default function AdminJobsPage() {
 
       {error && (
         <div
-          style={{
-            marginBottom: 32,
-            padding: "14px 18px",
-            borderLeft: "2px solid var(--admin-danger)",
-            background: "color-mix(in srgb, var(--admin-danger) 6%, transparent)",
-            fontSize: 13,
-            color: "var(--admin-danger)",
-            lineHeight: 1.55,
-          }}
+          className={styles.boxDangerBgDanger}
         >
           {error}
         </div>
@@ -224,33 +203,18 @@ export default function AdminJobsPage() {
 
       {geocoderNeedsAttention && (
         <section
-          style={{
-            marginBottom: 32,
-            padding: "14px 18px",
-            borderLeft: "2px solid var(--admin-warning)",
-            background: "color-mix(in srgb, var(--admin-warning) 6%, transparent)",
-            fontSize: 13,
-            color: "var(--admin-text)",
-            lineHeight: 1.55,
-          }}
+          className={styles.sectionTextBgWarning}
         >
           <p
-            style={{
-              margin: 0,
-              fontWeight: 600,
-              color: "var(--admin-warning)",
-              fontSize: 12,
-              letterSpacing: 1.5,
-              textTransform: "uppercase",
-            }}
+            className={styles.textWarningFs12}
           >
             Geocoder precisa de atenção
           </p>
-          <p style={{ margin: "6px 0 0", color: "var(--admin-text-muted)" }}>
+          <p className={styles.textTextMutedM6x0x0}>
             {geocoderBlocked ? geocoderStatus?.readiness?.message : geocoderLastFailure}
           </p>
           {(geocoderStatus?.readiness?.nextAction || geocoderStatus?.lastRun?.errorMessage) && (
-            <p style={{ margin: "6px 0 0", color: "var(--admin-text-muted)" }}>
+            <p className={styles.textTextMutedM6x0x0}>
               {geocoderStatus?.readiness?.nextAction ?? geocoderStatus?.lastRun?.errorMessage}
             </p>
           )}
@@ -258,16 +222,12 @@ export default function AdminJobsPage() {
       )}
 
       {/* === Jobs operacionais (4 cards de ação) === */}
-      <section style={{ marginBottom: 56 }}>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 20 }}>
+      <section className={styles.sectionMb56}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb20}`}>
           JOBS OPERACIONAIS
         </p>
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            gap: 16,
-          }}
+          className={styles.gridColsAuto260Gap16}
         >
           <JobCard
             title="Geocoder de eventos"
@@ -316,12 +276,12 @@ export default function AdminJobsPage() {
       </section>
 
       {/* === Atalhos (links secundários) === */}
-      <section style={{ marginBottom: 56 }}>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 20 }}>
+      <section className={styles.sectionMb56}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb20}`}>
           ATALHOS
         </p>
         <AdminCard variant="subtle">
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          <ul className={styles.listM0P0}>
             {shortcuts.map((s, i) => (
               <li
                 key={s.href}
@@ -334,17 +294,7 @@ export default function AdminJobsPage() {
               >
                 <a
                   href={s.href}
-                  className="urban-admin-shortcut-link"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "14px 4px",
-                    fontSize: 13,
-                    color: "var(--admin-text)",
-                    textDecoration: "none",
-                    transition: "color 120ms",
-                  }}
+                  className={`urban-admin-shortcut-link ${styles.shortcutLinkBetweenCentered}`}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.color = "var(--admin-accent)";
                   }}
@@ -363,7 +313,7 @@ export default function AdminJobsPage() {
 
       {/* === Resultado da última execução === */}
       {result && (
-        <section style={{ marginBottom: 48 }}>
+        <section className={styles.sectionMb48}>
           <AdminCard variant="subtle">
             <AdminCardHeader
               eyebrow="ÚLTIMA EXECUÇÃO"
@@ -377,11 +327,7 @@ export default function AdminJobsPage() {
               }
             />
             <p
-              style={{
-                fontSize: 12,
-                color: "var(--admin-text-muted)",
-                margin: "0 0 14px",
-              }}
+              className={styles.textTextMutedFs12}
             >
               Inicio {new Date(result.startedAt).toLocaleString("pt-BR")} — fim{" "}
               {result.finishedAt
@@ -390,19 +336,7 @@ export default function AdminJobsPage() {
               {typeof result.durationMs === "number" ? ` — ${result.durationMs}ms` : ""}
             </p>
             <pre
-              style={{
-                maxHeight: 320,
-                overflow: "auto",
-                margin: 0,
-                padding: 16,
-                background: "var(--admin-surface-elevated)",
-                border: "1px solid var(--admin-divider)",
-                borderRadius: 2,
-                fontSize: 12,
-                color: "var(--admin-text-muted)",
-                fontFamily: "monospace",
-                lineHeight: 1.55,
-              }}
+              className={styles.preBlockTextMutedBgSurfaceElevated}
             >
               {JSON.stringify(result.result ?? { error: result.errorMessage }, null, 2)}
             </pre>
@@ -411,27 +345,14 @@ export default function AdminJobsPage() {
       )}
 
       {/* === Histórico === */}
-      <section style={{ marginBottom: 32 }}>
+      <section className={styles.sectionMb32}>
         <header
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 16,
-            gap: 16,
-            flexWrap: "wrap",
-          }}
+          className={styles.rowBetweenCentered}
         >
           <div>
             <p className="urban-admin-eyebrow">HISTÓRICO</p>
             <h2
-              style={{
-                fontSize: 20,
-                fontWeight: 600,
-                color: "var(--admin-text)",
-                margin: "8px 0 0",
-                letterSpacing: -0.3,
-              }}
+              className={styles.headingTextFs20}
             >
               Últimos jobs admin
             </h2>
@@ -460,14 +381,7 @@ export default function AdminJobsPage() {
       </section>
 
       <footer
-        style={{
-          marginTop: 32,
-          paddingTop: 20,
-          borderTop: "1px solid var(--admin-divider)",
-          fontSize: 12,
-          color: "var(--admin-text-muted)",
-          lineHeight: 1.55,
-        }}
+        className={styles.footerTextMutedFs12}
       >
         Jobs destrutivos, billing e Stays ficam fora daqui até terem confirmacao
         operacional dedicada.
@@ -507,45 +421,23 @@ function JobCard({
     >
       <div>
         <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            marginBottom: 10,
-          }}
+          className={styles.rowCenteredGap8}
         >
           <AdminStatusDot kind={statusKind} size={8} />
           <span
-            style={{
-              fontSize: 13,
-              fontWeight: 700,
-              color: "var(--admin-text)",
-              textTransform: "lowercase",
-            }}
+            className={styles.labelTextFs13}
           >
             {status}
           </span>
         </div>
         <h3
-          style={{
-            fontSize: 16,
-            fontWeight: 600,
-            color: "var(--admin-text)",
-            margin: 0,
-            letterSpacing: -0.3,
-          }}
+          className={styles.subheadingTextFs16}
         >
           {title}
         </h3>
       </div>
       <p
-        style={{
-          fontSize: 13,
-          color: "var(--admin-text-muted)",
-          margin: 0,
-          lineHeight: 1.55,
-          flex: 1,
-        }}
+        className={styles.textTextMutedFs13}
       >
         {description}
       </p>

@@ -1,0 +1,114 @@
+.boxM0xautoP40x32.boxM0xautoP40x32 {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 40px 32px;
+}
+
+.sectionMb32.sectionMb32 {
+  margin-bottom: 32px;
+}
+
+.rowCenteredGap10.rowCenteredGap10 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gridColsAuto180TextMuted.gridColsAuto180TextMuted {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 24px;
+  font-size: 13px;
+  color: var(--admin-text-muted);
+}
+
+.eyebrowMb20.eyebrowMb20 {
+  margin-bottom: 20px;
+}
+
+.stackGap24.stackGap24 {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.gridColsAuto180Gap32.gridColsAuto180Gap32 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 32px;
+  border-top: 1px solid var(--admin-divider);
+  border-bottom: 1px solid var(--admin-divider);
+  padding: 24px 0;
+}
+
+.gridColsAutoGap16.gridColsAutoGap16 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 16px;
+}
+
+.listTextMutedFs13.listTextMutedFs13 {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: var(--admin-text-muted);
+  line-height: 1.7;
+}
+
+.codeAccent.codeAccent {
+  color: var(--admin-accent);
+}
+
+.codeDanger.codeDanger {
+  color: var(--admin-danger);
+}
+
+.rowBetweenCentered.rowBetweenCentered {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+.eyebrowM0.eyebrowM0 {
+  margin: 0;
+}
+
+.textTextMutedFs12.textTextMutedFs12 {
+  font-size: 12px;
+  color: var(--admin-text-muted);
+  line-height: 1.55;
+  margin: 0 0 16px;
+}
+
+.gridCols2Gap14.gridCols2Gap14 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.textTextMutedFs10.textTextMutedFs10 {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--admin-text-muted);
+  font-weight: 600;
+  margin: 0;
+}
+
+.eyebrowMutedMb4.eyebrowMutedMb4 {
+  margin-bottom: 4px;
+}
+
+.codeAccentFs12.codeAccentFs12 {
+  font-size: 12px;
+  color: var(--admin-accent);
+}
+
+.textTextFs13.textTextFs13 {
+  font-size: 13px;
+  color: var(--admin-text);
+  margin: 0;
+  font-weight: 500;
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import styles from "./AdminInput.module.css";
 
 /**
  * Inputs admin Urban AI — variante única, dark, sem rounded.
@@ -106,18 +107,9 @@ export const AdminInput = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <FieldShell label={label} helper={helper} error={error} style={shellStyle}>
         {leftAddon ? (
-          <div style={{ position: "relative" }}>
+          <div className={styles.box}>
             <span
-              style={{
-                position: "absolute",
-                left: 12,
-                top: "50%",
-                transform: "translateY(-50%)",
-                color: "var(--admin-text-muted)",
-                pointerEvents: "none",
-                display: "flex",
-                alignItems: "center",
-              }}
+              className={styles.rowAbsoluteCentered}
             >
               {leftAddon}
             </span>

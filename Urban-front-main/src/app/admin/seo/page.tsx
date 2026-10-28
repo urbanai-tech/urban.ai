@@ -23,6 +23,7 @@ import {
   type AdminSeoStatusKind,
   type AdminSeoTechnicalStatusItem,
 } from "../../lib/admin-seo-panel";
+import styles from "./page.module.css";
 
 const {
   completion,
@@ -45,7 +46,7 @@ const actionIconMap: Record<AdminSeoActionIcon, typeof Icons.FileText> = {
 
 export default function AdminSeoPage() {
   return (
-    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       <AdminSectionHeader
         eyebrow="ADMIN - SEO / SGO / GEO"
         title="Governança de busca e AI Search"
@@ -57,41 +58,36 @@ export default function AdminSeoPage() {
         }
       />
 
-      <section style={{ marginBottom: 56 }}>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
+      <section className={styles.sectionMb56}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
           OPERAÇÃO DE MEDIÇÃO
         </p>
 
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
-            gap: 24,
-            marginBottom: 24,
-          }}
+          className={styles.gridColsAutoGap24}
         >
           <AdminCard variant="accent">
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 20, alignItems: "flex-start" }}>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <div className={styles.rowBetweenStart}>
+              <div className={styles.boxMinw0}>
+                <div className={styles.rowCenteredWrap}>
                   <p className="urban-admin-eyebrow">{completion.label}</p>
                   <AdminBadge kind="accent">{completion.status}</AdminBadge>
                 </div>
-                <p style={{ margin: "12px 0 0", color: "var(--admin-text-muted)", fontSize: 13, lineHeight: 1.55 }}>
+                <p className={styles.textTextMutedFs13}>
                   {completion.detail}
                 </p>
               </div>
-              <div style={{ textAlign: "right", flexShrink: 0 }}>
-                <strong style={{ display: "block", color: "var(--admin-text)", fontSize: 56, lineHeight: 0.95, fontWeight: 700 }}>
+              <div className={styles.boxRightAlignedNoShrink}>
+                <strong className={styles.strongTextFs56}>
                   {completion.value}%
                 </strong>
-                <span style={{ color: "var(--admin-text-muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: 1.2 }}>
+                <span className={styles.labelTextMutedFs11}>
                   geral
                 </span>
               </div>
             </div>
 
-            <div style={{ marginTop: 22, height: 6, background: "var(--admin-surface-elevated)" }}>
+            <div className={styles.boxBgSurfaceElevatedMt22}>
               <div
                 style={{
                   width: `${completion.value}%`,
@@ -101,14 +97,14 @@ export default function AdminSeoPage() {
               />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginTop: 22 }}>
+            <div className={styles.gridColsAuto180Gap14}>
               <ScoreMeta label="Formula" value={completion.formula} />
               <ScoreMeta label="Fonte atual" value={completion.trace.source} />
               <ScoreMeta label="Cadencia" value={completion.trace.cadence} />
               <ScoreMeta label="Atualizado" value={completion.trace.lastUpdatedLabel} />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 12, marginTop: 20 }}>
+            <div className={styles.gridColsAuto170Gap12}>
               {scoreBreakdown.map((item) => (
                 <ScoreBreakdown key={item.label} {...item} />
               ))}
@@ -121,7 +117,7 @@ export default function AdminSeoPage() {
               title="Da estimativa manual para dado real"
               actions={<AdminBadge kind="warn">Instrumentar</AdminBadge>}
             />
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div className={styles.stackGap14}>
               {integrationRoadmap.map((integration) => (
                 <IntegrationRow key={integration.name} {...integration} />
               ))}
@@ -130,14 +126,14 @@ export default function AdminSeoPage() {
         </div>
 
         <AdminCard variant="subtle" style={{ padding: 0, overflow: "hidden" }}>
-          <div style={{ padding: "20px 20px 0" }}>
+          <div className={styles.boxP20x20x0}>
             <AdminCardHeader
               eyebrow="INDICADORES OPERACIONAIS"
               title="Fonte, status e cadência por medição"
             />
           </div>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 980 }}>
+          <div className={styles.boxScroll}>
+            <table className={styles.tableW100pctMinw980}>
               <thead>
                 <tr>
                   {["Indicador", "Valor", "Fonte atual", "Cadencia", "Status integração", "Atualizado / próxima"].map((header) => (
@@ -158,19 +154,14 @@ export default function AdminSeoPage() {
       </section>
 
       <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
-          gap: 24,
-          marginBottom: 56,
-        }}
+        className={styles.gridColsAutoGap24Mb56}
       >
         <AdminCard variant="subtle">
           <AdminCardHeader
             eyebrow="STATUS TÉCNICO"
             title="Fundacao de rastreamento"
           />
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
+          <div className={styles.gridColsAuto220Gap14}>
             {technicalStatus.map((item) => (
               <StatusTile key={item.label} {...item} />
             ))}
@@ -182,7 +173,7 @@ export default function AdminSeoPage() {
             eyebrow="CRAWLER POLICY"
             title="Politica operacional"
           />
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div className={styles.stackGap14}>
             {crawlerPolicy.map((policy) => (
               <PolicyRow key={policy.agent} {...policy} />
             ))}
@@ -190,17 +181,17 @@ export default function AdminSeoPage() {
         </AdminCard>
       </section>
 
-      <section style={{ marginBottom: 56 }}>
-        <header style={{ marginBottom: 20 }}>
+      <section className={styles.sectionMb56}>
+        <header className={styles.headerMb20}>
           <p className="urban-admin-eyebrow">READINESS 100%</p>
-          <h2 style={{ margin: "8px 0 0", fontSize: 20, fontWeight: 600, color: "var(--admin-text)", letterSpacing: -0.3 }}>
+          <h2 className={styles.headingTextFs20}>
             Conectores prontos para dados reais
           </h2>
         </header>
 
         <AdminCard variant="subtle" style={{ padding: 0, overflow: "hidden" }}>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 960 }}>
+          <div className={styles.boxScroll}>
+            <table className={styles.tableW100pctMinw960}>
               <thead>
                 <tr>
                   {["Conector", "Readiness", "Variaveis", "Endpoint seguro", "Nota"].map((header) => (
@@ -220,17 +211,17 @@ export default function AdminSeoPage() {
         </AdminCard>
       </section>
 
-      <section style={{ marginBottom: 56 }}>
-        <header style={{ marginBottom: 20 }}>
+      <section className={styles.sectionMb56}>
+        <header className={styles.headerMb20}>
           <p className="urban-admin-eyebrow">MATRIZ AI SEARCH</p>
-          <h2 style={{ margin: "8px 0 0", fontSize: 20, fontWeight: 600, color: "var(--admin-text)", letterSpacing: -0.3 }}>
+          <h2 className={styles.headingTextFs20}>
             Perguntas que a Urban precisa responder melhor que o mercado
           </h2>
         </header>
 
         <AdminCard variant="subtle" style={{ padding: 0, overflow: "hidden" }}>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 860 }}>
+          <div className={styles.boxScroll}>
+            <table className={styles.tableW100pctMinw860}>
               <thead>
                 <tr>
                   {["Cluster", "Pergunta", "Intenção", "Ativo fonte", "Readiness"].map((header) => (
@@ -263,51 +254,37 @@ export default function AdminSeoPage() {
       </section>
 
       <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
-          gap: 24,
-        }}
+        className={styles.gridColsAutoGap242}
       >
         <AdminCard variant="subtle">
           <AdminCardHeader
             eyebrow="BACKLOG P0 / P1 / P2"
             title="Fila priorizada"
           />
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div className={styles.stackGap12}>
             {backlog.map((item) => (
               <BacklogRow key={item.title} {...item} />
             ))}
           </div>
         </AdminCard>
 
-        <div style={{ display: "grid", gap: 16 }}>
+        <div className={styles.gridGap16}>
           {actionCards.map((card) => {
             const Icon = actionIconMap[card.icon];
 
             return (
               <AdminCard key={card.title} variant="default">
-                <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+                <div className={styles.rowStartGap14}>
                   <div
-                    style={{
-                      width: 34,
-                      height: 34,
-                      border: "1px solid color-mix(in srgb, var(--app-accent, var(--admin-accent)) 35%, transparent)",
-                      borderRadius: 2,
-                      color: "var(--admin-accent)",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
+                    className={styles.rowJustifyCenterCentered}
                   >
                     <Icon size={18} />
                   </div>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "var(--admin-text)" }}>
+                  <div className={styles.boxMinw0Flex1}>
+                    <h3 className={styles.subheadingTextFs15}>
                       {card.title}
                     </h3>
-                    <p style={{ margin: "8px 0 16px", fontSize: 13, lineHeight: 1.55, color: "var(--admin-text-muted)" }}>
+                    <p className={styles.textTextMutedFs13M8x0x16Lh1_55}>
                       {card.body}
                     </p>
                     <AdminButton variant="secondary" size="sm" rightIcon={<Icons.ArrowRight size={12} />}>
@@ -321,7 +298,7 @@ export default function AdminSeoPage() {
         </div>
       </section>
 
-      <section style={{ marginTop: 56 }}>
+      <section className={styles.sectionMt56}>
         <AdminCard variant="accent">
           <AdminCardHeader
             eyebrow="CHECKPOINTS PARA 100%"
@@ -329,11 +306,11 @@ export default function AdminSeoPage() {
             actions={<AdminBadge kind="warn">{completion.remaining.length} pendencias</AdminBadge>}
           />
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginTop: 20 }}>
+          <div className={styles.gridColsAuto220Gap12}>
             {completion.remaining.map((item) => (
-              <div key={item} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <div key={item} className={styles.rowStartGap8}>
                 <AdminStatusDot kind="warn" size={7} />
-                <span style={{ color: "var(--admin-text-muted)", fontSize: 12, lineHeight: 1.5 }}>
+                <span className={styles.labelTextMutedFs12}>
                   {item}
                 </span>
               </div>
@@ -348,10 +325,10 @@ export default function AdminSeoPage() {
 function ScoreMeta({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="urban-admin-eyebrow-muted" style={{ marginBottom: 6 }}>
+      <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb6}`}>
         {label}
       </p>
-      <p style={{ margin: 0, color: "var(--admin-text)", fontSize: 12, lineHeight: 1.45 }}>
+      <p className={styles.textTextFs12}>
         {value}
       </p>
     </div>
@@ -365,20 +342,15 @@ function ScoreBreakdown({
 }: AdminSeoScoreBreakdownItem) {
   return (
     <div
-      style={{
-        border: "1px solid var(--admin-divider)",
-        borderRadius: 2,
-        padding: 12,
-        background: "var(--admin-surface)",
-      }}
+      className={styles.boxBgSurfaceP12}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div className={styles.rowCenteredGap8}>
         <AdminStatusDot kind={status} size={7} />
-        <span style={{ color: "var(--admin-text-muted)", fontSize: 11, lineHeight: 1.35 }}>
+        <span className={styles.labelTextMutedFs11Lh1_35}>
           {label}
         </span>
       </div>
-      <strong style={{ display: "block", marginTop: 8, color: "var(--admin-text)", fontSize: 20, lineHeight: 1 }}>
+      <strong className={styles.strongTextFs20}>
         {value}
       </strong>
     </div>
@@ -394,30 +366,24 @@ function IntegrationRow({
 }: AdminSeoIntegrationRoadmapItem) {
   return (
     <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "minmax(130px, 0.45fr) minmax(0, 1fr)",
-        gap: 14,
-        paddingBottom: 14,
-        borderBottom: "1px solid var(--admin-divider)",
-      }}
+      className={styles.gridColsGap14}
     >
       <div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div className={styles.rowCenteredGap8}>
           <AdminStatusDot kind={statusKind} size={8} />
-          <span style={{ color: "var(--admin-text)", fontSize: 13, fontWeight: 600 }}>
+          <span className={styles.labelTextFs13}>
             {name}
           </span>
         </div>
-        <p className="urban-admin-eyebrow-muted" style={{ marginTop: 8 }}>
+        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMt8}`}>
           {trace.cadence}
         </p>
-        <p className="urban-admin-eyebrow-muted" style={{ marginTop: 6 }}>
+        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMt6}`}>
           {trace.lastUpdatedLabel}
         </p>
       </div>
       <div>
-        <p style={{ margin: 0, color: "var(--admin-text-muted)", fontSize: 12, lineHeight: 1.5 }}>
+        <p className={styles.textTextMutedFs12}>
           {purpose}
         </p>
         <AdminBadge kind={integrationBadgeKind(trace.integrationStatus)} style={{ marginTop: 8 }}>
@@ -440,11 +406,11 @@ function ConnectorReadinessRow({
   return (
     <tr>
       <td style={{ ...tdStyle, color: "var(--admin-text)", fontWeight: 600 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div className={styles.rowCenteredGap8}>
           <AdminStatusDot kind={status} size={8} />
           <span>{name}</span>
         </div>
-        <p style={{ margin: "6px 0 0", color: "var(--admin-text-muted)", fontSize: 12, lineHeight: 1.45, fontWeight: 400 }}>
+        <p className={styles.textTextMutedFs12W400M6x0x0Lh1_45}>
           {provider}
         </p>
       </td>
@@ -452,7 +418,7 @@ function ConnectorReadinessRow({
         <AdminBadge kind={status}>{readiness}</AdminBadge>
       </td>
       <td style={tdStyle}>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        <div className={styles.rowWrapGap6}>
           {envKeys.map((envKey) => (
             <AdminBadge key={envKey} kind="neutral">
               {envKey}
@@ -477,16 +443,16 @@ function OperationalMetricRow({
   return (
     <tr>
       <td style={{ ...tdStyle, color: "var(--admin-text)", fontWeight: 600 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div className={styles.rowCenteredGap8}>
           <AdminStatusDot kind={status} size={8} />
           <span>{label}</span>
         </div>
-        <p style={{ margin: "6px 0 0", color: "var(--admin-text-muted)", fontSize: 12, lineHeight: 1.45, fontWeight: 400 }}>
+        <p className={styles.textTextMutedFs12W400M6x0x0Lh1_45}>
           {detail}
         </p>
       </td>
       <td style={tdStyle}>
-        <strong style={{ color: "var(--admin-text)", fontSize: 18, lineHeight: 1 }}>
+        <strong className={styles.strongTextFs18}>
           {typeof value === "number" ? value.toLocaleString("pt-BR") : value}
         </strong>
       </td>
@@ -496,12 +462,12 @@ function OperationalMetricRow({
       <td style={tdStyle}>{trace.cadence}</td>
       <td style={tdStyle}>
         <AdminBadge kind={integrationBadgeKind(trace.integrationStatus)}>{trace.integrationStatusLabel}</AdminBadge>
-        <p style={{ margin: "8px 0 0", color: "var(--admin-text-muted)", fontSize: 11 }}>
+        <p className={styles.textTextMutedFs11}>
           {statusLabel}
         </p>
       </td>
       <td style={tdStyle}>
-        <span style={{ display: "block", marginBottom: 8 }}>{trace.lastUpdatedLabel}</span>
+        <span className={styles.labelMb8}>{trace.lastUpdatedLabel}</span>
         {trace.nextIntegrationLabel && (
           <AdminBadge kind={status === "success" ? "accent" : "warn"}>
             {trace.nextIntegrationLabel}
@@ -520,21 +486,16 @@ function StatusTile({
 }: AdminSeoTechnicalStatusItem) {
   return (
     <div
-      style={{
-        border: "1px solid var(--admin-divider)",
-        borderRadius: 2,
-        padding: 16,
-        background: "var(--admin-surface)",
-      }}
+      className={styles.boxBgSurfaceP16}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div className={styles.rowCenteredGap8}>
         <AdminStatusDot kind={status} size={8} />
         <p className="urban-admin-eyebrow-muted">{label}</p>
       </div>
-      <p style={{ margin: "10px 0 4px", color: "var(--admin-text)", fontSize: 15, fontWeight: 600 }}>
+      <p className={styles.textTextFs15}>
         {value}
       </p>
-      <p style={{ margin: 0, color: "var(--admin-text-muted)", fontSize: 12, lineHeight: 1.5 }}>
+      <p className={styles.textTextMutedFs12}>
         {detail}
       </p>
     </div>
@@ -548,18 +509,18 @@ function PolicyRow({
   status,
 }: AdminSeoCrawlerPolicy) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "minmax(130px, 0.75fr) minmax(0, 1fr)", gap: 14, alignItems: "start" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <div className={styles.gridColsGap142}>
+      <div className={styles.rowCenteredGap8}>
         <AdminStatusDot kind={status} size={8} />
-        <span style={{ color: "var(--admin-text)", fontSize: 12, fontWeight: 600 }}>
+        <span className={styles.labelTextFs12}>
           {agent}
         </span>
       </div>
       <div>
-        <p style={{ margin: 0, color: "var(--admin-text)", fontSize: 13, fontWeight: 600 }}>
+        <p className={styles.textTextFs13}>
           {policy}
         </p>
-        <p style={{ margin: "4px 0 0", color: "var(--admin-text-muted)", fontSize: 12, lineHeight: 1.5 }}>
+        <p className={styles.textTextMutedFs12M4x0x0Lh1_5}>
           {scope}
         </p>
       </div>
@@ -570,8 +531,8 @@ function PolicyRow({
 function Readiness({ value }: { value: number }) {
   const kind: AdminSeoStatusKind = value >= 75 ? "success" : value >= 60 ? "warn" : "error";
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 130 }}>
-      <div style={{ flex: 1, height: 3, background: "var(--admin-divider)" }}>
+    <div className={styles.rowCenteredGap10}>
+      <div className={styles.boxBgDividerH3}>
         <div
           style={{
             width: `${value}%`,
@@ -585,7 +546,7 @@ function Readiness({ value }: { value: number }) {
           }}
         />
       </div>
-      <span style={{ color: "var(--admin-text)", fontSize: 12, fontWeight: 600, fontFamily: "monospace" }}>
+      <span className={styles.labelTextFs12W600Mono}>
         {value}
       </span>
     </div>
@@ -602,28 +563,22 @@ function BacklogRow({
   const badgeKind = priority === "P0" ? "error" : priority === "P1" ? "warn" : "neutral";
   return (
     <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "56px minmax(0, 1fr) 120px",
-        gap: 14,
-        padding: "14px 0",
-        borderBottom: "1px solid var(--admin-divider)",
-      }}
+      className={styles.gridColsGap14P14x0Bordered}
     >
       <AdminBadge kind={badgeKind}>{priority}</AdminBadge>
-      <div style={{ minWidth: 0 }}>
-        <p style={{ margin: 0, color: "var(--admin-text)", fontSize: 14, fontWeight: 600 }}>
+      <div className={styles.boxMinw0}>
+        <p className={styles.textTextFs14}>
           {title}
         </p>
-        <p style={{ margin: "5px 0 0", color: "var(--admin-text-muted)", fontSize: 12, lineHeight: 1.5 }}>
+        <p className={styles.textTextMutedFs12M5x0x0Lh1_5}>
           {impact}
         </p>
       </div>
-      <div style={{ textAlign: "right" }}>
-        <p className="urban-admin-eyebrow-muted" style={{ marginBottom: 5 }}>
+      <div className={styles.boxRightAligned}>
+        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb5}`}>
           {owner}
         </p>
-        <span style={{ color: "var(--admin-text-muted)", fontSize: 11 }}>
+        <span className={styles.labelTextMutedFs112}>
           {status}
         </span>
       </div>

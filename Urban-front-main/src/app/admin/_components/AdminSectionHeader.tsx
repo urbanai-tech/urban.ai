@@ -11,6 +11,7 @@
  *  - slot direito pra actions (botões, links, switches)
  */
 import React from "react";
+import styles from "./AdminSectionHeader.module.css";
 
 export type AdminSectionHeaderSize = "hero" | "md" | "sm";
 
@@ -50,28 +51,20 @@ export function AdminSectionHeader({
         ...style,
       }}
     >
-      <div style={{ minWidth: 0, flex: 1 }}>
+      <div className={styles.boxMinw0Flex1}>
         {eyebrow && (
-          <p className="urban-admin-eyebrow" style={{ marginBottom: 12 }}>
+          <p className={`urban-admin-eyebrow ${styles.eyebrowMb12}`}>
             {eyebrow}
           </p>
         )}
         <h1
-          className={titleClass}
-          style={{ textTransform: "uppercase" }}
+          className={[titleClass, styles.titleUpper].filter(Boolean).join(" ")}
         >
           {title}
         </h1>
         {subtitle && (
           <p
-            style={{
-              marginTop: 12,
-              fontSize: 14,
-              color: "var(--admin-text-muted)",
-              fontWeight: 400,
-              lineHeight: 1.55,
-              maxWidth: 720,
-            }}
+            className={styles.textTextMutedFs14}
           >
             {subtitle}
           </p>
@@ -79,13 +72,7 @@ export function AdminSectionHeader({
       </div>
       {actions && (
         <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            flexShrink: 0,
-            flexWrap: "wrap",
-          }}
+          className={styles.rowCenteredWrap}
         >
           {actions}
         </div>

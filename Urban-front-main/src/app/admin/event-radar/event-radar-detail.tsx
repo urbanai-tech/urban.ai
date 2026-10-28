@@ -26,6 +26,7 @@ import {
   shortTrace,
   uniqueList,
 } from "./event-radar-domain";
+import styles from "./event-radar-detail.module.css";
 
 function EventDecisionHero({ detail }: { detail: AdminEventRadarDetail }) {
   const event = detail.event;
@@ -49,20 +50,13 @@ function EventDecisionHero({ detail }: { detail: AdminEventRadarDetail }) {
 
   return (
     <section
-      style={{
-        border: "1px solid var(--admin-divider)",
-        borderRadius: 2,
-        padding: 16,
-        display: "grid",
-        gridTemplateColumns: "var(--event-radar-detail-hero-grid, minmax(0, 1.2fr) minmax(0, 0.8fr))",
-        gap: 18,
-      }}
+      className={styles.gridColsGap18}
     >
-      <div style={{ minWidth: 0 }}>
-        <p className="urban-admin-eyebrow-muted" style={{ marginBottom: 10 }}>
+      <div className={styles.boxMinw0}>
+        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb10}`}>
           DECISAO OPERACIONAL
         </p>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <div className={styles.rowCenteredWrap}>
           <AdminBadge kind={kind}>{decision}</AdminBadge>
           <AdminBadge kind={confidenceKind(event.confidence)}>{confidenceLabel(event.confidence)}</AdminBadge>
           <AdminBadge kind={evidenceReady ? "success" : "warn"}>
@@ -70,7 +64,7 @@ function EventDecisionHero({ detail }: { detail: AdminEventRadarDetail }) {
           </AdminBadge>
           <AdminBadge kind={dataStatusKind(dataStatus)}>{dataStatusLabel(dataStatus)}</AdminBadge>
         </div>
-        <p style={{ margin: "12px 0 0", color: "var(--admin-text-muted)", fontSize: 12, lineHeight: 1.6, overflowWrap: "anywhere" }}>
+        <p className={styles.textTextMutedFs12}>
           {hasPricingGap
             ? "Evento forte sem recomendação gerada: tratar antes de perder janela de demanda."
             : topImpact
@@ -81,12 +75,7 @@ function EventDecisionHero({ detail }: { detail: AdminEventRadarDetail }) {
         </p>
       </div>
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-          gap: 12,
-          minWidth: 0,
-        }}
+        className={styles.gridCols2Gap12}
       >
         <MetricBlock label="Score" value={event.demandScore ?? "-"} />
         <MetricBlock label="Receita" value={formatCents(event.revenuePotentialCents)} />
@@ -107,17 +96,10 @@ export function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
     ...(detail.intelligence.dataQualityFlags ?? []),
   ]);
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+    <div className={styles.stackGap28}>
       {detail.contractMode === "contract-fallback" && (
         <div
-          style={{
-            padding: "12px 14px",
-            border: "1px solid color-mix(in srgb, var(--admin-warning) 30%, transparent)",
-            borderRadius: 2,
-            color: "var(--admin-warning)",
-            fontSize: 12,
-            lineHeight: 1.5,
-          }}
+          className={styles.boxWarningFs12}
         >
           Detalhe em fallback contratual. Dados brutos, inteligência e impacto em imóveis devem ser substituídos por
           snapshots reais quando Lia/Nico expuserem os endpoints.
@@ -127,10 +109,10 @@ export function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
       <EventDecisionHero detail={detail} />
 
       <section>
-        <p className="urban-admin-eyebrow-muted" style={{ marginBottom: 12 }}>
+        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb12}`}>
           RESUMO
         </p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+        <div className={styles.rowWrapGap8}>
           <AdminBadge kind={confidenceKind(event.confidence)}>{confidenceLabel(event.confidence)}</AdminBadge>
           <AdminBadge kind={event.geocodeStatus === "ok" ? "success" : "warn"}>Geo {event.geocodeStatus}</AdminBadge>
           <AdminBadge kind={event.enrichmentStatus === "ok" ? "success" : "warn"}>Enrich {event.enrichmentStatus}</AdminBadge>
@@ -138,7 +120,7 @@ export function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
           <AdminBadge kind={dataStatusKind(dataStatus)}>{dataStatusLabel(dataStatus)}</AdminBadge>
           <AdminBadge kind={jobRunId ? "neutral" : "warn"}>{jobRunId ? `job ${shortTrace(jobRunId)}` : "sem jobRunId"}</AdminBadge>
         </div>
-        <p style={{ margin: 0, fontSize: 13, color: "var(--admin-text-muted)", lineHeight: 1.6, overflowWrap: "anywhere" }}>
+        <p className={styles.textTextMutedFs13}>
           {detail.intelligence.interpretation}
         </p>
         {sourceUrl && (
@@ -146,24 +128,14 @@ export function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
             href={sourceUrl}
             target="_blank"
             rel="noreferrer"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              marginTop: 12,
-              color: "var(--admin-accent)",
-              fontSize: 12,
-              fontWeight: 600,
-              textDecoration: "none",
-              overflowWrap: "anywhere",
-            }}
+            className={styles.rowCenteredAccent}
           >
             Abrir fonte do evento <Icons.ExternalLink size={12} />
           </a>
         )}
       </section>
 
-      <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 16 }}>
+      <section className={styles.gridColsAuto150Gap16}>
         <MetricBlock label="Score demanda" value={event.demandScore ?? "—"} />
         <MetricBlock label="Potencial receita" value={formatCents(event.revenuePotentialCents)} />
         <MetricBlock label="Raio demanda" value={event.demandRadiusKm ? `${event.demandRadiusKm} km` : "—"} />
@@ -173,10 +145,10 @@ export function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
       </section>
 
       <section>
-        <p className="urban-admin-eyebrow-muted" style={{ marginBottom: 12 }}>
+        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb12}`}>
           DADOS BRUTOS
         </p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+        <div className={styles.gridColsAuto180Gap12}>
           <DetailRow label="Data" value={formatDateTime(event.startsAt)} />
           <DetailRow label="Cidade" value={`${event.city}/${event.state}`} />
           <DetailRow label="Categoria" value={event.category ?? "—"} />
@@ -193,20 +165,20 @@ export function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
       </section>
 
       <section>
-        <p className="urban-admin-eyebrow-muted" style={{ marginBottom: 12 }}>
+        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb12}`}>
           DRIVERS
         </p>
         {detail.intelligence.drivers.length > 0 ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className={styles.stackGap10}>
             {detail.intelligence.drivers.map((driver) => (
-              <div key={driver.key} style={{ border: "1px solid var(--admin-divider)", borderRadius: 2, padding: 12, minWidth: 0 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, minWidth: 0 }}>
-                  <strong style={{ color: "var(--admin-text)", fontSize: 13, overflowWrap: "anywhere" }}>{driver.label}</strong>
-                  <span style={{ fontFamily: "monospace", color: "var(--admin-accent)", fontSize: 12 }}>
+              <div key={driver.key} className={styles.boxP12Minw0}>
+                <div className={styles.rowBetweenGap12}>
+                  <strong className={styles.strongTextFs13}>{driver.label}</strong>
+                  <span className={styles.labelAccentFs12}>
                     {driver.weight}
                   </span>
                 </div>
-                <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--admin-text-muted)", lineHeight: 1.55, overflowWrap: "anywhere" }}>
+                <p className={styles.textTextMutedFs12M6x0x0Lh1_55}>
                   {driver.explanation}
                 </p>
               </div>
@@ -221,7 +193,7 @@ export function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
       </section>
 
       <section>
-        <p className="urban-admin-eyebrow-muted" style={{ marginBottom: 12 }}>
+        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb12}`}>
           IMPACTO EM IMÓVEIS
         </p>
         {detail.propertyImpact.length > 0 ? (
@@ -236,10 +208,10 @@ export function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
 
       {(event.riskFlags.length > 0 || dataQualityFlags.length > 0) && (
         <section>
-          <p className="urban-admin-eyebrow-muted" style={{ marginBottom: 12 }}>
+          <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb12}`}>
             RISCOS E QUALIDADE
           </p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          <div className={styles.rowWrapGap82}>
             {event.riskFlags.map((flag) => (
               <AdminBadge key={flag} kind="error">{flag}</AdminBadge>
             ))}
@@ -259,9 +231,9 @@ function PropertyImpactTable({ detail }: { detail: AdminEventRadarDetail }) {
       key: "property",
       header: "Imóvel",
       render: (row) => (
-        <div style={{ minWidth: 0 }}>
-          <p style={{ margin: 0, fontWeight: 600, color: "var(--admin-text)", overflowWrap: "anywhere" }}>{row.propertyName}</p>
-          <p style={{ margin: "4px 0 0", fontSize: 11, color: "var(--admin-text-muted)", overflowWrap: "anywhere" }}>
+        <div className={styles.boxMinw0}>
+          <p className={styles.textTextW600}>{row.propertyName}</p>
+          <p className={styles.textTextMutedFs11}>
             {row.hostEmail ?? row.hostUserId ?? row.propertyId}
           </p>
         </div>
@@ -358,7 +330,7 @@ export function DetailActions({
 
 export function OperationalStatus({ event }: { event: AdminEventRadarEvent }) {
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+    <div className={styles.rowWrapGap6}>
       <AdminBadge kind={event.geocodeStatus === "ok" ? "success" : event.geocodeStatus === "pending" ? "warn" : "error"}>
         geo {event.geocodeStatus}
       </AdminBadge>
@@ -374,14 +346,14 @@ export function OperationalStatus({ event }: { event: AdminEventRadarEvent }) {
 
 export function EvidenceStatus({ event }: { event: AdminEventRadarEvent }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 5, minWidth: 0 }}>
+    <div className={styles.stackGap5Minw0}>
       <div>
         <AdminBadge kind={dataStatusKind(event.dataStatus)}>{dataStatusLabel(event.dataStatus)}</AdminBadge>
       </div>
-      <code style={{ color: "var(--admin-text-dim)", fontSize: 11, overflowWrap: "anywhere" }}>
+      <code className={styles.codeTextDimFs11}>
         {event.jobRunId ? `job ${shortTrace(event.jobRunId)}` : "sem jobRunId"}
       </code>
-      <span style={{ color: "var(--admin-text-muted)", fontSize: 11, overflowWrap: "anywhere" }}>
+      <span className={styles.labelTextMutedFs11}>
         {event.modelVersion ?? "sem modelVersion"}
       </span>
     </div>
@@ -389,14 +361,14 @@ export function EvidenceStatus({ event }: { event: AdminEventRadarEvent }) {
 }
 
 export function ScoreCell({ value }: { value: number | null }) {
-  if (value === null) return <span style={{ color: "var(--admin-text-dim)" }}>—</span>;
+  if (value === null) return <span className={styles.labelTextDim}>—</span>;
   const pct = Math.max(0, Math.min(100, value));
   return (
-    <div style={{ display: "inline-flex", flexDirection: "column", gap: 4, minWidth: 58 }}>
+    <div className={styles.stackGap4Minw58}>
       <span style={{ fontFamily: "monospace", fontWeight: 700, color: scoreColor(value), fontSize: 13 }}>
         {value}
       </span>
-      <div style={{ height: 2, background: "var(--admin-divider)" }}>
+      <div className={styles.boxBgDividerH2}>
         <div style={{ width: `${pct}%`, height: "100%", background: scoreColor(value) }} />
       </div>
     </div>
@@ -405,11 +377,11 @@ export function ScoreCell({ value }: { value: number | null }) {
 
 export function MiniStat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div style={{ minWidth: 0 }}>
-      <p style={{ margin: 0, fontSize: 9, letterSpacing: 1.2, textTransform: "uppercase", color: "var(--admin-text-dim)" }}>
+    <div className={styles.boxMinw0}>
+      <p className={styles.textTextDimFs9}>
         {label}
       </p>
-      <p style={{ margin: "3px 0 0", fontFamily: "monospace", color: "var(--admin-text)", fontSize: 12, overflowWrap: "anywhere" }}>
+      <p className={styles.textTextFs12}>
         {value}
       </p>
     </div>
@@ -418,9 +390,9 @@ export function MiniStat({ label, value }: { label: string; value: string | numb
 
 function MetricBlock({ label, value }: { label: string; value: string | number }) {
   return (
-    <div style={{ borderTop: "1px solid var(--admin-divider)", paddingTop: 10, minWidth: 0 }}>
+    <div className={styles.boxMinw0Bordered}>
       <p className="urban-admin-eyebrow-muted">{label}</p>
-      <p style={{ margin: "8px 0 0", color: "var(--admin-text)", fontFamily: "monospace", fontSize: 17, overflowWrap: "anywhere" }}>
+      <p className={styles.textTextFs17}>
         {value}
       </p>
     </div>
@@ -430,10 +402,10 @@ function MetricBlock({ label, value }: { label: string; value: string | number }
 function DetailRow({ label, value }: { label: string; value: string | number }) {
   return (
     <div>
-      <p style={{ margin: 0, fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--admin-text-muted)", fontWeight: 600 }}>
+      <p className={styles.textTextMutedFs10}>
         {label}
       </p>
-      <p style={{ margin: "5px 0 0", fontSize: 12, color: "var(--admin-text)", fontFamily: "monospace", overflowWrap: "anywhere" }}>
+      <p className={styles.textTextFs12M5x0x0Mono}>
         {value}
       </p>
     </div>

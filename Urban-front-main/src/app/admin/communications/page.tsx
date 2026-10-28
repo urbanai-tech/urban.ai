@@ -23,6 +23,7 @@ import {
   Icons,
 } from "../_components";
 import type { AdminBadgeKind } from "../_components";
+import styles from "./page.module.css";
 
 const CHANNEL_LABELS: Record<CommunicationChannel, string> = {
   email: "E-mail",
@@ -92,7 +93,7 @@ export default function AdminCommunicationsPage() {
 
   if (error) {
     return (
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar comunicacoes"
@@ -105,7 +106,7 @@ export default function AdminCommunicationsPage() {
   }
 
   return (
-    <div style={{ maxWidth: 1320, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32Maxw1320}>
       <AdminSectionHeader
         eyebrow="ADMIN · COMUNICACOES"
         title="Central de envios"
@@ -117,15 +118,9 @@ export default function AdminCommunicationsPage() {
         }
       />
 
-      <section style={{ marginBottom: 36 }}>
+      <section className={styles.sectionMb36}>
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-            gap: 28,
-            borderTop: "1px solid var(--admin-divider)",
-            borderBottom: "1px solid var(--admin-divider)",
-          }}
+          className={styles.gridColsAuto160Gap28}
         >
           <AdminMetricCard label="Enviados 24h" value={totals24h.sent.toLocaleString("pt-BR")} status="success" />
           <AdminMetricCard label="Falhas 24h" value={totals24h.failed.toLocaleString("pt-BR")} status={totals24h.failed > 0 ? "error" : "neutral"} />
@@ -136,15 +131,10 @@ export default function AdminCommunicationsPage() {
         </div>
       </section>
 
-      <section style={{ marginBottom: 24 }}>
+      <section className={styles.sectionMb24}>
         <AdminCard variant="subtle">
           <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 12,
-              alignItems: "end",
-            }}
+            className={styles.rowWrapGap12}
           >
             <AdminInput
               label="Busca"
@@ -193,7 +183,7 @@ export default function AdminCommunicationsPage() {
             icon={<Icons.Mail size={32} />}
           />
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className={styles.stackGap10}>
             {data.items.map((event) => (
               <CommunicationRow key={event.id} event={event} />
             ))}
@@ -201,11 +191,11 @@ export default function AdminCommunicationsPage() {
         )}
 
         {data && data.total > data.limit && (
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20 }}>
-            <p style={{ margin: 0, fontSize: 12, color: "var(--admin-text-muted)" }}>
+          <div className={styles.rowBetweenCentered}>
+            <p className={styles.textTextMutedFs12}>
               Pagina {page} de {totalPages} · {data.total.toLocaleString("pt-BR")} registros
             </p>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div className={styles.rowGap8}>
               <AdminButton variant="secondary" disabled={page <= 1} onClick={() => load(page - 1)}>
                 Anterior
               </AdminButton>
@@ -224,36 +214,36 @@ function CommunicationRow({ event }: { event: CommunicationEvent }) {
   const target = event.recipientEmail || event.recipientDeviceId || event.userId || "sem destinatario";
   return (
     <AdminCard variant={event.status === "failed" ? "accent" : "subtle"} style={{ padding: "16px 18px" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: 16, alignItems: "center" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <div className={styles.gridCenteredColsAuto}>
+        <div className={styles.stackGap8}>
+          <div className={styles.rowWrapGap8}>
             <AdminBadge kind={channelBadge(event.channel)}>{CHANNEL_LABELS[event.channel]}</AdminBadge>
             <AdminBadge kind={statusBadge(event.status)}>{STATUS_LABELS[event.status]}</AdminBadge>
           </div>
-          <span style={{ fontSize: 11, color: "var(--admin-text-dim)", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" }}>
+          <span className={styles.labelTextDimFs11}>
             {formatDate(event.createdAt)}
           </span>
         </div>
 
-        <div style={{ minWidth: 0 }}>
-          <p style={{ margin: 0, color: "var(--admin-text)", fontSize: 14, fontWeight: 650, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <div className={styles.boxMinw0}>
+          <p className={styles.textTextFs14}>
             {event.subject || event.title || event.kind || "Comunicacao"}
           </p>
-          <p style={{ margin: "5px 0 0", color: "var(--admin-text-muted)", fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <p className={styles.textTextMutedFs12M5x0x0Scroll}>
             {target}
           </p>
           {event.failureReason && (
-            <p style={{ margin: "8px 0 0", color: "var(--admin-danger)", fontSize: 12, lineHeight: 1.45 }}>
+            <p className={styles.textDangerFs12}>
               {event.failureReason}
             </p>
           )}
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-end", minWidth: 0 }}>
-          <span style={{ fontSize: 11, color: "var(--admin-text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 140 }}>
+        <div className={styles.stackAlignEndGap5}>
+          <span className={styles.labelTextMutedFs11}>
             {event.kind || "sem tipo"}
           </span>
-          <span style={{ fontSize: 11, color: "var(--admin-text-dim)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 140 }}>
+          <span className={styles.labelTextDimFs11Maxw140Scroll}>
             {event.provider || event.templateName || "interno"}
           </span>
         </div>

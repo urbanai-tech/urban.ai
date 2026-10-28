@@ -19,6 +19,7 @@ import {
   Icons,
 } from "../../_components";
 import type { AdminBadgeKind } from "../../_components";
+import styles from "./page.module.css";
 
 /**
  * /admin/users/[id] — drill-down de usuário.
@@ -153,7 +154,7 @@ export default function AdminUserDetailPage() {
 
   if (error || !user) {
     return (
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="ERRO"
           title="Não foi possível carregar"
@@ -186,7 +187,7 @@ export default function AdminUserDetailPage() {
   const validProperties = properties.filter((p) => p.manualDailyPrice).length;
 
   return (
-    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       <AdminSectionHeader
         eyebrow={`ADMIN · USUÁRIO · ${user.id.slice(0, 8)}…`}
         title={user.username}
@@ -196,7 +197,7 @@ export default function AdminUserDetailPage() {
             {user.createdAt && (
               <>
                 {" · "}cadastro em{" "}
-                <strong style={{ color: "var(--admin-text)" }}>
+                <strong className={styles.strongText}>
                   {new Date(user.createdAt).toLocaleDateString("pt-BR")}
                 </strong>
               </>
@@ -216,37 +217,19 @@ export default function AdminUserDetailPage() {
       />
 
       {/* Identity card */}
-      <section style={{ marginBottom: 32 }}>
+      <section className={styles.sectionMb32}>
         <AdminCard variant="accent">
           <div
-            style={{
-              display: "flex",
-              gap: 20,
-              alignItems: "center",
-              flexWrap: "wrap",
-            }}
+            className={styles.rowCenteredWrap}
           >
             <div
               aria-hidden
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: "50%",
-                background: "var(--admin-accent-soft)",
-                border: "1px solid var(--admin-accent)",
-                color: "var(--admin-accent)",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 24,
-                fontWeight: 600,
-                flexShrink: 0,
-              }}
+              className={styles.rowJustifyCenterCentered}
             >
               {initial}
             </div>
-            <div style={{ flex: 1, minWidth: 200 }}>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 6 }}>
+            <div className={styles.boxMinw200Flex1}>
+              <div className={styles.rowWrapGap10}>
                 <AdminBadge kind={roleKind}>{roleLabel(user.role)}</AdminBadge>
                 <AdminBadge kind={user.ativo ? "success" : "neutral"}>
                   {user.ativo ? "Ativo" : "Inativo"}
@@ -258,13 +241,13 @@ export default function AdminUserDetailPage() {
                   <AdminBadge kind="accent">Modo auto</AdminBadge>
                 )}
               </div>
-              <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
+              <p className={styles.textTextMutedFs13}>
                 {user.phone || "sem telefone"}
                 {user.company ? ` · ${user.company}` : ""}
                 {user.airbnbHostId ? ` · Airbnb host #${user.airbnbHostId}` : ""}
               </p>
             </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div className={styles.rowWrapGap8}>
               <AdminSelect
                 value={user.role}
                 onChange={(e) => {
@@ -290,16 +273,9 @@ export default function AdminUserDetailPage() {
       </section>
 
       {/* KPIs */}
-      <section style={{ marginBottom: 32 }}>
+      <section className={styles.sectionMb32}>
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-            gap: 32,
-            borderTop: "1px solid var(--admin-divider)",
-            borderBottom: "1px solid var(--admin-divider)",
-            padding: "24px 0",
-          }}
+          className={styles.gridColsAuto180Gap32}
         >
           <AdminMetricCard label="Imóveis ativos" value={totalProps} />
           <AdminMetricCard
@@ -322,39 +298,29 @@ export default function AdminUserDetailPage() {
 
       {/* Drip + Subscription side-by-side */}
       <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
-          gap: 24,
-          marginBottom: 32,
-        }}
+        className={styles.gridColsAuto360Gap24}
       >
         <AdminCard variant="subtle">
           <AdminCardHeader title="E-mails de boas-vindas" />
           {user.onboardingDripLastDay ? (
             <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+              <div className={styles.rowCenteredGap10}>
                 <AdminStatusDot kind="success" size={8} />
                 <p
-                  style={{
-                    fontSize: 16,
-                    fontWeight: 600,
-                    color: "var(--admin-text)",
-                    margin: 0,
-                  }}
+                  className={styles.textTextFs16}
                 >
                   Recebeu até D+{user.onboardingDripLastDay}
                 </p>
               </div>
               {user.onboardingDripLastSentAt && (
-                <p style={{ fontSize: 12, color: "var(--admin-text-muted)", margin: 0 }}>
+                <p className={styles.textTextMutedFs12}>
                   Último envio em{" "}
                   {new Date(user.onboardingDripLastSentAt).toLocaleString("pt-BR")}
                 </p>
               )}
             </div>
           ) : (
-            <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
+            <p className={styles.textTextMutedFs13}>
               Ainda não recebeu nenhum e-mail do drip. Próximo: D+1 quando completar 24h
               após cadastro.
             </p>
@@ -374,12 +340,7 @@ export default function AdminUserDetailPage() {
           />
           {subscription ? (
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 12,
-                fontSize: 13,
-              }}
+              className={styles.gridColsFs13}
             >
               <Field label="Plano" value={subscription.planName ?? "—"} />
               <Field label="Ciclo" value={subscription.billingCycle ?? "—"} />
@@ -401,7 +362,7 @@ export default function AdminUserDetailPage() {
               />
             </div>
           ) : (
-            <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
+            <p className={styles.textTextMutedFs13}>
               Sem assinatura ativa ou endpoint ainda não disponível. Alpha gratuito ou trial.
             </p>
           )}
@@ -409,8 +370,8 @@ export default function AdminUserDetailPage() {
       </section>
 
       {/* Imóveis */}
-      <section style={{ marginBottom: 32 }}>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 16 }}>
+      <section className={styles.sectionMb32}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb16}`}>
           IMÓVEIS DO USUÁRIO
         </p>
         {properties.length === 0 ? (
@@ -420,9 +381,9 @@ export default function AdminUserDetailPage() {
           />
         ) : (
           <AdminCard variant="default" style={{ padding: 0, overflowX: "auto" }}>
-            <table style={{ width: "100%", minWidth: 760, borderCollapse: "collapse", fontSize: 13 }}>
+            <table className={styles.tableFs13W100pct}>
               <thead>
-                <tr style={{ borderBottom: "1px solid var(--admin-divider)" }}>
+                <tr className={styles.tableRowBordered}>
                   <Th>Imóvel</Th>
                   <Th>Localidade</Th>
                   <Th align="right">Diária base</Th>
@@ -435,19 +396,18 @@ export default function AdminUserDetailPage() {
                 {properties.map((p) => (
                   <tr
                     key={p.id}
-                    className="urban-admin-row"
-                    style={{ borderBottom: "1px solid var(--admin-divider)" }}
+                    className={`urban-admin-row ${styles.rowBordered}`}
                   >
                     <Td>
-                      <strong style={{ color: "var(--admin-text)" }}>{p.propertyName}</strong>
+                      <strong className={styles.strongText}>{p.propertyName}</strong>
                       <br />
-                      <code style={{ fontSize: 11, color: "var(--admin-text-dim)" }}>
+                      <code className={styles.codeTextDimFs11}>
                         {p.id.slice(0, 8)}…
                       </code>
                     </Td>
                     <Td>
                       {p.city ? (
-                        <span style={{ color: "var(--admin-text)" }}>
+                        <span className={styles.strongText}>
                           {p.city}/{p.state}
                         </span>
                       ) : (
@@ -456,11 +416,11 @@ export default function AdminUserDetailPage() {
                     </Td>
                     <Td align="right">
                       {p.manualDailyPrice ? (
-                        <span style={{ fontFamily: "monospace" }}>
+                        <span className={styles.labelMono}>
                           R$ {Number(p.manualDailyPrice).toLocaleString("pt-BR")}
                         </span>
                       ) : (
-                        <span style={{ color: "var(--admin-text-dim)" }}>—</span>
+                        <span className={styles.labelTextDim}>—</span>
                       )}
                     </Td>
                     <Td align="right">
@@ -480,12 +440,7 @@ export default function AdminUserDetailPage() {
                     <Td align="right">
                       <a
                         href={`/admin/properties/${p.id}`}
-                        style={{
-                          color: "var(--admin-text-muted)",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          padding: 4,
-                        }}
+                        className={styles.rowCenteredTextMuted}
                       >
                         <Icons.ArrowRight size={14} />
                       </a>
@@ -499,10 +454,10 @@ export default function AdminUserDetailPage() {
       </section>
 
       {/* Atalhos */}
-      <section style={{ marginTop: 48, paddingTop: 24, borderTop: "1px solid var(--admin-divider)" }}>
+      <section className={styles.sectionMt48Bordered}>
         <AdminCard variant="subtle">
           <AdminCardHeader title="Atalhos" />
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <div className={styles.rowWrapGap102}>
             <AdminButton
               variant="ghost"
               as="a"
@@ -576,18 +531,11 @@ function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p
-        style={{
-          fontSize: 10,
-          letterSpacing: 2,
-          textTransform: "uppercase",
-          color: "var(--admin-text-muted)",
-          margin: 0,
-          fontWeight: 600,
-        }}
+        className={styles.textTextMutedFs10}
       >
         {label}
       </p>
-      <p style={{ fontSize: 13, color: "var(--admin-text)", margin: "4px 0 0", fontWeight: 500 }}>
+      <p className={styles.textTextFs13}>
         {value}
       </p>
     </div>

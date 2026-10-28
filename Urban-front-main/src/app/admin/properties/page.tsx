@@ -14,6 +14,7 @@ import {
   AdminPageLoading,
   Icons,
 } from "../_components";
+import styles from "./page.module.css";
 
 /**
  * /admin/properties — listagem para drill-down por imóvel (gap I5 do roadmap).
@@ -105,22 +106,12 @@ export default function AdminPropertiesPage() {
       render: (r) => (
         <div>
           <p
-            style={{
-              fontWeight: 600,
-              color: "var(--admin-text)",
-              margin: 0,
-              fontSize: 13,
-            }}
+            className={styles.textTextFs13}
           >
             {r.propertyName || "(sem nome)"}
           </p>
           <p
-            style={{
-              fontSize: 11,
-              color: "var(--admin-text-dim)",
-              margin: "2px 0 0",
-              fontFamily: "monospace",
-            }}
+            className={styles.textTextDimFs11}
           >
             {r.id.slice(0, 8)}…
           </p>
@@ -131,7 +122,7 @@ export default function AdminPropertiesPage() {
       key: "host",
       header: "Host",
       render: (r) => (
-        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+        <span className={styles.labelTextMutedFs12}>
           {r.userEmail || r.userId.slice(0, 8) + "…"}
         </span>
       ),
@@ -143,11 +134,11 @@ export default function AdminPropertiesPage() {
       render: (r) => {
         const invalid = !r.city || /^a\s*definir$/i.test(r.city.trim()) || !r.state;
         return (
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div className={styles.rowCenteredGap8}>
             {invalid ? (
               <AdminBadge kind="error">Inválida</AdminBadge>
             ) : (
-              <span style={{ fontSize: 12, color: "var(--admin-text)" }}>
+              <span className={styles.labelTextFs12}>
                 {r.city}/{r.state}
               </span>
             )}
@@ -176,11 +167,11 @@ export default function AdminPropertiesPage() {
       align: "right",
       render: (r) =>
         r.manualDailyPrice != null ? (
-          <span style={{ fontFamily: "monospace", color: "var(--admin-text)" }}>
+          <span className={styles.labelTextMono}>
             R$ {Number(r.manualDailyPrice).toLocaleString("pt-BR")}
           </span>
         ) : (
-          <span style={{ color: "var(--admin-text-dim)" }}>—</span>
+          <span className={styles.labelTextDim}>—</span>
         ),
     },
     {
@@ -191,9 +182,9 @@ export default function AdminPropertiesPage() {
       render: (r) => {
         const count = r.futureRecommendationsCount ?? 0;
         return count > 0 ? (
-          <span style={{ color: "var(--admin-accent)", fontWeight: 600 }}>{count}</span>
+          <span className={styles.labelAccentW600}>{count}</span>
         ) : (
-          <span style={{ color: "var(--admin-text-dim)" }}>0</span>
+          <span className={styles.labelTextDim}>0</span>
         );
       },
     },
@@ -203,11 +194,11 @@ export default function AdminPropertiesPage() {
       width: 130,
       render: (r) =>
         r.lastAnalysisAt ? (
-          <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+          <span className={styles.labelTextMutedFs12}>
             {new Date(r.lastAnalysisAt).toLocaleDateString("pt-BR")}
           </span>
         ) : (
-          <span style={{ color: "var(--admin-text-dim)" }}>—</span>
+          <span className={styles.labelTextDim}>—</span>
         ),
     },
     {
@@ -231,7 +222,7 @@ export default function AdminPropertiesPage() {
   ];
 
   return (
-    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       <AdminSectionHeader
         eyebrow="ADMIN · IMÓVEIS"
         title="Drill-down por imóvel"
@@ -248,16 +239,9 @@ export default function AdminPropertiesPage() {
       ) : (
         <>
           {/* KPIs derivados */}
-          <section style={{ marginBottom: 32 }}>
+          <section className={styles.sectionMb32}>
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                gap: 32,
-                borderTop: "1px solid var(--admin-divider)",
-                borderBottom: "1px solid var(--admin-divider)",
-                padding: "24px 0",
-              }}
+              className={styles.gridColsAuto180Gap32}
             >
               <KpiInline label="Total cadastrados" value={total} />
               <KpiInline
@@ -279,7 +263,7 @@ export default function AdminPropertiesPage() {
           </section>
 
           {/* Toolbar */}
-          <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
+          <div className={styles.rowGap12Mb20}>
             <AdminInput
               placeholder="Buscar por nome / email / cidade / id…"
               value={search}
@@ -304,29 +288,20 @@ export default function AdminPropertiesPage() {
 
           {/* Footer ações */}
           <section
-            style={{
-              marginTop: 48,
-              paddingTop: 24,
-              borderTop: "1px solid var(--admin-divider)",
-            }}
+            className={styles.sectionMt48Bordered}
           >
             <AdminCard variant="accent">
               <p
-                style={{
-                  fontSize: 14,
-                  color: "var(--admin-text-muted)",
-                  margin: 0,
-                  lineHeight: 1.6,
-                }}
+                className={styles.textTextMutedFs14}
               >
                 Esta tela cobre o item{" "}
-                <strong style={{ color: "var(--admin-accent)" }}>I5</strong> (detalhe do
+                <strong className={styles.strongAccent}>I5</strong> (detalhe do
                 imóvel) do roadmap. Para destravar:{" "}
-                <strong style={{ color: "var(--admin-text)" }}>
+                <strong className={styles.strongText}>
                   ativar Geocoding API
                 </strong>{" "}
                 no GCP corrige a coluna Geo e Localidade automaticamente, e{" "}
-                <strong style={{ color: "var(--admin-text)" }}>
+                <strong className={styles.strongText}>
                   rodar o smoke autenticado de recomendação
                 </strong>{" "}
                 preenche a coluna Recomendações futuras.

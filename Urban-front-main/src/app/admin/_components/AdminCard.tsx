@@ -8,6 +8,7 @@
  *  - accent      — pull-quote style: border-left 2px accent da marca
  */
 import React from "react";
+import styles from "./AdminCard.module.css";
 
 export type AdminCardVariant = "default" | "subtle" | "accent";
 
@@ -77,28 +78,21 @@ export function AdminCardHeader({
         ...style,
       }}
     >
-      <div style={{ minWidth: 0 }}>
+      <div className={styles.boxMinw0}>
         {eyebrow && (
           <p
-            className="urban-admin-eyebrow-muted"
-            style={{ marginBottom: 6 }}
+            className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb6}`}
           >
             {eyebrow}
           </p>
         )}
         <h3
-          style={{
-            fontSize: 15,
-            fontWeight: 600,
-            color: "var(--admin-text)",
-            letterSpacing: -0.2,
-            margin: 0,
-          }}
+          className={styles.subheadingTextFs15}
         >
           {title}
         </h3>
       </div>
-      {actions && <div style={{ flexShrink: 0 }}>{actions}</div>}
+      {actions && <div className={styles.boxNoShrink}>{actions}</div>}
     </header>
   );
 }

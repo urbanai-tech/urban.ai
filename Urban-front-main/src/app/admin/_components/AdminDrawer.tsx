@@ -3,6 +3,7 @@
 import React, { useRef } from "react";
 import { Close } from "./Icons";
 import { useDialogFocus } from "../../componentes/ui/useDialogFocus";
+import styles from "./AdminDrawer.module.css";
 
 /**
  * Drawer admin Urban AI — slide-in da direita 400-520px.
@@ -48,23 +49,11 @@ export function AdminDrawer({
     <div
       role="dialog"
       aria-modal="true"
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1000,
-        display: "flex",
-        justifyContent: "flex-end",
-      }}
+      className={styles.rowFixedEnd}
     >
       <div
-        className="urban-admin-backdrop"
+        className={`urban-admin-backdrop ${styles.backdropAbsoluteBgBackdrop}`}
         onClick={onClose}
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "var(--admin-backdrop)",
-          backdropFilter: "blur(2px)",
-        }}
       />
       <aside
         ref={drawerRef}
@@ -82,25 +71,17 @@ export function AdminDrawer({
         }}
       >
         <header
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: 16,
-            padding: "24px clamp(16px, 4vw, 28px)",
-            borderBottom: "1px solid var(--admin-divider)",
-          }}
+          className={styles.rowBetweenStart}
         >
-          <div style={{ minWidth: 0 }}>
+          <div className={styles.boxMinw0}>
             {eyebrow && (
-              <p className="urban-admin-eyebrow" style={{ marginBottom: 8 }}>
+              <p className={`urban-admin-eyebrow ${styles.eyebrowMb8}`}>
                 {eyebrow}
               </p>
             )}
             {title && (
               <h2
-                className="urban-admin-display-sm"
-                style={{ textTransform: "uppercase" }}
+                className={`urban-admin-display-sm ${styles.displaySmUpper}`}
               >
                 {title}
               </h2>
@@ -110,44 +91,19 @@ export function AdminDrawer({
             ref={closeRef}
             onClick={onClose}
             aria-label="Fechar"
-            style={{
-              background: "transparent",
-              border: "1px solid var(--admin-divider-strong)",
-              borderRadius: 2,
-              color: "var(--admin-text)",
-              padding: 6,
-              cursor: "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              lineHeight: 0,
-              minWidth: 44,
-              minHeight: 44,
-            }}
+            className={styles.rowJustifyCenterCentered}
           >
             <Close size={16} />
           </button>
         </header>
         <div
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            padding: "24px clamp(16px, 4vw, 28px)",
-          }}
+          className={styles.boxP24xclamp16x4vwx28Flex1}
         >
           {children}
         </div>
         {footer && (
           <div
-            style={{
-              padding: "16px clamp(16px, 4vw, 28px)",
-              borderTop: "1px solid var(--admin-divider)",
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 12,
-              justifyContent: "flex-end",
-              background: "var(--admin-surface)",
-            }}
+            className={styles.rowEndWrap}
           >
             {footer}
           </div>

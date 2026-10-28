@@ -16,6 +16,7 @@ import {
   Icons,
 } from "../_components";
 import type { AdminBadgeKind } from "../_components";
+import styles from "./page.module.css";
 
 type RoiLeaderboardRow = AdminRoiOverview["leaderboard"][number];
 
@@ -70,7 +71,7 @@ export default function AdminRoiPage() {
 
   if (error || !data) {
     return (
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar"
@@ -93,19 +94,14 @@ export default function AdminRoiPage() {
       render: (row) => (
         <div>
           <p
-            style={{
-              fontSize: 13,
-              fontWeight: 600,
-              color: "var(--admin-text)",
-              margin: 0,
-            }}
+            className={styles.textTextFs13}
           >
             {row.user.username}
           </p>
-          <p style={{ fontSize: 11, color: "var(--admin-text-muted)", margin: "2px 0 0" }}>
+          <p className={styles.textTextMutedFs11}>
             {row.user.email}
           </p>
-          <p style={{ fontSize: 11, color: "var(--admin-text-dim)", margin: "2px 0 0" }}>
+          <p className={styles.textTextDimFs11}>
             {row.activeListings} {row.activeListings === 1 ? "imóvel ativo" : "imóveis ativos"}
           </p>
         </div>
@@ -118,23 +114,12 @@ export default function AdminRoiPage() {
       render: (row) => (
         <div>
           <p
-            style={{
-              fontFamily: "monospace",
-              fontSize: 13,
-              fontWeight: 600,
-              color: "var(--admin-accent)",
-              margin: 0,
-            }}
+            className={styles.textAccentFs13}
           >
             {fmt(row.money.totalAttributedCents)}
           </p>
           <p
-            style={{
-              fontSize: 10,
-              color: "var(--admin-text-muted)",
-              margin: "2px 0 0",
-              fontFamily: "monospace",
-            }}
+            className={styles.textTextMutedFs10}
           >
             {fmt(row.money.projectedIncrementalCents)} acompanhando
           </p>
@@ -149,23 +134,12 @@ export default function AdminRoiPage() {
       render: (row) => (
         <div>
           <p
-            style={{
-              fontFamily: "monospace",
-              fontSize: 13,
-              fontWeight: 600,
-              color: "var(--admin-text)",
-              margin: 0,
-            }}
+            className={styles.textTextFs13W600M0Mono}
           >
             {row.money.roiMultiple ? `${row.money.roiMultiple.toFixed(1)}x` : "—"}
           </p>
           <p
-            style={{
-              fontSize: 10,
-              color: "var(--admin-text-muted)",
-              margin: "2px 0 0",
-              fontFamily: "monospace",
-            }}
+            className={styles.textTextMutedFs10}
           >
             {row.money.roiPercent != null ? `${row.money.roiPercent.toFixed(0)}%` : ""}
           </p>
@@ -178,7 +152,7 @@ export default function AdminRoiPage() {
       align: "right",
       width: 120,
       render: (row) => (
-        <span style={{ fontFamily: "monospace", fontSize: 12, color: "var(--admin-text)" }}>
+        <span className={styles.labelTextFs12}>
           {fmt(row.subscription.monthlyCostCents)}
         </span>
       ),
@@ -191,21 +165,12 @@ export default function AdminRoiPage() {
       render: (row) => (
         <div>
           <p
-            style={{
-              fontFamily: "monospace",
-              fontSize: 12,
-              color: "var(--admin-text)",
-              margin: 0,
-            }}
+            className={styles.textTextFs12}
           >
             {row.activity.applied}/{row.activity.recommendations}
           </p>
           <p
-            style={{
-              fontSize: 10,
-              color: "var(--admin-text-muted)",
-              margin: "2px 0 0",
-            }}
+            className={styles.textTextMutedFs10M2x0x0}
           >
             {row.activity.impactedNights} noites
           </p>
@@ -226,7 +191,7 @@ export default function AdminRoiPage() {
   ];
 
   return (
-    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32Maxw1400}>
       <AdminSectionHeader
         eyebrow="ADMIN · ROI"
         title="ROI dos anfitriões"
@@ -244,17 +209,11 @@ export default function AdminRoiPage() {
       />
 
       {/* === Janela de tempo === */}
-      <section style={{ marginBottom: 32 }}>
+      <section className={styles.sectionMb32}>
         <header
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 16,
-            flexWrap: "wrap",
-          }}
+          className={styles.rowBetweenCentered}
         >
-          <p className="urban-admin-eyebrow" style={{ margin: 0 }}>
+          <p className={`urban-admin-eyebrow ${styles.eyebrowM0}`}>
             JANELA DE ANALISE
           </p>
           <SegmentedControl
@@ -270,15 +229,10 @@ export default function AdminRoiPage() {
       </section>
 
       {/* === Hero KPI: receita atribuida === */}
-      <section style={{ marginBottom: 56 }}>
+      <section className={styles.sectionMb56}>
         <AdminCard variant="accent" style={{ padding: "40px 40px 36px" }}>
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
-              gap: 32,
-              alignItems: "end",
-            }}
+            className={styles.gridColsAutoGap32}
           >
             <div>
               <p className="urban-admin-eyebrow">RECEITA ATRIBUIDA A IA</p>
@@ -295,12 +249,7 @@ export default function AdminRoiPage() {
                 {fmt(data.totals.totalAttributedCents)}
               </p>
               <p
-                style={{
-                  marginTop: 12,
-                  fontSize: 14,
-                  color: "var(--admin-text-muted)",
-                  lineHeight: 1.55,
-                }}
+                className={styles.textTextMutedFs14}
               >
                 {fmt(data.totals.confirmedIncrementalCents)} confirmado ·{" "}
                 {data.totals.users} usuários no ranking ·{" "}
@@ -308,32 +257,24 @@ export default function AdminRoiPage() {
                 impactadas.
               </p>
             </div>
-            <div style={{ borderLeft: "1px solid var(--admin-divider)", paddingLeft: 32 }}>
+            <div className={styles.boxBordered}>
               <p className="urban-admin-eyebrow-muted">ROI médio</p>
               <p
-                className="urban-admin-display-md"
-                style={{
-                  marginTop: 12,
-                  color: "var(--admin-accent)",
-                }}
+                className={`urban-admin-display-md ${styles.displayMdAccentMt12}`}
               >
                 {data.totals.roiMultiple
                   ? `${data.totals.roiMultiple.toFixed(1)}x`
                   : "—"}
               </p>
               <p
-                style={{
-                  marginTop: 6,
-                  fontSize: 12,
-                  color: "var(--admin-text-muted)",
-                }}
+                className={styles.textTextMutedFs12}
               >
                 {data.totals.roiPercent != null
                   ? `${data.totals.roiPercent.toFixed(0)}% liquido`
                   : "sem custo"}
               </p>
             </div>
-            <div style={{ borderLeft: "1px solid var(--admin-divider)", paddingLeft: 32 }}>
+            <div className={styles.boxBordered}>
               <p className="urban-admin-eyebrow-muted">Valor liquido</p>
               <p
                 className="urban-admin-display-md"
@@ -347,7 +288,7 @@ export default function AdminRoiPage() {
               >
                 {fmt(data.totals.netValueCents)}
               </p>
-              <p style={{ marginTop: 6, fontSize: 12, color: "var(--admin-text-muted)" }}>
+              <p className={styles.textTextMutedFs12}>
                 Custo: {fmt(data.totals.subscriptionCostCents)}
               </p>
             </div>
@@ -356,18 +297,12 @@ export default function AdminRoiPage() {
       </section>
 
       {/* === KPIs adicionais === */}
-      <section style={{ marginBottom: 56 }}>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
+      <section className={styles.sectionMb56}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
           INDICADORES
         </p>
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: 32,
-            borderTop: "1px solid var(--admin-divider)",
-            borderBottom: "1px solid var(--admin-divider)",
-          }}
+          className={styles.gridColsAuto200Gap32}
         >
           <AdminMetricCard
             label="Confirmado"
@@ -395,14 +330,10 @@ export default function AdminRoiPage() {
 
       {/* === Leaderboard + regras === */}
       <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
-          gap: 24,
-        }}
+        className={styles.gridColsAutoGap24}
       >
         <div>
-          <p className="urban-admin-eyebrow" style={{ marginBottom: 16 }}>
+          <p className={`urban-admin-eyebrow ${styles.eyebrowMb16}`}>
             TOP ANFITRIOES
           </p>
           <AdminTable
@@ -420,7 +351,7 @@ export default function AdminRoiPage() {
 
         <AdminCard variant="subtle">
           <AdminCardHeader title="Como o painel calcula" />
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div className={styles.stackGap14}>
             <Rule
               title="Dinheiro gerado"
               body="Diferença positiva entre preço aplicado e preço anterior, multiplicada pelas noites impactadas."
@@ -454,22 +385,12 @@ function Rule({ title, body }: { title: string; body: string }) {
   return (
     <div>
       <p
-        style={{
-          fontSize: 13,
-          fontWeight: 600,
-          color: "var(--admin-text)",
-          margin: 0,
-        }}
+        className={styles.textTextFs13}
       >
         {title}
       </p>
       <p
-        style={{
-          fontSize: 12,
-          color: "var(--admin-text-muted)",
-          margin: "4px 0 0",
-          lineHeight: 1.55,
-        }}
+        className={styles.textTextMutedFs12M4x0x0Lh1_55}
       >
         {body}
       </p>
@@ -490,12 +411,7 @@ function SegmentedControl<T extends string | number>({
 }) {
   return (
     <div
-      style={{
-        display: "inline-flex",
-        border: "1px solid var(--admin-divider)",
-        borderRadius: 2,
-        overflow: "hidden",
-      }}
+      className={styles.rowScrollBordered}
     >
       {options.map((opt) => {
         const active = opt === value;

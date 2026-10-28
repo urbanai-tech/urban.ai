@@ -24,6 +24,7 @@ import {
   Icons,
 } from "../_components";
 import type { AdminBadgeKind } from "../_components";
+import styles from "./page.module.css";
 
 /**
  * /admin/events — analytics do motor de eventos (F6.2).
@@ -105,7 +106,7 @@ export default function AdminEventsPage() {
 
   if (error || !data) {
     return (
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar eventos"
@@ -121,13 +122,13 @@ export default function AdminEventsPage() {
 
   // Top upcoming columns
   const topCols: AdminTableColumn<(typeof topUpcoming)[number]>[] = [
-    { key: "nome", header: "Nome", render: (e) => <span style={{ fontWeight: 500 }}>{e.nome}</span> },
-    { key: "cidade", header: "Cidade", render: (e) => <span style={{ color: "var(--admin-text-muted)" }}>{e.cidade}</span> },
+    { key: "nome", header: "Nome", render: (e) => <span className={styles.labelW500}>{e.nome}</span> },
+    { key: "cidade", header: "Cidade", render: (e) => <span className={styles.labelTextMuted}>{e.cidade}</span> },
     {
       key: "data",
       header: "Data",
       render: (e) => (
-        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+        <span className={styles.labelTextMutedFs12}>
           {new Date(e.dataInicio).toLocaleDateString("pt-BR")}
         </span>
       ),
@@ -143,7 +144,7 @@ export default function AdminEventsPage() {
       key: "cat",
       header: "Categoria",
       render: (e) => (
-        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>{e.categoria || "—"}</span>
+        <span className={styles.labelTextMutedFs12}>{e.categoria || "—"}</span>
       ),
     },
     {
@@ -151,7 +152,7 @@ export default function AdminEventsPage() {
       header: "Capacidade",
       align: "right",
       render: (e) => (
-        <span style={{ fontSize: 12, fontFamily: "monospace" }}>{e.capacidadeEstimada ?? "—"}</span>
+        <span className={styles.labelFs12Mono}>{e.capacidadeEstimada ?? "—"}</span>
       ),
     },
     {
@@ -159,7 +160,7 @@ export default function AdminEventsPage() {
       header: "Raio",
       align: "right",
       render: (e) => (
-        <span style={{ fontSize: 12, fontFamily: "monospace" }}>
+        <span className={styles.labelFs12Mono}>
           {e.raioImpactoKm ? `${e.raioImpactoKm} km` : "—"}
         </span>
       ),
@@ -185,15 +186,7 @@ export default function AdminEventsPage() {
       header: "Nome",
       render: (e) => (
         <span
-          style={{
-            display: "inline-block",
-            maxWidth: 320,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            fontSize: 12,
-            fontWeight: 500,
-          }}
+          className={styles.labelFs12W500}
           title={e.nome}
         >
           {e.nome}
@@ -204,7 +197,7 @@ export default function AdminEventsPage() {
       key: "cidade",
       header: "Cidade",
       render: (e) => (
-        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+        <span className={styles.labelTextMutedFs12}>
           {e.cidade}/{e.estado}
         </span>
       ),
@@ -214,7 +207,7 @@ export default function AdminEventsPage() {
       header: "Data",
       width: 90,
       render: (e) => (
-        <span style={{ fontSize: 12, color: "var(--admin-text-muted)", fontFamily: "monospace" }}>
+        <span className={styles.labelTextMutedFs12Mono}>
           {new Date(e.dataInicio).toLocaleDateString("pt-BR")}
         </span>
       ),
@@ -230,7 +223,7 @@ export default function AdminEventsPage() {
       key: "source",
       header: "Source",
       render: (e) => (
-        <code style={{ fontSize: 11, color: "var(--admin-text-dim)" }}>
+        <code className={styles.codeTextDimFs11}>
           {e.source ?? "—"}
         </code>
       ),
@@ -272,11 +265,7 @@ export default function AdminEventsPage() {
         ) : e.enrichmentAttempts > 0 ? (
           <span
             title={e.enrichmentLastError ?? ""}
-            style={{
-              fontSize: 11,
-              color: "var(--admin-warning)",
-              fontFamily: "monospace",
-            }}
+            className={styles.labelWarningFs11}
           >
             {e.enrichmentAttempts}× retry
           </span>
@@ -287,7 +276,7 @@ export default function AdminEventsPage() {
   ];
 
   return (
-    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32Maxw1400}>
       <AdminSectionHeader
         eyebrow="ADMIN · MOTOR DE EVENTOS"
         title="Cobertura & motor"
@@ -297,7 +286,7 @@ export default function AdminEventsPage() {
             {lastCrawlAt && (
               <>
                 {" "}· Último crawl:{" "}
-                <strong style={{ color: "var(--admin-text)" }}>
+                <strong className={styles.strongText}>
                   {new Date(lastCrawlAt).toLocaleString("pt-BR")}
                 </strong>
               </>
@@ -305,7 +294,7 @@ export default function AdminEventsPage() {
           </>
         }
         actions={
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div className={styles.rowWrapGap8}>
             <AdminButton variant="ghost" as="a" href="/admin/event-radar" rightIcon={<Icons.ArrowRight size={11} />}>
               Radar de demanda
             </AdminButton>
@@ -328,62 +317,43 @@ export default function AdminEventsPage() {
       />
 
       {/* === Hero KPI: cobertura geo === */}
-      <section style={{ marginBottom: 56 }}>
+      <section className={styles.sectionMb56}>
         <AdminCard variant="accent" style={{ padding: "40px 40px 36px" }}>
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr)",
-              gap: 32,
-              alignItems: "end",
-            }}
+            className={styles.gridColsGap32}
           >
             <div>
               <p className="urban-admin-eyebrow">COBERTURA GEOGRÁFICA</p>
-              <p className="urban-admin-display-hero" style={{ marginTop: 12 }}>
+              <p className={`urban-admin-display-hero ${styles.displayHeroMt12}`}>
                 {summary.coveragePercent}%
               </p>
               <p
-                style={{
-                  marginTop: 12,
-                  fontSize: 14,
-                  color: "var(--admin-text-muted)",
-                  lineHeight: 1.55,
-                }}
+                className={styles.textTextMutedFs14}
               >
                 {summary.total.toLocaleString("pt-BR")} eventos no DB ·{" "}
                 {summary.coordsMissing.toLocaleString("pt-BR")} sem coordenadas.
               </p>
             </div>
-            <div style={{ borderLeft: "1px solid var(--admin-divider)", paddingLeft: 32 }}>
+            <div className={styles.boxBordered}>
               <p className="urban-admin-eyebrow-muted">Dentro da cobertura</p>
               <p
-                className="urban-admin-display-md"
-                style={{ marginTop: 12, color: "var(--admin-success)" }}
+                className={`urban-admin-display-md ${styles.displayMdSuccessMt12}`}
               >
                 {summary.inScope.toLocaleString("pt-BR")}
               </p>
               <p
-                style={{
-                  marginTop: 6,
-                  fontSize: 12,
-                  color: "var(--admin-text-muted)",
-                }}
+                className={styles.textTextMutedFs12}
               >
                 {summary.outOfScope.toLocaleString("pt-BR")} fora
               </p>
             </div>
-            <div style={{ borderLeft: "1px solid var(--admin-divider)", paddingLeft: 32 }}>
+            <div className={styles.boxBordered}>
               <p className="urban-admin-eyebrow-muted">Enriquecidos (Gemini)</p>
-              <p className="urban-admin-display-md" style={{ marginTop: 12 }}>
+              <p className={`urban-admin-display-md ${styles.displayHeroMt12}`}>
                 {summary.enrichmentPercent}%
               </p>
               <p
-                style={{
-                  marginTop: 6,
-                  fontSize: 12,
-                  color: "var(--admin-text-muted)",
-                }}
+                className={styles.textTextMutedFs12}
               >
                 {summary.relevanceMissing} sem relevância
               </p>
@@ -393,18 +363,12 @@ export default function AdminEventsPage() {
       </section>
 
       {/* === KPIs próximos === */}
-      <section style={{ marginBottom: 64 }}>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
+      <section className={styles.sectionMb64}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
           EVENTOS PRÓXIMOS
         </p>
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-            gap: 32,
-            borderTop: "1px solid var(--admin-divider)",
-            borderBottom: "1px solid var(--admin-divider)",
-          }}
+          className={styles.gridColsAuto180Gap32}
         >
           <AdminMetricCard label="Próximos 7 dias" value={upcoming.next7d} />
           <AdminMetricCard label="Próximos 30 dias" value={upcoming.next30d} />
@@ -420,12 +384,7 @@ export default function AdminEventsPage() {
 
       {/* === Breakdown 3 colunas === */}
       <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
-          gap: 24,
-          marginBottom: 64,
-        }}
+        className={styles.gridColsAutoGap24}
       >
         <AdminCard variant="subtle">
           <AdminCardHeader title="Por categoria" />
@@ -442,8 +401,8 @@ export default function AdminEventsPage() {
       </section>
 
       {/* === Top 10 próximos === */}
-      <section style={{ marginBottom: 64 }}>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 16 }}>
+      <section className={styles.sectionMb64}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb16}`}>
           TOP 10 PRÓXIMOS POR RELEVÂNCIA
         </p>
         <AdminTable
@@ -455,18 +414,11 @@ export default function AdminEventsPage() {
       </section>
 
       {/* === Timeline === */}
-      <section style={{ marginBottom: 64 }}>
+      <section className={styles.sectionMb64}>
         <header
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 16,
-            flexWrap: "wrap",
-            gap: 12,
-          }}
+          className={styles.rowBetweenCentered}
         >
-          <p className="urban-admin-eyebrow" style={{ margin: 0 }}>
+          <p className={`urban-admin-eyebrow ${styles.eyebrowM0}`}>
             EVOLUÇÃO DE INGESTÃO
           </p>
           <SegmentedControl
@@ -481,18 +433,12 @@ export default function AdminEventsPage() {
 
       {/* === Listagem detalhada === */}
       <section>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 16 }}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb16}`}>
           LISTAGEM DETALHADA
         </p>
 
         <div
-          style={{
-            display: "flex",
-            gap: 12,
-            marginBottom: 20,
-            flexWrap: "wrap",
-            alignItems: "flex-end",
-          }}
+          className={styles.rowAlignEndWrap}
         >
           <SegmentedControl
             value={scope}
@@ -546,7 +492,7 @@ export default function AdminEventsPage() {
           rowKey={(r) => r.id}
           empty={
             listingLoading ? (
-              <p style={{ color: "var(--admin-text-muted)", fontSize: 13, textAlign: "center" }}>
+              <p className={styles.textTextMutedFs13}>
                 Carregando…
               </p>
             ) : (
@@ -560,19 +506,12 @@ export default function AdminEventsPage() {
 
         {listing && listing.total > listing.limit && (
           <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginTop: 16,
-              fontSize: 12,
-              color: "var(--admin-text-muted)",
-            }}
+            className={styles.rowBetweenCenteredTextMutedFs12Mt16}
           >
             <span>
               Página {listing.page} · {listing.total.toLocaleString("pt-BR")} no total
             </span>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div className={styles.rowGap8}>
               <AdminButton
                 variant="ghost"
                 size="sm"
@@ -597,21 +536,14 @@ export default function AdminEventsPage() {
       </section>
 
       <footer
-        style={{
-          marginTop: 64,
-          paddingTop: 24,
-          borderTop: "1px solid var(--admin-divider)",
-          fontSize: 12,
-          color: "var(--admin-text-muted)",
-          lineHeight: 1.55,
-        }}
+        className={styles.footerTextMutedFs12}
       >
-        <p style={{ margin: 0 }}>
-          <strong style={{ color: "var(--admin-text)" }}>Status do motor:</strong>{" "}
+        <p className={styles.textM0}>
+          <strong className={styles.strongText}>Status do motor:</strong>{" "}
           spiders Scrapy + APIs oficiais (api-football, sp-cultura) + LLM
           extractors (Camada 2) + curadoria manual (admin-manual / admin-csv-import,
           Camada 3). Cobertura geográfica em{" "}
-          <code style={{ color: "var(--admin-accent)" }}>/admin/coverage</code>.
+          <code className={styles.codeAccent}>/admin/coverage</code>.
         </p>
       </footer>
     </div>
@@ -620,14 +552,14 @@ export default function AdminEventsPage() {
 
 function RelevanceCell({ value }: { value: number | null }) {
   if (value == null) {
-    return <span style={{ color: "var(--admin-text-dim)" }}>—</span>;
+    return <span className={styles.labelTextDim}>—</span>;
   }
   let kind: AdminBadgeKind = "neutral";
   if (value >= 80) kind = "accent";
   else if (value >= 60) kind = "warn";
   const pct = Math.min(100, Math.max(0, value));
   return (
-    <div style={{ display: "inline-flex", flexDirection: "column", gap: 4, minWidth: 70 }}>
+    <div className={styles.stackGap4Minw70}>
       <span
         style={{
           fontFamily: "monospace",
@@ -643,7 +575,7 @@ function RelevanceCell({ value }: { value: number | null }) {
       >
         {value}
       </span>
-      <div style={{ height: 2, background: "var(--admin-divider)" }}>
+      <div className={styles.boxBgDividerH2}>
         <div
           style={{
             height: "100%",
@@ -674,12 +606,7 @@ function SegmentedControl<T extends string | number>({
 }) {
   return (
     <div
-      style={{
-        display: "inline-flex",
-        border: "1px solid var(--admin-divider)",
-        borderRadius: 2,
-        overflow: "hidden",
-      }}
+      className={styles.rowScrollBordered}
     >
       {options.map((opt) => {
         const active = opt === value;
@@ -714,40 +641,29 @@ function SegmentedControl<T extends string | number>({
 function BarList({ rows }: { rows: Array<{ label: string; value: number }> }) {
   if (rows.length === 0) {
     return (
-      <p style={{ fontSize: 12, color: "var(--admin-text-muted)", margin: 0 }}>
+      <p className={styles.textTextMutedFs12M0}>
         Sem dados.
       </p>
     );
   }
   const max = Math.max(...rows.map((r) => r.value));
   return (
-    <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 12 }}>
+    <ul className={styles.stackGap12M0}>
       {rows.map((r) => (
         <li key={r.label}>
           <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: 12,
-              marginBottom: 5,
-            }}
+            className={styles.rowBetweenFs12}
           >
             <span
-              style={{
-                color: "var(--admin-text)",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                marginRight: 8,
-              }}
+              className={styles.labelTextMr8}
             >
               {r.label}
             </span>
-            <span style={{ color: "var(--admin-accent)", fontWeight: 600 }}>
+            <span className={styles.labelAccentW600}>
               {r.value.toLocaleString("pt-BR")}
             </span>
           </div>
-          <div style={{ height: 2, background: "var(--admin-divider)" }}>
+          <div className={styles.boxBgDividerH2}>
             <div
               style={{
                 height: "100%",
@@ -770,12 +686,7 @@ function TimelineChart({ data }: { data: EventsTimelineResponse }) {
   return (
     <AdminCard variant="subtle">
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-          gap: 24,
-          marginBottom: 24,
-        }}
+        className={styles.gridColsAuto140Gap24}
       >
         <AdminMetricCard label="Período" value={`${data.days}d`} variant="sm" />
         <AdminMetricCard label="Total in-scope" value={data.totalInScope} variant="sm" />
@@ -797,14 +708,7 @@ function TimelineChart({ data }: { data: EventsTimelineResponse }) {
       </div>
 
       <div
-        style={{
-          display: "flex",
-          alignItems: "flex-end",
-          gap: 2,
-          height: 140,
-          paddingBottom: 4,
-          borderBottom: "1px solid var(--admin-divider)",
-        }}
+        className={styles.rowAlignEndGap2}
       >
         {buckets.map((b) => {
           const inHeight = (b.inScope / maxTotal) * 100;
@@ -813,13 +717,7 @@ function TimelineChart({ data }: { data: EventsTimelineResponse }) {
             <div
               key={b.day}
               title={`${new Date(b.day).toLocaleDateString("pt-BR")} — in: ${b.inScope}, out: ${b.outOfScope}`}
-              style={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "flex-end",
-                position: "relative",
-              }}
+              className={styles.stackEndFlex1}
             >
               {b.outOfScope > 0 && (
                 <div
@@ -845,16 +743,10 @@ function TimelineChart({ data }: { data: EventsTimelineResponse }) {
       </div>
 
       <div
-        style={{
-          display: "flex",
-          gap: 2,
-          marginTop: 6,
-          fontSize: 10,
-          color: "var(--admin-text-dim)",
-        }}
+        className={styles.rowTextDimFs10}
       >
         {buckets.map((b, i) => (
-          <div key={b.day} style={{ flex: 1, textAlign: "center" }}>
+          <div key={b.day} className={styles.boxCenterAlignedFlex1}>
             {i % labelStep === 0
               ? new Date(b.day).toLocaleDateString("pt-BR", {
                   day: "2-digit",
@@ -866,20 +758,14 @@ function TimelineChart({ data }: { data: EventsTimelineResponse }) {
       </div>
 
       <div
-        style={{
-          display: "flex",
-          gap: 20,
-          marginTop: 16,
-          fontSize: 11,
-          color: "var(--admin-text-muted)",
-        }}
+        className={styles.rowTextMutedFs11}
       >
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <span style={{ width: 12, height: 6, background: "var(--admin-text)", opacity: 0.9 }} />
+        <span className={styles.rowCenteredGap6}>
+          <span className={styles.labelBgTextW12} />
           In-scope
         </span>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <span style={{ width: 12, height: 6, background: "var(--admin-accent)", opacity: 0.35 }} />
+        <span className={styles.rowCenteredGap6}>
+          <span className={styles.labelBgAccentW12} />
           Out-of-scope
         </span>
       </div>

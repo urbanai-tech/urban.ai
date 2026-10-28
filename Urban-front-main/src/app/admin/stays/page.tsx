@@ -17,6 +17,7 @@ import {
   Icons,
 } from "../_components";
 import type { AdminBadgeKind, AdminStatusKind } from "../_components";
+import styles from "./page.module.css";
 
 type PushRow = AdminStaysHealth["recent"][number];
 
@@ -86,7 +87,7 @@ export default function AdminStaysPage() {
 
   if (error || !data) {
     return (
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar"
@@ -108,7 +109,7 @@ export default function AdminStaysPage() {
       header: "Data alvo",
       width: 110,
       render: (p) => (
-        <span style={{ fontFamily: "monospace", fontSize: 12, color: "var(--admin-text)" }}>
+        <span className={styles.labelTextFs12}>
           {p.targetDate}
         </span>
       ),
@@ -119,7 +120,7 @@ export default function AdminStaysPage() {
       align: "right",
       width: 110,
       render: (p) => (
-        <span style={{ fontFamily: "monospace", fontSize: 12, color: "var(--admin-text-muted)" }}>
+        <span className={styles.labelTextMutedFs12}>
           R$ {(p.previousPriceCents / 100).toFixed(2)}
         </span>
       ),
@@ -130,7 +131,7 @@ export default function AdminStaysPage() {
       align: "right",
       width: 110,
       render: (p) => (
-        <span style={{ fontFamily: "monospace", fontSize: 12, color: "var(--admin-text)" }}>
+        <span className={styles.labelTextFs12}>
           R$ {(p.newPriceCents / 100).toFixed(2)}
         </span>
       ),
@@ -139,7 +140,7 @@ export default function AdminStaysPage() {
       key: "origin",
       header: "Origem",
       render: (p) => (
-        <code style={{ fontSize: 11, color: "var(--admin-text-dim)" }}>{p.origin}</code>
+        <code className={styles.codeTextDimFs11}>{p.origin}</code>
       ),
     },
     {
@@ -155,7 +156,7 @@ export default function AdminStaysPage() {
       header: "Quando",
       width: 170,
       render: (p) => (
-        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+        <span className={styles.labelTextMutedFs122}>
           {new Date(p.createdAt).toLocaleString("pt-BR")}
         </span>
       ),
@@ -165,7 +166,7 @@ export default function AdminStaysPage() {
   const statusFilterOptions = ["all", ...PUSH_STATUS_ORDER] as const;
 
   return (
-    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       <AdminSectionHeader
         eyebrow="ADMIN · STAYS"
         title="Saúde da Stays"
@@ -182,15 +183,10 @@ export default function AdminStaysPage() {
       />
 
       {/* === Hero KPI: push success rate === */}
-      <section style={{ marginBottom: 32 }}>
+      <section className={styles.sectionMb32}>
         <AdminCard variant="accent" style={{ padding: "40px 40px 36px" }}>
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr)",
-              gap: 32,
-              alignItems: "end",
-            }}
+            className={styles.gridColsGap32}
           >
             <div>
               <p className="urban-admin-eyebrow">PUSH SUCCESS RATE (30D)</p>
@@ -211,32 +207,27 @@ export default function AdminStaysPage() {
                 {successRate == null ? "—" : `${successRate}%`}
               </p>
               <p
-                style={{
-                  marginTop: 12,
-                  fontSize: 14,
-                  color: "var(--admin-text-muted)",
-                  lineHeight: 1.55,
-                }}
+                className={styles.textTextMutedFs14}
               >
                 {totalPushes.toLocaleString("pt-BR")} pushes nos últimos 30 dias ·{" "}
                 {pushByStatus.get("success") ?? 0} aceitos pela Stays.
               </p>
             </div>
-            <div style={{ borderLeft: "1px solid var(--admin-divider)", paddingLeft: 32 }}>
+            <div className={styles.boxBordered}>
               <p className="urban-admin-eyebrow-muted">Listings sincronizados</p>
-              <p className="urban-admin-display-md" style={{ marginTop: 12 }}>
+              <p className={`urban-admin-display-md ${styles.displayMdMt12}`}>
                 {data.listings.total}
               </p>
-              <p style={{ marginTop: 6, fontSize: 12, color: "var(--admin-text-muted)" }}>
+              <p className={styles.textTextMutedFs12}>
                 {data.listings.active} ativos · {data.listings.forcedAuto} em modo automático
               </p>
             </div>
-            <div style={{ borderLeft: "1px solid var(--admin-divider)", paddingLeft: 32 }}>
+            <div className={styles.boxBordered}>
               <p className="urban-admin-eyebrow-muted">Contas conectadas</p>
-              <p className="urban-admin-display-md" style={{ marginTop: 12 }}>
+              <p className={`urban-admin-display-md ${styles.displayMdMt12}`}>
                 {data.accountsByStatus.reduce((acc, r) => acc + r.count, 0)}
               </p>
-              <p style={{ marginTop: 6, fontSize: 12, color: "var(--admin-text-muted)" }}>
+              <p className={styles.textTextMutedFs12}>
                 {data.accountsByStatus.length} status distintos
               </p>
             </div>
@@ -263,30 +254,21 @@ export default function AdminStaysPage() {
             flexWrap: "wrap",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div className={styles.rowCenteredGap12}>
             <AdminStatusDot
               kind={data.readiness.betaPrivate ? "warn" : "success"}
               size={8}
             />
             <div>
               <p
-                style={{
-                  margin: 0,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "var(--admin-text)",
-                }}
+                className={styles.textTextFs13}
               >
                 {data.readiness.betaPrivate
                   ? "Stays aguardando habilitação operacional"
                   : "Stays pronto para smoke controlado"}
               </p>
               <p
-                style={{
-                  margin: "4px 0 0",
-                  fontSize: 12,
-                  color: "var(--admin-text-muted)",
-                }}
+                className={styles.textTextMutedFs12M4x0x0}
               >
                 API base: {data.readiness.apiBaseConfigured ? "ok" : "faltando"} ·
                 Token encryption:{" "}
@@ -295,18 +277,11 @@ export default function AdminStaysPage() {
             </div>
           </div>
           {data.readiness.missingEnv.length > 0 && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            <div className={styles.rowWrapGap6}>
               {data.readiness.missingEnv.map((env) => (
                 <code
                   key={env}
-                  style={{
-                    fontSize: 10,
-                    fontFamily: "monospace",
-                    color: "var(--admin-warning)",
-                    border: "1px solid color-mix(in srgb, var(--admin-warning) 30%, transparent)",
-                    padding: "3px 6px",
-                    borderRadius: 2,
-                  }}
+                  className={styles.codeWarningFs10}
                 >
                   {env}
                 </code>
@@ -317,14 +292,14 @@ export default function AdminStaysPage() {
       )}
 
       {/* === Breakdown pushes 30d: barra empilhada + stats === */}
-      <section style={{ marginBottom: 56 }}>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
+      <section className={styles.sectionMb56}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
           PUSHES (30D) POR STATUS
         </p>
 
         {totalPushes === 0 ? (
           <AdminCard variant="subtle">
-            <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
+            <p className={styles.textTextMutedFs13}>
               Nenhum push registrado.
             </p>
           </AdminCard>
@@ -332,15 +307,7 @@ export default function AdminStaysPage() {
           <>
             {/* Barra empilhada compacta */}
             <div
-              style={{
-                display: "flex",
-                height: 8,
-                marginBottom: 24,
-                border: "1px solid var(--admin-divider)",
-                borderRadius: 2,
-                overflow: "hidden",
-                background: "var(--admin-surface)",
-              }}
+              className={styles.rowBgSurfaceMb24}
             >
               {PUSH_STATUS_ORDER.map((s) => {
                 const count = pushByStatus.get(s) ?? 0;
@@ -361,13 +328,7 @@ export default function AdminStaysPage() {
 
             {/* Grid 2x2 de small stats */}
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-                gap: 32,
-                borderTop: "1px solid var(--admin-divider)",
-                borderBottom: "1px solid var(--admin-divider)",
-              }}
+              className={styles.gridColsAuto160Gap32}
             >
               {PUSH_STATUS_ORDER.map((s) => (
                 <AdminMetricCard
@@ -384,43 +345,25 @@ export default function AdminStaysPage() {
       </section>
 
       {/* === Contas conectadas por status === */}
-      <section style={{ marginBottom: 56 }}>
+      <section className={styles.sectionMb56}>
         <AdminCard variant="subtle">
           <AdminCardHeader title="Contas conectadas" />
           {data.accountsByStatus.length === 0 ? (
-            <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
+            <p className={styles.textTextMutedFs13}>
               Nenhuma conta ainda.
             </p>
           ) : (
             <ul
-              style={{
-                listStyle: "none",
-                padding: 0,
-                margin: 0,
-                display: "flex",
-                flexDirection: "column",
-                gap: 10,
-              }}
+              className={styles.stackGap10M0}
             >
               {data.accountsByStatus.map((r) => (
                 <li
                   key={r.status}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "8px 0",
-                    borderBottom: "1px solid var(--admin-divider)",
-                    fontSize: 13,
-                  }}
+                  className={styles.rowBetweenCentered}
                 >
-                  <code style={{ color: "var(--admin-text)" }}>{r.status}</code>
+                  <code className={styles.codeText}>{r.status}</code>
                   <span
-                    style={{
-                      fontFamily: "monospace",
-                      color: "var(--admin-accent)",
-                      fontWeight: 600,
-                    }}
+                    className={styles.labelAccentW600}
                   >
                     {r.count}
                   </span>
@@ -434,36 +377,18 @@ export default function AdminStaysPage() {
       {/* === Pushes recentes === */}
       <section>
         <header
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 20,
-            gap: 16,
-            flexWrap: "wrap",
-          }}
+          className={styles.rowBetweenCenteredWrapGap16Mb20}
         >
           <div>
             <p className="urban-admin-eyebrow">PUSHES RECENTES</p>
             <h2
-              style={{
-                fontSize: 20,
-                fontWeight: 600,
-                color: "var(--admin-text)",
-                margin: "8px 0 0",
-                letterSpacing: -0.3,
-              }}
+              className={styles.headingTextFs20}
             >
               Últimos pushes
             </h2>
           </div>
           <div
-            style={{
-              display: "inline-flex",
-              border: "1px solid var(--admin-divider)",
-              borderRadius: 2,
-              overflow: "hidden",
-            }}
+            className={styles.rowScrollBordered}
           >
             {statusFilterOptions.map((s) => {
               const active = s === statusFilter;

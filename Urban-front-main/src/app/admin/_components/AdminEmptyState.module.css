@@ -1,0 +1,31 @@
+.stackCenteredCenterAligned.stackCenteredCenterAligned {
+  padding: 48px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  border: 1px dashed var(--admin-divider);
+  border-radius: 2px;
+}
+
+.boxTextDimMb4.boxTextDimMb4 {
+  color: var(--admin-text-dim);
+  margin-bottom: 4px;
+}
+
+.displaySmUpper.displaySmUpper {
+  text-transform: uppercase;
+}
+
+.textTextMutedFs14.textTextMutedFs14 {
+  font-size: 14px;
+  color: var(--admin-text-muted);
+  max-width: 480px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.boxMt4.boxMt4 {
+  margin-top: 4px;
+}

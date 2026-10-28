@@ -62,6 +62,7 @@ import {
   OperationalStatus,
   ScoreCell,
 } from "./event-radar-detail";
+import styles from "./page.module.css";
 
 export default function AdminEventRadarPage() {
   const [radar, setRadar] = useState<AdminEventRadarResponse | null>(null);
@@ -174,7 +175,7 @@ export default function AdminEventRadarPage() {
 
   if (error || !radar) {
     return (
-      <div style={{ maxWidth: 1320, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar Radar de Demanda"
@@ -219,22 +220,14 @@ export default function AdminEventRadarPage() {
       key: "event",
       header: "Evento",
       render: (event) => (
-        <div style={{ minWidth: 0 }}>
+        <div className={styles.boxMinw0}>
           <p
-            style={{
-              margin: 0,
-              maxWidth: 360,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              fontWeight: 600,
-              color: "var(--admin-text)",
-            }}
+            className={styles.textTextW600}
             title={event.name}
           >
             {event.name}
           </p>
-          <p style={{ margin: "5px 0 0", fontSize: 11, color: "var(--admin-text-muted)" }}>
+          <p className={styles.textTextMutedFs11}>
             {formatDate(event.startsAt)} · {event.city}/{event.state}
           </p>
         </div>
@@ -253,7 +246,7 @@ export default function AdminEventRadarPage() {
       width: 130,
       align: "right",
       render: (event) => (
-        <span style={{ fontFamily: "monospace", color: "var(--admin-text)" }}>
+        <span className={styles.labelTextMono}>
           {formatCents(event.revenuePotentialCents)}
         </span>
       ),
@@ -262,9 +255,9 @@ export default function AdminEventRadarPage() {
       key: "context",
       header: "Categoria/source",
       render: (event) => (
-        <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-          <span style={{ fontSize: 12, color: "var(--admin-text)" }}>{event.category ?? "Sem categoria"}</span>
-          <code style={{ fontSize: 11, color: "var(--admin-text-dim)" }}>{event.source ?? "sem source"}</code>
+        <div className={styles.stackGap5}>
+          <span className={styles.labelTextFs12}>{event.category ?? "Sem categoria"}</span>
+          <code className={styles.codeTextDimFs11}>{event.source ?? "sem source"}</code>
         </div>
       ),
     },
@@ -274,10 +267,10 @@ export default function AdminEventRadarPage() {
       width: 150,
       align: "right",
       render: (event) => (
-        <div style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
-          <strong style={{ color: "var(--admin-text)" }}>{event.affectedPropertiesCount}</strong> imóveis
+        <div className={styles.boxTextMutedFs12}>
+          <strong className={styles.strongText}>{event.affectedPropertiesCount}</strong> imóveis
           <br />
-          <strong style={{ color: "var(--admin-accent)" }}>{event.recommendationsGenerated}</strong> recs
+          <strong className={styles.strongAccent}>{event.recommendationsGenerated}</strong> recs
         </div>
       ),
     },
@@ -323,9 +316,9 @@ export default function AdminEventRadarPage() {
       key: "spot",
       header: "Blind spot",
       render: (spot) => (
-        <div style={{ minWidth: 0 }}>
-          <p style={{ margin: 0, fontWeight: 600, color: "var(--admin-text)", overflowWrap: "anywhere" }}>{spot.title}</p>
-          <p style={{ margin: "5px 0 0", fontSize: 12, color: "var(--admin-text-muted)", overflowWrap: "anywhere" }}>
+        <div className={styles.boxMinw0}>
+          <p className={styles.textTextW600M0}>{spot.title}</p>
+          <p className={styles.textTextMutedFs12}>
             {spot.eventName ?? spot.city ?? "Sem evento vinculado"} · {spot.blockedBy}
           </p>
         </div>
@@ -337,7 +330,7 @@ export default function AdminEventRadarPage() {
       width: 120,
       align: "right",
       render: (spot) => (
-        <span style={{ fontFamily: "monospace", color: "var(--admin-text)" }}>
+        <span className={styles.labelTextMono}>
           {formatCents(spot.revenuePotentialCents)}
         </span>
       ),
@@ -346,7 +339,7 @@ export default function AdminEventRadarPage() {
       key: "action",
       header: "Ação recomendada",
       render: (spot) => (
-        <span style={{ fontSize: 12, color: "var(--admin-text-muted)", overflowWrap: "anywhere" }}>
+        <span className={styles.labelTextMutedFs12}>
           {spot.recommendedAction}
         </span>
       ),
@@ -355,15 +348,14 @@ export default function AdminEventRadarPage() {
 
   return (
     <div
-      className="admin-event-radar-page"
-      style={{ maxWidth: 1400, margin: "0 auto", padding: "40px 32px", overflowX: "hidden" }}
+      className={`admin-event-radar-page ${styles.pageM0xautoP40x32}`}
     >
       <AdminSectionHeader
         eyebrow="ADMIN · EVENT INTELLIGENCE"
         title="Radar de Demanda"
         subtitle="Demanda potencial, heatmap operacional, blind spots e impacto em imóveis para priorizar onde o motor de eventos gera ou perde receita."
         actions={
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div className={styles.rowWrapGap8}>
             <AdminButton variant="ghost" as="a" href="/admin/events" rightIcon={<Icons.ArrowRight size={11} />}>
               Eventos
             </AdminButton>
@@ -394,18 +386,9 @@ export default function AdminEventRadarPage() {
         endpointGaps={endpointGaps.length}
       />
 
-      <section style={{ marginBottom: 36 }}>
+      <section className={styles.sectionMb36}>
         <div
-          className="admin-event-radar-filters"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "var(--event-radar-filters-grid, repeat(auto-fit, minmax(150px, 1fr)))",
-            gap: 12,
-            alignItems: "end",
-            padding: 12,
-            border: "1px solid var(--admin-divider)",
-            borderRadius: 2,
-          }}
+          className={`admin-event-radar-filters ${styles.filtersColsAuto150Gap12}`}
         >
           <AdminInput label="De" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
           <AdminInput label="Até" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
@@ -476,18 +459,12 @@ export default function AdminEventRadarPage() {
         </div>
       </section>
 
-      <section style={{ marginBottom: 48 }}>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 18 }}>
+      <section className={styles.sectionMb48}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb18}`}>
           KPIs DO RADAR
         </p>
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
-            gap: 28,
-            borderTop: "1px solid var(--admin-divider)",
-            borderBottom: "1px solid var(--admin-divider)",
-          }}
+          className={styles.gridColsAuto170Gap28}
         >
           <AdminMetricCard
             label="Demanda potencial"
@@ -524,33 +501,20 @@ export default function AdminEventRadarPage() {
       </section>
 
       <section
-        className="admin-event-radar-main-grid"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "var(--event-radar-main-grid, minmax(0, 1.55fr) minmax(320px, 0.9fr))",
-          gap: 24,
-          marginBottom: 48,
-        }}
+        className={`admin-event-radar-main-grid ${styles.mainGridColsGap24}`}
       >
         <div>
           <header
-            className="admin-event-radar-section-header"
-            style={{ display: "flex", justifyContent: "space-between", gap: 16, marginBottom: 16 }}
+            className={`admin-event-radar-section-header ${styles.sectionHeaderBetweenGap16}`}
           >
             <div>
               <p className="urban-admin-eyebrow">TABELA PRIORIZADA</p>
-              <h2 style={{ margin: "8px 0 0", fontSize: 20, fontWeight: 600, color: "var(--admin-text)" }}>
+              <h2 className={styles.headingTextFs20}>
                 {prioritizedEvents.length} eventos por potencial
               </h2>
             </div>
             <p
-              style={{
-                margin: 0,
-                alignSelf: "end",
-                fontSize: 12,
-                color: "var(--admin-text-muted)",
-                overflowWrap: "anywhere",
-              }}
+              className={styles.textTextMutedFs12M0}
             >
               Clique na linha para abrir detalhe operacional.
             </p>
@@ -567,9 +531,9 @@ export default function AdminEventRadarPage() {
         </div>
 
         <div>
-          <header style={{ marginBottom: 16 }}>
+          <header className={styles.headerMb16}>
             <p className="urban-admin-eyebrow">HEATMAP ADMIN</p>
-            <h2 style={{ margin: "8px 0 0", fontSize: 20, fontWeight: 600, color: "var(--admin-text)" }}>
+            <h2 className={styles.headingTextFs20}>
               Células por cidade
             </h2>
           </header>
@@ -583,25 +547,18 @@ export default function AdminEventRadarPage() {
         </div>
       </section>
 
-      <section style={{ marginBottom: 40 }}>
+      <section className={styles.sectionMb40}>
         <header
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "end",
-            gap: 16,
-            flexWrap: "wrap",
-            marginBottom: 16,
-          }}
+          className={styles.rowBetweenWrap}
         >
           <div>
             <p className="urban-admin-eyebrow">BLIND SPOTS</p>
-            <h2 style={{ margin: "8px 0 0", fontSize: 20, fontWeight: 600, color: "var(--admin-text)" }}>
+            <h2 className={styles.headingTextFs20}>
               Bloqueios com ação clara
             </h2>
           </div>
           {blindSpots && (
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div className={styles.rowWrapGap8}>
               <AdminBadge kind="error">High {blindSpots.summary.high}</AdminBadge>
               <AdminBadge kind="warn">Medium {blindSpots.summary.medium}</AdminBadge>
               <AdminBadge kind="neutral">Low {blindSpots.summary.low}</AdminBadge>
@@ -628,13 +585,7 @@ export default function AdminEventRadarPage() {
       </section>
 
       <footer
-        style={{
-          paddingTop: 20,
-          borderTop: "1px solid var(--admin-divider)",
-          fontSize: 12,
-          color: "var(--admin-text-muted)",
-          lineHeight: 1.6,
-        }}
+        className={styles.footerTextMutedFs12}
       >
         Snapshot em {formatDateTime(radar.generatedAt)} · modo{" "}
         <strong style={{ color: modeColor(radar.contractMode) }}>{radar.contractMode}</strong>. O objetivo desta
@@ -660,7 +611,7 @@ export default function AdminEventRadarPage() {
         }
       >
         {detailLoading && (
-          <p style={{ margin: 0, color: "var(--admin-text-muted)", fontSize: 13 }}>
+          <p className={styles.textTextMutedFs13}>
             Carregando detalhe…
           </p>
         )}

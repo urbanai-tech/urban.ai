@@ -2,34 +2,24 @@ import type { ReactNode } from "react";
 import type { AdminEventRadarHeatmapResponse, AdminEventRadarResponse } from "../../service/api";
 import { AdminBadge, AdminButton, Icons, type AdminBadgeKind } from "../_components";
 import { integer, scoreColor, topHeatmapCell } from "./event-radar-domain";
+import styles from "./event-radar-summary.module.css";
 
 export function ContractBanner({ endpointGaps }: { endpointGaps: string[] }) {
   return (
     <section
-      style={{
-        marginBottom: 28,
-        padding: "14px 16px",
-        border: "1px solid color-mix(in srgb, var(--admin-warning) 30%, transparent)",
-        borderRadius: 2,
-        display: "grid",
-        gridTemplateColumns: "auto minmax(0, 1fr)",
-        gap: 12,
-        color: "var(--admin-text-muted)",
-        fontSize: 13,
-        lineHeight: 1.55,
-      }}
+      className={styles.gridColsTextMuted}
     >
       <Icons.AlertTriangle size={16} style={{ color: "var(--admin-warning)", marginTop: 2 }} />
       <div>
-        <p style={{ margin: 0, color: "var(--admin-warning)", fontWeight: 600 }}>
+        <p className={styles.textWarningW600}>
           Usando fallback contratual do front.
         </p>
-        <p style={{ margin: "4px 0 0" }}>
+        <p className={styles.textM4x0x0}>
           A tela já está navegável, mas os dados econômicos são adaptados de `/admin/events/analytics` e
           `/admin/events/list` até o backend expor os endpoints reais.
         </p>
         {endpointGaps.length > 0 && (
-          <p style={{ margin: "8px 0 0", fontFamily: "monospace", fontSize: 11, overflowWrap: "anywhere" }}>
+          <p className={styles.textFs11M8x0x0}>
             Gaps: {endpointGaps.join(" · ")}
           </p>
         )}
@@ -60,12 +50,7 @@ export function RadarCommandStrip({
 
   return (
     <section
-      style={{
-        display: "grid",
-        gridTemplateColumns: "var(--event-radar-command-grid, repeat(4, minmax(0, 1fr)))",
-        gap: 12,
-        marginBottom: 28,
-      }}
+      className={styles.gridCols4Gap12}
       aria-label="Resumo operacional do radar"
     >
       <CommandTile
@@ -115,16 +100,7 @@ function CommandTile({
 }) {
   return (
     <div
-      style={{
-        minWidth: 0,
-        padding: "14px 16px",
-        border: "1px solid var(--admin-divider)",
-        borderRadius: 2,
-        display: "grid",
-        gridTemplateColumns: "auto minmax(0, 1fr)",
-        gap: 12,
-        alignItems: "start",
-      }}
+      className={styles.gridColsGap12}
     >
       <span
         style={{
@@ -135,25 +111,17 @@ function CommandTile({
       >
         {icon}
       </span>
-      <div style={{ minWidth: 0 }}>
-        <p className="urban-admin-eyebrow-muted" style={{ marginBottom: 8 }}>
+      <div className={styles.boxMinw0}>
+        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb8}`}>
           {label}
         </p>
         <p
-          style={{
-            margin: 0,
-            color: "var(--admin-text)",
-            fontSize: 16,
-            fontWeight: 700,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
+          className={styles.textTextFs16}
           title={String(value)}
         >
           {value}
         </p>
-        <div style={{ marginTop: 8 }}>
+        <div className={styles.boxMt8}>
           <AdminBadge kind={kind}>{detail}</AdminBadge>
         </div>
       </div>
@@ -174,12 +142,7 @@ export function KpiHealthFooter({
 }) {
   return (
     <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "var(--event-radar-health-grid, repeat(4, minmax(0, 1fr)))",
-        gap: 12,
-        marginTop: 16,
-      }}
+      className={styles.gridCols4Gap12Mt16}
     >
       <HealthMeter
         label="Cobertura"
@@ -210,15 +173,15 @@ function HealthMeter({ label, value, detail }: { label: string; value: number; d
   const kind: AdminBadgeKind = clamped >= 70 ? "success" : clamped >= 45 ? "warn" : "error";
 
   return (
-    <div style={{ minWidth: 0, border: "1px solid var(--admin-divider)", borderRadius: 2, padding: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
+    <div className={styles.boxP12Minw0}>
+      <div className={styles.rowBetweenBaseline}>
         <p className="urban-admin-eyebrow-muted">{label}</p>
-        <span style={{ color: "var(--admin-text)", fontFamily: "monospace", fontSize: 13 }}>{clamped}%</span>
+        <span className={styles.labelTextFs13}>{clamped}%</span>
       </div>
-      <div style={{ height: 4, marginTop: 10, background: "var(--admin-divider)", overflow: "hidden" }}>
+      <div className={styles.boxBgDividerMt10}>
         <div style={{ width: `${clamped}%`, height: "100%", background: scoreColor(clamped) }} />
       </div>
-      <div style={{ marginTop: 10 }}>
+      <div className={styles.boxMt10}>
         <AdminBadge kind={kind}>{detail}</AdminBadge>
       </div>
     </div>
@@ -227,9 +190,9 @@ function HealthMeter({ label, value, detail }: { label: string; value: number; d
 
 function HealthCounter({ label, value, kind }: { label: string; value: number; kind: AdminBadgeKind }) {
   return (
-    <div style={{ minWidth: 0, border: "1px solid var(--admin-divider)", borderRadius: 2, padding: 12 }}>
+    <div className={styles.boxP12Minw0}>
       <p className="urban-admin-eyebrow-muted">{label}</p>
-      <p style={{ margin: "9px 0 8px", color: "var(--admin-text)", fontFamily: "monospace", fontSize: 18 }}>
+      <p className={styles.textTextFs18}>
         {integer.format(value)}
       </p>
       <AdminBadge kind={kind}>{value > 0 ? "ação pendente" : "sem bloqueio"}</AdminBadge>
@@ -252,21 +215,10 @@ export function FilterStatusStrip({
 }) {
   return (
     <div
-      style={{
-        gridColumn: "1 / -1",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 12,
-        flexWrap: "wrap",
-        paddingTop: 4,
-        borderTop: "1px solid var(--admin-divider)",
-        color: "var(--admin-text-muted)",
-        fontSize: 12,
-      }}
+      className={styles.rowBetweenCentered}
       aria-live="polite"
     >
-      <span style={{ overflowWrap: "anywhere" }}>
+      <span className={styles.label}>
         {loading ? "Atualizando recorte…" : `${prioritizedCount} de ${eventsCount} eventos priorizados`}
         {activeFilterCount > 0
           ? ` · ${activeFilterCount} filtro${activeFilterCount > 1 ? "s" : ""} ativo${activeFilterCount > 1 ? "s" : ""}`

@@ -27,6 +27,7 @@ import {
   Icons,
   useAdminToast,
 } from "../_components";
+import styles from "./page.module.css";
 
 type OccupancyStatus = "booked" | "available" | "blocked" | "unknown";
 
@@ -173,7 +174,7 @@ export default function AdminQualityPage() {
 
   if (error) {
     return (
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar"
@@ -196,7 +197,7 @@ export default function AdminQualityPage() {
           : "var(--admin-danger)";
 
   return (
-    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       <AdminSectionHeader
         eyebrow="ADMIN · QUALIDADE"
         title="Qualidade da IA + ocupação"
@@ -205,31 +206,17 @@ export default function AdminQualityPage() {
 
       {/* === Hero KPI: MAPE === */}
       {quality && (
-        <section style={{ marginBottom: 56 }}>
+        <section className={styles.sectionMb56}>
           {quality.sampleSize === 0 ? (
             <div
-              style={{
-                padding: "20px 24px",
-                borderLeft: "2px solid var(--admin-warning)",
-                background: "color-mix(in srgb, var(--admin-warning) 6%, transparent)",
-                fontSize: 14,
-                color: "var(--admin-text-muted)",
-                lineHeight: 1.55,
-              }}
+              className={styles.boxTextMutedBgWarning}
             >
               <p
-                style={{
-                  margin: 0,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: 1.5,
-                  textTransform: "uppercase",
-                  color: "var(--admin-warning)",
-                }}
+                className={styles.textWarningFs11}
               >
                 Sem amostras
               </p>
-              <p style={{ margin: "6px 0 0" }}>
+              <p className={styles.textM6x0x0}>
                 Sem dados de preço aplicado real ainda. O ground truth comeca a
                 entrar quando anfitriões confirmarem o preço aplicado ou quando
                 o push automático Stays gravar o resultado. Janela:{" "}
@@ -239,12 +226,7 @@ export default function AdminQualityPage() {
           ) : (
             <AdminCard variant="accent" style={{ padding: "40px 40px 36px" }}>
               <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)",
-                  gap: 32,
-                  alignItems: "end",
-                }}
+                className={styles.gridColsGap32}
               >
                 <div>
                   <p className="urban-admin-eyebrow">
@@ -257,25 +239,14 @@ export default function AdminQualityPage() {
                     {mape != null ? `${mape}%` : "—"}
                   </p>
                   <p
-                    style={{
-                      marginTop: 12,
-                      fontSize: 14,
-                      color: "var(--admin-text-muted)",
-                      lineHeight: 1.55,
-                    }}
+                    className={styles.textTextMutedFs14}
                   >
                     Alvo {"<="} {mapeThreshold}% · backtest sobre preço aplicado
                     real {"vs"} sugestão.
                   </p>
                 </div>
                 <div
-                  style={{
-                    borderLeft: "1px solid var(--admin-divider)",
-                    paddingLeft: 32,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 16,
-                  }}
+                  className={styles.stackGap16Bordered}
                 >
                   <SmallInline
                     label="RMSE"
@@ -306,39 +277,21 @@ export default function AdminQualityPage() {
           {/* Gate */}
           {quality.sampleSize > 0 && (
             <div
-              style={{
-                marginTop: 16,
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "12px 16px",
-                border: "1px solid var(--admin-divider)",
-                borderRadius: 2,
-                background: "var(--admin-surface)",
-              }}
+              className={styles.rowCenteredBgSurface}
             >
               <AdminStatusDot
                 kind={quality.qualityGate.passes ? "success" : "warn"}
                 size={10}
               />
-              <div style={{ flex: 1 }}>
+              <div className={styles.boxFlex1}>
                 <p
-                  style={{
-                    margin: 0,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: "var(--admin-text)",
-                  }}
+                  className={styles.textTextFs13}
                 >
                   Gate de qualidade:{" "}
                   {quality.qualityGate.passes ? "aprovado" : "ainda não atingido"}
                 </p>
                 <p
-                  style={{
-                    margin: "4px 0 0",
-                    fontSize: 12,
-                    color: "var(--admin-text-muted)",
-                  }}
+                  className={styles.textTextMutedFs12}
                 >
                   Criterio: MAPE {"<="} {quality.qualityGate.threshold}% AND
                   amostras {">="} 30.
@@ -351,27 +304,14 @@ export default function AdminQualityPage() {
       )}
 
       {/* === Cobertura de ocupação === */}
-      <section style={{ marginBottom: 56 }}>
+      <section className={styles.sectionMb56}>
         <header
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 20,
-            gap: 16,
-            flexWrap: "wrap",
-          }}
+          className={styles.rowBetweenCentered}
         >
           <div>
             <p className="urban-admin-eyebrow">COBERTURA DE OCUPAÇÃO</p>
             <h2
-              style={{
-                fontSize: 20,
-                fontWeight: 600,
-                color: "var(--admin-text)",
-                margin: "8px 0 0",
-                letterSpacing: -0.3,
-              }}
+              className={styles.headingTextFs20}
             >
               {occupancy?.distinctListings ?? 0} listings com histórico
             </h2>
@@ -380,16 +320,12 @@ export default function AdminQualityPage() {
         </header>
 
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
-            gap: 24,
-          }}
+          className={styles.gridColsAutoGap24}
         >
           <AdminCard variant="subtle">
             <AdminCardHeader title="Por status" />
             {!occupancy || occupancy.byStatus.length === 0 ? (
-              <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
+              <p className={styles.textTextMutedFs13}>
                 Sem registros. Use o apontamento manual abaixo para iniciar o
                 histórico real.
               </p>
@@ -402,7 +338,7 @@ export default function AdminQualityPage() {
           <AdminCard variant="subtle">
             <AdminCardHeader title="Por origem" />
             {!occupancy || occupancy.byOrigin.length === 0 ? (
-              <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
+              <p className={styles.textTextMutedFs13}>
                 Sem origens registradas ainda.
               </p>
             ) : (
@@ -416,28 +352,16 @@ export default function AdminQualityPage() {
 
       {/* === Apontamento manual === */}
       <section>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 12 }}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb12}`}>
           APONTAMENTO MANUAL
         </p>
         <h2
-          style={{
-            fontSize: 20,
-            fontWeight: 600,
-            color: "var(--admin-text)",
-            margin: "0 0 8px",
-            letterSpacing: -0.3,
-          }}
+          className={styles.headingTextFs20W600M0x0x8Lsneg0_3}
         >
           Registrar ocupação
         </h2>
         <p
-          style={{
-            fontSize: 13,
-            color: "var(--admin-text-muted)",
-            margin: "0 0 24px",
-            lineHeight: 1.55,
-            maxWidth: 720,
-          }}
+          className={styles.textTextMutedFs13M0x0x24Maxw720Lh1_55}
         >
           Use para registrar observações reais do alpha: disponibilidade,
           reserva, diária anunciada e receita realizada por dia. Registros
@@ -447,19 +371,11 @@ export default function AdminQualityPage() {
         <AdminCard variant="subtle">
           <form
             onSubmit={handleSubmit}
-            style={{ display: "flex", flexDirection: "column", gap: 18 }}
+            className={styles.stackGap18}
           >
-            <div style={{ minWidth: 0, maxWidth: 360 }}>
+            <div className={styles.boxMaxw360Minw0}>
               <span
-                style={{
-                  display: "block",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: 1.5,
-                  textTransform: "uppercase",
-                  color: "var(--admin-text-muted)",
-                  marginBottom: 8,
-                }}
+                className={styles.labelTextMutedFs11}
               >
                 Imóvel
               </span>
@@ -474,11 +390,7 @@ export default function AdminQualityPage() {
             </div>
 
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                gap: 14,
-              }}
+              className={styles.gridColsAuto180Gap14}
             >
               <AdminInput
                 label="Data observada"
@@ -518,24 +430,16 @@ export default function AdminQualityPage() {
 
             {selectedProperty && (
               <div
-                style={{
-                  padding: "12px 16px",
-                  border: "1px solid var(--admin-divider)",
-                  borderRadius: 2,
-                  background: "var(--admin-surface)",
-                  fontSize: 12,
-                  color: "var(--admin-text-muted)",
-                  lineHeight: 1.55,
-                }}
+                className={styles.boxTextMutedBgSurface}
               >
-                <strong style={{ color: "var(--admin-text)" }}>
+                <strong className={styles.strongText}>
                   {selectedProperty.title || "Imóvel sem título"}
                 </strong>
-                <span style={{ marginLeft: 12 }}>
+                <span className={styles.labelMl12}>
                   {selectedProperty.city || "cidade n/d"} /{" "}
                   {selectedProperty.state || "UF n/d"}
                 </span>
-                <span style={{ marginLeft: 12 }}>
+                <span className={styles.labelMl12}>
                   Receita média mensal:{" "}
                   {selectedProperty.averageMonthlyRevenue != null
                     ? `R$ ${selectedProperty.averageMonthlyRevenue}`
@@ -544,7 +448,7 @@ export default function AdminQualityPage() {
               </div>
             )}
 
-            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <div className={styles.rowEnd}>
               <AdminButton
                 variant="primary"
                 type="submit"
@@ -574,19 +478,12 @@ function SmallInline({
     <div>
       <p className="urban-admin-eyebrow-muted">{label}</p>
       <p
-        style={{
-          fontSize: 20,
-          fontWeight: 600,
-          color: "var(--admin-text)",
-          margin: "6px 0 0",
-          fontFamily: "monospace",
-          letterSpacing: -0.3,
-        }}
+        className={styles.textTextFs20}
       >
         {value}
       </p>
       {sub && (
-        <p style={{ fontSize: 11, color: "var(--admin-text-muted)", margin: "2px 0 0" }}>
+        <p className={styles.textTextMutedFs11}>
           {sub}
         </p>
       )}
@@ -597,7 +494,7 @@ function SmallInline({
 function BarList({ rows }: { rows: Array<{ label: string; value: number }> }) {
   if (rows.length === 0) {
     return (
-      <p style={{ fontSize: 12, color: "var(--admin-text-muted)", margin: 0 }}>
+      <p className={styles.textTextMutedFs12M0}>
         Sem dados.
       </p>
     );
@@ -605,31 +502,19 @@ function BarList({ rows }: { rows: Array<{ label: string; value: number }> }) {
   const max = Math.max(...rows.map((r) => r.value), 1);
   return (
     <ul
-      style={{
-        listStyle: "none",
-        padding: 0,
-        margin: 0,
-        display: "flex",
-        flexDirection: "column",
-        gap: 12,
-      }}
+      className={styles.stackGap12M0}
     >
       {rows.map((r) => (
         <li key={r.label}>
           <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: 12,
-              marginBottom: 5,
-            }}
+            className={styles.rowBetweenFs12}
           >
-            <code style={{ color: "var(--admin-text)" }}>{r.label}</code>
-            <span style={{ color: "var(--admin-accent)", fontWeight: 600, fontFamily: "monospace" }}>
+            <code className={styles.strongText}>{r.label}</code>
+            <span className={styles.labelAccentW600}>
               {r.value.toLocaleString("pt-BR")}
             </span>
           </div>
-          <div style={{ height: 2, background: "var(--admin-divider)" }}>
+          <div className={styles.boxBgDividerH2}>
             <div
               style={{
                 height: "100%",
