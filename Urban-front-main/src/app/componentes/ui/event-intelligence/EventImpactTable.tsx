@@ -24,8 +24,8 @@ export function EventImpactTable({
 }) {
   if (impacts.length === 0) {
     return (
-      <AppCard variant="subtle" style={{ padding: 18 }}>
-        <p className={styles.eventImpactTableText}>
+      <AppCard variant="subtle" className={styles.emptyStateCard}>
+        <p className={styles.emptyStateText}>
           Nenhum imóvel impactado encontrado para este evento.
         </p>
       </AppCard>
@@ -35,11 +35,11 @@ export function EventImpactTable({
   return (
     <>
     <div
-      className={`event-impact-table-scroll ${styles.hostEventImpact}`}
+      className={`event-impact-table-scroll ${styles.tableScroll}`}
       data-testid="host-event-impact-table"
     >
       <table
-        className={styles.eventImpactTableTable}
+        className={styles.impactTable}
       >
         <thead>
           <tr>
@@ -47,7 +47,7 @@ export function EventImpactTable({
               (header) => (
                 <th
                   key={header}
-                  className={styles.eventImpactTableHeadCell}
+                  className={styles.headerCell}
                 >
                   {header}
                 </th>
@@ -59,9 +59,9 @@ export function EventImpactTable({
           {impacts.map((impact) => (
             <tr key={impact.propertyId}>
               <Cell strong>
-                <div className={styles.eventImpactTableGrid}>
-                  <span className={styles.eventImpactTableLabel}>{impact.propertyName}</span>
-                  <AppBadge kind={confidenceBadgeKind(impact.confidence)} style={{ width: "fit-content" }}>
+                <div className={styles.propertyCell}>
+                  <span className={styles.propertyName}>{impact.propertyName}</span>
+                  <AppBadge kind={confidenceBadgeKind(impact.confidence)} className={styles.confidenceBadge}>
                     {confidenceLabel(impact.confidence)}
                   </AppBadge>
                 </div>
@@ -71,9 +71,9 @@ export function EventImpactTable({
               <Cell>{formatCurrencyFromCents(impact.currentPriceCents)}</Cell>
               <Cell>{formatPriceRange(impact.minAbsorbablePriceCents, impact.maxAbsorbablePriceCents)}</Cell>
               <Cell>
-                <span className={styles.eventImpactTableLabel2}>{formatCurrencyFromCents(impact.recommendedPriceCents)}</span>
+                <span className={styles.recommendedPrice}>{formatCurrencyFromCents(impact.recommendedPriceCents)}</span>
                 {impact.recommendedMultiplier && (
-                  <span className={styles.eventImpactTableLabelTextMuted}>
+                  <span className={styles.recommendedMultiplier}>
                     {formatMultiplier(impact.recommendedMultiplier)}
                   </span>
                 )}
@@ -147,7 +147,7 @@ function Cell({
 }) {
   return (
     <td
-      className={`${styles.cellCell} ${strong ? styles.cellCellStrong : styles.cellCellDefault}`}
+      className={`${styles.bodyCell} ${strong ? styles.bodyCellStrong : styles.bodyCellDefault}`}
     >
       {children}
     </td>
@@ -162,15 +162,15 @@ function ImpactMobileCard({
   onSimulate?: (impact: EventPropertyImpact) => void;
 }) {
   return (
-    <AppCard variant="subtle" style={{ padding: 14 }}>
+    <AppCard variant="subtle" className={styles.mobileCard}>
       <div
-        className={`event-impact-mobile-header ${styles.eventImpactMobile}`}
+        className={`event-impact-mobile-header ${styles.mobileHeader}`}
       >
-        <div className={styles.impactMobileCardBox}>
-          <p className={styles.impactMobileCardText}>
+        <div className={styles.mobileTitleBlock}>
+          <p className={styles.mobilePropertyName}>
             {impact.propertyName}
           </p>
-          <div className={styles.impactMobileCardRow}>
+          <div className={styles.mobileBadgeRow}>
             <AppBadge kind={confidenceBadgeKind(impact.confidence)}>
               {confidenceLabel(impact.confidence)}
             </AppBadge>
@@ -192,7 +192,7 @@ function ImpactMobileCard({
         </AppButton>
       </div>
 
-      <div className={`event-impact-mobile-metrics ${styles.eventImpactMobileCols}`}>
+      <div className={`event-impact-mobile-metrics ${styles.mobileMetricsGrid}`}>
         <MobileMetric label="Captura" value={String(impact.propertyCaptureScore ?? "-")} />
         <MobileMetric label="Chance" value={formatPercent(impact.bookingProbability)} />
         <MobileMetric label="Atual" value={formatCurrencyFromCents(impact.currentPriceCents)} />
@@ -215,10 +215,10 @@ function MobileMetric({
 }) {
   return (
     <div className={[wide ? "event-impact-mobile-metric-wide" : null, styles.mobileMetric, wide ? styles.mobileMetricWide : null].filter(Boolean).join(" ")}>
-      <p className={styles.mobileMetricText}>
+      <p className={styles.mobileMetricLabel}>
         {label}
       </p>
-      <p className={styles.mobileMetricText13}>
+      <p className={styles.mobileMetricValue}>
         {value}
       </p>
     </div>

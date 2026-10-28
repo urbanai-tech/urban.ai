@@ -135,32 +135,32 @@ export function ActionSimulationDialog({
       cancelLabel="Revisar"
       loading={loading}
       body={
-        <div className={styles.s1}>
+        <div className={styles.dialogBody}>
           <div
-            className={styles.s2}
+            className={styles.actionSummaryRow}
           >
-            <strong className={styles.s3}>{actionLabel(action)}</strong>
+            <strong className={styles.actionLabel}>{actionLabel(action)}</strong>
             <AppBadge kind={simulated ? "success" : "warn"}>
               {simulated ? "Simulado" : "Previa local"}
             </AppBadge>
           </div>
 
           <div
-            className={styles.s4}
+            className={styles.snapshotGrid}
           >
             <SnapshotBox label="Antes" value={formatCurrency(beforeValue)} />
             <SnapshotBox label="Depois" value={formatCurrency(afterValue)} />
           </div>
 
           <div
-            className={styles.s4}
+            className={styles.snapshotGrid}
           >
             <SnapshotBox label="Aplicáveis" value={String(applied)} />
             <SnapshotBox label="Falhas" value={String(failed.length)} tone={failed.length > 0 ? "warn" : "neutral"} />
           </div>
 
           {failed.length > 0 && (
-            <ul className={styles.s5}>
+            <ul className={styles.failureList}>
               {failed.slice(0, 4).map((failure, index) => (
                 <li key={`${failure.propertyId}-${index}`}>
                   {failure.propertyId}: {failure.reason}
@@ -170,7 +170,7 @@ export function ActionSimulationDialog({
           )}
 
           {!simulated && (
-            <p className={styles.s6}>
+            <p className={styles.previewNotice}>
               O endpoint de simulação ainda não respondeu. Esta prévia usa os
               dados carregados no calendário; a ação real só roda se você confirmar.
             </p>
@@ -201,11 +201,11 @@ function SnapshotBox({
       }}
     >
       <div
-        className={styles.s7}
+        className={styles.snapshotLabel}
       >
         {label}
       </div>
-      <div className={styles.s8}>
+      <div className={styles.snapshotValue}>
         {value}
       </div>
     </div>

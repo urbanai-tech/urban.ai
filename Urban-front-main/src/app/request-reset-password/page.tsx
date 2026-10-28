@@ -6,6 +6,7 @@ import { Mail } from "lucide-react";
 import { AuthFlowShell } from "@/app/componentes/AuthFlowShell";
 import { AppButton, AppCard, AppInput, Icons, useToastCompat } from "@/app/componentes/ui";
 import { forgotPassword } from "@/app/service/api";
+import styles from "./page.module.css";
 
 export default function PasswordResetRequest() {
   const toast = useToastCompat();
@@ -64,7 +65,7 @@ export default function PasswordResetRequest() {
       }
       asideSubtitle="Links temporários, validação por token e uma experiência visual alinhada ao novo produto."
     >
-      <AppCard variant="elevated" style={{ padding: 28 }}>
+      <AppCard variant="elevated" className={styles.formCard}>
         {sentTo ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <div

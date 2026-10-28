@@ -130,7 +130,7 @@ export function AdrComparisonChart({
   if (!data || data.length === 0) {
     return (
       <div
-        className={styles.s1}
+        className={styles.emptyState}
       >
         Sem dados diarios para o período selecionado.
       </div>
@@ -157,7 +157,7 @@ export function AdrComparisonChart({
         : `Sua diária média ficou estável em torno de ${formatBRL(last.yourAdr)} no período.`;
 
   return (
-    <div className={styles.s2}>
+    <div className={styles.chartWrapper}>
       <p style={visuallyHiddenStyle}>{trendText}</p>
       <svg
         role="img"
@@ -189,7 +189,7 @@ export function AdrComparisonChart({
                 textAnchor="end"
                 fontSize={10}
                 fill="var(--app-text-muted)"
-                className={styles.s3}
+                className={styles.axisTickLabel}
               >
                 {formatAxisK(t)}
               </text>
@@ -230,7 +230,7 @@ export function AdrComparisonChart({
             textAnchor="middle"
             fontSize={10}
             fill="var(--app-text-muted)"
-            className={styles.s3}
+            className={styles.axisTickLabel}
           >
             {formatDateShort(p.date)}
           </text>
@@ -319,21 +319,21 @@ export function AdrComparisonChart({
             fontFamily: "var(--font-brand)",
           }}
         >
-          <div className={styles.s5}>
+          <div className={styles.tooltipDate}>
             {formatDateLong(hovered.date)}
           </div>
           <div
-            className={styles.s6}
+            className={styles.tooltipBody}
           >
             <span>
-              <span className={styles.s7}>
+              <span className={styles.tooltipYourLabel}>
                 Sua diária
               </span>{" "}
-              <span className={styles.s8}>
+              <span className={styles.tooltipYourValue}>
                 {formatBRL(hovered.yourAdr)}
               </span>
             </span>
-            <span className={styles.s9}>
+            <span className={styles.tooltipMedianLine}>
               Média dos parecidos {formatBRL(hovered.medianAdr)}
             </span>
           </div>
@@ -342,17 +342,17 @@ export function AdrComparisonChart({
 
       {/* Legenda */}
       <div
-        className={styles.s10}
+        className={styles.legendRow}
       >
-        <span className={styles.s11}>
+        <span className={styles.legendItem}>
           <span
-            className={styles.s12}
+            className={styles.legendSwatchSolid}
           />
           Sua diária
         </span>
-        <span className={styles.s11}>
+        <span className={styles.legendItem}>
           <span
-            className={styles.s13}
+            className={styles.legendSwatchDashed}
           />
           Média dos parecidos
         </span>

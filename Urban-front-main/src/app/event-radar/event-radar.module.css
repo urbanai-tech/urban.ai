@@ -1,66 +1,66 @@
-.eventRadarGrid.eventRadarGrid {
+.suspenseFallback.suspenseFallback {
   min-height: 420px;
   display: grid;
   place-items: center;
 }
 
-.hostEventRadar.hostEventRadar {
+.filtersGrid.filtersGrid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 12px;
   align-items: end;
 }
 
-.eventRadarBox.eventRadarBox {
+.filterFieldCapped.filterFieldCapped {
   grid-column: span 2;
   min-width: 0;
   max-width: 320px;
 }
 
-.eventRadarBox2.eventRadarBox2 {
+.filterFieldStandard.filterFieldStandard {
   grid-column: span 2;
   min-width: 0;
 }
 
-.eventRadarText.eventRadarText {
+.filterHelperText.filterHelperText {
   margin: 6px 0 0;
   color: var(--app-text-muted);
   font-size: 11px;
   line-height: 1.35;
 }
 
-.eventRadarText11.eventRadarText11 {
+.filterWarningText.filterWarningText {
   margin: 6px 0 0;
   color: var(--app-warning-text);
   font-size: 11px;
   line-height: 1.35;
 }
 
-.eventRadarBox3.eventRadarBox3 {
+.filterFieldNarrow.filterFieldNarrow {
   grid-column: span 1;
   min-width: 0;
 }
 
-.hostEventRadarCols.hostEventRadarCols {
+.summaryMetricsGrid.summaryMetricsGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 22px;
 }
 
-.hostEventRadarGap22.hostEventRadarGap22 {
+.mainGrid.mainGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(340px, 420px);
   gap: 22px;
   align-items: start;
 }
 
-.eventRadarGridGap22.eventRadarGridGap22 {
+.mainColumn.mainColumn {
   display: grid;
   gap: 22px;
 }
 
-.eventRadarGridGap14.eventRadarGridGap14 {
+.sideColumnSticky.sideColumnSticky {
   display: grid;
   gap: 14px;
   position: sticky;
@@ -68,7 +68,7 @@
   min-width: 0;
 }
 
-.eventDetailPanelRow.eventDetailPanelRow {
+.detailHeaderRow.detailHeaderRow {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -76,19 +76,19 @@
   flex-wrap: wrap;
 }
 
-.eventDetailPanelBox.eventDetailPanelBox {
+.detailHeaderInfo.detailHeaderInfo {
   min-width: 0;
   flex: 1 1 420px;
 }
 
-.eventDetailPanelRowGap8.eventDetailPanelRowGap8 {
+.detailBadgeRow.detailBadgeRow {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   margin-bottom: 12px;
 }
 
-.eventDetailPanelHeading.eventDetailPanelHeading {
+.detailTitle.detailTitle {
   margin: 0;
   color: var(--app-text);
   font-size: 24px;
@@ -97,35 +97,35 @@
   letter-spacing: 0;
 }
 
-.eventDetailPanelText.eventDetailPanelText {
+.detailSubtitle.detailSubtitle {
   margin: 8px 0 0;
   color: var(--app-text-muted);
   font-size: 13px;
   line-height: 1.5;
 }
 
-.eventDetailPanelText15.eventDetailPanelText15 {
+.detailInterpretation.detailInterpretation {
   margin: 18px 0 0;
   color: var(--app-text);
   font-size: 15px;
   line-height: 1.65;
 }
 
-.eventDetailPanelText12.eventDetailPanelText12 {
+.detailDerivedWarning.detailDerivedWarning {
   margin: 10px 0 0;
   color: var(--app-warning-text);
   font-size: 12px;
   line-height: 1.5;
 }
 
-.eventDetailPanelRowGap10.eventDetailPanelRowGap10 {
+.sourceLinksRow.sourceLinksRow {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 16px;
 }
 
-.eventDetailPanelLink.eventDetailPanelLink {
+.sourceLink.sourceLink {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -144,55 +144,55 @@
   white-space: nowrap;
 }
 
-.eventDetailPanelBoxMar22.eventDetailPanelBoxMar22 {
+.detailSection.detailSection {
   margin-top: 22px;
 }
 
-.eventDetailPanelTextTextMuted.eventDetailPanelTextTextMuted {
+.simulatingStatusText.simulatingStatusText {
   margin: 10px 0 0;
   color: var(--app-text-muted);
   font-size: 12px;
 }
 
-.eventDetailPanelTextDanger.eventDetailPanelTextDanger {
+.simulationErrorText.simulationErrorText {
   margin: 10px 0 0;
   color: var(--app-danger);
   font-size: 12px;
   line-height: 1.45;
 }
 
-.hostEventRadarGap16.hostEventRadarGap16 {
+.loadingWrapper.loadingWrapper {
   display: grid;
   gap: 16px;
 }
 
-.eventRadarLoadingGrid.eventRadarLoadingGrid {
+.loadingSpinnerArea.loadingSpinnerArea {
   min-height: 160px;
   display: grid;
   place-items: center;
   text-align: center;
 }
 
-.eventRadarLoadingText.eventRadarLoadingText {
+.loadingMessage.loadingMessage {
   margin: 12px 0 0;
   color: var(--app-text-muted);
   font-size: 13px;
 }
 
-.eventRadarLoadingGridCols.eventRadarLoadingGridCols {
+.loadingPanelsGrid.loadingPanelsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
 }
 
-.eventRadarLoadingPanel.eventRadarLoadingPanel {
+.loadingPanel.loadingPanel {
   min-height: 96px;
   border-radius: 8px;
   border: 1px solid var(--app-divider);
   background: linear-gradient(90deg, var(--app-surface-muted) 0%, var(--app-surface) 45%, var(--app-surface-muted) 90%);
 }
 
-.filterLabelLabel.filterLabelLabel {
+.filterLabel.filterLabel {
   display: block;
   margin-bottom: 6px;
   color: var(--app-text-muted);
@@ -202,11 +202,57 @@
   text-transform: uppercase;
 }
 
-.carregando.carregando {
+.spinner.spinner {
   width: 36px;
   height: 36px;
   border-radius: 50%;
   border: 3px solid var(--app-accent-soft);
   border-top-color: var(--app-accent);
   animation: event-radar-spin 0.9s linear infinite;
+}
+
+.filtersCard.filtersCard {
+  padding: 14px;
+  margin-bottom: 22px;
+  overflow: hidden;
+}
+
+.summaryMetricCardRevenue.summaryMetricCardRevenue {
+  padding: 18px;
+}
+
+.summaryMetricCardEvents.summaryMetricCardEvents {
+  padding: 18px;
+}
+
+.summaryMetricCardNights.summaryMetricCardNights {
+  padding: 18px;
+}
+
+.summaryMetricCardProperties.summaryMetricCardProperties {
+  padding: 18px;
+}
+
+.priorityHeaderCard.priorityHeaderCard {
+  padding: 16px;
+}
+
+.priorityHeader.priorityHeader {
+  margin-bottom: 0;
+}
+
+.detailPanelCard.detailPanelCard {
+  min-width: 0;
+}
+
+.categoryBadge.categoryBadge {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.modelVersionBadge.modelVersionBadge {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

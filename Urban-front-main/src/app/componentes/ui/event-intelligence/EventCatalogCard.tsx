@@ -13,6 +13,7 @@ import {
   formatTime,
 } from "./formatters";
 import { EventImage } from "./EventImage";
+import styles from "./EventCatalogCard.module.css";
 
 export function EventCatalogCard({
   event,
@@ -30,14 +31,7 @@ export function EventCatalogCard({
     <AppCard
       as="article"
       variant="default"
-      style={{
-        padding: 0,
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        minHeight: 430,
-        minWidth: 0,
-      }}
+      className={styles.catalogCard}
     >
       <div style={{ position: "relative", height: 176, background: "var(--app-surface-muted)" }}>
         <EventImage src={event.imageUrl} alt={event.name} venue={event.venueName} />
@@ -71,7 +65,7 @@ export function EventCatalogCard({
           {event.category && (
             <AppBadge
               kind="neutral"
-              style={{ maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}
+              className={styles.categoryBadge}
             >
               {event.category}
             </AppBadge>

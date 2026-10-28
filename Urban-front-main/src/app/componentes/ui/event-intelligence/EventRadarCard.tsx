@@ -15,6 +15,7 @@ import {
   formatMultiplier,
   formatPercent,
 } from "./formatters";
+import styles from "./EventRadarCard.module.css";
 
 export function EventRadarCard({
   event,
@@ -38,12 +39,7 @@ export function EventRadarCard({
       <AppCard
         as="article"
         variant={selected ? "accent" : "default"}
-        style={{
-          padding: 18,
-          cursor: "pointer",
-          outline: selected ? "2px solid var(--app-accent-soft)" : undefined,
-          minWidth: 0,
-        }}
+        className={styles.radarCard} style={{ outline: selected ? "2px solid var(--app-accent-soft)" : undefined }}
         onClick={onSelect}
       >
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
@@ -55,7 +51,7 @@ export function EventRadarCard({
             {event.category && (
               <AppBadge
                 kind="neutral"
-                style={{ maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}
+                className={styles.categoryBadge}
               >
                 {event.category}
               </AppBadge>

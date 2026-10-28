@@ -1,0 +1,24 @@
+.invalidInviteCard.invalidInviteCard {
+  padding: 28px;
+}
+
+.backButton.backButton {
+  margin-top: 20px;
+}
+
+.passwordFormCard.passwordFormCard {
+  padding: 28px;
+}
+
+.readonlyEmailInput.readonlyEmailInput {
+  background: var(--app-surface-muted);
+  color: var(--app-text-muted);
+}
+
+.loadingCard.loadingCard {
+  padding: 28px;
+}
+
+.passwordInput.passwordInput {
+  padding-right: 44px;
+}

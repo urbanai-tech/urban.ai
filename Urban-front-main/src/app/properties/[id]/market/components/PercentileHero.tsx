@@ -68,13 +68,13 @@ export function PercentileHero({
     >
       <p className="urban-app-eyebrow">POSIÇÃO NO MERCADO · ÚLTIMOS 30 DIAS</p>
       <div
-        className={styles.s1}
+        className={styles.heroRow}
       >
         <h2
-          className={`urban-app-display-hero ${styles.s2}`}
+          className={`urban-app-display-hero ${styles.heroHeadline}`}
         >
           MELHOR QUE{" "}
-          <span className={styles.s3}>{percentile}</span>
+          <span className={styles.heroPercentile}>{percentile}</span>
           %
         </h2>
 
@@ -106,12 +106,12 @@ export function PercentileHero({
         </span>
       </div>
       <p
-        className={styles.s4}
+        className={styles.heroDescription}
       >
         Sua diária está acima de{" "}
-        <strong className={styles.s5}>{percentile}%</strong> dos
+        <strong className={styles.heroEmphasis}>{percentile}%</strong> dos
         imóveis parecidos em{" "}
-        <strong className={styles.s5}>{neighborhood}</strong> (
+        <strong className={styles.heroEmphasis}>{neighborhood}</strong> (
         {comparablesCount} referência{comparablesCount === 1 ? "" : "s"} · diária
         média {formatBRL(medianAdr)})
       </p>

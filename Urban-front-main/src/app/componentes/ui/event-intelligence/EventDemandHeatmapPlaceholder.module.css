@@ -1,4 +1,4 @@
-.hostEventDemand.hostEventDemand {
+.heatmapHeader.heatmapHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -8,7 +8,7 @@
   flex-wrap: wrap;
 }
 
-.eventDemandHeatmapPlaceholderBox.eventDemandHeatmapPlaceholderBox {
+.shrinkableBlock.shrinkableBlock {
   min-width: 0;
 }
 
@@ -16,7 +16,7 @@
   margin-bottom: 4px;
 }
 
-.eventDemandHeatmapPlaceholderSubheading.eventDemandHeatmapPlaceholderSubheading {
+.headerSubheading.headerSubheading {
   margin: 0;
   color: var(--app-text);
   font-size: 17px;
@@ -24,21 +24,21 @@
   letter-spacing: 0;
 }
 
-.eventDemandHeatmapPlaceholderRow.eventDemandHeatmapPlaceholderRow {
+.headerBadgeRow.headerBadgeRow {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 
-.eventDemandHeatmap.eventDemandHeatmap {
+.heatmapLayout.heatmapLayout {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.7fr);
   gap: 0;
   min-width: 0;
 }
 
-.hostEventDemandDivider.hostEventDemandDivider {
+.heatmapCanvas.heatmapCanvas {
   position: relative;
   min-height: 440px;
   background: linear-gradient(0deg, var(--app-divider) 1px, transparent 1px), linear-gradient(90deg, var(--app-divider) 1px, transparent 1px), var(--app-surface-muted);
@@ -47,14 +47,14 @@
   border-right: 1px solid var(--app-divider);
 }
 
-.eventDemandHeatmapPlaceholderAbs.eventDemandHeatmapPlaceholderAbs {
+.canvasFrame.canvasFrame {
   position: absolute;
   inset: 26px;
   border: 1px solid var(--app-divider);
   border-radius: 8px;
 }
 
-.hostEventDemandR50.hostEventDemandR50 {
+.heatCell.heatCell {
   position: absolute;
   transform: translate(-50%, -50%);
   border-radius: 50%;
@@ -64,19 +64,19 @@
   min-width: 0;
 }
 
-.eventDemandHeatmapPlaceholderLabel.eventDemandHeatmapPlaceholderLabel {
+.heatCellScore.heatCellScore {
   font-size: 22px;
   font-weight: 850;
   line-height: 1;
 }
 
-.eventDemandHeatmapPlaceholderLabel10.eventDemandHeatmapPlaceholderLabel10 {
+.heatCellLevel.heatCellLevel {
   font-size: 10px;
   font-weight: 750;
   line-height: 1.2;
 }
 
-.eventDemandHeatmapPlaceholderLabel9.eventDemandHeatmapPlaceholderLabel9 {
+.heatCellRegionName.heatCellRegionName {
   margin-top: 3px;
   font-size: 9px;
   font-weight: 750;
@@ -87,7 +87,7 @@
   white-space: nowrap;
 }
 
-.eventDemandHeatmap11.eventDemandHeatmap11 {
+.heatCellPinLabel.heatCellPinLabel {
   position: absolute;
   bottom: -34px;
   left: 50%;
@@ -102,7 +102,7 @@
   pointer-events: none;
 }
 
-.hostEventDemandGap12.hostEventDemandGap12 {
+.regionPanel.regionPanel {
   padding: 16px;
   display: grid;
   gap: 12px;
@@ -110,14 +110,14 @@
   min-width: 0;
 }
 
-.eventDemandHeatmapPlaceholderText.eventDemandHeatmapPlaceholderText {
+.panelTitle.panelTitle {
   margin: 0;
   color: var(--app-text);
   font-size: 13px;
   font-weight: 800;
 }
 
-.eventDemandHeatmapCols.eventDemandHeatmapCols {
+.insightsGrid.insightsGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
   gap: 16px;
@@ -125,7 +125,7 @@
   border-top: 1px solid var(--app-divider);
 }
 
-.hostEventDemandGap14.hostEventDemandGap14 {
+.loadingContent.loadingContent {
   display: grid;
   gap: 14px;
 }
@@ -151,7 +151,7 @@
   background: linear-gradient(90deg, var(--app-surface-muted) 0%, var(--app-surface) 45%, var(--app-surface-muted) 90%);
 }
 
-.hostEventDemand2.hostEventDemand2 {
+.errorHeaderRow.errorHeaderRow {
   display: flex;
   gap: 14px;
   align-items: flex-start;
@@ -173,7 +173,7 @@
   line-height: 1.55;
 }
 
-.hostEventDemandPad24.hostEventDemandPad24 {
+.emptyStateCanvas.emptyStateCanvas {
   min-height: 320px;
   display: grid;
   place-items: center;
@@ -194,7 +194,7 @@
   font-weight: 750;
 }
 
-.mapLabelAbs.mapLabelAbs {
+.mapNoticeLabel.mapNoticeLabel {
   position: absolute;
   left: 28px;
   top: 28px;
@@ -209,7 +209,7 @@
   gap: 8px;
 }
 
-.hostEventDemandGap10.hostEventDemandGap10 {
+.heatLegend.heatLegend {
   position: absolute;
   right: 28px;
   bottom: 24px;
@@ -234,13 +234,13 @@
   font-weight: 700;
 }
 
-.heatLegendLabelW8px.heatLegendLabelW8px {
+.heatLegendDot.heatLegendDot {
   width: 8px;
   height: 8px;
   border-radius: 999px;
 }
 
-.heatLegendLabel11.heatLegendLabel11 {
+.heatLegendNote.heatLegendNote {
   display: inline-flex;
   align-items: center;
   min-height: 26px;
@@ -253,7 +253,7 @@
   font-weight: 700;
 }
 
-.radarGridOverlayLabel.radarGridOverlayLabel {
+.radarRing.radarRing {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -264,7 +264,7 @@
   pointer-events: none;
 }
 
-.radarGridOverlayLabelDivider.radarGridOverlayLabelDivider {
+.radarVerticalLine.radarVerticalLine {
   position: absolute;
   left: 50%;
   top: 44px;
@@ -274,7 +274,7 @@
   pointer-events: none;
 }
 
-.radarGridOverlayLabelH1px.radarGridOverlayLabelH1px {
+.radarHorizontalLine.radarHorizontalLine {
   position: absolute;
   top: 50%;
   left: 44px;
@@ -284,7 +284,7 @@
   pointer-events: none;
 }
 
-.eventDemandHeatmap10.eventDemandHeatmap10 {
+.radarCaption.radarCaption {
   position: absolute;
   left: 30px;
   bottom: 28px;
@@ -295,7 +295,7 @@
   text-transform: uppercase;
 }
 
-.hostEventDemandTextMuted.hostEventDemandTextMuted {
+.noGeoCanvas.noGeoCanvas {
   position: absolute;
   inset: 72px;
   display: grid;
@@ -315,36 +315,36 @@
   font-weight: 750;
 }
 
-.noGeoCanvasText12.noGeoCanvasText12 {
+.noGeoCanvasHint.noGeoCanvasHint {
   margin: 0;
   font-size: 12px;
   line-height: 1.5;
 }
 
-.hostEventDemandPad12.hostEventDemandPad12 {
+.regionCard.regionCard {
   border-radius: 8px;
   padding: 12px;
   min-width: 0;
 }
 
-.hostEventDemandSelected.hostEventDemandSelected {
+.regionCardSelected.regionCardSelected {
   border: 1px solid var(--app-accent);
   background: var(--app-accent-soft);
 }
 
-.hostEventDemandDefault.hostEventDemandDefault {
+.regionCardIdle.regionCardIdle {
   border: 1px solid var(--app-divider);
   background: var(--app-surface);
 }
 
-.regionCardRow.regionCardRow {
+.regionCardHeader.regionCardHeader {
   display: flex;
   justify-content: space-between;
   gap: 10px;
   align-items: flex-start;
 }
 
-.regionCardText.regionCardText {
+.regionCardName.regionCardName {
   margin: 0;
   color: var(--app-text);
   font-size: 13px;
@@ -352,7 +352,7 @@
   overflow-wrap: anywhere;
 }
 
-.regionCardText11.regionCardText11 {
+.regionCardSubtitle.regionCardSubtitle {
   margin: 3px 0 0;
   color: var(--app-text-muted);
   font-size: 11px;
@@ -366,21 +366,21 @@
   margin-top: 10px;
 }
 
-.regionCardTextTextMuted.regionCardTextTextMuted {
+.regionCardImpactNote.regionCardImpactNote {
   margin: 10px 0 0;
   color: var(--app-text-muted);
   font-size: 11px;
   line-height: 1.45;
 }
 
-.regionCardRowGap6.regionCardRowGap6 {
+.regionCardEventLinks.regionCardEventLinks {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
   margin-top: 10px;
 }
 
-.hostEventDemand11.hostEventDemand11 {
+.regionCardEventLink.regionCardEventLink {
   height: 28px;
   padding: 0 9px;
   border-radius: 8px;
@@ -394,7 +394,7 @@
   white-space: nowrap;
 }
 
-.regionCardRowGap8.regionCardRowGap8 {
+.regionCardActions.regionCardActions {
   display: flex;
   justify-content: space-between;
   gap: 8px;
@@ -402,37 +402,37 @@
   flex-wrap: wrap;
 }
 
-.cellCodePillText.cellCodePillText {
+.cellCodeLine.cellCodeLine {
   margin: 7px 0 0;
   color: var(--app-text-muted);
   font-size: 10px;
   line-height: 1.35;
 }
 
-.cellCodePillLabel.cellCodePillLabel {
+.cellCodeKind.cellCodeKind {
   font-weight: 800;
   text-transform: uppercase;
 }
 
-.cellCodePillLabel2.cellCodePillLabel2 {
+.cellCodeValue.cellCodeValue {
   font-family: monospace;
   overflow-wrap: anywhere;
 }
 
-.cityPotentialPanelText.cityPotentialPanelText {
+.insightPanelTitle.insightPanelTitle {
   margin: 0 0 10px;
   color: var(--app-text);
   font-size: 13px;
   font-weight: 800;
 }
 
-.eventDemandHeatmapGap10.eventDemandHeatmapGap10 {
+.citySummaryGrid.citySummaryGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 10px;
 }
 
-.cityPotentialPanelPanel.cityPotentialPanelPanel {
+.citySummaryCard.citySummaryCard {
   border: 1px solid var(--app-divider);
   border-radius: 8px;
   padding: 12px;
@@ -440,7 +440,7 @@
   min-width: 0;
 }
 
-.cityPotentialPanelText18.cityPotentialPanelText18 {
+.citySummaryValue.citySummaryValue {
   margin: 5px 0 0;
   color: var(--app-text);
   font-size: 18px;
@@ -448,19 +448,19 @@
   line-height: 1.2;
 }
 
-.cityPotentialPanelText11.cityPotentialPanelText11 {
+.citySummaryNote.citySummaryNote {
   margin: 5px 0 0;
   color: var(--app-text-muted);
   font-size: 11px;
   line-height: 1.45;
 }
 
-.impactedPropertiesPanelGrid.impactedPropertiesPanelGrid {
+.propertyList.propertyList {
   display: grid;
   gap: 8px;
 }
 
-.impactedPropertiesPanelGridSurfaceMuted.impactedPropertiesPanelGridSurfaceMuted {
+.propertyRow.propertyRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
@@ -471,7 +471,7 @@
   background: var(--app-surface-muted);
 }
 
-.impactedPropertiesPanelLabel.impactedPropertiesPanelLabel {
+.propertyName.propertyName {
   display: block;
   color: var(--app-text);
   font-size: 12px;
@@ -479,20 +479,20 @@
   overflow-wrap: anywhere;
 }
 
-.impactedPropertiesPanelLabel11.impactedPropertiesPanelLabel11 {
+.propertyMeta.propertyMeta {
   display: block;
   margin-top: 3px;
   color: var(--app-text-muted);
   font-size: 11px;
 }
 
-.impactedPropertiesPanelLabel12.impactedPropertiesPanelLabel12 {
+.propertyValue.propertyValue {
   color: var(--app-text);
   font-size: 12px;
   font-weight: 850;
 }
 
-.hostEventDemandSurfaceMuted.hostEventDemandSurfaceMuted {
+.missingGeoPanel.missingGeoPanel {
   display: grid;
   gap: 10px;
   padding: 18px;
@@ -500,7 +500,7 @@
   background: var(--app-surface-muted);
 }
 
-.missingGeoPanelRow.missingGeoPanelRow {
+.missingGeoHeader.missingGeoHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -508,7 +508,7 @@
   flex-wrap: wrap;
 }
 
-.missingGeoPanelText.missingGeoPanelText {
+.missingGeoHint.missingGeoHint {
   margin: 4px 0 0;
   color: var(--app-text-muted);
   font-size: 12px;
@@ -521,7 +521,7 @@
   gap: 10px;
 }
 
-.missingGeoPanelRowSurface.missingGeoPanelRowSurface {
+.missingGeoCell.missingGeoCell {
   display: flex;
   justify-content: space-between;
   gap: 10px;
@@ -533,13 +533,13 @@
   min-width: 0;
 }
 
-.missingGeoPanelRowGap6.missingGeoPanelRowGap6 {
+.missingGeoCellMetrics.missingGeoCellMetrics {
   display: flex;
   gap: 6px;
   flex-shrink: 0;
 }
 
-.miniMetricText.miniMetricText {
+.miniMetricLabel.miniMetricLabel {
   margin: 0 0 2px;
   color: var(--app-text-muted);
   font-size: 9px;
@@ -548,7 +548,7 @@
   text-transform: uppercase;
 }
 
-.miniMetricText12.miniMetricText12 {
+.miniMetricValue.miniMetricValue {
   margin: 0;
   color: var(--app-text);
   font-size: 12px;
@@ -565,4 +565,22 @@
   font-size: 12px;
   line-height: 1.45;
   background: var(--app-surface-muted);
+}
+
+.heatmapCard.heatmapCard {
+  padding: 0;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.loadingStateCard.loadingStateCard {
+  padding: 18px;
+}
+
+.errorStateCard.errorStateCard {
+  padding: 22px;
+}
+
+.emptyStateIcon.emptyStateIcon {
+  color: var(--app-text-dim);
 }

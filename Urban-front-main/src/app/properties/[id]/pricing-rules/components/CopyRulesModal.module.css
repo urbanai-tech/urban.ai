@@ -1,4 +1,4 @@
-.s1.s1 {
+.overlay.overlay {
   position: fixed;
   inset: 0;
   z-index: 1100;
@@ -8,13 +8,13 @@
   padding: 24px;
 }
 
-.s2.s2 {
+.modalHeader.modalHeader {
   padding: 22px 24px 16px;
   border-bottom: 1px solid var(--app-divider);
   position: relative;
 }
 
-.s3.s3 {
+.closeButton.closeButton {
   position: absolute;
   top: 14px;
   right: 14px;
@@ -32,15 +32,15 @@
   font-size: 18px;
 }
 
-.s4.s4 {
+.closeButtonBusy.closeButtonBusy {
   cursor: not-allowed;
 }
 
-.s5.s5 {
+.closeButtonReady.closeButtonReady {
   cursor: pointer;
 }
 
-.s6.s6 {
+.eyebrow.eyebrow {
   margin: 0;
   font-size: 11px;
   font-weight: 600;
@@ -49,7 +49,7 @@
   color: var(--app-text-muted);
 }
 
-.s7.s7 {
+.modalTitle.modalTitle {
   margin: 6px 0 0;
   font-size: 18px;
   font-weight: 600;
@@ -58,28 +58,28 @@
   line-height: 1.3;
 }
 
-.s8.s8 {
+.modalDescription.modalDescription {
   margin: 8px 0 0;
   font-size: 13px;
   color: var(--app-text-muted);
   line-height: 1.5;
 }
 
-.s9.s9 {
+.modalBody.modalBody {
   padding: 16px 24px 20px;
   overflow-y: auto;
   flex: 1;
   min-height: 0;
 }
 
-.s10.s10 {
+.loadingMessage.loadingMessage {
   padding: 24px 0;
   text-align: center;
   color: var(--app-text-muted);
   font-size: 13px;
 }
 
-.s11.s11 {
+.emptyState.emptyState {
   padding: 24px 16px;
   text-align: center;
   color: var(--app-text-muted);
@@ -89,16 +89,16 @@
   border: 1px dashed var(--app-divider-strong);
 }
 
-.s12.s12 {
+.emptyStateText.emptyStateText {
   margin: 10px 0 0;
 }
 
-.s13.s13 {
+.sourceField.sourceField {
   display: grid;
   gap: 10px;
 }
 
-.s14.s14 {
+.sourceSummary.sourceSummary {
   padding: 10px 12px;
   border-radius: 8px;
   background: var(--app-surface-muted);
@@ -108,11 +108,11 @@
   line-height: 1.45;
 }
 
-.s15.s15 {
+.sourceName.sourceName {
   color: var(--app-text);
 }
 
-.s16.s16 {
+.modalFooter.modalFooter {
   padding: 16px 24px 20px;
   border-top: 1px solid var(--app-divider);
   display: flex;

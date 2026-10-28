@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { appVar } from "./styles";
+import styles from "./AppPageShell.module.css";
 
 /**
  * Wrapper de página autenticada. Coloca a classe `.urban-app` no container
@@ -20,28 +20,19 @@ export function AppPageShell({
   children,
   maxWidth = 1280,
   style,
+  className,
 }: {
   children: React.ReactNode;
   maxWidth?: number;
   style?: React.CSSProperties;
+  /** Classe extra aplicada ao container interno (o mesmo que recebe `style`). */
+  className?: string;
 }) {
   return (
-    <div
-      className="urban-app"
-      style={{
-        background: appVar.bg,
-        minHeight: "100%",
-        width: "100%",
-      }}
-    >
+    <div className={`urban-app ${styles.shell}`}>
       <div
-        className="urban-app-shell-inner"
-        style={{
-          maxWidth,
-          margin: "0 auto",
-          padding: "40px 32px 80px",
-          ...style,
-        }}
+        className={["urban-app-shell-inner", styles.inner, className].filter(Boolean).join(" ")}
+        style={{ maxWidth, ...style }}
       >
         {children}
       </div>

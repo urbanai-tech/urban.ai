@@ -32,27 +32,27 @@ export default function CasaCard({ casa, onClick }: CasaCardProps) {
   return (
     <article
       onClick={onClick}
-      className={`${styles.s1} ${onClick ? styles.s2 : styles.s3}`}
+      className={`${styles.cardBase} ${onClick ? styles.cardClickable : styles.cardStatic}`}
     >
-      <div className={styles.s4}>
+      <div className={styles.cardContent}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="https://a0.muscache.com/im/pictures/042cca29-c44c-4370-8c99-f0f5eb74baac.jpg?im_w=960"
           alt={title}
-          className={styles.s5}
+          className={styles.cardImage}
         />
 
-        <div className={styles.s6}>
-          <h3 className={styles.s7}>
+        <div className={styles.cardInfo}>
+          <h3 className={styles.cardTitle}>
             {title}
           </h3>
-          <p className={styles.s8}>
+          <p className={styles.cardSubtitle}>
             {address}
           </p>
 
-          <div className={styles.s9}>
+          <div className={styles.statusRow}>
             <span
-              className={`${styles.s10} ${casa.ativo ? styles.s11 : styles.s12}`}
+              className={`${styles.statusBadge} ${casa.ativo ? styles.statusActive : styles.statusInactive}`}
             >
               {casa.ativo ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
               {casa.ativo ? "Ativo" : "Inativo"}

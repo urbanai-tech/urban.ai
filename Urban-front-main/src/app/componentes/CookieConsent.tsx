@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useConsent } from "./useConsent";
 import { DialogSurface } from "./ui/DialogSurface";
+import styles from "./CookieConsent.module.css";
 
 export function CookieConsent() {
   const { undecided, acceptAll, rejectAll, setPreferences, state } = useConsent();
@@ -155,15 +156,7 @@ export function CookieConsent() {
           <DialogSurface
             onClose={() => setIsOpen(false)}
             aria-labelledby="cookie-preferences-title"
-            style={{
-              width: "100%",
-              maxWidth: 520,
-              borderRadius: 12,
-              background: "var(--theme-app-sheet-bg)",
-              color: "var(--theme-app-text)",
-              boxShadow: "var(--theme-app-shadow-overlay)",
-              overflow: "hidden",
-            }}
+            className={styles.preferencesDialog}
           >
             <header
               style={{

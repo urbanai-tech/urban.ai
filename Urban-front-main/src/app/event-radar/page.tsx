@@ -51,7 +51,7 @@ export default function EventRadarPage() {
     <Suspense
       fallback={
         <AppPageShell>
-          <div className={styles.eventRadarGrid}>
+          <div className={styles.suspenseFallback}>
             <Spinner />
           </div>
         </AppPageShell>
@@ -210,12 +210,12 @@ function EventRadarContent() {
         }
       />
 
-      <AppCard variant="default" style={{ padding: 14, marginBottom: 22, overflow: "hidden" }}>
+      <AppCard variant="default" className={styles.filtersCard}>
         <div
-          className={`urban-event-radar-filter-grid ${styles.hostEventRadar}`}
+          className={`urban-event-radar-filter-grid ${styles.filtersGrid}`}
           data-testid="host-event-radar-filters"
         >
-          <div className={styles.eventRadarBox}>
+          <div className={styles.filterFieldCapped}>
             <AppInput
               type="date"
               label="De"
@@ -228,10 +228,10 @@ function EventRadarContent() {
               }}
             />
           </div>
-          <div className={styles.eventRadarBox2}>
+          <div className={styles.filterFieldStandard}>
             <AppInput type="date" label="Até" value={to} min={from} onChange={(event) => setTo(event.target.value)} />
           </div>
-          <div className={styles.eventRadarBox}>
+          <div className={styles.filterFieldCapped}>
             <FilterLabel>Imóvel</FilterLabel>
             <PropertySelect
               value={propertyId}
@@ -244,17 +244,17 @@ function EventRadarContent() {
               maxWidth="100%"
             />
             {propertiesLoading && (
-              <p role="status" aria-live="polite" className={styles.eventRadarText}>
+              <p role="status" aria-live="polite" className={styles.filterHelperText}>
                 Carregando imóveis…
               </p>
             )}
             {propertyOptionsError && (
-              <p className={styles.eventRadarText11}>
+              <p className={styles.filterWarningText}>
                 {propertyOptionsError}
               </p>
             )}
           </div>
-          <div className={styles.eventRadarBox2}>
+          <div className={styles.filterFieldStandard}>
             <AppSelect label="Categoria" value={category} onChange={(event) => setCategory(event.target.value)}>
               <option value="all">Todas</option>
               {categories.map((item) => (
@@ -264,7 +264,7 @@ function EventRadarContent() {
               ))}
             </AppSelect>
           </div>
-          <div className={styles.eventRadarBox3}>
+          <div className={styles.filterFieldNarrow}>
             <AppSelect label="Raio" value={radiusKm} onChange={(event) => setRadiusKm(event.target.value)}>
               <option value="2">2 km</option>
               <option value="5">5 km</option>
@@ -273,7 +273,7 @@ function EventRadarContent() {
               <option value="50">50 km</option>
             </AppSelect>
           </div>
-          <div className={styles.eventRadarBox2}>
+          <div className={styles.filterFieldStandard}>
             <AppSelect
               label="Confiança"
               value={confidence}
@@ -285,7 +285,7 @@ function EventRadarContent() {
               <option value="low">Baixa</option>
             </AppSelect>
           </div>
-          <div className={styles.eventRadarBox3}>
+          <div className={styles.filterFieldNarrow}>
             <AppButton type="button" variant="secondary" fullWidth onClick={() => setReloadCount((count) => count + 1)}>
               Atualizar
             </AppButton>
@@ -322,28 +322,28 @@ function EventRadarContent() {
       ) : (
         <>
           <div
-            className={`urban-event-radar-summary-grid ${styles.hostEventRadarCols}`}
+            className={`urban-event-radar-summary-grid ${styles.summaryMetricsGrid}`}
             data-testid="host-event-radar-summary"
           >
-            <AppCard variant="default" style={{ padding: 18 }}>
+            <AppCard variant="default" className={styles.summaryMetricCardRevenue}>
               <AppMetricCard label="Potencial estimado" value={formatCompactCurrencyFromCents(response?.summary.revenuePotentialCents)} variant="sm" accent />
             </AppCard>
-            <AppCard variant="default" style={{ padding: 18 }}>
+            <AppCard variant="default" className={styles.summaryMetricCardEvents}>
               <AppMetricCard label="Eventos relevantes" value={String(response?.summary.relevantEvents ?? 0)} variant="sm" />
             </AppCard>
-            <AppCard variant="default" style={{ padding: 18 }}>
+            <AppCard variant="default" className={styles.summaryMetricCardNights}>
               <AppMetricCard label="Noites com oportunidade" value={String(response?.summary.opportunityNights ?? 0)} variant="sm" />
             </AppCard>
-            <AppCard variant="default" style={{ padding: 18 }}>
+            <AppCard variant="default" className={styles.summaryMetricCardProperties}>
               <AppMetricCard label="Imóveis impactados" value={String(response?.summary.impactedProperties ?? 0)} variant="sm" />
             </AppCard>
           </div>
 
           <div
-            className={`urban-event-radar-main-grid ${styles.hostEventRadarGap22}`}
+            className={`urban-event-radar-main-grid ${styles.mainGrid}`}
             data-testid="host-event-radar-main"
           >
-            <div className={styles.eventRadarGridGap22}>
+            <div className={styles.mainColumn}>
               <EventDemandHeatmapPlaceholder
                 cells={response?.heatmap ?? []}
                 events={events}
@@ -364,13 +364,13 @@ function EventRadarContent() {
               )}
             </div>
 
-            <div className={styles.eventRadarGridGap14}>
-              <AppCard variant="default" style={{ padding: 16 }}>
+            <div className={styles.sideColumnSticky}>
+              <AppCard variant="default" className={styles.priorityHeaderCard}>
                 <AppCardHeader
                   eyebrow="PRIORIDADE"
                   title="Eventos mais importantes"
                   subtitle="Clique para ver imóveis impactados e curva de absorção."
-                  style={{ marginBottom: 0 }}
+                  className={styles.priorityHeader}
                 />
               </AppCard>
               {events.map((event) => (
@@ -451,15 +451,15 @@ function EventDetailPanel({
   const modelVersion = event.intelligence?.modelVersion ?? null;
 
   return (
-    <AppCard variant="default" style={{ minWidth: 0 }}>
-      <div className={styles.eventDetailPanelRow}>
-        <div className={styles.eventDetailPanelBox}>
-          <div className={styles.eventDetailPanelRowGap8}>
+    <AppCard variant="default" className={styles.detailPanelCard}>
+      <div className={styles.detailHeaderRow}>
+        <div className={styles.detailHeaderInfo}>
+          <div className={styles.detailBadgeRow}>
             <AppBadge kind={confidenceBadgeKind(event.confidence)}>{confidenceLabel(event.confidence)}</AppBadge>
             {event.category && (
               <AppBadge
                 kind="neutral"
-                style={{ maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}
+                className={styles.categoryBadge}
               >
                 {event.category}
               </AppBadge>
@@ -467,15 +467,15 @@ function EventDetailPanel({
             <AppBadge kind={dataStatusBadgeKind(dataStatus)}>{dataStatusLabel(dataStatus)}</AppBadge>
             <AppBadge kind={jobRunId ? "neutral" : "warn"}>{jobRunId ? `job ${shortTrace(jobRunId)}` : "sem jobRunId"}</AppBadge>
             {modelVersion && (
-              <AppBadge kind="neutral" style={{ maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <AppBadge kind="neutral" className={styles.modelVersionBadge}>
                 {modelVersion}
               </AppBadge>
             )}
           </div>
-          <h2 className={styles.eventDetailPanelHeading}>
+          <h2 className={styles.detailTitle}>
             {event.name}
           </h2>
-          <p className={styles.eventDetailPanelText}>
+          <p className={styles.detailSubtitle}>
             {formatDateRange(event.startsAt, event.endsAt)}
             {formatTime(event.startsAt) ? `, ${formatTime(event.startsAt)}` : ""} - {[event.venueName, event.city, event.state].filter(Boolean).join(" / ")}
           </p>
@@ -486,25 +486,25 @@ function EventDetailPanel({
       </div>
 
       {event.interpretation && (
-        <p className={styles.eventDetailPanelText15}>
+        <p className={styles.detailInterpretation}>
           {event.interpretation}
         </p>
       )}
       {(dataStatus !== "persisted" || !jobRunId) && (
-        <p className={styles.eventDetailPanelText12}>
+        <p className={styles.detailDerivedWarning}>
           Leitura derivada: ainda não há snapshot persistido com jobRunId para auditoria completa.
         </p>
       )}
 
       {sourceLinks.length > 0 && (
-        <div className={styles.eventDetailPanelRowGap10}>
+        <div className={styles.sourceLinksRow}>
           {sourceLinks.map((link) => (
             <a
               key={link.label}
               href={link.href}
               target="_blank"
               rel="noreferrer"
-            className={styles.eventDetailPanelLink}
+            className={styles.sourceLink}
           >
               {link.label}
               <Icons.ArrowRight size={13} />
@@ -513,7 +513,7 @@ function EventDetailPanel({
         </div>
       )}
 
-      <div className={styles.eventDetailPanelBoxMar22}>
+      <div className={styles.detailSection}>
         <AppCardHeader
           eyebrow="IMÓVEIS IMPACTADOS"
           title="Onde agir"
@@ -523,18 +523,18 @@ function EventDetailPanel({
       </div>
 
       {selectedImpact && (
-        <div className={styles.eventDetailPanelBoxMar22}>
+        <div className={styles.detailSection}>
           <PriceAbsorptionScenarios
             title={`${selectedImpact.propertyName} - absorção inicial`}
             scenarios={selectedImpact.absorptionScenarios}
           />
           {simulating && (
-            <p role="status" aria-live="polite" className={styles.eventDetailPanelTextTextMuted}>
+            <p role="status" aria-live="polite" className={styles.simulatingStatusText}>
               Atualizando simulação…
             </p>
           )}
           {simulationError && !simulating && (
-            <p role="alert" className={styles.eventDetailPanelTextDanger}>
+            <p role="alert" className={styles.simulationErrorText}>
               {simulationError}
             </p>
           )}
@@ -546,23 +546,23 @@ function EventDetailPanel({
 
 function EventRadarLoading() {
   return (
-    <div data-testid="host-event-radar-loading" role="status" aria-live="polite" className={styles.hostEventRadarGap16}>
-      <div className={styles.eventRadarLoadingGrid}>
+    <div data-testid="host-event-radar-loading" role="status" aria-live="polite" className={styles.loadingWrapper}>
+      <div className={styles.loadingSpinnerArea}>
         <div>
           <Spinner />
-          <p className={styles.eventRadarLoadingText}>
+          <p className={styles.loadingMessage}>
             Calculando oportunidades dos eventos…
           </p>
         </div>
       </div>
       <div
         aria-hidden
-        className={styles.eventRadarLoadingGridCols}
+        className={styles.loadingPanelsGrid}
       >
         {Array.from({ length: 4 }).map((_, index) => (
           <div
             key={index}
-            className={styles.eventRadarLoadingPanel}
+            className={styles.loadingPanel}
           />
         ))}
       </div>
@@ -596,7 +596,7 @@ function shortTrace(value: string) {
 function FilterLabel({ children }: { children: React.ReactNode }) {
   return (
     <span
-      className={styles.filterLabelLabel}
+      className={styles.filterLabel}
     >
       {children}
     </span>
@@ -608,7 +608,7 @@ function Spinner() {
     <span
       role="status"
       aria-label="Carregando"
-      className={styles.carregando}
+      className={styles.spinner}
     >
       <style>{`@keyframes event-radar-spin { to { transform: rotate(360deg); } }`}</style>
     </span>

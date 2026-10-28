@@ -1,27 +1,27 @@
-.s1.s1 {
+.headerActions.headerActions {
   display: inline-flex;
   gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 
-.s2.s2 {
+.errorMessage.errorMessage {
   color: var(--app-danger);
   font-size: 13px;
   padding: 6px 0 2px;
 }
 
-.s3.s3 {
+.skeletonList.skeletonList {
   display: grid;
   gap: 10px;
 }
 
-.s4.s4 {
+.skeletonRow.skeletonRow {
   height: 52px;
   border-radius: 8px;
 }
 
-.s5.s5 {
+.emptyState.emptyState {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -29,13 +29,13 @@
   font-size: 13px;
 }
 
-.s6.s6 {
+.runsList.runsList {
   display: flex;
   flex-direction: column;
   border-top: 1px solid var(--app-divider);
 }
 
-.s7.s7 {
+.runRow.runRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
@@ -43,11 +43,11 @@
   border-bottom: 1px solid var(--app-divider);
 }
 
-.s8.s8 {
+.runContent.runContent {
   min-width: 0;
 }
 
-.s9.s9 {
+.runTitleRow.runTitleRow {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -55,19 +55,19 @@
   margin-bottom: 5px;
 }
 
-.s10.s10 {
+.runTitle.runTitle {
   color: var(--app-text);
   font-size: 14px;
 }
 
-.s11.s11 {
+.runMeta.runMeta {
   margin: 0;
   color: var(--app-text-muted);
   font-size: 12px;
   line-height: 1.45;
 }
 
-.s12.s12 {
+.runIdTag.runIdTag {
   align-self: center;
   color: var(--app-text-muted);
   font-size: 11px;
@@ -79,4 +79,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.runsCard.runsCard {
+  margin-top: 20px;
+  padding: 24px;
+}
+
+.runsCardCompact.runsCardCompact {
+  margin-top: 18px;
+  padding: 20px;
 }

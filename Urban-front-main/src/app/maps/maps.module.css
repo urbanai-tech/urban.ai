@@ -1,30 +1,30 @@
-.grid.grid {
+.spinnerSlotSmall.spinnerSlotSmall {
   height: 40px;
   display: grid;
   place-items: center;
 }
 
-.gridH500px.gridH500px {
+.mapLoadingSlot.mapLoadingSlot {
   height: 500px;
   display: grid;
   place-items: center;
 }
 
-.mapsRow.mapsRow {
+.filtersRow.filtersRow {
   display: flex;
   align-items: flex-end;
   gap: 16px;
   flex-wrap: wrap;
 }
 
-.mapsBox.mapsBox {
+.propertyFilterField.propertyFilterField {
   flex: 1 1 260px;
   max-width: 320px;
   position: relative;
   z-index: 1000;
 }
 
-.mapsLabel.mapsLabel {
+.propertyFilterLabel.propertyFilterLabel {
   display: block;
   margin-bottom: 4px;
   color: var(--app-text-muted);
@@ -34,52 +34,52 @@
   text-transform: uppercase;
 }
 
-.mapsBox2.mapsBox2 {
+.propertySelectWrap.propertySelectWrap {
   position: relative;
   z-index: 1001;
 }
 
-.mapsBox3.mapsBox3 {
+.radiusField.radiusField {
   flex: 0 0 160px;
   max-width: 160px;
 }
 
-.mapsBox4.mapsBox4 {
+.dateField.dateField {
   flex: 0 0 180px;
   max-width: 180px;
 }
 
-.mapsRowDanger.mapsRowDanger {
+.errorContent.errorContent {
   display: flex;
   align-items: center;
   gap: 12px;
   color: var(--app-danger);
 }
 
-.mapsText.mapsText {
+.errorMessage.errorMessage {
   margin: 0;
   font-size: 14px;
   font-weight: 650;
 }
 
-.mapsOpportunityLayout.mapsOpportunityLayout {
+.opportunityLayout.opportunityLayout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
   gap: 20px;
   align-items: start;
 }
 
-.mapsBox5.mapsBox5 {
+.mapColumn.mapColumn {
   min-width: 0;
   position: relative;
   z-index: 1;
 }
 
-.mapsBox6.mapsBox6 {
+.mapFrame.mapFrame {
   position: relative;
 }
 
-.mapsAbs.mapsAbs {
+.mapOverlay.mapOverlay {
   position: absolute;
   inset: 12px;
   display: flex;
@@ -88,13 +88,13 @@
   pointer-events: none;
 }
 
-.mapsBox7.mapsBox7 {
+.listColumn.listColumn {
   min-width: 0;
   position: sticky;
   top: 24px;
 }
 
-.mapsRowGap12.mapsRowGap12 {
+.listHeader.listHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -102,37 +102,65 @@
   margin-bottom: 16px;
 }
 
-.mapsBox8.mapsBox8 {
+.listHeaderText.listHeaderText {
   min-width: 0;
 }
 
-.appEyebrowMuted.appEyebrowMuted {
+.listEyebrow.listEyebrow {
   margin-bottom: 4px;
 }
 
-.mapsText20.mapsText20 {
+.listTitle.listTitle {
   margin: 0;
   color: var(--app-text);
   font-size: 20px;
   font-weight: 650;
 }
 
-.mapsBox9.mapsBox9 {
+.listScroll.listScroll {
   flex: 1;
   overflow-y: auto;
   max-height: calc(100vh - 300px);
   padding-right: 4px;
 }
 
-.mapsStack.mapsStack {
+.eventList.eventList {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.carregando.carregando {
+.spinner.spinner {
   border-radius: 50%;
   border: 3px solid var(--app-accent-soft);
   border-top-color: var(--app-accent);
   animation: maps-spin 0.9s linear infinite;
+}
+
+.filtersCard.filtersCard {
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.statusNotice.statusNotice {
+  margin-top: 16px;
+}
+
+.errorCard.errorCard {
+  border-color: var(--theme-app-legacy-danger-25);
+}
+
+.mapCard.mapCard {
+  padding: 16px;
+}
+
+.mapOverlayStatus.mapOverlayStatus {
+  width: min(420px, calc(100% - 16px));
+  box-shadow: 0 12px 32px var(--theme-app-legacy-maps-ink-14);
+}
+
+.listCard.listCard {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
 }

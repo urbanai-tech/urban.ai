@@ -35,7 +35,7 @@ export default function PlansPage() {
         className={`urban-app ${styles.mainContent}`}
       >
         <p
-          className={styles.plansText}
+          className={styles.loadingText}
         >
           Carregando planos…
         </p>
@@ -58,7 +58,7 @@ export default function PlansPage() {
           className={`urban-glow ${styles.glow}`}
         />
         <div
-          className={styles.plansBox}
+          className={styles.heroInner}
         >
           <p
             className={`urban-eyebrow ${styles.eyebrow}`}
@@ -75,7 +75,7 @@ export default function PlansPage() {
             <span className={styles.highlightText}>NADA MAIS.</span>
           </h1>
           <p
-            className={styles.plansText18}
+            className={styles.heroSubtitle}
           >
             Comece com 1 imóvel ou comece com 10 — você só paga pelo que conecta.
             Ciclos longos tem desconto progressivo.
@@ -83,12 +83,12 @@ export default function PlansPage() {
         </div>
       </section>
 
-      <div className={styles.plansBoxDivider} />
+      <div className={styles.sectionDivider} />
 
       {/* ============== PLANOS ============== */}
-      <section className={styles.plansSection}>
-        <div className={styles.plansBoxCentered}>
-          <div className={styles.plansBox2}>
+      <section className={styles.catalogSection}>
+        <div className={styles.catalogInner}>
+          <div className={styles.catalogHeader}>
             <div className={styles.highlightBar} />
             <p
               className={`urban-eyebrow ${styles.accentEyebrow}`}
@@ -108,7 +108,7 @@ export default function PlansPage() {
 
           {activePlans.length === 0 ? (
             <p
-              className={styles.plansText16}
+              className={styles.emptyPlansText}
             >
               Nenhum plano disponível no momento. Fale com a equipe comercial
               para opções personalizadas.
@@ -129,15 +129,15 @@ export default function PlansPage() {
         </div>
       </section>
 
-      <div className={styles.plansBoxDivider} />
+      <div className={styles.sectionDivider} />
 
       {/* ============== FOOTER ============== */}
-      <section className={styles.plansSectionCompact}>
+      <section className={styles.footerSection}>
         <div
-          className={styles.plansBox3}
+          className={styles.footerInner}
         >
           <p
-            className={styles.plansText14}
+            className={styles.footerNote}
           >
             Pagamento seguro via Stripe. Cancele a qualquer momento — sem
             contrato. Mensal e flexibilidade pura, anual e o melhor

@@ -5,17 +5,17 @@
   align-items: end;
 }
 
-.eventsBox.eventsBox {
+.filterFieldWide.filterFieldWide {
   grid-column: span 2;
   min-width: 0;
 }
 
-.eventsBox2.eventsBox2 {
+.filterFieldNarrow.filterFieldNarrow {
   grid-column: span 1;
   min-width: 0;
 }
 
-.eventsRow.eventsRow {
+.quickFilterBar.quickFilterBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -24,7 +24,7 @@
   margin-top: 16px;
 }
 
-.eventsRowGap8.eventsRowGap8 {
+.chipRow.chipRow {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -49,19 +49,19 @@
   line-height: 1.2;
 }
 
-.quickFilterButtonActive.quickFilterButtonActive {
+.quickFilterActive.quickFilterActive {
   border: 1px solid color-mix(in srgb, var(--theme-app-accent) 35%, transparent);
   background: color-mix(in srgb, var(--theme-app-accent) 10%, transparent);
   color: var(--app-accent);
 }
 
-.quickFilterButtonDefault.quickFilterButtonDefault {
+.quickFilterIdle.quickFilterIdle {
   border: 1px solid var(--app-divider-strong);
   background: var(--app-surface);
   color: var(--app-text-muted);
 }
 
-.visualizacao.visualizacao {
+.viewSwitcher.viewSwitcher {
   display: inline-flex;
   padding: 3px;
   border: 1px solid var(--app-divider-strong);
@@ -80,13 +80,13 @@
   min-width: 0;
 }
 
-.segmentedViewButtonOption.segmentedViewButtonOption {
+.viewButtonActive.viewButtonActive {
   background: var(--app-surface);
   color: var(--app-text);
   box-shadow: var(--app-shadow-card);
 }
 
-.segmentedViewButtonDefault.segmentedViewButtonDefault {
+.viewButtonIdle.viewButtonIdle {
   background: transparent;
   color: var(--app-text-muted);
 }
@@ -98,7 +98,7 @@
   background-size: 34px 34px;
 }
 
-.catalogMapAbs.catalogMapAbs {
+.mapBadgeOverlay.mapBadgeOverlay {
   position: absolute;
   top: 18px;
   left: 18px;
@@ -114,18 +114,18 @@
   color: var(--app-text-muted);
 }
 
-.catalogMapBox.catalogMapBox {
+.mapEmptyState.mapEmptyState {
   max-width: 380px;
 }
 
-.catalogMapText.catalogMapText {
+.mapEmptyTitle.mapEmptyTitle {
   margin: 10px 0 4px;
   color: var(--app-text);
   font-size: 15px;
   font-weight: 750;
 }
 
-.catalogMapText12.catalogMapText12 {
+.mapEmptyDescription.mapEmptyDescription {
   margin: 0;
   font-size: 12px;
   line-height: 1.5;
@@ -143,14 +143,14 @@
   min-width: 0;
 }
 
-.catalogMapLabel.catalogMapLabel {
+.mapPinHeader.mapPinHeader {
   display: flex;
   justify-content: space-between;
   gap: 8px;
   align-items: center;
 }
 
-.catalogMapLabel12.catalogMapLabel12 {
+.mapPinName.mapPinName {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -158,13 +158,13 @@
   font-weight: 800;
 }
 
-.catalogMapLabel11.catalogMapLabel11 {
+.mapPinScore.mapPinScore {
   flex-shrink: 0;
   font-size: 11px;
   font-weight: 850;
 }
 
-.catalogMapLabel10.catalogMapLabel10 {
+.mapPinMeta.mapPinMeta {
   display: block;
   margin-top: 3px;
   font-size: 10px;
@@ -172,7 +172,7 @@
   opacity: 0.82;
 }
 
-.mapRadarOverlayLabel.mapRadarOverlayLabel {
+.radarRing.radarRing {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -183,7 +183,7 @@
   pointer-events: none;
 }
 
-.mapRadarOverlayLabelInk06.mapRadarOverlayLabelInk06 {
+.radarCrosshairHorizontal.radarCrosshairHorizontal {
   position: absolute;
   left: 42px;
   right: 42px;
@@ -193,7 +193,7 @@
   pointer-events: none;
 }
 
-.mapRadarOverlayLabelW1px.mapRadarOverlayLabelW1px {
+.radarCrosshairVertical.radarCrosshairVertical {
   position: absolute;
   top: 42px;
   bottom: 42px;
@@ -203,13 +203,13 @@
   pointer-events: none;
 }
 
-.hostEventMapStatusWarning08.hostEventMapStatusWarning08 {
+.missingGeoPanel.missingGeoPanel {
   padding: 16px;
   border-top: 1px solid var(--app-divider);
   background: var(--theme-app-legacy-status-warning-08);
 }
 
-.catalogMissingGeoStripRow.catalogMissingGeoStripRow {
+.missingGeoHeader.missingGeoHeader {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -217,18 +217,18 @@
   margin-bottom: 10px;
 }
 
-.catalogMissingGeoStripBox.catalogMissingGeoStripBox {
+.textStack.textStack {
   min-width: 0;
 }
 
-.catalogMissingGeoStripText.catalogMissingGeoStripText {
+.missingGeoTitle.missingGeoTitle {
   margin: 0;
   color: var(--app-text);
   font-size: 13px;
   font-weight: 800;
 }
 
-.catalogMissingGeoStripText12.catalogMissingGeoStripText12 {
+.missingGeoDescription.missingGeoDescription {
   margin: 4px 0 0;
   color: var(--app-text-muted);
   font-size: 12px;
@@ -241,7 +241,7 @@
   gap: 10px;
 }
 
-.catalogMissingGeoStripButton.catalogMissingGeoStripButton {
+.missingGeoItemButton.missingGeoItemButton {
   display: flex;
   justify-content: space-between;
   gap: 10px;
@@ -256,26 +256,26 @@
   min-width: 0;
 }
 
-.catalogMissingGeoStripLabel.catalogMissingGeoStripLabel {
+.eventItemName.eventItemName {
   display: block;
   font-size: 12px;
   font-weight: 800;
   overflow-wrap: anywhere;
 }
 
-.catalogMissingGeoStripLabel11.catalogMissingGeoStripLabel11 {
+.eventItemMeta.eventItemMeta {
   display: block;
   margin-top: 3px;
   color: var(--app-text-muted);
   font-size: 11px;
 }
 
-.calendarViewGrid.calendarViewGrid {
+.calendarDayList.calendarDayList {
   display: grid;
   gap: 14px;
 }
 
-.calendarViewRow.calendarViewRow {
+.dayGroupHeader.dayGroupHeader {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -283,7 +283,7 @@
   flex-wrap: wrap;
 }
 
-.calendarViewSubheading.calendarViewSubheading {
+.dayGroupTitle.dayGroupTitle {
   margin: 0;
   color: var(--app-text);
   font-size: 16px;
@@ -291,7 +291,7 @@
   letter-spacing: 0;
 }
 
-.calendarViewGridGap10.calendarViewGridGap10 {
+.calendarEventList.calendarEventList {
   display: grid;
   gap: 10px;
 }
@@ -310,7 +310,7 @@
   cursor: pointer;
 }
 
-.calendarViewLabel.calendarViewLabel {
+.calendarEventName.calendarEventName {
   display: block;
   color: var(--app-text);
   font-size: 14px;
@@ -318,14 +318,14 @@
   overflow-wrap: anywhere;
 }
 
-.calendarViewLabel12.calendarViewLabel12 {
+.calendarEventMeta.calendarEventMeta {
   display: block;
   color: var(--app-text-muted);
   font-size: 12px;
   margin-top: 3px;
 }
 
-.calendarViewLabelGap8.calendarViewLabelGap8 {
+.calendarEventActions.calendarEventActions {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -337,7 +337,7 @@
   gap: 16px;
 }
 
-.loadingBlockGrid.loadingBlockGrid {
+.loadingCenter.loadingCenter {
   min-height: 160px;
   display: grid;
   place-items: center;
@@ -345,30 +345,49 @@
   text-align: center;
 }
 
-.loadingBlockText.loadingBlockText {
+.loadingMessage.loadingMessage {
   margin: 0;
   color: var(--app-text-muted);
   font-size: 13px;
 }
 
-.loadingBlockGridCols.loadingBlockGridCols {
+.loadingSkeletonGrid.loadingSkeletonGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 14px;
 }
 
-.loadingBlockPanel.loadingBlockPanel {
+.loadingSkeletonPanel.loadingSkeletonPanel {
   min-height: 220px;
   border-radius: 8px;
   border: 1px solid var(--app-divider);
   background: linear-gradient(90deg, var(--app-surface-muted) 0%, var(--app-surface) 45%, var(--app-surface-muted) 90%);
 }
 
-.carregando.carregando {
+.spinner.spinner {
   width: 36px;
   height: 36px;
   border-radius: 50%;
   border: 3px solid var(--app-accent-soft);
   border-top-color: var(--app-accent);
   animation: events-spin 0.9s linear infinite;
+}
+
+.filtersCard.filtersCard {
+  padding: 14px;
+  margin-bottom: 22px;
+  overflow: hidden;
+}
+
+.mapCard.mapCard {
+  padding: 0;
+  overflow: hidden;
+}
+
+.mapChevronIcon.mapChevronIcon {
+  flex-shrink: 0;
+}
+
+.dayGroupCard.dayGroupCard {
+  padding: 18px;
 }

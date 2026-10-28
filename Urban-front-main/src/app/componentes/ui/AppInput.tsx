@@ -1,13 +1,16 @@
 "use client";
 
 import React from "react";
-import {
-  appErrorTextStyle,
-  appFieldBaseStyle,
-  appHelperTextStyle,
-  appLabelStyle,
-  appVar,
-} from "./styles";
+import { appErrorTextStyle, appHelperTextStyle, appLabelStyle, appVar } from "./styles";
+import styles from "./AppInput.module.css";
+
+/** Junta classes ignorando valores vazios. */
+function cx(...parts: Array<string | false | null | undefined>) {
+  return parts.filter(Boolean).join(" ");
+}
+
+/** `outline: none` fica inline para continuar vencendo `.urban-app input:focus-visible`. */
+const noOutline: React.CSSProperties = { outline: "none" };
 
 /**
  * Input/Select/Textarea light premium do app autenticado.
@@ -91,7 +94,7 @@ type InputProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, "prefix"> & 
 };
 
 export const AppInput = React.forwardRef<HTMLInputElement, InputProps>(function AppInput(
-  { label, helper, error, leftAddon, style, shellStyle, id, "aria-describedby": describedBy, ...rest },
+  { label, helper, error, leftAddon, style, className, shellStyle, id, "aria-describedby": describedBy, ...rest },
   ref,
 ) {
   const { fieldId, messageId, fieldProps } = useFieldA11y({ id, helper, error, describedBy });
@@ -99,12 +102,8 @@ export const AppInput = React.forwardRef<HTMLInputElement, InputProps>(function 
     <input
       ref={ref}
       {...fieldProps}
-      style={{
-        ...appFieldBaseStyle,
-        paddingLeft: leftAddon ? 38 : 14,
-        borderColor: error ? appVar.danger : appVar.dividerStrong,
-        ...style,
-      }}
+      className={cx(styles.field, Boolean(leftAddon) && styles.withAddon, Boolean(error) && styles.invalid, className)}
+      style={{ ...noOutline, ...style }}
       {...rest}
     />
   );
@@ -145,7 +144,7 @@ type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
 };
 
 export const AppSelect = React.forwardRef<HTMLSelectElement, SelectProps>(function AppSelect(
-  { label, helper, error, style, shellStyle, children, id, "aria-describedby": describedBy, ...rest },
+  { label, helper, error, style, className, shellStyle, children, id, "aria-describedby": describedBy, ...rest },
   ref,
 ) {
   const { fieldId, messageId, fieldProps } = useFieldA11y({ id, helper, error, describedBy });
@@ -154,19 +153,8 @@ export const AppSelect = React.forwardRef<HTMLSelectElement, SelectProps>(functi
       <select
         ref={ref}
         {...fieldProps}
-        style={{
-          ...appFieldBaseStyle,
-          appearance: "none",
-          paddingRight: 36,
-          backgroundColor: appVar.surface,
-          backgroundImage: "var(--app-select-chevron)",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "right 12px center",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-          ...style,
-        }}
+        className={cx(styles.field, styles.select, className)}
+        style={{ ...noOutline, ...style }}
         {...rest}
       >
         {children}
@@ -183,7 +171,7 @@ type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
 };
 
 export const AppTextarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(function AppTextarea(
-  { label, helper, error, style, shellStyle, rows = 4, id, "aria-describedby": describedBy, ...rest },
+  { label, helper, error, style, className, shellStyle, rows = 4, id, "aria-describedby": describedBy, ...rest },
   ref,
 ) {
   const { fieldId, messageId, fieldProps } = useFieldA11y({ id, helper, error, describedBy });
@@ -193,15 +181,8 @@ export const AppTextarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         ref={ref}
         {...fieldProps}
         rows={rows}
-        style={{
-          ...appFieldBaseStyle,
-          height: "auto",
-          padding: "10px 14px",
-          lineHeight: 1.55,
-          resize: "vertical",
-          fontFamily: "var(--font-brand)",
-          ...style,
-        }}
+        className={cx(styles.field, styles.textarea, className)}
+        style={{ ...noOutline, ...style }}
         {...rest}
       />
     </FieldShell>

@@ -153,25 +153,25 @@ function MarketIntelContent() {
           subtitle="Comparacao com imóveis parecidos em até 3 km · atualizado a cada 24h"
         />
         <div
-          className={styles.s1}
+          className={styles.loadingStack}
         >
           <div
             role="status"
             aria-busy="true"
             aria-label="Carregando destaque principal"
-            className={`urban-app-skeleton ${styles.s2}`}
+            className={`urban-app-skeleton ${styles.skeletonHero}`}
           />
           <div
             role="status"
             aria-busy="true"
             aria-label="Carregando resumo"
-            className={`urban-app-skeleton ${styles.s3}`}
+            className={`urban-app-skeleton ${styles.skeletonStrip}`}
           />
           <div
             role="status"
             aria-busy="true"
             aria-label="Carregando gráfico e tabela"
-            className={`urban-app-skeleton ${styles.s4}`}
+            className={`urban-app-skeleton ${styles.skeletonChart}`}
           />
         </div>
       </AppPageShell>
@@ -223,7 +223,7 @@ function MarketIntelContent() {
             : ""
         }`}
         actions={
-          <div className={styles.s5}>
+          <div className={styles.periodSelectWrap}>
             <AppSelect
               label="Período"
               value={periodId}
@@ -256,7 +256,7 @@ function MarketIntelContent() {
           }
         />
       ) : (
-        <div className={styles.s6}>
+        <div className={styles.contentStack}>
           {/* ZONA 1 — Hero metric */}
           <PercentileHero
             percentile={data.percentile}
@@ -313,15 +313,15 @@ function MarketIntelContent() {
               boxShadow: "0 1px 2px var(--theme-app-legacy-ink-04)",
             }}
           >
-            <header className={styles.s7}>
+            <header className={styles.sectionHeader}>
               <p className="urban-app-eyebrow-muted">DIÁRIA MÉDIA · {period.label.toUpperCase()}</p>
               <h2
-                className={styles.s8}
+                className={styles.sectionTitle}
               >
                 Sua diária comparada com imóveis parecidos
               </h2>
               <p
-                className={styles.s9}
+                className={styles.sectionSubtitle}
               >
                 Linha solida e o seu imóvel · tracejada e a média dos {data.comparablesCount} imóveis parecidos.
               </p>
@@ -332,15 +332,15 @@ function MarketIntelContent() {
           {/* ZONA 4 — Faixas agregadas (sem dados por imóvel) */}
           {data.adrPercentiles || data.occupancyPercentiles ? (
             <section aria-label="Faixas de mercado">
-              <header className={styles.s7}>
+              <header className={styles.sectionHeader}>
                 <p className="urban-app-eyebrow-muted">FAIXAS DO MERCADO</p>
                 <h2
-                  className={styles.s8}
+                  className={styles.sectionTitle}
                 >
                   Onde a maioria dos {data.comparablesCount} imóveis parecidos se concentra
                 </h2>
                 <p
-                  className={styles.s9}
+                  className={styles.sectionSubtitle}
                 >
                   Mostramos apenas faixas agregadas (25% abaixo, mediana e 25% acima). Nunca exibimos dados de um imóvel específico de outro anfitrião.
                 </p>

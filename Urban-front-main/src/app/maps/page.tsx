@@ -21,7 +21,7 @@ import styles from "./maps.module.css";
 const PropertySelect = dynamic(() => import('../componentes/PropertySelect'), {
   ssr: false,
   loading: () => (
-    <div className={styles.grid}>
+    <div className={styles.spinnerSlotSmall}>
       <Spinner size={18} />
     </div>
   ),
@@ -30,7 +30,7 @@ const PropertySelect = dynamic(() => import('../componentes/PropertySelect'), {
 const AirbnbMap = dynamic(() => import('./components/GoogleMapEmbed'), {
   ssr: false,
   loading: () => (
-    <div className={styles.gridH500px}>
+    <div className={styles.mapLoadingSlot}>
       <Spinner size={36} />
     </div>
   ),
@@ -187,18 +187,18 @@ export default function MapsPage() {
         subtitle="Escolha o imóvel, o raio e as datas para ver eventos que podem influenciar a diária."
       />
 
-      <AppCard variant="subtle" style={{ padding: 20, marginBottom: 24 }}>
+      <AppCard variant="subtle" className={styles.filtersCard}>
         <div
-          className={styles.mapsRow}
+          className={styles.filtersRow}
         >
-          <div className={styles.mapsBox}>
+          <div className={styles.propertyFilterField}>
             <label>
               <span
-                className={styles.mapsLabel}
+                className={styles.propertyFilterLabel}
               >
                 Escolher imóvel
               </span>
-              <div className={styles.mapsBox2}>
+              <div className={styles.propertySelectWrap}>
                 <PropertySelect
                   value={propertyId}
                   propsInfo={propsInfo}
@@ -208,7 +208,7 @@ export default function MapsPage() {
             </label>
           </div>
 
-          <div className={styles.mapsBox3}>
+          <div className={styles.radiusField}>
             <AppSelect
               label="Raio (km)"
               value={selectedRadius}
@@ -223,7 +223,7 @@ export default function MapsPage() {
             </AppSelect>
           </div>
 
-          <div className={styles.mapsBox4}>
+          <div className={styles.dateField}>
             <AppInput
               type="date"
               label="De"
@@ -234,7 +234,7 @@ export default function MapsPage() {
             />
           </div>
 
-          <div className={styles.mapsBox4}>
+          <div className={styles.dateField}>
             <AppInput
               type="date"
               label="Até"
@@ -254,25 +254,25 @@ export default function MapsPage() {
             body={mapStatus.body}
             steps={mapStatus.steps}
             tone={mapStatus.tone}
-            style={{ marginTop: 16 }}
+            className={styles.statusNotice}
           />
         )}
       </AppCard>
 
       {error ? (
-        <AppCard variant="default" style={{ borderColor: "var(--theme-app-legacy-danger-25)" }}>
-          <div className={styles.mapsRowDanger}>
+        <AppCard variant="default" className={styles.errorCard}>
+          <div className={styles.errorContent}>
             <Icons.AlertCircle size={18} />
-            <p className={styles.mapsText}>{error}</p>
+            <p className={styles.errorMessage}>{error}</p>
           </div>
         </AppCard>
       ) : (
         <div
-          className={`maps-opportunity-layout ${styles.mapsOpportunityLayout}`}
+          className={`maps-opportunity-layout ${styles.opportunityLayout}`}
         >
-          <div className={styles.mapsBox5}>
-            <AppCard variant="default" style={{ padding: 16 }}>
-              <div className={styles.mapsBox6}>
+          <div className={styles.mapColumn}>
+            <AppCard variant="default" className={styles.mapCard}>
+              <div className={styles.mapFrame}>
                 <AirbnbMap
                   height="500px"
                   events={eventsToDisplay}
@@ -290,7 +290,7 @@ export default function MapsPage() {
                 />
                 {isLoading && mapStatus && (
                   <div
-                    className={styles.mapsAbs}
+                    className={styles.mapOverlay}
                   >
                     <AppLoadingStatus
                       compact
@@ -299,11 +299,8 @@ export default function MapsPage() {
                       body={mapStatus.body}
                       steps={mapStatus.steps}
                       tone={mapStatus.tone}
-                      style={{
-                        width: "min(420px, calc(100% - 16px))",
-                        background: "var(--theme-app-legacy-maps-white-94)",
-                        boxShadow: "0 12px 32px var(--theme-app-legacy-maps-ink-14)",
-                      }}
+                      className={styles.mapOverlayStatus}
+                      style={{ background: "var(--theme-app-legacy-maps-white-94)" }}
                     />
                   </div>
                 )}
@@ -311,14 +308,14 @@ export default function MapsPage() {
             </AppCard>
           </div>
 
-          <div className={styles.mapsBox7}>
-            <AppCard variant="default" style={{ padding: 16, display: 'flex', flexDirection: 'column' }}>
-              <div className={styles.mapsRowGap12}>
-                <div className={styles.mapsBox8}>
-                  <p className={`urban-app-eyebrow-muted ${styles.appEyebrowMuted}`}>
+          <div className={styles.listColumn}>
+            <AppCard variant="default" className={styles.listCard}>
+              <div className={styles.listHeader}>
+                <div className={styles.listHeaderText}>
+                  <p className={`urban-app-eyebrow-muted ${styles.listEyebrow}`}>
                     EVENTOS NO RAIO
                   </p>
-                  <p className={styles.mapsText20}>
+                  <p className={styles.listTitle}>
                     {isLoading
                       ? "Atualizando…"
                       : `${eventsToDisplay.length} ${eventsToDisplay.length === 1 ? 'evento' : 'eventos'}`}
@@ -346,8 +343,8 @@ export default function MapsPage() {
                   icon={<Icons.MapPin size={28} />}
                 />
               ) : (
-                <div className={styles.mapsBox9}>
-                  <div className={styles.mapsStack}>
+                <div className={styles.listScroll}>
+                  <div className={styles.eventList}>
                     {eventsToDisplay.map((ev) => (
                       <EventCard
                         setIsLoading={() => {}}
@@ -389,7 +386,7 @@ function Spinner({ size }: { size: number }) {
     <span
       role="status"
       aria-label="Carregando"
-      className={styles.carregando} style={{ width: size, height: size }}
+      className={styles.spinner} style={{ width: size, height: size }}
     >
       <style>{`@keyframes maps-spin { to { transform: rotate(360deg); } }`}</style>
     </span>

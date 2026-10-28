@@ -283,7 +283,7 @@ function MiniChart({ deltas }: { deltas: number[] }) {
       height={h}
       role="img"
       aria-label="Mini-gráfico simulado, não baseado em dados reais"
-      className={styles.s1}
+      className={styles.miniChartSvg}
     >
       <title>Mini-gráfico simulado</title>
       <line
@@ -336,7 +336,7 @@ function Switch({
       aria-label={label}
       onClick={() => !disabled && onChange(!checked)}
       disabled={disabled}
-      className={`urban-focus-ring ${styles.s2} ${checked ? styles.s3 : styles.s4} ${disabled ? styles.s5 : styles.s6}`}
+      className={`urban-focus-ring ${styles.switchTrack} ${checked ? styles.switchOn : styles.switchOff} ${disabled ? styles.controlDisabled : styles.controlEnabled}`}
     >
       <span
         style={{
@@ -385,11 +385,7 @@ export function PricingRuleCard({
   return (
     <AppCard
       variant={expanded ? "elevated" : "default"}
-      style={{
-        padding: 0,
-        overflow: "hidden",
-        borderLeft: rule.enabled ? "3px solid var(--app-accent)" : undefined,
-      }}
+      className={rule.enabled ? `${styles.ruleCard} ${styles.ruleCardEnabled}` : styles.ruleCard}
     >
       <div
         role="button"
@@ -403,12 +399,12 @@ export function PricingRuleCard({
             onToggleExpanded();
           }
         }}
-        className={`urban-focus-ring ${styles.s7}`}
+        className={`urban-focus-ring ${styles.cardHeaderRow}`}
       >
         <div
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
-          className={styles.s8}
+          className={styles.switchWrap}
         >
           <Switch
             checked={rule.enabled}
@@ -418,14 +414,14 @@ export function PricingRuleCard({
           />
         </div>
 
-        <div className={styles.s9}>
+        <div className={styles.ruleInfo}>
           <h3
-            className={styles.s10}
+            className={styles.ruleTitle}
           >
             {rule.label}
           </h3>
           <p
-            className={styles.s11}
+            className={styles.ruleDescription}
           >
             {rule.description}
           </p>
@@ -434,10 +430,10 @@ export function PricingRuleCard({
         <div
           role="group"
           aria-label="Mini-gráfico simulado da regra"
-          className={`${styles.s12} ${rule.enabled ? styles.s13 : styles.s14}`}
+          className={`${styles.miniChartGroup} ${rule.enabled ? styles.stateEnabled : styles.stateDimmed}`}
         >
           <span
-            className={styles.s15}
+            className={styles.simulatedBadge}
           >
             Simulado
           </span>
@@ -446,7 +442,7 @@ export function PricingRuleCard({
 
         <span
           aria-hidden="true"
-          className={`${styles.s16} ${expanded ? styles.s17 : styles.s18}`}
+          className={`${styles.chevron} ${expanded ? styles.chevronOpen : styles.chevronClosed}`}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <polyline
@@ -462,10 +458,10 @@ export function PricingRuleCard({
 
       {expanded && (
         <div
-          className={styles.s19}
+          className={styles.cardBody}
         >
           <div
-            className={styles.s20}
+            className={styles.paramsGrid}
           >
             {cfg.controls.map((control) => (
               <ParamControl
@@ -478,7 +474,7 @@ export function PricingRuleCard({
             ))}
           </div>
 
-          <details className={styles.s21}>
+          <details className={styles.exampleDetails}>
             <summary
               // outline:none inline de propósito (ver AdrComparisonChart): classe perde para :focus-visible.
               style={{
@@ -494,7 +490,7 @@ export function PricingRuleCard({
               Por que usar isso?
             </summary>
             <p
-              className={styles.s23}
+              className={styles.exampleText}
             >
               {cfg.example}
             </p>
@@ -520,15 +516,15 @@ function ParamControl({
   return (
     <div>
       <div
-        className={styles.s24}
+        className={styles.paramHeader}
       >
         <label
-          className={styles.s25}
+          className={styles.paramLabel}
         >
           {control.label}
         </label>
         <strong
-          className={styles.s26}
+          className={styles.paramValue}
         >
           {formattedValue}
         </strong>
@@ -543,7 +539,7 @@ function ParamControl({
           disabled={disabled}
           onChange={(e) => onChange(Number(e.target.value))}
           aria-label={control.label}
-          className={`${styles.s27} ${disabled ? styles.s5 : styles.s6}`}
+          className={`${styles.rangeInput} ${disabled ? styles.controlDisabled : styles.controlEnabled}`}
         />
       ) : (
         <input
@@ -555,7 +551,7 @@ function ParamControl({
           disabled={disabled}
           onChange={(e) => onChange(Number(e.target.value))}
           aria-label={control.label}
-          className={disabled ? styles.s29 : styles.s13}
+          className={disabled ? styles.numberInputDisabled : styles.stateEnabled}
           style={{
             width: "100%",
             height: 36,
@@ -573,7 +569,7 @@ function ParamControl({
       )}
       {control.helper && (
         <p
-          className={styles.s30}
+          className={styles.paramHelper}
         >
           {control.helper}
         </p>

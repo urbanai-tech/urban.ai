@@ -21,6 +21,7 @@ import {
   Icons,
 } from '../componentes/ui';
 import type { AppBadgeKind } from '../componentes/ui';
+import pageStyles from "./page.module.css";
 
 const WINDOWS = [30, 90, 180, 365];
 
@@ -156,7 +157,7 @@ export default function MyRoiPage() {
         }
       />
 
-      <AppCard variant="accent" style={{ padding: '40px 40px 36px', marginBottom: 32 }}>
+      <AppCard variant="accent" className={pageStyles.heroCard}>
         <div className="roi-hero">
           <div>
             <p className="urban-app-eyebrow">IMPACTO ATRIBUÍDO AO MY URBAN</p>

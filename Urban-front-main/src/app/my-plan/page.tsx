@@ -99,7 +99,7 @@ export default function SubscriptionsPage() {
     return (
       <AppPageShell>
         <div
-          className={styles.s1}
+          className={styles.loadingWrapper}
         >
           <Spinner />
         </div>
@@ -111,9 +111,9 @@ export default function SubscriptionsPage() {
     return (
       <AppPageShell>
         <AppCard variant="accent">
-          <div className={styles.s2}>
+          <div className={styles.errorRow}>
             <Icons.AlertCircle size={18} />
-            <span className={styles.s3}>{error}</span>
+            <span className={styles.errorMessage}>{error}</span>
           </div>
         </AppCard>
       </AppPageShell>
@@ -124,7 +124,7 @@ export default function SubscriptionsPage() {
     return (
       <AppPageShell>
         <AppCard variant="accent">
-          <div className={styles.s4}>
+          <div className={styles.emptyStateStack}>
             <AppSectionHeader
               eyebrow="ASSINATURA"
               title="Nenhuma assinatura encontrada"
@@ -133,7 +133,7 @@ export default function SubscriptionsPage() {
             <button
               type="button"
               onClick={() => router.push("/plans?source=my-plan")}
-              className={styles.s5}
+              className={styles.choosePlanButton}
             >
               Escolher quantidade e período
             </button>
@@ -158,7 +158,7 @@ export default function SubscriptionsPage() {
 
         {quotaError && (
           <div
-            className={styles.s6}
+            className={styles.quotaErrorBanner}
           >
             <Icons.AlertCircle size={18} />
             <span>{quotaError}</span>
@@ -167,7 +167,7 @@ export default function SubscriptionsPage() {
 
         {quota && (
           <div
-            className={styles.s7}
+            className={styles.quotaGrid}
           >
             <AppCard>
               <div data-testid="quota-contracted-card">
@@ -200,20 +200,20 @@ export default function SubscriptionsPage() {
           </div>
         )}
 
-        <AppCard style={{ marginBottom: 24 }}>
-          <div className={styles.s8}>
+        <AppCard className={styles.currentPlanCard}>
+          <div className={styles.changePlanRow}>
             <div>
-              <h3 className={styles.s9}>
+              <h3 className={styles.changePlanTitle}>
                 Precisa mudar a quantidade?
               </h3>
-              <p className={styles.s10}>
+              <p className={styles.changePlanText}>
                 Abra o seletor self-service para contratar mais imóveis ou mudar o período.
               </p>
             </div>
             <button
               type="button"
               onClick={() => router.push("/plans?source=my-plan")}
-              className={styles.s11}
+              className={styles.adjustPlanButton}
             >
               Ajustar assinatura
             </button>
@@ -239,7 +239,7 @@ export default function SubscriptionsPage() {
 function Spinner() {
   return (
     <div
-      className={styles.s12}
+      className={styles.spinner}
     >
       <style>{`@keyframes urban-app-spin { to { transform: rotate(360deg); } }`}</style>
     </div>

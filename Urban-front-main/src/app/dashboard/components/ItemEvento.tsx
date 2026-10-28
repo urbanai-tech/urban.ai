@@ -315,7 +315,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 
   return (
     <>
-      <div className={styles.s1}>
+      <div className={styles.formStack}>
         <RecommendationCard
           eventTitle={ev.nome}
           eventCategory={eventCategory}
@@ -336,7 +336,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         {/* Estado: já aplicado */}
         {ev.precoAplicado && (
           <div
-            className={styles.s10}
+            className={styles.successBadge}
           >
             <Icons.Check size={12} /> Aplicado {formatBRL(ev.precoAplicado)}
             {ev.origemAplicacao?.startsWith("manual") ? " (informado por você)" : ""}
@@ -344,13 +344,13 @@ export const EventCard: React.FC<EventCardProps> = ({
         )}
 
         {ev.status === "rejected" && (
-          <div className={styles.s2}>
+          <div className={styles.inputAlignStart}>
             <AppBadge kind="error">Rejeitada</AppBadge>
           </div>
         )}
 
         {ev.status === "expired" && (
-          <div className={styles.s2}>
+          <div className={styles.inputAlignStart}>
             <AppBadge kind="neutral">Expirada</AppBadge>
           </div>
         )}
@@ -375,29 +375,23 @@ export const EventCard: React.FC<EventCardProps> = ({
         <DialogSurface
           onClose={() => setDrawerOpen(false)}
           aria-labelledby="registrar-resultado-title"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 1300,
-            display: "flex",
-            justifyContent: "flex-end",
-          }}
+          className={styles.resultDrawerOverlay}
         >
           <div
             onClick={() => setDrawerOpen(false)}
-            className={styles.s11}
+            className={styles.drawerBackdrop}
           />
           <aside
-            className={`urban-app ${styles.s3}`}
+            className={`urban-app ${styles.drawerPanel}`}
           >
             <header
-              className={styles.s4}
+              className={styles.drawerHeader}
             >
               <div>
                 <p className="urban-app-eyebrow">RESULTADO DA SUGESTÃO</p>
                 <h2
                   id="registrar-resultado-title"
-                  className={styles.s5}
+                  className={styles.drawerTitle}
                 >
                   Registrar preço aplicado
                 </h2>
@@ -405,17 +399,17 @@ export const EventCard: React.FC<EventCardProps> = ({
               <button
                 onClick={() => setDrawerOpen(false)}
                 aria-label="Fechar"
-                className={styles.s6}
+                className={styles.closeButton}
               >
                 <Icons.Close size={16} />
               </button>
             </header>
             <div
-              className={styles.s7}
+              className={styles.drawerBody}
             >
               <AppInput
                 label="Preço aplicado"
-                leftAddon={<span className={styles.s8}>R$</span>}
+                leftAddon={<span className={styles.currencyPrefix}>R$</span>}
                 value={appliedPriceInput}
                 onChange={(e) => setAppliedPriceInput(e.target.value)}
                 inputMode="decimal"
@@ -437,7 +431,7 @@ export const EventCard: React.FC<EventCardProps> = ({
               </AppSelect>
               <AppInput
                 label="Receita real (opcional)"
-                leftAddon={<span className={styles.s8}>R$</span>}
+                leftAddon={<span className={styles.currencyPrefix}>R$</span>}
                 value={realRevenueInput}
                 onChange={(e) => setRealRevenueInput(e.target.value)}
                 inputMode="decimal"
@@ -459,7 +453,7 @@ export const EventCard: React.FC<EventCardProps> = ({
               />
             </div>
             <div
-              className={styles.s9}
+              className={styles.drawerFooter}
             >
               <AppButton
                 variant="ghost"

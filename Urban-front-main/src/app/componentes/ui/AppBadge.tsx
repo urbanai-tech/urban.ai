@@ -5,7 +5,7 @@
  * `bg={blue.100} color={blue.700}` espalhado nas telas.
  */
 import React from "react";
-import { appRadius, appTone } from "./styles";
+import styles from "./AppBadge.module.css";
 
 export type AppBadgeKind =
   | "success"
@@ -18,30 +18,16 @@ export function AppBadge({
   kind = "neutral",
   children,
   style,
+  className,
 }: {
   kind?: AppBadgeKind;
   children: React.ReactNode;
   style?: React.CSSProperties;
+  /** Classe extra; soma-se as classes do badge. */
+  className?: string;
 }) {
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        padding: "3px 10px",
-        fontSize: 11,
-        fontWeight: 600,
-        letterSpacing: 1,
-        textTransform: "uppercase",
-        borderRadius: appRadius.pill,
-        border: "1px solid",
-        lineHeight: 1.4,
-        whiteSpace: "nowrap",
-        ...appTone[kind],
-        ...style,
-      }}
-    >
+    <span className={[styles.badge, styles[kind], className].filter(Boolean).join(" ")} style={style}>
       {children}
     </span>
   );

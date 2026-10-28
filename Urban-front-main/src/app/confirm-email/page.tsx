@@ -8,6 +8,7 @@ import { AppButton, AppCard, AppInput, AppStack, Icons, useToastCompat } from '@
 import { maskEmail, readPendingEmail, scrubCurrentUrl, stashPendingEmail, CONFIRM_EMAIL_PATH } from '@/app/lib/auth-links';
 import { marketingUrl } from '@/app/lib/marketing-url';
 import { confirmarEmail, enviarCodigo, getProfile } from '@/app/service/api';
+import styles from "./page.module.css";
 
 const CODE_LENGTH = 6;
 
@@ -190,7 +191,7 @@ export default function EmailConfirmation() {
           </form>
         </AppCard>
       ) : (
-      <AppCard variant="elevated" style={{ padding: 28 }}>
+      <AppCard variant="elevated" className={styles.statusCard}>
         <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
           <div style={{ textAlign: "center" }}>
             <div

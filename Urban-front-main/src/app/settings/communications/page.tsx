@@ -17,6 +17,7 @@ import {
   AppSectionHeader,
   Icons,
 } from "../../componentes/ui";
+import styles from "./page.module.css";
 
 type PreferenceKey = keyof UpdateCommunicationPreferencesPayload;
 
@@ -145,7 +146,7 @@ export default function CommunicationSettingsPage() {
         </div>
       )}
 
-      <AppCard variant="default" style={{ padding: 24 }}>
+      <AppCard variant="default" className={styles.channelsCard}>
         <AppCardHeader
           title="Canais e categorias"
           subtitle="Essas escolhas são salvas na sua conta e passam a orientar os próximos disparos."

@@ -1,11 +1,11 @@
-.s1.s1 {
+.metricsGrid.metricsGrid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 12px;
   align-items: stretch;
 }
 
-.s2.s2 {
+.footnote.footnote {
   margin-top: 18px;
   display: flex;
   align-items: center;
@@ -15,17 +15,21 @@
   line-height: 1.5;
 }
 
-.s3.s3 {
+.metricShell.metricShell {
   min-width: 0;
   border: 1px solid var(--app-divider);
   border-radius: 8px;
   padding: 14px;
 }
 
-.s4.s4 {
+.metricShellAccent.metricShellAccent {
   background: var(--app-accent-soft);
 }
 
-.s5.s5 {
+.metricShellMuted.metricShellMuted {
   background: var(--app-surface-muted);
+}
+
+.cockpitCard.cockpitCard {
+  margin-bottom: 20px;
 }

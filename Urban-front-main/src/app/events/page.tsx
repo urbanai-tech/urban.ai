@@ -103,12 +103,12 @@ export default function EventsPage() {
         }
       />
 
-      <AppCard variant="default" style={{ padding: 14, marginBottom: 22, overflow: "hidden" }}>
+      <AppCard variant="default" className={styles.filtersCard}>
         <div
           className={`urban-events-filter-grid ${styles.hostEventsFilters}`}
           data-testid="host-events-filters"
         >
-          <div className={styles.eventsBox}>
+          <div className={styles.filterFieldWide}>
             <AppInput
               label="Busca"
               placeholder="Nome, local ou bairro"
@@ -116,7 +116,7 @@ export default function EventsPage() {
               onChange={(event) => setSearch(event.target.value)}
             />
           </div>
-          <div className={styles.eventsBox}>
+          <div className={styles.filterFieldWide}>
             <AppSelect label="Cidade" value={city} onChange={(event) => setCity(event.target.value)}>
               {(response?.cities?.length ? response.cities : ["São Paulo"]).map((item) => (
                 <option key={item} value={item}>
@@ -125,7 +125,7 @@ export default function EventsPage() {
               ))}
             </AppSelect>
           </div>
-          <div className={styles.eventsBox}>
+          <div className={styles.filterFieldWide}>
             <AppSelect label="Categoria" value={category} onChange={(event) => setCategory(event.target.value)}>
               <option value="all">Todas</option>
               {(response?.categories ?? []).map((item) => (
@@ -135,7 +135,7 @@ export default function EventsPage() {
               ))}
             </AppSelect>
           </div>
-          <div className={styles.eventsBox}>
+          <div className={styles.filterFieldWide}>
             <AppSelect label="Fonte" value={source} onChange={(event) => setSource(event.target.value)}>
               <option value="all">Todas</option>
               {(response?.sources ?? []).map((item) => (
@@ -145,7 +145,7 @@ export default function EventsPage() {
               ))}
             </AppSelect>
           </div>
-          <div className={styles.eventsBox2}>
+          <div className={styles.filterFieldNarrow}>
             <AppInput
               type="date"
               label="De"
@@ -158,10 +158,10 @@ export default function EventsPage() {
               }}
             />
           </div>
-          <div className={styles.eventsBox2}>
+          <div className={styles.filterFieldNarrow}>
             <AppInput type="date" label="Até" value={to} min={from} onChange={(event) => setTo(event.target.value)} />
           </div>
-          <div className={styles.eventsBox2}>
+          <div className={styles.filterFieldNarrow}>
             <AppSelect
               label="Raio"
               value={radiusKm}
@@ -175,15 +175,15 @@ export default function EventsPage() {
               <option value="50">50 km</option>
             </AppSelect>
           </div>
-          <div className={styles.eventsBox2}>
+          <div className={styles.filterFieldNarrow}>
             <AppButton type="button" variant="secondary" fullWidth onClick={() => setReloadCount((count) => count + 1)}>
               Buscar
             </AppButton>
           </div>
         </div>
 
-        <div className={styles.eventsRow}>
-          <div className={styles.eventsRowGap8}>
+        <div className={styles.quickFilterBar}>
+          <div className={styles.chipRow}>
             <QuickFilter active={nearMyProperties} onClick={() => setNearMyProperties((value) => !value)}>
               Perto dos meus imóveis
             </QuickFilter>
@@ -298,7 +298,7 @@ function QuickFilter({
     <button
       type="button"
       onClick={onClick}
-      className={`${styles.quickFilterButton} ${active ? styles.quickFilterButtonActive : styles.quickFilterButtonDefault}`}
+      className={`${styles.quickFilterButton} ${active ? styles.quickFilterActive : styles.quickFilterIdle}`}
     >
       {children}
     </button>
@@ -321,7 +321,7 @@ function SegmentedView({
     <div
       role="tablist"
       aria-label="Visualizacao"
-      className={styles.visualizacao}
+      className={styles.viewSwitcher}
     >
       {options.map((option) => (
         <button
@@ -330,7 +330,7 @@ function SegmentedView({
           role="tab"
           aria-selected={value === option.value}
           onClick={() => onChange(option.value)}
-          className={`${styles.segmentedViewButton} ${value === option.value ? styles.segmentedViewButtonOption : styles.segmentedViewButtonDefault}`}
+          className={`${styles.segmentedViewButton} ${value === option.value ? styles.viewButtonActive : styles.viewButtonIdle}`}
         >
           {option.label}
         </button>
@@ -351,12 +351,12 @@ function CatalogMap({
   const bounds = getCatalogBounds(geoEvents);
 
   return (
-    <AppCard variant="default" style={{ padding: 0, overflow: "hidden" }}>
+    <AppCard variant="default" className={styles.mapCard}>
       <div
         className={`host-events-map-canvas ${styles.hostEventsMap}`}
       >
-        <div className={styles.catalogMapAbs}>
-          <div className={styles.eventsRowGap8}>
+        <div className={styles.mapBadgeOverlay}>
+          <div className={styles.chipRow}>
             <AppBadge kind="accent">{geoEvents.length} no mapa</AppBadge>
             {missingGeoEvents.length > 0 && <AppBadge kind="warn">{missingGeoEvents.length} sem geo</AppBadge>}
           </div>
@@ -367,12 +367,12 @@ function CatalogMap({
             data-testid="host-event-map-no-geo"
             className={styles.hostEventMap}
           >
-            <div className={styles.catalogMapBox}>
+            <div className={styles.mapEmptyState}>
               <Icons.MapPin size={24} />
-              <p className={styles.catalogMapText}>
+              <p className={styles.mapEmptyTitle}>
                 Eventos aguardando geolocalização
               </p>
-              <p className={styles.catalogMapText12}>
+              <p className={styles.mapEmptyDescription}>
                 A lista e o calendário continuam disponíveis enquanto a coordenada do venue é enriquecida.
               </p>
             </div>
@@ -393,13 +393,13 @@ function CatalogMap({
                 onClick={() => onOpen(event.id)}
                 className={styles.hostEventMapPin} style={{ left: `${left}%`, top: `${top}%`, border: `1px solid ${color.border}`, background: color.background, color: color.text }}
               >
-                <span className={styles.catalogMapLabel}>
-                  <span className={styles.catalogMapLabel12}>
+                <span className={styles.mapPinHeader}>
+                  <span className={styles.mapPinName}>
                     {event.name}
                   </span>
-                  <span className={styles.catalogMapLabel11}>{score || "-"}</span>
+                  <span className={styles.mapPinScore}>{score || "-"}</span>
                 </span>
-                <span className={styles.catalogMapLabel10}>
+                <span className={styles.mapPinMeta}>
                   {catalogGeoCellId(event)}
                 </span>
               </button>
@@ -432,16 +432,16 @@ function MapRadarOverlay() {
         <span
           key={size}
           aria-hidden
-          className={styles.mapRadarOverlayLabel} style={{ width: `${size}%` }}
+          className={styles.radarRing} style={{ width: `${size}%` }}
         />
       ))}
       <span
         aria-hidden
-        className={styles.mapRadarOverlayLabelInk06}
+        className={styles.radarCrosshairHorizontal}
       />
       <span
         aria-hidden
-        className={styles.mapRadarOverlayLabelW1px}
+        className={styles.radarCrosshairVertical}
       />
     </>
   );
@@ -457,14 +457,14 @@ function CatalogMissingGeoStrip({
   return (
     <div
       data-testid="host-event-map-missing-geo"
-      className={styles.hostEventMapStatusWarning08}
+      className={styles.missingGeoPanel}
     >
-      <div className={styles.catalogMissingGeoStripRow}>
-        <div className={styles.catalogMissingGeoStripBox}>
-          <p className={styles.catalogMissingGeoStripText}>
+      <div className={styles.missingGeoHeader}>
+        <div className={styles.textStack}>
+          <p className={styles.missingGeoTitle}>
             Fora do mapa por enquanto
           </p>
-          <p className={styles.catalogMissingGeoStripText12}>
+          <p className={styles.missingGeoDescription}>
             Eventos sem latitude/longitude seguem acionáveis na lista e no calendário.
           </p>
         </div>
@@ -476,17 +476,17 @@ function CatalogMissingGeoStrip({
             key={event.id}
             type="button"
             onClick={() => onOpen(event.id)}
-            className={styles.catalogMissingGeoStripButton}
+            className={styles.missingGeoItemButton}
           >
-            <span className={styles.catalogMissingGeoStripBox}>
-              <span className={styles.catalogMissingGeoStripLabel}>
+            <span className={styles.textStack}>
+              <span className={styles.eventItemName}>
                 {event.name}
               </span>
-              <span className={styles.catalogMissingGeoStripLabel11}>
+              <span className={styles.eventItemMeta}>
                 {[event.venueName, event.city].filter(Boolean).join(" / ") || "Venue pendente"}
               </span>
             </span>
-            <Icons.ChevronRight size={16} style={{ flexShrink: 0 }} />
+            <Icons.ChevronRight size={16} className={styles.mapChevronIcon} />
           </button>
         ))}
       </div>
@@ -502,16 +502,16 @@ function CalendarView({
   onOpen: (eventId: string) => void;
 }) {
   return (
-    <div className={styles.calendarViewGrid}>
+    <div className={styles.calendarDayList}>
       {groupedByDate.map((group) => (
-        <AppCard key={group.day} variant="default" style={{ padding: 18 }}>
-          <div className={styles.calendarViewRow}>
-            <h3 className={styles.calendarViewSubheading}>
+        <AppCard key={group.day} variant="default" className={styles.dayGroupCard}>
+          <div className={styles.dayGroupHeader}>
+            <h3 className={styles.dayGroupTitle}>
               {formatDateRange(group.day, null)}
             </h3>
             <AppBadge kind="neutral">{group.events.length} {group.events.length === 1 ? "evento" : "eventos"}</AppBadge>
           </div>
-          <div className={styles.calendarViewGridGap10}>
+          <div className={styles.calendarEventList}>
             {group.events.map((event) => (
               <button
                 key={event.id}
@@ -520,15 +520,15 @@ function CalendarView({
                 onClick={() => onOpen(event.id)}
                 className={styles.hostEventCalendar}
               >
-                <span className={styles.catalogMissingGeoStripBox}>
-                  <span className={styles.calendarViewLabel}>
+                <span className={styles.textStack}>
+                  <span className={styles.calendarEventName}>
                     {event.name}
                   </span>
-                <span className={styles.calendarViewLabel12}>
+                <span className={styles.calendarEventMeta}>
                   {formatTime(event.startsAt)} - {[event.venueName, event.city].filter(Boolean).join(" / ")}
                 </span>
               </span>
-                <span className={styles.calendarViewLabelGap8}>
+                <span className={styles.calendarEventActions}>
                   <AppBadge kind={eventScore(event) >= 80 ? "accent" : "neutral"}>{eventScore(event) || "-"}</AppBadge>
                   <Icons.ChevronRight size={16} />
                 </span>
@@ -598,20 +598,20 @@ function catalogGeoCellId(event: EventCatalogItem): string {
 function LoadingBlock() {
   return (
     <div data-testid="host-events-loading" role="status" aria-live="polite" className={styles.hostEventsLoading}>
-      <div className={styles.loadingBlockGrid}>
+      <div className={styles.loadingCenter}>
         <Spinner />
-        <p className={styles.loadingBlockText}>
+        <p className={styles.loadingMessage}>
           Carregando eventos mapeados pelo My Urban…
         </p>
       </div>
       <div
         aria-hidden
-        className={styles.loadingBlockGridCols}
+        className={styles.loadingSkeletonGrid}
       >
         {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={index}
-            className={styles.loadingBlockPanel}
+            className={styles.loadingSkeletonPanel}
           />
         ))}
       </div>
@@ -648,7 +648,7 @@ function Spinner() {
     <span
       role="status"
       aria-label="Carregando"
-      className={styles.carregando}
+      className={styles.spinner}
     >
       <style>{`@keyframes events-spin { to { transform: rotate(360deg); } }`}</style>
     </span>

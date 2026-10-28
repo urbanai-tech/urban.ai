@@ -14,6 +14,7 @@ import {
   useToastCompat,
 } from '@/app/componentes/ui';
 import { getProfileById, updateProfileById } from '@/app/service/api';
+import pageStyles from "./page.module.css";
 
 type PricingStrategy = 'conservative' | 'balanced' | 'aggressive' | 'ai';
 type OperationMode = 'notifications' | 'auto';
@@ -209,7 +210,7 @@ export default function PricingSettingsPage() {
       />
 
       <div className="settings-hero-grid">
-        <AppCard variant="accent" style={{ padding: 22 }}>
+        <AppCard variant="accent" className={pageStyles.appliedRangeCard}>
           <div className="settings-current">
             <div>
               <p className="urban-app-eyebrow">Faixa aplicada</p>
@@ -222,7 +223,7 @@ export default function PricingSettingsPage() {
           </div>
         </AppCard>
 
-        <AppCard variant="default" style={{ padding: 22 }}>
+        <AppCard variant="default" className={pageStyles.impactNoteCard}>
           <div className="settings-note">
             <ShieldCheck size={22} />
             <div>
