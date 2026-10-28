@@ -114,7 +114,7 @@ export default function AdminJobsPage() {
       key: "name",
       header: "Job",
       render: (r) => (
-        <code className={styles.codeTextFs12}>{r.name}</code>
+        <code className={styles.jobName}>{r.name}</code>
       ),
     },
     {
@@ -140,7 +140,7 @@ export default function AdminJobsPage() {
       header: "Inicio",
       width: 180,
       render: (r) => (
-        <span className={styles.labelTextMutedFs12}>
+        <span className={styles.startedAtCell}>
           {new Date(r.startedAt).toLocaleString("pt-BR")}
         </span>
       ),
@@ -151,16 +151,16 @@ export default function AdminJobsPage() {
       width: 160,
       align: "right",
       render: (r) => (
-        <div className={styles.rowCenteredGap12}>
+        <div className={styles.resultCell}>
           <button
             type="button"
             onClick={() => setResult(r)}
-            className={styles.buttonAccentBg}
+            className={styles.viewResultButton}
           >
             Ver resultado
           </button>
           <span
-            className={styles.labelTextMutedFs12Mono}
+            className={styles.durationText}
           >
             {typeof r.durationMs === "number" ? `${r.durationMs}ms` : "—"}
           </span>
@@ -177,7 +177,7 @@ export default function AdminJobsPage() {
   ];
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · OPERAÇÃO"
         title="Jobs operacionais"
@@ -195,7 +195,7 @@ export default function AdminJobsPage() {
 
       {error && (
         <div
-          className={styles.boxDangerBgDanger}
+          className={styles.errorBanner}
         >
           {error}
         </div>
@@ -203,18 +203,18 @@ export default function AdminJobsPage() {
 
       {geocoderNeedsAttention && (
         <section
-          className={styles.sectionTextBgWarning}
+          className={styles.geocoderWarning}
         >
           <p
-            className={styles.textWarningFs12}
+            className={styles.geocoderWarningTitle}
           >
             Geocoder precisa de atenção
           </p>
-          <p className={styles.textTextMutedM6x0x0}>
+          <p className={styles.geocoderWarningText}>
             {geocoderBlocked ? geocoderStatus?.readiness?.message : geocoderLastFailure}
           </p>
           {(geocoderStatus?.readiness?.nextAction || geocoderStatus?.lastRun?.errorMessage) && (
-            <p className={styles.textTextMutedM6x0x0}>
+            <p className={styles.geocoderWarningText}>
               {geocoderStatus?.readiness?.nextAction ?? geocoderStatus?.lastRun?.errorMessage}
             </p>
           )}
@@ -222,12 +222,12 @@ export default function AdminJobsPage() {
       )}
 
       {/* === Jobs operacionais (4 cards de ação) === */}
-      <section className={styles.sectionMb56}>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb20}`}>
+      <section className={styles.pageSection}>
+        <p className={`urban-admin-eyebrow ${styles.sectionEyebrow}`}>
           JOBS OPERACIONAIS
         </p>
         <div
-          className={styles.gridColsAuto260Gap16}
+          className={styles.jobGrid}
         >
           <JobCard
             title="Geocoder de eventos"
@@ -276,12 +276,12 @@ export default function AdminJobsPage() {
       </section>
 
       {/* === Atalhos (links secundários) === */}
-      <section className={styles.sectionMb56}>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb20}`}>
+      <section className={styles.pageSection}>
+        <p className={`urban-admin-eyebrow ${styles.sectionEyebrow}`}>
           ATALHOS
         </p>
         <AdminCard variant="subtle">
-          <ul className={styles.listM0P0}>
+          <ul className={styles.shortcutList}>
             {shortcuts.map((s, i) => (
               <li
                 key={s.href}
@@ -294,7 +294,7 @@ export default function AdminJobsPage() {
               >
                 <a
                   href={s.href}
-                  className={`urban-admin-shortcut-link ${styles.shortcutLinkBetweenCentered}`}
+                  className={`urban-admin-shortcut-link ${styles.shortcutLink}`}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.color = "var(--admin-accent)";
                   }}
@@ -313,7 +313,7 @@ export default function AdminJobsPage() {
 
       {/* === Resultado da última execução === */}
       {result && (
-        <section className={styles.sectionMb48}>
+        <section className={styles.lastRunSection}>
           <AdminCard variant="subtle">
             <AdminCardHeader
               eyebrow="ÚLTIMA EXECUÇÃO"
@@ -327,7 +327,7 @@ export default function AdminJobsPage() {
               }
             />
             <p
-              className={styles.textTextMutedFs12}
+              className={styles.lastRunMeta}
             >
               Inicio {new Date(result.startedAt).toLocaleString("pt-BR")} — fim{" "}
               {result.finishedAt
@@ -336,7 +336,7 @@ export default function AdminJobsPage() {
               {typeof result.durationMs === "number" ? ` — ${result.durationMs}ms` : ""}
             </p>
             <pre
-              className={styles.preBlockTextMutedBgSurfaceElevated}
+              className={styles.lastRunOutput}
             >
               {JSON.stringify(result.result ?? { error: result.errorMessage }, null, 2)}
             </pre>
@@ -345,14 +345,14 @@ export default function AdminJobsPage() {
       )}
 
       {/* === Histórico === */}
-      <section className={styles.sectionMb32}>
+      <section className={styles.historySection}>
         <header
-          className={styles.rowBetweenCentered}
+          className={styles.historyHeader}
         >
           <div>
             <p className="urban-admin-eyebrow">HISTÓRICO</p>
             <h2
-              className={styles.headingTextFs20}
+              className={styles.historyTitle}
             >
               Últimos jobs admin
             </h2>
@@ -381,7 +381,7 @@ export default function AdminJobsPage() {
       </section>
 
       <footer
-        className={styles.footerTextMutedFs12}
+        className={styles.pageFooter}
       >
         Jobs destrutivos, billing e Stays ficam fora daqui até terem confirmacao
         operacional dedicada.
@@ -416,23 +416,23 @@ function JobCard({
     >
       <div>
         <div
-          className={styles.rowCenteredGap8}
+          className={styles.jobStatusRow}
         >
           <AdminStatusDot kind={statusKind} size={8} />
           <span
-            className={styles.labelTextFs13}
+            className={styles.jobStatusLabel}
           >
             {status}
           </span>
         </div>
         <h3
-          className={styles.subheadingTextFs16}
+          className={styles.jobTitle}
         >
           {title}
         </h3>
       </div>
       <p
-        className={styles.textTextMutedFs13}
+        className={styles.jobDescription}
       >
         {description}
       </p>

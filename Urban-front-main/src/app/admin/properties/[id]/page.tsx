@@ -146,7 +146,7 @@ export default function AdminPropertyDetailPage() {
 
   if (error || !data) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.pageContainer}>
         <AdminEmptyState
           eyebrow="ERRO"
           title="Falha ao carregar imóvel"
@@ -186,7 +186,7 @@ export default function AdminPropertyDetailPage() {
     "Endereço não informado";
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       {/* === Breadcrumb + nome === */}
       <AdminSectionHeader
         eyebrow={`ADMIN · IMÓVEL · ${data.id.slice(0, 8)}…`}
@@ -194,13 +194,13 @@ export default function AdminPropertyDetailPage() {
         subtitle={
           <>
             {fullAddress} · Host:{" "}
-            <strong className={styles.strongText}>
+            <strong className={styles.emphasis}>
               {data.userEmail || data.userId?.slice(0, 8) + "…"}
             </strong>
             {data.createdAt && (
               <>
                 {" · "}cadastrado em{" "}
-                <strong className={styles.strongText}>
+                <strong className={styles.emphasis}>
                   {new Date(data.createdAt).toLocaleDateString("pt-BR")}
                 </strong>
               </>
@@ -208,7 +208,7 @@ export default function AdminPropertyDetailPage() {
           </>
         }
         actions={
-          <div className={styles.rowWrapGap8}>
+          <div className={styles.headerActions}>
             <AdminButton
               variant="secondary"
               as="a"
@@ -233,7 +233,7 @@ export default function AdminPropertyDetailPage() {
       {reprocessResult && (
         <AdminCard variant="accent" className={styles.noticeCard}>
           <p
-            className={styles.rowCenteredText}
+            className={styles.noticeContent}
           >
             <Icons.Check size={14} className={styles.accentIcon} />
             {reprocessResult}
@@ -242,9 +242,9 @@ export default function AdminPropertyDetailPage() {
       )}
 
       {/* === KPIs === */}
-      <section className={styles.sectionMb32}>
+      <section className={styles.pageSection}>
         <div
-          className={styles.gridColsAuto180Gap32}
+          className={styles.kpiGrid}
         >
           <AdminMetricCard
             label="Diária base"
@@ -287,13 +287,13 @@ export default function AdminPropertyDetailPage() {
       </section>
 
       {/* === Diagnóstico de saúde === */}
-      <section className={styles.sectionMb32}>
+      <section className={styles.pageSection}>
         <AdminCard variant={healthIssues.length === 0 ? "subtle" : "accent"}>
           <AdminCardHeader
             title={
-              <span className={styles.stackGap4}>
+              <span className={styles.healthTitle}>
                 <span>Saúde do imóvel</span>
-                <span className={styles.labelTextMutedFs12}>
+                <span className={styles.healthSubtitle}>
                   {healthIssues.length === 0
                     ? "Tudo certo. Imóvel está apto a receber recomendações automaticamente."
                     : `${healthIssues.length} item(ns) bloqueando recomendação automática.`}
@@ -306,7 +306,7 @@ export default function AdminPropertyDetailPage() {
               </AdminBadge>
             }
           />
-          <div className={styles.gridColsAuto220Gap12}>
+          <div className={styles.healthChecksGrid}>
             <HealthCheck
               label="Coordenadas geográficas"
               ok={!!hasCoords}
@@ -332,34 +332,34 @@ export default function AdminPropertyDetailPage() {
       </section>
 
       {/* === Análises recentes === */}
-      <section className={styles.sectionMb32}>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb16}`}>
+      <section className={styles.pageSection}>
+        <p className={`urban-admin-eyebrow ${styles.sectionEyebrow}`}>
           ANÁLISES RECENTES
         </p>
         <RecentAnalysesTable rows={data.recentAnalyses ?? []} />
       </section>
 
       {/* === Eventos próximos === */}
-      <section className={styles.sectionMb32}>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb16}`}>
+      <section className={styles.pageSection}>
+        <p className={`urban-admin-eyebrow ${styles.sectionEyebrow}`}>
           EVENTOS PRÓXIMOS DETECTADOS
         </p>
         <NearbyEventsTable rows={data.nearbyEvents ?? []} />
       </section>
 
       {/* === Histórico de pricing inputs === */}
-      <section className={styles.sectionMb32}>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb16}`}>
+      <section className={styles.pageSection}>
+        <p className={`urban-admin-eyebrow ${styles.sectionEyebrow}`}>
           HISTÓRICO DE PREÇO BASE (INFORMADO PELO ANFITRIÃO)
         </p>
         <PricingHistoryTable rows={pricingHistory} />
       </section>
 
       {/* === Ações operacionais === */}
-      <section className={styles.sectionMt48Bordered}>
+      <section className={styles.actionsSection}>
         <AdminCard variant="subtle">
           <AdminCardHeader title="Atalhos" />
-          <div className={styles.rowWrapGap10}>
+          <div className={styles.shortcutsRow}>
             <AdminButton variant="secondary" as="a" href="/painel" leftIcon={<Icons.ArrowRight size={11} />}>
               Ver no painel do anfitrião
             </AdminButton>
@@ -394,17 +394,17 @@ function HealthCheck({
         background: ok ? "color-mix(in srgb, var(--admin-success) 4%, transparent)" : "color-mix(in srgb, var(--admin-warning) 4%, transparent)",
       }}
     >
-      <div className={styles.rowCenteredGap8}>
+      <div className={styles.healthCheckHeader}>
         <AdminStatusDot kind={ok ? "success" : "warn"} size={7} />
         <p
-          className={styles.textTextFs12}
+          className={styles.healthCheckLabel}
         >
           {label}
         </p>
       </div>
       {hint && (
         <p
-          className={styles.textTextMutedFs11}
+          className={styles.healthCheckHint}
         >
           {hint}
         </p>
@@ -419,7 +419,7 @@ function RecentAnalysesTable({ rows }: { rows: AnalysisRow[] }) {
       key: "evento",
       header: "Evento",
       render: (r) => (
-        <span className={styles.labelTextFs13}>
+        <span className={styles.recommendationEventName}>
           {r.eventoNome ?? "—"}
         </span>
       ),
@@ -430,11 +430,11 @@ function RecentAnalysesTable({ rows }: { rows: AnalysisRow[] }) {
       width: 110,
       render: (r) =>
         r.dataInicio ? (
-          <span className={styles.labelTextMutedFs12Mono}>
+          <span className={styles.dateCell}>
             {new Date(r.dataInicio).toLocaleDateString("pt-BR")}
           </span>
         ) : (
-          <span className={styles.labelTextDim}>—</span>
+          <span className={styles.emptyCell}>—</span>
         ),
     },
     {
@@ -444,11 +444,11 @@ function RecentAnalysesTable({ rows }: { rows: AnalysisRow[] }) {
       width: 100,
       render: (r) =>
         r.precoAtual ? (
-          <span className={styles.labelTextMutedMono}>
+          <span className={styles.currentPriceCell}>
             R$ {Number(r.precoAtual).toLocaleString("pt-BR")}
           </span>
         ) : (
-          <span className={styles.labelTextDim}>—</span>
+          <span className={styles.emptyCell}>—</span>
         ),
     },
     {
@@ -458,11 +458,11 @@ function RecentAnalysesTable({ rows }: { rows: AnalysisRow[] }) {
       width: 110,
       render: (r) =>
         r.precoSugerido ? (
-          <span className={styles.labelAccentW600}>
+          <span className={styles.suggestedPriceCell}>
             R$ {Number(r.precoSugerido).toLocaleString("pt-BR")}
           </span>
         ) : (
-          <span className={styles.labelTextDim}>—</span>
+          <span className={styles.emptyCell}>—</span>
         ),
     },
     {
@@ -471,7 +471,7 @@ function RecentAnalysesTable({ rows }: { rows: AnalysisRow[] }) {
       align: "right",
       width: 80,
       render: (r) => {
-        if (r.diferencaPercentual == null) return <span className={styles.labelTextDim}>—</span>;
+        if (r.diferencaPercentual == null) return <span className={styles.emptyCell}>—</span>;
         const d = Number(r.diferencaPercentual);
         return (
           <span
@@ -494,11 +494,11 @@ function RecentAnalysesTable({ rows }: { rows: AnalysisRow[] }) {
       width: 110,
       render: (r) =>
         r.precoAplicado ? (
-          <span className={styles.labelSuccessW600}>
+          <span className={styles.appliedPriceCell}>
             R$ {Number(r.precoAplicado).toLocaleString("pt-BR")}
           </span>
         ) : (
-          <span className={styles.labelTextDim}>—</span>
+          <span className={styles.emptyCell}>—</span>
         ),
     },
     {
@@ -535,7 +535,7 @@ function NearbyEventsTable({ rows }: { rows: EventRow[] }) {
       key: "nome",
       header: "Evento",
       render: (e) => (
-        <span className={styles.labelFs13W500}>{e.nome}</span>
+        <span className={styles.eventName}>{e.nome}</span>
       ),
     },
     {
@@ -543,7 +543,7 @@ function NearbyEventsTable({ rows }: { rows: EventRow[] }) {
       header: "Data",
       width: 110,
       render: (e) => (
-        <span className={styles.labelTextMutedFs12Mono}>
+        <span className={styles.dateCell}>
           {new Date(e.dataInicio).toLocaleDateString("pt-BR")}
         </span>
       ),
@@ -553,7 +553,7 @@ function NearbyEventsTable({ rows }: { rows: EventRow[] }) {
       header: "Cidade",
       width: 120,
       render: (e) => (
-        <span className={styles.labelTextMutedFs122}>
+        <span className={styles.cityCell}>
           {e.cidade ? `${e.cidade}/${e.estado ?? ""}` : "—"}
         </span>
       ),
@@ -565,11 +565,11 @@ function NearbyEventsTable({ rows }: { rows: EventRow[] }) {
       width: 100,
       render: (e) =>
         e.distanciaMetros != null ? (
-          <span className={styles.labelTextMono}>
+          <span className={styles.distanceCell}>
             {(Number(e.distanciaMetros) / 1000).toFixed(1)} km
           </span>
         ) : (
-          <span className={styles.labelTextDim}>—</span>
+          <span className={styles.emptyCell}>—</span>
         ),
     },
     {
@@ -578,7 +578,7 @@ function NearbyEventsTable({ rows }: { rows: EventRow[] }) {
       align: "center",
       width: 110,
       render: (e) => {
-        if (e.relevancia == null) return <span className={styles.labelTextDim}>—</span>;
+        if (e.relevancia == null) return <span className={styles.emptyCell}>—</span>;
         const r = Number(e.relevancia);
         let kind: AdminBadgeKind = "neutral";
         if (r >= 80) kind = "accent";
@@ -609,7 +609,7 @@ function PricingHistoryTable({ rows }: { rows: PricingInputHistory[] }) {
       header: "Quando",
       width: 160,
       render: (r) => (
-        <span className={styles.labelTextMutedFs12Mono}>
+        <span className={styles.dateCell}>
           {new Date(r.createdAt).toLocaleString("pt-BR")}
         </span>
       ),
@@ -620,14 +620,14 @@ function PricingHistoryTable({ rows }: { rows: PricingInputHistory[] }) {
       align: "right",
       width: 220,
       render: (r) => (
-        <span className={styles.labelFs12}>
-          <span className={styles.labelTextDim}>
+        <span className={styles.changeCell}>
+          <span className={styles.emptyCell}>
             {r.previousManualDailyPrice
               ? `R$ ${Number(r.previousManualDailyPrice).toLocaleString("pt-BR")}`
               : "—"}
           </span>
-          <span className={styles.labelTextDimM0x8}>→</span>
-          <span className={styles.labelAccentW6002}>
+          <span className={styles.changeArrow}>→</span>
+          <span className={styles.newDailyPrice}>
             {r.newManualDailyPrice
               ? `R$ ${Number(r.newManualDailyPrice).toLocaleString("pt-BR")}`
               : "—"}
@@ -641,14 +641,14 @@ function PricingHistoryTable({ rows }: { rows: PricingInputHistory[] }) {
       align: "right",
       width: 240,
       render: (r) => (
-        <span className={styles.labelFs12}>
-          <span className={styles.labelTextDim}>
+        <span className={styles.changeCell}>
+          <span className={styles.emptyCell}>
             {r.previousAverageMonthlyRevenue
               ? `R$ ${Number(r.previousAverageMonthlyRevenue).toLocaleString("pt-BR")}`
               : "—"}
           </span>
-          <span className={styles.labelTextDimM0x8}>→</span>
-          <span className={styles.labelTextW500}>
+          <span className={styles.changeArrow}>→</span>
+          <span className={styles.newRevenue}>
             {r.newAverageMonthlyRevenue
               ? `R$ ${Number(r.newAverageMonthlyRevenue).toLocaleString("pt-BR")}`
               : "—"}

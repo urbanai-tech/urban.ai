@@ -1,20 +1,20 @@
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.pageContainer.pageContainer {
   max-width: 1280px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.strongText.strongText {
+.emphasis.emphasis {
   color: var(--admin-text);
 }
 
-.rowWrapGap8.rowWrapGap8 {
+.headerActions.headerActions {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.rowCenteredText.rowCenteredText {
+.noticeContent.noticeContent {
   font-size: 13px;
   color: var(--admin-text);
   margin: 0;
@@ -23,11 +23,11 @@
   gap: 8px;
 }
 
-.sectionMb32.sectionMb32 {
+.pageSection.pageSection {
   margin-bottom: 32px;
 }
 
-.gridColsAuto180Gap32.gridColsAuto180Gap32 {
+.kpiGrid.kpiGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 32px;
@@ -36,123 +36,123 @@
   padding: 24px 0;
 }
 
-.stackGap4.stackGap4 {
+.healthTitle.healthTitle {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.labelTextMutedFs12.labelTextMutedFs12 {
+.healthSubtitle.healthSubtitle {
   font-size: 12px;
   font-weight: 400;
   color: var(--admin-text-muted);
 }
 
-.gridColsAuto220Gap12.gridColsAuto220Gap12 {
+.healthChecksGrid.healthChecksGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
 }
 
-.eyebrowMb16.eyebrowMb16 {
+.sectionEyebrow.sectionEyebrow {
   margin-bottom: 16px;
 }
 
-.sectionMt48Bordered.sectionMt48Bordered {
+.actionsSection.actionsSection {
   margin-top: 48px;
   padding-top: 24px;
   border-top: 1px solid var(--admin-divider);
 }
 
-.rowWrapGap10.rowWrapGap10 {
+.shortcutsRow.shortcutsRow {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-.rowCenteredGap8.rowCenteredGap8 {
+.healthCheckHeader.healthCheckHeader {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.textTextFs12.textTextFs12 {
+.healthCheckLabel.healthCheckLabel {
   font-size: 12px;
   font-weight: 600;
   color: var(--admin-text);
   margin: 0;
 }
 
-.textTextMutedFs11.textTextMutedFs11 {
+.healthCheckHint.healthCheckHint {
   font-size: 11px;
   color: var(--admin-text-muted);
   margin: 4px 0 0;
   padding-left: 16px;
 }
 
-.labelTextFs13.labelTextFs13 {
+.recommendationEventName.recommendationEventName {
   font-size: 13px;
   font-weight: 500;
   color: var(--admin-text);
 }
 
-.labelTextMutedFs12Mono.labelTextMutedFs12Mono {
+.dateCell.dateCell {
   font-size: 12px;
   color: var(--admin-text-muted);
   font-family: monospace;
 }
 
-.labelTextDim.labelTextDim {
+.emptyCell.emptyCell {
   color: var(--admin-text-dim);
 }
 
-.labelTextMutedMono.labelTextMutedMono {
+.currentPriceCell.currentPriceCell {
   font-family: monospace;
   color: var(--admin-text-muted);
 }
 
-.labelAccentW600.labelAccentW600 {
+.suggestedPriceCell.suggestedPriceCell {
   font-family: monospace;
   color: var(--admin-accent);
   font-weight: 600;
 }
 
-.labelSuccessW600.labelSuccessW600 {
+.appliedPriceCell.appliedPriceCell {
   font-family: monospace;
   color: var(--admin-success);
   font-weight: 600;
 }
 
-.labelFs13W500.labelFs13W500 {
+.eventName.eventName {
   font-size: 13px;
   font-weight: 500;
 }
 
-.labelTextMutedFs122.labelTextMutedFs122 {
+.cityCell.cityCell {
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.labelTextMono.labelTextMono {
+.distanceCell.distanceCell {
   font-family: monospace;
   color: var(--admin-text);
 }
 
-.labelFs12.labelFs12 {
+.changeCell.changeCell {
   font-size: 12px;
 }
 
-.labelTextDimM0x8.labelTextDimM0x8 {
+.changeArrow.changeArrow {
   margin: 0 8px;
   color: var(--admin-text-dim);
 }
 
-.labelAccentW6002.labelAccentW6002 {
+.newDailyPrice.newDailyPrice {
   color: var(--admin-accent);
   font-weight: 600;
 }
 
-.labelTextW500.labelTextW500 {
+.newRevenue.newRevenue {
   color: var(--admin-text);
   font-weight: 500;
 }

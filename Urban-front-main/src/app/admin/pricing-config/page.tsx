@@ -82,7 +82,7 @@ export default function PricingConfigPage() {
 
   if (error) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.pageContainer}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar"
@@ -99,14 +99,14 @@ export default function PricingConfigPage() {
   }
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · PRICING"
         title="Configuração de preços"
         subtitle={
           <>
             Matriz F6.5 — preços por imóvel x 4 ciclos com desconto progressivo.
-            Mudanças refletem imediatamente em <code className={styles.codeAccent}>/plans</code>
+            Mudanças refletem imediatamente em <code className={styles.inlineCode}>/plans</code>
             {" "}e novos checkouts.
           </>
         }
@@ -114,15 +114,15 @@ export default function PricingConfigPage() {
 
       {/* === Aviso Stripe Price IDs read-only === */}
       <section
-        className={styles.sectionTextMutedBgWarning}
+        className={styles.stripeWarningBanner}
       >
         <p
-          className={styles.textWarningFs11}
+          className={styles.warningTitle}
         >
           Atencao
         </p>
-        <p className={styles.textM6x0x0}>
-          Os <strong className={styles.strongText}>Stripe Price IDs</strong>
+        <p className={styles.warningBody}>
+          Os <strong className={styles.emphasis}>Stripe Price IDs</strong>
           {" "}mostrados ao final de cada plano são read-only. Para mudar valor
           cobrado de fato, é necessário criar nova Price no Dashboard Stripe e
           atualizar a env var correspondente no Railway. Mudar o preço de
@@ -132,7 +132,7 @@ export default function PricingConfigPage() {
       </section>
 
       {/* === Stripe sync check === */}
-      <section className={styles.sectionMb56}>
+      <section className={styles.syncSection}>
         <StripeSyncCard
           report={stripe}
           loading={stripeLoading}
@@ -142,10 +142,10 @@ export default function PricingConfigPage() {
 
       {/* === Planos === */}
       <section>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb20}`}>
+        <p className={`urban-admin-eyebrow ${styles.plansEyebrow}`}>
           PLANOS
         </p>
-        <div className={styles.stackGap20}>
+        <div className={styles.planList}>
           {plans.map((plan) => (
             <PlanCard key={plan.id} plan={plan} onSaved={load} />
           ))}
@@ -197,16 +197,16 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
   return (
     <AdminCard variant="subtle">
       <header
-        className={styles.rowBetweenStart}
+        className={styles.planHeader}
       >
         <div>
           <h3
-            className={styles.subheadingTextFs18}
+            className={styles.planTitle}
           >
             {plan.title}
           </h3>
           <p
-            className={styles.textTextDimFs11}
+            className={styles.planName}
           >
             {plan.name}
           </p>
@@ -224,13 +224,13 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
       </header>
 
       {plan.isCustomPrice ? (
-        <p className={styles.textTextMutedFs13}>
+        <p className={styles.customPlanNote}>
           Plano custom (sob consulta) — sem matriz de preços editavel.
         </p>
       ) : (
         <>
           <div
-            className={styles.gridColsAuto180Gap14}
+            className={styles.priceFieldsGrid}
           >
             <AdminInput
               label="Mensal (R$/imóvel/mês)"
@@ -255,7 +255,7 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
           </div>
 
           <div
-            className={styles.gridColsAuto180Gap14}
+            className={styles.priceFieldsGrid}
           >
             <AdminInput
               label="% desconto trimestral"
@@ -284,7 +284,7 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
           </div>
 
           <div
-            className={styles.gridColsAuto220Gap14}
+            className={styles.discountFieldsGrid}
           >
             <AdminInput
               label="Min. imóveis"
@@ -349,7 +349,7 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
           </div>
 
           <div
-            className={styles.gridColsAuto170BgSurface}
+            className={styles.previewMetricsGrid}
           >
             <PreviewMetric label={`Preview ${previewQuantity} imóveis / mês`} value={formatAdminMoney(monthly * previewQuantity)} />
             <PreviewMetric label="Trimestral cobrado" value={formatAdminMoney(quarterly * previewQuantity * 3)} />
@@ -359,15 +359,15 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
 
           {/* Stripe Price IDs read-only */}
           <details
-            className={styles.detailsBgSurfaceMt20}
+            className={styles.priceIdsDetails}
           >
             <summary
-              className={styles.summaryTextMutedFs11}
+              className={styles.priceIdsSummary}
             >
               Stripe Price IDs (read-only — gerenciar no Dashboard Stripe)
             </summary>
             <div
-              className={styles.gridColsAuto220TextDim}
+              className={styles.priceIdsList}
             >
               <div>monthly: {plan.stripePriceIdMonthly || "—"}</div>
               <div>quarterly: {plan.stripePriceIdQuarterly || "—"}</div>
@@ -379,9 +379,9 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
       )}
 
       <footer
-        className={styles.rowBetweenCentered}
+        className={styles.planFooter}
       >
-        <span className={styles.labelTextMutedFs12}>
+        <span className={styles.mutedNote}>
           {dirty ? "Mudanças não salvas" : ""}
         </span>
         <AdminButton variant="primary" onClick={save} disabled={!dirty} loading={busy}>
@@ -411,11 +411,11 @@ function PreviewMetric({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <div
-        className={styles.boxTextDimFs10}
+        className={styles.metricLabel}
       >
         {label}
       </div>
-      <div className={styles.boxTextW700}>{value}</div>
+      <div className={styles.metricValue}>{value}</div>
     </div>
   );
 }
@@ -470,7 +470,7 @@ function StripeSyncCard({
       key: "plan",
       header: "Plano",
       render: (e) => (
-        <span className={styles.labelTextFs12}>
+        <span className={styles.syncPlanName}>
           {e.planName}
         </span>
       ),
@@ -480,7 +480,7 @@ function StripeSyncCard({
       header: "Ciclo",
       width: 100,
       render: (e) => (
-        <span className={styles.labelTextMutedFs12}>{e.cycle}</span>
+        <span className={styles.mutedNote}>{e.cycle}</span>
       ),
     },
     {
@@ -493,7 +493,7 @@ function StripeSyncCard({
       key: "priceId",
       header: "Price ID",
       render: (e) => (
-        <code className={styles.codeTextDimFs10}>
+        <code className={styles.syncPriceId}>
           {e.priceId ?? "—"}
         </code>
       ),
@@ -504,7 +504,7 @@ function StripeSyncCard({
       width: 130,
       align: "right",
       render: (e) => (
-        <span className={styles.labelTextFs12Mono}>
+        <span className={styles.syncAmount}>
           {fmt(e.stripeAmountCents)}
         </span>
       ),
@@ -513,7 +513,7 @@ function StripeSyncCard({
       key: "details",
       header: "Detalhes",
       render: (e) => (
-        <span className={styles.labelTextMutedFs12}>
+        <span className={styles.mutedNote}>
           {e.details ?? "—"}
         </span>
       ),
@@ -539,29 +539,29 @@ function StripeSyncCard({
       />
 
       <p
-        className={styles.textTextMutedFs13M0x0x16Lh1_55}
+        className={styles.syncIntro}
       >
         Valida que os 8 Price IDs (matriz F6.5) existem no Stripe e batem com o
         ciclo esperado.
       </p>
 
       {!report ? (
-        <p className={styles.textTextMutedFs132}>Carregando relatorio…</p>
+        <p className={styles.syncLoading}>Carregando relatorio…</p>
       ) : (
         <>
           {/* Gate indicator (substitui 3 cards coloridos) */}
           <div
-            className={styles.rowCenteredBgSurface}
+            className={styles.gateIndicator}
           >
             <AdminStatusDot kind={gateKind} size={10} />
-            <div className={styles.boxFlex1}>
+            <div className={styles.gateText}>
               <p
-                className={styles.textTextFs13}
+                className={styles.gateLabel}
               >
                 {gateLabel}
               </p>
               <p
-                className={styles.textTextMutedFs12}
+                className={styles.gateDescription}
               >
                 {!report.summary.stripeKeyConfigured
                   ? "Sem isso, não é possível validar Price IDs remotamente. Configure no Railway antes de continuar."
@@ -574,7 +574,7 @@ function StripeSyncCard({
 
           {/* Stats em hierarquia: 1 hero "OK" + 4 sm */}
           <div
-            className={styles.gridCols4Gap24}
+            className={styles.syncStatsGrid}
           >
             <AdminMetricCard
               label="OK / total"

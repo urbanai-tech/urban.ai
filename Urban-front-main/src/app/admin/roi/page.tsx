@@ -71,7 +71,7 @@ export default function AdminRoiPage() {
 
   if (error || !data) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.errorContainer}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar"
@@ -94,14 +94,14 @@ export default function AdminRoiPage() {
       render: (row) => (
         <div>
           <p
-            className={styles.textTextFs13}
+            className={styles.primaryText}
           >
             {row.user.username}
           </p>
-          <p className={styles.textTextMutedFs11}>
+          <p className={styles.userEmail}>
             {row.user.email}
           </p>
-          <p className={styles.textTextDimFs11}>
+          <p className={styles.listingsCount}>
             {row.activeListings} {row.activeListings === 1 ? "imóvel ativo" : "imóveis ativos"}
           </p>
         </div>
@@ -114,12 +114,12 @@ export default function AdminRoiPage() {
       render: (row) => (
         <div>
           <p
-            className={styles.textAccentFs13}
+            className={styles.attributedValue}
           >
             {fmt(row.money.totalAttributedCents)}
           </p>
           <p
-            className={styles.textTextMutedFs10}
+            className={styles.cellSubtext}
           >
             {fmt(row.money.projectedIncrementalCents)} acompanhando
           </p>
@@ -134,12 +134,12 @@ export default function AdminRoiPage() {
       render: (row) => (
         <div>
           <p
-            className={styles.textTextFs13W600M0Mono}
+            className={styles.roiMultiple}
           >
             {row.money.roiMultiple ? `${row.money.roiMultiple.toFixed(1)}x` : "—"}
           </p>
           <p
-            className={styles.textTextMutedFs10}
+            className={styles.cellSubtext}
           >
             {row.money.roiPercent != null ? `${row.money.roiPercent.toFixed(0)}%` : ""}
           </p>
@@ -152,7 +152,7 @@ export default function AdminRoiPage() {
       align: "right",
       width: 120,
       render: (row) => (
-        <span className={styles.labelTextFs12}>
+        <span className={styles.costCell}>
           {fmt(row.subscription.monthlyCostCents)}
         </span>
       ),
@@ -165,12 +165,12 @@ export default function AdminRoiPage() {
       render: (row) => (
         <div>
           <p
-            className={styles.textTextFs12}
+            className={styles.activityCount}
           >
             {row.activity.applied}/{row.activity.recommendations}
           </p>
           <p
-            className={styles.textTextMutedFs10M2x0x0}
+            className={styles.activityNights}
           >
             {row.activity.impactedNights} noites
           </p>
@@ -191,7 +191,7 @@ export default function AdminRoiPage() {
   ];
 
   return (
-    <div className={styles.boxM0xautoP40x32Maxw1400}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · ROI"
         title="ROI dos anfitriões"
@@ -209,11 +209,11 @@ export default function AdminRoiPage() {
       />
 
       {/* === Janela de tempo === */}
-      <section className={styles.sectionMb32}>
+      <section className={styles.windowSection}>
         <header
-          className={styles.rowBetweenCentered}
+          className={styles.windowHeader}
         >
-          <p className={`urban-admin-eyebrow ${styles.eyebrowM0}`}>
+          <p className={`urban-admin-eyebrow ${styles.windowEyebrow}`}>
             JANELA DE ANALISE
           </p>
           <SegmentedControl
@@ -229,10 +229,10 @@ export default function AdminRoiPage() {
       </section>
 
       {/* === Hero KPI: receita atribuida === */}
-      <section className={styles.sectionMb56}>
+      <section className={styles.kpiSection}>
         <AdminCard variant="accent" className={styles.heroCard}>
           <div
-            className={styles.gridColsAutoGap32}
+            className={styles.heroGrid}
           >
             <div>
               <p className="urban-admin-eyebrow">RECEITA ATRIBUIDA A IA</p>
@@ -249,7 +249,7 @@ export default function AdminRoiPage() {
                 {fmt(data.totals.totalAttributedCents)}
               </p>
               <p
-                className={styles.textTextMutedFs14}
+                className={styles.heroCaption}
               >
                 {fmt(data.totals.confirmedIncrementalCents)} confirmado ·{" "}
                 {data.totals.users} usuários no ranking ·{" "}
@@ -257,24 +257,24 @@ export default function AdminRoiPage() {
                 impactadas.
               </p>
             </div>
-            <div className={styles.boxBordered}>
+            <div className={styles.summaryBox}>
               <p className="urban-admin-eyebrow-muted">ROI médio</p>
               <p
-                className={`urban-admin-display-md ${styles.displayMdAccentMt12}`}
+                className={`urban-admin-display-md ${styles.roiAverageValue}`}
               >
                 {data.totals.roiMultiple
                   ? `${data.totals.roiMultiple.toFixed(1)}x`
                   : "—"}
               </p>
               <p
-                className={styles.textTextMutedFs12}
+                className={styles.summaryCaption}
               >
                 {data.totals.roiPercent != null
                   ? `${data.totals.roiPercent.toFixed(0)}% liquido`
                   : "sem custo"}
               </p>
             </div>
-            <div className={styles.boxBordered}>
+            <div className={styles.summaryBox}>
               <p className="urban-admin-eyebrow-muted">Valor liquido</p>
               <p
                 className="urban-admin-display-md"
@@ -288,7 +288,7 @@ export default function AdminRoiPage() {
               >
                 {fmt(data.totals.netValueCents)}
               </p>
-              <p className={styles.textTextMutedFs12}>
+              <p className={styles.summaryCaption}>
                 Custo: {fmt(data.totals.subscriptionCostCents)}
               </p>
             </div>
@@ -297,12 +297,12 @@ export default function AdminRoiPage() {
       </section>
 
       {/* === KPIs adicionais === */}
-      <section className={styles.sectionMb56}>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
+      <section className={styles.kpiSection}>
+        <p className={`urban-admin-eyebrow ${styles.kpiEyebrow}`}>
           INDICADORES
         </p>
         <div
-          className={styles.gridColsAuto200Gap32}
+          className={styles.kpiGrid}
         >
           <AdminMetricCard
             label="Confirmado"
@@ -330,10 +330,10 @@ export default function AdminRoiPage() {
 
       {/* === Leaderboard + regras === */}
       <section
-        className={styles.gridColsAutoGap24}
+        className={styles.leaderboardGrid}
       >
         <div>
-          <p className={`urban-admin-eyebrow ${styles.eyebrowMb16}`}>
+          <p className={`urban-admin-eyebrow ${styles.leaderboardEyebrow}`}>
             TOP ANFITRIOES
           </p>
           <AdminTable
@@ -351,7 +351,7 @@ export default function AdminRoiPage() {
 
         <AdminCard variant="subtle">
           <AdminCardHeader title="Como o painel calcula" />
-          <div className={styles.stackGap14}>
+          <div className={styles.rulesList}>
             <Rule
               title="Dinheiro gerado"
               body="Diferença positiva entre preço aplicado e preço anterior, multiplicada pelas noites impactadas."
@@ -385,12 +385,12 @@ function Rule({ title, body }: { title: string; body: string }) {
   return (
     <div>
       <p
-        className={styles.textTextFs13}
+        className={styles.primaryText}
       >
         {title}
       </p>
       <p
-        className={styles.textTextMutedFs12M4x0x0Lh1_55}
+        className={styles.ruleBody}
       >
         {body}
       </p>
@@ -411,7 +411,7 @@ function SegmentedControl<T extends string | number>({
 }) {
   return (
     <div
-      className={styles.rowScrollBordered}
+      className={styles.segmentedControl}
     >
       {options.map((opt) => {
         const active = opt === value;

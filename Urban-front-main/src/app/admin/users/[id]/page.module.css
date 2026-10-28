@@ -1,25 +1,25 @@
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.pageContainer.pageContainer {
   max-width: 1280px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.strongText.strongText {
+.emphasis.emphasis {
   color: var(--admin-text);
 }
 
-.sectionMb32.sectionMb32 {
+.pageSection.pageSection {
   margin-bottom: 32px;
 }
 
-.rowCenteredWrap.rowCenteredWrap {
+.profileRow.profileRow {
   display: flex;
   gap: 20px;
   align-items: center;
   flex-wrap: wrap;
 }
 
-.rowJustifyCenterCentered.rowJustifyCenterCentered {
+.avatar.avatar {
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -34,31 +34,31 @@
   flex-shrink: 0;
 }
 
-.boxMinw200Flex1.boxMinw200Flex1 {
+.profileInfo.profileInfo {
   flex: 1;
   min-width: 200px;
 }
 
-.rowWrapGap10.rowWrapGap10 {
+.badgeRow.badgeRow {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   margin-bottom: 6px;
 }
 
-.textTextMutedFs13.textTextMutedFs13 {
+.mutedText.mutedText {
   font-size: 13px;
   color: var(--admin-text-muted);
   margin: 0;
 }
 
-.rowWrapGap8.rowWrapGap8 {
+.roleActions.roleActions {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.gridColsAuto180Gap32.gridColsAuto180Gap32 {
+.kpiGrid.kpiGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 32px;
@@ -67,92 +67,92 @@
   padding: 24px 0;
 }
 
-.gridColsAuto360Gap24.gridColsAuto360Gap24 {
+.cardsGrid.cardsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
   gap: 24px;
   margin-bottom: 32px;
 }
 
-.rowCenteredGap10.rowCenteredGap10 {
+.dripStatus.dripStatus {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
 }
 
-.textTextFs16.textTextFs16 {
+.dripStatusText.dripStatusText {
   font-size: 16px;
   font-weight: 600;
   color: var(--admin-text);
   margin: 0;
 }
 
-.textTextMutedFs12.textTextMutedFs12 {
+.dripLastSent.dripLastSent {
   font-size: 12px;
   color: var(--admin-text-muted);
   margin: 0;
 }
 
-.gridColsFs13.gridColsFs13 {
+.subscriptionFields.subscriptionFields {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   font-size: 13px;
 }
 
-.eyebrowMb16.eyebrowMb16 {
+.sectionEyebrow.sectionEyebrow {
   margin-bottom: 16px;
 }
 
-.tableFs13W100pct.tableFs13W100pct {
+.propertiesTable.propertiesTable {
   width: 100%;
   min-width: 760px;
   border-collapse: collapse;
   font-size: 13px;
 }
 
-.tableRowBordered.tableRowBordered {
+.tableHeaderRow.tableHeaderRow {
   border-bottom: 1px solid var(--admin-divider);
 }
 
-.rowBordered.rowBordered {
+.tableRow.tableRow {
   border-bottom: 1px solid var(--admin-divider);
 }
 
-.codeTextDimFs11.codeTextDimFs11 {
+.propertyId.propertyId {
   font-size: 11px;
   color: var(--admin-text-dim);
 }
 
-.labelMono.labelMono {
+.priceCell.priceCell {
   font-family: monospace;
 }
 
-.labelTextDim.labelTextDim {
+.emptyCell.emptyCell {
   color: var(--admin-text-dim);
 }
 
-.rowCenteredTextMuted.rowCenteredTextMuted {
+.rowLink.rowLink {
   color: var(--admin-text-muted);
   display: inline-flex;
   align-items: center;
   padding: 4px;
 }
 
-.sectionMt48Bordered.sectionMt48Bordered {
+.shortcutsSection.shortcutsSection {
   margin-top: 48px;
   padding-top: 24px;
   border-top: 1px solid var(--admin-divider);
 }
 
-.rowWrapGap102.rowWrapGap102 {
+.shortcutsRow.shortcutsRow {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-.textTextMutedFs10.textTextMutedFs10 {
+.fieldLabel.fieldLabel {
   font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -161,7 +161,7 @@
   font-weight: 600;
 }
 
-.textTextFs13.textTextFs13 {
+.fieldValue.fieldValue {
   font-size: 13px;
   color: var(--admin-text);
   margin: 4px 0 0;

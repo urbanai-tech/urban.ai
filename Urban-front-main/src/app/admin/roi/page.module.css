@@ -1,29 +1,29 @@
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.errorContainer.errorContainer {
   max-width: 1280px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.textTextFs13.textTextFs13 {
+.primaryText.primaryText {
   font-size: 13px;
   font-weight: 600;
   color: var(--admin-text);
   margin: 0;
 }
 
-.textTextMutedFs11.textTextMutedFs11 {
+.userEmail.userEmail {
   font-size: 11px;
   color: var(--admin-text-muted);
   margin: 2px 0 0;
 }
 
-.textTextDimFs11.textTextDimFs11 {
+.listingsCount.listingsCount {
   font-size: 11px;
   color: var(--admin-text-dim);
   margin: 2px 0 0;
 }
 
-.textAccentFs13.textAccentFs13 {
+.attributedValue.attributedValue {
   font-family: monospace;
   font-size: 13px;
   font-weight: 600;
@@ -31,14 +31,14 @@
   margin: 0;
 }
 
-.textTextMutedFs10.textTextMutedFs10 {
+.cellSubtext.cellSubtext {
   font-size: 10px;
   color: var(--admin-text-muted);
   margin: 2px 0 0;
   font-family: monospace;
 }
 
-.textTextFs13W600M0Mono.textTextFs13W600M0Mono {
+.roiMultiple.roiMultiple {
   font-family: monospace;
   font-size: 13px;
   font-weight: 600;
@@ -46,36 +46,36 @@
   margin: 0;
 }
 
-.labelTextFs12.labelTextFs12 {
+.costCell.costCell {
   font-family: monospace;
   font-size: 12px;
   color: var(--admin-text);
 }
 
-.textTextFs12.textTextFs12 {
+.activityCount.activityCount {
   font-family: monospace;
   font-size: 12px;
   color: var(--admin-text);
   margin: 0;
 }
 
-.textTextMutedFs10M2x0x0.textTextMutedFs10M2x0x0 {
+.activityNights.activityNights {
   font-size: 10px;
   color: var(--admin-text-muted);
   margin: 2px 0 0;
 }
 
-.boxM0xautoP40x32Maxw1400.boxM0xautoP40x32Maxw1400 {
+.pageContainer.pageContainer {
   max-width: 1400px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.sectionMb32.sectionMb32 {
+.windowSection.windowSection {
   margin-bottom: 32px;
 }
 
-.rowBetweenCentered.rowBetweenCentered {
+.windowHeader.windowHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -83,49 +83,49 @@
   flex-wrap: wrap;
 }
 
-.eyebrowM0.eyebrowM0 {
+.windowEyebrow.windowEyebrow {
   margin: 0;
 }
 
-.sectionMb56.sectionMb56 {
+.kpiSection.kpiSection {
   margin-bottom: 56px;
 }
 
-.gridColsAutoGap32.gridColsAutoGap32 {
+.heroGrid.heroGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
   gap: 32px;
   align-items: end;
 }
 
-.textTextMutedFs14.textTextMutedFs14 {
+.heroCaption.heroCaption {
   margin-top: 12px;
   font-size: 14px;
   color: var(--admin-text-muted);
   line-height: 1.55;
 }
 
-.boxBordered.boxBordered {
+.summaryBox.summaryBox {
   border-left: 1px solid var(--admin-divider);
   padding-left: 32px;
 }
 
-.displayMdAccentMt12.displayMdAccentMt12 {
+.roiAverageValue.roiAverageValue {
   margin-top: 12px;
   color: var(--admin-accent);
 }
 
-.textTextMutedFs12.textTextMutedFs12 {
+.summaryCaption.summaryCaption {
   margin-top: 6px;
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.eyebrowMb24.eyebrowMb24 {
+.kpiEyebrow.kpiEyebrow {
   margin-bottom: 24px;
 }
 
-.gridColsAuto200Gap32.gridColsAuto200Gap32 {
+.kpiGrid.kpiGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 32px;
@@ -133,30 +133,30 @@
   border-bottom: 1px solid var(--admin-divider);
 }
 
-.gridColsAutoGap24.gridColsAutoGap24 {
+.leaderboardGrid.leaderboardGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 24px;
 }
 
-.eyebrowMb16.eyebrowMb16 {
+.leaderboardEyebrow.leaderboardEyebrow {
   margin-bottom: 16px;
 }
 
-.stackGap14.stackGap14 {
+.rulesList.rulesList {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-.textTextMutedFs12M4x0x0Lh1_55.textTextMutedFs12M4x0x0Lh1_55 {
+.ruleBody.ruleBody {
   font-size: 12px;
   color: var(--admin-text-muted);
   margin: 4px 0 0;
   line-height: 1.55;
 }
 
-.rowScrollBordered.rowScrollBordered {
+.segmentedControl.segmentedControl {
   display: inline-flex;
   border: 1px solid var(--admin-divider);
   border-radius: 2px;

@@ -172,7 +172,7 @@ export default function AdminContactsPage() {
 
   if (error) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.pageContainer}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar contatos"
@@ -191,7 +191,7 @@ export default function AdminContactsPage() {
   const totalPages = data ? Math.ceil(data.total / data.limit) : 1;
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · CONTATOS"
         title="Mensagens"
@@ -199,9 +199,9 @@ export default function AdminContactsPage() {
       />
 
       {/* === KPIs === */}
-      <section className={styles.sectionMb48}>
+      <section className={styles.kpiSection}>
         <div
-          className={styles.gridColsAuto180Gap32}
+          className={styles.kpiGrid}
         >
           <AdminMetricCard
             label="Nesta página"
@@ -227,7 +227,7 @@ export default function AdminContactsPage() {
 
       {/* === Filtros === */}
       <section
-        className={styles.rowAlignEndWrap}
+        className={styles.filterBar}
       >
         <AdminInput
           placeholder="Buscar por nome, e-mail, assunto ou mensagem…"
@@ -265,47 +265,47 @@ export default function AdminContactsPage() {
       </section>
 
       {/* === Mensagens === */}
-      <section className={styles.sectionMb24}>
+      <section className={styles.messagesSection}>
         {!data || data.items.length === 0 ? (
           <AdminEmptyState
             title="Nenhuma mensagem"
             body="Nenhuma mensagem encontrada com esses filtros."
           />
         ) : (
-          <div className={styles.stackGap16}>
+          <div className={styles.messageStack}>
             {data.items.map((entry) => (
               <AdminCard key={entry.id} variant="subtle">
                 <div
-                  className={styles.stackGap16}
+                  className={styles.messageStack}
                 >
                   <div
-                    className={styles.rowBetweenStart}
+                    className={styles.messageHeader}
                   >
-                    <div className={styles.boxMinw0Flex1}>
+                    <div className={styles.messageInfo}>
                       <div
-                        className={styles.rowCenteredWrap}
+                        className={styles.badgeRow}
                       >
                         <StatusBadge status={entry.status} />
                         <SeverityBadge severity={entry.severity ?? "P2"} />
                         <CategoryBadge category={entry.category ?? "support"} />
                         <span
-                          className={styles.labelTextDimFs11}
+                          className={styles.messageDate}
                         >
                           {new Date(entry.createdAt).toLocaleString("pt-BR")}
                         </span>
                       </div>
                       <h3
-                        className={styles.subheadingTextFs18}
+                        className={styles.messageSubject}
                       >
                         {entry.subject}
                       </h3>
                       <p
-                        className={styles.textTextMutedFs13}
+                        className={styles.messageSender}
                       >
                         {entry.name} ·{" "}
                         <a
                           href={`mailto:${entry.email}`}
-                          className={styles.linkAccentW500}
+                          className={styles.emailLink}
                         >
                           {entry.email}
                         </a>
@@ -315,14 +315,14 @@ export default function AdminContactsPage() {
                           </span>
                         )}
                         {entry.assignedOwner && (
-                          <span className={styles.labelMl8}>
+                          <span className={styles.ownerLabel}>
                             Owner: {entry.assignedOwner}
                           </span>
                         )}
                       </p>
                     </div>
                     <div
-                      className={styles.rowCenteredWrapGap8}
+                      className={styles.messageActions}
                     >
                       <AdminSelect
                         value={entry.status}
@@ -357,17 +357,17 @@ export default function AdminContactsPage() {
                   </div>
 
                   <p
-                    className={styles.textTextFs13}
+                    className={styles.messageBody}
                   >
                     {entry.message}
                   </p>
 
                   {entry.notes && (
                     <p
-                      className={styles.textTextMutedFs12}
+                      className={styles.messageNotes}
                     >
                       <span
-                        className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb4}`}
+                        className={`urban-admin-eyebrow-muted ${styles.notesEyebrow}`}
                       >
                         NOTAS INTERNAS
                       </span>
@@ -384,12 +384,12 @@ export default function AdminContactsPage() {
       {/* === Paginação === */}
       {data && data.total > data.limit && (
         <div
-          className={styles.rowBetweenCentered}
+          className={styles.paginationBar}
         >
           <span>
             Página {data.page} de {totalPages}
           </span>
-          <div className={styles.rowGap8}>
+          <div className={styles.paginationButtons}>
             <AdminButton
               variant="ghost"
               size="sm"
@@ -437,16 +437,16 @@ export default function AdminContactsPage() {
           </>
         }
       >
-        <div className={styles.boxMb16}>
+        <div className={styles.modalSender}>
           <p className="urban-admin-eyebrow-muted">DE</p>
           <p
-            className={styles.textTextFs13M6x0x0}
+            className={styles.modalSenderValue}
           >
             {notesEntry?.name} · {notesEntry?.email}
           </p>
         </div>
         <div
-          className={styles.gridColsAuto180Gap12}
+          className={styles.modalFieldsGrid}
         >
           <AdminSelect
             label="Categoria"
