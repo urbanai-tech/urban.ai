@@ -7,6 +7,18 @@ primeiro.
 
 ---
 
+## [Senha sem hash no cliente] — 2026-10-28 — Pass-the-hash fechado, migração sem reset
+
+### Segurança
+
+- **A senha trafega em claro sob TLS e é hasheada só no servidor** ([ADR 0025](docs/adr/0025-senha-em-claro-sob-tls-hash-no-servidor.md)).
+  O front deixava de mandar a senha e mandava `sha256hex(senha)`, que virava a própria credencial (pass-the-hash).
+  Esquema novo `pw:v2:` + bcrypt(12) de HMAC-SHA256 da senha (sem limite de 72 bytes); contas antigas entram com a
+  senha em claro e são regravadas em v2 no login, sem reset. O sha256 hex de um bundle antigo em cache ainda vale só
+  para contas não migradas até 2026-11-30 (`AUTH_LEGACY_CLIENT_HASH_UNTIL`, aceita `off`). Sem migration de banco.
+
+---
+
 ## [PWA premium] — 2026-10-26 — App instalável, avisos por categoria e silêncio sem perda
 
 ### Adicionado

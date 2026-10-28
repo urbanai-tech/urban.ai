@@ -93,12 +93,13 @@ Avisos aparecem preenchidos.
 São valores **fictícios, só para o ambiente local**. O seed **recusa rodar** se `APP_ENV`/`NODE_ENV` não for
 `development`/`dev`/`local`, se houver marcador de hospedagem (Railway, Vercel…)
 ou se o banco não for `localhost`/`mysql`; nunca roda em produção ou staging.
-A senha é tratada como no fluxo real: o front envia o SHA-256 dela e o servidor
-guarda o bcrypt desse hash. Para logar por `curl` (o login limita 5 tentativas por minuto):
+A senha é tratada como no fluxo real: o front envia a senha em texto puro (só sob
+TLS) e o hash é feito só no servidor (esquema v2, ver
+[ADR 0025](docs/adr/0025-senha-em-claro-sob-tls-hash-no-servidor.md)). Para logar por
+`curl` (o login limita 5 tentativas por minuto):
 
 ```bash
-HASH=$(printf '%s' 'UrbanLocal#2026' | sha256sum | cut -d' ' -f1)
-curl -i -X POST http://localhost:10000/auth/login -H 'Content-Type: application/json'   -d "{\"email\":\"host@urban.local\",\"password\":\"$HASH\"}"   # 200/201 + Set-Cookie
+curl -i -X POST http://localhost:10000/auth/login -H 'Content-Type: application/json'   -d '{"email":"host@urban.local","password":"UrbanLocal#2026"}'   # 200/201 + Set-Cookie
 ```
 
 ## 2. Validar antes de abrir PR

@@ -45,6 +45,7 @@ Estrutura sugerida:
 | 0022 | [Vercel e fluxo bronze S3 do Prefect](./0022-vercel-e-fluxo-bronze-do-prefect.md) | Proposto (em aberto) | 26/10/2026 |
 | 0023 | [Stays automático abaixo de 1,0×](./0023-stays-automatico-abaixo-de-1x.md) | Proposto (em aberto) | 26/10/2026 |
 | 0024 | [Retenção de dados pessoais](./0024-retencao-de-dados-pessoais.md) | Proposto (em aberto) | 26/10/2026 |
+| 0025 | [Senha em claro sob TLS, hash só no servidor](./0025-senha-em-claro-sob-tls-hash-no-servidor.md) | Aceito | 28/10/2026 |
 
 > Os 5 primeiros ADRs foram escritos **retroativamente** em 24/04/2026, em resposta à F5C.4 item #3 da auditoria. Refletem o raciocínio que motivou as decisões originais tomadas por Gustavo + Lumina Lab entre fev–mar/2026.
 

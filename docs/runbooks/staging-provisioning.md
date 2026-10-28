@@ -194,7 +194,7 @@ Para adotar B: no Railway staging, na config do serviço, **Settings → Source 
 Cria ou corrige, de forma idempotente, contas `admin` e `host` no banco de **staging** para smoke autenticado, auditoria admin/host e enterprise live gate. Não executar em produção; o script não imprime senha nem JWT.
 
 - Script: `urban-ai-backend-main/scripts/staging-auth-fixtures.js`. No boot do container Railway, `scripts/provision-staging-smoke-users.js` cria/atualiza as mesmas contas quando `APP_ENV=staging` e `STAGING_SMOKE_USERS_ENABLED=true` (ou `STAGING_AUTH_FIXTURES_ENABLED=true`); sem a flag, não derruba o app.
-- Guardas do script: exige `APP_ENV`/`NODE_ENV=staging` e `STAGING_AUTH_FIXTURES_ENABLED=true`; recusa banco com marcador aparente de produção; grava a senha como `bcrypt(12)` sobre o SHA-256 da senha em texto puro (formato enviado pelo front); reativa o usuário (`ativo=true`) e ajusta `role`.
+- Guardas do script: exige `APP_ENV`/`NODE_ENV=staging` e `STAGING_AUTH_FIXTURES_ENABLED=true`; recusa banco com marcador aparente de produção; grava a senha no esquema v2 do servidor (`scripts/password-hash-v2.js`, ADR 0025) a partir da senha em texto puro, que é o que o front envia; linhas em formato legado são regravadas em v2; reativa o usuário (`ativo=true`) e ajusta `role`.
 - Variáveis: `STAGING_AUTH_ADMIN_EMAIL`/`_PASSWORD`, `STAGING_AUTH_HOST_EMAIL`/`_PASSWORD` (aliases `STAGING_SMOKE_*` no boot e `ENTERPRISE_GATE_{ADMIN,HOST}_{EMAIL,PASSWORD}` para o release gate), mais `DATABASE_URL` ou `DB_HOST`/`DB_PORT`/`DB_USER`/`DB_PASSWORD`/`DB_NAME`.
 
 ```bash
