@@ -11,6 +11,7 @@ import {
   AdminButton,
   Icons,
 } from "../_components";
+import styles from "./page.module.css";
 
 /**
  * /admin/funnel — funil de produto Urban AI.
@@ -50,7 +51,7 @@ export default function AdminFunnelPage() {
 
   if (error || !data) {
     return (
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar funil"
@@ -109,7 +110,7 @@ export default function AdminFunnelPage() {
   const max = Math.max(...stages.map((s) => s.value), 1);
 
   return (
-    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       <AdminSectionHeader
         eyebrow={`ADMIN · FUNIL DE PRODUTO — ÚLTIMOS ${data.windowDays}D`}
         title="Jornada do anfitrião"
@@ -117,15 +118,9 @@ export default function AdminFunnelPage() {
       />
 
       {/* === Taxas-chave === */}
-      <section style={{ marginBottom: 48 }}>
+      <section className={styles.sectionMb48}>
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            gap: 32,
-            borderTop: "1px solid var(--admin-divider)",
-            borderBottom: "1px solid var(--admin-divider)",
-          }}
+          className={styles.gridColsAuto260Gap32}
         >
           <AdminMetricCard
             label="Taxa de aceite"
@@ -144,32 +139,25 @@ export default function AdminFunnelPage() {
       </section>
 
       {/* === Funil real SVG === */}
-      <section style={{ marginBottom: 48 }}>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
+      <section className={styles.sectionMb48}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
           ETAPAS — TRAPÉZIOS DECRESCENTES
         </p>
         <FunnelChart stages={stages} max={max} />
       </section>
 
-      <section style={{ marginBottom: 32 }}>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 16 }}>
+      <section className={styles.sectionMb32}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb16}`}>
           PRÓXIMA ALAVANCA
         </p>
         <NextLeverage stages={stages} />
       </section>
 
       <footer
-        style={{
-          marginTop: 64,
-          paddingTop: 24,
-          borderTop: "1px solid var(--admin-divider)",
-          fontSize: 12,
-          color: "var(--admin-text-muted)",
-          lineHeight: 1.55,
-        }}
+        className={styles.footerTextMutedFs12}
       >
-        <p style={{ margin: 0 }}>
-          <strong style={{ color: "var(--admin-text)" }}>Janela:</strong>{" "}
+        <p className={styles.textM0}>
+          <strong className={styles.strongText}>Janela:</strong>{" "}
           {data.windowDays} dias. Valores absolutos contam usuários distintos
           em cada etapa, não eventos. % entre etapas é a taxa de avanço.
         </p>
@@ -190,15 +178,10 @@ function FunnelChart({ stages, max }: { stages: Stage[]; max: number }) {
   return (
     <AdminCard variant="subtle" style={{ padding: 32 }}>
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 2fr) minmax(280px, 1fr)",
-          gap: 32,
-          alignItems: "stretch",
-        }}
+        className={styles.gridColsGap32}
       >
         {/* SVG funil */}
-        <div style={{ position: "relative" }}>
+        <div className={styles.box}>
           <svg
             viewBox={`0 0 100 ${totalHeight}`}
             preserveAspectRatio="none"
@@ -231,12 +214,7 @@ function FunnelChart({ stages, max }: { stages: Stage[]; max: number }) {
 
           {/* Labels sobrepostos */}
           <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              flexDirection: "column",
-            }}
+            className={styles.stackAbsolute}
           >
             {stages.map((s, i) => {
               const pctOfMax = ((s.value / max) * 100).toFixed(1);
@@ -255,36 +233,17 @@ function FunnelChart({ stages, max }: { stages: Stage[]; max: number }) {
                   }}
                 >
                   <p
-                    style={{
-                      fontSize: 10,
-                      letterSpacing: 2,
-                      textTransform: "uppercase",
-                      color: "var(--admin-bg)",
-                      fontWeight: 700,
-                      margin: 0,
-                      opacity: 0.8,
-                    }}
+                    className={styles.textBgFs10}
                   >
                     {String(i + 1).padStart(2, "0")} · {s.label}
                   </p>
                   <p
-                    className="urban-admin-display-md"
-                    style={{
-                      color: "var(--admin-bg)",
-                      marginTop: 4,
-                      fontWeight: 400,
-                    }}
+                    className={`urban-admin-display-md ${styles.displayMdBgW400}`}
                   >
                     {s.value.toLocaleString("pt-BR")}
                   </p>
                   <p
-                    style={{
-                      fontSize: 10,
-                      color: "var(--admin-bg)",
-                      opacity: 0.7,
-                      margin: 0,
-                      fontWeight: 500,
-                    }}
+                    className={styles.textBgFs10W500M0}
                   >
                     {pctOfMax}% do topo
                   </p>
@@ -296,14 +255,7 @@ function FunnelChart({ stages, max }: { stages: Stage[]; max: number }) {
 
         {/* Lista lateral com drop-off entre etapas */}
         <ol
-          style={{
-            listStyle: "none",
-            padding: 0,
-            margin: 0,
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-          }}
+          className={styles.stackGap12M0}
         >
           {stages.map((s, i) => {
             const prev = i === 0 ? null : stages[i - 1];
@@ -316,43 +268,24 @@ function FunnelChart({ stages, max }: { stages: Stage[]; max: number }) {
             return (
               <li
                 key={s.key}
-                style={{
-                  padding: "12px 0",
-                  borderBottom: "1px solid var(--admin-divider)",
-                }}
+                className={styles.itemP12x0Bordered}
               >
                 <p
-                  style={{
-                    fontSize: 11,
-                    letterSpacing: 1.5,
-                    textTransform: "uppercase",
-                    color: "var(--admin-text-muted)",
-                    fontWeight: 600,
-                    margin: 0,
-                  }}
+                  className={styles.textTextMutedFs11}
                 >
                   {String(i + 1).padStart(2, "0")} {s.label}
                 </p>
                 <p
-                  style={{
-                    fontSize: 12,
-                    color: "var(--admin-text-muted)",
-                    margin: "4px 0 0",
-                    lineHeight: 1.4,
-                  }}
+                  className={styles.textTextMutedFs12}
                 >
                   {s.desc}
                 </p>
                 {prev && (
                   <p
-                    style={{
-                      marginTop: 6,
-                      fontSize: 11,
-                      color: "var(--admin-text-dim)",
-                    }}
+                    className={styles.textTextDimFs11}
                   >
-                    Avanço: <strong style={{ color: "var(--admin-accent)" }}>{advance}%</strong>{" "}
-                    · Drop-off: <strong style={{ color: "var(--admin-text-muted)" }}>{drop}%</strong>
+                    Avanço: <strong className={styles.strongAccent}>{advance}%</strong>{" "}
+                    · Drop-off: <strong className={styles.strongTextMuted}>{drop}%</strong>
                   </p>
                 )}
               </li>
@@ -394,25 +327,20 @@ function NextLeverage({ stages }: { stages: Stage[] }) {
   return (
     <AdminCard variant="accent">
       <p
-        style={{
-          fontSize: 14,
-          color: "var(--admin-text-muted)",
-          margin: 0,
-          lineHeight: 1.6,
-        }}
+        className={styles.textTextMutedFs14}
       >
         Maior perda da janela: entre{" "}
-        <strong style={{ color: "var(--admin-text)" }}>{biggestDrop.from}</strong>{" "}
+        <strong className={styles.strongText}>{biggestDrop.from}</strong>{" "}
         e{" "}
-        <strong style={{ color: "var(--admin-text)" }}>{biggestDrop.to}</strong>{" "}
+        <strong className={styles.strongText}>{biggestDrop.to}</strong>{" "}
         — perdemos{" "}
-        <strong style={{ color: "var(--admin-accent)" }}>
+        <strong className={styles.strongAccent}>
           {biggestDrop.lost.toLocaleString("pt-BR")}
         </strong>{" "}
         usuários ({biggestDrop.percent.toFixed(1)}% de drop-off). Foque aqui
         para a próxima iteração de produto.
       </p>
-      <div style={{ marginTop: 20, display: "flex", gap: 12, flexWrap: "wrap" }}>
+      <div className={styles.rowWrapGap12}>
         <AdminButton variant="secondary" as="a" href="/admin/dashboard" rightIcon={<Icons.ArrowRight size={11} />}>
           Ver dashboard executivo
         </AdminButton>
