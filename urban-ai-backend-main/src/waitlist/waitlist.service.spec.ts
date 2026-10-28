@@ -38,10 +38,7 @@ describe('WaitlistService.generateUniqueReferralCode', () => {
     expect(code).toHaveLength(8);
     expect(findOne).toHaveBeenCalledTimes(2);
   });
-  });
 });
-
-import { WaitlistService, WaitlistSignupOutcome } from './waitlist.service';
 
 describe('WaitlistService.signup', () => {
   const originalEnv = process.env.WAITLIST_SIGNUP_EMAIL_DISABLED;

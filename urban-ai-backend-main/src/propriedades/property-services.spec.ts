@@ -503,9 +503,9 @@ describe('Property services (ex-PropriedadeService) public responses', () => {
 
   it('caps findByUserId page size at 200', async () => {
     const addressRepository = { findAndCount: jest.fn().mockResolvedValue([[], 0]) };
-    const service = makeService({ addressRepository });
+    const { portfolio } = makeServices({ addressRepository });
 
-    const result = await service.findByUserId('user-1', 3, 100000);
+    const result = await portfolio.findByUserId('user-1', 3, 100000);
 
     expect(addressRepository.findAndCount).toHaveBeenCalledWith(
       expect.objectContaining({ skip: 400, take: 200 }),
@@ -516,9 +516,9 @@ describe('Property services (ex-PropriedadeService) public responses', () => {
   it('URL-encodes the id sent to the RapidAPI income-prediction endpoint', async () => {
     const axios = jest.requireActual('axios');
     const getSpy = jest.spyOn(axios, 'get').mockResolvedValue({ data: { comps: [] } });
-    const service = makeService();
+    const { pricingAnalysis } = makeServices();
 
-    await service.buscarAlertPorId('abc&host=evil#x y');
+    await pricingAnalysis.buscarAlertPorId('abc&host=evil#x y');
 
     const calledUrl = getSpy.mock.calls[0][0] as string;
     expect(calledUrl).toBe(
