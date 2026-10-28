@@ -1,3 +1,39 @@
+/*
+ * Base do AdminCard. Seletores com 2 classes (0,2,0): perdem para uma classe
+ * do chamador com 3 classes (`.x.x.x`), que tem a mesma precedência que o
+ * antigo `style` inline tinha sobre a base. Variantes vêm depois da base.
+ */
+.card.card {
+  border-radius: 2px;
+  padding: 24px;
+}
+
+.variantDefault.variantDefault {
+  border: 1px solid var(--admin-divider);
+  background: transparent;
+}
+
+.variantSubtle.variantSubtle {
+  border: 1px solid var(--admin-divider);
+  background: var(--admin-surface);
+}
+
+.variantAccent.variantAccent {
+  border-left: 2px solid var(--admin-accent);
+  border-top: 1px solid var(--admin-divider);
+  border-right: 1px solid var(--admin-divider);
+  border-bottom: 1px solid var(--admin-divider);
+  background: var(--admin-surface);
+}
+
+.header.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
 .boxMinw0.boxMinw0 {
   min-width: 0;
 }

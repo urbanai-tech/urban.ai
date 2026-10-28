@@ -17,44 +17,10 @@ import styles from "./AdminInput.module.css";
  * focus border accent da marca + glow accent-soft, radius 2px, fonte da marca 13px.
  */
 
-const baseFieldStyle: React.CSSProperties = {
-  width: "100%",
-  minWidth: 0,
-  height: 36,
-  padding: "0 12px",
-  background: "var(--admin-surface-elevated)",
-  border: "1px solid var(--admin-divider)",
-  borderRadius: 2,
-  boxSizing: "border-box",
-  color: "var(--admin-text)",
-  fontSize: 13,
-  fontWeight: 400,
-  outline: "none",
-  transition: "border-color 120ms, background 120ms",
-  fontFamily: "var(--font-brand)",
-};
-
-const labelStyle: React.CSSProperties = {
-  display: "block",
-  fontSize: 11,
-  fontWeight: 600,
-  letterSpacing: 1.5,
-  textTransform: "uppercase",
-  color: "var(--admin-text-muted)",
-  marginBottom: 8,
-};
-
-const helperStyle: React.CSSProperties = {
-  marginTop: 6,
-  fontSize: 12,
-  color: "var(--admin-text-muted)",
-};
-
-const errorStyle: React.CSSProperties = {
-  marginTop: 6,
-  fontSize: 12,
-  color: "var(--admin-danger)",
-};
+/** Junta classes ignorando valores vazios. */
+function cx(...parts: Array<string | false | null | undefined>) {
+  return parts.filter(Boolean).join(" ");
+}
 
 type FieldShellProps = {
   label?: string;
@@ -62,17 +28,25 @@ type FieldShellProps = {
   error?: string;
   children: React.ReactNode;
   style?: React.CSSProperties;
+  className?: string;
 };
 
-function FieldShell({ label, helper, error, children, style }: FieldShellProps) {
+function FieldShell({
+  label,
+  helper,
+  error,
+  children,
+  style,
+  className,
+}: FieldShellProps) {
   return (
-    <label style={{ display: "block", maxWidth: "100%", minWidth: 0, ...style }}>
-      {label && <span style={labelStyle}>{label}</span>}
+    <label className={cx(styles.shell, className)} style={style}>
+      {label && <span className={styles.label}>{label}</span>}
       {children}
       {error ? (
-        <p style={errorStyle}>{error}</p>
+        <p className={styles.error}>{error}</p>
       ) : helper ? (
-        <p style={helperStyle}>{helper}</p>
+        <p className={styles.helper}>{helper}</p>
       ) : null}
     </label>
   );
@@ -84,28 +58,36 @@ type InputProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, "prefix"> & 
   error?: string;
   leftAddon?: React.ReactNode;
   shellStyle?: React.CSSProperties;
+  shellClassName?: string;
 };
 
 export const AdminInput = React.forwardRef<HTMLInputElement, InputProps>(
   function AdminInput(
-    { label, helper, error, leftAddon, style, shellStyle, ...rest },
+    { label, helper, error, leftAddon, style, className, shellStyle, shellClassName, ...rest },
     ref,
   ) {
     const input = (
       <input
         ref={ref}
-        style={{
-          ...baseFieldStyle,
-          paddingLeft: leftAddon ? 36 : 12,
-          borderColor: error ? "var(--admin-danger)" : "var(--admin-divider)",
-          ...style,
-        }}
+        className={cx(
+          styles.field,
+          leftAddon ? styles.fieldWithAddon : null,
+          error && styles.fieldInvalid,
+          className,
+        )}
+        style={style}
         {...rest}
       />
     );
 
     return (
-      <FieldShell label={label} helper={helper} error={error} style={shellStyle}>
+      <FieldShell
+        label={label}
+        helper={helper}
+        error={error}
+        style={shellStyle}
+        className={shellClassName}
+      >
         {leftAddon ? (
           <div className={styles.box}>
             <span
@@ -128,30 +110,26 @@ type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
   helper?: string;
   error?: string;
   shellStyle?: React.CSSProperties;
+  shellClassName?: string;
 };
 
 export const AdminSelect = React.forwardRef<HTMLSelectElement, SelectProps>(
   function AdminSelect(
-    { label, helper, error, style, shellStyle, children, ...rest },
+    { label, helper, error, style, className, shellStyle, shellClassName, children, ...rest },
     ref,
   ) {
     return (
-      <FieldShell label={label} helper={helper} error={error} style={shellStyle}>
+      <FieldShell
+        label={label}
+        helper={helper}
+        error={error}
+        style={shellStyle}
+        className={shellClassName}
+      >
         <select
           ref={ref}
-          style={{
-            ...baseFieldStyle,
-            appearance: "none",
-            paddingRight: 36,
-            backgroundColor: "var(--admin-surface-elevated)",
-            backgroundImage: "var(--admin-select-chevron)",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "right 12px center",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            ...style,
-          }}
+          className={cx(styles.field, styles.select, className)}
+          style={style}
           {...rest}
         >
           {children}
@@ -166,27 +144,27 @@ type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
   helper?: string;
   error?: string;
   shellStyle?: React.CSSProperties;
+  shellClassName?: string;
 };
 
 export const AdminTextarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   function AdminTextarea(
-    { label, helper, error, style, shellStyle, rows = 4, ...rest },
+    { label, helper, error, style, className, shellStyle, shellClassName, rows = 4, ...rest },
     ref,
   ) {
     return (
-      <FieldShell label={label} helper={helper} error={error} style={shellStyle}>
+      <FieldShell
+        label={label}
+        helper={helper}
+        error={error}
+        style={shellStyle}
+        className={shellClassName}
+      >
         <textarea
           ref={ref}
           rows={rows}
-          style={{
-            ...baseFieldStyle,
-            height: "auto",
-            padding: "10px 12px",
-            lineHeight: 1.55,
-            resize: "vertical",
-            fontFamily: "var(--font-brand)",
-            ...style,
-          }}
+          className={cx(styles.field, styles.textarea, className)}
+          style={style}
           {...rest}
         />
       </FieldShell>

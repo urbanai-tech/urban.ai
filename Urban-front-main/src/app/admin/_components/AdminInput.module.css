@@ -12,3 +12,85 @@
   display: flex;
   align-items: center;
 }
+
+/*
+ * Base dos campos. Seletores com 2 classes (0,2,0): uma classe do chamador
+ * com 3 classes (`.x.x.x`) vence, como o `style` inline vencia a base.
+ * O `outline: none` usa 3 classes (0,3,0) para continuar vencendo o anel de
+ * foco global `.urban-admin input:focus-visible` (0,2,1), como o inline fazia.
+ */
+.shell.shell {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.label.label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--admin-text-muted);
+  margin-bottom: 8px;
+}
+
+.helper.helper {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--admin-text-muted);
+}
+
+.error.error {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--admin-danger);
+}
+
+.field.field {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  padding: 0 12px;
+  background: var(--admin-surface-elevated);
+  border: 1px solid var(--admin-divider);
+  border-radius: 2px;
+  box-sizing: border-box;
+  color: var(--admin-text);
+  font-size: 13px;
+  font-weight: 400;
+  transition: border-color 120ms, background 120ms;
+  font-family: var(--font-brand);
+}
+
+.field.field.field {
+  outline: none;
+}
+
+.fieldWithAddon.fieldWithAddon {
+  padding-left: 36px;
+}
+
+.fieldInvalid.fieldInvalid {
+  border-color: var(--admin-danger);
+}
+
+.select.select {
+  appearance: none;
+  padding-right: 36px;
+  background-color: var(--admin-surface-elevated);
+  background-image: var(--admin-select-chevron);
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.textarea.textarea {
+  height: auto;
+  padding: 10px 12px;
+  line-height: 1.55;
+  resize: vertical;
+  font-family: var(--font-brand);
+}
