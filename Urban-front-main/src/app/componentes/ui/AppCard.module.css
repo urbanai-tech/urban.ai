@@ -3,6 +3,8 @@
  * Classes de base com UM seletor (0,1,0): as classes passadas por `className`
  * usam seletor duplicado (`.x.x`, 0,2,0) e sempre vencem, independente da ordem
  * dos arquivos CSS. Antes o estilo base era inline e `style` era espalhado por cima.
+ * title/subtitle/headerText/actions nao recebem className: usam seletor duplicado
+ * para vencer regras globais como .funnel-stack p (0,1,1), como o inline vencia.
  */
 .card {
   padding: 24px;
@@ -34,11 +36,11 @@
   margin-bottom: 16px;
 }
 
-.headerText {
+.headerText.headerText {
   min-width: 0;
 }
 
-.title {
+.title.title {
   font-size: 16px;
   font-weight: 600;
   color: var(--app-text);
@@ -46,13 +48,13 @@
   margin: 0;
 }
 
-.subtitle {
+.subtitle.subtitle {
   font-size: 13px;
   color: var(--app-text-muted);
   margin-top: 6px;
   line-height: 1.5;
 }
 
-.actions {
+.actions.actions {
   flex-shrink: 0;
 }
