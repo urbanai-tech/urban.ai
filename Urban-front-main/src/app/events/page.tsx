@@ -21,6 +21,7 @@ import {
 } from "@/app/service/api";
 import { formatDateRange, formatTime } from "@/app/componentes/ui/event-intelligence";
 import { dateAtLocalOffset, formatLocalDate } from "@/app/lib/date";
+import styles from "./events.module.css";
 
 type ViewMode = "list" | "map" | "calendar";
 
@@ -104,16 +105,10 @@ export default function EventsPage() {
 
       <AppCard variant="default" style={{ padding: 14, marginBottom: 22, overflow: "hidden" }}>
         <div
-          className="urban-events-filter-grid"
+          className={`urban-events-filter-grid ${styles.hostEventsFilters}`}
           data-testid="host-events-filters"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
-            gap: 12,
-            alignItems: "end",
-          }}
         >
-          <div style={{ gridColumn: "span 2", minWidth: 0 }}>
+          <div className={styles.eventsBox}>
             <AppInput
               label="Busca"
               placeholder="Nome, local ou bairro"
@@ -121,7 +116,7 @@ export default function EventsPage() {
               onChange={(event) => setSearch(event.target.value)}
             />
           </div>
-          <div style={{ gridColumn: "span 2", minWidth: 0 }}>
+          <div className={styles.eventsBox}>
             <AppSelect label="Cidade" value={city} onChange={(event) => setCity(event.target.value)}>
               {(response?.cities?.length ? response.cities : ["São Paulo"]).map((item) => (
                 <option key={item} value={item}>
@@ -130,7 +125,7 @@ export default function EventsPage() {
               ))}
             </AppSelect>
           </div>
-          <div style={{ gridColumn: "span 2", minWidth: 0 }}>
+          <div className={styles.eventsBox}>
             <AppSelect label="Categoria" value={category} onChange={(event) => setCategory(event.target.value)}>
               <option value="all">Todas</option>
               {(response?.categories ?? []).map((item) => (
@@ -140,7 +135,7 @@ export default function EventsPage() {
               ))}
             </AppSelect>
           </div>
-          <div style={{ gridColumn: "span 2", minWidth: 0 }}>
+          <div className={styles.eventsBox}>
             <AppSelect label="Fonte" value={source} onChange={(event) => setSource(event.target.value)}>
               <option value="all">Todas</option>
               {(response?.sources ?? []).map((item) => (
@@ -150,7 +145,7 @@ export default function EventsPage() {
               ))}
             </AppSelect>
           </div>
-          <div style={{ gridColumn: "span 1", minWidth: 0 }}>
+          <div className={styles.eventsBox2}>
             <AppInput
               type="date"
               label="De"
@@ -163,10 +158,10 @@ export default function EventsPage() {
               }}
             />
           </div>
-          <div style={{ gridColumn: "span 1", minWidth: 0 }}>
+          <div className={styles.eventsBox2}>
             <AppInput type="date" label="Até" value={to} min={from} onChange={(event) => setTo(event.target.value)} />
           </div>
-          <div style={{ gridColumn: "span 1", minWidth: 0 }}>
+          <div className={styles.eventsBox2}>
             <AppSelect
               label="Raio"
               value={radiusKm}
@@ -180,15 +175,15 @@ export default function EventsPage() {
               <option value="50">50 km</option>
             </AppSelect>
           </div>
-          <div style={{ gridColumn: "span 1", minWidth: 0 }}>
+          <div className={styles.eventsBox2}>
             <AppButton type="button" variant="secondary" fullWidth onClick={() => setReloadCount((count) => count + 1)}>
               Buscar
             </AppButton>
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginTop: 16 }}>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div className={styles.eventsRow}>
+          <div className={styles.eventsRowGap8}>
             <QuickFilter active={nearMyProperties} onClick={() => setNearMyProperties((value) => !value)}>
               Perto dos meus imóveis
             </QuickFilter>
@@ -236,11 +231,7 @@ export default function EventsPage() {
       ) : (
         <div
           data-testid="host-events-list"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))",
-            gap: 18,
-          }}
+          className={styles.hostEventsList}
         >
           {events.map((event) => (
             <EventCatalogCard
@@ -307,21 +298,7 @@ function QuickFilter({
     <button
       type="button"
       onClick={onClick}
-      style={{
-        height: 32,
-        padding: "0 12px",
-        borderRadius: 999,
-        border: active ? "1px solid color-mix(in srgb, var(--theme-app-accent) 35%, transparent)" : "1px solid var(--app-divider-strong)",
-        background: active ? "color-mix(in srgb, var(--theme-app-accent) 10%, transparent)" : "var(--app-surface)",
-        color: active ? "var(--app-accent)" : "var(--app-text-muted)",
-        fontSize: 12,
-        fontWeight: 700,
-        cursor: "pointer",
-        minHeight: 32,
-        maxWidth: "100%",
-        whiteSpace: "normal",
-        lineHeight: 1.2,
-      }}
+      className={`${styles.quickFilterButton} ${active ? styles.quickFilterButtonActive : styles.quickFilterButtonDefault}`}
     >
       {children}
     </button>
@@ -344,13 +321,7 @@ function SegmentedView({
     <div
       role="tablist"
       aria-label="Visualizacao"
-      style={{
-        display: "inline-flex",
-        padding: 3,
-        border: "1px solid var(--app-divider-strong)",
-        borderRadius: 8,
-        background: "var(--app-surface-muted)",
-      }}
+      className={styles.visualizacao}
     >
       {options.map((option) => (
         <button
@@ -359,19 +330,7 @@ function SegmentedView({
           role="tab"
           aria-selected={value === option.value}
           onClick={() => onChange(option.value)}
-          style={{
-            height: 30,
-            padding: "0 12px",
-            border: 0,
-            borderRadius: 6,
-            background: value === option.value ? "var(--app-surface)" : "transparent",
-            color: value === option.value ? "var(--app-text)" : "var(--app-text-muted)",
-            fontSize: 12,
-            fontWeight: 750,
-            cursor: "pointer",
-            boxShadow: value === option.value ? "var(--app-shadow-card)" : undefined,
-            minWidth: 0,
-          }}
+          className={`${styles.segmentedViewButton} ${value === option.value ? styles.segmentedViewButtonOption : styles.segmentedViewButtonDefault}`}
         >
           {option.label}
         </button>
@@ -394,17 +353,10 @@ function CatalogMap({
   return (
     <AppCard variant="default" style={{ padding: 0, overflow: "hidden" }}>
       <div
-        className="host-events-map-canvas"
-        style={{
-          minHeight: 520,
-          position: "relative",
-          background:
-            "linear-gradient(0deg, rgba(14,17,22,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(14,17,22,0.035) 1px, transparent 1px), #F6F7F9",
-          backgroundSize: "34px 34px",
-        }}
+        className={`host-events-map-canvas ${styles.hostEventsMap}`}
       >
-        <div style={{ position: "absolute", top: 18, left: 18, maxWidth: "calc(100% - 36px)" }}>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div className={styles.catalogMapAbs}>
+          <div className={styles.eventsRowGap8}>
             <AppBadge kind="accent">{geoEvents.length} no mapa</AppBadge>
             {missingGeoEvents.length > 0 && <AppBadge kind="warn">{missingGeoEvents.length} sem geo</AppBadge>}
           </div>
@@ -413,21 +365,14 @@ function CatalogMap({
         {geoEvents.length === 0 ? (
           <div
             data-testid="host-event-map-no-geo"
-            style={{
-              position: "absolute",
-              inset: 72,
-              display: "grid",
-              placeItems: "center",
-              textAlign: "center",
-              color: "var(--app-text-muted)",
-            }}
+            className={styles.hostEventMap}
           >
-            <div style={{ maxWidth: 380 }}>
+            <div className={styles.catalogMapBox}>
               <Icons.MapPin size={24} />
-              <p style={{ margin: "10px 0 4px", color: "var(--app-text)", fontSize: 15, fontWeight: 750 }}>
+              <p className={styles.catalogMapText}>
                 Eventos aguardando geolocalização
               </p>
-              <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5 }}>
+              <p className={styles.catalogMapText12}>
                 A lista e o calendário continuam disponíveis enquanto a coordenada do venue é enriquecida.
               </p>
             </div>
@@ -446,30 +391,15 @@ function CatalogMap({
                 data-testid="host-event-map-pin"
                 data-geo-cell={catalogGeoCellId(event)}
                 onClick={() => onOpen(event.id)}
-                style={{
-                  position: "absolute",
-                  left: `${left}%`,
-                  top: `${top}%`,
-                  transform: "translate(-50%, -50%)",
-                  border: `1px solid ${color.border}`,
-                  background: color.background,
-                  color: color.text,
-                  borderRadius: 8,
-                  padding: "8px 10px",
-                  width: "min(220px, 46vw)",
-                  textAlign: "left",
-                  cursor: "pointer",
-                  boxShadow: "0 12px 28px rgba(14, 17, 22, 0.13)",
-                  minWidth: 0,
-                }}
+                className={styles.hostEventMapPin} style={{ left: `${left}%`, top: `${top}%`, border: `1px solid ${color.border}`, background: color.background, color: color.text }}
               >
-                <span style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
-                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 12, fontWeight: 800 }}>
+                <span className={styles.catalogMapLabel}>
+                  <span className={styles.catalogMapLabel12}>
                     {event.name}
                   </span>
-                  <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 850 }}>{score || "-"}</span>
+                  <span className={styles.catalogMapLabel11}>{score || "-"}</span>
                 </span>
-                <span style={{ display: "block", marginTop: 3, fontSize: 10, fontWeight: 700, opacity: 0.82 }}>
+                <span className={styles.catalogMapLabel10}>
                   {catalogGeoCellId(event)}
                 </span>
               </button>
@@ -502,42 +432,16 @@ function MapRadarOverlay() {
         <span
           key={size}
           aria-hidden
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: "50%",
-            width: `${size}%`,
-            aspectRatio: "1 / 1",
-            transform: "translate(-50%, -50%)",
-            border: "1px solid rgba(14, 17, 22, 0.07)",
-            borderRadius: "50%",
-            pointerEvents: "none",
-          }}
+          className={styles.mapRadarOverlayLabel} style={{ width: `${size}%` }}
         />
       ))}
       <span
         aria-hidden
-        style={{
-          position: "absolute",
-          left: 42,
-          right: 42,
-          top: "50%",
-          height: 1,
-          background: "rgba(14, 17, 22, 0.06)",
-          pointerEvents: "none",
-        }}
+        className={styles.mapRadarOverlayLabelInk06}
       />
       <span
         aria-hidden
-        style={{
-          position: "absolute",
-          top: 42,
-          bottom: 42,
-          left: "50%",
-          width: 1,
-          background: "rgba(14, 17, 22, 0.06)",
-          pointerEvents: "none",
-        }}
+        className={styles.mapRadarOverlayLabelW1px}
       />
     </>
   );
@@ -553,49 +457,32 @@ function CatalogMissingGeoStrip({
   return (
     <div
       data-testid="host-event-map-missing-geo"
-      style={{
-        padding: 16,
-        borderTop: "1px solid var(--app-divider)",
-        background: "rgba(200, 129, 14, 0.08)",
-      }}
+      className={styles.hostEventMapStatusWarning08}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 10 }}>
-        <div style={{ minWidth: 0 }}>
-          <p style={{ margin: 0, color: "var(--app-text)", fontSize: 13, fontWeight: 800 }}>
+      <div className={styles.catalogMissingGeoStripRow}>
+        <div className={styles.catalogMissingGeoStripBox}>
+          <p className={styles.catalogMissingGeoStripText}>
             Fora do mapa por enquanto
           </p>
-          <p style={{ margin: "4px 0 0", color: "var(--app-text-muted)", fontSize: 12, lineHeight: 1.45 }}>
+          <p className={styles.catalogMissingGeoStripText12}>
             Eventos sem latitude/longitude seguem acionáveis na lista e no calendário.
           </p>
         </div>
         <AppBadge kind="warn">{events.length} {events.length === 1 ? "pendente" : "pendentes"}</AppBadge>
       </div>
-      <div className="host-events-missing-geo-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
+      <div className={`host-events-missing-geo-grid ${styles.hostEventsMissing}`}>
         {events.slice(0, 4).map((event) => (
           <button
             key={event.id}
             type="button"
             onClick={() => onOpen(event.id)}
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 10,
-              alignItems: "center",
-              border: "1px solid rgba(200, 129, 14, 0.22)",
-              borderRadius: 8,
-              padding: 10,
-              background: "rgba(255, 255, 255, 0.72)",
-              color: "var(--app-text)",
-              textAlign: "left",
-              cursor: "pointer",
-              minWidth: 0,
-            }}
+            className={styles.catalogMissingGeoStripButton}
           >
-            <span style={{ minWidth: 0 }}>
-              <span style={{ display: "block", fontSize: 12, fontWeight: 800, overflowWrap: "anywhere" }}>
+            <span className={styles.catalogMissingGeoStripBox}>
+              <span className={styles.catalogMissingGeoStripLabel}>
                 {event.name}
               </span>
-              <span style={{ display: "block", marginTop: 3, color: "var(--app-text-muted)", fontSize: 11 }}>
+              <span className={styles.catalogMissingGeoStripLabel11}>
                 {[event.venueName, event.city].filter(Boolean).join(" / ") || "Venue pendente"}
               </span>
             </span>
@@ -615,45 +502,33 @@ function CalendarView({
   onOpen: (eventId: string) => void;
 }) {
   return (
-    <div style={{ display: "grid", gap: 14 }}>
+    <div className={styles.calendarViewGrid}>
       {groupedByDate.map((group) => (
         <AppCard key={group.day} variant="default" style={{ padding: 18 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
-            <h3 style={{ margin: 0, color: "var(--app-text)", fontSize: 16, fontWeight: 750, letterSpacing: 0 }}>
+          <div className={styles.calendarViewRow}>
+            <h3 className={styles.calendarViewSubheading}>
               {formatDateRange(group.day, null)}
             </h3>
             <AppBadge kind="neutral">{group.events.length} {group.events.length === 1 ? "evento" : "eventos"}</AppBadge>
           </div>
-          <div style={{ display: "grid", gap: 10 }}>
+          <div className={styles.calendarViewGridGap10}>
             {group.events.map((event) => (
               <button
                 key={event.id}
                 type="button"
                 data-testid="host-event-calendar-item"
                 onClick={() => onOpen(event.id)}
-                style={{
-                  width: "100%",
-                  display: "grid",
-                  gridTemplateColumns: "minmax(0, 1fr) auto",
-                  gap: 12,
-                  alignItems: "center",
-                  border: "1px solid var(--app-divider)",
-                  background: "var(--app-surface)",
-                  borderRadius: 8,
-                  padding: 12,
-                  textAlign: "left",
-                  cursor: "pointer",
-                }}
+                className={styles.hostEventCalendar}
               >
-                <span style={{ minWidth: 0 }}>
-                  <span style={{ display: "block", color: "var(--app-text)", fontSize: 14, fontWeight: 750, overflowWrap: "anywhere" }}>
+                <span className={styles.catalogMissingGeoStripBox}>
+                  <span className={styles.calendarViewLabel}>
                     {event.name}
                   </span>
-                <span style={{ display: "block", color: "var(--app-text-muted)", fontSize: 12, marginTop: 3 }}>
+                <span className={styles.calendarViewLabel12}>
                   {formatTime(event.startsAt)} - {[event.venueName, event.city].filter(Boolean).join(" / ")}
                 </span>
               </span>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                <span className={styles.calendarViewLabelGap8}>
                   <AppBadge kind={eventScore(event) >= 80 ? "accent" : "neutral"}>{eventScore(event) || "-"}</AppBadge>
                   <Icons.ChevronRight size={16} />
                 </span>
@@ -708,9 +583,9 @@ function eventHeatColor(score: number): { background: string; border: string; te
     return { background: "color-mix(in srgb, var(--theme-app-accent) 16%, transparent)", border: "color-mix(in srgb, var(--theme-app-accent) 44%, transparent)", text: "var(--app-text)" };
   }
   if (score >= 74) {
-    return { background: "rgba(200, 129, 14, 0.16)", border: "rgba(200, 129, 14, 0.38)", text: "#8A5A0A" };
+    return { background: "var(--theme-app-legacy-status-warning-16)", border: "var(--theme-app-legacy-status-warning-38)", text: "var(--theme-app-legacy-status-warning-text)" };
   }
-  return { background: "rgba(22, 160, 107, 0.14)", border: "rgba(22, 160, 107, 0.32)", text: "#10724D" };
+  return { background: "var(--theme-app-legacy-status-success-14)", border: "var(--theme-app-legacy-status-success-32)", text: "var(--theme-app-legacy-status-success-text)" };
 }
 
 function catalogGeoCellId(event: EventCatalogItem): string {
@@ -722,31 +597,21 @@ function catalogGeoCellId(event: EventCatalogItem): string {
 
 function LoadingBlock() {
   return (
-    <div data-testid="host-events-loading" role="status" aria-live="polite" style={{ display: "grid", gap: 16 }}>
-      <div style={{ minHeight: 160, display: "grid", placeItems: "center", gap: 12, textAlign: "center" }}>
+    <div data-testid="host-events-loading" role="status" aria-live="polite" className={styles.hostEventsLoading}>
+      <div className={styles.loadingBlockGrid}>
         <Spinner />
-        <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 13 }}>
+        <p className={styles.loadingBlockText}>
           Carregando eventos mapeados pelo My Urban…
         </p>
       </div>
       <div
         aria-hidden
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-          gap: 14,
-        }}
+        className={styles.loadingBlockGridCols}
       >
         {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={index}
-            style={{
-              minHeight: 220,
-              borderRadius: 8,
-              border: "1px solid var(--app-divider)",
-              background:
-                "linear-gradient(90deg, var(--app-surface-muted) 0%, var(--app-surface) 45%, var(--app-surface-muted) 90%)",
-            }}
+            className={styles.loadingBlockPanel}
           />
         ))}
       </div>
@@ -783,14 +648,7 @@ function Spinner() {
     <span
       role="status"
       aria-label="Carregando"
-      style={{
-        width: 36,
-        height: 36,
-        borderRadius: "50%",
-        border: "3px solid var(--app-accent-soft)",
-        borderTopColor: "var(--app-accent)",
-        animation: "events-spin 0.9s linear infinite",
-      }}
+      className={styles.carregando}
     >
       <style>{`@keyframes events-spin { to { transform: rotate(360deg); } }`}</style>
     </span>

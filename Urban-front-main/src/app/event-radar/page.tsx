@@ -40,6 +40,7 @@ import {
   formatTime,
 } from "@/app/componentes/ui/event-intelligence";
 import { dateAtLocalOffset, formatLocalDate } from "@/app/lib/date";
+import styles from "./event-radar.module.css";
 
 function addDays(days: number) {
   return formatLocalDate(dateAtLocalOffset(days));
@@ -50,7 +51,7 @@ export default function EventRadarPage() {
     <Suspense
       fallback={
         <AppPageShell>
-          <div style={{ minHeight: 420, display: "grid", placeItems: "center" }}>
+          <div className={styles.eventRadarGrid}>
             <Spinner />
           </div>
         </AppPageShell>
@@ -211,11 +212,10 @@ function EventRadarContent() {
 
       <AppCard variant="default" style={{ padding: 14, marginBottom: 22, overflow: "hidden" }}>
         <div
-          className="urban-event-radar-filter-grid"
+          className={`urban-event-radar-filter-grid ${styles.hostEventRadar}`}
           data-testid="host-event-radar-filters"
-          style={{ display: "grid", gridTemplateColumns: "repeat(12, minmax(0, 1fr))", gap: 12, alignItems: "end" }}
         >
-          <div style={{ gridColumn: "span 2", minWidth: 0, maxWidth: 320 }}>
+          <div className={styles.eventRadarBox}>
             <AppInput
               type="date"
               label="De"
@@ -228,10 +228,10 @@ function EventRadarContent() {
               }}
             />
           </div>
-          <div style={{ gridColumn: "span 2", minWidth: 0 }}>
+          <div className={styles.eventRadarBox2}>
             <AppInput type="date" label="Até" value={to} min={from} onChange={(event) => setTo(event.target.value)} />
           </div>
-          <div style={{ gridColumn: "span 2", minWidth: 0, maxWidth: 320 }}>
+          <div className={styles.eventRadarBox}>
             <FilterLabel>Imóvel</FilterLabel>
             <PropertySelect
               value={propertyId}
@@ -244,17 +244,17 @@ function EventRadarContent() {
               maxWidth="100%"
             />
             {propertiesLoading && (
-              <p role="status" aria-live="polite" style={{ margin: "6px 0 0", color: "var(--app-text-muted)", fontSize: 11, lineHeight: 1.35 }}>
+              <p role="status" aria-live="polite" className={styles.eventRadarText}>
                 Carregando imóveis…
               </p>
             )}
             {propertyOptionsError && (
-              <p style={{ margin: "6px 0 0", color: "var(--app-warning-text)", fontSize: 11, lineHeight: 1.35 }}>
+              <p className={styles.eventRadarText11}>
                 {propertyOptionsError}
               </p>
             )}
           </div>
-          <div style={{ gridColumn: "span 2", minWidth: 0 }}>
+          <div className={styles.eventRadarBox2}>
             <AppSelect label="Categoria" value={category} onChange={(event) => setCategory(event.target.value)}>
               <option value="all">Todas</option>
               {categories.map((item) => (
@@ -264,7 +264,7 @@ function EventRadarContent() {
               ))}
             </AppSelect>
           </div>
-          <div style={{ gridColumn: "span 1", minWidth: 0 }}>
+          <div className={styles.eventRadarBox3}>
             <AppSelect label="Raio" value={radiusKm} onChange={(event) => setRadiusKm(event.target.value)}>
               <option value="2">2 km</option>
               <option value="5">5 km</option>
@@ -273,7 +273,7 @@ function EventRadarContent() {
               <option value="50">50 km</option>
             </AppSelect>
           </div>
-          <div style={{ gridColumn: "span 2", minWidth: 0 }}>
+          <div className={styles.eventRadarBox2}>
             <AppSelect
               label="Confiança"
               value={confidence}
@@ -285,7 +285,7 @@ function EventRadarContent() {
               <option value="low">Baixa</option>
             </AppSelect>
           </div>
-          <div style={{ gridColumn: "span 1", minWidth: 0 }}>
+          <div className={styles.eventRadarBox3}>
             <AppButton type="button" variant="secondary" fullWidth onClick={() => setReloadCount((count) => count + 1)}>
               Atualizar
             </AppButton>
@@ -322,9 +322,8 @@ function EventRadarContent() {
       ) : (
         <>
           <div
-            className="urban-event-radar-summary-grid"
+            className={`urban-event-radar-summary-grid ${styles.hostEventRadarCols}`}
             data-testid="host-event-radar-summary"
-            style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 14, marginBottom: 22 }}
           >
             <AppCard variant="default" style={{ padding: 18 }}>
               <AppMetricCard label="Potencial estimado" value={formatCompactCurrencyFromCents(response?.summary.revenuePotentialCents)} variant="sm" accent />
@@ -341,11 +340,10 @@ function EventRadarContent() {
           </div>
 
           <div
-            className="urban-event-radar-main-grid"
+            className={`urban-event-radar-main-grid ${styles.hostEventRadarGap22}`}
             data-testid="host-event-radar-main"
-            style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.35fr) minmax(340px, 420px)", gap: 22, alignItems: "start" }}
           >
-            <div style={{ display: "grid", gap: 22 }}>
+            <div className={styles.eventRadarGridGap22}>
               <EventDemandHeatmapPlaceholder
                 cells={response?.heatmap ?? []}
                 events={events}
@@ -366,7 +364,7 @@ function EventRadarContent() {
               )}
             </div>
 
-            <div style={{ display: "grid", gap: 14, position: "sticky", top: 24, minWidth: 0 }}>
+            <div className={styles.eventRadarGridGap14}>
               <AppCard variant="default" style={{ padding: 16 }}>
                 <AppCardHeader
                   eyebrow="PRIORIDADE"
@@ -454,9 +452,9 @@ function EventDetailPanel({
 
   return (
     <AppCard variant="default" style={{ minWidth: 0 }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 18, flexWrap: "wrap" }}>
-        <div style={{ minWidth: 0, flex: "1 1 420px" }}>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+      <div className={styles.eventDetailPanelRow}>
+        <div className={styles.eventDetailPanelBox}>
+          <div className={styles.eventDetailPanelRowGap8}>
             <AppBadge kind={confidenceBadgeKind(event.confidence)}>{confidenceLabel(event.confidence)}</AppBadge>
             {event.category && (
               <AppBadge
@@ -474,10 +472,10 @@ function EventDetailPanel({
               </AppBadge>
             )}
           </div>
-          <h2 style={{ margin: 0, color: "var(--app-text)", fontSize: 24, fontWeight: 800, lineHeight: 1.2, letterSpacing: 0 }}>
+          <h2 className={styles.eventDetailPanelHeading}>
             {event.name}
           </h2>
-          <p style={{ margin: "8px 0 0", color: "var(--app-text-muted)", fontSize: 13, lineHeight: 1.5 }}>
+          <p className={styles.eventDetailPanelText}>
             {formatDateRange(event.startsAt, event.endsAt)}
             {formatTime(event.startsAt) ? `, ${formatTime(event.startsAt)}` : ""} - {[event.venueName, event.city, event.state].filter(Boolean).join(" / ")}
           </p>
@@ -488,42 +486,25 @@ function EventDetailPanel({
       </div>
 
       {event.interpretation && (
-        <p style={{ margin: "18px 0 0", color: "var(--app-text)", fontSize: 15, lineHeight: 1.65 }}>
+        <p className={styles.eventDetailPanelText15}>
           {event.interpretation}
         </p>
       )}
       {(dataStatus !== "persisted" || !jobRunId) && (
-        <p style={{ margin: "10px 0 0", color: "var(--app-warning-text)", fontSize: 12, lineHeight: 1.5 }}>
+        <p className={styles.eventDetailPanelText12}>
           Leitura derivada: ainda não há snapshot persistido com jobRunId para auditoria completa.
         </p>
       )}
 
       {sourceLinks.length > 0 && (
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16 }}>
+        <div className={styles.eventDetailPanelRowGap10}>
           {sourceLinks.map((link) => (
             <a
               key={link.label}
               href={link.href}
               target="_blank"
               rel="noreferrer"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              height: 34,
-              padding: "0 12px",
-              minWidth: 0,
-              maxWidth: "100%",
-              borderRadius: 8,
-              border: "1px solid var(--app-divider-strong)",
-              color: "var(--app-text)",
-              textDecoration: "none",
-              fontSize: 13,
-              fontWeight: 700,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
+            className={styles.eventDetailPanelLink}
           >
               {link.label}
               <Icons.ArrowRight size={13} />
@@ -532,7 +513,7 @@ function EventDetailPanel({
         </div>
       )}
 
-      <div style={{ marginTop: 22 }}>
+      <div className={styles.eventDetailPanelBoxMar22}>
         <AppCardHeader
           eyebrow="IMÓVEIS IMPACTADOS"
           title="Onde agir"
@@ -542,18 +523,18 @@ function EventDetailPanel({
       </div>
 
       {selectedImpact && (
-        <div style={{ marginTop: 22 }}>
+        <div className={styles.eventDetailPanelBoxMar22}>
           <PriceAbsorptionScenarios
             title={`${selectedImpact.propertyName} - absorção inicial`}
             scenarios={selectedImpact.absorptionScenarios}
           />
           {simulating && (
-            <p role="status" aria-live="polite" style={{ margin: "10px 0 0", color: "var(--app-text-muted)", fontSize: 12 }}>
+            <p role="status" aria-live="polite" className={styles.eventDetailPanelTextTextMuted}>
               Atualizando simulação…
             </p>
           )}
           {simulationError && !simulating && (
-            <p role="alert" style={{ margin: "10px 0 0", color: "var(--app-danger)", fontSize: 12, lineHeight: 1.45 }}>
+            <p role="alert" className={styles.eventDetailPanelTextDanger}>
               {simulationError}
             </p>
           )}
@@ -565,33 +546,23 @@ function EventDetailPanel({
 
 function EventRadarLoading() {
   return (
-    <div data-testid="host-event-radar-loading" role="status" aria-live="polite" style={{ display: "grid", gap: 16 }}>
-      <div style={{ minHeight: 160, display: "grid", placeItems: "center", textAlign: "center" }}>
+    <div data-testid="host-event-radar-loading" role="status" aria-live="polite" className={styles.hostEventRadarGap16}>
+      <div className={styles.eventRadarLoadingGrid}>
         <div>
           <Spinner />
-          <p style={{ margin: "12px 0 0", color: "var(--app-text-muted)", fontSize: 13 }}>
+          <p className={styles.eventRadarLoadingText}>
             Calculando oportunidades dos eventos…
           </p>
         </div>
       </div>
       <div
         aria-hidden
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 14,
-        }}
+        className={styles.eventRadarLoadingGridCols}
       >
         {Array.from({ length: 4 }).map((_, index) => (
           <div
             key={index}
-            style={{
-              minHeight: 96,
-              borderRadius: 8,
-              border: "1px solid var(--app-divider)",
-              background:
-                "linear-gradient(90deg, var(--app-surface-muted) 0%, var(--app-surface) 45%, var(--app-surface-muted) 90%)",
-            }}
+            className={styles.eventRadarLoadingPanel}
           />
         ))}
       </div>
@@ -625,15 +596,7 @@ function shortTrace(value: string) {
 function FilterLabel({ children }: { children: React.ReactNode }) {
   return (
     <span
-      style={{
-        display: "block",
-        marginBottom: 6,
-        color: "var(--app-text-muted)",
-        fontSize: 11,
-        fontWeight: 600,
-        letterSpacing: 1.5,
-        textTransform: "uppercase",
-      }}
+      className={styles.filterLabelLabel}
     >
       {children}
     </span>
@@ -645,14 +608,7 @@ function Spinner() {
     <span
       role="status"
       aria-label="Carregando"
-      style={{
-        width: 36,
-        height: 36,
-        borderRadius: "50%",
-        border: "3px solid var(--app-accent-soft)",
-        borderTopColor: "var(--app-accent)",
-        animation: "event-radar-spin 0.9s linear infinite",
-      }}
+      className={styles.carregando}
     >
       <style>{`@keyframes event-radar-spin { to { transform: rotate(360deg); } }`}</style>
     </span>

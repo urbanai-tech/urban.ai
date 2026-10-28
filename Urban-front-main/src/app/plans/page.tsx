@@ -15,11 +15,7 @@ import { useEffect, useState } from "react";
 import { getPlans, type Plan } from "../service/api";
 import { useCheckoutReturnNotice } from "../componentes/useCheckoutReturnNotice";
 import { PricingSelfServiceCalculator } from "../componentes/PricingCalculatorV2";
-
-// Destaque da marca: deep no claro, mint no escuro (token do tema).
-const PLANS_ACCENT = "var(--app-accent)";
-// Só para títulos grandes (teal no claro tem 3,8:1; lima no escuro).
-const PLANS_HIGHLIGHT = "var(--app-highlight)";
+import styles from "./plans.module.css";
 
 export default function PlansPage() {
   useCheckoutReturnNotice("canceled");
@@ -36,25 +32,10 @@ export default function PlansPage() {
     return (
       <main
         id="main-content"
-        className="urban-app"
-        style={{
-          background: "var(--app-bg)",
-          color: "var(--app-text)",
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+        className={`urban-app ${styles.mainContent}`}
       >
         <p
-          style={{
-            fontSize: 11,
-            letterSpacing: 3,
-            textTransform: "uppercase",
-            color: "var(--app-text-muted)",
-            fontWeight: 600,
-            margin: 0,
-          }}
+          className={styles.plansText}
         >
           Carregando planos…
         </p>
@@ -67,68 +48,34 @@ export default function PlansPage() {
   return (
     <main
       id="main-content"
-      className="urban-app"
-      style={{ background: "var(--app-bg)", color: "var(--app-text)", minHeight: "100vh" }}
+      className={`urban-app ${styles.mainContentText}`}
     >
       {/* ============== HERO ============== */}
       <section
-        className="urban-grain"
-        style={{
-          position: "relative",
-          padding: "120px 24px 80px",
-          overflow: "hidden",
-        }}
+        className={`urban-grain ${styles.grain}`}
       >
         <div
-          className="urban-glow"
-          style={{
-            width: 700,
-            height: 700,
-            top: -200,
-            left: "50%",
-            transform: "translateX(-50%)",
-          }}
+          className={`urban-glow ${styles.glow}`}
         />
         <div
-          style={{
-            position: "relative",
-            zIndex: 2,
-            maxWidth: 1280,
-            margin: "0 auto",
-          }}
+          className={styles.plansBox}
         >
           <p
-            className="urban-eyebrow"
-            style={{ marginBottom: 32, color: "var(--app-text-muted)" }}
+            className={`urban-eyebrow ${styles.eyebrow}`}
           >
             CHECKOUT — ESCOLHA SEU PLANO
           </p>
           <h1
-            className="urban-app-display"
-            style={{
-              fontSize: "clamp(36px, 7.5vw, 96px)",
-              lineHeight: 0.98,
-              letterSpacing: "-1.5px",
-              fontWeight: 700,
-              margin: 0,
-              textTransform: "uppercase",
-            }}
+            className={`urban-app-display ${styles.appDisplay}`}
           >
             VOCÊ PAGA
             <br />
             POR IMÓVEL.
             <br />
-            <span style={{ color: PLANS_HIGHLIGHT }}>NADA MAIS.</span>
+            <span className={styles.highlightText}>NADA MAIS.</span>
           </h1>
           <p
-            style={{
-              fontSize: 18,
-              fontWeight: 400,
-              lineHeight: 1.75,
-              color: "var(--app-text-muted)",
-              maxWidth: 680,
-              marginTop: 40,
-            }}
+            className={styles.plansText18}
           >
             Comece com 1 imóvel ou comece com 10 — você só paga pelo que conecta.
             Ciclos longos tem desconto progressivo.
@@ -136,42 +83,24 @@ export default function PlansPage() {
         </div>
       </section>
 
-      <div style={{ height: 1, background: "var(--app-divider)" }} />
+      <div className={styles.plansBoxDivider} />
 
       {/* ============== PLANOS ============== */}
-      <section style={{ padding: "80px 24px" }}>
-        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <div style={{ position: "relative", marginBottom: 56 }}>
-            <div
-              style={{
-                position: "absolute",
-                left: -2,
-                top: 0,
-                width: 2,
-                height: 56,
-                background: PLANS_HIGHLIGHT,
-              }}
-            />
+      <section className={styles.plansSection}>
+        <div className={styles.plansBoxCentered}>
+          <div className={styles.plansBox2}>
+            <div className={styles.highlightBar} />
             <p
-              className="urban-eyebrow"
-              style={{ marginBottom: 16, color: PLANS_ACCENT }}
+              className={`urban-eyebrow ${styles.accentEyebrow}`}
             >
               CALCULE O SEU
             </p>
             <h2
-              className="urban-app-display"
-              style={{
-                fontSize: "clamp(28px, 4.5vw, 52px)",
-                lineHeight: 1,
-                letterSpacing: "-1px",
-                fontWeight: 700,
-                margin: 0,
-                textTransform: "uppercase",
-              }}
+              className={`urban-app-display ${styles.appDisplayFluid}`}
             >
               Selecione plano,
               <br />
-              <span style={{ color: PLANS_HIGHLIGHT }}>
+              <span className={styles.highlightText}>
                 ciclo e quantidade.
               </span>
             </h2>
@@ -179,23 +108,14 @@ export default function PlansPage() {
 
           {activePlans.length === 0 ? (
             <p
-              style={{
-                fontSize: 16,
-                color: "var(--app-text-muted)",
-                maxWidth: 580,
-              }}
+              className={styles.plansText16}
             >
               Nenhum plano disponível no momento. Fale com a equipe comercial
               para opções personalizadas.
             </p>
           ) : (
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns:
-                  "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
-                gap: 24,
-              }}
+              className={styles.plansGrid}
             >
               <PricingSelfServiceCalculator
                 plans={activePlans}
@@ -209,26 +129,15 @@ export default function PlansPage() {
         </div>
       </section>
 
-      <div style={{ height: 1, background: "var(--app-divider)" }} />
+      <div className={styles.plansBoxDivider} />
 
       {/* ============== FOOTER ============== */}
-      <section style={{ padding: "60px 24px 100px" }}>
+      <section className={styles.plansSectionCompact}>
         <div
-          style={{
-            maxWidth: 880,
-            margin: "0 auto",
-            textAlign: "center",
-          }}
+          className={styles.plansBox3}
         >
           <p
-            style={{
-              fontSize: 14,
-              fontWeight: 400,
-              lineHeight: 1.75,
-              color: "var(--app-text-muted)",
-              maxWidth: 640,
-              margin: "0 auto",
-            }}
+            className={styles.plansText14}
           >
             Pagamento seguro via Stripe. Cancele a qualquer momento — sem
             contrato. Mensal e flexibilidade pura, anual e o melhor

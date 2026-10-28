@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 6,
+  "revision": 7,
   "createdAt": "2026-07-15T00:00:00.000Z",
   "policy": {
     "scope": "src/**/*.{css,js,jsx,ts,tsx}",
@@ -18,7 +18,7 @@
   },
   "metrics": {
     "rawColors": {
-      "total": 155,
+      "total": 119,
       "files": {
         "src/app/(home)/page.tsx": 1,
         "src/app/(public)/contato/page.tsx": 1,
@@ -36,13 +36,10 @@
         "src/app/componentes/ui/AskUrbanProvider.tsx": 3,
         "src/app/componentes/ui/SkipLink.tsx": 2,
         "src/app/componentes/WaitlistSignup.tsx": 5,
-        "src/app/create/page.tsx": 5,
-        "src/app/events/page.tsx": 16,
         "src/app/globals.css": 1,
         "src/app/layout.tsx": 2,
         "src/app/lib/seo-og-image.tsx": 9,
         "src/app/maps/components/GoogleMapEmbed.tsx": 13,
-        "src/app/maps/page.tsx": 3,
         "src/app/onboarding/onboarding-primitives.tsx": 3,
         "src/app/onboarding/page.tsx": 1,
         "src/app/portfolio/components/ActionSimulationDialog.tsx": 1,
@@ -53,12 +50,11 @@
         "src/app/request-reset-password/page.tsx": 1,
         "src/app/reset-password/page.tsx": 4,
         "src/app/settings/communications/page.tsx": 2,
-        "src/app/settings/integrations/page.tsx": 12,
         "src/app/waitlist/aceitar/page.tsx": 5
       }
     },
     "inlineStyles": {
-      "total": 1148,
+      "total": 828,
       "files": {
         "src/app/(home)/page.tsx": 40,
         "src/app/(public)/contato/page.tsx": 3,
@@ -143,35 +139,34 @@
         "src/app/componentes/ui/AskUrbanUpgradeModal.tsx": 8,
         "src/app/componentes/ui/DriverBar.tsx": 8,
         "src/app/componentes/ui/event-intelligence/EventCatalogCard.tsx": 18,
-        "src/app/componentes/ui/event-intelligence/EventDemandHeatmapPlaceholder.tsx": 89,
+        "src/app/componentes/ui/event-intelligence/EventDemandHeatmapPlaceholder.tsx": 8,
         "src/app/componentes/ui/event-intelligence/EventImage.tsx": 6,
-        "src/app/componentes/ui/event-intelligence/EventImpactTable.tsx": 20,
+        "src/app/componentes/ui/event-intelligence/EventImpactTable.tsx": 3,
         "src/app/componentes/ui/event-intelligence/EventRadarCard.tsx": 17,
         "src/app/componentes/ui/event-intelligence/PriceAbsorptionScenarios.tsx": 17,
-        "src/app/componentes/ui/PaceChart.tsx": 32,
+        "src/app/componentes/ui/PaceChart.tsx": 4,
         "src/app/componentes/ui/PortfolioCalendar.tsx": 16,
         "src/app/componentes/ui/ScenarioComparison.tsx": 6,
         "src/app/componentes/ui/SkipLink.tsx": 1,
         "src/app/componentes/WaitlistForm.tsx": 10,
         "src/app/componentes/WaitlistSignup.tsx": 30,
         "src/app/confirm-email/page.tsx": 13,
-        "src/app/create/page.tsx": 29,
+        "src/app/create/page.tsx": 3,
         "src/app/dashboard/components/ItemEvento.tsx": 1,
         "src/app/event-log/page.tsx": 2,
-        "src/app/event-radar/page.tsx": 45,
+        "src/app/event-radar/page.tsx": 10,
         "src/app/events/[eventId]/page.tsx": 34,
-        "src/app/events/page.tsx": 59,
+        "src/app/events/page.tsx": 6,
         "src/app/forbidden/page.tsx": 10,
         "src/app/lib/seo-og-image.tsx": 31,
         "src/app/maps/components/GoogleMapEmbed.tsx": 4,
-        "src/app/maps/page.tsx": 29,
+        "src/app/maps/page.tsx": 7,
         "src/app/my-plan/page.tsx": 1,
         "src/app/my-roi/page.tsx": 5,
         "src/app/near-events/[id]/page.tsx": 13,
         "src/app/near-events/page.tsx": 3,
         "src/app/not-found.tsx": 10,
         "src/app/onboarding/onboarding-primitives.tsx": 9,
-        "src/app/plans/page.tsx": 24,
         "src/app/portfolio/components/ActionSimulationDialog.tsx": 1,
         "src/app/portfolio/components/OpportunityRanking.tsx": 1,
         "src/app/portfolio/components/PortfolioActionRuns.tsx": 1,
@@ -191,7 +186,7 @@
         "src/app/request-reset-password/page.tsx": 9,
         "src/app/reset-password/page.tsx": 17,
         "src/app/settings/communications/page.tsx": 9,
-        "src/app/settings/integrations/page.tsx": 39,
+        "src/app/settings/integrations/page.tsx": 5,
         "src/app/waitlist/aceitar/page.tsx": 18
       }
     },
@@ -300,7 +295,21 @@
         "inlineStyles": 1148,
         "nonCanonicalBreakpoints": 29
       }
+    },
+    {
+      "at": "2026-10-28T14:43:02.892Z",
+      "reason": "DS2c: cadastro, planos, eventos, radar, integracoes e mapas migrados para CSS Modules e tokens",
+      "from": {
+        "rawColors": 155,
+        "inlineStyles": 1148,
+        "nonCanonicalBreakpoints": 29
+      },
+      "to": {
+        "rawColors": 119,
+        "inlineStyles": 828,
+        "nonCanonicalBreakpoints": 29
+      }
     }
   ],
-  "updatedAt": "2026-10-28T14:27:09.096Z"
+  "updatedAt": "2026-10-28T14:43:02.881Z"
 }

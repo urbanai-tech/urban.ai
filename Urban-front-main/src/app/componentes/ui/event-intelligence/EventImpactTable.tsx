@@ -13,6 +13,7 @@ import {
   formatMultiplier,
   formatPercent,
 } from "./formatters";
+import styles from "./EventImpactTable.module.css";
 
 export function EventImpactTable({
   impacts,
@@ -24,7 +25,7 @@ export function EventImpactTable({
   if (impacts.length === 0) {
     return (
       <AppCard variant="subtle" style={{ padding: 18 }}>
-        <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 14 }}>
+        <p className={styles.eventImpactTableText}>
           Nenhum imóvel impactado encontrado para este evento.
         </p>
       </AppCard>
@@ -34,19 +35,11 @@ export function EventImpactTable({
   return (
     <>
     <div
-      className="event-impact-table-scroll"
+      className={`event-impact-table-scroll ${styles.hostEventImpact}`}
       data-testid="host-event-impact-table"
-      style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}
     >
       <table
-        style={{
-          width: "100%",
-          minWidth: 900,
-          borderCollapse: "separate",
-          borderSpacing: 0,
-          fontSize: 13,
-          color: "var(--app-text)",
-        }}
+        className={styles.eventImpactTableTable}
       >
         <thead>
           <tr>
@@ -54,17 +47,7 @@ export function EventImpactTable({
               (header) => (
                 <th
                   key={header}
-                  style={{
-                    textAlign: "left",
-                    padding: "0 12px 10px",
-                    color: "var(--app-text-muted)",
-                    fontSize: 10,
-                    fontWeight: 750,
-                    letterSpacing: 1.2,
-                    textTransform: "uppercase",
-                    borderBottom: "1px solid var(--app-divider)",
-                    whiteSpace: "nowrap",
-                  }}
+                  className={styles.eventImpactTableHeadCell}
                 >
                   {header}
                 </th>
@@ -76,8 +59,8 @@ export function EventImpactTable({
           {impacts.map((impact) => (
             <tr key={impact.propertyId}>
               <Cell strong>
-                <div style={{ display: "grid", gap: 4, minWidth: 0 }}>
-                  <span style={{ overflowWrap: "anywhere" }}>{impact.propertyName}</span>
+                <div className={styles.eventImpactTableGrid}>
+                  <span className={styles.eventImpactTableLabel}>{impact.propertyName}</span>
                   <AppBadge kind={confidenceBadgeKind(impact.confidence)} style={{ width: "fit-content" }}>
                     {confidenceLabel(impact.confidence)}
                   </AppBadge>
@@ -88,9 +71,9 @@ export function EventImpactTable({
               <Cell>{formatCurrencyFromCents(impact.currentPriceCents)}</Cell>
               <Cell>{formatPriceRange(impact.minAbsorbablePriceCents, impact.maxAbsorbablePriceCents)}</Cell>
               <Cell>
-                <span style={{ fontWeight: 750 }}>{formatCurrencyFromCents(impact.recommendedPriceCents)}</span>
+                <span className={styles.eventImpactTableLabel2}>{formatCurrencyFromCents(impact.recommendedPriceCents)}</span>
                 {impact.recommendedMultiplier && (
-                  <span style={{ color: "var(--app-text-muted)", marginLeft: 6 }}>
+                  <span className={styles.eventImpactTableLabelTextMuted}>
                     {formatMultiplier(impact.recommendedMultiplier)}
                   </span>
                 )}
@@ -164,13 +147,7 @@ function Cell({
 }) {
   return (
     <td
-      style={{
-        padding: "14px 12px",
-        borderBottom: "1px solid var(--app-divider)",
-        verticalAlign: "middle",
-        fontWeight: strong ? 700 : 500,
-        whiteSpace: strong ? "normal" : "nowrap",
-      }}
+      className={`${styles.cellCell} ${strong ? styles.cellCellStrong : styles.cellCellDefault}`}
     >
       {children}
     </td>
@@ -187,14 +164,13 @@ function ImpactMobileCard({
   return (
     <AppCard variant="subtle" style={{ padding: 14 }}>
       <div
-        className="event-impact-mobile-header"
-        style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}
+        className={`event-impact-mobile-header ${styles.eventImpactMobile}`}
       >
-        <div style={{ minWidth: 0 }}>
-          <p style={{ margin: 0, color: "var(--app-text)", fontSize: 14, fontWeight: 750, overflowWrap: "anywhere" }}>
+        <div className={styles.impactMobileCardBox}>
+          <p className={styles.impactMobileCardText}>
             {impact.propertyName}
           </p>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
+          <div className={styles.impactMobileCardRow}>
             <AppBadge kind={confidenceBadgeKind(impact.confidence)}>
               {confidenceLabel(impact.confidence)}
             </AppBadge>
@@ -216,7 +192,7 @@ function ImpactMobileCard({
         </AppButton>
       </div>
 
-      <div className="event-impact-mobile-metrics" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10, marginTop: 14 }}>
+      <div className={`event-impact-mobile-metrics ${styles.eventImpactMobileCols}`}>
         <MobileMetric label="Captura" value={String(impact.propertyCaptureScore ?? "-")} />
         <MobileMetric label="Chance" value={formatPercent(impact.bookingProbability)} />
         <MobileMetric label="Atual" value={formatCurrencyFromCents(impact.currentPriceCents)} />
@@ -238,11 +214,11 @@ function MobileMetric({
   wide?: boolean;
 }) {
   return (
-    <div className={wide ? "event-impact-mobile-metric-wide" : undefined} style={{ gridColumn: wide ? "span 2" : undefined, minWidth: 0 }}>
-      <p style={{ margin: "0 0 3px", color: "var(--app-text-muted)", fontSize: 10, fontWeight: 750, letterSpacing: 1.1, textTransform: "uppercase" }}>
+    <div className={[wide ? "event-impact-mobile-metric-wide" : null, styles.mobileMetric, wide ? styles.mobileMetricWide : null].filter(Boolean).join(" ")}>
+      <p className={styles.mobileMetricText}>
         {label}
       </p>
-      <p style={{ margin: 0, color: "var(--app-text)", fontSize: 13, fontWeight: 750, lineHeight: 1.25, overflowWrap: "anywhere" }}>
+      <p className={styles.mobileMetricText13}>
         {value}
       </p>
     </div>

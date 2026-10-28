@@ -1,0 +1,126 @@
+.eventImpactTableText.eventImpactTableText {
+  margin: 0;
+  color: var(--app-text-muted);
+  font-size: 14px;
+}
+
+.hostEventImpact.hostEventImpact {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.eventImpactTableTable.eventImpactTableTable {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  color: var(--app-text);
+}
+
+.eventImpactTableHeadCell.eventImpactTableHeadCell {
+  text-align: left;
+  padding: 0 12px 10px;
+  color: var(--app-text-muted);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--app-divider);
+  white-space: nowrap;
+}
+
+.eventImpactTableGrid.eventImpactTableGrid {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.eventImpactTableLabel.eventImpactTableLabel {
+  overflow-wrap: anywhere;
+}
+
+.eventImpactTableLabel2.eventImpactTableLabel2 {
+  font-weight: 750;
+}
+
+.eventImpactTableLabelTextMuted.eventImpactTableLabelTextMuted {
+  color: var(--app-text-muted);
+  margin-left: 6px;
+}
+
+.cellCell.cellCell {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--app-divider);
+  vertical-align: middle;
+}
+
+.cellCellStrong.cellCellStrong {
+  font-weight: 700;
+  white-space: normal;
+}
+
+.cellCellDefault.cellCellDefault {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.eventImpactMobile.eventImpactMobile {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.impactMobileCardBox.impactMobileCardBox {
+  min-width: 0;
+}
+
+.impactMobileCardText.impactMobileCardText {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 14px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.impactMobileCardRow.impactMobileCardRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.eventImpactMobileCols.eventImpactMobileCols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.mobileMetricText.mobileMetricText {
+  margin: 0 0 3px;
+  color: var(--app-text-muted);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+
+.mobileMetricText13.mobileMetricText13 {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.mobileMetric.mobileMetric {
+  min-width: 0;
+}
+
+.mobileMetricWide.mobileMetricWide {
+  grid-column: span 2;
+}

@@ -1,0 +1,568 @@
+.hostEventDemand.hostEventDemand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px;
+  border-bottom: 1px solid var(--app-divider);
+  flex-wrap: wrap;
+}
+
+.eventDemandHeatmapPlaceholderBox.eventDemandHeatmapPlaceholderBox {
+  min-width: 0;
+}
+
+.appEyebrowMuted.appEyebrowMuted {
+  margin-bottom: 4px;
+}
+
+.eventDemandHeatmapPlaceholderSubheading.eventDemandHeatmapPlaceholderSubheading {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 17px;
+  font-weight: 750;
+  letter-spacing: 0;
+}
+
+.eventDemandHeatmapPlaceholderRow.eventDemandHeatmapPlaceholderRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.eventDemandHeatmap.eventDemandHeatmap {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.7fr);
+  gap: 0;
+  min-width: 0;
+}
+
+.hostEventDemandDivider.hostEventDemandDivider {
+  position: relative;
+  min-height: 440px;
+  background: linear-gradient(0deg, var(--app-divider) 1px, transparent 1px), linear-gradient(90deg, var(--app-divider) 1px, transparent 1px), var(--app-surface-muted);
+  background-size: 34px 34px;
+  overflow: hidden;
+  border-right: 1px solid var(--app-divider);
+}
+
+.eventDemandHeatmapPlaceholderAbs.eventDemandHeatmapPlaceholderAbs {
+  position: absolute;
+  inset: 26px;
+  border: 1px solid var(--app-divider);
+  border-radius: 8px;
+}
+
+.hostEventDemandR50.hostEventDemandR50 {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+}
+
+.eventDemandHeatmapPlaceholderLabel.eventDemandHeatmapPlaceholderLabel {
+  font-size: 22px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.eventDemandHeatmapPlaceholderLabel10.eventDemandHeatmapPlaceholderLabel10 {
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.eventDemandHeatmapPlaceholderLabel9.eventDemandHeatmapPlaceholderLabel9 {
+  margin-top: 3px;
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1;
+  max-width: 80%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eventDemandHeatmap11.eventDemandHeatmap11 {
+  position: absolute;
+  bottom: -34px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160px;
+  color: var(--app-text);
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.25;
+  text-align: center;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
+.hostEventDemandGap12.hostEventDemandGap12 {
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
+}
+
+.eventDemandHeatmapPlaceholderText.eventDemandHeatmapPlaceholderText {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.eventDemandHeatmapCols.eventDemandHeatmapCols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+  gap: 16px;
+  padding: 18px;
+  border-top: 1px solid var(--app-divider);
+}
+
+.hostEventDemandGap14.hostEventDemandGap14 {
+  display: grid;
+  gap: 14px;
+}
+
+.heatmapLoadingStateRow.heatmapLoadingStateRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.heatmapLoadingStateSubheading.heatmapLoadingStateSubheading {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 17px;
+  font-weight: 750;
+}
+
+.heatmapLoadingStatePanel.heatmapLoadingStatePanel {
+  min-height: 280px;
+  border-radius: 8px;
+  border: 1px solid var(--app-divider);
+  background: linear-gradient(90deg, var(--app-surface-muted) 0%, var(--app-surface) 45%, var(--app-surface-muted) 90%);
+}
+
+.hostEventDemand2.hostEventDemand2 {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.heatmapErrorStateSubheading.heatmapErrorStateSubheading {
+  margin: 10px 0 6px;
+  color: var(--app-text);
+  font-size: 17px;
+  font-weight: 750;
+}
+
+.heatmapErrorStateText.heatmapErrorStateText {
+  margin: 0;
+  color: var(--app-text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.hostEventDemandPad24.hostEventDemandPad24 {
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  text-align: center;
+  background: linear-gradient(0deg, var(--app-divider) 1px, transparent 1px), linear-gradient(90deg, var(--app-divider) 1px, transparent 1px), var(--app-surface-muted);
+  background-size: 34px 34px;
+}
+
+.heatmapEmptyStateBox.heatmapEmptyStateBox {
+  max-width: 460px;
+}
+
+.heatmapEmptyStateText.heatmapEmptyStateText {
+  margin: 10px 0 4px;
+  color: var(--app-text);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.mapLabelAbs.mapLabelAbs {
+  position: absolute;
+  left: 28px;
+  top: 28px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--app-surface-elevated, var(--app-surface));
+  border: 1px solid var(--app-divider);
+  color: var(--app-text-muted);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hostEventDemandGap10.hostEventDemandGap10 {
+  position: absolute;
+  right: 28px;
+  bottom: 24px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: calc(100% - 56px);
+}
+
+.heatLegendLabel.heatLegendLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 0 9px;
+  border-radius: 8px;
+  background: var(--app-surface-elevated, var(--app-surface));
+  border: 1px solid var(--app-divider);
+  color: var(--app-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.heatLegendLabelW8px.heatLegendLabelW8px {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.heatLegendLabel11.heatLegendLabel11 {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 9px;
+  border-radius: 8px;
+  background: var(--app-surface-elevated, var(--app-surface));
+  border: 1px solid var(--app-divider);
+  color: var(--app-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.radarGridOverlayLabel.radarGridOverlayLabel {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--app-divider);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.radarGridOverlayLabelDivider.radarGridOverlayLabelDivider {
+  position: absolute;
+  left: 50%;
+  top: 44px;
+  bottom: 44px;
+  width: 1px;
+  background: var(--app-divider);
+  pointer-events: none;
+}
+
+.radarGridOverlayLabelH1px.radarGridOverlayLabelH1px {
+  position: absolute;
+  top: 50%;
+  left: 44px;
+  right: 44px;
+  height: 1px;
+  background: var(--app-divider);
+  pointer-events: none;
+}
+
+.eventDemandHeatmap10.eventDemandHeatmap10 {
+  position: absolute;
+  left: 30px;
+  bottom: 28px;
+  color: var(--app-text-muted);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.hostEventDemandTextMuted.hostEventDemandTextMuted {
+  position: absolute;
+  inset: 72px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: var(--app-text-muted);
+}
+
+.noGeoCanvasBox.noGeoCanvasBox {
+  max-width: 360px;
+}
+
+.noGeoCanvasText.noGeoCanvasText {
+  margin: 10px 0 4px;
+  color: var(--app-text);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.noGeoCanvasText12.noGeoCanvasText12 {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.hostEventDemandPad12.hostEventDemandPad12 {
+  border-radius: 8px;
+  padding: 12px;
+  min-width: 0;
+}
+
+.hostEventDemandSelected.hostEventDemandSelected {
+  border: 1px solid var(--app-accent);
+  background: var(--app-accent-soft);
+}
+
+.hostEventDemandDefault.hostEventDemandDefault {
+  border: 1px solid var(--app-divider);
+  background: var(--app-surface);
+}
+
+.regionCardRow.regionCardRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.regionCardText.regionCardText {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 13px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.regionCardText11.regionCardText11 {
+  margin: 3px 0 0;
+  color: var(--app-text-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.regionCardGrid.regionCardGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.regionCardTextTextMuted.regionCardTextTextMuted {
+  margin: 10px 0 0;
+  color: var(--app-text-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.regionCardRowGap6.regionCardRowGap6 {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.hostEventDemand11.hostEventDemand11 {
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 8px;
+  border: 1px solid var(--app-divider-strong);
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.regionCardRowGap8.regionCardRowGap8 {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.cellCodePillText.cellCodePillText {
+  margin: 7px 0 0;
+  color: var(--app-text-muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.cellCodePillLabel.cellCodePillLabel {
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.cellCodePillLabel2.cellCodePillLabel2 {
+  font-family: monospace;
+  overflow-wrap: anywhere;
+}
+
+.cityPotentialPanelText.cityPotentialPanelText {
+  margin: 0 0 10px;
+  color: var(--app-text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.eventDemandHeatmapGap10.eventDemandHeatmapGap10 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.cityPotentialPanelPanel.cityPotentialPanelPanel {
+  border: 1px solid var(--app-divider);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--app-surface-muted);
+  min-width: 0;
+}
+
+.cityPotentialPanelText18.cityPotentialPanelText18 {
+  margin: 5px 0 0;
+  color: var(--app-text);
+  font-size: 18px;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.cityPotentialPanelText11.cityPotentialPanelText11 {
+  margin: 5px 0 0;
+  color: var(--app-text-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.impactedPropertiesPanelGrid.impactedPropertiesPanelGrid {
+  display: grid;
+  gap: 8px;
+}
+
+.impactedPropertiesPanelGridSurfaceMuted.impactedPropertiesPanelGridSurfaceMuted {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--app-divider);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--app-surface-muted);
+}
+
+.impactedPropertiesPanelLabel.impactedPropertiesPanelLabel {
+  display: block;
+  color: var(--app-text);
+  font-size: 12px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.impactedPropertiesPanelLabel11.impactedPropertiesPanelLabel11 {
+  display: block;
+  margin-top: 3px;
+  color: var(--app-text-muted);
+  font-size: 11px;
+}
+
+.impactedPropertiesPanelLabel12.impactedPropertiesPanelLabel12 {
+  color: var(--app-text);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.hostEventDemandSurfaceMuted.hostEventDemandSurfaceMuted {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border-top: 1px solid var(--app-divider);
+  background: var(--app-surface-muted);
+}
+
+.missingGeoPanelRow.missingGeoPanelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.missingGeoPanelText.missingGeoPanelText {
+  margin: 4px 0 0;
+  color: var(--app-text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.missingGeoPanelGrid.missingGeoPanelGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.missingGeoPanelRowSurface.missingGeoPanelRowSurface {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--app-warning);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--app-surface);
+  min-width: 0;
+}
+
+.missingGeoPanelRowGap6.missingGeoPanelRowGap6 {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.miniMetricText.miniMetricText {
+  margin: 0 0 2px;
+  color: var(--app-text-muted);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.miniMetricText12.miniMetricText12 {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.compactEmptyPanel.compactEmptyPanel {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px dashed var(--app-divider-strong);
+  color: var(--app-text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+  background: var(--app-surface-muted);
+}
