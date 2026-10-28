@@ -25,6 +25,7 @@ import {
   useToastCompat,
 } from "../componentes/ui";
 import { stashPendingEmail } from "@/app/lib/auth-links";
+import styles from "./create.module.css";
 
 // Função de hash
 async function sha256(message: string): Promise<string> {
@@ -113,16 +114,9 @@ const Register = () => {
   if (prelaunchLoading) {
     return (
       <div
-        className="urban-app"
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "var(--app-bg)",
-        }}
+        className={`urban-app ${styles.app}`}
       >
-        <p style={{ color: "var(--app-text-muted)", fontSize: 14 }}>
+        <p className={styles.registerText}>
           Carregando…
         </p>
       </div>
@@ -204,67 +198,33 @@ const Register = () => {
 
   return (
     <div
-      className="urban-app"
-      style={{
-        minHeight: "100vh",
-        width: "100%",
-        background: "var(--app-bg)",
-        display: "flex",
-        flexDirection: "row",
-        overflow: "hidden",
-      }}
+      className={`urban-app ${styles.appBg}`}
     >
       {/* Painel esquerdo: imagem + overlay editorial discreto */}
       <div
-        style={{
-          display: "none",
-          width: "50%",
-          height: "100vh",
-          position: "relative",
-        }}
-        className="urban-create-side"
+        className={`urban-create-side ${styles.createSide}`}
       >
         <Image
           src="/urbanai_only.png"
           alt="My Urban"
           fill
           priority
-          style={{ objectFit: "cover" }}
+          className={styles.registerBox}
           sizes="50vw"
         />
         <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "linear-gradient(180deg, rgba(8,10,15,0.0) 0%, rgba(8,10,15,0.45) 100%)",
-            pointerEvents: "none",
-          }}
+          className={styles.registerAbs}
         />
         <div
-          style={{
-            position: "absolute",
-            left: 40,
-            bottom: 40,
-            color: "#fff",
-            maxWidth: 360,
-            pointerEvents: "none",
-          }}
+          className={styles.registerAbsWhite}
         >
           <p
-            className="urban-app-eyebrow"
-            style={{ color: "#fff", opacity: 0.85, marginBottom: 12 }}
+            className={`urban-app-eyebrow ${styles.appEyebrow}`}
           >
             BEM-VINDO AO MY URBAN
           </p>
           <p
-            style={{
-              margin: 0,
-              fontSize: 18,
-              fontWeight: 500,
-              lineHeight: 1.45,
-              letterSpacing: -0.1,
-            }}
+            className={styles.registerText18}
           >
             Sugestões de preço, anúncios organizados e resultados acompanhados
             em um só lugar.
@@ -274,33 +234,13 @@ const Register = () => {
 
       {/* Painel direito: formulário */}
       <div
-        style={{
-          width: "100%",
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 24,
-          background: "var(--app-bg)",
-          overflowY: "auto",
-        }}
-        className="urban-create-form"
+        className={`urban-create-form ${styles.createForm}`}
       >
         <div
-          className="urban-enter"
-          style={{
-            animationDuration: "500ms",
-            "--urban-enter-distance": "30px",
-            width: "100%",
-            maxWidth: 480,
-          } as React.CSSProperties}
+          className={`urban-enter ${styles.enter}`}
         >
           <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              marginBottom: 24,
-            }}
+            className={styles.registerRow}
           >
             <Image
               alt="My Urban"
@@ -308,7 +248,7 @@ const Register = () => {
               width={180}
               height={56}
               priority
-              style={{ height: "auto" }}
+              className={styles.registerBoxHauto}
             />
           </div>
 
@@ -327,11 +267,7 @@ const Register = () => {
           >
           <AppCard variant="elevated" style={{ padding: 28 }}>
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                gap: 16,
-              }}
+              className={styles.registerGrid}
             >
               <AppInput
                 label="Nome de usuário"
@@ -348,7 +284,7 @@ const Register = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Seu e-mail"
                 autoComplete="email"
-                leftAddon={<span style={{ fontSize: 13 }}>@</span>}
+                leftAddon={<span className={styles.registerLabel}>@</span>}
               />
               <PasswordField
                 label="Senha"
@@ -381,26 +317,15 @@ const Register = () => {
             </div>
 
             <div
-              style={{
-                marginTop: 18,
-                padding: 16,
-                background: "var(--app-surface-muted)",
-                border: "1px solid var(--app-divider)",
-                borderRadius: 10,
-              }}
+              className={styles.registerPanel}
             >
               <p
-                style={{
-                  margin: "0 0 10px",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "var(--app-text)",
-                }}
+                className={styles.registerText13}
               >
                 Regras da senha
               </p>
               <ul
-                style={{ listStyle: "none", padding: 0, margin: 0 }}
+                className={styles.registerList}
                 aria-live="polite"
               >
                 {PASSWORD_RULES.map((rule) => (
@@ -413,22 +338,11 @@ const Register = () => {
                 <RuleRow ok={match} label="As senhas devem coincidir" />
               </ul>
               <p
-                style={{
-                  marginTop: 10,
-                  fontSize: 12,
-                  color: "var(--app-text-muted)",
-                }}
+                className={styles.registerText12}
               >
                 Força:{" "}
                 <strong
-                  style={{
-                    color:
-                      strength === "Forte"
-                        ? "var(--app-success)"
-                        : strength === "Média"
-                          ? "var(--app-warning-text)"
-                          : "var(--app-danger)",
-                  }}
+                  className={`${strength === "Forte" ? styles.registerStrongStrength : strength === "Média" ? styles.registerStrongStrengthWarningText : styles.registerStrongDefault}`}
                 >
                   {strength}
                 </strong>
@@ -478,21 +392,11 @@ const Register = () => {
             </AppButton>
 
             <div
-              style={{
-                marginTop: 14,
-                display: "flex",
-                justifyContent: "flex-end",
-              }}
+              className={styles.registerRowMar14}
             >
               <Link
                 href="/login"
-                style={{
-                  fontSize: 13,
-                  color: "var(--app-accent)",
-                  fontWeight: 600,
-                  textDecoration: "none",
-                  letterSpacing: 0.2,
-                }}
+                className={styles.registerBox13}
               >
                 Já tem conta? Entrar
               </Link>
@@ -522,32 +426,11 @@ export default Register;
 function RuleRow({ ok, label }: { ok: boolean; label: string }) {
   return (
     <li
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        fontSize: 12,
-        padding: "3px 0",
-        color: ok ? "var(--app-text)" : "var(--app-text-muted)",
-        lineHeight: 1.5,
-      }}
+      className={`${styles.ruleRowItem} ${ok ? styles.ruleRowItemOk : styles.ruleRowItemDefault}`}
     >
       <span
         aria-hidden
-        style={{
-          width: 16,
-          height: 16,
-          borderRadius: "50%",
-          background: ok ? "var(--app-success)" : "var(--app-surface)",
-          border: ok
-            ? "1px solid var(--app-success)"
-            : "1px solid var(--app-divider-strong)",
-          color: "#fff",
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
+        className={`${styles.ruleRowLabel} ${ok ? styles.ruleRowLabelOk : styles.ruleRowLabelDefault}`}
       >
         {ok ? <Icons.Check size={10} /> : null}
       </span>
@@ -576,7 +459,7 @@ function PasswordField({
   error?: string;
 }) {
   return (
-    <div style={{ position: "relative" }}>
+    <div className={styles.passwordFieldBox}>
       <AppInput
         label={label}
         type={show ? "text" : "password"}
@@ -592,21 +475,7 @@ function PasswordField({
         type="button"
         aria-label={show ? "Ocultar senha" : "Mostrar senha"}
         onClick={onToggle}
-        style={{
-          position: "absolute",
-          right: 8,
-          top: 30, // alinha com input (label acima)
-          height: 36,
-          width: 36,
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "transparent",
-          border: "none",
-          borderRadius: 8,
-          color: "var(--app-text-muted)",
-          cursor: "pointer",
-        }}
+        className={styles.passwordFieldButton}
       >
         {show ? <EyeOff /> : <Eye />}
       </button>
