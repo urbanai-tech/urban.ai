@@ -2,6 +2,7 @@
 
 import React from "react";
 import { AppBadge } from "./AppBadge";
+import styles from "./AppLoadingStatus.module.css";
 import { AlertCircle, Check } from "./Icons";
 import { appRadius, appTone, appVar } from "./styles";
 
@@ -22,6 +23,8 @@ type Props = {
   compact?: boolean;
   tone?: "accent" | "warn" | "neutral" | "error";
   style?: React.CSSProperties;
+  /** Classe extra no container. Propriedades de tom (border/background) seguem inline; classes cobrem margens e dimensoes. */
+  className?: string;
 };
 
 export function AppLoadingStatus({
@@ -32,6 +35,7 @@ export function AppLoadingStatus({
   compact = false,
   tone = "accent",
   style,
+  className,
 }: Props) {
   const activeStep = steps.find((step) => step.status === "active");
   const resolvedTone =
@@ -47,6 +51,7 @@ export function AppLoadingStatus({
     <section
       role="status"
       aria-live="polite"
+      className={className}
       style={{
         display: "grid",
         gap: compact ? 10 : 14,
@@ -116,7 +121,7 @@ export function AppLoadingStatus({
                   ? "neutral"
                   : "accent"
           }
-          style={{ flexShrink: 0 }}
+          className={styles.badge}
         >
           {activeStep?.label ?? "Em andamento"}
         </AppBadge>

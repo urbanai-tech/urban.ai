@@ -1,0 +1,50 @@
+/*
+ * AppBadge. Seletores duplicados (0,2,0) para a base segurar o mesmo terreno que
+ * o estilo inline segurava contra regras globais de tag (ex.: `.urban-notif-topline span`).
+ * Os callers só adicionam propriedades que a base não define (maxWidth, overflow...).
+ */
+.badge.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: var(--app-radius-pill);
+  border-width: 1px;
+  border-style: solid;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.success.success {
+  color: var(--app-success);
+  background: var(--app-success-soft);
+  border-color: var(--app-success-border);
+}
+
+.warn.warn {
+  color: var(--app-warning-text);
+  background: var(--app-warning-soft);
+  border-color: var(--app-warning-border);
+}
+
+.error.error {
+  color: var(--app-danger);
+  background: var(--app-danger-soft);
+  border-color: var(--app-danger-border);
+}
+
+.neutral.neutral {
+  color: var(--app-text-muted);
+  background: var(--app-surface-muted);
+  border-color: var(--app-divider-strong);
+}
+
+.accent.accent {
+  color: var(--app-accent);
+  background: var(--app-accent-soft);
+  border-color: var(--app-accent-border);
+}

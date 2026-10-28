@@ -1,0 +1,58 @@
+/*
+ * AppCard / AppCardHeader.
+ * Classes de base com UM seletor (0,1,0): as classes passadas por `className`
+ * usam seletor duplicado (`.x.x`, 0,2,0) e sempre vencem, independente da ordem
+ * dos arquivos CSS. Antes o estilo base era inline e `style` era espalhado por cima.
+ */
+.card {
+  padding: 24px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider);
+  border-radius: var(--app-radius-card);
+  box-shadow: var(--app-shadow-card);
+}
+
+.elevated {
+  box-shadow: var(--app-shadow-elevated);
+}
+
+.accent {
+  border-left: 3px solid var(--app-accent);
+  border-radius: 8px;
+}
+
+.subtle {
+  background: var(--app-surface-muted);
+  box-shadow: none;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.headerText {
+  min-width: 0;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--app-text);
+  letter-spacing: -0.2px;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--app-text-muted);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+.actions {
+  flex-shrink: 0;
+}

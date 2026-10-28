@@ -1,0 +1,48 @@
+/*
+ * Campos do app (input/select/textarea). Base com UM seletor (0,1,0): classes do
+ * caller (`className`, `.x.x`) vencem. `outline: none` continua inline em AppInput.tsx
+ * porque a regra global `.urban-app input:focus-visible` precisa continuar mascarada.
+ */
+.field {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  padding: 0 14px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-divider-strong);
+  border-radius: var(--app-radius-control);
+  box-sizing: border-box;
+  color: var(--app-text);
+  font-size: 14px;
+  font-weight: 400;
+  transition: border-color 120ms, box-shadow 120ms;
+  font-family: var(--font-brand);
+}
+
+.withAddon {
+  padding-left: 38px;
+}
+
+.invalid {
+  border-color: var(--app-danger);
+}
+
+.select {
+  appearance: none;
+  padding-right: 36px;
+  background-color: var(--app-surface);
+  background-image: var(--app-select-chevron);
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.textarea {
+  height: auto;
+  padding: 10px 14px;
+  line-height: 1.55;
+  resize: vertical;
+  font-family: var(--font-brand);
+}

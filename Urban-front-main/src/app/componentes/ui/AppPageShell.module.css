@@ -1,0 +1,10 @@
+.shell {
+  background: var(--app-bg);
+  min-height: 100%;
+  width: 100%;
+}
+
+.inner {
+  margin: 0 auto;
+  padding: 40px 32px 80px;
+}
