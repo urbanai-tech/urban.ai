@@ -41,8 +41,16 @@ RUN_COLLECTORS_ON_BOOT = os.environ.get("RUN_COLLECTORS_ON_BOOT", "true").lower(
     "yes",
     "on",
 }
-# Opt-in explicito para desenvolvimento local sem chave. Em producao (Railway)
-# NAO defina: sem SCRAPYD_API_KEY o proxy recusa subir.
+# Chave ausente: por padrao o proxy sobe (comportamento anterior, SEM protecao) e
+# grita no log. Com SCRAPYD_REQUIRE_API_KEY=true ele falha fechado (recusa subir
+# e responde 503). O dono liga isso depois de confirmar SCRAPYD_API_KEY no Railway.
+REQUIRE_API_KEY = os.environ.get("SCRAPYD_REQUIRE_API_KEY", "").lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+# Opt-in explicito para desenvolvimento local sem chave (sobrepoe REQUIRE_API_KEY).
 ALLOW_INSECURE_NO_AUTH = os.environ.get(
     "SCRAPYD_ALLOW_INSECURE_NO_AUTH", ""
 ).lower() in {"1", "true", "yes", "on"}
@@ -71,6 +79,11 @@ cron_state: CronState = {
     "lastError": None,
     "nextRunAt": None,
 }
+
+
+def auth_fail_closed() -> bool:
+    """True quando nao ha chave e a politica exige uma (SCRAPYD_REQUIRE_API_KEY)."""
+    return not API_KEY and REQUIRE_API_KEY and not ALLOW_INSECURE_NO_AUTH
 
 
 def build_scrapyd_target(request_target: str) -> str:
@@ -112,6 +125,7 @@ def build_health_payload(scrapyd_ready: bool | None = None) -> dict[str, Any]:
         "service": "urban-webscraping",
         "generatedAt": utc_iso(),
         "authConfigured": bool(API_KEY),
+        "authRequired": REQUIRE_API_KEY,
         "scrapyd": {"status": scrapyd_status},
         "collectorCron": {
             "enabled": True,
@@ -221,11 +235,14 @@ def check_scrapyd_ready(timeout: float = 2) -> bool:
 
 
 def is_authorized(provided_key: str) -> bool:
-    """Valida o X-API-Key em tempo constante. Sem chave configurada, so passa
-    quando o opt-in local explicito (SCRAPYD_ALLOW_INSECURE_NO_AUTH) esta ativo.
+    """Valida o X-API-Key em tempo constante quando ha chave configurada.
+
+    Sem chave: nega se SCRAPYD_REQUIRE_API_KEY=true (a menos que o opt-in local
+    SCRAPYD_ALLOW_INSECURE_NO_AUTH esteja ativo); caso contrario mantem o
+    comportamento anterior (aberto), com aviso alto no boot.
     """
     if not API_KEY:
-        return ALLOW_INSECURE_NO_AUTH
+        return not auth_fail_closed()
     return hmac.compare_digest(
         (provided_key or "").encode("utf-8"), API_KEY.encode("utf-8")
     )
@@ -238,9 +255,10 @@ class AuthProxyHandler(BaseHTTPRequestHandler):
         return is_authorized(self.headers.get("X-API-Key", ""))
 
     def _proxy(self) -> None:
-        if not API_KEY and not ALLOW_INSECURE_NO_AUTH:
-            # Fail-closed: sem SCRAPYD_API_KEY nada alem de health e atendido
-            # (defesa em profundidade; main() ja recusa subir nessa condicao).
+        if auth_fail_closed():
+            # Fail-closed (SCRAPYD_REQUIRE_API_KEY=true): sem SCRAPYD_API_KEY nada
+            # alem de health e atendido (defesa em profundidade; main() ja recusa
+            # subir nessa condicao).
             self._send_json(
                 {
                     "status": "error",
@@ -332,13 +350,21 @@ class AuthProxyHandler(BaseHTTPRequestHandler):
 
 def main() -> None:
     logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), stream=sys.stdout)
-    if not API_KEY and not ALLOW_INSECURE_NO_AUTH:
+    if auth_fail_closed():
         logger.critical(
-            "[auth-proxy] SCRAPYD_API_KEY nao definido. Recusando iniciar: o Scrapyd "
-            "(incluindo /addversion.json) ficaria aberto. Defina SCRAPYD_API_KEY ou, "
-            "apenas em desenvolvimento local, SCRAPYD_ALLOW_INSECURE_NO_AUTH=true."
+            "[auth-proxy] SCRAPYD_API_KEY nao definido e SCRAPYD_REQUIRE_API_KEY=true. "
+            "Recusando iniciar: o Scrapyd (incluindo /addversion.json) ficaria aberto. "
+            "Defina SCRAPYD_API_KEY ou, apenas em desenvolvimento local, "
+            "SCRAPYD_ALLOW_INSECURE_NO_AUTH=true."
         )
         sys.exit(1)
+    if not API_KEY and not ALLOW_INSECURE_NO_AUTH:
+        logger.error(
+            "[auth-proxy] ATENCAO: SCRAPYD_API_KEY NAO DEFINIDO. O Scrapyd (incluindo "
+            "/addversion.json e /schedule.json) esta ABERTO a qualquer um que alcance "
+            "este servico. Defina SCRAPYD_API_KEY e depois SCRAPYD_REQUIRE_API_KEY=true "
+            "para falhar fechado."
+        )
     logger.info("[auth-proxy] Starting Scrapyd on port %s...", SCRAPYD_PORT)
     scrapyd_proc = start_scrapyd()
 
@@ -348,7 +374,11 @@ def main() -> None:
     auth_status = (
         "ENABLED"
         if API_KEY
-        else "DISABLED (SCRAPYD_ALLOW_INSECURE_NO_AUTH=true, apenas dev local)"
+        else (
+            "DISABLED (SCRAPYD_ALLOW_INSECURE_NO_AUTH=true, apenas dev local)"
+            if ALLOW_INSECURE_NO_AUTH
+            else "DISABLED (INSEGURO: SCRAPYD_API_KEY ausente)"
+        )
     )
     logger.info(
         "[auth-proxy] Auth proxy listening on port %s (auth: %s)",

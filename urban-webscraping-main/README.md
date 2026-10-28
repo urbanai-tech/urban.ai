@@ -4,7 +4,7 @@
 >
 > - **Destino dos dados:** os eventos vão para o backend via `POST /events/ingest` com o header `x-urban-events-ingest-key` (`URBAN_EVENTS_INGEST_API_KEY`, igual a `EVENTS_INGEST_API_KEY` do backend). As pipelines S3 (JSON/Parquet "bronze") estão **comentadas** em `urban_webscrapping/settings.py`; nada é gravado em S3 hoje.
 > - **Dois tipos de fonte:** coletores HTTP em `urban_webscrapping/collectors/` e spiders Scrapy em `urban_webscrapping/spiders/`.
-> - **Container:** o `Dockerfile` (raiz desta pasta) sobe o Scrapyd atrás do `auth_proxy.py`, que exige `SCRAPYD_API_KEY`, expõe health (`/health`, `/cron-status.json`) e roda os coletores a cada `COLLECTOR_CRON_INTERVAL_SECONDS` (padrão 6 h) além do disparo do Prefect às 03:00 UTC. Deploy no Railway.
+> - **Container:** o `Dockerfile` (raiz desta pasta) sobe o Scrapyd atrás do `auth_proxy.py`, que exige `SCRAPYD_API_KEY` (sem ela sobe aberto com erro no log; `SCRAPYD_REQUIRE_API_KEY=true` faz recusar subir), expõe health (`/health`, `/cron-status.json`) e roda os coletores a cada `COLLECTOR_CRON_INTERVAL_SECONDS` (padrão 6 h) além do disparo do Prefect às 03:00 UTC. Deploy no Railway.
 > - **Entrega confiável (2026-10-25):** spiders (`UrbanIngestPipeline`) e coletores usam o mesmo `UrbanBackendClient`, habilitado só com `URBAN_EVENTS_INGEST_API_KEY` (o login por `URBAN_COLLECTOR_EMAIL/PASSWORD` foi removido). Os eventos passam por uma fila SQLite (`URBAN_INGEST_OUTBOX_PATH`) e só saem dela quando o backend confirma; no Railway esse caminho precisa estar num volume persistente. Ver [`../docs/runbooks/ingest-outbox-entrega.md`](../docs/runbooks/ingest-outbox-entrega.md).
 > - Não existe `Dockerfile.scrapyd`; as instruções em inglês abaixo que o citam são históricas.
 

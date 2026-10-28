@@ -157,8 +157,11 @@ def test_is_authorized_uses_constant_time_comparison(monkeypatch):
     assert len(calls) == 4
 
 
-def test_missing_key_rejects_everything_except_health(monkeypatch, proxy_url):
+def test_missing_key_and_required_rejects_everything_except_health(
+    monkeypatch, proxy_url
+):
     monkeypatch.setattr(auth_proxy, "API_KEY", "")
+    monkeypatch.setattr(auth_proxy, "REQUIRE_API_KEY", True)
     monkeypatch.setattr(auth_proxy, "ALLOW_INSECURE_NO_AUTH", False)
 
     assert _call(proxy_url, "/addversion.json", "POST") == 503
@@ -180,15 +183,38 @@ def test_configured_key_is_enforced(monkeypatch, proxy_url):
     assert _FakeScrapyd.hits == ["/listjobs.json"]
 
 
-def test_explicit_local_dev_flag_allows_no_key(monkeypatch, proxy_url):
+def test_missing_key_not_required_keeps_legacy_open_behaviour(monkeypatch, proxy_url):
     monkeypatch.setattr(auth_proxy, "API_KEY", "")
+    monkeypatch.setattr(auth_proxy, "REQUIRE_API_KEY", False)
+    monkeypatch.setattr(auth_proxy, "ALLOW_INSECURE_NO_AUTH", False)
+
+    assert auth_proxy.is_authorized("") is True
+    assert _call(proxy_url, "/listjobs.json") == 200
+
+
+def test_explicit_local_dev_flag_allows_no_key_even_if_required(monkeypatch, proxy_url):
+    monkeypatch.setattr(auth_proxy, "API_KEY", "")
+    monkeypatch.setattr(auth_proxy, "REQUIRE_API_KEY", True)
     monkeypatch.setattr(auth_proxy, "ALLOW_INSECURE_NO_AUTH", True)
 
     assert _call(proxy_url, "/listjobs.json") == 200
 
 
-def test_main_refuses_to_start_without_key(monkeypatch):
+def test_configured_key_right_key_accepted_wrong_rejected_even_if_not_required(
+    monkeypatch, proxy_url
+):
+    monkeypatch.setattr(auth_proxy, "API_KEY", "super-secret-key")
+    monkeypatch.setattr(auth_proxy, "REQUIRE_API_KEY", False)
+    monkeypatch.setattr(auth_proxy, "ALLOW_INSECURE_NO_AUTH", False)
+
+    assert _call(proxy_url, "/listjobs.json") == 401
+    assert _call(proxy_url, "/listjobs.json", key="wrong") == 401
+    assert _call(proxy_url, "/listjobs.json", key="super-secret-key") == 200
+
+
+def test_main_refuses_to_start_without_key_when_required(monkeypatch):
     monkeypatch.setattr(auth_proxy, "API_KEY", "")
+    monkeypatch.setattr(auth_proxy, "REQUIRE_API_KEY", True)
     monkeypatch.setattr(auth_proxy, "ALLOW_INSECURE_NO_AUTH", False)
     started = []
     monkeypatch.setattr(auth_proxy, "start_scrapyd", lambda: started.append(1))
@@ -198,3 +224,49 @@ def test_main_refuses_to_start_without_key(monkeypatch):
 
     assert exc.value.code == 1
     assert started == []
+
+
+class _StopBoot(Exception):
+    pass
+
+
+def test_main_boots_with_loud_warning_when_key_missing_and_not_required(
+    monkeypatch, caplog
+):
+    monkeypatch.setattr(auth_proxy, "API_KEY", "")
+    monkeypatch.setattr(auth_proxy, "REQUIRE_API_KEY", False)
+    monkeypatch.setattr(auth_proxy, "ALLOW_INSECURE_NO_AUTH", False)
+    started = []
+
+    def fake_start():
+        started.append(1)
+        raise _StopBoot  # prova que passou da checagem de auth sem subir de verdade
+
+    monkeypatch.setattr(auth_proxy, "start_scrapyd", fake_start)
+
+    with caplog.at_level("ERROR"):
+        with pytest.raises(_StopBoot):
+            auth_proxy.main()
+
+    assert started == [1]
+    assert any(
+        r.levelname == "ERROR" and "SCRAPYD_API_KEY NAO DEFINIDO" in r.getMessage()
+        for r in caplog.records
+    )
+
+
+def test_main_boots_without_warning_when_key_set(monkeypatch, caplog):
+    monkeypatch.setattr(auth_proxy, "API_KEY", "super-secret-key")
+    monkeypatch.setattr(auth_proxy, "REQUIRE_API_KEY", True)
+    monkeypatch.setattr(auth_proxy, "ALLOW_INSECURE_NO_AUTH", False)
+
+    def fake_start():
+        raise _StopBoot
+
+    monkeypatch.setattr(auth_proxy, "start_scrapyd", fake_start)
+
+    with caplog.at_level("ERROR"):
+        with pytest.raises(_StopBoot):
+            auth_proxy.main()
+
+    assert not any("NAO DEFINIDO" in r.getMessage() for r in caplog.records)
