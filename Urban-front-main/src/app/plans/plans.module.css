@@ -1,0 +1,146 @@
+.mainContent.mainContent {
+  background: var(--app-bg);
+  color: var(--app-text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plansText.plansText {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--app-text-muted);
+  font-weight: 600;
+  margin: 0;
+}
+
+.mainContentText.mainContentText {
+  background: var(--app-bg);
+  color: var(--app-text);
+  min-height: 100vh;
+}
+
+.grain.grain {
+  position: relative;
+  padding: 120px 24px 80px;
+  overflow: hidden;
+}
+
+.glow.glow {
+  width: 700px;
+  height: 700px;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.plansBox.plansBox {
+  position: relative;
+  z-index: 2;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.eyebrow.eyebrow {
+  margin-bottom: 32px;
+  color: var(--app-text-muted);
+}
+
+.appDisplay.appDisplay {
+  font-size: clamp(36px, 7.5vw, 96px);
+  line-height: 0.98;
+  letter-spacing: -1.5px;
+  font-weight: 700;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.plansText18.plansText18 {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.75;
+  color: var(--app-text-muted);
+  max-width: 680px;
+  margin-top: 40px;
+}
+
+.plansBoxDivider.plansBoxDivider {
+  height: 1px;
+  background: var(--app-divider);
+}
+
+.plansSection.plansSection {
+  padding: 80px 24px;
+}
+
+.plansBoxCentered.plansBoxCentered {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.plansBox2.plansBox2 {
+  position: relative;
+  margin-bottom: 56px;
+}
+
+.appDisplayFluid.appDisplayFluid {
+  font-size: clamp(28px, 4.5vw, 52px);
+  line-height: 1;
+  letter-spacing: -1px;
+  font-weight: 700;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.plansText16.plansText16 {
+  font-size: 16px;
+  color: var(--app-text-muted);
+  max-width: 580px;
+}
+
+.plansGrid.plansGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 24px;
+}
+
+.plansSectionCompact.plansSectionCompact {
+  padding: 60px 24px 100px;
+}
+
+.plansBox3.plansBox3 {
+  max-width: 880px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.plansText14.plansText14 {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.75;
+  color: var(--app-text-muted);
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+/* Destaque da marca: deep no claro, mint no escuro (token do tema).
+   Só para títulos grandes (teal no claro tem 3,8:1; lima no escuro). */
+.highlightText.highlightText {
+  color: var(--app-highlight);
+}
+
+.highlightBar.highlightBar {
+  position: absolute;
+  left: -2px;
+  top: 0;
+  width: 2px;
+  height: 56px;
+  background: var(--app-highlight);
+}
+
+.accentEyebrow.accentEyebrow {
+  margin-bottom: 16px;
+  color: var(--app-accent);
+}
