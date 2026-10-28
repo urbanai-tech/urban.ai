@@ -18,6 +18,7 @@ import {
   Icons,
 } from "../../_components";
 import type { AdminBadgeKind } from "../../_components";
+import styles from "./page.module.css";
 
 /**
  * /admin/properties/[id] — detalhe consolidado de um imóvel (gap I5 do roadmap).
@@ -145,7 +146,7 @@ export default function AdminPropertyDetailPage() {
 
   if (error || !data) {
     return (
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="ERRO"
           title="Falha ao carregar imóvel"
@@ -185,7 +186,7 @@ export default function AdminPropertyDetailPage() {
     "Endereço não informado";
 
   return (
-    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       {/* === Breadcrumb + nome === */}
       <AdminSectionHeader
         eyebrow={`ADMIN · IMÓVEL · ${data.id.slice(0, 8)}…`}
@@ -193,13 +194,13 @@ export default function AdminPropertyDetailPage() {
         subtitle={
           <>
             {fullAddress} · Host:{" "}
-            <strong style={{ color: "var(--admin-text)" }}>
+            <strong className={styles.strongText}>
               {data.userEmail || data.userId?.slice(0, 8) + "…"}
             </strong>
             {data.createdAt && (
               <>
                 {" · "}cadastrado em{" "}
-                <strong style={{ color: "var(--admin-text)" }}>
+                <strong className={styles.strongText}>
                   {new Date(data.createdAt).toLocaleDateString("pt-BR")}
                 </strong>
               </>
@@ -207,7 +208,7 @@ export default function AdminPropertyDetailPage() {
           </>
         }
         actions={
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div className={styles.rowWrapGap8}>
             <AdminButton
               variant="secondary"
               as="a"
@@ -232,14 +233,7 @@ export default function AdminPropertyDetailPage() {
       {reprocessResult && (
         <AdminCard variant="accent" style={{ marginBottom: 24, padding: "14px 18px" }}>
           <p
-            style={{
-              fontSize: 13,
-              color: "var(--admin-text)",
-              margin: 0,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
+            className={styles.rowCenteredText}
           >
             <Icons.Check size={14} style={{ color: "var(--admin-accent)" }} />
             {reprocessResult}
@@ -248,16 +242,9 @@ export default function AdminPropertyDetailPage() {
       )}
 
       {/* === KPIs === */}
-      <section style={{ marginBottom: 32 }}>
+      <section className={styles.sectionMb32}>
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-            gap: 32,
-            borderTop: "1px solid var(--admin-divider)",
-            borderBottom: "1px solid var(--admin-divider)",
-            padding: "24px 0",
-          }}
+          className={styles.gridColsAuto180Gap32}
         >
           <AdminMetricCard
             label="Diária base"
@@ -300,13 +287,13 @@ export default function AdminPropertyDetailPage() {
       </section>
 
       {/* === Diagnóstico de saúde === */}
-      <section style={{ marginBottom: 32 }}>
+      <section className={styles.sectionMb32}>
         <AdminCard variant={healthIssues.length === 0 ? "subtle" : "accent"}>
           <AdminCardHeader
             title={
-              <span style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <span className={styles.stackGap4}>
                 <span>Saúde do imóvel</span>
-                <span style={{ fontSize: 12, fontWeight: 400, color: "var(--admin-text-muted)" }}>
+                <span className={styles.labelTextMutedFs12}>
                   {healthIssues.length === 0
                     ? "Tudo certo. Imóvel está apto a receber recomendações automaticamente."
                     : `${healthIssues.length} item(ns) bloqueando recomendação automática.`}
@@ -319,7 +306,7 @@ export default function AdminPropertyDetailPage() {
               </AdminBadge>
             }
           />
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+          <div className={styles.gridColsAuto220Gap12}>
             <HealthCheck
               label="Coordenadas geográficas"
               ok={!!hasCoords}
@@ -345,34 +332,34 @@ export default function AdminPropertyDetailPage() {
       </section>
 
       {/* === Análises recentes === */}
-      <section style={{ marginBottom: 32 }}>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 16 }}>
+      <section className={styles.sectionMb32}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb16}`}>
           ANÁLISES RECENTES
         </p>
         <RecentAnalysesTable rows={data.recentAnalyses ?? []} />
       </section>
 
       {/* === Eventos próximos === */}
-      <section style={{ marginBottom: 32 }}>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 16 }}>
+      <section className={styles.sectionMb32}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb16}`}>
           EVENTOS PRÓXIMOS DETECTADOS
         </p>
         <NearbyEventsTable rows={data.nearbyEvents ?? []} />
       </section>
 
       {/* === Histórico de pricing inputs === */}
-      <section style={{ marginBottom: 32 }}>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 16 }}>
+      <section className={styles.sectionMb32}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb16}`}>
           HISTÓRICO DE PREÇO BASE (INFORMADO PELO ANFITRIÃO)
         </p>
         <PricingHistoryTable rows={pricingHistory} />
       </section>
 
       {/* === Ações operacionais === */}
-      <section style={{ marginTop: 48, paddingTop: 24, borderTop: "1px solid var(--admin-divider)" }}>
+      <section className={styles.sectionMt48Bordered}>
         <AdminCard variant="subtle">
           <AdminCardHeader title="Atalhos" />
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <div className={styles.rowWrapGap10}>
             <AdminButton variant="secondary" as="a" href="/painel" leftIcon={<Icons.ArrowRight size={11} />}>
               Ver no painel do anfitrião
             </AdminButton>
@@ -407,27 +394,17 @@ function HealthCheck({
         background: ok ? "color-mix(in srgb, var(--admin-success) 4%, transparent)" : "color-mix(in srgb, var(--admin-warning) 4%, transparent)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div className={styles.rowCenteredGap8}>
         <AdminStatusDot kind={ok ? "success" : "warn"} size={7} />
         <p
-          style={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: "var(--admin-text)",
-            margin: 0,
-          }}
+          className={styles.textTextFs12}
         >
           {label}
         </p>
       </div>
       {hint && (
         <p
-          style={{
-            fontSize: 11,
-            color: "var(--admin-text-muted)",
-            margin: "4px 0 0",
-            paddingLeft: 16,
-          }}
+          className={styles.textTextMutedFs11}
         >
           {hint}
         </p>
@@ -442,7 +419,7 @@ function RecentAnalysesTable({ rows }: { rows: AnalysisRow[] }) {
       key: "evento",
       header: "Evento",
       render: (r) => (
-        <span style={{ fontSize: 13, fontWeight: 500, color: "var(--admin-text)" }}>
+        <span className={styles.labelTextFs13}>
           {r.eventoNome ?? "—"}
         </span>
       ),
@@ -453,11 +430,11 @@ function RecentAnalysesTable({ rows }: { rows: AnalysisRow[] }) {
       width: 110,
       render: (r) =>
         r.dataInicio ? (
-          <span style={{ fontSize: 12, color: "var(--admin-text-muted)", fontFamily: "monospace" }}>
+          <span className={styles.labelTextMutedFs12Mono}>
             {new Date(r.dataInicio).toLocaleDateString("pt-BR")}
           </span>
         ) : (
-          <span style={{ color: "var(--admin-text-dim)" }}>—</span>
+          <span className={styles.labelTextDim}>—</span>
         ),
     },
     {
@@ -467,11 +444,11 @@ function RecentAnalysesTable({ rows }: { rows: AnalysisRow[] }) {
       width: 100,
       render: (r) =>
         r.precoAtual ? (
-          <span style={{ fontFamily: "monospace", color: "var(--admin-text-muted)" }}>
+          <span className={styles.labelTextMutedMono}>
             R$ {Number(r.precoAtual).toLocaleString("pt-BR")}
           </span>
         ) : (
-          <span style={{ color: "var(--admin-text-dim)" }}>—</span>
+          <span className={styles.labelTextDim}>—</span>
         ),
     },
     {
@@ -481,11 +458,11 @@ function RecentAnalysesTable({ rows }: { rows: AnalysisRow[] }) {
       width: 110,
       render: (r) =>
         r.precoSugerido ? (
-          <span style={{ fontFamily: "monospace", color: "var(--admin-accent)", fontWeight: 600 }}>
+          <span className={styles.labelAccentW600}>
             R$ {Number(r.precoSugerido).toLocaleString("pt-BR")}
           </span>
         ) : (
-          <span style={{ color: "var(--admin-text-dim)" }}>—</span>
+          <span className={styles.labelTextDim}>—</span>
         ),
     },
     {
@@ -494,7 +471,7 @@ function RecentAnalysesTable({ rows }: { rows: AnalysisRow[] }) {
       align: "right",
       width: 80,
       render: (r) => {
-        if (r.diferencaPercentual == null) return <span style={{ color: "var(--admin-text-dim)" }}>—</span>;
+        if (r.diferencaPercentual == null) return <span className={styles.labelTextDim}>—</span>;
         const d = Number(r.diferencaPercentual);
         return (
           <span
@@ -517,11 +494,11 @@ function RecentAnalysesTable({ rows }: { rows: AnalysisRow[] }) {
       width: 110,
       render: (r) =>
         r.precoAplicado ? (
-          <span style={{ fontFamily: "monospace", color: "var(--admin-success)", fontWeight: 600 }}>
+          <span className={styles.labelSuccessW600}>
             R$ {Number(r.precoAplicado).toLocaleString("pt-BR")}
           </span>
         ) : (
-          <span style={{ color: "var(--admin-text-dim)" }}>—</span>
+          <span className={styles.labelTextDim}>—</span>
         ),
     },
     {
@@ -558,7 +535,7 @@ function NearbyEventsTable({ rows }: { rows: EventRow[] }) {
       key: "nome",
       header: "Evento",
       render: (e) => (
-        <span style={{ fontSize: 13, fontWeight: 500 }}>{e.nome}</span>
+        <span className={styles.labelFs13W500}>{e.nome}</span>
       ),
     },
     {
@@ -566,7 +543,7 @@ function NearbyEventsTable({ rows }: { rows: EventRow[] }) {
       header: "Data",
       width: 110,
       render: (e) => (
-        <span style={{ fontSize: 12, color: "var(--admin-text-muted)", fontFamily: "monospace" }}>
+        <span className={styles.labelTextMutedFs12Mono}>
           {new Date(e.dataInicio).toLocaleDateString("pt-BR")}
         </span>
       ),
@@ -576,7 +553,7 @@ function NearbyEventsTable({ rows }: { rows: EventRow[] }) {
       header: "Cidade",
       width: 120,
       render: (e) => (
-        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+        <span className={styles.labelTextMutedFs122}>
           {e.cidade ? `${e.cidade}/${e.estado ?? ""}` : "—"}
         </span>
       ),
@@ -588,11 +565,11 @@ function NearbyEventsTable({ rows }: { rows: EventRow[] }) {
       width: 100,
       render: (e) =>
         e.distanciaMetros != null ? (
-          <span style={{ fontFamily: "monospace", color: "var(--admin-text)" }}>
+          <span className={styles.labelTextMono}>
             {(Number(e.distanciaMetros) / 1000).toFixed(1)} km
           </span>
         ) : (
-          <span style={{ color: "var(--admin-text-dim)" }}>—</span>
+          <span className={styles.labelTextDim}>—</span>
         ),
     },
     {
@@ -601,7 +578,7 @@ function NearbyEventsTable({ rows }: { rows: EventRow[] }) {
       align: "center",
       width: 110,
       render: (e) => {
-        if (e.relevancia == null) return <span style={{ color: "var(--admin-text-dim)" }}>—</span>;
+        if (e.relevancia == null) return <span className={styles.labelTextDim}>—</span>;
         const r = Number(e.relevancia);
         let kind: AdminBadgeKind = "neutral";
         if (r >= 80) kind = "accent";
@@ -632,7 +609,7 @@ function PricingHistoryTable({ rows }: { rows: PricingInputHistory[] }) {
       header: "Quando",
       width: 160,
       render: (r) => (
-        <span style={{ fontSize: 12, color: "var(--admin-text-muted)", fontFamily: "monospace" }}>
+        <span className={styles.labelTextMutedFs12Mono}>
           {new Date(r.createdAt).toLocaleString("pt-BR")}
         </span>
       ),
@@ -643,14 +620,14 @@ function PricingHistoryTable({ rows }: { rows: PricingInputHistory[] }) {
       align: "right",
       width: 220,
       render: (r) => (
-        <span style={{ fontSize: 12 }}>
-          <span style={{ color: "var(--admin-text-dim)" }}>
+        <span className={styles.labelFs12}>
+          <span className={styles.labelTextDim}>
             {r.previousManualDailyPrice
               ? `R$ ${Number(r.previousManualDailyPrice).toLocaleString("pt-BR")}`
               : "—"}
           </span>
-          <span style={{ margin: "0 8px", color: "var(--admin-text-dim)" }}>→</span>
-          <span style={{ color: "var(--admin-accent)", fontWeight: 600 }}>
+          <span className={styles.labelTextDimM0x8}>→</span>
+          <span className={styles.labelAccentW6002}>
             {r.newManualDailyPrice
               ? `R$ ${Number(r.newManualDailyPrice).toLocaleString("pt-BR")}`
               : "—"}
@@ -664,14 +641,14 @@ function PricingHistoryTable({ rows }: { rows: PricingInputHistory[] }) {
       align: "right",
       width: 240,
       render: (r) => (
-        <span style={{ fontSize: 12 }}>
-          <span style={{ color: "var(--admin-text-dim)" }}>
+        <span className={styles.labelFs12}>
+          <span className={styles.labelTextDim}>
             {r.previousAverageMonthlyRevenue
               ? `R$ ${Number(r.previousAverageMonthlyRevenue).toLocaleString("pt-BR")}`
               : "—"}
           </span>
-          <span style={{ margin: "0 8px", color: "var(--admin-text-dim)" }}>→</span>
-          <span style={{ color: "var(--admin-text)", fontWeight: 500 }}>
+          <span className={styles.labelTextDimM0x8}>→</span>
+          <span className={styles.labelTextW500}>
             {r.newAverageMonthlyRevenue
               ? `R$ ${Number(r.newAverageMonthlyRevenue).toLocaleString("pt-BR")}`
               : "—"}
