@@ -93,7 +93,7 @@ export default function AdminCommunicationsPage() {
 
   if (error) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.pageContainerError}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar comunicacoes"
@@ -106,7 +106,7 @@ export default function AdminCommunicationsPage() {
   }
 
   return (
-    <div className={styles.boxM0xautoP40x32Maxw1320}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · COMUNICACOES"
         title="Central de envios"
@@ -118,9 +118,9 @@ export default function AdminCommunicationsPage() {
         }
       />
 
-      <section className={styles.sectionMb36}>
+      <section className={styles.metricsSection}>
         <div
-          className={styles.gridColsAuto160Gap28}
+          className={styles.metricGrid}
         >
           <AdminMetricCard label="Enviados 24h" value={totals24h.sent.toLocaleString("pt-BR")} status="success" />
           <AdminMetricCard label="Falhas 24h" value={totals24h.failed.toLocaleString("pt-BR")} status={totals24h.failed > 0 ? "error" : "neutral"} />
@@ -131,10 +131,10 @@ export default function AdminCommunicationsPage() {
         </div>
       </section>
 
-      <section className={styles.sectionMb24}>
+      <section className={styles.listSection}>
         <AdminCard variant="subtle">
           <div
-            className={styles.rowWrapGap12}
+            className={styles.filterBar}
           >
             <AdminInput
               label="Busca"
@@ -183,7 +183,7 @@ export default function AdminCommunicationsPage() {
             icon={<Icons.Mail size={32} />}
           />
         ) : (
-          <div className={styles.stackGap10}>
+          <div className={styles.eventList}>
             {data.items.map((event) => (
               <CommunicationRow key={event.id} event={event} />
             ))}
@@ -191,11 +191,11 @@ export default function AdminCommunicationsPage() {
         )}
 
         {data && data.total > data.limit && (
-          <div className={styles.rowBetweenCentered}>
-            <p className={styles.textTextMutedFs12}>
+          <div className={styles.pagination}>
+            <p className={styles.paginationInfo}>
               Pagina {page} de {totalPages} · {data.total.toLocaleString("pt-BR")} registros
             </p>
-            <div className={styles.rowGap8}>
+            <div className={styles.paginationActions}>
               <AdminButton variant="secondary" disabled={page <= 1} onClick={() => load(page - 1)}>
                 Anterior
               </AdminButton>
@@ -214,36 +214,36 @@ function CommunicationRow({ event }: { event: CommunicationEvent }) {
   const target = event.recipientEmail || event.recipientDeviceId || event.userId || "sem destinatario";
   return (
     <AdminCard variant={event.status === "failed" ? "accent" : "subtle"} className={styles.eventCard}>
-      <div className={styles.gridCenteredColsAuto}>
-        <div className={styles.stackGap8}>
-          <div className={styles.rowWrapGap8}>
+      <div className={styles.eventLayout}>
+        <div className={styles.eventMeta}>
+          <div className={styles.eventBadges}>
             <AdminBadge kind={channelBadge(event.channel)}>{CHANNEL_LABELS[event.channel]}</AdminBadge>
             <AdminBadge kind={statusBadge(event.status)}>{STATUS_LABELS[event.status]}</AdminBadge>
           </div>
-          <span className={styles.labelTextDimFs11}>
+          <span className={styles.eventDate}>
             {formatDate(event.createdAt)}
           </span>
         </div>
 
-        <div className={styles.boxMinw0}>
-          <p className={styles.textTextFs14}>
+        <div className={styles.eventBody}>
+          <p className={styles.eventTitle}>
             {event.subject || event.title || event.kind || "Comunicacao"}
           </p>
-          <p className={styles.textTextMutedFs12M5x0x0Scroll}>
+          <p className={styles.eventRecipient}>
             {target}
           </p>
           {event.failureReason && (
-            <p className={styles.textDangerFs12}>
+            <p className={styles.eventFailure}>
               {event.failureReason}
             </p>
           )}
         </div>
 
-        <div className={styles.stackAlignEndGap5}>
-          <span className={styles.labelTextMutedFs11}>
+        <div className={styles.eventSide}>
+          <span className={styles.eventKind}>
             {event.kind || "sem tipo"}
           </span>
-          <span className={styles.labelTextDimFs11Maxw140Scroll}>
+          <span className={styles.eventProvider}>
             {event.provider || event.templateName || "interno"}
           </span>
         </div>

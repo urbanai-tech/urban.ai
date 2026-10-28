@@ -1,8 +1,8 @@
-.box.box {
+.addonWrap.addonWrap {
   position: relative;
 }
 
-.rowAbsoluteCentered.rowAbsoluteCentered {
+.addonIcon.addonIcon {
   position: absolute;
   left: 12px;
   top: 50%;

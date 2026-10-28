@@ -75,7 +75,7 @@ export function AdminTable<T>({
       >
         {caption && (
           <caption
-            className={styles.boxTextMutedFs11}
+            className={styles.caption}
           >
             {caption}
           </caption>
@@ -114,7 +114,7 @@ export function AdminTable<T>({
         <tbody>
           {rows.length === 0 && empty ? (
             <tr>
-              <td colSpan={columns.length} className={styles.cellP32}>
+              <td colSpan={columns.length} className={styles.emptyCell}>
                 {empty}
               </td>
             </tr>

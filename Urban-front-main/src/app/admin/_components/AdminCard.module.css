@@ -34,15 +34,15 @@
   margin-bottom: 16px;
 }
 
-.boxMinw0.boxMinw0 {
+.headerText.headerText {
   min-width: 0;
 }
 
-.eyebrowMutedMb6.eyebrowMutedMb6 {
+.headerEyebrow.headerEyebrow {
   margin-bottom: 6px;
 }
 
-.subheadingTextFs15.subheadingTextFs15 {
+.headerTitle.headerTitle {
   font-size: 15px;
   font-weight: 600;
   color: var(--admin-text);
@@ -50,6 +50,6 @@
   margin: 0;
 }
 
-.boxNoShrink.boxNoShrink {
+.headerActions.headerActions {
   flex-shrink: 0;
 }

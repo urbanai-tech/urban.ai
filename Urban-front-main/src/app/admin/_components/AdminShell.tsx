@@ -155,12 +155,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className={`urban-admin ${styles.adminRootTextBgBg}`}
+      className={`urban-admin ${styles.adminRoot}`}
     >
       <SkipLink targetId="admin-main-content" />
       {/* Sidebar desktop */}
       <aside
-        className={`urban-admin-sidebar ${styles.sidebarStickyW240}`}
+        className={`urban-admin-sidebar ${styles.sidebar}`}
         data-mobile-hidden
       >
         <SidebarContent
@@ -177,14 +177,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           role="dialog"
           aria-modal="true"
           aria-label="Menu de operação"
-          className={styles.rowFixed}
+          className={styles.drawerOverlay}
         >
           <div
-            className={`urban-admin-backdrop ${styles.backdropAbsoluteBgBackdrop}`}
+            className={`urban-admin-backdrop ${styles.drawerBackdrop}`}
             onClick={() => setMobileOpen(false)}
           />
           <aside
-            className={`urban-admin-sidebar urban-admin-drawer-panel ${styles.sidebarW280Maxw85vw}`}
+            className={`urban-admin-sidebar urban-admin-drawer-panel ${styles.drawerPanel}`}
           >
             <SidebarContent
               NAV={filteredNav}
@@ -197,17 +197,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Main */}
-      <div className={styles.stackMinw0Flex1}>
+      <div className={styles.mainColumn}>
         {/* Topbar */}
         <header
-          className={styles.rowStickyBetween}
+          className={styles.topBar}
         >
-          <div className={styles.rowCenteredGap12}>
+          <div className={styles.topBarStart}>
             <button
               onClick={() => setMobileOpen(true)}
               aria-label="Abrir menu"
               data-mobile-only
-              className={styles.buttonHiddenJustifyCenterCentered}
+              className={styles.menuButton}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
                 <line x1="3" y1="7" x2="21" y2="7" />
@@ -217,7 +217,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </button>
             <Breadcrumb pathname={pathname} />
           </div>
-          <div className={styles.rowCenteredGap16}>
+          <div className={styles.topBarEnd}>
             <ThemeToggle compact />
             <EnvBadge env={env} />
             <AdminAvatar />
@@ -228,7 +228,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <main
           id="admin-main-content"
           tabIndex={-1}
-          className={`urban-admin-main ${styles.mainMinw0Flex1}`}
+          className={`urban-admin-main ${styles.mainContent}`}
         >
           {children}
         </main>
@@ -269,11 +269,11 @@ function SidebarContent({
     <>
       {/* Wordmark */}
       <div
-        className={styles.rowCenteredGap6}
+        className={styles.wordmarkRow}
       >
         <BrandLogo variant="wordmark" alt="My Urban" className="urban-admin-logo" />
         <span
-          className={styles.labelTextDimFs9}
+          className={styles.wordmarkSuffix}
         >
           / suporte
         </span>
@@ -293,7 +293,7 @@ function SidebarContent({
             "var(--admin-accent-soft)";
         }}
       >
-        <span className={styles.rowCenteredGap8}>
+        <span className={styles.switchLinkInner}>
           <svg
             width="13"
             height="13"
@@ -326,10 +326,10 @@ function SidebarContent({
       </NextLink>
 
       {/* Busca */}
-      <div className={styles.boxP12x12x0}>
-        <div className={styles.box}>
+      <div className={styles.searchWrap}>
+        <div className={styles.searchField}>
           <span
-            className={styles.rowAbsoluteTextDim}
+            className={styles.searchIcon}
           >
             <Search size={14} />
           </span>
@@ -338,13 +338,13 @@ function SidebarContent({
             placeholder="Buscar seção…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className={styles.inputTextBgSurfaceElevated}
+            className={styles.searchInput}
           />
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className={styles.navP8x0x24Flex1}>
+      <nav className={styles.navList}>
         {NAV.map((section) => (
           <div key={section.title}>
             <p className="urban-admin-sidebar-section">{section.title}</p>
@@ -355,7 +355,7 @@ function SidebarContent({
                 className="urban-admin-sidebar-item"
                 data-active={isActive(item.href)}
               >
-                <span className={styles.rowCentered}>
+                <span className={styles.navItemInner}>
                   {item.icon}
                 </span>
                 {item.label}
@@ -365,7 +365,7 @@ function SidebarContent({
         ))}
         {NAV.length === 0 && (
           <p
-            className={styles.textTextDimFs12}
+            className={styles.navEmpty}
           >
             Nenhuma seção encontrada.
           </p>
@@ -381,7 +381,7 @@ function Breadcrumb({ pathname }: { pathname: string }) {
   return (
     <nav
       aria-label="Breadcrumb"
-      className={styles.rowCenteredTextMuted}
+      className={styles.breadcrumb}
     >
       <NextLink
         href="/admin"
@@ -393,7 +393,7 @@ function Breadcrumb({ pathname }: { pathname: string }) {
         <>
           <ChevronRight size={12} />
           <span
-            className={styles.labelTextFs13}
+            className={styles.breadcrumbCurrent}
           >
             {current}
           </span>
@@ -446,7 +446,7 @@ function AdminAvatar() {
   return (
     <div
       aria-label="Conta de operação"
-      className={styles.rowJustifyCenterCentered}
+      className={styles.avatar}
     >
       AD
     </div>

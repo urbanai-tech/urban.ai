@@ -71,7 +71,7 @@ export function AdminMetricCard({
         ...style,
       }}
     >
-      <div className={styles.rowCenteredGap8}>
+      <div className={styles.labelRow}>
         {status && <AdminStatusDot kind={status} size={7} />}
         <p className="urban-admin-eyebrow-muted">{label}</p>
       </div>
@@ -80,7 +80,7 @@ export function AdminMetricCard({
       </p>
       {(sub || trend) && (
         <div
-          className={styles.rowCenteredTextMuted}
+          className={styles.subRow}
         >
           {trend && (
             <span

@@ -61,7 +61,7 @@ export function AdminToastProvider({ children }: { children: React.ReactNode }) 
       <div
         aria-live="polite"
         aria-atomic="true"
-        className={styles.stackFixedGap8}
+        className={styles.toastStack}
       >
         {toasts.map((t) => (
           <div
@@ -85,11 +85,11 @@ export function AdminToastProvider({ children }: { children: React.ReactNode }) 
             }}
           >
             <AdminStatusDot kind={t.kind} size={8} />
-            <span className={styles.labelFlex1}>{t.message}</span>
+            <span className={styles.toastMessage}>{t.message}</span>
             <button
               onClick={() => dismiss(t.id)}
               aria-label="Fechar"
-              className={styles.buttonTextMutedBg}
+              className={styles.dismissButton}
             >
               <Close size={14} />
             </button>

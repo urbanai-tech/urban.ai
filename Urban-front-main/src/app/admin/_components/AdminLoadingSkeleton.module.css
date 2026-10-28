@@ -1,25 +1,25 @@
-.boxH20.boxH20 {
+.headingSpacer.headingSpacer {
   height: 20px;
 }
 
-.boxH12.boxH12 {
+.subheadingSpacer.subheadingSpacer {
   height: 12px;
 }
 
-.stackGap14P24x0.stackGap14P24x0 {
+.skeletonCard.skeletonCard {
   display: flex;
   flex-direction: column;
   gap: 14px;
   padding: 24px 0;
 }
 
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.pageContainer.pageContainer {
   max-width: 1280px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.stackGap14Mb32.stackGap14Mb32 {
+.pageHeader.pageHeader {
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -28,6 +28,6 @@
   margin-bottom: 32px;
 }
 
-.boxMt48.boxMt48 {
+.tableSection.tableSection {
   margin-top: 48px;
 }

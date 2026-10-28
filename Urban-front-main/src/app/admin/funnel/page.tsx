@@ -51,7 +51,7 @@ export default function AdminFunnelPage() {
 
   if (error || !data) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.pageContainer}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar funil"
@@ -110,7 +110,7 @@ export default function AdminFunnelPage() {
   const max = Math.max(...stages.map((s) => s.value), 1);
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow={`ADMIN · FUNIL DE PRODUTO — ÚLTIMOS ${data.windowDays}D`}
         title="Jornada do anfitrião"
@@ -118,9 +118,9 @@ export default function AdminFunnelPage() {
       />
 
       {/* === Taxas-chave === */}
-      <section className={styles.sectionMb48}>
+      <section className={styles.section}>
         <div
-          className={styles.gridColsAuto260Gap32}
+          className={styles.metricGrid}
         >
           <AdminMetricCard
             label="Taxa de aceite"
@@ -139,25 +139,25 @@ export default function AdminFunnelPage() {
       </section>
 
       {/* === Funil real SVG === */}
-      <section className={styles.sectionMb48}>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
+      <section className={styles.section}>
+        <p className={`urban-admin-eyebrow ${styles.stagesEyebrow}`}>
           ETAPAS — TRAPÉZIOS DECRESCENTES
         </p>
         <FunnelChart stages={stages} max={max} />
       </section>
 
-      <section className={styles.sectionMb32}>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb16}`}>
+      <section className={styles.leverageSection}>
+        <p className={`urban-admin-eyebrow ${styles.leverageEyebrow}`}>
           PRÓXIMA ALAVANCA
         </p>
         <NextLeverage stages={stages} />
       </section>
 
       <footer
-        className={styles.footerTextMutedFs12}
+        className={styles.pageFooter}
       >
-        <p className={styles.textM0}>
-          <strong className={styles.strongText}>Janela:</strong>{" "}
+        <p className={styles.footerText}>
+          <strong className={styles.emphasis}>Janela:</strong>{" "}
           {data.windowDays} dias. Valores absolutos contam usuários distintos
           em cada etapa, não eventos. % entre etapas é a taxa de avanço.
         </p>
@@ -178,10 +178,10 @@ function FunnelChart({ stages, max }: { stages: Stage[]; max: number }) {
   return (
     <AdminCard variant="subtle" className={styles.funnelCard}>
       <div
-        className={styles.gridColsGap32}
+        className={styles.funnelLayout}
       >
         {/* SVG funil */}
-        <div className={styles.box}>
+        <div className={styles.funnelChartWrap}>
           <svg
             viewBox={`0 0 100 ${totalHeight}`}
             preserveAspectRatio="none"
@@ -214,7 +214,7 @@ function FunnelChart({ stages, max }: { stages: Stage[]; max: number }) {
 
           {/* Labels sobrepostos */}
           <div
-            className={styles.stackAbsolute}
+            className={styles.stageLabels}
           >
             {stages.map((s, i) => {
               const pctOfMax = ((s.value / max) * 100).toFixed(1);
@@ -233,17 +233,17 @@ function FunnelChart({ stages, max }: { stages: Stage[]; max: number }) {
                   }}
                 >
                   <p
-                    className={styles.textBgFs10}
+                    className={styles.stageLabelTitle}
                   >
                     {String(i + 1).padStart(2, "0")} · {s.label}
                   </p>
                   <p
-                    className={`urban-admin-display-md ${styles.displayMdBgW400}`}
+                    className={`urban-admin-display-md ${styles.stageLabelValue}`}
                   >
                     {s.value.toLocaleString("pt-BR")}
                   </p>
                   <p
-                    className={styles.textBgFs10W500M0}
+                    className={styles.stageLabelPercent}
                   >
                     {pctOfMax}% do topo
                   </p>
@@ -255,7 +255,7 @@ function FunnelChart({ stages, max }: { stages: Stage[]; max: number }) {
 
         {/* Lista lateral com drop-off entre etapas */}
         <ol
-          className={styles.stackGap12M0}
+          className={styles.stageList}
         >
           {stages.map((s, i) => {
             const prev = i === 0 ? null : stages[i - 1];
@@ -268,24 +268,24 @@ function FunnelChart({ stages, max }: { stages: Stage[]; max: number }) {
             return (
               <li
                 key={s.key}
-                className={styles.itemP12x0Bordered}
+                className={styles.stageItem}
               >
                 <p
-                  className={styles.textTextMutedFs11}
+                  className={styles.stageItemTitle}
                 >
                   {String(i + 1).padStart(2, "0")} {s.label}
                 </p>
                 <p
-                  className={styles.textTextMutedFs12}
+                  className={styles.stageItemDesc}
                 >
                   {s.desc}
                 </p>
                 {prev && (
                   <p
-                    className={styles.textTextDimFs11}
+                    className={styles.stageItemAdvance}
                   >
-                    Avanço: <strong className={styles.strongAccent}>{advance}%</strong>{" "}
-                    · Drop-off: <strong className={styles.strongTextMuted}>{drop}%</strong>
+                    Avanço: <strong className={styles.emphasisAccent}>{advance}%</strong>{" "}
+                    · Drop-off: <strong className={styles.emphasisMuted}>{drop}%</strong>
                   </p>
                 )}
               </li>
@@ -327,20 +327,20 @@ function NextLeverage({ stages }: { stages: Stage[] }) {
   return (
     <AdminCard variant="accent">
       <p
-        className={styles.textTextMutedFs14}
+        className={styles.leverageText}
       >
         Maior perda da janela: entre{" "}
-        <strong className={styles.strongText}>{biggestDrop.from}</strong>{" "}
+        <strong className={styles.emphasis}>{biggestDrop.from}</strong>{" "}
         e{" "}
-        <strong className={styles.strongText}>{biggestDrop.to}</strong>{" "}
+        <strong className={styles.emphasis}>{biggestDrop.to}</strong>{" "}
         — perdemos{" "}
-        <strong className={styles.strongAccent}>
+        <strong className={styles.emphasisAccent}>
           {biggestDrop.lost.toLocaleString("pt-BR")}
         </strong>{" "}
         usuários ({biggestDrop.percent.toFixed(1)}% de drop-off). Foque aqui
         para a próxima iteração de produto.
       </p>
-      <div className={styles.rowWrapGap12}>
+      <div className={styles.leverageActions}>
         <AdminButton variant="secondary" as="a" href="/admin/dashboard" rightIcon={<Icons.ArrowRight size={11} />}>
           Ver dashboard executivo
         </AdminButton>

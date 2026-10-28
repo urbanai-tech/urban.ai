@@ -1,58 +1,58 @@
-.textTextFs13.textTextFs13 {
+.propertyName.propertyName {
   font-weight: 600;
   color: var(--admin-text);
   margin: 0;
   font-size: 13px;
 }
 
-.textTextDimFs11.textTextDimFs11 {
+.propertyId.propertyId {
   font-size: 11px;
   color: var(--admin-text-dim);
   margin: 2px 0 0;
   font-family: monospace;
 }
 
-.labelTextMutedFs12.labelTextMutedFs12 {
+.cellMuted.cellMuted {
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.rowCenteredGap8.rowCenteredGap8 {
+.locationCell.locationCell {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.labelTextFs12.labelTextFs12 {
+.locationText.locationText {
   font-size: 12px;
   color: var(--admin-text);
 }
 
-.labelTextMono.labelTextMono {
+.priceValue.priceValue {
   font-family: monospace;
   color: var(--admin-text);
 }
 
-.labelTextDim.labelTextDim {
+.cellPlaceholder.cellPlaceholder {
   color: var(--admin-text-dim);
 }
 
-.labelAccentW600.labelAccentW600 {
+.recommendationCount.recommendationCount {
   color: var(--admin-accent);
   font-weight: 600;
 }
 
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.pageContainer.pageContainer {
   max-width: 1400px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.sectionMb32.sectionMb32 {
+.kpiSection.kpiSection {
   margin-bottom: 32px;
 }
 
-.gridColsAuto180Gap32.gridColsAuto180Gap32 {
+.kpiGrid.kpiGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 32px;
@@ -61,30 +61,30 @@
   padding: 24px 0;
 }
 
-.rowGap12Mb20.rowGap12Mb20 {
+.toolbar.toolbar {
   display: flex;
   gap: 12px;
   margin-bottom: 20px;
 }
 
-.sectionMt48Bordered.sectionMt48Bordered {
+.footerNote.footerNote {
   margin-top: 48px;
   padding-top: 24px;
   border-top: 1px solid var(--admin-divider);
 }
 
-.textTextMutedFs14.textTextMutedFs14 {
+.footerText.footerText {
   font-size: 14px;
   color: var(--admin-text-muted);
   margin: 0;
   line-height: 1.6;
 }
 
-.strongAccent.strongAccent {
+.emphasisAccent.emphasisAccent {
   color: var(--admin-accent);
 }
 
-.strongText.strongText {
+.emphasis.emphasis {
   color: var(--admin-text);
 }
 

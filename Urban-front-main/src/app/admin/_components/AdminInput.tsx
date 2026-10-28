@@ -89,9 +89,9 @@ export const AdminInput = React.forwardRef<HTMLInputElement, InputProps>(
         className={shellClassName}
       >
         {leftAddon ? (
-          <div className={styles.box}>
+          <div className={styles.addonWrap}>
             <span
-              className={styles.rowAbsoluteCentered}
+              className={styles.addonIcon}
             >
               {leftAddon}
             </span>

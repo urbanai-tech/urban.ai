@@ -1,4 +1,4 @@
-.rowFixedJustifyCenter.rowFixedJustifyCenter {
+.overlay.overlay {
   position: fixed;
   inset: 0;
   z-index: 1100;
@@ -8,14 +8,14 @@
   padding: 24px;
 }
 
-.backdropAbsoluteBgBackdrop.backdropAbsoluteBgBackdrop {
+.backdrop.backdrop {
   position: absolute;
   inset: 0;
   background: var(--admin-backdrop);
   backdrop-filter: blur(4px);
 }
 
-.drawerPanelBgSurfaceElevatedP28x28x24.drawerPanelBgSurfaceElevatedP28x28x24 {
+.dialogPanel.dialogPanel {
   position: relative;
   width: 100%;
   max-width: 440px;
@@ -25,7 +25,7 @@
   padding: 28px 28px 24px;
 }
 
-.headingTextFs18.headingTextFs18 {
+.title.title {
   font-size: 18px;
   font-weight: 600;
   letter-spacing: -0.3px;
@@ -33,14 +33,14 @@
   margin: 0;
 }
 
-.textTextMutedFs14.textTextMutedFs14 {
+.body.body {
   margin-top: 12px;
   font-size: 14px;
   line-height: 1.6;
   color: var(--admin-text-muted);
 }
 
-.rowEndGap10.rowEndGap10 {
+.actions.actions {
   margin-top: 28px;
   display: flex;
   gap: 10px;

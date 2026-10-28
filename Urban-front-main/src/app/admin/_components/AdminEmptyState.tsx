@@ -20,27 +20,27 @@ export function AdminEmptyState({
 }) {
   return (
     <div
-      className={styles.stackCenteredCenterAligned}
+      className={styles.emptyState}
     >
       {icon && (
         <div
-          className={styles.boxTextDimMb4}
+          className={styles.icon}
         >
           {icon}
         </div>
       )}
       {eyebrow && <p className="urban-admin-eyebrow">{eyebrow}</p>}
-      <h3 className={`urban-admin-display-sm ${styles.displaySmUpper}`}>
+      <h3 className={`urban-admin-display-sm ${styles.title}`}>
         {title}
       </h3>
       {body && (
         <p
-          className={styles.textTextMutedFs14}
+          className={styles.body}
         >
           {body}
         </p>
       )}
-      {action && <div className={styles.boxMt4}>{action}</div>}
+      {action && <div className={styles.action}>{action}</div>}
     </div>
   );
 }

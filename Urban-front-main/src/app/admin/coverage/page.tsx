@@ -128,7 +128,7 @@ export default function CoverageAdminPage() {
 
   if (error) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.pageContainer}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar"
@@ -150,12 +150,12 @@ export default function CoverageAdminPage() {
       header: "Nome",
       render: (r) => (
         <div>
-          <p className={styles.textTextW600}>
+          <p className={styles.regionName}>
             {r.name}
           </p>
           {r.notes && (
             <p
-              className={styles.textTextMutedFs11}
+              className={styles.regionNotes}
             >
               {r.notes.slice(0, 80)}
               {r.notes.length > 80 && "…"}
@@ -190,7 +190,7 @@ export default function CoverageAdminPage() {
       header: "Geometria",
       render: (r) => (
         <span
-          className={styles.labelTextMutedFs11}
+          className={styles.regionGeometry}
         >
           {r.centerLat !== null && r.radiusKm !== null
             ? `(${r.centerLat}, ${r.centerLng}) raio ${r.radiusKm}km`
@@ -228,7 +228,7 @@ export default function CoverageAdminPage() {
   ];
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · COBERTURA"
         title="Cobertura geográfica"
@@ -255,12 +255,12 @@ export default function CoverageAdminPage() {
 
       {/* === KPIs === */}
       {stats && (
-        <section className={styles.sectionMb56}>
-          <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
+        <section className={styles.kpiSection}>
+          <p className={`urban-admin-eyebrow ${styles.kpiEyebrow}`}>
             INDICADORES
           </p>
           <div
-            className={styles.gridColsAuto200Gap32}
+            className={styles.kpiGrid}
           >
             <AdminMetricCard
               label="Regiões ativas"
@@ -286,14 +286,14 @@ export default function CoverageAdminPage() {
       )}
 
       {/* === Regiões === */}
-      <section className={styles.sectionMb32}>
+      <section className={styles.regionsSection}>
         <header
-          className={styles.rowBetweenCentered}
+          className={styles.regionsHeader}
         >
           <div>
             <p className="urban-admin-eyebrow">REGIÕES CONFIGURADAS</p>
             <h2
-              className={styles.headingTextFs20}
+              className={styles.regionsTitle}
             >
               Overrides manuais
             </h2>
@@ -417,9 +417,9 @@ function CheckPointForm() {
   return (
     <form
       onSubmit={handleCheck}
-      className={styles.stackGap18}
+      className={styles.form}
     >
-      <p className={styles.textTextMutedFs13}>
+      <p className={styles.formHint}>
         Cole lat/lng e veja se ficaria dentro da cobertura atual.
       </p>
       <AdminInput
@@ -543,7 +543,7 @@ function NewRegionForm({
   return (
     <form
       onSubmit={submit}
-      className={styles.stackGap18}
+      className={styles.form}
     >
       <AdminInput
         label="Nome"
@@ -567,18 +567,18 @@ function NewRegionForm({
 
       <div>
         <p
-          className={styles.textTextMutedFs11W600UpperMb8Ls1_5}
+          className={styles.geometryLabel}
         >
           Tipo de geometria
         </p>
-        <div className={styles.rowGap18}>
+        <div className={styles.geometryOptions}>
           <label style={radioLabelStyle}>
             <input
               type="radio"
               name="mode"
               checked={mode === "circle"}
               onChange={() => setMode("circle")}
-              className={styles.input}
+              className={styles.radioInput}
             />
             Centro + raio
           </label>
@@ -588,7 +588,7 @@ function NewRegionForm({
               name="mode"
               checked={mode === "bbox"}
               onChange={() => setMode("bbox")}
-              className={styles.input}
+              className={styles.radioInput}
             />
             Bounding box
           </label>
@@ -597,7 +597,7 @@ function NewRegionForm({
 
       {mode === "circle" ? (
         <div
-          className={styles.gridColsGap12}
+          className={styles.circleFields}
         >
           <AdminInput
             label="centerLat"
@@ -628,7 +628,7 @@ function NewRegionForm({
         </div>
       ) : (
         <div
-          className={styles.gridColsGap122}
+          className={styles.bboxFields}
         >
           <AdminInput
             label="minLat"
@@ -674,7 +674,7 @@ function NewRegionForm({
       />
 
       <div
-        className={styles.rowEndGap10}
+        className={styles.formActions}
       >
         <AdminButton
           variant="ghost"

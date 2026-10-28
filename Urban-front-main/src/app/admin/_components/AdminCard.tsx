@@ -67,21 +67,21 @@ export function AdminCardHeader({
       className={[styles.header, className].filter(Boolean).join(" ")}
       style={style}
     >
-      <div className={styles.boxMinw0}>
+      <div className={styles.headerText}>
         {eyebrow && (
           <p
-            className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb6}`}
+            className={`urban-admin-eyebrow-muted ${styles.headerEyebrow}`}
           >
             {eyebrow}
           </p>
         )}
         <h3
-          className={styles.subheadingTextFs15}
+          className={styles.headerTitle}
         >
           {title}
         </h3>
       </div>
-      {actions && <div className={styles.boxNoShrink}>{actions}</div>}
+      {actions && <div className={styles.headerActions}>{actions}</div>}
     </header>
   );
 }

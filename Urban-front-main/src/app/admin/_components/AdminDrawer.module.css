@@ -1,4 +1,4 @@
-.rowFixedEnd.rowFixedEnd {
+.overlay.overlay {
   position: fixed;
   inset: 0;
   z-index: 1000;
@@ -6,14 +6,14 @@
   justify-content: flex-end;
 }
 
-.backdropAbsoluteBgBackdrop.backdropAbsoluteBgBackdrop {
+.backdrop.backdrop {
   position: absolute;
   inset: 0;
   background: var(--admin-backdrop);
   backdrop-filter: blur(2px);
 }
 
-.rowBetweenStart.rowBetweenStart {
+.header.header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -22,19 +22,19 @@
   border-bottom: 1px solid var(--admin-divider);
 }
 
-.boxMinw0.boxMinw0 {
+.headerText.headerText {
   min-width: 0;
 }
 
-.eyebrowMb8.eyebrowMb8 {
+.eyebrow.eyebrow {
   margin-bottom: 8px;
 }
 
-.displaySmUpper.displaySmUpper {
+.title.title {
   text-transform: uppercase;
 }
 
-.rowJustifyCenterCentered.rowJustifyCenterCentered {
+.closeButton.closeButton {
   background: transparent;
   border: 1px solid var(--admin-divider-strong);
   border-radius: 2px;
@@ -49,13 +49,13 @@
   min-height: 44px;
 }
 
-.boxP24xclamp16x4vwx28Flex1.boxP24xclamp16x4vwx28Flex1 {
+.body.body {
   flex: 1;
   overflow-y: auto;
   padding: 24px clamp(16px, 4vw, 28px);
 }
 
-.rowEndWrap.rowEndWrap {
+.footer.footer {
   padding: 16px clamp(16px, 4vw, 28px);
   border-top: 1px solid var(--admin-divider);
   display: flex;

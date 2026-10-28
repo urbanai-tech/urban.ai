@@ -70,7 +70,7 @@ export default function AdminPage() {
 
   if (error) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.pageContainer}>
         <AdminEmptyState
           eyebrow="Acesso negado"
           title="Erro de autenticação"
@@ -82,7 +82,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="OPERAÇÃO · RESUMO"
         title="Painel"
@@ -101,12 +101,12 @@ export default function AdminPage() {
 
       {/* === Overview KPIs === */}
       {overview && (
-        <section className={styles.sectionMb64}>
-          <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
+        <section className={styles.section}>
+          <p className={`urban-admin-eyebrow ${styles.sectionEyebrow}`}>
             VISÃO GERAL
           </p>
           <div
-            className={styles.gridColsAuto180Gap32}
+            className={styles.kpiGrid}
           >
             <KpiCell
               label="Usuários ativos"
@@ -142,14 +142,14 @@ export default function AdminPage() {
 
       {/* === Motor IA === */}
       {overview && pricing && (
-        <section className={styles.sectionMb64}>
+        <section className={styles.section}>
           <AdminCard variant="accent" className={styles.engineCard}>
             <AdminCardHeader
               eyebrow="MOTOR DE IA — ESTADO ATUAL"
               title={
-                <span className={styles.rowCenteredGap12}>
+                <span className={styles.engineTitle}>
                   Estratégia ativa:{" "}
-                  <strong className={styles.strongAccent}>
+                  <strong className={styles.engineStrategy}>
                     {pricing.activeStrategy}
                   </strong>
                 </span>
@@ -157,24 +157,24 @@ export default function AdminPage() {
               actions={<AdminBadge kind="accent">{overview.ai.currentTier}</AdminBadge>}
             />
             <p
-              className={styles.textTextMutedFs14}
+              className={styles.engineReason}
             >
               {overview.ai.reason}
             </p>
             <p
-              className={styles.textTextDimFs12}
+              className={styles.engineEnvNote}
             >
               Default por env (PRICING_STRATEGY):{" "}
-              <code className={styles.codeText}>
+              <code className={styles.inlineCode}>
                 {pricing.strategyEnvDefault}
               </code>{" "}
               · Bootstrap on boot:{" "}
-              <strong className={styles.codeText}>
+              <strong className={styles.inlineCode}>
                 {pricing.bootstrapOnBoot ? "sim" : "não"}
               </strong>
             </p>
             <div
-              className={styles.gridColsAuto160Gap32}
+              className={styles.engineKpiGrid}
             >
               <KpiCell
                 label="Snapshots no dataset"
@@ -207,7 +207,7 @@ export default function AdminPage() {
               />
             </div>
             <div
-              className={styles.gridColsAuto220TextMuted}
+              className={styles.tierTipGrid}
             >
               <TierTip
                 tier="Tier 0"
@@ -239,31 +239,31 @@ export default function AdminPage() {
 
       {/* === Dataset proprietário === */}
       {dataset && (
-        <section className={styles.sectionMb32}>
-          <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
+        <section className={styles.datasetSection}>
+          <p className={`urban-admin-eyebrow ${styles.sectionEyebrow}`}>
             DATASET PROPRIETÁRIO
           </p>
           <div
-            className={styles.gridColsAutoGap24}
+            className={styles.datasetGrid}
           >
             <AdminCard variant="subtle">
               <AdminCardHeader title="Por origem" />
               {dataset.byOrigin.length === 0 ? (
                 <p
-                  className={styles.textTextMutedFs13}
+                  className={styles.emptyHint}
                 >
                   Sem snapshots ainda. O cron diário começa a popular após o
                   próximo deploy.
                 </p>
               ) : (
-                <ul className={styles.listM0P0}>
+                <ul className={styles.datasetList}>
                   {dataset.byOrigin.map((row) => (
                     <li
                       key={row.origin}
-                      className={styles.rowBetweenFs13}
+                      className={styles.originRow}
                     >
-                      <code className={styles.codeText}>{row.origin}</code>
-                      <span className={styles.labelAccentW600}>
+                      <code className={styles.inlineCode}>{row.origin}</code>
+                      <span className={styles.countValue}>
                         {row.count.toLocaleString("pt-BR")}
                       </span>
                     </li>
@@ -271,7 +271,7 @@ export default function AdminPage() {
                 </ul>
               )}
               <p
-                className={styles.textTextDimFs11}
+                className={styles.datasetFootnote}
               >
                 Dias cobertos: {dataset.daysCovered.toLocaleString("pt-BR")}
               </p>
@@ -281,23 +281,23 @@ export default function AdminPage() {
               <AdminCardHeader title="Top listings (por volume de snapshots)" />
               {dataset.topListings.length === 0 ? (
                 <p
-                  className={styles.textTextMutedFs13}
+                  className={styles.emptyHint}
                 >
                   Aguardando primeiro batch.
                 </p>
               ) : (
-                <ul className={styles.listM0P0}>
+                <ul className={styles.datasetList}>
                   {dataset.topListings.map((row) => (
                     <li
                       key={row.listingId}
-                      className={styles.rowBetweenFs13P8x0BorderedMono}
+                      className={styles.listingRow}
                     >
                       <span
-                        className={styles.labelTextMutedMaxw70pct}
+                        className={styles.listingId}
                       >
                         {row.listingId}
                       </span>
-                      <span className={styles.labelAccentW600}>
+                      <span className={styles.countValue}>
                         {row.snapshots}
                       </span>
                     </li>
@@ -343,7 +343,7 @@ function TierTip({
   active: boolean;
 }) {
   return (
-    <div className={styles.rowStartGap8}>
+    <div className={styles.tierTip}>
       <AdminStatusDot
         kind={active ? "accent" : "neutral"}
         size={6}
@@ -359,7 +359,7 @@ function TierTip({
         >
           {tier}:
         </strong>{" "}
-        <span className={styles.labelFs12}>{desc}</span>
+        <span className={styles.tierTipDesc}>{desc}</span>
       </div>
     </div>
   );

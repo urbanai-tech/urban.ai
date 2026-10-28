@@ -1,20 +1,20 @@
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.pageContainer.pageContainer {
   max-width: 1280px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.sectionMb32.sectionMb32 {
+.section.section {
   margin-bottom: 32px;
 }
 
-.rowCenteredGap10.rowCenteredGap10 {
+.cronTitle.cronTitle {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.gridColsAuto180TextMuted.gridColsAuto180TextMuted {
+.cronDetails.cronDetails {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 24px;
@@ -22,17 +22,17 @@
   color: var(--admin-text-muted);
 }
 
-.eyebrowMb20.eyebrowMb20 {
+.lastRunEyebrow.lastRunEyebrow {
   margin-bottom: 20px;
 }
 
-.stackGap24.stackGap24 {
+.lastRunContent.lastRunContent {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-.gridColsAuto180Gap32.gridColsAuto180Gap32 {
+.summaryGrid.summaryGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 32px;
@@ -41,13 +41,13 @@
   padding: 24px 0;
 }
 
-.gridColsAutoGap16.gridColsAutoGap16 {
+.dayCardGrid.dayCardGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 16px;
 }
 
-.listTextMutedFs13.listTextMutedFs13 {
+.rulesList.rulesList {
   margin: 0;
   padding-left: 18px;
   font-size: 13px;
@@ -55,15 +55,15 @@
   line-height: 1.7;
 }
 
-.codeAccent.codeAccent {
+.inlineCode.inlineCode {
   color: var(--admin-accent);
 }
 
-.codeDanger.codeDanger {
+.inlineCodeDanger.inlineCodeDanger {
   color: var(--admin-danger);
 }
 
-.rowBetweenCentered.rowBetweenCentered {
+.dayCardHeader.dayCardHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -71,24 +71,24 @@
   gap: 12px;
 }
 
-.eyebrowM0.eyebrowM0 {
+.dayCardEyebrow.dayCardEyebrow {
   margin: 0;
 }
 
-.textTextMutedFs12.textTextMutedFs12 {
+.dayCardDescription.dayCardDescription {
   font-size: 12px;
   color: var(--admin-text-muted);
   line-height: 1.55;
   margin: 0 0 16px;
 }
 
-.gridCols2Gap14.gridCols2Gap14 {
+.dayCardStats.dayCardStats {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 14px;
 }
 
-.textTextMutedFs10.textTextMutedFs10 {
+.smallStatLabel.smallStatLabel {
   font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -97,16 +97,16 @@
   margin: 0;
 }
 
-.eyebrowMutedMb4.eyebrowMutedMb4 {
+.fieldRowLabel.fieldRowLabel {
   margin-bottom: 4px;
 }
 
-.codeAccentFs12.codeAccentFs12 {
+.fieldRowCode.fieldRowCode {
   font-size: 12px;
   color: var(--admin-accent);
 }
 
-.textTextFs13.textTextFs13 {
+.fieldRowValue.fieldRowValue {
   font-size: 13px;
   color: var(--admin-text);
   margin: 0;

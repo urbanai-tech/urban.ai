@@ -63,32 +63,32 @@ export function AdminConfirmDialog({
       role="dialog"
       aria-modal="true"
       aria-labelledby="admin-confirm-title"
-      className={styles.rowFixedJustifyCenter}
+      className={styles.overlay}
     >
       <div
-        className={`urban-admin-backdrop ${styles.backdropAbsoluteBgBackdrop}`}
+        className={`urban-admin-backdrop ${styles.backdrop}`}
         onClick={onClose}
       />
       <div
         ref={dialogRef}
         tabIndex={-1}
-        className={`urban-admin-drawer-panel ${styles.drawerPanelBgSurfaceElevatedP28x28x24}`}
+        className={`urban-admin-drawer-panel ${styles.dialogPanel}`}
       >
         <h2
           id="admin-confirm-title"
-          className={styles.headingTextFs18}
+          className={styles.title}
         >
           {title}
         </h2>
         {body && (
           <p
-            className={styles.textTextMutedFs14}
+            className={styles.body}
           >
             {body}
           </p>
         )}
         <div
-          className={styles.rowEndGap10}
+          className={styles.actions}
         >
           <AdminButton ref={cancelRef} variant="ghost" onClick={onClose} disabled={loading}>
             {cancelLabel}

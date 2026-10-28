@@ -1,20 +1,20 @@
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.pageContainerError.pageContainerError {
   max-width: 1280px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.boxM0xautoP40x32Maxw1320.boxM0xautoP40x32Maxw1320 {
+.pageContainer.pageContainer {
   max-width: 1320px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.sectionMb36.sectionMb36 {
+.metricsSection.metricsSection {
   margin-bottom: 36px;
 }
 
-.gridColsAuto160Gap28.gridColsAuto160Gap28 {
+.metricGrid.metricGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 28px;
@@ -22,71 +22,71 @@
   border-bottom: 1px solid var(--admin-divider);
 }
 
-.sectionMb24.sectionMb24 {
+.listSection.listSection {
   margin-bottom: 24px;
 }
 
-.rowWrapGap12.rowWrapGap12 {
+.filterBar.filterBar {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   align-items: end;
 }
 
-.stackGap10.stackGap10 {
+.eventList.eventList {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.rowBetweenCentered.rowBetweenCentered {
+.pagination.pagination {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: 20px;
 }
 
-.textTextMutedFs12.textTextMutedFs12 {
+.paginationInfo.paginationInfo {
   margin: 0;
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.rowGap8.rowGap8 {
+.paginationActions.paginationActions {
   display: flex;
   gap: 8px;
 }
 
-.gridCenteredColsAuto.gridCenteredColsAuto {
+.eventLayout.eventLayout {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
   gap: 16px;
   align-items: center;
 }
 
-.stackGap8.stackGap8 {
+.eventMeta.eventMeta {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.rowWrapGap8.rowWrapGap8 {
+.eventBadges.eventBadges {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.labelTextDimFs11.labelTextDimFs11 {
+.eventDate.eventDate {
   font-size: 11px;
   color: var(--admin-text-dim);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-.boxMinw0.boxMinw0 {
+.eventBody.eventBody {
   min-width: 0;
 }
 
-.textTextFs14.textTextFs14 {
+.eventTitle.eventTitle {
   margin: 0;
   color: var(--admin-text);
   font-size: 14px;
@@ -96,7 +96,7 @@
   white-space: nowrap;
 }
 
-.textTextMutedFs12M5x0x0Scroll.textTextMutedFs12M5x0x0Scroll {
+.eventRecipient.eventRecipient {
   margin: 5px 0 0;
   color: var(--admin-text-muted);
   font-size: 12px;
@@ -105,14 +105,14 @@
   white-space: nowrap;
 }
 
-.textDangerFs12.textDangerFs12 {
+.eventFailure.eventFailure {
   margin: 8px 0 0;
   color: var(--admin-danger);
   font-size: 12px;
   line-height: 1.45;
 }
 
-.stackAlignEndGap5.stackAlignEndGap5 {
+.eventSide.eventSide {
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -120,7 +120,7 @@
   min-width: 0;
 }
 
-.labelTextMutedFs11.labelTextMutedFs11 {
+.eventKind.eventKind {
   font-size: 11px;
   color: var(--admin-text-muted);
   overflow: hidden;
@@ -129,7 +129,7 @@
   max-width: 140px;
 }
 
-.labelTextDimFs11Maxw140Scroll.labelTextDimFs11Maxw140Scroll {
+.eventProvider.eventProvider {
   font-size: 11px;
   color: var(--admin-text-dim);
   overflow: hidden;

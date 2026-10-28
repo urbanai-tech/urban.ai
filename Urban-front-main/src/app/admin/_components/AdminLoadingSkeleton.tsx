@@ -42,9 +42,9 @@ export function AdminLoadingSkeleton({
     return (
       <div style={{ padding: "32px 0", ...style }}>
         <Bar width={120} height={11} />
-        <div className={styles.boxH20} />
+        <div className={styles.headingSpacer} />
         <Bar width={"60%"} height={72} />
-        <div className={styles.boxH12} />
+        <div className={styles.subheadingSpacer} />
         <Bar width={"35%"} height={12} />
       </div>
     );
@@ -61,7 +61,7 @@ export function AdminLoadingSkeleton({
         }}
       >
         {Array.from({ length: count }).map((_, i) => (
-          <div key={i} className={styles.stackGap14P24x0}>
+          <div key={i} className={styles.skeletonCard}>
             <Bar width={100} height={10} />
             <Bar width={"70%"} height={40} />
             <Bar width={"45%"} height={10} />
@@ -150,10 +150,10 @@ export function AdminPageLoading({
   showTable?: boolean;
 }) {
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       {showHeader && (
         <div
-          className={styles.stackGap14Mb32}
+          className={styles.pageHeader}
         >
           <Bar width={100} height={10} />
           <Bar width={320} height={48} />
@@ -162,7 +162,7 @@ export function AdminPageLoading({
       )}
       {showKpis && <AdminLoadingSkeleton variant="kpi" count={4} columns={4} />}
       {showTable && (
-        <div className={styles.boxMt48}>
+        <div className={styles.tableSection}>
           <AdminLoadingSkeleton variant="table" count={6} columns={5} />
         </div>
       )}

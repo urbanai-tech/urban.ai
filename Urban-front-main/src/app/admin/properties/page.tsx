@@ -106,12 +106,12 @@ export default function AdminPropertiesPage() {
       render: (r) => (
         <div>
           <p
-            className={styles.textTextFs13}
+            className={styles.propertyName}
           >
             {r.propertyName || "(sem nome)"}
           </p>
           <p
-            className={styles.textTextDimFs11}
+            className={styles.propertyId}
           >
             {r.id.slice(0, 8)}…
           </p>
@@ -122,7 +122,7 @@ export default function AdminPropertiesPage() {
       key: "host",
       header: "Host",
       render: (r) => (
-        <span className={styles.labelTextMutedFs12}>
+        <span className={styles.cellMuted}>
           {r.userEmail || r.userId.slice(0, 8) + "…"}
         </span>
       ),
@@ -134,11 +134,11 @@ export default function AdminPropertiesPage() {
       render: (r) => {
         const invalid = !r.city || /^a\s*definir$/i.test(r.city.trim()) || !r.state;
         return (
-          <div className={styles.rowCenteredGap8}>
+          <div className={styles.locationCell}>
             {invalid ? (
               <AdminBadge kind="error">Inválida</AdminBadge>
             ) : (
-              <span className={styles.labelTextFs12}>
+              <span className={styles.locationText}>
                 {r.city}/{r.state}
               </span>
             )}
@@ -167,11 +167,11 @@ export default function AdminPropertiesPage() {
       align: "right",
       render: (r) =>
         r.manualDailyPrice != null ? (
-          <span className={styles.labelTextMono}>
+          <span className={styles.priceValue}>
             R$ {Number(r.manualDailyPrice).toLocaleString("pt-BR")}
           </span>
         ) : (
-          <span className={styles.labelTextDim}>—</span>
+          <span className={styles.cellPlaceholder}>—</span>
         ),
     },
     {
@@ -182,9 +182,9 @@ export default function AdminPropertiesPage() {
       render: (r) => {
         const count = r.futureRecommendationsCount ?? 0;
         return count > 0 ? (
-          <span className={styles.labelAccentW600}>{count}</span>
+          <span className={styles.recommendationCount}>{count}</span>
         ) : (
-          <span className={styles.labelTextDim}>0</span>
+          <span className={styles.cellPlaceholder}>0</span>
         );
       },
     },
@@ -194,11 +194,11 @@ export default function AdminPropertiesPage() {
       width: 130,
       render: (r) =>
         r.lastAnalysisAt ? (
-          <span className={styles.labelTextMutedFs12}>
+          <span className={styles.cellMuted}>
             {new Date(r.lastAnalysisAt).toLocaleDateString("pt-BR")}
           </span>
         ) : (
-          <span className={styles.labelTextDim}>—</span>
+          <span className={styles.cellPlaceholder}>—</span>
         ),
     },
     {
@@ -218,7 +218,7 @@ export default function AdminPropertiesPage() {
   ];
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · IMÓVEIS"
         title="Drill-down por imóvel"
@@ -235,9 +235,9 @@ export default function AdminPropertiesPage() {
       ) : (
         <>
           {/* KPIs derivados */}
-          <section className={styles.sectionMb32}>
+          <section className={styles.kpiSection}>
             <div
-              className={styles.gridColsAuto180Gap32}
+              className={styles.kpiGrid}
             >
               <KpiInline label="Total cadastrados" value={total} />
               <KpiInline
@@ -259,7 +259,7 @@ export default function AdminPropertiesPage() {
           </section>
 
           {/* Toolbar */}
-          <div className={styles.rowGap12Mb20}>
+          <div className={styles.toolbar}>
             <AdminInput
               placeholder="Buscar por nome / email / cidade / id…"
               value={search}
@@ -284,20 +284,20 @@ export default function AdminPropertiesPage() {
 
           {/* Footer ações */}
           <section
-            className={styles.sectionMt48Bordered}
+            className={styles.footerNote}
           >
             <AdminCard variant="accent">
               <p
-                className={styles.textTextMutedFs14}
+                className={styles.footerText}
               >
                 Esta tela cobre o item{" "}
-                <strong className={styles.strongAccent}>I5</strong> (detalhe do
+                <strong className={styles.emphasisAccent}>I5</strong> (detalhe do
                 imóvel) do roadmap. Para destravar:{" "}
-                <strong className={styles.strongText}>
+                <strong className={styles.emphasis}>
                   ativar Geocoding API
                 </strong>{" "}
                 no GCP corrige a coluna Geo e Localidade automaticamente, e{" "}
-                <strong className={styles.strongText}>
+                <strong className={styles.emphasis}>
                   rodar o smoke autenticado de recomendação
                 </strong>{" "}
                 preenche a coluna Recomendações futuras.
