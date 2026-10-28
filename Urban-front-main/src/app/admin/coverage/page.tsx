@@ -28,6 +28,7 @@ import {
   useAdminToast,
   Icons,
 } from "../_components";
+import styles from "./page.module.css";
 
 /**
  * /admin/coverage — gerencia áreas de cobertura geográfica do motor de eventos.
@@ -127,7 +128,7 @@ export default function CoverageAdminPage() {
 
   if (error) {
     return (
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar"
@@ -149,16 +150,12 @@ export default function CoverageAdminPage() {
       header: "Nome",
       render: (r) => (
         <div>
-          <p style={{ fontWeight: 600, color: "var(--admin-text)", margin: 0 }}>
+          <p className={styles.textTextW600}>
             {r.name}
           </p>
           {r.notes && (
             <p
-              style={{
-                marginTop: 2,
-                fontSize: 11,
-                color: "var(--admin-text-muted)",
-              }}
+              className={styles.textTextMutedFs11}
             >
               {r.notes.slice(0, 80)}
               {r.notes.length > 80 && "…"}
@@ -199,11 +196,7 @@ export default function CoverageAdminPage() {
       header: "Geometria",
       render: (r) => (
         <span
-          style={{
-            fontFamily: "monospace",
-            fontSize: 11,
-            color: "var(--admin-text-muted)",
-          }}
+          className={styles.labelTextMutedFs11}
         >
           {r.centerLat !== null && r.radiusKm !== null
             ? `(${r.centerLat}, ${r.centerLng}) raio ${r.radiusKm}km`
@@ -241,7 +234,7 @@ export default function CoverageAdminPage() {
   ];
 
   return (
-    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       <AdminSectionHeader
         eyebrow="ADMIN · COBERTURA"
         title="Cobertura geográfica"
@@ -268,18 +261,12 @@ export default function CoverageAdminPage() {
 
       {/* === KPIs === */}
       {stats && (
-        <section style={{ marginBottom: 56 }}>
-          <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
+        <section className={styles.sectionMb56}>
+          <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
             INDICADORES
           </p>
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: 32,
-              borderTop: "1px solid var(--admin-divider)",
-              borderBottom: "1px solid var(--admin-divider)",
-            }}
+            className={styles.gridColsAuto200Gap32}
           >
             <AdminMetricCard
               label="Regiões ativas"
@@ -305,27 +292,14 @@ export default function CoverageAdminPage() {
       )}
 
       {/* === Regiões === */}
-      <section style={{ marginBottom: 32 }}>
+      <section className={styles.sectionMb32}>
         <header
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 16,
-            flexWrap: "wrap",
-            marginBottom: 20,
-          }}
+          className={styles.rowBetweenCentered}
         >
           <div>
             <p className="urban-admin-eyebrow">REGIÕES CONFIGURADAS</p>
             <h2
-              style={{
-                fontSize: 20,
-                fontWeight: 600,
-                color: "var(--admin-text)",
-                margin: "8px 0 0",
-                letterSpacing: -0.3,
-              }}
+              className={styles.headingTextFs20}
             >
               Overrides manuais
             </h2>
@@ -449,9 +423,9 @@ function CheckPointForm() {
   return (
     <form
       onSubmit={handleCheck}
-      style={{ display: "flex", flexDirection: "column", gap: 18 }}
+      className={styles.stackGap18}
     >
-      <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
+      <p className={styles.textTextMutedFs13}>
         Cole lat/lng e veja se ficaria dentro da cobertura atual.
       </p>
       <AdminInput
@@ -575,7 +549,7 @@ function NewRegionForm({
   return (
     <form
       onSubmit={submit}
-      style={{ display: "flex", flexDirection: "column", gap: 18 }}
+      className={styles.stackGap18}
     >
       <AdminInput
         label="Nome"
@@ -599,25 +573,18 @@ function NewRegionForm({
 
       <div>
         <p
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: 1.5,
-            textTransform: "uppercase",
-            color: "var(--admin-text-muted)",
-            marginBottom: 8,
-          }}
+          className={styles.textTextMutedFs11W600UpperMb8Ls1_5}
         >
           Tipo de geometria
         </p>
-        <div style={{ display: "flex", gap: 18 }}>
+        <div className={styles.rowGap18}>
           <label style={radioLabelStyle}>
             <input
               type="radio"
               name="mode"
               checked={mode === "circle"}
               onChange={() => setMode("circle")}
-              style={{ accentColor: "var(--admin-accent)" }}
+              className={styles.input}
             />
             Centro + raio
           </label>
@@ -627,7 +594,7 @@ function NewRegionForm({
               name="mode"
               checked={mode === "bbox"}
               onChange={() => setMode("bbox")}
-              style={{ accentColor: "var(--admin-accent)" }}
+              className={styles.input}
             />
             Bounding box
           </label>
@@ -636,7 +603,7 @@ function NewRegionForm({
 
       {mode === "circle" ? (
         <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}
+          className={styles.gridColsGap12}
         >
           <AdminInput
             label="centerLat"
@@ -667,7 +634,7 @@ function NewRegionForm({
         </div>
       ) : (
         <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
+          className={styles.gridColsGap122}
         >
           <AdminInput
             label="minLat"
@@ -713,12 +680,7 @@ function NewRegionForm({
       />
 
       <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          gap: 10,
-          marginTop: 8,
-        }}
+        className={styles.rowEndGap10}
       >
         <AdminButton
           variant="ghost"

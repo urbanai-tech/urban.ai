@@ -16,6 +16,7 @@ import {
   useAdminToast,
   Icons,
 } from "../_components";
+import styles from "./page.module.css";
 
 /**
  * /admin/onboarding-drip — observability + trigger manual do drip D1/D3/D7.
@@ -97,7 +98,7 @@ export default function AdminOnboardingDripPage() {
 
   if (error) {
     return (
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="Acesso negado"
           title="Falha na autenticação"
@@ -109,7 +110,7 @@ export default function AdminOnboardingDripPage() {
   }
 
   return (
-    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       <AdminSectionHeader
         eyebrow="ADMIN · ONBOARDING DRIP"
         title="E-mails D+1 · D+3 · D+7"
@@ -127,23 +128,17 @@ export default function AdminOnboardingDripPage() {
       />
 
       {/* Cron status */}
-      <section style={{ marginBottom: 32 }}>
+      <section className={styles.sectionMb32}>
         <AdminCard variant="subtle">
           <AdminCardHeader
             title={
-              <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span className={styles.rowCenteredGap10}>
                 <AdminStatusDot kind="success" size={8} /> Cron ativo
               </span>
             }
           />
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-              gap: 24,
-              fontSize: 13,
-              color: "var(--admin-text-muted)",
-            }}
+            className={styles.gridColsAuto180TextMuted}
           >
             <FieldRow label="Agendamento" value="0 10 * * * (10h UTC)" />
             <FieldRow label="Idempotência" value="onboardingDripLastDay" />
@@ -158,8 +153,8 @@ export default function AdminOnboardingDripPage() {
       </section>
 
       {/* Última execução */}
-      <section style={{ marginBottom: 32 }}>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 20 }}>
+      <section className={styles.sectionMb32}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb20}`}>
           ÚLTIMA EXECUÇÃO {lastRun?.ranAt ? `· ${new Date(lastRun.ranAt).toLocaleString("pt-BR")}` : "· nenhuma execução manual desta sessão"}
         </p>
         {!lastRun ? (
@@ -177,17 +172,10 @@ export default function AdminOnboardingDripPage() {
             }
           />
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          <div className={styles.stackGap24}>
             {/* Resumo agregado */}
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                gap: 32,
-                borderTop: "1px solid var(--admin-divider)",
-                borderBottom: "1px solid var(--admin-divider)",
-                padding: "24px 0",
-              }}
+              className={styles.gridColsAuto180Gap32}
             >
               <AdminMetricCard
                 label="Total elegível"
@@ -212,11 +200,7 @@ export default function AdminOnboardingDripPage() {
 
             {/* Detalhe por dia */}
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
-                gap: 16,
-              }}
+              className={styles.gridColsAutoGap16}
             >
               <DayCard
                 day={1}
@@ -239,24 +223,18 @@ export default function AdminOnboardingDripPage() {
       </section>
 
       {/* Como funciona */}
-      <section style={{ marginBottom: 32 }}>
+      <section className={styles.sectionMb32}>
         <AdminCard variant="default">
           <AdminCardHeader title="Como o cron decide quem recebe" />
           <ol
-            style={{
-              margin: 0,
-              paddingLeft: 18,
-              fontSize: 13,
-              color: "var(--admin-text-muted)",
-              lineHeight: 1.7,
-            }}
+            className={styles.listTextMutedFs13}
           >
             <li>
               Todos os dias às 10h UTC, query usuários ativos criados nas janelas
               [hoje−1, hoje−0), [hoje−3, hoje−2) e [hoje−7, hoje−6).
             </li>
             <li>
-              Pra cada usuário, verifica <code style={{ color: "var(--admin-accent)" }}>onboardingDripLastDay</code>. Se já recebeu D≥N, pula (idempotência).
+              Pra cada usuário, verifica <code className={styles.codeAccent}>onboardingDripLastDay</code>. Se já recebeu D≥N, pula (idempotência).
             </li>
             <li>
               Calcula contexto: número de imóveis, recomendações futuras, assinatura ativa.
@@ -264,10 +242,10 @@ export default function AdminOnboardingDripPage() {
             </li>
             <li>
               Dispara via Brevo best-effort. Se falhar, conta como{" "}
-              <code style={{ color: "var(--admin-danger)" }}>failed</code> mas não bloqueia os próximos.
+              <code className={styles.codeDanger}>failed</code> mas não bloqueia os próximos.
             </li>
             <li>
-              Atualiza <code style={{ color: "var(--admin-accent)" }}>onboardingDripLastSentAt</code> + <code style={{ color: "var(--admin-accent)" }}>onboardingDripLastDay</code>.
+              Atualiza <code className={styles.codeAccent}>onboardingDripLastSentAt</code> + <code className={styles.codeAccent}>onboardingDripLastDay</code>.
             </li>
           </ol>
         </AdminCard>
@@ -308,15 +286,9 @@ function DayCard({
   return (
     <AdminCard variant={issues ? "accent" : "subtle"}>
       <header
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 12,
-          gap: 12,
-        }}
+        className={styles.rowBetweenCentered}
       >
-        <p className="urban-admin-eyebrow" style={{ margin: 0 }}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowM0}`}>
           DIA D+{day}
         </p>
         <AdminBadge kind={issues ? "warn" : "success"}>
@@ -324,21 +296,12 @@ function DayCard({
         </AdminBadge>
       </header>
       <p
-        style={{
-          fontSize: 12,
-          color: "var(--admin-text-muted)",
-          lineHeight: 1.55,
-          margin: "0 0 16px",
-        }}
+        className={styles.textTextMutedFs12}
       >
         {desc}
       </p>
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)",
-          gap: 14,
-        }}
+        className={styles.gridCols2Gap14}
       >
         <SmallStat label="Elegíveis" value={result.eligible} />
         <SmallStat label="Enviados" value={result.sent} kind="success" />
@@ -371,14 +334,7 @@ function SmallStat({
   return (
     <div>
       <p
-        style={{
-          fontSize: 10,
-          letterSpacing: 2,
-          textTransform: "uppercase",
-          color: "var(--admin-text-muted)",
-          fontWeight: 600,
-          margin: 0,
-        }}
+        className={styles.textTextMutedFs10}
       >
         {label}
       </p>
@@ -401,13 +357,13 @@ function SmallStat({
 function FieldRow({ label, value, code }: { label: string; value: string; code?: boolean }) {
   return (
     <div>
-      <p className="urban-admin-eyebrow-muted" style={{ marginBottom: 4 }}>
+      <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb4}`}>
         {label}
       </p>
       {code ? (
-        <code style={{ fontSize: 12, color: "var(--admin-accent)" }}>{value}</code>
+        <code className={styles.codeAccentFs12}>{value}</code>
       ) : (
-        <p style={{ fontSize: 13, color: "var(--admin-text)", margin: 0, fontWeight: 500 }}>
+        <p className={styles.textTextFs13}>
           {value}
         </p>
       )}

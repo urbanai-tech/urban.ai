@@ -26,6 +26,7 @@ import {
   Icons,
 } from "../_components";
 import type { AdminBadgeKind } from "../_components";
+import styles from "./page.module.css";
 
 const STATUS_LABELS: Record<ContactSubmissionStatus, string> = {
   new: "Novo",
@@ -171,7 +172,7 @@ export default function AdminContactsPage() {
 
   if (error) {
     return (
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar contatos"
@@ -190,7 +191,7 @@ export default function AdminContactsPage() {
   const totalPages = data ? Math.ceil(data.total / data.limit) : 1;
 
   return (
-    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       <AdminSectionHeader
         eyebrow="ADMIN · CONTATOS"
         title="Mensagens"
@@ -198,15 +199,9 @@ export default function AdminContactsPage() {
       />
 
       {/* === KPIs === */}
-      <section style={{ marginBottom: 48 }}>
+      <section className={styles.sectionMb48}>
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-            gap: 32,
-            borderTop: "1px solid var(--admin-divider)",
-            borderBottom: "1px solid var(--admin-divider)",
-          }}
+          className={styles.gridColsAuto180Gap32}
         >
           <AdminMetricCard
             label="Nesta página"
@@ -232,13 +227,7 @@ export default function AdminContactsPage() {
 
       {/* === Filtros === */}
       <section
-        style={{
-          display: "flex",
-          gap: 12,
-          marginBottom: 24,
-          flexWrap: "wrap",
-          alignItems: "flex-end",
-        }}
+        className={styles.rowAlignEndWrap}
       >
         <AdminInput
           placeholder="Buscar por nome, e-mail, assunto ou mensagem…"
@@ -276,82 +265,47 @@ export default function AdminContactsPage() {
       </section>
 
       {/* === Mensagens === */}
-      <section style={{ marginBottom: 24 }}>
+      <section className={styles.sectionMb24}>
         {!data || data.items.length === 0 ? (
           <AdminEmptyState
             title="Nenhuma mensagem"
             body="Nenhuma mensagem encontrada com esses filtros."
           />
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div className={styles.stackGap16}>
             {data.items.map((entry) => (
               <AdminCard key={entry.id} variant="subtle">
                 <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 16,
-                  }}
+                  className={styles.stackGap16}
                 >
                   <div
-                    style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      gap: 16,
-                    }}
+                    className={styles.rowBetweenStart}
                   >
-                    <div style={{ minWidth: 0, flex: 1 }}>
+                    <div className={styles.boxMinw0Flex1}>
                       <div
-                        style={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          alignItems: "center",
-                          gap: 10,
-                          marginBottom: 10,
-                        }}
+                        className={styles.rowCenteredWrap}
                       >
                         <StatusBadge status={entry.status} />
                         <SeverityBadge severity={entry.severity ?? "P2"} />
                         <CategoryBadge category={entry.category ?? "support"} />
                         <span
-                          style={{
-                            fontSize: 11,
-                            color: "var(--admin-text-dim)",
-                            fontFamily: "monospace",
-                            letterSpacing: 0.5,
-                          }}
+                          className={styles.labelTextDimFs11}
                         >
                           {new Date(entry.createdAt).toLocaleString("pt-BR")}
                         </span>
                       </div>
                       <h3
-                        style={{
-                          fontSize: 18,
-                          fontWeight: 600,
-                          color: "var(--admin-text)",
-                          margin: 0,
-                          letterSpacing: -0.2,
-                        }}
+                        className={styles.subheadingTextFs18}
                       >
                         {entry.subject}
                       </h3>
                       <p
-                        style={{
-                          marginTop: 6,
-                          fontSize: 13,
-                          color: "var(--admin-text-muted)",
-                        }}
+                        className={styles.textTextMutedFs13}
                       >
                         {entry.name} ·{" "}
                         <a
                           href={`mailto:${entry.email}`}
-                          style={{
-                            color: "var(--admin-accent)",
-                            textDecoration: "none",
-                            fontWeight: 500,
-                          }}
+                          className={styles.linkAccentW500}
                         >
                           {entry.email}
                         </a>
@@ -361,19 +315,14 @@ export default function AdminContactsPage() {
                           </span>
                         )}
                         {entry.assignedOwner && (
-                          <span style={{ marginLeft: 8 }}>
+                          <span className={styles.labelMl8}>
                             Owner: {entry.assignedOwner}
                           </span>
                         )}
                       </p>
                     </div>
                     <div
-                      style={{
-                        display: "flex",
-                        gap: 8,
-                        flexWrap: "wrap",
-                        alignItems: "center",
-                      }}
+                      className={styles.rowCenteredWrapGap8}
                     >
                       <AdminSelect
                         value={entry.status}
@@ -408,31 +357,17 @@ export default function AdminContactsPage() {
                   </div>
 
                   <p
-                    style={{
-                      whiteSpace: "pre-wrap",
-                      fontSize: 13,
-                      color: "var(--admin-text)",
-                      lineHeight: 1.6,
-                      margin: 0,
-                    }}
+                    className={styles.textTextFs13}
                   >
                     {entry.message}
                   </p>
 
                   {entry.notes && (
                     <p
-                      style={{
-                        fontSize: 12,
-                        color: "var(--admin-text-muted)",
-                        borderLeft: "2px solid var(--admin-accent)",
-                        paddingLeft: 12,
-                        margin: 0,
-                        lineHeight: 1.55,
-                      }}
+                      className={styles.textTextMutedFs12}
                     >
                       <span
-                        className="urban-admin-eyebrow-muted"
-                        style={{ display: "block", marginBottom: 4 }}
+                        className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb4}`}
                       >
                         NOTAS INTERNAS
                       </span>
@@ -449,18 +384,12 @@ export default function AdminContactsPage() {
       {/* === Paginação === */}
       {data && data.total > data.limit && (
         <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            fontSize: 12,
-            color: "var(--admin-text-muted)",
-          }}
+          className={styles.rowBetweenCentered}
         >
           <span>
             Página {data.page} de {totalPages}
           </span>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className={styles.rowGap8}>
             <AdminButton
               variant="ghost"
               size="sm"
@@ -508,25 +437,16 @@ export default function AdminContactsPage() {
           </>
         }
       >
-        <div style={{ marginBottom: 16 }}>
+        <div className={styles.boxMb16}>
           <p className="urban-admin-eyebrow-muted">DE</p>
           <p
-            style={{
-              fontSize: 13,
-              color: "var(--admin-text)",
-              margin: "6px 0 0",
-            }}
+            className={styles.textTextFs13M6x0x0}
           >
             {notesEntry?.name} · {notesEntry?.email}
           </p>
         </div>
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-            gap: 12,
-            marginBottom: 16,
-          }}
+          className={styles.gridColsAuto180Gap12}
         >
           <AdminSelect
             label="Categoria"

@@ -18,6 +18,7 @@ import {
   AdminDrawer,
   Icons,
 } from "../_components";
+import styles from "./page.module.css";
 
 /**
  * /admin/audit-logs — histórico de ações sensíveis no painel admin.
@@ -99,12 +100,7 @@ export default function AdminAuditLogsPage() {
       width: 160,
       render: (log) => (
         <span
-          style={{
-            fontFamily: "monospace",
-            fontSize: 12,
-            color: "var(--admin-text-muted)",
-            whiteSpace: "nowrap",
-          }}
+          className={styles.labelTextMutedFs12}
         >
           {formatDate(log.createdAt)}
         </span>
@@ -114,7 +110,7 @@ export default function AdminAuditLogsPage() {
       key: "action",
       header: "Ação",
       render: (log) => (
-        <code style={{ color: "var(--admin-accent)", fontSize: 12, fontWeight: 600 }}>
+        <code className={styles.codeAccentFs12}>
           {log.action}
         </code>
       ),
@@ -124,16 +120,12 @@ export default function AdminAuditLogsPage() {
       header: "Entidade",
       render: (log) => (
         <div>
-          <p style={{ fontWeight: 500, color: "var(--admin-text)", margin: 0 }}>
+          <p className={styles.textTextW500}>
             {log.entityType}
           </p>
           {log.entityId && (
             <code
-              style={{
-                fontSize: 11,
-                color: "var(--admin-text-dim)",
-                fontFamily: "monospace",
-              }}
+              className={styles.codeTextDimFs11}
             >
               {log.entityId}
             </code>
@@ -145,7 +137,7 @@ export default function AdminAuditLogsPage() {
       key: "actor",
       header: "Admin",
       render: (log) => (
-        <code style={{ fontSize: 11, color: "var(--admin-text-muted)", fontFamily: "monospace" }}>
+        <code className={styles.codeTextMutedFs11}>
           {log.actorUserId || "sistema"}
         </code>
       ),
@@ -173,7 +165,7 @@ export default function AdminAuditLogsPage() {
   }
 
   return (
-    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       <AdminSectionHeader
         eyebrow="ADMIN · AUDITORIA"
         title="Auditoria"
@@ -181,16 +173,11 @@ export default function AdminAuditLogsPage() {
       />
 
       {/* === Filtros === */}
-      <section style={{ marginBottom: 32 }}>
+      <section className={styles.sectionMb32}>
         <AdminCard variant="subtle">
           <form
             onSubmit={applyFilters}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-              gap: 14,
-              alignItems: "end",
-            }}
+            className={styles.gridColsAuto180Gap14}
           >
             <AdminInput
               label="Ação"
@@ -215,7 +202,7 @@ export default function AdminAuditLogsPage() {
               onChange={(e) => setFilters((prev) => ({ ...prev, actorUserId: e.target.value }))}
               placeholder="userId"
             />
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <div className={styles.rowWrapGap8}>
               <AdminButton
                 type="submit"
                 variant="primary"
@@ -236,7 +223,7 @@ export default function AdminAuditLogsPage() {
       </section>
 
       {error && (
-        <div style={{ marginBottom: 32 }}>
+        <div className={styles.sectionMb32}>
           <AdminEmptyState
             eyebrow="Erro"
             title="Falha ao carregar"
@@ -249,19 +236,14 @@ export default function AdminAuditLogsPage() {
       {/* === Tabela === */}
       <section>
         <header
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 16,
-          }}
+          className={styles.rowBetweenCentered}
         >
-          <p style={{ fontSize: 12, color: "var(--admin-text-muted)", margin: 0 }}>
+          <p className={styles.textTextMutedFs12}>
             {loading
               ? "Carregando…"
               : `${(data?.total ?? 0).toLocaleString("pt-BR")} registros encontrados`}
           </p>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <div className={styles.rowCenteredGap8}>
             <AdminButton
               variant="ghost"
               size="sm"
@@ -272,13 +254,7 @@ export default function AdminAuditLogsPage() {
               Anterior
             </AdminButton>
             <span
-              style={{
-                fontSize: 11,
-                color: "var(--admin-text-muted)",
-                letterSpacing: 1.5,
-                textTransform: "uppercase",
-                fontFamily: "monospace",
-              }}
+              className={styles.labelTextMutedFs11}
             >
               {page} / {pages}
             </span>
@@ -316,16 +292,11 @@ export default function AdminAuditLogsPage() {
         width={560}
       >
         {detailLog && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <div className={styles.stackGap20}>
             <div>
               <p className="urban-admin-eyebrow-muted">QUANDO</p>
               <p
-                style={{
-                  fontSize: 13,
-                  color: "var(--admin-text)",
-                  margin: "6px 0 0",
-                  fontFamily: "monospace",
-                }}
+                className={styles.textTextFs13}
               >
                 {formatDate(detailLog.createdAt)}
               </p>
@@ -333,17 +304,13 @@ export default function AdminAuditLogsPage() {
             <div>
               <p className="urban-admin-eyebrow-muted">ENTIDADE</p>
               <p
-                style={{
-                  fontSize: 13,
-                  color: "var(--admin-text)",
-                  margin: "6px 0 0",
-                }}
+                className={styles.textTextFs13M6x0x0}
               >
                 {detailLog.entityType}
                 {detailLog.entityId && (
                   <>
                     {" · "}
-                    <code style={{ color: "var(--admin-text-muted)" }}>
+                    <code className={styles.codeTextMuted}>
                       {detailLog.entityId}
                     </code>
                   </>
@@ -353,12 +320,7 @@ export default function AdminAuditLogsPage() {
             <div>
               <p className="urban-admin-eyebrow-muted">ADMIN</p>
               <p
-                style={{
-                  fontSize: 13,
-                  color: "var(--admin-text)",
-                  margin: "6px 0 0",
-                  fontFamily: "monospace",
-                }}
+                className={styles.textTextFs13}
               >
                 {detailLog.actorUserId || "sistema"}
               </p>
@@ -384,22 +346,7 @@ function JsonBlock({ label, value }: { label: string; value: unknown }) {
     <div>
       <p className="urban-admin-eyebrow-muted">{label}</p>
       <pre
-        style={{
-          marginTop: 8,
-          padding: 16,
-          background: "var(--admin-surface-elevated)",
-          border: "1px solid var(--admin-divider)",
-          borderRadius: 2,
-          fontSize: 12,
-          color: "var(--admin-text)",
-          fontFamily: "monospace",
-          whiteSpace: "pre-wrap",
-          wordBreak: "break-word",
-          maxHeight: 320,
-          overflow: "auto",
-          margin: "8px 0 0",
-          lineHeight: 1.55,
-        }}
+        className={styles.preBlockTextBgSurfaceElevated}
       >
         {JSON.stringify(value, null, 2)}
       </pre>

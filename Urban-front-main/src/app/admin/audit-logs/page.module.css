@@ -1,0 +1,120 @@
+.labelTextMutedFs12.labelTextMutedFs12 {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--admin-text-muted);
+  white-space: nowrap;
+}
+
+.codeAccentFs12.codeAccentFs12 {
+  color: var(--admin-accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.textTextW500.textTextW500 {
+  font-weight: 500;
+  color: var(--admin-text);
+  margin: 0;
+}
+
+.codeTextDimFs11.codeTextDimFs11 {
+  font-size: 11px;
+  color: var(--admin-text-dim);
+  font-family: monospace;
+}
+
+.codeTextMutedFs11.codeTextMutedFs11 {
+  font-size: 11px;
+  color: var(--admin-text-muted);
+  font-family: monospace;
+}
+
+.boxM0xautoP40x32.boxM0xautoP40x32 {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 40px 32px;
+}
+
+.sectionMb32.sectionMb32 {
+  margin-bottom: 32px;
+}
+
+.gridColsAuto180Gap14.gridColsAuto180Gap14 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  align-items: end;
+}
+
+.rowWrapGap8.rowWrapGap8 {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rowBetweenCentered.rowBetweenCentered {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.textTextMutedFs12.textTextMutedFs12 {
+  font-size: 12px;
+  color: var(--admin-text-muted);
+  margin: 0;
+}
+
+.rowCenteredGap8.rowCenteredGap8 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.labelTextMutedFs11.labelTextMutedFs11 {
+  font-size: 11px;
+  color: var(--admin-text-muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family: monospace;
+}
+
+.stackGap20.stackGap20 {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.textTextFs13.textTextFs13 {
+  font-size: 13px;
+  color: var(--admin-text);
+  margin: 6px 0 0;
+  font-family: monospace;
+}
+
+.textTextFs13M6x0x0.textTextFs13M6x0x0 {
+  font-size: 13px;
+  color: var(--admin-text);
+  margin: 6px 0 0;
+}
+
+.codeTextMuted.codeTextMuted {
+  color: var(--admin-text-muted);
+}
+
+.preBlockTextBgSurfaceElevated.preBlockTextBgSurfaceElevated {
+  margin-top: 8px;
+  padding: 16px;
+  background: var(--admin-surface-elevated);
+  border: 1px solid var(--admin-divider);
+  border-radius: 2px;
+  font-size: 12px;
+  color: var(--admin-text);
+  font-family: monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 320px;
+  overflow: auto;
+  margin: 8px 0 0;
+  line-height: 1.55;
+}
