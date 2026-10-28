@@ -13,26 +13,23 @@ from .config.settings import settings
 
 
 @task(name="Check Scrapyd Service", retries=3, retry_delay_seconds=10)
-def check_service_task(url: str) -> bool:
+def check_service_task(url: str, api_key: str = "") -> bool:
     """
     Checks if the Scrapyd service is available.
 
-    This task will retry up to 3 times with a 10-second delay between retries.
-
-    Returns:
-        bool: True if the service is available, False otherwise.
+    Raises RuntimeError when it is not, so the task retries up to 3 times
+    (10 s apart) and, if still down, fails the flow run instead of finishing
+    "Completed" with nothing scheduled.
     """
     logger = get_run_logger()
     logger.info(f"Checking Scrapyd service at: {url}")
 
-    result = check_scrapyd_service(url=url)
-
-    if result:
-        logger.info("Scrapyd service is available")
-    else:
+    if not check_scrapyd_service(url=url, api_key=api_key):
         logger.warning("Scrapyd service is not available")
+        raise RuntimeError(f"Scrapyd service is not available at {url}")
 
-    return result
+    logger.info("Scrapyd service is available")
+    return True
 
 
 @flow(name="Trigger All Spiders Flow")
@@ -60,45 +57,41 @@ async def trigger_all_spiders(scrapyd_url: str = None) -> None:
             not isinstance(scrapyd_url_data, dict)
             or "WEBSCRAPPING_API_URL" not in scrapyd_url_data
         ):
-            logger.error(
-                "Scrapyd URL is not configured correctly in Prefect variables."
-            )
-            return
+            msg = "Scrapyd URL is not configured correctly in Prefect variables."
+            logger.error(msg)
+            raise RuntimeError(msg)
 
         scrapyd_url = scrapyd_url_data["WEBSCRAPPING_API_URL"]
         logger.info(f"Retrieved Scrapyd URL from variable: {scrapyd_url}")
 
-    if not check_service_task(url=scrapyd_url):
-        logger.error("Scrapyd service is not available. Exiting.")
-        return
+    check_service_task(url=scrapyd_url, api_key=settings.SCRAPYD_API_KEY)
 
     spiders = SpiderTriggers(url=scrapyd_url, api_key=settings.SCRAPYD_API_KEY)
-    try:
-        logger.info("Starting to trigger all spiders")
+    triggers = [
+        ("eventim", spiders.crawl_eventim),
+        ("ticketmaster", spiders.crawl_ticketmaster),
+        ("blue_ticket", spiders.crawl_blue_ticket),
+        ("even3", spiders.crawl_even3),
+        ("ingresse", spiders.crawl_ingresse),
+        ("sympla", spiders.crawl_sympla),
+        ("ticket_360", spiders.crawl_ticket_360),
+    ]
 
-        logger.info("Triggering eventim spider")
-        spiders.crawl_eventim()
+    logger.info("Starting to trigger all spiders")
+    failed: list[str] = []
+    for name, trigger in triggers:
+        logger.info(f"Triggering {name} spider")
+        try:
+            trigger()
+        except Exception as e:  # um spider fora não impede os demais
+            logger.error(f"Failed to trigger {name} spider: {e}")
+            failed.append(name)
 
-        logger.info("Triggering ticketmaster spider")
-        spiders.crawl_ticketmaster()
+    if failed:
+        # Falha o run: um run "Completed" sem agendar nada esconde fonte parada.
+        raise RuntimeError(
+            f"{len(failed)}/{len(triggers)} spiders não foram agendados: "
+            + ", ".join(failed)
+        )
 
-        logger.info("Triggering blue_ticket spider")
-        spiders.crawl_blue_ticket()
-
-        logger.info("Triggering even3 spider")
-        spiders.crawl_even3()
-
-        logger.info("Triggering ingresse spider")
-        spiders.crawl_ingresse()
-
-        logger.info("Triggering sympla spider")
-        spiders.crawl_sympla()
-
-        logger.info("Triggering ticket_360 spider")
-        spiders.crawl_ticket_360()
-
-        logger.info("All spiders triggered successfully.")
-
-    except Exception as e:
-        logger.error(f"An error occurred while triggering spiders: {e}")
-        raise
+    logger.info("All spiders triggered successfully.")
