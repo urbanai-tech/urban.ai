@@ -156,7 +156,7 @@ export default function AdminWaitlistPage() {
 
   if (error) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.errorContainer}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar waitlist"
@@ -173,7 +173,7 @@ export default function AdminWaitlistPage() {
       header: "#",
       width: 64,
       render: (e) => (
-        <code className={styles.codeAccentW600}>
+        <code className={styles.positionCode}>
           #{e.position}
         </code>
       ),
@@ -182,14 +182,14 @@ export default function AdminWaitlistPage() {
       key: "email",
       header: "E-mail",
       render: (e) => (
-        <span className={styles.labelTextW500}>{e.email}</span>
+        <span className={styles.emailCell}>{e.email}</span>
       ),
     },
     {
       key: "name",
       header: "Nome",
       render: (e) => (
-        <span className={styles.labelTextMutedFs13}>
+        <span className={styles.nameCell}>
           {e.name || "—"}
         </span>
       ),
@@ -199,7 +199,7 @@ export default function AdminWaitlistPage() {
       header: "Origem",
       width: 120,
       render: (e) => (
-        <code className={styles.codeTextDimFs11}>
+        <code className={styles.sourceCode}>
           {e.source}
         </code>
       ),
@@ -218,11 +218,11 @@ export default function AdminWaitlistPage() {
       align: "center",
       render: (e) =>
         e.referralsCount > 0 ? (
-          <span className={styles.labelAccentW600}>
+          <span className={styles.accentCount}>
             ×{e.referralsCount}
           </span>
         ) : (
-          <span className={styles.labelTextDim}>—</span>
+          <span className={styles.emptyDash}>—</span>
         ),
     },
     {
@@ -231,7 +231,7 @@ export default function AdminWaitlistPage() {
       width: 110,
       render: (e) => (
         <span
-          className={styles.labelTextMutedFs12}
+          className={styles.dateCell}
         >
           {new Date(e.createdAt).toLocaleDateString("pt-BR")}
         </span>
@@ -244,7 +244,7 @@ export default function AdminWaitlistPage() {
       align: "right",
       render: (e) => (
         <div
-          className={styles.rowEndWrap}
+          className={styles.rowActions}
         >
           {(e.status === "pending" || e.status === "invited") && (
             <AdminButton
@@ -284,7 +284,7 @@ export default function AdminWaitlistPage() {
   ];
 
   return (
-    <div className={styles.boxM0xautoP40x32Maxw1400}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · LISTA DE ESPERA"
         title="Pré-lançamento (F8)"
@@ -293,9 +293,9 @@ export default function AdminWaitlistPage() {
 
       {/* === KPIs === */}
       {stats && (
-        <section className={styles.sectionMb48}>
+        <section className={styles.kpiSection}>
           <div
-            className={styles.gridColsAuto180Gap32}
+            className={styles.kpiGrid}
           >
             <AdminMetricCard label="Total na fila" value={stats.total} />
             <AdminMetricCard
@@ -319,23 +319,23 @@ export default function AdminWaitlistPage() {
       {/* === Origens + Top referrers === */}
       {stats && (
         <section
-          className={styles.gridColsAutoGap24}
+          className={styles.statsGrid}
         >
           <AdminCard variant="subtle">
             <AdminCardHeader title="Origens" />
             {stats.bySource.length === 0 ? (
-              <p className={styles.textTextMutedFs13}>
+              <p className={styles.emptyHint}>
                 Sem dados ainda.
               </p>
             ) : (
-              <ul className={styles.listM0P0}>
+              <ul className={styles.statsList}>
                 {stats.bySource.map((s) => (
                   <li
                     key={s.source}
-                    className={styles.rowBetweenFs13}
+                    className={styles.sourceItem}
                   >
-                    <code className={styles.codeText}>{s.source}</code>
-                    <span className={styles.labelAccentW600}>
+                    <code className={styles.sourceLabel}>{s.source}</code>
+                    <span className={styles.accentCount}>
                       {s.count}
                     </span>
                   </li>
@@ -347,22 +347,22 @@ export default function AdminWaitlistPage() {
           <AdminCard variant="subtle">
             <AdminCardHeader title="Top referrers" />
             {stats.topReferrers.length === 0 ? (
-              <p className={styles.textTextMutedFs13}>
+              <p className={styles.emptyHint}>
                 Ninguém indicou ainda.
               </p>
             ) : (
-              <ul className={styles.listM0P0}>
+              <ul className={styles.statsList}>
                 {stats.topReferrers.map((r) => (
                   <li
                     key={r.referralCode}
-                    className={styles.rowBetweenCentered}
+                    className={styles.referrerItem}
                   >
                     <span
-                      className={styles.labelTextMutedMr8}
+                      className={styles.referrerEmail}
                     >
                       {r.email}
                     </span>
-                    <span className={styles.labelAccentW600}>
+                    <span className={styles.accentCount}>
                       ×{r.referralsCount}
                     </span>
                   </li>
@@ -375,7 +375,7 @@ export default function AdminWaitlistPage() {
 
       {/* === Último convite gerado === */}
       {lastInvite && (
-        <section className={styles.sectionMb32}>
+        <section className={styles.inviteSection}>
           <AdminCard variant="accent">
             <AdminCardHeader
               eyebrow="ÚLTIMO CONVITE GERADO"
@@ -392,16 +392,16 @@ export default function AdminWaitlistPage() {
               }
             />
             <p
-              className={styles.textTextMutedFs13M0x0x14Lh1_55}
+              className={styles.inviteHint}
             >
               Magic link válido por 7 dias. Use para smoke manual ou reenvio
               por outro canal.
             </p>
-            <div className={styles.rowWrapGap10}>
+            <div className={styles.inviteRow}>
               <AdminInput
                 readOnly
                 value={lastInvite.inviteUrl}
-                shellStyle={{ flex: 1, minWidth: 280 }}
+                shellClassName={styles.inviteUrlShell}
               />
               <AdminButton
                 variant="primary"
@@ -420,7 +420,7 @@ export default function AdminWaitlistPage() {
 
       {/* === Filtros toolbar === */}
       <section
-        className={styles.rowAlignEndWrap}
+        className={styles.filterBar}
       >
         <AdminInput
           placeholder="Buscar por email ou nome…"
@@ -428,7 +428,7 @@ export default function AdminWaitlistPage() {
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && load()}
           leftAddon={<Icons.Search size={12} />}
-          shellStyle={{ flex: 1, minWidth: 220 }}
+          shellClassName={styles.searchShell}
         />
         <AdminSelect
           value={statusFilter}
@@ -436,7 +436,7 @@ export default function AdminWaitlistPage() {
             setStatusFilter(e.target.value);
             setPage(1);
           }}
-          shellStyle={{ width: 200 }}
+          shellClassName={styles.statusShell}
         >
           <option value="">Todos status</option>
           <option value="pending">Pendentes</option>
@@ -468,12 +468,12 @@ export default function AdminWaitlistPage() {
       {/* === Paginação === */}
       {data && data.total > data.limit && (
         <div
-          className={styles.rowBetweenCenteredTextMutedFs12Mt16}
+          className={styles.paginationBar}
         >
           <span>
             Página {data.page} · {data.total.toLocaleString("pt-BR")} no total
           </span>
-          <div className={styles.rowGap8}>
+          <div className={styles.paginationButtons}>
             <AdminButton
               variant="ghost"
               size="sm"

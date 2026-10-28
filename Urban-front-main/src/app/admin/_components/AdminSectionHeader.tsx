@@ -51,20 +51,20 @@ export function AdminSectionHeader({
         ...style,
       }}
     >
-      <div className={styles.boxMinw0Flex1}>
+      <div className={styles.headerText}>
         {eyebrow && (
-          <p className={`urban-admin-eyebrow ${styles.eyebrowMb12}`}>
+          <p className={`urban-admin-eyebrow ${styles.eyebrow}`}>
             {eyebrow}
           </p>
         )}
         <h1
-          className={[titleClass, styles.titleUpper].filter(Boolean).join(" ")}
+          className={[titleClass, styles.title].filter(Boolean).join(" ")}
         >
           {title}
         </h1>
         {subtitle && (
           <p
-            className={styles.textTextMutedFs14}
+            className={styles.subtitle}
           >
             {subtitle}
           </p>
@@ -72,7 +72,7 @@ export function AdminSectionHeader({
       </div>
       {actions && (
         <div
-          className={styles.rowCenteredWrap}
+          className={styles.actions}
         >
           {actions}
         </div>

@@ -1,65 +1,65 @@
-.boxMinw0.boxMinw0 {
+.cellContent.cellContent {
   min-width: 0;
 }
 
-.textTextW600.textTextW600 {
+.propertyTitle.propertyTitle {
   margin: 0;
   font-weight: 600;
   color: var(--admin-text);
 }
 
-.textTextMutedFs12.textTextMutedFs12 {
+.propertySubtitle.propertySubtitle {
   margin: 4px 0 0;
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.labelTextMutedLh1_5.labelTextMutedLh1_5 {
+.issueText.issueText {
   color: var(--admin-text-muted);
   line-height: 1.5;
 }
 
-.stackGap4.stackGap4 {
+.signalsCell.signalsCell {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.codeTextFs12.codeTextFs12 {
+.jobName.jobName {
   font-size: 12px;
   color: var(--admin-text);
 }
 
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.pageContainer.pageContainer {
   max-width: 1320px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.strongText.strongText {
+.strongLabel.strongLabel {
   color: var(--admin-text);
 }
 
-.rowBetweenWrap.rowBetweenWrap {
+.healthHeader.healthHeader {
   display: flex;
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
 }
 
-.rowCenteredGap14.rowCenteredGap14 {
+.healthSummary.healthSummary {
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
-.textFs20W600.textFs20W600 {
+.healthLabel.healthLabel {
   margin: 4px 0 0;
   font-size: 20px;
   font-weight: 600;
 }
 
-.gridGap10M16x0x0.gridGap10M16x0x0 {
+.alertList.alertList {
   list-style: none;
   padding: 0;
   margin: 16px 0 0;
@@ -67,92 +67,92 @@
   gap: 10px;
 }
 
-.rowStartGap10.rowStartGap10 {
+.alertItem.alertItem {
   display: flex;
   gap: 10px;
   align-items: flex-start;
 }
 
-.label.label {
+.alertDot.alertDot {
   padding-top: 6px;
 }
 
-.labelTextMutedFs13.labelTextMutedFs13 {
+.alertMessage.alertMessage {
   font-size: 13px;
   color: var(--admin-text-muted);
   line-height: 1.55;
 }
 
-.gridColsAuto220Gap24.gridColsAuto220Gap24 {
+.metricsGrid.metricsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 24px;
   margin-bottom: 48px;
 }
 
-.gridColsGap24.gridColsGap24 {
+.suggestionsJobsGrid.suggestionsJobsGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
   gap: 24px;
   margin-bottom: 48px;
 }
 
-.gridCols4Gap16.gridCols4Gap16 {
+.suggestionStats.suggestionStats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
 }
 
-.gridGap12.gridGap12 {
+.statusList.statusList {
   display: grid;
   gap: 12px;
 }
 
-.textTextMutedFs12M0Lh1_5.textTextMutedFs12M0Lh1_5 {
+.queueNote.queueNote {
   margin: 0;
   font-size: 12px;
   color: var(--admin-text-muted);
   line-height: 1.5;
 }
 
-.sectionMb48.sectionMb48 {
+.section.section {
   margin-bottom: 48px;
 }
 
-.gridGap24.gridGap24 {
+.airbnbBody.airbnbBody {
   display: grid;
   gap: 24px;
 }
 
-.gridColsAuto160Gap16.gridColsAuto160Gap16 {
+.airbnbStats.airbnbStats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 16px;
 }
 
-.gridColsGap242.gridColsGap242 {
+.airbnbColumns.airbnbColumns {
   display: grid;
   grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
   gap: 24px;
 }
 
-.gridGap14.gridGap14 {
+.barRows.barRows {
   display: grid;
   gap: 14px;
 }
 
-.eyebrowMutedM0.eyebrowMutedM0 {
+.failuresEyebrow.failuresEyebrow {
   margin: 0;
 }
 
-.gridColsGap24Mb48.gridColsGap24Mb48 {
+.jobsSchemaGrid.jobsSchemaGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(300px, 0.7fr);
   gap: 24px;
   margin-bottom: 48px;
 }
 
-.listTextMutedFs12.listTextMutedFs12 {
+.missingList.missingList {
   margin: 0;
   padding-left: 18px;
   color: var(--admin-text-muted);
@@ -160,20 +160,20 @@
   line-height: 1.7;
 }
 
-.gridColsGap243.gridColsGap243 {
+.failuresShortcutsGrid.failuresShortcutsGrid {
   display: grid;
   grid-template-columns: minmax(320px, 0.8fr) minmax(0, 1.2fr);
   gap: 24px;
   margin-bottom: 48px;
 }
 
-.gridColsAuto210Gap12.gridColsAuto210Gap12 {
+.shortcutGrid.shortcutGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 12px;
 }
 
-.rowBetweenText.rowBetweenText {
+.shortcutLink.shortcutLink {
   border: 1px solid var(--admin-divider);
   border-radius: 2px;
   padding: 16px;
@@ -184,13 +184,13 @@
   gap: 12px;
 }
 
-.labelFs13W600.labelFs13W600 {
+.shortcutLabel.shortcutLabel {
   display: block;
   font-size: 13px;
   font-weight: 600;
 }
 
-.labelTextMutedFs12.labelTextMutedFs12 {
+.shortcutHint.shortcutHint {
   display: block;
   margin-top: 6px;
   font-size: 12px;
@@ -198,11 +198,11 @@
   line-height: 1.45;
 }
 
-.sectionMt32.sectionMt32 {
+.gapsSection.gapsSection {
   margin-top: 32px;
 }
 
-.listTextMutedFs13.listTextMutedFs13 {
+.gapsList.gapsList {
   margin: 0;
   padding-left: 18px;
   color: var(--admin-text-muted);
@@ -210,26 +210,26 @@
   line-height: 1.7;
 }
 
-.boxBordered.boxBordered {
+.inlineStat.inlineStat {
   border-top: 1px solid var(--admin-divider);
   padding-top: 14px;
 }
 
-.textTextFs24.textTextFs24 {
+.inlineStatValue.inlineStatValue {
   margin: 8px 0 0;
   font-size: 24px;
   font-weight: 600;
   color: var(--admin-text);
 }
 
-.rowBetweenCentered.rowBetweenCentered {
+.statusLine.statusLine {
   display: flex;
   justify-content: space-between;
   gap: 12px;
   align-items: center;
 }
 
-.rowCenteredTextMuted.rowCenteredTextMuted {
+.statusLineLabel.statusLineLabel {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -237,44 +237,44 @@
   font-size: 13px;
 }
 
-.labelTextFs13.labelTextFs13 {
+.statusLineValue.statusLineValue {
   color: var(--admin-text);
   font-size: 13px;
   font-weight: 600;
   text-align: right;
 }
 
-.rowBetweenGap12.rowBetweenGap12 {
+.barRowHeader.barRowHeader {
   display: flex;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 8px;
 }
 
-.labelTextFs132.labelTextFs132 {
+.barRowLabel.barRowLabel {
   font-size: 13px;
   color: var(--admin-text);
 }
 
-.labelTextMutedFs122.labelTextMutedFs122 {
+.smallMuted.smallMuted {
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.boxBgSurfaceElevatedH6.boxBgSurfaceElevatedH6 {
+.barTrack.barTrack {
   height: 6px;
   background: var(--admin-surface-elevated);
   border-radius: 2px;
   overflow: hidden;
 }
 
-.textTextDimFs11.textTextDimFs11 {
+.subText.subText {
   margin: 6px 0 0;
   font-size: 11px;
   color: var(--admin-text-dim);
 }
 
-.gridCenteredCols472.gridCenteredCols472 {
+.jobMetricRow.jobMetricRow {
   border: 1px solid var(--admin-divider);
   border-radius: 2px;
   padding: 14px;
@@ -284,15 +284,20 @@
   align-items: center;
 }
 
-.textDangerFs11.textDangerFs11 {
+.jobError.jobError {
   margin: 6px 0 0;
   font-size: 11px;
   color: var(--admin-danger);
   line-height: 1.4;
 }
 
-.boxTextMutedFs13.boxTextMutedFs13 {
+.quietEmpty.quietEmpty {
   color: var(--admin-text-muted);
   font-size: 13px;
   line-height: 1.55;
+}
+
+.arrowIcon.arrowIcon {
+  color: var(--admin-accent);
+  flex-shrink: 0;
 }

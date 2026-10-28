@@ -49,10 +49,10 @@ export function AdminDrawer({
     <div
       role="dialog"
       aria-modal="true"
-      className={styles.rowFixedEnd}
+      className={styles.overlay}
     >
       <div
-        className={`urban-admin-backdrop ${styles.backdropAbsoluteBgBackdrop}`}
+        className={`urban-admin-backdrop ${styles.backdrop}`}
         onClick={onClose}
       />
       <aside
@@ -71,17 +71,17 @@ export function AdminDrawer({
         }}
       >
         <header
-          className={styles.rowBetweenStart}
+          className={styles.header}
         >
-          <div className={styles.boxMinw0}>
+          <div className={styles.headerText}>
             {eyebrow && (
-              <p className={`urban-admin-eyebrow ${styles.eyebrowMb8}`}>
+              <p className={`urban-admin-eyebrow ${styles.eyebrow}`}>
                 {eyebrow}
               </p>
             )}
             {title && (
               <h2
-                className={`urban-admin-display-sm ${styles.displaySmUpper}`}
+                className={`urban-admin-display-sm ${styles.title}`}
               >
                 {title}
               </h2>
@@ -91,19 +91,19 @@ export function AdminDrawer({
             ref={closeRef}
             onClick={onClose}
             aria-label="Fechar"
-            className={styles.rowJustifyCenterCentered}
+            className={styles.closeButton}
           >
             <Close size={16} />
           </button>
         </header>
         <div
-          className={styles.boxP24xclamp16x4vwx28Flex1}
+          className={styles.body}
         >
           {children}
         </div>
         {footer && (
           <div
-            className={styles.rowEndWrap}
+            className={styles.footer}
           >
             {footer}
           </div>

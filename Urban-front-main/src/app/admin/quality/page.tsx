@@ -174,7 +174,7 @@ export default function AdminQualityPage() {
 
   if (error) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.pageContainer}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar"
@@ -197,7 +197,7 @@ export default function AdminQualityPage() {
           : "var(--admin-danger)";
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · QUALIDADE"
         title="Qualidade da IA + ocupação"
@@ -206,17 +206,17 @@ export default function AdminQualityPage() {
 
       {/* === Hero KPI: MAPE === */}
       {quality && (
-        <section className={styles.sectionMb56}>
+        <section className={styles.section}>
           {quality.sampleSize === 0 ? (
             <div
-              className={styles.boxTextMutedBgWarning}
+              className={styles.emptyNotice}
             >
               <p
-                className={styles.textWarningFs11}
+                className={styles.emptyNoticeTitle}
               >
                 Sem amostras
               </p>
-              <p className={styles.textM6x0x0}>
+              <p className={styles.emptyNoticeBody}>
                 Sem dados de preço aplicado real ainda. O ground truth comeca a
                 entrar quando anfitriões confirmarem o preço aplicado ou quando
                 o push automático Stays gravar o resultado. Janela:{" "}
@@ -224,9 +224,9 @@ export default function AdminQualityPage() {
               </p>
             </div>
           ) : (
-            <AdminCard variant="accent" style={{ padding: "40px 40px 36px" }}>
+            <AdminCard variant="accent" className={styles.heroCard}>
               <div
-                className={styles.gridColsGap32}
+                className={styles.heroGrid}
               >
                 <div>
                   <p className="urban-admin-eyebrow">
@@ -239,14 +239,14 @@ export default function AdminQualityPage() {
                     {mape != null ? `${mape}%` : "—"}
                   </p>
                   <p
-                    className={styles.textTextMutedFs14}
+                    className={styles.heroDescription}
                   >
                     Alvo {"<="} {mapeThreshold}% · backtest sobre preço aplicado
                     real {"vs"} sugestão.
                   </p>
                 </div>
                 <div
-                  className={styles.stackGap16Bordered}
+                  className={styles.heroStats}
                 >
                   <SmallInline
                     label="RMSE"
@@ -277,21 +277,21 @@ export default function AdminQualityPage() {
           {/* Gate */}
           {quality.sampleSize > 0 && (
             <div
-              className={styles.rowCenteredBgSurface}
+              className={styles.gateBar}
             >
               <AdminStatusDot
                 kind={quality.qualityGate.passes ? "success" : "warn"}
                 size={10}
               />
-              <div className={styles.boxFlex1}>
+              <div className={styles.gateContent}>
                 <p
-                  className={styles.textTextFs13}
+                  className={styles.gateTitle}
                 >
                   Gate de qualidade:{" "}
                   {quality.qualityGate.passes ? "aprovado" : "ainda não atingido"}
                 </p>
                 <p
-                  className={styles.textTextMutedFs12}
+                  className={styles.gateDescription}
                 >
                   Criterio: MAPE {"<="} {quality.qualityGate.threshold}% AND
                   amostras {">="} 30.
@@ -304,14 +304,14 @@ export default function AdminQualityPage() {
       )}
 
       {/* === Cobertura de ocupação === */}
-      <section className={styles.sectionMb56}>
+      <section className={styles.section}>
         <header
-          className={styles.rowBetweenCentered}
+          className={styles.breakdownHeader}
         >
           <div>
             <p className="urban-admin-eyebrow">COBERTURA DE OCUPAÇÃO</p>
             <h2
-              className={styles.headingTextFs20}
+              className={styles.breakdownTitle}
             >
               {occupancy?.distinctListings ?? 0} listings com histórico
             </h2>
@@ -320,12 +320,12 @@ export default function AdminQualityPage() {
         </header>
 
         <div
-          className={styles.gridColsAutoGap24}
+          className={styles.breakdownGrid}
         >
           <AdminCard variant="subtle">
             <AdminCardHeader title="Por status" />
             {!occupancy || occupancy.byStatus.length === 0 ? (
-              <p className={styles.textTextMutedFs13}>
+              <p className={styles.emptyHint}>
                 Sem registros. Use o apontamento manual abaixo para iniciar o
                 histórico real.
               </p>
@@ -338,7 +338,7 @@ export default function AdminQualityPage() {
           <AdminCard variant="subtle">
             <AdminCardHeader title="Por origem" />
             {!occupancy || occupancy.byOrigin.length === 0 ? (
-              <p className={styles.textTextMutedFs13}>
+              <p className={styles.emptyHint}>
                 Sem origens registradas ainda.
               </p>
             ) : (
@@ -352,16 +352,16 @@ export default function AdminQualityPage() {
 
       {/* === Apontamento manual === */}
       <section>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb12}`}>
+        <p className={`urban-admin-eyebrow ${styles.formEyebrow}`}>
           APONTAMENTO MANUAL
         </p>
         <h2
-          className={styles.headingTextFs20W600M0x0x8Lsneg0_3}
+          className={styles.formTitle}
         >
           Registrar ocupação
         </h2>
         <p
-          className={styles.textTextMutedFs13M0x0x24Maxw720Lh1_55}
+          className={styles.formIntro}
         >
           Use para registrar observações reais do alpha: disponibilidade,
           reserva, diária anunciada e receita realizada por dia. Registros
@@ -371,11 +371,11 @@ export default function AdminQualityPage() {
         <AdminCard variant="subtle">
           <form
             onSubmit={handleSubmit}
-            className={styles.stackGap18}
+            className={styles.occupancyForm}
           >
-            <div className={styles.boxMaxw360Minw0}>
+            <div className={styles.propertyField}>
               <span
-                className={styles.labelTextMutedFs11}
+                className={styles.fieldLabel}
               >
                 Imóvel
               </span>
@@ -390,7 +390,7 @@ export default function AdminQualityPage() {
             </div>
 
             <div
-              className={styles.gridColsAuto180Gap14}
+              className={styles.formFields}
             >
               <AdminInput
                 label="Data observada"
@@ -430,16 +430,16 @@ export default function AdminQualityPage() {
 
             {selectedProperty && (
               <div
-                className={styles.boxTextMutedBgSurface}
+                className={styles.propertyInfo}
               >
                 <strong className={styles.strongText}>
                   {selectedProperty.title || "Imóvel sem título"}
                 </strong>
-                <span className={styles.labelMl12}>
+                <span className={styles.propertyMeta}>
                   {selectedProperty.city || "cidade n/d"} /{" "}
                   {selectedProperty.state || "UF n/d"}
                 </span>
-                <span className={styles.labelMl12}>
+                <span className={styles.propertyMeta}>
                   Receita média mensal:{" "}
                   {selectedProperty.averageMonthlyRevenue != null
                     ? `R$ ${selectedProperty.averageMonthlyRevenue}`
@@ -448,7 +448,7 @@ export default function AdminQualityPage() {
               </div>
             )}
 
-            <div className={styles.rowEnd}>
+            <div className={styles.formActions}>
               <AdminButton
                 variant="primary"
                 type="submit"
@@ -478,12 +478,12 @@ function SmallInline({
     <div>
       <p className="urban-admin-eyebrow-muted">{label}</p>
       <p
-        className={styles.textTextFs20}
+        className={styles.statValue}
       >
         {value}
       </p>
       {sub && (
-        <p className={styles.textTextMutedFs11}>
+        <p className={styles.statSub}>
           {sub}
         </p>
       )}
@@ -494,7 +494,7 @@ function SmallInline({
 function BarList({ rows }: { rows: Array<{ label: string; value: number }> }) {
   if (rows.length === 0) {
     return (
-      <p className={styles.textTextMutedFs12M0}>
+      <p className={styles.barListEmpty}>
         Sem dados.
       </p>
     );
@@ -502,19 +502,19 @@ function BarList({ rows }: { rows: Array<{ label: string; value: number }> }) {
   const max = Math.max(...rows.map((r) => r.value), 1);
   return (
     <ul
-      className={styles.stackGap12M0}
+      className={styles.barList}
     >
       {rows.map((r) => (
         <li key={r.label}>
           <div
-            className={styles.rowBetweenFs12}
+            className={styles.barRow}
           >
             <code className={styles.strongText}>{r.label}</code>
-            <span className={styles.labelAccentW600}>
+            <span className={styles.barValue}>
               {r.value.toLocaleString("pt-BR")}
             </span>
           </div>
-          <div className={styles.boxBgDividerH2}>
+          <div className={styles.barTrack}>
             <div
               style={{
                 height: "100%",

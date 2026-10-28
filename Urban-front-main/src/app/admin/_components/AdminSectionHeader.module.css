@@ -1,17 +1,17 @@
-.boxMinw0Flex1.boxMinw0Flex1 {
+.headerText.headerText {
   min-width: 0;
   flex: 1;
 }
 
-.eyebrowMb12.eyebrowMb12 {
+.eyebrow.eyebrow {
   margin-bottom: 12px;
 }
 
-.titleUpper.titleUpper {
+.title.title {
   text-transform: uppercase;
 }
 
-.textTextMutedFs14.textTextMutedFs14 {
+.subtitle.subtitle {
   margin-top: 12px;
   font-size: 14px;
   color: var(--admin-text-muted);
@@ -20,7 +20,7 @@
   max-width: 720px;
 }
 
-.rowCenteredWrap.rowCenteredWrap {
+.actions.actions {
   display: flex;
   align-items: center;
   gap: 12px;

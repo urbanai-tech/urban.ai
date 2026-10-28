@@ -1,51 +1,51 @@
-.stackGap6.stackGap6 {
+.scoreCell.scoreCell {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.labelTextFs15.labelTextFs15 {
+.scoreValue.scoreValue {
   font-family: monospace;
   font-size: 15px;
   color: var(--admin-text);
 }
 
-.rowGap8.rowGap8 {
+.rowActions.rowActions {
   display: inline-flex;
   gap: 8px;
 }
 
-.boxM0xautoP32x28x56.boxM0xautoP32x28x56 {
+.pageContainer.pageContainer {
   max-width: 1400px;
   margin: 0 auto;
   padding: 32px 28px 56px;
 }
 
-.rowCenteredGap8.rowCenteredGap8 {
+.headerActions.headerActions {
   display: flex;
   gap: 8px;
   align-items: center;
 }
 
-.gridCols4Gap18.gridCols4Gap18 {
+.summaryGrid.summaryGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px;
   margin-bottom: 22px;
 }
 
-.gridCols5Gap16.gridCols5Gap16 {
+.scanStatsGrid.scanStatsGrid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
 }
 
-.rowGap10.rowGap10 {
+.filterRow.filterRow {
   display: flex;
   gap: 10px;
 }
 
-.rowBetweenCentered.rowBetweenCentered {
+.paginationBar.paginationBar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -55,34 +55,34 @@
   color: var(--admin-text-muted);
 }
 
-.rowGap82.rowGap82 {
+.paginationButtons.paginationButtons {
   display: flex;
   gap: 8px;
 }
 
-.stackGap8.stackGap8 {
+.verticalStack.verticalStack {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.labelTextMutedFs13.labelTextMutedFs13 {
+.rejectPrompt.rejectPrompt {
   font-size: 13px;
   color: var(--admin-text-muted);
 }
 
-.labelTextMuted.labelTextMuted {
+.emptyEventCell.emptyEventCell {
   color: var(--admin-text-muted);
 }
 
-.stackGap6Minw0.stackGap6Minw0 {
+.eventCell.eventCell {
   display: flex;
   flex-direction: column;
   gap: 6px;
   min-width: 0;
 }
 
-.labelTextFs13.labelTextFs13 {
+.eventName.eventName {
   font-size: 13px;
   font-weight: 600;
   color: var(--admin-text);
@@ -91,12 +91,12 @@
   white-space: nowrap;
 }
 
-.labelTextMutedFs12.labelTextMutedFs12 {
+.eventMeta.eventMeta {
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.labelTextMutedFs11.labelTextMutedFs11 {
+.eventAddress.eventAddress {
   font-size: 11px;
   color: var(--admin-text-muted);
   overflow: hidden;
@@ -104,24 +104,24 @@
   white-space: nowrap;
 }
 
-.labelTextMutedFs11Mono.labelTextMutedFs11Mono {
+.eventSource.eventSource {
   font-size: 11px;
   color: var(--admin-text-muted);
   font-family: monospace;
 }
 
-.labelTextFs12.labelTextFs12 {
+.signalReason.signalReason {
   font-size: 12px;
   color: var(--admin-text);
 }
 
-.rowWrapGap6.rowWrapGap6 {
+.signalList.signalList {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.labelTextMutedFs10.labelTextMutedFs10 {
+.signalItem.signalItem {
   border: 1px solid var(--admin-divider);
   padding: 3px 6px;
   font-size: 10px;
@@ -129,13 +129,38 @@
   font-family: monospace;
 }
 
-.eyebrowMutedMb6.eyebrowMutedMb6 {
+.scanStatLabel.scanStatLabel {
   margin-bottom: 6px;
 }
 
-.textTextFs24.textTextFs24 {
+.scanStatValue.scanStatValue {
   margin: 0;
   font-size: 24px;
   font-weight: 600;
   color: var(--admin-text);
+}
+
+.scanLimitInput.scanLimitInput.scanLimitInput {
+  width: 110px;
+}
+
+.errorCard.errorCard.errorCard {
+  margin-bottom: 20px;
+  color: var(--admin-danger);
+}
+
+.scanSummaryCard.scanSummaryCard.scanSummaryCard {
+  margin-bottom: 22px;
+}
+
+.statusSelect.statusSelect.statusSelect {
+  width: 150px;
+}
+
+.confidenceSelect.confidenceSelect.confidenceSelect {
+  width: 140px;
+}
+
+.limitSelect.limitSelect.limitSelect {
+  width: 100px;
 }

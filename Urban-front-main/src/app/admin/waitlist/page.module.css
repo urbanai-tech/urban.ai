@@ -1,63 +1,63 @@
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.errorContainer.errorContainer {
   max-width: 1280px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.codeAccentW600.codeAccentW600 {
+.positionCode.positionCode {
   color: var(--admin-accent);
   font-weight: 600;
   font-family: monospace;
 }
 
-.labelTextW500.labelTextW500 {
+.emailCell.emailCell {
   font-weight: 500;
   color: var(--admin-text);
 }
 
-.labelTextMutedFs13.labelTextMutedFs13 {
+.nameCell.nameCell {
   color: var(--admin-text-muted);
   font-size: 13px;
 }
 
-.codeTextDimFs11.codeTextDimFs11 {
+.sourceCode.sourceCode {
   font-size: 11px;
   color: var(--admin-text-dim);
 }
 
-.labelAccentW600.labelAccentW600 {
+.accentCount.accentCount {
   color: var(--admin-accent);
   font-weight: 600;
 }
 
-.labelTextDim.labelTextDim {
+.emptyDash.emptyDash {
   color: var(--admin-text-dim);
 }
 
-.labelTextMutedFs12.labelTextMutedFs12 {
+.dateCell.dateCell {
   font-size: 12px;
   color: var(--admin-text-muted);
   font-family: monospace;
 }
 
-.rowEndWrap.rowEndWrap {
+.rowActions.rowActions {
   display: inline-flex;
   gap: 8px;
   justify-content: flex-end;
   flex-wrap: wrap;
 }
 
-.boxM0xautoP40x32Maxw1400.boxM0xautoP40x32Maxw1400 {
+.pageContainer.pageContainer {
   max-width: 1400px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.sectionMb48.sectionMb48 {
+.kpiSection.kpiSection {
   margin-bottom: 48px;
 }
 
-.gridColsAuto180Gap32.gridColsAuto180Gap32 {
+.kpiGrid.kpiGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 32px;
@@ -65,26 +65,26 @@
   border-bottom: 1px solid var(--admin-divider);
 }
 
-.gridColsAutoGap24.gridColsAutoGap24 {
+.statsGrid.statsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 24px;
   margin-bottom: 48px;
 }
 
-.textTextMutedFs13.textTextMutedFs13 {
+.emptyHint.emptyHint {
   font-size: 13px;
   color: var(--admin-text-muted);
   margin: 0;
 }
 
-.listM0P0.listM0P0 {
+.statsList.statsList {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.rowBetweenFs13.rowBetweenFs13 {
+.sourceItem.sourceItem {
   display: flex;
   justify-content: space-between;
   padding: 10px 0;
@@ -92,11 +92,11 @@
   font-size: 13px;
 }
 
-.codeText.codeText {
+.sourceLabel.sourceLabel {
   color: var(--admin-text);
 }
 
-.rowBetweenCentered.rowBetweenCentered {
+.referrerItem.referrerItem {
   display: flex;
   justify-content: space-between;
   padding: 10px 0;
@@ -105,7 +105,7 @@
   align-items: center;
 }
 
-.labelTextMutedMr8.labelTextMutedMr8 {
+.referrerEmail.referrerEmail {
   color: var(--admin-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -113,24 +113,24 @@
   margin-right: 8px;
 }
 
-.sectionMb32.sectionMb32 {
+.inviteSection.inviteSection {
   margin-bottom: 32px;
 }
 
-.textTextMutedFs13M0x0x14Lh1_55.textTextMutedFs13M0x0x14Lh1_55 {
+.inviteHint.inviteHint {
   font-size: 13px;
   color: var(--admin-text-muted);
   line-height: 1.55;
   margin: 0 0 14px;
 }
 
-.rowWrapGap10.rowWrapGap10 {
+.inviteRow.inviteRow {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-.rowAlignEndWrap.rowAlignEndWrap {
+.filterBar.filterBar {
   display: flex;
   gap: 12px;
   margin-bottom: 20px;
@@ -138,7 +138,7 @@
   align-items: flex-end;
 }
 
-.rowBetweenCenteredTextMutedFs12Mt16.rowBetweenCenteredTextMutedFs12Mt16 {
+.paginationBar.paginationBar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -147,7 +147,21 @@
   color: var(--admin-text-muted);
 }
 
-.rowGap8.rowGap8 {
+.paginationButtons.paginationButtons {
   display: flex;
   gap: 8px;
+}
+
+.inviteUrlShell.inviteUrlShell.inviteUrlShell {
+  flex: 1;
+  min-width: 280px;
+}
+
+.searchShell.searchShell.searchShell {
+  flex: 1;
+  min-width: 220px;
+}
+
+.statusShell.statusShell.statusShell {
+  width: 200px;
 }

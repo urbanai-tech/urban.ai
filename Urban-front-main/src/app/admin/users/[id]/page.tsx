@@ -154,7 +154,7 @@ export default function AdminUserDetailPage() {
 
   if (error || !user) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.pageContainer}>
         <AdminEmptyState
           eyebrow="ERRO"
           title="Não foi possível carregar"
@@ -187,7 +187,7 @@ export default function AdminUserDetailPage() {
   const validProperties = properties.filter((p) => p.manualDailyPrice).length;
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow={`ADMIN · USUÁRIO · ${user.id.slice(0, 8)}…`}
         title={user.username}
@@ -197,7 +197,7 @@ export default function AdminUserDetailPage() {
             {user.createdAt && (
               <>
                 {" · "}cadastro em{" "}
-                <strong className={styles.strongText}>
+                <strong className={styles.emphasis}>
                   {new Date(user.createdAt).toLocaleDateString("pt-BR")}
                 </strong>
               </>
@@ -217,19 +217,19 @@ export default function AdminUserDetailPage() {
       />
 
       {/* Identity card */}
-      <section className={styles.sectionMb32}>
+      <section className={styles.pageSection}>
         <AdminCard variant="accent">
           <div
-            className={styles.rowCenteredWrap}
+            className={styles.profileRow}
           >
             <div
               aria-hidden
-              className={styles.rowJustifyCenterCentered}
+              className={styles.avatar}
             >
               {initial}
             </div>
-            <div className={styles.boxMinw200Flex1}>
-              <div className={styles.rowWrapGap10}>
+            <div className={styles.profileInfo}>
+              <div className={styles.badgeRow}>
                 <AdminBadge kind={roleKind}>{roleLabel(user.role)}</AdminBadge>
                 <AdminBadge kind={user.ativo ? "success" : "neutral"}>
                   {user.ativo ? "Ativo" : "Inativo"}
@@ -241,20 +241,20 @@ export default function AdminUserDetailPage() {
                   <AdminBadge kind="accent">Modo auto</AdminBadge>
                 )}
               </div>
-              <p className={styles.textTextMutedFs13}>
+              <p className={styles.mutedText}>
                 {user.phone || "sem telefone"}
                 {user.company ? ` · ${user.company}` : ""}
                 {user.airbnbHostId ? ` · Airbnb host #${user.airbnbHostId}` : ""}
               </p>
             </div>
-            <div className={styles.rowWrapGap8}>
+            <div className={styles.roleActions}>
               <AdminSelect
                 value={user.role}
                 onChange={(e) => {
                   const next = e.target.value;
                   if (next !== user.role) setConfirmRole({ next });
                 }}
-                shellStyle={{ width: 180 }}
+                shellClassName={styles.roleShell}
               >
                 <option value="host">Anfitrião</option>
                 <option value="support">Suporte</option>
@@ -273,9 +273,9 @@ export default function AdminUserDetailPage() {
       </section>
 
       {/* KPIs */}
-      <section className={styles.sectionMb32}>
+      <section className={styles.pageSection}>
         <div
-          className={styles.gridColsAuto180Gap32}
+          className={styles.kpiGrid}
         >
           <AdminMetricCard label="Imóveis ativos" value={totalProps} />
           <AdminMetricCard
@@ -298,29 +298,29 @@ export default function AdminUserDetailPage() {
 
       {/* Drip + Subscription side-by-side */}
       <section
-        className={styles.gridColsAuto360Gap24}
+        className={styles.cardsGrid}
       >
         <AdminCard variant="subtle">
           <AdminCardHeader title="E-mails de boas-vindas" />
           {user.onboardingDripLastDay ? (
             <div>
-              <div className={styles.rowCenteredGap10}>
+              <div className={styles.dripStatus}>
                 <AdminStatusDot kind="success" size={8} />
                 <p
-                  className={styles.textTextFs16}
+                  className={styles.dripStatusText}
                 >
                   Recebeu até D+{user.onboardingDripLastDay}
                 </p>
               </div>
               {user.onboardingDripLastSentAt && (
-                <p className={styles.textTextMutedFs12}>
+                <p className={styles.dripLastSent}>
                   Último envio em{" "}
                   {new Date(user.onboardingDripLastSentAt).toLocaleString("pt-BR")}
                 </p>
               )}
             </div>
           ) : (
-            <p className={styles.textTextMutedFs13}>
+            <p className={styles.mutedText}>
               Ainda não recebeu nenhum e-mail do drip. Próximo: D+1 quando completar 24h
               após cadastro.
             </p>
@@ -340,7 +340,7 @@ export default function AdminUserDetailPage() {
           />
           {subscription ? (
             <div
-              className={styles.gridColsFs13}
+              className={styles.subscriptionFields}
             >
               <Field label="Plano" value={subscription.planName ?? "—"} />
               <Field label="Ciclo" value={subscription.billingCycle ?? "—"} />
@@ -362,7 +362,7 @@ export default function AdminUserDetailPage() {
               />
             </div>
           ) : (
-            <p className={styles.textTextMutedFs13}>
+            <p className={styles.mutedText}>
               Sem assinatura ativa ou endpoint ainda não disponível. Alpha gratuito ou trial.
             </p>
           )}
@@ -370,8 +370,8 @@ export default function AdminUserDetailPage() {
       </section>
 
       {/* Imóveis */}
-      <section className={styles.sectionMb32}>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb16}`}>
+      <section className={styles.pageSection}>
+        <p className={`urban-admin-eyebrow ${styles.sectionEyebrow}`}>
           IMÓVEIS DO USUÁRIO
         </p>
         {properties.length === 0 ? (
@@ -380,10 +380,10 @@ export default function AdminUserDetailPage() {
             body="Esse usuário ainda não criou imóveis. Se já é cliente, peça pra completar o onboarding."
           />
         ) : (
-          <AdminCard variant="default" style={{ padding: 0, overflowX: "auto" }}>
-            <table className={styles.tableFs13W100pct}>
+          <AdminCard variant="default" className={styles.scrollCard}>
+            <table className={styles.propertiesTable}>
               <thead>
-                <tr className={styles.tableRowBordered}>
+                <tr className={styles.tableHeaderRow}>
                   <Th>Imóvel</Th>
                   <Th>Localidade</Th>
                   <Th align="right">Diária base</Th>
@@ -396,18 +396,18 @@ export default function AdminUserDetailPage() {
                 {properties.map((p) => (
                   <tr
                     key={p.id}
-                    className={`urban-admin-row ${styles.rowBordered}`}
+                    className={`urban-admin-row ${styles.tableRow}`}
                   >
                     <Td>
-                      <strong className={styles.strongText}>{p.propertyName}</strong>
+                      <strong className={styles.emphasis}>{p.propertyName}</strong>
                       <br />
-                      <code className={styles.codeTextDimFs11}>
+                      <code className={styles.propertyId}>
                         {p.id.slice(0, 8)}…
                       </code>
                     </Td>
                     <Td>
                       {p.city ? (
-                        <span className={styles.strongText}>
+                        <span className={styles.emphasis}>
                           {p.city}/{p.state}
                         </span>
                       ) : (
@@ -416,11 +416,11 @@ export default function AdminUserDetailPage() {
                     </Td>
                     <Td align="right">
                       {p.manualDailyPrice ? (
-                        <span className={styles.labelMono}>
+                        <span className={styles.priceCell}>
                           R$ {Number(p.manualDailyPrice).toLocaleString("pt-BR")}
                         </span>
                       ) : (
-                        <span className={styles.labelTextDim}>—</span>
+                        <span className={styles.emptyCell}>—</span>
                       )}
                     </Td>
                     <Td align="right">
@@ -440,7 +440,7 @@ export default function AdminUserDetailPage() {
                     <Td align="right">
                       <a
                         href={`/admin/properties/${p.id}`}
-                        className={styles.rowCenteredTextMuted}
+                        className={styles.rowLink}
                       >
                         <Icons.ArrowRight size={14} />
                       </a>
@@ -454,10 +454,10 @@ export default function AdminUserDetailPage() {
       </section>
 
       {/* Atalhos */}
-      <section className={styles.sectionMt48Bordered}>
+      <section className={styles.shortcutsSection}>
         <AdminCard variant="subtle">
           <AdminCardHeader title="Atalhos" />
-          <div className={styles.rowWrapGap102}>
+          <div className={styles.shortcutsRow}>
             <AdminButton
               variant="ghost"
               as="a"
@@ -531,11 +531,11 @@ function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p
-        className={styles.textTextMutedFs10}
+        className={styles.fieldLabel}
       >
         {label}
       </p>
-      <p className={styles.textTextFs13}>
+      <p className={styles.fieldValue}>
         {value}
       </p>
     </div>

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 7,
+  "revision": 8,
   "createdAt": "2026-07-15T00:00:00.000Z",
   "policy": {
     "scope": "src/**/*.{css,js,jsx,ts,tsx}",
@@ -54,7 +54,7 @@
       }
     },
     "inlineStyles": {
-      "total": 828,
+      "total": 772,
       "files": {
         "src/app/(home)/page.tsx": 40,
         "src/app/(public)/contato/page.tsx": 3,
@@ -67,45 +67,37 @@
         "src/app/(public)/sobre/page.tsx": 3,
         "src/app/(public)/termos/page.tsx": 6,
         "src/app/address-verification/layout.tsx": 1,
-        "src/app/admin/_components/AdminBadge.tsx": 1,
-        "src/app/admin/_components/AdminCard.tsx": 2,
         "src/app/admin/_components/AdminDrawer.tsx": 1,
-        "src/app/admin/_components/AdminInput.tsx": 4,
         "src/app/admin/_components/AdminLoadingSkeleton.tsx": 9,
         "src/app/admin/_components/AdminMetricCard.tsx": 2,
         "src/app/admin/_components/AdminSectionHeader.tsx": 1,
-        "src/app/admin/_components/AdminShell.tsx": 4,
+        "src/app/admin/_components/AdminShell.tsx": 2,
         "src/app/admin/_components/AdminStatusDot.tsx": 1,
         "src/app/admin/_components/AdminSwitch.tsx": 1,
         "src/app/admin/_components/AdminTable.tsx": 6,
         "src/app/admin/_components/AdminToast.tsx": 1,
-        "src/app/admin/alpha/page.tsx": 1,
-        "src/app/admin/collectors-health/page.tsx": 1,
-        "src/app/admin/communications/page.tsx": 1,
         "src/app/admin/contacts/page.tsx": 1,
         "src/app/admin/coverage/page.tsx": 3,
-        "src/app/admin/dashboard/page.tsx": 7,
+        "src/app/admin/dashboard/page.tsx": 5,
         "src/app/admin/event-radar/event-radar-detail.tsx": 2,
-        "src/app/admin/event-radar/event-radar-geo.tsx": 5,
-        "src/app/admin/event-radar/event-radar-summary.tsx": 3,
-        "src/app/admin/event-radar/page.tsx": 2,
-        "src/app/admin/events/dedup/page.tsx": 6,
-        "src/app/admin/events/import/page.tsx": 8,
-        "src/app/admin/events/new/page.tsx": 1,
-        "src/app/admin/events/page.tsx": 14,
-        "src/app/admin/finance/page.tsx": 6,
-        "src/app/admin/funnel/page.tsx": 3,
-        "src/app/admin/jobs/page.tsx": 3,
+        "src/app/admin/event-radar/event-radar-geo.tsx": 4,
+        "src/app/admin/event-radar/event-radar-summary.tsx": 2,
+        "src/app/admin/event-radar/page.tsx": 1,
+        "src/app/admin/events/import/page.tsx": 5,
+        "src/app/admin/events/page.tsx": 6,
+        "src/app/admin/finance/page.tsx": 4,
+        "src/app/admin/funnel/page.tsx": 2,
+        "src/app/admin/jobs/page.tsx": 1,
         "src/app/admin/onboarding-drip/page.tsx": 1,
-        "src/app/admin/page.tsx": 3,
-        "src/app/admin/price-intelligence/page.tsx": 3,
-        "src/app/admin/properties/[id]/page.tsx": 4,
-        "src/app/admin/properties/page.tsx": 4,
-        "src/app/admin/quality/page.tsx": 3,
-        "src/app/admin/roi/page.tsx": 4,
-        "src/app/admin/seo/page.tsx": 9,
-        "src/app/admin/stays/page.tsx": 5,
-        "src/app/admin/users/[id]/page.tsx": 4,
+        "src/app/admin/page.tsx": 1,
+        "src/app/admin/price-intelligence/page.tsx": 2,
+        "src/app/admin/properties/[id]/page.tsx": 2,
+        "src/app/admin/properties/page.tsx": 1,
+        "src/app/admin/quality/page.tsx": 2,
+        "src/app/admin/roi/page.tsx": 3,
+        "src/app/admin/seo/page.tsx": 5,
+        "src/app/admin/stays/page.tsx": 4,
+        "src/app/admin/users/[id]/page.tsx": 3,
         "src/app/admin/users/page.tsx": 1,
         "src/app/componentes/AddPropertyModal.tsx": 7,
         "src/app/componentes/Analytics.tsx": 1,
@@ -309,7 +301,21 @@
         "inlineStyles": 828,
         "nonCanonicalBreakpoints": 29
       }
+    },
+    {
+      "at": "2026-10-28T17:56:46.499Z",
+      "reason": "DS2e: componentes admin aceitam className e estilos estaticos passados a eles viram CSS Module (828 para 772 inline)",
+      "from": {
+        "rawColors": 119,
+        "inlineStyles": 828,
+        "nonCanonicalBreakpoints": 29
+      },
+      "to": {
+        "rawColors": 119,
+        "inlineStyles": 772,
+        "nonCanonicalBreakpoints": 29
+      }
     }
   ],
-  "updatedAt": "2026-10-28T14:43:02.881Z"
+  "updatedAt": "2026-10-28T17:56:46.496Z"
 }

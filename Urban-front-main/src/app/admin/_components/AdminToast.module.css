@@ -1,4 +1,4 @@
-.stackFixedGap8.stackFixedGap8 {
+.toastStack.toastStack {
   position: fixed;
   top: 24px;
   right: 24px;
@@ -9,11 +9,11 @@
   pointer-events: none;
 }
 
-.labelFlex1.labelFlex1 {
+.toastMessage.toastMessage {
   flex: 1;
 }
 
-.buttonTextMutedBg.buttonTextMutedBg {
+.dismissButton.dismissButton {
   background: transparent;
   border: none;
   color: var(--admin-text-muted);

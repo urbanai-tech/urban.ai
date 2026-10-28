@@ -100,7 +100,7 @@ export default function AdminAuditLogsPage() {
       width: 160,
       render: (log) => (
         <span
-          className={styles.labelTextMutedFs12}
+          className={styles.dateCell}
         >
           {formatDate(log.createdAt)}
         </span>
@@ -110,7 +110,7 @@ export default function AdminAuditLogsPage() {
       key: "action",
       header: "Ação",
       render: (log) => (
-        <code className={styles.codeAccentFs12}>
+        <code className={styles.actionCode}>
           {log.action}
         </code>
       ),
@@ -120,12 +120,12 @@ export default function AdminAuditLogsPage() {
       header: "Entidade",
       render: (log) => (
         <div>
-          <p className={styles.textTextW500}>
+          <p className={styles.entityTypeText}>
             {log.entityType}
           </p>
           {log.entityId && (
             <code
-              className={styles.codeTextDimFs11}
+              className={styles.entityIdCode}
             >
               {log.entityId}
             </code>
@@ -137,7 +137,7 @@ export default function AdminAuditLogsPage() {
       key: "actor",
       header: "Admin",
       render: (log) => (
-        <code className={styles.codeTextMutedFs11}>
+        <code className={styles.actorCode}>
           {log.actorUserId || "sistema"}
         </code>
       ),
@@ -165,7 +165,7 @@ export default function AdminAuditLogsPage() {
   }
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · AUDITORIA"
         title="Auditoria"
@@ -173,11 +173,11 @@ export default function AdminAuditLogsPage() {
       />
 
       {/* === Filtros === */}
-      <section className={styles.sectionMb32}>
+      <section className={styles.section}>
         <AdminCard variant="subtle">
           <form
             onSubmit={applyFilters}
-            className={styles.gridColsAuto180Gap14}
+            className={styles.filterForm}
           >
             <AdminInput
               label="Ação"
@@ -202,7 +202,7 @@ export default function AdminAuditLogsPage() {
               onChange={(e) => setFilters((prev) => ({ ...prev, actorUserId: e.target.value }))}
               placeholder="userId"
             />
-            <div className={styles.rowWrapGap8}>
+            <div className={styles.filterActions}>
               <AdminButton
                 type="submit"
                 variant="primary"
@@ -223,7 +223,7 @@ export default function AdminAuditLogsPage() {
       </section>
 
       {error && (
-        <div className={styles.sectionMb32}>
+        <div className={styles.section}>
           <AdminEmptyState
             eyebrow="Erro"
             title="Falha ao carregar"
@@ -236,14 +236,14 @@ export default function AdminAuditLogsPage() {
       {/* === Tabela === */}
       <section>
         <header
-          className={styles.rowBetweenCentered}
+          className={styles.resultsHeader}
         >
-          <p className={styles.textTextMutedFs12}>
+          <p className={styles.resultsCount}>
             {loading
               ? "Carregando…"
               : `${(data?.total ?? 0).toLocaleString("pt-BR")} registros encontrados`}
           </p>
-          <div className={styles.rowCenteredGap8}>
+          <div className={styles.pagination}>
             <AdminButton
               variant="ghost"
               size="sm"
@@ -254,7 +254,7 @@ export default function AdminAuditLogsPage() {
               Anterior
             </AdminButton>
             <span
-              className={styles.labelTextMutedFs11}
+              className={styles.pageIndicator}
             >
               {page} / {pages}
             </span>
@@ -292,11 +292,11 @@ export default function AdminAuditLogsPage() {
         width={560}
       >
         {detailLog && (
-          <div className={styles.stackGap20}>
+          <div className={styles.detailContent}>
             <div>
               <p className="urban-admin-eyebrow-muted">QUANDO</p>
               <p
-                className={styles.textTextFs13}
+                className={styles.detailValue}
               >
                 {formatDate(detailLog.createdAt)}
               </p>
@@ -304,13 +304,13 @@ export default function AdminAuditLogsPage() {
             <div>
               <p className="urban-admin-eyebrow-muted">ENTIDADE</p>
               <p
-                className={styles.textTextFs13M6x0x0}
+                className={styles.detailEntityValue}
               >
                 {detailLog.entityType}
                 {detailLog.entityId && (
                   <>
                     {" · "}
-                    <code className={styles.codeTextMuted}>
+                    <code className={styles.detailEntityIdCode}>
                       {detailLog.entityId}
                     </code>
                   </>
@@ -320,7 +320,7 @@ export default function AdminAuditLogsPage() {
             <div>
               <p className="urban-admin-eyebrow-muted">ADMIN</p>
               <p
-                className={styles.textTextFs13}
+                className={styles.detailValue}
               >
                 {detailLog.actorUserId || "sistema"}
               </p>
@@ -346,7 +346,7 @@ function JsonBlock({ label, value }: { label: string; value: unknown }) {
     <div>
       <p className="urban-admin-eyebrow-muted">{label}</p>
       <pre
-        className={styles.preBlockTextBgSurfaceElevated}
+        className={styles.jsonBlock}
       >
         {JSON.stringify(value, null, 2)}
       </pre>

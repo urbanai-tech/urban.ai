@@ -1,20 +1,20 @@
-.codeTextFs12.codeTextFs12 {
+.jobName.jobName {
   font-size: 12px;
   color: var(--admin-text);
 }
 
-.labelTextMutedFs12.labelTextMutedFs12 {
+.startedAtCell.startedAtCell {
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.rowCenteredGap12.rowCenteredGap12 {
+.resultCell.resultCell {
   display: inline-flex;
   gap: 12px;
   align-items: center;
 }
 
-.buttonAccentBg.buttonAccentBg {
+.viewResultButton.viewResultButton {
   background: transparent;
   border: none;
   color: var(--admin-accent);
@@ -26,19 +26,19 @@
   padding: 0;
 }
 
-.labelTextMutedFs12Mono.labelTextMutedFs12Mono {
+.durationText.durationText {
   font-family: monospace;
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.pageContainer.pageContainer {
   max-width: 1280px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.boxDangerBgDanger.boxDangerBgDanger {
+.errorBanner.errorBanner {
   margin-bottom: 32px;
   padding: 14px 18px;
   border-left: 2px solid var(--admin-danger);
@@ -48,7 +48,7 @@
   line-height: 1.55;
 }
 
-.sectionTextBgWarning.sectionTextBgWarning {
+.geocoderWarning.geocoderWarning {
   margin-bottom: 32px;
   padding: 14px 18px;
   border-left: 2px solid var(--admin-warning);
@@ -58,7 +58,7 @@
   line-height: 1.55;
 }
 
-.textWarningFs12.textWarningFs12 {
+.geocoderWarningTitle.geocoderWarningTitle {
   margin: 0;
   font-weight: 600;
   color: var(--admin-warning);
@@ -67,32 +67,32 @@
   text-transform: uppercase;
 }
 
-.textTextMutedM6x0x0.textTextMutedM6x0x0 {
+.geocoderWarningText.geocoderWarningText {
   margin: 6px 0 0;
   color: var(--admin-text-muted);
 }
 
-.sectionMb56.sectionMb56 {
+.pageSection.pageSection {
   margin-bottom: 56px;
 }
 
-.eyebrowMb20.eyebrowMb20 {
+.sectionEyebrow.sectionEyebrow {
   margin-bottom: 20px;
 }
 
-.gridColsAuto260Gap16.gridColsAuto260Gap16 {
+.jobGrid.jobGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
 }
 
-.listM0P0.listM0P0 {
+.shortcutList.shortcutList {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.shortcutLinkBetweenCentered.shortcutLinkBetweenCentered {
+.shortcutLink.shortcutLink {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -103,17 +103,17 @@
   transition: color 120ms;
 }
 
-.sectionMb48.sectionMb48 {
+.lastRunSection.lastRunSection {
   margin-bottom: 48px;
 }
 
-.textTextMutedFs12.textTextMutedFs12 {
+.lastRunMeta.lastRunMeta {
   font-size: 12px;
   color: var(--admin-text-muted);
   margin: 0 0 14px;
 }
 
-.preBlockTextMutedBgSurfaceElevated.preBlockTextMutedBgSurfaceElevated {
+.lastRunOutput.lastRunOutput {
   max-height: 320px;
   overflow: auto;
   margin: 0;
@@ -127,11 +127,11 @@
   line-height: 1.55;
 }
 
-.sectionMb32.sectionMb32 {
+.historySection.historySection {
   margin-bottom: 32px;
 }
 
-.rowBetweenCentered.rowBetweenCentered {
+.historyHeader.historyHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -140,7 +140,7 @@
   flex-wrap: wrap;
 }
 
-.headingTextFs20.headingTextFs20 {
+.historyTitle.historyTitle {
   font-size: 20px;
   font-weight: 600;
   color: var(--admin-text);
@@ -148,7 +148,7 @@
   letter-spacing: -0.3px;
 }
 
-.footerTextMutedFs12.footerTextMutedFs12 {
+.pageFooter.pageFooter {
   margin-top: 32px;
   padding-top: 20px;
   border-top: 1px solid var(--admin-divider);
@@ -157,21 +157,21 @@
   line-height: 1.55;
 }
 
-.rowCenteredGap8.rowCenteredGap8 {
+.jobStatusRow.jobStatusRow {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 10px;
 }
 
-.labelTextFs13.labelTextFs13 {
+.jobStatusLabel.jobStatusLabel {
   font-size: 13px;
   font-weight: 700;
   color: var(--admin-text);
   text-transform: lowercase;
 }
 
-.subheadingTextFs16.subheadingTextFs16 {
+.jobTitle.jobTitle {
   font-size: 16px;
   font-weight: 600;
   color: var(--admin-text);
@@ -179,10 +179,21 @@
   letter-spacing: -0.3px;
 }
 
-.textTextMutedFs13.textTextMutedFs13 {
+.jobDescription.jobDescription {
   font-size: 13px;
   color: var(--admin-text-muted);
   margin: 0;
   line-height: 1.55;
   flex: 1;
+}
+
+.jobCard.jobCard.jobCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+}
+
+.runButton.runButton.runButton {
+  align-self: flex-start;
 }

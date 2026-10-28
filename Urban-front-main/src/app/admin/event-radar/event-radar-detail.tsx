@@ -50,13 +50,13 @@ function EventDecisionHero({ detail }: { detail: AdminEventRadarDetail }) {
 
   return (
     <section
-      className={styles.gridColsGap18}
+      className={styles.decisionLayout}
     >
-      <div className={styles.boxMinw0}>
-        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb10}`}>
+      <div className={styles.contentBlock}>
+        <p className={`urban-admin-eyebrow-muted ${styles.decisionEyebrow}`}>
           DECISAO OPERACIONAL
         </p>
-        <div className={styles.rowCenteredWrap}>
+        <div className={styles.decisionBadges}>
           <AdminBadge kind={kind}>{decision}</AdminBadge>
           <AdminBadge kind={confidenceKind(event.confidence)}>{confidenceLabel(event.confidence)}</AdminBadge>
           <AdminBadge kind={evidenceReady ? "success" : "warn"}>
@@ -64,7 +64,7 @@ function EventDecisionHero({ detail }: { detail: AdminEventRadarDetail }) {
           </AdminBadge>
           <AdminBadge kind={dataStatusKind(dataStatus)}>{dataStatusLabel(dataStatus)}</AdminBadge>
         </div>
-        <p className={styles.textTextMutedFs12}>
+        <p className={styles.decisionText}>
           {hasPricingGap
             ? "Evento forte sem recomendação gerada: tratar antes de perder janela de demanda."
             : topImpact
@@ -75,7 +75,7 @@ function EventDecisionHero({ detail }: { detail: AdminEventRadarDetail }) {
         </p>
       </div>
       <div
-        className={styles.gridCols2Gap12}
+        className={styles.metricGrid}
       >
         <MetricBlock label="Score" value={event.demandScore ?? "-"} />
         <MetricBlock label="Receita" value={formatCents(event.revenuePotentialCents)} />
@@ -96,10 +96,10 @@ export function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
     ...(detail.intelligence.dataQualityFlags ?? []),
   ]);
   return (
-    <div className={styles.stackGap28}>
+    <div className={styles.detailStack}>
       {detail.contractMode === "contract-fallback" && (
         <div
-          className={styles.boxWarningFs12}
+          className={styles.fallbackNotice}
         >
           Detalhe em fallback contratual. Dados brutos, inteligência e impacto em imóveis devem ser substituídos por
           snapshots reais quando Lia/Nico expuserem os endpoints.
@@ -109,10 +109,10 @@ export function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
       <EventDecisionHero detail={detail} />
 
       <section>
-        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb12}`}>
+        <p className={`urban-admin-eyebrow-muted ${styles.sectionEyebrow}`}>
           RESUMO
         </p>
-        <div className={styles.rowWrapGap8}>
+        <div className={styles.summaryBadges}>
           <AdminBadge kind={confidenceKind(event.confidence)}>{confidenceLabel(event.confidence)}</AdminBadge>
           <AdminBadge kind={event.geocodeStatus === "ok" ? "success" : "warn"}>Geo {event.geocodeStatus}</AdminBadge>
           <AdminBadge kind={event.enrichmentStatus === "ok" ? "success" : "warn"}>Enrich {event.enrichmentStatus}</AdminBadge>
@@ -120,7 +120,7 @@ export function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
           <AdminBadge kind={dataStatusKind(dataStatus)}>{dataStatusLabel(dataStatus)}</AdminBadge>
           <AdminBadge kind={jobRunId ? "neutral" : "warn"}>{jobRunId ? `job ${shortTrace(jobRunId)}` : "sem jobRunId"}</AdminBadge>
         </div>
-        <p className={styles.textTextMutedFs13}>
+        <p className={styles.interpretationText}>
           {detail.intelligence.interpretation}
         </p>
         {sourceUrl && (
@@ -128,14 +128,14 @@ export function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
             href={sourceUrl}
             target="_blank"
             rel="noreferrer"
-            className={styles.rowCenteredAccent}
+            className={styles.sourceLink}
           >
             Abrir fonte do evento <Icons.ExternalLink size={12} />
           </a>
         )}
       </section>
 
-      <section className={styles.gridColsAuto150Gap16}>
+      <section className={styles.economicsGrid}>
         <MetricBlock label="Score demanda" value={event.demandScore ?? "—"} />
         <MetricBlock label="Potencial receita" value={formatCents(event.revenuePotentialCents)} />
         <MetricBlock label="Raio demanda" value={event.demandRadiusKm ? `${event.demandRadiusKm} km` : "—"} />
@@ -145,10 +145,10 @@ export function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
       </section>
 
       <section>
-        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb12}`}>
+        <p className={`urban-admin-eyebrow-muted ${styles.sectionEyebrow}`}>
           DADOS BRUTOS
         </p>
-        <div className={styles.gridColsAuto180Gap12}>
+        <div className={styles.rawDataGrid}>
           <DetailRow label="Data" value={formatDateTime(event.startsAt)} />
           <DetailRow label="Cidade" value={`${event.city}/${event.state}`} />
           <DetailRow label="Categoria" value={event.category ?? "—"} />
@@ -165,20 +165,20 @@ export function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
       </section>
 
       <section>
-        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb12}`}>
+        <p className={`urban-admin-eyebrow-muted ${styles.sectionEyebrow}`}>
           DRIVERS
         </p>
         {detail.intelligence.drivers.length > 0 ? (
-          <div className={styles.stackGap10}>
+          <div className={styles.driverList}>
             {detail.intelligence.drivers.map((driver) => (
-              <div key={driver.key} className={styles.boxP12Minw0}>
-                <div className={styles.rowBetweenGap12}>
-                  <strong className={styles.strongTextFs13}>{driver.label}</strong>
-                  <span className={styles.labelAccentFs12}>
+              <div key={driver.key} className={styles.driverCard}>
+                <div className={styles.driverHeader}>
+                  <strong className={styles.driverLabel}>{driver.label}</strong>
+                  <span className={styles.driverWeight}>
                     {driver.weight}
                   </span>
                 </div>
-                <p className={styles.textTextMutedFs12M6x0x0Lh1_55}>
+                <p className={styles.driverExplanation}>
                   {driver.explanation}
                 </p>
               </div>
@@ -193,7 +193,7 @@ export function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
       </section>
 
       <section>
-        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb12}`}>
+        <p className={`urban-admin-eyebrow-muted ${styles.sectionEyebrow}`}>
           IMPACTO EM IMÓVEIS
         </p>
         {detail.propertyImpact.length > 0 ? (
@@ -208,10 +208,10 @@ export function EventDetail({ detail }: { detail: AdminEventRadarDetail }) {
 
       {(event.riskFlags.length > 0 || dataQualityFlags.length > 0) && (
         <section>
-          <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb12}`}>
+          <p className={`urban-admin-eyebrow-muted ${styles.sectionEyebrow}`}>
             RISCOS E QUALIDADE
           </p>
-          <div className={styles.rowWrapGap82}>
+          <div className={styles.riskBadges}>
             {event.riskFlags.map((flag) => (
               <AdminBadge key={flag} kind="error">{flag}</AdminBadge>
             ))}
@@ -231,9 +231,9 @@ function PropertyImpactTable({ detail }: { detail: AdminEventRadarDetail }) {
       key: "property",
       header: "Imóvel",
       render: (row) => (
-        <div className={styles.boxMinw0}>
-          <p className={styles.textTextW600}>{row.propertyName}</p>
-          <p className={styles.textTextMutedFs11}>
+        <div className={styles.contentBlock}>
+          <p className={styles.propertyName}>{row.propertyName}</p>
+          <p className={styles.propertyMeta}>
             {row.hostEmail ?? row.hostUserId ?? row.propertyId}
           </p>
         </div>
@@ -330,7 +330,7 @@ export function DetailActions({
 
 export function OperationalStatus({ event }: { event: AdminEventRadarEvent }) {
   return (
-    <div className={styles.rowWrapGap6}>
+    <div className={styles.statusBadges}>
       <AdminBadge kind={event.geocodeStatus === "ok" ? "success" : event.geocodeStatus === "pending" ? "warn" : "error"}>
         geo {event.geocodeStatus}
       </AdminBadge>
@@ -346,14 +346,14 @@ export function OperationalStatus({ event }: { event: AdminEventRadarEvent }) {
 
 export function EvidenceStatus({ event }: { event: AdminEventRadarEvent }) {
   return (
-    <div className={styles.stackGap5Minw0}>
+    <div className={styles.evidenceStack}>
       <div>
         <AdminBadge kind={dataStatusKind(event.dataStatus)}>{dataStatusLabel(event.dataStatus)}</AdminBadge>
       </div>
-      <code className={styles.codeTextDimFs11}>
+      <code className={styles.evidenceJobRun}>
         {event.jobRunId ? `job ${shortTrace(event.jobRunId)}` : "sem jobRunId"}
       </code>
-      <span className={styles.labelTextMutedFs11}>
+      <span className={styles.evidenceModel}>
         {event.modelVersion ?? "sem modelVersion"}
       </span>
     </div>
@@ -361,14 +361,14 @@ export function EvidenceStatus({ event }: { event: AdminEventRadarEvent }) {
 }
 
 export function ScoreCell({ value }: { value: number | null }) {
-  if (value === null) return <span className={styles.labelTextDim}>—</span>;
+  if (value === null) return <span className={styles.scoreEmpty}>—</span>;
   const pct = Math.max(0, Math.min(100, value));
   return (
-    <div className={styles.stackGap4Minw58}>
+    <div className={styles.scoreCell}>
       <span style={{ fontFamily: "monospace", fontWeight: 700, color: scoreColor(value), fontSize: 13 }}>
         {value}
       </span>
-      <div className={styles.boxBgDividerH2}>
+      <div className={styles.scoreTrack}>
         <div style={{ width: `${pct}%`, height: "100%", background: scoreColor(value) }} />
       </div>
     </div>
@@ -377,11 +377,11 @@ export function ScoreCell({ value }: { value: number | null }) {
 
 export function MiniStat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className={styles.boxMinw0}>
-      <p className={styles.textTextDimFs9}>
+    <div className={styles.contentBlock}>
+      <p className={styles.miniStatLabel}>
         {label}
       </p>
-      <p className={styles.textTextFs12}>
+      <p className={styles.miniStatValue}>
         {value}
       </p>
     </div>
@@ -390,9 +390,9 @@ export function MiniStat({ label, value }: { label: string; value: string | numb
 
 function MetricBlock({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className={styles.boxMinw0Bordered}>
+    <div className={styles.metricBlock}>
       <p className="urban-admin-eyebrow-muted">{label}</p>
-      <p className={styles.textTextFs17}>
+      <p className={styles.metricValue}>
         {value}
       </p>
     </div>
@@ -402,10 +402,10 @@ function MetricBlock({ label, value }: { label: string; value: string | number }
 function DetailRow({ label, value }: { label: string; value: string | number }) {
   return (
     <div>
-      <p className={styles.textTextMutedFs10}>
+      <p className={styles.detailRowLabel}>
         {label}
       </p>
-      <p className={styles.textTextFs12M5x0x0Mono}>
+      <p className={styles.detailRowValue}>
         {value}
       </p>
     </div>

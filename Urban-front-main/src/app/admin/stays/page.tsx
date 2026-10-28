@@ -87,7 +87,7 @@ export default function AdminStaysPage() {
 
   if (error || !data) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.pageContainer}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar"
@@ -109,7 +109,7 @@ export default function AdminStaysPage() {
       header: "Data alvo",
       width: 110,
       render: (p) => (
-        <span className={styles.labelTextFs12}>
+        <span className={styles.pushPriceCell}>
           {p.targetDate}
         </span>
       ),
@@ -120,7 +120,7 @@ export default function AdminStaysPage() {
       align: "right",
       width: 110,
       render: (p) => (
-        <span className={styles.labelTextMutedFs12}>
+        <span className={styles.pushPreviousPrice}>
           R$ {(p.previousPriceCents / 100).toFixed(2)}
         </span>
       ),
@@ -131,7 +131,7 @@ export default function AdminStaysPage() {
       align: "right",
       width: 110,
       render: (p) => (
-        <span className={styles.labelTextFs12}>
+        <span className={styles.pushPriceCell}>
           R$ {(p.newPriceCents / 100).toFixed(2)}
         </span>
       ),
@@ -140,7 +140,7 @@ export default function AdminStaysPage() {
       key: "origin",
       header: "Origem",
       render: (p) => (
-        <code className={styles.codeTextDimFs11}>{p.origin}</code>
+        <code className={styles.pushOrigin}>{p.origin}</code>
       ),
     },
     {
@@ -156,7 +156,7 @@ export default function AdminStaysPage() {
       header: "Quando",
       width: 170,
       render: (p) => (
-        <span className={styles.labelTextMutedFs122}>
+        <span className={styles.pushCreatedAt}>
           {new Date(p.createdAt).toLocaleString("pt-BR")}
         </span>
       ),
@@ -166,7 +166,7 @@ export default function AdminStaysPage() {
   const statusFilterOptions = ["all", ...PUSH_STATUS_ORDER] as const;
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · STAYS"
         title="Saúde da Stays"
@@ -183,10 +183,10 @@ export default function AdminStaysPage() {
       />
 
       {/* === Hero KPI: push success rate === */}
-      <section className={styles.sectionMb32}>
-        <AdminCard variant="accent" style={{ padding: "40px 40px 36px" }}>
+      <section className={styles.heroSection}>
+        <AdminCard variant="accent" className={styles.heroCard}>
           <div
-            className={styles.gridColsGap32}
+            className={styles.heroGrid}
           >
             <div>
               <p className="urban-admin-eyebrow">PUSH SUCCESS RATE (30D)</p>
@@ -207,27 +207,27 @@ export default function AdminStaysPage() {
                 {successRate == null ? "—" : `${successRate}%`}
               </p>
               <p
-                className={styles.textTextMutedFs14}
+                className={styles.heroDescription}
               >
                 {totalPushes.toLocaleString("pt-BR")} pushes nos últimos 30 dias ·{" "}
                 {pushByStatus.get("success") ?? 0} aceitos pela Stays.
               </p>
             </div>
-            <div className={styles.boxBordered}>
+            <div className={styles.statCard}>
               <p className="urban-admin-eyebrow-muted">Listings sincronizados</p>
-              <p className={`urban-admin-display-md ${styles.displayMdMt12}`}>
+              <p className={`urban-admin-display-md ${styles.statValue}`}>
                 {data.listings.total}
               </p>
-              <p className={styles.textTextMutedFs12}>
+              <p className={styles.statCaption}>
                 {data.listings.active} ativos · {data.listings.forcedAuto} em modo automático
               </p>
             </div>
-            <div className={styles.boxBordered}>
+            <div className={styles.statCard}>
               <p className="urban-admin-eyebrow-muted">Contas conectadas</p>
-              <p className={`urban-admin-display-md ${styles.displayMdMt12}`}>
+              <p className={`urban-admin-display-md ${styles.statValue}`}>
                 {data.accountsByStatus.reduce((acc, r) => acc + r.count, 0)}
               </p>
-              <p className={styles.textTextMutedFs12}>
+              <p className={styles.statCaption}>
                 {data.accountsByStatus.length} status distintos
               </p>
             </div>
@@ -254,21 +254,21 @@ export default function AdminStaysPage() {
             flexWrap: "wrap",
           }}
         >
-          <div className={styles.rowCenteredGap12}>
+          <div className={styles.readinessInfo}>
             <AdminStatusDot
               kind={data.readiness.betaPrivate ? "warn" : "success"}
               size={8}
             />
             <div>
               <p
-                className={styles.textTextFs13}
+                className={styles.readinessTitle}
               >
                 {data.readiness.betaPrivate
                   ? "Stays aguardando habilitação operacional"
                   : "Stays pronto para smoke controlado"}
               </p>
               <p
-                className={styles.textTextMutedFs12M4x0x0}
+                className={styles.readinessDetail}
               >
                 API base: {data.readiness.apiBaseConfigured ? "ok" : "faltando"} ·
                 Token encryption:{" "}
@@ -277,11 +277,11 @@ export default function AdminStaysPage() {
             </div>
           </div>
           {data.readiness.missingEnv.length > 0 && (
-            <div className={styles.rowWrapGap6}>
+            <div className={styles.missingEnvList}>
               {data.readiness.missingEnv.map((env) => (
                 <code
                   key={env}
-                  className={styles.codeWarningFs10}
+                  className={styles.missingEnvTag}
                 >
                   {env}
                 </code>
@@ -292,14 +292,14 @@ export default function AdminStaysPage() {
       )}
 
       {/* === Breakdown pushes 30d: barra empilhada + stats === */}
-      <section className={styles.sectionMb56}>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
+      <section className={styles.section}>
+        <p className={`urban-admin-eyebrow ${styles.sectionEyebrow}`}>
           PUSHES (30D) POR STATUS
         </p>
 
         {totalPushes === 0 ? (
           <AdminCard variant="subtle">
-            <p className={styles.textTextMutedFs13}>
+            <p className={styles.emptyHint}>
               Nenhum push registrado.
             </p>
           </AdminCard>
@@ -307,7 +307,7 @@ export default function AdminStaysPage() {
           <>
             {/* Barra empilhada compacta */}
             <div
-              className={styles.rowBgSurfaceMb24}
+              className={styles.statusBar}
             >
               {PUSH_STATUS_ORDER.map((s) => {
                 const count = pushByStatus.get(s) ?? 0;
@@ -328,7 +328,7 @@ export default function AdminStaysPage() {
 
             {/* Grid 2x2 de small stats */}
             <div
-              className={styles.gridColsAuto160Gap32}
+              className={styles.statusGrid}
             >
               {PUSH_STATUS_ORDER.map((s) => (
                 <AdminMetricCard
@@ -345,25 +345,25 @@ export default function AdminStaysPage() {
       </section>
 
       {/* === Contas conectadas por status === */}
-      <section className={styles.sectionMb56}>
+      <section className={styles.section}>
         <AdminCard variant="subtle">
           <AdminCardHeader title="Contas conectadas" />
           {data.accountsByStatus.length === 0 ? (
-            <p className={styles.textTextMutedFs13}>
+            <p className={styles.emptyHint}>
               Nenhuma conta ainda.
             </p>
           ) : (
             <ul
-              className={styles.stackGap10M0}
+              className={styles.accountList}
             >
               {data.accountsByStatus.map((r) => (
                 <li
                   key={r.status}
-                  className={styles.rowBetweenCentered}
+                  className={styles.accountRow}
                 >
-                  <code className={styles.codeText}>{r.status}</code>
+                  <code className={styles.accountStatus}>{r.status}</code>
                   <span
-                    className={styles.labelAccentW600}
+                    className={styles.accountCount}
                   >
                     {r.count}
                   </span>
@@ -377,18 +377,18 @@ export default function AdminStaysPage() {
       {/* === Pushes recentes === */}
       <section>
         <header
-          className={styles.rowBetweenCenteredWrapGap16Mb20}
+          className={styles.pushesHeader}
         >
           <div>
             <p className="urban-admin-eyebrow">PUSHES RECENTES</p>
             <h2
-              className={styles.headingTextFs20}
+              className={styles.pushesTitle}
             >
               Últimos pushes
             </h2>
           </div>
           <div
-            className={styles.rowScrollBordered}
+            className={styles.statusFilter}
           >
             {statusFilterOptions.map((s) => {
               const active = s === statusFilter;

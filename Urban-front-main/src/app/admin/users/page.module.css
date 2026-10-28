@@ -1,42 +1,42 @@
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.pageContainer.pageContainer {
   max-width: 1280px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.textTextW600.textTextW600 {
+.usernameText.usernameText {
   font-weight: 600;
   color: var(--admin-text);
   margin: 0;
 }
 
-.textTextDimFs11.textTextDimFs11 {
+.companyText.companyText {
   font-size: 11px;
   color: var(--admin-text-dim);
   margin: 2px 0 0;
 }
 
-.labelTextMutedFs13.labelTextMutedFs13 {
+.emailCell.emailCell {
   color: var(--admin-text-muted);
   font-size: 13px;
 }
 
-.labelTextMutedFs12.labelTextMutedFs12 {
+.modeCell.modeCell {
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.labelTextDim.labelTextDim {
+.pricingStrategyText.pricingStrategyText {
   color: var(--admin-text-dim);
 }
 
-.labelTextMutedFs12Mono.labelTextMutedFs12Mono {
+.createdAtCell.createdAtCell {
   font-size: 12px;
   color: var(--admin-text-muted);
   font-family: monospace;
 }
 
-.rowBetweenCentered.rowBetweenCentered {
+.pagination.pagination {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -45,7 +45,11 @@
   color: var(--admin-text-muted);
 }
 
-.rowGap8.rowGap8 {
+.paginationActions.paginationActions {
   display: flex;
   gap: 8px;
+}
+
+.roleShell.roleShell.roleShell {
+  width: 120px;
 }

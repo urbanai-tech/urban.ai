@@ -110,7 +110,7 @@ export default function AdminUsersPage() {
 
   if (error) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.pageContainer}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar usuários"
@@ -132,12 +132,12 @@ export default function AdminUsersPage() {
       header: "Usuário",
       render: (u) => (
         <div>
-          <p className={styles.textTextW600}>
+          <p className={styles.usernameText}>
             {u.username}
           </p>
           {u.company && (
             <p
-              className={styles.textTextDimFs11}
+              className={styles.companyText}
             >
               {u.company}
             </p>
@@ -149,7 +149,7 @@ export default function AdminUsersPage() {
       key: "email",
       header: "E-mail",
       render: (u) => (
-        <span className={styles.labelTextMutedFs13}>
+        <span className={styles.emailCell}>
           {u.email}
         </span>
       ),
@@ -165,7 +165,7 @@ export default function AdminUsersPage() {
             setConfirmRole({ user: u, role: e.target.value as UserRole })
           }
           disabled={busy === u.id}
-          shellStyle={{ width: 120 }}
+          shellClassName={styles.roleShell}
         >
           <option value="host">host</option>
           <option value="admin">admin</option>
@@ -177,10 +177,10 @@ export default function AdminUsersPage() {
       key: "mode",
       header: "Modo",
       render: (u) => (
-        <span className={styles.labelTextMutedFs12}>
+        <span className={styles.modeCell}>
           {u.operationMode || "—"}
           {u.pricingStrategy && (
-            <span className={styles.labelTextDim}>
+            <span className={styles.pricingStrategyText}>
               {" · "}
               {u.pricingStrategy}
             </span>
@@ -219,7 +219,7 @@ export default function AdminUsersPage() {
       width: 110,
       render: (u) => (
         <span
-          className={styles.labelTextMutedFs12Mono}
+          className={styles.createdAtCell}
         >
           {new Date(u.createdAt).toLocaleDateString("pt-BR")}
         </span>
@@ -228,7 +228,7 @@ export default function AdminUsersPage() {
   ];
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · USUÁRIOS"
         title="Usuários"
@@ -250,12 +250,12 @@ export default function AdminUsersPage() {
 
       {/* === Paginação === */}
       <div
-        className={styles.rowBetweenCentered}
+        className={styles.pagination}
       >
         <span>
           Página {page} de {totalPages}
         </span>
-        <div className={styles.rowGap8}>
+        <div className={styles.paginationActions}>
           <AdminButton
             variant="ghost"
             size="sm"

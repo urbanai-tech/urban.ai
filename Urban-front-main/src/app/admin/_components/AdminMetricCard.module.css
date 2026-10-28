@@ -1,10 +1,10 @@
-.rowCenteredGap8.rowCenteredGap8 {
+.labelRow.labelRow {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.rowCenteredTextMuted.rowCenteredTextMuted {
+.subRow.subRow {
   display: flex;
   align-items: center;
   gap: 8px;

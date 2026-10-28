@@ -1,55 +1,55 @@
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.pageContainer.pageContainer {
   max-width: 1280px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.sectionMb56.sectionMb56 {
+.section.section {
   margin-bottom: 56px;
 }
 
-.eyebrowMb24.eyebrowMb24 {
+.sectionEyebrow.sectionEyebrow {
   margin-bottom: 24px;
 }
 
-.gridColsAutoGap24.gridColsAutoGap24 {
+.scoreGrid.scoreGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 24px;
   margin-bottom: 24px;
 }
 
-.rowBetweenStart.rowBetweenStart {
+.scoreHeader.scoreHeader {
   display: flex;
   justify-content: space-between;
   gap: 20px;
   align-items: flex-start;
 }
 
-.boxMinw0.boxMinw0 {
+.contentColumn.contentColumn {
   min-width: 0;
 }
 
-.rowCenteredWrap.rowCenteredWrap {
+.scoreTitleRow.scoreTitleRow {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.textTextMutedFs13.textTextMutedFs13 {
+.scoreDetail.scoreDetail {
   margin: 12px 0 0;
   color: var(--admin-text-muted);
   font-size: 13px;
   line-height: 1.55;
 }
 
-.boxRightAlignedNoShrink.boxRightAlignedNoShrink {
+.scoreValueBox.scoreValueBox {
   text-align: right;
   flex-shrink: 0;
 }
 
-.strongTextFs56.strongTextFs56 {
+.scoreValue.scoreValue {
   display: block;
   color: var(--admin-text);
   font-size: 56px;
@@ -57,71 +57,71 @@
   font-weight: 700;
 }
 
-.labelTextMutedFs11.labelTextMutedFs11 {
+.scoreValueLabel.scoreValueLabel {
   color: var(--admin-text-muted);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 1.2px;
 }
 
-.boxBgSurfaceElevatedMt22.boxBgSurfaceElevatedMt22 {
+.progressTrack.progressTrack {
   margin-top: 22px;
   height: 6px;
   background: var(--admin-surface-elevated);
 }
 
-.gridColsAuto180Gap14.gridColsAuto180Gap14 {
+.scoreMetaGrid.scoreMetaGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;
   margin-top: 22px;
 }
 
-.gridColsAuto170Gap12.gridColsAuto170Gap12 {
+.scoreBreakdownGrid.scoreBreakdownGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 12px;
   margin-top: 20px;
 }
 
-.stackGap14.stackGap14 {
+.itemList.itemList {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-.boxP20x20x0.boxP20x20x0 {
+.tableCardHeader.tableCardHeader {
   padding: 20px 20px 0;
 }
 
-.boxScroll.boxScroll {
+.tableScroll.tableScroll {
   overflow-x: auto;
 }
 
-.tableW100pctMinw980.tableW100pctMinw980 {
+.metricsTable.metricsTable {
   width: 100%;
   border-collapse: collapse;
   min-width: 980px;
 }
 
-.gridColsAutoGap24Mb56.gridColsAutoGap24Mb56 {
+.statusPolicyGrid.statusPolicyGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 24px;
   margin-bottom: 56px;
 }
 
-.gridColsAuto220Gap14.gridColsAuto220Gap14 {
+.statusTileGrid.statusTileGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
 }
 
-.headerMb20.headerMb20 {
+.sectionHeader.sectionHeader {
   margin-bottom: 20px;
 }
 
-.headingTextFs20.headingTextFs20 {
+.sectionTitle.sectionTitle {
   margin: 8px 0 0;
   font-size: 20px;
   font-weight: 600;
@@ -129,42 +129,42 @@
   letter-spacing: -0.3px;
 }
 
-.tableW100pctMinw960.tableW100pctMinw960 {
+.connectorsTable.connectorsTable {
   width: 100%;
   border-collapse: collapse;
   min-width: 960px;
 }
 
-.tableW100pctMinw860.tableW100pctMinw860 {
+.aiSearchTable.aiSearchTable {
   width: 100%;
   border-collapse: collapse;
   min-width: 860px;
 }
 
-.gridColsAutoGap242.gridColsAutoGap242 {
+.backlogGrid.backlogGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 24px;
 }
 
-.stackGap12.stackGap12 {
+.backlogList.backlogList {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.gridGap16.gridGap16 {
+.actionCardList.actionCardList {
   display: grid;
   gap: 16px;
 }
 
-.rowStartGap14.rowStartGap14 {
+.actionCardRow.actionCardRow {
   display: flex;
   gap: 14px;
   align-items: flex-start;
 }
 
-.rowJustifyCenterCentered.rowJustifyCenterCentered {
+.actionIcon.actionIcon {
   width: 34px;
   height: 34px;
   border: 1px solid color-mix(in srgb, var(--app-accent, var(--admin-accent)) 35%, transparent);
@@ -176,79 +176,79 @@
   flex-shrink: 0;
 }
 
-.boxMinw0Flex1.boxMinw0Flex1 {
+.actionCardBody.actionCardBody {
   min-width: 0;
   flex: 1;
 }
 
-.subheadingTextFs15.subheadingTextFs15 {
+.actionCardTitle.actionCardTitle {
   margin: 0;
   font-size: 15px;
   font-weight: 600;
   color: var(--admin-text);
 }
 
-.textTextMutedFs13M8x0x16Lh1_55.textTextMutedFs13M8x0x16Lh1_55 {
+.actionCardText.actionCardText {
   margin: 8px 0 16px;
   font-size: 13px;
   line-height: 1.55;
   color: var(--admin-text-muted);
 }
 
-.sectionMt56.sectionMt56 {
+.checkpointsSection.checkpointsSection {
   margin-top: 56px;
 }
 
-.gridColsAuto220Gap12.gridColsAuto220Gap12 {
+.checkpointGrid.checkpointGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
   margin-top: 20px;
 }
 
-.rowStartGap8.rowStartGap8 {
+.checkpointItem.checkpointItem {
   display: flex;
   gap: 8px;
   align-items: flex-start;
 }
 
-.labelTextMutedFs12.labelTextMutedFs12 {
+.checkpointText.checkpointText {
   color: var(--admin-text-muted);
   font-size: 12px;
   line-height: 1.5;
 }
 
-.eyebrowMutedMb6.eyebrowMutedMb6 {
+.scoreMetaLabel.scoreMetaLabel {
   margin-bottom: 6px;
 }
 
-.textTextFs12.textTextFs12 {
+.scoreMetaValue.scoreMetaValue {
   margin: 0;
   color: var(--admin-text);
   font-size: 12px;
   line-height: 1.45;
 }
 
-.boxBgSurfaceP12.boxBgSurfaceP12 {
+.breakdownTile.breakdownTile {
   border: 1px solid var(--admin-divider);
   border-radius: 2px;
   padding: 12px;
   background: var(--admin-surface);
 }
 
-.rowCenteredGap8.rowCenteredGap8 {
+.statusRow.statusRow {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.labelTextMutedFs11Lh1_35.labelTextMutedFs11Lh1_35 {
+.breakdownLabel.breakdownLabel {
   color: var(--admin-text-muted);
   font-size: 11px;
   line-height: 1.35;
 }
 
-.strongTextFs20.strongTextFs20 {
+.breakdownValue.breakdownValue {
   display: block;
   margin-top: 8px;
   color: var(--admin-text);
@@ -256,7 +256,7 @@
   line-height: 1;
 }
 
-.gridColsGap14.gridColsGap14 {
+.integrationRow.integrationRow {
   display: grid;
   grid-template-columns: minmax(130px, 0.45fr) minmax(0, 1fr);
   gap: 14px;
@@ -264,28 +264,28 @@
   border-bottom: 1px solid var(--admin-divider);
 }
 
-.labelTextFs13.labelTextFs13 {
+.integrationName.integrationName {
   color: var(--admin-text);
   font-size: 13px;
   font-weight: 600;
 }
 
-.eyebrowMutedMt8.eyebrowMutedMt8 {
+.integrationCadence.integrationCadence {
   margin-top: 8px;
 }
 
-.eyebrowMutedMt6.eyebrowMutedMt6 {
+.integrationUpdated.integrationUpdated {
   margin-top: 6px;
 }
 
-.textTextMutedFs12.textTextMutedFs12 {
+.detailText.detailText {
   margin: 0;
   color: var(--admin-text-muted);
   font-size: 12px;
   line-height: 1.5;
 }
 
-.textTextMutedFs12W400M6x0x0Lh1_45.textTextMutedFs12W400M6x0x0Lh1_45 {
+.cellSubtext.cellSubtext {
   margin: 6px 0 0;
   color: var(--admin-text-muted);
   font-size: 12px;
@@ -293,91 +293,91 @@
   font-weight: 400;
 }
 
-.rowWrapGap6.rowWrapGap6 {
+.envKeyList.envKeyList {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.strongTextFs18.strongTextFs18 {
+.metricValue.metricValue {
   color: var(--admin-text);
   font-size: 18px;
   line-height: 1;
 }
 
-.textTextMutedFs11.textTextMutedFs11 {
+.metricStatusLabel.metricStatusLabel {
   margin: 8px 0 0;
   color: var(--admin-text-muted);
   font-size: 11px;
 }
 
-.labelMb8.labelMb8 {
+.lastUpdatedLabel.lastUpdatedLabel {
   display: block;
   margin-bottom: 8px;
 }
 
-.boxBgSurfaceP16.boxBgSurfaceP16 {
+.statusTile.statusTile {
   border: 1px solid var(--admin-divider);
   border-radius: 2px;
   padding: 16px;
   background: var(--admin-surface);
 }
 
-.textTextFs15.textTextFs15 {
+.statusTileValue.statusTileValue {
   margin: 10px 0 4px;
   color: var(--admin-text);
   font-size: 15px;
   font-weight: 600;
 }
 
-.gridColsGap142.gridColsGap142 {
+.policyRow.policyRow {
   display: grid;
   grid-template-columns: minmax(130px, 0.75fr) minmax(0, 1fr);
   gap: 14px;
   align-items: start;
 }
 
-.labelTextFs12.labelTextFs12 {
+.policyAgent.policyAgent {
   color: var(--admin-text);
   font-size: 12px;
   font-weight: 600;
 }
 
-.textTextFs13.textTextFs13 {
+.policyText.policyText {
   margin: 0;
   color: var(--admin-text);
   font-size: 13px;
   font-weight: 600;
 }
 
-.textTextMutedFs12M4x0x0Lh1_5.textTextMutedFs12M4x0x0Lh1_5 {
+.policyScope.policyScope {
   margin: 4px 0 0;
   color: var(--admin-text-muted);
   font-size: 12px;
   line-height: 1.5;
 }
 
-.rowCenteredGap10.rowCenteredGap10 {
+.readinessRow.readinessRow {
   display: flex;
   align-items: center;
   gap: 10px;
   min-width: 130px;
 }
 
-.boxBgDividerH3.boxBgDividerH3 {
+.readinessTrack.readinessTrack {
   flex: 1;
   height: 3px;
   background: var(--admin-divider);
 }
 
-.labelTextFs12W600Mono.labelTextFs12W600Mono {
+.readinessValue.readinessValue {
   color: var(--admin-text);
   font-size: 12px;
   font-weight: 600;
   font-family: monospace;
 }
 
-.gridColsGap14P14x0Bordered.gridColsGap14P14x0Bordered {
+.backlogRow.backlogRow {
   display: grid;
   grid-template-columns: 56px minmax(0, 1fr) 120px;
   gap: 14px;
@@ -385,29 +385,38 @@
   border-bottom: 1px solid var(--admin-divider);
 }
 
-.textTextFs14.textTextFs14 {
+.backlogTitle.backlogTitle {
   margin: 0;
   color: var(--admin-text);
   font-size: 14px;
   font-weight: 600;
 }
 
-.textTextMutedFs12M5x0x0Lh1_5.textTextMutedFs12M5x0x0Lh1_5 {
+.backlogImpact.backlogImpact {
   margin: 5px 0 0;
   color: var(--admin-text-muted);
   font-size: 12px;
   line-height: 1.5;
 }
 
-.boxRightAligned.boxRightAligned {
+.backlogMeta.backlogMeta {
   text-align: right;
 }
 
-.eyebrowMutedMb5.eyebrowMutedMb5 {
+.backlogOwner.backlogOwner {
   margin-bottom: 5px;
 }
 
-.labelTextMutedFs112.labelTextMutedFs112 {
+.backlogStatus.backlogStatus {
   color: var(--admin-text-muted);
   font-size: 11px;
+}
+
+.flushCard.flushCard.flushCard {
+  padding: 0;
+  overflow: hidden;
+}
+
+.traceBadge.traceBadge.traceBadge {
+  margin-top: 8px;
 }

@@ -106,7 +106,7 @@ export default function AdminEventsPage() {
 
   if (error || !data) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.emptyStateWrap}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar eventos"
@@ -122,13 +122,13 @@ export default function AdminEventsPage() {
 
   // Top upcoming columns
   const topCols: AdminTableColumn<(typeof topUpcoming)[number]>[] = [
-    { key: "nome", header: "Nome", render: (e) => <span className={styles.labelW500}>{e.nome}</span> },
-    { key: "cidade", header: "Cidade", render: (e) => <span className={styles.labelTextMuted}>{e.cidade}</span> },
+    { key: "nome", header: "Nome", render: (e) => <span className={styles.nameCell}>{e.nome}</span> },
+    { key: "cidade", header: "Cidade", render: (e) => <span className={styles.cityCell}>{e.cidade}</span> },
     {
       key: "data",
       header: "Data",
       render: (e) => (
-        <span className={styles.labelTextMutedFs12}>
+        <span className={styles.mutedCell}>
           {new Date(e.dataInicio).toLocaleDateString("pt-BR")}
         </span>
       ),
@@ -144,7 +144,7 @@ export default function AdminEventsPage() {
       key: "cat",
       header: "Categoria",
       render: (e) => (
-        <span className={styles.labelTextMutedFs12}>{e.categoria || "—"}</span>
+        <span className={styles.mutedCell}>{e.categoria || "—"}</span>
       ),
     },
     {
@@ -152,7 +152,7 @@ export default function AdminEventsPage() {
       header: "Capacidade",
       align: "right",
       render: (e) => (
-        <span className={styles.labelFs12Mono}>{e.capacidadeEstimada ?? "—"}</span>
+        <span className={styles.monoCell}>{e.capacidadeEstimada ?? "—"}</span>
       ),
     },
     {
@@ -160,7 +160,7 @@ export default function AdminEventsPage() {
       header: "Raio",
       align: "right",
       render: (e) => (
-        <span className={styles.labelFs12Mono}>
+        <span className={styles.monoCell}>
           {e.raioImpactoKm ? `${e.raioImpactoKm} km` : "—"}
         </span>
       ),
@@ -172,9 +172,9 @@ export default function AdminEventsPage() {
       align: "center",
       render: (e) =>
         e.hasCoords ? (
-          <Icons.Check size={14} style={{ color: "var(--admin-success)" }} />
+          <Icons.Check size={14} className={styles.okIcon} />
         ) : (
-          <Icons.Close size={14} style={{ color: "var(--admin-danger)" }} />
+          <Icons.Close size={14} className={styles.offIcon} />
         ),
     },
   ];
@@ -186,7 +186,7 @@ export default function AdminEventsPage() {
       header: "Nome",
       render: (e) => (
         <span
-          className={styles.labelFs12W500}
+          className={styles.nameCellCompact}
           title={e.nome}
         >
           {e.nome}
@@ -197,7 +197,7 @@ export default function AdminEventsPage() {
       key: "cidade",
       header: "Cidade",
       render: (e) => (
-        <span className={styles.labelTextMutedFs12}>
+        <span className={styles.mutedCell}>
           {e.cidade}/{e.estado}
         </span>
       ),
@@ -207,7 +207,7 @@ export default function AdminEventsPage() {
       header: "Data",
       width: 90,
       render: (e) => (
-        <span className={styles.labelTextMutedFs12Mono}>
+        <span className={styles.dateCellMono}>
           {new Date(e.dataInicio).toLocaleDateString("pt-BR")}
         </span>
       ),
@@ -223,7 +223,7 @@ export default function AdminEventsPage() {
       key: "source",
       header: "Source",
       render: (e) => (
-        <code className={styles.codeTextDimFs11}>
+        <code className={styles.sourceCode}>
           {e.source ?? "—"}
         </code>
       ),
@@ -235,11 +235,11 @@ export default function AdminEventsPage() {
       align: "center",
       render: (e) =>
         e.latitude && e.longitude ? (
-          <Icons.Check size={14} style={{ color: "var(--admin-success)" }} />
+          <Icons.Check size={14} className={styles.okIcon} />
         ) : e.pendingGeocode ? (
           <AdminStatusDot kind="warn" size={6} />
         ) : (
-          <Icons.Close size={14} style={{ color: "var(--admin-danger)" }} />
+          <Icons.Close size={14} className={styles.offIcon} />
         ),
     },
     {
@@ -249,9 +249,9 @@ export default function AdminEventsPage() {
       align: "center",
       render: (e) =>
         e.outOfScope ? (
-          <Icons.Close size={14} style={{ color: "var(--admin-danger)" }} />
+          <Icons.Close size={14} className={styles.offIcon} />
         ) : (
-          <Icons.Check size={14} style={{ color: "var(--admin-success)" }} />
+          <Icons.Check size={14} className={styles.okIcon} />
         ),
     },
     {
@@ -261,11 +261,11 @@ export default function AdminEventsPage() {
       align: "center",
       render: (e) =>
         e.relevancia !== null ? (
-          <Icons.Check size={14} style={{ color: "var(--admin-success)" }} />
+          <Icons.Check size={14} className={styles.okIcon} />
         ) : e.enrichmentAttempts > 0 ? (
           <span
             title={e.enrichmentLastError ?? ""}
-            className={styles.labelWarningFs11}
+            className={styles.retryBadge}
           >
             {e.enrichmentAttempts}× retry
           </span>
@@ -276,7 +276,7 @@ export default function AdminEventsPage() {
   ];
 
   return (
-    <div className={styles.boxM0xautoP40x32Maxw1400}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · MOTOR DE EVENTOS"
         title="Cobertura & motor"
@@ -286,7 +286,7 @@ export default function AdminEventsPage() {
             {lastCrawlAt && (
               <>
                 {" "}· Último crawl:{" "}
-                <strong className={styles.strongText}>
+                <strong className={styles.strongLabel}>
                   {new Date(lastCrawlAt).toLocaleString("pt-BR")}
                 </strong>
               </>
@@ -294,7 +294,7 @@ export default function AdminEventsPage() {
           </>
         }
         actions={
-          <div className={styles.rowWrapGap8}>
+          <div className={styles.headerActions}>
             <AdminButton variant="ghost" as="a" href="/admin/event-radar" rightIcon={<Icons.ArrowRight size={11} />}>
               Radar de demanda
             </AdminButton>
@@ -317,43 +317,43 @@ export default function AdminEventsPage() {
       />
 
       {/* === Hero KPI: cobertura geo === */}
-      <section className={styles.sectionMb56}>
-        <AdminCard variant="accent" style={{ padding: "40px 40px 36px" }}>
+      <section className={styles.heroSection}>
+        <AdminCard variant="accent" className={styles.heroCard}>
           <div
-            className={styles.gridColsGap32}
+            className={styles.heroGrid}
           >
             <div>
               <p className="urban-admin-eyebrow">COBERTURA GEOGRÁFICA</p>
-              <p className={`urban-admin-display-hero ${styles.displayHeroMt12}`}>
+              <p className={`urban-admin-display-hero ${styles.heroValue}`}>
                 {summary.coveragePercent}%
               </p>
               <p
-                className={styles.textTextMutedFs14}
+                className={styles.heroCaption}
               >
                 {summary.total.toLocaleString("pt-BR")} eventos no DB ·{" "}
                 {summary.coordsMissing.toLocaleString("pt-BR")} sem coordenadas.
               </p>
             </div>
-            <div className={styles.boxBordered}>
+            <div className={styles.heroStat}>
               <p className="urban-admin-eyebrow-muted">Dentro da cobertura</p>
               <p
-                className={`urban-admin-display-md ${styles.displayMdSuccessMt12}`}
+                className={`urban-admin-display-md ${styles.heroStatValueSuccess}`}
               >
                 {summary.inScope.toLocaleString("pt-BR")}
               </p>
               <p
-                className={styles.textTextMutedFs12}
+                className={styles.heroStatCaption}
               >
                 {summary.outOfScope.toLocaleString("pt-BR")} fora
               </p>
             </div>
-            <div className={styles.boxBordered}>
+            <div className={styles.heroStat}>
               <p className="urban-admin-eyebrow-muted">Enriquecidos (Gemini)</p>
-              <p className={`urban-admin-display-md ${styles.displayHeroMt12}`}>
+              <p className={`urban-admin-display-md ${styles.heroValue}`}>
                 {summary.enrichmentPercent}%
               </p>
               <p
-                className={styles.textTextMutedFs12}
+                className={styles.heroStatCaption}
               >
                 {summary.relevanceMissing} sem relevância
               </p>
@@ -363,12 +363,12 @@ export default function AdminEventsPage() {
       </section>
 
       {/* === KPIs próximos === */}
-      <section className={styles.sectionMb64}>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
+      <section className={styles.section}>
+        <p className={`urban-admin-eyebrow ${styles.upcomingEyebrow}`}>
           EVENTOS PRÓXIMOS
         </p>
         <div
-          className={styles.gridColsAuto180Gap32}
+          className={styles.upcomingGrid}
         >
           <AdminMetricCard label="Próximos 7 dias" value={upcoming.next7d} />
           <AdminMetricCard label="Próximos 30 dias" value={upcoming.next30d} />
@@ -384,7 +384,7 @@ export default function AdminEventsPage() {
 
       {/* === Breakdown 3 colunas === */}
       <section
-        className={styles.gridColsAutoGap24}
+        className={styles.breakdownGrid}
       >
         <AdminCard variant="subtle">
           <AdminCardHeader title="Por categoria" />
@@ -401,8 +401,8 @@ export default function AdminEventsPage() {
       </section>
 
       {/* === Top 10 próximos === */}
-      <section className={styles.sectionMb64}>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb16}`}>
+      <section className={styles.section}>
+        <p className={`urban-admin-eyebrow ${styles.sectionEyebrow}`}>
           TOP 10 PRÓXIMOS POR RELEVÂNCIA
         </p>
         <AdminTable
@@ -414,11 +414,11 @@ export default function AdminEventsPage() {
       </section>
 
       {/* === Timeline === */}
-      <section className={styles.sectionMb64}>
+      <section className={styles.section}>
         <header
-          className={styles.rowBetweenCentered}
+          className={styles.timelineHeader}
         >
-          <p className={`urban-admin-eyebrow ${styles.eyebrowM0}`}>
+          <p className={`urban-admin-eyebrow ${styles.timelineEyebrow}`}>
             EVOLUÇÃO DE INGESTÃO
           </p>
           <SegmentedControl
@@ -433,12 +433,12 @@ export default function AdminEventsPage() {
 
       {/* === Listagem detalhada === */}
       <section>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb16}`}>
+        <p className={`urban-admin-eyebrow ${styles.sectionEyebrow}`}>
           LISTAGEM DETALHADA
         </p>
 
         <div
-          className={styles.rowAlignEndWrap}
+          className={styles.filterBar}
         >
           <SegmentedControl
             value={scope}
@@ -463,7 +463,7 @@ export default function AdminEventsPage() {
               }
             }}
             leftAddon={<Icons.Search size={12} />}
-            shellStyle={{ flex: 1, minWidth: 220 }}
+            shellClassName={styles.searchShell}
           />
 
           <AdminInput
@@ -471,7 +471,7 @@ export default function AdminEventsPage() {
             value={sourceFilter}
             onChange={(e) => setSourceFilter(e.target.value)}
             onBlur={() => setPage(1)}
-            shellStyle={{ width: 240 }}
+            shellClassName={styles.sourceShell}
           />
 
           <AdminButton
@@ -492,7 +492,7 @@ export default function AdminEventsPage() {
           rowKey={(r) => r.id}
           empty={
             listingLoading ? (
-              <p className={styles.textTextMutedFs13}>
+              <p className={styles.loadingHint}>
                 Carregando…
               </p>
             ) : (
@@ -506,12 +506,12 @@ export default function AdminEventsPage() {
 
         {listing && listing.total > listing.limit && (
           <div
-            className={styles.rowBetweenCenteredTextMutedFs12Mt16}
+            className={styles.pagination}
           >
             <span>
               Página {listing.page} · {listing.total.toLocaleString("pt-BR")} no total
             </span>
-            <div className={styles.rowGap8}>
+            <div className={styles.paginationActions}>
               <AdminButton
                 variant="ghost"
                 size="sm"
@@ -536,14 +536,14 @@ export default function AdminEventsPage() {
       </section>
 
       <footer
-        className={styles.footerTextMutedFs12}
+        className={styles.engineFooter}
       >
-        <p className={styles.textM0}>
-          <strong className={styles.strongText}>Status do motor:</strong>{" "}
+        <p className={styles.footerText}>
+          <strong className={styles.strongLabel}>Status do motor:</strong>{" "}
           spiders Scrapy + APIs oficiais (api-football, sp-cultura) + LLM
           extractors (Camada 2) + curadoria manual (admin-manual / admin-csv-import,
           Camada 3). Cobertura geográfica em{" "}
-          <code className={styles.codeAccent}>/admin/coverage</code>.
+          <code className={styles.footerCode}>/admin/coverage</code>.
         </p>
       </footer>
     </div>
@@ -552,14 +552,14 @@ export default function AdminEventsPage() {
 
 function RelevanceCell({ value }: { value: number | null }) {
   if (value == null) {
-    return <span className={styles.labelTextDim}>—</span>;
+    return <span className={styles.emptyScore}>—</span>;
   }
   let kind: AdminBadgeKind = "neutral";
   if (value >= 80) kind = "accent";
   else if (value >= 60) kind = "warn";
   const pct = Math.min(100, Math.max(0, value));
   return (
-    <div className={styles.stackGap4Minw70}>
+    <div className={styles.relevanceCell}>
       <span
         style={{
           fontFamily: "monospace",
@@ -575,7 +575,7 @@ function RelevanceCell({ value }: { value: number | null }) {
       >
         {value}
       </span>
-      <div className={styles.boxBgDividerH2}>
+      <div className={styles.progressTrack}>
         <div
           style={{
             height: "100%",
@@ -606,7 +606,7 @@ function SegmentedControl<T extends string | number>({
 }) {
   return (
     <div
-      className={styles.rowScrollBordered}
+      className={styles.segmentedControl}
     >
       {options.map((opt) => {
         const active = opt === value;
@@ -641,29 +641,29 @@ function SegmentedControl<T extends string | number>({
 function BarList({ rows }: { rows: Array<{ label: string; value: number }> }) {
   if (rows.length === 0) {
     return (
-      <p className={styles.textTextMutedFs12M0}>
+      <p className={styles.barListEmpty}>
         Sem dados.
       </p>
     );
   }
   const max = Math.max(...rows.map((r) => r.value));
   return (
-    <ul className={styles.stackGap12M0}>
+    <ul className={styles.barList}>
       {rows.map((r) => (
         <li key={r.label}>
           <div
-            className={styles.rowBetweenFs12}
+            className={styles.barRow}
           >
             <span
-              className={styles.labelTextMr8}
+              className={styles.barLabel}
             >
               {r.label}
             </span>
-            <span className={styles.labelAccentW600}>
+            <span className={styles.barValue}>
               {r.value.toLocaleString("pt-BR")}
             </span>
           </div>
-          <div className={styles.boxBgDividerH2}>
+          <div className={styles.progressTrack}>
             <div
               style={{
                 height: "100%",
@@ -686,7 +686,7 @@ function TimelineChart({ data }: { data: EventsTimelineResponse }) {
   return (
     <AdminCard variant="subtle">
       <div
-        className={styles.gridColsAuto140Gap24}
+        className={styles.timelineMetrics}
       >
         <AdminMetricCard label="Período" value={`${data.days}d`} variant="sm" />
         <AdminMetricCard label="Total in-scope" value={data.totalInScope} variant="sm" />
@@ -708,7 +708,7 @@ function TimelineChart({ data }: { data: EventsTimelineResponse }) {
       </div>
 
       <div
-        className={styles.rowAlignEndGap2}
+        className={styles.timelineBars}
       >
         {buckets.map((b) => {
           const inHeight = (b.inScope / maxTotal) * 100;
@@ -717,7 +717,7 @@ function TimelineChart({ data }: { data: EventsTimelineResponse }) {
             <div
               key={b.day}
               title={`${new Date(b.day).toLocaleDateString("pt-BR")} — in: ${b.inScope}, out: ${b.outOfScope}`}
-              className={styles.stackEndFlex1}
+              className={styles.timelineBar}
             >
               {b.outOfScope > 0 && (
                 <div
@@ -743,10 +743,10 @@ function TimelineChart({ data }: { data: EventsTimelineResponse }) {
       </div>
 
       <div
-        className={styles.rowTextDimFs10}
+        className={styles.timelineAxis}
       >
         {buckets.map((b, i) => (
-          <div key={b.day} className={styles.boxCenterAlignedFlex1}>
+          <div key={b.day} className={styles.timelineAxisLabel}>
             {i % labelStep === 0
               ? new Date(b.day).toLocaleDateString("pt-BR", {
                   day: "2-digit",
@@ -758,14 +758,14 @@ function TimelineChart({ data }: { data: EventsTimelineResponse }) {
       </div>
 
       <div
-        className={styles.rowTextMutedFs11}
+        className={styles.timelineLegend}
       >
-        <span className={styles.rowCenteredGap6}>
-          <span className={styles.labelBgTextW12} />
+        <span className={styles.legendItem}>
+          <span className={styles.legendSwatchInScope} />
           In-scope
         </span>
-        <span className={styles.rowCenteredGap6}>
-          <span className={styles.labelBgAccentW12} />
+        <span className={styles.legendItem}>
+          <span className={styles.legendSwatchOutOfScope} />
           Out-of-scope
         </span>
       </div>

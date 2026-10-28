@@ -12,44 +12,37 @@ import styles from "./AdminCard.module.css";
 
 export type AdminCardVariant = "default" | "subtle" | "accent";
 
+const variantClass: Record<AdminCardVariant, string> = {
+  default: styles.variantDefault,
+  subtle: styles.variantSubtle,
+  accent: styles.variantAccent,
+};
+
 export function AdminCard({
   variant = "default",
   children,
   style,
+  className,
   as: Tag = "div",
 }: {
   variant?: AdminCardVariant;
   children: React.ReactNode;
   style?: React.CSSProperties;
+  /**
+   * Classe do chamador. Entra depois da base e da variante; os seletores do
+   * CSS Module do componente têm especificidade 0,2,0, então uma classe do
+   * chamador com 3 classes (`.x.x.x`) sempre vence.
+   */
+  className?: string;
   as?: keyof React.JSX.IntrinsicElements;
 }) {
-  const variants: Record<AdminCardVariant, React.CSSProperties> = {
-    default: {
-      border: "1px solid var(--admin-divider)",
-      background: "transparent",
-    },
-    subtle: {
-      border: "1px solid var(--admin-divider)",
-      background: "var(--admin-surface)",
-    },
-    accent: {
-      borderLeft: "2px solid var(--admin-accent)",
-      borderTop: "1px solid var(--admin-divider)",
-      borderRight: "1px solid var(--admin-divider)",
-      borderBottom: "1px solid var(--admin-divider)",
-      background: "var(--admin-surface)",
-    },
-  };
-
   const Element = Tag as React.ElementType;
   return (
     <Element
-      style={{
-        borderRadius: 2,
-        padding: 24,
-        ...variants[variant],
-        ...style,
-      }}
+      className={[styles.card, variantClass[variant], className]
+        .filter(Boolean)
+        .join(" ")}
+      style={style}
     >
       {children}
     </Element>
@@ -61,38 +54,34 @@ export function AdminCardHeader({
   title,
   actions,
   style,
+  className,
 }: {
   eyebrow?: string;
   title: React.ReactNode;
   actions?: React.ReactNode;
   style?: React.CSSProperties;
+  className?: string;
 }) {
   return (
     <header
-      style={{
-        display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "space-between",
-        gap: 12,
-        marginBottom: 16,
-        ...style,
-      }}
+      className={[styles.header, className].filter(Boolean).join(" ")}
+      style={style}
     >
-      <div className={styles.boxMinw0}>
+      <div className={styles.headerText}>
         {eyebrow && (
           <p
-            className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb6}`}
+            className={`urban-admin-eyebrow-muted ${styles.headerEyebrow}`}
           >
             {eyebrow}
           </p>
         )}
         <h3
-          className={styles.subheadingTextFs15}
+          className={styles.headerTitle}
         >
           {title}
         </h3>
       </div>
-      {actions && <div className={styles.boxNoShrink}>{actions}</div>}
+      {actions && <div className={styles.headerActions}>{actions}</div>}
     </header>
   );
 }

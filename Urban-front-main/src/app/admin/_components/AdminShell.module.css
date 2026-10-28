@@ -1,11 +1,11 @@
-.adminRootTextBgBg.adminRootTextBgBg {
+.adminRoot.adminRoot {
   display: flex;
   min-height: 100vh;
   background: var(--admin-bg);
   color: var(--admin-text);
 }
 
-.sidebarStickyW240.sidebarStickyW240 {
+.sidebar.sidebar {
   width: 240px;
   flex-shrink: 0;
   height: 100vh;
@@ -16,21 +16,21 @@
   flex-direction: column;
 }
 
-.rowFixed.rowFixed {
+.drawerOverlay.drawerOverlay {
   position: fixed;
   inset: 0;
   z-index: 999;
   display: flex;
 }
 
-.backdropAbsoluteBgBackdrop.backdropAbsoluteBgBackdrop {
+.drawerBackdrop.drawerBackdrop {
   position: absolute;
   inset: 0;
   background: var(--admin-backdrop);
   backdrop-filter: blur(2px);
 }
 
-.sidebarW280Maxw85vw.sidebarW280Maxw85vw {
+.drawerPanel.drawerPanel {
   position: relative;
   width: 280px;
   max-width: 85vw;
@@ -38,14 +38,14 @@
   overflow-y: auto;
 }
 
-.stackMinw0Flex1.stackMinw0Flex1 {
+.mainColumn.mainColumn {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
 }
 
-.rowStickyBetween.rowStickyBetween {
+.topBar.topBar {
   position: sticky;
   top: 0;
   z-index: 50;
@@ -60,14 +60,14 @@
   gap: 24px;
 }
 
-.rowCenteredGap12.rowCenteredGap12 {
+.topBarStart.topBarStart {
   display: flex;
   align-items: center;
   gap: 12px;
   min-width: 0;
 }
 
-.buttonHiddenJustifyCenterCentered.buttonHiddenJustifyCenterCentered {
+.menuButton.menuButton {
   display: none;
   background: transparent;
   border: 1px solid var(--admin-divider-strong);
@@ -79,18 +79,18 @@
   justify-content: center;
 }
 
-.rowCenteredGap16.rowCenteredGap16 {
+.topBarEnd.topBarEnd {
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
-.mainMinw0Flex1.mainMinw0Flex1 {
+.mainContent.mainContent {
   flex: 1;
   min-width: 0;
 }
 
-.rowCenteredGap6.rowCenteredGap6 {
+.wordmarkRow.wordmarkRow {
   padding: 20px 16px;
   border-bottom: 1px solid var(--admin-divider);
   display: flex;
@@ -98,7 +98,7 @@
   gap: 6px;
 }
 
-.labelTextDimFs9.labelTextDimFs9 {
+.wordmarkSuffix.wordmarkSuffix {
   margin-left: 8px;
   font-size: 9px;
   font-weight: 600;
@@ -107,21 +107,21 @@
   color: var(--admin-text-dim);
 }
 
-.rowCenteredGap8.rowCenteredGap8 {
+.switchLinkInner.switchLinkInner {
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
-.boxP12x12x0.boxP12x12x0 {
+.searchWrap.searchWrap {
   padding: 12px 12px 0;
 }
 
-.box.box {
+.searchField.searchField {
   position: relative;
 }
 
-.rowAbsoluteTextDim.rowAbsoluteTextDim {
+.searchIcon.searchIcon {
   position: absolute;
   left: 10px;
   top: 50%;
@@ -131,7 +131,7 @@
   display: flex;
 }
 
-.inputTextBgSurfaceElevated.inputTextBgSurfaceElevated {
+.searchInput.searchInput {
   width: 100%;
   height: 32px;
   padding: 0 10px 0 32px;
@@ -144,23 +144,23 @@
   font-family: var(--font-brand);
 }
 
-.navP8x0x24Flex1.navP8x0x24Flex1 {
+.navList.navList {
   flex: 1;
   padding: 8px 0 24px;
 }
 
-.rowCentered.rowCentered {
+.navItemInner.navItemInner {
   display: inline-flex;
   align-items: center;
 }
 
-.textTextDimFs12.textTextDimFs12 {
+.navEmpty.navEmpty {
   padding: 12px 16px;
   font-size: 12px;
   color: var(--admin-text-dim);
 }
 
-.rowCenteredTextMuted.rowCenteredTextMuted {
+.breadcrumb.breadcrumb {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -170,7 +170,7 @@
   min-width: 0;
 }
 
-.labelTextFs13.labelTextFs13 {
+.breadcrumbCurrent.breadcrumbCurrent {
   color: var(--admin-text);
   font-size: 13px;
   font-weight: 500;
@@ -181,7 +181,7 @@
   text-overflow: ellipsis;
 }
 
-.rowJustifyCenterCentered.rowJustifyCenterCentered {
+.avatar.avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -193,4 +193,32 @@
   font-weight: 600;
   color: var(--admin-text);
   background: var(--admin-surface-elevated);
+}
+
+.switchLink.switchLink {
+  margin: 12px 12px 0;
+  padding: 10px 14px;
+  background: var(--admin-accent-soft);
+  border: 1px solid var(--admin-accent);
+  border-radius: 2px;
+  color: var(--admin-accent);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: background 120ms;
+}
+
+.breadcrumbLink.breadcrumbLink {
+  color: var(--admin-text-muted);
+  text-decoration: none;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
 }

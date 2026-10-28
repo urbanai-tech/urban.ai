@@ -98,7 +98,7 @@ export default function AdminOnboardingDripPage() {
 
   if (error) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.pageContainer}>
         <AdminEmptyState
           eyebrow="Acesso negado"
           title="Falha na autenticação"
@@ -110,7 +110,7 @@ export default function AdminOnboardingDripPage() {
   }
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · ONBOARDING DRIP"
         title="E-mails D+1 · D+3 · D+7"
@@ -128,17 +128,17 @@ export default function AdminOnboardingDripPage() {
       />
 
       {/* Cron status */}
-      <section className={styles.sectionMb32}>
+      <section className={styles.section}>
         <AdminCard variant="subtle">
           <AdminCardHeader
             title={
-              <span className={styles.rowCenteredGap10}>
+              <span className={styles.cronTitle}>
                 <AdminStatusDot kind="success" size={8} /> Cron ativo
               </span>
             }
           />
           <div
-            className={styles.gridColsAuto180TextMuted}
+            className={styles.cronDetails}
           >
             <FieldRow label="Agendamento" value="0 10 * * * (10h UTC)" />
             <FieldRow label="Idempotência" value="onboardingDripLastDay" />
@@ -153,8 +153,8 @@ export default function AdminOnboardingDripPage() {
       </section>
 
       {/* Última execução */}
-      <section className={styles.sectionMb32}>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb20}`}>
+      <section className={styles.section}>
+        <p className={`urban-admin-eyebrow ${styles.lastRunEyebrow}`}>
           ÚLTIMA EXECUÇÃO {lastRun?.ranAt ? `· ${new Date(lastRun.ranAt).toLocaleString("pt-BR")}` : "· nenhuma execução manual desta sessão"}
         </p>
         {!lastRun ? (
@@ -172,10 +172,10 @@ export default function AdminOnboardingDripPage() {
             }
           />
         ) : (
-          <div className={styles.stackGap24}>
+          <div className={styles.lastRunContent}>
             {/* Resumo agregado */}
             <div
-              className={styles.gridColsAuto180Gap32}
+              className={styles.summaryGrid}
             >
               <AdminMetricCard
                 label="Total elegível"
@@ -200,7 +200,7 @@ export default function AdminOnboardingDripPage() {
 
             {/* Detalhe por dia */}
             <div
-              className={styles.gridColsAutoGap16}
+              className={styles.dayCardGrid}
             >
               <DayCard
                 day={1}
@@ -223,18 +223,18 @@ export default function AdminOnboardingDripPage() {
       </section>
 
       {/* Como funciona */}
-      <section className={styles.sectionMb32}>
+      <section className={styles.section}>
         <AdminCard variant="default">
           <AdminCardHeader title="Como o cron decide quem recebe" />
           <ol
-            className={styles.listTextMutedFs13}
+            className={styles.rulesList}
           >
             <li>
               Todos os dias às 10h UTC, query usuários ativos criados nas janelas
               [hoje−1, hoje−0), [hoje−3, hoje−2) e [hoje−7, hoje−6).
             </li>
             <li>
-              Pra cada usuário, verifica <code className={styles.codeAccent}>onboardingDripLastDay</code>. Se já recebeu D≥N, pula (idempotência).
+              Pra cada usuário, verifica <code className={styles.inlineCode}>onboardingDripLastDay</code>. Se já recebeu D≥N, pula (idempotência).
             </li>
             <li>
               Calcula contexto: número de imóveis, recomendações futuras, assinatura ativa.
@@ -242,10 +242,10 @@ export default function AdminOnboardingDripPage() {
             </li>
             <li>
               Dispara via Brevo best-effort. Se falhar, conta como{" "}
-              <code className={styles.codeDanger}>failed</code> mas não bloqueia os próximos.
+              <code className={styles.inlineCodeDanger}>failed</code> mas não bloqueia os próximos.
             </li>
             <li>
-              Atualiza <code className={styles.codeAccent}>onboardingDripLastSentAt</code> + <code className={styles.codeAccent}>onboardingDripLastDay</code>.
+              Atualiza <code className={styles.inlineCode}>onboardingDripLastSentAt</code> + <code className={styles.inlineCode}>onboardingDripLastDay</code>.
             </li>
           </ol>
         </AdminCard>
@@ -286,9 +286,9 @@ function DayCard({
   return (
     <AdminCard variant={issues ? "accent" : "subtle"}>
       <header
-        className={styles.rowBetweenCentered}
+        className={styles.dayCardHeader}
       >
-        <p className={`urban-admin-eyebrow ${styles.eyebrowM0}`}>
+        <p className={`urban-admin-eyebrow ${styles.dayCardEyebrow}`}>
           DIA D+{day}
         </p>
         <AdminBadge kind={issues ? "warn" : "success"}>
@@ -296,12 +296,12 @@ function DayCard({
         </AdminBadge>
       </header>
       <p
-        className={styles.textTextMutedFs12}
+        className={styles.dayCardDescription}
       >
         {desc}
       </p>
       <div
-        className={styles.gridCols2Gap14}
+        className={styles.dayCardStats}
       >
         <SmallStat label="Elegíveis" value={result.eligible} />
         <SmallStat label="Enviados" value={result.sent} kind="success" />
@@ -334,7 +334,7 @@ function SmallStat({
   return (
     <div>
       <p
-        className={styles.textTextMutedFs10}
+        className={styles.smallStatLabel}
       >
         {label}
       </p>
@@ -357,13 +357,13 @@ function SmallStat({
 function FieldRow({ label, value, code }: { label: string; value: string; code?: boolean }) {
   return (
     <div>
-      <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb4}`}>
+      <p className={`urban-admin-eyebrow-muted ${styles.fieldRowLabel}`}>
         {label}
       </p>
       {code ? (
-        <code className={styles.codeAccentFs12}>{value}</code>
+        <code className={styles.fieldRowCode}>{value}</code>
       ) : (
-        <p className={styles.textTextFs13}>
+        <p className={styles.fieldRowValue}>
           {value}
         </p>
       )}

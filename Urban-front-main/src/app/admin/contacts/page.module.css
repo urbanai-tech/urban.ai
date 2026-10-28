@@ -1,14 +1,14 @@
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.pageContainer.pageContainer {
   max-width: 1280px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.sectionMb48.sectionMb48 {
+.kpiSection.kpiSection {
   margin-bottom: 48px;
 }
 
-.gridColsAuto180Gap32.gridColsAuto180Gap32 {
+.kpiGrid.kpiGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 32px;
@@ -16,7 +16,7 @@
   border-bottom: 1px solid var(--admin-divider);
 }
 
-.rowAlignEndWrap.rowAlignEndWrap {
+.filterBar.filterBar {
   display: flex;
   gap: 12px;
   margin-bottom: 24px;
@@ -24,17 +24,17 @@
   align-items: flex-end;
 }
 
-.sectionMb24.sectionMb24 {
+.messagesSection.messagesSection {
   margin-bottom: 24px;
 }
 
-.stackGap16.stackGap16 {
+.messageStack.messageStack {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.rowBetweenStart.rowBetweenStart {
+.messageHeader.messageHeader {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -42,12 +42,12 @@
   gap: 16px;
 }
 
-.boxMinw0Flex1.boxMinw0Flex1 {
+.messageInfo.messageInfo {
   min-width: 0;
   flex: 1;
 }
 
-.rowCenteredWrap.rowCenteredWrap {
+.badgeRow.badgeRow {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -55,14 +55,14 @@
   margin-bottom: 10px;
 }
 
-.labelTextDimFs11.labelTextDimFs11 {
+.messageDate.messageDate {
   font-size: 11px;
   color: var(--admin-text-dim);
   font-family: monospace;
   letter-spacing: 0.5px;
 }
 
-.subheadingTextFs18.subheadingTextFs18 {
+.messageSubject.messageSubject {
   font-size: 18px;
   font-weight: 600;
   color: var(--admin-text);
@@ -70,30 +70,30 @@
   letter-spacing: -0.2px;
 }
 
-.textTextMutedFs13.textTextMutedFs13 {
+.messageSender.messageSender {
   margin-top: 6px;
   font-size: 13px;
   color: var(--admin-text-muted);
 }
 
-.linkAccentW500.linkAccentW500 {
+.emailLink.emailLink {
   color: var(--admin-accent);
   text-decoration: none;
   font-weight: 500;
 }
 
-.labelMl8.labelMl8 {
+.ownerLabel.ownerLabel {
   margin-left: 8px;
 }
 
-.rowCenteredWrapGap8.rowCenteredWrapGap8 {
+.messageActions.messageActions {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   align-items: center;
 }
 
-.textTextFs13.textTextFs13 {
+.messageBody.messageBody {
   white-space: pre-wrap;
   font-size: 13px;
   color: var(--admin-text);
@@ -101,7 +101,7 @@
   margin: 0;
 }
 
-.textTextMutedFs12.textTextMutedFs12 {
+.messageNotes.messageNotes {
   font-size: 12px;
   color: var(--admin-text-muted);
   border-left: 2px solid var(--admin-accent);
@@ -110,12 +110,12 @@
   line-height: 1.55;
 }
 
-.eyebrowMutedMb4.eyebrowMutedMb4 {
+.notesEyebrow.notesEyebrow {
   display: block;
   margin-bottom: 4px;
 }
 
-.rowBetweenCentered.rowBetweenCentered {
+.paginationBar.paginationBar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -123,24 +123,37 @@
   color: var(--admin-text-muted);
 }
 
-.rowGap8.rowGap8 {
+.paginationButtons.paginationButtons {
   display: flex;
   gap: 8px;
 }
 
-.boxMb16.boxMb16 {
+.modalSender.modalSender {
   margin-bottom: 16px;
 }
 
-.textTextFs13M6x0x0.textTextFs13M6x0x0 {
+.modalSenderValue.modalSenderValue {
   font-size: 13px;
   color: var(--admin-text);
   margin: 6px 0 0;
 }
 
-.gridColsAuto180Gap12.gridColsAuto180Gap12 {
+.modalFieldsGrid.modalFieldsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
   margin-bottom: 16px;
+}
+
+.searchShell.searchShell.searchShell {
+  flex: 1;
+  min-width: 240px;
+}
+
+.statusShell.statusShell.statusShell {
+  width: 200px;
+}
+
+.rowStatusShell.rowStatusShell.rowStatusShell {
+  width: 180px;
 }

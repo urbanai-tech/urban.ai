@@ -1,14 +1,14 @@
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.pageContainer.pageContainer {
   max-width: 1280px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.codeAccent.codeAccent {
+.inlineCode.inlineCode {
   color: var(--admin-accent);
 }
 
-.sectionTextMutedBgWarning.sectionTextMutedBgWarning {
+.stripeWarningBanner.stripeWarningBanner {
   margin-bottom: 32px;
   padding: 14px 18px;
   border-left: 2px solid var(--admin-warning);
@@ -18,7 +18,7 @@
   line-height: 1.55;
 }
 
-.textWarningFs11.textWarningFs11 {
+.warningTitle.warningTitle {
   margin: 0;
   color: var(--admin-warning);
   font-size: 11px;
@@ -27,29 +27,29 @@
   text-transform: uppercase;
 }
 
-.textM6x0x0.textM6x0x0 {
+.warningBody.warningBody {
   margin: 6px 0 0;
 }
 
-.strongText.strongText {
+.emphasis.emphasis {
   color: var(--admin-text);
 }
 
-.sectionMb56.sectionMb56 {
+.syncSection.syncSection {
   margin-bottom: 56px;
 }
 
-.eyebrowMb20.eyebrowMb20 {
+.plansEyebrow.plansEyebrow {
   margin-bottom: 20px;
 }
 
-.stackGap20.stackGap20 {
+.planList.planList {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.rowBetweenStart.rowBetweenStart {
+.planHeader.planHeader {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -58,7 +58,7 @@
   flex-wrap: wrap;
 }
 
-.subheadingTextFs18.subheadingTextFs18 {
+.planTitle.planTitle {
   font-size: 18px;
   font-weight: 600;
   color: var(--admin-text);
@@ -66,34 +66,34 @@
   letter-spacing: -0.3px;
 }
 
-.textTextDimFs11.textTextDimFs11 {
+.planName.planName {
   font-family: monospace;
   font-size: 11px;
   color: var(--admin-text-dim);
   margin: 4px 0 0;
 }
 
-.textTextMutedFs13.textTextMutedFs13 {
+.customPlanNote.customPlanNote {
   font-size: 13px;
   color: var(--admin-text-muted);
   margin: 0;
 }
 
-.gridColsAuto180Gap14.gridColsAuto180Gap14 {
+.priceFieldsGrid.priceFieldsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;
   margin-bottom: 16px;
 }
 
-.gridColsAuto220Gap14.gridColsAuto220Gap14 {
+.discountFieldsGrid.discountFieldsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
   margin-bottom: 16px;
 }
 
-.gridColsAuto170BgSurface.gridColsAuto170BgSurface {
+.previewMetricsGrid.previewMetricsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 12px;
@@ -103,7 +103,7 @@
   background: var(--admin-surface);
 }
 
-.detailsBgSurfaceMt20.detailsBgSurfaceMt20 {
+.priceIdsDetails.priceIdsDetails {
   margin-top: 20px;
   border: 1px solid var(--admin-divider);
   border-radius: 2px;
@@ -111,7 +111,7 @@
   background: var(--admin-surface);
 }
 
-.summaryTextMutedFs11.summaryTextMutedFs11 {
+.priceIdsSummary.priceIdsSummary {
   cursor: pointer;
   font-size: 11px;
   font-weight: 600;
@@ -120,7 +120,7 @@
   color: var(--admin-text-muted);
 }
 
-.gridColsAuto220TextDim.gridColsAuto220TextDim {
+.priceIdsList.priceIdsList {
   margin-top: 14px;
   padding-top: 14px;
   border-top: 1px solid var(--admin-divider);
@@ -132,7 +132,7 @@
   color: var(--admin-text-dim);
 }
 
-.rowBetweenCentered.rowBetweenCentered {
+.planFooter.planFooter {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -142,12 +142,12 @@
   border-top: 1px solid var(--admin-divider);
 }
 
-.labelTextMutedFs12.labelTextMutedFs12 {
+.mutedNote.mutedNote {
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.boxTextDimFs10.boxTextDimFs10 {
+.metricLabel.metricLabel {
   font-size: 10px;
   color: var(--admin-text-dim);
   text-transform: uppercase;
@@ -155,41 +155,41 @@
   margin-bottom: 4px;
 }
 
-.boxTextW700.boxTextW700 {
+.metricValue.metricValue {
   color: var(--admin-text);
   font-weight: 700;
 }
 
-.labelTextFs12.labelTextFs12 {
+.syncPlanName.syncPlanName {
   font-size: 12px;
   color: var(--admin-text);
   font-weight: 500;
 }
 
-.codeTextDimFs10.codeTextDimFs10 {
+.syncPriceId.syncPriceId {
   font-size: 10px;
   color: var(--admin-text-dim);
 }
 
-.labelTextFs12Mono.labelTextFs12Mono {
+.syncAmount.syncAmount {
   font-family: monospace;
   font-size: 12px;
   color: var(--admin-text);
 }
 
-.textTextMutedFs13M0x0x16Lh1_55.textTextMutedFs13M0x0x16Lh1_55 {
+.syncIntro.syncIntro {
   font-size: 13px;
   color: var(--admin-text-muted);
   margin: 0 0 16px;
   line-height: 1.55;
 }
 
-.textTextMutedFs132.textTextMutedFs132 {
+.syncLoading.syncLoading {
   font-size: 13px;
   color: var(--admin-text-muted);
 }
 
-.rowCenteredBgSurface.rowCenteredBgSurface {
+.gateIndicator.gateIndicator {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -200,25 +200,25 @@
   background: var(--admin-surface);
 }
 
-.boxFlex1.boxFlex1 {
+.gateText.gateText {
   flex: 1;
 }
 
-.textTextFs13.textTextFs13 {
+.gateLabel.gateLabel {
   margin: 0;
   font-size: 13px;
   font-weight: 600;
   color: var(--admin-text);
 }
 
-.textTextMutedFs12.textTextMutedFs12 {
+.gateDescription.gateDescription {
   margin: 4px 0 0;
   font-size: 12px;
   color: var(--admin-text-muted);
   line-height: 1.55;
 }
 
-.gridCols4Gap24.gridCols4Gap24 {
+.syncStatsGrid.syncStatsGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) repeat(4, minmax(0, 1fr));
   gap: 24px;

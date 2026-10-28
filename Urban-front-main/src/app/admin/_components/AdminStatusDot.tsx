@@ -19,15 +19,18 @@ export function AdminStatusDot({
   size = 8,
   pulse = false,
   style,
+  className,
 }: {
   kind?: AdminStatusKind;
   size?: number;
   pulse?: boolean;
   style?: React.CSSProperties;
+  className?: string;
 }) {
   return (
     <span
       aria-hidden
+      className={className}
       style={{
         display: "inline-block",
         width: size,

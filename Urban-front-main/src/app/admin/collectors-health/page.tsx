@@ -87,7 +87,7 @@ export default function CollectorsHealthPage() {
 
   if (error) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.pageContainer}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar"
@@ -125,13 +125,13 @@ export default function CollectorsHealthPage() {
         return (
           <div>
             <p
-              className={styles.textTextW600}
+              className={styles.sourceName}
             >
               {s.source}
             </p>
             {stale && (
               <p
-                className={styles.textWarningFs10}
+                className={styles.staleHint}
               >
                 Stale &gt; 48h
               </p>
@@ -145,7 +145,7 @@ export default function CollectorsHealthPage() {
       header: "Status",
       width: 180,
       render: (s) => (
-        <div className={styles.rowWrapGap6}>
+        <div className={styles.badgeRow}>
           <AdminBadge kind={statusKind(s.status ?? "has_events", s.critical)}>
             {formatStatus(s.status ?? "has_events")}
           </AdminBadge>
@@ -161,7 +161,7 @@ export default function CollectorsHealthPage() {
       align: "right",
       render: (s) => (
         <div
-          className={styles.rowEndCentered}
+          className={styles.numericCell}
         >
           {s.last24h === 0 && <AdminStatusDot kind="error" size={7} />}
           <span>{s.last24h.toLocaleString("pt-BR")}</span>
@@ -178,7 +178,7 @@ export default function CollectorsHealthPage() {
         const mid = !high && s.outOfScopePercent > 10;
         return (
           <div
-            className={styles.rowEndCentered}
+            className={styles.numericCell}
           >
             {high && <AdminStatusDot kind="error" size={7} />}
             {mid && <AdminStatusDot kind="warn" size={7} />}
@@ -197,7 +197,7 @@ export default function CollectorsHealthPage() {
         const mid = !high && s.errorRate > 5;
         return (
           <div
-            className={styles.rowEndCentered}
+            className={styles.numericCell}
           >
             {high && <AdminStatusDot kind="error" size={7} />}
             {mid && <AdminStatusDot kind="warn" size={7} />}
@@ -211,7 +211,7 @@ export default function CollectorsHealthPage() {
       header: "Último crawl",
       width: 150,
       render: (s) => (
-        <span className={styles.labelTextMutedFs12}>
+        <span className={styles.lastCrawlText}>
           {s.lastSeen
             ? new Date(s.lastSeen).toLocaleString("pt-BR", {
                 day: "2-digit",
@@ -229,13 +229,13 @@ export default function CollectorsHealthPage() {
       width: 36,
       align: "right",
       render: () => (
-        <Icons.ChevronRight size={14} style={{ color: "var(--admin-text-dim)" }} />
+        <Icons.ChevronRight size={14} className={styles.chevronIcon} />
       ),
     },
   ];
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · COLETORES"
         title="Saúde dos coletores"
@@ -253,7 +253,7 @@ export default function CollectorsHealthPage() {
       />
 
       {/* === KPIs agregados (com alerta de zero-yield no topo) === */}
-      <section className={styles.sectionMb56}>
+      <section className={styles.kpiSection}>
         {data?.zeroYield && data.zeroYield.alerts.length > 0 && (
           <div role="alert">
             <AdminCard variant="accent">
@@ -273,11 +273,11 @@ export default function CollectorsHealthPage() {
             <br />
           </div>
         )}
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
+        <p className={`urban-admin-eyebrow ${styles.kpiEyebrow}`}>
           TOTAIS AGREGADOS
         </p>
         <div
-          className={styles.gridColsAuto180Gap32}
+          className={styles.kpiGrid}
         >
           <AdminMetricCard label="Total no DB" value={totals.total} />
           <AdminMetricCard
@@ -304,19 +304,19 @@ export default function CollectorsHealthPage() {
       </section>
 
       {/* === Tabela por source === */}
-      <section className={styles.sectionMb32}>
+      <section className={styles.sourcesSection}>
         <header
-          className={styles.rowBetweenBaseline}
+          className={styles.sourcesHeader}
         >
           <div>
             <p className="urban-admin-eyebrow">POR SOURCE</p>
             <h2
-              className={styles.headingTextFs20}
+              className={styles.sourcesTitle}
             >
               {sources.length} coletores ativos
             </h2>
           </div>
-          <p className={styles.labelTextMutedFs12}>
+          <p className={styles.lastCrawlText}>
             Linha clicável → drawer com variáveis, sinais, aliases
           </p>
         </header>
@@ -337,16 +337,16 @@ export default function CollectorsHealthPage() {
 
       {/* === Footer explicativo === */}
       <section
-        className={styles.sectionTextMutedFs12}
+        className={styles.footerNote}
       >
         <details>
           <summary
-            className={styles.summaryTextMutedFs11}
+            className={styles.footerSummary}
           >
             Como ler
           </summary>
           <ul
-            className={styles.stackGap6Mt12}
+            className={styles.footerList}
           >
             <li>
               <code>last24h = 0</code> em coletor que devia rodar diário → coletor
@@ -367,7 +367,7 @@ export default function CollectorsHealthPage() {
           </ul>
         </details>
         {data && (
-          <p className={styles.textMt12}>
+          <p className={styles.snapshotText}>
             Snapshot tirado em {new Date(data.generatedAt).toLocaleString("pt-BR")}.
           </p>
         )}
@@ -395,14 +395,14 @@ function CollectorDetail({ s }: { s: CollectorHealthRow }) {
   const requiredEnv = uniqueList(s.requiredEnv);
 
   return (
-    <div className={styles.stackGap28}>
+    <div className={styles.detailStack}>
       {/* Métricas detalhadas */}
       <div>
-        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb12}`}>
+        <p className={`urban-admin-eyebrow-muted ${styles.detailEyebrow}`}>
           MÉTRICAS COMPLETAS
         </p>
         <div
-          className={styles.gridColsAutoFs13}
+          className={styles.detailMetricsGrid}
         >
           <DetailRow label="Total no DB" value={s.total.toLocaleString("pt-BR")} />
           <DetailRow label="Últimas 24h" value={s.last24h.toLocaleString("pt-BR")} />
@@ -429,10 +429,10 @@ function CollectorDetail({ s }: { s: CollectorHealthRow }) {
 
       {/* Status técnico */}
       <div>
-        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb12}`}>
+        <p className={`urban-admin-eyebrow-muted ${styles.detailEyebrow}`}>
           STATUS
         </p>
-        <div className={styles.rowWrapGap8}>
+        <div className={styles.statusRow}>
           <AdminBadge kind={statusKind(s.status ?? "has_events", s.critical)}>
             {formatStatus(s.status ?? "has_events")}
           </AdminBadge>
@@ -444,15 +444,15 @@ function CollectorDetail({ s }: { s: CollectorHealthRow }) {
 
       {/* Variáveis */}
       <div>
-        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb12}`}>
+        <p className={`urban-admin-eyebrow-muted ${styles.detailEyebrow}`}>
           VARIÁVEIS DE AMBIENTE
         </p>
         {missingEnv.length > 0 ? (
-          <div className={styles.stackGap10}>
-            <p className={styles.textDangerFs12}>
+          <div className={styles.envGroup}>
+            <p className={styles.envMissingText}>
               {missingEnv.length} faltando:
             </p>
-            <div className={styles.rowWrapGap6}>
+            <div className={styles.badgeRow}>
               {missingEnv.map((env) => (
                 <AdminBadge key={env} kind="error">
                   {env}
@@ -461,11 +461,11 @@ function CollectorDetail({ s }: { s: CollectorHealthRow }) {
             </div>
           </div>
         ) : requiredEnv.length > 0 ? (
-          <div className={styles.stackGap10}>
-            <p className={styles.textSuccessFs12}>
+          <div className={styles.envGroup}>
+            <p className={styles.envOkText}>
               Todas presentes.
             </p>
-            <div className={styles.rowWrapGap6}>
+            <div className={styles.badgeRow}>
               {requiredEnv.map((env) => (
                 <AdminBadge key={env} kind="success">
                   {env}
@@ -474,7 +474,7 @@ function CollectorDetail({ s }: { s: CollectorHealthRow }) {
             </div>
           </div>
         ) : (
-          <p className={styles.textTextDimFs12}>
+          <p className={styles.emptyHint}>
             Sem variáveis mapeadas.
           </p>
         )}
@@ -482,11 +482,11 @@ function CollectorDetail({ s }: { s: CollectorHealthRow }) {
 
       {/* Sinais */}
       <div>
-        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb12}`}>
+        <p className={`urban-admin-eyebrow-muted ${styles.detailEyebrow}`}>
           SINAIS
         </p>
         {signals.length > 0 ? (
-          <div className={styles.rowWrapGap6}>
+          <div className={styles.badgeRow}>
             {signals.map((signal) => (
               <AdminBadge key={signal} kind="warn">
                 {formatSignal(signal)}
@@ -494,7 +494,7 @@ function CollectorDetail({ s }: { s: CollectorHealthRow }) {
             ))}
           </div>
         ) : (
-          <p className={styles.textTextDimFs12}>
+          <p className={styles.emptyHint}>
             Sem sinais ativos.
           </p>
         )}
@@ -503,10 +503,10 @@ function CollectorDetail({ s }: { s: CollectorHealthRow }) {
       {/* Aliases */}
       {aliases.length > 0 && (
         <div>
-          <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb12}`}>
+          <p className={`urban-admin-eyebrow-muted ${styles.detailEyebrow}`}>
             ALIASES
           </p>
-          <div className={styles.rowWrapGap6}>
+          <div className={styles.badgeRow}>
             {aliases.map((alias) => (
               <AdminBadge key={alias} kind="neutral">
                 {alias}
@@ -518,11 +518,11 @@ function CollectorDetail({ s }: { s: CollectorHealthRow }) {
 
       {/* Último crawl */}
       <div>
-        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb8}`}>
+        <p className={`urban-admin-eyebrow-muted ${styles.detailEyebrowTight}`}>
           ÚLTIMO CRAWL
         </p>
         <p
-          className={styles.textTextFs13}
+          className={styles.lastCrawlValue}
         >
           {s.lastSeen ? new Date(s.lastSeen).toLocaleString("pt-BR") : "—"}
         </p>
@@ -535,12 +535,12 @@ function DetailRow({ label, value }: { label: string; value: string | number }) 
   return (
     <div>
       <p
-        className={styles.textTextMutedFs10}
+        className={styles.detailRowLabel}
       >
         {label}
       </p>
       <p
-        className={styles.textTextFs14}
+        className={styles.detailRowValue}
       >
         {value}
       </p>

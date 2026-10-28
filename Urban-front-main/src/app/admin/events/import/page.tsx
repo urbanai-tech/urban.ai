@@ -110,7 +110,7 @@ export default function ImportarCsvEventos() {
       header: "Source",
       render: (r) => (
         <span
-          className={styles.labelTextFs12}
+          className={styles.sourceName}
         >
           {r.source}
         </span>
@@ -174,7 +174,7 @@ export default function ImportarCsvEventos() {
     : [];
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · EVENTOS"
         title="Importar CSV"
@@ -197,7 +197,7 @@ export default function ImportarCsvEventos() {
       />
 
       {/* Schema esperado */}
-      <AdminCard variant="subtle" style={{ marginBottom: 24 }}>
+      <AdminCard variant="subtle" className={styles.schemaCard}>
         <AdminCardHeader
           eyebrow="SCHEMA"
           title="Estrutura do CSV"
@@ -213,7 +213,7 @@ export default function ImportarCsvEventos() {
           }
         />
         <p
-          className={styles.textTextMutedFs13}
+          className={styles.schemaHint}
         >
           Cabeçalho na 1ª linha. Colunas obrigatórias: <code>nome</code>,{" "}
           <code>dataInicio</code>. Demais opcionais. Aliases aceitos:{" "}
@@ -225,28 +225,28 @@ export default function ImportarCsvEventos() {
       </AdminCard>
 
       {/* Meta beta */}
-      <AdminCard variant="subtle" style={{ marginBottom: 24 }}>
+      <AdminCard variant="subtle" className={styles.criteriaCard}>
         <AdminCardHeader eyebrow="META FALLBACK BETA" title="Critérios de aceite" />
         <div
-          className={styles.gridColsAuto220TextMuted}
+          className={styles.criteriaGrid}
         >
-          <p className={styles.textM0}>
-            <strong className={styles.strongText}>Volume:</strong> envie
+          <p className={styles.criteriaItem}>
+            <strong className={styles.emphasis}>Volume:</strong> envie
             pelo menos {BETA_IMPORT_TARGET} eventos futuros de SP/30d quando
             APIs ainda não estiverem completas.
           </p>
-          <p className={styles.textM0}>
-            <strong className={styles.strongText}>Qualidade:</strong>{" "}
+          <p className={styles.criteriaItem}>
+            <strong className={styles.emphasis}>Qualidade:</strong>{" "}
             priorize endereço, cidade, categoria, venue/capacidade e link oficial
             para dedupe e explicação de impacto.
           </p>
-          <p className={styles.textM0}>
-            <strong className={styles.strongText}>Gate:</strong> linhas
+          <p className={styles.criteriaItem}>
+            <strong className={styles.emphasis}>Gate:</strong> linhas
             com data passada ou UF fora de SP são rejeitadas antes do ingest para
             manter o lote útil ao beta.
           </p>
-          <p className={styles.textM0}>
-            <strong className={styles.strongText}>Depois do upload:</strong>{" "}
+          <p className={styles.criteriaItem}>
+            <strong className={styles.emphasis}>Depois do upload:</strong>{" "}
             confira o dashboard, rode geocoder em <code>/admin/jobs</code> se
             houver pendentes e revise invalidRows.
           </p>
@@ -257,7 +257,7 @@ export default function ImportarCsvEventos() {
       <form onSubmit={handleSubmit}>
         <AdminCard variant="subtle">
           <AdminCardHeader title="Upload" />
-          <div className={styles.stackGap18}>
+          <div className={styles.uploadForm}>
             <FileField
               file={file}
               onChange={setFile}
@@ -271,7 +271,7 @@ export default function ImportarCsvEventos() {
             />
 
             <div
-              className={styles.rowBetweenCentered}
+              className={styles.uploadActions}
             >
               <AdminButton
                 type="submit"
@@ -285,9 +285,9 @@ export default function ImportarCsvEventos() {
               </AdminButton>
               {file && (
                 <span
-                  className={styles.labelTextMutedFs12}
+                  className={styles.selectedFileInfo}
                 >
-                  <strong className={styles.strongText}>
+                  <strong className={styles.emphasis}>
                     {file.name}
                   </strong>{" "}
                   · {(file.size / 1024).toFixed(1)} KB
@@ -300,12 +300,12 @@ export default function ImportarCsvEventos() {
 
       {/* Resultado */}
       {result && (
-        <section className={styles.sectionMt32}>
-          <p className={`urban-admin-eyebrow ${styles.eyebrowMb16}`}>
+        <section className={styles.resultSection}>
+          <p className={`urban-admin-eyebrow ${styles.sectionEyebrow}`}>
             RESULTADO
           </p>
           <div
-            className={styles.gridColsAuto160Gap32}
+            className={styles.resultMetricsGrid}
           >
             <AdminMetricCard
               label="Linhas no CSV"
@@ -335,17 +335,17 @@ export default function ImportarCsvEventos() {
           <ImportReadiness result={result} />
 
           {result.invalidRows.length > 0 && (
-            <AdminCard variant="subtle" style={{ marginTop: 24 }}>
+            <AdminCard variant="subtle" className={styles.invalidRowsCard}>
               <AdminCardHeader
                 eyebrow="LINHAS INVÁLIDAS"
                 title={`${result.invalidRows.length} rejeitadas`}
               />
               <ul
-                className={styles.stackWarningFs12}
+                className={styles.invalidRowsList}
               >
                 {result.invalidRows.map((r, i) => (
                   <li key={i}>
-                    <span className={styles.labelTextMuted}>
+                    <span className={styles.invalidRowLine}>
                       Linha {r.line}:
                     </span>{" "}
                     {r.reason}
@@ -356,8 +356,8 @@ export default function ImportarCsvEventos() {
           )}
 
           {sourceRows.length > 0 && (
-            <section className={styles.sectionMt24}>
-              <p className={`urban-admin-eyebrow ${styles.eyebrowMb16}`}>
+            <section className={styles.sourcesSection}>
+              <p className={`urban-admin-eyebrow ${styles.sectionEyebrow}`}>
                 RESUMO POR SOURCE
               </p>
               <AdminTable
@@ -384,7 +384,7 @@ function FileField({
   return (
     <label className={styles.field}>
       <span
-        className={styles.labelTextMutedFs11}
+        className={styles.fileFieldLabel}
       >
         Arquivo CSV *
       </span>
@@ -393,14 +393,14 @@ function FileField({
         accept=".csv,text/csv"
         required
         onChange={(e) => onChange(e.target.files?.[0] ?? null)}
-        className={styles.inputTextBgSurfaceElevated}
+        className={styles.fileInput}
       />
       {file && (
         <p
-          className={styles.textTextMutedFs12}
+          className={styles.fileSelected}
         >
           Selecionado:{" "}
-          <strong className={styles.strongText}>{file.name}</strong>
+          <strong className={styles.emphasis}>{file.name}</strong>
         </p>
       )}
     </label>
@@ -433,23 +433,23 @@ function ImportReadiness({ result }: { result: ImportResult }) {
         flexWrap: "wrap",
       }}
     >
-      <div className={styles.boxMinw240Flex1}>
+      <div className={styles.progressInfo}>
         <div
-          className={styles.rowCenteredGap8}
+          className={styles.progressBadgeRow}
         >
           <AdminBadge kind={ready ? "success" : "warn"}>
             {ready ? "Pronto p/ beta" : "Abaixo da meta"}
           </AdminBadge>
         </div>
         <h3
-          className={styles.subheadingTextFs15}
+          className={styles.progressTitle}
         >
           {ready
             ? "Lote suficiente para beta"
             : "Lote ainda abaixo da meta beta"}
         </h3>
         <p
-          className={styles.textTextMutedFs13Mt8Lh1_6}
+          className={styles.progressDescription}
         >
           {usefulRows.toLocaleString("pt-BR")} eventos criados/atualizados de{" "}
           {BETA_IMPORT_TARGET.toLocaleString("pt-BR")} recomendados para
@@ -458,7 +458,7 @@ function ImportReadiness({ result }: { result: ImportResult }) {
         </p>
         {!ready && (
           <p
-            className={styles.textTextMutedFs12Mt8}
+            className={styles.progressHint}
           >
             Complete com mais eventos oficiais ou divida a planilha por fonte,
             mantendo um sourceLabel rastreável como{" "}
@@ -466,7 +466,7 @@ function ImportReadiness({ result }: { result: ImportResult }) {
           </p>
         )}
       </div>
-      <div className={styles.boxRightAligned}>
+      <div className={styles.progressPercent}>
         <p
           className="urban-admin-display-sm"
           style={{
@@ -475,7 +475,7 @@ function ImportReadiness({ result }: { result: ImportResult }) {
         >
           {progress}%
         </p>
-        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMt6}`}>
+        <p className={`urban-admin-eyebrow-muted ${styles.progressPercentLabel}`}>
           DO ALVO
         </p>
       </div>

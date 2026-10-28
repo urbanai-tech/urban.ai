@@ -1,23 +1,23 @@
-.labelTextFs12.labelTextFs12 {
+.sourceName.sourceName {
   font-family: monospace;
   font-size: 12px;
   color: var(--admin-text);
 }
 
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.pageContainer.pageContainer {
   max-width: 1080px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.textTextMutedFs13.textTextMutedFs13 {
+.schemaHint.schemaHint {
   font-size: 13px;
   color: var(--admin-text-muted);
   margin: 0;
   line-height: 1.6;
 }
 
-.gridColsAuto220TextMuted.gridColsAuto220TextMuted {
+.criteriaGrid.criteriaGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
@@ -26,21 +26,21 @@
   line-height: 1.55;
 }
 
-.textM0.textM0 {
+.criteriaItem.criteriaItem {
   margin: 0;
 }
 
-.strongText.strongText {
+.emphasis.emphasis {
   color: var(--admin-text);
 }
 
-.stackGap18.stackGap18 {
+.uploadForm.uploadForm {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-.rowBetweenCentered.rowBetweenCentered {
+.uploadActions.uploadActions {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -49,20 +49,20 @@
   padding-top: 6px;
 }
 
-.labelTextMutedFs12.labelTextMutedFs12 {
+.selectedFileInfo.selectedFileInfo {
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.sectionMt32.sectionMt32 {
+.resultSection.resultSection {
   margin-top: 32px;
 }
 
-.eyebrowMb16.eyebrowMb16 {
+.sectionEyebrow.sectionEyebrow {
   margin-bottom: 16px;
 }
 
-.gridColsAuto160Gap32.gridColsAuto160Gap32 {
+.resultMetricsGrid.resultMetricsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 32px;
@@ -71,7 +71,7 @@
   margin-bottom: 32px;
 }
 
-.stackWarningFs12.stackWarningFs12 {
+.invalidRowsList.invalidRowsList {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -85,11 +85,11 @@
   color: var(--admin-warning);
 }
 
-.labelTextMuted.labelTextMuted {
+.invalidRowLine.invalidRowLine {
   color: var(--admin-text-muted);
 }
 
-.sectionMt24.sectionMt24 {
+.sourcesSection.sourcesSection {
   margin-top: 24px;
 }
 
@@ -97,7 +97,7 @@
   display: block;
 }
 
-.labelTextMutedFs11.labelTextMutedFs11 {
+.fileFieldLabel.fileFieldLabel {
   display: block;
   font-size: 11px;
   font-weight: 600;
@@ -107,7 +107,7 @@
   margin-bottom: 8px;
 }
 
-.inputTextBgSurfaceElevated.inputTextBgSurfaceElevated {
+.fileInput.fileInput {
   width: 100%;
   padding: 8px 12px;
   background: var(--admin-surface-elevated);
@@ -118,25 +118,25 @@
   font-family: var(--font-brand);
 }
 
-.textTextMutedFs12.textTextMutedFs12 {
+.fileSelected.fileSelected {
   margin-top: 6px;
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.boxMinw240Flex1.boxMinw240Flex1 {
+.progressInfo.progressInfo {
   flex: 1;
   min-width: 240px;
 }
 
-.rowCenteredGap8.rowCenteredGap8 {
+.progressBadgeRow.progressBadgeRow {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
 }
 
-.subheadingTextFs15.subheadingTextFs15 {
+.progressTitle.progressTitle {
   font-size: 15px;
   font-weight: 600;
   color: var(--admin-text);
@@ -144,23 +144,35 @@
   letter-spacing: -0.2px;
 }
 
-.textTextMutedFs13Mt8Lh1_6.textTextMutedFs13Mt8Lh1_6 {
+.progressDescription.progressDescription {
   margin-top: 8px;
   font-size: 13px;
   color: var(--admin-text-muted);
   line-height: 1.6;
 }
 
-.textTextMutedFs12Mt8.textTextMutedFs12Mt8 {
+.progressHint.progressHint {
   margin-top: 8px;
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.boxRightAligned.boxRightAligned {
+.progressPercent.progressPercent {
   text-align: right;
 }
 
-.eyebrowMutedMt6.eyebrowMutedMt6 {
+.progressPercentLabel.progressPercentLabel {
   margin-top: 6px;
+}
+
+.schemaCard.schemaCard.schemaCard {
+  margin-bottom: 24px;
+}
+
+.criteriaCard.criteriaCard.criteriaCard {
+  margin-bottom: 24px;
+}
+
+.invalidRowsCard.invalidRowsCard.invalidRowsCard {
+  margin-top: 24px;
 }
