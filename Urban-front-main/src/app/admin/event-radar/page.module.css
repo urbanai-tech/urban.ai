@@ -1,14 +1,14 @@
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.errorContainer.errorContainer {
   max-width: 1320px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.boxMinw0.boxMinw0 {
+.cellBlock.cellBlock {
   min-width: 0;
 }
 
-.textTextW600.textTextW600 {
+.eventName.eventName {
   margin: 0;
   max-width: 360px;
   overflow: hidden;
@@ -18,84 +18,84 @@
   color: var(--admin-text);
 }
 
-.textTextMutedFs11.textTextMutedFs11 {
+.eventMeta.eventMeta {
   margin: 5px 0 0;
   font-size: 11px;
   color: var(--admin-text-muted);
 }
 
-.labelTextMono.labelTextMono {
+.revenueValue.revenueValue {
   font-family: monospace;
   color: var(--admin-text);
 }
 
-.stackGap5.stackGap5 {
+.contextCell.contextCell {
   display: flex;
   flex-direction: column;
   gap: 5px;
 }
 
-.labelTextFs12.labelTextFs12 {
+.categoryLabel.categoryLabel {
   font-size: 12px;
   color: var(--admin-text);
 }
 
-.codeTextDimFs11.codeTextDimFs11 {
+.sourceCode.sourceCode {
   font-size: 11px;
   color: var(--admin-text-dim);
 }
 
-.boxTextMutedFs12.boxTextMutedFs12 {
+.impactCell.impactCell {
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.strongText.strongText {
+.propertiesCount.propertiesCount {
   color: var(--admin-text);
 }
 
-.strongAccent.strongAccent {
+.recommendationsCount.recommendationsCount {
   color: var(--admin-accent);
 }
 
-.textTextW600M0.textTextW600M0 {
+.spotTitle.spotTitle {
   margin: 0;
   font-weight: 600;
   color: var(--admin-text);
   overflow-wrap: anywhere;
 }
 
-.textTextMutedFs12.textTextMutedFs12 {
+.spotMeta.spotMeta {
   margin: 5px 0 0;
   font-size: 12px;
   color: var(--admin-text-muted);
   overflow-wrap: anywhere;
 }
 
-.labelTextMutedFs12.labelTextMutedFs12 {
+.spotAction.spotAction {
   font-size: 12px;
   color: var(--admin-text-muted);
   overflow-wrap: anywhere;
 }
 
-.pageM0xautoP40x32.pageM0xautoP40x32 {
+.pageContainer.pageContainer {
   max-width: 1400px;
   margin: 0 auto;
   padding: 40px 32px;
   overflow-x: hidden;
 }
 
-.rowWrapGap8.rowWrapGap8 {
+.actionRow.actionRow {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.sectionMb36.sectionMb36 {
+.filtersSection.filtersSection {
   margin-bottom: 36px;
 }
 
-.filtersColsAuto150Gap12.filtersColsAuto150Gap12 {
+.filtersGrid.filtersGrid {
   display: grid;
   grid-template-columns: var(--event-radar-filters-grid, repeat(auto-fit, minmax(150px, 1fr)));
   gap: 12px;
@@ -105,15 +105,15 @@
   border-radius: 2px;
 }
 
-.sectionMb48.sectionMb48 {
+.kpiSection.kpiSection {
   margin-bottom: 48px;
 }
 
-.eyebrowMb18.eyebrowMb18 {
+.kpiEyebrow.kpiEyebrow {
   margin-bottom: 18px;
 }
 
-.gridColsAuto170Gap28.gridColsAuto170Gap28 {
+.kpiGrid.kpiGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 28px;
@@ -121,28 +121,28 @@
   border-bottom: 1px solid var(--admin-divider);
 }
 
-.mainGridColsGap24.mainGridColsGap24 {
+.mainGrid.mainGrid {
   display: grid;
   grid-template-columns: var(--event-radar-main-grid, minmax(0, 1.55fr) minmax(320px, 0.9fr));
   gap: 24px;
   margin-bottom: 48px;
 }
 
-.sectionHeaderBetweenGap16.sectionHeaderBetweenGap16 {
+.tableSectionHeader.tableSectionHeader {
   display: flex;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 16px;
 }
 
-.headingTextFs20.headingTextFs20 {
+.sectionTitle.sectionTitle {
   margin: 8px 0 0;
   font-size: 20px;
   font-weight: 600;
   color: var(--admin-text);
 }
 
-.textTextMutedFs12M0.textTextMutedFs12M0 {
+.tableHint.tableHint {
   margin: 0;
   align-self: end;
   font-size: 12px;
@@ -150,15 +150,15 @@
   overflow-wrap: anywhere;
 }
 
-.headerMb16.headerMb16 {
+.heatmapHeader.heatmapHeader {
   margin-bottom: 16px;
 }
 
-.sectionMb40.sectionMb40 {
+.blindSpotsSection.blindSpotsSection {
   margin-bottom: 40px;
 }
 
-.rowBetweenWrap.rowBetweenWrap {
+.blindSpotsHeader.blindSpotsHeader {
   display: flex;
   justify-content: space-between;
   align-items: end;
@@ -167,7 +167,7 @@
   margin-bottom: 16px;
 }
 
-.footerTextMutedFs12.footerTextMutedFs12 {
+.pageFooter.pageFooter {
   padding-top: 20px;
   border-top: 1px solid var(--admin-divider);
   font-size: 12px;
@@ -175,7 +175,7 @@
   line-height: 1.6;
 }
 
-.textTextMutedFs13.textTextMutedFs13 {
+.drawerLoading.drawerLoading {
   margin: 0;
   color: var(--admin-text-muted);
   font-size: 13px;

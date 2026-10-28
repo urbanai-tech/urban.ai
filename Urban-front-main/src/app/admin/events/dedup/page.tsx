@@ -157,8 +157,8 @@ export default function AdminEventDedupPage() {
       header: "Score",
       width: 105,
       render: (candidate) => (
-        <div className={styles.stackGap6}>
-          <span className={styles.labelTextFs15}>
+        <div className={styles.scoreCell}>
+          <span className={styles.scoreValue}>
             {Math.round(candidate.score * 100)}%
           </span>
           <AdminBadge kind={candidate.confidenceBand === "high" ? "accent" : "warn"}>
@@ -191,7 +191,7 @@ export default function AdminEventDedupPage() {
       align: "right",
       render: (candidate) =>
         candidate.status === "pending" ? (
-          <div className={styles.rowGap8}>
+          <div className={styles.rowActions}>
             <AdminButton
               size="sm"
               variant="primary"
@@ -225,13 +225,13 @@ export default function AdminEventDedupPage() {
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
   return (
-    <div className={styles.boxM0xautoP32x28x56}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="Motor de eventos"
         title="Deduplicação"
         subtitle="Fila operacional de revisão e merge de eventos encontrados por múltiplas fontes."
         actions={
-          <div className={styles.rowCenteredGap8}>
+          <div className={styles.headerActions}>
             <AdminInput
               aria-label="Limite do scan"
               type="number"
@@ -261,7 +261,7 @@ export default function AdminEventDedupPage() {
       )}
 
       <div
-        className={styles.gridCols4Gap18}
+        className={styles.summaryGrid}
       >
         <AdminMetricCard label="Fila filtrada" value={total} variant="sm" accent />
         <AdminMetricCard label="Pendentes visíveis" value={pending} variant="sm" status={pending ? "warn" : "success"} />
@@ -272,7 +272,7 @@ export default function AdminEventDedupPage() {
       {lastScan && (
         <AdminCard variant="subtle" className={styles.scanSummaryCard}>
           <div
-            className={styles.gridCols5Gap16}
+            className={styles.scanStatsGrid}
           >
             <ScanStat label="Eventos" value={lastScan.scannedEvents} />
             <ScanStat label="Review pending" value={lastScan.reviewPendingEvents} />
@@ -288,7 +288,7 @@ export default function AdminEventDedupPage() {
           eyebrow="Revisão"
           title="Candidatos"
           actions={
-            <div className={styles.rowGap10}>
+            <div className={styles.filterRow}>
               <AdminSelect
                 aria-label="Status"
                 value={status}
@@ -355,12 +355,12 @@ export default function AdminEventDedupPage() {
 
         {total > limit && (
           <div
-            className={styles.rowBetweenCentered}
+            className={styles.paginationBar}
           >
             <span>
               Página {page} de {totalPages} · {total.toLocaleString("pt-BR")} candidato(s)
             </span>
-            <div className={styles.rowGap82}>
+            <div className={styles.paginationButtons}>
               <AdminButton
                 size="sm"
                 variant="ghost"
@@ -394,8 +394,8 @@ export default function AdminEventDedupPage() {
         destructive
         loading={!!actionId}
         body={
-          <div className={styles.stackGap8}>
-            <span className={styles.labelTextMutedFs13}>
+          <div className={styles.verticalStack}>
+            <span className={styles.rejectPrompt}>
               Motivo da rejeição (opcional):
             </span>
             <AdminTextarea
@@ -412,25 +412,25 @@ export default function AdminEventDedupPage() {
 }
 
 function EventCell({ event }: { event: EventDedupEventSummary | null }) {
-  if (!event) return <span className={styles.labelTextMuted}>-</span>;
+  if (!event) return <span className={styles.emptyEventCell}>-</span>;
   return (
-    <div className={styles.stackGap6Minw0}>
+    <div className={styles.eventCell}>
       <span
-        className={styles.labelTextFs13}
+        className={styles.eventName}
         title={event.nome}
       >
         {event.nome}
       </span>
-      <span className={styles.labelTextMutedFs12}>
+      <span className={styles.eventMeta}>
         {event.cidade || "-"} / {event.estado || "-"} · {formatDate(event.dataInicio)}
       </span>
       <span
-        className={styles.labelTextMutedFs11}
+        className={styles.eventAddress}
         title={event.enderecoCompleto ?? ""}
       >
         {event.enderecoCompleto || "Endereço não informado"}
       </span>
-      <span className={styles.labelTextMutedFs11Mono}>
+      <span className={styles.eventSource}>
         {event.source || "sem-source"} · fontes {event.sourceCount ?? 0}
       </span>
     </div>
@@ -446,13 +446,13 @@ function SignalCell({ candidate }: { candidate: EventDedupCandidate }) {
     ["URL", signalValue(candidate.signals, "url")],
   ];
   return (
-    <div className={styles.stackGap8}>
-      <span className={styles.labelTextFs12}>{candidate.reason}</span>
-      <div className={styles.rowWrapGap6}>
+    <div className={styles.verticalStack}>
+      <span className={styles.signalReason}>{candidate.reason}</span>
+      <div className={styles.signalList}>
         {entries.map(([label, value]) => (
           <span
             key={label}
-            className={styles.labelTextMutedFs10}
+            className={styles.signalItem}
           >
             {label}:{typeof value === "number" ? value.toFixed(2) : "-"}
           </span>
@@ -481,10 +481,10 @@ function signalValue(signals: EventDedupCandidate["signals"], key: string): numb
 function ScanStat({ label, value }: { label: string; value: number }) {
   return (
     <div>
-      <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb6}`}>
+      <p className={`urban-admin-eyebrow-muted ${styles.scanStatLabel}`}>
         {label}
       </p>
-      <p className={styles.textTextFs24}>
+      <p className={styles.scanStatValue}>
         {value.toLocaleString("pt-BR")}
       </p>
     </div>

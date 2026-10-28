@@ -1,16 +1,16 @@
-.stackGap12.stackGap12 {
+.heatmapRoot.heatmapRoot {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.gridCols4Gap10.gridCols4Gap10 {
+.summaryGrid.summaryGrid {
   display: grid;
   grid-template-columns: var(--event-radar-geo-ops-grid, repeat(4, minmax(0, 1fr)));
   gap: 10px;
 }
 
-.gridCenteredCols.gridCenteredCols {
+.focusBar.focusBar {
   padding: 12px 14px;
   border: 1px solid var(--admin-divider);
   border-radius: 2px;
@@ -20,49 +20,49 @@
   align-items: center;
 }
 
-.boxMinw0.boxMinw0 {
+.contentBlock.contentBlock {
   min-width: 0;
 }
 
-.textTextFs13.textTextFs13 {
+.focusTitle.focusTitle {
   margin: 0;
   color: var(--admin-text);
   font-size: 13px;
   font-weight: 600;
 }
 
-.textTextMutedFs12.textTextMutedFs12 {
+.focusHint.focusHint {
   margin: 5px 0 0;
   color: var(--admin-text-muted);
   font-size: 12px;
   overflow-wrap: anywhere;
 }
 
-.boxBgAccentW96.boxBgAccentW96 {
+.focusAccentBar.focusAccentBar {
   width: 96px;
   height: 8px;
   background: linear-gradient(90deg, color-mix(in srgb, var(--app-accent, var(--admin-accent)) 6%, transparent), color-mix(in srgb, var(--app-accent, var(--admin-accent)) 36%, transparent));
   border: 1px solid var(--admin-divider);
 }
 
-.gridCols3Gap10.gridCols3Gap10 {
+.hotspotGrid.hotspotGrid {
   display: grid;
   grid-template-columns: var(--event-radar-hotspots-grid, repeat(3, minmax(0, 1fr)));
   gap: 10px;
 }
 
-.boxP10x12Minw0.boxP10x12Minw0 {
+.hotspotCard.hotspotCard {
   min-width: 0;
   padding: 10px 12px;
   border: 1px solid var(--admin-divider);
   border-radius: 2px;
 }
 
-.eyebrowMutedMb7.eyebrowMutedMb7 {
+.hotspotEyebrow.hotspotEyebrow {
   margin-bottom: 7px;
 }
 
-.textTextFs13W700M0Scroll.textTextFs13W700M0Scroll {
+.hotspotTitle.hotspotTitle {
   margin: 0;
   color: var(--admin-text);
   font-size: 13px;
@@ -72,39 +72,39 @@
   white-space: nowrap;
 }
 
-.textTextMutedFs11.textTextMutedFs11 {
+.hotspotMeta.hotspotMeta {
   margin: 6px 0 0;
   color: var(--admin-text-muted);
   font-size: 11px;
   overflow-wrap: anywhere;
 }
 
-.gridCols2Gap10.gridCols2Gap10 {
+.eventListGrid.eventListGrid {
   display: grid;
   grid-template-columns: var(--event-radar-geo-lists-grid, repeat(2, minmax(0, 1fr)));
   gap: 10px;
 }
 
-.heatmapGridColsAuto150Gap10.heatmapGridColsAuto150Gap10 {
+.heatmapCellGrid.heatmapCellGrid {
   display: grid;
   grid-template-columns: var(--event-radar-heatmap-grid, repeat(auto-fit, minmax(150px, 1fr)));
   gap: 10px;
 }
 
-.rowBetweenBaseline.rowBetweenBaseline {
+.cellValueRow.cellValueRow {
   display: flex;
   justify-content: space-between;
   gap: 8px;
   align-items: baseline;
 }
 
-.labelAccentFs12.labelAccentFs12 {
+.cellValue.cellValue {
   color: var(--admin-accent);
   font-family: monospace;
   font-size: 12px;
 }
 
-.textTextFs13W600M10x0x0Scroll.textTextFs13W600M10x0x0Scroll {
+.cellTitle.cellTitle {
   margin: 10px 0 0;
   font-size: 13px;
   color: var(--admin-text);
@@ -114,40 +114,40 @@
   white-space: nowrap;
 }
 
-.textTextMutedFs11M5x0x0.textTextMutedFs11M5x0x0 {
+.cellCategory.cellCategory {
   margin: 5px 0 0;
   font-size: 11px;
   color: var(--admin-text-muted);
   overflow-wrap: anywhere;
 }
 
-.rowWrapGap6.rowWrapGap6 {
+.cellBadges.cellBadges {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.gridColsFs11.gridColsFs11 {
+.cellStats.cellStats {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   font-size: 11px;
 }
 
-.boxScrollBordered.boxScrollBordered {
+.radarMapFrame.radarMapFrame {
   border: 1px solid var(--admin-divider);
   border-radius: 2px;
   overflow: hidden;
 }
 
-.geoOpsRadarMapCanvasBgDivider.geoOpsRadarMapCanvasBgDivider {
+.radarMapCanvas.radarMapCanvas {
   min-height: 300px;
   position: relative;
   background: linear-gradient(0deg, var(--admin-divider) 1px, transparent 1px), linear-gradient(90deg, var(--admin-divider) 1px, transparent 1px), var(--admin-surface-muted);
   background-size: 32px 32px;
 }
 
-.rowAbsoluteWrap.rowAbsoluteWrap {
+.radarMapBadges.radarMapBadges {
   position: absolute;
   top: 12px;
   left: 12px;
@@ -157,7 +157,7 @@
   max-width: calc(100% - 24px);
 }
 
-.gridAbsoluteTextMuted.gridAbsoluteTextMuted {
+.radarMapEmpty.radarMapEmpty {
   position: absolute;
   inset: 58px;
   display: grid;
@@ -168,21 +168,21 @@
   line-height: 1.5;
 }
 
-.labelFs17W800.labelFs17W800 {
+.radarBubbleValue.radarBubbleValue {
   font-family: monospace;
   font-size: 17px;
   font-weight: 800;
   line-height: 1;
 }
 
-.labelFs9W700.labelFs9W700 {
+.radarBubbleLabel.radarBubbleLabel {
   margin-top: 3px;
   font-size: 9px;
   font-weight: 700;
   line-height: 1.2;
 }
 
-.gridColsAuto170Gap10.gridColsAuto170Gap10 {
+.radarMetaGrid.radarMetaGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 10px;
@@ -190,7 +190,7 @@
   border-top: 1px solid var(--admin-divider);
 }
 
-.textTextFs12.textTextFs12 {
+.radarMetaTitle.radarMetaTitle {
   margin: 0;
   color: var(--admin-text);
   font-size: 12px;
@@ -200,14 +200,14 @@
   white-space: nowrap;
 }
 
-.textTextMutedFs11M4x0x0.textTextMutedFs11M4x0x0 {
+.itemDetail.itemDetail {
   margin: 4px 0 0;
   color: var(--admin-text-muted);
   font-size: 11px;
   overflow-wrap: anywhere;
 }
 
-.labelAbsoluteBgDivider.labelAbsoluteBgDivider {
+.radarAxisHorizontal.radarAxisHorizontal {
   position: absolute;
   left: 38px;
   right: 38px;
@@ -216,7 +216,7 @@
   background: var(--admin-divider);
 }
 
-.labelAbsoluteBgDividerW1.labelAbsoluteBgDividerW1 {
+.radarAxisVertical.radarAxisVertical {
   position: absolute;
   top: 38px;
   bottom: 38px;
@@ -225,23 +225,23 @@
   background: var(--admin-divider);
 }
 
-.labelW700Upper.labelW700Upper {
+.cellKind.cellKind {
   text-transform: uppercase;
   font-weight: 700;
 }
 
-.labelMono.labelMono {
+.cellCode.cellCode {
   font-family: monospace;
 }
 
-.boxP12Minw0.boxP12Minw0 {
+.statCard.statCard {
   min-width: 0;
   border: 1px solid var(--admin-divider);
   border-radius: 2px;
   padding: 12px;
 }
 
-.textTextFs18.textTextFs18 {
+.statValue.statValue {
   margin: 9px 0 8px;
   color: var(--admin-text);
   font-family: monospace;
@@ -251,29 +251,29 @@
   white-space: nowrap;
 }
 
-.labelScroll.labelScroll {
+.statDetailText.statDetailText {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.eyebrowMutedMb10.eyebrowMutedMb10 {
+.eventListTitle.eventListTitle {
   margin-bottom: 10px;
 }
 
-.textTextMutedFs12M0.textTextMutedFs12M0 {
+.eventListEmpty.eventListEmpty {
   margin: 0;
   color: var(--admin-text-muted);
   font-size: 12px;
 }
 
-.stackGap9.stackGap9 {
+.eventListItems.eventListItems {
   display: flex;
   flex-direction: column;
   gap: 9px;
 }
 
-.textTextFs12W600M0Scroll.textTextFs12W600M0Scroll {
+.eventName.eventName {
   margin: 0;
   color: var(--admin-text);
   font-size: 12px;
@@ -283,14 +283,14 @@
   white-space: nowrap;
 }
 
-.gridCols4Gap10Mb14.gridCols4Gap10Mb14 {
+.blindSpotSummaryGrid.blindSpotSummaryGrid {
   display: grid;
   grid-template-columns: var(--event-radar-geo-ops-grid, repeat(4, minmax(0, 1fr)));
   gap: 10px;
   margin-bottom: 14px;
 }
 
-.rowBetweenCentered.rowBetweenCentered {
+.legendRow.legendRow {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -301,7 +301,7 @@
   padding-top: 10px;
 }
 
-.boxBgAccentH6.boxBgAccentH6 {
+.legendGradient.legendGradient {
   flex: 1;
   height: 6px;
   background: linear-gradient(90deg, color-mix(in srgb, var(--app-accent, var(--admin-accent)) 6%, transparent), color-mix(in srgb, var(--app-accent, var(--admin-accent)) 18%, transparent), color-mix(in srgb, var(--app-accent, var(--admin-accent)) 42%, transparent));

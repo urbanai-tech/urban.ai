@@ -160,7 +160,7 @@ export default function NovoEventoManual() {
   };
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN · EVENTOS"
         title="Novo evento manual"
@@ -186,27 +186,27 @@ export default function NovoEventoManual() {
       {lastResult && (
         <AdminCard variant="accent" className={styles.resultCard}>
           <div
-            className={styles.rowCenteredWrap}
+            className={styles.resultHeader}
           >
             <AdminBadge kind={resultBadgeKind[lastResult.status]}>
               {lastResult.status}
             </AdminBadge>
             {lastResult.id && (
               <span
-                className={styles.labelTextMutedFs12}
+                className={styles.resultId}
               >
                 {lastResult.id}
               </span>
             )}
             {lastResult.reason && (
               <span
-                className={styles.labelTextMutedFs13}
+                className={styles.resultReason}
               >
                 — {lastResult.reason}
               </span>
             )}
           </div>
-          <div className={styles.rowGap10Mt16}>
+          <div className={styles.resultActions}>
             <AdminButton
               variant="primary"
               size="sm"
@@ -230,11 +230,11 @@ export default function NovoEventoManual() {
       {/* Form */}
       <form
         onSubmit={handleSubmit}
-        className={styles.stackGap18}
+        className={styles.eventForm}
       >
         <AdminCard variant="subtle">
           <AdminCardHeader title="Identificação" />
-          <div className={styles.stackGap14}>
+          <div className={styles.formCardBody}>
             <AdminInput
               label="Nome *"
               value={form.nome}
@@ -244,7 +244,7 @@ export default function NovoEventoManual() {
               placeholder='Ex: "Web Summit Rio 2026"'
             />
             <div
-              className={styles.gridColsAutoGap14}
+              className={styles.fieldRow}
             >
               <AdminInput
                 label="Data início *"
@@ -266,7 +266,7 @@ export default function NovoEventoManual() {
 
         <AdminCard variant="subtle">
           <AdminCardHeader title="Localização" />
-          <div className={styles.stackGap14}>
+          <div className={styles.formCardBody}>
             <AdminInput
               label="Endereço completo (recomendado)"
               value={form.enderecoCompleto ?? ""}
@@ -275,7 +275,7 @@ export default function NovoEventoManual() {
               helper="Quando lat/lng abaixo estiver vazio, o backend usa o endereço pra geocodificar via cron (a cada 30 min)."
             />
             <div
-              className={styles.gridColsAutoGap142}
+              className={styles.locationFieldRow}
             >
               <AdminInput
                 label="Cidade"
@@ -292,7 +292,7 @@ export default function NovoEventoManual() {
               />
             </div>
             <div
-              className={styles.gridColsAutoGap14}
+              className={styles.fieldRow}
             >
               <AdminInput
                 label="Latitude"
@@ -328,9 +328,9 @@ export default function NovoEventoManual() {
 
         <AdminCard variant="subtle">
           <AdminCardHeader title="Categoria e venue" />
-          <div className={styles.stackGap14}>
+          <div className={styles.formCardBody}>
             <div
-              className={styles.gridColsAutoGap143}
+              className={styles.categoryFieldRow}
             >
               <AdminSelect
                 label="Categoria"
@@ -384,7 +384,7 @@ export default function NovoEventoManual() {
 
         <AdminCard variant="subtle">
           <AdminCardHeader title="Conteúdo" />
-          <div className={styles.stackGap14}>
+          <div className={styles.formCardBody}>
             <AdminInput
               label="Link do site oficial"
               type="url"
@@ -410,7 +410,7 @@ export default function NovoEventoManual() {
         </AdminCard>
 
         <div
-          className={styles.rowBetweenCentered}
+          className={styles.formFooter}
         >
           <AdminButton type="submit" variant="primary" size="lg" loading={submitting}>
             {submitting ? "Salvando…" : "Cadastrar evento"}
@@ -418,11 +418,11 @@ export default function NovoEventoManual() {
 
           {geocoderQueue !== null && (
             <div
-              className={styles.rowCenteredTextMuted}
+              className={styles.geocoderStatus}
             >
               <span>
                 Fila geocoder:{" "}
-                <strong className={styles.strongText}>
+                <strong className={styles.strongLabel}>
                   {geocoderQueue}
                 </strong>
               </span>

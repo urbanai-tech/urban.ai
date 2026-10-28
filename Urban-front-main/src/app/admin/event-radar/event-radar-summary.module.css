@@ -1,4 +1,4 @@
-.gridColsTextMuted.gridColsTextMuted {
+.fallbackBanner.fallbackBanner {
   margin-bottom: 28px;
   padding: 14px 16px;
   border: 1px solid color-mix(in srgb, var(--admin-warning) 30%, transparent);
@@ -11,31 +11,31 @@
   line-height: 1.55;
 }
 
-.textWarningW600.textWarningW600 {
+.fallbackTitle.fallbackTitle {
   margin: 0;
   color: var(--admin-warning);
   font-weight: 600;
 }
 
-.textM4x0x0.textM4x0x0 {
+.fallbackText.fallbackText {
   margin: 4px 0 0;
 }
 
-.textFs11M8x0x0.textFs11M8x0x0 {
+.fallbackGaps.fallbackGaps {
   margin: 8px 0 0;
   font-family: monospace;
   font-size: 11px;
   overflow-wrap: anywhere;
 }
 
-.gridCols4Gap12.gridCols4Gap12 {
+.summaryGrid.summaryGrid {
   display: grid;
   grid-template-columns: var(--event-radar-command-grid, repeat(4, minmax(0, 1fr)));
   gap: 12px;
   margin-bottom: 28px;
 }
 
-.gridColsGap12.gridColsGap12 {
+.statCard.statCard {
   min-width: 0;
   padding: 14px 16px;
   border: 1px solid var(--admin-divider);
@@ -46,15 +46,15 @@
   align-items: start;
 }
 
-.boxMinw0.boxMinw0 {
+.statBody.statBody {
   min-width: 0;
 }
 
-.eyebrowMutedMb8.eyebrowMutedMb8 {
+.statLabel.statLabel {
   margin-bottom: 8px;
 }
 
-.textTextFs16.textTextFs16 {
+.statValue.statValue {
   margin: 0;
   color: var(--admin-text);
   font-size: 16px;
@@ -64,56 +64,56 @@
   white-space: nowrap;
 }
 
-.boxMt8.boxMt8 {
+.statBadge.statBadge {
   margin-top: 8px;
 }
 
-.gridCols4Gap12Mt16.gridCols4Gap12Mt16 {
+.healthGrid.healthGrid {
   display: grid;
   grid-template-columns: var(--event-radar-health-grid, repeat(4, minmax(0, 1fr)));
   gap: 12px;
   margin-top: 16px;
 }
 
-.boxP12Minw0.boxP12Minw0 {
+.healthCard.healthCard {
   min-width: 0;
   border: 1px solid var(--admin-divider);
   border-radius: 2px;
   padding: 12px;
 }
 
-.rowBetweenBaseline.rowBetweenBaseline {
+.healthHeader.healthHeader {
   display: flex;
   justify-content: space-between;
   gap: 10px;
   align-items: baseline;
 }
 
-.labelTextFs13.labelTextFs13 {
+.healthPercent.healthPercent {
   color: var(--admin-text);
   font-family: monospace;
   font-size: 13px;
 }
 
-.boxBgDividerMt10.boxBgDividerMt10 {
+.healthTrack.healthTrack {
   height: 4px;
   margin-top: 10px;
   background: var(--admin-divider);
   overflow: hidden;
 }
 
-.boxMt10.boxMt10 {
+.healthBadge.healthBadge {
   margin-top: 10px;
 }
 
-.textTextFs18.textTextFs18 {
+.healthCounterValue.healthCounterValue {
   margin: 9px 0 8px;
   color: var(--admin-text);
   font-family: monospace;
   font-size: 18px;
 }
 
-.rowBetweenCentered.rowBetweenCentered {
+.statusLine.statusLine {
   grid-column: 1 / -1;
   display: flex;
   align-items: center;

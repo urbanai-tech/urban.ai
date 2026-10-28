@@ -175,7 +175,7 @@ export default function AdminEventRadarPage() {
 
   if (error || !radar) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.errorContainer}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar Radar de Demanda"
@@ -220,14 +220,14 @@ export default function AdminEventRadarPage() {
       key: "event",
       header: "Evento",
       render: (event) => (
-        <div className={styles.boxMinw0}>
+        <div className={styles.cellBlock}>
           <p
-            className={styles.textTextW600}
+            className={styles.eventName}
             title={event.name}
           >
             {event.name}
           </p>
-          <p className={styles.textTextMutedFs11}>
+          <p className={styles.eventMeta}>
             {formatDate(event.startsAt)} · {event.city}/{event.state}
           </p>
         </div>
@@ -246,7 +246,7 @@ export default function AdminEventRadarPage() {
       width: 130,
       align: "right",
       render: (event) => (
-        <span className={styles.labelTextMono}>
+        <span className={styles.revenueValue}>
           {formatCents(event.revenuePotentialCents)}
         </span>
       ),
@@ -255,9 +255,9 @@ export default function AdminEventRadarPage() {
       key: "context",
       header: "Categoria/source",
       render: (event) => (
-        <div className={styles.stackGap5}>
-          <span className={styles.labelTextFs12}>{event.category ?? "Sem categoria"}</span>
-          <code className={styles.codeTextDimFs11}>{event.source ?? "sem source"}</code>
+        <div className={styles.contextCell}>
+          <span className={styles.categoryLabel}>{event.category ?? "Sem categoria"}</span>
+          <code className={styles.sourceCode}>{event.source ?? "sem source"}</code>
         </div>
       ),
     },
@@ -267,10 +267,10 @@ export default function AdminEventRadarPage() {
       width: 150,
       align: "right",
       render: (event) => (
-        <div className={styles.boxTextMutedFs12}>
-          <strong className={styles.strongText}>{event.affectedPropertiesCount}</strong> imóveis
+        <div className={styles.impactCell}>
+          <strong className={styles.propertiesCount}>{event.affectedPropertiesCount}</strong> imóveis
           <br />
-          <strong className={styles.strongAccent}>{event.recommendationsGenerated}</strong> recs
+          <strong className={styles.recommendationsCount}>{event.recommendationsGenerated}</strong> recs
         </div>
       ),
     },
@@ -316,9 +316,9 @@ export default function AdminEventRadarPage() {
       key: "spot",
       header: "Blind spot",
       render: (spot) => (
-        <div className={styles.boxMinw0}>
-          <p className={styles.textTextW600M0}>{spot.title}</p>
-          <p className={styles.textTextMutedFs12}>
+        <div className={styles.cellBlock}>
+          <p className={styles.spotTitle}>{spot.title}</p>
+          <p className={styles.spotMeta}>
             {spot.eventName ?? spot.city ?? "Sem evento vinculado"} · {spot.blockedBy}
           </p>
         </div>
@@ -330,7 +330,7 @@ export default function AdminEventRadarPage() {
       width: 120,
       align: "right",
       render: (spot) => (
-        <span className={styles.labelTextMono}>
+        <span className={styles.revenueValue}>
           {formatCents(spot.revenuePotentialCents)}
         </span>
       ),
@@ -339,7 +339,7 @@ export default function AdminEventRadarPage() {
       key: "action",
       header: "Ação recomendada",
       render: (spot) => (
-        <span className={styles.labelTextMutedFs12}>
+        <span className={styles.spotAction}>
           {spot.recommendedAction}
         </span>
       ),
@@ -348,14 +348,14 @@ export default function AdminEventRadarPage() {
 
   return (
     <div
-      className={`admin-event-radar-page ${styles.pageM0xautoP40x32}`}
+      className={`admin-event-radar-page ${styles.pageContainer}`}
     >
       <AdminSectionHeader
         eyebrow="ADMIN · EVENT INTELLIGENCE"
         title="Radar de Demanda"
         subtitle="Demanda potencial, heatmap operacional, blind spots e impacto em imóveis para priorizar onde o motor de eventos gera ou perde receita."
         actions={
-          <div className={styles.rowWrapGap8}>
+          <div className={styles.actionRow}>
             <AdminButton variant="ghost" as="a" href="/admin/events" rightIcon={<Icons.ArrowRight size={11} />}>
               Eventos
             </AdminButton>
@@ -386,9 +386,9 @@ export default function AdminEventRadarPage() {
         endpointGaps={endpointGaps.length}
       />
 
-      <section className={styles.sectionMb36}>
+      <section className={styles.filtersSection}>
         <div
-          className={`admin-event-radar-filters ${styles.filtersColsAuto150Gap12}`}
+          className={`admin-event-radar-filters ${styles.filtersGrid}`}
         >
           <AdminInput label="De" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
           <AdminInput label="Até" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
@@ -459,12 +459,12 @@ export default function AdminEventRadarPage() {
         </div>
       </section>
 
-      <section className={styles.sectionMb48}>
-        <p className={`urban-admin-eyebrow ${styles.eyebrowMb18}`}>
+      <section className={styles.kpiSection}>
+        <p className={`urban-admin-eyebrow ${styles.kpiEyebrow}`}>
           KPIs DO RADAR
         </p>
         <div
-          className={styles.gridColsAuto170Gap28}
+          className={styles.kpiGrid}
         >
           <AdminMetricCard
             label="Demanda potencial"
@@ -501,20 +501,20 @@ export default function AdminEventRadarPage() {
       </section>
 
       <section
-        className={`admin-event-radar-main-grid ${styles.mainGridColsGap24}`}
+        className={`admin-event-radar-main-grid ${styles.mainGrid}`}
       >
         <div>
           <header
-            className={`admin-event-radar-section-header ${styles.sectionHeaderBetweenGap16}`}
+            className={`admin-event-radar-section-header ${styles.tableSectionHeader}`}
           >
             <div>
               <p className="urban-admin-eyebrow">TABELA PRIORIZADA</p>
-              <h2 className={styles.headingTextFs20}>
+              <h2 className={styles.sectionTitle}>
                 {prioritizedEvents.length} eventos por potencial
               </h2>
             </div>
             <p
-              className={styles.textTextMutedFs12M0}
+              className={styles.tableHint}
             >
               Clique na linha para abrir detalhe operacional.
             </p>
@@ -531,9 +531,9 @@ export default function AdminEventRadarPage() {
         </div>
 
         <div>
-          <header className={styles.headerMb16}>
+          <header className={styles.heatmapHeader}>
             <p className="urban-admin-eyebrow">HEATMAP ADMIN</p>
-            <h2 className={styles.headingTextFs20}>
+            <h2 className={styles.sectionTitle}>
               Células por cidade
             </h2>
           </header>
@@ -547,18 +547,18 @@ export default function AdminEventRadarPage() {
         </div>
       </section>
 
-      <section className={styles.sectionMb40}>
+      <section className={styles.blindSpotsSection}>
         <header
-          className={styles.rowBetweenWrap}
+          className={styles.blindSpotsHeader}
         >
           <div>
             <p className="urban-admin-eyebrow">BLIND SPOTS</p>
-            <h2 className={styles.headingTextFs20}>
+            <h2 className={styles.sectionTitle}>
               Bloqueios com ação clara
             </h2>
           </div>
           {blindSpots && (
-            <div className={styles.rowWrapGap8}>
+            <div className={styles.actionRow}>
               <AdminBadge kind="error">High {blindSpots.summary.high}</AdminBadge>
               <AdminBadge kind="warn">Medium {blindSpots.summary.medium}</AdminBadge>
               <AdminBadge kind="neutral">Low {blindSpots.summary.low}</AdminBadge>
@@ -585,7 +585,7 @@ export default function AdminEventRadarPage() {
       </section>
 
       <footer
-        className={styles.footerTextMutedFs12}
+        className={styles.pageFooter}
       >
         Snapshot em {formatDateTime(radar.generatedAt)} · modo{" "}
         <strong style={{ color: modeColor(radar.contractMode) }}>{radar.contractMode}</strong>. O objetivo desta
@@ -611,7 +611,7 @@ export default function AdminEventRadarPage() {
         }
       >
         {detailLoading && (
-          <p className={styles.textTextMutedFs13}>
+          <p className={styles.drawerLoading}>
             Carregando detalhe…
           </p>
         )}

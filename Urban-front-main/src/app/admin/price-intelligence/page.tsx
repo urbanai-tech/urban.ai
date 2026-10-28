@@ -78,11 +78,11 @@ export default function AdminPriceIntelligencePage() {
         key: "property",
         header: "Imóvel",
         render: (row) => (
-          <div className={styles.boxMinw0}>
-            <p className={styles.textTextW600}>
+          <div className={styles.cellContent}>
+            <p className={styles.propertyTitle}>
               {row.title || row.listId || row.addressId || "Sem identificação"}
             </p>
-            <p className={styles.textTextMutedFs12}>
+            <p className={styles.propertySubtitle}>
               {[row.city, row.state].filter(Boolean).join(", ") || row.userEmail || "Localidade não informada"}
             </p>
           </div>
@@ -102,7 +102,7 @@ export default function AdminPriceIntelligencePage() {
         key: "issue",
         header: "Problema",
         render: (row) => (
-          <span className={styles.labelTextMutedLh1_5}>
+          <span className={styles.issueText}>
             {row.issue}
           </span>
         ),
@@ -112,7 +112,7 @@ export default function AdminPriceIntelligencePage() {
         header: "Sinais",
         width: 220,
         render: (row) => (
-          <div className={styles.stackGap4}>
+          <div className={styles.signalsCell}>
             <SmallMuted>Snapshot: {formatDate(row.lastSnapshotAt)}</SmallMuted>
             <SmallMuted>Obs.: {formatDate(row.lastObservationAt)}</SmallMuted>
             <SmallMuted>
@@ -132,7 +132,7 @@ export default function AdminPriceIntelligencePage() {
         key: "name",
         header: "Job",
         render: (row) => (
-          <code className={styles.codeTextFs12}>{row.name}</code>
+          <code className={styles.jobName}>{row.name}</code>
         ),
       },
       {
@@ -168,7 +168,7 @@ export default function AdminPriceIntelligencePage() {
 
   if (error || !data) {
     return (
-      <div className={styles.boxM0xautoP40x32}>
+      <div className={styles.pageContainer}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar Price Intelligence"
@@ -196,14 +196,14 @@ export default function AdminPriceIntelligencePage() {
   const airbnbAttemptStatus = airbnbAttempts ? statusFromHealth(airbnbAttempts.health) : "warn";
 
   return (
-    <div className={styles.boxM0xautoP40x32}>
+    <div className={styles.pageContainer}>
       <AdminSectionHeader
         eyebrow="ADMIN / PRICE INTELLIGENCE"
         title="Saúde do motor de preços"
         subtitle={
           <span>
             Janela de {data.windowDays} dias / última leitura:{" "}
-            <strong className={styles.strongText}>
+            <strong className={styles.strongLabel}>
               {formatDate(data.generatedAt)}
             </strong>
           </span>
@@ -223,12 +223,12 @@ export default function AdminPriceIntelligencePage() {
           marginBottom: 32,
         }}
       >
-        <div className={styles.rowBetweenWrap}>
-          <div className={styles.rowCenteredGap14}>
+        <div className={styles.healthHeader}>
+          <div className={styles.healthSummary}>
             <AdminStatusDot kind={healthKind} size={14} pulse={data.health !== "green"} />
             <div>
               <p className="urban-admin-eyebrow-muted">SAÚDE GERAL</p>
-              <p className={styles.textFs20W600}>
+              <p className={styles.healthLabel}>
                 {healthLabel(data.health)}
               </p>
             </div>
@@ -237,13 +237,13 @@ export default function AdminPriceIntelligencePage() {
         </div>
 
         {alerts.length > 0 && (
-          <ul className={styles.gridGap10M16x0x0}>
+          <ul className={styles.alertList}>
             {alerts.map((alert, index) => (
-              <li key={`${alert.message}-${index}`} className={styles.rowStartGap10}>
-                <span className={styles.label}>
+              <li key={`${alert.message}-${index}`} className={styles.alertItem}>
+                <span className={styles.alertDot}>
                   <AdminStatusDot kind={statusFromSeverity(alert.severity)} size={7} />
                 </span>
-                <span className={styles.labelTextMutedFs13}>
+                <span className={styles.alertMessage}>
                   {alert.message}
                 </span>
               </li>
@@ -253,7 +253,7 @@ export default function AdminPriceIntelligencePage() {
       </section>
 
       <section
-        className={styles.gridColsAuto220Gap24}
+        className={styles.metricsGrid}
       >
         <AdminMetricCard
           label="Snapshots"
@@ -293,11 +293,11 @@ export default function AdminPriceIntelligencePage() {
       </section>
 
       <section
-        className={styles.gridColsGap24}
+        className={styles.suggestionsJobsGrid}
       >
         <AdminCard variant="subtle">
           <AdminCardHeader eyebrow="SUGESTÕES" title="Verificação e aplicação" />
-          <div className={styles.gridCols4Gap16}>
+          <div className={styles.suggestionStats}>
             <InlineStat label="Futuras" value={integer.format(data.suggestions.future)} />
             <InlineStat label="Aceitas" value={integer.format(data.suggestions.accepted)} />
             <InlineStat label="Aplicadas" value={integer.format(data.suggestions.applied)} />
@@ -307,7 +307,7 @@ export default function AdminPriceIntelligencePage() {
 
         <AdminCard variant="subtle">
           <AdminCardHeader eyebrow="JOBS" title="Fila operacional" />
-          <div className={styles.gridGap12}>
+          <div className={styles.statusList}>
             <StatusLine label="Rodando" value={integer.format(data.jobs.running)} kind={data.jobs.running > 0 ? "accent" : "neutral"} />
             <StatusLine
               label="Na fila"
@@ -317,7 +317,7 @@ export default function AdminPriceIntelligencePage() {
             <StatusLine label="Último sucesso" value={formatDate(data.jobs.lastSuccessAt)} kind={data.jobs.lastSuccessAt ? "success" : "warn"} />
             <StatusLine label="Último run" value={data.jobs.lastRun ? `${data.jobs.lastRun.name} / ${data.jobs.lastRun.status}` : "Sem execuções"} kind={data.jobs.lastRun?.status === "error" ? "error" : "neutral"} />
             {data.jobs.queueAvailable === false && (
-              <p className={styles.textTextMutedFs12M0Lh1_5}>
+              <p className={styles.queueNote}>
                 {data.jobs.queueUnavailableReason || "Fila real ainda não implementada para este pipeline."}
               </p>
             )}
@@ -325,7 +325,7 @@ export default function AdminPriceIntelligencePage() {
         </AdminCard>
       </section>
 
-      <section className={styles.sectionMb48}>
+      <section className={styles.section}>
         <AdminCard variant={airbnbAttempts?.health === "green" ? "subtle" : "accent"}>
           <AdminCardHeader eyebrow="AIRBNB" title="Saúde das cotações headless" />
           {airbnbAttemptsError ? (
@@ -333,8 +333,8 @@ export default function AdminPriceIntelligencePage() {
           ) : !airbnbAttempts ? (
             <QuietEmpty>Nenhuma leitura de tentativa retornada.</QuietEmpty>
           ) : (
-            <div className={styles.gridGap24}>
-              <div className={styles.gridColsAuto160Gap16}>
+            <div className={styles.airbnbBody}>
+              <div className={styles.airbnbStats}>
                 <InlineStat label="Tentativas 24h" value={integer.format(airbnbAttempts.summary.total)} />
                 <InlineStat label="Sucessos" value={integer.format(airbnbAttempts.summary.successes)} />
                 <InlineStat label="Falhas" value={integer.format(airbnbAttempts.summary.failures)} />
@@ -342,8 +342,8 @@ export default function AdminPriceIntelligencePage() {
                 <InlineStat label="Tempo médio" value={formatDuration(airbnbAttempts.summary.avgDurationMs)} />
               </div>
 
-              <div className={styles.gridColsGap242}>
-                <div className={styles.gridGap14}>
+              <div className={styles.airbnbColumns}>
+                <div className={styles.barRows}>
                   <StatusLine
                     label="Schema"
                     value={airbnbAttempts.schema.available ? "Disponível" : "Indisponível"}
@@ -362,7 +362,7 @@ export default function AdminPriceIntelligencePage() {
                   {airbnbAttempts.schema.error && <QuietEmpty>{airbnbAttempts.schema.error}</QuietEmpty>}
                 </div>
 
-                <div className={styles.gridGap14}>
+                <div className={styles.barRows}>
                   {airbnbAttempts.sources.length === 0 ? (
                     <QuietEmpty>Sem tentativas por fonte na janela.</QuietEmpty>
                   ) : (
@@ -380,8 +380,8 @@ export default function AdminPriceIntelligencePage() {
               </div>
 
               {airbnbAttempts.failuresByReason.length > 0 && (
-                <div className={styles.gridGap14}>
-                  <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedM0}`}>FALHAS AIRBNB POR MOTIVO</p>
+                <div className={styles.barRows}>
+                  <p className={`urban-admin-eyebrow-muted ${styles.failuresEyebrow}`}>FALHAS AIRBNB POR MOTIVO</p>
                   {airbnbAttempts.failuresByReason.slice(0, 5).map((failure) => (
                     <BarRow
                       key={failure.reason}
@@ -399,14 +399,14 @@ export default function AdminPriceIntelligencePage() {
       </section>
 
       <section
-        className={styles.gridColsGap24Mb48}
+        className={styles.jobsSchemaGrid}
       >
         <AdminCard>
           <AdminCardHeader eyebrow="JOBS" title="Métricas por nome" />
           {jobMetrics.length === 0 ? (
             <QuietEmpty>Nenhuma métrica por job retornada.</QuietEmpty>
           ) : (
-            <div className={styles.gridGap12}>
+            <div className={styles.statusList}>
               {jobMetrics.map((job) => (
                 <JobMetricRow key={job.name} job={job} />
               ))}
@@ -417,7 +417,7 @@ export default function AdminPriceIntelligencePage() {
         <AdminCard variant={data.schema?.ok ? "subtle" : "accent"}>
           <AdminCardHeader eyebrow="SCHEMA" title="Migrations operacionais" />
           {data.schema ? (
-            <div className={styles.gridGap12}>
+            <div className={styles.statusList}>
               <StatusLine
                 label="Status"
                 value={data.schema.ok ? "Completo" : "Ação necessária"}
@@ -428,7 +428,7 @@ export default function AdminPriceIntelligencePage() {
                 <QuietEmpty>{data.schema.checkError}</QuietEmpty>
               )}
               {data.schema.missing.length > 0 && (
-                <ul className={styles.listTextMutedFs12}>
+                <ul className={styles.missingList}>
                   {data.schema.missing.slice(0, 8).map((item) => (
                     <li key={item}>{item}</li>
                   ))}
@@ -442,14 +442,14 @@ export default function AdminPriceIntelligencePage() {
       </section>
 
       <section
-        className={styles.gridColsGap243}
+        className={styles.failuresShortcutsGrid}
       >
         <AdminCard>
           <AdminCardHeader eyebrow="FALHAS" title="Falhas por tipo" />
           {failures.length === 0 ? (
             <QuietEmpty>Nenhuma falha agrupada na janela.</QuietEmpty>
           ) : (
-            <div className={styles.gridGap14}>
+            <div className={styles.barRows}>
               {failures.map((failure) => (
                 <BarRow
                   key={failure.type}
@@ -465,19 +465,19 @@ export default function AdminPriceIntelligencePage() {
 
         <AdminCard>
           <AdminCardHeader eyebrow="ATALHOS" title="Ações rápidas" />
-          <div className={styles.gridColsAuto210Gap12}>
+          <div className={styles.shortcutGrid}>
             {shortcuts.map((shortcut) => (
               <a
                 key={`${shortcut.href}-${shortcut.label}`}
                 href={shortcut.href}
-                className={styles.rowBetweenText}
+                className={styles.shortcutLink}
               >
                 <span>
-                  <span className={styles.labelFs13W600}>
+                  <span className={styles.shortcutLabel}>
                     {shortcut.label}
                   </span>
                   {shortcut.description && (
-                    <span className={styles.labelTextMutedFs12}>
+                    <span className={styles.shortcutHint}>
                       {shortcut.description}
                     </span>
                   )}
@@ -489,7 +489,7 @@ export default function AdminPriceIntelligencePage() {
         </AdminCard>
       </section>
 
-      <section className={styles.sectionMb48}>
+      <section className={styles.section}>
         <AdminCardHeader eyebrow="IMÓVEIS" title="Imóveis problemáticos" />
         <AdminTable
           columns={propertyColumns}
@@ -512,10 +512,10 @@ export default function AdminPriceIntelligencePage() {
       </section>
 
       {(data.endpointGaps?.length ?? 0) > 0 && (
-        <section className={styles.sectionMt32}>
+        <section className={styles.gapsSection}>
           <AdminCard variant="accent">
             <AdminCardHeader eyebrow="CONTRATO" title="Gaps reportados pelo backend" />
-            <ul className={styles.listTextMutedFs13}>
+            <ul className={styles.gapsList}>
               {data.endpointGaps?.map((gap) => <li key={gap}>{gap}</li>)}
             </ul>
           </AdminCard>
@@ -536,9 +536,9 @@ const defaultShortcuts: AdminPriceIntelligenceHealth["shortcuts"] = [
 
 function InlineStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className={styles.boxBordered}>
+    <div className={styles.inlineStat}>
       <p className="urban-admin-eyebrow-muted">{label}</p>
-      <p className={styles.textTextFs24}>
+      <p className={styles.inlineStatValue}>
         {value}
       </p>
     </div>
@@ -547,12 +547,12 @@ function InlineStat({ label, value }: { label: string; value: string }) {
 
 function StatusLine({ label, value, kind }: { label: string; value: string; kind: AdminStatusKind }) {
   return (
-    <div className={styles.rowBetweenCentered}>
-      <span className={styles.rowCenteredTextMuted}>
+    <div className={styles.statusLine}>
+      <span className={styles.statusLineLabel}>
         <AdminStatusDot kind={kind} size={7} />
         {label}
       </span>
-      <span className={styles.labelTextFs13}>{value}</span>
+      <span className={styles.statusLineValue}>{value}</span>
     </div>
   );
 }
@@ -561,14 +561,14 @@ function BarRow({ label, value, max, sub }: { label: string; value: number; max:
   const width = `${Math.max(6, Math.round((value / max) * 100))}%`;
   return (
     <div>
-      <div className={styles.rowBetweenGap12}>
-        <span className={styles.labelTextFs132}>{label}</span>
-        <span className={styles.labelTextMutedFs122}>{integer.format(value)}</span>
+      <div className={styles.barRowHeader}>
+        <span className={styles.barRowLabel}>{label}</span>
+        <span className={styles.smallMuted}>{integer.format(value)}</span>
       </div>
-      <div className={styles.boxBgSurfaceElevatedH6}>
+      <div className={styles.barTrack}>
         <div style={{ width, height: "100%", background: "var(--admin-accent)" }} />
       </div>
-      <p className={styles.textTextDimFs11}>{sub}</p>
+      <p className={styles.subText}>{sub}</p>
     </div>
   );
 }
@@ -589,15 +589,15 @@ function JobMetricRow({
 
   return (
     <div
-      className={styles.gridCenteredCols472}
+      className={styles.jobMetricRow}
     >
-      <div className={styles.boxMinw0}>
-        <code className={styles.codeTextFs12}>{job.name}</code>
-        <p className={styles.textTextDimFs11}>
+      <div className={styles.cellContent}>
+        <code className={styles.jobName}>{job.name}</code>
+        <p className={styles.subText}>
           Último: {formatDate(job.lastRunAt)}
         </p>
         {job.lastErrorMessage && (
-          <p className={styles.textDangerFs11}>
+          <p className={styles.jobError}>
             {job.lastErrorMessage}
           </p>
         )}
@@ -614,12 +614,12 @@ function JobMetricRow({
 }
 
 function SmallMuted({ children }: { children: React.ReactNode }) {
-  return <span className={styles.labelTextMutedFs122}>{children}</span>;
+  return <span className={styles.smallMuted}>{children}</span>;
 }
 
 function QuietEmpty({ children }: { children: React.ReactNode }) {
   return (
-    <div className={styles.boxTextMutedFs13}>
+    <div className={styles.quietEmpty}>
       {children}
     </div>
   );

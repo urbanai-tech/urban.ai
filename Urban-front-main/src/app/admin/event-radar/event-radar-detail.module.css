@@ -1,4 +1,4 @@
-.gridColsGap18.gridColsGap18 {
+.decisionLayout.decisionLayout {
   border: 1px solid var(--admin-divider);
   border-radius: 2px;
   padding: 16px;
@@ -7,22 +7,22 @@
   gap: 18px;
 }
 
-.boxMinw0.boxMinw0 {
+.contentBlock.contentBlock {
   min-width: 0;
 }
 
-.eyebrowMutedMb10.eyebrowMutedMb10 {
+.decisionEyebrow.decisionEyebrow {
   margin-bottom: 10px;
 }
 
-.rowCenteredWrap.rowCenteredWrap {
+.decisionBadges.decisionBadges {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-.textTextMutedFs12.textTextMutedFs12 {
+.decisionText.decisionText {
   margin: 12px 0 0;
   color: var(--admin-text-muted);
   font-size: 12px;
@@ -30,20 +30,20 @@
   overflow-wrap: anywhere;
 }
 
-.gridCols2Gap12.gridCols2Gap12 {
+.metricGrid.metricGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   min-width: 0;
 }
 
-.stackGap28.stackGap28 {
+.detailStack.detailStack {
   display: flex;
   flex-direction: column;
   gap: 28px;
 }
 
-.boxWarningFs12.boxWarningFs12 {
+.fallbackNotice.fallbackNotice {
   padding: 12px 14px;
   border: 1px solid color-mix(in srgb, var(--admin-warning) 30%, transparent);
   border-radius: 2px;
@@ -52,18 +52,18 @@
   line-height: 1.5;
 }
 
-.eyebrowMutedMb12.eyebrowMutedMb12 {
+.sectionEyebrow.sectionEyebrow {
   margin-bottom: 12px;
 }
 
-.rowWrapGap8.rowWrapGap8 {
+.summaryBadges.summaryBadges {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 14px;
 }
 
-.textTextMutedFs13.textTextMutedFs13 {
+.interpretationText.interpretationText {
   margin: 0;
   font-size: 13px;
   color: var(--admin-text-muted);
@@ -71,7 +71,7 @@
   overflow-wrap: anywhere;
 }
 
-.rowCenteredAccent.rowCenteredAccent {
+.sourceLink.sourceLink {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -83,51 +83,51 @@
   overflow-wrap: anywhere;
 }
 
-.gridColsAuto150Gap16.gridColsAuto150Gap16 {
+.economicsGrid.economicsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 16px;
 }
 
-.gridColsAuto180Gap12.gridColsAuto180Gap12 {
+.rawDataGrid.rawDataGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
 }
 
-.stackGap10.stackGap10 {
+.driverList.driverList {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.boxP12Minw0.boxP12Minw0 {
+.driverCard.driverCard {
   border: 1px solid var(--admin-divider);
   border-radius: 2px;
   padding: 12px;
   min-width: 0;
 }
 
-.rowBetweenGap12.rowBetweenGap12 {
+.driverHeader.driverHeader {
   display: flex;
   justify-content: space-between;
   gap: 12px;
   min-width: 0;
 }
 
-.strongTextFs13.strongTextFs13 {
+.driverLabel.driverLabel {
   color: var(--admin-text);
   font-size: 13px;
   overflow-wrap: anywhere;
 }
 
-.labelAccentFs12.labelAccentFs12 {
+.driverWeight.driverWeight {
   font-family: monospace;
   color: var(--admin-accent);
   font-size: 12px;
 }
 
-.textTextMutedFs12M6x0x0Lh1_55.textTextMutedFs12M6x0x0Lh1_55 {
+.driverExplanation.driverExplanation {
   margin: 6px 0 0;
   font-size: 12px;
   color: var(--admin-text-muted);
@@ -135,68 +135,68 @@
   overflow-wrap: anywhere;
 }
 
-.rowWrapGap82.rowWrapGap82 {
+.riskBadges.riskBadges {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.textTextW600.textTextW600 {
+.propertyName.propertyName {
   margin: 0;
   font-weight: 600;
   color: var(--admin-text);
   overflow-wrap: anywhere;
 }
 
-.textTextMutedFs11.textTextMutedFs11 {
+.propertyMeta.propertyMeta {
   margin: 4px 0 0;
   font-size: 11px;
   color: var(--admin-text-muted);
   overflow-wrap: anywhere;
 }
 
-.rowWrapGap6.rowWrapGap6 {
+.statusBadges.statusBadges {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.stackGap5Minw0.stackGap5Minw0 {
+.evidenceStack.evidenceStack {
   display: flex;
   flex-direction: column;
   gap: 5px;
   min-width: 0;
 }
 
-.codeTextDimFs11.codeTextDimFs11 {
+.evidenceJobRun.evidenceJobRun {
   color: var(--admin-text-dim);
   font-size: 11px;
   overflow-wrap: anywhere;
 }
 
-.labelTextMutedFs11.labelTextMutedFs11 {
+.evidenceModel.evidenceModel {
   color: var(--admin-text-muted);
   font-size: 11px;
   overflow-wrap: anywhere;
 }
 
-.labelTextDim.labelTextDim {
+.scoreEmpty.scoreEmpty {
   color: var(--admin-text-dim);
 }
 
-.stackGap4Minw58.stackGap4Minw58 {
+.scoreCell.scoreCell {
   display: inline-flex;
   flex-direction: column;
   gap: 4px;
   min-width: 58px;
 }
 
-.boxBgDividerH2.boxBgDividerH2 {
+.scoreTrack.scoreTrack {
   height: 2px;
   background: var(--admin-divider);
 }
 
-.textTextDimFs9.textTextDimFs9 {
+.miniStatLabel.miniStatLabel {
   margin: 0;
   font-size: 9px;
   letter-spacing: 1.2px;
@@ -204,7 +204,7 @@
   color: var(--admin-text-dim);
 }
 
-.textTextFs12.textTextFs12 {
+.miniStatValue.miniStatValue {
   margin: 3px 0 0;
   font-family: monospace;
   color: var(--admin-text);
@@ -212,13 +212,13 @@
   overflow-wrap: anywhere;
 }
 
-.boxMinw0Bordered.boxMinw0Bordered {
+.metricBlock.metricBlock {
   border-top: 1px solid var(--admin-divider);
   padding-top: 10px;
   min-width: 0;
 }
 
-.textTextFs17.textTextFs17 {
+.metricValue.metricValue {
   margin: 8px 0 0;
   color: var(--admin-text);
   font-family: monospace;
@@ -226,7 +226,7 @@
   overflow-wrap: anywhere;
 }
 
-.textTextMutedFs10.textTextMutedFs10 {
+.detailRowLabel.detailRowLabel {
   margin: 0;
   font-size: 10px;
   letter-spacing: 1.5px;
@@ -235,7 +235,7 @@
   font-weight: 600;
 }
 
-.textTextFs12M5x0x0Mono.textTextFs12M5x0x0Mono {
+.detailRowValue.detailRowValue {
   margin: 5px 0 0;
   font-size: 12px;
   color: var(--admin-text);

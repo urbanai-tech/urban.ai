@@ -1,64 +1,64 @@
-.boxM0xautoP40x32.boxM0xautoP40x32 {
+.pageContainer.pageContainer {
   max-width: 880px;
   margin: 0 auto;
   padding: 40px 32px;
 }
 
-.rowCenteredWrap.rowCenteredWrap {
+.resultHeader.resultHeader {
   display: flex;
   align-items: center;
   gap: 14px;
   flex-wrap: wrap;
 }
 
-.labelTextMutedFs12.labelTextMutedFs12 {
+.resultId.resultId {
   font-family: monospace;
   font-size: 12px;
   color: var(--admin-text-muted);
 }
 
-.labelTextMutedFs13.labelTextMutedFs13 {
+.resultReason.resultReason {
   font-size: 13px;
   color: var(--admin-text-muted);
 }
 
-.rowGap10Mt16.rowGap10Mt16 {
+.resultActions.resultActions {
   margin-top: 16px;
   display: flex;
   gap: 10px;
 }
 
-.stackGap18.stackGap18 {
+.eventForm.eventForm {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-.stackGap14.stackGap14 {
+.formCardBody.formCardBody {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-.gridColsAutoGap14.gridColsAutoGap14 {
+.fieldRow.fieldRow {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
   gap: 14px;
 }
 
-.gridColsAutoGap142.gridColsAutoGap142 {
+.locationFieldRow.locationFieldRow {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   gap: 14px;
 }
 
-.gridColsAutoGap143.gridColsAutoGap143 {
+.categoryFieldRow.categoryFieldRow {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
   gap: 14px;
 }
 
-.rowBetweenCentered.rowBetweenCentered {
+.formFooter.formFooter {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -67,7 +67,7 @@
   padding-top: 8px;
 }
 
-.rowCenteredTextMuted.rowCenteredTextMuted {
+.geocoderStatus.geocoderStatus {
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -75,7 +75,7 @@
   color: var(--admin-text-muted);
 }
 
-.strongText.strongText {
+.strongLabel.strongLabel {
   color: var(--admin-text);
 }
 

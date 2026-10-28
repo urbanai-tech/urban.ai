@@ -7,19 +7,19 @@ import styles from "./event-radar-summary.module.css";
 export function ContractBanner({ endpointGaps }: { endpointGaps: string[] }) {
   return (
     <section
-      className={styles.gridColsTextMuted}
+      className={styles.fallbackBanner}
     >
       <Icons.AlertTriangle size={16} className={styles.warningIcon} />
       <div>
-        <p className={styles.textWarningW600}>
+        <p className={styles.fallbackTitle}>
           Usando fallback contratual do front.
         </p>
-        <p className={styles.textM4x0x0}>
+        <p className={styles.fallbackText}>
           A tela já está navegável, mas os dados econômicos são adaptados de `/admin/events/analytics` e
           `/admin/events/list` até o backend expor os endpoints reais.
         </p>
         {endpointGaps.length > 0 && (
-          <p className={styles.textFs11M8x0x0}>
+          <p className={styles.fallbackGaps}>
             Gaps: {endpointGaps.join(" · ")}
           </p>
         )}
@@ -50,7 +50,7 @@ export function RadarCommandStrip({
 
   return (
     <section
-      className={styles.gridCols4Gap12}
+      className={styles.summaryGrid}
       aria-label="Resumo operacional do radar"
     >
       <CommandTile
@@ -100,7 +100,7 @@ function CommandTile({
 }) {
   return (
     <div
-      className={styles.gridColsGap12}
+      className={styles.statCard}
     >
       <span
         style={{
@@ -111,17 +111,17 @@ function CommandTile({
       >
         {icon}
       </span>
-      <div className={styles.boxMinw0}>
-        <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb8}`}>
+      <div className={styles.statBody}>
+        <p className={`urban-admin-eyebrow-muted ${styles.statLabel}`}>
           {label}
         </p>
         <p
-          className={styles.textTextFs16}
+          className={styles.statValue}
           title={String(value)}
         >
           {value}
         </p>
-        <div className={styles.boxMt8}>
+        <div className={styles.statBadge}>
           <AdminBadge kind={kind}>{detail}</AdminBadge>
         </div>
       </div>
@@ -142,7 +142,7 @@ export function KpiHealthFooter({
 }) {
   return (
     <div
-      className={styles.gridCols4Gap12Mt16}
+      className={styles.healthGrid}
     >
       <HealthMeter
         label="Cobertura"
@@ -173,15 +173,15 @@ function HealthMeter({ label, value, detail }: { label: string; value: number; d
   const kind: AdminBadgeKind = clamped >= 70 ? "success" : clamped >= 45 ? "warn" : "error";
 
   return (
-    <div className={styles.boxP12Minw0}>
-      <div className={styles.rowBetweenBaseline}>
+    <div className={styles.healthCard}>
+      <div className={styles.healthHeader}>
         <p className="urban-admin-eyebrow-muted">{label}</p>
-        <span className={styles.labelTextFs13}>{clamped}%</span>
+        <span className={styles.healthPercent}>{clamped}%</span>
       </div>
-      <div className={styles.boxBgDividerMt10}>
+      <div className={styles.healthTrack}>
         <div style={{ width: `${clamped}%`, height: "100%", background: scoreColor(clamped) }} />
       </div>
-      <div className={styles.boxMt10}>
+      <div className={styles.healthBadge}>
         <AdminBadge kind={kind}>{detail}</AdminBadge>
       </div>
     </div>
@@ -190,9 +190,9 @@ function HealthMeter({ label, value, detail }: { label: string; value: number; d
 
 function HealthCounter({ label, value, kind }: { label: string; value: number; kind: AdminBadgeKind }) {
   return (
-    <div className={styles.boxP12Minw0}>
+    <div className={styles.healthCard}>
       <p className="urban-admin-eyebrow-muted">{label}</p>
-      <p className={styles.textTextFs18}>
+      <p className={styles.healthCounterValue}>
         {integer.format(value)}
       </p>
       <AdminBadge kind={kind}>{value > 0 ? "ação pendente" : "sem bloqueio"}</AdminBadge>
@@ -215,7 +215,7 @@ export function FilterStatusStrip({
 }) {
   return (
     <div
-      className={styles.rowBetweenCentered}
+      className={styles.statusLine}
       aria-live="polite"
     >
       <span className={styles.label}>

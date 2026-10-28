@@ -81,10 +81,10 @@ export function GeoOpsHeatmapPanel({
     .reduce((sum, event) => sum + (event.revenuePotentialCents ?? 0), 0);
 
   return (
-    <div data-testid="admin-geo-ops-heatmap" className={styles.stackGap12}>
+    <div data-testid="admin-geo-ops-heatmap" className={styles.heatmapRoot}>
       <div
         data-testid="admin-geo-ops-summary"
-        className={styles.gridCols4Gap10}
+        className={styles.summaryGrid}
       >
         <GeoOpsStat
           label="Hotspots"
@@ -117,19 +117,19 @@ export function GeoOpsHeatmapPanel({
       </div>
 
       <div
-        className={styles.gridCenteredCols}
+        className={styles.focusBar}
       >
-        <div className={styles.boxMinw0}>
-          <p className={styles.textTextFs13}>
+        <div className={styles.contentBlock}>
+          <p className={styles.focusTitle}>
             Métrica: {metricLabel(metric)} / foco: {geoOpsFocusLabel(focus)}
           </p>
-          <p className={styles.textTextMutedFs12}>
+          <p className={styles.focusHint}>
             {filteredCells.length} de {opsCells.length} células visíveis. Cores indicam intensidade; badge indica a próxima ação operacional.
           </p>
         </div>
         <div
           aria-hidden
-          className={styles.boxBgAccentW96}
+          className={styles.focusAccentBar}
         />
       </div>
 
@@ -138,24 +138,24 @@ export function GeoOpsHeatmapPanel({
       )}
 
       <div
-        className={styles.gridCols3Gap10}
+        className={styles.hotspotGrid}
       >
         {topCells.map((item, index) => (
           <div
             key={`${item.cell.cellId}-top`}
             data-testid="admin-geo-hotspot-card"
-            className={styles.boxP10x12Minw0}
+            className={styles.hotspotCard}
           >
-            <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb7}`}>
+            <p className={`urban-admin-eyebrow-muted ${styles.hotspotEyebrow}`}>
               Hotspot {index + 1}
             </p>
             <p
-              className={styles.textTextFs13W700M0Scroll}
+              className={styles.hotspotTitle}
               title={item.cell.label}
             >
               {item.cell.label}
             </p>
-            <p className={styles.textTextMutedFs11}>
+            <p className={styles.hotspotMeta}>
               {formatHeatmapValue(item.value, metric)} - {item.cell.eventsCount} eventos - {item.action.label}
             </p>
             <GeoCellMeta cell={item.cell} compact />
@@ -164,7 +164,7 @@ export function GeoOpsHeatmapPanel({
       </div>
 
       <div
-        className={styles.gridCols2Gap10}
+        className={styles.eventListGrid}
       >
         <GeoOpsEventList
           title="Maior receita potencial"
@@ -189,7 +189,7 @@ export function GeoOpsHeatmapPanel({
         />
       ) : (
         <div
-          className={`admin-event-radar-heatmap-grid ${styles.heatmapGridColsAuto150Gap10}`}
+          className={`admin-event-radar-heatmap-grid ${styles.heatmapCellGrid}`}
         >
           {filteredCells.map((item) => (
             <div
@@ -211,30 +211,30 @@ export function GeoOpsHeatmapPanel({
                 minWidth: 0,
               }}
             >
-              <div className={styles.boxMinw0}>
-                <div className={styles.rowBetweenBaseline}>
+              <div className={styles.contentBlock}>
+                <div className={styles.cellValueRow}>
                   <p className="urban-admin-eyebrow-muted">Valor</p>
-                  <span className={styles.labelAccentFs12}>
+                  <span className={styles.cellValue}>
                     {formatHeatmapValue(item.value, metric)}
                   </span>
                 </div>
                 <p
-                  className={styles.textTextFs13W600M10x0x0Scroll}
+                  className={styles.cellTitle}
                   title={item.cell.label}
                 >
                   {item.cell.label}
                 </p>
-                <p className={styles.textTextMutedFs11M5x0x0}>
+                <p className={styles.cellCategory}>
                   {item.cell.dominantCategory ?? "categoria mista"}
                 </p>
                 <GeoCellMeta cell={item.cell} />
               </div>
-              <div className={styles.rowWrapGap6}>
+              <div className={styles.cellBadges}>
                 <AdminBadge kind={item.action.kind}>{item.action.label}</AdminBadge>
                 {item.missingGeoCount > 0 && <AdminBadge kind="error">geo {item.missingGeoCount}</AdminBadge>}
                 {item.regionBlindSpots > 0 && <AdminBadge kind="warn">spots {item.regionBlindSpots}</AdminBadge>}
               </div>
-              <div className={styles.gridColsFs11}>
+              <div className={styles.cellStats}>
                 <MiniStat label="Score" value={item.cell.eventDemandScore} />
                 <MiniStat label="Eventos" value={item.cell.eventsCount} />
                 <MiniStat label="Imóveis" value={item.cell.affectedPropertiesCount} />
@@ -270,20 +270,20 @@ function GeoOpsRadarMap({
   return (
     <div
       data-testid="admin-geo-ops-radar-map"
-      className={styles.boxScrollBordered}
+      className={styles.radarMapFrame}
     >
       <div
-        className={`admin-geo-ops-radar-map-canvas ${styles.geoOpsRadarMapCanvasBgDivider}`}
+        className={`admin-geo-ops-radar-map-canvas ${styles.radarMapCanvas}`}
       >
         <AdminRadarOverlay />
-        <div className={styles.rowAbsoluteWrap}>
+        <div className={styles.radarMapBadges}>
           <AdminBadge kind="accent">{geoItems.length} células no radar</AdminBadge>
           {missingCenterCount > 0 && <AdminBadge kind="warn">{missingCenterCount} sem centro</AdminBadge>}
         </div>
 
         {geoItems.length === 0 ? (
           <div
-            className={styles.gridAbsoluteTextMuted}
+            className={styles.radarMapEmpty}
           >
             Nenhuma célula com centro geográfico neste foco.
           </div>
@@ -317,10 +317,10 @@ function GeoOpsRadarMap({
                   boxShadow: "0 14px 30px var(--admin-backdrop)",
                 }}
               >
-                <span className={styles.labelFs17W800}>
+                <span className={styles.radarBubbleValue}>
                   {formatHeatmapValue(item.value, metric)}
                 </span>
-                <span className={styles.labelFs9W700}>
+                <span className={styles.radarBubbleLabel}>
                   {item.action.label}
                 </span>
               </div>
@@ -329,14 +329,14 @@ function GeoOpsRadarMap({
         )}
       </div>
       <div
-        className={styles.gridColsAuto170Gap10}
+        className={styles.radarMetaGrid}
       >
         {items.slice(0, 3).map((item) => (
-          <div key={`radar-meta-${item.cell.cellId}`} className={styles.boxMinw0}>
-            <p className={styles.textTextFs12}>
+          <div key={`radar-meta-${item.cell.cellId}`} className={styles.contentBlock}>
+            <p className={styles.radarMetaTitle}>
               {item.cell.label}
             </p>
-            <p className={styles.textTextMutedFs11M4x0x0}>
+            <p className={styles.itemDetail}>
               {adminCellCode(item.cell)} - {item.missingGeoCount > 0 ? `${item.missingGeoCount} sem geo` : item.action.detail}
             </p>
           </div>
@@ -366,8 +366,8 @@ function AdminRadarOverlay() {
           }}
         />
       ))}
-      <span aria-hidden className={styles.labelAbsoluteBgDivider} />
-      <span aria-hidden className={styles.labelAbsoluteBgDividerW1} />
+      <span aria-hidden className={styles.radarAxisHorizontal} />
+      <span aria-hidden className={styles.radarAxisVertical} />
     </>
   );
 }
@@ -375,8 +375,8 @@ function AdminRadarOverlay() {
 function GeoCellMeta({ cell, compact }: { cell: AdminEventRadarHeatmapCell; compact?: boolean }) {
   return (
     <p style={{ margin: compact ? "6px 0 0" : "5px 0 0", fontSize: 10, color: "var(--admin-text-muted)", overflowWrap: "anywhere" }}>
-      <span className={styles.labelW700Upper}>{adminCellKind(cell)}</span>{" "}
-      <span className={styles.labelMono}>{adminCellCode(cell)}</span>
+      <span className={styles.cellKind}>{adminCellKind(cell)}</span>{" "}
+      <span className={styles.cellCode}>{adminCellCode(cell)}</span>
       {!adminCellHasGeo(cell) ? " - sem centro geo" : ""}
     </p>
   );
@@ -396,16 +396,16 @@ function GeoOpsStat({
   testId: string;
 }) {
   return (
-    <div data-testid={testId} className={styles.boxP12Minw0}>
+    <div data-testid={testId} className={styles.statCard}>
       <p className="urban-admin-eyebrow-muted">{label}</p>
       <p
-        className={styles.textTextFs18}
+        className={styles.statValue}
         title={String(value)}
       >
         {value}
       </p>
       <AdminBadge kind={kind} className={styles.detailBadge}>
-        <span className={styles.labelScroll}>{detail}</span>
+        <span className={styles.statDetailText}>{detail}</span>
       </AdminBadge>
     </div>
   );
@@ -423,25 +423,25 @@ function GeoOpsEventList({
   testId: string;
 }) {
   return (
-    <div data-testid={testId} className={styles.boxP12Minw0}>
-      <p className={`urban-admin-eyebrow-muted ${styles.eyebrowMutedMb10}`}>
+    <div data-testid={testId} className={styles.statCard}>
+      <p className={`urban-admin-eyebrow-muted ${styles.eventListTitle}`}>
         {title}
       </p>
       {events.length === 0 ? (
-        <p className={styles.textTextMutedFs12M0}>
+        <p className={styles.eventListEmpty}>
           Nenhum item neste recorte.
         </p>
       ) : (
-        <div className={styles.stackGap9}>
+        <div className={styles.eventListItems}>
           {events.map((event) => (
-            <div key={`${mode}-${event.id}`} className={styles.boxMinw0}>
+            <div key={`${mode}-${event.id}`} className={styles.contentBlock}>
               <p
-                className={styles.textTextFs12W600M0Scroll}
+                className={styles.eventName}
                 title={event.name}
               >
                 {event.name}
               </p>
-              <p className={styles.textTextMutedFs11M4x0x0}>
+              <p className={styles.itemDetail}>
                 {event.city}/{event.state} - {mode === "revenue" ? formatCents(event.revenuePotentialCents) : event.geocodeStatus}
               </p>
             </div>
@@ -466,7 +466,7 @@ export function BlindSpotOpsSummary({ blindSpots }: { blindSpots: AdminEventRada
   return (
     <div
       data-testid="admin-geo-blindspot-summary"
-      className={styles.gridCols4Gap10Mb14}
+      className={styles.blindSpotSummaryGrid}
     >
       <GeoOpsStat label="Geo/dado" value={geo} detail="corrigir localização" kind={geo > 0 ? "error" : "success"} testId="geo-blindspots-geo" />
       <GeoOpsStat label="Pricing" value={pricing} detail="gerar recomendação" kind={pricing > 0 ? "error" : "success"} testId="geo-blindspots-pricing" />
@@ -479,12 +479,12 @@ export function BlindSpotOpsSummary({ blindSpots }: { blindSpots: AdminEventRada
 function HeatmapLegend({ metric }: { metric: AdminEventRadarHeatmapMetric }) {
   return (
     <div
-      className={styles.rowBetweenCentered}
+      className={styles.legendRow}
     >
       <span>frio</span>
       <div
         aria-hidden
-        className={styles.boxBgAccentH6}
+        className={styles.legendGradient}
       />
       <span>quente por {metricLabel(metric).toLowerCase()}</span>
     </div>
