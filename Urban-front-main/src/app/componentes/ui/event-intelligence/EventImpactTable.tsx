@@ -24,7 +24,7 @@ export function EventImpactTable({
 }) {
   if (impacts.length === 0) {
     return (
-      <AppCard variant="subtle" style={{ padding: 18 }}>
+      <AppCard variant="subtle" className={styles.emptyStateCard}>
         <p className={styles.eventImpactTableText}>
           Nenhum imóvel impactado encontrado para este evento.
         </p>
@@ -61,7 +61,7 @@ export function EventImpactTable({
               <Cell strong>
                 <div className={styles.eventImpactTableGrid}>
                   <span className={styles.eventImpactTableLabel}>{impact.propertyName}</span>
-                  <AppBadge kind={confidenceBadgeKind(impact.confidence)} style={{ width: "fit-content" }}>
+                  <AppBadge kind={confidenceBadgeKind(impact.confidence)} className={styles.confidenceBadge}>
                     {confidenceLabel(impact.confidence)}
                   </AppBadge>
                 </div>
@@ -162,7 +162,7 @@ function ImpactMobileCard({
   onSimulate?: (impact: EventPropertyImpact) => void;
 }) {
   return (
-    <AppCard variant="subtle" style={{ padding: 14 }}>
+    <AppCard variant="subtle" className={styles.mobileCard}>
       <div
         className={`event-impact-mobile-header ${styles.eventImpactMobile}`}
       >

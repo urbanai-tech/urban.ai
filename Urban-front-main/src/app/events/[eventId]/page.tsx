@@ -30,6 +30,7 @@ import {
   formatPercent,
 } from "@/app/componentes/ui/event-intelligence";
 import { EventImage } from "@/app/componentes/ui/event-intelligence/EventImage";
+import styles from "./page.module.css";
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -146,7 +147,7 @@ export default function EventDetailPage() {
         className="urban-event-detail-grid"
         style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.2fr) minmax(320px, 0.8fr)", gap: 22 }}
       >
-        <AppCard variant="default" style={{ padding: 0, overflow: "hidden", minWidth: 0 }}>
+        <AppCard variant="default" className={styles.heroCard}>
           <div className="urban-event-detail-media" style={{ height: 340, background: "var(--app-surface-muted)" }}>
             <EventImage src={event.imageUrl} alt={event.name} venue={event.venueName} />
           </div>
@@ -158,7 +159,7 @@ export default function EventDetailPage() {
               {event.category && (
                 <AppBadge
                   kind="neutral"
-                  style={{ maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}
+                  className={styles.categoryBadge}
                 >
                   {event.category}
                 </AppBadge>
@@ -215,7 +216,7 @@ export default function EventDetailPage() {
           </div>
         </AppCard>
 
-        <AppCard variant="accent" style={{ minWidth: 0 }}>
+        <AppCard variant="accent" className={styles.insightCard}>
           <AppCardHeader
             eyebrow="LEITURA MY URBAN"
             title="O que fazer com este evento"
@@ -242,7 +243,7 @@ export default function EventDetailPage() {
                 </div>
               ))
             ) : (
-              <AppCard variant="subtle" style={{ padding: 14 }}>
+              <AppCard variant="subtle" className={styles.emptyDriversCard}>
                 <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 13, lineHeight: 1.5 }}>
                   Ainda não há drivers explicáveis para este evento.
                 </p>
@@ -255,7 +256,7 @@ export default function EventDetailPage() {
                 <AppBadge
                   key={flag}
                   kind="warn"
-                  style={{ maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}
+                  className={styles.flagBadge}
                 >
                   {formatFlagLabel(flag)}
                 </AppBadge>

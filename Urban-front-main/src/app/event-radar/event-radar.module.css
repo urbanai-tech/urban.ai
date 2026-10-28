@@ -210,3 +210,49 @@
   border-top-color: var(--app-accent);
   animation: event-radar-spin 0.9s linear infinite;
 }
+
+.filtersCard.filtersCard {
+  padding: 14px;
+  margin-bottom: 22px;
+  overflow: hidden;
+}
+
+.summaryMetricCardRevenue.summaryMetricCardRevenue {
+  padding: 18px;
+}
+
+.summaryMetricCardEvents.summaryMetricCardEvents {
+  padding: 18px;
+}
+
+.summaryMetricCardNights.summaryMetricCardNights {
+  padding: 18px;
+}
+
+.summaryMetricCardProperties.summaryMetricCardProperties {
+  padding: 18px;
+}
+
+.priorityHeaderCard.priorityHeaderCard {
+  padding: 16px;
+}
+
+.priorityHeader.priorityHeader {
+  margin-bottom: 0;
+}
+
+.detailPanelCard.detailPanelCard {
+  min-width: 0;
+}
+
+.categoryBadge.categoryBadge {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.modelVersionBadge.modelVersionBadge {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

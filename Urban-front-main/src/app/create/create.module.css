@@ -209,3 +209,15 @@
   color: var(--app-text-muted);
   cursor: pointer;
 }
+
+.registerCard.registerCard {
+  padding: 28px;
+}
+
+.submitButton.submitButton {
+  margin-top: 20px;
+}
+
+.passwordInput.passwordInput {
+  padding-right: 44px;
+}

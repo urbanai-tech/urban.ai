@@ -158,3 +158,19 @@
   font-weight: 400;
   font-family: Inter, system-ui, sans-serif;
 }
+
+.dayDetailOverlay.dayDetailOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1600;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(7, 10, 14, 0.62);
+}
+
+.dayDetailCard.dayDetailCard {
+  width: min(560px, 100%);
+  padding: 0;
+  overflow: hidden;
+}

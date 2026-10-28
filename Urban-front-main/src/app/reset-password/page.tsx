@@ -12,6 +12,7 @@ import {
 import { AuthFlowShell } from "@/app/componentes/AuthFlowShell";
 import { AppButton, AppCard, AppInput, Icons, useAppToast } from "@/app/componentes/ui";
 import { updatePassword } from "@/app/service/api";
+import styles from "./page.module.css";
 
 const PASSWORD_RULES: { key: keyof PasswordChecks; label: string }[] = [
   { key: "lower", label: "Letra minuscula" },
@@ -143,7 +144,7 @@ export default function PasswordConfirmation() {
       }
       asideSubtitle="Depois da troca, o link expira e você entra normalmente com a nova senha."
     >
-      <AppCard variant="elevated" style={{ padding: 28 }}>
+      <AppCard variant="elevated" className={styles.formCard}>
         {success ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <div
@@ -262,7 +263,7 @@ function PasswordInput({
         autoComplete={autoComplete}
         leftAddon={<LockKeyhole size={14} />}
         error={error}
-        style={{ paddingRight: 44 }}
+        className={styles.passwordInput}
       />
       <button
         type="button"

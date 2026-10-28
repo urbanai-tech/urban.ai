@@ -121,12 +121,7 @@ export default function SubscriptionCards({
             <AppCard
               key={sub.id}
               variant="elevated"
-              style={{
-                position: "relative",
-                padding: 32,
-                opacity: isCanceled ? 0.6 : 1,
-                background: isCanceled ? "var(--app-surface-muted)" : "var(--app-surface)",
-              }}
+              className={styles.subscriptionCard} style={{ opacity: isCanceled ? 0.6 : 1, background: isCanceled ? "var(--app-surface-muted)" : "var(--app-surface)" }}
             >
               <span
                 className={`${styles.s3} ${isCanceled ? styles.s4 : styles.s5}`}

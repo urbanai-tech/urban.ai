@@ -502,18 +502,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
       <DialogSurface
         onClose={handleClose}
         aria-labelledby="add-property-title"
-        style={{
-          width: "100%",
-          maxWidth: 760,
-          maxHeight: "calc(100vh - 32px)",
-          display: "flex",
-          flexDirection: "column",
-          borderRadius: 12,
-          background: "var(--theme-app-legacy-white)",
-          color: "var(--theme-app-legacy-ink)",
-          boxShadow: "0 24px 80px var(--theme-app-legacy-black-28)",
-          overflow: "hidden",
-        }}
+        className={styles.addPropertyDialog}
       >
         <header
           className={styles.s2}

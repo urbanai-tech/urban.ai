@@ -200,7 +200,7 @@ export default function SubscriptionsPage() {
           </div>
         )}
 
-        <AppCard style={{ marginBottom: 24 }}>
+        <AppCard className={styles.currentPlanCard}>
           <div className={styles.s8}>
             <div>
               <h3 className={styles.s9}>

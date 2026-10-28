@@ -144,3 +144,16 @@
   padding: 16px 24px;
   border-top: 1px solid var(--theme-app-legacy-ink-10);
 }
+
+.addPropertyDialog.addPropertyDialog {
+  width: 100%;
+  max-width: 760px;
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  background: var(--theme-app-legacy-white);
+  color: var(--theme-app-legacy-ink);
+  box-shadow: 0 24px 80px var(--theme-app-legacy-black-28);
+  overflow: hidden;
+}

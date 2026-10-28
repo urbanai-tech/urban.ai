@@ -240,7 +240,7 @@ function PricingRulesPageContent() {
   const enabledCount = rules.filter((r) => r.enabled).length;
 
   return (
-    <AppPageShell maxWidth={1200} style={{ paddingBottom: 160 }}>
+    <AppPageShell maxWidth={1200} className={styles.pageShell}>
       <AppSectionHeader
         eyebrow="PRECIFICAÇÃO · REGRAS"
         title="Regras de preço do imóvel"
@@ -334,7 +334,7 @@ function PricingRulesSkeleton() {
       className={styles.s4}
     >
       {Array.from({ length: 8 }).map((_, i) => (
-        <AppCard key={i} style={{ padding: "18px 20px" }}>
+        <AppCard key={i} className={styles.skeletonCard}>
           <div
             className={styles.s5}
           >

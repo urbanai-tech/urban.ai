@@ -372,3 +372,22 @@
   border-top-color: var(--app-accent);
   animation: events-spin 0.9s linear infinite;
 }
+
+.filtersCard.filtersCard {
+  padding: 14px;
+  margin-bottom: 22px;
+  overflow: hidden;
+}
+
+.mapCard.mapCard {
+  padding: 0;
+  overflow: hidden;
+}
+
+.mapChevronIcon.mapChevronIcon {
+  flex-shrink: 0;
+}
+
+.dayGroupCard.dayGroupCard {
+  padding: 18px;
+}

@@ -263,7 +263,7 @@ export default function IntegrationsPage() {
 
       {!isConnected ? (
         // ====================== Não conectado: form de conexão ======================
-        <AppCard variant="default" style={{ padding: 32 }}>
+        <AppCard variant="default" className={styles.connectCard}>
           <AppCardHeader
             eyebrow="CONFIGURAÇÃO INICIAL"
             title="Conectar conta Stays"
@@ -356,7 +356,7 @@ export default function IntegrationsPage() {
       ) : (
         // ====================== Conectado: status + sync + listings ======================
         <>
-          <AppCard variant="accent" style={{ padding: 24, marginBottom: 32 }}>
+          <AppCard variant="accent" className={styles.statusCard}>
             <div
               className={styles.integrationsRowGap16}
             >
@@ -426,7 +426,7 @@ export default function IntegrationsPage() {
             />
           </div>
 
-          <AppCard variant="default" style={{ padding: 24, marginBottom: 32 }}>
+          <AppCard variant="default" className={styles.simulationCard}>
             <AppCardHeader
               eyebrow="SIMULAÇÃO SEGURA"
               title="Testar preço sem alterar a Stays"
@@ -585,21 +585,12 @@ export default function IntegrationsPage() {
             <DialogSurface
               onClose={() => setConfirmDisconnect(false)}
               aria-labelledby="disconnect-stays-title"
-              style={{
-                position: "fixed",
-                inset: 0,
-                zIndex: 1100,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 24,
-                background: "var(--theme-app-legacy-black-45)",
-              }}
+              className={styles.disconnectOverlay}
               onClick={() => setConfirmDisconnect(false)}
             >
               <AppCard
                 variant="elevated"
-                style={{ maxWidth: 440, width: "100%", padding: "24px 24px 20px" }}
+                className={styles.disconnectCard}
                 onClick={undefined}
               >
                 <h3 id="disconnect-stays-title" className={styles.disconnectStaysTitle}>

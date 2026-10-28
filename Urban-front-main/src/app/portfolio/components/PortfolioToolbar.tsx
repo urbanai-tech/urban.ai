@@ -186,7 +186,7 @@ export function PortfolioToolbar({
                     placeholder={priceMode === "base" ? "320" : "420"}
                     value={priceValue}
                     onChange={(e) => setPriceValue(e.target.value)}
-                    style={{ width: 120, height: 36 }}
+                    className={styles.priceInput}
                     shellStyle={{ width: 140 }}
                     aria-label={
                       priceMode === "base"

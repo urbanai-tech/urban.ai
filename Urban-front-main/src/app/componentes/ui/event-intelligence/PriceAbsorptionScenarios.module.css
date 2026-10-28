@@ -1,0 +1,9 @@
+.introCard.introCard {
+  padding: 18px;
+}
+
+.scenarioCard.scenarioCard {
+  padding: 16px;
+  border-radius: 8px;
+  min-width: 0;
+}

@@ -11,6 +11,7 @@ import {
   riskBadgeKind,
   riskLabel,
 } from "./formatters";
+import styles from "./PriceAbsorptionScenarios.module.css";
 
 export function PriceAbsorptionScenarios({
   scenarios,
@@ -21,7 +22,7 @@ export function PriceAbsorptionScenarios({
 }) {
   if (!scenarios || scenarios.length === 0) {
     return (
-      <AppCard variant="subtle" style={{ padding: 18 }} as="section">
+      <AppCard variant="subtle" className={styles.introCard} as="section">
         <p className="urban-app-eyebrow-muted" style={{ marginBottom: 6 }}>
           PREÇO VS CHANCE
         </p>
@@ -63,7 +64,7 @@ export function PriceAbsorptionScenarios({
               key={scenario.id}
               as="article"
               variant={scenario.recommended ? "accent" : "default"}
-              style={{ padding: 16, borderRadius: 8, minWidth: 0 }}
+              className={styles.scenarioCard}
             >
               <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                 <p style={{ margin: 0, color: "var(--app-text)", fontSize: 14, fontWeight: 750, overflowWrap: "anywhere" }}>

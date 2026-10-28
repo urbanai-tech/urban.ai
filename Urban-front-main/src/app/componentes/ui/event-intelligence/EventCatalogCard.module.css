@@ -1,0 +1,14 @@
+.catalogCard.catalogCard {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 430px;
+  min-width: 0;
+}
+
+.categoryBadge.categoryBadge {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

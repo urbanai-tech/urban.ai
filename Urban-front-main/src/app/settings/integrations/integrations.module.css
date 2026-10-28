@@ -275,3 +275,34 @@
 .previewStatToneDanger.previewStatToneDanger {
   color: var(--app-danger);
 }
+
+.connectCard.connectCard {
+  padding: 32px;
+}
+
+.statusCard.statusCard {
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.simulationCard.simulationCard {
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.disconnectOverlay.disconnectOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--theme-app-legacy-black-45);
+}
+
+.disconnectCard.disconnectCard {
+  max-width: 440px;
+  width: 100%;
+  padding: 24px 24px 20px;
+}

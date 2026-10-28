@@ -60,6 +60,7 @@ import {
   parseHostBaselineDraft,
   type HostBaselineDraft,
 } from "../../lib/hostBaseline";
+import pageStyles from "./page.module.css";
 
 type SuggestionItem = {
   id?: string;
@@ -484,7 +485,7 @@ function PropertyDetailContent() {
         }
       />
 
-      <AppCard variant="default" style={{ padding: 0, overflow: "hidden" }}>
+      <AppCard variant="default" className={pageStyles.heroCard}>
         <div className="property-hero">
           <div className="property-hero-main">
             {list?.pictureUrl ? (

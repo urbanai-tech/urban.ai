@@ -80,3 +80,13 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.runsCard.runsCard {
+  margin-top: 20px;
+  padding: 24px;
+}
+
+.runsCardCompact.runsCardCompact {
+  margin-top: 18px;
+  padding: 20px;
+}

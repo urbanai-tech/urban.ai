@@ -103,7 +103,7 @@ export default function EventsPage() {
         }
       />
 
-      <AppCard variant="default" style={{ padding: 14, marginBottom: 22, overflow: "hidden" }}>
+      <AppCard variant="default" className={styles.filtersCard}>
         <div
           className={`urban-events-filter-grid ${styles.hostEventsFilters}`}
           data-testid="host-events-filters"
@@ -351,7 +351,7 @@ function CatalogMap({
   const bounds = getCatalogBounds(geoEvents);
 
   return (
-    <AppCard variant="default" style={{ padding: 0, overflow: "hidden" }}>
+    <AppCard variant="default" className={styles.mapCard}>
       <div
         className={`host-events-map-canvas ${styles.hostEventsMap}`}
       >
@@ -486,7 +486,7 @@ function CatalogMissingGeoStrip({
                 {[event.venueName, event.city].filter(Boolean).join(" / ") || "Venue pendente"}
               </span>
             </span>
-            <Icons.ChevronRight size={16} style={{ flexShrink: 0 }} />
+            <Icons.ChevronRight size={16} className={styles.mapChevronIcon} />
           </button>
         ))}
       </div>
@@ -504,7 +504,7 @@ function CalendarView({
   return (
     <div className={styles.calendarViewGrid}>
       {groupedByDate.map((group) => (
-        <AppCard key={group.day} variant="default" style={{ padding: 18 }}>
+        <AppCard key={group.day} variant="default" className={styles.dayGroupCard}>
           <div className={styles.calendarViewRow}>
             <h3 className={styles.calendarViewSubheading}>
               {formatDateRange(group.day, null)}

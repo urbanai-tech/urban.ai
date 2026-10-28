@@ -73,3 +73,7 @@
 .s12.s12 {
   color: var(--app-text);
 }
+
+.rankingCard.rankingCard {
+  margin-bottom: 20px;
+}

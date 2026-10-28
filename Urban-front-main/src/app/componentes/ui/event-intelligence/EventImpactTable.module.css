@@ -124,3 +124,15 @@
 .mobileMetricWide.mobileMetricWide {
   grid-column: span 2;
 }
+
+.emptyStateCard.emptyStateCard {
+  padding: 18px;
+}
+
+.confidenceBadge.confidenceBadge {
+  width: fit-content;
+}
+
+.mobileCard.mobileCard {
+  padding: 14px;
+}

@@ -1,0 +1,25 @@
+.heroCard.heroCard {
+  padding: 0;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.categoryBadge.categoryBadge {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.insightCard.insightCard {
+  min-width: 0;
+}
+
+.emptyDriversCard.emptyDriversCard {
+  padding: 14px;
+}
+
+.flagBadge.flagBadge {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -71,7 +71,7 @@ export function OpportunityRanking({
   onSelect: (item: PortfolioOpportunityRankingItem) => void;
 }) {
   return (
-    <AppCard variant="default" style={{ marginBottom: 20 }}>
+    <AppCard variant="default" className={styles.rankingCard}>
       <AppCardHeader
         eyebrow="RANKING"
         title="Oportunidades recomendadas"

@@ -1,0 +1,9 @@
+.preferencesDialog.preferencesDialog {
+  width: 100%;
+  max-width: 520px;
+  border-radius: 12px;
+  background: var(--theme-app-sheet-bg);
+  color: var(--theme-app-text);
+  box-shadow: var(--theme-app-shadow-overlay);
+  overflow: hidden;
+}

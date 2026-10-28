@@ -136,3 +136,31 @@
   border-top-color: var(--app-accent);
   animation: maps-spin 0.9s linear infinite;
 }
+
+.filtersCard.filtersCard {
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.statusNotice.statusNotice {
+  margin-top: 16px;
+}
+
+.errorCard.errorCard {
+  border-color: var(--theme-app-legacy-danger-25);
+}
+
+.mapCard.mapCard {
+  padding: 16px;
+}
+
+.mapOverlayStatus.mapOverlayStatus {
+  width: min(420px, calc(100% - 16px));
+  box-shadow: 0 12px 32px var(--theme-app-legacy-maps-ink-14);
+}
+
+.listCard.listCard {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}

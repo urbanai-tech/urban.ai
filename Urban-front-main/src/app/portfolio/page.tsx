@@ -822,24 +822,12 @@ function PortfolioDayDetailDialog({
     <DialogSurface
       onClose={onClose}
       aria-labelledby="portfolio-day-detail-title"
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1600,
-        display: "grid",
-        placeItems: "center",
-        padding: 20,
-        background: "rgba(7, 10, 14, 0.62)",
-      }}
+      className={styles.dayDetailOverlay}
       onClick={onClose}
     >
       <AppCard
         variant="elevated"
-        style={{
-          width: "min(560px, 100%)",
-          padding: 0,
-          overflow: "hidden",
-        }}
+        className={styles.dayDetailCard}
         onClick={(event) => event.stopPropagation()}
       >
         <header

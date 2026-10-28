@@ -7,6 +7,7 @@ import { getEventos, getPropertyById } from "@/app/service/api";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
+import styles from "./page.module.css";
 
 export type Evento = {
   id: string;
@@ -129,7 +130,7 @@ export default function CasaEventosProximosPage() {
             }}
           >
             {eventos.map((ev: Evento) => (
-              <AppCard key={ev.id} variant="default" style={{ padding: 0, overflow: 'hidden' }}>
+              <AppCard key={ev.id} variant="default" className={styles.eventCard}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={ev?.imagem_url}

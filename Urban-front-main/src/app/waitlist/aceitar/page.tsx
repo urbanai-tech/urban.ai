@@ -11,6 +11,7 @@ import {
 import { trackAnalyticsEvent } from "../../componentes/Analytics";
 import { AuthFlowShell } from "../../componentes/AuthFlowShell";
 import { AppButton, AppCard, AppInput, Icons } from "../../componentes/ui";
+import styles from "./page.module.css";
 
 type PasswordChecks = {
   lower: boolean;
@@ -145,7 +146,7 @@ function AceitarConvite() {
         title="Link indisponível."
         subtitle="Este convite pode ter expirado, já ter sido usado ou estar incompleto."
       >
-        <AppCard variant="elevated" style={{ padding: 28 }}>
+        <AppCard variant="elevated" className={styles.invalidInviteCard}>
           <InlineNotice kind="error">
             {validation?.reason ?? "Este link de convite expirou ou já foi usado."}
           </InlineNotice>
@@ -154,7 +155,7 @@ function AceitarConvite() {
             size="md"
             onClick={() => router.push("/lancamento")}
             leftIcon={<Icons.ArrowLeft size={14} />}
-            style={{ marginTop: 20 }}
+            className={styles.backButton}
           >
             Voltar para o site
           </AppButton>
@@ -175,17 +176,14 @@ function AceitarConvite() {
 
   return (
     <InviteShell title={heroTitle} subtitle={`${positionLabel} Crie sua senha para ativar o acesso.`}>
-      <AppCard variant="elevated" style={{ padding: 28 }}>
+      <AppCard variant="elevated" className={styles.passwordFormCard}>
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <AppInput
             label="E-mail"
             value={validation.email ?? ""}
             readOnly
             helper="Confirmado pelo convite. Não pode ser alterado."
-            style={{
-              background: "var(--app-surface-muted)",
-              color: "var(--app-text-muted)",
-            }}
+            className={styles.readonlyEmailInput}
           />
 
           <PasswordInput
@@ -261,7 +259,7 @@ function InviteShell({
 
 function LoadingCard({ label }: { label: string }) {
   return (
-    <AppCard variant="elevated" style={{ padding: 28 }}>
+    <AppCard variant="elevated" className={styles.loadingCard}>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <Spinner />
         <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 14 }}>
@@ -298,7 +296,7 @@ function PasswordInput({
         autoComplete="new-password"
         leftAddon={<LockKeyhole size={14} />}
         error={error}
-        style={{ paddingRight: 44 }}
+        className={styles.passwordInput}
       />
       <button
         type="button"

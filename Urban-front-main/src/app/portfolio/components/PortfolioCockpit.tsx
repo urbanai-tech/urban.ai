@@ -45,7 +45,7 @@ export function PortfolioCockpit({ metrics }: { metrics: PortfolioCockpitMetrics
   const liftTrend = metrics.liftAmount >= 0 ? "up" : "down";
 
   return (
-    <AppCard variant="default" style={{ marginBottom: 20 }}>
+    <AppCard variant="default" className={styles.cockpitCard}>
       <AppCardHeader
         eyebrow="COCKPIT DE DECISÃO"
         title="Resumo operacional da janela"

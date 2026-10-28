@@ -187,7 +187,7 @@ export default function MapsPage() {
         subtitle="Escolha o imóvel, o raio e as datas para ver eventos que podem influenciar a diária."
       />
 
-      <AppCard variant="subtle" style={{ padding: 20, marginBottom: 24 }}>
+      <AppCard variant="subtle" className={styles.filtersCard}>
         <div
           className={styles.mapsRow}
         >
@@ -254,13 +254,13 @@ export default function MapsPage() {
             body={mapStatus.body}
             steps={mapStatus.steps}
             tone={mapStatus.tone}
-            style={{ marginTop: 16 }}
+            className={styles.statusNotice}
           />
         )}
       </AppCard>
 
       {error ? (
-        <AppCard variant="default" style={{ borderColor: "var(--theme-app-legacy-danger-25)" }}>
+        <AppCard variant="default" className={styles.errorCard}>
           <div className={styles.mapsRowDanger}>
             <Icons.AlertCircle size={18} />
             <p className={styles.mapsText}>{error}</p>
@@ -271,7 +271,7 @@ export default function MapsPage() {
           className={`maps-opportunity-layout ${styles.mapsOpportunityLayout}`}
         >
           <div className={styles.mapsBox5}>
-            <AppCard variant="default" style={{ padding: 16 }}>
+            <AppCard variant="default" className={styles.mapCard}>
               <div className={styles.mapsBox6}>
                 <AirbnbMap
                   height="500px"
@@ -299,11 +299,8 @@ export default function MapsPage() {
                       body={mapStatus.body}
                       steps={mapStatus.steps}
                       tone={mapStatus.tone}
-                      style={{
-                        width: "min(420px, calc(100% - 16px))",
-                        background: "var(--theme-app-legacy-maps-white-94)",
-                        boxShadow: "0 12px 32px var(--theme-app-legacy-maps-ink-14)",
-                      }}
+                      className={styles.mapOverlayStatus}
+                      style={{ background: "var(--theme-app-legacy-maps-white-94)" }}
                     />
                   </div>
                 )}
@@ -312,7 +309,7 @@ export default function MapsPage() {
           </div>
 
           <div className={styles.mapsBox7}>
-            <AppCard variant="default" style={{ padding: 16, display: 'flex', flexDirection: 'column' }}>
+            <AppCard variant="default" className={styles.listCard}>
               <div className={styles.mapsRowGap12}>
                 <div className={styles.mapsBox8}>
                   <p className={`urban-app-eyebrow-muted ${styles.appEyebrowMuted}`}>

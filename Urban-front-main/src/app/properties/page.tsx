@@ -29,6 +29,7 @@ import {
   useToastCompat,
   DialogSurface,
 } from '../componentes/ui';
+import styles from "./page.module.css";
 import './properties.css';
 
 type PricingDraft = { manualDailyPrice: string; averageMonthlyRevenue: string };
@@ -420,7 +421,7 @@ export default function MyProperties() {
               { id: 'recommendations', label: 'Preparar sugestões', status: 'pending', detail: 'Preços por oportunidade' },
             ]
           }
-          style={{ marginBottom: 16 }}
+          className={styles.processingStatus}
         />
       )}
 
@@ -443,7 +444,7 @@ export default function MyProperties() {
         </div>
       </div>
 
-      <AppCard variant="default" style={{ padding: 0, overflow: 'hidden' }}>
+      <AppCard variant="default" className={styles.propertiesCard}>
         <div className="properties-toolbar">
           <label className="properties-search">
             <Search size={15} />

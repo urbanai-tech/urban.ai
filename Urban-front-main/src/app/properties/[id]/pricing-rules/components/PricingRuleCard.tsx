@@ -385,11 +385,7 @@ export function PricingRuleCard({
   return (
     <AppCard
       variant={expanded ? "elevated" : "default"}
-      style={{
-        padding: 0,
-        overflow: "hidden",
-        borderLeft: rule.enabled ? "3px solid var(--app-accent)" : undefined,
-      }}
+      className={rule.enabled ? `${styles.ruleCard} ${styles.ruleCardEnabled}` : styles.ruleCard}
     >
       <div
         role="button"

@@ -375,13 +375,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         <DialogSurface
           onClose={() => setDrawerOpen(false)}
           aria-labelledby="registrar-resultado-title"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 1300,
-            display: "flex",
-            justifyContent: "flex-end",
-          }}
+          className={styles.resultDrawerOverlay}
         >
           <div
             onClick={() => setDrawerOpen(false)}

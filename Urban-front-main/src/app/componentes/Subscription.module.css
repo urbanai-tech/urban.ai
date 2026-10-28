@@ -102,3 +102,8 @@
   color: var(--app-text);
   font-weight: 650;
 }
+
+.subscriptionCard.subscriptionCard {
+  position: relative;
+  padding: 32px;
+}

@@ -92,3 +92,7 @@
   border-top-color: var(--app-accent);
   animation: urban-app-spin 0.9s linear infinite;
 }
+
+.currentPlanCard.currentPlanCard {
+  margin-bottom: 24px;
+}

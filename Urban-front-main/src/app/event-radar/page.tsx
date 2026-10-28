@@ -210,7 +210,7 @@ function EventRadarContent() {
         }
       />
 
-      <AppCard variant="default" style={{ padding: 14, marginBottom: 22, overflow: "hidden" }}>
+      <AppCard variant="default" className={styles.filtersCard}>
         <div
           className={`urban-event-radar-filter-grid ${styles.hostEventRadar}`}
           data-testid="host-event-radar-filters"
@@ -325,16 +325,16 @@ function EventRadarContent() {
             className={`urban-event-radar-summary-grid ${styles.hostEventRadarCols}`}
             data-testid="host-event-radar-summary"
           >
-            <AppCard variant="default" style={{ padding: 18 }}>
+            <AppCard variant="default" className={styles.summaryMetricCardRevenue}>
               <AppMetricCard label="Potencial estimado" value={formatCompactCurrencyFromCents(response?.summary.revenuePotentialCents)} variant="sm" accent />
             </AppCard>
-            <AppCard variant="default" style={{ padding: 18 }}>
+            <AppCard variant="default" className={styles.summaryMetricCardEvents}>
               <AppMetricCard label="Eventos relevantes" value={String(response?.summary.relevantEvents ?? 0)} variant="sm" />
             </AppCard>
-            <AppCard variant="default" style={{ padding: 18 }}>
+            <AppCard variant="default" className={styles.summaryMetricCardNights}>
               <AppMetricCard label="Noites com oportunidade" value={String(response?.summary.opportunityNights ?? 0)} variant="sm" />
             </AppCard>
-            <AppCard variant="default" style={{ padding: 18 }}>
+            <AppCard variant="default" className={styles.summaryMetricCardProperties}>
               <AppMetricCard label="Imóveis impactados" value={String(response?.summary.impactedProperties ?? 0)} variant="sm" />
             </AppCard>
           </div>
@@ -365,12 +365,12 @@ function EventRadarContent() {
             </div>
 
             <div className={styles.eventRadarGridGap14}>
-              <AppCard variant="default" style={{ padding: 16 }}>
+              <AppCard variant="default" className={styles.priorityHeaderCard}>
                 <AppCardHeader
                   eyebrow="PRIORIDADE"
                   title="Eventos mais importantes"
                   subtitle="Clique para ver imóveis impactados e curva de absorção."
-                  style={{ marginBottom: 0 }}
+                  className={styles.priorityHeader}
                 />
               </AppCard>
               {events.map((event) => (
@@ -451,7 +451,7 @@ function EventDetailPanel({
   const modelVersion = event.intelligence?.modelVersion ?? null;
 
   return (
-    <AppCard variant="default" style={{ minWidth: 0 }}>
+    <AppCard variant="default" className={styles.detailPanelCard}>
       <div className={styles.eventDetailPanelRow}>
         <div className={styles.eventDetailPanelBox}>
           <div className={styles.eventDetailPanelRowGap8}>
@@ -459,7 +459,7 @@ function EventDetailPanel({
             {event.category && (
               <AppBadge
                 kind="neutral"
-                style={{ maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}
+                className={styles.categoryBadge}
               >
                 {event.category}
               </AppBadge>
@@ -467,7 +467,7 @@ function EventDetailPanel({
             <AppBadge kind={dataStatusBadgeKind(dataStatus)}>{dataStatusLabel(dataStatus)}</AppBadge>
             <AppBadge kind={jobRunId ? "neutral" : "warn"}>{jobRunId ? `job ${shortTrace(jobRunId)}` : "sem jobRunId"}</AppBadge>
             {modelVersion && (
-              <AppBadge kind="neutral" style={{ maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <AppBadge kind="neutral" className={styles.modelVersionBadge}>
                 {modelVersion}
               </AppBadge>
             )}

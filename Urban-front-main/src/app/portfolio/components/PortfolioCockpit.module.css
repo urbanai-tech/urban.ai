@@ -29,3 +29,7 @@
 .s5.s5 {
   background: var(--app-surface-muted);
 }
+
+.cockpitCard.cockpitCard {
+  margin-bottom: 20px;
+}

@@ -265,7 +265,7 @@ const Register = () => {
               void handleRegister();
             }}
           >
-          <AppCard variant="elevated" style={{ padding: 28 }}>
+          <AppCard variant="elevated" className={styles.registerCard}>
             <div
               className={styles.registerGrid}
             >
@@ -386,7 +386,7 @@ const Register = () => {
               disabled={!canSubmit}
               loading={loading}
               rightIcon={<Icons.ArrowRight size={14} />}
-              style={{ marginTop: 20 }}
+              className={styles.submitButton}
             >
               {loading ? "Criando…" : "Criar conta"}
             </AppButton>
@@ -469,7 +469,7 @@ function PasswordField({
         autoComplete="new-password"
         helper={helper}
         error={error}
-        style={{ paddingRight: 44 }}
+        className={styles.passwordInput}
       />
       <button
         type="button"

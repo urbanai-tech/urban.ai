@@ -101,7 +101,7 @@ export function EventDemandHeatmapPlaceholder({
   if (error) return <HeatmapErrorState error={error} onRetry={onRetry} />;
 
   return (
-    <AppCard as="section" variant="default" style={{ padding: 0, overflow: "hidden", minWidth: 0 }}>
+    <AppCard as="section" variant="default" className={styles.heatmapCard}>
       <div
         data-testid="host-event-demand-heatmap-header"
         className={styles.hostEventDemand}
@@ -263,7 +263,7 @@ export function EventDemandHeatmapPlaceholder({
 
 function HeatmapLoadingState() {
   return (
-    <AppCard as="section" variant="default" style={{ padding: 18 }}>
+    <AppCard as="section" variant="default" className={styles.loadingStateCard}>
       <div data-testid="host-event-demand-heatmap-loading" role="status" aria-live="polite" className={styles.hostEventDemandGap14}>
         <div className={styles.heatmapLoadingStateRow}>
           <div>
@@ -287,7 +287,7 @@ function HeatmapLoadingState() {
 
 function HeatmapErrorState({ error, onRetry }: { error: string; onRetry?: () => void }) {
   return (
-    <AppCard as="section" variant="default" style={{ padding: 22 }}>
+    <AppCard as="section" variant="default" className={styles.errorStateCard}>
       <div data-testid="host-event-demand-heatmap-error" className={styles.hostEventDemand2}>
         <div className={styles.eventDemandHeatmapPlaceholderBox}>
           <AppBadge kind="warn">Heatmap indisponível</AppBadge>
@@ -315,7 +315,7 @@ function HeatmapEmptyState() {
       className={styles.hostEventDemandPad24}
     >
       <div className={styles.heatmapEmptyStateBox}>
-        <Icons.MapPin size={24} style={{ color: "var(--app-text-dim)" }} />
+        <Icons.MapPin size={24} className={styles.emptyStateIcon} />
         <p className={styles.heatmapEmptyStateText}>
           Sem regiões quentes neste filtro
         </p>

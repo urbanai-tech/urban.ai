@@ -566,3 +566,21 @@
   line-height: 1.45;
   background: var(--app-surface-muted);
 }
+
+.heatmapCard.heatmapCard {
+  padding: 0;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.loadingStateCard.loadingStateCard {
+  padding: 18px;
+}
+
+.errorStateCard.errorStateCard {
+  padding: 22px;
+}
+
+.emptyStateIcon.emptyStateIcon {
+  color: var(--app-text-dim);
+}

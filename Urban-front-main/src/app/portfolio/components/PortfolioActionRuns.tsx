@@ -80,7 +80,7 @@ export function PortfolioActionRuns({
   const visibleRuns = typeof limit === "number" ? runs.slice(0, limit) : runs;
 
   return (
-    <AppCard variant="default" style={{ marginTop: compact ? 18 : 20, padding: compact ? 20 : 24 }}>
+    <AppCard variant="default" className={compact ? styles.runsCardCompact : styles.runsCard}>
       <AppCardHeader
         eyebrow={compact ? "HISTÓRICO" : "AUDITORIA"}
         title={compact ? "Últimos aceites e aplicações" : "Histórico de action runs"}
