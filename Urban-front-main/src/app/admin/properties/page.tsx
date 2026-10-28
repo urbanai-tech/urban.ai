@@ -154,9 +154,9 @@ export default function AdminPropertiesPage() {
       render: (r) => {
         const has = r.latitude != null && r.longitude != null && Number(r.latitude) !== 0;
         return has ? (
-          <Icons.Check size={14} style={{ color: "var(--admin-success)" }} />
+          <Icons.Check size={14} className={styles.okIcon} />
         ) : (
-          <Icons.Close size={14} style={{ color: "var(--admin-danger)" }} />
+          <Icons.Close size={14} className={styles.offIcon} />
         );
       },
     },
@@ -209,11 +209,7 @@ export default function AdminPropertiesPage() {
       render: (r) => (
         <NextLink
           href={`/admin/properties/${r.id}`}
-          style={{
-            color: "var(--admin-text-muted)",
-            display: "inline-flex",
-            padding: 4,
-          }}
+          className={styles.detailLink}
         >
           <Icons.ArrowRight size={14} />
         </NextLink>
@@ -269,7 +265,7 @@ export default function AdminPropertiesPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               leftAddon={<Icons.Search size={12} />}
-              shellStyle={{ flex: 1, maxWidth: 480 }}
+              shellClassName={styles.searchShell}
             />
           </div>
 

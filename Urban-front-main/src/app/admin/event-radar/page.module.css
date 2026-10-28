@@ -180,3 +180,7 @@
   color: var(--admin-text-muted);
   font-size: 13px;
 }
+
+.chevronIcon.chevronIcon {
+  color: var(--admin-text-dim);
+}

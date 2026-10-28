@@ -184,7 +184,7 @@ export default function NovoEventoManual() {
 
       {/* Resultado */}
       {lastResult && (
-        <AdminCard variant="accent" style={{ marginBottom: 24 }}>
+        <AdminCard variant="accent" className={styles.resultCard}>
           <div
             className={styles.rowCenteredWrap}
           >

@@ -219,7 +219,7 @@ export default function AdminDashboardPage() {
 
       {data.events.next30d < 100 && (
         <section className={styles.sectionMb32}>
-          <AdminCard variant="accent" style={{ padding: "20px 24px" }}>
+          <AdminCard variant="accent" className={styles.featuredCard}>
             <div
               className={styles.rowBetweenStart}
             >
@@ -641,7 +641,7 @@ function DataBlock({
   children: React.ReactNode;
 }) {
   return (
-    <AdminCard variant="subtle" style={{ display: "flex", flexDirection: "column" }}>
+    <AdminCard variant="subtle" className={styles.sectionCard}>
       <AdminCardHeader
         title={
           <span className={styles.rowCenteredGap8}>

@@ -125,7 +125,7 @@ export default function AdminSeoPage() {
           </AdminCard>
         </div>
 
-        <AdminCard variant="subtle" style={{ padding: 0, overflow: "hidden" }}>
+        <AdminCard variant="subtle" className={styles.flushCard}>
           <div className={styles.boxP20x20x0}>
             <AdminCardHeader
               eyebrow="INDICADORES OPERACIONAIS"
@@ -189,7 +189,7 @@ export default function AdminSeoPage() {
           </h2>
         </header>
 
-        <AdminCard variant="subtle" style={{ padding: 0, overflow: "hidden" }}>
+        <AdminCard variant="subtle" className={styles.flushCard}>
           <div className={styles.boxScroll}>
             <table className={styles.tableW100pctMinw960}>
               <thead>
@@ -219,7 +219,7 @@ export default function AdminSeoPage() {
           </h2>
         </header>
 
-        <AdminCard variant="subtle" style={{ padding: 0, overflow: "hidden" }}>
+        <AdminCard variant="subtle" className={styles.flushCard}>
           <div className={styles.boxScroll}>
             <table className={styles.tableW100pctMinw860}>
               <thead>
@@ -386,7 +386,7 @@ function IntegrationRow({
         <p className={styles.textTextMutedFs12}>
           {purpose}
         </p>
-        <AdminBadge kind={integrationBadgeKind(trace.integrationStatus)} style={{ marginTop: 8 }}>
+        <AdminBadge kind={integrationBadgeKind(trace.integrationStatus)} className={styles.traceBadge}>
           {status}
         </AdminBadge>
       </div>

@@ -175,15 +175,9 @@ export default function CoverageAdminPage() {
             handleStatusChange(r, e.target.value as CoverageRegion["status"])
           }
           disabled={busyId === r.id}
-          shellStyle={{ width: 136 }}
-          style={{
-            height: 28,
-            padding: "0 24px 0 8px",
-            fontSize: 11,
-            letterSpacing: 1.5,
-            textTransform: "uppercase",
-            cursor: busyId === r.id ? "not-allowed" : "pointer",
-          }}
+          shellClassName={styles.statusSelectShell}
+          className={styles.statusSelect}
+          style={{ cursor: busyId === r.id ? "not-allowed" : "pointer" }}
         >
           <option value="active">active</option>
           <option value="bootstrap">bootstrap</option>

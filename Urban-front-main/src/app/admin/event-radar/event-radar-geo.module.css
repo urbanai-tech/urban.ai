@@ -307,3 +307,7 @@
   background: linear-gradient(90deg, color-mix(in srgb, var(--app-accent, var(--admin-accent)) 6%, transparent), color-mix(in srgb, var(--app-accent, var(--admin-accent)) 18%, transparent), color-mix(in srgb, var(--app-accent, var(--admin-accent)) 42%, transparent));
   border: 1px solid var(--admin-divider);
 }
+
+.detailBadge.detailBadge.detailBadge {
+  max-width: 100%;
+}

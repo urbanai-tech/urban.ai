@@ -310,3 +310,24 @@
   background: var(--admin-accent);
   opacity: 0.35;
 }
+
+.okIcon.okIcon {
+  color: var(--admin-success);
+}
+
+.offIcon.offIcon {
+  color: var(--admin-danger);
+}
+
+.heroCard.heroCard.heroCard {
+  padding: 40px 40px 36px;
+}
+
+.searchShell.searchShell.searchShell {
+  flex: 1;
+  min-width: 220px;
+}
+
+.sourceShell.sourceShell.sourceShell {
+  width: 240px;
+}

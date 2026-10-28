@@ -143,7 +143,7 @@ export default function AdminPage() {
       {/* === Motor IA === */}
       {overview && pricing && (
         <section className={styles.sectionMb64}>
-          <AdminCard variant="accent" style={{ padding: "32px 32px 28px" }}>
+          <AdminCard variant="accent" className={styles.engineCard}>
             <AdminCardHeader
               eyebrow="MOTOR DE IA — ESTADO ATUAL"
               title={
@@ -347,7 +347,7 @@ function TierTip({
       <AdminStatusDot
         kind={active ? "accent" : "neutral"}
         size={6}
-        style={{ marginTop: 5 }}
+        className={styles.statusDot}
       />
       <div>
         <strong

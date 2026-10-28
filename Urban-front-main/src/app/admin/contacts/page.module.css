@@ -144,3 +144,16 @@
   gap: 12px;
   margin-bottom: 16px;
 }
+
+.searchShell.searchShell.searchShell {
+  flex: 1;
+  min-width: 240px;
+}
+
+.statusShell.statusShell.statusShell {
+  width: 200px;
+}
+
+.rowStatusShell.rowStatusShell.rowStatusShell {
+  width: 180px;
+}

@@ -139,3 +139,28 @@
   font-weight: 600;
   color: var(--admin-text);
 }
+
+.scanLimitInput.scanLimitInput.scanLimitInput {
+  width: 110px;
+}
+
+.errorCard.errorCard.errorCard {
+  margin-bottom: 20px;
+  color: var(--admin-danger);
+}
+
+.scanSummaryCard.scanSummaryCard.scanSummaryCard {
+  margin-bottom: 22px;
+}
+
+.statusSelect.statusSelect.statusSelect {
+  width: 150px;
+}
+
+.confidenceSelect.confidenceSelect.confidenceSelect {
+  width: 140px;
+}
+
+.limitSelect.limitSelect.limitSelect {
+  width: 100px;
+}

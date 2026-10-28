@@ -156,3 +156,12 @@
   color: var(--admin-text);
   font-weight: 500;
 }
+
+.noticeCard.noticeCard.noticeCard {
+  margin-bottom: 24px;
+  padding: 14px 18px;
+}
+
+.accentIcon.accentIcon {
+  color: var(--admin-accent);
+}

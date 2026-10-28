@@ -283,24 +283,7 @@ function SidebarContent({
       <NextLink
         href="/painel"
         title="Voltar para painel do anfitrião"
-        style={{
-          margin: "12px 12px 0",
-          padding: "10px 14px",
-          background: "var(--admin-accent-soft)",
-          border: "1px solid var(--admin-accent)",
-          borderRadius: 2,
-          color: "var(--admin-accent)",
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: 1.5,
-          textTransform: "uppercase",
-          textDecoration: "none",
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 8,
-          transition: "background 120ms",
-        }}
+        className={styles.switchLink}
         onMouseEnter={(e) => {
           (e.currentTarget as HTMLAnchorElement).style.background =
             "var(--admin-accent-soft)";
@@ -402,14 +385,7 @@ function Breadcrumb({ pathname }: { pathname: string }) {
     >
       <NextLink
         href="/admin"
-        style={{
-          color: "var(--admin-text-muted)",
-          textDecoration: "none",
-          letterSpacing: 1.5,
-          textTransform: "uppercase",
-          fontSize: 11,
-          fontWeight: 600,
-        }}
+        className={styles.breadcrumbLink}
       >
         OPERAÇÃO
       </NextLink>

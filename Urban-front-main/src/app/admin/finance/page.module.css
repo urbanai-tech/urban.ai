@@ -211,3 +211,11 @@
   display: inline-flex;
   gap: 6px;
 }
+
+.okIcon.okIcon {
+  color: var(--admin-success);
+}
+
+.heroCard.heroCard.heroCard {
+  padding: 40px 40px 36px;
+}

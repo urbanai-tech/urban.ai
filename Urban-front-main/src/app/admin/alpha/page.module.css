@@ -202,3 +202,11 @@
   word-break: break-word;
   line-height: 1.4;
 }
+
+.heroCard.heroCard.heroCard {
+  padding: 40px 40px 36px;
+}
+
+.emailShell.emailShell.emailShell {
+  width: 260px;
+}

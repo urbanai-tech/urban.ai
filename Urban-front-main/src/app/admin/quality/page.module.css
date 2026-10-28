@@ -226,3 +226,7 @@
   height: 2px;
   background: var(--admin-divider);
 }
+
+.heroCard.heroCard.heroCard {
+  padding: 40px 40px 36px;
+}

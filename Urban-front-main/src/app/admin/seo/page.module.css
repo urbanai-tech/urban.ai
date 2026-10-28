@@ -411,3 +411,12 @@
   color: var(--admin-text-muted);
   font-size: 11px;
 }
+
+.flushCard.flushCard.flushCard {
+  padding: 0;
+  overflow: hidden;
+}
+
+.traceBadge.traceBadge.traceBadge {
+  margin-top: 8px;
+}

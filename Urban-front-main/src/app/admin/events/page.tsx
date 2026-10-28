@@ -172,9 +172,9 @@ export default function AdminEventsPage() {
       align: "center",
       render: (e) =>
         e.hasCoords ? (
-          <Icons.Check size={14} style={{ color: "var(--admin-success)" }} />
+          <Icons.Check size={14} className={styles.okIcon} />
         ) : (
-          <Icons.Close size={14} style={{ color: "var(--admin-danger)" }} />
+          <Icons.Close size={14} className={styles.offIcon} />
         ),
     },
   ];
@@ -235,11 +235,11 @@ export default function AdminEventsPage() {
       align: "center",
       render: (e) =>
         e.latitude && e.longitude ? (
-          <Icons.Check size={14} style={{ color: "var(--admin-success)" }} />
+          <Icons.Check size={14} className={styles.okIcon} />
         ) : e.pendingGeocode ? (
           <AdminStatusDot kind="warn" size={6} />
         ) : (
-          <Icons.Close size={14} style={{ color: "var(--admin-danger)" }} />
+          <Icons.Close size={14} className={styles.offIcon} />
         ),
     },
     {
@@ -249,9 +249,9 @@ export default function AdminEventsPage() {
       align: "center",
       render: (e) =>
         e.outOfScope ? (
-          <Icons.Close size={14} style={{ color: "var(--admin-danger)" }} />
+          <Icons.Close size={14} className={styles.offIcon} />
         ) : (
-          <Icons.Check size={14} style={{ color: "var(--admin-success)" }} />
+          <Icons.Check size={14} className={styles.okIcon} />
         ),
     },
     {
@@ -261,7 +261,7 @@ export default function AdminEventsPage() {
       align: "center",
       render: (e) =>
         e.relevancia !== null ? (
-          <Icons.Check size={14} style={{ color: "var(--admin-success)" }} />
+          <Icons.Check size={14} className={styles.okIcon} />
         ) : e.enrichmentAttempts > 0 ? (
           <span
             title={e.enrichmentLastError ?? ""}
@@ -318,7 +318,7 @@ export default function AdminEventsPage() {
 
       {/* === Hero KPI: cobertura geo === */}
       <section className={styles.sectionMb56}>
-        <AdminCard variant="accent" style={{ padding: "40px 40px 36px" }}>
+        <AdminCard variant="accent" className={styles.heroCard}>
           <div
             className={styles.gridColsGap32}
           >
@@ -463,7 +463,7 @@ export default function AdminEventsPage() {
               }
             }}
             leftAddon={<Icons.Search size={12} />}
-            shellStyle={{ flex: 1, minWidth: 220 }}
+            shellClassName={styles.searchShell}
           />
 
           <AdminInput
@@ -471,7 +471,7 @@ export default function AdminEventsPage() {
             value={sourceFilter}
             onChange={(e) => setSourceFilter(e.target.value)}
             onBlur={() => setPage(1)}
-            shellStyle={{ width: 240 }}
+            shellClassName={styles.sourceShell}
           />
 
           <AdminButton

@@ -165,7 +165,7 @@ export default function AdminUsersPage() {
             setConfirmRole({ user: u, role: e.target.value as UserRole })
           }
           disabled={busy === u.id}
-          shellStyle={{ width: 120 }}
+          shellClassName={styles.roleShell}
         >
           <option value="host">host</option>
           <option value="admin">admin</option>

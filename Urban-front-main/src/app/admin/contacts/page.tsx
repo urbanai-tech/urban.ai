@@ -235,7 +235,7 @@ export default function AdminContactsPage() {
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && load()}
           leftAddon={<Icons.Search size={12} />}
-          shellStyle={{ flex: 1, minWidth: 240 }}
+          shellClassName={styles.searchShell}
         />
         <AdminSelect
           value={statusFilter}
@@ -243,7 +243,7 @@ export default function AdminContactsPage() {
             setStatusFilter(e.target.value as ContactSubmissionStatus | "all");
             setPage(1);
           }}
-          shellStyle={{ width: 200 }}
+          shellClassName={styles.statusShell}
         >
           <option value="all">Todos status</option>
           {Object.entries(STATUS_LABELS).map(([value, label]) => (
@@ -330,7 +330,7 @@ export default function AdminContactsPage() {
                         onChange={(e) =>
                           updateStatus(entry, e.target.value as ContactSubmissionStatus)
                         }
-                        shellStyle={{ width: 180 }}
+                        shellClassName={styles.rowStatusShell}
                       >
                         {Object.entries(STATUS_LABELS).map(([value, label]) => (
                           <option key={value} value={value}>

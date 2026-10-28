@@ -139,3 +139,11 @@
 .labelFs12.labelFs12 {
   font-size: 12px;
 }
+
+.engineCard.engineCard.engineCard {
+  padding: 32px 32px 28px;
+}
+
+.statusDot.statusDot {
+  margin-top: 5px;
+}

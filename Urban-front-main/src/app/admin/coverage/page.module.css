@@ -107,3 +107,15 @@
   gap: 10px;
   margin-top: 8px;
 }
+
+.statusSelectShell.statusSelectShell {
+  width: 136px;
+}
+
+.statusSelect.statusSelect.statusSelect {
+  height: 28px;
+  padding: 0 24px 0 8px;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}

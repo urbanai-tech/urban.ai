@@ -179,3 +179,7 @@
   color: var(--admin-text);
   margin: 4px 0 0;
 }
+
+.chevronIcon.chevronIcon {
+  color: var(--admin-text-dim);
+}

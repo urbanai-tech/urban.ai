@@ -167,3 +167,12 @@
   margin: 4px 0 0;
   font-weight: 500;
 }
+
+.scrollCard.scrollCard.scrollCard {
+  padding: 0;
+  overflow-x: auto;
+}
+
+.roleShell.roleShell.roleShell {
+  width: 180px;
+}

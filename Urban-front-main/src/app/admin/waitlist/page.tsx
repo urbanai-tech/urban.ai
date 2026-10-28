@@ -401,7 +401,7 @@ export default function AdminWaitlistPage() {
               <AdminInput
                 readOnly
                 value={lastInvite.inviteUrl}
-                shellStyle={{ flex: 1, minWidth: 280 }}
+                shellClassName={styles.inviteUrlShell}
               />
               <AdminButton
                 variant="primary"
@@ -428,7 +428,7 @@ export default function AdminWaitlistPage() {
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && load()}
           leftAddon={<Icons.Search size={12} />}
-          shellStyle={{ flex: 1, minWidth: 220 }}
+          shellClassName={styles.searchShell}
         />
         <AdminSelect
           value={statusFilter}
@@ -436,7 +436,7 @@ export default function AdminWaitlistPage() {
             setStatusFilter(e.target.value);
             setPage(1);
           }}
-          shellStyle={{ width: 200 }}
+          shellClassName={styles.statusShell}
         >
           <option value="">Todos status</option>
           <option value="pending">Pendentes</option>

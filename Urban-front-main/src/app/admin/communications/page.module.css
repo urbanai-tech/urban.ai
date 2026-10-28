@@ -137,3 +137,20 @@
   white-space: nowrap;
   max-width: 140px;
 }
+
+.eventCard.eventCard.eventCard {
+  padding: 16px 18px;
+}
+
+.searchShell.searchShell.searchShell {
+  flex: 1 1 260px;
+  max-width: 420px;
+}
+
+.channelShell.channelShell.channelShell {
+  flex: 0 0 150px;
+}
+
+.statusShell.statusShell.statusShell {
+  flex: 0 0 150px;
+}

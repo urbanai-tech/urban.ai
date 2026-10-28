@@ -239,7 +239,7 @@ export default function AdminEventDedupPage() {
               max={5000}
               value={scanLimit}
               onChange={(event) => setScanLimit(Number(event.target.value))}
-              style={{ width: 110 }}
+              className={styles.scanLimitInput}
             />
             <AdminButton
               variant="primary"
@@ -255,7 +255,7 @@ export default function AdminEventDedupPage() {
       />
 
       {error && (
-        <AdminCard variant="accent" style={{ marginBottom: 20, color: "var(--admin-danger)" }}>
+        <AdminCard variant="accent" className={styles.errorCard}>
           {error}
         </AdminCard>
       )}
@@ -270,7 +270,7 @@ export default function AdminEventDedupPage() {
       </div>
 
       {lastScan && (
-        <AdminCard variant="subtle" style={{ marginBottom: 22 }}>
+        <AdminCard variant="subtle" className={styles.scanSummaryCard}>
           <div
             className={styles.gridCols5Gap16}
           >
@@ -296,7 +296,7 @@ export default function AdminEventDedupPage() {
                   setStatus(event.target.value as StatusFilter);
                   setPage(1);
                 }}
-                style={{ width: 150 }}
+                className={styles.statusSelect}
               >
                 {Object.entries(statusLabels).map(([value, label]) => (
                   <option key={value} value={value}>
@@ -311,7 +311,7 @@ export default function AdminEventDedupPage() {
                   setConfidenceBand(event.target.value as ConfidenceFilter);
                   setPage(1);
                 }}
-                style={{ width: 140 }}
+                className={styles.confidenceSelect}
               >
                 {Object.entries(confidenceLabels).map(([value, label]) => (
                   <option key={value} value={value}>
@@ -326,7 +326,7 @@ export default function AdminEventDedupPage() {
                   setLimit(Number(event.target.value));
                   setPage(1);
                 }}
-                style={{ width: 100 }}
+                className={styles.limitSelect}
               >
                 {[25, 50, 100].map((value) => (
                   <option key={value} value={value}>

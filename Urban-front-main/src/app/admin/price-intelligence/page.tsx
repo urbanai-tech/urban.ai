@@ -482,7 +482,7 @@ export default function AdminPriceIntelligencePage() {
                     </span>
                   )}
                 </span>
-                <Icons.ArrowRight size={14} style={{ color: "var(--admin-accent)", flexShrink: 0 }} />
+                <Icons.ArrowRight size={14} className={styles.arrowIcon} />
               </a>
             ))}
           </div>

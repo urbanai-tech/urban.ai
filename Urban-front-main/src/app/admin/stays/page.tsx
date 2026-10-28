@@ -184,7 +184,7 @@ export default function AdminStaysPage() {
 
       {/* === Hero KPI: push success rate === */}
       <section className={styles.sectionMb32}>
-        <AdminCard variant="accent" style={{ padding: "40px 40px 36px" }}>
+        <AdminCard variant="accent" className={styles.heroCard}>
           <div
             className={styles.gridColsGap32}
           >

@@ -254,7 +254,7 @@ export default function AdminUserDetailPage() {
                   const next = e.target.value;
                   if (next !== user.role) setConfirmRole({ next });
                 }}
-                shellStyle={{ width: 180 }}
+                shellClassName={styles.roleShell}
               >
                 <option value="host">Anfitrião</option>
                 <option value="support">Suporte</option>
@@ -380,7 +380,7 @@ export default function AdminUserDetailPage() {
             body="Esse usuário ainda não criou imóveis. Se já é cliente, peça pra completar o onboarding."
           />
         ) : (
-          <AdminCard variant="default" style={{ padding: 0, overflowX: "auto" }}>
+          <AdminCard variant="default" className={styles.scrollCard}>
             <table className={styles.tableFs13W100pct}>
               <thead>
                 <tr className={styles.tableRowBordered}>

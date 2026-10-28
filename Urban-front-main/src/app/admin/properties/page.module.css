@@ -87,3 +87,22 @@
 .strongText.strongText {
   color: var(--admin-text);
 }
+
+.okIcon.okIcon {
+  color: var(--admin-success);
+}
+
+.offIcon.offIcon {
+  color: var(--admin-danger);
+}
+
+.detailLink.detailLink {
+  color: var(--admin-text-muted);
+  display: inline-flex;
+  padding: 4px;
+}
+
+.searchShell.searchShell.searchShell {
+  flex: 1;
+  max-width: 480px;
+}

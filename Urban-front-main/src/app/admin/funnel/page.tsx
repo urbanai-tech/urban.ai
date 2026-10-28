@@ -176,7 +176,7 @@ function FunnelChart({ stages, max }: { stages: Stage[]; max: number }) {
   const totalHeight = stages.length * (stageHeight + gap);
 
   return (
-    <AdminCard variant="subtle" style={{ padding: 32 }}>
+    <AdminCard variant="subtle" className={styles.funnelCard}>
       <div
         className={styles.gridColsGap32}
       >

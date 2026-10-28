@@ -144,13 +144,13 @@ export default function AdminCommunicationsPage() {
               onKeyDown={(e) => {
                 if (e.key === "Enter") load(1);
               }}
-              shellStyle={{ flex: "1 1 260px", maxWidth: 420 }}
+              shellClassName={styles.searchShell}
             />
             <AdminSelect
               label="Canal"
               value={channel}
               onChange={(e) => setChannel(e.target.value as CommunicationChannel | "all")}
-              shellStyle={{ flex: "0 0 150px" }}
+              shellClassName={styles.channelShell}
             >
               <option value="all">Todos</option>
               <option value="email">E-mail</option>
@@ -161,7 +161,7 @@ export default function AdminCommunicationsPage() {
               label="Status"
               value={status}
               onChange={(e) => setStatus(e.target.value as CommunicationStatus | "all")}
-              shellStyle={{ flex: "0 0 150px" }}
+              shellClassName={styles.statusShell}
             >
               <option value="all">Todos</option>
               <option value="sent">Enviado</option>
@@ -213,7 +213,7 @@ export default function AdminCommunicationsPage() {
 function CommunicationRow({ event }: { event: CommunicationEvent }) {
   const target = event.recipientEmail || event.recipientDeviceId || event.userId || "sem destinatario";
   return (
-    <AdminCard variant={event.status === "failed" ? "accent" : "subtle"} style={{ padding: "16px 18px" }}>
+    <AdminCard variant={event.status === "failed" ? "accent" : "subtle"} className={styles.eventCard}>
       <div className={styles.gridCenteredColsAuto}>
         <div className={styles.stackGap8}>
           <div className={styles.rowWrapGap8}>

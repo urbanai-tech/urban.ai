@@ -151,3 +151,17 @@
   display: flex;
   gap: 8px;
 }
+
+.inviteUrlShell.inviteUrlShell.inviteUrlShell {
+  flex: 1;
+  min-width: 280px;
+}
+
+.searchShell.searchShell.searchShell {
+  flex: 1;
+  min-width: 220px;
+}
+
+.statusShell.statusShell.statusShell {
+  width: 200px;
+}

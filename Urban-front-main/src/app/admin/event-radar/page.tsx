@@ -301,7 +301,7 @@ export default function AdminEventRadarPage() {
       header: "",
       width: 36,
       align: "right",
-      render: () => <Icons.ChevronRight size={14} style={{ color: "var(--admin-text-dim)" }} />,
+      render: () => <Icons.ChevronRight size={14} className={styles.chevronIcon} />,
     },
   ];
 

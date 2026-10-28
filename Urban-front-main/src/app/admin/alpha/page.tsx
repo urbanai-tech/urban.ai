@@ -261,7 +261,7 @@ export default function AdminAlphaPage() {
                 if (e.key === "Enter") load(email);
               }}
               placeholder="nome@empresa.com"
-              shellStyle={{ width: 260 }}
+              shellClassName={styles.emailShell}
               leftAddon={<Icons.Mail size={12} />}
             />
             <AdminButton
@@ -318,7 +318,7 @@ export default function AdminAlphaPage() {
         <>
           {/* === Hero KPI: Receita real === */}
           <section className={styles.sectionMb56}>
-            <AdminCard variant="accent" style={{ padding: "40px 40px 36px" }}>
+            <AdminCard variant="accent" className={styles.heroCard}>
               <div
                 className={styles.gridColsGap32}
               >

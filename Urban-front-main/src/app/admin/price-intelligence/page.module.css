@@ -296,3 +296,8 @@
   font-size: 13px;
   line-height: 1.55;
 }
+
+.arrowIcon.arrowIcon {
+  color: var(--admin-accent);
+  flex-shrink: 0;
+}

@@ -174,7 +174,7 @@ export default function AdminFinancePage() {
       align: "center",
       render: (c) =>
         c.scalesWithListings ? (
-          <Icons.Check size={14} style={{ color: "var(--admin-success)" }} />
+          <Icons.Check size={14} className={styles.okIcon} />
         ) : (
           <span className={styles.labelTextDim}>—</span>
         ),
@@ -218,7 +218,7 @@ export default function AdminFinancePage() {
 
       {/* === Hero — Margem por imóvel === */}
       <section className={styles.sectionMb56}>
-        <AdminCard variant="accent" style={{ padding: "40px 40px 36px" }}>
+        <AdminCard variant="accent" className={styles.heroCard}>
           <div
             className={styles.gridColsGap32}
           >

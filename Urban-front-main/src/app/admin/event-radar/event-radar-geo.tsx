@@ -404,7 +404,7 @@ function GeoOpsStat({
       >
         {value}
       </p>
-      <AdminBadge kind={kind} style={{ maxWidth: "100%" }}>
+      <AdminBadge kind={kind} className={styles.detailBadge}>
         <span className={styles.labelScroll}>{detail}</span>
       </AdminBadge>
     </div>

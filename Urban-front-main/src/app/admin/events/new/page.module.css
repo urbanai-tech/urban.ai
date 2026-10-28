@@ -78,3 +78,7 @@
 .strongText.strongText {
   color: var(--admin-text);
 }
+
+.resultCard.resultCard.resultCard {
+  margin-bottom: 24px;
+}

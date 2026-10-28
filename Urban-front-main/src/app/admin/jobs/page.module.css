@@ -186,3 +186,14 @@
   line-height: 1.55;
   flex: 1;
 }
+
+.jobCard.jobCard.jobCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+}
+
+.runButton.runButton.runButton {
+  align-self: flex-start;
+}

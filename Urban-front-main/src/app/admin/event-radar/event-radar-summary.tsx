@@ -9,7 +9,7 @@ export function ContractBanner({ endpointGaps }: { endpointGaps: string[] }) {
     <section
       className={styles.gridColsTextMuted}
     >
-      <Icons.AlertTriangle size={16} style={{ color: "var(--admin-warning)", marginTop: 2 }} />
+      <Icons.AlertTriangle size={16} className={styles.warningIcon} />
       <div>
         <p className={styles.textWarningW600}>
           Usando fallback contratual do front.

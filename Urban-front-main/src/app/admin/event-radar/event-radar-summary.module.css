@@ -129,3 +129,8 @@
 .label.label {
   overflow-wrap: anywhere;
 }
+
+.warningIcon.warningIcon {
+  color: var(--admin-warning);
+  margin-top: 2px;
+}

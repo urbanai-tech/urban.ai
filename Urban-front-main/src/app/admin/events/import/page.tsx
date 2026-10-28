@@ -197,7 +197,7 @@ export default function ImportarCsvEventos() {
       />
 
       {/* Schema esperado */}
-      <AdminCard variant="subtle" style={{ marginBottom: 24 }}>
+      <AdminCard variant="subtle" className={styles.schemaCard}>
         <AdminCardHeader
           eyebrow="SCHEMA"
           title="Estrutura do CSV"
@@ -225,7 +225,7 @@ export default function ImportarCsvEventos() {
       </AdminCard>
 
       {/* Meta beta */}
-      <AdminCard variant="subtle" style={{ marginBottom: 24 }}>
+      <AdminCard variant="subtle" className={styles.criteriaCard}>
         <AdminCardHeader eyebrow="META FALLBACK BETA" title="Critérios de aceite" />
         <div
           className={styles.gridColsAuto220TextMuted}
@@ -335,7 +335,7 @@ export default function ImportarCsvEventos() {
           <ImportReadiness result={result} />
 
           {result.invalidRows.length > 0 && (
-            <AdminCard variant="subtle" style={{ marginTop: 24 }}>
+            <AdminCard variant="subtle" className={styles.invalidRowsCard}>
               <AdminCardHeader
                 eyebrow="LINHAS INVÁLIDAS"
                 title={`${result.invalidRows.length} rejeitadas`}

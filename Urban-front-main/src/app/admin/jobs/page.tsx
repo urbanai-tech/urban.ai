@@ -412,12 +412,7 @@ function JobCard({
   return (
     <AdminCard
       variant="subtle"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
-        height: "100%",
-      }}
+      className={styles.jobCard}
     >
       <div>
         <div
@@ -447,7 +442,7 @@ function JobCard({
         onClick={onRun}
         disabled={disabled}
         loading={running}
-        style={{ alignSelf: "flex-start" }}
+        className={styles.runButton}
       >
         {running ? "Executando…" : actionLabel}
       </AdminButton>

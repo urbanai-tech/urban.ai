@@ -359,3 +359,12 @@
   background: var(--admin-accent);
   opacity: 0.35;
 }
+
+.featuredCard.featuredCard.featuredCard {
+  padding: 20px 24px;
+}
+
+.sectionCard.sectionCard.sectionCard {
+  display: flex;
+  flex-direction: column;
+}

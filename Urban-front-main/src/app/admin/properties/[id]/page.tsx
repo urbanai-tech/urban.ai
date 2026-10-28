@@ -231,11 +231,11 @@ export default function AdminPropertyDetailPage() {
 
       {/* === Resultado do reprocessamento === */}
       {reprocessResult && (
-        <AdminCard variant="accent" style={{ marginBottom: 24, padding: "14px 18px" }}>
+        <AdminCard variant="accent" className={styles.noticeCard}>
           <p
             className={styles.rowCenteredText}
           >
-            <Icons.Check size={14} style={{ color: "var(--admin-accent)" }} />
+            <Icons.Check size={14} className={styles.accentIcon} />
             {reprocessResult}
           </p>
         </AdminCard>

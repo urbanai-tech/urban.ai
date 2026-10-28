@@ -230,7 +230,7 @@ export default function AdminRoiPage() {
 
       {/* === Hero KPI: receita atribuida === */}
       <section className={styles.sectionMb56}>
-        <AdminCard variant="accent" style={{ padding: "40px 40px 36px" }}>
+        <AdminCard variant="accent" className={styles.heroCard}>
           <div
             className={styles.gridColsAutoGap32}
           >
