@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react";
 import { parseLocalDate } from "@/app/lib/date";
 import { AppEmptyState } from "./AppEmptyState";
 import { TrendingUp } from "./Icons";
+import styles from "./PaceChart.module.css";
 
 /**
  * <PaceChart> — Gráfico de pace de reservas vs baseline esperado.
@@ -125,12 +126,8 @@ export function PaceChart({
         role="status"
         aria-busy="true"
         aria-label="Carregando gráfico de reservas"
-        className="urban-app-skeleton"
-        style={{
-          width: "100%",
-          height,
-          borderRadius: 8,
-        }}
+        className={`urban-app-skeleton ${styles.carregandoGraficoDe}`}
+        style={{ height }}
       />
     );
   }
@@ -170,57 +167,34 @@ export function PaceChart({
   if (!hasCurveSignal) {
     return (
       <div
-        style={{
-          minHeight: height,
-          display: "grid",
-          gridTemplateColumns: events.length ? "minmax(0, 0.9fr) minmax(260px, 1.1fr)" : "1fr",
-          gap: 18,
-          alignItems: "center",
-        }}
-        className="pace-empty-grid"
+        style={{ minHeight: height, gridTemplateColumns: events.length ? "minmax(0, 0.9fr) minmax(260px, 1.1fr)" : "1fr" }}
+        className={`pace-empty-grid ${styles.paceEmptyGrid}`}
       >
         <div>
-          <p className="urban-app-eyebrow-muted" style={{ marginBottom: 8 }}>
+          <p className={`urban-app-eyebrow-muted ${styles.appEyebrowMuted}`}>
             Sem curva de ocupação
           </p>
-          <h3 style={{ margin: 0, color: "var(--app-text)", fontSize: 20, lineHeight: 1.25 }}>
+          <h3 className={styles.paceChartSubheading}>
             Ainda não há reservas ou baseline suficientes para comparar.
           </h3>
-          <p style={{ margin: "8px 0 0", color: "var(--app-text-muted)", fontSize: 13, lineHeight: 1.5 }}>
+          <p className={styles.paceChartText}>
             Neste estado, o bloco funciona melhor como agenda de eventos relevantes. Quando chegarem dados de
             ocupação futura, a curva volta a aparecer.
           </p>
         </div>
 
         {events.length > 0 && (
-          <div style={{ display: "grid", gap: 8 }}>
+          <div className={styles.paceChartGrid}>
             {eventList.map((event, index) => (
               <div
                 key={`${event.date}-${index}`}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "72px minmax(0, 1fr)",
-                  gap: 10,
-                  alignItems: "center",
-                  padding: "10px 12px",
-                  borderRadius: 8,
-                  border: "1px solid var(--app-divider)",
-                  background: "var(--app-surface-muted)",
-                }}
+                className={styles.paceChartGridSurfaceMuted}
               >
-                <span style={{ color: "var(--app-accent)", fontSize: 12, fontWeight: 750 }}>
+                <span className={styles.paceChartLabel}>
                   {formatDateShortPtBR(event.date)}
                 </span>
                 <span
-                  style={{
-                    minWidth: 0,
-                    color: "var(--app-text)",
-                    fontSize: 13,
-                    fontWeight: 650,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
+                  className={styles.paceChartLabel13}
                   title={event.eventLabel ?? undefined}
                 >
                   {event.eventLabel}
@@ -228,7 +202,7 @@ export function PaceChart({
               </div>
             ))}
             {events.length > eventList.length && (
-              <p style={{ margin: 0, color: "var(--app-text-muted)", fontSize: 12 }}>
+              <p className={styles.paceChartText12}>
                 +{events.length - eventList.length} {events.length - eventList.length === 1 ? "evento" : "eventos"} no período.
               </p>
             )}
@@ -247,13 +221,13 @@ export function PaceChart({
   }
 
   return (
-    <div style={{ position: "relative", width: "100%" }}>
+    <div className={styles.paceChartBox}>
       <svg
         role="img"
         aria-label={`Gráfico de reservas dos próximos ${points.length} dias. Reservado comparado ao esperado.`}
         viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
         preserveAspectRatio="none"
-        style={{ width: "100%", height, display: "block" }}
+        className={styles.paceChartIcon} style={{ height }}
       >
         <defs>
           <linearGradient id="pace-booked-fill" x1="0" y1="0" x2="0" y2="1">
@@ -282,7 +256,7 @@ export function PaceChart({
                 textAnchor="end"
                 fontSize={10}
                 fill="var(--app-text-muted)"
-                style={{ fontFamily: "var(--font-brand)" }}
+                className={styles.paceChartSvgText}
               >
                 {t}%
               </text>
@@ -343,7 +317,7 @@ export function PaceChart({
             textAnchor="middle"
             fontSize={10}
             fill="var(--app-text-muted)"
-            style={{ fontFamily: "var(--font-brand)" }}
+            className={styles.paceChartSvgText}
           >
             {formatDateShortPtBR(p.date)}
           </text>
@@ -389,7 +363,7 @@ export function PaceChart({
               fill="transparent"
               onMouseEnter={() => setHoverIdx(i)}
               onMouseLeave={() => setHoverIdx(null)}
-              style={{ cursor: "crosshair" }}
+              className={styles.paceChartRect}
             />
           );
         })}
@@ -399,30 +373,13 @@ export function PaceChart({
       {hovered && (
         <div
           role="tooltip"
-          style={{
-            position: "absolute",
-            // Posicionamento percentual baseado no viewBox
-            left: `calc(${(hovered.x / VIEWBOX_WIDTH) * 100}% - 0px)`,
-            top: 4,
-            transform: "translateX(-50%)",
-            background: "var(--app-surface)",
-            border: "1px solid var(--app-divider-strong)",
-            borderRadius: 8,
-            padding: "8px 12px",
-            boxShadow: "var(--app-shadow-elevated)",
-            fontSize: 12,
-            color: "var(--app-text)",
-            pointerEvents: "none",
-            whiteSpace: "nowrap",
-            zIndex: 2,
-            fontFamily: "var(--font-brand)",
-          }}
+          className={styles.paceChartAbs} style={{ left: `calc(${(hovered.x / VIEWBOX_WIDTH) * 100}% - 0px)` }}
         >
-          <div style={{ fontWeight: 600, marginBottom: 2 }}>
+          <div className={styles.paceChartBox2}>
             {formatDateFullPtBR(hovered.date)}
           </div>
-          <div style={{ color: "var(--app-text-muted)" }}>
-            <span style={{ color: "var(--app-accent)", fontWeight: 600 }}>
+          <div className={styles.paceChartBoxTextMuted}>
+            <span className={styles.paceChartLabelAccent}>
               {Math.round(hovered.booked)}% reservado
             </span>
             {" · "}
@@ -430,16 +387,7 @@ export function PaceChart({
           </div>
           {hovered.eventLabel && (
             <div
-              style={{
-                marginTop: 4,
-                paddingTop: 4,
-                borderTop: "1px solid var(--app-divider)",
-                color: "var(--app-accent)",
-                fontWeight: 600,
-                fontSize: 11,
-                letterSpacing: 0.4,
-                textTransform: "uppercase",
-              }}
+              className={styles.paceChartBox11}
             >
               {hovered.eventLabel}
             </div>
@@ -449,49 +397,24 @@ export function PaceChart({
 
       {/* Legenda */}
       <div
-        style={{
-          display: "flex",
-          gap: 20,
-          marginTop: 12,
-          flexWrap: "wrap",
-          fontSize: 12,
-          color: "var(--app-text-muted)",
-          fontFamily: "var(--font-brand)",
-        }}
+        className={styles.paceChartRow}
       >
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+        <span className={styles.paceChartLabelGap6}>
           <span
-            style={{
-              display: "inline-block",
-              width: 12,
-              height: 3,
-              background: "var(--app-accent)",
-              borderRadius: 2,
-            }}
+            className={styles.paceChartLabelW12px}
           />
           Reservado
         </span>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+        <span className={styles.paceChartLabelGap6}>
           <span
-            style={{
-              display: "inline-block",
-              width: 12,
-              height: 0,
-              borderTop: "2px dashed var(--app-text-muted)",
-            }}
+            className={styles.paceChartLabelH0}
           />
           Esperado
         </span>
         {events.length > 0 && (
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span className={styles.paceChartLabelGap6}>
             <span
-              style={{
-                display: "inline-block",
-                width: 2,
-                height: 12,
-                background: "var(--app-accent)",
-                opacity: 0.6,
-              }}
+              className={styles.paceChartLabelW2px}
             />
             Evento relevante
           </span>
@@ -499,33 +422,21 @@ export function PaceChart({
       </div>
 
       {events.length > 0 && (
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+        <div className={styles.paceChartRowGap8}>
           {eventList.map((event, index) => (
             <span
               key={`${event.date}-chip-${index}`}
               title={event.eventLabel ?? undefined}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                maxWidth: 220,
-                padding: "6px 8px",
-                borderRadius: 999,
-                border: "1px solid var(--app-divider)",
-                color: "var(--app-text-muted)",
-                background: "var(--app-surface-muted)",
-                fontSize: 11,
-                fontWeight: 650,
-              }}
+              className={styles.paceChartLabel11}
             >
-              <span style={{ color: "var(--app-accent)" }}>{formatDateShortPtBR(event.date)}</span>
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <span className={styles.paceChartLabel2}>{formatDateShortPtBR(event.date)}</span>
+              <span className={styles.paceChartLabel3}>
                 {event.eventLabel}
               </span>
             </span>
           ))}
           {events.length > eventList.length && (
-            <span style={{ color: "var(--app-text-muted)", fontSize: 11, alignSelf: "center" }}>
+            <span className={styles.paceChartLabelTextMuted}>
               +{events.length - eventList.length}
             </span>
           )}
