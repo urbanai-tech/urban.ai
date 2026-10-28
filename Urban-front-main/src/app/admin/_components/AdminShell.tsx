@@ -28,6 +28,7 @@ import {
   Users,
   Zap,
 } from "./Icons";
+import styles from "./AdminShell.module.css";
 
 /**
  * AdminShell — layout-wrapper para todas as rotas /admin/*.
@@ -154,28 +155,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className="urban-admin"
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        background: "var(--admin-bg)",
-        color: "var(--admin-text)",
-      }}
+      className={`urban-admin ${styles.adminRootTextBgBg}`}
     >
       <SkipLink targetId="admin-main-content" />
       {/* Sidebar desktop */}
       <aside
-        className="urban-admin-sidebar"
-        style={{
-          width: 240,
-          flexShrink: 0,
-          height: "100vh",
-          position: "sticky",
-          top: 0,
-          overflowY: "auto",
-          display: "flex",
-          flexDirection: "column",
-        }}
+        className={`urban-admin-sidebar ${styles.sidebarStickyW240}`}
         data-mobile-hidden
       >
         <SidebarContent
@@ -192,32 +177,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           role="dialog"
           aria-modal="true"
           aria-label="Menu de operação"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 999,
-            display: "flex",
-          }}
+          className={styles.rowFixed}
         >
           <div
-            className="urban-admin-backdrop"
+            className={`urban-admin-backdrop ${styles.backdropAbsoluteBgBackdrop}`}
             onClick={() => setMobileOpen(false)}
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "var(--admin-backdrop)",
-              backdropFilter: "blur(2px)",
-            }}
           />
           <aside
-            className="urban-admin-sidebar urban-admin-drawer-panel"
-            style={{
-              position: "relative",
-              width: 280,
-              maxWidth: "85vw",
-              height: "100vh",
-              overflowY: "auto",
-            }}
+            className={`urban-admin-sidebar urban-admin-drawer-panel ${styles.sidebarW280Maxw85vw}`}
           >
             <SidebarContent
               NAV={filteredNav}
@@ -230,40 +197,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Main */}
-      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+      <div className={styles.stackMinw0Flex1}>
         {/* Topbar */}
         <header
-          style={{
-            position: "sticky",
-            top: 0,
-            zIndex: 50,
-            height: 56,
-            padding: "0 24px",
-            background: "var(--admin-surface-elevated)",
-            backdropFilter: "blur(12px)",
-            borderBottom: "1px solid var(--admin-divider)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 24,
-          }}
+          className={styles.rowStickyBetween}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+          <div className={styles.rowCenteredGap12}>
             <button
               onClick={() => setMobileOpen(true)}
               aria-label="Abrir menu"
               data-mobile-only
-              style={{
-                display: "none",
-                background: "transparent",
-                border: "1px solid var(--admin-divider-strong)",
-                borderRadius: 2,
-                color: "var(--admin-text)",
-                padding: "6px 8px",
-                cursor: "pointer",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              className={styles.buttonHiddenJustifyCenterCentered}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
                 <line x1="3" y1="7" x2="21" y2="7" />
@@ -273,7 +217,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </button>
             <Breadcrumb pathname={pathname} />
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div className={styles.rowCenteredGap16}>
             <ThemeToggle compact />
             <EnvBadge env={env} />
             <AdminAvatar />
@@ -284,8 +228,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <main
           id="admin-main-content"
           tabIndex={-1}
-          className="urban-admin-main"
-          style={{ flex: 1, minWidth: 0 }}
+          className={`urban-admin-main ${styles.mainMinw0Flex1}`}
         >
           {children}
         </main>
@@ -326,24 +269,11 @@ function SidebarContent({
     <>
       {/* Wordmark */}
       <div
-        style={{
-          padding: "20px 16px",
-          borderBottom: "1px solid var(--admin-divider)",
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-        }}
+        className={styles.rowCenteredGap6}
       >
         <BrandLogo variant="wordmark" alt="My Urban" className="urban-admin-logo" />
         <span
-          style={{
-            marginLeft: 8,
-            fontSize: 9,
-            fontWeight: 600,
-            letterSpacing: 2,
-            textTransform: "uppercase",
-            color: "var(--admin-text-dim)",
-          }}
+          className={styles.labelTextDimFs9}
         >
           / suporte
         </span>
@@ -380,7 +310,7 @@ function SidebarContent({
             "var(--admin-accent-soft)";
         }}
       >
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+        <span className={styles.rowCenteredGap8}>
           <svg
             width="13"
             height="13"
@@ -413,18 +343,10 @@ function SidebarContent({
       </NextLink>
 
       {/* Busca */}
-      <div style={{ padding: "12px 12px 0" }}>
-        <div style={{ position: "relative" }}>
+      <div className={styles.boxP12x12x0}>
+        <div className={styles.box}>
           <span
-            style={{
-              position: "absolute",
-              left: 10,
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "var(--admin-text-dim)",
-              pointerEvents: "none",
-              display: "flex",
-            }}
+            className={styles.rowAbsoluteTextDim}
           >
             <Search size={14} />
           </span>
@@ -433,24 +355,13 @@ function SidebarContent({
             placeholder="Buscar seção…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: "100%",
-              height: 32,
-              padding: "0 10px 0 32px",
-              background: "var(--admin-surface-elevated)",
-              border: "1px solid var(--admin-divider)",
-              borderRadius: 2,
-              color: "var(--admin-text)",
-              fontSize: 12,
-              outline: "none",
-              fontFamily: "var(--font-brand)",
-            }}
+            className={styles.inputTextBgSurfaceElevated}
           />
         </div>
       </div>
 
       {/* Navigation */}
-      <nav style={{ flex: 1, padding: "8px 0 24px" }}>
+      <nav className={styles.navP8x0x24Flex1}>
         {NAV.map((section) => (
           <div key={section.title}>
             <p className="urban-admin-sidebar-section">{section.title}</p>
@@ -461,7 +372,7 @@ function SidebarContent({
                 className="urban-admin-sidebar-item"
                 data-active={isActive(item.href)}
               >
-                <span style={{ display: "inline-flex", alignItems: "center" }}>
+                <span className={styles.rowCentered}>
                   {item.icon}
                 </span>
                 {item.label}
@@ -471,11 +382,7 @@ function SidebarContent({
         ))}
         {NAV.length === 0 && (
           <p
-            style={{
-              padding: "12px 16px",
-              fontSize: 12,
-              color: "var(--admin-text-dim)",
-            }}
+            className={styles.textTextDimFs12}
           >
             Nenhuma seção encontrada.
           </p>
@@ -491,15 +398,7 @@ function Breadcrumb({ pathname }: { pathname: string }) {
   return (
     <nav
       aria-label="Breadcrumb"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        fontSize: 12,
-        fontWeight: 500,
-        color: "var(--admin-text-muted)",
-        minWidth: 0,
-      }}
+      className={styles.rowCenteredTextMuted}
     >
       <NextLink
         href="/admin"
@@ -518,16 +417,7 @@ function Breadcrumb({ pathname }: { pathname: string }) {
         <>
           <ChevronRight size={12} />
           <span
-            style={{
-              color: "var(--admin-text)",
-              fontSize: 13,
-              fontWeight: 500,
-              letterSpacing: 0,
-              textTransform: "none",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
+            className={styles.labelTextFs13}
           >
             {current}
           </span>
@@ -580,19 +470,7 @@ function AdminAvatar() {
   return (
     <div
       aria-label="Conta de operação"
-      style={{
-        width: 32,
-        height: 32,
-        borderRadius: "50%",
-        border: "1px solid var(--admin-divider-strong)",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: 12,
-        fontWeight: 600,
-        color: "var(--admin-text)",
-        background: "var(--admin-surface-elevated)",
-      }}
+      className={styles.rowJustifyCenterCentered}
     >
       AD
     </div>

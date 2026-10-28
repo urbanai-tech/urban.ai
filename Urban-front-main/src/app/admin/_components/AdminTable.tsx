@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import styles from "./AdminTable.module.css";
 
 /**
  * Tabela admin Urban AI. Substitui o padrão `<table className="w-full text-sm">`
@@ -74,16 +75,7 @@ export function AdminTable<T>({
       >
         {caption && (
           <caption
-            style={{
-              padding: "12px 16px",
-              textAlign: "left",
-              fontSize: 11,
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              color: "var(--admin-text-muted)",
-              fontWeight: 600,
-              borderBottom: "1px solid var(--admin-divider)",
-            }}
+            className={styles.boxTextMutedFs11}
           >
             {caption}
           </caption>
@@ -122,7 +114,7 @@ export function AdminTable<T>({
         <tbody>
           {rows.length === 0 && empty ? (
             <tr>
-              <td colSpan={columns.length} style={{ padding: 32 }}>
+              <td colSpan={columns.length} className={styles.cellP32}>
                 {empty}
               </td>
             </tr>

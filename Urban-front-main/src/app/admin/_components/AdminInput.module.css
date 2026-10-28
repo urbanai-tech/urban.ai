@@ -1,0 +1,14 @@
+.box.box {
+  position: relative;
+}
+
+.rowAbsoluteCentered.rowAbsoluteCentered {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--admin-text-muted);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}

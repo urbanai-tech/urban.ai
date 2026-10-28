@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useState } from "react";
 import { AdminStatusDot, type AdminStatusKind } from "./AdminStatusDot";
 import { Close } from "./Icons";
+import styles from "./AdminToast.module.css";
 
 /**
  * Toast manager admin Urban AI — top-right, dark, accent. Substitui
@@ -60,16 +61,7 @@ export function AdminToastProvider({ children }: { children: React.ReactNode }) 
       <div
         aria-live="polite"
         aria-atomic="true"
-        style={{
-          position: "fixed",
-          top: 24,
-          right: 24,
-          zIndex: 2000,
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-          pointerEvents: "none",
-        }}
+        className={styles.stackFixedGap8}
       >
         {toasts.map((t) => (
           <div
@@ -93,18 +85,11 @@ export function AdminToastProvider({ children }: { children: React.ReactNode }) 
             }}
           >
             <AdminStatusDot kind={t.kind} size={8} />
-            <span style={{ flex: 1 }}>{t.message}</span>
+            <span className={styles.labelFlex1}>{t.message}</span>
             <button
               onClick={() => dismiss(t.id)}
               aria-label="Fechar"
-              style={{
-                background: "transparent",
-                border: "none",
-                color: "var(--admin-text-muted)",
-                cursor: "pointer",
-                lineHeight: 0,
-                padding: 2,
-              }}
+              className={styles.buttonTextMutedBg}
             >
               <Close size={14} />
             </button>

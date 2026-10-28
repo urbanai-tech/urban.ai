@@ -14,6 +14,7 @@
 import React from "react";
 import { AdminStatusDot, type AdminStatusKind } from "./AdminStatusDot";
 import { TrendingUp, TrendingDown } from "./Icons";
+import styles from "./AdminMetricCard.module.css";
 
 export type AdminMetricVariant = "hero" | "md" | "sm";
 
@@ -70,7 +71,7 @@ export function AdminMetricCard({
         ...style,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div className={styles.rowCenteredGap8}>
         {status && <AdminStatusDot kind={status} size={7} />}
         <p className="urban-admin-eyebrow-muted">{label}</p>
       </div>
@@ -79,14 +80,7 @@ export function AdminMetricCard({
       </p>
       {(sub || trend) && (
         <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            fontSize: 12,
-            color: "var(--admin-text-muted)",
-            fontWeight: 400,
-          }}
+          className={styles.rowCenteredTextMuted}
         >
           {trend && (
             <span

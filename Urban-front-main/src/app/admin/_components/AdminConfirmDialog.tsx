@@ -3,6 +3,7 @@
 import React, { useRef } from "react";
 import { AdminButton } from "./AdminButton";
 import { useDialogFocus } from "../../componentes/ui/useDialogFocus";
+import styles from "./AdminConfirmDialog.module.css";
 
 /**
  * Dialog de confirmação admin Urban AI — substitui `confirm()` nativos
@@ -62,71 +63,32 @@ export function AdminConfirmDialog({
       role="dialog"
       aria-modal="true"
       aria-labelledby="admin-confirm-title"
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1100,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-      }}
+      className={styles.rowFixedJustifyCenter}
     >
       <div
-        className="urban-admin-backdrop"
+        className={`urban-admin-backdrop ${styles.backdropAbsoluteBgBackdrop}`}
         onClick={onClose}
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "var(--admin-backdrop)",
-          backdropFilter: "blur(4px)",
-        }}
       />
       <div
         ref={dialogRef}
         tabIndex={-1}
-        className="urban-admin-drawer-panel"
-        style={{
-          position: "relative",
-          width: "100%",
-          maxWidth: 440,
-          background: "var(--admin-surface-elevated)",
-          border: "1px solid var(--admin-divider)",
-          borderRadius: 4,
-          padding: "28px 28px 24px",
-        }}
+        className={`urban-admin-drawer-panel ${styles.drawerPanelBgSurfaceElevatedP28x28x24}`}
       >
         <h2
           id="admin-confirm-title"
-          style={{
-            fontSize: 18,
-            fontWeight: 600,
-            letterSpacing: -0.3,
-            color: "var(--admin-text)",
-            margin: 0,
-          }}
+          className={styles.headingTextFs18}
         >
           {title}
         </h2>
         {body && (
           <p
-            style={{
-              marginTop: 12,
-              fontSize: 14,
-              lineHeight: 1.6,
-              color: "var(--admin-text-muted)",
-            }}
+            className={styles.textTextMutedFs14}
           >
             {body}
           </p>
         )}
         <div
-          style={{
-            marginTop: 28,
-            display: "flex",
-            gap: 10,
-            justifyContent: "flex-end",
-          }}
+          className={styles.rowEndGap10}
         >
           <AdminButton ref={cancelRef} variant="ghost" onClick={onClose} disabled={loading}>
             {cancelLabel}

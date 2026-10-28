@@ -3,6 +3,7 @@
  * "Sem dados nos últimos 7 dias.", "Aguardando primeiro batch." crus.
  */
 import React from "react";
+import styles from "./AdminEmptyState.module.css";
 
 export function AdminEmptyState({
   eyebrow,
@@ -19,45 +20,27 @@ export function AdminEmptyState({
 }) {
   return (
     <div
-      style={{
-        padding: "48px 24px",
-        textAlign: "center",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 16,
-        border: "1px dashed var(--admin-divider)",
-        borderRadius: 2,
-      }}
+      className={styles.stackCenteredCenterAligned}
     >
       {icon && (
         <div
-          style={{
-            color: "var(--admin-text-dim)",
-            marginBottom: 4,
-          }}
+          className={styles.boxTextDimMb4}
         >
           {icon}
         </div>
       )}
       {eyebrow && <p className="urban-admin-eyebrow">{eyebrow}</p>}
-      <h3 className="urban-admin-display-sm" style={{ textTransform: "uppercase" }}>
+      <h3 className={`urban-admin-display-sm ${styles.displaySmUpper}`}>
         {title}
       </h3>
       {body && (
         <p
-          style={{
-            fontSize: 14,
-            color: "var(--admin-text-muted)",
-            maxWidth: 480,
-            lineHeight: 1.6,
-            margin: 0,
-          }}
+          className={styles.textTextMutedFs14}
         >
           {body}
         </p>
       )}
-      {action && <div style={{ marginTop: 4 }}>{action}</div>}
+      {action && <div className={styles.boxMt4}>{action}</div>}
     </div>
   );
 }

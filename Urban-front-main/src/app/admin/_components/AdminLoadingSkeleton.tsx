@@ -6,6 +6,7 @@
  * Animação shimmer em globals.css `.urban-admin-skeleton`.
  */
 import React from "react";
+import styles from "./AdminLoadingSkeleton.module.css";
 
 type Variant = "kpi" | "kpiHero" | "table" | "chart" | "card" | "text";
 
@@ -41,9 +42,9 @@ export function AdminLoadingSkeleton({
     return (
       <div style={{ padding: "32px 0", ...style }}>
         <Bar width={120} height={11} />
-        <div style={{ height: 20 }} />
+        <div className={styles.boxH20} />
         <Bar width={"60%"} height={72} />
-        <div style={{ height: 12 }} />
+        <div className={styles.boxH12} />
         <Bar width={"35%"} height={12} />
       </div>
     );
@@ -60,7 +61,7 @@ export function AdminLoadingSkeleton({
         }}
       >
         {Array.from({ length: count }).map((_, i) => (
-          <div key={i} style={{ display: "flex", flexDirection: "column", gap: 14, padding: "24px 0" }}>
+          <div key={i} className={styles.stackGap14P24x0}>
             <Bar width={100} height={10} />
             <Bar width={"70%"} height={40} />
             <Bar width={"45%"} height={10} />
@@ -149,17 +150,10 @@ export function AdminPageLoading({
   showTable?: boolean;
 }) {
   return (
-    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       {showHeader && (
         <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 14,
-            paddingBottom: 24,
-            borderBottom: "1px solid var(--admin-divider)",
-            marginBottom: 32,
-          }}
+          className={styles.stackGap14Mb32}
         >
           <Bar width={100} height={10} />
           <Bar width={320} height={48} />
@@ -168,7 +162,7 @@ export function AdminPageLoading({
       )}
       {showKpis && <AdminLoadingSkeleton variant="kpi" count={4} columns={4} />}
       {showTable && (
-        <div style={{ marginTop: 48 }}>
+        <div className={styles.boxMt48}>
           <AdminLoadingSkeleton variant="table" count={6} columns={5} />
         </div>
       )}

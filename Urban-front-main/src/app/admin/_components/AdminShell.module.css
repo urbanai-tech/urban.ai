@@ -1,0 +1,196 @@
+.adminRootTextBgBg.adminRootTextBgBg {
+  display: flex;
+  min-height: 100vh;
+  background: var(--admin-bg);
+  color: var(--admin-text);
+}
+
+.sidebarStickyW240.sidebarStickyW240 {
+  width: 240px;
+  flex-shrink: 0;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.rowFixed.rowFixed {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+}
+
+.backdropAbsoluteBgBackdrop.backdropAbsoluteBgBackdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--admin-backdrop);
+  backdrop-filter: blur(2px);
+}
+
+.sidebarW280Maxw85vw.sidebarW280Maxw85vw {
+  position: relative;
+  width: 280px;
+  max-width: 85vw;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.stackMinw0Flex1.stackMinw0Flex1 {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.rowStickyBetween.rowStickyBetween {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: 56px;
+  padding: 0 24px;
+  background: var(--admin-surface-elevated);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--admin-divider);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.rowCenteredGap12.rowCenteredGap12 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.buttonHiddenJustifyCenterCentered.buttonHiddenJustifyCenterCentered {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--admin-divider-strong);
+  border-radius: 2px;
+  color: var(--admin-text);
+  padding: 6px 8px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+.rowCenteredGap16.rowCenteredGap16 {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mainMinw0Flex1.mainMinw0Flex1 {
+  flex: 1;
+  min-width: 0;
+}
+
+.rowCenteredGap6.rowCenteredGap6 {
+  padding: 20px 16px;
+  border-bottom: 1px solid var(--admin-divider);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.labelTextDimFs9.labelTextDimFs9 {
+  margin-left: 8px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--admin-text-dim);
+}
+
+.rowCenteredGap8.rowCenteredGap8 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.boxP12x12x0.boxP12x12x0 {
+  padding: 12px 12px 0;
+}
+
+.box.box {
+  position: relative;
+}
+
+.rowAbsoluteTextDim.rowAbsoluteTextDim {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--admin-text-dim);
+  pointer-events: none;
+  display: flex;
+}
+
+.inputTextBgSurfaceElevated.inputTextBgSurfaceElevated {
+  width: 100%;
+  height: 32px;
+  padding: 0 10px 0 32px;
+  background: var(--admin-surface-elevated);
+  border: 1px solid var(--admin-divider);
+  border-radius: 2px;
+  color: var(--admin-text);
+  font-size: 12px;
+  outline: none;
+  font-family: var(--font-brand);
+}
+
+.navP8x0x24Flex1.navP8x0x24Flex1 {
+  flex: 1;
+  padding: 8px 0 24px;
+}
+
+.rowCentered.rowCentered {
+  display: inline-flex;
+  align-items: center;
+}
+
+.textTextDimFs12.textTextDimFs12 {
+  padding: 12px 16px;
+  font-size: 12px;
+  color: var(--admin-text-dim);
+}
+
+.rowCenteredTextMuted.rowCenteredTextMuted {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+  min-width: 0;
+}
+
+.labelTextFs13.labelTextFs13 {
+  color: var(--admin-text);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowJustifyCenterCentered.rowJustifyCenterCentered {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--admin-divider-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--admin-text);
+  background: var(--admin-surface-elevated);
+}

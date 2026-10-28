@@ -1,0 +1,19 @@
+.boxMinw0.boxMinw0 {
+  min-width: 0;
+}
+
+.eyebrowMutedMb6.eyebrowMutedMb6 {
+  margin-bottom: 6px;
+}
+
+.subheadingTextFs15.subheadingTextFs15 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--admin-text);
+  letter-spacing: -0.2px;
+  margin: 0;
+}
+
+.boxNoShrink.boxNoShrink {
+  flex-shrink: 0;
+}

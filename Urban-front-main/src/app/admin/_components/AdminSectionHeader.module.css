@@ -1,0 +1,29 @@
+.boxMinw0Flex1.boxMinw0Flex1 {
+  min-width: 0;
+  flex: 1;
+}
+
+.eyebrowMb12.eyebrowMb12 {
+  margin-bottom: 12px;
+}
+
+.titleUpper.titleUpper {
+  text-transform: uppercase;
+}
+
+.textTextMutedFs14.textTextMutedFs14 {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--admin-text-muted);
+  font-weight: 400;
+  line-height: 1.55;
+  max-width: 720px;
+}
+
+.rowCenteredWrap.rowCenteredWrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
