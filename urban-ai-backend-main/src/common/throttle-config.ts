@@ -2,8 +2,10 @@ import { Throttle, ThrottlerOptions } from '@nestjs/throttler';
 
 /**
  * Throttlers globais da API (ThrottlerGuard em APP_GUARD, chave = IP real via
- * `trust proxy`). Os nomes importam: `@Throttle({ default: ... })` só vale se
- * existir um throttler chamado "default"; aqui os nomes são "short" e "medium".
+ * `trust proxy`). Os nomes importam: o guard só lê os metadados de
+ * `@Throttle`/`@SkipThrottle` cujo nome seja de um throttler registrado aqui
+ * ("short" e "medium"). `@Throttle({ default: ... })` é ignorado em silêncio,
+ * porque não existe throttler "default". Use `PerMinuteThrottle` nas rotas.
  */
 export const APP_THROTTLERS: ThrottlerOptions[] = [
   { name: 'short', ttl: 1000, limit: 10 },
@@ -19,3 +21,6 @@ export const PER_MINUTE_THROTTLER = 'medium';
  */
 export const PerMinuteThrottle = (limit: number) =>
   Throttle({ [PER_MINUTE_THROTTLER]: { ttl: 60_000, limit } });
+
+/** Nomes registrados, usados pelo teste que protege contra chaves inexistentes. */
+export const THROTTLER_NAMES = APP_THROTTLERS.map((t) => t.name as string);

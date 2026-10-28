@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
+import { PerMinuteThrottle } from '../common/throttle-config';
 import { AdminAuditService } from '../admin-audit/admin-audit.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -45,7 +45,7 @@ export class AdminBillingController {
   }
 
   @AdminAuditedInHandler()
-  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @PerMinuteThrottle(30)
   @ApiOperation({ summary: 'Criar custo operacional novo' })
   @Post('finance/costs')
   async createCost(@Body() body: CreatePlatformCostDto, @Req() req: any) {
@@ -61,7 +61,7 @@ export class AdminBillingController {
   }
 
   @AdminAuditedInHandler()
-  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @PerMinuteThrottle(30)
   @ApiOperation({ summary: 'Atualizar custo' })
   @Patch('finance/costs/:id')
   async updateCost(@Param('id') id: string, @Body() body: UpdatePlatformCostDto, @Req() req: any) {
@@ -77,7 +77,7 @@ export class AdminBillingController {
   }
 
   @AdminAuditedInHandler()
-  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @PerMinuteThrottle(30)
   @ApiOperation({ summary: 'Remover custo' })
   @Delete('finance/costs/:id')
   async deleteCost(@Param('id') id: string, @Req() req: any) {
@@ -92,7 +92,7 @@ export class AdminBillingController {
   }
 
   @AdminAuditedInHandler()
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @PerMinuteThrottle(5)
   @ApiOperation({
     summary:
       'Popular custos default da Urban AI (idempotente). overwrite=true sobrescreve valores manuais.',
@@ -117,7 +117,7 @@ export class AdminBillingController {
   }
 
   @AdminAuditedInHandler()
-  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @PerMinuteThrottle(20)
   @ApiOperation({
     summary: 'Atualizar preço/features de um plano (NÃO atualiza Stripe Price IDs)',
   })
@@ -139,7 +139,7 @@ export class AdminBillingController {
     return plan;
   }
 
-  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @PerMinuteThrottle(10)
   @ApiOperation({
     summary:
       'Validar que os 8 Stripe Price IDs (matriz F6.5) existem e batem com o ciclo esperado',

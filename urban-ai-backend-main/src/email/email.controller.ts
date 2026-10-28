@@ -21,7 +21,7 @@ import { IsEmail, IsString, Matches } from 'class-validator';
 import { User } from 'src/entities/user.entity';
 import { CreateNotificationDto } from 'src/notifications/tdo/create-notification.dto';
 import { WeeklyEventReportService } from './weekly-event-report.service';
-import { Throttle } from '@nestjs/throttler';
+import { PerMinuteThrottle } from '../common/throttle-config';
 import { UpdatePass } from './dto/update-pass.dto';
 
 export { UpdatePass } from './dto/update-pass.dto';
@@ -115,7 +115,7 @@ export class EmailController {
     @Post('verificar-usuario-state')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @Throttle({ default: { ttl: 60_000, limit: 20 } })
+    @PerMinuteThrottle(20)
     @ApiOperation({ summary: 'Verificar status do usuário' })
     @ApiBody({ type: VerificarUsuario })
     @ApiResponse({ status: 201, description: 'Status verificado com sucesso.' })
@@ -125,7 +125,7 @@ export class EmailController {
     }
 
     @Post('enviar-codigo')
-    @Throttle({ default: { ttl: 60_000, limit: 5 } })
+    @PerMinuteThrottle(5)
     @ApiOperation({ summary: 'Enviar código de verificação' })
     @ApiBody({ type: VerificarUsuario })
     @ApiResponse({ status: 201, description: 'Código enviado com sucesso.' })
@@ -166,7 +166,7 @@ export class EmailController {
     }
 
     @Post('confirmar-email')
-    @Throttle({ default: { ttl: 60_000, limit: 10 } })
+    @PerMinuteThrottle(10)
     @ApiOperation({ summary: 'Confirmar email com código de verificação' })
     @ApiBody({ type: ConfirmarEmailWithCodeAndIdDto })
     @ApiResponse({ status: 200, description: 'Email confirmado com sucesso.' })
@@ -196,7 +196,7 @@ export class EmailController {
     }
 
     @Post('forgot-password')
-    @Throttle({ default: { ttl: 60_000, limit: 5 } })
+    @PerMinuteThrottle(5)
     @ApiOperation({ summary: 'Enviar e-mail de recuperação de senha' })
     @ApiBody({ type: VerificarUsuario })
     @ApiResponse({ status: 201, description: 'E-mail enviado com sucesso.' })
@@ -206,7 +206,7 @@ export class EmailController {
     }
 
     @Post('update-password')
-    @Throttle({ default: { ttl: 60_000, limit: 5 } })
+    @PerMinuteThrottle(5)
     @ApiOperation({ summary: 'Atualizar senha' })
     @ApiBody({ type: UpdatePass })
     @ApiResponse({ status: 201, description: 'Senha atualizado com sucesso.' })

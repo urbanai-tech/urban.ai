@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
+import { PerMinuteThrottle } from '../common/throttle-config';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -20,7 +20,7 @@ export class ContactSubmissionsController {
     private readonly audit: AdminAuditService,
   ) {}
 
-  @Throttle({ default: { ttl: 60_000, limit: 8 } })
+  @PerMinuteThrottle(8)
   @ApiOperation({ summary: 'Receber mensagem do formulário público de contato' })
   @Post('contact-submissions')
   create(@Body() body: CreateContactSubmissionDto, @Req() req: Request) {

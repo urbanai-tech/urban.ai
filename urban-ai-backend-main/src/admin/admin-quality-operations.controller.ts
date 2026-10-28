@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
+import { PerMinuteThrottle } from '../common/throttle-config';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
@@ -60,7 +60,7 @@ export class AdminQualityOperationsController {
   }
 
   @ApiOperation({ summary: 'Reprocessar propriedades do usuário alpha' })
-  @Throttle({ default: { ttl: 60_000, limit: 3 } })
+  @PerMinuteThrottle(3)
   @Post('alpha/reprocess')
   async alphaReprocess(@Query('email') email: string, @Req() req: any) {
     return this.adminJobRuns.runTrackedJob(
@@ -95,7 +95,7 @@ export class AdminQualityOperationsController {
   }
 
   @ApiOperation({ summary: 'Executar snapshot manual dos imóveis cadastrados' })
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @PerMinuteThrottle(5)
   @Post('dataset/snapshot/run')
   async runDatasetSnapshot(@Req() req: any) {
     return this.adminJobRuns.runTrackedJob(
@@ -106,7 +106,7 @@ export class AdminQualityOperationsController {
   }
 
   @ApiOperation({ summary: 'Executar snapshot manual das features de proximidade a eventos' })
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @PerMinuteThrottle(5)
   @Post('dataset/event-proximity/run')
   async runEventProximitySnapshot(@Req() req: any) {
     return this.adminJobRuns.runTrackedJob(
@@ -123,7 +123,7 @@ export class AdminQualityOperationsController {
   }
 
   @ApiOperation({ summary: 'Executar geocoder de eventos com histórico admin' })
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @PerMinuteThrottle(5)
   @Post('jobs/geocoder/run')
   async runGeocoderJob(@Query('limit') limit: string = '50', @Req() req: any) {
     return this.adminJobRuns.runTrackedJob(
@@ -134,7 +134,7 @@ export class AdminQualityOperationsController {
   }
 
   @ApiOperation({ summary: 'Resetar enrichment stale com histórico admin' })
-  @Throttle({ default: { ttl: 60_000, limit: 3 } })
+  @PerMinuteThrottle(3)
   @Post('jobs/reset-stale-enrichment/run')
   async runResetStaleEnrichment(@Req() req: any) {
     return this.adminJobRuns.runTrackedJob(
@@ -145,7 +145,7 @@ export class AdminQualityOperationsController {
   }
 
   @ApiOperation({ summary: 'Backfill de venueCapacity em toda a base de eventos (IA-3c)' })
-  @Throttle({ default: { ttl: 60_000, limit: 2 } })
+  @PerMinuteThrottle(2)
   @Post('jobs/venue-capacity/run')
   async runVenueCapacityBackfill(@Req() req: any) {
     return this.adminJobRuns.runTrackedJob(
@@ -156,7 +156,7 @@ export class AdminQualityOperationsController {
   }
 
   @ApiOperation({ summary: 'Importar âncoras históricas (Wikidata) + aplicar aos eventos (IA-3b)' })
-  @Throttle({ default: { ttl: 60_000, limit: 2 } })
+  @PerMinuteThrottle(2)
   @Post('jobs/event-historical/run')
   async runEventHistorical(@Req() req: any) {
     return this.adminJobRuns.runTrackedJob(

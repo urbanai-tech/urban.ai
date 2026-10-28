@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
+import { PerMinuteThrottle } from '../common/throttle-config';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
@@ -40,7 +40,7 @@ export class AdminBetaOpsController {
   ) {}
 
   @ApiOperation({ summary: 'Anfitriões do beta com estado da assinatura (trial, ativo, pagamento falhou, cancelado)' })
-  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @PerMinuteThrottle(30)
   @Get('billing/hosts')
   async listBillingHosts(@Query('status') status?: unknown, @Query('search') search?: unknown) {
     // Query string pode chegar como array (?status=a&status=b): só aceita string simples.
@@ -51,14 +51,14 @@ export class AdminBetaOpsController {
   }
 
   @ApiOperation({ summary: 'Reenvia ao anfitrião, por e-mail, o link de checkout/portal já gerado pelo Stripe' })
-  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @PerMinuteThrottle(10)
   @Post('billing/hosts/:userId/send-link')
   async sendBillingLink(@Param('userId', new ParseUUIDPipe()) userId: string, @Body() body: SendBillingLinkDto) {
     return this.billingHosts.sendLink(userId, body?.kind ?? 'auto');
   }
 
   @ApiOperation({ summary: 'v1 x v2 (sombra) x preço aplicado x resultado registrado' })
-  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @PerMinuteThrottle(20)
   @Get('outcomes/comparison')
   async outcomesComparison(@Query('limit') limit?: unknown) {
     return this.outcomes.comparison({ limit: typeof limit === 'string' ? Number(limit) || undefined : undefined });

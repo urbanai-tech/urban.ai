@@ -15,7 +15,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
+import { PerMinuteThrottle } from '../common/throttle-config';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -69,7 +69,7 @@ export class CoverageController {
   }
 
   @AdminAuditedInHandler()
-  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @PerMinuteThrottle(20)
   @ApiOperation({ summary: 'Cria nova região de cobertura' })
   @Post()
   async create(
@@ -109,7 +109,7 @@ export class CoverageController {
   }
 
   @AdminAuditedInHandler()
-  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @PerMinuteThrottle(30)
   @ApiOperation({ summary: 'Atualiza região existente' })
   @Patch(':id')
   async update(@Param('id') id: string, @Body() body: UpdateCoverageRegionDto, @Req() req: any) {
@@ -133,7 +133,7 @@ export class CoverageController {
   }
 
   @AdminAuditedInHandler()
-  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @PerMinuteThrottle(10)
   @ApiOperation({ summary: 'Remove região' })
   @Delete(':id')
   async remove(@Param('id') id: string, @Req() req: any) {
@@ -166,7 +166,7 @@ export class CoverageController {
     return { latitude: body.latitude, longitude: body.longitude, inCoverage };
   }
 
-  @Throttle({ default: { ttl: 60_000, limit: 3 } })
+  @PerMinuteThrottle(3)
   @ApiOperation({
     summary:
       'Reseta eventos com relevancia=0 (bug antigo do enrichment) para re-tentativa via cron',

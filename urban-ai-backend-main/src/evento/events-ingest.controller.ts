@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
+import { PerMinuteThrottle } from '../common/throttle-config';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -54,7 +54,7 @@ export class EventsIngestController {
   ) {}
 
   @AdminAuditedInHandler()
-  @Throttle({ default: { ttl: 60_000, limit: 60 } })
+  @PerMinuteThrottle(60)
   @UseGuards(EventsIngestApiKeyGuard)
   @ApiHeader({
     name: 'x-urban-events-ingest-key',
@@ -124,7 +124,7 @@ export class EventsIngestController {
     return this.geocoder.status();
   }
 
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @PerMinuteThrottle(5)
   @ApiOperation({
     summary:
       'Dispara o geocoder agora (em vez de esperar o cron 30 min). Limit default 30.',
@@ -137,7 +137,7 @@ export class EventsIngestController {
     return this.geocoder.runOnce(parseInt(limit, 10));
   }
 
-  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @PerMinuteThrottle(10)
   @ApiOperation({
     summary:
       'Importa eventos via upload de arquivo CSV (Camada 3 — curadoria humana). Max 1000 linhas, 5MB.',
