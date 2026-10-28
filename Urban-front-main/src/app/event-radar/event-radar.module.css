@@ -1,0 +1,212 @@
+.eventRadarGrid.eventRadarGrid {
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+}
+
+.hostEventRadar.hostEventRadar {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.eventRadarBox.eventRadarBox {
+  grid-column: span 2;
+  min-width: 0;
+  max-width: 320px;
+}
+
+.eventRadarBox2.eventRadarBox2 {
+  grid-column: span 2;
+  min-width: 0;
+}
+
+.eventRadarText.eventRadarText {
+  margin: 6px 0 0;
+  color: var(--app-text-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.eventRadarText11.eventRadarText11 {
+  margin: 6px 0 0;
+  color: var(--app-warning-text);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.eventRadarBox3.eventRadarBox3 {
+  grid-column: span 1;
+  min-width: 0;
+}
+
+.hostEventRadarCols.hostEventRadarCols {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.hostEventRadarGap22.hostEventRadarGap22 {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(340px, 420px);
+  gap: 22px;
+  align-items: start;
+}
+
+.eventRadarGridGap22.eventRadarGridGap22 {
+  display: grid;
+  gap: 22px;
+}
+
+.eventRadarGridGap14.eventRadarGridGap14 {
+  display: grid;
+  gap: 14px;
+  position: sticky;
+  top: 24px;
+  min-width: 0;
+}
+
+.eventDetailPanelRow.eventDetailPanelRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.eventDetailPanelBox.eventDetailPanelBox {
+  min-width: 0;
+  flex: 1 1 420px;
+}
+
+.eventDetailPanelRowGap8.eventDetailPanelRowGap8 {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.eventDetailPanelHeading.eventDetailPanelHeading {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.eventDetailPanelText.eventDetailPanelText {
+  margin: 8px 0 0;
+  color: var(--app-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.eventDetailPanelText15.eventDetailPanelText15 {
+  margin: 18px 0 0;
+  color: var(--app-text);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.eventDetailPanelText12.eventDetailPanelText12 {
+  margin: 10px 0 0;
+  color: var(--app-warning-text);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.eventDetailPanelRowGap10.eventDetailPanelRowGap10 {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.eventDetailPanelLink.eventDetailPanelLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px;
+  min-width: 0;
+  max-width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--app-divider-strong);
+  color: var(--app-text);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eventDetailPanelBoxMar22.eventDetailPanelBoxMar22 {
+  margin-top: 22px;
+}
+
+.eventDetailPanelTextTextMuted.eventDetailPanelTextTextMuted {
+  margin: 10px 0 0;
+  color: var(--app-text-muted);
+  font-size: 12px;
+}
+
+.eventDetailPanelTextDanger.eventDetailPanelTextDanger {
+  margin: 10px 0 0;
+  color: var(--app-danger);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.hostEventRadarGap16.hostEventRadarGap16 {
+  display: grid;
+  gap: 16px;
+}
+
+.eventRadarLoadingGrid.eventRadarLoadingGrid {
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.eventRadarLoadingText.eventRadarLoadingText {
+  margin: 12px 0 0;
+  color: var(--app-text-muted);
+  font-size: 13px;
+}
+
+.eventRadarLoadingGridCols.eventRadarLoadingGridCols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.eventRadarLoadingPanel.eventRadarLoadingPanel {
+  min-height: 96px;
+  border-radius: 8px;
+  border: 1px solid var(--app-divider);
+  background: linear-gradient(90deg, var(--app-surface-muted) 0%, var(--app-surface) 45%, var(--app-surface-muted) 90%);
+}
+
+.filterLabelLabel.filterLabelLabel {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--app-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.carregando.carregando {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid var(--app-accent-soft);
+  border-top-color: var(--app-accent);
+  animation: event-radar-spin 0.9s linear infinite;
+}
