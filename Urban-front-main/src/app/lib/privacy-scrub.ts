@@ -219,8 +219,15 @@ export const ANALYTICS_PUBLIC_PATHS: readonly string[] = [
   "/seguranca-lgpd-ia-precificacao",
 ];
 
+/**
+ * Rotas de conversão fora do site público onde GA4/Pixel também medem
+ * (`sign_up`/`CompleteRegistration`). O path não carrega token nem e-mail, e a
+ * query passa pelo `scrubUrl` antes de sair.
+ */
+export const ANALYTICS_CONVERSION_PATHS: readonly string[] = ["/create"];
+
 export function isAnalyticsAllowedPath(pathname: string | null | undefined): boolean {
   if (!pathname) return false;
-  const normalized = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
-  return ANALYTICS_PUBLIC_PATHS.includes(normalized.toLowerCase());
+  const normalized = (pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname).toLowerCase();
+  return ANALYTICS_PUBLIC_PATHS.includes(normalized) || ANALYTICS_CONVERSION_PATHS.includes(normalized);
 }

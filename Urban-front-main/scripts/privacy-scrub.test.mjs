@@ -111,15 +111,15 @@ test("scrubSentryEvent limpa request.url, breadcrumbs, transaction, headers e us
   assert.equal(event.transaction, "/reset-password/tok123");
 });
 
-test("isAnalyticsAllowedPath so permite rotas publicas de marketing", () => {
-  for (const ok of ["/", "/landing", "/precos", "/lancamento/", "/PRECOS"]) {
+test("isAnalyticsAllowedPath so permite rotas publicas de marketing e a conversao /create", () => {
+  for (const ok of ["/", "/landing", "/precos", "/lancamento/", "/PRECOS", "/create", "/create/"]) {
     assert.equal(scrub.isAnalyticsAllowedPath(ok), true, ok);
   }
   for (const no of [
     "/reset-password/tok",
     "/confirm-email/a@b.com",
     "/login",
-    "/create",
+    "/create/extra",
     "/dashboard",
     "/admin/waitlist",
     "/waitlist/aceitar",
