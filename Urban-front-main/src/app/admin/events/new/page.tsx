@@ -19,6 +19,7 @@ import {
   useAdminToast,
   Icons,
 } from "../../_components";
+import styles from "./page.module.css";
 
 /**
  * /admin/events/new — Camada 3 (F6.2 Plus): cadastro manual de eventos.
@@ -159,7 +160,7 @@ export default function NovoEventoManual() {
   };
 
   return (
-    <div style={{ maxWidth: 880, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       <AdminSectionHeader
         eyebrow="ADMIN · EVENTOS"
         title="Novo evento manual"
@@ -185,39 +186,27 @@ export default function NovoEventoManual() {
       {lastResult && (
         <AdminCard variant="accent" style={{ marginBottom: 24 }}>
           <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-              flexWrap: "wrap",
-            }}
+            className={styles.rowCenteredWrap}
           >
             <AdminBadge kind={resultBadgeKind[lastResult.status]}>
               {lastResult.status}
             </AdminBadge>
             {lastResult.id && (
               <span
-                style={{
-                  fontFamily: "monospace",
-                  fontSize: 12,
-                  color: "var(--admin-text-muted)",
-                }}
+                className={styles.labelTextMutedFs12}
               >
                 {lastResult.id}
               </span>
             )}
             {lastResult.reason && (
               <span
-                style={{
-                  fontSize: 13,
-                  color: "var(--admin-text-muted)",
-                }}
+                className={styles.labelTextMutedFs13}
               >
                 — {lastResult.reason}
               </span>
             )}
           </div>
-          <div style={{ marginTop: 16, display: "flex", gap: 10 }}>
+          <div className={styles.rowGap10Mt16}>
             <AdminButton
               variant="primary"
               size="sm"
@@ -241,11 +230,11 @@ export default function NovoEventoManual() {
       {/* Form */}
       <form
         onSubmit={handleSubmit}
-        style={{ display: "flex", flexDirection: "column", gap: 18 }}
+        className={styles.stackGap18}
       >
         <AdminCard variant="subtle">
           <AdminCardHeader title="Identificação" />
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div className={styles.stackGap14}>
             <AdminInput
               label="Nome *"
               value={form.nome}
@@ -255,7 +244,7 @@ export default function NovoEventoManual() {
               placeholder='Ex: "Web Summit Rio 2026"'
             />
             <div
-              style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: 14 }}
+              className={styles.gridColsAutoGap14}
             >
               <AdminInput
                 label="Data início *"
@@ -277,7 +266,7 @@ export default function NovoEventoManual() {
 
         <AdminCard variant="subtle">
           <AdminCardHeader title="Localização" />
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div className={styles.stackGap14}>
             <AdminInput
               label="Endereço completo (recomendado)"
               value={form.enderecoCompleto ?? ""}
@@ -286,7 +275,7 @@ export default function NovoEventoManual() {
               helper="Quando lat/lng abaixo estiver vazio, o backend usa o endereço pra geocodificar via cron (a cada 30 min)."
             />
             <div
-              style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))", gap: 14 }}
+              className={styles.gridColsAutoGap142}
             >
               <AdminInput
                 label="Cidade"
@@ -303,7 +292,7 @@ export default function NovoEventoManual() {
               />
             </div>
             <div
-              style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: 14 }}
+              className={styles.gridColsAutoGap14}
             >
               <AdminInput
                 label="Latitude"
@@ -339,13 +328,9 @@ export default function NovoEventoManual() {
 
         <AdminCard variant="subtle">
           <AdminCardHeader title="Categoria e venue" />
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div className={styles.stackGap14}>
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 160px), 1fr))",
-                gap: 14,
-              }}
+              className={styles.gridColsAutoGap143}
             >
               <AdminSelect
                 label="Categoria"
@@ -399,7 +384,7 @@ export default function NovoEventoManual() {
 
         <AdminCard variant="subtle">
           <AdminCardHeader title="Conteúdo" />
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div className={styles.stackGap14}>
             <AdminInput
               label="Link do site oficial"
               type="url"
@@ -425,14 +410,7 @@ export default function NovoEventoManual() {
         </AdminCard>
 
         <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 12,
-            flexWrap: "wrap",
-            paddingTop: 8,
-          }}
+          className={styles.rowBetweenCentered}
         >
           <AdminButton type="submit" variant="primary" size="lg" loading={submitting}>
             {submitting ? "Salvando…" : "Cadastrar evento"}
@@ -440,17 +418,11 @@ export default function NovoEventoManual() {
 
           {geocoderQueue !== null && (
             <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 10,
-                fontSize: 12,
-                color: "var(--admin-text-muted)",
-              }}
+              className={styles.rowCenteredTextMuted}
             >
               <span>
                 Fila geocoder:{" "}
-                <strong style={{ color: "var(--admin-text)" }}>
+                <strong className={styles.strongText}>
                   {geocoderQueue}
                 </strong>
               </span>
