@@ -866,6 +866,32 @@ describe("StaysAutoApplyService", () => {
       expect(staysService.pushPrice).not.toHaveBeenCalled();
     });
 
+    it("nunca reduz automaticamente abaixo do calendário vivo (piso 1,0x), mesmo com decisão elegível", async () => {
+      liveSetup();
+      // Anfitrião subiu para R$ 130 no calendário; a sugestão de R$ 115 seria uma redução.
+      mockPendingAnalise({ precoSugerido: 115 });
+      mockEligibleDecision();
+      staysService.readCurrentPriceCents.mockResolvedValue(13000);
+
+      const result = await service.processBatch();
+
+      expect(result).toMatchObject({ blocked: 1, applied: 0 });
+      expect(staysService.pushPrice).not.toHaveBeenCalled();
+    });
+
+    it("sem snapshot de decisão (REQUIRE_PRICING_DECISION=false) também não reduz o preço vivo", async () => {
+      liveSetup();
+      process.env.STAYS_AUTO_APPLY_REQUIRE_PRICING_DECISION = "false";
+      mockPendingAnalise({ precoSugerido: 90 });
+      pricingDecisionRepo.find.mockResolvedValue([]);
+      staysService.readCurrentPriceCents.mockResolvedValue(10000);
+
+      const result = await service.processBatch();
+
+      expect(result).toMatchObject({ blocked: 1, applied: 0 });
+      expect(staysService.pushPrice).not.toHaveBeenCalled();
+    });
+
     it("não reenvia quando a Stays já está no preço sugerido", async () => {
       liveSetup();
       mockPendingAnalise({ precoSugerido: 100 });

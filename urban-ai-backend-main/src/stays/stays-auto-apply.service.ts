@@ -610,6 +610,18 @@ export class StaysAutoApplyService {
     }
 
     if (!audit.rollbackReady) blockers.push("missing_rollback_baseline");
+
+    // Piso sobre o preço REAL do calendário (não só sobre o multiplicador da
+    // decisão): se o anfitrião já subiu o preço manualmente, ou se não há
+    // snapshot (REQUIRE_PRICING_DECISION=false), a sugestão não pode virar uma
+    // redução automática abaixo do piso configurado (padrão 1,0× = só sobe).
+    if (
+      previousPriceCents > 0 &&
+      newPriceCents <
+        Math.round(previousPriceCents * config.minRecommendedMultiplier)
+    ) {
+      blockers.push("new_price_below_live_calendar_floor");
+    }
     if (!this.isValidTargetDate(targetDate))
       blockers.push("invalid_target_date");
 
