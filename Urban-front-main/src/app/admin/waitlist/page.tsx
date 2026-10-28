@@ -31,6 +31,7 @@ import {
   Icons,
 } from "../_components";
 import type { AdminBadgeKind } from "../_components";
+import styles from "./page.module.css";
 
 /**
  * /admin/waitlist — gestão da lista de espera (F8.2 admin).
@@ -155,7 +156,7 @@ export default function AdminWaitlistPage() {
 
   if (error) {
     return (
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar waitlist"
@@ -172,7 +173,7 @@ export default function AdminWaitlistPage() {
       header: "#",
       width: 64,
       render: (e) => (
-        <code style={{ color: "var(--admin-accent)", fontWeight: 600, fontFamily: "monospace" }}>
+        <code className={styles.codeAccentW600}>
           #{e.position}
         </code>
       ),
@@ -181,14 +182,14 @@ export default function AdminWaitlistPage() {
       key: "email",
       header: "E-mail",
       render: (e) => (
-        <span style={{ fontWeight: 500, color: "var(--admin-text)" }}>{e.email}</span>
+        <span className={styles.labelTextW500}>{e.email}</span>
       ),
     },
     {
       key: "name",
       header: "Nome",
       render: (e) => (
-        <span style={{ color: "var(--admin-text-muted)", fontSize: 13 }}>
+        <span className={styles.labelTextMutedFs13}>
           {e.name || "—"}
         </span>
       ),
@@ -198,7 +199,7 @@ export default function AdminWaitlistPage() {
       header: "Origem",
       width: 120,
       render: (e) => (
-        <code style={{ fontSize: 11, color: "var(--admin-text-dim)" }}>
+        <code className={styles.codeTextDimFs11}>
           {e.source}
         </code>
       ),
@@ -217,11 +218,11 @@ export default function AdminWaitlistPage() {
       align: "center",
       render: (e) =>
         e.referralsCount > 0 ? (
-          <span style={{ color: "var(--admin-accent)", fontWeight: 600 }}>
+          <span className={styles.labelAccentW600}>
             ×{e.referralsCount}
           </span>
         ) : (
-          <span style={{ color: "var(--admin-text-dim)" }}>—</span>
+          <span className={styles.labelTextDim}>—</span>
         ),
     },
     {
@@ -230,11 +231,7 @@ export default function AdminWaitlistPage() {
       width: 110,
       render: (e) => (
         <span
-          style={{
-            fontSize: 12,
-            color: "var(--admin-text-muted)",
-            fontFamily: "monospace",
-          }}
+          className={styles.labelTextMutedFs12}
         >
           {new Date(e.createdAt).toLocaleDateString("pt-BR")}
         </span>
@@ -247,12 +244,7 @@ export default function AdminWaitlistPage() {
       align: "right",
       render: (e) => (
         <div
-          style={{
-            display: "inline-flex",
-            gap: 8,
-            justifyContent: "flex-end",
-            flexWrap: "wrap",
-          }}
+          className={styles.rowEndWrap}
         >
           {(e.status === "pending" || e.status === "invited") && (
             <AdminButton
@@ -292,7 +284,7 @@ export default function AdminWaitlistPage() {
   ];
 
   return (
-    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32Maxw1400}>
       <AdminSectionHeader
         eyebrow="ADMIN · LISTA DE ESPERA"
         title="Pré-lançamento (F8)"
@@ -301,15 +293,9 @@ export default function AdminWaitlistPage() {
 
       {/* === KPIs === */}
       {stats && (
-        <section style={{ marginBottom: 48 }}>
+        <section className={styles.sectionMb48}>
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-              gap: 32,
-              borderTop: "1px solid var(--admin-divider)",
-              borderBottom: "1px solid var(--admin-divider)",
-            }}
+            className={styles.gridColsAuto180Gap32}
           >
             <AdminMetricCard label="Total na fila" value={stats.total} />
             <AdminMetricCard
@@ -333,34 +319,23 @@ export default function AdminWaitlistPage() {
       {/* === Origens + Top referrers === */}
       {stats && (
         <section
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
-            gap: 24,
-            marginBottom: 48,
-          }}
+          className={styles.gridColsAutoGap24}
         >
           <AdminCard variant="subtle">
             <AdminCardHeader title="Origens" />
             {stats.bySource.length === 0 ? (
-              <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
+              <p className={styles.textTextMutedFs13}>
                 Sem dados ainda.
               </p>
             ) : (
-              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              <ul className={styles.listM0P0}>
                 {stats.bySource.map((s) => (
                   <li
                     key={s.source}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      padding: "10px 0",
-                      borderBottom: "1px solid var(--admin-divider)",
-                      fontSize: 13,
-                    }}
+                    className={styles.rowBetweenFs13}
                   >
-                    <code style={{ color: "var(--admin-text)" }}>{s.source}</code>
-                    <span style={{ color: "var(--admin-accent)", fontWeight: 600 }}>
+                    <code className={styles.codeText}>{s.source}</code>
+                    <span className={styles.labelAccentW600}>
                       {s.count}
                     </span>
                   </li>
@@ -372,35 +347,22 @@ export default function AdminWaitlistPage() {
           <AdminCard variant="subtle">
             <AdminCardHeader title="Top referrers" />
             {stats.topReferrers.length === 0 ? (
-              <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
+              <p className={styles.textTextMutedFs13}>
                 Ninguém indicou ainda.
               </p>
             ) : (
-              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              <ul className={styles.listM0P0}>
                 {stats.topReferrers.map((r) => (
                   <li
                     key={r.referralCode}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      padding: "10px 0",
-                      borderBottom: "1px solid var(--admin-divider)",
-                      fontSize: 13,
-                      alignItems: "center",
-                    }}
+                    className={styles.rowBetweenCentered}
                   >
                     <span
-                      style={{
-                        color: "var(--admin-text-muted)",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        marginRight: 8,
-                      }}
+                      className={styles.labelTextMutedMr8}
                     >
                       {r.email}
                     </span>
-                    <span style={{ color: "var(--admin-accent)", fontWeight: 600 }}>
+                    <span className={styles.labelAccentW600}>
                       ×{r.referralsCount}
                     </span>
                   </li>
@@ -413,7 +375,7 @@ export default function AdminWaitlistPage() {
 
       {/* === Último convite gerado === */}
       {lastInvite && (
-        <section style={{ marginBottom: 32 }}>
+        <section className={styles.sectionMb32}>
           <AdminCard variant="accent">
             <AdminCardHeader
               eyebrow="ÚLTIMO CONVITE GERADO"
@@ -430,17 +392,12 @@ export default function AdminWaitlistPage() {
               }
             />
             <p
-              style={{
-                fontSize: 13,
-                color: "var(--admin-text-muted)",
-                lineHeight: 1.55,
-                margin: "0 0 14px",
-              }}
+              className={styles.textTextMutedFs13M0x0x14Lh1_55}
             >
               Magic link válido por 7 dias. Use para smoke manual ou reenvio
               por outro canal.
             </p>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <div className={styles.rowWrapGap10}>
               <AdminInput
                 readOnly
                 value={lastInvite.inviteUrl}
@@ -463,13 +420,7 @@ export default function AdminWaitlistPage() {
 
       {/* === Filtros toolbar === */}
       <section
-        style={{
-          display: "flex",
-          gap: 12,
-          marginBottom: 20,
-          flexWrap: "wrap",
-          alignItems: "flex-end",
-        }}
+        className={styles.rowAlignEndWrap}
       >
         <AdminInput
           placeholder="Buscar por email ou nome…"
@@ -517,19 +468,12 @@ export default function AdminWaitlistPage() {
       {/* === Paginação === */}
       {data && data.total > data.limit && (
         <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: 16,
-            fontSize: 12,
-            color: "var(--admin-text-muted)",
-          }}
+          className={styles.rowBetweenCenteredTextMutedFs12Mt16}
         >
           <span>
             Página {data.page} · {data.total.toLocaleString("pt-BR")} no total
           </span>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className={styles.rowGap8}>
             <AdminButton
               variant="ghost"
               size="sm"

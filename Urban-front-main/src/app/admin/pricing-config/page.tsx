@@ -27,6 +27,7 @@ import {
   useAdminToast,
 } from "../_components";
 import type { AdminBadgeKind, AdminStatusKind } from "../_components";
+import styles from "./page.module.css";
 
 /**
  * /admin/pricing-config — gestão dos preços dos planos da Urban AI.
@@ -81,7 +82,7 @@ export default function PricingConfigPage() {
 
   if (error) {
     return (
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+      <div className={styles.boxM0xautoP40x32}>
         <AdminEmptyState
           eyebrow="Erro"
           title="Falha ao carregar"
@@ -98,14 +99,14 @@ export default function PricingConfigPage() {
   }
 
   return (
-    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       <AdminSectionHeader
         eyebrow="ADMIN · PRICING"
         title="Configuração de preços"
         subtitle={
           <>
             Matriz F6.5 — preços por imóvel x 4 ciclos com desconto progressivo.
-            Mudanças refletem imediatamente em <code style={{ color: "var(--admin-accent)" }}>/plans</code>
+            Mudanças refletem imediatamente em <code className={styles.codeAccent}>/plans</code>
             {" "}e novos checkouts.
           </>
         }
@@ -113,30 +114,15 @@ export default function PricingConfigPage() {
 
       {/* === Aviso Stripe Price IDs read-only === */}
       <section
-        style={{
-          marginBottom: 32,
-          padding: "14px 18px",
-          borderLeft: "2px solid var(--admin-warning)",
-          background: "color-mix(in srgb, var(--admin-warning) 6%, transparent)",
-          fontSize: 13,
-          color: "var(--admin-text-muted)",
-          lineHeight: 1.55,
-        }}
+        className={styles.sectionTextMutedBgWarning}
       >
         <p
-          style={{
-            margin: 0,
-            color: "var(--admin-warning)",
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: 1.5,
-            textTransform: "uppercase",
-          }}
+          className={styles.textWarningFs11}
         >
           Atencao
         </p>
-        <p style={{ margin: "6px 0 0" }}>
-          Os <strong style={{ color: "var(--admin-text)" }}>Stripe Price IDs</strong>
+        <p className={styles.textM6x0x0}>
+          Os <strong className={styles.strongText}>Stripe Price IDs</strong>
           {" "}mostrados ao final de cada plano são read-only. Para mudar valor
           cobrado de fato, é necessário criar nova Price no Dashboard Stripe e
           atualizar a env var correspondente no Railway. Mudar o preço de
@@ -146,7 +132,7 @@ export default function PricingConfigPage() {
       </section>
 
       {/* === Stripe sync check === */}
-      <section style={{ marginBottom: 56 }}>
+      <section className={styles.sectionMb56}>
         <StripeSyncCard
           report={stripe}
           loading={stripeLoading}
@@ -156,10 +142,10 @@ export default function PricingConfigPage() {
 
       {/* === Planos === */}
       <section>
-        <p className="urban-admin-eyebrow" style={{ marginBottom: 20 }}>
+        <p className={`urban-admin-eyebrow ${styles.eyebrowMb20}`}>
           PLANOS
         </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div className={styles.stackGap20}>
           {plans.map((plan) => (
             <PlanCard key={plan.id} plan={plan} onSaved={load} />
           ))}
@@ -211,34 +197,16 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
   return (
     <AdminCard variant="subtle">
       <header
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          gap: 16,
-          marginBottom: 20,
-          flexWrap: "wrap",
-        }}
+        className={styles.rowBetweenStart}
       >
         <div>
           <h3
-            style={{
-              fontSize: 18,
-              fontWeight: 600,
-              color: "var(--admin-text)",
-              margin: 0,
-              letterSpacing: -0.3,
-            }}
+            className={styles.subheadingTextFs18}
           >
             {plan.title}
           </h3>
           <p
-            style={{
-              fontFamily: "monospace",
-              fontSize: 11,
-              color: "var(--admin-text-dim)",
-              margin: "4px 0 0",
-            }}
+            className={styles.textTextDimFs11}
           >
             {plan.name}
           </p>
@@ -256,18 +224,13 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
       </header>
 
       {plan.isCustomPrice ? (
-        <p style={{ fontSize: 13, color: "var(--admin-text-muted)", margin: 0 }}>
+        <p className={styles.textTextMutedFs13}>
           Plano custom (sob consulta) — sem matriz de preços editavel.
         </p>
       ) : (
         <>
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-              gap: 14,
-              marginBottom: 16,
-            }}
+            className={styles.gridColsAuto180Gap14}
           >
             <AdminInput
               label="Mensal (R$/imóvel/mês)"
@@ -292,12 +255,7 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
           </div>
 
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-              gap: 14,
-              marginBottom: 16,
-            }}
+            className={styles.gridColsAuto180Gap14}
           >
             <AdminInput
               label="% desconto trimestral"
@@ -326,12 +284,7 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
           </div>
 
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-              gap: 14,
-              marginBottom: 16,
-            }}
+            className={styles.gridColsAuto220Gap14}
           >
             <AdminInput
               label="Min. imóveis"
@@ -396,15 +349,7 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
           </div>
 
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
-              gap: 12,
-              marginBottom: 16,
-              padding: 14,
-              border: "1px solid var(--admin-divider)",
-              background: "var(--admin-surface)",
-            }}
+            className={styles.gridColsAuto170BgSurface}
           >
             <PreviewMetric label={`Preview ${previewQuantity} imóveis / mês`} value={formatAdminMoney(monthly * previewQuantity)} />
             <PreviewMetric label="Trimestral cobrado" value={formatAdminMoney(quarterly * previewQuantity * 3)} />
@@ -414,38 +359,15 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
 
           {/* Stripe Price IDs read-only */}
           <details
-            style={{
-              marginTop: 20,
-              border: "1px solid var(--admin-divider)",
-              borderRadius: 2,
-              padding: "12px 14px",
-              background: "var(--admin-surface)",
-            }}
+            className={styles.detailsBgSurfaceMt20}
           >
             <summary
-              style={{
-                cursor: "pointer",
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: 1.5,
-                textTransform: "uppercase",
-                color: "var(--admin-text-muted)",
-              }}
+              className={styles.summaryTextMutedFs11}
             >
               Stripe Price IDs (read-only — gerenciar no Dashboard Stripe)
             </summary>
             <div
-              style={{
-                marginTop: 14,
-                paddingTop: 14,
-                borderTop: "1px solid var(--admin-divider)",
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: 10,
-                fontSize: 11,
-                fontFamily: "monospace",
-                color: "var(--admin-text-dim)",
-              }}
+              className={styles.gridColsAuto220TextDim}
             >
               <div>monthly: {plan.stripePriceIdMonthly || "—"}</div>
               <div>quarterly: {plan.stripePriceIdQuarterly || "—"}</div>
@@ -457,17 +379,9 @@ function PlanCard({ plan, onSaved }: { plan: AdminPlanConfig; onSaved: () => voi
       )}
 
       <footer
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 16,
-          marginTop: 20,
-          paddingTop: 16,
-          borderTop: "1px solid var(--admin-divider)",
-        }}
+        className={styles.rowBetweenCentered}
       >
-        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+        <span className={styles.labelTextMutedFs12}>
           {dirty ? "Mudanças não salvas" : ""}
         </span>
         <AdminButton variant="primary" onClick={save} disabled={!dirty} loading={busy}>
@@ -497,17 +411,11 @@ function PreviewMetric({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <div
-        style={{
-          fontSize: 10,
-          color: "var(--admin-text-dim)",
-          textTransform: "uppercase",
-          letterSpacing: 1.2,
-          marginBottom: 4,
-        }}
+        className={styles.boxTextDimFs10}
       >
         {label}
       </div>
-      <div style={{ color: "var(--admin-text)", fontWeight: 700 }}>{value}</div>
+      <div className={styles.boxTextW700}>{value}</div>
     </div>
   );
 }
@@ -562,7 +470,7 @@ function StripeSyncCard({
       key: "plan",
       header: "Plano",
       render: (e) => (
-        <span style={{ fontSize: 12, color: "var(--admin-text)", fontWeight: 500 }}>
+        <span className={styles.labelTextFs12}>
           {e.planName}
         </span>
       ),
@@ -572,7 +480,7 @@ function StripeSyncCard({
       header: "Ciclo",
       width: 100,
       render: (e) => (
-        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>{e.cycle}</span>
+        <span className={styles.labelTextMutedFs12}>{e.cycle}</span>
       ),
     },
     {
@@ -585,7 +493,7 @@ function StripeSyncCard({
       key: "priceId",
       header: "Price ID",
       render: (e) => (
-        <code style={{ fontSize: 10, color: "var(--admin-text-dim)" }}>
+        <code className={styles.codeTextDimFs10}>
           {e.priceId ?? "—"}
         </code>
       ),
@@ -596,7 +504,7 @@ function StripeSyncCard({
       width: 130,
       align: "right",
       render: (e) => (
-        <span style={{ fontFamily: "monospace", fontSize: 12, color: "var(--admin-text)" }}>
+        <span className={styles.labelTextFs12Mono}>
           {fmt(e.stripeAmountCents)}
         </span>
       ),
@@ -605,7 +513,7 @@ function StripeSyncCard({
       key: "details",
       header: "Detalhes",
       render: (e) => (
-        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+        <span className={styles.labelTextMutedFs12}>
           {e.details ?? "—"}
         </span>
       ),
@@ -631,53 +539,29 @@ function StripeSyncCard({
       />
 
       <p
-        style={{
-          fontSize: 13,
-          color: "var(--admin-text-muted)",
-          margin: "0 0 16px",
-          lineHeight: 1.55,
-        }}
+        className={styles.textTextMutedFs13M0x0x16Lh1_55}
       >
         Valida que os 8 Price IDs (matriz F6.5) existem no Stripe e batem com o
         ciclo esperado.
       </p>
 
       {!report ? (
-        <p style={{ fontSize: 13, color: "var(--admin-text-muted)" }}>Carregando relatorio…</p>
+        <p className={styles.textTextMutedFs132}>Carregando relatorio…</p>
       ) : (
         <>
           {/* Gate indicator (substitui 3 cards coloridos) */}
           <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              padding: "12px 16px",
-              border: "1px solid var(--admin-divider)",
-              borderRadius: 2,
-              marginBottom: 24,
-              background: "var(--admin-surface)",
-            }}
+            className={styles.rowCenteredBgSurface}
           >
             <AdminStatusDot kind={gateKind} size={10} />
-            <div style={{ flex: 1 }}>
+            <div className={styles.boxFlex1}>
               <p
-                style={{
-                  margin: 0,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "var(--admin-text)",
-                }}
+                className={styles.textTextFs13}
               >
                 {gateLabel}
               </p>
               <p
-                style={{
-                  margin: "4px 0 0",
-                  fontSize: 12,
-                  color: "var(--admin-text-muted)",
-                  lineHeight: 1.55,
-                }}
+                className={styles.textTextMutedFs12}
               >
                 {!report.summary.stripeKeyConfigured
                   ? "Sem isso, não é possível validar Price IDs remotamente. Configure no Railway antes de continuar."
@@ -690,15 +574,7 @@ function StripeSyncCard({
 
           {/* Stats em hierarquia: 1 hero "OK" + 4 sm */}
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(0, 1.6fr) repeat(4, minmax(0, 1fr))",
-              gap: 24,
-              borderTop: "1px solid var(--admin-divider)",
-              borderBottom: "1px solid var(--admin-divider)",
-              marginBottom: 24,
-              alignItems: "end",
-            }}
+            className={styles.gridCols4Gap24}
           >
             <AdminMetricCard
               label="OK / total"

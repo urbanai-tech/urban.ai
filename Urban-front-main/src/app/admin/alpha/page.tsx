@@ -23,6 +23,7 @@ import {
   useAdminToast,
   Icons,
 } from "../_components";
+import styles from "./page.module.css";
 
 const DEFAULT_EMAIL = process.env.NEXT_PUBLIC_ADMIN_ALPHA_DEFAULT_EMAIL?.trim() ?? "";
 
@@ -153,7 +154,7 @@ export default function AdminAlphaPage() {
       key: "property",
       header: "Imóvel",
       render: (r) => (
-        <span style={{ color: "var(--admin-text)", fontWeight: 500 }}>
+        <span className={styles.labelTextW500}>
           {r.property.title || r.property.listId}
         </span>
       ),
@@ -163,16 +164,11 @@ export default function AdminAlphaPage() {
       header: "Evento",
       render: (r) => (
         <div>
-          <p style={{ fontWeight: 500, color: "var(--admin-text)", margin: 0 }}>
+          <p className={styles.textTextW500}>
             {r.event.name}
           </p>
           <p
-            style={{
-              fontSize: 11,
-              color: "var(--admin-text-dim)",
-              margin: "2px 0 0",
-              fontFamily: "monospace",
-            }}
+            className={styles.textTextDimFs11}
           >
             {r.event.startsAt
               ? new Date(r.event.startsAt).toLocaleDateString("pt-BR")
@@ -187,7 +183,7 @@ export default function AdminAlphaPage() {
       width: 100,
       align: "right",
       render: (r) => (
-        <span style={{ fontFamily: "monospace", color: "var(--admin-text)" }}>
+        <span className={styles.labelTextMono}>
           {formatBRL(r.pricing.current)}
         </span>
       ),
@@ -199,11 +195,7 @@ export default function AdminAlphaPage() {
       align: "right",
       render: (r) => (
         <span
-          style={{
-            fontFamily: "monospace",
-            color: "var(--admin-accent)",
-            fontWeight: 600,
-          }}
+          className={styles.labelAccentW600}
         >
           {formatBRL(r.pricing.suggested)}
         </span>
@@ -215,7 +207,7 @@ export default function AdminAlphaPage() {
       width: 100,
       align: "right",
       render: (r) => (
-        <span style={{ fontFamily: "monospace", color: "var(--admin-text-muted)" }}>
+        <span className={styles.labelTextMutedMono}>
           {r.pricing.lift === null ? "—" : formatBRL(r.pricing.lift)}
         </span>
       ),
@@ -225,7 +217,7 @@ export default function AdminAlphaPage() {
       header: "Status",
       width: 120,
       render: (r) => (
-        <code style={{ fontSize: 11, color: "var(--admin-text-muted)" }}>
+        <code className={styles.codeTextMutedFs11}>
           {r.lifecycle.status}
         </code>
       ),
@@ -234,7 +226,7 @@ export default function AdminAlphaPage() {
       key: "outcome",
       header: "Resultado",
       render: (r) => (
-        <span style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+        <span className={styles.labelTextMutedFs12}>
           {r.outcome.reservationStatus || "pendente"}
           {r.outcome.realRevenue ? ` · ${formatBRL(r.outcome.realRevenue)}` : ""}
         </span>
@@ -245,23 +237,23 @@ export default function AdminAlphaPage() {
       header: "Flags",
       render: (r) =>
         r.qualityFlags.length ? (
-          <span style={{ fontSize: 11, color: "var(--admin-warning)" }}>
+          <span className={styles.labelWarningFs11}>
             {r.qualityFlags.join(", ")}
           </span>
         ) : (
-          <span style={{ fontSize: 11, color: "var(--admin-success)" }}>ok</span>
+          <span className={styles.labelSuccessFs11}>ok</span>
         ),
     },
   ];
 
   return (
-    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "40px 32px" }}>
+    <div className={styles.boxM0xautoP40x32}>
       <AdminSectionHeader
         eyebrow="ADMIN · ALPHA"
         title="Painel Alpha"
         subtitle="KPIs reais, auditoria de recomendações e rotina de reprocessamento."
         actions={
-          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <div className={styles.rowCenteredWrap}>
             <AdminInput
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -301,7 +293,7 @@ export default function AdminAlphaPage() {
       />
 
       {error && (
-        <div style={{ marginBottom: 32 }}>
+        <div className={styles.boxMb32}>
           <AdminEmptyState
             eyebrow="Erro"
             title="Falha no painel alpha"
@@ -312,7 +304,7 @@ export default function AdminAlphaPage() {
       )}
 
       {!error && !dashboard && (
-        <div style={{ marginBottom: 32 }}>
+        <div className={styles.boxMb32}>
           <AdminEmptyState
             eyebrow="ALPHA"
             title="Informe um usuário"
@@ -325,47 +317,30 @@ export default function AdminAlphaPage() {
       {dashboard && (
         <>
           {/* === Hero KPI: Receita real === */}
-          <section style={{ marginBottom: 56 }}>
+          <section className={styles.sectionMb56}>
             <AdminCard variant="accent" style={{ padding: "40px 40px 36px" }}>
               <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)",
-                  gap: 32,
-                  alignItems: "end",
-                }}
+                className={styles.gridColsGap32}
               >
                 <div>
                   <p className="urban-admin-eyebrow">RECEITA REAL (ALPHA)</p>
                   <p
-                    className="urban-admin-display-hero"
-                    style={{ marginTop: 12, color: "var(--admin-accent)" }}
+                    className={`urban-admin-display-hero ${styles.displayHeroAccentMt12}`}
                   >
                     {formatBRL(dashboard.recommendations.realRevenue)}
                   </p>
                   <p
-                    style={{
-                      marginTop: 12,
-                      fontSize: 14,
-                      color: "var(--admin-text-muted)",
-                      lineHeight: 1.55,
-                    }}
+                    className={styles.textTextMutedFs14}
                   >
                     Receita captada a partir de recomendações aplicadas ·{" "}
                     Lift diário potencial:{" "}
-                    <span style={{ color: "var(--admin-accent)", fontWeight: 600 }}>
+                    <span className={styles.labelAccentW6002}>
                       {formatBRL(dashboard.recommendations.potentialDailyLift)}
                     </span>
                   </p>
                 </div>
                 <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr",
-                    gap: 16,
-                    borderLeft: "1px solid var(--admin-divider)",
-                    paddingLeft: 32,
-                  }}
+                  className={styles.gridColsGap16}
                 >
                   <InlineStat
                     label="Aplicados"
@@ -385,18 +360,12 @@ export default function AdminAlphaPage() {
           </section>
 
           {/* === KPIs principais === */}
-          <section style={{ marginBottom: 64 }}>
-            <p className="urban-admin-eyebrow" style={{ marginBottom: 24 }}>
+          <section className={styles.sectionMb64}>
+            <p className={`urban-admin-eyebrow ${styles.eyebrowMb24}`}>
               INDICADORES OPERACIONAIS
             </p>
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                gap: 32,
-                borderTop: "1px solid var(--admin-divider)",
-                borderBottom: "1px solid var(--admin-divider)",
-              }}
+              className={styles.gridColsAuto200Gap32}
             >
               <AdminMetricCard
                 label="Imóveis alpha"
@@ -429,37 +398,26 @@ export default function AdminAlphaPage() {
 
           {/* === Qualidade + Operação === */}
           <section
-            style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(0, 1fr) minmax(0, 2fr)",
-              gap: 24,
-              marginBottom: 56,
-            }}
+            className={styles.gridColsGap24}
           >
             <AdminCard variant="subtle">
               <AdminCardHeader title="Qualidade de eventos" />
               {qualityFlags.length ? (
-                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                <ul className={styles.listM0P0}>
                   {qualityFlags.map(([flag, count]) => (
                     <li
                       key={flag}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        padding: "10px 0",
-                        borderBottom: "1px solid var(--admin-divider)",
-                        fontSize: 13,
-                      }}
+                      className={styles.rowBetweenFs13}
                     >
-                      <code style={{ color: "var(--admin-text)" }}>{flag}</code>
-                      <span style={{ color: "var(--admin-warning)", fontWeight: 600 }}>
+                      <code className={styles.codeText}>{flag}</code>
+                      <span className={styles.labelWarningW600}>
                         {count.toLocaleString("pt-BR")}
                       </span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p style={{ fontSize: 13, color: "var(--admin-success)", margin: 0 }}>
+                <p className={styles.textSuccessFs13}>
                   Sem flags nas recomendações atuais.
                 </p>
               )}
@@ -468,11 +426,7 @@ export default function AdminAlphaPage() {
             <AdminCard variant="subtle">
               <AdminCardHeader title="Operação" />
               <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                  gap: 16,
-                }}
+                className={styles.gridColsAuto180Gap16}
               >
                 <SmallStat label="Tester" value={dashboard.user.email} />
                 <SmallStat
@@ -490,29 +444,17 @@ export default function AdminAlphaPage() {
           {/* === Auditoria de recomendações === */}
           <section>
             <header
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 16,
-                marginBottom: 20,
-              }}
+              className={styles.rowBetweenCentered}
             >
               <div>
                 <p className="urban-admin-eyebrow">AUDITORIA</p>
                 <h2
-                  style={{
-                    fontSize: 20,
-                    fontWeight: 600,
-                    color: "var(--admin-text)",
-                    margin: "8px 0 0",
-                    letterSpacing: -0.3,
-                  }}
+                  className={styles.headingTextFs20}
                 >
                   Recomendações
                 </h2>
               </div>
-              <span style={{ fontSize: 11, color: "var(--admin-text-dim)", letterSpacing: 1.5, textTransform: "uppercase" }}>
+              <span className={styles.labelTextDimFs11}>
                 {rows.length.toLocaleString("pt-BR")} linhas · mostrando até 100
               </span>
             </header>
@@ -540,14 +482,7 @@ function InlineStat({ label, value }: { label: string; value: string }) {
     <div>
       <p className="urban-admin-eyebrow-muted">{label}</p>
       <p
-        style={{
-          fontSize: 22,
-          fontWeight: 600,
-          color: "var(--admin-text)",
-          margin: "6px 0 0",
-          fontFamily: "monospace",
-          letterSpacing: -0.3,
-        }}
+        className={styles.textTextFs22}
       >
         {value}
       </p>
@@ -560,13 +495,7 @@ function SmallStat({ label, value }: { label: string; value: string }) {
     <div>
       <p className="urban-admin-eyebrow-muted">{label}</p>
       <p
-        style={{
-          fontSize: 13,
-          color: "var(--admin-text)",
-          margin: "6px 0 0",
-          wordBreak: "break-word",
-          lineHeight: 1.4,
-        }}
+        className={styles.textTextFs13}
       >
         {value}
       </p>
