@@ -35,6 +35,7 @@ import {
   AppHStack,
   Icons,
 } from "../../componentes/ui";
+import styles from "./integrations.module.css";
 
 const STAYS_CONSENT_VERSION = "stays-connect-v1";
 
@@ -241,7 +242,7 @@ export default function IntegrationsPage() {
   if (loading) {
     return (
       <AppPageShell maxWidth={900}>
-        <p style={{ color: "var(--app-text-muted)", fontSize: 14 }}>Carregando…</p>
+        <p className={styles.integrationsText}>Carregando…</p>
       </AppPageShell>
     );
   }
@@ -269,14 +270,14 @@ export default function IntegrationsPage() {
             subtitle={
               <>
                 No painel Stays, abra a área onde a Stays gera os códigos de acesso:{" "}
-                <strong style={{ color: "var(--app-text)" }}>
+                <strong className={styles.integrationsStrong}>
                   App Center → Open API → Generate credentials
                 </strong>{" "}
                 e cole os dois códigos abaixo. O My Urban nunca vê sua senha da Stays.
               </>
             }
           />
-          <form onSubmit={handleConnect} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          <form onSubmit={handleConnect} className={styles.integrationsForm}>
             <AppInput
               label="Conta Stays"
               type="text"
@@ -309,31 +310,23 @@ export default function IntegrationsPage() {
             />
 
             <div
-              style={{
-                background: "var(--app-surface-muted)",
-                border: "1px solid var(--app-divider)",
-                borderRadius: 8,
-                padding: 16,
-                display: "flex",
-                gap: 12,
-                alignItems: "flex-start",
-              }}
+              className={styles.integrationsRow}
             >
               <input
                 id="stays-consent"
                 type="checkbox"
                 checked={consent}
                 onChange={(e) => setConsent(e.target.checked)}
-                style={{ marginTop: 3, accentColor: "var(--app-accent)", width: 18, height: 18 }}
+                className={styles.staysConsent}
               />
-              <label htmlFor="stays-consent" style={{ fontSize: 13, color: "var(--app-text)", lineHeight: 1.55, cursor: "pointer" }}>
+              <label htmlFor="stays-consent" className={styles.integrationsFieldLabel}>
                 <strong>Ao conectar minha conta Stays, autorizo o My Urban a:</strong>
-                <ul style={{ margin: "8px 0 0", paddingLeft: 18, color: "var(--app-text-muted)" }}>
+                <ul className={styles.integrationsList}>
                   <li>Ler meus anúncios, calendário e histórico de reservas</li>
                   <li>Mostrar sugestões de preço e, se eu ativar o beta automático, aplicar mudanças permitidas nos meus anúncios</li>
                   <li>Armazenar esse histórico enquanto minha assinatura estiver ativa</li>
                 </ul>
-                <p style={{ marginTop: 8, fontSize: 12, color: "var(--app-text-muted)" }}>
+                <p className={styles.integrationsText12}>
                   Posso desconectar a qualquer momento — os dados vinculados ao Airbnb/Stays serão apagados em até 15 dias.
                 </p>
               </label>
@@ -342,17 +335,7 @@ export default function IntegrationsPage() {
             {submitError && (
               <div
                 role="alert"
-                style={{
-                  background: "rgba(194, 52, 46, 0.08)",
-                  border: "1px solid rgba(194, 52, 46, 0.25)",
-                  borderRadius: 8,
-                  padding: "10px 14px",
-                  color: "var(--app-danger)",
-                  fontSize: 13,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                }}
+                className={styles.integrationsRow13}
               >
                 <Icons.AlertCircle size={14} /> {submitError}
               </div>
@@ -375,26 +358,11 @@ export default function IntegrationsPage() {
         <>
           <AppCard variant="accent" style={{ padding: 24, marginBottom: 32 }}>
             <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 16,
-                flexWrap: "wrap",
-              }}
+              className={styles.integrationsRowGap16}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <div className={styles.integrationsRowGap14}>
                 <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: "50%",
-                    background: "rgba(22, 160, 107, 0.12)",
-                    color: "var(--app-success)",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+                  className={styles.integrationsRowSuccess}
                   aria-hidden
                 >
                   <Icons.Check size={18} />
@@ -402,17 +370,11 @@ export default function IntegrationsPage() {
                 <div>
                   <p className="urban-app-eyebrow-muted">CONEXÃO STAYS</p>
                   <p
-                    style={{
-                      fontSize: 18,
-                      fontWeight: 600,
-                      color: "var(--app-text)",
-                      margin: "4px 0 0",
-                      letterSpacing: -0.2,
-                    }}
+                    className={styles.integrationsText18}
                   >
                     Conectada e ativa
                   </p>
-                  <p style={{ fontSize: 12, color: "var(--app-text-muted)", margin: "2px 0 0" }}>
+                  <p className={styles.integrationsTextTextMuted}>
                     Última sincronização: {formatStaysDate(account?.lastSyncAt)}
                   </p>
                 </div>
@@ -431,15 +393,7 @@ export default function IntegrationsPage() {
 
           {/* === KPIs ===*/}
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-              gap: 24,
-              borderTop: "1px solid var(--app-divider)",
-              borderBottom: "1px solid var(--app-divider)",
-              padding: "24px 0",
-              marginBottom: 40,
-            }}
+            className={styles.integrationsGrid}
           >
             <AppMetricCard
               label="Anúncios ativos"
@@ -480,12 +434,7 @@ export default function IntegrationsPage() {
             />
             <form
               onSubmit={handlePreviewPrice}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))",
-                gap: 12,
-                alignItems: "end",
-              }}
+              className={styles.integrationsFormCols}
             >
               <AppSelect
                 label="Anúncio"
@@ -532,15 +481,7 @@ export default function IntegrationsPage() {
             {previewError && (
               <div
                 role="alert"
-                style={{
-                  marginTop: 16,
-                  border: "1px solid rgba(194, 52, 46, 0.22)",
-                  background: "rgba(194, 52, 46, 0.06)",
-                  color: "var(--app-danger)",
-                  borderRadius: 8,
-                  padding: "10px 12px",
-                  fontSize: 13,
-                }}
+                className={styles.integrationsPanel}
               >
                 {previewError}
               </div>
@@ -548,14 +489,7 @@ export default function IntegrationsPage() {
 
             {previewResult && (
               <div
-                style={{
-                  marginTop: 18,
-                  borderTop: "1px solid var(--app-divider)",
-                  paddingTop: 18,
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-                  gap: 12,
-                }}
+                className={styles.integrationsGridCols}
               >
                 <PreviewStat label="Atual" value={formatCurrency(previewResult.previousPriceCents)} />
                 <PreviewStat label="Novo" value={formatCurrency(previewResult.newPriceCents)} />
@@ -582,7 +516,7 @@ export default function IntegrationsPage() {
                   value={previewResult.idempotentReplay ? "sim" : "não"}
                 />
                 {(previewResult.blockers.length > 0 || previewResult.warnings.length > 0) && (
-                  <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div className={styles.integrationsStack}>
                     {previewResult.blockers.map((item) => (
                       <PreviewIssue key={item.code} issue={item} tone="danger" />
                     ))}
@@ -596,18 +530,12 @@ export default function IntegrationsPage() {
           </AppCard>
 
           {/* === Listings detalhados === */}
-          <section style={{ marginBottom: 32 }}>
-            <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
+          <section className={styles.integrationsSection}>
+            <header className={styles.integrationsHeader}>
               <div>
                 <p className="urban-app-eyebrow">ANÚNCIOS SINCRONIZADOS</p>
                 <h2
-                  style={{
-                    fontSize: 20,
-                    fontWeight: 600,
-                    color: "var(--app-text)",
-                    margin: "8px 0 0",
-                    letterSpacing: -0.3,
-                  }}
+                  className={styles.integrationsHeading}
                 >
                   {listings.length} {listings.length === 1 ? "anúncio" : "anúncios"} no total
                 </h2>
@@ -629,32 +557,19 @@ export default function IntegrationsPage() {
 
           {/* === Zona perigosa === */}
           <section
-            style={{
-              borderTop: "1px solid var(--app-divider)",
-              paddingTop: 32,
-            }}
+            className={styles.integrationsSection2}
           >
-            <p className="urban-app-eyebrow-muted" style={{ marginBottom: 8 }}>
+            <p className={`urban-app-eyebrow-muted ${styles.appEyebrowMuted}`}>
               AÇÃO SENSÍVEL
             </p>
             <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 16,
-                padding: "16px 20px",
-                border: "1px solid rgba(194, 52, 46, 0.18)",
-                borderRadius: 8,
-                background: "rgba(194, 52, 46, 0.03)",
-                flexWrap: "wrap",
-              }}
+              className={styles.integrationsRowIntegrationsDanger03}
             >
               <div>
-                <p style={{ fontSize: 14, fontWeight: 600, color: "var(--app-text)", margin: 0 }}>
+                <p className={styles.integrationsText14}>
                   Desconectar conta Stays
                 </p>
-                <p style={{ fontSize: 12, color: "var(--app-text-muted)", margin: "4px 0 0", maxWidth: 480 }}>
+                <p className={styles.integrationsTextTight}>
                   Desativa o modo automático em todos os imóveis. O My Urban deixa de alterar preços pela Stays.
                   Os dados Stays serão apagados em até 15 dias.
                 </p>
@@ -678,7 +593,7 @@ export default function IntegrationsPage() {
                 alignItems: "center",
                 justifyContent: "center",
                 padding: 24,
-                background: "rgba(0,0,0,0.45)",
+                background: "var(--theme-app-legacy-black-45)",
               }}
               onClick={() => setConfirmDisconnect(false)}
             >
@@ -687,20 +602,15 @@ export default function IntegrationsPage() {
                 style={{ maxWidth: 440, width: "100%", padding: "24px 24px 20px" }}
                 onClick={undefined}
               >
-                <h3 id="disconnect-stays-title" style={{ fontSize: 18, fontWeight: 600, margin: 0, color: "var(--app-text)" }}>
+                <h3 id="disconnect-stays-title" className={styles.disconnectStaysTitle}>
                   Desconectar Stays?
                 </h3>
                 <p
-                  style={{
-                    marginTop: 10,
-                    fontSize: 14,
-                    color: "var(--app-text-muted)",
-                    lineHeight: 1.55,
-                  }}
+                  className={styles.integrationsTextMar10}
                 >
                   O modo automático será desativado em todos os imóveis vinculados. Você pode reconectar a qualquer momento.
                 </p>
-                <div style={{ marginTop: 22, display: "flex", justifyContent: "flex-end", gap: 10 }}>
+                <div className={styles.integrationsRowGap10}>
                   <AppButton variant="ghost" onClick={() => setConfirmDisconnect(false)}>
                     Cancelar
                   </AppButton>
@@ -726,29 +636,14 @@ function PreviewStat({
   value: string;
   tone?: "neutral" | "success" | "warning" | "danger";
 }) {
-  const color =
-    tone === "success"
-      ? "var(--app-success)"
-      : tone === "warning"
-        ? "var(--app-warning-text)"
-        : tone === "danger"
-          ? "var(--app-danger)"
-          : "var(--app-text)";
-
   return (
     <div
-      style={{
-        border: "1px solid var(--app-divider)",
-        borderRadius: 8,
-        padding: "10px 12px",
-        background: "var(--app-surface-muted)",
-        minWidth: 0,
-      }}
+      className={styles.previewStatPanel}
     >
-      <p style={{ margin: 0, fontSize: 11, color: "var(--app-text-muted)", fontWeight: 600 }}>
+      <p className={styles.previewStatText}>
         {label}
       </p>
-      <p style={{ margin: "4px 0 0", fontSize: 14, color, fontWeight: 700 }}>
+      <p className={`${styles.previewStatText14} ${styles[`previewStatTone${tone[0].toUpperCase()}${tone.slice(1)}`]}`}>
         {value}
       </p>
     </div>
@@ -764,15 +659,7 @@ function PreviewIssue({
 }) {
   return (
     <div
-      style={{
-        border: `1px solid ${tone === "danger" ? "rgba(194, 52, 46, 0.22)" : "rgba(200, 129, 14, 0.24)"}`,
-        background: tone === "danger" ? "rgba(194, 52, 46, 0.06)" : "rgba(200, 129, 14, 0.08)",
-        color: tone === "danger" ? "var(--app-danger)" : "var(--app-warning-text)",
-        borderRadius: 8,
-        padding: "10px 12px",
-        fontSize: 13,
-        lineHeight: 1.45,
-      }}
+      className={`${styles.previewIssuePanel} ${tone === "danger" ? styles.previewIssueDanger : styles.previewIssueWarning}`}
     >
       <strong>{issue.code}</strong>: {issue.message}
     </div>

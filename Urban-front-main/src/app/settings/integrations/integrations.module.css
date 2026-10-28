@@ -1,0 +1,277 @@
+.integrationsText.integrationsText {
+  color: var(--app-text-muted);
+  font-size: 14px;
+}
+
+.integrationsStrong.integrationsStrong {
+  color: var(--app-text);
+}
+
+.integrationsForm.integrationsForm {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.integrationsRow.integrationsRow {
+  background: var(--app-surface-muted);
+  border: 1px solid var(--app-divider);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.staysConsent.staysConsent {
+  margin-top: 3px;
+  accent-color: var(--app-accent);
+  width: 18px;
+  height: 18px;
+}
+
+.integrationsFieldLabel.integrationsFieldLabel {
+  font-size: 13px;
+  color: var(--app-text);
+  line-height: 1.55;
+  cursor: pointer;
+}
+
+.integrationsList.integrationsList {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--app-text-muted);
+}
+
+.integrationsText12.integrationsText12 {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--app-text-muted);
+}
+
+.integrationsRow13.integrationsRow13 {
+  background: var(--theme-app-legacy-danger-08);
+  border: 1px solid var(--theme-app-legacy-danger-25);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--app-danger);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.integrationsRowGap16.integrationsRowGap16 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.integrationsRowGap14.integrationsRowGap14 {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.integrationsRowSuccess.integrationsRowSuccess {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--theme-app-legacy-success-12);
+  color: var(--app-success);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.integrationsText18.integrationsText18 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--app-text);
+  margin: 4px 0 0;
+  letter-spacing: -0.2px;
+}
+
+.integrationsTextTextMuted.integrationsTextTextMuted {
+  font-size: 12px;
+  color: var(--app-text-muted);
+  margin: 2px 0 0;
+}
+
+.integrationsGrid.integrationsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 24px;
+  border-top: 1px solid var(--app-divider);
+  border-bottom: 1px solid var(--app-divider);
+  padding: 24px 0;
+  margin-bottom: 40px;
+}
+
+.integrationsFormCols.integrationsFormCols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.integrationsPanel.integrationsPanel {
+  margin-top: 16px;
+  border: 1px solid var(--theme-app-legacy-danger-22);
+  background: var(--theme-app-legacy-danger-06);
+  color: var(--app-danger);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.integrationsGridCols.integrationsGridCols {
+  margin-top: 18px;
+  border-top: 1px solid var(--app-divider);
+  padding-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.integrationsStack.integrationsStack {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.integrationsSection.integrationsSection {
+  margin-bottom: 32px;
+}
+
+.integrationsHeader.integrationsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.integrationsHeading.integrationsHeading {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--app-text);
+  margin: 8px 0 0;
+  letter-spacing: -0.3px;
+}
+
+.integrationsSection2.integrationsSection2 {
+  border-top: 1px solid var(--app-divider);
+  padding-top: 32px;
+}
+
+.appEyebrowMuted.appEyebrowMuted {
+  margin-bottom: 8px;
+}
+
+.integrationsRowIntegrationsDanger03.integrationsRowIntegrationsDanger03 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border: 1px solid var(--theme-app-legacy-integrations-danger-18);
+  border-radius: 8px;
+  background: var(--theme-app-legacy-integrations-danger-03);
+  flex-wrap: wrap;
+}
+
+.integrationsText14.integrationsText14 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--app-text);
+  margin: 0;
+}
+
+.integrationsTextTight.integrationsTextTight {
+  font-size: 12px;
+  color: var(--app-text-muted);
+  margin: 4px 0 0;
+  max-width: 480px;
+}
+
+.disconnectStaysTitle.disconnectStaysTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--app-text);
+}
+
+.integrationsTextMar10.integrationsTextMar10 {
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--app-text-muted);
+  line-height: 1.55;
+}
+
+.integrationsRowGap10.integrationsRowGap10 {
+  margin-top: 22px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.previewStatPanel.previewStatPanel {
+  border: 1px solid var(--app-divider);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--app-surface-muted);
+  min-width: 0;
+}
+
+.previewStatText.previewStatText {
+  margin: 0;
+  font-size: 11px;
+  color: var(--app-text-muted);
+  font-weight: 600;
+}
+
+.previewStatText14.previewStatText14 {
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.previewIssuePanel.previewIssuePanel {
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.previewIssueDanger.previewIssueDanger {
+  border: 1px solid var(--theme-app-legacy-danger-22);
+  background: var(--theme-app-legacy-danger-06);
+  color: var(--app-danger);
+}
+
+.previewIssueWarning.previewIssueWarning {
+  border: 1px solid var(--theme-app-legacy-status-warning-24);
+  background: var(--theme-app-legacy-status-warning-08);
+  color: var(--app-warning-text);
+}
+
+.previewStatToneNeutral.previewStatToneNeutral {
+  color: var(--app-text);
+}
+
+.previewStatToneSuccess.previewStatToneSuccess {
+  color: var(--app-success);
+}
+
+.previewStatToneWarning.previewStatToneWarning {
+  color: var(--app-warning-text);
+}
+
+.previewStatToneDanger.previewStatToneDanger {
+  color: var(--app-danger);
+}
