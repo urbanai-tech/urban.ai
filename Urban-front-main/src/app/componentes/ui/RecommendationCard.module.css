@@ -1,4 +1,4 @@
-.s1.s1 {
+.explanationSection.explanationSection {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -6,14 +6,14 @@
   border-top: 1px solid var(--app-divider);
 }
 
-.s2.s2 {
+.explanationHeader.explanationHeader {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 10px;
   align-items: start;
 }
 
-.s3.s3 {
+.explanationIcon.explanationIcon {
   width: 28px;
   height: 28px;
   border-radius: 999px;
@@ -25,45 +25,45 @@
   flex-shrink: 0;
 }
 
-.s4.s4 {
+.textColumn.textColumn {
   min-width: 0;
 }
 
-.s5.s5 {
+.explanationLead.explanationLead {
   font-size: 13px;
   color: var(--app-text);
   line-height: 1.55;
   margin: 6px 0 0;
 }
 
-.s6.s6 {
+.humanReasonText.humanReasonText {
   font-size: 12px;
   color: var(--app-text-muted);
   line-height: 1.5;
   margin: 6px 0 0;
 }
 
-.s7.s7 {
+.explanationItemGrid.explanationItemGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 136px), 1fr));
   border-top: 1px solid var(--app-divider);
   border-bottom: 1px solid var(--app-divider);
 }
 
-.s8.s8 {
+.explanationItem.explanationItem {
   padding: 10px 12px;
   min-width: 0;
 }
 
-.s9.s9 {
+.explanationItemLast.explanationItemLast {
   border-right: none;
 }
 
-.s10.s10 {
+.explanationItemDivided.explanationItemDivided {
   border-right: 1px solid var(--app-divider);
 }
 
-.s11.s11 {
+.explanationItemLabel.explanationItemLabel {
   display: block;
   font-size: 10px;
   letter-spacing: 1.2px;
@@ -73,7 +73,7 @@
   line-height: 1.2;
 }
 
-.s12.s12 {
+.explanationItemValue.explanationItemValue {
   display: block;
   color: var(--app-text);
   font-size: 13px;
@@ -81,7 +81,7 @@
   margin-top: 4px;
 }
 
-.s13.s13 {
+.explanationItemDetail.explanationItemDetail {
   display: block;
   color: var(--app-text-muted);
   font-size: 11px;
@@ -89,31 +89,31 @@
   margin-top: 3px;
 }
 
-.s14.s14 {
+.detailStack.detailStack {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.s15.s15 {
+.detailSection.detailSection {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.s16.s16 {
+.historySection.historySection {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.s17.s17 {
+.historyGrid.historyGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: 12px;
 }
 
-.s18.s18 {
+.historyCard.historyCard {
   background: var(--app-surface-muted);
   border: 1px solid var(--app-divider);
   border-radius: 8px;
@@ -123,19 +123,19 @@
   gap: 4px;
 }
 
-.s19.s19 {
+.historyCardLabel.historyCardLabel {
   font-size: 11px;
   color: var(--app-text-muted);
   line-height: 1.3;
 }
 
-.s20.s20 {
+.historyCardValue.historyCardValue {
   font-size: 13px;
   color: var(--app-text);
   font-weight: 600;
   line-height: 1.4;
 }
 
-.s21.s21 {
+.priceEyebrow.priceEyebrow {
   margin-bottom: 6px;
 }

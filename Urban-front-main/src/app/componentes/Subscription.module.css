@@ -1,17 +1,17 @@
-.s1.s1 {
+.subscriptionsContainer.subscriptionsContainer {
   width: 100%;
   max-width: 768px;
   margin: 0 auto;
   padding: 40px 0;
 }
 
-.s2.s2 {
+.subscriptionList.subscriptionList {
   display: grid;
   grid-template-columns: 1fr;
   gap: 32px;
 }
 
-.s3.s3 {
+.statusBadge.statusBadge {
   position: absolute;
   top: 16px;
   right: 16px;
@@ -23,81 +23,81 @@
   text-transform: uppercase;
 }
 
-.s4.s4 {
+.statusBadgeCanceled.statusBadgeCanceled {
   background: var(--theme-app-legacy-danger-10);
   color: var(--app-danger);
 }
 
-.s5.s5 {
+.statusBadgeActive.statusBadgeActive {
   background: var(--theme-app-legacy-success-10);
   color: var(--app-success);
 }
 
-.s6.s6 {
+.cardContent.cardContent {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.s7.s7 {
+.planName.planName {
   margin: 0;
   padding-right: 110px;
   color: var(--app-text);
   font-size: 24px;
 }
 
-.s8.s8 {
+.priceLabel.priceLabel {
   margin: 0;
   font-size: 20px;
   font-weight: 750;
 }
 
-.s9.s9 {
+.priceLabelCanceled.priceLabelCanceled {
   color: var(--app-text-muted);
   text-decoration: line-through;
 }
 
-.s10.s10 {
+.priceLabelActive.priceLabelActive {
   color: var(--app-accent);
   text-decoration: none;
 }
 
-.s11.s11 {
+.divider.divider {
   width: 100%;
   border: 0;
   border-top: 1px solid var(--app-divider);
 }
 
-.s12.s12 {
+.infoTileGrid.infoTileGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
 }
 
-.s13.s13 {
+.dateLabel.dateLabel {
   margin: 0;
   color: var(--app-text-muted);
   font-size: 15px;
 }
 
-.s14.s14 {
+.actionsRow.actionsRow {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
   flex-wrap: wrap;
 }
 
-.s15.s15 {
+.infoTile.infoTile {
   padding: 12px;
   border-radius: 8px;
   background: var(--app-surface-muted);
 }
 
-.s16.s16 {
+.infoTileLabel.infoTileLabel {
   margin-bottom: 6px;
 }
 
-.s17.s17 {
+.infoTileValue.infoTileValue {
   margin: 0;
   color: var(--app-text);
   font-weight: 650;

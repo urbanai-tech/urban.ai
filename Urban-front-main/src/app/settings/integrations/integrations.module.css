@@ -1,19 +1,19 @@
-.integrationsText.integrationsText {
+.loadingText.loadingText {
   color: var(--app-text-muted);
   font-size: 14px;
 }
 
-.integrationsStrong.integrationsStrong {
+.credentialsPath.credentialsPath {
   color: var(--app-text);
 }
 
-.integrationsForm.integrationsForm {
+.connectForm.connectForm {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-.integrationsRow.integrationsRow {
+.consentRow.consentRow {
   background: var(--app-surface-muted);
   border: 1px solid var(--app-divider);
   border-radius: 8px;
@@ -30,26 +30,26 @@
   height: 18px;
 }
 
-.integrationsFieldLabel.integrationsFieldLabel {
+.consentLabel.consentLabel {
   font-size: 13px;
   color: var(--app-text);
   line-height: 1.55;
   cursor: pointer;
 }
 
-.integrationsList.integrationsList {
+.consentList.consentList {
   margin: 8px 0 0;
   padding-left: 18px;
   color: var(--app-text-muted);
 }
 
-.integrationsText12.integrationsText12 {
+.consentNote.consentNote {
   margin-top: 8px;
   font-size: 12px;
   color: var(--app-text-muted);
 }
 
-.integrationsRow13.integrationsRow13 {
+.submitErrorBanner.submitErrorBanner {
   background: var(--theme-app-legacy-danger-08);
   border: 1px solid var(--theme-app-legacy-danger-25);
   border-radius: 8px;
@@ -61,7 +61,7 @@
   gap: 8px;
 }
 
-.integrationsRowGap16.integrationsRowGap16 {
+.statusRow.statusRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -69,13 +69,13 @@
   flex-wrap: wrap;
 }
 
-.integrationsRowGap14.integrationsRowGap14 {
+.statusInfo.statusInfo {
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
-.integrationsRowSuccess.integrationsRowSuccess {
+.statusIcon.statusIcon {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -86,7 +86,7 @@
   justify-content: center;
 }
 
-.integrationsText18.integrationsText18 {
+.statusTitle.statusTitle {
   font-size: 18px;
   font-weight: 600;
   color: var(--app-text);
@@ -94,13 +94,13 @@
   letter-spacing: -0.2px;
 }
 
-.integrationsTextTextMuted.integrationsTextTextMuted {
+.statusSyncText.statusSyncText {
   font-size: 12px;
   color: var(--app-text-muted);
   margin: 2px 0 0;
 }
 
-.integrationsGrid.integrationsGrid {
+.kpiGrid.kpiGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 24px;
@@ -110,14 +110,14 @@
   margin-bottom: 40px;
 }
 
-.integrationsFormCols.integrationsFormCols {
+.previewForm.previewForm {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   gap: 12px;
   align-items: end;
 }
 
-.integrationsPanel.integrationsPanel {
+.previewErrorBanner.previewErrorBanner {
   margin-top: 16px;
   border: 1px solid var(--theme-app-legacy-danger-22);
   background: var(--theme-app-legacy-danger-06);
@@ -127,7 +127,7 @@
   font-size: 13px;
 }
 
-.integrationsGridCols.integrationsGridCols {
+.previewResultGrid.previewResultGrid {
   margin-top: 18px;
   border-top: 1px solid var(--app-divider);
   padding-top: 18px;
@@ -136,18 +136,18 @@
   gap: 12px;
 }
 
-.integrationsStack.integrationsStack {
+.previewIssueList.previewIssueList {
   grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.integrationsSection.integrationsSection {
+.listingsSection.listingsSection {
   margin-bottom: 32px;
 }
 
-.integrationsHeader.integrationsHeader {
+.listingsHeader.listingsHeader {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
@@ -156,7 +156,7 @@
   gap: 8px;
 }
 
-.integrationsHeading.integrationsHeading {
+.listingsHeading.listingsHeading {
   font-size: 20px;
   font-weight: 600;
   color: var(--app-text);
@@ -164,7 +164,7 @@
   letter-spacing: -0.3px;
 }
 
-.integrationsSection2.integrationsSection2 {
+.dangerZoneSection.dangerZoneSection {
   border-top: 1px solid var(--app-divider);
   padding-top: 32px;
 }
@@ -173,7 +173,7 @@
   margin-bottom: 8px;
 }
 
-.integrationsRowIntegrationsDanger03.integrationsRowIntegrationsDanger03 {
+.disconnectRow.disconnectRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -185,14 +185,14 @@
   flex-wrap: wrap;
 }
 
-.integrationsText14.integrationsText14 {
+.disconnectTitle.disconnectTitle {
   font-size: 14px;
   font-weight: 600;
   color: var(--app-text);
   margin: 0;
 }
 
-.integrationsTextTight.integrationsTextTight {
+.disconnectDescription.disconnectDescription {
   font-size: 12px;
   color: var(--app-text-muted);
   margin: 4px 0 0;
@@ -206,14 +206,14 @@
   color: var(--app-text);
 }
 
-.integrationsTextMar10.integrationsTextMar10 {
+.disconnectDialogText.disconnectDialogText {
   margin-top: 10px;
   font-size: 14px;
   color: var(--app-text-muted);
   line-height: 1.55;
 }
 
-.integrationsRowGap10.integrationsRowGap10 {
+.disconnectActions.disconnectActions {
   margin-top: 22px;
   display: flex;
   justify-content: flex-end;
@@ -228,14 +228,14 @@
   min-width: 0;
 }
 
-.previewStatText.previewStatText {
+.previewStatLabel.previewStatLabel {
   margin: 0;
   font-size: 11px;
   color: var(--app-text-muted);
   font-weight: 600;
 }
 
-.previewStatText14.previewStatText14 {
+.previewStatValue.previewStatValue {
   margin: 4px 0 0;
   font-size: 14px;
   font-weight: 700;

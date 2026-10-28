@@ -694,10 +694,10 @@ function PortfolioPageContent() {
         title="Cockpit do portfólio"
         subtitle="Priorize oportunidades, simule mudanças e aplique ações rastreáveis por imóvel e data."
         actions={
-          <div className={styles.s1}>
+          <div className={styles.headerActions}>
             <DateRangeField label="De" value={from} max={to} onChange={handleFromChange} />
             <DateRangeField label="Até" value={to} min={from} onChange={handleToChange} />
-            <div className={styles.s2}>
+            <div className={styles.windowSelectWrap}>
               <AppSelect
                 label="Janela"
                 value={String(rangeDays)}
@@ -710,7 +710,7 @@ function PortfolioPageContent() {
                 ))}
               </AppSelect>
             </div>
-            <div className={styles.s3}>
+            <div className={styles.strategySelectWrap}>
               <AppSelect
                 label="Modo de preço"
                 value={strategy}
@@ -823,6 +823,7 @@ function PortfolioDayDetailDialog({
       onClose={onClose}
       aria-labelledby="portfolio-day-detail-title"
       className={styles.dayDetailOverlay}
+      style={{ background: "rgba(7, 10, 14, 0.62)" }}
       onClick={onClose}
     >
       <AppCard
@@ -831,19 +832,19 @@ function PortfolioDayDetailDialog({
         onClick={(event) => event.stopPropagation()}
       >
         <header
-          className={styles.s4}
+          className={styles.dayDetailHeader}
         >
-          <div className={styles.s5}>
-            <p className={`urban-app-eyebrow-muted ${styles.s6}`}>
+          <div className={styles.dayDetailHeading}>
+            <p className={`urban-app-eyebrow-muted ${styles.dayDetailEyebrow}`}>
               Detalhe da data
             </p>
             <h2
               id="portfolio-day-detail-title"
-              className={styles.s7}
+              className={styles.dayDetailTitle}
             >
               {detail.propertyName}
             </h2>
-            <p className={styles.s8}>
+            <p className={styles.dayDetailSubtitle}>
               {formatLongDate(detail.date)}
             </p>
           </div>
@@ -851,14 +852,14 @@ function PortfolioDayDetailDialog({
             type="button"
             aria-label="Fechar detalhes"
             onClick={onClose}
-            className={`urban-focus-ring ${styles.s9}`}
+            className={`urban-focus-ring ${styles.dayDetailCloseButton}`}
           >
             <Icons.Close size={15} />
           </button>
         </header>
 
-        <div className={styles.s10}>
-          <div className={styles.s11}>
+        <div className={styles.dayDetailBody}>
+          <div className={styles.dayDetailBadges}>
             {detail.selected && <AppBadge kind="accent">Data marcada</AppBadge>}
             {detail.event && (
               <AppBadge kind={detail.event.impacto === "alta" ? "warn" : "neutral"}>
@@ -870,22 +871,22 @@ function PortfolioDayDetailDialog({
 
           {detail.event && (
             <section
-              className={styles.s12}
+              className={styles.eventInfluenceCard}
             >
-              <p className={`urban-app-eyebrow-muted ${styles.s13}`}>
+              <p className={`urban-app-eyebrow-muted ${styles.fieldEyebrow}`}>
                 Evento que influencia a diária
               </p>
-              <strong className={styles.s14}>
+              <strong className={styles.eventName}>
                 {detail.event.nome}
               </strong>
-              <p className={styles.s15}>
+              <p className={styles.eventHelperText}>
                 O nome completo fica aqui, fora da célula apertada. A grade passa a mostrar apenas o sinal do evento.
               </p>
             </section>
           )}
 
           <div
-            className={styles.s16}
+            className={styles.metricGrid}
           >
             <DetailMetric label="Preço atual" value={formatCurrency(detail.currentPrice)} />
             <DetailMetric label="Sugestão" value={formatCurrency(suggested)} accent />
@@ -905,7 +906,7 @@ function PortfolioDayDetailDialog({
             />
           </div>
 
-          <div className={styles.s17}>
+          <div className={styles.dayDetailFooter}>
             <AppButton variant="secondary" onClick={onClose}>
               Voltar para a grade
             </AppButton>
@@ -927,13 +928,13 @@ function DetailMetric({
 }) {
   return (
     <div
-      className={styles.s18}
+      className={styles.metricCard}
     >
-      <p className={`urban-app-eyebrow-muted ${styles.s13}`}>
+      <p className={`urban-app-eyebrow-muted ${styles.fieldEyebrow}`}>
         {label}
       </p>
       <strong
-        className={`${styles.s19} ${accent ? styles.s20 : styles.s21}`}
+        className={`${styles.metricValue} ${accent ? styles.metricValueAccent : styles.metricValueDefault}`}
       >
         {value}
       </strong>
@@ -974,9 +975,9 @@ function DateRangeField({
   max?: string;
 }) {
   return (
-    <label className={styles.s22}>
+    <label className={styles.dateField}>
       <span
-        className={styles.s23}
+        className={styles.dateFieldLabel}
       >
         {label}
       </span>
@@ -986,7 +987,7 @@ function DateRangeField({
         min={min}
         max={max}
         onChange={(event) => onChange(event.target.value)}
-        className={`urban-focus-ring ${styles.s24}`}
+        className={`urban-focus-ring ${styles.dateFieldInput}`}
       />
     </label>
   );

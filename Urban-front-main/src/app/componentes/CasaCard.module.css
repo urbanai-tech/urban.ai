@@ -1,4 +1,4 @@
-.s1.s1 {
+.cardBase.cardBase {
   width: 100%;
   overflow: hidden;
   border: 1px solid var(--theme-app-legacy-ink-06);
@@ -7,22 +7,22 @@
   box-shadow: 0 1px 2px var(--theme-app-legacy-ink-04);
 }
 
-.s2.s2 {
+.cardClickable.cardClickable {
   cursor: pointer;
 }
 
-.s3.s3 {
+.cardStatic.cardStatic {
   cursor: default;
 }
 
-.s4.s4 {
+.cardContent.cardContent {
   display: flex;
   align-items: center;
   gap: 24px;
   padding: 24px;
 }
 
-.s5.s5 {
+.cardImage.cardImage {
   width: 120px;
   height: 120px;
   border-radius: 10px;
@@ -30,7 +30,7 @@
   flex-shrink: 0;
 }
 
-.s6.s6 {
+.cardInfo.cardInfo {
   min-width: 0;
   flex: 1;
   display: flex;
@@ -38,7 +38,7 @@
   gap: 6px;
 }
 
-.s7.s7 {
+.cardTitle.cardTitle {
   margin: 0;
   color: var(--theme-app-legacy-ink);
   font-size: 18px;
@@ -46,21 +46,21 @@
   font-weight: 700;
 }
 
-.s8.s8 {
+.cardSubtitle.cardSubtitle {
   margin: 0;
   color: var(--theme-app-legacy-ink-62);
   font-size: 14px;
   line-height: 1.5;
 }
 
-.s9.s9 {
+.statusRow.statusRow {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.s10.s10 {
+.statusBadge.statusBadge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -68,10 +68,10 @@
   font-weight: 650;
 }
 
-.s11.s11 {
+.statusActive.statusActive {
   color: var(--theme-app-legacy-success);
 }
 
-.s12.s12 {
+.statusInactive.statusInactive {
   color: var(--theme-app-legacy-danger);
 }

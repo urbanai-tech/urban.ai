@@ -248,7 +248,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
 
   return (
     <div
-      className={styles.s1}
+      className={styles.drawerRoot}
     >
       <div
         onClick={onClose}
@@ -269,7 +269,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="ask-urban-title"
-        className={styles.s2}
+        className={styles.drawerPanel}
       >
         {/* ============================ HEADER ============================ */}
         <header
@@ -284,19 +284,19 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
           }}
         >
           <div
-            className={styles.s3}
+            className={styles.headerIcon}
           >
             <Sparkles size={16} />
           </div>
-          <div className={styles.s4}>
+          <div className={styles.headerTitleGroup}>
             <h2
               id="ask-urban-title"
-              className={styles.s5}
+              className={styles.headerTitle}
             >
               Ask Urban
             </h2>
             <span
-              className={styles.s6}
+              className={styles.betaBadge}
             >
               BETA
             </span>
@@ -305,7 +305,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
             ref={closeBtnRef}
             onClick={onClose}
             aria-label="Fechar Ask Urban"
-            className={`urban-focus-ring ${styles.s7}`}
+            className={`urban-focus-ring ${styles.closeButton}`}
           >
             <Close size={18} />
           </button>
@@ -314,7 +314,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
         {/* ============================ LISTA / EMPTY ============================ */}
         <div
           ref={listRef}
-          className={styles.s8}
+          className={styles.messageList}
         >
           {messages.length === 0 && !loading && (
             <EmptyState onPick={handleSuggestionClick} />
@@ -345,7 +345,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
           {hardCapReached && (
             <p
               role="status"
-              className={styles.s9}
+              className={styles.limitNotice}
             >
               Limite diario atingido. O contador reseta amanha.
             </p>
@@ -390,7 +390,7 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
               onClick={() => void sendQuestion(input)}
               disabled={inputDisabled || input.trim().length === 0}
               aria-label="Enviar pergunta"
-              className={`urban-focus-ring ${styles.s10} ${inputDisabled || input.trim().length === 0 ? styles.s11 : styles.s12}`}
+              className={`urban-focus-ring ${styles.sendButton} ${inputDisabled || input.trim().length === 0 ? styles.sendButtonDisabled : styles.sendButtonEnabled}`}
             >
               <SendIcon />
             </button>
@@ -398,10 +398,10 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
 
           {usage && (
             <div
-              className={styles.s13}
+              className={styles.usageRow}
             >
               <UsageChip kind={usageChipKind} usage={usage} />
-              <span className={styles.s14}>
+              <span className={styles.keyboardHint}>
                 Enter envia · Shift+Enter quebra linha
               </span>
             </div>
@@ -462,23 +462,23 @@ export function AskUrbanDrawer({ open, onClose, restoreFocusTo }: Props) {
 function EmptyState({ onPick }: { onPick: (q: string) => void }) {
   return (
     <div
-      className={styles.s15}
+      className={styles.emptyState}
     >
       <div>
         <p
-          className={styles.s16}
+          className={styles.emptyStateTitle}
         >
           Como posso ajudar com seu portfólio?
         </p>
         <p
-          className={styles.s17}
+          className={styles.emptyStateText}
         >
           Pergunte em linguagem natural. Respondo com dados do seu portfólio,
           imóveis parecidos e eventos próximos.
         </p>
       </div>
       <div
-        className={styles.s18}
+        className={styles.suggestionGrid}
       >
         {INITIAL_SUGGESTIONS.map((s) => (
           <button
@@ -532,7 +532,7 @@ function MessageBubble({
 
   if (isUser) {
     return (
-      <div className={styles.s19}>
+      <div className={styles.userMessageRow}>
         <div
           style={{
             maxWidth: "85%",
@@ -554,14 +554,14 @@ function MessageBubble({
   }
 
   return (
-    <div className={styles.s20}>
+    <div className={styles.assistantMessageRow}>
       <div
         aria-hidden="true"
-        className={styles.s21}
+        className={styles.assistantAvatar}
       >
         <Sparkles size={14} />
       </div>
-      <div className={styles.s22}>
+      <div className={styles.assistantBody}>
         <div
           style={{
             background: "var(--app-surface-elevated, var(--theme-app-surface-elevated, #171C24))",
@@ -580,14 +580,14 @@ function MessageBubble({
 
         {message.citations && message.citations.length > 0 && (
           <div
-            className={styles.s23}
+            className={styles.citationList}
           >
             {message.citations.map((c) => (
               <button
                 key={c.id}
                 onClick={() => onCitationClick(c)}
                 aria-label={c.url ? `Abrir fonte: ${c.label}` : c.label}
-                className={`urban-focus-ring ${styles.s24} ${c.url ? styles.s25 : styles.s26}`}
+                className={`urban-focus-ring ${styles.citationChip} ${c.url ? styles.citationChipLink : styles.citationChipStatic}`}
                 onMouseEnter={(e) => {
                   if (!c.url) return;
                   e.currentTarget.style.borderColor = "var(--app-accent)";
@@ -606,7 +606,7 @@ function MessageBubble({
         )}
 
         <div
-          className={styles.s27}
+          className={styles.feedbackRow}
         >
           <FeedbackButton
             vote="up"
@@ -674,11 +674,11 @@ function ThinkingDots() {
       role="status"
       aria-live="polite"
       aria-label="Pensando"
-      className={styles.s20}
+      className={styles.assistantMessageRow}
     >
       <div
         aria-hidden="true"
-        className={styles.s21}
+        className={styles.assistantAvatar}
       >
         <Sparkles size={14} />
       </div>
@@ -707,7 +707,7 @@ function ThinkingDots() {
           />
         ))}
         <span
-          className={styles.s28}
+          className={styles.thinkingLabel}
         >
           Pensando…
         </span>

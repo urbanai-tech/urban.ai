@@ -263,7 +263,7 @@ function PricingRulesPageContent() {
         loadingPreview={previewLoading}
       />
 
-      <div className={styles.s1}>
+      <div className={styles.rulesList}>
         {loading ? (
           <PricingRulesSkeleton />
         ) : (
@@ -282,15 +282,15 @@ function PricingRulesPageContent() {
 
       {!loading && (
         <p
-          className={styles.s2}
+          className={styles.footnote}
         >
           {enabledCount} de {rules.length} regras ativas. Mudanças se aplicam só após salvar.
           Use <kbd
-            className={styles.s3}
+            className={styles.keyHint}
           >Ctrl</kbd>
           {" + "}
           <kbd
-            className={styles.s3}
+            className={styles.keyHint}
           >S</kbd> pra salvar rapidamente.
         </p>
       )}
@@ -331,26 +331,26 @@ function PricingRulesSkeleton() {
       role="status"
       aria-busy="true"
       aria-label="Carregando regras de preço"
-      className={styles.s4}
+      className={styles.skeletonList}
     >
       {Array.from({ length: 8 }).map((_, i) => (
         <AppCard key={i} className={styles.skeletonCard}>
           <div
-            className={styles.s5}
+            className={styles.skeletonRow}
           >
             <div
-              className={styles.s6}
+              className={styles.skeletonSwitch}
             />
-            <div className={styles.s7}>
+            <div className={styles.skeletonText}>
               <div
-                className={styles.s8}
+                className={styles.skeletonTitle}
               />
               <div
-                className={styles.s9}
+                className={styles.skeletonSubtitle}
               />
             </div>
             <div
-              className={styles.s10}
+              className={styles.skeletonAction}
             />
           </div>
         </AppCard>
@@ -391,18 +391,18 @@ function StickySaveFooter({
       }}
     >
       <div
-        className={styles.s11}
+        className={styles.footerInner}
       >
         <div
-          className={styles.s12}
+          className={styles.footerStatus}
         >
           <span
-            className={`${styles.s13} ${dirty ? styles.s14 : styles.s15}`}
+            className={`${styles.dirtyBadge} ${dirty ? styles.dirtyBadgeUnsaved : styles.dirtyBadgeSaved}`}
           >
             {dirty ? "Mudanças não salvas" : "Tudo salvo"}
           </span>
           <span
-            className={styles.s16}
+            className={styles.previewStatus}
           >
             {previewLoading
               ? "Preview atualizando…"
@@ -411,7 +411,7 @@ function StickySaveFooter({
                 : "Preview ainda não calculado"}
           </span>
         </div>
-        <div className={styles.s17}>
+        <div className={styles.footerActions}>
           <AppButton
             variant="ghost"
             onClick={onDiscard}

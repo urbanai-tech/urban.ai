@@ -80,7 +80,7 @@ export function CopyRulesModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="copy-rules-title"
-      className={styles.s1}
+      className={styles.overlay}
     >
       <div
         onClick={onClose}
@@ -111,44 +111,44 @@ export function CopyRulesModal({
         }}
       >
         <header
-          className={styles.s2}
+          className={styles.modalHeader}
         >
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
             aria-label="Fechar modal"
-            className={`urban-focus-ring ${styles.s3} ${loading ? styles.s4 : styles.s5}`}
+            className={`urban-focus-ring ${styles.closeButton} ${loading ? styles.closeButtonBusy : styles.closeButtonReady}`}
           >
             <span aria-hidden="true">x</span>
           </button>
 
           <p
-            className={styles.s6}
+            className={styles.eyebrow}
           >
             Copiar regras
           </p>
           <h2
             id="copy-rules-title"
-            className={styles.s7}
+            className={styles.modalTitle}
           >
             De qual imóvel você quer copiar?
           </h2>
           <p
-            className={styles.s8}
+            className={styles.modalDescription}
           >
             Você pode ajustar depois. As regras vao substituir as deste imóvel quando clicar em copiar.
           </p>
         </header>
 
         <div
-          className={styles.s9}
+          className={styles.modalBody}
         >
           {fetching && (
             <div
               role="status"
               aria-live="polite"
-              className={styles.s10}
+              className={styles.loadingMessage}
             >
               Carregando seus imóveis…
             </div>
@@ -173,17 +173,17 @@ export function CopyRulesModal({
 
           {!fetching && !fetchError && otherProperties.length === 0 && (
             <div
-              className={styles.s11}
+              className={styles.emptyState}
             >
               <Icons.Layers size={20} />
-              <p className={styles.s12}>
+              <p className={styles.emptyStateText}>
                 Você não tem outros imóveis para copiar regras ainda. Quando adicionar um segundo imóvel, ele aparecera aqui.
               </p>
             </div>
           )}
 
           {otherProperties.length > 0 && (
-            <div className={styles.s13}>
+            <div className={styles.sourceField}>
               <PropertySelect
                 value={selectedId ?? ""}
                 propsInfo={otherProperties}
@@ -194,9 +194,9 @@ export function CopyRulesModal({
 
               {selectedSource && (
                 <div
-                  className={styles.s14}
+                  className={styles.sourceSummary}
                 >
-                  <strong className={styles.s15}>
+                  <strong className={styles.sourceName}>
                     {formatPropertyIdentityLabel(selectedSource)}
                   </strong>
                   {selectedSource.dailyPrice != null && (
@@ -212,7 +212,7 @@ export function CopyRulesModal({
         </div>
 
         <footer
-          className={styles.s16}
+          className={styles.modalFooter}
         >
           <AppButton variant="ghost" onClick={onClose} disabled={loading}>
             Cancelar

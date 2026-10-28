@@ -1,4 +1,4 @@
-.s1.s1 {
+.checkboxLabel.checkboxLabel {
   display: inline-flex;
   align-items: center;
   gap: 0;
@@ -6,7 +6,7 @@
   flex-shrink: 0;
 }
 
-.s2.s2 {
+.checkboxBox.checkboxBox {
   width: 18px;
   height: 18px;
   border-radius: 4px;
@@ -17,24 +17,24 @@
   transition: background 120ms ease, border-color 120ms ease;
 }
 
-.s3.s3 {
+.checkboxBoxChecked.checkboxBoxChecked {
   border: 1.5px solid var(--app-accent);
   background: var(--app-accent);
 }
 
-.s4.s4 {
+.checkboxBoxUnchecked.checkboxBoxUnchecked {
   border: 1.5px solid var(--app-divider-strong);
   background: var(--app-surface);
 }
 
-.s5.s5 {
+.checkboxIndeterminateBar.checkboxIndeterminateBar {
   width: 8px;
   height: 2px;
   background: var(--app-bg);
   border-radius: 1px;
 }
 
-.s6.s6 {
+.checkboxNativeInput.checkboxNativeInput {
   position: absolute;
   opacity: 0;
   pointer-events: none;
@@ -42,57 +42,57 @@
   height: 0;
 }
 
-.s7.s7 {
+.skeletonAvatar.skeletonAvatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
 }
 
-.s8.s8 {
+.skeletonTextColumn.skeletonTextColumn {
   display: flex;
   flex-direction: column;
   gap: 6px;
   flex: 1;
 }
 
-.s9.s9 {
+.skeletonTitleLine.skeletonTitleLine {
   width: 60%;
   height: 12px;
   border-radius: 4px;
 }
 
-.s10.s10 {
+.skeletonSubtitleLine.skeletonSubtitleLine {
   width: 30%;
   height: 10px;
   border-radius: 4px;
 }
 
-.s11.s11 {
+.skeletonBlock.skeletonBlock {
   flex: 2;
   height: 56px;
   border-radius: 6px;
 }
 
-.s12.s12 {
+.loadingCard.loadingCard {
   background: var(--app-surface);
   border: 1px solid var(--app-divider);
   border-radius: 12px;
   overflow: hidden;
 }
 
-.s13.s13 {
+.skeletonHeaderLine.skeletonHeaderLine {
   width: 180px;
   height: 14px;
   border-radius: 4px;
 }
 
-.s14.s14 {
+.mobileList.mobileList {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.s15.s15 {
+.mobileSelectAllBar.mobileSelectAllBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -102,20 +102,20 @@
   border-radius: 10px;
 }
 
-.s16.s16 {
+.selectAllGroup.selectAllGroup {
   display: inline-flex;
   align-items: center;
   gap: 10px;
 }
 
-.s17.s17 {
+.selectAllCount.selectAllCount {
   font-size: 13px;
   color: var(--app-text);
   font-family: 'Inter', sans-serif;
   font-weight: 500;
 }
 
-.s18.s18 {
+.mobilePropertyCard.mobilePropertyCard {
   background: var(--app-surface);
   border-radius: 12px;
   overflow: hidden;
@@ -123,15 +123,15 @@
   flex-direction: column;
 }
 
-.s19.s19 {
+.mobilePropertyCardActive.mobilePropertyCardActive {
   border: 2px solid var(--app-accent);
 }
 
-.s20.s20 {
+.mobilePropertyCardIdle.mobilePropertyCardIdle {
   border: 1px solid var(--app-divider);
 }
 
-.s21.s21 {
+.mobilePropertyHeader.mobilePropertyHeader {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -139,12 +139,12 @@
   border-bottom: 1px solid var(--app-divider);
 }
 
-.s22.s22 {
+.propertyInfo.propertyInfo {
   min-width: 0;
   flex: 1;
 }
 
-.s23.s23 {
+.mobilePropertyName.mobilePropertyName {
   font-size: 14px;
   font-weight: 600;
   color: var(--app-text);
@@ -154,14 +154,14 @@
   font-family: 'Inter', sans-serif;
 }
 
-.s24.s24 {
+.mobilePropertyMeta.mobilePropertyMeta {
   font-size: 12px;
   color: var(--app-text-muted);
   margin-top: 2px;
   font-family: 'Inter', sans-serif;
 }
 
-.s25.s25 {
+.mobileDayStrip.mobileDayStrip {
   display: flex;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
@@ -170,14 +170,14 @@
   gap: 6px;
 }
 
-.s26.s26 {
+.mobileSelectedCheck.mobileSelectedCheck {
   position: absolute;
   top: 6px;
   left: 6px;
   color: var(--app-accent);
 }
 
-.s27.s27 {
+.impactDot.impactDot {
   position: absolute;
   top: 6px;
   right: 6px;
@@ -186,15 +186,15 @@
   border-radius: 50%;
 }
 
-.s28.s28 {
+.impactDotHigh.impactDotHigh {
   background: var(--app-accent);
 }
 
-.s29.s29 {
+.impactDotLow.impactDotLow {
   background: var(--app-text-muted);
 }
 
-.s30.s30 {
+.mobileDayLabel.mobileDayLabel {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -203,21 +203,21 @@
   font-weight: 600;
 }
 
-.s31.s31 {
+.mobileDayPrice.mobileDayPrice {
   font-size: 14px;
   letter-spacing: 0.5px;
   line-height: 1;
 }
 
-.s32.s32 {
+.textAccent.textAccent {
   color: var(--app-accent);
 }
 
-.s33.s33 {
+.textMuted.textMuted {
   color: var(--app-text-muted);
 }
 
-.s34.s34 {
+.mobileDayEventName.mobileDayEventName {
   font-size: 9px;
   color: var(--app-text-dim);
   text-overflow: ellipsis;
@@ -227,7 +227,7 @@
   font-family: 'Inter', sans-serif;
 }
 
-.s35.s35 {
+.desktopGridCard.desktopGridCard {
   background: var(--app-surface);
   border: 1px solid var(--app-divider);
   border-radius: 12px;
@@ -236,7 +236,7 @@
   flex-direction: column;
 }
 
-.s36.s36 {
+.headerSelectAllCount.headerSelectAllCount {
   font-size: 12px;
   color: var(--app-text-muted);
   font-family: 'Inter', sans-serif;
@@ -244,32 +244,32 @@
   letter-spacing: 0.3px;
 }
 
-.s37.s37 {
+.headerDatesScroller.headerDatesScroller {
   flex: 1;
   overflow-x: hidden;
   overflow-y: hidden;
 }
 
-.s38.s38 {
+.headerWeekday.headerWeekday {
   font-size: 10px;
   text-transform: uppercase;
 }
 
-.s39.s39 {
+.headerDayMonth.headerDayMonth {
   font-size: 12px;
 }
 
-.s40.s40 {
+.textDefault.textDefault {
   color: var(--app-text);
 }
 
-.s41.s41 {
+.bodyScroller.bodyScroller {
   max-height: 640px;
   overflow: auto;
   position: relative;
 }
 
-.s42.s42 {
+.desktopPropertyName.desktopPropertyName {
   font-size: 13px;
   font-weight: 700;
   color: var(--app-text);
@@ -280,35 +280,35 @@
   line-height: 1.3;
 }
 
-.s43.s43 {
+.desktopPropertyRate.desktopPropertyRate {
   font-size: 11px;
   color: var(--app-text-muted);
   margin-top: 2px;
   font-family: 'Inter', sans-serif;
 }
 
-.s44.s44 {
+.desktopSelectedCheck.desktopSelectedCheck {
   position: absolute;
   bottom: 6px;
   right: 6px;
   color: var(--app-accent);
 }
 
-.s45.s45 {
+.cellSuggestedPrice.cellSuggestedPrice {
   font-size: 14px;
   color: var(--app-accent);
   line-height: 1;
   letter-spacing: 0.5px;
 }
 
-.s46.s46 {
+.cellCurrentPrice.cellCurrentPrice {
   font-size: 14px;
   color: var(--app-text-muted);
   line-height: 1;
   letter-spacing: 0.5px;
 }
 
-.s47.s47 {
+.cellNoPriceDash.cellNoPriceDash {
   font-size: 14px;
   color: var(--app-text-muted);
   font-family: 'Inter', sans-serif;

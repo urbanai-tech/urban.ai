@@ -1,38 +1,38 @@
-.carregandoGraficoDe.carregandoGraficoDe {
+.loadingSkeleton.loadingSkeleton {
   width: 100%;
   border-radius: 8px;
 }
 
-.paceEmptyGrid.paceEmptyGrid {
+.emptyLayout.emptyLayout {
   display: grid;
   gap: 18px;
   align-items: center;
 }
 
-.appEyebrowMuted.appEyebrowMuted {
+.emptyEyebrow.emptyEyebrow {
   margin-bottom: 8px;
 }
 
-.paceChartSubheading.paceChartSubheading {
+.emptyHeading.emptyHeading {
   margin: 0;
   color: var(--app-text);
   font-size: 20px;
   line-height: 1.25;
 }
 
-.paceChartText.paceChartText {
+.emptyBody.emptyBody {
   margin: 8px 0 0;
   color: var(--app-text-muted);
   font-size: 13px;
   line-height: 1.5;
 }
 
-.paceChartGrid.paceChartGrid {
+.eventAgendaList.eventAgendaList {
   display: grid;
   gap: 8px;
 }
 
-.paceChartGridSurfaceMuted.paceChartGridSurfaceMuted {
+.eventAgendaRow.eventAgendaRow {
   display: grid;
   grid-template-columns: 72px minmax(0, 1fr);
   gap: 10px;
@@ -43,13 +43,13 @@
   background: var(--app-surface-muted);
 }
 
-.paceChartLabel.paceChartLabel {
+.eventAgendaDate.eventAgendaDate {
   color: var(--app-accent);
   font-size: 12px;
   font-weight: 750;
 }
 
-.paceChartLabel13.paceChartLabel13 {
+.eventAgendaName.eventAgendaName {
   min-width: 0;
   color: var(--app-text);
   font-size: 13px;
@@ -59,31 +59,31 @@
   white-space: nowrap;
 }
 
-.paceChartText12.paceChartText12 {
+.eventAgendaOverflow.eventAgendaOverflow {
   margin: 0;
   color: var(--app-text-muted);
   font-size: 12px;
 }
 
-.paceChartBox.paceChartBox {
+.chartWrapper.chartWrapper {
   position: relative;
   width: 100%;
 }
 
-.paceChartIcon.paceChartIcon {
+.chartSvg.chartSvg {
   width: 100%;
   display: block;
 }
 
-.paceChartSvgText.paceChartSvgText {
+.axisLabel.axisLabel {
   font-family: var(--font-brand);
 }
 
-.paceChartRect.paceChartRect {
+.hoverCaptureBand.hoverCaptureBand {
   cursor: crosshair;
 }
 
-.paceChartAbs.paceChartAbs {
+.tooltip.tooltip {
   position: absolute;
   top: 4px;
   transform: translateX(-50%);
@@ -100,21 +100,21 @@
   font-family: var(--font-brand);
 }
 
-.paceChartBox2.paceChartBox2 {
+.tooltipDate.tooltipDate {
   font-weight: 600;
   margin-bottom: 2px;
 }
 
-.paceChartBoxTextMuted.paceChartBoxTextMuted {
+.tooltipValues.tooltipValues {
   color: var(--app-text-muted);
 }
 
-.paceChartLabelAccent.paceChartLabelAccent {
+.tooltipBookedValue.tooltipBookedValue {
   color: var(--app-accent);
   font-weight: 600;
 }
 
-.paceChartBox11.paceChartBox11 {
+.tooltipEventLabel.tooltipEventLabel {
   margin-top: 4px;
   padding-top: 4px;
   border-top: 1px solid var(--app-divider);
@@ -125,7 +125,7 @@
   text-transform: uppercase;
 }
 
-.paceChartRow.paceChartRow {
+.legend.legend {
   display: flex;
   gap: 20px;
   margin-top: 12px;
@@ -135,13 +135,13 @@
   font-family: var(--font-brand);
 }
 
-.paceChartLabelGap6.paceChartLabelGap6 {
+.legendItem.legendItem {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
-.paceChartLabelW12px.paceChartLabelW12px {
+.legendSwatchBooked.legendSwatchBooked {
   display: inline-block;
   width: 12px;
   height: 3px;
@@ -149,14 +149,14 @@
   border-radius: 2px;
 }
 
-.paceChartLabelH0.paceChartLabelH0 {
+.legendSwatchExpected.legendSwatchExpected {
   display: inline-block;
   width: 12px;
   height: 0;
   border-top: 2px dashed var(--app-text-muted);
 }
 
-.paceChartLabelW2px.paceChartLabelW2px {
+.legendSwatchEvent.legendSwatchEvent {
   display: inline-block;
   width: 2px;
   height: 12px;
@@ -164,14 +164,14 @@
   opacity: 0.6;
 }
 
-.paceChartRowGap8.paceChartRowGap8 {
+.eventChipList.eventChipList {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   margin-top: 12px;
 }
 
-.paceChartLabel11.paceChartLabel11 {
+.eventChip.eventChip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -185,17 +185,17 @@
   font-weight: 650;
 }
 
-.paceChartLabel2.paceChartLabel2 {
+.eventChipDate.eventChipDate {
   color: var(--app-accent);
 }
 
-.paceChartLabel3.paceChartLabel3 {
+.eventChipName.eventChipName {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.paceChartLabelTextMuted.paceChartLabelTextMuted {
+.eventChipOverflow.eventChipOverflow {
   color: var(--app-text-muted);
   font-size: 11px;
   align-self: center;

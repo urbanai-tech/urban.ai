@@ -1,27 +1,27 @@
-.s1.s1 {
+.loadingWrapper.loadingWrapper {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 60vh;
 }
 
-.s2.s2 {
+.errorRow.errorRow {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.s3.s3 {
+.errorMessage.errorMessage {
   color: var(--app-danger);
   font-weight: 500;
 }
 
-.s4.s4 {
+.emptyStateStack.emptyStateStack {
   display: grid;
   gap: 12px;
 }
 
-.s5.s5 {
+.choosePlanButton.choosePlanButton {
   width: fit-content;
   min-height: 42px;
   padding: 0 16px;
@@ -33,7 +33,7 @@
   cursor: pointer;
 }
 
-.s6.s6 {
+.quotaErrorBanner.quotaErrorBanner {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -46,14 +46,14 @@
   margin-bottom: 24px;
 }
 
-.s7.s7 {
+.quotaGrid.quotaGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
   margin-bottom: 32px;
 }
 
-.s8.s8 {
+.changePlanRow.changePlanRow {
   display: flex;
   justify-content: space-between;
   gap: 16px;
@@ -61,19 +61,19 @@
   flex-wrap: wrap;
 }
 
-.s9.s9 {
+.changePlanTitle.changePlanTitle {
   margin: 0;
   font-size: 18px;
   color: var(--app-text);
 }
 
-.s10.s10 {
+.changePlanText.changePlanText {
   margin: 6px 0 0;
   color: var(--app-text-muted);
   font-size: 14px;
 }
 
-.s11.s11 {
+.adjustPlanButton.adjustPlanButton {
   min-height: 42px;
   padding: 0 16px;
   border-radius: 8px;
@@ -84,7 +84,7 @@
   cursor: pointer;
 }
 
-.s12.s12 {
+.spinner.spinner {
   width: 36px;
   height: 36px;
   border-radius: 50%;

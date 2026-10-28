@@ -59,7 +59,7 @@ export function PortfolioCockpit({ metrics }: { metrics: PortfolioCockpitMetrics
 
       <div
         data-portfolio-cockpit-grid
-        className={styles.s1}
+        className={styles.metricsGrid}
       >
         <MetricShell accent>
           <AppMetricCard
@@ -131,7 +131,7 @@ export function PortfolioCockpit({ metrics }: { metrics: PortfolioCockpitMetrics
       </div>
 
       <div
-        className={styles.s2}
+        className={styles.footnote}
       >
         <Icons.Info size={14} />
         <span>
@@ -165,7 +165,7 @@ function MetricShell({
 }) {
   return (
     <div
-      className={`${styles.s3} ${accent ? styles.s4 : styles.s5}`}
+      className={`${styles.metricShell} ${accent ? styles.metricShellAccent : styles.metricShellMuted}`}
     >
       {children}
     </div>

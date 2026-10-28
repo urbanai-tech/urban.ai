@@ -107,8 +107,8 @@ export default function SubscriptionCards({
   manageBillingLoading = false,
 }: Props) {
   return (
-    <div className={styles.s1}>
-      <div className={styles.s2}>
+    <div className={styles.subscriptionsContainer}>
+      <div className={styles.subscriptionList}>
         {subscriptions.map((sub) => {
           const isCanceled = sub.status === "canceled";
           const canCancel = onCancel && sub.status === "active" && !sub.id.startsWith("alpha-");
@@ -124,35 +124,35 @@ export default function SubscriptionCards({
               className={styles.subscriptionCard} style={{ opacity: isCanceled ? 0.6 : 1, background: isCanceled ? "var(--app-surface-muted)" : "var(--app-surface)" }}
             >
               <span
-                className={`${styles.s3} ${isCanceled ? styles.s4 : styles.s5}`}
+                className={`${styles.statusBadge} ${isCanceled ? styles.statusBadgeCanceled : styles.statusBadgeActive}`}
               >
                 {statusLabels[sub.status] || sub.status}
               </span>
 
-              <div className={styles.s6}>
-                <h2 className={styles.s7}>
+              <div className={styles.cardContent}>
+                <h2 className={styles.planName}>
                   {getPlanName(sub)}
                 </h2>
 
                 <p
-                  className={`${styles.s8} ${isCanceled ? styles.s9 : styles.s10}`}
+                  className={`${styles.priceLabel} ${isCanceled ? styles.priceLabelCanceled : styles.priceLabelActive}`}
                 >
                   {getPriceLabel(sub)}
                 </p>
 
-                <hr className={styles.s11} />
+                <hr className={styles.divider} />
 
-                <div className={styles.s12}>
+                <div className={styles.infoTileGrid}>
                   <InfoTile label="Ciclo" value={getCycleLabel(sub)} />
                   <InfoTile label="Quota" value={getQuantityLabel(sub)} />
                 </div>
 
-                <p className={styles.s13}>
+                <p className={styles.dateLabel}>
                   {getDateLabel(sub)}
                 </p>
 
                 {(canManageBilling || canCancel) && (
-                  <div className={styles.s14}>
+                  <div className={styles.actionsRow}>
                     {canManageBilling && (
                       <AppButton
                         data-testid="manage-billing-button"
@@ -192,12 +192,12 @@ export default function SubscriptionCards({
 function InfoTile({ label, value }: { label: string; value: string }) {
   return (
     <div
-      className={styles.s15}
+      className={styles.infoTile}
     >
-      <p className={`urban-app-eyebrow-muted ${styles.s16}`}>
+      <p className={`urban-app-eyebrow-muted ${styles.infoTileLabel}`}>
         {label}
       </p>
-      <p className={styles.s17}>
+      <p className={styles.infoTileValue}>
         {value}
       </p>
     </div>

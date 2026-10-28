@@ -494,7 +494,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
   return (
     <div
       role="presentation"
-      className={styles.s1}
+      className={styles.modalBackdrop}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) handleClose();
       }}
@@ -505,9 +505,9 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
         className={styles.addPropertyDialog}
       >
         <header
-          className={styles.s2}
+          className={styles.dialogHeader}
         >
-          <h2 id="add-property-title" className={styles.s3}>
+          <h2 id="add-property-title" className={styles.dialogTitle}>
             Adicionar imóvel
           </h2>
           <button
@@ -520,10 +520,10 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
           </button>
         </header>
 
-        <div className={styles.s4}>
+        <div className={styles.dialogBody}>
           {fetchedProperties.length === 0 ? (
-            <div className={styles.s5}>
-              <p className={styles.s6}>
+            <div className={styles.stepStack}>
+              <p className={styles.introText}>
                 Para adicionar imóveis a sua conta, cole abaixo o <strong>link do Airbnb</strong> do seu imóvel
                 ou o <strong>link do seu perfil de anfitrião</strong> para importar automaticamente todos os imóveis.
               </p>
@@ -560,7 +560,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
               </AppButton>
             </div>
           ) : pendingPricingProperties.length > 0 ? (
-            <div className={styles.s5}>
+            <div className={styles.stepStack}>
               <AppLoadingStatus
                 compact
                 eyebrow={loadingStatus.eyebrow}
@@ -579,8 +579,8 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                   color: "var(--theme-app-legacy-ink)",
                 }}
               >
-                <p className={styles.s7}>Informe a diária base</p>
-                <p className={styles.s8}>
+                <p className={styles.pendingPriceTitle}>Informe a diária base</p>
+                <p className={styles.pendingPriceText}>
                   O Airbnb não retornou uma diária confirmada para estes imóveis, ou retornou apenas uma fonte provisória. Informe a diária atual para concluir o cadastro e iniciar a análise.
                 </p>
               </div>
@@ -588,24 +588,24 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
               {pendingPricingProperties.map((property) => (
                 <div
                   key={property.addressId}
-                  className={styles.s9}
+                  className={styles.pendingPropertyRow}
                 >
                   {property.pictureUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={property.pictureUrl}
                       alt="Capa"
-                      className={styles.s10}
+                      className={styles.pendingPropertyThumb}
                     />
                   ) : (
                     <div style={{ width: 64, height: 52, borderRadius: 8, background: "#F3F4F6", flexShrink: 0 }} />
                   )}
-                  <div className={styles.s11}>
-                    <p className={styles.s12}>
+                  <div className={styles.propertyInfo}>
+                    <p className={styles.propertyName}>
                       {property.propertyName}
                     </p>
                     {property.airbnbId && (
-                      <p className={styles.s13}>
+                      <p className={styles.propertyAirbnbId}>
                         {property.airbnbId}
                       </p>
                     )}
@@ -631,8 +631,8 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
               ))}
             </div>
           ) : (
-            <div className={styles.s5}>
-              <p className={styles.s14}>
+            <div className={styles.stepStack}>
+              <p className={styles.resultsSummary}>
                 Encontramos {propertyCountLabel(fetchedProperties.length)} para acompanhar. Selecione os que deseja monitorar e atualizar:
               </p>
 
@@ -648,9 +648,9 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
               )}
 
               <div
-                className={styles.s15}
+                className={styles.propertyListScroll}
               >
-                <div className={styles.s16}>
+                <div className={styles.propertyList}>
                   {fetchedProperties.map((prop) => {
                     const selected = selectedProperties[prop.id_do_anuncio] || false;
                     return (
@@ -674,7 +674,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                           aria-label={`Monitorar ${prop.titulo || `anúncio ${prop.id_do_anuncio}`}`}
                           onClick={(event) => event.stopPropagation()}
                           onChange={(event) => handleToggleProperty(prop.id_do_anuncio, event.target.checked)}
-                          className={styles.s17}
+                          className={styles.propertyCheckbox}
                         />
 
                         {prop.pictureUrl ? (
@@ -682,7 +682,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                           <img
                             src={prop.pictureUrl}
                             alt="Capa"
-                            className={styles.s18}
+                            className={styles.propertyThumb}
                           />
                         ) : (
                           <div
@@ -702,11 +702,11 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
                           </div>
                         )}
 
-                        <div className={styles.s11}>
-                          <p className={styles.s19}>
+                        <div className={styles.propertyInfo}>
+                          <p className={styles.propertyTitle}>
                             {prop.titulo || `Anúncio #${prop.id_do_anuncio}`}
                           </p>
-                          <p className={styles.s20}>
+                          <p className={styles.propertyMeta}>
                             {prop.propertyType || 'Inteiro'} - {prop.guests} hóspedes
                             {prop.bedrooms ? ` - ${prop.bedrooms} quartos` : ''}
                             {prop.beds ? ` - ${prop.beds} leitos` : ''}
@@ -727,7 +727,7 @@ export function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModa
         </div>
 
         <footer
-          className={styles.s21}
+          className={styles.dialogFooter}
         >
           <AppButton
             type="button"

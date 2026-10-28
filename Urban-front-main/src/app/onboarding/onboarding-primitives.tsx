@@ -400,7 +400,7 @@ function Spinner({ color = 'var(--app-accent)', thickness = '3px', ...props }: P
 }
 
 function Tooltip({ label, children }: PrimitiveProps) {
-  return <span title={label} className={styles.s1}>{children}</span>;
+  return <span title={label} className={styles.inlineLabel}>{children}</span>;
 }
 
 const TabsContext = React.createContext<{ index: number; onChange?: (index: number) => void } | null>(null);
@@ -476,7 +476,7 @@ function TabPanel({ children, panelIndexValue, ...props }: PrimitiveProps) {
 
 function Switch({ isChecked, onChange, id, 'aria-label': ariaLabel, ...props }: PrimitiveProps) {
   return (
-    <label className={`${styles.s2} ${props.size === 'lg' ? styles.s3 : styles.s4}`}>
+    <label className={`${styles.switchLabel} ${props.size === 'lg' ? styles.switchLarge : styles.switchSmall}`}>
       <input
         id={id}
         type="checkbox"
@@ -484,10 +484,10 @@ function Switch({ isChecked, onChange, id, 'aria-label': ariaLabel, ...props }: 
         aria-label={ariaLabel}
         checked={Boolean(isChecked)}
         onChange={onChange}
-        className={styles.s5}
+        className={styles.switchInput}
       />
       <span
-        className={`${styles.s6} ${isChecked ? styles.s7 : styles.s8}`}
+        className={`${styles.switchTrack} ${isChecked ? styles.switchTrackOn : styles.switchTrackOff}`}
       />
       <span
         style={{

@@ -315,28 +315,28 @@ function RecommendationReason({
   return (
     <section
       aria-label="Explicação da sugestão"
-      className={styles.s1}
+      className={styles.explanationSection}
     >
       <div
-        className={styles.s2}
+        className={styles.explanationHeader}
       >
         <span
-          className={styles.s3}
+          className={styles.explanationIcon}
         >
           <Sparkles size={14} />
         </span>
-        <div className={styles.s4}>
+        <div className={styles.textColumn}>
           <span className="urban-app-eyebrow-muted">
             Por que este preço?
           </span>
           <p
-            className={styles.s5}
+            className={styles.explanationLead}
           >
             <strong>{explanation.lead}</strong> {explanation.body}
           </p>
           {explanation.humanReason && (
             <p
-              className={styles.s6}
+              className={styles.humanReasonText}
             >
               Motivo informado: {explanation.humanReason}
             </p>
@@ -345,25 +345,25 @@ function RecommendationReason({
       </div>
 
       <div
-        className={styles.s7}
+        className={styles.explanationItemGrid}
       >
         {explanation.items.map((item, index) => (
           <div
             key={`${item.label}-${index}`}
-            className={`${styles.s8} ${index === explanation.items.length - 1 ? styles.s9 : styles.s10}`}
+            className={`${styles.explanationItem} ${index === explanation.items.length - 1 ? styles.explanationItemLast : styles.explanationItemDivided}`}
           >
             <span
-              className={styles.s11}
+              className={styles.explanationItemLabel}
             >
               {item.label}
             </span>
             <strong
-              className={styles.s12}
+              className={styles.explanationItemValue}
             >
               {item.value}
             </strong>
             <span
-              className={styles.s13}
+              className={styles.explanationItemDetail}
             >
               {item.detail}
             </span>
@@ -384,31 +384,31 @@ function ExplainerBody({
   scenarios?: Scenario[];
 }) {
   return (
-    <div className={styles.s14}>
+    <div className={styles.detailStack}>
       {drivers && (
-        <section className={styles.s15}>
+        <section className={styles.detailSection}>
           <span className="urban-app-eyebrow-muted">Composição da sugestão</span>
           <DriverBar drivers={drivers} />
         </section>
       )}
 
       {historicalComparison && (
-        <section className={styles.s16}>
+        <section className={styles.historySection}>
           <span className="urban-app-eyebrow-muted">Referências históricas</span>
           <div
-            className={styles.s17}
+            className={styles.historyGrid}
           >
             <div
-              className={styles.s18}
+              className={styles.historyCard}
             >
               <span
-                className={styles.s19}
+                className={styles.historyCardLabel}
               >
                 Datas similares (ano passado, n=
                 {historicalComparison.similarDatesLastYear.n})
               </span>
               <span
-                className={styles.s20}
+                className={styles.historyCardValue}
               >
                 Diária {fmtBRL(historicalComparison.similarDatesLastYear.adr)}
                 {" · "}
@@ -416,15 +416,15 @@ function ExplainerBody({
               </span>
             </div>
             <div
-              className={styles.s18}
+              className={styles.historyCard}
             >
               <span
-                className={styles.s19}
+                className={styles.historyCardLabel}
               >
                 Anfitriões comparáveis (mediana)
               </span>
               <span
-                className={styles.s20}
+                className={styles.historyCardValue}
               >
                 Diária {fmtBRL(historicalComparison.comparableHosts.medianAdr)}
                 {" · "}
@@ -436,7 +436,7 @@ function ExplainerBody({
       )}
 
       {scenarios && scenarios.length > 0 && (
-        <section className={styles.s15}>
+        <section className={styles.detailSection}>
           <span className="urban-app-eyebrow-muted">Cenários</span>
           <ScenarioComparison scenarios={scenarios} />
         </section>
@@ -515,8 +515,8 @@ export function RecommendationCard({
 
   const priceBlock = (
     <div className="urban-rec__price">
-      <div className={styles.s4}>
-        <p className={`urban-app-eyebrow-muted ${styles.s21}`}>
+      <div className={styles.textColumn}>
+        <p className={`urban-app-eyebrow-muted ${styles.priceEyebrow}`}>
           Sugestão da IA
         </p>
         <p className="urban-app-display-md urban-rec__price-value">{fmtBRL(suggestedPrice)}</p>
@@ -571,8 +571,8 @@ export function RecommendationCard({
         <span aria-hidden className="urban-rec__why-icon">
           <Sparkles size={15} />
         </span>
-        <div className={styles.s4}>
-          <p className={`urban-app-eyebrow-muted ${styles.s21}`}>
+        <div className={styles.textColumn}>
+          <p className={`urban-app-eyebrow-muted ${styles.priceEyebrow}`}>
             Por que este preço?
           </p>
           <p className="urban-rec__why-text">
@@ -628,8 +628,8 @@ export function RecommendationCard({
 
           <div className="urban-app urban-rec-dialog__panel">
             <div className="urban-rec-dialog__header">
-              <div className={styles.s4}>
-                <p className={`urban-app-eyebrow-muted ${styles.s21}`}>
+              <div className={styles.textColumn}>
+                <p className={`urban-app-eyebrow-muted ${styles.priceEyebrow}`}>
                   Detalhes da sugestão
                 </p>
                 <h2 id="recommendation-detail-title" className="urban-rec-dialog__title">

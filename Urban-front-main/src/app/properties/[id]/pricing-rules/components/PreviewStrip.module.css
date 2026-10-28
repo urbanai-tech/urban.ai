@@ -1,4 +1,4 @@
-.s1.s1 {
+.placeholderBox.placeholderBox {
   height: 180px;
   border-radius: 12px;
   background: var(--app-surface-muted);
@@ -10,7 +10,7 @@
   font-size: 13px;
 }
 
-.s2.s2 {
+.previewCard.previewCard {
   background: var(--app-surface);
   border: 1px solid var(--app-divider);
   border-radius: 12px;
@@ -18,7 +18,7 @@
   position: relative;
 }
 
-.s3.s3 {
+.previewHeader.previewHeader {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -27,11 +27,11 @@
   margin-bottom: 18px;
 }
 
-.s4.s4 {
+.headerTitleBlock.headerTitleBlock {
   min-width: 0;
 }
 
-.s5.s5 {
+.eyebrow.eyebrow {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 1.5px;
@@ -40,7 +40,7 @@
   margin: 0;
 }
 
-.s6.s6 {
+.headline.headline {
   margin: 6px 0 0;
   font-size: 16px;
   font-weight: 600;
@@ -48,19 +48,19 @@
   letter-spacing: -0.2px;
 }
 
-.s7.s7 {
+.headlineMuted.headlineMuted {
   color: var(--app-text-muted);
   font-weight: 400;
   font-size: 14px;
 }
 
-.s8.s8 {
+.headerStatus.headerStatus {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.s9.s9 {
+.statusText.statusText {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 1px;
@@ -68,7 +68,7 @@
   color: var(--app-text-muted);
 }
 
-.s10.s10 {
+.deltaBadge.deltaBadge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -79,19 +79,19 @@
   border: 1px solid;
 }
 
-.s11.s11 {
+.deltaBadgePositive.deltaBadgePositive {
   border-color: color-mix(in srgb, var(--app-accent, var(--admin-accent)) 25%, transparent);
   color: var(--app-accent);
   background: var(--app-accent-soft);
 }
 
-.s12.s12 {
+.deltaBadgeNegative.deltaBadgeNegative {
   border-color: var(--app-divider-strong);
   color: var(--app-text);
   background: var(--app-surface-muted);
 }
 
-.s13.s13 {
+.dayColumn.dayColumn {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -99,7 +99,7 @@
   min-width: 0;
 }
 
-.s14.s14 {
+.dayLabel.dayLabel {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.4px;
@@ -107,20 +107,20 @@
   text-align: center;
 }
 
-.s15.s15 {
+.dayLabelWeekend.dayLabelWeekend {
   color: var(--app-accent);
 }
 
-.s16.s16 {
+.dayLabelWeekday.dayLabelWeekday {
   color: var(--app-text-muted);
 }
 
-.s17.s17 {
+.dayNumber.dayNumber {
   color: var(--app-text);
   font-size: 11px;
 }
 
-.s18.s18 {
+.legendRow.legendRow {
   margin-top: 14px;
   display: flex;
   align-items: center;
@@ -130,12 +130,12 @@
   color: var(--app-text-muted);
 }
 
-.s19.s19 {
+.legendItem.legendItem {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
-.s20.s20 {
+.legendLabel.legendLabel {
   letter-spacing: 0.4px;
 }

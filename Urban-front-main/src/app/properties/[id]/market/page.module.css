@@ -1,41 +1,41 @@
-.s1.s1 {
+.loadingStack.loadingStack {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-.s2.s2 {
+.skeletonHero.skeletonHero {
   height: 200px;
   border-radius: 16px;
 }
 
-.s3.s3 {
+.skeletonStrip.skeletonStrip {
   height: 120px;
   border-radius: 12px;
 }
 
-.s4.s4 {
+.skeletonChart.skeletonChart {
   height: 360px;
   border-radius: 12px;
 }
 
-.s5.s5 {
+.periodSelectWrap.periodSelectWrap {
   flex: 0 0 220px;
   max-width: 220px;
   min-width: 0;
 }
 
-.s6.s6 {
+.contentStack.contentStack {
   display: flex;
   flex-direction: column;
   gap: 32px;
 }
 
-.s7.s7 {
+.sectionHeader.sectionHeader {
   margin-bottom: 16px;
 }
 
-.s8.s8 {
+.sectionTitle.sectionTitle {
   font-size: 18px;
   font-weight: 600;
   color: var(--app-text);
@@ -43,7 +43,7 @@
   letter-spacing: -0.2px;
 }
 
-.s9.s9 {
+.sectionSubtitle.sectionSubtitle {
   font-size: 13px;
   color: var(--app-text-muted);
   margin: 0;

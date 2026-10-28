@@ -116,7 +116,7 @@ const Register = () => {
       <div
         className={`urban-app ${styles.app}`}
       >
-        <p className={styles.registerText}>
+        <p className={styles.loadingText}>
           Carregando…
         </p>
       </div>
@@ -209,14 +209,14 @@ const Register = () => {
           alt="My Urban"
           fill
           priority
-          className={styles.registerBox}
+          className={styles.sideImage}
           sizes="50vw"
         />
         <div
-          className={styles.registerAbs}
+          className={styles.sideScrim}
         />
         <div
-          className={styles.registerAbsWhite}
+          className={styles.sideCaption}
         >
           <p
             className={`urban-app-eyebrow ${styles.appEyebrow}`}
@@ -224,7 +224,7 @@ const Register = () => {
             BEM-VINDO AO MY URBAN
           </p>
           <p
-            className={styles.registerText18}
+            className={styles.sideCaptionText}
           >
             Sugestões de preço, anúncios organizados e resultados acompanhados
             em um só lugar.
@@ -240,7 +240,7 @@ const Register = () => {
           className={`urban-enter ${styles.enter}`}
         >
           <div
-            className={styles.registerRow}
+            className={styles.logoRow}
           >
             <Image
               alt="My Urban"
@@ -248,7 +248,7 @@ const Register = () => {
               width={180}
               height={56}
               priority
-              className={styles.registerBoxHauto}
+              className={styles.logoImage}
             />
           </div>
 
@@ -267,7 +267,7 @@ const Register = () => {
           >
           <AppCard variant="elevated" className={styles.registerCard}>
             <div
-              className={styles.registerGrid}
+              className={styles.fieldGrid}
             >
               <AppInput
                 label="Nome de usuário"
@@ -284,7 +284,7 @@ const Register = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Seu e-mail"
                 autoComplete="email"
-                leftAddon={<span className={styles.registerLabel}>@</span>}
+                leftAddon={<span className={styles.emailAddon}>@</span>}
               />
               <PasswordField
                 label="Senha"
@@ -317,15 +317,15 @@ const Register = () => {
             </div>
 
             <div
-              className={styles.registerPanel}
+              className={styles.passwordRulesPanel}
             >
               <p
-                className={styles.registerText13}
+                className={styles.passwordRulesTitle}
               >
                 Regras da senha
               </p>
               <ul
-                className={styles.registerList}
+                className={styles.passwordRulesList}
                 aria-live="polite"
               >
                 {PASSWORD_RULES.map((rule) => (
@@ -338,11 +338,11 @@ const Register = () => {
                 <RuleRow ok={match} label="As senhas devem coincidir" />
               </ul>
               <p
-                className={styles.registerText12}
+                className={styles.strengthLine}
               >
                 Força:{" "}
                 <strong
-                  className={`${strength === "Forte" ? styles.registerStrongStrength : strength === "Média" ? styles.registerStrongStrengthWarningText : styles.registerStrongDefault}`}
+                  className={`${strength === "Forte" ? styles.strengthStrong : strength === "Média" ? styles.strengthMedium : styles.strengthWeak}`}
                 >
                   {strength}
                 </strong>
@@ -392,11 +392,11 @@ const Register = () => {
             </AppButton>
 
             <div
-              className={styles.registerRowMar14}
+              className={styles.loginLinkRow}
             >
               <Link
                 href="/login"
-                className={styles.registerBox13}
+                className={styles.loginLink}
               >
                 Já tem conta? Entrar
               </Link>
@@ -426,11 +426,11 @@ export default Register;
 function RuleRow({ ok, label }: { ok: boolean; label: string }) {
   return (
     <li
-      className={`${styles.ruleRowItem} ${ok ? styles.ruleRowItemOk : styles.ruleRowItemDefault}`}
+      className={`${styles.ruleRowItem} ${ok ? styles.ruleRowItemOk : styles.ruleRowItemPending}`}
     >
       <span
         aria-hidden
-        className={`${styles.ruleRowLabel} ${ok ? styles.ruleRowLabelOk : styles.ruleRowLabelDefault}`}
+        className={`${styles.ruleRowLabel} ${ok ? styles.ruleRowLabelOk : styles.ruleRowLabelPending}`}
       >
         {ok ? <Icons.Check size={10} /> : null}
       </span>

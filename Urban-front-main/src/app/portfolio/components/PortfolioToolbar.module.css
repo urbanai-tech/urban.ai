@@ -1,4 +1,4 @@
-.s1.s1 {
+.emptySelectionHint.emptySelectionHint {
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -8,7 +8,7 @@
   flex-wrap: wrap;
 }
 
-.s2.s2 {
+.selectionSummary.selectionSummary {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -18,13 +18,13 @@
   flex-wrap: wrap;
 }
 
-.s3.s3 {
+.selectedDatesLabel.selectedDatesLabel {
   color: var(--app-text-muted);
   font-size: 12px;
   font-weight: 500;
 }
 
-.s4.s4 {
+.clearButton.clearButton {
   background: transparent;
   border: none;
   color: var(--app-text-muted);
@@ -35,29 +35,29 @@
   border-radius: 4px;
 }
 
-.s5.s5 {
+.confirmationNote.confirmationNote {
   width: 100%;
   color: var(--app-text-muted);
   font-size: 12px;
   font-weight: 500;
 }
 
-.s6.s6 {
+.actionGroup.actionGroup {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.s7.s7 {
+.strategyMenuAnchor.strategyMenuAnchor {
   position: relative;
 }
 
-.s8.s8 {
+.strategyOptionLabel.strategyOptionLabel {
   font-weight: 600;
 }
 
-.s9.s9 {
+.strategyOptionHelper.strategyOptionHelper {
   display: block;
   font-size: 12px;
   color: var(--app-text-muted);
@@ -65,13 +65,13 @@
   margin-top: 2px;
 }
 
-.s10.s10 {
+.dropdownBackdrop.dropdownBackdrop {
   position: fixed;
   inset: 0;
   z-index: 40;
 }
 
-.s11.s11 {
+.dropdownItem.dropdownItem {
   background: transparent;
   border: none;
   text-align: left;
@@ -84,7 +84,7 @@
   transition: background 100ms;
 }
 
-.s15.s15 {
+.dropdownMenu.dropdownMenu {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;

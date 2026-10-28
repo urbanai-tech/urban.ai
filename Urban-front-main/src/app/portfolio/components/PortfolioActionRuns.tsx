@@ -90,7 +90,7 @@ export function PortfolioActionRuns({
             : "Registro operacional das simulações confirmadas e aplicações realizadas no portfólio."
         }
         actions={
-          <div className={styles.s1}>
+          <div className={styles.headerActions}>
             {viewAllHref && (
               <AppButton size="sm" variant="secondary" as="a" href={viewAllHref}>
                 Ver histórico
@@ -113,22 +113,22 @@ export function PortfolioActionRuns({
 
       {error ? (
         <div
-          className={styles.s2}
+          className={styles.errorMessage}
         >
           {error}
         </div>
       ) : loading ? (
-        <div className={styles.s3}>
+        <div className={styles.skeletonList}>
           {Array.from({ length: 3 }).map((_, index) => (
             <div
               key={index}
-              className={`urban-app-skeleton ${styles.s4}`}
+              className={`urban-app-skeleton ${styles.skeletonRow}`}
             />
           ))}
         </div>
       ) : visibleRuns.length === 0 ? (
         <div
-          className={styles.s5}
+          className={styles.emptyState}
         >
           <Icons.Info size={14} />
           <span>Nenhuma ação registrada para exibir ainda.</span>
@@ -136,26 +136,26 @@ export function PortfolioActionRuns({
       ) : (
         <div
           role="list"
-          className={styles.s6}
+          className={styles.runsList}
         >
           {visibleRuns.map((run) => (
             <div
               role="listitem"
               key={run.id}
-              className={styles.s7}
+              className={styles.runRow}
             >
-              <div className={styles.s8}>
+              <div className={styles.runContent}>
                 <div
-                  className={styles.s9}
+                  className={styles.runTitleRow}
                 >
-                  <strong className={styles.s10}>
+                  <strong className={styles.runTitle}>
                     {actionLabel(run.action)}
                   </strong>
                   <AppBadge kind={statusKind(run.status)}>{run.status ?? "registrado"}</AppBadge>
                   {run.auditLogId && <AppBadge kind="neutral">audit {run.auditLogId}</AppBadge>}
                 </div>
                 <p
-                  className={styles.s11}
+                  className={styles.runMeta}
                 >
                   {formatDateTime(run.createdAt)} - {appliedCount(run)} aplicado(s) -{" "}
                   {failedCount(run)} falha(s)
@@ -163,7 +163,7 @@ export function PortfolioActionRuns({
                 </p>
               </div>
               <code
-                className={styles.s12}
+                className={styles.runIdTag}
                 title={run.id}
               >
                 {run.id}

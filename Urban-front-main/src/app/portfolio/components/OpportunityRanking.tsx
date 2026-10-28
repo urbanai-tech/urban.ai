@@ -80,7 +80,7 @@ export function OpportunityRanking({
 
       {items.length === 0 ? (
         <div
-          className={styles.s1}
+          className={styles.emptyState}
         >
           <Icons.Check size={16} />
           <span>Nenhuma oportunidade clara nesta janela.</span>
@@ -88,7 +88,7 @@ export function OpportunityRanking({
       ) : (
         <div
           role="list"
-          className={styles.s2}
+          className={styles.rankingList}
         >
           {items.slice(0, 8).map((item, index) => {
             const selected = item.dates.some((date) =>
@@ -98,20 +98,20 @@ export function OpportunityRanking({
               <div
                 role="listitem"
                 key={item.id}
-                className={styles.s3}
+                className={styles.rankingRow}
               >
                 <div
-                  className={`urban-app-display ${styles.s4} ${selected ? styles.s5 : styles.s6}`}
+                  className={`urban-app-display ${styles.rankingPosition} ${selected ? styles.rankingPositionSelected : styles.rankingPositionIdle}`}
                 >
                   {index + 1}
                 </div>
 
-                <div className={styles.s7}>
+                <div className={styles.rankingContent}>
                   <div
-                    className={styles.s8}
+                    className={styles.rankingTitleRow}
                   >
                     <strong
-                      className={styles.s9}
+                      className={styles.rankingTitle}
                     >
                       {item.title}
                     </strong>
@@ -122,18 +122,18 @@ export function OpportunityRanking({
                   </div>
 
                   <p
-                    className={styles.s10}
+                    className={styles.rankingDescription}
                   >
                     {item.propertyName} · {formatDates(item.dates)}
                     {item.reason ? ` · ${item.reason}` : ""}
                   </p>
 
                   <div
-                    className={styles.s11}
+                    className={styles.rankingMetrics}
                   >
                     <span>
                       Lift:{" "}
-                      <strong className={styles.s12}>
+                      <strong className={styles.rankingMetricValue}>
                         {item.liftAmount != null
                           ? formatCurrency(item.liftAmount)
                           : formatPercent(item.liftPercent)}
@@ -141,19 +141,19 @@ export function OpportunityRanking({
                     </span>
                     <span>
                       Atual:{" "}
-                      <strong className={styles.s12}>
+                      <strong className={styles.rankingMetricValue}>
                         {formatCurrency(item.currentPrice)}
                       </strong>
                     </span>
                     <span>
                       Sugerido:{" "}
-                      <strong className={styles.s12}>
+                      <strong className={styles.rankingMetricValue}>
                         {formatCurrency(item.suggestedPrice)}
                       </strong>
                     </span>
                     <span>
                       Risco/conf.:{" "}
-                      <strong className={styles.s12}>
+                      <strong className={styles.rankingMetricValue}>
                         {formatPercent(item.risk)} / {formatPercent(item.confidence)}
                       </strong>
                     </span>

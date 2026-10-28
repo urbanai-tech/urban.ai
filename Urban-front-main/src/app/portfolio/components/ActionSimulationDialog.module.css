@@ -1,36 +1,36 @@
-.s1.s1 {
+.dialogBody.dialogBody {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-.s2.s2 {
+.actionSummaryRow.actionSummaryRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
 
-.s3.s3 {
+.actionLabel.actionLabel {
   color: var(--app-text);
 }
 
-.s4.s4 {
+.snapshotGrid.snapshotGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
 
-.s5.s5 {
+.failureList.failureList {
   margin: 0;
   padding-left: 18px;
 }
 
-.s6.s6 {
+.previewNotice.previewNotice {
   margin: 0;
 }
 
-.s7.s7 {
+.snapshotLabel.snapshotLabel {
   font-size: 11px;
   color: var(--app-text-muted);
   text-transform: uppercase;
@@ -38,7 +38,7 @@
   margin-bottom: 4px;
 }
 
-.s8.s8 {
+.snapshotValue.snapshotValue {
   color: var(--app-text);
   font-weight: 700;
   font-size: 15px;

@@ -242,7 +242,7 @@ export default function IntegrationsPage() {
   if (loading) {
     return (
       <AppPageShell maxWidth={900}>
-        <p className={styles.integrationsText}>Carregando…</p>
+        <p className={styles.loadingText}>Carregando…</p>
       </AppPageShell>
     );
   }
@@ -270,14 +270,14 @@ export default function IntegrationsPage() {
             subtitle={
               <>
                 No painel Stays, abra a área onde a Stays gera os códigos de acesso:{" "}
-                <strong className={styles.integrationsStrong}>
+                <strong className={styles.credentialsPath}>
                   App Center → Open API → Generate credentials
                 </strong>{" "}
                 e cole os dois códigos abaixo. O My Urban nunca vê sua senha da Stays.
               </>
             }
           />
-          <form onSubmit={handleConnect} className={styles.integrationsForm}>
+          <form onSubmit={handleConnect} className={styles.connectForm}>
             <AppInput
               label="Conta Stays"
               type="text"
@@ -310,7 +310,7 @@ export default function IntegrationsPage() {
             />
 
             <div
-              className={styles.integrationsRow}
+              className={styles.consentRow}
             >
               <input
                 id="stays-consent"
@@ -319,14 +319,14 @@ export default function IntegrationsPage() {
                 onChange={(e) => setConsent(e.target.checked)}
                 className={styles.staysConsent}
               />
-              <label htmlFor="stays-consent" className={styles.integrationsFieldLabel}>
+              <label htmlFor="stays-consent" className={styles.consentLabel}>
                 <strong>Ao conectar minha conta Stays, autorizo o My Urban a:</strong>
-                <ul className={styles.integrationsList}>
+                <ul className={styles.consentList}>
                   <li>Ler meus anúncios, calendário e histórico de reservas</li>
                   <li>Mostrar sugestões de preço e, se eu ativar o beta automático, aplicar mudanças permitidas nos meus anúncios</li>
                   <li>Armazenar esse histórico enquanto minha assinatura estiver ativa</li>
                 </ul>
-                <p className={styles.integrationsText12}>
+                <p className={styles.consentNote}>
                   Posso desconectar a qualquer momento — os dados vinculados ao Airbnb/Stays serão apagados em até 15 dias.
                 </p>
               </label>
@@ -335,7 +335,7 @@ export default function IntegrationsPage() {
             {submitError && (
               <div
                 role="alert"
-                className={styles.integrationsRow13}
+                className={styles.submitErrorBanner}
               >
                 <Icons.AlertCircle size={14} /> {submitError}
               </div>
@@ -358,11 +358,11 @@ export default function IntegrationsPage() {
         <>
           <AppCard variant="accent" className={styles.statusCard}>
             <div
-              className={styles.integrationsRowGap16}
+              className={styles.statusRow}
             >
-              <div className={styles.integrationsRowGap14}>
+              <div className={styles.statusInfo}>
                 <div
-                  className={styles.integrationsRowSuccess}
+                  className={styles.statusIcon}
                   aria-hidden
                 >
                   <Icons.Check size={18} />
@@ -370,11 +370,11 @@ export default function IntegrationsPage() {
                 <div>
                   <p className="urban-app-eyebrow-muted">CONEXÃO STAYS</p>
                   <p
-                    className={styles.integrationsText18}
+                    className={styles.statusTitle}
                   >
                     Conectada e ativa
                   </p>
-                  <p className={styles.integrationsTextTextMuted}>
+                  <p className={styles.statusSyncText}>
                     Última sincronização: {formatStaysDate(account?.lastSyncAt)}
                   </p>
                 </div>
@@ -393,7 +393,7 @@ export default function IntegrationsPage() {
 
           {/* === KPIs ===*/}
           <div
-            className={styles.integrationsGrid}
+            className={styles.kpiGrid}
           >
             <AppMetricCard
               label="Anúncios ativos"
@@ -434,7 +434,7 @@ export default function IntegrationsPage() {
             />
             <form
               onSubmit={handlePreviewPrice}
-              className={styles.integrationsFormCols}
+              className={styles.previewForm}
             >
               <AppSelect
                 label="Anúncio"
@@ -481,7 +481,7 @@ export default function IntegrationsPage() {
             {previewError && (
               <div
                 role="alert"
-                className={styles.integrationsPanel}
+                className={styles.previewErrorBanner}
               >
                 {previewError}
               </div>
@@ -489,7 +489,7 @@ export default function IntegrationsPage() {
 
             {previewResult && (
               <div
-                className={styles.integrationsGridCols}
+                className={styles.previewResultGrid}
               >
                 <PreviewStat label="Atual" value={formatCurrency(previewResult.previousPriceCents)} />
                 <PreviewStat label="Novo" value={formatCurrency(previewResult.newPriceCents)} />
@@ -516,7 +516,7 @@ export default function IntegrationsPage() {
                   value={previewResult.idempotentReplay ? "sim" : "não"}
                 />
                 {(previewResult.blockers.length > 0 || previewResult.warnings.length > 0) && (
-                  <div className={styles.integrationsStack}>
+                  <div className={styles.previewIssueList}>
                     {previewResult.blockers.map((item) => (
                       <PreviewIssue key={item.code} issue={item} tone="danger" />
                     ))}
@@ -530,12 +530,12 @@ export default function IntegrationsPage() {
           </AppCard>
 
           {/* === Listings detalhados === */}
-          <section className={styles.integrationsSection}>
-            <header className={styles.integrationsHeader}>
+          <section className={styles.listingsSection}>
+            <header className={styles.listingsHeader}>
               <div>
                 <p className="urban-app-eyebrow">ANÚNCIOS SINCRONIZADOS</p>
                 <h2
-                  className={styles.integrationsHeading}
+                  className={styles.listingsHeading}
                 >
                   {listings.length} {listings.length === 1 ? "anúncio" : "anúncios"} no total
                 </h2>
@@ -557,19 +557,19 @@ export default function IntegrationsPage() {
 
           {/* === Zona perigosa === */}
           <section
-            className={styles.integrationsSection2}
+            className={styles.dangerZoneSection}
           >
             <p className={`urban-app-eyebrow-muted ${styles.appEyebrowMuted}`}>
               AÇÃO SENSÍVEL
             </p>
             <div
-              className={styles.integrationsRowIntegrationsDanger03}
+              className={styles.disconnectRow}
             >
               <div>
-                <p className={styles.integrationsText14}>
+                <p className={styles.disconnectTitle}>
                   Desconectar conta Stays
                 </p>
-                <p className={styles.integrationsTextTight}>
+                <p className={styles.disconnectDescription}>
                   Desativa o modo automático em todos os imóveis. O My Urban deixa de alterar preços pela Stays.
                   Os dados Stays serão apagados em até 15 dias.
                 </p>
@@ -597,11 +597,11 @@ export default function IntegrationsPage() {
                   Desconectar Stays?
                 </h3>
                 <p
-                  className={styles.integrationsTextMar10}
+                  className={styles.disconnectDialogText}
                 >
                   O modo automático será desativado em todos os imóveis vinculados. Você pode reconectar a qualquer momento.
                 </p>
-                <div className={styles.integrationsRowGap10}>
+                <div className={styles.disconnectActions}>
                   <AppButton variant="ghost" onClick={() => setConfirmDisconnect(false)}>
                     Cancelar
                   </AppButton>
@@ -631,10 +631,10 @@ function PreviewStat({
     <div
       className={styles.previewStatPanel}
     >
-      <p className={styles.previewStatText}>
+      <p className={styles.previewStatLabel}>
         {label}
       </p>
-      <p className={`${styles.previewStatText14} ${styles[`previewStatTone${tone[0].toUpperCase()}${tone.slice(1)}`]}`}>
+      <p className={`${styles.previewStatValue} ${styles[`previewStatTone${tone[0].toUpperCase()}${tone.slice(1)}`]}`}>
         {value}
       </p>
     </div>

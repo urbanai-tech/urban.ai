@@ -104,17 +104,17 @@ export function EventDemandHeatmapPlaceholder({
     <AppCard as="section" variant="default" className={styles.heatmapCard}>
       <div
         data-testid="host-event-demand-heatmap-header"
-        className={styles.hostEventDemand}
+        className={styles.heatmapHeader}
       >
-        <div className={styles.eventDemandHeatmapPlaceholderBox}>
+        <div className={styles.shrinkableBlock}>
           <p className={`urban-app-eyebrow-muted ${styles.appEyebrowMuted}`}>
             HEATMAP DE DEMANDA
           </p>
-          <h3 className={styles.eventDemandHeatmapPlaceholderSubheading}>
+          <h3 className={styles.headerSubheading}>
             Regiões com maior potencial
           </h3>
         </div>
-        <div className={styles.eventDemandHeatmapPlaceholderRow}>
+        <div className={styles.headerBadgeRow}>
           <AppBadge kind={cellsWithStats.length > 0 ? "accent" : "neutral"}>
             {geoCells.length} {geoCells.length === 1 ? "célula geo" : "células geo"}
           </AppBadge>
@@ -132,15 +132,15 @@ export function EventDemandHeatmapPlaceholder({
       ) : (
         <>
           <div
-            className={`event-demand-heatmap-layout ${styles.eventDemandHeatmap}`}
+            className={`event-demand-heatmap-layout ${styles.heatmapLayout}`}
           >
             <div
-              className={`event-demand-heatmap-canvas ${styles.hostEventDemandDivider}`}
+              className={`event-demand-heatmap-canvas ${styles.heatmapCanvas}`}
               data-testid="host-event-demand-heatmap"
             >
               <div
                 aria-hidden
-                className={styles.eventDemandHeatmapPlaceholderAbs}
+                className={styles.canvasFrame}
               />
               <MapLabel citySummaries={citySummaries} />
               <HeatLegend />
@@ -162,7 +162,7 @@ export function EventDemandHeatmapPlaceholder({
                     <button
                       key={cell.cellId}
                       type="button"
-                      className={`event-demand-heatmap-cell ${styles.hostEventDemandR50}`}
+                      className={`event-demand-heatmap-cell ${styles.heatCell}`}
                       data-testid="host-event-demand-heatmap-cell"
                       data-region={cell.regionLabel}
                       data-cell-code={cell.cellCode}
@@ -171,18 +171,18 @@ export function EventDemandHeatmapPlaceholder({
                       aria-label={`${cell.regionLabel}, célula ${cell.cellCode}, score de demanda ${cell.score}, ${cell.affectedPropertiesCount} ${cell.affectedPropertiesCount === 1 ? "imóvel impactado" : "imóveis impactados"}`}
                       style={{ left: `${left}%`, top: `${top}%`, width: size, height: size, border: isSelected ? `2px solid ${color.text}` : `1px solid ${color.border}`, background: color.background, color: color.text, boxShadow: isSelected ? "0 0 0 5px var(--app-accent-soft), var(--app-shadow-overlay)" : "var(--app-shadow-elevated)" }}
                     >
-                      <span className={styles.eventDemandHeatmapPlaceholderLabel}>{cell.score || "-"}</span>
-                      <span className={styles.eventDemandHeatmapPlaceholderLabel10}>
+                      <span className={styles.heatCellScore}>{cell.score || "-"}</span>
+                      <span className={styles.heatCellLevel}>
                         {cell.affectedPropertiesCount === 1 ? "1 imóvel" : `${cell.affectedPropertiesCount} imóveis`}
                       </span>
                       <span
                         aria-hidden
-                        className={styles.eventDemandHeatmapPlaceholderLabel9}
+                        className={styles.heatCellRegionName}
                       >
                         {cell.cellKind === "h3" ? "h3" : "geo"}
                       </span>
                       <span
-                        className={`event-demand-heatmap-pin-label ${styles.eventDemandHeatmap11}`}
+                        className={`event-demand-heatmap-pin-label ${styles.heatCellPinLabel}`}
                       >
                         {cell.regionLabel}
                       </span>
@@ -194,9 +194,9 @@ export function EventDemandHeatmapPlaceholder({
 
             <div
               data-testid="host-event-demand-heatmap-region-panel"
-              className={styles.hostEventDemandGap12}
+              className={styles.regionPanel}
             >
-              <p className={styles.eventDemandHeatmapPlaceholderText}>
+              <p className={styles.panelTitle}>
                 Prioridade por região
               </p>
               {hotCells.length === 0 ? (
@@ -217,7 +217,7 @@ export function EventDemandHeatmapPlaceholder({
           </div>
 
           <div
-            className={`event-demand-heatmap-insights ${styles.eventDemandHeatmapCols}`}
+            className={`event-demand-heatmap-insights ${styles.insightsGrid}`}
           >
             <CityPotentialPanel citySummaries={citySummaries} />
             <ImpactedPropertiesPanel properties={propertySummaries} />
@@ -264,7 +264,7 @@ export function EventDemandHeatmapPlaceholder({
 function HeatmapLoadingState() {
   return (
     <AppCard as="section" variant="default" className={styles.loadingStateCard}>
-      <div data-testid="host-event-demand-heatmap-loading" role="status" aria-live="polite" className={styles.hostEventDemandGap14}>
+      <div data-testid="host-event-demand-heatmap-loading" role="status" aria-live="polite" className={styles.loadingContent}>
         <div className={styles.heatmapLoadingStateRow}>
           <div>
             <p className={`urban-app-eyebrow-muted ${styles.appEyebrowMuted}`}>
@@ -288,8 +288,8 @@ function HeatmapLoadingState() {
 function HeatmapErrorState({ error, onRetry }: { error: string; onRetry?: () => void }) {
   return (
     <AppCard as="section" variant="default" className={styles.errorStateCard}>
-      <div data-testid="host-event-demand-heatmap-error" className={styles.hostEventDemand2}>
-        <div className={styles.eventDemandHeatmapPlaceholderBox}>
+      <div data-testid="host-event-demand-heatmap-error" className={styles.errorHeaderRow}>
+        <div className={styles.shrinkableBlock}>
           <AppBadge kind="warn">Heatmap indisponível</AppBadge>
           <h3 className={styles.heatmapErrorStateSubheading}>
             Não conseguimos carregar as regiões agora
@@ -312,7 +312,7 @@ function HeatmapEmptyState() {
   return (
     <div
       data-testid="host-event-demand-heatmap-empty"
-      className={styles.hostEventDemandPad24}
+      className={styles.emptyStateCanvas}
     >
       <div className={styles.heatmapEmptyStateBox}>
         <Icons.MapPin size={24} className={styles.emptyStateIcon} />
@@ -332,7 +332,7 @@ function MapLabel({ citySummaries }: { citySummaries: CitySummary[] }) {
 
   return (
     <div
-      className={styles.mapLabelAbs}
+      className={styles.mapNoticeLabel}
     >
       <Icons.MapPin size={14} />
       {label}
@@ -350,19 +350,19 @@ function HeatLegend() {
   return (
     <div
       data-testid="host-event-demand-heatmap-legend"
-      className={styles.hostEventDemandGap10}
+      className={styles.heatLegend}
     >
       {items.map((item) => (
         <span
           key={item.label}
           className={styles.heatLegendLabel}
         >
-          <span className={styles.heatLegendLabelW8px} style={{ background: item.color }} />
+          <span className={styles.heatLegendDot} style={{ background: item.color }} />
           {item.label}
         </span>
       ))}
       <span
-        className={styles.heatLegendLabel11}
+        className={styles.heatLegendNote}
       >
         célula h3/geohash
       </span>
@@ -379,19 +379,19 @@ function RadarGridOverlay() {
         <span
           key={size}
           aria-hidden
-          className={styles.radarGridOverlayLabel} style={{ width: `${size}%` }}
+          className={styles.radarRing} style={{ width: `${size}%` }}
         />
       ))}
       <span
         aria-hidden
-        className={styles.radarGridOverlayLabelDivider}
+        className={styles.radarVerticalLine}
       />
       <span
         aria-hidden
-        className={styles.radarGridOverlayLabelH1px}
+        className={styles.radarHorizontalLine}
       />
       <span
-        className={`event-demand-heatmap-radar-label ${styles.eventDemandHeatmap10}`}
+        className={`event-demand-heatmap-radar-label ${styles.radarCaption}`}
       >
         Radar geo
       </span>
@@ -409,14 +409,14 @@ function NoGeoCanvas({
   return (
     <div
       data-testid="host-event-demand-heatmap-no-cells"
-      className={styles.hostEventDemandTextMuted}
+      className={styles.noGeoCanvas}
     >
       <div className={styles.noGeoCanvasBox}>
         <Icons.MapPin size={24} />
         <p className={styles.noGeoCanvasText}>
           Eventos sem célula geografica
         </p>
-        <p className={styles.noGeoCanvasText12}>
+        <p className={styles.noGeoCanvasHint}>
           {eventsWithoutGeo.length > 0 || cellsWithoutGeo > 0
             ? "Use a lista sem geo abaixo para priorizar enriquecimento de endereço e centro da célula."
             : "Há eventos no radar, mas o backend ainda não retornou células de heatmap."}
@@ -444,14 +444,14 @@ function RegionCard({
   return (
     <div
       data-testid="host-event-demand-heatmap-region-row"
-      className={`${styles.hostEventDemandPad12} ${selected ? styles.hostEventDemandSelected : styles.hostEventDemandDefault}`}
+      className={`${styles.regionCard} ${selected ? styles.regionCardSelected : styles.regionCardIdle}`}
     >
-      <div className={styles.regionCardRow}>
-        <div className={styles.eventDemandHeatmapPlaceholderBox}>
-          <p className={styles.regionCardText}>
+      <div className={styles.regionCardHeader}>
+        <div className={styles.shrinkableBlock}>
+          <p className={styles.regionCardName}>
             {cell.regionLabel}
           </p>
-          <p className={styles.regionCardText11}>
+          <p className={styles.regionCardSubtitle}>
             {cell.cityLabel} - {cell.dominantCategory ?? "mix de eventos"}
           </p>
           <CellCodePill cell={cell} />
@@ -466,14 +466,14 @@ function RegionCard({
       </div>
 
       {cell.impactedProperties.length > 0 && (
-        <p className={styles.regionCardTextTextMuted}>
+        <p className={styles.regionCardImpactNote}>
           Impacta {cell.impactedProperties.slice(0, 2).map((property) => property.name).join(", ")}
           {cell.impactedProperties.length > 2 ? ` +${cell.impactedProperties.length - 2}` : ""}.
         </p>
       )}
 
       {cell.topEvents.length > 0 && (
-        <div className={styles.regionCardRowGap6}>
+        <div className={styles.regionCardEventLinks}>
           {cell.topEvents.slice(0, 3).map((event) => (
             <button
               key={event.id}
@@ -481,7 +481,7 @@ function RegionCard({
               data-testid="host-event-demand-heatmap-event-link"
               onClick={() => onSelectEvent?.(event.id)}
               title={event.name}
-              className={styles.hostEventDemand11} style={{ background: selectedEventStyle(event.id, cell, selected), color: selected ? "var(--app-accent)" : "var(--app-text-muted)" }}
+              className={styles.regionCardEventLink} style={{ background: selectedEventStyle(event.id, cell, selected), color: selected ? "var(--app-accent)" : "var(--app-text-muted)" }}
             >
               {event.name}
             </button>
@@ -489,7 +489,7 @@ function RegionCard({
         </div>
       )}
 
-      <div className={styles.regionCardRowGap8}>
+      <div className={styles.regionCardActions}>
         <AppButton type="button" size="sm" variant="secondary" onClick={() => onSelectCell?.(cell)}>
           Selecionar
         </AppButton>
@@ -505,9 +505,9 @@ function RegionCard({
 
 function CellCodePill({ cell }: { cell: CellViewModel }) {
   return (
-    <p className={styles.cellCodePillText}>
-      <span className={styles.cellCodePillLabel}>{cellKindLabel(cell.cellKind)}</span>{" "}
-      <span className={styles.cellCodePillLabel2}>{cell.cellCode}</span>
+    <p className={styles.cellCodeLine}>
+      <span className={styles.cellCodeKind}>{cellKindLabel(cell.cellKind)}</span>{" "}
+      <span className={styles.cellCodeValue}>{cell.cellCode}</span>
       {!cell.hasGeo ? " - sem centro geo" : ""}
     </p>
   );
@@ -515,28 +515,28 @@ function CellCodePill({ cell }: { cell: CellViewModel }) {
 
 function CityPotentialPanel({ citySummaries }: { citySummaries: CitySummary[] }) {
   return (
-    <div data-testid="host-event-demand-heatmap-city-summary" className={styles.eventDemandHeatmapPlaceholderBox}>
-      <p className={styles.cityPotentialPanelText}>
+    <div data-testid="host-event-demand-heatmap-city-summary" className={styles.shrinkableBlock}>
+      <p className={styles.insightPanelTitle}>
         Potencial por cidade
       </p>
       {citySummaries.length === 0 ? (
         <CompactEmpty text="Nenhum evento com cidade disponível neste filtro." />
       ) : (
         <div
-          className={`event-demand-heatmap-city-grid ${styles.eventDemandHeatmapGap10}`}
+          className={`event-demand-heatmap-city-grid ${styles.citySummaryGrid}`}
         >
           {citySummaries.map((city) => (
             <div
               key={city.key}
-              className={styles.cityPotentialPanelPanel}
+              className={styles.citySummaryCard}
             >
-              <p className={styles.regionCardText}>
+              <p className={styles.regionCardName}>
                 {[city.city, city.state].filter(Boolean).join(" / ")}
               </p>
-              <p className={styles.cityPotentialPanelText18}>
+              <p className={styles.citySummaryValue}>
                 {formatCompactCurrencyFromCents(city.potentialCents)}
               </p>
-              <p className={styles.cityPotentialPanelText11}>
+              <p className={styles.citySummaryNote}>
                 {city.eventsCount} {city.eventsCount === 1 ? "evento" : "eventos"}, {city.impactedPropertiesCount} {city.impactedPropertiesCount === 1 ? "imóvel" : "imóveis"}, {city.highDemandEventsCount} alta demanda
                 {city.noGeoEventsCount > 0 ? `, ${city.noGeoEventsCount} sem geo` : ""}.
               </p>
@@ -554,28 +554,28 @@ function ImpactedPropertiesPanel({
   properties: Array<{ id: string; name: string; eventsCount: number; potentialCents: number; bestScore: number }>;
 }) {
   return (
-    <div data-testid="host-event-demand-heatmap-property-impact" className={styles.eventDemandHeatmapPlaceholderBox}>
-      <p className={styles.cityPotentialPanelText}>
+    <div data-testid="host-event-demand-heatmap-property-impact" className={styles.shrinkableBlock}>
+      <p className={styles.insightPanelTitle}>
         Imóveis mais expostos
       </p>
       {properties.length === 0 ? (
         <CompactEmpty text="Nenhum imóvel impactado retornado para os eventos deste filtro." />
       ) : (
-        <div className={styles.impactedPropertiesPanelGrid}>
+        <div className={styles.propertyList}>
           {properties.slice(0, 4).map((property) => (
             <div
               key={property.id}
-              className={styles.impactedPropertiesPanelGridSurfaceMuted}
+              className={styles.propertyRow}
             >
-              <span className={styles.eventDemandHeatmapPlaceholderBox}>
-                <span className={styles.impactedPropertiesPanelLabel}>
+              <span className={styles.shrinkableBlock}>
+                <span className={styles.propertyName}>
                   {property.name}
                 </span>
-                <span className={styles.impactedPropertiesPanelLabel11}>
+                <span className={styles.propertyMeta}>
                   {property.eventsCount} {property.eventsCount === 1 ? "evento" : "eventos"}, melhor score {property.bestScore || "-"}
                 </span>
               </span>
-              <span className={styles.impactedPropertiesPanelLabel12}>
+              <span className={styles.propertyValue}>
                 {formatCompactCurrencyFromCents(property.potentialCents)}
               </span>
             </div>
@@ -600,14 +600,14 @@ function MissingGeoPanel({
   return (
     <div
       data-testid="host-event-demand-heatmap-missing-geo"
-      className={styles.hostEventDemandSurfaceMuted}
+      className={styles.missingGeoPanel}
     >
-      <div className={styles.missingGeoPanelRow}>
-        <div className={styles.eventDemandHeatmapPlaceholderBox}>
-          <p className={styles.eventDemandHeatmapPlaceholderText}>
+      <div className={styles.missingGeoHeader}>
+        <div className={styles.shrinkableBlock}>
+          <p className={styles.panelTitle}>
             Eventos sem geolocalização confiável
           </p>
-          <p className={styles.missingGeoPanelText}>
+          <p className={styles.missingGeoHint}>
             Eles entram no potencial por cidade, mas não aparecem como bolha no mapa até receberem latitude e longitude.
           </p>
         </div>
@@ -618,17 +618,17 @@ function MissingGeoPanel({
         {events.slice(0, 4).map((event) => (
           <div
             key={event.id}
-            className={styles.missingGeoPanelRowSurface}
+            className={styles.missingGeoCell}
           >
-            <span className={styles.eventDemandHeatmapPlaceholderBox}>
-              <span className={styles.impactedPropertiesPanelLabel}>
+            <span className={styles.shrinkableBlock}>
+              <span className={styles.propertyName}>
                 {event.name}
               </span>
-              <span className={styles.impactedPropertiesPanelLabel11}>
+              <span className={styles.propertyMeta}>
                 {event.city || "Cidade não informada"} - {formatCompactCurrencyFromCents(event.eventRevenuePotentialCents)}
               </span>
             </span>
-            <div className={styles.missingGeoPanelRowGap6}>
+            <div className={styles.missingGeoCellMetrics}>
               <AppButton type="button" size="sm" variant="secondary" onClick={() => onSelectEvent?.(event.id)}>
                 Selecionar
               </AppButton>
@@ -647,11 +647,11 @@ function MissingGeoPanel({
 
 function MiniMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className={styles.eventDemandHeatmapPlaceholderBox}>
-      <p className={styles.miniMetricText}>
+    <div className={styles.shrinkableBlock}>
+      <p className={styles.miniMetricLabel}>
         {label}
       </p>
-      <p className={styles.miniMetricText12}>
+      <p className={styles.miniMetricValue}>
         {value}
       </p>
     </div>

@@ -112,7 +112,7 @@ export function PortfolioToolbar({
       >
         {!hasSelection ? (
           <div
-            className={styles.s1}
+            className={styles.emptySelectionHint}
           >
             <Icons.Info size={14} />
             <span>Selecione imóveis ou datas recomendadas para agir.</span>
@@ -125,7 +125,7 @@ export function PortfolioToolbar({
         ) : (
           <>
             <div
-              className={styles.s2}
+              className={styles.selectionSummary}
             >
               <span
                 aria-hidden
@@ -151,7 +151,7 @@ export function PortfolioToolbar({
               </span>
               {selectedDatesCount > 0 && (
                 <span
-                  className={styles.s3}
+                  className={styles.selectedDatesLabel}
                 >
                   {selectedDatesCount} data{selectedDatesCount > 1 ? "s" : ""} marcada
                   {selectedDatesCount > 1 ? "s" : ""}
@@ -163,13 +163,13 @@ export function PortfolioToolbar({
                   onClick={onClearSelection}
                   disabled={loading}
                   aria-label="Limpar selecao"
-                  className={`urban-focus-ring ${styles.s4}`}
+                  className={`urban-focus-ring ${styles.clearButton}`}
                 >
                   limpar
                 </button>
               )}
               <span
-                className={styles.s5}
+                className={styles.confirmationNote}
               >
                 Toda ação abre uma prévia antes de confirmar.
               </span>
@@ -177,10 +177,10 @@ export function PortfolioToolbar({
 
             <div
               data-portfolio-actions
-              className={styles.s6}
+              className={styles.actionGroup}
             >
               {priceMode ? (
-                <div className={styles.s6}>
+                <div className={styles.actionGroup}>
                   <AppInput
                     leftAddon="R$"
                     placeholder={priceMode === "base" ? "320" : "420"}
@@ -211,7 +211,7 @@ export function PortfolioToolbar({
                 </div>
               ) : (
                 <>
-                  <div className={styles.s7}>
+                  <div className={styles.strategyMenuAnchor}>
                     <AppButton
                       size="sm"
                       variant="primary"
@@ -228,9 +228,9 @@ export function PortfolioToolbar({
                             key={strategy.id}
                             onClick={() => handleStrategy(strategy.id)}
                           >
-                            <span className={styles.s8}>{strategy.label}</span>
+                            <span className={styles.strategyOptionLabel}>{strategy.label}</span>
                             <span
-                              className={styles.s9}
+                              className={styles.strategyOptionHelper}
                             >
                               {strategy.helper}
                             </span>
@@ -326,12 +326,12 @@ function Dropdown({
     <>
       <div
         onClick={onClose}
-        className={styles.s10}
+        className={styles.dropdownBackdrop}
         aria-hidden
       />
       <div
         role="menu"
-        className={styles.s15}
+        className={styles.dropdownMenu}
       >
         {children}
       </div>
@@ -351,7 +351,7 @@ function DropdownItem({
       type="button"
       role="menuitem"
       onClick={onClick}
-      className={`urban-focus-ring ${styles.s11}`}
+      className={`urban-focus-ring ${styles.dropdownItem}`}
       onMouseEnter={(e) => {
         e.currentTarget.style.background = "var(--app-surface-muted, #F4F5F7)";
       }}

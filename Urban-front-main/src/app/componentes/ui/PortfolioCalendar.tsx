@@ -262,16 +262,16 @@ function StyledCheckbox({
   return (
     <label
       htmlFor={id}
-      className={styles.s1}
+      className={styles.checkboxLabel}
     >
       <span
         aria-hidden="true"
-        className={`${styles.s2} ${visualChecked ? styles.s3 : styles.s4}`}
+        className={`${styles.checkboxBox} ${visualChecked ? styles.checkboxBoxChecked : styles.checkboxBoxUnchecked}`}
       >
         {checked && <Check size={12} />}
         {!checked && indeterminate && (
           <span
-            className={styles.s5}
+            className={styles.checkboxIndeterminateBar}
           />
         )}
       </span>
@@ -282,7 +282,7 @@ function StyledCheckbox({
         checked={checked}
         onChange={onChange}
         aria-label={label}
-        className={styles.s6}
+        className={styles.checkboxNativeInput}
       />
     </label>
   );
@@ -305,18 +305,18 @@ function SkeletonRow({ top }: { top: number }) {
       }}
     >
       <div
-        className={`urban-app-skeleton ${styles.s7}`}
+        className={`urban-app-skeleton ${styles.skeletonAvatar}`}
       />
-      <div className={styles.s8}>
+      <div className={styles.skeletonTextColumn}>
         <div
-          className={`urban-app-skeleton ${styles.s9}`}
+          className={`urban-app-skeleton ${styles.skeletonTitleLine}`}
         />
         <div
-          className={`urban-app-skeleton ${styles.s10}`}
+          className={`urban-app-skeleton ${styles.skeletonSubtitleLine}`}
         />
       </div>
       <div
-        className={`urban-app-skeleton ${styles.s11}`}
+        className={`urban-app-skeleton ${styles.skeletonBlock}`}
       />
     </div>
   );
@@ -483,7 +483,7 @@ export function PortfolioCalendar({
         role="status"
         aria-busy="true"
         aria-label="Carregando portfólio"
-        className={styles.s12}
+        className={styles.loadingCard}
       >
         <div
           style={{
@@ -496,7 +496,7 @@ export function PortfolioCalendar({
           }}
         >
           <div
-            className={`urban-app-skeleton ${styles.s13}`}
+            className={`urban-app-skeleton ${styles.skeletonHeaderLine}`}
           />
         </div>
         <div
@@ -550,12 +550,12 @@ export function PortfolioCalendar({
   // ============================================================
   if (isMobile) {
     return (
-      <div className={styles.s14}>
+      <div className={styles.mobileList}>
         {/* Topbar com select-all */}
         <div
-          className={styles.s15}
+          className={styles.mobileSelectAllBar}
         >
-          <div className={styles.s16}>
+          <div className={styles.selectAllGroup}>
             <StyledCheckbox
               id="portfolio-select-all-mobile"
               checked={allSelected}
@@ -564,7 +564,7 @@ export function PortfolioCalendar({
               label="Selecionar todos os imóveis"
             />
             <span
-              className={styles.s17}
+              className={styles.selectAllCount}
             >
               {selectedPropertyIds.size} de {data.length} imóveis
             </span>
@@ -577,10 +577,10 @@ export function PortfolioCalendar({
           return (
             <article
               key={prop.propertyId}
-              className={`${styles.s18} ${isActiveRow ? styles.s19 : styles.s20}`}
+              className={`${styles.mobilePropertyCard} ${isActiveRow ? styles.mobilePropertyCardActive : styles.mobilePropertyCardIdle}`}
             >
               <header
-                className={styles.s21}
+                className={styles.mobilePropertyHeader}
               >
                 <StyledCheckbox
                   id={`portfolio-mobile-${prop.propertyId}`}
@@ -589,14 +589,14 @@ export function PortfolioCalendar({
                   label={`Selecionar ${prop.name}`}
                 />
                 <PropertyThumb thumbnail={prop.thumbnail} name={prop.name} />
-                <div className={styles.s22}>
+                <div className={styles.propertyInfo}>
                   <div
-                    className={styles.s23}
+                    className={styles.mobilePropertyName}
                   >
                     {prop.name}
                   </div>
                   <div
-                    className={styles.s24}
+                    className={styles.mobilePropertyMeta}
                   >
                     {prop.days.length} dias na janela
                   </div>
@@ -605,7 +605,7 @@ export function PortfolioCalendar({
 
               <div
                 role="list"
-                className={styles.s25}
+                className={styles.mobileDayStrip}
               >
                 {prop.days.map((day) => {
                   const isActive =
@@ -665,7 +665,7 @@ export function PortfolioCalendar({
                       {isSelectedDay && (
                         <span
                           aria-hidden="true"
-                          className={styles.s26}
+                          className={styles.mobileSelectedCheck}
                         >
                           <Check size={10} />
                         </span>
@@ -673,16 +673,16 @@ export function PortfolioCalendar({
                       {day.evento && (
                         <span
                           aria-hidden="true"
-                          className={`${styles.s27} ${day.evento.impacto === "alta" ? styles.s28 : styles.s29}`}
+                          className={`${styles.impactDot} ${day.evento.impacto === "alta" ? styles.impactDotHigh : styles.impactDotLow}`}
                         />
                       )}
                       <span
-                        className={styles.s30}
+                        className={styles.mobileDayLabel}
                       >
                         {fmtWeekday(day.date)} {fmtDayMonth(day.date)}
                       </span>
                       <span
-                        className={`urban-app-display ${styles.s31} ${day.sugestao !== null ? styles.s32 : styles.s33}`}
+                        className={`urban-app-display ${styles.mobileDayPrice} ${day.sugestao !== null ? styles.textAccent : styles.textMuted}`}
                       >
                         {day.sugestao !== null
                           ? fmtBRLShort(day.sugestao)
@@ -690,7 +690,7 @@ export function PortfolioCalendar({
                       </span>
                       {day.evento && (
                         <span
-                          className={styles.s34}
+                          className={styles.mobileDayEventName}
                         >
                           {day.evento.nome}
                         </span>
@@ -715,7 +715,7 @@ export function PortfolioCalendar({
 
   return (
     <div
-      className={styles.s35}
+      className={styles.desktopGridCard}
     >
       {/* ===== HEADER STICKY ===== */}
       <div
@@ -750,7 +750,7 @@ export function PortfolioCalendar({
             label="Selecionar todos os imóveis"
           />
           <span
-            className={styles.s36}
+            className={styles.headerSelectAllCount}
           >
             {selectedPropertyIds.size} de {data.length} imóveis
           </span>
@@ -759,7 +759,7 @@ export function PortfolioCalendar({
         {/* Header direito scrollável (datas) */}
         <div
           ref={headerScrollRef}
-          className={styles.s37}
+          className={styles.headerDatesScroller}
         >
           <div
             style={{
@@ -795,11 +795,11 @@ export function PortfolioCalendar({
                     letterSpacing: 0.3,
                   }}
                 >
-                  <span className={styles.s38}>
+                  <span className={styles.headerWeekday}>
                     {fmtWeekday(d)}
                   </span>
                   <span
-                    className={`${styles.s39} ${isActiveCol ? styles.s32 : styles.s40}`}
+                    className={`${styles.headerDayMonth} ${isActiveCol ? styles.textAccent : styles.textDefault}`}
                   >
                     {fmtDayMonth(d)}
                   </span>
@@ -814,7 +814,7 @@ export function PortfolioCalendar({
       <div
         ref={bodyScrollRef}
         onScroll={handleBodyScroll}
-        className={styles.s41}
+        className={styles.bodyScroller}
       >
         <div
           style={{
@@ -876,15 +876,15 @@ export function PortfolioCalendar({
                     label={`Selecionar ${prop.name}`}
                   />
                   <PropertyThumb thumbnail={prop.thumbnail} name={prop.name} />
-                  <div className={styles.s22}>
+                  <div className={styles.propertyInfo}>
                     <div
-                      className={styles.s42}
+                      className={styles.desktopPropertyName}
                       title={prop.name}
                     >
                       {prop.name}
                     </div>
                     <div
-                      className={styles.s43}
+                      className={styles.desktopPropertyRate}
                     >
                       {prop.days[0]
                         ? `${fmtBRLFull(prop.days[0].atual)} / diária`
@@ -951,7 +951,7 @@ export function PortfolioCalendar({
                       {isSelectedDay && (
                         <span
                           aria-hidden="true"
-                          className={styles.s44}
+                          className={styles.desktopSelectedCheck}
                         >
                           <Check size={10} />
                         </span>
@@ -960,7 +960,7 @@ export function PortfolioCalendar({
                         <>
                           <span
                             aria-hidden="true"
-                            className={`${styles.s27} ${day.evento!.impacto === "alta" ? styles.s28 : styles.s29}`}
+                            className={`${styles.impactDot} ${day.evento!.impacto === "alta" ? styles.impactDotHigh : styles.impactDotLow}`}
                           />
                           <span
                             aria-hidden="true"
@@ -998,20 +998,20 @@ export function PortfolioCalendar({
                       )}
                       {day.sugestao !== null ? (
                         <span
-                          className={`urban-app-display ${styles.s45}`}
+                          className={`urban-app-display ${styles.cellSuggestedPrice}`}
                         >
                           {fmtBRLShort(day.sugestao)}
                         </span>
                       ) : day.atual > 0 ? (
                         <span
-                          className={`urban-app-display ${styles.s46}`}
+                          className={`urban-app-display ${styles.cellCurrentPrice}`}
                         >
                           {fmtBRLShort(day.atual)}
                         </span>
                       ) : (
                         <span
                           aria-label="sem preço"
-                          className={styles.s47}
+                          className={styles.cellNoPriceDash}
                         >
                           —
                         </span>

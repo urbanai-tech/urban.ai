@@ -1,15 +1,15 @@
-.eventImpactTableText.eventImpactTableText {
+.emptyStateText.emptyStateText {
   margin: 0;
   color: var(--app-text-muted);
   font-size: 14px;
 }
 
-.hostEventImpact.hostEventImpact {
+.tableScroll.tableScroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-.eventImpactTableTable.eventImpactTableTable {
+.impactTable.impactTable {
   width: 100%;
   min-width: 900px;
   border-collapse: separate;
@@ -18,7 +18,7 @@
   color: var(--app-text);
 }
 
-.eventImpactTableHeadCell.eventImpactTableHeadCell {
+.headerCell.headerCell {
   text-align: left;
   padding: 0 12px 10px;
   color: var(--app-text-muted);
@@ -30,42 +30,42 @@
   white-space: nowrap;
 }
 
-.eventImpactTableGrid.eventImpactTableGrid {
+.propertyCell.propertyCell {
   display: grid;
   gap: 4px;
   min-width: 0;
 }
 
-.eventImpactTableLabel.eventImpactTableLabel {
+.propertyName.propertyName {
   overflow-wrap: anywhere;
 }
 
-.eventImpactTableLabel2.eventImpactTableLabel2 {
+.recommendedPrice.recommendedPrice {
   font-weight: 750;
 }
 
-.eventImpactTableLabelTextMuted.eventImpactTableLabelTextMuted {
+.recommendedMultiplier.recommendedMultiplier {
   color: var(--app-text-muted);
   margin-left: 6px;
 }
 
-.cellCell.cellCell {
+.bodyCell.bodyCell {
   padding: 14px 12px;
   border-bottom: 1px solid var(--app-divider);
   vertical-align: middle;
 }
 
-.cellCellStrong.cellCellStrong {
+.bodyCellStrong.bodyCellStrong {
   font-weight: 700;
   white-space: normal;
 }
 
-.cellCellDefault.cellCellDefault {
+.bodyCellDefault.bodyCellDefault {
   font-weight: 500;
   white-space: nowrap;
 }
 
-.eventImpactMobile.eventImpactMobile {
+.mobileHeader.mobileHeader {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -73,11 +73,11 @@
   flex-wrap: wrap;
 }
 
-.impactMobileCardBox.impactMobileCardBox {
+.mobileTitleBlock.mobileTitleBlock {
   min-width: 0;
 }
 
-.impactMobileCardText.impactMobileCardText {
+.mobilePropertyName.mobilePropertyName {
   margin: 0;
   color: var(--app-text);
   font-size: 14px;
@@ -85,21 +85,21 @@
   overflow-wrap: anywhere;
 }
 
-.impactMobileCardRow.impactMobileCardRow {
+.mobileBadgeRow.mobileBadgeRow {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   margin-top: 8px;
 }
 
-.eventImpactMobileCols.eventImpactMobileCols {
+.mobileMetricsGrid.mobileMetricsGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-top: 14px;
 }
 
-.mobileMetricText.mobileMetricText {
+.mobileMetricLabel.mobileMetricLabel {
   margin: 0 0 3px;
   color: var(--app-text-muted);
   font-size: 10px;
@@ -108,7 +108,7 @@
   text-transform: uppercase;
 }
 
-.mobileMetricText13.mobileMetricText13 {
+.mobileMetricValue.mobileMetricValue {
   margin: 0;
   color: var(--app-text);
   font-size: 13px;

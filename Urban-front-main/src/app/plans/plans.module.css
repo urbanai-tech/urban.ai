@@ -7,7 +7,7 @@
   justify-content: center;
 }
 
-.plansText.plansText {
+.loadingText.loadingText {
   font-size: 11px;
   letter-spacing: 3px;
   text-transform: uppercase;
@@ -36,7 +36,7 @@
   transform: translateX(-50%);
 }
 
-.plansBox.plansBox {
+.heroInner.heroInner {
   position: relative;
   z-index: 2;
   max-width: 1280px;
@@ -57,7 +57,7 @@
   text-transform: uppercase;
 }
 
-.plansText18.plansText18 {
+.heroSubtitle.heroSubtitle {
   font-size: 18px;
   font-weight: 400;
   line-height: 1.75;
@@ -66,21 +66,21 @@
   margin-top: 40px;
 }
 
-.plansBoxDivider.plansBoxDivider {
+.sectionDivider.sectionDivider {
   height: 1px;
   background: var(--app-divider);
 }
 
-.plansSection.plansSection {
+.catalogSection.catalogSection {
   padding: 80px 24px;
 }
 
-.plansBoxCentered.plansBoxCentered {
+.catalogInner.catalogInner {
   max-width: 1280px;
   margin: 0 auto;
 }
 
-.plansBox2.plansBox2 {
+.catalogHeader.catalogHeader {
   position: relative;
   margin-bottom: 56px;
 }
@@ -94,7 +94,7 @@
   text-transform: uppercase;
 }
 
-.plansText16.plansText16 {
+.emptyPlansText.emptyPlansText {
   font-size: 16px;
   color: var(--app-text-muted);
   max-width: 580px;
@@ -106,17 +106,17 @@
   gap: 24px;
 }
 
-.plansSectionCompact.plansSectionCompact {
+.footerSection.footerSection {
   padding: 60px 24px 100px;
 }
 
-.plansBox3.plansBox3 {
+.footerInner.footerInner {
   max-width: 880px;
   margin: 0 auto;
   text-align: center;
 }
 
-.plansText14.plansText14 {
+.footerNote.footerNote {
   font-size: 14px;
   font-weight: 400;
   line-height: 1.75;

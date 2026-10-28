@@ -217,7 +217,7 @@ function PropertyValue({ option }: { option: Option }) {
   return (
     <span style={valueShellStyle}>
       <PropertyThumb option={option} size={30} />
-      <span className={styles.s1}>
+      <span className={styles.valueText}>
         <span title={option.primary} style={valuePrimaryStyle}>
           {option.primary}
         </span>
@@ -235,7 +235,7 @@ function PropertyMenuOption({ option }: { option: Option }) {
   return (
     <div style={menuOptionStyle}>
       <PropertyThumb option={option} size={44} />
-      <span className={styles.s2}>
+      <span className={styles.optionText}>
         <span title={option.primary} style={menuPrimaryStyle}>
           {option.primary}
         </span>

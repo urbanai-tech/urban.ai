@@ -1,10 +1,10 @@
-.s1.s1 {
+.valueText.valueText {
   min-width: 0;
   display: grid;
   gap: 1px;
 }
 
-.s2.s2 {
+.optionText.optionText {
   min-width: 0;
   flex: 1;
 }

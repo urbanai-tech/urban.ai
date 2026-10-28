@@ -1,8 +1,8 @@
-.s1.s1 {
+.miniChartSvg.miniChartSvg {
   display: block;
 }
 
-.s2.s2 {
+.switchTrack.switchTrack {
   width: 40px;
   height: 22px;
   border-radius: 999px;
@@ -13,27 +13,27 @@
   padding: 0;
 }
 
-.s3.s3 {
+.switchOn.switchOn {
   border-color: var(--app-accent);
   background: var(--app-accent);
 }
 
-.s4.s4 {
+.switchOff.switchOff {
   border-color: var(--app-divider-strong);
   background: var(--app-surface);
 }
 
-.s5.s5 {
+.controlDisabled.controlDisabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
 
-.s6.s6 {
+.controlEnabled.controlEnabled {
   cursor: pointer;
   opacity: 1;
 }
 
-.s7.s7 {
+.cardHeaderRow.cardHeaderRow {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -43,17 +43,17 @@
   flex-wrap: wrap;
 }
 
-.s8.s8 {
+.switchWrap.switchWrap {
   display: flex;
   align-items: center;
 }
 
-.s9.s9 {
+.ruleInfo.ruleInfo {
   flex: 1 1 220px;
   min-width: 0;
 }
 
-.s10.s10 {
+.ruleTitle.ruleTitle {
   margin: 0;
   font-size: 15px;
   font-weight: 600;
@@ -61,14 +61,14 @@
   letter-spacing: -0.1px;
 }
 
-.s11.s11 {
+.ruleDescription.ruleDescription {
   margin: 4px 0 0;
   font-size: 13px;
   color: var(--app-text-muted);
   line-height: 1.45;
 }
 
-.s12.s12 {
+.miniChartGroup.miniChartGroup {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -76,15 +76,15 @@
   gap: 4px;
 }
 
-.s13.s13 {
+.stateEnabled.stateEnabled {
   opacity: 1;
 }
 
-.s14.s14 {
+.stateDimmed.stateDimmed {
   opacity: 0.4;
 }
 
-.s15.s15 {
+.simulatedBadge.simulatedBadge {
   align-self: flex-end;
   padding: 2px 6px;
   border-radius: 999px;
@@ -97,7 +97,7 @@
   text-transform: uppercase;
 }
 
-.s16.s16 {
+.chevron.chevron {
   display: inline-flex;
   width: 28px;
   height: 28px;
@@ -108,31 +108,31 @@
   flex-shrink: 0;
 }
 
-.s17.s17 {
+.chevronOpen.chevronOpen {
   transform: rotate(180deg);
 }
 
-.s18.s18 {
+.chevronClosed.chevronClosed {
   transform: rotate(0deg);
 }
 
-.s19.s19 {
+.cardBody.cardBody {
   padding: 8px 20px 22px;
   border-top: 1px solid var(--app-divider);
 }
 
-.s20.s20 {
+.paramsGrid.paramsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 18px;
   margin-top: 14px;
 }
 
-.s21.s21 {
+.exampleDetails.exampleDetails {
   margin-top: 18px;
 }
 
-.s23.s23 {
+.exampleText.exampleText {
   margin-top: 10px;
   font-size: 13px;
   line-height: 1.55;
@@ -140,7 +140,7 @@
   max-width: 680px;
 }
 
-.s24.s24 {
+.paramHeader.paramHeader {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -148,7 +148,7 @@
   margin-bottom: 8px;
 }
 
-.s25.s25 {
+.paramLabel.paramLabel {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 1.2px;
@@ -156,23 +156,23 @@
   color: var(--app-text-muted);
 }
 
-.s26.s26 {
+.paramValue.paramValue {
   font-size: 15px;
   font-weight: 600;
   color: var(--app-text);
   font-variant-numeric: tabular-nums;
 }
 
-.s27.s27 {
+.rangeInput.rangeInput {
   width: 100%;
   accent-color: var(--app-accent);
 }
 
-.s29.s29 {
+.numberInputDisabled.numberInputDisabled {
   opacity: 0.5;
 }
 
-.s30.s30 {
+.paramHelper.paramHelper {
   margin: 6px 0 0;
   font-size: 11px;
   color: var(--app-text-muted);

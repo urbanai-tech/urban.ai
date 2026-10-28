@@ -64,7 +64,7 @@ export function PreviewStrip({
   if (loading) {
     return (
       <div
-        className={styles.s1}
+        className={styles.placeholderBox}
       >
         Calculando preview…
       </div>
@@ -74,7 +74,7 @@ export function PreviewStrip({
   if (!data || !summary) {
     return (
       <div
-        className={styles.s1}
+        className={styles.placeholderBox}
       >
         Ative pelo menos uma regra pra ver o impacto nos próximos 14 dias.
       </div>
@@ -85,45 +85,45 @@ export function PreviewStrip({
 
   return (
     <div
-      className={styles.s2}
+      className={styles.previewCard}
     >
       <header
-        className={styles.s3}
+        className={styles.previewHeader}
       >
-        <div className={styles.s4}>
+        <div className={styles.headerTitleBlock}>
           <p
-            className={styles.s5}
+            className={styles.eyebrow}
           >
             Preview · próximos 14 dias
           </p>
           <h3
-            className={styles.s6}
+            className={styles.headline}
           >
             {formatCurrency(summary.rules)} <span
-              className={styles.s7}
+              className={styles.headlineMuted}
             >
               vs {formatCurrency(summary.base)} sem regras
             </span>
           </h3>
         </div>
-        <div className={styles.s8}>
+        <div className={styles.headerStatus}>
           {loadingPreview && (
             <span
               aria-live="polite"
-              className={styles.s9}
+              className={styles.statusText}
             >
               Atualizando…
             </span>
           )}
           {!loadingPreview && staleSeconds !== null && (
             <span
-              className={styles.s9}
+              className={styles.statusText}
             >
               Atualizado há {staleSeconds}s
             </span>
           )}
           <span
-            className={`${styles.s10} ${deltaPositive ? styles.s11 : styles.s12}`}
+            className={`${styles.deltaBadge} ${deltaPositive ? styles.deltaBadgePositive : styles.deltaBadgeNegative}`}
           >
             {deltaPositive ? "+" : ""}
             {summary.deltaPct.toFixed(1)}%
@@ -152,7 +152,7 @@ export function PreviewStrip({
           return (
             <div
               key={day.date}
-              className={styles.s13}
+              className={styles.dayColumn}
               title={`${label.weekday} ${label.day} • base ${formatCurrency(day.basePrice)} • com regras ${formatCurrency(day.rulesPrice)} (${up ? "+" : ""}${deltaPct.toFixed(1)}%)`}
             >
               <svg
@@ -184,11 +184,11 @@ export function PreviewStrip({
                 />
               </svg>
               <span
-                className={`${styles.s14} ${label.isWeekend ? styles.s15 : styles.s16}`}
+                className={`${styles.dayLabel} ${label.isWeekend ? styles.dayLabelWeekend : styles.dayLabelWeekday}`}
               >
                 {label.weekday}
                 <br />
-                <span className={styles.s17}>{label.day}</span>
+                <span className={styles.dayNumber}>{label.day}</span>
               </span>
             </div>
           );
@@ -196,7 +196,7 @@ export function PreviewStrip({
       </div>
 
       <footer
-        className={styles.s18}
+        className={styles.legendRow}
       >
         <LegendDot color="var(--app-divider-strong)" label="Preço base (sem regras)" />
         <LegendDot color="var(--app-accent)" label="Preço com regras ativas" />
@@ -207,7 +207,7 @@ export function PreviewStrip({
 
 function LegendDot({ color, label }: { color: string; label: string }) {
   return (
-    <span className={styles.s19}>
+    <span className={styles.legendItem}>
       <span
         style={{
           width: 10,
@@ -217,7 +217,7 @@ function LegendDot({ color, label }: { color: string; label: string }) {
           display: "inline-block",
         }}
       />
-      <span className={styles.s20}>{label}</span>
+      <span className={styles.legendLabel}>{label}</span>
     </span>
   );
 }

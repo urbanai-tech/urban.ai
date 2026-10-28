@@ -1,4 +1,4 @@
-.s1.s1 {
+.heroRow.heroRow {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -6,7 +6,7 @@
   flex-wrap: wrap;
 }
 
-.s2.s2 {
+.heroHeadline.heroHeadline {
   font-size: clamp(64px, 9vw, 96px);
   line-height: 0.95;
   color: var(--app-text);
@@ -14,11 +14,11 @@
   letter-spacing: -1px;
 }
 
-.s3.s3 {
+.heroPercentile.heroPercentile {
   color: var(--app-accent);
 }
 
-.s4.s4 {
+.heroDescription.heroDescription {
   font-size: 16px;
   line-height: 1.55;
   color: var(--app-text-muted);
@@ -26,6 +26,6 @@
   margin: 0;
 }
 
-.s5.s5 {
+.heroEmphasis.heroEmphasis {
   color: var(--app-text);
 }
