@@ -10,6 +10,8 @@ import {
   MinLength,
 } from 'class-validator';
 import { TERMS_VERSION } from './terms.constants';
+import { MaxUtf8Bytes } from '../common/max-utf8-bytes.validator';
+import { BCRYPT_MAX_PASSWORD_BYTES, PASSWORD_TOO_LONG_MESSAGE } from './password-hashing';
 
 export class RegisterDto {
   @ApiProperty({ minLength: 2, maxLength: 80, example: 'Lucas' })
@@ -27,11 +29,12 @@ export class RegisterDto {
   @ApiProperty({
     minLength: 8,
     maxLength: 128,
-    description: 'Senha em texto puro (trafega so sob TLS; o hash e feito no servidor).',
+    description: 'Ate 72 bytes UTF-8 (limite do bcrypt). Senha em texto puro (trafega so sob TLS; o hash e feito no servidor).',
   })
   @IsString()
   @MinLength(8)
   @MaxLength(128)
+  @MaxUtf8Bytes(BCRYPT_MAX_PASSWORD_BYTES, { message: PASSWORD_TOO_LONG_MESSAGE })
   password: string;
 
   @ApiProperty({

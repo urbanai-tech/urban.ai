@@ -993,6 +993,17 @@ describe('AuthService', () => {
       await expect(verifyPassword(sha256('Senha123!'), upgraded)).resolves.toMatchObject({ ok: false });
     });
 
+    it('logs a legacy user with a > 72-byte password in but keeps the legacy row (cannot be stored as v2)', async () => {
+      const long = 'senha-longa-'.repeat(8); // 96 bytes
+      userRepo.findOne!.mockResolvedValue({
+        id: 'u1', username: 'Ana', email: 'a@test.com', password: await bcrypt.hash(sha256(long), 4), ativo: true,
+      });
+      await expect(service.login('a@test.com', long)).resolves.toEqual(
+        expect.objectContaining({ accessToken: 'signed.jwt.token' }),
+      );
+      expect(userRepo.save).not.toHaveBeenCalled();
+    });
+
     it('rejects a wrong plain password for both legacy and v2 rows', async () => {
       userRepo.findOne!
         .mockResolvedValueOnce({ id: 'u1', username: 'Ana', email: 'a@test.com', password: await bcrypt.hash(sha256('Senha123!'), 4), ativo: true })

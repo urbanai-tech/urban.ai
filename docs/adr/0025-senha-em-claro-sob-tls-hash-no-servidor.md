@@ -9,9 +9,10 @@ O front calculava `sha256hex(senha)` no navegador (`crypto.subtle`, bytes UTF-8,
 ## Decisão
 
 1. **O cliente envia a senha em texto puro**, só sob TLS (login, cadastro, convite da waitlist, reset, troca de e-mail, exclusão de conta). Nenhum hash no navegador.
-2. **Esquema v2 no servidor** (`src/auth/password-hashing.ts`): `pw:v2:` + `bcrypt(12)` de `base64(HMAC-SHA256("urban-ai/password/v2", senha))`.
-   - O pré-hash no servidor resolve o limite de 72 bytes do bcrypt: a entrada do bcrypt tem sempre 44 bytes ASCII, sem NUL. Nenhuma senha é truncada nem recusada; a política continua 8–128 caracteres.
-   - A chave do HMAC é uma constante de separação de domínio, **não** um segredo: não há pepper a guardar ou rotacionar. Um pepper secreto seria um v3 futuro.
+2. **Esquema v2 no servidor** (`src/auth/password-hashing.ts`): `pw:v2:` + `bcrypt(12)` da senha em texto puro, sem pré-hash.
+   - **Limite de 72 bytes do bcrypt, tratado às claras**: o bcrypt ignora o que passa de 72 bytes. Todo campo que *define* senha (cadastro `RegisterDto`, convite `AcceptWaitlistInviteDto`, admin `UpdateUserDto`, redefinição `UpdatePass`) tem `@MaxUtf8Bytes(72)` (`src/common/max-utf8-bytes.validator.ts`) com mensagem em pt-BR, além das regras de 8–128 caracteres, que continuam. Os bytes contam em UTF-8: acentos ocupam 2 bytes e emojis 4. `hashPasswordV2` lança erro acima de 72 bytes (defesa em profundidade), e `verifyPassword` recusa uma senha > 72 bytes contra linha v2, para não aceitar por truncamento.
+   - O login, a troca de e-mail e a exclusão de conta **não** limitam bytes: senhas legadas longas precisam continuar entrando.
+   - Um pré-hash no servidor (HMAC/SHA-256 antes do bcrypt) evitaria o limite, mas foi descartado: é um hash rápido sobre a senha, que o CodeQL (`js/insufficient-password-hash`) aponta, e o ganho (senhas > 72 bytes) não compensa.
 3. **Marcador por prefixo, sem migration de schema.** O esquema viaja junto com o hash, na mesma coluna (`varchar(255)`; o v2 ocupa 66). Escolhido em vez de uma coluna `passwordScheme` porque:
    - não há como o hash e o marcador ficarem dessincronizados (qualquer escrita que esqueça a coluna criaria uma linha inconsistente);
    - não há ordem de deploy (migration antes do código), nem migration a reverter;
@@ -20,7 +21,8 @@ O front calculava `sha256hex(senha)` no navegador (`crypto.subtle`, bytes UTF-8,
    - `bcrypt(sha256hex(senha))`: o servidor calcula o sha256 da senha recebida em claro e compara;
    - `bcrypt(senha)` (senha definida pelo admin pela tela antiga): compara direto;
    - `sha256hex(senha)` puro (contas muito antigas): compara com `timingSafeEqual`.
-   Ao entrar com a senha em claro, a linha é regravada em v2 (melhor esforço; falha ao regravar não derruba o login).
+   Ao entrar com a senha em claro, a linha é regravada em v2 (melhor esforço; falha ao regravar não derruba o login). Se essa senha legada passar de 72 bytes, o login funciona mas a linha **fica legada** (não cabe em v2).
+   - O SHA-256 legado fica isolado em uma função, `legacyClientDigest` em `password-hashing.ts`, usada só para conferir linhas legadas e nunca para gravar. O alerta CodeQL `js/insufficient-password-hash` nesse ponto é esperado e deve ser dispensado com esta justificativa: sem ele, todo usuário antigo teria de redefinir a senha.
 5. **Janela de compatibilidade para bundle antigo em cache.** Até `2026-11-30T03:00:00Z` (constante `LEGACY_CLIENT_HASH_DEFAULT_UNTIL`; a variável `AUTH_LEGACY_CLIENT_HASH_UNTIL` aceita outra data ISO ou `off`):
    - um hex de 64 caracteres é aceito como credencial **só em linha legada**, sem regravar (não temos a senha em claro). Linha v2 **nunca** aceita o hex;
    - em cadastro, convite ou reset feitos pelo bundle antigo, o hex é gravado no formato legado `bcrypt(hex)`, para que o próximo login com a senha em claro funcione e migre a linha.

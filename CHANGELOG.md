@@ -13,7 +13,8 @@ primeiro.
 
 - **A senha trafega em claro sob TLS e é hasheada só no servidor** ([ADR 0025](docs/adr/0025-senha-em-claro-sob-tls-hash-no-servidor.md)).
   O front deixava de mandar a senha e mandava `sha256hex(senha)`, que virava a própria credencial (pass-the-hash).
-  Esquema novo `pw:v2:` + bcrypt(12) de HMAC-SHA256 da senha (sem limite de 72 bytes); contas antigas entram com a
+  Esquema novo `pw:v2:` + bcrypt(12) da senha; senhas novas limitadas a 72 bytes UTF-8 (limite do bcrypt, mensagem
+  clara no cadastro/reset/convite/admin, sem truncamento silencioso); contas antigas entram com a
   senha em claro e são regravadas em v2 no login, sem reset. O sha256 hex de um bundle antigo em cache ainda vale só
   para contas não migradas até 2026-11-30 (`AUTH_LEGACY_CLIENT_HASH_UNTIL`, aceita `off`). Sem migration de banco.
 

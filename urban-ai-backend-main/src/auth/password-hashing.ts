@@ -7,17 +7,18 @@ import * as crypto from 'crypto';
  * O cliente envia a senha em texto puro (sob TLS) e TODO hash acontece aqui.
  *
  * Formatos que podem estar em `user.password`:
- *  - v2 (atual):  `pw:v2:` + bcrypt(12) de base64(HMAC-SHA256(PASSWORD_V2_DOMAIN, senha)).
- *    O pré-hash no servidor resolve o limite de 72 bytes do bcrypt (sempre 44 bytes
- *    ASCII, sem NUL) sem truncar nem recusar senhas longas. O HMAC usa uma chave
- *    fixa de separação de domínio, não um segredo: não há pepper para gerenciar.
+ *  - v2 (atual):  `pw:v2:` + bcrypt(12) da senha em texto puro.
+ *    O bcrypt só usa os primeiros 72 bytes: senhas acima disso são RECUSADAS ao
+ *    definir (DTOs com @MaxUtf8Bytes e defesa aqui) e nunca conferem contra v2,
+ *    para não haver aceitação por truncamento.
  *  - legado bcrypt: bcrypt de sha256hex(senha) — o que o front antigo mandava —
  *    ou, em contas definidas pelo admin, bcrypt da senha em texto puro.
  *  - legado sha256: sha256hex(senha) puro (contas muito antigas).
  *  - `google_*`: conta só Google, nunca autentica por senha.
  *
  * Login de conta legada com a senha em texto puro: o servidor calcula o sha256,
- * valida e regrava em v2 (migração transparente, sem reset forçado).
+ * valida e regrava em v2 (migração transparente, sem reset forçado). Se essa
+ * senha passar de 72 bytes, a linha fica legada (não dá para gravá-la em v2).
  *
  * Janela de compatibilidade: um bundle antigo em cache ainda manda sha256hex(senha).
  * Até LEGACY_CLIENT_HASH_DEFAULT_UNTIL (ou AUTH_LEGACY_CLIENT_HASH_UNTIL), um
@@ -28,7 +29,10 @@ import * as crypto from 'crypto';
 
 export const BCRYPT_ROUNDS = 12;
 export const PASSWORD_V2_PREFIX = 'pw:v2:';
-const PASSWORD_V2_DOMAIN = 'urban-ai/password/v2';
+/** Limite do bcrypt: bytes além disso seriam ignorados em silêncio. */
+export const BCRYPT_MAX_PASSWORD_BYTES = 72;
+export const PASSWORD_TOO_LONG_MESSAGE =
+  'A senha pode ter no máximo 72 bytes (cerca de 72 letras sem acento; acentos e emojis ocupam mais). Use uma senha um pouco menor.';
 const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/i;
 const BCRYPT_REGEX = /^\$2[aby]\$/;
 
@@ -55,6 +59,15 @@ export function isPasswordV2(value: unknown): value is string {
   return typeof value === 'string' && value.startsWith(PASSWORD_V2_PREFIX);
 }
 
+export function passwordByteLength(password: string): number {
+  return Buffer.byteLength(password, 'utf8');
+}
+
+/** A senha cabe inteira no bcrypt (≤ 72 bytes UTF-8)? */
+export function fitsBcrypt(password: string): boolean {
+  return passwordByteLength(password) <= BCRYPT_MAX_PASSWORD_BYTES;
+}
+
 /** Hash armazenado que custa um bcrypt para verificar (v2 ou bcrypt legado). */
 export function isSlowPasswordHash(value: unknown): boolean {
   return isPasswordV2(value) || isBcryptHash(value);
@@ -75,15 +88,18 @@ export function isLegacyClientHashAccepted(
   return now.getTime() < until;
 }
 
-function sha256Hex(value: string): string {
-  // Só para comparar com o formato legado (o front antigo fazia exatamente isto:
-  // SHA-256 dos bytes UTF-8, hex minúsculo). Nunca é o formato gravado em v2.
-  return crypto.createHash('sha256').update(value, 'utf8').digest('hex'); // lgtm[js/insufficient-password-hash]
-}
-
-function preHashV2(password: string): string {
-  // Pré-hash rápido só para caber no bcrypt (72 bytes); o custo vem do bcrypt(12) por cima.
-  return crypto.createHmac('sha256', PASSWORD_V2_DOMAIN).update(password, 'utf8').digest('base64'); // lgtm[js/insufficient-password-hash]
+/**
+ * SÓ PARA LINHAS LEGADAS — não é hash de armazenamento.
+ *
+ * Reproduz o que o front antigo fazia no navegador (SHA-256 dos bytes UTF-8, hex
+ * minúsculo) para conferir senhas gravadas como bcrypt(sha256hex(senha)) ou
+ * sha256hex(senha). É inerente à migração dessas linhas: sem isto, todo usuário
+ * antigo precisaria redefinir a senha. O resultado nunca é gravado; quem confere
+ * com sucesso é regravado em v2 (bcrypt da senha). Alerta CodeQL
+ * js/insufficient-password-hash aqui é esperado (ADR 0025).
+ */
+function legacyClientDigest(password: string): string {
+  return crypto.createHash('sha256').update(password, 'utf8').digest('hex');
 }
 
 function safeEqualHex(a: string, b: string): boolean {
@@ -92,9 +108,12 @@ function safeEqualHex(a: string, b: string): boolean {
   return left.length === right.length && crypto.timingSafeEqual(left, right);
 }
 
-/** Hash v2 de uma senha em texto puro. */
+/** Hash v2 de uma senha em texto puro. Recusa > 72 bytes (o bcrypt truncaria). */
 export async function hashPasswordV2(password: string, rounds: number = BCRYPT_ROUNDS): Promise<string> {
-  return PASSWORD_V2_PREFIX + (await bcrypt.hash(preHashV2(password), rounds));
+  if (!fitsBcrypt(password)) {
+    throw new RangeError(`Senha acima de ${BCRYPT_MAX_PASSWORD_BYTES} bytes não pode ser gravada.`);
+  }
+  return PASSWORD_V2_PREFIX + (await bcrypt.hash(password, rounds));
 }
 
 /**
@@ -102,6 +121,7 @@ export async function hashPasswordV2(password: string, rounds: number = BCRYPT_R
  * Durante a janela, um hex de 64 caracteres vem do bundle antigo (é o sha256 da
  * senha): grava no formato legado bcrypt(hex), para que o login seguinte com a
  * senha em claro funcione e migre a linha para v2. Fora da janela, é senha comum.
+ * Lança RangeError para senha > 72 bytes (defesa em profundidade: os DTOs já recusam).
  */
 export async function hashPasswordForStorage(input: string, now: Date = new Date()): Promise<string> {
   if (isSha256Hex(input) && isLegacyClientHashAccepted(now)) {
@@ -124,19 +144,23 @@ export async function verifyPassword(
 
   if (isPasswordV2(storedHash)) {
     // Linha v2: só a senha em claro. Um sha256hex do front antigo não passa aqui.
-    const ok = await bcrypt.compare(preHashV2(submitted), storedHash.slice(PASSWORD_V2_PREFIX.length));
+    // > 72 bytes nunca confere: o bcrypt ignoraria o excedente (aceitação por truncamento).
+    if (!fitsBcrypt(submitted)) return FAIL;
+    const ok = await bcrypt.compare(submitted, storedHash.slice(PASSWORD_V2_PREFIX.length));
     return { ok, needsRehash: false };
   }
 
   const submittedIsHex = isSha256Hex(submitted);
   const legacyWindow = submittedIsHex && isLegacyClientHashAccepted(now);
+  // Senha legada > 72 bytes confere, mas não cabe em v2: a linha fica legada.
+  const upgradable = fitsBcrypt(submitted);
 
   if (isBcryptHash(storedHash)) {
     // bcrypt(sha256hex(senha)): o servidor calcula o sha256 da senha em claro.
-    if (await bcrypt.compare(sha256Hex(submitted), storedHash)) return { ok: true, needsRehash: true };
+    if (await bcrypt.compare(legacyClientDigest(submitted), storedHash)) return { ok: true, needsRehash: upgradable };
     // bcrypt(senha) definido pelo admin. Um hex de 64 não entra aqui fora da
     // janela: senão o próprio sha256hex vazado seria aceito contra bcrypt(sha256hex).
-    if (!submittedIsHex && (await bcrypt.compare(submitted, storedHash))) return { ok: true, needsRehash: true };
+    if (!submittedIsHex && (await bcrypt.compare(submitted, storedHash))) return { ok: true, needsRehash: upgradable };
     // Janela: bundle antigo mandando sha256hex. Sem a senha em claro não há como migrar.
     if (legacyWindow && (await bcrypt.compare(submitted.toLowerCase(), storedHash))) {
       return { ok: true, needsRehash: false };
@@ -145,7 +169,7 @@ export async function verifyPassword(
   }
 
   if (isSha256Hex(storedHash)) {
-    if (safeEqualHex(sha256Hex(submitted), storedHash)) return { ok: true, needsRehash: true };
+    if (safeEqualHex(legacyClientDigest(submitted), storedHash)) return { ok: true, needsRehash: upgradable };
     if (legacyWindow && safeEqualHex(submitted, storedHash)) return { ok: true, needsRehash: false };
     return FAIL;
   }

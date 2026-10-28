@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { hashPasswordV2, isCurrentPasswordHash } = require('./password-hash-v2');
+const { BCRYPT_MAX_PASSWORD_BYTES, fitsBcrypt, hashPasswordV2, isCurrentPasswordHash } = require('./password-hash-v2');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -47,6 +47,9 @@ function assertPlaintextPassword(name, password) {
   }
   if (HEX_64.test(password)) {
     throw new Error(`${name} must be the plaintext test password, not a SHA-256 digest.`);
+  }
+  if (!fitsBcrypt(password)) {
+    throw new Error(`${name} must have at most ${BCRYPT_MAX_PASSWORD_BYTES} bytes (bcrypt limit).`);
   }
   if (/^(password|changeme|urbanai|admin123)/i.test(password)) {
     throw new Error(`${name} is too weak for staging fixtures.`);

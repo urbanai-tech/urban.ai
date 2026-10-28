@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const mysql = require('mysql2/promise');
-const { hashPasswordV2, isCurrentPasswordHash } = require('./password-hash-v2');
+const { BCRYPT_MAX_PASSWORD_BYTES, fitsBcrypt, hashPasswordV2, isCurrentPasswordHash } = require('./password-hash-v2');
 
 function enabled(value) {
   return String(value || '').trim().toLowerCase() === 'true';
@@ -103,6 +103,11 @@ function loadUsers() {
 
   if (missing.length) {
     throw new Error(`[staging-smoke-users] incomplete user config: ${missing.join(', ')}`);
+  }
+
+  const tooLong = enabledUsers.filter((user) => !fitsBcrypt(user.password)).map((user) => `${user.role}:password`);
+  if (tooLong.length) {
+    throw new Error(`[staging-smoke-users] passwords over ${BCRYPT_MAX_PASSWORD_BYTES} bytes (bcrypt limit): ${tooLong.join(', ')}`);
   }
 
   if (!enabledUsers.length) {

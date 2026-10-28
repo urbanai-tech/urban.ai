@@ -1,6 +1,7 @@
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import {
+  BCRYPT_MAX_PASSWORD_BYTES,
   LEGACY_CLIENT_HASH_DEFAULT_UNTIL,
   PASSWORD_V2_PREFIX,
   hashPasswordForStorage,
@@ -56,11 +57,27 @@ describe('password-hashing (esquema v2 + compatibilidade legada)', () => {
       await expect(verifyPassword(sha256('Senha123!'), stored)).resolves.toEqual({ ok: false, needsRehash: false });
     });
 
-    it('does not truncate at bcrypt 72 bytes: long passwords differing only after byte 72 do not collide', async () => {
-      const base = 'á'.repeat(40); // 80 bytes UTF-8
-      const stored = await hashPasswordV2(`${base}A`, 4);
-      await expect(verifyPassword(`${base}A`, stored)).resolves.toMatchObject({ ok: true });
-      await expect(verifyPassword(`${base}B`, stored)).resolves.toMatchObject({ ok: false });
+    it('is bcrypt of the plain password itself (no pre-hash)', async () => {
+      const stored = await hashPasswordV2('Senha123!', 4);
+      expect(await bcrypt.compare('Senha123!', stored.slice(PASSWORD_V2_PREFIX.length))).toBe(true);
+    });
+
+    it('accepts exactly 72 bytes and refuses to store more (counted in UTF-8 bytes, not characters)', async () => {
+      const exactly72 = 'á'.repeat(36); // 36 caracteres, 72 bytes
+      const stored = await hashPasswordV2(exactly72, 4);
+      await expect(verifyPassword(exactly72, stored)).resolves.toMatchObject({ ok: true });
+
+      expect(BCRYPT_MAX_PASSWORD_BYTES).toBe(72);
+      await expect(hashPasswordV2(`${exactly72}a`, 4)).rejects.toBeInstanceOf(RangeError); // 73 bytes, 37 chars
+      await expect(hashPasswordForStorage('a'.repeat(73))).rejects.toBeInstanceOf(RangeError);
+    });
+
+    it('never accepts a > 72-byte submission against a v2 row (no acceptance by truncation)', async () => {
+      const base = 'a'.repeat(72);
+      const stored = await hashPasswordV2(base, 4);
+      // bcrypt puro aceitaria isto (ignora o que passa de 72 bytes); o v2 recusa.
+      expect(await bcrypt.compare(`${base}EXTRA`, stored.slice(PASSWORD_V2_PREFIX.length))).toBe(true);
+      await expect(verifyPassword(`${base}EXTRA`, stored)).resolves.toEqual({ ok: false, needsRehash: false });
     });
   });
 
@@ -76,6 +93,12 @@ describe('password-hashing (esquema v2 + compatibilidade legada)', () => {
       expect(sha256('abc')).toBe('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
       const stored = await bcrypt.hash(sha256('Sênha#çã😀'), 4);
       await expect(verifyPassword('Sênha#çã😀', stored)).resolves.toMatchObject({ ok: true, needsRehash: true });
+    });
+
+    it('a legacy password over 72 bytes still logs in but keeps the legacy row (no rehash)', async () => {
+      const long = 'senha-longa-'.repeat(8); // 96 bytes
+      await expect(verifyPassword(long, await bcrypt.hash(sha256(long), 4))).resolves.toEqual({ ok: true, needsRehash: false });
+      await expect(verifyPassword(long, sha256(long))).resolves.toEqual({ ok: true, needsRehash: false });
     });
 
     it('bcrypt(plain) set by an admin: plain password verifies and asks for rehash', async () => {
@@ -145,6 +168,11 @@ describe('password-hashing (esquema v2 + compatibilidade legada)', () => {
       const fromServer = await hashPasswordV2('Fixture#Senha2026', 4);
       await expect(scriptHelper.isCurrentPasswordHash('Fixture#Senha2026', fromServer)).resolves.toBe(true);
       await expect(scriptHelper.isCurrentPasswordHash('outra', fromServer)).resolves.toBe(false);
+      // Mesmo limite de 72 bytes nos dois lados.
+      expect(scriptHelper.BCRYPT_MAX_PASSWORD_BYTES).toBe(BCRYPT_MAX_PASSWORD_BYTES);
+      await expect(scriptHelper.hashPasswordV2('a'.repeat(73), 4)).rejects.toBeInstanceOf(RangeError);
+      const at72 = await hashPasswordV2('b'.repeat(72), 4);
+      await expect(scriptHelper.isCurrentPasswordHash(`${'b'.repeat(72)}X`, at72)).resolves.toBe(false);
       // Linha legada não conta como atual: o script regrava em v2.
       await expect(
         scriptHelper.isCurrentPasswordHash('Fixture#Senha2026', await bcrypt.hash(sha256('Fixture#Senha2026'), 4)),
